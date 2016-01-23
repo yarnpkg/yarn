@@ -1,0 +1,50 @@
+{
+  "name": "kpm",
+  "version": "0.0.0",
+  "preferGlobal": true,
+  "dependencies": {
+    "babel-runtime": "^6.0.0",
+    "chalk": "^1.1.1",
+    "cmd-shim": "^2.0.1",
+    "commander": "^2.9.0",
+    "invariant": "^2.2.0",
+    "lockfile": "^1.0.1",
+    "lodash": "^3.10.1",
+    "loud-rejection": "^1.2.0",
+    "mkdirp": "^0.5.1",
+    "ncp": "^2.0.0",
+    "node-emoji": "^1.0.4",
+    "node-gyp": "^3.2.1",
+    "progress": "^1.1.8",
+    "request": "^2.67.0",
+    "rimraf": "^2.5.0",
+    "semver": "^5.1.0",
+    "strip-bom": "^2.0.0",
+    "tar": "^2.2.1",
+    "through2": "^2.0.0",
+    "user-home": "^2.0.0"
+  },
+  "devDependencies": {
+    "ava": "^0.10.0",
+    "babel-eslint": "^4.1.6",
+    "babel-preset-node5": "^10.2.0",
+    "babel-preset-react": "^6.0.0",
+    "babel-preset-stage-0": "^6.0.0",
+    "eslint": "^1.10.3",
+    "eslint-plugin-flow-vars": "^0.1.3",
+    "flow-bin": "0.20.1",
+    "gulp": "^3.9.0",
+    "gulp-babel": "^6.0.0",
+    "gulp-newer": "^1.0.0",
+    "gulp-plumber": "^1.0.1",
+    "gulp-util": "^3.0.7",
+    "gulp-watch": "^4.3.5"
+  },
+  "bin": {
+    "kpm": "./bin/kpm.js",
+    "🐴": "./bin/kpm.js"
+  },
+  "scripts": {
+    "test": "make test"
+  }
+}
