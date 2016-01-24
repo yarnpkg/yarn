@@ -1,6 +1,6 @@
 <p align="center">
   <a href="https://facebook.github.io/kpm">
-    <img alt="kpm" src="https://raw.githubusercontent.com/facebook/kpm/master/assets/logo.png?token=AA0G0JW1RjnznIQs7n3PdF_eAUWcpAdlks5WredEwA%3D%3D" width="546">
+    <img alt="kpm" src="https://github.com/facebook/kpm/blob/master/assets/logo.png?raw=true" width="546">
   </a>
 </p>
 
