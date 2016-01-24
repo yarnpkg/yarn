@@ -1,6 +1,6 @@
 # kpm
 
-alternate CommonJS package manager focused on security and performance.
+alternate npm and bower client focused on security and performance.
 
 ## Features
 
