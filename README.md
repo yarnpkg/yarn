@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-  alternate npm and bower client focused on security and performance.
+  alternate npm and bower client focused on performance and security.
 </p>
 
 <p align="center">
