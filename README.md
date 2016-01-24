@@ -16,8 +16,7 @@
 
 ## Features
 
-**General**
-
+ * More emojis. :horse:
  * Blazing fast.
  * Dependency deduping.
  * Ability to manually resolve version conflicts so only a single version per package exists.
@@ -73,6 +72,7 @@ $ kpm install your-package
 
 Ordered by priority.
 
+ * Emoji
  * Security/integrity
  * Network performance/relability
  * Runtime performance
