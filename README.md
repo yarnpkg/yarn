@@ -25,25 +25,13 @@ alternate npm and bower client focused on security and performance.
  * Refuses to clone a git repo over HTTP and plain git.
  * Blacklists known bad hosts that ping analytics servers.
 
-## Unsupported npm features (*may* be added in the future)
-
- * Private modules.
- * Scoped packages.
-
-## Intentional npm incompatibilities
-
- * Install scripts are ran in parallel.
- * `engine`/`os`/`cpu` fields are enforced.
- * No support for [package comments](https://github.com/npm/read-package-json#indexjs).
- * No support for dependency strings/arrays. ie. `{ dependencies: "lodash=>latest,babel-core=>^6.0.0" }` or `{ dependencies: ["lodash=>latest", "babel-core=>^6.0.0"] }`.
-
 ## Screenshot
 
 Installing `react-native`, 700 transitive dependencies with no cache.
 
 ![Screenshot showing the react native package downloading in 30 seconds](https://i.imgur.com/rUta2sk.gif)
 
-## Usage
+## Usage (while in development)
 
 ```sh
 $ git clone git@github.com:kittens/kpm.git
@@ -56,9 +44,21 @@ $ mkdir node_modules
 $ kpm install your-package
 ```
 
+## Unsupported npm features (*may* be added in the future)
+
+ * Private modules.
+ * Scoped packages.
+
+## Intentional npm incompatibilities
+
+ * Install scripts are ran in parallel.
+ * `engine`/`os`/`cpu` fields are enforced.
+ * No support for [package comments](https://github.com/npm/read-package-json#indexjs).
+ * No support for dependency strings/arrays. eg. `{ dependencies: "lodash=>latest,babel-core=>^6.0.0" }` and `{ dependencies: ["lodash=>latest", "babel-core=>^6.0.0"] }`.
+
 ## Philosophy
 
-Listed by priority.
+Ordered by priority.
 
  * Security/integrity
  * Network performance/relability
