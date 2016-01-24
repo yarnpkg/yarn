@@ -1,7 +1,6 @@
 # kpm
 
-alternate npm and bower client focused on flexibility, reliability, security and
-integrity (basically every single software development principal).
+alternate CommonJS package manager focused on security and performance.
 
 ## Features
 
@@ -57,6 +56,15 @@ $ mkdir node_modules
 $ kpm install your-package
 ```
 
+## Philosophy
+
+Listed by priority.
+
+ * Security/integrity
+ * Network performance/relability
+ * Runtime performance
+ * Public Node API
+
 ## What problems are you trying to solve?
 
 ### Non-determinism
@@ -92,13 +100,13 @@ their tree meaning you only have access to the modules you've specified in your 
 
 **Prune extraneous** It's extremely common for the following scenario to occur:
 
- - Kim and Bob work on KPM
- - Kim and Bob have the exact same lock checkout (that includes `babel` as a dependency)
- - Kim removes `babel` from `package.json`
- - Kim commits updated lockfile + package + pushes
+ - Kim and Bob are working on a project.
+ - Kim and Bob have the exact same lock checkout (that includes `babel` as a dependency).
+ - Kim removes `babel` from `package.json`.
+ - Kim commits updated lockfile, `package.json` and pushes.
  - Bob downloads, and runs `kpm install`.
  - Bob doesn't realise that Kim removed the `babel` dependency and uses it in his code
-   because it still exists in `node_modules`.
+   because it still exists in his local `node_modules`.
 
 This can be mitigated by automatically pruning extraneous modules on install.
 
@@ -127,6 +135,10 @@ new dependencies have been introduced, the files that have been touched and aler
 to possible patterns worth investigation. It's important for any type of analysis to be
 extremely explicit so there's no false sense of security and laziness when reviewing new
 third party dependencies.
+
+### Reliability
+
+**Network reliability** TODO
 
 ### Better performance
 
