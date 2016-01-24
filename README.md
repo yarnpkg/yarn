@@ -1,6 +1,6 @@
 <p align="center">
   <a href="https://facebook.github.io/kpm">
-    <img alt="kpm" src="https://raw.githubusercontent.com/facebook/kpm/master/assets/logo.png" width="546">
+    <img alt="kpm" src="https://raw.githubusercontent.com/facebook/kpm/master/assets/logo.png?token=AA0G0JW1RjnznIQs7n3PdF_eAUWcpAdlks5WredEwA%3D%3D" width="546">
   </a>
 </p>
 
@@ -9,8 +9,8 @@
 </p>
 
 <p align="center">
-  <a href="https://travis-ci.org/facebook/kpm"><img alt="Travis Status" src="https://img.shields.io/travis/facebook/kpm/master.svg?style=flat&label=Travis"></a>
-  <a href="https://ci.appveyor.com/project/facebook/kpm/branch/master"><img alt="Appveyor Status" src="https://img.shields.io/appveyor/ci/facebook/kpm.svg?style=flat&label=Appveyor"></a>
+  <a href="https://travis-ci.org/facebook/kpm"><img alt="Travis Status" src="https://img.shields.io/travis/facebook/kpm/master.svg?style=flat&label=travis"></a>
+  <a href="https://ci.appveyor.com/project/facebook/kpm/branch/master"><img alt="Appveyor Status" src="https://img.shields.io/appveyor/ci/facebook/kpm.svg?style=flat&label=appveyor"></a>
   <a href="https://codecov.io/github/facebook/kpm"><img alt="Coverage Status" src="https://img.shields.io/codecov/c/github/facebook/kpm/master.svg?style=flat"></a>
 </p>
 
