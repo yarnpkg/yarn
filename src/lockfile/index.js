@@ -12,6 +12,9 @@ let stripBOM  = require("strip-bom");
 let path      = require("path");
 let _         = require("lodash");
 
+export { default as parse } from "./parse";
+export { default as stringify } from "./stringify";
+
 export default class Lockfile {
   constructor(cache: ?Object, strict: boolean) {
     this.strict = strict;
