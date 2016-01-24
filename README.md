@@ -27,7 +27,8 @@ alternate npm and bower client focused on security and performance.
 
 ## Screenshot
 
-Installing `react-native`, 700 transitive dependencies with no cache.
+Installing `react-native`, 700 transitive dependencies with no cache over WiFi on a 25
+megabit down connection.
 
 ![Screenshot showing the react native package downloading in 30 seconds](https://i.imgur.com/rUta2sk.gif)
 
