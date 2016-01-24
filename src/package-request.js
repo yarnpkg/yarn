@@ -128,11 +128,6 @@ export default class PackageRequest {
       return data;
     }
 
-    // before hitting the registry, let's check if we've already resolved a version that
-    // satisfies this range
-    let resolved = this.resolver.getSatisfiedFromExisting(name, range);
-    if (resolved) return resolved;
-
     let Resolver = getRegistryResolver(this.registry);
     let resolver = new Resolver(this, name, range);
     return resolver.resolve();
@@ -183,7 +178,7 @@ export default class PackageRequest {
 
     // check if while we were resolving this dep we've already resolved one that satisfies
     // the same range
-    let resolved: ?PackageInfo = this.resolver.getSatisfiedFromExisting(info.name, info.version);
+    let resolved: ?PackageInfo = this.resolver.getExactVersionMatch(info.name, info.version);
     if (resolved) {
       let ref = resolved.reference;
       invariant(ref, "Resolved package info has no package reference");
@@ -204,7 +199,7 @@ export default class PackageRequest {
     //
     let remote = info.remote;
     invariant(remote, "Missing remote");
-    
+
     // normal deps
     for (let depName in info.dependencies) {
       let depPattern = depName + "@" + info.dependencies[depName];

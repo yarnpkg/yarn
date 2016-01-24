@@ -151,14 +151,14 @@ export default class Git {
    * Given a list of tags/branches from git, check if they match an input range.
    */
 
-  static findResolution(range: ?string, tags: Array<string>): string {
+  async findResolution(range: ?string, tags: Array<string>): Promise<string> {
     // If there are no tags and target is *, fallback to the latest commit on master
     // or if we have no target.
     if (!range || (!tags.length && range === "*")) {
       return "master";
     }
 
-    return semver.maxSatisfying(tags.filter(tag => !!semver.valid(tag)), range) || range;
+    return await this.config.resolveConstraints(tags.filter(tag => !!semver.valid(tag)), range) || range;
   }
 
   /**
@@ -239,7 +239,7 @@ export default class Git {
       throw new Error("Wasn't able to find a branch/tag with this commit hash");
     }
 
-    let ref = Git.findResolution(hash, names);
+    let ref = await this.findResolution(hash, names);
     let commit = refs[ref];
     if (commit) {
       this.ref = ref;

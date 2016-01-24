@@ -258,16 +258,13 @@ export default class PackageResolver {
    * TODO description
    */
 
-  getSatisfiedFromExisting(name: string, range: string): ?PackageInfo {
-    let tags = this.tags[name] || {};
-    if (tags[range]) range = tags[range];
-
+  getExactVersionMatch(name: string, version: string): ?PackageInfo {
     let patterns = this.patternsByPackage[name];
     if (!patterns) return;
 
     for (let pattern of patterns) {
       let info = this.getResolvedPattern(pattern);
-      if (semver.satisfies(info.version, range)) {
+      if (info.version === version) {
         return info;
       }
     }

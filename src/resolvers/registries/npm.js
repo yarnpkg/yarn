@@ -20,18 +20,18 @@ export default class NpmResolver extends RegistryResolver {
     return {};
   }
 
-  findVersionInRegistryResponse(body: {
+  async findVersionInRegistryResponse(body: {
     name: string,
     versions: { [key: string]: PackageInfo },
     "dist-tags": { [key: string]: string },
-  }): PackageInfo {
+  }): Promise<PackageInfo> {
     let range = this.range;
 
     if (range in body["dist-tags"]) {
       range = this.resolver.addTag(body.name, range, body["dist-tags"][range]);
     }
 
-    let satisfied = semver.maxSatisfying(Object.keys(body.versions), range);
+    let satisfied = await this.config.resolveConstraints(Object.keys(body.versions), range);
     if (satisfied) {
       return body.versions[satisfied];
     } else {
@@ -51,7 +51,7 @@ export default class NpmResolver extends RegistryResolver {
       throw new MessageError(`Couldn't find package ${this.name} on the npm registry. ${this.request.getHuman()}`);
     }
 
-    let info = this.findVersionInRegistryResponse(body);
+    let info = await this.findVersionInRegistryResponse(body);
 
     if (info.dist && info.dist.tarball) {
       info.remote = {

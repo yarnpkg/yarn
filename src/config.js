@@ -1,6 +1,8 @@
 /* @flow */
 
 import type { PackageRegistry } from "./resolvers";
+import type Reporter from "./reporters/_default";
+import ConstraintResolver from "./package-constraint-resolver";
 import { MessageError } from "./errors";
 import { getRegistryResolver } from "./resolvers";
 import * as constants from "./constants";
@@ -18,10 +20,16 @@ type ConfigOptions = {
 };
 
 export default class Config {
+  constructor(reporter: Reporter) {
+    this.constraintResolver = new ConstraintResolver(this, reporter);
+    this.reporter = reporter;
+  }
+
   modulesFolder: string;
   lockLocation: string;
   packagesRoot: string;
   tempFolder: string;
+  reporter: Reporter;
   cwd: string;
 
   moduleFolders: {
@@ -31,6 +39,10 @@ export default class Config {
   registryConfig: {
     [registryName: PackageRegistry]: Promise<Object>
   };
+
+  resolveConstraints(versions: Array<string>, range: string): Promise<string> {
+    return this.constraintResolver.reduce(versions, range);
+  }
 
   async initialise(opts: ConfigOptions = {}): Promise<void> {
     this.cwd = opts.cwd || process.cwd();

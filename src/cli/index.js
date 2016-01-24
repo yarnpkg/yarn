@@ -67,7 +67,7 @@ if (commander.yes) alwaysAnswer = "y";
 let reporter = new Reporter({ alwaysAnswer });
 
 //
-let config = new Config;
+let config = new Config(reporter);
 
 // print header
 reporter.header(commandName);
