@@ -5,10 +5,12 @@ function shouldWrapKey(str) {
 }
 
 const priorities = {
-  name: 4,
-  version: 3,
-  resolved: 2,
-  dependencies: 1
+  name: 1,
+  version: 2,
+  uid: 3,
+  resolved: 4,
+  registry: 5,
+  dependencies: 6
 };
 
 export default function stringify(obj: any, indent: string = ""): string {
@@ -18,8 +20,12 @@ export default function stringify(obj: any, indent: string = ""): string {
 
   let lines = [];
 
-  let keys = Object.keys(obj).sort().sort(function (a, b) {
-    return (priorities[a] || 0) < (priorities[b] || 0);
+  let keys = Object.keys(obj).sort(function (a, b) {
+    // sort alphabetically
+    return a.toLowerCase().localeCompare(b.toLowerCase());
+  }).sort(function (a, b) {
+    // prioritise certain fields
+    return (priorities[a] || 100) > (priorities[b] || 100);
   });
 
   for (let key of keys) {

@@ -21,7 +21,7 @@ export default class Lockfile {
   strict: boolean;
 
   cache: ?{
-    [key: string]: {
+    [key: string]: string | {
       name: string,
       version: string,
       resolved: string,
@@ -68,7 +68,9 @@ export default class Lockfile {
     if (!cache) return;
 
     let shrunk = pattern in cache && cache[pattern];
-    if (shrunk) {
+    if (typeof shrunk === "string" ) {
+      return this.getLocked(shrunk, noStrict);
+    } else if (shrunk) {
       shrunk.uid = shrunk.uid || shrunk.version;
       shrunk.permissions = shrunk.permissions || {};
       shrunk.registry = shrunk.registry || "npm";
@@ -85,6 +87,11 @@ export default class Lockfile {
 
     for (let pattern in resolver.patterns) {
       let pkg = resolver.patterns[pattern];
+      if (pkg._lockfileRef) {
+        // no point in duplicating it
+        lockfile[pattern] = pkg._lockfileRef;
+        continue;
+      }
 
       let ref = pkg.reference;
       invariant(ref, "Package is missing a reference");
@@ -101,6 +108,8 @@ export default class Lockfile {
         dependencies: _.isEmpty(pkg.dependencies) ? undefined : pkg.dependencies,
         permissions: _.isEmpty(ref.permissions) ? undefined : ref.permissions
       };
+
+      pkg._lockfileRef = pattern;
     }
 
     return lockfile;
