@@ -10,9 +10,7 @@ let gutil   = require("gulp-util");
 let gulp    = require("gulp");
 let path    = require("path");
 
-gulp.task("default", ["build"]);
-
-gulp.task("build", function () {
+function build(lib, opts) {
   return gulp.src("src/**/*.js")
     .pipe(plumber({
       errorHandler: function (err) {
@@ -21,16 +19,36 @@ gulp.task("build", function () {
     }))
     .pipe(through.obj(function (file, enc, callback) {
       file._path = file.path;
-      file.path = file.path.replace("src", "lib");
+      file.path = file.path.replace("src", lib);
       callback(null, file);
     }))
     .pipe(newer("lib"))
     .pipe(through.obj(function (file, enc, callback) {
-      gutil.log("Compiling", "'" + chalk.cyan(file._path) + "'...");
+      gutil.log("Compiling", "'" + chalk.cyan(file._path) + "' to '" + chalk.cyan(file.path) + "'...");
       callback(null, file);
     }))
-    .pipe(babel())
+    .pipe(babel(opts))
     .pipe(gulp.dest("lib"));
+}
+
+gulp.task("default", ["build"]);
+
+gulp.task("build", ["build-modern", "build-legacy"]);
+
+gulp.task("build-modern", function () {
+  return build("lib", {
+    presets: ["node5", "react", "stage-0"]
+  });
+});
+
+gulp.task("build-legacy", function () {
+  return build("lib-legacy", {
+    // TODO find a way to put this in .babelrc
+    presets: ["react", "es2015", "stage-0"],
+    plugins: [
+      ["transform-runtime", { polyfill: true, regenerator: false }]
+    ]
+  });
 });
 
 gulp.task("watch", ["build"], function (callback) {

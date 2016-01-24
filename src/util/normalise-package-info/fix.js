@@ -51,7 +51,7 @@ export default async function (info: Object, moduleLoc: string): Promise<void> {
 
   // if there's no readme field then load the README file from the cwd
   if (!info.readme) {
-    let readmeFile = info.files.find(filename => {
+    let readmeFile = _.find(info.files, filename => {
       let lower = filename.toLowerCase();
       return lower === "readme" || lower.indexOf("readme.") === 0;
     });

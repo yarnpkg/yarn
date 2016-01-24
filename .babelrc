@@ -1,7 +1,5 @@
 {
-  "presets": [
-    "node5",
-    "react",
-    "stage-0"
+  "plugins": [
+    ["transform-runtime", { "polyfill": false, "regenerator": true }]
   ]
 }
