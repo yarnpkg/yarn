@@ -38,7 +38,7 @@ export function spawn(program: string, args: Array<string>, opts?: Object = {}):
       if (err) {
         reject(err);
       } else {
-        resolve(buf.trim())
+        resolve(buf.trim());
       }
     }
 

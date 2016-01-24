@@ -3,7 +3,6 @@
 import type { PackageInfo } from "../../types";
 import type PackageRequest from "../../package-request";
 import { MessageError } from "../../errors";
-import * as constants from "../../constants";
 import * as util from "../../util/misc";
 import * as versionUtil from "../../util/version";
 import { registries } from "../../resolvers";
@@ -12,7 +11,10 @@ import ExoticResolver from "./_base";
 import Git from "../../util/git";
 
 let urlParse = require("url").parse;
-let _        = require("lodash")
+let _        = require("lodash");
+
+// we purposefully omit https and http as those are only valid if they end in the .git extension
+const GIT_PROTOCOLS = ["git", "git+ssh", "git+https", "ssh"];
 
 export default class GitResolver extends ExoticResolver {
   constructor(request: PackageRequest, fragment: string) {
@@ -36,7 +38,7 @@ export default class GitResolver extends ExoticResolver {
     }
 
     if (parts.protocol) {
-      if (constants.GIT_PROTOCOLS.indexOf(parts.protocol) >= 0) {
+      if (GIT_PROTOCOLS.indexOf(parts.protocol) >= 0) {
         return true;
       }
     }

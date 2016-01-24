@@ -36,7 +36,8 @@
     "camelcase": 0,
     "no-console": 0,
     "no-constant-condition": 0,
-    "no-inner-declarations": 0
+    "no-inner-declarations": 0,
+    "semi": [2, "always"]
   },
   "env": {
     "node": true

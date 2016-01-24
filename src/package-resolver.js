@@ -5,13 +5,12 @@ import type { PackageRegistry } from "./resolvers";
 import type PackageReference from "./package-reference";
 import type Reporter from "./reporters/_base";
 import type Config from "./config";
-import normalisePackageInfo from "./util/normalise-package-info"
+import normalisePackageInfo from "./util/normalise-package-info";
 import PackageRequest from "./package-request";
 import RequestManager from "./util/request-manager";
 import Shrinkwrap from "./shrinkwrap";
 
 let invariant = require("invariant");
-let semver    = require("semver");
 
 export default class PackageResolver {
   constructor(config: Config, reporter: Reporter, shrinkwrap: Shrinkwrap) {

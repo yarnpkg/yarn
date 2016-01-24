@@ -79,7 +79,7 @@ export default class Git {
     let parts = url.parse(ref);
 
     if (parts.protocol === "git") {
-      throw new SecurityError(`Refusing to download the git repo ${ref} over plain git without a commit hash`)
+      throw new SecurityError(`Refusing to download the git repo ${ref} over plain git without a commit hash`);
     }
 
     if (parts.protocol === "http:") {

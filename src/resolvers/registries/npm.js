@@ -2,10 +2,9 @@
 
 import type { PackageInfo } from "../../types";
 import { MessageError } from "../../errors";
-import * as constants from "../../constants";
 import RegistryResolver from "./_base";
 
-let semver = require("semver")
+const NPM_REGISTRY_URL = "https://registry.npmjs.org";
 
 export default class NpmResolver extends RegistryResolver {
   // $FlowFixMe: i know what i'm doing
@@ -46,7 +45,7 @@ export default class NpmResolver extends RegistryResolver {
 
     // let config = await this.config.getRegistryConfig("npm");
 
-    let body = await this.requestManager.request(`${constants.NPM_REGISTRY_URL}/${this.name}`);
+    let body = await this.requestManager.request(`${NPM_REGISTRY_URL}/${this.name}`);
     if (!body) {
       throw new MessageError(`Couldn't find package ${this.name} on the npm registry. ${this.request.getHuman()}`);
     }

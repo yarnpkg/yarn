@@ -18,7 +18,7 @@ export function hashStreamValidation(): {
   let validationStream = through(function (chunk, enc, done) {
     updated = true;
     hash.update(chunk);
-    done(null, chunk)
+    done(null, chunk);
   });
 
   validationStream.getHash = () => hash.digest("hex");

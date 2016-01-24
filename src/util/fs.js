@@ -29,7 +29,7 @@ export async function readFile(loc: string): Promise<string> {
       if (err) return reject(err);
 
       resolve(content);
-    })
+    });
   });
 }
 

@@ -11,7 +11,7 @@ export { update };
 
 import buildUseless from "./_useless";
 export let shrinkwrap = buildUseless("The shrinkwrap command isn't necessary. `kpm install` will produce a shrinkwrap.");
-export let dedupe     = buildUseless("The dedupe command isn't necessary. `kpm install` will already dedupe.")
+export let dedupe     = buildUseless("The dedupe command isn't necessary. `kpm install` will already dedupe.");
 export let prune      = buildUseless("The prune command isn't necessary. `kpm install` will now automatically prune extraneous packages.");
 
 import buildExecuteLifecycleScript from "./_execute-lifecycle-script";

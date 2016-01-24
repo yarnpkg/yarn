@@ -2,7 +2,7 @@
 
 import type { PackageInfo } from "../../types";
 import type PackageRequest from "../../package-request";
-import queue from "../../util/blocking-queue"
+import queue from "../../util/blocking-queue";
 import TarballFetcher from "../../fetchers/tarball";
 import ExoticResolver from "./_base";
 import Git from "./git";

@@ -53,7 +53,7 @@ export default async function (info: Object, moduleLoc: string): Promise<void> {
   if (!info.readme) {
     let readmeFile = info.files.find(filename => {
       let lower = filename.toLowerCase();
-      return lower === "readme" || lower.indexOf("readme.") === 0
+      return lower === "readme" || lower.indexOf("readme.") === 0;
     });
 
     if (readmeFile) {

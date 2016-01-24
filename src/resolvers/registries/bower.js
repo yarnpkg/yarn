@@ -2,9 +2,10 @@
 
 import type { PackageInfo } from "../../types";
 import { MessageError } from "../../errors";
-import * as constants from "../../constants";
 import RegistryResolver from "./_base";
 import GitResolver from "../exotics/git";
+
+const BOWER_REGISTRY_URL = "https://bower.herokuapp.com";
 
 export default class BowerResolver extends RegistryResolver {
   // $FlowFixMe: i know what i'm doing
@@ -25,7 +26,7 @@ export default class BowerResolver extends RegistryResolver {
   async resolve(): Promise<PackageInfo> {
     // let config = await this.config.getRegistryConfig("bower");
 
-    let body = await this.requestManager.request(`${constants.BOWER_REGISTRY_URL}/packages/${this.name}`);
+    let body = await this.requestManager.request(`${BOWER_REGISTRY_URL}/packages/${this.name}`);
     if (body) {
       return this.fork(GitResolver, false, `${body.url}#${this.range}`);
     } else {

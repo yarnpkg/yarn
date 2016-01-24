@@ -3,7 +3,7 @@
 import RegistryNpm from "./registries/npm";
 import RegistryBower from "./registries/bower";
 
-let _ = require("lodash")
+let _ = require("lodash");
 
 export type PackageRegistry = "bower" | "npm";
 
@@ -56,5 +56,5 @@ for (let key in registries) {
 
     // $FlowFixMe: i know what i'm doing
     static factory = RegistryResolver;
-  }
+  };
 }

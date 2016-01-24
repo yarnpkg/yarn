@@ -114,7 +114,7 @@ export default class ConsoleReporter extends BaseReporter {
 
           // get index
           index = index - 1;
-          rl.close()
+          rl.close();
           resolve(options[index]);
         });
       };

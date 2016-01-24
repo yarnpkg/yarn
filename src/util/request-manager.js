@@ -1,6 +1,6 @@
 /* @flow */
 
-import type Reporter from "../reporters/_base"
+import type Reporter from "../reporters/_base";
 import * as constants from "../constants";
 import * as network from "./network";
 

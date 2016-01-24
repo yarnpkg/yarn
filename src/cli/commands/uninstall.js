@@ -2,7 +2,7 @@
 
 import type Reporter from "../../reporters/_base";
 import type Config from "../../config";
-import normalisePackageInfo from "../../util/normalise-package-info"
+import normalisePackageInfo from "../../util/normalise-package-info";
 import { MessageError } from "../../errors";
 import * as fs from "../../util/fs";
 

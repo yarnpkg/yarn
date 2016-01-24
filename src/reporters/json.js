@@ -62,7 +62,7 @@ export default class JSONReporter extends BaseReporter {
       },
 
       end() {
-        dump("activityEnd", { id })
+        dump("activityEnd", { id });
       }
     };
   }

@@ -84,7 +84,7 @@ if (network.isOffline()) {
 
 //
 config.initialise().then(function () {
-  let validArgLength = hasValidArgLength(command.argumentLength, command.minArgumentLength, args)
+  let validArgLength = hasValidArgLength(command.argumentLength, command.minArgumentLength, args);
 
   if (!validArgLength) {
     throw new MessageError(`Invalid argument length for ${commandName}`);

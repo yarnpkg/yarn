@@ -4,7 +4,7 @@ import * as constants from "../constants";
 import { registries } from "../resolvers";
 import * as child from "./child";
 
-let path = require("path")
+let path = require("path");
 
 export default async function (cwd: string, cmds: Array<string>): Promise<Array<{
   cwd: string,
