@@ -37,7 +37,7 @@ export default class TarballResolver extends ExoticResolver {
     let dest = this.config.getTemp(crypto.hash(url));
 
     return queue.push(dest, async () => {
-      let shrunk = this.request.getShrunk("tarball");
+      let shrunk = this.request.getLocked("tarball");
       if (shrunk) return shrunk;
 
       let { registry } = this;
@@ -88,9 +88,6 @@ export default class TarballResolver extends ExoticResolver {
           })
         }
       };
-
-      //
-      this.resolver.addTag(pkgJson.name, this.pattern, pkgJson.version);
 
       return pkgJson;
     });

@@ -8,24 +8,23 @@ import type Config from "./config";
 import normalisePackageInfo from "./util/normalise-package-info";
 import PackageRequest from "./package-request";
 import RequestManager from "./util/request-manager";
-import Shrinkwrap from "./shrinkwrap";
+import Lockfile from "./lockfile";
 
 let invariant = require("invariant");
 
 export default class PackageResolver {
-  constructor(config: Config, reporter: Reporter, shrinkwrap: Shrinkwrap) {
+  constructor(config: Config, reporter: Reporter, lockfile: Lockfile) {
     this.packageReferencesByName = Object.create(null);
     this.patternsByPackage       = Object.create(null);
     this.newPatterns             = [];
     this.fetchingPatterns        = Object.create(null);
     this.patterns                = Object.create(null);
-    this.tags                    = Object.create(null);
 
     this.reporter = reporter;
     this.config   = config;
 
     this.requestManager = new RequestManager(reporter);
-    this.shrinkwrap     = shrinkwrap;
+    this.lockfile     = lockfile;
   }
 
   // activity monitor
@@ -39,7 +38,7 @@ export default class PackageResolver {
     [key: string]: true
   };
 
-  // new patterns that didn't exist in the shrinkwrap
+  // new patterns that didn't exist in the lockfile
   newPatterns: Array<string>;
 
   // manages and throttles json api http requests
@@ -55,19 +54,12 @@ export default class PackageResolver {
     [packageName: string]: Array<string>
   };
 
-  // shrinkwrap instance which we can use to retrieve version info
-  shrinkwrap: Shrinkwrap;
+  // lockfile instance which we can use to retrieve version info
+  lockfile: Lockfile;
 
   // a map of dependency patterns to packages
   patterns: {
     [packagePattern: string]: PackageInfo
-  };
-
-  // list of version aliases
-  tags: {
-    [packageName: string]: {
-      [tagName: string]: /* actual version */ string
-    }
   };
 
   // reporter instance, abstracts out display logic
@@ -225,16 +217,6 @@ export default class PackageResolver {
   }
 
   /**
-   * Associate a tag with a package. This just makes it so whenever we see `key` used as a
-   * version we return `val`.
-   */
-
-  addTag(name: string, key: string, val: any): any {
-    let tags = this.tags[name] = this.tags[name] || {};
-    return tags[key] = val;
-  }
-
-  /**
    * TODO description
    */
 
@@ -290,7 +272,7 @@ export default class PackageResolver {
       this.activity.tick(pattern);
     }
 
-    if (!this.shrinkwrap.getShrunk(pattern, true)) {
+    if (!this.lockfile.getLocked(pattern, true)) {
       this.newPatterns.push(pattern);
     }
 
@@ -301,7 +283,7 @@ export default class PackageResolver {
       config: this.config,
       reporter: this.reporter,
       requestManager: this.requestManager,
-      shrinkwrap: this.shrinkwrap,
+      lockfile: this.lockfile,
       resolver: this
     }).find(optional);
   }

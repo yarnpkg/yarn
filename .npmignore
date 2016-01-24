@@ -1,2 +1,10 @@
 node_modules
 src
+test
+Gulpfile.js
+.eslintrc
+.editorconfig
+.babelrc
+.travis.yml
+CONTRIBUTING.md
+Makefile

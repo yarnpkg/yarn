@@ -27,7 +27,7 @@ export default class NpmResolver extends RegistryResolver {
     let range = this.range;
 
     if (range in body["dist-tags"]) {
-      range = this.resolver.addTag(body.name, range, body["dist-tags"][range]);
+      range = body["dist-tags"][range];
     }
 
     let satisfied = await this.config.resolveConstraints(Object.keys(body.versions), range);
@@ -39,8 +39,8 @@ export default class NpmResolver extends RegistryResolver {
   }
 
   async resolve(): Promise<PackageInfo> {
-    // shrinkwrap
-    let shrunk = this.request.getShrunk("tarball");
+    // lockfile
+    let shrunk = this.request.getLocked("tarball");
     if (shrunk) return shrunk;
 
     // let config = await this.config.getRegistryConfig("npm");

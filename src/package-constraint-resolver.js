@@ -5,8 +5,12 @@ import type Config from "./config";
 
 let semver = require("semver");
 
+// This isn't really a "proper" constraint resolver. We just return the highest semver
+// version in the versions passed that satisfies the input range. This vastily reduces
+// the complexity and is very efficient for package resolution.
+
 export default class PackageConstraintResolver {
-  constructor(reporter: Reporter, config: Config) {
+  constructor(config: Config, reporter: Reporter) {
     this.reporter = reporter;
     this.config   = config;
   }

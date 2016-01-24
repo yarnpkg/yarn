@@ -10,7 +10,7 @@ import * as update from "./update";
 export { update };
 
 import buildUseless from "./_useless";
-export let shrinkwrap = buildUseless("The shrinkwrap command isn't necessary. `kpm install` will produce a shrinkwrap.");
+export let lockfile = buildUseless("The lockfile command isn't necessary. `kpm install` will produce a lockfile.");
 export let dedupe     = buildUseless("The dedupe command isn't necessary. `kpm install` will already dedupe.");
 export let prune      = buildUseless("The prune command isn't necessary. `kpm install` will now automatically prune extraneous packages.");
 

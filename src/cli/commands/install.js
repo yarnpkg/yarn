@@ -3,7 +3,8 @@
 import type { PackageRegistry } from "../../resolvers";
 import type Reporter from "../../reporters/_base";
 import type Config from "../../config";
-import Shrinkwrap from "../../shrinkwrap";
+import Lockfile from "../../lockfile";
+import stringify from "../../lockfile/stringify";
 import PackageInstallScripts from "../../package-install-scripts";
 import PackageCompatibility from "../../package-compatibility";
 import PackageResolver from "../../package-resolver";
@@ -27,18 +28,18 @@ export class Install {
     args: Array<string>,
     config: Config,
     reporter: Reporter,
-    shrinkwrap: Shrinkwrap
+    lockfile: Lockfile
   ) {
     this.resolutions = Object.create(null);
     this.registries  = [];
-    this.shrinkwrap  = shrinkwrap;
+    this.lockfile    = lockfile;
     this.reporter    = reporter;
     this.config      = config;
     this.action      = action;
     this.flags       = flags;
     this.args        = args;
 
-    this.resolver      = new PackageResolver(config, reporter, shrinkwrap);
+    this.resolver      = new PackageResolver(config, reporter, lockfile);
     this.compatibility = new PackageCompatibility(config, reporter, this.resolver);
     this.fetcher       = new PackageFetcher(config, reporter, this.resolver);
     this.linker        = new PackageLinker(config, reporter, this.resolver);
@@ -49,7 +50,7 @@ export class Install {
   args: Array<string>;
   flags: Object;
   registries: Array<string>;
-  shrinkwrap: Shrinkwrap;
+  lockfile: Lockfile;
   resolutions: { [packageName: string]: string };
   config: Config;
   reporter: Reporter;
@@ -148,7 +149,7 @@ export class Install {
     await this.scripts.init();
 
     // fin!
-    await this.saveShrinkwrap();
+    await this.saveLockfile();
     await this.saveAll(patterns);
   }
 
@@ -195,23 +196,23 @@ export class Install {
    * TODO
    */
 
-  async saveShrinkwrap(): Promise<void> {
-    // check if we should write a shrinkwrap in the first place
-    if (!shouldWriteShrinkwrap(this.flags, this.args)) return;
+  async saveLockfile(): Promise<void> {
+    // check if we should write a lockfile in the first place
+    if (!shouldWriteLockfile(this.flags, this.args)) return;
 
-    let loc = path.join(this.config.cwd, constants.SHRINKWRAP_FILENAME);
+    let loc = path.join(this.config.cwd, constants.LOCKFILE_FILENAME);
 
-    // check if we should overwite a shrinkwrap if it exists
-    if (this.action === "install" && !shouldWriteShrinkwrapIfExists(this.flags, this.args)) {
+    // check if we should overwite a lockfile if it exists
+    if (this.action === "install" && !shouldWriteLockfileIfExists(this.flags, this.args)) {
       if (await fs.exists(loc)) return;
     }
 
     await fs.writeFile(
       loc,
-      JSON.stringify(this.shrinkwrap.getShrinkwrapped(this.resolver), null, "  ")
+      stringify(this.lockfile.getLockfile(this.resolver))
     );
 
-    this.reporter.success(`Saved kpm shrinkwrap to ${constants.SHRINKWRAP_FILENAME}`);
+    this.reporter.success(`Saved kpm lockfile to ${constants.LOCKFILE_FILENAME}`);
   }
 
   /**
@@ -250,14 +251,14 @@ function hasSaveFlags(flags: Object): boolean {
  * TODO
  */
 
-function isStrictShrinkwrap(flags: Object, args: Array<string>): boolean {
+function isStrictLockfile(flags: Object, args: Array<string>): boolean {
   if (hasSaveFlags(flags)) {
     // we're introducing new dependencies so we can't be strict
     return false;
   }
 
   if (!args.length) {
-    // we're running `kpm install` so should be strict on shrinkwrap usage
+    // we're running `kpm install` so should be strict on lockfile usage
     return true;
   }
 
@@ -269,9 +270,9 @@ function isStrictShrinkwrap(flags: Object, args: Array<string>): boolean {
  * TODO
  */
 
-function shouldWriteShrinkwrapIfExists(flags: Object, args: Array<string>): boolean {
+function shouldWriteLockfileIfExists(flags: Object, args: Array<string>): boolean {
   if (args.length) {
-    return shouldWriteShrinkwrap(flags, args);
+    return shouldWriteLockfile(flags, args);
   } else {
     return false;
   }
@@ -281,14 +282,14 @@ function shouldWriteShrinkwrapIfExists(flags: Object, args: Array<string>): bool
  * TODO
  */
 
-function shouldWriteShrinkwrap(flags: Object, args: Array<string>): boolean {
+function shouldWriteLockfile(flags: Object, args: Array<string>): boolean {
   if (hasSaveFlags(flags)) {
-    // we should write a new shrinkwrap as we're introducing new dependencies
+    // we should write a new lockfile as we're introducing new dependencies
     return true;
   }
 
   if (!args.length) {
-    // we're running `kpm install` so should save a new shrinkwrap
+    // we're running `kpm install` so should save a new lockfile
     return true;
   }
 
@@ -309,7 +310,7 @@ export function setFlags(commander: Object) {
   commander.option("--link"); // TODO
   commander.option("--no-bin-links");
   commander.option("--no-optional"); // TODO
-  commander.option("--no-shrinkwrap"); // TODO
+  commander.option("--no-lockfile"); // TODO
 }
 
 export async function run(
@@ -322,7 +323,7 @@ export async function run(
     throw new MessageError("Missing package names for --save flags");
   }
 
-  let shrinkwrap = await Shrinkwrap.fromDirectory(config.cwd, reporter, isStrictShrinkwrap(flags, args));
-  let install = new Install("install", flags, args, config, reporter, shrinkwrap);
+  let lockfile = await Lockfile.fromDirectory(config.cwd, reporter, isStrictLockfile(flags, args));
+  let install = new Install("install", flags, args, config, reporter, lockfile);
   return install.init();
 }

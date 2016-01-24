@@ -5,7 +5,7 @@ import type { PackageRegistry } from "./resolvers";
 import type PackageResolver from "./package-resolver";
 import type RequestManager from "./util/request-manager";
 import type Reporter from "./reporters/_base";
-import type Shrinkwrap from "./shrinkwrap";
+import type Lockfile from "./lockfile";
 import type Config from "./config";
 import PackageReference from "./package-reference";
 import { getRegistryResolver } from "./resolvers";
@@ -23,7 +23,7 @@ export default class PackageRequest {
     config,
     reporter,
     requestManager,
-    shrinkwrap,
+    lockfile,
     resolver,
     parentRequest
   }: {
@@ -32,13 +32,13 @@ export default class PackageRequest {
     config: Config,
     reporter: Reporter,
     requestManager: RequestManager,
-    shrinkwrap: Shrinkwrap,
+    lockfile: Lockfile,
     resolver: PackageResolver,
     parentRequest: ?PackageRequest // eslint-disable-line no-unused-vars
   }) {
     this.parentRequest = parentRequest;
     this.requestManager  = requestManager;
-    this.shrinkwrap      = shrinkwrap;
+    this.lockfile      = lockfile;
     this.registry        = registry;
     this.reporter        = reporter;
     this.resolver        = resolver;
@@ -55,7 +55,7 @@ export default class PackageRequest {
 
   parentRequest: ?PackageRequest;
   requestManager: RequestManager;
-  shrinkwrap: Shrinkwrap;
+  lockfile: Lockfile;
   reporter: Reporter;
   resolver: PackageResolver;
   pattern: string;
@@ -73,8 +73,8 @@ export default class PackageRequest {
     return chain.reverse().join(" -> ");
   }
 
-  getShrunk(remoteType: string): ?Object {
-    let shrunk = this.shrinkwrap.getShrunk(this.pattern);
+  getLocked(remoteType: string): ?Object {
+    let shrunk = this.lockfile.getLocked(this.pattern);
 
     if (shrunk) {
       let resolvedParts = versionUtil.explodeHashedUrl(shrunk.resolved);
@@ -215,7 +215,7 @@ export default class PackageRequest {
     }
 
     // set package reference
-    let ref = info.reference = new PackageReference(info, remote, deps, this.shrinkwrap);
+    let ref = info.reference = new PackageReference(info, remote, deps, this.lockfile);
     ref.addPattern(this.pattern);
     ref.addOptional(optional);
 

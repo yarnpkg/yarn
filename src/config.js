@@ -1,7 +1,7 @@
 /* @flow */
 
 import type { PackageRegistry } from "./resolvers";
-import type Reporter from "./reporters/_default";
+import type Reporter from "./reporters/_base";
 import ConstraintResolver from "./package-constraint-resolver";
 import { MessageError } from "./errors";
 import { getRegistryResolver } from "./resolvers";
@@ -10,7 +10,6 @@ import * as promise from "./util/promise";
 import * as fs from "./util/fs";
 
 let invariant = require("invariant");
-let lockfile  = promise.promisifyObject(require("lockfile"));
 let path      = require("path");
 let os        = require("os");
 
@@ -25,6 +24,7 @@ export default class Config {
     this.reporter = reporter;
   }
 
+  constraintResolver: ConstraintResolver;
   modulesFolder: string;
   lockLocation: string;
   packagesRoot: string;
@@ -52,9 +52,6 @@ export default class Config {
 
     this.packagesRoot  = await this.getPackageRoot(opts);
     this.tempFolder    = await this.getTempFolder();
-    this.lockLocation  = this.getTemp(constants.LOCKFILE_FILENAME);
-
-    await this.lock();
   }
 
   async getRegistryConfig(registry: PackageRegistry): Promise<Object> {
@@ -88,18 +85,6 @@ export default class Config {
 
   getTemp(filename: string): string {
     return path.join(this.tempFolder, filename);
-  }
-
-  async lock(): Promise<void> {
-    if (await lockfile.check(this.lockLocation)) {
-      throw new MessageError("There appears to already be a kpm process running. Please wait for it to finish before spawning another.");
-    } else {
-      await lockfile.lock(this.lockLocation);
-    }
-  }
-
-  async unlock(): Promise<void> {
-    await lockfile.unlock(this.lockLocation);
   }
 
   async getModulesFolder(registry: PackageRegistry): Promise<string> {

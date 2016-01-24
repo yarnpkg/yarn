@@ -59,8 +59,8 @@ export default class GitResolver extends ExoticResolver {
       return this.fork(GitHubResolver, false, `${pathname}${decodeURIComponent(parts.hash || "")}`);
     }
 
-    // get from shrinkwrap
-    let shrunk = this.request.getShrunk("git");
+    // get from lockfile
+    let shrunk = this.request.getLocked("git");
     if (shrunk) return shrunk;
 
     let client = new Git(this.config, url, this.hash);

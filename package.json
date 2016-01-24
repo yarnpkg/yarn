@@ -9,7 +9,6 @@
     "cmd-shim": "^2.0.1",
     "commander": "^2.9.0",
     "invariant": "^2.2.0",
-    "lockfile": "^1.0.1",
     "lodash": "^3.10.1",
     "loud-rejection": "^1.2.0",
     "mkdirp": "^0.5.1",

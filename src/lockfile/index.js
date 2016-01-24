@@ -1,16 +1,18 @@
 /* @flow */
 
-import type PackageResolver from "./package-resolver";
-import type Reporter from "./reporters/_base";
-import { MessageError } from "./errors";
-import * as constants from "./constants";
-import * as fs from "./util/fs";
+import type PackageResolver from "../package-resolver";
+import type Reporter from "../reporters/_base";
+import { MessageError } from "../errors";
+import parse from "./parse";
+import * as constants from "../constants";
+import * as fs from "../util/fs";
 
 let invariant = require("invariant");
+let stripBOM  = require("strip-bom");
 let path      = require("path");
 let _         = require("lodash");
 
-export default class Shrinkwrap {
+export default class Lockfile {
   constructor(cache: ?Object, strict: boolean) {
     this.strict = strict;
     this.cache  = cache;
@@ -35,32 +37,33 @@ export default class Shrinkwrap {
     dir: string,
     reporter: Reporter,
     strictIfPresent: boolean,
-  ): Promise<Shrinkwrap> {
+  ): Promise<Lockfile> {
     // read the package.json in this directory
-    let shrinkwrapLoc = path.join(dir, constants.SHRINKWRAP_FILENAME);
-    let shrinkwrap;
+    let lockfileLoc = path.join(dir, constants.LOCKFILE_FILENAME);
+    let lockfile;
     let strict = false;
 
-    if (await fs.exists(shrinkwrapLoc)) {
-      shrinkwrap = await fs.readJson(shrinkwrapLoc);
+    if (await fs.exists(lockfileLoc)) {
+      lockfile = await fs.readFile(lockfileLoc);
+      lockfile = parse(stripBOM(lockfile));
       strict = strictIfPresent;
-      reporter.info(`Read shrinkwrap ${constants.SHRINKWRAP_FILENAME}`);
+      reporter.info(`Read lockfile ${constants.LOCKFILE_FILENAME}`);
 
       if (!strict) {
-        reporter.warn(`Shrinkwrap is not in strict mode. Any new versions will be installed arbitrarily.`);
+        reporter.warn(`Lockfile is not in strict mode. Any new versions will be installed arbitrarily.`);
       }
     } else {
-      reporter.info(`No shrinkwrap found.`);
+      reporter.info(`No lockfile found.`);
     }
 
-    return new Shrinkwrap(shrinkwrap, strict);
+    return new Lockfile(lockfile, strict);
   }
 
   isStrict(): boolean {
     return this.strict;
   }
 
-  getShrunk(pattern: string, noStrict?: boolean) {
+  getLocked(pattern: string, noStrict?: boolean) {
     let cache = this.cache;
     if (!cache) return;
 
@@ -68,16 +71,17 @@ export default class Shrinkwrap {
     if (shrunk) {
       shrunk.uid = shrunk.uid || shrunk.version;
       shrunk.permissions = shrunk.permissions || {};
+      shrunk.registry = shrunk.registry || "npm";
       return shrunk;
     } else {
       if (!noStrict && this.strict) {
-        throw new MessageError(`The pattern ${pattern} not found in shrinkwrap`);
+        throw new MessageError(`The pattern ${pattern} not found in lockfile`);
       }
     }
   }
 
-  getShrinkwrapped(resolver: PackageResolver): Object {
-    let shrinkwrap = {};
+  getLockfile(resolver: PackageResolver): Object {
+    let lockfile = {};
 
     for (let pattern in resolver.patterns) {
       let pkg = resolver.patterns[pattern];
@@ -88,17 +92,17 @@ export default class Shrinkwrap {
       let remote = pkg.remote;
       invariant(remote, "Package is missing a remote");
 
-      shrinkwrap[pattern] = {
+      lockfile[pattern] = {
         name: pkg.name,
         version: pkg.version,
         uid: pkg.uid === pkg.version ? undefined : pkg.uid,
         resolved: remote.resolved,
-        registry: remote.registry,
+        registry: remote.registry === "npm" ? undefined : remote.registry,
         dependencies: _.isEmpty(pkg.dependencies) ? undefined : pkg.dependencies,
         permissions: _.isEmpty(ref.permissions) ? undefined : ref.permissions
       };
     }
 
-    return shrinkwrap;
+    return lockfile;
   }
 }

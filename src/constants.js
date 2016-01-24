@@ -8,8 +8,7 @@ export const CHILD_CONCURRENCY = 5;
 
 export const REQUIRED_PACKAGE_KEYS = ["name", "version", "uid"];
 
-export const SHRINKWRAP_FILENAME = "kpm-shrinkwrap.json";
-export const LOCKFILE_FILENAME   = ".kpm-lock";
+export const LOCKFILE_FILENAME = "kpm.lock";
 export const METADATA_FILENAME   = ".kpm-metadata.json";
 
 export const USER_AGENT = "kpm";

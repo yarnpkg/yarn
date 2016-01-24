@@ -8,7 +8,6 @@ import * as child from "./child";
 import * as fs from "./fs";
 
 let invariant = require("invariant");
-let nodeChild = require("child_process");
 let semver    = require("semver");
 let url       = require("url");
 let tar       = require("tar");
@@ -113,18 +112,14 @@ export default class Git {
   }
 
   async _cloneViaLocalFetched(dest: string): Promise<void> {
-    return new Promise((resolve, reject) => {
-      let extractor = tar.Extract({ path: dest });
-      extractor.on("error", reject);
+    await child.spawn("git", ["archive", this.ref], {
+      cwd: this.cwd,
+      process(proc, resolve, reject) {
+        let extractor = tar.Extract({ path: dest });
+        extractor.on("error", reject);
 
-      let proc = nodeChild.spawn("git", ["archive", this.ref], { cwd: this.cwd });
-      proc.on("error", reject);
-
-      proc.stdout.pipe(extractor);
-
-      proc.on("close", function () {
-        resolve();
-      });
+        proc.stdout.pipe(extractor);
+      }
     });
   }
 
@@ -235,8 +230,11 @@ export default class Git {
           return hash;
         }
       }
-      // TODO: we could just return the hash and set no support archive here...
-      throw new Error("Wasn't able to find a branch/tag with this commit hash");
+
+      // `git archive` only accepts a treeish and we have no ref to this commit
+      this.ref = this.hash = hash;
+      this.supportsArchive = false;
+      return;
     }
 
     let ref = await this.findResolution(hash, names);

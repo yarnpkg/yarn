@@ -1,6 +1,6 @@
 /* @flow */
 
-import type Shrinkwrap from "./shrinkwrap";
+import type Lockfile from "./lockfile";
 import type { PackageRemote, PackageInfo } from "./types";
 import type { PackageRegistry } from "./resolvers";
 import { getRegistryResolver } from "./resolvers";
@@ -11,9 +11,9 @@ export default class PackageReference {
     info: PackageInfo,
     remote: PackageRemote,
     deps: Array<string>,
-    shrinkwrap: Shrinkwrap
+    lockfile: Lockfile
   ) {
-    this._shrinkwrap = shrinkwrap;
+    this._lockfile = lockfile;
 
     this.registry = remote.registry;
     this.version  = info.version;
@@ -29,7 +29,7 @@ export default class PackageReference {
     this.optional    = null;
   }
 
-  _shrinkwrap: Shrinkwrap;
+  _lockfile: Lockfile;
 
   name: string;
   version: string;
@@ -53,7 +53,7 @@ export default class PackageReference {
     if (key in this.permissions) {
       return this.permissions[key];
     } else {
-      if (this._shrinkwrap.isStrict()) {
+      if (this._lockfile.isStrict()) {
         throw new MessageError(`Permission ${key} not found in permissions for ${this.name}@${this.version}`);
       } else {
         return false;
@@ -64,7 +64,7 @@ export default class PackageReference {
   addPattern(pattern: string) {
     this.patterns.push(pattern);
 
-    let shrunk = this._shrinkwrap.getShrunk(pattern);
+    let shrunk = this._lockfile.getLocked(pattern);
     if (shrunk && shrunk.permissions) {
       for (let key in shrunk.permissions) {
         this.setPermission(key, shrunk.permissions[key]);

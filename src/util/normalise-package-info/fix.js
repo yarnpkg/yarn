@@ -106,7 +106,7 @@ export default async function (info: Object, moduleLoc: string): Promise<void> {
   let scripts = info.scripts || {};
 
   // if there's a server.js file and no start script then set it to `node server.js`
-  if (!info.scripts.start && files.indexOf("server.js") >= 0) {
+  if (!scripts.start && files.indexOf("server.js") >= 0) {
     scripts.start = "node server.js";
   }
 
