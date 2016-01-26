@@ -4,9 +4,10 @@ import typos from "./typos";
 
 let semver = require("semver");
 
-export default function (info: Object, moduleLoc: string, warn: ?Function): void {
-  for (let typoKey in typos) {
-    if (typoKey in info) {
+export default function (info: Object, moduleLoc: string, warn: ?(msg: string) => void): void {
+  for (let key in typos) {
+    if (key in info) {
+      if (warn) warn(`Potential type ${key}, did you mean ${typos[key]}?`);
       // TODO: warn or something
     }
   }

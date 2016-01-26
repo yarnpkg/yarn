@@ -14,7 +14,6 @@ function prependEmoji(msg, emoji) {
 }
 
 function createReadline() {
-  // $FlowFixMe: Flow probably doesn't have this definition
   return readline.createInterface({
     input: process.stdin,
     output: process.stdout,

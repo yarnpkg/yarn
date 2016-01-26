@@ -88,7 +88,6 @@ export default async function (info: Object, moduleLoc: string): Promise<void> {
   if (typeof info.homepage === "string") {
     let parts = url.parse(info.homepage);
     parts.protocol = parts.protocol || "http:";
-    // $FlowFixMe: fix node definition
     info.homepage = url.format(parts);
   }
 

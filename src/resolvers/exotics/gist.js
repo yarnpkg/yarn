@@ -23,7 +23,6 @@ function explodeGistFragment(fragment: string): { id: string, hash: string } {
 }
 
 export default class GistResolver extends ExoticResolver {
-  // $FlowFixMe: i know what i'm doing
   static protocol = "gist";
 
   constructor(request: PackageRequest, fragment: string) {

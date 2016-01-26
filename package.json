@@ -40,7 +40,8 @@
     "gulp-newer": "^1.0.0",
     "gulp-plumber": "^1.0.1",
     "gulp-util": "^3.0.7",
-    "gulp-watch": "^4.3.5"
+    "gulp-watch": "^4.3.5",
+    "nyc": "^5.5.0"
   },
   "bin": {
     "kpm": "./bin/kpm.js",

@@ -1,5 +1,7 @@
 /* @flow */
 
+let invariant = require("invariant");
+
 const tokTypes = {
   boolean: "BOOLEAN",
   string: "STRING",
@@ -11,12 +13,19 @@ const tokTypes = {
   invalid: "INVALID"
 };
 
-export function* tokenise(input) {
+type Token = {
+  line: number,
+  col: number,
+  type: string,
+  value: ?any
+};
+
+export function* tokenise(input: string): Iterator<Token> {
   let lastNewline = false;
   let line = 1;
   let col = 0;
 
-  function buildToken(type, value) {
+  function buildToken(type, value): Token {
     return { line, col, type, value };
   }
 
@@ -97,6 +106,8 @@ export function* tokenise(input) {
     lastNewline = input[0] === "\n";
     input = input.slice(chop);
   }
+
+  yield buildToken(tokTypes.eof);
 }
 
 export class Parser {
@@ -104,20 +115,25 @@ export class Parser {
     this.tokens = tokenise(input);
   }
 
-  next() {
+  token: Token;
+  tokens: Iterator<Token>;
+
+  next(): Token {
     let item = this.tokens.next();
     if (item.done) {
-      return this.token = { type: tokTypes.eof };
-    } else {
+      throw new Error("No more tokens");
+    } else if (item.value) {
       return this.token = item.value;
+    } else {
+      throw new Error("Expected a token");
     }
   }
 
-  unexpected(msg: string = "Unexpected token") {
+  unexpected(msg: string = "Unexpected token"): void {
     throw new SyntaxError(`${msg} ${this.token.line}:${this.token.col}`);
   }
 
-  expect(tokType) {
+  expect(tokType: string) {
     if (this.token.type === tokType) {
       this.next();
     } else {
@@ -125,8 +141,8 @@ export class Parser {
     }
   }
 
-  parse(indent: number = 0) {
-    let obj = {};
+  parse(indent: number = 0): Object {
+    let obj = Object.create(null);
 
     while (true) {
       let propToken = this.token;
@@ -139,12 +155,8 @@ export class Parser {
         }
 
         if (nextToken.type !== tokTypes.indent) {
-          if (indent === 1) {
-            // if we have no indentation after a newline then we've gone down a level
-            break;
-          } else {
-            this.unexpected();
-          }
+          // if we have no indentation after a newline then we've gone down a level
+          break;
         }
 
         if (nextToken.value === indent) {
@@ -165,6 +177,7 @@ export class Parser {
       } else if (propToken.type === tokTypes.string) {
         // property key
         let key = propToken.value;
+        invariant(key, "Expected a key");
 
         let valToken = this.next();
         if (valToken.type === tokTypes.colon) {
@@ -174,10 +187,10 @@ export class Parser {
           obj[key] = valToken.value;
           this.next();
         } else {
-          this.unexpected();
+          this.unexpected("Invalid value type");
         }
       } else {
-        this.unexpected();
+        this.unexpected("Unknown token");
       }
     }
 

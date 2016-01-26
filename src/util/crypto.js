@@ -4,7 +4,6 @@ let through = require("through2");
 let crypto  = require("crypto");
 
 export function hash(content: string, type: string = "md5"): string {
-  // $FlowFixMe: this is never possibly undefined?
   return crypto.createHash(type).update(content).digest("hex");
 }
 

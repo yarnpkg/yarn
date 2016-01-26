@@ -3,7 +3,6 @@
 import HostedGitResolver from "./_hosted-git";
 
 export default class GitLabResolver extends HostedGitResolver {
-  // $FlowFixMe: i know what i'm doing
   static protocol = "gitlab";
 
   getTarballUrl(commit: string): string {

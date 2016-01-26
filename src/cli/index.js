@@ -1,13 +1,15 @@
 /* @flow */
 
+global.Promise = require("bluebird");
+
+import ConsoleReporter from "../reporters/console";
 import { MessageError, BailError } from "../errors";
 import { hasValidArgLength } from "./arg-utils";
-import * as commands from "./commands";
-import ConsoleReporter from "../reporters/console";
 import JSONReporter from "../reporters/json";
-import Config from "../config";
 import * as network from "../util/network";
+import * as commands from "./commands";
 import aliases from "./aliases";
+import Config from "../config";
 
 let loudRejection = require("loud-rejection");
 let commander     = require("commander");

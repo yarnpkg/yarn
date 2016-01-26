@@ -8,13 +8,8 @@ import GitResolver from "../exotics/git";
 const BOWER_REGISTRY_URL = "https://bower.herokuapp.com";
 
 export default class BowerResolver extends RegistryResolver {
-  // $FlowFixMe: i know what i'm doing
   static alwaysFlatten = true;
-
-  // $FlowFixMe: i know what i'm doing
   static directory = "bower_components";
-
-  // $FlowFixMe: i know what i'm doing
   static filename = "bower.json";
 
   static async getConfig(cwd: string): Promise<Object> {

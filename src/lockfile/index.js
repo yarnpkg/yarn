@@ -2,6 +2,7 @@
 
 import type PackageResolver from "../package-resolver";
 import type Reporter from "../reporters/_base";
+import type { PackageInfo } from "../types";
 import { MessageError } from "../errors";
 import parse from "./parse";
 import * as constants from "../constants";
@@ -28,6 +29,7 @@ export default class Lockfile {
       name: string,
       version: string,
       resolved: string,
+      registry: string,
       uid?: string,
       permissions?: { [key: string]: boolean },
       dependencies?: {
@@ -47,8 +49,8 @@ export default class Lockfile {
     let strict = false;
 
     if (await fs.exists(lockfileLoc)) {
-      lockfile = await fs.readFile(lockfileLoc);
-      lockfile = parse(stripBOM(lockfile));
+      let rawLockfile = await fs.readFile(lockfileLoc);
+      lockfile = parse(stripBOM(rawLockfile));
       strict = strictIfPresent;
       reporter.info(`Read lockfile ${constants.LOCKFILE_FILENAME}`);
 
@@ -87,12 +89,15 @@ export default class Lockfile {
 
   getLockfile(resolver: PackageResolver): Object {
     let lockfile = {};
+    let seen: Map<PackageInfo, string> = new Map;
 
     for (let pattern in resolver.patterns) {
       let pkg = resolver.patterns[pattern];
-      if (pkg._lockfileRef) {
+
+      let seenPattern = seen.get(pkg);
+      if (seenPattern) {
         // no point in duplicating it
-        lockfile[pattern] = pkg._lockfileRef;
+        lockfile[pattern] = seenPattern;
         continue;
       }
 
@@ -112,7 +117,7 @@ export default class Lockfile {
         permissions: _.isEmpty(ref.permissions) ? undefined : ref.permissions
       };
 
-      pkg._lockfileRef = pattern;
+      seen.set(pkg, pattern);
     }
 
     return lockfile;

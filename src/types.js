@@ -68,6 +68,7 @@ export type PackageInfo = {
   dependencies?: Dependencies,
   devDependencies?: Dependencies,
   peerDependencies?: Dependencies,
+  engineDependencies?: { [version: string]: Dependencies },
   optionalDependencies?: Dependencies,
 
   bundleDependencies?: Array<string>,

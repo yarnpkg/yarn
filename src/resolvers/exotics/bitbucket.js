@@ -3,7 +3,6 @@
 import HostedGitResolver from "./_hosted-git";
 
 export default class BitbucketResolver extends HostedGitResolver {
-  // $FlowFixMe: i know what i'm doing
   static protocol = "bitbucket";
 
   getTarballUrl(commit: string): string {

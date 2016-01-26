@@ -13,7 +13,6 @@ export default class FileResolver extends ExoticResolver {
 
   loc: string;
 
-  // $FlowFixMe: i know what i'm doing
   static protocol = "file";
 
   resolve(): Promise<PackageInfo> {

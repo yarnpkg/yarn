@@ -3,10 +3,7 @@
 import type { PackageRegistry } from "./resolvers";
 import type Reporter from "./reporters/_base";
 import ConstraintResolver from "./package-constraint-resolver";
-import { MessageError } from "./errors";
 import { getRegistryResolver } from "./resolvers";
-import * as constants from "./constants";
-import * as promise from "./util/promise";
 import * as fs from "./util/fs";
 
 let invariant = require("invariant");
@@ -131,7 +128,6 @@ export default class Config {
     }
 
     // try and create ~/.kpm
-    // $FlowFixMe: wait until next version of flow to have this definition
     let loc = path.join(os.homedir(), ".kpm");
     await fs.mkdirp(loc);
     return loc;

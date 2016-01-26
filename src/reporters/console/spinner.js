@@ -3,9 +3,7 @@
 let readline = require("readline");
 
 function clearLine() {
-  // $FlowFixMe: add flow definition for readline.clearLine
   readline.clearLine(process.stdout, 0);
-  // $FlowFixMe: add flow definition for readline.cursorTo
   readline.cursorTo(process.stdout, 0);
 }
 
@@ -22,7 +20,6 @@ export default class Spinner {
   text: string;
   id: ?number;
 
-  // $FlowFixMe: Suppress flow static props error
   static spinners: Array<string> = [
     "|/-\\",
     "⠂-–—–-",

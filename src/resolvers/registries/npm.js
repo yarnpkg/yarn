@@ -7,10 +7,7 @@ import RegistryResolver from "./_base";
 const NPM_REGISTRY_URL = "https://registry.npmjs.org";
 
 export default class NpmResolver extends RegistryResolver {
-  // $FlowFixMe: i know what i'm doing
   static directory = "node_modules";
-
-  // $FlowFixMe: i know what i'm doing
   static filename = "package.json";
 
   static async getConfig(cwd: string): Promise<Object> {

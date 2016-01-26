@@ -51,10 +51,7 @@ for (let key in registries) {
   let RegistryResolver = registries[key];
 
   exotics[key] = class extends ExoticRegistryResolver {
-    // $FlowFixMe: i know what i'm doing
     static protocol = key;
-
-    // $FlowFixMe: i know what i'm doing
     static factory = RegistryResolver;
   };
 }
