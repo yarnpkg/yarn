@@ -7,6 +7,7 @@ import type RequestManager from "./util/request-manager";
 import type Reporter from "./reporters/_base";
 import type Lockfile from "./lockfile";
 import type Config from "./config";
+import mergeEngineDependencies from "./util/merge-engine-dependencies";
 import PackageReference from "./package-reference";
 import { getRegistryResolver } from "./resolvers";
 import { MessageError } from "./errors";
@@ -15,6 +16,7 @@ import * as versionUtil from "./util/version";
 import * as resolvers from "./resolvers";
 
 let invariant = require("invariant");
+let semver    = require("semver");
 
 export default class PackageRequest {
   constructor({
@@ -199,6 +201,9 @@ export default class PackageRequest {
     //
     let remote = info.remote;
     invariant(remote, "Missing remote");
+
+    // engine deps
+    mergeEngineDependencies(info);
 
     // normal deps
     for (let depName in info.dependencies) {
