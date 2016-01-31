@@ -4,9 +4,13 @@ import type Reporter from "../reporters/_base";
 import * as constants from "../constants";
 import * as network from "./network";
 
-let request = require("request");
+let Request = require("request").Request;
 
 let controlOffline = network.isOffline();
+
+declare class RequestError extends Error {
+  code: string;
+}
 
 export default class RequestManager {
   constructor(reporter: Reporter) {
@@ -24,19 +28,32 @@ export default class RequestManager {
   queue: Array<Object>;
   max: number;
   cache: {
-    [key: string]: Promise<Object | false>
+    [key: string]: Promise<any>
   };
 
   /**
    * Queue up a request.
    */
 
-  request(url: string): Promise<Object | false> {
+  request<T>(
+    url: string,
+    params?: {
+      json?: boolean,
+      headers?: {
+        [name: string]: string
+      },
+      process?: (
+        req: Request,
+        resolve: (body: T) => void,
+        reject: (err: Error) => void
+      ) => void;
+    } = {}
+  ): Promise<T> {
     let cached = this.cache[url];
     if (cached) return cached;
 
     return this.cache[url] = new Promise((resolve, reject) => {
-      this.queue.push({ url, resolve, reject });
+      this.queue.push({ url, params, resolve, reject });
       this.shiftQueue();
     });
   }
@@ -54,7 +71,7 @@ export default class RequestManager {
    * Check if an error is possibly due to lost or poor network connectivity.
    */
 
-  isPossibleOfflineError(err: Error): boolean {
+  isPossibleOfflineError(err: RequestError): boolean {
     let possibleOfflineChange = !controlOffline && network.isOffline();
 
     if (err.code === "ENOTFOUND" && possibleOfflineChange) {
@@ -112,36 +129,58 @@ export default class RequestManager {
    */
 
   execute(
-    requestOpts: {
+    params: {
       url: string,
-      json: boolean,
+      method: "GET",
+      json?: boolean,
       headers: {
         [key: string]: string
-      }
+      },
+      process?: (
+        req: Request,
+        resolve: (body: any) => void,
+        reject: (err: Error) => void,
+      ) => void
     },
     opts: {
-      reject: (err: Error) => void,
-      resolve: (body: false | Object) => void
+      reject: (err: any) => void,
+      resolve: (body: any) => void
     }
   ) {
-    request.get(requestOpts, (err, res, body) => {
-      if (err) {
-        if (this.isPossibleOfflineError(err)) {
-          this.queueForOffline(requestOpts, opts);
-          return;
-        } else {
-          opts.reject(err);
-        }
-      } else if (res.statusCode === 403) {
-        opts.reject(new Error((body && body.message) || `Request ${requestOpts.url} returned a ${res.statusCode}`));
-      } else {
-        if (res.statusCode === 404) body = false;
-        opts.resolve(body);
-      }
-
+    let buildNext = (fn) => (data) => {
+      fn(data);
       this.running--;
       this.shiftQueue();
+    };
+
+    let resolve = buildNext(opts.resolve);
+    let reject  = buildNext(opts.reject);
+
+    //
+
+    let req = new Request(params);
+
+    req.on("error", (err) => {
+      if (this.isPossibleOfflineError(err)) {
+        if (params.cleanup) params.cleanup();
+        this.queueForOffline(params, opts);
+      } else {
+        reject(err);
+      }
     });
+
+    if (params.process) {
+      params.process(req, resolve, reject);
+    } else {
+      req.on("complete", (res, body) => {
+        if (res.statusCode === 403) {
+          reject(new Error((body && body.message) || `Request ${params.url} returned a ${res.statusCode}`));
+        } else {
+          if (res.statusCode === 404) body = false;
+          resolve(body);
+        }
+      });
+    }
   }
 
   /**
@@ -155,12 +194,12 @@ export default class RequestManager {
     let opts = this.queue.shift();
 
     this.running++;
-    this.execute({
+    this.execute(Object.assign({
       url: opts.url,
-      json: true,
-      headers: {
+      method: "GET",
+      headers: Object.assign({
         "User-Agent": constants.USER_AGENT
-      }
-    }, opts);
+      }, opts.params.headers)
+    }, opts.params), opts);
   }
 }

@@ -66,6 +66,7 @@ export default class PackageFetcher {
       });
 
       if (ref.optional) {
+        // swallow the error
         promise = promise.catch((err) => {
           self.reporter.error(err.message);
         });

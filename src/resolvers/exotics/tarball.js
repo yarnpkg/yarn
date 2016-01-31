@@ -43,12 +43,8 @@ export default class TarballResolver extends ExoticResolver {
       let { registry } = this;
 
       if (await fs.isValidModuleDest(dest)) {
-        let pkgRegistry;
         // load from local cache
-        ({ package: pkgJson, hash, registry: pkgRegistry } = await fs.readPackageMetadata(dest));
-        if (pkgRegistry !== registry) {
-          throw new Error("This tarball is from a different registry...?");
-        }
+        ({ package: pkgJson, hash, registry } = await fs.readPackageMetadata(dest));
       } else {
         // delete if invalid
         await fs.unlink(dest);

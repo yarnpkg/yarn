@@ -22,9 +22,7 @@ export default class PackageResolver {
 
     this.reporter = reporter;
     this.config   = config;
-
-    this.requestManager = new RequestManager(reporter);
-    this.lockfile     = lockfile;
+    this.lockfile = lockfile;
   }
 
   // activity monitor
@@ -282,7 +280,6 @@ export default class PackageResolver {
       parentRequest,
       config: this.config,
       reporter: this.reporter,
-      requestManager: this.requestManager,
       lockfile: this.lockfile,
       resolver: this
     }).find(optional);
@@ -309,6 +306,6 @@ export default class PackageResolver {
     activity.end();
     this.activity = null;
 
-    this.requestManager.clearCache();
+    this.config.requestManager.clearCache();
   }
 }

@@ -3,7 +3,6 @@
 import type { PackageInfo } from "./types";
 import type { PackageRegistry } from "./resolvers";
 import type PackageResolver from "./package-resolver";
-import type RequestManager from "./util/request-manager";
 import type Reporter from "./reporters/_base";
 import type Lockfile from "./lockfile";
 import type Config from "./config";
@@ -16,7 +15,6 @@ import * as versionUtil from "./util/version";
 import * as resolvers from "./resolvers";
 
 let invariant = require("invariant");
-let semver    = require("semver");
 
 export default class PackageRequest {
   constructor({
@@ -24,7 +22,6 @@ export default class PackageRequest {
     registry,
     config,
     reporter,
-    requestManager,
     lockfile,
     resolver,
     parentRequest
@@ -33,19 +30,17 @@ export default class PackageRequest {
     registry: PackageRegistry,
     config: Config,
     reporter: Reporter,
-    requestManager: RequestManager,
     lockfile: Lockfile,
     resolver: PackageResolver,
     parentRequest: ?PackageRequest // eslint-disable-line no-unused-vars
   }) {
     this.parentRequest = parentRequest;
-    this.requestManager  = requestManager;
     this.lockfile      = lockfile;
-    this.registry        = registry;
-    this.reporter        = reporter;
-    this.resolver        = resolver;
-    this.pattern         = pattern;
-    this.config          = config;
+    this.registry      = registry;
+    this.reporter      = reporter;
+    this.resolver      = resolver;
+    this.pattern       = pattern;
+    this.config        = config;
   }
 
   static getExoticResolver(pattern: string): ?Function { // TODO make this type more refined
@@ -56,7 +51,6 @@ export default class PackageRequest {
   }
 
   parentRequest: ?PackageRequest;
-  requestManager: RequestManager;
   lockfile: Lockfile;
   reporter: Reporter;
   resolver: PackageResolver;

@@ -2,7 +2,6 @@
 
 import type { PackageInfo } from "../../types";
 import type PackageRequest from "../../package-request";
-import type { PackageRegistry } from "../../resolvers";
 import { MessageError } from "../../errors";
 import ExoticResolver from "./_base";
 
@@ -18,6 +17,7 @@ export default class RegistryResolver extends ExoticResolver {
       throw new MessageError(`Invalid fragment ${fragment}`);
     }
 
+    // $FlowFixMe
     this.registry = this.constructor.protocol;
   }
 

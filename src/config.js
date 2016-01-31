@@ -3,6 +3,7 @@
 import type { PackageRegistry } from "./resolvers";
 import type Reporter from "./reporters/_base";
 import ConstraintResolver from "./package-constraint-resolver";
+import RequestManager from "./util/request-manager";
 import { getRegistryResolver } from "./resolvers";
 import * as fs from "./util/fs";
 
@@ -18,10 +19,12 @@ type ConfigOptions = {
 export default class Config {
   constructor(reporter: Reporter) {
     this.constraintResolver = new ConstraintResolver(this, reporter);
-    this.reporter = reporter;
+    this.requestManager     = new RequestManager(reporter);
+    this.reporter           = reporter;
   }
 
   constraintResolver: ConstraintResolver;
+  requestManager: RequestManager;
   modulesFolder: string;
   lockLocation: string;
   packagesRoot: string;
