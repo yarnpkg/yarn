@@ -53,6 +53,11 @@ export default class BaseReporter {
     };
   }
 
+  //
+  question(question: string): Promise<boolean> {
+    return Promise.resolve(false);
+  }
+
   // prompt the user to select an option from an array
   select(header: string, question: string, options: Array<string>): Promise<string> {
     return Promise.resolve("");

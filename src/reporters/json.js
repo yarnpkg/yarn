@@ -44,6 +44,10 @@ export default class JSONReporter extends BaseReporter {
   info(msg: string) {
     dump("info", msg);
   }
+  
+  question(): Promise<boolean> {
+    return Promise.reject(new Error("Cannot accept questions with the JSON reporter"));
+  }
 
   select(): Promise<string> {
     return Promise.reject(new Error("Cannot accept questions with the JSON reporter"));

@@ -58,6 +58,12 @@ export default class ConsoleReporter extends BaseReporter {
     console.log(`${chalk.yellow("warning")} ${msg}`);
   }
 
+  question(question: string): Promise<boolean> {
+    // TODO
+    question;
+    return Promise.resolve(false);
+  }
+
   activity(): {
     tick: (name: string) => void,
     end: () => void

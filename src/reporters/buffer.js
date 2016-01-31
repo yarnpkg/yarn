@@ -13,28 +13,28 @@ export default class BufferReporter extends BaseReporter {
     data: string;
   }>;
 
-  log(msg: string) {
-    console.log(msg);
+  log(data: string) {
+    this._buffer.push({ type: "log", data });
   }
 
-  success(msg: string) {
-    this._buffer.push({ type: "success", data: msg });
+  success(data: string) {
+    this._buffer.push({ type: "success", data });
   }
 
-  error(msg: string) {
-    this._buffer.push({ type: "error", data: msg });
+  error(data: string) {
+    this._buffer.push({ type: "error", data });
   }
 
-  info(msg: string) {
-    this._buffer.push({ type: "info", data: msg });
+  info(data: string) {
+    this._buffer.push({ type: "info", data });
   }
 
-  command(command: string) {
-    this._buffer.push({ type: "command", data: command });
+  command(data: string) {
+    this._buffer.push({ type: "command", data });
   }
 
-  warn(msg: string) {
-    this._buffer.push({ type: "warning", data: msg });
+  warn(data: string) {
+    this._buffer.push({ type: "warning", data });
   }
 
   getBuffer(): Array<{
