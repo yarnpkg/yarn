@@ -5,6 +5,7 @@ import type Reporter from "./reporters/_base";
 import type { PackageInfo } from "./types";
 import type Config from "./config";
 import { BailError } from "./errors";
+import map from "./util/map";
 
 let semver = require("semver");
 let _      = require("lodash");
@@ -31,6 +32,14 @@ function isValid(items: Array<string>, actual: string): boolean {
 
   return isBlacklist;
 }
+
+let aliases = map({
+  iojs: "node" // we should probably prompt these libraries to fix this
+});
+
+let ignore = [
+  "npm" // we'll never satisfy this for obvious reasons
+];
 
 export default class PackageCompatibility {
   constructor(config: Config, reporter: Reporter, resolver: PackageResolver) {
@@ -76,13 +85,16 @@ export default class PackageCompatibility {
       for (let name in info.engines) {
         let range = info.engines[name];
 
+        if (aliases[name]) {
+          name = aliases[name];
+        }
+
         if (_.has(process.versions, name)) {
           let actual = process.versions[name];
           if (!semver.satisfies(actual, range)) {
             printError(`The engine ${name} is incompatible with this module. Expected version ${range}.`);
           }
-        } else {
-          // TODO: sam make this pretty or something idk - seb
+        } else if (!_.contains(ignore, name)) {
           this.reporter.warn(`${human}: The engine ${name} appears to be invalid.`);
         }
       }
