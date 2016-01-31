@@ -181,7 +181,7 @@ export class Install {
         continue;
       }
 
-      let versions = _.map(infos, "version");
+      let versions = infos.map(info => info.version);
       let version = this.resolutions[name];
       if (version && versions.indexOf(version) >= 0) {
         // use json `resolution` version
