@@ -1,7 +1,5 @@
 /* @flow */
 
-global.Promise = require("bluebird");
-
 import ConsoleReporter from "../reporters/console";
 import { MessageError, BailError } from "../errors";
 import { hasValidArgLength } from "./arg-utils";
