@@ -5,6 +5,7 @@ import type { PackageRegistry } from "../resolvers";
 import { registries } from "../resolvers";
 import * as constants from "../constants";
 import { promisify } from "./promise";
+import map from "./map";
 
 let path = require("path");
 let fs   = require("fs");
@@ -36,7 +37,7 @@ export async function readFile(loc: string): Promise<string> {
 export async function readJson(loc: string): Promise<Object> {
   let file = await readFile(loc);
   try {
-    return JSON.parse(stripBOM(file));
+    return map(JSON.parse(stripBOM(file)));
   } catch (err) {
     err.message = `${loc}: ${err.message}`;
     throw err;

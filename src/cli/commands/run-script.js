@@ -20,7 +20,7 @@ export async function run(
   let action = args[0];
   let pkg = await fs.readPackageJson(config.cwd);
 
-  if (!pkg.scripts || !_.has(pkg.scripts, action)) {
+  if (!pkg.scripts || !pkg.scripts[action]) {
     throw new MessageError(`No scripts.${action} command specified!`);
   }
 
