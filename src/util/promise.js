@@ -37,7 +37,11 @@ export function promisifyObject(obj: Object): {
   return promisedObj;
 }
 
-export function queue<T>(arr: Array<any>, promiseProducer: Function, concurrency: number = Infinity): Promise<Array<T>> {
+export function queue<T>(
+  arr: Array<any>,
+  promiseProducer: (result: any) => Promise<T>,
+  concurrency: number = Infinity,
+): Promise<Array<T>> {
   concurrency = Math.min(concurrency, arr.length);
 
   let results = [];
