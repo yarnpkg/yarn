@@ -5,7 +5,7 @@ function shouldWrapKey(str: string): boolean {
 }
 
 function maybeWrap(str: string): string {
-  if (shouldWrapKey(str)) {
+  if (typeof str === "boolean" || shouldWrapKey(str)) {
     return JSON.stringify(str);
   } else {
     return str;
