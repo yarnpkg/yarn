@@ -13,23 +13,30 @@ let path      = require("path");
 let os        = require("os");
 
 type ConfigOptions = {
-  cwd?: string;
-  packageRoot?: string;
+  cwd?: string,
+  packagesRoot?: string,
+  tempFolder?: string
 };
 
 export default class Config {
-  constructor(reporter: Reporter) {
+  constructor(reporter: Reporter, opts?: ConfigOptions = {}) {
     this.constraintResolver = new ConstraintResolver(this, reporter);
     this.requestManager     = new RequestManager(reporter);
     this.reporter           = reporter;
+
+    this.registryConfig = map();
+    this.moduleFolders  = map();
+    this.cwd            = process.cwd();
+
+    this.packagesRoot = opts.packagesRoot;
+    this.tempFolder   = opts.tempFolder;
   }
 
   constraintResolver: ConstraintResolver;
   requestManager: RequestManager;
   modulesFolder: string;
-  lockLocation: string;
-  packagesRoot: string;
-  tempFolder: string;
+  packagesRoot: ?string;
+  tempFolder: ?string;
   reporter: Reporter;
   cwd: string;
 
@@ -45,14 +52,16 @@ export default class Config {
     return this.constraintResolver.reduce(versions, range);
   }
 
-  async initialise(opts: ConfigOptions = {}): Promise<void> {
-    this.cwd = opts.cwd || process.cwd();
+  async init(opts: ConfigOptions = {}): Promise<void> {
+    if (opts.cwd) {
+      this.cwd = opts.cwd;
+    }
 
-    this.registryConfig = map();
-    this.moduleFolders  = map();
+    if (!this.tempFolder) {
+      this.tempFolder = await this.getTempFolder();
+    }
 
-    this.packagesRoot  = await this.getPackageRoot(opts);
-    this.tempFolder    = await this.getTempFolder();
+    this.packagesRoot = await this.getPackageRoot(opts);
   }
 
   async getRegistryConfig(registry: PackageRegistry): Promise<Object> {
@@ -73,6 +82,7 @@ export default class Config {
     invariant(pkg, "Undefined package");
     invariant(pkg.name, "No name field in package");
     invariant(pkg.uid, "No uid field in package");
+    invariant(this.packagesRoot, "No package root");
 
     let name = pkg.name;
     let uid = pkg.uid;
@@ -85,6 +95,7 @@ export default class Config {
   }
 
   getTemp(filename: string): string {
+    invariant(this.tempFolder, "No temp folder");
     return path.join(this.tempFolder, filename);
   }
 
@@ -114,6 +125,7 @@ export default class Config {
   }
 
   async getTempFolder(): Promise<string> {
+    invariant(this.packagesRoot, "No package root");
     let folder = path.join(this.packagesRoot, ".tmp");
     await fs.mkdirp(folder);
     return folder;

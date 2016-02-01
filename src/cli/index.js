@@ -86,7 +86,7 @@ if (network.isOffline()) {
 }
 
 //
-config.initialise().then(function () {
+config.init().then(function () {
   let validArgLength = hasValidArgLength(command.argumentLength, command.minArgumentLength, args);
 
   if (!validArgLength) {

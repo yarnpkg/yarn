@@ -5,3 +5,4 @@
 *.log
 /.nyc_output
 /coverage
+/test/.tmp

@@ -169,6 +169,10 @@ export default class RequestManager {
     if (params.process) {
       params.process(req, resolve, reject);
     } else {
+      req.on("request", (res) => {
+        req.readResponseBody(res);
+      });
+
       req.on("complete", (res, body) => {
         if (res.statusCode === 403) {
           let errMsg = (body && body.message) || `Request ${params.url} returned a ${res.statusCode}`;

@@ -18,7 +18,7 @@ test-cov:
 	open coverage/index.html
 
 lint:
-	./node_modules/.bin/eslint bin src tests
+	./node_modules/.bin/eslint bin src test
 
 test: lint typecheck test-only
 

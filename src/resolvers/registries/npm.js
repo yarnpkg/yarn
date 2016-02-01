@@ -49,6 +49,7 @@ export default class NpmResolver extends RegistryResolver {
       url: `${NPM_REGISTRY_URL}/${this.name}`,
       json: true
     });
+
     if (!body) {
       throw new MessageError(
         `Couldn't find package ${this.name} on the npm registry. ${this.request.getHuman()}`

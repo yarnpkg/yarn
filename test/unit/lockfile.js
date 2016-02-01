@@ -1,7 +1,7 @@
 import parse from "../../lib/lockfile/parse";
 import stringify from "../../lib/lockfile/stringify";
 
-let nullify = require("../../lib/util/map");
+let nullify = require("../../lib/util/map").default;
 let test    = require("ava");
 
 test("lockfile.parse", (t) => {
@@ -17,5 +17,6 @@ test("lockfile.parse", (t) => {
 });
 
 test("lockfile.stringify", (t) => {
-
+  stringify;
+  t;
 });
