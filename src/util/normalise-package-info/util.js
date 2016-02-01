@@ -59,7 +59,7 @@ export function extractDescription(readme: string): ?string {
   if (readme === README_NOT_FOUND_MESSAGE) return;
 
   // split into lines
-  let lines = readme.trim().split("\n").map(line => line.trim());
+  let lines = readme.trim().split("\n").map((line) => line.trim());
 
   // find the start of the first paragraph, ignore headings
   let start = 0;

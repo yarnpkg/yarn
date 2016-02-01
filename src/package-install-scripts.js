@@ -56,7 +56,9 @@ export default class PackageInstallScripts {
       invariant(ref, "Missing package reference");
 
       if (this.needsPermission && !ref.hasPermission("scripts")) {
-        let can = await this.reporter.question(`Module ${pkg.name} wants to execute the commands ${JSON.stringify(cmds)}. Do you want to accept?`);
+        let can = await this.reporter.question(
+          `Module ${pkg.name} wants to execute the commands ${JSON.stringify(cmds)}. Do you want to accept?`
+        );
         if (!can) continue;
 
         ref.setPermission("scripts", can);

@@ -35,7 +35,9 @@ export default class TarballFetcher extends BaseFetcher {
             if (!expectHash || expectHash === actualHash) {
               resolve(actualHash);
             } else {
-              reject(new SecurityError(`Bad hash for tarball ${ref}. Expected ${expectHash} but ${actualHash}.`));
+              reject(new SecurityError(
+                `Bad hash for tarball ${ref}. Expected ${expectHash} but ${actualHash}.`
+              ));
             }
           });
 
@@ -46,7 +48,10 @@ export default class TarballFetcher extends BaseFetcher {
             let href = this.uri.href;
             let parts = url.parse(href);
             if (parts.protocol === "http:") {
-              throw new SecurityError(`While downloading the tarball ${ref} we encountered a HTTP redirect of ${href}. This is not allowed unless a tarball hash is specified.`);
+              throw new SecurityError(
+                `While downloading the tarball ${ref} we encountered a HTTP redirect of ${href}. ` +
+                `This is not allowed unless a tarball hash is specified.`
+              );
             }
           })
           .pipe(validateStream)

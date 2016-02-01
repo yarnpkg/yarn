@@ -10,9 +10,18 @@ import * as update from "./update";
 export { update };
 
 import buildUseless from "./_useless";
-export let lockfile = buildUseless("The lockfile command isn't necessary. `kpm install` will produce a lockfile.");
-export let dedupe     = buildUseless("The dedupe command isn't necessary. `kpm install` will already dedupe.");
-export let prune      = buildUseless("The prune command isn't necessary. `kpm install` will now automatically prune extraneous packages.");
+
+export let lockfile = buildUseless(
+  "The lockfile command isn't necessary. `kpm install` will produce a lockfile."
+);
+
+export let dedupe   = buildUseless(
+  "The dedupe command isn't necessary. `kpm install` will already dedupe."
+);
+
+export let prune    = buildUseless(
+  "The prune command isn't necessary. `kpm install` will now automatically prune extraneous packages."
+);
 
 import buildExecuteLifecycleScript from "./_execute-lifecycle-script";
 export let restart = buildExecuteLifecycleScript("restart");

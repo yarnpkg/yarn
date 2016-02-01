@@ -171,7 +171,8 @@ export default class RequestManager {
     } else {
       req.on("complete", (res, body) => {
         if (res.statusCode === 403) {
-          reject(new Error((body && body.message) || `Request ${params.url} returned a ${res.statusCode}`));
+          let errMsg = (body && body.message) || `Request ${params.url} returned a ${res.statusCode}`;
+          reject(new Error(errMsg));
         } else {
           if (res.statusCode === 404) body = false;
           resolve(body);

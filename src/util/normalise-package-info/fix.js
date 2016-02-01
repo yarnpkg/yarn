@@ -19,7 +19,8 @@ export default async function (info: Object, moduleLoc: string): Promise<void> {
   }
 
   // TODO Rules for license field
-  // The license field should be a valid SPDX license expression or one of the special values allowed by validate-npm-package-license.
+  // The license field should be a valid SPDX license expression or one of the special
+  // values allowed by validate-npm-package-license.
 
   // if name or version aren't set then set them to empty strings
   info.name = info.name || "";
@@ -39,19 +40,22 @@ export default async function (info: Object, moduleLoc: string): Promise<void> {
   if (!info.contributors && files.indexOf("AUTHORS") >= 0) {
     let authors = await fs.readFile(path.join(moduleLoc, "AUTHORS"));
     authors = authors.split(/\r?\n/g) // split on lines
-      .map(line => line.replace(/^\s*#.*$/, "").trim()) // remove comments
-      .filter(line => !!line); // remove empty lines
+      .map((line) => line.replace(/^\s*#.*$/, "").trim()) // remove comments
+      .filter((line) => !!line); // remove empty lines
     info.contributors = authors;
   }
 
   // expand people fields to objects
-  if (typeof info.author === "string" || _.isPlainObject(info.author)) info.author = normalisePerson(info.author);
-  if (Array.isArray(info.contributors)) info.contributors = info.contributors.map(normalisePerson);
-  if (Array.isArray(info.maintainers)) info.maintainers = info.maintainers.map(normalisePerson);
+  if (typeof info.author === "string" || _.isPlainObject(info.author))
+    info.author = normalisePerson(info.author);
+  if (Array.isArray(info.contributors))
+    info.contributors = info.contributors.map(normalisePerson);
+  if (Array.isArray(info.maintainers))
+    info.maintainers = info.maintainers.map(normalisePerson);
 
   // if there's no readme field then load the README file from the cwd
   if (!info.readme) {
-    let readmeFile = _.find(info.files, filename => {
+    let readmeFile = false;_.find(info.files, (filename) => {
       let lower = filename.toLowerCase();
       return lower === "readme" || lower.indexOf("readme.") === 0;
     });
@@ -88,6 +92,7 @@ export default async function (info: Object, moduleLoc: string): Promise<void> {
   if (typeof info.homepage === "string") {
     let parts = url.parse(info.homepage);
     parts.protocol = parts.protocol || "http:";
+    // $FlowFixMe: https://github.com/facebook/flow/issues/908
     info.homepage = url.format(parts);
   }
 

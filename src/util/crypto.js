@@ -22,7 +22,7 @@ export function hashStreamValidation(): {
 
   validationStream.getHash = () => hash.digest("hex");
 
-  validationStream.test = sum => updated && sum === validationStream.getHash();
+  validationStream.test = (sum) => updated && sum === validationStream.getHash();
 
   return validationStream;
 }

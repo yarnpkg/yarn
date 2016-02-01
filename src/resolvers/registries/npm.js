@@ -31,7 +31,10 @@ export default class NpmResolver extends RegistryResolver {
     if (satisfied) {
       return body.versions[satisfied];
     } else {
-      throw new MessageError(`Couldn't find any versions for ${body.name} that matches ${range}. Possible versions: ${Object.keys(body.versions).join(", ")}`);
+      throw new MessageError(
+        `Couldn't find any versions for ${body.name} that matches ${range}. ` +
+        `Possible versions: ${Object.keys(body.versions).join(", ")}`
+      );
     }
   }
 
@@ -47,7 +50,9 @@ export default class NpmResolver extends RegistryResolver {
       json: true
     });
     if (!body) {
-      throw new MessageError(`Couldn't find package ${this.name} on the npm registry. ${this.request.getHuman()}`);
+      throw new MessageError(
+        `Couldn't find package ${this.name} on the npm registry. ${this.request.getHuman()}`
+      );
     }
 
     let info = await this.findVersionInRegistryResponse(body);

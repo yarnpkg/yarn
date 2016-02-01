@@ -181,12 +181,16 @@ export class Install {
         continue;
       }
 
-      let versions = infos.map(info => info.version);
+      let versions = infos.map((info) => info.version);
       let version = this.resolutions[name];
       if (version && versions.indexOf(version) >= 0) {
         // use json `resolution` version
       } else {
-        version = await this.reporter.select(`We found a version in package ${name} that we couldn't resolve`, "Please select a version you'd like to use", versions);
+        version = await this.reporter.select(
+          `We found a version in package ${name} that we couldn't resolve`,
+          "Please select a version you'd like to use",
+          versions
+        );
       }
 
       patterns.push(this.resolver.collapseAllVersionsOfPackage(name, version));
@@ -301,7 +305,8 @@ function shouldWriteLockfile(flags: Object, args: Array<string>): boolean {
 
 export function setFlags(commander: Object) {
   commander.usage("install [packages ...] [flags]");
-  commander.option("-f, --flat", "only allow one version of a package. save all transitive dependencies as top level.");
+  commander.option("-f, --flat", "only allow one version of a package. save all transitive " +
+                                 "dependencies as top level.");
   commander.option("-S, --save", "save package to your `dependencies`"); // TODO
   commander.option("-D, --save-dev", "save package to your `devDependencies`"); // TODO
   commander.option("-O, --save-optional", "save package to your `optionalDependencies`"); // TODO

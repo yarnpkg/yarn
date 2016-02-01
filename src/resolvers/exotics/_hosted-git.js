@@ -80,7 +80,10 @@ export default class HostedGitResolver extends ExoticResolver {
     try {
       return await this.fork(TarballResolver, false, tarballUrl);
     } catch (err) {
-      this.reporter.warn(`Download of tarball ${tarballUrl} failed with error message ${JSON.stringify(err.message)}. Trying git...`);
+      this.reporter.warn(
+        `Download of tarball ${tarballUrl} failed with error message ${JSON.stringify(err.message)}. ` +
+        `Trying git...`
+      );
       // TODO: this will cause an infinite loop for github due to the shorthand fast path
       return await this.fork(GitResolver, true, `${gitUrl}#${commit}`);
     }

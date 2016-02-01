@@ -74,7 +74,10 @@ reporter.header(commandName);
 
 //
 if (commander.yes) {
-  reporter.warn("The yes flag has been set. This will automatically answer yes to all questions which may have security implications.");
+  reporter.warn(
+    "The yes flag has been set. This will automatically answer yes to all questions which " +
+    "may have security implications."
+  );
 }
 
 //
