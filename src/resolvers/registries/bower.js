@@ -21,7 +21,10 @@ export default class BowerResolver extends RegistryResolver {
   async resolve(): Promise<PackageInfo> {
     // let config = await this.config.getRegistryConfig("bower");
 
-    let body = await this.config.requestManager.request(`${BOWER_REGISTRY_URL}/packages/${this.name}`, { json: true });
+    let body = await this.config.requestManager.request({
+      url: `${BOWER_REGISTRY_URL}/packages/${this.name}`,
+      json: true
+    });
     if (body) {
       return this.fork(GitResolver, false, `${body.url}#${this.range}`);
     } else {

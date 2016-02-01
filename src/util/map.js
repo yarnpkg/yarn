@@ -1,10 +1,12 @@
 /* @flow */
 
-export default function nullify<T>(obj: T): T {
-  if (typeof obj === "object") {
+type Return<T> = T | Object;
+
+export default function nullify<T>(obj?: Return<T> = {}): Return<T> {
+  if (typeof obj === "object" || typeof obj === "function") {
     // $FlowFixMe: https://github.com/facebook/flow/pull/1343
     Object.setPrototypeOf(obj, null);
-    for (var key in obj) {
+    for (let key in obj) {
       nullify(obj[key]);
     }
   }

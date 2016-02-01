@@ -9,20 +9,21 @@ import normalisePackageInfo from "./util/normalise-package-info";
 import PackageRequest from "./package-request";
 import RequestManager from "./util/request-manager";
 import Lockfile from "./lockfile";
+import map from "./util/map";
 
 let invariant = require("invariant");
 
 export default class PackageResolver {
   constructor(config: Config, reporter: Reporter, lockfile: Lockfile) {
-    this.packageReferencesByName = Object.create(null);
-    this.patternsByPackage       = Object.create(null);
+    this.packageReferencesByName = map();
+    this.patternsByPackage       = map();
+    this.fetchingPatterns        = map();
     this.newPatterns             = [];
-    this.fetchingPatterns        = Object.create(null);
-    this.patterns                = Object.create(null);
+    this.patterns                = map();
 
     this.reporter = reporter;
-    this.config   = config;
     this.lockfile = lockfile;
+    this.config   = config;
   }
 
   // activity monitor

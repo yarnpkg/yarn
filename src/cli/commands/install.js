@@ -16,11 +16,11 @@ import { MessageError } from "../../errors";
 import * as constants from "../../constants";
 import * as promise from "../../util/promise";
 import * as fs from "../../util/fs";
+import map from "../../util/map";
 
 let invariant = require("invariant");
 let emoji     = require("node-emoji");
 let path      = require("path");
-let _         = require("lodash");
 
 export class Install {
   constructor(
@@ -31,7 +31,7 @@ export class Install {
     reporter: Reporter,
     lockfile: Lockfile
   ) {
-    this.resolutions = Object.create(null);
+    this.resolutions = map();
     this.registries  = [];
     this.lockfile    = lockfile;
     this.reporter    = reporter;

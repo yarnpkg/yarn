@@ -7,8 +7,6 @@ import * as fs from "../../util/fs";
 import executeLifecycleScript from "../../util/execute-lifecycle-script";
 import { getSubArguments } from "../arg-utils";
 
-let _ = require("lodash");
-
 export let minArgumentLength = 1;
 
 export async function run(

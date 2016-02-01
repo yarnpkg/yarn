@@ -1,15 +1,12 @@
 /* @flow */
 
-import * as constants from "../constants";
 import { SecurityError } from "../errors";
 import * as crypto from "../util/crypto";
 import BaseFetcher from "./_base";
 
-let request = require("request");
-let zlib    = require("zlib");
-let tar     = require("tar");
-let url     = require("url");
-let _       = require("lodash");
+let zlib = require("zlib");
+let tar  = require("tar");
+let url  = require("url");
 
 export default class TarballFetcher extends BaseFetcher {
   async _fetch(dest: string): Promise<string> {
@@ -22,7 +19,8 @@ export default class TarballFetcher extends BaseFetcher {
       }
     }
 
-    return this.config.requestManager.request(ref, {
+    return this.config.requestManager.request({
+      url: ref,
       headers: {
         "Accept-Encoding": "gzip"
       },

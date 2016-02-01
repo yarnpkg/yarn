@@ -6,13 +6,14 @@ import queue from "./blocking-queue";
 import * as crypto from "./crypto";
 import * as child from "./child";
 import * as fs from "./fs";
+import map from "./map";
 
 let invariant = require("invariant");
 let semver    = require("semver");
 let url       = require("url");
 let tar       = require("tar");
 
-let supportsArchiveCache = Object.create(null);
+let supportsArchiveCache = map();
 
 export default class Git {
   constructor(config: Config, url: string, hash: string) {
@@ -185,7 +186,6 @@ export default class Git {
         }
       });
     } catch (err) {
-      console.log(err.message);
       if (err.message.indexOf("did not match any files") >= 0) {
         return false;
       } else {

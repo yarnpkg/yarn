@@ -42,7 +42,10 @@ export default class NpmResolver extends RegistryResolver {
 
     // let config = await this.config.getRegistryConfig("npm");
 
-    let body = await this.config.requestManager.request(`${NPM_REGISTRY_URL}/${this.name}`, { json: true });
+    let body = await this.config.requestManager.request({
+      url: `${NPM_REGISTRY_URL}/${this.name}`,
+      json: true
+    });
     if (!body) {
       throw new MessageError(`Couldn't find package ${this.name} on the npm registry. ${this.request.getHuman()}`);
     }

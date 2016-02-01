@@ -13,8 +13,12 @@ export let queue = new BlockingQueue(constants.CHILD_CONCURRENCY);
 // TODO: this uid check is kinda whack
 let uid = 0;
 
-export function spawn(program: string, args: Array<string>, opts?: Object = {}): Promise<string> {
-  return queue.push(opts.cwd || ++uid, () => new Promise((resolve, reject) => {
+export function spawn(
+  program: string,
+  args: Array<string>,
+  opts?: child_process$spawnOpts = {}
+): Promise<string> {
+  return queue.push(opts.cwd || String(++uid), () => new Promise((resolve, reject) => {
     let proc = child.spawn(program, args, opts);
 
     let processingDone = false;

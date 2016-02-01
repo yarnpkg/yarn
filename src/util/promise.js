@@ -27,7 +27,9 @@ export function promisify(fn: Function, firstData?: boolean): () => Promise {
   };
 }
 
-export function promisifyObject(obj: Object): {
+export function promisifyObject(obj: {
+  [key: string]: Function
+}): {
   [key: string]: () => Promise
 } {
   let promisedObj = {};

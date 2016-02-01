@@ -12,6 +12,26 @@ declare class RequestError extends Error {
   code: string;
 }
 
+type RequestParams<T> = {
+  url: string,
+  method?: "GET",
+  json?: boolean,
+  headers?: {
+    [name: string]: string
+  },
+  process?: (
+    req: Request,
+    resolve: (body: T) => void,
+    reject: (err: Error) => void
+  ) => void;
+};
+
+type RequestOptions = {
+  params: RequestParams,
+  resolve: (body: any) => void,
+  reject: (err: any) => void
+};
+
 export default class RequestManager {
   constructor(reporter: Reporter) {
     this.offlineQueue = [];
@@ -24,7 +44,7 @@ export default class RequestManager {
 
   reporter: Reporter;
   running: number;
-  offlineQueue: Array<Array<Object>>;
+  offlineQueue: Array<RequestOptions>;
   queue: Array<Object>;
   max: number;
   cache: {
@@ -35,25 +55,18 @@ export default class RequestManager {
    * Queue up a request.
    */
 
-  request<T>(
-    url: string,
-    params?: {
-      json?: boolean,
-      headers?: {
-        [name: string]: string
-      },
-      process?: (
-        req: Request,
-        resolve: (body: T) => void,
-        reject: (err: Error) => void
-      ) => void;
-    } = {}
-  ): Promise<T> {
-    let cached = this.cache[url];
+  request<T>(params: RequestParams<T>): Promise<T> {
+    let cached = this.cache[params.url];
     if (cached) return cached;
 
-    return this.cache[url] = new Promise((resolve, reject) => {
-      this.queue.push({ url, params, resolve, reject });
+    params.method = params.method || "GET";
+
+    params.headers = Object.assign({
+      "User-Agent": constants.USER_AGENT
+    }, params.headers);
+
+    return this.cache[params.url] = new Promise((resolve, reject) => {
+      this.queue.push({ params, resolve, reject });
       this.shiftQueue();
     });
   }
@@ -89,13 +102,13 @@ export default class RequestManager {
    * isn't already one.
    */
 
-  queueForOffline(...args: Array<any>) {
+  queueForOffline(opts: RequestOptions) {
     if (this.offlineQueue.length) {
       this.reporter.warn("There appears to be trouble with your network connection. Retrying...");
       this.initOfflineRetry();
     }
 
-    this.offlineQueue.push(args);
+    this.offlineQueue.push(opts);
   }
 
   /**
@@ -107,7 +120,7 @@ export default class RequestManager {
     let requeue = () => {
       let queue = this.offlineQueue;
       this.offlineQueue = [];
-      for (let args of queue) this.execute(...args);
+      for (let opts of queue) this.execute(opts);
     };
 
     if (!controlOffline && network.isOffline()) {
@@ -128,25 +141,9 @@ export default class RequestManager {
    * Execute a request.
    */
 
-  execute(
-    params: {
-      url: string,
-      method: "GET",
-      json?: boolean,
-      headers: {
-        [key: string]: string
-      },
-      process?: (
-        req: Request,
-        resolve: (body: any) => void,
-        reject: (err: Error) => void,
-      ) => void
-    },
-    opts: {
-      reject: (err: any) => void,
-      resolve: (body: any) => void
-    }
-  ) {
+  execute(opts: RequestOptions) {
+    let { params } = opts;
+
     let buildNext = (fn) => (data) => {
       fn(data);
       this.running--;
@@ -163,7 +160,7 @@ export default class RequestManager {
     req.on("error", (err) => {
       if (this.isPossibleOfflineError(err)) {
         if (params.cleanup) params.cleanup();
-        this.queueForOffline(params, opts);
+        this.queueForOffline(opts);
       } else {
         reject(err);
       }
@@ -194,12 +191,6 @@ export default class RequestManager {
     let opts = this.queue.shift();
 
     this.running++;
-    this.execute(Object.assign({
-      url: opts.url,
-      method: "GET",
-      headers: Object.assign({
-        "User-Agent": constants.USER_AGENT
-      }, opts.params.headers)
-    }, opts.params), opts);
+    this.execute(opts);
   }
 }

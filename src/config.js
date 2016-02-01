@@ -6,6 +6,7 @@ import ConstraintResolver from "./package-constraint-resolver";
 import RequestManager from "./util/request-manager";
 import { getRegistryResolver } from "./resolvers";
 import * as fs from "./util/fs";
+import map from "./util/map";
 
 let invariant = require("invariant");
 let path      = require("path");
@@ -47,8 +48,8 @@ export default class Config {
   async initialise(opts: ConfigOptions = {}): Promise<void> {
     this.cwd = opts.cwd || process.cwd();
 
-    this.registryConfig = Object.create(null);
-    this.moduleFolders  = Object.create(null);
+    this.registryConfig = map();
+    this.moduleFolders  = map();
 
     this.packagesRoot  = await this.getPackageRoot(opts);
     this.tempFolder    = await this.getTempFolder();

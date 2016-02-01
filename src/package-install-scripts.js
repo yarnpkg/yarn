@@ -20,8 +20,8 @@ export default class PackageInstallScripts {
   needsPermission: boolean;
   resolver: PackageResolver;
   reporter: Reporter;
-  config: Config;
   actions: Array<string>;
+  config: Config;
 
   getInstallCommands(pkg: PackageInfo) {
     let scripts = pkg.scripts;

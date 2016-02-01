@@ -1,5 +1,7 @@
 /* @flow */
 
+import map from "../util/map";
+
 let invariant = require("invariant");
 
 const tokTypes = {
@@ -142,7 +144,7 @@ export class Parser {
   }
 
   parse(indent: number = 0): Object {
-    let obj = Object.create(null);
+    let obj = map();
 
     while (true) {
       let propToken = this.token;

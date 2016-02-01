@@ -1,13 +1,15 @@
 /* @flow */
 
+import map from "./map";
+
 export class BlockingQueue<T> {
   constructor(maxConcurrency?: number = Infinity) {
     this.concurrencyQueue = [];
     this.maxConcurrency   = maxConcurrency;
     this.runningCount     = 0;
 
-    this.running      = Object.create(null);
-    this.queue        = Object.create(null);
+    this.running      = map();
+    this.queue        = map();
   }
 
   concurrencyQueue: Array<Function>;

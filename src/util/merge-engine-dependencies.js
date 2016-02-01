@@ -10,9 +10,9 @@ export default function (info: PackageInfo) {
 
   info.dependencies = info.dependencies || {};
 
-  for (let version in engineDeps) {
-    if (semver.satisfies(process.version, version)) {
-      Object.assign(info.dependencies, engineDeps[version]);
+  for (let range in engineDeps) {
+    if (semver.satisfies(process.version, range)) {
+      Object.assign(info.dependencies, engineDeps[range]);
     }
   }
 }
