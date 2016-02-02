@@ -1,14 +1,14 @@
 /* @flow */
 
 import type { PackageInfo } from "./types";
-import type { PackageRegistry } from "./resolvers";
+import type { RegistryNames } from "./registries";
 import type PackageResolver from "./package-resolver";
 import type Reporter from "./reporters/_base";
 import type Lockfile from "./lockfile";
 import type Config from "./config";
 import mergeEngineDependencies from "./util/merge-engine-dependencies";
 import PackageReference from "./package-reference";
-import { getRegistryResolver } from "./resolvers";
+import { registries as registryResolvers } from "./resolvers";
 import { MessageError } from "./errors";
 import * as constants from "./constants";
 import * as versionUtil from "./util/version";
@@ -27,7 +27,7 @@ export default class PackageRequest {
     parentRequest
   }: {
     pattern: string,
-    registry: PackageRegistry,
+    registry: RegistryNames,
     config: Config,
     reporter: Reporter,
     lockfile: Lockfile,
@@ -56,7 +56,7 @@ export default class PackageRequest {
   resolver: PackageResolver;
   pattern: string;
   config: Config;
-  registry: PackageRegistry;
+  registry: RegistryNames;
 
   getHuman(): string {
     let chain = [];
@@ -96,24 +96,24 @@ export default class PackageRequest {
    */
 
   async findVersionOnRegistry(pattern: string): Promise<PackageInfo> {
-    let parts = pattern.split("@");
-    let name = parts.shift();
-
     let range = "latest";
-    if (parts.length) {
-      range = parts.shift() || "*";
-    }
+    let name  = pattern;
 
-    if (parts.length) {
-      throw new Error("Too many parts");
+    // matches a version tuple in the form of NAME@VERSION. allows the first character to
+    // be an @ for scoped packages
+    let match = pattern.match(/^(.{1,})@(.*?)$/);
+    if (match) {
+      name = match[0];
+      range = match[1] || "*";
     }
 
     let exoticResolver = PackageRequest.getExoticResolver(range);
     if (exoticResolver) {
       let data = await this.findExoticVersionInfo(exoticResolver, range);
 
-      // TODO we might need to clone data if we're going to be touching `name` as this
-      // package could have been resolved multiple times!
+      // clone data as we're manipulating it in place and this could be resolved multiple
+      // times
+      data = Object.assign({}, data);
 
       // this is so the returned package response uses the overriden name. ie. if the
       // package's actual name is `bar`, but it's been specified in package.json like:
@@ -124,7 +124,11 @@ export default class PackageRequest {
       return data;
     }
 
-    let Resolver = getRegistryResolver(this.registry);
+    let Resolver = registryResolvers[this.registry];
+    if (!Resolver) {
+      throw new Error(`Unknown registry resolver ${this.registry}`);
+    }
+
     let resolver = new Resolver(this, name, range);
     return resolver.resolve();
   }
@@ -214,7 +218,7 @@ export default class PackageRequest {
     }
 
     // set package reference
-    let ref = info.reference = new PackageReference(info, remote, deps, this.lockfile);
+    let ref = info.reference = new PackageReference(info, remote, deps, this.lockfile, this.config);
     ref.addPattern(this.pattern);
     ref.addOptional(optional);
 

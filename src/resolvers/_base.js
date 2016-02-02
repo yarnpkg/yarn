@@ -3,7 +3,7 @@
 import type PackageRequest from "../package-request";
 import type PackageResolver from "../package-resolver";
 import type { PackageInfo } from "../types";
-import type { PackageRegistry } from "../resolvers";
+import type { RegistryNames } from "../registries";
 import type Reporter from "../reporters/_base";
 import type Config from "../config";
 
@@ -24,7 +24,7 @@ export default class BaseResolver {
   request: PackageRequest;
   pattern: string;
   config: Config;
-  registry: PackageRegistry;
+  registry: RegistryNames;
 
   async fork(Resolver: Function, resolveArg: any, ...args: Array<string>): Promise {
     let resolver = new Resolver(this.request, ...args);

@@ -7,14 +7,7 @@ import RegistryResolver from "./_base";
 const NPM_REGISTRY_URL = "https://registry.npmjs.org";
 
 export default class NpmResolver extends RegistryResolver {
-  static directory = "node_modules";
-  static filename = "package.json";
-
-  static async getConfig(cwd: string): Promise<Object> {
-    // TODO
-    cwd;
-    return {};
-  }
+  static registry = "npm";
 
   async findVersionInRegistryResponse(body: {
     name: string,
@@ -42,8 +35,6 @@ export default class NpmResolver extends RegistryResolver {
     // lockfile
     let shrunk = this.request.getLocked("tarball");
     if (shrunk) return shrunk;
-
-    // let config = await this.config.getRegistryConfig("npm");
 
     let body = await this.config.requestManager.request({
       url: `${NPM_REGISTRY_URL}/${this.name}`,

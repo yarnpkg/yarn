@@ -1,6 +1,6 @@
 /* @flow */
 
-import type { PackageRegistry } from "./resolvers";
+import type { RegistryNames } from "./registries";
 import type PackageReference from "./package-reference";
 
 type Dependencies = {
@@ -15,7 +15,7 @@ export type PersonObject = {
 
 export type PackageRemote = {
   type: "tarball" | "git" | "copy",
-  registry: PackageRegistry,
+  registry: RegistryNames,
   reference: string | Object,
   resolved?: ?string,
   hash?: ?string,
@@ -29,8 +29,8 @@ export type PackageInfo = {
   // the package reference that we pass around as a minimal way to refer to it
   reference?: ?PackageReference,
 
-  // unique identifier to refer to this package by, if it doesn't exist in npm then we
-  // need to use this to ensure it's unique
+  // unique identifier to refer to this package by, if it doesn't exist in a registry then
+  // we need to use this to ensure it's unique
   uid: string,
 
   // we use this to perform a fast uniq on package infos

@@ -1,6 +1,6 @@
 /* @flow */
 
-import type { PackageRegistry } from "../../resolvers";
+import type { RegistryNames } from "../../registries";
 import type Reporter from "../../reporters/_base";
 import type Config from "../../config";
 import mergeEngineDependencies from "../../util/merge-engine-dependencies";
@@ -11,7 +11,7 @@ import PackageCompatibility from "../../package-compatibility";
 import PackageResolver from "../../package-resolver";
 import PackageFetcher from "../../package-fetcher";
 import PackageLinker from "../../package-linker";
-import { registries, getRegistryResolver, REGISTRY_METADATA_FILENAMES } from "../../resolvers";
+import { registries } from "../../registries";
 import { MessageError } from "../../errors";
 import * as constants from "../../constants";
 import * as promise from "../../util/promise";
@@ -68,7 +68,7 @@ export class Install {
   async fetchRequestFromCwd(): Promise<[
     Array<{
       pattern: string,
-      registry: PackageRegistry,
+      registry: RegistryNames,
       optional?: boolean
     }>,
     Array<string>
@@ -111,7 +111,7 @@ export class Install {
     if (foundConfig) {
       return [deps, patterns];
     } else {
-      throw new Error(`No ${REGISTRY_METADATA_FILENAMES.join(" or ")}, found in the current directory.`);
+      throw new Error(`No package metadata found in the current directory.`);
     }
   }
 
@@ -167,7 +167,7 @@ export class Install {
       let firstRemote = infos[0] && infos[0].remote;
       invariant(firstRemote, "Missing first remote");
 
-      if (!this.flags.flat && !getRegistryResolver(firstRemote.registry).alwaysFlatten) {
+      if (!this.flags.flat && !registries[firstRemote.registry].alwaysFlatten) {
         // if we haven't been given an explicit flat flag and this package doesn't belong
         // to a registry that always requires flattening then continue on our way
         // TODO: this doesn't take into account colliding packages on two registries #65
@@ -231,7 +231,7 @@ export class Install {
     if (!resolved) throw new Error("Couldn't find resolved name/version for " + pattern);
 
     let src = this.config.generateHardModulePath(resolved.reference);
-    let dest = path.join(await this.config.getModulesFolder(resolved.remote.registry), resolved.name);
+    let dest = path.join(this.config.registries[resolved.remote.registry].loc, resolved.name);
     return fs.symlink(src, dest);
   }
 

@@ -1,9 +1,9 @@
 /* @flow */
 
 import type Lockfile from "./lockfile";
+import type Config from "./config";
 import type { PackageRemote, PackageInfo } from "./types";
-import type { PackageRegistry } from "./resolvers";
-import { getRegistryResolver } from "./resolvers";
+import type { RegistryNames } from "./registries";
 import { MessageError } from "./errors";
 
 export default class PackageReference {
@@ -11,9 +11,11 @@ export default class PackageReference {
     info: PackageInfo,
     remote: PackageRemote,
     deps: Array<string>,
-    lockfile: Lockfile
+    lockfile: Lockfile,
+    config: Config
   ) {
-    this._lockfile = lockfile;
+    this.lockfile = lockfile;
+    this.config   = config;
 
     this.registry = remote.registry;
     this.version  = info.version;
@@ -29,7 +31,8 @@ export default class PackageReference {
     this.optional    = null;
   }
 
-  _lockfile: Lockfile;
+  lockfile: Lockfile;
+  config: Config;
 
   name: string;
   version: string;
@@ -39,10 +42,10 @@ export default class PackageReference {
   patterns: Array<string>;
   permissions: { [key: string]: boolean };
   remote: PackageRemote;
-  registry: PackageRegistry;
+  registry: RegistryNames;
 
-  getFolder(): string {
-    return getRegistryResolver(this.registry).directory;
+  async getFolder(): Promise<string> {
+    return this.config.registries[this.registry].loc;
   }
 
   setPermission(key: string, val: boolean) {
@@ -53,7 +56,7 @@ export default class PackageReference {
     if (key in this.permissions) {
       return this.permissions[key];
     } else {
-      if (this._lockfile.isStrict()) {
+      if (this.lockfile.isStrict()) {
         throw new MessageError(`Permission ${key} not found in permissions for ${this.name}@${this.version}`);
       } else {
         return false;
@@ -64,7 +67,7 @@ export default class PackageReference {
   addPattern(pattern: string) {
     this.patterns.push(pattern);
 
-    let shrunk = this._lockfile.getLocked(pattern);
+    let shrunk = this.lockfile.getLocked(pattern);
     if (shrunk && shrunk.permissions) {
       for (let key in shrunk.permissions) {
         this.setPermission(key, shrunk.permissions[key]);

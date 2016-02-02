@@ -1,8 +1,8 @@
 /* @flow */
 
 import type { PackageInfo } from "../types";
-import type { PackageRegistry } from "../resolvers";
-import { registries } from "../resolvers";
+import type { RegistryNames } from "../registries";
+import { registries } from "../registries";
 import * as constants from "../constants";
 import { promisify } from "./promise";
 import map from "./map";
@@ -57,7 +57,7 @@ export async function isValidModuleDest(dest: string): Promise<boolean> {
 }
 
 export async function readPackageMetadata(dir: string): Promise<{
-  registry: PackageRegistry,
+  registry: RegistryNames,
   hash: string,
   package: PackageInfo
 }> {
@@ -71,7 +71,7 @@ export async function readPackageMetadata(dir: string): Promise<{
   };
 }
 
-export async function readPackageJson(dir: string, priorityRegistry?: PackageRegistry): Promise<Object> {
+export async function readPackageJson(dir: string, priorityRegistry?: RegistryNames): Promise<Object> {
   let metadataLoc = path.join(dir, constants.METADATA_FILENAME);
   if (!priorityRegistry && await exists(metadataLoc)) {
     ({ registry: priorityRegistry } = await readJson(metadataLoc));
@@ -92,7 +92,7 @@ export async function readPackageJson(dir: string, priorityRegistry?: PackageReg
   throw new Error(`Couldn't find a package.json in ${dir}`);
 }
 
-async function tryPackageJson(dir: string, registry: PackageRegistry): ?Object {
+async function tryPackageJson(dir: string, registry: RegistryNames): ?Object {
   let filename = registries[registry].filename;
   let loc = path.join(dir, filename);
   if (await exists(loc)) {
@@ -100,6 +100,22 @@ async function tryPackageJson(dir: string, registry: PackageRegistry): ?Object {
     data.registry = registry;
     return data;
   }
+}
+
+export async function find(filename: string, dir: string): Promise<string | false> {
+  let parts = dir.split(path.sep);
+
+  while (parts.length) {
+    let loc = parts.concat(filename).join(path.sep);
+
+    if (await exists(loc)) {
+      return loc;
+    } else {
+      parts.pop();
+    }
+  }
+
+  return false;
 }
 
 export async function symlink(src: string, dest: string): Promise<void> {

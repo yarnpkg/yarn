@@ -2,7 +2,7 @@
 /* eslint no-unused-vars: 0 */
 
 import type { PackageInfo, PackageRemote } from "../types";
-import type { PackageRegistry } from "../resolvers";
+import type { RegistryNames } from "../registries";
 import type Config from "../config";
 import * as constants from "../constants";
 import * as util from "../util/misc";
@@ -18,7 +18,7 @@ export default class BaseFetcher {
     this.config    = config;
   }
 
-  registry: PackageRegistry;
+  registry: RegistryNames;
   reference: any;
   config: Config;
   hash: ?string;

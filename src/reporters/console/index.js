@@ -142,6 +142,7 @@ export default class ConsoleReporter extends BaseReporter {
     }
 
     let bar = new Progress(":bar :current/:total", {
+      renderThrottle: 60,
       total: count,
       clear: true,
       complete: "█",

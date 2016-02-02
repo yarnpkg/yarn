@@ -3,25 +3,10 @@
 import RegistryNpm from "./registries/npm";
 import RegistryBower from "./registries/bower";
 
-let _ = require("lodash");
-
-export type PackageRegistry = "bower" | "npm";
-
 export let registries = {
   bower: RegistryBower,
   npm: RegistryNpm
 };
-
-export let REGISTRY_METADATA_FILENAMES = _.map(registries, "filename");
-
-export function getRegistryResolver(registry: PackageRegistry): Function {
-  let Resolver = registries[registry];
-  if (Resolver) {
-    return Resolver;
-  } else {
-    throw new Error(`Unknown registry resolver ${registry}`);
-  }
-}
 
 //
 
@@ -42,6 +27,27 @@ export let exotics = {
   gist: ExoticGist,
   bitbucket: ExoticBitbucket
 };
+
+//
+
+import { explodeHostedGitFragment } from "./exotics/_hosted-git";
+
+export let hostedGit = {
+  github: ExoticGitHub,
+  gitlab: ExoticGitLab,
+  bitbucket: ExoticBitbucket
+};
+
+export function hostedGitFragmentToGitUrl(fragment: string): string {
+  for (let key in hostedGit) {
+    let Resolver = hostedGit[key];
+    if (Resolver.isVersion(fragment)) {
+      return Resolver.getGitUrl(explodeHostedGitFragment(fragment));
+    }
+  }
+
+  return fragment;
+}
 
 //
 

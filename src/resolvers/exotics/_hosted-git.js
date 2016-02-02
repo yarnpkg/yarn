@@ -8,11 +8,13 @@ import GitResolver from "./git";
 import ExoticResolver from "./_base";
 import Git from "../../util/git";
 
-function explodeHostedGitFragment(fragment: string): {
+export type ExplodedFragment = {
   user: string;
   repo: string;
   hash: string;
-} {
+};
+
+export function explodeHostedGitFragment(fragment: string): ExplodedFragment {
   // TODO: make sure this only has a length of 2
   let parts = fragment.split(":");
   fragment = parts.pop();
@@ -39,32 +41,36 @@ export default class HostedGitResolver extends ExoticResolver {
   constructor(request: PackageRequest, fragment: string) {
     super(request, fragment);
 
-    let { user, repo, hash } = explodeHostedGitFragment(fragment);
+    let exploded = this.exploded = explodeHostedGitFragment(fragment);
+    let { user, repo, hash } = exploded;
     this.user = user;
     this.repo = repo;
     this.hash = hash;
   }
 
+  exploded: ExplodedFragment;
   url: string;
   user: string;
   repo: string;
   hash: string;
 
-  getTarballUrl(commit: string): string {
-    commit;
+  static getTarballUrl(exploded: ExplodedFragment): string {
+    exploded;
     throw new Error("Not implemented");
   }
 
-  getGitUrl(): string {
+  static getGitUrl(exploded: ExplodedFragment): string {
+    exploded;
     throw new Error("Not implemented");
   }
 
-  getGitArchiveUrl(): string {
+  static getGitArchiveUrl(exploded: ExplodedFragment): string {
+    exploded;
     return "";
   }
 
   async resolve(): Promise<PackageInfo> {
-    let archiveUrl = this.getGitArchiveUrl();
+    let archiveUrl = this.constructor.getGitArchiveUrl(this.exploded);
     if (archiveUrl && await Git.hasArchiveCapability(archiveUrl)) {
       let archiveClient = new Git(this.config, archiveUrl, this.hash);
       let commit = await archiveClient.init();
@@ -72,11 +78,11 @@ export default class HostedGitResolver extends ExoticResolver {
       return await this.fork(GitResolver, true, `${archiveUrl}#${commit}`);
     }
 
-    let gitUrl = this.getGitUrl();
+    let gitUrl = this.constructor.getGitUrl(this.exploded);
     let client = new Git(this.config, gitUrl, this.hash);
     let commit = await client.init();
 
-    let tarballUrl = this.getTarballUrl(commit);
+    let tarballUrl = this.constructor.getTarballUrl(this.exploded);
     try {
       return await this.fork(TarballResolver, false, tarballUrl);
     } catch (err) {

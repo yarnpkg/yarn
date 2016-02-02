@@ -28,7 +28,7 @@ export default class PackageLinker {
     let ref = pkg.reference;
     invariant(ref, "Package reference is missing");
 
-    let dir = path.join(this.config.generateHardModulePath(ref), ref.getFolder());
+    let dir = path.join(this.config.generateHardModulePath(ref), await ref.getFolder());
     await fs.mkdirp(dir);
 
     await this.linkModules(pkg, dir);
@@ -55,7 +55,7 @@ export default class PackageLinker {
     }
     if (pkg.bundleDependencies) {
       for (let depName of pkg.bundleDependencies) {
-        let loc = path.join(this.config.generateHardModulePath(ref), ref.getFolder(), depName);
+        let loc = path.join(this.config.generateHardModulePath(ref), await ref.getFolder(), depName);
 
         let dep = await fs.readPackageJson(loc, remote.registry);
         dep = await normalisePackageInfo(dep, loc);

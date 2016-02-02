@@ -1,5 +1,6 @@
 /* @flow */
 
+import type { ExplodedFragment } from "./_hosted-git";
 import HostedGitResolver from "./_hosted-git";
 
 let _ = require("lodash");
@@ -19,15 +20,15 @@ export default class GitHubResolver extends HostedGitResolver {
     return false;
   }
 
-  getTarballUrl(commit: string): string {
-    return `https://codeload.github.com/${this.user}/${this.repo}/tar.gz/${commit}`;
+  static getTarballUrl({ user, repo, hash }: ExplodedFragment): string {
+    return `https://codeload.github.com/${user}/${repo}/tar.gz/${hash}`;
   }
 
-  getGitArchiveUrl(): string {
-    return `git@github.com:${this.user}/${this.repo}.git`;
+  static getGitArchiveUrl({ user, repo }: ExplodedFragment): string {
+    return `git@github.com:${user}/${repo}.git`;
   }
 
-  getGitUrl(): string {
-    return `https://github.com/${this.user}/${this.repo}.git`;
+  static getGitUrl({ user, repo }: ExplodedFragment): string {
+    return `https://github.com/${user}/${repo}.git`;
   }
 }

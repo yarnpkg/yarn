@@ -1,7 +1,6 @@
 /* @flow */
 
 import * as constants from "../constants";
-import { registries } from "../resolvers";
 import * as child from "./child";
 
 let path = require("path");
@@ -27,8 +26,8 @@ export default async function (cwd: string, cmds: Array<string>): Promise<Array<
     pathParts.unshift(path.join(__dirname, "..", "..", "bin", "node-gyp-bin"));
 
     // add node_modules .bin
-    for (let registry in registries) {
-      pathParts.unshift(path.join(cwd, registries[registry].directory, ".bin"));
+    for (let registry in this.config.registries) {
+      pathParts.unshift(path.join(cwd, this.config.registries[registry].loc, ".bin"));
     }
 
     // join path back together

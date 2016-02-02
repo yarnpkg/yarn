@@ -1,10 +1,11 @@
 /* @flow */
 
-import type { PackageRegistry } from "./resolvers";
+import type { RegistryNames } from "./registries";
 import type Reporter from "./reporters/_base";
+import type Registry from "./registries/_base";
 import ConstraintResolver from "./package-constraint-resolver";
 import RequestManager from "./util/request-manager";
-import { getRegistryResolver } from "./resolvers";
+import { registries } from "./registries";
 import * as fs from "./util/fs";
 import map from "./util/map";
 
@@ -24,9 +25,8 @@ export default class Config {
     this.requestManager     = new RequestManager(reporter);
     this.reporter           = reporter;
 
-    this.registryConfig = map();
-    this.moduleFolders  = map();
-    this.cwd            = process.cwd();
+    this.registries = map();
+    this.cwd        = process.cwd();
 
     this.packagesRoot = opts.packagesRoot;
     this.tempFolder   = opts.tempFolder;
@@ -40,12 +40,8 @@ export default class Config {
   reporter: Reporter;
   cwd: string;
 
-  moduleFolders: {
-    [registryName: PackageRegistry]: string
-  };
-
-  registryConfig: {
-    [registryName: PackageRegistry]: Promise<Object>
+  registries: {
+    [name: RegistryNames]: Registry
   };
 
   resolveConstraints(versions: Array<string>, range: string): Promise<string> {
@@ -62,14 +58,15 @@ export default class Config {
     }
 
     this.packagesRoot = await this.getPackageRoot(opts);
-  }
 
-  async getRegistryConfig(registry: PackageRegistry): Promise<Object> {
-    let cached = this.registryConfig[registry];
-    if (cached) {
-      return cached;
-    } else {
-      return this.registryConfig[registry] = getRegistryResolver(registry).getConfig(this.cwd);
+    for (let key of Object.keys(registries)) {
+      let Registry = registries[key];
+
+      // instantiate registry
+      let registry = new Registry(this.cwd);
+      await registry.init();
+
+      this.registries[key] = registry;
     }
   }
 
@@ -77,7 +74,7 @@ export default class Config {
     name: string,
     uid: string,
     version: string,
-    registry: PackageRegistry
+    registry: RegistryNames
   }): string {
     invariant(pkg, "Undefined package");
     invariant(pkg.name, "No name field in package");
@@ -97,31 +94,6 @@ export default class Config {
   getTemp(filename: string): string {
     invariant(this.tempFolder, "No temp folder");
     return path.join(this.tempFolder, filename);
-  }
-
-  async getModulesFolder(registry: PackageRegistry): Promise<string> {
-    let cached = this.moduleFolders[registry];
-    if (cached) return cached;
-
-    let folderName = getRegistryResolver(registry).directory;
-    let parts = this.cwd.split(path.sep);
-
-    let found = path.join(this.cwd, folderName);
-
-    while (parts.length) {
-      let loc = parts.concat(folderName).join(path.sep);
-
-      if (await fs.exists(loc)) {
-        found = loc;
-        break;
-      } else {
-        parts.pop();
-      }
-    }
-
-    await fs.mkdirp(found);
-
-    return this.moduleFolders[registry] = found;
   }
 
   async getTempFolder(): Promise<string> {

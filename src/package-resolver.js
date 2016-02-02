@@ -1,7 +1,7 @@
 /* @flow */
 
 import type { PackageInfo } from "./types";
-import type { PackageRegistry } from "./resolvers";
+import type { RegistryNames } from "./registries";
 import type PackageReference from "./package-reference";
 import type Reporter from "./reporters/_base";
 import type Config from "./config";
@@ -256,7 +256,7 @@ export default class PackageResolver {
 
   async find(
     pattern: string,
-    registry: PackageRegistry,
+    registry: RegistryNames,
     optional?: boolean = false,
     parentRequest?: ?PackageRequest
   ): Promise<void> {
@@ -292,7 +292,7 @@ export default class PackageResolver {
 
   async init(deps: Array<{
     pattern: string,
-    registry: PackageRegistry,
+    registry: RegistryNames,
     optional?: boolean
   }>): Promise<void> {
     let activity = this.activity = this.reporter.activity();

@@ -1,19 +1,20 @@
 /* @flow */
 
+import type { ExplodedFragment } from "./_hosted-git";
 import HostedGitResolver from "./_hosted-git";
 
 export default class GitLabResolver extends HostedGitResolver {
   static protocol = "gitlab";
 
-  getTarballUrl(commit: string): string {
-    return `https://gitlab.com/${this.user}/${this.repo}/repository/archive.tar.gz?ref=${commit}`;
+  getTarballUrl({ user, repo, hash }: ExplodedFragment): string {
+    return `https://gitlab.com/${user}/${repo}/repository/archive.tar.gz?ref=${hash}`;
   }
 
-  getGitUrl(): string {
-    return `https://gitlab.com/${this.user}/${this.repo}.git`;
+  getGitUrl({ user, repo }: ExplodedFragment): string {
+    return `https://gitlab.com/${user}/${repo}.git`;
   }
 
-  getGitArchiveUrl(): string {
-    return `git@gitlab.com:${this.user}/${this.repo}.git`;
+  getGitArchiveUrl({ user, repo }: ExplodedFragment): string {
+    return `git@gitlab.com:${user}/${repo}.git`;
   }
 }
