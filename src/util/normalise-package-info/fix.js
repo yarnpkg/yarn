@@ -1,6 +1,7 @@
 /* @flow */
 
 import { README_NOT_FOUND_MESSAGE, normalisePerson, extractDescription } from "./util";
+import { hostedGitFragmentToGitUrl } from "../../resolvers";
 import * as fs from "../fs";
 
 let semver = require("semver");
@@ -17,10 +18,6 @@ export default async function (info: Object, moduleLoc: string): Promise<void> {
   if (typeof info.version === "string") {
     info.version = semver.clean(info.version);
   }
-
-  // TODO Rules for license field
-  // The license field should be a valid SPDX license expression or one of the special
-  // values allowed by validate-npm-package-license.
 
   // if name or version aren't set then set them to empty strings
   info.name = info.name || "";
@@ -81,7 +78,10 @@ export default async function (info: Object, moduleLoc: string): Promise<void> {
     };
   }
 
-  // TODO explode info.repository.url if it's a hosted git shorthand
+  // explode info.repository.url if it's a hosted git shorthand
+  if (typeof info.repository === "object" && typeof info.repository.url === "string") {
+    info.repository.url = hostedGitFragmentToGitUrl(info.repository.url);
+  }
 
   // allow bugs to be specified as a string, expand it to an object with a single url prop
   if (typeof info.bugs === "string") {

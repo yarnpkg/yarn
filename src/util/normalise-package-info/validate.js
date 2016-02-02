@@ -2,18 +2,23 @@
 
 import typos from "./typos";
 
-let semver = require("semver");
+let validateLicense = require("validate-npm-package-license");
+let isBuiltinModule = require("is-builtin-module");
+let semver          = require("semver");
 
-export default function (info: Object, moduleLoc: string, warn: ?(msg: string) => void): void {
+export default function (info: Object, moduleLoc: string, warn: (msg: string) => void): void {
   for (let key in typos) {
     if (key in info) {
-      if (warn) warn(`Potential type ${key}, did you mean ${typos[key]}?`);
-      // TODO: warn or something
+      warn(`Potential typo ${key}, did you mean ${typos[key]}?`);
     }
   }
 
   let name = info.name;
   if (typeof name === "string") {
+    if (isBuiltinModule(name)) {
+      warn(`${name} is also the name of a node core module`);
+    }
+
     // cannot start with a dot
     if (name[0] === ".") {
       throw new TypeError;
@@ -39,5 +44,14 @@ export default function (info: Object, moduleLoc: string, warn: ?(msg: string) =
   // validate semver version
   if (typeof info.version === "string" && !semver.valid(info.version)) {
     info.version = semver.clean(info.version);
+  }
+
+  // validate license
+  if (info.license) {
+    if (!validateLicense(info.license).validForNewPackages) {
+      warn("license should be a valid SPDX license expression");
+    }
+  } else {
+    warn("No license field");
   }
 }
