@@ -6,7 +6,6 @@ import type PackageResolver from "./package-resolver";
 import type Reporter from "./reporters/_base";
 import type Lockfile from "./lockfile";
 import type Config from "./config";
-import mergeEngineDependencies from "./util/merge-engine-dependencies";
 import PackageReference from "./package-reference";
 import { registries as registryResolvers } from "./resolvers";
 import { MessageError } from "./errors";
@@ -199,9 +198,6 @@ export default class PackageRequest {
     //
     let remote = info.remote;
     invariant(remote, "Missing remote");
-
-    // engine deps
-    mergeEngineDependencies(info);
 
     // normal deps
     for (let depName in info.dependencies) {

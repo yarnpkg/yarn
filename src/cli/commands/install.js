@@ -3,7 +3,6 @@
 import type { RegistryNames } from "../../registries";
 import type Reporter from "../../reporters/_base";
 import type Config from "../../config";
-import mergeEngineDependencies from "../../util/merge-engine-dependencies";
 import Lockfile from "../../lockfile";
 import stringify from "../../lockfile/stringify";
 import PackageInstallScripts from "../../package-install-scripts";
@@ -88,8 +87,6 @@ export class Install {
 
       let json = await fs.readJson(loc);
       Object.assign(this.resolutions, json.resolutions);
-
-      mergeEngineDependencies(json);
 
       // plain deps
       let plainDepMap = Object.assign({}, json.dependencies, json.devDependencies);
