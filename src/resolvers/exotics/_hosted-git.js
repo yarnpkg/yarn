@@ -4,7 +4,6 @@ import type { PackageInfo } from "../../types";
 import type PackageRequest from "../../package-request";
 import { MessageError } from "../../errors";
 import { registries } from "../../registries";
-import TarballResolver from "./tarball";
 import GitResolver from "./git";
 import ExoticResolver from "./_base";
 import Git from "../../util/git";
@@ -144,6 +143,10 @@ export default class HostedGitResolver extends ExoticResolver {
     throw new MessageError(`Could not find package metadata file in ${url}`);
   }
 
+  async hasHTTPCapability(url: string): Promise<boolean> {
+    return (await this.config.requestManager.request({ url, method: "HEAD" })) !== false;
+  }
+
   async resolve(): Promise<PackageInfo> {
     let httpUrl = this.constructor.getGitHTTPUrl(this.exploded);
     let sshUrl  = this.constructor.getGitSSHUrl(this.exploded);
@@ -151,11 +154,7 @@ export default class HostedGitResolver extends ExoticResolver {
     // If we can access the files over HTTP then we should as it's MUCH faster than git
     // archive and tarball unarchiving. The HTTP API is only available for public repos
     // though.
-    let isValidHTTPRepo = await this.config.requestManager.request({
-      url: httpUrl,
-      method: "HEAD"
-    });
-    if (isValidHTTPRepo !== false) {
+    if (await this.hasHTTPCapability(httpUrl)) {
       return await this.resolveOverHTTP(httpUrl);
     }
 

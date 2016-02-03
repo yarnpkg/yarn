@@ -94,6 +94,7 @@ config.init().then(function () {
   }
 
   return command.run(config, reporter, commander, commander.args).then(function () {
+    reporter.close();
     reporter.footer();
   });
 }).catch(function (errs) {

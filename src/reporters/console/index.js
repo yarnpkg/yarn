@@ -7,6 +7,7 @@ import pkg from "../../../package.json";
 let Progress = require("progress");
 let readline = require("readline");
 let chalk    = require("chalk");
+let isCI     = require("is-ci");
 
 function prependEmoji(msg, emoji) {
   if (emoji && process.stdout.isTTY) msg = `${emoji}  ${msg}`;
@@ -31,7 +32,9 @@ export default class ConsoleReporter extends BaseReporter {
   }
 
   footer() {
-    console.log(prependEmoji(`Done in ${(this.getTotalTime() / 1000).toFixed(2)}s.`, "✨"));
+    let totalTime = (this.getTotalTime() / 1000).toFixed(2);
+    let peakMemory = (this.peakMemory / 1024 / 1024).toFixed(2);
+    console.log(prependEmoji(`Done in ${totalTime}s. Peak memory usage ${peakMemory}MB.`, "✨"));
   }
 
   log(msg: string) {
@@ -59,7 +62,10 @@ export default class ConsoleReporter extends BaseReporter {
   }
 
   question(question: string): Promise<boolean> {
-    // TODO
+    if (isCI || !process.stdout.isTTY) {
+      return Promise.reject(new Error("Can't answer a question unless a user TTY"));
+    }
+    
     question;
     return Promise.resolve(false);
   }
@@ -90,8 +96,8 @@ export default class ConsoleReporter extends BaseReporter {
   }
 
   select(header: string, question: string, options: Array<string>): Promise<string> {
-    if (!process.stdout.isTTY) {
-      return Promise.reject(new Error("Can't answer a question unless a TTY"));
+    if (isCI || !process.stdout.isTTY) {
+      return Promise.reject(new Error("Can't answer a question unless a user TTY"));
     }
 
     let rl = createReadline();

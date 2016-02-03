@@ -5,10 +5,31 @@ export default class BaseReporter {
   constructor({ alwaysAnswer }: { alwaysAnswer?: ?string }) {
     this.alwaysAnswer = alwaysAnswer;
     this.startTime    = Date.now();
+    this.peakMemory   = 0;
+
+    this.initPeakMemoryCounter();
   }
 
+  peakMemoryInterval: ?numer;
+  peakMemory: number;
   alwaysAnswer: ?string;
   startTime: number;
+
+  initPeakMemoryCounter() {
+    this.checkPeakMemory();
+    this.peakMemoryInterval = setInterval(() => {
+      this.checkPeakMemory();
+    }, 1000);
+  }
+
+  checkPeakMemory() {
+    let { heapTotal } = process.memoryUsage();
+    if (heapTotal > this.peakMemory) this.peakMemory = heapTotal;
+  }
+
+  close() {
+    clearInterval(this.peakMemoryInterval);
+  }
 
   getTotalTime(): number {
     return Date.now() - this.startTime;
