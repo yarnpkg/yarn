@@ -53,11 +53,11 @@ export default class Config {
       this.cwd = opts.cwd;
     }
 
+    this.packagesRoot = await this.getPackageRoot(opts);
+
     if (!this.tempFolder) {
       this.tempFolder = await this.getTempFolder();
     }
-
-    this.packagesRoot = await this.getPackageRoot(opts);
 
     for (let key of Object.keys(registries)) {
       let Registry = registries[key];
