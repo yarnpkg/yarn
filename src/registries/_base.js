@@ -1,8 +1,10 @@
 /* @flow */
 
+import { removePrefix } from "../util/misc";
 import * as fs from "../util/fs";
 
 let path = require("path");
+let _    = require("lodash");
 
 export default class Registry {
   constructor(cwd: string) {
@@ -24,15 +26,16 @@ export default class Registry {
   //
   config: Object;
 
-  //
+  // absolute folder name to insert modules
   loc: string;
 
-  //
+  // relative folder name to put these modules
   folder: string;
 
   async loadConfig(): Promise<void> {}
 
   async init(): Promise<void> {
+    this.mergeEnv("kpm_");
     await this.loadConfig();
 
     // find in upper directories
@@ -43,5 +46,29 @@ export default class Registry {
 
     // set output directory
     this.loc = loc;
+  }
+
+  mergeEnv(prefix: string) {
+    // try environment variables
+    for (let key in process.env) {
+      key = key.toLowerCase();
+
+      // only accept keys prefixed with the prefix
+      if (key.indexOf(prefix) < 0) continue;
+
+      let val = process.env[key];
+
+      // remove bower prefix
+      key = removePrefix(key, prefix);
+
+      // replace dunders with dots
+      key = key.replace(/__/g, ".");
+
+      // replace underscores with dashes
+      key = key.replace(/_/g, "-");
+
+      // set it via a path
+      _.set(this.config, key, val);
+    }
   }
 }

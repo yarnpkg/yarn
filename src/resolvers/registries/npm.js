@@ -4,8 +4,6 @@ import type { PackageInfo } from "../../types";
 import { MessageError } from "../../errors";
 import RegistryResolver from "./_base";
 
-const NPM_REGISTRY_URL = "https://registry.npmjs.org";
-
 export default class NpmResolver extends RegistryResolver {
   static registry = "npm";
 
@@ -37,7 +35,7 @@ export default class NpmResolver extends RegistryResolver {
     if (shrunk) return shrunk;
 
     let body = await this.config.requestManager.request({
-      url: `${NPM_REGISTRY_URL}/${this.name}`,
+      url: `${this.registryConfig.registry}/${this.name}`,
       json: true
     });
 

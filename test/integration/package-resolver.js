@@ -1,4 +1,4 @@
-import { reporters, PackageResolver, Lockfile, Config } from "../../lib";
+import { reporters, PackageResolver, Lockfile, Config } from "../..";
 
 let rimraf = require("rimraf");
 let path   = require("path");

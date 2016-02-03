@@ -13,8 +13,9 @@ export default class RegistryResolver extends BaseResolver {
     this.registryConfig = request.config.registries[this.constructor.registry].config;
   }
 
-  registryConfig: Object;
   name: string;
   range: string;
+
   static registry: RegistryNames;
+  registryConfig: Object;
 }
