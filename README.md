@@ -46,7 +46,7 @@ megabit down connection.
 ## Usage (while in development)
 
 ```sh
-$ git clone git@github.com:kittens/kpm.git
+$ git clone git@github.com:facebook/kpm.git
 $ cd kpm
 $ npm install
 $ make build
