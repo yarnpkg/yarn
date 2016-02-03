@@ -7,7 +7,7 @@ watch:
 	./node_modules/.bin/gulp watch
 
 typecheck:
-	./node_modules/.bin/flow check
+	./node_modules/.bin/flow
 
 test-only:
 	./node_modules/.bin/ava --verbose test/
