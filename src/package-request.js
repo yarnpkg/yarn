@@ -103,8 +103,8 @@ export default class PackageRequest {
     // be an @ for scoped packages
     let match = pattern.match(/^(.{1,})@(.*?)$/);
     if (match) {
-      name = match[0];
-      range = match[1] || "*";
+      name = match[1];
+      range = match[2] || "*";
     }
 
     let exoticResolver = PackageRequest.getExoticResolver(range);
