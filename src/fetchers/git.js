@@ -11,7 +11,7 @@ export default class GitFetcher extends BaseFetcher {
     invariant(hash, "Commit hash required");
 
     let git = new Git(this.config, this.reference, hash);
-    await git.init();
+    await git.initRemote();
     await git.clone(dest);
     return hash;
   }
