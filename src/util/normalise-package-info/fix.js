@@ -43,12 +43,15 @@ export default async function (info: Object, moduleLoc: string): Promise<void> {
   }
 
   // expand people fields to objects
-  if (typeof info.author === "string" || _.isPlainObject(info.author))
+  if (typeof info.author === "string" || _.isPlainObject(info.author)) {
     info.author = normalisePerson(info.author);
-  if (Array.isArray(info.contributors))
+  }
+  if (Array.isArray(info.contributors)) {
     info.contributors = info.contributors.map(normalisePerson);
-  if (Array.isArray(info.maintainers))
+  }
+  if (Array.isArray(info.maintainers)) {
     info.maintainers = info.maintainers.map(normalisePerson);
+  }
 
   // if there's no readme field then load the README file from the cwd
   if (!info.readme) {

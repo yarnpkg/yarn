@@ -42,7 +42,7 @@ export function hostedGitFragmentToGitUrl(fragment: string): string {
   for (let key in hostedGit) {
     let Resolver = hostedGit[key];
     if (Resolver.isVersion(fragment)) {
-      return Resolver.getGitUrl(explodeHostedGitFragment(fragment));
+      return Resolver.getGitHTTPUrl(explodeHostedGitFragment(fragment));
     }
   }
 

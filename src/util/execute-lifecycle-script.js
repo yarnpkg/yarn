@@ -26,9 +26,10 @@ export default async function (cwd: string, cmds: Array<string>): Promise<Array<
     pathParts.unshift(path.join(__dirname, "..", "..", "bin", "node-gyp-bin"));
 
     // add node_modules .bin
-    for (let registry in this.config.registries) {
-      pathParts.unshift(path.join(cwd, this.config.registries[registry].loc, ".bin"));
-    }
+    // TODO
+    //for (let registry in config.registries) {
+    //  pathParts.unshift(path.join(cwd, config.registries[registry].loc, ".bin"));
+    //}
 
     // join path back together
     env[constants.ENV_PATH_KEY] = pathParts.join(path.delimiter);

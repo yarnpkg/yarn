@@ -7,7 +7,6 @@ import { MessageError } from "../../errors";
 import * as util from "../../util/misc";
 import * as versionUtil from "../../util/version";
 import { registries } from "../../registries";
-import GitHubResolver from "./github";
 import ExoticResolver from "./_base";
 import Git from "../../util/git";
 

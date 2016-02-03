@@ -42,8 +42,9 @@ function addTest(pattern, registry = "npm") {
       packagesRoot: tempLoc,
       tempFolder: tempLoc
     });
-    let resolver = new PackageResolver(config, reporter, shrinkwrap);
-    return resolver.init([{ pattern, registry }]);
+    let resolver = new PackageResolver(config, shrinkwrap);
+    await resolver.init([{ pattern, registry }]);
+    await config.close();
   });
 }
 

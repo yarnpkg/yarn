@@ -47,7 +47,7 @@ export default function (info: Object, moduleLoc: string, warn: (msg: string) =>
   }
 
   // validate license
-  if (info.license) {
+  if (typeof info.license === "string") {
     if (!validateLicense(info.license).validForNewPackages) {
       warn("license should be a valid SPDX license expression");
     }

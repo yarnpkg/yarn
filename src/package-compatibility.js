@@ -95,7 +95,8 @@ export default class PackageCompatibility {
             printError(`The engine ${name} is incompatible with this module. Expected version ${range}.`);
           }
         } else if (!_.contains(ignore, name)) {
-          this.reporter.warn(`${human}: The engine ${name} appears to be invalid.`);
+          // TODO: this causes a lot of warnings
+          //this.reporter.warn(`${human}: The engine ${name} appears to be invalid.`);
         }
       }
     }
