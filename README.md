@@ -16,25 +16,25 @@
 
 ## Features
 
- * More emojis. :horse:
- * Blazing fast.
- * Dependency deduping.
- * Ability to manually resolve version conflicts so only a single version per package exists.
- * Locked dependencies by default.
- * Reliable with poor networks.
- * Smart retry and timeout logic.
- * Stable public API.
- * Support for bower and npm (future CommonJS registries could easily be added).
- * Smart fetching logic for git repositories using `git archive`.
+* Greatly improved performance: Client is always performing operations such as package resolving and fetching due to the internal architecture.
+* Dependency deduping: Reduces the duplication of modules reducing code size.
+* Ability to manually resolve version conflicts so only a single version per package exists. (Bower style)
+* Resilient to network flakiness: Smart retry and timeout logic ensures reliability on poor networks such as conference wifi, mobile networks etc.
+* Stable public API: Tooling such as build systems can reliably hook into internals.
+* Reproducible builds: Updates are intentional by default which means builds cannot randomly break because of dependency updates.
+* More emojis. :horse:
 
 **Security**
 
- * Prompts user for verification for running install scripts.
- * Prompts user for verification when connecting to foreign hosts.
- * Refuses to download a tarball from HTTP without a hash.
- * Refuses to download a tarball from HTTPS if a HTTP redirect was included.
- * Refuses to clone a git repo over HTTP and plain git.
- * Blacklists known bad hosts that ping analytics servers.
+* Locked dependencies by default.
+* Prompts user for verification for running install scripts.
+* Prompts user for verification when connecting to foreign hosts.
+* Refuses to download a tarball from HTTP without a hash.
+* Refuses to download a tarball from HTTPS if an HTTP redirect was included.
+* Refuses to clone a git repo over HTTP and plain git.
+* Blacklists known bad hosts that ping analytics servers.
+* Lockfile contains tarball hashes to ensure integrity of package downloads.Lockfile contains tarball hashes to ensure integrity of package downloads.
+* Generate reports when installing and updating dependencies. Contains diffs of module code and analyses modules for possible points of conflict such as suspicious code.
 
 ## Screenshot
 
