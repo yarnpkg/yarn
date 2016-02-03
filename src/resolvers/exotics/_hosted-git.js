@@ -3,6 +3,7 @@
 import type { PackageInfo } from "../../types";
 import type PackageRequest from "../../package-request";
 import { MessageError } from "../../errors";
+import { registries } from "../../registries";
 import TarballResolver from "./tarball";
 import GitResolver from "./git";
 import ExoticResolver from "./_base";
@@ -54,44 +55,123 @@ export default class HostedGitResolver extends ExoticResolver {
   repo: string;
   hash: string;
 
-  static getTarballUrl(exploded: ExplodedFragment): string {
+  static getTarballUrl(exploded: ExplodedFragment, commit: string): string {
+    exploded;
+    commit;
+    throw new Error("Not implemented");
+  }
+
+  static getGitHTTPUrl(exploded: ExplodedFragment): string {
     exploded;
     throw new Error("Not implemented");
   }
 
-  static getGitUrl(exploded: ExplodedFragment): string {
+  static getGitSSHUrl(exploded: ExplodedFragment): string {
     exploded;
     throw new Error("Not implemented");
   }
 
-  static getGitArchiveUrl(exploded: ExplodedFragment): string {
+  static getHTTPFileUrl(exploded: ExplodedFragment, filename: string, commit: string) {
     exploded;
-    return "";
+    filename;
+    commit;
+    throw new Error("Not implemented");
+  }
+
+  async getRefOverHTTP(url: string): Promise<string> {
+    let client = new Git(this.config, url, this.hash);
+
+    let out = await this.config.requestManager.request({
+      url: `${url}/info/refs?service=git-upload-pack`
+    });
+
+    if (out) {
+      // clean up output
+      let lines = out.trim().split("\n");
+
+      // remove first two lines which contains compatibility info etc
+      lines = lines.slice(2);
+
+      // remove last line which contains the terminator "0000"
+      lines.pop();
+
+      // remove line lengths from start of each line
+      lines = lines.map((line) => line.slice(4));
+
+      out = lines.join("\n");
+    } else {
+      throw new Error("TODO");
+    }
+
+    let refs = Git.parseRefs(out);
+    return await client.setRef(refs);
+  }
+
+  async resolveOverHTTP(url: string): Promise<PackageInfo> {
+    // TODO: hashes and lockfile
+    let self = this; // TODO: babel bug...
+    let commit = await this.getRefOverHTTP(url);
+
+    async function tryRegistry(registry) {
+      let filename = registries[registry].filename;
+      let file = await self.config.requestManager.request({
+        url: self.constructor.getHTTPFileUrl(self.exploded, filename, commit)
+      });
+      if (!file) return;
+
+      let json = JSON.parse(file);
+      json.uid = commit;
+      json.remote = {
+        //resolved // TODO
+        type: "tarball",
+        reference: self.constructor.getTarballUrl(self.exploded, commit),
+        registry
+      };
+
+      return json;
+    }
+
+    let file = await tryRegistry(this.registry);
+    if (file) return file;
+
+    for (let registry in registries) {
+      if (registry === this.registry) continue;
+
+      let file = await tryRegistry(registry);
+      if (file) return file;
+    }
+
+    throw new MessageError(`Could not find package metadata file in ${url}`);
   }
 
   async resolve(): Promise<PackageInfo> {
-    let archiveUrl = this.constructor.getGitArchiveUrl(this.exploded);
-    if (archiveUrl && await Git.hasArchiveCapability(archiveUrl)) {
-      let archiveClient = new Git(this.config, archiveUrl, this.hash);
-      let commit = await archiveClient.init();
-      // the capability will be cached so we can go straight to the git resolver
-      return await this.fork(GitResolver, true, `${archiveUrl}#${commit}`);
+    let httpUrl = this.constructor.getGitHTTPUrl(this.exploded);
+    let sshUrl  = this.constructor.getGitSSHUrl(this.exploded);
+
+    // If we can access the files over HTTP then we should as it's MUCH faster than git
+    // archive and tarball unarchiving. The HTTP API is only available for public repos
+    // though.
+    let isValidHTTPRepo = await this.config.requestManager.request({
+      url: httpUrl,
+      method: "HEAD"
+    });
+    if (isValidHTTPRepo !== false) {
+      return await this.resolveOverHTTP(httpUrl);
     }
 
-    let gitUrl = this.constructor.getGitUrl(this.exploded);
-    let client = new Git(this.config, gitUrl, this.hash);
-    let commit = await client.init();
-
-    let tarballUrl = this.constructor.getTarballUrl(this.exploded);
-    try {
-      return await this.fork(TarballResolver, false, tarballUrl);
-    } catch (err) {
-      this.reporter.warn(
-        `Download of tarball ${tarballUrl} failed with error message ${JSON.stringify(err.message)}. ` +
-        `Trying git...`
-      );
-      // TODO: this will cause an infinite loop for github due to the shorthand fast path
-      return await this.fork(GitResolver, true, `${gitUrl}#${commit}`);
+    // If the url is accessible over git archive then we should immediately delegate to
+    // the git resolver.
+    //
+    // NOTE: Here we use a different url than when we delegate to the git resolver later on.
+    // This is because `git archive` requires access over ssh and github only allows that
+    // if you have write permissions
+    if (await Git.hasArchiveCapability(sshUrl)) {
+      let archiveClient = new Git(this.config, sshUrl, this.hash);
+      let commit = await archiveClient.initRemote();
+      return await this.fork(GitResolver, true, `${sshUrl}#${commit}`);
     }
+
+    // fallback to the plain git resolver
+    return await this.fork(GitResolver, true, sshUrl);
   }
 }

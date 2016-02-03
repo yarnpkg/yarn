@@ -2,6 +2,7 @@
 
 import type Config from "../config";
 import { MessageError, SecurityError } from "../errors";
+import { removeSuffix } from "./misc";
 import queue from "./blocking-queue";
 import * as crypto from "./crypto";
 import * as child from "./child";
@@ -13,7 +14,13 @@ let semver    = require("semver");
 let url       = require("url");
 let tar       = require("tar");
 
-let supportsArchiveCache = map();
+type GitRefs = {
+  [name: string]: string
+};
+
+let supportsArchiveCache = map({
+  "github.com": false // not support, doubt they will ever support it
+});
 
 export default class Git {
   constructor(config: Config, url: string, hash: string) {
@@ -213,7 +220,7 @@ export default class Git {
    * Try and find a ref from this repo that matches an input `target`.
    */
 
-  async init(): Promise<string> {
+  async initRemote(): Promise<string> {
     // check capabilities
     if (await Git.hasArchiveCapability(this.url)) {
       this.supportsArchive = true;
@@ -221,10 +228,23 @@ export default class Git {
       await this.fetch();
     }
 
+    return await this.setRefRemote();
+  }
+
+  async setRefRemote(): Promise<string> {
+    let stdout = await child.spawn("git", ["ls-remote", "--tags", "--heads", this.url]);
+    let refs   = Git.parseRefs(stdout);
+    return await this.setRef(refs);
+  }
+
+  /**
+   * TODO description
+   */
+
+  async setRef(refs: GitRefs): Promise<string> {
     // get commit ref
     let { hash } = this;
 
-    let refs = await this.getRefs();
     let names = Object.keys(refs);
 
     if (Git.isCommitHash(hash)) {
@@ -236,9 +256,8 @@ export default class Git {
       }
 
       // `git archive` only accepts a treeish and we have no ref to this commit
-      this.ref = this.hash = hash;
       this.supportsArchive = false;
-      return;
+      return this.ref = this.hash = hash;
     }
 
     let ref = await this.findResolution(hash, names);
@@ -254,17 +273,12 @@ export default class Git {
   }
 
   /**
-   * Get all the stored refs for this GitHub repo.
+   * TODO description
    */
 
-  async getRefs(): Promise<{
-    [name: string]: string
-  }> {
+  static parseRefs(stdout: string): GitRefs {
     // store references
     let refs = {};
-
-    // use git bin to get repo refs
-    let stdout = await child.spawn("git", ["ls-remote", "--tags", "--heads", this.url]);
 
     // line delimetered
     let refLines = stdout.split("\n");
@@ -273,6 +287,10 @@ export default class Git {
       // line example: 64b2c0cee9e829f73c5ad32b8cc8cb6f3bec65bb refs/tags/v4.2.2
       let [sha, id] = line.split(/\s+/g);
       let [,, name] = id.split("/");
+
+      // TODO: find out why this is necessary. idk it makes it work...
+      name = removeSuffix(name, "^{}");
+
       refs[name] = sha;
     }
 

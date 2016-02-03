@@ -4,17 +4,18 @@ import type { ExplodedFragment } from "./_hosted-git";
 import HostedGitResolver from "./_hosted-git";
 
 export default class BitbucketResolver extends HostedGitResolver {
+  static hostname = "bitbucket.com";
   static protocol = "bitbucket";
 
-  static getTarballUrl({ user, repo, hash }: ExplodedFragment): string {
+  static getTarballUrl({ user, repo }: ExplodedFragment, hash: string): string {
     return `https://bitbucket.org/${user}/${repo}/get/${hash}.tar.gz`;
   }
 
-  static getGitUrl({ user, repo }: ExplodedFragment): string {
+  static getGitHTTPUrl({ user, repo }: ExplodedFragment): string {
     return `https://bitbucket.org/${user}/${repo}.git`;
   }
 
-  static getGitArchiveUrl({ user, repo }: ExplodedFragment): string {
+  static getGitSSHUrl({ user, repo }: ExplodedFragment): string {
     return `git@bitbucket.org:${user}/${repo}.git`;
   }
 }

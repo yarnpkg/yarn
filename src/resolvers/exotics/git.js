@@ -2,6 +2,7 @@
 
 import type { PackageInfo } from "../../types";
 import type PackageRequest from "../../package-request";
+import { hostedGit as hostedGitResolvers } from "..";
 import { MessageError } from "../../errors";
 import * as util from "../../util/misc";
 import * as versionUtil from "../../util/version";
@@ -49,14 +50,26 @@ export default class GitResolver extends ExoticResolver {
   async resolve(forked?: true): Promise<PackageInfo> {
     let { url } = this;
 
-    // TODO: make this generic
+    // shortcut for hosted git. we will fallback to a GitResolver if the hosted git
+    // optimisations fail which the `forked` flag indicates so we don't get into an
+    // infinite loop
     let parts = urlParse(url);
-    if (!forked && !parts.auth && parts.host === "github.com" && parts.pathname) {
-      // if this is a github git url then pipe us through the github pipeline as it's much
-      // more efficient
-      let pathname = parts.pathname.slice(1); // remove prefixed slash
-      pathname = util.removeSuffix(pathname, ".git"); // remove .git suffix if present
-      return this.fork(GitHubResolver, false, `${pathname}${decodeURIComponent(parts.hash || "")}`);
+    if (!forked && !parts.auth && parts.pathname) {
+      // check if this git url uses any of the hostnames defined in our hosted git resolvers
+      for (let name in hostedGitResolvers) {
+        let Resolver = hostedGitResolvers[name];
+        if (Resolver.hostname !== parts.hostname) continue;
+
+        // we have a match! clean up the pathname of url artifcats
+        let pathname = parts.pathname;
+        pathname = util.removePrefix(pathname, "/"); // remove prefixed slash
+        pathname = util.removeSuffix(pathname, ".git"); // remove .git suffix if present
+
+        // create the request pattern. if we have a `hash` then it'll be url encoded and
+        // start with a #
+        let url = `${pathname}${decodeURIComponent(parts.hash || "")}`;
+        return this.fork(Resolver, false, url);
+      }
     }
 
     // get from lockfile
@@ -64,7 +77,7 @@ export default class GitResolver extends ExoticResolver {
     if (shrunk) return shrunk;
 
     let client = new Git(this.config, url, this.hash);
-    let commit = await client.init();
+    let commit = await client.initRemote();
 
     async function tryRegistry(registry) {
       let filename = registries[registry].filename;

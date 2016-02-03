@@ -14,7 +14,7 @@ declare class RequestError extends Error {
 
 type RequestParams<T> = {
   url: string,
-  method?: "GET",
+  method?: "GET" | "HEAD" | "POST" | "PUT",
   json?: boolean,
   headers?: {
     [name: string]: string
@@ -23,7 +23,8 @@ type RequestParams<T> = {
     req: Request,
     resolve: (body: T) => void,
     reject: (err: Error) => void
-  ) => void;
+  ) => void,
+  callback?: (err: ?Error, res: any, body: any) => void
 };
 
 type RequestOptions = {
@@ -151,9 +152,29 @@ export default class RequestManager {
     };
 
     let resolve = buildNext(opts.resolve);
-    let reject  = buildNext(opts.reject);
+
+    let rejectNext = buildNext(opts.reject);
+    let reject = function (err) {
+      err.message = `${params.url}: ${err.message}`;
+      rejectNext(err);
+    };
 
     //
+
+    if (!params.process) {
+      params.callback = function (err, res, body) {
+        if (err) return; // will be handled by the `error` event handler
+
+        if (res.statusCode === 403) {
+          let errMsg = (body && body.message) || `Request ${params.url} returned a ${res.statusCode}`;
+          reject(new Error(errMsg));
+        } else {
+          if (res.statusCode === 400) body = false;
+          if (res.statusCode === 404) body = false;
+          resolve(body);
+        }
+      };
+    }
 
     let req = new Request(params);
 
@@ -168,20 +189,6 @@ export default class RequestManager {
 
     if (params.process) {
       params.process(req, resolve, reject);
-    } else {
-      req.on("request", (res) => {
-        req.readResponseBody(res);
-      });
-
-      req.on("complete", (res, body) => {
-        if (res.statusCode === 403) {
-          let errMsg = (body && body.message) || `Request ${params.url} returned a ${res.statusCode}`;
-          reject(new Error(errMsg));
-        } else {
-          if (res.statusCode === 404) body = false;
-          resolve(body);
-        }
-      });
     }
   }
 

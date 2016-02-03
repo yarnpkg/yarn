@@ -4,17 +4,18 @@ import type { ExplodedFragment } from "./_hosted-git";
 import HostedGitResolver from "./_hosted-git";
 
 export default class GitLabResolver extends HostedGitResolver {
+  static hostname = "gitlab.com";
   static protocol = "gitlab";
 
-  getTarballUrl({ user, repo, hash }: ExplodedFragment): string {
+  static getTarballUrl({ user, repo }: ExplodedFragment, hash: string): string {
     return `https://gitlab.com/${user}/${repo}/repository/archive.tar.gz?ref=${hash}`;
   }
 
-  getGitUrl({ user, repo }: ExplodedFragment): string {
+  static getGitHTTPUrl({ user, repo }: ExplodedFragment): string {
     return `https://gitlab.com/${user}/${repo}.git`;
   }
 
-  getGitArchiveUrl({ user, repo }: ExplodedFragment): string {
+  static getGitSSHUrl({ user, repo }: ExplodedFragment): string {
     return `git@gitlab.com:${user}/${repo}.git`;
   }
 }
