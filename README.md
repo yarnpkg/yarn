@@ -59,7 +59,6 @@ $ kpm install your-package
 ## Unsupported npm features (*may* be added in the future)
 
  * Private modules.
- * Scoped packages.
 
 ## Intentional npm incompatibilities
 
@@ -77,6 +76,14 @@ Ordered by priority.
  * Network performance/relability
  * Runtime performance
  * Public Node API
+
+## Comparison
+
+## FAQ
+
+### I'm still confused, what exactly is this?
+
+### Why not contribute back to npm?
 
 ## What problems are you trying to solve?
 
