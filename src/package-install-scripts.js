@@ -11,9 +11,9 @@ let invariant = require("invariant");
 let _         = require("lodash");
 
 export default class PackageInstallScripts {
-  constructor(config: Config, reporter: Reporter, resolver: PackageResolver) {
+  constructor(config: Config, resolver: PackageResolver) {
     this.resolver  = resolver;
-    this.reporter  = reporter;
+    this.reporter  = config.reporter;
     this.config    = config;
   }
 

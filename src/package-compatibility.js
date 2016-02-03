@@ -42,8 +42,8 @@ let ignore = [
 ];
 
 export default class PackageCompatibility {
-  constructor(config: Config, reporter: Reporter, resolver: PackageResolver) {
-    this.reporter = reporter;
+  constructor(config: Config, resolver: PackageResolver) {
+    this.reporter = config.reporter;
     this.resolver = resolver;
     this.config   = config;
   }

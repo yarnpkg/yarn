@@ -14,14 +14,14 @@ import map from "./util/map";
 let invariant = require("invariant");
 
 export default class PackageResolver {
-  constructor(config: Config, reporter: Reporter, lockfile: Lockfile) {
+  constructor(config: Config, lockfile: Lockfile) {
     this.packageReferencesByName = map();
     this.patternsByPackage       = map();
     this.fetchingPatterns        = map();
     this.newPatterns             = [];
     this.patterns                = map();
 
-    this.reporter = reporter;
+    this.reporter = config.reporter;
     this.lockfile = lockfile;
     this.config   = config;
   }

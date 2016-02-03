@@ -40,11 +40,11 @@ export class Install {
     this.flags       = flags;
     this.args        = args;
 
-    this.resolver      = new PackageResolver(config, reporter, lockfile);
-    this.compatibility = new PackageCompatibility(config, reporter, this.resolver);
-    this.fetcher       = new PackageFetcher(config, reporter, this.resolver);
-    this.linker        = new PackageLinker(config, reporter, this.resolver);
-    this.scripts       = new PackageInstallScripts(config, reporter, this.resolver);
+    this.resolver      = new PackageResolver(config, lockfile);
+    this.compatibility = new PackageCompatibility(config, this.resolver);
+    this.fetcher       = new PackageFetcher(config, this.resolver);
+    this.linker        = new PackageLinker(config, this.resolver);
+    this.scripts       = new PackageInstallScripts(config, this.resolver);
   }
 
   action: "install" | "update";
@@ -182,9 +182,12 @@ export class Install {
       }
 
       let versions = infos.map((info) => info.version);
-      let version = this.resolutions[name];
-      if (version && versions.indexOf(version) >= 0) {
+      let version: ?string;
+
+      let resolutionVersion = this.resolutions[name];
+      if (resolutionVersion && versions.indexOf(resolutionVersion) >= 0) {
         // use json `resolution` version
+        version = resolutionVersion;
       } else {
         version = await this.reporter.select(
           `We found a version in package ${name} that we couldn't resolve`,

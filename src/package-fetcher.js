@@ -12,8 +12,8 @@ import * as promise from "./util/promise";
 let invariant = require("invariant");
 
 export default class PackageFetcher {
-  constructor(config: Config, reporter: Reporter, resolver: PackageResolver) {
-    this.reporter = reporter;
+  constructor(config: Config, resolver: PackageResolver) {
+    this.reporter = config.reporter;
     this.resolver = resolver;
     this.config   = config;
   }
