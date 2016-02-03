@@ -22,7 +22,7 @@
 * Resilient to network flakiness: Smart retry and timeout logic ensures reliability on poor networks such as conference wifi, mobile networks etc.
 * Stable public API: Tooling such as build systems can reliably hook into internals.
 * Reproducible builds: Updates are intentional by default which means builds cannot randomly break because of dependency updates.
-* More emojis. :horse:
+* More emojis. 🐈
 
 **Security**
 

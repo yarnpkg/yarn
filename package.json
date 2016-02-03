@@ -51,7 +51,8 @@
   },
   "bin": {
     "kpm": "./bin/kpm.js",
-    "🐴": "./bin/kpm.js"
+    "🐈": "./bin/kpm.js",
+    "🐱": "./bin/kpm.js"
   },
   "scripts": {
     "test": "make test"
