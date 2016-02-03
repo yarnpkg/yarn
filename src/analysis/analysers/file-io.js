@@ -1,4 +1,4 @@
-// Check whether any code attempt to perform any file io.
+// Check whether any code attempts to perform any file io.
 //
 // - require("child_process")
 // - require("fs")
