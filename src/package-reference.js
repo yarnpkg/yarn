@@ -45,7 +45,7 @@ export default class PackageReference {
   registry: RegistryNames;
 
   async getFolder(): Promise<string> {
-    return this.config.registries[this.registry].loc;
+    return this.config.registries[this.registry].folder;
   }
 
   setPermission(key: string, val: boolean) {
