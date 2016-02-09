@@ -1,0 +1,9 @@
+[{
+  "type": "new",
+  "file": {
+    "relative": "bar.js",
+    "type": "file",
+    "size": 7,
+    "hash": "db682a42aaa0ed20e1f5751d89f1267cebcf21d5"
+  }
+}]

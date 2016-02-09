@@ -1,0 +1,14 @@
+[{
+  "type": "modified",
+  "files": [{
+    "relative": "foo.js",
+    "type": "file",
+    "size": 7,
+    "hash": "aab1fcd33e76a60679a02d4a4b9166f6d70910ba"
+  }, {
+    "relative": "foo.js",
+    "type": "file",
+    "size": 14,
+    "hash": "8e800c6055e4e5c61923fa4c2d1cc5256198b2f0"
+  }]
+}]

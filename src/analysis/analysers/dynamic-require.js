@@ -2,10 +2,10 @@
 
 // Find potential dynamic requires that could be dangerous.
 
-import { DANGEROUS_CATEGORY } from "../constants";
+import { DANGEROUS_CATEGORY } from "../constants.js";
 
 export let visitor = {
-  ReferencedIdentifier(path) {
+  ReferencedIdentifier(path: any) {
     // We need to disallow using `require` as a value since we can't track it.
     // We need to restrict access to `require.cache` and thus any computed access to `require`.
     if (path.node.name === "require" && !path.parentPath.isCallExpression({ callee: path.node })) {
@@ -29,7 +29,7 @@ export let visitor = {
     }
   },
 
-  CallExpression(path) {
+  CallExpression(path: any) {
     if (!path.get("callee").isIdentifier({ name: "require" })) return;
 
     let args = path.get("arguments");
