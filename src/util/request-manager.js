@@ -1,14 +1,18 @@
 /* @flow */
 
-import type Reporter from "../reporters/_base";
-import * as constants from "../constants";
-import * as network from "./network";
+import type Reporter from "../reporters/_base.js";
+import * as constants from "../constants.js";
+import * as network from "./network.js";
+import map from "../util/map.js";
 
 let Request = require("request").Request;
+let url = require("url");
 
+let successHosts = map();
 let controlOffline = network.isOffline();
 
 declare class RequestError extends Error {
+  hostname: string;
   code: string;
 }
 
@@ -16,6 +20,7 @@ type RequestParams<T> = {
   url: string,
   method?: "GET" | "HEAD" | "POST" | "PUT",
   json?: boolean,
+  forever?: boolean,
   headers?: {
     [name: string]: string
   },
@@ -61,15 +66,23 @@ export default class RequestManager {
     if (cached) return cached;
 
     params.method = params.method || "GET";
+    params.forever = true;
 
     params.headers = Object.assign({
       "User-Agent": constants.USER_AGENT
     }, params.headers);
 
-    return this.cache[params.url] = new Promise((resolve, reject) => {
+    let promise = new Promise((resolve, reject) => {
       this.queue.push({ params, resolve, reject });
       this.shiftQueue();
     });
+
+    // we can't cache a request with a processor
+    if (!params.process) {
+      this.cache[params.url] = promise;
+    }
+
+    return promise;
   }
 
   /**
@@ -90,6 +103,11 @@ export default class RequestManager {
 
     if (err.code === "ENOTFOUND" && possibleOfflineChange) {
       // can't resolve a domain
+      return true;
+    }
+
+    if (err.code === "ENOTFOUND" && successHosts[err.hostname]) {
+      // can't resolve this domain but we've successfully resolved it before
       return true;
     }
 
@@ -162,8 +180,12 @@ export default class RequestManager {
     //
 
     if (!params.process) {
+      let parts = url.parse(params.url);
+
       params.callback = function (err, res, body) {
         if (err) return; // will be handled by the `error` event handler
+
+        successHosts[parts.hostname] = true;
 
         if (res.statusCode === 403) {
           let errMsg = (body && body.message) || `Request ${params.url} returned a ${res.statusCode}`;
