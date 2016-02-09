@@ -56,17 +56,6 @@ $ mkdir node_modules
 $ kpm install your-package
 ```
 
-## Unsupported npm features (*may* be added in the future)
-
- * Private modules.
-
-## Intentional npm incompatibilities
-
- * Install scripts are ran in parallel.
- * `engine`/`os`/`cpu` fields are enforced.
- * No support for [package comments](https://github.com/npm/read-package-json#indexjs).
- * No support for dependency strings/arrays. eg. `{ dependencies: "lodash=>latest,babel-core=>^6.0.0" }` and `{ dependencies: ["lodash=>latest", "babel-core=>^6.0.0"] }`.
-
 ## Philosophy
 
 Ordered by priority.
