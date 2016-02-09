@@ -48,7 +48,7 @@ export default class NpmRegistry extends Registry {
     }
 
     _.defaults(this.config, {
-      registry: "http://127.0.0.1:5984/registry"
+      registry: "http://registry.npmjs.org"
     });
   }
 }

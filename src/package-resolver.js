@@ -1,6 +1,6 @@
 /* @flow */
 
-import type { PackageInfo } from "./types.js";
+import type { PackageInfo, DependencyRequestPatterns } from "./types.js";
 import type { RegistryNames } from "./registries/index.js";
 import type PackageReference from "./package-reference.js";
 import type Reporter from "./reporters/_base.js";
@@ -297,15 +297,11 @@ export default class PackageResolver {
    * TODO description
    */
 
-  async init(deps: Array<{
-    pattern: string,
-    registry: RegistryNames,
-    optional?: boolean
-  }>): Promise<void> {
+  async init(deps: DependencyRequestPatterns, useRelay?: true): Promise<void> {
     let activity = this.activity = this.reporter.activity();
 
-    if (this.config.relay || !this.lockfile.strict) {
-      // TODO get strict lockfile
+    if (useRelay) {
+      // TODO get strict lockfile from relay server
     }
 
     // build up promises

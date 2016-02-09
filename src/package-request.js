@@ -95,7 +95,8 @@ export default class PackageRequest {
   }
 
   /**
-   * TODO description
+   * If the input pattern matches a registry one then attempt to find it on the registry.
+   * Otherwise fork off to an exotic resolver if one matches.
    */
 
   async findVersionOnRegistry(pattern: string): Promise<PackageInfo> {
@@ -137,7 +138,7 @@ export default class PackageRequest {
   }
 
   /**
-   * TODO description
+   * Construct an exotic resolver instance with the input `ExoticResolver` and `range`.
    */
 
   async findExoticVersionInfo(ExoticResolver: Function, range: string): Promise<PackageInfo> {
@@ -146,7 +147,8 @@ export default class PackageRequest {
   }
 
   /**
-   * TODO description
+   * If the current pattern matches an exotic resolver then delegate to it or else try
+   * the registry.
    */
 
   async findVersionInfo(): Promise<PackageInfo> {

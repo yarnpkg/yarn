@@ -3,6 +3,7 @@
 import type { RegistryNames } from "../../registries/index.js";
 import type Reporter from "../../reporters/_base.js";
 import type Config from "../../config.js";
+import type { DependencyRequestPatterns } from "../../types.js";
 import Lockfile from "../../lockfile/index.js";
 import stringify from "../../lockfile/stringify.js";
 import PackageInstallScripts from "../../package-install-scripts.js";
@@ -19,6 +20,19 @@ import map from "../../util/map.js";
 let invariant = require("invariant");
 let emoji     = require("node-emoji");
 let path      = require("path");
+
+type FetchResolveParams = {
+  totalSteps: number,
+  patterns: Array<string>,
+  requests: DependencyRequestPatterns
+};
+
+type FetchResolveReturn = {
+  patterns: Array<string>,
+  relay: boolean,
+  total: number,
+  step: number
+};
 
 export class Install {
   constructor(
@@ -109,69 +123,131 @@ export class Install {
     }
   }
 
+  /**
+   * Perform package resolution and fetching.
+   *
+   * We have pretty different flows when we're using a registry relay server.
+   *
+   * When we're using a server the resolution process is split. This is
+   * because we get back the entire dependency graph in one go.
+   *
+   * When we resolve normally we block and need to fetch the package before
+   * continuing. This is because even though we get the dependencies of the
+   * package from the registry, we still need to get the package to support
+   * things like lockfiles inside it.
+   *
+   *           Relay server flow                   Local flow
+   *
+   *           ┌──────────────┐        ┌──────────────┐ ┌──────────────┐
+   *           │   Resolver   │        │   Resolver   ◀┬▶   Fetcher    │
+   *           └───────┬──────┘        └──────────────┘│└──────────────┘
+   *           ┌───────▼──────┐                 ┌──────▼───────┐
+   *           │   Fetcher    │                 │    Linker    │
+   *           └───────┬──────┘                 └──────────────┘
+   *           ┌───────▼──────┐
+   *           │    Linker    │
+   *           └──────────────┘
+   */
+
+  async fetchResolve(params: FetchResolveParams): Promise<FetchResolveReturn> {
+    let enabled = false; // TODO
+    if (!enabled) {
+      return this.fetchResolveLocal(params);
+    } else {
+      return this.fetchResolveServer(params);
+    }
+  }
+
+  async fetchResolveServer({
+    totalSteps,
+    patterns,
+    requests
+  }: FetchResolveParams): Promise<FetchResolveReturn> {
+    try {
+      let totalStepsThis = totalSteps + 2;
+
+      this.reporter.step(1, totalStepsThis, "Resolving dependencies", emoji.get("mag"));
+      await this.resolver.init(requests, true);
+
+      patterns = await this.flatten(patterns);
+
+      this.reporter.step(2, totalStepsThis, "Fetching packages", emoji.get("package"));
+      await this.resolver.fetcher.init();
+
+      return {
+        patterns,
+        relay: true,
+        total: totalStepsThis,
+        step: 2
+      };
+    } catch (err) {
+      if (err instanceof RelayError) {
+        this.reporter.error("Relay server errored. Falling back...");
+        return await this.fetchResolveLocal({
+          totalSteps,
+          patterns,
+          requests,
+        });
+      } else {
+        throw err;
+      }
+    }
+  }
+
+  async fetchResolveLocal({
+    totalSteps,
+    patterns,
+    requests
+  }: FetchResolveParams): Promise<FetchResolveReturn> {
+    let totalStepsThis = totalSteps + 1;
+
+    this.reporter.warn("Not using a relay server, this is going to be slower than usual");
+    this.reporter.step(1, totalStepsThis, "Resolving and fetching packages", emoji.get("turtle"));
+    await this.resolver.init(requests);
+
+    return {
+      patterns: await this.flatten(patterns),
+      relay: false,
+      total: totalStepsThis,
+      step: 1
+    };
+  }
+
   async init(): Promise<void> {
-    let patterns = [];
-    let deps = [];
+    let rawPatterns = [];
+    let depRequests = [];
 
     // calculate deps we need to install
     if (this.args.length) {
       // just use the args passed in the cli
-      patterns = this.args;
-      for (let pattern of patterns) {
-        deps.push({ pattern, registry: "npm" });
+      rawPatterns = this.args;
+      for (let pattern of rawPatterns) {
+        depRequests.push({ pattern, registry: "npm" });
       }
     } else {
-      [deps, patterns] = await this.fetchRequestFromCwd();
+      [depRequests, rawPatterns] = await this.fetchRequestFromCwd();
     }
 
-    let total = 5;
-    let i = 0;
+    // the amount of steps after package resolve/fetch
+    let stepsAfterFetchResolve = 3;
 
     //
-    let plainInstall = async function () {
-      // reset
-      total--;
-      i = 0;
-
-      //
-      this.reporter.warn("Not using a relay server, this is going to be slower than usual");
-      this.reporter.step(++i, total, "Resolving and fetching packages", emoji.get("turtle"));
-      await this.resolver.init(deps);
-      patterns = await this.flatten(patterns);
-    };
+    let { relay, patterns, step, total } = await this.fetchResolve({
+      totalSteps: stepsAfterFetchResolve,
+      patterns: rawPatterns,
+      requests: depRequests
+    });
 
     //
-    if (this.lockfile.strict || this.config.relay) {
-      try {
-        this.reporter.step(++i, total, "Resolving dependencies", emoji.get("mag"));
-        await this.resolver.init(deps);
-
-        patterns = await this.flatten(patterns);
-
-        this.reporter.step(++i, total, "Fetching packages", emoji.get("package"));
-        await this.resolver.fetcher.init();
-      } catch (err) {
-        if (err instanceof RelayError) {
-          this.reporter.error("Relay server errored. Falling back...");
-          await plainInstall.call(this);
-        } else {
-          throw err;
-        }
-      }
-    } else {
-      await plainInstall.call(this);
-    }
-
-    //
-    this.reporter.step(++i, total, "Checking package compatibility", emoji.get("white_check_mark"));
+    this.reporter.step(++step, total, "Checking package compatibility", emoji.get("white_check_mark"));
     await this.compatibility.init();
 
     //
-    this.reporter.step(++i, total, "Linking dependencies", emoji.get("link"));
+    this.reporter.step(++step, total, "Linking dependencies", emoji.get("link"));
     await this.linker.init(this.flags.binLinks);
 
     //
-    this.reporter.step(++i, total, "Running install scripts", emoji.get("page_with_curl"));
+    this.reporter.step(++step, total, "Running install scripts", emoji.get("page_with_curl"));
     await this.scripts.init();
 
     // fin!

@@ -43,7 +43,7 @@ export default class Git {
   url: string;
 
   /**
-   * TODO description
+   * Check if the host specified in the input `gitUrl` has archive capability.
    */
 
   static async hasArchiveCapability(gitUrl: string): Promise<boolean> {
@@ -65,7 +65,7 @@ export default class Git {
   }
 
   /**
-   * TODO Description
+   * Check if the input `target` is a 40 character hex commit hash.
    */
 
   static isCommitHash(target: string): boolean {
@@ -73,7 +73,8 @@ export default class Git {
   }
 
   /**
-   * TODO Description
+   * Assert that a URL is safe to fetch from. Forbid insecure URLs like plain HTTP with no
+   * hash.
    */
 
   static assertUrl(ref: string, hash: string) {
@@ -98,7 +99,8 @@ export default class Git {
   }
 
   /**
-   * TODO description
+   * Clone a repo to the input `dest`. Use `git archive` if it's available, otherwise fall
+   * back to `git clone`.
    */
 
   async clone(dest: string): Promise<void> {

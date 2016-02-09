@@ -80,22 +80,7 @@ if (network.isOffline()) {
   reporter.warn("You don't appear to have an internet connection.");
 }
 
-let i = 0;
-let profiler = require("v8-profiler");
-let fs = require("fs");
-profiler.startProfiling('1', true);
-
-function doSnapshot(callback) {
-  var snapshot = profiler.takeSnapshot();
-  snapshot.export(function (error, result) {
-    fs.writeFileSync(`snapshot${i++}.heapsnapshot`, result);
-    snapshot.delete();
-    callback();
-  });
-}
-
 //
-doSnapshot(function () {
 config.init().then(function () {
   let validArgLength = hasValidArgLength(command.argumentLength, command.minArgumentLength, args);
 
@@ -106,7 +91,7 @@ config.init().then(function () {
   return command.run(config, reporter, commander, commander.args).then(function () {
     reporter.close();
     reporter.footer();
-    doSnapshot(() => process.exit());
+    process.exit();
   });
 }).catch(function (errs) {
   function logError(err) {
@@ -126,5 +111,4 @@ config.init().then(function () {
   }
 
   process.exit(1);
-});
 });

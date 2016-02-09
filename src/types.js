@@ -3,22 +3,33 @@
 import type { RegistryNames } from "./registries/index.js";
 import type PackageReference from "./package-reference.js";
 
-type Dependencies = {
-  [key: string]: string
-};
+// dependency request pattern data structure that's used to request dependencies from a
+// PackageResolver
+export type DependencyRequestPatterns = Array<{
+  pattern: string,
+  registry: RegistryNames,
+  optional?: boolean
+}>;
 
+// person object, the exploded version of a `maintainers`/`authors` field
 export type PersonObject = {
   email?: string,
   name?: string,
   url?: string
 };
 
+// package remote that's used to store how to fetch a package
 export type PackageRemote = {
   type: "tarball" | "git" | "copy",
   registry: RegistryNames,
   reference: string | Object,
   resolved?: ?string,
   hash?: ?string,
+};
+
+// `dependencies` field in package info
+type Dependencies = {
+  [key: string]: string
 };
 
 // package info is the complete package.json of a package
