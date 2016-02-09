@@ -1,6 +1,6 @@
 /* @flow */
 
-import type { PersonObject } from "../../types";
+import type { PersonObject } from "../../types.js";
 
 let _ = require("lodash");
 

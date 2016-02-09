@@ -1,12 +1,13 @@
 /* @flow */
 /* eslint no-unused-vars: 0 */
 
-import type { PackageInfo, PackageRemote } from "../types";
-import type { RegistryNames } from "../registries";
-import type Config from "../config";
-import * as constants from "../constants";
-import * as util from "../util/misc";
-import * as fs from "../util/fs";
+import type { PackageInfo, PackageRemote } from "../types.js";
+import type { RegistryNames } from "../registries/index.js";
+import type Config from "../config.js";
+import normalisePackageInfo from "../util/normalise-package-info/index.js";
+import * as constants from "../constants.js";
+import * as util from "../util/misc.js";
+import * as fs from "../util/fs.js";
 
 let path = require("path");
 
@@ -27,15 +28,17 @@ export default class BaseFetcher {
     throw new Error("Not implemented");
   }
 
-  async fetch(dest: string): Promise<{
-    hash: string;
-    package: PackageInfo;
+  fetch(dest: string): Promise<{
+    hash: string,
+    package: PackageInfo
   }> {
-    await fs.mkdirp(dest);
-
-    try {
+    return fs.lockQueue.push(dest, async () => {
+      // fetch package and get the hash
       let hash = await this._fetch(dest);
+
+      // load the new normalised package.json
       let pkg = await fs.readPackageJson(dest, this.registry);
+      pkg = await normalisePackageInfo(pkg, dest);
 
       await fs.writeFile(path.join(dest, constants.METADATA_FILENAME), JSON.stringify({
         registry: this.registry,
@@ -46,9 +49,6 @@ export default class BaseFetcher {
         hash,
         package: pkg
       };
-    } catch (err) {
-      await fs.unlink(dest);
-      throw err;
-    }
+    });
   }
 }

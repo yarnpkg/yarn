@@ -1,21 +1,20 @@
 /* @flow */
 
-import type { RegistryNames } from "../../registries";
-import type Reporter from "../../reporters/_base";
-import type Config from "../../config";
-import Lockfile from "../../lockfile";
-import stringify from "../../lockfile/stringify";
-import PackageInstallScripts from "../../package-install-scripts";
-import PackageCompatibility from "../../package-compatibility";
-import PackageResolver from "../../package-resolver";
-import PackageFetcher from "../../package-fetcher";
-import PackageLinker from "../../package-linker";
-import { registries } from "../../registries";
-import { MessageError } from "../../errors";
-import * as constants from "../../constants";
-import * as promise from "../../util/promise";
-import * as fs from "../../util/fs";
-import map from "../../util/map";
+import type { RegistryNames } from "../../registries/index.js";
+import type Reporter from "../../reporters/_base.js";
+import type Config from "../../config.js";
+import Lockfile from "../../lockfile/index.js";
+import stringify from "../../lockfile/stringify.js";
+import PackageInstallScripts from "../../package-install-scripts.js";
+import PackageCompatibility from "../../package-compatibility.js";
+import PackageResolver from "../../package-resolver.js";
+import PackageLinker from "../../package-linker.js";
+import { registries } from "../../registries/index.js";
+import { MessageError, RelayError } from "../../errors.js";
+import * as constants from "../../constants.js";
+import * as promise from "../../util/promise.js";
+import * as fs from "../../util/fs.js";
+import map from "../../util/map.js";
 
 let invariant = require("invariant");
 let emoji     = require("node-emoji");
@@ -41,7 +40,6 @@ export class Install {
 
     this.resolver      = new PackageResolver(config, lockfile);
     this.compatibility = new PackageCompatibility(config, this.resolver);
-    this.fetcher       = new PackageFetcher(config, this.resolver);
     this.linker        = new PackageLinker(config, this.resolver);
     this.scripts       = new PackageInstallScripts(config, this.resolver);
   }
@@ -55,7 +53,6 @@ export class Install {
   config: Config;
   reporter: Reporter;
   resolver: PackageResolver;
-  fetcher: PackageFetcher;
   scripts: PackageInstallScripts;
   linker: PackageLinker;
   compatibility: PackageCompatibility;
@@ -127,25 +124,54 @@ export class Install {
       [deps, patterns] = await this.fetchRequestFromCwd();
     }
 
-    // step 1
-    this.reporter.step(1, 5, "Resolving dependencies", emoji.get("mag"));
-    await this.resolver.init(deps);
-    patterns = await this.flatten(patterns);
+    let total = 5;
+    let i = 0;
 
-    // step 2
-    this.reporter.step(2, 5, "Fetching packages", emoji.get("package"));
-    await this.fetcher.init();
+    //
+    let plainInstall = async function () {
+      // reset
+      total--;
+      i = 0;
 
-    // step 3
-    this.reporter.step(3, 5, "Checking package compatibility", emoji.get("white_check_mark"));
+      //
+      this.reporter.warn("Not using a relay server, this is going to be slower than usual");
+      this.reporter.step(++i, total, "Resolving and fetching packages", emoji.get("turtle"));
+      await this.resolver.init(deps);
+      patterns = await this.flatten(patterns);
+    };
+
+    //
+    if (this.lockfile.strict || this.config.relay) {
+      try {
+        this.reporter.step(++i, total, "Resolving dependencies", emoji.get("mag"));
+        await this.resolver.init(deps);
+
+        patterns = await this.flatten(patterns);
+
+        this.reporter.step(++i, total, "Fetching packages", emoji.get("package"));
+        await this.resolver.fetcher.init();
+      } catch (err) {
+        if (err instanceof RelayError) {
+          this.reporter.error("Relay server errored. Falling back...");
+          await plainInstall.call(this);
+        } else {
+          throw err;
+        }
+      }
+    } else {
+      await plainInstall.call(this);
+    }
+
+    //
+    this.reporter.step(++i, total, "Checking package compatibility", emoji.get("white_check_mark"));
     await this.compatibility.init();
 
-    // step 4
-    this.reporter.step(4, 5, "Linking dependencies", emoji.get("link"));
+    //
+    this.reporter.step(++i, total, "Linking dependencies", emoji.get("link"));
     await this.linker.init(this.flags.binLinks);
 
-    // step 5
-    this.reporter.step(5, 5, "Running install scripts", emoji.get("page_with_curl"));
+    //
+    this.reporter.step(++i, total, "Running install scripts", emoji.get("page_with_curl"));
     await this.scripts.init();
 
     // fin!

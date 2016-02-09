@@ -35,16 +35,17 @@ test.after("cleanup", function () {
 
 function addTest(pattern, registry = "npm") {
   test(`resolve ${pattern}`, async () => {
-    let shrinkwrap = new Lockfile;
+    let lockfile = new Lockfile;
     let reporter = new reporters.Noop({});
     let config = new Config(reporter, {
       cwd: tempLoc,
       packagesRoot: tempLoc,
       tempFolder: tempLoc
     });
-    let resolver = new PackageResolver(config, shrinkwrap);
+    await config.init();
+    let resolver = new PackageResolver(config, lockfile);
     await resolver.init([{ pattern, registry }]);
-    await config.close();
+    await reporter.close();
   });
 }
 

@@ -1,6 +1,6 @@
 /* @flow */
 
-import BaseReporter from "./_base";
+import BaseReporter from "./_base.js";
 
 function dump(type, data, error?: boolean) {
   let log = console.log;

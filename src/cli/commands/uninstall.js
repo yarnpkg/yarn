@@ -1,10 +1,10 @@
 /* @flow */
 
-import type Reporter from "../../reporters/_base";
-import type Config from "../../config";
-import normalisePackageInfo from "../../util/normalise-package-info";
-import { MessageError } from "../../errors";
-import * as fs from "../../util/fs";
+import type Reporter from "../../reporters/_base.js";
+import type Config from "../../config.js";
+import normalisePackageInfo from "../../util/normalise-package-info/index.js";
+import { MessageError } from "../../errors.js";
+import * as fs from "../../util/fs.js";
 
 let path = require("path");
 

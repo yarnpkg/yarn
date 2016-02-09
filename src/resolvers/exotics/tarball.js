@@ -1,14 +1,13 @@
 /* @flow */
 
-import type { PackageInfo } from "../../types";
-import type PackageRequest from "../../package-request";
-import queue from "../../util/blocking-queue";
-import TarballFetcher from "../../fetchers/tarball";
-import ExoticResolver from "./_base";
-import Git from "./git";
-import * as versionUtil from "../../util/version";
-import * as crypto from "../../util/crypto";
-import * as fs from "../../util/fs";
+import type { PackageInfo } from "../../types.js";
+import type PackageRequest from "../../package-request.js";
+import TarballFetcher from "../../fetchers/tarball.js";
+import ExoticResolver from "./_base.js";
+import Git from "./git.js";
+import * as versionUtil from "../../util/version.js";
+import * as crypto from "../../util/crypto.js";
+import * as fs from "../../util/fs.js";
 
 export default class TarballResolver extends ExoticResolver {
   constructor(request: PackageRequest, fragment: string) {
@@ -28,64 +27,59 @@ export default class TarballResolver extends ExoticResolver {
     return pattern.indexOf("http://") === 0 || pattern.indexOf("https://") === 0;
   }
 
-  resolve(): Promise<PackageInfo> {
-    let { url, hash } = this;
+  async resolve(): Promise<PackageInfo> {
+    let shrunk = this.request.getLocked("tarball");
+    if (shrunk) return shrunk;
 
+    let { url, hash, registry } = this;
     let pkgJson;
 
     // generate temp directory
     let dest = this.config.getTemp(crypto.hash(url));
 
-    return queue.push(dest, async () => {
-      let shrunk = this.request.getLocked("tarball");
-      if (shrunk) return shrunk;
+    if (await fs.isValidModuleDest(dest)) {
+      // load from local cache
+      ({ package: pkgJson, hash, registry } = await fs.readPackageMetadata(dest));
+    } else {
+      // delete if invalid
+      await fs.unlink(dest);
 
-      let { registry } = this;
-
-      if (await fs.isValidModuleDest(dest)) {
-        // load from local cache
-        ({ package: pkgJson, hash, registry } = await fs.readPackageMetadata(dest));
-      } else {
-        // delete if invalid
-        await fs.unlink(dest);
-
-        let fetcher = new TarballFetcher({
-          type: "tarball",
-          reference: url,
-          registry,
-          hash
-        }, this.config);
-
-        // fetch file and get it's hash
-        let fetched = await fetcher.fetch(dest);
-        pkgJson = fetched.package;
-        hash    = fetched.hash;
-
-        // $FlowFixMe: this is temporarily added on here so we can put it on the remote
-        registry = pkgJson.registry;
-      }
-
-      // use the commit/tarball hash as the uid as we can't rely on the version as it's not
-      // in the registry
-      pkgJson.uid = hash;
-
-      // set remote so it can be "fetched"
-      pkgJson.remote = {
-        type: "copy",
-        resolved: `${url}#${hash}`,
+      let fetcher = new TarballFetcher({
+        type: "tarball",
+        reference: url,
         registry,
-        reference: {
-          src: dest,
-          dest: this.config.generateHardModulePath({
-            name: pkgJson.name,
-            version: pkgJson.version,
-            uid: hash,
-            registry
-          })
-        }
-      };
+        hash
+      }, this.config);
 
-      return pkgJson;
-    });
+      // fetch file and get it's hash
+      let fetched = await fetcher.fetch(dest);
+      pkgJson = fetched.package;
+      hash    = fetched.hash;
+
+      // $FlowFixMe: this is temporarily added on here so we can put it on the remote
+      registry = pkgJson.registry;
+    }
+
+    // use the commit/tarball hash as the uid as we can't rely on the version as it's not
+    // in the registry
+    pkgJson.uid = hash;
+
+    // set remote so it can be "fetched"
+    pkgJson.remote = {
+      type: "copy",
+      resolved: `${url}#${hash}`,
+      registry,
+      reference: {
+        src: dest,
+        dest: this.config.generateHardModulePath({
+          name: pkgJson.name,
+          version: pkgJson.version,
+          uid: hash,
+          registry
+        })
+      }
+    };
+
+    return pkgJson;
   }
 }

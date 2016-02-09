@@ -1,7 +1,7 @@
 /* @flow */
 
-import { removePrefix } from "../util/misc";
-import * as fs from "../util/fs";
+import { removePrefix } from "../util/misc.js";
+import * as fs from "../util/fs.js";
 
 let path = require("path");
 let _    = require("lodash");

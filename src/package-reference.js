@@ -1,16 +1,15 @@
 /* @flow */
 
-import type Lockfile from "./lockfile";
-import type Config from "./config";
-import type { PackageRemote, PackageInfo } from "./types";
-import type { RegistryNames } from "./registries";
-import { MessageError } from "./errors";
+import type Lockfile from "./lockfile/index.js";
+import type Config from "./config.js";
+import type { PackageRemote, PackageInfo } from "./types.js";
+import type { RegistryNames } from "./registries/index.js";
+import { MessageError } from "./errors.js";
 
 export default class PackageReference {
   constructor(
     info: PackageInfo,
     remote: PackageRemote,
-    deps: Array<string>,
     lockfile: Lockfile,
     config: Config
   ) {
@@ -24,7 +23,7 @@ export default class PackageReference {
 
     this.remote = remote;
 
-    this.dependencies = deps;
+    this.dependencies = [];
 
     this.permissions = {};
     this.patterns    = [];
@@ -46,6 +45,10 @@ export default class PackageReference {
 
   async getFolder(): Promise<string> {
     return this.config.registries[this.registry].folder;
+  }
+
+  setDependencies(deps: Array<string>) {
+    this.dependencies = deps;
   }
 
   setPermission(key: string, val: boolean) {

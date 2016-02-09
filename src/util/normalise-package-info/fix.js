@@ -1,8 +1,8 @@
 /* @flow */
 
-import { README_NOT_FOUND_MESSAGE, normalisePerson, extractDescription } from "./util";
-import { hostedGitFragmentToGitUrl } from "../../resolvers";
-import * as fs from "../fs";
+import { README_NOT_FOUND_MESSAGE, normalisePerson, extractDescription } from "./util.js";
+import { hostedGitFragmentToGitUrl } from "../../resolvers/index.js";
+import * as fs from "../fs.js";
 
 let semver = require("semver");
 let path   = require("path");
@@ -107,7 +107,10 @@ export default async function (info: Object, moduleLoc: string): Promise<void> {
   }
 
   // bundleDependencies is an alias for bundledDependencies
-  info.bundleDependencies = info.bundleDependencies || info.bundledDependencies;
+  if (info.bundledDependencies) {
+    info.bundleDependencies = info.bundledDependencies;
+    delete info.bundledDependencies;
+  }
 
   // dummy script object to shove file inferred scripts onto
   let scripts = info.scripts || {};

@@ -1,9 +1,9 @@
 /* @flow */
 
-import type { PackageInfo } from "../../types";
-import type PackageRequest from "../../package-request";
-import ExoticResolver from "./_base";
-import * as util from "../../util/misc";
+import type { PackageInfo } from "../../types.js";
+import type PackageRequest from "../../package-request.js";
+import ExoticResolver from "./_base.js";
+import * as util from "../../util/misc.js";
 
 export default class FileResolver extends ExoticResolver {
   constructor(request: PackageRequest, fragment: string) {

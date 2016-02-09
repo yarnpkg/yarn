@@ -1,11 +1,11 @@
 /* @flow */
 
-import type { PackageInfo } from "../../types";
-import type PackageRequest from "../../package-request";
-import { MessageError } from "../../errors";
-import GitResolver from "./git";
-import ExoticResolver from "./_base";
-import * as util from "../../util/misc";
+import type { PackageInfo } from "../../types.js";
+import type PackageRequest from "../../package-request.js";
+import { MessageError } from "../../errors.js";
+import GitResolver from "./git.js";
+import ExoticResolver from "./_base.js";
+import * as util from "../../util/misc.js";
 
 function explodeGistFragment(fragment: string): { id: string, hash: string } {
   fragment = util.removePrefix(fragment, "gist:");

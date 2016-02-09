@@ -1,17 +1,17 @@
 /* @flow */
 
-import type { PackageInfo } from "./types";
-import type { RegistryNames } from "./registries";
-import type PackageResolver from "./package-resolver";
-import type Reporter from "./reporters/_base";
-import type Lockfile from "./lockfile";
-import type Config from "./config";
-import PackageReference from "./package-reference";
-import { registries as registryResolvers } from "./resolvers";
-import { MessageError } from "./errors";
-import * as constants from "./constants";
-import * as versionUtil from "./util/version";
-import * as resolvers from "./resolvers";
+import type { PackageInfo } from "./types.js";
+import type { RegistryNames } from "./registries/index.js";
+import type PackageResolver from "./package-resolver.js";
+import type Reporter from "./reporters/_base.js";
+import type Lockfile from "./lockfile/index.js";
+import type Config from "./config.js";
+import PackageReference from "./package-reference.js";
+import { registries as registryResolvers } from "./resolvers/index.js";
+import { MessageError } from "./errors.js";
+import * as constants from "./constants.js";
+import * as versionUtil from "./util/version.js";
+import * as resolvers from "./resolvers/index.js";
 
 let invariant = require("invariant");
 
@@ -19,27 +19,24 @@ export default class PackageRequest {
   constructor({
     pattern,
     registry,
-    config,
-    reporter,
-    lockfile,
     resolver,
+    lockfile,
     parentRequest
   }: {
     pattern: string,
+    lockfile: ?Lockfile,
     registry: RegistryNames,
-    config: Config,
-    reporter: Reporter,
-    lockfile: Lockfile,
     resolver: PackageResolver,
     parentRequest: ?PackageRequest // eslint-disable-line no-unused-vars
   }) {
     this.parentRequest = parentRequest;
-    this.lockfile      = lockfile;
+    this.rootLockfile  = resolver.lockfile;
+    this.subLockfile   = lockfile;
     this.registry      = registry;
-    this.reporter      = reporter;
+    this.reporter      = resolver.reporter;
     this.resolver      = resolver;
     this.pattern       = pattern;
-    this.config        = config;
+    this.config        = resolver.config;
   }
 
   static getExoticResolver(pattern: string): ?Function { // TODO make this type more refined
@@ -50,7 +47,8 @@ export default class PackageRequest {
   }
 
   parentRequest: ?PackageRequest;
-  lockfile: Lockfile;
+  rootLockfile: Lockfile;
+  subLockfile: ?Lockfile;
   reporter: Reporter;
   resolver: PackageResolver;
   pattern: string;
@@ -69,7 +67,13 @@ export default class PackageRequest {
   }
 
   getLocked(remoteType: string): ?Object {
-    let shrunk = this.lockfile.getLocked(this.pattern);
+    // alaways prioritise root lockfile
+    let shrunk = this.rootLockfile.getLocked(this.pattern, !!this.subLockfile);
+
+    // falback to sub lockfile if exists
+    if (this.subLockfile && !shrunk) {
+      shrunk = this.subLockfile.getLocked(this.pattern);
+    }
 
     if (shrunk) {
       let resolvedParts = versionUtil.explodeHashedUrl(shrunk.resolved);
@@ -189,38 +193,51 @@ export default class PackageRequest {
 
     // validate version info
     PackageRequest.validateVersionInfo(info);
-    this.resolver.addPattern(this.pattern, info);
-
-    // start installation of dependencies
-    let promises = [];
-    let deps = [];
 
     //
     let remote = info.remote;
     invariant(remote, "Missing remote");
 
+    // set package reference
+    let ref = new PackageReference(info, remote, this.rootLockfile, this.config);
+
+    // use new one
+    let { package: newInfo, hash } = await this.resolver.fetchingQueue.push(
+      info.name,
+      () => this.resolver.fetcher.fetch(ref)
+    );
+    newInfo.reference = ref;
+    newInfo.remote = remote;
+    remote.hash = hash;
+
+    // start installation of dependencies
+    let promises = [];
+    let deps = [];
+
+    // TODO get lockfile from dependency
+    let subLockfile = null;
+
     // normal deps
-    for (let depName in info.dependencies) {
-      let depPattern = depName + "@" + info.dependencies[depName];
+    for (let depName in newInfo.dependencies) {
+      let depPattern = depName + "@" + newInfo.dependencies[depName];
       deps.push(depPattern);
-      promises.push(this.resolver.find(depPattern, remote.registry, false, this));
+      promises.push(this.resolver.find(depPattern, remote.registry, false, this, subLockfile));
     }
 
     // optional deps
-    for (let depName in info.optionalDependencies) {
-      let depPattern = depName + "@" + info.optionalDependencies[depName];
+    for (let depName in newInfo.optionalDependencies) {
+      let depPattern = depName + "@" + newInfo.optionalDependencies[depName];
       deps.push(depPattern);
-      promises.push(this.resolver.find(depPattern, remote.registry, true, this));
+      promises.push(this.resolver.find(depPattern, remote.registry, true, this, subLockfile));
     }
-
-    // set package reference
-    let ref = info.reference = new PackageReference(info, remote, deps, this.lockfile, this.config);
-    ref.addPattern(this.pattern);
-    ref.addOptional(optional);
 
     await Promise.all(promises);
 
-    this.resolver.registerPackageReference(info.reference);
+    this.resolver.addPattern(this.pattern, newInfo);
+    ref.setDependencies(deps);
+    ref.addPattern(this.pattern);
+    ref.addOptional(optional);
+    this.resolver.registerPackageReference(ref);
   }
 
   /**

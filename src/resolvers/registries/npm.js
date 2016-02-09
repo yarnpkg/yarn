@@ -1,8 +1,8 @@
 /* @flow */
 
-import type { PackageInfo } from "../../types";
-import { MessageError } from "../../errors";
-import RegistryResolver from "./_base";
+import type { PackageInfo } from "../../types.js";
+import { MessageError } from "../../errors.js";
+import RegistryResolver from "./_base.js";
 
 export default class NpmResolver extends RegistryResolver {
   static registry = "npm";

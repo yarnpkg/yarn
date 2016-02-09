@@ -1,7 +1,7 @@
 /* @flow */
 
-import BaseReporter from "../_base";
-import Spinner from "./spinner";
+import BaseReporter from "../_base.js";
+import Spinner from "./spinner.js";
 import pkg from "../../../package.json";
 
 let Progress = require("progress");
@@ -65,7 +65,7 @@ export default class ConsoleReporter extends BaseReporter {
     if (isCI || !process.stdout.isTTY) {
       return Promise.reject(new Error("Can't answer a question unless a user TTY"));
     }
-    
+
     question;
     return Promise.resolve(false);
   }

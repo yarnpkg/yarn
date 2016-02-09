@@ -1,12 +1,12 @@
 /* @flow */
 
-import type PackageResolver from "../package-resolver";
-import type Reporter from "../reporters/_base";
-import type { PackageInfo } from "../types";
-import { MessageError } from "../errors";
-import parse from "./parse";
-import * as constants from "../constants";
-import * as fs from "../util/fs";
+import type PackageResolver from "../package-resolver.js";
+import type Reporter from "../reporters/_base.js";
+import type { PackageInfo } from "../types.js";
+import { MessageError } from "../errors.js";
+import parse from "./parse.js";
+import * as constants from "../constants.js";
+import * as fs from "../util/fs.js";
 
 let invariant = require("invariant");
 let stripBOM  = require("strip-bom");

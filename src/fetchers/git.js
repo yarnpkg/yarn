@@ -1,7 +1,7 @@
 /* @flow */
 
-import BaseFetcher from "./_base";
-import Git from "../util/git";
+import BaseFetcher from "./_base.js";
+import Git from "../util/git.js";
 
 let invariant = require("invariant");
 

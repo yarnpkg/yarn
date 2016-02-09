@@ -1,8 +1,8 @@
 /* @flow */
 
-import type { PackageInfo } from "../../types";
-import validate from "./validate";
-import fix from "./fix";
+import type { PackageInfo } from "../../types.js";
+import validate from "./validate.js";
+import fix from "./fix.js";
 
 export default async function (
   info: Object,

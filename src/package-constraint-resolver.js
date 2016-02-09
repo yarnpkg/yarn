@@ -1,7 +1,7 @@
 /* @flow */
 
-import type Reporter from "./reporters/_base";
-import type Config from "./config";
+import type Reporter from "./reporters/_base.js";
+import type Config from "./config.js";
 
 let semver = require("semver");
 

@@ -1,6 +1,6 @@
 /* @flow */
 
-import BaseResolver from "../_base";
+import BaseResolver from "../_base.js";
 
 let _ = require("lodash");
 

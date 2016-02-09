@@ -1,15 +1,20 @@
 /* @flow */
 
-import { PackageInfo } from "./types";
-import type PackageResolver from "./package-resolver";
-import type Reporter from "./reporters/_base";
-import type PackageReference from "./package-reference";
-import type Config from "./config";
-import * as fetchers from "./fetchers";
-import * as fs from "./util/fs";
-import * as promise from "./util/promise";
+import { PackageInfo } from "./types.js";
+import type PackageResolver from "./package-resolver.js";
+import type Reporter from "./reporters/_base.js";
+import type PackageReference from "./package-reference.js";
+import type Config from "./config.js";
+import * as fetchers from "./fetchers/index.js";
+import * as fs from "./util/fs.js";
+import * as promise from "./util/promise.js";
 
 let invariant = require("invariant");
+
+type FetchedInfo = {
+  package: PackageInfo,
+  hash: string
+};
 
 export default class PackageFetcher {
   constructor(config: Config, resolver: PackageResolver) {
@@ -22,10 +27,7 @@ export default class PackageFetcher {
   reporter: Reporter;
   config: Config;
 
-  async fetch(ref: PackageReference): Promise<{
-    package: PackageInfo,
-    hash: string
-  }> {
+  async fetch(ref: PackageReference): Promise<FetchedInfo> {
     let dest = this.config.generateHardModulePath(ref);
 
     if (await fs.isValidModuleDest(dest)) {
@@ -45,34 +47,42 @@ export default class PackageFetcher {
     let Fetcher = fetchers[remote.type];
     if (!Fetcher) throw new Error(`Unknown fetcher for ${remote.type}`);
 
-    let fetcher = new Fetcher(remote, this.config);
-    return fetcher.fetch(dest);
+    await fs.mkdirp(dest);
+
+    try {
+      let fetcher = new Fetcher(remote, this.config);
+      return fetcher.fetch(dest);
+    } catch (err) {
+      //await fs.unlink(dest);
+      throw err;
+    }
+  }
+
+  async maybeFetch(ref: PackageReference): Promise<?FetchedInfo> {
+    let promise = this.fetch(ref);
+
+    if (ref.optional) {
+      // swallow the error
+      promise = promise.catch((err) => {
+        // TODO we want to throw for PackageResolver use
+        this.reporter.error(err.message);
+      });
+    }
+
+    return promise;
   }
 
   async init(): Promise<void> {
-    let self = this;
     let pkgs = this.resolver.getPackageReferences();
     let tick = this.reporter.progress(pkgs.length);
 
-    await promise.queue(pkgs, (ref) => {
-      let promise = self.fetch(ref).then((res) => {
-        if (res.hash) {
-          ref.hash = res.hash;
-        }
-
-        return self.resolver.updatePackageInfo(ref, res.package).then(function () {
-          tick(ref.name);
-        });
-      });
-
-      if (ref.optional) {
-        // swallow the error
-        promise = promise.catch((err) => {
-          self.reporter.error(err.message);
+    await promise.queue(pkgs, (ref) => this.maybeFetch(ref).then((res) => {
+      if (res) {
+        ref.remote.hash = res.hash;
+        return this.resolver.updatePackageInfo(ref, res.package).then(function () {
+          if (tick) tick(ref.name);
         });
       }
-
-      return promise;
-    });
+    }));
   }
 }

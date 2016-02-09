@@ -1,6 +1,6 @@
 /* @flow */
 
-import map from "../util/map";
+import map from "../util/map.js";
 
 let invariant = require("invariant");
 

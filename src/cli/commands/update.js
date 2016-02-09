@@ -1,12 +1,12 @@
 /* @flow */
 
-import type Reporter from "../../reporters/_base";
-import type Config from "../../config";
-import { Install } from "./install";
-import Lockfile from "../../lockfile";
-import { MessageError } from "../../errors";
-import * as constants from "../../constants";
-import * as fs from "../../util/fs";
+import type Reporter from "../../reporters/_base.js";
+import type Config from "../../config.js";
+import { Install } from "./install.js";
+import Lockfile from "../../lockfile/index.js";
+import { MessageError } from "../../errors.js";
+import * as constants from "../../constants.js";
+import * as fs from "../../util/fs.js";
 
 let path = require("path");
 

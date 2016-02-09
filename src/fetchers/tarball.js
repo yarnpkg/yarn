@@ -1,8 +1,8 @@
 /* @flow */
 
-import { SecurityError } from "../errors";
-import * as crypto from "../util/crypto";
-import BaseFetcher from "./_base";
+import { SecurityError } from "../errors.js";
+import * as crypto from "../util/crypto.js";
+import BaseFetcher from "./_base.js";
 
 let zlib = require("zlib");
 let tar  = require("tar");

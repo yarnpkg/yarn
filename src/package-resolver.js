@@ -1,15 +1,17 @@
 /* @flow */
 
-import type { PackageInfo } from "./types";
-import type { RegistryNames } from "./registries";
-import type PackageReference from "./package-reference";
-import type Reporter from "./reporters/_base";
-import type Config from "./config";
-import normalisePackageInfo from "./util/normalise-package-info";
-import PackageRequest from "./package-request";
-import RequestManager from "./util/request-manager";
-import Lockfile from "./lockfile";
-import map from "./util/map";
+import type { PackageInfo } from "./types.js";
+import type { RegistryNames } from "./registries/index.js";
+import type PackageReference from "./package-reference.js";
+import type Reporter from "./reporters/_base.js";
+import type Config from "./config.js";
+import normalisePackageInfo from "./util/normalise-package-info/index.js";
+import PackageFetcher from "./package-fetcher.js";
+import PackageRequest from "./package-request.js";
+import RequestManager from "./util/request-manager.js";
+import BlockingQueue from "./util/blocking-queue.js";
+import Lockfile from "./lockfile/index.js";
+import map from "./util/map.js";
 
 let invariant = require("invariant");
 
@@ -18,9 +20,11 @@ export default class PackageResolver {
     this.packageReferencesByName = map();
     this.patternsByPackage       = map();
     this.fetchingPatterns        = map();
+    this.fetchingQueue           = new BlockingQueue("resolver fetching");
     this.newPatterns             = [];
     this.patterns                = map();
 
+    this.fetcher  = new PackageFetcher(config, this);
     this.reporter = config.reporter;
     this.lockfile = lockfile;
     this.config   = config;
@@ -39,6 +43,12 @@ export default class PackageResolver {
 
   // new patterns that didn't exist in the lockfile
   newPatterns: Array<string>;
+
+  // TODO
+  fetchingQueue: BlockingQueue;
+
+  // TODO
+  fetcher: PackageFetcher;
 
   // manages and throttles json api http requests
   requestManager: RequestManager;
@@ -72,8 +82,6 @@ export default class PackageResolver {
    */
 
   async updatePackageInfo(ref: PackageReference, newPkg: PackageInfo): Promise<void> {
-    newPkg = await normalisePackageInfo(newPkg, this.config.generateHardModulePath(ref));
-
     // inherit fields
     let oldPkg = this.patterns[ref.patterns[0]];
     newPkg.reference = ref;
@@ -258,7 +266,8 @@ export default class PackageResolver {
     pattern: string,
     registry: RegistryNames,
     optional?: boolean = false,
-    parentRequest?: ?PackageRequest
+    parentRequest?: ?PackageRequest,
+    subLockfile?: ?Lockfile
   ): Promise<void> {
     let fetchKey = `${registry}:${pattern}`;
     if (this.fetchingPatterns[fetchKey]) {
@@ -276,12 +285,10 @@ export default class PackageResolver {
     }
 
     return new PackageRequest({
+      lockfile: subLockfile,
       pattern,
       registry,
       parentRequest,
-      config: this.config,
-      reporter: this.reporter,
-      lockfile: this.lockfile,
       resolver: this
     }).find(optional);
   }
@@ -296,6 +303,10 @@ export default class PackageResolver {
     optional?: boolean
   }>): Promise<void> {
     let activity = this.activity = this.reporter.activity();
+
+    if (this.config.relay || !this.lockfile.strict) {
+      // TODO get strict lockfile
+    }
 
     // build up promises
     let promises = [];

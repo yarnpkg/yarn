@@ -1,7 +1,7 @@
 /* @flow */
 
-import RegistryNpm from "./registries/npm";
-import RegistryBower from "./registries/bower";
+import RegistryNpm from "./registries/npm.js";
+import RegistryBower from "./registries/bower.js";
 
 export let registries = {
   bower: RegistryBower,
@@ -10,13 +10,13 @@ export let registries = {
 
 //
 
-import ExoticGit from "./exotics/git";
-import ExoticTarball from "./exotics/tarball";
-import ExoticGitHub from "./exotics/github";
-import ExoticFile from "./exotics/file";
-import ExoticGitLab from "./exotics/gitlab";
-import ExoticGist from "./exotics/gist";
-import ExoticBitbucket from "./exotics/bitbucket";
+import ExoticGit from "./exotics/git.js";
+import ExoticTarball from "./exotics/tarball.js";
+import ExoticGitHub from "./exotics/github.js";
+import ExoticFile from "./exotics/file.js";
+import ExoticGitLab from "./exotics/gitlab.js";
+import ExoticGist from "./exotics/gist.js";
+import ExoticBitbucket from "./exotics/bitbucket.js";
 
 export let exotics = {
   git: ExoticGit,
@@ -30,7 +30,7 @@ export let exotics = {
 
 //
 
-import { explodeHostedGitFragment } from "./exotics/_hosted-git";
+import { explodeHostedGitFragment } from "./exotics/_hosted-git.js";
 
 export let hostedGit = {
   github: ExoticGitHub,
@@ -51,7 +51,7 @@ export function hostedGitFragmentToGitUrl(fragment: string): string {
 
 //
 
-import ExoticRegistryResolver from "./exotics/_registry";
+import ExoticRegistryResolver from "./exotics/_registry.js";
 
 for (let key in registries) {
   let RegistryResolver = registries[key];

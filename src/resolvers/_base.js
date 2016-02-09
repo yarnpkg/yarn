@@ -1,11 +1,11 @@
 /* @flow */
 
-import type PackageRequest from "../package-request";
-import type PackageResolver from "../package-resolver";
-import type { PackageInfo } from "../types";
-import type { RegistryNames } from "../registries";
-import type Reporter from "../reporters/_base";
-import type Config from "../config";
+import type PackageRequest from "../package-request.js";
+import type PackageResolver from "../package-resolver.js";
+import type { PackageInfo } from "../types.js";
+import type { RegistryNames } from "../registries/index.js";
+import type Reporter from "../reporters/_base.js";
+import type Config from "../config.js";
 
 export default class BaseResolver {
   constructor(request: PackageRequest, fragment: string) {

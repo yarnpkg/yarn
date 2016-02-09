@@ -2,17 +2,15 @@
 /* eslint no-unused-vars: 0 */
 
 export default class BaseReporter {
-  constructor({ alwaysAnswer }: { alwaysAnswer?: ?string }) {
-    this.alwaysAnswer = alwaysAnswer;
-    this.startTime    = Date.now();
-    this.peakMemory   = 0;
+  constructor() {
+    this.startTime  = Date.now();
+    this.peakMemory = 0;
 
     this.initPeakMemoryCounter();
   }
 
-  peakMemoryInterval: ?numer;
+  peakMemoryInterval: ?number;
   peakMemory: number;
-  alwaysAnswer: ?string;
   startTime: number;
 
   initPeakMemoryCounter() {
@@ -28,7 +26,9 @@ export default class BaseReporter {
   }
 
   close() {
-    clearInterval(this.peakMemoryInterval);
+    if (this.peakMemoryInterval) {
+      clearInterval(this.peakMemoryInterval);
+    }
   }
 
   getTotalTime(): number {

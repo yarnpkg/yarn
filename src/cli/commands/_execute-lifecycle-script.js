@@ -1,9 +1,9 @@
 /* @flow */
 
-import type Config from "../../config";
-import { MessageError } from "../../errors";
-import * as fs from "../../util/fs";
-import executeLifecycleScript from "../../util/execute-lifecycle-script";
+import type Config from "../../config.js";
+import { MessageError } from "../../errors.js";
+import * as fs from "../../util/fs.js";
+import executeLifecycleScript from "../../util/execute-lifecycle-script.js";
 
 export default function (action: string): { run: Function, argumentLength: number } {
   return {
@@ -16,7 +16,7 @@ export default function (action: string): { run: Function, argumentLength: numbe
         throw new MessageError(`No scripts.${action} command specified!`);
       }
 
-      await executeLifecycleScript(config.cwd, [pkg.scripts[action]]);
+      await executeLifecycleScript(config, config.cwd, [pkg.scripts[action]]);
     }
   };
 }

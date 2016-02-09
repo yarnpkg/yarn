@@ -1,14 +1,14 @@
 /* @flow */
 
-import * as constants from "../constants";
-import { BlockingQueue } from "./blocking-queue";
-import { promisify } from "./promise";
+import * as constants from "../constants.js";
+import BlockingQueue from "./blocking-queue.js";
+import { promisify } from "./promise.js";
 
 let child = require("child_process");
 
 export let exec = promisify(child.exec);
 
-export let queue = new BlockingQueue(constants.CHILD_CONCURRENCY);
+export let queue = new BlockingQueue("child", constants.CHILD_CONCURRENCY);
 
 // TODO: this uid check is kinda whack
 let uid = 0;

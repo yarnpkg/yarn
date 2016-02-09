@@ -1,11 +1,11 @@
 /* @flow */
 
-import type { PackageInfo } from "./types";
-import type PackageResolver from "./package-resolver";
-import type Reporter from "./reporters/_base";
-import type Config from "./config";
-import executeLifecycleScript from "./util/execute-lifecycle-script";
-import * as promise from "./util/promise";
+import type { PackageInfo } from "./types.js";
+import type PackageResolver from "./package-resolver.js";
+import type Reporter from "./reporters/_base.js";
+import type Config from "./config.js";
+import executeLifecycleScript from "./util/execute-lifecycle-script.js";
+import * as promise from "./util/promise.js";
 
 let invariant = require("invariant");
 let _         = require("lodash");
@@ -39,7 +39,7 @@ export default class PackageInstallScripts {
     stderr: string
   }>> {
     let loc = this.config.generateHardModulePath(pkg.reference);
-    return executeLifecycleScript(loc, cmds, pkg);
+    return executeLifecycleScript(this.config, loc, cmds, pkg);
   }
 
   async init(): Promise<void> {

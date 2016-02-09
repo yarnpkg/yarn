@@ -1,14 +1,14 @@
 /* @flow */
 
-import type { PackageInfo } from "../../types";
-import type PackageRequest from "../../package-request";
-import { hostedGit as hostedGitResolvers } from "..";
-import { MessageError } from "../../errors";
-import * as util from "../../util/misc";
-import * as versionUtil from "../../util/version";
-import { registries } from "../../registries";
-import ExoticResolver from "./_base";
-import Git from "../../util/git";
+import type { PackageInfo } from "../../types.js";
+import type PackageRequest from "../../package-request.js";
+import { hostedGit as hostedGitResolvers } from "../index.js";
+import { MessageError } from "../../errors.js";
+import * as util from "../../util/misc.js";
+import * as versionUtil from "../../util/version.js";
+import { registries } from "../../registries/index.js";
+import ExoticResolver from "./_base.js";
+import Git from "../../util/git.js";
 
 let urlParse = require("url").parse;
 let _        = require("lodash");

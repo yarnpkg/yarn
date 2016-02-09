@@ -1,9 +1,9 @@
 /* @flow */
 
-import type { PackageInfo } from "../../types";
-import { MessageError } from "../../errors";
-import RegistryResolver from "./_base";
-import GitResolver from "../exotics/git";
+import type { PackageInfo } from "../../types.js";
+import { MessageError } from "../../errors.js";
+import RegistryResolver from "./_base.js";
+import GitResolver from "../exotics/git.js";
 
 export default class BowerResolver extends RegistryResolver {
   static registry = "bower";

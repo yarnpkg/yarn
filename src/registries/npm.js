@@ -1,7 +1,7 @@
 /* @flow */
 
-import * as fs from "../util/fs";
-import Registry from "./_base";
+import * as fs from "../util/fs.js";
+import Registry from "./_base.js";
 
 let path = require("path");
 let os   = require("os");
@@ -48,7 +48,7 @@ export default class NpmRegistry extends Registry {
     }
 
     _.defaults(this.config, {
-      registry: "https://registry.npmjs.org"
+      registry: "http://127.0.0.1:5984/registry"
     });
   }
 }

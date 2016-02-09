@@ -1,25 +1,30 @@
 /* @flow */
 
-import map from "./map";
+import map from "./map.js";
 
-export class BlockingQueue<T> {
-  constructor(maxConcurrency?: number = Infinity) {
+export default class BlockingQueue {
+  constructor(alias: string, maxConcurrency?: number = Infinity) {
     this.concurrencyQueue = [];
     this.maxConcurrency   = maxConcurrency;
     this.runningCount     = 0;
+    this.alias            = alias;
 
     this.running      = map();
     this.queue        = map();
+
+    this.startStuckTimer();
   }
 
   concurrencyQueue: Array<Function>;
   maxConcurrency: number;
   runningCount: number;
+  stuckTimer: ?number;
+  alias: string;
 
   queue: {
     [key: string]: Array<{
-      factory: () => Promise<T>,
-      resolve: (val: T) => void,
+      factory: () => Promise<any>,
+      resolve: (val: any) => void,
       reject: Function
     }>
   };
@@ -28,7 +33,24 @@ export class BlockingQueue<T> {
     [key: string]: boolean
   };
 
-  push(key: string, factory: () => Promise<T>): Promise<T> {
+  startStuckTimer() {
+    if (this.stuckTimer) {
+      clearTimeout(this.stuckTimer);
+    }
+
+    this.stuckTimer = setTimeout(() => {
+      if (this.runningCount === 1) {
+        console.warn(
+          `[kpm] The ${JSON.stringify(this.alias)} blocking queue may be stuck. 5 seconds ` +
+          `without any activity with 1 worker: ${Object.keys(this.running)[0]}`
+        );
+      }
+    }, 5000);
+  }
+
+  push<T>(key: string, factory: () => Promise<T>): Promise<T> {
+    this.startStuckTimer();
+
     return new Promise((resolve, reject) => {
       // we're already running so push ourselves to the queue
       let queue = this.queue[key] = this.queue[key] || [];
@@ -42,7 +64,7 @@ export class BlockingQueue<T> {
 
   shift(key: string) {
     if (this.running[key]) {
-      this.running[key] = false;
+      delete this.running[key];
       this.runningCount--;
     }
 
@@ -71,8 +93,15 @@ export class BlockingQueue<T> {
       });
     };
 
-    this.concurrencyQueue.push(run);
-    this.shiftConcurrencyQueue();
+    this.maybePushConcurrencyQueue(run);
+  }
+
+  maybePushConcurrencyQueue(run: Function) {
+    if (this.runningCount < this.maxConcurrency) {
+      run();
+    } else {
+      this.concurrencyQueue.push(run);
+    }
   }
 
   shiftConcurrencyQueue() {
@@ -82,5 +111,3 @@ export class BlockingQueue<T> {
     }
   }
 }
-
-export default (new BlockingQueue: BlockingQueue<any>);

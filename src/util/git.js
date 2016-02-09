@@ -1,13 +1,12 @@
 /* @flow */
 
-import type Config from "../config";
-import { MessageError, SecurityError } from "../errors";
-import { removeSuffix } from "./misc";
-import queue from "./blocking-queue";
-import * as crypto from "./crypto";
-import * as child from "./child";
-import * as fs from "./fs";
-import map from "./map";
+import type Config from "../config.js";
+import { MessageError, SecurityError } from "../errors.js";
+import { removeSuffix } from "./misc.js";
+import * as crypto from "./crypto.js";
+import * as child from "./child.js";
+import * as fs from "./fs.js";
+import map from "./map.js";
 
 let invariant = require("invariant");
 let semver    = require("semver");
@@ -142,7 +141,7 @@ export default class Git {
   fetch(): Promise<void> {
     let { url, cwd } = this;
 
-    return queue.push(url, async () => {
+    return fs.lockQueue.push(url, async () => {
       if (!(await fs.exists(cwd))) {
         await fs.mkdirp(cwd);
         await child.spawn("git", ["init", "--bare"], { cwd });

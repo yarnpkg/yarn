@@ -1,7 +1,7 @@
 /* @flow */
 
-import type { RegistryNames } from "./registries";
-import type PackageReference from "./package-reference";
+import type { RegistryNames } from "./registries/index.js";
+import type PackageReference from "./package-reference.js";
 
 type Dependencies = {
   [key: string]: string
@@ -72,4 +72,31 @@ export type PackageInfo = {
 
   bundleDependencies?: Array<string>,
   bundledDependencies?: Array<string>,
+};
+
+// i wish flow had spread :(
+export type AnalysisFileEntry = {
+  relative: string,
+  absolute: string,
+  type: "binary",
+  content: ?Buffer,
+  size: number,
+  mode: number,
+  hash: string
+} | {
+  relative: string,
+  absolute: string,
+  type: "file",
+  content: Buffer,
+  size: number,
+  mode: number,
+  hash: string
+} | {
+  relative: string,
+  absolute: string,
+  type: "symlink",
+  content: string,
+  size: number,
+  mode: number,
+  hash: void
 };

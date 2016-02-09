@@ -1,11 +1,12 @@
 /* @flow */
 
-import * as constants from "../constants";
-import * as child from "./child";
+import * as constants from "../constants.js";
+import * as child from "./child.js";
+import type Config from "../config";
 
 let path = require("path");
 
-export default async function (cwd: string, cmds: Array<string>): Promise<Array<{
+export default async function (config: Config, cwd: string, cmds: Array<string>): Promise<Array<{
   cwd: string,
   command: string,
   stdout: string,
@@ -26,10 +27,9 @@ export default async function (cwd: string, cmds: Array<string>): Promise<Array<
     pathParts.unshift(path.join(__dirname, "..", "..", "bin", "node-gyp-bin"));
 
     // add node_modules .bin
-    // TODO
-    //for (let registry in config.registries) {
-    //  pathParts.unshift(path.join(cwd, config.registries[registry].loc, ".bin"));
-    //}
+    for (let registry of Object.keys(config.registries)) {
+      pathParts.unshift(path.join(cwd, config.registries[registry].folder, ".bin"));
+    }
 
     // join path back together
     env[constants.ENV_PATH_KEY] = pathParts.join(path.delimiter);

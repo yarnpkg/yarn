@@ -1,7 +1,7 @@
 /* @flow */
 
-import Registry from "./_base";
-import * as fs from "../util/fs";
+import Registry from "./_base.js";
+import * as fs from "../util/fs.js";
 
 let path = require("path");
 let os   = require("os");

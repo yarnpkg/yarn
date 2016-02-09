@@ -1,11 +1,11 @@
 /* @flow */
 
-import type PackageResolver from "./package-resolver";
-import type Reporter from "./reporters/_base";
-import type { PackageInfo } from "./types";
-import type Config from "./config";
-import { BailError } from "./errors";
-import map from "./util/map";
+import type PackageResolver from "./package-resolver.js";
+import type Reporter from "./reporters/_base.js";
+import type { PackageInfo } from "./types.js";
+import type Config from "./config.js";
+import { BailError } from "./errors.js";
+import map from "./util/map.js";
 
 let semver = require("semver");
 let _      = require("lodash");
@@ -64,20 +64,20 @@ export default class PackageCompatibility {
     let didError = false;
     let human    = `${info.name}@${info.version}`;
 
-    let printError = (msg) => {
+    let pushError = (msg) => {
       didError = true;
       this.reporter.error(`${human}: ${msg}`);
     };
 
     if (Array.isArray(info.os)) {
       if (!PackageCompatibility.isValidPlatform(info.os)) {
-        printError(`The platform ${process.platform} is incompatible with this module.`);
+        pushError(`The platform ${process.platform} is incompatible with this module.`);
       }
     }
 
     if (Array.isArray(info.cpu)) {
       if (!PackageCompatibility.isValidArch(info.cpu)) {
-        printError(`The CPU architecture ${process.arch} is incompatible with this module.`);
+        pushError(`The CPU architecture ${process.arch} is incompatible with this module.`);
       }
     }
 
@@ -92,9 +92,9 @@ export default class PackageCompatibility {
         if (_.has(process.versions, name)) {
           let actual = process.versions[name];
           if (!semver.satisfies(actual, range)) {
-            printError(`The engine ${name} is incompatible with this module. Expected version ${range}.`);
+            pushError(`The engine ${name} is incompatible with this module. Expected version ${range}.`);
           }
-        } else if (!_.contains(ignore, name)) {
+        } else if (!_.includes(ignore, name)) {
           // TODO: this causes a lot of warnings
           //this.reporter.warn(`${human}: The engine ${name} appears to be invalid.`);
         }

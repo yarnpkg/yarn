@@ -1,6 +1,6 @@
 /* @flow */
 
-import typos from "./typos";
+import typos from "./typos.js";
 
 let validateLicense = require("validate-npm-package-license");
 let isBuiltinModule = require("is-builtin-module");

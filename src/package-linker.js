@@ -1,12 +1,12 @@
 /* @flow */
 
-import type { PackageInfo } from "./types";
-import type PackageResolver from "./package-resolver";
-import type Reporter from "./reporters/_base";
-import type Config from "./config";
-import normalisePackageInfo from "./util/normalise-package-info";
-import * as promise from "./util/promise";
-import * as fs from "./util/fs";
+import type { PackageInfo } from "./types.js";
+import type PackageResolver from "./package-resolver.js";
+import type Reporter from "./reporters/_base.js";
+import type Config from "./config.js";
+import normalisePackageInfo from "./util/normalise-package-info/index.js";
+import * as promise from "./util/promise.js";
+import * as fs from "./util/fs.js";
 
 let invariant = require("invariant");
 let cmdShim   = promise.promisify(require("cmd-shim"));

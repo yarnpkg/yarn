@@ -1,13 +1,13 @@
 /* @flow */
 
-import type { RegistryNames } from "./registries";
-import type Reporter from "./reporters/_base";
-import type Registry from "./registries/_base";
-import ConstraintResolver from "./package-constraint-resolver";
-import RequestManager from "./util/request-manager";
-import { registries } from "./registries";
-import * as fs from "./util/fs";
-import map from "./util/map";
+import type { RegistryNames } from "./registries/index.js";
+import type Reporter from "./reporters/_base.js";
+import type Registry from "./registries/_base.js";
+import ConstraintResolver from "./package-constraint-resolver.js";
+import RequestManager from "./util/request-manager.js";
+import { registries } from "./registries/index.js";
+import * as fs from "./util/fs.js";
+import map from "./util/map.js";
 
 let invariant = require("invariant");
 let path      = require("path");
@@ -26,6 +26,7 @@ export default class Config {
     this.reporter           = reporter;
 
     this.registries = map();
+    this.relay      = false;
     this.cwd        = process.cwd();
 
     this.packagesRoot = opts.packagesRoot;
@@ -38,6 +39,7 @@ export default class Config {
   packagesRoot: ?string;
   tempFolder: ?string;
   reporter: Reporter;
+  relay: boolean;
   cwd: string;
 
   registries: {

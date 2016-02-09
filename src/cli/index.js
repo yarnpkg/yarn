@@ -1,13 +1,15 @@
 /* @flow */
 
-import ConsoleReporter from "../reporters/console";
-import { MessageError, BailError } from "../errors";
-import { hasValidArgLength } from "./arg-utils";
-import JSONReporter from "../reporters/json";
-import * as network from "../util/network";
-import * as commands from "./commands";
-import aliases from "./aliases";
-import Config from "../config";
+global.Promise = require("bluebird");
+
+import ConsoleReporter from "../reporters/console/index.js";
+import { MessageError, BailError } from "../errors.js";
+import { hasValidArgLength } from "./arg-utils.js";
+import JSONReporter from "../reporters/json.js";
+import * as network from "../util/network.js";
+import * as commands from "./commands/index.js";
+import aliases from "./aliases.js";
+import Config from "../config.js";
 
 let loudRejection = require("loud-rejection");
 let commander     = require("commander");
@@ -57,14 +59,7 @@ commander.parse(args);
 //
 let Reporter = ConsoleReporter;
 if (commander.json) Reporter = JSONReporter;
-
-// handle flags that can cause automatic responses to cli questions
-let alwaysAnswer;
-if (commander.no) alwaysAnswer = "n";
-if (commander.yes) alwaysAnswer = "y";
-
-//
-let reporter = new Reporter({ alwaysAnswer });
+let reporter = new Reporter;
 
 //
 let config = new Config(reporter);
@@ -85,7 +80,22 @@ if (network.isOffline()) {
   reporter.warn("You don't appear to have an internet connection.");
 }
 
+let i = 0;
+let profiler = require("v8-profiler");
+let fs = require("fs");
+profiler.startProfiling('1', true);
+
+function doSnapshot(callback) {
+  var snapshot = profiler.takeSnapshot();
+  snapshot.export(function (error, result) {
+    fs.writeFileSync(`snapshot${i++}.heapsnapshot`, result);
+    snapshot.delete();
+    callback();
+  });
+}
+
 //
+doSnapshot(function () {
 config.init().then(function () {
   let validArgLength = hasValidArgLength(command.argumentLength, command.minArgumentLength, args);
 
@@ -96,6 +106,7 @@ config.init().then(function () {
   return command.run(config, reporter, commander, commander.args).then(function () {
     reporter.close();
     reporter.footer();
+    doSnapshot(() => process.exit());
   });
 }).catch(function (errs) {
   function logError(err) {
@@ -115,4 +126,5 @@ config.init().then(function () {
   }
 
   process.exit(1);
+});
 });

@@ -1,9 +1,9 @@
 /* @flow */
 
-import type { PackageInfo } from "../../types";
-import type PackageRequest from "../../package-request";
-import { MessageError } from "../../errors";
-import ExoticResolver from "./_base";
+import type { PackageInfo } from "../../types.js";
+import type PackageRequest from "../../package-request.js";
+import { MessageError } from "../../errors.js";
+import ExoticResolver from "./_base.js";
 
 export default class RegistryResolver extends ExoticResolver {
   constructor(request: PackageRequest, fragment: string) {

@@ -1,25 +1,29 @@
 /* @flow */
 
-import type { PackageInfo } from "../types";
-import type { RegistryNames } from "../registries";
-import { registries } from "../registries";
-import * as constants from "../constants";
-import { promisify } from "./promise";
-import map from "./map";
+import type { PackageInfo } from "../types.js";
+import type { RegistryNames } from "../registries/index.js";
+import BlockingQueue from "./blocking-queue.js";
+import { registries } from "../registries/index.js";
+import * as constants from "../constants.js";
+import { promisify } from "./promise.js";
+import map from "./map.js";
 
 let path = require("path");
 let fs   = require("fs");
 
-export let writeFile = promisify(fs.writeFile);
-export let realpath  = promisify(fs.realpath);
-export let readdir   = promisify(fs.readdir);
-export let rename    = promisify(fs.rename);
-export let unlink    = promisify(require("rimraf"));
-export let mkdirp    = promisify(require("mkdirp"));
-export let exists    = promisify(fs.exists, true);
-export let lstat     = promisify(fs.lstat);
-export let chmod     = promisify(fs.chmod);
-export let copy      = promisify(require("ncp"));
+export let lockQueue = new BlockingQueue("fs lock");
+
+export let readFileBuffer = promisify(fs.readFile);
+export let writeFile      = promisify(fs.writeFile);
+export let realpath       = promisify(fs.realpath);
+export let readdir        = promisify(fs.readdir);
+export let rename         = promisify(fs.rename);
+export let unlink         = promisify(require("rimraf"));
+export let mkdirp         = promisify(require("mkdirp"));
+export let exists         = promisify(fs.exists, true);
+export let lstat          = promisify(fs.lstat);
+export let chmod          = promisify(fs.chmod);
+export let copy           = promisify(require("ncp"));
 
 let fsSymlink = promisify(fs.symlink);
 let stripBOM  = require("strip-bom");
@@ -142,4 +146,23 @@ export async function symlink(src: string, dest: string): Promise<void> {
       throw err;
     }
   }
+}
+
+export async function walk(dir: string, relativeDir?: string): Promise<Array<{
+  relative: string,
+  absolute: string
+}>> {
+  let files = [];
+
+  for (let name of await readdir(dir)) {
+    let relative = relativeDir ? path.join(relativeDir, name) : name;
+    let loc = path.join(dir, name);
+    if ((await lstat(loc)).isDirectory()) {
+      files = files.concat(await walk(loc, relative));
+    } else {
+      files.push({ relative, absolute: loc });
+    }
+  }
+
+  return files;
 }

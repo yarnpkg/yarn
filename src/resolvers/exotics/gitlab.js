@@ -1,7 +1,7 @@
 /* @flow */
 
-import type { ExplodedFragment } from "./_hosted-git";
-import HostedGitResolver from "./_hosted-git";
+import type { ExplodedFragment } from "./_hosted-git.js";
+import HostedGitResolver from "./_hosted-git.js";
 
 export default class GitLabResolver extends HostedGitResolver {
   static hostname = "gitlab.com";
