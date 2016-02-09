@@ -4,16 +4,17 @@
   "preferGlobal": true,
   "main": "./index.js",
   "dependencies": {
-    "babel-runtime": "^6.0.0",
     "babel-core": "^6.0.0",
+    "babel-runtime": "^6.0.0",
     "babel-traverse": "^6.0.0",
     "chalk": "^1.1.1",
     "cmd-shim": "^2.0.1",
     "commander": "^2.9.0",
+    "file-type": "^3.6.0",
     "invariant": "^2.2.0",
     "is-builtin-module": "^1.0.0",
     "is-ci": "^1.0.7",
-    "lodash": "^3.10.1",
+    "lodash": "^4.0.0",
     "loud-rejection": "^1.2.0",
     "mkdirp": "^0.5.1",
     "ncp": "^2.0.0",
@@ -47,7 +48,8 @@
     "gulp-plumber": "^1.0.1",
     "gulp-util": "^3.0.7",
     "gulp-watch": "^4.3.5",
-    "nyc": "^5.5.0"
+    "nyc": "^5.5.0",
+    "unexpected": "^10.8.1"
   },
   "bin": {
     "kpm": "./bin/kpm.js",
