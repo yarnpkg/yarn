@@ -1,8 +1,7 @@
 /* @flow */
 
-global.Promise = require("bluebird");
-
 import ConsoleReporter from "../reporters/console/index.js";
+import similarity from "../analysis/text/similarity.js";
 import { MessageError, BailError } from "../errors.js";
 import { hasValidArgLength } from "./arg-utils.js";
 import JSONReporter from "../reporters/json.js";
@@ -24,8 +23,6 @@ let args = process.argv;
 commander.version(require("../../package").version);
 commander.usage("[command] [flags]");
 commander.option("--json", "");
-commander.option("--yes", "answer yes to all questions");
-commander.option("--no", "answer no to all questions");
 
 // get command name
 let commandName = args.splice(2, 1)[0] || "";
@@ -42,15 +39,32 @@ if (commandName && _.has(aliases, commandName)) {
 }
 
 //
-if (!commandName || !_.has(commands, commandName)) {
+if (!commandName) {
   commander.parse(args);
   commander.help();
+  process.exit(1);
 }
 
 //
-invariant(commandName, "Command name required");
 let command = commands[_.camelCase(commandName)];
-invariant(command, "Command not found");
+
+if (!command) {
+  let maxSimilarity = 0;
+  let suggestion;
+
+  for (let commandName2 in commands) {
+    let mySimilarity = similarity(commandName2, commandName);
+    if (mySimilarity >= 0.5 && mySimilarity > maxSimilarity) {
+      suggestion = commandName2;
+      maxSimilarity = mySimilarity;
+    }
+  }
+
+  let msg = `Command ${JSON.stringify(commandName)} not found.`;
+  if (suggestion) msg += ` Did you mean ${JSON.stringify(suggestion)}?`;
+  console.error(msg);
+  process.exit(1);
+}
 
 // parse flags
 if (command.setFlags) command.setFlags(commander);

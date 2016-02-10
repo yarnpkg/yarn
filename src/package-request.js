@@ -4,16 +4,18 @@ import type { PackageInfo } from "./types.js";
 import type { RegistryNames } from "./registries/index.js";
 import type PackageResolver from "./package-resolver.js";
 import type Reporter from "./reporters/_base.js";
-import type Lockfile from "./lockfile/index.js";
 import type Config from "./config.js";
+import Lockfile, { parse as parseLock } from "./lockfile/index.js";
 import PackageReference from "./package-reference.js";
 import { registries as registryResolvers } from "./resolvers/index.js";
 import { MessageError } from "./errors.js";
 import * as constants from "./constants.js";
 import * as versionUtil from "./util/version.js";
 import * as resolvers from "./resolvers/index.js";
+import * as fs from "./util/fs.js";
 
 let invariant = require("invariant");
+let path      = require("path");
 
 export default class PackageRequest {
   constructor({
@@ -203,39 +205,50 @@ export default class PackageRequest {
     // set package reference
     let ref = new PackageReference(info, remote, this.rootLockfile, this.config);
 
-    // use new one
-    let { package: newInfo, hash } = await this.resolver.fetchingQueue.push(
-      info.name,
-      () => this.resolver.fetcher.fetch(ref)
-    );
-    newInfo.reference = ref;
-    newInfo.remote = remote;
-    remote.hash = hash;
+    // in order to support lockfiles inside transitive dependencies we need to block
+    // resolution to fetch the package so we can peek inside of it for a kpm.lock
+    // only do this in strict lockfile mode as otherwise we can just use our root lockfile
+    let subLockfile = null;
+    if (!this.resolver.lockfile.strict) {
+      let { package: newInfo, hash, dest } = await this.resolver.fetchingQueue.push(
+        info.name,
+        () => this.resolver.fetcher.fetch(ref)
+      );
+      newInfo.reference = ref;
+      newInfo.remote = remote;
+      remote.hash = hash;
+      info = newInfo;
+
+      // find and load in kpm.lock from this module if it exists
+      let lockfileLoc = path.join(dest, constants.LOCKFILE_FILENAME);
+      if (await fs.exists(lockfileLoc)) {
+        let rawLockfile = await fs.readFile(lockfileLoc);
+        let lockfileObj = parseLock(rawLockfile);
+        subLockfile = new Lockfile(lockfileObj, false);
+      }
+    }
 
     // start installation of dependencies
     let promises = [];
     let deps = [];
 
-    // TODO get lockfile from dependency
-    let subLockfile = null;
-
     // normal deps
-    for (let depName in newInfo.dependencies) {
-      let depPattern = depName + "@" + newInfo.dependencies[depName];
+    for (let depName in info.dependencies) {
+      let depPattern = depName + "@" + info.dependencies[depName];
       deps.push(depPattern);
       promises.push(this.resolver.find(depPattern, remote.registry, false, this, subLockfile));
     }
 
     // optional deps
-    for (let depName in newInfo.optionalDependencies) {
-      let depPattern = depName + "@" + newInfo.optionalDependencies[depName];
+    for (let depName in info.optionalDependencies) {
+      let depPattern = depName + "@" + info.optionalDependencies[depName];
       deps.push(depPattern);
       promises.push(this.resolver.find(depPattern, remote.registry, true, this, subLockfile));
     }
 
     await Promise.all(promises);
 
-    this.resolver.addPattern(this.pattern, newInfo);
+    this.resolver.addPattern(this.pattern, info);
     ref.setDependencies(deps);
     ref.addPattern(this.pattern);
     ref.addOptional(optional);

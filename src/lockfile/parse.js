@@ -3,6 +3,7 @@
 import map from "../util/map.js";
 
 let invariant = require("invariant");
+let stripBOM  = require("strip-bom");
 
 const tokTypes = {
   boolean: "BOOLEAN",
@@ -39,6 +40,11 @@ export function* tokenise(input: string): Iterator<Token> {
       line++;
       col = 0;
       yield buildToken(tokTypes.newline);
+    } else if (input[0] === "#") {
+      // ignore comments
+      while (input[chop] !== "\n") {
+        chop++;
+      }
     } else if (input[0] === " ") {
       if (lastNewline) {
         let indent = "";
@@ -201,6 +207,7 @@ export class Parser {
 }
 
 export default function (str: string): Object {
+  str = stripBOM(str);
   let parser = new Parser(str);
   parser.next();
   return parser.parse();

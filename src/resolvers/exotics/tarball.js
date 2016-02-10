@@ -1,6 +1,6 @@
 /* @flow */
 
-import type { PackageInfo } from "../../types.js";
+import type { PackageInfo, FetchedPackageInfo } from "../../types.js";
 import type PackageRequest from "../../package-request.js";
 import TarballFetcher from "../../fetchers/tarball.js";
 import ExoticResolver from "./_base.js";
@@ -52,7 +52,7 @@ export default class TarballResolver extends ExoticResolver {
       }, this.config);
 
       // fetch file and get it's hash
-      let fetched = await fetcher.fetch(dest);
+      let fetched: FetchedPackageInfo = await fetcher.fetch(dest);
       pkgJson = fetched.package;
       hash    = fetched.hash;
 

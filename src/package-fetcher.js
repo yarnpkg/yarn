@@ -1,6 +1,6 @@
 /* @flow */
 
-import { PackageInfo } from "./types.js";
+import type { FetchedPackageInfo } from "./types.js";
 import type PackageResolver from "./package-resolver.js";
 import type Reporter from "./reporters/_base.js";
 import type PackageReference from "./package-reference.js";
@@ -10,11 +10,6 @@ import * as fs from "./util/fs.js";
 import * as promise from "./util/promise.js";
 
 let invariant = require("invariant");
-
-type FetchedInfo = {
-  package: PackageInfo,
-  hash: string
-};
 
 export default class PackageFetcher {
   constructor(config: Config, resolver: PackageResolver) {
@@ -27,14 +22,15 @@ export default class PackageFetcher {
   reporter: Reporter;
   config: Config;
 
-  async fetch(ref: PackageReference): Promise<FetchedInfo> {
+  async fetch(ref: PackageReference): Promise<FetchedPackageInfo> {
     let dest = this.config.generateHardModulePath(ref);
 
     if (await fs.isValidModuleDest(dest)) {
       let { hash, package: pkg } = await fs.readPackageMetadata(dest);
       return {
         package: pkg,
-        hash: hash
+        hash,
+        dest
       };
     }
 
@@ -51,14 +47,14 @@ export default class PackageFetcher {
 
     try {
       let fetcher = new Fetcher(remote, this.config);
-      return fetcher.fetch(dest);
+      return await fetcher.fetch(dest);
     } catch (err) {
-      //await fs.unlink(dest);
+      await fs.unlink(dest);
       throw err;
     }
   }
 
-  async maybeFetch(ref: PackageReference): Promise<?FetchedInfo> {
+  async maybeFetch(ref: PackageReference): Promise<?FetchedPackageInfo> {
     let promise = this.fetch(ref);
 
     if (ref.optional) {

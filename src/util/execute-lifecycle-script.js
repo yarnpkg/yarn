@@ -2,6 +2,7 @@
 
 import * as constants from "../constants.js";
 import * as child from "./child.js";
+import { registries } from "../resolvers/index.js";
 import type Config from "../config";
 
 let path = require("path");
@@ -27,7 +28,7 @@ export default async function (config: Config, cwd: string, cmds: Array<string>)
     pathParts.unshift(path.join(__dirname, "..", "..", "bin", "node-gyp-bin"));
 
     // add node_modules .bin
-    for (let registry of Object.keys(config.registries)) {
+    for (let registry of Object.keys(registries)) {
       pathParts.unshift(path.join(cwd, config.registries[registry].folder, ".bin"));
     }
 

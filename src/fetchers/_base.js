@@ -1,7 +1,7 @@
 /* @flow */
 /* eslint no-unused-vars: 0 */
 
-import type { PackageInfo, PackageRemote } from "../types.js";
+import type { PackageInfo, PackageRemote, FetchedPackageInfo } from "../types.js";
 import type { RegistryNames } from "../registries/index.js";
 import type Config from "../config.js";
 import normalisePackageInfo from "../util/normalise-package-info/index.js";
@@ -28,10 +28,7 @@ export default class BaseFetcher {
     throw new Error("Not implemented");
   }
 
-  fetch(dest: string): Promise<{
-    hash: string,
-    package: PackageInfo
-  }> {
+  fetch(dest: string): Promise<FetchedPackageInfo> {
     return fs.lockQueue.push(dest, async () => {
       // fetch package and get the hash
       let hash = await this._fetch(dest);
@@ -47,6 +44,7 @@ export default class BaseFetcher {
 
       return {
         hash,
+        dest,
         package: pkg
       };
     });

@@ -9,7 +9,6 @@ import * as constants from "../constants.js";
 import * as fs from "../util/fs.js";
 
 let invariant = require("invariant");
-let stripBOM  = require("strip-bom");
 let path      = require("path");
 let _         = require("lodash");
 
@@ -50,7 +49,7 @@ export default class Lockfile {
 
     if (await fs.exists(lockfileLoc)) {
       let rawLockfile = await fs.readFile(lockfileLoc);
-      lockfile = parse(stripBOM(rawLockfile));
+      lockfile = parse(rawLockfile);
       strict = strictIfPresent;
       reporter.info(`Read lockfile ${constants.LOCKFILE_FILENAME}`);
 
@@ -114,6 +113,7 @@ export default class Lockfile {
         resolved: remote.resolved,
         registry: remote.registry === "npm" ? undefined : remote.registry,
         dependencies: _.isEmpty(pkg.dependencies) ? undefined : pkg.dependencies,
+        optionalDependencies: _.isEmpty(pkg.optionalDependencies) ? undefined : pkg.optionalDependencies,
         permissions: _.isEmpty(ref.permissions) ? undefined : ref.permissions
       };
 

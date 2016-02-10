@@ -85,29 +85,39 @@ export type PackageInfo = {
   bundledDependencies?: Array<string>,
 };
 
-// i wish flow had spread :(
+//
 export type AnalysisFileEntry = {
-  relative: string,
-  absolute: string,
   type: "binary",
-  content: ?Buffer,
-  size: number,
-  mode: number,
-  hash: string
-} | {
+  buffer: Buffer,
+  hash: string,
+
   relative: string,
   absolute: string,
+  size: number,
+  mode: number
+} | {
   type: "file",
-  content: Buffer,
-  size: number,
-  mode: number,
-  hash: string
-} | {
+  buffer: Buffer,
+  hash: string,
+
   relative: string,
   absolute: string,
-  type: "symlink",
-  content: string,
   size: number,
-  mode: number,
-  hash: void
+  mode: number
+} | {
+  type: "symlink",
+  location: string,
+  hash?: void,
+
+  relative: string,
+  absolute: string,
+  size: number,
+  mode: number
+};
+
+//
+export type FetchedPackageInfo = {
+  package: PackageInfo,
+  hash: string,
+  dest: string
 };
