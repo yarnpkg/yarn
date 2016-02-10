@@ -1,4 +1,4 @@
-import { analyse } from "../..";
+import { analyse } from "..";
 
 let expect = require("unexpected");
 let path   = require("path");

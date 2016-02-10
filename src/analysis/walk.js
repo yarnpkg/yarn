@@ -3,13 +3,12 @@
 import type { AnalysisFileEntry as File } from "../types.js";
 import * as utilFs from "../util/fs.js";
 
-let fileType = require("file-type");
-let crypto   = require("crypto");
-let fs       = require("fs");
+let crypto = require("crypto");
+let fs     = require("fs");
 
 function readFile(loc: string): Promise<{
   binary: boolean,
-  content: ?Buffer,
+  buffer: ?Buffer,
   hash: string
 }> {
   return new Promise((resolve, reject) => {
@@ -25,14 +24,6 @@ function readFile(loc: string): Promise<{
 
     // handle stream errors
     stream.on("error", reject);
-
-    // when we first get a chunk of data, check if it identifies as a binary file, if so
-    // mark it as binary
-    stream.once("data", function (chunk) {
-      if (fileType(chunk)) {
-        isBinary();
-      }
-    });
 
     // catch all chunks, push them onto the chunks array, break on NULL character
     stream.on("data", function (chunk) {
@@ -51,7 +42,7 @@ function readFile(loc: string): Promise<{
     stream.on("close", function () {
       resolve({
         binary,
-        content: binary ? null : Buffer.concat(chunks),
+        buffer: binary ? null : Buffer.concat(chunks),
         hash: hash.digest("hex")
       });
     });
@@ -59,39 +50,35 @@ function readFile(loc: string): Promise<{
 }
 
 export default async function walk(dir: string): Promise<Array<File>> {
-  let files = [];
+  let files: Array<File> = [];
 
   for (let file of await utilFs.walk(dir)) {
     let stat = await utilFs.lstat(file.absolute);
 
-    let entry = {
+    let stats = {
       absolute: file.absolute,
       relative: file.relative,
-      type: "binary",
-      content: null,
       size: stat.size,
-      mode: stat.mode,
-      hash: ""
+      mode: stat.mode
     };
 
     if (stat.isFile()) {
-      let read = await readFile(entry.absolute);
-      if (read.hash) {
-        entry.hash = read.hash;
-      }
-      if (!read.binary && read.content) {
-        entry.content = read.content;
-        entry.type    = "file";
-      }
+      let info = await readFile(stats.absolute);
+
+      files.push({
+        type: info.binary ? "binary" : "file",
+        ...info,
+        ...stats
+      });
     } else if (stat.isSymbolicLink()) {
-      entry.content = await utilFs.realpath(entry.absolute);
-      entry.type = "symlink";
+      files.push({
+        type: "symlink",
+        location: await utilFs.realpath(stats.absolute),
+        ...stats
+      });
     } else {
-      // TODO ???
       continue;
     }
-
-    files.push(entry);
   }
 
   return files;

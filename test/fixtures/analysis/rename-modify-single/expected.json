@@ -1,0 +1,12 @@
+[{
+  "type": "renamed",
+  "files": [{
+    "relative": "foo.js",
+    "size": 168,
+    "hash": "444a82cab0c86c56ecacfb9c9ef206410c2fb124"
+  }, {
+    "relative": "bar.js",
+    "size": 181,
+    "hash": "8a6d6209589a553978910b407f611cea9b998074"
+  }]
+}]

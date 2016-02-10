@@ -31,9 +31,11 @@ let stripBOM  = require("strip-bom");
 export async function readFile(loc: string): Promise<string> {
   return new Promise((resolve, reject) => {
     fs.readFile(loc, "utf8", function (err, content) {
-      if (err) return reject(err);
-
-      resolve(content);
+      if (err) {
+        reject(err);
+      } else {
+        resolve(content);
+      }
     });
   });
 }

@@ -1,0 +1,27 @@
+[{
+  "type": "renamed",
+  "files": [{
+    "relative": "bar.js",
+    "type": "file",
+    "size": 7,
+    "hash": "db682a42aaa0ed20e1f5751d89f1267cebcf21d5"
+  }, {
+    "relative": "bar2.js",
+    "type": "file",
+    "size": 7,
+    "hash": "db682a42aaa0ed20e1f5751d89f1267cebcf21d5"
+  }]
+}, {
+  "type": "renamed",
+  "files": [{
+    "relative": "foo.js",
+    "type": "file",
+    "size": 7,
+    "hash": "aab1fcd33e76a60679a02d4a4b9166f6d70910ba"
+  }, {
+    "relative": "foo2.js",
+    "type": "file",
+    "size": 7,
+    "hash": "aab1fcd33e76a60679a02d4a4b9166f6d70910ba"
+  }]
+}]
