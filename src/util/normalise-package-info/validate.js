@@ -13,7 +13,6 @@ import typos from "./typos.js";
 
 let validateLicense = require("validate-npm-package-license");
 let isBuiltinModule = require("is-builtin-module");
-let semver          = require("semver");
 
 export default function (info: Object, moduleLoc: string, warn: (msg: string) => void): void {
   for (let key in typos) {
@@ -48,11 +47,6 @@ export default function (info: Object, moduleLoc: string, warn: (msg: string) =>
     if (lower === "node_modules" || lower === "favico.ico") {
       throw new TypeError;
     }
-  }
-
-  // validate semver version
-  if (typeof info.version === "string" && !semver.valid(info.version)) {
-    info.version = semver.clean(info.version);
   }
 
   // validate license

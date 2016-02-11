@@ -10,7 +10,7 @@
  */
 
 import type { AnalysisFileEntry as File } from "../types.js";
-import similarity from "./text/similarity.js";
+import getSimilarity from "./text/similarity.js";
 import walk from "./walk.js";
 import map from "../util/map.js";
 
@@ -100,7 +100,7 @@ export async function analyse(old: string, latest?: ?string): Promise<AnalysisEn
 
           // if both files are plain text then perform a comparison
           if (!similarity && file.type === "file" && newFile.type === "file") {
-            similarity = similarity(newFile.buffer, file.buffer);
+            similarity = getSimilarity(newFile.buffer, file.buffer);
           }
 
           if (similarity >= 0.80 && similarity > maxSimilarity) {

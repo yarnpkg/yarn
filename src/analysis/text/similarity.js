@@ -46,14 +46,14 @@ export default function (a: LengthObject, b: LengthObject): number {
  * "Sebastian McKenzie supreme text comparison analyser thingo or something".
  */
 
-export function lines(a: string, b: string) {
+export function lines(a: string, b: string): number {
   let aLines = a.split("\n");
-  let bLines = a.split("\n");
+  let bLines = b.split("\n");
 
   let commonLines = 0;
 
   for (let line of aLines) {
-    if (bLines.indexOf(a) >= 0) {
+    if (bLines.indexOf(line) >= 0) {
       commonLines++;
     }
   }

@@ -55,6 +55,7 @@ if (!commandName) {
 }
 
 //
+invariant(commandName, "Missing command name");
 let command = commands[_.camelCase(commandName)];
 
 if (!command) {
@@ -74,6 +75,9 @@ if (!command) {
   console.error(msg);
   process.exit(1);
 }
+
+//
+invariant(command, "Missing command");
 
 // parse flags
 if (command.setFlags) command.setFlags(commander);

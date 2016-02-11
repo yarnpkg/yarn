@@ -33,6 +33,11 @@ export default async function (info: Object, moduleLoc: string): Promise<void> {
   info.name = info.name || "";
   info.version = info.verison || "";
 
+  // clean info.version
+  if (typeof info.version === "string" && !semver.valid(info.version)) {
+    info.version = semver.clean(info.version);
+  }
+
   // if the man field is a string then coerce it to an array
   if (typeof info.man === "string") {
     info.man = [info.man];
@@ -65,7 +70,7 @@ export default async function (info: Object, moduleLoc: string): Promise<void> {
 
   // if there's no readme field then load the README file from the cwd
   if (!info.readme) {
-    let readmeFile = false;_.find(info.files, (filename) => {
+    let readmeFile = _.find(info.files, (filename) => {
       let lower = filename.toLowerCase();
       return lower === "readme" || lower.indexOf("readme.") === 0;
     });
@@ -160,6 +165,20 @@ export default async function (info: Object, moduleLoc: string): Promise<void> {
           man.push(path.join(".", dirs.man, filename));
         }
       }
+    }
+  }
+
+  // infer license file
+  if (!info.license) {
+    let licenseFile = _.find(info.files, (filename) => {
+      let lower = filename.toLowerCase();
+      return lower === "license" || lower.indexOf("license.") === 0;
+    });
+
+    if (licenseFile) {
+      info.license = inferLicense(
+        await fs.readFile(path.join(moduleLoc, licenseFile))
+      );
     }
   }
 }

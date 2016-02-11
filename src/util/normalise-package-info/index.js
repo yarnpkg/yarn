@@ -20,7 +20,7 @@ export default async function (
 ): Promise<PackageInfo> {
   if (info.private) warn = null;
   if (!warn) warn = function () {};
-  validate(info, moduleLoc, warn);
   await fix(info, moduleLoc);
+  validate(info, moduleLoc, warn);
   return info;
 }
