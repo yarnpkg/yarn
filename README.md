@@ -14,13 +14,15 @@
   <a href="https://codecov.io/github/facebook/kpm"><img alt="Coverage Status" src="https://img.shields.io/codecov/c/github/facebook/kpm/master.svg?style=flat"></a>
 </p>
 
-At Facebook we use npm heavily for all of our JavaScript projects. Unfortunately npm is
-lacking in key areas that are important to us. The changes we've made are very extensive
-and would require significant changes to npm including the internal architecture and
-workflow for casual users.
+---
 
-kpm is written from scratch and uses the npm registry to install modules, it's completely
-compatible with the ecosystem and it just an alternative to the npm client.
+At Facebook we use npm heavily for all of our JavaScript projects. Unfortunately npm is
+lacking in key areas that are important to us. The changes we've made are quite extensive
+and require significant changes to npm including the internal architecture and workflow for
+casual users.
+
+kpm is written from scratch and uses the existing npm registry for module hosting, it's
+completely compatible with the ecosystem and is only an alternative to the npm client.
 
 ## Features
 
