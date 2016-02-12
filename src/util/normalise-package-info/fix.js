@@ -70,14 +70,14 @@ export default async function (info: Object, moduleLoc: string): Promise<void> {
 
   // if there's no readme field then load the README file from the cwd
   if (!info.readme) {
-    let readmeFile = _.find(info.files, (filename) => {
+    let readmeFilename = _.find(files, (filename) => {
       let lower = filename.toLowerCase();
       return lower === "readme" || lower.indexOf("readme.") === 0;
     });
 
-    if (readmeFile) {
-      info.readmeFilename = readmeFile;
-      info.readme = await fs.readFile(path.join(moduleLoc, readmeFile));
+    if (readmeFilename) {
+      info.readmeFilename = readmeFilename;
+      info.readme = await fs.readFile(path.join(moduleLoc, readmeFilename));
     } else {
       info.readme = README_NOT_FOUND_MESSAGE;
     }
@@ -169,16 +169,16 @@ export default async function (info: Object, moduleLoc: string): Promise<void> {
   }
 
   // infer license file
+  // TODO: show that this were inferred and may not be accurate
   if (!info.license) {
-    let licenseFile = _.find(info.files, (filename) => {
+    let licenseFile = _.find(files, (filename) => {
       let lower = filename.toLowerCase();
       return lower === "license" || lower.indexOf("license.") === 0;
     });
 
     if (licenseFile) {
-      info.license = inferLicense(
-        await fs.readFile(path.join(moduleLoc, licenseFile))
-      );
+      let licenseContent = await fs.readFile(path.join(moduleLoc, licenseFile));
+      info.license = inferLicense(licenseContent) || inferLicense(info.readme);
     }
   }
 }

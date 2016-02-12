@@ -58,7 +58,11 @@ export default class PackageFetcher {
       let fetcher = new Fetcher(remote, this.config);
       return await fetcher.fetch(dest);
     } catch (err) {
-      await fs.unlink(dest);
+      try {
+        await fs.unlink(dest);
+      } catch (err) {
+        // what do?
+      }
       throw err;
     }
   }
