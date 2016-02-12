@@ -17,11 +17,17 @@ import GitResolver from "../exotics/git.js";
 export default class BowerResolver extends RegistryResolver {
   static registry = "bower";
 
-  async resolve(): Promise<PackageInfo> {
-    let body = await this.config.requestManager.request({
+  async resolveRequest(): Promise<false | {
+    url: string
+  }> {
+    return this.config.requestManager.request({
       url: `${this.registryConfig.registry}/packages/${this.name}`,
       json: true
     });
+  }
+
+  async resolve(): Promise<PackageInfo> {
+    let body = await this.resolveRequest();
 
     if (body) {
       return this.fork(GitResolver, false, `${body.url}#${this.range}`);

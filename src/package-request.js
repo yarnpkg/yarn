@@ -111,16 +111,7 @@ export default class PackageRequest {
    */
 
   async findVersionOnRegistry(pattern: string): Promise<PackageInfo> {
-    let range = "latest";
-    let name  = pattern;
-
-    // matches a version tuple in the form of NAME@VERSION. allows the first character to
-    // be an @ for scoped packages
-    let match = pattern.match(/^(.{1,})@(.*?)$/);
-    if (match) {
-      name = match[1];
-      range = match[2] || "*";
-    }
+    let { range, name } = this.normalisePattern(pattern);
 
     let exoticResolver = PackageRequest.getExoticResolver(range);
     if (exoticResolver) {
@@ -139,13 +130,61 @@ export default class PackageRequest {
       return data;
     }
 
-    let Resolver = registryResolvers[this.registry];
-    if (!Resolver) {
-      throw new Error(`Unknown registry resolver ${this.registry}`);
-    }
-
+    let Resolver = this.getRegistryResolver();
     let resolver = new Resolver(this, name, range);
     return resolver.resolve();
+  }
+
+  /**
+   * Get the registry resolver associated with this package request.
+   */
+
+  getRegistryResolver(): Function {
+    let Resolver = registryResolvers[this.registry];
+    if (Resolver) {
+      return Resolver;
+    } else {
+      throw new Error(`Unknown registry resolver ${this.registry}`);
+    }
+  }
+
+  /**
+   * Explode and normalise a pattern into it's name and range.
+   */
+
+  normalisePattern(pattern: string): {
+    name: string,
+    range: string
+  } {
+    let range = "latest";
+    let name  = pattern;
+
+    // matches a version tuple in the form of NAME@VERSION. allows the first character to
+    // be an @ for scoped packages
+    let match = pattern.match(/^(.{1,})@(.*?)$/);
+    if (match) {
+      name = match[1];
+      range = match[2] || "*";
+    }
+
+    return { name, range };
+  }
+
+  /**
+   * Request a registry response if the passed pattern is a registry one. This is used to
+   * warm the cache.
+   */
+
+  async resolveIfRegistry(pattern: string): Promise<void> {
+    let { range, name } = this.normalisePattern(pattern);
+
+    // ensure this is a registry request
+    let exoticResolver = PackageRequest.getExoticResolver(range);
+    if (exoticResolver) return;
+
+    let Resolver = this.getRegistryResolver();
+    let resolver = new Resolver(this, name, range);
+    await resolver.resolveRequest();
   }
 
   /**
@@ -219,6 +258,13 @@ export default class PackageRequest {
     // only do this in strict lockfile mode as otherwise we can just use our root lockfile
     let subLockfile = null;
     if (!this.resolver.lockfile.strict) {
+      // while we're fetching the package we have some idle time to warm the cache with
+      // registry responses for known dependencies
+      for (let name in info.dependencies) {
+        this.resolveIfRegistry(`${name}@${info.dependencies[name]}`);
+      }
+
+      //
       let { package: newInfo, hash, dest } = await this.resolver.fetchingQueue.push(
         info.name,
         () => this.resolver.fetcher.fetch(ref)
