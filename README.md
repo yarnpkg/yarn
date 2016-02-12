@@ -66,18 +66,6 @@ $ mkdir node_modules
 $ kpm install your-package
 ```
 
-## Philosophy
-
-Ordered by priority.
-
- * Emoji
- * Security/integrity
- * Network performance/relability
- * Runtime performance
- * Public Node API
-
-## Comparison
-
 ## FAQ
 
 ### What does kpm stand for?
