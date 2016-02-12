@@ -14,6 +14,14 @@
   <a href="https://codecov.io/github/facebook/kpm"><img alt="Coverage Status" src="https://img.shields.io/codecov/c/github/facebook/kpm/master.svg?style=flat"></a>
 </p>
 
+At Facebook we use npm heavily for all of our JavaScript projects. Unfortunately npm is
+lacking in key areas that are important to us. The changes we've made are very extensive
+and would require significant changes to npm including the internal architecture and
+workflow for casual users.
+
+kpm is written from scratch and uses the npm registry to install modules, it's completely
+compatible with the ecosystem and it just an alternative to the npm client.
+
 ## Features
 
 * Greatly improved performance: Client is always performing operations such as package resolving and fetching due to the internal architecture.
@@ -70,11 +78,27 @@ Ordered by priority.
 
 ## FAQ
 
-### I'm still confused, what exactly is this?
+### What does kpm stand for?
+
+Kittens package manager (You read that right)
+
+### How is this different to [ied](https://github.com/alexanderGugel/ied) and [pnpm](https://github.com/rstacruz/pnpm)?
+
+Similar in many aspects but unlike existing alternate npm clients, kpm is focused on
+security first, good performance is just an implementation detail. If we only cared about
+performance we'd help improve npm.
 
 ### Why not contribute back to npm?
 
+The changes we've made significantly change the workflow that developers who use npm are
+used to. We believe this is for the best but we understand that this isn't for everyone.
+
+kpm is a package manager in a niche and we hope that some of our ideas make it's way back
+into the main npm client.
+
 ## What problems are you trying to solve?
+
+**NOTE:** This is not an exhaustive list and is not a direct comparison to npm.
 
 ### Non-determinism
 
