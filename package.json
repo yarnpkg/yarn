@@ -1,6 +1,7 @@
 {
   "name": "kpm",
   "version": "0.0.0",
+  "license": "BSD-3-Clause",
   "preferGlobal": true,
   "main": "./index.js",
   "dependencies": {
@@ -32,7 +33,7 @@
     "validate-npm-package-license": "^3.0.1"
   },
   "devDependencies": {
-    "ava": "^0.11.0",
+    "ava": "sindresorhus/ava",
     "babel-eslint": "5.0.0-beta10",
     "babel-plugin-transform-runtime": "^6.4.3",
     "babel-preset-es2015": "^6.3.13",
