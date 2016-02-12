@@ -82,9 +82,9 @@ Ordered by priority.
 
 ### What does kpm stand for?
 
-Kittens package manager (You read that right)
+Kittens package manager
 
-### How is this different to [ied](https://github.com/alexanderGugel/ied) and [pnpm](https://github.com/rstacruz/pnpm)?
+### How is this different to existing alternate npm clients such as [ied](https://github.com/alexanderGugel/ied) and [pnpm](https://github.com/rstacruz/pnpm)?
 
 Similar in many aspects but unlike existing alternate npm clients, kpm is focused on
 security first, good performance is just an implementation detail. If we only cared about
