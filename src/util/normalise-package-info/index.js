@@ -13,11 +13,9 @@ import type { PackageInfo } from "../../types.js";
 import validate from "./validate.js";
 import fix from "./fix.js";
 
-export default async function (
-  info: Object,
-  moduleLoc: string,
-  warn?: ?(msg: string) => void,
-): Promise<PackageInfo> {
+type WarnFunction = ?(msg: string) => void;
+
+export default async function (info: Object, moduleLoc: string, warn?: WarnFunction): Promise<PackageInfo> {
   if (info.private) warn = null;
   if (!warn) warn = function () {};
   await fix(info, moduleLoc);

@@ -13,7 +13,6 @@
 import type { PackageInfo, PackageRemote, FetchedPackageInfo } from "../types.js";
 import type { RegistryNames } from "../registries/index.js";
 import type Config from "../config.js";
-import normalisePackageInfo from "../util/normalise-package-info/index.js";
 import * as constants from "../constants.js";
 import * as util from "../util/misc.js";
 import * as fs from "../util/fs.js";
@@ -43,8 +42,7 @@ export default class BaseFetcher {
       let hash = await this._fetch(dest);
 
       // load the new normalised package.json
-      let pkg = await fs.readPackageJson(dest, this.registry);
-      pkg = await normalisePackageInfo(pkg, dest);
+      let pkg = await this.config.readPackageJson(dest, this.registry);
 
       await fs.writeFile(path.join(dest, constants.METADATA_FILENAME), JSON.stringify({
         registry: this.registry,

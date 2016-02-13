@@ -11,7 +11,6 @@
 
 import type Reporter from "../../reporters/_base.js";
 import type Config from "../../config.js";
-import normalisePackageInfo from "../../util/normalise-package-info/index.js";
 import { MessageError } from "../../errors.js";
 import * as fs from "../../util/fs.js";
 
@@ -35,8 +34,7 @@ export async function run(
     }
 
     // read package.json
-    let pkg = await fs.readPackageJson(loc);
-    pkg = await normalisePackageInfo(pkg, loc);
+    let pkg = await config.readPackageJson(loc);
 
     // remove bins
     for (let binName in pkg.bin) {

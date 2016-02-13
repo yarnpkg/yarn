@@ -51,14 +51,14 @@ export default function stringify(obj: any, indent: string = ""): string {
 
   for (let key of keys) {
     let val = obj[key];
-    if (val === undefined) continue;
+    if (val == null) continue;
 
     key = maybeWrap(key);
 
     if (typeof val === "string" || typeof val === "boolean") {
       lines.push(`${key} ${maybeWrap(val)}`);
     } else if (typeof val === "object") {
-      lines.push(`${key}: \n${stringify(val, indent + "  ")}`);
+      lines.push(`${key}:\n${stringify(val, indent + "  ")}`);
     } else {
       throw new TypeError;
     }

@@ -48,7 +48,12 @@ export default class PackageInstallScripts {
     stderr: string
   }>> {
     let loc = this.config.generateHardModulePath(pkg.reference);
-    return executeLifecycleScript(this.config, loc, cmds, pkg);
+    try {
+      return await executeLifecycleScript(this.config, loc, cmds, pkg);
+    } catch (err) {
+      err.message = `${loc}: ${err.message}`;
+      throw err;
+    }
   }
 
   async init(): Promise<void> {

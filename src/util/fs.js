@@ -9,11 +9,7 @@
  * @flow
  */
 
-import type { PackageInfo } from "../types.js";
-import type { RegistryNames } from "../registries/index.js";
 import BlockingQueue from "./blocking-queue.js";
-import { registries } from "../registries/index.js";
-import * as constants from "../constants.js";
 import { promisify } from "./promise.js";
 import map from "./map.js";
 
@@ -56,64 +52,6 @@ export async function readJson(loc: string): Promise<Object> {
   } catch (err) {
     err.message = `${loc}: ${err.message}`;
     throw err;
-  }
-}
-
-export async function isValidModuleDest(dest: string): Promise<boolean> {
-  if (!(await exists(dest))) {
-    return false;
-  }
-
-  if (!(await exists(path.join(dest, constants.METADATA_FILENAME)))) {
-    return false;
-  }
-
-  return true;
-}
-
-export async function readPackageMetadata(dir: string): Promise<{
-  registry: RegistryNames,
-  hash: string,
-  package: PackageInfo
-}> {
-  let metadata = await readJson(path.join(dir, constants.METADATA_FILENAME));
-  let pkg = await readPackageJson(dir, metadata.registry);
-
-  return {
-    package: pkg,
-    hash: metadata.hash,
-    registry: metadata.registry
-  };
-}
-
-export async function readPackageJson(dir: string, priorityRegistry?: RegistryNames): Promise<Object> {
-  let metadataLoc = path.join(dir, constants.METADATA_FILENAME);
-  if (!priorityRegistry && await exists(metadataLoc)) {
-    ({ registry: priorityRegistry } = await readJson(metadataLoc));
-  }
-
-  if (priorityRegistry) {
-    let file = await tryPackageJson(dir, priorityRegistry);
-    if (file) return file;
-  }
-
-  for (let registry of Object.keys(registries)) {
-    if (priorityRegistry === registry) continue;
-
-    let file = await tryPackageJson(dir, registry);
-    if (file) return file;
-  }
-
-  throw new Error(`Couldn't find a package.json in ${dir}`);
-}
-
-async function tryPackageJson(dir: string, registry: RegistryNames): ?Object {
-  let filename = registries[registry].filename;
-  let loc = path.join(dir, filename);
-  if (await exists(loc)) {
-    let data = await readJson(loc);
-    data.registry = registry;
-    return data;
   }
 }
 

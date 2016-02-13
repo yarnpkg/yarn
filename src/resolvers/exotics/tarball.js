@@ -46,9 +46,9 @@ export default class TarballResolver extends ExoticResolver {
     // generate temp directory
     let dest = this.config.getTemp(crypto.hash(url));
 
-    if (await fs.isValidModuleDest(dest)) {
+    if (await this.config.isValidModuleDest(dest)) {
       // load from local cache
-      ({ package: pkgJson, hash, registry } = await fs.readPackageMetadata(dest));
+      ({ package: pkgJson, hash, registry } = await this.config.readPackageMetadata(dest));
     } else {
       // delete if invalid
       await fs.unlink(dest);

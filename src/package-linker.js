@@ -13,7 +13,6 @@ import type { PackageInfo } from "./types.js";
 import type PackageResolver from "./package-resolver.js";
 import type Reporter from "./reporters/_base.js";
 import type Config from "./config.js";
-import normalisePackageInfo from "./util/normalise-package-info/index.js";
 import * as promise from "./util/promise.js";
 import * as fs from "./util/fs.js";
 
@@ -66,8 +65,7 @@ export default class PackageLinker {
       for (let depName of pkg.bundleDependencies) {
         let loc = path.join(this.config.generateHardModulePath(ref), await ref.getFolder(), depName);
 
-        let dep = await fs.readPackageJson(loc, remote.registry);
-        dep = await normalisePackageInfo(dep, loc);
+        let dep = await this.config.readPackageJson(loc, remote.registry);
 
         if (!_.isEmpty(dep.bin)) {
           deps.push({ dep, loc });

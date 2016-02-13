@@ -55,6 +55,9 @@ export function queue<T>(
 ): Promise<Array<T>> {
   concurrency = Math.min(concurrency, arr.length);
 
+  // clone
+  arr = arr.slice();
+
   let results = [];
   let total = arr.length;
   if (!total) return Promise.resolve();

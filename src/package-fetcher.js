@@ -34,8 +34,8 @@ export default class PackageFetcher {
   async fetch(ref: PackageReference): Promise<FetchedPackageInfo> {
     let dest = this.config.generateHardModulePath(ref);
 
-    if (await fs.isValidModuleDest(dest)) {
-      let { hash, package: pkg } = await fs.readPackageMetadata(dest);
+    if (await this.config.isValidModuleDest(dest)) {
+      let { hash, package: pkg } = await this.config.readPackageMetadata(dest);
       return {
         package: pkg,
         hash,
