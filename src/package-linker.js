@@ -32,7 +32,7 @@ export default class PackageLinker {
   resolver: PackageResolver;
   config: Config;
 
-  async link(pkg: PackageInfo, linkBins: boolean): Promise<void> {
+  async link(pkg: PackageInfo): Promise<void> {
     let ref = pkg.reference;
     invariant(ref, "Package reference is missing");
 
@@ -40,13 +40,25 @@ export default class PackageLinker {
     await fs.mkdirp(dir);
 
     await this.linkModules(pkg, dir);
+    await this.linkBinDependencies(pkg, dir);
+  }
 
-    if (linkBins) {
-      await this.linkBin(pkg, dir);
+  async linkSelfDependencies(pkg: PackageInfo, pkgLoc: string, targetBinLoc: string) {
+    for (let scriptName in pkg.bin) {
+      let scriptCmd = pkg.bin[scriptName];
+      let dest      = path.join(targetBinLoc, scriptName);
+      let src       = path.join(pkgLoc, scriptCmd);
+
+      if (process.platform === "win32") {
+        await cmdShim(src, dest);
+      } else {
+        await fs.symlink(src, dest);
+        await fs.chmod(dest, "755");
+      }
     }
   }
 
-  async linkBin(pkg: PackageInfo, dir: string): Promise<void> {
+  async linkBinDependencies(pkg: PackageInfo, dir: string): Promise<void> {
     let ref = pkg.reference;
     invariant(ref, "Package reference is missing");
 
@@ -80,18 +92,7 @@ export default class PackageLinker {
 
     // write the executables
     for (let { dep, loc } of deps) {
-      for (let scriptName in dep.bin) {
-        let scriptCmd = dep.bin[scriptName];
-        let dest      = path.join(binLoc, scriptName);
-        let src       = path.join(loc, scriptCmd);
-
-        if (process.platform === "win32") {
-          await cmdShim(src, dest);
-        } else {
-          await fs.symlink(src, dest);
-          await fs.chmod(dest, "755");
-        }
-      }
+      await this.linkSelfDependencies(dep, loc, binLoc);
     }
   }
 

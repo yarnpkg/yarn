@@ -15,12 +15,10 @@ import type Registry from "./registries/_base.js";
 import type { PackageInfo } from "./types.js";
 import normalisePackageInfo from "./util/normalise-package-info/index.js";
 import * as fs from "./util/fs.js";
-import { registries } from "./registries/index.js";
 import * as constants from "./constants.js";
 import ConstraintResolver from "./package-constraint-resolver.js";
 import RequestManager from "./util/request-manager.js";
 import { registries } from "./registries/index.js";
-import * as fs from "./util/fs.js";
 import map from "./util/map.js";
 
 let invariant = require("invariant");
@@ -244,7 +242,10 @@ export default class Config {
     if (await fs.exists(loc)) {
       let data = await fs.readJson(loc);
       data.registry = registry;
-      await normalisePackageInfo(data, loc);
+
+      // TODO: warn
+      await normalisePackageInfo(data, dir);
+
       return data;
     }
   }

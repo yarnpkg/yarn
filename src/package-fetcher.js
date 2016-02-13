@@ -59,7 +59,7 @@ export default class PackageFetcher {
       return await fetcher.fetch(dest);
     } catch (err) {
       try {
-        await fs.unlink(dest);
+        //await fs.unlink(dest);
       } catch (err) {
         // what do?
       }

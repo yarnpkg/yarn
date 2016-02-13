@@ -29,6 +29,7 @@ import map from "../../util/map.js";
 let invariant = require("invariant");
 let emoji     = require("node-emoji");
 let path      = require("path");
+let _         = require("lodash");
 
 type FetchResolveParams = {
   totalSteps: number,
@@ -207,7 +208,7 @@ export class Install {
 
     //
     this.reporter.step(++step, total, "Linking dependencies", emoji.get("link"));
-    await this.linker.init(this.flags.binLinks);
+    await this.linker.init();
 
     //
     this.reporter.step(++step, total, "Running install scripts", emoji.get("page_with_curl"));
@@ -293,9 +294,22 @@ export class Install {
 
   async save(pattern: string): Promise<void> {
     let resolved = this.resolver.getResolvedPattern(pattern);
-    if (!resolved) throw new Error("Couldn't find resolved name/version for " + pattern);
+    invariant(resolved, `Couldn't find resolved name/version for ${pattern}`);
 
-    let src = this.config.generateHardModulePath(resolved.reference);
+    let ref = resolved.reference;
+    invariant(ref, "Missing reference");
+
+    //
+    let src = this.config.generateHardModulePath(ref);
+
+    // link bins
+    if (!_.isEmpty(resolved.bin)) {
+      let binLoc = path.join(this.config.cwd, await ref.getFolder(), ".bin");
+      await fs.mkdirp(binLoc);
+      await this.linker.linkSelfDependencies(resolved, src, binLoc);
+    }
+
+    // link node_modules
     let dest = path.join(this.config.registries[resolved.remote.registry].loc, resolved.name);
     return fs.symlink(src, dest);
   }
@@ -381,7 +395,6 @@ export function setFlags(commander: Object) {
   commander.option("-f, --force", ""); // TODO
   commander.option("-g, --global", ""); // TODO
   commander.option("--link"); // TODO
-  commander.option("--no-bin-links");
   commander.option("--no-optional"); // TODO
   commander.option("--no-lockfile"); // TODO
 }
