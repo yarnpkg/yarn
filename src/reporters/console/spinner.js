@@ -9,12 +9,7 @@
  * @flow
  */
 
-let readline = require("readline");
-
-function clearLine() {
-  readline.clearLine(process.stdout, 0);
-  readline.cursorTo(process.stdout, 0);
-}
+import { clearLine } from "./util.js";
 
 export default class Spinner {
   constructor(){
@@ -71,7 +66,7 @@ export default class Spinner {
     this.id = setInterval(() => {
       let msg = `${this.chars[current]} ${this.text}`;
       clearLine();
-      process.stdout.write(msg);
+      process.stderr.write(msg);
       current = ++current % this.chars.length;
     }, this.delay);
   }

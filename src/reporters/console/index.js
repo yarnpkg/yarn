@@ -10,10 +10,10 @@
  */
 
 import BaseReporter from "../_base.js";
+import Progress from "./progress-bar.js";
 import Spinner from "./spinner.js";
 import pkg from "../../../package.json";
 
-let Progress = require("progress");
 let readline = require("readline");
 let chalk    = require("chalk");
 let isCI     = require("is-ci");
@@ -156,13 +156,7 @@ export default class ConsoleReporter extends BaseReporter {
       };
     }
 
-    let bar = new Progress(":bar :current/:total", {
-      renderThrottle: 60,
-      total: count,
-      clear: true,
-      complete: "█",
-      incomplete: "░",
-    });
+    let bar = new Progress(count);
 
     bar.render();
 

@@ -22,7 +22,7 @@
     "ncp": "^2.0.0",
     "node-emoji": "^1.0.4",
     "node-gyp": "^3.2.1",
-    "progress": "^1.1.8",
+    "repeating": "^2.0.0",
     "request": "^2.67.0",
     "rimraf": "^2.5.0",
     "semver": "^5.1.0",
