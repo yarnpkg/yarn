@@ -16,62 +16,53 @@ import pkg from "../../../package.json";
 
 let readline = require("readline");
 let chalk    = require("chalk");
-let isCI     = require("is-ci");
-
-function prependEmoji(msg, emoji) {
-  if (emoji && process.stdout.isTTY) msg = `${emoji}  ${msg}`;
-  return msg;
-}
-
-function createReadline() {
-  return readline.createInterface({
-    input: process.stdin,
-    output: process.stdout,
-    terminal: true
-  });
-}
 
 export default class ConsoleReporter extends BaseReporter {
+  _prependEmoji(msg, emoji) {
+    if (emoji && this.isTTY) msg = `${emoji}  ${msg}`;
+    return msg;
+  }
+
   step(current: number, total: number, msg: string, emoji: string) {
-    this.console.log(`${chalk.grey(`[${current}/${total}]`)} ${prependEmoji(msg, emoji)}...`);
+    this.log(`${chalk.grey(`[${current}/${total}]`)} ${this._prependEmoji(msg, emoji)}...`);
   }
 
   header(command: string) {
-    this.console.log(chalk.bold(`kpm ${command} v${pkg.version}`));
+    this.log(chalk.bold(`kpm ${command} v${pkg.version}`));
   }
 
   footer() {
     let totalTime = (this.getTotalTime() / 1000).toFixed(2);
     let peakMemory = (this.peakMemory / 1024 / 1024).toFixed(2);
-    this.console.log(prependEmoji(`Done in ${totalTime}s. Peak memory usage ${peakMemory}MB.`, "✨"));
+    this.log(this._prependEmoji(`Done in ${totalTime}s. Peak memory usage ${peakMemory}MB.`, "✨"));
   }
 
   log(msg: string) {
-    this.console.log(msg);
+    this.stdout.write(`${msg}\n`);
   }
 
   success(msg: string) {
-    this.console.log(`${chalk.green("success")} ${msg}`);
+    this.log(`${chalk.green("success")} ${msg}`);
   }
 
   error(msg: string) {
-    this.console.error(`${chalk.red("error")} ${msg}`);
+    this.stderr.write(`${chalk.red("error")} ${msg}\n`);
   }
 
   info(msg: string) {
-    this.console.log(`${chalk.blue("info")} ${msg}`);
+    this.log(`${chalk.blue("info")} ${msg}`);
   }
 
   command(command: string) {
-    this.console.log(chalk.grey(`$ ${command}`));
+    this.log(chalk.grey(`$ ${command}`));
   }
 
   warn(msg: string) {
-    this.console.log(`${chalk.yellow("warning")} ${msg}`);
+    this.stderr.write(`${chalk.yellow("warning")} ${msg}\n`);
   }
 
   question(question: string): Promise<boolean> {
-    if (isCI || !process.stdout.isTTY) {
+    if (!process.stdout.isTTY) {
       return Promise.reject(new Error("Can't answer a question unless a user TTY"));
     }
 
@@ -83,14 +74,14 @@ export default class ConsoleReporter extends BaseReporter {
     tick: (name: string) => void,
     end: () => void
   } {
-    if (!process.stdout.isTTY) {
+    if (!this.isTTY) {
       return {
         tick() {},
         end() {}
       };
     }
 
-    let spinner = new Spinner;
+    let spinner = new Spinner(this.stderr);
     spinner.start();
 
     return {
@@ -105,17 +96,21 @@ export default class ConsoleReporter extends BaseReporter {
   }
 
   select(header: string, question: string, options: Array<string>): Promise<string> {
-    if (isCI || !process.stdout.isTTY) {
+    if (!this.isTTY) {
       return Promise.reject(new Error("Can't answer a question unless a user TTY"));
     }
 
-    let rl = createReadline();
+    let rl = readline.createInterface({
+      input: this.stdin,
+      output: this.stdout,
+      terminal: true
+    })
 
     return new Promise((resolve) => {
-      this.console.log(header);
+      this.log(header);
 
       for (let i = 0; i < options.length; i++) {
-        this.console.log(`${i + 1}. ${options[i]}`);
+        this.log(`${i + 1}. ${options[i]}`);
       }
 
       let ask = () => {
@@ -123,12 +118,12 @@ export default class ConsoleReporter extends BaseReporter {
           index = +index;
 
           if (isNaN(index)) {
-            this.console.log("Not a number");
+            this.log("Not a number");
             return ask();
           }
 
           if (index <= 0 || index > options.length) {
-            this.console.log("Outside answer range");
+            this.log("Outside answer range");
             return ask();
           }
 
@@ -150,13 +145,13 @@ export default class ConsoleReporter extends BaseReporter {
       };
     }
 
-    if (!process.stdout.isTTY) {
+    if (!this.isTTY) {
       return function () {
         // TODO what should the behaviour here be? we could buffer progress messages maybe
       };
     }
 
-    let bar = new Progress(count);
+    let bar = new Progress(count, this.stderr);
 
     bar.render();
 

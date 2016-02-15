@@ -24,7 +24,7 @@ export default class TarballFetcher extends BaseFetcher {
     if (!hash) {
       let parts = url.parse(ref);
       if (parts.protocol === "http:") {
-        throw new SecurityError(`Refusing to fetch tarball ${ref} over plain HTTP without a hash`);
+        throw new SecurityError(`${ref}: Refusing to fetch tarball over plain HTTP without a hash`);
       }
     }
 
@@ -45,7 +45,7 @@ export default class TarballFetcher extends BaseFetcher {
               resolve(actualHash);
             } else {
               reject(new SecurityError(
-                `Bad hash for tarball ${ref}. Expected ${expectHash} but ${actualHash}.`
+                `Bad hash. Expected ${expectHash} but got ${actualHash}`
               ));
             }
           });

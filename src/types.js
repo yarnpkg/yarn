@@ -31,7 +31,7 @@ export type PersonObject = {
 export type PackageRemote = {
   type: "tarball" | "git" | "copy",
   registry: RegistryNames,
-  reference: string | Object,
+  reference: string,
   resolved?: ?string,
   hash?: ?string,
 };

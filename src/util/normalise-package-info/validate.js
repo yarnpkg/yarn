@@ -14,6 +14,11 @@ import typos from "./typos.js";
 let validateLicense = require("validate-npm-package-license");
 let isBuiltinModule = require("is-builtin-module");
 
+let strings = [
+  "name",
+  "version"
+];
+
 export default function (info: Object, warn: (msg: string) => void): void {
   for (let key in typos) {
     if (key in info) {
@@ -56,5 +61,13 @@ export default function (info: Object, warn: (msg: string) => void): void {
     }
   } else {
     warn("No license field");
+  }
+
+  // validate types
+  for (let key of strings) {
+    let val = info[key];
+    if (val && typeof val !== "string") {
+      throw new TypeError(`${key} is not a string`);
+    }
   }
 }

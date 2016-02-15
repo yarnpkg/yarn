@@ -9,20 +9,36 @@
  * @flow
  */
 /* eslint no-unused-vars: 0 */
+/* global stream$Readable */
+
+export type ReporterOptions = {
+  stdout: stream$Readable;
+  stderr: stream$Readable;
+  stdin: stream$Writable;
+};
 
 export default class BaseReporter {
-  constructor() {
-    this.console    = console;
+  constructor(opts?: ReporterOptions = {}) {
+    this.stdout = opts.stdout || process.stdout;
+    this.stderr = opts.stderr || process.stderr;
+    this.stdin  = opts.stdin || process.stdin;
+
+    this.isTTY = this.stdout.isTTY;
+
     this.startTime  = Date.now();
     this.peakMemory = 0;
 
     this.initPeakMemoryCounter();
   }
 
+  stdout: stream$Readable;
+  stderr: stream$Readable;
+  stdin: stream$Writable;
+  isTTY: boolean;
+
   peakMemoryInterval: ?number;
   peakMemory: number;
   startTime: number;
-  console: typeof console;
 
   initPeakMemoryCounter() {
     this.checkPeakMemory();

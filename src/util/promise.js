@@ -9,6 +9,12 @@
  * @flow
  */
 
+export function wait(delay: number): Promise<void> {
+  return new Promise((resolve) => {
+    setTimeout(resolve, delay);
+  });
+}
+
 export function promisify(fn: Function, firstData?: boolean): () => Promise {
   return function (...args) {
     return new Promise(function (resolve, reject) {

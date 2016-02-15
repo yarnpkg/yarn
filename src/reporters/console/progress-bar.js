@@ -14,13 +14,15 @@ import { clearLine } from "./util.js";
 let repeat = require("repeating");
 
 export default class ProgressBar {
-  constructor(total: number) {
-    this.total = total;
-    this.chars = ProgressBar.bars[0].split("");
-    this.delay = 60;
-    this.curr  = 0;
+  constructor(total: number, stdout: steam$Readable = process.stderr) {
+    this.stdout = stdout;
+    this.total  = total;
+    this.chars  = ProgressBar.bars[0].split("");
+    this.delay  = 60;
+    this.curr   = 0;
   }
 
+  stdout: steam$Readable;
   curr: number;
   total: number;
   width: number;
@@ -43,7 +45,7 @@ export default class ProgressBar {
     // progress complete
     if (this.curr >= this.total) {
       clearTimeout(this.id);
-      clearLine();
+      clearLine(this.stdout);
     }
   }
 
@@ -60,7 +62,7 @@ export default class ProgressBar {
 
     // calculate size of actual bar
     // $FlowFixMe: investgiate process.stderr.columns flow error
-    let availableSpace = Math.max(0, process.stderr.columns - bar.length);
+    let availableSpace = Math.max(0, this.stdout.columns - bar.length);
     let width          = Math.min(this.total, availableSpace);
     let completeLength = Math.round(width * ratio);
     let complete   = repeat(this.chars[0], completeLength);
@@ -68,7 +70,7 @@ export default class ProgressBar {
     bar = `${complete}${incomplete}${bar}`;
 
     //
-    clearLine();
-    process.stderr.write(bar);
+    clearLine(this.stdout);
+    this.stdout.write(bar);
   }
 }

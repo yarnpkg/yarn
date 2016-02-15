@@ -12,8 +12,8 @@
 import BaseReporter from "./_base.js";
 
 export default class JSONReporter extends BaseReporter {
-  constructor() {
-    super();
+  constructor(opts) {
+    super(opts);
 
     this._activityId = 0;
     this._progressId = 0;
@@ -23,11 +23,9 @@ export default class JSONReporter extends BaseReporter {
   _progressId: number;
 
   _dump(type: string, data: any, error?: boolean) {
-    let console = this.console;
-    let log = console.log;
-    if (error) log = console.error;
-
-    log(JSON.stringify({ type, data }));
+    let stdout = this.stdout;
+    if (error) stdout = this.stderr;
+    stdout.write(`${JSON.stringify({ type, data })}\n`);
   }
 
   step(current: number, total: number, message: string) {

@@ -11,7 +11,7 @@
 
 let readline = require("readline");
 
-export function clearLine() {
-  readline.clearLine(process.stderr, 0);
-  readline.cursorTo(process.stderr, 0);
+export function clearLine(stdout) {
+  readline.clearLine(stdout, 0);
+  readline.cursorTo(stdout, 0);
 }

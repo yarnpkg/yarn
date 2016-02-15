@@ -11,6 +11,7 @@ import { analyse } from "../src/analysis/index.js";
 import * as similarity from "../src/analysis/text/similarity.js";
 
 let expect = require("unexpected");
+let repeat = require("repeating");
 let path   = require("path");
 let test   = require("ava");
 let fs     = require("fs");
@@ -32,6 +33,12 @@ for (let name of fs.readdirSync(fixturesLoc)) {
     expect(actual, "to satisfy", expected);
   });
 }
+
+test("text similarity", (t) => {
+  t.is(similarity.default("", ""), 1);
+  t.is(similarity.default("foo", "foo"), 1);
+  t.is(similarity.default(repeat("foo", 200), repeat("foo", 200)), 1);
+});
 
 test("text similarity leven", (t) => {
   t.is(similarity.leven("", ""), 1);

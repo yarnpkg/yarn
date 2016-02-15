@@ -77,7 +77,7 @@ export function spawn(
         err = new Error(`${cmd}@${opts.cwd || process.cwd()}: ${errBuf.trim()}`);
       }
 
-      if (processingDone) {
+      if (processingDone || err) {
         finish();
       } else {
         processClosed = true;

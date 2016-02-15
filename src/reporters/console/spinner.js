@@ -12,13 +12,17 @@
 import { clearLine } from "./util.js";
 
 export default class Spinner {
-  constructor(){
-    this.delay = 60;
-    this.chars = Spinner.spinners[28].split("");
-    this.text  = "";
-    this.id    = null;
+  constructor(stdout: steam$Readable = process.stderr) {
+    this.current = 0;
+    this.stdout  = stdout;
+    this.delay   = 60;
+    this.chars   = Spinner.spinners[28].split("");
+    this.text    = "";
+    this.id      = null;
   }
 
+  stdout: steam$Readable;
+  current: number;
   delay: number;
   chars: Array<string>;
   text: string;
@@ -61,23 +65,28 @@ export default class Spinner {
   }
 
   start() {
-    let current = 0;
+    this.current = 0;
+    this.render();
+  }
 
-    this.id = setInterval(() => {
-      let msg = `${this.chars[current]} ${this.text}`;
-      clearLine();
-      process.stderr.write(msg);
-      current = ++current % this.chars.length;
-    }, this.delay);
+  render() {
+    if (this.id) {
+      clearTimeout(this.id);
+      this.id = setTimeout(() => this.render(), this.delay);
+    }
+
+    let msg = `${this.chars[this.current]} ${this.text}`;
+    clearLine(this.stdout);
+    this.stdout.write(msg);
+    this.current = ++this.current % this.chars.length;
   }
 
   stop() {
-    if (this.id == null) {
-      throw new Error("Can't stop a spinner that wasn't running");
+    if (this.id) {
+      clearTimeout(this.id);
+      this.id = null;
     }
 
-    clearInterval(this.id);
-    clearLine();
-    this.id = null;
+    clearLine(this.stdout);
   }
 }

@@ -58,12 +58,14 @@ for (let name of nativeFs.readdirSync(fixturesLoc)) {
 test("util.stringifyPerson", (t) => {
   t.same(util.stringifyPerson({ name: "Sebastian McKenzie" }), "Sebastian McKenzie");
   t.same(util.stringifyPerson({ name: "Sebastian McKenzie", email: "sebmck@gmail.com" }), "Sebastian McKenzie <sebmck@gmail.com>");
+  t.same(util.stringifyPerson({ email: "sebmck@gmail.com" }), "<sebmck@gmail.com>");
   t.same(util.stringifyPerson({ name: "Sebastian McKenzie", email: "sebmck@gmail.com", url: "https://sebmck.com" }), "Sebastian McKenzie <sebmck@gmail.com> (https://sebmck.com)");
 });
 
 test("util.parsePerson", (t) => {
   t.same(util.parsePerson({}), {});
   t.same(util.parsePerson("Sebastian McKenzie"), { name: "Sebastian McKenzie" });
+  t.same(util.parsePerson(" <sebmck@gmail.com>"), { email: "sebmck@gmail.com" });
   t.same(util.parsePerson("Sebastian McKenzie <sebmck@gmail.com>"), { name: "Sebastian McKenzie", email: "sebmck@gmail.com" });
   t.same(util.parsePerson("Sebastian McKenzie <sebmck@gmail.com> (https://sebmck.com)"), { name: "Sebastian McKenzie", email: "sebmck@gmail.com", url: "https://sebmck.com" });
 });

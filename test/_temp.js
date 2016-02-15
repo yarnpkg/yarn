@@ -5,16 +5,18 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree. An additional grant
  * of patent rights can be found in the PATENTS file in the same directory.
- *
- * @flow
  */
 
-import BaseFetcher from "./_base.js";
-import * as fs from "../util/fs.js";
+let temp = require("temp").track();
 
-export default class CopyFetcher extends BaseFetcher {
-  async _fetch(dest: string): Promise<string> {
-    await fs.copy(this.reference, dest);
-    return this.hash;
-  }
+export default function (filename: string): Promise<string> {
+  return new Promise((resolve, reject) => {
+    temp.mkdir(filename, function (err, path) {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(path);
+      }
+    });
+  });
 }

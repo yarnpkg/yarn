@@ -9,6 +9,8 @@
  * @flow
  */
 
+global.Promise = require("bluebird");
+
 import ConsoleReporter from "../reporters/console/index.js";
 import similarity from "../analysis/text/similarity.js";
 import { MessageError, BailError } from "../errors.js";

@@ -28,7 +28,7 @@ export default class BaseFetcher {
   }
 
   registry: RegistryNames;
-  reference: any;
+  reference: string;
   config: Config;
   hash: ?string;
 

@@ -13,7 +13,7 @@ import type { ExplodedFragment } from "./_hosted-git.js";
 import HostedGitResolver from "./_hosted-git.js";
 
 export default class BitbucketResolver extends HostedGitResolver {
-  static hostname = "bitbucket.com";
+  static hostname = "bitbucket.org";
   static protocol = "bitbucket";
 
   static getTarballUrl({ user, repo }: ExplodedFragment, hash: string): string {
@@ -26,5 +26,9 @@ export default class BitbucketResolver extends HostedGitResolver {
 
   static getGitSSHUrl({ user, repo }: ExplodedFragment): string {
     return `git@bitbucket.org:${user}/${repo}.git`;
+  }
+
+  static getHTTPFileUrl({ user, repo }: ExplodedFragment, filename: string, commit: string) {
+    return `https://bitbucket.org/${user}/${repo}/raw/${commit}/${filename}`;
   }
 }

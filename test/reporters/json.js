@@ -6,103 +6,13 @@
  * LICENSE file in the root directory of this source tree. An additional grant
  * of patent rights can be found in the PATENTS file in the same directory.
  */
-/* eslint quotes: 0 */
 
-import BufferReporter from "../src/reporters/buffer.js";
-import JSONReporter from "../src/reporters/json.js";
+import JSONReporter from "../../src/reporters/json.js";
+import build from "./_build.js";
 
 let test = require("ava");
 
-function getBuff(callback) {
-  let reporter = new BufferReporter;
-  reporter.getTotalTime = () => 0;
-  callback(reporter);
-  return reporter.getBuffer();
-}
-
-test("BufferReporter.finished", (t) => {
-  t.same(getBuff((r) => r.footer()), [{
-    type: "finished",
-    data: 0
-  }]);
-});
-
-test("BufferReporter.step", (t) => {
-  t.same(getBuff((r) => r.step(1, 5, "foobar")), [{
-    type: "step",
-    data: {
-      current: 1,
-      total: 5,
-      message: "foobar"
-    }
-  }]);
-});
-
-test("BufferReporter.log", (t) => {
-  t.same(getBuff((r) => r.log("foobar")), [{
-    type: "log",
-    data: "foobar"
-  }]);
-});
-
-test("BufferReporter.success", (t) => {
-  t.same(getBuff((r) => r.success("foobar")), [{
-    type: "success",
-    data: "foobar"
-  }]);
-});
-
-test("BufferReporter.error", (t) => {
-  t.same(getBuff((r) => r.error("foobar")), [{
-    type: "error",
-    data: "foobar"
-  }]);
-});
-
-test("BufferReporter.info", (t) => {
-  t.same(getBuff((r) => r.info("foobar")), [{
-    type: "info",
-    data: "foobar"
-  }]);
-});
-
-test("BufferReporter.command", (t) => {
-  t.same(getBuff((r) => r.command("foobar")), [{
-    type: "command",
-    data: "foobar"
-  }]);
-});
-
-test("BufferReporter.warn", (t) => {
-  t.same(getBuff((r) => r.warn("foobar")), [{
-    type: "warning",
-    data: "foobar"
-  }]);
-});
-
-async function getJSONBuff(callback) {
-  let reporter = new JSONReporter;
-  reporter.getTotalTime = () => 0;
-
-  let data = {
-    stderr: [],
-    stdout: []
-  };
-
-  reporter.console = {
-    log(msg) {
-      data.stdout.push(msg);
-    },
-
-    error(msg) {
-      data.stderr.push(msg);
-    }
-  };
-
-  await callback(reporter);
-
-  return data;
-}
+let getJSONBuff = build(JSONReporter, (data) => data);
 
 test("JSONReporter.step", async (t) => {
   t.same(await getJSONBuff((r) => r.step(1, 5, "foobar")), {

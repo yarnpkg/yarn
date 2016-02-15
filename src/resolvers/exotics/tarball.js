@@ -77,16 +77,9 @@ export default class TarballResolver extends ExoticResolver {
     pkgJson.remote = {
       type: "copy",
       resolved: `${url}#${hash}`,
+      hash,
       registry,
-      reference: {
-        src: dest,
-        dest: this.config.generateHardModulePath({
-          name: pkgJson.name,
-          version: pkgJson.version,
-          uid: hash,
-          registry
-        })
-      }
+      reference: dest
     };
 
     return pkgJson;

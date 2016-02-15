@@ -61,8 +61,16 @@ function addTest(pattern, registry = "npm") {
   });
 }
 
-addTest("PolymerElements/paper-elements", "bower");
-addTest("scrollin");
-addTest("gulp");
-addTest("react-native");
-addTest("ember-cli");
+addTest("github:PolymerElements/paper-elements", "bower"); // github url
+addTest("https://github.com/PolymerElements/font-roboto.git", "bower"); // hosted git url
+addTest("https://bitbucket.org/hgarcia/node-bitbucket-api.git"); // hosted git url
+addTest("https://bitbucket.com/hgarcia/node-bitbucket-api.git"); // git url
+addTest("https://github.com/PolymerElements/font-roboto/archive/2fd5c7bd715a24fb5b250298a140a3ba1b71fe46.tar.gz"); // tarball
+addTest("gitlab:leanlabsio/kanban"); // gitlab
+addTest("gist:d59975ac23e26ad4e25b"); // gist url
+addTest("bitbucket:hgarcia/node-bitbucket-api"); // bitbucket url
+addTest("scrollin"); // npm
+addTest("gulp"); // npm
+addTest("react-native"); // npm
+addTest("ember-cli"); // npm
+addTest("npm:gulp"); // npm

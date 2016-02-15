@@ -134,11 +134,12 @@ export default class Git {
   }
 
   async _cloneViaLocalFetched(dest: string): Promise<void> {
-    await child.spawn("git", ["archive", this.ref], {
+    await child.spawn("git", ["archive", this.hash], {
       cwd: this.cwd,
-      process(proc, resolve, reject) {
+      process(proc, resolve, reject, done) {
         let extractor = tar.Extract({ path: dest });
         extractor.on("error", reject);
+        extractor.on("end", done);
 
         proc.stdout.pipe(extractor);
       }
