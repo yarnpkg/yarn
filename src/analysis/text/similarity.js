@@ -9,6 +9,8 @@
  * @flow
  */
 
+let invariant = require("invariant");
+
 type Char = number | string;
 
 type LengthObject = string | Array<Char> | {
@@ -83,17 +85,17 @@ export function leven(a: LengthObject, b: LengthObject): number {
   if (short != null) return short;
 
   let steps;
-	let tmp;
-	let tmp2;
+  let tmp;
+  let tmp2;
   let arr = [];
 
   let i = 0;
-	while (i < a.length) {
-		arr[i] = ++i;
-	}
+  while (i < a.length) {
+    arr[i] = ++i;
+  }
 
   let j = 0;
-	while (j < b.length) {
+  while (j < b.length) {
     let bChar = b[j];
     tmp = j++;
     steps = j;
@@ -103,8 +105,9 @@ export function leven(a: LengthObject, b: LengthObject): number {
       tmp = arr[i];
       steps = arr[i] = tmp > steps ? tmp2 > steps ? steps + 1 : tmp2 : tmp2 > tmp ? tmp + 1 : tmp2;
     }
-	}
+  }
 
+  invariant(typeof steps === "number", "Steps isn't a number");
   let relative   = steps / Math.max(a.length, b.length);
   let similarity = 1 - relative;
   return similarity;

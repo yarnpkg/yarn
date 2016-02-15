@@ -11,16 +11,18 @@
 
 import BaseReporter from "./_base.js";
 
+type Buffer = Array<{
+  type: string;
+  data: string | Object | number;
+}>;
+
 export default class BufferReporter extends BaseReporter {
   constructor(opts: Object) {
     super(opts);
     this._buffer = [];
   }
 
-  _buffer: Array<{
-    type: string;
-    data: string | Object;
-  }>;
+  _buffer: Buffer;
 
   step(current: number, total: number, message: string) {
     this._buffer.push({ type: "step", data: { message, current, total } });
@@ -54,10 +56,7 @@ export default class BufferReporter extends BaseReporter {
     this._buffer.push({ type: "warning", data });
   }
 
-  getBuffer(): Array<{
-    type: string,
-    data: string
-  }> {
+  getBuffer(): Buffer {
     return this._buffer;
   }
 }

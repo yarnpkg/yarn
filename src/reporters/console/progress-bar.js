@@ -59,6 +59,7 @@ export default class ProgressBar {
     let bar = ` ${this.curr}/${this.total}`;
 
     // calculate size of actual bar
+    // $FlowFixMe: investgiate process.stderr.columns flow error
     let availableSpace = Math.max(0, process.stderr.columns - bar.length);
     let width          = Math.min(this.total, availableSpace);
     let completeLength = Math.round(width * ratio);

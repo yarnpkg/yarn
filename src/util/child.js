@@ -8,6 +8,7 @@
  *
  * @flow
  */
+/* global child_process$spawnOpts */
 
 import * as constants from "../constants.js";
 import BlockingQueue from "./blocking-queue.js";

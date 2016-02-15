@@ -128,7 +128,7 @@ export class Install {
     if (foundConfig) {
       return [deps, patterns];
     } else {
-      throw new Error(`No package metadata found in the current directory.`);
+      throw new Error("No package metadata found in the current directory.");
     }
   }
 

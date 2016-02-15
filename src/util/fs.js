@@ -103,15 +103,13 @@ export async function walk(dir: string, relativeDir?: string): Promise<Array<{
 }>> {
   let files = [];
 
-  if (await exists(dir)) {
-    for (let name of await readdir(dir)) {
-      let relative = relativeDir ? path.join(relativeDir, name) : name;
-      let loc = path.join(dir, name);
-      if ((await lstat(loc)).isDirectory()) {
-        files = files.concat(await walk(loc, relative));
-      } else {
-        files.push({ relative, absolute: loc });
-      }
+  for (let name of await readdir(dir)) {
+    let relative = relativeDir ? path.join(relativeDir, name) : name;
+    let loc = path.join(dir, name);
+    if ((await lstat(loc)).isDirectory()) {
+      files = files.concat(await walk(loc, relative));
+    } else {
+      files.push({ relative, absolute: loc });
     }
   }
 

@@ -59,7 +59,7 @@ export default class TarballFetcher extends BaseFetcher {
             if (parts.protocol === "http:") {
               throw new SecurityError(
                 `While downloading the tarball ${ref} we encountered a HTTP redirect of ${href}. ` +
-                `This is not allowed unless a tarball hash is specified.`
+                "This is not allowed unless a tarball hash is specified."
               );
             }
           })

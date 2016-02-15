@@ -6,6 +6,7 @@
  * LICENSE file in the root directory of this source tree. An additional grant
  * of patent rights can be found in the PATENTS file in the same directory.
  */
+/* eslint quotes: 0 */
 
 import stringify from "../src/lockfile/stringify.js";
 import parse from "../src/lockfile/parse.js";

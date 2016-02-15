@@ -33,7 +33,7 @@ function createReadline() {
 
 export default class ConsoleReporter extends BaseReporter {
   step(current: number, total: number, msg: string, emoji: string) {
-    this._this.console.log(`${chalk.grey(`[${current}/${total}]`)} ${prependEmoji(msg, emoji)}...`);
+    this.console.log(`${chalk.grey(`[${current}/${total}]`)} ${prependEmoji(msg, emoji)}...`);
   }
 
   header(command: string) {

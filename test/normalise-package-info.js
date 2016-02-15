@@ -6,6 +6,7 @@
  * LICENSE file in the root directory of this source tree. An additional grant
  * of patent rights can be found in the PATENTS file in the same directory.
  */
+/* eslint max-len: 0 */
 
 import normalisePackageInfo from "../src/util/normalise-package-info/index.js";
 import map from "../src/util/map.js";

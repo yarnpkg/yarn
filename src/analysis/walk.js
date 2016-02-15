@@ -58,8 +58,9 @@ function readFile(loc: string): Promise<{
   });
 }
 
-export default async function walk(dir: string): Promise<Array<File>> {
+export default async function walk(dir?: ?string): Promise<Array<File>> {
   let files: Array<File> = [];
+  if (!dir || !(await utilFs.exists(dir))) return files;
 
   for (let file of await utilFs.walk(dir)) {
     let stat = await utilFs.lstat(file.absolute);

@@ -8,6 +8,7 @@
  *
  * @flow
  */
+/* eslint quotes: 0 */
 
 import map from "../util/map.js";
 

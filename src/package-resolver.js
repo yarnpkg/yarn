@@ -105,20 +105,20 @@ export default class PackageResolver {
    * Given a list of patterns, dedupe them to a list of unique patterns.
    */
 
-   dedupePatterns(patterns: Array<string>): Array<string> {
-     let deduped = [];
-     let seen = {};
+  dedupePatterns(patterns: Array<string>): Array<string> {
+    let deduped = [];
+    let seen = {};
 
-     for (let pattern of patterns) {
-       let info = this.getResolvedPattern(pattern);
-       if (info._seen === seen) continue;
+    for (let pattern of patterns) {
+      let info = this.getResolvedPattern(pattern);
+      if (info._seen === seen) continue;
 
-       info._seen = seen;
-       deduped.push(pattern);
-     }
+      info._seen = seen;
+      deduped.push(pattern);
+    }
 
-     return deduped;
-   }
+    return deduped;
+  }
 
   /**
    * Get a list of all package names in the depenency graph.
@@ -184,11 +184,11 @@ export default class PackageResolver {
    * TODO description
    */
 
-   registerPackageReference(ref: ?PackageReference) {
-     invariant(ref, "No package reference passed");
-     let pkgs = this.packageReferencesByName[ref.name] = this.packageReferencesByName[ref.name] || [];
-     pkgs.push(ref);
-   }
+  registerPackageReference(ref: ?PackageReference) {
+    invariant(ref, "No package reference passed");
+    let pkgs = this.packageReferencesByName[ref.name] = this.packageReferencesByName[ref.name] || [];
+    pkgs.push(ref);
+  }
 
   /**
    * Make all versions of this package resolve to it.
