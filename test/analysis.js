@@ -28,8 +28,6 @@ for (let name of fs.readdirSync(fixturesLoc)) {
 
   test(name, async function () {
     let actual = await analyse(a, b);
-
-    // the unexpected library does a "subset" comparison
     expect(actual, "to satisfy", expected);
   });
 }

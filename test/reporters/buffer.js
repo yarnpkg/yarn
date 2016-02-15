@@ -8,7 +8,7 @@
  */
 
 import BufferReporter from "../../src/reporters/buffer.js";
-import build from "./_build.js";
+import build from "./_mock.js";
 
 let test = require("ava");
 

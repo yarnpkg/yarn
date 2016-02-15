@@ -13,25 +13,24 @@ let { Writable } = require("stream");
 export default function (Reporter: Function, interceptor: Function) {
   return async function (callback) {
     let data = {
-      stderr: [],
-      stdout: []
+      stderr: "",
+      stdout: ""
     };
 
-    let buildStream = (arr) => {
+    let buildStream = (key) => {
       let stream = new Writable;
       stream.columns = 1000;
       stream.write = (msg) => {
         stream.emit("data", msg);
-        msg = msg.trim();
-        if (msg) arr.push(msg);
+        data[key] += msg;
       };
       return stream;
     };
 
     let streams = {
       stdin: new Stdin,
-      stdout: buildStream(data.stdout),
-      stderr: buildStream(data.stderr),
+      stdout: buildStream("stdout"),
+      stderr: buildStream("stderr"),
     };
 
     let reporter = new Reporter(streams);
@@ -42,6 +41,11 @@ export default function (Reporter: Function, interceptor: Function) {
 
     await callback(reporter, streams);
     reporter.close();
+
+    for (let key in data) {
+      data[key] = data[key].trim();
+    }
+    
     return interceptor(data, reporter);
   };
 }

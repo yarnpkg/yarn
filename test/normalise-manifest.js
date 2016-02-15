@@ -8,16 +8,16 @@
  */
 /* eslint max-len: 0 */
 
-import normalisePackageInfo from "../src/util/normalise-package-info/index.js";
+import normaliseManifest from "../src/util/normalise-manifest/index.js";
 import map from "../src/util/map.js";
-import * as util from "../src/util/normalise-package-info/util.js";
+import * as util from "../src/util/normalise-manifest/util.js";
 import * as fs from "../src/util/fs.js";
 
 let nativeFs = require("fs");
 let test     = require("ava");
 let path     = require("path");
 
-let fixturesLoc = path.join(__dirname, "fixtures", "normalise-package-info");
+let fixturesLoc = path.join(__dirname, "fixtures", "normalise-manifest");
 
 for (let name of nativeFs.readdirSync(fixturesLoc)) {
   if (name[0] === ".") continue;
@@ -41,7 +41,7 @@ for (let name of nativeFs.readdirSync(fixturesLoc)) {
     }
 
     try {
-      actual = await normalisePackageInfo(actual, loc, warn);
+      actual = await normaliseManifest(actual, loc, warn);
     } catch (err) {
       if (error && err.message === error) {
         return;

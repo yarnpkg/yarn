@@ -9,7 +9,7 @@
 /* eslint quotes: 0 */
 
 import JSONReporter from "../../src/reporters/json.js";
-import build from "./_build.js";
+import build from "./_mock.js";
 
 let test = require("ava");
 
@@ -17,73 +17,57 @@ let getJSONBuff = build(JSONReporter, (data) => data);
 
 test("JSONReporter.step", async (t) => {
   t.same(await getJSONBuff((r) => r.step(1, 5, "foobar")), {
-    stderr: [],
-    stdout: [
-      '{"type":"step","data":{"message":"foobar","current":1,"total":5}}'
-    ]
+    stderr: "",
+    stdout: '{"type":"step","data":{"message":"foobar","current":1,"total":5}}'
   });
 });
 
 test("JSONReporter.footer", async (t) => {
   t.same(await getJSONBuff((r) => r.footer()), {
-    stderr: [],
-    stdout: [
-      '{"type":"finished","data":0}'
-    ]
+    stderr: "",
+    stdout: '{"type":"finished","data":0}'
   });
 });
 
 test("JSONReporter.log", async (t) => {
   t.same(await getJSONBuff((r) => r.log("foobar")), {
-    stderr: [],
-    stdout: [
-      '{"type":"log","data":"foobar"}'
-    ]
+    stderr: "",
+    stdout: '{"type":"log","data":"foobar"}'
   });
 });
 
 test("JSONReporter.command", async (t) => {
   t.same(await getJSONBuff((r) => r.command("foobar")), {
-    stderr: [],
-    stdout: [
-      '{"type":"command","data":"foobar"}'
-    ]
+    stderr: "",
+    stdout: '{"type":"command","data":"foobar"}'
   });
 });
 
 test("JSONReporter.success", async (t) => {
   t.same(await getJSONBuff((r) => r.success("foobar")), {
-    stderr: [],
-    stdout: [
-      '{"type":"success","data":"foobar"}'
-    ]
+    stderr: "",
+    stdout: '{"type":"success","data":"foobar"}'
   });
 });
 
 test("JSONReporter.error", async (t) => {
   t.same(await getJSONBuff((r) => r.error("foobar")), {
-    stderr: [
-      '{"type":"error","data":"foobar"}'
-    ],
-    stdout: []
+    stderr: '{"type":"error","data":"foobar"}',
+    stdout: ""
   });
 });
 
 test("JSONReporter.warn", async (t) => {
   t.same(await getJSONBuff((r) => r.warn("foobar")), {
-    stderr: [
-      '{"type":"warning","data":"foobar"}'
-    ],
-    stdout: []
+    stderr: '{"type":"warning","data":"foobar"}',
+    stdout: ""
   });
 });
 
 test("JSONReporter.info", async (t) => {
   t.same(await getJSONBuff((r) => r.info("foobar")), {
-    stderr: [],
-    stdout: [
-      '{"type":"info","data":"foobar"}'
-    ]
+    stderr: "",
+    stdout: '{"type":"info","data":"foobar"}'
   });
 });
 
@@ -94,13 +78,13 @@ test("JSONReporter.activity", async (t) => {
     activity.tick();
     activity.end();
   }), {
-    stderr: [],
+    stderr: "",
     stdout: [
       '{"type":"activityStart","data":{"id":0}}',
       '{"type":"activitytick","data":{"id":0}}',
       '{"type":"activitytick","data":{"id":0}}',
       '{"type":"activityEnd","data":{"id":0}}'
-    ]
+    ].join("\n")
   });
 });
 
@@ -110,12 +94,12 @@ test("JSONReporter.progress", async (t) => {
     tick();
     tick();
   }), {
-    stderr: [],
+    stderr: "",
     stdout: [
       '{"type":"progressStart","data":{"id":0,"total":2}}',
       '{"type":"progressTick","data":{"id":0,"current":1}}',
       '{"type":"progressTick","data":{"id":0,"current":2}}',
       '{"type":"progressFinish","data":{"id":0}}'
-    ]
+    ].join("\n")
   });
 });
