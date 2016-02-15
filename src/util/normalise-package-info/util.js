@@ -13,8 +13,6 @@ import type { PersonObject } from "../../types.js";
 
 let _ = require("lodash");
 
-export const README_NOT_FOUND_MESSAGE = "ERROR: No README data found!";
-
 export function stringifyPerson(person: any): any | string {
   if (!_.isPlainObject(person)) {
     return person;
@@ -23,11 +21,11 @@ export function stringifyPerson(person: any): any | string {
   let parts = [];
   if (person.name) parts.push(person.name);
 
-  let url = person.url || person.web;
-  if (url) parts.push(`(${url})`);
-
   let email = person.email || person.mail;
   if (email) parts.push(`<${email}>`);
+
+  let url = person.url || person.web;
+  if (url) parts.push(`(${url})`);
 
   return parts.join(" ");
 }
@@ -65,7 +63,6 @@ export function normalisePerson(person: mixed): mixed | PersonObject {
 
 export function extractDescription(readme: string): ?string {
   if (!readme) return;
-  if (readme === README_NOT_FOUND_MESSAGE) return;
 
   // split into lines
   let lines = readme.trim().split("\n").map((line) => line.trim());
@@ -76,19 +73,17 @@ export function extractDescription(readme: string): ?string {
     let line = lines[start];
     if (line && line.match(/^(#|$)/)) {
       // line isn't empty and isn't a heading so this is the start of a paragraph
+      start++;
       break;
     }
   }
 
-  // find the end of the first paragraph. this is determined by the first empty line
+  // skip newlines from the header to the first line
+  while (start < lines.length && !lines[start]) start++;
+
+  // continue to the first non empty line
   let end = start;
-  for (; end < lines.length; end++) {
-    let line = lines[start];
-    if (!line) {
-      // line is empty so this is the end of the paragraph
-      break;
-    }
-  }
+  while (end < lines.length && lines[end]) end++;
 
   return lines.slice(start, end).join(" ");
 }

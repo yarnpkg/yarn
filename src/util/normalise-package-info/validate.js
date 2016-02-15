@@ -14,7 +14,7 @@ import typos from "./typos.js";
 let validateLicense = require("validate-npm-package-license");
 let isBuiltinModule = require("is-builtin-module");
 
-export default function (info: Object, moduleLoc: string, warn: (msg: string) => void): void {
+export default function (info: Object, warn: (msg: string) => void): void {
   for (let key in typos) {
     if (key in info) {
       warn(`Potential typo ${key}, did you mean ${typos[key]}?`);
@@ -29,23 +29,23 @@ export default function (info: Object, moduleLoc: string, warn: (msg: string) =>
 
     // cannot start with a dot
     if (name[0] === ".") {
-      throw new TypeError;
+      throw new TypeError("Name can't start with a dot");
     }
 
     // cannot contain the following characters
     if (name.match(/[\/@\s\+%:]/)) {
-      throw new TypeError;
+      throw new TypeError("Name contains illegal characters");
     }
 
     // cannot contain any characters that would need to be encoded for use in a url
     if (name !== encodeURIComponent(name)) {
-      throw new TypeError;
+      throw new TypeError("Name cannot contain character that require URL encoding");
     }
 
     // cannot equal node_modules or favicon.ico
     let lower = name.toLowerCase();
     if (lower === "node_modules" || lower === "favico.ico") {
-      throw new TypeError;
+      throw new TypeError("Name is blacklisted");
     }
   }
 

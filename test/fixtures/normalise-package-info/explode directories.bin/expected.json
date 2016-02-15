@@ -1,0 +1,8 @@
+{
+  "name": "",
+  "version": "",
+  "bin": {
+    "bar": "my-bin/bar",
+    "foo": "my-bin/foo"
+  }
+}

@@ -9,7 +9,7 @@
  * @flow
  */
 
-import { README_NOT_FOUND_MESSAGE, normalisePerson, extractDescription } from "./util.js";
+import { normalisePerson, extractDescription } from "./util.js";
 import { hostedGitFragmentToGitUrl } from "../../resolvers/index.js";
 import inferLicense from "./infer-license.js";
 import * as fs from "../fs.js";
@@ -22,21 +22,14 @@ let _      = require("lodash");
 export default async function (info: Object, moduleLoc: string): Promise<void> {
   let files = await fs.readdir(moduleLoc);
 
-  // TODO: sam we could do some validation in here too, yell at people - seb
-
-  // clean semver version
-  if (typeof info.version === "string") {
+  // clean info.version
+  if (typeof info.version === "string" && !semver.valid(info.version)) {
     info.version = semver.clean(info.version);
   }
 
   // if name or version aren't set then set them to empty strings
   info.name = info.name || "";
-  info.version = info.verison || "";
-
-  // clean info.version
-  if (typeof info.version === "string" && !semver.valid(info.version)) {
-    info.version = semver.clean(info.version);
-  }
+  info.version = info.version || "";
 
   // if the man field is a string then coerce it to an array
   if (typeof info.man === "string") {
@@ -78,14 +71,13 @@ export default async function (info: Object, moduleLoc: string): Promise<void> {
     if (readmeFilename) {
       info.readmeFilename = readmeFilename;
       info.readme = await fs.readFile(path.join(moduleLoc, readmeFilename));
-    } else {
-      info.readme = README_NOT_FOUND_MESSAGE;
     }
   }
 
   // if there's no description then take the first paragraph from the readme
   if (!info.description && info.readme) {
-    info.description = extractDescription(info.description);
+    let desc = extractDescription(info.readme);
+    if (desc) info.description = desc;
   }
 
   // if the repository field is a string then assume it's a git repo and expand it
@@ -110,6 +102,10 @@ export default async function (info: Object, moduleLoc: string): Promise<void> {
   if (typeof info.homepage === "string") {
     let parts = url.parse(info.homepage);
     parts.protocol = parts.protocol || "http:";
+    if (parts.pathname && !parts.hostname) {
+      parts.hostname = parts.pathname;
+      parts.pathname = "";
+    }
     // $FlowFixMe: https://github.com/facebook/flow/issues/908
     info.homepage = url.format(parts);
   }
@@ -166,6 +162,8 @@ export default async function (info: Object, moduleLoc: string): Promise<void> {
         }
       }
     }
+
+    delete info.directories;
   }
 
   // infer license file

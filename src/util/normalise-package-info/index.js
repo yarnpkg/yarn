@@ -19,6 +19,6 @@ export default async function (info: Object, moduleLoc: string, warn?: WarnFunct
   if (info.private) warn = null;
   if (!warn) warn = function () {};
   await fix(info, moduleLoc);
-  validate(info, moduleLoc, warn);
+  validate(info, warn);
   return info;
 }
