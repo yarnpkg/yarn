@@ -60,75 +60,69 @@ export async function analyse(old: string, latest?: ?string): Promise<AnalysisEn
   let oldFiles: FileEntries  = await walk(old);
   let oldByRelative: FileMap = buildByRelative(oldFiles);
 
-  if (latest) {
-    //
-    let newFiles: Array<File> = [];
+  //
+  let newFiles: Array<File> = [];
 
-    // get new file structure
-    let latestFiles: FileEntries = await walk(latest);
-    let latestByRelative: FileMap = buildByRelative(latestFiles);
+  // get new file structure
+  let latestFiles: FileEntries = await walk(latest);
+  let latestByRelative: FileMap = buildByRelative(latestFiles);
 
-    // get new and same file entries
-    for (let file of latestFiles) {
-      let existing = oldByRelative[file.relative];
-      if (existing) {
-        maybePushIfChanged(existing, file, changes);
-      } else {
-        newFiles.push(file);
-      }
+  // get new and same file entries
+  for (let file of latestFiles) {
+    let existing = oldByRelative[file.relative];
+    if (existing) {
+      maybePushIfChanged(existing, file, changes);
+    } else {
+      newFiles.push(file);
+    }
+  }
+
+  // get removed and renamed file entries
+  for (let file of oldFiles) {
+    if (latestByRelative[file.relative]) {
+      // it exists
+      continue;
     }
 
-    // get removed and renamed file entries
-    for (let file of oldFiles) {
-      if (latestByRelative[file.relative]) {
-        // it exists
+    // check whether the deleted file is at least 80% similar to any new files
+    if (file.type === "binary" || file.type === "file") {
+      let maxSimilarity = 0;
+      let renamedTo: ?File;
+
+      for (let newFile of newFiles) {
+        let similarity = 0;
+
+        // it could be a binary so let's just go for this quick sloppy check
+        if (newFile.hash === file.hash) {
+          similarity = 1;
+        }
+
+        // if both files are plain text then perform a comparison
+        if (!similarity && file.type === "file" && newFile.type === "file") {
+          similarity = getSimilarity(newFile.buffer, file.buffer);
+        }
+
+        if (similarity >= 0.80 && similarity > maxSimilarity) {
+          maxSimilarity = similarity;
+          renamedTo = newFile;
+        }
+      }
+
+      if (renamedTo) {
+        newFiles.splice(newFiles.indexOf(renamedTo), 1);
+        changes.push({ type: "renamed", files: [file, renamedTo] });
         continue;
       }
-
-      // check whether the deleted file is at least 80% similar to any new files
-      if (file.type === "binary" || file.type === "file") {
-        let maxSimilarity = 0;
-        let renamedTo: ?File;
-
-        for (let newFile of newFiles) {
-          let similarity = 0;
-
-          // it could be a binary so let's just go for this quick sloppy check
-          if (newFile.hash === file.hash) {
-            similarity = 1;
-          }
-
-          // if both files are plain text then perform a comparison
-          if (!similarity && file.type === "file" && newFile.type === "file") {
-            similarity = getSimilarity(newFile.buffer, file.buffer);
-          }
-
-          if (similarity >= 0.80 && similarity > maxSimilarity) {
-            maxSimilarity = similarity;
-            renamedTo = newFile;
-          }
-        }
-
-        if (renamedTo) {
-          newFiles.splice(newFiles.indexOf(renamedTo), 1);
-          changes.push({ type: "renamed", files: [file, renamedTo] });
-          continue;
-        }
-      }
-
-      // file doesn't exist in new location and we couldn't find a valid rename
-      changes.push({ type: "deleted", file });
     }
 
-    // by this point newFiles will have been filtered with all the renamed files so all
-    // the files within are valid new ones
-    for (let file of newFiles) {
-      changes.push({ type: "new", file });
-    }
-  } else {
-    for (let file of oldFiles) {
-      changes.push({ type: "new", file });
-    }
+    // file doesn't exist in new location and we couldn't find a valid rename
+    changes.push({ type: "deleted", file });
+  }
+
+  // by this point newFiles will have been filtered with all the renamed files so all
+  // the files within are valid new ones
+  for (let file of newFiles) {
+    changes.push({ type: "new", file });
   }
 
   return changes;

@@ -33,41 +33,41 @@ function createReadline() {
 
 export default class ConsoleReporter extends BaseReporter {
   step(current: number, total: number, msg: string, emoji: string) {
-    console.log(`${chalk.grey(`[${current}/${total}]`)} ${prependEmoji(msg, emoji)}...`);
+    this._this.console.log(`${chalk.grey(`[${current}/${total}]`)} ${prependEmoji(msg, emoji)}...`);
   }
 
   header(command: string) {
-    console.log(chalk.bold(`kpm ${command} v${pkg.version}`));
+    this.console.log(chalk.bold(`kpm ${command} v${pkg.version}`));
   }
 
   footer() {
     let totalTime = (this.getTotalTime() / 1000).toFixed(2);
     let peakMemory = (this.peakMemory / 1024 / 1024).toFixed(2);
-    console.log(prependEmoji(`Done in ${totalTime}s. Peak memory usage ${peakMemory}MB.`, "✨"));
+    this.console.log(prependEmoji(`Done in ${totalTime}s. Peak memory usage ${peakMemory}MB.`, "✨"));
   }
 
   log(msg: string) {
-    console.log(msg);
+    this.console.log(msg);
   }
 
   success(msg: string) {
-    console.log(`${chalk.green("success")} ${msg}`);
+    this.console.log(`${chalk.green("success")} ${msg}`);
   }
 
   error(msg: string) {
-    console.error(`${chalk.red("error")} ${msg}`);
+    this.console.error(`${chalk.red("error")} ${msg}`);
   }
 
   info(msg: string) {
-    console.log(`${chalk.blue("info")} ${msg}`);
+    this.console.log(`${chalk.blue("info")} ${msg}`);
   }
 
   command(command: string) {
-    console.log(chalk.grey(`$ ${command}`));
+    this.console.log(chalk.grey(`$ ${command}`));
   }
 
   warn(msg: string) {
-    console.log(`${chalk.yellow("warning")} ${msg}`);
+    this.console.log(`${chalk.yellow("warning")} ${msg}`);
   }
 
   question(question: string): Promise<boolean> {
@@ -112,23 +112,23 @@ export default class ConsoleReporter extends BaseReporter {
     let rl = createReadline();
 
     return new Promise((resolve) => {
-      console.log(header);
+      this.console.log(header);
 
       for (let i = 0; i < options.length; i++) {
-        console.log(`${i + 1}. ${options[i]}`);
+        this.console.log(`${i + 1}. ${options[i]}`);
       }
 
       let ask = () => {
-        rl.question(`${question}?: `, function (index) {
+        rl.question(`${question}?: `, (index) => {
           index = +index;
 
           if (isNaN(index)) {
-            console.log("Not a number");
+            this.console.log("Not a number");
             return ask();
           }
 
           if (index <= 0 || index > options.length) {
-            console.log("Outside answer range");
+            this.console.log("Outside answer range");
             return ask();
           }
 

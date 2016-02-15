@@ -12,6 +12,7 @@
 
 export default class BaseReporter {
   constructor() {
+    this.console    = console;
     this.startTime  = Date.now();
     this.peakMemory = 0;
 
@@ -21,6 +22,7 @@ export default class BaseReporter {
   peakMemoryInterval: ?number;
   peakMemory: number;
   startTime: number;
+  console: typeof console;
 
   initPeakMemoryCounter() {
     this.checkPeakMemory();
@@ -85,12 +87,12 @@ export default class BaseReporter {
 
   //
   question(question: string): Promise<boolean> {
-    return Promise.resolve(false);
+    return Promise.reject(new Error("Not implemented"));
   }
 
   // prompt the user to select an option from an array
   select(header: string, question: string, options: Array<string>): Promise<string> {
-    return Promise.resolve("");
+    return Promise.reject(new Error("Not implemented"));
   }
 
   // render a progress bar and return a function which when called will trigger an update

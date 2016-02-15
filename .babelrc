@@ -1,4 +1,15 @@
 {
+  "env": {
+    "node5": {
+      "presets": ["node5", "react", "stage-0"]
+    },
+    "pre-node5": {
+      "presets": ["react", "es2015", "stage-0"],
+      "plugins": [
+        ["transform-runtime", { "polyfill": true, "regenerator": false }]
+      ]
+    }
+  },
   "plugins": [
     ["transform-runtime", { "polyfill": false, "regenerator": true }]
   ]

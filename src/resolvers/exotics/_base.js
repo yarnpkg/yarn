@@ -21,7 +21,7 @@ export default class ExoticResolver extends BaseResolver {
     if (proto) {
       return _.startsWith(pattern, `${proto}:`);
     } else {
-      throw new Error(`No protocol specified`);
+      throw new Error("No protocol specified");
     }
   }
 }

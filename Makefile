@@ -6,20 +6,17 @@ build:
 watch:
 	./node_modules/.bin/gulp watch
 
-typecheck:
-	./node_modules/.bin/flow
-
 test-only:
 	./node_modules/.bin/ava --verbose test/
 
 test-cov:
-	nyc --reporter=lcov --reporter=text-lcov make test-only
+	nyc make test-only
 	nyc report --reporter=lcov
-	open coverage/index.html
+	open coverage/lcov-report/index.html
 
 lint:
-	./node_modules/.bin/eslint bin src test
+	./node_modules/.bin/kcheck
 
-test: lint typecheck test-only
+test: lint test-only
 
 test-ci: build test

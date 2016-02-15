@@ -11,86 +11,86 @@
 
 import BaseReporter from "./_base.js";
 
-function dump(type, data, error?: boolean) {
-  let log = console.log;
-  if (error) log = console.error;
-
-  log(JSON.stringify({ type, data }));
-}
-
-let activityId = 0;
-let progressId = 0;
-
 export default class JSONReporter extends BaseReporter {
+  constructor() {
+    super();
+
+    this._activityId = 0;
+    this._progressId = 0;
+  }
+
+  _activityId: number;
+  _progressId: number;
+
+  _dump(type: string, data: any, error?: boolean) {
+    let console = this.console;
+    let log = console.log;
+    if (error) log = console.error;
+
+    log(JSON.stringify({ type, data }));
+  }
+
   step(current: number, total: number, message: string) {
-    dump("step", { message, current, total });
+    this._dump("step", { message, current, total });
   }
 
   footer() {
-    dump("finished", this.getTotalTime());
+    this._dump("finished", this.getTotalTime());
   }
 
   log(msg: string) {
-    dump("log", msg);
+    this._dump("log", msg);
   }
 
   command(msg: string) {
-    dump("command", msg);
+    this._dump("command", msg);
   }
 
   success(msg: string) {
-    dump("success", msg);
+    this._dump("success", msg);
   }
 
   error(msg: string) {
-    dump("error", msg, true);
+    this._dump("error", msg, true);
   }
 
   warn(msg: string) {
-    dump("warning", msg);
+    this._dump("warning", msg, true);
   }
 
   info(msg: string) {
-    dump("info", msg);
-  }
-  
-  question(): Promise<boolean> {
-    return Promise.reject(new Error("Cannot accept questions with the JSON reporter"));
-  }
-
-  select(): Promise<string> {
-    return Promise.reject(new Error("Cannot accept questions with the JSON reporter"));
+    this._dump("info", msg);
   }
 
   activity(): {
     tick: (name: string) => void,
     end: () => void
   } {
-    let id = activityId++;
-    dump("activityStart", { id });
+    let id = this._activityId++;
+    this._dump("activityStart", { id });
 
     return {
-      tick(name: string) {
-        dump("activitytick", { id, name });
+      tick: (name: string) => {
+        this._dump("activitytick", { id, name });
       },
 
-      end() {
-        dump("activityEnd", { id });
+      end: () => {
+        this._dump("activityEnd", { id });
       }
     };
   }
 
   progress(total: number): Function {
-    let id = progressId++;
+    let id = this._progressId++;
     let current = 0;
-    dump("progressStart", { id, total });
+    this._dump("progressStart", { id, total });
 
-    return function () {
+    return () => {
       current++;
-      dump("progressTick", { id, current });
+      this._dump("progressTick", { id, current });
 
       if (current === total) {
-        dump("progressFinish", { id });
+        this._dump("progressFinish", { id });
       }
     };
   }

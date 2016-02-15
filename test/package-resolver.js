@@ -7,7 +7,10 @@
  * of patent rights can be found in the PATENTS file in the same directory.
  */
 
-import { reporters, PackageResolver, Lockfile, Config } from "..";
+import * as reporters from "../src/reporters/index.js";
+import PackageResolver from "../src/package-resolver.js";
+import Lockfile from "../src/lockfile/index.js";
+import Config from "../src/config.js";
 
 let rimraf = require("rimraf");
 let path   = require("path");

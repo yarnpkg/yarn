@@ -22,15 +22,21 @@ export const METADATA_FILENAME   = ".kpm-metadata.json";
 
 export const USER_AGENT = "kpm";
 
-export let ENV_PATH_KEY = "PATH";
+export const ENV_PATH_KEY = getPathKey(process.platform, process.env);
 
-// windows calls it's path "Path" usually, but this is not guaranteed.
-if (process.platform === "win32") {
-  ENV_PATH_KEY = "Path";
+export function getPathKey(platform: string, env: { [key: string]: string }): string {
+  let pathKey = "PATH";
 
-  for (let key in process.env) {
-    if (key.match(/^PATH$/i)) {
-      ENV_PATH_KEY = key;
+  // windows calls it's path "Path" usually, but this is not guaranteed.
+  if (platform === "win32") {
+    pathKey = "Path";
+
+    for (let key in env) {
+      if (key.toLowerCase() === "path") {
+        pathKey = key;
+      }
     }
   }
+
+  return pathKey;
 }

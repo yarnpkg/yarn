@@ -9,6 +9,3 @@
 strip_root=true
 suppress_comment= \\(.\\|\n\\)*\\$FlowFixMe
 esproposal.class_static_fields=enable
-
-[version]
-0.21.0

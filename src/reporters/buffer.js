@@ -19,8 +19,16 @@ export default class BufferReporter extends BaseReporter {
 
   _buffer: Array<{
     type: string;
-    data: string;
+    data: string | Object;
   }>;
+
+  step(current: number, total: number, message: string) {
+    this._buffer.push({ type: "step", data: { message, current, total } });
+  }
+
+  footer() {
+    this._buffer.push({ type: "finished", data: this.getTotalTime() });
+  }
 
   log(data: string) {
     this._buffer.push({ type: "log", data });

@@ -18,12 +18,7 @@ type LengthObject = string | Array<Char> | {
 
 const LEVEN_MAX = 200;
 
-/**
- * Use Damerau–Levenshtein when the input text is small enough, otherwise just compare the
- * lines that each text has in common.
- */
-
-export default function (a: LengthObject, b: LengthObject): number {
+function shortCircuit(a: LengthObject, b: LengthObject): ?number {
   if (!a.length && !b.length) {
     return 1;
   }
@@ -31,9 +26,19 @@ export default function (a: LengthObject, b: LengthObject): number {
   if (!a.length || !b.length) {
     return 0;
   }
+}
+
+/**
+ * Use Damerau–Levenshtein when the input text is small enough, otherwise just compare the
+ * lines that each text has in common.
+ */
+
+export default function (a: LengthObject, b: LengthObject): number {
+  let short = shortCircuit(a, b);
+  if (short != null) return short;
 
   if (a.length <= LEVEN_MAX && b.length <= LEVEN_MAX) {
-    return damLeven(a, b);
+    return leven(a, b);
   } else {
     return lines(String(a), String(b));
   }
@@ -47,6 +52,9 @@ export default function (a: LengthObject, b: LengthObject): number {
  */
 
 export function lines(a: string, b: string): number {
+  let short = shortCircuit(a, b);
+  if (short != null) return short;
+
   let aLines = a.split("\n");
   let bLines = b.split("\n");
 
@@ -62,49 +70,42 @@ export function lines(a: string, b: string): number {
 }
 
 /**
- * Implementation of the Damerau–Levenshtein optimal string alignment distance algorithm.
+ * Implementation of the optimal string alignment distance algorithm.
  *
  * Calculate the distance between to input values by counting the minimum number of
  * operations needed to transform one into the other.
  *
- * https://en.wikipedia.org/wiki/Damerau%E2%80%93Levenshtein_distance
+ * https://en.wikipedia.org/wiki/Levenshtein_distance
  */
 
-export function damLeven(a: LengthObject, b: LengthObject): number {
-  // build up matrix
-  let matrix: Array<Array<number>> = new Array(a.length);
-  for (let i = 0; i < a.length + 1; i++) {
-    matrix[i] = new Array(b.length);
-    matrix[i][0] = i;
-  }
-  for (let j = 0; j < b.length + 1; j++) {
-    matrix[0][j] = j;
-  }
+export function leven(a: LengthObject, b: LengthObject): number {
+  let short = shortCircuit(a, b);
+  if (short != null) return short;
 
-  // perform comparisons
-  for (let i = 1; i <= a.length; i++) {
-    for (let j = 1; j <= b.length; j++) {
-      let cost = a[i] === b[j] ? 0 : 1;
+  let steps;
+	let tmp;
+	let tmp2;
+  let arr = [];
 
-      matrix[i][j] = Math.min(
-        matrix[i - 1][j    ] + 1,   // deletion
-        matrix[i    ][j - 1] + 1,   // insertion
-        matrix[i - 1][j - 1] + cost // substitution
-      );
+  let i = 0;
+	while (i < a.length) {
+		arr[i] = ++i;
+	}
 
-      if (i > 1 && j > 1 && a[i] === b[j - 1] && a[i - 1] === b[j]) {
-        // transposition
-        matrix[i][j] = Math.min(
-          matrix[i][j],
-          matrix[i - 2][j - 2] + cost
-        );
-      }
+  let j = 0;
+	while (j < b.length) {
+    let bChar = b[j];
+    tmp = j++;
+    steps = j;
+
+    for (let i = 0; i < a.length; i++) {
+      tmp2 = bChar === a[i] ? tmp : tmp + 1;
+      tmp = arr[i];
+      steps = arr[i] = tmp > steps ? tmp2 > steps ? steps + 1 : tmp2 : tmp2 > tmp ? tmp + 1 : tmp2;
     }
-  }
+	}
 
-  let steps      = matrix[a.length][b.length];
   let relative   = steps / Math.max(a.length, b.length);
-
   let similarity = 1 - relative;
   return similarity;
 }

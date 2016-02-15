@@ -8,7 +8,9 @@
  */
 
 if (require("semver").satisfies(process.versions.node, ">=5.0.0")) {
-  module.exports = require("./lib/api.js");
+  process.env.BABEL_ENV = "node5";
 } else {
-  module.exports = require("./lib-legacy/api.js");
+  process.env.BABEL_ENV = "pre-node5";
 }
+
+require("babel-core/register");

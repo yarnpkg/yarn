@@ -7,20 +7,20 @@
  * of patent rights can be found in the PATENTS file in the same directory.
  */
 
-import parse from "../lib/lockfile/parse";
-import stringify from "../lib/lockfile/stringify";
+import stringify from "../src/lockfile/stringify.js";
+import parse from "../src/lockfile/parse.js";
+import nullify from "../src/util/map.js";
 
-let nullify = require("../lib/util/map").default;
-let test    = require("ava");
+let test = require("ava");
 
 let objs = [
   { foo: "bar" },
   { foo: {} },
   { foo: "foo", bar: "bar" },
-  require("../package.json")
+  Object.assign({}, require("../package.json"), { ava: {} })
 ];
 
-test("lockfile.parse/stringify", (t) => {
+test("parse/stringify", (t) => {
   t.plan(objs.length);
 
   for (let obj of objs) {
@@ -28,19 +28,19 @@ test("lockfile.parse/stringify", (t) => {
   }
 });
 
-test("lockfile.parse", (t) => {
+test("parse", (t) => {
   t.plan(6);
 
-  t.same(parse(`foo "bar"`), nullify({ foo: "bar" }));
-  t.same(parse(`"foo" "bar"`), nullify({ foo: "bar" }));
-  t.same(parse(`foo "bar"`), nullify({ foo: "bar" }));
+  t.same(parse('foo "bar"'), nullify({ foo: "bar" }));
+  t.same(parse('"foo" "bar"'), nullify({ foo: "bar" }));
+  t.same(parse('foo "bar"'), nullify({ foo: "bar" }));
 
   t.same(parse(`foo:\n  bar "bar"`), nullify({ foo: { bar: "bar" } }));
   t.same(parse(`foo:\n  bar:\n  foo "bar"`), nullify({ foo: { bar: {}, foo: "bar" } }));
   t.same(parse(`foo:\n  bar:\n    foo "bar"`), nullify({ foo: { bar: { foo: "bar" } } }));
 });
 
-test("lockfile.stringify", (t) => {
+test("stringify", (t) => {
   stringify;
   t;
 });

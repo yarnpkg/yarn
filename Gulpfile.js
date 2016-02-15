@@ -1,3 +1,12 @@
+/**
+ * Copyright (c) 2016-present, Facebook, Inc.
+ * All rights reserved.
+ *
+ * This source code is licensed under the BSD-style license found in the
+ * LICENSE file in the root directory of this source tree. An additional grant
+ * of patent rights can be found in the PATENTS file in the same directory.
+ */
+
 "use strict";
 
 let plumber = require("gulp-plumber");
@@ -9,6 +18,9 @@ let watch   = require("gulp-watch");
 let gutil   = require("gulp-util");
 let gulp    = require("gulp");
 let path    = require("path");
+let fs      = require("fs");
+
+let babelRc = JSON.parse(fs.readFileSync(path.join(__dirname, ".babelrc"), "utf8"));
 
 function build(lib, opts) {
   return gulp.src("src/**/*.js")
@@ -36,22 +48,14 @@ gulp.task("default", ["build"]);
 gulp.task("build", ["build-modern", "build-legacy"]);
 
 gulp.task("build-modern", function () {
-  return build("lib", {
-    presets: ["node5", "react", "stage-0"]
-  });
+  return build("lib", babelRc.env.node5);
 });
 
 gulp.task("build-legacy", function () {
-  return build("lib-legacy", {
-    // TODO find a way to put this in .babelrc
-    presets: ["react", "es2015", "stage-0"],
-    plugins: [
-      ["transform-runtime", { polyfill: true, regenerator: false }]
-    ]
-  });
+  return build("lib-legacy", babelRc.env["pre-node5"]);
 });
 
-gulp.task("watch", ["build"], function (callback) {
+gulp.task("watch", ["build"], function () {
   watch("src/**/*.js", function () {
     gulp.start("build");
   });
