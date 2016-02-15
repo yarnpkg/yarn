@@ -18,7 +18,7 @@ let readline = require("readline");
 let chalk    = require("chalk");
 
 export default class ConsoleReporter extends BaseReporter {
-  _prependEmoji(msg, emoji) {
+  _prependEmoji(msg: string, emoji: string): string {
     if (emoji && this.isTTY) msg = `${emoji}  ${msg}`;
     return msg;
   }
@@ -104,7 +104,7 @@ export default class ConsoleReporter extends BaseReporter {
       input: this.stdin,
       output: this.stdout,
       terminal: true
-    })
+    });
 
     return new Promise((resolve) => {
       this.log(header);

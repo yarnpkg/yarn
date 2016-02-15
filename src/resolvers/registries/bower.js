@@ -9,7 +9,7 @@
  * @flow
  */
 
-import type { PackageInfo } from "../../types.js";
+import type { Manifest } from "../../types.js";
 import { MessageError } from "../../errors.js";
 import RegistryResolver from "./_base.js";
 import GitResolver from "../exotics/git.js";
@@ -26,7 +26,7 @@ export default class BowerResolver extends RegistryResolver {
     });
   }
 
-  async resolve(): Promise<PackageInfo> {
+  async resolve(): Promise<Manifest> {
     let body = await this.resolveRequest();
 
     if (body) {

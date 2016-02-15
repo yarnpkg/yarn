@@ -9,10 +9,11 @@
  * @flow
  */
 
+import type { Stdout } from "../../types.js";
 import { clearLine } from "./util.js";
 
 export default class Spinner {
-  constructor(stdout: steam$Readable = process.stderr) {
+  constructor(stdout: Stdout = process.stderr) {
     this.current = 0;
     this.stdout  = stdout;
     this.delay   = 60;
@@ -21,7 +22,7 @@ export default class Spinner {
     this.id      = null;
   }
 
-  stdout: steam$Readable;
+  stdout: Stdout;
   current: number;
   delay: number;
   chars: Array<string>;

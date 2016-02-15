@@ -9,7 +9,7 @@
  * @flow
  */
 
-import type { FetchedPackageInfo } from "./types.js";
+import type { FetchedManifest } from "./types.js";
 import type PackageResolver from "./package-resolver.js";
 import type Reporter from "./reporters/_base.js";
 import type PackageReference from "./package-reference.js";
@@ -31,7 +31,7 @@ export default class PackageFetcher {
   reporter: Reporter;
   config: Config;
 
-  async fetch(ref: PackageReference): Promise<FetchedPackageInfo> {
+  async fetch(ref: PackageReference): Promise<FetchedManifest> {
     let dest = this.config.generateHardModulePath(ref);
 
     if (await this.config.isValidModuleDest(dest)) {
@@ -67,7 +67,7 @@ export default class PackageFetcher {
     }
   }
 
-  async maybeFetch(ref: PackageReference): Promise<?FetchedPackageInfo> {
+  async maybeFetch(ref: PackageReference): Promise<?FetchedManifest> {
     let promise = this.fetch(ref);
 
     if (ref.optional) {
@@ -88,7 +88,7 @@ export default class PackageFetcher {
     await promise.queue(pkgs, (ref) => this.maybeFetch(ref).then((res) => {
       if (res) {
         ref.remote.hash = res.hash;
-        return this.resolver.updatePackageInfo(ref, res.package).then(function () {
+        return this.resolver.updateManifest(ref, res.package).then(function () {
           if (tick) tick(ref.name);
         });
       }

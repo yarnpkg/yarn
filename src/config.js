@@ -12,8 +12,8 @@
 import type { RegistryNames } from "./registries/index.js";
 import type Reporter from "./reporters/_base.js";
 import type Registry from "./registries/_base.js";
-import type { PackageInfo } from "./types.js";
-import normalisePackageInfo from "./util/normalise-package-info/index.js";
+import type { Manifest } from "./types.js";
+import normaliseManifest from "./util/normalise-manifest/index.js";
 import * as fs from "./util/fs.js";
 import * as constants from "./constants.js";
 import ConstraintResolver from "./package-constraint-resolver.js";
@@ -195,7 +195,7 @@ export default class Config {
   async readPackageMetadata(dir: string): Promise<{
     registry: RegistryNames,
     hash: string,
-    package: PackageInfo
+    package: Manifest
   }> {
     let metadata = await fs.readJson(path.join(dir, constants.METADATA_FILENAME));
     let pkg = await this.readPackageJson(dir, metadata.registry);
@@ -244,7 +244,7 @@ export default class Config {
       data.registry = registry;
 
       // TODO: warn
-      await normalisePackageInfo(data, dir);
+      await normaliseManifest(data, dir);
 
       return data;
     }

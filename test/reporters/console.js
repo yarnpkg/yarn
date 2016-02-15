@@ -97,7 +97,7 @@ test("ConsoleReporter.activity", async (t) => {
     stdout: []
   });
 
-  t.same(await getConsoleBuff(function (r, streams) {
+  t.same(await getConsoleBuff(function (r) {
     let activity = r.activity();
     activity.tick("foo");
     activity.end();
@@ -126,7 +126,7 @@ test("ConsoleReporter.select", async (t) => {
       "\u001b[0J",
       "Select one?:",
       "\u001b[14G",
-     "1"
+      "1"
     ]
   });
 });

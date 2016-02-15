@@ -9,7 +9,7 @@
  * @flow
  */
 
-import type { PackageInfo } from "./types.js";
+import type { Manifest } from "./types.js";
 import type PackageResolver from "./package-resolver.js";
 import type Reporter from "./reporters/_base.js";
 import type Config from "./config.js";
@@ -32,7 +32,7 @@ export default class PackageLinker {
   resolver: PackageResolver;
   config: Config;
 
-  async link(pkg: PackageInfo): Promise<void> {
+  async link(pkg: Manifest): Promise<void> {
     let ref = pkg.reference;
     invariant(ref, "Package reference is missing");
 
@@ -43,7 +43,7 @@ export default class PackageLinker {
     await this.linkBinDependencies(pkg, dir);
   }
 
-  async linkSelfDependencies(pkg: PackageInfo, pkgLoc: string, targetBinLoc: string): Promise<void> {
+  async linkSelfDependencies(pkg: Manifest, pkgLoc: string, targetBinLoc: string): Promise<void> {
     for (let scriptName in pkg.bin) {
       let scriptCmd = pkg.bin[scriptName];
       let dest      = path.join(targetBinLoc, scriptName);
@@ -58,7 +58,7 @@ export default class PackageLinker {
     }
   }
 
-  async linkBinDependencies(pkg: PackageInfo, dir: string): Promise<void> {
+  async linkBinDependencies(pkg: Manifest, dir: string): Promise<void> {
     let ref = pkg.reference;
     invariant(ref, "Package reference is missing");
 
@@ -96,7 +96,7 @@ export default class PackageLinker {
     }
   }
 
-  async linkModules(pkg: PackageInfo, dir: string): Promise<void> {
+  async linkModules(pkg: Manifest, dir: string): Promise<void> {
     let self = this;
     invariant(pkg.reference, "Package reference is missing");
 
@@ -111,7 +111,7 @@ export default class PackageLinker {
 
   async init(linkBins?: boolean = true): Promise<void> {
     let self = this;
-    let pkgs = this.resolver.getPackageInfos();
+    let pkgs = this.resolver.getManifests();
     let tick = this.reporter.progress(pkgs.length);
 
     await promise.queue(pkgs, (pkg) => {

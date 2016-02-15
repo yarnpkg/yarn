@@ -9,7 +9,7 @@
  * @flow
  */
 
-import type { PackageInfo } from "../../types.js";
+import type { Manifest } from "../../types.js";
 import type PackageRequest from "../../package-request.js";
 import { hostedGit as hostedGitResolvers } from "../index.js";
 import { MessageError } from "../../errors.js";
@@ -55,7 +55,7 @@ export default class GitResolver extends ExoticResolver {
     return false;
   }
 
-  async resolve(forked?: true): Promise<PackageInfo> {
+  async resolve(forked?: true): Promise<Manifest> {
     let { url } = this;
 
     // shortcut for hosted git. we will fallback to a GitResolver if the hosted git

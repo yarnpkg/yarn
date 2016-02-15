@@ -9,12 +9,13 @@
  * @flow
  */
 
+import type { Stdout } from "../../types.js";
 import { clearLine } from "./util.js";
 
 let repeat = require("repeating");
 
 export default class ProgressBar {
-  constructor(total: number, stdout: steam$Readable = process.stderr) {
+  constructor(total: number, stdout: Stdout = process.stderr) {
     this.stdout = stdout;
     this.total  = total;
     this.chars  = ProgressBar.bars[0].split("");
@@ -22,7 +23,7 @@ export default class ProgressBar {
     this.curr   = 0;
   }
 
-  stdout: steam$Readable;
+  stdout: Stdout;
   curr: number;
   total: number;
   width: number;

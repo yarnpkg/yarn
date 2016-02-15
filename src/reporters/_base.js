@@ -9,12 +9,13 @@
  * @flow
  */
 /* eslint no-unused-vars: 0 */
-/* global stream$Readable */
+
+import type { Stdout, Stdin } from "../types.js";
 
 export type ReporterOptions = {
-  stdout: stream$Readable;
-  stderr: stream$Readable;
-  stdin: stream$Writable;
+  stdout?: Stdout;
+  stderr?: Stdout;
+  stdin?: Stdin;
 };
 
 export default class BaseReporter {
@@ -23,6 +24,7 @@ export default class BaseReporter {
     this.stderr = opts.stderr || process.stderr;
     this.stdin  = opts.stdin || process.stdin;
 
+    // $FlowFixMe: this is valid!
     this.isTTY = this.stdout.isTTY;
 
     this.startTime  = Date.now();
@@ -31,9 +33,9 @@ export default class BaseReporter {
     this.initPeakMemoryCounter();
   }
 
-  stdout: stream$Readable;
-  stderr: stream$Readable;
-  stdin: stream$Writable;
+  stdout: Stdout;
+  stderr: Stdout;
+  stdin: Stdin;
   isTTY: boolean;
 
   peakMemoryInterval: ?number;

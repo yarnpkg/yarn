@@ -9,20 +9,20 @@
  * @flow
  */
 
-import type { PackageInfo } from "../../types.js";
+import type { Manifest } from "../../types.js";
 import { MessageError } from "../../errors.js";
 import RegistryResolver from "./_base.js";
 
 type RegistryResponse = {
   name: string,
-  versions: { [key: string]: PackageInfo },
+  versions: { [key: string]: Manifest },
   "dist-tags": { [key: string]: string },
 };
 
 export default class NpmResolver extends RegistryResolver {
   static registry = "npm";
 
-  async findVersionInRegistryResponse(body: RegistryResponse): Promise<PackageInfo> {
+  async findVersionInRegistryResponse(body: RegistryResponse): Promise<Manifest> {
     let range = this.range;
 
     if (range in body["dist-tags"]) {
@@ -47,7 +47,7 @@ export default class NpmResolver extends RegistryResolver {
     });
   }
 
-  async resolve(): Promise<PackageInfo> {
+  async resolve(): Promise<Manifest> {
     // lockfile
     let shrunk = this.request.getLocked("tarball");
     if (shrunk) return shrunk;

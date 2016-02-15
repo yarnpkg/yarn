@@ -9,7 +9,7 @@
  * @flow
  */
 
-import type { PackageInfo } from "../../types.js";
+import type { Manifest } from "../../types.js";
 import type PackageRequest from "../../package-request.js";
 import { MessageError } from "../../errors.js";
 import ExoticResolver from "./_base.js";
@@ -34,7 +34,7 @@ export default class RegistryResolver extends ExoticResolver {
   name: string;
   range: string;
 
-  resolve(): Promise<PackageInfo> {
+  resolve(): Promise<Manifest> {
     return this.fork(this.constructor.factory, false, this.name, this.range);
   }
 }

@@ -9,7 +9,7 @@
  * @flow
  */
 
-import type { PackageInfo, FetchedPackageInfo } from "../../types.js";
+import type { Manifest, FetchedManifest } from "../../types.js";
 import type PackageRequest from "../../package-request.js";
 import TarballFetcher from "../../fetchers/tarball.js";
 import ExoticResolver from "./_base.js";
@@ -36,7 +36,7 @@ export default class TarballResolver extends ExoticResolver {
     return pattern.indexOf("http://") === 0 || pattern.indexOf("https://") === 0;
   }
 
-  async resolve(): Promise<PackageInfo> {
+  async resolve(): Promise<Manifest> {
     let shrunk = this.request.getLocked("tarball");
     if (shrunk) return shrunk;
 
@@ -61,7 +61,7 @@ export default class TarballResolver extends ExoticResolver {
       }, this.config);
 
       // fetch file and get it's hash
-      let fetched: FetchedPackageInfo = await fetcher.fetch(dest);
+      let fetched: FetchedManifest = await fetcher.fetch(dest);
       pkgJson = fetched.package;
       hash    = fetched.hash;
 

@@ -11,13 +11,13 @@
 
 import type Lockfile from "./lockfile/index.js";
 import type Config from "./config.js";
-import type { PackageRemote, PackageInfo } from "./types.js";
+import type { PackageRemote, Manifest } from "./types.js";
 import type { RegistryNames } from "./registries/index.js";
 import { MessageError } from "./errors.js";
 
 export default class PackageReference {
   constructor(
-    info: PackageInfo,
+    info: Manifest,
     remote: PackageRemote,
     lockfile: Lockfile,
     config: Config

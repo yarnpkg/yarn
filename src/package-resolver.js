@@ -9,7 +9,7 @@
  * @flow
  */
 
-import type { PackageInfo, DependencyRequestPatterns } from "./types.js";
+import type { Manifest, DependencyRequestPatterns } from "./types.js";
 import type { RegistryNames } from "./registries/index.js";
 import type PackageReference from "./package-reference.js";
 import type Reporter from "./reporters/_base.js";
@@ -76,7 +76,7 @@ export default class PackageResolver {
 
   // a map of dependency patterns to packages
   patterns: {
-    [packagePattern: string]: PackageInfo
+    [packagePattern: string]: Manifest
   };
 
   // reporter instance, abstracts out display logic
@@ -89,7 +89,7 @@ export default class PackageResolver {
    * TODO description
    */
 
-  async updatePackageInfo(ref: PackageReference, newPkg: PackageInfo): Promise<void> {
+  async updateManifest(ref: PackageReference, newPkg: Manifest): Promise<void> {
     // inherit fields
     let oldPkg = this.patterns[ref.patterns[0]];
     newPkg.reference = ref;
@@ -132,7 +132,7 @@ export default class PackageResolver {
    * Retrieve all the package info stored for this package name.
    */
 
-  getAllInfoForPackageName(name: string): Array<PackageInfo> {
+  getAllInfoForPackageName(name: string): Array<Manifest> {
     let infos = [];
     let seen  = {};
 
@@ -165,7 +165,7 @@ export default class PackageResolver {
    * Get a flat list of all package info.
    */
 
-  getPackageInfos(): Array<PackageInfo> {
+  getManifests(): Array<Manifest> {
     let infos = [];
     let seen  = {};
 
@@ -199,7 +199,7 @@ export default class PackageResolver {
     let human = `${name}@${version}`;
 
     // get package info
-    let info: PackageInfo;
+    let info: Manifest;
     for (let pattern of patterns) {
       let _info = this.patterns[pattern];
       if (_info.version === version) {
@@ -235,7 +235,7 @@ export default class PackageResolver {
    * TODO description
    */
 
-  addPattern(pattern: string, info: PackageInfo) {
+  addPattern(pattern: string, info: Manifest) {
     this.patterns[pattern] = info;
 
     let byName = this.patternsByPackage[info.name] = this.patternsByPackage[info.name] || [];
@@ -254,7 +254,7 @@ export default class PackageResolver {
    * TODO description
    */
 
-  getExactVersionMatch(name: string, version: string): ?PackageInfo {
+  getExactVersionMatch(name: string, version: string): ?Manifest {
     let patterns = this.patternsByPackage[name];
     if (!patterns) return;
 

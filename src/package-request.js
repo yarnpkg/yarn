@@ -9,7 +9,7 @@
  * @flow
  */
 
-import type { PackageInfo } from "./types.js";
+import type { Manifest } from "./types.js";
 import type { RegistryNames } from "./registries/index.js";
 import type PackageResolver from "./package-resolver.js";
 import type Reporter from "./reporters/_base.js";
@@ -110,7 +110,7 @@ export default class PackageRequest {
    * Otherwise fork off to an exotic resolver if one matches.
    */
 
-  async findVersionOnRegistry(pattern: string): Promise<PackageInfo> {
+  async findVersionOnRegistry(pattern: string): Promise<Manifest> {
     let { range, name } = this.normalisePattern(pattern);
 
     let exoticResolver = PackageRequest.getExoticResolver(range);
@@ -191,7 +191,7 @@ export default class PackageRequest {
    * Construct an exotic resolver instance with the input `ExoticResolver` and `range`.
    */
 
-  async findExoticVersionInfo(ExoticResolver: Function, range: string): Promise<PackageInfo> {
+  async findExoticVersionInfo(ExoticResolver: Function, range: string): Promise<Manifest> {
     let resolver = new ExoticResolver(this, range);
     return resolver.resolve();
   }
@@ -201,7 +201,7 @@ export default class PackageRequest {
    * the registry.
    */
 
-  async findVersionInfo(): Promise<PackageInfo> {
+  async findVersionInfo(): Promise<Manifest> {
     let exoticResolver = PackageRequest.getExoticResolver(this.pattern);
     if (exoticResolver) {
       return await this.findExoticVersionInfo(exoticResolver, this.pattern);
@@ -215,7 +215,7 @@ export default class PackageRequest {
    */
 
   async find(optional: boolean): Promise<void> {
-    let info: ?PackageInfo;
+    let info: ?Manifest;
 
     // find verison info for this package pattern
     try {
@@ -233,7 +233,7 @@ export default class PackageRequest {
 
     // check if while we were resolving this dep we've already resolved one that satisfies
     // the same range
-    let resolved: ?PackageInfo = this.resolver.getExactVersionMatch(info.name, info.version);
+    let resolved: ?Manifest = this.resolver.getExactVersionMatch(info.name, info.version);
     if (resolved) {
       let ref = resolved.reference;
       invariant(ref, "Resolved package info has no package reference");
@@ -314,7 +314,7 @@ export default class PackageRequest {
    * TODO description
    */
 
-  static validateVersionInfo(info: PackageInfo) {
+  static validateVersionInfo(info: Manifest) {
     // human readable name to use in errors
     let human = `${info.name}@${info.version}`;
 
@@ -329,7 +329,7 @@ export default class PackageRequest {
    * Returns the package version if present, else defaults to the uid
    */
 
-  static getPackageVersion(info: PackageInfo): string {
+  static getPackageVersion(info: Manifest): string {
     // TODO possibly reconsider this behaviour
     return info.version === undefined ? info.uid : info.version;
   }

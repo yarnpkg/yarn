@@ -9,7 +9,7 @@
  * @flow
  */
 
-import type { PackageInfo } from "../../types.js";
+import type { Manifest } from "../../types.js";
 import type PackageRequest from "../../package-request.js";
 import { MessageError } from "../../errors.js";
 import { registries } from "../../registries/index.js";
@@ -115,7 +115,7 @@ export default class HostedGitResolver extends ExoticResolver {
     return await client.setRef(refs);
   }
 
-  async resolveOverHTTP(url: string): Promise<PackageInfo> {
+  async resolveOverHTTP(url: string): Promise<Manifest> {
     // TODO: hashes and lockfile
     let self = this; // TODO: babel bug...
     let commit = await this.getRefOverHTTP(url);
@@ -156,7 +156,7 @@ export default class HostedGitResolver extends ExoticResolver {
     return (await this.config.requestManager.request({ url, method: "HEAD" })) !== false;
   }
 
-  async resolve(): Promise<PackageInfo> {
+  async resolve(): Promise<Manifest> {
     let httpUrl = this.constructor.getGitHTTPUrl(this.exploded);
     let sshUrl  = this.constructor.getGitSSHUrl(this.exploded);
 

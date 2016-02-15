@@ -8,9 +8,16 @@
  *
  * @flow
  */
+/* global stream$Writable */
+/* global stream$Readable */
+/* global tty$ReadStream */
+/* global tty$WriteStream */
 
 import type { RegistryNames } from "./registries/index.js";
 import type PackageReference from "./package-reference.js";
+
+export type Stdout = stream$Writable | tty$WriteStream;
+export type Stdin = stream$Readable | tty$ReadStream;
 
 // dependency request pattern data structure that's used to request dependencies from a
 // PackageResolver
@@ -42,7 +49,7 @@ type Dependencies = {
 };
 
 // package info is the complete package.json of a package
-export type PackageInfo = {
+export type Manifest = {
   name: string,
   version: string,
 
@@ -125,8 +132,8 @@ export type AnalysisFileEntry = {
 };
 
 //
-export type FetchedPackageInfo = {
-  package: PackageInfo,
+export type FetchedManifest = {
+  package: Manifest,
   hash: string,
   dest: string
 };

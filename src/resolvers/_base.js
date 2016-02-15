@@ -11,7 +11,7 @@
 
 import type PackageRequest from "../package-request.js";
 import type PackageResolver from "../package-resolver.js";
-import type { PackageInfo } from "../types.js";
+import type { Manifest } from "../types.js";
 import type { RegistryNames } from "../registries/index.js";
 import type Reporter from "../reporters/_base.js";
 import type Config from "../config.js";
@@ -41,7 +41,7 @@ export default class BaseResolver {
     return resolver.resolve(resolveArg);
   }
 
-  resolve(): Promise<PackageInfo> {
+  resolve(): Promise<Manifest> {
     throw new Error("Not implemented");
   }
 }

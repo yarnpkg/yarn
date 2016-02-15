@@ -9,7 +9,7 @@
  * @flow
  */
 
-import type { PackageInfo } from "./types.js";
+import type { Manifest } from "./types.js";
 import type PackageResolver from "./package-resolver.js";
 import type Reporter from "./reporters/_base.js";
 import type Config from "./config.js";
@@ -32,7 +32,7 @@ export default class PackageInstallScripts {
   actions: Array<string>;
   config: Config;
 
-  getInstallCommands(pkg: PackageInfo) {
+  getInstallCommands(pkg: Manifest) {
     let scripts = pkg.scripts;
     if (scripts) {
       return _.compact([scripts.preinstall, scripts.install, scripts.postinstall]);
@@ -41,7 +41,7 @@ export default class PackageInstallScripts {
     }
   }
 
-  async install(cmds: Array<string>, pkg: PackageInfo): Promise<Array<{
+  async install(cmds: Array<string>, pkg: Manifest): Promise<Array<{
     cwd: string,
     command: string,
     stdout: string,
@@ -58,7 +58,7 @@ export default class PackageInstallScripts {
 
   async init(): Promise<void> {
     let self = this; // TODO fix babel bug
-    let pkgs = this.resolver.getPackageInfos();
+    let pkgs = this.resolver.getManifests();
 
     // refine packages to those with install commands
     let refinedInfos = [];

@@ -9,7 +9,7 @@
  * @flow
  */
 
-import type { PackageInfo } from "../../types.js";
+import type { Manifest } from "../../types.js";
 import type PackageRequest from "../../package-request.js";
 import { MessageError } from "../../errors.js";
 import GitResolver from "./git.js";
@@ -45,7 +45,7 @@ export default class GistResolver extends ExoticResolver {
   id: string;
   hash: string;
 
-  resolve(): Promise<PackageInfo> {
+  resolve(): Promise<Manifest> {
     return this.fork(GitResolver, false, `https://gist.github.com/${this.id}.git#${this.hash}`);
   }
 }

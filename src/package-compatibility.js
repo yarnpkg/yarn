@@ -11,7 +11,7 @@
 
 import type PackageResolver from "./package-resolver.js";
 import type Reporter from "./reporters/_base.js";
-import type { PackageInfo } from "./types.js";
+import type { Manifest } from "./types.js";
 import type Config from "./config.js";
 import { BailError } from "./errors.js";
 import map from "./util/map.js";
@@ -69,7 +69,7 @@ export default class PackageCompatibility {
     return isValid(platforms, process.platform);
   }
 
-  check(info: PackageInfo) {
+  check(info: Manifest) {
     let didError = false;
     let human    = `${info.name}@${info.version}`;
 
@@ -114,7 +114,7 @@ export default class PackageCompatibility {
   }
 
   async init(): Promise<void> {
-    let infos  = this.resolver.getPackageInfos();
+    let infos  = this.resolver.getManifests();
     for (let info of infos) {
       this.check(info);
     }

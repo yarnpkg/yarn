@@ -11,7 +11,7 @@
 
 import type PackageResolver from "../package-resolver.js";
 import type Reporter from "../reporters/_base.js";
-import type { PackageInfo } from "../types.js";
+import type { Manifest } from "../types.js";
 import { MessageError } from "../errors.js";
 import parse from "./parse.js";
 import * as constants from "../constants.js";
@@ -97,7 +97,7 @@ export default class Lockfile {
 
   getLockfile(resolver: PackageResolver): Object {
     let lockfile = {};
-    let seen: Map<PackageInfo, string> = new Map;
+    let seen: Map<Manifest, string> = new Map;
 
     for (let pattern in resolver.patterns) {
       let pkg = resolver.patterns[pattern];

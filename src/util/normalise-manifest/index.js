@@ -9,13 +9,13 @@
  * @flow
  */
 
-import type { PackageInfo } from "../../types.js";
+import type { Manifest } from "../../types.js";
 import validate from "./validate.js";
 import fix from "./fix.js";
 
 type WarnFunction = ?(msg: string) => void;
 
-export default async function (info: Object, moduleLoc: string, warn?: WarnFunction): Promise<PackageInfo> {
+export default async function (info: Object, moduleLoc: string, warn?: WarnFunction): Promise<Manifest> {
   if (info.private) warn = null;
   if (!warn) warn = function () {};
   await fix(info, moduleLoc);

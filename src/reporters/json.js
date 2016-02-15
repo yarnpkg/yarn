@@ -12,7 +12,7 @@
 import BaseReporter from "./_base.js";
 
 export default class JSONReporter extends BaseReporter {
-  constructor(opts) {
+  constructor(opts?: Object) {
     super(opts);
 
     this._activityId = 0;
