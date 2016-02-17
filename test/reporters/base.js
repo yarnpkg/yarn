@@ -35,6 +35,12 @@ test("BaseReporter.warn", () => {
   reporter.close();
 });
 
+test("BaseReporter.info", () => {
+  let reporter = new BaseReporter;
+  reporter.info("");
+  reporter.close();
+});
+
 test("BaseReporter.success", () => {
   let reporter = new BaseReporter;
   reporter.success("");

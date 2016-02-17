@@ -12,9 +12,10 @@
 import Registry from "./_base.js";
 import * as fs from "../util/fs.js";
 
-let path = require("path");
-let os   = require("os");
-let _    = require("lodash");
+let userHome = require("user-home");
+let path     = require("path");
+let os       = require("os");
+let _        = require("lodash");
 
 export default class BowerRegistry extends Registry {
   static alwaysFlatten = true;
@@ -29,7 +30,7 @@ export default class BowerRegistry extends Registry {
     // merge in configs
     let possibles = [
       path.join("/", ".bowerrc"),
-      path.join(os.homedir(), ".bowerrc"),
+      path.join(userHome, ".bowerrc"),
       // TODO all .bowerrc files upwards the directory tree
       path.join(this.cwd, ".bowerrc"),
     ];

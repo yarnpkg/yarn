@@ -25,8 +25,8 @@ export { default as parse } from "./parse";
 export { default as stringify } from "./stringify";
 
 export default class Lockfile {
-  constructor(cache: ?Object, strict: boolean) {
-    this.strict = strict;
+  constructor(cache: ?Object, strict?: boolean) {
+    this.strict = !!strict;
     this.cache  = cache;
   }
 
@@ -95,12 +95,14 @@ export default class Lockfile {
     }
   }
 
-  getLockfile(resolver: PackageResolver): Object {
+  getLockfile(patterns: {
+    [packagePattern: string]: Manifest
+  }): Object {
     let lockfile = {};
     let seen: Map<Manifest, string> = new Map;
 
-    for (let pattern in resolver.patterns) {
-      let pkg = resolver.patterns[pattern];
+    for (let pattern in patterns) {
+      let pkg = patterns[pattern];
 
       let seenPattern = seen.get(pkg);
       if (seenPattern) {

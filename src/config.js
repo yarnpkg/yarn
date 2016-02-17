@@ -22,6 +22,7 @@ import { registries } from "./registries/index.js";
 import map from "./util/map.js";
 
 let invariant = require("invariant");
+let userHome  = require("user-home");
 let path      = require("path");
 let os        = require("os");
 
@@ -38,7 +39,7 @@ export default class Config {
     this.reporter           = reporter;
 
     this.registries = map();
-    this.cwd        = process.cwd();
+    this.cwd        = opts.cwd || process.cwd();
 
     this.packagesRoot = opts.packagesRoot;
     this.tempFolder   = opts.tempFolder;
@@ -166,7 +167,7 @@ export default class Config {
     }
 
     // try and create ~/.kpm
-    let loc = path.join(os.homedir(), ".kpm");
+    let loc = path.join(userHome, ".kpm");
     await fs.mkdirp(loc);
     return loc;
   }

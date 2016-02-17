@@ -57,6 +57,7 @@ export default class BaseReporter {
   close() {
     if (this.peakMemoryInterval) {
       clearInterval(this.peakMemoryInterval);
+      this.peakMemoryInterval = null;
     }
   }
 

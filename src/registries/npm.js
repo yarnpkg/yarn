@@ -12,9 +12,10 @@
 import * as fs from "../util/fs.js";
 import Registry from "./_base.js";
 
-let path = require("path");
-let os   = require("os");
-let _    = require("lodash");
+let userHome = require("user-home");
+let path     = require("path");
+let os       = require("os");
+let _        = require("lodash");
 
 function getGlobalPrefix(): string {
   if (process.env.PREFIX) {
@@ -44,7 +45,7 @@ export default class NpmRegistry extends Registry {
 
     let possibles = [
       path.join(getGlobalPrefix(), ".npmrc"),
-      path.join(os.homedir(), ".npmrc"),
+      path.join(userHome, ".npmrc"),
       path.join(this.cwd, ".npmrc"),
     ];
 

@@ -73,13 +73,13 @@ export default class Spinner {
   render() {
     if (this.id) {
       clearTimeout(this.id);
-      this.id = setTimeout(() => this.render(), this.delay);
     }
 
     let msg = `${this.chars[this.current]} ${this.text}`;
     clearLine(this.stdout);
     this.stdout.write(msg);
     this.current = ++this.current % this.chars.length;
+    this.id = setTimeout(() => this.render(), this.delay);
   }
 
   stop() {

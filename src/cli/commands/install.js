@@ -282,7 +282,7 @@ export class Install {
 
     await fs.writeFile(
       loc,
-      stringify(this.lockfile.getLockfile(this.resolver)) + "\n"
+      stringify(this.lockfile.getLockfile(this.resolver.patterns)) + "\n"
     );
 
     this.reporter.success(`Saved kpm lockfile to ${constants.LOCKFILE_FILENAME}`);

@@ -41,8 +41,8 @@ function readFile(loc: string): Promise<{
       if (binary) return;
       chunks.push(chunk);
 
-      for (let cha of chunk) {
-        if (cha === 0x00) {
+      for (let i = 0; i < chunk.length; i++) {
+        if (chunk[i] === 0x00) {
           isBinary();
         }
       }

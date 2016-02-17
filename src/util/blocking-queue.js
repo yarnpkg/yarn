@@ -17,11 +17,10 @@ export default class BlockingQueue {
     this.maxConcurrency   = maxConcurrency;
     this.runningCount     = 0;
     this.alias            = alias;
+    this.first            = true;
 
-    this.running      = map();
-    this.queue        = map();
-
-    this.startStuckTimer();
+    this.running = map();
+    this.queue   = map();
   }
 
   concurrencyQueue: Array<Function>;
@@ -58,7 +57,11 @@ export default class BlockingQueue {
   }
 
   push<T>(key: string, factory: () => Promise<T>): Promise<T> {
-    this.startStuckTimer();
+    if (this.first) {
+      this.first = false;
+    } else {
+      this.startStuckTimer();
+    }
 
     return new Promise((resolve, reject) => {
       // we're already running so push ourselves to the queue

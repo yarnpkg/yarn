@@ -168,7 +168,7 @@ export class Parser {
       if (propToken.type === tokTypes.newline) {
         let nextToken = this.next();
         if (!indent) {
-          // if we have 0 indentation then the next token does not matterthis.next();
+          // if we have 0 indentation then the next token doesn't matter
           continue;
         }
 
@@ -201,6 +201,10 @@ export class Parser {
         if (valToken.type === tokTypes.colon) {
           this.next();
           obj[key] = this.parse(indent + 1);
+
+          if (indent && this.token.type !== tokTypes.indent) {
+            break;
+          }
         } else if (valToken.type === tokTypes.string || valToken.type === tokTypes.boolean) {
           obj[key] = valToken.value;
           this.next();

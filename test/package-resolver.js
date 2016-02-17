@@ -12,48 +12,26 @@ import * as reporters from "../src/reporters/index.js";
 import PackageResolver from "../src/package-resolver.js";
 import Lockfile from "../src/lockfile/index.js";
 import Config from "../src/config.js";
+import makeTemp from "./_temp.js";
+import * as fs from "../src/util/fs.js";
 
 let rimraf = require("rimraf");
 let path   = require("path");
 let test   = require("ava");
-let fs     = require("fs");
-
-let tempLoc = path.join(__dirname, "..", ".tmp");
-
-test.before("init", function () {
-  return new Promise((resolve, reject) => {
-    rimraf(tempLoc, function () {
-      fs.mkdir(tempLoc, function (err) {
-        if (err) {
-          reject(err);
-        } else {
-          resolve();
-        }
-      });
-    });
-  });
-});
-
-test.after("cleanup", function () {
-  return new Promise((resolve, reject) => {
-    rimraf(tempLoc, function (err) {
-      if (err) {
-        reject(err);
-      } else {
-        resolve();
-      }
-    });
-  });
-});
 
 function addTest(pattern, registry = "npm") {
   test(`resolve ${pattern}`, async () => {
     let lockfile = new Lockfile;
     let reporter = new reporters.Noop({});
+
+    let loc = await makeTemp();
+    await fs.mkdirp(path.join(loc, "node_modules"));
+    await fs.mkdirp(path.join(loc, "kpm_modules"));
+
     let config = new Config(reporter, {
-      cwd: tempLoc,
-      packagesRoot: tempLoc,
-      tempFolder: tempLoc
+      cwd: loc,
+      packagesRoot: loc,
+      tempFolder: loc
     });
     await config.init();
     let resolver = new PackageResolver(config, lockfile);

@@ -1,0 +1,5 @@
+{
+  "optionalDependencies": {
+    "fsevents": "*"
+  }
+}
