@@ -18,6 +18,7 @@ import * as fs from "./util/fs.js";
 
 let invariant = require("invariant");
 let cmdShim   = promise.promisify(require("cmd-shim"));
+let semver    = require("semver");
 let path      = require("path");
 let _         = require("lodash");
 
@@ -39,8 +40,8 @@ export default class PackageLinker {
     let dir = path.join(this.config.generateHardModulePath(ref), await ref.getFolder());
     await fs.mkdirp(dir);
 
-    await this.linkModules(pkg, dir);
-    await this.linkBinDependencies(pkg, dir);
+    let deps = await this.linkModules(pkg, dir);
+    await this.linkBinDependencies(deps, pkg, dir);
   }
 
   async linkSelfDependencies(pkg: Manifest, pkgLoc: string, targetBinLoc: string): Promise<void> {
@@ -58,21 +59,22 @@ export default class PackageLinker {
     }
   }
 
-  async linkBinDependencies(pkg: Manifest, dir: string): Promise<void> {
+  async linkBinDependencies(deps: Array<string>, pkg: Manifest, dir: string): Promise<void> {
     let ref = pkg.reference;
     invariant(ref, "Package reference is missing");
 
     let remote = pkg.remote;
     invariant(remote, "Package remote is missing");
 
-    // get all dependencies with bin scripts
-    let deps = [];
+    // link up `bin scripts` in `dependencies`
     for (let pattern of ref.dependencies) {
       let dep = this.resolver.getResolvedPattern(pattern);
       if (!_.isEmpty(dep.bin)) {
         deps.push({ dep, loc: this.config.generateHardModulePath(dep.reference) });
       }
     }
+
+    // link up the `bin` scripts in bundled dependencies
     if (pkg.bundleDependencies) {
       for (let depName of pkg.bundleDependencies) {
         let loc = path.join(this.config.generateHardModulePath(ref), await ref.getFolder(), depName);
@@ -84,6 +86,8 @@ export default class PackageLinker {
         }
       }
     }
+
+    // no deps to link
     if (!deps.length) return;
 
     // ensure our .bin file we're writing these to exists
@@ -96,17 +100,71 @@ export default class PackageLinker {
     }
   }
 
-  async linkModules(pkg: Manifest, dir: string): Promise<void> {
+  async linkModules(pkg: Manifest, dir: string): Promise<Array<string>> {
     let self = this;
     invariant(pkg.reference, "Package reference is missing");
 
-    await promise.queue(pkg.reference.dependencies, (pattern) => {
+    let deps = await this.linkPeerModules(pkg, dir);
+
+    await promise.queue(pkg.reference.dependencies.concat(deps), (pattern) => {
       let dep  = self.resolver.getResolvedPattern(pattern);
       let src  = self.config.generateHardModulePath(dep.reference);
       let dest = path.join(dir, dep.name);
 
       return fs.symlink(src, dest);
     });
+
+    return deps;
+  }
+
+  async linkPeerModules(pkg: Manifest, dir: string): Promise<Array<string>> {
+    let deps = [];
+
+    if (!pkg.peerDependencies) return deps;
+
+    for (let name in pkg.peerDependencies) {
+      let range = pkg.peerDependencies[name];
+      let foundDep: ?{ version: string, pattern: string };
+
+      // find a dependency in the tree above us that matches
+      let request = ref.request;
+      let searchPatterns: Array<string> = [];
+
+      search: do {
+        // get resolved pattern for this request
+        let dep = this.resolver.getResolvedPattern(request.pattern);
+        if (!dep) continue;
+
+        //
+        searchPatterns = searchPatterns.concat(dep.reference.dependencies);
+      } while(request = request.parentRequest);
+
+      // include root seed patterns last
+      searchPatterns = searchPatterns.concat(this.resolver.seedPatterns);
+
+      // find matching dep in search patterns
+      let foundDep: ?{ version: string, pattern: string };
+      for (let pattern of searchPatterns) {
+        let dep = this.resolver.getResolvedPattern(pattern);
+        if (dep && dep.name === name) {
+          foundDep = { version: dep.version, pattern };
+          break;
+        }
+      }
+
+      // validate found peer dependency
+      if (foundDep) {
+        if (semver.satisfies(range, foundDep.version)) {
+          deps.push(foundDep.pattern);
+        } else {
+          this.reporter.warn("TODO not match");
+        }
+      } else {
+        this.reporter.warn("TODO missing dep");
+      }
+    }
+
+    return deps;
   }
 
   async init(linkBins?: boolean = true): Promise<void> {

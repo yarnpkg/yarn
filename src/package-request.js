@@ -251,7 +251,7 @@ export default class PackageRequest {
     invariant(remote, "Missing remote");
 
     // set package reference
-    let ref = new PackageReference(info, remote, this.rootLockfile, this.config);
+    let ref = new PackageReference(this, info, remote);
 
     // in order to support lockfiles inside transitive dependencies we need to block
     // resolution to fetch the package so we can peek inside of it for a kpm.lock

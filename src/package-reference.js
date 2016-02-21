@@ -12,18 +12,19 @@
 import type Lockfile from "./lockfile/index.js";
 import type Config from "./config.js";
 import type { PackageRemote, Manifest } from "./types.js";
+import type PackageRequest from "./package-request.js";
 import type { RegistryNames } from "./registries/index.js";
 import { MessageError } from "./errors.js";
 
 export default class PackageReference {
   constructor(
+    request: PackageRequest,
     info: Manifest,
     remote: PackageRemote,
-    lockfile: Lockfile,
-    config: Config
   ) {
-    this.lockfile = lockfile;
-    this.config   = config;
+    this.lockfile = request.rootLockfile;
+    this.request  = request;
+    this.config   = request.config;
 
     this.registry = remote.registry;
     this.version  = info.version;
@@ -39,6 +40,7 @@ export default class PackageReference {
     this.optional    = null;
   }
 
+  request: PackageRequest;
   lockfile: Lockfile;
   config: Config;
 

@@ -58,6 +58,9 @@ export default class PackageResolver {
   // TODO
   fetcher: PackageFetcher;
 
+  // TODO
+  seedPatterns: Array<string;>
+
   // manages and throttles json api http requests
   requestManager: RequestManager;
 
@@ -306,7 +309,11 @@ export default class PackageResolver {
    */
 
   async init(deps: DependencyRequestPatterns): Promise<void> {
+    //
     let activity = this.activity = this.reporter.activity();
+
+    //
+    this.seedPatterns = deps.map((dep) => dep.pattern);
 
     // build up promises
     let promises = [];

@@ -28,6 +28,7 @@ export default class BlockingQueue {
   runningCount: number;
   stuckTimer: ?number;
   alias: string;
+  first: boolean;
 
   queue: {
     [key: string]: Array<{
