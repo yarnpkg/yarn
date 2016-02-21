@@ -88,7 +88,10 @@ commander.parse(args);
 //
 let Reporter = ConsoleReporter;
 if (commander.json) Reporter = JSONReporter;
-let reporter = new Reporter;
+let reporter = new Reporter({
+  emoji: true
+});
+reporter.initPeakMemoryCounter();
 
 //
 let config = new Config(reporter);
@@ -119,7 +122,7 @@ config.init().then(function () {
 
   return command.run(config, reporter, commander, commander.args).then(function () {
     reporter.close();
-    reporter.footer();
+    reporter.footer(true);
     process.exit();
   });
 }).catch(function (errs) {

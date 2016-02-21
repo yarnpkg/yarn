@@ -18,12 +18,12 @@ let readline = require("readline");
 let chalk    = require("chalk");
 
 export default class ConsoleReporter extends BaseReporter {
-  _prependEmoji(msg: string, emoji: string): string {
-    if (emoji && this.isTTY) msg = `${emoji}  ${msg}`;
+  _prependEmoji(msg: string, emoji: ?string): string {
+    if (this.emoji && emoji && this.isTTY) msg = `${emoji}  ${msg}`;
     return msg;
   }
 
-  step(current: number, total: number, msg: string, emoji: string) {
+  step(current: number, total: number, msg: string, emoji?: string) {
     this.log(`${chalk.grey(`[${current}/${total}]`)} ${this._prependEmoji(msg, emoji)}...`);
   }
 
@@ -31,10 +31,14 @@ export default class ConsoleReporter extends BaseReporter {
     this.log(chalk.bold(`kpm ${command} v${pkg.version}`));
   }
 
-  footer() {
+  footer(showPeakMemory?: boolean) {
     let totalTime = (this.getTotalTime() / 1000).toFixed(2);
-    let peakMemory = (this.peakMemory / 1024 / 1024).toFixed(2);
-    this.log(this._prependEmoji(`Done in ${totalTime}s. Peak memory usage ${peakMemory}MB.`, "✨"));
+    let msg = `Done in ${totalTime}s. `;
+    if (showPeakMemory) {
+      let peakMemory = (this.peakMemory / 1024 / 1024).toFixed(2);
+      msg += ` Peak memory usage ${peakMemory}MB.`;
+    }
+    this.log(this._prependEmoji(msg, "✨"));
   }
 
   log(msg: string) {
@@ -138,7 +142,7 @@ export default class ConsoleReporter extends BaseReporter {
     });
   }
 
-  progress(count: number): Function {
+  progress(count: number): () => void {
     if (count <= 0) {
       return function () {
         // noop

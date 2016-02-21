@@ -16,6 +16,7 @@ export type ReporterOptions = {
   stdout?: Stdout;
   stderr?: Stdout;
   stdin?: Stdin;
+  emoji?: boolean;
 };
 
 export default class BaseReporter {
@@ -23,20 +24,20 @@ export default class BaseReporter {
     this.stdout = opts.stdout || process.stdout;
     this.stderr = opts.stderr || process.stderr;
     this.stdin  = opts.stdin || process.stdin;
+    this.emoji  = !!opts.emoji;
 
     // $FlowFixMe: this is valid!
     this.isTTY = this.stdout.isTTY;
 
-    this.startTime  = Date.now();
     this.peakMemory = 0;
-
-    this.initPeakMemoryCounter();
+    this.startTime  = Date.now();
   }
 
   stdout: Stdout;
   stderr: Stdout;
   stdin: Stdin;
   isTTY: boolean;
+  emoji: boolean;
 
   peakMemoryInterval: ?number;
   peakMemory: number;
@@ -66,7 +67,7 @@ export default class BaseReporter {
   }
 
   // called whenever we begin a step in the CLI.
-  step(current: number, total: number, message: string, emoji: string) {}
+  step(current: number, total: number, message: string, emoji?: string) {}
 
   // a error message has been triggered. this however does not always meant an abrupt
   // program end.
@@ -91,7 +92,7 @@ export default class BaseReporter {
   header(command: string) {}
 
   // the screen shown at the very end of the CLI
-  footer() {}
+  footer(showPeakMemory: boolean) {}
 
   // render an activity spinner and return a function that will trigger an update
   activity(): {
