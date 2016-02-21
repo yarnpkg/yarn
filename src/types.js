@@ -60,9 +60,6 @@ export type Manifest = {
   // we need to use this to ensure it's unique
   uid: string,
 
-  // we use this to perform a fast uniq on package infos
-  _seen?: any,
-
   remote?: ?PackageRemote,
 
   dist?: {

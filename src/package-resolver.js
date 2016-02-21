@@ -107,13 +107,13 @@ export default class PackageResolver {
 
   dedupePatterns(patterns: Array<string>): Array<string> {
     let deduped = [];
-    let seen = {};
+    let seen = new Map;
 
     for (let pattern of patterns) {
       let info = this.getResolvedPattern(pattern);
-      if (info._seen === seen) continue;
+      if (seen.has(info)) continue;
 
-      info._seen = seen;
+      seen.set(info, true);
       deduped.push(pattern);
     }
 
@@ -134,13 +134,13 @@ export default class PackageResolver {
 
   getAllInfoForPackageName(name: string): Array<Manifest> {
     let infos = [];
-    let seen  = {};
+    let seen  = new Map;
 
     for (let pattern of this.patternsByPackage[name]) {
       let info = this.patterns[pattern];
-      if (info._seen === seen) continue;
+      if (seen.has(info)) continue;
 
-      info._seen = seen;
+      seen.set(info, true);
       infos.push(info);
     }
 
@@ -167,14 +167,14 @@ export default class PackageResolver {
 
   getManifests(): Array<Manifest> {
     let infos = [];
-    let seen  = {};
+    let seen  = new Map;
 
     for (let pattern in this.patterns) {
       let info = this.patterns[pattern];
-      if (info._seen === seen) continue;
+      if (seen.has(info)) continue;
 
       infos.push(info);
-      info._seen = seen;
+      seen.set(info, true);
     }
 
     return infos;
