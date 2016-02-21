@@ -11,8 +11,8 @@
 
 global.Promise = require("bluebird");
 
+import buildExecuteLifecycleScript from "./commands/_execute-lifecycle-script.js";
 import ConsoleReporter from "../reporters/console/index.js";
-import similarity from "../analysis/text/similarity.js";
 import { MessageError, BailError } from "../errors.js";
 import { hasValidArgLength } from "./arg-utils.js";
 import JSONReporter from "../reporters/json.js";
@@ -61,25 +61,8 @@ invariant(commandName, "Missing command name");
 let command = commands[_.camelCase(commandName)];
 
 if (!command) {
-  let maxSimilarity = 0;
-  let suggestion;
-
-  for (let commandName2 in commands) {
-    let mySimilarity = similarity(commandName2, commandName);
-    if (mySimilarity >= 0.5 && mySimilarity > maxSimilarity) {
-      suggestion = commandName2;
-      maxSimilarity = mySimilarity;
-    }
-  }
-
-  let msg = `Command ${JSON.stringify(commandName)} not found.`;
-  if (suggestion) msg += ` Did you mean ${JSON.stringify(suggestion)}?`;
-  console.error(msg);
-  process.exit(1);
+  command = buildExecuteLifecycleScript(commandName);
 }
-
-//
-invariant(command, "Missing command");
 
 // parse flags
 if (command.setFlags) command.setFlags(commander);

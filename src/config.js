@@ -22,9 +22,7 @@ import { registries } from "./registries/index.js";
 import map from "./util/map.js";
 
 let invariant = require("invariant");
-let userHome  = require("user-home");
 let path      = require("path");
-let os        = require("os");
 
 type ConfigOptions = {
   cwd?: string,
@@ -199,7 +197,7 @@ export default class Config {
     package: Manifest
   }> {
     let metadata = await fs.readJson(path.join(dir, constants.METADATA_FILENAME));
-    let pkg = await this.readPackageJson(dir, metadata.registry);
+    let pkg = await this.readManifest(dir, metadata.registry);
 
     return {
       package: pkg,
@@ -212,21 +210,21 @@ export default class Config {
    * Read normalised package info.
    */
 
-  async readPackageJson(dir: string, priorityRegistry?: RegistryNames): Promise<Object> {
+  async readManifest(dir: string, priorityRegistry?: RegistryNames): Promise<Object> {
     let metadataLoc = path.join(dir, constants.METADATA_FILENAME);
     if (!priorityRegistry && await fs.exists(metadataLoc)) {
       ({ registry: priorityRegistry } = await fs.readJson(metadataLoc));
     }
 
     if (priorityRegistry) {
-      let file = await this.tryPackageJson(dir, priorityRegistry);
+      let file = await this.tryManifest(dir, priorityRegistry);
       if (file) return file;
     }
 
     for (let registry of Object.keys(registries)) {
       if (priorityRegistry === registry) continue;
 
-      let file = await this.tryPackageJson(dir, registry);
+      let file = await this.tryManifest(dir, registry);
       if (file) return file;
     }
 
@@ -237,7 +235,7 @@ export default class Config {
    * Try and find package info with the input directory and registry.
    */
 
-  async tryPackageJson(dir: string, registry: RegistryNames): ?Object {
+  async tryManifest(dir: string, registry: RegistryNames): ?Object {
     let filenames = registries[registry].filenames;
     for (let filename of filenames) {
       let loc = path.join(dir, filename);

@@ -237,6 +237,7 @@ export default class PackageRequest {
     if (resolved) {
       let ref = resolved.reference;
       invariant(ref, "Resolved package info has no package reference");
+      ref.addRequest(this);
       ref.addPattern(this.pattern);
       ref.addOptional(optional);
       this.resolver.addPattern(this.pattern, resolved);

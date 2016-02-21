@@ -34,7 +34,7 @@ export async function run(
     }
 
     // read package.json
-    let pkg = await config.readPackageJson(loc);
+    let pkg = await config.readManifest(loc);
 
     // remove bins
     for (let binName in pkg.bin) {
@@ -43,5 +43,9 @@ export async function run(
 
     // remove entire package
     await fs.unlink(loc);
+
+    // TODO: remove from `package.json`
+    
+    // TODO: remove from lockfile
   }
 }

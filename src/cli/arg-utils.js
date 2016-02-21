@@ -14,15 +14,15 @@
  */
 
 export function hasValidArgLength(
-  requiredLength: number,
-  minLength: number,
+  requiredLength: ?number,
+  minLength: ?number,
   args: Array<string> = []
 ): boolean {
-  if (requiredLength !== undefined) {
+  if (requiredLength != null && minLength != null) {
     return minLength === args.length;
   }
 
-  if (minLength !== undefined) {
+  if (minLength != null) {
     return args.length >= minLength;
   }
 

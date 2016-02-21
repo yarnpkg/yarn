@@ -14,7 +14,6 @@ import * as fs from "../util/fs.js";
 
 let userHome = require("user-home");
 let path     = require("path");
-let os       = require("os");
 let _        = require("lodash");
 
 export default class BowerRegistry extends Registry {

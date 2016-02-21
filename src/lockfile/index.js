@@ -9,7 +9,6 @@
  * @flow
  */
 
-import type PackageResolver from "../package-resolver.js";
 import type Reporter from "../reporters/_base.js";
 import type { Manifest } from "../types.js";
 import { MessageError } from "../errors.js";

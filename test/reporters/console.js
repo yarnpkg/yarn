@@ -126,7 +126,7 @@ test("ConsoleReporter.progress", async (t) => {
     stdout: ""
   });
 
-  t.same(await getConsoleBuff(async function (r, streams) {
+  t.same(await getConsoleBuff(async function (r) {
     r.isTTY = false;
     let tick = r.progress(2);
     tick();

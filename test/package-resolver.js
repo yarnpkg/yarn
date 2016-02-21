@@ -15,9 +15,8 @@ import Config from "../src/config.js";
 import makeTemp from "./_temp.js";
 import * as fs from "../src/util/fs.js";
 
-let rimraf = require("rimraf");
-let path   = require("path");
-let test   = require("ava");
+let path = require("path");
+let test = require("ava");
 
 function addTest(pattern, registry = "npm") {
   test(`resolve ${pattern}`, async () => {

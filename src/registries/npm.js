@@ -14,7 +14,6 @@ import Registry from "./_base.js";
 
 let userHome = require("user-home");
 let path     = require("path");
-let os       = require("os");
 let _        = require("lodash");
 
 function getGlobalPrefix(): string {

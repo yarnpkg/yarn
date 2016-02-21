@@ -58,8 +58,9 @@ export default class PackageResolver {
   // TODO
   fetcher: PackageFetcher;
 
-  // TODO
-  seedPatterns: Array<string;>
+  // these are patterns that the package resolver was seeded with. these are required in
+  // order to resolve top level peerDependencies
+  seedPatterns: Array<string>;
 
   // manages and throttles json api http requests
   requestManager: RequestManager;

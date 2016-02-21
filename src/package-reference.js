@@ -23,7 +23,7 @@ export default class PackageReference {
     remote: PackageRemote,
   ) {
     this.lockfile = request.rootLockfile;
-    this.request  = request;
+    this.requests = [request];
     this.config   = request.config;
 
     this.registry = remote.registry;
@@ -40,7 +40,7 @@ export default class PackageReference {
     this.optional    = null;
   }
 
-  request: PackageRequest;
+  requests: Array<PackageRequest>;
   lockfile: Lockfile;
   config: Config;
 
@@ -56,6 +56,10 @@ export default class PackageReference {
 
   async getFolder(): Promise<string> {
     return this.config.registries[this.registry].folder;
+  }
+
+  addRequest(request: PackageRequest) {
+    this.requests.push(request);
   }
 
   setDependencies(deps: Array<string>) {

@@ -22,6 +22,11 @@ let semver    = require("semver");
 let path      = require("path");
 let _         = require("lodash");
 
+type DependencyPairs = Array<{
+  dep: Manifest,
+  loc: string
+}>;
+
 export default class PackageLinker {
   constructor(config: Config, resolver: PackageResolver) {
     this.resolver = resolver;
@@ -59,7 +64,7 @@ export default class PackageLinker {
     }
   }
 
-  async linkBinDependencies(deps: Array<string>, pkg: Manifest, dir: string): Promise<void> {
+  async linkBinDependencies(deps: DependencyPairs, pkg: Manifest, dir: string): Promise<void> {
     let ref = pkg.reference;
     invariant(ref, "Package reference is missing");
 
@@ -79,7 +84,7 @@ export default class PackageLinker {
       for (let depName of pkg.bundleDependencies) {
         let loc = path.join(this.config.generateHardModulePath(ref), await ref.getFolder(), depName);
 
-        let dep = await this.config.readPackageJson(loc, remote.registry);
+        let dep = await this.config.readManifest(loc, remote.registry);
 
         if (!_.isEmpty(dep.bin)) {
           deps.push({ dep, loc });
@@ -100,13 +105,14 @@ export default class PackageLinker {
     }
   }
 
-  async linkModules(pkg: Manifest, dir: string): Promise<Array<string>> {
+  async linkModules(pkg: Manifest, dir: string): Promise<DependencyPairs> {
     let self = this;
-    invariant(pkg.reference, "Package reference is missing");
+    let ref = pkg.reference;
+    invariant(ref, "Package reference is missing");
 
-    let deps = await this.linkPeerModules(pkg, dir);
+    let deps = await this.linkPeerModules(pkg);
 
-    await promise.queue(pkg.reference.dependencies.concat(deps), (pattern) => {
+    await promise.queue(ref.dependencies.concat(deps), (pattern) => {
       let dep  = self.resolver.getResolvedPattern(pattern);
       let src  = self.config.generateHardModulePath(dep.reference);
       let dest = path.join(dir, dep.name);
@@ -117,37 +123,39 @@ export default class PackageLinker {
     return deps;
   }
 
-  async linkPeerModules(pkg: Manifest, dir: string): Promise<Array<string>> {
+  async linkPeerModules(pkg: Manifest): Promise<DependencyPairs> {
+    let ref = pkg.reference;
+    invariant(ref, "Package reference is missing");
+
     let deps = [];
 
     if (!pkg.peerDependencies) return deps;
 
     for (let name in pkg.peerDependencies) {
       let range = pkg.peerDependencies[name];
-      let foundDep: ?{ version: string, pattern: string };
 
       // find a dependency in the tree above us that matches
-      let request = ref.request;
       let searchPatterns: Array<string> = [];
+      for (let request of ref.requests) {
+        do {
+          // get resolved pattern for this request
+          let dep = this.resolver.getResolvedPattern(request.pattern);
+          if (!dep) continue;
 
-      search: do {
-        // get resolved pattern for this request
-        let dep = this.resolver.getResolvedPattern(request.pattern);
-        if (!dep) continue;
-
-        //
-        searchPatterns = searchPatterns.concat(dep.reference.dependencies);
-      } while(request = request.parentRequest);
+          //
+          searchPatterns = searchPatterns.concat(dep.reference.dependencies);
+        } while (request = request.parentRequest);
+      }
 
       // include root seed patterns last
       searchPatterns = searchPatterns.concat(this.resolver.seedPatterns);
 
       // find matching dep in search patterns
-      let foundDep: ?{ version: string, pattern: string };
+      let foundDep: ?{ version: string, package: Manifest };
       for (let pattern of searchPatterns) {
         let dep = this.resolver.getResolvedPattern(pattern);
         if (dep && dep.name === name) {
-          foundDep = { version: dep.version, pattern };
+          foundDep = { version: dep.version, package: dep };
           break;
         }
       }
@@ -155,7 +163,10 @@ export default class PackageLinker {
       // validate found peer dependency
       if (foundDep) {
         if (semver.satisfies(range, foundDep.version)) {
-          deps.push(foundDep.pattern);
+          deps.push({
+            dep: foundDep.package,
+            loc: this.config.generateHardModulePath(foundDep.package.reference)
+          });
         } else {
           this.reporter.warn("TODO not match");
         }
@@ -171,6 +182,8 @@ export default class PackageLinker {
     let self = this;
     let pkgs = this.resolver.getManifests();
     let tick = this.reporter.progress(pkgs.length);
+
+    // TODO: prune extraneous modules
 
     await promise.queue(pkgs, (pkg) => {
       return self.link(pkg, linkBins).then(function () {

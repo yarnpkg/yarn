@@ -50,7 +50,6 @@ test("promisifyObject", async function (t) {
 });
 
 test("queue", async function () {
-  let i = 0;
   let running = 0;
 
   async function create() {
@@ -67,6 +66,6 @@ test("queue", async function () {
   await promise.queue([], function () {
     throw new Error("Shouldn't be called");
   });
-  
+
   await promise.queue(Array(10), create, 5);
 });

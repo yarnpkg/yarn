@@ -42,7 +42,7 @@ export default class BaseFetcher {
       let hash = await this._fetch(dest);
 
       // load the new normalised package.json
-      let pkg = await this.config.readPackageJson(dest, this.registry);
+      let pkg = await this.config.readManifest(dest, this.registry);
 
       await fs.writeFile(path.join(dest, constants.METADATA_FILENAME), JSON.stringify({
         registry: this.registry,
