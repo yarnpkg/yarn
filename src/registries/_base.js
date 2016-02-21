@@ -27,7 +27,7 @@ export default class Registry {
   static alwaysFlatten = false;
 
   // the filename to use for package metadata
-  static filename: string;
+  static filenames: Array<string>;
 
   //
   cwd: string;

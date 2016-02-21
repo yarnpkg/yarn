@@ -166,8 +166,8 @@ export default class Config {
       if (await fs.exists(loc)) return loc;
     }
 
-    // try and create ~/.kpm
-    let loc = path.join(userHome, ".kpm");
+    // try and create <cwd>/kpm_modules
+    let loc = path.join(this.cwd, "kpm_modules");
     await fs.mkdirp(loc);
     return loc;
   }
@@ -238,16 +238,18 @@ export default class Config {
    */
 
   async tryPackageJson(dir: string, registry: RegistryNames): ?Object {
-    let filename = registries[registry].filename;
-    let loc = path.join(dir, filename);
-    if (await fs.exists(loc)) {
-      let data = await fs.readJson(loc);
-      data.registry = registry;
+    let filenames = registries[registry].filenames;
+    for (let filename of filenames) {
+      let loc = path.join(dir, filename);
+      if (await fs.exists(loc)) {
+        let data = await fs.readJson(loc);
+        data.registry = registry;
 
-      // TODO: warn
-      await normaliseManifest(data, dir);
+        // TODO: warn
+        await normaliseManifest(data, dir);
 
-      return data;
+        return data;
+      }
     }
   }
 }

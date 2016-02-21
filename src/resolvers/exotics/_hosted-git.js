@@ -121,22 +121,24 @@ export default class HostedGitResolver extends ExoticResolver {
     let commit = await this.getRefOverHTTP(url);
 
     async function tryRegistry(registry) {
-      let filename = registries[registry].filename;
-      let file = await self.config.requestManager.request({
-        url: self.constructor.getHTTPFileUrl(self.exploded, filename, commit)
-      });
-      if (!file) return;
+      let filenames = registries[registry].filenames;
+      for (let filename of filenames) {
+        let file = await self.config.requestManager.request({
+          url: self.constructor.getHTTPFileUrl(self.exploded, filename, commit)
+        });
+        if (!file) continue;
 
-      let json = JSON.parse(file);
-      json.uid = commit;
-      json.remote = {
-        //resolved // TODO
-        type: "tarball",
-        reference: self.constructor.getTarballUrl(self.exploded, commit),
-        registry
-      };
+        let json = JSON.parse(file);
+        json.uid = commit;
+        json.remote = {
+          //resolved // TODO
+          type: "tarball",
+          reference: self.constructor.getTarballUrl(self.exploded, commit),
+          registry
+        };
 
-      return json;
+        return json;
+      }
     }
 
     let file = await tryRegistry(this.registry);

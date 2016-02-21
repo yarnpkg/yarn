@@ -98,30 +98,35 @@ export class Install {
     let foundConfig = false;
 
     for (let registry of Object.keys(registries)) {
-      let filename = registries[registry].filename;
-      let loc = path.join(this.config.cwd, filename);
-      if (!(await fs.exists(loc))) continue;
+      let filenames = registries[registry].filenames;
 
-      this.registries.push(registry);
-      foundConfig = true;
+      for (let filename of filenames) {
+        let loc = path.join(this.config.cwd, filename);
+        if (!(await fs.exists(loc))) continue;
 
-      let json = await fs.readJson(loc);
-      Object.assign(this.resolutions, json.resolutions);
+        this.registries.push(registry);
+        foundConfig = true;
 
-      // plain deps
-      let plainDepMap = Object.assign({}, json.dependencies, json.devDependencies);
-      for (let name in plainDepMap) {
-        let pattern = name + "@" + plainDepMap[name];
-        patterns.push(pattern);
-        deps.push({ pattern, registry });
-      }
+        let json = await fs.readJson(loc);
+        Object.assign(this.resolutions, json.resolutions);
 
-      // optional deps
-      let optionalDeps = json.optionalDependencies;
-      for (let name in optionalDeps) {
-        let pattern = name + "@" + optionalDeps[name];
-        patterns.push(pattern);
-        deps.push({ pattern, registry, optional: true });
+        // plain deps
+        let plainDepMap = Object.assign({}, json.dependencies, json.devDependencies);
+        for (let name in plainDepMap) {
+          let pattern = name + "@" + plainDepMap[name];
+          patterns.push(pattern);
+          deps.push({ pattern, registry });
+        }
+
+        // optional deps
+        let optionalDeps = json.optionalDependencies;
+        for (let name in optionalDeps) {
+          let pattern = name + "@" + optionalDeps[name];
+          patterns.push(pattern);
+          deps.push({ pattern, registry, optional: true });
+        }
+
+        break;
       }
     }
 

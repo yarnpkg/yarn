@@ -88,21 +88,24 @@ export default class GitResolver extends ExoticResolver {
     let commit = await client.initRemote();
 
     async function tryRegistry(registry) {
-      let filename = registries[registry].filename;
-      let file = await client.getFile(filename);
-      if (!file) return;
+      let filenames = registries[registry].filenames;
+      
+      for (let filename of filenames) {
+        let file = await client.getFile(filename);
+        if (!file) continue;
 
-      let json = JSON.parse(file);
-      json.uid = commit;
-      json.remote = {
-        resolved: `${url}#${commit}`,
-        type: "git",
-        reference: url,
-        hash: commit,
-        registry
-      };
+        let json = JSON.parse(file);
+        json.uid = commit;
+        json.remote = {
+          resolved: `${url}#${commit}`,
+          type: "git",
+          reference: url,
+          hash: commit,
+          registry
+        };
 
-      return json;
+        return json;
+      }
     }
 
     let file = await tryRegistry(this.registry);

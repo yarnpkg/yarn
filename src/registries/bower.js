@@ -19,7 +19,7 @@ let _        = require("lodash");
 
 export default class BowerRegistry extends Registry {
   static alwaysFlatten = true;
-  static filename = "bower.json";
+  static filenames = ["bower.json"];
 
   async loadConfig(): Promise<void> {
     // docs: http://bower.io/docs/config/
