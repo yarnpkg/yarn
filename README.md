@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-  alternate npm and bower client focused on performance and security.
+  alternate npm and bower client focused on security and performance.
 </p>
 
 <p align="center">
@@ -22,16 +22,20 @@ and require significant changes to npm including the internal architecture and w
 casual users.
 
 kpm is written from scratch and uses the existing npm registry for module hosting, it's
-completely compatible with the ecosystem and is only an alternative to the npm client.
+completely compatible with the npm ecosystem and is only an alternative to the npm client.
 
 ## Features
 
-* Greatly improved performance: Client is always performing operations such as package resolving and fetching due to the internal architecture.
+* Greatly improved performance: Client is always performing operations such as package
+  resolving and fetching due to the internal architecture.
 * Dependency deduping: Reduces the duplication of modules reducing code size.
-* Ability to manually resolve version conflicts so only a single version per package exists. (Bower style)
-* Resilient to network flakiness: Smart retry and timeout logic ensures reliability on poor networks such as conference wifi, mobile networks etc.
+* Ability to manually resolve version conflicts so only a single version per package
+  exists. (Bower style)
+* Resilient to network flakiness: Smart retry and timeout logic ensures reliability on
+  poor networks such as conference wifi, mobile networks etc.
 * Stable public API: Tooling such as build systems can reliably hook into internals.
-* Reproducible builds: Updates are intentional by default which means builds cannot randomly break because of dependency updates.
+* Reproducible builds: Updates are intentional by default which means builds cannot
+  randomly break because of dependency updates.
 * More emojis. 🐈
 
 **Security**
@@ -43,8 +47,10 @@ completely compatible with the ecosystem and is only an alternative to the npm c
 * Refuses to download a tarball from HTTPS if an HTTP redirect was included.
 * Refuses to clone a git repo over HTTP and plain git.
 * Blacklists known bad hosts that ping analytics servers.
-* Lockfile contains tarball hashes to ensure integrity of package downloads.Lockfile contains tarball hashes to ensure integrity of package downloads.
-* Generate reports when installing and updating dependencies. Contains diffs of module code and analyses modules for possible points of conflict such as suspicious code.
+* Lockfile contains tarball hashes to ensure integrity of package downloads. Lockfile
+  contains tarball hashes to ensure integrity of package downloads.
+* Generate reports when installing and updating dependencies. Contains diffs of module
+  code and analyses modules for possible points of conflict such as suspicious code.
 
 ## Screenshot
 
