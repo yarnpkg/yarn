@@ -62,7 +62,6 @@ $ npm install
 $ make build
 $ npm link
 # go into some random directory
-$ mkdir node_modules
 $ kpm install your-package
 ```
 
