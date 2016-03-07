@@ -11,7 +11,7 @@
 
 import type { FetchedManifest } from "./types.js";
 import type PackageResolver from "./package-resolver.js";
-import type Reporter from "./reporters/_base.js";
+import type { Reporter } from "kreporters";
 import type PackageReference from "./package-reference.js";
 import type Config from "./config.js";
 import * as fetchers from "./fetchers/index.js";
@@ -73,7 +73,6 @@ export default class PackageFetcher {
     if (ref.optional) {
       // swallow the error
       promise = promise.catch((err) => {
-        // TODO we want to throw for PackageResolver use
         this.reporter.error(err.message);
       });
     }

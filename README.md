@@ -16,15 +16,22 @@
 
 ---
 
-At Facebook we use npm heavily for all of our JavaScript projects. Unfortunately npm is
-lacking in key areas that are important to us. The changes we've made are quite extensive
+At Facebook we use npm heavily for all of our open source JavaScript projects. Unfortunately
+npm is lacking in key areas that are important to us. The changes we've made are quite extensive
 and require significant changes to npm including the internal architecture and workflow for
 casual users.
 
 kpm is written from scratch and uses the existing npm registry for module hosting, it's
 completely compatible with the npm ecosystem and is only an alternative to the npm client.
+With a focus on security, kpm helps auditing of third party dependencies by providing more insight
+into changes. This is done by requiring all new and updated dependencies to be manually
+audited with the use of efficient diff tooling that makes the review of large amounts of
+code very easy.
 
 ## Features
+
+While security is a priority, we also offer the following features to assist in the
+stability and development of frontend dependency management.
 
 * Greatly improved performance: Client is always performing operations such as package
   resolving and fetching due to the internal architecture.

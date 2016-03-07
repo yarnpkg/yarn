@@ -12,7 +12,7 @@
 import type { Manifest, DependencyRequestPatterns } from "./types.js";
 import type { RegistryNames } from "./registries/index.js";
 import type PackageReference from "./package-reference.js";
-import type Reporter from "./reporters/_base.js";
+import type { Reporter } from "kreporters";
 import type Config from "./config.js";
 import PackageFetcher from "./package-fetcher.js";
 import PackageRequest from "./package-request.js";

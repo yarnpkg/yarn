@@ -12,7 +12,7 @@
 import type { Manifest } from "./types.js";
 import type { RegistryNames } from "./registries/index.js";
 import type PackageResolver from "./package-resolver.js";
-import type Reporter from "./reporters/_base.js";
+import type { Reporter } from "kreporters";
 import type Config from "./config.js";
 import Lockfile, { parse as parseLock } from "./lockfile/index.js";
 import PackageReference from "./package-reference.js";
@@ -51,8 +51,7 @@ export default class PackageRequest {
   }
 
   static getExoticResolver(pattern: string): ?Function { // TODO make this type more refined
-    for (let name in resolvers.exotics) {
-      let Resolver = resolvers.exotics[name];
+    for (let [name, Resolver] of Object.entries(resolvers.exotics)) {
       if (Resolver.isVersion(pattern)) return Resolver;
     }
   }
@@ -175,7 +174,7 @@ export default class PackageRequest {
    * warm the cache.
    */
 
-  async resolveIfRegistry(pattern: string): Promise<void> {
+  async warmCacheIfRegistry(pattern: string): Promise<void> {
     let { range, name } = this.normalisePattern(pattern);
 
     // ensure this is a registry request
@@ -184,7 +183,7 @@ export default class PackageRequest {
 
     let Resolver = this.getRegistryResolver();
     let resolver = new Resolver(this, name, range);
-    await resolver.resolveRequest();
+    await resolver.warmCache();
   }
 
   /**
@@ -262,7 +261,7 @@ export default class PackageRequest {
       // while we're fetching the package we have some idle time to warm the cache with
       // registry responses for known dependencies
       for (let name in info.dependencies) {
-        this.resolveIfRegistry(`${name}@${info.dependencies[name]}`);
+        this.warmCacheIfRegistry(`${name}@${info.dependencies[name]}`);
       }
 
       //

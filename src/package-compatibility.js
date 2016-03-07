@@ -10,7 +10,7 @@
  */
 
 import type PackageResolver from "./package-resolver.js";
-import type Reporter from "./reporters/_base.js";
+import type { Reporter } from "kreporters";
 import type { Manifest } from "./types.js";
 import type Config from "./config.js";
 import { BailError } from "./errors.js";
@@ -91,9 +91,7 @@ export default class PackageCompatibility {
     }
 
     if (_.isPlainObject(info.engines)) {
-      for (let name in info.engines) {
-        let range = info.engines[name];
-
+      for (let [name, range] of Object.entries(info.engines)) {
         if (aliases[name]) {
           name = aliases[name];
         }

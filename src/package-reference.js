@@ -87,8 +87,8 @@ export default class PackageReference {
 
     let shrunk = this.lockfile.getLocked(pattern);
     if (shrunk && shrunk.permissions) {
-      for (let key in shrunk.permissions) {
-        this.setPermission(key, shrunk.permissions[key]);
+      for (let [key, perm] of Object.entries(shrunk.permissions)) {
+        this.setPermission(key, perm);
       }
     }
   }

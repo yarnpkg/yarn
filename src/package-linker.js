@@ -11,7 +11,7 @@
 
 import type { Manifest } from "./types.js";
 import type PackageResolver from "./package-resolver.js";
-import type Reporter from "./reporters/_base.js";
+import type { Reporter } from "kreporters";
 import type Config from "./config.js";
 import * as promise from "./util/promise.js";
 import * as fs from "./util/fs.js";
@@ -50,10 +50,9 @@ export default class PackageLinker {
   }
 
   async linkSelfDependencies(pkg: Manifest, pkgLoc: string, targetBinLoc: string): Promise<void> {
-    for (let scriptName in pkg.bin) {
-      let scriptCmd = pkg.bin[scriptName];
-      let dest      = path.join(targetBinLoc, scriptName);
-      let src       = path.join(pkgLoc, scriptCmd);
+    for (let [scriptName, scriptCmd] of Object.entries(pkg.bin)) {
+      let dest = path.join(targetBinLoc, scriptName);
+      let src  = path.join(pkgLoc, scriptCmd);
 
       if (process.platform === "win32") {
         await cmdShim(src, dest);

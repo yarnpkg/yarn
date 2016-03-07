@@ -12,6 +12,7 @@
 import type { Manifest } from "../../types.js";
 import { MessageError } from "../../errors.js";
 import RegistryResolver from "./_base.js";
+import { queue } from "../../util/promise.js";
 
 type RegistryResponse = {
   name: string,
@@ -40,9 +41,23 @@ export default class NpmResolver extends RegistryResolver {
     }
   }
 
+  async warmCache() {
+    let res = await this.resolveRequest();
+    if (!res || !res.dependencies) return;
+    return;
+
+    let resolvers = [];
+
+    for (let [name, range] of Object.entries(res.dependencies)) {
+      resolvers.push(new NpmResolver(this.request, name, range));
+    }
+
+    await queue(resolvers, (resolver) => resolver.warmCache(), 5);
+  }
+
   async resolveRequest(): Promise<false | RegistryResponse> {
-    return this.config.requestManager.request({
-      url: `${this.registryConfig.registry}/${this.name}`,
+    return await this.config.requestManager.request({
+      url: `${this.registryConfig.registry}/${this.name}/${this.range}`,
       json: true
     });
   }
@@ -52,15 +67,13 @@ export default class NpmResolver extends RegistryResolver {
     let shrunk = this.request.getLocked("tarball");
     if (shrunk) return shrunk;
 
-    let body = await this.resolveRequest();
+    let info = await this.resolveRequest();
 
-    if (!body) {
+    if (!info) {
       throw new MessageError(
         `Couldn't find package ${this.name} on the npm registry. ${this.request.getHuman()}`
       );
     }
-
-    let info = await this.findVersionInRegistryResponse(body);
 
     if (info.dist && info.dist.tarball) {
       info.remote = {

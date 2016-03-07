@@ -1,5 +1,6 @@
 [ignore]
 .*/node_modules/babel.*
+.*/node_modules/.*\.json
 
 [include]
 
