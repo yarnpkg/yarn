@@ -11,7 +11,7 @@
 
 // Find potential dynamic requires that could be dangerous.
 
-import { DANGEROUS_CATEGORY } from "../constants.js";
+import { DANGEROUS_CATEGORY } from "../../constants.js";
 
 export let visitor = {
   ReferencedIdentifier(path: any) {
@@ -75,7 +75,7 @@ export let visitor = {
     // module APIs.
     let value = path.node.value;
     if (value === "module") {
-      path.mark(DANGEROUS_CATEGORY, "Require to module, this will allow access to internal module methods");
+      path.mark(DANGEROUS_CATEGORY, "Attempt to access internal module APIs");
     }
   }
 };

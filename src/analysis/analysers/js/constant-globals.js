@@ -9,7 +9,7 @@
  * @flow
  */
 
- // Detect globals being assigned, include places where globals are used as values.
+// Detect globals being assigned, include places where globals are used as values.
 // This does not prevent access to globals via the prototype chain such as:
 //
 //   ({}).__proto__ === Object;
