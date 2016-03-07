@@ -1,17 +1,19 @@
-<p align="center">
-  <a href="https://facebook.github.io/kpm">
-    <img alt="kpm" src="https://github.com/facebook/kpm/blob/master/assets/logo.png?raw=true" width="546">
+<!--<p align="center">
+  <a href="https://facebook.github.io/fbkpm">
+    <img alt="fbkpm" src="https://github.com/facebook/fbkpm/blob/master/assets/logo.png?raw=true" width="546">
   </a>
-</p>
+</p>-->
+
+# fbkpm
 
 <p align="center">
   alternate npm and bower client focused on security and performance.
 </p>
 
 <p align="center">
-  <a href="https://travis-ci.org/facebook/kpm"><img alt="Travis Status" src="https://img.shields.io/travis/facebook/kpm/master.svg?style=flat&label=travis"></a>
-  <a href="https://ci.appveyor.com/project/facebook/kpm/branch/master"><img alt="Appveyor Status" src="https://img.shields.io/appveyor/ci/facebook/kpm.svg?style=flat&label=appveyor"></a>
-  <a href="https://codecov.io/github/facebook/kpm"><img alt="Coverage Status" src="https://img.shields.io/codecov/c/github/facebook/kpm/master.svg?style=flat"></a>
+  <a href="https://travis-ci.org/facebook/fbkpm"><img alt="Travis Status" src="https://img.shields.io/travis/facebook/fbkpm/master.svg?style=flat&label=travis"></a>
+  <a href="https://ci.appveyor.com/project/facebook/fbkpm/branch/master"><img alt="Appveyor Status" src="https://img.shields.io/appveyor/ci/facebook/fbkpm.svg?style=flat&label=appveyor"></a>
+  <a href="https://codecov.io/github/facebook/fbkpm"><img alt="Coverage Status" src="https://img.shields.io/codecov/c/github/facebook/fbkpm/master.svg?style=flat"></a>
 </p>
 
 ---
@@ -21,9 +23,9 @@ npm is lacking in key areas that are important to us. The changes we've made are
 and require significant changes to npm including the internal architecture and workflow for
 casual users.
 
-kpm is written from scratch and uses the existing npm registry for module hosting, it's
+fbkpm is written from scratch and uses the existing npm registry for module hosting, it's
 completely compatible with the npm ecosystem and is only an alternative to the npm client.
-With a focus on security, kpm helps auditing of third party dependencies by providing more insight
+With a focus on security, fbkpm helps auditing of third party dependencies by providing more insight
 into changes. This is done by requiring all new and updated dependencies to be manually
 audited with the use of efficient diff tooling that makes the review of large amounts of
 code very easy.
@@ -69,25 +71,25 @@ megabit down connection.
 ## Usage (while in development)
 
 ```sh
-$ git clone git@github.com:facebook/kpm.git
-$ cd kpm
+$ git clone git@github.com:facebook/fbkpm.git
+$ cd fbkpm
 $ npm install
 $ make build
 $ npm link
 # go into some random directory
 $ mkdir node_modules
-$ kpm install your-package
+$ fbkpm install your-package
 ```
 
 ## FAQ
 
-### What does kpm stand for?
+### What does fbkpm stand for?
 
 Kittens package manager
 
 ### How is this different to existing alternate npm clients such as [ied](https://github.com/alexanderGugel/ied) and [pnpm](https://github.com/rstacruz/pnpm)?
 
-Similar in many aspects but unlike existing alternate npm clients, kpm is focused on
+Similar in many aspects but unlike existing alternate npm clients, fbkpm is focused on
 security first, good performance is just an implementation detail. If we only cared about
 performance we'd help improve npm.
 
@@ -96,7 +98,7 @@ performance we'd help improve npm.
 The changes we've made significantly change the workflow that developers who use npm are
 used to. We believe this is for the best but we understand that this isn't for everyone.
 
-kpm is a package manager in a niche and we hope that some of our ideas make it's way back
+fbkpm is a package manager in a niche and we hope that some of our ideas make it's way back
 into the main npm client.
 
 ## What problems are you trying to solve?
@@ -140,7 +142,7 @@ their tree meaning you only have access to the modules you've specified in your 
  - Kim and Bob have the exact same lock checkout (that includes `babel` as a dependency).
  - Kim removes `babel` from `package.json`.
  - Kim commits updated lockfile, `package.json` and pushes.
- - Bob downloads, and runs `kpm install`.
+ - Bob downloads, and runs `fbkpm install`.
  - Bob doesn't realise that Kim removed the `babel` dependency and uses it in his code
    because it still exists in his local `node_modules`.
 
