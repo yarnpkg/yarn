@@ -19,16 +19,16 @@ let objs = [
   { foo: "bar" },
   { foo: {} },
   { foo: "foo", bar: "bar" },
+  { foo: 5 },
   Object.assign({}, require("../package.json"), { ava: {} })
 ];
 
-test("parse/stringify", (t) => {
-  t.plan(objs.length);
-
-  for (let obj of objs) {
+let i = 0;
+for (let obj of objs) {
+  test(`parse/stringify ${++i}`, (t) => {
     t.same(parse(stringify(obj)), nullify(obj));
-  }
-});
+  });
+}
 
 test("parse", (t) => {
   t.same(parse('foo "bar"'), nullify({ foo: "bar" }));

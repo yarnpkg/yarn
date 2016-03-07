@@ -10,11 +10,12 @@
  */
 
 function shouldWrapKey(str: string): boolean {
-  return str.indexOf("true") === 0 || str.indexOf("false") === 0 || /[:\s\n\\"]/g.test(str);
+  return str.indexOf("true") === 0 || str.indexOf("false") === 0 ||
+         /[:\s\n\\"]/g.test(str) || /^[0-9]/g.test(str) || !/^[a-zA-Z]/g.test(str);
 }
 
 function maybeWrap(str: string): string {
-  if (typeof str === "boolean" || shouldWrapKey(str)) {
+  if (typeof str === "boolean" || typeof str === "number" || shouldWrapKey(str)) {
     return JSON.stringify(str);
   } else {
     return str;
@@ -55,7 +56,7 @@ export default function stringify(obj: any, indent: string = ""): string {
 
     key = maybeWrap(key);
 
-    if (typeof val === "string" || typeof val === "boolean") {
+    if (typeof val === "string" || typeof val === "boolean" || typeof val === "number") {
       lines.push(`${key} ${maybeWrap(val)}`);
     } else if (typeof val === "object") {
       lines.push(`${key}:\n${stringify(val, indent + "  ")}`);

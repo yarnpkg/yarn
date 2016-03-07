@@ -15,7 +15,7 @@ import map from "../util/map.js";
 let invariant = require("invariant");
 let stripBOM  = require("strip-bom");
 
-const tokTypes = {
+const TOKEN_TYPES = {
   boolean: "BOOLEAN",
   string: "STRING",
   identifier: "IDENTIFIER",
@@ -23,8 +23,11 @@ const tokTypes = {
   colon: "COLON",
   newline: "NEWLINE",
   indent: "INDENT",
-  invalid: "INVALID"
+  invalid: "INVALID",
+  number: "NUMBER"
 };
+
+const VALID_PROP_VALUE_TOKENS = [TOKEN_TYPES.boolean, TOKEN_TYPES.string, TOKEN_TYPES.number];
 
 type Token = {
   line: number,
@@ -49,7 +52,7 @@ export function* tokenise(input: string): Iterator<Token> {
       chop++;
       line++;
       col = 0;
-      yield buildToken(tokTypes.newline);
+      yield buildToken(TOKEN_TYPES.newline);
     } else if (input[0] === "#") {
       // ignore comments
       while (input[chop] !== "\n") {
@@ -66,7 +69,7 @@ export function* tokenise(input: string): Iterator<Token> {
           throw new TypeError("Invalid number of spaces");
         } else {
           chop = indent.length;
-          yield buildToken(tokTypes.indent, indent.length / 2);
+          yield buildToken(TOKEN_TYPES.indent, indent.length / 2);
         }
       } else {
         chop++;
@@ -83,24 +86,32 @@ export function* tokenise(input: string): Iterator<Token> {
       chop = val.length;
 
       try {
-        yield buildToken(tokTypes.string, JSON.parse(val));
+        yield buildToken(TOKEN_TYPES.string, JSON.parse(val));
       } catch (err) {
         if (err instanceof SyntaxError) {
-          yield buildToken(tokTypes.invalid);
+          yield buildToken(TOKEN_TYPES.invalid);
         } else {
           throw err;
         }
       }
+    } else if (/^[0-9]/.test(input)) {
+      let val = "";
+      for (let i = 0; /^[0-9]$/.test(input[i]); i++) {
+        val += input[i];
+      }
+      chop = val.length;
+
+      yield buildToken(TOKEN_TYPES.number, +val);
     } else if (/^true/.test(input)) {
-      yield buildToken(tokTypes.boolean, true);
+      yield buildToken(TOKEN_TYPES.boolean, true);
       chop = 4;
     } else if (/^false/.test(input)) {
-      yield buildToken(tokTypes.boolean, false);
+      yield buildToken(TOKEN_TYPES.boolean, false);
       chop = 5;
     } else if (input[0] === ":") {
-      yield buildToken(tokTypes.colon);
+      yield buildToken(TOKEN_TYPES.colon);
       chop++;
-    } else {
+    } else if (/^[a-zA-Z]/g.test(input)) {
       let name = "";
       for (let i = 0; i < input.length; i++) {
         let char = input[i];
@@ -112,12 +123,14 @@ export function* tokenise(input: string): Iterator<Token> {
       }
       chop = name.length;
 
-      yield buildToken(tokTypes.string, name);
+      yield buildToken(TOKEN_TYPES.string, name);
+    } else {
+      yield buildToken(TOKEN_TYPES.invalid);
     }
 
     if (!chop) {
       // will trigger infinite recursion
-      yield buildToken(tokTypes.invalid);
+      yield buildToken(TOKEN_TYPES.invalid);
     }
 
     col += chop;
@@ -125,7 +138,7 @@ export function* tokenise(input: string): Iterator<Token> {
     input = input.slice(chop);
   }
 
-  yield buildToken(tokTypes.eof);
+  yield buildToken(TOKEN_TYPES.eof);
 }
 
 export class Parser {
@@ -165,14 +178,14 @@ export class Parser {
     while (true) {
       let propToken = this.token;
 
-      if (propToken.type === tokTypes.newline) {
+      if (propToken.type === TOKEN_TYPES.newline) {
         let nextToken = this.next();
         if (!indent) {
           // if we have 0 indentation then the next token doesn't matter
           continue;
         }
 
-        if (nextToken.type !== tokTypes.indent) {
+        if (nextToken.type !== TOKEN_TYPES.indent) {
           // if we have no indentation after a newline then we've gone down a level
           break;
         }
@@ -184,28 +197,28 @@ export class Parser {
           // the indentation is less than our level
           break;
         }
-      } else if (propToken.type === tokTypes.indent) {
+      } else if (propToken.type === TOKEN_TYPES.indent) {
         if (propToken.value === indent) {
           this.next();
         } else {
           break;
         }
-      } else if (propToken.type === tokTypes.eof) {
+      } else if (propToken.type === TOKEN_TYPES.eof) {
         break;
-      } else if (propToken.type === tokTypes.string) {
+      } else if (propToken.type === TOKEN_TYPES.string) {
         // property key
         let key = propToken.value;
         invariant(key, "Expected a key");
 
         let valToken = this.next();
-        if (valToken.type === tokTypes.colon) {
+        if (valToken.type === TOKEN_TYPES.colon) {
           this.next();
           obj[key] = this.parse(indent + 1);
 
-          if (indent && this.token.type !== tokTypes.indent) {
+          if (indent && this.token.type !== TOKEN_TYPES.indent) {
             break;
           }
-        } else if (valToken.type === tokTypes.string || valToken.type === tokTypes.boolean) {
+        } else if (VALID_PROP_VALUE_TOKENS.indexOf(valToken.type) >= 0) {
           obj[key] = valToken.value;
           this.next();
         } else {
