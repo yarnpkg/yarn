@@ -10,7 +10,7 @@
  */
 
 import type { RegistryNames } from "./registries/index.js";
-import type Reporter from "./reporters/_base.js";
+import type { Reporter } from "kreporters";
 import type Registry from "./registries/_base.js";
 import type { Manifest } from "./types.js";
 import normaliseManifest from "./util/normalise-manifest/index.js";

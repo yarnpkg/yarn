@@ -12,10 +12,9 @@
 global.Promise = require("bluebird");
 
 import buildExecuteLifecycleScript from "./commands/_execute-lifecycle-script.js";
-import ConsoleReporter from "../reporters/console/index.js";
+import { ConsoleReporter, JSONReporter } from "kreporters";
 import { MessageError, BailError } from "../errors.js";
 import { hasValidArgLength } from "./arg-utils.js";
-import JSONReporter from "../reporters/json.js";
 import * as network from "../util/network.js";
 import * as commands from "./commands/index.js";
 import aliases from "./aliases.js";

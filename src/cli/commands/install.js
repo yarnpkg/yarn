@@ -10,7 +10,7 @@
  */
 
 import type { RegistryNames } from "../../registries/index.js";
-import type Reporter from "../../reporters/_base.js";
+import type { Reporter } from "kreporters";
 import type Config from "../../config.js";
 import type { DependencyRequestPatterns } from "../../types.js";
 import Lockfile from "../../lockfile/index.js";

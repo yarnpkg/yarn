@@ -8,16 +8,9 @@
  *
  * @flow
  */
-/* global stream$Writable */
-/* global stream$Readable */
-/* global tty$ReadStream */
-/* global tty$WriteStream */
 
 import type { RegistryNames } from "./registries/index.js";
 import type PackageReference from "./package-reference.js";
-
-export type Stdout = stream$Writable | tty$WriteStream;
-export type Stdin = stream$Readable | tty$ReadStream;
 
 // dependency request pattern data structure that's used to request dependencies from a
 // PackageResolver
@@ -99,34 +92,26 @@ export type Manifest = {
 };
 
 //
-export type AnalysisFileEntry = {
-  type: "binary",
-  buffer: Buffer,
-  hash: string,
-
+type AnalysisFileEntryBase = {
   relative: string,
   absolute: string,
   size: number,
-  mode: number
+  mode: number,
+};
+type AnalysisFileEntryTypes = {
+  type: "binary",
+  buffer: Buffer,
+  hash: string,
 } | {
   type: "file",
   buffer: Buffer,
   hash: string,
-
-  relative: string,
-  absolute: string,
-  size: number,
-  mode: number
 } | {
   type: "symlink",
   location: string,
   hash?: void,
-
-  relative: string,
-  absolute: string,
-  size: number,
-  mode: number
 };
+export type AnalysisFileEntry = AnalysisFileEntryBase & AnalysisFileEntryTypes;
 
 //
 export type FetchedManifest = {
