@@ -1,5 +1,5 @@
 {
-  "name": "kpm",
+  "name": "fbkpm",
   "version": "0.0.0",
   "license": "BSD-3-Clause",
   "preferGlobal": true,
@@ -52,9 +52,9 @@
     "unexpected": "^10.8.1"
   },
   "bin": {
-    "kpm": "./bin/kpm.js",
-    "🐈": "./bin/kpm.js",
-    "🐱": "./bin/kpm.js"
+    "fbkpm": "./bin/fbkpm.js",
+    "🐈": "./bin/fbkpm.js",
+    "🐱": "./bin/fbkpm.js"
   },
   "scripts": {
     "test": "make test"

@@ -17,10 +17,10 @@ export const CHILD_CONCURRENCY = 5;
 
 export const REQUIRED_PACKAGE_KEYS = ["name", "version", "uid"];
 
-export const LOCKFILE_FILENAME = "kpm.lock";
-export const METADATA_FILENAME   = ".kpm-metadata.json";
+export const LOCKFILE_FILENAME = "fbkpm.lock";
+export const METADATA_FILENAME   = ".fbkpm-metadata.json";
 
-export const USER_AGENT = "kpm";
+export const USER_AGENT = "fbkpm";
 
 export const ENV_PATH_KEY = getPathKey(process.platform, process.env);
 

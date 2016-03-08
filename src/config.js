@@ -104,7 +104,7 @@ export default class Config {
   }
 
   /**
-   * Generate an absolute module path in kpm_modules.
+   * Generate an absolute module path in fbkpm_modules.
    */
 
   generateHardModulePath(pkg: ?{
@@ -157,21 +157,21 @@ export default class Config {
       return opts.packagesRoot;
     }
 
-    // walk up from current directory looking for kpm_modules folders
+    // walk up from current directory looking for fbkpm_modules folders
     let parts = this.cwd.split(path.sep);
     for (let i = parts.length; i > 0; i--) {
-      let loc = parts.slice(0, i).concat("kpm_modules").join(path.sep);
+      let loc = parts.slice(0, i).concat("fbkpm_modules").join(path.sep);
       if (await fs.exists(loc)) return loc;
     }
 
-    // try and create <cwd>/kpm_modules
-    let loc = path.join(this.cwd, "kpm_modules");
+    // try and create <cwd>/fbkpm_modules
+    let loc = path.join(this.cwd, "fbkpm_modules");
     await fs.mkdirp(loc);
     return loc;
   }
 
   /**
-   * Checker whether the folder input is a valid module folder. We output a kpm metadata
+   * Checker whether the folder input is a valid module folder. We output a fbkpm metadata
    * file when we've successfully setup a folder so use this as a marker.
    */
 

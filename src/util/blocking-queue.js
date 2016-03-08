@@ -50,7 +50,7 @@ export default class BlockingQueue {
     this.stuckTimer = setTimeout(() => {
       if (this.runningCount === 1) {
         console.warn(
-          `[kpm] The ${JSON.stringify(this.alias)} blocking queue may be stuck. 5 seconds ` +
+          `[fbkpm] The ${JSON.stringify(this.alias)} blocking queue may be stuck. 5 seconds ` +
           `without any activity with 1 worker: ${Object.keys(this.running)[0]}`
         );
       }

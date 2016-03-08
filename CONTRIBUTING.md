@@ -57,5 +57,5 @@ Use the same coding style, spacing and naming scheme as existing code. When in d
 
 ## License
 
-By contributing to kpm, you agree that your contributions will be licensed
+By contributing to fbkpm, you agree that your contributions will be licensed
 under its BSD license.

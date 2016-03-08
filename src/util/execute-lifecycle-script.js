@@ -28,7 +28,7 @@ export default async function (config: Config, cwd: string, cmds: Array<string>)
     let env = Object.assign({}, process.env);
 
     // this is used in some places apparently..
-    env.npm_execpath = path.join(__dirname, "..", "..", "bin", "kpm.js");
+    env.npm_execpath = path.join(__dirname, "..", "..", "bin", "fbkpm.js");
 
     // split up the path
     let pathParts = (env[constants.ENV_PATH_KEY] || "").split(path.delimiter);

@@ -254,7 +254,7 @@ export default class PackageRequest {
     let ref = new PackageReference(this, info, remote);
 
     // in order to support lockfiles inside transitive dependencies we need to block
-    // resolution to fetch the package so we can peek inside of it for a kpm.lock
+    // resolution to fetch the package so we can peek inside of it for a fbkpm.lock
     // only do this in strict lockfile mode as otherwise we can just use our root lockfile
     let subLockfile = null;
     if (!this.resolver.lockfile.strict) {
@@ -274,7 +274,7 @@ export default class PackageRequest {
       remote.hash = hash;
       info = newInfo;
 
-      // find and load in kpm.lock from this module if it exists
+      // find and load in fbkpm.lock from this module if it exists
       let lockfileLoc = path.join(dest, constants.LOCKFILE_FILENAME);
       if (await fs.exists(lockfileLoc)) {
         let rawLockfile = await fs.readFile(lockfileLoc);

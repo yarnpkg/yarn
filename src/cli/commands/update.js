@@ -33,7 +33,7 @@ export async function run(
   args: Array<string>
 ): Promise<void> {
   if (!await fs.exists(path.join(config.cwd, constants.LOCKFILE_FILENAME))) {
-    throw new MessageError("No lockfile in this directory. Run `kpm install` to generate one.");
+    throw new MessageError("No lockfile in this directory. Run `fbkpm install` to generate one.");
   }
 
   // TODO: show and make user approve of updated packages from lockfile. analyse for changes.

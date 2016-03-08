@@ -41,10 +41,9 @@ export default class NpmResolver extends RegistryResolver {
     }
   }
 
-  async warmCache() {
+  async warmCache(): Promise<void> {
     let res = await this.resolveRequest();
     if (!res || !res.dependencies) return;
-    return;
 
     let resolvers = [];
 

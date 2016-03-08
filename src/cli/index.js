@@ -11,6 +11,12 @@
 
 global.Promise = require("bluebird");
 
+Object.entries = function (obj) {
+  let ents = [];
+  for (let key in obj) ents.push([key, obj[key]]);
+  return ents;
+};
+
 import buildExecuteLifecycleScript from "./commands/_execute-lifecycle-script.js";
 import { ConsoleReporter, JSONReporter } from "kreporters";
 import { MessageError, BailError } from "../errors.js";
