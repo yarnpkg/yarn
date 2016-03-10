@@ -160,12 +160,12 @@ export default class Config {
     // walk up from current directory looking for fbkpm_modules folders
     let parts = this.cwd.split(path.sep);
     for (let i = parts.length; i > 0; i--) {
-      let loc = parts.slice(0, i).concat("fbkpm_modules").join(path.sep);
+      let loc = parts.slice(0, i).concat(constants.MODULE_DIRECTORY).join(path.sep);
       if (await fs.exists(loc)) return loc;
     }
 
     // try and create <cwd>/fbkpm_modules
-    let loc = path.join(this.cwd, "fbkpm_modules");
+    let loc = path.join(this.cwd, constants.MODULE_DIRECTORY);
     await fs.mkdirp(loc);
     return loc;
   }

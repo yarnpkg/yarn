@@ -10,6 +10,7 @@
 
 import * as reporters from "kreporters";
 import PackageResolver from "../src/package-resolver.js";
+import * as constants from "../src/constants.js";
 import Lockfile from "../src/lockfile/index.js";
 import Config from "../src/config.js";
 import makeTemp from "./_temp.js";
@@ -25,7 +26,7 @@ function addTest(pattern, registry = "npm") {
 
     let loc = await makeTemp();
     await fs.mkdirp(path.join(loc, "node_modules"));
-    await fs.mkdirp(path.join(loc, "kpm_modules"));
+    await fs.mkdirp(path.join(loc, constants.MODULE_DIRECTORY));
 
     let config = new Config(reporter, {
       cwd: loc,

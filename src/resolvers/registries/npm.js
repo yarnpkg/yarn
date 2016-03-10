@@ -46,23 +46,26 @@ export default class NpmResolver extends RegistryResolver {
     let res = await this.resolveRequest();
     if (!res || !res.dependencies) return;
 
-    let resolvers = [];
+    /*let resolvers = [];
 
     for (let [name, range] of entries(res.dependencies)) {
       resolvers.push(new NpmResolver(this.request, name, range));
     }
 
-    await queue(resolvers, (resolver) => resolver.warmCache(), 5);
+    await queue(resolvers, (resolver) => resolver.warmCache(), 5);*/
   }
 
   async resolveRequest(): Promise<false | Manifest> {
     let body = await this.config.requestManager.request({
-      url: `${this.registryConfig.registry}/${this.name}`,
+      url: `${this.registryConfig.registry}${this.name}`,
       json: true
     });
-    if (!body) return false;
 
-    return await this.findVersionInRegistryResponse(body);
+    if (body) {
+      return await this.findVersionInRegistryResponse(body);
+    } else {
+      return false;
+    }
   }
 
   async resolve(): Promise<Manifest> {
