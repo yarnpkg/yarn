@@ -9,8 +9,6 @@
  * @flow
  */
 
-global.Promise = require("bluebird");
-
 import buildExecuteLifecycleScript from "./commands/_execute-lifecycle-script.js";
 import { ConsoleReporter, JSONReporter } from "kreporters";
 import { MessageError, BailError } from "../errors.js";
