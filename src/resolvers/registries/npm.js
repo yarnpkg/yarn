@@ -13,7 +13,7 @@ import type { Manifest } from "../../types.js";
 import { MessageError } from "../../errors.js";
 import RegistryResolver from "./_base.js";
 import { queue } from "../../util/promise.js";
-import { entries } from "../../util/misc.js";
+import { entries, removeSuffix } from "../../util/misc.js";
 
 type RegistryResponse = {
   name: string,
@@ -58,8 +58,9 @@ export default class NpmResolver extends RegistryResolver {
   }
 
   async resolveRequest(): Promise<false | Manifest> {
+    let registry = removeSuffix(this.registryConfig.registry, "/");
     let body = await this.config.requestManager.request({
-      url: `${this.registryConfig.registry}${this.name}`,
+      url: `${registry}/${this.name}`,
       json: true
     });
 

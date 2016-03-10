@@ -9,6 +9,8 @@
  * @flow
  */
 
+let _ = require("lodash");
+
 export function entries<T>(obj: ?{ [key: string]: T }): Array<[string, T]> {
   let entries = [];
   if (obj) {
@@ -28,7 +30,7 @@ export function removePrefix(pattern: string, prefix: string): string {
 }
 
 export function removeSuffix(pattern: string, suffix: string): string {
-  if (pattern.indexOf(suffix) === pattern.length - suffix.length) {
+  if (_.endsWith(pattern, suffix)) {
     return pattern.slice(0, -suffix.length);
   }
 
