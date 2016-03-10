@@ -11,7 +11,7 @@
 
 import buildExecuteLifecycleScript from "./commands/_execute-lifecycle-script.js";
 import { ConsoleReporter, JSONReporter } from "kreporters";
-import { MessageError, BailError } from "../errors.js";
+import { MessageError } from "../errors.js";
 import * as network from "../util/network.js";
 import * as commands from "./commands/index.js";
 import aliases from "./aliases.js";
@@ -100,9 +100,7 @@ config.init().then(function () {
   });
 }).catch(function (errs) {
   function logError(err) {
-    if (err instanceof BailError) {
-      // no message
-    } else if (err instanceof MessageError) {
+    if (err instanceof MessageError) {
       reporter.error(err.stack);
     } else {
       console.error(err.stack);

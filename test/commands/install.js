@@ -10,7 +10,6 @@
 import * as reporters from "kreporters";
 import * as constants from "../../src/constants.js";
 import Lockfile from "../../src/lockfile/index.js";
-import { BailError } from "../../src/errors.js";
 import { Install } from "../../src/cli/commands/install.js";
 import Config from "../../src/config.js";
 import * as fs from "../../src/util/fs.js";
@@ -28,7 +27,7 @@ async function clean(cwd, removeLock) {
 
 async function run(flags, args, name) {
   let lockfile = new Lockfile;
-  let reporter = new reporters.BufferReporter;
+  let reporter = new reporters.NoopReporter;
 
   let cwd = path.join(fixturesLoc, name);
 
@@ -42,23 +41,11 @@ async function run(flags, args, name) {
   await fs.mkdirp(path.join(cwd, constants.MODULE_DIRECTORY));
   await fs.mkdirp(path.join(cwd, "node_modules"));
 
-  try {
-    let config = new Config(reporter, { cwd });
-    await config.init();
+  let config = new Config(reporter, { cwd });
+  await config.init();
 
-    let install = new Install("install", flags, args, config, reporter, lockfile);
-    await install.init();
-  } catch (err) {
-    if (err instanceof BailError) {
-      let errBuf = [];
-      for (let { type, data } of reporter.getBuffer()) {
-        if (type === "error") errBuf.push(data);
-      }
-      err.message = errBuf.join(" ");
-    }
-
-    throw err;
-  }
+  let install = new Install("install", flags, args, config, reporter, lockfile);
+  await install.init();
 
   // clean up
   await clean(cwd, removeLock);

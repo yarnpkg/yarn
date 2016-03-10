@@ -13,7 +13,7 @@ import type PackageResolver from "./package-resolver.js";
 import type { Reporter } from "kreporters";
 import type { Manifest } from "./types.js";
 import type Config from "./config.js";
-import { BailError } from "./errors.js";
+import { MessageError } from "./errors.js";
 import map from "./util/map.js";
 import { entries } from "./util/misc.js";
 
@@ -109,7 +109,7 @@ export default class PackageCompatibility {
       }
     }
 
-    if (didError) throw BailError;
+    if (didError) throw new MessageError("Found incompatible module");
   }
 
   async init(): Promise<void> {
