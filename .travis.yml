@@ -1,7 +1,7 @@
 ---
 git:
   depth: 1
-sudo: false
+sudo: true # can't use this due to git upgrade requirement
 
 cache:
   directories:
