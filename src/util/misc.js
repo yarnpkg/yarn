@@ -9,6 +9,16 @@
  * @flow
  */
 
+export function entries<T>(obj: ?{ [key: string]: T }): Array<[string, T]> {
+  let entries = [];
+  if (obj) {
+    for (let key in obj) {
+      entries.push([key, obj[key]]);
+    }
+  }
+  return entries;
+}
+
 export function removePrefix(pattern: string, prefix: string): string {
   if (pattern.indexOf(prefix) === 0) {
     pattern = pattern.slice(prefix.length);

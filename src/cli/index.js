@@ -11,16 +11,9 @@
 
 global.Promise = require("bluebird");
 
-Object.entries = function (obj) {
-  let ents = [];
-  for (let key in obj) ents.push([key, obj[key]]);
-  return ents;
-};
-
 import buildExecuteLifecycleScript from "./commands/_execute-lifecycle-script.js";
 import { ConsoleReporter, JSONReporter } from "kreporters";
 import { MessageError, BailError } from "../errors.js";
-import { hasValidArgLength } from "./arg-utils.js";
 import * as network from "../util/network.js";
 import * as commands from "./commands/index.js";
 import aliases from "./aliases.js";
@@ -102,12 +95,6 @@ if (network.isOffline()) {
 
 //
 config.init().then(function () {
-  let validArgLength = hasValidArgLength(command.argumentLength, command.minArgumentLength, args);
-
-  if (!validArgLength) {
-    throw new MessageError(`Invalid argument length for ${commandName}`);
-  }
-
   return command.run(config, reporter, commander, commander.args).then(function () {
     reporter.close();
     reporter.footer(true);

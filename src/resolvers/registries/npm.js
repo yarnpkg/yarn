@@ -13,6 +13,7 @@ import type { Manifest } from "../../types.js";
 import { MessageError } from "../../errors.js";
 import RegistryResolver from "./_base.js";
 import { queue } from "../../util/promise.js";
+import { entries } from "../../util/misc.js";
 
 type RegistryResponse = {
   name: string,
@@ -47,18 +48,21 @@ export default class NpmResolver extends RegistryResolver {
 
     let resolvers = [];
 
-    for (let [name, range] of Object.entries(res.dependencies)) {
+    for (let [name, range] of entries(res.dependencies)) {
       resolvers.push(new NpmResolver(this.request, name, range));
     }
 
     await queue(resolvers, (resolver) => resolver.warmCache(), 5);
   }
 
-  async resolveRequest(): Promise<false | RegistryResponse> {
-    return await this.config.requestManager.request({
-      url: `${this.registryConfig.registry}/${this.name}/${this.range}`,
+  async resolveRequest(): Promise<false | Manifest> {
+    let body = await this.config.requestManager.request({
+      url: `${this.registryConfig.registry}/${this.name}`,
       json: true
     });
+    if (!body) return false;
+
+    return await this.findVersionInRegistryResponse(body);
   }
 
   async resolve(): Promise<Manifest> {

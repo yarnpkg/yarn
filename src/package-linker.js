@@ -14,6 +14,7 @@ import type PackageResolver from "./package-resolver.js";
 import type { Reporter } from "kreporters";
 import type Config from "./config.js";
 import * as promise from "./util/promise.js";
+import { entries } from "./util/misc.js";
 import * as fs from "./util/fs.js";
 
 let invariant = require("invariant");
@@ -50,7 +51,7 @@ export default class PackageLinker {
   }
 
   async linkSelfDependencies(pkg: Manifest, pkgLoc: string, targetBinLoc: string): Promise<void> {
-    for (let [scriptName, scriptCmd] of Object.entries(pkg.bin)) {
+    for (let [scriptName, scriptCmd] of entries(pkg.bin)) {
       let dest = path.join(targetBinLoc, scriptName);
       let src  = path.join(pkgLoc, scriptCmd);
 

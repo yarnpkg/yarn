@@ -14,6 +14,7 @@ import type Config from "./config.js";
 import type { PackageRemote, Manifest } from "./types.js";
 import type PackageRequest from "./package-request.js";
 import type { RegistryNames } from "./registries/index.js";
+import { entries } from "./util/misc.js";
 import { MessageError } from "./errors.js";
 
 export default class PackageReference {
@@ -87,7 +88,7 @@ export default class PackageReference {
 
     let shrunk = this.lockfile.getLocked(pattern);
     if (shrunk && shrunk.permissions) {
-      for (let [key, perm] of Object.entries(shrunk.permissions)) {
+      for (let [key, perm] of entries(shrunk.permissions)) {
         this.setPermission(key, perm);
       }
     }

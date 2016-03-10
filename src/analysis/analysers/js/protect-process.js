@@ -15,6 +15,6 @@
 
 export let visitor = {
   ReferencedIdentifier(path: any) {
-    
+    path;
   }
 };

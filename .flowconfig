@@ -1,6 +1,6 @@
 [ignore]
 .*/node_modules/babel.*
-.*/node_modules/.*\.json
+.*/node_modules/y18n/test/.*
 
 [include]
 

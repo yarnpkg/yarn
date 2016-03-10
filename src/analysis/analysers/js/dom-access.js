@@ -12,7 +12,7 @@
 // Identify code that uses DOM related APIs or attempts to access or read the DOM.
 // `document`, `document.cookie`, `navigator` etc.
 
-import { WARNING_CATEGORY } from "../../constants.js";
+import { DANGEROUS_CATEGORY } from "../../constants.js";
 
 export let visitor = {
   ReferencedIdentifier(path: any) {

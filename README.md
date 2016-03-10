@@ -83,23 +83,18 @@ $ fbkpm install your-package
 
 ## FAQ
 
-### What does fbkpm stand for?
-
-Kittens package manager
-
 ### How is this different to existing alternate npm clients such as [ied](https://github.com/alexanderGugel/ied) and [pnpm](https://github.com/rstacruz/pnpm)?
 
 Similar in many aspects but unlike existing alternate npm clients, fbkpm is focused on
-security first, good performance is just an implementation detail. If we only cared about
-performance we'd help improve npm.
+security first, excellent performance is just an implementation detail. If we only cared about
+performance we'd help improve npm as that doesn't require a change in workflow.
 
 ### Why not contribute back to npm?
 
 The changes we've made significantly change the workflow that developers who use npm are
 used to. We believe this is for the best but we understand that this isn't for everyone.
 
-fbkpm is a package manager in a niche and we hope that some of our ideas make it's way back
-into the main npm client.
+fbkpm occupies a nich and we hope that some of our ideas make it's way back into the main npm client.
 
 ## What problems are you trying to solve?
 

@@ -15,7 +15,7 @@
     "diff": "^2.2.1",
     "invariant": "^2.2.0",
     "is-builtin-module": "^1.0.0",
-    "kreporters": "^1.0.0",
+    "kreporters": "^1.0.2",
     "lodash": "^4.0.0",
     "loud-rejection": "^1.2.0",
     "mkdirp": "^0.5.1",

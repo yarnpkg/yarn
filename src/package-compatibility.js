@@ -15,6 +15,7 @@ import type { Manifest } from "./types.js";
 import type Config from "./config.js";
 import { BailError } from "./errors.js";
 import map from "./util/map.js";
+import { entries } from "./util/misc.js";
 
 let semver = require("semver");
 let _      = require("lodash");
@@ -91,7 +92,7 @@ export default class PackageCompatibility {
     }
 
     if (_.isPlainObject(info.engines)) {
-      for (let [name, range] of Object.entries(info.engines)) {
+      for (let [name, range] of entries(info.engines)) {
         if (aliases[name]) {
           name = aliases[name];
         }

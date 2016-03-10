@@ -18,6 +18,7 @@ import Lockfile, { parse as parseLock } from "./lockfile/index.js";
 import PackageReference from "./package-reference.js";
 import { registries as registryResolvers } from "./resolvers/index.js";
 import { MessageError } from "./errors.js";
+import { entries } from "./util/misc.js";
 import * as constants from "./constants.js";
 import * as versionUtil from "./util/version.js";
 import * as resolvers from "./resolvers/index.js";
@@ -51,7 +52,7 @@ export default class PackageRequest {
   }
 
   static getExoticResolver(pattern: string): ?Function { // TODO make this type more refined
-    for (let [name, Resolver] of Object.entries(resolvers.exotics)) {
+    for (let [, Resolver] of entries(resolvers.exotics)) {
       if (Resolver.isVersion(pattern)) return Resolver;
     }
   }

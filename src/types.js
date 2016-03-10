@@ -92,26 +92,35 @@ export type Manifest = {
 };
 
 //
-type AnalysisFileEntryBase = {
-  relative: string,
-  absolute: string,
-  size: number,
-  mode: number,
-};
-type AnalysisFileEntryTypes = {
+
+export type AnalysisFileEntry = {
   type: "binary",
   buffer: Buffer,
   hash: string,
+
+  relative: string,
+  absolute: string,
+  size: number,
+  mode: number
 } | {
   type: "file",
   buffer: Buffer,
   hash: string,
+
+  relative: string,
+  absolute: string,
+  size: number,
+  mode: number
 } | {
   type: "symlink",
   location: string,
   hash?: void,
+
+  relative: string,
+  absolute: string,
+  size: number,
+  mode: number
 };
-export type AnalysisFileEntry = AnalysisFileEntryBase & AnalysisFileEntryTypes;
 
 //
 export type FetchedManifest = {
