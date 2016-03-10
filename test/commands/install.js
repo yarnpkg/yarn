@@ -28,7 +28,7 @@ async function clean(cwd, removeLock) {
 
 async function run(flags, args, name) {
   let lockfile = new Lockfile;
-  let reporter = new reporters.BaseReporter;
+  let reporter = new reporters.BufferReporter;
 
   let cwd = path.join(fixturesLoc, name);
 
