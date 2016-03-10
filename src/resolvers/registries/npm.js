@@ -46,6 +46,8 @@ export default class NpmResolver extends RegistryResolver {
     let res = await this.resolveRequest();
     if (!res || !res.dependencies) return;
 
+    queue;
+    entries;
     /*let resolvers = [];
 
     for (let [name, range] of entries(res.dependencies)) {
