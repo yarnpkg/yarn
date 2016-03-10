@@ -9,18 +9,18 @@
 
 "use strict";
 
-let plumber = require("gulp-plumber");
-let through = require("through2");
-let chalk   = require("chalk");
-let newer   = require("gulp-newer");
-let babel   = require("gulp-babel");
-let watch   = require("gulp-watch");
-let gutil   = require("gulp-util");
-let gulp    = require("gulp");
-let path    = require("path");
-let fs      = require("fs");
+var plumber = require("gulp-plumber");
+var through = require("through2");
+var chalk   = require("chalk");
+var newer   = require("gulp-newer");
+var babel   = require("gulp-babel");
+var watch   = require("gulp-watch");
+var gutil   = require("gulp-util");
+var gulp    = require("gulp");
+var path    = require("path");
+var fs      = require("fs");
 
-let babelRc = JSON.parse(fs.readFileSync(path.join(__dirname, ".babelrc"), "utf8"));
+var babelRc = JSON.parse(fs.readFileSync(path.join(__dirname, ".babelrc"), "utf8"));
 
 function build(lib, opts) {
   return gulp.src("src/**/*.js")

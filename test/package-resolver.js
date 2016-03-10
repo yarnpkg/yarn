@@ -8,7 +8,7 @@
  */
 /* eslint max-len: 0 */
 
-import * as reporters from "../src/reporters/index.js";
+import * as reporters from "kreporters";
 import PackageResolver from "../src/package-resolver.js";
 import Lockfile from "../src/lockfile/index.js";
 import Config from "../src/config.js";
@@ -21,7 +21,7 @@ let test = require("ava");
 function addTest(pattern, registry = "npm") {
   test(`resolve ${pattern}`, async () => {
     let lockfile = new Lockfile;
-    let reporter = new reporters.Noop({});
+    let reporter = new reporters.NoopReporter({});
 
     let loc = await makeTemp();
     await fs.mkdirp(path.join(loc, "node_modules"));

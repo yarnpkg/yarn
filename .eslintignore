@@ -2,3 +2,4 @@ test/fixtures
 lib
 lib-legacy
 coverage
+Gulpfile.js

@@ -7,7 +7,7 @@
  * of patent rights can be found in the PATENTS file in the same directory.
  */
 
-import * as reporters from "../../src/reporters/index.js";
+import * as reporters from "kreporters";
 import Lockfile from "../../src/lockfile/index.js";
 import { Install } from "../../src/cli/commands/install.js";
 import Config from "../../src/config.js";
@@ -26,7 +26,7 @@ async function clean(cwd, removeLock) {
 
 async function run(flags, args, name) {
   let lockfile = new Lockfile;
-  let reporter = new reporters.Noop;
+  let reporter = new reporters.NoopReporter;
 
   let cwd = path.join(fixturesLoc, name);
 

@@ -13,7 +13,6 @@ env:
  - NODE_VERSION="iojs"
  - NODE_VERSION="0.12"
  - NODE_VERSION="0.10"
- - NODE_VERSION="0.8"
 
 install:
  - rm -rf ~/.nvm
