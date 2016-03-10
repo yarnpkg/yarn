@@ -15,8 +15,7 @@ env:
 
 install:
  # install latest git
- - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install git                                 ; fi
- - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then ./scripts/update-linux-git.sh; fi
+ - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install git; fi
  - git --version
 
  # install proper node version
