@@ -56,9 +56,8 @@ stability and development of frontend dependency management.
 * Refuses to download a tarball from HTTPS if an HTTP redirect was included.
 * Refuses to clone a git repo over HTTP and plain git.
 * Blacklists known bad hosts that ping analytics servers.
-* Lockfile contains tarball hashes to ensure integrity of package downloads. Lockfile
-  contains tarball hashes to ensure integrity of package downloads.
-* Generate reports when installing and updating dependencies. Contains diffs of module
+* Lockfile contains tarball hashes to ensure integrity of package downloads.
+* Generates reports when installing and updating dependencies. Contains diffs of module
   code and analyses modules for possible points of conflict such as suspicious code.
 
 ## Screenshot
@@ -91,10 +90,10 @@ performance we'd help improve npm as that doesn't require a change in workflow.
 
 ### Why not contribute back to npm?
 
-The changes we've made significantly change the workflow that developers who use npm are
+The changes we've made significantly alter the workflow that developers who use npm are
 used to. We believe this is for the best but we understand that this isn't for everyone.
 
-We hope that some of our ideas make it's way back into the main npm client.
+We hope that some of our ideas make their way back into the main npm client.
 
 ## What problems are you trying to solve?
 
@@ -104,10 +103,10 @@ We hope that some of our ideas make it's way back into the main npm client.
 
 The npm dependency graph is nondeteriministic and is dependent on install order. This is
 terrible for reproducible builds. This is traditionally mitigated by npm with a lock file
-and the reshuffling of dependencies inside the graph. This however isn't adequate. The use
+and the reshuffling of dependencies inside the graph. This however isn't enough. The use
 of a [CAS](https://en.wikipedia.org/wiki/Content-addressable_storage) for storing modules
-and sane version resolution against this tree, as long as always using a shrinkwrap by
-default should allow for deterministic dependency graphs.
+and sane version resolution against this tree, and using a shrinkwrap by default should
+allow for deterministic dependency graphs.
 
 ### Option for a flat tree and a single version per package
 
@@ -146,7 +145,7 @@ This can be mitigated by automatically pruning extraneous modules on install.
 ### More security
 
 **Locked dependencies by default** By default npm does not enforce the use of a lockfile.
-This means that a lot of users aren't protected by accidental breakages.
+This means that a lot of users aren't protected from accidental breakages.
 
 **Verification of executing lifecycle commands** When installing packages from npm, any
 package can run arbitrary commands on package install. This is dangerous and allows for a
@@ -158,7 +157,7 @@ executed.
 [large packages to track users](https://github.com/strongloop/loopback/issues/1079).
 When connecting to foreign hosts that we don't have explicitly in a whitelist we should
 prompt the user for verification. Once the resolved version has been stored in the
-shrinkwrap then the check will be skipped.
+shrinkwrap, the check will be skipped.
 
 **Analysis of new packages and updated packages** It's hard to know what new dependencies,
 owners, and potential access have been granted when installing and updating packages.
