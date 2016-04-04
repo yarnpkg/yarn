@@ -20,6 +20,7 @@ import Config from "../config.js";
 let loudRejection = require("loud-rejection");
 let commander     = require("commander");
 let invariant     = require("invariant");
+let pkg           = require("../../package");
 let _             = require("lodash");
 
 loudRejection();
@@ -27,7 +28,7 @@ loudRejection();
 let args = process.argv;
 
 // set global options
-commander.version(require("../../package").version);
+commander.version(pkg.version);
 commander.usage("[command] [flags]");
 commander.option("--json", "");
 
@@ -76,7 +77,7 @@ reporter.initPeakMemoryCounter();
 let config = new Config(reporter);
 
 // print header
-reporter.header(commandName);
+reporter.header(commandName, pkg);
 
 //
 if (commander.yes) {

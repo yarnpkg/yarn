@@ -8,13 +8,13 @@
  *
  * @flow
  */
- 
+
 import * as uninstall from "./uninstall.js";
 export { uninstall };
 import * as install from "./install.js";
 export { install };
-import * as update from "./update.js";
-export { update };
+import * as upgrade from "./update.js";
+export { upgrade };
 
 import buildUseless from "./_useless.js";
 

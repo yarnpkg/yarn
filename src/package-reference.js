@@ -39,6 +39,7 @@ export default class PackageReference {
     this.permissions = {};
     this.patterns    = [];
     this.optional    = null;
+    this.location    = null;
   }
 
   requests: Array<PackageRequest>;
@@ -54,9 +55,14 @@ export default class PackageReference {
   permissions: { [key: string]: boolean };
   remote: PackageRemote;
   registry: RegistryNames;
+  location: ?string;
 
   async getFolder(): Promise<string> {
     return this.config.registries[this.registry].folder;
+  }
+
+  setLocation(loc: string): string {
+    return this.location = loc;
   }
 
   addRequest(request: PackageRequest) {

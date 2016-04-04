@@ -6,7 +6,11 @@
 /.editorconfig
 /.babelrc
 /.travis.yml
+/.eslintignore
+/.flowconfig
 /CONTRIBUTING.md
 /Makefile
 /.nyc_output
+/scripts
 /coverage
+/dist

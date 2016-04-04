@@ -1,4 +1,4 @@
-.PHONY: build test watch lint typecheck test-only test-ci test-cov
+.PHONY: build test watch lint typecheck test-only test-ci test-cov build-dist
 
 build:
 	./node_modules/.bin/gulp build
@@ -12,6 +12,16 @@ test-only:
 
 lint:
 	./node_modules/.bin/kcheck
+
+build-dist:
+	npm pack
+	rm -rf dist
+	mkdir dist
+	mv fbkpm-*.tgz dist/pack.tgz
+	cd dist; \
+	tar -xzf pack.tgz --strip 1; \
+	rm -rf pack.tgz; \
+	npm install --only=production
 
 test: lint test-only
 

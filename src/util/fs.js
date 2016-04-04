@@ -28,10 +28,72 @@ export let mkdirp         = promisify(require("mkdirp"));
 export let exists         = promisify(fs.exists, true);
 export let lstat          = promisify(fs.lstat);
 export let chmod          = promisify(fs.chmod);
-export let copy           = promisify(require("ncp"));
 
 let fsSymlink = promisify(fs.symlink);
 let stripBOM  = require("strip-bom");
+
+export async function copy(src: string, dest: string): Promise<void> {
+  let srcStat = await lstat(src);
+
+  if (await exists(dest)) {
+    let destStat = await lstat(dest);
+
+    if (srcStat.isFile() && destStat.isFile() && destStat.size === destStat.size) {
+      // we can safely assume this is the same file
+      return;
+    }
+
+    if (srcStat.isDirectory() && destStat.isDirectory()) {
+      // remove files that aren't in source
+      let destFiles = await readdir(dest);
+      let srcFiles  = await readdir(src);
+
+      let promises = destFiles.map(async (file) => {
+        if (srcFiles.indexOf(file) < 0) {
+          await unlink(path.join(dest, file));
+        }
+      });
+      await Promise.all(promises);
+    }
+
+    if (srcStat.mode !== destStat.mode) {
+      // different types
+      await unlink(dest);
+    }
+  }
+
+  if (srcStat.isDirectory()) {
+    // create dest directory
+    await mkdirp(dest);
+
+    // get all files in source directory
+    let files = await readdir(src);
+
+    // copy all files from source to dest
+    let promises = files.map((file) => {
+      return copy(path.join(src, file), path.join(dest, file));
+    });
+    await Promise.all(promises);
+  } else if (srcStat.isFile()) {
+    return new Promise((resolve, reject) => {
+      let readStream = fs.createReadStream(src);
+      let writeStream = fs.createWriteStream(dest, { mode: srcStat.mode });
+
+      readStream.on("error", reject);
+      writeStream.on("error", reject);
+
+      writeStream.on("open", function() {
+        readStream.pipe(writeStream);
+      });
+
+      writeStream.once("finish", function() {
+        resolve();
+      });
+    });
+  } else {
+    throw new Error("unsure how to copy this?");
+  }
+}
 
 export async function readFile(loc: string): Promise<string> {
   return new Promise((resolve, reject) => {

@@ -27,7 +27,7 @@ fbkpm is written from scratch and uses the existing npm registry for module host
 completely compatible with the npm ecosystem and is only an alternative to the npm client.
 With a focus on security, fbkpm helps auditing of third party dependencies by providing more insight
 into changes. This is done by requiring all new and updated dependencies to be manually
-audited with the use of efficient diff tooling that makes the review of large amounts of
+audited with the use of custom diff tooling that makes the review of large amounts of
 code very easy.
 
 ## Features
@@ -94,7 +94,7 @@ performance we'd help improve npm as that doesn't require a change in workflow.
 The changes we've made significantly change the workflow that developers who use npm are
 used to. We believe this is for the best but we understand that this isn't for everyone.
 
-fbkpm occupies a nich and we hope that some of our ideas make it's way back into the main npm client.
+We hope that some of our ideas make it's way back into the main npm client.
 
 ## What problems are you trying to solve?
 

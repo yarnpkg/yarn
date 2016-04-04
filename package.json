@@ -19,7 +19,6 @@
     "lodash": "^4.0.0",
     "loud-rejection": "^1.2.0",
     "mkdirp": "^0.5.1",
-    "ncp": "^2.0.0",
     "node-emoji": "^1.0.4",
     "node-gyp": "^3.2.1",
     "repeating": "^2.0.0",

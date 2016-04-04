@@ -8,4 +8,5 @@
 /test/.tmp
 /test/fixtures/**/kpm_modules
 /test/fixtures/**/node_modules
+/dist
 fbkpm_modules

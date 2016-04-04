@@ -39,17 +39,6 @@ export default class PackageLinker {
   resolver: PackageResolver;
   config: Config;
 
-  async link(pkg: Manifest): Promise<void> {
-    let ref = pkg.reference;
-    invariant(ref, "Package reference is missing");
-
-    let dir = path.join(this.config.generateHardModulePath(ref), await ref.getFolder());
-    await fs.mkdirp(dir);
-
-    let deps = await this.linkModules(pkg, dir);
-    await this.linkBinDependencies(deps, pkg, dir);
-  }
-
   async linkSelfDependencies(pkg: Manifest, pkgLoc: string, targetBinLoc: string): Promise<void> {
     for (let [scriptName, scriptCmd] of entries(pkg.bin)) {
       let dest = path.join(targetBinLoc, scriptName);
@@ -105,25 +94,100 @@ export default class PackageLinker {
     }
   }
 
-  async linkModules(pkg: Manifest, dir: string): Promise<DependencyPairs> {
+  async initCopyModules(patterns: Array<string>): Promise<void> {
+    let tree = Object.create(null);
     let self = this;
-    let ref = pkg.reference;
-    invariant(ref, "Package reference is missing");
 
-    let deps = await this.linkPeerModules(pkg);
+    //
+    function add(pattern, parentParts) {
+      if (parentParts.length >= 100) {
+        throw new Error("cause we're in too deep");
+      }
 
-    await promise.queue(ref.dependencies.concat(deps), (pattern) => {
-      let dep  = self.resolver.getResolvedPattern(pattern);
-      let src  = self.config.generateHardModulePath(dep.reference);
-      let dest = path.join(dir, dep.name);
+      let pkg = self.resolver.getResolvedPattern(pattern);
+      let loc = self.config.generateHardModulePath(pkg.reference);
 
-      return fs.symlink(src, dest);
-    });
+      //
+      let ownParts = parentParts.slice();
+      for (let i = ownParts.length; i >= 0; i--) {
+        let checkParts = ownParts.slice(0, i).concat(pkg.name);
+        let checkKey = checkParts.join("#");
+        let check = tree[checkKey];
+        if (check && check.loc === loc) return;
+      }
+      ownParts.push(pkg.name);
 
-    return deps;
+      let key = ownParts.join("#");
+      tree[key] = {
+        loc,
+        pkg,
+      };
+
+      // add dependencies
+      for (let depPattern of pkg.reference.dependencies) {
+        add(depPattern, ownParts);
+      }
+    }
+    for (let pattern of this.resolver.dedupePatterns(patterns)) {
+      add(pattern, []);
+    }
+
+    // hoist tree
+    hoist: for (let key in tree) {
+      let parts = key.split("#");
+      let info  = tree[key];
+      delete tree[key];
+
+      let name = parts.pop();
+      while (parts.length) {
+        let key = parts.concat(name).join("#");
+
+        let existing = tree[key];
+        if (existing) {
+          if (existing.loc === info.loc) {
+            continue hoist;
+          } else {
+            break;
+          }
+        }
+
+        parts.pop();
+      }
+
+      parts.push(name);
+
+      tree[parts.join("#")] = info;
+    }
+
+    //
+    let flatTree = [];
+    for (let key in tree) {
+      let info = tree[key];
+      let loc  = path.join(this.config.cwd, "node_modules", key.replace(/#/g, "/node_modules/"));
+      flatTree.push([loc, info]);
+    }
+
+    //
+    let tickCopyModule = this.reporter.progress(flatTree.length);
+    await promise.queue(flatTree, async function ([dest, { loc: src, pkg }]) {
+      pkg.reference.setLocation(dest);
+
+      await fs.mkdirp(dest);
+      await fs.copy(src, dest);
+
+      tickCopyModule(dest);
+    }, 4);
+
+    //
+    let tickBin = this.reporter.progress(flatTree.length);
+    await promise.queue(flatTree, async function ([dest, { pkg }]) {
+      let binLoc = path.join(dest, "node_modules");
+      await self.linkBinDependencies([], pkg, binLoc);
+      tickBin(dest);
+    }, 4);
   }
 
-  async linkPeerModules(pkg: Manifest): Promise<DependencyPairs> {
+  async resolvePeerModules(pkg: Manifest): Promise<DependencyPairs> {
     let ref = pkg.reference;
     invariant(ref, "Package reference is missing");
 
@@ -151,19 +215,20 @@ export default class PackageLinker {
       searchPatterns = searchPatterns.concat(this.resolver.seedPatterns);
 
       // find matching dep in search patterns
-      let foundDep: ?{ version: string, package: Manifest };
+      let foundDep: ?{ pattern: string, version: string, package: Manifest };
       for (let pattern of searchPatterns) {
         let dep = this.resolver.getResolvedPattern(pattern);
         if (dep && dep.name === name) {
-          foundDep = { version: dep.version, package: dep };
+          foundDep = { pattern, version: dep.version, package: dep };
           break;
         }
       }
 
       // validate found peer dependency
       if (foundDep) {
-        if (semver.satisfies(range, foundDep.version)) {
+        if (range === "*" || semver.satisfies(range, foundDep.version)) {
           deps.push({
+            pattern: foundDep.pattern,
             dep: foundDep.package,
             loc: this.config.generateHardModulePath(foundDep.package.reference)
           });
@@ -178,17 +243,32 @@ export default class PackageLinker {
     return deps;
   }
 
-  async init(linkBins?: boolean = true): Promise<void> {
+  async init(patterns: Array<string>): Promise<void> {
+    await this.initCopyModules(patterns);
+    await this.saveAll(patterns);
+  }
+
+  async save(pattern: string): Promise<void> {
+    let resolved = this.resolver.getResolvedPattern(pattern);
+    invariant(resolved, `Couldn't find resolved name/version for ${pattern}`);
+
+    let ref = resolved.reference;
+    invariant(ref, "Missing reference");
+
+    //
+    let src = this.config.generateHardModulePath(ref);
+
+    // link bins
+    if (!_.isEmpty(resolved.bin)) {
+      let binLoc = path.join(this.config.cwd, await ref.getFolder(), ".bin");
+      await fs.mkdirp(binLoc);
+      await this.linkSelfDependencies(resolved, src, binLoc);
+    }
+  }
+
+  async saveAll(deps: Array<string>): Promise<void> {
+    deps = this.resolver.dedupePatterns(deps);
     let self = this;
-    let pkgs = this.resolver.getManifests();
-    let tick = this.reporter.progress(pkgs.length);
-
-    // TODO: prune extraneous modules
-
-    await promise.queue(pkgs, (pkg) => {
-      return self.link(pkg, linkBins).then(function () {
-        tick(pkg.name);
-      });
-    });
+    await promise.queue(deps, (dep) => self.save(dep));
   }
 }

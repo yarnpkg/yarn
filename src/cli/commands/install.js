@@ -22,14 +22,12 @@ import PackageLinker from "../../package-linker.js";
 import { registries } from "../../registries/index.js";
 import { MessageError } from "../../errors.js";
 import * as constants from "../../constants.js";
-import * as promise from "../../util/promise.js";
 import * as fs from "../../util/fs.js";
 import map from "../../util/map.js";
 
 let invariant = require("invariant");
 let emoji     = require("node-emoji");
 let path      = require("path");
-let _         = require("lodash");
 
 type FetchResolveParams = {
   totalSteps: number,
@@ -63,7 +61,7 @@ export class Install {
 
     this.resolver      = new PackageResolver(config, lockfile);
     this.compatibility = new PackageCompatibility(config, this.resolver);
-    this.linker        = new PackageLinker(config, this.resolver);
+    this.linker        = new PackageLinker(config, this.resolver, "copy");
     this.scripts       = new PackageInstallScripts(config, this.resolver);
   }
 
@@ -113,7 +111,13 @@ export class Install {
         // plain deps
         let plainDepMap = Object.assign({}, json.dependencies, json.devDependencies);
         for (let name in plainDepMap) {
-          let pattern = name + "@" + plainDepMap[name];
+          let pattern = name;
+          if (!this.lockfile.getLocked(pattern, true)) {
+            // when we use --save we save the dependency to the lockfile with just the name rather than the
+            // version combo
+            pattern += "@" + plainDepMap[name];
+          }
+
           patterns.push(pattern);
           deps.push({ pattern, registry });
         }
@@ -121,7 +125,13 @@ export class Install {
         // optional deps
         let optionalDeps = json.optionalDependencies;
         for (let name in optionalDeps) {
-          let pattern = name + "@" + optionalDeps[name];
+          let pattern = name;
+          if (!this.lockfile.getLocked(pattern, true)) {
+            // see above comment
+            // TODO dry this up
+            pattern += "@" + optionalDeps[name];
+          }
+
           patterns.push(pattern);
           deps.push({ pattern, registry, optional: true });
         }
@@ -130,11 +140,7 @@ export class Install {
       }
     }
 
-    if (foundConfig) {
-      return [deps, patterns];
-    } else {
-      throw new Error("No package metadata found in the current directory.");
-    }
+    return [deps, patterns];
   }
 
   async fetchResolve(params: FetchResolveParams): Promise<FetchResolveReturn> {
@@ -183,18 +189,15 @@ export class Install {
   }
 
   async init(): Promise<void> {
-    let rawPatterns = [];
-    let depRequests = [];
+    let [depRequests, rawPatterns] = await this.fetchRequestFromCwd();
 
     // calculate deps we need to install
     if (this.args.length) {
       // just use the args passed in the cli
-      rawPatterns = this.args;
+      rawPatterns = rawPatterns.concat(this.args);
       for (let pattern of rawPatterns) {
         depRequests.push({ pattern, registry: "npm" });
       }
-    } else {
-      [depRequests, rawPatterns] = await this.fetchRequestFromCwd();
     }
 
     // the amount of steps after package resolve/fetch
@@ -213,7 +216,7 @@ export class Install {
 
     //
     this.reporter.step(++step, total, "Linking dependencies", emoji.get("link"));
-    await this.linker.init();
+    await this.linker.init(patterns);
 
     //
     this.reporter.step(++step, total, "Running install scripts", emoji.get("page_with_curl"));
@@ -221,7 +224,43 @@ export class Install {
 
     // fin!
     await this.saveLockfile();
-    await this.saveAll(patterns);
+    await this.savePackages(patterns);
+  }
+
+  /**
+   * Save added packages to `package.json` if any of the --save flags were used
+   */
+
+  async savePackages(patterns: Array<string>) {
+    if (!this.args.length) return;
+
+    let { save, saveDev, saveExact, saveOptional } = this.flags;
+    if (!save && !saveDev && !saveOptional) return;
+
+    let json = {};
+    let jsonLoc = path.join(this.config.cwd, "package.json");
+    if (await fs.exists(jsonLoc)) {
+      json = await fs.readJson(jsonLoc);
+    }
+
+    for (let pattern of patterns) {
+      let pkg = this.resolver.getResolvedPattern(pattern);
+      let version = pkg.version;
+      if (!saveExact) version = `^${version}`;
+
+      let targetKey;
+      if (save) targetKey = "dependencies";
+      if (saveDev) targetKey = "devDependencies";
+      if (saveOptional) targetKey = "optionalDependencies";
+
+      if (targetKey) {
+        let target = json[targetKey] = json[targetKey] || {};
+        // TODO: this assumes all packages exist on the npm registry and doesn't support exotics
+        target[pkg.name] = version;
+      }
+    }
+
+    await fs.writeFile(jsonLoc, JSON.stringify(json, null, "  "));
   }
 
   /**
@@ -291,42 +330,6 @@ export class Install {
     );
 
     this.reporter.success(`Saved fbkpm lockfile to ${constants.LOCKFILE_FILENAME}`);
-  }
-
-  /**
-   * TODO description
-   */
-
-  async save(pattern: string): Promise<void> {
-    let resolved = this.resolver.getResolvedPattern(pattern);
-    invariant(resolved, `Couldn't find resolved name/version for ${pattern}`);
-
-    let ref = resolved.reference;
-    invariant(ref, "Missing reference");
-
-    //
-    let src = this.config.generateHardModulePath(ref);
-
-    // link bins
-    if (!_.isEmpty(resolved.bin)) {
-      let binLoc = path.join(this.config.cwd, await ref.getFolder(), ".bin");
-      await fs.mkdirp(binLoc);
-      await this.linker.linkSelfDependencies(resolved, src, binLoc);
-    }
-
-    // link node_modules
-    let dest = path.join(this.config.registries[resolved.remote.registry].loc, resolved.name);
-    return fs.symlink(src, dest);
-  }
-
-  /**
-   * TODO description
-   */
-
-  async saveAll(deps: Array<string>): Promise<void> {
-    deps = this.resolver.dedupePatterns(deps);
-    let self = this;
-    await promise.queue(deps, (dep) => self.save(dep));
   }
 }
 

@@ -22,6 +22,7 @@ import { registries } from "./registries/index.js";
 import map from "./util/map.js";
 
 let invariant = require("invariant");
+let userHome  = require("user-home");
 let path      = require("path");
 
 type ConfigOptions = {
@@ -111,12 +112,14 @@ export default class Config {
     name: string,
     uid: string,
     version: string,
-    registry: RegistryNames
+    registry: RegistryNames,
+    location: ?string
   }): string {
+    invariant(this.packagesRoot, "No package root");
     invariant(pkg, "Undefined package");
     invariant(pkg.name, "No name field in package");
     invariant(pkg.uid, "No uid field in package");
-    invariant(this.packagesRoot, "No package root");
+    if (pkg.location) return pkg.location;
 
     let name = pkg.name;
     let uid = pkg.uid;
@@ -160,12 +163,12 @@ export default class Config {
     // walk up from current directory looking for fbkpm_modules folders
     let parts = this.cwd.split(path.sep);
     for (let i = parts.length; i > 0; i--) {
-      let loc = parts.slice(0, i).concat(constants.MODULE_DIRECTORY).join(path.sep);
+      let loc = parts.slice(0, i).concat(constants.MODULE_CACHE_DIRECTORY).join(path.sep);
       if (await fs.exists(loc)) return loc;
     }
 
     // try and create <cwd>/fbkpm_modules
-    let loc = path.join(this.cwd, constants.MODULE_DIRECTORY);
+    let loc = path.join(userHome, constants.MODULE_CACHE_DIRECTORY);
     await fs.mkdirp(loc);
     return loc;
   }
