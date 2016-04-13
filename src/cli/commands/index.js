@@ -13,7 +13,7 @@ import * as uninstall from "./uninstall.js";
 export { uninstall };
 import * as install from "./install.js";
 export { install };
-import * as upgrade from "./update.js";
+import * as upgrade from "./upgrade.js";
 export { upgrade };
 
 import buildUseless from "./_useless.js";
