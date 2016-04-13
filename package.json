@@ -5,9 +5,7 @@
   "preferGlobal": true,
   "main": "./index.js",
   "dependencies": {
-    "babel-core": "^6.0.0",
     "babel-runtime": "^6.0.0",
-    "babel-traverse": "^6.0.0",
     "babylon": "^6.5.0",
     "chalk": "^1.1.1",
     "cmd-shim": "^2.0.1",
@@ -51,9 +49,9 @@
     "unexpected": "^10.8.1"
   },
   "bin": {
-    "fbkpm": "./bin/fbkpm.js",
-    "🐈": "./bin/fbkpm.js",
-    "🐱": "./bin/fbkpm.js"
+    "kpm": "./bin/kpm.js",
+    "🐈": "./bin/kpm.js",
+    "🐱": "./bin/kpm.js"
   },
   "scripts": {
     "test": "make test"

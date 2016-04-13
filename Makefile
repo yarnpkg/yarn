@@ -17,11 +17,14 @@ build-dist:
 	npm pack
 	rm -rf dist
 	mkdir dist
-	mv fbkpm-*.tgz dist/pack.tgz
+	mv kit-*.tgz dist/pack.tgz
 	cd dist; \
 	tar -xzf pack.tgz --strip 1; \
 	rm -rf pack.tgz; \
-	npm install --only=production
+	npm install --production; \
+	rm -rf node_modules/*/test node_modules/*/dist
+	tar -cvzf dist/kpm-v`node dist/bin/kit --version`.tar.gz dist/*; \
+	shasum -a 256 dist/kpm-*.tar.gz
 
 test: lint test-only
 
