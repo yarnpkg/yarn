@@ -24,12 +24,17 @@ export { default as parse } from "./parse";
 export { default as stringify } from "./stringify";
 
 export default class Lockfile {
-  constructor(cache: ?Object, strict?: boolean) {
+  constructor(cache: ?Object, strict?: boolean, save?: boolean) {
     this.strict = !!strict;
+    this.save = !!save;
     this.cache  = cache;
   }
 
+  // true if operation is just rehydrating node_modules folder
   strict: boolean;
+
+  // true if lockfile will be persisted
+  save: boolean;
 
   cache: ?{
     [key: string]: string | {
@@ -49,6 +54,7 @@ export default class Lockfile {
     dir: string,
     reporter: Reporter,
     strictIfPresent: boolean,
+    save: boolean,
   ): Promise<Lockfile> {
     // read the package.json in this directory
     let lockfileLoc = path.join(dir, constants.LOCKFILE_FILENAME);
@@ -68,7 +74,7 @@ export default class Lockfile {
       reporter.info("No lockfile found.");
     }
 
-    return new Lockfile(lockfile, strict);
+    return new Lockfile(lockfile, strict, save);
   }
 
   isStrict(): boolean {

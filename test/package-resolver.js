@@ -26,7 +26,7 @@ function addTest(pattern, registry = "npm") {
 
     let loc = await makeTemp();
     await fs.mkdirp(path.join(loc, "node_modules"));
-    await fs.mkdirp(path.join(loc, constants.MODULE_DIRECTORY));
+    await fs.mkdirp(path.join(loc, constants.MODULE_CACHE_DIRECTORY));
 
     let config = new Config(reporter, {
       cwd: loc,

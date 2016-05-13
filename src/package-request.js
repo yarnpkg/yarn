@@ -252,7 +252,7 @@ export default class PackageRequest {
     invariant(remote, "Missing remote");
 
     // set package reference
-    let ref = new PackageReference(this, info, remote);
+    let ref = new PackageReference(this, info, remote, this.resolver.lockfile.save);
 
     // in order to support lockfiles inside transitive dependencies we need to block
     // resolution to fetch the package so we can peek inside of it for a fbkpm.lock
@@ -270,9 +270,19 @@ export default class PackageRequest {
         info.name,
         () => this.resolver.fetcher.fetch(ref)
       );
+      let offlineMirrorPath = this.config.getOfflineMirrorPath(ref.remote.registry,
+        ref.remote.reference);
+      // replace resolved remote URL with local path
+      if (this.resolver.lockfile.save && offlineMirrorPath) {
+        if (await fs.exists(offlineMirrorPath)) {
+          remote.resolved = path.relative(
+            this.config.getOfflineMirrorPath(ref.remote.registry),
+            offlineMirrorPath) + `#${ref.remote.hash}`;
+        }
+      }
+      remote.hash = hash;
       newInfo.reference = ref;
       newInfo.remote = remote;
-      remote.hash = hash;
       info = newInfo;
 
       // find and load in fbkpm.lock from this module if it exists

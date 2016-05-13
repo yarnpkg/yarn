@@ -22,6 +22,7 @@ export default class PackageReference {
     request: PackageRequest,
     info: Manifest,
     remote: PackageRemote,
+    saveForOffline: boolean,
   ) {
     this.lockfile = request.rootLockfile;
     this.requests = [request];
@@ -40,6 +41,7 @@ export default class PackageReference {
     this.patterns    = [];
     this.optional    = null;
     this.location    = null;
+    this.saveForOffline = !!saveForOffline;
   }
 
   requests: Array<PackageRequest>;
@@ -50,6 +52,7 @@ export default class PackageReference {
   version: string;
   uid: string;
   optional: ?boolean;
+  saveForOffline: boolean;
   dependencies: Array<string>;
   patterns: Array<string>;
   permissions: { [key: string]: boolean };

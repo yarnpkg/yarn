@@ -24,6 +24,7 @@ import map from "./util/map.js";
 let invariant = require("invariant");
 let userHome  = require("user-home");
 let path      = require("path");
+let url       = require("url");
 
 type ConfigOptions = {
   cwd?: string,
@@ -141,6 +142,27 @@ export default class Config {
   }
 
   /**
+   * Remote packages may be cached in a file system to be available for offline installation
+   * Second time the same package needs to be installed it will be loaded from there
+   */
+
+  getOfflineMirrorPath(registry: RegistryNames, tarUrl: ?string): string {
+    let mirrorPath = this.registries[registry] && this.registries[registry]
+      .config["kpm-offline-mirror"];
+    if (!mirrorPath) {
+      return "";
+    }
+    if (!tarUrl) {
+      return mirrorPath;
+    }
+    let parsed = url.parse(tarUrl);
+    if (!parsed || !parsed.pathname) {
+      return mirrorPath;
+    }
+    return path.join(mirrorPath, path.basename(parsed.pathname));
+  }
+
+  /**
    * Find temporary folder.
    */
 
@@ -160,7 +182,7 @@ export default class Config {
       return opts.packagesRoot;
     }
 
-    // walk up from current directory looking for fbkpm_modules folders
+    // walk up from current directory looking for .fbkpm folders
     let parts = this.cwd.split(path.sep);
     for (let i = parts.length; i > 0; i--) {
       let loc = parts.slice(0, i).concat(constants.MODULE_CACHE_DIRECTORY).join(path.sep);
