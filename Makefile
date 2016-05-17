@@ -14,17 +14,17 @@ lint:
 	./node_modules/.bin/kcheck
 
 build-dist:
-        npm pack
-        rm -rf dist
-        mkdir dist
-        mv fbkpm-*.tgz dist/pack.tgz
-        cd dist; \
-        tar -xzf pack.tgz --strip 1; \
-        rm -rf pack.tgz; \
-        npm install --production; \
-        rm -rf node_modules/*/test node_modules/*/dist
-        tar -cvzf dist/fbkpm-v`node dist/bin/kpm --version`.tar.gz dist/*; \
-        shasum -a 256 dist/fbkpm-*.tar.gz
+	npm pack
+	rm -rf dist
+	mkdir dist
+	mv fbkpm-*.tgz dist/pack.tgz
+	cd dist; \
+		tar -xzf pack.tgz --strip 1; \
+		rm -rf pack.tgz; \
+		npm install --production; \
+		rm -rf node_modules/*/test node_modules/*/dist
+	tar -cvzf dist/fbkpm-v`node dist/bin/kpm --version`.tar.gz dist/*; \
+		shasum -a 256 dist/fbkpm-*.tar.gz
 
 test: lint test-only
 
