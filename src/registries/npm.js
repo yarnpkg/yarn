@@ -15,6 +15,7 @@ import Registry from "./_base.js";
 let userHome = require("user-home");
 let path     = require("path");
 let _        = require("lodash");
+let ini      = require("ini");
 
 function getGlobalPrefix(): string {
   if (process.env.PREFIX) {
@@ -52,8 +53,12 @@ export default class NpmRegistry extends Registry {
 
     for (let loc of possibles) {
       if (await fs.exists(loc)) {
-        // TODO: merge it in!
+        _.defaults(this.config, ini.parse(await fs.readFile(loc)));
       }
+    }
+    if (this.config["kpm-offline-mirror"]) {
+      this.config["kpm-offline-mirror"] = path.resolve(this.cwd, this.config["kpm-offline-mirror"]);
+      await fs.mkdirp(this.config["kpm-offline-mirror"]);
     }
 
     _.defaults(this.config, {

@@ -93,8 +93,6 @@ export class Install {
     let patterns = [];
     let deps = [];
 
-    let foundConfig = false;
-
     for (let registry of Object.keys(registries)) {
       let filenames = registries[registry].filenames;
 
@@ -103,7 +101,6 @@ export class Install {
         if (!(await fs.exists(loc))) continue;
 
         this.registries.push(registry);
-        foundConfig = true;
 
         let json = await fs.readJson(loc);
         Object.assign(this.resolutions, json.resolutions);
@@ -159,15 +156,13 @@ export class Install {
     let totalStepsThis = totalSteps + 2;
 
     this.reporter.step(1, totalStepsThis, "Rehydrating dependency graph", emoji.get("fast_forward"));
-    await this.resolver.init(requests, true);
-
-    patterns = await this.flatten(patterns);
+    await this.resolver.init(requests);
 
     this.reporter.step(2, totalStepsThis, "Fetching packages", emoji.get("package"));
     await this.resolver.fetcher.init();
 
     return {
-      patterns,
+      patterns: await this.flatten(patterns),
       total: totalStepsThis,
       step: 2
     };
@@ -231,7 +226,7 @@ export class Install {
    * Save added packages to `package.json` if any of the --save flags were used
    */
 
-  async savePackages(patterns: Array<string>) {
+  async savePackages(patterns: Array<string>): Promise<void> {
     if (!this.args.length) return;
 
     let { save, saveDev, saveExact, saveOptional } = this.flags;
@@ -417,7 +412,8 @@ export async function run(
     throw new MessageError("Missing package names for --save flags");
   }
 
-  let lockfile = await Lockfile.fromDirectory(config.cwd, reporter, isStrictLockfile(flags, args));
+  let lockfile = await Lockfile.fromDirectory(config.cwd, reporter, isStrictLockfile(flags, args),
+    hasSaveFlags(flags));
   let install = new Install("install", flags, args, config, reporter, lockfile);
   return install.init();
 }

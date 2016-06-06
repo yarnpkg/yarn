@@ -58,7 +58,7 @@ export default class TarballResolver extends ExoticResolver {
         reference: url,
         registry,
         hash
-      }, this.config);
+      }, this.config, false);
 
       // fetch file and get it's hash
       let fetched: FetchedManifest = await fetcher.fetch(dest);

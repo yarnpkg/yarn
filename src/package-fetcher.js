@@ -55,7 +55,7 @@ export default class PackageFetcher {
     await fs.mkdirp(dest);
 
     try {
-      let fetcher = new Fetcher(remote, this.config);
+      let fetcher = new Fetcher(remote, this.config, ref.saveForOffline);
       return await fetcher.fetch(dest);
     } catch (err) {
       try {
