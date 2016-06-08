@@ -169,14 +169,16 @@ export default class PackageLinker {
 
     //
     let tickCopyModule = this.reporter.progress(flatTree.length);
-    await promise.queue(flatTree, async function ([dest, { loc: src, pkg }]) {
+    await promise.queue(flatTree, async function ([dest, { pkg }]) {
       pkg.reference.setLocation(dest);
-
       await fs.mkdirp(dest);
-      await fs.copy(src, dest);
-
-      tickCopyModule(dest);
     }, 4);
+
+    // TODO concurrent copies can interfere when copying master and a sub dependency in parallel
+    await promise.queue(flatTree, async function ([dest, { loc: src }]) {
+      await fs.copy(src, dest);
+      tickCopyModule(dest);
+    }, 1);
 
     //
     let tickBin = this.reporter.progress(flatTree.length);
@@ -257,7 +259,6 @@ export default class PackageLinker {
 
     //
     let src = this.config.generateHardModulePath(ref);
-
     // link bins
     if (!_.isEmpty(resolved.bin)) {
       let binLoc = path.join(this.config.cwd, await ref.getFolder(), ".bin");

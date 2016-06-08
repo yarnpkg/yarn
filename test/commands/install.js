@@ -100,7 +100,7 @@ test("install with --save and offline mirror", () => {
 
     let rawLockfile = await fs.readFile(path.join(cwd, constants.LOCKFILE_FILENAME));
     let lockfile = parse(rawLockfile);
-    assert(lockfile["is-array@1.0.1"]["resolved"] ===
+    assert.equal(lockfile["is-array@1.0.1"]["resolved"],
       "is-array-1.0.1.tgz#e9850cc2cc860c3bc0977e84ccf0dd464584279a");
 
     await fs.unlink(path.join(cwd, mirrorPath));
@@ -121,7 +121,7 @@ test("install with --save and without offline mirror", () => {
 
     let rawLockfile = await fs.readFile(path.join(cwd, constants.LOCKFILE_FILENAME));
     let lockfile = parse(rawLockfile);
-    assert(lockfile["is-array@1.0.1"]["resolved"] ===
+    assert.equal(lockfile["is-array@1.0.1"]["resolved"],
       "https://registry.npmjs.org/is-array/-/is-array-1.0.1.tgz#e9850cc2cc860c3bc0977e84ccf0dd464584279a");
 
     await fs.unlink(path.join(cwd, mirrorPath));
@@ -140,5 +140,28 @@ test("install from offline mirror", () => {
     }) !== -1);
 
     return allFiles;
+  });
+});
+
+test("install should not flatten dependencies if there are collisions", () => {
+  // A@2.0.1 -> B@2.0.0
+  // B@1.0.0
+  // should result in B@2.0.0 not flattened
+  return run({}, [], "install-dont-flatten-when-conflict", async (cwd) => {
+    let rawDepBPackage = await fs.readFile(path.join(cwd, "node_modules/dep-b/package.json"));
+    assert.equal(JSON.parse(rawDepBPackage).version, "1.0.0");
+    rawDepBPackage = await fs.readFile(path.join(cwd, "node_modules/dep-a/node_modules/dep-b/package.json"));
+    assert.equal(JSON.parse(rawDepBPackage).version, "2.0.0");
+  });
+});
+
+test("install should flatten dependencies at the most top level without collisions", () => {
+  // A@2.0.1 -> B@2.0.0
+  // should result in B@2.0.0 flattened
+  return run({}, [], "install-flatten-when-no-conflict", async (cwd) => {
+    let rawDepBPackage = await fs.readFile(path.join(cwd, "node_modules/dep-b/package.json"));
+    assert.equal(JSON.parse(rawDepBPackage).version, "2.0.0");
+    rawDepBPackage = await fs.readFile(path.join(cwd, "node_modules/dep-a/package.json"));
+    assert.equal(JSON.parse(rawDepBPackage).version, "2.0.1");
   });
 });
