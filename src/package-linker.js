@@ -133,31 +133,31 @@ export default class PackageLinker {
     }
 
     // hoist tree
-    hoist: for (let key in tree) {
-      let parts = key.split("#");
-      let info  = tree[key];
-      delete tree[key];
-
-      let name = parts.pop();
-      while (parts.length) {
-        let key = parts.concat(name).join("#");
-
-        let existing = tree[key];
-        if (existing) {
-          if (existing.loc === info.loc) {
-            continue hoist;
-          } else {
-            break;
-          }
-        }
-
-        parts.pop();
-      }
-
-      parts.push(name);
-
-      tree[parts.join("#")] = info;
-    }
+    // hoist: for (let key in tree) {
+    //   let parts = key.split("#");
+    //   let info  = tree[key];
+    //   delete tree[key];
+    //
+    //   let name = parts.pop();
+    //   while (parts.length) {
+    //     let key = parts.concat(name).join("#");
+    //
+    //     let existing = tree[key];
+    //     if (existing) {
+    //       if (existing.loc === info.loc) {
+    //         continue hoist;
+    //       } else {
+    //         break;
+    //       }
+    //     }
+    //
+    //     parts.pop();
+    //   }
+    //
+    //   parts.push(name);
+    //
+    //   tree[parts.join("#")] = info;
+    // }
 
     //
     let flatTree = [];

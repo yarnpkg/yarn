@@ -143,7 +143,7 @@ test("install from offline mirror", () => {
   });
 });
 
-test("install should not flatten dependencies if there are collisions", () => {
+test.only("install should not flatten dependencies if there are collisions", () => {
   // A@2.0.1 -> B@2.0.0
   // B@1.0.0
   // should result in B@2.0.0 not flattened
@@ -155,7 +155,7 @@ test("install should not flatten dependencies if there are collisions", () => {
   });
 });
 
-test("install should flatten dependencies at the most top level without collisions", () => {
+test.only("install should flatten dependencies at the most top level without collisions", () => {
   // A@2.0.1 -> B@2.0.0
   // should result in B@2.0.0 flattened
   return run({}, [], "install-flatten-when-no-conflict", async (cwd) => {
