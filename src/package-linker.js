@@ -132,32 +132,78 @@ export default class PackageLinker {
       add(pattern, []);
     }
 
-    // hoist tree
-    hoist: for (let key in tree) {
-      let parts = key.split("#");
-      let info  = tree[key];
-      delete tree[key];
+    // A@2 -> B@2 -> D@1 -> C@2
+    //     -> C@1
 
-      let name = parts.pop();
-      while (parts.length) {
-        let key = parts.concat(name).join("#");
+    // A2
+    // A2#B2
+    // A2#B2#D1
+    // A2#B2#D1#C2
+    // A2#C1
 
-        let existing = tree[key];
-        if (existing) {
-          if (existing.loc === info.loc) {
-            continue hoist;
+    // A2
+    // B2
+    // A2#B2#D1
+    // A2#B2#D1#C2
+    // A2#C1
+
+    // A2
+    // B2
+    // B2#D1
+    // A2#B2#D1#C2
+    // A2#C1
+
+    // A2
+    // B2
+    // B2#D1
+    // B2#D1#C2
+    // A2#C1
+
+    // A2
+    // B2
+    // B2#D1
+    // B2#D1#C2
+    // C1
+
+    // A2
+    // B2
+    // D1
+    // B2#D1#C2
+    // C1
+
+    // A2
+    // B2
+    // D1
+    // D1#C2
+    // C1
+
+    function hoistTree(treeToHoist) {
+      let changed = false;
+      for (let key in treeToHoist) {
+        let parts = key.split("#");
+        let thisPackageInfo = treeToHoist[key];
+        if (parts.length > 1) {
+          let oneLevelUpKey = parts.slice(1).join("#");
+          let existing = treeToHoist[oneLevelUpKey];
+          if (existing) {
+            if (existing.loc === thisPackageInfo.loc) {
+              // a compatible package less deep path already exists and current one can be deleted
+              changed = true;
+              delete treeToHoist[key];
+            } else {
+              // an incompatible package exists is at the top, go next
+            }
           } else {
-            break;
+            // move package up one level
+            changed = true;
+            delete treeToHoist[key];
+            treeToHoist[oneLevelUpKey] = thisPackageInfo;
           }
         }
-
-        parts.pop();
       }
-
-      parts.push(name);
-
-      tree[parts.join("#")] = info;
+      return changed;
     }
+    while (hoistTree(tree));
 
     //
     let flatTree = [];
@@ -167,7 +213,7 @@ export default class PackageLinker {
       flatTree.push([loc, info]);
     }
 
-    //
+    // TODO filter out only unique deep trees
     let tickCopyModule = this.reporter.progress(flatTree.length);
     await promise.queue(flatTree, async function ([dest, { pkg }]) {
       pkg.reference.setLocation(dest);
@@ -175,6 +221,8 @@ export default class PackageLinker {
     }, 4);
 
     // TODO concurrent copies can interfere when copying master and a sub dependency in parallel
+    // TODO sort it smart way to work around concurrency issues
+    // TODO can we symlink repeated locs if hoisting is not perfect?
     await promise.queue(flatTree, async function ([dest, { loc: src }]) {
       await fs.copy(src, dest);
       tickCopyModule(dest);
