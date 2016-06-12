@@ -95,8 +95,13 @@ export default class PackageLinker {
   }
 
   async initCopyModules(patterns: Array<string>): Promise<void> {
+    // we need to zip up the tree as we we're using it as a hash map and will be actively
+    // removing and deleting keys during enumeration
+    let zippedTree = [];
     let tree = Object.create(null);
     let self = this;
+
+    let subPairs = new Map;
 
     //
     function add(pattern, parentParts) {
@@ -113,31 +118,50 @@ export default class PackageLinker {
         let checkParts = ownParts.slice(0, i).concat(pkg.name);
         let checkKey = checkParts.join("#");
         let check = tree[checkKey];
-        if (check && check.loc === loc) return;
+        if (check && check.loc === loc) return [];
       }
       ownParts.push(pkg.name);
 
       let key = ownParts.join("#");
-      tree[key] = {
+      let info = {
         loc,
         pkg,
       };
+      let pair = [key, info];
+
+      zippedTree.push(pair);
+      tree[key] = info;
+
+      let results = [];
 
       // add dependencies
       for (let depPattern of pkg.reference.dependencies) {
-        add(depPattern, ownParts);
+        results = results.concat(add(depPattern, ownParts));
       }
+
+      subPairs.set(info, results.slice());
+
+      results.push(pair);
+
+      return results;
     }
+
     for (let pattern of this.resolver.dedupePatterns(patterns)) {
       add(pattern, []);
     }
 
     // hoist tree
-    hoist: for (let key in tree) {
+    hoist: for (let i = 0; i < zippedTree.length; i++) {
+      let pair = zippedTree[i];
+      let [key, info] = pair;
+
       let parts = key.split("#");
-      let info  = tree[key];
+      let stack = []; // stack of removed parts
+
+      // remove this item from the `tree` map so we can ignore it
       delete tree[key];
 
+      // remove redundant parts that wont collide
       let name = parts.pop();
       while (parts.length) {
         let key = parts.concat(name).join("#");
@@ -151,12 +175,40 @@ export default class PackageLinker {
           }
         }
 
-        parts.pop();
+        stack.push(parts.pop());
       }
 
+      //
       parts.push(name);
 
-      tree[parts.join("#")] = info;
+      // we need to special case when we attempt to hoist to the top level as the `existing` logic
+      // wont be hit in the above `while` loop
+      let existing = tree[parts.join("#")];
+      if (existing && existing.loc !== info.loc) {
+        parts.pop();
+        parts.push(stack.shift(), name);
+      }
+
+      // update to the new key
+      let oldKey = key;
+      let newKey = parts.join("#");
+      tree[newKey] = info;
+      pair[0] = newKey;
+
+      // go through and update all transitive dependencies and update to new hoisting position
+      let pairs = subPairs.get(info) || [];
+      for (let pair of pairs) {
+        let [subKey, subInfo] = pair;
+
+        if (subKey === newKey) continue;
+
+        let newSubKey = subKey.replace(new RegExp(`^${oldKey}#`), `${newKey}#`);
+        if (newSubKey === subKey) continue;
+
+        tree[newSubKey] = tree[subKey];
+        pair[0] = newSubKey;
+        delete tree[subKey];
+      }
     }
 
     //
