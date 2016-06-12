@@ -33,12 +33,12 @@ export default class TarballFetcher extends BaseFetcher {
       }
     }
     if (parts.protocol === null) {
-      let localTarball = path.resolve(
-        this.config.getOfflineMirrorPath(registry, null),
-        ref);
-      if (!await fsUtil.exists(localTarball)) {
+      let localTarball = path.resolve(this.config.getOfflineMirrorPath(registry, null), ref);
+
+      if (!(await fsUtil.exists(localTarball))) {
         throw new MessageError(`${ref}: Tarball is not in network and can't be located in cache`);
       }
+
       return new Promise((resolve, reject) => {
         let validateStream = crypto.hashStreamValidation();
 
@@ -73,6 +73,7 @@ export default class TarballFetcher extends BaseFetcher {
       process(req, resolve, reject) {
         let validateStream = crypto.hashStreamValidation();
 
+        //
         let extractor = tar.Extract({ path: dest, strip: 1 })
           .on("error", reject)
           .on("end", function () {
@@ -87,6 +88,7 @@ export default class TarballFetcher extends BaseFetcher {
             }
           });
 
+        //
         let mirrorPath = config.getOfflineMirrorPath(registry, ref);
         let mirrorTarballStream;
         if (mirrorPath && saveForOffline) {
@@ -100,6 +102,7 @@ export default class TarballFetcher extends BaseFetcher {
           callback(null, chunk);
         });
 
+        //
         req
           .on("redirect", function () {
             if (hash) return;

@@ -26,8 +26,8 @@ export { default as stringify } from "./stringify";
 export default class Lockfile {
   constructor(cache: ?Object, strict?: boolean, save?: boolean) {
     this.strict = !!strict;
-    this.save = !!save;
     this.cache  = cache;
+    this.save   = !!save;
   }
 
   // true if operation is just rehydrating node_modules folder

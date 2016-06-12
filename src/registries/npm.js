@@ -52,13 +52,18 @@ export default class NpmRegistry extends Registry {
     this.mergeEnv("npm_config_");
 
     for (let loc of possibles) {
-      if (await fs.exists(loc)) {
-        _.defaults(this.config, ini.parse(await fs.readFile(loc)));
+      if (!(await fs.exists(loc))) continue;
+
+      let config = ini.parse(await fs.readFile(loc));
+
+      // normalise kpm offline mirror path relative to the current npmrc
+      let offlineLoc = config["kpm-offline-mirror"];
+      if (!this.config["kpm-offline-mirror"] && offlineLoc) {
+        let mirrorLoc = config["kpm-offline-mirror"] = path.resolve(path.dirname(loc), offlineLoc);
+        await fs.mkdirp(mirrorLoc);
       }
-    }
-    if (this.config["kpm-offline-mirror"]) {
-      this.config["kpm-offline-mirror"] = path.resolve(this.cwd, this.config["kpm-offline-mirror"]);
-      await fs.mkdirp(this.config["kpm-offline-mirror"]);
+
+      _.defaults(this.config, config);
     }
 
     _.defaults(this.config, {

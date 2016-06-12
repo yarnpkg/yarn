@@ -146,19 +146,22 @@ export default class Config {
    * Second time the same package needs to be installed it will be loaded from there
    */
 
-  getOfflineMirrorPath(registry: RegistryNames, tarUrl: ?string): string {
-    let mirrorPath = this.registries[registry] && this.registries[registry]
-      .config["kpm-offline-mirror"];
-    if (!mirrorPath) {
-      return "";
-    }
-    if (!tarUrl) {
-      return mirrorPath;
-    }
+  getOfflineMirrorPath(registryName: RegistryNames, tarUrl: ?string): string {
+    let registry = this.registries[registryName];
+    if (!registry) return "";
+
+    //
+    let mirrorPath = registry.config["kpm-offline-mirror"];
+    if (!mirrorPath) return "";
+
+    //
+    if (!tarUrl) return mirrorPath;
+
+    //
     let parsed = url.parse(tarUrl);
-    if (!parsed || !parsed.pathname) {
-      return mirrorPath;
-    }
+    if (!parsed || !parsed.pathname) return mirrorPath;
+
+    //
     return path.join(mirrorPath, path.basename(parsed.pathname));
   }
 
