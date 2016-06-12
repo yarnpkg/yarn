@@ -25,6 +25,7 @@ install:
  - source ~/.nvm/nvm.sh
  - nvm install $NODE_VERSION
  - node --version
+ - npm install -g npm@3
  - npm install
 
 os:
