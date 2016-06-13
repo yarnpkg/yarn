@@ -150,6 +150,7 @@ test("install should not flatten dependencies if there are collisions", () => {
   return run({}, [], "install-dont-flatten-when-conflict", async (cwd) => {
     let rawDepBPackage = await fs.readFile(path.join(cwd, "node_modules/dep-b/package.json"));
     assert.equal(JSON.parse(rawDepBPackage).version, "1.0.0");
+
     rawDepBPackage = await fs.readFile(path.join(cwd, "node_modules/dep-a/node_modules/dep-b/package.json"));
     assert.equal(JSON.parse(rawDepBPackage).version, "2.0.0");
   });
@@ -161,7 +162,82 @@ test("install should flatten dependencies at the most top level without collisio
   return run({}, [], "install-flatten-when-no-conflict", async (cwd) => {
     let rawDepBPackage = await fs.readFile(path.join(cwd, "node_modules/dep-b/package.json"));
     assert.equal(JSON.parse(rawDepBPackage).version, "2.0.0");
+
     rawDepBPackage = await fs.readFile(path.join(cwd, "node_modules/dep-a/package.json"));
     assert.equal(JSON.parse(rawDepBPackage).version, "2.0.1");
+  });
+});
+
+test("install should flatten dependencies if there are collisions 2", () => {
+  // A@2 -> B@2 -> C@2
+  //            -> D@1
+  // B@1 -> C@1
+  // should become
+  // A@2 -> B@2
+  // D@1
+  // B@1 -> C@1
+  // C@2
+
+  return run({}, [], "install-dont-flatten-when-conflict-2", async (cwd) => {
+    assert.equal(JSON.parse(await fs.readFile(path.join(cwd,
+      "node_modules/dep-a/package.json"))).version, "2.0.0");
+    assert.equal(JSON.parse(await fs.readFile(path.join(cwd,
+      "node_modules/dep-a/node_modules/dep-b/package.json"))).version, "2.0.0");
+    assert.equal(JSON.parse(await fs.readFile(path.join(cwd,
+      "node_modules/dep-c/package.json"))).version, "2.0.0");
+    assert.equal(JSON.parse(await fs.readFile(path.join(cwd,
+      "node_modules/dep-d/package.json"))).version, "1.0.0");
+    assert.equal(JSON.parse(await fs.readFile(path.join(cwd,
+      "node_modules/dep-b/package.json"))).version, "1.0.0");
+    assert.equal(JSON.parse(await fs.readFile(path.join(cwd,
+      "node_modules/dep-b/node_modules/dep-c/package.json"))).version, "1.0.0");
+  });
+});
+
+test("install should flatten dependencies if there are collisions 3", () => {
+  // A@2 -> B@2 -> C@2
+  //            -> D@1
+  //     -> C@1
+  // should become
+  // A@2 -> C@1
+  // B@2
+  // C@2
+  // D@1
+  return run({}, [], "install-dont-flatten-when-conflict-3", async (cwd) => {
+    assert.equal(JSON.parse(await fs.readFile(path.join(cwd,
+      "node_modules/dep-a/package.json"))).version, "2.0.0");
+    assert.equal(JSON.parse(await fs.readFile(path.join(cwd,
+      "node_modules/dep-c/package.json"))).version, "2.0.0");
+    assert.equal(JSON.parse(await fs.readFile(path.join(cwd,
+      "node_modules/dep-d/package.json"))).version, "1.0.0");
+    assert.equal(JSON.parse(await fs.readFile(path.join(cwd,
+      "node_modules/dep-b/package.json"))).version, "2.0.0");
+    assert.equal(JSON.parse(await fs.readFile(path.join(cwd,
+      "node_modules/dep-a/node_modules/dep-c/package.json"))).version, "1.0.0");
+  });
+});
+
+test("install should flatten dependencies if there are collisions 4", () => {
+  // A@2 -> B@2 -> D@1 -> C@2
+  //
+  //     -> C@1
+
+  // should become
+
+  // A@2 -> C@1
+  // C@2
+  // B@2
+  // D@1
+  return run({}, [], "install-dont-flatten-when-conflict-4", async (cwd) => {
+    assert.equal(JSON.parse(await fs.readFile(path.join(cwd,
+      "node_modules/dep-a/package.json"))).version, "2.0.0");
+    assert.equal(JSON.parse(await fs.readFile(path.join(cwd,
+      "node_modules/dep-c/package.json"))).version, "2.0.0");
+    assert.equal(JSON.parse(await fs.readFile(path.join(cwd,
+      "node_modules/dep-d/package.json"))).version, "1.0.0");
+    assert.equal(JSON.parse(await fs.readFile(path.join(cwd,
+      "node_modules/dep-b/package.json"))).version, "2.0.0");
+    assert.equal(JSON.parse(await fs.readFile(path.join(cwd,
+      "node_modules/dep-a/node_modules/dep-c/package.json"))).version, "1.0.0");
   });
 });
