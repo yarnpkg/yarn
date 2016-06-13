@@ -198,7 +198,7 @@ export default class PackageLinker {
       // go through and update all transitive dependencies and update to new hoisting position
       let pairs = subPairs.get(info) || [];
       for (let pair of pairs) {
-        let [subKey, subInfo] = pair;
+        let [subKey] = pair;
 
         if (subKey === newKey) continue;
 
