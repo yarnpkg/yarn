@@ -186,7 +186,7 @@ export default class PackageLinker {
       let existing = tree[parts.join("#")];
       if (existing && existing.loc !== info.loc) {
         parts.pop();
-        parts.push(stack.shift(), name);
+        parts.push(stack.pop(), name);
       }
 
       // update to the new key
