@@ -143,11 +143,11 @@ test("install from offline mirror", () => {
   });
 });
 
-test("install should not flatten dependencies if there are collisions", () => {
+test("install should dedupe dependencies avoiding conflicts 0", () => {
   // A@2.0.1 -> B@2.0.0
   // B@1.0.0
   // should result in B@2.0.0 not flattened
-  return run({}, [], "install-dont-flatten-when-conflict", async (cwd) => {
+  return run({}, [], "install-should-dedupe-avoiding-conflicts-0", async (cwd) => {
     let rawDepBPackage = await fs.readFile(path.join(cwd, "node_modules/dep-b/package.json"));
     assert.equal(JSON.parse(rawDepBPackage).version, "1.0.0");
 
@@ -156,10 +156,10 @@ test("install should not flatten dependencies if there are collisions", () => {
   });
 });
 
-test("install should flatten dependencies at the most top level without collisions", () => {
+test("install should dedupe dependencies avoiding conflicts 1", () => {
   // A@2.0.1 -> B@2.0.0
   // should result in B@2.0.0 flattened
-  return run({}, [], "install-flatten-when-no-conflict", async (cwd) => {
+  return run({}, [], "install-should-dedupe-avoiding-conflicts-1", async (cwd) => {
     let rawDepBPackage = await fs.readFile(path.join(cwd, "node_modules/dep-b/package.json"));
     assert.equal(JSON.parse(rawDepBPackage).version, "2.0.0");
 
@@ -168,7 +168,7 @@ test("install should flatten dependencies at the most top level without collisio
   });
 });
 
-test("install should flatten dependencies if there are collisions 2", () => {
+test("install should dedupe dependencies avoiding conflicts 2", () => {
   // A@2 -> B@2 -> C@2
   //            -> D@1
   // B@1 -> C@1
@@ -178,7 +178,7 @@ test("install should flatten dependencies if there are collisions 2", () => {
   // B@1 -> C@1
   // C@2
 
-  return run({}, [], "install-dont-flatten-when-conflict-2", async (cwd) => {
+  return run({}, [], "install-should-dedupe-avoiding-conflicts-2", async (cwd) => {
     assert.equal(JSON.parse(await fs.readFile(path.join(cwd,
       "node_modules/dep-a/package.json"))).version, "2.0.0");
     assert.equal(JSON.parse(await fs.readFile(path.join(cwd,
@@ -194,7 +194,7 @@ test("install should flatten dependencies if there are collisions 2", () => {
   });
 });
 
-test("install should flatten dependencies if there are collisions 3", () => {
+test("install should dedupe dependencies avoiding conflicts 3", () => {
   // A@2 -> B@2 -> C@2
   //            -> D@1
   //     -> C@1
@@ -203,7 +203,7 @@ test("install should flatten dependencies if there are collisions 3", () => {
   // B@2
   // C@2
   // D@1
-  return run({}, [], "install-dont-flatten-when-conflict-3", async (cwd) => {
+  return run({}, [], "install-should-dedupe-avoiding-conflicts-3", async (cwd) => {
     assert.equal(JSON.parse(await fs.readFile(path.join(cwd,
       "node_modules/dep-a/package.json"))).version, "2.0.0");
     assert.equal(JSON.parse(await fs.readFile(path.join(cwd,
@@ -217,7 +217,7 @@ test("install should flatten dependencies if there are collisions 3", () => {
   });
 });
 
-test("install should flatten dependencies if there are collisions 4", () => {
+test("install should dedupe dependencies avoiding conflicts 4", () => {
   // A@2 -> B@2 -> D@1 -> C@2
   //
   //     -> C@1
@@ -228,7 +228,7 @@ test("install should flatten dependencies if there are collisions 4", () => {
   // C@2
   // B@2
   // D@1
-  return run({}, [], "install-dont-flatten-when-conflict-4", async (cwd) => {
+  return run({}, [], "install-should-dedupe-avoiding-conflicts-4", async (cwd) => {
     assert.equal(JSON.parse(await fs.readFile(path.join(cwd,
       "node_modules/dep-a/package.json"))).version, "2.0.0");
     assert.equal(JSON.parse(await fs.readFile(path.join(cwd,
@@ -239,5 +239,34 @@ test("install should flatten dependencies if there are collisions 4", () => {
       "node_modules/dep-b/package.json"))).version, "2.0.0");
     assert.equal(JSON.parse(await fs.readFile(path.join(cwd,
       "node_modules/dep-a/node_modules/dep-c/package.json"))).version, "1.0.0");
+  });
+});
+
+test("install should dedupe dependencies avoiding conflicts 5", () => {
+  // A@1 -> B@1
+  // C@1 -> D@1 -> A@2 -> B@2
+
+  // should become
+
+  // A@1
+  // B@1
+  // C@1
+  // D@1 -> A@2
+  //     -> B@2
+
+  return run({}, [], "install-should-dedupe-avoiding-conflicts-5", async (cwd) => {
+    assert.equal(JSON.parse(await fs.readFile(path.join(cwd,
+      "node_modules/dep-a/package.json"))).version, "1.0.0");
+    assert.equal(JSON.parse(await fs.readFile(path.join(cwd,
+      "node_modules/dep-b/package.json"))).version, "1.0.0");
+    assert.equal(JSON.parse(await fs.readFile(path.join(cwd,
+      "node_modules/dep-c/package.json"))).version, "1.0.0");
+    assert.equal(JSON.parse(await fs.readFile(path.join(cwd,
+      "node_modules/dep-d/package.json"))).version, "1.0.0");
+    assert.equal(JSON.parse(await fs.readFile(path.join(cwd,
+      "node_modules/dep-d/node_modules/dep-a/package.json"))).version, "2.0.0");
+    assert.equal(JSON.parse(await fs.readFile(path.join(cwd,
+      "node_modules/dep-d/node_modules/dep-b/package.json"))).version, "2.0.0");
+
   });
 });
