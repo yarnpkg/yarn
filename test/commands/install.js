@@ -270,3 +270,49 @@ test("install should dedupe dependencies avoiding conflicts 5", () => {
 
   });
 });
+
+test("upgrade scenario", () => {
+
+  // left-pad first installed 0.0.9 then updated to 1.1.0
+  // files in mirror, fbkpm.lock, package.json and node_modules should reflect that
+
+  return run({save: true}, ["left-pad@0.0.9"], "install-upgrade-scenario", async (cwd) => {
+    assert.equal(JSON.parse(await fs.readFile(path.join(cwd,
+      "node_modules/left-pad/package.json"))).version, "0.0.9");
+    assert.deepEqual(JSON.parse(await fs.readFile(path.join(cwd,
+      "package.json"))).dependencies, {"left-pad": "^0.0.9"});
+
+    let mirrorPath = "mirror-for-offline";
+    let lockFileWritten = await fs.readFile(path.join(cwd, "fbkpm.lock"));
+    let lockFileLines = lockFileWritten.split("\n").filter(line => !!line);
+    assert.equal(lockFileLines[0], "left-pad@0.0.9:");
+    assert.equal(lockFileLines.length, 4);
+    assert.notEqual(lockFileLines[3].indexOf("resolved left-pad-0.0.9.tgz"), -1);
+
+    let mirror = await fs.walk(path.join(cwd, mirrorPath));
+    assert.equal(mirror.length, 1);
+    assert.equal(mirror[0].relative, "left-pad-0.0.9.tgz");
+
+    return run({save: true}, ["left-pad@1.1.0"], "install-upgrade-scenario", async (cwd) => {
+      assert.equal(JSON.parse(await fs.readFile(path.join(cwd,
+        "node_modules/left-pad/package.json"))).version, "1.1.0");
+      assert.deepEqual(JSON.parse(await fs.readFile(path.join(cwd,
+        "package.json"))).dependencies, {"left-pad": "^1.1.0"});
+
+      let lockFileWritten = await fs.readFile(path.join(cwd, "fbkpm.lock"));
+      let lockFileLines = lockFileWritten.split("\n").filter(line => !!line);
+      assert.equal(lockFileLines[0], "left-pad@1.1.0:");
+      assert.equal(lockFileLines.length, 4);
+      assert.notEqual(lockFileLines[3].indexOf("resolved left-pad-1.1.0.tgz"), -1);
+
+      let mirror = await fs.walk(path.join(cwd, mirrorPath));
+      assert.equal(mirror.length, 2);
+      assert.equal(mirror[1].relative, "left-pad-1.1.0.tgz");
+
+      await fs.unlink(path.join(cwd, mirrorPath));
+      await fs.unlink(path.join(cwd, "fbkpm.lock"));
+
+    });
+
+  });
+});
