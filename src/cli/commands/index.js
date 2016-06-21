@@ -11,10 +11,15 @@
 
 import * as uninstall from "./uninstall.js";
 export { uninstall };
+
 import * as install from "./install.js";
 export { install };
+
 import * as upgrade from "./upgrade.js";
 export { upgrade };
+
+import * as check from "./check.js";
+export { check };
 
 import buildUseless from "./_useless.js";
 

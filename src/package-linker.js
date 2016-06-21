@@ -94,7 +94,7 @@ export default class PackageLinker {
     }
   }
 
-  async initCopyModules(patterns: Array<string>): Promise<void> {
+  async initCopyModules(patterns: Array<string>): Promise<Array<[string, PackageManifest]>> {
     // we need to zip up the tree as we we're using it as a hash map and will be actively
     // removing and deleting keys during enumeration
     let zippedTree = [];
@@ -218,6 +218,12 @@ export default class PackageLinker {
       let loc  = path.join(this.config.cwd, "node_modules", key.replace(/#/g, "/node_modules/"));
       flatTree.push([loc, info]);
     }
+    return flatTree;
+  }
+
+  async copyModules(patterns: Array<string>): Promise<void> {
+    let flatTree = await this.initCopyModules(patterns);
+    let self = this;
 
     //
     let tickCopyModule = this.reporter.progress(flatTree.length);
@@ -298,7 +304,7 @@ export default class PackageLinker {
   }
 
   async init(patterns: Array<string>): Promise<void> {
-    await this.initCopyModules(patterns);
+    await this.copyModules(patterns);
     await this.saveAll(patterns);
   }
 
@@ -311,6 +317,7 @@ export default class PackageLinker {
 
     //
     let src = this.config.generateHardModulePath(ref);
+
     // link bins
     if (!_.isEmpty(resolved.bin)) {
       let binLoc = path.join(this.config.cwd, await ref.getFolder(), ".bin");

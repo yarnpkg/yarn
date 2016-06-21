@@ -270,8 +270,7 @@ export default class PackageRequest {
         info.name,
         () => this.resolver.fetcher.fetch(ref)
       );
-      let offlineMirrorPath = this.config.getOfflineMirrorPath(ref.remote.registry,
-        ref.remote.reference);
+      let offlineMirrorPath = this.config.getOfflineMirrorPath(ref.remote.registry, ref.remote.reference);
       // replace resolved remote URL with local path
       if (this.resolver.lockfile.save && offlineMirrorPath) {
         if (await fs.exists(offlineMirrorPath)) {

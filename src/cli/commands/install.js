@@ -49,7 +49,7 @@ export class Install {
     args: Array<string>,
     config: Config,
     reporter: Reporter,
-    lockfile: Lockfile
+    lockfile: Lockfile,
   ) {
     this.resolutions = map();
     this.registries  = [];
@@ -62,7 +62,7 @@ export class Install {
 
     this.resolver      = new PackageResolver(config, lockfile);
     this.compatibility = new PackageCompatibility(config, this.resolver);
-    this.linker        = new PackageLinker(config, this.resolver, "copy");
+    this.linker        = new PackageLinker(config, this.resolver);
     this.scripts       = new PackageInstallScripts(config, this.resolver);
   }
 
@@ -83,7 +83,7 @@ export class Install {
    * TODO
    */
 
-  async fetchRequestFromCwd(excludePatterns: string): Promise<[
+  async fetchRequestFromCwd(excludePatterns?: Array<string> = []): Promise<[
     Array<{
       pattern: string,
       registry: RegistryNames,
@@ -214,12 +214,9 @@ export class Install {
       }
     }
 
-    // the amount of steps after package resolve/fetch
-    let stepsAfterFetchResolve = 3;
-
     //
     let { patterns, step, total } = await this.fetchResolve({
-      totalSteps: stepsAfterFetchResolve,
+      totalSteps: 3,
       patterns: rawPatterns,
       requests: depRequests
     });
@@ -446,8 +443,7 @@ export async function run(
     throw new MessageError("Missing package names for --save flags");
   }
 
-  let lockfile = await Lockfile.fromDirectory(config.cwd, reporter, isStrictLockfile(flags, args),
-    hasSaveFlags(flags));
+  let lockfile = await Lockfile.fromDirectory(config.cwd, reporter, isStrictLockfile(flags, args), hasSaveFlags(flags));
   let install = new Install("install", flags, args, config, reporter, lockfile);
   return install.init();
 }

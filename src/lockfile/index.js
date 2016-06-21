@@ -55,6 +55,7 @@ export default class Lockfile {
     reporter: Reporter,
     strictIfPresent: boolean,
     save: boolean,
+    silent?: boolean
   ): Promise<Lockfile> {
     // read the package.json in this directory
     let lockfileLoc = path.join(dir, constants.LOCKFILE_FILENAME);
@@ -65,13 +66,13 @@ export default class Lockfile {
       let rawLockfile = await fs.readFile(lockfileLoc);
       lockfile = parse(rawLockfile);
       strict = strictIfPresent;
-      reporter.info(`Read lockfile ${constants.LOCKFILE_FILENAME}`);
+      if (!silent) reporter.info(`Read lockfile ${constants.LOCKFILE_FILENAME}`);
 
       if (!strict) {
-        reporter.warn("Lockfile is not in strict mode. Any new versions will be installed arbitrarily.");
+        if (!silent) reporter.warn("Lockfile is not in strict mode. Any new versions will be installed arbitrarily.");
       }
     } else {
-      reporter.info("No lockfile found.");
+      if (!silent) reporter.info("No lockfile found.");
     }
 
     return new Lockfile(lockfile, strict, save);
