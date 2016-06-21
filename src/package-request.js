@@ -111,7 +111,7 @@ export default class PackageRequest {
    */
 
   async findVersionOnRegistry(pattern: string): Promise<Manifest> {
-    let { range, name } = this.normalisePattern(pattern);
+    let { range, name } = PackageRequest.normalisePattern(pattern);
 
     let exoticResolver = PackageRequest.getExoticResolver(range);
     if (exoticResolver) {
@@ -152,7 +152,7 @@ export default class PackageRequest {
    * Explode and normalise a pattern into it's name and range.
    */
 
-  normalisePattern(pattern: string): {
+  static normalisePattern(pattern: string): {
     name: string,
     range: string
   } {
@@ -176,7 +176,7 @@ export default class PackageRequest {
    */
 
   async warmCacheIfRegistry(pattern: string): Promise<void> {
-    let { range, name } = this.normalisePattern(pattern);
+    let { range, name } = PackageRequest.normalisePattern(pattern);
 
     // ensure this is a registry request
     let exoticResolver = PackageRequest.getExoticResolver(range);

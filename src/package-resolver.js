@@ -250,6 +250,21 @@ export default class PackageResolver {
    * TODO description
    */
 
+  removePattern(pattern: string) {
+    let pkg = this.patterns[pattern];
+    if (!pkg) return;
+
+    let byName = this.patternsByPackage[pkg.name];
+    if (!byName) return;
+
+    byName.splice(byName.indexOf(pattern), 1);
+    delete this.patterns[pattern];
+  }
+
+  /**
+   * TODO description
+   */
+
   getResolvedPattern(pattern: string): any {
     return this.patterns[pattern];
   }

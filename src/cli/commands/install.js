@@ -19,6 +19,7 @@ import PackageInstallScripts from "../../package-install-scripts.js";
 import PackageCompatibility from "../../package-compatibility.js";
 import PackageResolver from "../../package-resolver.js";
 import PackageLinker from "../../package-linker.js";
+import PackageRequest from "../../package-request.js";
 import { registries } from "../../registries/index.js";
 import { MessageError } from "../../errors.js";
 import * as constants from "../../constants.js";
@@ -82,7 +83,7 @@ export class Install {
    * TODO
    */
 
-  async fetchRequestFromCwd(): Promise<[
+  async fetchRequestFromCwd(excludePatterns: string): Promise<[
     Array<{
       pattern: string,
       registry: RegistryNames,
@@ -92,6 +93,17 @@ export class Install {
   ]> {
     let patterns = [];
     let deps = [];
+
+    // exclude package names that are in install args
+    let excludeNames = [];
+    for (let pattern of excludePatterns) {
+      // can't extract a package name from this
+      if (PackageRequest.getExoticResolver(pattern)) continue;
+
+      // extract the name
+      let parts = PackageRequest.normalisePattern(pattern);
+      excludeNames.push(parts.name);
+    }
 
     for (let registry of Object.keys(registries)) {
       let filenames = registries[registry].filenames;
@@ -108,6 +120,8 @@ export class Install {
         // plain deps
         let plainDepMap = Object.assign({}, json.dependencies, json.devDependencies);
         for (let name in plainDepMap) {
+          if (excludeNames.indexOf(name) >= 0) continue;
+
           let pattern = name;
           if (!this.lockfile.getLocked(pattern, true)) {
             // when we use --save we save the dependency to the lockfile with just the name rather than the
@@ -122,6 +136,8 @@ export class Install {
         // optional deps
         let optionalDeps = json.optionalDependencies;
         for (let name in optionalDeps) {
+          if (excludeNames.indexOf(name) >= 0) continue;
+
           let pattern = name;
           if (!this.lockfile.getLocked(pattern, true)) {
             // see above comment
@@ -184,13 +200,16 @@ export class Install {
   }
 
   async init(): Promise<void> {
-    let [depRequests, rawPatterns] = await this.fetchRequestFromCwd();
+    let [depRequests, rawPatterns] = await this.fetchRequestFromCwd(this.args);
 
     // calculate deps we need to install
     if (this.args.length) {
       // just use the args passed in the cli
       rawPatterns = rawPatterns.concat(this.args);
+
       for (let pattern of rawPatterns) {
+        // default the registry to npm, if the pattern contains an exotic registry
+        // in the pattern then it'll be set to it
         depRequests.push({ pattern, registry: "npm" });
       }
     }
@@ -218,8 +237,8 @@ export class Install {
     await this.scripts.init();
 
     // fin!
-    await this.saveLockfile();
     await this.savePackages(patterns);
+    await this.saveLockfile();
   }
 
   /**
@@ -238,21 +257,36 @@ export class Install {
       json = await fs.readJson(jsonLoc);
     }
 
-    for (let pattern of patterns) {
+    for (let pattern of this.resolver.dedupePatterns(patterns)) {
       let pkg = this.resolver.getResolvedPattern(pattern);
+      invariant(pkg, `missing package ${pattern}`);
+
+      if (PackageRequest.getExoticResolver(pattern)) {
+        // TODO
+        throw new MessageError(`Saving exotic patterns is not currently supported: ${pattern}`);
+      }
+
+      let parts = PackageRequest.normalisePattern(pattern);
       let version = pkg.version;
-      if (!saveExact) version = `^${version}`;
+
+      // only use exact versioning when we have the --save-exact flag or the version has been specified in the pattern
+      if (!saveExact && !parts.range) version = `^${version}`;
 
       let targetKey;
       if (save) targetKey = "dependencies";
       if (saveDev) targetKey = "devDependencies";
       if (saveOptional) targetKey = "optionalDependencies";
+      if (!targetKey) continue;
 
-      if (targetKey) {
-        let target = json[targetKey] = json[targetKey] || {};
-        // TODO: this assumes all packages exist on the npm registry and doesn't support exotics
-        target[pkg.name] = version;
-      }
+      // add it to package.json
+      let target = json[targetKey] = json[targetKey] || {};
+      target[pkg.name] = version;
+
+      // add pattern so it's aliased in the lockfile
+      let newPattern = `${pkg.name}@${version}`;
+      if (newPattern === pattern) continue;
+      this.resolver.addPattern(newPattern, pkg);
+      this.resolver.removePattern(pattern);
     }
 
     await fs.writeFile(jsonLoc, JSON.stringify(json, null, "  "));
