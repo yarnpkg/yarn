@@ -10,3 +10,4 @@
 /test/fixtures/**/node_modules
 /dist
 fbkpm_modules
+test/fixtures/**/.fbkpm

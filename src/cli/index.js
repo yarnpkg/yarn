@@ -75,7 +75,6 @@ let reporter = new Reporter({
 reporter.initPeakMemoryCounter();
 
 //
-/
 let config = new Config(reporter, {
   modulesFolder: commander.modulesFolder
 });

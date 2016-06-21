@@ -94,7 +94,7 @@ export default class PackageLinker {
     }
   }
 
-  async initCopyModules(patterns: Array<string>): Promise<Array<[string, PackageManifest]>> {
+  async initCopyModules(patterns: Array<string>): Promise<Array<[string, Manifest]>> {
     // we need to zip up the tree as we we're using it as a hash map and will be actively
     // removing and deleting keys during enumeration
     let zippedTree = [];
