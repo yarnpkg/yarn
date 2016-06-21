@@ -12,15 +12,15 @@ import * as promise from "../../src/util/promise.js";
 let test = require("ava");
 
 test("promisify", async function (t) {
-  t.same(await promise.promisify(function (callback) {
+  t.deepEqual(await promise.promisify(function (callback) {
     callback(null, "foo");
   })(), "foo");
 
-  t.same(await promise.promisify(function (data, callback) {
+  t.deepEqual(await promise.promisify(function (data, callback) {
     callback(null, data + "bar");
   })("foo"), "foobar");
 
-  t.same(await promise.promisify(function (callback) {
+  t.deepEqual(await promise.promisify(function (callback) {
     callback(null, "foo", "bar");
   })(), ["foo", "bar"]);
 
@@ -44,8 +44,8 @@ test("promisifyObject", async function (t) {
     }
   });
 
-  t.same(await obj.foo(), "foo");
-  t.same(await obj.bar("foo"), "foobar");
+  t.deepEqual(await obj.foo(), "foo");
+  t.deepEqual(await obj.bar("foo"), "foobar");
   t.throws(obj.foobar(), "yep");
 });
 

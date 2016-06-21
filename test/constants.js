@@ -12,10 +12,10 @@ import { getPathKey } from "../src/constants.js";
 let test = require("ava");
 
 test("getPathKey", (t) => {
-  t.same(getPathKey("win32", { PATH: "foobar" }), "PATH");
-  t.same(getPathKey("win32", { Path: "foobar" }), "Path");
-  t.same(getPathKey("win32", { PaTh: "foobar" }), "PaTh");
-  t.same(getPathKey("win32", {}), "Path");
-  t.same(getPathKey("linux", {}), "PATH");
-  t.same(getPathKey("darwin", {}), "PATH");
+  t.deepEqual(getPathKey("win32", { PATH: "foobar" }), "PATH");
+  t.deepEqual(getPathKey("win32", { Path: "foobar" }), "Path");
+  t.deepEqual(getPathKey("win32", { PaTh: "foobar" }), "PaTh");
+  t.deepEqual(getPathKey("win32", {}), "Path");
+  t.deepEqual(getPathKey("linux", {}), "PATH");
+  t.deepEqual(getPathKey("darwin", {}), "PATH");
 });

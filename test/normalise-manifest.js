@@ -50,32 +50,32 @@ for (let name of nativeFs.readdirSync(fixturesLoc)) {
       }
     }
 
-    t.same(map(actual), map(expected));
-    t.same(actualWarnings, expectedWarnings);
+    t.deepEqual(map(actual), map(expected));
+    t.deepEqual(actualWarnings, expectedWarnings);
   });
 }
 
 test("util.stringifyPerson", (t) => {
-  t.same(util.stringifyPerson({ name: "Sebastian McKenzie" }), "Sebastian McKenzie");
-  t.same(util.stringifyPerson({ name: "Sebastian McKenzie", email: "sebmck@gmail.com" }), "Sebastian McKenzie <sebmck@gmail.com>");
-  t.same(util.stringifyPerson({ email: "sebmck@gmail.com" }), "<sebmck@gmail.com>");
-  t.same(util.stringifyPerson({ name: "Sebastian McKenzie", email: "sebmck@gmail.com", url: "https://sebmck.com" }), "Sebastian McKenzie <sebmck@gmail.com> (https://sebmck.com)");
+  t.deepEqual(util.stringifyPerson({ name: "Sebastian McKenzie" }), "Sebastian McKenzie");
+  t.deepEqual(util.stringifyPerson({ name: "Sebastian McKenzie", email: "sebmck@gmail.com" }), "Sebastian McKenzie <sebmck@gmail.com>");
+  t.deepEqual(util.stringifyPerson({ email: "sebmck@gmail.com" }), "<sebmck@gmail.com>");
+  t.deepEqual(util.stringifyPerson({ name: "Sebastian McKenzie", email: "sebmck@gmail.com", url: "https://sebmck.com" }), "Sebastian McKenzie <sebmck@gmail.com> (https://sebmck.com)");
 });
 
 test("util.parsePerson", (t) => {
-  t.same(util.parsePerson({}), {});
-  t.same(util.parsePerson("Sebastian McKenzie"), { name: "Sebastian McKenzie" });
-  t.same(util.parsePerson(" <sebmck@gmail.com>"), { email: "sebmck@gmail.com" });
-  t.same(util.parsePerson("Sebastian McKenzie <sebmck@gmail.com>"), { name: "Sebastian McKenzie", email: "sebmck@gmail.com" });
-  t.same(util.parsePerson("Sebastian McKenzie <sebmck@gmail.com> (https://sebmck.com)"), { name: "Sebastian McKenzie", email: "sebmck@gmail.com", url: "https://sebmck.com" });
+  t.deepEqual(util.parsePerson({}), {});
+  t.deepEqual(util.parsePerson("Sebastian McKenzie"), { name: "Sebastian McKenzie" });
+  t.deepEqual(util.parsePerson(" <sebmck@gmail.com>"), { email: "sebmck@gmail.com" });
+  t.deepEqual(util.parsePerson("Sebastian McKenzie <sebmck@gmail.com>"), { name: "Sebastian McKenzie", email: "sebmck@gmail.com" });
+  t.deepEqual(util.parsePerson("Sebastian McKenzie <sebmck@gmail.com> (https://sebmck.com)"), { name: "Sebastian McKenzie", email: "sebmck@gmail.com", url: "https://sebmck.com" });
 });
 
 test("util.extractDescription", (t) => {
-  t.same(util.extractDescription("# header\n\ndescription here"), "description here");
-  t.same(util.extractDescription("# header\ndescription here"), "description here");
-  t.same(util.extractDescription("# header\ndescription here\nfoobar"), "description here foobar");
-  t.same(util.extractDescription("# header\ndescription here\n\nfoobar"), "description here");
-  t.same(util.extractDescription(""), undefined);
-  t.same(util.extractDescription(null), undefined);
-  t.same(util.extractDescription(undefined), undefined);
+  t.deepEqual(util.extractDescription("# header\n\ndescription here"), "description here");
+  t.deepEqual(util.extractDescription("# header\ndescription here"), "description here");
+  t.deepEqual(util.extractDescription("# header\ndescription here\nfoobar"), "description here foobar");
+  t.deepEqual(util.extractDescription("# header\ndescription here\n\nfoobar"), "description here");
+  t.deepEqual(util.extractDescription(""), undefined);
+  t.deepEqual(util.extractDescription(null), undefined);
+  t.deepEqual(util.extractDescription(undefined), undefined);
 });

@@ -26,19 +26,19 @@ let objs = [
 let i = 0;
 for (let obj of objs) {
   test(`parse/stringify ${++i}`, (t) => {
-    t.same(parse(stringify(obj)), nullify(obj));
+    t.deepEqual(parse(stringify(obj)), nullify(obj));
   });
 }
 
 test("parse", (t) => {
-  t.same(parse('foo "bar"'), nullify({ foo: "bar" }));
-  t.same(parse('"foo" "bar"'), nullify({ foo: "bar" }));
-  t.same(parse('foo "bar"'), nullify({ foo: "bar" }));
+  t.deepEqual(parse('foo "bar"'), nullify({ foo: "bar" }));
+  t.deepEqual(parse('"foo" "bar"'), nullify({ foo: "bar" }));
+  t.deepEqual(parse('foo "bar"'), nullify({ foo: "bar" }));
 
-  t.same(parse(`foo:\n  bar "bar"`), nullify({ foo: { bar: "bar" } }));
-  t.same(parse(`foo:\n  bar:\n  foo "bar"`), nullify({ foo: { bar: {}, foo: "bar" } }));
-  t.same(parse(`foo:\n  bar:\n    foo "bar"`), nullify({ foo: { bar: { foo: "bar" } } }));
-  t.same(parse("foo:\n  bar:\n    yes no\nbar:\n  yes no"), nullify({
+  t.deepEqual(parse(`foo:\n  bar "bar"`), nullify({ foo: { bar: "bar" } }));
+  t.deepEqual(parse(`foo:\n  bar:\n  foo "bar"`), nullify({ foo: { bar: {}, foo: "bar" } }));
+  t.deepEqual(parse(`foo:\n  bar:\n    foo "bar"`), nullify({ foo: { bar: { foo: "bar" } } }));
+  t.deepEqual(parse("foo:\n  bar:\n    yes no\nbar:\n  yes no"), nullify({
     foo: {
       bar: {
         yes: "no"
@@ -173,5 +173,5 @@ test("Lockfile.getLockfile", (t) => {
     foobar2: "foobar"
   };
 
-  t.same(actual, expected);
+  t.deepEqual(actual, expected);
 });
