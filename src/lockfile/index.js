@@ -71,7 +71,9 @@ export default class Lockfile {
       if (!silent) reporter.info(`Read lockfile ${constants.LOCKFILE_FILENAME}`);
 
       if (!strict) {
-        if (!silent) reporter.warn("Lockfile is not in strict mode. Any new versions will be installed arbitrarily.");
+        if (!silent) {
+          reporter.warn("Lockfile is not in strict mode. Any new versions will be installed arbitrarily.");
+        }
       }
     } else {
       if (!silent) reporter.info("No lockfile found.");

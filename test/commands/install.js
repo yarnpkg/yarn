@@ -289,11 +289,17 @@ test("upgrade scenario", () => {
   }
 
   return run({ save: true }, ["left-pad@0.0.9"], "install-upgrade-scenario", async (cwd) => {
-    assert.equal(JSON.parse(await fs.readFile(path.join(cwd, "node_modules/left-pad/package.json"))).version, "0.0.9");
-    assert.deepEqual(JSON.parse(await fs.readFile(path.join(cwd, "package.json"))).dependencies, {"left-pad": "0.0.9"});
+    assert.equal(
+      JSON.parse(await fs.readFile(path.join(cwd, "node_modules/left-pad/package.json"))).version,
+      "0.0.9"
+    );
+    assert.deepEqual(
+      JSON.parse(await fs.readFile(path.join(cwd, "package.json"))).dependencies,
+      {"left-pad": "0.0.9"}
+    );
 
     let lockFileWritten = await fs.readFile(path.join(cwd, "fbkpm.lock"));
-    let lockFileLines = lockFileWritten.split("\n").filter(line => !!line);
+    let lockFileLines = lockFileWritten.split("\n").filter((line) => !!line);
     assert.equal(lockFileLines[0], "left-pad@0.0.9:");
     assert.equal(lockFileLines.length, 4);
     assert.notEqual(lockFileLines[3].indexOf("resolved left-pad-0.0.9.tgz"), -1);
@@ -303,11 +309,17 @@ test("upgrade scenario", () => {
     assert.equal(mirror[0].relative, "left-pad-0.0.9.tgz");
 
     return run({save: true}, ["left-pad@1.1.0"], "install-upgrade-scenario", async (cwd) => {
-      assert.equal(JSON.parse(await fs.readFile(path.join(cwd, "node_modules/left-pad/package.json"))).version, "1.1.0");
-      assert.deepEqual(JSON.parse(await fs.readFile(path.join(cwd, "package.json"))).dependencies, {"left-pad": "1.1.0"});
+      assert.equal(
+        JSON.parse(await fs.readFile(path.join(cwd, "node_modules/left-pad/package.json"))).version,
+        "1.1.0"
+      );
+      assert.deepEqual(
+        JSON.parse(await fs.readFile(path.join(cwd, "package.json"))).dependencies,
+        {"left-pad": "1.1.0"}
+      );
 
       let lockFileWritten = await fs.readFile(path.join(cwd, "fbkpm.lock"));
-      let lockFileLines = lockFileWritten.split("\n").filter(line => !!line);
+      let lockFileLines = lockFileWritten.split("\n").filter((line) => !!line);
       assert.equal(lockFileLines[0], "left-pad@1.1.0:");
       assert.equal(lockFileLines.length, 4);
       assert.notEqual(lockFileLines[3].indexOf("resolved left-pad-1.1.0.tgz"), -1);
@@ -326,12 +338,18 @@ test("downgrade scenario", () => {
   // files in mirror, fbkpm.lock, package.json and node_modules should reflect that
 
   return run({save: true}, ["left-pad@1.1.0"], "install-downgrade-scenario", async (cwd) => {
-    assert.equal(JSON.parse(await fs.readFile(path.join(cwd, "node_modules/left-pad/package.json"))).version, "1.1.0");
-    assert.deepEqual(JSON.parse(await fs.readFile(path.join(cwd, "package.json"))).dependencies, {"left-pad": "1.1.0"});
+    assert.equal(
+      JSON.parse(await fs.readFile(path.join(cwd, "node_modules/left-pad/package.json"))).version,
+      "1.1.0"
+    );
+    assert.deepEqual(
+      JSON.parse(await fs.readFile(path.join(cwd, "package.json"))).dependencies,
+      {"left-pad": "1.1.0"}
+    );
 
     let mirrorPath = "mirror-for-offline";
     let lockFileWritten = await fs.readFile(path.join(cwd, "fbkpm.lock"));
-    let lockFileLines = lockFileWritten.split("\n").filter(line => !!line);
+    let lockFileLines = lockFileWritten.split("\n").filter((line) => !!line);
     assert.equal(lockFileLines[0], "left-pad@1.1.0:");
     assert.equal(lockFileLines.length, 4);
     assert.notEqual(lockFileLines[3].indexOf("resolved left-pad-1.1.0.tgz"), -1);
@@ -341,11 +359,17 @@ test("downgrade scenario", () => {
     assert.equal(mirror[0].relative, "left-pad-1.1.0.tgz");
 
     return run({save: true}, ["left-pad@0.0.9"], "install-downgrade-scenario", async (cwd) => {
-      assert.equal(JSON.parse(await fs.readFile(path.join(cwd, "node_modules/left-pad/package.json"))).version, "0.0.9");
-      assert.deepEqual(JSON.parse(await fs.readFile(path.join(cwd, "package.json"))).dependencies, {"left-pad": "0.0.9"});
+      assert.equal(
+        JSON.parse(await fs.readFile(path.join(cwd, "node_modules/left-pad/package.json"))).version,
+        "0.0.9"
+      );
+      assert.deepEqual(
+        JSON.parse(await fs.readFile(path.join(cwd, "package.json"))).dependencies,
+        {"left-pad": "0.0.9"}
+      );
 
       let lockFileWritten = await fs.readFile(path.join(cwd, "fbkpm.lock"));
-      let lockFileLines = lockFileWritten.split("\n").filter(line => !!line);
+      let lockFileLines = lockFileWritten.split("\n").filter((line) => !!line);
       assert.equal(lockFileLines[0], "left-pad@0.0.9:");
       assert.equal(lockFileLines.length, 4);
       assert.notEqual(lockFileLines[3].indexOf("resolved left-pad-0.0.9.tgz"), -1);
@@ -363,8 +387,10 @@ test("downgrade scenario", () => {
 
 test.skip("uninstall should remove dependency from package.json, fbkpm.lock and node_modules", () => {
   return run({}, [], "uninstall-should-clean", async (cwd) => {
-    let mirrorPath = "mirror-for-offline";
-    assert.equal(JSON.parse(await fs.readFile(path.join(cwd, "node_modules/dep-a/package.json"))).version, "1.0.0");
+    assert.equal(
+      JSON.parse(await fs.readFile(path.join(cwd, "node_modules/dep-a/package.json"))).version,
+      "1.0.0"
+    );
 
     let reporter = new reporters.NoopReporter;
     let config = new Config(reporter, { cwd });

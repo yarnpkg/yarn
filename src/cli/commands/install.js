@@ -269,7 +269,8 @@ export class Install {
       let parts = PackageRequest.normalisePattern(pattern);
       let version = pkg.version;
 
-      // only use exact versioning when we have the --save-exact flag or the version has been specified in the pattern
+      // only use exact versioning when we have the --save-exact flag or the version has been
+      // specified in the pattern
       if (!saveExact && !parts.range) version = `^${version}`;
 
       let targetKey;
