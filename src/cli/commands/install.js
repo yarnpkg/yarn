@@ -14,7 +14,7 @@ import type { Reporter } from "kreporters";
 import type Config from "../../config.js";
 import type { DependencyRequestPatterns } from "../../types.js";
 import Lockfile from "../../lockfile/index.js";
-import stringify from "../../lockfile/stringify.js";
+import lockStringify from "../../lockfile/stringify.js";
 import PackageInstallScripts from "../../package-install-scripts.js";
 import PackageCompatibility from "../../package-compatibility.js";
 import PackageResolver from "../../package-resolver.js";
@@ -24,6 +24,7 @@ import { registries } from "../../registries/index.js";
 import { MessageError } from "../../errors.js";
 import * as constants from "../../constants.js";
 import * as fs from "../../util/fs.js";
+import { stringify } from "../../util/misc.js";
 import map from "../../util/map.js";
 
 let invariant = require("invariant");
@@ -42,9 +43,11 @@ type FetchResolveReturn = {
   step: number
 };
 
+type InstallActions = "install" | "update" | "uninstall";
+
 export class Install {
   constructor(
-    action: "install" | "update",
+    action: InstallActions,
     flags: Object,
     args: Array<string>,
     config: Config,
@@ -66,7 +69,7 @@ export class Install {
     this.scripts       = new PackageInstallScripts(config, this.resolver);
   }
 
-  action: "install" | "update";
+  action: InstallActions;
   args: Array<string>;
   flags: Object;
   registries: Array<string>;
@@ -286,7 +289,7 @@ export class Install {
       this.resolver.removePattern(pattern);
     }
 
-    await fs.writeFile(jsonLoc, JSON.stringify(json, null, "  "));
+    await fs.writeFile(jsonLoc, stringify(json) + "\n");
   }
 
   /**
@@ -352,7 +355,7 @@ export class Install {
 
     await fs.writeFile(
       loc,
-      stringify(this.lockfile.getLockfile(this.resolver.patterns)) + "\n"
+      lockStringify(this.lockfile.getLockfile(this.resolver.patterns)) + "\n"
     );
 
     this.reporter.success(`Saved fbkpm lockfile to ${constants.LOCKFILE_FILENAME}`);

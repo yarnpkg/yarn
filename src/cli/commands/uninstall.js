@@ -11,7 +11,11 @@
 
 import type { Reporter } from "kreporters";
 import type Config from "../../config.js";
+import Lockfile from "../../lockfile/index.js";
+import { Install } from "./install.js";
 import { MessageError } from "../../errors.js";
+import { stringify } from "../../util/misc.js";
+import { NoopReporter } from "kreporters";
 import * as fs from "../../util/fs.js";
 
 let path = require("path");
@@ -26,26 +30,63 @@ export async function run(
     throw new MessageError("Expected one or more arguments");
   }
 
-  for (let name of args) {
-    let loc = path.join(config.modulesFolder, name);
+  let totalSteps = args.length + 2;
+  let step = 0;
 
+  async function runInstall() {
+    let lockfile = new Lockfile(null, false);
+    let install = new Install("uninstall", flags, [], config, new NoopReporter, lockfile);
+    await install.init();
+    return install;
+  }
+
+  // load package.json
+  let json = {};
+  let jsonLoc = path.join(config.cwd, "package.json");
+  if (await fs.exists(jsonLoc)) {
+    json = await fs.readJson(jsonLoc);
+  }
+
+  // install all modules to ensure we have a consistent state
+  reporter.step(++step, totalSteps, "Installing modules");
+  await runInstall();
+
+  // remove
+  for (let name of args) {
+    let loc = path.join("node_modules", name);
+    reporter.step(++step, totalSteps, `Removing module ${name}`);
+
+    // check that it's there
     if (!(await fs.exists(loc))) {
-      throw new MessageError(`Couldn't find module ${name}`);
+      throw new MessageError(`Couldn't find module ${name} on disk: ${loc}`);
     }
 
-    // read package.json
-    let pkg = await config.readManifest(loc);
-
     // remove bins
+    let pkg = await config.readManifest(loc);
     for (let binName in pkg.bin) {
-      await fs.unlink(path.join(config.modulesFolder, ".bin", binName));
+      await fs.unlink(path.join("node_modules", ".bin", binName));
     }
 
     // remove entire package
     await fs.unlink(loc);
 
-    // TODO: remove from `package.json`
-    
-    // TODO: remove from lockfile
+    // remove from `package.json`
+    for (let type of ["devDependencies", "dependencies", "optionalDependencies"]) {
+      let deps = json[type];
+      if (deps) delete deps[name];
+    }
   }
+
+  // TODO remove packages from mirror, this is tricky since we'd also want transitive
+  // dependencies
+
+  // save package.json
+  await fs.writeFile(jsonLoc, stringify(json) + "\n");
+
+  // reinstall so we can get the updated lockfile
+  reporter.step(++step, totalSteps, "Regenerating lockfile");
+  await runInstall();
+
+  //
+  reporter.success("Successfully uninstalled packages.");
 }
