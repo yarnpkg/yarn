@@ -434,6 +434,7 @@ export function setFlags(commander: Object) {
   commander.option("--link"); // TODO
   commander.option("--no-optional"); // TODO
   commander.option("--no-lockfile"); // TODO
+  commander.option("--init-mirror", "initialise local package mirror and copy module tarballs");
 }
 
 export async function run(
@@ -448,7 +449,7 @@ export async function run(
 
   let lockfile = await Lockfile.fromDirectory(config.cwd, reporter, {
     strictIfPresent: isStrictLockfile(flags, args),
-    save: hasSaveFlags(flags)
+    save: hasSaveFlags(flags) || flags.initMirror
   });
   let install = new Install("install", flags, args, config, reporter, lockfile);
   return install.init();

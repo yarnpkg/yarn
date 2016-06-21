@@ -22,7 +22,6 @@ let fs = require("fs");
 let path = require("path");
 
 export default class TarballFetcher extends BaseFetcher {
-
   async _fetch(dest: string): Promise<string> {
     let { reference: ref, hash, config, saveForOffline, registry } = this;
 
