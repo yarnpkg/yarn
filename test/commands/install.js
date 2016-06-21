@@ -11,6 +11,7 @@ import * as reporters from "kreporters";
 import * as constants from "../../src/constants.js";
 import { default as Lockfile, parse } from "../../src/lockfile/index.js";
 import { Install } from "../../src/cli/commands/install.js";
+import { run as uninstall } from "../../src/cli/commands/uninstall.js";
 import Config from "../../src/config.js";
 import * as fs from "../../src/util/fs.js";
 import assert from "assert";
@@ -143,11 +144,11 @@ test("install from offline mirror", () => {
   });
 });
 
-test("install should not flatten dependencies if there are collisions", () => {
+test("install should dedupe dependencies avoiding conflicts 0", () => {
   // A@2.0.1 -> B@2.0.0
   // B@1.0.0
   // should result in B@2.0.0 not flattened
-  return run({}, [], "install-dont-flatten-when-conflict", async (cwd) => {
+  return run({}, [], "install-should-dedupe-avoiding-conflicts-0", async (cwd) => {
     let rawDepBPackage = await fs.readFile(path.join(cwd, "node_modules/dep-b/package.json"));
     assert.equal(JSON.parse(rawDepBPackage).version, "1.0.0");
 
@@ -156,10 +157,10 @@ test("install should not flatten dependencies if there are collisions", () => {
   });
 });
 
-test("install should flatten dependencies at the most top level without collisions", () => {
+test("install should dedupe dependencies avoiding conflicts 1", () => {
   // A@2.0.1 -> B@2.0.0
   // should result in B@2.0.0 flattened
-  return run({}, [], "install-flatten-when-no-conflict", async (cwd) => {
+  return run({}, [], "install-should-dedupe-avoiding-conflicts-1", async (cwd) => {
     let rawDepBPackage = await fs.readFile(path.join(cwd, "node_modules/dep-b/package.json"));
     assert.equal(JSON.parse(rawDepBPackage).version, "2.0.0");
 
@@ -168,7 +169,7 @@ test("install should flatten dependencies at the most top level without collisio
   });
 });
 
-test("install should flatten dependencies if there are collisions 2", () => {
+test("install should dedupe dependencies avoiding conflicts 2", () => {
   // A@2 -> B@2 -> C@2
   //            -> D@1
   // B@1 -> C@1
@@ -178,7 +179,7 @@ test("install should flatten dependencies if there are collisions 2", () => {
   // B@1 -> C@1
   // C@2
 
-  return run({}, [], "install-dont-flatten-when-conflict-2", async (cwd) => {
+  return run({}, [], "install-should-dedupe-avoiding-conflicts-2", async (cwd) => {
     assert.equal(JSON.parse(await fs.readFile(path.join(cwd,
       "node_modules/dep-a/package.json"))).version, "2.0.0");
     assert.equal(JSON.parse(await fs.readFile(path.join(cwd,
@@ -194,7 +195,7 @@ test("install should flatten dependencies if there are collisions 2", () => {
   });
 });
 
-test("install should flatten dependencies if there are collisions 3", () => {
+test("install should dedupe dependencies avoiding conflicts 3", () => {
   // A@2 -> B@2 -> C@2
   //            -> D@1
   //     -> C@1
@@ -203,7 +204,7 @@ test("install should flatten dependencies if there are collisions 3", () => {
   // B@2
   // C@2
   // D@1
-  return run({}, [], "install-dont-flatten-when-conflict-3", async (cwd) => {
+  return run({}, [], "install-should-dedupe-avoiding-conflicts-3", async (cwd) => {
     assert.equal(JSON.parse(await fs.readFile(path.join(cwd,
       "node_modules/dep-a/package.json"))).version, "2.0.0");
     assert.equal(JSON.parse(await fs.readFile(path.join(cwd,
@@ -217,7 +218,7 @@ test("install should flatten dependencies if there are collisions 3", () => {
   });
 });
 
-test("install should flatten dependencies if there are collisions 4", () => {
+test("install should dedupe dependencies avoiding conflicts 4", () => {
   // A@2 -> B@2 -> D@1 -> C@2
   //
   //     -> C@1
@@ -228,7 +229,7 @@ test("install should flatten dependencies if there are collisions 4", () => {
   // C@2
   // B@2
   // D@1
-  return run({}, [], "install-dont-flatten-when-conflict-4", async (cwd) => {
+  return run({}, [], "install-should-dedupe-avoiding-conflicts-4", async (cwd) => {
     assert.equal(JSON.parse(await fs.readFile(path.join(cwd,
       "node_modules/dep-a/package.json"))).version, "2.0.0");
     assert.equal(JSON.parse(await fs.readFile(path.join(cwd,
@@ -239,5 +240,146 @@ test("install should flatten dependencies if there are collisions 4", () => {
       "node_modules/dep-b/package.json"))).version, "2.0.0");
     assert.equal(JSON.parse(await fs.readFile(path.join(cwd,
       "node_modules/dep-a/node_modules/dep-c/package.json"))).version, "1.0.0");
+  });
+});
+
+test("install should dedupe dependencies avoiding conflicts 5", () => {
+  // A@1 -> B@1
+  // C@1 -> D@1 -> A@2 -> B@2
+
+  // should become
+
+  // A@1
+  // B@1
+  // C@1
+  // D@1 -> A@2
+  //     -> B@2
+
+  return run({}, [], "install-should-dedupe-avoiding-conflicts-5", async (cwd) => {
+    assert.equal(JSON.parse(await fs.readFile(path.join(cwd,
+      "node_modules/dep-a/package.json"))).version, "1.0.0");
+    assert.equal(JSON.parse(await fs.readFile(path.join(cwd,
+      "node_modules/dep-b/package.json"))).version, "1.0.0");
+    assert.equal(JSON.parse(await fs.readFile(path.join(cwd,
+      "node_modules/dep-c/package.json"))).version, "1.0.0");
+    assert.equal(JSON.parse(await fs.readFile(path.join(cwd,
+      "node_modules/dep-d/package.json"))).version, "1.0.0");
+    assert.equal(JSON.parse(await fs.readFile(path.join(cwd,
+      "node_modules/dep-d/node_modules/dep-a/package.json"))).version, "2.0.0");
+    assert.equal(JSON.parse(await fs.readFile(path.join(cwd,
+      "node_modules/dep-d/node_modules/dep-b/package.json"))).version, "2.0.0");
+
+  });
+});
+
+test("upgrade scenario", () => {
+
+  // left-pad first installed 0.0.9 then updated to 1.1.0
+  // files in mirror, fbkpm.lock, package.json and node_modules should reflect that
+
+  return run({save: true}, ["left-pad@0.0.9"], "install-upgrade-scenario", async (cwd) => {
+    assert.equal(JSON.parse(await fs.readFile(path.join(cwd,
+      "node_modules/left-pad/package.json"))).version, "0.0.9");
+    assert.deepEqual(JSON.parse(await fs.readFile(path.join(cwd,
+      "package.json"))).dependencies, {"left-pad": "^0.0.9"});
+
+    let mirrorPath = "mirror-for-offline";
+    let lockFileWritten = await fs.readFile(path.join(cwd, "fbkpm.lock"));
+    let lockFileLines = lockFileWritten.split("\n").filter(line => !!line);
+    assert.equal(lockFileLines[0], "left-pad@0.0.9:");
+    assert.equal(lockFileLines.length, 4);
+    assert.notEqual(lockFileLines[3].indexOf("resolved left-pad-0.0.9.tgz"), -1);
+
+    let mirror = await fs.walk(path.join(cwd, mirrorPath));
+    assert.equal(mirror.length, 1);
+    assert.equal(mirror[0].relative, "left-pad-0.0.9.tgz");
+
+    return run({save: true}, ["left-pad@1.1.0"], "install-upgrade-scenario", async (cwd) => {
+      assert.equal(JSON.parse(await fs.readFile(path.join(cwd,
+        "node_modules/left-pad/package.json"))).version, "1.1.0");
+      assert.deepEqual(JSON.parse(await fs.readFile(path.join(cwd,
+        "package.json"))).dependencies, {"left-pad": "^1.1.0"});
+
+      let lockFileWritten = await fs.readFile(path.join(cwd, "fbkpm.lock"));
+      let lockFileLines = lockFileWritten.split("\n").filter(line => !!line);
+      assert.equal(lockFileLines[0], "left-pad@1.1.0:");
+      assert.equal(lockFileLines.length, 4);
+      assert.notEqual(lockFileLines[3].indexOf("resolved left-pad-1.1.0.tgz"), -1);
+
+      let mirror = await fs.walk(path.join(cwd, mirrorPath));
+      assert.equal(mirror.length, 2);
+      assert.equal(mirror[1].relative, "left-pad-1.1.0.tgz");
+
+      await fs.unlink(path.join(cwd, mirrorPath));
+      await fs.unlink(path.join(cwd, "fbkpm.lock"));
+      await fs.unlink(path.join(cwd, "package.json"));
+
+    });
+
+  });
+});
+
+test("downgrade scenario", () => {
+
+  // left-pad first installed 1.1.0 then downgraded to 0.0.9
+  // files in mirror, fbkpm.lock, package.json and node_modules should reflect that
+
+  return run({save: true}, ["left-pad@1.1.0"], "install-downgrade-scenario", async (cwd) => {
+    assert.equal(JSON.parse(await fs.readFile(path.join(cwd,
+      "node_modules/left-pad/package.json"))).version, "1.1.0");
+    assert.deepEqual(JSON.parse(await fs.readFile(path.join(cwd,
+      "package.json"))).dependencies, {"left-pad": "^1.1.0"});
+
+    let mirrorPath = "mirror-for-offline";
+    let lockFileWritten = await fs.readFile(path.join(cwd, "fbkpm.lock"));
+    let lockFileLines = lockFileWritten.split("\n").filter(line => !!line);
+    assert.equal(lockFileLines[0], "left-pad@1.1.0:");
+    assert.equal(lockFileLines.length, 4);
+    assert.notEqual(lockFileLines[3].indexOf("resolved left-pad-1.1.0.tgz"), -1);
+
+    let mirror = await fs.walk(path.join(cwd, mirrorPath));
+    assert.equal(mirror.length, 1);
+    assert.equal(mirror[0].relative, "left-pad-1.1.0.tgz");
+
+    return run({save: true}, ["left-pad@0.0.9"], "install-downgrade-scenario", async (cwd) => {
+      assert.equal(JSON.parse(await fs.readFile(path.join(cwd,
+        "node_modules/left-pad/package.json"))).version, "0.0.9");
+      assert.deepEqual(JSON.parse(await fs.readFile(path.join(cwd,
+        "package.json"))).dependencies, {"left-pad": "^0.0.9"});
+
+      let lockFileWritten = await fs.readFile(path.join(cwd, "fbkpm.lock"));
+      let lockFileLines = lockFileWritten.split("\n").filter(line => !!line);
+      assert.equal(lockFileLines[0], "left-pad@0.0.9:");
+      assert.equal(lockFileLines.length, 4);
+      assert.notEqual(lockFileLines[3].indexOf("resolved left-pad-0.0.9.tgz"), -1);
+
+      let mirror = await fs.walk(path.join(cwd, mirrorPath));
+      assert.equal(mirror.length, 2);
+      assert.equal(mirror[0].relative, "left-pad-0.0.9.tgz");
+
+      await fs.unlink(path.join(cwd, mirrorPath));
+      await fs.unlink(path.join(cwd, "fbkpm.lock"));
+      await fs.unlink(path.join(cwd, "package.json"));
+
+    });
+
+  });
+});
+
+test.skip("uninstall should remove dependency from package.json, fbkpm.lock and node_modules", () => {
+
+  return run({}, [], "uninstall-should-clean", async (cwd) => {
+
+    let mirrorPath = "mirror-for-offline";
+    assert.equal(JSON.parse(await fs.readFile(path.join(cwd,
+      "node_modules/dep-a/package.json"))).version, "1.0.0");
+
+    let reporter = new reporters.NoopReporter;
+    let config = new Config(reporter, { cwd });
+    await config.init();
+
+    await uninstall(config, reporter, {}, ["dep-a"]);
+
+
   });
 });

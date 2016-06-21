@@ -1,0 +1,4 @@
+dep-a@^1.0.0:
+  name dep-a
+  version "1.0.0"
+  resolved dep-a-1.0.0.tgz#a0055ce8265cf0d2dbfac15233c9a5f44f9c4939
