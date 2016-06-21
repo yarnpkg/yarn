@@ -53,9 +53,11 @@ export default class Lockfile {
   static async fromDirectory(
     dir: string,
     reporter: Reporter,
-    strictIfPresent: boolean,
-    save: boolean,
-    silent?: boolean
+    { strictIfPresent, save, silent }: {
+      strictIfPresent?: boolean,
+      save?: boolean,
+      silent?: boolean
+    }
   ): Promise<Lockfile> {
     // read the package.json in this directory
     let lockfileLoc = path.join(dir, constants.LOCKFILE_FILENAME);

@@ -31,7 +31,10 @@ export async function run(
     throw new MessageError("No lockfile in this directory. Run `fbkpm install` to generate one.");
   }
 
-  let lockfile = await Lockfile.fromDirectory(config.cwd, reporter, false, false, true);
+  let lockfile = await Lockfile.fromDirectory(config.cwd, reporter, {
+    silent: true
+  });
+
   let install = new Install("update", flags, args, config, reporter, lockfile, true);
 
   let valid = true;

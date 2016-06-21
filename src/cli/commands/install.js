@@ -443,7 +443,10 @@ export async function run(
     throw new MessageError("Missing package names for --save flags");
   }
 
-  let lockfile = await Lockfile.fromDirectory(config.cwd, reporter, isStrictLockfile(flags, args), hasSaveFlags(flags));
+  let lockfile = await Lockfile.fromDirectory(config.cwd, reporter, {
+    strictIfPresent: isStrictLockfile(flags, args),
+    save: hasSaveFlags(flags)
+  });
   let install = new Install("install", flags, args, config, reporter, lockfile);
   return install.init();
 }
