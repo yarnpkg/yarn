@@ -12,7 +12,7 @@
 export default {
   i: "install",
   t: "test",
-  upgrade: "update",
+  update: "upgrade",
   ddp: "dedupe",
   "find-dupes": "dedupe",
   rm: "uninstall",
