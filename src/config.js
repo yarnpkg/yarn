@@ -29,7 +29,8 @@ let url       = require("url");
 type ConfigOptions = {
   cwd?: string,
   packagesRoot?: string,
-  tempFolder?: string
+  tempFolder?: string,
+  modulesFolder?: string
 };
 
 export default class Config {
@@ -41,8 +42,9 @@ export default class Config {
     this.registries = map();
     this.cwd        = opts.cwd || process.cwd();
 
-    this.packagesRoot = opts.packagesRoot;
-    this.tempFolder   = opts.tempFolder;
+    this.modulesFolder = opts.modulesFolder || path.join(this.cwd, "node_modules");
+    this.packagesRoot  = opts.packagesRoot;
+    this.tempFolder    = opts.tempFolder;
   }
 
   //

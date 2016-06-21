@@ -215,7 +215,7 @@ export default class PackageLinker {
     let flatTree = [];
     for (let key in tree) {
       let info = tree[key];
-      let loc  = path.join(this.config.cwd, "node_modules", key.replace(/#/g, "/node_modules/"));
+      let loc  = path.join(this.config.modulesFolder, key.replace(/#/g, "/node_modules/"));
       flatTree.push([loc, info]);
     }
     return flatTree;

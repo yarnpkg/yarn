@@ -31,6 +31,7 @@ let args = process.argv;
 commander.version(pkg.version);
 commander.usage("[command] [flags]");
 commander.option("--json", "");
+commander.option("--modules-folder [path]", "rather than installing modules into the node_modules folder relative to the cwd, output them here");
 
 // get command name
 let commandName = args.splice(2, 1)[0] || "";
@@ -74,7 +75,10 @@ let reporter = new Reporter({
 reporter.initPeakMemoryCounter();
 
 //
-let config = new Config(reporter);
+/
+let config = new Config(reporter, {
+  modulesFolder: commander.modulesFolder
+});
 
 // print header
 reporter.header(commandName, pkg);
