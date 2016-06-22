@@ -7,6 +7,8 @@
  * of patent rights can be found in the PATENTS file in the same directory.
  */
 
+/* eslint-disable no-var */
+
 var semver = require("semver");
 var ver = process.versions.node;
 
