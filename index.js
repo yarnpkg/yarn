@@ -7,8 +7,13 @@
  * of patent rights can be found in the PATENTS file in the same directory.
  */
 
-if (require("semver").satisfies(process.versions.node, ">=5.0.0")) {
+var semver = require("semver");
+var ver = process.versions.node;
+
+if (semver.satisfies(ver, ">=5.0.0")) {
   module.exports = require("./lib/api.js");
-} else {
+} else if (semver.satisfies(ver, ">=4.0.0")) {
   module.exports = require("./lib-legacy/api.js");
+} else {
+  throw new Error("Node version " + ver + " is not supported");
 }
