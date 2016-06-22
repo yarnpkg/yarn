@@ -419,3 +419,62 @@ test("uninstall should remove dependency from package.json, fbkpm.lock and node_
     await fs.unlink(path.join(config.cwd, "package.json.orig"));
   });
 });
+
+test.only("uninstall should remove subdependencies", () => {
+  // A@1 -> B@1
+  // C@1
+
+  // remove A
+
+  // C@1
+
+  let mirrorPath = "mirror-for-offline";
+
+  return run({}, [], "uninstall-should-remove-subdependencies", async (config, reporter) => {
+    assert.equal(
+      JSON.parse(await fs.readFile(path.join(config.cwd, "node_modules/dep-a/package.json"))).version,
+      "1.0.0"
+    );
+    assert.equal(
+      JSON.parse(await fs.readFile(path.join(config.cwd, "node_modules/dep-b/package.json"))).version,
+      "1.0.0"
+    );
+    assert.equal(
+      JSON.parse(await fs.readFile(path.join(config.cwd, "node_modules/dep-c/package.json"))).version,
+      "1.0.0"
+    );
+
+    await fs.copy(path.join(config.cwd, "fbkpm.lock"), path.join(config.cwd, "fbkpm.lock.orig"));
+    await fs.copy(path.join(config.cwd, "package.json"), path.join(config.cwd, "package.json.orig"));
+
+    await uninstall(config, reporter, {}, ["dep-a"]);
+
+    assert(!await fs.exists(path.join(config.cwd, "node_modules/dep-a")));
+    // TODO dep-b did not get removed
+    assert(!await fs.exists(path.join(config.cwd, "node_modules/dep-b")));
+    assert(await fs.exists(path.join(config.cwd, "node_modules/dep-c")));
+
+    assert(await fs.exists(path.join(config.cwd, `${mirrorPath}/dep-a-1.0.0.tgz`)));
+    assert(await fs.exists(path.join(config.cwd, `${mirrorPath}/dep-b-1.0.0.tgz`)));
+    assert(await fs.exists(path.join(config.cwd, `${mirrorPath}/dep-c-1.0.0.tgz`)));
+
+    assert.deepEqual(
+      JSON.parse(await fs.readFile(path.join(config.cwd, "package.json"))).dependencies,
+      {"dep-c": "^1.0.0"}
+    );
+
+    let lockFileContent = await fs.readFile(path.join(config.cwd, "fbkpm.lock"));
+    let lockFileLines = lockFileContent.split("\n").filter((line) => !!line);
+    assert.equal(lockFileLines.length, 4);
+    assert.equal(lockFileLines[0], "dep-c@^1.0.0:");
+
+    await fs.unlink(path.join(config.cwd, "fbkpm.lock"));
+    await fs.unlink(path.join(config.cwd, "package.json"));
+    await fs.copy(path.join(config.cwd, "fbkpm.lock.orig"), path.join(config.cwd, "fbkpm.lock"));
+    await fs.copy(path.join(config.cwd, "package.json.orig"), path.join(config.cwd, "package.json"));
+    await fs.unlink(path.join(config.cwd, "fbkpm.lock.orig"));
+    await fs.unlink(path.join(config.cwd, "package.json.orig"));
+  });
+});
+
+
