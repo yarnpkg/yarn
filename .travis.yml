@@ -10,8 +10,6 @@ cache:
 env:
  - NODE_VERSION="5"
  - NODE_VERSION="4"
- - NODE_VERSION="iojs"
- - NODE_VERSION="0.12"
 
 install:
  # install latest git
