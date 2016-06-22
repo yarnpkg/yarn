@@ -34,7 +34,7 @@ export async function run(
   let step = 0;
 
   async function runInstall() {
-    let lockfile = new Lockfile(null, false);
+    let lockfile = await Lockfile.fromDirectory(config.cwd, reporter, {});
     let install = new Install("uninstall", flags, [], config, new NoopReporter, lockfile);
     await install.init();
     return install;
@@ -53,7 +53,7 @@ export async function run(
 
   // remove
   for (let name of args) {
-    let loc = path.join("node_modules", name);
+    let loc = path.join(config.cwd, "node_modules", name);
     reporter.step(++step, totalSteps, `Removing module ${name}`);
 
     // check that it's there

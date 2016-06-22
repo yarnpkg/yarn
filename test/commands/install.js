@@ -66,7 +66,7 @@ async function run(flags, args, name, checkInstalled, beforeInstall) {
   await install.init();
 
   if (checkInstalled) {
-    await checkInstalled(cwd);
+    await checkInstalled(config, reporter);
   }
 
   // clean up
@@ -95,50 +95,50 @@ test("install with arg that has binaries", () => {
 
 test("install with --save and offline mirror", () => {
   let mirrorPath = "mirror-for-offline";
-  return run({save: true}, ["is-array@1.0.1"], "install-with-save-offline-mirror", async (cwd) => {
+  return run({save: true}, ["is-array@1.0.1"], "install-with-save-offline-mirror", async (config) => {
 
-    let allFiles = await fs.walk(cwd);
+    let allFiles = await fs.walk(config.cwd);
 
     assert(allFiles.findIndex((file) => {
       return file.relative === `${mirrorPath}/is-array-1.0.1.tgz`;
     }) !== -1);
 
-    let rawLockfile = await fs.readFile(path.join(cwd, constants.LOCKFILE_FILENAME));
+    let rawLockfile = await fs.readFile(path.join(config.cwd, constants.LOCKFILE_FILENAME));
     let lockfile = parse(rawLockfile);
     assert.equal(lockfile["is-array@1.0.1"]["resolved"],
       "is-array-1.0.1.tgz#e9850cc2cc860c3bc0977e84ccf0dd464584279a");
 
-    await fs.unlink(path.join(cwd, mirrorPath));
-    await fs.unlink(path.join(cwd, "package.json"));
+    await fs.unlink(path.join(config.cwd, mirrorPath));
+    await fs.unlink(path.join(config.cwd, "package.json"));
     return allFiles;
   });
 });
 
 test("install with --save and without offline mirror", () => {
   let mirrorPath = "mirror-for-offline";
-  return run({save: true}, ["is-array@1.0.1"], "install-with-save-no-offline-mirror", async (cwd) => {
+  return run({save: true}, ["is-array@1.0.1"], "install-with-save-no-offline-mirror", async (config) => {
 
-    let allFiles = await fs.walk(cwd);
+    let allFiles = await fs.walk(config.cwd);
 
     assert(allFiles.findIndex((file) => {
       return file.relative === `${mirrorPath}/is-array-1.0.1.tgz`;
     }) === -1);
 
-    let rawLockfile = await fs.readFile(path.join(cwd, constants.LOCKFILE_FILENAME));
+    let rawLockfile = await fs.readFile(path.join(config.cwd, constants.LOCKFILE_FILENAME));
     let lockfile = parse(rawLockfile);
     assert.equal(lockfile["is-array@1.0.1"]["resolved"],
       "https://registry.npmjs.org/is-array/-/is-array-1.0.1.tgz#e9850cc2cc860c3bc0977e84ccf0dd464584279a");
 
-    await fs.unlink(path.join(cwd, mirrorPath));
-    await fs.unlink(path.join(cwd, "package.json"));
+    await fs.unlink(path.join(config.cwd, mirrorPath));
+    await fs.unlink(path.join(config.cwd, "package.json"));
     return allFiles;
   });
 });
 
 test("install from offline mirror", () => {
-  return run({}, [], "install-from-offline-mirror", async (cwd) => {
+  return run({}, [], "install-from-offline-mirror", async (config) => {
 
-    let allFiles = await fs.walk(cwd);
+    let allFiles = await fs.walk(config.cwd);
 
     assert(allFiles.findIndex((file) => {
       return file.relative === "node_modules/fake-fbkpm-dependency/package.json";
@@ -152,11 +152,11 @@ test("install should dedupe dependencies avoiding conflicts 0", () => {
   // A@2.0.1 -> B@2.0.0
   // B@1.0.0
   // should result in B@2.0.0 not flattened
-  return run({}, [], "install-should-dedupe-avoiding-conflicts-0", async (cwd) => {
-    let rawDepBPackage = await fs.readFile(path.join(cwd, "node_modules/dep-b/package.json"));
+  return run({}, [], "install-should-dedupe-avoiding-conflicts-0", async (config) => {
+    let rawDepBPackage = await fs.readFile(path.join(config.cwd, "node_modules/dep-b/package.json"));
     assert.equal(JSON.parse(rawDepBPackage).version, "1.0.0");
 
-    rawDepBPackage = await fs.readFile(path.join(cwd, "node_modules/dep-a/node_modules/dep-b/package.json"));
+    rawDepBPackage = await fs.readFile(path.join(config.cwd, "node_modules/dep-a/node_modules/dep-b/package.json"));
     assert.equal(JSON.parse(rawDepBPackage).version, "2.0.0");
   });
 });
@@ -164,11 +164,11 @@ test("install should dedupe dependencies avoiding conflicts 0", () => {
 test("install should dedupe dependencies avoiding conflicts 1", () => {
   // A@2.0.1 -> B@2.0.0
   // should result in B@2.0.0 flattened
-  return run({}, [], "install-should-dedupe-avoiding-conflicts-1", async (cwd) => {
-    let rawDepBPackage = await fs.readFile(path.join(cwd, "node_modules/dep-b/package.json"));
+  return run({}, [], "install-should-dedupe-avoiding-conflicts-1", async (config) => {
+    let rawDepBPackage = await fs.readFile(path.join(config.cwd, "node_modules/dep-b/package.json"));
     assert.equal(JSON.parse(rawDepBPackage).version, "2.0.0");
 
-    rawDepBPackage = await fs.readFile(path.join(cwd, "node_modules/dep-a/package.json"));
+    rawDepBPackage = await fs.readFile(path.join(config.cwd, "node_modules/dep-a/package.json"));
     assert.equal(JSON.parse(rawDepBPackage).version, "2.0.1");
   });
 });
@@ -183,18 +183,18 @@ test("install should dedupe dependencies avoiding conflicts 2", () => {
   // B@1 -> C@1
   // C@2
 
-  return run({}, [], "install-should-dedupe-avoiding-conflicts-2", async (cwd) => {
-    assert.equal(JSON.parse(await fs.readFile(path.join(cwd,
+  return run({}, [], "install-should-dedupe-avoiding-conflicts-2", async (config) => {
+    assert.equal(JSON.parse(await fs.readFile(path.join(config.cwd,
       "node_modules/dep-a/package.json"))).version, "2.0.0");
-    assert.equal(JSON.parse(await fs.readFile(path.join(cwd,
+    assert.equal(JSON.parse(await fs.readFile(path.join(config.cwd,
       "node_modules/dep-a/node_modules/dep-b/package.json"))).version, "2.0.0");
-    assert.equal(JSON.parse(await fs.readFile(path.join(cwd,
+    assert.equal(JSON.parse(await fs.readFile(path.join(config.cwd,
       "node_modules/dep-c/package.json"))).version, "2.0.0");
-    assert.equal(JSON.parse(await fs.readFile(path.join(cwd,
+    assert.equal(JSON.parse(await fs.readFile(path.join(config.cwd,
       "node_modules/dep-d/package.json"))).version, "1.0.0");
-    assert.equal(JSON.parse(await fs.readFile(path.join(cwd,
+    assert.equal(JSON.parse(await fs.readFile(path.join(config.cwd,
       "node_modules/dep-b/package.json"))).version, "1.0.0");
-    assert.equal(JSON.parse(await fs.readFile(path.join(cwd,
+    assert.equal(JSON.parse(await fs.readFile(path.join(config.cwd,
       "node_modules/dep-b/node_modules/dep-c/package.json"))).version, "1.0.0");
   });
 });
@@ -208,16 +208,16 @@ test("install should dedupe dependencies avoiding conflicts 3", () => {
   // B@2
   // C@2
   // D@1
-  return run({}, [], "install-should-dedupe-avoiding-conflicts-3", async (cwd) => {
-    assert.equal(JSON.parse(await fs.readFile(path.join(cwd,
+  return run({}, [], "install-should-dedupe-avoiding-conflicts-3", async (config) => {
+    assert.equal(JSON.parse(await fs.readFile(path.join(config.cwd,
       "node_modules/dep-a/package.json"))).version, "2.0.0");
-    assert.equal(JSON.parse(await fs.readFile(path.join(cwd,
+    assert.equal(JSON.parse(await fs.readFile(path.join(config.cwd,
       "node_modules/dep-c/package.json"))).version, "2.0.0");
-    assert.equal(JSON.parse(await fs.readFile(path.join(cwd,
+    assert.equal(JSON.parse(await fs.readFile(path.join(config.cwd,
       "node_modules/dep-d/package.json"))).version, "1.0.0");
-    assert.equal(JSON.parse(await fs.readFile(path.join(cwd,
+    assert.equal(JSON.parse(await fs.readFile(path.join(config.cwd,
       "node_modules/dep-b/package.json"))).version, "2.0.0");
-    assert.equal(JSON.parse(await fs.readFile(path.join(cwd,
+    assert.equal(JSON.parse(await fs.readFile(path.join(config.cwd,
       "node_modules/dep-a/node_modules/dep-c/package.json"))).version, "1.0.0");
   });
 });
@@ -233,16 +233,16 @@ test("install should dedupe dependencies avoiding conflicts 4", () => {
   // C@2
   // B@2
   // D@1
-  return run({}, [], "install-should-dedupe-avoiding-conflicts-4", async (cwd) => {
-    assert.equal(JSON.parse(await fs.readFile(path.join(cwd,
+  return run({}, [], "install-should-dedupe-avoiding-conflicts-4", async (config) => {
+    assert.equal(JSON.parse(await fs.readFile(path.join(config.cwd,
       "node_modules/dep-a/package.json"))).version, "2.0.0");
-    assert.equal(JSON.parse(await fs.readFile(path.join(cwd,
+    assert.equal(JSON.parse(await fs.readFile(path.join(config.cwd,
       "node_modules/dep-c/package.json"))).version, "2.0.0");
-    assert.equal(JSON.parse(await fs.readFile(path.join(cwd,
+    assert.equal(JSON.parse(await fs.readFile(path.join(config.cwd,
       "node_modules/dep-d/package.json"))).version, "1.0.0");
-    assert.equal(JSON.parse(await fs.readFile(path.join(cwd,
+    assert.equal(JSON.parse(await fs.readFile(path.join(config.cwd,
       "node_modules/dep-b/package.json"))).version, "2.0.0");
-    assert.equal(JSON.parse(await fs.readFile(path.join(cwd,
+    assert.equal(JSON.parse(await fs.readFile(path.join(config.cwd,
       "node_modules/dep-a/node_modules/dep-c/package.json"))).version, "1.0.0");
   });
 });
@@ -259,18 +259,18 @@ test("install should dedupe dependencies avoiding conflicts 5", () => {
   // D@1 -> A@2
   //     -> B@2
 
-  return run({}, [], "install-should-dedupe-avoiding-conflicts-5", async (cwd) => {
-    assert.equal(JSON.parse(await fs.readFile(path.join(cwd,
+  return run({}, [], "install-should-dedupe-avoiding-conflicts-5", async (config) => {
+    assert.equal(JSON.parse(await fs.readFile(path.join(config.cwd,
       "node_modules/dep-a/package.json"))).version, "1.0.0");
-    assert.equal(JSON.parse(await fs.readFile(path.join(cwd,
+    assert.equal(JSON.parse(await fs.readFile(path.join(config.cwd,
       "node_modules/dep-b/package.json"))).version, "1.0.0");
-    assert.equal(JSON.parse(await fs.readFile(path.join(cwd,
+    assert.equal(JSON.parse(await fs.readFile(path.join(config.cwd,
       "node_modules/dep-c/package.json"))).version, "1.0.0");
-    assert.equal(JSON.parse(await fs.readFile(path.join(cwd,
+    assert.equal(JSON.parse(await fs.readFile(path.join(config.cwd,
       "node_modules/dep-d/package.json"))).version, "1.0.0");
-    assert.equal(JSON.parse(await fs.readFile(path.join(cwd,
+    assert.equal(JSON.parse(await fs.readFile(path.join(config.cwd,
       "node_modules/dep-d/node_modules/dep-a/package.json"))).version, "2.0.0");
-    assert.equal(JSON.parse(await fs.readFile(path.join(cwd,
+    assert.equal(JSON.parse(await fs.readFile(path.join(config.cwd,
       "node_modules/dep-d/node_modules/dep-b/package.json"))).version, "2.0.0");
 
   });
@@ -288,47 +288,47 @@ test("upgrade scenario", () => {
     await fs.unlink(path.join(cwd, "package.json"));
   }
 
-  return run({ save: true }, ["left-pad@0.0.9"], "install-upgrade-scenario", async (cwd) => {
+  return run({ save: true }, ["left-pad@0.0.9"], "install-upgrade-scenario", async (config) => {
     assert.equal(
-      JSON.parse(await fs.readFile(path.join(cwd, "node_modules/left-pad/package.json"))).version,
+      JSON.parse(await fs.readFile(path.join(config.cwd, "node_modules/left-pad/package.json"))).version,
       "0.0.9"
     );
     assert.deepEqual(
-      JSON.parse(await fs.readFile(path.join(cwd, "package.json"))).dependencies,
+      JSON.parse(await fs.readFile(path.join(config.cwd, "package.json"))).dependencies,
       {"left-pad": "0.0.9"}
     );
 
-    let lockFileWritten = await fs.readFile(path.join(cwd, "fbkpm.lock"));
+    let lockFileWritten = await fs.readFile(path.join(config.cwd, "fbkpm.lock"));
     let lockFileLines = lockFileWritten.split("\n").filter((line) => !!line);
     assert.equal(lockFileLines[0], "left-pad@0.0.9:");
     assert.equal(lockFileLines.length, 4);
     assert.notEqual(lockFileLines[3].indexOf("resolved left-pad-0.0.9.tgz"), -1);
 
-    let mirror = await fs.walk(path.join(cwd, mirrorPath));
+    let mirror = await fs.walk(path.join(config.cwd, mirrorPath));
     assert.equal(mirror.length, 1);
     assert.equal(mirror[0].relative, "left-pad-0.0.9.tgz");
 
-    return run({save: true}, ["left-pad@1.1.0"], "install-upgrade-scenario", async (cwd) => {
+    return run({save: true}, ["left-pad@1.1.0"], "install-upgrade-scenario", async (config) => {
       assert.equal(
-        JSON.parse(await fs.readFile(path.join(cwd, "node_modules/left-pad/package.json"))).version,
+        JSON.parse(await fs.readFile(path.join(config.cwd, "node_modules/left-pad/package.json"))).version,
         "1.1.0"
       );
       assert.deepEqual(
-        JSON.parse(await fs.readFile(path.join(cwd, "package.json"))).dependencies,
+        JSON.parse(await fs.readFile(path.join(config.cwd, "package.json"))).dependencies,
         {"left-pad": "1.1.0"}
       );
 
-      let lockFileWritten = await fs.readFile(path.join(cwd, "fbkpm.lock"));
+      let lockFileWritten = await fs.readFile(path.join(config.cwd, "fbkpm.lock"));
       let lockFileLines = lockFileWritten.split("\n").filter((line) => !!line);
       assert.equal(lockFileLines[0], "left-pad@1.1.0:");
       assert.equal(lockFileLines.length, 4);
       assert.notEqual(lockFileLines[3].indexOf("resolved left-pad-1.1.0.tgz"), -1);
 
-      let mirror = await fs.walk(path.join(cwd, mirrorPath));
+      let mirror = await fs.walk(path.join(config.cwd, mirrorPath));
       assert.equal(mirror.length, 2);
       assert.equal(mirror[1].relative, "left-pad-1.1.0.tgz");
 
-      await clean(cwd);
+      await clean(config.cwd);
     });
   }, clean);
 });
@@ -337,65 +337,85 @@ test("downgrade scenario", () => {
   // left-pad first installed 1.1.0 then downgraded to 0.0.9
   // files in mirror, fbkpm.lock, package.json and node_modules should reflect that
 
-  return run({save: true}, ["left-pad@1.1.0"], "install-downgrade-scenario", async (cwd) => {
+  return run({save: true}, ["left-pad@1.1.0"], "install-downgrade-scenario", async (config) => {
     assert.equal(
-      JSON.parse(await fs.readFile(path.join(cwd, "node_modules/left-pad/package.json"))).version,
+      JSON.parse(await fs.readFile(path.join(config.cwd, "node_modules/left-pad/package.json"))).version,
       "1.1.0"
     );
     assert.deepEqual(
-      JSON.parse(await fs.readFile(path.join(cwd, "package.json"))).dependencies,
+      JSON.parse(await fs.readFile(path.join(config.cwd, "package.json"))).dependencies,
       {"left-pad": "1.1.0"}
     );
 
     let mirrorPath = "mirror-for-offline";
-    let lockFileWritten = await fs.readFile(path.join(cwd, "fbkpm.lock"));
+    let lockFileWritten = await fs.readFile(path.join(config.cwd, "fbkpm.lock"));
     let lockFileLines = lockFileWritten.split("\n").filter((line) => !!line);
     assert.equal(lockFileLines[0], "left-pad@1.1.0:");
     assert.equal(lockFileLines.length, 4);
     assert.notEqual(lockFileLines[3].indexOf("resolved left-pad-1.1.0.tgz"), -1);
 
-    let mirror = await fs.walk(path.join(cwd, mirrorPath));
+    let mirror = await fs.walk(path.join(config.cwd, mirrorPath));
     assert.equal(mirror.length, 1);
     assert.equal(mirror[0].relative, "left-pad-1.1.0.tgz");
 
-    return run({save: true}, ["left-pad@0.0.9"], "install-downgrade-scenario", async (cwd) => {
+    return run({save: true}, ["left-pad@0.0.9"], "install-downgrade-scenario", async (config) => {
       assert.equal(
-        JSON.parse(await fs.readFile(path.join(cwd, "node_modules/left-pad/package.json"))).version,
+        JSON.parse(await fs.readFile(path.join(config.cwd, "node_modules/left-pad/package.json"))).version,
         "0.0.9"
       );
       assert.deepEqual(
-        JSON.parse(await fs.readFile(path.join(cwd, "package.json"))).dependencies,
+        JSON.parse(await fs.readFile(path.join(config.cwd, "package.json"))).dependencies,
         {"left-pad": "0.0.9"}
       );
 
-      let lockFileWritten = await fs.readFile(path.join(cwd, "fbkpm.lock"));
+      let lockFileWritten = await fs.readFile(path.join(config.cwd, "fbkpm.lock"));
       let lockFileLines = lockFileWritten.split("\n").filter((line) => !!line);
       assert.equal(lockFileLines[0], "left-pad@0.0.9:");
       assert.equal(lockFileLines.length, 4);
       assert.notEqual(lockFileLines[3].indexOf("resolved left-pad-0.0.9.tgz"), -1);
 
-      let mirror = await fs.walk(path.join(cwd, mirrorPath));
+      let mirror = await fs.walk(path.join(config.cwd, mirrorPath));
       assert.equal(mirror.length, 2);
       assert.equal(mirror[0].relative, "left-pad-0.0.9.tgz");
 
-      await fs.unlink(path.join(cwd, mirrorPath));
-      await fs.unlink(path.join(cwd, "fbkpm.lock"));
-      await fs.unlink(path.join(cwd, "package.json"));
+      await fs.unlink(path.join(config.cwd, mirrorPath));
+      await fs.unlink(path.join(config.cwd, "fbkpm.lock"));
+      await fs.unlink(path.join(config.cwd, "package.json"));
     });
   });
 });
 
-test.skip("uninstall should remove dependency from package.json, fbkpm.lock and node_modules", () => {
-  return run({}, [], "uninstall-should-clean", async (cwd) => {
+test("uninstall should remove dependency from package.json, fbkpm.lock and node_modules", () => {
+  let mirrorPath = "mirror-for-offline";
+
+  return run({}, [], "uninstall-should-clean", async (config, reporter) => {
     assert.equal(
-      JSON.parse(await fs.readFile(path.join(cwd, "node_modules/dep-a/package.json"))).version,
+      JSON.parse(await fs.readFile(path.join(config.cwd, "node_modules/dep-a/package.json"))).version,
       "1.0.0"
     );
 
-    let reporter = new reporters.NoopReporter;
-    let config = new Config(reporter, { cwd });
-    await config.init();
+    await fs.copy(path.join(config.cwd, "fbkpm.lock"), path.join(config.cwd, "fbkpm.lock.orig"));
+    await fs.copy(path.join(config.cwd, "package.json"), path.join(config.cwd, "package.json.orig"));
 
     await uninstall(config, reporter, {}, ["dep-a"]);
+
+    assert(!await fs.exists(path.join(config.cwd, "node_modules/dep-a")));
+    assert(await fs.exists(path.join(config.cwd, `${mirrorPath}/dep-a-1.0.0.tgz`)));
+
+    assert.deepEqual(
+      JSON.parse(await fs.readFile(path.join(config.cwd, "package.json"))).dependencies,
+      {}
+    );
+
+    let lockFileContent = await fs.readFile(path.join(config.cwd, "fbkpm.lock"));
+    let lockFileLines = lockFileContent.split("\n").filter((line) => !!line);
+    assert.equal(lockFileLines.length, 0);
+
+    await fs.unlink(path.join(config.cwd, "fbkpm.lock"));
+    await fs.unlink(path.join(config.cwd, "package.json"));
+    await fs.copy(path.join(config.cwd, "fbkpm.lock.orig"), path.join(config.cwd, "fbkpm.lock"));
+    await fs.copy(path.join(config.cwd, "package.json.orig"), path.join(config.cwd, "package.json"));
+    await fs.unlink(path.join(config.cwd, "fbkpm.lock.orig"));
+    await fs.unlink(path.join(config.cwd, "package.json.orig"));
   });
 });
