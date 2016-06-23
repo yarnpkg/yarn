@@ -262,6 +262,7 @@ export default class PackageRequest {
       // while we're fetching the package we have some idle time to warm the cache with
       // registry responses for known dependencies
       for (let name in info.dependencies) {
+        // TODO not needed for offline installation
         this.warmCacheIfRegistry(`${name}@${info.dependencies[name]}`);
       }
 

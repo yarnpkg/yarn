@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "dep-a": "^1.2.0"
+  }
+}
