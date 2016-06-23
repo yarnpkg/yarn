@@ -7,7 +7,7 @@ watch:
 	./node_modules/.bin/gulp watch
 
 test-only:
-	./node_modules/.bin/nyc --check-coverage --lines 77 --branches 67 --functions 77 ./node_modules/.bin/ava --verbose test/
+	./node_modules/.bin/nyc --check-coverage --lines 86 --branches 75 --functions 86 ./node_modules/.bin/ava --verbose test/
 	./node_modules/.bin/nyc report --reporter=lcov
 
 lint:
