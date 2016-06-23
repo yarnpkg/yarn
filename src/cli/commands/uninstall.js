@@ -49,11 +49,12 @@ export async function run(
 
   // install all modules to ensure we have a consistent state
   reporter.step(++step, totalSteps, "Installing modules");
-  await runInstall();
+  let install = await runInstall();
 
   // remove
   for (let name of args) {
     let loc = path.join("node_modules", name);
+    let range;
     reporter.step(++step, totalSteps, `Removing module ${name}`);
 
     // check that it's there
@@ -67,24 +68,45 @@ export async function run(
       await fs.unlink(path.join("node_modules", ".bin", binName));
     }
 
-    // remove entire package
-    await fs.unlink(loc);
-
     // remove from `package.json`
     for (let type of ["devDependencies", "dependencies", "optionalDependencies"]) {
       let deps = json[type];
-      if (deps) delete deps[name];
+      if (deps) {
+        range = deps[name];
+        delete deps[name];
+      }
     }
-  }
 
-  // TODO remove packages from mirror, this is tricky since we'd also want transitive
-  // dependencies
+    // remove entire package
+    let locs = [];
+    if (range) {
+      // add all transitive dependencies locations
+      addSub(`${name}@${range}`);
+
+      function addSub(pattern) {
+        let pkg = install.resolver.getResolvedPattern(pattern);
+        if (!pkg) return; // TODO could possibly throw an error?
+
+        locs.push(config.generateHardModulePath(pkg.reference));
+
+        for (let key in pkg.dependencies) {
+          addSub(`${key}@${pkg.dependencies[key]}`);
+        }
+      }
+    } else {
+      // doesn't look like this was in package.json so we don't have a pattern to seed
+      // the search
+      locs.push(loc);
+    }
+
+    for (let loc of locs) await fs.unlink(loc);
+  }
 
   // save package.json
   await fs.writeFile(jsonLoc, stringify(json) + "\n");
 
   // reinstall so we can get the updated lockfile
-  reporter.step(++step, totalSteps, "Regenerating lockfile");
+  reporter.step(++step, totalSteps, "Regenerating lockfile and installing missing dependencies");
   await runInstall();
 
   //
