@@ -259,11 +259,15 @@ export default class PackageRequest {
     // only do this in strict lockfile mode as otherwise we can just use our root lockfile
     let subLockfile = null;
     if (!this.resolver.lockfile.strict) {
+      // get possible mirror path
+      let offlineMirrorPath = this.config.getOfflineMirrorPath(ref.remote.registry, ref.remote.reference);
+
       // while we're fetching the package we have some idle time to warm the cache with
       // registry responses for known dependencies
-      for (let name in info.dependencies) {
-        // TODO not needed for offline installation
-        this.warmCacheIfRegistry(`${name}@${info.dependencies[name]}`);
+      if (!offlineMirrorPath) {
+        for (let name in info.dependencies) {
+          this.warmCacheIfRegistry(`${name}@${info.dependencies[name]}`);
+        }
       }
 
       //
@@ -271,13 +275,14 @@ export default class PackageRequest {
         info.name,
         () => this.resolver.fetcher.fetch(ref)
       );
-      let offlineMirrorPath = this.config.getOfflineMirrorPath(ref.remote.registry, ref.remote.reference);
-      // replace resolved remote URL with local path
+
+      // replace resolved remote URL with local path if lockfile is in save mode and we have a path
       if (this.resolver.lockfile.save && offlineMirrorPath) {
         if (await fs.exists(offlineMirrorPath)) {
           remote.resolved = path.relative(
             this.config.getOfflineMirrorPath(ref.remote.registry),
-            offlineMirrorPath) + `#${ref.remote.hash}`;
+            offlineMirrorPath
+          ) + `#${ref.remote.hash}`;
         }
       }
       remote.hash = hash;
