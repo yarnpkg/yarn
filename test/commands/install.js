@@ -385,7 +385,7 @@ test("downgrade scenario", () => {
   });
 });
 
-test.only("install have a clean node_modules after lockfile update (branch switch scenario)", async () => {
+test("install have a clean node_modules after lockfile update (branch switch scenario)", async () => {
   // A@1 -> B@1
   // B@2
 
@@ -398,12 +398,13 @@ test.only("install have a clean node_modules after lockfile update (branch switc
   // A@1.2
   // B@1.2
 
-  let cwd = path.join(fixturesLoc, "install-should-cleanup-when-package-json-changed");
+  let fixture = "install-should-cleanup-when-package-json-changed";
+  let cwd = path.join(fixturesLoc, fixture);
 
   await fs.copy(path.join(cwd, "fbkpm.lock.before"), path.join(cwd, "fbkpm.lock"));
   await fs.copy(path.join(cwd, "package.json.before"), path.join(cwd, "package.json"));
 
-  return run({}, [], "install-should-cleanup-when-package-json-changed", async (config) => {
+  return run({}, [], fixture, async (config) => {
     assert.equal(JSON.parse(await fs.readFile(path.join(config.cwd,
       "node_modules/dep-a/package.json"))).version, "1.0.0");
     assert.equal(JSON.parse(await fs.readFile(path.join(config.cwd,
@@ -417,11 +418,49 @@ test.only("install have a clean node_modules after lockfile update (branch switc
     await fs.copy(path.join(cwd, "fbkpm.lock.after"), path.join(cwd, "fbkpm.lock"));
     await fs.copy(path.join(cwd, "package.json.after"), path.join(cwd, "package.json"));
 
-    return run({}, [], "install-should-cleanup-when-package-json-changed", async (config) => {
+    return run({}, [], fixture, async (config) => {
       assert.equal(JSON.parse(await fs.readFile(path.join(config.cwd,
         "node_modules/dep-a/package.json"))).version, "1.2.0");
       assert.equal(JSON.parse(await fs.readFile(path.join(config.cwd,
         "node_modules/dep-b/package.json"))).version, "1.2.0");
+
+      await fs.unlink(path.join(config.cwd, "fbkpm.lock"));
+      await fs.unlink(path.join(config.cwd, "package.json"));
+    });
+  });
+});
+
+
+test("install have a clean node_modules after lockfile update (branch switch scenario 2)", async () => {
+  // A@1 -> B@1
+
+  // after package.json/lock file update
+
+  // A@1.2
+
+  let fixture = "install-should-cleanup-when-package-json-changed-2";
+  let cwd = path.join(fixturesLoc, fixture);
+
+  await fs.copy(path.join(cwd, "fbkpm.lock.before"), path.join(cwd, "fbkpm.lock"));
+  await fs.copy(path.join(cwd, "package.json.before"), path.join(cwd, "package.json"));
+
+  return run({}, [], fixture, async (config) => {
+    assert.equal(JSON.parse(await fs.readFile(path.join(config.cwd,
+      "node_modules/dep-a/package.json"))).version, "1.0.0");
+    assert.equal(JSON.parse(await fs.readFile(path.join(config.cwd,
+      "node_modules/dep-b/package.json"))).version, "1.0.0");
+
+    await fs.unlink(path.join(config.cwd, "fbkpm.lock"));
+    await fs.unlink(path.join(config.cwd, "package.json"));
+
+    await fs.copy(path.join(cwd, "fbkpm.lock.after"), path.join(cwd, "fbkpm.lock"));
+    await fs.copy(path.join(cwd, "package.json.after"), path.join(cwd, "package.json"));
+
+    return run({}, [], fixture, async (config) => {
+      assert.equal(JSON.parse(await fs.readFile(path.join(config.cwd,
+        "node_modules/dep-a/package.json"))).version, "1.2.0");
+
+      assert(!await fs.exists(path.join(config.cwd, "node_modules/dep-b")));
 
       await fs.unlink(path.join(config.cwd, "fbkpm.lock"));
       await fs.unlink(path.join(config.cwd, "package.json"));
