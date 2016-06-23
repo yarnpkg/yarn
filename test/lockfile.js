@@ -71,7 +71,7 @@ test("Lockfile.getLocked", (t) => {
     foo: "bar",
     bar: {}
   });
-  t.ok(!!lockfile.getLocked("foo"));
+  ok.truthy(!!lockfile.getLocked("foo"));
 });
 
 test("Lockfile.getLocked pointer", (t) => {
@@ -79,11 +79,11 @@ test("Lockfile.getLocked pointer", (t) => {
     foo: "bar",
     bar: {}
   });
-  t.ok(!!lockfile.getLocked("foo"));
+  ok.truthy(!!lockfile.getLocked("foo"));
 });
 
 test("Lockfile.getLocked no cache", (t) => {
-  t.ok(!new Lockfile().getLocked("foobar"));
+  ok.truthy(!new Lockfile().getLocked("foobar"));
 });
 
 test("Lockfile.getLocked defaults", (t) => {

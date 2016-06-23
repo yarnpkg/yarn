@@ -156,7 +156,9 @@ test("install should dedupe dependencies avoiding conflicts 0", () => {
     let rawDepBPackage = await fs.readFile(path.join(config.cwd, "node_modules/dep-b/package.json"));
     assert.equal(JSON.parse(rawDepBPackage).version, "1.0.0");
 
-    rawDepBPackage = await fs.readFile(path.join(config.cwd, "node_modules/dep-a/node_modules/dep-b/package.json"));
+    rawDepBPackage = await fs.readFile(
+      path.join(config.cwd, "node_modules/dep-a/node_modules/dep-b/package.json")
+    );
     assert.equal(JSON.parse(rawDepBPackage).version, "2.0.0");
   });
 });
