@@ -385,6 +385,50 @@ test("downgrade scenario", () => {
   });
 });
 
+test.only("install have a clean node_modules after lockfile update (branch switch scenario)", async () => {
+  // A@1 -> B@1
+  // B@2
+
+  // after package.json/lock file update
+
+  // A@1.2 -> B@1.2
+
+  // (deduped)
+
+  // A@1.2
+  // B@1.2
+
+  let cwd = path.join(fixturesLoc, "install-should-cleanup-when-package-json-changed");
+
+  await fs.copy(path.join(cwd, "fbkpm.lock.before"), path.join(cwd, "fbkpm.lock"));
+  await fs.copy(path.join(cwd, "package.json.before"), path.join(cwd, "package.json"));
+
+  return run({}, [], "install-should-cleanup-when-package-json-changed", async (config) => {
+    assert.equal(JSON.parse(await fs.readFile(path.join(config.cwd,
+      "node_modules/dep-a/package.json"))).version, "1.0.0");
+    assert.equal(JSON.parse(await fs.readFile(path.join(config.cwd,
+      "node_modules/dep-b/package.json"))).version, "2.0.0");
+    assert.equal(JSON.parse(await fs.readFile(path.join(config.cwd,
+      "node_modules/dep-a/node_modules/dep-b/package.json"))).version, "1.0.0");
+
+    await fs.unlink(path.join(config.cwd, "fbkpm.lock"));
+    await fs.unlink(path.join(config.cwd, "package.json"));
+
+    await fs.copy(path.join(cwd, "fbkpm.lock.after"), path.join(cwd, "fbkpm.lock"));
+    await fs.copy(path.join(cwd, "package.json.after"), path.join(cwd, "package.json"));
+
+    return run({}, [], "install-should-cleanup-when-package-json-changed", async (config) => {
+      assert.equal(JSON.parse(await fs.readFile(path.join(config.cwd,
+        "node_modules/dep-a/package.json"))).version, "1.2.0");
+      assert.equal(JSON.parse(await fs.readFile(path.join(config.cwd,
+        "node_modules/dep-b/package.json"))).version, "1.2.0");
+
+      await fs.unlink(path.join(config.cwd, "fbkpm.lock"));
+      await fs.unlink(path.join(config.cwd, "package.json"));
+    });
+  });
+});
+
 test("uninstall should remove dependency from package.json, fbkpm.lock and node_modules", () => {
   let mirrorPath = "mirror-for-offline";
 
@@ -420,7 +464,7 @@ test("uninstall should remove dependency from package.json, fbkpm.lock and node_
   });
 });
 
-test.only("uninstall should remove subdependencies", () => {
+test("uninstall should remove subdependencies", () => {
   // A@1 -> B@1
   // C@1
 
