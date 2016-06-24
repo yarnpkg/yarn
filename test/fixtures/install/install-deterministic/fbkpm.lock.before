@@ -1,0 +1,10 @@
+mime-db@~1.0.1:
+  name mime-db
+  version "1.0.3"
+  resolved mime-db-1.0.3.tgz#5680b12300b3cecea5620f20f269ee80f2632d81
+mime-types@2.0.0:
+  name mime-types
+  version "2.0.0"
+  resolved mime-types-2.0.0.tgz#4a85688446a4d94a03909e0ae292766744a3c313
+  dependencies:
+    mime-db "~1.0.1"

@@ -736,3 +736,112 @@ test("install --initMirror should add init mirror deps from package.json", async
   });
 });
 
+test("install --save with new dependency should be deterministic", async () => {
+  // mime-types@2.0.0->mime-db@1.0.3 is saved in local mirror and is deduped
+  // install mime-db@1.23.0 should move mime-db@1.0.3 deep into mime-types
+
+  let mirrorPath = "mirror-for-offline";
+  let fixture = "install-deterministic";
+  let cwd = path.join(fixturesLoc, fixture);
+  await fs.copy(path.join(cwd, "fbkpm.lock.before"), path.join(cwd, "fbkpm.lock"));
+  await fs.copy(path.join(cwd, "package.json.before"), path.join(cwd, "package.json"));
+
+  return run({}, [], fixture, async (config) => {
+    assert(semver.satisfies(
+      JSON.parse(await fs.readFile(path.join(config.cwd, "node_modules/mime-db/package.json"))).version,
+      "~1.0.1")
+    );
+    assert.equal(
+      JSON.parse(await fs.readFile(path.join(config.cwd, "node_modules/mime-types/package.json"))).version,
+      "2.0.0"
+    );
+
+    return run({save: true}, ["mime-db@1.23.0"], fixture, async (config) => {
+      assert(semver.satisfies(
+        JSON.parse(await fs.readFile(path.join(config.cwd, "node_modules/mime-db/package.json"))).version,
+        "~1.23.0"
+      ));
+      assert.equal(
+        JSON.parse(await fs.readFile(path.join(config.cwd, "node_modules/mime-types/package.json"))).version,
+        "2.0.0"
+      );
+      assert.equal(
+        JSON.parse(await fs.readFile(path.join(config.cwd,
+          "node_modules/mime-types/node_modules/mime-db/package.json"))).version,
+        "1.0.3"
+      );
+      assert.deepEqual(
+        JSON.parse(await fs.readFile(path.join(config.cwd, "package.json"))).dependencies, {
+          "mime-types": "2.0.0",
+          "mime-db": "1.23.0"
+        }
+      );
+
+      let lockFileWritten = await fs.readFile(path.join(config.cwd, "fbkpm.lock"));
+      let lockFileLines = lockFileWritten.split("\n").filter((line) => !!line);
+      assert.equal(lockFileLines.length, 14);
+
+
+      let mirror = await fs.walk(path.join(config.cwd, mirrorPath));
+      assert.equal(mirror.length, 3);
+      assert.equal(mirror[1].relative, "mime-db-1.23.0.tgz");
+
+      await fs.unlink(mirror[1].absolute);
+      await fs.unlink(path.join(config.cwd, "fbkpm.lock"));
+      await fs.unlink(path.join(config.cwd, "package.json"));
+    });
+  });
+});
+
+test.only("install --save with new dependency should be deterministic 2", async () => {
+  // mime-types@2.0.0->mime-db@1.0.1 is saved in local mirror and is deduped
+  // install mime-db@1.0.3 should replace mime-db@1.0.1 in root
+
+  let mirrorPath = "mirror-for-offline";
+  let fixture = "install-deterministic-2";
+  let cwd = path.join(fixturesLoc, fixture);
+  await fs.copy(path.join(cwd, "fbkpm.lock.before"), path.join(cwd, "fbkpm.lock"));
+  await fs.copy(path.join(cwd, "package.json.before"), path.join(cwd, "package.json"));
+
+  return run({}, [], fixture, async (config) => {
+    assert.equal(
+      JSON.parse(await fs.readFile(path.join(config.cwd, "node_modules/mime-db/package.json"))).version,
+      "1.0.1"
+    );
+    assert.equal(
+      JSON.parse(await fs.readFile(path.join(config.cwd, "node_modules/mime-types/package.json"))).version,
+      "2.0.0"
+    );
+
+    return run({save: true}, ["mime-db@1.0.3"], fixture, async (config) => {
+      assert.equal(
+        JSON.parse(await fs.readFile(path.join(config.cwd, "node_modules/mime-db/package.json"))).version,
+        "1.0.3"
+      );
+      assert.equal(
+        JSON.parse(await fs.readFile(path.join(config.cwd, "node_modules/mime-types/package.json"))).version,
+        "2.0.0"
+      );
+      assert(!await fs.exists(path.join(config.cwd, "node_modules/mime-types/node-modules/mime-db")));
+      assert.deepEqual(
+        JSON.parse(await fs.readFile(path.join(config.cwd, "package.json"))).dependencies, {
+          "mime-types": "2.0.0",
+          "mime-db": "1.0.3"
+        }
+      );
+
+      let lockFileWritten = await fs.readFile(path.join(config.cwd, "fbkpm.lock"));
+      let lockFileLines = lockFileWritten.split("\n").filter((line) => !!line);
+      assert.equal(lockFileLines.length, 10);
+
+
+      let mirror = await fs.walk(path.join(config.cwd, mirrorPath));
+      assert.equal(mirror.length, 3);
+      assert.equal(mirror[1].relative, "mime-db-1.0.3.tgz");
+
+      await fs.unlink(mirror[1].absolute);
+      await fs.unlink(path.join(config.cwd, "fbkpm.lock"));
+      await fs.unlink(path.join(config.cwd, "package.json"));
+    });
+  });
+});
