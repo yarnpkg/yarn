@@ -793,7 +793,7 @@ test("install --save with new dependency should be deterministic", async () => {
   });
 });
 
-test.only("install --save with new dependency should be deterministic 2", async () => {
+test("install --save with new dependency should be deterministic 2", async () => {
   // mime-types@2.0.0->mime-db@1.0.1 is saved in local mirror and is deduped
   // install mime-db@1.0.3 should replace mime-db@1.0.1 in root
 
@@ -842,6 +842,49 @@ test.only("install --save with new dependency should be deterministic 2", async 
       await fs.unlink(mirror[1].absolute);
       await fs.unlink(path.join(config.cwd, "fbkpm.lock"));
       await fs.unlink(path.join(config.cwd, "package.json"));
+    });
+  });
+});
+
+
+test("install --save should ignore cache", () => {
+  // left-pad@1.1.0 gets installed without --save
+  // left-pad@1.1.0 gets installed with --save
+  // files in mirror, fbkpm.lock, package.json and node_modules should reflect that
+
+  let mirrorPath = "mirror-for-offline";
+
+  let fixture = "install-save-to-mirror-when-cached";
+  return run({}, ["left-pad@1.1.0"], fixture, async (config) => {
+    assert.equal(
+      JSON.parse(await fs.readFile(path.join(config.cwd, "node_modules/left-pad/package.json"))).version,
+      "1.1.0"
+    );
+
+    return run({save: true}, ["left-pad@1.1.0"], fixture, async (config) => {
+      assert.equal(
+        JSON.parse(await fs.readFile(path.join(config.cwd, "node_modules/left-pad/package.json"))).version,
+        "1.1.0"
+      );
+      assert.deepEqual(
+        JSON.parse(await fs.readFile(path.join(config.cwd, "package.json"))).dependencies,
+        {"left-pad": "1.1.0"}
+      );
+
+      let lockFileWritten = await fs.readFile(path.join(config.cwd, "fbkpm.lock"));
+      let lockFileLines = lockFileWritten.split("\n").filter((line) => !!line);
+      assert.equal(lockFileLines[0], "left-pad@1.1.0:");
+      assert.equal(lockFileLines.length, 4);
+      assert.notEqual(lockFileLines[3].indexOf("resolved left-pad-1.1.0.tgz"), -1);
+
+      throw new Error("AA")
+
+      let mirror = await fs.walk(path.join(config.cwd, mirrorPath));
+      assert.equal(mirror.length, 1);
+      assert.equal(mirror[0].relative, "left-pad-1.1.0.tgz");
+      await fs.unlink(path.join(config.cwd, mirrorPath));
+      await fs.unlink(path.join(config.cwd, "package.json"));
+
     });
   });
 });
