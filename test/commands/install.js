@@ -650,6 +650,65 @@ test("install --save should add missing deps to fbkpm and mirror (PR import scen
   });
 });
 
+
+test("install --save should update a dependency to fbkpm and mirror (PR import scenario 2)", async () => {
+  // mime-types@2.0.0 is saved in local mirror and gets updated to mime-types@2.1.11 via
+  // a change in package.json,
+  // files in mirror, fbkpm.lock, package.json and node_modules should reflect that
+
+  let mirrorPath = "mirror-for-offline";
+  let fixture = "install-import-pr-2";
+  let cwd = path.join(fixturesLoc, fixture);
+  await fs.copy(path.join(cwd, "fbkpm.lock.before"), path.join(cwd, "fbkpm.lock"));
+  await fs.copy(path.join(cwd, "package.json.before"), path.join(cwd, "package.json"));
+
+  return run({}, [], fixture, async (config) => {
+    assert(semver.satisfies(
+      JSON.parse(await fs.readFile(path.join(config.cwd, "node_modules/mime-db/package.json"))).version,
+      "~1.0.1")
+    );
+    assert.equal(
+      JSON.parse(await fs.readFile(path.join(config.cwd, "node_modules/mime-types/package.json"))).version,
+      "2.0.0"
+    );
+
+    await fs.unlink(path.join(config.cwd, "package.json"));
+    await fs.copy(path.join(cwd, "package.json.after"), path.join(cwd, "package.json"));
+
+    return run({save: true}, [], fixture, async (config) => {
+      assert(semver.satisfies(
+        JSON.parse(await fs.readFile(path.join(config.cwd, "node_modules/mime-db/package.json"))).version,
+        "~1.23.0"
+      ));
+      assert.equal(
+        JSON.parse(await fs.readFile(path.join(config.cwd, "node_modules/mime-types/package.json"))).version,
+        "2.1.11"
+      );
+
+      let lockFileWritten = await fs.readFile(path.join(config.cwd, "fbkpm.lock"));
+      let lockFileLines = lockFileWritten.split("\n").filter((line) => !!line);
+      assert.equal(lockFileLines[0], "mime-db@~1.23.0:");
+      assert.notEqual(lockFileLines[3].indexOf("resolved mime-db-"), -1);
+      assert.equal(lockFileLines[4], "mime-types@2.1.11:");
+      assert.notEqual(lockFileLines[7].indexOf("resolved mime-types-2.1.11.tgz"), -1);
+
+      let mirror = await fs.walk(path.join(config.cwd, mirrorPath));
+      assert.equal(mirror.length, 4);
+      let newFilesInMirror = mirror.filter((elem) => {
+        return elem.relative !== "mime-db-1.0.3.tgz" && elem.relative !== "mime-types-2.0.0.tgz";
+      });
+
+      assert.equal(newFilesInMirror.length, 2);
+
+      await fs.unlink(newFilesInMirror[0].absolute);
+      await fs.unlink(newFilesInMirror[1].absolute);
+
+      await fs.unlink(path.join(config.cwd, "fbkpm.lock"));
+      await fs.unlink(path.join(config.cwd, "package.json"));
+    });
+  });
+});
+
 test("install --initMirror should add init mirror deps from package.json", async () => {
   let mirrorPath = "mirror-for-offline";
   let fixture = "install-init-mirror";
