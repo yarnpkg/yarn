@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "fake-fbkpm-dependency": "1.0.1",
+    "mime-types": "2.0.0"
+  }
+}
