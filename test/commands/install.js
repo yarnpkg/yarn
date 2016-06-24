@@ -619,7 +619,7 @@ test("uninstall should remove subdependencies", () => {
 
 test("install --save should add missing deps to fbkpm and mirror (PR import scenario)", async () => {
   let mirrorPath = "mirror-for-offline";
-  let fixture = "install-init-mirror";
+  let fixture = "install-import-pr";
   let cwd = path.join(fixturesLoc, fixture);
   await fs.copy(path.join(cwd, "fbkpm.lock.before"), path.join(cwd, "fbkpm.lock"));
 
@@ -639,6 +639,7 @@ test("install --save should add missing deps to fbkpm and mirror (PR import scen
 
     let lockFileContent = await fs.readFile(path.join(config.cwd, "fbkpm.lock"));
     let lockFileLines = lockFileContent.split("\n").filter((line) => !!line);
+    // TODO error here
     assert.equal(lockFileLines.length, 14);
     assert.equal(lockFileLines[4].indexOf("mime-db@"), 0);
     assert.equal(lockFileLines[8].indexOf("mime-types@2.0.0"), 0);
@@ -646,7 +647,32 @@ test("install --save should add missing deps to fbkpm and mirror (PR import scen
     await fs.unlink(path.join(mirror[1].absolute));
     await fs.unlink(path.join(mirror[2].absolute));
     await fs.unlink(path.join(config.cwd, "fbkpm.lock"));
+  });
+});
 
+test("install --initMirror should add init mirror deps from package.json", async () => {
+  let mirrorPath = "mirror-for-offline";
+  let fixture = "install-init-mirror";
+
+  return run({save: true}, [], fixture, async (config, reporter) => {
+    assert.equal(JSON.parse(await fs.readFile(path.join(config.cwd,
+      "node_modules/mime-types/package.json"))).version, "2.0.0");
+    assert(semver.satisfies(JSON.parse(await fs.readFile(path.join(config.cwd,
+      "node_modules/mime-db/package.json"))).version, "~1.0.1"));
+
+    let mirror = await fs.walk(path.join(config.cwd, mirrorPath));
+    assert.equal(mirror.length, 2);
+    assert.equal(mirror[0].relative.indexOf("mime-db-1.0."), 0);
+    assert.equal(mirror[1].relative, "mime-types-2.0.0.tgz");
+
+    let lockFileContent = await fs.readFile(path.join(config.cwd, "fbkpm.lock"));
+    let lockFileLines = lockFileContent.split("\n").filter((line) => !!line);
+    assert.equal(lockFileLines.length, 10);
+    assert.equal(lockFileLines[0].indexOf("mime-db@"), 0);
+    assert.equal(lockFileLines[4].indexOf("mime-types@2.0.0"), 0);
+
+    await fs.unlink(path.join(config.cwd, mirrorPath));
+    await fs.unlink(path.join(config.cwd, "fbkpm.lock"));
   });
 });
 
