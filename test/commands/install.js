@@ -654,6 +654,7 @@ test("install --initMirror should add init mirror deps from package.json", async
   let mirrorPath = "mirror-for-offline";
   let fixture = "install-init-mirror";
 
+  // initMirror gets converted to save flag in cli/install.js
   return run({save: true}, [], fixture, async (config, reporter) => {
     assert.equal(JSON.parse(await fs.readFile(path.join(config.cwd,
       "node_modules/mime-types/package.json"))).version, "2.0.0");
