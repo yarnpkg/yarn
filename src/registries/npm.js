@@ -48,6 +48,11 @@ export default class NpmRegistry extends Registry {
       path.join(userHome, ".npmrc"),
       path.join(this.cwd, ".npmrc"),
     ];
+    let foldersFromRootToCwd = this.cwd.split(path.sep);
+    while (foldersFromRootToCwd.length > 1) {
+      possibles.push(path.join(foldersFromRootToCwd.join(path.sep), ".npmrc"));
+      foldersFromRootToCwd.pop();
+    }
 
     this.mergeEnv("npm_config_");
 
