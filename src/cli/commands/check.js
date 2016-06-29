@@ -32,7 +32,8 @@ export async function run(
   }
 
   let lockfile = await Lockfile.fromDirectory(config.cwd, reporter, {
-    silent: true
+    silent: true,
+    strict: true
   });
 
   let install = new Install("update", flags, args, config, reporter, lockfile, true);

@@ -258,45 +258,42 @@ export default class PackageRequest {
     // resolution to fetch the package so we can peek inside of it for a fbkpm.lock
     // only do this in strict lockfile mode as otherwise we can just use our root lockfile
     let subLockfile = null;
-    if (!this.resolver.lockfile.strict) {
-      // get possible mirror path
-      let offlineMirrorPath = this.config.getOfflineMirrorPath(ref.remote.registry, ref.remote.reference);
 
-      // while we're fetching the package we have some idle time to warm the cache with
-      // registry responses for known dependencies
-      if (!offlineMirrorPath) {
-        for (let name in info.dependencies) {
-          this.warmCacheIfRegistry(`${name}@${info.dependencies[name]}`);
-        }
+    // get possible mirror path
+    let offlineMirrorPath = this.config.getOfflineMirrorPath(ref.remote.registry, ref.remote.reference);
+
+    // while we're fetching the package we have some idle time to warm the cache with
+    // registry responses for known dependencies
+    if (!offlineMirrorPath) {
+      for (let name in info.dependencies) {
+        this.warmCacheIfRegistry(`${name}@${info.dependencies[name]}`);
       }
+    }
 
-      //
-      let { package: newInfo, hash, dest } = await this.resolver.fetchingQueue.push(
-        info.name,
-        () => this.resolver.fetcher.fetch(ref)
-      );
+    //
+    let { package: newInfo, hash, dest } = await this.resolver.fetchingQueue.push(
+      info.name,
+      () => this.resolver.fetcher.fetch(ref)
+    );
 
-      // replace resolved remote URL with local path if lockfile is in save mode and we have a path
-      if (this.resolver.lockfile.save && offlineMirrorPath) {
-        if (await fs.exists(offlineMirrorPath)) {
-          remote.resolved = path.relative(
-            this.config.getOfflineMirrorPath(ref.remote.registry),
-            offlineMirrorPath
-          ) + `#${ref.remote.hash}`;
-        }
-      }
-      remote.hash = hash;
-      newInfo.reference = ref;
-      newInfo.remote = remote;
-      info = newInfo;
+    // replace resolved remote URL with local path if lockfile is in save mode and we have a path
+    if (this.resolver.lockfile.save && offlineMirrorPath && await fs.exists(offlineMirrorPath)) {
+      remote.resolved = path.relative(
+        this.config.getOfflineMirrorPath(ref.remote.registry),
+        offlineMirrorPath
+      ) + `#${ref.remote.hash}`;
+    }
+    remote.hash = hash;
+    newInfo.reference = ref;
+    newInfo.remote = remote;
+    info = newInfo;
 
-      // find and load in fbkpm.lock from this module if it exists
-      let lockfileLoc = path.join(dest, constants.LOCKFILE_FILENAME);
-      if (await fs.exists(lockfileLoc)) {
-        let rawLockfile = await fs.readFile(lockfileLoc);
-        let lockfileObj = parseLock(rawLockfile);
-        subLockfile = new Lockfile(lockfileObj, false);
-      }
+    // find and load in fbkpm.lock from this module if it exists
+    let lockfileLoc = path.join(dest, constants.LOCKFILE_FILENAME);
+    if (await fs.exists(lockfileLoc)) {
+      let rawLockfile = await fs.readFile(lockfileLoc);
+      let lockfileObj = parseLock(rawLockfile);
+      subLockfile = new Lockfile(lockfileObj, false);
     }
 
     // start installation of dependencies

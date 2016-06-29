@@ -159,49 +159,6 @@ export class Install {
     return [deps, patterns];
   }
 
-  async fetchResolve(params: FetchResolveParams): Promise<FetchResolveReturn> {
-    if (this.lockfile.strict) {
-      return this.fetchResolveStrict(params);
-    } else {
-      return this.fetchResolveWeak(params);
-    }
-  }
-
-  async fetchResolveStrict({
-    totalSteps,
-    patterns,
-    requests
-  }: FetchResolveParams): Promise<FetchResolveReturn> {
-    let totalStepsThis = totalSteps + 2;
-
-    this.reporter.step(1, totalStepsThis, "Rehydrating dependency graph", emoji.get("fast_forward"));
-    await this.resolver.init(requests);
-
-    this.reporter.step(2, totalStepsThis, "Fetching packages", emoji.get("package"));
-    await this.resolver.fetcher.init();
-
-    return {
-      patterns: await this.flatten(patterns),
-      total: totalStepsThis,
-      step: 2
-    };
-  }
-
-  async fetchResolveWeak(
-    { totalSteps, patterns, requests }: FetchResolveParams
-  ): Promise<FetchResolveReturn> {
-    let totalStepsThis = totalSteps + 1;
-
-    this.reporter.step(1, totalStepsThis, "Resolving and fetching packages", emoji.get("truck"));
-    await this.resolver.init(requests);
-
-    return {
-      patterns: await this.flatten(patterns),
-      total: totalStepsThis,
-      step: 1
-    };
-  }
-
   async init(): Promise<void> {
     let [depRequests, rawPatterns] = await this.fetchRequestFromCwd(this.args);
 
@@ -218,22 +175,20 @@ export class Install {
     }
 
     //
-    let { patterns, step, total } = await this.fetchResolve({
-      totalSteps: 3,
-      patterns: rawPatterns,
-      requests: depRequests
-    });
+    this.reporter.step(1, 4, "Resolving and fetching packages", emoji.get("truck"));
+    await this.resolver.init(depRequests);
+    let patterns = await this.flatten(rawPatterns);
 
     //
-    this.reporter.step(++step, total, "Checking package compatibility", emoji.get("white_check_mark"));
+    this.reporter.step(2, 4, "Checking package compatibility", emoji.get("white_check_mark"));
     await this.compatibility.init();
 
     //
-    this.reporter.step(++step, total, "Linking dependencies", emoji.get("link"));
+    this.reporter.step(3, 4, "Linking dependencies", emoji.get("link"));
     await this.linker.init(patterns);
 
     //
-    this.reporter.step(++step, total, "Running install scripts", emoji.get("page_with_curl"));
+    this.reporter.step(4, 4, "Running install scripts", emoji.get("page_with_curl"));
     await this.scripts.init();
 
     // fin!
