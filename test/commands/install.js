@@ -617,7 +617,8 @@ test("uninstall should remove subdependencies", () => {
   });
 });
 
-test("install --save should add missing deps to fbkpm and mirror (PR import scenario)", async () => {
+// TODO https://github.com/facebook/fbkpm/issues/77
+test.skip("install --save should add missing deps to fbkpm and mirror (PR import scenario)", async () => {
   let mirrorPath = "mirror-for-offline";
   let fixture = "install-import-pr";
   let cwd = path.join(fixturesLoc, fixture);
@@ -650,8 +651,8 @@ test("install --save should add missing deps to fbkpm and mirror (PR import scen
   });
 });
 
-
-test("install --save should update a dependency to fbkpm and mirror (PR import scenario 2)", async () => {
+// TODO https://github.com/facebook/fbkpm/issues/78
+test.only("install --save should update a dependency to fbkpm and mirror (PR import scenario 2)", async () => {
   // mime-types@2.0.0 is saved in local mirror and gets updated to mime-types@2.1.11 via
   // a change in package.json,
   // files in mirror, fbkpm.lock, package.json and node_modules should reflect that
@@ -793,7 +794,8 @@ test("install --save with new dependency should be deterministic", async () => {
   });
 });
 
-test("install --save with new dependency should be deterministic 2", async () => {
+// TODO https://github.com/facebook/fbkpm/issues/79
+test.skip("install --save with new dependency should be deterministic 2", async () => {
   // mime-types@2.0.0->mime-db@1.0.1 is saved in local mirror and is deduped
   // install mime-db@1.0.3 should replace mime-db@1.0.1 in root
 
@@ -876,8 +878,6 @@ test("install --save should ignore cache", () => {
       assert.equal(lockFileLines[0], "left-pad@1.1.0:");
       assert.equal(lockFileLines.length, 4);
       assert.notEqual(lockFileLines[3].indexOf("resolved left-pad-1.1.0.tgz"), -1);
-
-      throw new Error("AA")
 
       let mirror = await fs.walk(path.join(config.cwd, mirrorPath));
       assert.equal(mirror.length, 1);
