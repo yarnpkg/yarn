@@ -652,7 +652,7 @@ test.skip("install --save should add missing deps to fbkpm and mirror (PR import
 });
 
 // TODO https://github.com/facebook/fbkpm/issues/78
-test.only("install --save should update a dependency to fbkpm and mirror (PR import scenario 2)", async () => {
+test.skip("install --save should update a dependency to fbkpm and mirror (PR import scenario 2)", async () => {
   // mime-types@2.0.0 is saved in local mirror and gets updated to mime-types@2.1.11 via
   // a change in package.json,
   // files in mirror, fbkpm.lock, package.json and node_modules should reflect that
@@ -734,6 +734,7 @@ test("install --initMirror should add init mirror deps from package.json", async
 
     await fs.unlink(path.join(config.cwd, mirrorPath));
     await fs.unlink(path.join(config.cwd, "fbkpm.lock"));
+
   });
 });
 
