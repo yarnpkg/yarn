@@ -65,7 +65,7 @@ export async function run(
     // remove bins
     let pkg = await config.readManifest(loc);
     for (let binName in pkg.bin) {
-      await fs.unlink(path.join("node_modules", ".bin", binName));
+      await fs.unlink(path.join(config.modulesFolder, "node_modules", ".bin", binName));
     }
 
     // remove from `package.json`

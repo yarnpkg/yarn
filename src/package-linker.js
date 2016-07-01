@@ -320,7 +320,7 @@ export default class PackageLinker {
 
     // link bins
     if (!_.isEmpty(resolved.bin)) {
-      let binLoc = path.join(this.config.cwd, await ref.getFolder(), ".bin");
+      let binLoc = path.join(this.config.modulesFolder, ".bin");
       await fs.mkdirp(binLoc);
       await this.linkSelfDependencies(resolved, src, binLoc);
     }
