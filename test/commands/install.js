@@ -280,6 +280,86 @@ test("install should dedupe dependencies avoiding conflicts 5", () => {
   });
 });
 
+test("install should dedupe dependencies avoiding conflicts 6 (jest/jest-runtime case)", () => {
+  // C@1 -> D@1 -> E@1
+  // B@1 -> C@1 -> D@1 -> E@1
+  // D@2
+  // E@2
+
+  // should become
+
+  // C@1 -> D@1
+  //     -> E@1
+  // B@1
+  // D@2
+  // E@2
+
+  return run({}, [], "install-should-dedupe-avoiding-conflicts-6", async (config) => {
+    assert.equal(JSON.parse(await fs.readFile(path.join(config.cwd,
+      "node_modules/dep-b/package.json"))).version, "1.0.0");
+    assert.equal(JSON.parse(await fs.readFile(path.join(config.cwd,
+      "node_modules/dep-c/package.json"))).version, "1.0.0");
+    assert.equal(JSON.parse(await fs.readFile(path.join(config.cwd,
+      "node_modules/dep-d/package.json"))).version, "2.0.0");
+    assert.equal(JSON.parse(await fs.readFile(path.join(config.cwd,
+      "node_modules/dep-e/package.json"))).version, "2.0.0");
+
+    assert.equal(JSON.parse(await fs.readFile(path.join(config.cwd,
+      "node_modules/dep-c/node_modules/dep-d/package.json"))).version, "1.0.0");
+    assert.equal(JSON.parse(await fs.readFile(path.join(config.cwd,
+      "node_modules/dep-c/node_modules/dep-e/package.json"))).version, "1.0.0");
+  });
+});
+
+test("install should dedupe dependencies avoiding conflicts 7", () => {
+  // A@1 -> C@1 -> D@1 -> E@1
+  // B@1 -> C@1 -> D@1 -> E@1
+  // C@2
+  // D@2
+  // E@2
+
+  // should become
+
+  // A@1 -> C@1
+  //     -> D@1
+  //     -> E@1
+  // B@1 -> C@1
+  //     -> D@1
+  //     -> E@1
+  // C@2
+  // D@2
+  // E@2
+
+  return run({}, [], "install-should-dedupe-avoiding-conflicts-7", async (config) => {
+    assert.equal(JSON.parse(await fs.readFile(path.join(config.cwd,
+      "node_modules/dep-a/package.json"))).version, "1.0.0");
+    assert.equal(JSON.parse(await fs.readFile(path.join(config.cwd,
+      "node_modules/dep-b/package.json"))).version, "1.0.0");
+    assert.equal(JSON.parse(await fs.readFile(path.join(config.cwd,
+      "node_modules/dep-c/package.json"))).version, "2.0.0");
+    assert.equal(JSON.parse(await fs.readFile(path.join(config.cwd,
+      "node_modules/dep-d/package.json"))).version, "2.0.0");
+    assert.equal(JSON.parse(await fs.readFile(path.join(config.cwd,
+      "node_modules/dep-e/package.json"))).version, "2.0.0");
+
+    assert.equal(JSON.parse(await fs.readFile(path.join(config.cwd,
+      "node_modules/dep-a/node_modules/dep-c/package.json"))).version, "1.0.0");
+    assert.equal(JSON.parse(await fs.readFile(path.join(config.cwd,
+      "node_modules/dep-a/node_modules/dep-d/package.json"))).version, "1.0.0");
+    assert.equal(JSON.parse(await fs.readFile(path.join(config.cwd,
+      "node_modules/dep-a/node_modules/dep-e/package.json"))).version, "1.0.0");
+
+
+    assert.equal(JSON.parse(await fs.readFile(path.join(config.cwd,
+      "node_modules/dep-b/node_modules/dep-c/package.json"))).version, "1.0.0");
+    assert.equal(JSON.parse(await fs.readFile(path.join(config.cwd,
+      "node_modules/dep-b/node_modules/dep-d/package.json"))).version, "1.0.0");
+    assert.equal(JSON.parse(await fs.readFile(path.join(config.cwd,
+      "node_modules/dep-b/node_modules/dep-e/package.json"))).version, "1.0.0");
+
+  });
+});
+
 test("upgrade scenario", () => {
   // left-pad first installed 0.0.9 then updated to 1.1.0
   // files in mirror, fbkpm.lock, package.json and node_modules should reflect that
