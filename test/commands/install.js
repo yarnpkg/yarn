@@ -76,7 +76,8 @@ async function run(flags, args, name, checkInstalled, beforeInstall) {
 }
 
 async function getPackageVersion(config, packagePath) {
-  return JSON.parse(await fs.readFile(path.join(config.cwd, `node_modules/${packagePath}/package.json`))).version;
+  return JSON.parse(await fs.readFile(
+    path.join(config.cwd, `node_modules/${packagePath}/package.json`))).version;
 }
 
 test("root install from shrinkwrap", () => {
@@ -653,7 +654,7 @@ test.skip("install --save should add missing deps to fbkpm and mirror (PR import
   let cwd = path.join(fixturesLoc, fixture);
   await fs.copy(path.join(cwd, "fbkpm.lock.before"), path.join(cwd, "fbkpm.lock"));
 
-  return run({save: true}, [], fixture, async (config, reporter) => {
+  return run({save: true}, [], fixture, async (config) => {
     assert.equal(await getPackageVersion(config, "mime-types"), "2.0.0");
     assert(semver.satisfies(await getPackageVersion(config, "mime-db"), "~1.0.1"));
     assert.equal(await getPackageVersion(config, "fake-fbkpm-dependency"), "1.0.1");
@@ -678,7 +679,8 @@ test.skip("install --save should add missing deps to fbkpm and mirror (PR import
 });
 
 // TODO https://github.com/facebook/fbkpm/issues/78
-test.skip("install --save should update a dependency to fbkpm and mirror (PR import scenario 2)", async () => {
+test.skip("install --save should update a dependency to fbkpm and mirror (PR import scenario 2)",
+async () => {
   // mime-types@2.0.0 is saved in local mirror and gets updated to mime-types@2.1.11 via
   // a change in package.json,
   // files in mirror, fbkpm.lock, package.json and node_modules should reflect that
@@ -741,7 +743,7 @@ test("install --initMirror should add init mirror deps from package.json", async
   let fixture = "install-init-mirror";
 
   // initMirror gets converted to save flag in cli/install.js
-  return run({save: true}, [], fixture, async (config, reporter) => {
+  return run({save: true}, [], fixture, async (config) => {
     assert.equal(await getPackageVersion(config, "mime-types"), "2.0.0");
     assert(semver.satisfies(await getPackageVersion(config, "mime-db"), "~1.0.1"));
 
