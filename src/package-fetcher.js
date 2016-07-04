@@ -31,10 +31,10 @@ export default class PackageFetcher {
   reporter: Reporter;
   config: Config;
 
-  async fetch(ref: PackageReference): Promise<FetchedManifest> {
+  async fetch(ref: PackageReference, overWriteDest: boolean): Promise<FetchedManifest> {
     let dest = this.config.generateHardModulePath(ref);
 
-    if (await this.config.isValidModuleDest(dest)) {
+    if (!overWriteDest && await this.config.isValidModuleDest(dest)) {
       let { hash, package: pkg } = await this.config.readPackageMetadata(dest);
       return {
         package: pkg,
@@ -68,7 +68,7 @@ export default class PackageFetcher {
   }
 
   async maybeFetch(ref: PackageReference): Promise<?FetchedManifest> {
-    let promise = this.fetch(ref);
+    let promise = this.fetch(ref, false);
 
     if (ref.optional) {
       // swallow the error

@@ -875,7 +875,7 @@ test.failing("[network] install --save with new dependency should be determinist
   });
 });
 
-test.only("[network] install --save should ignore cache", () => {
+test("[network] install --save should ignore cache", () => {
   // left-pad@1.1.0 gets installed without --save
   // left-pad@1.1.0 gets installed with --save
   // files in mirror, fbkpm.lock, package.json and node_modules should reflect that
@@ -883,35 +883,36 @@ test.only("[network] install --save should ignore cache", () => {
   let mirrorPath = "mirror-for-offline";
 
   let fixture = "install-save-to-mirror-when-cached";
-  return run({}, ["left-pad@1.1.0"], fixture, async (config) => {
+  return run({}, ["left-pad@1.1.0"], fixture, async (config, reporter) => {
     assert.equal(
       await getPackageVersion(config, "left-pad"),
       "1.1.0"
     );
 
-    return run({save: true}, ["left-pad@1.1.0"], fixture, async (config) => {
-      assert.equal(
-        await getPackageVersion(config, "left-pad"),
-        "1.1.0"
-      );
-      assert.deepEqual(
-        JSON.parse(await fs.readFile(path.join(config.cwd, "package.json"))).dependencies,
-        {"left-pad": "1.1.0"}
-      );
+    let lockfile = await createLockfile(config.cwd, false, true);
+    let install = new Install("install", {save: true}, ["left-pad@1.1.0"], config, reporter, lockfile);
+    await install.init();
+    assert.equal(
+      await getPackageVersion(config, "left-pad"),
+      "1.1.0"
+    );
+    assert.deepEqual(
+      JSON.parse(await fs.readFile(path.join(config.cwd, "package.json"))).dependencies,
+      {"left-pad": "1.1.0"}
+    );
 
+    let mirror = await fs.walk(path.join(config.cwd, mirrorPath));
+    assert.equal(mirror.length, 1);
+    assert.equal(mirror[0].relative, "left-pad-1.1.0.tgz");
 
-      let lockFileWritten = await fs.readFile(path.join(config.cwd, "fbkpm.lock"));
-      let lockFileLines = lockFileWritten.split("\n").filter((line) => !!line);
-      assert.equal(lockFileLines[0], "left-pad@1.1.0:");
-      assert.equal(lockFileLines.length, 4);
-      assert.notEqual(lockFileLines[3].indexOf("resolved left-pad-1.1.0.tgz"), -1);
+    let lockFileWritten = await fs.readFile(path.join(config.cwd, "fbkpm.lock"));
+    let lockFileLines = lockFileWritten.split("\n").filter((line) => !!line);
+    assert.equal(lockFileLines[0], "left-pad@1.1.0:");
+    assert.equal(lockFileLines.length, 4);
+    assert.notEqual(lockFileLines[3].indexOf("resolved left-pad-1.1.0.tgz"), -1);
 
-      let mirror = await fs.walk(path.join(config.cwd, mirrorPath));
-      assert.equal(mirror.length, 1);
-      assert.equal(mirror[0].relative, "left-pad-1.1.0.tgz");
-      await fs.unlink(path.join(config.cwd, mirrorPath));
-      await fs.unlink(path.join(config.cwd, "package.json"));
+    await fs.unlink(path.join(config.cwd, mirrorPath));
+    await fs.unlink(path.join(config.cwd, "package.json"));
 
-    });
   });
 });
