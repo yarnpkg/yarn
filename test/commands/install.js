@@ -875,7 +875,7 @@ test.failing("[network] install --save with new dependency should be determinist
   });
 });
 
-test("[network] install --save should ignore cache", () => {
+test.only("[network] install --save should ignore cache", () => {
   // left-pad@1.1.0 gets installed without --save
   // left-pad@1.1.0 gets installed with --save
   // files in mirror, fbkpm.lock, package.json and node_modules should reflect that
@@ -898,6 +898,7 @@ test("[network] install --save should ignore cache", () => {
         JSON.parse(await fs.readFile(path.join(config.cwd, "package.json"))).dependencies,
         {"left-pad": "1.1.0"}
       );
+
 
       let lockFileWritten = await fs.readFile(path.join(config.cwd, "fbkpm.lock"));
       let lockFileLines = lockFileWritten.split("\n").filter((line) => !!line);
