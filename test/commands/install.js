@@ -80,27 +80,27 @@ async function getPackageVersion(config, packagePath) {
     path.join(config.cwd, `node_modules/${packagePath}/package.json`))).version;
 }
 
-test("root install from shrinkwrap", () => {
+test("[network] root install from shrinkwrap", () => {
   return run({}, [], "root-install-with-lockfile");
 });
 
-test("root install with optional deps", () => {
+test("[network] root install with optional deps", () => {
   return run({}, [], "root-install-with-optional-dependency");
 });
 
-test("install with arg that has install scripts", () => {
+test("[network] install with arg that has install scripts", () => {
   return run({}, ["fsevents"], "install-with-arg-and-install-scripts");
 });
 
-test("install with arg", () => {
+test("[network] install with arg", () => {
   return run({}, ["is-online"], "install-with-arg");
 });
 
-test("install with arg that has binaries", () => {
+test("[network] install with arg that has binaries", () => {
   return run({}, ["react-native-cli"], "install-with-arg-and-bin");
 });
 
-test("install with --save and offline mirror", () => {
+test("[network] install with --save and offline mirror", () => {
   let mirrorPath = "mirror-for-offline";
   return run({save: true}, ["is-array@1.0.1"], "install-with-save-offline-mirror", async (config) => {
 
@@ -121,7 +121,7 @@ test("install with --save and offline mirror", () => {
   });
 });
 
-test("install with --save and without offline mirror", () => {
+test("[network] install with --save and without offline mirror", () => {
   let mirrorPath = "mirror-for-offline";
   return run({save: true}, ["is-array@1.0.1"], "install-with-save-no-offline-mirror", async (config) => {
 
@@ -375,7 +375,7 @@ test("upgrade scenario", () => {
   }, clean);
 });
 
-test("upgrade scenario 2 (with sub dependencies)", async () => {
+test("[network] upgrade scenario 2 (with sub dependencies)", async () => {
   // mime-types@2.0.0 is saved in local mirror and gets updated to mime-types@2.1.11
   // files in mirror, fbkpm.lock, package.json and node_modules should reflect that
 
@@ -429,7 +429,7 @@ test("upgrade scenario 2 (with sub dependencies)", async () => {
   });
 });
 
-test("downgrade scenario", () => {
+test("[network] downgrade scenario", () => {
   // left-pad first installed 1.1.0 then downgraded to 0.0.9
   // files in mirror, fbkpm.lock, package.json and node_modules should reflect that
 
@@ -648,7 +648,8 @@ test("uninstall should remove subdependencies", () => {
 });
 
 // TODO https://github.com/facebook/fbkpm/issues/77
-test.skip("install --save should add missing deps to fbkpm and mirror (PR import scenario)", async () => {
+test.failing("[network] install --save should add missing deps to fbkpm and mirror (PR import scenario)",
+async () => {
   let mirrorPath = "mirror-for-offline";
   let fixture = "install-import-pr";
   let cwd = path.join(fixturesLoc, fixture);
@@ -679,7 +680,7 @@ test.skip("install --save should add missing deps to fbkpm and mirror (PR import
 });
 
 // TODO https://github.com/facebook/fbkpm/issues/78
-test.skip("install --save should update a dependency to fbkpm and mirror (PR import scenario 2)",
+test.failing("[network] install --save should update a dependency to fbkpm and mirror (PR import scenario 2)",
 async () => {
   // mime-types@2.0.0 is saved in local mirror and gets updated to mime-types@2.1.11 via
   // a change in package.json,
@@ -738,7 +739,7 @@ async () => {
   });
 });
 
-test("install --initMirror should add init mirror deps from package.json", async () => {
+test("[network] install --initMirror should add init mirror deps from package.json", async () => {
   let mirrorPath = "mirror-for-offline";
   let fixture = "install-init-mirror";
 
@@ -764,7 +765,7 @@ test("install --initMirror should add init mirror deps from package.json", async
   });
 });
 
-test("install --save with new dependency should be deterministic", async () => {
+test("[network] install --save with new dependency should be deterministic", async () => {
   // mime-types@2.0.0->mime-db@1.0.3 is saved in local mirror and is deduped
   // install mime-db@1.23.0 should move mime-db@1.0.3 deep into mime-types
 
@@ -821,7 +822,7 @@ test("install --save with new dependency should be deterministic", async () => {
 });
 
 // TODO https://github.com/facebook/fbkpm/issues/79
-test.skip("install --save with new dependency should be deterministic 2", async () => {
+test.failing("[network] install --save with new dependency should be deterministic 2", async () => {
   // mime-types@2.0.0->mime-db@1.0.1 is saved in local mirror and is deduped
   // install mime-db@1.0.3 should replace mime-db@1.0.1 in root
 
@@ -874,7 +875,7 @@ test.skip("install --save with new dependency should be deterministic 2", async 
   });
 });
 
-test("install --save should ignore cache", () => {
+test("[network] install --save should ignore cache", () => {
   // left-pad@1.1.0 gets installed without --save
   // left-pad@1.1.0 gets installed with --save
   // files in mirror, fbkpm.lock, package.json and node_modules should reflect that
