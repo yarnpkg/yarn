@@ -337,7 +337,7 @@ function isStrictLockfile(flags: Object, args: Array<string>): boolean {
  */
 
 function shouldWriteLockfileIfExists(flags: Object, args: Array<string>): boolean {
-  if (args.length) {
+  if (args.length || flags.save) {
     return shouldWriteLockfile(flags, args);
   } else {
     return false;
