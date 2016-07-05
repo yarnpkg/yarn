@@ -153,11 +153,7 @@ export async function symlink(src: string, dest: string): Promise<void> {
       await fsSymlink(src, dest, "junction");
     } else {
       // use relative paths otherwise which will be retained if the directory is moved
-      let relative = src;
-      if (path.isAbsolute(relative)) {
-        relative = path.relative(path.dirname(dest), src);
-      }
-
+      let relative = path.relative(path.dirname(dest), src);
       await fsSymlink(relative, dest);
     }
   } catch (err) {

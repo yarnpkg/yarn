@@ -40,6 +40,8 @@ export default class PackageLinker {
   config: Config;
 
   async linkSelfDependencies(pkg: Manifest, pkgLoc: string, targetBinLoc: string): Promise<void> {
+    targetBinLoc = await fs.realpath(targetBinLoc);
+    pkgLoc = await fs.realpath(pkgLoc);
     for (let [scriptName, scriptCmd] of entries(pkg.bin)) {
       let dest = path.join(targetBinLoc, scriptName);
       let src  = path.join(pkgLoc, scriptCmd);
