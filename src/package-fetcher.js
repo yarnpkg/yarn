@@ -31,10 +31,10 @@ export default class PackageFetcher {
   reporter: Reporter;
   config: Config;
 
-  async fetch(ref: PackageReference, overWriteDest: boolean): Promise<FetchedManifest> {
+  async fetch(ref: PackageReference, overwriteDestination: boolean): Promise<FetchedManifest> {
     let dest = this.config.generateHardModulePath(ref);
 
-    if (!overWriteDest && await this.config.isValidModuleDest(dest)) {
+    if (!overwriteDestination && await this.config.isValidModuleDest(dest)) {
       let { hash, package: pkg } = await this.config.readPackageMetadata(dest);
       return {
         package: pkg,
