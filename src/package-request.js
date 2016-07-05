@@ -273,7 +273,7 @@ export default class PackageRequest {
     //
     let { package: newInfo, hash, dest } = await this.resolver.fetchingQueue.push(
       info.name,
-      () => this.resolver.fetcher.fetch(ref)
+      () => this.resolver.fetcher.fetch(ref, this.resolver.lockfile.save && !!offlineMirrorPath)
     );
 
     // replace resolved remote URL with local path if lockfile is in save mode and we have a path
