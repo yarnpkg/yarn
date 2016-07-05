@@ -38,6 +38,12 @@ export default class GitResolver extends ExoticResolver {
   hash: string;
 
   static isVersion(pattern: string): boolean {
+    // this pattern hasn't been exploded yet, we'll hit this code path again later once
+    // we've been normalised #59
+    if (pattern.indexOf("@") >= 0) {
+      return false;
+    }
+
     let parts = urlParse(pattern);
 
     let pathname = parts.pathname;
@@ -89,7 +95,7 @@ export default class GitResolver extends ExoticResolver {
 
     async function tryRegistry(registry) {
       let filenames = registries[registry].filenames;
-      
+
       for (let filename of filenames) {
         let file = await client.getFile(filename);
         if (!file) continue;
