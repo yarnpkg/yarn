@@ -12,7 +12,6 @@
 import type { RegistryNames } from "../../registries/index.js";
 import type { Reporter } from "kreporters";
 import type Config from "../../config.js";
-import type { DependencyRequestPatterns } from "../../types.js";
 import Lockfile from "../../lockfile/index.js";
 import lockStringify from "../../lockfile/stringify.js";
 import PackageInstallScripts from "../../package-install-scripts.js";
@@ -30,18 +29,6 @@ import map from "../../util/map.js";
 let invariant = require("invariant");
 let emoji     = require("node-emoji");
 let path      = require("path");
-
-type FetchResolveParams = {
-  totalSteps: number,
-  patterns: Array<string>,
-  requests: DependencyRequestPatterns
-};
-
-type FetchResolveReturn = {
-  patterns: Array<string>,
-  total: number,
-  step: number
-};
 
 type InstallActions = "install" | "update" | "uninstall";
 

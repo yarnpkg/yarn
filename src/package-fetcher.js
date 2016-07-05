@@ -31,10 +31,10 @@ export default class PackageFetcher {
   reporter: Reporter;
   config: Config;
 
-  async fetch(ref: PackageReference): Promise<FetchedManifest> {
-    let dest = this.config.generateHardModulePath(ref);
+  async fetch(reference: PackageReference, overwriteDestination: boolean): Promise<FetchedManifest> {
+    let dest = this.config.generateHardModulePath(reference);
 
-    if (await this.config.isValidModuleDest(dest)) {
+    if (!overwriteDestination && await this.config.isValidModuleDest(dest)) {
       let { hash, package: pkg } = await this.config.readPackageMetadata(dest);
       return {
         package: pkg,
@@ -46,7 +46,7 @@ export default class PackageFetcher {
     // remove as the module may be invalid
     await fs.unlink(dest);
 
-    let remote = ref.remote;
+    let remote = reference.remote;
     invariant(remote, "Missing remote");
 
     let Fetcher = fetchers[remote.type];
@@ -55,7 +55,7 @@ export default class PackageFetcher {
     await fs.mkdirp(dest);
 
     try {
-      let fetcher = new Fetcher(remote, this.config, ref.saveForOffline);
+      let fetcher = new Fetcher(remote, this.config, reference.saveForOffline);
       return await fetcher.fetch(dest);
     } catch (err) {
       try {
@@ -67,10 +67,10 @@ export default class PackageFetcher {
     }
   }
 
-  async maybeFetch(ref: PackageReference): Promise<?FetchedManifest> {
-    let promise = this.fetch(ref);
+  async maybeFetch(reference: PackageReference): Promise<?FetchedManifest> {
+    let promise = this.fetch(reference, false);
 
-    if (ref.optional) {
+    if (reference.optional) {
       // swallow the error
       promise = promise.catch((err) => {
         this.reporter.error(err.message);

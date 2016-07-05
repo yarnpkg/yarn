@@ -75,27 +75,32 @@ async function run(flags, args, name, checkInstalled, beforeInstall) {
   await clean(cwd, removeLock);
 }
 
-test("root install from shrinkwrap", () => {
+async function getPackageVersion(config, packagePath) {
+  return JSON.parse(await fs.readFile(
+    path.join(config.cwd, `node_modules/${packagePath}/package.json`))).version;
+}
+
+test("[network] root install from shrinkwrap", () => {
   return run({}, [], "root-install-with-lockfile");
 });
 
-test("root install with optional deps", () => {
+test("[network] root install with optional deps", () => {
   return run({}, [], "root-install-with-optional-dependency");
 });
 
-test("install with arg that has install scripts", () => {
+test("[network] install with arg that has install scripts", () => {
   return run({}, ["fsevents"], "install-with-arg-and-install-scripts");
 });
 
-test("install with arg", () => {
+test("[network] install with arg", () => {
   return run({}, ["is-online"], "install-with-arg");
 });
 
-test("install with arg that has binaries", () => {
+test("[network] install with arg that has binaries", () => {
   return run({}, ["react-native-cli"], "install-with-arg-and-bin");
 });
 
-test("install with --save and offline mirror", () => {
+test("[network] install with --save and offline mirror", () => {
   let mirrorPath = "mirror-for-offline";
   return run({save: true}, ["is-array@1.0.1"], "install-with-save-offline-mirror", async (config) => {
 
@@ -116,7 +121,7 @@ test("install with --save and offline mirror", () => {
   });
 });
 
-test("install with --save and without offline mirror", () => {
+test("[network] install with --save and without offline mirror", () => {
   let mirrorPath = "mirror-for-offline";
   return run({save: true}, ["is-array@1.0.1"], "install-with-save-no-offline-mirror", async (config) => {
 
@@ -155,13 +160,8 @@ test("install should dedupe dependencies avoiding conflicts 0", () => {
   // B@1.0.0
   // should result in B@2.0.0 not flattened
   return run({}, [], "install-should-dedupe-avoiding-conflicts-0", async (config) => {
-    let rawDepBPackage = await fs.readFile(path.join(config.cwd, "node_modules/dep-b/package.json"));
-    assert.equal(JSON.parse(rawDepBPackage).version, "1.0.0");
-
-    rawDepBPackage = await fs.readFile(
-      path.join(config.cwd, "node_modules/dep-a/node_modules/dep-b/package.json")
-    );
-    assert.equal(JSON.parse(rawDepBPackage).version, "2.0.0");
+    assert.equal(await getPackageVersion(config, "dep-b"), "1.0.0");
+    assert.equal(await getPackageVersion(config, "dep-a/node_modules/dep-b"), "2.0.0");
   });
 });
 
@@ -169,11 +169,8 @@ test("install should dedupe dependencies avoiding conflicts 1", () => {
   // A@2.0.1 -> B@2.0.0
   // should result in B@2.0.0 flattened
   return run({}, [], "install-should-dedupe-avoiding-conflicts-1", async (config) => {
-    let rawDepBPackage = await fs.readFile(path.join(config.cwd, "node_modules/dep-b/package.json"));
-    assert.equal(JSON.parse(rawDepBPackage).version, "2.0.0");
-
-    rawDepBPackage = await fs.readFile(path.join(config.cwd, "node_modules/dep-a/package.json"));
-    assert.equal(JSON.parse(rawDepBPackage).version, "2.0.1");
+    assert.equal(await getPackageVersion(config, "dep-b"), "2.0.0");
+    assert.equal(await getPackageVersion(config, "dep-a"), "2.0.1");
   });
 });
 
@@ -188,18 +185,12 @@ test("install should dedupe dependencies avoiding conflicts 2", () => {
   // C@2
 
   return run({}, [], "install-should-dedupe-avoiding-conflicts-2", async (config) => {
-    assert.equal(JSON.parse(await fs.readFile(path.join(config.cwd,
-      "node_modules/dep-a/package.json"))).version, "2.0.0");
-    assert.equal(JSON.parse(await fs.readFile(path.join(config.cwd,
-      "node_modules/dep-a/node_modules/dep-b/package.json"))).version, "2.0.0");
-    assert.equal(JSON.parse(await fs.readFile(path.join(config.cwd,
-      "node_modules/dep-c/package.json"))).version, "2.0.0");
-    assert.equal(JSON.parse(await fs.readFile(path.join(config.cwd,
-      "node_modules/dep-d/package.json"))).version, "1.0.0");
-    assert.equal(JSON.parse(await fs.readFile(path.join(config.cwd,
-      "node_modules/dep-b/package.json"))).version, "1.0.0");
-    assert.equal(JSON.parse(await fs.readFile(path.join(config.cwd,
-      "node_modules/dep-b/node_modules/dep-c/package.json"))).version, "1.0.0");
+    assert.equal(await getPackageVersion(config, "dep-a"), "2.0.0");
+    assert.equal(await getPackageVersion(config, "dep-a/node_modules/dep-b"), "2.0.0");
+    assert.equal(await getPackageVersion(config, "dep-c"), "2.0.0");
+    assert.equal(await getPackageVersion(config, "dep-d"), "1.0.0");
+    assert.equal(await getPackageVersion(config, "dep-b"), "1.0.0");
+    assert.equal(await getPackageVersion(config, "dep-b/node_modules/dep-c"), "1.0.0");
   });
 });
 
@@ -213,16 +204,11 @@ test("install should dedupe dependencies avoiding conflicts 3", () => {
   // C@2
   // D@1
   return run({}, [], "install-should-dedupe-avoiding-conflicts-3", async (config) => {
-    assert.equal(JSON.parse(await fs.readFile(path.join(config.cwd,
-      "node_modules/dep-a/package.json"))).version, "2.0.0");
-    assert.equal(JSON.parse(await fs.readFile(path.join(config.cwd,
-      "node_modules/dep-c/package.json"))).version, "2.0.0");
-    assert.equal(JSON.parse(await fs.readFile(path.join(config.cwd,
-      "node_modules/dep-d/package.json"))).version, "1.0.0");
-    assert.equal(JSON.parse(await fs.readFile(path.join(config.cwd,
-      "node_modules/dep-b/package.json"))).version, "2.0.0");
-    assert.equal(JSON.parse(await fs.readFile(path.join(config.cwd,
-      "node_modules/dep-a/node_modules/dep-c/package.json"))).version, "1.0.0");
+    assert.equal(await getPackageVersion(config, "dep-a"), "2.0.0");
+    assert.equal(await getPackageVersion(config, "dep-c"), "2.0.0");
+    assert.equal(await getPackageVersion(config, "dep-d"), "1.0.0");
+    assert.equal(await getPackageVersion(config, "dep-b"), "2.0.0");
+    assert.equal(await getPackageVersion(config, "dep-a/node_modules/dep-c"), "1.0.0");
   });
 });
 
@@ -238,16 +224,11 @@ test("install should dedupe dependencies avoiding conflicts 4", () => {
   // B@2
   // D@1
   return run({}, [], "install-should-dedupe-avoiding-conflicts-4", async (config) => {
-    assert.equal(JSON.parse(await fs.readFile(path.join(config.cwd,
-      "node_modules/dep-a/package.json"))).version, "2.0.0");
-    assert.equal(JSON.parse(await fs.readFile(path.join(config.cwd,
-      "node_modules/dep-c/package.json"))).version, "2.0.0");
-    assert.equal(JSON.parse(await fs.readFile(path.join(config.cwd,
-      "node_modules/dep-d/package.json"))).version, "1.0.0");
-    assert.equal(JSON.parse(await fs.readFile(path.join(config.cwd,
-      "node_modules/dep-b/package.json"))).version, "2.0.0");
-    assert.equal(JSON.parse(await fs.readFile(path.join(config.cwd,
-      "node_modules/dep-a/node_modules/dep-c/package.json"))).version, "1.0.0");
+    assert.equal(await getPackageVersion(config, "dep-a"), "2.0.0");
+    assert.equal(await getPackageVersion(config, "dep-c"), "2.0.0");
+    assert.equal(await getPackageVersion(config, "dep-d"), "1.0.0");
+    assert.equal(await getPackageVersion(config, "dep-b"), "2.0.0");
+    assert.equal(await getPackageVersion(config, "dep-a/node_modules/dep-c"), "1.0.0");
   });
 });
 
@@ -264,18 +245,75 @@ test("install should dedupe dependencies avoiding conflicts 5", () => {
   //     -> B@2
 
   return run({}, [], "install-should-dedupe-avoiding-conflicts-5", async (config) => {
-    assert.equal(JSON.parse(await fs.readFile(path.join(config.cwd,
-      "node_modules/dep-a/package.json"))).version, "1.0.0");
-    assert.equal(JSON.parse(await fs.readFile(path.join(config.cwd,
-      "node_modules/dep-b/package.json"))).version, "1.0.0");
-    assert.equal(JSON.parse(await fs.readFile(path.join(config.cwd,
-      "node_modules/dep-c/package.json"))).version, "1.0.0");
-    assert.equal(JSON.parse(await fs.readFile(path.join(config.cwd,
-      "node_modules/dep-d/package.json"))).version, "1.0.0");
-    assert.equal(JSON.parse(await fs.readFile(path.join(config.cwd,
-      "node_modules/dep-d/node_modules/dep-a/package.json"))).version, "2.0.0");
-    assert.equal(JSON.parse(await fs.readFile(path.join(config.cwd,
-      "node_modules/dep-d/node_modules/dep-b/package.json"))).version, "2.0.0");
+    assert.equal(await getPackageVersion(config, "dep-a"), "1.0.0");
+    assert.equal(await getPackageVersion(config, "dep-b"), "1.0.0");
+    assert.equal(await getPackageVersion(config, "dep-c"), "1.0.0");
+    assert.equal(await getPackageVersion(config, "dep-d"), "1.0.0");
+    assert.equal(await getPackageVersion(config, "dep-d/node_modules/dep-a"), "2.0.0");
+    assert.equal(await getPackageVersion(config, "dep-d/node_modules/dep-b"), "2.0.0");
+
+  });
+});
+
+test("install should dedupe dependencies avoiding conflicts 6 (jest/jest-runtime case)", () => {
+  // C@1 -> D@1 -> E@1
+  // B@1 -> C@1 -> D@1 -> E@1
+  // D@2
+  // E@2
+
+  // should become
+
+  // C@1 -> D@1
+  //     -> E@1
+  // B@1
+  // D@2
+  // E@2
+
+  return run({}, [], "install-should-dedupe-avoiding-conflicts-6", async (config) => {
+    assert.equal(await getPackageVersion(config, "dep-b"), "1.0.0");
+    assert.equal(await getPackageVersion(config, "dep-c"), "1.0.0");
+    assert.equal(await getPackageVersion(config, "dep-d"), "2.0.0");
+    assert.equal(await getPackageVersion(config, "dep-e"), "2.0.0");
+
+    assert.equal(await getPackageVersion(config, "dep-c/node_modules/dep-d"), "1.0.0");
+    assert.equal(await getPackageVersion(config, "dep-c/node_modules/dep-e"), "1.0.0");
+  });
+});
+
+test("install should dedupe dependencies avoiding conflicts 7", () => {
+  // A@1 -> C@1 -> D@1 -> E@1
+  // B@1 -> C@1 -> D@1 -> E@1
+  // C@2
+  // D@2
+  // E@2
+
+  // should become
+
+  // A@1 -> C@1
+  //     -> D@1
+  //     -> E@1
+  // B@1 -> C@1
+  //     -> D@1
+  //     -> E@1
+  // C@2
+  // D@2
+  // E@2
+
+  return run({}, [], "install-should-dedupe-avoiding-conflicts-7", async (config) => {
+    assert.equal(await getPackageVersion(config, "dep-a"), "1.0.0");
+    assert.equal(await getPackageVersion(config, "dep-b"), "1.0.0");
+    assert.equal(await getPackageVersion(config, "dep-c"), "2.0.0");
+    assert.equal(await getPackageVersion(config, "dep-d"), "2.0.0");
+    assert.equal(await getPackageVersion(config, "dep-e"), "2.0.0");
+
+    assert.equal(await getPackageVersion(config, "dep-a/node_modules/dep-c"), "1.0.0");
+    assert.equal(await getPackageVersion(config, "dep-a/node_modules/dep-d"), "1.0.0");
+    assert.equal(await getPackageVersion(config, "dep-a/node_modules/dep-e"), "1.0.0");
+
+
+    assert.equal(await getPackageVersion(config, "dep-b/node_modules/dep-c"), "1.0.0");
+    assert.equal(await getPackageVersion(config, "dep-b/node_modules/dep-d"), "1.0.0");
+    assert.equal(await getPackageVersion(config, "dep-b/node_modules/dep-e"), "1.0.0");
 
   });
 });
@@ -294,7 +332,7 @@ test("upgrade scenario", () => {
 
   return run({ save: true }, ["left-pad@0.0.9"], "install-upgrade-scenario", async (config) => {
     assert.equal(
-      JSON.parse(await fs.readFile(path.join(config.cwd, "node_modules/left-pad/package.json"))).version,
+      await getPackageVersion(config, "left-pad"),
       "0.0.9"
     );
     assert.deepEqual(
@@ -314,7 +352,7 @@ test("upgrade scenario", () => {
 
     return run({save: true}, ["left-pad@1.1.0"], "install-upgrade-scenario", async (config) => {
       assert.equal(
-        JSON.parse(await fs.readFile(path.join(config.cwd, "node_modules/left-pad/package.json"))).version,
+        await getPackageVersion(config, "left-pad"),
         "1.1.0"
       );
       assert.deepEqual(
@@ -337,7 +375,7 @@ test("upgrade scenario", () => {
   }, clean);
 });
 
-test("upgrade scenario 2 (with sub dependencies)", async () => {
+test("[network] upgrade scenario 2 (with sub dependencies)", async () => {
   // mime-types@2.0.0 is saved in local mirror and gets updated to mime-types@2.1.11
   // files in mirror, fbkpm.lock, package.json and node_modules should reflect that
 
@@ -349,21 +387,21 @@ test("upgrade scenario 2 (with sub dependencies)", async () => {
 
   return run({}, [], fixture, async (config) => {
     assert(semver.satisfies(
-      JSON.parse(await fs.readFile(path.join(config.cwd, "node_modules/mime-db/package.json"))).version,
+      await getPackageVersion(config, "mime-db"),
       "~1.0.1")
     );
     assert.equal(
-      JSON.parse(await fs.readFile(path.join(config.cwd, "node_modules/mime-types/package.json"))).version,
+      await getPackageVersion(config, "mime-types"),
       "2.0.0"
     );
 
     return run({save: true}, ["mime-types@2.1.11"], fixture, async (config) => {
       assert(semver.satisfies(
-        JSON.parse(await fs.readFile(path.join(config.cwd, "node_modules/mime-db/package.json"))).version,
+        await getPackageVersion(config, "mime-db"),
         "~1.23.0"
       ));
       assert.equal(
-        JSON.parse(await fs.readFile(path.join(config.cwd, "node_modules/mime-types/package.json"))).version,
+        await getPackageVersion(config, "mime-types"),
         "2.1.11"
       );
 
@@ -391,13 +429,13 @@ test("upgrade scenario 2 (with sub dependencies)", async () => {
   });
 });
 
-test("downgrade scenario", () => {
+test("[network] downgrade scenario", () => {
   // left-pad first installed 1.1.0 then downgraded to 0.0.9
   // files in mirror, fbkpm.lock, package.json and node_modules should reflect that
 
   return run({save: true}, ["left-pad@1.1.0"], "install-downgrade-scenario", async (config) => {
     assert.equal(
-      JSON.parse(await fs.readFile(path.join(config.cwd, "node_modules/left-pad/package.json"))).version,
+      await getPackageVersion(config, "left-pad"),
       "1.1.0"
     );
     assert.deepEqual(
@@ -418,7 +456,7 @@ test("downgrade scenario", () => {
 
     return run({save: true}, ["left-pad@0.0.9"], "install-downgrade-scenario", async (config) => {
       assert.equal(
-        JSON.parse(await fs.readFile(path.join(config.cwd, "node_modules/left-pad/package.json"))).version,
+        await getPackageVersion(config, "left-pad"),
         "0.0.9"
       );
       assert.deepEqual(
@@ -463,12 +501,9 @@ test("install have a clean node_modules after lockfile update (branch switch sce
   await fs.copy(path.join(cwd, "package.json.before"), path.join(cwd, "package.json"));
 
   return run({}, [], fixture, async (config) => {
-    assert.equal(JSON.parse(await fs.readFile(path.join(config.cwd,
-      "node_modules/dep-a/package.json"))).version, "1.0.0");
-    assert.equal(JSON.parse(await fs.readFile(path.join(config.cwd,
-      "node_modules/dep-b/package.json"))).version, "2.0.0");
-    assert.equal(JSON.parse(await fs.readFile(path.join(config.cwd,
-      "node_modules/dep-a/node_modules/dep-b/package.json"))).version, "1.0.0");
+    assert.equal(await getPackageVersion(config, "dep-a"), "1.0.0");
+    assert.equal(await getPackageVersion(config, "dep-b"), "2.0.0");
+    assert.equal(await getPackageVersion(config, "dep-a/node_modules/dep-b"), "1.0.0");
 
     await fs.unlink(path.join(config.cwd, "fbkpm.lock"));
     await fs.unlink(path.join(config.cwd, "package.json"));
@@ -477,10 +512,8 @@ test("install have a clean node_modules after lockfile update (branch switch sce
     await fs.copy(path.join(cwd, "package.json.after"), path.join(cwd, "package.json"));
 
     return run({}, [], fixture, async (config) => {
-      assert.equal(JSON.parse(await fs.readFile(path.join(config.cwd,
-        "node_modules/dep-a/package.json"))).version, "1.2.0");
-      assert.equal(JSON.parse(await fs.readFile(path.join(config.cwd,
-        "node_modules/dep-b/package.json"))).version, "1.2.0");
+      assert.equal(await getPackageVersion(config, "dep-a"), "1.2.0");
+      assert.equal(await getPackageVersion(config, "dep-b"), "1.2.0");
 
       await fs.unlink(path.join(config.cwd, "fbkpm.lock"));
       await fs.unlink(path.join(config.cwd, "package.json"));
@@ -503,10 +536,8 @@ test("install have a clean node_modules after lockfile update (branch switch sce
   await fs.copy(path.join(cwd, "package.json.before"), path.join(cwd, "package.json"));
 
   return run({}, [], fixture, async (config) => {
-    assert.equal(JSON.parse(await fs.readFile(path.join(config.cwd,
-      "node_modules/dep-a/package.json"))).version, "1.0.0");
-    assert.equal(JSON.parse(await fs.readFile(path.join(config.cwd,
-      "node_modules/dep-b/package.json"))).version, "1.0.0");
+    assert.equal(await getPackageVersion(config, "dep-a"), "1.0.0");
+    assert.equal(await getPackageVersion(config, "dep-b"), "1.0.0");
 
     await fs.unlink(path.join(config.cwd, "fbkpm.lock"));
     await fs.unlink(path.join(config.cwd, "package.json"));
@@ -515,8 +546,7 @@ test("install have a clean node_modules after lockfile update (branch switch sce
     await fs.copy(path.join(cwd, "package.json.after"), path.join(cwd, "package.json"));
 
     return run({}, [], fixture, async (config) => {
-      assert.equal(JSON.parse(await fs.readFile(path.join(config.cwd,
-        "node_modules/dep-a/package.json"))).version, "1.2.0");
+      assert.equal(await getPackageVersion(config, "dep-a"), "1.2.0");
 
       assert(!await fs.exists(path.join(config.cwd, "node_modules/dep-b")));
 
@@ -531,7 +561,7 @@ test("uninstall should remove dependency from package.json, fbkpm.lock and node_
 
   return run({}, [], "uninstall-should-clean", async (config, reporter) => {
     assert.equal(
-      JSON.parse(await fs.readFile(path.join(config.cwd, "node_modules/dep-a/package.json"))).version,
+      await getPackageVersion(config, "dep-a"),
       "1.0.0"
     );
 
@@ -573,15 +603,15 @@ test("uninstall should remove subdependencies", () => {
 
   return run({}, [], "uninstall-should-remove-subdependencies", async (config, reporter) => {
     assert.equal(
-      JSON.parse(await fs.readFile(path.join(config.cwd, "node_modules/dep-a/package.json"))).version,
+      await getPackageVersion(config, "dep-a"),
       "1.0.0"
     );
     assert.equal(
-      JSON.parse(await fs.readFile(path.join(config.cwd, "node_modules/dep-b/package.json"))).version,
+      await getPackageVersion(config, "dep-b"),
       "1.0.0"
     );
     assert.equal(
-      JSON.parse(await fs.readFile(path.join(config.cwd, "node_modules/dep-c/package.json"))).version,
+      await getPackageVersion(config, "dep-c"),
       "1.0.0"
     );
 
@@ -617,19 +647,18 @@ test("uninstall should remove subdependencies", () => {
   });
 });
 
-test("install --save should add missing deps to fbkpm and mirror (PR import scenario)", async () => {
+// TODO https://github.com/facebook/fbkpm/issues/77
+test.failing("[network] install --save should add missing deps to fbkpm and mirror (PR import scenario)",
+async () => {
   let mirrorPath = "mirror-for-offline";
   let fixture = "install-import-pr";
   let cwd = path.join(fixturesLoc, fixture);
   await fs.copy(path.join(cwd, "fbkpm.lock.before"), path.join(cwd, "fbkpm.lock"));
 
-  return run({save: true}, [], fixture, async (config, reporter) => {
-    assert.equal(JSON.parse(await fs.readFile(path.join(config.cwd,
-      "node_modules/mime-types/package.json"))).version, "2.0.0");
-    assert(semver.satisfies(JSON.parse(await fs.readFile(path.join(config.cwd,
-      "node_modules/mime-db/package.json"))).version, "~1.0.1"));
-    assert.equal(JSON.parse(await fs.readFile(path.join(config.cwd,
-      "node_modules/fake-fbkpm-dependency/package.json"))).version, "1.0.1");
+  return run({save: true}, [], fixture, async (config) => {
+    assert.equal(await getPackageVersion(config, "mime-types"), "2.0.0");
+    assert(semver.satisfies(await getPackageVersion(config, "mime-db"), "~1.0.1"));
+    assert.equal(await getPackageVersion(config, "fake-fbkpm-dependency"), "1.0.1");
 
     let mirror = await fs.walk(path.join(config.cwd, mirrorPath));
     assert.equal(mirror.length, 3);
@@ -650,8 +679,9 @@ test("install --save should add missing deps to fbkpm and mirror (PR import scen
   });
 });
 
-
-test("install --save should update a dependency to fbkpm and mirror (PR import scenario 2)", async () => {
+// TODO https://github.com/facebook/fbkpm/issues/78
+test.failing("[network] install --save should update a dependency to fbkpm and mirror (PR import scenario 2)",
+async () => {
   // mime-types@2.0.0 is saved in local mirror and gets updated to mime-types@2.1.11 via
   // a change in package.json,
   // files in mirror, fbkpm.lock, package.json and node_modules should reflect that
@@ -664,11 +694,11 @@ test("install --save should update a dependency to fbkpm and mirror (PR import s
 
   return run({}, [], fixture, async (config) => {
     assert(semver.satisfies(
-      JSON.parse(await fs.readFile(path.join(config.cwd, "node_modules/mime-db/package.json"))).version,
+      await getPackageVersion(config, "mime-db"),
       "~1.0.1")
     );
     assert.equal(
-      JSON.parse(await fs.readFile(path.join(config.cwd, "node_modules/mime-types/package.json"))).version,
+      await getPackageVersion(config, "mime-types"),
       "2.0.0"
     );
 
@@ -677,11 +707,11 @@ test("install --save should update a dependency to fbkpm and mirror (PR import s
 
     return run({save: true}, [], fixture, async (config) => {
       assert(semver.satisfies(
-        JSON.parse(await fs.readFile(path.join(config.cwd, "node_modules/mime-db/package.json"))).version,
+        await getPackageVersion(config, "mime-db"),
         "~1.23.0"
       ));
       assert.equal(
-        JSON.parse(await fs.readFile(path.join(config.cwd, "node_modules/mime-types/package.json"))).version,
+        await getPackageVersion(config, "mime-types"),
         "2.1.11"
       );
 
@@ -709,16 +739,14 @@ test("install --save should update a dependency to fbkpm and mirror (PR import s
   });
 });
 
-test("install --initMirror should add init mirror deps from package.json", async () => {
+test("[network] install --initMirror should add init mirror deps from package.json", async () => {
   let mirrorPath = "mirror-for-offline";
   let fixture = "install-init-mirror";
 
   // initMirror gets converted to save flag in cli/install.js
-  return run({save: true}, [], fixture, async (config, reporter) => {
-    assert.equal(JSON.parse(await fs.readFile(path.join(config.cwd,
-      "node_modules/mime-types/package.json"))).version, "2.0.0");
-    assert(semver.satisfies(JSON.parse(await fs.readFile(path.join(config.cwd,
-      "node_modules/mime-db/package.json"))).version, "~1.0.1"));
+  return run({save: true}, [], fixture, async (config) => {
+    assert.equal(await getPackageVersion(config, "mime-types"), "2.0.0");
+    assert(semver.satisfies(await getPackageVersion(config, "mime-db"), "~1.0.1"));
 
     let mirror = await fs.walk(path.join(config.cwd, mirrorPath));
     assert.equal(mirror.length, 2);
@@ -733,10 +761,11 @@ test("install --initMirror should add init mirror deps from package.json", async
 
     await fs.unlink(path.join(config.cwd, mirrorPath));
     await fs.unlink(path.join(config.cwd, "fbkpm.lock"));
+
   });
 });
 
-test("install --save with new dependency should be deterministic", async () => {
+test("[network] install --save with new dependency should be deterministic", async () => {
   // mime-types@2.0.0->mime-db@1.0.3 is saved in local mirror and is deduped
   // install mime-db@1.23.0 should move mime-db@1.0.3 deep into mime-types
 
@@ -748,26 +777,25 @@ test("install --save with new dependency should be deterministic", async () => {
 
   return run({}, [], fixture, async (config) => {
     assert(semver.satisfies(
-      JSON.parse(await fs.readFile(path.join(config.cwd, "node_modules/mime-db/package.json"))).version,
+      await getPackageVersion(config, "mime-db"),
       "~1.0.1")
     );
     assert.equal(
-      JSON.parse(await fs.readFile(path.join(config.cwd, "node_modules/mime-types/package.json"))).version,
+      await getPackageVersion(config, "mime-types"),
       "2.0.0"
     );
 
     return run({save: true}, ["mime-db@1.23.0"], fixture, async (config) => {
       assert(semver.satisfies(
-        JSON.parse(await fs.readFile(path.join(config.cwd, "node_modules/mime-db/package.json"))).version,
+        await getPackageVersion(config, "mime-db"),
         "~1.23.0"
       ));
       assert.equal(
-        JSON.parse(await fs.readFile(path.join(config.cwd, "node_modules/mime-types/package.json"))).version,
+        await getPackageVersion(config, "mime-types"),
         "2.0.0"
       );
       assert.equal(
-        JSON.parse(await fs.readFile(path.join(config.cwd,
-          "node_modules/mime-types/node_modules/mime-db/package.json"))).version,
+        await getPackageVersion(config, "mime-types/node_modules/mime-db"),
         "1.0.3"
       );
       assert.deepEqual(
@@ -793,7 +821,8 @@ test("install --save with new dependency should be deterministic", async () => {
   });
 });
 
-test("install --save with new dependency should be deterministic 2", async () => {
+// TODO https://github.com/facebook/fbkpm/issues/79
+test.failing("[network] install --save with new dependency should be deterministic 2", async () => {
   // mime-types@2.0.0->mime-db@1.0.1 is saved in local mirror and is deduped
   // install mime-db@1.0.3 should replace mime-db@1.0.1 in root
 
@@ -805,21 +834,21 @@ test("install --save with new dependency should be deterministic 2", async () =>
 
   return run({}, [], fixture, async (config) => {
     assert.equal(
-      JSON.parse(await fs.readFile(path.join(config.cwd, "node_modules/mime-db/package.json"))).version,
+      await getPackageVersion(config, "mime-db"),
       "1.0.1"
     );
     assert.equal(
-      JSON.parse(await fs.readFile(path.join(config.cwd, "node_modules/mime-types/package.json"))).version,
+      await getPackageVersion(config, "mime-types"),
       "2.0.0"
     );
 
     return run({save: true}, ["mime-db@1.0.3"], fixture, async (config) => {
       assert.equal(
-        JSON.parse(await fs.readFile(path.join(config.cwd, "node_modules/mime-db/package.json"))).version,
+        await getPackageVersion(config, "mime-db"),
         "1.0.3"
       );
       assert.equal(
-        JSON.parse(await fs.readFile(path.join(config.cwd, "node_modules/mime-types/package.json"))).version,
+        await getPackageVersion(config, "mime-types"),
         "2.0.0"
       );
       assert(!await fs.exists(path.join(config.cwd, "node_modules/mime-types/node-modules/mime-db")));
@@ -846,8 +875,7 @@ test("install --save with new dependency should be deterministic 2", async () =>
   });
 });
 
-
-test("install --save should ignore cache", () => {
+test("[network] install --save should ignore cache", () => {
   // left-pad@1.1.0 gets installed without --save
   // left-pad@1.1.0 gets installed with --save
   // files in mirror, fbkpm.lock, package.json and node_modules should reflect that
@@ -855,36 +883,36 @@ test("install --save should ignore cache", () => {
   let mirrorPath = "mirror-for-offline";
 
   let fixture = "install-save-to-mirror-when-cached";
-  return run({}, ["left-pad@1.1.0"], fixture, async (config) => {
+  return run({}, ["left-pad@1.1.0"], fixture, async (config, reporter) => {
     assert.equal(
-      JSON.parse(await fs.readFile(path.join(config.cwd, "node_modules/left-pad/package.json"))).version,
+      await getPackageVersion(config, "left-pad"),
       "1.1.0"
     );
 
-    return run({save: true}, ["left-pad@1.1.0"], fixture, async (config) => {
-      assert.equal(
-        JSON.parse(await fs.readFile(path.join(config.cwd, "node_modules/left-pad/package.json"))).version,
-        "1.1.0"
-      );
-      assert.deepEqual(
-        JSON.parse(await fs.readFile(path.join(config.cwd, "package.json"))).dependencies,
-        {"left-pad": "1.1.0"}
-      );
+    let lockfile = await createLockfile(config.cwd, false, true);
+    let install = new Install("install", {save: true}, ["left-pad@1.1.0"], config, reporter, lockfile);
+    await install.init();
+    assert.equal(
+      await getPackageVersion(config, "left-pad"),
+      "1.1.0"
+    );
+    assert.deepEqual(
+      JSON.parse(await fs.readFile(path.join(config.cwd, "package.json"))).dependencies,
+      {"left-pad": "1.1.0"}
+    );
 
-      let lockFileWritten = await fs.readFile(path.join(config.cwd, "fbkpm.lock"));
-      let lockFileLines = lockFileWritten.split("\n").filter((line) => !!line);
-      assert.equal(lockFileLines[0], "left-pad@1.1.0:");
-      assert.equal(lockFileLines.length, 4);
-      assert.notEqual(lockFileLines[3].indexOf("resolved left-pad-1.1.0.tgz"), -1);
+    let mirror = await fs.walk(path.join(config.cwd, mirrorPath));
+    assert.equal(mirror.length, 1);
+    assert.equal(mirror[0].relative, "left-pad-1.1.0.tgz");
 
-      throw new Error("AA")
+    let lockFileWritten = await fs.readFile(path.join(config.cwd, "fbkpm.lock"));
+    let lockFileLines = lockFileWritten.split("\n").filter((line) => !!line);
+    assert.equal(lockFileLines[0], "left-pad@1.1.0:");
+    assert.equal(lockFileLines.length, 4);
+    assert.notEqual(lockFileLines[3].indexOf("resolved left-pad-1.1.0.tgz"), -1);
 
-      let mirror = await fs.walk(path.join(config.cwd, mirrorPath));
-      assert.equal(mirror.length, 1);
-      assert.equal(mirror[0].relative, "left-pad-1.1.0.tgz");
-      await fs.unlink(path.join(config.cwd, mirrorPath));
-      await fs.unlink(path.join(config.cwd, "package.json"));
+    await fs.unlink(path.join(config.cwd, mirrorPath));
+    await fs.unlink(path.join(config.cwd, "package.json"));
 
-    });
   });
 });

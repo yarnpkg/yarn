@@ -223,6 +223,10 @@ export default class PackageLinker {
 
   async copyModules(patterns: Array<string>): Promise<void> {
     let flatTree = await this.initCopyModules(patterns);
+    // sorted tree makes file creation and copying not to interfere with each other
+    flatTree = flatTree.sort((dep1, dep2) => {
+      return dep1[0].localeCompare(dep2[0]);
+    });
     let self = this;
 
     //

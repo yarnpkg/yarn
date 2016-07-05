@@ -20,7 +20,7 @@ let path = require("path");
 let test = require("ava");
 
 function addTest(pattern, registry = "npm") {
-  test(`resolve ${pattern}`, async () => {
+  test(`[network] resolve ${pattern}`, async () => {
     let lockfile = new Lockfile;
     let reporter = new reporters.NoopReporter({});
 
