@@ -148,7 +148,13 @@ export async function symlink(src: string, dest: string): Promise<void> {
   }
 
   try {
-    await fsSymlink(src, dest, "junction");
+    if (process.platform === "win32") {
+      // use directory junctions if possible on win32, this requires absolute paths
+      await fsSymlink(src, dest, "junction");
+    } else {
+      // use relative paths otherwise which will be retained if the directory is moved
+      await fsSymlink(path.relative(path.dirname(dest), src), dest);
+    }
   } catch (err) {
     if (err.code === "EEXIST") {
       // race condition
