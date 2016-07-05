@@ -386,10 +386,6 @@ export async function run(
   flags: Object,
   args: Array<string>
 ): Promise<void> {
-  if (hasSaveFlags(flags) && !args.length) {
-    throw new MessageError("Missing package names for --save flags");
-  }
-
   let lockfile = await Lockfile.fromDirectory(config.cwd, reporter, {
     strictIfPresent: isStrictLockfile(flags, args),
     save: hasSaveFlags(flags) || flags.initMirror
