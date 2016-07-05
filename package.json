@@ -1,6 +1,6 @@
 {
   "name": "fbkpm",
-  "version": "0.4.5",
+  "version": "0.4.6",
   "license": "BSD-3-Clause",
   "preferGlobal": true,
   "main": "./index.js",
