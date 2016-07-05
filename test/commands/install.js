@@ -677,8 +677,7 @@ async () => {
   });
 });
 
-// TODO https://github.com/facebook/fbkpm/issues/78
-test.failing("[network] install --save should update a dependency to fbkpm and mirror (PR import scenario 2)",
+test.only("[network] install --save should update a dependency to fbkpm and mirror (PR import scenario 2)",
 async () => {
   // mime-types@2.0.0 is saved in local mirror and gets updated to mime-types@2.1.11 via
   // a change in package.json,
