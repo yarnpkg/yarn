@@ -647,8 +647,7 @@ test("uninstall should remove subdependencies", () => {
   });
 });
 
-// TODO https://github.com/facebook/fbkpm/issues/77
-test.failing("[network] install --save should add missing deps to fbkpm and mirror (PR import scenario)",
+test("[network] install --save should add missing deps to fbkpm and mirror (PR import scenario)",
 async () => {
   let mirrorPath = "mirror-for-offline";
   let fixture = "install-import-pr";
@@ -668,7 +667,6 @@ async () => {
 
     let lockFileContent = await fs.readFile(path.join(config.cwd, "fbkpm.lock"));
     let lockFileLines = lockFileContent.split("\n").filter((line) => !!line);
-    // TODO error here
     assert.equal(lockFileLines.length, 14);
     assert.equal(lockFileLines[4].indexOf("mime-db@"), 0);
     assert.equal(lockFileLines[8].indexOf("mime-types@2.0.0"), 0);
@@ -679,8 +677,7 @@ async () => {
   });
 });
 
-// TODO https://github.com/facebook/fbkpm/issues/78
-test.failing("[network] install --save should update a dependency to fbkpm and mirror (PR import scenario 2)",
+test.only("[network] install --save should update a dependency to fbkpm and mirror (PR import scenario 2)",
 async () => {
   // mime-types@2.0.0 is saved in local mirror and gets updated to mime-types@2.1.11 via
   // a change in package.json,
