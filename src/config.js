@@ -90,7 +90,9 @@ export default class Config {
       this.cwd = opts.cwd;
     }
 
-    this.packagesRoot = await this.getPackageRoot(opts);
+    if (!this.packagesRoot) {
+      this.packagesRoot = await this.getPackageRoot(opts);
+    }
 
     if (!this.tempFolder) {
       this.tempFolder = await this.getTempFolder();
