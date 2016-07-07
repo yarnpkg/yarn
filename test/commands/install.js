@@ -677,7 +677,7 @@ async () => {
   });
 });
 
-test.only("[network] install --save should update a dependency to fbkpm and mirror (PR import scenario 2)",
+test("[network] install --save should update a dependency to fbkpm and mirror (PR import scenario 2)",
 async () => {
   // mime-types@2.0.0 is saved in local mirror and gets updated to mime-types@2.1.11 via
   // a change in package.json,
@@ -910,6 +910,40 @@ test("[network] install --save should ignore cache", () => {
 
     await fs.unlink(path.join(config.cwd, mirrorPath));
     await fs.unlink(path.join(config.cwd, "package.json"));
+
+  });
+});
+
+test.only("[network] install --save should not update existing dependencies", async () => {
+
+  let mirrorPath = "mirror-for-offline";
+  let fixture = "install-no-update-existing";
+  let cwd = path.join(fixturesLoc, fixture);
+  await fs.copy(path.join(cwd, "fbkpm.lock.before"), path.join(cwd, "fbkpm.lock"));
+  await fs.copy(path.join(cwd, "package.json.before"), path.join(cwd, "package.json"));
+
+  return run({save: true}, [], fixture, async (config) => {
+    assert.equal(await getPackageVersion(config, "left-pad"), "1.0.0");
+    assert.equal(await getPackageVersion(config, "mime-db"), "1.0.1");
+    assert.equal(await getPackageVersion(config, "mime-types"), "2.0.0");
+
+    let mirror = await fs.walk(path.join(config.cwd, mirrorPath));
+    assert.equal(mirror.length, 3);
+    assert.equal(mirror[0].relative, "left-pad-1.0.0.tgz");
+    assert.equal(mirror[1].relative, "mime-db-1.0.1.tgz");
+    assert.equal(mirror[2].relative, "mime-types-2.0.0.tgz");
+
+    let lockFileWritten = await fs.readFile(path.join(config.cwd, "fbkpm.lock"));
+    let lockFileLines = lockFileWritten.split("\n").filter((line) => !!line);
+    assert.equal(lockFileLines[0], "left-pad@1.0.0:");
+    assert.equal(lockFileLines.length, 14);
+    assert.notEqual(lockFileLines[3].indexOf("resolved left-pad-1.0.0.tgz"), -1);
+    assert.notEqual(lockFileLines[7].indexOf("resolved mime-db-1.0.1.tgz"), -1);
+    assert.notEqual(lockFileLines[11].indexOf("resolved mime-types-2.0.0.tgz"), -1);
+
+    await fs.unlink(mirror[0].absolute);
+    await fs.unlink(path.join(config.cwd, "package.json"));
+    await fs.unlink(path.join(config.cwd, "fbkpm.lock"));
 
   });
 });
