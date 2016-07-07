@@ -914,7 +914,7 @@ test("[network] install --save should ignore cache", () => {
   });
 });
 
-test.only("[network] install --save should not update existing dependencies", async () => {
+test("[network] install --save should not update existing dependencies", async () => {
 
   let mirrorPath = "mirror-for-offline";
   let fixture = "install-no-update-existing";
