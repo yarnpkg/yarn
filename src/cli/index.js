@@ -16,12 +16,18 @@ import * as network from "../util/network.js";
 import * as commands from "./commands/index.js";
 import aliases from "./aliases.js";
 import Config from "../config.js";
+import onDeath from "death";
+
+const net = require("net");
+const path = require("path");
+const fs = require("fs");
 
 let loudRejection = require("loud-rejection");
 let commander     = require("commander");
 let invariant     = require("invariant");
 let pkg           = require("../../package");
 let _             = require("lodash");
+let lastWillExpressed = false;
 
 loudRejection();
 
@@ -99,12 +105,65 @@ if (network.isOffline()) {
 }
 
 //
-config.init().then(function () {
+const run = () => {
   return command.run(config, reporter, commander, commander.args).then(function () {
     reporter.close();
     reporter.footer(true);
-    process.exit();
   });
+}
+
+
+//
+const runEventually = () => {
+  return new Promise((ok, ko) => {
+    const socketFile = path.join(config.cwd, ".__installation");
+    const clients = [];
+    const unixServer = net.createServer((client) => {
+        clients.push(client);
+    }).on("error", (unixError) => {
+      // another process exists, wait until it dies.
+      reporter.warn("waiting until the other kpm instance finish.");
+      var socket = net.createConnection(socketFile);
+
+      socket.on("connect", () => {}).on("data", (d) => {
+          socket.unref();
+          ok(runEventually().then(process.exit));
+      }).on("error", (e) => {
+        // the process finished while we were handling the error.
+        if (e.code == "ECONNREFUSED") {
+          try {
+            fs.unlinkSync(socketFile);
+          } catch (e) {}
+        }
+
+        ok(runEventually().then(process.exit))
+      });
+
+    });
+
+    const clean = () => {
+      // clean after ourself.
+      clients.forEach (client => {
+          client.write("closing. kthanx, bye.");
+      })
+      unixServer.close();
+      process.exit();
+    };
+
+    if (!lastWillExpressed) {
+      onDeath(clean);
+      lastWillExpressed = true;
+    }
+
+    unixServer.listen(socketFile, () => {
+      ok(run().then(clean));
+    });
+  });
+}
+
+//
+config.init().then(function () {
+    return runEventually();
 }).catch(function (errs) {
   function logError(err) {
     if (err instanceof MessageError) {
