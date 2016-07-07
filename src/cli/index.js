@@ -18,7 +18,7 @@ import aliases from "./aliases.js";
 import Config from "../config.js";
 import onDeath from "death";
 
-const net = require("net");
+const net: any = require("net");
 const path = require("path");
 const fs = require("fs");
 
@@ -110,24 +110,24 @@ const run = () => {
     reporter.close();
     reporter.footer(true);
   });
-}
+};
 
 
 //
 const runEventually = () => {
-  return new Promise((ok, ko) => {
+  return new Promise((ok) => {
     const socketFile = path.join(config.cwd, ".__installation");
     const clients = [];
     const unixServer = net.createServer((client) => {
-        clients.push(client);
-    }).on("error", (unixError) => {
+      clients.push(client);
+    }).on("error", () => {
       // another process exists, wait until it dies.
       reporter.warn("waiting until the other kpm instance finish.");
-      var socket = net.createConnection(socketFile);
+      let socket = net.createConnection(socketFile);
 
-      socket.on("connect", () => {}).on("data", (d) => {
-          socket.unref();
-          ok(runEventually().then(process.exit));
+      socket.on("connect", () => {}).on("data", () => {
+        socket.unref();
+        ok(runEventually().then(process.exit));
       }).on("error", (e) => {
         // the process finished while we were handling the error.
         if (e.code == "ECONNREFUSED") {
@@ -136,16 +136,16 @@ const runEventually = () => {
           } catch (e) {}
         }
 
-        ok(runEventually().then(process.exit))
+        ok(runEventually().then(process.exit));
       });
 
     });
 
     const clean = () => {
       // clean after ourself.
-      clients.forEach (client => {
-          client.write("closing. kthanx, bye.");
-      })
+      clients.forEach((client) => {
+        client.write("closing. kthanx, bye.");
+      });
       unixServer.close();
       process.exit();
     };
@@ -159,11 +159,11 @@ const runEventually = () => {
       ok(run().then(clean));
     });
   });
-}
+};
 
 //
 config.init().then(function () {
-    return runEventually();
+  return runEventually();
 }).catch(function (errs) {
   function logError(err) {
     if (err instanceof MessageError) {
