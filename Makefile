@@ -10,6 +10,9 @@ test-only:
 	./node_modules/.bin/nyc --check-coverage --lines 85 --branches 74 --functions 85 ./node_modules/.bin/ava --verbose --concurrency 1 test/
 	./node_modules/.bin/nyc report --reporter=lcov
 
+test-install-only:
+	./node_modules/.bin/ava --verbose --concurrency 1 test/commands/install.js
+
 lint:
 	./node_modules/.bin/kcheck
 

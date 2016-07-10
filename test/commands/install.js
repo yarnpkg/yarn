@@ -112,7 +112,7 @@ test("[network] install with --save and offline mirror", () => {
 
     let rawLockfile = await fs.readFile(path.join(config.cwd, constants.LOCKFILE_FILENAME));
     let lockfile = parse(rawLockfile);
-    assert.equal(lockfile["is-array@1.0.1"]["resolved"],
+    assert.equal(lockfile["is-array@^1.0.1"]["resolved"],
       "is-array-1.0.1.tgz#e9850cc2cc860c3bc0977e84ccf0dd464584279a");
 
     await fs.unlink(path.join(config.cwd, mirrorPath));
@@ -133,7 +133,7 @@ test("[network] install with --save and without offline mirror", () => {
 
     let rawLockfile = await fs.readFile(path.join(config.cwd, constants.LOCKFILE_FILENAME));
     let lockfile = parse(rawLockfile);
-    assert.equal(lockfile["is-array@1.0.1"]["resolved"],
+    assert.equal(lockfile["is-array@^1.0.1"]["resolved"],
       "https://registry.npmjs.org/is-array/-/is-array-1.0.1.tgz#e9850cc2cc860c3bc0977e84ccf0dd464584279a");
 
     await fs.unlink(path.join(config.cwd, mirrorPath));
@@ -337,12 +337,12 @@ test("upgrade scenario", () => {
     );
     assert.deepEqual(
       JSON.parse(await fs.readFile(path.join(config.cwd, "package.json"))).dependencies,
-      {"left-pad": "0.0.9"}
+      {"left-pad": "^0.0.9"}
     );
 
     let lockFileWritten = await fs.readFile(path.join(config.cwd, "fbkpm.lock"));
     let lockFileLines = lockFileWritten.split("\n").filter((line) => !!line);
-    assert.equal(lockFileLines[0], "left-pad@0.0.9:");
+    assert.equal(lockFileLines[0], "left-pad@^0.0.9:");
     assert.equal(lockFileLines.length, 4);
     assert.notEqual(lockFileLines[3].indexOf("resolved left-pad-0.0.9.tgz"), -1);
 
@@ -357,12 +357,12 @@ test("upgrade scenario", () => {
       );
       assert.deepEqual(
         JSON.parse(await fs.readFile(path.join(config.cwd, "package.json"))).dependencies,
-        {"left-pad": "1.1.0"}
+        {"left-pad": "^1.1.0"}
       );
 
       let lockFileWritten = await fs.readFile(path.join(config.cwd, "fbkpm.lock"));
       let lockFileLines = lockFileWritten.split("\n").filter((line) => !!line);
-      assert.equal(lockFileLines[0], "left-pad@1.1.0:");
+      assert.equal(lockFileLines[0], "left-pad@^1.1.0:");
       assert.equal(lockFileLines.length, 4);
       assert.notEqual(lockFileLines[3].indexOf("resolved left-pad-1.1.0.tgz"), -1);
 
@@ -409,7 +409,7 @@ test("[network] upgrade scenario 2 (with sub dependencies)", async () => {
       let lockFileLines = lockFileWritten.split("\n").filter((line) => !!line);
       assert.equal(lockFileLines[0], "mime-db@~1.23.0:");
       assert.notEqual(lockFileLines[3].indexOf("resolved mime-db-"), -1);
-      assert.equal(lockFileLines[4], "mime-types@2.1.11:");
+      assert.equal(lockFileLines[4], "mime-types@^2.1.11:");
       assert.notEqual(lockFileLines[7].indexOf("resolved mime-types-2.1.11.tgz"), -1);
 
       let mirror = await fs.walk(path.join(config.cwd, mirrorPath));
@@ -440,13 +440,13 @@ test("[network] downgrade scenario", () => {
     );
     assert.deepEqual(
       JSON.parse(await fs.readFile(path.join(config.cwd, "package.json"))).dependencies,
-      {"left-pad": "1.1.0"}
+      {"left-pad": "^1.1.0"}
     );
 
     let mirrorPath = "mirror-for-offline";
     let lockFileWritten = await fs.readFile(path.join(config.cwd, "fbkpm.lock"));
     let lockFileLines = lockFileWritten.split("\n").filter((line) => !!line);
-    assert.equal(lockFileLines[0], "left-pad@1.1.0:");
+    assert.equal(lockFileLines[0], "left-pad@^1.1.0:");
     assert.equal(lockFileLines.length, 4);
     assert.notEqual(lockFileLines[3].indexOf("resolved left-pad-1.1.0.tgz"), -1);
 
@@ -461,12 +461,12 @@ test("[network] downgrade scenario", () => {
       );
       assert.deepEqual(
         JSON.parse(await fs.readFile(path.join(config.cwd, "package.json"))).dependencies,
-        {"left-pad": "0.0.9"}
+        {"left-pad": "^0.0.9"}
       );
 
       let lockFileWritten = await fs.readFile(path.join(config.cwd, "fbkpm.lock"));
       let lockFileLines = lockFileWritten.split("\n").filter((line) => !!line);
-      assert.equal(lockFileLines[0], "left-pad@0.0.9:");
+      assert.equal(lockFileLines[0], "left-pad@^0.0.9:");
       assert.equal(lockFileLines.length, 4);
       assert.notEqual(lockFileLines[3].indexOf("resolved left-pad-0.0.9.tgz"), -1);
 
@@ -677,7 +677,7 @@ async () => {
   });
 });
 
-test.only("[network] install --save should update a dependency to fbkpm and mirror (PR import scenario 2)",
+test("[network] install --save should update a dependency to fbkpm and mirror (PR import scenario 2)",
 async () => {
   // mime-types@2.0.0 is saved in local mirror and gets updated to mime-types@2.1.11 via
   // a change in package.json,
@@ -798,7 +798,7 @@ test("[network] install --save with new dependency should be deterministic", asy
       assert.deepEqual(
         JSON.parse(await fs.readFile(path.join(config.cwd, "package.json"))).dependencies, {
           "mime-types": "2.0.0",
-          "mime-db": "1.23.0"
+          "mime-db": "^1.23.0"
         }
       );
 
@@ -878,8 +878,8 @@ test("[network] install --save should ignore cache", () => {
   // files in mirror, fbkpm.lock, package.json and node_modules should reflect that
 
   let mirrorPath = "mirror-for-offline";
-
   let fixture = "install-save-to-mirror-when-cached";
+
   return run({}, ["left-pad@1.1.0"], fixture, async (config, reporter) => {
     assert.equal(
       await getPackageVersion(config, "left-pad"),
@@ -895,7 +895,7 @@ test("[network] install --save should ignore cache", () => {
     );
     assert.deepEqual(
       JSON.parse(await fs.readFile(path.join(config.cwd, "package.json"))).dependencies,
-      {"left-pad": "1.1.0"}
+      {"left-pad": "^1.1.0"}
     );
 
     let mirror = await fs.walk(path.join(config.cwd, mirrorPath));
@@ -904,7 +904,7 @@ test("[network] install --save should ignore cache", () => {
 
     let lockFileWritten = await fs.readFile(path.join(config.cwd, "fbkpm.lock"));
     let lockFileLines = lockFileWritten.split("\n").filter((line) => !!line);
-    assert.equal(lockFileLines[0], "left-pad@1.1.0:");
+    assert.equal(lockFileLines[0], "left-pad@^1.1.0:");
     assert.equal(lockFileLines.length, 4);
     assert.notEqual(lockFileLines[3].indexOf("resolved left-pad-1.1.0.tgz"), -1);
 
@@ -913,3 +913,50 @@ test("[network] install --save should ignore cache", () => {
 
   });
 });
+
+test("[network] install --save should not make package.json strict", async () => {
+  let mirrorPath = "mirror-for-offline";
+  let fixture = "install-no-strict";
+  let cwd = path.join(fixturesLoc, fixture);
+  await fs.copy(path.join(cwd, "fbkpm.lock.before"), path.join(cwd, "fbkpm.lock"));
+  await fs.copy(path.join(cwd, "package.json.before"), path.join(cwd, "package.json"));
+
+  return run({save: true}, ["left-pad@1.1.0"], fixture, async (config, reporter) => {
+    assert.deepEqual(
+      JSON.parse(await fs.readFile(path.join(config.cwd, "package.json"))).dependencies,
+      {
+        "left-pad": "^1.1.0",
+        "mime-types": "^2.0.0",
+      }
+    );
+
+    await fs.unlink(path.join(config.cwd, `${mirrorPath}/left-pad-1.1.0.tgz`));
+    await fs.unlink(path.join(config.cwd, "package.json"));
+    await fs.unlink(path.join(config.cwd, "fbkpm.lock"));
+
+  });
+});
+
+test("[network] install --save-exact should not make all package.json strict", async () => {
+  let mirrorPath = "mirror-for-offline";
+  let fixture = "install-no-strict-all";
+  let cwd = path.join(fixturesLoc, fixture);
+  await fs.copy(path.join(cwd, "fbkpm.lock.before"), path.join(cwd, "fbkpm.lock"));
+  await fs.copy(path.join(cwd, "package.json.before"), path.join(cwd, "package.json"));
+
+  return run({saveExact: true, save: true}, ["left-pad@1.1.0"], fixture, async (config, reporter) => {
+    assert.deepEqual(
+      JSON.parse(await fs.readFile(path.join(config.cwd, "package.json"))).dependencies,
+      {
+        "left-pad": "1.1.0",
+        "mime-types": "^2.0.0",
+      }
+    );
+
+    await fs.unlink(path.join(config.cwd, `${mirrorPath}/left-pad-1.1.0.tgz`));
+    await fs.unlink(path.join(config.cwd, "package.json"));
+    await fs.unlink(path.join(config.cwd, "fbkpm.lock"));
+
+  });
+});
+

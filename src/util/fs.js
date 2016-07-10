@@ -38,7 +38,7 @@ export async function copy(src: string, dest: string): Promise<void> {
   if (await exists(dest)) {
     let destStat = await lstat(dest);
 
-    if (srcStat.isFile() && destStat.isFile() && destStat.size === destStat.size) {
+    if (srcStat.isFile() && destStat.isFile() && srcStat.size === destStat.size) {
       // we can safely assume this is the same file
       return;
     }
