@@ -199,7 +199,7 @@ export class Install {
       json = await fs.readJson(jsonLoc);
     }
 
-    for (let pattern of this.resolver.dedupePatterns(patterns)) {
+    for (let pattern of this.resolver.dedupePatterns(this.args)) {
       let pkg = this.resolver.getResolvedPattern(pattern);
       invariant(pkg, `missing package ${pattern}`);
 
