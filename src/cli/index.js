@@ -12,8 +12,10 @@
 import buildExecuteLifecycleScript from "./commands/_execute-lifecycle-script.js";
 import { ConsoleReporter, JSONReporter } from "kreporters";
 import { MessageError } from "../errors.js";
-import * as network from "../util/network.js";
 import * as commands from "./commands/index.js";
+import * as constants from "../constants.js";
+import * as network from "../util/network.js";
+
 import aliases from "./aliases.js";
 import Config from "../config.js";
 import onDeath from "death";
@@ -116,7 +118,7 @@ const run = () => {
 //
 const runEventually = () => {
   return new Promise((ok) => {
-    const socketFile = path.join(config.cwd, ".__installation");
+    const socketFile = path.join(config.cwd, constants.SINGLE_SOCKET_FILENAME);
     const clients = [];
     const unixServer = net.createServer((client) => {
       clients.push(client);
