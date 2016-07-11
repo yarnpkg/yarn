@@ -162,8 +162,11 @@ const runEventually = () => {
 };
 
 //
-config.init().then(function () {
-  return runEventually();
+config.init().then(() => {
+  if (commander.forceSingleInstance) {
+    return runEventually();
+  }
+  return run().then(process.exit);
 }).catch(function (errs) {
   function logError(err) {
     if (err instanceof MessageError) {
