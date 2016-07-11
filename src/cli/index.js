@@ -33,7 +33,8 @@ commander.usage("[command] [flags]");
 commander.option("--json", "");
 commander.option("--modules-folder [path]", "rather than installing modules into the node_modules " +
                                             "folder relative to the cwd, output them here");
-
+commander.option("--packages-root [path]", "rather than storing modules into a global packages root," +
+                                           "store them here");
 // get command name
 let commandName = args.splice(2, 1)[0] || "";
 
@@ -77,7 +78,8 @@ reporter.initPeakMemoryCounter();
 
 //
 let config = new Config(reporter, {
-  modulesFolder: commander.modulesFolder
+  modulesFolder: commander.modulesFolder,
+  packagesRoot: commander.packagesRoot,
 });
 
 // print header
