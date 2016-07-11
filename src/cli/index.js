@@ -20,15 +20,15 @@ import aliases from "./aliases.js";
 import Config from "../config.js";
 import onDeath from "death";
 
-const net: any = require("net");
+const net = require("net");
 const path = require("path");
 const fs = require("fs");
 
-let loudRejection = require("loud-rejection");
-let commander     = require("commander");
-let invariant     = require("invariant");
-let pkg           = require("../../package");
-let _             = require("lodash");
+let loudRejection     = require("loud-rejection");
+let commander         = require("commander");
+let invariant         = require("invariant");
+let pkg               = require("../../package");
+let _                 = require("lodash");
 let lastWillExpressed = false;
 
 loudRejection();
@@ -125,6 +125,7 @@ const runEventually = () => {
     }).on("error", () => {
       // another process exists, wait until it dies.
       reporter.warn("waiting until the other kpm instance finish.");
+
       let socket = net.createConnection(socketFile);
 
       socket.on("connect", () => {}).on("data", () => {
@@ -132,10 +133,10 @@ const runEventually = () => {
         ok(runEventually().then(process.exit));
       }).on("error", (e) => {
         // the process finished while we were handling the error.
-        if (e.code == "ECONNREFUSED") {
+        if (e.code === "ECONNREFUSED") {
           try {
             fs.unlinkSync(socketFile);
-          } catch (e) {}
+          } catch (e) {} // some other instance won the race to delete the file
         }
 
         ok(runEventually().then(process.exit));
