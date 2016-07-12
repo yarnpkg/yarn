@@ -42,7 +42,7 @@ type RequestParams<T> = {
 };
 
 type RequestOptions = {
-  params: RequestParams,
+  params: RequestParams<Object>,
   resolve: (body: any) => void,
   reject: (err: any) => void
 };

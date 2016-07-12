@@ -15,7 +15,7 @@ export function wait(delay: number): Promise<void> {
   });
 }
 
-export function promisify(fn: Function, firstData?: boolean): () => Promise {
+export function promisify(fn: Function, firstData?: boolean): () => Promise<any> {
   return function (...args) {
     return new Promise(function (resolve, reject) {
       args.push(function (err, ...result) {
@@ -45,7 +45,7 @@ export function promisify(fn: Function, firstData?: boolean): () => Promise {
 export function promisifyObject(obj: {
   [key: string]: Function
 }): {
-  [key: string]: () => Promise
+  [key: string]: () => Promise<any>
 } {
   let promisedObj = {};
   for (let key in obj) {

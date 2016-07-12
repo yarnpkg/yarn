@@ -35,7 +35,11 @@ export default class BaseResolver {
   config: Config;
   registry: RegistryNames;
 
-  async fork(Resolver: Function, resolveArg: any, ...args: Array<string>): Promise {
+  async fork(
+    Resolver: Function,
+    resolveArg: any,
+    ...args: Array<string>
+  ): Promise<Manifest> {
     let resolver = new Resolver(this.request, ...args);
     resolver.registry = this.registry;
     return resolver.resolve(resolveArg);

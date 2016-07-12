@@ -281,7 +281,7 @@ export default class PackageRequest {
       remote.resolved = path.relative(
         this.config.getOfflineMirrorPath(ref.remote.registry),
         offlineMirrorPath
-      ) + `#${ref.remote.hash}`;
+      ) + `#${hash}`;
     }
     remote.hash = hash;
     newInfo.reference = ref;
