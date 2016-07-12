@@ -44,6 +44,9 @@ export default function stringify(obj: any, indent: string = ""): string {
 
   let lines = [];
 
+  // Sorting order needs to be consistent between runs, we run native sort by name because there are no
+  // problems with it being unstable because there are no to keys the same
+  // However priorities can be duplicated and native sort can shuffle things from run to run
   let keys = Object.keys(obj)
     .sort(function (a, b) {
       // sort alphabetically
