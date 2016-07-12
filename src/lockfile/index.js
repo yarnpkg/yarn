@@ -114,12 +114,15 @@ export default class Lockfile {
     [packagePattern: string]: Manifest
   }): Object {
     let lockfile = {};
-    let seen: Map<Manifest, string> = new Map;
+    let seen: Map<string, string> = new Map;
+    let sortedPatternsKeys: string[] = Object.keys(patterns).sort((a, b) => {
+      return a.toLowerCase().localeCompare(b.toLowerCase());
+    });
 
-    for (let pattern in patterns) {
+    for (let pattern of sortedPatternsKeys) {
       let pkg = patterns[pattern];
 
-      let seenPattern = seen.get(pkg);
+      let seenPattern = pkg.remote && pkg.remote.resolved && seen.get(pkg.remote.resolved);
       if (seenPattern) {
         // no point in duplicating it
         lockfile[pattern] = seenPattern;
@@ -143,7 +146,9 @@ export default class Lockfile {
         permissions: _.isEmpty(ref.permissions) ? undefined : ref.permissions
       };
 
-      seen.set(pkg, pattern);
+      if (pkg.remote && pkg.remote.resolved) {
+        seen.set(pkg.remote.resolved, pattern);
+      }
     }
 
     return lockfile;
