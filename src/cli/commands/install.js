@@ -179,7 +179,7 @@ export class Install {
     await this.scripts.init();
 
     // fin!
-    await this.savePackages(patterns);
+    await this.savePackages();
     await this.saveLockfile();
   }
 
@@ -187,7 +187,7 @@ export class Install {
    * Save added packages to `package.json` if any of the --save flags were used
    */
 
-  async savePackages(patterns: Array<string>): Promise<void> {
+  async savePackages(): Promise<void> {
     if (!this.args.length) return;
 
     let { save, saveDev, saveExact, saveOptional } = this.flags;

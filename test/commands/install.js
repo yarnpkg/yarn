@@ -921,7 +921,7 @@ test("[network] install --save should not make package.json strict", async () =>
   await fs.copy(path.join(cwd, "fbkpm.lock.before"), path.join(cwd, "fbkpm.lock"));
   await fs.copy(path.join(cwd, "package.json.before"), path.join(cwd, "package.json"));
 
-  return run({save: true}, ["left-pad@1.1.0"], fixture, async (config, reporter) => {
+  return run({save: true}, ["left-pad@1.1.0"], fixture, async (config) => {
     assert.deepEqual(
       JSON.parse(await fs.readFile(path.join(config.cwd, "package.json"))).dependencies,
       {
@@ -944,7 +944,7 @@ test("[network] install --save-exact should not make all package.json strict", a
   await fs.copy(path.join(cwd, "fbkpm.lock.before"), path.join(cwd, "fbkpm.lock"));
   await fs.copy(path.join(cwd, "package.json.before"), path.join(cwd, "package.json"));
 
-  return run({saveExact: true, save: true}, ["left-pad@1.1.0"], fixture, async (config, reporter) => {
+  return run({saveExact: true, save: true}, ["left-pad@1.1.0"], fixture, async (config) => {
     assert.deepEqual(
       JSON.parse(await fs.readFile(path.join(config.cwd, "package.json"))).dependencies,
       {
