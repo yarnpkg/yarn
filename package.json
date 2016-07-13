@@ -45,7 +45,7 @@
     "gulp-plumber": "^1.0.1",
     "gulp-util": "^3.0.7",
     "gulp-watch": "^4.3.5",
-    "kcheck": "^2.0.0",
+    "kcheck": "^2.0.3",
     "mock-stdin": "^0.3.0",
     "nyc": "^5.5.0",
     "temp": "^0.8.3",
