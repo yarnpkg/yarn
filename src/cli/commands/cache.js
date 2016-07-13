@@ -37,8 +37,9 @@ export async function run(
     throw new MessageError("TODO");
   }
 
-  if (cmd === "clear" && config.packagesRoot) {
-    await fs.unlink(config.packagesRoot);
-    reporter.success(`Cleared ${config.packagesRoot}`);
+  let packagesRoot = config.packagesRoot;
+  if (cmd === "clear" && packagesRoot) {
+    await fs.unlink(packagesRoot);
+    reporter.success(`Cleared ${packagesRoot}`);
   }
 }
