@@ -180,7 +180,7 @@ export class Install {
     await this.scripts.init();
 
     // fin!
-    await this.savePackages(patterns);
+    await this.savePackages();
     await this.saveLockfile();
   }
 
@@ -188,7 +188,7 @@ export class Install {
    * Save added packages to `package.json` if any of the --save flags were used
    */
 
-  async savePackages(patterns: Array<string>): Promise<void> {
+  async savePackages(): Promise<void> {
     if (!this.args.length) return;
 
     let { save, saveDev, saveExact, saveOptional } = this.flags;
@@ -210,11 +210,13 @@ export class Install {
       }
 
       let parts = PackageRequest.normalisePattern(pattern);
-      let version = pkg.version;
+      let version;
+      if (!saveExact) {
+        version = `^${pkg.version}`;
+      } else {
+        version = parts.range;
+      }
 
-      // only use exact versioning when we have the --save-exact flag or the version has been
-      // specified in the pattern
-      if (!saveExact && !parts.range) version = `^${version}`;
 
       let targetKey;
       if (save) targetKey = "dependencies";
