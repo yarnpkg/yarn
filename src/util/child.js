@@ -38,7 +38,13 @@ export function spawn(
     let errBuf = "";
     let buf = "";
 
-    proc.on("error", reject);
+    proc.on("error", (err) => {
+      if (err.code === "ENOENT") {
+        reject(new MessageError(`Couldn't find the binary ${program}`));
+      } else {
+        reject(err);
+      }
+    });
 
     proc.stderr.on("data", (chunk) => {
       errBuf += chunk;
