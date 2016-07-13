@@ -14,8 +14,6 @@ import type Config from "../../config.js";
 import { MessageError } from "../../errors.js";
 import * as fs from "../../util/fs.js";
 
-let path = require("path");
-
 export function setFlags(commander: Object) {
   commander.usage("cache [clear | ls]");
 }
@@ -39,7 +37,7 @@ export async function run(
     throw new MessageError("TODO");
   }
 
-  if (cmd === "clear") {
+  if (cmd === "clear" && config.packagesRoot) {
     await fs.unlink(config.packagesRoot);
     reporter.success(`Cleared ${config.packagesRoot}`);
   }
