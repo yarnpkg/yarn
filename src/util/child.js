@@ -13,6 +13,7 @@
 import * as constants from "../constants.js";
 import BlockingQueue from "./blocking-queue.js";
 import { promisify } from "./promise.js";
+import { MessageError } from "../errors.js";
 
 let child = require("child_process");
 

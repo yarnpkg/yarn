@@ -1,6 +1,6 @@
 {
   "name": "fbkpm",
-  "version": "0.4.9",
+  "version": "0.5.0",
   "license": "BSD-3-Clause",
   "preferGlobal": true,
   "main": "./index.js",
@@ -11,6 +11,7 @@
     "cmd-shim": "^2.0.1",
     "commander": "^2.9.0",
     "diff": "^2.2.1",
+    "estraverse-fb": "^1.3.1",
     "ini": "^1.3.4",
     "invariant": "^2.2.0",
     "is-builtin-module": "^1.0.0",
