@@ -60,8 +60,8 @@ export default class TarballFetcher extends BaseFetcher {
       // path to the local tarball
       let localTarball;
 
-      let relativeFileLoc = path.join(this.config.cwd, parts.pathname);
-      if (await fsUtil.exists(relativeFileLoc)) {
+      let relativeFileLoc = parts.pathname && path.join(this.config.cwd, parts.pathname);
+      if (relativeFileLoc && await fsUtil.exists(relativeFileLoc)) {
         // this is a reference to a file relative to the cwd
         localTarball = relativeFileLoc;
       } else {

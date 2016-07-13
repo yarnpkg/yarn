@@ -17,6 +17,7 @@ export default function nullify<T>(obj?: Return<T> = {}): Return<T> {
       nullify(item);
     }
   } else if (obj !== null && typeof obj === "object" || typeof obj === "function") {
+    // $FlowFixMe: go away flow! where did your definition go!
     Object.setPrototypeOf(obj, null);
     for (let key in obj) {
       nullify(obj[key]);
