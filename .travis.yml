@@ -8,13 +8,18 @@ cache:
   - node_modules
 
 env:
- - NODE_VERSION="6"
- - NODE_VERSION="5"
- - NODE_VERSION="4"
+ - NODE_VERSION="6" TEST_TYPE="lint"
+ - NODE_VERSION="6" TEST_TYPE="test"
+ - NODE_VERSION="5" TEST_TYPE="test"
+ - NODE_VERSION="4" TEST_TYPE="test"
+
+matrix:
+  exclude:
+  - os: linux
 
 install:
  # install latest git
- - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install git                                 ; fi
+ - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install git; fi
  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then ./scripts/update-linux-git.sh; fi
  - git --version
 
@@ -31,4 +36,6 @@ os:
  - linux
  - osx
 
-script: make test-ci
+script:
+  - if [[ "$TEST_TYPE" = lint ]]; then make lint; fi
+  - if [[ "$TEST_TYPE" = test ]]; then make test-ci; fi

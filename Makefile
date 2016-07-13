@@ -32,4 +32,4 @@ build-dist:
 
 test: lint test-only
 
-test-ci: build test
+test-ci: build test-only
