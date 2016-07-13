@@ -57,11 +57,6 @@ export async function run(
     let range;
     reporter.step(++step, totalSteps, `Removing module ${name}`);
 
-    // check that it's there
-    if (!(await fs.exists(loc))) {
-      throw new MessageError(`Couldn't find module ${name} on disk: ${loc}`);
-    }
-
     // remove bins
     let pkg = await config.readManifest(loc);
     for (let binName in pkg.bin) {
@@ -99,7 +94,9 @@ export async function run(
       locs.push(loc);
     }
 
-    for (let loc of locs) await fs.unlink(loc);
+    for (let loc of locs) {
+      await fs.unlink(loc);
+    }
   }
 
   // save package.json
