@@ -26,34 +26,56 @@ export default class TarballFetcher extends BaseFetcher {
     let { reference: ref, hash, config, saveForOffline, registry } = this;
 
     let parts = url.parse(ref);
+
+    // basic security check
     if (!hash) {
       if (parts.protocol === "http:") {
         throw new SecurityError(`${ref}: Refusing to fetch tarball over plain HTTP without a hash`);
       }
     }
+
+    // create an extractor
+    function createExtractor(resolve: Function, reject: Function) {
+      let validateStream = crypto.hashStreamValidation();
+
+      let extractor = tar.Extract({ path: dest, strip: 1 })
+        .on("error", reject)
+        .on("end", function () {
+          let expectHash = hash;
+          let actualHash = validateStream.getHash();
+          if (!expectHash || expectHash === actualHash) {
+            resolve(actualHash);
+          } else {
+            reject(new SecurityError(
+              `Bad hash. Expected ${expectHash} but got ${actualHash}`
+            ));
+          }
+        });
+
+      return { validateStream, extractor };
+    }
+
+    // offline mirror path
     if (parts.protocol === null) {
-      let localTarball = path.resolve(this.config.getOfflineMirrorPath(registry, null), ref);
+      // path to the local tarball
+      let localTarball;
+
+      let relativeFileLoc = path.join(this.config.cwd, parts.pathname);
+      if (await fsUtil.exists(relativeFileLoc)) {
+        // this is a reference to a file relative to the cwd
+        localTarball = relativeFileLoc;
+      } else {
+        // generate a offline cache location
+        localTarball = path.resolve(this.config.getOfflineMirrorPath(registry, null), ref);
+      }
 
       if (!(await fsUtil.exists(localTarball))) {
         throw new MessageError(`${ref}: Tarball is not in network and can't be located in cache`);
       }
 
       return new Promise((resolve, reject) => {
-        let validateStream = crypto.hashStreamValidation();
+        let { validateStream, extractor } = createExtractor(resolve, reject);
 
-        let extractor = tar.Extract({ path: dest, strip: 1 })
-          .on("error", reject)
-          .on("end", function () {
-            let expectHash = hash;
-            let actualHash = validateStream.getHash();
-            if (!expectHash || expectHash === actualHash) {
-              resolve(actualHash);
-            } else {
-              reject(new SecurityError(
-                `Bad hash. Expected ${expectHash} but got ${actualHash}`
-              ));
-            }
-          });
         // flow gets confused with the pipe/on types chain
         let cachedStream: Object = fs.createReadStream(localTarball);
         cachedStream
@@ -64,30 +86,16 @@ export default class TarballFetcher extends BaseFetcher {
       });
     }
 
+    // http url
     return this.config.requestManager.request({
       url: ref,
       headers: {
         "Accept-Encoding": "gzip"
       },
       process(req, resolve, reject) {
-        let validateStream = crypto.hashStreamValidation();
+        let { validateStream, extractor } = createExtractor(resolve, reject);
 
-        //
-        let extractor = tar.Extract({ path: dest, strip: 1 })
-          .on("error", reject)
-          .on("end", function () {
-            let expectHash = hash;
-            let actualHash = validateStream.getHash();
-            if (!expectHash || expectHash === actualHash) {
-              resolve(actualHash);
-            } else {
-              reject(new SecurityError(
-                `Bad hash. Expected ${expectHash} but got ${actualHash}`
-              ));
-            }
-          });
-
-        //
+        // should we save this to the offline cache?
         let mirrorPath = config.getOfflineMirrorPath(registry, ref);
         let mirrorTarballStream;
         if (mirrorPath && saveForOffline) {

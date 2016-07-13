@@ -18,6 +18,8 @@ import * as versionUtil from "../../util/version.js";
 import * as crypto from "../../util/crypto.js";
 import * as fs from "../../util/fs.js";
 
+let _ = require("lodash");
+
 export default class TarballResolver extends ExoticResolver {
   constructor(request: PackageRequest, fragment: string) {
     super(request, fragment);
@@ -31,9 +33,22 @@ export default class TarballResolver extends ExoticResolver {
   hash: string;
 
   static isVersion(pattern: string): boolean {
-    if (Git.isVersion(pattern)) return false; // we can sometimes match their urls
+    // we can sometimes match git urls which we don't want
+    if (Git.isVersion(pattern)) {
+      return false;
+    }
 
-    return pattern.indexOf("http://") === 0 || pattern.indexOf("https://") === 0;
+    // full http url
+    if (pattern.indexOf("http://") === 0 || pattern.indexOf("https://") === 0) {
+      return true;
+    }
+
+    // local file reference
+    if (_.endsWith(pattern, ".tgz") || _.endsWith(pattern, "tar.gz")) {
+      return true;
+    }
+
+    return false;
   }
 
   async resolve(): Promise<Manifest> {
