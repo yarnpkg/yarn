@@ -24,11 +24,15 @@ export { default as parse } from "./parse";
 export { default as stringify } from "./stringify";
 
 export default class Lockfile {
-  constructor(cache: ?Object, strict?: boolean, save?: boolean) {
+  constructor(cache: ?Object, strict?: boolean, save?: boolean, source?: string) {
     this.strict = !!strict;
+    this.source = source || "";
     this.cache  = cache;
     this.save   = !!save;
   }
+
+  // source string if the `cache` was parsed
+  source: string;
 
   // true if operation is just rehydrating node_modules folder
   strict: boolean;
@@ -62,10 +66,11 @@ export default class Lockfile {
     // read the package.json in this directory
     let lockfileLoc = path.join(dir, constants.LOCKFILE_FILENAME);
     let lockfile;
+    let rawLockfile = "";
     let strict = false;
 
     if (await fs.exists(lockfileLoc)) {
-      let rawLockfile = await fs.readFile(lockfileLoc);
+      rawLockfile = await fs.readFile(lockfileLoc);
       lockfile = parse(rawLockfile);
       strict = strictIfPresent;
       if (!silent) reporter.info(`Read lockfile ${constants.LOCKFILE_FILENAME}`);
@@ -79,7 +84,7 @@ export default class Lockfile {
       if (!silent) reporter.info("No lockfile found.");
     }
 
-    return new Lockfile(lockfile, strict, save);
+    return new Lockfile(lockfile, strict, save, rawLockfile);
   }
 
   isStrict(): boolean {

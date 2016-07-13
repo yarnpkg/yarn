@@ -23,6 +23,7 @@ import { registries } from "../../registries/index.js";
 import { MessageError } from "../../errors.js";
 import * as constants from "../../constants.js";
 import * as fs from "../../util/fs.js";
+import * as util from "../../util/misc.js";
 import { stringify } from "../../util/misc.js";
 import map from "../../util/map.js";
 
@@ -296,9 +297,15 @@ export class Install {
       if (await fs.exists(loc)) return;
     }
 
+    let lockSource = lockStringify(this.lockfile.getLockfile(this.resolver.patterns)) + "\n";
+
+    // write lockfile
+    await fs.writeFile(loc, lockSource);
+
+    // write integrity hash
     await fs.writeFile(
-      loc,
-      lockStringify(this.lockfile.getLockfile(this.resolver.patterns)) + "\n"
+      path.join(this.config.cwd, "node_modules", constants.INTEGRITY_FILENAME),
+      util.hash(lockSource)
     );
 
     this.reporter.success(`Saved fbkpm lockfile to ${constants.LOCKFILE_FILENAME}`);

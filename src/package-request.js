@@ -293,7 +293,7 @@ export default class PackageRequest {
     if (await fs.exists(lockfileLoc)) {
       let rawLockfile = await fs.readFile(lockfileLoc);
       let lockfileObj = parseLock(rawLockfile);
-      subLockfile = new Lockfile(lockfileObj, false);
+      subLockfile = new Lockfile(lockfileObj, false, null, rawLockfile);
     }
 
     // start installation of dependencies

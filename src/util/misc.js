@@ -9,7 +9,12 @@
  * @flow
  */
 
-let _ = require("lodash");
+let crypto = require("crypto");
+let _      = require("lodash");
+
+export function hash(str: string): string {
+  return crypto.createHash("sha256").update(str).digest("hex");
+}
 
 export function entries<T>(obj: ?{ [key: string]: T }): Array<[string, T]> {
   let entries = [];

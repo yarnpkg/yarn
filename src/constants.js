@@ -19,6 +19,7 @@ export const REQUIRED_PACKAGE_KEYS = ["name", "version", "uid"];
 
 export const MODULE_CACHE_DIRECTORY = ".fbkpm";
 export const LOCKFILE_FILENAME      = "fbkpm.lock";
+export const INTEGRITY_FILENAME     = ".fbkpm-integrity";
 export const METADATA_FILENAME      = ".fbkpm-metadata.json";
 
 export const USER_AGENT = "fbkpm";

@@ -16,10 +16,15 @@ import Lockfile from "../../lockfile/index.js";
 import { MessageError } from "../../errors.js";
 import * as constants from "../../constants.js";
 import * as fs from "../../util/fs.js";
+import * as util from "../../util/misc.js";
 
 let path = require("path");
 
 export let noArguments = true;
+
+export function setFlags(commander: Object) {
+  commander.option("--quick-sloppy");
+}
 
 export async function run(
   config: Config,
@@ -40,8 +45,10 @@ export async function run(
 
   let valid = true;
 
-  // check if patterns exist in lockfile
+  // get patterns that are installed when running `kpm install`
   let [depRequests, rawPatterns] = await install.fetchRequestFromCwd();
+
+  // check if patterns exist in lockfile
   for (let pattern of rawPatterns) {
     if (!lockfile.getLocked(pattern)) {
       reporter.error(`Lockfile does not contain pattern: ${pattern}`);
@@ -49,15 +56,34 @@ export async function run(
     }
   }
 
-  // seed resolver
-  await install.resolver.init(depRequests);
+  if (flags.quickSloppy) {
+    // in sloppy mode we don't resolve dependencies, we just check a hash of the lockfile
+    // against one that is created when we run `kpm install`
+    let integrityLoc = path.join(config.cwd, "node_modules", constants.INTEGRITY_FILENAME);
 
-  // check if any of the node_modules are out of sync
-  let res = await install.linker.initCopyModules(rawPatterns);
-  for (let [loc] of res) {
-    if (!(await fs.exists(loc))) {
-      reporter.error(`Module not installed: ${path.relative(process.cwd(), loc)}`);
+    if (await fs.exists(integrityLoc)) {
+      let actual = await fs.readFile(integrityLoc);
+      let expected = util.hash(lockfile.source);
+
+      if (actual.trim() !== expected) {
+        valid = false;
+        reporter.error(`Expected an integrity hash of ${expected} but got ${actual}`);
+      }
+    } else {
+      reporter.error("Couldn't find an integrity hash file");
       valid = false;
+    }
+  } else {
+    // seed resolver
+    await install.resolver.init(depRequests);
+
+    // check if any of the node_modules are out of sync
+    let res = await install.linker.initCopyModules(rawPatterns);
+    for (let [loc] of res) {
+      if (!(await fs.exists(loc))) {
+        reporter.error(`Module not installed: ${path.relative(process.cwd(), loc)}`);
+        valid = false;
+      }
     }
   }
 
