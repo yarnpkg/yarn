@@ -14,7 +14,8 @@ test-install-only:
 	./node_modules/.bin/ava --verbose --concurrency 1 test/commands/install.js
 
 lint:
-	./node_modules/.bin/kcheck
+	./node_modules/.bin/eslint src
+	./node_modules/.bin/flow check
 
 build-dist:
 	npm pack
