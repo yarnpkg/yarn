@@ -114,12 +114,19 @@ export default class Lockfile {
     [packagePattern: string]: Manifest
   }): Object {
     let lockfile = {};
-    let seen: Map<Manifest, string> = new Map;
+    let seen: Map<string, string> = new Map;
+    // order by name so that lockfile manifest is assigned to the first dependency with this manifest
+    // the others that have the same remote.resovled will just refer to the first
+    // oredring allows for consistency in lockfile when it is serialized
+    let sortedPatternsKeys: string[] = Object.keys(patterns).sort((a, b) => {
+      return a.toLowerCase().localeCompare(b.toLowerCase());
+    });
 
-    for (let pattern in patterns) {
+    for (let pattern of sortedPatternsKeys) {
       let pkg = patterns[pattern];
+      let remote = pkg.remote;
 
-      let seenPattern = seen.get(pkg);
+      let seenPattern = remote && remote.resolved && seen.get(remote.resolved);
       if (seenPattern) {
         // no point in duplicating it
         lockfile[pattern] = seenPattern;
@@ -129,7 +136,6 @@ export default class Lockfile {
       let ref = pkg.reference;
       invariant(ref, "Package is missing a reference");
 
-      let remote = pkg.remote;
       invariant(remote, "Package is missing a remote");
 
       lockfile[pattern] = {
@@ -143,7 +149,9 @@ export default class Lockfile {
         permissions: _.isEmpty(ref.permissions) ? undefined : ref.permissions
       };
 
-      seen.set(pkg, pattern);
+      if (remote.resolved) {
+        seen.set(remote.resolved, pattern);
+      }
     }
 
     return lockfile;

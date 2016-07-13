@@ -116,7 +116,7 @@ test("Lockfile.getLockfile", (t) => {
         permissions: {}
       },
       remote: {
-        resolved: "http://example.com",
+        resolved: "http://example.com/foobar",
         registry: "npm"
       }
     },
@@ -137,7 +137,7 @@ test("Lockfile.getLockfile", (t) => {
         }
       },
       remote: {
-        resolved: "http://example.com",
+        resolved: "http://example.com/barfoo",
         registry: "bower"
       }
     }
@@ -152,7 +152,7 @@ test("Lockfile.getLockfile", (t) => {
       name: "foobar",
       version: "0.0.0",
       uid: undefined,
-      resolved: "http://example.com",
+      resolved: "http://example.com/foobar",
       registry: undefined,
       dependencies: undefined,
       optionalDependencies: undefined,
@@ -163,7 +163,7 @@ test("Lockfile.getLockfile", (t) => {
       name: "barfoo",
       version: "0.0.1",
       uid: "0.1.0",
-      resolved: "http://example.com",
+      resolved: "http://example.com/barfoo",
       registry: "bower",
       dependencies: { yes: "no" },
       optionalDependencies: { no: "yes" },
@@ -171,6 +171,46 @@ test("Lockfile.getLockfile", (t) => {
     },
 
     foobar2: "foobar"
+  };
+
+  t.deepEqual(actual, expected);
+});
+
+test("Lockfile.getLockfile (sorting)", (t) => {
+  let patterns = {
+    foobar2: {
+      name: "foobar",
+      version: "0.0.0",
+      uid: "0.0.0",
+      dependencies: {},
+      optionalDependencies: {},
+      reference: {
+        permissions: {}
+      },
+      remote: {
+        resolved: "http://example.com/foobar",
+        registry: "npm"
+      }
+    },
+  };
+
+  patterns.foobar1 = patterns.foobar2;
+
+  let actual = new Lockfile().getLockfile(patterns);
+
+  let expected = {
+    foobar1: {
+      name: "foobar",
+      version: "0.0.0",
+      uid: undefined,
+      resolved: "http://example.com/foobar",
+      registry: undefined,
+      dependencies: undefined,
+      optionalDependencies: undefined,
+      permissions: undefined
+    },
+
+    foobar2: "foobar1"
   };
 
   t.deepEqual(actual, expected);

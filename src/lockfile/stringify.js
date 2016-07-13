@@ -9,6 +9,8 @@
  * @flow
  */
 
+let _ = require("lodash");
+
 function shouldWrapKey(str: string): boolean {
   return str.indexOf("true") === 0 || str.indexOf("false") === 0 ||
          /[:\s\n\\"]/g.test(str) || /^[0-9]/g.test(str) || !/^[a-zA-Z]/g.test(str);
@@ -42,13 +44,17 @@ export default function stringify(obj: any, indent: string = ""): string {
 
   let lines = [];
 
-  let keys = Object.keys(obj).sort(function (a, b) {
-    // sort alphabetically
-    return a.toLowerCase().localeCompare(b.toLowerCase());
-  }).sort(function (a, b) {
-    // prioritise certain fields
-    return +(getKeyPriority(a) > getKeyPriority(b));
-  });
+  // Sorting order needs to be consistent between runs, we run native sort by name because there are no
+  // problems with it being unstable because there are no to keys the same
+  // However priorities can be duplicated and native sort can shuffle things from run to run
+  let keys = Object.keys(obj)
+    .sort(function (a, b) {
+      // sort alphabetically
+      return a.toLowerCase().localeCompare(b.toLowerCase());
+    });
+
+  // stable sort, V8 Array.prototype.sort is not stable and we don't want to shuffle things randomly
+  keys = _.sortBy(keys, getKeyPriority);
 
   for (let key of keys) {
     let val = obj[key];
