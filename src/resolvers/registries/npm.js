@@ -84,6 +84,10 @@ export default class NpmResolver extends RegistryResolver {
       );
     }
 
+    if (info.deprecated) {
+      this.reporter.warn(`${info.name}@${info.version}: ${info.deprecated}`);
+    }
+
     if (info.dist && info.dist.tarball) {
       info.remote = {
         resolved: `${info.dist.tarball}#${info.dist.shasum}`,
