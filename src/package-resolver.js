@@ -90,7 +90,7 @@ export default class PackageResolver {
   config: Config;
 
   /**
-   * TODO description
+   * TODO descriptio
    */
 
   async updateManifest(ref: PackageReference, newPkg: Manifest): Promise<void> {
