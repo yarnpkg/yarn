@@ -8,6 +8,7 @@ cache:
   - node_modules
 
 env:
+ - NODE_VERSION="6"
  - NODE_VERSION="5"
  - NODE_VERSION="4"
 
