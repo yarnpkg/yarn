@@ -387,10 +387,6 @@ export function setFlags(commander: Object) {
   commander.option("--no-optional"); // TODO
   commander.option("--no-lockfile"); // TODO
   commander.option("--init-mirror", "initialise local package mirror and copy module tarballs");
-  commander.option(
-    "--force-single-instance",
-    "pause and wait if other instances are running on the same folder"
-  );
 }
 
 export async function run(

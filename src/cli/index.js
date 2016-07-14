@@ -20,9 +20,9 @@ import aliases from "./aliases.js";
 import Config from "../config.js";
 import onDeath from "death";
 
-const net = require("net");
-const path = require("path");
-const fs = require("fs");
+const net             = require("net");
+const path            = require("path");
+const fs              = require("fs");
 
 let loudRejection     = require("loud-rejection");
 let commander         = require("commander");
@@ -43,6 +43,10 @@ commander.option("--modules-folder [path]", "rather than installing modules into
                                             "folder relative to the cwd, output them here");
 commander.option("--packages-root [path]", "rather than storing modules into a global packages root," +
                                            "store them here");
+commander.option(
+ "--force-single-instance",
+ "pause and wait if other instances are running on the same folder"
+);
 // get command name
 let commandName = args.splice(2, 1)[0] || "";
 
@@ -122,7 +126,8 @@ const runEventually = () => {
     const clients = [];
     const unixServer = net.createServer((client) => {
       clients.push(client);
-    }).on("error", () => {
+    });
+    unixServer.on("error", () => {
       // another process exists, wait until it dies.
       reporter.warn("waiting until the other kpm instance finish.");
 
