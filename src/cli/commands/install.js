@@ -71,7 +71,7 @@ export class Install {
   compatibility: PackageCompatibility;
 
   /**
-   * TODO
+   * TODO description
    */
 
   async fetchRequestFromCwd(excludePatterns?: Array<string> = []): Promise<[
