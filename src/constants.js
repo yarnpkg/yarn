@@ -21,6 +21,7 @@ export const MODULE_CACHE_DIRECTORY = ".fbkpm";
 export const LOCKFILE_FILENAME      = "fbkpm.lock";
 export const INTEGRITY_FILENAME     = ".fbkpm-integrity";
 export const METADATA_FILENAME      = ".fbkpm-metadata.json";
+export const SINGLE_SOCKET_FILENAME = ".fbkpm-single-socket";
 
 export const USER_AGENT = "fbkpm";
 
