@@ -160,20 +160,17 @@ export class Install {
     }
 
     //
-    this.reporter.step(1, 4, "Resolving and fetching packages", emoji.get("truck"));
+    this.reporter.step(1, 3, "Resolving and fetching packages", emoji.get("truck"));
     await this.resolver.init(depRequests);
     let patterns = await this.flatten(rawPatterns);
-
-    //
-    this.reporter.step(2, 4, "Checking package compatibility", emoji.get("white_check_mark"));
     await this.compatibility.init();
 
     //
-    this.reporter.step(3, 4, "Linking dependencies", emoji.get("link"));
+    this.reporter.step(2, 3, "Linking dependencies", emoji.get("link"));
     await this.linker.init(patterns);
 
     //
-    this.reporter.step(4, 4, "Running install scripts", emoji.get("page_with_curl"));
+    this.reporter.step(3, 3, "Building", emoji.get("page_with_curl"));
     await this.scripts.init();
 
     // fin!
