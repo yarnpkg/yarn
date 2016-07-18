@@ -368,6 +368,10 @@ function shouldWriteLockfileIfExists(flags: Object, args: Array<string>): boolea
  */
 
 function shouldWriteLockfile(flags: Object, args: Array<string>): boolean {
+  if (!flags.lockfile) {
+    return false;
+  }
+
   if (hasSaveFlags(flags)) {
     // we should write a new lockfile as we're introducing new dependencies
     return true;
@@ -390,13 +394,8 @@ export function setFlags(commander: Object) {
   commander.option("-O, --save-optional", "save package to your `optionalDependencies`");
   commander.option("-E, --save-exact", "");
   commander.option("-T, --save-tilde", "");
-  commander.option("--tag [tag]", ""); // TODO
-  commander.option("--dry-run", ""); // TODO
-  commander.option("-f, --force", ""); // TODO
-  commander.option("-g, --global", ""); // TODO
-  commander.option("--link"); // TODO
   commander.option("--no-optional"); // TODO
-  commander.option("--no-lockfile"); // TODO
+  commander.option("--no-lockfile");
   commander.option("--init-mirror", "initialise local package mirror and copy module tarballs");
 }
 
@@ -406,10 +405,16 @@ export async function run(
   flags: Object,
   args: Array<string>
 ): Promise<void> {
-  let lockfile = await Lockfile.fromDirectory(config.cwd, reporter, {
-    strictIfPresent: isStrictLockfile(flags, args),
-    save: hasSaveFlags(flags) || flags.initMirror
-  });
+  let lockfile;
+  if (flags.lockfile) {
+    lockfile = await Lockfile.fromDirectory(config.cwd, reporter, {
+      strictIfPresent: isStrictLockfile(flags, args),
+      save: hasSaveFlags(flags) || flags.initMirror
+    });
+  } else {
+    lockfile = new Lockfile;
+  }
+
   let install = new Install("install", flags, args, config, reporter, lockfile);
   return install.init();
 }

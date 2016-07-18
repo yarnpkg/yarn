@@ -24,7 +24,7 @@ export { default as parse } from "./parse";
 export { default as stringify } from "./stringify";
 
 export default class Lockfile {
-  constructor(cache: ?Object, strict?: boolean, save?: boolean, source?: string) {
+  constructor(cache?: ?Object, strict?: boolean, save?: boolean, source?: string) {
     this.strict = !!strict;
     this.source = source || "";
     this.cache  = cache;
