@@ -82,7 +82,7 @@ export async function run(
     let res = await install.linker.initCopyModules(rawPatterns);
     for (let [loc] of res) {
       let human = path.relative(path.join(process.cwd(), "node_modules"), loc);
-      human = human.replace(/node_modules/g, " > ");
+      human = human.replace(new RegExp(`${path.sep}node_modules${path.sep}`, "g"), " > ");
 
       if (!(await fs.exists(loc))) {
         reporter.error(`Module not installed: ${human}`);
