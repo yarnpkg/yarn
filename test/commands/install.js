@@ -570,26 +570,28 @@ test("uninstall should remove dependency from package.json, fbkpm.lock and node_
     await fs.copy(path.join(config.cwd, "fbkpm.lock"), path.join(config.cwd, "fbkpm.lock.orig"));
     await fs.copy(path.join(config.cwd, "package.json"), path.join(config.cwd, "package.json.orig"));
 
-    await uninstall(config, reporter, {}, ["dep-a"]);
+    try {
+      await uninstall(config, reporter, {}, ["dep-a"]);
 
-    assert(!await fs.exists(path.join(config.cwd, "node_modules/dep-a")));
-    assert(await fs.exists(path.join(config.cwd, `${mirrorPath}/dep-a-1.0.0.tgz`)));
+      assert(!await fs.exists(path.join(config.cwd, "node_modules/dep-a")));
+      assert(await fs.exists(path.join(config.cwd, `${mirrorPath}/dep-a-1.0.0.tgz`)));
 
-    assert.deepEqual(
-      JSON.parse(await fs.readFile(path.join(config.cwd, "package.json"))).dependencies,
-      {}
-    );
+      assert.deepEqual(
+        JSON.parse(await fs.readFile(path.join(config.cwd, "package.json"))).dependencies,
+        {}
+      );
 
-    let lockFileContent = await fs.readFile(path.join(config.cwd, "fbkpm.lock"));
-    let lockFileLines = lockFileContent.split("\n").filter((line) => !!line);
-    assert.equal(lockFileLines.length, 0);
-
-    await fs.unlink(path.join(config.cwd, "fbkpm.lock"));
-    await fs.unlink(path.join(config.cwd, "package.json"));
-    await fs.copy(path.join(config.cwd, "fbkpm.lock.orig"), path.join(config.cwd, "fbkpm.lock"));
-    await fs.copy(path.join(config.cwd, "package.json.orig"), path.join(config.cwd, "package.json"));
-    await fs.unlink(path.join(config.cwd, "fbkpm.lock.orig"));
-    await fs.unlink(path.join(config.cwd, "package.json.orig"));
+      let lockFileContent = await fs.readFile(path.join(config.cwd, "fbkpm.lock"));
+      let lockFileLines = lockFileContent.split("\n").filter((line) => !!line);
+      assert.equal(lockFileLines.length, 0);
+    } finally {
+      await fs.unlink(path.join(config.cwd, "fbkpm.lock"));
+      await fs.unlink(path.join(config.cwd, "package.json"));
+      await fs.copy(path.join(config.cwd, "fbkpm.lock.orig"), path.join(config.cwd, "fbkpm.lock"));
+      await fs.copy(path.join(config.cwd, "package.json.orig"), path.join(config.cwd, "package.json"));
+      await fs.unlink(path.join(config.cwd, "fbkpm.lock.orig"));
+      await fs.unlink(path.join(config.cwd, "package.json.orig"));
+    }
   });
 });
 
