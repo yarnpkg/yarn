@@ -52,7 +52,17 @@ export default class PackageInstallScripts {
       return await executeLifecycleScript(this.config, loc, cmds, pkg);
     } catch (err) {
       err.message = `${loc}: ${err.message}`;
-      throw err;
+
+      let ref = pkg.reference;
+      invariant(ref, "expected reference");
+
+      if (ref.optional) {
+        this.reporter.error(`Error running install script for optional dependency: ${err.message}`);
+        this.reporter.info("This module is OPTIONAL, you can safely ignore this error");
+        return [];
+      } else {
+        throw err;
+      }
     }
   }
 
