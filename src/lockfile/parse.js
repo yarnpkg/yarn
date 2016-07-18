@@ -24,10 +24,15 @@ const TOKEN_TYPES = {
   newline: "NEWLINE",
   indent: "INDENT",
   invalid: "INVALID",
-  number: "NUMBER"
+  number: "NUMBER",
+  comma: "COMMA"
 };
 
 const VALID_PROP_VALUE_TOKENS = [TOKEN_TYPES.boolean, TOKEN_TYPES.string, TOKEN_TYPES.number];
+
+function isValidPropValueToken(token): boolean {
+  return VALID_PROP_VALUE_TOKENS.indexOf(token.type) >= 0;
+}
 
 type Token = {
   line: number,
@@ -111,6 +116,9 @@ export function* tokenise(input: string): Iterator<Token> {
     } else if (input[0] === ":") {
       yield buildToken(TOKEN_TYPES.colon);
       chop++;
+    } else if (input[0] === ",") {
+      yield buildToken(TOKEN_TYPES.comma);
+      chop++;
     } else if (/^[a-zA-Z]/g.test(input)) {
       let name = "";
       for (let i = 0; i < input.length; i++) {
@@ -172,6 +180,15 @@ export class Parser {
     }
   }
 
+  eat(tokType: string): boolean {
+    if (this.token.type === tokType) {
+      this.next();
+      return true;
+    } else {
+      return false;
+    }
+  }
+
   parse(indent: number = 0): Object {
     let obj = map();
 
@@ -210,16 +227,37 @@ export class Parser {
         let key = propToken.value;
         invariant(key, "Expected a key");
 
+        let keys = [key];
+
+        // support multiple keys
+        while (this.eat(TOKEN_TYPES.comma)) {
+          let keyToken = this.token;
+          this.expect(TOKEN_TYPES.string);
+
+          let key = keyToken.value;
+          invariant(key, "Expected a key");
+          keys.push(key);
+        }
+
         let valToken = this.next();
-        if (valToken.type === TOKEN_TYPES.colon) {
+        if (valToken.type === TOKEN_TYPES.colon) { // object
           this.next();
-          obj[key] = this.parse(indent + 1);
+
+          // parse object
+          let val = this.parse(indent + 1);
+
+          for (let key of keys) {
+            obj[key] = val;
+          }
 
           if (indent && this.token.type !== TOKEN_TYPES.indent) {
             break;
           }
-        } else if (VALID_PROP_VALUE_TOKENS.indexOf(valToken.type) >= 0) {
-          obj[key] = valToken.value;
+        } else if (isValidPropValueToken(valToken)) { // plain value
+          for (let key of keys) {
+            obj[key] = valToken.value;
+          }
+
           this.next();
         } else {
           this.unexpected("Invalid value type");
