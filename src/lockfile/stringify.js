@@ -13,7 +13,7 @@ let _ = require("lodash");
 
 function shouldWrapKey(str: string): boolean {
   return str.indexOf("true") === 0 || str.indexOf("false") === 0 ||
-         /[:\s\n\\"]/g.test(str) || /^[0-9]/g.test(str) || !/^[a-zA-Z]/g.test(str);
+         /[:\s\n\\",]/g.test(str) || /^[0-9]/g.test(str) || !/^[a-zA-Z]/g.test(str);
 }
 
 function maybeWrap(str: string): string {
@@ -56,19 +56,39 @@ export default function stringify(obj: any, indent: string = ""): string {
   // stable sort, V8 Array.prototype.sort is not stable and we don't want to shuffle things randomly
   keys = _.sortBy(keys, getKeyPriority);
 
-  for (let key of keys) {
+  let addedKeys = [];
+
+  for (let i = 0; i < keys.length; i++) {
+    let key = keys[i];
     let val = obj[key];
     if (val == null) continue;
+    if (addedKeys.indexOf(key) >= 0) continue;
 
-    key = maybeWrap(key);
+    //
+    let valKeys = [key];
+
+    // get all keys that have the same value equality, we only want this for objects
+    if (typeof val === "object") {
+      for (let j = i + 1; j < keys.length; j++) {
+        let key = keys[j];
+        if (val === obj[key]) {
+          valKeys.push(key);
+        }
+      }
+    }
+
+    //
+    let keyLine = valKeys.map(maybeWrap).join(", ");
 
     if (typeof val === "string" || typeof val === "boolean" || typeof val === "number") {
-      lines.push(`${key} ${maybeWrap(val)}`);
+      lines.push(`${keyLine} ${maybeWrap(val)}`);
     } else if (typeof val === "object") {
-      lines.push(`${key}:\n${stringify(val, indent + "  ")}`);
+      lines.push(`${keyLine}:\n${stringify(val, indent + "  ")}`);
     } else {
       throw new TypeError;
     }
+
+    addedKeys = addedKeys.concat(valKeys);
   }
 
   return indent + lines.join(`\n${indent}`);

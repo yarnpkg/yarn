@@ -51,8 +51,8 @@ test("parse", (t) => {
 });
 
 test("stringify", (t) => {
-  stringify;
-  t;
+  let obj = { foo: "bar" };
+  t.deepEqual(stringify({ a: obj, b: obj }), "a, b:\n  foo bar");
 });
 
 test("Lockfile.isStrict", (t) => {
@@ -147,17 +147,19 @@ test("Lockfile.getLockfile", (t) => {
 
   let actual = new Lockfile().getLockfile(patterns);
 
+  let expectedFoobar = {
+    name: "foobar",
+    version: "0.0.0",
+    uid: undefined,
+    resolved: "http://example.com/foobar",
+    registry: undefined,
+    dependencies: undefined,
+    optionalDependencies: undefined,
+    permissions: undefined
+  };
+
   let expected = {
-    foobar: {
-      name: "foobar",
-      version: "0.0.0",
-      uid: undefined,
-      resolved: "http://example.com/foobar",
-      registry: undefined,
-      dependencies: undefined,
-      optionalDependencies: undefined,
-      permissions: undefined
-    },
+    foobar: expectedFoobar,
 
     barfoo: {
       name: "barfoo",
@@ -170,7 +172,7 @@ test("Lockfile.getLockfile", (t) => {
       permissions: { foo: "bar" }
     },
 
-    foobar2: "foobar"
+    foobar2: expectedFoobar
   };
 
   t.deepEqual(actual, expected);
@@ -198,19 +200,20 @@ test("Lockfile.getLockfile (sorting)", (t) => {
 
   let actual = new Lockfile().getLockfile(patterns);
 
-  let expected = {
-    foobar1: {
-      name: "foobar",
-      version: "0.0.0",
-      uid: undefined,
-      resolved: "http://example.com/foobar",
-      registry: undefined,
-      dependencies: undefined,
-      optionalDependencies: undefined,
-      permissions: undefined
-    },
+  let expectedFoobar = {
+    name: "foobar",
+    version: "0.0.0",
+    uid: undefined,
+    resolved: "http://example.com/foobar",
+    registry: undefined,
+    dependencies: undefined,
+    optionalDependencies: undefined,
+    permissions: undefined
+  };
 
-    foobar2: "foobar1"
+  let expected = {
+    foobar1: expectedFoobar,
+    foobar2: expectedFoobar
   };
 
   t.deepEqual(actual, expected);

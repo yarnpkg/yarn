@@ -114,7 +114,8 @@ export default class Lockfile {
     [packagePattern: string]: Manifest
   }): Object {
     let lockfile = {};
-    let seen: Map<string, string> = new Map;
+    let seen: Map<string, Object> = new Map;
+
     // order by name so that lockfile manifest is assigned to the first dependency with this manifest
     // the others that have the same remote.resovled will just refer to the first
     // oredring allows for consistency in lockfile when it is serialized
@@ -138,7 +139,7 @@ export default class Lockfile {
 
       invariant(remote, "Package is missing a remote");
 
-      lockfile[pattern] = {
+      let obj = {
         name: pkg.name,
         version: pkg.version,
         uid: pkg.uid === pkg.version ? undefined : pkg.uid,
@@ -148,9 +149,10 @@ export default class Lockfile {
         optionalDependencies: _.isEmpty(pkg.optionalDependencies) ? undefined : pkg.optionalDependencies,
         permissions: _.isEmpty(ref.permissions) ? undefined : ref.permissions
       };
+      lockfile[pattern] = obj;
 
       if (remote.resolved) {
-        seen.set(remote.resolved, pattern);
+        seen.set(remote.resolved, obj);
       }
     }
 
