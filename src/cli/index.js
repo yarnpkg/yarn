@@ -12,16 +12,24 @@
 import buildExecuteLifecycleScript from "./commands/_execute-lifecycle-script.js";
 import { ConsoleReporter, JSONReporter } from "kreporters";
 import { MessageError } from "../errors.js";
-import * as network from "../util/network.js";
 import * as commands from "./commands/index.js";
+import * as constants from "../constants.js";
+import * as network from "../util/network.js";
+
 import aliases from "./aliases.js";
 import Config from "../config.js";
+import onDeath from "death";
 
-let loudRejection = require("loud-rejection");
-let commander     = require("commander");
-let invariant     = require("invariant");
-let pkg           = require("../../package");
-let _             = require("lodash");
+const net             = require("net");
+const path            = require("path");
+const fs              = require("fs");
+
+let loudRejection     = require("loud-rejection");
+let commander         = require("commander");
+let invariant         = require("invariant");
+let pkg               = require("../../package");
+let _                 = require("lodash");
+let lastWillExpressed = false;
 
 loudRejection();
 
@@ -35,6 +43,10 @@ commander.option("--modules-folder [path]", "rather than installing modules into
                                             "folder relative to the cwd, output them here");
 commander.option("--packages-root [path]", "rather than storing modules into a global packages root," +
                                            "store them here");
+commander.option(
+ "--force-single-instance",
+ "pause and wait if other instances are running on the same folder"
+);
 // get command name
 let commandName = args.splice(2, 1)[0] || "";
 
@@ -99,12 +111,70 @@ if (network.isOffline()) {
 }
 
 //
-config.init().then(function () {
+const run = () => {
   return command.run(config, reporter, commander, commander.args).then(function () {
     reporter.close();
     reporter.footer(true);
-    process.exit();
   });
+};
+
+
+//
+const runEventually = () => {
+  return new Promise((ok) => {
+    const socketFile = path.join(config.cwd, constants.SINGLE_SOCKET_FILENAME);
+    const clients = [];
+    const unixServer = net.createServer((client) => {
+      clients.push(client);
+    });
+    unixServer.on("error", () => {
+      // another process exists, wait until it dies.
+      reporter.warn("waiting until the other kpm instance finish.");
+
+      let socket = net.createConnection(socketFile);
+
+      socket.on("connect", () => {}).on("data", () => {
+        socket.unref();
+        ok(runEventually().then(process.exit));
+      }).on("error", (e) => {
+        // the process finished while we were handling the error.
+        if (e.code === "ECONNREFUSED") {
+          try {
+            fs.unlinkSync(socketFile);
+          } catch (e) {} // some other instance won the race to delete the file
+        }
+
+        ok(runEventually().then(process.exit));
+      });
+
+    });
+
+    const clean = () => {
+      // clean after ourself.
+      clients.forEach((client) => {
+        client.write("closing. kthanx, bye.");
+      });
+      unixServer.close();
+      process.exit();
+    };
+
+    if (!lastWillExpressed) {
+      onDeath(clean);
+      lastWillExpressed = true;
+    }
+
+    unixServer.listen(socketFile, () => {
+      ok(run().then(clean));
+    });
+  });
+};
+
+//
+config.init().then(() => {
+  if (commander.forceSingleInstance) {
+    return runEventually();
+  }
+  return run().then(process.exit);
 }).catch(function (errs) {
   function logError(err) {
     if (err instanceof MessageError) {
