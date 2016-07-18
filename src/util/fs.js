@@ -38,7 +38,8 @@ export async function copy(src: string, dest: string): Promise<void> {
   if (await exists(dest)) {
     let destStat = await lstat(dest);
 
-    if (srcStat.isFile() && destStat.isFile() && srcStat.size === destStat.size) {
+    if (srcStat.isFile() && destStat.isFile() &&
+        srcStat.size === destStat.size && +srcStat.mtime === +destStat.mtime) {
       // we can safely assume this is the same file
       return;
     }
@@ -82,12 +83,18 @@ export async function copy(src: string, dest: string): Promise<void> {
       readStream.on("error", reject);
       writeStream.on("error", reject);
 
-      writeStream.on("open", function() {
+      writeStream.on("open", function () {
         readStream.pipe(writeStream);
       });
 
-      writeStream.once("finish", function() {
-        resolve();
+      writeStream.once("finish", function () {
+        fs.utimes(dest, +srcStat.atime, +srcStat.mtime, function (err) {
+          if (err) {
+            reject(err);
+          } else {
+            resolve();
+          }
+        });
       });
     });
   } else {
