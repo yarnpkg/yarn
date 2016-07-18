@@ -103,6 +103,7 @@ export default class PackageLinker {
     let tree = Object.create(null);
     let self = this;
 
+    let unflattenedKeys = new Set;
     let subPairs = new Map;
 
     //
@@ -133,6 +134,7 @@ export default class PackageLinker {
 
       zippedTree.push(pair);
       tree[key] = info;
+      unflattenedKeys.add(key);
 
       let results = [];
 
@@ -157,6 +159,7 @@ export default class PackageLinker {
       let pair = zippedTree[i];
       let [key, info] = pair;
 
+      let stepUp = false;
       let parts = key.split("#");
       let stack = []; // stack of removed parts
 
@@ -166,15 +169,23 @@ export default class PackageLinker {
       // remove redundant parts that wont collide
       let name = parts.pop();
       while (parts.length) {
-        let key = parts.concat(name).join("#");
+        let checkKey = parts.concat(name).join("#");
 
-        let existing = tree[key];
+        //
+        let existing = tree[checkKey];
         if (existing) {
           if (existing.loc === info.loc) {
             continue hoist;
           } else {
             break;
           }
+        }
+
+        // check if we're trying to hoist ourselves to a previously unflattened module key,
+        // this will result in a conflict and we'll need to move ourselves up
+        if (key !== checkKey && unflattenedKeys.has(checkKey)) {
+          stepUp = true;
+          break;
         }
 
         stack.push(parts.pop());
@@ -184,9 +195,14 @@ export default class PackageLinker {
       parts.push(name);
 
       // we need to special case when we attempt to hoist to the top level as the `existing` logic
-      // wont be hit in the above `while` loop
+      // wont be hit in the above `while` loop and we could conflict
       let existing = tree[parts.join("#")];
       if (existing && existing.loc !== info.loc) {
+        stepUp = true;
+      }
+
+      // sometimes we need to step up to a parent module to install ourselves
+      if (stepUp) {
         parts.pop();
         parts.push(stack.pop(), name);
       }
