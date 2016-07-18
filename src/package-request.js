@@ -12,7 +12,7 @@
 import type { Manifest } from "./types.js";
 import type { RegistryNames } from "./registries/index.js";
 import type PackageResolver from "./package-resolver.js";
-import type { Reporter } from "kreporters";
+import type { Reporter } from "./reporters/index.js";
 import type Config from "./config.js";
 import Lockfile, { parse as parseLock } from "./lockfile/index.js";
 import PackageReference from "./package-reference.js";

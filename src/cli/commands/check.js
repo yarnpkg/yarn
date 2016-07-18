@@ -9,7 +9,7 @@
  * @flow
  */
 
-import type { Reporter } from "kreporters";
+import type { Reporter } from "../../reporters/index.js";
 import type Config from "../../config.js";
 import { Install } from "./install.js";
 import Lockfile from "../../lockfile/index.js";

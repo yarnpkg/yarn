@@ -9,7 +9,7 @@
  * @flow
  */
 
-import type { Reporter } from "kreporters";
+import type { Reporter } from "../reporters/index.js";
 import type { Manifest } from "../types.js";
 import { MessageError } from "../errors.js";
 import parse from "./parse.js";

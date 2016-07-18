@@ -11,7 +11,7 @@
 
 import type { Manifest } from "./types.js";
 import type PackageResolver from "./package-resolver.js";
-import type { Reporter } from "kreporters";
+import type { Reporter } from "./reporters/index.js";
 import type Config from "./config.js";
 import * as promise from "./util/promise.js";
 import { entries } from "./util/misc.js";

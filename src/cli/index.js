@@ -10,7 +10,7 @@
  */
 
 import buildExecuteLifecycleScript from "./commands/_execute-lifecycle-script.js";
-import { ConsoleReporter, JSONReporter } from "kreporters";
+import { ConsoleReporter, JSONReporter } from "../reporters/index.js";
 import { MessageError } from "../errors.js";
 import * as commands from "./commands/index.js";
 import * as constants from "../constants.js";
