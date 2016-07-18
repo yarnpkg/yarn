@@ -39,7 +39,8 @@ export async function copy(src: string, dest: string): Promise<void> {
     let destStat = await lstat(dest);
 
     if (srcStat.isFile() && destStat.isFile() &&
-        srcStat.size === destStat.size && +srcStat.mtime === +destStat.mtime) {
+        srcStat.size === destStat.size && +srcStat.mtime === +destStat.mtime &&
+        srcStat.mode === destStat.mode) {
       // we can safely assume this is the same file
       return;
     }
@@ -50,7 +51,7 @@ export async function copy(src: string, dest: string): Promise<void> {
       let srcFiles  = await readdir(src);
 
       let promises = destFiles.map(async (file) => {
-        if (srcFiles.indexOf(file) < 0) {
+        if (file !== "node_modules" && srcFiles.indexOf(file) < 0) {
           await unlink(path.join(dest, file));
         }
       });
@@ -88,7 +89,7 @@ export async function copy(src: string, dest: string): Promise<void> {
       });
 
       writeStream.once("finish", function () {
-        fs.utimes(dest, +srcStat.atime, +srcStat.mtime, function (err) {
+        fs.utimes(dest, srcStat.atime, srcStat.mtime, function (err) {
           if (err) {
             reject(err);
           } else {
