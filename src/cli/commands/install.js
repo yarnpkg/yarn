@@ -170,7 +170,12 @@ export class Install {
     await this.linker.init(patterns);
 
     //
-    this.reporter.step(3, 3, "Building", emoji.get("page_with_curl"));
+    this.reporter.step(
+      3,
+      3,
+      this.flags.rebuild ? "Rebuilding all packages" : "Building fresh packages",
+      emoji.get("page_with_curl")
+    );
     await this.scripts.init();
 
     // fin!
