@@ -364,7 +364,7 @@ function shouldWriteLockfileIfExists(flags: Object, args: Array<string>): boolea
  */
 
 function shouldWriteLockfile(flags: Object, args: Array<string>): boolean {
-  if (!flags.lockfile) {
+  if (flags.lockfile === false) {
     return false;
   }
 
@@ -402,7 +402,7 @@ export async function run(
   args: Array<string>
 ): Promise<void> {
   let lockfile;
-  if (flags.lockfile) {
+  if (flags.lockfile !== false) {
     lockfile = await Lockfile.fromDirectory(config.cwd, reporter, {
       strictIfPresent: isStrictLockfile(flags, args),
       save: hasSaveFlags(flags) || flags.initMirror
