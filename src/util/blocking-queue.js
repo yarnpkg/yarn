@@ -16,6 +16,7 @@ export default class BlockingQueue {
     this.concurrencyQueue = [];
     this.maxConcurrency   = maxConcurrency;
     this.runningCount     = 0;
+    this.warnedStuck      = false;
     this.alias            = alias;
     this.first            = true;
 
@@ -24,6 +25,7 @@ export default class BlockingQueue {
   }
 
   concurrencyQueue: Array<Function>;
+  warnedStuck: boolean;
   maxConcurrency: number;
   runningCount: number;
   stuckTimer: ?number;
@@ -49,6 +51,7 @@ export default class BlockingQueue {
 
     this.stuckTimer = setTimeout(() => {
       if (this.runningCount === 1) {
+        this.warnedStuck = true;
         console.warn(
           `[fbkpm] The ${JSON.stringify(this.alias)} blocking queue may be stuck. 5 seconds ` +
           `without any activity with 1 worker: ${Object.keys(this.running)[0]}`
@@ -79,6 +82,13 @@ export default class BlockingQueue {
     if (this.running[key]) {
       delete this.running[key];
       this.runningCount--;
+
+      if (this.warnedStuck) {
+        this.warnedStuck = false;
+        console.log(
+          `[fbkpm] ${JSON.stringify(this.alias)} blocking queue finally resolved. Nothing to worry about.`
+        );
+      }
     }
 
     let queue = this.queue[key];
