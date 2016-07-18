@@ -33,12 +33,16 @@ export default class PackageRequest {
     registry,
     resolver,
     lockfile,
-    parentRequest
+    parentRequest,
+    optional,
+    ignore
   }: {
     pattern: string,
     lockfile: ?Lockfile,
     registry: RegistryNames,
     resolver: PackageResolver,
+    optional: boolean,
+    ignore: boolean,
     parentRequest: ?PackageRequest // eslint-disable-line no-unused-vars
   }) {
     this.parentRequest = parentRequest;
@@ -47,8 +51,10 @@ export default class PackageRequest {
     this.registry      = registry;
     this.reporter      = resolver.reporter;
     this.resolver      = resolver;
+    this.optional      = optional;
     this.pattern       = pattern;
     this.config        = resolver.config;
+    this.ignore        = ignore;
   }
 
   static getExoticResolver(pattern: string): ?Function { // TODO make this type more refined
@@ -65,6 +71,8 @@ export default class PackageRequest {
   pattern: string;
   config: Config;
   registry: RegistryNames;
+  ignore: boolean;
+  optional: boolean;
 
   getHuman(): string {
     let chain = [];
@@ -214,22 +222,10 @@ export default class PackageRequest {
    * TODO description
    */
 
-  async find(optional: boolean): Promise<void> {
-    let info: ?Manifest;
-
+  async find(): Promise<void> {
     // find verison info for this package pattern
-    try {
-      info = await this.findVersionInfo();
-      if (!info) throw new MessageError(`Couldn't find package ${this.pattern}`);
-    } catch (err) {
-      if (optional) {
-        // TODO add verbose flag
-        this.reporter.error(err.message);
-        return;
-      } else {
-        throw err;
-      }
-    }
+    let info: ?Manifest = await this.findVersionInfo();
+    if (!info) throw new MessageError(`Couldn't find package ${this.pattern}`);
 
     // check if while we were resolving this dep we've already resolved one that satisfies
     // the same range
@@ -239,7 +235,8 @@ export default class PackageRequest {
       invariant(ref, "Resolved package info has no package reference");
       ref.addRequest(this);
       ref.addPattern(this.pattern);
-      ref.addOptional(optional);
+      ref.addOptional(this.optional);
+      ref.addIgnore(this.ignore);
       this.resolver.addPattern(this.pattern, resolved);
       return;
     }
@@ -304,14 +301,26 @@ export default class PackageRequest {
     for (let depName in info.dependencies) {
       let depPattern = depName + "@" + info.dependencies[depName];
       deps.push(depPattern);
-      promises.push(this.resolver.find(depPattern, remote.registry, false, this, subLockfile));
+      promises.push(this.resolver.find({
+        pattern: depPattern,
+        registry: remote.registry,
+        optional: false,
+        parentRequest: this,
+        subLockfile
+      }));
     }
 
     // optional deps
     for (let depName in info.optionalDependencies) {
       let depPattern = depName + "@" + info.optionalDependencies[depName];
       deps.push(depPattern);
-      promises.push(this.resolver.find(depPattern, remote.registry, true, this, subLockfile));
+      promises.push(this.resolver.find({
+        pattern: depPattern,
+        registry: remote.registry,
+        optional: true,
+        parentRequest: this,
+        subLockfile
+      }));
     }
 
     await Promise.all(promises);
@@ -319,7 +328,8 @@ export default class PackageRequest {
     this.resolver.addPattern(this.pattern, info);
     ref.setDependencies(deps);
     ref.addPattern(this.pattern);
-    ref.addOptional(optional);
+    ref.addOptional(this.optional);
+    ref.addIgnore(this.ignore);
     this.resolver.registerPackageReference(ref);
   }
 

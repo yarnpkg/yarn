@@ -17,7 +17,8 @@ import type PackageReference from "./package-reference.js";
 export type DependencyRequestPatterns = Array<{
   pattern: string,
   registry: RegistryNames,
-  optional?: boolean
+  optional?: boolean,
+  ignore?: boolean
 }>;
 
 // person object, the exploded version of a `maintainers`/`authors` field

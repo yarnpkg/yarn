@@ -289,13 +289,21 @@ export default class PackageResolver {
    * TODO description
    */
 
-  async find(
+  async find({
+    pattern,
+    registry,
+    ignore = false,
+    optional = false,
+    parentRequest,
+    subLockfile
+  }: {
     pattern: string,
     registry: RegistryNames,
-    optional?: boolean = false,
+    optional?: boolean,
+    ignore?: boolean,
     parentRequest?: ?PackageRequest,
     subLockfile?: ?Lockfile
-  ): Promise<void> {
+  }): Promise<void> {
     let fetchKey = `${registry}:${pattern}`;
     if (this.fetchingPatterns[fetchKey]) {
       return;
@@ -311,13 +319,20 @@ export default class PackageResolver {
       this.newPatterns.push(pattern);
     }
 
+    // propagate `ignore` option
+    if (parentRequest && parentRequest.ignore) {
+      ignore = true;
+    }
+
     return new PackageRequest({
       lockfile: subLockfile,
       pattern,
       registry,
       parentRequest,
+      optional,
+      ignore,
       resolver: this
-    }).find(optional);
+    }).find();
   }
 
   /**
@@ -334,7 +349,7 @@ export default class PackageResolver {
     // build up promises
     let promises = [];
     for (let { pattern, registry, optional } of deps) {
-      promises.push(this.find(pattern, registry, optional));
+      promises.push(this.find({ pattern, registry, optional }));
     }
     await Promise.all(promises);
 

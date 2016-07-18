@@ -40,6 +40,7 @@ export default class PackageReference {
     this.permissions = {};
     this.patterns    = [];
     this.optional    = null;
+    this.ignore      = null;
     this.location    = null;
     this.saveForOffline = !!saveForOffline;
   }
@@ -52,6 +53,7 @@ export default class PackageReference {
   version: string;
   uid: string;
   optional: ?boolean;
+  ignore: ?boolean;
   saveForOffline: boolean;
   dependencies: Array<string>;
   patterns: Array<string>;
@@ -111,6 +113,15 @@ export default class PackageReference {
       // otherwise, ignore all subsequent optional assignments and only accept ones making
       // this not optional
       this.optional = false;
+    }
+  }
+
+  addIgnore(ignore: boolean) {
+    // see comments in addOptional
+    if (this.ignore == null) {
+      this.ignore = ignore;
+    } else if (!ignore) {
+      this.ignore = false;
     }
   }
 }

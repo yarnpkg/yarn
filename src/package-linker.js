@@ -217,7 +217,14 @@ export default class PackageLinker {
     let flatTree = [];
     for (let key in tree) {
       let info = tree[key];
-      let loc  = path.join(this.config.modulesFolder, key.replace(/#/g, "/node_modules/"));
+
+      // should we ignore this module from linking?
+      let ref = info.pkg.reference;
+      invariant(ref, "expected reference");
+      if (ref.ignore) continue;
+
+      // decompress the location and push it to the flat tree
+      let loc = path.join(this.config.modulesFolder, key.replace(/#/g, "/node_modules/"));
       flatTree.push([loc, info]);
     }
     return flatTree;
@@ -225,11 +232,11 @@ export default class PackageLinker {
 
   async copyModules(patterns: Array<string>): Promise<void> {
     let flatTree = await this.initCopyModules(patterns);
+
     // sorted tree makes file creation and copying not to interfere with each other
     flatTree = flatTree.sort((dep1, dep2) => {
       return dep1[0].localeCompare(dep2[0]);
     });
-    let self = this;
 
     //
     let tickCopyModule = this.reporter.progress(flatTree.length);
@@ -246,9 +253,9 @@ export default class PackageLinker {
 
     //
     let tickBin = this.reporter.progress(flatTree.length);
-    await promise.queue(flatTree, async function ([dest, { pkg }]) {
+    await promise.queue(flatTree, async ([dest, { pkg }]) => {
       let binLoc = path.join(dest, "node_modules");
-      await self.linkBinDependencies([], pkg, binLoc);
+      await this.linkBinDependencies([], pkg, binLoc);
       tickBin(dest);
     }, 4);
   }

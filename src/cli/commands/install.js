@@ -9,8 +9,8 @@
  * @flow
  */
 
-import type { RegistryNames } from "../../registries/index.js";
 import type { Reporter } from "kreporters";
+import type { DependencyRequestPatterns } from "../../types.js";
 import type Config from "../../config.js";
 import Lockfile from "../../lockfile/index.js";
 import lockStringify from "../../lockfile/stringify.js";
@@ -76,11 +76,7 @@ export class Install {
    */
 
   async fetchRequestFromCwd(excludePatterns?: Array<string> = []): Promise<[
-    Array<{
-      pattern: string,
-      registry: RegistryNames,
-      optional?: boolean
-    }>,
+    DependencyRequestPatterns,
     Array<string>
   ]> {
     let patterns = [];
@@ -122,7 +118,7 @@ export class Install {
           }
 
           patterns.push(pattern);
-          deps.push({ pattern, registry });
+          deps.push({ pattern, registry, ignore: !!this.flags.production });
         }
 
         // optional deps
@@ -394,7 +390,7 @@ export function setFlags(commander: Object) {
   commander.option("-O, --save-optional", "save package to your `optionalDependencies`");
   commander.option("-E, --save-exact", "");
   commander.option("-T, --save-tilde", "");
-  commander.option("--no-optional"); // TODO
+  commander.option("--production, --prod", "");
   commander.option("--no-lockfile");
   commander.option("--init-mirror", "initialise local package mirror and copy module tarballs");
 }
