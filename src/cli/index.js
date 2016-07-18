@@ -114,7 +114,7 @@ if (network.isOffline()) {
 const run = () => {
   return command.run(config, reporter, commander, commander.args).then(function () {
     reporter.close();
-    reporter.footer(true);
+    reporter.footer(false);
   });
 };
 

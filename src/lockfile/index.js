@@ -73,7 +73,7 @@ export default class Lockfile {
       rawLockfile = await fs.readFile(lockfileLoc);
       lockfile = parse(rawLockfile);
       strict = strictIfPresent;
-      if (!silent) reporter.info(`Read lockfile ${constants.LOCKFILE_FILENAME}`);
+      //if (!silent) reporter.info(`Read lockfile ${constants.LOCKFILE_FILENAME}`);
 
       if (!strict) {
         if (!silent) {
