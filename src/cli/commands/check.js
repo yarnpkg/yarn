@@ -84,12 +84,13 @@ export async function run(
       let human = path.relative(path.join(process.cwd(), "node_modules"), loc);
       human = human.replace(new RegExp(`${path.sep}node_modules${path.sep}`, "g"), " > ");
 
-      if (!(await fs.exists(loc))) {
-        reporter.error(`Module not installed: ${human}`);
+      let pkgLoc = path.join(loc, "package.json");
+      if (!(await fs.exists(loc)) || !(await fs.exists(pkgLoc))) {
+        reporter.error(`Module ${human} not installed`);
         valid = false;
       }
 
-      let pkg = await fs.readJson(path.join(loc, "package.json"));
+      let pkg = await fs.readJson(pkgLoc);
 
       let deps = Object.assign({}, pkg.dependencies, pkg.devDependencies, pkg.peerDependencies);
 
@@ -111,6 +112,7 @@ export async function run(
           `Module ${human} depends on ${name} with the range ${range} but it doesn't match the ` +
           `installed version of ${depPkg.version}`
         );
+        valid = false;
       }
     }
   }
