@@ -236,7 +236,7 @@ export class Parser {
 
           let keyToken = this.token;
           if (keyToken.type !== TOKEN_TYPES.string) {
-            this.unexepcted("Expected string");
+            this.unexpected("Expected string");
           }
 
           let key = keyToken.value;
