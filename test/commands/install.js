@@ -67,12 +67,14 @@ async function run(flags, args, name, checkInstalled, beforeInstall) {
   let install = new Install("install", flags, args, config, reporter, lockfile);
   await install.init();
 
-  if (checkInstalled) {
-    await checkInstalled(config, reporter);
+  try {
+    if (checkInstalled) {
+      await checkInstalled(config, reporter);
+    }
+  } finally {
+    // clean up
+    await clean(cwd, removeLock);
   }
-
-  // clean up
-  await clean(cwd, removeLock);
 }
 
 async function getPackageVersion(config, packagePath) {
