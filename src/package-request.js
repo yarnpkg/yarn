@@ -79,10 +79,10 @@ export default class PackageRequest {
 
     let delegator = this;
     do {
-      chain.push(`${delegator.registry}:${delegator.pattern}`);
+      chain.push(delegator.pattern);
     } while (delegator = delegator.parentRequest);
 
-    return chain.reverse().join(" -> ");
+    return chain.reverse().join(" > ");
   }
 
   getLocked(remoteType: string): ?Object {
