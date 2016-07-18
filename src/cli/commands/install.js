@@ -19,6 +19,7 @@ import PackageCompatibility from "../../package-compatibility.js";
 import PackageResolver from "../../package-resolver.js";
 import PackageLinker from "../../package-linker.js";
 import PackageRequest from "../../package-request.js";
+import { buildTree } from "./ls.js";
 import { registries } from "../../registries/index.js";
 import { MessageError } from "../../errors.js";
 import * as constants from "../../constants.js";
@@ -32,7 +33,7 @@ let semver    = require("semver");
 let emoji     = require("node-emoji");
 let path      = require("path");
 
-type InstallActions = "install" | "update" | "uninstall";
+type InstallActions = "install" | "update" | "uninstall" | "ls";
 
 export class Install {
   constructor(
@@ -106,20 +107,23 @@ export class Install {
         Object.assign(this.resolutions, json.resolutions);
 
         // plain deps
-        let plainDepMap = Object.assign({}, json.dependencies, json.devDependencies);
-        for (let name in plainDepMap) {
-          if (excludeNames.indexOf(name) >= 0) continue;
+        let pushPlainDeps = (depMap, hint, ignore) => {
+          for (let name in depMap) {
+            if (excludeNames.indexOf(name) >= 0) continue;
 
-          let pattern = name;
-          if (!this.lockfile.getLocked(pattern, true)) {
-            // when we use --save we save the dependency to the lockfile with just the name rather than the
-            // version combo
-            pattern += "@" + plainDepMap[name];
+            let pattern = name;
+            if (!this.lockfile.getLocked(pattern, true)) {
+              // when we use --save we save the dependency to the lockfile with just the name rather than the
+              // version combo
+              pattern += "@" + depMap[name];
+            }
+
+            patterns.push(pattern);
+            deps.push({ pattern, registry, ignore, hint });
           }
-
-          patterns.push(pattern);
-          deps.push({ pattern, registry, ignore: !!this.flags.production });
-        }
+        };
+        pushPlainDeps(json.dependencies, null, false);
+        pushPlainDeps(json.devDependencies, "dev", !!this.flags.production);
 
         // optional deps
         let optionalDeps = json.optionalDependencies;
@@ -134,7 +138,7 @@ export class Install {
           }
 
           patterns.push(pattern);
-          deps.push({ pattern, registry, optional: true });
+          deps.push({ pattern, registry, optional: true, hint: "optional" });
         }
 
         break;
@@ -179,8 +183,21 @@ export class Install {
     await this.scripts.init();
 
     // fin!
+    await this.maybeSaveTree(depRequests);
     await this.savePackages();
     await this.saveLockfile();
+  }
+
+  /**
+   * TODO
+   */
+
+  async maybeSaveTree(depRequests: DependencyRequestPatterns) {
+    if (!hasSaveFlags(this.flags)) return;
+
+    let { trees, count } = buildTree(this.resolver, depRequests, true);
+    this.reporter.success(`Saved ${count} new ${count === 1 ? "dependency" : "dependencies"}`);
+    this.reporter.tree("newDependencies", trees);
   }
 
   /**

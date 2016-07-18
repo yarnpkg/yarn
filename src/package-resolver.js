@@ -90,6 +90,14 @@ export default class PackageResolver {
   config: Config;
 
   /**
+   * TODO description
+   */
+
+  isNewPattern(pattern: string): boolean {
+    return this.newPatterns.indexOf(pattern) >= 0;
+  }
+
+  /**
    * TODO descriptio
    */
 

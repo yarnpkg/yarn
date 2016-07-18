@@ -9,6 +9,7 @@
  * @flow
  */
 
+import type { Trees } from "./types.js";
 import BaseReporter from "./_base.js";
 
 export default class JSONReporter extends BaseReporter {
@@ -26,6 +27,10 @@ export default class JSONReporter extends BaseReporter {
     let stdout = this.stdout;
     if (error) stdout = this.stderr;
     stdout.write(`${JSON.stringify({ type, data })}\n`);
+  }
+
+  tree(type: string, trees: Trees) {
+    this._dump("tree", { type, trees });
   }
 
   step(current: number, total: number, message: string) {

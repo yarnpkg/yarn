@@ -12,6 +12,9 @@
 import * as cache from "./cache.js";
 export { cache };
 
+import * as ls from "./ls.js";
+export { ls };
+
 import * as uninstall from "./uninstall.js";
 export { uninstall };
 

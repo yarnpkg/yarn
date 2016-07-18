@@ -19,3 +19,11 @@ export type Package = {
   name: string,
   version: string
 };
+
+export type Tree = {
+  name: string,
+  children?: Trees,
+  hint?: ?string
+};
+
+export type Trees = Array<Tree>;

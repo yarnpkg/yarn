@@ -10,7 +10,7 @@
  */
 /* eslint no-unused-vars: 0 */
 
-import type { Stdout, Stdin, Package } from "./types.js";
+import type { Trees, Stdout, Stdin, Package } from "./types.js";
 
 export type ReporterOptions = {
   stdout?: Stdout;
@@ -65,6 +65,9 @@ export default class BaseReporter {
   getTotalTime(): number {
     return Date.now() - this.startTime;
   }
+
+  // TODO
+  tree(key: string, obj: Trees) {}
 
   // called whenever we begin a step in the CLI.
   step(current: number, total: number, message: string, emoji?: string) {}

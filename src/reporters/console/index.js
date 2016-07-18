@@ -12,11 +12,18 @@
 import BaseReporter from "../_base.js";
 import Progress from "./progress-bar.js";
 import Spinner from "./spinner.js";
-import type { Package } from "../types.js";
+import type { Package, Trees } from "../types.js";
 import { clearLine } from "./util.js";
 
 let readline = require("readline");
+let repeat   = require("repeating");
 let chalk    = require("chalk");
+
+function sortTrees(trees: Trees = []): Trees {
+  return trees.sort((tree1, tree2) => {
+    return tree1.name.localeCompare(tree2.name);
+  });
+}
 
 export default class ConsoleReporter extends BaseReporter {
   _prependEmoji(msg: string, emoji: ?string): string {
@@ -76,6 +83,38 @@ export default class ConsoleReporter extends BaseReporter {
 
     question;
     return Promise.resolve(false);
+  }
+
+  tree(key: string, trees: Trees) {
+    trees = sortTrees(trees);
+
+    let stdout = this.stdout;
+
+    function output({ name, children, hint }, level, end) {
+      children = sortTrees(children);
+
+      let indent = end ? "└" : "├";
+
+      if (level) {
+        indent = repeat("│  ", level) + indent;
+      }
+
+      let suffix = "";
+      if (hint) suffix += ` (${chalk.grey(hint)})`;
+      stdout.write(`${indent}─ ${name}${suffix}\n`);
+
+      if (children && children.length) {
+        for (let i = 0; i < children.length; i++) {
+          let tree = children[i];
+          output(tree, level + 1, i === children.length - 1);
+        }
+      }
+    }
+
+    for (let i = 0; i < trees.length; i++) {
+      let tree = trees[i];
+      output(tree, 0, i === trees.length - 1);
+    }
   }
 
   activity(): {
