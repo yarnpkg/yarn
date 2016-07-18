@@ -123,7 +123,7 @@ export function* tokenise(input: string): Iterator<Token> {
       let name = "";
       for (let i = 0; i < input.length; i++) {
         let char = input[i];
-        if (char === ":" || char === " " || char === "\n") {
+        if (char === ":" || char === " " || char === "\n" || char === ",") {
           break;
         } else {
           name += char;
@@ -228,18 +228,25 @@ export class Parser {
         invariant(key, "Expected a key");
 
         let keys = [key];
+        this.next();
 
         // support multiple keys
-        while (this.eat(TOKEN_TYPES.comma)) {
+        while (this.token.type === TOKEN_TYPES.comma) {
+          this.next(); // skip comma
+
           let keyToken = this.token;
-          this.expect(TOKEN_TYPES.string);
+          if (keyToken.type !== TOKEN_TYPES.string) {
+            this.unexepcted("Expected string");
+          }
 
           let key = keyToken.value;
           invariant(key, "Expected a key");
           keys.push(key);
+          this.next();
         }
 
-        let valToken = this.next();
+        let valToken = this.token;
+
         if (valToken.type === TOKEN_TYPES.colon) { // object
           this.next();
 
