@@ -121,7 +121,12 @@ export default class PackageLinker {
         let checkParts = ownParts.slice(0, i).concat(pkg.name);
         let checkKey = checkParts.join("#");
         let check = tree[checkKey];
-        if (check && check.loc === loc) return [];
+        if (check && check.loc === loc) {
+          // we have a compatible module above us, we should mark the current
+          // module key as restricted and continue on
+          unflattenedKeys.add(ownParts.concat(pkg.name).join("#"));
+          return [];
+        }
       }
       ownParts.push(pkg.name);
 
@@ -213,16 +218,20 @@ export default class PackageLinker {
       tree[newKey] = info;
       pair[0] = newKey;
 
-      // go through and update all transitive dependencies and update to new hoisting position
+      // go through and update all transitive dependencies and update their keys to the new
+      // hoisting position
       let pairs = subPairs.get(info) || [];
       for (let pair of pairs) {
         let [subKey] = pair;
-
         if (subKey === newKey) continue;
 
         let newSubKey = subKey.replace(new RegExp(`^${oldKey}#`), `${newKey}#`);
         if (newSubKey === subKey) continue;
 
+        // restrict use of the new key in case we hoist it further from here
+        unflattenedKeys.add(newSubKey);
+
+        // update references
         tree[newSubKey] = tree[subKey];
         pair[0] = newSubKey;
         delete tree[subKey];
