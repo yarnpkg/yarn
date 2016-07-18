@@ -18,7 +18,8 @@ import * as constants from "../../constants.js";
 import * as fs from "../../util/fs.js";
 import * as util from "../../util/misc.js";
 
-let path = require("path");
+let semver = require("semver");
+let path   = require("path");
 
 export let noArguments = true;
 
@@ -80,9 +81,36 @@ export async function run(
     // check if any of the node_modules are out of sync
     let res = await install.linker.initCopyModules(rawPatterns);
     for (let [loc] of res) {
+      let human = path.relative(path.join(process.cwd(), "node_modules"), loc);
+      human = human.replace(/node_modules/g, " > ");
+
       if (!(await fs.exists(loc))) {
-        reporter.error(`Module not installed: ${path.relative(process.cwd(), loc)}`);
+        reporter.error(`Module not installed: ${human}`);
         valid = false;
+      }
+
+      let pkg = await fs.readJson(path.join(loc, "package.json"));
+
+      let deps = Object.assign({}, pkg.dependencies, pkg.devDependencies, pkg.peerDependencies);
+
+      for (let name in deps) {
+        let range = deps[name];
+        if (!semver.validRange(range)) continue; // exotic
+
+        let depPkgLoc = path.join(loc, "node_modules", name, "package.json");
+        if (!(await fs.exists(depPkgLoc))) {
+          // we'll hit the module not install error above when this module is hit
+          continue;
+        }
+
+        let depPkg = await fs.readJson(depPkgLoc);
+        if (semver.satisfies(depPkg.version, range)) continue;
+
+        // module isn't correct semver
+        reporter.error(
+          `Module ${human} depends on ${name} with the range ${range} but it doesn't match the ` +
+          `installed version of ${depPkg.version}`
+        );
       }
     }
   }
