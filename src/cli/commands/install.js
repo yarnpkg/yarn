@@ -28,6 +28,7 @@ import { stringify } from "../../util/misc.js";
 import map from "../../util/map.js";
 
 let invariant = require("invariant");
+let semver    = require("semver");
 let emoji     = require("node-emoji");
 let path      = require("path");
 
@@ -191,8 +192,8 @@ export class Install {
   async savePackages(): Promise<void> {
     if (!this.args.length) return;
 
-    let { save, saveDev, saveExact, saveOptional } = this.flags;
-    if (!save && !saveDev && !saveOptional) return;
+    let { save, saveDev, saveExact, saveTilde, saveOptional, savePeer } = this.flags;
+    if (!save && !saveDev && !saveOptional && !savePeer) return;
 
     let json = {};
     let jsonLoc = path.join(this.config.cwd, "package.json");
@@ -211,22 +212,30 @@ export class Install {
 
       let parts = PackageRequest.normalisePattern(pattern);
       let version;
-      if (!saveExact) {
-        version = `^${pkg.version}`;
-      } else {
+      if (parts.range && !semver.validRange(parts.range)) {
+        // if a range was specified in this pattern and it's not a semver range then
+        // it's exotic and can't be found on the npm registry
         version = parts.range;
+      } else if (saveTilde) { // --save-tilde
+        version = `~${pkg.version}`;
+      } else if (saveExact) { // --save-exact
+        version = pkg.version;
+      } else { // default to caret
+        version = `^${pkg.version}`;
       }
 
-
-      let targetKey;
-      if (save) targetKey = "dependencies";
-      if (saveDev) targetKey = "devDependencies";
-      if (saveOptional) targetKey = "optionalDependencies";
-      if (!targetKey) continue;
+      let targetKeys = [];
+      if (save) targetKeys.push("dependencies");
+      if (saveDev) targetKeys.push("devDependencies");
+      if (savePeer) targetKeys.push("peerDependencies");
+      if (saveOptional) targetKeys.push("optionalDependencies");
+      if (!targetKeys.length) continue;
 
       // add it to package.json
-      let target = json[targetKey] = json[targetKey] || {};
-      target[pkg.name] = version;
+      for (let key of targetKeys) {
+        let target = json[key] = json[key] || {};
+        target[pkg.name] = version;
+      }
 
       // add pattern so it's aliased in the lockfile
       let newPattern = `${pkg.name}@${version}`;
@@ -319,7 +328,8 @@ export class Install {
  */
 
 function hasSaveFlags(flags: Object): boolean {
-  return flags.save || flags.saveDev || flags.saveExact || flags.saveOptional;
+  return flags.save || flags.saveExact || flags.saveTilde ||
+         flags.saveDev || flags.saveExact || flags.savePeer;
 }
 
 /**
@@ -375,10 +385,12 @@ export function setFlags(commander: Object) {
   commander.usage("install [packages ...] [flags]");
   commander.option("-f, --flat", "only allow one version of a package. save all transitive " +
                                  "dependencies as top level.");
-  commander.option("-S, --save", "save package to your `dependencies`"); // TODO
-  commander.option("-D, --save-dev", "save package to your `devDependencies`"); // TODO
-  commander.option("-O, --save-optional", "save package to your `optionalDependencies`"); // TODO
-  commander.option("-E, --save-exact", ""); // TODO
+  commander.option("-S, --save", "save package to your `dependencies`");
+  commander.option("-D, --save-dev", "save package to your `devDependencies`");
+  commander.option("-P, --save-peer", "save package to your `peerDependencies`");
+  commander.option("-O, --save-optional", "save package to your `optionalDependencies`");
+  commander.option("-E, --save-exact", "");
+  commander.option("-T, --save-tilde", "");
   commander.option("--tag [tag]", ""); // TODO
   commander.option("--dry-run", ""); // TODO
   commander.option("-f, --force", ""); // TODO
