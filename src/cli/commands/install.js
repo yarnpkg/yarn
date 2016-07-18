@@ -55,7 +55,7 @@ export class Install {
     this.resolver      = new PackageResolver(config, lockfile);
     this.compatibility = new PackageCompatibility(config, this.resolver);
     this.linker        = new PackageLinker(config, this.resolver);
-    this.scripts       = new PackageInstallScripts(config, this.resolver);
+    this.scripts       = new PackageInstallScripts(config, this.resolver, flags.rebuild);
   }
 
   action: InstallActions;
@@ -390,6 +390,7 @@ export function setFlags(commander: Object) {
   commander.option("-O, --save-optional", "save package to your `optionalDependencies`");
   commander.option("-E, --save-exact", "");
   commander.option("-T, --save-tilde", "");
+  commander.option("--rebuild", "rerun install scripts of modules already installed");
   commander.option("--production, --prod", "");
   commander.option("--no-lockfile");
   commander.option("--init-mirror", "initialise local package mirror and copy module tarballs");

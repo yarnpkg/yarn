@@ -41,6 +41,7 @@ export default class PackageReference {
     this.patterns    = [];
     this.optional    = null;
     this.ignore      = null;
+    this.fresh       = false;
     this.location    = null;
     this.saveForOffline = !!saveForOffline;
   }
@@ -54,6 +55,7 @@ export default class PackageReference {
   uid: string;
   optional: ?boolean;
   ignore: ?boolean;
+  fresh: boolean;
   saveForOffline: boolean;
   dependencies: Array<string>;
   patterns: Array<string>;
@@ -64,6 +66,10 @@ export default class PackageReference {
 
   async getFolder(): Promise<string> {
     return this.config.registries[this.registry].folder;
+  }
+
+  setFresh(fresh: boolean) {
+    this.fresh = fresh;
   }
 
   setLocation(loc: string): string {

@@ -32,7 +32,7 @@ export let chmod          = promisify(fs.chmod);
 let fsSymlink = promisify(fs.symlink);
 let stripBOM  = require("strip-bom");
 
-export async function copy(src: string, dest: string): Promise<void> {
+export async function copy(src: string, dest: string): Promise<boolean> {
   let srcStat = await lstat(src);
 
   if (await exists(dest)) {
@@ -42,7 +42,7 @@ export async function copy(src: string, dest: string): Promise<void> {
         srcStat.size === destStat.size && +srcStat.mtime === +destStat.mtime &&
         srcStat.mode === destStat.mode) {
       // we can safely assume this is the same file
-      return;
+      return false;
     }
 
     if (srcStat.isDirectory() && destStat.isDirectory()) {
@@ -55,6 +55,7 @@ export async function copy(src: string, dest: string): Promise<void> {
           await unlink(path.join(dest, file));
         }
       });
+
       await Promise.all(promises);
     }
 
@@ -65,6 +66,8 @@ export async function copy(src: string, dest: string): Promise<void> {
   }
 
   if (srcStat.isDirectory()) {
+    let anyFresh = false;
+
     // create dest directory
     await mkdirp(dest);
 
@@ -73,9 +76,15 @@ export async function copy(src: string, dest: string): Promise<void> {
 
     // copy all files from source to dest
     let promises = files.map((file) => {
-      return copy(path.join(src, file), path.join(dest, file));
+      return copy(path.join(src, file), path.join(dest, file)).then(function (fresh) {
+        if (fresh) anyFresh = true;
+        return fresh;
+      });
     });
+
     await Promise.all(promises);
+
+    return anyFresh;
   } else if (srcStat.isFile()) {
     return new Promise((resolve, reject) => {
       let readStream = fs.createReadStream(src);
@@ -93,7 +102,7 @@ export async function copy(src: string, dest: string): Promise<void> {
           if (err) {
             reject(err);
           } else {
-            resolve();
+            resolve(true);
           }
         });
       });

@@ -268,7 +268,10 @@ export default class PackageLinker {
     await promise.queue(flatTree, async function ([dest, { pkg, loc: src }]) {
       pkg.reference.setLocation(dest);
       await fs.mkdirp(dest);
-      await fs.copy(src, dest);
+
+      let fresh = await fs.copy(src, dest);
+      pkg.reference.setFresh(fresh);
+
       tickCopyModule(dest);
     }, 4);
 
