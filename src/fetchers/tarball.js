@@ -14,12 +14,12 @@ import * as crypto from "../util/crypto.js";
 import BaseFetcher from "./_base.js";
 import * as fsUtil from "../util/fs.js";
 
-let zlib = require("zlib");
-let tar  = require("tar");
-let url  = require("url");
 let through = require("through2");
-let fs = require("fs");
-let path = require("path");
+let zlib    = require("zlib");
+let path    = require("path");
+let tar     = require("tar");
+let url     = require("url");
+let fs      = require("fs");
 
 export default class TarballFetcher extends BaseFetcher {
   async _fetch(dest: string): Promise<string> {

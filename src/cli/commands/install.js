@@ -383,8 +383,7 @@ function shouldWriteLockfile(flags: Object, args: Array<string>): boolean {
 
 export function setFlags(commander: Object) {
   commander.usage("install [packages ...] [flags]");
-  commander.option("-f, --flat", "only allow one version of a package. save all transitive " +
-                                 "dependencies as top level.");
+  commander.option("-f, --flat", "only allow one version of a package");
   commander.option("-S, --save", "save package to your `dependencies`");
   commander.option("-D, --save-dev", "save package to your `devDependencies`");
   commander.option("-P, --save-peer", "save package to your `peerDependencies`");

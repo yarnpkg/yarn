@@ -85,8 +85,8 @@ $ fbkpm install your-package
 ### How is this different to existing alternate npm clients such as [ied](https://github.com/alexanderGugel/ied) and [pnpm](https://github.com/rstacruz/pnpm)?
 
 Similar in many aspects but unlike existing alternate npm clients, fbkpm is focused on
-security first, excellent performance is just an implementation detail. If we only cared about
-performance we'd help improve npm as that doesn't require a change in workflow.
+security and determinism first, excellent performance is just an implementation detail. If we only
+cared about performance we'd help improve npm as that doesn't require a change in workflow.
 
 ### Why not contribute back to npm?
 
@@ -102,11 +102,7 @@ We hope that some of our ideas make their way back into the main npm client.
 ### Non-determinism
 
 The npm dependency graph is nondeteriministic and is dependent on install order. This is
-terrible for reproducible builds. This is traditionally mitigated by npm with a lock file
-and the reshuffling of dependencies inside the graph. This however isn't enough. The use
-of a [CAS](https://en.wikipedia.org/wiki/Content-addressable_storage) for storing modules
-and sane version resolution against this tree, and using a shrinkwrap by default should
-allow for deterministic dependency graphs.
+terrible for reproducible builds.
 
 ### Option for a flat tree and a single version per package
 
