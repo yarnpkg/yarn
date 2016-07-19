@@ -183,7 +183,7 @@ export class Install {
     await this.scripts.init();
 
     // fin!
-    await this.maybeSaveTree(depRequests);
+    await this.maybeSaveTree(patterns);
     await this.savePackages();
     await this.saveLockfile();
   }
@@ -192,10 +192,10 @@ export class Install {
    * TODO
    */
 
-  async maybeSaveTree(depRequests: DependencyRequestPatterns) {
+  async maybeSaveTree(patterns: Array<string>) {
     if (!hasSaveFlags(this.flags)) return;
 
-    let { trees, count } = buildTree(this.resolver, depRequests, true);
+    let { trees, count } = await buildTree(this.resolver, this.linker, patterns, true);
     this.reporter.success(`Saved ${count} new ${count === 1 ? "dependency" : "dependencies"}`);
     this.reporter.tree("newDependencies", trees);
   }

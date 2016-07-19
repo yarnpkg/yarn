@@ -90,7 +90,7 @@ export default class ConsoleReporter extends BaseReporter {
 
     let stdout = this.stdout;
 
-    function output({ name, children, hint }, level, end) {
+    function output({ name, children, hint, color }, level, end) {
       children = sortTrees(children);
 
       let indent = end ? "└" : "├";
@@ -101,6 +101,7 @@ export default class ConsoleReporter extends BaseReporter {
 
       let suffix = "";
       if (hint) suffix += ` (${chalk.grey(hint)})`;
+      if (color) name = chalk[color](name);
       stdout.write(`${indent}─ ${name}${suffix}\n`);
 
       if (children && children.length) {

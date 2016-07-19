@@ -23,7 +23,9 @@ export type Package = {
 export type Tree = {
   name: string,
   children?: Trees,
-  hint?: ?string
+  hint?: ?string,
+  hidden?: boolean,
+  color?: ?string
 };
 
 export type Trees = Array<Tree>;

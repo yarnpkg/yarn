@@ -28,6 +28,13 @@ type DependencyPairs = Array<{
   loc: string
 }>;
 
+type HoistManifest = {
+  pkg: Manifest,
+  loc: string,
+  hoistedFrom: Array<string>,
+  key: string
+};
+
 export default class PackageLinker {
   constructor(config: Config, resolver: PackageResolver) {
     this.resolver = resolver;
@@ -96,11 +103,11 @@ export default class PackageLinker {
     }
   }
 
-  async initCopyModules(patterns: Array<string>): Promise<Array<[string, Manifest]>> {
+  async initCopyModules(patterns: Array<string>): Promise<Array<[string, HoistManifest]>> {
     // we need to zip up the tree as we we're using it as a hash map and will be actively
     // removing and deleting keys during enumeration
     let zippedTree = [];
-    let tree = Object.create(null);
+    let tree: { [key: string]: HoistManifest } = Object.create(null);
     let self = this;
 
     let unflattenedKeys = new Set;
@@ -124,7 +131,9 @@ export default class PackageLinker {
         if (check && check.loc === loc) {
           // we have a compatible module above us, we should mark the current
           // module key as restricted and continue on
-          unflattenedKeys.add(ownParts.concat(pkg.name).join("#"));
+          let finalKey = ownParts.concat(pkg.name).join("#");
+          unflattenedKeys.add(finalKey);
+          check.hoistedFrom.push(finalKey);
           return [];
         }
       }
@@ -134,6 +143,8 @@ export default class PackageLinker {
       let info = {
         loc,
         pkg,
+        hoistedFrom: [key],
+        key
       };
       let pair = [key, info];
 
@@ -216,6 +227,7 @@ export default class PackageLinker {
       let oldKey = key;
       let newKey = parts.join("#");
       tree[newKey] = info;
+      info.key = newKey;
       pair[0] = newKey;
 
       // go through and update all transitive dependencies and update their keys to the new
@@ -232,7 +244,9 @@ export default class PackageLinker {
         unflattenedKeys.add(newSubKey);
 
         // update references
-        tree[newSubKey] = tree[subKey];
+        let subInfo = tree[subKey];
+        subInfo.key = newSubKey;
+        tree[newSubKey] = subInfo;
         pair[0] = newSubKey;
         delete tree[subKey];
       }
