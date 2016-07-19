@@ -14,13 +14,12 @@ import type { Reporter } from "../../reporters/index.js";
 import type Config from "../../config.js";
 import { Install } from "./install.js";
 import Lockfile from "../../lockfile/index.js";
-import { MessageError } from "../../errors.js";
 import * as fs from "../../util/fs.js";
 
 let emoji = require("node-emoji");
 let path  = require("path");
 
-async function cleanQuery(query: string): Promise<string> {
+async function cleanQuery(config: Config, query: string): Promise<string> {
   // if a location was passed then turn it into a hash query
   if (path.isAbsolute(query) && await fs.exists(query)) {
     // absolute path
@@ -45,7 +44,7 @@ export async function run(
   flags: Object,
   args: Array<string>
 ): Promise<void> {
-  let query = await cleanQuery(args[0]);
+  let query = await cleanQuery(config, args[0]);
 
   reporter.step(1, 3, `Why do we have the module ${query}?`, emoji.get("thinking_face"));
 
@@ -128,14 +127,14 @@ export async function run(
   }
 
   // stats: file size of this dependency without any dependencies
-  reporter.info(`Disk size without dependencies: 0MB`);
+  reporter.info("Disk size without dependencies: 0MB");
 
   // stats: file size of this dependency including dependencies that aren't shared
-  reporter.info(`Disk size with unique dependencies: 0MB`);
+  reporter.info("Disk size with unique dependencies: 0MB");
 
   // stats: file size of this dependency including dependencies
-  reporter.info(`Disk size with transitive dependencies: 0MB`);
+  reporter.info("Disk size with transitive dependencies: 0MB");
 
   // stats: shared transitive dependencies
-  reporter.info(`Amount of shared dependencies: 0`);
+  reporter.info("Amount of shared dependencies: 0");
 }
