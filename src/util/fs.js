@@ -41,9 +41,13 @@ export async function copy(src: string, dest: string): Promise<boolean> {
   if (await exists(dest)) {
     let destStat = await lstat(dest);
 
+    if (srcStat.mode !== destStat.mode) {
+      // different types
+      await access(dest, srcStat.mode);
+    }
+
     if (srcStat.isFile() && destStat.isFile() &&
-        srcStat.size === destStat.size && +srcStat.mtime === +destStat.mtime &&
-        srcStat.mode === destStat.mode) {
+        srcStat.size === destStat.size && +srcStat.mtime === +destStat.mtime) {
       // we can safely assume this is the same file
       return false;
     }
@@ -62,11 +66,6 @@ export async function copy(src: string, dest: string): Promise<boolean> {
       });
 
       await Promise.all(promises);
-    }
-
-    if (srcStat.mode !== destStat.mode) {
-      // different types
-      await access(dest, srcStat.mode);
     }
   }
 
