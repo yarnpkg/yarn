@@ -14,10 +14,12 @@ import Progress from "./progress-bar.js";
 import Spinner from "./spinner.js";
 import type { Package, Trees } from "../types.js";
 import { clearLine } from "./util.js";
+import { removeSuffix } from "../../util/misc.js";
 
 let readline = require("readline");
 let repeat   = require("repeating");
 let chalk    = require("chalk");
+let _        = require("lodash");
 
 function sortTrees(trees: Trees = []): Trees {
   return trees.sort((tree1, tree2) => {
@@ -32,7 +34,11 @@ export default class ConsoleReporter extends BaseReporter {
   }
 
   step(current: number, total: number, msg: string, emoji?: string) {
-    this.log(`${chalk.grey(`[${current}/${total}]`)} ${this._prependEmoji(msg, emoji)}...`);
+    msg = `${this._prependEmoji(msg, emoji)}...`;
+    if (_.endsWith(msg, "?...")) {
+      msg = `${removeSuffix(msg, "?...")}...?`;
+    }
+    this.log(`${chalk.grey(`[${current}/${total}]`)} ${msg}`);
   }
 
   header(command: string, pkg: Package) {

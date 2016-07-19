@@ -15,6 +15,9 @@ export { cache };
 import * as ls from "./ls.js";
 export { ls };
 
+import * as why from "./why.js";
+export { why };
+
 import * as uninstall from "./uninstall.js";
 export { uninstall };
 
