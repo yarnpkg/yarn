@@ -72,22 +72,51 @@ export async function run(
   }
 
   if (!match) {
-    reporter.error("We couldn't find a match");
+    reporter.error("We couldn't find a match!");
     return;
   }
 
   let matchPatterns = match.pkg.reference.patterns;
 
+  let reasons = [];
+
   // reason: dependency of these modules
+  for (let request of match.pkg.reference.requests) {
+    let parentRequest = request.parentRequest;
+    if (!parentRequest) continue;
+
+    let dependent = install.resolver.getResolvedPattern(parentRequest.pattern);
+    if (!dependent) continue;
+
+    let chain = [];
+
+    let delegator = parentRequest;
+    do {
+      chain.push(install.resolver.getResolvedPattern(delegator.pattern).name);
+    } while (delegator = delegator.parentRequest);
+
+    reasons.push(`Depended on by ${chain.reverse().slice(0, -1).join("#")}`);
+  }
 
   // reason: exists in manifest
   let rootType;
   for (let pattern of matchPatterns) {
     rootType = install.rootPatternsToOrigin[pattern];
-    if (rootType) break;
+    if (rootType) reasons.push(`Specified in ${rootType}`);
   }
-  if (rootType) {
-    reporter.info(`Reason: Specified in ${rootType}`);
+
+  // reason: this is hoisted from these modules
+
+  // reason: this module was deduped to this location
+
+  //
+  if (reasons.length === 1) {
+    reporter.info(`This module exists because: ${reasons[0]}`);
+  } else if (reasons.length > 1) {
+    reporter.info("Reasons this module exists");
+    reporter.list("reasons", reasons);
+  } else {
+    reporter.error("We don't know why this module exists");
   }
 
   // stats: file size of this dependency without any dependencies
@@ -96,6 +125,9 @@ export async function run(
   // stats: file size of this dependency including dependencies that aren't shared
   reporter.info(`Disk size with unique dependencies: 0MB`);
 
+  // stats: file size of this dependency including dependencies
+  reporter.info(`Disk size with transitive dependencies: 0MB`);
+
   // stats: shared transitive dependencies
-  reporter.info(`Amount of shared dependencies: 0MB`);
+  reporter.info(`Amount of shared dependencies: 0`);
 }

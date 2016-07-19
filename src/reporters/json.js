@@ -29,6 +29,10 @@ export default class JSONReporter extends BaseReporter {
     stdout.write(`${JSON.stringify({ type, data })}\n`);
   }
 
+  list(type: string, items: Array<string>) {
+    this._dump("list", { type, items });
+  }
+
   tree(type: string, trees: Trees) {
     this._dump("tree", { type, trees });
   }

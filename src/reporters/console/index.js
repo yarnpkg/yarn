@@ -41,6 +41,12 @@ export default class ConsoleReporter extends BaseReporter {
     this.log(`${chalk.grey(`[${current}/${total}]`)} ${msg}`);
   }
 
+  list(key: string, items: Array<string>) {
+    for (let item of items) {
+      this.log(`   - ${item}`);
+    }
+  }
+
   header(command: string, pkg: Package) {
     this.log(chalk.bold(`${pkg.name} ${command} v${pkg.version}`));
   }

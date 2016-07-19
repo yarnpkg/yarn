@@ -67,6 +67,9 @@ export default class BaseReporter {
   }
 
   // TODO
+  list(key: string, items: Array<string>) {}
+
+  // TODO
   tree(key: string, obj: Trees) {}
 
   // called whenever we begin a step in the CLI.
