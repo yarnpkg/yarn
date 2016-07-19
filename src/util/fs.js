@@ -23,6 +23,7 @@ export let writeFile      = promisify(fs.writeFile);
 export let realpath       = promisify(fs.realpath);
 export let readdir        = promisify(fs.readdir);
 export let rename         = promisify(fs.rename);
+export let access         = promisify(fs.access);
 export let unlink         = promisify(require("rimraf"));
 export let mkdirp         = promisify(require("mkdirp"));
 export let exists         = promisify(fs.exists, true);
@@ -34,6 +35,8 @@ let stripBOM  = require("strip-bom");
 
 export async function copy(src: string, dest: string): Promise<boolean> {
   let srcStat = await lstat(src);
+  let destFiles = [];
+  let srcFiles = [];
 
   if (await exists(dest)) {
     let destStat = await lstat(dest);
@@ -47,8 +50,10 @@ export async function copy(src: string, dest: string): Promise<boolean> {
 
     if (srcStat.isDirectory() && destStat.isDirectory()) {
       // remove files that aren't in source
-      let destFiles = await readdir(dest);
-      let srcFiles  = await readdir(src);
+      [destFiles, srcFiles] = await Promise.all([
+        readdir(dest),
+        readdir(src)
+      ]);
 
       let promises = destFiles.map(async (file) => {
         if (file !== "node_modules" && srcFiles.indexOf(file) < 0) {
@@ -61,7 +66,7 @@ export async function copy(src: string, dest: string): Promise<boolean> {
 
     if (srcStat.mode !== destStat.mode) {
       // different types
-      await unlink(dest);
+      await access(dest, srcStat.mode);
     }
   }
 
@@ -71,11 +76,8 @@ export async function copy(src: string, dest: string): Promise<boolean> {
     // create dest directory
     await mkdirp(dest);
 
-    // get all files in source directory
-    let files = await readdir(src);
-
     // copy all files from source to dest
-    let promises = files.map((file) => {
+    let promises = srcFiles.map((file) => {
       return copy(path.join(src, file), path.join(dest, file)).then(function (fresh) {
         if (fresh) anyFresh = true;
         return fresh;
