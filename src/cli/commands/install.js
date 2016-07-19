@@ -108,7 +108,7 @@ export class Install {
         let json = await fs.readJson(loc);
         Object.assign(this.resolutions, json.resolutions);
 
-        let pushDeps = (depType, hint, ignore) => {
+        let pushDeps = (depType, { hint, ignore, optional }) => {
           let depMap = json[depType];
           for (let name in depMap) {
             if (excludeNames.indexOf(name) >= 0) continue;
@@ -122,7 +122,7 @@ export class Install {
 
             this.rootPatternsToOrigin[pattern] = depType;
             patterns.push(pattern);
-            deps.push({ pattern, registry, ignore, hint });
+            deps.push({ pattern, registry, ignore, hint, optional });
           }
         };
 

@@ -16,8 +16,9 @@ import { Install } from "./install.js";
 import Lockfile from "../../lockfile/index.js";
 import * as fs from "../../util/fs.js";
 
-let emoji = require("node-emoji");
-let path  = require("path");
+let invariant = require("invariant");
+let emoji     = require("node-emoji");
+let path      = require("path");
 
 async function cleanQuery(config: Config, query: string): Promise<string> {
   // if a location was passed then turn it into a hash query
@@ -75,12 +76,16 @@ export async function run(
     return;
   }
 
-  let matchPatterns = match.pkg.reference.patterns;
+  let matchRef = match.pkg.reference;
+  invariant(matchRef, "expected reference");
+
+  let matchPatterns = matchRef.patterns;
+  let matchRequests = matchRef.requests;
 
   let reasons = [];
 
   // reason: dependency of these modules
-  for (let request of match.pkg.reference.requests) {
+  for (let request of matchRequests) {
     let parentRequest = request.parentRequest;
     if (!parentRequest) continue;
 
