@@ -34,10 +34,14 @@ export default class ConsoleReporter extends BaseReporter {
   }
 
   step(current: number, total: number, msg: string, emoji?: string) {
-    msg = `${this._prependEmoji(msg, emoji)}...`;
-    if (_.endsWith(msg, "?...")) {
-      msg = `${removeSuffix(msg, "?...")}...?`;
+    msg = this._prependEmoji(msg, emoji);
+
+    if (_.endsWith(msg, "?")) {
+      msg = `${removeSuffix(msg, "?")}...?`;
+    } else {
+      msg += "...";
     }
+
     this.log(`${chalk.grey(`[${current}/${total}]`)} ${msg}`);
   }
 
