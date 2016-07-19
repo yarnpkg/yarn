@@ -9,7 +9,7 @@
  * @flow
  */
 
-import type { Reporter } from "kreporters";
+import type { Reporter } from "../reporters/index.js";
 import * as constants from "../constants.js";
 import * as network from "./network.js";
 import map from "../util/map.js";

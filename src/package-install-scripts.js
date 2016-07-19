@@ -11,7 +11,7 @@
 
 import type { Manifest } from "./types.js";
 import type PackageResolver from "./package-resolver.js";
-import type { Reporter } from "kreporters";
+import type { Reporter } from "./reporters/index.js";
 import type Config from "./config.js";
 import executeLifecycleScript from "./util/execute-lifecycle-script.js";
 import * as promise from "./util/promise.js";
@@ -20,10 +20,11 @@ let invariant = require("invariant");
 let _         = require("lodash");
 
 export default class PackageInstallScripts {
-  constructor(config: Config, resolver: PackageResolver) {
+  constructor(config: Config, resolver: PackageResolver, force: boolean) {
     this.resolver  = resolver;
     this.reporter  = config.reporter;
     this.config    = config;
+    this.force     = force;
   }
 
   needsPermission: boolean;
@@ -31,6 +32,7 @@ export default class PackageInstallScripts {
   reporter: Reporter;
   actions: Array<string>;
   config: Config;
+  force: boolean;
 
   getInstallCommands(pkg: Manifest) {
     let scripts = pkg.scripts;
@@ -78,6 +80,7 @@ export default class PackageInstallScripts {
 
       let ref = pkg.reference;
       invariant(ref, "Missing package reference");
+      if (!ref.fresh && !this.force) continue;
 
       if (this.needsPermission && !ref.hasPermission("scripts")) {
         let can = await this.reporter.question(

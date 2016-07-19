@@ -11,7 +11,7 @@
 
 import type { Manifest } from "./types.js";
 import type PackageResolver from "./package-resolver.js";
-import type { Reporter } from "kreporters";
+import type { Reporter } from "./reporters/index.js";
 import type Config from "./config.js";
 import * as promise from "./util/promise.js";
 import { entries } from "./util/misc.js";
@@ -27,6 +27,13 @@ type DependencyPairs = Array<{
   dep: Manifest,
   loc: string
 }>;
+
+type HoistManifest = {
+  pkg: Manifest,
+  loc: string,
+  hoistedFrom: Array<string>,
+  key: string
+};
 
 export default class PackageLinker {
   constructor(config: Config, resolver: PackageResolver) {
@@ -96,11 +103,11 @@ export default class PackageLinker {
     }
   }
 
-  async initCopyModules(patterns: Array<string>): Promise<Array<[string, Manifest]>> {
+  async initCopyModules(patterns: Array<string>): Promise<Array<[string, HoistManifest]>> {
     // we need to zip up the tree as we we're using it as a hash map and will be actively
     // removing and deleting keys during enumeration
     let zippedTree = [];
-    let tree = Object.create(null);
+    let tree: { [key: string]: HoistManifest } = Object.create(null);
     let self = this;
 
     let unflattenedKeys = new Set;
@@ -124,7 +131,9 @@ export default class PackageLinker {
         if (check && check.loc === loc) {
           // we have a compatible module above us, we should mark the current
           // module key as restricted and continue on
-          unflattenedKeys.add(ownParts.concat(pkg.name).join("#"));
+          let finalKey = ownParts.concat(pkg.name).join("#");
+          unflattenedKeys.add(finalKey);
+          check.hoistedFrom.push(finalKey);
           return [];
         }
       }
@@ -134,6 +143,8 @@ export default class PackageLinker {
       let info = {
         loc,
         pkg,
+        hoistedFrom: [key],
+        key
       };
       let pair = [key, info];
 
@@ -216,6 +227,7 @@ export default class PackageLinker {
       let oldKey = key;
       let newKey = parts.join("#");
       tree[newKey] = info;
+      info.key = newKey;
       pair[0] = newKey;
 
       // go through and update all transitive dependencies and update their keys to the new
@@ -225,6 +237,9 @@ export default class PackageLinker {
         let [subKey] = pair;
         if (subKey === newKey) continue;
 
+        let subInfo = tree[subKey];
+        if (!subInfo) continue;
+
         let newSubKey = subKey.replace(new RegExp(`^${oldKey}#`), `${newKey}#`);
         if (newSubKey === subKey) continue;
 
@@ -232,7 +247,8 @@ export default class PackageLinker {
         unflattenedKeys.add(newSubKey);
 
         // update references
-        tree[newSubKey] = tree[subKey];
+        subInfo.key = newSubKey;
+        tree[newSubKey] = subInfo;
         pair[0] = newSubKey;
         delete tree[subKey];
       }
@@ -265,16 +281,15 @@ export default class PackageLinker {
 
     //
     let tickCopyModule = this.reporter.progress(flatTree.length);
-    await promise.queue(flatTree, async function ([dest, { pkg }]) {
+    await promise.queue(flatTree, async function ([dest, { pkg, loc: src }]) {
       pkg.reference.setLocation(dest);
       await fs.mkdirp(dest);
-    }, 4);
 
-    // TODO concurrent copies can interfere when copying master and a sub dependency in parallel
-    await promise.queue(flatTree, async function ([dest, { loc: src }]) {
-      await fs.copy(src, dest);
+      let fresh = await fs.copy(src, dest);
+      pkg.reference.setFresh(fresh);
+
       tickCopyModule(dest);
-    }, 1);
+    }, 4);
 
     //
     let tickBin = this.reporter.progress(flatTree.length);

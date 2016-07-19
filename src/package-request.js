@@ -12,7 +12,7 @@
 import type { Manifest } from "./types.js";
 import type { RegistryNames } from "./registries/index.js";
 import type PackageResolver from "./package-resolver.js";
-import type { Reporter } from "kreporters";
+import type { Reporter } from "./reporters/index.js";
 import type Config from "./config.js";
 import Lockfile, { parse as parseLock } from "./lockfile/index.js";
 import PackageReference from "./package-reference.js";
@@ -79,10 +79,10 @@ export default class PackageRequest {
 
     let delegator = this;
     do {
-      chain.push(`${delegator.registry}:${delegator.pattern}`);
+      chain.push(delegator.pattern);
     } while (delegator = delegator.parentRequest);
 
-    return chain.reverse().join(" -> ");
+    return chain.reverse().join(" > ");
   }
 
   getLocked(remoteType: string): ?Object {

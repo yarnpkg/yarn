@@ -13,7 +13,7 @@ import type PackageRequest from "../package-request.js";
 import type PackageResolver from "../package-resolver.js";
 import type { Manifest } from "../types.js";
 import type { RegistryNames } from "../registries/index.js";
-import type { Reporter } from "kreporters";
+import type { Reporter } from "../reporters/index.js";
 import type Config from "../config.js";
 
 export default class BaseResolver {

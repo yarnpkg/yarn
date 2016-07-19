@@ -12,7 +12,7 @@
 import type { Manifest, DependencyRequestPatterns } from "./types.js";
 import type { RegistryNames } from "./registries/index.js";
 import type PackageReference from "./package-reference.js";
-import type { Reporter } from "kreporters";
+import type { Reporter } from "./reporters/index.js";
 import type Config from "./config.js";
 import PackageFetcher from "./package-fetcher.js";
 import PackageRequest from "./package-request.js";
@@ -88,6 +88,14 @@ export default class PackageResolver {
 
   // environment specific config methods and options
   config: Config;
+
+  /**
+   * TODO description
+   */
+
+  isNewPattern(pattern: string): boolean {
+    return this.newPatterns.indexOf(pattern) >= 0;
+  }
 
   /**
    * TODO descriptio

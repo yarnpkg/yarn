@@ -10,7 +10,7 @@
  */
 
 import buildExecuteLifecycleScript from "./commands/_execute-lifecycle-script.js";
-import { ConsoleReporter, JSONReporter } from "kreporters";
+import { ConsoleReporter, JSONReporter } from "../reporters/index.js";
 import { MessageError } from "../errors.js";
 import * as commands from "./commands/index.js";
 import * as constants from "../constants.js";
@@ -114,7 +114,7 @@ if (network.isOffline()) {
 const run = () => {
   return command.run(config, reporter, commander, commander.args).then(function () {
     reporter.close();
-    reporter.footer(true);
+    reporter.footer(false);
   });
 };
 

@@ -9,7 +9,7 @@
  * @flow
  */
 
-import type { Reporter } from "kreporters";
+import type { Reporter } from "../../reporters/index.js";
 import type { DependencyRequestPatterns } from "../../types.js";
 import type Config from "../../config.js";
 import Lockfile from "../../lockfile/index.js";
@@ -19,6 +19,7 @@ import PackageCompatibility from "../../package-compatibility.js";
 import PackageResolver from "../../package-resolver.js";
 import PackageLinker from "../../package-linker.js";
 import PackageRequest from "../../package-request.js";
+import { buildTree } from "./ls.js";
 import { registries } from "../../registries/index.js";
 import { MessageError } from "../../errors.js";
 import * as constants from "../../constants.js";
@@ -32,7 +33,7 @@ let semver    = require("semver");
 let emoji     = require("node-emoji");
 let path      = require("path");
 
-type InstallActions = "install" | "update" | "uninstall";
+type InstallActions = "install" | "update" | "uninstall" | "ls";
 
 export class Install {
   constructor(
@@ -43,19 +44,20 @@ export class Install {
     reporter: Reporter,
     lockfile: Lockfile,
   ) {
-    this.resolutions = map();
-    this.registries  = [];
-    this.lockfile    = lockfile;
-    this.reporter    = reporter;
-    this.config      = config;
-    this.action      = action;
-    this.flags       = flags;
-    this.args        = args;
+    this.rootPatternsToOrigin = map();
+    this.resolutions          = map();
+    this.registries           = [];
+    this.lockfile             = lockfile;
+    this.reporter             = reporter;
+    this.config               = config;
+    this.action               = action;
+    this.flags                = flags;
+    this.args                 = args;
 
     this.resolver      = new PackageResolver(config, lockfile);
     this.compatibility = new PackageCompatibility(config, this.resolver);
     this.linker        = new PackageLinker(config, this.resolver);
-    this.scripts       = new PackageInstallScripts(config, this.resolver);
+    this.scripts       = new PackageInstallScripts(config, this.resolver, flags.rebuild);
   }
 
   action: InstallActions;
@@ -70,6 +72,7 @@ export class Install {
   scripts: PackageInstallScripts;
   linker: PackageLinker;
   compatibility: PackageCompatibility;
+  rootPatternsToOrigin: { [pattern: string]: string };
 
   /**
    * TODO description
@@ -105,37 +108,27 @@ export class Install {
         let json = await fs.readJson(loc);
         Object.assign(this.resolutions, json.resolutions);
 
-        // plain deps
-        let plainDepMap = Object.assign({}, json.dependencies, json.devDependencies);
-        for (let name in plainDepMap) {
-          if (excludeNames.indexOf(name) >= 0) continue;
+        let pushDeps = (depType, hint, ignore) => {
+          let depMap = json[depType];
+          for (let name in depMap) {
+            if (excludeNames.indexOf(name) >= 0) continue;
 
-          let pattern = name;
-          if (!this.lockfile.getLocked(pattern, true)) {
-            // when we use --save we save the dependency to the lockfile with just the name rather than the
-            // version combo
-            pattern += "@" + plainDepMap[name];
+            let pattern = name;
+            if (!this.lockfile.getLocked(pattern, true)) {
+              // when we use --save we save the dependency to the lockfile with just the name rather than the
+              // version combo
+              pattern += "@" + depMap[name];
+            }
+
+            this.rootPatternsToOrigin[pattern] = depType;
+            patterns.push(pattern);
+            deps.push({ pattern, registry, ignore, hint });
           }
+        };
 
-          patterns.push(pattern);
-          deps.push({ pattern, registry, ignore: !!this.flags.production });
-        }
-
-        // optional deps
-        let optionalDeps = json.optionalDependencies;
-        for (let name in optionalDeps) {
-          if (excludeNames.indexOf(name) >= 0) continue;
-
-          let pattern = name;
-          if (!this.lockfile.getLocked(pattern, true)) {
-            // see above comment
-            // TODO dry this up
-            pattern += "@" + optionalDeps[name];
-          }
-
-          patterns.push(pattern);
-          deps.push({ pattern, registry, optional: true });
-        }
+        pushDeps("dependencies", { hint: null, ignore: false, optional: false });
+        pushDeps("devDependencies", { hint: "dev", ignore: !!this.flags.production, optional: false });
+        pushDeps("optionalDependencies", { hint: "optional", ignore: false, optional: true });
 
         break;
       }
@@ -160,25 +153,40 @@ export class Install {
     }
 
     //
-    this.reporter.step(1, 4, "Resolving and fetching packages", emoji.get("truck"));
+    this.reporter.step(1, 3, "Resolving and fetching packages", emoji.get("truck"));
     await this.resolver.init(depRequests);
     let patterns = await this.flatten(rawPatterns);
-
-    //
-    this.reporter.step(2, 4, "Checking package compatibility", emoji.get("white_check_mark"));
     await this.compatibility.init();
 
     //
-    this.reporter.step(3, 4, "Linking dependencies", emoji.get("link"));
+    this.reporter.step(2, 3, "Linking dependencies", emoji.get("link"));
     await this.linker.init(patterns);
 
     //
-    this.reporter.step(4, 4, "Running install scripts", emoji.get("page_with_curl"));
+    this.reporter.step(
+      3,
+      3,
+      this.flags.rebuild ? "Rebuilding all packages" : "Building fresh packages",
+      emoji.get("page_with_curl")
+    );
     await this.scripts.init();
 
     // fin!
+    await this.maybeSaveTree(patterns);
     await this.savePackages();
     await this.saveLockfile();
+  }
+
+  /**
+   * TODO
+   */
+
+  async maybeSaveTree(patterns: Array<string>) {
+    if (!hasSaveFlags(this.flags)) return;
+
+    let { trees, count } = await buildTree(this.resolver, this.linker, patterns, true);
+    this.reporter.success(`Saved ${count} new ${count === 1 ? "dependency" : "dependencies"}`);
+    this.reporter.tree("newDependencies", trees);
   }
 
   /**
@@ -390,6 +398,7 @@ export function setFlags(commander: Object) {
   commander.option("-O, --save-optional", "save package to your `optionalDependencies`");
   commander.option("-E, --save-exact", "");
   commander.option("-T, --save-tilde", "");
+  commander.option("--rebuild", "rerun install scripts of modules already installed");
   commander.option("--production, --prod", "");
   commander.option("--no-lockfile");
   commander.option("--init-mirror", "initialise local package mirror and copy module tarballs");

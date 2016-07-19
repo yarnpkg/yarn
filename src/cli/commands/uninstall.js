@@ -9,13 +9,13 @@
  * @flow
  */
 
-import type { Reporter } from "kreporters";
+import type { Reporter } from "../../reporters/index.js";
 import type Config from "../../config.js";
 import Lockfile from "../../lockfile/index.js";
 import { Install } from "./install.js";
 import { MessageError } from "../../errors.js";
 import { stringify } from "../../util/misc.js";
-import { NoopReporter } from "kreporters";
+import { NoopReporter } from "../../reporters/index.js";
 import * as fs from "../../util/fs.js";
 
 let path = require("path");

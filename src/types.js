@@ -18,7 +18,8 @@ export type DependencyRequestPatterns = Array<{
   pattern: string,
   registry: RegistryNames,
   optional?: boolean,
-  ignore?: boolean
+  ignore?: boolean,
+  hint?: ?string
 }>;
 
 // person object, the exploded version of a `maintainers`/`authors` field

@@ -23,6 +23,7 @@ export let writeFile      = promisify(fs.writeFile);
 export let realpath       = promisify(fs.realpath);
 export let readdir        = promisify(fs.readdir);
 export let rename         = promisify(fs.rename);
+export let access         = promisify(fs.access);
 export let unlink         = promisify(require("rimraf"));
 export let mkdirp         = promisify(require("mkdirp"));
 export let exists         = promisify(fs.exists, true);
@@ -32,49 +33,59 @@ export let chmod          = promisify(fs.chmod);
 let fsSymlink = promisify(fs.symlink);
 let stripBOM  = require("strip-bom");
 
-export async function copy(src: string, dest: string): Promise<void> {
+export async function copy(src: string, dest: string): Promise<boolean> {
   let srcStat = await lstat(src);
+  let destFiles = [];
+  let srcFiles = [];
 
   if (await exists(dest)) {
     let destStat = await lstat(dest);
 
+    if (srcStat.mode !== destStat.mode) {
+      // different types
+      await access(dest, srcStat.mode);
+    }
+
     if (srcStat.isFile() && destStat.isFile() &&
         srcStat.size === destStat.size && +srcStat.mtime === +destStat.mtime) {
       // we can safely assume this is the same file
-      return;
+      return false;
     }
 
     if (srcStat.isDirectory() && destStat.isDirectory()) {
       // remove files that aren't in source
-      let destFiles = await readdir(dest);
-      let srcFiles  = await readdir(src);
+      [destFiles, srcFiles] = await Promise.all([
+        readdir(dest),
+        readdir(src)
+      ]);
 
       let promises = destFiles.map(async (file) => {
-        if (srcFiles.indexOf(file) < 0) {
+        if (file !== "node_modules" && srcFiles.indexOf(file) < 0) {
           await unlink(path.join(dest, file));
         }
       });
-      await Promise.all(promises);
-    }
 
-    if (srcStat.mode !== destStat.mode) {
-      // different types
-      await unlink(dest);
+      await Promise.all(promises);
     }
   }
 
   if (srcStat.isDirectory()) {
+    let anyFresh = false;
+
     // create dest directory
     await mkdirp(dest);
 
-    // get all files in source directory
-    let files = await readdir(src);
-
     // copy all files from source to dest
-    let promises = files.map((file) => {
-      return copy(path.join(src, file), path.join(dest, file));
+    let promises = srcFiles.map((file) => {
+      return copy(path.join(src, file), path.join(dest, file)).then(function (fresh) {
+        if (fresh) anyFresh = true;
+        return fresh;
+      });
     });
+
     await Promise.all(promises);
+
+    return anyFresh;
   } else if (srcStat.isFile()) {
     return new Promise((resolve, reject) => {
       let readStream = fs.createReadStream(src);
@@ -88,11 +99,11 @@ export async function copy(src: string, dest: string): Promise<void> {
       });
 
       writeStream.once("finish", function () {
-        fs.utimes(dest, +srcStat.atime, +srcStat.mtime, function (err) {
+        fs.utimes(dest, srcStat.atime, srcStat.mtime, function (err) {
           if (err) {
             reject(err);
           } else {
-            resolve();
+            resolve(true);
           }
         });
       });
