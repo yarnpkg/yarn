@@ -44,14 +44,15 @@ export class Install {
     reporter: Reporter,
     lockfile: Lockfile,
   ) {
-    this.resolutions = map();
-    this.registries  = [];
-    this.lockfile    = lockfile;
-    this.reporter    = reporter;
-    this.config      = config;
-    this.action      = action;
-    this.flags       = flags;
-    this.args        = args;
+    this.rootPatternsToOrigin = map();
+    this.resolutions          = map();
+    this.registries           = [];
+    this.lockfile             = lockfile;
+    this.reporter             = reporter;
+    this.config               = config;
+    this.action               = action;
+    this.flags                = flags;
+    this.args                 = args;
 
     this.resolver      = new PackageResolver(config, lockfile);
     this.compatibility = new PackageCompatibility(config, this.resolver);
@@ -71,6 +72,7 @@ export class Install {
   scripts: PackageInstallScripts;
   linker: PackageLinker;
   compatibility: PackageCompatibility;
+  rootPatternsToOrigin: { [pattern: string]: string };
 
   /**
    * TODO description
@@ -106,8 +108,8 @@ export class Install {
         let json = await fs.readJson(loc);
         Object.assign(this.resolutions, json.resolutions);
 
-        // plain deps
-        let pushPlainDeps = (depMap, hint, ignore) => {
+        let pushDeps = (depType, hint, ignore) => {
+          let depMap = json[depType];
           for (let name in depMap) {
             if (excludeNames.indexOf(name) >= 0) continue;
 
@@ -118,28 +120,15 @@ export class Install {
               pattern += "@" + depMap[name];
             }
 
+            this.rootPatternsToOrigin[pattern] = depType;
             patterns.push(pattern);
             deps.push({ pattern, registry, ignore, hint });
           }
         };
-        pushPlainDeps(json.dependencies, null, false);
-        pushPlainDeps(json.devDependencies, "dev", !!this.flags.production);
 
-        // optional deps
-        let optionalDeps = json.optionalDependencies;
-        for (let name in optionalDeps) {
-          if (excludeNames.indexOf(name) >= 0) continue;
-
-          let pattern = name;
-          if (!this.lockfile.getLocked(pattern, true)) {
-            // see above comment
-            // TODO dry this up
-            pattern += "@" + optionalDeps[name];
-          }
-
-          patterns.push(pattern);
-          deps.push({ pattern, registry, optional: true, hint: "optional" });
-        }
+        pushDeps("dependencies", { hint: null, ignore: false, optional: false });
+        pushDeps("devDependencies", { hint: "dev", ignore: !!this.flags.production, optional: false });
+        pushDeps("optionalDependencies", { hint: "optional", ignore: false, optional: true });
 
         break;
       }

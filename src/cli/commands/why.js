@@ -71,23 +71,31 @@ export async function run(
     }
   }
 
-  if (match) {
-    // this dependency is the result of deduping these modules
-
-    // this dependency has been hoisted to a higher level
-
-    // this dependency was specified as transitive for these modules
-
-    // this dependency is a transitive dependency of these root modules in your project
-
-    // this dependency was specified in your root manifest
-
-    // file size of this dependency without any dependencies
-
-    // file size of this dependency including dependencies that aren't shared
-
-    // shared transitive dependencies
-  } else {
+  if (!match) {
     reporter.error("We couldn't find a match");
+    return;
   }
+
+  let matchPatterns = match.pkg.reference.patterns;
+
+  // reason: dependency of these modules
+
+  // reason: exists in manifest
+  let rootType;
+  for (let pattern of matchPatterns) {
+    rootType = install.rootPatternsToOrigin[pattern];
+    if (rootType) break;
+  }
+  if (rootType) {
+    reporter.info(`Reason: Specified in ${rootType}`);
+  }
+
+  // stats: file size of this dependency without any dependencies
+  reporter.info(`Disk size without dependencies: 0MB`);
+
+  // stats: file size of this dependency including dependencies that aren't shared
+  reporter.info(`Disk size with unique dependencies: 0MB`);
+
+  // stats: shared transitive dependencies
+  reporter.info(`Amount of shared dependencies: 0MB`);
 }
