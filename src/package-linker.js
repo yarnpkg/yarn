@@ -237,6 +237,9 @@ export default class PackageLinker {
         let [subKey] = pair;
         if (subKey === newKey) continue;
 
+        let subInfo = tree[subKey];
+        if (!subInfo) continue;
+
         let newSubKey = subKey.replace(new RegExp(`^${oldKey}#`), `${newKey}#`);
         if (newSubKey === subKey) continue;
 
@@ -244,7 +247,6 @@ export default class PackageLinker {
         unflattenedKeys.add(newSubKey);
 
         // update references
-        let subInfo = tree[subKey];
         subInfo.key = newSubKey;
         tree[newSubKey] = subInfo;
         pair[0] = newSubKey;
