@@ -95,7 +95,7 @@ export async function run(
       chain.push(install.resolver.getResolvedPattern(delegator.pattern).name);
     } while (delegator = delegator.parentRequest);
 
-    reasons.push(`Depended on by ${chain.reverse().slice(0, -1).join("#")}`);
+    reasons.push(`depended on by ${chain.reverse().join("#")}`);
   }
 
   // reason: exists in manifest
@@ -105,13 +105,21 @@ export async function run(
     if (rootType) reasons.push(`Specified in ${rootType}`);
   }
 
-  // reason: this is hoisted from these modules
+  // reason:
+  if (query === match.hoistedFrom[0]) {
+    reporter.info(`Has been hoisted to ${match.key}`);
+  }
 
-  // reason: this module was deduped to this location
+  // reason: this is hoisted from these modules
+  for (let pattern of match.hoistedFrom) {
+    if (pattern !== match.key) {
+      reasons.push(`hoisted from ${pattern}`);
+    }
+  }
 
   //
   if (reasons.length === 1) {
-    reporter.info(`This module exists because: ${reasons[0]}`);
+    reporter.info(`This module exists because it's ${reasons[0]}`);
   } else if (reasons.length > 1) {
     reporter.info("Reasons this module exists");
     reporter.list("reasons", reasons);
