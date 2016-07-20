@@ -22,70 +22,70 @@ let test = require("ava");
 
 let getConsoleBuff = build(ConsoleReporter, (data) => data);
 
-test.failing("ConsoleReporter.step", async (t) => {
+test("ConsoleReporter.step", async (t) => {
   t.deepEqual(await getConsoleBuff((r) => r.step(1, 5, "foboar")), {
     stderr: "",
-    stdout: "\u001b[90m[1/5]\u001b[39m foboar..."
+    stdout: "\u001b[2K\u001b[1G\u001b[90m[1/5]\u001b[39m foboar..."
   });
 });
 
-test.failing("ConsoleReporter.header", async (t) => {
+test("ConsoleReporter.header", async (t) => {
   t.deepEqual(await getConsoleBuff((r) => r.header("foobar", { name: "kpm", version: "0.0.0" })), {
     stderr: "",
-    stdout: "\u001b[1mkpm foobar v0.0.0\u001b[22m"
+    stdout: "\u001b[2K\u001b[1G\u001b[1mkpm foobar v0.0.0\u001b[22m"
   });
 });
 
-test.failing("ConsoleReporter.footer", async (t) => {
+test("ConsoleReporter.footer", async (t) => {
   t.deepEqual(await getConsoleBuff((r) => r.footer()), {
     stderr: "",
-    stdout: "✨  Done in 0.00s."
+    stdout: "\u001b[2K\u001b[1G✨  Done in 0.00s."
   });
 
   t.deepEqual(await getConsoleBuff((r) => r.footer(true)), {
     stderr: "",
-    stdout: "✨  Done in 0.00s. Peak memory usage 0.00MB."
+    stdout: "\u001b[2K\u001b[1G✨  Done in 0.00s. Peak memory usage 0.00MB."
   });
 });
 
-test.failing("ConsoleReporter.log", async (t) => {
+test("ConsoleReporter.log", async (t) => {
   t.deepEqual(await getConsoleBuff((r) => r.log("foobar")), {
     stderr: "",
-    stdout: "foobar"
+    stdout: "\u001b[2K\u001b[1Gfoobar"
   });
 });
 
-test.failing("ConsoleReporter.success", async (t) => {
+test("ConsoleReporter.success", async (t) => {
   t.deepEqual(await getConsoleBuff((r) => r.success("foobar")), {
     stderr: "",
-    stdout: "\u001b[32msuccess\u001b[39m foobar"
+    stdout: "\u001b[2K\u001b[1G\u001b[32msuccess\u001b[39m foobar"
   });
 });
 
-test.failing("ConsoleReporter.error", async (t) => {
+test("ConsoleReporter.error", async (t) => {
   t.deepEqual(await getConsoleBuff((r) => r.error("foobar")), {
-    stderr: "\u001b[31merror\u001b[39m foobar",
+    stderr: "\u001b[2K\u001b[1G\u001b[31merror\u001b[39m foobar",
     stdout: ""
   });
 });
 
-test.failing("ConsoleReporter.info", async (t) => {
+test("ConsoleReporter.info", async (t) => {
   t.deepEqual(await getConsoleBuff((r) => r.info("foobar")), {
     stderr: "",
-    stdout: "\u001b[34minfo\u001b[39m foobar"
+    stdout: "\u001b[2K\u001b[1G\u001b[34minfo\u001b[39m foobar"
   });
 });
 
-test.failing("ConsoleReporter.command", async (t) => {
+test("ConsoleReporter.command", async (t) => {
   t.deepEqual(await getConsoleBuff((r) => r.command("foobar")), {
     stderr: "",
-    stdout: "\u001b[90m$ foobar\u001b[39m"
+    stdout: "\u001b[2K\u001b[1G\u001b[90m$ foobar\u001b[39m"
   });
 });
 
-test.failing("ConsoleReporter.warn", async (t) => {
+test("ConsoleReporter.warn", async (t) => {
   t.deepEqual(await getConsoleBuff((r) => r.warn("foobar")), {
-    stderr: "\u001b[33mwarning\u001b[39m foobar",
+    stderr: "\u001b[2K\u001b[1G\u001b[33mwarning\u001b[39m foobar",
     stdout: ""
   });
 });
@@ -101,7 +101,7 @@ test("ConsoleReporter.activity", async (t) => {
   });
 });
 
-test.failing("ConsoleReporter.select", async (t) => {
+test("ConsoleReporter.select", async (t) => {
   t.deepEqual(await getConsoleBuff(async function (r, streams) {
     streams.stdin.on("resume", function () {
       streams.stdin.send("1\n", "ascii");
@@ -112,7 +112,7 @@ test.failing("ConsoleReporter.select", async (t) => {
     t.deepEqual(res, "foo");
   }), {
     stderr: "",
-    stdout: "Ayo\n1. foo\n2. bar\n\u001b[1G\u001b[0JSelect one?: \u001b[14G1"
+    stdout: "\u001b[2K\u001b[1GAyo\n\u001b[2K\u001b[1G1. foo\n\u001b[2K\u001b[1G2. bar\n\u001b[1G\u001b[0JSelect one?: \u001b[14G1"
   });
 });
 
