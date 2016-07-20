@@ -13,10 +13,6 @@ env:
  - NODE_VERSION="5"
  - NODE_VERSION="4"
 
-matrix:
-  exclude:
-  - os: linux
-
 install:
  # install more modern make
  - wget http://ftp.gnu.org/gnu/make/make-4.2.tar.gz
