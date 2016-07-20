@@ -311,7 +311,7 @@ export default class PackageLinker {
       let binLoc = path.join(dest, "node_modules");
       await this.linkBinDependencies([], pkg, binLoc);
       tickBin(dest);
-    }, 8);
+    }, 4);
   }
 
   async resolvePeerModules(pkg: Manifest): Promise<DependencyPairs> {
