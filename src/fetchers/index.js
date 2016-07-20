@@ -9,6 +9,7 @@
  * @flow
  */
 
-export { default as git } from "./git";
-export { default as copy } from "./copy";
-export { default as tarball } from "./tarball";
+export { default as base } from "./_base.js";
+export { default as git } from "./git.js";
+export { default as copy } from "./copy.js";
+export { default as tarball } from "./tarball.js";

@@ -5,11 +5,13 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree. An additional grant
  * of patent rights can be found in the PATENTS file in the same directory.
+ *
+ * @flow
  */
 
 let temp = require("temp").track();
 
-export default function (filename: string): Promise<string> {
+export default function (filename?: string): Promise<string> {
   return new Promise((resolve, reject) => {
     temp.mkdir(filename, function (err, path) {
       if (err) {

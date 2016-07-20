@@ -5,6 +5,8 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree. An additional grant
  * of patent rights can be found in the PATENTS file in the same directory.
+ *
+ * @flow
  */
 
 import { analyse } from "../src/analysis/index.js";
@@ -24,6 +26,7 @@ for (let name of fs.readdirSync(fixturesLoc)) {
   let a = path.join(loc, "a");
   let b = path.join(loc, "b");
 
+  // $FlowFixMe: TODO just use fs.readFile/JSON.parse
   let expected = require(path.join(loc, "expected.json"));
 
   test(name, async function () {
