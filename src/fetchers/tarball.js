@@ -59,6 +59,7 @@ export default class TarballFetcher extends BaseFetcher {
     if (parts.protocol === null) {
       // path to the local tarball
       let localTarball;
+      let isOfflineTarball = false;
 
       let relativeFileLoc = parts.pathname && path.join(this.config.cwd, parts.pathname);
       if (relativeFileLoc && await fsUtil.exists(relativeFileLoc)) {
@@ -67,6 +68,7 @@ export default class TarballFetcher extends BaseFetcher {
       } else {
         // generate a offline cache location
         localTarball = path.resolve(this.config.getOfflineMirrorPath(registry, null), ref);
+        isOfflineTarball = true;
       }
 
       if (!(await fsUtil.exists(localTarball))) {
@@ -78,9 +80,25 @@ export default class TarballFetcher extends BaseFetcher {
 
         // flow gets confused with the pipe/on types chain
         let cachedStream: Object = fs.createReadStream(localTarball);
+
+        let decompressStream = zlib.createUnzip();
+
+        // nicer errors for corrupted compressed tarballs
+        decompressStream.on("error", function (err) {
+          let msg = `${err.message}. `;
+          if (isOfflineTarball) {
+            msg += `Mirror tarball appears to be corrupt. You can resolve this by running:\n\n` +
+                   `  $ rm -rf ${localTarball}\n` +
+                   "  $ kpm install --save";
+          } else {
+            msg += `Error decompressing ${localTarball}, it appears to be corrupt.`;
+          }
+          reject(new MessageError(msg));
+        });
+
         cachedStream
           .pipe(validateStream)
-          .pipe(zlib.createUnzip())
+          .pipe(decompressStream)
           .on("error", reject)
           .pipe(extractor);
       });
