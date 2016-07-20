@@ -18,8 +18,8 @@ import map from "./util/map.js";
 import { entries } from "./util/misc.js";
 
 let invariant = require("invariant");
-let semver    = require("semver");
-let _         = require("lodash");
+let semver = require("semver");
+let _ = require("lodash");
 
 function isValid(items: Array<string>, actual: string): boolean {
   let isBlacklist = false;
