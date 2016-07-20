@@ -8,7 +8,7 @@
  */
 /* eslint max-len: 0 */
 
-import * as reporters from "kreporters";
+import * as reporters from "../src/reporters/index.js";
 import PackageResolver from "../src/package-resolver.js";
 import * as constants from "../src/constants.js";
 import Lockfile from "../src/lockfile/index.js";
