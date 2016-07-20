@@ -280,16 +280,30 @@ export default class PackageLinker {
     });
 
     //
-    let tickCopyModule = this.reporter.progress(flatTree.length);
-    await promise.queue(flatTree, async function ([dest, { pkg, loc: src }]) {
-      pkg.reference.setLocation(dest);
-      await fs.mkdirp(dest);
+    let queue = [];
+    for (let [dest, { pkg, loc: src }] of flatTree) {
+      let ref = pkg.reference;
+      invariant(ref, "expected package reference");
 
-      let fresh = await fs.copy(src, dest);
-      pkg.reference.setFresh(fresh);
+      ref.setLocation(dest);
+      queue.push({
+        src,
+        dest,
+        onFresh() {
+          if (ref) ref.setFresh(true);
+        }
+      });
+    }
+    let bar;
+    await fs.copyBulk(queue, {
+      onStart: (num: number) => {
+        bar = this.reporter.progress(num);
+      },
 
-      tickCopyModule(dest);
-    }, 4);
+      onProgress(src: string) {
+        if (bar) bar(src);
+      }
+    });
 
     //
     let tickBin = this.reporter.progress(flatTree.length);
