@@ -17,8 +17,9 @@ import { MessageError } from "./errors.js";
 import map from "./util/map.js";
 import { entries } from "./util/misc.js";
 
+let invariant = require("invariant");
 let semver = require("semver");
-let _      = require("lodash");
+let _ = require("lodash");
 
 function isValid(items: Array<string>, actual: string): boolean {
   let isBlacklist = false;
@@ -71,12 +72,30 @@ export default class PackageCompatibility {
   }
 
   check(info: Manifest) {
-    let didError = false;
-    let human    = `${info.name}@${info.version}`;
+    let didIgnore = false;
+    let didError  = false;
+    let reporter  = this.reporter;
+    let human     = `${info.name}@${info.version}`;
 
     let pushError = (msg) => {
-      didError = true;
-      this.reporter.error(`${human}: ${msg}`);
+      let ref = info.reference;
+      invariant(ref, "expected package reference");
+
+      if (ref.optional) {
+        ref.addIgnore(true);
+
+        reporter.warn(`${human}: ${msg}`);
+        if (!didIgnore) {
+          reporter.info(
+            `${human} is an optional dependency and failed compatibility check. ` +
+            "Excluding it from installation."
+          );
+          didIgnore = true;
+        }
+      } else {
+        reporter.error(`${human}: ${msg}`);
+        didError = true;
+      }
     };
 
     if (Array.isArray(info.os)) {

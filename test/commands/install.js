@@ -20,6 +20,7 @@ import * as fs from "../../src/util/fs.js";
 import assert from "assert";
 import semver from "semver";
 
+let stream = require("stream");
 let test = require("ava");
 let path = require("path");
 
@@ -50,7 +51,14 @@ async function run(
   checkInstalled: ?(config: Config, reporter: Reporter) => ?Promise<void>,
   beforeInstall: ?(cwd: string) => ?Promise<void>
 ) {
-  let reporter = new reporters.NoopReporter;
+  let out = "";
+  let stdout = new stream.Writable({
+    write(data) {
+      out += data;
+    }
+  });
+
+  let reporter = new reporters.ConsoleReporter({ stdout, stderr: stdout });
 
   let cwd = path.join(fixturesLoc, name);
 
@@ -69,19 +77,24 @@ async function run(
   await fs.mkdirp(path.join(cwd, constants.MODULE_CACHE_DIRECTORY));
   await fs.mkdirp(path.join(cwd, "node_modules"));
 
-  let config = new Config(reporter, { cwd });
-  await config.init();
-
-  let install = new Install("install", flags, args, config, reporter, lockfile);
-  await install.init();
-
   try {
-    if (checkInstalled) {
-      await checkInstalled(config, reporter);
+    let config = new Config(reporter, { cwd });
+    await config.init();
+
+    let install = new Install("install", flags, args, config, reporter, lockfile);
+    await install.init();
+
+    try {
+      if (checkInstalled) {
+        await checkInstalled(config, reporter);
+      }
+    } finally {
+      // clean up
+      await clean(cwd, removeLock);
     }
-  } finally {
-    // clean up
-    await clean(cwd, removeLock);
+  } catch (err) {
+    err.message += `. Console output:\n${out}`;
+    throw err;
   }
 }
 
@@ -94,19 +107,19 @@ test("[network] root install from shrinkwrap", () => {
   return run({}, [], "root-install-with-lockfile");
 });
 
-test.failing("[network] root install with optional deps", () => {
+test("[network] root install with optional deps", () => {
   return run({}, [], "root-install-with-optional-dependency");
 });
 
-test.failing("[network] install with arg that has install scripts", () => {
-  return run({}, ["fsevents"], "install-with-arg-and-install-scripts");
+test("[network] install with arg that has install scripts", () => {
+  return run({}, ["flow-bin"], "install-with-arg-and-install-scripts");
 });
 
 test("[network] install with arg", () => {
   return run({}, ["is-online"], "install-with-arg");
 });
 
-test.failing("[network] install with arg that has binaries", () => {
+test("[network] install with arg that has binaries", () => {
   return run({}, ["react-native-cli"], "install-with-arg-and-bin");
 });
 
@@ -879,7 +892,7 @@ test.failing("[network] install --save with new dependency should be determinist
   });
 });
 
-test.failing("[network] install --save should ignore cache", () => {
+test("[network] install --save should ignore cache", () => {
   // left-pad@1.1.0 gets installed without --save
   // left-pad@1.1.0 gets installed with --save
   // files in mirror, fbkpm.lock, package.json and node_modules should reflect that

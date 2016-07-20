@@ -10,6 +10,7 @@
  */
 
 import BlockingQueue from "./blocking-queue.js";
+import * as promise from "./promise.js";
 import { promisify } from "./promise.js";
 import map from "./map.js";
 
@@ -31,86 +32,147 @@ export let lstat          = promisify(fs.lstat);
 export let chmod          = promisify(fs.chmod);
 
 let fsSymlink = promisify(fs.symlink);
+let invariant = require("invariant");
 let stripBOM  = require("strip-bom");
 
-export async function copy(src: string, dest: string): Promise<boolean> {
-  let srcStat = await lstat(src);
-  let destFiles = [];
-  let srcFiles = [];
+type CopyQueue = Array<{
+  src: string,
+  dest: string,
+  onFresh?: ?() => void
+}>;
 
-  if (await exists(dest)) {
-    let destStat = await lstat(dest);
+type CopyActions = Array<{
+  src: string,
+  dest: string,
+  atime: number,
+  mtime: number,
+  mode: number
+}>;
 
-    if (srcStat.mode !== destStat.mode) {
-      // different types
-      await access(dest, srcStat.mode);
+async function buildActionsForCopy(queue: CopyQueue): Promise<CopyActions> {
+  let actions: CopyActions = [];
+  await init();
+  return actions;
+
+  // custom concurrency logic as we're always executing stacks of 4 queue items
+  // at a time due to the requirement to push items onto the queue
+  async function init() {
+    let items = queue.splice(0, 4);
+    if (!items.length) return;
+
+    await Promise.all(items.map(build));
+    return init();
+  }
+
+  //
+  async function build(data) {
+    let { src, dest, onFresh } = data;
+    let srcStat = await lstat(src);
+    let srcFiles;
+
+    if (srcStat.isDirectory()) {
+      srcFiles = await readdir(src);
     }
 
-    if (srcStat.isFile() && destStat.isFile() &&
-        srcStat.size === destStat.size && +srcStat.mtime === +destStat.mtime) {
-      // we can safely assume this is the same file
-      return false;
+    if (await exists(dest)) {
+      let destStat = await lstat(dest);
+
+      let bothFiles   = srcStat.isFile() && destStat.isFile();
+      let bothFolders = !bothFiles && srcStat.isDirectory() && destStat.isDirectory();
+
+      if (srcStat.mode !== destStat.mode) {
+        if (bothFiles) {
+          await access(dest, srcStat.mode);
+        } else {
+          await unlink(dest);
+          return build(data);
+        }
+      }
+
+      if (bothFiles && srcStat.size === destStat.size && +srcStat.mtime === +destStat.mtime) {
+        // we can safely assume this is the same file
+        return;
+      }
+
+      if (bothFolders) {
+        // remove files that aren't in source
+        let destFiles = await readdir(dest);
+        invariant(srcFiles, "src files not initialised");
+
+        for (let file of destFiles) {
+          if (file === "node_modules") continue;
+
+          if (srcFiles.indexOf(file) < 0) {
+            await unlink(path.join(dest, file));
+          }
+        }
+      }
     }
 
-    if (srcStat.isDirectory() && destStat.isDirectory()) {
-      // remove files that aren't in source
-      [destFiles, srcFiles] = await Promise.all([
-        readdir(dest),
-        readdir(src)
-      ]);
+    if (srcStat.isDirectory()) {
+      await mkdirp(dest);
 
-      let promises = destFiles.map(async (file) => {
-        if (file !== "node_modules" && srcFiles.indexOf(file) < 0) {
-          await unlink(path.join(dest, file));
+      // push all files to queue
+      invariant(srcFiles, "src files not initialised");
+      for (let file of srcFiles) {
+        queue.push({
+          onFresh,
+          src: path.join(src, file),
+          dest: path.join(dest, file)
+        });
+      }
+    } else if (srcStat.isFile()) {
+      if (onFresh) onFresh();
+      actions.push({
+        src,
+        dest,
+        atime: srcStat.atime,
+        mtime: srcStat.mtime,
+        mode: srcStat.mode
+      });
+    } else {
+      throw new Error("unsure how to copy this?");
+    }
+  }
+}
+
+export function copy(src: string, dest: string): Promise<void> {
+  return copyBulk([{ src, dest }]);
+}
+
+export async function copyBulk(
+  queue: CopyQueue,
+  events?: {
+    onProgress: (dest: string) => void,
+    onStart: (num: number) => void
+  }
+): Promise<void> {
+  let actions: CopyActions = await buildActionsForCopy(queue);
+
+  if (events) events.onStart(actions.length);
+
+  await promise.queue(actions, (data) => new Promise((resolve, reject) => {
+    let readStream = fs.createReadStream(data.src);
+    let writeStream = fs.createWriteStream(data.dest, { mode: data.mode });
+
+    readStream.on("error", reject);
+    writeStream.on("error", reject);
+
+    writeStream.on("open", function () {
+      readStream.pipe(writeStream);
+    });
+
+    writeStream.once("finish", function () {
+      fs.utimes(data.dest, data.atime, data.mtime, function (err) {
+        if (err) {
+          reject(err);
+        } else {
+          if (events) events.onProgress(data.dest);
+          resolve();
         }
       });
-
-      await Promise.all(promises);
-    }
-  }
-
-  if (srcStat.isDirectory()) {
-    let anyFresh = false;
-
-    // create dest directory
-    await mkdirp(dest);
-
-    // copy all files from source to dest
-    let promises = srcFiles.map((file) => {
-      return copy(path.join(src, file), path.join(dest, file)).then(function (fresh) {
-        if (fresh) anyFresh = true;
-        return fresh;
-      });
     });
-
-    await Promise.all(promises);
-
-    return anyFresh;
-  } else if (srcStat.isFile()) {
-    return new Promise((resolve, reject) => {
-      let readStream = fs.createReadStream(src);
-      let writeStream = fs.createWriteStream(dest, { mode: srcStat.mode });
-
-      readStream.on("error", reject);
-      writeStream.on("error", reject);
-
-      writeStream.on("open", function () {
-        readStream.pipe(writeStream);
-      });
-
-      writeStream.once("finish", function () {
-        fs.utimes(dest, srcStat.atime, srcStat.mtime, function (err) {
-          if (err) {
-            reject(err);
-          } else {
-            resolve(true);
-          }
-        });
-      });
-    });
-  } else {
-    throw new Error("unsure how to copy this?");
-  }
+  }), 4);
 }
 
 export async function readFile(loc: string): Promise<string> {

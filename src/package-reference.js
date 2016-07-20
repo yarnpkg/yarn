@@ -13,6 +13,7 @@ import type Lockfile from "./lockfile/index.js";
 import type Config from "./config.js";
 import type { PackageRemote, Manifest } from "./types.js";
 import type PackageRequest from "./package-request.js";
+import type PackageResolver from "./package-resolver.js";
 import type { RegistryNames } from "./registries/index.js";
 import { entries } from "./util/misc.js";
 import { MessageError } from "./errors.js";
@@ -24,6 +25,7 @@ export default class PackageReference {
     remote: PackageRemote,
     saveForOffline: boolean,
   ) {
+    this.resolver = request.resolver;
     this.lockfile = request.rootLockfile;
     this.requests = [request];
     this.config   = request.config;
@@ -63,6 +65,7 @@ export default class PackageReference {
   remote: PackageRemote;
   registry: RegistryNames;
   location: ?string;
+  resolver: PackageResolver;
 
   async getFolder(): Promise<string> {
     return this.config.registries[this.registry].folder;
@@ -122,12 +125,27 @@ export default class PackageReference {
     }
   }
 
-  addIgnore(ignore: boolean) {
+  addIgnore(ignore: boolean, ancestry?: Set<PackageReference> = new Set) {
     // see comments in addOptional
     if (this.ignore == null) {
       this.ignore = ignore;
     } else if (!ignore) {
       this.ignore = false;
+    } else {
+      // we haven't changed our `ignore` so don't mess with
+      // dependencies
+      return;
+    }
+
+    if (ancestry.has(this)) return;
+    ancestry.add(this);
+
+    // go through and update all transitive dependencies to be ignored
+    for (let pattern of this.dependencies) {
+      let pkg = this.resolver.getResolvedPattern(pattern);
+      if (!pkg) continue;
+
+      pkg.reference.addIgnore(ignore, ancestry);
     }
   }
 }
