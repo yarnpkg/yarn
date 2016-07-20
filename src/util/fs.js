@@ -65,7 +65,8 @@ async function buildActionsForCopy(queue: CopyQueue): Promise<CopyActions> {
   }
 
   //
-  async function build({ src, dest, onFresh }) {
+  async function build(data) {
+    let { src, dest, onFresh } = data;
     let srcStat = await lstat(src);
     let srcFiles;
 
@@ -84,6 +85,7 @@ async function buildActionsForCopy(queue: CopyQueue): Promise<CopyActions> {
           await access(dest, srcStat.mode);
         } else {
           await unlink(dest);
+          return build(data);
         }
       }
 
