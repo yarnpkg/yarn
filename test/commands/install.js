@@ -103,7 +103,7 @@ test("[network] root install with optional deps", () => {
 });
 
 test("[network] install with arg that has install scripts", () => {
-  return run({}, ["fsevents"], "install-with-arg-and-install-scripts");
+  return run({}, ["flow-bin"], "install-with-arg-and-install-scripts");
 });
 
 test("[network] install with arg", () => {
