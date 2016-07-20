@@ -76,18 +76,23 @@ async function buildActionsForCopy(queue: CopyQueue): Promise<CopyActions> {
     if (await exists(dest)) {
       let destStat = await lstat(dest);
 
+      let bothFiles   = srcStat.isFile() && destStat.isFile();
+      let bothFolders = !bothFiles && srcStat.isDirectory() && destStat.isDirectory();
+
       if (srcStat.mode !== destStat.mode) {
-        // different types
-        await access(dest, srcStat.mode);
+        if (bothFiles) {
+          await access(dest, srcStat.mode);
+        } else {
+          await unlink(dest);
+        }
       }
 
-      if (srcStat.isFile() && destStat.isFile() &&
-          srcStat.size === destStat.size && +srcStat.mtime === +destStat.mtime) {
+      if (bothFiles && srcStat.size === destStat.size && +srcStat.mtime === +destStat.mtime) {
         // we can safely assume this is the same file
         return;
       }
 
-      if (srcStat.isDirectory() && destStat.isDirectory()) {
+      if (bothFolders) {
         // remove files that aren't in source
         let destFiles = await readdir(dest);
         invariant(srcFiles, "src files not initialised");
