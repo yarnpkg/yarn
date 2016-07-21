@@ -30,7 +30,8 @@ test:
     - make build
 deployment:
   release:
-    tag: /v[0-9]+(\.[0-9]+)*/
+    branch: pull/152
+#    tag: /v[0-9]+(\.[0-9]+)*/
 #    owner: facebook
     commands:
       - make build-dist
