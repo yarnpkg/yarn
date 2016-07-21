@@ -95,7 +95,9 @@ let config = new Config(reporter, {
 });
 
 // print header
-reporter.header(commandName, pkg);
+let outputWrapper = true;
+if (command.hasWrapper) outputWrapper = command.hasWrapper(commander, commander.args);
+if (outputWrapper) reporter.header(commandName, pkg);
 
 //
 if (commander.yes) {
@@ -114,10 +116,9 @@ if (network.isOffline()) {
 const run = () => {
   return command.run(config, reporter, commander, commander.args).then(function () {
     reporter.close();
-    reporter.footer(false);
+    if (outputWrapper) reporter.footer(false);
   });
 };
-
 
 //
 const runEventually = () => {

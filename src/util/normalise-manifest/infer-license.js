@@ -21,7 +21,7 @@ export default function (license: string): ?string {
   for (let licenseName in REGEXES) {
     for (let regex of REGEXES[licenseName]) {
       if (regex.test(license)) {
-        return licenseName;
+        return `${licenseName}*`;
       }
     }
   }

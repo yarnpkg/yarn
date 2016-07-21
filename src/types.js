@@ -48,6 +48,21 @@ export type Manifest = {
   name: string,
   version: string,
 
+  license?: string,
+  licenseText?: string,
+
+  readme?: string,
+  readmeFilename?: string,
+
+  repository?: {
+    type: "git",
+    url: string
+  },
+
+  bugs?: {
+    url: string
+  },
+
   // the package reference that we pass around as a minimal way to refer to it
   reference?: ?PackageReference,
 
