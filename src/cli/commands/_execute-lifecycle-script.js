@@ -12,8 +12,9 @@
 import type Config from "../../config.js";
 import { MessageError } from "../../errors.js";
 import executeLifecycleScript from "../../util/execute-lifecycle-script.js";
-import similarity from "../../analysis/text/similarity.js";
 import * as commands from "./index.js";
+
+let leven = require("leven");
 
 export default function (action: string): { run: Function, argumentLength: number } {
   return {
@@ -23,14 +24,12 @@ export default function (action: string): { run: Function, argumentLength: numbe
       let pkg = await config.readManifest(config.cwd);
 
       if (!pkg.scripts || !pkg.scripts[action]) {
-        let maxSimilarity = 0;
         let suggestion;
 
         for (let commandName in commands) {
-          let mySimilarity = similarity(commandName, action);
-          if (mySimilarity >= 0.5 && mySimilarity > maxSimilarity) {
+          let steps = leven(commandName, action);
+          if (steps < 2) {
             suggestion = commandName;
-            maxSimilarity = mySimilarity;
           }
         }
 
