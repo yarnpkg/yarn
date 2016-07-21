@@ -111,13 +111,18 @@ if (network.isOffline()) {
 }
 
 //
+if (command.requireLockfile && !fs.existsSync(path.join(config.cwd, constants.LOCKFILE_FILENAME))) {
+  reporter.error("No lockfile in this directory. Run `fbkpm install` to generate one.");
+  process.exit(1);
+}
+
+//
 const run = () => {
   return command.run(config, reporter, commander, commander.args).then(function () {
     reporter.close();
     reporter.footer(false);
   });
 };
-
 
 //
 const runEventually = () => {
