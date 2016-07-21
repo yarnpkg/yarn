@@ -66,6 +66,7 @@
     "test": "make test"
   },
   "ava": {
+    "babel": "inherit",
     "require": [
       "./test/_register.js"
     ]
