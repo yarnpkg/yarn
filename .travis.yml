@@ -19,29 +19,29 @@ env:
  - NODE_VERSION="4"
 
 install:
- # install more modern make
- - wget http://ftp.gnu.org/gnu/make/make-4.2.tar.gz
- - tar xvf make-4.2.tar.gz
- - pushd make-4.2
- - ./configure
- - make
- - sudo make install
- - popd
- - /usr/local/bin/make -v
-
- # install latest git
- - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install git; fi
- - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then ./scripts/update-linux-git.sh; fi
- - git --version
-
- # install proper node version
- - rm -rf ~/.nvm
- - git clone https://github.com/creationix/nvm.git ~/.nvm
- - source ~/.nvm/nvm.sh
- - nvm install $NODE_VERSION
- - node --version
- - npm install -g npm@3
- - npm install
+# # install more modern make
+# - wget http://ftp.gnu.org/gnu/make/make-4.2.tar.gz
+# - tar xvf make-4.2.tar.gz
+# - pushd make-4.2
+# - ./configure
+# - make
+# - sudo make install
+# - popd
+# - /usr/local/bin/make -v
+#
+# # install latest git
+# - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install git; fi
+# - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then ./scripts/update-linux-git.sh; fi
+# - git --version
+#
+# # install proper node version
+# - rm -rf ~/.nvm
+# - git clone https://github.com/creationix/nvm.git ~/.nvm
+# - source ~/.nvm/nvm.sh
+# - nvm install $NODE_VERSION
+# - node --version
+# - npm install -g npm@3
+# - npm install
 
 os:
  - osx

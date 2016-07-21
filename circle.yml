@@ -14,12 +14,12 @@ dependencies:
 #    - nvm install 5
     - nvm install 6
     - nvm use 6 && nvm alias default 6
+    - which node
     # TODO test kpm with node_modules installed via npm2, npm3 and latest stable kpm
     - npm install
     - go get github.com/tcnksm/ghr
   cache_directories:
     - "/home/ubuntu/make"
-    - echo $NVM_DIR
 test:
   override:
 #    - nvm use 4.3.2 && nvm alias default 4.3.2
@@ -27,7 +27,7 @@ test:
 #    - make test-ci
     - nvm use 6 && nvm alias default 6
     - node -v
-#    - make test-ci
+    - make test-ci
 deployment:
   release:
     branch: pull/152
