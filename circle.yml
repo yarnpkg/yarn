@@ -24,8 +24,8 @@ test:
 #    - nvm use 4.3.2 && nvm alias default 4.3.2
 #    - node -v
 #    - make test-ci
-#    - nvm use 6 && nvm alias default 6
-#    - node -v
+    - nvm use 6 && nvm alias default 6
+    - node -v
 #    - make test-ci
 deployment:
   release:
