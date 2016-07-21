@@ -4,6 +4,11 @@ git:
 sudo: true # can't use this due to git upgrade requirement
 language: c
 
+branches:
+  only:
+  - master
+  - /^.*-stable$/
+
 cache:
   directories:
   - node_modules
