@@ -61,12 +61,6 @@ export async function run(
     let range;
     reporter.step(++step, totalSteps, `Removing module ${name}`);
 
-    // remove bins
-    let pkg = await config.readManifest(loc);
-    for (let binName in pkg.bin) {
-      await fs.unlink(path.join(config.modulesFolder, "node_modules", ".bin", binName));
-    }
-
     // remove from `package.json`
     for (let type of ["devDependencies", "dependencies", "optionalDependencies"]) {
       let deps = json[type];
@@ -75,27 +69,31 @@ export async function run(
         delete deps[name];
       }
     }
+    if (!range) {
+      throw new MessageError("This module isn't specified in package.json");
+    }
+
+    // remove bins
+    let pkg = await config.readManifest(loc);
+    for (let binName in pkg.bin) {
+      await fs.unlink(path.join(config.modulesFolder, "node_modules", ".bin", binName));
+    }
 
     // remove entire package
     let locs = [];
-    if (range) {
-      // add all transitive dependencies locations
-      addSub(`${name}@${range}`);
 
-      function addSub(pattern) {
-        let pkg = install.resolver.getResolvedPattern(pattern);
-        if (!pkg) return; // TODO could possibly throw an error?
+    // add all transitive dependencies locations
+    addSub(`${name}@${range}`);
 
-        locs.push(config.generateHardModulePath(pkg.reference));
+    function addSub(pattern) {
+      let pkg = install.resolver.getResolvedPattern(pattern);
+      if (!pkg) return; // TODO could possibly throw an error?
 
-        for (let key in pkg.dependencies) {
-          addSub(`${key}@${pkg.dependencies[key]}`);
-        }
+      locs.push(config.generateHardModulePath(pkg.reference));
+
+      for (let key in pkg.dependencies) {
+        addSub(`${key}@${pkg.dependencies[key]}`);
       }
-    } else {
-      // doesn't look like this was in package.json so we don't have a pattern to seed
-      // the search
-      locs.push(loc);
     }
 
     for (let loc of locs) {
