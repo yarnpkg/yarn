@@ -28,7 +28,9 @@ test:
     - node -v
     - make test-ci
 deployment:
-  stable:
+  release:
+#    tag: /release-.*/
+#    owner: facebook
     commands:
       - make build-dist
       - ghr --username bestander --token $KPM_CIRCLE_RELEASE_TOKEN --replace --prerelease --debug pre-release dist/fb-kpm-v0.7.0.tar.gz
