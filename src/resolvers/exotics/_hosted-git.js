@@ -90,7 +90,8 @@ export default class HostedGitResolver extends ExoticResolver {
     let client = new Git(this.config, url, this.hash);
 
     let out = await this.config.requestManager.request({
-      url: `${url}/info/refs?service=git-upload-pack`
+      url: `${url}/info/refs?service=git-upload-pack`,
+      queue: this.resolver.fetchingQueue
     });
 
     if (out) {
@@ -120,11 +121,12 @@ export default class HostedGitResolver extends ExoticResolver {
     let self = this; // TODO: babel bug...
     let commit = await this.getRefOverHTTP(url);
 
-    async function tryRegistry(registry) {
+    let tryRegistry = async (registry) => {
       let filenames = registries[registry].filenames;
       for (let filename of filenames) {
         let file = await self.config.requestManager.request({
-          url: self.constructor.getHTTPFileUrl(self.exploded, filename, commit)
+          url: self.constructor.getHTTPFileUrl(self.exploded, filename, commit),
+          queue: this.resolver.fetchingQueue
         });
         if (!file) continue;
 
@@ -139,7 +141,7 @@ export default class HostedGitResolver extends ExoticResolver {
 
         return json;
       }
-    }
+    };
 
     let file = await tryRegistry(this.registry);
     if (file) return file;
@@ -155,7 +157,11 @@ export default class HostedGitResolver extends ExoticResolver {
   }
 
   async hasHTTPCapability(url: string): Promise<boolean> {
-    return (await this.config.requestManager.request({ url, method: "HEAD" })) !== false;
+    return (await this.config.requestManager.request({
+      url,
+      method: "HEAD",
+      queue: this.resolver.fetchingQueue
+    })) !== false;
   }
 
   async resolve(): Promise<Manifest> {

@@ -10,6 +10,7 @@
  */
 
 import type { Reporter } from "../reporters/index.js";
+import BlockingQueue from "./blocking-queue.js";
 import * as constants from "../constants.js";
 import * as network from "./network.js";
 import map from "../util/map.js";
@@ -28,6 +29,7 @@ declare class RequestError extends Error {
 type RequestParams<T> = {
   url: string,
   method?: "GET" | "HEAD" | "POST" | "PUT",
+  queue?: BlockingQueue,
   json?: boolean,
   forever?: boolean,
   headers?: {
@@ -217,6 +219,9 @@ export default class RequestManager {
         reject(err);
       }
     });
+
+    let queue = params.queue;
+    if (queue) req.on("data", queue.stillActive);
 
     if (params.process) {
       params.process(req, resolve, reject);

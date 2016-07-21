@@ -22,6 +22,9 @@ export default class BlockingQueue {
 
     this.running = map();
     this.queue   = map();
+
+    // $FlowFixMe: for performance we refer to this in `stillActive`
+    this.stuckTick = this.stuckTick.bind(this);
   }
 
   concurrencyQueue: Array<Function>;
@@ -44,27 +47,29 @@ export default class BlockingQueue {
     [key: string]: boolean
   };
 
-  startStuckTimer() {
+  stillActive() {
     if (this.stuckTimer) {
       clearTimeout(this.stuckTimer);
     }
 
-    this.stuckTimer = setTimeout(() => {
-      if (this.runningCount === 1) {
-        this.warnedStuck = true;
-        console.warn(
-          `[fbkpm] The ${JSON.stringify(this.alias)} blocking queue may be stuck. 5 seconds ` +
-          `without any activity with 1 worker: ${Object.keys(this.running)[0]}`
-        );
-      }
-    }, 5000);
+    this.stuckTimer = setTimeout(this.stuckTick, 5000);
+  }
+
+  stuckTick() {
+    if (this.runningCount === 1) {
+      this.warnedStuck = true;
+      console.warn(
+        `[fbkpm] The ${JSON.stringify(this.alias)} blocking queue may be stuck. 5 seconds ` +
+        `without any activity with 1 worker: ${Object.keys(this.running)[0]}`
+      );
+    }
   }
 
   push<T>(key: string, factory: () => Promise<T>): Promise<T> {
     if (this.first) {
       this.first = false;
     } else {
-      this.startStuckTimer();
+      this.stillActive();
     }
 
     return new Promise((resolve, reject) => {
