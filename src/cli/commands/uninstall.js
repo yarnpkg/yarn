@@ -34,7 +34,9 @@ export async function run(
   let step = 0;
 
   async function runInstall() {
-    let lockfile = await Lockfile.fromDirectory(config.cwd, reporter, {});
+    let lockfile = await Lockfile.fromDirectory(config.cwd, reporter, {
+      silent: true
+    });
     let install = new Install("uninstall", flags, [], config, new NoopReporter, lockfile);
     await install.init();
     return install;
