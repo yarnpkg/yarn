@@ -14,7 +14,7 @@ dependencies:
     - nvm install 6
     - nvm use 6 && nvm alias default 6
     # test only with npm 3 folder layout
-    # TODO start using kpm for node_modules installation once we have a version available
+    # TODO start using kpm for node_modules installation by obtaining latest stable version from github release
     - npm install
     - go get github.com/tcnksm/ghr
   cache_directories:
@@ -29,7 +29,8 @@ test:
     - make test-ci
 deployment:
   release:
-#    tag: /release-.*/
+    branch: publish-targz
+#    tag: /v[0-9]+(\.[0-9]+)*/
 #    owner: facebook
     commands:
       - make build-dist
