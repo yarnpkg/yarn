@@ -19,7 +19,6 @@ dependencies:
     - go get github.com/tcnksm/ghr
   cache_directories:
     - "/home/ubuntu/make"
-    - "/home/ubuntu/nvm"
 test:
   override:
 #    - nvm use 4.3.2 && nvm alias default 4.3.2
