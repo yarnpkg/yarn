@@ -25,6 +25,7 @@ build-dist:
 	cd dist; \
 		tar -xzf pack.tgz --strip 1; \
         node bin/kpm --version; \
+        ls -al; \
 		rm -rf pack.tgz; \
 		npm install --production; \
 		rm -rf node_modules/*/test node_modules/*/dist
