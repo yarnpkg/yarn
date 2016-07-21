@@ -13,7 +13,7 @@ dependencies:
     - nvm install 5
     - nvm install 6
     - nvm use 6 && nvm alias default 6
-    # test only with npm 3 folder layout 
+    # test only with npm 3 folder layout
     # TODO start using kpm for node_modules installation once we have a version available
     - npm install
   cache_directories:

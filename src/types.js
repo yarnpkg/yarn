@@ -48,6 +48,21 @@ export type Manifest = {
   name: string,
   version: string,
 
+  license?: string,
+  licenseText?: string,
+
+  readme?: string,
+  readmeFilename?: string,
+
+  repository?: {
+    type: "git",
+    url: string
+  },
+
+  bugs?: {
+    url: string
+  },
+
   // the package reference that we pass around as a minimal way to refer to it
   reference?: ?PackageReference,
 
@@ -91,37 +106,6 @@ export type Manifest = {
 
   bundleDependencies?: Array<string>,
   bundledDependencies?: Array<string>,
-};
-
-//
-
-export type AnalysisFileEntry = {
-  type: "binary",
-  buffer: Buffer,
-  hash: string,
-
-  relative: string,
-  absolute: string,
-  size: number,
-  mode: number
-} | {
-  type: "file",
-  buffer: Buffer,
-  hash: string,
-
-  relative: string,
-  absolute: string,
-  size: number,
-  mode: number
-} | {
-  type: "symlink",
-  location: string,
-  hash?: void,
-
-  relative: string,
-  absolute: string,
-  size: number,
-  mode: number
 };
 
 //

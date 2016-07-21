@@ -22,7 +22,8 @@ export default class BowerResolver extends RegistryResolver {
   }> {
     return this.config.requestManager.request({
       url: `${this.registryConfig.registry}/packages/${this.name}`,
-      json: true
+      json: true,
+      queue: this.resolver.fetchingQueue
     });
   }
 

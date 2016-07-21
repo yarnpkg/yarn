@@ -18,6 +18,9 @@ export { ls };
 import * as why from "./why.js";
 export { why };
 
+import * as licenses from "./licenses.js";
+export { licenses };
+
 import * as uninstall from "./uninstall.js";
 export { uninstall };
 

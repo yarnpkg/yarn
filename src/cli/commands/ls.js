@@ -19,6 +19,7 @@ import Lockfile from "../../lockfile/index.js";
 
 let invariant = require("invariant");
 
+export let requireLockfile = true;
 export let noArguments = true;
 
 function buildCount(trees: ?Trees): number {

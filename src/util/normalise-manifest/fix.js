@@ -168,14 +168,16 @@ export default async function (info: Object, moduleLoc: string): Promise<void> {
 
   // infer license file
   // TODO: show that this were inferred and may not be accurate
-  if (!info.license) {
-    let licenseFile = _.find(files, (filename) => {
-      let lower = filename.toLowerCase();
-      return lower === "license" || lower.indexOf("license.") === 0;
-    });
+  let licenseFile = _.find(files, (filename) => {
+    let lower = filename.toLowerCase();
+    return lower === "license" || lower.indexOf("license.") === 0;
+  });
 
-    if (licenseFile) {
-      let licenseContent = await fs.readFile(path.join(moduleLoc, licenseFile));
+  if (licenseFile) {
+    let licenseContent = await fs.readFile(path.join(moduleLoc, licenseFile));
+    info.licenseText = licenseContent;
+
+    if (!info.license) {
       info.license = inferLicense(licenseContent) || inferLicense(info.readme);
     }
   }

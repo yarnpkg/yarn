@@ -13,7 +13,6 @@ import type { Reporter } from "../../reporters/index.js";
 import type Config from "../../config.js";
 import { Install } from "./install.js";
 import Lockfile from "../../lockfile/index.js";
-import { MessageError } from "../../errors.js";
 import * as constants from "../../constants.js";
 import * as fs from "../../util/fs.js";
 import * as util from "../../util/misc.js";
@@ -21,6 +20,7 @@ import * as util from "../../util/misc.js";
 let semver = require("semver");
 let path   = require("path");
 
+export let requireLockfile = true;
 export let noArguments = true;
 
 export function setFlags(commander: Object) {
@@ -33,10 +33,6 @@ export async function run(
   flags: Object,
   args: Array<string>
 ): Promise<void> {
-  if (!await fs.exists(path.join(config.cwd, constants.LOCKFILE_FILENAME))) {
-    throw new MessageError("No lockfile in this directory. Run `fbkpm install` to generate one.");
-  }
-
   let lockfile = await Lockfile.fromDirectory(config.cwd, reporter, {
     silent: true,
     strict: true

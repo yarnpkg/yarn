@@ -11,7 +11,6 @@
 
 import buildExecuteLifecycleScript from "./commands/_execute-lifecycle-script.js";
 import { ConsoleReporter, JSONReporter } from "../reporters/index.js";
-import { MessageError } from "../errors.js";
 import * as commands from "./commands/index.js";
 import * as constants from "../constants.js";
 import * as network from "../util/network.js";
@@ -95,7 +94,9 @@ let config = new Config(reporter, {
 });
 
 // print header
-reporter.header(commandName, pkg);
+let outputWrapper = true;
+if (command.hasWrapper) outputWrapper = command.hasWrapper(commander, commander.args);
+if (outputWrapper) reporter.header(commandName, pkg);
 
 //
 if (commander.yes) {
@@ -111,13 +112,18 @@ if (network.isOffline()) {
 }
 
 //
+if (command.requireLockfile && !fs.existsSync(path.join(config.cwd, constants.LOCKFILE_FILENAME))) {
+  reporter.error("No lockfile in this directory. Run `fbkpm install` to generate one.");
+  process.exit(1);
+}
+
+//
 const run = () => {
   return command.run(config, reporter, commander, commander.args).then(function () {
     reporter.close();
-    reporter.footer(false);
+    if (outputWrapper) reporter.footer(false);
   });
 };
-
 
 //
 const runEventually = () => {
@@ -177,11 +183,7 @@ config.init().then(() => {
   return run().then(process.exit);
 }).catch(function (errs) {
   function logError(err) {
-    if (err instanceof MessageError) {
-      reporter.error(err.stack);
-    } else {
-      console.error(err.stack);
-    }
+    reporter.error(err.stack.replace(/^Error: /, ""));
   }
 
   if (Array.isArray(errs)) {
