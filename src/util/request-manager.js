@@ -40,7 +40,8 @@ type RequestParams<T> = {
     resolve: (body: T) => void,
     reject: (err: Error) => void
   ) => void,
-  callback?: (err: ?Error, res: any, body: any) => void
+  callback?: (err: ?Error, res: any, body: any) => void,
+  retryAttempts?: number
 };
 
 type RequestOptions = {
@@ -78,6 +79,7 @@ export default class RequestManager {
 
     params.method = params.method || "GET";
     params.forever = true;
+    params.retryAttempts = 0;
 
     params.headers = Object.assign({
       "User-Agent": constants.USER_AGENT
@@ -110,15 +112,21 @@ export default class RequestManager {
    */
 
   isPossibleOfflineError(err: RequestError): boolean {
-    let possibleOfflineChange = !controlOffline && network.isOffline();
-
+    // network was previously online but now we're offline
+    let possibleOfflineChange = !controlOffline && !network.isOffline();
     if (err.code === "ENOTFOUND" && possibleOfflineChange) {
       // can't resolve a domain
       return true;
     }
 
+    // used to be able to resolve this domain! something is wrong
     if (err.code === "ENOTFOUND" && successHosts[err.hostname]) {
       // can't resolve this domain but we've successfully resolved it before
+      return true;
+    }
+
+    // network was previously offline and we can't resolve the domain
+    if (err.code === "ENOTFOUND" && controlOffline) {
       return true;
     }
 
@@ -133,7 +141,7 @@ export default class RequestManager {
    */
 
   queueForOffline(opts: RequestOptions) {
-    if (this.offlineQueue.length) {
+    if (!this.offlineQueue.length) {
       this.reporter.warn("There appears to be trouble with your network connection. Retrying...");
       this.initOfflineRetry();
     }
@@ -147,24 +155,11 @@ export default class RequestManager {
    */
 
   initOfflineRetry() {
-    let requeue = () => {
+    setTimeout(() => {
       let queue = this.offlineQueue;
       this.offlineQueue = [];
       for (let opts of queue) this.execute(opts);
-    };
-
-    if (!controlOffline && network.isOffline()) {
-      // we were online before but now we aren't so let's use that as our check
-      let interval = setInterval(function () {
-        if (!network.isOffline()) {
-          clearInterval(interval);
-          requeue();
-        }
-      }, 500);
-    } else {
-      // just try again in 3 seconds
-      setTimeout(requeue, 3000);
-    }
+    }, 3000);
   }
 
   /**
@@ -212,7 +207,9 @@ export default class RequestManager {
     let req = new Request(params);
 
     req.on("error", (err) => {
-      if (this.isPossibleOfflineError(err)) {
+      let attempts = params.retryAttempts || 0;
+      if (attempts < 5 && this.isPossibleOfflineError(err)) {
+        params.retryAttempts = attempts + 1;
         if (params.cleanup) params.cleanup();
         this.queueForOffline(opts);
       } else {
