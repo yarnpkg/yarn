@@ -27,7 +27,8 @@ test:
 #    - make test-ci
     - nvm use 6 && nvm alias default 6
     - node -v
-    - make test-ci
+#    - make test-ci
+    - make build
 deployment:
   release:
     branch: pull/152
@@ -35,7 +36,7 @@ deployment:
 #    owner: facebook
     commands:
       - make build-dist
-      - ghr --username bestander --token $KPM_CIRCLE_RELEASE_TOKEN --replace --prerelease --debug pre-release dist/fb-kpm-v*.tar.gz
+      - ghr --username facebook --token $KPM_CIRCLE_RELEASE_TOKEN --replace --prerelease --debug pre-release dist/fb-kpm-v*.tar.gz
 
 
 
