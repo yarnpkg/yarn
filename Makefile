@@ -22,9 +22,9 @@ build-dist:
 	rm -rf dist
 	mkdir dist
 	mv fbkpm-*.tgz dist/pack.tgz
-	node dist/bin/kpm --version
 	cd dist; \
 		tar -xzf pack.tgz --strip 1; \
+        node dist/bin/kpm --version; \
 		rm -rf pack.tgz; \
 		npm install --production; \
 		rm -rf node_modules/*/test node_modules/*/dist
