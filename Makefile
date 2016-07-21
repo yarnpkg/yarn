@@ -24,12 +24,10 @@ build-dist:
 	mv fbkpm-*.tgz dist/pack.tgz
 	cd dist; \
 		tar -xzf pack.tgz --strip 1; \
-        node bin/kpm --version; \
-        ls -al; \
 		rm -rf pack.tgz; \
 		npm install --production; \
 		rm -rf node_modules/*/test node_modules/*/dist
-	tar -cvzf dist/fb-kpm-v`node bin/kpm --version`.tar.gz dist/*; \
+	tar -cvzf dist/fb-kpm-v`node dist/bin/kpm --version`.tar.gz dist/*; \
 		shasum -a 256 dist/fb-kpm-*.tar.gz
 
 test: lint test-only

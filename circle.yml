@@ -10,8 +10,7 @@ dependencies:
     - cd ~/make && tar xvf make-4.2.tar.gz
     - cd ~/make/make-4.2 && ./configure && make && sudo make install
     - /usr/local/bin/make -v
-#    - nvm install 4.3.2
-#    - nvm install 5
+    - nvm install 4.3.2
     - nvm install 6
     - nvm use 6 && nvm alias default 6
     - which node
@@ -20,6 +19,7 @@ dependencies:
     - go get github.com/tcnksm/ghr
   cache_directories:
     - "/home/ubuntu/make"
+    - "/home/ubuntu/nvm"
 test:
   override:
 #    - nvm use 4.3.2 && nvm alias default 4.3.2
@@ -35,7 +35,7 @@ deployment:
 #    owner: facebook
     commands:
       - make build-dist
-      - ghr --username bestander --token $KPM_CIRCLE_RELEASE_TOKEN --replace --prerelease --debug pre-release dist/fb-kpm-v0.7.0.tar.gz
+      - ghr --username bestander --token $KPM_CIRCLE_RELEASE_TOKEN --replace --prerelease --debug pre-release dist/fb-kpm-v*.tar.gz
 
 
 
