@@ -22,6 +22,7 @@ build-dist:
 	rm -rf dist
 	mkdir dist
 	mv fbkpm-*.tgz dist/pack.tgz
+	node dist/bin/kpm --version
 	cd dist; \
 		tar -xzf pack.tgz --strip 1; \
 		rm -rf pack.tgz; \
