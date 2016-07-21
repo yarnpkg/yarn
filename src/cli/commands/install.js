@@ -80,10 +80,12 @@ export class Install {
 
   async fetchRequestFromCwd(excludePatterns?: Array<string> = []): Promise<[
     DependencyRequestPatterns,
-    Array<string>
+    Array<string>,
+    Object
   ]> {
     let patterns = [];
     let deps = [];
+    let manifest = {};
 
     // exclude package names that are in install args
     let excludeNames = [];
@@ -107,6 +109,7 @@ export class Install {
 
         let json = await fs.readJson(loc);
         Object.assign(this.resolutions, json.resolutions);
+        Object.assign(manifest, json);
 
         let pushDeps = (depType, { hint, ignore, optional }) => {
           let depMap = json[depType];
@@ -134,7 +137,7 @@ export class Install {
       }
     }
 
-    return [deps, patterns];
+    return [deps, patterns, manifest];
   }
 
   async init(): Promise<void> {
