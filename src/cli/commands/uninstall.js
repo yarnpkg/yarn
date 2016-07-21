@@ -20,6 +20,8 @@ import * as fs from "../../util/fs.js";
 
 let path = require("path");
 
+export let requireLockfile = true;
+
 export async function run(
   config: Config,
   reporter: Reporter,

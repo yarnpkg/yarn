@@ -16,6 +16,8 @@ import { Install } from "./install.js";
 import Lockfile from "../../lockfile/index.js";
 import * as fs from "../../util/fs.js";
 
+export let requireLockfile = true;
+
 let invariant = require("invariant");
 let emoji     = require("node-emoji");
 let path      = require("path");
