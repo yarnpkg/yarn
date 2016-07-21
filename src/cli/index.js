@@ -177,11 +177,7 @@ config.init().then(() => {
   return run().then(process.exit);
 }).catch(function (errs) {
   function logError(err) {
-    if (err instanceof MessageError) {
-      reporter.error(err.stack);
-    } else {
-      console.error(err.stack);
-    }
+    reporter.error(err.stack);
   }
 
   if (Array.isArray(errs)) {
