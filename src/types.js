@@ -109,37 +109,6 @@ export type Manifest = {
 };
 
 //
-
-export type AnalysisFileEntry = {
-  type: "binary",
-  buffer: Buffer,
-  hash: string,
-
-  relative: string,
-  absolute: string,
-  size: number,
-  mode: number
-} | {
-  type: "file",
-  buffer: Buffer,
-  hash: string,
-
-  relative: string,
-  absolute: string,
-  size: number,
-  mode: number
-} | {
-  type: "symlink",
-  location: string,
-  hash?: void,
-
-  relative: string,
-  absolute: string,
-  size: number,
-  mode: number
-};
-
-//
 export type FetchedManifest = {
   package: Manifest,
   hash: string,
