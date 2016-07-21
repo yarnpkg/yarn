@@ -10,8 +10,8 @@ dependencies:
     - cd ~/make && tar xvf make-4.2.tar.gz
     - cd ~/make/make-4.2 && ./configure && make && sudo make install
     - /usr/local/bin/make -v
-    - nvm install 4.3.2
-    - nvm install 5
+#    - nvm install 4.3.2
+#    - nvm install 5
     - nvm install 6
     - nvm use 6 && nvm alias default 6
     # TODO test kpm with node_modules installed via npm2, npm3 and latest stable kpm
@@ -19,7 +19,7 @@ dependencies:
     - go get github.com/tcnksm/ghr
   cache_directories:
     - "/home/ubuntu/make"
-    - "/home/ubuntu/.nvm"
+    - $NVM_DIR
 test:
   override:
 #    - nvm use 4.3.2 && nvm alias default 4.3.2
