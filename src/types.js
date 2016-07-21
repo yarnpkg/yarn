@@ -31,7 +31,7 @@ export type PersonObject = {
 
 // package remote that's used to store how to fetch a package
 export type PackageRemote = {
-  type: "tarball" | "git" | "copy",
+  type: "tarball" | "git" | "copy" | "base",
   registry: RegistryNames,
   reference: string,
   resolved?: ?string,

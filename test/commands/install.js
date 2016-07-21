@@ -5,8 +5,11 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree. An additional grant
  * of patent rights can be found in the PATENTS file in the same directory.
+ *
+ * @flow
  */
 
+import { Reporter } from "../../src/reporters/index.js";
 import * as reporters from "../../src/reporters/index.js";
 import * as constants from "../../src/constants.js";
 import { default as Lockfile, parse } from "../../src/lockfile/index.js";
@@ -18,8 +21,8 @@ import assert from "assert";
 import semver from "semver";
 
 let stream = require("stream");
-let test   = require("ava");
-let path   = require("path");
+let test = require("ava");
+let path = require("path");
 
 let fixturesLoc = path.join(__dirname, "..", "fixtures", "install");
 
@@ -41,7 +44,13 @@ async function createLockfile(dir, strict, save) {
   return new Lockfile(lockfile, strict, save);
 }
 
-async function run(flags, args, name, checkInstalled, beforeInstall) {
+async function run(
+  flags: Object,
+  args: Array<string>,
+  name: string,
+  checkInstalled: ?(config: Config, reporter: Reporter) => ?Promise<void>,
+  beforeInstall: ?(cwd: string) => ?Promise<void>
+) {
   let out = "";
   let stdout = new stream.Writable({
     write(data) {
@@ -117,7 +126,6 @@ test("[network] install with arg that has binaries", () => {
 test("[network] install with --save and offline mirror", () => {
   let mirrorPath = "mirror-for-offline";
   return run({save: true}, ["is-array@1.0.1"], "install-with-save-offline-mirror", async (config) => {
-
     let allFiles = await fs.walk(config.cwd);
 
     assert(allFiles.findIndex((file) => {
@@ -131,7 +139,6 @@ test("[network] install with --save and offline mirror", () => {
 
     await fs.unlink(path.join(config.cwd, mirrorPath));
     await fs.unlink(path.join(config.cwd, "package.json"));
-    return allFiles;
   });
 });
 
@@ -152,7 +159,6 @@ test("[network] install with --save and without offline mirror", () => {
 
     await fs.unlink(path.join(config.cwd, mirrorPath));
     await fs.unlink(path.join(config.cwd, "package.json"));
-    return allFiles;
   });
 });
 
@@ -164,8 +170,6 @@ test("install from offline mirror", () => {
     assert(allFiles.findIndex((file) => {
       return file.relative === "node_modules/fake-fbkpm-dependency/package.json";
     }) !== -1);
-
-    return allFiles;
   });
 });
 

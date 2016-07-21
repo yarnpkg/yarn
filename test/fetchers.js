@@ -5,14 +5,17 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree. An additional grant
  * of patent rights can be found in the PATENTS file in the same directory.
+ *
+ * @flow
  */
 /* eslint max-len: 0 */
 
-import TarballFetcher from "../src/fetchers/tarball";
-import BaseFetcher from "../src/fetchers/_base";
-import CopyFetcher from "../src/fetchers/copy";
-import GitFetcher from "../src/fetchers/git";
-import Config from "../src/config";
+import TarballFetcher from "../src/fetchers/tarball.js";
+import BaseFetcher from "../src/fetchers/_base.js";
+import CopyFetcher from "../src/fetchers/copy.js";
+import GitFetcher from "../src/fetchers/git.js";
+import { NoopReporter } from "../src/reporters/index.js";
+import Config from "../src/config.js";
 import mkdir from "./_temp.js";
 import * as fs from "../src/util/fs.js";
 
@@ -20,7 +23,7 @@ let path = require("path");
 let test = require("ava");
 
 async function createConfig() {
-  let config = new Config;
+  let config = new Config(new NoopReporter);
   await config.init();
   return config;
 }
@@ -28,7 +31,7 @@ async function createConfig() {
 test("BaseFetcher.fetch", async (t) => {
   let dir = await mkdir("base-fetcher");
   let fetcher = new BaseFetcher({
-    type: "",
+    type: "base",
     registry: "npm",
     reference: ""
   }, await createConfig());

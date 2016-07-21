@@ -5,13 +5,17 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree. An additional grant
  * of patent rights can be found in the PATENTS file in the same directory.
+ *
+ * @flow
  */
 
 let Stdin = require("mock-stdin").stdin.Class;
 let { Writable } = require("stream");
 
 export default function (Reporter: Function, interceptor: Function) {
-  return async function (callback) {
+  return async function (
+    callback: (reporter: Reporter, opts: Object) => ?Promise<void>
+  ) {
     let data = {
       stderr: "",
       stdout: ""
@@ -19,11 +23,16 @@ export default function (Reporter: Function, interceptor: Function) {
 
     let buildStream = (key) => {
       let stream = new Writable;
+
+      // $FlowFixMe: TODO add to flow definition
       stream.columns = 1000;
+
+      // $FlowFixMe: TODO ditto
       stream.write = (msg) => {
         stream.emit("data", msg);
         data[key] += msg;
       };
+
       return stream;
     };
 
