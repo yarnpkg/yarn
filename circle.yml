@@ -36,7 +36,7 @@ deployment:
 #    owner: facebook
     commands:
       - make build-dist
-      - ghr --username facebook --token $KPM_CIRCLE_RELEASE_TOKEN --replace --prerelease --debug pre-release dist/fb-kpm-v*.tar.gz
+      - ghr --username facebook --repository fbkpm --token $KPM_CIRCLE_RELEASE_TOKEN --replace --prerelease pre-release dist/fb-kpm-v*.tar.gz
 
 
 
