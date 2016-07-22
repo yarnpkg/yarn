@@ -1,12 +1,11 @@
 {
   "name": "fbkpm",
-  "version": "0.7.0",
+  "version": "0.6.0",
   "license": "BSD-3-Clause",
   "preferGlobal": true,
   "main": "./index.js",
   "dependencies": {
     "babel-runtime": "^6.0.0",
-    "babylon": "^6.5.0",
     "chalk": "^1.1.1",
     "cmd-shim": "^2.0.1",
     "commander": "^2.9.0",
@@ -42,6 +41,7 @@
     "babel-preset-node5": "^10.2.0",
     "babel-preset-react": "^6.0.0",
     "babel-preset-stage-0": "^6.0.0",
+    "babylon": "^6.5.0",
     "eslint": "^3.0.1",
     "eslint-config-kittens": "^2.0.1",
     "eslint-plugin-babel": "^3.3.0",

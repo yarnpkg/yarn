@@ -5,17 +5,18 @@ general:
 dependencies:
   override:
     # Upgrading Make because it fails in CI
+    # TODO install and download make only if it is not in caches
     - wget http://ftp.gnu.org/gnu/make/make-4.2.tar.gz -P ~/make
     - cd ~/make && tar xvf make-4.2.tar.gz
     - cd ~/make/make-4.2 && ./configure && make && sudo make install
     - /usr/local/bin/make -v
     - nvm install 4.3.2
-    - nvm install 5
     - nvm install 6
     - nvm use 6 && nvm alias default 6
-    # test only with npm 3 folder layout
-    # TODO start using kpm for node_modules installation once we have a version available
+    - which node
+    # TODO test kpm with node_modules installed via npm2, npm3 and latest stable kpm
     - npm install
+    - go get github.com/tcnksm/ghr
   cache_directories:
     - "/home/ubuntu/make"
 test:
@@ -26,4 +27,13 @@ test:
     - nvm use 6 && nvm alias default 6
     - node -v
     - make test-ci
+deployment:
+  release:
+    tag: /v[0-9]+(\.[0-9]+)*/
+    owner: facebook
+    commands:
+      - make build-dist
+      - ghr --username facebook --repository fbkpm --token $KPM_CIRCLE_RELEASE_TOKEN v$(node dist/bin/kpm --version) dist/fb-kpm-v*.tar.gz
+
+
 
