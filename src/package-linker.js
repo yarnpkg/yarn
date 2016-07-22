@@ -108,19 +108,18 @@ export default class PackageLinker {
     // removing and deleting keys during enumeration
     let zippedTree = [];
     let tree: { [key: string]: HoistManifest } = Object.create(null);
-    let self = this;
 
     let unflattenedKeys = new Set;
     let subPairs = new Map;
 
     //
-    function add(pattern, parentParts) {
+    let add = (pattern, parentParts) => {
       if (parentParts.length >= 100) {
         throw new Error("cause we're in too deep");
       }
 
-      let pkg = self.resolver.getResolvedPattern(pattern);
-      let loc = self.config.generateHardModulePath(pkg.reference);
+      let pkg = this.resolver.getResolvedPattern(pattern);
+      let loc = this.config.generateHardModulePath(pkg.reference);
 
       //
       let ownParts = parentParts.slice();
@@ -164,7 +163,7 @@ export default class PackageLinker {
       results.push(pair);
 
       return results;
-    }
+    };
 
     for (let pattern of this.resolver.dedupePatterns(patterns)) {
       add(pattern, []);
@@ -395,7 +394,6 @@ export default class PackageLinker {
 
   async saveAll(deps: Array<string>): Promise<void> {
     deps = this.resolver.dedupePatterns(deps);
-    let self = this;
-    await promise.queue(deps, (dep) => self.save(dep));
+    await promise.queue(deps, (dep) => this.save(dep));
   }
 }
