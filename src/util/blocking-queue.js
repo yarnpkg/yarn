@@ -59,7 +59,7 @@ export default class BlockingQueue {
     if (this.runningCount === 1) {
       this.warnedStuck = true;
       console.warn(
-        `[fbkpm] The ${JSON.stringify(this.alias)} blocking queue may be stuck. 5 seconds ` +
+        `[kpm] The ${JSON.stringify(this.alias)} blocking queue may be stuck. 5 seconds ` +
         `without any activity with 1 worker: ${Object.keys(this.running)[0]}`
       );
     }
@@ -91,7 +91,7 @@ export default class BlockingQueue {
       if (this.warnedStuck) {
         this.warnedStuck = false;
         console.log(
-          `[fbkpm] ${JSON.stringify(this.alias)} blocking queue finally resolved. Nothing to worry about.`
+          `[kpm] ${JSON.stringify(this.alias)} blocking queue finally resolved. Nothing to worry about.`
         );
       }
     }

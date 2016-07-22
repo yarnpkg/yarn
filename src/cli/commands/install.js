@@ -326,7 +326,7 @@ export class Install {
       util.hash(lockSource)
     );
 
-    this.reporter.success(`Saved fbkpm lockfile to ${constants.LOCKFILE_FILENAME}`);
+    this.reporter.success(`Saved lockfile to ${constants.LOCKFILE_FILENAME}`);
   }
 }
 
@@ -350,7 +350,7 @@ function isStrictLockfile(flags: Object, args: Array<string>): boolean {
   }
 
   if (!args.length) {
-    // we're running `fbkpm install` so should be strict on lockfile usage
+    // we're running `kpm install` so should be strict on lockfile usage
     return true;
   }
 
@@ -385,7 +385,7 @@ function shouldWriteLockfile(flags: Object, args: Array<string>): boolean {
   }
 
   if (!args.length) {
-    // we're running `fbkpm install` so should save a new lockfile
+    // we're running `kpm install` so should save a new lockfile
     return true;
   }
 

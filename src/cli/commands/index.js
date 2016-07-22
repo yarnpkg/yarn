@@ -36,17 +36,17 @@ export { check };
 import buildUseless from "./_useless.js";
 
 export let runScript = buildUseless(
-  "Use `fbkpm <script-name>` instead of `fbkpm run-script <script-name>`"
+  "Use `kpm <script-name>` instead of `kpm run-script <script-name>`"
 );
 
 export let lockfile = buildUseless(
-  "The lockfile command isn't necessary. `fbkpm install` will produce a lockfile."
+  "The lockfile command isn't necessary. `kpm install` will produce a lockfile."
 );
 
 export let dedupe   = buildUseless(
-  "The dedupe command isn't necessary. `fbkpm install` will already dedupe."
+  "The dedupe command isn't necessary. `kpm install` will already dedupe."
 );
 
 export let prune    = buildUseless(
-  "The prune command isn't necessary. `fbkpm install` will now automatically prune extraneous packages."
+  "The prune command isn't necessary. `kpm install` will now automatically prune extraneous packages."
 );

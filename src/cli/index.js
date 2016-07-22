@@ -113,7 +113,7 @@ if (network.isOffline()) {
 
 //
 if (command.requireLockfile && !fs.existsSync(path.join(config.cwd, constants.LOCKFILE_FILENAME))) {
-  reporter.error("No lockfile in this directory. Run `fbkpm install` to generate one.");
+  reporter.error("No lockfile in this directory. Run `kpm install` to generate one.");
   process.exit(1);
 }
 

@@ -168,7 +168,7 @@ test("install from offline mirror", () => {
     let allFiles = await fs.walk(config.cwd);
 
     assert(allFiles.findIndex((file) => {
-      return file.relative === "node_modules/fake-fbkpm-dependency/package.json";
+      return file.relative === "node_modules/fake-kpm-dependency/package.json";
     }) !== -1);
   });
 });
@@ -338,13 +338,13 @@ test("install should dedupe dependencies avoiding conflicts 7", () => {
 
 test("upgrade scenario", () => {
   // left-pad first installed 0.0.9 then updated to 1.1.0
-  // files in mirror, fbkpm.lock, package.json and node_modules should reflect that
+  // files in mirror, kpm.lock, package.json and node_modules should reflect that
 
   let mirrorPath = "mirror-for-offline";
 
   async function clean(cwd) {
     await fs.unlink(path.join(cwd, mirrorPath));
-    await fs.unlink(path.join(cwd, "fbkpm.lock"));
+    await fs.unlink(path.join(cwd, "kpm.lock"));
     await fs.unlink(path.join(cwd, "package.json"));
   }
 
@@ -358,7 +358,7 @@ test("upgrade scenario", () => {
       {"left-pad": "^0.0.9"}
     );
 
-    let lockFileWritten = await fs.readFile(path.join(config.cwd, "fbkpm.lock"));
+    let lockFileWritten = await fs.readFile(path.join(config.cwd, "kpm.lock"));
     let lockFileLines = lockFileWritten.split("\n").filter((line) => !!line);
     assert.equal(lockFileLines[0], "left-pad@^0.0.9:");
     assert.equal(lockFileLines.length, 4);
@@ -378,7 +378,7 @@ test("upgrade scenario", () => {
         {"left-pad": "^1.1.0"}
       );
 
-      let lockFileWritten = await fs.readFile(path.join(config.cwd, "fbkpm.lock"));
+      let lockFileWritten = await fs.readFile(path.join(config.cwd, "kpm.lock"));
       let lockFileLines = lockFileWritten.split("\n").filter((line) => !!line);
       assert.equal(lockFileLines[0], "left-pad@^1.1.0:");
       assert.equal(lockFileLines.length, 4);
@@ -395,12 +395,12 @@ test("upgrade scenario", () => {
 
 test("[network] upgrade scenario 2 (with sub dependencies)", async () => {
   // mime-types@2.0.0 is saved in local mirror and gets updated to mime-types@2.1.11
-  // files in mirror, fbkpm.lock, package.json and node_modules should reflect that
+  // files in mirror, kpm.lock, package.json and node_modules should reflect that
 
   let mirrorPath = "mirror-for-offline";
   let fixture = "install-upgrade-scenario-2";
   let cwd = path.join(fixturesLoc, fixture);
-  await fs.copy(path.join(cwd, "fbkpm.lock.before"), path.join(cwd, "fbkpm.lock"));
+  await fs.copy(path.join(cwd, "kpm.lock.before"), path.join(cwd, "kpm.lock"));
   await fs.copy(path.join(cwd, "package.json.before"), path.join(cwd, "package.json"));
 
   return run({}, [], fixture, async (config) => {
@@ -423,7 +423,7 @@ test("[network] upgrade scenario 2 (with sub dependencies)", async () => {
         "2.1.11"
       );
 
-      let lockFileWritten = await fs.readFile(path.join(config.cwd, "fbkpm.lock"));
+      let lockFileWritten = await fs.readFile(path.join(config.cwd, "kpm.lock"));
       let lockFileLines = lockFileWritten.split("\n").filter((line) => !!line);
       assert.equal(lockFileLines[0], "mime-db@~1.23.0:");
       assert.notEqual(lockFileLines[3].indexOf("resolved mime-db-"), -1);
@@ -441,7 +441,7 @@ test("[network] upgrade scenario 2 (with sub dependencies)", async () => {
       await fs.unlink(newFilesInMirror[0].absolute);
       await fs.unlink(newFilesInMirror[1].absolute);
 
-      await fs.unlink(path.join(config.cwd, "fbkpm.lock"));
+      await fs.unlink(path.join(config.cwd, "kpm.lock"));
       await fs.unlink(path.join(config.cwd, "package.json"));
     });
   });
@@ -449,7 +449,7 @@ test("[network] upgrade scenario 2 (with sub dependencies)", async () => {
 
 test("[network] downgrade scenario", () => {
   // left-pad first installed 1.1.0 then downgraded to 0.0.9
-  // files in mirror, fbkpm.lock, package.json and node_modules should reflect that
+  // files in mirror, kpm.lock, package.json and node_modules should reflect that
 
   return run({save: true}, ["left-pad@1.1.0"], "install-downgrade-scenario", async (config) => {
     assert.equal(
@@ -462,7 +462,7 @@ test("[network] downgrade scenario", () => {
     );
 
     let mirrorPath = "mirror-for-offline";
-    let lockFileWritten = await fs.readFile(path.join(config.cwd, "fbkpm.lock"));
+    let lockFileWritten = await fs.readFile(path.join(config.cwd, "kpm.lock"));
     let lockFileLines = lockFileWritten.split("\n").filter((line) => !!line);
     assert.equal(lockFileLines[0], "left-pad@^1.1.0:");
     assert.equal(lockFileLines.length, 4);
@@ -482,7 +482,7 @@ test("[network] downgrade scenario", () => {
         {"left-pad": "^0.0.9"}
       );
 
-      let lockFileWritten = await fs.readFile(path.join(config.cwd, "fbkpm.lock"));
+      let lockFileWritten = await fs.readFile(path.join(config.cwd, "kpm.lock"));
       let lockFileLines = lockFileWritten.split("\n").filter((line) => !!line);
       assert.equal(lockFileLines[0], "left-pad@^0.0.9:");
       assert.equal(lockFileLines.length, 4);
@@ -493,7 +493,7 @@ test("[network] downgrade scenario", () => {
       assert.equal(mirror[0].relative, "left-pad-0.0.9.tgz");
 
       await fs.unlink(path.join(config.cwd, mirrorPath));
-      await fs.unlink(path.join(config.cwd, "fbkpm.lock"));
+      await fs.unlink(path.join(config.cwd, "kpm.lock"));
       await fs.unlink(path.join(config.cwd, "package.json"));
     });
   });
@@ -515,7 +515,7 @@ test("install have a clean node_modules after lockfile update (branch switch sce
   let fixture = "install-should-cleanup-when-package-json-changed";
   let cwd = path.join(fixturesLoc, fixture);
 
-  await fs.copy(path.join(cwd, "fbkpm.lock.before"), path.join(cwd, "fbkpm.lock"));
+  await fs.copy(path.join(cwd, "kpm.lock.before"), path.join(cwd, "kpm.lock"));
   await fs.copy(path.join(cwd, "package.json.before"), path.join(cwd, "package.json"));
 
   return run({}, [], fixture, async (config) => {
@@ -523,17 +523,17 @@ test("install have a clean node_modules after lockfile update (branch switch sce
     assert.equal(await getPackageVersion(config, "dep-b"), "2.0.0");
     assert.equal(await getPackageVersion(config, "dep-a/node_modules/dep-b"), "1.0.0");
 
-    await fs.unlink(path.join(config.cwd, "fbkpm.lock"));
+    await fs.unlink(path.join(config.cwd, "kpm.lock"));
     await fs.unlink(path.join(config.cwd, "package.json"));
 
-    await fs.copy(path.join(cwd, "fbkpm.lock.after"), path.join(cwd, "fbkpm.lock"));
+    await fs.copy(path.join(cwd, "kpm.lock.after"), path.join(cwd, "kpm.lock"));
     await fs.copy(path.join(cwd, "package.json.after"), path.join(cwd, "package.json"));
 
     return run({}, [], fixture, async (config) => {
       assert.equal(await getPackageVersion(config, "dep-a"), "1.2.0");
       assert.equal(await getPackageVersion(config, "dep-b"), "1.2.0");
 
-      await fs.unlink(path.join(config.cwd, "fbkpm.lock"));
+      await fs.unlink(path.join(config.cwd, "kpm.lock"));
       await fs.unlink(path.join(config.cwd, "package.json"));
     });
   });
@@ -550,17 +550,17 @@ test("install have a clean node_modules after lockfile update (branch switch sce
   let fixture = "install-should-cleanup-when-package-json-changed-2";
   let cwd = path.join(fixturesLoc, fixture);
 
-  await fs.copy(path.join(cwd, "fbkpm.lock.before"), path.join(cwd, "fbkpm.lock"));
+  await fs.copy(path.join(cwd, "kpm.lock.before"), path.join(cwd, "kpm.lock"));
   await fs.copy(path.join(cwd, "package.json.before"), path.join(cwd, "package.json"));
 
   return run({}, [], fixture, async (config) => {
     assert.equal(await getPackageVersion(config, "dep-a"), "1.0.0");
     assert.equal(await getPackageVersion(config, "dep-b"), "1.0.0");
 
-    await fs.unlink(path.join(config.cwd, "fbkpm.lock"));
+    await fs.unlink(path.join(config.cwd, "kpm.lock"));
     await fs.unlink(path.join(config.cwd, "package.json"));
 
-    await fs.copy(path.join(cwd, "fbkpm.lock.after"), path.join(cwd, "fbkpm.lock"));
+    await fs.copy(path.join(cwd, "kpm.lock.after"), path.join(cwd, "kpm.lock"));
     await fs.copy(path.join(cwd, "package.json.after"), path.join(cwd, "package.json"));
 
     return run({}, [], fixture, async (config) => {
@@ -568,13 +568,13 @@ test("install have a clean node_modules after lockfile update (branch switch sce
 
       assert(!await fs.exists(path.join(config.cwd, "node_modules/dep-b")));
 
-      await fs.unlink(path.join(config.cwd, "fbkpm.lock"));
+      await fs.unlink(path.join(config.cwd, "kpm.lock"));
       await fs.unlink(path.join(config.cwd, "package.json"));
     });
   });
 });
 
-test("uninstall should remove dependency from package.json, fbkpm.lock and node_modules", () => {
+test("uninstall should remove dependency from package.json, kpm.lock and node_modules", () => {
   let mirrorPath = "mirror-for-offline";
 
   return run({}, [], "uninstall-should-clean", async (config, reporter) => {
@@ -583,7 +583,7 @@ test("uninstall should remove dependency from package.json, fbkpm.lock and node_
       "1.0.0"
     );
 
-    await fs.copy(path.join(config.cwd, "fbkpm.lock"), path.join(config.cwd, "fbkpm.lock.orig"));
+    await fs.copy(path.join(config.cwd, "kpm.lock"), path.join(config.cwd, "kpm.lock.orig"));
     await fs.copy(path.join(config.cwd, "package.json"), path.join(config.cwd, "package.json.orig"));
 
     try {
@@ -597,15 +597,15 @@ test("uninstall should remove dependency from package.json, fbkpm.lock and node_
         {}
       );
 
-      let lockFileContent = await fs.readFile(path.join(config.cwd, "fbkpm.lock"));
+      let lockFileContent = await fs.readFile(path.join(config.cwd, "kpm.lock"));
       let lockFileLines = lockFileContent.split("\n").filter((line) => !!line);
       assert.equal(lockFileLines.length, 0);
     } finally {
-      await fs.unlink(path.join(config.cwd, "fbkpm.lock"));
+      await fs.unlink(path.join(config.cwd, "kpm.lock"));
       await fs.unlink(path.join(config.cwd, "package.json"));
-      await fs.copy(path.join(config.cwd, "fbkpm.lock.orig"), path.join(config.cwd, "fbkpm.lock"));
+      await fs.copy(path.join(config.cwd, "kpm.lock.orig"), path.join(config.cwd, "kpm.lock"));
       await fs.copy(path.join(config.cwd, "package.json.orig"), path.join(config.cwd, "package.json"));
-      await fs.unlink(path.join(config.cwd, "fbkpm.lock.orig"));
+      await fs.unlink(path.join(config.cwd, "kpm.lock.orig"));
       await fs.unlink(path.join(config.cwd, "package.json.orig"));
     }
   });
@@ -635,7 +635,7 @@ test("uninstall should remove subdependencies", () => {
       "1.0.0"
     );
 
-    await fs.copy(path.join(config.cwd, "fbkpm.lock"), path.join(config.cwd, "fbkpm.lock.orig"));
+    await fs.copy(path.join(config.cwd, "kpm.lock"), path.join(config.cwd, "kpm.lock.orig"));
     await fs.copy(path.join(config.cwd, "package.json"), path.join(config.cwd, "package.json.orig"));
 
     await uninstall(config, reporter, {}, ["dep-a"]);
@@ -653,39 +653,39 @@ test("uninstall should remove subdependencies", () => {
       {"dep-c": "^1.0.0"}
     );
 
-    let lockFileContent = await fs.readFile(path.join(config.cwd, "fbkpm.lock"));
+    let lockFileContent = await fs.readFile(path.join(config.cwd, "kpm.lock"));
     let lockFileLines = lockFileContent.split("\n").filter((line) => !!line);
     assert.equal(lockFileLines.length, 4);
     assert.equal(lockFileLines[0], "dep-c@^1.0.0:");
 
-    await fs.unlink(path.join(config.cwd, "fbkpm.lock"));
+    await fs.unlink(path.join(config.cwd, "kpm.lock"));
     await fs.unlink(path.join(config.cwd, "package.json"));
-    await fs.copy(path.join(config.cwd, "fbkpm.lock.orig"), path.join(config.cwd, "fbkpm.lock"));
+    await fs.copy(path.join(config.cwd, "kpm.lock.orig"), path.join(config.cwd, "kpm.lock"));
     await fs.copy(path.join(config.cwd, "package.json.orig"), path.join(config.cwd, "package.json"));
-    await fs.unlink(path.join(config.cwd, "fbkpm.lock.orig"));
+    await fs.unlink(path.join(config.cwd, "kpm.lock.orig"));
     await fs.unlink(path.join(config.cwd, "package.json.orig"));
   });
 });
 
-test("[network] install --save should add missing deps to fbkpm and mirror (PR import scenario)",
+test("[network] install --save should add missing deps to kpm and mirror (PR import scenario)",
 async () => {
   let mirrorPath = "mirror-for-offline";
   let fixture = "install-import-pr";
   let cwd = path.join(fixturesLoc, fixture);
-  await fs.copy(path.join(cwd, "fbkpm.lock.before"), path.join(cwd, "fbkpm.lock"));
+  await fs.copy(path.join(cwd, "kpm.lock.before"), path.join(cwd, "kpm.lock"));
 
   return run({save: true}, [], fixture, async (config) => {
     assert.equal(await getPackageVersion(config, "mime-types"), "2.0.0");
     assert(semver.satisfies(await getPackageVersion(config, "mime-db"), "~1.0.1"));
-    assert.equal(await getPackageVersion(config, "fake-fbkpm-dependency"), "1.0.1");
+    assert.equal(await getPackageVersion(config, "fake-kpm-dependency"), "1.0.1");
 
     let mirror = await fs.walk(path.join(config.cwd, mirrorPath));
     assert.equal(mirror.length, 3);
-    assert.equal(mirror[0].relative, "fake-fbkpm-dependency-1.0.1.tgz");
+    assert.equal(mirror[0].relative, "fake-kpm-dependency-1.0.1.tgz");
     assert.equal(mirror[1].relative.indexOf("mime-db-1.0."), 0);
     assert.equal(mirror[2].relative, "mime-types-2.0.0.tgz");
 
-    let lockFileContent = await fs.readFile(path.join(config.cwd, "fbkpm.lock"));
+    let lockFileContent = await fs.readFile(path.join(config.cwd, "kpm.lock"));
     let lockFileLines = lockFileContent.split("\n").filter((line) => !!line);
     assert.equal(lockFileLines.length, 14);
     assert.equal(lockFileLines[4].indexOf("mime-db@"), 0);
@@ -693,20 +693,20 @@ async () => {
 
     await fs.unlink(path.join(mirror[1].absolute));
     await fs.unlink(path.join(mirror[2].absolute));
-    await fs.unlink(path.join(config.cwd, "fbkpm.lock"));
+    await fs.unlink(path.join(config.cwd, "kpm.lock"));
   });
 });
 
-test("[network] install --save should update a dependency to fbkpm and mirror (PR import scenario 2)",
+test("[network] install --save should update a dependency to kpm and mirror (PR import scenario 2)",
 async () => {
   // mime-types@2.0.0 is saved in local mirror and gets updated to mime-types@2.1.11 via
   // a change in package.json,
-  // files in mirror, fbkpm.lock, package.json and node_modules should reflect that
+  // files in mirror, kpm.lock, package.json and node_modules should reflect that
 
   let mirrorPath = "mirror-for-offline";
   let fixture = "install-import-pr-2";
   let cwd = path.join(fixturesLoc, fixture);
-  await fs.copy(path.join(cwd, "fbkpm.lock.before"), path.join(cwd, "fbkpm.lock"));
+  await fs.copy(path.join(cwd, "kpm.lock.before"), path.join(cwd, "kpm.lock"));
   await fs.copy(path.join(cwd, "package.json.before"), path.join(cwd, "package.json"));
 
   return run({}, [], fixture, async (config) => {
@@ -732,7 +732,7 @@ async () => {
         "2.1.11"
       );
 
-      let lockFileWritten = await fs.readFile(path.join(config.cwd, "fbkpm.lock"));
+      let lockFileWritten = await fs.readFile(path.join(config.cwd, "kpm.lock"));
       let lockFileLines = lockFileWritten.split("\n").filter((line) => !!line);
       assert.equal(lockFileLines[0], "mime-db@~1.23.0:");
       assert.notEqual(lockFileLines[3].indexOf("resolved mime-db-"), -1);
@@ -750,7 +750,7 @@ async () => {
       await fs.unlink(newFilesInMirror[0].absolute);
       await fs.unlink(newFilesInMirror[1].absolute);
 
-      await fs.unlink(path.join(config.cwd, "fbkpm.lock"));
+      await fs.unlink(path.join(config.cwd, "kpm.lock"));
       await fs.unlink(path.join(config.cwd, "package.json"));
     });
   });
@@ -770,14 +770,14 @@ test("[network] install --initMirror should add init mirror deps from package.js
     assert.equal(mirror[0].relative.indexOf("mime-db-1.0."), 0);
     assert.equal(mirror[1].relative, "mime-types-2.0.0.tgz");
 
-    let lockFileContent = await fs.readFile(path.join(config.cwd, "fbkpm.lock"));
+    let lockFileContent = await fs.readFile(path.join(config.cwd, "kpm.lock"));
     let lockFileLines = lockFileContent.split("\n").filter((line) => !!line);
     assert.equal(lockFileLines.length, 10);
     assert.equal(lockFileLines[0].indexOf("mime-db@"), 0);
     assert.equal(lockFileLines[4].indexOf("mime-types@2.0.0"), 0);
 
     await fs.unlink(path.join(config.cwd, mirrorPath));
-    await fs.unlink(path.join(config.cwd, "fbkpm.lock"));
+    await fs.unlink(path.join(config.cwd, "kpm.lock"));
 
   });
 });
@@ -789,7 +789,7 @@ test("[network] install --save with new dependency should be deterministic", asy
   let mirrorPath = "mirror-for-offline";
   let fixture = "install-deterministic";
   let cwd = path.join(fixturesLoc, fixture);
-  await fs.copy(path.join(cwd, "fbkpm.lock.before"), path.join(cwd, "fbkpm.lock"));
+  await fs.copy(path.join(cwd, "kpm.lock.before"), path.join(cwd, "kpm.lock"));
   await fs.copy(path.join(cwd, "package.json.before"), path.join(cwd, "package.json"));
 
   return run({}, [], fixture, async (config) => {
@@ -822,7 +822,7 @@ test("[network] install --save with new dependency should be deterministic", asy
         }
       );
 
-      let lockFileWritten = await fs.readFile(path.join(config.cwd, "fbkpm.lock"));
+      let lockFileWritten = await fs.readFile(path.join(config.cwd, "kpm.lock"));
       let lockFileLines = lockFileWritten.split("\n").filter((line) => !!line);
       assert.equal(lockFileLines.length, 14);
 
@@ -832,13 +832,13 @@ test("[network] install --save with new dependency should be deterministic", asy
       assert.equal(mirror[1].relative, "mime-db-1.23.0.tgz");
 
       await fs.unlink(mirror[1].absolute);
-      await fs.unlink(path.join(config.cwd, "fbkpm.lock"));
+      await fs.unlink(path.join(config.cwd, "kpm.lock"));
       await fs.unlink(path.join(config.cwd, "package.json"));
     });
   });
 });
 
-// TODO https://github.com/facebook/fbkpm/issues/79
+// TODO https://github.com/facebook/kpm/issues/79
 test.failing("[network] install --save with new dependency should be deterministic 2", async () => {
   // mime-types@2.0.0->mime-db@1.0.1 is saved in local mirror and is deduped
   // install mime-db@1.0.3 should replace mime-db@1.0.1 in root
@@ -846,7 +846,7 @@ test.failing("[network] install --save with new dependency should be determinist
   let mirrorPath = "mirror-for-offline";
   let fixture = "install-deterministic-2";
   let cwd = path.join(fixturesLoc, fixture);
-  await fs.copy(path.join(cwd, "fbkpm.lock.before"), path.join(cwd, "fbkpm.lock"));
+  await fs.copy(path.join(cwd, "kpm.lock.before"), path.join(cwd, "kpm.lock"));
   await fs.copy(path.join(cwd, "package.json.before"), path.join(cwd, "package.json"));
 
   return run({}, [], fixture, async (config) => {
@@ -876,7 +876,7 @@ test.failing("[network] install --save with new dependency should be determinist
         }
       );
 
-      let lockFileWritten = await fs.readFile(path.join(config.cwd, "fbkpm.lock"));
+      let lockFileWritten = await fs.readFile(path.join(config.cwd, "kpm.lock"));
       let lockFileLines = lockFileWritten.split("\n").filter((line) => !!line);
       assert.equal(lockFileLines.length, 10);
 
@@ -886,7 +886,7 @@ test.failing("[network] install --save with new dependency should be determinist
       assert.equal(mirror[1].relative, "mime-db-1.0.3.tgz");
 
       await fs.unlink(mirror[1].absolute);
-      await fs.unlink(path.join(config.cwd, "fbkpm.lock"));
+      await fs.unlink(path.join(config.cwd, "kpm.lock"));
       await fs.unlink(path.join(config.cwd, "package.json"));
     });
   });
@@ -895,7 +895,7 @@ test.failing("[network] install --save with new dependency should be determinist
 test("[network] install --save should ignore cache", () => {
   // left-pad@1.1.0 gets installed without --save
   // left-pad@1.1.0 gets installed with --save
-  // files in mirror, fbkpm.lock, package.json and node_modules should reflect that
+  // files in mirror, kpm.lock, package.json and node_modules should reflect that
 
   let mirrorPath = "mirror-for-offline";
   let fixture = "install-save-to-mirror-when-cached";
@@ -922,7 +922,7 @@ test("[network] install --save should ignore cache", () => {
     assert.equal(mirror.length, 1);
     assert.equal(mirror[0].relative, "left-pad-1.1.0.tgz");
 
-    let lockFileWritten = await fs.readFile(path.join(config.cwd, "fbkpm.lock"));
+    let lockFileWritten = await fs.readFile(path.join(config.cwd, "kpm.lock"));
     let lockFileLines = lockFileWritten.split("\n").filter((line) => !!line);
     assert.equal(lockFileLines[0], "left-pad@^1.1.0:");
     assert.equal(lockFileLines.length, 4);
@@ -938,7 +938,7 @@ test("[network] install --save should not make package.json strict", async () =>
   let mirrorPath = "mirror-for-offline";
   let fixture = "install-no-strict";
   let cwd = path.join(fixturesLoc, fixture);
-  await fs.copy(path.join(cwd, "fbkpm.lock.before"), path.join(cwd, "fbkpm.lock"));
+  await fs.copy(path.join(cwd, "kpm.lock.before"), path.join(cwd, "kpm.lock"));
   await fs.copy(path.join(cwd, "package.json.before"), path.join(cwd, "package.json"));
 
   return run({save: true}, ["left-pad@1.1.0"], fixture, async (config) => {
@@ -952,7 +952,7 @@ test("[network] install --save should not make package.json strict", async () =>
 
     await fs.unlink(path.join(config.cwd, `${mirrorPath}/left-pad-1.1.0.tgz`));
     await fs.unlink(path.join(config.cwd, "package.json"));
-    await fs.unlink(path.join(config.cwd, "fbkpm.lock"));
+    await fs.unlink(path.join(config.cwd, "kpm.lock"));
 
   });
 });
@@ -961,7 +961,7 @@ test("[network] install --save-exact should not make all package.json strict", a
   let mirrorPath = "mirror-for-offline";
   let fixture = "install-no-strict-all";
   let cwd = path.join(fixturesLoc, fixture);
-  await fs.copy(path.join(cwd, "fbkpm.lock.before"), path.join(cwd, "fbkpm.lock"));
+  await fs.copy(path.join(cwd, "kpm.lock.before"), path.join(cwd, "kpm.lock"));
   await fs.copy(path.join(cwd, "package.json.before"), path.join(cwd, "package.json"));
 
   return run({saveExact: true, save: true}, ["left-pad@1.1.0"], fixture, async (config) => {
@@ -975,7 +975,7 @@ test("[network] install --save-exact should not make all package.json strict", a
 
     await fs.unlink(path.join(config.cwd, `${mirrorPath}/left-pad-1.1.0.tgz`));
     await fs.unlink(path.join(config.cwd, "package.json"));
-    await fs.unlink(path.join(config.cwd, "fbkpm.lock"));
+    await fs.unlink(path.join(config.cwd, "kpm.lock"));
 
   });
 });
