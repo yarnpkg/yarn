@@ -1,0 +1,7 @@
+{
+  "dependencies": {
+    "lodash": "^3.10.1",
+    "yeoman-environment": "~1.2.7",
+    "yeoman-generator": "^0.20.3"
+  }
+}
