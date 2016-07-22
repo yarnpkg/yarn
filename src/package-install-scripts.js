@@ -69,7 +69,6 @@ export default class PackageInstallScripts {
   }
 
   async init(): Promise<void> {
-    let self = this; // TODO fix babel bug
     let pkgs = this.resolver.getManifests();
 
     // refine packages to those with install commands
@@ -98,7 +97,7 @@ export default class PackageInstallScripts {
     let tick = this.reporter.progress(refinedInfos.length);
 
     await promise.queue(refinedInfos, ({ pkg, cmds }) => {
-      return self.install(cmds, pkg).then(function () {
+      return this.install(cmds, pkg).then(function () {
         tick(pkg.name);
       });
     });
