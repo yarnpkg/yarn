@@ -35,3 +35,4 @@ test: lint test-only
 test-ci: build test
 
 release-branch:
+	./scripts/release-branch.sh
