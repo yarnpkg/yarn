@@ -336,7 +336,7 @@ test("install should dedupe dependencies avoiding conflicts 7", () => {
   });
 });
 
-test.only("install should dedupe dependencies avoiding conflicts 8", () => {
+test("install should dedupe dependencies avoiding conflicts 8", () => {
   // revealed in https://github.com/facebook/fbkpm/issues/112
   return run({}, [], "install-should-dedupe-avoiding-conflicts-8", async (config) => {
     assert.equal(await getPackageVersion(config, "glob"), "5.0.15");
