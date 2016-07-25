@@ -1,5 +1,5 @@
 {
   "dependencies": {
-    "fake-kpm-dependency": "2.0.1"
+    "fake-dependency": "1.0.1"
   }
 }

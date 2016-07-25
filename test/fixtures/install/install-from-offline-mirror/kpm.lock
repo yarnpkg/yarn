@@ -1,4 +1,4 @@
-fake-kpm-dependency@2.0.1:
-  name fake-kpm-dependency
-  version "2.0.1"
-  resolved fake-kpm-dependency-2.0.1.tgz#ef965c2c237a58e3d4c3f09569d303a1dc9c0d72
+fake-dependency@1.0.1:
+  name fake-dependency
+  version "1.0.1"
+  resolved fake-dependency-1.0.1.tgz#b172bf03f6b68da0967e141ef290f38956e0f861
