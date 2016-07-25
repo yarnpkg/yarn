@@ -118,14 +118,13 @@ export default class HostedGitResolver extends ExoticResolver {
 
   async resolveOverHTTP(url: string): Promise<Manifest> {
     // TODO: hashes and lockfile
-    let self = this; // TODO: babel bug...
     let commit = await this.getRefOverHTTP(url);
 
     let tryRegistry = async (registry) => {
       let filenames = registries[registry].filenames;
       for (let filename of filenames) {
-        let file = await self.config.requestManager.request({
-          url: self.constructor.getHTTPFileUrl(self.exploded, filename, commit),
+        let file = await this.config.requestManager.request({
+          url: this.constructor.getHTTPFileUrl(this.exploded, filename, commit),
           queue: this.resolver.fetchingQueue
         });
         if (!file) continue;
@@ -135,7 +134,7 @@ export default class HostedGitResolver extends ExoticResolver {
         json.remote = {
           //resolved // TODO
           type: "tarball",
-          reference: self.constructor.getTarballUrl(self.exploded, commit),
+          reference: this.constructor.getTarballUrl(this.exploded, commit),
           registry
         };
 
