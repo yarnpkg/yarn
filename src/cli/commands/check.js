@@ -113,9 +113,5 @@ export async function run(
     }
   }
 
-  if (valid) {
-    process.exit(0);
-  } else {
-    process.exit(1);
-  }
+  return valid ? 0 : 1;
 }

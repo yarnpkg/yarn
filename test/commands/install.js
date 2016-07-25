@@ -15,6 +15,7 @@ import * as constants from "../../src/constants.js";
 import { default as Lockfile, parse } from "../../src/lockfile/index.js";
 import { Install } from "../../src/cli/commands/install.js";
 import { run as uninstall } from "../../src/cli/commands/uninstall.js";
+import { run as check } from "../../src/cli/commands/check.js";
 import Config from "../../src/config.js";
 import * as fs from "../../src/util/fs.js";
 import assert from "assert";
@@ -83,7 +84,10 @@ async function run(
 
     let install = new Install("install", flags, args, config, reporter, lockfile);
     await install.init();
-
+    // self check to verify consistency after installation
+    if(await check(config, reporter, flags, args) !== 0) {
+      throw new Error("check failed")
+    }
     try {
       if (checkInstalled) {
         await checkInstalled(config, reporter);
