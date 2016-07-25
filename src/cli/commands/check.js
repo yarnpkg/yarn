@@ -32,7 +32,7 @@ export async function run(
   reporter: Reporter,
   flags: Object,
   args: Array<string>
-): Promise<void> {
+): Promise<number> {
   let lockfile = await Lockfile.fromDirectory(config.cwd, reporter, {
     silent: true,
     strict: true
