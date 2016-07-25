@@ -9,6 +9,13 @@
  * @flow
  */
 
+let userHome = require("user-home");
+let path = require("path");
+let pkg = require("../package.json");
+let fs = require("fs");
+
+let cwd = process.cwd();
+
 // max amount of network requests to perform concurrently
 export const NETWORK_CONCURRENCY = 15;
 
@@ -17,13 +24,24 @@ export const CHILD_CONCURRENCY = 5;
 
 export const REQUIRED_PACKAGE_KEYS = ["name", "version", "uid"];
 
-export const MODULE_CACHE_DIRECTORY = ".fbkpm";
-export const LOCKFILE_FILENAME      = "fbkpm.lock";
-export const INTEGRITY_FILENAME     = ".fbkpm-integrity";
-export const METADATA_FILENAME      = ".fbkpm-metadata.json";
-export const SINGLE_SOCKET_FILENAME = ".fbkpm-single-socket";
+function or(filenames: Array<string>, cwd: string): string {
+  for (let filename of filenames) {
+    let loc = path.join(cwd, filename);
+    if (fs.existsSync(loc)) {
+      return filename;
+    }
+  }
 
-export const USER_AGENT = "fbkpm";
+  return filenames.pop();
+}
+
+export const MODULE_CACHE_DIRECTORY = or([".fbkpm", ".kpm"], userHome);
+export const SINGLE_SOCKET_FILENAME = ".kpm-single-socket";
+export const INTEGRITY_FILENAME = or([".fbkpm-integrity", ".kpm-integrity"], path.join(cwd, "node_modules"));
+export const LOCKFILE_FILENAME = or(["fbkpm.lock", "kpm.lock"], cwd);
+export const METADATA_FILENAME = ".kpm-metadata.json";
+
+export const USER_AGENT = `kpm v${pkg.version}`;
 
 export const ENV_PATH_KEY = getPathKey(process.platform, process.env);
 

@@ -37,7 +37,7 @@ function getGlobalPrefix(): string {
 }
 
 export default class NpmRegistry extends Registry {
-  static filenames = ["fbkpm.json", "package.json"];
+  static filenames = ["package.json"];
 
   async loadConfig(): Promise<void> {
     // docs: https://docs.npmjs.com/misc/config

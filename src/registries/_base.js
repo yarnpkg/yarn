@@ -44,6 +44,7 @@ export default class Registry {
   async loadConfig(): Promise<void> {}
 
   async init(): Promise<void> {
+    this.mergeEnv("kpm_");
     this.mergeEnv("fbkpm_");
     await this.loadConfig();
 
