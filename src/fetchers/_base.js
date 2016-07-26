@@ -24,10 +24,12 @@ export default class BaseFetcher {
     this.reference      = remote.reference;
     this.registry       = remote.registry;
     this.hash           = remote.hash;
+    this.remote         = remote;
     this.config         = config;
     this.saveForOffline = !!saveForOffline;
   }
 
+  remote: PackageRemote;
   registry: RegistryNames;
   reference: string;
   config: Config;
@@ -47,6 +49,7 @@ export default class BaseFetcher {
       let pkg = await this.config.readManifest(dest, this.registry);
 
       await fs.writeFile(path.join(dest, constants.METADATA_FILENAME), JSON.stringify({
+        remote: this.remote,
         registry: this.registry,
         hash
       }, null, "  "));

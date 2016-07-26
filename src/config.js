@@ -12,7 +12,7 @@
 import type { RegistryNames } from "./registries/index.js";
 import type { Reporter } from "./reporters/index.js";
 import type Registry from "./registries/_base.js";
-import type { Manifest } from "./types.js";
+import type { Manifest, PackageRemote } from "./types.js";
 import normaliseManifest from "./util/normalise-manifest/index.js";
 import * as fs from "./util/fs.js";
 import * as constants from "./constants.js";
@@ -30,7 +30,8 @@ type ConfigOptions = {
   cwd?: string,
   packagesRoot?: string,
   tempFolder?: string,
-  modulesFolder?: string
+  modulesFolder?: string,
+  offline?: boolean,
 };
 
 export default class Config {
@@ -40,12 +41,17 @@ export default class Config {
     this.reporter           = reporter;
 
     this.registries = map();
+    this.cache      = map();
     this.cwd        = opts.cwd || process.cwd();
 
     this.modulesFolder = opts.modulesFolder || path.join(this.cwd, "node_modules");
     this.packagesRoot  = opts.packagesRoot;
     this.tempFolder    = opts.tempFolder;
+    this.offline       = !!opts.offline;
   }
+
+  //
+  offline: boolean;
 
   //
   constraintResolver: ConstraintResolver;
@@ -72,6 +78,26 @@ export default class Config {
   registries: {
     [name: RegistryNames]: Registry
   };
+
+  //
+  cache: {
+    [key: string]: ?Promise<any>
+  };
+
+  /**
+   * Execute a promise produced by factory if it doesn't exist in our cache with
+   * the associated key.
+   */
+
+  getCache<T>(key: string, factory: () => Promise<T>): Promise<T> {
+    let cached = this.cache[key];
+    if (cached) return cached;
+
+    return this.cache[key] = factory().catch((err) => {
+      this.cache[key] = null;
+      throw err;
+    });
+  }
 
   /**
    * Reduce a list of versions to a single one based on an input range.
@@ -226,16 +252,20 @@ export default class Config {
   async readPackageMetadata(dir: string): Promise<{
     registry: RegistryNames,
     hash: string,
+    remote: ?PackageRemote,
     package: Manifest
   }> {
-    let metadata = await fs.readJson(path.join(dir, constants.METADATA_FILENAME));
-    let pkg = await this.readManifest(dir, metadata.registry);
+    return this.getCache(`metadata-${dir}`, async () => {
+      let metadata = await fs.readJson(path.join(dir, constants.METADATA_FILENAME));
+      let pkg = await this.readManifest(dir, metadata.registry);
 
-    return {
-      package: pkg,
-      hash: metadata.hash,
-      registry: metadata.registry
-    };
+      return {
+        package: pkg,
+        hash: metadata.hash,
+        remote: metadata.remote,
+        registry: metadata.registry
+      };
+    });
   }
 
   /**
@@ -243,24 +273,27 @@ export default class Config {
    */
 
   async readManifest(dir: string, priorityRegistry?: RegistryNames): Promise<Object> {
-    let metadataLoc = path.join(dir, constants.METADATA_FILENAME);
-    if (!priorityRegistry && await fs.exists(metadataLoc)) {
-      ({ registry: priorityRegistry } = await fs.readJson(metadataLoc));
-    }
+    // TODO work out how priorityRegistry fits into this cache
+    return this.getCache(`manifest-${dir}`, async () => {
+      let metadataLoc = path.join(dir, constants.METADATA_FILENAME);
+      if (!priorityRegistry && await fs.exists(metadataLoc)) {
+        ({ registry: priorityRegistry } = await fs.readJson(metadataLoc));
+      }
 
-    if (priorityRegistry) {
-      let file = await this.tryManifest(dir, priorityRegistry);
-      if (file) return file;
-    }
+      if (priorityRegistry) {
+        let file = await this.tryManifest(dir, priorityRegistry);
+        if (file) return file;
+      }
 
-    for (let registry of Object.keys(registries)) {
-      if (priorityRegistry === registry) continue;
+      for (let registry of Object.keys(registries)) {
+        if (priorityRegistry === registry) continue;
 
-      let file = await this.tryManifest(dir, registry);
-      if (file) return file;
-    }
+        let file = await this.tryManifest(dir, registry);
+        if (file) return file;
+      }
 
-    throw new Error(`Couldn't find a package.json in ${dir}`);
+      throw new Error(`Couldn't find a package.json in ${dir}`);
+    });
   }
 
   /**

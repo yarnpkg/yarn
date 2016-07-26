@@ -37,6 +37,7 @@ let args = process.argv;
 // set global options
 commander.version(pkg.version);
 commander.usage("[command] [flags]");
+commander.option("--offline");
 commander.option("--json", "");
 commander.option("--modules-folder [path]", "rather than installing modules into the node_modules " +
                                             "folder relative to the cwd, output them here");
@@ -91,6 +92,7 @@ reporter.initPeakMemoryCounter();
 let config = new Config(reporter, {
   modulesFolder: commander.modulesFolder,
   packagesRoot: commander.packagesRoot,
+  offline: commander.offline,
 });
 
 // print header
@@ -108,7 +110,10 @@ if (commander.yes) {
 
 //
 if (network.isOffline()) {
-  reporter.warn("You don't appear to have an internet connection.");
+  reporter.warn(
+    "You don't appear to have an internet connection. " +
+    "Try the --offline flag to use the cache for registry queries."
+  );
 }
 
 //
