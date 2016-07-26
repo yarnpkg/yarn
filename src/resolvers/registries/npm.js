@@ -14,6 +14,11 @@ import { MessageError } from "../../errors.js";
 import RegistryResolver from "./_base.js";
 import { queue } from "../../util/promise.js";
 import { entries, removeSuffix } from "../../util/misc.js";
+import map from "../../util/map.js";
+import * as fs from "../../util/fs.js";
+
+let invariant = require("invariant");
+let path = require("path");
 
 type RegistryResponse = {
   name: string,
@@ -58,7 +63,12 @@ export default class NpmResolver extends RegistryResolver {
   }
 
   async resolveRequest(): Promise<false | Manifest> {
+    if (this.config.offline) {
+      return this.resolveRequestOffline();
+    }
+
     let registry = removeSuffix(this.registryConfig.registry, "/");
+
     let body = await this.config.requestManager.request({
       url: `${registry}/${this.name}`,
       json: true
@@ -68,6 +78,62 @@ export default class NpmResolver extends RegistryResolver {
       return await this.findVersionInRegistryResponse(body);
     } else {
       return false;
+    }
+  }
+
+  async resolveRequestOffline(): Promise<false | Manifest> {
+    // find modules of this name
+    let prefix = `npm-${this.name}-`;
+
+    let packagesRoot = this.config.packagesRoot;
+    invariant(packagesRoot, "expected packages root");
+
+    let files = await this.config.getCache("cachedPackages", async () => {
+      invariant(packagesRoot, "expected packages root");
+      let files = await fs.readdir(packagesRoot);
+      let validFiles = [];
+
+      for (let name of files) {
+        // no hidden files
+        if (name[0] === ".") continue;
+
+        // ensure valid module cache
+        let dir = path.join(packagesRoot, name);
+        if (await this.config.isValidModuleDest(dir)) {
+          validFiles.push(name);
+        }
+      }
+
+      return validFiles;
+    });
+
+    let versions = map();
+
+    for (let name of files) {
+      // check if folder starts with our prefix
+      if (name.indexOf(prefix) !== 0) continue;
+
+      let dir = path.join(packagesRoot, name);
+
+      // read manifest and validate correct name
+      let pkg = await this.config.readManifest(dir, "npm");
+      if (pkg.name !== this.name) continue;
+
+      // read package metadata
+      let metadata = await this.config.readPackageMetadata(dir);
+      if (!metadata.remote) continue; // old kpm metadata
+
+      versions[pkg.version] = Object.assign({}, pkg, { remote: metadata.remote });
+    }
+
+    let satisfied = await this.config.resolveConstraints(Object.keys(versions), this.range);
+    if (satisfied) {
+      return versions[satisfied];
+    } else {
+      throw new MessageError(
+        `Couldn't find any versions for ${this.name} that matches ${this.range} in our cache. ` +
+        `Possible versions: ${Object.keys(versions).join(", ")} ${prefix}`
+      );
     }
   }
 
