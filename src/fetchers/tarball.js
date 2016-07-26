@@ -47,7 +47,7 @@ export default class TarballFetcher extends BaseFetcher {
             resolve(actualHash);
           } else {
             reject(new SecurityError(
-              `Bad hash. Expected ${expectHash} but got ${actualHash}`
+              `Bad hash. Expected ${expectHash} but got ${actualHash} `
             ));
           }
         });

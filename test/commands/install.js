@@ -168,7 +168,7 @@ test("install from offline mirror", () => {
     let allFiles = await fs.walk(config.cwd);
 
     assert(allFiles.findIndex((file) => {
-      return file.relative === "node_modules/fake-kpm-dependency/package.json";
+      return file.relative === "node_modules/fake-dependency/package.json";
     }) !== -1);
   });
 });
