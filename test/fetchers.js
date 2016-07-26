@@ -79,7 +79,7 @@ test("[network] TarballFetcher.fetch", async (t) => {
 });
 
 
-test("[network] TarballFetcher.fetch", async (t) => {
+test("[network] TarballFetcher.fetch throws", async (t) => {
   let dir = await mkdir("tarball-fetcher");
   let url = "https://github.com/PolymerElements/font-roboto/archive/2fd5c7bd715a24fb5b250298a140a3ba1b71fe46.tar.gz";
   let fetcher = new TarballFetcher({
@@ -88,7 +88,9 @@ test("[network] TarballFetcher.fetch", async (t) => {
     reference: url,
     registry: "bower"
   }, await createConfig());
-  t.throws(fetcher.fetch(dir), `${url}: Bad hash. Expected foo but got 9689b3b48d63ff70f170a192bec3c01b04f58f45`);
+  t.throws(fetcher.fetch(dir), (err) => {
+    return err.toString().trim() == `Error: ${url}: Bad hash. Expected foo but got 9689b3b48d63ff70f170a192bec3c01b04f58f45`;
+  });
 });
 
 test("TarballFetcher.fetch plain http error", async (t) => {
