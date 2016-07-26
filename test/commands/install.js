@@ -85,9 +85,7 @@ async function run(
     let install = new Install("install", flags, args, config, reporter, lockfile);
     await install.init();
     // self check to verify consistency after installation
-    if(await check(config, reporter, flags, args) !== 0) {
-      throw new Error("check failed")
-    }
+    await check(config, reporter, flags, args)
     try {
       if (checkInstalled) {
         await checkInstalled(config, reporter);
