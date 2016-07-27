@@ -113,9 +113,8 @@ export async function run(
     }
   }
 
-  if (valid) {
-    process.exit(0);
-  } else {
-    process.exit(1);
+  if (!valid) {
+    return Promise.reject();
   }
+  return Promise.resolve();
 }

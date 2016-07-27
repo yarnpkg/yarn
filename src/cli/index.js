@@ -185,7 +185,9 @@ config.init().then(() => {
   if (commander.forceSingleInstance) {
     return runEventually();
   }
-  return run().then(process.exit);
+  return run().then(() => {
+    process.exit(0);
+  });
 }).catch(function (errs) {
   function logError(err) {
     reporter.error(err.stack.replace(/^Error: /, ""));

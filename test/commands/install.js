@@ -15,6 +15,7 @@ import * as constants from "../../src/constants.js";
 import { default as Lockfile, parse } from "../../src/lockfile/index.js";
 import { Install } from "../../src/cli/commands/install.js";
 import { run as uninstall } from "../../src/cli/commands/uninstall.js";
+import { run as check } from "../../src/cli/commands/check.js";
 import Config from "../../src/config.js";
 import * as fs from "../../src/util/fs.js";
 import assert from "assert";
@@ -83,7 +84,8 @@ async function run(
 
     let install = new Install("install", flags, args, config, reporter, lockfile);
     await install.init();
-
+    // self check to verify consistency after installation
+    await check(config, reporter, flags, args)
     try {
       if (checkInstalled) {
         await checkInstalled(config, reporter);
@@ -100,7 +102,7 @@ async function run(
 
 async function getPackageVersion(config, packagePath) {
   return JSON.parse(await fs.readFile(
-    path.join(config.cwd, `node_modules/${packagePath}/package.json`))).version;
+    path.join(config.cwd, `node_modules/${packagePath.replace(/\//g, "/node_modules/")}/package.json`))).version;
 }
 
 test("[network] root install from shrinkwrap", () => {
@@ -179,7 +181,7 @@ test("install should dedupe dependencies avoiding conflicts 0", () => {
   // should result in B@2.0.0 not flattened
   return run({}, [], "install-should-dedupe-avoiding-conflicts-0", async (config) => {
     assert.equal(await getPackageVersion(config, "dep-b"), "1.0.0");
-    assert.equal(await getPackageVersion(config, "dep-a/node_modules/dep-b"), "2.0.0");
+    assert.equal(await getPackageVersion(config, "dep-a/dep-b"), "2.0.0");
   });
 });
 
@@ -204,11 +206,11 @@ test("install should dedupe dependencies avoiding conflicts 2", () => {
 
   return run({}, [], "install-should-dedupe-avoiding-conflicts-2", async (config) => {
     assert.equal(await getPackageVersion(config, "dep-a"), "2.0.0");
-    assert.equal(await getPackageVersion(config, "dep-a/node_modules/dep-b"), "2.0.0");
+    assert.equal(await getPackageVersion(config, "dep-a/dep-b"), "2.0.0");
     assert.equal(await getPackageVersion(config, "dep-c"), "2.0.0");
     assert.equal(await getPackageVersion(config, "dep-d"), "1.0.0");
     assert.equal(await getPackageVersion(config, "dep-b"), "1.0.0");
-    assert.equal(await getPackageVersion(config, "dep-b/node_modules/dep-c"), "1.0.0");
+    assert.equal(await getPackageVersion(config, "dep-b/dep-c"), "1.0.0");
   });
 });
 
@@ -226,7 +228,7 @@ test("install should dedupe dependencies avoiding conflicts 3", () => {
     assert.equal(await getPackageVersion(config, "dep-c"), "2.0.0");
     assert.equal(await getPackageVersion(config, "dep-d"), "1.0.0");
     assert.equal(await getPackageVersion(config, "dep-b"), "2.0.0");
-    assert.equal(await getPackageVersion(config, "dep-a/node_modules/dep-c"), "1.0.0");
+    assert.equal(await getPackageVersion(config, "dep-a/dep-c"), "1.0.0");
   });
 });
 
@@ -246,7 +248,7 @@ test("install should dedupe dependencies avoiding conflicts 4", () => {
     assert.equal(await getPackageVersion(config, "dep-c"), "2.0.0");
     assert.equal(await getPackageVersion(config, "dep-d"), "1.0.0");
     assert.equal(await getPackageVersion(config, "dep-b"), "2.0.0");
-    assert.equal(await getPackageVersion(config, "dep-a/node_modules/dep-c"), "1.0.0");
+    assert.equal(await getPackageVersion(config, "dep-a/dep-c"), "1.0.0");
   });
 });
 
@@ -267,8 +269,8 @@ test("install should dedupe dependencies avoiding conflicts 5", () => {
     assert.equal(await getPackageVersion(config, "dep-b"), "1.0.0");
     assert.equal(await getPackageVersion(config, "dep-c"), "1.0.0");
     assert.equal(await getPackageVersion(config, "dep-d"), "1.0.0");
-    assert.equal(await getPackageVersion(config, "dep-d/node_modules/dep-a"), "2.0.0");
-    assert.equal(await getPackageVersion(config, "dep-d/node_modules/dep-b"), "2.0.0");
+    assert.equal(await getPackageVersion(config, "dep-d/dep-a"), "2.0.0");
+    assert.equal(await getPackageVersion(config, "dep-d/dep-b"), "2.0.0");
 
   });
 });
@@ -293,8 +295,8 @@ test("install should dedupe dependencies avoiding conflicts 6 (jest/jest-runtime
     assert.equal(await getPackageVersion(config, "dep-d"), "2.0.0");
     assert.equal(await getPackageVersion(config, "dep-e"), "2.0.0");
 
-    assert.equal(await getPackageVersion(config, "dep-c/node_modules/dep-d"), "1.0.0");
-    assert.equal(await getPackageVersion(config, "dep-c/node_modules/dep-e"), "1.0.0");
+    assert.equal(await getPackageVersion(config, "dep-c/dep-d"), "1.0.0");
+    assert.equal(await getPackageVersion(config, "dep-c/dep-e"), "1.0.0");
   });
 });
 
@@ -324,15 +326,44 @@ test("install should dedupe dependencies avoiding conflicts 7", () => {
     assert.equal(await getPackageVersion(config, "dep-d"), "2.0.0");
     assert.equal(await getPackageVersion(config, "dep-e"), "2.0.0");
 
-    assert.equal(await getPackageVersion(config, "dep-a/node_modules/dep-c"), "1.0.0");
-    assert.equal(await getPackageVersion(config, "dep-a/node_modules/dep-d"), "1.0.0");
-    assert.equal(await getPackageVersion(config, "dep-a/node_modules/dep-e"), "1.0.0");
+    assert.equal(await getPackageVersion(config, "dep-a/dep-c"), "1.0.0");
+    assert.equal(await getPackageVersion(config, "dep-a/dep-d"), "1.0.0");
+    assert.equal(await getPackageVersion(config, "dep-a/dep-e"), "1.0.0");
 
 
-    assert.equal(await getPackageVersion(config, "dep-b/node_modules/dep-c"), "1.0.0");
-    assert.equal(await getPackageVersion(config, "dep-b/node_modules/dep-d"), "1.0.0");
-    assert.equal(await getPackageVersion(config, "dep-b/node_modules/dep-e"), "1.0.0");
+    assert.equal(await getPackageVersion(config, "dep-b/dep-c"), "1.0.0");
+    assert.equal(await getPackageVersion(config, "dep-b/dep-d"), "1.0.0");
+    assert.equal(await getPackageVersion(config, "dep-b/dep-e"), "1.0.0");
 
+  });
+});
+
+test("install should dedupe dependencies avoiding conflicts 8", () => {
+  // revealed in https://github.com/facebook/fbkpm/issues/112
+  return run({}, [], "install-should-dedupe-avoiding-conflicts-8", async (config) => {
+    assert.equal(await getPackageVersion(config, "glob"), "5.0.15");
+    assert.equal(await getPackageVersion(config, "yeoman-generator/globby/glob"), "6.0.4");
+    assert.equal(await getPackageVersion(config, "inquirer"), "0.8.5");
+    assert.equal(await getPackageVersion(config, "yeoman-generator/yeoman-environment/inquirer"), "1.1.2");
+    assert.equal(await getPackageVersion(config, "lodash"), "3.10.1");
+    assert.equal(await getPackageVersion(config, "yeoman-generator/yeoman-environment/lodash"), "4.13.1");
+    assert.equal(await getPackageVersion(config, "run-async"), "0.1.0");
+    assert.equal(await getPackageVersion(config, "yeoman-generator/yeoman-environment/run-async"), "2.2.0");
+  });
+});
+
+
+test("install should dedupe dependencies avoiding conflicts 9", () => {
+  // revealed in https://github.com/facebook/fbkpm/issues/112
+  return run({}, [], "install-should-dedupe-avoiding-conflicts-9", async (config) => {
+    assert.equal(await getPackageVersion(config, "glob"), "5.0.15");
+    assert.equal(await getPackageVersion(config, "yeoman-generator/globby/glob"), "6.0.4");
+    assert.equal(await getPackageVersion(config, "inquirer"), "0.8.5");
+    assert.equal(await getPackageVersion(config, "yeoman-generator/yeoman-environment/inquirer"), "1.1.2");
+    assert.equal(await getPackageVersion(config, "lodash"), "3.10.1");
+    assert.equal(await getPackageVersion(config, "yeoman-generator/yeoman-environment/lodash"), "4.13.1");
+    assert.equal(await getPackageVersion(config, "run-async"), "0.1.0");
+    assert.equal(await getPackageVersion(config, "yeoman-generator/yeoman-environment/run-async"), "2.2.0");
   });
 });
 
@@ -521,7 +552,7 @@ test("install have a clean node_modules after lockfile update (branch switch sce
   return run({}, [], fixture, async (config) => {
     assert.equal(await getPackageVersion(config, "dep-a"), "1.0.0");
     assert.equal(await getPackageVersion(config, "dep-b"), "2.0.0");
-    assert.equal(await getPackageVersion(config, "dep-a/node_modules/dep-b"), "1.0.0");
+    assert.equal(await getPackageVersion(config, "dep-a/dep-b"), "1.0.0");
 
     await fs.unlink(path.join(config.cwd, "kpm.lock"));
     await fs.unlink(path.join(config.cwd, "package.json"));
@@ -812,7 +843,7 @@ test("[network] install --save with new dependency should be deterministic", asy
         "2.0.0"
       );
       assert.equal(
-        await getPackageVersion(config, "mime-types/node_modules/mime-db"),
+        await getPackageVersion(config, "mime-types/mime-db"),
         "1.0.3"
       );
       assert.deepEqual(
