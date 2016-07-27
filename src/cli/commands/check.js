@@ -77,8 +77,9 @@ export async function run(
     // check if any of the node_modules are out of sync
     let res = await install.linker.initCopyModules(rawPatterns);
     for (let [loc] of res) {
-      let human = path.relative(path.join(process.cwd(), "node_modules"), loc);
-      human = human.replace(new RegExp(`${path.sep}node_modules${path.sep}`, "g"), " > ");
+      let relative = path.relative(path.join(config.cwd, "node_modules"), loc);
+      let parts    = relative.split(new RegExp(`${path.sep}node_modules${path.sep}`, "g"));
+      let human    = parts.join(" > ");
 
       let pkgLoc = path.join(loc, "package.json");
       if (!(await fs.exists(loc)) || !(await fs.exists(pkgLoc))) {
@@ -88,14 +89,31 @@ export async function run(
 
       let pkg = await fs.readJson(pkgLoc);
 
-      let deps = Object.assign({}, pkg.dependencies, pkg.devDependencies, pkg.peerDependencies);
+      let deps = Object.assign({}, pkg.dependencies, pkg.peerDependencies);
 
       for (let name in deps) {
         let range = deps[name];
         if (!semver.validRange(range)) continue; // exotic
 
-        let depPkgLoc = path.join(loc, "node_modules", name, "package.json");
-        if (!(await fs.exists(depPkgLoc))) {
+        // find the package that this will resolve to, factoring in hoisting
+        let depPkgLoc;
+        for (let i = parts.length; i >= 0; i--) {
+          let myParts = parts.slice(0, i).concat(name);
+
+          // build package.json location for this position
+          let myDepPkgLoc = path.join(
+            config.cwd,
+            "node_modules",
+            myParts.join(`${path.sep}node_modules${path.sep}`),
+            "package.json"
+          );
+
+          if (await fs.exists(myDepPkgLoc)) {
+            depPkgLoc = myDepPkgLoc;
+            break;
+          }
+        }
+        if (!depPkgLoc) {
           // we'll hit the module not install error above when this module is hit
           continue;
         }
@@ -116,5 +134,4 @@ export async function run(
   if (!valid) {
     return Promise.reject();
   }
-  return Promise.resolve();
 }

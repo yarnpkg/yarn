@@ -193,10 +193,12 @@ config.init().then(() => {
     reporter.error(err.stack.replace(/^Error: /, ""));
   }
 
-  if (Array.isArray(errs)) {
-    for (let err of errs) logError(err);
-  } else {
-    logError(errs);
+  if (errs) {
+    if (Array.isArray(errs)) {
+      for (let err of errs) logError(err);
+    } else {
+      logError(errs);
+    }
   }
 
   process.exit(1);
