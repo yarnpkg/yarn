@@ -29,7 +29,6 @@ import { stringify } from "../../util/misc.js";
 import map from "../../util/map.js";
 
 let invariant = require("invariant");
-let semver    = require("semver");
 let emoji     = require("node-emoji");
 let path      = require("path");
 
@@ -219,9 +218,8 @@ export class Install {
 
       let parts = PackageRequest.normalisePattern(pattern);
       let version;
-      if (parts.range && !semver.validRange(parts.range)) {
-        // if a range was specified in this pattern and it's not a semver range then
-        // it's exotic and can't be found on the npm registry
+      if (parts.range) {
+        // if the user specified a range then use it verbatim
         version = parts.range;
       } else if (saveTilde) { // --save-tilde
         version = `~${pkg.version}`;
