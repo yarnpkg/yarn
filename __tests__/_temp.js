@@ -9,7 +9,7 @@
  * @flow
  */
 
-let temp = require("temp").track();
+let temp = require("temp");
 
 export default function (filename?: string): Promise<string> {
   return new Promise((resolve, reject) => {
