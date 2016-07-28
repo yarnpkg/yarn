@@ -9,146 +9,138 @@
  * @flow
  */
 
-import ProgressBar from "../../lib/reporters/console/progress-bar.js";
-import Spinner from "../../lib/reporters/console/spinner.js";
-import ConsoleReporter from "../../lib/reporters/console/index.js";
+import ProgressBar from "../../src/reporters/console/progress-bar.js";
+import Spinner from "../../src/reporters/console/spinner.js";
+import ConsoleReporter from "../../src/reporters/console/index.js";
 import build from "./_mock.js";
-
-function wait(ms) {
-  return new Promise((resolve) => {
-    setTimeout(resolve, ms);
-  });
-}
-
-let test = require("ava");
 
 let getConsoleBuff = build(ConsoleReporter, (data) => data);
 
-test("ConsoleReporter.step", async (t) => {
-  t.deepEqual(await getConsoleBuff((r) => r.step(1, 5, "foboar")), {
+test("ConsoleReporter.step", async () => {
+  expect(await getConsoleBuff((r) => r.step(1, 5, "foboar"))).toEqual({
     stderr: "",
     stdout: "\u001b[2K\u001b[1G\u001b[90m[1/5]\u001b[39m foboar..."
   });
 });
 
-test("ConsoleReporter.header", async (t) => {
-  t.deepEqual(await getConsoleBuff((r) => r.header("foobar", { name: "kpm", version: "0.0.0" })), {
+test("ConsoleReporter.header", async () => {
+  expect(await getConsoleBuff((r) => r.header("foobar", { name: "kpm", version: "0.0.0" }))).toEqual({
     stderr: "",
     stdout: "\u001b[2K\u001b[1G\u001b[1mkpm foobar v0.0.0\u001b[22m"
   });
 });
 
-test("ConsoleReporter.footer", async (t) => {
-  t.deepEqual(await getConsoleBuff((r) => r.footer()), {
+test("ConsoleReporter.footer", async () => {
+  expect(await getConsoleBuff((r) => r.footer())).toEqual({
     stderr: "",
     stdout: "\u001b[2K\u001b[1G✨  Done in 0.00s."
   });
 
-  t.deepEqual(await getConsoleBuff((r) => r.footer(true)), {
+  expect(await getConsoleBuff((r) => r.footer(true))).toEqual({
     stderr: "",
     stdout: "\u001b[2K\u001b[1G✨  Done in 0.00s. Peak memory usage 0.00MB."
   });
 });
 
-test("ConsoleReporter.log", async (t) => {
-  t.deepEqual(await getConsoleBuff((r) => r.log("foobar")), {
+test("ConsoleReporter.log", async () => {
+  expect(await getConsoleBuff((r) => r.log("foobar"))).toEqual({
     stderr: "",
     stdout: "\u001b[2K\u001b[1Gfoobar"
   });
 });
 
-test("ConsoleReporter.success", async (t) => {
-  t.deepEqual(await getConsoleBuff((r) => r.success("foobar")), {
+test("ConsoleReporter.success", async () => {
+  expect(await getConsoleBuff((r) => r.success("foobar"))).toEqual({
     stderr: "",
     stdout: "\u001b[2K\u001b[1G\u001b[32msuccess\u001b[39m foobar"
   });
 });
 
-test("ConsoleReporter.error", async (t) => {
-  t.deepEqual(await getConsoleBuff((r) => r.error("foobar")), {
+test("ConsoleReporter.error", async () => {
+  expect(await getConsoleBuff((r) => r.error("foobar"))).toEqual({
     stderr: "\u001b[2K\u001b[1G\u001b[31merror\u001b[39m foobar",
     stdout: ""
   });
 });
 
-test("ConsoleReporter.info", async (t) => {
-  t.deepEqual(await getConsoleBuff((r) => r.info("foobar")), {
+test("ConsoleReporter.info", async () => {
+  expect(await getConsoleBuff((r) => r.info("foobar"))).toEqual({
     stderr: "",
     stdout: "\u001b[2K\u001b[1G\u001b[34minfo\u001b[39m foobar"
   });
 });
 
-test("ConsoleReporter.command", async (t) => {
-  t.deepEqual(await getConsoleBuff((r) => r.command("foobar")), {
+test("ConsoleReporter.command", async () => {
+  expect(await getConsoleBuff((r) => r.command("foobar"))).toEqual({
     stderr: "",
     stdout: "\u001b[2K\u001b[1G\u001b[90m$ foobar\u001b[39m"
   });
 });
 
-test("ConsoleReporter.warn", async (t) => {
-  t.deepEqual(await getConsoleBuff((r) => r.warn("foobar")), {
+test("ConsoleReporter.warn", async () => {
+  expect(await getConsoleBuff((r) => r.warn("foobar"))).toEqual({
     stderr: "\u001b[2K\u001b[1G\u001b[33mwarning\u001b[39m foobar",
     stdout: ""
   });
 });
 
-test("ConsoleReporter.activity", async (t) => {
-  t.deepEqual(await getConsoleBuff(function (r) {
+test("ConsoleReporter.activity", async () => {
+  expect(await getConsoleBuff(function (r) {
     let activity = r.activity();
     activity.tick("foo");
     activity.end();
-  }), {
+  })).toEqual({
     stderr: "\u001b[2K\u001b[1G⠁ \u001b[2K\u001b[1G",
     stdout: ""
   });
 });
 
-test("ConsoleReporter.select", async (t) => {
-  t.deepEqual(await getConsoleBuff(async function (r, streams) {
+test("ConsoleReporter.select", async () => {
+  expect(await getConsoleBuff(async function (r, streams) {
     streams.stdin.on("resume", function () {
       streams.stdin.send("1\n", "ascii");
       streams.stdin.end();
     });
 
     let res = await r.select("Ayo", "Select one", ["foo", "bar"]);
-    t.deepEqual(res, "foo");
-  }), {
+    expect(res, "foo");
+  })).toEqual({
     stderr: "",
     stdout: "\u001b[2K\u001b[1GAyo\n\u001b[2K\u001b[1G1. foo\n\u001b[2K\u001b[1G2. bar\n\u001b[1G\u001b[0JSelect one?: \u001b[14G1"
   });
 });
 
-test("ConsoleReporter.progress", async (t) => {
-  t.deepEqual(await getConsoleBuff(async function (r) {
+test("ConsoleReporter.progress", async () => {
+  expect(await getConsoleBuff(async function (r) {
     let tick = r.progress(2);
     tick();
-    await wait(1000);
+    jest.runAllTimers();
     tick();
-  }), {
+  })).toEqual({
     stderr: "\u001b[2K\u001b[1G░░ 0/2\u001b[2K\u001b[1G█░ 1/2\u001b[2K\u001b[1G",
     stdout: ""
   });
 
-  t.deepEqual(await getConsoleBuff(async function (r) {
+  expect(await getConsoleBuff(async function (r) {
     let tick = r.progress(0);
     tick();
-  }), {
+  })).toEqual({
     stderr: "",
     stdout: ""
   });
 
-  t.deepEqual(await getConsoleBuff(async function (r) {
+  expect(await getConsoleBuff(async function (r) {
     r.isTTY = false;
     let tick = r.progress(2);
     tick();
     tick();
-  }), {
+  })).toEqual({
     stderr: "",
     stdout: ""
   });
 });
 
-test("ProgressBar", (t) => {
+test("ProgressBar", () => {
   let data = "";
 
   let bar = new ProgressBar(2, {
@@ -159,18 +151,18 @@ test("ProgressBar", (t) => {
   });
 
   bar.render();
-  t.is(data, "\u001b[2K\u001b[1G░░ 0/2");
+  expect(data).toBe("\u001b[2K\u001b[1G░░ 0/2");
 
   bar.tick();
   bar.render();
-  t.is(data, "\u001b[2K\u001b[1G░░ 0/2\u001b[2K\u001b[1G█░ 1/2");
+  expect(data).toBe("\u001b[2K\u001b[1G░░ 0/2\u001b[2K\u001b[1G█░ 1/2");
 
   bar.tick();
   bar.render();
-  t.is(data, "\u001b[2K\u001b[1G░░ 0/2\u001b[2K\u001b[1G█░ 1/2\u001b[2K\u001b[1G\u001b[2K\u001b[1G██ 2/2");
+  expect(data).toBe("\u001b[2K\u001b[1G░░ 0/2\u001b[2K\u001b[1G█░ 1/2\u001b[2K\u001b[1G\u001b[2K\u001b[1G██ 2/2");
 });
 
-test("Spinner", (t) => {
+test("Spinner", () => {
   let data = "";
 
   let spinner = new Spinner({
@@ -180,16 +172,16 @@ test("Spinner", (t) => {
   });
 
   spinner.start();
-  t.is(data, "\u001b[2K\u001b[1G⠁ ");
+  expect(data).toBe("\u001b[2K\u001b[1G⠁ ");
 
   spinner.setText("foo");
   spinner.render();
-  t.is(data, "\u001b[2K\u001b[1G⠁ \u001b[2K\u001b[1G⠂ foo");
+  expect(data).toBe("\u001b[2K\u001b[1G⠁ \u001b[2K\u001b[1G⠂ foo");
 
   spinner.setText("bar");
   spinner.render();
-  t.is(data, "\u001b[2K\u001b[1G⠁ \u001b[2K\u001b[1G⠂ foo\u001b[2K\u001b[1G⠄ bar");
+  expect(data).toBe("\u001b[2K\u001b[1G⠁ \u001b[2K\u001b[1G⠂ foo\u001b[2K\u001b[1G⠄ bar");
 
   spinner.stop();
-  t.is(data, "\u001b[2K\u001b[1G⠁ \u001b[2K\u001b[1G⠂ foo\u001b[2K\u001b[1G⠄ bar\u001b[2K\u001b[1G");
+  expect(data).toBe("\u001b[2K\u001b[1G⠁ \u001b[2K\u001b[1G⠂ foo\u001b[2K\u001b[1G⠄ bar\u001b[2K\u001b[1G");
 });

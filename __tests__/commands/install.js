@@ -21,8 +21,9 @@ import * as fs from "../../src/util/fs.js";
 import assert from "assert";
 import semver from "semver";
 
+jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000;
+
 let stream = require("stream");
-let test = require("ava");
 let path = require("path");
 
 let fixturesLoc = path.join(__dirname, "..", "fixtures", "install");
@@ -870,7 +871,7 @@ test("[network] install --save with new dependency should be deterministic", asy
 });
 
 // TODO https://github.com/facebook/kpm/issues/79
-test.failing("[network] install --save with new dependency should be deterministic 2", async () => {
+xit("[network] install --save with new dependency should be deterministic 2", async () => {
   // mime-types@2.0.0->mime-db@1.0.1 is saved in local mirror and is deduped
   // install mime-db@1.0.3 should replace mime-db@1.0.1 in root
 
@@ -1010,4 +1011,3 @@ test("[network] install --save-exact should not make all package.json strict", a
 
   });
 });
-

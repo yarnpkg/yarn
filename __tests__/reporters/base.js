@@ -9,13 +9,11 @@
  * @flow
  */
 
-import BaseReporter from "../../lib/reporters/_base.js";
+import BaseReporter from "../../src/reporters/_base.js";
 
-let test = require("ava");
-
-test("BaseReporter.getTotalTime", (t) => {
+test("BaseReporter.getTotalTime", () => {
   let reporter = new BaseReporter;
-  t.truthy(reporter.getTotalTime() <= 1);
+  expect(reporter.getTotalTime() <= 1).toBeTruthy();
   reporter.close();
 });
 
@@ -87,15 +85,27 @@ test("BaseReporter.activity", () => {
   reporter.close();
 });
 
-test("BaseReporter.question", (t) => {
+test("BaseReporter.question", async () => {
   let reporter = new BaseReporter;
-  t.throws(reporter.question());
+  let error;
+  try {
+    await reporter.question();
+  } catch (e) {
+    error = e;
+  }
+  expect(error).not.toBeUndefined();
   reporter.close();
 });
 
-test("BaseReporter.select", (t) => {
+test("BaseReporter.select", async () => {
   let reporter = new BaseReporter;
-  t.throws(reporter.select());
+  let error;
+  try {
+    await reporter.select();
+  } catch (e) {
+    error = e;
+  }
+  expect(error).not.toBeUndefined();
   reporter.close();
 });
 

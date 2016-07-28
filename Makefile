@@ -7,11 +7,10 @@ watch:
 	./node_modules/.bin/gulp watch
 
 test-only:
-	./node_modules/.bin/nyc --check-coverage --lines 75 --branches 70 --functions 70 ./node_modules/.bin/ava --verbose --concurrency 1 test/
-	./node_modules/.bin/nyc report --reporter=lcov
+	./node_modules/.bin/jest --coverage --verbose -i
 
 test-install-only:
-	./node_modules/.bin/ava --verbose --concurrency 1 test/commands/install.js
+	./node_modules/.bin/jest --verbose -i __tests__/commands/install.js
 
 lint:
 	./node_modules/.bin/eslint src
