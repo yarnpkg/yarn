@@ -280,7 +280,13 @@ export default class PackageHoister {
    * Description
    */
 
-  declareRename(info: HoistManifest, existing: ?HoistManifest, parts: Array<string>, stack: Array<string>, pair: HoistPair) {
+  declareRename(
+    info: HoistManifest,
+    existing: ?HoistManifest,
+    parts: Array<string>,
+    stack: Array<string>,
+    pair: HoistPair
+  ) {
     if (existing && existing !== info) {
       this.subPairs.set(info, new Set([
         ...this.subPairs.get(existing) || [],
@@ -323,7 +329,7 @@ export default class PackageHoister {
     // go through and update all transitive dependencies and update their keys to the new
     // hoisting position
     let pairs = this.subPairs.get(info);
-    invariant(pairs, "expected pairs")
+    invariant(pairs, "expected pairs");
     for (let subPair of pairs) {
       let [subKey] = subPair;
       if (subKey === newKey) continue;
@@ -365,8 +371,6 @@ export default class PackageHoister {
    */
 
   isUnreachableDependency(info: HoistManifest, parts: Array<string>): boolean {
-    let parts2 = parts.slice();
-
     while (true) {
       let checkKey = this.implodeKey(parts.concat(info.pkg.name));
       let existing = this.tree[checkKey];
