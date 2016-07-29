@@ -172,7 +172,7 @@ export class Install {
       this.flags.rebuild ? "Rebuilding all packages" : "Building fresh packages",
       emoji.get("page_with_curl")
     );
-    await this.scripts.init();
+    //await this.scripts.init();
 
     // fin!
     await this.maybeSaveTree(patterns);
@@ -259,18 +259,15 @@ export class Install {
    */
 
   async flatten(patterns: Array<string>): Promise<Array<string>> {
+    if (!this.flags.flat) {
+      return patterns;
+    }
+
     for (let name of this.resolver.getAllDependencyNames()) {
       let infos = this.resolver.getAllInfoForPackageName(name);
 
       let firstRemote = infos[0] && infos[0].remote;
       invariant(firstRemote, "Missing first remote");
-
-      if (!this.flags.flat && !registries[firstRemote.registry].alwaysFlatten) {
-        // if we haven't been given an explicit flat flag and this package doesn't belong
-        // to a registry that always requires flattening then continue on our way
-        // TODO: this doesn't take into account colliding packages on two registries #65
-        continue;
-      }
 
       if (infos.length === 1) {
         // single version of this package

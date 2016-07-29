@@ -60,7 +60,7 @@ export async function run(
   let install = new Install("ls", flags, args, config, reporter, lockfile);
   let [depRequests, patterns] = await install.fetchRequestFromCwd();
   await install.resolver.init(depRequests);
-  let hoisted = await install.linker.initCopyModules(patterns);
+  let hoisted = await install.linker.getFlatHoistedTree(patterns);
 
   // finding
   reporter.step(3, 3, "Finding dependency", emoji.get("mag"));

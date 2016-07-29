@@ -50,7 +50,7 @@ export async function buildTree(
 }> {
   let treesByKey = {};
   let trees = [];
-  let hoisted = await linker.initCopyModules(patterns);
+  let hoisted = await linker.getFlatHoistedTree(patterns);
 
   // build initial trees
   for (let [, info] of hoisted) {
