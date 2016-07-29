@@ -55,8 +55,10 @@ async function run(
 ) {
   let out = "";
   let stdout = new stream.Writable({
-    write(data) {
+    decodeStrings: false,
+    write(data, encoding, cb) {
       out += data;
+      cb();
     }
   });
 
@@ -86,7 +88,7 @@ async function run(
     let install = new Install("install", flags, args, config, reporter, lockfile);
     await install.init();
     // self check to verify consistency after installation
-    await check(config, reporter, flags, args)
+    await check(config, reporter, flags, args);
     try {
       if (checkInstalled) {
         await checkInstalled(config, reporter);
@@ -96,8 +98,7 @@ async function run(
       await clean(cwd, removeLock);
     }
   } catch (err) {
-    err.message += `. Console output:\n${out}`;
-    throw err;
+    throw `${err} \nConsole output:\n ${out}`;
   }
 }
 
