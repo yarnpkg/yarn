@@ -10,9 +10,6 @@
  */
 
 import BlockingQueue from "../../src/util/blocking-queue.js";
-import { wait } from "../../src/util/promise.js";
-
-let test = require("ava");
 
 test("max concurrency", async function () {
   let queue = new BlockingQueue("test", 5);
@@ -22,7 +19,7 @@ test("max concurrency", async function () {
   function create() {
     return queue.push(++i + "", async function () {
       running++;
-      await wait(100);
+      jest.runAllTimers();
 
       if (running > 5)  {
         throw new Error("Concurrency is broken");

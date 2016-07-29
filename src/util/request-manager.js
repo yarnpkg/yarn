@@ -218,7 +218,7 @@ export default class RequestManager {
     });
 
     let queue = params.queue;
-    if (queue) req.on("data", queue.stillActive);
+    if (queue) req.on("data", queue.stillActive.bind(queue));
 
     if (params.process) {
       params.process(req, resolve, reject);

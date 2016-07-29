@@ -20,7 +20,6 @@ import mkdir from "./_temp.js";
 import * as fs from "../src/util/fs.js";
 
 let path = require("path");
-let test = require("ava");
 
 async function createConfig() {
   let config = new Config(new NoopReporter);
@@ -28,17 +27,24 @@ async function createConfig() {
   return config;
 }
 
-test("BaseFetcher.fetch", async (t) => {
+test("BaseFetcher.fetch", async () => {
   let dir = await mkdir("base-fetcher");
   let fetcher = new BaseFetcher({
     type: "base",
     registry: "npm",
     reference: ""
   }, await createConfig());
-  t.throws(fetcher.fetch(dir), "Not implemented");
+  let error;
+
+  try {
+    await fetcher.fetch(dir);
+  } catch (e) {
+    error = e;
+  }
+  expect(error && error.message).toBe("Not implemented");
 });
 
-test("CopyFetcher.fetch", async (t) => {
+test("CopyFetcher.fetch", async () => {
   let a = await mkdir("copy-fetcher-a");
   await fs.writeFile(path.join(a, "package.json"), "{}");
   await fs.writeFile(path.join(a, "foo"), "bar");
@@ -50,11 +56,13 @@ test("CopyFetcher.fetch", async (t) => {
     registry: "npm"
   }, await createConfig());
   await fetcher.fetch(b);
-  t.is(await fs.readFile(path.join(b, "package.json")), "{}");
-  t.is(await fs.readFile(path.join(b, "foo")), "bar");
+  const content = await fs.readFile(path.join(b, "package.json"));
+  expect(content).toBe("{}");
+  const contentFoo = await fs.readFile(path.join(b, "foo"));
+  expect(contentFoo).toBe("bar");
 });
 
-test("[network] GitFetcher.fetch", async (t) => {
+test("[network] GitFetcher.fetch", async () => {
   let dir = await mkdir("git-fetcher");
   let fetcher = new GitFetcher({
     type: "git",
@@ -63,10 +71,11 @@ test("[network] GitFetcher.fetch", async (t) => {
     registry: "bower"
   }, await createConfig());
   await fetcher.fetch(dir);
-  t.is((await fs.readJson(path.join(dir, "bower.json"))).name, "font-roboto");
+  const name = (await fs.readJson(path.join(dir, "bower.json"))).name;
+  expect(name).toBe("font-roboto");
 });
 
-test("[network] TarballFetcher.fetch", async (t) => {
+test("[network] TarballFetcher.fetch", async () => {
   let dir = await mkdir("tarball-fetcher");
   let fetcher = new TarballFetcher({
     type: "tarball",
@@ -74,12 +83,14 @@ test("[network] TarballFetcher.fetch", async (t) => {
     reference: "https://github.com/PolymerElements/font-roboto/archive/2fd5c7bd715a24fb5b250298a140a3ba1b71fe46.tar.gz",
     registry: "bower"
   }, await createConfig());
+
+
   await fetcher.fetch(dir);
-  t.is((await fs.readJson(path.join(dir, "bower.json"))).name, "font-roboto");
+  const name = (await fs.readJson(path.join(dir, "bower.json"))).name;
+  expect(name).toBe("font-roboto");
 });
 
-
-test("[network] TarballFetcher.fetch throws", async (t) => {
+test("[network] TarballFetcher.fetch throws", async () => {
   let dir = await mkdir("tarball-fetcher");
   let url = "https://github.com/PolymerElements/font-roboto/archive/2fd5c7bd715a24fb5b250298a140a3ba1b71fe46.tar.gz";
   let fetcher = new TarballFetcher({
@@ -88,17 +99,28 @@ test("[network] TarballFetcher.fetch throws", async (t) => {
     reference: url,
     registry: "bower"
   }, await createConfig());
-  t.throws(fetcher.fetch(dir), (err) => {
-    return err.toString().trim() == `Error: ${url}: Bad hash. Expected foo but got 9689b3b48d63ff70f170a192bec3c01b04f58f45`;
-  });
+  let error;
+  try {
+    await fetcher.fetch(dir);
+  } catch (e) {
+    error = e;
+  }
+  expect(error && error.message).toMatchSnapshot();
 });
 
-test("TarballFetcher.fetch plain http error", async (t) => {
+test("TarballFetcher.fetch plain http error", async () => {
   let dir = await mkdir("tarball-fetcher");
   let fetcher = new TarballFetcher({
     type: "tarball",
     reference: "http://example.com/",
     registry: "npm"
   }, await createConfig());
-  t.throws(fetcher.fetch(dir), "http://example.com/: Refusing to fetch tarball over plain HTTP without a hash");
+
+  let error;
+  try {
+    await fetcher.fetch(dir);
+  } catch (e) {
+    error = e;
+  }
+  expect(error && error.message).toMatchSnapshot();
 });
