@@ -98,8 +98,7 @@ async function run(
       await clean(cwd, removeLock);
     }
   } catch (err) {
-    console.log(out);
-    throw err;
+    throw `${err} \nConsole output:\n ${out}`;
   }
 }
 
