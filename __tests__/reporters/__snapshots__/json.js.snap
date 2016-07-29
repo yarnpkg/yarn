@@ -1,0 +1,75 @@
+exports[`test JSONReporter.activity 1`] = `
+Object {
+  "stderr": "",
+  "stdout": "{\"type\":\"activityStart\",\"data\":{\"id\":0}}
+{\"type\":\"activitytick\",\"data\":{\"id\":0}}
+{\"type\":\"activitytick\",\"data\":{\"id\":0}}
+{\"type\":\"activityEnd\",\"data\":{\"id\":0}}"
+}
+`;
+
+exports[`test JSONReporter.command 1`] = `
+Object {
+  "stderr": "",
+  "stdout": "{\"type\":\"command\",\"data\":\"foobar\"}"
+}
+`;
+
+exports[`test JSONReporter.error 1`] = `
+Object {
+  "stderr": "{\"type\":\"error\",\"data\":\"foobar\"}",
+  "stdout": ""
+}
+`;
+
+exports[`test JSONReporter.footer 1`] = `
+Object {
+  "stderr": "",
+  "stdout": "{\"type\":\"finished\",\"data\":0}"
+}
+`;
+
+exports[`test JSONReporter.info 1`] = `
+Object {
+  "stderr": "",
+  "stdout": "{\"type\":\"info\",\"data\":\"foobar\"}"
+}
+`;
+
+exports[`test JSONReporter.log 1`] = `
+Object {
+  "stderr": "",
+  "stdout": "{\"type\":\"log\",\"data\":\"foobar\"}"
+}
+`;
+
+exports[`test JSONReporter.progress 1`] = `
+Object {
+  "stderr": "",
+  "stdout": "{\"type\":\"progressStart\",\"data\":{\"id\":0,\"total\":2}}
+{\"type\":\"progressTick\",\"data\":{\"id\":0,\"current\":1}}
+{\"type\":\"progressTick\",\"data\":{\"id\":0,\"current\":2}}
+{\"type\":\"progressFinish\",\"data\":{\"id\":0}}"
+}
+`;
+
+exports[`test JSONReporter.step 1`] = `
+Object {
+  "stderr": "",
+  "stdout": "{\"type\":\"step\",\"data\":{\"message\":\"foobar\",\"current\":1,\"total\":5}}"
+}
+`;
+
+exports[`test JSONReporter.success 1`] = `
+Object {
+  "stderr": "",
+  "stdout": "{\"type\":\"success\",\"data\":\"foobar\"}"
+}
+`;
+
+exports[`test JSONReporter.warn 1`] = `
+Object {
+  "stderr": "{\"type\":\"warning\",\"data\":\"foobar\"}",
+  "stdout": ""
+}
+`;

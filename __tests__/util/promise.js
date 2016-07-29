@@ -11,27 +11,31 @@
 
 import * as promise from "../../src/util/promise.js";
 
-let test = require("ava");
-
-test("promisify", async function (t) {
-  t.deepEqual(await promise.promisify(function (callback) {
+test("promisify", async function () {
+  expect(await promise.promisify(function (callback) {
     callback(null, "foo");
-  })(), "foo");
+  })()).toBe("foo");
 
-  t.deepEqual(await promise.promisify(function (data, callback) {
+  expect(await promise.promisify(function (data, callback) {
     callback(null, data + "bar");
-  })("foo"), "foobar");
+  })("foo")).toBe("foobar");
 
-  t.deepEqual(await promise.promisify(function (callback) {
+  expect(await promise.promisify(function (callback) {
     callback(null, "foo", "bar");
-  })(), ["foo", "bar"]);
+  })()).toEqual(["foo", "bar"]);
 
-  t.throws(promise.promisify(function (callback) {
-    callback(new Error("yep"));
-  })(), "yep");
+  let error;
+  try {
+    await promise.promisify(function (callback) {
+      callback(new Error("yep"));
+    })();
+  } catch (e) {
+    error = e;
+  }
+  expect(error && error.message).toEqual("yep");
 });
 
-test("promisifyObject", async function (t) {
+test("promisifyObject", async function () {
   let obj = promise.promisifyObject({
     foo: function (callback) {
       callback(null, "foo");
@@ -46,9 +50,15 @@ test("promisifyObject", async function (t) {
     }
   });
 
-  t.deepEqual(await obj.foo(), "foo");
-  t.deepEqual(await obj.bar("foo"), "foobar");
-  t.throws(obj.foobar(), "yep");
+  expect(await obj.foo()).toBe("foo");
+  expect(await obj.bar("foo")).toBe("foobar");
+  let error;
+  try {
+    await obj.foobar();
+  } catch (e) {
+    error = e;
+  }
+  expect(error && error.message).toEqual("yep");
 });
 
 test("queue", async function () {
@@ -56,7 +66,7 @@ test("queue", async function () {
 
   async function create() {
     running++;
-    await promise.wait(100);
+    jest.runAllTimers();
 
     if (running > 5)  {
       throw new Error("Concurrency is broken");

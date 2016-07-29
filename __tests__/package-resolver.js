@@ -18,8 +18,9 @@ import Config from "../src/config.js";
 import makeTemp from "./_temp.js";
 import * as fs from "../src/util/fs.js";
 
+jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000;
+
 let path = require("path");
-let test = require("ava");
 
 function addTest(pattern, registry = "npm") {
   test(`[network] resolve ${pattern}`, async () => {

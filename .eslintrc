@@ -1,3 +1,6 @@
 {
-  "extends": "eslint-config-kittens"
+  "extends": "eslint-config-kittens",
+  "env": {
+    "jest": true
+  }
 }

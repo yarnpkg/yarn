@@ -15,32 +15,30 @@ import stringify from "../src/lockfile/stringify.js";
 import parse from "../src/lockfile/parse.js";
 import nullify from "../src/util/map.js";
 
-let test = require("ava");
-
 let objs = [
   { foo: "bar" },
   { foo: {} },
   { foo: "foo", bar: "bar" },
   { foo: 5 },
-  Object.assign({}, require("../package.json"), { ava: {} })
+  Object.assign({}, require("../package.json"), { jest: {} })
 ];
 
 let i = 0;
 for (let obj of objs) {
-  test(`parse/stringify ${++i}`, (t) => {
-    t.deepEqual(parse(stringify(obj)), nullify(obj));
+  test(`parse/stringify ${++i}`, () => {
+    expect(parse(stringify(obj))).toEqual(nullify(obj));
   });
 }
 
-test("parse", (t) => {
-  t.deepEqual(parse('foo "bar"'), nullify({ foo: "bar" }));
-  t.deepEqual(parse('"foo" "bar"'), nullify({ foo: "bar" }));
-  t.deepEqual(parse('foo "bar"'), nullify({ foo: "bar" }));
+test("parse", () => {
+  expect(parse('foo "bar"')).toEqual(nullify({ foo: "bar" }));
+  expect(parse('"foo" "bar"')).toEqual(nullify({ foo: "bar" }));
+  expect(parse('foo "bar"')).toEqual(nullify({ foo: "bar" }));
 
-  t.deepEqual(parse(`foo:\n  bar "bar"`), nullify({ foo: { bar: "bar" } }));
-  t.deepEqual(parse(`foo:\n  bar:\n  foo "bar"`), nullify({ foo: { bar: {}, foo: "bar" } }));
-  t.deepEqual(parse(`foo:\n  bar:\n    foo "bar"`), nullify({ foo: { bar: { foo: "bar" } } }));
-  t.deepEqual(parse("foo:\n  bar:\n    yes no\nbar:\n  yes no"), nullify({
+  expect(parse(`foo:\n  bar "bar"`)).toEqual(nullify({ foo: { bar: "bar" } }));
+  expect(parse(`foo:\n  bar:\n  foo "bar"`)).toEqual(nullify({ foo: { bar: {}, foo: "bar" } }));
+  expect(parse(`foo:\n  bar:\n    foo "bar"`)).toEqual(nullify({ foo: { bar: { foo: "bar" } } }));
+  expect(parse("foo:\n  bar:\n    yes no\nbar:\n  yes no")).toEqual(nullify({
     foo: {
       bar: {
         yes: "no"
@@ -52,61 +50,60 @@ test("parse", (t) => {
   }));
 });
 
-test("stringify", (t) => {
+test("stringify", () => {
   let obj = { foo: "bar" };
-  t.deepEqual(stringify({ a: obj, b: obj }), "a, b:\n  foo bar");
+  expect(stringify({ a: obj, b: obj })).toEqual("a, b:\n  foo bar");
 });
 
-test("Lockfile.isStrict", (t) => {
-  t.is(new Lockfile(null, true).isStrict(), true);
-  t.is(new Lockfile(null, false).isStrict(), false);
-  t.is(new Lockfile(null).isStrict(), false);
+test("Lockfile.isStrict", () => {
+  expect(new Lockfile(null, true).isStrict()).toBe(true);
+  expect(new Lockfile(null, false).isStrict()).toBe(false);
+  expect(new Lockfile(null).isStrict()).toBe(false);
 });
 
 test("Lockfile.fromDirectory", () => {
 
 });
 
-test("Lockfile.getLocked", (t) => {
-
+test("Lockfile.getLocked", () => {
   let lockfile = new Lockfile({
     foo: "bar",
     bar: {}
   });
-  t.truthy(!!lockfile.getLocked("foo"));
+  expect(!!lockfile.getLocked("foo")).toBeTruthy();
 });
 
-test("Lockfile.getLocked pointer", (t) => {
+test("Lockfile.getLocked pointer", () => {
   let lockfile = new Lockfile({
     foo: "bar",
     bar: {}
   });
-  t.truthy(!!lockfile.getLocked("foo"));
+  expect(!!lockfile.getLocked("foo")).toBeTruthy();
 });
 
-test("Lockfile.getLocked no cache", (t) => {
-  t.truthy(!new Lockfile().getLocked("foobar"));
+test("Lockfile.getLocked no cache", () => {
+  expect(!new Lockfile().getLocked("foobar")).toBeTruthy();
 });
 
-test("Lockfile.getLocked defaults", (t) => {
+test("Lockfile.getLocked defaults", () => {
   let pattern = new Lockfile({
     foobar: {
       version: "0.0.0"
     }
   }).getLocked("foobar");
-  t.is(pattern.registry, "npm");
-  t.is(pattern.uid, "0.0.0");
-  t.is(pattern.version, "0.0.0");
+  expect(pattern.registry).toBe("npm");
+  expect(pattern.uid).toBe("0.0.0");
+  expect(pattern.version).toBe("0.0.0");
 });
 
-test("Lockfile.getLocked strict unknown", (t) => {
+test("Lockfile.getLocked strict unknown", () => {
   new Lockfile({}, false).getLocked("foobar");
-  t.throws(function () {
-    new Lockfile({}, true).getLocked("foobar");
-  }, "The pattern foobar not found in lockfile");
+  expect(
+    () => new Lockfile({}, true).getLocked("foobar")
+  ).toThrowError("The pattern foobar not found in lockfile");
 });
 
-test("Lockfile.getLockfile", (t) => {
+test("Lockfile.getLockfile", () => {
   let patterns = {
     foobar: {
       name: "foobar",
@@ -179,10 +176,10 @@ test("Lockfile.getLockfile", (t) => {
     foobar2: expectedFoobar
   };
 
-  t.deepEqual(actual, expected);
+  expect(actual).toEqual(expected);
 });
 
-test("Lockfile.getLockfile (sorting)", (t) => {
+test("Lockfile.getLockfile (sorting)", () => {
   let patterns = {
     foobar2: {
       name: "foobar",
@@ -222,5 +219,5 @@ test("Lockfile.getLockfile (sorting)", (t) => {
     foobar2: expectedFoobar
   };
 
-  t.deepEqual(actual, expected);
+  expect(actual).toEqual(expected);
 });
