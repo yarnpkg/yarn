@@ -61,26 +61,26 @@ test("BaseReporter.info", () => {
 
 test("BaseReporter.command", () => {
   let reporter = new BaseReporter;
-  reporter.command();
+  reporter.command("");
   reporter.close();
 });
 
 test("BaseReporter.header", () => {
   let reporter = new BaseReporter;
-  reporter.header("");
+  reporter.header("", {name: "", version: ""});
   reporter.close();
 });
 
 test("BaseReporter.footer", () => {
   let reporter = new BaseReporter;
-  reporter.footer();
+  reporter.footer(false);
   reporter.close();
 });
 
 test("BaseReporter.activity", () => {
   let reporter = new BaseReporter;
   let activity = reporter.activity();
-  activity.tick();
+  activity.tick("");
   activity.end();
   reporter.close();
 });
@@ -89,7 +89,7 @@ test("BaseReporter.question", async () => {
   let reporter = new BaseReporter;
   let error;
   try {
-    await reporter.question();
+    await reporter.question("");
   } catch (e) {
     error = e;
   }
@@ -101,7 +101,7 @@ test("BaseReporter.select", async () => {
   let reporter = new BaseReporter;
   let error;
   try {
-    await reporter.select();
+    await reporter.select("", "", []);
   } catch (e) {
     error = e;
   }

@@ -41,7 +41,7 @@ test("BaseFetcher.fetch", async () => {
   } catch (e) {
     error = e;
   }
-  expect(error.message).toBe("Not implemented");
+  expect(error && error.message).toBe("Not implemented");
 });
 
 test("CopyFetcher.fetch", async () => {
@@ -105,7 +105,7 @@ test("[network] TarballFetcher.fetch throws", async () => {
   } catch (e) {
     error = e;
   }
-  expect(error.message).toMatchSnapshot();
+  expect(error && error.message).toMatchSnapshot();
 });
 
 test("TarballFetcher.fetch plain http error", async () => {
@@ -122,5 +122,5 @@ test("TarballFetcher.fetch plain http error", async () => {
   } catch (e) {
     error = e;
   }
-  expect(error.message).toMatchSnapshot();
+  expect(error && error.message).toMatchSnapshot();
 });

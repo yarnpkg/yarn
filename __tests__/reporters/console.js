@@ -15,6 +15,7 @@ import ConsoleReporter from "../../src/reporters/console/index.js";
 import build from "./_mock.js";
 
 let getConsoleBuff = build(ConsoleReporter, (data) => data);
+let stream = require("stream");
 
 test("ConsoleReporter.step", async () => {
   expect(await getConsoleBuff((r) => r.step(1, 5, "foboar"))).toEqual({
@@ -143,12 +144,18 @@ test("ConsoleReporter.progress", async () => {
 test("ProgressBar", () => {
   let data = "";
 
-  let bar = new ProgressBar(2, {
-    columns: 1000,
-    write(msg) {
-      data += msg;
+  class TestStream extends stream.Writable {
+    columns: number;
+    constructor(options) {
+      super(options);
+      this.columns = 1000;
     }
-  });
+    write(chunk: Buffer | string): boolean {
+      data += String(chunk);
+      return true;
+    }
+  }
+  let bar = new ProgressBar(2, new TestStream());
 
   bar.render();
   expect(data).toBe("\u001b[2K\u001b[1G░░ 0/2");
@@ -165,11 +172,13 @@ test("ProgressBar", () => {
 test("Spinner", () => {
   let data = "";
 
-  let spinner = new Spinner({
-    write(msg) {
-      data += msg;
+  class TestStream extends stream.Writable {
+    write(chunk: Buffer | string): boolean {
+      data += String(chunk);
+      return true;
     }
-  });
+  }
+  let spinner = new Spinner(new TestStream());
 
   spinner.start();
   expect(data).toBe("\u001b[2K\u001b[1G⠁ ");

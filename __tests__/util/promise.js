@@ -32,7 +32,7 @@ test("promisify", async function () {
   } catch (e) {
     error = e;
   }
-  expect(error.message).toEqual("yep");
+  expect(error && error.message).toEqual("yep");
 });
 
 test("promisifyObject", async function () {
@@ -58,7 +58,7 @@ test("promisifyObject", async function () {
   } catch (e) {
     error = e;
   }
-  expect(error.message).toEqual("yep");
+  expect(error && error.message).toEqual("yep");
 });
 
 test("queue", async function () {
