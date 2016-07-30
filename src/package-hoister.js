@@ -262,7 +262,7 @@ export default class PackageHoister {
 
   isOrphan(parts: Array<string>): boolean {
     let parentKey = this.implodeKey(parts.slice(0, -1));
-    return parentKey && !this.tree.get(parentKey);
+    return !!parentKey && !this.tree.get(parentKey);
   }
 
   /**
@@ -320,8 +320,8 @@ export default class PackageHoister {
   ) {
     if (existing && existing !== info) {
       this.subPairs.set(info, new Set([
-        ...this.subPairs.get(existing) || [],
-        ...this.subPairs.get(info) || []
+        ...Array.from(this.subPairs.get(existing) || []),
+        ...Array.from(this.subPairs.get(info) || [])
       ]));
     }
 
