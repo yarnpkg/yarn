@@ -85,10 +85,11 @@ export async function run(
     let res = await install.linker.getFlatHoistedTree(rawPatterns);
     for (let [loc, { originalKey }] of res) {
       let parts = humaniseLocation(loc);
+      let human = `${originalKey} (hoisted to ${parts.join("#")})`;
 
       let pkgLoc = path.join(loc, "package.json");
       if (!(await fs.exists(loc)) || !(await fs.exists(pkgLoc))) {
-        reporter.error(`Module ${originalKey} not installed`);
+        reporter.error(`Module ${human} not installed`);
         errCount++;
       }
 
@@ -101,6 +102,7 @@ export async function run(
         if (!semver.validRange(range)) continue; // exotic
 
         // find the package that this will resolve to, factoring in hoisting
+        let possibles = [];
         let depPkgLoc;
         for (let i = parts.length; i >= 0; i--) {
           let myParts = parts.slice(0, i).concat(name);
@@ -113,6 +115,10 @@ export async function run(
             "package.json"
           );
 
+          possibles.push(myDepPkgLoc);
+        }
+        while (possibles.length) {
+          let myDepPkgLoc = possibles.shift();
           if (await fs.exists(myDepPkgLoc)) {
             depPkgLoc = myDepPkgLoc;
             break;
@@ -123,16 +129,33 @@ export async function run(
           continue;
         }
 
+        //
         let depPkg = await fs.readJson(depPkgLoc);
-        if (semver.satisfies(depPkg.version, range)) continue;
+        if (!semver.satisfies(depPkg.version, range)) {
+          // module isn't correct semver
+          reporter.error(
+            `Module ${human} depends on ${name} with the range ${range} but it doesn't ` +
+            `match the installed version of ${depPkg.version} found at ` +
+            humaniseLocation(path.dirname(depPkgLoc)).join("#")
+          );
+          errCount++;
+          continue;
+        }
 
-        // module isn't correct semver
-        reporter.error(
-          `Module ${originalKey} (hoisted to ${parts.join("#")}) depends on ${name} with the ` +
-          `range ${range} but it doesn't match the installed version of ${depPkg.version} ` +
-          `found at ${humaniseLocation(path.dirname(depPkgLoc)).join("#")}`
-        );
-        errCount++;
+        // check for modules above us that this could be deduped to
+        for (let loc of possibles) {
+          if (!await fs.exists(loc)) continue;
+
+          let pkg = await fs.readJson(loc);
+          if (semver.satisfies(pkg.version, range)) {
+            reporter.error(
+              `Module ${human} depends on ${name} with the range ${range} but could be deduped ` +
+              `to module ${humaniseLocation(path.dirname(loc)).join("#")} which has the version ${pkg.version}`
+            );
+            errCount++;
+          }
+          break;
+        }
       }
     }
   }
