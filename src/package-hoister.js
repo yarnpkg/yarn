@@ -9,45 +9,82 @@
  * @flow
  */
 
-import type { HoistManifest, HoistPair } from "./types.js";
 import type PackageResolver from "./package-resolver.js";
 import type Config from "./config.js";
+import type { Manifest } from "./types.js";
 
 let invariant = require("invariant");
 let path = require("path");
+
+let historyCounter = 0;
+
+export class HoistManifest {
+  constructor(key: string, pkg: Manifest, loc: string) {
+    this.loc = loc;
+    this.pkg = pkg;
+
+    this.key = key;
+    this.originalKey = key;
+    this.previousKeys = [];
+
+    this.requireReachable = new Set;
+    this.transitivePairs = new Set;
+
+    this.history = [];
+    this.addHistory(`Start position = ${key}`);
+  }
+
+  pkg: Manifest;
+  loc: string;
+  previousKeys: Array<string>;
+  history: Array<string>;
+  requireReachable: Set<HoistManifest>;
+  transitivePairs: Set<HoistPair>;
+  key: string;
+  originalKey: string;
+
+  addHistory(msg: string) {
+    this.history.push(`${++historyCounter}: ${msg}`);
+  }
+
+  addTransitive(pairs: Iterable<HoistPair>) {
+    for (let pair of pairs) this.transitivePairs.add(pair);
+  }
+}
+
+export type HoistPair = [string, HoistManifest];
 
 export default class PackageHoister {
   constructor(config: Config, resolver: PackageResolver) {
     this.resolver = resolver;
     this.config = config;
 
-    // we need to zip up the tree as we we're using it as a hash map and will be actively
-    // removing and deleting keys during enumeration
-    this.zippedTree = [];
+    this.taintedKeys = new Set;
     this.tree = new Map;
 
-    this.unflattenedKeys = new Set;
-    this.subPairs = new Map;
-
-    this.aliases = new Map;
+    // we need to zip up the tree as we we're using it as a map and will be actively
+    // removing and deleting keys during enumeration
+    this.zippedTree = [];
   }
 
   resolver: PackageResolver;
   config: Config;
 
   zippedTree: Array<HoistPair>;
-  aliases: Map<string, string>;
   tree: Map<string, HoistManifest>;
-  unflattenedKeys: Set<string>;
-  subPairs: Map<HoistManifest, Set<HoistPair>>;
+  taintedKeys: Set<string>;
 
   /**
    * Description
    */
 
-  blacklistKey(key: string) {
-    if (this.unflattenedKeys.has(key)) return;
-    this.unflattenedKeys.add(key);
+  taintKey(key: string): boolean {
+    if (this.taintedKeys.has(key)) {
+      return false;
+    } else {
+      this.taintedKeys.add(key);
+      return true;
+    }
   }
 
   /**
@@ -63,22 +100,14 @@ export default class PackageHoister {
    */
 
   implodeKey(parts: Array<string>): string {
-    let key = parts.join("#");
-
-    // loop through aliases
-    let alias;
-    while (alias = this.aliases.get(key)) {
-      key = alias;
-    }
-
-    return key;
+    return parts.join("#");
   }
 
   /**
    * Description
    */
 
-  build(pattern: string, parentParts: Array<string>, parentManifest?: HoistManifest): Array<HoistPair> {
+  _seed(pattern: string, parentParts: Array<string>, parentManifest?: HoistManifest): Array<HoistPair> {
     if (parentParts.length >= 100) {
       throw new Error(
         "We're in too deep - module max stack depth reached. http://youtu.be/emGri7i8Y2Y"
@@ -96,12 +125,8 @@ export default class PackageHoister {
       let checkKey = this.implodeKey(checkParts);
       let check = this.tree.get(checkKey);
       if (check && check.loc === loc) {
-        // we have a compatible module above us, we should mark the current
-        // module key as restricted and continue on
-        let finalParts = ownParts.concat(pkg.name);
-        let finalKey = this.implodeKey(finalParts);
-        this.blacklistKey(finalKey);
-        check.hoistedFrom.push(finalKey);
+        this.taintKey(checkKey);
+        check.addHistory(`${checkKey} was removed by this due to being a recursive transitive dep`);
 
         if (parentManifest) {
           parentManifest.requireReachable.add(check);
@@ -115,20 +140,13 @@ export default class PackageHoister {
     ownParts.push(pkg.name);
 
     let key = this.implodeKey(ownParts);
-    let info: HoistManifest = {
-      loc,
-      pkg,
-      hoistedFrom: [key],
-      requireReachable: new Set,
-      key,
-      originalKey: key
-    };
+    let info: HoistManifest = new HoistManifest(key, pkg, loc);
     let pair: HoistPair = [key, info];
 
     //
     this.zippedTree.push(pair);
     this.tree.set(key, info);
-    this.blacklistKey(key);
+    this.taintKey(key);
 
     //
     if (parentManifest) {
@@ -142,11 +160,11 @@ export default class PackageHoister {
 
     // add dependencies
     for (let depPattern of pkg.reference.dependencies) {
-      results = results.concat(this.build(depPattern, ownParts, info));
+      results = results.concat(this._seed(depPattern, ownParts, info));
     }
 
     //
-    this.subPairs.set(info, new Set(results.slice()));
+    info.addTransitive(results);
 
     //
     results.push(pair);
@@ -160,7 +178,7 @@ export default class PackageHoister {
 
   seed(patterns: Array<string>) {
     for (let pattern of this.resolver.dedupePatterns(patterns)) {
-      this.build(pattern, []);
+      this._seed(pattern, []);
     }
   }
 
@@ -175,9 +193,26 @@ export default class PackageHoister {
   } {
     let stepUp = false;
     let stack = []; // stack of removed parts
+    let name = parts.pop();
+
+    //
+    for (let i = 0; i < parts.length; i++) {
+      let checkParts = parts.slice(0, i).concat(name);
+      let checkKey   = this.implodeKey(checkParts);
+      if (this.taintedKeys.has(checkKey)) break;
+
+      let existing = this.tree.get(checkKey);
+      if (existing) {
+        if (existing.loc === info.loc) {
+          return { parts: checkParts, existing, duplicate: true };
+        } else {
+          // everything above will be shadowed and this is a conflict
+          break;
+        }
+      }
+    }
 
     // remove redundant parts that wont collide
-    let name = parts.pop();
     while (parts.length) {
       let checkParts = parts.concat(name);
       let checkKey   = this.implodeKey(checkParts);
@@ -185,16 +220,13 @@ export default class PackageHoister {
       //
       let existing = this.tree.get(checkKey);
       if (existing) {
-        if (existing.loc === info.loc) {
-          return { parts, existing, duplicate: true };
-        } else {
-          break;
-        }
+        stepUp = true;
+        break;
       }
 
       // check if we're trying to hoist ourselves to a previously unflattened module key,
       // this will result in a conflict and we'll need to move ourselves up
-      if (key !== checkKey && this.unflattenedKeys.has(checkKey)) {
+      if (key !== checkKey && this.taintedKeys.has(checkKey)) {
         stepUp = true;
         break;
       }
@@ -219,7 +251,7 @@ export default class PackageHoister {
       if (existing && existing.loc === info.loc) {
         return true;
       } else {
-        return !this.unflattenedKeys.has(key);
+        return !this.taintedKeys.has(key);
       }
     };
 
@@ -231,6 +263,8 @@ export default class PackageHoister {
 
     // sometimes we need to step up to a parent module to install ourselves
     while (stepUp && stack.length) {
+      info.addHistory(`Stepping up from ${this.implodeKey(parts)}`);
+
       parts.pop(); // remove `name`
       parts.push(stack.pop(), name);
 
@@ -277,25 +311,33 @@ export default class PackageHoister {
       let rawParts = this.explodeKey(key);
 
       // nothing to hoist, already top level
-      if (rawParts.length === 1) continue;
+      if (rawParts.length === 1) {
+        info.addHistory("Can't hoist - already top level");
+        continue;
+      }
 
       // remove this item from the `tree` map so we can ignore it
       this.tree.delete(key);
 
       //
-      if (this.isOrphan(rawParts)) continue;
+      if (this.isOrphan(rawParts)) {
+        info.addHistory("Deleting as we're an orphan");
+        continue;
+      }
 
       //
       let { parts, existing, duplicate } = this.getNewParts(key, info, rawParts.slice());
+      let newKey = this.implodeKey(parts);
+      let oldKey = key;
       if (duplicate) {
+        info.addHistory(`Satisfied from above by ${newKey}`);
         this.declareRename(info, existing, rawParts, parts, pair);
         continue;
       }
 
       // update to the new key
-      let oldKey = key;
-      let newKey = this.implodeKey(parts);
       if (oldKey === newKey) {
+        info.addHistory("Didn't hoist - conflicts above");
         this.setKey(info, pair, oldKey);
         continue;
       }
@@ -319,10 +361,7 @@ export default class PackageHoister {
     pair: HoistPair
   ) {
     if (existing && existing !== info) {
-      this.subPairs.set(info, new Set([
-        ...Array.from(this.subPairs.get(existing) || []),
-        ...Array.from(this.subPairs.get(info) || [])
-      ]));
+      info.addTransitive(existing.transitivePairs);
     }
 
     //
@@ -331,29 +370,28 @@ export default class PackageHoister {
     if (newParentKey) {
       let parent = this.tree.get(newParentKey);
       invariant(parent, `couldn't find parent ${newParentKey}`);
-
-      let pairs = this.subPairs.get(parent);
-      if (pairs) {
-        pairs.add(pair);
-      }
+      parent.addTransitive([pair]);
     }
 
     // go down the tree from our new position reserving our name
-    this.reserve(info.pkg.name, newParentParts);
-    this.reserve(info.pkg.name, oldParts.slice(0, -1));
+    this.reserve(info, newParentParts);
+    this.reserve(info, oldParts.slice(0, -1));
   }
 
-  reserve(name: string, processParts: Array<string>) {
-    this.blacklistKey(name, [name]);
-
+  reserve(info: HoistManifest, processParts: Array<string>) {
     let totalParts = [];
 
-    for (let i = 0; i < processParts.length; i++) {
-      totalParts.push(processParts[i]);
+    for (let i = -1; i < processParts.length; i++) {
+      if (i >= 0) {
+        totalParts.push(processParts[i]);
+      }
 
-      let parts = [].concat(totalParts, name);
+      let parts = [].concat(totalParts, info.pkg.name);
       let key = this.implodeKey(parts);
-      this.blacklistKey(key, parts);
+
+      if (this.taintKey(key, parts)) {
+        info.addHistory(`Blacklisted ${key} to prevent collisions`);
+      }
     }
   }
 
@@ -364,8 +402,11 @@ export default class PackageHoister {
   updateTransitiveKeys(info: HoistManifest, oldKey: string, newKey: string) {
     // go through and update all transitive dependencies and update their keys to the new
     // hoisting position
-    let pairs = this.subPairs.get(info);
+    let oldKeyRegex = new RegExp(`^${oldKey}#`);
+
+    let pairs = info.transitivePairs;
     invariant(pairs, "expected pairs");
+
     for (let subPair of pairs) {
       let [subKey] = subPair;
       if (subKey === newKey) continue;
@@ -373,11 +414,11 @@ export default class PackageHoister {
       let subInfo = this.tree.get(subKey);
       if (!subInfo) continue;
 
-      let newSubKey = subKey.replace(new RegExp(`^${oldKey}#`), `${newKey}#`);
+      let newSubKey = subKey.replace(oldKeyRegex, `${newKey}#`);
       if (newSubKey === subKey) continue;
 
       // restrict use of the new key in case we hoist it further from here
-      this.unflattenedKeys.add(newSubKey);
+      this.taintedKeys.add(newSubKey);
 
       // update references
       this.setKey(subInfo, subPair, newSubKey);
@@ -392,13 +433,13 @@ export default class PackageHoister {
   setKey(info: HoistManifest, pair: HoistPair, newKey: string) {
     let oldKey = info.key;
 
-    if (oldKey !== newKey) {
-      this.aliases.set(oldKey, newKey);
-      info.key = newKey;
-      pair[0] = newKey;
-    }
-
+    info.key = newKey;
+    pair[0] = newKey;
     this.tree.set(newKey, info);
+
+    if (oldKey === newKey) return;
+    info.previousKeys.push(newKey);
+    info.addHistory(`New position = ${newKey}`);
   }
 
   /**
@@ -434,9 +475,6 @@ export default class PackageHoister {
 
   flatten(): Array<[string, HoistManifest]> {
     let flatTree = [];
-
-    //
-    this.aliases.clear();
 
     // remove ignored modules from the tree
     for (let [key, info] of this.tree.entries()) {

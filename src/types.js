@@ -114,16 +114,3 @@ export type FetchedManifest = {
   hash: string,
   dest: string
 };
-
-//
-export type HoistManifest = {
-  pkg: Manifest,
-  loc: string,
-  hoistedFrom: Array<string>,
-  requireReachable: Set<HoistManifest>,
-  key: string,
-  originalKey: string,
-};
-
-//
-export type HoistPair = [string, HoistManifest];

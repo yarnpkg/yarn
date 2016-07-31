@@ -9,10 +9,11 @@
  * @flow
  */
 
-import type { HoistManifest, Manifest } from "./types.js";
+import type { Manifest } from "./types.js";
 import type PackageResolver from "./package-resolver.js";
 import type { Reporter } from "./reporters/index.js";
 import type Config from "./config.js";
+import type { HoistManifest } from "./package-hoister.js";
 import PackageHoister from "./package-hoister.js";
 import * as promise from "./util/promise.js";
 import { entries } from "./util/misc.js";
@@ -126,14 +127,14 @@ export default class PackageLinker {
         }
       });
     }
-    let bar;
+    let tick;
     await fs.copyBulk(queue, {
       onStart: (num: number) => {
-        bar = this.reporter.progress(num);
+        tick = this.reporter.progress(num);
       },
 
       onProgress(src: string) {
-        if (bar) bar(src);
+        if (tick) tick(src);
       }
     });
 

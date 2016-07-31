@@ -71,7 +71,7 @@ export async function buildTree(
     let hint = null;
     let color = "bold";
 
-    if (info.hoistedFrom[0] !== info.key) {
+    if (info.originalKey !== info.key) {
       // was hoisted
       color = null;
     }

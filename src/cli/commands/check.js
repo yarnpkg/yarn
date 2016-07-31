@@ -11,7 +11,6 @@
 
 import type { Reporter } from "../../reporters/index.js";
 import type Config from "../../config.js";
-import { MessageError } from "../../errors.js";
 import { Install } from "./install.js";
 import Lockfile from "../../lockfile/index.js";
 import * as constants from "../../constants.js";
@@ -19,7 +18,8 @@ import * as fs from "../../util/fs.js";
 import * as util from "../../util/misc.js";
 
 let semver = require("semver");
-let path   = require("path");
+let chalk = require("chalk");
+let path = require("path");
 
 export let requireLockfile = true;
 export let noArguments = true;
@@ -41,7 +41,17 @@ export async function run(
 
   let install = new Install("update", flags, args, config, reporter, lockfile, true);
 
+  function humaniseLocation(loc: string): Array<string> {
+    let relative = path.relative(path.join(config.cwd, "node_modules"), loc);
+    let parts    = relative.split(new RegExp(`${path.sep}node_modules${path.sep}`, "g"));
+    return parts;
+  }
+
   let errCount = 0;
+  function reportError(msg) {
+    reporter.error(msg);
+    errCount++
+  }
 
   // get patterns that are installed when running `kpm install`
   let [depRequests, rawPatterns] = await install.fetchRequestFromCwd();
@@ -49,15 +59,8 @@ export async function run(
   // check if patterns exist in lockfile
   for (let pattern of rawPatterns) {
     if (!lockfile.getLocked(pattern)) {
-      reporter.error(`Lockfile does not contain pattern: ${pattern}`);
-      errCount++;
+      reportError(`Lockfile does not contain pattern: ${pattern}`);
     }
-  }
-
-  function humaniseLocation(loc: string): Array<string> {
-    let relative = path.relative(path.join(config.cwd, "node_modules"), loc);
-    let parts    = relative.split(new RegExp(`${path.sep}node_modules${path.sep}`, "g"));
-    return parts;
   }
 
   if (flags.quickSloppy) {
@@ -70,12 +73,10 @@ export async function run(
       let expected = util.hash(lockfile.source);
 
       if (actual.trim() !== expected) {
-        reporter.error(`Expected an integrity hash of ${expected} but got ${actual}`);
-        errCount++;
+        reportError(`Expected an integrity hash of ${expected} but got ${actual}`);
       }
     } else {
-      reporter.error("Couldn't find an integrity hash file");
-      errCount++;
+      reportError("Couldn't find an integrity hash file");
     }
   } else {
     // seed resolver
@@ -85,12 +86,34 @@ export async function run(
     let res = await install.linker.getFlatHoistedTree(rawPatterns);
     for (let [loc, { originalKey }] of res) {
       let parts = humaniseLocation(loc);
-      let human = `${originalKey} (hoisted to ${parts.join("#")})`;
+
+      // grey out hoisted portions of key
+      let human = originalKey;
+      let hoistedParts = parts.slice();
+      let hoistedKey = parts.join("#");
+      if (human !== hoistedKey) {
+        let humanParts = human.split("#");
+
+        for (let i = 0; i < humanParts.length; i++) {
+          let humanPart = humanParts[i];
+
+          if (hoistedParts[0] === humanPart) {
+            hoistedParts.shift();
+
+            if (i < humanParts.length - 1) {
+              humanParts[i] += `#`;
+            }
+          } else {
+            humanParts[i] = chalk.dim(`${humanPart}#`);
+          }
+        }
+
+        human = humanParts.join("");
+      }
 
       let pkgLoc = path.join(loc, "package.json");
       if (!(await fs.exists(loc)) || !(await fs.exists(pkgLoc))) {
-        reporter.error(`Module ${human} not installed`);
-        errCount++;
+        reportError(`${human} not installed`);
       }
 
       let pkg = await fs.readJson(pkgLoc);
@@ -100,6 +123,8 @@ export async function run(
       for (let name in deps) {
         let range = deps[name];
         if (!semver.validRange(range)) continue; // exotic
+
+        let subHuman = `${human}#${name}@${range}`;
 
         // find the package that this will resolve to, factoring in hoisting
         let possibles = [];
@@ -131,14 +156,10 @@ export async function run(
 
         //
         let depPkg = await fs.readJson(depPkgLoc);
+        let foundHuman = `${humaniseLocation(path.dirname(depPkgLoc)).join("#")}@${depPkg.version}`;
         if (!semver.satisfies(depPkg.version, range)) {
           // module isn't correct semver
-          reporter.error(
-            `Module ${human} depends on ${name} with the range ${range} but it doesn't ` +
-            `match the installed version of ${depPkg.version} found at ` +
-            humaniseLocation(path.dirname(depPkgLoc)).join("#")
-          );
-          errCount++;
+          reportError(`${subHuman} doesn't satisfy found match of ${foundHuman}`);
           continue;
         }
 
@@ -147,12 +168,11 @@ export async function run(
           if (!await fs.exists(loc)) continue;
 
           let pkg = await fs.readJson(loc);
-          if (semver.satisfies(pkg.version, range)) {
-            reporter.error(
-              `Module ${human} depends on ${name} with the range ${range} but could be deduped ` +
-              `to module ${humaniseLocation(path.dirname(loc)).join("#")} which has the version ${pkg.version}`
+          if (semver.satisfies(pkg.version, range) && semver.gt(pkg.version, depPkg.version)) {
+            reporter.warn(
+              `${subHuman} could be deduped from ${pkg.version} to ` +
+              `${humaniseLocation(path.dirname(loc)).join("#")}@${pkg.version}`
             );
-            errCount++;
           }
           break;
         }
@@ -161,6 +181,9 @@ export async function run(
   }
 
   if (errCount > 0) {
-    throw new MessageError(`Found ${errCount} errors`);
+    reporter.info(`Found ${errCount} errors`);
+    return Promise.reject();
+  } else {
+    reporter.success("Folder in sync");
   }
 }

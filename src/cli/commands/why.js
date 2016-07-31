@@ -67,7 +67,7 @@ export async function run(
 
   let match;
   for (let [, info] of hoisted) {
-    if (info.key === query || info.hoistedFrom.indexOf(query) >= 0) {
+    if (info.key === query || info.previousKeys.indexOf(query) >= 0) {
       match = info;
       break;
     }
@@ -112,12 +112,12 @@ export async function run(
   }
 
   // reason:
-  if (query === match.hoistedFrom[0]) {
+  if (query === match.originalKey) {
     reporter.info(`Has been hoisted to ${match.key}`);
   }
 
   // reason: this is hoisted from these modules
-  for (let pattern of match.hoistedFrom) {
+  for (let pattern of match.previousKeys) {
     if (pattern !== match.key) {
       reasons.push(`hoisted from ${pattern}`);
     }
