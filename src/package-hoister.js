@@ -75,7 +75,7 @@ export default class PackageHoister {
   taintedKeys: Set<string>;
 
   /**
-   * Description
+   * Taint this key and prevent any modules from being hoisted to it.
    */
 
   taintKey(key: string): boolean {
@@ -88,7 +88,7 @@ export default class PackageHoister {
   }
 
   /**
-   * Description
+   * Explode a `key` into it's ancestry parts.
    */
 
   explodeKey(key: string): Array<string> {
@@ -96,7 +96,7 @@ export default class PackageHoister {
   }
 
   /**
-   * Description
+   * Implode an array of ancestry parts into a key.
    */
 
   implodeKey(parts: Array<string>): string {
@@ -104,7 +104,17 @@ export default class PackageHoister {
   }
 
   /**
-   * Description
+   * Seed the hoister with patterns taken from the included resolver.
+   */
+
+  seed(patterns: Array<string>) {
+    for (let pattern of this.resolver.dedupePatterns(patterns)) {
+      this._seed(pattern, []);
+    }
+  }
+
+  /**
+   * Seed the hoister with a specific pattern.
    */
 
   _seed(pattern: string, parentParts: Array<string>, parentManifest?: HoistManifest): Array<HoistPair> {
@@ -173,17 +183,7 @@ export default class PackageHoister {
   }
 
   /**
-   * Description
-   */
-
-  seed(patterns: Array<string>) {
-    for (let pattern of this.resolver.dedupePatterns(patterns)) {
-      this._seed(pattern, []);
-    }
-  }
-
-  /**
-   * Description
+   * Find the highest position we can hoist this module to.
    */
 
   getNewParts(key: string, info: HoistManifest, parts: Array<string>): {
@@ -277,7 +277,7 @@ export default class PackageHoister {
   }
 
   /**
-   * Description
+   * Check if a list of manifests is reachable from this location.
    */
 
   hasUnreachableDependencies(manifests: Iterable<HoistManifest>, parts: Array<string>): boolean {
@@ -291,7 +291,7 @@ export default class PackageHoister {
   }
 
   /**
-   * Description
+   * Check if the parent referenced in a list of ancestry parts exists.
    */
 
   isOrphan(parts: Array<string>): boolean {
@@ -300,7 +300,7 @@ export default class PackageHoister {
   }
 
   /**
-   * Description
+   * Hoist all seeded patterns to their highest positions.
    */
 
   hoist() {
@@ -350,7 +350,7 @@ export default class PackageHoister {
   }
 
   /**
-   * Description
+   * Declare that a module has been hoisted and update our internal references.
    */
 
   declareRename(
@@ -374,11 +374,15 @@ export default class PackageHoister {
     }
 
     // go down the tree from our new position reserving our name
-    this.reserve(info, newParentParts);
-    this.reserve(info, oldParts.slice(0, -1));
+    this.taintParents(info, newParentParts);
+    this.taintParents(info, oldParts.slice(0, -1));
   }
 
-  reserve(info: HoistManifest, processParts: Array<string>) {
+  /**
+   * Crawl upwards through a list of ancestry parts and taint a package name.
+   */
+
+  taintParents(info: HoistManifest, processParts: Array<string>) {
     let totalParts = [];
 
     for (let i = -1; i < processParts.length; i++) {
@@ -390,13 +394,13 @@ export default class PackageHoister {
       let key = this.implodeKey(parts);
 
       if (this.taintKey(key, parts)) {
-        info.addHistory(`Blacklisted ${key} to prevent collisions`);
+        info.addHistory(`Tainted ${key} to prevent collisions`);
       }
     }
   }
 
   /**
-   * Description
+   * Update all transitive deps of this module with the new hoisted key.
    */
 
   updateTransitiveKeys(info: HoistManifest, oldKey: string, newKey: string) {
@@ -427,7 +431,7 @@ export default class PackageHoister {
   }
 
   /**
-   * Description
+   * Update the key of a module and update our references.
    */
 
   setKey(info: HoistManifest, pair: HoistPair, newKey: string) {
@@ -443,7 +447,7 @@ export default class PackageHoister {
   }
 
   /**
-   * Description
+   * Check if a module is reachable from the passed ancestry parts.
    */
 
   isUnreachableDependency(info: HoistManifest, parts: Array<string>): boolean {
@@ -470,7 +474,7 @@ export default class PackageHoister {
   }
 
   /**
-   * Description
+   * Produce a flattened list of module locations and manifests.
    */
 
   flatten(): Array<[string, HoistManifest]> {
@@ -496,7 +500,7 @@ export default class PackageHoister {
   }
 
   /**
-   * Description
+   * Hoist and return flattened list of modules.
    */
 
   init(): Array<[string, HoistManifest]> {
