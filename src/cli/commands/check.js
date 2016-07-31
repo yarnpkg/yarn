@@ -50,7 +50,7 @@ export async function run(
   let errCount = 0;
   function reportError(msg) {
     reporter.error(msg);
-    errCount++
+    errCount++;
   }
 
   // get patterns that are installed when running `kpm install`
@@ -101,7 +101,7 @@ export async function run(
             hoistedParts.shift();
 
             if (i < humanParts.length - 1) {
-              humanParts[i] += `#`;
+              humanParts[i] += "#";
             }
           } else {
             humanParts[i] = chalk.dim(`${humanPart}#`);
