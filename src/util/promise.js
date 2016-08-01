@@ -16,7 +16,7 @@ export function wait(delay: number): Promise<void> {
 }
 
 export function promisify(fn: Function, firstData?: boolean): () => Promise<any> {
-  return function (...args) {
+  return function (...args): Promise<any> {
     return new Promise(function (resolve, reject) {
       args.push(function (err, ...result) {
         let res = result;

@@ -79,7 +79,7 @@ export default class Spinner {
     clearLine(this.stdout);
     this.stdout.write(msg);
     this.current = ++this.current % this.chars.length;
-    this.id = setTimeout(() => this.render(), this.delay);
+    this.id = setTimeout((): void => this.render(), this.delay);
   }
 
   stop() {

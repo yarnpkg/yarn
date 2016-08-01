@@ -23,6 +23,18 @@ let _         = require("lodash");
 export { default as parse } from "./parse";
 export { default as stringify } from "./stringify";
 
+type LockManifest = {
+  name: string,
+  version: string,
+  resolved: string,
+  registry: string,
+  uid?: string,
+  permissions?: { [key: string]: boolean },
+  dependencies?: {
+    [key: string]: string
+  }
+};
+
 export default class Lockfile {
   constructor(cache?: ?Object, strict?: boolean, save?: boolean, source?: string) {
     this.strict = !!strict;
@@ -41,17 +53,7 @@ export default class Lockfile {
   save: boolean;
 
   cache: ?{
-    [key: string]: string | {
-      name: string,
-      version: string,
-      resolved: string,
-      registry: string,
-      uid?: string,
-      permissions?: { [key: string]: boolean },
-      dependencies?: {
-        [key: string]: string
-      }
-    }
+    [key: string]: string | LockManifest
   };
 
   static async fromDirectory(
@@ -91,7 +93,7 @@ export default class Lockfile {
     return this.strict;
   }
 
-  getLocked(pattern: string, noStrict?: boolean) {
+  getLocked(pattern: string, noStrict?: boolean): ?LockManifest {
     let cache = this.cache;
     if (!cache) return;
 
@@ -119,7 +121,7 @@ export default class Lockfile {
     // order by name so that lockfile manifest is assigned to the first dependency with this manifest
     // the others that have the same remote.resovled will just refer to the first
     // oredring allows for consistency in lockfile when it is serialized
-    let sortedPatternsKeys: string[] = Object.keys(patterns).sort((a, b) => {
+    let sortedPatternsKeys: string[] = Object.keys(patterns).sort(function (a, b): number {
       return a.toLowerCase().localeCompare(b.toLowerCase());
     });
 

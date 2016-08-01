@@ -105,7 +105,7 @@ export default class HostedGitResolver extends ExoticResolver {
       lines.pop();
 
       // remove line lengths from start of each line
-      lines = lines.map((line) => line.slice(4));
+      lines = lines.map((line): string => line.slice(4));
 
       out = lines.join("\n");
     } else {
@@ -120,7 +120,7 @@ export default class HostedGitResolver extends ExoticResolver {
     // TODO: hashes and lockfile
     let commit = await this.getRefOverHTTP(url);
 
-    let tryRegistry = async (registry) => {
+    let tryRegistry = async (registry): Promise<?Manifest> => {
       let filenames = registries[registry].filenames;
       for (let filename of filenames) {
         let file = await this.config.requestManager.request({
@@ -137,7 +137,6 @@ export default class HostedGitResolver extends ExoticResolver {
           reference: this.constructor.getTarballUrl(this.exploded, commit),
           registry
         };
-
         return json;
       }
     };

@@ -41,7 +41,7 @@ export default class BaseFetcher {
   }
 
   fetch(dest: string): Promise<FetchedManifest> {
-    return fs.lockQueue.push(dest, async () => {
+    return fs.lockQueue.push(dest, async (): Promise<FetchedManifest> => {
       // fetch package and get the hash
       let hash = await this._fetch(dest);
 

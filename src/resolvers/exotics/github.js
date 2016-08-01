@@ -44,7 +44,7 @@ export default class GitHubResolver extends HostedGitResolver {
     return `https://github.com/${user}/${repo}.git`;
   }
 
-  static getHTTPFileUrl({ user, repo }: ExplodedFragment, filename: string, commit: string) {
+  static getHTTPFileUrl({ user, repo }: ExplodedFragment, filename: string, commit: string): string {
     return `https://raw.githubusercontent.com/${user}/${repo}/${commit}/${filename}`;
   }
 }

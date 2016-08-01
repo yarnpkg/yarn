@@ -18,6 +18,8 @@ import type { RegistryNames } from "./registries/index.js";
 import { entries } from "./util/misc.js";
 import { MessageError } from "./errors.js";
 
+let invariant = require("invariant");
+
 export default class PackageReference {
   constructor(
     request: PackageRequest,
@@ -145,7 +147,9 @@ export default class PackageReference {
       let pkg = this.resolver.getResolvedPattern(pattern);
       if (!pkg) continue;
 
-      pkg.reference.addIgnore(ignore, ancestry);
+      let ref = pkg.reference;
+      invariant(ref, "expected package reference");
+      ref.addIgnore(ignore, ancestry);
     }
   }
 }

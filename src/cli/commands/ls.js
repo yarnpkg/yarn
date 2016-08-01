@@ -52,6 +52,9 @@ export async function buildTree(
   let trees = [];
   let hoisted = await linker.initCopyModules(patterns);
 
+  let hoistedByKey = {};
+  for (let [key, info] of hoisted) hoistedByKey[key] = info;
+
   // build initial trees
   for (let [, info] of hoisted) {
     let ref = info.pkg.reference;
@@ -87,9 +90,9 @@ export async function buildTree(
     // add in dummy children for hoisted dependencies
     invariant(ref, "expected reference");
     for (let pattern of resolver.dedupePatterns(ref.dependencies)) {
-      let pkg = resolver.getResolvedPattern(pattern);
+      let pkg = resolver.getStrictResolvedPattern(pattern);
 
-      if (!hoisted[`${info.key}#${pkg.name}`]) {
+      if (!hoistedByKey[`${info.key}#${pkg.name}`]) {
         tree.children.push({
           name: pattern,
           color: "dim",

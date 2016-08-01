@@ -40,7 +40,7 @@ export default class ProgressBar {
 
     // schedule render
     if (!this.id) {
-      this.id = setTimeout(() => this.render(), this.delay);
+      this.id = setTimeout((): void => this.render(), this.delay);
     }
 
     // progress complete

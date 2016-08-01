@@ -56,7 +56,7 @@ export async function run(
 
     // get manifests and sort them by package name
     let manifests = install.resolver.getManifests();
-    manifests = manifests.sort((a, b) => {
+    manifests = manifests.sort(function (a, b): number {
       if (!a.name && !b.name) return 0;
       if (!a.name) return 1;
       if (!b.name) return -1;

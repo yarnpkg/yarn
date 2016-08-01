@@ -176,7 +176,10 @@ export default class Git {
       return "master";
     }
 
-    return await this.config.resolveConstraints(tags.filter((tag) => !!semver.valid(tag)), range) || range;
+    return await this.config.resolveConstraints(
+      tags.filter((tag): boolean => !!semver.valid(tag)),
+      range
+    ) || range;
   }
 
   /**

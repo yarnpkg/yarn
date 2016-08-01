@@ -16,10 +16,13 @@ export function hash(content: string, type: string = "md5"): string {
   return crypto.createHash(type).update(content).digest("hex");
 }
 
-export function hashStreamValidation(): {
-  getHash: () => string,
+declare class HashStream extends stream$Readable {
+  getHash: () => string;
   test: (sum: string) => boolean;
-} {
+}
+export type { HashStream };
+
+export function hashStreamValidation(): HashStream {
   let hash = crypto.createHash("sha1");
   let updated = false;
 
@@ -29,9 +32,9 @@ export function hashStreamValidation(): {
     done(null, chunk);
   });
 
-  validationStream.getHash = () => hash.digest("hex");
+  validationStream.getHash = (): string => hash.digest("hex");
 
-  validationStream.test = (sum) => updated && sum === validationStream.getHash();
+  validationStream.test = (sum): boolean => updated && sum === validationStream.getHash();
 
   return validationStream;
 }

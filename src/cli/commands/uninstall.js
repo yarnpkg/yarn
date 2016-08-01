@@ -35,7 +35,7 @@ export async function run(
   let totalSteps = args.length + 2;
   let step = 0;
 
-  async function runInstall() {
+  async function runInstall(): Promise<Install> {
     let lockfile = await Lockfile.fromDirectory(config.cwd, reporter, {
       silent: true
     });

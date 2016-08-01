@@ -10,6 +10,7 @@
  */
 
 import { SecurityError, MessageError } from "../errors.js";
+import type { HashStream } from "../util/crypto.js";
 import * as crypto from "../util/crypto.js";
 import BaseFetcher from "./_base.js";
 import * as fsUtil from "../util/fs.js";
@@ -35,7 +36,10 @@ export default class TarballFetcher extends BaseFetcher {
     }
 
     // create an extractor
-    function createExtractor(resolve: Function, reject: Function) {
+    function createExtractor(resolve: Function, reject: Function): {
+      validateStream: HashStream;
+      extractor: stream$Readable;
+    } {
       let validateStream = crypto.hashStreamValidation();
 
       let extractor = tar.Extract({ path: dest, strip: 1 })
