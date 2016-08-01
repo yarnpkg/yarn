@@ -38,7 +38,7 @@ type Token = {
   line: number,
   col: number,
   type: string,
-  value: ?any
+  value: boolean | number | string | void
 };
 
 export function* tokenise(input: string): Iterator<Token> {
@@ -168,7 +168,7 @@ export class Parser {
     }
   }
 
-  unexpected(msg: string = "Unexpected token"): void {
+  unexpected(msg: string = "Unexpected token") {
     throw new SyntaxError(`${msg} ${this.token.line}:${this.token.col}`);
   }
 

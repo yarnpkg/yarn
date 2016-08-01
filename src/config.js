@@ -34,6 +34,13 @@ type ConfigOptions = {
   offline?: boolean,
 };
 
+type PackageMetadata = {
+  registry: RegistryNames,
+  hash: string,
+  remote: ?PackageRemote,
+  package: Manifest
+};
+
 export default class Config {
   constructor(reporter: Reporter, opts?: ConfigOptions = {}) {
     this.constraintResolver = new ConstraintResolver(this, reporter);
@@ -249,15 +256,11 @@ export default class Config {
    * Read package metadata and normalised package info.
    */
 
-  async readPackageMetadata(dir: string): Promise<{
-    registry: RegistryNames,
-    hash: string,
-    remote: ?PackageRemote,
-    package: Manifest
-  }> {
-    return this.getCache(`metadata-${dir}`, async () => {
+  async readPackageMetadata(dir: string): Promise<PackageMetadata> {
+    let self = this;
+    return this.getCache(`metadata-${dir}`, async function (): Promise<PackageMetadata> {
       let metadata = await fs.readJson(path.join(dir, constants.METADATA_FILENAME));
-      let pkg = await this.readManifest(dir, metadata.registry);
+      let pkg = await self.readManifest(dir, metadata.registry);
 
       return {
         package: pkg,
@@ -274,7 +277,7 @@ export default class Config {
 
   async readManifest(dir: string, priorityRegistry?: RegistryNames): Promise<Object> {
     // TODO work out how priorityRegistry fits into this cache
-    return this.getCache(`manifest-${dir}`, async () => {
+    return this.getCache(`manifest-${dir}`, async (): Promise<Manifest> => {
       let metadataLoc = path.join(dir, constants.METADATA_FILENAME);
       if (!priorityRegistry && await fs.exists(metadataLoc)) {
         ({ registry: priorityRegistry } = await fs.readJson(metadataLoc));

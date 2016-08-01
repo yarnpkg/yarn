@@ -56,7 +56,7 @@ async function buildActionsForCopy(queue: CopyQueue): Promise<CopyActions> {
 
   // custom concurrency logic as we're always executing stacks of 4 queue items
   // at a time due to the requirement to push items onto the queue
-  async function init() {
+  async function init(): Promise<CopyActions> {
     let items = queue.splice(0, 4);
     if (!items.length) return;
 
@@ -151,7 +151,7 @@ export async function copyBulk(
 
   if (events) events.onStart(actions.length);
 
-  await promise.queue(actions, (data) => new Promise((resolve, reject) => {
+  await promise.queue(actions, (data): Promise<void> => new Promise((resolve, reject) => {
     let readStream = fs.createReadStream(data.src);
     let writeStream = fs.createWriteStream(data.dest, { mode: data.mode });
 

@@ -22,7 +22,7 @@ let chalk    = require("chalk");
 let _        = require("lodash");
 
 function sortTrees(trees: Trees = []): Trees {
-  return trees.sort((tree1, tree2) => {
+  return trees.sort(function (tree1, tree2): number {
     return tree1.name.localeCompare(tree2.name);
   });
 }
@@ -178,7 +178,7 @@ export default class ConsoleReporter extends BaseReporter {
       }
 
       let ask = () => {
-        rl.question(`${question}?: `, (index) => {
+        rl.question(`${question}?: `, (index): void => {
           index = +index;
 
           if (isNaN(index)) {

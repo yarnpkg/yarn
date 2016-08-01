@@ -111,7 +111,7 @@ export default class BlockingQueue {
       this.running[key] = true;
       this.runningCount++;
 
-      factory().then(function (val) {
+      factory().then(function (val): null {
         resolve(val);
         next();
         return null;

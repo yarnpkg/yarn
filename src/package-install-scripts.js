@@ -34,7 +34,7 @@ export default class PackageInstallScripts {
   config: Config;
   force: boolean;
 
-  getInstallCommands(pkg: Manifest) {
+  getInstallCommands(pkg: Manifest): Array<string> {
     let scripts = pkg.scripts;
     if (scripts) {
       return _.compact([scripts.preinstall, scripts.install, scripts.postinstall]);
@@ -96,7 +96,7 @@ export default class PackageInstallScripts {
 
     let tick = this.reporter.progress(refinedInfos.length);
 
-    await promise.queue(refinedInfos, ({ pkg, cmds }) => {
+    await promise.queue(refinedInfos, ({ pkg, cmds }): Promise<void> => {
       return this.install(cmds, pkg).then(function () {
         tick(pkg.name);
       });

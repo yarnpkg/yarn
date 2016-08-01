@@ -45,8 +45,8 @@ export default async function (info: Object, moduleLoc: string): Promise<void> {
   if (!info.contributors && files.indexOf("AUTHORS") >= 0) {
     let authors = await fs.readFile(path.join(moduleLoc, "AUTHORS"));
     authors = authors.split(/\r?\n/g) // split on lines
-      .map((line) => line.replace(/^\s*#.*$/, "").trim()) // remove comments
-      .filter((line) => !!line); // remove empty lines
+      .map((line): string => line.replace(/^\s*#.*$/, "").trim()) // remove comments
+      .filter((line): boolean => !!line); // remove empty lines
     info.contributors = authors;
   }
 
@@ -63,7 +63,7 @@ export default async function (info: Object, moduleLoc: string): Promise<void> {
 
   // if there's no readme field then load the README file from the cwd
   if (!info.readme) {
-    let readmeFilename = _.find(files, (filename) => {
+    let readmeFilename = _.find(files, (filename): boolean => {
       let lower = filename.toLowerCase();
       return lower === "readme" || lower.indexOf("readme.") === 0;
     });
@@ -168,7 +168,7 @@ export default async function (info: Object, moduleLoc: string): Promise<void> {
 
   // infer license file
   // TODO: show that this were inferred and may not be accurate
-  let licenseFile = _.find(files, (filename) => {
+  let licenseFile = _.find(files, (filename): boolean => {
     let lower = filename.toLowerCase();
     return lower === "license" || lower.indexOf("license.") === 0;
   });

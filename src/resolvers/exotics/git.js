@@ -93,7 +93,7 @@ export default class GitResolver extends ExoticResolver {
     let client = new Git(this.config, url, this.hash);
     let commit = await client.initRemote();
 
-    async function tryRegistry(registry) {
+    async function tryRegistry(registry): Promise<?Manifest> {
       let filenames = registries[registry].filenames;
 
       for (let filename of filenames) {
@@ -109,7 +109,6 @@ export default class GitResolver extends ExoticResolver {
           hash: commit,
           registry
         };
-
         return json;
       }
     }

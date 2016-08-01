@@ -19,7 +19,7 @@ let strings = [
   "version"
 ];
 
-export default function (info: Object, warn: (msg: string) => void): void {
+export default function (info: Object, warn: (msg: string) => void) {
   for (let key in typos) {
     if (key in info) {
       warn(`Potential typo ${key}, did you mean ${typos[key]}?`);

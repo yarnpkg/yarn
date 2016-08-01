@@ -28,7 +28,7 @@ export default class BitbucketResolver extends HostedGitResolver {
     return `git@bitbucket.org:${user}/${repo}.git`;
   }
 
-  static getHTTPFileUrl({ user, repo }: ExplodedFragment, filename: string, commit: string) {
+  static getHTTPFileUrl({ user, repo }: ExplodedFragment, filename: string, commit: string): string {
     return `https://bitbucket.org/${user}/${repo}/raw/${commit}/${filename}`;
   }
 }

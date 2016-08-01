@@ -273,8 +273,18 @@ export default class PackageResolver {
    * TODO description
    */
 
-  getResolvedPattern(pattern: string): any {
+  getResolvedPattern(pattern: string): ?Manifest {
     return this.patterns[pattern];
+  }
+
+  /**
+   * TODO description
+   */
+
+  getStrictResolvedPattern(pattern: string): Manifest {
+    let manifest = this.getResolvedPattern(pattern);
+    invariant(manifest, "expected manifest");
+    return manifest;
   }
 
   /**
@@ -286,7 +296,7 @@ export default class PackageResolver {
     if (!patterns) return;
 
     for (let pattern of patterns) {
-      let info = this.getResolvedPattern(pattern);
+      let info = this.getStrictResolvedPattern(pattern);
       if (info.version === version) {
         return info;
       }
@@ -352,7 +362,7 @@ export default class PackageResolver {
     let activity = this.activity = this.reporter.activity();
 
     //
-    this.seedPatterns = deps.map((dep) => dep.pattern);
+    this.seedPatterns = deps.map((dep): string => dep.pattern);
 
     // build up promises
     let promises = [];

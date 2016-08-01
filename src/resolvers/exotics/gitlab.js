@@ -28,7 +28,7 @@ export default class GitLabResolver extends HostedGitResolver {
     return `git@gitlab.com:${user}/${repo}.git`;
   }
 
-  static getHTTPFileUrl({ user, repo }: ExplodedFragment, filename: string, commit: string) {
+  static getHTTPFileUrl({ user, repo }: ExplodedFragment, filename: string, commit: string): string {
     return `https://gitlab.com/${user}/${repo}/raw/${commit}/${filename}`;
   }
 }

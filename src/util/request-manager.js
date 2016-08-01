@@ -169,7 +169,7 @@ export default class RequestManager {
   execute(opts: RequestOptions) {
     let { params } = opts;
 
-    let buildNext = (fn) => (data) => {
+    let buildNext = (fn): Function => (data) => {
       fn(data);
       this.running--;
       this.shiftQueue();
