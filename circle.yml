@@ -27,12 +27,12 @@ test:
     - nvm use 6 && nvm alias default 6
     - node -v
     - make test-ci
+    - make build-dist
 deployment:
   release:
     tag: /v[0-9]+(\.[0-9]+)*/
     owner: facebook
     commands:
-      - make build-dist
       - ghr --username facebook --repository fbkpm --token $KPM_CIRCLE_RELEASE_TOKEN v$(node dist/bin/kpm --version) dist/fb-kpm-v*.tar.gz
 
 
