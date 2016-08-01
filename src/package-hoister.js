@@ -125,8 +125,10 @@ export default class PackageHoister {
     }
 
     //
-    let pkg = this.resolver.getResolvedPattern(pattern);
-    let loc = this.config.generateHardModulePath(pkg.reference);
+    let pkg = this.resolver.getStrictResolvedPattern(pattern);
+    let ref = pkg.reference;
+    invariant(ref, "expected reference");
+    let loc = this.config.generateHardModulePath(ref);
 
     // prevent a dependency from having itself as a transitive dependency
     let ownParts = parentParts.slice();
@@ -169,7 +171,7 @@ export default class PackageHoister {
     let results: Array<HoistPair> = [];
 
     // add dependencies
-    for (let depPattern of pkg.reference.dependencies) {
+    for (let depPattern of ref.dependencies) {
       results = results.concat(this._seed(depPattern, ownParts, info));
     }
 
