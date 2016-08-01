@@ -38,7 +38,8 @@ let stripBOM  = require("strip-bom");
 type CopyQueue = Array<{
   src: string,
   dest: string,
-  onFresh?: ?() => void
+  onFresh?: ?() => void,
+  onDone?: ?() => void,
 }>;
 
 type CopyActions = Array<{
@@ -49,7 +50,21 @@ type CopyActions = Array<{
   mode: number
 }>;
 
-async function buildActionsForCopy(queue: CopyQueue): Promise<CopyActions> {
+type CopyEvents = {
+  onProgress: (dest: string) => void,
+  onStart: (num: number) => void
+};
+
+async function buildActionsForCopy(queue: CopyQueue, events: CopyEvents): Promise<CopyActions> {
+  // initialise events
+  for (let item of queue) {
+    item.onDone = () => {
+      events.onProgress(item.dest);
+    };
+  }
+  events.onStart(queue.length);
+
+  // start building actions
   let actions: CopyActions = [];
   await init();
   return actions;
@@ -67,6 +82,7 @@ async function buildActionsForCopy(queue: CopyQueue): Promise<CopyActions> {
   //
   async function build(data) {
     let { src, dest, onFresh } = data;
+    let onDone = data.onDone || (() => {});
     let srcStat = await lstat(src);
     let srcFiles;
 
@@ -91,6 +107,7 @@ async function buildActionsForCopy(queue: CopyQueue): Promise<CopyActions> {
 
       if (bothFiles && srcStat.size === destStat.size && +srcStat.mtime === +destStat.mtime) {
         // we can safely assume this is the same file
+        onDone();
         return;
       }
 
@@ -114,11 +131,16 @@ async function buildActionsForCopy(queue: CopyQueue): Promise<CopyActions> {
 
       // push all files to queue
       invariant(srcFiles, "src files not initialised");
+      let remaining = srcFiles.length;
+      if (!remaining) onDone();
       for (let file of srcFiles) {
         queue.push({
           onFresh,
           src: path.join(src, file),
-          dest: path.join(dest, file)
+          dest: path.join(dest, file),
+          onDone: () => {
+            if (--remaining === 0) onDone();
+          }
         });
       }
     } else if (srcStat.isFile()) {
@@ -130,6 +152,7 @@ async function buildActionsForCopy(queue: CopyQueue): Promise<CopyActions> {
         mtime: srcStat.mtime,
         mode: srcStat.mode
       });
+      onDone();
     } else {
       throw new Error("unsure how to copy this?");
     }
@@ -140,16 +163,15 @@ export function copy(src: string, dest: string): Promise<void> {
   return copyBulk([{ src, dest }]);
 }
 
-export async function copyBulk(
-  queue: CopyQueue,
-  events?: {
-    onProgress: (dest: string) => void,
-    onStart: (num: number) => void
-  }
-): Promise<void> {
-  let actions: CopyActions = await buildActionsForCopy(queue);
+export async function copyBulk(queue: CopyQueue, _events?: CopyEvents): Promise<void> {
+  let events: CopyEvents = _events || {
+    onStart: () => {},
+    onProgress: () => {},
+  };
 
-  if (events) events.onStart(actions.length);
+  let actions: CopyActions = await buildActionsForCopy(queue, events);
+
+  events.onStart(actions.length);
 
   await promise.queue(actions, (data): Promise<void> => new Promise((resolve, reject) => {
     let readStream = fs.createReadStream(data.src);
@@ -167,7 +189,7 @@ export async function copyBulk(
         if (err) {
           reject(err);
         } else {
-          if (events) events.onProgress(data.dest);
+          events.onProgress(data.dest);
           resolve();
         }
       });
