@@ -47,6 +47,7 @@ commander.option(
  "--force-single-instance",
  "pause and wait if other instances are running on the same folder"
 );
+
 // get command name
 let commandName = args.splice(2, 1)[0] || "";
 
@@ -109,7 +110,7 @@ if (commander.yes) {
 }
 
 //
-if (network.isOffline()) {
+if (!commander.offline && network.isOffline()) {
   reporter.warn(
     "You don't appear to have an internet connection. " +
     "Try the --offline flag to use the cache for registry queries."

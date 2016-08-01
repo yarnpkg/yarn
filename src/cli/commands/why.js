@@ -60,14 +60,14 @@ export async function run(
   let install = new Install("ls", flags, args, config, reporter, lockfile);
   let [depRequests, patterns] = await install.fetchRequestFromCwd();
   await install.resolver.init(depRequests);
-  let hoisted = await install.linker.initCopyModules(patterns);
+  let hoisted = await install.linker.getFlatHoistedTree(patterns);
 
   // finding
   reporter.step(3, 3, "Finding dependency", emoji.get("mag"));
 
   let match;
   for (let [, info] of hoisted) {
-    if (info.key === query || info.hoistedFrom.indexOf(query) >= 0) {
+    if (info.key === query || info.previousKeys.indexOf(query) >= 0) {
       match = info;
       break;
     }
@@ -112,12 +112,12 @@ export async function run(
   }
 
   // reason:
-  if (query === match.hoistedFrom[0]) {
+  if (query === match.originalKey) {
     reporter.info(`Has been hoisted to ${match.key}`);
   }
 
   // reason: this is hoisted from these modules
-  for (let pattern of match.hoistedFrom) {
+  for (let pattern of match.previousKeys) {
     if (pattern !== match.key) {
       reasons.push(`hoisted from ${pattern}`);
     }

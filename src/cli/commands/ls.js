@@ -50,7 +50,7 @@ export async function buildTree(
 }> {
   let treesByKey = {};
   let trees = [];
-  let hoisted = await linker.initCopyModules(patterns);
+  let hoisted = await linker.getFlatHoistedTree(patterns);
 
   let hoistedByKey = {};
   for (let [key, info] of hoisted) hoistedByKey[key] = info;
@@ -74,7 +74,7 @@ export async function buildTree(
     let hint = null;
     let color = "bold";
 
-    if (info.hoistedFrom[0] !== info.key) {
+    if (info.originalKey !== info.key) {
       // was hoisted
       color = null;
     }
