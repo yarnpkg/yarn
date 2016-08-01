@@ -29,7 +29,7 @@ export function spawn(
   args: Array<string>,
   opts?: child_process$spawnOpts = {}
 ): Promise<string> {
-  return queue.push(opts.cwd || String(++uid), () => new Promise((resolve, reject) => {
+  return queue.push(opts.cwd || String(++uid), (): Promise<string> => new Promise((resolve, reject) => {
     let proc = child.spawn(program, args, opts);
 
     let processingDone = false;

@@ -37,7 +37,7 @@ function getKeyPriority(key: string): number {
   return priorities[key] || 100;
 }
 
-export default function stringify(obj: any, indent: string = ""): string {
+export default function stringify(obj: Object, indent: string = ""): string {
   if (typeof obj !== "object") {
     throw new TypeError;
   }
@@ -48,7 +48,7 @@ export default function stringify(obj: any, indent: string = ""): string {
   // problems with it being unstable because there are no to keys the same
   // However priorities can be duplicated and native sort can shuffle things from run to run
   let keys = Object.keys(obj)
-    .sort(function (a, b) {
+    .sort(function (a, b): number {
       // sort alphabetically
       return a.toLowerCase().localeCompare(b.toLowerCase());
     });

@@ -49,7 +49,8 @@ let aliases = map({
 });
 
 let ignore = [
-  "npm" // we'll never satisfy this for obvious reasons
+  "npm", // we'll never satisfy this for obvious reasons
+  "telport", // a module bundler used by some modules
 ];
 
 export default class PackageCompatibility {

@@ -9,7 +9,7 @@
  * @flow
  */
 
-import type { Manifest } from "./types.js";
+import type { Manifest, FetchedManifest } from "./types.js";
 import type { RegistryNames } from "./registries/index.js";
 import type PackageResolver from "./package-resolver.js";
 import type { Reporter } from "./reporters/index.js";
@@ -268,9 +268,10 @@ export default class PackageRequest {
     }
 
     //
-    let { package: newInfo, hash, dest } = await this.resolver.fetchingQueue.push(
+    let shouldSaveMirror = this.resolver.lockfile.save && !!offlineMirrorPath;
+    let { package: newInfo, hash, dest }: FetchedManifest = await this.resolver.fetchingQueue.push(
       info.name,
-      () => this.resolver.fetcher.fetch(ref, this.resolver.lockfile.save && !!offlineMirrorPath)
+      (): Promise<FetchedManifest> => this.resolver.fetcher.fetch(ref, shouldSaveMirror)
     );
 
     // replace resolved remote URL with local path if lockfile is in save mode and we have a path

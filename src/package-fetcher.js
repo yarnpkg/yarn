@@ -84,13 +84,15 @@ export default class PackageFetcher {
     let pkgs = this.resolver.getPackageReferences();
     let tick = this.reporter.progress(pkgs.length);
 
-    await promise.queue(pkgs, (ref) => this.maybeFetch(ref).then((res) => {
-      if (res) {
-        ref.remote.hash = res.hash;
-        return this.resolver.updateManifest(ref, res.package).then(function () {
-          if (tick) tick(ref.name);
-        });
-      }
-    }));
+    await promise.queue(pkgs, (ref): Promise<void> => {
+      return this.maybeFetch(ref).then((res): void | Promise<void> => {
+        if (res) {
+          ref.remote.hash = res.hash;
+          return this.resolver.updateManifest(ref, res.package).then(function () {
+            if (tick) tick(ref.name);
+          });
+        }
+      });
+    });
   }
 }

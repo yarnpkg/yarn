@@ -274,7 +274,7 @@ export class Install {
         continue;
       }
 
-      let versions = infos.map((info) => info.version);
+      let versions = infos.map((info): string => info.version);
       let version: ?string;
 
       let resolutionVersion = this.resolutions[name];

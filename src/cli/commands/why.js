@@ -98,7 +98,7 @@ export async function run(
 
     let delegator = parentRequest;
     do {
-      chain.push(install.resolver.getResolvedPattern(delegator.pattern).name);
+      chain.push(install.resolver.getStrictResolvedPattern(delegator.pattern).name);
     } while (delegator = delegator.parentRequest);
 
     reasons.push(`depended on by ${chain.reverse().join("#")}`);

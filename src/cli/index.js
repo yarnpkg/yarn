@@ -124,7 +124,7 @@ if (command.requireLockfile && !fs.existsSync(path.join(config.cwd, constants.LO
 }
 
 //
-const run = () => {
+const run = (): Promise<void> => {
   return command.run(config, reporter, commander, commander.args).then(function () {
     reporter.close();
     if (outputWrapper) reporter.footer(false);
@@ -132,7 +132,7 @@ const run = () => {
 };
 
 //
-const runEventually = () => {
+const runEventually = (): Promise<void> => {
   return new Promise((ok) => {
     const socketFile = path.join(config.cwd, constants.SINGLE_SOCKET_FILENAME);
     const clients = [];
@@ -182,13 +182,14 @@ const runEventually = () => {
 };
 
 //
-config.init().then(() => {
+config.init().then(function (): Promise<void> {
   if (commander.forceSingleInstance) {
     return runEventually();
+  } else {
+    return run().then(() => {
+      process.exit(0);
+    });
   }
-  return run().then(() => {
-    process.exit(0);
-  });
 }).catch(function (errs) {
   function logError(err) {
     reporter.error(err.stack.replace(/^Error: /, ""));

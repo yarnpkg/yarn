@@ -66,7 +66,7 @@ export default class PackageLinker {
 
     // link up `bin scripts` in `dependencies`
     for (let pattern of ref.dependencies) {
-      let dep = this.resolver.getResolvedPattern(pattern);
+      let dep = this.resolver.getStrictResolvedPattern(pattern);
       if (!_.isEmpty(dep.bin)) {
         deps.push({ dep, loc: this.config.generateHardModulePath(dep.reference) });
       }
@@ -108,7 +108,7 @@ export default class PackageLinker {
     let flatTree = await this.getFlatHoistedTree(patterns);
 
     // sorted tree makes file creation and copying not to interfere with each other
-    flatTree = flatTree.sort((dep1, dep2) => {
+    flatTree = flatTree.sort(function (dep1, dep2): number {
       return dep1[0].localeCompare(dep2[0]);
     });
 
@@ -167,7 +167,9 @@ export default class PackageLinker {
           if (!dep) continue;
 
           //
-          searchPatterns = searchPatterns.concat(dep.reference.dependencies);
+          let ref = dep.reference;
+          invariant(ref, "expected reference");
+          searchPatterns = searchPatterns.concat(ref.dependencies);
         } while (request = request.parentRequest);
       }
 
@@ -228,6 +230,6 @@ export default class PackageLinker {
 
   async saveAll(deps: Array<string>): Promise<void> {
     deps = this.resolver.dedupePatterns(deps);
-    await promise.queue(deps, (dep) => this.save(dep));
+    await promise.queue(deps, (dep): Promise<void> => this.save(dep));
   }
 }
