@@ -47,6 +47,7 @@ export async function run(
     return parts;
   }
 
+  let warningCount = 0;
   let errCount = 0;
   function reportError(msg) {
     reporter.error(msg);
@@ -168,11 +169,13 @@ export async function run(
           if (!await fs.exists(loc)) continue;
 
           let pkg = await fs.readJson(loc);
-          if (semver.satisfies(pkg.version, range) && semver.gt(pkg.version, depPkg.version)) {
+          if (pkg.version === depPkg.version ||
+             (semver.satisfies(pkg.version, range) && semver.gt(pkg.version, depPkg.version))) {
             reporter.warn(
               `${subHuman} could be deduped from ${pkg.version} to ` +
               `${humaniseLocation(path.dirname(loc)).join("#")}@${pkg.version}`
             );
+            warningCount++;
           }
           break;
         }
@@ -180,8 +183,12 @@ export async function run(
     }
   }
 
+  if (warningCount > 1) {
+    reporter.info(`Found ${warningCount} warnings`);
+  }
+
   if (errCount > 0) {
-    reporter.info(`Found ${errCount} errors`);
+    if (errCount > 1) reporter.info(`Found ${errCount} errors`);
     return Promise.reject();
   } else {
     reporter.success("Folder in sync");

@@ -27,7 +27,6 @@ export class HoistManifest {
     this.originalKey = key;
     this.previousKeys = [];
 
-    this.requireReachable = new Set;
     this.transitivePairs = new Set;
 
     this.history = [];
@@ -38,7 +37,6 @@ export class HoistManifest {
   loc: string;
   previousKeys: Array<string>;
   history: Array<string>;
-  requireReachable: Set<HoistManifest>;
   transitivePairs: Set<HoistPair>;
   key: string;
   originalKey: string;
@@ -59,7 +57,7 @@ export default class PackageHoister {
     this.resolver = resolver;
     this.config = config;
 
-    this.taintedKeys = new Set;
+    this.taintedKeys = new Map;
     this.tree = new Map;
 
     // we need to zip up the tree as we we're using it as a map and will be actively
@@ -72,17 +70,18 @@ export default class PackageHoister {
 
   zippedTree: Array<HoistPair>;
   tree: Map<string, HoistManifest>;
-  taintedKeys: Set<string>;
+  taintedKeys: Map<string, HoistManifest>;
 
   /**
    * Taint this key and prevent any modules from being hoisted to it.
    */
 
-  taintKey(key: string): boolean {
-    if (this.taintedKeys.has(key)) {
+  taintKey(key: string, info: HoistManifest): boolean {
+    let existingTaint = this.taintedKeys.get(key);
+    if (existingTaint && existingTaint.loc !== info.loc) {
       return false;
     } else {
-      this.taintedKeys.add(key);
+      this.taintedKeys.set(key, info);
       return true;
     }
   }
@@ -117,7 +116,7 @@ export default class PackageHoister {
    * Seed the hoister with a specific pattern.
    */
 
-  _seed(pattern: string, parentParts: Array<string>, parentManifest?: HoistManifest): Array<HoistPair> {
+  _seed(pattern: string, parentParts: Array<string>): Array<HoistPair> {
     if (parentParts.length >= 100) {
       throw new Error(
         "We're in too deep - module max stack depth reached. http://youtu.be/emGri7i8Y2Y"
@@ -137,13 +136,8 @@ export default class PackageHoister {
       let checkKey = this.implodeKey(checkParts);
       let check = this.tree.get(checkKey);
       if (check && check.loc === loc) {
-        this.taintKey(checkKey);
+        this.taintKey(checkKey, check);
         check.addHistory(`${checkKey} was removed by this due to being a recursive transitive dep`);
-
-        if (parentManifest) {
-          parentManifest.requireReachable.add(check);
-        }
-
         return [];
       }
     }
@@ -158,21 +152,14 @@ export default class PackageHoister {
     //
     this.zippedTree.push(pair);
     this.tree.set(key, info);
-    this.taintKey(key);
-
-    //
-    if (parentManifest) {
-      // register this manifest as required to be resolved relative to wherever
-      // it's hoisted to
-      parentManifest.requireReachable.add(info);
-    }
+    this.taintKey(key, info);
 
     //
     let results: Array<HoistPair> = [];
 
     // add dependencies
     for (let depPattern of ref.dependencies) {
-      results = results.concat(this._seed(depPattern, ownParts, info));
+      results = results.concat(this._seed(depPattern, ownParts));
     }
 
     //
@@ -198,10 +185,10 @@ export default class PackageHoister {
     let name = parts.pop();
 
     //
-    for (let i = 0; i < parts.length; i++) {
+    for (let i = parts.length - 1; i >= 0; i--) {
       let checkParts = parts.slice(0, i).concat(name);
       let checkKey   = this.implodeKey(checkParts);
-      if (this.taintedKeys.has(checkKey)) break;
+      info.addHistory(`Looked at ${checkKey} for a match`);
 
       let existing = this.tree.get(checkKey);
       if (existing) {
@@ -209,15 +196,22 @@ export default class PackageHoister {
           return { parts: checkParts, existing, duplicate: true };
         } else {
           // everything above will be shadowed and this is a conflict
+          info.addHistory(`Found a collision at ${checkKey}`);
           break;
         }
+      }
+
+      let existingTaint = this.taintedKeys.get(checkKey);
+      if (existingTaint && existingTaint.loc !== info.loc) {
+        info.addHistory(`Broken by ${checkKey}`);
+        break;
       }
     }
 
     // remove redundant parts that wont collide
     while (parts.length) {
       let checkParts = parts.concat(name);
-      let checkKey   = this.implodeKey(checkParts);
+      let checkKey = this.implodeKey(checkParts);
 
       //
       let existing = this.tree.get(checkKey);
@@ -230,11 +224,6 @@ export default class PackageHoister {
       // this will result in a conflict and we'll need to move ourselves up
       if (key !== checkKey && this.taintedKeys.has(checkKey)) {
         stepUp = true;
-        break;
-      }
-
-      // check dependencies and ensure we can access them from here
-      if (this.hasUnreachableDependencies(info.requireReachable, checkParts)) {
         break;
       }
 
@@ -252,9 +241,15 @@ export default class PackageHoister {
       existing = this.tree.get(key);
       if (existing && existing.loc === info.loc) {
         return true;
-      } else {
-        return !this.taintedKeys.has(key);
       }
+
+      // ensure there's no taint or the taint is us
+      let existingTaint = this.taintedKeys.get(key);
+      if (existingTaint && existingTaint.loc !== info.loc) {
+        return false;
+      }
+
+      return true;
     };
 
     // we need to special case when we attempt to hoist to the top level as the `existing` logic
@@ -271,25 +266,12 @@ export default class PackageHoister {
       parts.push(stack.pop(), name);
 
       if (isValidPosition(parts)) {
+        info.addHistory(`Found valid position ${this.implodeKey(parts)}`);
         stepUp = false;
       }
     }
 
     return { parts, existing, duplicate: false };
-  }
-
-  /**
-   * Check if a list of manifests is reachable from this location.
-   */
-
-  hasUnreachableDependencies(manifests: Iterable<HoistManifest>, parts: Array<string>): boolean {
-    for (let manifest of manifests) {
-      if (this.isUnreachableDependency(manifest, parts.slice())) {
-        return true;
-      }
-    }
-
-    return false;
   }
 
   /**
@@ -376,26 +358,19 @@ export default class PackageHoister {
     }
 
     // go down the tree from our new position reserving our name
-    this.taintParents(info, newParentParts);
-    this.taintParents(info, oldParts.slice(0, -1));
+    this.taintParents(info, oldParts.slice(0, -1), newParts.length - 1);
   }
 
   /**
    * Crawl upwards through a list of ancestry parts and taint a package name.
    */
 
-  taintParents(info: HoistManifest, processParts: Array<string>) {
-    let totalParts = [];
-
-    for (let i = -1; i < processParts.length; i++) {
-      if (i >= 0) {
-        totalParts.push(processParts[i]);
-      }
-
-      let parts = [].concat(totalParts, info.pkg.name);
+  taintParents(info: HoistManifest, processParts: Array<string>, start: number) {
+    for (let i = start; i < processParts.length; i++) {
+      let parts = processParts.slice(0, i).concat(info.pkg.name);
       let key = this.implodeKey(parts);
 
-      if (this.taintKey(key, parts)) {
+      if (this.taintKey(key, info)) {
         info.addHistory(`Tainted ${key} to prevent collisions`);
       }
     }
@@ -424,17 +399,18 @@ export default class PackageHoister {
       if (newSubKey === subKey) continue;
 
       // restrict use of the new key in case we hoist it further from here
-      this.taintedKeys.add(newSubKey);
+      this.taintedKeys.set(newSubKey, subInfo);
 
       // update references
       this.setKey(subInfo, subPair, newSubKey);
       this.tree.delete(subKey);
+      subInfo.addHistory(`Deleted ${subKey}`);
     }
   }
 
   /**
    * Update the key of a module and update our references.
-   */
+a   */
 
   setKey(info: HoistManifest, pair: HoistPair, newKey: string) {
     let oldKey = info.key;
@@ -449,33 +425,6 @@ export default class PackageHoister {
   }
 
   /**
-   * Check if a module is reachable from the passed ancestry parts.
-   */
-
-  isUnreachableDependency(info: HoistManifest, parts: Array<string>): boolean {
-    while (true) {
-      let checkKey = this.implodeKey(parts.concat(info.pkg.name));
-      let existing = this.tree.get(checkKey);
-
-      if (existing) {
-        if (existing.loc === info.loc) {
-          return false;
-        } else {
-          return true;
-        }
-      }
-
-      if (parts.length) {
-        parts.pop();
-      } else {
-        return true;
-      }
-    }
-
-    return true;
-  }
-
-  /**
    * Produce a flattened list of module locations and manifests.
    */
 
@@ -486,7 +435,10 @@ export default class PackageHoister {
     for (let [key, info] of this.tree.entries()) {
       let ref = info.pkg.reference;
       invariant(ref, "expected reference");
-      if (ref.ignore) this.tree.delete(key);
+      if (ref.ignore) {
+        info.addHistory("Deleted as this module was ignored");
+        this.tree.delete(key);
+      }
     }
 
     //
