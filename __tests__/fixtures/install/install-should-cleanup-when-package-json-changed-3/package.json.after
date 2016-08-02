@@ -1,0 +1,6 @@
+{
+    "dependencies": {
+        "yeoman-environment": "1.5.3",
+        "yeoman-generator": "0.21.2"
+    }
+}

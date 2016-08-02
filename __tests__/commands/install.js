@@ -872,7 +872,7 @@ test("[network] install --save with new dependency should be deterministic", asy
 });
 
 // TODO https://github.com/facebook/kpm/issues/79
-xit("[network] install --save with new dependency should be deterministic 2", async () => {
+it("[network] install --save with new dependency should be deterministic 2", async () => {
   // mime-types@2.0.0->mime-db@1.0.1 is saved in local mirror and is deduped
   // install mime-db@1.0.3 should replace mime-db@1.0.1 in root
 
@@ -922,6 +922,32 @@ xit("[network] install --save with new dependency should be deterministic 2", as
       await fs.unlink(path.join(config.cwd, "kpm.lock"));
       await fs.unlink(path.join(config.cwd, "package.json"));
     });
+  });
+});
+
+// https://github.com/facebook/fbkpm/issues/161 case with yeoman changes
+xit("[network] install --save with new dependency should be deterministic 3", async () => {
+
+  let fixture = "install-should-cleanup-when-package-json-changed-3";
+  let cwd = path.join(fixturesLoc, fixture);
+  await fs.copy(path.join(cwd, "kpm.lock.before"), path.join(cwd, "kpm.lock"));
+  await fs.copy(path.join(cwd, "package.json.before"), path.join(cwd, "package.json"));
+
+  return run({}, [], fixture, async (config, reporter) => {
+
+    // expecting kpm check after installation not to fail
+
+    await fs.copy(path.join(cwd, "kpm.lock.after"), path.join(cwd, "kpm.lock"));
+    await fs.copy(path.join(cwd, "package.json.after"), path.join(cwd, "package.json"));
+
+    let lockfile = await createLockfile(config.cwd, false, true);
+    let install = new Install("install", {save: true}, [], config, reporter, lockfile);
+    await install.init();
+    await check(config, reporter, {}, []);
+
+    // cleanup
+    await fs.unlink(path.join(config.cwd, "kpm.lock"));
+    await fs.unlink(path.join(config.cwd, "package.json"));
   });
 });
 
