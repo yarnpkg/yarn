@@ -872,7 +872,7 @@ test("[network] install --save with new dependency should be deterministic", asy
 });
 
 // TODO https://github.com/facebook/kpm/issues/79
-it("[network] install --save with new dependency should be deterministic 2", async () => {
+xit("[network] install --save with new dependency should be deterministic 2", async () => {
   // mime-types@2.0.0->mime-db@1.0.1 is saved in local mirror and is deduped
   // install mime-db@1.0.3 should replace mime-db@1.0.1 in root
 
