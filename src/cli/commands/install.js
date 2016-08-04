@@ -21,7 +21,6 @@ import PackageLinker from "../../package-linker.js";
 import PackageRequest from "../../package-request.js";
 import { buildTree } from "./ls.js";
 import { registries } from "../../registries/index.js";
-import { MessageError } from "../../errors.js";
 import * as constants from "../../constants.js";
 import * as fs from "../../util/fs.js";
 import * as util from "../../util/misc.js";
@@ -211,16 +210,14 @@ export class Install {
       let pkg = this.resolver.getResolvedPattern(pattern);
       invariant(pkg, `missing package ${pattern}`);
 
-      if (PackageRequest.getExoticResolver(pattern)) {
-        // TODO
-        throw new MessageError(`Saving exotic patterns is not currently supported: ${pattern}`);
-      }
-
       let parts = PackageRequest.normalisePattern(pattern);
       let version;
       if (parts.range) {
         // if the user specified a range then use it verbatim
         version = parts.range;
+      } else if (PackageRequest.getExoticResolver(pattern)) {
+        // wasn't a name/range tuple so this is just a raw exotic pattern
+        version = pattern;
       } else if (saveTilde) { // --save-tilde
         version = `~${pkg.version}`;
       } else if (saveExact) { // --save-exact
