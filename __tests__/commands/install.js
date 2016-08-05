@@ -926,7 +926,7 @@ xit("[network] install --save with new dependency should be deterministic 2", as
 });
 
 // https://github.com/facebook/fbkpm/issues/161 case with yeoman changes
-xit("[network] install --save with new dependency should be deterministic 3", async () => {
+fit("[network] install --save with new dependency should be deterministic 3", async () => {
 
   let fixture = "install-should-cleanup-when-package-json-changed-3";
   let cwd = path.join(fixturesLoc, fixture);
@@ -943,7 +943,12 @@ xit("[network] install --save with new dependency should be deterministic 3", as
     let lockfile = await createLockfile(config.cwd, false, true);
     let install = new Install("install", {save: true}, [], config, reporter, lockfile);
     await install.init();
-    await check(config, reporter, {}, []);
+    try {
+      await check(config, reporter, {}, []);
+    } catch (err) {
+      // it should not throw
+      expect(true).toBeFalsy();
+    }
 
     // cleanup
     await fs.unlink(path.join(config.cwd, "kpm.lock"));
