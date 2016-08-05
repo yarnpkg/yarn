@@ -131,8 +131,8 @@ export default async function (info: Object, moduleLoc: string): Promise<void> {
     scripts.start = "node server.js";
   }
 
-  // if there's a bindings.gyp file and no install script then set it to `node-gyp rebuild`
-  if (!scripts.install && files.indexOf("bindings.gyp") >= 0) {
+  // if there's a binding.gyp file and no install script then set it to `node-gyp rebuild`
+  if (!scripts.install && files.indexOf("binding.gyp") >= 0) {
     scripts.install = "node-gyp rebuild";
   }
 
