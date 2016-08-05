@@ -1,0 +1,2300 @@
+abbrev@1:
+  name abbrev
+  version "1.0.9"
+  resolved abbrev-1.0.9.tgz#3332599d1bf87e65e91742fa58b128fd2e0f98b9
+amdefine@>=0.0.4:
+  name amdefine
+  version "1.0.0"
+  resolved amdefine-1.0.0.tgz#95b255b5ee71b38f0e7fde24cc82fdd71cc55385
+ansi-escapes@^1.1.0:
+  name ansi-escapes
+  version "1.4.0"
+  resolved ansi-escapes-1.4.0.tgz#e3e69048e64efb1e9d37ef38243bb5cdffd23d42
+ansi-regex@^1.0.0, ansi-regex@^1.1.1:
+  name ansi-regex
+  version "1.1.1"
+  resolved ansi-regex-1.1.1.tgz#134666c9dc1ae5a9c64bafad73f8218a9888f610
+ansi-regex@^2.0.0:
+  name ansi-regex
+  version "2.0.0"
+  resolved ansi-regex-2.0.0.tgz#67568eb09b1ec1f4ecc9ecb5646ffaa104944e08
+ansi-styles@^2.2.1:
+  name ansi-styles
+  version "2.2.1"
+  resolved ansi-styles-2.2.1.tgz#1b65e28af45104cf071c14029655a02754614371
+archive-type@^3.0.0:
+  name archive-type
+  version "3.2.0"
+  resolved archive-type-3.2.0.tgz#3f3904411b8c31b4cdfa48502f389e1303cfc236
+  dependencies:
+    file-type "^3.1.0"
+arr-diff@^2.0.0:
+  name arr-diff
+  version "2.0.0"
+  resolved arr-diff-2.0.0.tgz#915cb6ddf0e81d6d9d5f109f5ff4f26e209a1d63
+  dependencies:
+    arr-flatten "^1.0.1"
+arr-flatten@^1.0.1:
+  name arr-flatten
+  version "1.0.1"
+  resolved arr-flatten-1.0.1.tgz#d78160511498f16374b9fb339d348e26123eaf25
+array-differ@^1.0.0:
+  name array-differ
+  version "1.0.0"
+  resolved array-differ-1.0.0.tgz#160882829b3db17dbc11888e949c44be420f1c46
+array-find-index@^1.0.1:
+  name array-find-index
+  version "1.0.1"
+  resolved array-find-index-1.0.1.tgz#53f53504d2abf4e80d221d51dcf0b5649766f91a
+array-union@^1.0.1:
+  name array-union
+  version "1.0.2"
+  resolved array-union-1.0.2.tgz#00a34b90da85f1f6a4d589bb130c1ef049a50580
+  dependencies:
+    array-uniq "^1.0.1"
+array-uniq@^1.0.1, array-uniq@^1.0.2:
+  name array-uniq
+  version "1.0.3"
+  resolved array-uniq-1.0.3.tgz#13ef3cfad2dda4f1faaa9fa0f39382e285c37c5c
+array-unique@^0.2.1:
+  name array-unique
+  version "0.2.1"
+  resolved array-unique-0.2.1.tgz#82eba58cb16f169de9d58ff4c0285f736cd02efd
+arrify@^1.0.0:
+  name arrify
+  version "1.0.1"
+  resolved arrify-1.0.1.tgz#c55c7382c9ec28cb1bd5f9f73dc0fa3a93caa813
+ast-query@^1.0.1:
+  name ast-query
+  version "1.2.0"
+  resolved ast-query-1.2.0.tgz#27a1fa593228ad31d3d86984a2e2b2b8bc60b236
+  dependencies:
+    class-extend "^0.1.1"
+    escodegen "^1.6.0"
+    esprima "^2.0.0"
+    lodash "^4.6.1"
+    traverse "^0.6.6"
+async@^1.2.1, async@^1.4.2:
+  name async
+  version "1.5.2"
+  resolved async-1.5.2.tgz#4623e0b6fa10238af99af363d1d5cee8f32b7dbb
+balanced-match@^0.4.1:
+  name balanced-match
+  version "0.4.2"
+  resolved balanced-match-0.4.2.tgz#e88389fc96c6142b5aa38c76c4c1cd18aa2a0fdd
+beeper@^1.0.0:
+  name beeper
+  version "1.1.0"
+  resolved beeper-1.1.0.tgz#81456a34bd5a976936ae8c0fe824bc1528bef36a
+binaryextensions@~1.0.0:
+  name binaryextensions
+  version "1.0.1"
+  resolved binaryextensions-1.0.1.tgz#6bf1784e4b1709c2349aa8f02e165ac5fc15989c
+bl@^1.0.0:
+  name bl
+  version "1.1.2"
+  resolved bl-1.1.2.tgz#a26d20f4902dad3cd3bbdd3572430fbc846fd0e8
+  dependencies:
+    readable-stream "~2.0.5"
+boolbase@~1.0.0:
+  name boolbase
+  version "1.0.0"
+  resolved boolbase-1.0.0.tgz#bbbe0f71c2e8ae9c13b210ef2b9bfd6f6810ab68
+brace-expansion@^1.0.0:
+  name brace-expansion
+  version "1.1.6"
+  resolved brace-expansion-1.1.6.tgz#2ffde2240b3131f8fe21ded2b92a6f53c047b578
+  dependencies:
+    balanced-match "^0.4.1"
+    concat-map "0.0.1"
+braces@^1.8.2:
+  name braces
+  version "1.8.5"
+  resolved braces-1.8.5.tgz#086d8a7ccbbfb1f2a6502ac7cd386a41ebcb2532
+  dependencies:
+    expand-range "^1.8.1"
+    preserve "^0.2.0"
+    repeat-element "^1.1.2"
+buffer-crc32@~0.2.3:
+  name buffer-crc32
+  version "0.2.5"
+  resolved buffer-crc32-0.2.5.tgz#265921a5d6b622418e49c86a041ba0180e5fcf7b
+buffer-shims@^1.0.0:
+  name buffer-shims
+  version "1.0.0"
+  resolved buffer-shims-1.0.0.tgz#4f18d4fb6f195c434114361443f5033dda6a74e4
+buffer-to-vinyl@^1.0.0:
+  name buffer-to-vinyl
+  version "1.1.0"
+  resolved buffer-to-vinyl-1.1.0.tgz#bafb30c4c6369fc13594068769974d12ddbaea8c
+  dependencies:
+    file-type "^3.1.0"
+    readable-stream "^2.0.2"
+    uuid "^2.0.1"
+    vinyl "^1.0.0"
+builtin-modules@^1.0.0:
+  name builtin-modules
+  version "1.1.1"
+  resolved builtin-modules-1.1.1.tgz#b2273e0d81a56e1d6179388a3d09b44e151410b1
+camelcase-keys@^2.0.0:
+  name camelcase-keys
+  version "2.1.0"
+  resolved camelcase-keys-2.1.0.tgz#b61fd4fd545be745596480286b4742935bf715e8
+  dependencies:
+    camelcase "^2.0.0"
+    map-obj "^1.0.0"
+camelcase@^2.0.0:
+  name camelcase
+  version "2.1.1"
+  resolved camelcase-2.1.1.tgz#bee303bd8d1a9f21b8f5f5a6b2607a1c990f2104
+capture-stack-trace@^1.0.0:
+  name capture-stack-trace
+  version "1.0.0"
+  resolved capture-stack-trace-1.0.0.tgz#eb4d1c685aa7276b5c2d12a8f0e46d5a603a5de8
+caw@^1.0.1:
+  name caw
+  version "1.2.0"
+  resolved caw-1.2.0.tgz#15f220bc38c859f22cdb519f4efab0961ba9be02
+  dependencies:
+    get-proxy "^1.0.1"
+    is-obj "^1.0.0"
+    object-assign "^3.0.0"
+    tunnel-agent "^0.4.0"
+chalk@^1.0.0, chalk@^1.1.1:
+  name chalk
+  version "1.1.3"
+  resolved chalk-1.1.3.tgz#fe2fe6ef4e5abee0decb3a7071554da6d25b4d35
+  dependencies:
+    ansi-styles "^2.2.1"
+    escape-string-regexp "^1.0.2"
+    has-ansi "^2.0.0"
+    strip-ansi "^3.0.0"
+    supports-color "^2.0.0"
+cheerio@^0.19.0:
+  name cheerio
+  version "0.19.0"
+  resolved cheerio-0.19.0.tgz#18a49c6db2644e3eca7faae93179e33ad1a3ff1b
+  dependencies:
+    css-select "~1.0.0"
+    dom-serializer "~0.1.0"
+    entities "~1.1.1"
+    htmlparser2 "~3.8.1"
+    lodash "^3.2.0"
+class-extend@^0.1.0, class-extend@^0.1.1:
+  name class-extend
+  version "0.1.2"
+  resolved class-extend-0.1.2.tgz#04a374466e88263425166cc313aec53fb5adae4e
+  dependencies:
+    object-assign "^2.0.0"
+cli-cursor@^1.0.1:
+  name cli-cursor
+  version "1.0.2"
+  resolved cli-cursor-1.0.2.tgz#0911915b6d996054bcdcdea4c45ed620657102fe
+  dependencies:
+    restore-cursor "^1.0.1"
+cli-table@^0.3.1:
+  name cli-table
+  version "0.3.1"
+  resolved cli-table-0.3.1.tgz#73a525dbbb1acebcf16b97d4110a28da20752674
+  dependencies:
+    colors "1.0.3"
+cli-width@^1.0.1:
+  name cli-width
+  version "1.1.1"
+  resolved cli-width-1.1.1.tgz#f659c121b373ba3c8ed9ff6e469b4d48910a8f31
+cli-width@^2.0.0:
+  name cli-width
+  version "2.1.0"
+  resolved cli-width-2.1.0.tgz#d4e19108819c7945c1d395e3ba02216c2a1563ba
+clone-stats@^0.0.1:
+  name clone-stats
+  version "0.0.1"
+  resolved clone-stats-0.0.1.tgz#1681f342303f0ea9af8259fc9d6988f1ff39b9f3
+clone@^0.2.0:
+  name clone
+  version "0.2.0"
+  resolved clone-0.2.0.tgz#6e0aec9753cb7ca27bac445f307af8ce5d090780
+clone@^1.0.0:
+  name clone
+  version "1.0.2"
+  resolved clone-1.0.2.tgz#730ff70e25eb5d71952ed86831e2815d9f4ae3c8
+co@3.1.0:
+  name co
+  version "3.1.0"
+  resolved co-3.1.0.tgz#c297487cfb568f130d8454272d92a2cce95c1259
+code-point-at@^1.0.0:
+  name code-point-at
+  version "1.0.0"
+  resolved code-point-at-1.0.0.tgz#529a0b9458c1cc429cb1ccadd77614f7b4642cba
+  dependencies:
+    number-is-nan "^1.0.0"
+colors@1.0.3:
+  name colors
+  version "1.0.3"
+  resolved colors-1.0.3.tgz#8490454214570887216763e0e1b3712d5a40d026
+commander@~2.8.1:
+  name commander
+  version "2.8.1"
+  resolved commander-2.8.1.tgz#c44c590c537b53352bc743b8f3538ecc9069d8bc
+  dependencies:
+    graceful-readlink ">= 1.0.0"
+commondir@^1.0.1:
+  name commondir
+  version "1.0.1"
+  resolved commondir-1.0.1.tgz#3db33ed1551345d31d4ec67a6b4e11e136783242
+concat-map@0.0.1:
+  name concat-map
+  version "0.0.1"
+  resolved concat-map-0.0.1.tgz#465737524d0c027a52db835044e8745c6519d7bb
+concat-stream@^1.4.6, concat-stream@^1.4.7:
+  name concat-stream
+  version "1.5.1"
+  resolved concat-stream-1.5.1.tgz#481e7bf0ab903009135bd476bdb1434523b0cbf3
+  dependencies:
+    inherits "~2.0.1"
+    readable-stream "~2.0.0"
+    typedarray "~0.0.5"
+convert-source-map@^1.1.1:
+  name convert-source-map
+  version "1.3.0"
+  resolved convert-source-map-1.3.0.tgz#4e148c83f3ce558f3c563c704383fd64dc4a4e94
+core-util-is@~1.0.0:
+  name core-util-is
+  version "1.0.2"
+  resolved core-util-is-1.0.2.tgz#ed3c0a9e65c8c31f2a51048f70c14cd5a0611bd5
+create-error-class@^3.0.1:
+  name create-error-class
+  version "3.0.2"
+  resolved create-error-class-3.0.2.tgz#4a8d08429a9954f9864cb8778f7908e55d238397
+  dependencies:
+    capture-stack-trace "^1.0.0"
+cross-spawn-async@^2.2.2:
+  name cross-spawn-async
+  version "2.2.4"
+  resolved cross-spawn-async-2.2.4.tgz#49652740c057c1863d290feb01382b23aee809f9
+  dependencies:
+    lru-cache "^4.0.0"
+    which "^1.2.8"
+cross-spawn@^2.0.0:
+  name cross-spawn
+  version "2.2.3"
+  resolved cross-spawn-2.2.3.tgz#f24cc5fcbd14c9b0b0e080fab095ffc50e00a520
+  dependencies:
+    cross-spawn-async "^2.2.2"
+    spawn-sync "^1.0.15"
+css-select@~1.0.0:
+  name css-select
+  version "1.0.0"
+  resolved css-select-1.0.0.tgz#834a8f8ad071dbfc16f9b65ef17fbab69c230021
+  dependencies:
+    boolbase "~1.0.0"
+    css-what "1.0"
+    domutils "1.4"
+    nth-check "~1.0.0"
+css-what@1.0:
+  name css-what
+  version "1.0.0"
+  resolved css-what-1.0.0.tgz#d2d84af744f7d4a483690263072393fb3b316ed4
+currently-unhandled@^0.4.1:
+  name currently-unhandled
+  version "0.4.1"
+  resolved currently-unhandled-0.4.1.tgz#daafd840a5349c301e61efd618418b418a6734d9
+  dependencies:
+    array-find-index "^1.0.1"
+dargs@^4.0.0:
+  name dargs
+  version "4.1.0"
+  resolved dargs-4.1.0.tgz#a86cc3bd46ebe40ced6431a10085040e35cef7cc
+  dependencies:
+    number-is-nan "^1.0.0"
+dateformat@^1.0.11:
+  name dateformat
+  version "1.0.12"
+  resolved dateformat-1.0.12.tgz#85917ab9b2257f439505681f1ad4a11d1b0cc5f5
+  dependencies:
+    get-stdin "^4.0.1"
+    meow "^3.3.0"
+debug@^2.0.0, debug@^2.1.0:
+  name debug
+  version "2.2.0"
+  resolved debug-2.2.0.tgz#492ef0cf5677470aa361e09fe92270d5fc7ea08c
+  dependencies:
+    ms "0.7.1"
+decamelize@^1.1.2:
+  name decamelize
+  version "1.2.0"
+  resolved decamelize-1.2.0.tgz#6d8c7ea9fabb75eb619333033171038e3e7c4653
+decompress-tar@^3.0.0:
+  name decompress-tar
+  version "3.1.0"
+  resolved decompress-tar-3.1.0.tgz#0620b113713a2078f6873beb66ba0ea6714d94c1
+  dependencies:
+    is-tar "^1.0.0"
+    object-assign "^2.0.0"
+    strip-dirs "^1.0.0"
+    tar-stream "^1.1.1"
+    through2 "^0.6.1"
+    vinyl "^0.4.3"
+decompress-tarbz2@^3.0.0:
+  name decompress-tarbz2
+  version "3.1.0"
+  resolved decompress-tarbz2-3.1.0.tgz#5e3cc7dd811b77d8e39cddbbdd4d91a27cf0c85e
+  dependencies:
+    is-bzip2 "^1.0.0"
+    object-assign "^2.0.0"
+    seek-bzip "^1.0.3"
+    strip-dirs "^1.0.0"
+    tar-stream "^1.1.1"
+    through2 "^0.6.1"
+    vinyl "^0.4.3"
+decompress-targz@^3.0.0:
+  name decompress-targz
+  version "3.1.0"
+  resolved decompress-targz-3.1.0.tgz#b2e8469f1f9f3e2f95cbdf692d87cd06c59aaa7d
+  dependencies:
+    is-gzip "^1.0.0"
+    object-assign "^2.0.0"
+    strip-dirs "^1.0.0"
+    tar-stream "^1.1.1"
+    through2 "^0.6.1"
+    vinyl "^0.4.3"
+decompress-unzip@^3.0.0:
+  name decompress-unzip
+  version "3.4.0"
+  resolved decompress-unzip-3.4.0.tgz#9ba1fbb892635d6faad663383c25703f4d75df05
+  dependencies:
+    is-zip "^1.0.0"
+    read-all-stream "^3.0.0"
+    stat-mode "^0.2.0"
+    strip-dirs "^1.0.0"
+    through2 "^2.0.0"
+    vinyl "^1.0.0"
+    yauzl "^2.2.1"
+decompress@^3.0.0:
+  name decompress
+  version "3.0.0"
+  resolved decompress-3.0.0.tgz#596356ad7d9de0b7db7fbbfb1f4c908b4fb88829
+  dependencies:
+    buffer-to-vinyl "^1.0.0"
+    concat-stream "^1.4.6"
+    decompress-tar "^3.0.0"
+    decompress-tarbz2 "^3.0.0"
+    decompress-targz "^3.0.0"
+    decompress-unzip "^3.0.0"
+    stream-combiner2 "^1.1.1"
+    vinyl-assign "^1.0.1"
+    vinyl-fs "^2.2.0"
+deep-extend@^0.4.0, deep-extend@~0.4.0:
+  name deep-extend
+  version "0.4.1"
+  resolved deep-extend-0.4.1.tgz#aa01157c595129b18f47ce7d4ed43db1a5ab050b
+deep-is@~0.1.3:
+  name deep-is
+  version "0.1.3"
+  resolved deep-is-0.1.3.tgz#6bb9393626e11cc9aa8a4c6850fa747fc4cff9a7
+detect-conflict@^1.0.0:
+  name detect-conflict
+  version "1.0.1"
+  resolved detect-conflict-1.0.1.tgz#b4f206905e9def0763361464abbbf29ab026e435
+detect-newline@^1.0.3:
+  name detect-newline
+  version "1.0.3"
+  resolved detect-newline-1.0.3.tgz#08271a0aa071fc3a9fe12f4cf847adaa12c30314
+  dependencies:
+    get-stdin "^4.0.1"
+    minimist "^1.1.0"
+diff@^1.0.4:
+  name diff
+  version "1.4.0"
+  resolved diff-1.4.0.tgz#09652483b7ef3bde9859843412aff08856b40b57
+diff@^2.0.2, diff@^2.1.2:
+  name diff
+  version "2.2.3"
+  resolved diff-2.2.3.tgz#812812e4f0f7daa01d746cb36d9152b157477613
+dom-serializer@~0.1.0, dom-serializer@0:
+  name dom-serializer
+  version "0.1.0"
+  resolved dom-serializer-0.1.0.tgz#95b3633c855deffa04a57c03ff4a88425c531ebf
+  dependencies:
+    domelementtype "~1.1.1"
+    entities "~1.1.1"
+domelementtype@~1.1.1:
+  name domelementtype
+  version "1.1.3"
+  resolved domelementtype-1.1.3.tgz#3becc202a4a25fe1d0d3394d765af6ac15f3c066
+domelementtype@1:
+  name domelementtype
+  version "1.3.0"
+  resolved domelementtype-1.3.0.tgz#99f4e1463252f92046822077625c8e5cc61cfadc
+domhandler@2.3:
+  name domhandler
+  version "2.3.0"
+  resolved domhandler-2.3.0.tgz#106b0fff7bc80a89e0866791cd1fb8ea7a78e01d
+  dependencies:
+    domelementtype "1"
+domutils@1.4:
+  name domutils
+  version "1.4.3"
+  resolved domutils-1.4.3.tgz#f6435a6e17d653c4ea73c190b29a8e179164b71b
+  dependencies:
+    domelementtype "1"
+domutils@1.5:
+  name domutils
+  version "1.5.1"
+  resolved domutils-1.5.1.tgz#fccaca713592c43264d6391eb057a49df94dc018
+  dependencies:
+    dom-serializer "0"
+    domelementtype "1"
+download@^4.1.2:
+  name download
+  version "4.4.3"
+  resolved download-4.4.3.tgz#0a38db5c2260e6836fb71cee4212cd97fdc9e1fb
+  dependencies:
+    caw "^1.0.1"
+    concat-stream "^1.4.7"
+    each-async "^1.0.0"
+    filenamify "^1.0.1"
+    got "^5.0.0"
+    gulp-decompress "^1.2.0"
+    gulp-rename "^1.2.0"
+    is-url "^1.2.0"
+    object-assign "^4.0.1"
+    read-all-stream "^3.0.0"
+    readable-stream "^2.0.2"
+    stream-combiner2 "^1.1.1"
+    vinyl "^1.0.0"
+    vinyl-fs "^2.2.0"
+    ware "^1.2.0"
+duplexer2@^0.1.4, duplexer2@~0.1.0:
+  name duplexer2
+  version "0.1.4"
+  resolved duplexer2-0.1.4.tgz#9e2113e0e07354074e089f0bbffce3893e4ac166
+  dependencies:
+    readable-stream "^2.0.2"
+duplexer2@0.0.2:
+  name duplexer2
+  version "0.0.2"
+  resolved duplexer2-0.0.2.tgz#659bc38592a2029f5291c72b92608928e531ca49
+  dependencies:
+    readable-stream "~1.1.9"
+duplexify@^3.2.0:
+  name duplexify
+  version "3.4.5"
+  resolved duplexify-3.4.5.tgz#af696f8c80c1b78f84e2dd1ba730844c417a6829
+  dependencies:
+    end-of-stream "1.0.0"
+    inherits "^2.0.1"
+    readable-stream "^2.0.0"
+    stream-shift "^1.0.0"
+each-async@^1.0.0:
+  name each-async
+  version "1.1.1"
+  resolved each-async-1.1.1.tgz#862183bab5fc085e345f8be503e317c8dcf7eed1
+  dependencies:
+    onetime "^1.0.0"
+    set-immediate-shim "^1.0.0"
+ejs@^2.3.1:
+  name ejs
+  version "2.5.1"
+  resolved ejs-2.5.1.tgz#b0caee4c27ef8eccc962c708c5cfdb0240175fe6
+end-of-stream@^1.0.0:
+  name end-of-stream
+  version "1.1.0"
+  resolved end-of-stream-1.1.0.tgz#fcf1f237decf389bab4b334e220313607e1051c7
+  dependencies:
+    once "~1.3.0"
+end-of-stream@1.0.0:
+  name end-of-stream
+  version "1.0.0"
+  resolved end-of-stream-1.0.0.tgz#2115f1dbfc64995e7489099c529478ba038e33e3
+  dependencies:
+    once "~1.3.0"
+entities@~1.1.1:
+  name entities
+  version "1.1.1"
+  resolved entities-1.1.1.tgz#3434d143dc66c9e9a4420ddfcf22c0defc41676e
+entities@1.0:
+  name entities
+  version "1.0.0"
+  resolved entities-1.0.0.tgz#4bd9f81f7ed2da4023f044374205abedb8c665cd
+error-ex@^1.2.0:
+  name error-ex
+  version "1.3.0"
+  resolved error-ex-1.3.0.tgz#e0b48e462a278ff9fc56d6114d90126da4cb5c4f
+  dependencies:
+    is-arrayish "^0.2.1"
+escape-string-regexp@^1.0.2, escape-string-regexp@^1.0.5:
+  name escape-string-regexp
+  version "1.0.5"
+  resolved escape-string-regexp-1.0.5.tgz#cab9891acfe509011c0d2af074d0ea796fbee76f
+escodegen@^1.6.0:
+  name escodegen
+  version "1.8.0"
+  resolved escodegen-1.8.0.tgz#c1dae57145c13227a71680f3bb9d0e2c7d1bec45
+  dependencies:
+    esprima "^2.7.1"
+    estraverse "^1.9.1"
+    esutils "^2.0.2"
+    optionator "^0.8.1"
+  optionalDependencies:
+    source-map "~0.2.0"
+esprima@^2.0.0, esprima@^2.7.1:
+  name esprima
+  version "2.7.2"
+  resolved esprima-2.7.2.tgz#f9ddd9c33011e0ca5d09b4b5f61de0180b1cf589
+estraverse@^1.9.1:
+  name estraverse
+  version "1.9.3"
+  resolved estraverse-1.9.3.tgz#3d29ae8c49293ee197845e46365b9a5ecf7df157
+esutils@^2.0.2:
+  name esutils
+  version "2.0.2"
+  resolved esutils-2.0.2.tgz#ae3769043f09a15083315094a148faf33e003a70
+exit-hook@^1.0.0:
+  name exit-hook
+  version "1.1.1"
+  resolved exit-hook-1.1.1.tgz#41336d011b442dc83c0c04391030328d8b7fb1e4
+expand-brackets@^0.1.4:
+  name expand-brackets
+  version "0.1.5"
+  resolved expand-brackets-0.1.5.tgz#15a38f5f91855b4c5fab57ad40748b43554fe55a
+  dependencies:
+    is-posix-bracket "^0.1.0"
+expand-range@^1.8.1:
+  name expand-range
+  version "1.8.2"
+  resolved expand-range-1.8.2.tgz#d5127175c58ccf16b659519e8db5fd009fa0bb12
+  dependencies:
+    fill-range "^2.1.0"
+extend-shallow@^2.0.1:
+  name extend-shallow
+  version "2.0.1"
+  resolved extend-shallow-2.0.1.tgz#89b37be3ee64d7163b087e7466b26a106a012e83
+  dependencies:
+    is-extendable "^0.1.0"
+extend@^3.0.0:
+  name extend
+  version "3.0.0"
+  resolved extend-3.0.0.tgz#dcdc2a4aabddb40fc76ece8f50ede38be4ff025f
+external-editor@^1.0.1:
+  name external-editor
+  version "1.0.3"
+  resolved external-editor-1.0.3.tgz#a0c544bd4c6aa576ce7c0c93e6d25a162e1f2270
+  dependencies:
+    extend "^3.0.0"
+    spawn-sync "^1.0.15"
+    temp "^0.8.3"
+extglob@^0.3.1:
+  name extglob
+  version "0.3.2"
+  resolved extglob-0.3.2.tgz#68db0d40e5d1f6662c6cc5acb10c60b404e79e18
+  dependencies:
+    is-extglob "^1.0.0"
+fancy-log@^1.1.0:
+  name fancy-log
+  version "1.2.0"
+  resolved fancy-log-1.2.0.tgz#9aa1bee6e17cf858c1be471ccdc15fdf589659a4
+  dependencies:
+    chalk "^1.1.1"
+    time-stamp "^1.0.0"
+fast-levenshtein@^1.1.0:
+  name fast-levenshtein
+  version "1.1.4"
+  resolved fast-levenshtein-1.1.4.tgz#7179442b2b7fdc3e31716ac81905a99cddca32ae
+fd-slicer@~1.0.1:
+  name fd-slicer
+  version "1.0.1"
+  resolved fd-slicer-1.0.1.tgz#c88bea2212a2237835169f9903a34d94cc235e2b
+  dependencies:
+    pend "~1.2.0"
+figures@^1.3.5:
+  name figures
+  version "1.7.0"
+  resolved figures-1.7.0.tgz#5e0d507364c16fbddf754d84b5b1db08d3f632dc
+  dependencies:
+    escape-string-regexp "^1.0.5"
+    object-assign "^4.1.0"
+file-type@^3.1.0:
+  name file-type
+  version "3.8.0"
+  resolved file-type-3.8.0.tgz#e8378f787f96fd5dea0e7508d778850415b437ad
+filename-regex@^2.0.0:
+  name filename-regex
+  version "2.0.0"
+  resolved filename-regex-2.0.0.tgz#4dd2504dc4d5f7995da6e098c174e8291f753ff7
+filename-reserved-regex@^1.0.0:
+  name filename-reserved-regex
+  version "1.0.0"
+  resolved filename-reserved-regex-1.0.0.tgz#73dd48152e53d79ac3ff222e97d621211f2585af
+filenamify@^1.0.1:
+  name filenamify
+  version "1.2.1"
+  resolved filenamify-1.2.1.tgz#d0ff567c191de5a9e2e01af891d838886cca4417
+  dependencies:
+    filename-reserved-regex "^1.0.0"
+    strip-outer "^1.0.0"
+    trim-repeated "^1.0.0"
+fill-range@^2.1.0:
+  name fill-range
+  version "2.2.3"
+  resolved fill-range-2.2.3.tgz#7d691332c7ab2e2e92a5cdf18488909e70f31679
+  dependencies:
+    is-number "^2.1.0"
+    isobject "^2.0.0"
+    randomatic "^1.1.3"
+    repeat-element "^1.1.2"
+    repeat-string "^1.5.2"
+find-up@^1.0.0:
+  name find-up
+  version "1.1.2"
+  resolved find-up-1.1.2.tgz#2b2d32e8cee2aa0cd892925cd16b12c242a74142
+  dependencies:
+    path-exists "^2.0.0"
+    pinkie-promise "^2.0.0"
+findup-sync@^0.2.1:
+  name findup-sync
+  version "0.2.1"
+  resolved findup-sync-0.2.1.tgz#a07d4282856a6e42762b51a7a436a72d674de092
+  dependencies:
+    glob "~4.3.0"
+first-chunk-stream@^1.0.0:
+  name first-chunk-stream
+  version "1.0.0"
+  resolved first-chunk-stream-1.0.0.tgz#bfe6c2a1885366ab5a4bf9d7bc3444d0703966a9
+first-chunk-stream@^2.0.0:
+  name first-chunk-stream
+  version "2.0.0"
+  resolved first-chunk-stream-2.0.0.tgz#3f52163ac6e37028511daa7140ff4095bee3fe13
+  dependencies:
+    readable-stream "^2.0.2"
+for-in@^0.1.5:
+  name for-in
+  version "0.1.5"
+  resolved for-in-0.1.5.tgz#8fbbd50d2e42f03d4f0485ed108176c2a84a0a74
+for-own@^0.1.3:
+  name for-own
+  version "0.1.4"
+  resolved for-own-0.1.4.tgz#e3b91e4d80d174a6200456a56aaf2cd672943b64
+  dependencies:
+    for-in "^0.1.5"
+formatio@1.1.1:
+  name formatio
+  version "1.1.1"
+  resolved formatio-1.1.1.tgz#52b351b87f8d8e366e63542759240847c84bf25b
+  dependencies:
+    samsam "~1.1"
+fs.realpath@^1.0.0:
+  name fs.realpath
+  version "1.0.0"
+  resolved fs.realpath-1.0.0.tgz#be59917b76e1e89e876abbb1cebccd1439f8b2d6
+get-proxy@^1.0.1:
+  name get-proxy
+  version "1.1.0"
+  resolved get-proxy-1.1.0.tgz#dc744431240a1bed21b50391eb593b9a5069f6b1
+  dependencies:
+    rc "^1.1.2"
+get-stdin@^4.0.1:
+  name get-stdin
+  version "4.0.1"
+  resolved get-stdin-4.0.1.tgz#77d1cfc390983351208c859a98e621b2bde014ff
+gh-got@^2.2.0:
+  name gh-got
+  version "2.4.0"
+  resolved gh-got-2.4.0.tgz#79abef50690dc2f4fc11e025fe6049fa5f6971b9
+  dependencies:
+    got "^5.2.0"
+    object-assign "^4.0.1"
+    pinkie-promise "^2.0.0"
+github-username@^2.0.0:
+  name github-username
+  version "2.1.0"
+  resolved github-username-2.1.0.tgz#2dc3b54e8544997f3092420d50fa29bba550e1d0
+  dependencies:
+    gh-got "^2.2.0"
+    meow "^3.5.0"
+glob-base@^0.3.0:
+  name glob-base
+  version "0.3.0"
+  resolved glob-base-0.3.0.tgz#f2d8e13acbc3df0a2009c59695c095b0b2844c0e
+  dependencies:
+    glob-parent "^2.0.0"
+    is-glob "^2.0.0"
+glob-parent@^2.0.0:
+  name glob-parent
+  version "2.0.0"
+  resolved glob-parent-2.0.0.tgz#eb8430e12778b6a653e0311c25d43cf7bc6196d0
+  dependencies:
+    is-glob "^2.0.0"
+glob-stream@^5.3.2:
+  name glob-stream
+  version "5.3.2"
+  resolved glob-stream-5.3.2.tgz#840beea3ec635bfd1536a622fc27a7166cb5271f
+  dependencies:
+    extend "^3.0.0"
+    glob "^5.0.3"
+    glob-parent "^2.0.0"
+    micromatch "^2.3.7"
+    ordered-read-streams "^0.3.0"
+    through2 "^0.6.0"
+    to-absolute-glob "^0.1.1"
+    unique-stream "^2.0.2"
+glob@^5.0.3:
+  name glob
+  version "5.0.15"
+  resolved glob-5.0.15.tgz#e636c86f51d101f2228083bf00247d1e21264cad
+  dependencies:
+    inflight "^1.0.4"
+    inherits "2"
+    minimatch "2 || 3"
+    once "^1.3.0"
+    path-is-absolute "^1.0.0"
+glob@^6.0.1:
+  name glob
+  version "6.0.4"
+  resolved glob-6.0.4.tgz#2e93bf03a110d8dadbd574f29843e42a23d45a5a
+  dependencies:
+    inflight "^1.0.4"
+    inherits "2"
+    minimatch "2 || 3"
+    once "^1.3.0"
+    path-is-absolute "^1.0.0"
+glob@^7.0.3, glob@^7.0.5:
+  name glob
+  version "7.0.5"
+  resolved glob-7.0.5.tgz#f21ef510985b9464d6f7c0934f7e85c69b611632
+  dependencies:
+    fs.realpath "^1.0.0"
+    inflight "^1.0.4"
+    inherits "2"
+    minimatch "^3.0.2"
+    once "^1.3.0"
+    path-is-absolute "^1.0.0"
+glob@~4.3.0:
+  name glob
+  version "4.3.5"
+  resolved glob-4.3.5.tgz#52e0ede0e51bd91dc90cab0811aea25654a19718
+  dependencies:
+    inflight "^1.0.4"
+    inherits "2"
+    minimatch "^2.0.1"
+    once "^1.3.0"
+globby@^2.0.0:
+  name globby
+  version "2.1.0"
+  resolved globby-2.1.0.tgz#a6a843557d351812c8c4cf6cabbd1116cd9e8a2a
+  dependencies:
+    array-union "^1.0.1"
+    async "^1.2.1"
+    glob "^5.0.3"
+    object-assign "^3.0.0"
+globby@^4.0.0:
+  name globby
+  version "4.1.0"
+  resolved globby-4.1.0.tgz#def474e1b349d00b1b436817da5275a0d2a2ac1b
+  dependencies:
+    array-union "^1.0.1"
+    arrify "^1.0.0"
+    glob "^6.0.1"
+    object-assign "^4.0.1"
+    pify "^2.0.0"
+    pinkie-promise "^2.0.0"
+glogg@^1.0.0:
+  name glogg
+  version "1.0.0"
+  resolved glogg-1.0.0.tgz#e0db3805337d10f0245d93da82874569aecbd215
+  dependencies:
+    sparkles "^1.0.0"
+got@^5.0.0, got@^5.2.0:
+  name got
+  version "5.6.0"
+  resolved got-5.6.0.tgz#a6d156683fee8985a37248752a2bc04d91279216
+  dependencies:
+    create-error-class "^3.0.1"
+    duplexer2 "^0.1.4"
+    is-plain-obj "^1.0.0"
+    is-redirect "^1.0.0"
+    is-retry-allowed "^1.0.0"
+    is-stream "^1.0.0"
+    lowercase-keys "^1.0.0"
+    node-status-codes "^1.0.0"
+    object-assign "^4.0.1"
+    parse-json "^2.1.0"
+    pinkie-promise "^2.0.0"
+    read-all-stream "^3.0.0"
+    readable-stream "^2.0.5"
+    timed-out "^2.0.0"
+    unzip-response "^1.0.0"
+    url-parse-lax "^1.0.0"
+graceful-fs@^4.0.0, graceful-fs@^4.1.2:
+  name graceful-fs
+  version "4.1.5"
+  resolved graceful-fs-4.1.5.tgz#a90336276f77dcd6aba21dee7a937773d8f63078
+"graceful-readlink@>= 1.0.0":
+  name graceful-readlink
+  version "1.0.1"
+  resolved graceful-readlink-1.0.1.tgz#a059d366fdfb2733f95e8cc4ac92529e9e6005dc
+grouped-queue@^0.3.0:
+  name grouped-queue
+  version "0.3.2"
+  resolved grouped-queue-0.3.2.tgz#b3bb616d097eabedec60589ad7af0221d55deb72
+  dependencies:
+    lodash "^3.10.1"
+gruntfile-editor@^1.0.0:
+  name gruntfile-editor
+  version "1.2.0"
+  resolved gruntfile-editor-1.2.0.tgz#6a30bf9a2c04e396889783b5ee77cee5d24be4fd
+  dependencies:
+    ast-query "^1.0.1"
+    lodash "^4.6.1"
+gulp-decompress@^1.2.0:
+  name gulp-decompress
+  version "1.2.0"
+  resolved gulp-decompress-1.2.0.tgz#15cad5b2c6241c2b1279cbf5da390d6f5ce82844
+  dependencies:
+    archive-type "^3.0.0"
+    decompress "^3.0.0"
+    gulp-util "^3.0.1"
+    readable-stream "^2.0.2"
+gulp-rename@^1.2.0:
+  name gulp-rename
+  version "1.2.2"
+  resolved gulp-rename-1.2.2.tgz#06841ea9c400fc2b367e3b997a20aedad712d225
+gulp-sourcemaps@^1.5.2:
+  name gulp-sourcemaps
+  version "1.6.0"
+  resolved gulp-sourcemaps-1.6.0.tgz#f9c54d38ad62f2bb7af28aa62c647d4b692e5115
+  dependencies:
+    convert-source-map "^1.1.1"
+    graceful-fs "^4.1.2"
+    strip-bom "^2.0.0"
+    through2 "^2.0.0"
+    vinyl "^1.0.0"
+gulp-util@^3.0.1:
+  name gulp-util
+  version "3.0.7"
+  resolved gulp-util-3.0.7.tgz#71aa701ecca079dc325459d5c537e17482fe03ad
+  dependencies:
+    array-differ "^1.0.0"
+    array-uniq "^1.0.2"
+    beeper "^1.0.0"
+    chalk "^1.0.0"
+    dateformat "^1.0.11"
+    fancy-log "^1.1.0"
+    gulplog "^1.0.0"
+    has-gulplog "^0.1.0"
+    lodash._reescape "^3.0.0"
+    lodash._reevaluate "^3.0.0"
+    lodash._reinterpolate "^3.0.0"
+    lodash.template "^3.0.0"
+    minimist "^1.1.0"
+    multipipe "^0.1.2"
+    object-assign "^3.0.0"
+    replace-ext "0.0.1"
+    through2 "^2.0.0"
+    vinyl "^0.5.0"
+gulplog@^1.0.0:
+  name gulplog
+  version "1.0.0"
+  resolved gulplog-1.0.0.tgz#70db604a3e54f5d4ad3226f5a768b592a0099380
+  dependencies:
+    glogg "^1.0.0"
+has-ansi@^2.0.0:
+  name has-ansi
+  version "2.0.0"
+  resolved has-ansi-2.0.0.tgz#c9a0457a23ecf92e0d47aacb503ad523a59256a0
+  dependencies:
+    ansi-regex "^2.0.0"
+has-gulplog@^0.1.0:
+  name has-gulplog
+  version "0.1.0"
+  resolved has-gulplog-0.1.0.tgz#e223e9cbb15e853f96cb65bad57dad9edc9dd067
+  dependencies:
+    sparkles "^1.0.0"
+hosted-git-info@^2.1.4:
+  name hosted-git-info
+  version "2.1.5"
+  resolved hosted-git-info-2.1.5.tgz#ba472f6b7dd87acb14af5419ebf11e7fa39d8359
+html-wiring@^1.0.0:
+  name html-wiring
+  version "1.2.0"
+  resolved html-wiring-1.2.0.tgz#fab2ada4fc1f7d053e75a67f57ff22e9fcbe709d
+  dependencies:
+    cheerio "^0.19.0"
+    detect-newline "^1.0.3"
+htmlparser2@~3.8.1:
+  name htmlparser2
+  version "3.8.3"
+  resolved htmlparser2-3.8.3.tgz#e1153e8ec088879362e56a621db3d5487f4c5e4e
+  dependencies:
+    domelementtype "1"
+    domhandler "2.3"
+    domutils "1.5"
+    entities "1.0"
+    readable-stream "1.1"
+indent-string@^2.1.0:
+  name indent-string
+  version "2.1.0"
+  resolved indent-string-2.1.0.tgz#48e0c3e297fcfee03511be62954ac400b7e6f780
+  dependencies:
+    repeating "^2.0.0"
+inflight@^1.0.4:
+  name inflight
+  version "1.0.5"
+  resolved inflight-1.0.5.tgz#cefe187261467cc570b535244c36a3e9356e7740
+  dependencies:
+    once "^1.3.0"
+    wrappy "1"
+inherits@^2.0.1, inherits@~2.0.1, inherits@2, inherits@2.0.1:
+  name inherits
+  version "2.0.1"
+  resolved inherits-2.0.1.tgz#5ba1a5d0be63865df18d7f662fdc1d8825b5dbd2
+ini@~1.3.0:
+  name ini
+  version "1.3.4"
+  resolved ini-1.3.4.tgz#26dd21b2ed9e1b50e8ecaf118d1af08d7e760813
+inquirer@^0.8.0:
+  name inquirer
+  version "0.8.5"
+  resolved inquirer-0.8.5.tgz#4d530e5aa82353012b24bfb520327fe9ecb8076d
+  dependencies:
+    ansi-regex "^1.1.1"
+    chalk "^1.0.0"
+    cli-width "^1.0.1"
+    figures "^1.3.5"
+    lodash "^3.3.1"
+    readline2 "^0.1.1"
+    rx "^2.4.3"
+    through "^2.3.6"
+inquirer@^1.0.2:
+  name inquirer
+  version "1.1.2"
+  resolved inquirer-1.1.2.tgz#57aa4140ae0c4c98f79d41ebd6d5e4e80ebf8019
+  dependencies:
+    ansi-escapes "^1.1.0"
+    chalk "^1.0.0"
+    cli-cursor "^1.0.1"
+    cli-width "^2.0.0"
+    external-editor "^1.0.1"
+    figures "^1.3.5"
+    lodash "^4.3.0"
+    mute-stream "0.0.6"
+    pinkie-promise "^2.0.0"
+    run-async "^2.2.0"
+    rx "^4.1.0"
+    string-width "^1.0.1"
+    strip-ansi "^3.0.0"
+    through "^2.3.6"
+is-absolute@^0.1.5:
+  name is-absolute
+  version "0.1.7"
+  resolved is-absolute-0.1.7.tgz#c0340362858a957c7264dc48c4f59f72f67dfa06
+  dependencies:
+    is-relative "^0.1.0"
+is-arrayish@^0.2.1:
+  name is-arrayish
+  version "0.2.1"
+  resolved is-arrayish-0.2.1.tgz#d386ffa3dc38008896903d1999b3aee20ca3e001
+is-buffer@^1.0.2:
+  name is-buffer
+  version "1.1.3"
+  resolved is-buffer-1.1.3.tgz#06c1f5e894a867b6b857b04d23f2a93be136b4bd
+is-builtin-module@^1.0.0:
+  name is-builtin-module
+  version "1.0.0"
+  resolved is-builtin-module-1.0.0.tgz#903f75a9cc190417893633d81c81171eb391234e
+  dependencies:
+    builtin-modules "^1.0.0"
+is-bzip2@^1.0.0:
+  name is-bzip2
+  version "1.0.0"
+  resolved is-bzip2-1.0.0.tgz#a02cd85c1d12364c567f7d913f3f6d9cefa318df
+is-dotfile@^1.0.0:
+  name is-dotfile
+  version "1.0.2"
+  resolved is-dotfile-1.0.2.tgz#9cc6d4f96282cda460b5da9699c2ecdf1cf9466a
+is-equal-shallow@^0.1.3:
+  name is-equal-shallow
+  version "0.1.3"
+  resolved is-equal-shallow-0.1.3.tgz#608446f64a1ef3f00b693be34133db4f8208606a
+  dependencies:
+    is-primitive "^2.0.0"
+is-extendable@^0.1.0, is-extendable@^0.1.1:
+  name is-extendable
+  version "0.1.1"
+  resolved is-extendable-0.1.1.tgz#fdc49f76b420603a216ff09aec7833a5b0fcc964
+is-extglob@^1.0.0:
+  name is-extglob
+  version "1.0.0"
+  resolved is-extglob-1.0.0.tgz#b01fa8b7cdd20c4b09cc2f0e0711c17f1886a578
+is-finite@^1.0.0:
+  name is-finite
+  version "1.0.1"
+  resolved is-finite-1.0.1.tgz#7d3c7241b21a387f5dbd21e770173807bad53dba
+  dependencies:
+    number-is-nan "^1.0.0"
+is-fullwidth-code-point@^1.0.0:
+  name is-fullwidth-code-point
+  version "1.0.0"
+  resolved is-fullwidth-code-point-1.0.0.tgz#63bfe8858e9f6365a04bd389ebde0c01515eb735
+  dependencies:
+    number-is-nan "^1.0.0"
+is-glob@^2.0.0, is-glob@^2.0.1:
+  name is-glob
+  version "2.0.1"
+  resolved is-glob-2.0.1.tgz#042ed6e0f03877e78630b05b4291220a60e7b360
+  dependencies:
+    is-extglob "^1.0.0"
+is-gzip@^1.0.0:
+  name is-gzip
+  version "1.0.0"
+  resolved is-gzip-1.0.0.tgz#815353c30c72f2c3884661b4fb3dd20b59fa9251
+is-natural-number@^2.0.0:
+  name is-natural-number
+  version "2.1.1"
+  resolved is-natural-number-2.1.1.tgz#80377d519fb0bb0442e671660648258cdfff526c
+is-number@^2.0.2, is-number@^2.1.0:
+  name is-number
+  version "2.1.0"
+  resolved is-number-2.1.0.tgz#2ded8cca66de2485ec356d2330e982fc815bce23
+  dependencies:
+    kind-of "^3.0.2"
+is-obj@^1.0.0:
+  name is-obj
+  version "1.0.1"
+  resolved is-obj-1.0.1.tgz#6013f51856fc03c9f6f0d498a4614503292141a0
+is-plain-obj@^1.0.0:
+  name is-plain-obj
+  version "1.1.0"
+  resolved is-plain-obj-1.1.0.tgz#69bdb3397b2e7a33665abeb2bf30af77f47ae1fe
+is-posix-bracket@^0.1.0:
+  name is-posix-bracket
+  version "0.1.1"
+  resolved is-posix-bracket-0.1.1.tgz#45bd58c991a9d04f64cb3202be4c3fc972ab9438
+is-primitive@^2.0.0:
+  name is-primitive
+  version "2.0.0"
+  resolved is-primitive-2.0.0.tgz#7491875ce724a17f1764f7c8f76775361f170859
+is-promise@^2.1.0:
+  name is-promise
+  version "2.1.0"
+  resolved is-promise-2.1.0.tgz#10ba21f71b34c308e397a3c34431908c1d1566c3
+is-redirect@^1.0.0:
+  name is-redirect
+  version "1.0.0"
+  resolved is-redirect-1.0.0.tgz#4ee702f0620d7dfe630c1f8ecf670079a39f16cd
+is-relative@^0.1.0:
+  name is-relative
+  version "0.1.3"
+  resolved is-relative-0.1.3.tgz#b7c0a20a61dce22d2da35eb7b492546dbca07cc7
+is-retry-allowed@^1.0.0:
+  name is-retry-allowed
+  version "1.1.0"
+  resolved is-retry-allowed-1.1.0.tgz#588572f6f5d3e9fefefb2bf2293a164c69008a2f
+is-stream@^1.0.0, is-stream@^1.0.1:
+  name is-stream
+  version "1.1.0"
+  resolved is-stream-1.1.0.tgz#ae04c37ec2a2373f6cb2ffbf690ab3ec30d8dde1
+is-tar@^1.0.0:
+  name is-tar
+  version "1.0.0"
+  resolved is-tar-1.0.0.tgz#5a36c06dbfe2f9aa89b241eea290021aa73021f2
+is-url@^1.2.0:
+  name is-url
+  version "1.2.2"
+  resolved is-url-1.2.2.tgz#6735e58297a89d8c3bca0294fd8f5d9fb6ca2ec1
+is-utf8@^0.2.0:
+  name is-utf8
+  version "0.2.1"
+  resolved is-utf8-0.2.1.tgz#3709e55e4b302b0ba5749bbdca26db50a6c60812
+is-valid-glob@^0.3.0:
+  name is-valid-glob
+  version "0.3.0"
+  resolved is-valid-glob-0.3.0.tgz#633b647f6cb0e7bb5661656c8784b87718131c92
+is-zip@^1.0.0:
+  name is-zip
+  version "1.0.0"
+  resolved is-zip-1.0.0.tgz#8a95aef5c710a312bf67c62066528a58d5b646d9
+isarray@~1.0.0, isarray@1.0.0:
+  name isarray
+  version "1.0.0"
+  resolved isarray-1.0.0.tgz#e311012681ca6a53c6a85cef05fec07897aa4966
+isarray@0.0.1:
+  name isarray
+  version "0.0.1"
+  resolved isarray-0.0.1.tgz#dd70eb842c577d5546a02ab2f01259ba6c91a585
+isexe@^1.1.1:
+  name isexe
+  version "1.1.2"
+  resolved isexe-1.1.2.tgz#436f9e33edbf99404d0c3e0930a5562212cc4679
+isobject@^2.0.0:
+  name isobject
+  version "2.1.0"
+  resolved isobject-2.1.0.tgz#a9bcda3ccd5c2e0ee6ea6b1d89764753c6865f5a
+  dependencies:
+    isarray "1.0.0"
+istextorbinary@^1.0.2:
+  name istextorbinary
+  version "1.0.2"
+  resolved istextorbinary-1.0.2.tgz#4745a8b228f05b0957e8af97283347feb1de59a7
+  dependencies:
+    binaryextensions "~1.0.0"
+    textextensions "~1.0.0"
+json-stable-stringify@^1.0.0:
+  name json-stable-stringify
+  version "1.0.1"
+  resolved json-stable-stringify-1.0.1.tgz#fe735d1caf664ae282a58e7e986197a4a93ae292
+  dependencies:
+    jsonify "~0.0.0"
+jsonify@~0.0.0:
+  name jsonify
+  version "0.0.0"
+  resolved jsonify-0.0.0.tgz#0071ce11d746819f4abdb98412ae2cabc88bc098
+kind-of@^3.0.2:
+  name kind-of
+  version "3.0.4"
+  resolved kind-of-3.0.4.tgz#ea2aabfa8fe41c1f26f06b09bd48e8382b84f770
+  dependencies:
+    is-buffer "^1.0.2"
+lazystream@^1.0.0:
+  name lazystream
+  version "1.0.0"
+  resolved lazystream-1.0.0.tgz#92d3451ac7fbfae9e3949167baf9b300d2747230
+  dependencies:
+    readable-stream "^2.0.5"
+levn@~0.3.0:
+  name levn
+  version "0.3.0"
+  resolved levn-0.3.0.tgz#99efdc805eb0c28f8f886173587f71624440ac93
+  dependencies:
+    prelude-ls "~1.1.2"
+    type-check "~0.3.2"
+load-json-file@^1.0.0:
+  name load-json-file
+  version "1.1.0"
+  resolved load-json-file-1.1.0.tgz#2ae359cee9b823badcb8036bdd3e5ecfdfdaa906
+  dependencies:
+    graceful-fs "^4.1.2"
+    parse-json "^2.2.0"
+    pify "^2.0.0"
+    pinkie-promise "^2.0.0"
+    strip-bom "^2.0.0"
+lodash._basecopy@^3.0.0:
+  name lodash._basecopy
+  version "3.0.1"
+  resolved lodash._basecopy-3.0.1.tgz#52f596a882a4eb63b759bf53512b6f5fca6636bb
+lodash._basetostring@^3.0.0:
+  name lodash._basetostring
+  version "3.0.1"
+  resolved lodash._basetostring-3.0.1.tgz#5f0d261337def3d96312783bb04701a96c9139e7
+lodash._basevalues@^3.0.0:
+  name lodash._basevalues
+  version "3.0.0"
+  resolved lodash._basevalues-3.0.0.tgz#270076a86e64d0069995514c33dfa5fcb6eacce7
+lodash._getnative@^3.0.0:
+  name lodash._getnative
+  version "3.9.1"
+  resolved lodash._getnative-3.9.1.tgz#bd0920a73331bb183fc459c5dc111e76fddf738f
+lodash._isiterateecall@^3.0.0:
+  name lodash._isiterateecall
+  version "3.0.9"
+  resolved lodash._isiterateecall-3.0.9.tgz#dd7d1f200cf9ceeed594bdb2fa55151228dbc1fc
+lodash._reescape@^3.0.0:
+  name lodash._reescape
+  version "3.0.0"
+  resolved lodash._reescape-3.0.0.tgz#0befd2d6e384b6cff01bdefa8093d8b4316da156
+lodash._reevaluate@^3.0.0:
+  name lodash._reevaluate
+  version "3.0.0"
+  resolved lodash._reevaluate-3.0.0.tgz#e690a70d6f63fbc872881343e9af2d6b5db9fa89
+lodash._reinterpolate@^3.0.0:
+  name lodash._reinterpolate
+  version "3.0.0"
+  resolved lodash._reinterpolate-3.0.0.tgz#4d2f160c5a209795f2ccb6bedbff605be95dfee5
+lodash._root@^3.0.0:
+  name lodash._root
+  version "3.0.1"
+  resolved lodash._root-3.0.1.tgz#9fe1908d0d2cb0abbfba8c274d14a51e47878af1
+lodash.escape@^3.0.0:
+  name lodash.escape
+  version "3.2.0"
+  resolved lodash.escape-3.2.0.tgz#aa2a1724fd8bc942e42995194da61e8ec83cf096
+  dependencies:
+    lodash._root "^3.0.0"
+lodash.isarguments@^3.0.0:
+  name lodash.isarguments
+  version "3.0.9"
+  resolved lodash.isarguments-3.0.9.tgz#018bae7aa0cc3334762f6945197c7243bad1744b
+lodash.isarray@^3.0.0:
+  name lodash.isarray
+  version "3.0.4"
+  resolved lodash.isarray-3.0.4.tgz#76d8b03a42079e36b101c3ed0e46529d947dd11e
+lodash.isequal@^4.0.0:
+  name lodash.isequal
+  version "4.3.1"
+  resolved lodash.isequal-4.3.1.tgz#664675ccd15401dd38057020360ca15c41bb3b90
+lodash.keys@^3.0.0:
+  name lodash.keys
+  version "3.1.2"
+  resolved lodash.keys-3.1.2.tgz#4eb23f21774f21e14d6f8450d07edf12b2d30a13
+  dependencies:
+    lodash._getnative "^3.0.0"
+    lodash.isarguments "^3.0.0"
+    lodash.isarray "^3.0.0"
+lodash.restparam@^3.0.0:
+  name lodash.restparam
+  version "3.6.1"
+  resolved lodash.restparam-3.6.1.tgz#18807c87292dec61ac24c7fd9cf1ba9810a0e2cb
+lodash.template@^3.0.0:
+  name lodash.template
+  version "3.6.2"
+  resolved lodash.template-3.6.2.tgz#419086c540a4abdcf3001f650152a0eea8980b2b
+  dependencies:
+    lodash._basecopy "^3.0.0"
+    lodash._basetostring "^3.0.0"
+    lodash._basevalues "^3.0.0"
+    lodash._isiterateecall "^3.0.0"
+    lodash._reinterpolate "^3.0.0"
+    lodash.escape "^3.0.0"
+    lodash.keys "^3.0.0"
+    lodash.restparam "^3.0.0"
+    lodash.templatesettings "^3.0.0"
+lodash.templatesettings@^3.0.0:
+  name lodash.templatesettings
+  version "3.1.1"
+  resolved lodash.templatesettings-3.1.1.tgz#ec22a7dfbde302de317b2c5f520686edcbb7db02
+  dependencies:
+    lodash._reinterpolate "^3.0.0"
+    lodash.escape "^3.0.0"
+lodash@^3.1.0, lodash@^3.10.1, lodash@^3.2.0, lodash@^3.3.1, lodash@^3.5.0, lodash@^3.6.0:
+  name lodash
+  version "3.10.1"
+  resolved lodash-3.10.1.tgz#756b10c41eef42aab4bdb0501c716024bb55d41c
+lodash@^4.11.1, lodash@^4.3.0, lodash@^4.6.1:
+  name lodash
+  version "4.14.1"
+  resolved lodash-4.14.1.tgz#ea24cabb57ce07b2c86b875a1c4213031709a31b
+log-symbols@^1.0.1:
+  name log-symbols
+  version "1.0.2"
+  resolved log-symbols-1.0.2.tgz#0b1643b7751414fcd5f2c0897caf4c8e04f4ba98
+  dependencies:
+    chalk "^1.0.0"
+lolex@1.3.2:
+  name lolex
+  version "1.3.2"
+  resolved lolex-1.3.2.tgz#f8284f41d9770e0f4144a8c83e05aadb4623b8a8
+loud-rejection@^1.0.0:
+  name loud-rejection
+  version "1.6.0"
+  resolved loud-rejection-1.6.0.tgz#4c8caaeb2f6bc0bce820a98b2fed97bdec462901
+  dependencies:
+    currently-unhandled "^0.4.1"
+    signal-exit "^3.0.0"
+lowercase-keys@^1.0.0:
+  name lowercase-keys
+  version "1.0.0"
+  resolved lowercase-keys-1.0.0.tgz#2860c55bad36abba5b87450a74e729adfcb413e1
+lru-cache@^4.0.0:
+  name lru-cache
+  version "4.0.1"
+  resolved lru-cache-4.0.1.tgz#eb4d5f6681b8070abecc4fb42a5f32eed0e5de1a
+  dependencies:
+    pseudomap "^1.0.1"
+    yallist "^2.0.0"
+map-obj@^1.0.0, map-obj@^1.0.1:
+  name map-obj
+  version "1.0.1"
+  resolved map-obj-1.0.1.tgz#f040a11687d74d2c695d696ef06654c34401419f
+mem-fs-editor@^2.0.0:
+  name mem-fs-editor
+  version "2.3.0"
+  resolved mem-fs-editor-2.3.0.tgz#bed9e61117d1297dc78628de6cfbf2b05406d8b6
+  dependencies:
+    commondir "^1.0.1"
+    deep-extend "^0.4.0"
+    ejs "^2.3.1"
+    glob "^7.0.3"
+    globby "^4.0.0"
+    mkdirp "^0.5.0"
+    multimatch "^2.0.0"
+    rimraf "^2.2.8"
+    through2 "^2.0.0"
+    vinyl "^1.1.0"
+mem-fs@^1.1.0:
+  name mem-fs
+  version "1.1.3"
+  resolved mem-fs-1.1.3.tgz#0afe80003e68406fda404c774337ced5eeb426a1
+  dependencies:
+    through2 "^2.0.0"
+    vinyl "^1.1.0"
+    vinyl-file "^2.0.0"
+meow@^3.1.0, meow@^3.3.0, meow@^3.5.0:
+  name meow
+  version "3.7.0"
+  resolved meow-3.7.0.tgz#f8ed6561549e941837f03b15af3cbceb379eac67
+  dependencies:
+    camelcase-keys "^2.0.0"
+    decamelize "^1.1.2"
+    loud-rejection "^1.0.0"
+    map-obj "^1.0.1"
+    minimist "^1.1.3"
+    normalize-package-data "^2.3.4"
+    object-assign "^4.0.1"
+    read-pkg-up "^1.0.1"
+    redent "^1.0.0"
+    trim-newlines "^1.0.0"
+merge-stream@^1.0.0:
+  name merge-stream
+  version "1.0.0"
+  resolved merge-stream-1.0.0.tgz#4740b694091142fe41fdb3ab6617c28b2fcc8920
+  dependencies:
+    readable-stream "^2.0.1"
+micromatch@^2.3.7:
+  name micromatch
+  version "2.3.11"
+  resolved micromatch-2.3.11.tgz#4684970bd74e510d4e80fafc40b7aa624850b88b
+  dependencies:
+    arr-diff "^2.0.0"
+    array-unique "^0.2.1"
+    braces "^1.8.2"
+    expand-brackets "^0.1.4"
+    extglob "^0.3.1"
+    filename-regex "^2.0.0"
+    is-extglob "^1.0.0"
+    is-glob "^2.0.1"
+    kind-of "^3.0.2"
+    normalize-path "^2.0.1"
+    object.omit "^2.0.0"
+    parse-glob "^3.0.4"
+    regex-cache "^0.4.2"
+mime@^1.2.9:
+  name mime
+  version "1.3.4"
+  resolved mime-1.3.4.tgz#7bde0b33dbfb5460bd2de80fb486fb75c61d101a
+minimatch@^2.0.1:
+  name minimatch
+  version "2.0.10"
+  resolved minimatch-2.0.10.tgz#7dca6ddaea3871c60c6f36399d6c07d71dcce918
+  dependencies:
+    brace-expansion "^1.0.0"
+minimatch@^3.0.0, minimatch@^3.0.2, "minimatch@2 || 3":
+  name minimatch
+  version "3.0.2"
+  resolved minimatch-3.0.2.tgz#0d13498919c7abdee870d48c4bf5c50aef3fb70a
+  dependencies:
+    brace-expansion "^1.0.0"
+minimist@^1.1.0, minimist@^1.1.3, minimist@^1.2.0:
+  name minimist
+  version "1.2.0"
+  resolved minimist-1.2.0.tgz#aa8ca78a3c7d63be17f83108167134d7569b9924
+minimist@0.0.8:
+  name minimist
+  version "0.0.8"
+  resolved minimist-0.0.8.tgz#5a9b8bdc6c8930561fac7b47e9d47cc5aa1944a9
+mkdirp@^0.5.0:
+  name mkdirp
+  version "0.5.1"
+  resolved mkdirp-0.5.1.tgz#44317ff8d60ea818dc7dc262b7dcd129c8467679
+  dependencies:
+    minimist "0.0.8"
+ms@0.7.1:
+  name ms
+  version "0.7.1"
+  resolved ms-0.7.1.tgz#99d02dba83e3794174b7ecffb82f1e399f8671de
+multimatch@^2.0.0:
+  name multimatch
+  version "2.1.0"
+  resolved multimatch-2.1.0.tgz#7c8a272f0f95f0705be5073f67927a30efd10e14
+  dependencies:
+    array-differ "^1.0.0"
+    array-union "^1.0.1"
+    arrify "^1.0.0"
+    minimatch "^3.0.0"
+multipipe@^0.1.2:
+  name multipipe
+  version "0.1.2"
+  resolved multipipe-0.1.2.tgz#f836de2067a162ebd58045100e81cf6e3ce42e01
+  dependencies:
+    duplexer2 "0.0.2"
+mute-stream@0.0.4:
+  name mute-stream
+  version "0.0.4"
+  resolved mute-stream-0.0.4.tgz#08dec7b2f43dfc009ed2190bec644420725cc1a1
+mute-stream@0.0.6:
+  name mute-stream
+  version "0.0.6"
+  resolved mute-stream-0.0.6.tgz#70edc3d27bea751c7beececb7e6a9c68dbcd9690
+node-status-codes@^1.0.0:
+  name node-status-codes
+  version "1.0.0"
+  resolved node-status-codes-1.0.0.tgz#c9311b8ed9f5e4201bc60ae569135d04934635be
+nopt@^3.0.0:
+  name nopt
+  version "3.0.6"
+  resolved nopt-3.0.6.tgz#12561d5fa1c6081a803ba986d6274ffbe2871e6a
+  dependencies:
+    abbrev "1"
+normalize-package-data@^2.3.2, normalize-package-data@^2.3.4:
+  name normalize-package-data
+  version "2.3.5"
+  resolved normalize-package-data-2.3.5.tgz#5bbe2df0ed33bc0dc9cc46bf06abd884bc441a2b
+  dependencies:
+    hosted-git-info "^2.1.4"
+    is-builtin-module "^1.0.0"
+    semver "2 || 3 || 4 || 5"
+    validate-npm-package-license "^3.0.1"
+normalize-path@^2.0.1:
+  name normalize-path
+  version "2.0.1"
+  resolved normalize-path-2.0.1.tgz#664a6eb402244dc4f77dc4780372b9e5a749c22b
+nth-check@~1.0.0:
+  name nth-check
+  version "1.0.1"
+  resolved nth-check-1.0.1.tgz#978eefef0bd56ea619fbc28c734f3331b8d07ee3
+  dependencies:
+    boolbase "~1.0.0"
+number-is-nan@^1.0.0:
+  name number-is-nan
+  version "1.0.0"
+  resolved number-is-nan-1.0.0.tgz#c207fdfe3de6308a03d8b23055321152bd064373
+object-assign@^2.0.0:
+  name object-assign
+  version "2.1.1"
+  resolved object-assign-2.1.1.tgz#8faab370c9ffe5d12b1ebc2a05159ec42cc02aed
+object-assign@^3.0.0:
+  name object-assign
+  version "3.0.0"
+  resolved object-assign-3.0.0.tgz#92eac44b2f1748aee854444a476b3eceb97f7dce
+object-assign@^4.0.0, object-assign@^4.0.1, object-assign@^4.1.0:
+  name object-assign
+  version "4.1.0"
+  resolved object-assign-4.1.0.tgz#c9a0b81d08f4d0c2066eba571a5d5ea9cda7620f
+object.omit@^2.0.0:
+  name object.omit
+  version "2.0.0"
+  resolved object.omit-2.0.0.tgz#6f53f9d457e47ec94d8bcb6cade587499e60b0ec
+  dependencies:
+    for-own "^0.1.3"
+    is-extendable "^0.1.1"
+once@^1.3.0, once@~1.3.0:
+  name once
+  version "1.3.3"
+  resolved once-1.3.3.tgz#4e36abdfa13382346fd7bb67b9807ae44ab65c49
+  dependencies:
+    wrappy "1"
+onetime@^1.0.0:
+  name onetime
+  version "1.1.0"
+  resolved onetime-1.1.0.tgz#8d4d86bd6cc7d99bf1a36426ee132b749b0337a3
+optionator@^0.8.1:
+  name optionator
+  version "0.8.1"
+  resolved optionator-0.8.1.tgz#c1631fa4e150ddb22b1299f2e4d8738cf46d2ff6
+  dependencies:
+    deep-is "~0.1.3"
+    fast-levenshtein "^1.1.0"
+    levn "~0.3.0"
+    prelude-ls "~1.1.2"
+    type-check "~0.3.2"
+    wordwrap "~1.0.0"
+ordered-read-streams@^0.3.0:
+  name ordered-read-streams
+  version "0.3.0"
+  resolved ordered-read-streams-0.3.0.tgz#430549fc43288d0a9e7944b9659ad753e72c03bc
+  dependencies:
+    is-stream "^1.0.1"
+    readable-stream "^2.0.1"
+os-homedir@^1.0.0:
+  name os-homedir
+  version "1.0.1"
+  resolved os-homedir-1.0.1.tgz#608b00d5effb1e610adb880a56916c1fbc8607ee
+os-shim@^0.1.2:
+  name os-shim
+  version "0.1.3"
+  resolved os-shim-0.1.3.tgz#6d4c7c52e4f967b798bfd87c2398423c7994ed31
+os-tmpdir@^1.0.0:
+  name os-tmpdir
+  version "1.0.1"
+  resolved os-tmpdir-1.0.1.tgz#0f801c0ab5628a397f78e01137b11785c943feca
+parse-glob@^3.0.4:
+  name parse-glob
+  version "3.0.4"
+  resolved parse-glob-3.0.4.tgz#22b9e38d708101e178ff9d469068cceb8bc688aa
+  dependencies:
+    glob-base "^0.3.0"
+    is-dotfile "^1.0.0"
+    is-extglob "^1.0.0"
+    is-glob "^2.0.0"
+parse-json@^2.1.0, parse-json@^2.2.0:
+  name parse-json
+  version "2.2.0"
+  resolved parse-json-2.2.0.tgz#d95030141999ea4b5c3e9b9559aec70815b09910
+  dependencies:
+    error-ex "^1.2.0"
+path-exists@^1.0.0:
+  name path-exists
+  version "1.0.0"
+  resolved path-exists-1.0.0.tgz#efb0234bd554e32c09a9b41a62da527a85b0a7ac
+path-exists@^2.0.0, path-exists@^2.1.0:
+  name path-exists
+  version "2.1.0"
+  resolved path-exists-2.1.0.tgz#5c28bca993338faaf7e339c0ed19785709475179
+  dependencies:
+    pinkie-promise "^2.0.0"
+path-is-absolute@^1.0.0:
+  name path-is-absolute
+  version "1.0.0"
+  resolved path-is-absolute-1.0.0.tgz#d9bac63cad29fd18a6691dd70d222fa0350b37ee
+path-type@^1.0.0:
+  name path-type
+  version "1.1.0"
+  resolved path-type-1.1.0.tgz#6b8ee9bd27336c064d9021aac1e6b3f999354754
+  dependencies:
+    graceful-fs "^4.1.2"
+    pify "^2.0.0"
+    pinkie-promise "^2.0.0"
+pend@~1.2.0:
+  name pend
+  version "1.2.0"
+  resolved pend-1.2.0.tgz#3e243b2f66a544db9ead07137546ba23c58358e3
+pify@^2.0.0, pify@^2.3.0:
+  name pify
+  version "2.3.0"
+  resolved pify-2.3.0.tgz#13400d6bf8b6753aa2a3cf0e1b4d15e099a78ff7
+pinkie-promise@^2.0.0:
+  name pinkie-promise
+  version "2.0.1"
+  resolved pinkie-promise-2.0.1.tgz#b515fa123ea94b7482a69601e7496073ccf7a3e6
+  dependencies:
+    pinkie "^2.0.0"
+pinkie@^2.0.0:
+  name pinkie
+  version "2.0.4"
+  resolved pinkie-2.0.4.tgz#585fbd5838f7b21f3768ea3e0f1afcd1d89fd254
+prelude-ls@~1.1.2:
+  name prelude-ls
+  version "1.1.2"
+  resolved prelude-ls-1.1.2.tgz#54475b34002ed4f7abe08e4574e8e4642318ef99
+prepend-http@^1.0.1:
+  name prepend-http
+  version "1.0.4"
+  resolved prepend-http-1.0.4.tgz#3969d7152cdd68a3e564dd67a9e8d26db5503a17
+preserve@^0.2.0:
+  name preserve
+  version "0.2.0"
+  resolved preserve-0.2.0.tgz#892f695d7f52bbd3bff62b6dc570a0d5b48b4632
+pretty-bytes@^2.0.1:
+  name pretty-bytes
+  version "2.0.1"
+  resolved pretty-bytes-2.0.1.tgz#361e962ad9bab6f89a432bc46577b9569e183fca
+  dependencies:
+    get-stdin "^4.0.1"
+    meow "^3.1.0"
+    number-is-nan "^1.0.0"
+process-nextick-args@~1.0.6:
+  name process-nextick-args
+  version "1.0.7"
+  resolved process-nextick-args-1.0.7.tgz#95c1397fbc55d6836061cdbef31e0331f2259ec6
+pseudomap@^1.0.1:
+  name pseudomap
+  version "1.0.2"
+  resolved pseudomap-1.0.2.tgz#0508f3f5d78386774fc311b74df9984b50eeb261
+randomatic@^1.1.3:
+  name randomatic
+  version "1.1.5"
+  resolved randomatic-1.1.5.tgz#27862be023dd25cc79816b9385bfd6fb9fe239ed
+  dependencies:
+    is-number "^2.0.2"
+    kind-of "^3.0.2"
+rc@^1.1.2:
+  name rc
+  version "1.1.6"
+  resolved rc-1.1.6.tgz#552ee1fff794d5c82cf37cdbbaf93a530f135b98
+  dependencies:
+    deep-extend "~0.4.0"
+    ini "~1.3.0"
+    minimist "^1.2.0"
+    strip-json-comments "~1.0.4"
+read-all-stream@^3.0.0:
+  name read-all-stream
+  version "3.1.0"
+  resolved read-all-stream-3.1.0.tgz#91e71ffa329dab9363b3fe64343979128d74df25
+  dependencies:
+    pinkie-promise "^2.0.0"
+    readable-stream "^2.0.0"
+read-chunk@^1.0.1:
+  name read-chunk
+  version "1.0.1"
+  resolved read-chunk-1.0.1.tgz#ddae3614dcf59980f661a5964d14be29be15ed52
+read-pkg-up@^1.0.1:
+  name read-pkg-up
+  version "1.0.1"
+  resolved read-pkg-up-1.0.1.tgz#63a084c41bffe1503e38b9023376362444003f89
+  dependencies:
+    find-up "^1.0.0"
+    read-pkg "^1.0.0"
+read-pkg@^1.0.0:
+  name read-pkg
+  version "1.1.0"
+  resolved read-pkg-1.1.0.tgz#db51846990dfaf730b17aebcfc0d75d90867fd65
+  dependencies:
+    load-json-file "^1.0.0"
+    normalize-package-data "^2.3.2"
+    path-type "^1.0.0"
+readable-stream@^2.0.0, readable-stream@^2.0.1, readable-stream@^2.0.2, readable-stream@^2.0.4, readable-stream@^2.0.5:
+  name readable-stream
+  version "2.1.4"
+  resolved readable-stream-2.1.4.tgz#ac72715a334e9dcce7bb159f4dae4c98f89af048
+  dependencies:
+    buffer-shims "^1.0.0"
+    core-util-is "~1.0.0"
+    inherits "~2.0.1"
+    isarray "~1.0.0"
+    process-nextick-args "~1.0.6"
+    string_decoder "~0.10.x"
+    util-deprecate "~1.0.1"
+"readable-stream@>=1.0.33-1 <1.1.0-0":
+  name readable-stream
+  version "1.0.34"
+  resolved readable-stream-1.0.34.tgz#be9298a85dd77b110f9a2075971e0d326b2dab7d
+  dependencies:
+    core-util-is "~1.0.0"
+    inherits "~2.0.1"
+    isarray "0.0.1"
+    string_decoder "~0.10.x"
+readable-stream@~1.1.9:
+  name readable-stream
+  version "1.1.14"
+  resolved readable-stream-1.1.14.tgz#153c6b93deb0e99425b32a6eaa4dafc4ce4c26a7
+  dependencies:
+    core-util-is "~1.0.0"
+    inherits "~2.0.1"
+    isarray "0.0.1"
+    string_decoder "~0.10.x"
+readable-stream@~2.0.0, readable-stream@~2.0.5:
+  name readable-stream
+  version "2.0.6"
+  resolved readable-stream-2.0.6.tgz#d75214c7cf353c96c3810449b425ba0944822c51
+  dependencies:
+    core-util-is "~1.0.0"
+    inherits "~2.0.1"
+    isarray "~1.0.0"
+    process-nextick-args "~1.0.6"
+    string_decoder "~0.10.x"
+    util-deprecate "~1.0.1"
+readable-stream@1.1:
+  name readable-stream
+  version "1.1.13"
+  resolved readable-stream-1.1.13.tgz#cc13435990b5940b0cca1361f18809c4ef1e10af
+  dependencies:
+    core-util-is "~1.0.0"
+    inherits "~2.0.1"
+    isarray "0.0.1"
+    string_decoder "~0.10.x"
+readline2@^0.1.1:
+  name readline2
+  version "0.1.1"
+  resolved readline2-0.1.1.tgz#11ff198030b339e9de547038d80cac5f9a81630d
+  dependencies:
+    mute-stream "0.0.4"
+    strip-ansi "^2.0.1"
+redent@^1.0.0:
+  name redent
+  version "1.0.0"
+  resolved redent-1.0.0.tgz#eb0bf03567c3b6f11ed3d51b89e41b2046a73894
+  dependencies:
+    indent-string "^2.1.0"
+    strip-indent "^1.0.1"
+regex-cache@^0.4.2:
+  name regex-cache
+  version "0.4.3"
+  resolved regex-cache-0.4.3.tgz#106b1ab990ab7723bcd8a839f5afe3d720174caf
+  dependencies:
+    is-equal-shallow "^0.1.3"
+    is-primitive "^2.0.0"
+repeat-element@^1.1.2:
+  name repeat-element
+  version "1.1.2"
+  resolved repeat-element-1.1.2.tgz#98a1ff7f9db4207b285682a6ca6b7dd2c0d0b370
+repeat-string@^1.5.2:
+  name repeat-string
+  version "1.5.4"
+  resolved repeat-string-1.5.4.tgz#7e0a49887861bf277b1ae8a04576023ce215e4cf
+repeating@^2.0.0:
+  name repeating
+  version "2.0.1"
+  resolved repeating-2.0.1.tgz#89ea98c57dcdf50ca21ef5b5f3cec9e0e5966b8b
+  dependencies:
+    is-finite "^1.0.0"
+replace-ext@0.0.1:
+  name replace-ext
+  version "0.0.1"
+  resolved replace-ext-0.0.1.tgz#91512d46e53383623ab06dcd762184eb2ddd11cd
+restore-cursor@^1.0.1:
+  name restore-cursor
+  version "1.0.1"
+  resolved restore-cursor-1.0.1.tgz#e68424f7a93a13dd5e64577ad7f71ddd7f637c1c
+  dependencies:
+    exit-hook "^1.0.0"
+    onetime "^1.0.0"
+rimraf@^2.2.0, rimraf@^2.2.8:
+  name rimraf
+  version "2.5.4"
+  resolved rimraf-2.5.4.tgz#d815aef42ff66140af6362701d4b9dd63e06d107
+  dependencies:
+    glob "^7.0.5"
+rimraf@~2.2.6:
+  name rimraf
+  version "2.2.8"
+  resolved rimraf-2.2.8.tgz#b4b8a20fdde8c8051e3c402b198925ac1be3257b
+run-async@^0.1.0:
+  name run-async
+  version "0.1.0"
+  resolved run-async-0.1.0.tgz#486db28a3c4568df39fe47985e9b6296507225dc
+  dependencies:
+    once "^1.3.0"
+run-async@^2.2.0:
+  name run-async
+  version "2.2.0"
+  resolved run-async-2.2.0.tgz#dfcdd3ba1ba5e2097f56b7b2c4ae7f223e761394
+  dependencies:
+    is-promise "^2.1.0"
+    pinkie-promise "^2.0.0"
+rx@^2.4.3:
+  name rx
+  version "2.5.3"
+  resolved rx-2.5.3.tgz#b8569b641367fe7f9e1b57a7c1547ff71a39bb06
+rx@^4.1.0:
+  name rx
+  version "4.1.0"
+  resolved rx-4.1.0.tgz#947cc1d3b2a22985fee3d768df76ae124f495c6b
+samsam@~1.1:
+  name samsam
+  version "1.1.3"
+  resolved samsam-1.1.3.tgz#63ca4798ebbc7eaca8414355d55c92c95ca8a079
+samsam@1.1.2:
+  name samsam
+  version "1.1.2"
+  resolved samsam-1.1.2.tgz#fa742583b5997f508f6d77329b92983a0faab06c
+seek-bzip@^1.0.3:
+  name seek-bzip
+  version "1.0.5"
+  resolved seek-bzip-1.0.5.tgz#5f6ecaa9107c40da267af7fd741f131aa54dc217
+  dependencies:
+    commander "~2.8.1"
+"semver@2 || 3 || 4 || 5":
+  name semver
+  version "5.3.0"
+  resolved semver-5.3.0.tgz#391301f71191ae7e9e38701dee125d7a8d232c49
+set-immediate-shim@^1.0.0:
+  name set-immediate-shim
+  version "1.0.1"
+  resolved set-immediate-shim-1.0.1.tgz#e8279fe57b695f740cfe3b751e239f1d1f3d5d92
+shelljs@^0.5.0:
+  name shelljs
+  version "0.5.3"
+  resolved shelljs-0.5.3.tgz#dbb8e90ea06eb99c3ae6df9923a896f7fdb300c4
+signal-exit@^3.0.0:
+  name signal-exit
+  version "3.0.0"
+  resolved signal-exit-3.0.0.tgz#da8944a8d07e97c06e746c5d1267fe1baf47e289
+sinon@^1.9.1:
+  name sinon
+  version "1.17.5"
+  resolved sinon-1.17.5.tgz#4861b332b866f5d78f3bc74a6a4572e3bea498e5
+  dependencies:
+    formatio "1.1.1"
+    lolex "1.3.2"
+    samsam "1.1.2"
+    util ">=0.10.3 <1"
+source-map@~0.2.0:
+  name source-map
+  version "0.2.0"
+  resolved source-map-0.2.0.tgz#6831898bc74cba8ab7079fdf5fe549a87123cb0c
+  dependencies:
+    amdefine ">=0.0.4"
+sparkles@^1.0.0:
+  name sparkles
+  version "1.0.0"
+  resolved sparkles-1.0.0.tgz#2dcb5989168fbc1a1ac82c5de97d3c513ff17581
+spawn-sync@^1.0.15:
+  name spawn-sync
+  version "1.0.15"
+  resolved spawn-sync-1.0.15.tgz#f845b8a5645cd2055bd3d7cd91a4f55bcdd81590
+  dependencies:
+    concat-stream "^1.4.7"
+    os-shim "^0.1.2"
+spdx-correct@~1.0.0:
+  name spdx-correct
+  version "1.0.2"
+  resolved spdx-correct-1.0.2.tgz#f4d8e3e772ee653fac88647e4564af0785f13e45
+  dependencies:
+    spdx-license-ids "^1.0.2"
+spdx-exceptions@^1.0.4:
+  name spdx-exceptions
+  version "1.0.5"
+  resolved spdx-exceptions-1.0.5.tgz#d2cd5392ac5063fdae4747012e36c3fd4a29e2ef
+spdx-expression-parse@~1.0.0:
+  name spdx-expression-parse
+  version "1.0.2"
+  resolved spdx-expression-parse-1.0.2.tgz#da564eb47f2ef4085c0f2738af79dc03ea7c469d
+  dependencies:
+    spdx-exceptions "^1.0.4"
+    spdx-license-ids "^1.0.0"
+spdx-license-ids@^1.0.0, spdx-license-ids@^1.0.2:
+  name spdx-license-ids
+  version "1.2.2"
+  resolved spdx-license-ids-1.2.2.tgz#c01dbc4f196f9b6ea81120b51069195b514ebd95
+sprintf-js@^1.0.3:
+  name sprintf-js
+  version "1.0.3"
+  resolved sprintf-js-1.0.3.tgz#3981c46628c619346cfdd2f40b3dbcdc87f95996
+stat-mode@^0.2.0:
+  name stat-mode
+  version "0.2.1"
+  resolved stat-mode-0.2.1.tgz#7ace7af9776458673226f97bf2c92778b3f9fed6
+stream-combiner2@^1.1.1:
+  name stream-combiner2
+  version "1.1.1"
+  resolved stream-combiner2-1.1.1.tgz#e2c9c04d05546a4c120d05e32bb718196e8449b4
+  dependencies:
+    duplexer2 "~0.1.0"
+    readable-stream "^2.0.2"
+stream-shift@^1.0.0:
+  name stream-shift
+  version "1.0.0"
+  resolved stream-shift-1.0.0.tgz#4dfa02c66b8f8b01e09e5b4c20d846676dbe7dec
+string_decoder@~0.10.x:
+  name string_decoder
+  version "0.10.31"
+  resolved string_decoder-0.10.31.tgz#9b0b269c4367e35fb053f0099f1a1c3d5fe44887
+string-width@^1.0.1:
+  name string-width
+  version "1.0.1"
+  resolved string-width-1.0.1.tgz#e690aca9ad72067fd1e3788d0c6d66542fa85b49
+  dependencies:
+    code-point-at "^1.0.0"
+    is-fullwidth-code-point "^1.0.0"
+    strip-ansi "^3.0.0"
+strip-ansi@^2.0.1:
+  name strip-ansi
+  version "2.0.1"
+  resolved strip-ansi-2.0.1.tgz#fab25c032531a70c97e57ad6e44efd526420b6e7
+  dependencies:
+    ansi-regex "^1.0.0"
+strip-ansi@^3.0.0:
+  name strip-ansi
+  version "3.0.1"
+  resolved strip-ansi-3.0.1.tgz#a70023f836596d3e0b8b00d87ca8d5612e36ffd9
+  dependencies:
+    ansi-regex "^2.0.0"
+strip-bom-stream@^1.0.0:
+  name strip-bom-stream
+  version "1.0.0"
+  resolved strip-bom-stream-1.0.0.tgz#baa738b4170886b0f7598a920ef2cba07c10cecb
+  dependencies:
+    first-chunk-stream "^1.0.0"
+    strip-bom "^2.0.0"
+strip-bom-stream@^2.0.0:
+  name strip-bom-stream
+  version "2.0.0"
+  resolved strip-bom-stream-2.0.0.tgz#dcf534170d8de8ada449a09dadf56c798bbb131a
+  dependencies:
+    first-chunk-stream "^2.0.0"
+    strip-bom "^2.0.0"
+strip-bom@^2.0.0:
+  name strip-bom
+  version "2.0.0"
+  resolved strip-bom-2.0.0.tgz#66e0e6636adcbb1fc4543fee3fae172d9198cb0d
+  dependencies:
+    is-utf8 "^0.2.0"
+strip-dirs@^1.0.0:
+  name strip-dirs
+  version "1.1.1"
+  resolved strip-dirs-1.1.1.tgz#c22b66d319425b90811a8b9808add3e48eee7fe6
+  dependencies:
+    chalk "^1.0.0"
+    get-stdin "^4.0.1"
+    is-absolute "^0.1.5"
+    is-natural-number "^2.0.0"
+    minimist "^1.1.0"
+    sum-up "^1.0.1"
+strip-indent@^1.0.1:
+  name strip-indent
+  version "1.0.1"
+  resolved strip-indent-1.0.1.tgz#282f873d2a1978ac396072d0f231f23a80c6841f
+  dependencies:
+    get-stdin "^4.0.1"
+strip-json-comments@~1.0.4:
+  name strip-json-comments
+  version "1.0.4"
+  resolved strip-json-comments-1.0.4.tgz#3ee7f4d005955704df8b26fec151af2d09605d76
+strip-outer@^1.0.0:
+  name strip-outer
+  version "1.0.0"
+  resolved strip-outer-1.0.0.tgz#2aec07b3ec9427711cb45d2bbe4bb69278dd631a
+  dependencies:
+    escape-string-regexp "^1.0.2"
+sum-up@^1.0.1:
+  name sum-up
+  version "1.0.3"
+  resolved sum-up-1.0.3.tgz#11d21c8197ef8567dc99137830d1f98a15525d88
+  dependencies:
+    chalk "^1.0.0"
+supports-color@^2.0.0:
+  name supports-color
+  version "2.0.0"
+  resolved supports-color-2.0.0.tgz#d13a9d8bc8937fb7c08125c2b39f070c87060e75
+tar-stream@^1.1.1:
+  name tar-stream
+  version "1.5.2"
+  resolved tar-stream-1.5.2.tgz#2946a2525e6572f484907212586d9cff63502946
+  dependencies:
+    bl "^1.0.0"
+    end-of-stream "^1.0.0"
+    readable-stream "^2.0.0"
+    xtend "^4.0.0"
+temp@^0.8.3:
+  name temp
+  version "0.8.3"
+  resolved temp-0.8.3.tgz#8a29ac1385f4a81901b55d91916ef562e238af8c
+  dependencies:
+    os-tmpdir "^1.0.0"
+    rimraf "~2.2.6"
+text-table@^0.2.0:
+  name text-table
+  version "0.2.0"
+  resolved text-table-0.2.0.tgz#80ac348b0162d9f5b86e7ab8e8067cfd209560ae
+textextensions@~1.0.0:
+  name textextensions
+  version "1.0.2"
+  resolved textextensions-1.0.2.tgz#dea1765e900634d9e7213f9193c53170f938455e
+through@^2.3.6:
+  name through
+  version "2.3.8"
+  resolved through-2.3.8.tgz#29149f82e4147f00c04df031525faa7825ec8602
+through2-filter@^2.0.0:
+  name through2-filter
+  version "2.0.0"
+  resolved through2-filter-2.0.0.tgz#919593cd64c66f47917f21db7cb58d7e241f6f93
+  dependencies:
+    through2 "~2.0.0"
+    xtend "~4.0.0"
+through2@^0.6.0, through2@^0.6.1:
+  name through2
+  version "0.6.5"
+  resolved through2-0.6.5.tgz#12a91aac60a12b5a29baab02dd073efca074dd87
+  dependencies:
+    readable-stream ">=1.0.33-1 <1.1.0-0"
+    xtend ">=4.0.0 <4.1.0-0"
+through2@^2.0.0, through2@~2.0.0:
+  name through2
+  version "2.0.1"
+  resolved through2-2.0.1.tgz#f12c27165e53caeb4ef1ba251b3b0005020c9475
+  dependencies:
+    readable-stream "~2.0.0"
+    xtend "~4.0.0"
+time-stamp@^1.0.0:
+  name time-stamp
+  version "1.0.1"
+  resolved time-stamp-1.0.1.tgz#1d461594211ee14b693eaaa3b0204394455ebab2
+timed-out@^2.0.0:
+  name timed-out
+  version "2.0.0"
+  resolved timed-out-2.0.0.tgz#50962be5e0d70f207af8f95a36cd3bfaa917a818
+to-absolute-glob@^0.1.1:
+  name to-absolute-glob
+  version "0.1.1"
+  resolved to-absolute-glob-0.1.1.tgz#8e7738af770f191a8802489a381c9779377946d7
+  dependencies:
+    extend-shallow "^2.0.1"
+traverse@^0.6.6:
+  name traverse
+  version "0.6.6"
+  resolved traverse-0.6.6.tgz#b2ec5b383da159a93fa734529c4aff24011f073c
+trim-newlines@^1.0.0:
+  name trim-newlines
+  version "1.0.0"
+  resolved trim-newlines-1.0.0.tgz#f012733b575875d78b32988571d41d127ec5e1ef
+trim-repeated@^1.0.0:
+  name trim-repeated
+  version "1.0.0"
+  resolved trim-repeated-1.0.0.tgz#52d4f780d38453c59ee1621efdcdcea4480c0e4f
+  dependencies:
+    escape-string-regexp "^1.0.2"
+tunnel-agent@^0.4.0:
+  name tunnel-agent
+  version "0.4.3"
+  resolved tunnel-agent-0.4.3.tgz#4855a7ee8d66aca7720077fe5b19a5dac1c8976d
+type-check@~0.3.2:
+  name type-check
+  version "0.3.2"
+  resolved type-check-0.3.2.tgz#b534e7646fe512fa449da86278a3ca2321ada4e9
+  dependencies:
+    prelude-ls "~1.1.2"
+typedarray@~0.0.5:
+  name typedarray
+  version "0.0.6"
+  resolved typedarray-0.0.6.tgz#242e2e6f71d2fe916b2382655c2a16d7b40ba0f5
+underscore.string@^3.0.3:
+  name underscore.string
+  version "3.3.4"
+  resolved underscore.string-3.3.4.tgz#c9008a08cafccb149fc53b586672a01c7408eba4
+  dependencies:
+    sprintf-js "^1.0.3"
+    util-deprecate "^1.0.2"
+unique-stream@^2.0.2:
+  name unique-stream
+  version "2.2.1"
+  resolved unique-stream-2.2.1.tgz#b957a06e487971c66f557299fd1f9af6d2d53eab
+  dependencies:
+    json-stable-stringify "^1.0.0"
+    through2-filter "^2.0.0"
+untildify@^2.0.0:
+  name untildify
+  version "2.1.0"
+  resolved untildify-2.1.0.tgz#5a51e256cc98992e6e714e3c8251a7b327bdcd53
+  dependencies:
+    os-homedir "^1.0.0"
+unzip-response@^1.0.0:
+  name unzip-response
+  version "1.0.0"
+  resolved unzip-response-1.0.0.tgz#c4431d749f72ce13cd418d8f8a7095b18b13c464
+url-parse-lax@^1.0.0:
+  name url-parse-lax
+  version "1.0.0"
+  resolved url-parse-lax-1.0.0.tgz#2c1484c4f1d3e9f1a869be3e39e7b624569e96e7
+  dependencies:
+    prepend-http "^1.0.1"
+user-home@^2.0.0:
+  name user-home
+  version "2.0.0"
+  resolved user-home-2.0.0.tgz#0d73dc34f07a9577da0d6eb45e25dc3123ea60a0
+  dependencies:
+    os-homedir "^1.0.0"
+util-deprecate@^1.0.2, util-deprecate@~1.0.1:
+  name util-deprecate
+  version "1.0.2"
+  resolved util-deprecate-1.0.2.tgz#3fd9ce91f13ba56c9106ea7fb9ea853da4b93194
+"util@>=0.10.3 <1":
+  name util
+  version "0.10.3"
+  resolved util-0.10.3.tgz#c2133572710aed37531d3ad8717d8231fe87b7d5
+  dependencies:
+    inherits "2.0.1"
+uuid@^2.0.1:
+  name uuid
+  version "2.0.2"
+  resolved uuid-2.0.2.tgz#5cbe73d78ef1457fa2bb95deacf2502cc8b8eb08
+vali-date@^1.0.0:
+  name vali-date
+  version "1.0.0"
+  resolved vali-date-1.0.0.tgz#c043582f9f5ea21053d2cdd34b4d00a924f3b364
+validate-npm-package-license@^3.0.1:
+  name validate-npm-package-license
+  version "3.0.1"
+  resolved validate-npm-package-license-3.0.1.tgz#9fb3252d1c7290206ab42f0a298fc83ac8e9f1ea
+  dependencies:
+    spdx-correct "~1.0.0"
+    spdx-expression-parse "~1.0.0"
+vinyl-assign@^1.0.1:
+  name vinyl-assign
+  version "1.2.1"
+  resolved vinyl-assign-1.2.1.tgz#9cd42315ad92b9230d123fc6cee23fbc6395d2f8
+  dependencies:
+    object-assign "^4.0.1"
+    readable-stream "^2.0.0"
+vinyl-file@^2.0.0:
+  name vinyl-file
+  version "2.0.0"
+  resolved vinyl-file-2.0.0.tgz#93b3cf07cd4e2baca8c3f902b4c1bc52708d4ce3
+  dependencies:
+    graceful-fs "^4.1.2"
+    pify "^2.3.0"
+    pinkie-promise "^2.0.0"
+    strip-bom "^2.0.0"
+    strip-bom-stream "^2.0.0"
+    vinyl "^1.1.0"
+vinyl-fs@^2.2.0:
+  name vinyl-fs
+  version "2.4.3"
+  resolved vinyl-fs-2.4.3.tgz#4c0d9db701b837357c192470c4f539c0cbb6438c
+  dependencies:
+    duplexify "^3.2.0"
+    glob-stream "^5.3.2"
+    graceful-fs "^4.0.0"
+    gulp-sourcemaps "^1.5.2"
+    is-valid-glob "^0.3.0"
+    lazystream "^1.0.0"
+    lodash.isequal "^4.0.0"
+    merge-stream "^1.0.0"
+    mkdirp "^0.5.0"
+    object-assign "^4.0.0"
+    readable-stream "^2.0.4"
+    strip-bom "^2.0.0"
+    strip-bom-stream "^1.0.0"
+    through2 "^2.0.0"
+    through2-filter "^2.0.0"
+    vali-date "^1.0.0"
+    vinyl "^1.0.0"
+vinyl@^0.4.3:
+  name vinyl
+  version "0.4.6"
+  resolved vinyl-0.4.6.tgz#19947374c859cc8c9e194fb449f2899be1b78471
+  dependencies:
+    clone "^0.2.0"
+    clone-stats "^0.0.1"
+vinyl@^0.5.0:
+  name vinyl
+  version "0.5.3"
+  resolved vinyl-0.5.3.tgz#1a6deee6f2637477234884ffb585cf5df9ac5edc
+  dependencies:
+    clone "^1.0.0"
+    clone-stats "^0.0.1"
+    replace-ext "0.0.1"
+vinyl@^1.0.0, vinyl@^1.1.0:
+  name vinyl
+  version "1.2.0"
+  resolved vinyl-1.2.0.tgz#6a8a2ba5b92dff99f4c3216ca6f0a97741f2474a
+  dependencies:
+    clone "^1.0.0"
+    clone-stats "^0.0.1"
+    replace-ext "0.0.1"
+ware@^1.2.0:
+  name ware
+  version "1.3.0"
+  resolved ware-1.3.0.tgz#b9b0f2a56b1a84f64b9733cf483bdbd8b600a05a
+  dependencies:
+    wrap-fn "^0.1.0"
+which@^1.2.8:
+  name which
+  version "1.2.10"
+  resolved which-1.2.10.tgz#de24c7186150d5df6639e1904ca7c7e695f9e68d
+  dependencies:
+    isexe "^1.1.1"
+wordwrap@~1.0.0:
+  name wordwrap
+  version "1.0.0"
+  resolved wordwrap-1.0.0.tgz#9258d4e8c581ebcd6ae2d02a1c31170dda169758
+wrap-fn@^0.1.0:
+  name wrap-fn
+  version "0.1.5"
+  resolved wrap-fn-0.1.5.tgz#e6e713bef9fe367e0f330254da10f00dd25ec4d7
+  dependencies:
+    co "3.1.0"
+wrappy@1:
+  name wrappy
+  version "1.0.2"
+  resolved wrappy-1.0.2.tgz#0afed1d270ac738e01fc1c8da927f46622b3b113
+xdg-basedir@^2.0.0:
+  name xdg-basedir
+  version "2.0.0"
+  resolved xdg-basedir-2.0.0.tgz#a599df2cc843baf196f2673034c2a4ce08d55bf2
+  dependencies:
+    os-homedir "^1.0.0"
+xtend@^4.0.0, "xtend@>=4.0.0 <4.1.0-0", xtend@~4.0.0:
+  name xtend
+  version "4.0.1"
+  resolved xtend-4.0.1.tgz#32285b7a855488d476cafc73951e425757d9850a
+yallist@^2.0.0:
+  name yallist
+  version "2.0.0"
+  resolved yallist-2.0.0.tgz#287ccf1e16494755bb6126182e14517e71de477e
+yauzl@^2.2.1:
+  name yauzl
+  version "2.6.0"
+  resolved yauzl-2.6.0.tgz#8e445b9f067ec08488e351027a705c07b3fd297c
+  dependencies:
+    buffer-crc32 "~0.2.3"
+    fd-slicer "~1.0.1"
+yeoman-assert@^2.0.0:
+  name yeoman-assert
+  version "2.2.1"
+  resolved yeoman-assert-2.2.1.tgz#7adaee31d21cbdbe2c60128c659801945cc19706
+  dependencies:
+    lodash "^3.6.0"
+    path-exists "^2.1.0"
+yeoman-environment@^1.1.0:
+  name yeoman-environment
+  version "1.6.3"
+  resolved yeoman-environment-1.6.3.tgz#fb3a1a7580f3ad5fae6deea5bbaaf45d0aa08e75
+  dependencies:
+    chalk "^1.0.0"
+    debug "^2.0.0"
+    diff "^2.1.2"
+    escape-string-regexp "^1.0.2"
+    globby "^4.0.0"
+    grouped-queue "^0.3.0"
+    inquirer "^1.0.2"
+    lodash "^4.11.1"
+    log-symbols "^1.0.1"
+    mem-fs "^1.1.0"
+    text-table "^0.2.0"
+    untildify "^2.0.0"
+yeoman-environment@~1.2.7:
+  name yeoman-environment
+  version "1.2.7"
+  resolved yeoman-environment-1.2.7.tgz#5dabe21087c69ed2f0654e14100f39fe294c5f8c
+  dependencies:
+    chalk "^1.0.0"
+    debug "^2.0.0"
+    diff "^1.0.4"
+    escape-string-regexp "^1.0.2"
+    globby "^2.0.0"
+    grouped-queue "^0.3.0"
+    inquirer "^0.8.0"
+    lodash "^3.1.0"
+    log-symbols "^1.0.1"
+    mem-fs "^1.1.0"
+    text-table "^0.2.0"
+    untildify "^2.0.0"
+yeoman-generator@^0.20.3:
+  name yeoman-generator
+  version "0.20.3"
+  resolved yeoman-generator-0.20.3.tgz#d25310900118e28d43d5b95fe6112b825120179b
+  dependencies:
+    async "^1.4.2"
+    chalk "^1.0.0"
+    class-extend "^0.1.0"
+    cli-table "^0.3.1"
+    cross-spawn "^2.0.0"
+    dargs "^4.0.0"
+    dateformat "^1.0.11"
+    debug "^2.1.0"
+    detect-conflict "^1.0.0"
+    diff "^2.0.2"
+    download "^4.1.2"
+    findup-sync "^0.2.1"
+    github-username "^2.0.0"
+    glob "^5.0.3"
+    gruntfile-editor "^1.0.0"
+    html-wiring "^1.0.0"
+    inquirer "^0.8.0"
+    istextorbinary "^1.0.2"
+    lodash "^3.5.0"
+    mem-fs-editor "^2.0.0"
+    mime "^1.2.9"
+    mkdirp "^0.5.0"
+    nopt "^3.0.0"
+    path-exists "^1.0.0"
+    path-is-absolute "^1.0.0"
+    pretty-bytes "^2.0.1"
+    read-chunk "^1.0.1"
+    rimraf "^2.2.0"
+    run-async "^0.1.0"
+    shelljs "^0.5.0"
+    sinon "^1.9.1"
+    text-table "^0.2.0"
+    through2 "^2.0.0"
+    underscore.string "^3.0.3"
+    user-home "^2.0.0"
+    xdg-basedir "^2.0.0"
+    yeoman-assert "^2.0.0"
+    yeoman-environment "^1.1.0"
+    yeoman-welcome "^1.0.0"
+yeoman-welcome@^1.0.0:
+  name yeoman-welcome
+  version "1.0.1"
+  resolved yeoman-welcome-1.0.1.tgz#ece099a145edb1412c1e4df2937a84357a5f75dd
+  dependencies:
+    chalk "^1.0.0"

@@ -8,9 +8,9 @@
 /*eslint-disable no-undef */
 require("shelljs/global");
 
-cd("fixtures/install");
-let files = ls("common-mirror");
-cd("common-mirror");
+cd("__tests__/fixtures/install");
+let files = ls("common-mirror-2");
+cd("common-mirror-2");
 
 for(let file of files) {
   echo("repacking", file);

@@ -925,6 +925,38 @@ xit("[network] install --save with new dependency should be deterministic 2", as
   });
 });
 
+// https://github.com/facebook/fbkpm/issues/161 case with yeoman changes
+xit("[network] install --save with new dependency should be deterministic 3", async (done) => {
+
+  let fixture = "install-should-cleanup-when-package-json-changed-3";
+  let cwd = path.join(fixturesLoc, fixture);
+  await fs.copy(path.join(cwd, "kpm.lock.before"), path.join(cwd, "kpm.lock"));
+  await fs.copy(path.join(cwd, "package.json.before"), path.join(cwd, "package.json"));
+
+  return run({}, [], fixture, async (config, reporter) => {
+
+    // expecting kpm check after installation not to fail
+
+    await fs.copy(path.join(cwd, "kpm.lock.after"), path.join(cwd, "kpm.lock"));
+    await fs.copy(path.join(cwd, "package.json.after"), path.join(cwd, "package.json"));
+
+    let lockfile = await createLockfile(config.cwd, false, true);
+    let install = new Install("install", {save: true}, [], config, reporter, lockfile);
+    await install.init();
+    let allCorrect = true;
+    try {
+      await check(config, reporter, {}, []);
+    } catch(err) {
+      allCorrect = false;
+    }
+    expect(allCorrect).toBe(true);
+
+    // cleanup
+    await fs.unlink(path.join(config.cwd, "kpm.lock"));
+    await fs.unlink(path.join(config.cwd, "package.json"));
+  });
+});
+
 test("[network] install --save should ignore cache", () => {
   // left-pad@1.1.0 gets installed without --save
   // left-pad@1.1.0 gets installed with --save
