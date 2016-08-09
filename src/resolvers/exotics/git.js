@@ -92,7 +92,7 @@ export default class GitResolver extends ExoticResolver {
 
         // create the request pattern. if we have a `hash` then it'll be url encoded and
         // start with a #
-        let url = `${pathname}${decodeURIComponent(parts.hash || "")}`;
+        let url = `${pathname}${this.hash ? "#" + decodeURIComponent(this.hash) : ""}`;
         return this.fork(Resolver, false, url);
       }
     }
