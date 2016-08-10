@@ -925,7 +925,7 @@ test("[network] install --save with new dependency should be deterministic 2", a
   });
 });
 
-test("[network] install --save with new dependency should be deterministic 3", async (done) => {
+test("[network] install --save with new dependency should be deterministic 3", async () => {
 
   let fixture = "install-should-cleanup-when-package-json-changed-3";
   let cwd = path.join(fixturesLoc, fixture);
@@ -1014,7 +1014,7 @@ test("[network] install --save should not make package.json strict", async () =>
       }
     );
 
-    await fs.unlink(path.join(config.cwd, `${mirrorPath}/left-pad-1.1.0.tgz`));
+    await fs.unlink(path.join(config.cwd, `${mirrorPath}/left-pad-*.tgz`));
     await fs.unlink(path.join(config.cwd, "package.json"));
     await fs.unlink(path.join(config.cwd, "kpm.lock"));
 

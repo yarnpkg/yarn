@@ -157,7 +157,7 @@ export class Install {
     this.reporter.step(1, 4, "Checking current installation of node_modules", emoji.get("heavy_check_mark"));
     try {
       await check(this.config, this.reporter, {}, []);
-      if (this.args.length === 0) {
+      if (this.args.length === 0 && this.action === "install") {
         // current node_modules satisfies the lock file
         this.reporter.success("node_modules are consistent with the lock file, finishing");
         return;
