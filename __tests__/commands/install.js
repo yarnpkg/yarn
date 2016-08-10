@@ -871,8 +871,7 @@ test("[network] install --save with new dependency should be deterministic", asy
   });
 });
 
-// TODO https://github.com/facebook/kpm/issues/79
-xit("[network] install --save with new dependency should be deterministic 2", async () => {
+test("[network] install --save with new dependency should be deterministic 2", async () => {
   // mime-types@2.0.0->mime-db@1.0.1 is saved in local mirror and is deduped
   // install mime-db@1.0.3 should replace mime-db@1.0.1 in root
 
@@ -925,8 +924,7 @@ xit("[network] install --save with new dependency should be deterministic 2", as
   });
 });
 
-// https://github.com/facebook/fbkpm/issues/161 case with yeoman changes
-xit("[network] install --save with new dependency should be deterministic 3", async (done) => {
+test("[network] install --save with new dependency should be deterministic 3", async (done) => {
 
   let fixture = "install-should-cleanup-when-package-json-changed-3";
   let cwd = path.join(fixturesLoc, fixture);
