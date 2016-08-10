@@ -157,9 +157,11 @@ export class Install {
     this.reporter.step(1, 4, "Checking current installation of node_modules", emoji.get("heavy_check_mark"));
     try {
       await check(this.config, this.reporter, {}, []);
-      // current node_modules satisfies the lock file
-      this.reporter.info("node_modules are consistent with the lock file, finishing");
-      return;
+      if (this.args.length === 0) {
+        // current node_modules satisfies the lock file
+        this.reporter.success("node_modules are consistent with the lock file, finishing");
+        return;
+      }
     } catch (error) {
       // cleanup node_modules
       this.reporter.info("Removing node_modules to have a clean installation");

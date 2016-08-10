@@ -127,7 +127,7 @@ test("[network] install with arg that has binaries", () => {
   return run({}, ["react-native-cli"], "install-with-arg-and-bin");
 });
 
-test("[network] install with --save and offline mirror", () => {
+fit("[network] install with --save and offline mirror", () => {
   let mirrorPath = "mirror-for-offline";
   return run({save: true}, ["is-array@^1.0.1"], "install-with-save-offline-mirror", async (config) => {
     let allFiles = await fs.walk(config.cwd);
