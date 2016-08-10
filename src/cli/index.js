@@ -147,18 +147,12 @@ const runEventually = (): Promise<void> => {
 
       socket.on("connect", () => {}).on("data", () => {
         socket.unref();
-        ok(runEventually().then(process.exit));
+        setTimeout(() => {
+          ok(runEventually().then(process.exit))
+        }, 200);
       }).on("error", (e) => {
-        // the process finished while we were handling the error.
-        if (e.code === "ECONNREFUSED") {
-          try {
-            fs.unlinkSync(socketFile);
-          } catch (e) {} // some other instance won the race to delete the file
-        }
-
         ok(runEventually().then(process.exit));
       });
-
     });
 
     const clean = () => {
@@ -167,6 +161,9 @@ const runEventually = (): Promise<void> => {
         client.write("closing. kthanx, bye.");
       });
       unixServer.close();
+      try {
+        fs.unlinkSync(socketFile);
+      } catch (e) {}
       process.exit();
     };
 
