@@ -871,7 +871,8 @@ test("[network] install --save with new dependency should be deterministic", asy
   });
 });
 
-test("[network] install --save with new dependency should be deterministic 2", async () => {
+// TODO https://github.com/facebook/kpm/issues/79
+xit("[network] install --save with new dependency should be deterministic 2", async () => {
   // mime-types@2.0.0->mime-db@1.0.1 is saved in local mirror and is deduped
   // install mime-db@1.0.3 should replace mime-db@1.0.1 in root
 
@@ -907,6 +908,10 @@ test("[network] install --save with new dependency should be deterministic 2", a
           "mime-db": "1.0.3"
         }
       );
+
+      let lockFileWritten = await fs.readFile(path.join(config.cwd, "kpm.lock"));
+      let lockFileLines = lockFileWritten.split("\n").filter((line) => !!line);
+      assert.equal(lockFileLines.length, 10);
 
       let mirror = await fs.walk(path.join(config.cwd, mirrorPath));
       assert.equal(mirror.length, 3);
@@ -947,32 +952,6 @@ test("[network] install --save with new dependency should be deterministic 3", a
     // cleanup
     await fs.unlink(path.join(config.cwd, "kpm.lock"));
     await fs.unlink(path.join(config.cwd, "package.json"));
-  });
-});
-
-xit("[network] install --save should cleanup lockfile", async () => {
-  // mime-types@2.0.0->mime-db@1.0.1 is saved in local mirror and is deduped
-  // install mime-db@1.0.3 should replace mime-db@1.0.1 in root
-
-  let fixture = "install-cleanup";
-  let mirrorPath = "mirror-for-offline";
-  let cwd = path.join(fixturesLoc, fixture);
-  await fs.copy(path.join(cwd, "kpm.lock.before"), path.join(cwd, "kpm.lock"));
-  await fs.copy(path.join(cwd, "package.json.before"), path.join(cwd, "package.json"));
-
-  return run({}, [], fixture, async (config) => {
-
-    return run({save: true}, ["mime-db@1.0.3"], fixture, async (config) => {
-
-      let lockFileWritten = await fs.readFile(path.join(config.cwd, "kpm.lock"));
-      let lockFileLines = lockFileWritten.split("\n").filter((line) => !!line);
-      assert.equal(lockFileLines.length, 10);
-
-      let mirror = await fs.walk(path.join(config.cwd, mirrorPath));
-      await fs.unlink(mirror[1].absolute);
-      await fs.unlink(path.join(config.cwd, "kpm.lock"));
-      await fs.unlink(path.join(config.cwd, "package.json"));
-    });
   });
 });
 
