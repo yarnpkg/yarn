@@ -908,12 +908,6 @@ test("[network] install --save with new dependency should be deterministic 2", a
         }
       );
 
-      let lockFileWritten = await fs.readFile(path.join(config.cwd, "kpm.lock"));
-      let lockFileLines = lockFileWritten.split("\n").filter((line) => !!line);
-      // TODO lock file needs to be cleaned
-      // assert.equal(lockFileLines.length, 10);
-
-
       let mirror = await fs.walk(path.join(config.cwd, mirrorPath));
       assert.equal(mirror.length, 3);
       assert.equal(mirror[1].relative, "mime-db-1.0.3.tgz");
@@ -956,6 +950,32 @@ test("[network] install --save with new dependency should be deterministic 3", a
   });
 });
 
+xit("[network] install --save should cleanup lockfile", async () => {
+  // mime-types@2.0.0->mime-db@1.0.1 is saved in local mirror and is deduped
+  // install mime-db@1.0.3 should replace mime-db@1.0.1 in root
+
+  let fixture = "install-cleanup";
+  let mirrorPath = "mirror-for-offline";
+  let cwd = path.join(fixturesLoc, fixture);
+  await fs.copy(path.join(cwd, "kpm.lock.before"), path.join(cwd, "kpm.lock"));
+  await fs.copy(path.join(cwd, "package.json.before"), path.join(cwd, "package.json"));
+
+  return run({}, [], fixture, async (config) => {
+
+    return run({save: true}, ["mime-db@1.0.3"], fixture, async (config) => {
+
+      let lockFileWritten = await fs.readFile(path.join(config.cwd, "kpm.lock"));
+      let lockFileLines = lockFileWritten.split("\n").filter((line) => !!line);
+      assert.equal(lockFileLines.length, 10);
+
+      let mirror = await fs.walk(path.join(config.cwd, mirrorPath));
+      await fs.unlink(mirror[1].absolute);
+      await fs.unlink(path.join(config.cwd, "kpm.lock"));
+      await fs.unlink(path.join(config.cwd, "package.json"));
+    });
+  });
+});
+
 test("[network] install --save should ignore cache", () => {
   // left-pad@1.1.0 gets installed without --save
   // left-pad@1.1.0 gets installed with --save
@@ -994,7 +1014,6 @@ test("[network] install --save should ignore cache", () => {
 
     await fs.unlink(path.join(config.cwd, mirrorPath));
     await fs.unlink(path.join(config.cwd, "package.json"));
-
   });
 });
 
