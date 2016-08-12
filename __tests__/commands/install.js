@@ -1042,7 +1042,7 @@ test("[network] install --save-exact should not make all package.json strict", a
   });
 });
 
-fit("check should verify that top level dependencies are installed correctly", async () => {
+test("check should verify that top level dependencies are installed correctly", async () => {
   let mirrorPath = "mirror-for-offline";
   let fixture = "check-top-correct";
 
