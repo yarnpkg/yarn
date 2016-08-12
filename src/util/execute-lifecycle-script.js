@@ -44,7 +44,7 @@ export default async function (config: Config, cwd: string, cmds: Array<string>)
     // join path back together
     env[constants.ENV_PATH_KEY] = pathParts.join(path.delimiter);
 
-    let [stdout, stderr] = await child.exec(cmd, { cwd, env });
+    let [stdout, stderr] = await child.exec(cmd, { cwd, env, maxBuffer: 1024*1024 });
     results.push({ cwd, command: cmd, stdout, stderr });
   }
 

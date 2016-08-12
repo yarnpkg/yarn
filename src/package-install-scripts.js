@@ -69,12 +69,21 @@ export default class PackageInstallScripts {
   }
 
   async init(): Promise<void> {
-    let pkgs = this.resolver.getManifests();
+    let pkgs = this.resolver.getManifests().sort((pkg, pkg2) => {
+      if(pkg.name === 'ocaml' || pkg2.name === 'reason') {
+        return -1;
+      }
+      if (pkg.name === 'reason' || pkg2.name === 'ocaml') {
+        return 1;
+      }
+      return 0;
+    });
 
     // refine packages to those with install commands
     let refinedInfos = [];
     for (let pkg of pkgs) {
       let cmds = this.getInstallCommands(pkg);
+      console.log("cmds", pkg.name, cmds)
       if (!cmds.length) continue;
 
       let ref = pkg.reference;
@@ -100,6 +109,6 @@ export default class PackageInstallScripts {
       return this.install(cmds, pkg).then(function () {
         tick(pkg.name);
       });
-    });
+    }, 1);
   }
 }
