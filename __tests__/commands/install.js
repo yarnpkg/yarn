@@ -913,7 +913,6 @@ xit("[network] install --save with new dependency should be deterministic 2", as
       let lockFileLines = lockFileWritten.split("\n").filter((line) => !!line);
       assert.equal(lockFileLines.length, 10);
 
-
       let mirror = await fs.walk(path.join(config.cwd, mirrorPath));
       assert.equal(mirror.length, 3);
       assert.equal(mirror[1].relative, "mime-db-1.0.3.tgz");
@@ -925,8 +924,7 @@ xit("[network] install --save with new dependency should be deterministic 2", as
   });
 });
 
-// https://github.com/facebook/fbkpm/issues/161 case with yeoman changes
-xit("[network] install --save with new dependency should be deterministic 3", async (done) => {
+test("[network] install --save with new dependency should be deterministic 3", async () => {
 
   let fixture = "install-should-cleanup-when-package-json-changed-3";
   let cwd = path.join(fixturesLoc, fixture);
@@ -995,7 +993,6 @@ test("[network] install --save should ignore cache", () => {
 
     await fs.unlink(path.join(config.cwd, mirrorPath));
     await fs.unlink(path.join(config.cwd, "package.json"));
-
   });
 });
 
@@ -1015,7 +1012,7 @@ test("[network] install --save should not make package.json strict", async () =>
       }
     );
 
-    await fs.unlink(path.join(config.cwd, `${mirrorPath}/left-pad-1.1.0.tgz`));
+    await fs.unlink(path.join(config.cwd, `${mirrorPath}/left-pad-*.tgz`));
     await fs.unlink(path.join(config.cwd, "package.json"));
     await fs.unlink(path.join(config.cwd, "kpm.lock"));
 
