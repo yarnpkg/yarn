@@ -173,7 +173,8 @@ export async function run(
 
           let packageJson = await fs.readJson(loc);
           if (packageJson.version === depPkg.version ||
-             (semver.satisfies(packageJson.version, range) && semver.gt(packageJson.version, depPkg.version))) {
+             (semver.satisfies(packageJson.version, range) &&
+             semver.gt(packageJson.version, depPkg.version))) {
             reporter.warn(
               `${subHuman} could be deduped from ${packageJson.version} to ` +
               `${humaniseLocation(path.dirname(loc)).join("#")}@${packageJson.version}`
