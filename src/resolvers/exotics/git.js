@@ -63,8 +63,8 @@ export default class GitResolver extends ExoticResolver {
     if (parts.hostname && parts.path) {
       let path = parts.path;
       if (GIT_HOSTS.indexOf(parts.hostname) >= 0) {
-        // only if dependency is pointing to a github name,
-        // e.g. facebook/flow and not facebook/flow/archive/v1.0.0.tar.gz
+        // only if dependency is pointing to a git repo,
+        // e.g. facebook/flow and not file in a git repo facebook/flow/archive/v1.0.0.tar.gz
         return path.split("/").filter((p): boolean => !!p).length === 2;
       }
     }
