@@ -95,7 +95,7 @@ async function run(
       }
     } finally {
       // clean up
-      // await clean(cwd, removeLock);
+      await clean(cwd, removeLock);
     }
   } catch (err) {
     throw `${err} \nConsole output:\n ${out}`;
@@ -1042,7 +1042,7 @@ test("[network] install --save-exact should not make all package.json strict", a
   });
 });
 
-test("check should verify that top level dependencies are installed correctly", async () => {
+fit("check should verify that top level dependencies are installed correctly", async () => {
   let mirrorPath = "mirror-for-offline";
   let fixture = "check-top-correct";
 
