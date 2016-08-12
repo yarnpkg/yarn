@@ -25,6 +25,8 @@ let _        = require("lodash");
 // we purposefully omit https and http as those are only valid if they end in the .git extension
 const GIT_PROTOCOLS = ["git", "git+ssh", "git+https", "ssh"];
 
+const GIT_HOSTS = ["github.com", "gitlab.com", "bitbucket.com"];
+
 export default class GitResolver extends ExoticResolver {
   constructor(request: PackageRequest, fragment: string) {
     super(request, fragment);
@@ -55,6 +57,15 @@ export default class GitResolver extends ExoticResolver {
     if (parts.protocol) {
       if (GIT_PROTOCOLS.indexOf(parts.protocol) >= 0) {
         return true;
+      }
+    }
+
+    if (parts.hostname && parts.path) {
+      let path = parts.path;
+      if (GIT_HOSTS.indexOf(parts.hostname) >= 0) {
+        // only if dependency is pointing to a git repo,
+        // e.g. facebook/flow and not file in a git repo facebook/flow/archive/v1.0.0.tar.gz
+        return path.split("/").filter((p): boolean => !!p).length === 2;
       }
     }
 
