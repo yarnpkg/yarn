@@ -1041,3 +1041,28 @@ test("[network] install --save-exact should not make all package.json strict", a
 
   });
 });
+
+test("check should verify that top level dependencies are installed correctly", async () => {
+  let mirrorPath = "mirror-for-offline";
+  let fixture = "check-top-correct";
+
+  return run({}, [], fixture, async (config, reporter) => {
+
+    let pkgDep = JSON.parse(await fs.readFile(path.join(config.cwd,
+      "node_modules/fake-kpm-dependency/package.json")));
+    pkgDep.version = "2.0.0";
+    await fs.writeFile(
+      path.join(config.cwd, "node_modules/fake-kpm-dependency/package.json"),
+      JSON.stringify(pkgDep, null, 4),
+    );
+
+    let allCorrect = false;
+    try {
+      await check(config, reporter, {}, []);
+    } catch (err) {
+      allCorrect = true;
+    }
+    expect(allCorrect).toBe(true);
+
+  });
+});

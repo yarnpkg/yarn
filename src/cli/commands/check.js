@@ -85,7 +85,7 @@ export async function run(
 
     // check if any of the node_modules are out of sync
     let res = await install.linker.getFlatHoistedTree(rawPatterns);
-    for (let [loc, { originalKey }] of res) {
+    for (let [loc, { originalKey, pkg }] of res) {
       let parts = humaniseLocation(loc);
 
       // grey out hoisted portions of key
@@ -116,10 +116,13 @@ export async function run(
       if (!(await fs.exists(loc)) || !(await fs.exists(pkgLoc))) {
         reportError(`${human} not installed`);
       }
+      let packageJson = await fs.readJson(pkgLoc);
+      if (pkg.version !== packageJson.version) {
+        // node_modules contains wrong version
+        reportError(`${human} is wrong version: expected ${pkg.version}, got ${packageJson.version}`);
+      }
 
-      let pkg = await fs.readJson(pkgLoc);
-
-      let deps = Object.assign({}, pkg.dependencies, pkg.peerDependencies);
+      let deps = Object.assign({}, packageJson.dependencies, packageJson.peerDependencies);
 
       for (let name in deps) {
         let range = deps[name];
@@ -168,12 +171,13 @@ export async function run(
         for (let loc of possibles) {
           if (!await fs.exists(loc)) continue;
 
-          let pkg = await fs.readJson(loc);
-          if (pkg.version === depPkg.version ||
-             (semver.satisfies(pkg.version, range) && semver.gt(pkg.version, depPkg.version))) {
+          let packageJson = await fs.readJson(loc);
+          if (packageJson.version === depPkg.version ||
+             (semver.satisfies(packageJson.version, range) &&
+             semver.gt(packageJson.version, depPkg.version))) {
             reporter.warn(
-              `${subHuman} could be deduped from ${pkg.version} to ` +
-              `${humaniseLocation(path.dirname(loc)).join("#")}@${pkg.version}`
+              `${subHuman} could be deduped from ${packageJson.version} to ` +
+              `${humaniseLocation(path.dirname(loc)).join("#")}@${packageJson.version}`
             );
             warningCount++;
           }
