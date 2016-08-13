@@ -78,7 +78,7 @@ export default class Git {
    */
 
   static isCommitHash(target: string): boolean {
-    return !!target && /^[a-f0-9]{40}$/.test(target);
+    return !!target && /^[a-f0-9]{5,40}$/.test(target);
   }
 
   /**
