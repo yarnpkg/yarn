@@ -190,7 +190,7 @@ export class Install {
     // fin!
     await this.maybeSaveTree(patterns);
     await this.savePackages();
-    await this.saveLockfile();
+    await this.saveLockfileAndIntegrity();
   }
 
   /**
@@ -311,10 +311,20 @@ export class Install {
    * TODO
    */
 
-  async saveLockfile(): Promise<void> {
+  async saveLockfileAndIntegrity(): Promise<void> {
+    // stringify current lockfile
+    let lockSource = lockStringify(this.lockfile.getLockfile(this.resolver.patterns)) + "\n";
+
+    // write integrity hash
+    await fs.writeFile(
+      path.join(this.config.cwd, "node_modules", constants.INTEGRITY_FILENAME),
+      util.hash(lockSource)
+    );
+
     // check if we should write a lockfile in the first place
     if (!shouldWriteLockfile(this.flags, this.args)) return;
 
+    // build lockfile location
     let loc = path.join(this.config.cwd, constants.LOCKFILE_FILENAME);
 
     // check if we should overwite a lockfile if it exists
@@ -322,16 +332,8 @@ export class Install {
       if (await fs.exists(loc)) return;
     }
 
-    let lockSource = lockStringify(this.lockfile.getLockfile(this.resolver.patterns)) + "\n";
-
     // write lockfile
     await fs.writeFile(loc, lockSource);
-
-    // write integrity hash
-    await fs.writeFile(
-      path.join(this.config.cwd, "node_modules", constants.INTEGRITY_FILENAME),
-      util.hash(lockSource)
-    );
 
     this.reporter.success(`Saved lockfile to ${constants.LOCKFILE_FILENAME}`);
   }
