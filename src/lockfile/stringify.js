@@ -37,6 +37,11 @@ function getKeyPriority(key: string): number {
   return priorities[key] || 100;
 }
 
+function sortAlpha(a: string, b: string): number {
+  // sort alphabetically
+  return a.toLowerCase().localeCompare(b.toLowerCase());
+}
+
 export default function stringify(obj: Object, indent: string = ""): string {
   if (typeof obj !== "object") {
     throw new TypeError;
@@ -47,11 +52,7 @@ export default function stringify(obj: Object, indent: string = ""): string {
   // Sorting order needs to be consistent between runs, we run native sort by name because there are no
   // problems with it being unstable because there are no to keys the same
   // However priorities can be duplicated and native sort can shuffle things from run to run
-  let keys = Object.keys(obj)
-    .sort(function (a, b): number {
-      // sort alphabetically
-      return a.toLowerCase().localeCompare(b.toLowerCase());
-    });
+  let keys = Object.keys(obj).sort(sortAlpha);
 
   // stable sort, V8 Array.prototype.sort is not stable and we don't want to shuffle things randomly
   keys = _.sortBy(keys, getKeyPriority);
@@ -78,7 +79,7 @@ export default function stringify(obj: Object, indent: string = ""): string {
     }
 
     //
-    let keyLine = valKeys.map(maybeWrap).join(", ");
+    let keyLine = valKeys.sort(sortAlpha).map(maybeWrap).join(", ");
 
     if (typeof val === "string" || typeof val === "boolean" || typeof val === "number") {
       lines.push(`${keyLine} ${maybeWrap(val)}`);
