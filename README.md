@@ -10,7 +10,7 @@
 
 <p align="center">
   <a href="https://travis-ci.org/facebook/fbkpm"><img alt="Travis Status" src="https://img.shields.io/travis/facebook/fbkpm/master.svg?style=flat&label=travis"></a>
-  <a href="https://circleci.com/gh/facebook/fbkpm"><img alt="Circle Status" src="https://circleci.com/gh/facebook/fbkpm.svg?style=svg"></a>
+  <a href="https://circleci.com/gh/facebook/fbkpm"><img alt="Circle Status" src="https://circleci.com/gh/facebook/fbkpm.svg?style=svg&circle-token=5f0a78473b0f440afb218bf2b82323cc6b3cb43f"></a>
   <a href="https://ci.appveyor.com/project/facebook/fbkpm/branch/master"><img alt="Appveyor Status" src="https://img.shields.io/appveyor/ci/facebook/fbkpm.svg?style=flat&label=appveyor"></a>
   <a href="https://codecov.io/github/facebook/fbkpm"><img alt="Coverage Status" src="https://img.shields.io/codecov/c/github/facebook/fbkpm/master.svg?style=flat"></a>
 </p>
