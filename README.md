@@ -1,10 +1,8 @@
-<!--<p align="center">
+<p align="center">
   <a href="https://facebook.github.io/fbkpm">
     <img alt="fbkpm" src="https://github.com/facebook/fbkpm/blob/master/assets/logo.png?raw=true" width="546">
   </a>
-</p>-->
-
-# fbkpm
+</p>
 
 <p align="center">
   alternate npm and bower client focused on security and performance.
