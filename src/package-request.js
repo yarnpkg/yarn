@@ -174,7 +174,7 @@ export default class PackageRequest {
 
     // matches a version tuple in the form of NAME@VERSION. allows the first character to
     // be an @ for scoped packages
-    let match = pattern.match(/^(.{1,})@(.*?)$/);
+    let match = pattern.match(/^([^@]{1,})@(.*?)$/);
     if (match) {
       name = match[1];
       range = match[2] || '*';
@@ -291,6 +291,7 @@ export default class PackageRequest {
       ) + `#${hash}`;
     }
     remote.hash = hash;
+    newInfo.name = info.name;
     newInfo.reference = ref;
     newInfo.remote = remote;
     info = newInfo;
