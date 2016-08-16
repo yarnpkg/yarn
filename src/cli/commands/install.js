@@ -327,7 +327,7 @@ export class Install {
     // build lockfile location
     let loc = path.join(this.config.cwd, constants.LOCKFILE_FILENAME);
 
-    // check if we should overwite a lockfile if it exists
+    // check if we should overwrite a lockfile if it exists
     if (this.action === "install" && !shouldWriteLockfileIfExists(this.flags, this.args)) {
       if (await fs.exists(loc)) return;
     }

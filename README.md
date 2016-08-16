@@ -1,6 +1,6 @@
 <p align="center">
-  <a href="https://facebook.github.io/fbkpm">
-    <img alt="fbkpm" src="https://github.com/facebook/fbkpm/blob/master/assets/logo.png?raw=true" width="546">
+  <a href="https://facebook.github.io/kpm">
+    <img alt="kpm" src="https://github.com/facebook/fbkpm/blob/master/assets/logo.png?raw=true" width="546">
   </a>
 </p>
 
@@ -11,6 +11,7 @@
 <p align="center">
   <a href="https://travis-ci.org/facebook/fbkpm"><img alt="Travis Status" src="https://travis-ci.com/facebook/fbkpm.svg?token=DxqWAqRqs3zWAF8EhBHy"></a>
   <a href="https://circleci.com/gh/facebook/fbkpm"><img alt="Circle Status" src="https://circleci.com/gh/facebook/fbkpm.svg?style=svg&circle-token=5f0a78473b0f440afb218bf2b82323cc6b3cb43f"></a>
+  <a href="https://ci.appveyor.com/project/facebook/fbkpm/branch/master"><img alt="Appveyor Status" src="https://ci.appveyor.com/api/projects/status/SECRET_KEY/branch/master?svg=true"></a>
 </p>
 
 ---
@@ -20,9 +21,9 @@ npm is lacking in key areas that are important to us. The changes we've made are
 and require significant changes to npm including the internal architecture and workflow for
 casual users.
 
-fbkpm is written from scratch and uses the existing npm registry for module hosting, it's
+kpm is written from scratch and uses the existing npm registry for module hosting, it's
 completely compatible with the npm ecosystem and is only an alternative to the npm client.
-With a focus on security, fbkpm helps auditing of third party dependencies by providing more insight
+With a focus on security, kpm helps auditing of third party dependencies by providing more insight
 into changes. This is done by requiring all new and updated dependencies to be manually
 audited with the use of custom diff tooling that makes the review of large amounts of
 code very easy.
@@ -67,21 +68,21 @@ megabit down connection.
 ## Usage (while in development)
 
 ```sh
-$ git clone git@github.com:facebook/fbkpm.git
-$ cd fbkpm
+$ git clone git@github.com:facebook/kpm.git
+$ cd kpm
 $ npm install
 $ make build
 $ npm link
 # go into some random directory
 $ mkdir node_modules
-$ fbkpm install your-package
+$ kpm install your-package
 ```
 
 ## FAQ
 
 ### How is this different to existing alternate npm clients such as [ied](https://github.com/alexanderGugel/ied) and [pnpm](https://github.com/rstacruz/pnpm)?
 
-Similar in many aspects but unlike existing alternate npm clients, fbkpm is focused on
+Similar in many aspects but unlike existing alternate npm clients, kpm is focused on
 security and determinism first, excellent performance is just an implementation detail. If we only
 cared about performance we'd help improve npm as that doesn't require a change in workflow.
 
@@ -129,7 +130,7 @@ their tree meaning you only have access to the modules you've specified in your 
  - Kim and Bob have the exact same lock checkout (that includes `babel` as a dependency).
  - Kim removes `babel` from `package.json`.
  - Kim commits updated lockfile, `package.json` and pushes.
- - Bob downloads, and runs `fbkpm install`.
+ - Bob downloads, and runs `kpm install`.
  - Bob doesn't realise that Kim removed the `babel` dependency and uses it in his code
    because it still exists in his local `node_modules`.
 

@@ -86,10 +86,10 @@ export default class PackageRequest {
   }
 
   getLocked(remoteType: string): ?Object {
-    // alaways prioritise root lockfile
+    // always prioritise root lockfile
     let shrunk = this.rootLockfile.getLocked(this.pattern, !!this.subLockfile);
 
-    // falback to sub lockfile if exists
+    // fallback to sub lockfile if exists
     if (this.subLockfile && !shrunk) {
       shrunk = this.subLockfile.getLocked(this.pattern);
     }
@@ -129,7 +129,7 @@ export default class PackageRequest {
       // times
       data = Object.assign({}, data);
 
-      // this is so the returned package response uses the overriden name. ie. if the
+      // this is so the returned package response uses the overridden name. ie. if the
       // package's actual name is `bar`, but it's been specified in package.json like:
       //   "foo": "http://foo.com/bar.tar.gz"
       // then we use the foo name
@@ -223,7 +223,7 @@ export default class PackageRequest {
    */
 
   async find(): Promise<void> {
-    // find verison info for this package pattern
+    // find version info for this package pattern
     let info: ?Manifest = await this.findVersionInfo();
     if (!info) throw new MessageError(`Couldn't find package ${this.pattern}`);
 

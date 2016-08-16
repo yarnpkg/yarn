@@ -49,7 +49,7 @@ export default function (info: Object, warn: (msg: string) => void) {
 
     // cannot equal node_modules or favicon.ico
     let lower = name.toLowerCase();
-    if (lower === "node_modules" || lower === "favico.ico") {
+    if (lower === "node_modules" || lower === "favicon.ico") {
       throw new TypeError("Name is blacklisted");
     }
   }

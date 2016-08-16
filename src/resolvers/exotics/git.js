@@ -85,7 +85,7 @@ export default class GitResolver extends ExoticResolver {
         let Resolver = hostedGitResolvers[name];
         if (Resolver.hostname !== parts.hostname) continue;
 
-        // we have a match! clean up the pathname of url artifcats
+        // we have a match! clean up the pathname of url artifacts
         let pathname = parts.pathname;
         pathname = util.removePrefix(pathname, "/"); // remove prefixed slash
         pathname = util.removeSuffix(pathname, ".git"); // remove .git suffix if present
