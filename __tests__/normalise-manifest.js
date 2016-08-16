@@ -53,6 +53,10 @@ for (let name of nativeFs.readdirSync(fixturesLoc)) {
       }
     }
 
+    if (error) {
+      throw new Error(`Expected to throw error: ${error}`);
+    }
+
     expect(map(actual)).toEqual(map(expected));
     expect(actualWarnings).toEqual(expectedWarnings);
   });
