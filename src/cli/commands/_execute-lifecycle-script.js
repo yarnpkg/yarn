@@ -9,14 +9,14 @@
  * @flow
  */
 
-import type Config from "../../config.js";
-import { MessageError } from "../../errors.js";
-import executeLifecycleScript from "../../util/execute-lifecycle-script.js";
-import * as commands from "./index.js";
+import type Config from '../../config.js';
+import { MessageError } from '../../errors.js';
+import executeLifecycleScript from '../../util/execute-lifecycle-script.js';
+import * as commands from './index.js';
 
-let leven = require("leven");
+let leven = require('leven');
 
-export default function (action: string): { run: Function, argumentLength: number } {
+export default function(action: string): { run: Function, argumentLength: number } {
   return {
     argumentLength: 0,
 
@@ -34,11 +34,13 @@ export default function (action: string): { run: Function, argumentLength: numbe
         }
 
         let msg = `Command ${JSON.stringify(action)} not found.`;
-        if (suggestion) msg += ` Did you mean ${JSON.stringify(suggestion)}?`;
+        if (suggestion) {
+          msg += ` Did you mean ${JSON.stringify(suggestion)}?`;
+        }
         throw new MessageError(msg);
       }
 
       await executeLifecycleScript(config, config.cwd, [pkg.scripts[action]]);
-    }
+    },
   };
 }

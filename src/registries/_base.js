@@ -9,17 +9,17 @@
  * @flow
  */
 
-import { removePrefix } from "../util/misc.js";
-import * as fs from "../util/fs.js";
+import { removePrefix } from '../util/misc.js';
+import * as fs from '../util/fs.js';
 
-let path = require("path");
-let _    = require("lodash");
+let path = require('path');
+let _ = require('lodash');
 
 export default class Registry {
   constructor(cwd: string) {
     this.config = {};
-    this.folder = "";
-    this.loc    = "";
+    this.folder = '';
+    this.loc    = '';
     this.cwd    = cwd;
   }
 
@@ -44,8 +44,8 @@ export default class Registry {
   async loadConfig(): Promise<void> {}
 
   async init(): Promise<void> {
-    this.mergeEnv("kpm_");
-    this.mergeEnv("fbkpm_");
+    this.mergeEnv('kpm_');
+    this.mergeEnv('fbkpm_');
     await this.loadConfig();
 
     // find in upper directories
@@ -64,7 +64,9 @@ export default class Registry {
       key = key.toLowerCase();
 
       // only accept keys prefixed with the prefix
-      if (key.indexOf(prefix) < 0) continue;
+      if (key.indexOf(prefix) < 0) {
+        continue;
+      }
 
       let val = process.env[key];
 
@@ -72,10 +74,10 @@ export default class Registry {
       key = removePrefix(key, prefix);
 
       // replace dunders with dots
-      key = key.replace(/__/g, ".");
+      key = key.replace(/__/g, '.');
 
       // replace underscores with dashes
-      key = key.replace(/_/g, "-");
+      key = key.replace(/_/g, '-');
 
       // set it via a path
       _.set(this.config, key, val);

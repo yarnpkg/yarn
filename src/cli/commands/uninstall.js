@@ -9,16 +9,16 @@
  * @flow
  */
 
-import type { Reporter } from "../../reporters/index.js";
-import type Config from "../../config.js";
-import Lockfile from "../../lockfile/index.js";
-import { Install } from "./install.js";
-import { MessageError } from "../../errors.js";
-import { stringify } from "../../util/misc.js";
-import { NoopReporter } from "../../reporters/index.js";
-import * as fs from "../../util/fs.js";
+import type { Reporter } from '../../reporters/index.js';
+import type Config from '../../config.js';
+import Lockfile from '../../lockfile/index.js';
+import { Install } from './install.js';
+import { MessageError } from '../../errors.js';
+import { stringify } from '../../util/misc.js';
+import { NoopReporter } from '../../reporters/index.js';
+import * as fs from '../../util/fs.js';
 
-let path = require("path");
+let path = require('path');
 
 export let requireLockfile = true;
 
@@ -29,7 +29,7 @@ export async function run(
   args: Array<string>
 ): Promise<void> {
   if (!args.length) {
-    throw new MessageError("Expected one or more arguments");
+    throw new MessageError('Expected one or more arguments');
   }
 
   let totalSteps = args.length + 2;
@@ -37,32 +37,32 @@ export async function run(
 
   async function runInstall(): Promise<Install> {
     let lockfile = await Lockfile.fromDirectory(config.cwd, reporter, {
-      silent: true
+      silent: true,
     });
-    let install = new Install("uninstall", flags, [], config, new NoopReporter, lockfile);
+    let install = new Install('uninstall', flags, [], config, new NoopReporter(), lockfile);
     await install.init();
     return install;
   }
 
   // load package.json
   let json = {};
-  let jsonLoc = path.join(config.cwd, "package.json");
+  let jsonLoc = path.join(config.cwd, 'package.json');
   if (await fs.exists(jsonLoc)) {
     json = await fs.readJson(jsonLoc);
   }
 
   // install all modules to ensure we have a consistent state
-  reporter.step(++step, totalSteps, "Installing modules");
+  reporter.step(++step, totalSteps, 'Installing modules');
   let install = await runInstall();
 
   // remove
   for (let name of args) {
-    let loc = path.join(config.cwd, "node_modules", name);
+    let loc = path.join(config.cwd, 'node_modules', name);
     let range;
     reporter.step(++step, totalSteps, `Removing module ${name}`);
 
     // remove from `package.json`
-    for (let type of ["devDependencies", "dependencies", "optionalDependencies"]) {
+    for (let type of ['devDependencies', 'dependencies', 'optionalDependencies']) {
       let deps = json[type];
       if (deps) {
         range = deps[name];
@@ -76,7 +76,7 @@ export async function run(
     // remove bins
     let pkg = await config.readManifest(loc);
     for (let binName in pkg.bin) {
-      await fs.unlink(path.join(config.modulesFolder, "node_modules", ".bin", binName));
+      await fs.unlink(path.join(config.modulesFolder, 'node_modules', '.bin', binName));
     }
 
     // remove entire package
@@ -87,7 +87,9 @@ export async function run(
 
     function addSub(pattern) {
       let pkg = install.resolver.getResolvedPattern(pattern);
-      if (!pkg) return; // TODO could possibly throw an error?
+      if (!pkg) {
+        return; // TODO could possibly throw an error?
+      }
 
       locs.push(config.generateHardModulePath(pkg.reference));
 
@@ -102,12 +104,12 @@ export async function run(
   }
 
   // save package.json
-  await fs.writeFile(jsonLoc, stringify(json) + "\n");
+  await fs.writeFile(jsonLoc, stringify(json) + '\n');
 
   // reinstall so we can get the updated lockfile
-  reporter.step(++step, totalSteps, "Regenerating lockfile and installing missing dependencies");
+  reporter.step(++step, totalSteps, 'Regenerating lockfile and installing missing dependencies');
   await runInstall();
 
   //
-  reporter.success("Successfully uninstalled packages.");
+  reporter.success('Successfully uninstalled packages.');
 }

@@ -9,36 +9,36 @@
  * @flow
  */
 
-import type { Manifest } from "../../types.js";
-import type PackageRequest from "../../package-request.js";
-import { MessageError } from "../../errors.js";
-import { registries } from "../../registries/index.js";
-import GitResolver from "./git.js";
-import ExoticResolver from "./_base.js";
-import Git from "../../util/git.js";
+import type { Manifest } from '../../types.js';
+import type PackageRequest from '../../package-request.js';
+import { MessageError } from '../../errors.js';
+import { registries } from '../../registries/index.js';
+import GitResolver from './git.js';
+import ExoticResolver from './_base.js';
+import Git from '../../util/git.js';
 
 export type ExplodedFragment = {
-  user: string;
-  repo: string;
-  hash: string;
+  user: string,
+  repo: string,
+  hash: string,
 };
 
 export function explodeHostedGitFragment(fragment: string): ExplodedFragment {
   // TODO: make sure this only has a length of 2
-  let parts = fragment.split(":");
+  let parts = fragment.split(':');
   fragment = parts.pop();
 
-  let userParts = fragment.split("/");
+  let userParts = fragment.split('/');
 
   if (userParts.length === 2) {
     let user = userParts.shift();
-    let repoParts = userParts.shift().split("#");
+    let repoParts = userParts.shift().split('#');
 
     if (repoParts.length <= 2) {
       return {
         user: user,
         repo: repoParts[0],
-        hash: repoParts[1] || ""
+        hash: repoParts[1] || '',
       };
     }
   }
@@ -66,24 +66,24 @@ export default class HostedGitResolver extends ExoticResolver {
   static getTarballUrl(exploded: ExplodedFragment, commit: string): string {
     exploded;
     commit;
-    throw new Error("Not implemented");
+    throw new Error('Not implemented');
   }
 
   static getGitHTTPUrl(exploded: ExplodedFragment): string {
     exploded;
-    throw new Error("Not implemented");
+    throw new Error('Not implemented');
   }
 
   static getGitSSHUrl(exploded: ExplodedFragment): string {
     exploded;
-    throw new Error("Not implemented");
+    throw new Error('Not implemented');
   }
 
   static getHTTPFileUrl(exploded: ExplodedFragment, filename: string, commit: string) {
     exploded;
     filename;
     commit;
-    throw new Error("Not implemented");
+    throw new Error('Not implemented');
   }
 
   async getRefOverHTTP(url: string): Promise<string> {
@@ -91,12 +91,12 @@ export default class HostedGitResolver extends ExoticResolver {
 
     let out = await this.config.requestManager.request({
       url: `${url}/info/refs?service=git-upload-pack`,
-      queue: this.resolver.fetchingQueue
+      queue: this.resolver.fetchingQueue,
     });
 
     if (out) {
       // clean up output
-      let lines = out.trim().split("\n");
+      let lines = out.trim().split('\n');
 
       // remove first two lines which contains compatibility info etc
       lines = lines.slice(2);
@@ -107,9 +107,9 @@ export default class HostedGitResolver extends ExoticResolver {
       // remove line lengths from start of each line
       lines = lines.map((line): string => line.slice(4));
 
-      out = lines.join("\n");
+      out = lines.join('\n');
     } else {
-      throw new Error("TODO");
+      throw new Error('TODO');
     }
 
     let refs = Git.parseRefs(out);
@@ -122,33 +122,44 @@ export default class HostedGitResolver extends ExoticResolver {
 
     let tryRegistry = async (registry): Promise<?Manifest> => {
       let filenames = registries[registry].filenames;
+
       for (let filename of filenames) {
         let file = await this.config.requestManager.request({
           url: this.constructor.getHTTPFileUrl(this.exploded, filename, commit),
-          queue: this.resolver.fetchingQueue
+          queue: this.resolver.fetchingQueue,
         });
-        if (!file) continue;
+        if (!file) {
+          continue;
+        }
 
         let json = JSON.parse(file);
         json.uid = commit;
         json.remote = {
           //resolved // TODO
-          type: "tarball",
+          type: 'tarball',
           reference: this.constructor.getTarballUrl(this.exploded, commit),
-          registry
+          registry,
         };
         return json;
       }
+
+      return null;
     };
 
     let file = await tryRegistry(this.registry);
-    if (file) return file;
+    if (file) {
+      return file;
+    }
 
     for (let registry in registries) {
-      if (registry === this.registry) continue;
+      if (registry === this.registry) {
+        continue;
+      }
 
       let file = await tryRegistry(registry);
-      if (file) return file;
+      if (file) {
+        return file;
+      }
     }
 
     throw new MessageError(`Could not find package metadata file in ${url}`);
@@ -157,8 +168,8 @@ export default class HostedGitResolver extends ExoticResolver {
   async hasHTTPCapability(url: string): Promise<boolean> {
     return (await this.config.requestManager.request({
       url,
-      method: "HEAD",
-      queue: this.resolver.fetchingQueue
+      method: 'HEAD',
+      queue: this.resolver.fetchingQueue,
     })) !== false;
   }
 

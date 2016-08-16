@@ -9,21 +9,21 @@
  * @flow
  */
 
-import type { Manifest } from "./types.js";
-import type PackageResolver from "./package-resolver.js";
-import type { Reporter } from "./reporters/index.js";
-import type Config from "./config.js";
-import type { HoistManifest } from "./package-hoister.js";
-import PackageHoister from "./package-hoister.js";
-import * as promise from "./util/promise.js";
-import { entries } from "./util/misc.js";
-import * as fs from "./util/fs.js";
+import type { Manifest } from './types.js';
+import type PackageResolver from './package-resolver.js';
+import type { Reporter } from './reporters/index.js';
+import type Config from './config.js';
+import type { HoistManifest } from './package-hoister.js';
+import PackageHoister from './package-hoister.js';
+import * as promise from './util/promise.js';
+import { entries } from './util/misc.js';
+import * as fs from './util/fs.js';
 
-let invariant = require("invariant");
-let cmdShim   = promise.promisify(require("cmd-shim"));
-let semver    = require("semver");
-let path      = require("path");
-let _         = require("lodash");
+let invariant = require('invariant');
+let cmdShim   = promise.promisify(require('cmd-shim'));
+let semver = require('semver');
+let path = require('path');
+let _ = require('lodash');
 
 type DependencyPairs = Array<{
   dep: Manifest,
@@ -48,21 +48,21 @@ export default class PackageLinker {
       let dest = path.join(targetBinLoc, scriptName);
       let src  = path.join(pkgLoc, scriptCmd);
 
-      if (process.platform === "win32") {
+      if (process.platform === 'win32') {
         await cmdShim(src, dest);
       } else {
         await fs.symlink(src, dest);
-        await fs.chmod(dest, "755");
+        await fs.chmod(dest, '755');
       }
     }
   }
 
   async linkBinDependencies(deps: DependencyPairs, pkg: Manifest, dir: string): Promise<void> {
     let ref = pkg.reference;
-    invariant(ref, "Package reference is missing");
+    invariant(ref, 'Package reference is missing');
 
     let remote = pkg.remote;
-    invariant(remote, "Package remote is missing");
+    invariant(remote, 'Package remote is missing');
 
     // link up `bin scripts` in `dependencies`
     for (let pattern of ref.dependencies) {
@@ -75,7 +75,7 @@ export default class PackageLinker {
     // link up the `bin` scripts in bundled dependencies
     if (pkg.bundleDependencies) {
       for (let depName of pkg.bundleDependencies) {
-        let loc = path.join(this.config.generateHardModulePath(ref), "node_modules", depName);
+        let loc = path.join(this.config.generateHardModulePath(ref), 'node_modules', depName);
 
         let dep = await this.config.readManifest(loc, remote.registry);
 
@@ -86,10 +86,12 @@ export default class PackageLinker {
     }
 
     // no deps to link
-    if (!deps.length) return;
+    if (!deps.length) {
+      return;
+    }
 
     // ensure our .bin file we're writing these to exists
-    let binLoc = path.join(dir, ".bin");
+    let binLoc = path.join(dir, '.bin');
     await fs.mkdirp(binLoc);
 
     // write the executables
@@ -108,7 +110,7 @@ export default class PackageLinker {
     let flatTree = await this.getFlatHoistedTree(patterns);
 
     // sorted tree makes file creation and copying not to interfere with each other
-    flatTree = flatTree.sort(function (dep1, dep2): number {
+    flatTree = flatTree.sort(function(dep1, dep2): number {
       return dep1[0].localeCompare(dep2[0]);
     });
 
@@ -116,15 +118,17 @@ export default class PackageLinker {
     let queue = [];
     for (let [dest, { pkg, loc: src }] of flatTree) {
       let ref = pkg.reference;
-      invariant(ref, "expected package reference");
+      invariant(ref, 'expected package reference');
 
       ref.setLocation(dest);
       queue.push({
         src,
         dest,
         onFresh() {
-          if (ref) ref.setFresh(true);
-        }
+          if (ref) {
+            ref.setFresh(true);
+          }
+        },
       });
     }
     let tick;
@@ -134,14 +138,16 @@ export default class PackageLinker {
       },
 
       onProgress(src: string) {
-        if (tick) tick(src);
-      }
+        if (tick) {
+          tick(src);
+        }
+      },
     });
 
     //
     let tickBin = this.reporter.progress(flatTree.length);
     await promise.queue(flatTree, async ([dest, { pkg }]) => {
-      let binLoc = path.join(dest, "node_modules");
+      let binLoc = path.join(dest, 'node_modules');
       await this.linkBinDependencies([], pkg, binLoc);
       tickBin(dest);
     }, 4);
@@ -149,11 +155,13 @@ export default class PackageLinker {
 
   async resolvePeerModules(pkg: Manifest): Promise<DependencyPairs> {
     let ref = pkg.reference;
-    invariant(ref, "Package reference is missing");
+    invariant(ref, 'Package reference is missing');
 
     let deps = [];
 
-    if (!pkg.peerDependencies) return deps;
+    if (!pkg.peerDependencies) {
+      return deps;
+    }
 
     for (let name in pkg.peerDependencies) {
       let range = pkg.peerDependencies[name];
@@ -164,11 +172,13 @@ export default class PackageLinker {
         do {
           // get resolved pattern for this request
           let dep = this.resolver.getResolvedPattern(request.pattern);
-          if (!dep) continue;
+          if (!dep) {
+            continue;
+          }
 
           //
           let ref = dep.reference;
-          invariant(ref, "expected reference");
+          invariant(ref, 'expected reference');
           searchPatterns = searchPatterns.concat(ref.dependencies);
         } while (request = request.parentRequest);
       }
@@ -188,17 +198,17 @@ export default class PackageLinker {
 
       // validate found peer dependency
       if (foundDep) {
-        if (range === "*" || semver.satisfies(range, foundDep.version)) {
+        if (range === '*' || semver.satisfies(range, foundDep.version)) {
           deps.push({
             pattern: foundDep.pattern,
             dep: foundDep.package,
-            loc: this.config.generateHardModulePath(foundDep.package.reference)
+            loc: this.config.generateHardModulePath(foundDep.package.reference),
           });
         } else {
-          this.reporter.warn("TODO not match");
+          this.reporter.warn('TODO not match');
         }
       } else {
-        this.reporter.warn("TODO missing dep");
+        this.reporter.warn('TODO missing dep');
       }
     }
 
@@ -215,14 +225,14 @@ export default class PackageLinker {
     invariant(resolved, `Couldn't find resolved name/version for ${pattern}`);
 
     let ref = resolved.reference;
-    invariant(ref, "Missing reference");
+    invariant(ref, 'Missing reference');
 
     //
     let src = this.config.generateHardModulePath(ref);
 
     // link bins
     if (!_.isEmpty(resolved.bin)) {
-      let binLoc = path.join(this.config.modulesFolder, ".bin");
+      let binLoc = path.join(this.config.modulesFolder, '.bin');
       await fs.mkdirp(binLoc);
       await this.linkSelfDependencies(resolved, src, binLoc);
     }

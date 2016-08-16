@@ -9,20 +9,20 @@
  * @flow
  */
 
-import BlockingQueue from "../../src/util/blocking-queue.js";
+import BlockingQueue from '../../src/util/blocking-queue.js';
 
-test("max concurrency", async function () {
-  let queue = new BlockingQueue("test", 5);
+test('max concurrency', async function () {
+  let queue = new BlockingQueue('test', 5);
   let i = 0;
   let running = 0;
 
-  function create() {
-    return queue.push(++i + "", async function () {
+  function create(): Promise<void> {
+    return queue.push(++i + '', async function () {
       running++;
       jest.runAllTimers();
 
       if (running > 5)  {
-        throw new Error("Concurrency is broken");
+        throw new Error('Concurrency is broken');
       }
 
       running--;

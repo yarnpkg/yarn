@@ -1,6 +1,9 @@
-test/fixtures
+__tests__/fixtures
 lib
 lib-legacy
+node_modules
+flow-typed
 coverage
 Gulpfile.js
 index.js
+scripts

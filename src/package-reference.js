@@ -9,16 +9,16 @@
  * @flow
  */
 
-import type Lockfile from "./lockfile/index.js";
-import type Config from "./config.js";
-import type { PackageRemote, Manifest } from "./types.js";
-import type PackageRequest from "./package-request.js";
-import type PackageResolver from "./package-resolver.js";
-import type { RegistryNames } from "./registries/index.js";
-import { entries } from "./util/misc.js";
-import { MessageError } from "./errors.js";
+import type Lockfile from './lockfile/index.js';
+import type Config from './config.js';
+import type { PackageRemote, Manifest } from './types.js';
+import type PackageRequest from './package-request.js';
+import type PackageResolver from './package-resolver.js';
+import type { RegistryNames } from './registries/index.js';
+import { entries } from './util/misc.js';
+import { MessageError } from './errors.js';
 
-let invariant = require("invariant");
+let invariant = require('invariant');
 
 export default class PackageReference {
   constructor(
@@ -127,7 +127,7 @@ export default class PackageReference {
     }
   }
 
-  addIgnore(ignore: boolean, ancestry?: Set<PackageReference> = new Set) {
+  addIgnore(ignore: boolean, ancestry?: Set<PackageReference> = new Set()) {
     // see comments in addOptional
     if (this.ignore == null) {
       this.ignore = ignore;
@@ -139,16 +139,20 @@ export default class PackageReference {
       return;
     }
 
-    if (ancestry.has(this)) return;
+    if (ancestry.has(this)) {
+      return;
+    }
     ancestry.add(this);
 
     // go through and update all transitive dependencies to be ignored
     for (let pattern of this.dependencies) {
       let pkg = this.resolver.getResolvedPattern(pattern);
-      if (!pkg) continue;
+      if (!pkg) {
+        continue;
+      }
 
       let ref = pkg.reference;
-      invariant(ref, "expected package reference");
+      invariant(ref, 'expected package reference');
       ref.addIgnore(ignore, ancestry);
     }
   }

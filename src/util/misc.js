@@ -9,11 +9,11 @@
  * @flow
  */
 
-let crypto = require("crypto");
-let _      = require("lodash");
+let crypto = require('crypto');
+let _ = require('lodash');
 
 export function hash(str: string): string {
-  return crypto.createHash("sha256").update(str).digest("hex");
+  return crypto.createHash('sha256').update(str).digest('hex');
 }
 
 export function sortAlpha(a: string, b: string): number {
@@ -48,5 +48,5 @@ export function removeSuffix(pattern: string, suffix: string): string {
 }
 
 export function stringify(obj: Object): string {
-  return JSON.stringify(obj, null, "  ");
+  return JSON.stringify(obj, null, '  ');
 }

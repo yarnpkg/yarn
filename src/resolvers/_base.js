@@ -9,12 +9,12 @@
  * @flow
  */
 
-import type PackageRequest from "../package-request.js";
-import type PackageResolver from "../package-resolver.js";
-import type { Manifest } from "../types.js";
-import type { RegistryNames } from "../registries/index.js";
-import type { Reporter } from "../reporters/index.js";
-import type Config from "../config.js";
+import type PackageRequest from '../package-request.js';
+import type PackageResolver from '../package-resolver.js';
+import type { Manifest } from '../types.js';
+import type { RegistryNames } from '../registries/index.js';
+import type { Reporter } from '../reporters/index.js';
+import type Config from '../config.js';
 
 export default class BaseResolver {
   constructor(request: PackageRequest, fragment: string) {
@@ -46,6 +46,6 @@ export default class BaseResolver {
   }
 
   resolve(): Promise<Manifest> {
-    throw new Error("Not implemented");
+    throw new Error('Not implemented');
   }
 }

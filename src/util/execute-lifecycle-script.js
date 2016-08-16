@@ -9,12 +9,12 @@
  * @flow
  */
 
-import * as constants from "../constants.js";
-import * as child from "./child.js";
-import { registries } from "../resolvers/index.js";
-import type Config from "../config";
+import * as constants from '../constants.js';
+import * as child from './child.js';
+import { registries } from '../resolvers/index.js';
+import type Config from '../config';
 
-let path = require("path");
+let path = require('path');
 
 export default async function (config: Config, cwd: string, cmds: Array<string>): Promise<Array<{
   cwd: string,
@@ -28,17 +28,17 @@ export default async function (config: Config, cwd: string, cmds: Array<string>)
     let env = Object.assign({}, process.env);
 
     // this is used in some places apparently..
-    env.npm_execpath = path.join(__dirname, "..", "..", "bin", "kpm.js");
+    env.npm_execpath = path.join(__dirname, '..', '..', 'bin', 'kpm.js');
 
     // split up the path
-    let pathParts = (env[constants.ENV_PATH_KEY] || "").split(path.delimiter);
+    let pathParts = (env[constants.ENV_PATH_KEY] || '').split(path.delimiter);
 
     // add node-gyp
-    pathParts.unshift(path.join(__dirname, "..", "..", "bin", "node-gyp-bin"));
+    pathParts.unshift(path.join(__dirname, '..', '..', 'bin', 'node-gyp-bin'));
 
     // add node_modules .bin
     for (let registry of Object.keys(registries)) {
-      pathParts.unshift(path.join(cwd, config.registries[registry].folder, ".bin"));
+      pathParts.unshift(path.join(cwd, config.registries[registry].folder, '.bin'));
     }
 
     // join path back together

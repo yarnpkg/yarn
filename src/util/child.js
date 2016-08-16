@@ -10,16 +10,16 @@
  */
 /* global child_process$spawnOpts */
 
-import * as constants from "../constants.js";
-import BlockingQueue from "./blocking-queue.js";
-import { promisify } from "./promise.js";
-import { MessageError } from "../errors.js";
+import * as constants from '../constants.js';
+import BlockingQueue from './blocking-queue.js';
+import { promisify } from './promise.js';
+import { MessageError } from '../errors.js';
 
-let child = require("child_process");
+let child = require('child_process');
 
 export let exec = promisify(child.exec);
 
-export let queue = new BlockingQueue("child", constants.CHILD_CONCURRENCY);
+export let queue = new BlockingQueue('child', constants.CHILD_CONCURRENCY);
 
 // TODO: this uid check is kinda whack
 let uid = 0;
@@ -36,18 +36,18 @@ export function spawn(
     let processClosed = false;
     let err = null;
 
-    let errBuf = "";
-    let buf = "";
+    let errBuf = '';
+    let buf = '';
 
-    proc.on("error", (err) => {
-      if (err.code === "ENOENT") {
+    proc.on('error', (err) => {
+      if (err.code === 'ENOENT') {
         reject(new MessageError(`Couldn't find the binary ${program}`));
       } else {
         reject(err);
       }
     });
 
-    proc.stderr.on("data", (chunk) => {
+    proc.stderr.on('data', (chunk) => {
       errBuf += chunk;
     });
 
@@ -64,7 +64,7 @@ export function spawn(
     }
 
     if (opts.process) {
-      opts.process(proc, update, reject, function () {
+      opts.process(proc, update, reject, function() {
         if (processClosed) {
           finish();
         } else {
@@ -72,15 +72,14 @@ export function spawn(
         }
       });
     } else {
-      proc.stdout.on("data", update);
+      proc.stdout.on('data', update);
       processingDone = true;
     }
 
-    proc.on("close", (code) => {
+    proc.on('close', (code) => {
       if (code >= 1) {
-        if (!errBuf) errBuf = `Process exited with code ${code}`;
-
-        let cmd = JSON.stringify(`${program} ${args.join(" ")}`);
+        let cmd = JSON.stringify(`${program} ${args.join(' ')}`);
+        errBuf = errBuf || `Process exited with code ${code}`;
         err = new Error(`${cmd}@${opts.cwd || process.cwd()}: ${errBuf.trim()}`);
       }
 

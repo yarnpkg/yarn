@@ -9,18 +9,18 @@
  * @flow
  */
 
-import type { ExplodedFragment } from "./_hosted-git.js";
-import HostedGitResolver from "./_hosted-git.js";
+import type { ExplodedFragment } from './_hosted-git.js';
+import HostedGitResolver from './_hosted-git.js';
 
-let _ = require("lodash");
+let _ = require('lodash');
 
 export default class GitHubResolver extends HostedGitResolver {
-  static protocol = "github";
-  static hostname = "github.com";
+  static protocol = 'github';
+  static hostname = 'github.com';
 
   static isVersion(pattern: string): boolean {
     // github proto
-    if (_.startsWith(pattern, "github:")) {
+    if (_.startsWith(pattern, 'github:')) {
       return true;
     }
 

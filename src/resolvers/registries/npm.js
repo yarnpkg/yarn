@@ -9,16 +9,16 @@
  * @flow
  */
 
-import type { Manifest } from "../../types.js";
-import { MessageError } from "../../errors.js";
-import RegistryResolver from "./_base.js";
-import { queue } from "../../util/promise.js";
-import { entries, removeSuffix } from "../../util/misc.js";
-import map from "../../util/map.js";
-import * as fs from "../../util/fs.js";
+import type { Manifest } from '../../types.js';
+import { MessageError } from '../../errors.js';
+import RegistryResolver from './_base.js';
+import { queue } from '../../util/promise.js';
+import { entries, removeSuffix } from '../../util/misc.js';
+import map from '../../util/map.js';
+import * as fs from '../../util/fs.js';
 
-let invariant = require("invariant");
-let path = require("path");
+let invariant = require('invariant');
+let path = require('path');
 
 type RegistryResponse = {
   name: string,
@@ -27,13 +27,13 @@ type RegistryResponse = {
 };
 
 export default class NpmResolver extends RegistryResolver {
-  static registry = "npm";
+  static registry = 'npm';
 
   async findVersionInRegistryResponse(body: RegistryResponse): Promise<Manifest> {
     let range = this.range;
 
-    if (range in body["dist-tags"]) {
-      range = body["dist-tags"][range];
+    if (range in body['dist-tags']) {
+      range = body['dist-tags'][range];
     }
 
     let satisfied = await this.config.resolveConstraints(Object.keys(body.versions), range);
@@ -42,14 +42,16 @@ export default class NpmResolver extends RegistryResolver {
     } else {
       throw new MessageError(
         `Couldn't find any versions for ${body.name} that matches ${range}. ` +
-        `Possible versions: ${Object.keys(body.versions).join(", ")}`
+        `Possible versions: ${Object.keys(body.versions).join(', ')}`
       );
     }
   }
 
   async warmCache(): Promise<void> {
     let res = await this.resolveRequest();
-    if (!res || !res.dependencies) return;
+    if (!res || !res.dependencies) {
+      return;
+    }
 
     queue;
     entries;
@@ -67,11 +69,11 @@ export default class NpmResolver extends RegistryResolver {
       return this.resolveRequestOffline();
     }
 
-    let registry = removeSuffix(this.registryConfig.registry, "/");
+    let registry = removeSuffix(this.registryConfig.registry, '/');
 
     let body = await this.config.requestManager.request({
       url: `${registry}/${this.name}`,
-      json: true
+      json: true,
     });
 
     if (body) {
@@ -86,16 +88,18 @@ export default class NpmResolver extends RegistryResolver {
     let prefix = `npm-${this.name}-`;
 
     let packagesRoot = this.config.packagesRoot;
-    invariant(packagesRoot, "expected packages root");
+    invariant(packagesRoot, 'expected packages root');
 
-    let files = await this.config.getCache("cachedPackages", async (): Promise<Array<string>> => {
-      invariant(packagesRoot, "expected packages root");
+    let files = await this.config.getCache('cachedPackages', async (): Promise<Array<string>> => {
+      invariant(packagesRoot, 'expected packages root');
       let files = await fs.readdir(packagesRoot);
       let validFiles = [];
 
       for (let name of files) {
         // no hidden files
-        if (name[0] === ".") continue;
+        if (name[0] === '.') {
+          continue;
+        }
 
         // ensure valid module cache
         let dir = path.join(packagesRoot, name);
@@ -111,17 +115,23 @@ export default class NpmResolver extends RegistryResolver {
 
     for (let name of files) {
       // check if folder starts with our prefix
-      if (name.indexOf(prefix) !== 0) continue;
+      if (name.indexOf(prefix) !== 0) {
+        continue;
+      }
 
       let dir = path.join(packagesRoot, name);
 
       // read manifest and validate correct name
-      let pkg = await this.config.readManifest(dir, "npm");
-      if (pkg.name !== this.name) continue;
+      let pkg = await this.config.readManifest(dir, 'npm');
+      if (pkg.name !== this.name) {
+        continue;
+      }
 
       // read package metadata
       let metadata = await this.config.readPackageMetadata(dir);
-      if (!metadata.remote) continue; // old kpm metadata
+      if (!metadata.remote) {
+        continue; // old kpm metadata
+      }
 
       versions[pkg.version] = Object.assign({}, pkg, { remote: metadata.remote });
     }
@@ -132,15 +142,17 @@ export default class NpmResolver extends RegistryResolver {
     } else {
       throw new MessageError(
         `Couldn't find any versions for ${this.name} that matches ${this.range} in our cache. ` +
-        `Possible versions: ${Object.keys(versions).join(", ")} ${prefix}`
+        `Possible versions: ${Object.keys(versions).join(', ')} ${prefix}`
       );
     }
   }
 
   async resolve(): Promise<Manifest> {
     // lockfile
-    let shrunk = this.request.getLocked("tarball");
-    if (shrunk) return shrunk;
+    let shrunk = this.request.getLocked('tarball');
+    if (shrunk) {
+      return shrunk;
+    }
 
     let info = await this.resolveRequest();
 
@@ -158,10 +170,10 @@ export default class NpmResolver extends RegistryResolver {
     if (info.dist && info.dist.tarball) {
       info.remote = {
         resolved: `${info.dist.tarball}#${info.dist.shasum}`,
-        type: "tarball",
+        type: 'tarball',
         reference: info.dist.tarball,
         hash: info.dist.shasum,
-        registry: "npm"
+        registry: 'npm',
       };
     }
 

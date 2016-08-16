@@ -9,9 +9,9 @@
  * @flow
  */
 
-import BaseResolver from "../_base.js";
+import BaseResolver from '../_base.js';
 
-let _ = require("lodash");
+let _ = require('lodash');
 
 export default class ExoticResolver extends BaseResolver {
   static protocol: string;
@@ -21,7 +21,7 @@ export default class ExoticResolver extends BaseResolver {
     if (proto) {
       return _.startsWith(pattern, `${proto}:`);
     } else {
-      throw new Error("No protocol specified");
+      throw new Error('No protocol specified');
     }
   }
 }

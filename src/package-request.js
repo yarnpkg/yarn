@@ -9,23 +9,23 @@
  * @flow
  */
 
-import type { Manifest, FetchedManifest } from "./types.js";
-import type { RegistryNames } from "./registries/index.js";
-import type PackageResolver from "./package-resolver.js";
-import type { Reporter } from "./reporters/index.js";
-import type Config from "./config.js";
-import Lockfile, { parse as parseLock } from "./lockfile/index.js";
-import PackageReference from "./package-reference.js";
-import { registries as registryResolvers } from "./resolvers/index.js";
-import { MessageError } from "./errors.js";
-import { entries } from "./util/misc.js";
-import * as constants from "./constants.js";
-import * as versionUtil from "./util/version.js";
-import * as resolvers from "./resolvers/index.js";
-import * as fs from "./util/fs.js";
+import type { Manifest, FetchedManifest } from './types.js';
+import type { RegistryNames } from './registries/index.js';
+import type PackageResolver from './package-resolver.js';
+import type { Reporter } from './reporters/index.js';
+import type Config from './config.js';
+import Lockfile, { parse as parseLock } from './lockfile/index.js';
+import PackageReference from './package-reference.js';
+import { registries as registryResolvers } from './resolvers/index.js';
+import { MessageError } from './errors.js';
+import { entries } from './util/misc.js';
+import * as constants from './constants.js';
+import * as versionUtil from './util/version.js';
+import * as resolvers from './resolvers/index.js';
+import * as fs from './util/fs.js';
 
-let invariant = require("invariant");
-let path      = require("path");
+let invariant = require('invariant');
+let path = require('path');
 
 export default class PackageRequest {
   constructor({
@@ -35,7 +35,7 @@ export default class PackageRequest {
     lockfile,
     parentRequest,
     optional,
-    ignore
+    ignore,
   }: {
     pattern: string,
     lockfile: ?Lockfile,
@@ -59,8 +59,11 @@ export default class PackageRequest {
 
   static getExoticResolver(pattern: string): ?Function { // TODO make this type more refined
     for (let [, Resolver] of entries(resolvers.exotics)) {
-      if (Resolver.isVersion(pattern)) return Resolver;
+      if (Resolver.isVersion(pattern)) {
+        return Resolver;
+      }
     }
+    return null;
   }
 
   parentRequest: ?PackageRequest;
@@ -82,7 +85,7 @@ export default class PackageRequest {
       chain.push(delegator.pattern);
     } while (delegator = delegator.parentRequest);
 
-    return chain.reverse().join(" > ");
+    return chain.reverse().join(' > ');
   }
 
   getLocked(remoteType: string): ?Object {
@@ -106,10 +109,12 @@ export default class PackageRequest {
           type: remoteType,
           reference: resolvedParts.url,
           hash: resolvedParts.hash,
-          registry: shrunk.registry
+          registry: shrunk.registry,
         },
-        dependencies: shrunk.dependencies
+        dependencies: shrunk.dependencies,
       };
+    } else {
+      return null;
     }
   }
 
@@ -164,7 +169,7 @@ export default class PackageRequest {
     name: string,
     range: string
   } {
-    let range = "latest";
+    let range = 'latest';
     let name  = pattern;
 
     // matches a version tuple in the form of NAME@VERSION. allows the first character to
@@ -172,7 +177,7 @@ export default class PackageRequest {
     let match = pattern.match(/^(.{1,})@(.*?)$/);
     if (match) {
       name = match[1];
-      range = match[2] || "*";
+      range = match[2] || '*';
     }
 
     return { name, range };
@@ -188,7 +193,9 @@ export default class PackageRequest {
 
     // ensure this is a registry request
     let exoticResolver = PackageRequest.getExoticResolver(range);
-    if (exoticResolver) return;
+    if (exoticResolver) {
+      return;
+    }
 
     let Resolver = this.getRegistryResolver();
     let resolver = new Resolver(this, name, range);
@@ -225,14 +232,16 @@ export default class PackageRequest {
   async find(): Promise<void> {
     // find version info for this package pattern
     let info: ?Manifest = await this.findVersionInfo();
-    if (!info) throw new MessageError(`Couldn't find package ${this.pattern}`);
+    if (!info) {
+      throw new MessageError(`Couldn't find package ${this.pattern}`);
+    }
 
     // check if while we were resolving this dep we've already resolved one that satisfies
     // the same range
     let resolved: ?Manifest = this.resolver.getExactVersionMatch(info.name, info.version);
     if (resolved) {
       let ref = resolved.reference;
-      invariant(ref, "Resolved package info has no package reference");
+      invariant(ref, 'Resolved package info has no package reference');
       ref.addRequest(this);
       ref.addPattern(this.pattern);
       ref.addOptional(this.optional);
@@ -246,7 +255,7 @@ export default class PackageRequest {
 
     //
     let remote = info.remote;
-    invariant(remote, "Missing remote");
+    invariant(remote, 'Missing remote');
 
     // set package reference
     let ref = new PackageReference(this, info, remote, this.resolver.lockfile.save);
@@ -300,27 +309,27 @@ export default class PackageRequest {
 
     // normal deps
     for (let depName in info.dependencies) {
-      let depPattern = depName + "@" + info.dependencies[depName];
+      let depPattern = depName + '@' + info.dependencies[depName];
       deps.push(depPattern);
       promises.push(this.resolver.find({
         pattern: depPattern,
         registry: remote.registry,
         optional: false,
         parentRequest: this,
-        subLockfile
+        subLockfile,
       }));
     }
 
     // optional deps
     for (let depName in info.optionalDependencies) {
-      let depPattern = depName + "@" + info.optionalDependencies[depName];
+      let depPattern = depName + '@' + info.optionalDependencies[depName];
       deps.push(depPattern);
       promises.push(this.resolver.find({
         pattern: depPattern,
         registry: remote.registry,
         optional: true,
         parentRequest: this,
-        subLockfile
+        subLockfile,
       }));
     }
 
@@ -345,7 +354,9 @@ export default class PackageRequest {
     info.version = PackageRequest.getPackageVersion(info);
 
     for (let key of constants.REQUIRED_PACKAGE_KEYS) {
-      if (!info[key]) throw new MessageError(`Package ${human} doesn't have a ${key}`);
+      if (!info[key]) {
+        throw new MessageError(`Package ${human} doesn't have a ${key}`);
+      }
     }
   }
 

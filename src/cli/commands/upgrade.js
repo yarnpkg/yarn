@@ -9,10 +9,10 @@
  * @flow
  */
 
-import type { Reporter } from "../../reporters/index.js";
-import type Config from "../../config.js";
-import { Install } from "./install.js";
-import Lockfile from "../../lockfile/index.js";
+import type { Reporter } from '../../reporters/index.js';
+import type Config from '../../config.js';
+import { Install } from './install.js';
+import Lockfile from '../../lockfile/index.js';
 
 export function setFlags(commander: Object) {
   // TODO: support some flags that install command has
@@ -29,6 +29,6 @@ export async function run(
   args: Array<string>
 ): Promise<void> {
   let lockfile = new Lockfile(null, false);
-  let install = new Install("update", flags, args, config, reporter, lockfile);
+  let install = new Install('update', flags, args, config, reporter, lockfile);
   return install.init();
 }

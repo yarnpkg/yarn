@@ -9,16 +9,16 @@
  * @flow
  */
 
-import type { FetchedManifest } from "./types.js";
-import type PackageResolver from "./package-resolver.js";
-import type { Reporter } from "./reporters/index.js";
-import type PackageReference from "./package-reference.js";
-import type Config from "./config.js";
-import * as fetchers from "./fetchers/index.js";
-import * as fs from "./util/fs.js";
-import * as promise from "./util/promise.js";
+import type { FetchedManifest } from './types.js';
+import type PackageResolver from './package-resolver.js';
+import type { Reporter } from './reporters/index.js';
+import type PackageReference from './package-reference.js';
+import type Config from './config.js';
+import * as fetchers from './fetchers/index.js';
+import * as fs from './util/fs.js';
+import * as promise from './util/promise.js';
 
-let invariant = require("invariant");
+let invariant = require('invariant');
 
 export default class PackageFetcher {
   constructor(config: Config, resolver: PackageResolver) {
@@ -39,7 +39,7 @@ export default class PackageFetcher {
       return {
         package: pkg,
         hash,
-        dest
+        dest,
       };
     }
 
@@ -47,10 +47,12 @@ export default class PackageFetcher {
     await fs.unlink(dest);
 
     let remote = reference.remote;
-    invariant(remote, "Missing remote");
+    invariant(remote, 'Missing remote');
 
     let Fetcher = fetchers[remote.type];
-    if (!Fetcher) throw new Error(`Unknown fetcher for ${remote.type}`);
+    if (!Fetcher) {
+      throw new Error(`Unknown fetcher for ${remote.type}`);
+    }
 
     await fs.mkdirp(dest);
 
@@ -60,7 +62,7 @@ export default class PackageFetcher {
     } catch (err) {
       try {
         //await fs.unlink(dest);
-      } catch (err) {
+      } catch (err2) {
         // what do?
       }
       throw err;
@@ -84,15 +86,17 @@ export default class PackageFetcher {
     let pkgs = this.resolver.getPackageReferences();
     let tick = this.reporter.progress(pkgs.length);
 
-    await promise.queue(pkgs, (ref): Promise<void> => {
-      return this.maybeFetch(ref).then((res): void | Promise<void> => {
-        if (res) {
-          ref.remote.hash = res.hash;
-          return this.resolver.updateManifest(ref, res.package).then(function () {
-            if (tick) tick(ref.name);
-          });
+    await promise.queue(pkgs, async (ref) => {
+      let res = await this.maybeFetch(ref);
+      if (res) {
+        ref.remote.hash = res.hash;
+
+        await this.resolver.updateManifest(ref, res.package);
+
+        if (tick) {
+          tick(ref.name);
         }
-      });
+      }
     });
   }
 }

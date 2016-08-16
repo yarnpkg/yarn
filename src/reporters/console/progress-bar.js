@@ -9,16 +9,16 @@
  * @flow
  */
 
-import type { Stdout } from "../types.js";
-import { clearLine } from "./util.js";
+import type { Stdout } from '../types.js';
+import { clearLine } from './util.js';
 
-let repeat = require("repeating");
+let repeat = require('repeating');
 
 export default class ProgressBar {
   constructor(total: number, stdout: Stdout = process.stderr) {
     this.stdout = stdout;
     this.total  = total;
-    this.chars  = ProgressBar.bars[0].split("");
+    this.chars  = ProgressBar.bars[0].split('');
     this.delay  = 60;
     this.curr   = 0;
   }
@@ -32,7 +32,7 @@ export default class ProgressBar {
   id: ?number;
 
   static bars = [
-    "█░"
+    '█░',
   ];
 
   tick() {

@@ -9,17 +9,17 @@
  * @flow
  */
 
-import typos from "./typos.js";
+import typos from './typos.js';
 
-let validateLicense = require("validate-npm-package-license");
-let isBuiltinModule = require("is-builtin-module");
+let validateLicense = require('validate-npm-package-license');
+let isBuiltinModule = require('is-builtin-module');
 
 let strings = [
-  "name",
-  "version"
+  'name',
+  'version',
 ];
 
-export default function (info: Object, warn: (msg: string) => void) {
+export default function(info: Object, warn: (msg: string) => void) {
   for (let key in typos) {
     if (key in info) {
       warn(`Potential typo ${key}, did you mean ${typos[key]}?`);
@@ -27,46 +27,46 @@ export default function (info: Object, warn: (msg: string) => void) {
   }
 
   let name = info.name;
-  if (typeof name === "string") {
+  if (typeof name === 'string') {
     if (isBuiltinModule(name)) {
       warn(`${name} is also the name of a node core module`);
     }
 
     // cannot start with a dot
-    if (name[0] === ".") {
+    if (name[0] === '.') {
       throw new TypeError("Name can't start with a dot");
     }
 
     // cannot contain the following characters
     if (name.match(/[\/@\s\+%:]/)) {
-      throw new TypeError("Name contains illegal characters");
+      throw new TypeError('Name contains illegal characters');
     }
 
     // cannot contain any characters that would need to be encoded for use in a url
     if (name !== encodeURIComponent(name)) {
-      throw new TypeError("Name cannot contain character that require URL encoding");
+      throw new TypeError('Name cannot contain character that require URL encoding');
     }
 
     // cannot equal node_modules or favicon.ico
     let lower = name.toLowerCase();
-    if (lower === "node_modules" || lower === "favicon.ico") {
-      throw new TypeError("Name is blacklisted");
+    if (lower === 'node_modules' || lower === 'favicon.ico') {
+      throw new TypeError('Name is blacklisted');
     }
   }
 
   // validate license
-  if (typeof info.license === "string") {
+  if (typeof info.license === 'string') {
     if (!validateLicense(info.license).validForNewPackages) {
-      warn("license should be a valid SPDX license expression");
+      warn('license should be a valid SPDX license expression');
     }
   } else {
-    warn("No license field");
+    warn('No license field');
   }
 
   // validate types
   for (let key of strings) {
     let val = info[key];
-    if (val && typeof val !== "string") {
+    if (val && typeof val !== 'string') {
       throw new TypeError(`${key} is not a string`);
     }
   }

@@ -10,13 +10,13 @@
  */
 /* eslint no-unused-vars: 0 */
 
-import type { Trees, Stdout, Stdin, Package } from "./types.js";
+import type { Trees, Stdout, Stdin, Package } from './types.js';
 
 export type ReporterOptions = {
-  stdout?: Stdout;
-  stderr?: Stdout;
-  stdin?: Stdin;
-  emoji?: boolean;
+  stdout?: Stdout,
+  stderr?: Stdout,
+  stdin?: Stdin,
+  emoji?: boolean,
 };
 
 export default class BaseReporter {
@@ -52,7 +52,9 @@ export default class BaseReporter {
 
   checkPeakMemory() {
     let { heapTotal } = process.memoryUsage();
-    if (heapTotal > this.peakMemory) this.peakMemory = heapTotal;
+    if (heapTotal > this.peakMemory) {
+      this.peakMemory = heapTotal;
+    }
   }
 
   close() {
@@ -107,22 +109,22 @@ export default class BaseReporter {
   } {
     return {
       tick(name: string) {},
-      end() {}
+      end() {},
     };
   }
 
   //
   question(question: string): Promise<boolean> {
-    return Promise.reject(new Error("Not implemented"));
+    return Promise.reject(new Error('Not implemented'));
   }
 
   // prompt the user to select an option from an array
   select(header: string, question: string, options: Array<string>): Promise<string> {
-    return Promise.reject(new Error("Not implemented"));
+    return Promise.reject(new Error('Not implemented'));
   }
 
   // render a progress bar and return a function which when called will trigger an update
   progress(total: number): Function {
-    return function () {};
+    return function() {};
   }
 }

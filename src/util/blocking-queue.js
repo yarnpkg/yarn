@@ -9,7 +9,7 @@
  * @flow
  */
 
-import map from "./map.js";
+import map from './map.js';
 
 export default class BlockingQueue {
   constructor(alias: string, maxConcurrency?: number = Infinity) {
@@ -97,10 +97,14 @@ export default class BlockingQueue {
     }
 
     let queue = this.queue[key];
-    if (!queue) return;
+    if (!queue) {
+      return;
+    }
 
     let { resolve, reject, factory } = queue.shift();
-    if (!queue.length) delete this.queue[key];
+    if (!queue.length) {
+      delete this.queue[key];
+    }
 
     let next = () => {
       this.shift(key);
@@ -111,11 +115,11 @@ export default class BlockingQueue {
       this.running[key] = true;
       this.runningCount++;
 
-      factory().then(function (val): null {
+      factory().then(function(val): null {
         resolve(val);
         next();
         return null;
-      }).catch(function (err) {
+      }).catch(function(err) {
         reject(err);
         next();
       });
@@ -135,7 +139,9 @@ export default class BlockingQueue {
   shiftConcurrencyQueue() {
     if (this.runningCount < this.maxConcurrency) {
       let fn = this.concurrencyQueue.shift();
-      if (fn) fn();
+      if (fn) {
+        fn();
+      }
     }
   }
 }

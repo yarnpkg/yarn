@@ -9,22 +9,22 @@
  * @flow
  */
 
-import type { RegistryNames } from "./registries/index.js";
-import type { Reporter } from "./reporters/index.js";
-import type Registry from "./registries/_base.js";
-import type { Manifest, PackageRemote } from "./types.js";
-import normaliseManifest from "./util/normalise-manifest/index.js";
-import * as fs from "./util/fs.js";
-import * as constants from "./constants.js";
-import ConstraintResolver from "./package-constraint-resolver.js";
-import RequestManager from "./util/request-manager.js";
-import { registries } from "./registries/index.js";
-import map from "./util/map.js";
+import type { RegistryNames } from './registries/index.js';
+import type { Reporter } from './reporters/index.js';
+import type Registry from './registries/_base.js';
+import type { Manifest, PackageRemote } from './types.js';
+import normaliseManifest from './util/normalise-manifest/index.js';
+import * as fs from './util/fs.js';
+import * as constants from './constants.js';
+import ConstraintResolver from './package-constraint-resolver.js';
+import RequestManager from './util/request-manager.js';
+import { registries } from './registries/index.js';
+import map from './util/map.js';
 
-let invariant = require("invariant");
-let userHome  = require("user-home");
-let path      = require("path");
-let url       = require("url");
+let invariant = require('invariant');
+let userHome = require('user-home');
+let path = require('path');
+let url = require('url');
 
 type ConfigOptions = {
   cwd?: string,
@@ -51,7 +51,7 @@ export default class Config {
     this.cache      = map();
     this.cwd        = opts.cwd || process.cwd();
 
-    this.modulesFolder = opts.modulesFolder || path.join(this.cwd, "node_modules");
+    this.modulesFolder = opts.modulesFolder || path.join(this.cwd, 'node_modules');
     this.packagesRoot  = opts.packagesRoot;
     this.tempFolder    = opts.tempFolder;
     this.offline       = !!opts.offline;
@@ -98,7 +98,9 @@ export default class Config {
 
   getCache<T>(key: string, factory: () => Promise<T>): Promise<T> {
     let cached = this.cache[key];
-    if (cached) return cached;
+    if (cached) {
+      return cached;
+    }
 
     return this.cache[key] = factory().catch((err) => {
       this.cache[key] = null;
@@ -153,11 +155,13 @@ export default class Config {
     registry: RegistryNames,
     location: ?string
   }): string {
-    invariant(this.packagesRoot, "No package root");
-    invariant(pkg, "Undefined package");
-    invariant(pkg.name, "No name field in package");
-    invariant(pkg.uid, "No uid field in package");
-    if (pkg.location) return pkg.location;
+    invariant(this.packagesRoot, 'No package root');
+    invariant(pkg, 'Undefined package');
+    invariant(pkg.name, 'No name field in package');
+    invariant(pkg.uid, 'No uid field in package');
+    if (pkg.location) {
+      return pkg.location;
+    }
 
     let name = pkg.name;
     let uid = pkg.uid;
@@ -174,7 +178,7 @@ export default class Config {
    */
 
   getTemp(filename: string): string {
-    invariant(this.tempFolder, "No temp folder");
+    invariant(this.tempFolder, 'No temp folder');
     return path.join(this.tempFolder, filename);
   }
 
@@ -185,18 +189,26 @@ export default class Config {
 
   getOfflineMirrorPath(registryName: RegistryNames, tarUrl: ?string): string {
     let registry = this.registries[registryName];
-    if (!registry) return "";
+    if (!registry) {
+      return '';
+    }
 
     //
-    let mirrorPath = registry.config["kpm-offline-mirror"];
-    if (!mirrorPath) return "";
+    let mirrorPath = registry.config['kpm-offline-mirror'];
+    if (!mirrorPath) {
+      return '';
+    }
 
     //
-    if (!tarUrl) return mirrorPath;
+    if (!tarUrl) {
+      return mirrorPath;
+    }
 
     //
     let parsed = url.parse(tarUrl);
-    if (!parsed || !parsed.pathname) return mirrorPath;
+    if (!parsed || !parsed.pathname) {
+      return mirrorPath;
+    }
 
     //
     return path.join(mirrorPath, path.basename(parsed.pathname));
@@ -207,8 +219,8 @@ export default class Config {
    */
 
   async getTempFolder(): Promise<string> {
-    invariant(this.packagesRoot, "No package root");
-    let folder = path.join(this.packagesRoot, ".tmp");
+    invariant(this.packagesRoot, 'No package root');
+    let folder = path.join(this.packagesRoot, '.tmp');
     await fs.mkdirp(folder);
     return folder;
   }
@@ -226,7 +238,9 @@ export default class Config {
     let parts = this.cwd.split(path.sep);
     for (let i = parts.length; i > 0; i--) {
       let loc = parts.slice(0, i).concat(constants.MODULE_CACHE_DIRECTORY).join(path.sep);
-      if (await fs.exists(loc)) return loc;
+      if (await fs.exists(loc)) {
+        return loc;
+      }
     }
 
     // try and create ~/.kpm
@@ -266,7 +280,7 @@ export default class Config {
         package: pkg,
         hash: metadata.hash,
         remote: metadata.remote,
-        registry: metadata.registry
+        registry: metadata.registry,
       };
     });
   }
@@ -285,14 +299,20 @@ export default class Config {
 
       if (priorityRegistry) {
         let file = await this.tryManifest(dir, priorityRegistry);
-        if (file) return file;
+        if (file) {
+          return file;
+        }
       }
 
       for (let registry of Object.keys(registries)) {
-        if (priorityRegistry === registry) continue;
+        if (priorityRegistry === registry) {
+          continue;
+        }
 
         let file = await this.tryManifest(dir, registry);
-        if (file) return file;
+        if (file) {
+          return file;
+        }
       }
 
       throw new Error(`Couldn't find a package.json in ${dir}`);
@@ -317,5 +337,6 @@ export default class Config {
         return data;
       }
     }
+    return null;
   }
 }

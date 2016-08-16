@@ -9,29 +9,29 @@
  * @flow
  */
 
-import Registry from "./_base.js";
-import * as fs from "../util/fs.js";
+import Registry from './_base.js';
+import * as fs from '../util/fs.js';
 
-let userHome = require("user-home");
-let path     = require("path");
-let _        = require("lodash");
+let userHome = require('user-home');
+let path = require('path');
+let _ = require('lodash');
 
 export default class BowerRegistry extends Registry {
   static alwaysFlatten = true;
-  static filenames = ["bower.json"];
+  static filenames = ['bower.json'];
 
   async loadConfig(): Promise<void> {
     // docs: http://bower.io/docs/config/
     // spec: https://github.com/bower/spec/blob/master/config.md
 
-    this.mergeEnv("bower_");
+    this.mergeEnv('bower_');
 
     // merge in configs
     let possibles = [
-      path.join("/", ".bowerrc"),
-      path.join(userHome, ".bowerrc"),
+      path.join('/', '.bowerrc'),
+      path.join(userHome, '.bowerrc'),
       // TODO all .bowerrc files upwards the directory tree
-      path.join(this.cwd, ".bowerrc"),
+      path.join(this.cwd, '.bowerrc'),
     ];
     for (let loc of possibles) {
       if (await fs.exists(loc)) {
@@ -40,8 +40,8 @@ export default class BowerRegistry extends Registry {
     }
 
     _.defaults(this.config, {
-      registry: "https://bower.herokuapp.com",
-      directory: "bower_components"
+      registry: 'https://bower.herokuapp.com',
+      directory: 'bower_components',
     });
 
     // TODO: warn on properties we do not support

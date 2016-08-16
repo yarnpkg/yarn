@@ -9,8 +9,8 @@
  * @flow
  */
 
-import type { Trees } from "./types.js";
-import BaseReporter from "./_base.js";
+import type { Trees } from './types.js';
+import BaseReporter from './_base.js';
 
 export default class JSONReporter extends BaseReporter {
   constructor(opts?: Object) {
@@ -25,48 +25,50 @@ export default class JSONReporter extends BaseReporter {
 
   _dump(type: string, data: any, error?: boolean) {
     let stdout = this.stdout;
-    if (error) stdout = this.stderr;
+    if (error) {
+      stdout = this.stderr;
+    }
     stdout.write(`${JSON.stringify({ type, data })}\n`);
   }
 
   list(type: string, items: Array<string>) {
-    this._dump("list", { type, items });
+    this._dump('list', { type, items });
   }
 
   tree(type: string, trees: Trees) {
-    this._dump("tree", { type, trees });
+    this._dump('tree', { type, trees });
   }
 
   step(current: number, total: number, message: string) {
-    this._dump("step", { message, current, total });
+    this._dump('step', { message, current, total });
   }
 
   footer() {
-    this._dump("finished", this.getTotalTime());
+    this._dump('finished', this.getTotalTime());
   }
 
   log(msg: string) {
-    this._dump("log", msg);
+    this._dump('log', msg);
   }
 
   command(msg: string) {
-    this._dump("command", msg);
+    this._dump('command', msg);
   }
 
   success(msg: string) {
-    this._dump("success", msg);
+    this._dump('success', msg);
   }
 
   error(msg: string) {
-    this._dump("error", msg, true);
+    this._dump('error', msg, true);
   }
 
   warn(msg: string) {
-    this._dump("warning", msg, true);
+    this._dump('warning', msg, true);
   }
 
   info(msg: string) {
-    this._dump("info", msg);
+    this._dump('info', msg);
   }
 
   activity(): {
@@ -74,30 +76,30 @@ export default class JSONReporter extends BaseReporter {
     end: () => void
   } {
     let id = this._activityId++;
-    this._dump("activityStart", { id });
+    this._dump('activityStart', { id });
 
     return {
       tick: (name: string) => {
-        this._dump("activitytick", { id, name });
+        this._dump('activitytick', { id, name });
       },
 
       end: () => {
-        this._dump("activityEnd", { id });
-      }
+        this._dump('activityEnd', { id });
+      },
     };
   }
 
   progress(total: number): Function {
     let id = this._progressId++;
     let current = 0;
-    this._dump("progressStart", { id, total });
+    this._dump('progressStart', { id, total });
 
     return () => {
       current++;
-      this._dump("progressTick", { id, current });
+      this._dump('progressTick', { id, current });
 
       if (current === total) {
-        this._dump("progressFinish", { id });
+        this._dump('progressFinish', { id });
       }
     };
   }

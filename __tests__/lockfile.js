@@ -20,7 +20,7 @@ let objs = [
   { foo: {} },
   { foo: "foo", bar: "bar" },
   { foo: 5 },
-  Object.assign({}, require("../package.json"), { jest: {} })
+  Object.assign({}, require("../package.json"), { jest: {} }),
 ];
 
 let i = 0;
@@ -41,12 +41,12 @@ test("parse", () => {
   expect(parse("foo:\n  bar:\n    yes no\nbar:\n  yes no")).toEqual(nullify({
     foo: {
       bar: {
-        yes: "no"
-      }
+        yes: "no",
+      },
     },
     bar: {
-      yes: "no"
-    }
+      yes: "no",
+    },
   }));
 });
 
@@ -68,7 +68,7 @@ test("Lockfile.fromDirectory", () => {
 test("Lockfile.getLocked", () => {
   let lockfile = new Lockfile({
     foo: "bar",
-    bar: {}
+    bar: {},
   });
   expect(!!lockfile.getLocked("foo")).toBeTruthy();
 });
@@ -76,7 +76,7 @@ test("Lockfile.getLocked", () => {
 test("Lockfile.getLocked pointer", () => {
   let lockfile = new Lockfile({
     foo: "bar",
-    bar: {}
+    bar: {},
   });
   expect(!!lockfile.getLocked("foo")).toBeTruthy();
 });
@@ -88,8 +88,8 @@ test("Lockfile.getLocked no cache", () => {
 test("Lockfile.getLocked defaults", () => {
   let pattern = new Lockfile({
     foobar: {
-      version: "0.0.0"
-    }
+      version: "0.0.0",
+    },
   }).getLocked("foobar");
   expect(pattern.registry).toBe("npm");
   expect(pattern.uid).toBe("0.0.0");
@@ -98,9 +98,9 @@ test("Lockfile.getLocked defaults", () => {
 
 test("Lockfile.getLocked strict unknown", () => {
   new Lockfile({}, false).getLocked("foobar");
-  expect(
-    () => new Lockfile({}, true).getLocked("foobar")
-  ).toThrowError("The pattern foobar not found in lockfile");
+  expect(() => {
+    new Lockfile({}, true).getLocked("foobar");
+  }).toThrowError("The pattern foobar not found in lockfile");
 });
 
 test("Lockfile.getLockfile", () => {
@@ -112,12 +112,12 @@ test("Lockfile.getLockfile", () => {
       dependencies: {},
       optionalDependencies: {},
       reference: {
-        permissions: {}
+        permissions: {},
       },
       remote: {
         resolved: "http://example.com/foobar",
-        registry: "npm"
-      }
+        registry: "npm",
+      },
     },
 
     barfoo: {
@@ -125,23 +125,23 @@ test("Lockfile.getLockfile", () => {
       version: "0.0.1",
       uid: "0.1.0",
       dependencies: {
-        yes: "no"
+        yes: "no",
       },
       optionalDependencies: {
-        no: "yes"
+        no: "yes",
       },
       reference: {
         permissions: {
-          foo: "bar"
-        }
+          foo: "bar",
+        },
       },
       remote: {
         resolved: "http://example.com/barfoo",
-        registry: "bower"
-      }
+        registry: "bower",
+      },
     },
 
-    foobar2: {}
+    foobar2: {},
   };
 
   patterns.foobar2 = patterns.foobar;
@@ -156,7 +156,7 @@ test("Lockfile.getLockfile", () => {
     registry: undefined,
     dependencies: undefined,
     optionalDependencies: undefined,
-    permissions: undefined
+    permissions: undefined,
   };
 
   let expected = {
@@ -169,10 +169,10 @@ test("Lockfile.getLockfile", () => {
       registry: "bower",
       dependencies: { yes: "no" },
       optionalDependencies: { no: "yes" },
-      permissions: { foo: "bar" }
+      permissions: { foo: "bar" },
     },
 
-    foobar2: expectedFoobar
+    foobar2: expectedFoobar,
   };
 
   expect(actual).toEqual(expected);
@@ -187,15 +187,15 @@ test("Lockfile.getLockfile (sorting)", () => {
       dependencies: {},
       optionalDependencies: {},
       reference: {
-        permissions: {}
+        permissions: {},
       },
       remote: {
         resolved: "http://example.com/foobar",
-        registry: "npm"
-      }
+        registry: "npm",
+      },
     },
 
-    foobar1: {}
+    foobar1: {},
   };
 
   patterns.foobar1 = patterns.foobar2;
@@ -210,12 +210,12 @@ test("Lockfile.getLockfile (sorting)", () => {
     registry: undefined,
     dependencies: undefined,
     optionalDependencies: undefined,
-    permissions: undefined
+    permissions: undefined,
   };
 
   let expected = {
     foobar1: expectedFoobar,
-    foobar2: expectedFoobar
+    foobar2: expectedFoobar,
   };
 
   expect(actual).toEqual(expected);

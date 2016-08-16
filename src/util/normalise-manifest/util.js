@@ -9,9 +9,9 @@
  * @flow
  */
 
-import type { PersonObject } from "../../types.js";
+import type { PersonObject } from '../../types.js';
 
-let _ = require("lodash");
+let _ = require('lodash');
 
 export function stringifyPerson(person: any): any | string {
   if (!_.isPlainObject(person)) {
@@ -19,19 +19,25 @@ export function stringifyPerson(person: any): any | string {
   }
 
   let parts = [];
-  if (person.name) parts.push(person.name);
+  if (person.name) {
+    parts.push(person.name);
+  }
 
   let email = person.email || person.mail;
-  if (email) parts.push(`<${email}>`);
+  if (email) {
+    parts.push(`<${email}>`);
+  }
 
   let url = person.url || person.web;
-  if (url) parts.push(`(${url})`);
+  if (url) {
+    parts.push(`(${url})`);
+  }
 
-  return parts.join(" ");
+  return parts.join(' ');
 }
 
 export function parsePerson(person: any): any | PersonObject {
-  if (typeof person !== "string") {
+  if (typeof person !== 'string') {
     return person;
   }
 
@@ -41,7 +47,9 @@ export function parsePerson(person: any): any | PersonObject {
   let name = person.match(/^([^\(<]+)/);
   if (name) {
     name = name[0].trim();
-    if (name) obj.name = name;
+    if (name) {
+      obj.name = name;
+    }
   }
 
   let email = person.match(/<([^>]+)>/);
@@ -62,10 +70,12 @@ export function normalisePerson(person: mixed): mixed | PersonObject {
 }
 
 export function extractDescription(readme: ?string): ?string {
-  if (!readme) return;
+  if (!readme) {
+    return undefined;
+  }
 
   // split into lines
-  let lines = readme.trim().split("\n").map((line): string => line.trim());
+  let lines = readme.trim().split('\n').map((line): string => line.trim());
 
   // find the start of the first paragraph, ignore headings
   let start = 0;
@@ -79,11 +89,15 @@ export function extractDescription(readme: ?string): ?string {
   }
 
   // skip newlines from the header to the first line
-  while (start < lines.length && !lines[start]) start++;
+  while (start < lines.length && !lines[start]) {
+    start++;
+  }
 
   // continue to the first non empty line
   let end = start;
-  while (end < lines.length && lines[end]) end++;
+  while (end < lines.length && lines[end]) {
+    end++;
+  }
 
-  return lines.slice(start, end).join(" ");
+  return lines.slice(start, end).join(' ');
 }
