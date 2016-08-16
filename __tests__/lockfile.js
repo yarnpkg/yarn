@@ -163,7 +163,6 @@ test("Lockfile.getLockfile", () => {
     foobar: expectedFoobar,
 
     barfoo: {
-      name: "barfoo",
       version: "0.0.1",
       uid: "0.1.0",
       resolved: "http://example.com/barfoo",

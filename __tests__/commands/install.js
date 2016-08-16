@@ -394,8 +394,8 @@ test("upgrade scenario", () => {
     let lockFileWritten = await fs.readFile(path.join(config.cwd, "kpm.lock"));
     let lockFileLines = lockFileWritten.split("\n").filter((line) => !!line);
     assert.equal(lockFileLines[0], "left-pad@0.0.9:");
-    assert.equal(lockFileLines.length, 4);
-    assert.notEqual(lockFileLines[3].indexOf("resolved left-pad-0.0.9.tgz"), -1);
+    assert.equal(lockFileLines.length, 3);
+    assert.notEqual(lockFileLines[2].indexOf("resolved left-pad-0.0.9.tgz"), -1);
 
     let mirror = await fs.walk(path.join(config.cwd, mirrorPath));
     assert.equal(mirror.length, 1);
@@ -414,8 +414,8 @@ test("upgrade scenario", () => {
       let lockFileWritten = await fs.readFile(path.join(config.cwd, "kpm.lock"));
       let lockFileLines = lockFileWritten.split("\n").filter((line) => !!line);
       assert.equal(lockFileLines[0], "left-pad@1.1.0:");
-      assert.equal(lockFileLines.length, 4);
-      assert.notEqual(lockFileLines[3].indexOf("resolved left-pad-1.1.0.tgz"), -1);
+      assert.equal(lockFileLines.length, 3);
+      assert.notEqual(lockFileLines[2].indexOf("resolved left-pad-1.1.0.tgz"), -1);
 
       let mirror = await fs.walk(path.join(config.cwd, mirrorPath));
       assert.equal(mirror.length, 2);
@@ -459,9 +459,9 @@ test("[network] upgrade scenario 2 (with sub dependencies)", async () => {
       let lockFileWritten = await fs.readFile(path.join(config.cwd, "kpm.lock"));
       let lockFileLines = lockFileWritten.split("\n").filter((line) => !!line);
       assert.equal(lockFileLines[0], "mime-db@~1.23.0:");
-      assert.notEqual(lockFileLines[3].indexOf("resolved mime-db-"), -1);
-      assert.equal(lockFileLines[4], "mime-types@^2.1.11:");
-      assert.notEqual(lockFileLines[7].indexOf("resolved mime-types-2.1.11.tgz"), -1);
+      assert.notEqual(lockFileLines[2].indexOf("resolved mime-db-"), -1);
+      assert.equal(lockFileLines[3], "mime-types@^2.1.11:");
+      assert.notEqual(lockFileLines[5].indexOf("resolved mime-types-2.1.11.tgz"), -1);
 
       let mirror = await fs.walk(path.join(config.cwd, mirrorPath));
       assert.equal(mirror.length, 4);
@@ -498,8 +498,8 @@ test("[network] downgrade scenario", () => {
     let lockFileWritten = await fs.readFile(path.join(config.cwd, "kpm.lock"));
     let lockFileLines = lockFileWritten.split("\n").filter((line) => !!line);
     assert.equal(lockFileLines[0], "left-pad@1.1.0:");
-    assert.equal(lockFileLines.length, 4);
-    assert.notEqual(lockFileLines[3].indexOf("resolved left-pad-1.1.0.tgz"), -1);
+    assert.equal(lockFileLines.length, 3);
+    assert.notEqual(lockFileLines[2].indexOf("resolved left-pad-1.1.0.tgz"), -1);
 
     let mirror = await fs.walk(path.join(config.cwd, mirrorPath));
     assert.equal(mirror.length, 1);
@@ -518,8 +518,8 @@ test("[network] downgrade scenario", () => {
       let lockFileWritten = await fs.readFile(path.join(config.cwd, "kpm.lock"));
       let lockFileLines = lockFileWritten.split("\n").filter((line) => !!line);
       assert.equal(lockFileLines[0], "left-pad@0.0.9:");
-      assert.equal(lockFileLines.length, 4);
-      assert.notEqual(lockFileLines[3].indexOf("resolved left-pad-0.0.9.tgz"), -1);
+      assert.equal(lockFileLines.length, 3);
+      assert.notEqual(lockFileLines[2].indexOf("resolved left-pad-0.0.9.tgz"), -1);
 
       let mirror = await fs.walk(path.join(config.cwd, mirrorPath));
       assert.equal(mirror.length, 2);
@@ -688,7 +688,7 @@ test("uninstall should remove subdependencies", () => {
 
     let lockFileContent = await fs.readFile(path.join(config.cwd, "kpm.lock"));
     let lockFileLines = lockFileContent.split("\n").filter((line) => !!line);
-    assert.equal(lockFileLines.length, 4);
+    assert.equal(lockFileLines.length, 3);
     assert.equal(lockFileLines[0], "dep-c@^1.0.0:");
 
     await fs.unlink(path.join(config.cwd, "kpm.lock"));
@@ -720,9 +720,9 @@ async () => {
 
     let lockFileContent = await fs.readFile(path.join(config.cwd, "kpm.lock"));
     let lockFileLines = lockFileContent.split("\n").filter((line) => !!line);
-    assert.equal(lockFileLines.length, 14);
-    assert.equal(lockFileLines[4].indexOf("mime-db@"), 0);
-    assert.equal(lockFileLines[8].indexOf("mime-types@2.0.0"), 0);
+    assert.equal(lockFileLines.length, 11);
+    assert.equal(lockFileLines[3].indexOf("mime-db@"), 0);
+    assert.equal(lockFileLines[6].indexOf("mime-types@2.0.0"), 0);
 
     await fs.unlink(path.join(mirror[1].absolute));
     await fs.unlink(path.join(mirror[2].absolute));
@@ -768,9 +768,9 @@ async () => {
       let lockFileWritten = await fs.readFile(path.join(config.cwd, "kpm.lock"));
       let lockFileLines = lockFileWritten.split("\n").filter((line) => !!line);
       assert.equal(lockFileLines[0], "mime-db@~1.23.0:");
-      assert.notEqual(lockFileLines[3].indexOf("resolved mime-db-"), -1);
-      assert.equal(lockFileLines[4], "mime-types@2.1.11:");
-      assert.notEqual(lockFileLines[7].indexOf("resolved mime-types-2.1.11.tgz"), -1);
+      assert.notEqual(lockFileLines[2].indexOf("resolved mime-db-"), -1);
+      assert.equal(lockFileLines[3], "mime-types@2.1.11:");
+      assert.notEqual(lockFileLines[5].indexOf("resolved mime-types-2.1.11.tgz"), -1);
 
       let mirror = await fs.walk(path.join(config.cwd, mirrorPath));
       assert.equal(mirror.length, 4);
@@ -805,9 +805,9 @@ test("[network] install --initMirror should add init mirror deps from package.js
 
     let lockFileContent = await fs.readFile(path.join(config.cwd, "kpm.lock"));
     let lockFileLines = lockFileContent.split("\n").filter((line) => !!line);
-    assert.equal(lockFileLines.length, 10);
+    assert.equal(lockFileLines.length, 8);
     assert.equal(lockFileLines[0].indexOf("mime-db@"), 0);
-    assert.equal(lockFileLines[4].indexOf("mime-types@2.0.0"), 0);
+    assert.equal(lockFileLines[3].indexOf("mime-types@2.0.0"), 0);
 
     await fs.unlink(path.join(config.cwd, mirrorPath));
     await fs.unlink(path.join(config.cwd, "kpm.lock"));
@@ -857,7 +857,7 @@ test("[network] install --save with new dependency should be deterministic", asy
 
       let lockFileWritten = await fs.readFile(path.join(config.cwd, "kpm.lock"));
       let lockFileLines = lockFileWritten.split("\n").filter((line) => !!line);
-      assert.equal(lockFileLines.length, 14);
+      assert.equal(lockFileLines.length, 11);
 
 
       let mirror = await fs.walk(path.join(config.cwd, mirrorPath));
@@ -911,7 +911,7 @@ xit("[network] install --save with new dependency should be deterministic 2", as
 
       let lockFileWritten = await fs.readFile(path.join(config.cwd, "kpm.lock"));
       let lockFileLines = lockFileWritten.split("\n").filter((line) => !!line);
-      assert.equal(lockFileLines.length, 10);
+      assert.equal(lockFileLines.length, 8);
 
       let mirror = await fs.walk(path.join(config.cwd, mirrorPath));
       assert.equal(mirror.length, 3);
@@ -988,8 +988,8 @@ test("[network] install --save should ignore cache", () => {
     let lockFileWritten = await fs.readFile(path.join(config.cwd, "kpm.lock"));
     let lockFileLines = lockFileWritten.split("\n").filter((line) => !!line);
     assert.equal(lockFileLines[0], "left-pad@1.1.0:");
-    assert.equal(lockFileLines.length, 4);
-    assert.notEqual(lockFileLines[3].indexOf("resolved left-pad-1.1.0.tgz"), -1);
+    assert.equal(lockFileLines.length, 3);
+    assert.notEqual(lockFileLines[2].indexOf("resolved left-pad-1.1.0.tgz"), -1);
 
     await fs.unlink(path.join(config.cwd, mirrorPath));
     await fs.unlink(path.join(config.cwd, "package.json"));
