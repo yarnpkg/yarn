@@ -9,9 +9,9 @@
  * @flow
  */
 
-import type PackageRequest from "../../package-request.js";
-import type { RegistryNames } from "../../registries/index.js";
-import BaseResolver from "../_base.js";
+import type PackageRequest from '../../package-request.js';
+import type { RegistryNames } from '../../registries/index.js';
+import BaseResolver from '../_base.js';
 
 export default class RegistryResolver extends BaseResolver {
   constructor(request: PackageRequest, name: string, range: string) {

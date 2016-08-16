@@ -16,9 +16,9 @@ export function wait(delay: number): Promise<void> {
 }
 
 export function promisify(fn: Function, firstData?: boolean): () => Promise<any> {
-  return function (...args): Promise<any> {
-    return new Promise(function (resolve, reject) {
-      args.push(function (err, ...result) {
+  return function(...args): Promise<any> {
+    return new Promise(function(resolve, reject) {
+      args.push(function(err, ...result) {
         let res = result;
 
         if (result.length <= 1) {
@@ -66,16 +66,20 @@ export function queue<T>(
 
   let results = [];
   let total = arr.length;
-  if (!total) return Promise.resolve();
+  if (!total) {
+    return Promise.resolve();
+  }
 
   return new Promise((resolve, reject) => {
-    for (let i = 0; i < concurrency; i++) next();
+    for (let i = 0; i < concurrency; i++) {
+      next();
+    }
 
     function next() {
       let item = arr.shift();
       let promise = promiseProducer(item);
 
-      promise.then(function (result) {
+      promise.then(function(result) {
         results.push(result);
 
         total--;

@@ -9,15 +9,15 @@
  * @flow
  */
 
-import type { Manifest } from "./types.js";
-import type PackageResolver from "./package-resolver.js";
-import type { Reporter } from "./reporters/index.js";
-import type Config from "./config.js";
-import executeLifecycleScript from "./util/execute-lifecycle-script.js";
-import * as promise from "./util/promise.js";
+import type { Manifest } from './types.js';
+import type PackageResolver from './package-resolver.js';
+import type { Reporter } from './reporters/index.js';
+import type Config from './config.js';
+import executeLifecycleScript from './util/execute-lifecycle-script.js';
+import * as promise from './util/promise.js';
 
-let invariant = require("invariant");
-let _         = require("lodash");
+let invariant = require('invariant');
+let _ = require('lodash');
 
 export default class PackageInstallScripts {
   constructor(config: Config, resolver: PackageResolver, force: boolean) {
@@ -56,11 +56,11 @@ export default class PackageInstallScripts {
       err.message = `${loc}: ${err.message}`;
 
       let ref = pkg.reference;
-      invariant(ref, "expected reference");
+      invariant(ref, 'expected reference');
 
       if (ref.optional) {
         this.reporter.error(`Error running install script for optional dependency: ${err.message}`);
-        this.reporter.info("This module is OPTIONAL, you can safely ignore this error");
+        this.reporter.info('This module is OPTIONAL, you can safely ignore this error');
         return [];
       } else {
         throw err;
@@ -75,29 +75,37 @@ export default class PackageInstallScripts {
     let refinedInfos = [];
     for (let pkg of pkgs) {
       let cmds = this.getInstallCommands(pkg);
-      if (!cmds.length) continue;
+      if (!cmds.length) {
+        continue;
+      }
 
       let ref = pkg.reference;
-      invariant(ref, "Missing package reference");
-      if (!ref.fresh && !this.force) continue;
+      invariant(ref, 'Missing package reference');
+      if (!ref.fresh && !this.force) {
+        continue;
+      }
 
-      if (this.needsPermission && !ref.hasPermission("scripts")) {
+      if (this.needsPermission && !ref.hasPermission('scripts')) {
         let can = await this.reporter.question(
           `Module ${pkg.name} wants to execute the commands ${JSON.stringify(cmds)}. Do you want to accept?`
         );
-        if (!can) continue;
+        if (!can) {
+          continue;
+        }
 
-        ref.setPermission("scripts", can);
+        ref.setPermission('scripts', can);
       }
 
       refinedInfos.push({ pkg, cmds });
     }
-    if (!refinedInfos.length) return;
+    if (!refinedInfos.length) {
+      return;
+    }
 
     let tick = this.reporter.progress(refinedInfos.length);
 
     await promise.queue(refinedInfos, ({ pkg, cmds }): Promise<void> => {
-      return this.install(cmds, pkg).then(function () {
+      return this.install(cmds, pkg).then(function() {
         tick(pkg.name);
       });
     });

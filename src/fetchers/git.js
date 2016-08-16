@@ -9,15 +9,15 @@
  * @flow
  */
 
-import BaseFetcher from "./_base.js";
-import Git from "../util/git.js";
+import BaseFetcher from './_base.js';
+import Git from '../util/git.js';
 
-let invariant = require("invariant");
+let invariant = require('invariant');
 
 export default class GitFetcher extends BaseFetcher {
   async _fetch(dest: string): Promise<string> {
     let hash = this.hash;
-    invariant(hash, "Commit hash required");
+    invariant(hash, 'Commit hash required');
 
     let git = new Git(this.config, this.reference, hash);
     await git.initRemote();

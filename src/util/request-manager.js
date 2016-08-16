@@ -9,21 +9,21 @@
  * @flow
  */
 
-import type { Reporter } from "../reporters/index.js";
-import BlockingQueue from "./blocking-queue.js";
-import * as constants from "../constants.js";
-import * as network from "./network.js";
-import map from "../util/map.js";
+import type { Reporter } from '../reporters/index.js';
+import BlockingQueue from './blocking-queue.js';
+import * as constants from '../constants.js';
+import * as network from './network.js';
+import map from '../util/map.js';
 
-let Request = require("request").Request;
-let url = require("url");
+let Request = require('request').Request;
+let url = require('url');
 
 let successHosts = map();
 let controlOffline = network.isOffline();
 
 declare class RequestError extends Error {
-  hostname: string;
-  code: string;
+  hostname: string,
+  code: string,
 }
 
 type RequestParams<T> = {
@@ -75,14 +75,16 @@ export default class RequestManager {
 
   request<T>(params: RequestParams<T>): Promise<T> {
     let cached = this.cache[params.url];
-    if (cached) return cached;
+    if (cached) {
+      return cached;
+    }
 
-    params.method = params.method || "GET";
+    params.method = params.method || 'GET';
     params.forever = true;
     params.retryAttempts = 0;
 
     params.headers = Object.assign({
-      "User-Agent": constants.USER_AGENT
+      'User-Agent': constants.USER_AGENT,
     }, params.headers);
 
     let promise = new Promise((resolve, reject) => {
@@ -114,19 +116,19 @@ export default class RequestManager {
   isPossibleOfflineError(err: RequestError): boolean {
     // network was previously online but now we're offline
     let possibleOfflineChange = !controlOffline && !network.isOffline();
-    if (err.code === "ENOTFOUND" && possibleOfflineChange) {
+    if (err.code === 'ENOTFOUND' && possibleOfflineChange) {
       // can't resolve a domain
       return true;
     }
 
     // used to be able to resolve this domain! something is wrong
-    if (err.code === "ENOTFOUND" && successHosts[err.hostname]) {
+    if (err.code === 'ENOTFOUND' && successHosts[err.hostname]) {
       // can't resolve this domain but we've successfully resolved it before
       return true;
     }
 
     // network was previously offline and we can't resolve the domain
-    if (err.code === "ENOTFOUND" && controlOffline) {
+    if (err.code === 'ENOTFOUND' && controlOffline) {
       return true;
     }
 
@@ -142,7 +144,7 @@ export default class RequestManager {
 
   queueForOffline(opts: RequestOptions) {
     if (!this.offlineQueue.length) {
-      this.reporter.warn("There appears to be trouble with your network connection. Retrying...");
+      this.reporter.warn('There appears to be trouble with your network connection. Retrying...');
       this.initOfflineRetry();
     }
 
@@ -158,7 +160,9 @@ export default class RequestManager {
     setTimeout(() => {
       let queue = this.offlineQueue;
       this.offlineQueue = [];
-      for (let opts of queue) this.execute(opts);
+      for (let opts of queue) {
+        this.execute(opts);
+      }
     }, 3000);
   }
 
@@ -178,7 +182,7 @@ export default class RequestManager {
     let resolve = buildNext(opts.resolve);
 
     let rejectNext = buildNext(opts.reject);
-    let reject = function (err) {
+    let reject = function(err) {
       err.message = `${params.url}: ${err.message}`;
       rejectNext(err);
     };
@@ -188,8 +192,10 @@ export default class RequestManager {
     if (!params.process) {
       let parts = url.parse(params.url);
 
-      params.callback = function (err, res, body) {
-        if (err) return; // will be handled by the `error` event handler
+      params.callback = function(err, res, body) {
+        if (err) {
+          return; // will be handled by the `error` event handler
+        }
 
         successHosts[parts.hostname] = true;
 
@@ -197,8 +203,9 @@ export default class RequestManager {
           let errMsg = (body && body.message) || `Request ${params.url} returned a ${res.statusCode}`;
           reject(new Error(errMsg));
         } else {
-          if (res.statusCode === 400) body = false;
-          if (res.statusCode === 404) body = false;
+          if (res.statusCode === 400 || res.statusCode === 404) {
+            body = false;
+          }
           resolve(body);
         }
       };
@@ -206,11 +213,13 @@ export default class RequestManager {
 
     let req = new Request(params);
 
-    req.on("error", (err) => {
+    req.on('error', (err) => {
       let attempts = params.retryAttempts || 0;
       if (attempts < 5 && this.isPossibleOfflineError(err)) {
         params.retryAttempts = attempts + 1;
-        if (params.cleanup) params.cleanup();
+        if (params.cleanup) {
+          params.cleanup();
+        }
         this.queueForOffline(opts);
       } else {
         reject(err);
@@ -218,7 +227,9 @@ export default class RequestManager {
     });
 
     let queue = params.queue;
-    if (queue) req.on("data", queue.stillActive.bind(queue));
+    if (queue) {
+      req.on('data', queue.stillActive.bind(queue));
+    }
 
     if (params.process) {
       params.process(req, resolve, reject);
@@ -230,8 +241,9 @@ export default class RequestManager {
    */
 
   shiftQueue() {
-    if (this.running >= this.max) return;
-    if (!this.queue.length) return;
+    if (this.running >= this.max || !this.queue.length) {
+      return;
+    }
 
     let opts = this.queue.shift();
 

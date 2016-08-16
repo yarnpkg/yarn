@@ -16,7 +16,7 @@ export default function nullify<T>(obj?: Return<T> = {}): Return<T> {
     for (let item of obj) {
       nullify(item);
     }
-  } else if (obj !== null && typeof obj === "object" || typeof obj === "function") {
+  } else if (obj !== null && typeof obj === 'object' || typeof obj === 'function') {
     Object.setPrototypeOf(obj, null);
     for (let key in obj) {
       nullify(obj[key]);

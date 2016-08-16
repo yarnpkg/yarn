@@ -9,59 +9,59 @@
  * @flow
  */
 
-import * as promise from "../../src/util/promise.js";
+import * as promise from '../../src/util/promise.js';
 
-test("promisify", async function () {
-  expect(await promise.promisify(function (callback) {
-    callback(null, "foo");
-  })()).toBe("foo");
+test('promisify', async function () {
+  expect(await promise.promisify(function(callback) {
+    callback(null, 'foo');
+  })()).toBe('foo');
 
-  expect(await promise.promisify(function (data, callback) {
-    callback(null, data + "bar");
-  })("foo")).toBe("foobar");
+  expect(await promise.promisify(function(data, callback) {
+    callback(null, data + 'bar');
+  })('foo')).toBe('foobar');
 
-  expect(await promise.promisify(function (callback) {
-    callback(null, "foo", "bar");
-  })()).toEqual(["foo", "bar"]);
+  expect(await promise.promisify(function(callback) {
+    callback(null, 'foo', 'bar');
+  })()).toEqual(['foo', 'bar']);
 
   let error;
   try {
-    await promise.promisify(function (callback) {
-      callback(new Error("yep"));
+    await promise.promisify(function(callback) {
+      callback(new Error('yep'));
     })();
   } catch (e) {
     error = e;
   }
-  expect(error && error.message).toEqual("yep");
+  expect(error && error.message).toEqual('yep');
 });
 
-test("promisifyObject", async function () {
+test('promisifyObject', async function () {
   let obj = promise.promisifyObject({
-    foo: function (callback) {
-      callback(null, "foo");
+    foo: function(callback) {
+      callback(null, 'foo');
     },
 
-    bar: function (data, callback) {
-      callback(null, data + "bar");
+    bar: function(data, callback) {
+      callback(null, data + 'bar');
     },
 
-    foobar: function (callback) {
-      callback(new Error("yep"));
-    }
+    foobar: function(callback) {
+      callback(new Error('yep'));
+    },
   });
 
-  expect(await obj.foo()).toBe("foo");
-  expect(await obj.bar("foo")).toBe("foobar");
+  expect(await obj.foo()).toBe('foo');
+  expect(await obj.bar('foo')).toBe('foobar');
   let error;
   try {
     await obj.foobar();
   } catch (e) {
     error = e;
   }
-  expect(error && error.message).toEqual("yep");
+  expect(error && error.message).toEqual('yep');
 });
 
-test("queue", async function () {
+test('queue', async function () {
   let running = 0;
 
   async function create() {
@@ -69,13 +69,13 @@ test("queue", async function () {
     jest.runAllTimers();
 
     if (running > 5)  {
-      throw new Error("Concurrency is broken");
+      throw new Error('Concurrency is broken');
     }
 
     running--;
   }
 
-  await promise.queue([], function () {
+  await promise.queue([], function() {
     throw new Error("Shouldn't be called");
   });
 

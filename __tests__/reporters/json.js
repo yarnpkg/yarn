@@ -10,48 +10,65 @@
  */
 /* eslint quotes: 0 */
 
+import type { MockData } from "./_mock.js";
 import JSONReporter from "../../src/reporters/json.js";
 import build from "./_mock.js";
 
-let getJSONBuff = build(JSONReporter, (data) => data);
+let getJSONBuff = build(JSONReporter, (data): MockData => data);
 
 test("JSONReporter.step", async () => {
-  expect(await getJSONBuff((r) => r.step(1, 5, "foobar"))).toMatchSnapshot();
+  expect(await getJSONBuff((r) => {
+    r.step(1, 5, "foobar");
+  })).toMatchSnapshot();
 });
 
 test("JSONReporter.footer", async () => {
-  expect(await getJSONBuff((r) => r.footer())).toMatchSnapshot();
+  expect(await getJSONBuff((r) => {
+    r.footer(false);
+  })).toMatchSnapshot();
 });
 
 test("JSONReporter.log", async () => {
-  expect(await getJSONBuff((r) => r.log("foobar"))).toMatchSnapshot();
+  expect(await getJSONBuff((r) => {
+    r.log("foobar");
+  })).toMatchSnapshot();
 });
 
 test("JSONReporter.command", async () => {
-  expect(await getJSONBuff((r) => r.command("foobar"))).toMatchSnapshot();
+  expect(await getJSONBuff((r) => {
+    r.command("foobar");
+  })).toMatchSnapshot();
 });
 
 test("JSONReporter.success", async () => {
-  expect(await getJSONBuff((r) => r.success("foobar"))).toMatchSnapshot();
+  expect(await getJSONBuff((r) => {
+    r.success("foobar");
+  })).toMatchSnapshot();
 });
 
 test("JSONReporter.error", async () => {
-  expect(await getJSONBuff((r) => r.error("foobar"))).toMatchSnapshot();
+  expect(await getJSONBuff((r) => {
+    r.error("foobar");
+  })).toMatchSnapshot();
 });
 
 test("JSONReporter.warn", async () => {
-  expect(await getJSONBuff((r) => r.warn("foobar"))).toMatchSnapshot();
+  expect(await getJSONBuff((r) => {
+    r.warn("foobar");
+  })).toMatchSnapshot();
 });
 
 test("JSONReporter.info", async () => {
-  expect(await getJSONBuff((r) => r.info("foobar"))).toMatchSnapshot();
+  expect(await getJSONBuff((r) => {
+    r.info("foobar");
+  })).toMatchSnapshot();
 });
 
 test("JSONReporter.activity", async () => {
   expect(await getJSONBuff(async function (r) {
     let activity = await r.activity();
-    activity.tick();
-    activity.tick();
+    activity.tick("foo");
+    activity.tick("bar");
     activity.end();
   })).toMatchSnapshot();
 });

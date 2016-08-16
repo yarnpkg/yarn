@@ -9,26 +9,26 @@
  * @flow
  */
 
-import type { Manifest, DependencyRequestPatterns } from "./types.js";
-import type { RegistryNames } from "./registries/index.js";
-import type PackageReference from "./package-reference.js";
-import type { Reporter } from "./reporters/index.js";
-import type Config from "./config.js";
-import PackageFetcher from "./package-fetcher.js";
-import PackageRequest from "./package-request.js";
-import RequestManager from "./util/request-manager.js";
-import BlockingQueue from "./util/blocking-queue.js";
-import Lockfile from "./lockfile/index.js";
-import map from "./util/map.js";
+import type { Manifest, DependencyRequestPatterns } from './types.js';
+import type { RegistryNames } from './registries/index.js';
+import type PackageReference from './package-reference.js';
+import type { Reporter } from './reporters/index.js';
+import type Config from './config.js';
+import PackageFetcher from './package-fetcher.js';
+import PackageRequest from './package-request.js';
+import RequestManager from './util/request-manager.js';
+import BlockingQueue from './util/blocking-queue.js';
+import Lockfile from './lockfile/index.js';
+import map from './util/map.js';
 
-let invariant = require("invariant");
+let invariant = require('invariant');
 
 export default class PackageResolver {
   constructor(config: Config, lockfile: Lockfile) {
     this.packageReferencesByName = map();
     this.patternsByPackage       = map();
     this.fetchingPatterns        = map();
-    this.fetchingQueue           = new BlockingQueue("resolver fetching");
+    this.fetchingQueue           = new BlockingQueue('resolver fetching');
     this.newPatterns             = [];
     this.patterns                = map();
 
@@ -119,11 +119,13 @@ export default class PackageResolver {
 
   dedupePatterns(patterns: Array<string>): Array<string> {
     let deduped = [];
-    let seen = new Set;
+    let seen = new Set();
 
     for (let pattern of patterns) {
       let info = this.getResolvedPattern(pattern);
-      if (seen.has(info)) continue;
+      if (seen.has(info)) {
+        continue;
+      }
 
       seen.add(info);
       deduped.push(pattern);
@@ -146,11 +148,13 @@ export default class PackageResolver {
 
   getAllInfoForPackageName(name: string): Array<Manifest> {
     let infos = [];
-    let seen  = new Set;
+    let seen  = new Set();
 
     for (let pattern of this.patternsByPackage[name]) {
       let info = this.patterns[pattern];
-      if (seen.has(info)) continue;
+      if (seen.has(info)) {
+        continue;
+      }
 
       seen.add(info);
       infos.push(info);
@@ -179,11 +183,13 @@ export default class PackageResolver {
 
   getManifests(): Array<Manifest> {
     let infos = [];
-    let seen  = new Set;
+    let seen  = new Set();
 
     for (let pattern in this.patterns) {
       let info = this.patterns[pattern];
-      if (seen.has(info)) continue;
+      if (seen.has(info)) {
+        continue;
+      }
 
       infos.push(info);
       seen.add(info);
@@ -197,7 +203,7 @@ export default class PackageResolver {
    */
 
   registerPackageReference(ref: ?PackageReference) {
-    invariant(ref, "No package reference passed");
+    invariant(ref, 'No package reference passed');
     let pkgs = this.packageReferencesByName[ref.name] = this.packageReferencesByName[ref.name] || [];
     pkgs.push(ref);
   }
@@ -260,10 +266,14 @@ export default class PackageResolver {
 
   removePattern(pattern: string) {
     let pkg = this.patterns[pattern];
-    if (!pkg) return;
+    if (!pkg) {
+      return;
+    }
 
     let byName = this.patternsByPackage[pkg.name];
-    if (!byName) return;
+    if (!byName) {
+      return;
+    }
 
     byName.splice(byName.indexOf(pattern), 1);
     delete this.patterns[pattern];
@@ -283,7 +293,7 @@ export default class PackageResolver {
 
   getStrictResolvedPattern(pattern: string): Manifest {
     let manifest = this.getResolvedPattern(pattern);
-    invariant(manifest, "expected manifest");
+    invariant(manifest, 'expected manifest');
     return manifest;
   }
 
@@ -293,7 +303,9 @@ export default class PackageResolver {
 
   getExactVersionMatch(name: string, version: string): ?Manifest {
     let patterns = this.patternsByPackage[name];
-    if (!patterns) return;
+    if (!patterns) {
+      return null;
+    }
 
     for (let pattern of patterns) {
       let info = this.getStrictResolvedPattern(pattern);
@@ -301,6 +313,8 @@ export default class PackageResolver {
         return info;
       }
     }
+
+    return null;
   }
 
   /**
@@ -313,7 +327,7 @@ export default class PackageResolver {
     ignore = false,
     optional = false,
     parentRequest,
-    subLockfile
+    subLockfile,
   }: {
     pattern: string,
     registry: RegistryNames,
@@ -342,15 +356,16 @@ export default class PackageResolver {
       ignore = true;
     }
 
-    return new PackageRequest({
+    let request = new PackageRequest({
       lockfile: subLockfile,
       pattern,
       registry,
       parentRequest,
       optional,
       ignore,
-      resolver: this
-    }).find();
+      resolver: this,
+    });
+    await request.find();
   }
 
   /**

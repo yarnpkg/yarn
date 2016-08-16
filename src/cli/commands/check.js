@@ -9,23 +9,23 @@
  * @flow
  */
 
-import type { Reporter } from "../../reporters/index.js";
-import type Config from "../../config.js";
-import { Install } from "./install.js";
-import Lockfile from "../../lockfile/index.js";
-import * as constants from "../../constants.js";
-import * as fs from "../../util/fs.js";
-import * as util from "../../util/misc.js";
+import type { Reporter } from '../../reporters/index.js';
+import type Config from '../../config.js';
+import { Install } from './install.js';
+import Lockfile from '../../lockfile/index.js';
+import * as constants from '../../constants.js';
+import * as fs from '../../util/fs.js';
+import * as util from '../../util/misc.js';
 
-let semver = require("semver");
-let chalk = require("chalk");
-let path = require("path");
+let semver = require('semver');
+let chalk = require('chalk');
+let path = require('path');
 
 export let requireLockfile = true;
 export let noArguments = true;
 
 export function setFlags(commander: Object) {
-  commander.option("--quick-sloppy");
+  commander.option('--quick-sloppy');
 }
 
 export async function run(
@@ -36,14 +36,14 @@ export async function run(
 ): Promise<void> {
   let lockfile = await Lockfile.fromDirectory(config.cwd, reporter, {
     silent: true,
-    strict: true
+    strict: true,
   });
 
-  let install = new Install("update", flags, args, config, reporter, lockfile, true);
+  let install = new Install('update', flags, args, config, reporter, lockfile, true);
 
   function humaniseLocation(loc: string): Array<string> {
-    let relative = path.relative(path.join(config.cwd, "node_modules"), loc);
-    return relative.split(new RegExp(`${path.sep}node_modules${path.sep}`, "g"));
+    let relative = path.relative(path.join(config.cwd, 'node_modules'), loc);
+    return relative.split(new RegExp(`${path.sep}node_modules${path.sep}`, 'g'));
   }
 
   let warningCount = 0;
@@ -66,7 +66,7 @@ export async function run(
   if (flags.quickSloppy) {
     // in sloppy mode we don't resolve dependencies, we just check a hash of the lockfile
     // against one that is created when we run `kpm install`
-    let integrityLoc = path.join(config.cwd, "node_modules", constants.INTEGRITY_FILENAME);
+    let integrityLoc = path.join(config.cwd, 'node_modules', constants.INTEGRITY_FILENAME);
 
     if (await fs.exists(integrityLoc)) {
       let actual = await fs.readFile(integrityLoc);
@@ -90,9 +90,9 @@ export async function run(
       // grey out hoisted portions of key
       let human = originalKey;
       let hoistedParts = parts.slice();
-      let hoistedKey = parts.join("#");
+      let hoistedKey = parts.join('#');
       if (human !== hoistedKey) {
-        let humanParts = human.split("#");
+        let humanParts = human.split('#');
 
         for (let i = 0; i < humanParts.length; i++) {
           let humanPart = humanParts[i];
@@ -101,17 +101,17 @@ export async function run(
             hoistedParts.shift();
 
             if (i < humanParts.length - 1) {
-              humanParts[i] += "#";
+              humanParts[i] += '#';
             }
           } else {
             humanParts[i] = chalk.dim(`${humanPart}#`);
           }
         }
 
-        human = humanParts.join("");
+        human = humanParts.join('');
       }
 
-      let pkgLoc = path.join(loc, "package.json");
+      let pkgLoc = path.join(loc, 'package.json');
       if (!(await fs.exists(loc)) || !(await fs.exists(pkgLoc))) {
         reportError(`${human} not installed`);
       }
@@ -125,7 +125,9 @@ export async function run(
 
       for (let name in deps) {
         let range = deps[name];
-        if (!semver.validRange(range)) continue; // exotic
+        if (!semver.validRange(range)) {
+          continue; // exotic
+        }
 
         let subHuman = `${human}#${name}@${range}`;
 
@@ -138,9 +140,9 @@ export async function run(
           // build package.json location for this position
           let myDepPkgLoc = path.join(
             config.cwd,
-            "node_modules",
+            'node_modules',
             myParts.join(`${path.sep}node_modules${path.sep}`),
-            "package.json"
+            'package.json'
           );
 
           possibles.push(myDepPkgLoc);
@@ -159,7 +161,7 @@ export async function run(
 
         //
         let depPkg = await fs.readJson(depPkgLoc);
-        let foundHuman = `${humaniseLocation(path.dirname(depPkgLoc)).join("#")}@${depPkg.version}`;
+        let foundHuman = `${humaniseLocation(path.dirname(depPkgLoc)).join('#')}@${depPkg.version}`;
         if (!semver.satisfies(depPkg.version, range)) {
           // module isn't correct semver
           reportError(`${subHuman} doesn't satisfy found match of ${foundHuman}`);
@@ -168,7 +170,9 @@ export async function run(
 
         // check for modules above us that this could be deduped to
         for (let loc of possibles) {
-          if (!await fs.exists(loc)) continue;
+          if (!await fs.exists(loc)) {
+            continue;
+          }
 
           let packageJson = await fs.readJson(loc);
           if (packageJson.version === depPkg.version ||
@@ -176,7 +180,7 @@ export async function run(
              semver.gt(packageJson.version, depPkg.version))) {
             reporter.warn(
               `${subHuman} could be deduped from ${packageJson.version} to ` +
-              `${humaniseLocation(path.dirname(loc)).join("#")}@${packageJson.version}`
+              `${humaniseLocation(path.dirname(loc)).join('#')}@${packageJson.version}`
             );
             warningCount++;
           }
@@ -191,9 +195,13 @@ export async function run(
   }
 
   if (errCount > 0) {
-    if (errCount > 1) reporter.info(`Found ${errCount} errors`);
+    if (errCount > 1) {
+      reporter.info(`Found ${errCount} errors`);
+    }
+    
     return Promise.reject();
   } else {
-    reporter.success("Folder in sync");
+    reporter.success('Folder in sync');
+    return Promise.resolve();
   }
 }

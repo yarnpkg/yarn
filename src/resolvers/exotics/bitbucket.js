@@ -9,12 +9,12 @@
  * @flow
  */
 
-import type { ExplodedFragment } from "./_hosted-git.js";
-import HostedGitResolver from "./_hosted-git.js";
+import type { ExplodedFragment } from './_hosted-git.js';
+import HostedGitResolver from './_hosted-git.js';
 
 export default class BitbucketResolver extends HostedGitResolver {
-  static hostname = "bitbucket.org";
-  static protocol = "bitbucket";
+  static hostname = 'bitbucket.org';
+  static protocol = 'bitbucket';
 
   static getTarballUrl({ user, repo }: ExplodedFragment, hash: string): string {
     return `https://bitbucket.org/${user}/${repo}/get/${hash}.tar.gz`;

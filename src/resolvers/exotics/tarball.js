@@ -9,16 +9,16 @@
  * @flow
  */
 
-import type { Manifest, FetchedManifest } from "../../types.js";
-import type PackageRequest from "../../package-request.js";
-import TarballFetcher from "../../fetchers/tarball.js";
-import ExoticResolver from "./_base.js";
-import Git from "./git.js";
-import * as versionUtil from "../../util/version.js";
-import * as crypto from "../../util/crypto.js";
-import * as fs from "../../util/fs.js";
+import type { Manifest, FetchedManifest } from '../../types.js';
+import type PackageRequest from '../../package-request.js';
+import TarballFetcher from '../../fetchers/tarball.js';
+import ExoticResolver from './_base.js';
+import Git from './git.js';
+import * as versionUtil from '../../util/version.js';
+import * as crypto from '../../util/crypto.js';
+import * as fs from '../../util/fs.js';
 
-let _ = require("lodash");
+let _ = require('lodash');
 
 export default class TarballResolver extends ExoticResolver {
   constructor(request: PackageRequest, fragment: string) {
@@ -39,12 +39,12 @@ export default class TarballResolver extends ExoticResolver {
     }
 
     // full http url
-    if (pattern.indexOf("http://") === 0 || pattern.indexOf("https://") === 0) {
+    if (pattern.indexOf('http://') === 0 || pattern.indexOf('https://') === 0) {
       return true;
     }
 
     // local file reference
-    if (_.endsWith(pattern, ".tgz") || _.endsWith(pattern, "tar.gz")) {
+    if (_.endsWith(pattern, '.tgz') || _.endsWith(pattern, 'tar.gz')) {
       return true;
     }
 
@@ -52,8 +52,10 @@ export default class TarballResolver extends ExoticResolver {
   }
 
   async resolve(): Promise<Manifest> {
-    let shrunk = this.request.getLocked("tarball");
-    if (shrunk) return shrunk;
+    let shrunk = this.request.getLocked('tarball');
+    if (shrunk) {
+      return shrunk;
+    }
 
     let { url, hash, registry } = this;
     let pkgJson;
@@ -69,10 +71,10 @@ export default class TarballResolver extends ExoticResolver {
       await fs.unlink(dest);
 
       let fetcher = new TarballFetcher({
-        type: "tarball",
+        type: 'tarball',
         reference: url,
         registry,
-        hash
+        hash,
       }, this.config, false);
 
       // fetch file and get it's hash
@@ -90,11 +92,11 @@ export default class TarballResolver extends ExoticResolver {
 
     // set remote so it can be "fetched"
     pkgJson.remote = {
-      type: "copy",
+      type: 'copy',
       resolved: `${url}#${hash}`,
       hash,
       registry,
-      reference: dest
+      reference: dest,
     };
 
     return pkgJson;

@@ -9,15 +9,15 @@
  * @flow
  */
 
-import type { Reporter } from "../../reporters/index.js";
-import type Config from "../../config.js";
-import type PackageResolver from "../../package-resolver.js";
-import type PackageLinker from "../../package-linker.js";
-import type { Trees } from "../../reporters/types.js";
-import { Install } from "./install.js";
-import Lockfile from "../../lockfile/index.js";
+import type { Reporter } from '../../reporters/index.js';
+import type Config from '../../config.js';
+import type PackageResolver from '../../package-resolver.js';
+import type PackageLinker from '../../package-linker.js';
+import type { Trees } from '../../reporters/types.js';
+import { Install } from './install.js';
+import Lockfile from '../../lockfile/index.js';
 
-let invariant = require("invariant");
+let invariant = require('invariant');
 
 export let requireLockfile = true;
 export let noArguments = true;
@@ -30,7 +30,9 @@ function buildCount(trees: ?Trees): number {
   let count = 0;
 
   for (let tree of trees) {
-    if (tree.shadow) continue;
+    if (tree.shadow) {
+      continue;
+    }
 
     count++;
     count += buildCount(tree.children);
@@ -53,12 +55,14 @@ export async function buildTree(
   let hoisted = await linker.getFlatHoistedTree(patterns);
 
   let hoistedByKey = {};
-  for (let [key, info] of hoisted) hoistedByKey[key] = info;
+  for (let [key, info] of hoisted) {
+    hoistedByKey[key] = info;
+  }
 
   // build initial trees
   for (let [, info] of hoisted) {
     let ref = info.pkg.reference;
-    invariant(ref, "expected reference");
+    invariant(ref, 'expected reference');
 
     if (onlyFresh) {
       let isFresh = false;
@@ -68,11 +72,13 @@ export async function buildTree(
           break;
         }
       }
-      if (!isFresh) continue;
+      if (!isFresh) {
+        continue;
+      }
     }
 
     let hint = null;
-    let color = "bold";
+    let color = 'bold';
 
     if (info.originalKey !== info.key) {
       // was hoisted
@@ -83,20 +89,20 @@ export async function buildTree(
       name: `${info.pkg.name}@${info.pkg.version}`,
       children: [],
       hint,
-      color
+      color,
     };
     treesByKey[info.key] = tree;
 
     // add in dummy children for hoisted dependencies
-    invariant(ref, "expected reference");
+    invariant(ref, 'expected reference');
     for (let pattern of resolver.dedupePatterns(ref.dependencies)) {
       let pkg = resolver.getStrictResolvedPattern(pattern);
 
       if (!hoistedByKey[`${info.key}#${pkg.name}`]) {
         tree.children.push({
           name: pattern,
-          color: "dim",
-          shadow: true
+          color: 'dim',
+          shadow: true,
         });
       }
     }
@@ -105,18 +111,21 @@ export async function buildTree(
   // add children
   for (let [, info] of hoisted) {
     let tree = treesByKey[info.key];
-    if (!tree) continue;
+    if (!tree) {
+      continue;
+    }
 
-    let keyParts = info.key.split("#");
+    let keyParts = info.key.split('#');
     if (keyParts.length === 1) {
       trees.push(tree);
       continue;
     }
 
-    let parentKey = keyParts.slice(0, -1).join("#");
+    let parentKey = keyParts.slice(0, -1).join('#');
     let parent = treesByKey[parentKey];
-    if (!parent) continue;
-    parent.children.push(tree);
+    if (parent) {
+      parent.children.push(tree);
+    }
   }
 
   return { trees, count: buildCount(trees) };
@@ -130,13 +139,13 @@ export async function run(
 ): Promise<void> {
   let lockfile = await Lockfile.fromDirectory(config.cwd, reporter, {
     silent: true,
-    strictIfPresent: true
+    strictIfPresent: true,
   });
 
-  let install = new Install("ls", flags, args, config, reporter, lockfile);
+  let install = new Install('ls', flags, args, config, reporter, lockfile);
   let [depRequests, patterns] = await install.fetchRequestFromCwd();
   await install.resolver.init(depRequests);
 
   let { trees } = await buildTree(install.resolver, install.linker, patterns);
-  reporter.tree("ls", trees);
+  reporter.tree('ls', trees);
 }

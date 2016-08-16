@@ -9,23 +9,23 @@
  * @flow
  */
 
-import type { Manifest } from "../../types.js";
-import type PackageRequest from "../../package-request.js";
-import { hostedGit as hostedGitResolvers } from "../index.js";
-import { MessageError } from "../../errors.js";
-import * as util from "../../util/misc.js";
-import * as versionUtil from "../../util/version.js";
-import { registries } from "../../registries/index.js";
-import ExoticResolver from "./_base.js";
-import Git from "../../util/git.js";
+import type { Manifest } from '../../types.js';
+import type PackageRequest from '../../package-request.js';
+import { hostedGit as hostedGitResolvers } from '../index.js';
+import { MessageError } from '../../errors.js';
+import * as util from '../../util/misc.js';
+import * as versionUtil from '../../util/version.js';
+import { registries } from '../../registries/index.js';
+import ExoticResolver from './_base.js';
+import Git from '../../util/git.js';
 
-let urlParse = require("url").parse;
-let _        = require("lodash");
+let urlParse = require('url').parse;
+let _ = require('lodash');
 
 // we purposefully omit https and http as those are only valid if they end in the .git extension
-const GIT_PROTOCOLS = ["git", "git+ssh", "git+https", "ssh"];
+const GIT_PROTOCOLS = ['git', 'git+ssh', 'git+https', 'ssh'];
 
-const GIT_HOSTS = ["github.com", "gitlab.com", "bitbucket.com"];
+const GIT_HOSTS = ['github.com', 'gitlab.com', 'bitbucket.com'];
 
 export default class GitResolver extends ExoticResolver {
   constructor(request: PackageRequest, fragment: string) {
@@ -42,14 +42,14 @@ export default class GitResolver extends ExoticResolver {
   static isVersion(pattern: string): boolean {
     // this pattern hasn't been exploded yet, we'll hit this code path again later once
     // we've been normalised #59
-    if (pattern.indexOf("@") >= 0) {
+    if (pattern.indexOf('@') >= 0) {
       return false;
     }
 
     let parts = urlParse(pattern);
 
     let pathname = parts.pathname;
-    if (_.endsWith(pathname, ".git")) {
+    if (_.endsWith(pathname, '.git')) {
       // ends in .git
       return true;
     }
@@ -65,7 +65,7 @@ export default class GitResolver extends ExoticResolver {
       if (GIT_HOSTS.indexOf(parts.hostname) >= 0) {
         // only if dependency is pointing to a git repo,
         // e.g. facebook/flow and not file in a git repo facebook/flow/archive/v1.0.0.tar.gz
-        return path.split("/").filter((p): boolean => !!p).length === 2;
+        return path.split('/').filter((p): boolean => !!p).length === 2;
       }
     }
 
@@ -83,21 +83,25 @@ export default class GitResolver extends ExoticResolver {
       // check if this git url uses any of the hostnames defined in our hosted git resolvers
       for (let name in hostedGitResolvers) {
         let Resolver = hostedGitResolvers[name];
-        if (Resolver.hostname !== parts.hostname) continue;
+        if (Resolver.hostname !== parts.hostname) {
+          continue;
+        }
 
         // we have a match! clean up the pathname of url artifacts
         let pathname = parts.pathname;
-        pathname = util.removePrefix(pathname, "/"); // remove prefixed slash
-        pathname = util.removeSuffix(pathname, ".git"); // remove .git suffix if present
+        pathname = util.removePrefix(pathname, '/'); // remove prefixed slash
+        pathname = util.removeSuffix(pathname, '.git'); // remove .git suffix if present
 
-        let url = `${pathname}${this.hash ? "#" + decodeURIComponent(this.hash) : ""}`;
+        let url = `${pathname}${this.hash ? '#' + decodeURIComponent(this.hash) : ''}`;
         return this.fork(Resolver, false, url);
       }
     }
 
     // get from lockfile
-    let shrunk = this.request.getLocked("git");
-    if (shrunk) return shrunk;
+    let shrunk = this.request.getLocked('git');
+    if (shrunk) {
+      return shrunk;
+    }
 
     let client = new Git(this.config, url, this.hash);
     let commit = await client.initRemote();
@@ -107,29 +111,39 @@ export default class GitResolver extends ExoticResolver {
 
       for (let filename of filenames) {
         let file = await client.getFile(filename);
-        if (!file) continue;
+        if (!file) {
+          continue;
+        }
 
         let json = JSON.parse(file);
         json.uid = commit;
         json.remote = {
           resolved: `${url}#${commit}`,
-          type: "git",
+          type: 'git',
           reference: url,
           hash: commit,
-          registry
+          registry,
         };
         return json;
       }
+
+      return null;
     }
 
     let file = await tryRegistry(this.registry);
-    if (file) return file;
+    if (file) {
+      return file;
+    }
 
     for (let registry in registries) {
-      if (registry === this.registry) continue;
+      if (registry === this.registry) {
+        continue;
+      }
 
       let file = await tryRegistry(registry);
-      if (file) return file;
+      if (file) {
+        return file;
+      }
     }
 
     throw new MessageError(`Could not find package metadata file in ${url}`);

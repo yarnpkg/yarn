@@ -9,12 +9,12 @@
  * @flow
  */
 
-import type PackageResolver from "./package-resolver.js";
-import type Config from "./config.js";
-import type { Manifest } from "./types.js";
+import type PackageResolver from './package-resolver.js';
+import type Config from './config.js';
+import type { Manifest } from './types.js';
 
-let invariant = require("invariant");
-let path = require("path");
+let invariant = require('invariant');
+let path = require('path');
 
 let historyCounter = 0;
 
@@ -27,7 +27,7 @@ export class HoistManifest {
     this.originalKey = key;
     this.previousKeys = [];
 
-    this.transitivePairs = new Set;
+    this.transitivePairs = new Set();
 
     this.history = [];
     this.addHistory(`Start position = ${key}`);
@@ -46,7 +46,9 @@ export class HoistManifest {
   }
 
   addTransitive(pairs: Iterable<HoistPair>) {
-    for (let pair of pairs) this.transitivePairs.add(pair);
+    for (let pair of pairs) {
+      this.transitivePairs.add(pair);
+    }
   }
 }
 
@@ -57,8 +59,8 @@ export default class PackageHoister {
     this.resolver = resolver;
     this.config = config;
 
-    this.taintedKeys = new Map;
-    this.tree = new Map;
+    this.taintedKeys = new Map();
+    this.tree = new Map();
 
     // we need to zip up the tree as we we're using it as a map and will be actively
     // removing and deleting keys during enumeration
@@ -91,7 +93,7 @@ export default class PackageHoister {
    */
 
   explodeKey(key: string): Array<string> {
-    return key.split("#");
+    return key.split('#');
   }
 
   /**
@@ -99,7 +101,7 @@ export default class PackageHoister {
    */
 
   implodeKey(parts: Array<string>): string {
-    return parts.join("#");
+    return parts.join('#');
   }
 
   /**
@@ -126,7 +128,7 @@ export default class PackageHoister {
     //
     let pkg = this.resolver.getStrictResolvedPattern(pattern);
     let ref = pkg.reference;
-    invariant(ref, "expected reference");
+    invariant(ref, 'expected reference');
     let loc = this.config.generateHardModulePath(ref);
 
     // prevent a dependency from having itself as a transitive dependency
@@ -176,9 +178,9 @@ export default class PackageHoister {
    */
 
   getNewParts(key: string, info: HoistManifest, parts: Array<string>): {
-    parts: Array<string>;
-    existing: ?HoistManifest;
-    duplicate: boolean;
+    parts: Array<string>,
+    existing: ?HoistManifest,
+    duplicate: boolean,
   } {
     let stepUp = false;
     let stack = []; // stack of removed parts
@@ -386,17 +388,23 @@ export default class PackageHoister {
     let oldKeyRegex = new RegExp(`^${oldKey}#`);
 
     let pairs = info.transitivePairs;
-    invariant(pairs, "expected pairs");
+    invariant(pairs, 'expected pairs');
 
     for (let subPair of pairs) {
       let [subKey] = subPair;
-      if (subKey === newKey) continue;
+      if (subKey === newKey) {
+        continue;
+      }
 
       let subInfo = this.tree.get(subKey);
-      if (!subInfo) continue;
+      if (!subInfo) {
+        continue;
+      }
 
       let newSubKey = subKey.replace(oldKeyRegex, `${newKey}#`);
-      if (newSubKey === subKey) continue;
+      if (newSubKey === subKey) {
+        continue;
+      }
 
       // restrict use of the new key in case we hoist it further from here
       this.taintedKeys.set(newSubKey, subInfo);
@@ -419,7 +427,10 @@ a   */
     pair[0] = newKey;
     this.tree.set(newKey, info);
 
-    if (oldKey === newKey) return;
+    if (oldKey === newKey) {
+      return;
+    }
+
     info.previousKeys.push(newKey);
     info.addHistory(`New position = ${newKey}`);
   }
@@ -434,19 +445,21 @@ a   */
     // remove ignored modules from the tree
     for (let [key, info] of this.tree.entries()) {
       let ref = info.pkg.reference;
-      invariant(ref, "expected reference");
+      invariant(ref, 'expected reference');
       if (ref.ignore) {
-        info.addHistory("Deleted as this module was ignored");
+        info.addHistory('Deleted as this module was ignored');
         this.tree.delete(key);
       }
     }
 
     //
     for (let [key, info] of this.tree.entries()) {
-      if (this.isOrphan(this.explodeKey(key))) continue;
+      if (this.isOrphan(this.explodeKey(key))) {
+        continue;
+      }
 
       // decompress the location and push it to the flat tree
-      let loc = path.join(this.config.modulesFolder, key.replace(/#/g, "/node_modules/"));
+      let loc = path.join(this.config.modulesFolder, key.replace(/#/g, '/node_modules/'));
       flatTree.push([loc, info]);
     }
 

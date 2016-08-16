@@ -9,13 +9,13 @@
  * @flow
  */
 
-import type { Manifest } from "../../types.js";
-import { MessageError } from "../../errors.js";
-import RegistryResolver from "./_base.js";
-import GitResolver from "../exotics/git.js";
+import type { Manifest } from '../../types.js';
+import { MessageError } from '../../errors.js';
+import RegistryResolver from './_base.js';
+import GitResolver from '../exotics/git.js';
 
 export default class BowerResolver extends RegistryResolver {
-  static registry = "bower";
+  static registry = 'bower';
 
   async resolveRequest(): Promise<false | {
     url: string
@@ -23,7 +23,7 @@ export default class BowerResolver extends RegistryResolver {
     return this.config.requestManager.request({
       url: `${this.registryConfig.registry}/packages/${this.name}`,
       json: true,
-      queue: this.resolver.fetchingQueue
+      queue: this.resolver.fetchingQueue,
     });
   }
 

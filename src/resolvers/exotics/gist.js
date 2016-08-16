@@ -9,22 +9,22 @@
  * @flow
  */
 
-import type { Manifest } from "../../types.js";
-import type PackageRequest from "../../package-request.js";
-import { MessageError } from "../../errors.js";
-import GitResolver from "./git.js";
-import ExoticResolver from "./_base.js";
-import * as util from "../../util/misc.js";
+import type { Manifest } from '../../types.js';
+import type PackageRequest from '../../package-request.js';
+import { MessageError } from '../../errors.js';
+import GitResolver from './git.js';
+import ExoticResolver from './_base.js';
+import * as util from '../../util/misc.js';
 
 function explodeGistFragment(fragment: string): { id: string, hash: string } {
-  fragment = util.removePrefix(fragment, "gist:");
+  fragment = util.removePrefix(fragment, 'gist:');
 
-  let parts = fragment.split("#");
+  let parts = fragment.split('#');
 
   if (parts.length <= 2) {
     return {
       id: parts[0],
-      hash: parts[1] || ""
+      hash: parts[1] || '',
     };
   } else {
     throw new MessageError(`Invalid gist fragment ${fragment}`);
@@ -32,7 +32,7 @@ function explodeGistFragment(fragment: string): { id: string, hash: string } {
 }
 
 export default class GistResolver extends ExoticResolver {
-  static protocol = "gist";
+  static protocol = 'gist';
 
   constructor(request: PackageRequest, fragment: string) {
     super(request, fragment);

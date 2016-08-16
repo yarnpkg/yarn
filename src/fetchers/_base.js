@@ -10,14 +10,14 @@
  */
 /* eslint no-unused-vars: 0 */
 
-import type { Manifest, PackageRemote, FetchedManifest } from "../types.js";
-import type { RegistryNames } from "../registries/index.js";
-import type Config from "../config.js";
-import * as constants from "../constants.js";
-import * as util from "../util/misc.js";
-import * as fs from "../util/fs.js";
+import type { Manifest, PackageRemote, FetchedManifest } from '../types.js';
+import type { RegistryNames } from '../registries/index.js';
+import type Config from '../config.js';
+import * as constants from '../constants.js';
+import * as util from '../util/misc.js';
+import * as fs from '../util/fs.js';
 
-let path = require("path");
+let path = require('path');
 
 export default class BaseFetcher {
   constructor(remote: PackageRemote, config: Config, saveForOffline?: boolean) {
@@ -37,7 +37,7 @@ export default class BaseFetcher {
   saveForOffline: boolean;
 
   async _fetch(dest: string): Promise<string> {
-    throw new Error("Not implemented");
+    throw new Error('Not implemented');
   }
 
   fetch(dest: string): Promise<FetchedManifest> {
@@ -51,13 +51,13 @@ export default class BaseFetcher {
       await fs.writeFile(path.join(dest, constants.METADATA_FILENAME), JSON.stringify({
         remote: this.remote,
         registry: this.registry,
-        hash
-      }, null, "  "));
+        hash,
+      }, null, '  '));
 
       return {
         hash,
         dest,
-        package: pkg
+        package: pkg,
       };
     });
   }

@@ -13,7 +13,7 @@ test-install-only:
 	./node_modules/.bin/jest --verbose -i __tests__/commands/install.js
 
 lint:
-	./node_modules/.bin/eslint src
+	./node_modules/.bin/eslint .
 	./node_modules/.bin/flow check
 
 build-dist:

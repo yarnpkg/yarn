@@ -9,22 +9,22 @@
  * @flow
  */
 
-import type { Manifest } from "../../types.js";
-import type PackageRequest from "../../package-request.js";
-import ExoticResolver from "./_base.js";
-import * as util from "../../util/misc.js";
+import type { Manifest } from '../../types.js';
+import type PackageRequest from '../../package-request.js';
+import ExoticResolver from './_base.js';
+import * as util from '../../util/misc.js';
 
 export default class FileResolver extends ExoticResolver {
   constructor(request: PackageRequest, fragment: string) {
     super(request, fragment);
-    this.loc = util.removePrefix(fragment, "file:");
+    this.loc = util.removePrefix(fragment, 'file:');
   }
 
   loc: string;
 
-  static protocol = "file";
+  static protocol = 'file';
 
   resolve(): Promise<Manifest> {
-    throw new Error("TODO " + this.loc);
+    throw new Error('TODO ' + this.loc);
   }
 }

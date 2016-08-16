@@ -9,17 +9,17 @@
  * @flow
  */
 
-import type PackageResolver from "./package-resolver.js";
-import type { Reporter } from "./reporters/index.js";
-import type { Manifest } from "./types.js";
-import type Config from "./config.js";
-import { MessageError } from "./errors.js";
-import map from "./util/map.js";
-import { entries } from "./util/misc.js";
+import type PackageResolver from './package-resolver.js';
+import type { Reporter } from './reporters/index.js';
+import type { Manifest } from './types.js';
+import type Config from './config.js';
+import { MessageError } from './errors.js';
+import map from './util/map.js';
+import { entries } from './util/misc.js';
 
-let invariant = require("invariant");
-let semver = require("semver");
-let _ = require("lodash");
+let invariant = require('invariant');
+let semver = require('semver');
+let _ = require('lodash');
 
 function isValid(items: Array<string>, actual: string): boolean {
   let isBlacklist = false;
@@ -31,7 +31,7 @@ function isValid(items: Array<string>, actual: string): boolean {
     }
 
     // blacklist
-    if (item[0] === "!") {
+    if (item[0] === '!') {
       // we're in a blacklist so anything that doesn't match this is fine to have
       isBlacklist = true;
 
@@ -45,12 +45,12 @@ function isValid(items: Array<string>, actual: string): boolean {
 }
 
 let aliases = map({
-  iojs: "node" // we should probably prompt these libraries to fix this
+  iojs: 'node', // we should probably prompt these libraries to fix this
 });
 
 let ignore = [
-  "npm", // we'll never satisfy this for obvious reasons
-  "teleport", // a module bundler used by some modules
+  'npm', // we'll never satisfy this for obvious reasons
+  'teleport', // a module bundler used by some modules
 ];
 
 export default class PackageCompatibility {
@@ -80,7 +80,7 @@ export default class PackageCompatibility {
 
     let pushError = (msg) => {
       let ref = info.reference;
-      invariant(ref, "expected package reference");
+      invariant(ref, 'expected package reference');
 
       if (ref.optional) {
         ref.addIgnore(true);
@@ -89,7 +89,7 @@ export default class PackageCompatibility {
         if (!didIgnore) {
           reporter.info(
             `${human} is an optional dependency and failed compatibility check. ` +
-            "Excluding it from installation."
+            'Excluding it from installation.'
           );
           didIgnore = true;
         }
@@ -128,7 +128,9 @@ export default class PackageCompatibility {
       }
     }
 
-    if (didError) throw new MessageError("Found incompatible module");
+    if (didError) {
+      throw new MessageError('Found incompatible module');
+    }
   }
 
   async init(): Promise<void> {

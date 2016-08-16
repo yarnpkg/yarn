@@ -25,7 +25,7 @@ const TOKEN_TYPES = {
   indent: "INDENT",
   invalid: "INVALID",
   number: "NUMBER",
-  comma: "COMMA"
+  comma: "COMMA",
 };
 
 const VALID_PROP_VALUE_TOKENS = [TOKEN_TYPES.boolean, TOKEN_TYPES.string, TOKEN_TYPES.number];
@@ -81,7 +81,7 @@ export function* tokenise(input: string): Iterator<Token> {
       }
     } else if (input[0] === '"') {
       let val = "";
-      for (let i = 0;; i++) {
+      for (let i = 0; ; i++) {
         let char = input[i];
         val += char;
         if (i > 0 && char === '"' && input[i - 1] !== "\\" && input[i - 2] !== "\\") {
@@ -278,7 +278,7 @@ export class Parser {
   }
 }
 
-export default function (str: string): Object {
+export default function(str: string): Object {
   str = stripBOM(str);
   let parser = new Parser(str);
   parser.next();
