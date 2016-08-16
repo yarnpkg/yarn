@@ -88,6 +88,7 @@ export default class PackageFetcher {
 
     await promise.queue(pkgs, async (ref) => {
       let res = await this.maybeFetch(ref);
+      
       if (res) {
         ref.remote.hash = res.hash;
 

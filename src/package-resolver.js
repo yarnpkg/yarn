@@ -106,6 +106,7 @@ export default class PackageResolver {
     let oldPkg = this.patterns[ref.patterns[0]];
     newPkg.reference = ref;
     newPkg.remote = oldPkg.remote;
+    newPkg.name = oldPkg.name;
 
     // update patterns
     for (let pattern of ref.patterns) {

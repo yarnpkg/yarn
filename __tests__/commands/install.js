@@ -169,6 +169,18 @@ test('[network] install with --save and without offline mirror', (): Promise<voi
   });
 });
 
+it('install renamed packages', (): Promise<void> => {
+  return run({}, [], 'install-renamed-packages', async (config): Promise<void> => {
+    let dir = path.join(config.cwd, 'node_modules');
+
+    let json = await fs.readJson(path.join(dir, 'left-pad', 'package.json'));
+    assert.equal(json.version, '1.0.0');
+
+    let json2 = await fs.readJson(path.join(dir, 'left-pad2', 'package.json'));
+    assert.equal(json2.version, '1.1.0');
+  });
+});
+
 test('install from offline mirror', (): Promise<void> => {
   return run({}, [], 'install-from-offline-mirror', async (config): Promise<void> => {
 
