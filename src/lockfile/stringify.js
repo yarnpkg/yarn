@@ -9,6 +9,8 @@
  * @flow
  */
 
+import { sortAlpha } from "../util/misc.js";
+
 let _ = require("lodash");
 
 function shouldWrapKey(str: string): boolean {
@@ -35,11 +37,6 @@ const priorities = {
 
 function getKeyPriority(key: string): number {
   return priorities[key] || 100;
-}
-
-function sortAlpha(a: string, b: string): number {
-  // sort alphabetically
-  return a.toLowerCase().localeCompare(b.toLowerCase());
 }
 
 export default function stringify(obj: Object, indent: string = ""): string {

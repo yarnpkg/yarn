@@ -11,7 +11,9 @@
 
 import type { Reporter } from "../reporters/index.js";
 import type { Manifest } from "../types.js";
+import { sortAlpha } from "../util/misc.js";
 import { MessageError } from "../errors.js";
+import PackageRequest from "../package-request.js";
 import parse from "./parse.js";
 import * as constants from "../constants.js";
 import * as fs from "../util/fs.js";
@@ -34,6 +36,10 @@ type LockManifest = {
     [key: string]: string
   }
 };
+
+function getName(pattern: string): string {
+  return PackageRequest.normalisePattern(pattern).name;
+}
 
 export default class Lockfile {
   constructor(cache?: ?Object, strict?: boolean, save?: boolean, source?: string) {
@@ -104,6 +110,7 @@ export default class Lockfile {
       shrunk.uid = shrunk.uid || shrunk.version;
       shrunk.permissions = shrunk.permissions || {};
       shrunk.registry = shrunk.registry || "npm";
+      shrunk.name = shrunk.name || getName(pattern);
       return shrunk;
     } else {
       if (!noStrict && this.strict) {
@@ -121,28 +128,30 @@ export default class Lockfile {
     // order by name so that lockfile manifest is assigned to the first dependency with this manifest
     // the others that have the same remote.resolved will just refer to the first
     // ordering allows for consistency in lockfile when it is serialized
-    let sortedPatternsKeys: string[] = Object.keys(patterns).sort(function (a, b): number {
-      return a.toLowerCase().localeCompare(b.toLowerCase());
-    });
+    let sortedPatternsKeys: Array<string> = Object.keys(patterns).sort(sortAlpha);
 
     for (let pattern of sortedPatternsKeys) {
       let pkg = patterns[pattern];
-      let remote = pkg.remote;
+      let { remote, reference: ref } = pkg;
+      invariant(ref, "Package is missing a reference");
+      invariant(remote, "Package is missing a remote");
 
-      let seenPattern = remote && remote.resolved && seen.get(remote.resolved);
+      let seenPattern = remote.resolved && seen.get(remote.resolved);
       if (seenPattern) {
         // no point in duplicating it
         lockfile[pattern] = seenPattern;
+
+        // if we're relying on our name being inferred and two of the patterns have
+        // different inferred names then we need to set it
+        if (!seenPattern.name && getName(pattern) !== pkg.name) {
+          seenPattern.name = pkg.name;
+        }
         continue;
       }
 
-      let ref = pkg.reference;
-      invariant(ref, "Package is missing a reference");
-
-      invariant(remote, "Package is missing a remote");
-
+      let inferredName = getName(pattern);
       let obj = {
-        name: pkg.name,
+        name: inferredName === pkg.name ? undefined : pkg.name,
         version: pkg.version,
         uid: pkg.uid === pkg.version ? undefined : pkg.uid,
         resolved: remote.resolved,
