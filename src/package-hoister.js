@@ -235,7 +235,7 @@ export default class PackageHoister {
     parts.push(name);
 
     //
-    let existing;
+    let existing = null;
     let isValidPosition = (parts: Array<string>): boolean => {
       let key = this.implodeKey(parts);
       existing = this.tree.get(key);

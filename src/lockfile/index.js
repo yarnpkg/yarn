@@ -126,8 +126,8 @@ export default class Lockfile {
     let seen: Map<string, Object> = new Map;
 
     // order by name so that lockfile manifest is assigned to the first dependency with this manifest
-    // the others that have the same remote.resovled will just refer to the first
-    // oredring allows for consistency in lockfile when it is serialized
+    // the others that have the same remote.resolved will just refer to the first
+    // ordering allows for consistency in lockfile when it is serialized
     let sortedPatternsKeys: Array<string> = Object.keys(patterns).sort(sortAlpha);
 
     for (let pattern of sortedPatternsKeys) {

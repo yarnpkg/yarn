@@ -43,8 +43,7 @@ export async function run(
 
   function humaniseLocation(loc: string): Array<string> {
     let relative = path.relative(path.join(config.cwd, "node_modules"), loc);
-    let parts  = relative.split(new RegExp(`${path.sep}node_modules${path.sep}`, "g"));
-    return parts;
+    return relative.split(new RegExp(`${path.sep}node_modules${path.sep}`, "g"));
   }
 
   let warningCount = 0;

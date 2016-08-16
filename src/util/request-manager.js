@@ -136,7 +136,7 @@ export default class RequestManager {
   }
 
   /**
-   * Queue up request arguments to be retryed. Start a network connectivity timer if there
+   * Queue up request arguments to be retried. Start a network connectivity timer if there
    * isn't already one.
    */
 
