@@ -71,8 +71,13 @@ export default class NpmResolver extends RegistryResolver {
 
     let registry = removeSuffix(this.registryConfig.registry, '/');
 
+    let name = this.name;
+
+    // scoped packages contain slashes and the npm registry expects them to be escaped
+    name = name.replace('/', '%2F');
+
     let body = await this.config.requestManager.request({
-      url: `${registry}/${this.name}`,
+      url: `${registry}/${name}`,
       json: true,
     });
 

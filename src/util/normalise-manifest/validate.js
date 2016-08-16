@@ -19,6 +19,19 @@ let strings = [
   'version',
 ];
 
+function isValidName(name: string): boolean {
+  return !name.match(/[\/@\s\+%:]/) && encodeURIComponent(name) === name;
+}
+
+function isValidScopedName(name: string): boolean {
+  if (name[0] !== '@') {
+    return false;
+  }
+
+  let parts = name.slice(1).split('/');
+  return parts.length === 2 && isValidName(parts[0]) && isValidName(parts[1]);
+}
+
 export default function(info: Object, warn: (msg: string) => void) {
   for (let key in typos) {
     if (key in info) {
@@ -38,13 +51,8 @@ export default function(info: Object, warn: (msg: string) => void) {
     }
 
     // cannot contain the following characters
-    if (name.match(/[\/@\s\+%:]/)) {
+    if (!isValidName(name) && !isValidScopedName(name)) {
       throw new TypeError('Name contains illegal characters');
-    }
-
-    // cannot contain any characters that would need to be encoded for use in a url
-    if (name !== encodeURIComponent(name)) {
-      throw new TypeError('Name cannot contain character that require URL encoding');
     }
 
     // cannot equal node_modules or favicon.ico

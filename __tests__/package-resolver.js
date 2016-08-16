@@ -57,3 +57,4 @@ addTest('gulp'); // npm
 addTest('react-native'); // npm
 addTest('ember-cli'); // npm
 addTest('npm:gulp'); // npm
+addTest('@polymer/iron-icon'); // npm scoped package
