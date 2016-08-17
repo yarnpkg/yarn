@@ -38,7 +38,7 @@ function addTest(pattern, registry = 'npm') {
     });
     await config.init();
     let resolver = new PackageResolver(config, lockfile);
-    await resolver.init([{ pattern, registry }]);
+    await resolver.init([{pattern, registry}]);
     await reporter.close();
   });
 }

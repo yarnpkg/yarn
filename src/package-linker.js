@@ -9,22 +9,22 @@
  * @flow
  */
 
-import type { Manifest } from './types.js';
+import type {Manifest} from './types.js';
 import type PackageResolver from './package-resolver.js';
-import type { Reporter } from './reporters/index.js';
+import type {Reporter} from './reporters/index.js';
 import type Config from './config.js';
-import type { HoistManifest } from './package-hoister.js';
-import { registries } from './registries/index.js';
+import type {HoistManifest} from './package-hoister.js';
+import {registries} from './registries/index.js';
 import PackageHoister from './package-hoister.js';
 import * as promise from './util/promise.js';
-import { entries } from './util/misc.js';
+import {entries} from './util/misc.js';
 import * as fs from './util/fs.js';
 
-let invariant = require('invariant');
-let cmdShim   = promise.promisify(require('cmd-shim'));
-let semver = require('semver');
-let path = require('path');
-let _ = require('lodash');
+const invariant = require('invariant');
+const cmdShim   = promise.promisify(require('cmd-shim'));
+const semver = require('semver');
+const path = require('path');
+const _ = require('lodash');
 
 type DependencyPairs = Array<{
   dep: Manifest,
@@ -46,8 +46,8 @@ export default class PackageLinker {
     targetBinLoc = await fs.realpath(targetBinLoc);
     pkgLoc = await fs.realpath(pkgLoc);
     for (let [scriptName, scriptCmd] of entries(pkg.bin)) {
-      let dest = path.join(targetBinLoc, scriptName);
-      let src  = path.join(pkgLoc, scriptCmd);
+      const dest = path.join(targetBinLoc, scriptName);
+      const src  = path.join(pkgLoc, scriptCmd);
 
       if (process.platform === 'win32') {
         await cmdShim(src, dest);
@@ -59,29 +59,29 @@ export default class PackageLinker {
   }
 
   async linkBinDependencies(deps: DependencyPairs, pkg: Manifest, dir: string): Promise<void> {
-    let ref = pkg.reference;
+    const ref = pkg.reference;
     invariant(ref, 'Package reference is missing');
 
-    let remote = pkg.remote;
+    const remote = pkg.remote;
     invariant(remote, 'Package remote is missing');
 
     // link up `bin scripts` in `dependencies`
-    for (let pattern of ref.dependencies) {
-      let dep = this.resolver.getStrictResolvedPattern(pattern);
+    for (const pattern of ref.dependencies) {
+      const dep = this.resolver.getStrictResolvedPattern(pattern);
       if (!_.isEmpty(dep.bin)) {
-        deps.push({ dep, loc: this.config.generateHardModulePath(dep.reference) });
+        deps.push({dep, loc: this.config.generateHardModulePath(dep.reference)});
       }
     }
 
     // link up the `bin` scripts in bundled dependencies
     if (pkg.bundleDependencies) {
-      for (let depName of pkg.bundleDependencies) {
-        let loc = path.join(this.config.generateHardModulePath(ref), 'node_modules', depName);
+      for (const depName of pkg.bundleDependencies) {
+        const loc = path.join(this.config.generateHardModulePath(ref), 'node_modules', depName);
 
-        let dep = await this.config.readManifest(loc, remote.registry);
+        const dep = await this.config.readManifest(loc, remote.registry);
 
         if (!_.isEmpty(dep.bin)) {
-          deps.push({ dep, loc });
+          deps.push({dep, loc});
         }
       }
     }
@@ -92,17 +92,17 @@ export default class PackageLinker {
     }
 
     // ensure our .bin file we're writing these to exists
-    let binLoc = path.join(dir, '.bin');
+    const binLoc = path.join(dir, '.bin');
     await fs.mkdirp(binLoc);
 
     // write the executables
-    for (let { dep, loc } of deps) {
+    for (let {dep, loc} of deps) {
       await this.linkSelfDependencies(dep, loc, binLoc);
     }
   }
 
   async getFlatHoistedTree(patterns: Array<string>): Promise<Array<[string, HoistManifest]>> {
-    let hoister = new PackageHoister(this.config, this.resolver);
+    const hoister = new PackageHoister(this.config, this.resolver);
     hoister.seed(patterns);
     return hoister.init();
   }
@@ -116,9 +116,9 @@ export default class PackageLinker {
     });
 
     //
-    let queue = [];
-    for (let [dest, { pkg, loc: src }] of flatTree) {
-      let ref = pkg.reference;
+    const queue = [];
+    for (let [dest, {pkg, loc: src}] of flatTree) {
+      const ref = pkg.reference;
       invariant(ref, 'expected package reference');
 
       ref.setLocation(dest);
@@ -134,14 +134,14 @@ export default class PackageLinker {
     }
 
     // register root packages as being possibly extraneous
-    let possibleExtraneous = [];
-    for (let registry of Object.keys(registries)) {
-      let directory = registries[registry].directory;
-      let loc = path.join(this.config.cwd, directory);
+    const possibleExtraneous = [];
+    for (const registry of Object.keys(registries)) {
+      const directory = registries[registry].directory;
+      const loc = path.join(this.config.cwd, directory);
 
       if (await fs.exists(loc)) {
-        let files = await fs.readdir(loc);
-        for (let file of files) {
+        const files = await fs.readdir(loc);
+        for (const file of files) {
           possibleExtraneous.push(path.join(loc, file));
         }
       }
@@ -162,39 +162,39 @@ export default class PackageLinker {
     }, possibleExtraneous);
 
     //
-    let tickBin = this.reporter.progress(flatTree.length);
-    await promise.queue(flatTree, async ([dest, { pkg }]) => {
-      let binLoc = path.join(dest, 'node_modules');
+    const tickBin = this.reporter.progress(flatTree.length);
+    await promise.queue(flatTree, async ([dest, {pkg}]) => {
+      const binLoc = path.join(dest, 'node_modules');
       await this.linkBinDependencies([], pkg, binLoc);
       tickBin(dest);
     }, 4);
   }
 
   async resolvePeerModules(pkg: Manifest): Promise<DependencyPairs> {
-    let ref = pkg.reference;
+    const ref = pkg.reference;
     invariant(ref, 'Package reference is missing');
 
-    let deps = [];
+    const deps = [];
 
     if (!pkg.peerDependencies) {
       return deps;
     }
 
-    for (let name in pkg.peerDependencies) {
-      let range = pkg.peerDependencies[name];
+    for (const name in pkg.peerDependencies) {
+      const range = pkg.peerDependencies[name];
 
       // find a dependency in the tree above us that matches
       let searchPatterns: Array<string> = [];
       for (let request of ref.requests) {
         do {
           // get resolved pattern for this request
-          let dep = this.resolver.getResolvedPattern(request.pattern);
+          const dep = this.resolver.getResolvedPattern(request.pattern);
           if (!dep) {
             continue;
           }
 
           //
-          let ref = dep.reference;
+          const ref = dep.reference;
           invariant(ref, 'expected reference');
           searchPatterns = searchPatterns.concat(ref.dependencies);
         } while (request = request.parentRequest);
@@ -205,10 +205,10 @@ export default class PackageLinker {
 
       // find matching dep in search patterns
       let foundDep: ?{ pattern: string, version: string, package: Manifest };
-      for (let pattern of searchPatterns) {
-        let dep = this.resolver.getResolvedPattern(pattern);
+      for (const pattern of searchPatterns) {
+        const dep = this.resolver.getResolvedPattern(pattern);
         if (dep && dep.name === name) {
-          foundDep = { pattern, version: dep.version, package: dep };
+          foundDep = {pattern, version: dep.version, package: dep};
           break;
         }
       }
@@ -238,18 +238,18 @@ export default class PackageLinker {
   }
 
   async save(pattern: string): Promise<void> {
-    let resolved = this.resolver.getResolvedPattern(pattern);
+    const resolved = this.resolver.getResolvedPattern(pattern);
     invariant(resolved, `Couldn't find resolved name/version for ${pattern}`);
 
-    let ref = resolved.reference;
+    const ref = resolved.reference;
     invariant(ref, 'Missing reference');
 
     //
-    let src = this.config.generateHardModulePath(ref);
+    const src = this.config.generateHardModulePath(ref);
 
     // link bins
     if (!_.isEmpty(resolved.bin)) {
-      let binLoc = path.join(this.config.modulesFolder, '.bin');
+      const binLoc = path.join(this.config.modulesFolder, '.bin');
       await fs.mkdirp(binLoc);
       await this.linkSelfDependencies(resolved, src, binLoc);
     }

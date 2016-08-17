@@ -18,8 +18,8 @@ const REGEXES = {
 };
 
 export default function(license: string): ?string {
-  for (let licenseName in REGEXES) {
-    for (let regex of REGEXES[licenseName]) {
+  for (const licenseName in REGEXES) {
+    for (const regex of REGEXES[licenseName]) {
       if (regex.test(license)) {
         return `${licenseName}*`;
       }

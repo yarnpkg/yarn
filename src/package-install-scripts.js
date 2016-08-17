@@ -9,15 +9,15 @@
  * @flow
  */
 
-import type { Manifest } from './types.js';
+import type {Manifest} from './types.js';
 import type PackageResolver from './package-resolver.js';
-import type { Reporter } from './reporters/index.js';
+import type {Reporter} from './reporters/index.js';
 import type Config from './config.js';
 import executeLifecycleScript from './util/execute-lifecycle-script.js';
 import * as promise from './util/promise.js';
 
-let invariant = require('invariant');
-let _ = require('lodash');
+const invariant = require('invariant');
+const _ = require('lodash');
 
 export default class PackageInstallScripts {
   constructor(config: Config, resolver: PackageResolver, force: boolean) {
@@ -35,7 +35,7 @@ export default class PackageInstallScripts {
   force: boolean;
 
   getInstallCommands(pkg: Manifest): Array<string> {
-    let scripts = pkg.scripts;
+    const scripts = pkg.scripts;
     if (scripts) {
       return _.compact([scripts.preinstall, scripts.install, scripts.postinstall]);
     } else {
@@ -49,13 +49,13 @@ export default class PackageInstallScripts {
     stdout: string,
     stderr: string
   }>> {
-    let loc = this.config.generateHardModulePath(pkg.reference);
+    const loc = this.config.generateHardModulePath(pkg.reference);
     try {
       return await executeLifecycleScript(this.config, loc, cmds, pkg);
     } catch (err) {
       err.message = `${loc}: ${err.message}`;
 
-      let ref = pkg.reference;
+      const ref = pkg.reference;
       invariant(ref, 'expected reference');
 
       if (ref.optional) {
@@ -69,25 +69,25 @@ export default class PackageInstallScripts {
   }
 
   async init(): Promise<void> {
-    let pkgs = this.resolver.getManifests();
+    const pkgs = this.resolver.getManifests();
 
     // refine packages to those with install commands
-    let refinedInfos = [];
-    for (let pkg of pkgs) {
-      let cmds = this.getInstallCommands(pkg);
+    const refinedInfos = [];
+    for (const pkg of pkgs) {
+      const cmds = this.getInstallCommands(pkg);
       if (!cmds.length) {
         continue;
       }
 
-      let ref = pkg.reference;
+      const ref = pkg.reference;
       invariant(ref, 'Missing package reference');
       if (!ref.fresh && !this.force) {
         continue;
       }
 
       if (this.needsPermission && !ref.hasPermission('scripts')) {
-        let can = await this.reporter.question(
-          `Module ${pkg.name} wants to execute the commands ${JSON.stringify(cmds)}. Do you want to accept?`
+        const can = await this.reporter.question(
+          `Module ${pkg.name} wants to execute the commands ${JSON.stringify(cmds)}. Do you want to accept?`,
         );
         if (!can) {
           continue;
@@ -96,15 +96,15 @@ export default class PackageInstallScripts {
         ref.setPermission('scripts', can);
       }
 
-      refinedInfos.push({ pkg, cmds });
+      refinedInfos.push({pkg, cmds});
     }
     if (!refinedInfos.length) {
       return;
     }
 
-    let tick = this.reporter.progress(refinedInfos.length);
+    const tick = this.reporter.progress(refinedInfos.length);
 
-    await promise.queue(refinedInfos, ({ pkg, cmds }): Promise<void> => {
+    await promise.queue(refinedInfos, ({pkg, cmds}): Promise<void> => {
       return this.install(cmds, pkg).then(function() {
         tick(pkg.name);
       });

@@ -9,8 +9,8 @@
  * @flow
  */
 
-import type { Stdout } from '../types.js';
-import { clearLine } from './util.js';
+import type {Stdout} from '../types.js';
+import {clearLine} from './util.js';
 
 export default class Spinner {
   constructor(stdout: Stdout = process.stderr) {
@@ -75,7 +75,7 @@ export default class Spinner {
       clearTimeout(this.id);
     }
 
-    let msg = `${this.chars[this.current]} ${this.text}`;
+    const msg = `${this.chars[this.current]} ${this.text}`;
     clearLine(this.stdout);
     this.stdout.write(msg);
     this.current = ++this.current % this.chars.length;

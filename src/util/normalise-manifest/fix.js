@@ -9,18 +9,18 @@
  * @flow
  */
 
-import { normalisePerson, extractDescription } from './util.js';
-import { hostedGitFragmentToGitUrl } from '../../resolvers/index.js';
+import {normalisePerson, extractDescription} from './util.js';
+import {hostedGitFragmentToGitUrl} from '../../resolvers/index.js';
 import inferLicense from './infer-license.js';
 import * as fs from '../fs.js';
 
-let semver = require('semver');
-let path = require('path');
-let url = require('url');
-let _ = require('lodash');
+const semver = require('semver');
+const path = require('path');
+const url = require('url');
+const _ = require('lodash');
 
 export default async function (info: Object, moduleLoc: string): Promise<void> {
-  let files = await fs.readdir(moduleLoc);
+  const files = await fs.readdir(moduleLoc);
 
   // clean info.version
   if (typeof info.version === 'string' && !semver.valid(info.version)) {
@@ -63,8 +63,8 @@ export default async function (info: Object, moduleLoc: string): Promise<void> {
 
   // if there's no readme field then load the README file from the cwd
   if (!info.readme) {
-    let readmeFilename = _.find(files, (filename): boolean => {
-      let lower = filename.toLowerCase();
+    const readmeFilename = _.find(files, (filename): boolean => {
+      const lower = filename.toLowerCase();
       return lower === 'readme' || lower.indexOf('readme.') === 0;
     });
 
@@ -76,7 +76,7 @@ export default async function (info: Object, moduleLoc: string): Promise<void> {
 
   // if there's no description then take the first paragraph from the readme
   if (!info.description && info.readme) {
-    let desc = extractDescription(info.readme);
+    const desc = extractDescription(info.readme);
     if (desc) {
       info.description = desc;
     }
@@ -97,12 +97,12 @@ export default async function (info: Object, moduleLoc: string): Promise<void> {
 
   // allow bugs to be specified as a string, expand it to an object with a single url prop
   if (typeof info.bugs === 'string') {
-    info.bugs = { url: info.bugs };
+    info.bugs = {url: info.bugs};
   }
 
   // normalise homepage url to http
   if (typeof info.homepage === 'string') {
-    let parts = url.parse(info.homepage);
+    const parts = url.parse(info.homepage);
     parts.protocol = parts.protocol || 'http:';
     if (parts.pathname && !parts.hostname) {
       parts.hostname = parts.pathname;
@@ -116,7 +116,7 @@ export default async function (info: Object, moduleLoc: string): Promise<void> {
   // based on the original `bin` field and `name field`
   // { name: "foo", bin: "cli.js" } -> { name: "foo", bin: { foo: "cli.js" } }
   if (typeof info.bin === 'string') {
-    info.bin = { [info.name]: info.bin };
+    info.bin = {[info.name]: info.bin};
   }
 
   // bundleDependencies is an alias for bundledDependencies
@@ -126,7 +126,7 @@ export default async function (info: Object, moduleLoc: string): Promise<void> {
   }
 
   // dummy script object to shove file inferred scripts onto
-  let scripts = info.scripts || {};
+  const scripts = info.scripts || {};
 
   // if there's a server.js file and no start script then set it to `node server.js`
   if (!scripts.start && files.indexOf('server.js') >= 0) {
@@ -144,12 +144,12 @@ export default async function (info: Object, moduleLoc: string): Promise<void> {
   }
 
   // explode directories
-  let dirs = info.directories;
+  const dirs = info.directories;
   if (dirs) {
     if (!info.bin && dirs.bin) {
-      let bin = info.bin = {};
+      const bin = info.bin = {};
 
-      for (let scriptName of await fs.readdir(path.join(moduleLoc, dirs.bin))) {
+      for (const scriptName of await fs.readdir(path.join(moduleLoc, dirs.bin))) {
         if (scriptName[0] === '.') {
           continue;
         }
@@ -158,9 +158,9 @@ export default async function (info: Object, moduleLoc: string): Promise<void> {
     }
 
     if (!info.man && dirs.man) {
-      let man = info.man = [];
+      const man = info.man = [];
 
-      for (let filename of await fs.readdir(path.join(moduleLoc, dirs.man))) {
+      for (const filename of await fs.readdir(path.join(moduleLoc, dirs.man))) {
         if (/^(.*?)\.[0-9]$/.test(filename)) {
           man.push(path.join('.', dirs.man, filename));
         }
@@ -172,13 +172,13 @@ export default async function (info: Object, moduleLoc: string): Promise<void> {
 
   // infer license file
   // TODO: show that this were inferred and may not be accurate
-  let licenseFile = _.find(files, (filename): boolean => {
-    let lower = filename.toLowerCase();
+  const licenseFile = _.find(files, (filename): boolean => {
+    const lower = filename.toLowerCase();
     return lower === 'license' || lower.indexOf('license.') === 0;
   });
 
   if (licenseFile) {
-    let licenseContent = await fs.readFile(path.join(moduleLoc, licenseFile));
+    const licenseContent = await fs.readFile(path.join(moduleLoc, licenseFile));
     info.licenseText = licenseContent;
 
     if (!info.license) {

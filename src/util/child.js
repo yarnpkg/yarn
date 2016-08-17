@@ -12,14 +12,14 @@
 
 import * as constants from '../constants.js';
 import BlockingQueue from './blocking-queue.js';
-import { promisify } from './promise.js';
-import { MessageError } from '../errors.js';
+import {promisify} from './promise.js';
+import {MessageError} from '../errors.js';
 
-let child = require('child_process');
+const child = require('child_process');
 
-export let exec = promisify(child.exec);
+export const exec = promisify(child.exec);
 
-export let queue = new BlockingQueue('child', constants.CHILD_CONCURRENCY);
+export const queue = new BlockingQueue('child', constants.CHILD_CONCURRENCY);
 
 // TODO: this uid check is kinda whack
 let uid = 0;
@@ -27,10 +27,10 @@ let uid = 0;
 export function spawn(
   program: string,
   args: Array<string>,
-  opts?: child_process$spawnOpts = {}
+  opts?: child_process$spawnOpts = {},
 ): Promise<string> {
   return queue.push(opts.cwd || String(++uid), (): Promise<string> => new Promise((resolve, reject) => {
-    let proc = child.spawn(program, args, opts);
+    const proc = child.spawn(program, args, opts);
 
     let processingDone = false;
     let processClosed = false;
@@ -78,7 +78,7 @@ export function spawn(
 
     proc.on('close', (code) => {
       if (code >= 1) {
-        let cmd = JSON.stringify(`${program} ${args.join(' ')}`);
+        const cmd = JSON.stringify(`${program} ${args.join(' ')}`);
         errBuf = errBuf || `Process exited with code ${code}`;
         err = new Error(`${cmd}@${opts.cwd || process.cwd()}: ${errBuf.trim()}`);
       }

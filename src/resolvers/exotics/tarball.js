@@ -9,7 +9,7 @@
  * @flow
  */
 
-import type { Manifest, FetchedManifest } from '../../types.js';
+import type {Manifest, FetchedManifest} from '../../types.js';
 import type PackageRequest from '../../package-request.js';
 import TarballFetcher from '../../fetchers/tarball.js';
 import ExoticResolver from './_base.js';
@@ -18,13 +18,13 @@ import * as versionUtil from '../../util/version.js';
 import * as crypto from '../../util/crypto.js';
 import * as fs from '../../util/fs.js';
 
-let _ = require('lodash');
+const _ = require('lodash');
 
 export default class TarballResolver extends ExoticResolver {
   constructor(request: PackageRequest, fragment: string) {
     super(request, fragment);
 
-    let { hash, url } = versionUtil.explodeHashedUrl(fragment);
+    let {hash, url} = versionUtil.explodeHashedUrl(fragment);
     this.hash = hash;
     this.url  = url;
   }
@@ -52,25 +52,25 @@ export default class TarballResolver extends ExoticResolver {
   }
 
   async resolve(): Promise<Manifest> {
-    let shrunk = this.request.getLocked('tarball');
+    const shrunk = this.request.getLocked('tarball');
     if (shrunk) {
       return shrunk;
     }
 
-    let { url, hash, registry } = this;
+    let {url, hash, registry} = this;
     let pkgJson;
 
     // generate temp directory
-    let dest = this.config.getTemp(crypto.hash(url));
+    const dest = this.config.getTemp(crypto.hash(url));
 
     if (await this.config.isValidModuleDest(dest)) {
       // load from local cache
-      ({ package: pkgJson, hash, registry } = await this.config.readPackageMetadata(dest));
+      ({package: pkgJson, hash, registry} = await this.config.readPackageMetadata(dest));
     } else {
       // delete if invalid
       await fs.unlink(dest);
 
-      let fetcher = new TarballFetcher({
+      const fetcher = new TarballFetcher({
         type: 'tarball',
         reference: url,
         registry,
@@ -78,7 +78,7 @@ export default class TarballResolver extends ExoticResolver {
       }, this.config, false);
 
       // fetch file and get it's hash
-      let fetched: FetchedManifest = await fetcher.fetch(dest);
+      const fetched: FetchedManifest = await fetcher.fetch(dest);
       pkgJson = fetched.package;
       hash    = fetched.hash;
 

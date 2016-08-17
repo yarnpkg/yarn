@@ -9,11 +9,11 @@
  * @flow
  */
 
-import { removePrefix } from '../util/misc.js';
+import {removePrefix} from '../util/misc.js';
 import * as fs from '../util/fs.js';
 
-let path = require('path');
-let _ = require('lodash');
+const path = require('path');
+const _ = require('lodash');
 
 export default class Registry {
   constructor(cwd: string) {
@@ -68,7 +68,7 @@ export default class Registry {
         continue;
       }
 
-      let val = process.env[key];
+      const val = process.env[key];
 
       // remove bower prefix
       key = removePrefix(key, prefix);

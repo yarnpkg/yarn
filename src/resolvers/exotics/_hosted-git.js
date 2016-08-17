@@ -9,10 +9,10 @@
  * @flow
  */
 
-import type { Manifest } from '../../types.js';
+import type {Manifest} from '../../types.js';
 import type PackageRequest from '../../package-request.js';
-import { MessageError } from '../../errors.js';
-import { registries } from '../../registries/index.js';
+import {MessageError} from '../../errors.js';
+import {registries} from '../../registries/index.js';
 import GitResolver from './git.js';
 import ExoticResolver from './_base.js';
 import Git from '../../util/git.js';
@@ -25,18 +25,18 @@ export type ExplodedFragment = {
 
 export function explodeHostedGitFragment(fragment: string): ExplodedFragment {
   // TODO: make sure this only has a length of 2
-  let parts = fragment.split(':');
+  const parts = fragment.split(':');
   fragment = parts.pop();
 
-  let userParts = fragment.split('/');
+  const userParts = fragment.split('/');
 
   if (userParts.length === 2) {
-    let user = userParts.shift();
-    let repoParts = userParts.shift().split('#');
+    const user = userParts.shift();
+    const repoParts = userParts.shift().split('#');
 
     if (repoParts.length <= 2) {
       return {
-        user: user,
+        user,
         repo: repoParts[0],
         hash: repoParts[1] || '',
       };
@@ -50,8 +50,8 @@ export default class HostedGitResolver extends ExoticResolver {
   constructor(request: PackageRequest, fragment: string) {
     super(request, fragment);
 
-    let exploded = this.exploded = explodeHostedGitFragment(fragment);
-    let { user, repo, hash } = exploded;
+    const exploded = this.exploded = explodeHostedGitFragment(fragment);
+    let {user, repo, hash} = exploded;
     this.user = user;
     this.repo = repo;
     this.hash = hash;
@@ -87,7 +87,7 @@ export default class HostedGitResolver extends ExoticResolver {
   }
 
   async getRefOverHTTP(url: string): Promise<string> {
-    let client = new Git(this.config, url, this.hash);
+    const client = new Git(this.config, url, this.hash);
 
     let out = await this.config.requestManager.request({
       url: `${url}/info/refs?service=git-upload-pack`,
@@ -112,19 +112,19 @@ export default class HostedGitResolver extends ExoticResolver {
       throw new Error('TODO');
     }
 
-    let refs = Git.parseRefs(out);
+    const refs = Git.parseRefs(out);
     return await client.setRef(refs);
   }
 
   async resolveOverHTTP(url: string): Promise<Manifest> {
     // TODO: hashes and lockfile
-    let commit = await this.getRefOverHTTP(url);
+    const commit = await this.getRefOverHTTP(url);
 
-    let tryRegistry = async (registry): Promise<?Manifest> => {
-      let filenames = registries[registry].filenames;
+    const tryRegistry = async (registry): Promise<?Manifest> => {
+      const filenames = registries[registry].filenames;
 
-      for (let filename of filenames) {
-        let file = await this.config.requestManager.request({
+      for (const filename of filenames) {
+        const file = await this.config.requestManager.request({
           url: this.constructor.getHTTPFileUrl(this.exploded, filename, commit),
           queue: this.resolver.fetchingQueue,
         });
@@ -132,7 +132,7 @@ export default class HostedGitResolver extends ExoticResolver {
           continue;
         }
 
-        let json = JSON.parse(file);
+        const json = JSON.parse(file);
         json.uid = commit;
         json.remote = {
           //resolved // TODO
@@ -146,17 +146,17 @@ export default class HostedGitResolver extends ExoticResolver {
       return null;
     };
 
-    let file = await tryRegistry(this.registry);
+    const file = await tryRegistry(this.registry);
     if (file) {
       return file;
     }
 
-    for (let registry in registries) {
+    for (const registry in registries) {
       if (registry === this.registry) {
         continue;
       }
 
-      let file = await tryRegistry(registry);
+      const file = await tryRegistry(registry);
       if (file) {
         return file;
       }
@@ -174,8 +174,8 @@ export default class HostedGitResolver extends ExoticResolver {
   }
 
   async resolve(): Promise<Manifest> {
-    let httpUrl = this.constructor.getGitHTTPUrl(this.exploded);
-    let sshUrl  = this.constructor.getGitSSHUrl(this.exploded);
+    const httpUrl = this.constructor.getGitHTTPUrl(this.exploded);
+    const sshUrl  = this.constructor.getGitSSHUrl(this.exploded);
 
     // If we can access the files over HTTP then we should as it's MUCH faster than git
     // archive and tarball unarchiving. The HTTP API is only available for public repos
@@ -191,8 +191,8 @@ export default class HostedGitResolver extends ExoticResolver {
     // This is because `git archive` requires access over ssh and github only allows that
     // if you have write permissions
     if (await Git.hasArchiveCapability(sshUrl)) {
-      let archiveClient = new Git(this.config, sshUrl, this.hash);
-      let commit = await archiveClient.initRemote();
+      const archiveClient = new Git(this.config, sshUrl, this.hash);
+      const commit = await archiveClient.initRemote();
       return await this.fork(GitResolver, true, `${sshUrl}#${commit}`);
     }
 

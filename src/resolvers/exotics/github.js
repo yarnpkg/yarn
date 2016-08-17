@@ -9,10 +9,10 @@
  * @flow
  */
 
-import type { ExplodedFragment } from './_hosted-git.js';
+import type {ExplodedFragment} from './_hosted-git.js';
 import HostedGitResolver from './_hosted-git.js';
 
-let _ = require('lodash');
+const _ = require('lodash');
 
 export default class GitHubResolver extends HostedGitResolver {
   static protocol = 'github';
@@ -32,19 +32,19 @@ export default class GitHubResolver extends HostedGitResolver {
     return false;
   }
 
-  static getTarballUrl({ user, repo }: ExplodedFragment, hash: string): string {
-    return `https://codeload.github.com/${user}/${repo}/tar.gz/${hash}`;
+  static getTarballUrl(parts: ExplodedFragment, hash: string): string {
+    return `https://codeload.github.com/${parts.user}/${parts.repo}/tar.gz/${hash}`;
   }
 
-  static getGitSSHUrl({ user, repo }: ExplodedFragment): string {
-    return `git@github.com:${user}/${repo}.git`;
+  static getGitSSHUrl(parts: ExplodedFragment): string {
+    return `git@github.com:${parts.user}/${parts.repo}.git`;
   }
 
-  static getGitHTTPUrl({ user, repo }: ExplodedFragment): string {
-    return `https://github.com/${user}/${repo}.git`;
+  static getGitHTTPUrl(parts: ExplodedFragment): string {
+    return `https://github.com/${parts.user}/${parts.repo}.git`;
   }
 
-  static getHTTPFileUrl({ user, repo }: ExplodedFragment, filename: string, commit: string): string {
-    return `https://raw.githubusercontent.com/${user}/${repo}/${commit}/${filename}`;
+  static getHTTPFileUrl(parts: ExplodedFragment, filename: string, commit: string): string {
+    return `https://raw.githubusercontent.com/${parts.user}/${parts.repo}/${commit}/${filename}`;
   }
 }

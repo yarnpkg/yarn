@@ -9,22 +9,22 @@
  * @flow
  */
 
-import type { RegistryNames } from './registries/index.js';
-import type { Reporter } from './reporters/index.js';
+import type {RegistryNames} from './registries/index.js';
+import type {Reporter} from './reporters/index.js';
 import type Registry from './registries/_base.js';
-import type { Manifest, PackageRemote } from './types.js';
+import type {Manifest, PackageRemote} from './types.js';
 import normaliseManifest from './util/normalise-manifest/index.js';
 import * as fs from './util/fs.js';
 import * as constants from './constants.js';
 import ConstraintResolver from './package-constraint-resolver.js';
 import RequestManager from './util/request-manager.js';
-import { registries } from './registries/index.js';
+import {registries} from './registries/index.js';
 import map from './util/map.js';
 
-let invariant = require('invariant');
-let userHome = require('user-home');
-let path = require('path');
-let url = require('url');
+const invariant = require('invariant');
+const userHome = require('user-home');
+const path = require('path');
+const url = require('url');
 
 type ConfigOptions = {
   cwd?: string,
@@ -97,7 +97,7 @@ export default class Config {
    */
 
   getCache<T>(key: string, factory: () => Promise<T>): Promise<T> {
-    let cached = this.cache[key];
+    const cached = this.cache[key];
     if (cached) {
       return cached;
     }
@@ -133,11 +133,11 @@ export default class Config {
       this.tempFolder = await this.getTempFolder();
     }
 
-    for (let key of Object.keys(registries)) {
-      let Registry = registries[key];
+    for (const key of Object.keys(registries)) {
+      const Registry = registries[key];
 
       // instantiate registry
-      let registry = new Registry(this.cwd);
+      const registry = new Registry(this.cwd);
       await registry.init();
 
       this.registries[key] = registry;
@@ -188,13 +188,13 @@ export default class Config {
    */
 
   getOfflineMirrorPath(registryName: RegistryNames, tarUrl: ?string): string {
-    let registry = this.registries[registryName];
+    const registry = this.registries[registryName];
     if (!registry) {
       return '';
     }
 
     //
-    let mirrorPath = registry.config['kpm-offline-mirror'];
+    const mirrorPath = registry.config['kpm-offline-mirror'];
     if (!mirrorPath) {
       return '';
     }
@@ -205,7 +205,7 @@ export default class Config {
     }
 
     //
-    let parsed = url.parse(tarUrl);
+    const parsed = url.parse(tarUrl);
     if (!parsed || !parsed.pathname) {
       return mirrorPath;
     }
@@ -220,7 +220,7 @@ export default class Config {
 
   async getTempFolder(): Promise<string> {
     invariant(this.packagesRoot, 'No package root');
-    let folder = path.join(this.packagesRoot, '.tmp');
+    const folder = path.join(this.packagesRoot, '.tmp');
     await fs.mkdirp(folder);
     return folder;
   }
@@ -235,16 +235,16 @@ export default class Config {
     }
 
     // walk up from current directory looking for .kpm folders
-    let parts = this.cwd.split(path.sep);
+    const parts = this.cwd.split(path.sep);
     for (let i = parts.length; i > 0; i--) {
-      let loc = parts.slice(0, i).concat(constants.MODULE_CACHE_DIRECTORY).join(path.sep);
+      const loc = parts.slice(0, i).concat(constants.MODULE_CACHE_DIRECTORY).join(path.sep);
       if (await fs.exists(loc)) {
         return loc;
       }
     }
 
     // try and create ~/.kpm
-    let loc = path.join(userHome, constants.MODULE_CACHE_DIRECTORY);
+    const loc = path.join(userHome, constants.MODULE_CACHE_DIRECTORY);
     await fs.mkdirp(loc);
     return loc;
   }
@@ -271,10 +271,10 @@ export default class Config {
    */
 
   async readPackageMetadata(dir: string): Promise<PackageMetadata> {
-    let self = this;
+    const self = this;
     return this.getCache(`metadata-${dir}`, async function (): Promise<PackageMetadata> {
-      let metadata = await fs.readJson(path.join(dir, constants.METADATA_FILENAME));
-      let pkg = await self.readManifest(dir, metadata.registry);
+      const metadata = await fs.readJson(path.join(dir, constants.METADATA_FILENAME));
+      const pkg = await self.readManifest(dir, metadata.registry);
 
       return {
         package: pkg,
@@ -292,24 +292,24 @@ export default class Config {
   async readManifest(dir: string, priorityRegistry?: RegistryNames): Promise<Object> {
     // TODO work out how priorityRegistry fits into this cache
     return this.getCache(`manifest-${dir}`, async (): Promise<Manifest> => {
-      let metadataLoc = path.join(dir, constants.METADATA_FILENAME);
+      const metadataLoc = path.join(dir, constants.METADATA_FILENAME);
       if (!priorityRegistry && await fs.exists(metadataLoc)) {
-        ({ registry: priorityRegistry } = await fs.readJson(metadataLoc));
+        ({registry: priorityRegistry} = await fs.readJson(metadataLoc));
       }
 
       if (priorityRegistry) {
-        let file = await this.tryManifest(dir, priorityRegistry);
+        const file = await this.tryManifest(dir, priorityRegistry);
         if (file) {
           return file;
         }
       }
 
-      for (let registry of Object.keys(registries)) {
+      for (const registry of Object.keys(registries)) {
         if (priorityRegistry === registry) {
           continue;
         }
 
-        let file = await this.tryManifest(dir, registry);
+        const file = await this.tryManifest(dir, registry);
         if (file) {
           return file;
         }
@@ -324,11 +324,11 @@ export default class Config {
    */
 
   async tryManifest(dir: string, registry: RegistryNames): ?Object {
-    let filenames = registries[registry].filenames;
-    for (let filename of filenames) {
-      let loc = path.join(dir, filename);
+    const filenames = registries[registry].filenames;
+    for (const filename of filenames) {
+      const loc = path.join(dir, filename);
       if (await fs.exists(loc)) {
-        let data = await fs.readJson(loc);
+        const data = await fs.readJson(loc);
         data.registry = registry;
 
         // TODO: warn

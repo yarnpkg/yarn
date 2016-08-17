@@ -10,21 +10,21 @@
  */
 
 import type PackageResolver from './package-resolver.js';
-import type { Reporter } from './reporters/index.js';
-import type { Manifest } from './types.js';
+import type {Reporter} from './reporters/index.js';
+import type {Manifest} from './types.js';
 import type Config from './config.js';
-import { MessageError } from './errors.js';
+import {MessageError} from './errors.js';
 import map from './util/map.js';
-import { entries } from './util/misc.js';
+import {entries} from './util/misc.js';
 
-let invariant = require('invariant');
-let semver = require('semver');
-let _ = require('lodash');
+const invariant = require('invariant');
+const semver = require('semver');
+const _ = require('lodash');
 
 function isValid(items: Array<string>, actual: string): boolean {
   let isBlacklist = false;
 
-  for (let item of items) {
+  for (const item of items) {
     // whitelist
     if (item === actual) {
       return true;
@@ -44,11 +44,11 @@ function isValid(items: Array<string>, actual: string): boolean {
   return isBlacklist;
 }
 
-let aliases = map({
+const aliases = map({
   iojs: 'node', // we should probably prompt these libraries to fix this
 });
 
-let ignore = [
+const ignore = [
   'npm', // we'll never satisfy this for obvious reasons
   'teleport', // a module bundler used by some modules
 ];
@@ -75,11 +75,11 @@ export default class PackageCompatibility {
   check(info: Manifest) {
     let didIgnore = false;
     let didError  = false;
-    let reporter  = this.reporter;
-    let human     = `${info.name}@${info.version}`;
+    const reporter  = this.reporter;
+    const human     = `${info.name}@${info.version}`;
 
-    let pushError = (msg) => {
-      let ref = info.reference;
+    const pushError = (msg) => {
+      const ref = info.reference;
       invariant(ref, 'expected package reference');
 
       if (ref.optional) {
@@ -89,7 +89,7 @@ export default class PackageCompatibility {
         if (!didIgnore) {
           reporter.info(
             `${human} is an optional dependency and failed compatibility check. ` +
-            'Excluding it from installation.'
+            'Excluding it from installation.',
           );
           didIgnore = true;
         }
@@ -118,7 +118,7 @@ export default class PackageCompatibility {
         }
 
         if (_.has(process.versions, name)) {
-          let actual = process.versions[name];
+          const actual = process.versions[name];
           if (!semver.satisfies(actual, range)) {
             pushError(`The engine ${name} is incompatible with this module. Expected version ${range}.`);
           }
@@ -134,8 +134,8 @@ export default class PackageCompatibility {
   }
 
   async init(): Promise<void> {
-    let infos  = this.resolver.getManifests();
-    for (let info of infos) {
+    const infos  = this.resolver.getManifests();
+    for (const info of infos) {
       this.check(info);
     }
   }

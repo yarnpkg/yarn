@@ -9,23 +9,23 @@
  * @flow
  */
 
-import type { Manifest, FetchedManifest } from './types.js';
-import type { RegistryNames } from './registries/index.js';
+import type {Manifest, FetchedManifest} from './types.js';
+import type {RegistryNames} from './registries/index.js';
 import type PackageResolver from './package-resolver.js';
-import type { Reporter } from './reporters/index.js';
+import type {Reporter} from './reporters/index.js';
 import type Config from './config.js';
-import Lockfile, { parse as parseLock } from './lockfile/index.js';
+import Lockfile, {parse as parseLock} from './lockfile/index.js';
 import PackageReference from './package-reference.js';
-import { registries as registryResolvers } from './resolvers/index.js';
-import { MessageError } from './errors.js';
-import { entries } from './util/misc.js';
+import {registries as registryResolvers} from './resolvers/index.js';
+import {MessageError} from './errors.js';
+import {entries} from './util/misc.js';
 import * as constants from './constants.js';
 import * as versionUtil from './util/version.js';
 import * as resolvers from './resolvers/index.js';
 import * as fs from './util/fs.js';
 
-let invariant = require('invariant');
-let path = require('path');
+const invariant = require('invariant');
+const path = require('path');
 
 export default class PackageRequest {
   constructor({
@@ -78,7 +78,7 @@ export default class PackageRequest {
   optional: boolean;
 
   getHuman(): string {
-    let chain = [];
+    const chain = [];
 
     let delegator = this;
     do {
@@ -98,7 +98,7 @@ export default class PackageRequest {
     }
 
     if (shrunk) {
-      let resolvedParts = versionUtil.explodeHashedUrl(shrunk.resolved);
+      const resolvedParts = versionUtil.explodeHashedUrl(shrunk.resolved);
 
       return {
         name: shrunk.name,
@@ -124,9 +124,9 @@ export default class PackageRequest {
    */
 
   async findVersionOnRegistry(pattern: string): Promise<Manifest> {
-    let { range, name } = PackageRequest.normalisePattern(pattern);
+    let {range, name} = PackageRequest.normalisePattern(pattern);
 
-    let exoticResolver = PackageRequest.getExoticResolver(range);
+    const exoticResolver = PackageRequest.getExoticResolver(range);
     if (exoticResolver) {
       let data = await this.findExoticVersionInfo(exoticResolver, range);
 
@@ -143,8 +143,8 @@ export default class PackageRequest {
       return data;
     }
 
-    let Resolver = this.getRegistryResolver();
-    let resolver = new Resolver(this, name, range);
+    const Resolver = this.getRegistryResolver();
+    const resolver = new Resolver(this, name, range);
     return resolver.resolve();
   }
 
@@ -153,7 +153,7 @@ export default class PackageRequest {
    */
 
   getRegistryResolver(): Function {
-    let Resolver = registryResolvers[this.registry];
+    const Resolver = registryResolvers[this.registry];
     if (Resolver) {
       return Resolver;
     } else {
@@ -180,7 +180,7 @@ export default class PackageRequest {
     }
 
     // take first part as the name
-    let parts = name.split('@');
+    const parts = name.split('@');
     if (parts.length > 1) {
       name = parts.shift();
       range = parts.join('@') || '*';
@@ -191,7 +191,7 @@ export default class PackageRequest {
       name = `@${name}`;
     }
 
-    return { name, range };
+    return {name, range};
   }
 
   /**
@@ -200,16 +200,16 @@ export default class PackageRequest {
    */
 
   async warmCacheIfRegistry(pattern: string): Promise<void> {
-    let { range, name } = PackageRequest.normalisePattern(pattern);
+    let {range, name} = PackageRequest.normalisePattern(pattern);
 
     // ensure this is a registry request
-    let exoticResolver = PackageRequest.getExoticResolver(range);
+    const exoticResolver = PackageRequest.getExoticResolver(range);
     if (exoticResolver) {
       return;
     }
 
-    let Resolver = this.getRegistryResolver();
-    let resolver = new Resolver(this, name, range);
+    const Resolver = this.getRegistryResolver();
+    const resolver = new Resolver(this, name, range);
     await resolver.warmCache();
   }
 
@@ -218,7 +218,7 @@ export default class PackageRequest {
    */
 
   async findExoticVersionInfo(ExoticResolver: Function, range: string): Promise<Manifest> {
-    let resolver = new ExoticResolver(this, range);
+    const resolver = new ExoticResolver(this, range);
     return resolver.resolve();
   }
 
@@ -228,7 +228,7 @@ export default class PackageRequest {
    */
 
   async findVersionInfo(): Promise<Manifest> {
-    let exoticResolver = PackageRequest.getExoticResolver(this.pattern);
+    const exoticResolver = PackageRequest.getExoticResolver(this.pattern);
     if (exoticResolver) {
       return await this.findExoticVersionInfo(exoticResolver, this.pattern);
     } else {
@@ -249,9 +249,9 @@ export default class PackageRequest {
 
     // check if while we were resolving this dep we've already resolved one that satisfies
     // the same range
-    let resolved: ?Manifest = this.resolver.getExactVersionMatch(info.name, info.version);
+    const resolved: ?Manifest = this.resolver.getExactVersionMatch(info.name, info.version);
     if (resolved) {
-      let ref = resolved.reference;
+      const ref = resolved.reference;
       invariant(ref, 'Resolved package info has no package reference');
       ref.addRequest(this);
       ref.addPattern(this.pattern);
@@ -265,11 +265,11 @@ export default class PackageRequest {
     PackageRequest.validateVersionInfo(info);
 
     //
-    let remote = info.remote;
+    const remote = info.remote;
     invariant(remote, 'Missing remote');
 
     // set package reference
-    let ref = new PackageReference(this, info, remote, this.resolver.lockfile.save);
+    const ref = new PackageReference(this, info, remote, this.resolver.lockfile.save);
 
     // in order to support lockfiles inside transitive dependencies we need to block
     // resolution to fetch the package so we can peek inside of it for a kpm.lock
@@ -277,28 +277,28 @@ export default class PackageRequest {
     let subLockfile = null;
 
     // get possible mirror path
-    let offlineMirrorPath = this.config.getOfflineMirrorPath(ref.remote.registry, ref.remote.reference);
+    const offlineMirrorPath = this.config.getOfflineMirrorPath(ref.remote.registry, ref.remote.reference);
 
     // while we're fetching the package we have some idle time to warm the cache with
     // registry responses for known dependencies
     if (!offlineMirrorPath) {
-      for (let name in info.dependencies) {
+      for (const name in info.dependencies) {
         this.warmCacheIfRegistry(`${name}@${info.dependencies[name]}`);
       }
     }
 
     //
-    let shouldSaveMirror = this.resolver.lockfile.save && !!offlineMirrorPath;
-    let { package: newInfo, hash, dest }: FetchedManifest = await this.resolver.fetchingQueue.push(
+    const shouldSaveMirror = this.resolver.lockfile.save && !!offlineMirrorPath;
+    let {package: newInfo, hash, dest }:FetchedManifest = await this.resolver.fetchingQueue.push(
       info.name,
-      (): Promise<FetchedManifest> => this.resolver.fetcher.fetch(ref, shouldSaveMirror)
+      (): Promise<FetchedManifest> => this.resolver.fetcher.fetch(ref, shouldSaveMirror),
     );
 
     // replace resolved remote URL with local path if lockfile is in save mode and we have a path
     if (this.resolver.lockfile.save && offlineMirrorPath && await fs.exists(offlineMirrorPath)) {
       remote.resolved = path.relative(
         this.config.getOfflineMirrorPath(ref.remote.registry),
-        offlineMirrorPath
+        offlineMirrorPath,
       ) + `#${hash}`;
     }
     remote.hash = hash;
@@ -308,20 +308,20 @@ export default class PackageRequest {
     info = newInfo;
 
     // find and load in kpm.lock from this module if it exists
-    let lockfileLoc = path.join(dest, constants.LOCKFILE_FILENAME);
+    const lockfileLoc = path.join(dest, constants.LOCKFILE_FILENAME);
     if (await fs.exists(lockfileLoc)) {
-      let rawLockfile = await fs.readFile(lockfileLoc);
-      let lockfileObj = parseLock(rawLockfile);
+      const rawLockfile = await fs.readFile(lockfileLoc);
+      const lockfileObj = parseLock(rawLockfile);
       subLockfile = new Lockfile(lockfileObj, false, false, rawLockfile);
     }
 
     // start installation of dependencies
-    let promises = [];
-    let deps = [];
+    const promises = [];
+    const deps = [];
 
     // normal deps
-    for (let depName in info.dependencies) {
-      let depPattern = depName + '@' + info.dependencies[depName];
+    for (const depName in info.dependencies) {
+      const depPattern = depName + '@' + info.dependencies[depName];
       deps.push(depPattern);
       promises.push(this.resolver.find({
         pattern: depPattern,
@@ -333,8 +333,8 @@ export default class PackageRequest {
     }
 
     // optional deps
-    for (let depName in info.optionalDependencies) {
-      let depPattern = depName + '@' + info.optionalDependencies[depName];
+    for (const depName in info.optionalDependencies) {
+      const depPattern = depName + '@' + info.optionalDependencies[depName];
       deps.push(depPattern);
       promises.push(this.resolver.find({
         pattern: depPattern,
@@ -361,11 +361,11 @@ export default class PackageRequest {
 
   static validateVersionInfo(info: Manifest) {
     // human readable name to use in errors
-    let human = `${info.name}@${info.version}`;
+    const human = `${info.name}@${info.version}`;
 
     info.version = PackageRequest.getPackageVersion(info);
 
-    for (let key of constants.REQUIRED_PACKAGE_KEYS) {
+    for (const key of constants.REQUIRED_PACKAGE_KEYS) {
       if (!info[key]) {
         throw new MessageError(`Package ${human} doesn't have a ${key}`);
       }

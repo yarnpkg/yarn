@@ -11,9 +11,9 @@
 
 import type PackageRequest from '../package-request.js';
 import type PackageResolver from '../package-resolver.js';
-import type { Manifest } from '../types.js';
-import type { RegistryNames } from '../registries/index.js';
-import type { Reporter } from '../reporters/index.js';
+import type {Manifest} from '../types.js';
+import type {RegistryNames} from '../registries/index.js';
+import type {Reporter} from '../reporters/index.js';
 import type Config from '../config.js';
 
 export default class BaseResolver {
@@ -40,7 +40,7 @@ export default class BaseResolver {
     resolveArg: any,
     ...args: Array<string>
   ): Promise<Manifest> {
-    let resolver = new Resolver(this.request, ...args);
+    const resolver = new Resolver(this.request, ...args);
     resolver.registry = this.registry;
     return resolver.resolve(resolveArg);
   }

@@ -9,13 +9,13 @@
  * @flow
  */
 
-import { Reporter } from '../../src/reporters/index.js';
+import {Reporter} from '../../src/reporters/index.js';
 import * as reporters from '../../src/reporters/index.js';
 import * as constants from '../../src/constants.js';
-import { default as Lockfile, parse } from '../../src/lockfile/index.js';
-import { Install } from '../../src/cli/commands/install.js';
-import { run as uninstall } from '../../src/cli/commands/uninstall.js';
-import { run as check } from '../../src/cli/commands/check.js';
+import {default as Lockfile, parse} from '../../src/lockfile/index.js';
+import {Install} from '../../src/cli/commands/install.js';
+import {run as uninstall} from '../../src/cli/commands/uninstall.js';
+import {run as check} from '../../src/cli/commands/check.js';
 import Config from '../../src/config.js';
 import * as fs from '../../src/util/fs.js';
 import assert from 'assert';
@@ -53,7 +53,7 @@ async function run(
   args: Array<string>,
   name: string,
   checkInstalled: ?(config: Config, reporter: Reporter) => ?Promise<void>,
-  beforeInstall: ?(cwd: string) => ?Promise<void>
+  beforeInstall: ?(cwd: string) => ?Promise<void>,
 ): Promise<void> {
   let out = '';
   let stdout = new stream.Writable({
@@ -64,7 +64,7 @@ async function run(
     },
   });
 
-  let reporter = new reporters.ConsoleReporter({ stdout, stderr: stdout });
+  let reporter = new reporters.ConsoleReporter({stdout, stderr: stdout});
 
   let cwd = path.join(fixturesLoc, name);
 
@@ -84,7 +84,7 @@ async function run(
   await fs.mkdirp(path.join(cwd, 'node_modules'));
 
   try {
-    let config = new Config(reporter, { cwd });
+    let config = new Config(reporter, {cwd});
     await config.init();
 
     let install = new Install('install', flags, args, config, reporter, lockfile);
@@ -396,14 +396,14 @@ test('upgrade scenario', (): Promise<void> => {
     await fs.unlink(path.join(cwd, 'package.json'));
   }
 
-  return run({ save: true }, ['left-pad@0.0.9'], 'install-upgrade-scenario', async (config): Promise<void> => {
+  return run({save: true}, ['left-pad@0.0.9'], 'install-upgrade-scenario', async (config): Promise<void> => {
     assert.equal(
       await getPackageVersion(config, 'left-pad'),
-      '0.0.9'
+      '0.0.9',
     );
     assert.deepEqual(
       JSON.parse(await fs.readFile(path.join(config.cwd, 'package.json'))).dependencies,
-      {'left-pad': '0.0.9'}
+      {'left-pad': '0.0.9'},
     );
 
     let lockFileWritten = await fs.readFile(path.join(config.cwd, 'kpm.lock'));
@@ -419,11 +419,11 @@ test('upgrade scenario', (): Promise<void> => {
     return run({save: true}, ['left-pad@1.1.0'], 'install-upgrade-scenario', async (config) => {
       assert.equal(
         await getPackageVersion(config, 'left-pad'),
-        '1.1.0'
+        '1.1.0',
       );
       assert.deepEqual(
         JSON.parse(await fs.readFile(path.join(config.cwd, 'package.json'))).dependencies,
-        {'left-pad': '1.1.0'}
+        {'left-pad': '1.1.0'},
       );
 
       let lockFileWritten = await fs.readFile(path.join(config.cwd, 'kpm.lock'));
@@ -454,21 +454,21 @@ test('[network] upgrade scenario 2 (with sub dependencies)', async (): Promise<v
   return run({}, [], fixture, async (config): Promise<void> => {
     assert(semver.satisfies(
       await getPackageVersion(config, 'mime-db'),
-      '~1.0.1')
+      '~1.0.1'),
     );
     assert.equal(
       await getPackageVersion(config, 'mime-types'),
-      '2.0.0'
+      '2.0.0',
     );
 
     return run({save: true}, ['mime-types@^2.1.11'], fixture, async (config) => {
       assert(semver.satisfies(
         await getPackageVersion(config, 'mime-db'),
-        '~1.23.0'
+        '~1.23.0',
       ));
       assert.equal(
         await getPackageVersion(config, 'mime-types'),
-        '2.1.11'
+        '2.1.11',
       );
 
       let lockFileWritten = await fs.readFile(path.join(config.cwd, 'kpm.lock'));
@@ -502,11 +502,11 @@ test('[network] downgrade scenario', (): Promise<void> => {
   return run({save: true}, ['left-pad@1.1.0'], 'install-downgrade-scenario', async (config): Promise<void> => {
     assert.equal(
       await getPackageVersion(config, 'left-pad'),
-      '1.1.0'
+      '1.1.0',
     );
     assert.deepEqual(
       JSON.parse(await fs.readFile(path.join(config.cwd, 'package.json'))).dependencies,
-      {'left-pad': '1.1.0'}
+      {'left-pad': '1.1.0'},
     );
 
     let mirrorPath = 'mirror-for-offline';
@@ -523,11 +523,11 @@ test('[network] downgrade scenario', (): Promise<void> => {
     return run({save: true}, ['left-pad@0.0.9'], 'install-downgrade-scenario', async (config) => {
       assert.equal(
         await getPackageVersion(config, 'left-pad'),
-        '0.0.9'
+        '0.0.9',
       );
       assert.deepEqual(
         JSON.parse(await fs.readFile(path.join(config.cwd, 'package.json'))).dependencies,
-        {'left-pad': '0.0.9'}
+        {'left-pad': '0.0.9'},
       );
 
       let lockFileWritten = await fs.readFile(path.join(config.cwd, 'kpm.lock'));
@@ -628,7 +628,7 @@ test('uninstall should remove dependency from package.json, kpm.lock and node_mo
   return run({}, [], 'uninstall-should-clean', async (config, reporter) => {
     assert.equal(
       await getPackageVersion(config, 'dep-a'),
-      '1.0.0'
+      '1.0.0',
     );
 
     await fs.copy(path.join(config.cwd, 'kpm.lock'), path.join(config.cwd, 'kpm.lock.orig'));
@@ -642,7 +642,7 @@ test('uninstall should remove dependency from package.json, kpm.lock and node_mo
 
       assert.deepEqual(
         JSON.parse(await fs.readFile(path.join(config.cwd, 'package.json'))).dependencies,
-        {}
+        {},
       );
 
       let lockFileContent = await fs.readFile(path.join(config.cwd, 'kpm.lock'));
@@ -672,15 +672,15 @@ test('uninstall should remove subdependencies', (): Promise<void> => {
   return run({}, [], 'uninstall-should-remove-subdependencies', async (config, reporter) => {
     assert.equal(
       await getPackageVersion(config, 'dep-a'),
-      '1.0.0'
+      '1.0.0',
     );
     assert.equal(
       await getPackageVersion(config, 'dep-b'),
-      '1.0.0'
+      '1.0.0',
     );
     assert.equal(
       await getPackageVersion(config, 'dep-c'),
-      '1.0.0'
+      '1.0.0',
     );
 
     await fs.copy(path.join(config.cwd, 'kpm.lock'), path.join(config.cwd, 'kpm.lock.orig'));
@@ -698,7 +698,7 @@ test('uninstall should remove subdependencies', (): Promise<void> => {
 
     assert.deepEqual(
       JSON.parse(await fs.readFile(path.join(config.cwd, 'package.json'))).dependencies,
-      {'dep-c': '^1.0.0'}
+      {'dep-c': '^1.0.0'},
     );
 
     let lockFileContent = await fs.readFile(path.join(config.cwd, 'kpm.lock'));
@@ -760,11 +760,11 @@ async (): Promise<void> => {
   return run({}, [], fixture, async (config): Promise<void> => {
     assert(semver.satisfies(
       await getPackageVersion(config, 'mime-db'),
-      '~1.0.1')
+      '~1.0.1'),
     );
     assert.equal(
       await getPackageVersion(config, 'mime-types'),
-      '2.0.0'
+      '2.0.0',
     );
 
     await fs.unlink(path.join(config.cwd, 'package.json'));
@@ -773,11 +773,11 @@ async (): Promise<void> => {
     return run({save: true}, [], fixture, async (config) => {
       assert(semver.satisfies(
         await getPackageVersion(config, 'mime-db'),
-        '~1.23.0'
+        '~1.23.0',
       ));
       assert.equal(
         await getPackageVersion(config, 'mime-types'),
-        '2.1.11'
+        '2.1.11',
       );
 
       let lockFileWritten = await fs.readFile(path.join(config.cwd, 'kpm.lock'));
@@ -843,31 +843,31 @@ test('[network] install --save with new dependency should be deterministic', asy
   return run({}, [], fixture, async (config): Promise<void> => {
     assert(semver.satisfies(
       await getPackageVersion(config, 'mime-db'),
-      '~1.0.1')
+      '~1.0.1'),
     );
     assert.equal(
       await getPackageVersion(config, 'mime-types'),
-      '2.0.0'
+      '2.0.0',
     );
 
     return run({save: true}, ['mime-db@^1.23.0'], fixture, async (config) => {
       assert(semver.satisfies(
         await getPackageVersion(config, 'mime-db'),
-        '~1.23.0'
+        '~1.23.0',
       ));
       assert.equal(
         await getPackageVersion(config, 'mime-types'),
-        '2.0.0'
+        '2.0.0',
       );
       assert.equal(
         await getPackageVersion(config, 'mime-types/mime-db'),
-        '1.0.3'
+        '1.0.3',
       );
       assert.deepEqual(
         JSON.parse(await fs.readFile(path.join(config.cwd, 'package.json'))).dependencies, {
           'mime-types': '2.0.0',
           'mime-db': '^1.23.0',
-        }
+        },
       );
 
       let lockFileWritten = await fs.readFile(path.join(config.cwd, 'kpm.lock'));
@@ -900,28 +900,28 @@ xit('[network] install --save with new dependency should be deterministic 2', as
   return run({}, [], fixture, async (config): Promise<void> => {
     assert.equal(
       await getPackageVersion(config, 'mime-db'),
-      '1.0.1'
+      '1.0.1',
     );
     assert.equal(
       await getPackageVersion(config, 'mime-types'),
-      '2.0.0'
+      '2.0.0',
     );
 
     return run({save: true}, ['mime-db@1.0.3'], fixture, async (config) => {
       assert.equal(
         await getPackageVersion(config, 'mime-db'),
-        '1.0.3'
+        '1.0.3',
       );
       assert.equal(
         await getPackageVersion(config, 'mime-types'),
-        '2.0.0'
+        '2.0.0',
       );
       assert(!await fs.exists(path.join(config.cwd, 'node_modules/mime-types/node-modules/mime-db')));
       assert.deepEqual(
         JSON.parse(await fs.readFile(path.join(config.cwd, 'package.json'))).dependencies, {
           'mime-types': '2.0.0',
           'mime-db': '1.0.3',
-        }
+        },
       );
 
       let lockFileWritten = await fs.readFile(path.join(config.cwd, 'kpm.lock'));
@@ -981,7 +981,7 @@ test('[network] install --save should ignore cache', (): Promise<void> => {
   return run({}, ['left-pad@1.1.0'], fixture, async (config, reporter) => {
     assert.equal(
       await getPackageVersion(config, 'left-pad'),
-      '1.1.0'
+      '1.1.0',
     );
 
     let lockfile = await createLockfile(config.cwd, false, true);
@@ -989,11 +989,11 @@ test('[network] install --save should ignore cache', (): Promise<void> => {
     await install.init();
     assert.equal(
       await getPackageVersion(config, 'left-pad'),
-      '1.1.0'
+      '1.1.0',
     );
     assert.deepEqual(
       JSON.parse(await fs.readFile(path.join(config.cwd, 'package.json'))).dependencies,
-      {'left-pad': '1.1.0'}
+      {'left-pad': '1.1.0'},
     );
 
     let mirror = await fs.walk(path.join(config.cwd, mirrorPath));
@@ -1024,7 +1024,7 @@ test('[network] install --save should not make package.json strict', async (): P
       {
         'left-pad': '^1.1.0',
         'mime-types': '^2.0.0',
-      }
+      },
     );
 
     await fs.unlink(path.join(config.cwd, `${mirrorPath}/left-pad-*.tgz`));
@@ -1047,7 +1047,7 @@ test('[network] install --save-exact should not make all package.json strict', a
       {
         'left-pad': '1.1.0',
         'mime-types': '^2.0.0',
-      }
+      },
     );
 
     await fs.unlink(path.join(config.cwd, `${mirrorPath}/left-pad-1.1.0.tgz`));

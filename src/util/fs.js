@@ -11,29 +11,29 @@
 
 import BlockingQueue from './blocking-queue.js';
 import * as promise from './promise.js';
-import { promisify } from './promise.js';
+import {promisify} from './promise.js';
 import map from './map.js';
 
-let path = require('path');
-let fs = require('fs');
+const path = require('path');
+const fs = require('fs');
 
-export let lockQueue = new BlockingQueue('fs lock');
+export const lockQueue = new BlockingQueue('fs lock');
 
-export let readFileBuffer = promisify(fs.readFile);
-export let writeFile      = promisify(fs.writeFile);
-export let realpath       = promisify(fs.realpath);
-export let readdir        = promisify(fs.readdir);
-export let rename         = promisify(fs.rename);
-export let access         = promisify(fs.access);
-export let unlink         = promisify(require('rimraf'));
-export let mkdirp         = promisify(require('mkdirp'));
-export let exists         = promisify(fs.exists, true);
-export let lstat          = promisify(fs.lstat);
-export let chmod          = promisify(fs.chmod);
+export const readFileBuffer = promisify(fs.readFile);
+export const writeFile      = promisify(fs.writeFile);
+export const realpath       = promisify(fs.realpath);
+export const readdir        = promisify(fs.readdir);
+export const rename         = promisify(fs.rename);
+export const access         = promisify(fs.access);
+export const unlink         = promisify(require('rimraf'));
+export const mkdirp         = promisify(require('mkdirp'));
+export const exists         = promisify(fs.exists, true);
+export const lstat          = promisify(fs.lstat);
+export const chmod          = promisify(fs.chmod);
 
-let fsSymlink = promisify(fs.symlink);
-let invariant = require('invariant');
-let stripBOM = require('strip-bom');
+const fsSymlink = promisify(fs.symlink);
+const invariant = require('invariant');
+const stripBOM = require('strip-bom');
 
 type CopyQueue = Array<{
   src: string,
@@ -60,11 +60,11 @@ async function buildActionsForCopy(
   events: CopyEvents,
   possibleExtraneousSeed: ?Iterable<string>,
 ): Promise<CopyActions> {
-  let possibleExtraneous: Set<string> = new Set(possibleExtraneousSeed || []);
-  let files: Set<string> = new Set();
+  const possibleExtraneous: Set<string> = new Set(possibleExtraneousSeed || []);
+  const files: Set<string> = new Set();
 
   // initialise events
-  for (let item of queue) {
+  for (const item of queue) {
     item.onDone = () => {
       events.onProgress(item.dest);
     };
@@ -72,17 +72,17 @@ async function buildActionsForCopy(
   events.onStart(queue.length);
 
   // start building actions
-  let actions: CopyActions = [];
+  const actions: CopyActions = [];
 
   // custom concurrency logic as we're always executing stacks of 4 queue items
   // at a time due to the requirement to push items onto the queue
   while (queue.length) {
-    let items = queue.splice(0, 4);
+    const items = queue.splice(0, 4);
     await Promise.all(items.map(build));
   }
 
   // remove all extraneous files that weren't in the tree
-  for (let loc of possibleExtraneous) {
+  for (const loc of possibleExtraneous) {
     if (!files.has(loc)) {
       await unlink(loc);
     }
@@ -92,11 +92,11 @@ async function buildActionsForCopy(
 
   //
   async function build(data) {
-    let { src, dest, onFresh } = data;
-    let onDone = data.onDone || (() => {});
+    let {src, dest, onFresh} = data;
+    const onDone = data.onDone || (() => {});
     files.add(dest);
 
-    let srcStat = await lstat(src);
+    const srcStat = await lstat(src);
     let srcFiles;
 
     if (srcStat.isDirectory()) {
@@ -104,10 +104,10 @@ async function buildActionsForCopy(
     }
 
     if (await exists(dest)) {
-      let destStat = await lstat(dest);
+      const destStat = await lstat(dest);
 
-      let bothFiles   = srcStat.isFile() && destStat.isFile();
-      let bothFolders = !bothFiles && srcStat.isDirectory() && destStat.isDirectory();
+      const bothFiles   = srcStat.isFile() && destStat.isFile();
+      const bothFolders = !bothFiles && srcStat.isDirectory() && destStat.isDirectory();
 
       if (srcStat.mode !== destStat.mode) {
         if (bothFiles) {
@@ -128,16 +128,16 @@ async function buildActionsForCopy(
 
       if (bothFolders) {
         // remove files that aren't in source
-        let destFiles = await readdir(dest);
+        const destFiles = await readdir(dest);
         invariant(srcFiles, 'src files not initialised');
 
-        for (let file of destFiles) {
+        for (const file of destFiles) {
           if (srcFiles.indexOf(file) < 0) {
-            let loc = path.join(dest, file);
+            const loc = path.join(dest, file);
             possibleExtraneous.add(loc);
 
             if ((await lstat(loc)).isDirectory()) {
-              for (let file of await readdir(loc)) {
+              for (const file of await readdir(loc)) {
                 possibleExtraneous.add(path.join(loc, file));
               }
             }
@@ -149,7 +149,7 @@ async function buildActionsForCopy(
     if (srcStat.isDirectory()) {
       await mkdirp(dest);
 
-      let destParts = dest.split(path.sep);
+      const destParts = dest.split(path.sep);
       while (destParts.length) {
         files.add(destParts.join(path.sep));
         destParts.pop();
@@ -161,7 +161,7 @@ async function buildActionsForCopy(
       if (!remaining) {
         onDone();
       }
-      for (let file of srcFiles) {
+      for (const file of srcFiles) {
         queue.push({
           onFresh,
           src: path.join(src, file),
@@ -192,7 +192,7 @@ async function buildActionsForCopy(
 }
 
 export function copy(src: string, dest: string): Promise<void> {
-  return copyBulk([{ src, dest }]);
+  return copyBulk([{src, dest}]);
 }
 
 export async function copyBulk(
@@ -200,18 +200,18 @@ export async function copyBulk(
   _events?: CopyEvents,
   possibleExtraneous?: Iterable<string>,
 ): Promise<void> {
-  let events: CopyEvents = _events || {
+  const events: CopyEvents = _events || {
     onStart: () => {},
     onProgress: () => {},
   };
 
-  let actions: CopyActions = await buildActionsForCopy(queue, events, possibleExtraneous);
+  const actions: CopyActions = await buildActionsForCopy(queue, events, possibleExtraneous);
 
   events.onStart(actions.length);
 
   await promise.queue(actions, (data): Promise<void> => new Promise((resolve, reject) => {
-    let readStream = fs.createReadStream(data.src);
-    let writeStream = fs.createWriteStream(data.dest, { mode: data.mode });
+    const readStream = fs.createReadStream(data.src);
+    const writeStream = fs.createWriteStream(data.dest, {mode: data.mode});
 
     readStream.on('error', reject);
     writeStream.on('error', reject);
@@ -246,7 +246,7 @@ export async function readFile(loc: string): Promise<string> {
 }
 
 export async function readJson(loc: string): Promise<Object> {
-  let file = await readFile(loc);
+  const file = await readFile(loc);
   try {
     return map(JSON.parse(stripBOM(file)));
   } catch (err) {
@@ -256,10 +256,10 @@ export async function readJson(loc: string): Promise<Object> {
 }
 
 export async function find(filename: string, dir: string): Promise<string | false> {
-  let parts = dir.split(path.sep);
+  const parts = dir.split(path.sep);
 
   while (parts.length) {
-    let loc = parts.concat(filename).join(path.sep);
+    const loc = parts.concat(filename).join(path.sep);
 
     if (await exists(loc)) {
       return loc;
@@ -273,10 +273,10 @@ export async function find(filename: string, dir: string): Promise<string | fals
 
 export async function symlink(src: string, dest: string): Promise<void> {
   try {
-    let stats = await lstat(dest);
+    const stats = await lstat(dest);
 
     if (stats.isSymbolicLink() && await exists(dest)) {
-      let resolved = await realpath(dest);
+      const resolved = await realpath(dest);
       if (resolved === src) {
         return;
       }
@@ -295,7 +295,7 @@ export async function symlink(src: string, dest: string): Promise<void> {
       await fsSymlink(src, dest, 'junction');
     } else {
       // use relative paths otherwise which will be retained if the directory is moved
-      let relative = path.relative(path.dirname(dest), src);
+      const relative = path.relative(path.dirname(dest), src);
       await fsSymlink(relative, dest);
     }
   } catch (err) {
@@ -314,13 +314,13 @@ export async function walk(dir: string, relativeDir?: string): Promise<Array<{
 }>> {
   let files = [];
 
-  for (let name of await readdir(dir)) {
-    let relative = relativeDir ? path.join(relativeDir, name) : name;
-    let loc = path.join(dir, name);
+  for (const name of await readdir(dir)) {
+    const relative = relativeDir ? path.join(relativeDir, name) : name;
+    const loc = path.join(dir, name);
     if ((await lstat(loc)).isDirectory()) {
       files = files.concat(await walk(loc, relative));
     } else {
-      files.push({ relative, absolute: loc });
+      files.push({relative, absolute: loc});
     }
   }
 

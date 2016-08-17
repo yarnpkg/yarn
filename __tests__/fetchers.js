@@ -14,7 +14,7 @@ import TarballFetcher from '../src/fetchers/tarball.js';
 import BaseFetcher from '../src/fetchers/_base.js';
 import CopyFetcher from '../src/fetchers/copy.js';
 import GitFetcher from '../src/fetchers/git.js';
-import { NoopReporter } from '../src/reporters/index.js';
+import {NoopReporter} from '../src/reporters/index.js';
 import Config from '../src/config.js';
 import mkdir from './_temp.js';
 import * as fs from '../src/util/fs.js';

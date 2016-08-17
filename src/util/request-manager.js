@@ -9,17 +9,17 @@
  * @flow
  */
 
-import type { Reporter } from '../reporters/index.js';
+import type {Reporter} from '../reporters/index.js';
 import BlockingQueue from './blocking-queue.js';
 import * as constants from '../constants.js';
 import * as network from './network.js';
 import map from '../util/map.js';
 
-let Request = require('request').Request;
-let url = require('url');
+const Request = require('request').Request;
+const url = require('url');
 
-let successHosts = map();
-let controlOffline = network.isOffline();
+const successHosts = map();
+const controlOffline = network.isOffline();
 
 declare class RequestError extends Error {
   hostname: string,
@@ -74,7 +74,7 @@ export default class RequestManager {
    */
 
   request<T>(params: RequestParams<T>): Promise<T> {
-    let cached = this.cache[params.url];
+    const cached = this.cache[params.url];
     if (cached) {
       return cached;
     }
@@ -87,8 +87,8 @@ export default class RequestManager {
       'User-Agent': constants.USER_AGENT,
     }, params.headers);
 
-    let promise = new Promise((resolve, reject) => {
-      this.queue.push({ params, resolve, reject });
+    const promise = new Promise((resolve, reject) => {
+      this.queue.push({params, resolve, reject});
       this.shiftQueue();
     });
 
@@ -115,7 +115,7 @@ export default class RequestManager {
 
   isPossibleOfflineError(err: RequestError): boolean {
     // network was previously online but now we're offline
-    let possibleOfflineChange = !controlOffline && !network.isOffline();
+    const possibleOfflineChange = !controlOffline && !network.isOffline();
     if (err.code === 'ENOTFOUND' && possibleOfflineChange) {
       // can't resolve a domain
       return true;
@@ -158,9 +158,9 @@ export default class RequestManager {
 
   initOfflineRetry() {
     setTimeout(() => {
-      let queue = this.offlineQueue;
+      const queue = this.offlineQueue;
       this.offlineQueue = [];
-      for (let opts of queue) {
+      for (const opts of queue) {
         this.execute(opts);
       }
     }, 3000);
@@ -171,18 +171,18 @@ export default class RequestManager {
    */
 
   execute(opts: RequestOptions) {
-    let { params } = opts;
+    const {params} = opts;
 
-    let buildNext = (fn): Function => (data) => {
+    const buildNext = (fn): Function => (data) => {
       fn(data);
       this.running--;
       this.shiftQueue();
     };
 
-    let resolve = buildNext(opts.resolve);
+    const resolve = buildNext(opts.resolve);
 
-    let rejectNext = buildNext(opts.reject);
-    let reject = function(err) {
+    const rejectNext = buildNext(opts.reject);
+    const reject = function(err) {
       err.message = `${params.url}: ${err.message}`;
       rejectNext(err);
     };
@@ -190,7 +190,7 @@ export default class RequestManager {
     //
 
     if (!params.process) {
-      let parts = url.parse(params.url);
+      const parts = url.parse(params.url);
 
       params.callback = function(err, res, body) {
         if (err) {
@@ -200,7 +200,7 @@ export default class RequestManager {
         successHosts[parts.hostname] = true;
 
         if (res.statusCode === 403) {
-          let errMsg = (body && body.message) || `Request ${params.url} returned a ${res.statusCode}`;
+          const errMsg = (body && body.message) || `Request ${params.url} returned a ${res.statusCode}`;
           reject(new Error(errMsg));
         } else {
           if (res.statusCode === 400 || res.statusCode === 404) {
@@ -211,10 +211,10 @@ export default class RequestManager {
       };
     }
 
-    let req = new Request(params);
+    const req = new Request(params);
 
     req.on('error', (err) => {
-      let attempts = params.retryAttempts || 0;
+      const attempts = params.retryAttempts || 0;
       if (attempts < 5 && this.isPossibleOfflineError(err)) {
         params.retryAttempts = attempts + 1;
         if (params.cleanup) {
@@ -226,7 +226,7 @@ export default class RequestManager {
       }
     });
 
-    let queue = params.queue;
+    const queue = params.queue;
     if (queue) {
       req.on('data', queue.stillActive.bind(queue));
     }
@@ -245,7 +245,7 @@ export default class RequestManager {
       return;
     }
 
-    let opts = this.queue.shift();
+    const opts = this.queue.shift();
 
     this.running++;
     this.execute(opts);

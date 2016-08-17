@@ -9,9 +9,9 @@
  * @flow
  */
 
-import type { Reporter } from '../../reporters/index.js';
+import type {Reporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
-import { Install } from './install.js';
+import {Install} from './install.js';
 import Lockfile from '../../lockfile/index.js';
 
 export function setFlags(commander: Object) {
@@ -19,16 +19,16 @@ export function setFlags(commander: Object) {
   commander;
 }
 
-export let noArguments = true;
-export let requireLockfile = true;
+export const noArguments = true;
+export const requireLockfile = true;
 
 export async function run(
   config: Config,
   reporter: Reporter,
   flags: Object,
-  args: Array<string>
+  args: Array<string>,
 ): Promise<void> {
-  let lockfile = new Lockfile(null, false);
-  let install = new Install('update', flags, args, config, reporter, lockfile);
+  const lockfile = new Lockfile(null, false);
+  const install = new Install('update', flags, args, config, reporter, lockfile);
   return install.init();
 }

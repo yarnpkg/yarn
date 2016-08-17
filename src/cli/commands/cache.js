@@ -9,9 +9,9 @@
  * @flow
  */
 
-import type { Reporter } from '../../reporters/index.js';
+import type {Reporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
-import { MessageError } from '../../errors.js';
+import {MessageError} from '../../errors.js';
 import * as fs from '../../util/fs.js';
 
 export function setFlags(commander: Object) {
@@ -22,7 +22,7 @@ export async function run(
   config: Config,
   reporter: Reporter,
   flags: Object,
-  args: Array<string>
+  args: Array<string>,
 ): Promise<void> {
   // command validation
   let cmd = args[0];
@@ -37,7 +37,7 @@ export async function run(
     throw new MessageError('TODO');
   }
 
-  let packagesRoot = config.packagesRoot;
+  const packagesRoot = config.packagesRoot;
   if (cmd === 'clear' && packagesRoot) {
     await fs.unlink(packagesRoot);
     reporter.success(`Cleared ${packagesRoot}`);

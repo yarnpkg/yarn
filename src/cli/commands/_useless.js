@@ -9,11 +9,11 @@
  * @flow
  */
 
-import { MessageError } from '../../errors.js';
+import {MessageError} from '../../errors.js';
 
 export default function(message: string): { run: Function } {
   return {
-    run: function() {
+    run() {
       throw new MessageError(message);
     },
   };

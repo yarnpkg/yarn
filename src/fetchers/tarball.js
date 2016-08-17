@@ -9,24 +9,24 @@
  * @flow
  */
 
-import { SecurityError, MessageError } from '../errors.js';
-import type { HashStream } from '../util/crypto.js';
+import {SecurityError, MessageError} from '../errors.js';
+import type {HashStream} from '../util/crypto.js';
 import * as crypto from '../util/crypto.js';
 import BaseFetcher from './_base.js';
 import * as fsUtil from '../util/fs.js';
 
-let through = require('through2');
-let zlib = require('zlib');
-let path = require('path');
-let tar = require('tar');
-let url = require('url');
-let fs = require('fs');
+const through = require('through2');
+const zlib = require('zlib');
+const path = require('path');
+const tar = require('tar');
+const url = require('url');
+const fs = require('fs');
 
 export default class TarballFetcher extends BaseFetcher {
   async _fetch(dest: string): Promise<string> {
-    let { reference: ref, hash, config, saveForOffline, registry } = this;
+    let {reference: ref, hash, config, saveForOffline, registry} = this;
 
-    let parts = url.parse(ref);
+    const parts = url.parse(ref);
 
     // basic security check
     if (!hash) {
@@ -40,23 +40,23 @@ export default class TarballFetcher extends BaseFetcher {
       validateStream: HashStream,
       extractor: stream$Readable,
     } {
-      let validateStream = crypto.hashStreamValidation();
+      const validateStream = crypto.hashStreamValidation();
 
-      let extractor = tar.Extract({ path: dest, strip: 1 })
+      const extractor = tar.Extract({path: dest, strip: 1})
         .on('error', reject)
         .on('end', function() {
-          let expectHash = hash;
-          let actualHash = validateStream.getHash();
+          const expectHash = hash;
+          const actualHash = validateStream.getHash();
           if (!expectHash || expectHash === actualHash) {
             resolve(actualHash);
           } else {
             reject(new SecurityError(
-              `Bad hash. Expected ${expectHash} but got ${actualHash} `
+              `Bad hash. Expected ${expectHash} but got ${actualHash} `,
             ));
           }
         });
 
-      return { validateStream, extractor };
+      return {validateStream, extractor};
     }
 
     // offline mirror path
@@ -65,7 +65,7 @@ export default class TarballFetcher extends BaseFetcher {
       let localTarball;
       let isOfflineTarball = false;
 
-      let relativeFileLoc = parts.pathname && path.join(this.config.cwd, parts.pathname);
+      const relativeFileLoc = parts.pathname && path.join(this.config.cwd, parts.pathname);
       if (relativeFileLoc && await fsUtil.exists(relativeFileLoc)) {
         // this is a reference to a file relative to the cwd
         localTarball = relativeFileLoc;
@@ -80,12 +80,12 @@ export default class TarballFetcher extends BaseFetcher {
       }
 
       return new Promise((resolve, reject) => {
-        let { validateStream, extractor } = createExtractor(resolve, reject);
+        let {validateStream, extractor} = createExtractor(resolve, reject);
 
         // flow gets confused with the pipe/on types chain
-        let cachedStream: Object = fs.createReadStream(localTarball);
+        const cachedStream: Object = fs.createReadStream(localTarball);
 
-        let decompressStream = zlib.createUnzip();
+        const decompressStream = zlib.createUnzip();
 
         // nicer errors for corrupted compressed tarballs
         decompressStream.on('error', function(err) {
@@ -115,16 +115,16 @@ export default class TarballFetcher extends BaseFetcher {
         'Accept-Encoding': 'gzip',
       },
       process(req, resolve, reject) {
-        let { validateStream, extractor } = createExtractor(resolve, reject);
+        let {validateStream, extractor} = createExtractor(resolve, reject);
 
         // should we save this to the offline cache?
-        let mirrorPath = config.getOfflineMirrorPath(registry, ref);
+        const mirrorPath = config.getOfflineMirrorPath(registry, ref);
         let mirrorTarballStream;
         if (mirrorPath && saveForOffline) {
           mirrorTarballStream = fs.createWriteStream(mirrorPath);
           mirrorTarballStream.on('error', reject);
         }
-        let mirrorSaver = through(function(chunk, enc, callback) {
+        const mirrorSaver = through(function(chunk, enc, callback) {
           if (mirrorTarballStream) {
             mirrorTarballStream.write(chunk, enc);
           }
@@ -138,12 +138,12 @@ export default class TarballFetcher extends BaseFetcher {
               return;
             }
 
-            let href = this.uri.href;
-            let parts = url.parse(href);
+            const href = this.uri.href;
+            const parts = url.parse(href);
             if (parts.protocol === 'http:') {
               throw new SecurityError(
                 `While downloading the tarball ${ref} we encountered a HTTP redirect of ${href}. ` +
-                'This is not allowed unless a tarball hash is specified.'
+                'This is not allowed unless a tarball hash is specified.',
               );
             }
           })

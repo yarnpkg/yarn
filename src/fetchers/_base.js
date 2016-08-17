@@ -10,14 +10,14 @@
  */
 /* eslint no-unused-vars: 0 */
 
-import type { Manifest, PackageRemote, FetchedManifest } from '../types.js';
-import type { RegistryNames } from '../registries/index.js';
+import type {Manifest, PackageRemote, FetchedManifest} from '../types.js';
+import type {RegistryNames} from '../registries/index.js';
 import type Config from '../config.js';
 import * as constants from '../constants.js';
 import * as util from '../util/misc.js';
 import * as fs from '../util/fs.js';
 
-let path = require('path');
+const path = require('path');
 
 export default class BaseFetcher {
   constructor(remote: PackageRemote, config: Config, saveForOffline?: boolean) {
@@ -43,10 +43,10 @@ export default class BaseFetcher {
   fetch(dest: string): Promise<FetchedManifest> {
     return fs.lockQueue.push(dest, async (): Promise<FetchedManifest> => {
       // fetch package and get the hash
-      let hash = await this._fetch(dest);
+      const hash = await this._fetch(dest);
 
       // load the new normalised package.json
-      let pkg = await this.config.readManifest(dest, this.registry);
+      const pkg = await this.config.readManifest(dest, this.registry);
 
       await fs.writeFile(path.join(dest, constants.METADATA_FILENAME), JSON.stringify({
         remote: this.remote,

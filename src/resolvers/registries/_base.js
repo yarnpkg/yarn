@@ -10,7 +10,7 @@
  */
 
 import type PackageRequest from '../../package-request.js';
-import type { RegistryNames } from '../../registries/index.js';
+import type {RegistryNames} from '../../registries/index.js';
 import BaseResolver from '../_base.js';
 
 export default class RegistryResolver extends BaseResolver {

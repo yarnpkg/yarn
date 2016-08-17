@@ -9,7 +9,7 @@
  * @flow
  */
 
-import type { MockData } from './_mock.js';
+import type {MockData} from './_mock.js';
 import ProgressBar from '../../src/reporters/console/progress-bar.js';
 import Spinner from '../../src/reporters/console/spinner.js';
 import ConsoleReporter from '../../src/reporters/console/index.js';
@@ -29,7 +29,7 @@ test('ConsoleReporter.step', async () => {
 
 test('ConsoleReporter.header', async () => {
   expect(await getConsoleBuff((r) => {
-    r.header('foobar', { name: 'kpm', version: '0.0.0' });
+    r.header('foobar', {name: 'kpm', version: '0.0.0'});
   })).toEqual({
     stderr: '',
     stdout: '\u001b[2K\u001b[1G\u001b[1mkpm foobar v0.0.0\u001b[22m',

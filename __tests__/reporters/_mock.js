@@ -11,7 +11,7 @@
 
 import type Reporter from '../../src/reporters/_base.js';
 let Stdin = require('mock-stdin').stdin.Class;
-let { Writable } = require('stream');
+let {Writable} = require('stream');
 
 export type MockData = {
   stdout: string,
@@ -24,7 +24,7 @@ type MockCallback = (reporter: Reporter, opts: Object) => ?Promise<void>;
 
 export default function<T>(
   Reporter: Function,
-  interceptor: Interceptor<T>
+  interceptor: Interceptor<T>,
 ): (callback: MockCallback) => Promise<T> {
   return async function (callback: MockCallback): * {
     let data: MockData = {

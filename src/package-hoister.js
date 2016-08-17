@@ -11,10 +11,10 @@
 
 import type PackageResolver from './package-resolver.js';
 import type Config from './config.js';
-import type { Manifest } from './types.js';
+import type {Manifest} from './types.js';
 
-let invariant = require('invariant');
-let path = require('path');
+const invariant = require('invariant');
+const path = require('path');
 
 let historyCounter = 0;
 
@@ -46,7 +46,7 @@ export class HoistManifest {
   }
 
   addTransitive(pairs: Iterable<HoistPair>) {
-    for (let pair of pairs) {
+    for (const pair of pairs) {
       this.transitivePairs.add(pair);
     }
   }
@@ -79,7 +79,7 @@ export default class PackageHoister {
    */
 
   taintKey(key: string, info: HoistManifest): boolean {
-    let existingTaint = this.taintedKeys.get(key);
+    const existingTaint = this.taintedKeys.get(key);
     if (existingTaint && existingTaint.loc !== info.loc) {
       return false;
     } else {
@@ -109,7 +109,7 @@ export default class PackageHoister {
    */
 
   seed(patterns: Array<string>) {
-    for (let pattern of this.resolver.dedupePatterns(patterns)) {
+    for (const pattern of this.resolver.dedupePatterns(patterns)) {
       this._seed(pattern, []);
     }
   }
@@ -121,22 +121,22 @@ export default class PackageHoister {
   _seed(pattern: string, parentParts: Array<string>): Array<HoistPair> {
     if (parentParts.length >= 100) {
       throw new Error(
-        "We're in too deep - module max stack depth reached. http://youtu.be/emGri7i8Y2Y"
+        "We're in too deep - module max stack depth reached. http://youtu.be/emGri7i8Y2Y",
       );
     }
 
     //
-    let pkg = this.resolver.getStrictResolvedPattern(pattern);
-    let ref = pkg.reference;
+    const pkg = this.resolver.getStrictResolvedPattern(pattern);
+    const ref = pkg.reference;
     invariant(ref, 'expected reference');
-    let loc = this.config.generateHardModulePath(ref);
+    const loc = this.config.generateHardModulePath(ref);
 
     // prevent a dependency from having itself as a transitive dependency
-    let ownParts = parentParts.slice();
+    const ownParts = parentParts.slice();
     for (let i = ownParts.length; i >= 0; i--) {
-      let checkParts = ownParts.slice(0, i);
-      let checkKey = this.implodeKey(checkParts);
-      let check = this.tree.get(checkKey);
+      const checkParts = ownParts.slice(0, i);
+      const checkKey = this.implodeKey(checkParts);
+      const check = this.tree.get(checkKey);
       if (check && check.loc === loc) {
         this.taintKey(checkKey, check);
         check.addHistory(`${checkKey} was removed by this due to being a recursive transitive dep`);
@@ -147,9 +147,9 @@ export default class PackageHoister {
     //
     ownParts.push(pkg.name);
 
-    let key = this.implodeKey(ownParts);
-    let info: HoistManifest = new HoistManifest(key, pkg, loc);
-    let pair: HoistPair = [key, info];
+    const key = this.implodeKey(ownParts);
+    const info: HoistManifest = new HoistManifest(key, pkg, loc);
+    const pair: HoistPair = [key, info];
 
     //
     this.zippedTree.push(pair);
@@ -160,7 +160,7 @@ export default class PackageHoister {
     let results: Array<HoistPair> = [];
 
     // add dependencies
-    for (let depPattern of ref.dependencies) {
+    for (const depPattern of ref.dependencies) {
       results = results.concat(this._seed(depPattern, ownParts));
     }
 
@@ -183,19 +183,19 @@ export default class PackageHoister {
     duplicate: boolean,
   } {
     let stepUp = false;
-    let stack = []; // stack of removed parts
-    let name = parts.pop();
+    const stack = []; // stack of removed parts
+    const name = parts.pop();
 
     //
     for (let i = parts.length - 1; i >= 0; i--) {
-      let checkParts = parts.slice(0, i).concat(name);
-      let checkKey   = this.implodeKey(checkParts);
+      const checkParts = parts.slice(0, i).concat(name);
+      const checkKey   = this.implodeKey(checkParts);
       info.addHistory(`Looked at ${checkKey} for a match`);
 
-      let existing = this.tree.get(checkKey);
+      const existing = this.tree.get(checkKey);
       if (existing) {
         if (existing.loc === info.loc) {
-          return { parts: checkParts, existing, duplicate: true };
+          return {parts: checkParts, existing, duplicate: true};
         } else {
           // everything above will be shadowed and this is a conflict
           info.addHistory(`Found a collision at ${checkKey}`);
@@ -203,7 +203,7 @@ export default class PackageHoister {
         }
       }
 
-      let existingTaint = this.taintedKeys.get(checkKey);
+      const existingTaint = this.taintedKeys.get(checkKey);
       if (existingTaint && existingTaint.loc !== info.loc) {
         info.addHistory(`Broken by ${checkKey}`);
         break;
@@ -212,11 +212,11 @@ export default class PackageHoister {
 
     // remove redundant parts that wont collide
     while (parts.length) {
-      let checkParts = parts.concat(name);
-      let checkKey = this.implodeKey(checkParts);
+      const checkParts = parts.concat(name);
+      const checkKey = this.implodeKey(checkParts);
 
       //
-      let existing = this.tree.get(checkKey);
+      const existing = this.tree.get(checkKey);
       if (existing) {
         stepUp = true;
         break;
@@ -238,15 +238,15 @@ export default class PackageHoister {
 
     //
     let existing = null;
-    let isValidPosition = (parts: Array<string>): boolean => {
-      let key = this.implodeKey(parts);
+    const isValidPosition = (parts: Array<string>): boolean => {
+      const key = this.implodeKey(parts);
       existing = this.tree.get(key);
       if (existing && existing.loc === info.loc) {
         return true;
       }
 
       // ensure there's no taint or the taint is us
-      let existingTaint = this.taintedKeys.get(key);
+      const existingTaint = this.taintedKeys.get(key);
       if (existingTaint && existingTaint.loc !== info.loc) {
         return false;
       }
@@ -273,7 +273,7 @@ export default class PackageHoister {
       }
     }
 
-    return { parts, existing, duplicate: false };
+    return {parts, existing, duplicate: false};
   }
 
   /**
@@ -281,7 +281,7 @@ export default class PackageHoister {
    */
 
   isOrphan(parts: Array<string>): boolean {
-    let parentKey = this.implodeKey(parts.slice(0, -1));
+    const parentKey = this.implodeKey(parts.slice(0, -1));
     return !!parentKey && !this.tree.get(parentKey);
   }
 
@@ -291,10 +291,10 @@ export default class PackageHoister {
 
   hoist() {
     for (let i = 0; i < this.zippedTree.length; i++) {
-      let pair: HoistPair = this.zippedTree[i];
+      const pair: HoistPair = this.zippedTree[i];
       let [key, info] = pair;
 
-      let rawParts = this.explodeKey(key);
+      const rawParts = this.explodeKey(key);
 
       // nothing to hoist, already top level
       if (rawParts.length === 1) {
@@ -312,9 +312,9 @@ export default class PackageHoister {
       }
 
       //
-      let { parts, existing, duplicate } = this.getNewParts(key, info, rawParts.slice());
-      let newKey = this.implodeKey(parts);
-      let oldKey = key;
+      let {parts, existing, duplicate} = this.getNewParts(key, info, rawParts.slice());
+      const newKey = this.implodeKey(parts);
+      const oldKey = key;
       if (duplicate) {
         info.addHistory(`Satisfied from above by ${newKey}`);
         this.declareRename(info, existing, rawParts, parts, pair);
@@ -344,17 +344,17 @@ export default class PackageHoister {
     existing: ?HoistManifest,
     oldParts: Array<string>,
     newParts: Array<string>,
-    pair: HoistPair
+    pair: HoistPair,
   ) {
     if (existing && existing !== info) {
       info.addTransitive(existing.transitivePairs);
     }
 
     //
-    let newParentParts = newParts.slice(0, -1);
-    let newParentKey = this.implodeKey(newParentParts);
+    const newParentParts = newParts.slice(0, -1);
+    const newParentKey = this.implodeKey(newParentParts);
     if (newParentKey) {
-      let parent = this.tree.get(newParentKey);
+      const parent = this.tree.get(newParentKey);
       invariant(parent, `couldn't find parent ${newParentKey}`);
       parent.addTransitive([pair]);
     }
@@ -369,8 +369,8 @@ export default class PackageHoister {
 
   taintParents(info: HoistManifest, processParts: Array<string>, start: number) {
     for (let i = start; i < processParts.length; i++) {
-      let parts = processParts.slice(0, i).concat(info.pkg.name);
-      let key = this.implodeKey(parts);
+      const parts = processParts.slice(0, i).concat(info.pkg.name);
+      const key = this.implodeKey(parts);
 
       if (this.taintKey(key, info)) {
         info.addHistory(`Tainted ${key} to prevent collisions`);
@@ -385,23 +385,23 @@ export default class PackageHoister {
   updateTransitiveKeys(info: HoistManifest, oldKey: string, newKey: string) {
     // go through and update all transitive dependencies and update their keys to the new
     // hoisting position
-    let oldKeyRegex = new RegExp(`^${oldKey}#`);
+    const oldKeyRegex = new RegExp(`^${oldKey}#`);
 
-    let pairs = info.transitivePairs;
+    const pairs = info.transitivePairs;
     invariant(pairs, 'expected pairs');
 
-    for (let subPair of pairs) {
-      let [subKey] = subPair;
+    for (const subPair of pairs) {
+      const [subKey] = subPair;
       if (subKey === newKey) {
         continue;
       }
 
-      let subInfo = this.tree.get(subKey);
+      const subInfo = this.tree.get(subKey);
       if (!subInfo) {
         continue;
       }
 
-      let newSubKey = subKey.replace(oldKeyRegex, `${newKey}#`);
+      const newSubKey = subKey.replace(oldKeyRegex, `${newKey}#`);
       if (newSubKey === subKey) {
         continue;
       }
@@ -421,7 +421,7 @@ export default class PackageHoister {
 a   */
 
   setKey(info: HoistManifest, pair: HoistPair, newKey: string) {
-    let oldKey = info.key;
+    const oldKey = info.key;
 
     info.key = newKey;
     pair[0] = newKey;
@@ -440,11 +440,11 @@ a   */
    */
 
   flatten(): Array<[string, HoistManifest]> {
-    let flatTree = [];
+    const flatTree = [];
 
     // remove ignored modules from the tree
     for (let [key, info] of this.tree.entries()) {
-      let ref = info.pkg.reference;
+      const ref = info.pkg.reference;
       invariant(ref, 'expected reference');
       if (ref.ignore) {
         info.addHistory('Deleted as this module was ignored');
@@ -459,7 +459,7 @@ a   */
       }
 
       // decompress the location and push it to the flat tree
-      let loc = path.join(this.config.modulesFolder, key.replace(/#/g, '/node_modules/'));
+      const loc = path.join(this.config.modulesFolder, key.replace(/#/g, '/node_modules/'));
       flatTree.push([loc, info]);
     }
 

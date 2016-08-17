@@ -9,10 +9,10 @@
  * @flow
  */
 
-import type { Manifest, DependencyRequestPatterns } from './types.js';
-import type { RegistryNames } from './registries/index.js';
+import type {Manifest, DependencyRequestPatterns} from './types.js';
+import type {RegistryNames} from './registries/index.js';
 import type PackageReference from './package-reference.js';
-import type { Reporter } from './reporters/index.js';
+import type {Reporter} from './reporters/index.js';
 import type Config from './config.js';
 import PackageFetcher from './package-fetcher.js';
 import PackageRequest from './package-request.js';
@@ -21,7 +21,7 @@ import BlockingQueue from './util/blocking-queue.js';
 import Lockfile from './lockfile/index.js';
 import map from './util/map.js';
 
-let invariant = require('invariant');
+const invariant = require('invariant');
 
 export default class PackageResolver {
   constructor(config: Config, lockfile: Lockfile) {
@@ -103,13 +103,13 @@ export default class PackageResolver {
 
   async updateManifest(ref: PackageReference, newPkg: Manifest): Promise<void> {
     // inherit fields
-    let oldPkg = this.patterns[ref.patterns[0]];
+    const oldPkg = this.patterns[ref.patterns[0]];
     newPkg.reference = ref;
     newPkg.remote = oldPkg.remote;
     newPkg.name = oldPkg.name;
 
     // update patterns
-    for (let pattern of ref.patterns) {
+    for (const pattern of ref.patterns) {
       this.patterns[pattern] = newPkg;
     }
   }
@@ -119,11 +119,11 @@ export default class PackageResolver {
    */
 
   dedupePatterns(patterns: Array<string>): Array<string> {
-    let deduped = [];
-    let seen = new Set();
+    const deduped = [];
+    const seen = new Set();
 
-    for (let pattern of patterns) {
-      let info = this.getResolvedPattern(pattern);
+    for (const pattern of patterns) {
+      const info = this.getResolvedPattern(pattern);
       if (seen.has(info)) {
         continue;
       }
@@ -148,11 +148,11 @@ export default class PackageResolver {
    */
 
   getAllInfoForPackageName(name: string): Array<Manifest> {
-    let infos = [];
-    let seen  = new Set();
+    const infos = [];
+    const seen  = new Set();
 
-    for (let pattern of this.patternsByPackage[name]) {
-      let info = this.patterns[pattern];
+    for (const pattern of this.patternsByPackage[name]) {
+      const info = this.patterns[pattern];
       if (seen.has(info)) {
         continue;
       }
@@ -171,7 +171,7 @@ export default class PackageResolver {
   getPackageReferences(): Array<PackageReference> {
     let packages = [];
 
-    for (let name in this.packageReferencesByName) {
+    for (const name in this.packageReferencesByName) {
       packages = packages.concat(this.packageReferencesByName[name]);
     }
 
@@ -183,11 +183,11 @@ export default class PackageResolver {
    */
 
   getManifests(): Array<Manifest> {
-    let infos = [];
-    let seen  = new Set();
+    const infos = [];
+    const seen  = new Set();
 
-    for (let pattern in this.patterns) {
-      let info = this.patterns[pattern];
+    for (const pattern in this.patterns) {
+      const info = this.patterns[pattern];
       if (seen.has(info)) {
         continue;
       }
@@ -205,7 +205,7 @@ export default class PackageResolver {
 
   registerPackageReference(ref: ?PackageReference) {
     invariant(ref, 'No package reference passed');
-    let pkgs = this.packageReferencesByName[ref.name] = this.packageReferencesByName[ref.name] || [];
+    const pkgs = this.packageReferencesByName[ref.name] = this.packageReferencesByName[ref.name] || [];
     pkgs.push(ref);
   }
 
@@ -214,13 +214,13 @@ export default class PackageResolver {
    */
 
   collapseAllVersionsOfPackage(name: string, version: string): string {
-    let patterns = this.patternsByPackage[name];
-    let human = `${name}@${version}`;
+    const patterns = this.patternsByPackage[name];
+    const human = `${name}@${version}`;
 
     // get package info
     let info: Manifest;
-    for (let pattern of patterns) {
-      let _info = this.patterns[pattern];
+    for (const pattern of patterns) {
+      const _info = this.patterns[pattern];
       if (_info.version === version) {
         info = _info;
         break;
@@ -230,7 +230,7 @@ export default class PackageResolver {
 
     // get package ref
     let ref: PackageReference;
-    for (let _ref of this.packageReferencesByName[name]) {
+    for (const _ref of this.packageReferencesByName[name]) {
       if (_ref.version === version) {
         ref = _ref;
         break;
@@ -257,7 +257,7 @@ export default class PackageResolver {
   addPattern(pattern: string, info: Manifest) {
     this.patterns[pattern] = info;
 
-    let byName = this.patternsByPackage[info.name] = this.patternsByPackage[info.name] || [];
+    const byName = this.patternsByPackage[info.name] = this.patternsByPackage[info.name] || [];
     byName.push(pattern);
   }
 
@@ -266,12 +266,12 @@ export default class PackageResolver {
    */
 
   removePattern(pattern: string) {
-    let pkg = this.patterns[pattern];
+    const pkg = this.patterns[pattern];
     if (!pkg) {
       return;
     }
 
-    let byName = this.patternsByPackage[pkg.name];
+    const byName = this.patternsByPackage[pkg.name];
     if (!byName) {
       return;
     }
@@ -293,7 +293,7 @@ export default class PackageResolver {
    */
 
   getStrictResolvedPattern(pattern: string): Manifest {
-    let manifest = this.getResolvedPattern(pattern);
+    const manifest = this.getResolvedPattern(pattern);
     invariant(manifest, 'expected manifest');
     return manifest;
   }
@@ -303,13 +303,13 @@ export default class PackageResolver {
    */
 
   getExactVersionMatch(name: string, version: string): ?Manifest {
-    let patterns = this.patternsByPackage[name];
+    const patterns = this.patternsByPackage[name];
     if (!patterns) {
       return null;
     }
 
-    for (let pattern of patterns) {
-      let info = this.getStrictResolvedPattern(pattern);
+    for (const pattern of patterns) {
+      const info = this.getStrictResolvedPattern(pattern);
       if (info.version === version) {
         return info;
       }
@@ -337,7 +337,7 @@ export default class PackageResolver {
     parentRequest?: ?PackageRequest,
     subLockfile?: ?Lockfile
   }): Promise<void> {
-    let fetchKey = `${registry}:${pattern}`;
+    const fetchKey = `${registry}:${pattern}`;
     if (this.fetchingPatterns[fetchKey]) {
       return;
     } else {
@@ -357,7 +357,7 @@ export default class PackageResolver {
       ignore = true;
     }
 
-    let request = new PackageRequest({
+    const request = new PackageRequest({
       lockfile: subLockfile,
       pattern,
       registry,
@@ -375,15 +375,15 @@ export default class PackageResolver {
 
   async init(deps: DependencyRequestPatterns): Promise<void> {
     //
-    let activity = this.activity = this.reporter.activity();
+    const activity = this.activity = this.reporter.activity();
 
     //
     this.seedPatterns = deps.map((dep): string => dep.pattern);
 
     // build up promises
-    let promises = [];
-    for (let { pattern, registry, optional } of deps) {
-      promises.push(this.find({ pattern, registry, optional }));
+    const promises = [];
+    for (let {pattern, registry, optional} of deps) {
+      promises.push(this.find({pattern, registry, optional}));
     }
     await Promise.all(promises);
 

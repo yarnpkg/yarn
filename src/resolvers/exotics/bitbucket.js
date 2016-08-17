@@ -9,26 +9,26 @@
  * @flow
  */
 
-import type { ExplodedFragment } from './_hosted-git.js';
+import type {ExplodedFragment} from './_hosted-git.js';
 import HostedGitResolver from './_hosted-git.js';
 
 export default class BitbucketResolver extends HostedGitResolver {
   static hostname = 'bitbucket.org';
   static protocol = 'bitbucket';
 
-  static getTarballUrl({ user, repo }: ExplodedFragment, hash: string): string {
-    return `https://bitbucket.org/${user}/${repo}/get/${hash}.tar.gz`;
+  static getTarballUrl(parts: ExplodedFragment, hash: string): string {
+    return `https://bitbucket.org/${parts.user}/${parts.repo}/get/${hash}.tar.gz`;
   }
 
-  static getGitHTTPUrl({ user, repo }: ExplodedFragment): string {
-    return `https://bitbucket.org/${user}/${repo}.git`;
+  static getGitHTTPUrl(parts: ExplodedFragment): string {
+    return `https://bitbucket.org/${parts.user}/${parts.repo}.git`;
   }
 
-  static getGitSSHUrl({ user, repo }: ExplodedFragment): string {
-    return `git@bitbucket.org:${user}/${repo}.git`;
+  static getGitSSHUrl(parts: ExplodedFragment): string {
+    return `git@bitbucket.org:${parts.user}/${parts.repo}.git`;
   }
 
-  static getHTTPFileUrl({ user, repo }: ExplodedFragment, filename: string, commit: string): string {
-    return `https://bitbucket.org/${user}/${repo}/raw/${commit}/${filename}`;
+  static getHTTPFileUrl(parts: ExplodedFragment, filename: string, commit: string): string {
+    return `https://bitbucket.org/${parts.user}/${parts.repo}/raw/${commit}/${filename}`;
   }
 }

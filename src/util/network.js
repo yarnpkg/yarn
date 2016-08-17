@@ -9,21 +9,21 @@
  * @flow
  */
 
-let os = require('os');
+const os = require('os');
 
 const IGNORE_INTERFACES = ['lo0', 'awdl0', 'bridge0'];
 const LOCAL_IPS = ['127.0.0.1', '::1'];
 
 export function isOffline(): boolean {
-  let interfaces = os.networkInterfaces();
+  const interfaces = os.networkInterfaces();
 
-  for (let name in interfaces) {
+  for (const name in interfaces) {
     if (IGNORE_INTERFACES.indexOf(name) >= 0) {
       continue;
     }
 
-    let addrs = interfaces[name];
-    for (let addr of addrs) {
+    const addrs = interfaces[name];
+    for (const addr of addrs) {
       if (LOCAL_IPS.indexOf(addr.address) < 0) {
         // found a possible local ip
         return false;

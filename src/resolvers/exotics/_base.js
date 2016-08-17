@@ -11,13 +11,13 @@
 
 import BaseResolver from '../_base.js';
 
-let _ = require('lodash');
+const _ = require('lodash');
 
 export default class ExoticResolver extends BaseResolver {
   static protocol: string;
 
   static isVersion(pattern: string): boolean {
-    let proto = this.protocol;
+    const proto = this.protocol;
     if (proto) {
       return _.startsWith(pattern, `${proto}:`);
     } else {

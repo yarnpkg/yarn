@@ -9,9 +9,9 @@
  * @flow
  */
 
-import type { Manifest } from '../../types.js';
+import type {Manifest} from '../../types.js';
 import type PackageRequest from '../../package-request.js';
-import { MessageError } from '../../errors.js';
+import {MessageError} from '../../errors.js';
 import GitResolver from './git.js';
 import ExoticResolver from './_base.js';
 import * as util from '../../util/misc.js';
@@ -19,7 +19,7 @@ import * as util from '../../util/misc.js';
 function explodeGistFragment(fragment: string): { id: string, hash: string } {
   fragment = util.removePrefix(fragment, 'gist:');
 
-  let parts = fragment.split('#');
+  const parts = fragment.split('#');
 
   if (parts.length <= 2) {
     return {
@@ -37,7 +37,7 @@ export default class GistResolver extends ExoticResolver {
   constructor(request: PackageRequest, fragment: string) {
     super(request, fragment);
 
-    let { id, hash } = explodeGistFragment(fragment);
+    let {id, hash} = explodeGistFragment(fragment);
     this.id = id;
     this.hash = hash;
   }

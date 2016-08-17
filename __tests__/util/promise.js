@@ -37,15 +37,15 @@ test('promisify', async function () {
 
 test('promisifyObject', async function () {
   let obj = promise.promisifyObject({
-    foo: function(callback) {
+    foo(callback) {
       callback(null, 'foo');
     },
 
-    bar: function(data, callback) {
+    bar(data, callback) {
       callback(null, data + 'bar');
     },
 
-    foobar: function(callback) {
+    foobar(callback) {
       callback(new Error('yep'));
     },
   });

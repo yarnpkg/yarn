@@ -12,10 +12,10 @@
 import * as fs from '../util/fs.js';
 import Registry from './_base.js';
 
-let userHome = require('user-home');
-let path = require('path');
-let _ = require('lodash');
-let ini = require('ini');
+const userHome = require('user-home');
+const path = require('path');
+const _ = require('lodash');
+const ini = require('ini');
 
 function getGlobalPrefix(): string {
   if (process.env.PREFIX) {
@@ -44,12 +44,12 @@ export default class NpmRegistry extends Registry {
     // docs: https://docs.npmjs.com/misc/config
     this.folder = 'node_modules';
 
-    let possibles = [
+    const possibles = [
       path.join(getGlobalPrefix(), '.npmrc'),
       path.join(userHome, '.npmrc'),
       path.join(this.cwd, '.npmrc'),
     ];
-    let foldersFromRootToCwd = this.cwd.split(path.sep);
+    const foldersFromRootToCwd = this.cwd.split(path.sep);
     while (foldersFromRootToCwd.length > 1) {
       possibles.push(path.join(foldersFromRootToCwd.join(path.sep), '.npmrc'));
       foldersFromRootToCwd.pop();
@@ -57,17 +57,17 @@ export default class NpmRegistry extends Registry {
 
     this.mergeEnv('npm_config_');
 
-    for (let loc of possibles) {
+    for (const loc of possibles) {
       if (!(await fs.exists(loc))) {
         continue;
       }
 
-      let config = ini.parse(await fs.readFile(loc));
+      const config = ini.parse(await fs.readFile(loc));
 
       // normalise kpm offline mirror path relative to the current npmrc
-      let offlineLoc = config['kpm-offline-mirror'];
+      const offlineLoc = config['kpm-offline-mirror'];
       if (!this.config['kpm-offline-mirror'] && offlineLoc) {
-        let mirrorLoc = config['kpm-offline-mirror'] = path.resolve(path.dirname(loc), offlineLoc);
+        const mirrorLoc = config['kpm-offline-mirror'] = path.resolve(path.dirname(loc), offlineLoc);
         await fs.mkdirp(mirrorLoc);
       }
 

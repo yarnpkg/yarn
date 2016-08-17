@@ -9,8 +9,8 @@
  * @flow
  */
 
-let through = require('through2');
-let crypto = require('crypto');
+const through = require('through2');
+const crypto = require('crypto');
 
 export function hash(content: string, type: string = 'md5'): string {
   return crypto.createHash(type).update(content).digest('hex');
@@ -20,13 +20,13 @@ declare class HashStream extends stream$Readable {
   getHash: () => string,
   test: (sum: string) => boolean,
 }
-export type { HashStream };
+export type {HashStream};
 
 export function hashStreamValidation(): HashStream {
-  let hash = crypto.createHash('sha1');
+  const hash = crypto.createHash('sha1');
   let updated = false;
 
-  let validationStream = through(function(chunk, enc, done) {
+  const validationStream = through(function(chunk, enc, done) {
     updated = true;
     hash.update(chunk);
     done(null, chunk);

@@ -10,17 +10,17 @@
  */
 
 
-import type { Reporter } from '../../reporters/index.js';
+import type {Reporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
-import { Install } from './install.js';
+import {Install} from './install.js';
 import Lockfile from '../../lockfile/index.js';
 import * as fs from '../../util/fs.js';
 
-export let requireLockfile = true;
+export const requireLockfile = true;
 
-let invariant = require('invariant');
-let emoji = require('node-emoji');
-let path = require('path');
+const invariant = require('invariant');
+const emoji = require('node-emoji');
+const path = require('path');
 
 async function cleanQuery(config: Config, query: string): Promise<string> {
   // if a location was passed then turn it into a hash query
@@ -45,22 +45,22 @@ export async function run(
   config: Config,
   reporter: Reporter,
   flags: Object,
-  args: Array<string>
+  args: Array<string>,
 ): Promise<void> {
-  let query = await cleanQuery(config, args[0]);
+  const query = await cleanQuery(config, args[0]);
 
   reporter.step(1, 3, `Why do we have the module ${query}?`, emoji.get('thinking_face'));
 
   // init
   reporter.step(2, 3, 'Initialising dependency graph', emoji.get('truck'));
-  let lockfile = await Lockfile.fromDirectory(config.cwd, reporter, {
+  const lockfile = await Lockfile.fromDirectory(config.cwd, reporter, {
     silent: true,
     strictIfPresent: true,
   });
-  let install = new Install('ls', flags, args, config, reporter, lockfile);
+  const install = new Install('ls', flags, args, config, reporter, lockfile);
   let [depRequests, patterns] = await install.fetchRequestFromCwd();
   await install.resolver.init(depRequests);
-  let hoisted = await install.linker.getFlatHoistedTree(patterns);
+  const hoisted = await install.linker.getFlatHoistedTree(patterns);
 
   // finding
   reporter.step(3, 3, 'Finding dependency', emoji.get('mag'));
@@ -78,27 +78,27 @@ export async function run(
     return;
   }
 
-  let matchRef = match.pkg.reference;
+  const matchRef = match.pkg.reference;
   invariant(matchRef, 'expected reference');
 
-  let matchPatterns = matchRef.patterns;
-  let matchRequests = matchRef.requests;
+  const matchPatterns = matchRef.patterns;
+  const matchRequests = matchRef.requests;
 
-  let reasons = [];
+  const reasons = [];
 
   // reason: dependency of these modules
-  for (let request of matchRequests) {
-    let parentRequest = request.parentRequest;
+  for (const request of matchRequests) {
+    const parentRequest = request.parentRequest;
     if (!parentRequest) {
       continue;
     }
 
-    let dependent = install.resolver.getResolvedPattern(parentRequest.pattern);
+    const dependent = install.resolver.getResolvedPattern(parentRequest.pattern);
     if (!dependent) {
       continue;
     }
 
-    let chain = [];
+    const chain = [];
 
     let delegator = parentRequest;
     do {
@@ -110,7 +110,7 @@ export async function run(
 
   // reason: exists in manifest
   let rootType;
-  for (let pattern of matchPatterns) {
+  for (const pattern of matchPatterns) {
     rootType = install.rootPatternsToOrigin[pattern];
     if (rootType) {
       reasons.push(`Specified in ${rootType}`);
@@ -123,7 +123,7 @@ export async function run(
   }
 
   // reason: this is hoisted from these modules
-  for (let pattern of match.previousKeys) {
+  for (const pattern of match.previousKeys) {
     if (pattern !== match.key) {
       reasons.push(`hoisted from ${pattern}`);
     }

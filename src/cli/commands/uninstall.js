@@ -9,61 +9,61 @@
  * @flow
  */
 
-import type { Reporter } from '../../reporters/index.js';
+import type {Reporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
 import Lockfile from '../../lockfile/index.js';
-import { Install } from './install.js';
-import { MessageError } from '../../errors.js';
-import { stringify } from '../../util/misc.js';
-import { NoopReporter } from '../../reporters/index.js';
+import {Install} from './install.js';
+import {MessageError} from '../../errors.js';
+import {stringify} from '../../util/misc.js';
+import {NoopReporter} from '../../reporters/index.js';
 import * as fs from '../../util/fs.js';
 
-let path = require('path');
+const path = require('path');
 
-export let requireLockfile = true;
+export const requireLockfile = true;
 
 export async function run(
   config: Config,
   reporter: Reporter,
   flags: Object,
-  args: Array<string>
+  args: Array<string>,
 ): Promise<void> {
   if (!args.length) {
     throw new MessageError('Expected one or more arguments');
   }
 
-  let totalSteps = args.length + 2;
+  const totalSteps = args.length + 2;
   let step = 0;
 
   async function runInstall(): Promise<Install> {
-    let lockfile = await Lockfile.fromDirectory(config.cwd, reporter, {
+    const lockfile = await Lockfile.fromDirectory(config.cwd, reporter, {
       silent: true,
     });
-    let install = new Install('uninstall', flags, [], config, new NoopReporter(), lockfile);
+    const install = new Install('uninstall', flags, [], config, new NoopReporter(), lockfile);
     await install.init();
     return install;
   }
 
   // load package.json
   let json = {};
-  let jsonLoc = path.join(config.cwd, 'package.json');
+  const jsonLoc = path.join(config.cwd, 'package.json');
   if (await fs.exists(jsonLoc)) {
     json = await fs.readJson(jsonLoc);
   }
 
   // install all modules to ensure we have a consistent state
   reporter.step(++step, totalSteps, 'Installing modules');
-  let install = await runInstall();
+  const install = await runInstall();
 
   // remove
-  for (let name of args) {
-    let loc = path.join(config.cwd, 'node_modules', name);
+  for (const name of args) {
+    const loc = path.join(config.cwd, 'node_modules', name);
     let range;
     reporter.step(++step, totalSteps, `Removing module ${name}`);
 
     // remove from `package.json`
-    for (let type of ['devDependencies', 'dependencies', 'optionalDependencies']) {
-      let deps = json[type];
+    for (const type of ['devDependencies', 'dependencies', 'optionalDependencies']) {
+      const deps = json[type];
       if (deps) {
         range = deps[name];
         delete deps[name];
@@ -74,31 +74,31 @@ export async function run(
     }
 
     // remove bins
-    let pkg = await config.readManifest(loc);
-    for (let binName in pkg.bin) {
+    const pkg = await config.readManifest(loc);
+    for (const binName in pkg.bin) {
       await fs.unlink(path.join(config.modulesFolder, 'node_modules', '.bin', binName));
     }
 
     // remove entire package
-    let locs = [];
+    const locs = [];
 
     // add all transitive dependencies locations
     addSub(`${name}@${range}`);
 
     function addSub(pattern) {
-      let pkg = install.resolver.getResolvedPattern(pattern);
+      const pkg = install.resolver.getResolvedPattern(pattern);
       if (!pkg) {
         return; // TODO could possibly throw an error?
       }
 
       locs.push(config.generateHardModulePath(pkg.reference));
 
-      for (let key in pkg.dependencies) {
+      for (const key in pkg.dependencies) {
         addSub(`${key}@${pkg.dependencies[key]}`);
       }
     }
 
-    for (let loc of locs) {
+    for (const loc of locs) {
       await fs.unlink(loc);
     }
   }

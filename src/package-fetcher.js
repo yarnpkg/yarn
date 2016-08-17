@@ -9,16 +9,16 @@
  * @flow
  */
 
-import type { FetchedManifest } from './types.js';
+import type {FetchedManifest} from './types.js';
 import type PackageResolver from './package-resolver.js';
-import type { Reporter } from './reporters/index.js';
+import type {Reporter} from './reporters/index.js';
 import type PackageReference from './package-reference.js';
 import type Config from './config.js';
 import * as fetchers from './fetchers/index.js';
 import * as fs from './util/fs.js';
 import * as promise from './util/promise.js';
 
-let invariant = require('invariant');
+const invariant = require('invariant');
 
 export default class PackageFetcher {
   constructor(config: Config, resolver: PackageResolver) {
@@ -32,10 +32,10 @@ export default class PackageFetcher {
   config: Config;
 
   async fetch(reference: PackageReference, overwriteDestination: boolean): Promise<FetchedManifest> {
-    let dest = this.config.generateHardModulePath(reference);
+    const dest = this.config.generateHardModulePath(reference);
 
     if (!overwriteDestination && await this.config.isValidModuleDest(dest)) {
-      let { hash, package: pkg } = await this.config.readPackageMetadata(dest);
+      let {hash, package: pkg} = await this.config.readPackageMetadata(dest);
       return {
         package: pkg,
         hash,
@@ -46,10 +46,10 @@ export default class PackageFetcher {
     // remove as the module may be invalid
     await fs.unlink(dest);
 
-    let remote = reference.remote;
+    const remote = reference.remote;
     invariant(remote, 'Missing remote');
 
-    let Fetcher = fetchers[remote.type];
+    const Fetcher = fetchers[remote.type];
     if (!Fetcher) {
       throw new Error(`Unknown fetcher for ${remote.type}`);
     }
@@ -57,7 +57,7 @@ export default class PackageFetcher {
     await fs.mkdirp(dest);
 
     try {
-      let fetcher = new Fetcher(remote, this.config, reference.saveForOffline);
+      const fetcher = new Fetcher(remote, this.config, reference.saveForOffline);
       return await fetcher.fetch(dest);
     } catch (err) {
       try {
@@ -83,11 +83,11 @@ export default class PackageFetcher {
   }
 
   async init(): Promise<void> {
-    let pkgs = this.resolver.getPackageReferences();
-    let tick = this.reporter.progress(pkgs.length);
+    const pkgs = this.resolver.getPackageReferences();
+    const tick = this.reporter.progress(pkgs.length);
 
     await promise.queue(pkgs, async (ref) => {
-      let res = await this.maybeFetch(ref);
+      const res = await this.maybeFetch(ref);
       
       if (res) {
         ref.remote.hash = res.hash;

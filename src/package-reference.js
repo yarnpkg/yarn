@@ -11,14 +11,14 @@
 
 import type Lockfile from './lockfile/index.js';
 import type Config from './config.js';
-import type { PackageRemote, Manifest } from './types.js';
+import type {PackageRemote, Manifest} from './types.js';
 import type PackageRequest from './package-request.js';
 import type PackageResolver from './package-resolver.js';
-import type { RegistryNames } from './registries/index.js';
-import { entries } from './util/misc.js';
-import { MessageError } from './errors.js';
+import type {RegistryNames} from './registries/index.js';
+import {entries} from './util/misc.js';
+import {MessageError} from './errors.js';
 
-let invariant = require('invariant');
+const invariant = require('invariant');
 
 export default class PackageReference {
   constructor(
@@ -108,7 +108,7 @@ export default class PackageReference {
   addPattern(pattern: string) {
     this.patterns.push(pattern);
 
-    let shrunk = this.lockfile.getLocked(pattern);
+    const shrunk = this.lockfile.getLocked(pattern);
     if (shrunk && shrunk.permissions) {
       for (let [key, perm] of entries(shrunk.permissions)) {
         this.setPermission(key, perm);
@@ -145,13 +145,13 @@ export default class PackageReference {
     ancestry.add(this);
 
     // go through and update all transitive dependencies to be ignored
-    for (let pattern of this.dependencies) {
-      let pkg = this.resolver.getResolvedPattern(pattern);
+    for (const pattern of this.dependencies) {
+      const pkg = this.resolver.getResolvedPattern(pattern);
       if (!pkg) {
         continue;
       }
 
-      let ref = pkg.reference;
+      const ref = pkg.reference;
       invariant(ref, 'expected package reference');
       ref.addIgnore(ignore, ancestry);
     }

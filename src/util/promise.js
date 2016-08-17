@@ -47,8 +47,8 @@ export function promisifyObject(obj: {
 }): {
   [key: string]: () => Promise<any>
 } {
-  let promisedObj = {};
-  for (let key in obj) {
+  const promisedObj = {};
+  for (const key in obj) {
     promisedObj[key] = promisify(obj[key]);
   }
   return promisedObj;
@@ -64,7 +64,7 @@ export function queue<T>(
   // clone
   arr = arr.slice();
 
-  let results = [];
+  const results = [];
   let total = arr.length;
   if (!total) {
     return Promise.resolve();
@@ -76,8 +76,8 @@ export function queue<T>(
     }
 
     function next() {
-      let item = arr.shift();
-      let promise = promiseProducer(item);
+      const item = arr.shift();
+      const promise = promiseProducer(item);
 
       promise.then(function(result) {
         results.push(result);

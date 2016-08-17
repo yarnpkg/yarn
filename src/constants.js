@@ -9,12 +9,12 @@
  * @flow
  */
 
-let userHome = require('user-home');
-let path = require('path');
-let pkg = require('../package.json');
-let fs = require('fs');
+const userHome = require('user-home');
+const path = require('path');
+const pkg = require('../package.json');
+const fs = require('fs');
 
-let cwd = process.cwd();
+const cwd = process.cwd();
 
 // max amount of network requests to perform concurrently
 export const NETWORK_CONCURRENCY = 15;
@@ -25,8 +25,8 @@ export const CHILD_CONCURRENCY = 5;
 export const REQUIRED_PACKAGE_KEYS = ['name', 'version', 'uid'];
 
 function or(filenames: Array<string>, cwd: string): string {
-  for (let filename of filenames) {
-    let loc = path.join(cwd, filename);
+  for (const filename of filenames) {
+    const loc = path.join(cwd, filename);
     if (fs.existsSync(loc)) {
       return filename;
     }
@@ -52,7 +52,7 @@ export function getPathKey(platform: string, env: { [key: string]: any }): strin
   if (platform === 'win32') {
     pathKey = 'Path';
 
-    for (let key in env) {
+    for (const key in env) {
       if (key.toLowerCase() === 'path') {
         pathKey = key;
       }

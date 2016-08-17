@@ -9,8 +9,8 @@
  * @flow
  */
 
-import type { Reporter } from '../../reporters/index.js';
-import type { DependencyRequestPatterns } from '../../types.js';
+import type {Reporter} from '../../reporters/index.js';
+import type {DependencyRequestPatterns} from '../../types.js';
 import type Config from '../../config.js';
 import Lockfile from '../../lockfile/index.js';
 import lockStringify from '../../lockfile/stringify.js';
@@ -19,17 +19,17 @@ import PackageCompatibility from '../../package-compatibility.js';
 import PackageResolver from '../../package-resolver.js';
 import PackageLinker from '../../package-linker.js';
 import PackageRequest from '../../package-request.js';
-import { buildTree } from './ls.js';
-import { registries } from '../../registries/index.js';
+import {buildTree} from './ls.js';
+import {registries} from '../../registries/index.js';
 import * as constants from '../../constants.js';
 import * as fs from '../../util/fs.js';
 import * as util from '../../util/misc.js';
-import { stringify } from '../../util/misc.js';
+import {stringify} from '../../util/misc.js';
 import map from '../../util/map.js';
 
-let invariant = require('invariant');
-let emoji = require('node-emoji');
-let path = require('path');
+const invariant = require('invariant');
+const emoji = require('node-emoji');
+const path = require('path');
 
 type InstallActions = "install" | "update" | "uninstall" | "ls";
 
@@ -81,41 +81,41 @@ export class Install {
     Array<string>,
     Object
   ]> {
-    let patterns = [];
-    let deps = [];
-    let manifest = {};
+    const patterns = [];
+    const deps = [];
+    const manifest = {};
 
     // exclude package names that are in install args
-    let excludeNames = [];
-    for (let pattern of excludePatterns) {
+    const excludeNames = [];
+    for (const pattern of excludePatterns) {
       // can't extract a package name from this
       if (PackageRequest.getExoticResolver(pattern)) {
         continue;
       }
 
       // extract the name
-      let parts = PackageRequest.normalisePattern(pattern);
+      const parts = PackageRequest.normalisePattern(pattern);
       excludeNames.push(parts.name);
     }
 
-    for (let registry of Object.keys(registries)) {
-      let filenames = registries[registry].filenames;
+    for (const registry of Object.keys(registries)) {
+      const filenames = registries[registry].filenames;
 
-      for (let filename of filenames) {
-        let loc = path.join(this.config.cwd, filename);
+      for (const filename of filenames) {
+        const loc = path.join(this.config.cwd, filename);
         if (!(await fs.exists(loc))) {
           continue;
         }
 
         this.registries.push(registry);
 
-        let json = await fs.readJson(loc);
+        const json = await fs.readJson(loc);
         Object.assign(this.resolutions, json.resolutions);
         Object.assign(manifest, json);
 
-        let pushDeps = (depType, { hint, ignore, optional }) => {
-          let depMap = json[depType];
-          for (let name in depMap) {
+        const pushDeps = (depType, {hint, ignore, optional}) => {
+          const depMap = json[depType];
+          for (const name in depMap) {
             if (excludeNames.indexOf(name) >= 0) {
               continue;
             }
@@ -129,13 +129,13 @@ export class Install {
 
             this.rootPatternsToOrigin[pattern] = depType;
             patterns.push(pattern);
-            deps.push({ pattern, registry, ignore, hint, optional });
+            deps.push({pattern, registry, ignore, hint, optional});
           }
         };
 
-        pushDeps('dependencies', { hint: null, ignore: false, optional: false });
-        pushDeps('devDependencies', { hint: 'dev', ignore: !!this.flags.production, optional: false });
-        pushDeps('optionalDependencies', { hint: 'optional', ignore: false, optional: true });
+        pushDeps('dependencies', {hint: null, ignore: false, optional: false});
+        pushDeps('devDependencies', {hint: 'dev', ignore: !!this.flags.production, optional: false});
+        pushDeps('optionalDependencies', {hint: 'optional', ignore: false, optional: true});
 
         break;
       }
@@ -152,17 +152,17 @@ export class Install {
       // just use the args passed in the cli
       rawPatterns = rawPatterns.concat(this.args);
 
-      for (let pattern of rawPatterns) {
+      for (const pattern of rawPatterns) {
         // default the registry to npm, if the pattern contains an exotic registry
         // in the pattern then it'll be set to it
-        depRequests.push({ pattern, registry: 'npm' });
+        depRequests.push({pattern, registry: 'npm'});
       }
     }
 
     //
     this.reporter.step(1, 3, 'Resolving and fetching packages', emoji.get('truck'));
     await this.resolver.init(depRequests);
-    let patterns = await this.flatten(rawPatterns);
+    const patterns = await this.flatten(rawPatterns);
     await this.compatibility.init();
 
     //
@@ -174,7 +174,7 @@ export class Install {
       3,
       3,
       this.flags.rebuild ? 'Rebuilding all packages' : 'Building fresh packages',
-      emoji.get('page_with_curl')
+      emoji.get('page_with_curl'),
     );
     await this.scripts.init();
 
@@ -193,7 +193,7 @@ export class Install {
       return;
     }
 
-    let { trees, count } = await buildTree(this.resolver, this.linker, patterns, true);
+    let {trees, count} = await buildTree(this.resolver, this.linker, patterns, true);
     this.reporter.success(`Saved ${count} new ${count === 1 ? 'dependency' : 'dependencies'}`);
     this.reporter.tree('newDependencies', trees);
   }
@@ -207,22 +207,22 @@ export class Install {
       return;
     }
 
-    let { save, saveDev, saveExact, saveTilde, saveOptional, savePeer } = this.flags;
+    let {save, saveDev, saveExact, saveTilde, saveOptional, savePeer} = this.flags;
     if (!save && !saveDev && !saveOptional && !savePeer) {
       return;
     }
 
     let json = {};
-    let jsonLoc = path.join(this.config.cwd, 'package.json');
+    const jsonLoc = path.join(this.config.cwd, 'package.json');
     if (await fs.exists(jsonLoc)) {
       json = await fs.readJson(jsonLoc);
     }
 
-    for (let pattern of this.resolver.dedupePatterns(this.args)) {
-      let pkg = this.resolver.getResolvedPattern(pattern);
+    for (const pattern of this.resolver.dedupePatterns(this.args)) {
+      const pkg = this.resolver.getResolvedPattern(pattern);
       invariant(pkg, `missing package ${pattern}`);
 
-      let parts = PackageRequest.normalisePattern(pattern);
+      const parts = PackageRequest.normalisePattern(pattern);
       let version;
       if (parts.range) {
         // if the user specified a range then use it verbatim
@@ -239,7 +239,7 @@ export class Install {
       }
 
       // build up list of objects to put ourselves into from the cli args
-      let targetKeys = [];
+      const targetKeys = [];
       if (save) {
         targetKeys.push('dependencies');
       }
@@ -257,13 +257,13 @@ export class Install {
       }
 
       // add it to package.json
-      for (let key of targetKeys) {
-        let target = json[key] = json[key] || {};
+      for (const key of targetKeys) {
+        const target = json[key] = json[key] || {};
         target[pkg.name] = version;
       }
 
       // add pattern so it's aliased in the lockfile
-      let newPattern = `${pkg.name}@${version}`;
+      const newPattern = `${pkg.name}@${version}`;
       if (newPattern === pattern) {
         continue;
       }
@@ -283,10 +283,10 @@ export class Install {
       return patterns;
     }
 
-    for (let name of this.resolver.getAllDependencyNames()) {
-      let infos = this.resolver.getAllInfoForPackageName(name);
+    for (const name of this.resolver.getAllDependencyNames()) {
+      const infos = this.resolver.getAllInfoForPackageName(name);
 
-      let firstRemote = infos[0] && infos[0].remote;
+      const firstRemote = infos[0] && infos[0].remote;
       invariant(firstRemote, 'Missing first remote');
 
       if (infos.length === 1) {
@@ -296,10 +296,10 @@ export class Install {
         continue;
       }
 
-      let versions = infos.map((info): string => info.version);
+      const versions = infos.map((info): string => info.version);
       let version: ?string;
 
-      let resolutionVersion = this.resolutions[name];
+      const resolutionVersion = this.resolutions[name];
       if (resolutionVersion && versions.indexOf(resolutionVersion) >= 0) {
         // use json `resolution` version
         version = resolutionVersion;
@@ -307,7 +307,7 @@ export class Install {
         version = await this.reporter.select(
           `We found a version in package ${name} that we couldn't resolve`,
           "Please select a version you'd like to use",
-          versions
+          versions,
         );
       }
 
@@ -323,12 +323,12 @@ export class Install {
 
   async saveLockfileAndIntegrity(): Promise<void> {
     // stringify current lockfile
-    let lockSource = lockStringify(this.lockfile.getLockfile(this.resolver.patterns)) + '\n';
+    const lockSource = lockStringify(this.lockfile.getLockfile(this.resolver.patterns)) + '\n';
 
     // write integrity hash
     await fs.writeFile(
       path.join(this.config.cwd, 'node_modules', constants.INTEGRITY_FILENAME),
-      util.hash(lockSource)
+      util.hash(lockSource),
     );
 
     // check if we should write a lockfile in the first place
@@ -337,7 +337,7 @@ export class Install {
     }
 
     // build lockfile location
-    let loc = path.join(this.config.cwd, constants.LOCKFILE_FILENAME);
+    const loc = path.join(this.config.cwd, constants.LOCKFILE_FILENAME);
 
     // check if we should overwrite a lockfile if it exists
     if (this.action === 'install' && !shouldWriteLockfileIfExists(this.flags, this.args)) {
@@ -434,7 +434,7 @@ export async function run(
   config: Config,
   reporter: Reporter,
   flags: Object,
-  args: Array<string>
+  args: Array<string>,
 ): Promise<void> {
   let lockfile;
   if (flags.lockfile !== false) {
@@ -446,6 +446,6 @@ export async function run(
     lockfile = new Lockfile();
   }
 
-  let install = new Install('install', flags, args, config, reporter, lockfile);
+  const install = new Install('install', flags, args, config, reporter, lockfile);
   return install.init();
 }

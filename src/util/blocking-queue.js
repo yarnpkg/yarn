@@ -60,7 +60,7 @@ export default class BlockingQueue {
       this.warnedStuck = true;
       console.warn(
         `[kpm] The ${JSON.stringify(this.alias)} blocking queue may be stuck. 5 seconds ` +
-        `without any activity with 1 worker: ${Object.keys(this.running)[0]}`
+        `without any activity with 1 worker: ${Object.keys(this.running)[0]}`,
       );
     }
   }
@@ -74,8 +74,8 @@ export default class BlockingQueue {
 
     return new Promise((resolve, reject) => {
       // we're already running so push ourselves to the queue
-      let queue = this.queue[key] = this.queue[key] || [];
-      queue.push({ factory, resolve, reject });
+      const queue = this.queue[key] = this.queue[key] || [];
+      queue.push({factory, resolve, reject});
 
       if (!this.running[key]) {
         this.shift(key);
@@ -91,27 +91,27 @@ export default class BlockingQueue {
       if (this.warnedStuck) {
         this.warnedStuck = false;
         console.log(
-          `[kpm] ${JSON.stringify(this.alias)} blocking queue finally resolved. Nothing to worry about.`
+          `[kpm] ${JSON.stringify(this.alias)} blocking queue finally resolved. Nothing to worry about.`,
         );
       }
     }
 
-    let queue = this.queue[key];
+    const queue = this.queue[key];
     if (!queue) {
       return;
     }
 
-    let { resolve, reject, factory } = queue.shift();
+    let {resolve, reject, factory} = queue.shift();
     if (!queue.length) {
       delete this.queue[key];
     }
 
-    let next = () => {
+    const next = () => {
       this.shift(key);
       this.shiftConcurrencyQueue();
     };
 
-    let run = () => {
+    const run = () => {
       this.running[key] = true;
       this.runningCount++;
 
@@ -138,7 +138,7 @@ export default class BlockingQueue {
 
   shiftConcurrencyQueue() {
     if (this.runningCount < this.maxConcurrency) {
-      let fn = this.concurrencyQueue.shift();
+      const fn = this.concurrencyQueue.shift();
       if (fn) {
         fn();
       }

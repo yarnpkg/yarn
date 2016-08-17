@@ -16,11 +16,11 @@ import parse from "../src/lockfile/parse.js";
 import nullify from "../src/util/map.js";
 
 let objs = [
-  { foo: "bar" },
-  { foo: {} },
-  { foo: "foo", bar: "bar" },
-  { foo: 5 },
-  Object.assign({}, require("../package.json"), { jest: {} }),
+  {foo: "bar"},
+  {foo: {}},
+  {foo: "foo", bar: "bar"},
+  {foo: 5},
+  Object.assign({}, require("../package.json"), {jest: {}}),
 ];
 
 let i = 0;
@@ -31,13 +31,13 @@ for (let obj of objs) {
 }
 
 test("parse", () => {
-  expect(parse('foo "bar"')).toEqual(nullify({ foo: "bar" }));
-  expect(parse('"foo" "bar"')).toEqual(nullify({ foo: "bar" }));
-  expect(parse('foo "bar"')).toEqual(nullify({ foo: "bar" }));
+  expect(parse('foo "bar"')).toEqual(nullify({foo: "bar"}));
+  expect(parse('"foo" "bar"')).toEqual(nullify({foo: "bar"}));
+  expect(parse('foo "bar"')).toEqual(nullify({foo: "bar"}));
 
-  expect(parse(`foo:\n  bar "bar"`)).toEqual(nullify({ foo: { bar: "bar" } }));
-  expect(parse(`foo:\n  bar:\n  foo "bar"`)).toEqual(nullify({ foo: { bar: {}, foo: "bar" } }));
-  expect(parse(`foo:\n  bar:\n    foo "bar"`)).toEqual(nullify({ foo: { bar: { foo: "bar" } } }));
+  expect(parse(`foo:\n  bar "bar"`)).toEqual(nullify({foo: {bar: "bar"}}));
+  expect(parse(`foo:\n  bar:\n  foo "bar"`)).toEqual(nullify({foo: {bar: {}, foo: "bar"}}));
+  expect(parse(`foo:\n  bar:\n    foo "bar"`)).toEqual(nullify({foo: {bar: {foo: "bar"}}}));
   expect(parse("foo:\n  bar:\n    yes no\nbar:\n  yes no")).toEqual(nullify({
     foo: {
       bar: {
@@ -51,8 +51,8 @@ test("parse", () => {
 });
 
 test("stringify", () => {
-  let obj = { foo: "bar" };
-  expect(stringify({ a: obj, b: obj })).toEqual("a, b:\n  foo bar");
+  let obj = {foo: "bar"};
+  expect(stringify({a: obj, b: obj})).toEqual("a, b:\n  foo bar");
 });
 
 test("Lockfile.isStrict", () => {
@@ -167,9 +167,9 @@ test("Lockfile.getLockfile", () => {
       uid: "0.1.0",
       resolved: "http://example.com/barfoo",
       registry: "bower",
-      dependencies: { yes: "no" },
-      optionalDependencies: { no: "yes" },
-      permissions: { foo: "bar" },
+      dependencies: {yes: "no"},
+      optionalDependencies: {no: "yes"},
+      permissions: {foo: "bar"},
     },
 
     foobar2: expectedFoobar,

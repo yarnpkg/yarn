@@ -9,8 +9,8 @@
  * @flow
  */
 
-import type { Manifest } from '../../types.js';
-import { MessageError } from '../../errors.js';
+import type {Manifest} from '../../types.js';
+import {MessageError} from '../../errors.js';
 import RegistryResolver from './_base.js';
 import GitResolver from '../exotics/git.js';
 
@@ -28,7 +28,7 @@ export default class BowerResolver extends RegistryResolver {
   }
 
   async resolve(): Promise<Manifest> {
-    let body = await this.resolveRequest();
+    const body = await this.resolveRequest();
 
     if (body) {
       return this.fork(GitResolver, false, `${body.url}#${this.range}`);

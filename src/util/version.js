@@ -10,7 +10,7 @@
  */
 
 export function explodeHashedUrl(url: string): { url: string, hash: string } {
-  let parts = url.split('#');
+  const parts = url.split('#');
 
   return {
     url: parts[0],

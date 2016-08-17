@@ -11,10 +11,10 @@
 
 import typos from './typos.js';
 
-let validateLicense = require('validate-npm-package-license');
-let isBuiltinModule = require('is-builtin-module');
+const validateLicense = require('validate-npm-package-license');
+const isBuiltinModule = require('is-builtin-module');
 
-let strings = [
+const strings = [
   'name',
   'version',
 ];
@@ -28,18 +28,18 @@ function isValidScopedName(name: string): boolean {
     return false;
   }
 
-  let parts = name.slice(1).split('/');
+  const parts = name.slice(1).split('/');
   return parts.length === 2 && isValidName(parts[0]) && isValidName(parts[1]);
 }
 
 export default function(info: Object, warn: (msg: string) => void) {
-  for (let key in typos) {
+  for (const key in typos) {
     if (key in info) {
       warn(`Potential typo ${key}, did you mean ${typos[key]}?`);
     }
   }
 
-  let name = info.name;
+  const name = info.name;
   if (typeof name === 'string') {
     if (isBuiltinModule(name)) {
       warn(`${name} is also the name of a node core module`);
@@ -56,7 +56,7 @@ export default function(info: Object, warn: (msg: string) => void) {
     }
 
     // cannot equal node_modules or favicon.ico
-    let lower = name.toLowerCase();
+    const lower = name.toLowerCase();
     if (lower === 'node_modules' || lower === 'favicon.ico') {
       throw new TypeError('Name is blacklisted');
     }
@@ -72,8 +72,8 @@ export default function(info: Object, warn: (msg: string) => void) {
   }
 
   // validate types
-  for (let key of strings) {
-    let val = info[key];
+  for (const key of strings) {
+    const val = info[key];
     if (val && typeof val !== 'string') {
       throw new TypeError(`${key} is not a string`);
     }

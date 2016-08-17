@@ -17,6 +17,7 @@
     "leven": "^2.0.0",
     "lodash": "^4.0.0",
     "loud-rejection": "^1.2.0",
+    "minimatch": "^3.0.3",
     "mkdirp": "^0.5.1",
     "node-emoji": "^1.0.4",
     "node-gyp": "^3.2.1",
@@ -42,6 +43,7 @@
     "babel-preset-stage-0": "^6.0.0",
     "babylon": "^6.5.0",
     "eslint": "^3.3.1",
+    "eslint-config-fb-strict": "^14.1.3",
     "eslint-config-fbjs": "^1.0.0",
     "eslint-config-kittens": "^2.0.1",
     "eslint-plugin-babel": "^3.3.0",
@@ -68,6 +70,79 @@
   },
   "scripts": {
     "test": "make test"
+  },
+  "eslintConfig": {
+    "extends": "eslint-config-fb-strict",
+    "env": {
+      "jest": true
+    },
+    "plugins": [
+      "flowtype"
+    ],
+    "rules": {
+      "max-len": [
+        2,
+        120
+      ],
+      "prefer-arrow-callback": 0,
+      "prefer-const": 0,
+      "babel/arrow-parens": [
+        2,
+        "always"
+      ],
+      "flowtype/require-valid-file-annotation": [
+        2,
+        "always"
+      ],
+      "flowtype/space-after-type-colon": [
+        2,
+        "always"
+      ],
+      "flowtype/require-return-type": [
+        2,
+        "always",
+        {
+          "excludeArrowFunctions": "expressionsOnly"
+        }
+      ]
+    }
+  },
+  "babel": {
+    "env": {
+      "pre-node5": {
+        "presets": [
+          "es2015-node4"
+        ],
+        "plugins": [
+          [
+            "transform-runtime",
+            {
+              "polyfill": true,
+              "regenerator": false
+            }
+          ]
+        ]
+      },
+      "test": {
+        "presets": [
+          "es2015-node4"
+        ]
+      }
+    },
+    "presets": [
+      "node5",
+      "react",
+      "stage-0"
+    ],
+    "plugins": [
+      [
+        "transform-runtime",
+        {
+          "polyfill": false,
+          "regenerator": true
+        }
+      ]
+    ]
   },
   "jest": {
     "automock": false,

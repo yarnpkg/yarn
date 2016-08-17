@@ -9,8 +9,8 @@
  * @flow
  */
 
-let crypto = require('crypto');
-let _ = require('lodash');
+const crypto = require('crypto');
+const _ = require('lodash');
 
 export function hash(str: string): string {
   return crypto.createHash('sha256').update(str).digest('hex');
@@ -22,9 +22,9 @@ export function sortAlpha(a: string, b: string): number {
 }
 
 export function entries<T>(obj: ?{ [key: string]: T }): Array<[string, T]> {
-  let entries = [];
+  const entries = [];
   if (obj) {
-    for (let key in obj) {
+    for (const key in obj) {
       entries.push([key, obj[key]]);
     }
   }

@@ -10,24 +10,24 @@
  */
 
 import type Config from '../../config.js';
-import { MessageError } from '../../errors.js';
+import {MessageError} from '../../errors.js';
 import executeLifecycleScript from '../../util/execute-lifecycle-script.js';
 import * as commands from './index.js';
 
-let leven = require('leven');
+const leven = require('leven');
 
 export default function(action: string): { run: Function, argumentLength: number } {
   return {
     argumentLength: 0,
 
-    run: async function (config: Config): Promise<void> {
-      let pkg = await config.readManifest(config.cwd);
+    async run(config: Config): Promise<void> {
+      const pkg = await config.readManifest(config.cwd);
 
       if (!pkg.scripts || !pkg.scripts[action]) {
         let suggestion;
 
-        for (let commandName in commands) {
-          let steps = leven(commandName, action);
+        for (const commandName in commands) {
+          const steps = leven(commandName, action);
           if (steps < 2) {
             suggestion = commandName;
           }

@@ -9,9 +9,9 @@
  * @flow
  */
 
-import { sortAlpha } from '../util/misc.js';
+import {sortAlpha} from '../util/misc.js';
 
-let _ = require('lodash');
+const _ = require('lodash');
 
 function shouldWrapKey(str: string): boolean {
   return str.indexOf('true') === 0 || str.indexOf('false') === 0 ||
@@ -44,7 +44,7 @@ export default function stringify(obj: Object, indent: string = ''): string {
     throw new TypeError();
   }
 
-  let lines = [];
+  const lines = [];
 
   // Sorting order needs to be consistent between runs, we run native sort by name because there are no
   // problems with it being unstable because there are no to keys the same
@@ -57,19 +57,19 @@ export default function stringify(obj: Object, indent: string = ''): string {
   let addedKeys = [];
 
   for (let i = 0; i < keys.length; i++) {
-    let key = keys[i];
-    let val = obj[key];
+    const key = keys[i];
+    const val = obj[key];
     if (val == null || addedKeys.indexOf(key) >= 0) {
       continue;
     }
 
     //
-    let valKeys = [key];
+    const valKeys = [key];
 
     // get all keys that have the same value equality, we only want this for objects
     if (typeof val === 'object') {
       for (let j = i + 1; j < keys.length; j++) {
-        let key = keys[j];
+        const key = keys[j];
         if (val === obj[key]) {
           valKeys.push(key);
         }
@@ -77,7 +77,7 @@ export default function stringify(obj: Object, indent: string = ''): string {
     }
 
     //
-    let keyLine = valKeys.sort(sortAlpha).map(maybeWrap).join(', ');
+    const keyLine = valKeys.sort(sortAlpha).map(maybeWrap).join(', ');
 
     if (typeof val === 'string' || typeof val === 'boolean' || typeof val === 'number') {
       lines.push(`${keyLine} ${maybeWrap(val)}`);

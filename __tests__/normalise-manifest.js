@@ -63,18 +63,18 @@ for (let name of nativeFs.readdirSync(fixturesLoc)) {
 }
 
 test('util.stringifyPerson', () => {
-  expect(util.stringifyPerson({ name: 'Sebastian McKenzie' })).toEqual('Sebastian McKenzie');
-  expect(util.stringifyPerson({ name: 'Sebastian McKenzie', email: 'sebmck@gmail.com' })).toEqual('Sebastian McKenzie <sebmck@gmail.com>');
-  expect(util.stringifyPerson({ email: 'sebmck@gmail.com' })).toEqual('<sebmck@gmail.com>');
-  expect(util.stringifyPerson({ name: 'Sebastian McKenzie', email: 'sebmck@gmail.com', url: 'https://sebmck.com' })).toEqual('Sebastian McKenzie <sebmck@gmail.com> (https://sebmck.com)');
+  expect(util.stringifyPerson({name: 'Sebastian McKenzie'})).toEqual('Sebastian McKenzie');
+  expect(util.stringifyPerson({name: 'Sebastian McKenzie', email: 'sebmck@gmail.com'})).toEqual('Sebastian McKenzie <sebmck@gmail.com>');
+  expect(util.stringifyPerson({email: 'sebmck@gmail.com'})).toEqual('<sebmck@gmail.com>');
+  expect(util.stringifyPerson({name: 'Sebastian McKenzie', email: 'sebmck@gmail.com', url: 'https://sebmck.com'})).toEqual('Sebastian McKenzie <sebmck@gmail.com> (https://sebmck.com)');
 });
 
 test('util.parsePerson', () => {
   expect(util.parsePerson({}), {});
-  expect(util.parsePerson('Sebastian McKenzie')).toEqual({ name: 'Sebastian McKenzie' });
-  expect(util.parsePerson(' <sebmck@gmail.com>')).toEqual({ email: 'sebmck@gmail.com' });
-  expect(util.parsePerson('Sebastian McKenzie <sebmck@gmail.com>')).toEqual({ name: 'Sebastian McKenzie', email: 'sebmck@gmail.com' });
-  expect(util.parsePerson('Sebastian McKenzie <sebmck@gmail.com> (https://sebmck.com)')).toEqual({ name: 'Sebastian McKenzie', email: 'sebmck@gmail.com', url: 'https://sebmck.com' });
+  expect(util.parsePerson('Sebastian McKenzie')).toEqual({name: 'Sebastian McKenzie'});
+  expect(util.parsePerson(' <sebmck@gmail.com>')).toEqual({email: 'sebmck@gmail.com'});
+  expect(util.parsePerson('Sebastian McKenzie <sebmck@gmail.com>')).toEqual({name: 'Sebastian McKenzie', email: 'sebmck@gmail.com'});
+  expect(util.parsePerson('Sebastian McKenzie <sebmck@gmail.com> (https://sebmck.com)')).toEqual({name: 'Sebastian McKenzie', email: 'sebmck@gmail.com', url: 'https://sebmck.com'});
 });
 
 test('util.extractDescription', () => {

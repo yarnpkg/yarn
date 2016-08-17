@@ -9,7 +9,7 @@
  * @flow
  */
 
-import type { RegistryNames } from './registries/index.js';
+import type {RegistryNames} from './registries/index.js';
 import type PackageReference from './package-reference.js';
 
 // dependency request pattern data structure that's used to request dependencies from a

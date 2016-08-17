@@ -13,12 +13,12 @@ type Return<T> = T | Object;
 
 export default function nullify<T>(obj?: Return<T> = {}): Return<T> {
   if (Array.isArray(obj)) {
-    for (let item of obj) {
+    for (const item of obj) {
       nullify(item);
     }
   } else if (obj !== null && typeof obj === 'object' || typeof obj === 'function') {
     Object.setPrototypeOf(obj, null);
-    for (let key in obj) {
+    for (const key in obj) {
       nullify(obj[key]);
     }
   }

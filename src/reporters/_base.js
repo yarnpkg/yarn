@@ -10,7 +10,7 @@
  */
 /* eslint no-unused-vars: 0 */
 
-import type { Trees, Stdout, Stdin, Package } from './types.js';
+import type {Trees, Stdout, Stdin, Package} from './types.js';
 
 export type ReporterOptions = {
   stdout?: Stdout,
@@ -51,7 +51,7 @@ export default class BaseReporter {
   }
 
   checkPeakMemory() {
-    let { heapTotal } = process.memoryUsage();
+    const {heapTotal} = process.memoryUsage();
     if (heapTotal > this.peakMemory) {
       this.peakMemory = heapTotal;
     }

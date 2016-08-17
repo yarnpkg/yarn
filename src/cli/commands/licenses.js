@@ -9,10 +9,10 @@
  * @flow
  */
 
-import type { Reporter } from '../../reporters/index.js';
+import type {Reporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
-import { MessageError } from '../../errors.js';
-import { Install } from './install.js';
+import {MessageError} from '../../errors.js';
+import {Install} from './install.js';
 import Lockfile from '../../lockfile/index.js';
 
 export function hasWrapper(flags: Object, args: Array<string>): boolean {
@@ -27,22 +27,22 @@ export async function run(
   config: Config,
   reporter: Reporter,
   flags: Object,
-  args: Array<string>
+  args: Array<string>,
 ): Promise<void> {
   // validate subcommand
-  let cmd = args[0];
+  const cmd = args[0];
   if (args.length !== 1 || (cmd !== 'generate-disclaimer' && cmd !== 'ls')) {
     throw new MessageError(
-      'Invalid subcommand, use `kpm licenses generate-disclaimer` or `kpm licenses ls`'
+      'Invalid subcommand, use `kpm licenses generate-disclaimer` or `kpm licenses ls`',
     );
   }
 
-  let lockfile = await Lockfile.fromDirectory(config.cwd, reporter, {
+  const lockfile = await Lockfile.fromDirectory(config.cwd, reporter, {
     silent: true,
     strictIfPresent: true,
   });
 
-  let install = new Install('ls', flags, args, config, reporter, lockfile);
+  const install = new Install('ls', flags, args, config, reporter, lockfile);
 
   let [depRequests,, manifest] = await install.fetchRequestFromCwd();
   await install.resolver.init(depRequests);
@@ -50,7 +50,7 @@ export async function run(
   if (cmd === 'generate-disclaimer') {
     console.log(
       'THE FOLLOWING SETS FORTH ATTRIBUTION NOTICES FOR THIRD PARTY SOFTWARE THAT MAY BE CONTAINED ' +
-      `IN PORTIONS OF THE ${String(manifest.name).toUpperCase().replace(/-/g, ' ')} PRODUCT.`
+      `IN PORTIONS OF THE ${String(manifest.name).toUpperCase().replace(/-/g, ' ')} PRODUCT.`,
     );
     console.log();
 
@@ -72,14 +72,14 @@ export async function run(
       return a.name.localeCompare(b.name);
     });
 
-    for (let { name, license, licenseText, repository } of manifests) {
+    for (let {name, license, licenseText, repository} of manifests) {
       console.log('-----');
       console.log();
 
-      let heading = [];
+      const heading = [];
       heading.push(`The following software may be included in this product: ${name}.`);
 
-      let url = repository && repository.url;
+      const url = repository && repository.url;
       if (url) {
         heading.push(`A copy of the source code may be downloaded from ${url}.`);
       }

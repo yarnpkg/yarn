@@ -9,18 +9,18 @@
  * @flow
  */
 
-import type { Manifest } from '../../types.js';
+import type {Manifest} from '../../types.js';
 import type PackageRequest from '../../package-request.js';
-import { hostedGit as hostedGitResolvers } from '../index.js';
-import { MessageError } from '../../errors.js';
+import {hostedGit as hostedGitResolvers} from '../index.js';
+import {MessageError} from '../../errors.js';
 import * as util from '../../util/misc.js';
 import * as versionUtil from '../../util/version.js';
-import { registries } from '../../registries/index.js';
+import {registries} from '../../registries/index.js';
 import ExoticResolver from './_base.js';
 import Git from '../../util/git.js';
 
-let urlParse = require('url').parse;
-let _ = require('lodash');
+const urlParse = require('url').parse;
+const _ = require('lodash');
 
 // we purposefully omit https and http as those are only valid if they end in the .git extension
 const GIT_PROTOCOLS = ['git', 'git+ssh', 'git+https', 'ssh'];
@@ -31,7 +31,7 @@ export default class GitResolver extends ExoticResolver {
   constructor(request: PackageRequest, fragment: string) {
     super(request, fragment);
 
-    let { url, hash } = versionUtil.explodeHashedUrl(fragment);
+    let {url, hash} = versionUtil.explodeHashedUrl(fragment);
     this.url  = url;
     this.hash = hash;
   }
@@ -46,9 +46,9 @@ export default class GitResolver extends ExoticResolver {
       return false;
     }
 
-    let parts = urlParse(pattern);
+    const parts = urlParse(pattern);
 
-    let pathname = parts.pathname;
+    const pathname = parts.pathname;
     if (_.endsWith(pathname, '.git')) {
       // ends in .git
       return true;
@@ -61,7 +61,7 @@ export default class GitResolver extends ExoticResolver {
     }
 
     if (parts.hostname && parts.path) {
-      let path = parts.path;
+      const path = parts.path;
       if (GIT_HOSTS.indexOf(parts.hostname) >= 0) {
         // only if dependency is pointing to a git repo,
         // e.g. facebook/flow and not file in a git repo facebook/flow/archive/v1.0.0.tar.gz
@@ -73,16 +73,16 @@ export default class GitResolver extends ExoticResolver {
   }
 
   async resolve(forked?: true): Promise<Manifest> {
-    let { url } = this;
+    const {url} = this;
 
     // shortcut for hosted git. we will fallback to a GitResolver if the hosted git
     // optimisations fail which the `forked` flag indicates so we don't get into an
     // infinite loop
-    let parts = urlParse(url);
+    const parts = urlParse(url);
     if (!forked && !parts.auth && parts.pathname) {
       // check if this git url uses any of the hostnames defined in our hosted git resolvers
-      for (let name in hostedGitResolvers) {
-        let Resolver = hostedGitResolvers[name];
+      for (const name in hostedGitResolvers) {
+        const Resolver = hostedGitResolvers[name];
         if (Resolver.hostname !== parts.hostname) {
           continue;
         }
@@ -92,30 +92,30 @@ export default class GitResolver extends ExoticResolver {
         pathname = util.removePrefix(pathname, '/'); // remove prefixed slash
         pathname = util.removeSuffix(pathname, '.git'); // remove .git suffix if present
 
-        let url = `${pathname}${this.hash ? '#' + decodeURIComponent(this.hash) : ''}`;
+        const url = `${pathname}${this.hash ? '#' + decodeURIComponent(this.hash) : ''}`;
         return this.fork(Resolver, false, url);
       }
     }
 
     // get from lockfile
-    let shrunk = this.request.getLocked('git');
+    const shrunk = this.request.getLocked('git');
     if (shrunk) {
       return shrunk;
     }
 
-    let client = new Git(this.config, url, this.hash);
-    let commit = await client.initRemote();
+    const client = new Git(this.config, url, this.hash);
+    const commit = await client.initRemote();
 
     async function tryRegistry(registry): Promise<?Manifest> {
-      let filenames = registries[registry].filenames;
+      const filenames = registries[registry].filenames;
 
-      for (let filename of filenames) {
-        let file = await client.getFile(filename);
+      for (const filename of filenames) {
+        const file = await client.getFile(filename);
         if (!file) {
           continue;
         }
 
-        let json = JSON.parse(file);
+        const json = JSON.parse(file);
         json.uid = commit;
         json.remote = {
           resolved: `${url}#${commit}`,
@@ -130,17 +130,17 @@ export default class GitResolver extends ExoticResolver {
       return null;
     }
 
-    let file = await tryRegistry(this.registry);
+    const file = await tryRegistry(this.registry);
     if (file) {
       return file;
     }
 
-    for (let registry in registries) {
+    for (const registry in registries) {
       if (registry === this.registry) {
         continue;
       }
 
-      let file = await tryRegistry(registry);
+      const file = await tryRegistry(registry);
       if (file) {
         return file;
       }
