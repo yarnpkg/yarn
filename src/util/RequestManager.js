@@ -10,7 +10,7 @@
  */
 
 import type {Reporter} from '../reporters/index.js';
-import BlockingQueue from './blocking-queue.js';
+import BlockingQueue from './BlockingQueue.js';
 import * as constants from '../constants.js';
 import * as network from './network.js';
 import map from '../util/map.js';

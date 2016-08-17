@@ -17,7 +17,7 @@ import normaliseManifest from './util/normalise-manifest/index.js';
 import * as fs from './util/fs.js';
 import * as constants from './constants.js';
 import ConstraintResolver from './PackageConstraintResolver.js';
-import RequestManager from './util/request-manager.js';
+import RequestManager from './util/RequestManager.js';
 import {registries} from './registries/index.js';
 import map from './util/map.js';
 

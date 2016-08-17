@@ -11,7 +11,7 @@
 /* global child_process$spawnOpts */
 
 import * as constants from '../constants.js';
-import BlockingQueue from './blocking-queue.js';
+import BlockingQueue from './BlockingQueue.js';
 import {promisify} from './promise.js';
 import {MessageError} from '../errors.js';
 

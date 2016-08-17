@@ -16,8 +16,8 @@ import type {Reporter} from './reporters/index.js';
 import type Config from './config.js';
 import PackageFetcher from './PackageFetcher.js';
 import PackageRequest from './PackageRequest.js';
-import RequestManager from './util/request-manager.js';
-import BlockingQueue from './util/blocking-queue.js';
+import RequestManager from './util/RequestManager.js';
+import BlockingQueue from './util/BlockingQueue.js';
 import Lockfile from './lockfile/Lockfile.js';
 import map from './util/map.js';
 
