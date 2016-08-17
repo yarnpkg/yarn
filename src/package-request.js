@@ -172,12 +172,23 @@ export default class PackageRequest {
     let range = 'latest';
     let name  = pattern;
 
-    // matches a version tuple in the form of NAME@VERSION. allows the first character to
-    // be an @ for scoped packages
-    let match = pattern.match(/^([^@]{1,})@(.*?)$/);
-    if (match) {
-      name = match[1];
-      range = match[2] || '*';
+    // if we're a scope then remove the @ and add it back later
+    let isScoped = false;
+    if (name[0] === '@') {
+      isScoped = true;
+      name = name.slice(1);
+    }
+
+    // take first part as the name
+    let parts = name.split('@');
+    if (parts.length > 1) {
+      name = parts.shift();
+      range = parts.join('@') || '*';
+    }
+
+    // add back @ scope suffix
+    if (isScoped) {
+      name = `@${name}`;
     }
 
     return { name, range };

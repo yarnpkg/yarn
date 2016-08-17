@@ -14,6 +14,7 @@ import type PackageResolver from './package-resolver.js';
 import type { Reporter } from './reporters/index.js';
 import type Config from './config.js';
 import type { HoistManifest } from './package-hoister.js';
+import { registries } from './registries/index.js';
 import PackageHoister from './package-hoister.js';
 import * as promise from './util/promise.js';
 import { entries } from './util/misc.js';
@@ -131,6 +132,22 @@ export default class PackageLinker {
         },
       });
     }
+
+    // register root packages as being possibly extraneous
+    let possibleExtraneous = [];
+    for (let registry of Object.keys(registries)) {
+      let directory = registries[registry].directory;
+      let loc = path.join(this.config.cwd, directory);
+
+      if (await fs.exists(loc)) {
+        let files = await fs.readdir(loc);
+        for (let file of files) {
+          possibleExtraneous.push(path.join(loc, file));
+        }
+      }
+    }
+
+    //
     let tick;
     await fs.copyBulk(queue, {
       onStart: (num: number) => {
@@ -142,7 +159,7 @@ export default class PackageLinker {
           tick(src);
         }
       },
-    });
+    }, possibleExtraneous);
 
     //
     let tickBin = this.reporter.progress(flatTree.length);
