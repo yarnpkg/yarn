@@ -12,7 +12,6 @@
 import type { Reporter } from '../../reporters/index.js';
 import type { DependencyRequestPatterns } from '../../types.js';
 import type Config from '../../config.js';
-import {run as check} from './check.js';
 import Lockfile from '../../lockfile/index.js';
 import lockStringify from '../../lockfile/stringify.js';
 import PackageInstallScripts from '../../package-install-scripts.js';
@@ -160,34 +159,20 @@ export class Install {
       }
     }
 
-    this.reporter.step(1, 4, 'Checking current installation of node_modules', emoji.get('heavy_check_mark'));
-    try {
-      await check(this.config, this.reporter, {}, []);
-      if (this.args.length === 0 && this.action === 'install') {
-        // current node_modules satisfies the lock file
-        this.reporter.success('node_modules are consistent with the lock file, finishing');
-        return;
-      }
-    } catch (error) {
-      // cleanup node_modules
-      this.reporter.info('Removing node_modules to have a clean installation');
-      await fs.unlink(path.join(this.config.cwd, 'node_modules'));
-    }
-
     //
-    this.reporter.step(2, 4, 'Resolving and fetching packages', emoji.get('truck'));
+    this.reporter.step(1, 3, 'Resolving and fetching packages', emoji.get('truck'));
     await this.resolver.init(depRequests);
     let patterns = await this.flatten(rawPatterns);
     await this.compatibility.init();
 
     //
-    this.reporter.step(3, 4, 'Linking dependencies', emoji.get('link'));
+    this.reporter.step(2, 3, 'Linking dependencies', emoji.get('link'));
     await this.linker.init(patterns);
 
     //
     this.reporter.step(
-      4,
-      4,
+      3,
+      3,
       this.flags.rebuild ? 'Rebuilding all packages' : 'Building fresh packages',
       emoji.get('page_with_curl')
     );

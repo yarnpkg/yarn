@@ -55,7 +55,14 @@ type CopyEvents = {
   onStart: (num: number) => void
 };
 
-async function buildActionsForCopy(queue: CopyQueue, events: CopyEvents): Promise<CopyActions> {
+async function buildActionsForCopy(
+  queue: CopyQueue,
+  events: CopyEvents,
+  possibleExtraneousSeed: ?Iterable<string>,
+): Promise<CopyActions> {
+  let possibleExtraneous: Set<string> = new Set(possibleExtraneousSeed || []);
+  let files: Set<string> = new Set();
+
   // initialise events
   for (let item of queue) {
     item.onDone = () => {
@@ -74,12 +81,21 @@ async function buildActionsForCopy(queue: CopyQueue, events: CopyEvents): Promis
     await Promise.all(items.map(build));
   }
 
+  // remove all extraneous files that weren't in the tree
+  for (let loc of possibleExtraneous) {
+    if (!files.has(loc)) {
+      await unlink(loc);
+    }
+  }
+
   return actions;
 
   //
   async function build(data) {
     let { src, dest, onFresh } = data;
     let onDone = data.onDone || (() => {});
+    files.add(dest);
+
     let srcStat = await lstat(src);
     let srcFiles;
 
@@ -97,6 +113,7 @@ async function buildActionsForCopy(queue: CopyQueue, events: CopyEvents): Promis
         if (bothFiles) {
           await access(dest, srcStat.mode);
         } else {
+          possibleExtraneous.delete(dest);
           await unlink(dest);
           await build(data);
           return;
@@ -115,12 +132,15 @@ async function buildActionsForCopy(queue: CopyQueue, events: CopyEvents): Promis
         invariant(srcFiles, 'src files not initialised');
 
         for (let file of destFiles) {
-          if (file === 'node_modules') {
-            continue;
-          }
-
           if (srcFiles.indexOf(file) < 0) {
-            await unlink(path.join(dest, file));
+            let loc = path.join(dest, file);
+            possibleExtraneous.add(loc);
+
+            if ((await lstat(loc)).isDirectory()) {
+              for (let file of await readdir(loc)) {
+                possibleExtraneous.add(path.join(loc, file));
+              }
+            }
           }
         }
       }
@@ -128,6 +148,12 @@ async function buildActionsForCopy(queue: CopyQueue, events: CopyEvents): Promis
 
     if (srcStat.isDirectory()) {
       await mkdirp(dest);
+
+      let destParts = dest.split(path.sep);
+      while (destParts.length) {
+        files.add(destParts.join(path.sep));
+        destParts.pop();
+      }
 
       // push all files to queue
       invariant(srcFiles, 'src files not initialised');
@@ -169,13 +195,17 @@ export function copy(src: string, dest: string): Promise<void> {
   return copyBulk([{ src, dest }]);
 }
 
-export async function copyBulk(queue: CopyQueue, _events?: CopyEvents): Promise<void> {
+export async function copyBulk(
+  queue: CopyQueue,
+  _events?: CopyEvents,
+  possibleExtraneous?: Iterable<string>,
+): Promise<void> {
   let events: CopyEvents = _events || {
     onStart: () => {},
     onProgress: () => {},
   };
 
-  let actions: CopyActions = await buildActionsForCopy(queue, events);
+  let actions: CopyActions = await buildActionsForCopy(queue, events, possibleExtraneous);
 
   events.onStart(actions.length);
 
