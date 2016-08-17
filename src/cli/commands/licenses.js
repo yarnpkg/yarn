@@ -13,7 +13,7 @@ import type {Reporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
 import {MessageError} from '../../errors.js';
 import {Install} from './install.js';
-import Lockfile from '../../lockfile/index.js';
+import Lockfile from '../../lockfile/Lockfile.js';
 
 export function hasWrapper(flags: Object, args: Array<string>): boolean {
   return args[0] != 'generate-disclaimer';

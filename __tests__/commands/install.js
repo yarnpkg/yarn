@@ -12,7 +12,7 @@
 import {Reporter} from '../../src/reporters/index.js';
 import * as reporters from '../../src/reporters/index.js';
 import * as constants from '../../src/constants.js';
-import {default as Lockfile, parse} from '../../src/lockfile/index.js';
+import {default as Lockfile, parse} from '../../src/lockfile/Lockfile.js';
 import {Install} from '../../src/cli/commands/install.js';
 import {run as uninstall} from '../../src/cli/commands/uninstall.js';
 import {run as check} from '../../src/cli/commands/check.js';

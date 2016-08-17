@@ -9,37 +9,39 @@
  * @flow
  */
 
-import BaseReporter from "../_base.js";
-import Progress from "./progress-bar.js";
-import Spinner from "./spinner.js";
-import type { Package, Trees } from "../types.js";
-import { clearLine } from "./util.js";
-import { removeSuffix } from "../../util/misc.js";
+import BaseReporter from '../BaseReporter.js';
+import Progress from './ProgressBar.js';
+import Spinner from './Spinner.js';
+import type {Package, Trees} from '../types.js';
+import {clearLine} from './util.js';
+import {removeSuffix} from '../../util/misc.js';
 
-let readline = require("readline");
-let repeat   = require("repeating");
-let chalk    = require("chalk");
-let _        = require("lodash");
+let readline = require('readline');
+let repeat   = require('repeating');
+let chalk    = require('chalk');
+let _        = require('lodash');
 
 function sortTrees(trees: Trees = []): Trees {
-  return trees.sort(function (tree1, tree2): number {
+  return trees.sort(function(tree1, tree2): number {
     return tree1.name.localeCompare(tree2.name);
   });
 }
 
 export default class ConsoleReporter extends BaseReporter {
   _prependEmoji(msg: string, emoji: ?string): string {
-    if (this.emoji && emoji && this.isTTY) msg = `${emoji}  ${msg}`;
+    if (this.emoji && emoji && this.isTTY) {
+      msg = `${emoji}  ${msg}`;
+    }
     return msg;
   }
 
   step(current: number, total: number, msg: string, emoji?: string) {
     msg = this._prependEmoji(msg, emoji);
 
-    if (_.endsWith(msg, "?")) {
-      msg = `${removeSuffix(msg, "?")}...?`;
+    if (_.endsWith(msg, '?')) {
+      msg = `${removeSuffix(msg, '?')}...?`;
     } else {
-      msg += "...";
+      msg += '...';
     }
 
     this.log(`${chalk.grey(`[${current}/${total}]`)} ${msg}`);
@@ -62,7 +64,7 @@ export default class ConsoleReporter extends BaseReporter {
       let peakMemory = (this.peakMemory / 1024 / 1024).toFixed(2);
       msg += ` Peak memory usage ${peakMemory}MB.`;
     }
-    this.log(this._prependEmoji(msg, "✨"));
+    this.log(this._prependEmoji(msg, '✨'));
   }
 
   log(msg: string) {
@@ -71,16 +73,16 @@ export default class ConsoleReporter extends BaseReporter {
   }
 
   success(msg: string) {
-    this.log(`${chalk.green("success")} ${msg}`);
+    this.log(`${chalk.green('success')} ${msg}`);
   }
 
   error(msg: string) {
     clearLine(this.stderr);
-    this.stderr.write(`${chalk.red("error")} ${msg}\n`);
+    this.stderr.write(`${chalk.red('error')} ${msg}\n`);
   }
 
   info(msg: string) {
-    this.log(`${chalk.blue("info")} ${msg}`);
+    this.log(`${chalk.blue('info')} ${msg}`);
   }
 
   command(command: string) {
@@ -89,7 +91,7 @@ export default class ConsoleReporter extends BaseReporter {
 
   warn(msg: string) {
     clearLine(this.stderr);
-    this.stderr.write(`${chalk.yellow("warning")} ${msg}\n`);
+    this.stderr.write(`${chalk.yellow('warning')} ${msg}\n`);
   }
 
   question(question: string): Promise<boolean> {
@@ -106,18 +108,22 @@ export default class ConsoleReporter extends BaseReporter {
 
     let stdout = this.stdout;
 
-    function output({ name, children, hint, color }, level, end) {
+    function output({name, children, hint, color}, level, end) {
       children = sortTrees(children);
 
-      let indent = end ? "└" : "├";
+      let indent = end ? '└' : '├';
 
       if (level) {
-        indent = repeat("│  ", level) + indent;
+        indent = repeat('│  ', level) + indent;
       }
 
-      let suffix = "";
-      if (hint) suffix += ` (${chalk.grey(hint)})`;
-      if (color) name = chalk[color](name);
+      let suffix = '';
+      if (hint) {
+        suffix += ` (${chalk.grey(hint)})`;
+      }
+      if (color) {
+        name = chalk[color](name);
+      }
       stdout.write(`${indent}─ ${name}${suffix}\n`);
 
       if (children && children.length) {
@@ -141,7 +147,7 @@ export default class ConsoleReporter extends BaseReporter {
     if (!this.isTTY) {
       return {
         tick() {},
-        end() {}
+        end() {},
       };
     }
 
@@ -155,7 +161,7 @@ export default class ConsoleReporter extends BaseReporter {
 
       end() {
         spinner.stop();
-      }
+      },
     };
   }
 
@@ -167,7 +173,7 @@ export default class ConsoleReporter extends BaseReporter {
     let rl = readline.createInterface({
       input: this.stdin,
       output: this.stdout,
-      terminal: true
+      terminal: true,
     });
 
     return new Promise((resolve) => {
@@ -178,21 +184,23 @@ export default class ConsoleReporter extends BaseReporter {
       }
 
       let ask = () => {
-        rl.question(`${question}?: `, (index): void => {
+        rl.question(`${question}?: `, (index) => {
           index = +index;
 
           if (isNaN(index)) {
-            this.log("Not a number");
-            return ask();
+            this.log('Not a number');
+            ask();
+            return;
           }
 
           if (index <= 0 || index > options.length) {
-            this.log("Outside answer range");
-            return ask();
+            this.log('Outside answer range');
+            ask();
+            return;
           }
 
           // get index
-          index = index - 1;
+          index--;
           rl.close();
           resolve(options[index]);
         });
@@ -204,13 +212,13 @@ export default class ConsoleReporter extends BaseReporter {
 
   progress(count: number): () => void {
     if (count <= 0) {
-      return function () {
+      return function() {
         // noop
       };
     }
 
     if (!this.isTTY) {
-      return function () {
+      return function() {
         // TODO what should the behaviour here be? we could buffer progress messages maybe
       };
     }
@@ -219,7 +227,7 @@ export default class ConsoleReporter extends BaseReporter {
 
     bar.render();
 
-    return function () {
+    return function() {
       bar.tick();
     };
   }

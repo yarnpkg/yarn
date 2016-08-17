@@ -10,7 +10,7 @@
  */
 
 import * as fs from '../util/fs.js';
-import Registry from './_base.js';
+import Registry from './Registry.js';
 
 const userHome = require('user-home');
 const path = require('path');

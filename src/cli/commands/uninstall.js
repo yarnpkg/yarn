@@ -11,7 +11,7 @@
 
 import type {Reporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
-import Lockfile from '../../lockfile/index.js';
+import Lockfile from '../../lockfile/Lockfile.js';
 import {Install} from './install.js';
 import {MessageError} from '../../errors.js';
 import {stringify} from '../../util/misc.js';

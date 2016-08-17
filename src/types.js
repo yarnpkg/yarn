@@ -10,7 +10,7 @@
  */
 
 import type {RegistryNames} from './registries/index.js';
-import type PackageReference from './package-reference.js';
+import type PackageReference from './PackageReference.js';
 
 // dependency request pattern data structure that's used to request dependencies from a
 // PackageResolver

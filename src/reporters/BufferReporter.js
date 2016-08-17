@@ -9,7 +9,7 @@
  * @flow
  */
 
-import BaseReporter from './_base.js';
+import BaseReporter from './BaseReporter.js';
 
 type Buffer = Array<{
   type: string,

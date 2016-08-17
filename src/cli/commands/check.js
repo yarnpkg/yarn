@@ -12,7 +12,7 @@
 import type {Reporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
 import {Install} from './install.js';
-import Lockfile from '../../lockfile/index.js';
+import Lockfile from '../../lockfile/Lockfile.js';
 import * as constants from '../../constants.js';
 import * as fs from '../../util/fs.js';
 import * as util from '../../util/misc.js';

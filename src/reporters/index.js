@@ -9,8 +9,8 @@
  * @flow
  */
 
-export { default as ConsoleReporter } from "./console";
-export { default as BufferReporter } from "./buffer";
-export { default as JSONReporter } from "./json";
-export { default as NoopReporter } from "./_base";
-export { default as Reporter } from "./_base";
+export {default as ConsoleReporter} from './console/ConsoleReporter.js';
+export {default as BufferReporter} from './BufferReporter.js';
+export {default as JSONReporter} from './JSONReporter.js';
+export {default as NoopReporter} from './BaseReporter.js';
+export {default as Reporter} from './BaseReporter.js';

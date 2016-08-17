@@ -11,14 +11,14 @@
 
 import type {Manifest, DependencyRequestPatterns} from './types.js';
 import type {RegistryNames} from './registries/index.js';
-import type PackageReference from './package-reference.js';
+import type PackageReference from './PackageReference.js';
 import type {Reporter} from './reporters/index.js';
 import type Config from './config.js';
-import PackageFetcher from './package-fetcher.js';
-import PackageRequest from './package-request.js';
+import PackageFetcher from './PackageFetcher.js';
+import PackageRequest from './PackageRequest.js';
 import RequestManager from './util/request-manager.js';
 import BlockingQueue from './util/blocking-queue.js';
-import Lockfile from './lockfile/index.js';
+import Lockfile from './lockfile/Lockfile.js';
 import map from './util/map.js';
 
 const invariant = require('invariant');

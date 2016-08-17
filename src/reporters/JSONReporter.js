@@ -10,7 +10,7 @@
  */
 
 import type {Trees} from './types.js';
-import BaseReporter from './_base.js';
+import BaseReporter from './BaseReporter.js';
 
 export default class JSONReporter extends BaseReporter {
   constructor(opts?: Object) {

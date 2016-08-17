@@ -10,9 +10,9 @@
  */
 
 import type {MockData} from './_mock.js';
-import ProgressBar from '../../src/reporters/console/progress-bar.js';
-import Spinner from '../../src/reporters/console/spinner.js';
-import ConsoleReporter from '../../src/reporters/console/index.js';
+import ProgressBar from '../../src/reporters/console/ProgressBar.js';
+import Spinner from '../../src/reporters/console/Spinner.js';
+import ConsoleReporter from '../../src/reporters/console/ConsoleReporter.js';
 import build from './_mock.js';
 
 let getConsoleBuff = build(ConsoleReporter, (data): MockData => data);

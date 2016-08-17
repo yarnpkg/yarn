@@ -9,19 +9,12 @@
  * @flow
  */
 
-import BaseFetcher from './_base.js';
-import Git from '../util/git.js';
+import BaseFetcher from './BaseFetcher.js';
+import * as fs from '../util/fs.js';
 
-const invariant = require('invariant');
-
-export default class GitFetcher extends BaseFetcher {
+export default class CopyFetcher extends BaseFetcher {
   async _fetch(dest: string): Promise<string> {
-    const hash = this.hash;
-    invariant(hash, 'Commit hash required');
-
-    const git = new Git(this.config, this.reference, hash);
-    await git.initRemote();
-    await git.clone(dest);
-    return hash;
+    await fs.copy(this.reference, dest);
+    return this.hash || '';
   }
 }

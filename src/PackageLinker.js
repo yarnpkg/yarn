@@ -10,12 +10,12 @@
  */
 
 import type {Manifest} from './types.js';
-import type PackageResolver from './package-resolver.js';
+import type PackageResolver from './PackageResolver.js';
 import type {Reporter} from './reporters/index.js';
 import type Config from './config.js';
-import type {HoistManifest} from './package-hoister.js';
+import type {HoistManifest} from './PackageHoister.js';
 import {registries} from './registries/index.js';
-import PackageHoister from './package-hoister.js';
+import PackageHoister from './PackageHoister.js';
 import * as promise from './util/promise.js';
 import {entries} from './util/misc.js';
 import * as fs from './util/fs.js';

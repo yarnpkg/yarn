@@ -12,7 +12,7 @@
 import {SecurityError, MessageError} from '../errors.js';
 import type {HashStream} from '../util/crypto.js';
 import * as crypto from '../util/crypto.js';
-import BaseFetcher from './_base.js';
+import BaseFetcher from './BaseFetcher.js';
 import * as fsUtil from '../util/fs.js';
 
 const through = require('through2');

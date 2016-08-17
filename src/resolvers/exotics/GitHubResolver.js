@@ -9,8 +9,8 @@
  * @flow
  */
 
-import type {ExplodedFragment} from './_hosted-git.js';
-import HostedGitResolver from './_hosted-git.js';
+import type {ExplodedFragment} from './HostedGitResolver.js';
+import HostedGitResolver from './HostedGitResolver.js';
 
 const _ = require('lodash');
 

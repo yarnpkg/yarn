@@ -11,12 +11,12 @@
 
 import type {RegistryNames} from './registries/index.js';
 import type {Reporter} from './reporters/index.js';
-import type Registry from './registries/_base.js';
+import type Registry from './registries/Registry.js';
 import type {Manifest, PackageRemote} from './types.js';
 import normaliseManifest from './util/normalise-manifest/index.js';
 import * as fs from './util/fs.js';
 import * as constants from './constants.js';
-import ConstraintResolver from './package-constraint-resolver.js';
+import ConstraintResolver from './PackageConstraintResolver.js';
 import RequestManager from './util/request-manager.js';
 import {registries} from './registries/index.js';
 import map from './util/map.js';

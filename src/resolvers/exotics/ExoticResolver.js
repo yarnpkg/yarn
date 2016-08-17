@@ -9,7 +9,7 @@
  * @flow
  */
 
-import BaseResolver from '../_base.js';
+import BaseResolver from '../BaseResolver.js';
 
 const _ = require('lodash');
 

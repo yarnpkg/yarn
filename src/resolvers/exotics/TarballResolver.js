@@ -10,10 +10,10 @@
  */
 
 import type {Manifest, FetchedManifest} from '../../types.js';
-import type PackageRequest from '../../package-request.js';
-import TarballFetcher from '../../fetchers/tarball.js';
-import ExoticResolver from './_base.js';
-import Git from './git.js';
+import type PackageRequest from '../../PackageRequest.js';
+import TarballFetcher from '../../fetchers/TarballFetcher.js';
+import ExoticResolver from './ExoticResolver.js';
+import Git from './GitResolver.js';
 import * as versionUtil from '../../util/version.js';
 import * as crypto from '../../util/crypto.js';
 import * as fs from '../../util/fs.js';

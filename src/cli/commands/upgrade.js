@@ -12,7 +12,7 @@
 import type {Reporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
 import {Install} from './install.js';
-import Lockfile from '../../lockfile/index.js';
+import Lockfile from '../../lockfile/Lockfile.js';
 
 export function setFlags(commander: Object) {
   // TODO: support some flags that install command has

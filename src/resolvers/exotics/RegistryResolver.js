@@ -10,9 +10,9 @@
  */
 
 import type {Manifest} from '../../types.js';
-import type PackageRequest from '../../package-request.js';
+import type PackageRequest from '../../PackageRequest.js';
 import {MessageError} from '../../errors.js';
-import ExoticResolver from './_base.js';
+import ExoticResolver from './ExoticResolver.js';
 
 export default class RegistryResolver extends ExoticResolver {
   constructor(request: PackageRequest, fragment: string) {

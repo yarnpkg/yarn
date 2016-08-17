@@ -11,7 +11,7 @@
 
 import type {Manifest} from '../../types.js';
 import {MessageError} from '../../errors.js';
-import RegistryResolver from './_base.js';
+import RegistryResolver from './RegistryResolver.js';
 import {queue} from '../../util/promise.js';
 import {entries, removeSuffix} from '../../util/misc.js';
 import map from '../../util/map.js';

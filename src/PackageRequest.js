@@ -11,11 +11,11 @@
 
 import type {Manifest, FetchedManifest} from './types.js';
 import type {RegistryNames} from './registries/index.js';
-import type PackageResolver from './package-resolver.js';
+import type PackageResolver from './PackageResolver.js';
 import type {Reporter} from './reporters/index.js';
 import type Config from './config.js';
-import Lockfile, {parse as parseLock} from './lockfile/index.js';
-import PackageReference from './package-reference.js';
+import Lockfile, {parse as parseLock} from './lockfile/Lockfile.js';
+import PackageReference from './PackageReference.js';
 import {registries as registryResolvers} from './resolvers/index.js';
 import {MessageError} from './errors.js';
 import {entries} from './util/misc.js';

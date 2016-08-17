@@ -9,7 +9,7 @@
  * @flow
  */
 
-import type Reporter from '../../src/reporters/_base.js';
+import type Reporter from '../../src/reporters/BaseReporter.js';
 let Stdin = require('mock-stdin').stdin.Class;
 let {Writable} = require('stream');
 

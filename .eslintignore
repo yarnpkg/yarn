@@ -5,5 +5,5 @@ node_modules
 flow-typed
 coverage
 Gulpfile.js
-index.js
+/index.js
 scripts

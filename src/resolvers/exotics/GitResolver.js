@@ -10,13 +10,13 @@
  */
 
 import type {Manifest} from '../../types.js';
-import type PackageRequest from '../../package-request.js';
+import type PackageRequest from '../../PackageRequest.js';
 import {hostedGit as hostedGitResolvers} from '../index.js';
 import {MessageError} from '../../errors.js';
 import * as util from '../../util/misc.js';
 import * as versionUtil from '../../util/version.js';
 import {registries} from '../../registries/index.js';
-import ExoticResolver from './_base.js';
+import ExoticResolver from './ExoticResolver.js';
 import Git from '../../util/git.js';
 
 const urlParse = require('url').parse;

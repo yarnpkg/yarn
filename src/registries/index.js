@@ -9,12 +9,12 @@
  * @flow
  */
 
-import NpmRegistry from "./npm.js";
-import BowerRegistry from "./bower.js";
+import NpmRegistry from './NpmRegistry.js';
+import BowerRegistry from './BowerRegistry.js';
 
 export let registries = {
   npm: NpmRegistry,
-  bower: BowerRegistry
+  bower: BowerRegistry,
 };
 
 export type RegistryNames = $Keys<typeof registries>;

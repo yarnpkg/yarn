@@ -10,10 +10,10 @@
  */
 
 import type {Manifest} from '../../types.js';
-import type PackageRequest from '../../package-request.js';
+import type PackageRequest from '../../PackageRequest.js';
 import {MessageError} from '../../errors.js';
-import GitResolver from './git.js';
-import ExoticResolver from './_base.js';
+import GitResolver from './GitResolver.js';
+import ExoticResolver from './ExoticResolver.js';
 import * as util from '../../util/misc.js';
 
 function explodeGistFragment(fragment: string): { id: string, hash: string } {

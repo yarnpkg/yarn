@@ -11,11 +11,11 @@
 
 import type {Reporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
-import type PackageResolver from '../../package-resolver.js';
-import type PackageLinker from '../../package-linker.js';
+import type PackageResolver from '../../PackageResolver.js';
+import type PackageLinker from '../../PackageLinker.js';
 import type {Trees} from '../../reporters/types.js';
 import {Install} from './install.js';
-import Lockfile from '../../lockfile/index.js';
+import Lockfile from '../../lockfile/Lockfile.js';
 
 const invariant = require('invariant');
 

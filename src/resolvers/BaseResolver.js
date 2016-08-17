@@ -9,8 +9,8 @@
  * @flow
  */
 
-import type PackageRequest from '../package-request.js';
-import type PackageResolver from '../package-resolver.js';
+import type PackageRequest from '../PackageRequest.js';
+import type PackageResolver from '../PackageResolver.js';
 import type {Manifest} from '../types.js';
 import type {RegistryNames} from '../registries/index.js';
 import type {Reporter} from '../reporters/index.js';

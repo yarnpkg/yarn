@@ -13,7 +13,7 @@
 import type {Reporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
 import {Install} from './install.js';
-import Lockfile from '../../lockfile/index.js';
+import Lockfile from '../../lockfile/Lockfile.js';
 import * as fs from '../../util/fs.js';
 
 export const requireLockfile = true;

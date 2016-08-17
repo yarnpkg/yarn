@@ -9,7 +9,7 @@
  * @flow
  */
 
-import Registry from './_base.js';
+import Registry from './Registry.js';
 import * as fs from '../util/fs.js';
 
 const userHome = require('user-home');

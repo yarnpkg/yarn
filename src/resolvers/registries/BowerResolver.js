@@ -11,8 +11,8 @@
 
 import type {Manifest} from '../../types.js';
 import {MessageError} from '../../errors.js';
-import RegistryResolver from './_base.js';
-import GitResolver from '../exotics/git.js';
+import RegistryResolver from './RegistryResolver.js';
+import GitResolver from '../exotics/GitResolver.js';
 
 export default class BowerResolver extends RegistryResolver {
   static registry = 'bower';

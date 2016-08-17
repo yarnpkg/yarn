@@ -9,7 +9,7 @@
  * @flow
  */
 
-import type PackageResolver from './package-resolver.js';
+import type PackageResolver from './PackageResolver.js';
 import type {Reporter} from './reporters/index.js';
 import type {Manifest} from './types.js';
 import type Config from './config.js';

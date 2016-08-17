@@ -9,44 +9,44 @@
  * @flow
  */
 
-import * as cache from "./cache.js";
-export { cache };
+import * as cache from './cache.js';
+export {cache};
 
-import * as ls from "./ls.js";
-export { ls };
+import * as ls from './ls.js';
+export {ls};
 
-import * as why from "./why.js";
-export { why };
+import * as why from './why.js';
+export {why};
 
-import * as licenses from "./licenses.js";
-export { licenses };
+import * as licenses from './licenses.js';
+export {licenses};
 
-import * as uninstall from "./uninstall.js";
-export { uninstall };
+import * as uninstall from './uninstall.js';
+export {uninstall};
 
-import * as install from "./install.js";
-export { install };
+import * as install from './install.js';
+export {install};
 
-import * as upgrade from "./upgrade.js";
-export { upgrade };
+import * as upgrade from './upgrade.js';
+export {upgrade};
 
-import * as check from "./check.js";
-export { check };
+import * as check from './check.js';
+export {check};
 
-import buildUseless from "./_useless.js";
+import buildUseless from './_useless.js';
 
 export let runScript = buildUseless(
-  "Use `kpm <script-name>` instead of `kpm run-script <script-name>`"
+  'Use `kpm <script-name>` instead of `kpm run-script <script-name>`',
 );
 
 export let lockfile = buildUseless(
-  "The lockfile command isn't necessary. `kpm install` will produce a lockfile."
+  "The lockfile command isn't necessary. `kpm install` will produce a lockfile.",
 );
 
 export let dedupe = buildUseless(
-  "The dedupe command isn't necessary. `kpm install` will already dedupe."
+  "The dedupe command isn't necessary. `kpm install` will already dedupe.",
 );
 
 export let prune = buildUseless(
-  "The prune command isn't necessary. `kpm install` will prune extraneous packages."
+  "The prune command isn't necessary. `kpm install` will prune extraneous packages.",
 );
