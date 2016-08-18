@@ -20,7 +20,7 @@ let objs = [
   {foo: {}},
   {foo: "foo", bar: "bar"},
   {foo: 5},
-  Object.assign({}, require("../package.json"), {jest: {}}),
+  // Object.assign({}, require("../package.json"), {jest: {}}),
 ];
 
 let i = 0;
