@@ -50,7 +50,9 @@ export default async function (config: Config, cwd: string, cmds: Array<string>,
     }
 
     let stdout = await child.spawn('sh', ['-c', cmd], {cwd, env}, (data) => {
-      spinner.tick(`${data}`.trim().split('\n')[0]);
+      if (spinner) {
+        spinner.tick(data.toString().trim().split('\n')[0]);
+      }
     });
 
     if (spinner) {

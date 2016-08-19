@@ -28,7 +28,7 @@ export function spawn(
   program: string,
   args: Array<string>,
   opts?: child_process$spawnOpts = {},
-  onData: (chunk: Buffer | String | any) => void,
+  onData?: (chunk: Buffer | String | any) => void,
 ): Promise<string> {
   return queue.push(opts.cwd || String(++uid), (): Promise<string> => new Promise((resolve, reject) => {
     const proc = child.spawn(program, args, opts);
@@ -50,7 +50,9 @@ export function spawn(
 
     proc.stderr.on('data', (chunk) => {
       errBuf += chunk;
-      onData(chunk)
+      if (onData) {
+        onData(chunk);
+      }
     });
 
     function update(chunk) {
