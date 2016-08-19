@@ -49,7 +49,6 @@ export default async function (config: Config, cwd: string, cmds: Array<string>,
       spinner = reporter.activity();
     }
 
-    // TODO we should pass reporter/stdout to spawn in verbose mode
     let stdout = await child.spawn('sh', ['-c', cmd], {cwd, env}, (data) => {
       spinner.tick(`${data}`.trim().split('\n')[0]);
     });
