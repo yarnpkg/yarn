@@ -1081,13 +1081,11 @@ test('check should verify that top level dependencies are installed correctly', 
   });
 });
 
-fit('install should run install scripts in the order of dependencies', async (): Promise<void> => {
+test('install should run install scripts in the order of dependencies', async (): Promise<void> => {
   let fixture = 'scripts-order';
 
   return run({}, [], fixture, async (config, reporter) => {
-
-    let allCorrect = true;
-    expect(allCorrect).toBe(true);
-
+    expect(await fs.exists(path.join(config.cwd, 'node_modules/dep-a/dep-a-built'))).toBe(true);
+    expect(await fs.exists(path.join(config.cwd, 'node_modules/dep-b/dep-b-built'))).toBe(true);
   });
 });
