@@ -100,7 +100,7 @@ export default class PackageInstallScripts {
 
     const tick = this.reporter.progress(refinedInfos.length);
 
-    promise.queue(refinedInfos, ({pkg, cmds}): Promise<void> => {
+    await promise.queue(refinedInfos, ({pkg, cmds}): Promise<void> => {
       return this.install(cmds, pkg).then(function() {
         tick(pkg.name);
       });
