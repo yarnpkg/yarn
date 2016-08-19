@@ -1,0 +1,10 @@
+dep-a@1.0.0:
+  name dep-a
+  version "1.0.0"
+  resolved dep-a-1.0.0.tgz#6d230b0b35754b98712ae24f78380111f37a0539
+  dependencies:
+    dep-b "1.0.0"
+dep-b@1.0.0:
+  name dep-b
+  version "1.0.0"
+  resolved dep-b-1.0.0.tgz#55c8ed5d43cb8b7f123e85d086526e6ecf3320a0

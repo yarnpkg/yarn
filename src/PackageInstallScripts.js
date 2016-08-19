@@ -68,6 +68,8 @@ export default class PackageInstallScripts {
   }
 
   async init(): Promise<void> {
+    // const builtPackages: Set<Manifest> = new Set();
+    // const notBuiltPackages: Set<Manifest> = new Set(this.resolver.getManifests());
     const pkgs = this.resolver.getManifests();
 
     // refine packages to those with install commands

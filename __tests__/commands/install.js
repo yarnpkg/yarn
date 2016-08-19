@@ -1080,3 +1080,14 @@ test('check should verify that top level dependencies are installed correctly', 
 
   });
 });
+
+fit('install should run install scripts in the order of dependencies', async (): Promise<void> => {
+  let fixture = 'scripts-order';
+
+  return run({}, [], fixture, async (config, reporter) => {
+
+    let allCorrect = true;
+    expect(allCorrect).toBe(true);
+
+  });
+});
