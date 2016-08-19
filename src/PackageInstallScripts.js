@@ -100,7 +100,7 @@ export default class PackageInstallScripts {
 
     const tick = this.reporter.progress(refinedInfos.length);
 
-    return promise.queue(refinedInfos, ({pkg, cmds}): Promise<void> => {
+    promise.queue(refinedInfos, ({pkg, cmds}): Promise<void> => {
       return this.install(cmds, pkg).then(function() {
         tick(pkg.name);
       });
@@ -117,7 +117,7 @@ export default class PackageInstallScripts {
       return deps;
     }
 
-    const builtPackages: Set<String> = new Set();
+    const builtPackages: Set<string> = new Set();
     const notBuiltPackages: Set<Manifest> = new Set(this.resolver.getManifests());
 
     // refine packages to those with install commands
@@ -126,7 +126,7 @@ export default class PackageInstallScripts {
       for (let pkg of notBuiltPackages) {
         const depsList = getDependenciesList(pkg);
         // if dependencies that were not built exust then skip
-        if (!(depsList.some((dep) => !builtPackages.has(dep)))) {
+        if (!(depsList.some((dep): boolean => !builtPackages.has(dep)))) {
           batchSafeToBuild.push(pkg);
         }
       }
