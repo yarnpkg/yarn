@@ -14,7 +14,6 @@ import * as constants from '../constants.js';
 import * as child from './child.js';
 import {registries} from '../resolvers/index.js';
 import type {Reporter} from '../reporters/index.js';
-import Spinner from '../reporters/console/Spinner.js';
 
 const path = require('path');
 
