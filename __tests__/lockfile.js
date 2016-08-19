@@ -20,7 +20,6 @@ let objs = [
   {foo: {}},
   {foo: "foo", bar: "bar"},
   {foo: 5},
-  // Object.assign({}, require("../package.json"), {jest: {}}),
 ];
 
 let i = 0;
@@ -29,6 +28,13 @@ for (let obj of objs) {
     expect(parse(stringify(obj))).toEqual(nullify(obj));
   });
 }
+
+// TODO Arrays in eslintConfig in package.json cause TypeError: Cannot convert object to primitive value
+// not sure this is an issue with nullify/stringify actually
+xit(`parse/stringify package.json`, () => {
+  let obj = Object.assign({}, require("../package.json"), {jest: {}});
+  expect(parse(stringify(obj))).toEqual(nullify(obj));
+});
 
 test("parse", () => {
   expect(parse('foo "bar"')).toEqual(nullify({foo: "bar"}));
