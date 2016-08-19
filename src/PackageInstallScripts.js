@@ -113,15 +113,7 @@ export default class PackageInstallScripts {
       if (pkg.dependencies) {
         deps.push(...Object.keys(pkg.dependencies));
       }
-      if (pkg.devDependencies) {
-        deps.push(...Object.keys(pkg.devDependencies));
-      }
-      if (pkg.peerDependencies) {
-        deps.push(...Object.keys(pkg.peerDependencies));
-      }
-      if (pkg.optionalDependencies) {
-        deps.push(...Object.keys(pkg.optionalDependencies));
-      }
+      // TODO are devDependencies and peerDependencies required to build this one?
       return deps;
     }
 

@@ -1,5 +1,5 @@
 {
   "dependencies": {
-    "dep-b": "1.0.0"
+    "dep-a": "1.0.0"
   }
 }
