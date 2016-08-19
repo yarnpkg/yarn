@@ -1101,8 +1101,8 @@ babylon@^5.8.38:
   resolved "https://registry.npmjs.org/babylon/-/babylon-5.8.38.tgz#ec9b120b11bf6ccd4173a18bf217e60b79859ffd"
 babylon@^6.0.18, babylon@^6.5.0, babylon@^6.6.5, babylon@^6.7.0, babylon@^6.8.1:
   name babylon
-  version "6.8.4"
-  resolved "https://registry.npmjs.org/babylon/-/babylon-6.8.4.tgz#097306b8dabae95159225cf29b3ea55912053180"
+  version "6.9.0"
+  resolved "https://registry.npmjs.org/babylon/-/babylon-6.9.0.tgz#d840d52e44cbb168c11a98bf0282293ab27f7d53"
   dependencies:
     babel-runtime "^6.0.0"
 balanced-match@^0.4.1:
@@ -1479,8 +1479,8 @@ cryptiles@2.x.x:
   resolved "https://registry.npmjs.org/cssom/-/cssom-0.3.1.tgz#c9e37ef2490e64f6d1baa10fda852257082c25d3"
 "cssstyle@>= 0.2.36 < 0.3.0":
   name cssstyle
-  version "0.2.36"
-  resolved "https://registry.npmjs.org/cssstyle/-/cssstyle-0.2.36.tgz#5cfed6b1a4526b58d77673d51b3520856fb6af3e"
+  version "0.2.37"
+  resolved "https://registry.npmjs.org/cssstyle/-/cssstyle-0.2.37.tgz#541097234cb2513c83ceed3acddc27ff27987d54"
   dependencies:
     cssom "0.3.x"
 currently-unhandled@^0.4.1:
@@ -1617,8 +1617,8 @@ defs@~1.1.0:
     yargs "~3.27.0"
 del@^2.0.2:
   name del
-  version "2.2.1"
-  resolved "https://registry.npmjs.org/del/-/del-2.2.1.tgz#f6763026472209c4f0349111c5ac280868bec4fe"
+  version "2.2.2"
+  resolved "https://registry.npmjs.org/del/-/del-2.2.2.tgz#c12c981d067846c84bcaf862cff930d907ffd1a8"
   dependencies:
     globby "^5.0.0"
     is-path-cwd "^1.0.0"
@@ -1670,10 +1670,10 @@ diff@1.1.0:
   resolved "https://registry.npmjs.org/diff/-/diff-1.1.0.tgz#798a49381aa464151e9b4f0e6ff2b09a8a1ad23f"
 doctrine@^1.2.2:
   name doctrine
-  version "1.2.2"
-  resolved "https://registry.npmjs.org/doctrine/-/doctrine-1.2.2.tgz#9e9867210149548b95ec51469dae4caad312308e"
+  version "1.2.3"
+  resolved "https://registry.npmjs.org/doctrine/-/doctrine-1.2.3.tgz#6aec6bbd62cf89dd498cae70c0ed9f49da873a6a"
   dependencies:
-    esutils "^1.1.6"
+    esutils "^2.0.2"
     isarray "^1.0.0"
 download@^4.0.0:
   name download
@@ -1835,6 +1835,19 @@ escope@^3.6.0:
     es6-weak-map "^2.0.1"
     esrecurse "^4.1.0"
     estraverse "^4.1.1"
+eslint-config-fb-strict@^14.1.3:
+  name eslint-config-fb-strict
+  version "14.1.3"
+  resolved "https://registry.npmjs.org/eslint-config-fb-strict/-/eslint-config-fb-strict-14.1.3.tgz#92c2b945be2764ac22a36697db106d1e3fbd31a2"
+  dependencies:
+    babel-eslint "^6.1.2"
+    eslint "^3.3.0"
+    eslint-config-fbjs "^1.0.0"
+    eslint-plugin-babel "^3.3.0"
+eslint-config-fbjs@^1.0.0:
+  name eslint-config-fbjs
+  version "1.0.0"
+  resolved "https://registry.npmjs.org/eslint-config-fbjs/-/eslint-config-fbjs-1.0.0.tgz#cd021beee7839e1383b97d0681ccc4993230ac17"
 eslint-config-kittens@^2.0.1:
   name eslint-config-kittens
   version "2.0.1"
@@ -1861,10 +1874,17 @@ eslint-plugin-flowtype@~2.4.1:
   resolved "https://registry.npmjs.org/eslint-plugin-flowtype/-/eslint-plugin-flowtype-2.4.1.tgz#f66c6a8fee7525a675b30fe8aa88ed11d85d9bf0"
   dependencies:
     lodash "^4.9.0"
-eslint@^3.0.1:
+eslint-plugin-react@^5.2.2:
+  name eslint-plugin-react
+  version "5.2.2"
+  resolved "https://registry.npmjs.org/eslint-plugin-react/-/eslint-plugin-react-5.2.2.tgz#7db068e1f5487f6871e4deef36a381c303eac161"
+  dependencies:
+    doctrine "^1.2.2"
+    jsx-ast-utils "^1.2.1"
+eslint@^3.3.0, eslint@^3.3.1:
   name eslint
-  version "3.2.2"
-  resolved "https://registry.npmjs.org/eslint/-/eslint-3.2.2.tgz#47226f6b0e709f23f6acd06c5cc9e97b39574c7c"
+  version "3.3.1"
+  resolved "https://registry.npmjs.org/eslint/-/eslint-3.3.1.tgz#ed4ba34be175e2286c90a42ff636bf5e26d50968"
   dependencies:
     chalk "^1.1.3"
     concat-stream "^1.4.6"
@@ -1887,6 +1907,7 @@ eslint@^3.0.1:
     levn "^0.3.0"
     lodash "^4.0.0"
     mkdirp "^0.5.0"
+    natural-compare "^1.4.0"
     optionator "^0.8.1"
     path-is-inside "^1.0.1"
     pluralize "^1.2.1"
@@ -1940,10 +1961,6 @@ estraverse@~4.1.0:
   name estraverse
   version "4.1.1"
   resolved "https://registry.npmjs.org/estraverse/-/estraverse-4.1.1.tgz#f6caca728933a850ef90661d0e17982ba47111a2"
-esutils@^1.1.6:
-  name esutils
-  version "1.1.6"
-  resolved "https://registry.npmjs.org/esutils/-/esutils-1.1.6.tgz#c01ccaa9ae4b897c6d0c3e210ae52f3c7a844375"
 esutils@^2.0.0, esutils@^2.0.2:
   name esutils
   version "2.0.2"
@@ -2142,10 +2159,10 @@ flat-cache@^1.2.1:
     del "^2.0.2"
     graceful-fs "^4.1.2"
     write "^0.2.1"
-flow-bin@^0.28.0:
+flow-bin@^0.30.0:
   name flow-bin
-  version "0.28.0"
-  resolved "https://registry.npmjs.org/flow-bin/-/flow-bin-0.28.0.tgz#f4b6bafa890bbc718fe8eeba84c5f86e152443e6"
+  version "0.30.0"
+  resolved "https://registry.npmjs.org/flow-bin/-/flow-bin-0.30.0.tgz#60565a6ae59121821d1bdcf7bdb4a47b42172080"
   dependencies:
     bin-wrapper "^3.0.2"
     logalot "^2.0.0"
@@ -2420,8 +2437,8 @@ got@^5.0.0:
     url-parse-lax "^1.0.0"
 graceful-fs@^3.0.0:
   name graceful-fs
-  version "3.0.8"
-  resolved "https://registry.npmjs.org/graceful-fs/-/graceful-fs-3.0.8.tgz#ce813e725fa82f7e6147d51c9a5ca68270551c22"
+  version "3.0.9"
+  resolved "https://registry.npmjs.org/graceful-fs/-/graceful-fs-3.0.9.tgz#44e10a870a068e892485bace909520905b08ba24"
 graceful-fs@^4.0.0, graceful-fs@^4.1.2, graceful-fs@^4.1.3, graceful-fs@^4.1.4:
   name graceful-fs
   version "4.1.5"
@@ -2629,8 +2646,8 @@ iconv-lite@^0.4.13, iconv-lite@^0.4.5:
   resolved "https://registry.npmjs.org/iconv-lite/-/iconv-lite-0.4.13.tgz#1f88aba4ab0b1508e8312acc39345f36e992e2f2"
 ignore@^3.1.2:
   name ignore
-  version "3.1.3"
-  resolved "https://registry.npmjs.org/ignore/-/ignore-3.1.3.tgz#9e890c0652519115ae9427da47516bd54d1d6999"
+  version "3.1.5"
+  resolved "https://registry.npmjs.org/ignore/-/ignore-3.1.5.tgz#54ba1eb92ef9fff8d49e5a1fb23961cdba77eb7a"
 imurmurhash@^0.1.4:
   name imurmurhash
   version "0.1.4"
@@ -3210,6 +3227,12 @@ jsprim@^1.2.2:
     extsprintf "1.0.2"
     json-schema "0.2.2"
     verror "1.3.6"
+jsx-ast-utils@^1.2.1:
+  name jsx-ast-utils
+  version "1.3.1"
+  resolved "https://registry.npmjs.org/jsx-ast-utils/-/jsx-ast-utils-1.3.1.tgz#14313c5c50da5b0c47020af5d1560c17e781a05a"
+  dependencies:
+    object-assign "^4.1.0"
 kew@^0.7.0:
   name kew
   version "0.7.0"
@@ -3385,12 +3408,12 @@ lodash.assign@^3.0.0, lodash.assign@^3.2.0:
     lodash.keys "^3.0.0"
 lodash.assign@^4.0.0, lodash.assign@^4.0.3, lodash.assign@^4.0.6, lodash.assign@^4.0.9:
   name lodash.assign
-  version "4.1.0"
-  resolved "https://registry.npmjs.org/lodash.assign/-/lodash.assign-4.1.0.tgz#7cb262f1f76f865626adca7be4d419d51fb8a8c1"
+  version "4.2.0"
+  resolved "https://registry.npmjs.org/lodash.assign/-/lodash.assign-4.2.0.tgz#0d99f3ccd7a6d261d19bdaeb9245005d285808e7"
 lodash.assignwith@^4.0.7:
   name lodash.assignwith
-  version "4.1.0"
-  resolved "https://registry.npmjs.org/lodash.assignwith/-/lodash.assignwith-4.1.0.tgz#722dca3381d119b85e32820bace41b9bad08468d"
+  version "4.2.0"
+  resolved "https://registry.npmjs.org/lodash.assignwith/-/lodash.assignwith-4.2.0.tgz#127a97f02adc41751a954d24b0de17e100e038eb"
 lodash.clonedeep@^3.0.0:
   name lodash.clonedeep
   version "3.0.2"
@@ -3406,8 +3429,8 @@ lodash.escape@^3.0.0:
     lodash._root "^3.0.0"
 lodash.isarguments@^3.0.0:
   name lodash.isarguments
-  version "3.0.9"
-  resolved "https://registry.npmjs.org/lodash.isarguments/-/lodash.isarguments-3.0.9.tgz#3c4994a4210f340d49ccfafa62176296207d8675"
+  version "3.1.0"
+  resolved "https://registry.npmjs.org/lodash.isarguments/-/lodash.isarguments-3.1.0.tgz#2f573d85c6a24289ff00663b491c1d338ff3458a"
 lodash.isarray@^3.0.0:
   name lodash.isarray
   version "3.0.4"
@@ -3418,16 +3441,16 @@ lodash.isarray@^4.0.0:
   resolved "https://registry.npmjs.org/lodash.isarray/-/lodash.isarray-4.0.0.tgz#2aca496b28c4ca6d726715313590c02e6ea34403"
 lodash.isempty@^4.2.1:
   name lodash.isempty
-  version "4.3.1"
-  resolved "https://registry.npmjs.org/lodash.isempty/-/lodash.isempty-4.3.1.tgz#bfc280ec4fb969134a929e8072f69bf86eccf71e"
+  version "4.4.0"
+  resolved "https://registry.npmjs.org/lodash.isempty/-/lodash.isempty-4.4.0.tgz#6f86cbedd8be4ec987be9aaf33c9684db1b31e7e"
 lodash.isequal@^4.0.0:
   name lodash.isequal
-  version "4.3.1"
-  resolved "https://registry.npmjs.org/lodash.isequal/-/lodash.isequal-4.3.1.tgz#397ea29b6858af49f6dfdb2053d380709d9859b3"
+  version "4.4.0"
+  resolved "https://registry.npmjs.org/lodash.isequal/-/lodash.isequal-4.4.0.tgz#6295768e98e14dc15ce8d362ef6340db82852031"
 lodash.isplainobject@^4.0.4:
   name lodash.isplainobject
-  version "4.0.5"
-  resolved "https://registry.npmjs.org/lodash.isplainobject/-/lodash.isplainobject-4.0.5.tgz#0a7520765351ec3bc764ceb5fda07f5ed5f3560d"
+  version "4.0.6"
+  resolved "https://registry.npmjs.org/lodash.isplainobject/-/lodash.isplainobject-4.0.6.tgz#7c526a52d89b45c45cc690b88163be0497f550cb"
 lodash.isstring@^4.0.1:
   name lodash.isstring
   version "4.0.1"
@@ -3449,8 +3472,8 @@ lodash.keysin@^3.0.0:
     lodash.isarray "^3.0.0"
 lodash.mapvalues@^4.4.0:
   name lodash.mapvalues
-  version "4.5.1"
-  resolved "https://registry.npmjs.org/lodash.mapvalues/-/lodash.mapvalues-4.5.1.tgz#83eb1b96f8bb5cea0f63ddc66a460a9c1e86dc16"
+  version "4.6.0"
+  resolved "https://registry.npmjs.org/lodash.mapvalues/-/lodash.mapvalues-4.6.0.tgz#1bafa5005de9dd6f4f26668c30ca37230cc9689c"
 lodash.pick@^3.1.0:
   name lodash.pick
   version "3.1.0"
@@ -3463,12 +3486,12 @@ lodash.pick@^3.1.0:
     lodash.restparam "^3.0.0"
 lodash.pick@^4.2.1:
   name lodash.pick
-  version "4.3.0"
-  resolved "https://registry.npmjs.org/lodash.pick/-/lodash.pick-4.3.0.tgz#2c87ca608008ffd3018d0784d00861a1c0eddf34"
+  version "4.4.0"
+  resolved "https://registry.npmjs.org/lodash.pick/-/lodash.pick-4.4.0.tgz#52f05610fff9ded422611441ed1fc123a03001b3"
 lodash.pickby@^4.0.0:
   name lodash.pickby
-  version "4.5.1"
-  resolved "https://registry.npmjs.org/lodash.pickby/-/lodash.pickby-4.5.1.tgz#5e088b25d03560c5d6c7dcc2f691c11fecd2d2e1"
+  version "4.6.0"
+  resolved "https://registry.npmjs.org/lodash.pickby/-/lodash.pickby-4.6.0.tgz#7dea21d8c18d7703a27c704c15d3b84a67e33aff"
 lodash.restparam@^3.0.0:
   name lodash.restparam
   version "3.6.1"
@@ -3500,8 +3523,8 @@ lodash@^3.10.0, lodash@^3.9.3:
   resolved "https://registry.npmjs.org/lodash/-/lodash-3.10.1.tgz#5bf45e8e49ba4189e17d482789dfd15bd140b7b6"
 lodash@^4.0.0, lodash@^4.2.0, lodash@^4.3.0, lodash@^4.9.0:
   name lodash
-  version "4.14.2"
-  resolved "https://registry.npmjs.org/lodash/-/lodash-4.14.2.tgz#bbccce6373a400fbfd0a8c67ca42f6d1ef416432"
+  version "4.15.0"
+  resolved "https://registry.npmjs.org/lodash/-/lodash-4.15.0.tgz#3162391d8f0140aa22cf8f6b3c34d6b7f63d3aa9"
 lodash@~1.0.1:
   name lodash
   version "1.0.2"
@@ -3646,7 +3669,7 @@ minimatch@^2.0.1, minimatch@^2.0.3, minimatch@2.x:
   resolved "https://registry.npmjs.org/minimatch/-/minimatch-2.0.10.tgz#8d087c39c6b38c001b97fca7ce6d0e1e80afbac7"
   dependencies:
     brace-expansion "^1.0.0"
-minimatch@^3.0.0, minimatch@^3.0.2, "minimatch@2 || 3":
+minimatch@^3.0.0, minimatch@^3.0.2, minimatch@^3.0.3, "minimatch@2 || 3":
   name minimatch
   version "3.0.3"
   resolved "https://registry.npmjs.org/minimatch/-/minimatch-3.0.3.tgz#2a4e4090b96b2db06a9d7df01055a62a77c9b774"
@@ -3703,6 +3726,10 @@ nan@^2.3.0:
   name nan
   version "2.4.0"
   resolved "https://registry.npmjs.org/nan/-/nan-2.4.0.tgz#fb3c59d45fe4effe215f0b890f8adf6eb32d2232"
+natural-compare@^1.4.0:
+  name natural-compare
+  version "1.4.0"
+  resolved "https://registry.npmjs.org/natural-compare/-/natural-compare-1.4.0.tgz#4abebfeed7541f2c27acfb29bdbbd15c8d5ba4f7"
 node-emoji@^0.1.0:
   name node-emoji
   version "0.1.0"
@@ -4014,8 +4041,8 @@ preserve@^0.2.0:
   resolved "https://registry.npmjs.org/preserve/-/preserve-0.2.0.tgz#815ed1f6ebc65926f865b310c0713bcb3315ce4b"
 pretty-format@^3.5.0:
   name pretty-format
-  version "3.5.3"
-  resolved "https://registry.npmjs.org/pretty-format/-/pretty-format-3.5.3.tgz#539dfe29335c42f18c233dcca23eebcc1d41f1c8"
+  version "3.6.0"
+  resolved "https://registry.npmjs.org/pretty-format/-/pretty-format-3.6.0.tgz#c1c06ee737a3281971c89e0f25cc1387ea4d5d80"
 pretty-hrtime@^1.0.0:
   name pretty-hrtime
   version "1.0.2"
@@ -4084,8 +4111,8 @@ read-pkg@^1.0.0:
     path-type "^1.0.0"
 readable-stream@^2.0.0, "readable-stream@^2.0.0 || ^1.1.13", readable-stream@^2.0.1, readable-stream@^2.0.2, readable-stream@^2.0.4, readable-stream@^2.0.5, readable-stream@~2.1.4:
   name readable-stream
-  version "2.1.4"
-  resolved "https://registry.npmjs.org/readable-stream/-/readable-stream-2.1.4.tgz#70b9791c6fcb8480db44bd155a0f6bb58f172468"
+  version "2.1.5"
+  resolved "https://registry.npmjs.org/readable-stream/-/readable-stream-2.1.5.tgz#66fa8b720e1438b364681f2ad1a63c618448c9d0"
   dependencies:
     buffer-shims "^1.0.0"
     core-util-is "~1.0.0"
@@ -4549,8 +4576,8 @@ string_decoder@~0.10.x:
   resolved "https://registry.npmjs.org/string_decoder/-/string_decoder-0.10.31.tgz#62e203bc41766c6c28c9fc84301dab1c5310fa94"
 string-width@^1.0.1:
   name string-width
-  version "1.0.1"
-  resolved "https://registry.npmjs.org/string-width/-/string-width-1.0.1.tgz#c92129b6f1d7f52acf9af424a26e3864a05ceb0a"
+  version "1.0.2"
+  resolved "https://registry.npmjs.org/string-width/-/string-width-1.0.2.tgz#118bdf5b8cdc51a2a7e70d211e07e2b0b9b107d3"
   dependencies:
     code-point-at "^1.0.0"
     is-fullwidth-code-point "^1.0.0"
@@ -4831,8 +4858,8 @@ typedarray@~0.0.5:
   resolved "https://registry.npmjs.org/typedarray/-/typedarray-0.0.6.tgz#867ac74e3864187b1d3d47d996a78ec5c8830777"
 uglify-js@^2.6:
   name uglify-js
-  version "2.7.0"
-  resolved "https://registry.npmjs.org/uglify-js/-/uglify-js-2.7.0.tgz#f021e38ba2ca740860f5bd5c695c2a817345f0ec"
+  version "2.7.3"
+  resolved "https://registry.npmjs.org/uglify-js/-/uglify-js-2.7.3.tgz#39b3a7329b89f5ec507e344c6e22568698ef4868"
   dependencies:
     async "~0.2.6"
     source-map "~0.5.1"
