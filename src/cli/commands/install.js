@@ -194,7 +194,7 @@ export class Install {
       return;
     }
 
-    let {trees, count} = await buildTree(this.resolver, this.linker, patterns, true);
+    let {trees, count} = await buildTree(this.resolver, this.linker, patterns, true, true);
     this.reporter.success(`Saved ${count} new ${count === 1 ? 'dependency' : 'dependencies'}`);
     this.reporter.tree('newDependencies', trees);
   }
