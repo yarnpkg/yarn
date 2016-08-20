@@ -30,7 +30,6 @@ export default class PackageInstallScripts {
   needsPermission: boolean;
   resolver: PackageResolver;
   reporter: Reporter;
-  actions: Array<string>;
   config: Config;
   force: boolean;
 
@@ -47,11 +46,11 @@ export default class PackageInstallScripts {
     cwd: string,
     command: string,
     stdout: string,
-    stderr: string
   }>> {
     const loc = this.config.generateHardModulePath(pkg.reference);
     try {
-      return await executeLifecycleScript(this.config, loc, cmds, pkg);
+      this.reporter.info(`Running install scripts for ${pkg.name}`);
+      return await executeLifecycleScript(this.config, loc, cmds, this.reporter);
     } catch (err) {
       err.message = `${loc}: ${err.message}`;
 
