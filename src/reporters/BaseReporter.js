@@ -10,7 +10,7 @@
  */
 /* eslint no-unused-vars: 0 */
 
-import type {Trees, Stdout, Stdin, Package} from './types.js';
+import type {Trees, Stdout, Stdin, Package, ReporterSpinner} from './types.js';
 
 export type ReporterOptions = {
   stdout?: Stdout,
@@ -103,14 +103,16 @@ export default class BaseReporter {
   footer(showPeakMemory: boolean) {}
 
   // render an activity spinner and return a function that will trigger an update
-  activity(): {
-    tick: (name: string) => void,
-    end: () => void
-  } {
+  activity(): ReporterSpinner {
     return {
       tick(name: string) {},
       end() {},
     };
+  }
+
+  //
+  activityStep(current: number, total: number, message: string, emoji?: string): ReporterSpinner {
+    return this.activity();
   }
 
   //

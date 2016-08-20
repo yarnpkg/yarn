@@ -29,3 +29,8 @@ export type Tree = {
 };
 
 export type Trees = Array<Tree>;
+
+export type ReporterSpinner = {
+  tick: (name: string) => void,
+  end: () => void
+};

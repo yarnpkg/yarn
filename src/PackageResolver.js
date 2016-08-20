@@ -122,7 +122,7 @@ export default class PackageResolver {
    * Given a list of patterns, dedupe them to a list of unique patterns.
    */
 
-  dedupePatterns(patterns: Array<string>): Array<string> {
+  dedupePatterns(patterns: Iterable<string>): Array<string> {
     const deduped = [];
     const seen = new Set();
 
@@ -137,6 +137,32 @@ export default class PackageResolver {
     }
 
     return deduped;
+  }
+
+  /**
+   * Description
+   */
+
+  getTopologicalManifests(seedPatterns: Array<string>): Iterable<Manifest> {
+    let pkgs: Set<Manifest> = new Set();
+
+    let add = (seedPatterns: Array<string>) => {
+      for (let pattern of seedPatterns) {
+        let pkg = this.getStrictResolvedPattern(pattern);
+        if (pkgs.has(pkg)) {
+          continue;
+        }
+
+        let ref = pkg._reference;
+        invariant(ref, 'expected reference');
+        add(ref.dependencies);
+        pkgs.add(pkg);
+      }
+    };
+
+    add(seedPatterns);
+
+    return pkgs;
   }
 
   /**

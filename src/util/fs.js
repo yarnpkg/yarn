@@ -36,6 +36,8 @@ const fsSymlink = promisify(fs.symlink);
 const invariant = require('invariant');
 const stripBOM = require('strip-bom');
 
+const noop = () => {};
+
 type CopyQueue = Array<{
   src: string,
   dest: string,
@@ -43,13 +45,22 @@ type CopyQueue = Array<{
   onDone?: ?() => void,
 }>;
 
-type CopyActions = Array<{
+type CopyFileAction = {
+  type: 'file',
   src: string,
   dest: string,
   atime: number,
   mtime: number,
   mode: number
-}>;
+};
+
+type CopySymlinkAction = {
+  type: 'symlink',
+  dest: string,
+  linkname: string,
+};
+
+type CopyActions = Array<CopyFileAction | CopySymlinkAction>;
 
 type CopyEvents = {
   onProgress: (dest: string) => void,
@@ -93,8 +104,9 @@ async function buildActionsForCopy(
 
   //
   async function build(data) {
-    let {src, dest, onFresh} = data;
-    const onDone = data.onDone || (() => {});
+    let {src, dest} = data;
+    const onDone = data.onDone || noop;
+    const onFresh = data.onFresh || noop;
     files.add(dest);
 
     const srcStat = await lstat(src);
@@ -109,6 +121,7 @@ async function buildActionsForCopy(
 
       const bothFiles = srcStat.isFile() && destStat.isFile();
       const bothFolders = !bothFiles && srcStat.isDirectory() && destStat.isDirectory();
+      const bothSymlinks = !bothFolders && !bothFiles && srcStat.isSymbolicLink() && destStat.isSymbolicLink();
 
       if (srcStat.mode !== destStat.mode) {
         if (bothFiles) {
@@ -123,6 +136,12 @@ async function buildActionsForCopy(
 
       if (bothFiles && srcStat.size === destStat.size && +srcStat.mtime === +destStat.mtime) {
         // we can safely assume this is the same file
+        onDone();
+        return;
+      }
+
+      if (bothSymlinks && await readlink(src) === await readlink(dest)) {
+        // if both symlinks are the same then we can continue on
         onDone();
         return;
       }
@@ -147,7 +166,16 @@ async function buildActionsForCopy(
       }
     }
 
-    if (srcStat.isDirectory()) {
+    if (srcStat.isSymbolicLink()) {
+      onFresh();
+      let linkname = await readlink(src);
+      actions.push({
+        type: 'symlink',
+        dest,
+        linkname,
+      });
+      onDone();
+    } else if (srcStat.isDirectory()) {
       await mkdirp(dest);
 
       const destParts = dest.split(path.sep);
@@ -175,10 +203,9 @@ async function buildActionsForCopy(
         });
       }
     } else if (srcStat.isFile()) {
-      if (onFresh) {
-        onFresh();
-      }
+      onFresh();
       actions.push({
+        type: 'file',
         src,
         dest,
         atime: srcStat.atime,
@@ -187,7 +214,7 @@ async function buildActionsForCopy(
       });
       onDone();
     } else {
-      throw new Error('unsure how to copy this?');
+      throw new Error(`unsure how to copy this: ${src}`);
     }
   }
 }
@@ -202,15 +229,15 @@ export async function copyBulk(
   possibleExtraneous?: Iterable<string>,
 ): Promise<void> {
   const events: CopyEvents = _events || {
-    onStart: () => {},
-    onProgress: () => {},
+    onStart: noop,
+    onProgress: noop,
   };
 
   const actions: CopyActions = await buildActionsForCopy(queue, events, possibleExtraneous);
-
   events.onStart(actions.length);
 
-  await promise.queue(actions, (data): Promise<void> => new Promise((resolve, reject) => {
+  const fileActions = actions.filter((action): boolean => action.type === 'file');
+  await promise.queue(fileActions, (data): Promise<void> => new Promise((resolve, reject) => {
     const readStream = fs.createReadStream(data.src);
     const writeStream = fs.createWriteStream(data.dest, {mode: data.mode});
 
@@ -232,6 +259,12 @@ export async function copyBulk(
       });
     });
   }), 4);
+
+  // we need to copy symlinks last as the could reference files we were copying
+  const symlinkActions = actions.filter((action): boolean => action.type === 'symlink');
+  await promise.queue(symlinkActions, (data): Promise<void> => {
+    return fsSymlink(data.linkname, data.dest);
+  });
 }
 
 async function _readFile(loc: string, encoding: string): Promise<any> {
@@ -326,18 +359,24 @@ export async function symlink(src: string, dest: string): Promise<void> {
   }
 }
 
-export async function walk(dir: string, relativeDir?: string): Promise<Array<{
+export async function walk(dir: string, relativeDir?: ?string, ignoreBasenames?: Array<string>): Promise<Array<{
   relative: string,
-  absolute: string
+  absolute: string,
+  mtime: number,
 }>> {
   let files = [];
 
   for (const name of await readdir(dir)) {
+    if (ignoreBasenames && ignoreBasenames.indexOf(name) >= 0) {
+      continue;
+    }
+
     const relative = relativeDir ? path.join(relativeDir, name) : name;
     const loc = path.join(dir, name);
-    files.push({relative, absolute: loc});
-    if ((await lstat(loc)).isDirectory()) {
-      files = files.concat(await walk(loc, relative));
+    const stat = await lstat(loc);
+    files.push({relative, absolute: loc, mtime: +stat.mtime});
+    if (stat.isDirectory()) {
+      files = files.concat(await walk(loc, relative, ignoreBasenames));
     }
   }
 

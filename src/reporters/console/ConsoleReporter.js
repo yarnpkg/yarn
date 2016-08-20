@@ -12,7 +12,7 @@
 import BaseReporter from '../BaseReporter.js';
 import Progress from './ProgressBar.js';
 import Spinner from './Spinner.js';
-import type {Package, Trees} from '../types.js';
+import type {Package, Trees, ReporterSpinner} from '../types.js';
 import {clearLine} from './util.js';
 import {removeSuffix} from '../../util/misc.js';
 
@@ -153,10 +153,29 @@ export default class ConsoleReporter extends BaseReporter {
     }
   }
 
-  activity(): {
-    tick: (name: string) => void,
-    end: () => void
-  } {
+  activityStep(current: number, total: number, msg: string, emoji?: string): ReporterSpinner {
+    if (!this.isTTY) {
+      return this.activity();
+    }
+
+    msg = this._prependEmoji(msg, emoji);
+
+    let spinner = new Spinner(this.stderr, `${chalk.grey(`[${current}/${total}]`)} `);
+    spinner.start();
+    spinner.setText(msg);
+
+    return {
+      tick(name: string) {
+        spinner.setText(`${msg}: ${name}`);
+      },
+
+      end() {
+        spinner.stop();
+      },
+    };
+  }
+
+  activity(): ReporterSpinner {
     if (!this.isTTY) {
       return {
         tick() {},

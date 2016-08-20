@@ -47,6 +47,7 @@ export default class Config {
     this.requestManager = new RequestManager(reporter);
     this.reporter = reporter;
 
+    this.registryFolders = [];
     this.registries = map();
     this.cache = map();
     this.cwd = opts.cwd || process.cwd();
@@ -85,6 +86,7 @@ export default class Config {
   registries: {
     [name: RegistryNames]: Registry
   };
+  registryFolders: Array<string>;
 
   //
   cache: {
@@ -141,6 +143,7 @@ export default class Config {
       await registry.init();
 
       this.registries[key] = registry;
+      this.registryFolders.push(registry.folder);
     }
   }
 
@@ -154,12 +157,12 @@ export default class Config {
     version: string,
     registry: RegistryNames,
     location: ?string
-  }): string {
+  }, ignoreLocation?: ?boolean): string {
     invariant(this.packagesRoot, 'No package root');
     invariant(pkg, 'Undefined package');
     invariant(pkg.name, 'No name field in package');
     invariant(pkg.uid, 'No uid field in package');
-    if (pkg.location) {
+    if (pkg.location && !ignoreLocation) {
       return pkg.location;
     }
 
