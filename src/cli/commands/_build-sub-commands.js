@@ -11,7 +11,6 @@
 
 import type {Reporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
-import {MessageError} from '../../errors.js';
 
 let _ = require('lodash');
 
@@ -20,7 +19,7 @@ type RunCommand = (
   reporter: Reporter,
   flags: Object,
   args: Array<string>,
-) => Promise<void>;
+) => Promise<?boolean>;
 
 type SubCommands =  {
   [commandName: string]: RunCommand
@@ -47,17 +46,20 @@ export default function(rootCommandName: string, subCommands: SubCommands, usage
     args: Array<string>,
   ): Promise<void> {
     let subName = _.camelCase(args.shift() || '');
-    if (!subName || subCommandNames.indexOf(subName) < 0) {
-      reporter.error(`Usage:`);
-      for (let msg of usage) {
-        reporter.error(`kpm ${rootCommandName} ${msg}`);
-      }
-      return Promise.reject();
-    } else {  
+    let isValidCommand = subName && subCommandNames.indexOf(subName) >= 0;
+    if (isValidCommand) {
       let command: RunCommand = subCommands[subName];
-      await command(config, reporter, flags, args);
-      return Promise.resolve();
+      let res = await command(config, reporter, flags, args);
+      if (res !== false) {
+        return Promise.resolve();
+      }
     }
+
+    reporter.error(`Usage:`);
+    for (let msg of usage) {
+      reporter.error(`kpm ${rootCommandName} ${msg}`);
+    }
+    return Promise.reject();
   }
 
   return {run, setFlags};

@@ -9,11 +9,15 @@
  * @flow
  */
 
+import type RequestManager from '../util/RequestManager.js';
+import type {RegistryRequestOptions} from './Registry.js';
 import * as fs from '../util/fs.js';
 import Registry from './Registry.js';
+import {removeSuffix} from '../util/misc.js';
 
 const userHome = require('user-home');
 const path = require('path');
+const url = require('url');
 const ini = require('ini');
 const _ = require('lodash');
 
@@ -37,8 +41,8 @@ function getGlobalPrefix(): string {
 }
 
 export default class NpmRegistry extends Registry {
-  constructor(cwd: string) {
-    super(cwd);
+  constructor(cwd: string, requestManager: RequestManager) {
+    super(cwd, requestManager);
     this.folder = 'node_modules';
   }
 
@@ -47,6 +51,23 @@ export default class NpmRegistry extends Registry {
   static escapeName(name: string): string {
     // scoped packages contain slashes and the npm registry expects them to be escaped
     return name.replace('/', '%2f');
+  }
+
+  async request(pathname: string, opts?: RegistryRequestOptions = {}): Promise<Object | false> {
+    const registry = removeSuffix(this.config.registry, '/');
+
+    let headers = {};
+    if (this.token) {
+      headers.authorization = `Bearer ${this.token}`;
+    }
+
+    return this.requestManager.request({
+      url: url.resolve(registry, pathname),
+      method: opts.method,
+      body: opts.body,
+      headers,
+      json: true,
+    });
   }
 
   async getPossibleConfigLocations(filename: string): Promise<Array<[boolean, string, string]>> {

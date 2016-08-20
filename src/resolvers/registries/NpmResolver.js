@@ -54,13 +54,8 @@ export default class NpmResolver extends RegistryResolver {
         return res;
       }
     }
-
-    const registry = removeSuffix(this.registryConfig.registry, '/');
-
-    const body = await this.config.requestManager.request({
-      url: `${registry}/${NpmRegistry.escapeName(this.name)}`,
-      json: true,
-    });
+    
+    const body = await this.config.registries.npm.request(NpmRegistry.escapeName(this.name));
 
     if (body) {
       return await this.findVersionInRegistryResponse(body);

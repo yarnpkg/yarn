@@ -9,16 +9,24 @@
  * @flow
  */
 
+import type RequestManager, {RequestMethods} from '../util/RequestManager.js';
 import {removePrefix} from '../util/misc.js';
 import * as fs from '../util/fs.js';
 
 const path = require('path');
 const _ = require('lodash');
 
+export type RegistryRequestOptions = {
+  method?: RequestMethods,
+  body?: any,
+};
+
 export default class Registry {
-  constructor(cwd: string) {
+  constructor(cwd: string, requestManager: RequestManager) {
+    this.requestManager = requestManager;
     this.config = {};
     this.folder = '';
+    this.token = '';
     this.loc = '';
     this.cwd = cwd;
   }
@@ -28,6 +36,12 @@ export default class Registry {
 
   // the filename to use for package metadata
   static filename: string;
+
+  //
+  requestManager: RequestManager;
+
+  //
+  token: string;
 
   //
   cwd: string;
@@ -41,10 +55,20 @@ export default class Registry {
   // relative folder name to put these modules
   folder: string;
 
+  setToken(token: string) {
+    this.token = token;
+  }
+
   async loadConfig(): Promise<void> {}
 
   saveHomeConfig(config: Object): Promise<void> {
     return Promise.reject(new Error('unimplemented'));
+  }
+
+  async request(pathname: string, opts?: RegistryRequestOptions = {}): Promise<Object | false> {
+    pathname;
+    opts;
+    throw new Error('unimplemented');
   }
 
   async init(): Promise<void> {

@@ -160,9 +160,11 @@ export default class PackageRequest {
    */
 
   static normalisePattern(pattern: string): {
+    hasVersion: boolean,
     name: string,
-    range: string
+    range: string,
   } {
+    let hasVersion = false;
     let range = 'latest';
     let name = pattern;
 
@@ -177,7 +179,13 @@ export default class PackageRequest {
     const parts = name.split('@');
     if (parts.length > 1) {
       name = parts.shift();
-      range = parts.join('@') || '*';
+      range = parts.join('@');
+
+      if (range) {
+        hasVersion = true;
+      } else {
+        range = '*';
+      }
     }
 
     // add back @ scope suffix
@@ -185,7 +193,7 @@ export default class PackageRequest {
       name = `@${name}`;
     }
 
-    return {name, range};
+    return {name, range, hasVersion};
   }
 
   /**

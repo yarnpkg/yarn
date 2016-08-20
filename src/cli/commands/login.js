@@ -13,7 +13,7 @@ import type {Reporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
 import {MessageError} from '../../errors.js';
 
-export async function getCredentials(config: Config, reporter: Reporter): Promise<{
+async function getCredentials(config: Config, reporter: Reporter): Promise<?{
   username: string,
   email: string,
 }> {
@@ -24,6 +24,9 @@ export async function getCredentials(config: Config, reporter: Reporter): Promis
     reporter.info(`npm username: ${username}`);
   } else {
     username = await reporter.question('npm username');
+    if (!username) {
+      return;
+    }
   }
 
   let email = kpmConfig.email;
@@ -31,6 +34,9 @@ export async function getCredentials(config: Config, reporter: Reporter): Promis
     reporter.info(`npm email: ${email}`);
   } else {
     email = await reporter.question('npm email');
+    if (!email) {
+      return;
+    }
   }
 
   await config.registries.kpm.saveHomeConfig({username, email});
@@ -38,24 +44,29 @@ export async function getCredentials(config: Config, reporter: Reporter): Promis
   return {username, email};
 }
 
-export async function getToken(config: Config, reporter: Reporter): Promise<{
-  token: string,
-  revoke: () => Promise<void>
-}> {
+export async function getToken(config: Config, reporter: Reporter): Promise<
+  () => Promise<void>
+> {
   let env = process.env.KPM_AUTH_TOKEN || process.env.NPM_AUTH_TOKEN;
   if (env) {
-    return {
-      token: env,
-      async revoke() {
-        reporter.info('Not revoking login token, specified via environment variable');
-      },
+    config.registries.npm.setToken(env);
+    return async function revoke() {
+      reporter.info('Not revoking login token, specified via environment variable');
     };
   }
 
   let requestManager = config.requestManager;
 
   //
-  let {username, email} = await getCredentials(config, reporter);
+  let creds = await getCredentials(config, reporter);
+  if (!creds) {
+    reporter.warn('Logging in as public');
+    return async function revoke() {
+      reporter.info('No login token to revoke');
+    };
+  }
+
+  let {username, email} = creds;
   let password = await reporter.question('npm password', true);
 
   //
@@ -81,16 +92,16 @@ export async function getToken(config: Config, reporter: Reporter): Promise<{
 
   if (res.ok) {
     reporter.success(`Logged in`);
+
     let token = res.token;
-    return {
-      token,
-      async revoke(): Promise<void> {
-        reporter.success('Revoked login token');
-        await config.requestManager.request({
-          url: `${config.registries.npm.config.registry}/-/user/token/${token}`,
-          method: 'DELETE',
-        });
-      },
+    config.registries.npm.setToken(token);
+
+    return async function revoke(): Promise<void> {
+      reporter.success('Revoked login token');
+      await config.requestManager.request({
+        url: `${config.registries.npm.config.registry}/-/user/token/${token}`,
+        method: 'DELETE',
+      });
     };
   } else {
     throw new MessageError('Incorrect username or password');

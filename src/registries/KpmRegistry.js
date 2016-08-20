@@ -9,6 +9,7 @@
  * @flow
  */
 
+import type RequestManager from '../util/RequestManager.js';
 import NpmRegistry from './NpmRegistry.js';
 import stringify from '../lockfile/stringify.js';
 import parse from '../lockfile/parse.js';
@@ -19,8 +20,8 @@ const path = require('path');
 const _ = require('lodash');
 
 export default class KpmRegistry extends NpmRegistry {
-  constructor(cwd: string) {
-    super(cwd);
+  constructor(cwd: string, requestManager: RequestManager) {
+    super(cwd, requestManager);
 
     this.homeConfigLoc = path.join(userHome, '.kpmrc');
     this.homeConfig = {};

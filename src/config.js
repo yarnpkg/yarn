@@ -142,7 +142,7 @@ export default class Config {
       const Registry = registries[key];
 
       // instantiate registry
-      const registry = new Registry(this.cwd);
+      const registry = new Registry(this.cwd, this.requestManager);
       await registry.init();
 
       this.registries[key] = registry;

@@ -34,7 +34,6 @@ export function setFlags(commander: Object) {
 async function publish(
   config: Config,
   pkg: any,
-  token: string,
   flags: Object,
   dir: string,
 ): Promise<void> {
@@ -103,14 +102,9 @@ async function publish(
   pkg.dist.tarball = url.resolve(registry, tbURI).replace(/^https:\/\//, 'http://');
 
   // publish package
-  let res = await config.requestManager.request({
-    url: url.resolve(registry, NpmRegistry.escapeName(pkg.name)),
+  let res = await config.registries.npm.request(NpmRegistry.escapeName(pkg.name), {
     method: 'PUT',
     body: root,
-    headers: {
-      authorization: `Bearer ${token}`,
-    },
-    json: true,
   });
   if (!res.success) {
     throw new MessageError(`Couldn't publish package`);
@@ -147,11 +141,11 @@ export async function run(
 
   //
   reporter.step(2, 4, 'Logging in');
-  let {token, revoke} = await getToken(config, reporter);
+  let revoke = await getToken(config, reporter);
 
   //
   reporter.step(3, 4, 'Publishing');
-  await publish(config, pkg, token, flags, dir);
+  await publish(config, pkg, flags, dir);
   reporter.success('Published');
 
   //

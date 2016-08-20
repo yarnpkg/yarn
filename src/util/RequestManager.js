@@ -27,6 +27,8 @@ declare class RequestError extends Error {
   code: string,
 }
 
+export type RequestMethods = 'GET' | 'HEAD' | 'POST' | 'PUT' | 'DELETE';
+
 type RequestParams<T> = {
   url: string,
   auth?: {
@@ -35,7 +37,7 @@ type RequestParams<T> = {
     password?: string,
     token?: string,
   },
-  method?: 'GET' | 'HEAD' | 'POST' | 'PUT' | 'DELETE',
+  method?: RequestMethods,
   queue?: BlockingQueue,
   json?: boolean,
   body?: Object,
