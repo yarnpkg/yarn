@@ -10,11 +10,10 @@
  */
 
 import type {Manifest, FetchedManifest} from './types.js';
-import type {RegistryNames} from './registries/index.js';
 import type PackageResolver from './PackageResolver.js';
 import type {Reporter} from './reporters/index.js';
 import type Config from './config.js';
-import Lockfile, {parse as parseLock} from './lockfile/Lockfile.js';
+import Lockfile from './lockfile/Lockfile.js';
 import PackageReference from './PackageReference.js';
 import {registries as registryResolvers} from './resolvers/index.js';
 import {MessageError} from './errors.js';
@@ -27,34 +26,33 @@ import * as fs from './util/fs.js';
 const invariant = require('invariant');
 const path = require('path');
 
+type ResolverRegistryNames = $Keys<typeof registryResolvers>;
+
 export default class PackageRequest {
   constructor({
     pattern,
     registry,
     resolver,
-    lockfile,
     parentRequest,
     optional,
     ignore,
   }: {
     pattern: string,
-    lockfile: ?Lockfile,
-    registry: RegistryNames,
+    registry: ResolverRegistryNames,
     resolver: PackageResolver,
     optional: boolean,
     ignore: boolean,
     parentRequest: ?PackageRequest // eslint-disable-line no-unused-vars
   }) {
     this.parentRequest = parentRequest;
-    this.rootLockfile  = resolver.lockfile;
-    this.subLockfile   = lockfile;
-    this.registry      = registry;
-    this.reporter      = resolver.reporter;
-    this.resolver      = resolver;
-    this.optional      = optional;
-    this.pattern       = pattern;
-    this.config        = resolver.config;
-    this.ignore        = ignore;
+    this.lockfile = resolver.lockfile;
+    this.registry = registry;
+    this.reporter = resolver.reporter;
+    this.resolver = resolver;
+    this.optional = optional;
+    this.pattern = pattern;
+    this.config = resolver.config;
+    this.ignore = ignore;
   }
 
   static getExoticResolver(pattern: string): ?Function { // TODO make this type more refined
@@ -67,13 +65,12 @@ export default class PackageRequest {
   }
 
   parentRequest: ?PackageRequest;
-  rootLockfile: Lockfile;
-  subLockfile: ?Lockfile;
+  lockfile: Lockfile;
   reporter: Reporter;
   resolver: PackageResolver;
   pattern: string;
   config: Config;
-  registry: RegistryNames;
+  registry: ResolverRegistryNames;
   ignore: boolean;
   optional: boolean;
 
@@ -90,12 +87,7 @@ export default class PackageRequest {
 
   getLocked(remoteType: string): ?Object {
     // always prioritise root lockfile
-    let shrunk = this.rootLockfile.getLocked(this.pattern, !!this.subLockfile);
-
-    // fallback to sub lockfile if exists
-    if (this.subLockfile && !shrunk) {
-      shrunk = this.subLockfile.getLocked(this.pattern);
-    }
+    let shrunk = this.lockfile.getLocked(this.pattern);
 
     if (shrunk) {
       const resolvedParts = versionUtil.explodeHashedUrl(shrunk.resolved);
@@ -271,11 +263,6 @@ export default class PackageRequest {
     // set package reference
     const ref = new PackageReference(this, info, remote, this.resolver.lockfile.save);
 
-    // in order to support lockfiles inside transitive dependencies we need to block
-    // resolution to fetch the package so we can peek inside of it for a kpm.lock
-    // only do this in strict lockfile mode as otherwise we can just use our root lockfile
-    let subLockfile = null;
-
     // get possible mirror path
     const offlineMirrorPath = this.config.getOfflineMirrorPath(ref.remote.registry, ref.remote.reference);
 
@@ -289,7 +276,7 @@ export default class PackageRequest {
 
     //
     const shouldSaveMirror = this.resolver.lockfile.save && !!offlineMirrorPath;
-    let {package: newInfo, hash, dest }:FetchedManifest = await this.resolver.fetchingQueue.push(
+    let {package: newInfo, hash }:FetchedManifest = await this.resolver.fetchingQueue.push(
       info.name,
       (): Promise<FetchedManifest> => this.resolver.fetcher.fetch(ref, shouldSaveMirror),
     );
@@ -307,14 +294,6 @@ export default class PackageRequest {
     newInfo.remote = remote;
     info = newInfo;
 
-    // find and load in kpm.lock from this module if it exists
-    const lockfileLoc = path.join(dest, constants.LOCKFILE_FILENAME);
-    if (await fs.exists(lockfileLoc)) {
-      const rawLockfile = await fs.readFile(lockfileLoc);
-      const lockfileObj = parseLock(rawLockfile);
-      subLockfile = new Lockfile(lockfileObj, false, false, rawLockfile);
-    }
-
     // start installation of dependencies
     const promises = [];
     const deps = [];
@@ -328,7 +307,6 @@ export default class PackageRequest {
         registry: remote.registry,
         optional: false,
         parentRequest: this,
-        subLockfile,
       }));
     }
 
@@ -341,7 +319,6 @@ export default class PackageRequest {
         registry: remote.registry,
         optional: true,
         parentRequest: this,
-        subLockfile,
       }));
     }
 

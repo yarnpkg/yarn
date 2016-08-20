@@ -21,6 +21,7 @@ export const lockQueue = new BlockingQueue('fs lock');
 
 export const readFileBuffer = promisify(fs.readFile);
 export const writeFile      = promisify(fs.writeFile);
+export const readlink       = promisify(fs.readlink);
 export const realpath       = promisify(fs.realpath);
 export const readdir        = promisify(fs.readdir);
 export const rename         = promisify(fs.rename);
@@ -233,9 +234,9 @@ export async function copyBulk(
   }), 4);
 }
 
-export async function readFile(loc: string): Promise<string> {
+async function _readFile(loc: string, encoding: string): Promise<any> {
   return new Promise((resolve, reject) => {
-    fs.readFile(loc, 'utf8', function(err, content) {
+    fs.readFile(loc, encoding, function(err, content) {
       if (err) {
         reject(err);
       } else {
@@ -243,6 +244,23 @@ export async function readFile(loc: string): Promise<string> {
       }
     });
   });
+}
+
+export async function readFile(loc: string): Promise<string> {
+  return _readFile(loc, 'utf8');
+}
+
+export async function readFileRaw(loc: string): Promise<Buffer> {
+  return _readFile(loc, 'binary');
+}
+
+export async function readFileAny(files: Array<string>): Promise<?string> {
+  for (let file of files) {
+    if (await exists(file)) {
+      return readFile(file);
+    }
+  }
+  return null;
 }
 
 export async function readJson(loc: string): Promise<Object> {
@@ -317,10 +335,9 @@ export async function walk(dir: string, relativeDir?: string): Promise<Array<{
   for (const name of await readdir(dir)) {
     const relative = relativeDir ? path.join(relativeDir, name) : name;
     const loc = path.join(dir, name);
+    files.push({relative, absolute: loc});
     if ((await lstat(loc)).isDirectory()) {
       files = files.concat(await walk(loc, relative));
-    } else {
-      files.push({relative, absolute: loc});
     }
   }
 

@@ -9,14 +9,14 @@
  * @flow
  */
 
-import KpmRegistry from './KpmRegistry.js';
-import NpmRegistry from './NpmRegistry.js';
-import BowerRegistry from './BowerRegistry.js';
+import type {Reporter} from '../../reporters/index.js';
+import type Config from '../../config.js';
 
-export let registries = {
-  npm: NpmRegistry,
-  kpm: KpmRegistry,
-  bower: BowerRegistry,
-};
+export async function run(
+ config: Config,
+ reporter: Reporter,
+ flags: Object,
+ args: Array<string>,
+): Promise<void> {
 
-export type RegistryNames = $Keys<typeof registries>;
+}

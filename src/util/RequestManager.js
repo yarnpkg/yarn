@@ -28,9 +28,16 @@ declare class RequestError extends Error {
 
 type RequestParams<T> = {
   url: string,
-  method?: "GET" | "HEAD" | "POST" | "PUT",
+  auth?: {
+    email?: string,
+    username?: string,
+    password?: string,
+    token?: string,
+  },
+  method?: 'GET' | 'HEAD' | 'POST' | 'PUT' | 'DELETE',
   queue?: BlockingQueue,
   json?: boolean,
+  body?: Object,
   forever?: boolean,
   headers?: {
     [name: string]: string
@@ -113,22 +120,28 @@ export default class RequestManager {
    * Check if an error is possibly due to lost or poor network connectivity.
    */
 
-  isPossibleOfflineError(err: RequestError): boolean {
+  isPossibleOfflineError(err: Error | RequestError): boolean {
+    // $FlowFixMe: dunno how else to do this
+    let {code, hostname} = err;
+    if (!code || !hostname) {
+      return false;
+    }
+
     // network was previously online but now we're offline
     const possibleOfflineChange = !controlOffline && !network.isOffline();
-    if (err.code === 'ENOTFOUND' && possibleOfflineChange) {
+    if (code === 'ENOTFOUND' && possibleOfflineChange) {
       // can't resolve a domain
       return true;
     }
 
     // used to be able to resolve this domain! something is wrong
-    if (err.code === 'ENOTFOUND' && successHosts[err.hostname]) {
+    if (code === 'ENOTFOUND' && successHosts[hostname]) {
       // can't resolve this domain but we've successfully resolved it before
       return true;
     }
 
     // network was previously offline and we can't resolve the domain
-    if (err.code === 'ENOTFOUND' && controlOffline) {
+    if (code === 'ENOTFOUND' && controlOffline) {
       return true;
     }
 
@@ -188,13 +201,32 @@ export default class RequestManager {
     };
 
     //
+    let calledOnError = false;
+    let onError = (err) => {
+      if (calledOnError) {
+        return;
+      }
+      calledOnError = true;
+
+      const attempts = params.retryAttempts || 0;
+      if (attempts < 5 && this.isPossibleOfflineError(err)) {
+        params.retryAttempts = attempts + 1;
+        if (params.cleanup) {
+          params.cleanup();
+        }
+        this.queueForOffline(opts);
+      } else {
+        reject(err);
+      }
+    };
 
     if (!params.process) {
       const parts = url.parse(params.url);
 
       params.callback = function(err, res, body) {
         if (err) {
-          return; // will be handled by the `error` event handler
+          onError(err);
+          return;
         }
 
         successHosts[parts.hostname] = true;
@@ -213,18 +245,7 @@ export default class RequestManager {
 
     const req = new Request(params);
 
-    req.on('error', (err) => {
-      const attempts = params.retryAttempts || 0;
-      if (attempts < 5 && this.isPossibleOfflineError(err)) {
-        params.retryAttempts = attempts + 1;
-        if (params.cleanup) {
-          params.cleanup();
-        }
-        this.queueForOffline(opts);
-      } else {
-        reject(err);
-      }
-    });
+    req.on('error', onError);
 
     const queue = params.queue;
     if (queue) {

@@ -83,7 +83,7 @@ export default class TarballResolver extends ExoticResolver {
       hash    = fetched.hash;
 
       // $FlowFixMe: this is temporarily added on here so we can put it on the remote
-      registry = pkgJson.registry;
+      registry = pkgJson._registry;
     }
 
     // use the commit/tarball hash as the uid as we can't rely on the version as it's not

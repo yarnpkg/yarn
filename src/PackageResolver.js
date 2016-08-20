@@ -328,14 +328,12 @@ export default class PackageResolver {
     ignore = false,
     optional = false,
     parentRequest,
-    subLockfile,
   }: {
     pattern: string,
     registry: RegistryNames,
     optional?: boolean,
     ignore?: boolean,
     parentRequest?: ?PackageRequest,
-    subLockfile?: ?Lockfile
   }): Promise<void> {
     const fetchKey = `${registry}:${pattern}`;
     if (this.fetchingPatterns[fetchKey]) {
@@ -358,7 +356,6 @@ export default class PackageResolver {
     }
 
     const request = new PackageRequest({
-      lockfile: subLockfile,
       pattern,
       registry,
       parentRequest,

@@ -114,8 +114,30 @@ export default class BaseReporter {
   }
 
   //
-  question(question: string): Promise<boolean> {
+  question(question: string, password?: boolean): Promise<string> {
     return Promise.reject(new Error('Not implemented'));
+  }
+
+  //
+  async questionAffirm(question: string): Promise<boolean> {
+    let condition = true; // trick eslint
+
+    while (condition) {
+      let answer = await this.question(question);
+      answer = answer.toLowerCase();
+
+      if (answer === 'y' || answer === 'yes') {
+        return true;
+      }
+
+      if (answer === 'n' || answer === 'no') {
+        return false;
+      }
+
+      this.error('Invalid answer for question');
+    }
+
+    return false;
   }
 
   // prompt the user to select an option from an array

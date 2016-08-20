@@ -14,8 +14,8 @@ import Registry from './Registry.js';
 
 const userHome = require('user-home');
 const path = require('path');
-const _ = require('lodash');
 const ini = require('ini');
+const _ = require('lodash');
 
 function getGlobalPrefix(): string {
   if (process.env.PREFIX) {
@@ -37,32 +37,50 @@ function getGlobalPrefix(): string {
 }
 
 export default class NpmRegistry extends Registry {
-  static filenames = ['package.json'];
-  static directory = 'node_modules';
-
-  async loadConfig(): Promise<void> {
-    // docs: https://docs.npmjs.com/misc/config
+  constructor(cwd: string) {
+    super(cwd);
     this.folder = 'node_modules';
+  }
 
+  static filename = 'package.json';
+
+  static escapeName(name: string): string {
+    // scoped packages contain slashes and the npm registry expects them to be escaped
+    return name.replace('/', '%2f');
+  }
+
+  async getPossibleConfigLocations(filename: string): Promise<Array<[boolean, string, string]>> {
     const possibles = [
-      path.join(getGlobalPrefix(), '.npmrc'),
-      path.join(userHome, '.npmrc'),
-      path.join(this.cwd, '.npmrc'),
+      [false, path.join(getGlobalPrefix(), filename)],
+      [true, path.join(userHome, filename)],
+      [false, path.join(this.cwd, filename)],
     ];
+
     const foldersFromRootToCwd = this.cwd.split(path.sep);
     while (foldersFromRootToCwd.length > 1) {
-      possibles.push(path.join(foldersFromRootToCwd.join(path.sep), '.npmrc'));
+      possibles.push([false, path.join(foldersFromRootToCwd.join(path.sep), filename)]);
       foldersFromRootToCwd.pop();
     }
 
+    let actuals = [];
+    for (let [isHome, loc] of possibles) {
+      if (await fs.exists(loc)) {
+        actuals.push([
+          isHome,
+          loc,
+          await fs.readFile(loc),
+        ]);
+      }
+    }
+    return actuals;
+  }
+
+  async loadConfig(): Promise<void> {
+    // docs: https://docs.npmjs.com/misc/config
     this.mergeEnv('npm_config_');
 
-    for (const loc of possibles) {
-      if (!(await fs.exists(loc))) {
-        continue;
-      }
-
-      const config = ini.parse(await fs.readFile(loc));
+    for (const [, loc, file] of await this.getPossibleConfigLocations('.npmrc')) {
+      const config = ini.parse(file);
 
       // normalise kpm offline mirror path relative to the current npmrc
       const offlineLoc = config['kpm-offline-mirror'];

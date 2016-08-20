@@ -14,6 +14,7 @@ import {MessageError} from '../../errors.js';
 import RegistryResolver from './RegistryResolver.js';
 import {queue} from '../../util/promise.js';
 import {entries, removeSuffix} from '../../util/misc.js';
+import NpmRegistry from '../../registries/NpmRegistry.js';
 import map from '../../util/map.js';
 import * as fs from '../../util/fs.js';
 
@@ -71,13 +72,8 @@ export default class NpmResolver extends RegistryResolver {
 
     const registry = removeSuffix(this.registryConfig.registry, '/');
 
-    let name = this.name;
-
-    // scoped packages contain slashes and the npm registry expects them to be escaped
-    name = name.replace('/', '%2F');
-
     const body = await this.config.requestManager.request({
-      url: `${registry}/${name}`,
+      url: `${registry}/${NpmRegistry.escapeName(this.name)}`,
       json: true,
     });
 

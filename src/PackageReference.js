@@ -28,7 +28,7 @@ export default class PackageReference {
     saveForOffline: boolean,
   ) {
     this.resolver = request.resolver;
-    this.lockfile = request.rootLockfile;
+    this.lockfile = request.lockfile;
     this.requests = [request];
     this.config   = request.config;
 

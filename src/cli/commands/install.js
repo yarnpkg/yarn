@@ -99,46 +99,43 @@ export class Install {
     }
 
     for (const registry of Object.keys(registries)) {
-      const filenames = registries[registry].filenames;
-
-      for (const filename of filenames) {
-        const loc = path.join(this.config.cwd, filename);
-        if (!(await fs.exists(loc))) {
-          continue;
-        }
-
-        this.registries.push(registry);
-
-        const json = await fs.readJson(loc);
-        Object.assign(this.resolutions, json.resolutions);
-        Object.assign(manifest, json);
-
-        const pushDeps = (depType, {hint, ignore, optional}) => {
-          const depMap = json[depType];
-          for (const name in depMap) {
-            if (excludeNames.indexOf(name) >= 0) {
-              continue;
-            }
-
-            let pattern = name;
-            if (!this.lockfile.getLocked(pattern, true)) {
-              // when we use --save we save the dependency to the lockfile with just the name rather than the
-              // version combo
-              pattern += '@' + depMap[name];
-            }
-
-            this.rootPatternsToOrigin[pattern] = depType;
-            patterns.push(pattern);
-            deps.push({pattern, registry, ignore, hint, optional});
-          }
-        };
-
-        pushDeps('dependencies', {hint: null, ignore: false, optional: false});
-        pushDeps('devDependencies', {hint: 'dev', ignore: !!this.flags.production, optional: false});
-        pushDeps('optionalDependencies', {hint: 'optional', ignore: false, optional: true});
-
-        break;
+      const filename = registries[registry].filename;
+      const loc = path.join(this.config.cwd, filename);
+      if (!(await fs.exists(loc))) {
+        continue;
       }
+
+      this.registries.push(registry);
+
+      const json = await fs.readJson(loc);
+      Object.assign(this.resolutions, json.resolutions);
+      Object.assign(manifest, json);
+
+      const pushDeps = (depType, {hint, ignore, optional}) => {
+        const depMap = json[depType];
+        for (const name in depMap) {
+          if (excludeNames.indexOf(name) >= 0) {
+            continue;
+          }
+
+          let pattern = name;
+          if (!this.lockfile.getLocked(pattern, true)) {
+            // when we use --save we save the dependency to the lockfile with just the name rather than the
+            // version combo
+            pattern += '@' + depMap[name];
+          }
+
+          this.rootPatternsToOrigin[pattern] = depType;
+          patterns.push(pattern);
+          deps.push({pattern, registry, ignore, hint, optional});
+        }
+      };
+
+      pushDeps('dependencies', {hint: null, ignore: false, optional: false});
+      pushDeps('devDependencies', {hint: 'dev', ignore: !!this.flags.production, optional: false});
+      pushDeps('optionalDependencies', {hint: 'optional', ignore: false, optional: true});
+
+      break;
     }
 
     return [deps, patterns, manifest];

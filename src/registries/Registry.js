@@ -27,7 +27,7 @@ export default class Registry {
   static alwaysFlatten = false;
 
   // the filename to use for package metadata
-  static filenames: Array<string>;
+  static filename: string;
 
   //
   cwd: string;
@@ -42,6 +42,10 @@ export default class Registry {
   folder: string;
 
   async loadConfig(): Promise<void> {}
+
+  saveHomeConfig(config: Object): Promise<void> {
+    return Promise.reject(new Error('unimplemented'));
+  }
 
   async init(): Promise<void> {
     this.mergeEnv('kpm_');

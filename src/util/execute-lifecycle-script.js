@@ -11,7 +11,7 @@
 
 import * as constants from '../constants.js';
 import * as child from './child.js';
-import {registries} from '../resolvers/index.js';
+import {registries} from '../registries/index.js';
 import type Config from '../config';
 
 const path = require('path');

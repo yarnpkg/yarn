@@ -86,7 +86,7 @@ export default class PackageInstallScripts {
       }
 
       if (this.needsPermission && !ref.hasPermission('scripts')) {
-        const can = await this.reporter.question(
+        const can = await this.reporter.questionAffirm(
           `Module ${pkg.name} wants to execute the commands ${JSON.stringify(cmds)}. Do you want to accept?`,
         );
         if (!can) {

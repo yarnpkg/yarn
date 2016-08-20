@@ -136,8 +136,8 @@ export default class PackageLinker {
     // register root packages as being possibly extraneous
     const possibleExtraneous = [];
     for (const registry of Object.keys(registries)) {
-      const directory = registries[registry].directory;
-      const loc = path.join(this.config.cwd, directory);
+      const {folder} = this.config.registries[registry];
+      const loc = path.join(this.config.cwd, folder);
 
       if (await fs.exists(loc)) {
         const files = await fs.readdir(loc);

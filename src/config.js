@@ -165,8 +165,8 @@ export default class Config {
 
     let name = pkg.name;
     let uid = pkg.uid;
-    if (pkg.registry) {
-      name = `${pkg.registry}-${name}`;
+    if (pkg._registry) {
+      name = `${pkg._registry}-${name}`;
       uid = pkg.version || uid;
     }
 
@@ -324,19 +324,19 @@ export default class Config {
    */
 
   async tryManifest(dir: string, registry: RegistryNames): ?Object {
-    const filenames = registries[registry].filenames;
-    for (const filename of filenames) {
-      const loc = path.join(dir, filename);
-      if (await fs.exists(loc)) {
-        const data = await fs.readJson(loc);
-        data.registry = registry;
+    const {filename} = registries[registry];
+    const loc = path.join(dir, filename);
+    if (await fs.exists(loc)) {
+      const data = await fs.readJson(loc);
+      data._registry = registry;
+      data._loc = loc;
 
-        // TODO: warn
-        await normaliseManifest(data, dir);
+      // TODO: warn
+      await normaliseManifest(data, dir);
 
-        return data;
-      }
+      return data;
+    } else {
+      return null;
     }
-    return null;
   }
 }
