@@ -81,8 +81,8 @@ export default class PackageReference {
     this.requests.push(request);
   }
 
-  setDependencies(deps: Array<string>) {
-    this.dependencies = deps;
+  addDependencies(deps: Array<string>) {
+    this.dependencies = this.dependencies.concat(deps);
   }
 
   setPermission(key: string, val: boolean) {

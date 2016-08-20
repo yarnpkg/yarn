@@ -300,7 +300,7 @@ export default class PackageRequest {
     await Promise.all(promises);
 
     this.resolver.addPattern(this.pattern, info);
-    ref.setDependencies(deps);
+    ref.addDependencies(deps);
     ref.addPattern(this.pattern);
     ref.addOptional(this.optional);
     ref.addIgnore(this.ignore);

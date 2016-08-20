@@ -58,7 +58,9 @@ export default class PackageLinker {
     }
   }
 
-  async linkBinDependencies(deps: DependencyPairs, pkg: Manifest, dir: string): Promise<void> {
+  async linkBinDependencies(pkg: Manifest, dir: string): Promise<void> {
+    const deps: DependencyPairs = [];
+
     const ref = pkg._reference;
     invariant(ref, 'Package reference is missing');
 
@@ -169,23 +171,28 @@ export default class PackageLinker {
     const tickBin = this.reporter.progress(flatTree.length);
     await promise.queue(flatTree, async ([dest, {pkg}]) => {
       const binLoc = path.join(dest, this.config.getFolder(pkg));
-      await this.linkBinDependencies([], pkg, binLoc);
+      await this.linkBinDependencies(pkg, binLoc);
       tickBin(dest);
     }, 4);
   }
 
-  async resolvePeerModules(pkg: Manifest): Promise<DependencyPairs> {
+  resolvePeerModules() {
+    for (let pkg of this.resolver.getManifests()) {
+      this._resolvePeerModules(pkg);
+    }
+  }
+
+  _resolvePeerModules(pkg: Manifest) {
+    let peerDeps = pkg.peerDependencies;
+    if (!peerDeps) {
+      return;
+    }
+
     const ref = pkg._reference;
     invariant(ref, 'Package reference is missing');
 
-    const deps = [];
-
-    if (!pkg.peerDependencies) {
-      return deps;
-    }
-
-    for (const name in pkg.peerDependencies) {
-      const range = pkg.peerDependencies[name];
+    for (const name in peerDeps) {
+      const range = peerDeps[name];
 
       // find a dependency in the tree above us that matches
       let searchPatterns: Array<string> = [];
@@ -212,31 +219,26 @@ export default class PackageLinker {
       for (const pattern of searchPatterns) {
         const dep = this.resolver.getResolvedPattern(pattern);
         if (dep && dep.name === name) {
-          foundDep = {pattern, version: dep.version, package: dep};
+          foundDep = {pattern, version: dep.version};
           break;
         }
       }
 
       // validate found peer dependency
       if (foundDep) {
-        if (range === '*' || semver.satisfies(range, foundDep.version)) {
-          deps.push({
-            pattern: foundDep.pattern,
-            dep: foundDep.package,
-            loc: this.config.generateHardModulePath(foundDep.package._reference),
-          });
+        if (range === '*' || semver.satisfies(foundDep.version, range)) {
+          ref.addDependencies([foundDep.pattern]);
         } else {
-          this.reporter.warn('TODO not match');
+          this.reporter.warn(`Incorrect peer dependency ${name}@${range}`);
         }
       } else {
-        this.reporter.warn('TODO missing dep');
+        this.reporter.warn(`Unmet peer dependency ${name}@${range}`);
       }
     }
-
-    return deps;
   }
 
   async init(patterns: Array<string>): Promise<void> {
+    this.resolvePeerModules();
     await this.copyModules(patterns);
     await this.saveAll(patterns);
   }

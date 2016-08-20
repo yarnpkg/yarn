@@ -145,16 +145,18 @@ export default class PackageResolver {
 
   getTopologicalManifests(seedPatterns: Array<string>): Iterable<Manifest> {
     let pkgs: Set<Manifest> = new Set();
+    let skip: Set<Manifest> = new Set();
 
     let add = (seedPatterns: Array<string>) => {
       for (let pattern of seedPatterns) {
         let pkg = this.getStrictResolvedPattern(pattern);
-        if (pkgs.has(pkg)) {
+        if (skip.has(pkg)) {
           continue;
         }
 
         let ref = pkg._reference;
         invariant(ref, 'expected reference');
+        skip.add(pkg);
         add(ref.dependencies);
         pkgs.add(pkg);
       }
