@@ -11,10 +11,12 @@
 
 import RegistryNpm from './registries/NpmResolver.js';
 import RegistryBower from './registries/BowerResolver.js';
+import RegistryKpm from './registries/KpmResolver.js';
 
 export let registries = {
   bower: RegistryBower,
   npm: RegistryNpm,
+  kpm: RegistryKpm,
 };
 
 //

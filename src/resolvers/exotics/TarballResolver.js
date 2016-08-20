@@ -18,6 +18,7 @@ import * as versionUtil from '../../util/version.js';
 import * as crypto from '../../util/crypto.js';
 import * as fs from '../../util/fs.js';
 
+const invariant = require('invariant');
 const _ = require('lodash');
 
 export default class TarballResolver extends ExoticResolver {
@@ -26,7 +27,7 @@ export default class TarballResolver extends ExoticResolver {
 
     let {hash, url} = versionUtil.explodeHashedUrl(fragment);
     this.hash = hash;
-    this.url  = url;
+    this.url = url;
   }
 
   url: string;
@@ -80,18 +81,18 @@ export default class TarballResolver extends ExoticResolver {
       // fetch file and get it's hash
       const fetched: FetchedManifest = await fetcher.fetch(dest);
       pkgJson = fetched.package;
-      hash    = fetched.hash;
+      hash = fetched.hash;
 
-      // $FlowFixMe: this is temporarily added on here so we can put it on the remote
       registry = pkgJson._registry;
+      invariant(registry, 'expected registry');
     }
 
     // use the commit/tarball hash as the uid as we can't rely on the version as it's not
     // in the registry
-    pkgJson.uid = hash;
+    pkgJson._uid = hash;
 
     // set remote so it can be "fetched"
-    pkgJson.remote = {
+    pkgJson._remote = {
       type: 'copy',
       resolved: `${url}#${hash}`,
       hash,

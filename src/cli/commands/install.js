@@ -12,6 +12,8 @@
 import type {Reporter} from '../../reporters/index.js';
 import type {DependencyRequestPatterns} from '../../types.js';
 import type Config from '../../config.js';
+import type {RegistryNames} from '../../registries/index.js';
+import {registryNames} from '../../registries/index.js';
 import Lockfile from '../../lockfile/Lockfile.js';
 import lockStringify from '../../lockfile/stringify.js';
 import PackageInstallScripts from '../../PackageInstallScripts.js';
@@ -43,19 +45,19 @@ export class Install {
     lockfile: Lockfile,
   ) {
     this.rootPatternsToOrigin = map();
-    this.resolutions          = map();
-    this.registries           = [];
-    this.lockfile             = lockfile;
-    this.reporter             = reporter;
-    this.config               = config;
-    this.action               = action;
-    this.flags                = flags;
-    this.args                 = args;
+    this.resolutions = map();
+    this.registries = [];
+    this.lockfile = lockfile;
+    this.reporter = reporter;
+    this.config = config;
+    this.action = action;
+    this.flags = flags;
+    this.args = args;
 
-    this.resolver      = new PackageResolver(config, lockfile);
+    this.resolver = new PackageResolver(config, lockfile);
     this.compatibility = new PackageCompatibility(config, this.resolver);
-    this.linker        = new PackageLinker(config, this.resolver);
-    this.scripts       = new PackageInstallScripts(config, this.resolver, flags.rebuild);
+    this.linker = new PackageLinker(config, this.resolver);
+    this.scripts = new PackageInstallScripts(config, this.resolver, flags.rebuild);
   }
 
   action: InstallActions;
@@ -99,7 +101,7 @@ export class Install {
     }
 
     for (const registry of Object.keys(registries)) {
-      const filename = registries[registry].filename;
+      const {filename} = registries[registry];
       const loc = path.join(this.config.cwd, filename);
       if (!(await fs.exists(loc))) {
         continue;
@@ -196,7 +198,7 @@ export class Install {
   }
 
   /**
-   * Save added packages to `package.json` if any of the --save flags were used
+   * Save added packages to manifest if any of the --save flags were used
    */
 
   async savePackages(): Promise<void> {
@@ -209,15 +211,26 @@ export class Install {
       return;
     }
 
-    let json = {};
-    const jsonLoc = path.join(this.config.cwd, 'package.json');
-    if (await fs.exists(jsonLoc)) {
-      json = await fs.readJson(jsonLoc);
+    let jsons: {
+      [registryName: RegistryNames]: [string, Object]
+    } = {};
+    for (let registryName of registryNames) {
+      const registry = registries[registryName];
+      const jsonLoc = path.join(this.config.cwd, registry.filename);
+
+      let json = {};
+      if (await fs.exists(jsonLoc)) {
+        json = await fs.readJson(jsonLoc);
+      }
+      jsons[registryName] = [jsonLoc, json];
     }
 
     for (const pattern of this.resolver.dedupePatterns(this.args)) {
       const pkg = this.resolver.getResolvedPattern(pattern);
       invariant(pkg, `missing package ${pattern}`);
+
+      const ref = pkg._reference;
+      invariant(ref, 'expected package reference');
 
       const parts = PackageRequest.normalisePattern(pattern);
       let version;
@@ -236,7 +249,7 @@ export class Install {
       }
 
       // build up list of objects to put ourselves into from the cli args
-      const targetKeys = [];
+      const targetKeys: Array<string> = [];
       if (save) {
         targetKeys.push('dependencies');
       }
@@ -253,7 +266,8 @@ export class Install {
         continue;
       }
 
-      // add it to package.json
+      // add it to manifest
+      const json = jsons[ref.registry][1];
       for (const key of targetKeys) {
         const target = json[key] = json[key] || {};
         target[pkg.name] = version;
@@ -268,7 +282,10 @@ export class Install {
       this.resolver.removePattern(pattern);
     }
 
-    await fs.writeFile(jsonLoc, stringify(json) + '\n');
+    for (let registryName of registryNames) {
+      let [loc, json] = jsons[registryName];
+      await fs.writeFile(loc, stringify(json) + '\n');
+    }
   }
 
   /**
@@ -283,7 +300,7 @@ export class Install {
     for (const name of this.resolver.getAllDependencyNames()) {
       const infos = this.resolver.getAllInfoForPackageName(name);
 
-      const firstRemote = infos[0] && infos[0].remote;
+      const firstRemote = infos[0] && infos[0]._remote;
       invariant(firstRemote, 'Missing first remote');
 
       if (infos.length === 1) {

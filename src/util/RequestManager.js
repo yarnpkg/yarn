@@ -60,11 +60,11 @@ type RequestOptions = {
 export default class RequestManager {
   constructor(reporter: Reporter) {
     this.offlineQueue = [];
-    this.reporter     = reporter;
-    this.running      = 0;
-    this.queue        = [];
-    this.cache        = {};
-    this.max          = constants.NETWORK_CONCURRENCY;
+    this.reporter = reporter;
+    this.running = 0;
+    this.queue = [];
+    this.cache = {};
+    this.max = constants.NETWORK_CONCURRENCY;
   }
 
   reporter: Reporter;

@@ -21,7 +21,7 @@ import {entries} from './util/misc.js';
 import * as fs from './util/fs.js';
 
 const invariant = require('invariant');
-const cmdShim   = promise.promisify(require('cmd-shim'));
+const cmdShim = promise.promisify(require('cmd-shim'));
 const semver = require('semver');
 const path = require('path');
 const _ = require('lodash');
@@ -35,7 +35,7 @@ export default class PackageLinker {
   constructor(config: Config, resolver: PackageResolver) {
     this.resolver = resolver;
     this.reporter = config.reporter;
-    this.config   = config;
+    this.config = config;
   }
 
   reporter: Reporter;
@@ -47,7 +47,7 @@ export default class PackageLinker {
     pkgLoc = await fs.realpath(pkgLoc);
     for (let [scriptName, scriptCmd] of entries(pkg.bin)) {
       const dest = path.join(targetBinLoc, scriptName);
-      const src  = path.join(pkgLoc, scriptCmd);
+      const src = path.join(pkgLoc, scriptCmd);
 
       if (process.platform === 'win32') {
         await cmdShim(src, dest);
@@ -59,24 +59,28 @@ export default class PackageLinker {
   }
 
   async linkBinDependencies(deps: DependencyPairs, pkg: Manifest, dir: string): Promise<void> {
-    const ref = pkg.reference;
+    const ref = pkg._reference;
     invariant(ref, 'Package reference is missing');
 
-    const remote = pkg.remote;
+    const remote = pkg._remote;
     invariant(remote, 'Package remote is missing');
 
     // link up `bin scripts` in `dependencies`
     for (const pattern of ref.dependencies) {
       const dep = this.resolver.getStrictResolvedPattern(pattern);
       if (!_.isEmpty(dep.bin)) {
-        deps.push({dep, loc: this.config.generateHardModulePath(dep.reference)});
+        deps.push({dep, loc: this.config.generateHardModulePath(dep._reference)});
       }
     }
 
     // link up the `bin` scripts in bundled dependencies
     if (pkg.bundleDependencies) {
       for (const depName of pkg.bundleDependencies) {
-        const loc = path.join(this.config.generateHardModulePath(ref), 'node_modules', depName);
+        const loc = path.join(
+          this.config.generateHardModulePath(ref),
+          this.config.getFolder(pkg),
+          depName,
+        );
 
         const dep = await this.config.readManifest(loc, remote.registry);
 
@@ -118,7 +122,7 @@ export default class PackageLinker {
     //
     const queue = [];
     for (let [dest, {pkg, loc: src}] of flatTree) {
-      const ref = pkg.reference;
+      const ref = pkg._reference;
       invariant(ref, 'expected package reference');
 
       ref.setLocation(dest);
@@ -164,14 +168,14 @@ export default class PackageLinker {
     //
     const tickBin = this.reporter.progress(flatTree.length);
     await promise.queue(flatTree, async ([dest, {pkg}]) => {
-      const binLoc = path.join(dest, 'node_modules');
+      const binLoc = path.join(dest, this.config.getFolder(pkg));
       await this.linkBinDependencies([], pkg, binLoc);
       tickBin(dest);
     }, 4);
   }
 
   async resolvePeerModules(pkg: Manifest): Promise<DependencyPairs> {
-    const ref = pkg.reference;
+    const ref = pkg._reference;
     invariant(ref, 'Package reference is missing');
 
     const deps = [];
@@ -194,7 +198,7 @@ export default class PackageLinker {
           }
 
           //
-          const ref = dep.reference;
+          const ref = dep._reference;
           invariant(ref, 'expected reference');
           searchPatterns = searchPatterns.concat(ref.dependencies);
         } while (request = request.parentRequest);
@@ -219,7 +223,7 @@ export default class PackageLinker {
           deps.push({
             pattern: foundDep.pattern,
             dep: foundDep.package,
-            loc: this.config.generateHardModulePath(foundDep.package.reference),
+            loc: this.config.generateHardModulePath(foundDep.package._reference),
           });
         } else {
           this.reporter.warn('TODO not match');
@@ -241,7 +245,7 @@ export default class PackageLinker {
     const resolved = this.resolver.getResolvedPattern(pattern);
     invariant(resolved, `Couldn't find resolved name/version for ${pattern}`);
 
-    const ref = resolved.reference;
+    const ref = resolved._reference;
     invariant(ref, 'Missing reference');
 
     //

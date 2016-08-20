@@ -22,7 +22,7 @@ export const NETWORK_CONCURRENCY = 15;
 // max amount of child processes to execute concurrently
 export const CHILD_CONCURRENCY = 5;
 
-export const REQUIRED_PACKAGE_KEYS = ['name', 'version', 'uid'];
+export const REQUIRED_PACKAGE_KEYS = ['name', 'version', '_uid'];
 
 function or(filenames: Array<string>, cwd: string): string {
   for (const filename of filenames) {

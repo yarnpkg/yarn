@@ -121,7 +121,7 @@ export default class HostedGitResolver extends ExoticResolver {
     const commit = await this.getRefOverHTTP(url);
 
     const tryRegistry = async (registry): Promise<?Manifest> => {
-      const filename = registries[registry].filename;
+      const {filename} = registries[registry];
 
       const file = await this.config.requestManager.request({
         url: this.constructor.getHTTPFileUrl(this.exploded, filename, commit),
@@ -132,8 +132,8 @@ export default class HostedGitResolver extends ExoticResolver {
       }
 
       const json = JSON.parse(file);
-      json.uid = commit;
-      json.remote = {
+      json._uid = commit;
+      json._remote = {
         //resolved // TODO
         type: 'tarball',
         reference: this.constructor.getTarballUrl(this.exploded, commit),
@@ -171,7 +171,7 @@ export default class HostedGitResolver extends ExoticResolver {
 
   async resolve(): Promise<Manifest> {
     const httpUrl = this.constructor.getGitHTTPUrl(this.exploded);
-    const sshUrl  = this.constructor.getGitSSHUrl(this.exploded);
+    const sshUrl = this.constructor.getGitSSHUrl(this.exploded);
 
     // If we can access the files over HTTP then we should as it's MUCH faster than git
     // archive and tarball unarchiving. The HTTP API is only available for public repos

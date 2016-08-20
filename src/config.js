@@ -44,17 +44,17 @@ type PackageMetadata = {
 export default class Config {
   constructor(reporter: Reporter, opts?: ConfigOptions = {}) {
     this.constraintResolver = new ConstraintResolver(this, reporter);
-    this.requestManager     = new RequestManager(reporter);
-    this.reporter           = reporter;
+    this.requestManager = new RequestManager(reporter);
+    this.reporter = reporter;
 
     this.registries = map();
-    this.cache      = map();
-    this.cwd        = opts.cwd || process.cwd();
+    this.cache = map();
+    this.cwd = opts.cwd || process.cwd();
 
     this.modulesFolder = opts.modulesFolder || path.join(this.cwd, 'node_modules');
-    this.packagesRoot  = opts.packagesRoot;
-    this.tempFolder    = opts.tempFolder;
-    this.offline       = !!opts.offline;
+    this.packagesRoot = opts.packagesRoot;
+    this.tempFolder = opts.tempFolder;
+    this.offline = !!opts.offline;
   }
 
   //
@@ -158,13 +158,13 @@ export default class Config {
     invariant(this.packagesRoot, 'No package root');
     invariant(pkg, 'Undefined package');
     invariant(pkg.name, 'No name field in package');
-    invariant(pkg.uid, 'No uid field in package');
+    invariant(pkg._uid, 'No uid field in package');
     if (pkg.location) {
       return pkg.location;
     }
 
     let name = pkg.name;
-    let uid = pkg.uid;
+    let uid = pkg._uid;
     if (pkg._registry) {
       name = `${pkg._registry}-${name}`;
       uid = pkg.version || uid;
@@ -315,7 +315,7 @@ export default class Config {
         }
       }
 
-      throw new Error(`Couldn't find a package.json in ${dir}`);
+      throw new Error(`Couldn't find a manifest in ${dir}`);
     });
   }
 
@@ -338,5 +338,19 @@ export default class Config {
     } else {
       return null;
     }
+  }
+
+  /**
+   * Description
+   */
+
+  getFolder(pkg: Manifest): string {
+    let registryName = pkg._registry;
+    if (!registryName) {
+      let ref = pkg._reference;
+      invariant(ref, 'expected reference');
+      registryName = ref.registry;
+    }
+    return this.registries[registryName].folder;
   }
 }

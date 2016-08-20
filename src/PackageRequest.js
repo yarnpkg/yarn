@@ -127,7 +127,7 @@ export default class PackageRequest {
       data = Object.assign({}, data);
 
       // this is so the returned package response uses the overridden name. ie. if the
-      // package's actual name is `bar`, but it's been specified in package.json like:
+      // package's actual name is `bar`, but it's been specified in the manifest like:
       //   "foo": "http://foo.com/bar.tar.gz"
       // then we use the foo name
       data.name = name;
@@ -162,7 +162,7 @@ export default class PackageRequest {
     range: string
   } {
     let range = 'latest';
-    let name  = pattern;
+    let name = pattern;
 
     // if we're a scope then remove the @ and add it back later
     let isScoped = false;
@@ -243,7 +243,7 @@ export default class PackageRequest {
     // the same range
     const resolved: ?Manifest = this.resolver.getExactVersionMatch(info.name, info.version);
     if (resolved) {
-      const ref = resolved.reference;
+      const ref = resolved._reference;
       invariant(ref, 'Resolved package info has no package reference');
       ref.addRequest(this);
       ref.addPattern(this.pattern);
@@ -257,14 +257,14 @@ export default class PackageRequest {
     PackageRequest.validateVersionInfo(info);
 
     //
-    const remote = info.remote;
+    const remote = info._remote;
     invariant(remote, 'Missing remote');
 
     // set package reference
     const ref = new PackageReference(this, info, remote, this.resolver.lockfile.save);
 
     // get possible mirror path
-    const offlineMirrorPath = this.config.getOfflineMirrorPath(ref.remote.registry, ref.remote.reference);
+    const offlineMirrorPath = this.config.getOfflineMirrorPath(remote.registry, remote.reference);
 
     // while we're fetching the package we have some idle time to warm the cache with
     // registry responses for known dependencies
@@ -284,14 +284,14 @@ export default class PackageRequest {
     // replace resolved remote URL with local path if lockfile is in save mode and we have a path
     if (this.resolver.lockfile.save && offlineMirrorPath && await fs.exists(offlineMirrorPath)) {
       remote.resolved = path.relative(
-        this.config.getOfflineMirrorPath(ref.remote.registry),
+        this.config.getOfflineMirrorPath(remote.registry),
         offlineMirrorPath,
       ) + `#${hash}`;
     }
     remote.hash = hash;
     newInfo.name = info.name;
-    newInfo.reference = ref;
-    newInfo.remote = remote;
+    newInfo._reference = ref;
+    newInfo._remote = remote;
     info = newInfo;
 
     // start installation of dependencies
@@ -355,6 +355,6 @@ export default class PackageRequest {
 
   static getPackageVersion(info: Manifest): string {
     // TODO possibly reconsider this behaviour
-    return info.version === undefined ? info.uid : info.version;
+    return info.version === undefined ? info._uid : info.version;
   }
 }

@@ -57,7 +57,7 @@ export default class PackageCompatibility {
   constructor(config: Config, resolver: PackageResolver) {
     this.reporter = config.reporter;
     this.resolver = resolver;
-    this.config   = config;
+    this.config = config;
   }
 
   resolver: PackageResolver;
@@ -74,12 +74,12 @@ export default class PackageCompatibility {
 
   check(info: Manifest) {
     let didIgnore = false;
-    let didError  = false;
-    const reporter  = this.reporter;
-    const human     = `${info.name}@${info.version}`;
+    let didError = false;
+    const reporter = this.reporter;
+    const human = `${info.name}@${info.version}`;
 
     const pushError = (msg) => {
-      const ref = info.reference;
+      const ref = info._reference;
       invariant(ref, 'expected package reference');
 
       if (ref.optional) {
@@ -134,7 +134,7 @@ export default class PackageCompatibility {
   }
 
   async init(): Promise<void> {
-    const infos  = this.resolver.getManifests();
+    const infos = this.resolver.getManifests();
     for (const info of infos) {
       this.check(info);
     }

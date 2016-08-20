@@ -19,8 +19,8 @@ export default class Registry {
   constructor(cwd: string) {
     this.config = {};
     this.folder = '';
-    this.loc    = '';
-    this.cwd    = cwd;
+    this.loc = '';
+    this.cwd = cwd;
   }
 
   // whether to always flatten the graph for this registry, will cause manual conflict resolution

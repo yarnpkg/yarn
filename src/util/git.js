@@ -35,12 +35,12 @@ export default class Git {
     Git.assertUrl(url, hash);
 
     this.supportsArchive = false;
-    this.fetched         = false;
-    this.config          = config;
-    this.hash            = hash;
-    this.ref             = hash;
-    this.url             = url;
-    this.cwd             = this.config.getTemp(crypto.hash(this.url));
+    this.fetched = false;
+    this.config = config;
+    this.hash = hash;
+    this.ref = hash;
+    this.url = url;
+    this.cwd = this.config.getTemp(crypto.hash(this.url));
   }
 
   supportsArchive: boolean;
@@ -251,7 +251,7 @@ export default class Git {
 
   async setRefRemote(): Promise<string> {
     const stdout = await child.spawn('git', ['ls-remote', '--tags', '--heads', this.url]);
-    const refs   = Git.parseRefs(stdout);
+    const refs = Git.parseRefs(stdout);
     return await this.setRef(refs);
   }
 

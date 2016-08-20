@@ -20,17 +20,17 @@ const fs = require('fs');
 export const lockQueue = new BlockingQueue('fs lock');
 
 export const readFileBuffer = promisify(fs.readFile);
-export const writeFile      = promisify(fs.writeFile);
-export const readlink       = promisify(fs.readlink);
-export const realpath       = promisify(fs.realpath);
-export const readdir        = promisify(fs.readdir);
-export const rename         = promisify(fs.rename);
-export const access         = promisify(fs.access);
-export const unlink         = promisify(require('rimraf'));
-export const mkdirp         = promisify(require('mkdirp'));
-export const exists         = promisify(fs.exists, true);
-export const lstat          = promisify(fs.lstat);
-export const chmod          = promisify(fs.chmod);
+export const writeFile = promisify(fs.writeFile);
+export const readlink = promisify(fs.readlink);
+export const realpath = promisify(fs.realpath);
+export const readdir = promisify(fs.readdir);
+export const rename = promisify(fs.rename);
+export const access = promisify(fs.access);
+export const unlink = promisify(require('rimraf'));
+export const mkdirp = promisify(require('mkdirp'));
+export const exists = promisify(fs.exists, true);
+export const lstat = promisify(fs.lstat);
+export const chmod = promisify(fs.chmod);
 
 const fsSymlink = promisify(fs.symlink);
 const invariant = require('invariant');
@@ -107,7 +107,7 @@ async function buildActionsForCopy(
     if (await exists(dest)) {
       const destStat = await lstat(dest);
 
-      const bothFiles   = srcStat.isFile() && destStat.isFile();
+      const bothFiles = srcStat.isFile() && destStat.isFile();
       const bothFolders = !bothFiles && srcStat.isDirectory() && destStat.isDirectory();
 
       if (srcStat.mode !== destStat.mode) {

@@ -19,4 +19,6 @@ export let registries = {
   bower: BowerRegistry,
 };
 
+export let registryNames = Object.keys(registries);
+
 export type RegistryNames = $Keys<typeof registries>;

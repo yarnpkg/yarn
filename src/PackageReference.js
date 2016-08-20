@@ -30,23 +30,23 @@ export default class PackageReference {
     this.resolver = request.resolver;
     this.lockfile = request.lockfile;
     this.requests = [request];
-    this.config   = request.config;
+    this.config = request.config;
 
     this.registry = remote.registry;
-    this.version  = info.version;
-    this.name     = info.name;
-    this.uid      = info.uid;
+    this.version = info.version;
+    this.name = info.name;
+    this.uid = info._uid;
 
     this.remote = remote;
 
     this.dependencies = [];
 
     this.permissions = {};
-    this.patterns    = [];
-    this.optional    = null;
-    this.ignore      = null;
-    this.fresh       = false;
-    this.location    = null;
+    this.patterns = [];
+    this.optional = null;
+    this.ignore = null;
+    this.fresh = false;
+    this.location = null;
     this.saveForOffline = !!saveForOffline;
   }
 
@@ -68,10 +68,6 @@ export default class PackageReference {
   registry: RegistryNames;
   location: ?string;
   resolver: PackageResolver;
-
-  async getFolder(): Promise<string> {
-    return this.config.registries[this.registry].folder;
-  }
 
   setFresh(fresh: boolean) {
     this.fresh = fresh;
@@ -151,7 +147,7 @@ export default class PackageReference {
         continue;
       }
 
-      const ref = pkg.reference;
+      const ref = pkg._reference;
       invariant(ref, 'expected package reference');
       ref.addIgnore(ignore, ancestry);
     }

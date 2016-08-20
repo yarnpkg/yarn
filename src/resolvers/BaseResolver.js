@@ -22,9 +22,9 @@ export default class BaseResolver {
     this.reporter = request.reporter;
     this.fragment = fragment;
     this.registry = request.registry;
-    this.request  = request;
-    this.pattern  = request.pattern;
-    this.config   = request.config;
+    this.request = request;
+    this.pattern = request.pattern;
+    this.config = request.config;
   }
 
   resolver: PackageResolver;

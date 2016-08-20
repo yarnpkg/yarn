@@ -23,14 +23,14 @@ export default class BaseReporter {
   constructor(opts?: ReporterOptions = {}) {
     this.stdout = opts.stdout || process.stdout;
     this.stderr = opts.stderr || process.stderr;
-    this.stdin  = opts.stdin || process.stdin;
-    this.emoji  = !!opts.emoji;
+    this.stdin = opts.stdin || process.stdin;
+    this.emoji = !!opts.emoji;
 
     // $FlowFixMe: this is valid!
     this.isTTY = this.stdout.isTTY;
 
     this.peakMemory = 0;
-    this.startTime  = Date.now();
+    this.startTime = Date.now();
   }
 
   stdout: Stdout;

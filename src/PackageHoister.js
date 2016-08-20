@@ -127,7 +127,7 @@ export default class PackageHoister {
 
     //
     const pkg = this.resolver.getStrictResolvedPattern(pattern);
-    const ref = pkg.reference;
+    const ref = pkg._reference;
     invariant(ref, 'expected reference');
     const loc = this.config.generateHardModulePath(ref);
 
@@ -189,7 +189,7 @@ export default class PackageHoister {
     //
     for (let i = parts.length - 1; i >= 0; i--) {
       const checkParts = parts.slice(0, i).concat(name);
-      const checkKey   = this.implodeKey(checkParts);
+      const checkKey = this.implodeKey(checkParts);
       info.addHistory(`Looked at ${checkKey} for a match`);
 
       const existing = this.tree.get(checkKey);
@@ -444,7 +444,7 @@ a   */
 
     // remove ignored modules from the tree
     for (let [key, info] of this.tree.entries()) {
-      const ref = info.pkg.reference;
+      const ref = info.pkg._reference;
       invariant(ref, 'expected reference');
       if (ref.ignore) {
         info.addHistory('Deleted as this module was ignored');

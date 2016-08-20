@@ -130,7 +130,7 @@ export default class NpmResolver extends RegistryResolver {
 
       // read package metadata
       const metadata = await this.config.readPackageMetadata(dir);
-      if (!metadata.remote) {
+      if (!metadata._remote) {
         continue; // old kpm metadata
       }
 
@@ -169,7 +169,7 @@ export default class NpmResolver extends RegistryResolver {
     }
 
     if (info.dist && info.dist.tarball) {
-      info.remote = {
+      info._remote = {
         resolved: `${info.dist.tarball}#${info.dist.shasum}`,
         type: 'tarball',
         reference: info.dist.tarball,
@@ -178,7 +178,7 @@ export default class NpmResolver extends RegistryResolver {
       };
     }
 
-    info.uid = info.version;
+    info._uid = info.version;
     return info;
   }
 }

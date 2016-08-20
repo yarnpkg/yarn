@@ -26,16 +26,16 @@ const invariant = require('invariant');
 export default class PackageResolver {
   constructor(config: Config, lockfile: Lockfile) {
     this.packageReferencesByName = map();
-    this.patternsByPackage       = map();
-    this.fetchingPatterns        = map();
-    this.fetchingQueue           = new BlockingQueue('resolver fetching');
-    this.newPatterns             = [];
-    this.patterns                = map();
+    this.patternsByPackage = map();
+    this.fetchingPatterns = map();
+    this.fetchingQueue = new BlockingQueue('resolver fetching');
+    this.newPatterns = [];
+    this.patterns = map();
 
-    this.fetcher  = new PackageFetcher(config, this);
+    this.fetcher = new PackageFetcher(config, this);
     this.reporter = config.reporter;
     this.lockfile = lockfile;
-    this.config   = config;
+    this.config = config;
   }
 
   // activity monitor
@@ -104,8 +104,8 @@ export default class PackageResolver {
   async updateManifest(ref: PackageReference, newPkg: Manifest): Promise<void> {
     // inherit fields
     const oldPkg = this.patterns[ref.patterns[0]];
-    newPkg.reference = ref;
-    newPkg.remote = oldPkg.remote;
+    newPkg._reference = ref;
+    newPkg._remote = oldPkg._remote;
     newPkg.name = oldPkg.name;
 
     // update patterns
@@ -149,7 +149,7 @@ export default class PackageResolver {
 
   getAllInfoForPackageName(name: string): Array<Manifest> {
     const infos = [];
-    const seen  = new Set();
+    const seen = new Set();
 
     for (const pattern of this.patternsByPackage[name]) {
       const info = this.patterns[pattern];
@@ -184,7 +184,7 @@ export default class PackageResolver {
 
   getManifests(): Array<Manifest> {
     const infos = [];
-    const seen  = new Set();
+    const seen = new Set();
 
     for (const pattern in this.patterns) {
       const info = this.patterns[pattern];

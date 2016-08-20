@@ -21,10 +21,10 @@ const _ = require('lodash');
 
 export default class PackageInstallScripts {
   constructor(config: Config, resolver: PackageResolver, force: boolean) {
-    this.resolver  = resolver;
-    this.reporter  = config.reporter;
-    this.config    = config;
-    this.force     = force;
+    this.resolver = resolver;
+    this.reporter = config.reporter;
+    this.config = config;
+    this.force = force;
   }
 
   needsPermission: boolean;
@@ -47,14 +47,14 @@ export default class PackageInstallScripts {
     command: string,
     stdout: string,
   }>> {
-    const loc = this.config.generateHardModulePath(pkg.reference);
+    const loc = this.config.generateHardModulePath(pkg._reference);
     try {
       this.reporter.info(`Running install scripts for ${pkg.name}`);
       return await executeLifecycleScript(this.config, loc, cmds, this.reporter);
     } catch (err) {
       err.message = `${loc}: ${err.message}`;
 
-      const ref = pkg.reference;
+      const ref = pkg._reference;
       invariant(ref, 'expected reference');
 
       if (ref.optional) {
@@ -78,7 +78,7 @@ export default class PackageInstallScripts {
         continue;
       }
 
-      const ref = pkg.reference;
+      const ref = pkg._reference;
       invariant(ref, 'Missing package reference');
       if (!ref.fresh && !this.force) {
         continue;

@@ -86,7 +86,7 @@ export async function run(
     let flag = sign ? '-sm' : '-am';
     let prefix = 'v'; // TODO tag-version-prefix npm config
 
-    // add package.json
+    // add manifest
     await spawn('git', ['add', pkg._loc]);
 
     // create git commit

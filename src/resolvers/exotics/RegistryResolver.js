@@ -21,7 +21,7 @@ export default class RegistryResolver extends ExoticResolver {
     const match = fragment.match(/^(\S+):(.*?)(@(.*?)|)$/);
     if (match) {
       this.range = match[4] || 'latest';
-      this.name  = match[2];
+      this.name = match[2];
     } else {
       throw new MessageError(`Invalid fragment ${fragment}`);
     }

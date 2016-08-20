@@ -117,8 +117,9 @@ export async function pack(config: Config, dir: string): Promise<stream$Duplex> 
 
   //
   if (pkg.bundledDependencies) {
+    let folder = config.getFolder(pkg);
     filters = ignoreLinesToRegex(
-      pkg.bundledDependencies.map((name): string => `!node_modules/${name}`),
+      pkg.bundledDependencies.map((name): string => `!${folder}/${name}`),
       '.',
     );
   }

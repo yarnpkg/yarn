@@ -61,7 +61,7 @@ export async function buildTree(
 
   // build initial trees
   for (let [, info] of hoisted) {
-    const ref = info.pkg.reference;
+    const ref = info.pkg._reference;
     invariant(ref, 'expected reference');
 
     if (onlyFresh) {

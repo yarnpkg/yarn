@@ -32,7 +32,7 @@ export default class GitResolver extends ExoticResolver {
     super(request, fragment);
 
     let {url, hash} = versionUtil.explodeHashedUrl(fragment);
-    this.url  = url;
+    this.url = url;
     this.hash = hash;
   }
 
@@ -107,7 +107,7 @@ export default class GitResolver extends ExoticResolver {
     const commit = await client.initRemote();
 
     async function tryRegistry(registry): Promise<?Manifest> {
-      const filename = registries[registry].filename;
+      const {filename} = registries[registry];
 
       const file = await client.getFile(filename);
       if (!file) {
@@ -115,8 +115,8 @@ export default class GitResolver extends ExoticResolver {
       }
 
       const json = JSON.parse(file);
-      json.uid = commit;
-      json.remote = {
+      json._uid = commit;
+      json._remote = {
         resolved: `${url}#${commit}`,
         type: 'git',
         reference: url,

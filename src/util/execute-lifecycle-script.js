@@ -36,7 +36,7 @@ export default async function (config: Config, cwd: string, cmds: Array<string>,
     // add node-gyp
     pathParts.unshift(path.join(__dirname, '..', '..', 'bin', 'node-gyp-bin'));
 
-    // add node_modules .bin
+    // add .bin folders to PATH
     for (const registry of Object.keys(registries)) {
       pathParts.unshift(path.join(cwd, config.registries[registry].folder, '.bin'));
     }

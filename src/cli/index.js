@@ -19,15 +19,15 @@ import aliases from './aliases.js';
 import Config from '../config.js';
 import onDeath from 'death';
 
-const net             = require('net');
-const path            = require('path');
-const fs              = require('fs');
+const net = require('net');
+const path = require('path');
+const fs = require('fs');
 
-let loudRejection     = require('loud-rejection');
-let commander         = require('commander');
-let invariant         = require('invariant');
-let pkg               = require('../../package');
-let _                 = require('lodash');
+let loudRejection = require('loud-rejection');
+let commander = require('commander');
+let invariant = require('invariant');
+let pkg = require('../../package');
+let _ = require('lodash');
 let lastWillExpressed = false;
 
 loudRejection();

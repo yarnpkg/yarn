@@ -21,7 +21,7 @@ const semver = require('semver');
 export default class PackageConstraintResolver {
   constructor(config: Config, reporter: Reporter) {
     this.reporter = reporter;
-    this.config   = config;
+    this.config = config;
   }
 
   reporter: Reporter;

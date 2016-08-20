@@ -15,11 +15,11 @@ import {clearLine} from './util.js';
 export default class Spinner {
   constructor(stdout: Stdout = process.stderr) {
     this.current = 0;
-    this.stdout  = stdout;
-    this.delay   = 60;
-    this.chars   = Spinner.spinners[28].split('');
-    this.text    = '';
-    this.id      = null;
+    this.stdout = stdout;
+    this.delay = 60;
+    this.chars = Spinner.spinners[28].split('');
+    this.text = '';
+    this.id = null;
   }
 
   stdout: Stdout;

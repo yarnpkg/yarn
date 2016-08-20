@@ -14,14 +14,14 @@ import map from './map.js';
 export default class BlockingQueue {
   constructor(alias: string, maxConcurrency?: number = Infinity) {
     this.concurrencyQueue = [];
-    this.maxConcurrency   = maxConcurrency;
-    this.runningCount     = 0;
-    this.warnedStuck      = false;
-    this.alias            = alias;
-    this.first            = true;
+    this.maxConcurrency = maxConcurrency;
+    this.runningCount = 0;
+    this.warnedStuck = false;
+    this.alias = alias;
+    this.first = true;
 
     this.running = map();
-    this.queue   = map();
+    this.queue = map();
 
     // $FlowFixMe: for performance we refer to this in `stillActive`
     this.stuckTick = this.stuckTick.bind(this);

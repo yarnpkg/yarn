@@ -19,8 +19,8 @@ import * as constants from '../constants.js';
 import * as fs from '../util/fs.js';
 
 let invariant = require('invariant');
-let path      = require('path');
-let _         = require('lodash');
+let path = require('path');
+let _ = require('lodash');
 
 export {default as parse} from './parse';
 export {default as stringify} from './stringify';
@@ -45,8 +45,8 @@ export default class Lockfile {
   constructor(cache?: ?Object, strict?: boolean, save?: boolean, source?: string) {
     this.strict = !!strict;
     this.source = source || '';
-    this.cache  = cache;
-    this.save   = !!save;
+    this.cache = cache;
+    this.save = !!save;
   }
 
   // source string if the `cache` was parsed
@@ -71,7 +71,7 @@ export default class Lockfile {
       silent?: boolean
     },
   ): Promise<Lockfile> {
-    // read the package.json in this directory
+    // read the manifest in this directory
     let lockfileLoc = path.join(dir, constants.LOCKFILE_FILENAME);
     let lockfile;
     let rawLockfile = '';
@@ -140,7 +140,7 @@ export default class Lockfile {
 
     for (let pattern of sortedPatternsKeys) {
       let pkg = patterns[pattern];
-      let {remote, reference: ref} = pkg;
+      let {_remote: remote, _reference: ref} = pkg;
       invariant(ref, 'Package is missing a reference');
       invariant(remote, 'Package is missing a remote');
 
@@ -161,7 +161,7 @@ export default class Lockfile {
       let obj = {
         name: inferredName === pkg.name ? undefined : pkg.name,
         version: pkg.version,
-        uid: pkg.uid === pkg.version ? undefined : pkg.uid,
+        uid: pkg._uid === pkg.version ? undefined : pkg._uid,
         resolved: remote.resolved,
         registry: remote.registry === 'npm' ? undefined : remote.registry,
         dependencies: _.isEmpty(pkg.dependencies) ? undefined : pkg.dependencies,
