@@ -215,7 +215,7 @@ export default class PackageLinker {
       searchPatterns = searchPatterns.concat(this.resolver.seedPatterns);
 
       // find matching dep in search patterns
-      let foundDep: ?{ pattern: string, version: string, package: Manifest };
+      let foundDep: ?{pattern: string, version: string};
       for (const pattern of searchPatterns) {
         const dep = this.resolver.getResolvedPattern(pattern);
         if (dep && dep.name === name) {

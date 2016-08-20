@@ -38,6 +38,7 @@ let args = process.argv;
 commander.version(pkg.version);
 commander.usage('[command] [flags]');
 commander.option('--offline');
+commander.option('--prefer-offline');
 commander.option('--json', '');
 commander.option('--modules-folder [path]', 'rather than installing modules into the node_modules ' +
                                             'folder relative to the cwd, output them here');
@@ -97,7 +98,8 @@ reporter.initPeakMemoryCounter();
 let config = new Config(reporter, {
   modulesFolder: commander.modulesFolder,
   packagesRoot: commander.packagesRoot,
-  offline: commander.offline,
+  preferOffline: commander.preferOffline,
+  offline: commander.preferOffline || commander.offline,
 });
 
 // print header

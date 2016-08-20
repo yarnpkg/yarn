@@ -32,6 +32,7 @@ type ConfigOptions = {
   tempFolder?: string,
   modulesFolder?: string,
   offline?: boolean,
+  preferOffline?: boolean,
 };
 
 type PackageMetadata = {
@@ -44,7 +45,7 @@ type PackageMetadata = {
 export default class Config {
   constructor(reporter: Reporter, opts?: ConfigOptions = {}) {
     this.constraintResolver = new ConstraintResolver(this, reporter);
-    this.requestManager = new RequestManager(reporter);
+    this.requestManager = new RequestManager(reporter, opts.offline && !opts.preferOffline);
     this.reporter = reporter;
 
     this.registryFolders = [];
@@ -52,6 +53,7 @@ export default class Config {
     this.cache = map();
     this.cwd = opts.cwd || process.cwd();
 
+    this.preferOffline = !!opts.preferOffline;
     this.modulesFolder = opts.modulesFolder;
     this.packagesRoot = opts.packagesRoot;
     this.tempFolder = opts.tempFolder;
@@ -60,6 +62,7 @@ export default class Config {
 
   //
   offline: boolean;
+  preferOffline: boolean;
 
   //
   constraintResolver: ConstraintResolver;

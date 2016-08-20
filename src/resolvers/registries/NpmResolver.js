@@ -49,7 +49,10 @@ export default class NpmResolver extends RegistryResolver {
 
   async resolveRequest(): Promise<false | Manifest> {
     if (this.config.offline) {
-      return this.resolveRequestOffline();
+      let res = this.resolveRequestOffline();
+      if (res) {
+        return res;
+      }
     }
 
     const registry = removeSuffix(this.registryConfig.registry, '/');
@@ -122,11 +125,13 @@ export default class NpmResolver extends RegistryResolver {
     const satisfied = await this.config.resolveConstraints(Object.keys(versions), this.range);
     if (satisfied) {
       return versions[satisfied];
-    } else {
+    } else if (!this.config.preferOffline) {
       throw new MessageError(
         `Couldn't find any versions for ${this.name} that matches ${this.range} in our cache. ` +
         `Possible versions: ${Object.keys(versions).join(', ')} ${prefix}`,
       );
+    } else {
+      return false;
     }
   }
 

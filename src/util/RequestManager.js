@@ -10,6 +10,7 @@
  */
 
 import type {Reporter} from '../reporters/index.js';
+import {MessageError} from '../errors.js';
 import BlockingQueue from './BlockingQueue.js';
 import * as constants from '../constants.js';
 import * as network from './network.js';
@@ -58,7 +59,8 @@ type RequestOptions = {
 };
 
 export default class RequestManager {
-  constructor(reporter: Reporter) {
+  constructor(reporter: Reporter, offlineNoRequests?: boolean) {
+    this.offlineNoRequests = !!offlineNoRequests;
     this.offlineQueue = [];
     this.reporter = reporter;
     this.running = 0;
@@ -66,6 +68,9 @@ export default class RequestManager {
     this.cache = {};
     this.max = constants.NETWORK_CONCURRENCY;
   }
+
+  // whether we should throw errors and disallow HTTP requests
+  offlineNoRequests: boolean;
 
   reporter: Reporter;
   running: number;
@@ -81,6 +86,10 @@ export default class RequestManager {
    */
 
   request<T>(params: RequestParams<T>): Promise<T> {
+    if (this.offlineNoRequests) {
+      return Promise.reject(new MessageError("Can't make a request in offline mode"));
+    }
+
     const cached = this.cache[params.url];
     if (cached) {
       return cached;
