@@ -12,8 +12,7 @@
 import type {Manifest} from '../../types.js';
 import {MessageError} from '../../errors.js';
 import RegistryResolver from './RegistryResolver.js';
-import {queue} from '../../util/promise.js';
-import {entries, removeSuffix} from '../../util/misc.js';
+import {removeSuffix} from '../../util/misc.js';
 import NpmRegistry from '../../registries/NpmRegistry.js';
 import map from '../../util/map.js';
 import * as fs from '../../util/fs.js';
@@ -46,23 +45,6 @@ export default class NpmResolver extends RegistryResolver {
         `Possible versions: ${Object.keys(body.versions).join(', ')}`,
       );
     }
-  }
-
-  async warmCache(): Promise<void> {
-    const res = await this.resolveRequest();
-    if (!res || !res.dependencies) {
-      return;
-    }
-
-    queue;
-    entries;
-    /*let resolvers = [];
-
-    for (let [name, range] of entries(res.dependencies)) {
-      resolvers.push(new NpmResolver(this.request, name, range));
-    }
-
-    await queue(resolvers, (resolver) => resolver.warmCache(), 5);*/
   }
 
   async resolveRequest(): Promise<false | Manifest> {
@@ -134,7 +116,7 @@ export default class NpmResolver extends RegistryResolver {
         continue; // old kpm metadata
       }
 
-      versions[pkg.version] = Object.assign({}, pkg, {remote: metadata.remote});
+      versions[pkg.version] = Object.assign({}, pkg, {_remote: metadata.remote});
     }
 
     const satisfied = await this.config.resolveConstraints(Object.keys(versions), this.range);

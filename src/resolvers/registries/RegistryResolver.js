@@ -27,10 +27,4 @@ export default class RegistryResolver extends BaseResolver {
 
   static registry: RegistryNames;
   registryConfig: Object;
-
-  async warmCache(): Promise<void> {}
-
-  async resolveRequest(): Promise<any> {
-    await this.warmCache();
-  }
 }

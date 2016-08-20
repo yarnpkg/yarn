@@ -458,8 +458,30 @@ a   */
         continue;
       }
 
-      // decompress the location and push it to the flat tree
-      const loc = path.join(this.config.modulesFolder, key.replace(/#/g, '/node_modules/'));
+      // decompress the location and push it to the flat tree. this path could be made
+      // up of modules from different registries so we need to handle this specially
+      let parts = [];
+      let keyParts = key.split('#');
+      for (let i = 0; i < keyParts.length; i++) {
+        let key = keyParts.slice(0, i + 1).join('#');
+
+        let hoisted = this.tree.get(key);
+        invariant(hoisted, 'expected hoisted manifest');
+        parts.push(this.config.getFolder(hoisted.pkg));
+        parts.push(keyParts[i]);
+      }
+
+      if (this.config.modulesFolder) {
+        // remove the first part which will be the folder name and replace it with a
+        // hardcoded modules folder
+        parts.shift();
+        parts.unshift(this.config.modulesFolder);
+      } else {
+        // first part will be the registry-specific module folder
+        parts.unshift(this.config.cwd);
+      }
+
+      const loc = parts.join(path.sep);
       flatTree.push([loc, info]);
     }
 

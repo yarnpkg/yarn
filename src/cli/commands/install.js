@@ -13,6 +13,7 @@ import type {Reporter} from '../../reporters/index.js';
 import type {DependencyRequestPatterns} from '../../types.js';
 import type Config from '../../config.js';
 import type {RegistryNames} from '../../registries/index.js';
+import {MessageError} from '../../errors.js';
 import {registryNames} from '../../registries/index.js';
 import Lockfile from '../../lockfile/Lockfile.js';
 import lockStringify from '../../lockfile/stringify.js';
@@ -46,7 +47,6 @@ export class Install {
   ) {
     this.rootPatternsToOrigin = map();
     this.resolutions = map();
-    this.registries = [];
     this.lockfile = lockfile;
     this.reporter = reporter;
     this.config = config;
@@ -63,7 +63,7 @@ export class Install {
   action: InstallActions;
   args: Array<string>;
   flags: Object;
-  registries: Array<string>;
+  registries: Array<RegistryNames>;
   lockfile: Lockfile;
   resolutions: { [packageName: string]: string };
   config: Config;
@@ -106,8 +106,6 @@ export class Install {
       if (!(await fs.exists(loc))) {
         continue;
       }
-
-      this.registries.push(registry);
 
       const json = await fs.readJson(loc);
       Object.assign(this.resolutions, json.resolutions);
@@ -156,6 +154,10 @@ export class Install {
         // in the pattern then it'll be set to it
         depRequests.push({pattern, registry: 'npm'});
       }
+    }
+
+    if (!depRequests.length) {
+      throw new MessageError('Nothing to install');
     }
 
     //
@@ -284,6 +286,10 @@ export class Install {
 
     for (let registryName of registryNames) {
       let [loc, json] = jsons[registryName];
+      if (!Object.keys(json).length) {
+        continue;
+      }
+
       await fs.writeFile(loc, stringify(json) + '\n');
     }
   }
@@ -340,10 +346,7 @@ export class Install {
     const lockSource = lockStringify(this.lockfile.getLockfile(this.resolver.patterns)) + '\n';
 
     // write integrity hash
-    await fs.writeFile(
-      path.join(this.config.cwd, 'node_modules', constants.INTEGRITY_FILENAME),
-      util.hash(lockSource),
-    );
+    this.writeIntegrityHash(lockSource);
 
     // check if we should write a lockfile in the first place
     if (!shouldWriteLockfile(this.flags, this.args)) {
@@ -364,6 +367,36 @@ export class Install {
     await fs.writeFile(loc, lockSource);
 
     this.reporter.success(`Saved lockfile to ${constants.LOCKFILE_FILENAME}`);
+  }
+
+  /**
+   * Description
+   */
+
+  async writeIntegrityHash(lockSource: string): Promise<void> {
+    // build up possible folders
+    let possibleFolders = [];
+    if (this.config.modulesFolder) {
+      possibleFolders.push(this.config.modulesFolder);
+    }
+    for (let name of this.resolver.usedRegistries) {
+      let loc = path.join(this.config.cwd, this.config.registries[name].folder);
+      if (await fs.exists(loc)) {
+        possibleFolders.push(loc);
+      }
+    }
+
+    //
+    let possibles = possibleFolders.map((folder): string => path.join(folder, constants.INTEGRITY_FILENAME));
+    let loc = possibles[0];
+    for (let possibleLoc of possibles) {
+      if (await fs.exists(possibleLoc)) {
+        loc = possibleLoc;
+        break;
+      }
+    }
+
+    await fs.writeFile(loc, util.hash(lockSource));
   }
 }
 

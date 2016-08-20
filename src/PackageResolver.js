@@ -31,12 +31,16 @@ export default class PackageResolver {
     this.fetchingQueue = new BlockingQueue('resolver fetching');
     this.newPatterns = [];
     this.patterns = map();
+    this.usedRegistries = new Set();
 
     this.fetcher = new PackageFetcher(config, this);
     this.reporter = config.reporter;
     this.lockfile = lockfile;
     this.config = config;
   }
+
+  // list of registries that have been used in this resolution
+  usedRegistries: Set<RegistryNames>;
 
   // activity monitor
   activity: ?{

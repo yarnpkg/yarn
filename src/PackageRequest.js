@@ -53,6 +53,8 @@ export default class PackageRequest {
     this.pattern = pattern;
     this.config = resolver.config;
     this.ignore = ignore;
+
+    resolver.usedRegistries.add(registry);
   }
 
   static getExoticResolver(pattern: string): ?Function { // TODO make this type more refined
@@ -95,8 +97,8 @@ export default class PackageRequest {
       return {
         name: shrunk.name,
         version: shrunk.version,
-        uid: shrunk.uid,
-        remote: {
+        _uid: shrunk.uid,
+        _remote: {
           resolved: shrunk.resolved,
           type: remoteType,
           reference: resolvedParts.url,
@@ -187,25 +189,6 @@ export default class PackageRequest {
   }
 
   /**
-   * Request a registry response if the passed pattern is a registry one. This is used to
-   * warm the cache.
-   */
-
-  async warmCacheIfRegistry(pattern: string): Promise<void> {
-    let {range, name} = PackageRequest.normalisePattern(pattern);
-
-    // ensure this is a registry request
-    const exoticResolver = PackageRequest.getExoticResolver(range);
-    if (exoticResolver) {
-      return;
-    }
-
-    const Resolver = this.getRegistryResolver();
-    const resolver = new Resolver(this, name, range);
-    await resolver.warmCache();
-  }
-
-  /**
    * Construct an exotic resolver instance with the input `ExoticResolver` and `range`.
    */
 
@@ -265,14 +248,6 @@ export default class PackageRequest {
 
     // get possible mirror path
     const offlineMirrorPath = this.config.getOfflineMirrorPath(remote.registry, remote.reference);
-
-    // while we're fetching the package we have some idle time to warm the cache with
-    // registry responses for known dependencies
-    if (!offlineMirrorPath) {
-      for (const name in info.dependencies) {
-        this.warmCacheIfRegistry(`${name}@${info.dependencies[name]}`);
-      }
-    }
 
     //
     const shouldSaveMirror = this.resolver.lockfile.save && !!offlineMirrorPath;

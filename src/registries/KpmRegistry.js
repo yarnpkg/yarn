@@ -26,6 +26,8 @@ export default class KpmRegistry extends NpmRegistry {
     this.homeConfig = {};
   }
 
+  static filename = 'kpm.json';
+
   homeConfigLoc: string;
   homeConfig: Object;
 

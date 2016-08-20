@@ -117,7 +117,11 @@ export default class HostedGitResolver extends ExoticResolver {
   }
 
   async resolveOverHTTP(url: string): Promise<Manifest> {
-    // TODO: hashes and lockfile
+    const shrunk = this.request.getLocked('tarball');
+    if (shrunk) {
+      return shrunk;
+    }
+
     const commit = await this.getRefOverHTTP(url);
 
     const tryRegistry = async (registry): Promise<?Manifest> => {
@@ -131,12 +135,13 @@ export default class HostedGitResolver extends ExoticResolver {
         return null;
       }
 
+      const tarballUrl = this.constructor.getTarballUrl(this.exploded, commit);
       const json = JSON.parse(file);
       json._uid = commit;
       json._remote = {
-        //resolved // TODO
+        resolved: tarballUrl,
         type: 'tarball',
-        reference: this.constructor.getTarballUrl(this.exploded, commit),
+        reference: tarballUrl,
         registry,
       };
       return json;

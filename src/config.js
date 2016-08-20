@@ -51,7 +51,7 @@ export default class Config {
     this.cache = map();
     this.cwd = opts.cwd || process.cwd();
 
-    this.modulesFolder = opts.modulesFolder || path.join(this.cwd, 'node_modules');
+    this.modulesFolder = opts.modulesFolder;
     this.packagesRoot = opts.packagesRoot;
     this.tempFolder = opts.tempFolder;
     this.offline = !!opts.offline;
@@ -67,7 +67,7 @@ export default class Config {
   requestManager: RequestManager;
 
   //
-  modulesFolder: string;
+  modulesFolder: ?string;
 
   //
   packagesRoot: ?string;
@@ -158,15 +158,15 @@ export default class Config {
     invariant(this.packagesRoot, 'No package root');
     invariant(pkg, 'Undefined package');
     invariant(pkg.name, 'No name field in package');
-    invariant(pkg._uid, 'No uid field in package');
+    invariant(pkg.uid, 'No uid field in package');
     if (pkg.location) {
       return pkg.location;
     }
 
     let name = pkg.name;
-    let uid = pkg._uid;
-    if (pkg._registry) {
-      name = `${pkg._registry}-${name}`;
+    let uid = pkg.uid;
+    if (pkg.registry) {
+      name = `${pkg.registry}-${name}`;
       uid = pkg.version || uid;
     }
 

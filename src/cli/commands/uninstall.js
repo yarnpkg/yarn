@@ -11,7 +11,6 @@
 
 import type {Reporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
-import type {RegistryNames} from '../../registries/index.js';
 import Lockfile from '../../lockfile/Lockfile.js';
 import {registries} from '../../registries/index.js';
 import {Install} from './install.js';
@@ -20,7 +19,6 @@ import {stringify} from '../../util/misc.js';
 import {NoopReporter} from '../../reporters/index.js';
 import * as fs from '../../util/fs.js';
 
-const invariant = require('invariant');
 const path = require('path');
 
 export const requireLockfile = true;
@@ -49,13 +47,13 @@ export async function run(
 
   // load manifests
   let jsons: {
-    [loc: string]: [RegistryNames, Object]
+    [loc: string]: Object
   } = {};
   for (let registryName of Object.keys(registries)) {
     const registry = registries[registryName];
     const jsonLoc = path.join(config.cwd, registry.filename);
     if (await fs.exists(jsonLoc)) {
-      jsons[jsonLoc] = [registryName, await fs.readJson(jsonLoc)];
+      jsons[jsonLoc] = await fs.readJson(jsonLoc);
     }
   }
 
@@ -63,16 +61,14 @@ export async function run(
     reporter.step(++step, totalSteps, `Removing module ${name}`);
 
     let found = false;
-    let folder;
 
     for (let loc in jsons) {
-      let [registryName, json] = jsons[loc];
+      let json = jsons[loc];
 
       for (const type of ['devDependencies', 'dependencies', 'optionalDependencies', 'peerDependencies']) {
         const deps = json[type];
         if (deps) {
           found = true;
-          folder = config.registries[registryName].folder;
           delete deps[name];
         }
       }
@@ -81,20 +77,11 @@ export async function run(
     if (!found) {
       throw new MessageError("This module isn't specified in a manifest");
     }
-
-    invariant(folder, 'expected folder');
-
-    // remove bins
-    const loc = path.join(config.cwd, folder, name);
-    const pkg = await config.readManifest(loc);
-    for (const binName in pkg.bin) {
-      await fs.unlink(path.join(config.modulesFolder, folder, '.bin', binName));
-    }
   }
 
   // save manifests
   for (let loc in jsons) {
-    await fs.writeFile(loc, stringify(jsons[loc][1]) + '\n');
+    await fs.writeFile(loc, stringify(jsons[loc]) + '\n');
   }
 
   // reinstall so we can get the updated lockfile
