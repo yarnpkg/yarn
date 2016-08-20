@@ -177,7 +177,7 @@ export class Install {
       this.flags.rebuild ? 'Rebuilding all packages' : 'Building fresh packages',
       emoji.get('page_with_curl'),
     );
-    await this.scripts.init();
+    await this.scripts.init(patterns);
 
     // fin!
     await this.maybeSaveTree(patterns);

@@ -11,35 +11,24 @@
 
 import type {Reporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
-import {MessageError} from '../../errors.js';
+import buildSubCommands from './_build-sub-commands.js';
 import * as fs from '../../util/fs.js';
 
-export function setFlags(commander: Object) {
-  commander.usage('cache [clear | ls]');
-}
+export let {run, setFlags} = buildSubCommands('cache', {
+  async ls(): Promise<void> {
+    throw new Error('TODO');
+  },
 
-export async function run(
-  config: Config,
-  reporter: Reporter,
-  flags: Object,
-  args: Array<string>,
-): Promise<void> {
-  // command validation
-  let cmd = args[0];
-  if (cmd === 'clean') {
-    cmd = 'clear';
-  }
-  if (args.length !== 1 || (cmd !== 'clear' && cmd !== 'ls')) {
-    throw new MessageError('Invalid subcommand, use `kpm cache clear` or `kpm cache ls`');
-  }
-
-  if (cmd === 'ls') {
-    throw new MessageError('TODO');
-  }
-
-  const packagesRoot = config.packagesRoot;
-  if (cmd === 'clear' && packagesRoot) {
-    await fs.unlink(packagesRoot);
-    reporter.success(`Cleared ${packagesRoot}`);
-  }
-}
+  async clear(
+    config: Config,
+    reporter: Reporter,
+    flags: Object,
+    args: Array<string>,
+  ): Promise<void> {
+    const packagesRoot = config.packagesRoot;
+    if (packagesRoot) {
+      await fs.unlink(packagesRoot);
+      reporter.success(`Cleared ${packagesRoot}`);
+    }
+  },
+});

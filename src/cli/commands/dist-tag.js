@@ -11,20 +11,18 @@
 
 import type {Reporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
-import {getToken} from './login.js';
+import buildSubCommands from './_build-sub-commands.js';
 
-export async function run(
- config: Config,
- reporter: Reporter,
- flags: Object,
- args: Array<string>,
-): Promise<void> {
-  reporter.step(1, 3, 'Logging in');
-  let {token, revoke} = await getToken(config, reporter);
+export let {run, setFlags} = buildSubCommands('dist-tag', {
+  async add(): Promise<void> {
+    throw new Error('TODO');
+  },
 
-  reporter.step(2, 3, 'Setting tag');
-  token;
+  async rm(): Promise<void> {
+    throw new Error('TODO');
+  },
 
-  reporter.step(3, 3, 'Revoking token');
-  await revoke();
-}
+  async ls(): Promise<void> {
+    throw new Error('TODO');
+  },
+});
