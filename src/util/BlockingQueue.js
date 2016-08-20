@@ -11,6 +11,8 @@
 
 import map from './map.js';
 
+let debug = require('debug')('kpm');
+
 export default class BlockingQueue {
   constructor(alias: string, maxConcurrency?: number = Infinity) {
     this.concurrencyQueue = [];
@@ -58,8 +60,8 @@ export default class BlockingQueue {
   stuckTick() {
     if (this.runningCount === 1) {
       this.warnedStuck = true;
-      console.warn(
-        `[kpm] The ${JSON.stringify(this.alias)} blocking queue may be stuck. 5 seconds ` +
+      debug(
+        `The ${JSON.stringify(this.alias)} blocking queue may be stuck. 5 seconds ` +
         `without any activity with 1 worker: ${Object.keys(this.running)[0]}`,
       );
     }
@@ -90,8 +92,8 @@ export default class BlockingQueue {
 
       if (this.warnedStuck) {
         this.warnedStuck = false;
-        console.log(
-          `[kpm] ${JSON.stringify(this.alias)} blocking queue finally resolved. Nothing to worry about.`,
+        debug(
+          `${JSON.stringify(this.alias)} blocking queue finally resolved. Nothing to worry about.`,
         );
       }
     }
