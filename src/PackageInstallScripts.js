@@ -67,10 +67,7 @@ export default class PackageInstallScripts {
     }
   }
 
-  async init(): Promise<void> {
-    const pkgs = this.resolver.getManifests();
-
-    // refine packages to those with install commands
+  async installPackagesBatch(pkgs: Manifest[]): Promise<void> {
     const refinedInfos = [];
     for (const pkg of pkgs) {
       const cmds = this.getInstallCommands(pkg);
@@ -108,5 +105,37 @@ export default class PackageInstallScripts {
         tick(pkg.name);
       });
     });
+  }
+
+  async init(): Promise<void> {
+    function getDependenciesList(pkg: Manifest): string[] {
+      let deps = [];
+      if (pkg.dependencies) {
+        deps.push(...Object.keys(pkg.dependencies));
+      }
+      // TODO are devDependencies and peerDependencies required to build this one?
+      return deps;
+    }
+
+    const builtPackages: Set<string> = new Set();
+    const notBuiltPackages: Set<Manifest> = new Set(this.resolver.getManifests());
+
+    // refine packages to those with install commands
+    while (notBuiltPackages.size > 0) {
+      const batchSafeToBuild: Manifest[] = [];
+      for (let pkg of notBuiltPackages) {
+        const depsList = getDependenciesList(pkg);
+        // if dependencies that were not built exust then skip
+        if (!(depsList.some((dep): boolean => !builtPackages.has(dep)))) {
+          batchSafeToBuild.push(pkg);
+        }
+      }
+      await this.installPackagesBatch(batchSafeToBuild);
+      for (let pkg of batchSafeToBuild) {
+        builtPackages.add(pkg.name);
+        notBuiltPackages.delete(pkg);
+      }
+    }
+
   }
 }
