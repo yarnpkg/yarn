@@ -9,8 +9,6 @@
  * @flow
  */
 
-import type {Reporter} from '../../reporters/index.js';
-import type Config from '../../config.js';
 import buildSubCommands from './_build-sub-commands.js';
 
 export let {run, setFlags} = buildSubCommands('access', {

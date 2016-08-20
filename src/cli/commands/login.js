@@ -25,7 +25,7 @@ async function getCredentials(config: Config, reporter: Reporter): Promise<?{
   } else {
     username = await reporter.question('npm username');
     if (!username) {
-      return;
+      return null;
     }
   }
 
@@ -35,7 +35,7 @@ async function getCredentials(config: Config, reporter: Reporter): Promise<?{
   } else {
     email = await reporter.question('npm email');
     if (!email) {
-      return;
+      return null;
     }
   }
 

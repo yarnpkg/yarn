@@ -29,7 +29,7 @@ export async function mutate(
   config: Config,
   reporter: Reporter,
   buildMessages: (username: string, packageName: string) => Messages,
-  mutator: (user: Object, pkg: Object) => boolean
+  mutator: (user: Object, pkg: Object) => boolean,
 ): Promise<boolean> {
   if (args.length !== 2 && args.length !== 1) {
     return false;

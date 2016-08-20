@@ -12,7 +12,6 @@
 import type {Manifest} from '../../types.js';
 import {MessageError} from '../../errors.js';
 import RegistryResolver from './RegistryResolver.js';
-import {removeSuffix} from '../../util/misc.js';
 import NpmRegistry from '../../registries/NpmRegistry.js';
 import map from '../../util/map.js';
 import * as fs from '../../util/fs.js';
@@ -54,7 +53,7 @@ export default class NpmResolver extends RegistryResolver {
         return res;
       }
     }
-    
+
     const body = await this.config.registries.npm.request(NpmRegistry.escapeName(this.name));
 
     if (body) {
