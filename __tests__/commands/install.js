@@ -1080,3 +1080,13 @@ test('check should verify that top level dependencies are installed correctly', 
 
   });
 });
+
+test('install should run install scripts in the order of dependencies', async (): Promise<void> => {
+  let fixture = 'scripts-order';
+
+  return run({}, [], fixture, async (config, reporter) => {
+    expect(await fs.exists(path.join(config.cwd, 'node_modules/dep-a/dep-a-built'))).toBe(true);
+    expect(await fs.exists(path.join(config.cwd, 'node_modules/dep-b/dep-b-built'))).toBe(true);
+    expect(await fs.exists(path.join(config.cwd, 'node_modules/dep-c/dep-c-built'))).toBe(true);
+  });
+});
