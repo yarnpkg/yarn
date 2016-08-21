@@ -13,7 +13,7 @@ import type {Reporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
 import type {IgnoreFilter} from '../../util/filter.js';
 import * as fs from '../../util/fs.js';
-import {sortFilter, matchesFilter, ignoreLinesToRegex} from '../../util/filter.js';
+import {sortFilter, ignoreLinesToRegex} from '../../util/filter.js';
 
 let zlib = require('zlib');
 let path = require('path');

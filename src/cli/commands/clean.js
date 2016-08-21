@@ -11,11 +11,11 @@
 
 import type {Reporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
-import {sortFilter, matchesFilter, ignoreLinesToRegex} from '../../util/filter.js';
+import {registryNames} from '../../registries/index.js';
+import {sortFilter, ignoreLinesToRegex} from '../../util/filter.js';
 import {CLEAN_FILENAME} from '../../constants.js';
 import * as fs from '../../util/fs.js';
 
-let minimatch = require('minimatch');
 let path = require('path');
 
 export const requireLockfile = true;
@@ -91,7 +91,7 @@ export async function clean(config: Config, reporter: Reporter): Promise<{
   if (config.modulesFolder) {
     locs.add(config.modulesFolder);
   }
-  for (let name in config.registries) {
+  for (let name of registryNames) {
     let registry = config.registries[name];
     locs.add(path.join(config.cwd, registry.folder));
   }
