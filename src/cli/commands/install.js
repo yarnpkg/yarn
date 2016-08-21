@@ -162,8 +162,8 @@ export class Install {
     }
 
     //
-    let patterns;
-    let steps = [];
+    let patterns = rawPatterns;
+    let steps: Array<(curr: number, total: number) => Promise<void>> = [];
 
     steps.push(async (curr: number, total: number) => {
       this.reporter.step(curr, total, 'Resolving and fetching packages', emoji.get('truck'));

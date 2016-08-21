@@ -1,6 +1,5 @@
 /node_modules
 /src
-/test
 /Gulpfile.js
 /.eslintrc
 /.editorconfig
@@ -14,3 +13,4 @@
 /scripts
 /coverage
 /dist
+/__tests__
