@@ -162,37 +162,42 @@ export class Install {
     }
 
     //
-    let totalSteps = 3;
-    let shouldClean = await this.shouldClean();
-    if (shouldClean) {
-      totalSteps++;
+    let patterns;
+    let steps = [];
+
+    steps.push(async (curr: number, total: number) => {
+      this.reporter.step(curr, total, 'Resolving and fetching packages', emoji.get('truck'));
+      await this.resolver.init(depRequests);
+      patterns = await this.flatten(rawPatterns);
+      await this.compatibility.init();
+    });
+
+    steps.push(async (curr: number, total: number) => {
+      this.reporter.step(curr, total, 'Linking dependencies', emoji.get('link'));
+      await this.linker.init(patterns);
+    });
+
+    steps.push(async (curr: number, total: number) => {
+      this.reporter.step(
+        curr,
+        total,
+        this.flags.rebuild ? 'Rebuilding all packages' : 'Building fresh packages',
+        emoji.get('page_with_curl'),
+      );
+      await this.scripts.init(patterns);
+    });
+
+    if (await this.shouldClean()) {
+      steps.push(async (curr: number, total: number) => {
+        this.reporter.step(curr, total, 'Cleaning modules', emoji.get('recycle'));
+        await clean(this.config, this.reporter);
+      });
     }
 
-    //
-    this.reporter.step(1, totalSteps, 'Resolving and fetching packages', emoji.get('truck'));
-    await this.resolver.init(depRequests);
-    const patterns = await this.flatten(rawPatterns);
-    await this.compatibility.init();
-
-    //
-    this.reporter.step(2, totalSteps, 'Linking dependencies', emoji.get('link'));
-    await this.linker.init(patterns);
-
-    //
-    this.reporter.step(
-      3,
-      totalSteps,
-      this.flags.rebuild ? 'Rebuilding all packages' : 'Building fresh packages',
-      emoji.get('page_with_curl'),
-    );
-    await this.scripts.init(patterns);
-
-    //
-    if (shouldClean) {
-      this.reporter.step(totalSteps, totalSteps, 'Cleaning modules', emoji.get('recycle'));
-      await clean(this.config, this.reporter);
+    let currentStep = 0;
+    for (let step of steps) {
+      await step(++currentStep, steps.length);
     }
-
 
     // fin!
     await this.maybeSaveTree(patterns);
