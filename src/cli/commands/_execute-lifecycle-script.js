@@ -17,13 +17,26 @@ import * as commands from './index.js';
 const leven = require('leven');
 
 export default function(action: string): { run: Function, argumentLength: number } {
+  let actions = [`pre${action}`, action, `post${action}`];
   return {
     argumentLength: 0,
 
     async run(config: Config): Promise<void> {
       const pkg = await config.readManifest(config.cwd);
 
-      if (!pkg.scripts || !pkg.scripts[action]) {
+      // build up list of commands for this script
+      let scripts = pkg.scripts || {};
+      let cmds = [];
+      for (let action of actions) {
+        let cmd = scripts[action];
+        if (cmd) {
+          cmds.push(cmd);
+        }
+      }
+
+      if (cmds.length) {
+        await executeLifecycleScript(config, config.cwd, cmds);
+      } else {
         let suggestion;
 
         for (const commandName in commands) {
@@ -39,8 +52,6 @@ export default function(action: string): { run: Function, argumentLength: number
         }
         throw new MessageError(msg);
       }
-
-      await executeLifecycleScript(config, config.cwd, [pkg.scripts[action]]);
     },
   };
 }
