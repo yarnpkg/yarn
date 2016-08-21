@@ -30,7 +30,7 @@ export async function getName(args: Array<string>, config: Config): Promise<stri
     if (!isValidPackageName(name)) {
       throw new MessageError('Invalid package name');
     }
-    
+
     return NpmRegistry.escapeName(name);
   } else {
     throw new MessageError("Couldn't find package name");
@@ -148,7 +148,7 @@ export let {run, setFlags} = buildSubCommands('dist-tag', {
     }
   },
 }, [
-  '<pkg>@<version> [<tag>]',
+  'add <pkg>@<version> [<tag>]',
   'rm <pkg> <tag>',
   'ls [<pkg>]',
 ]);

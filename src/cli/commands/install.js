@@ -24,6 +24,7 @@ import PackageLinker from '../../PackageLinker.js';
 import PackageRequest from '../../PackageRequest.js';
 import {buildTree} from './ls.js';
 import {registries} from '../../registries/index.js';
+import {clean} from './clean.js';
 import * as constants from '../../constants.js';
 import * as fs from '../../util/fs.js';
 import * as util from '../../util/misc.js';
@@ -161,28 +162,50 @@ export class Install {
     }
 
     //
-    this.reporter.step(1, 3, 'Resolving and fetching packages', emoji.get('truck'));
+    let totalSteps = 3;
+    let shouldClean = await this.shouldClean();
+    if (shouldClean) {
+      totalSteps++;
+    }
+
+    //
+    this.reporter.step(1, totalSteps, 'Resolving and fetching packages', emoji.get('truck'));
     await this.resolver.init(depRequests);
     const patterns = await this.flatten(rawPatterns);
     await this.compatibility.init();
 
     //
-    this.reporter.step(2, 3, 'Linking dependencies', emoji.get('link'));
+    this.reporter.step(2, totalSteps, 'Linking dependencies', emoji.get('link'));
     await this.linker.init(patterns);
 
     //
     this.reporter.step(
       3,
-      3,
+      totalSteps,
       this.flags.rebuild ? 'Rebuilding all packages' : 'Building fresh packages',
       emoji.get('page_with_curl'),
     );
     await this.scripts.init(patterns);
 
+    //
+    if (shouldClean) {
+      this.reporter.step(totalSteps, totalSteps, 'Cleaning modules', emoji.get('recycle'));
+      await clean(this.config, this.reporter);
+    }
+
+
     // fin!
     await this.maybeSaveTree(patterns);
     await this.savePackages();
     await this.saveLockfileAndIntegrity();
+  }
+
+  /**
+   * TODO
+   */
+
+  shouldClean(): Promise<boolean> {
+    return fs.exists(path.join(this.config.cwd, constants.CLEAN_FILENAME));
   }
 
   /**

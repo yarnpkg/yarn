@@ -11,20 +11,14 @@
 
 import type {Reporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
-import {removeSuffix} from '../../util/misc.js';
+import type {IgnoreFilter} from '../../util/filter.js';
 import * as fs from '../../util/fs.js';
-let tar = require('tar-stream');
+import {sortFilter, matchesFilter, ignoreLinesToRegex} from '../../util/filter.js';
 
-let minimatch = require('minimatch');
 let zlib = require('zlib');
 let path = require('path');
+let tar = require('tar-stream');
 let fs2 = require('fs');
-
-type IgnoreFilter = {
-  base: string,
-  isNegation: boolean,
-  regex: RegExp,
-};
 
 const IGNORE_FILENAMES = [
   '.kpmignore',
@@ -59,43 +53,6 @@ const DEFAULT_IGNORE = ignoreLinesToRegex([
   '!+(license|licence)*',
   '!+(changes|changelog|history)*',
 ]);
-
-function matchesFilter(filter: IgnoreFilter, loc: string): boolean {
-  if (filter.base) {
-    loc = path.relative(filter.base, loc);
-  }
-  return filter.regex.test(loc) || filter.regex.test(`/${loc}`);
-}
-
-function ignoreLinesToRegex(lines: Array<string>, base: string = '.'): Array<IgnoreFilter> {
-  return lines
-    // remove comments
-    .map((line): string => line.replace(/# (.*?)$/g, '').trim())
-
-    // remove empty lines
-    .filter((line): boolean => !!line)
-
-    // create regex
-    .map((pattern): IgnoreFilter => {
-      let isNegation = false;
-
-      // hide the fact that it's a negation from minimatch since we'll handle this specifally
-      // ourselves
-      if (pattern[0] === '!') {
-        isNegation = true;
-        pattern = pattern.slice(1);
-      }
-
-      // remove trailing slash
-      pattern = removeSuffix(pattern, '/');
-
-      return {
-        base,
-        isNegation,
-        regex: minimatch.makeRe(pattern, {nocase: true}),
-      };
-    });
-}
 
 function addEntry(packer: any, entry: Object, buffer?: ?Buffer): Promise<void> {
   return new Promise((resolve, reject) => {
@@ -149,59 +106,7 @@ export async function pack(config: Config, dir: string): Promise<stream$Duplex> 
   let possibleKeepFiles: Set<string> = new Set();
 
   //
-  for (let file of files) {
-    let keep = false;
-
-    // always keep a file if a ! pattern matches it
-    for (let filter of filters) {
-      if (filter.isNegation && matchesFilter(filter, file.relative)) {
-        keep = true;
-        break;
-      }
-    }
-
-    //
-    if (keep) {
-      keepFiles.add(file.relative);
-      continue;
-    }
-
-    // otherwise don't keep it if a pattern matches it
-    keep = true;
-    for (let filter of filters) {
-      if (!filter.isNegation && matchesFilter(filter, file.relative)) {
-        keep = false;
-        break;
-      }
-    }
-
-    if (keep) {
-      possibleKeepFiles.add(file.relative);
-    } else {
-      ignoredFiles.add(file.relative);
-    }
-  }
-
-  //
-  for (let file of possibleKeepFiles) {
-    let parts = path.dirname(file).split(path.sep);
-
-    while (parts.length) {
-      let folder = parts.join(path.sep);
-      if (ignoredFiles.has(folder)) {
-        ignoredFiles.add(file);
-        break;
-      }
-      parts.pop();
-    }
-  }
-
-  //
-  for (let file of possibleKeepFiles) {
-    if (!ignoredFiles.has(file)) {
-      keepFiles.add(file);
-    }
-  }
+  sortFilter(files, filters, keepFiles, possibleKeepFiles, ignoredFiles);
 
   // TODO files property
   // TODO throw error on possible suspect file patterns

@@ -359,22 +359,33 @@ export async function symlink(src: string, dest: string): Promise<void> {
   }
 }
 
-export async function walk(dir: string, relativeDir?: ?string, ignoreBasenames?: Array<string>): Promise<Array<{
+export type WalkFiles = Array<{
   relative: string,
   absolute: string,
+  basename: string,
   mtime: number,
-}>> {
+}>;
+
+export async function walk(dir: string, relativeDir?: ?string, ignoreBasenames?: Array<string>): Promise<WalkFiles> {
   let files = [];
 
-  for (const name of await readdir(dir)) {
-    if (ignoreBasenames && ignoreBasenames.indexOf(name) >= 0) {
-      continue;
-    }
+  let filenames = await readdir(dir);
+  if (ignoreBasenames) {
+    filenames = filenames.filter((name): boolean => ignoreBasenames.indexOf(name) < 0);
+  }
 
+  for (let name of filenames) {
     const relative = relativeDir ? path.join(relativeDir, name) : name;
     const loc = path.join(dir, name);
     const stat = await lstat(loc);
-    files.push({relative, absolute: loc, mtime: +stat.mtime});
+
+    files.push({
+      relative,
+      basename: name,
+      absolute: loc,
+      mtime: +stat.mtime,
+    });
+
     if (stat.isDirectory()) {
       files = files.concat(await walk(loc, relative, ignoreBasenames));
     }
