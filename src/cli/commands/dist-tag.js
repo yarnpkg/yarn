@@ -62,7 +62,7 @@ export let {run, setFlags} = buildSubCommands('dist-tag', {
     let revoke = await getToken(config, reporter);
 
     reporter.step(2, 3, `Creating tag ${tag} = ${range}`);
-    let result = await config.registries.npm.request(`-/package/${name}/dist-tags/${tag}`, {
+    let result = await config.registries.npm.request(`-/package/${NpmRegistry.escapeName(name)}/dist-tags/${encodeURI(tag)}`, {
       method: 'PUT',
       body: range,
     });
@@ -100,7 +100,7 @@ export let {run, setFlags} = buildSubCommands('dist-tag', {
     let revoke = await getToken(config, reporter);
 
     reporter.step(2, 3, 'Deleting tag');
-    const result = await config.registries.npm.request(`-/package/${name}/dist-tags/${tag}`, {
+    const result = await config.registries.npm.request(`-/package/${name}/dist-tags/${encodeURI(tag)}`, {
       method: 'DELETE',
     });
 
