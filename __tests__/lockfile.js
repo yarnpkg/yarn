@@ -110,10 +110,10 @@ test("Lockfile.getLockfile", () => {
       uid: "0.0.0",
       dependencies: {},
       optionalDependencies: {},
-      reference: {
+      _reference: {
         permissions: {},
       },
-      remote: {
+      _remote: {
         resolved: "http://example.com/foobar",
         registry: "npm",
       },
@@ -129,12 +129,12 @@ test("Lockfile.getLockfile", () => {
       optionalDependencies: {
         no: "yes",
       },
-      reference: {
+      _reference: {
         permissions: {
           foo: "bar",
         },
       },
-      remote: {
+      _remote: {
         resolved: "http://example.com/barfoo",
         registry: "bower",
       },
@@ -185,10 +185,10 @@ test("Lockfile.getLockfile (sorting)", () => {
       uid: "0.0.0",
       dependencies: {},
       optionalDependencies: {},
-      reference: {
+      _reference: {
         permissions: {},
       },
-      remote: {
+      _remote: {
         resolved: "http://example.com/foobar",
         registry: "npm",
       },

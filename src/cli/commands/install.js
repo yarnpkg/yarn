@@ -158,7 +158,8 @@ export class Install {
     }
 
     if (!depRequests.length) {
-      throw new MessageError('Nothing to install');
+      this.reporter.warn('Nothing to install');
+      return;
     }
 
     //

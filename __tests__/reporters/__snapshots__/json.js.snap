@@ -2,8 +2,8 @@ exports[`test JSONReporter.activity 1`] = `
 Object {
   "stderr": "",
   "stdout": "{\"type\":\"activityStart\",\"data\":{\"id\":0}}
-{\"type\":\"activitytick\",\"data\":{\"id\":0,\"name\":\"foo\"}}
-{\"type\":\"activitytick\",\"data\":{\"id\":0,\"name\":\"bar\"}}
+{\"type\":\"activityTick\",\"data\":{\"id\":0,\"name\":\"foo\"}}
+{\"type\":\"activityTick\",\"data\":{\"id\":0,\"name\":\"bar\"}}
 {\"type\":\"activityEnd\",\"data\":{\"id\":0}}"
 }
 `;

@@ -62,10 +62,13 @@ export let {run, setFlags} = buildSubCommands('dist-tag', {
     let revoke = await getToken(config, reporter);
 
     reporter.step(2, 3, `Creating tag ${tag} = ${range}`);
-    let result = await config.registries.npm.request(`-/package/${NpmRegistry.escapeName(name)}/dist-tags/${encodeURI(tag)}`, {
-      method: 'PUT',
-      body: range,
-    });
+    let result = await config.registries.npm.request(
+      `-/package/${NpmRegistry.escapeName(name)}/dist-tags/${encodeURI(tag)}`,
+      {
+        method: 'PUT',
+        body: range,
+      },
+    );
 
     if (result.ok) {
       reporter.success('Created tag');

@@ -107,6 +107,8 @@ export async function clean(config: Config, reporter: Reporter): Promise<{
     spinner.end();
 
     let tick = reporter.progress(ignoreFiles.size);
+    // TODO make sure `main` field of all modules isn't ignored
+
     for (let file of ignoreFiles) {
       let loc = path.join(folder, file);
       let stat = await fs.lstat(loc);
