@@ -37,7 +37,6 @@ export function spawn(
     let processClosed = false;
     let err = null;
 
-    let stderr = '';
     let stdout = '';
 
     proc.on('error', (err) => {
@@ -48,10 +47,7 @@ export function spawn(
       }
     });
 
-    proc.stderr.on('data', (chunk) => {
-      stderr += chunk;
-      updateStdout(chunk);
-    });
+    proc.stderr.on('data', updateStdout);
 
     function updateStdout(chunk) {
       stdout += chunk;
@@ -90,7 +86,7 @@ export function spawn(
           `Command: ${program}`,
           `Arguments: ${args.join(' ')}`,
           `Directory: ${opts.cwd || process.cwd()}`,
-          `Output:\n${stderr.trim()}`,
+          `Output:\n${stdout.trim()}`,
         ].join('\n'));
       }
 
