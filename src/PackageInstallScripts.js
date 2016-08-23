@@ -61,30 +61,49 @@ export default class PackageInstallScripts {
     spinner: ReporterSpinner,
     factory: () => Promise<T>,
   ): Promise<T> {
-    let beforeFiles = await this.walk(loc);
-    let res = await factory();
-    let afterFiles = await this.walk(loc);
+    const beforeFiles = await this.walk(loc);
+    const res = await factory();
+    const afterFiles = await this.walk(loc);
 
     // work out what files have been created/modified
-    let buildArtifacts = [];
-    for (let [file, mtime] of afterFiles) {
+    const buildArtifacts = [];
+    for (const [file, mtime] of afterFiles) {
       if (!beforeFiles.has(file) || beforeFiles.get(file) !== mtime) {
         buildArtifacts.push(file);
       }
     }
 
+    // install script may have removed files, remove them from the cache too
+    const removedFiles = [];
+    for (const [file] of beforeFiles) {
+      if (!afterFiles.has(file)) {
+        removedFiles.push(file);
+      }
+    }
+
+    if (!removedFiles.length && !buildArtifacts.length) {
+      // nothing else to do here since we have no build side effects
+      return res;
+    }
+
+    // if the process is killed while copying over build artifacts then we'll leave
+    // the cache in a bad state. remove the metadata file and add it back once we've
+    // done our copies to ensure cache integrity.
+    const cachedLoc = this.config.generateHardModulePath(pkg._reference, true);
+    const cachedMetadataLoc = path.join(cachedLoc, constants.METADATA_FILENAME);
+    const cachedMetadata = await fs.readFile(cachedMetadataLoc);
+    await fs.unlink(cachedMetadataLoc);
+
+    // remove files that install script removed
+    if (removedFiles.length) {
+      for (let file of removedFiles) {
+        await fs.unlink(path.join(cachedLoc, file));
+      }
+    }
+
     // copy over build artifacts to cache directory
     if (buildArtifacts.length) {
-      const cachedLoc = this.config.generateHardModulePath(pkg._reference, true);
       const copyRequests = [];
-
-      // if the process is killed while copying over build artifacts then we'll leave
-      // the cache in a bad state. remove the metadata file and add it back once we've
-      // done our copies to ensure cache integrity.
-      const cachedMetadataLoc = path.join(cachedLoc, constants.METADATA_FILENAME);
-      const cachedMetadata = await fs.readFile(cachedMetadataLoc);
-      await fs.unlink(cachedMetadataLoc);
-
       for (let file of buildArtifacts) {
         copyRequests.push({
           src: path.join(loc, file),
@@ -94,7 +113,6 @@ export default class PackageInstallScripts {
           },
         });
       }
-
       await fs.copyBulk(copyRequests, {
         possibleExtraneous: false,
       });
