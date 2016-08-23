@@ -11,7 +11,7 @@
 <p align="center">
   <a href="https://travis-ci.org/facebook/fbkpm"><img alt="Travis Status" src="https://travis-ci.com/facebook/fbkpm.svg?token=DxqWAqRqs3zWAF8EhBHy"></a>
   <a href="https://circleci.com/gh/facebook/fbkpm"><img alt="Circle Status" src="https://circleci.com/gh/facebook/fbkpm.svg?style=svg&circle-token=5f0a78473b0f440afb218bf2b82323cc6b3cb43f"></a>
-  <a href="https://ci.appveyor.com/project/facebook/fbkpm/branch/master"><img alt="Appveyor Status" src="https://ci.appveyor.com/api/projects/status/SECRET_KEY/branch/master?svg=true"></a>
+  <!--<a href="https://ci.appveyor.com/project/facebook/fbkpm/branch/master"><img alt="Appveyor Status" src="https://ci.appveyor.com/api/projects/status/SECRET_KEY/branch/master?svg=true"></a>-->
 </p>
 
 ---
