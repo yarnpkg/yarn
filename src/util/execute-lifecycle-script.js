@@ -53,7 +53,12 @@ export default async function (
 
     let stdout = await child.spawn('sh', ['-c', cmd], {cwd, env}, (data) => {
       if (spinner) {
-        let line = data.toString().trim().split('\n').pop();
+        let line = data.toString() // turn buffer into string
+          .trim() // trim whitespace
+          .split('\n') // split into lines
+          .pop() // use only the last line
+          .replace(/\t/g, ' '); // change tabs to spaces as they can interfere with the console
+        
         if (line) {
           spinner.tick(line);
         }
