@@ -16,18 +16,17 @@
 
 ---
 
-kpm is a package manager that's focused on determinism, security and performance. It's a new
-CLI for the npm and bower registry.
+kpm is a new CLI for the npm and bower registry with a few specific focuses.
 
-**Determinism** kpm is based around a version lockfile which ensures that operations on the
+**Determinism:** kpm is based around a version lockfile which ensures that operations on the
 dependency graph can be easily transitioned. We check module directories and verify their
 integrity to ensure `kpm install` always produces the same file structure.
 
-**Security** Strict guarantees are placed around package installation. You have control over
+**Security:** Strict guarantees are placed around package installation. You have control over
 whether lifecycle scripts are executed for packages and package hashes are stored in the
 lockfile to ensure you get the same package each time.
 
-**Performance** We're always performing operations such as package resolving and fetching. This
+**Performance:** We're always performing operations such as package resolving and fetching. This
 ensures little idle time and maximum resource utilization.
 
 ## Features
