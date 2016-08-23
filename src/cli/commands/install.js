@@ -13,7 +13,6 @@ import type {Reporter} from '../../reporters/index.js';
 import type {DependencyRequestPatterns} from '../../types.js';
 import type Config from '../../config.js';
 import type {RegistryNames} from '../../registries/index.js';
-import {MessageError} from '../../errors.js';
 import {registryNames} from '../../registries/index.js';
 import Lockfile from '../../lockfile/Lockfile.js';
 import lockStringify from '../../lockfile/stringify.js';
@@ -155,11 +154,6 @@ export class Install {
         // in the pattern then it'll be set to it
         depRequests.push({pattern, registry: 'npm'});
       }
-    }
-
-    if (!depRequests.length) {
-      this.reporter.warn('Nothing to install');
-      return;
     }
 
     //

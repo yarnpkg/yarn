@@ -59,6 +59,7 @@ export default class PackageHoister {
     this.resolver = resolver;
     this.config = config;
 
+    this.manifestToPairs = new Map();
     this.taintedKeys = new Map();
     this.tree = new Map();
 
@@ -70,6 +71,7 @@ export default class PackageHoister {
   resolver: PackageResolver;
   config: Config;
 
+  manifestToPairs: Map<Manifest, Array<HoistPair>>;
   zippedTree: Array<HoistPair>;
   tree: Map<string, HoistManifest>;
   taintedKeys: Map<string, HoistManifest>;
@@ -125,11 +127,20 @@ export default class PackageHoister {
       );
     }
 
+
     //
     const pkg = this.resolver.getStrictResolvedPattern(pattern);
     const ref = pkg._reference;
     invariant(ref, 'expected reference');
-    const loc = this.config.generateHardModulePath(ref);
+
+    //
+    let existing = this.manifestToPairs.get(pkg);
+    if (existing) {
+      return existing;
+    }
+
+    //
+    const loc: string = this.config.generateHardModulePath(ref);
 
     // prevent a dependency from having itself as a transitive dependency
     const ownParts = parentParts.slice();
@@ -147,7 +158,7 @@ export default class PackageHoister {
     //
     ownParts.push(pkg.name);
 
-    const key = this.implodeKey(ownParts);
+    const key: string = this.implodeKey(ownParts);
     const info: HoistManifest = new HoistManifest(key, pkg, loc);
     const pair: HoistPair = [key, info];
 
@@ -157,20 +168,21 @@ export default class PackageHoister {
     this.taintKey(key, info);
 
     //
-    let results: Array<HoistPair> = [];
+    let pairs: Array<HoistPair> = [];
+    this.manifestToPairs.set(pkg, pairs);
 
     // add dependencies
     for (const depPattern of ref.dependencies) {
-      results = results.concat(this._seed(depPattern, ownParts));
+      pairs = pairs.concat(this._seed(depPattern, ownParts));
     }
 
     //
-    info.addTransitive(results);
+    info.addTransitive(pairs);
 
     //
-    results.push(pair);
+    pairs.push(pair);
 
-    return results;
+    return pairs;
   }
 
   /**
@@ -418,7 +430,7 @@ export default class PackageHoister {
 
   /**
    * Update the key of a module and update our references.
-a   */
+   */
 
   setKey(info: HoistManifest, pair: HoistPair, newKey: string) {
     const oldKey = info.key;

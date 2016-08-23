@@ -62,23 +62,31 @@ type CopySymlinkAction = {
 
 type CopyActions = Array<CopyFileAction | CopySymlinkAction>;
 
+type PossibleExtraneous = void | false | Iterable<string>;
+
 type CopyEvents = {
   onProgress: (dest: string) => void,
-  onStart: (num: number) => void
+  onStart: (num: number) => void,
+  possibleExtraneous: PossibleExtraneous,
 };
 
 async function buildActionsForCopy(
   queue: CopyQueue,
   events: CopyEvents,
-  possibleExtraneousSeed: ?Iterable<string>,
+  possibleExtraneousSeed: PossibleExtraneous,
 ): Promise<CopyActions> {
   const possibleExtraneous: Set<string> = new Set(possibleExtraneousSeed || []);
+  const noExtraneous = possibleExtraneousSeed === false;
   const files: Set<string> = new Set();
 
   // initialise events
   for (const item of queue) {
+    const onDone = item.onDone;
     item.onDone = () => {
       events.onProgress(item.dest);
+      if (onDone) {
+        onDone();
+      }
     };
   }
   events.onStart(queue.length);
@@ -94,9 +102,11 @@ async function buildActionsForCopy(
   }
 
   // remove all extraneous files that weren't in the tree
-  for (const loc of possibleExtraneous) {
-    if (!files.has(loc)) {
-      await unlink(loc);
+  if (!noExtraneous) {
+    for (const loc of possibleExtraneous) {
+      if (!files.has(loc)) {
+        await unlink(loc);
+      }
     }
   }
 
@@ -105,8 +115,8 @@ async function buildActionsForCopy(
   //
   async function build(data) {
     let {src, dest} = data;
-    const onDone = data.onDone || noop;
     const onFresh = data.onFresh || noop;
+    const onDone = data.onDone || noop;
     files.add(dest);
 
     const srcStat = await lstat(src);
@@ -119,19 +129,12 @@ async function buildActionsForCopy(
     if (await exists(dest)) {
       const destStat = await lstat(dest);
 
+      const bothSymlinks = srcStat.isSymbolicLink() && destStat.isSymbolicLink();
+      const bothFolders = srcStat.isDirectory() && destStat.isDirectory();
       const bothFiles = srcStat.isFile() && destStat.isFile();
-      const bothFolders = !bothFiles && srcStat.isDirectory() && destStat.isDirectory();
-      const bothSymlinks = !bothFolders && !bothFiles && srcStat.isSymbolicLink() && destStat.isSymbolicLink();
 
       if (srcStat.mode !== destStat.mode) {
-        if (bothFiles) {
-          await access(dest, srcStat.mode);
-        } else {
-          possibleExtraneous.delete(dest);
-          await unlink(dest);
-          await build(data);
-          return;
-        }
+        await access(dest, srcStat.mode);
       }
 
       if (bothFiles && srcStat.size === destStat.size && +srcStat.mtime === +destStat.mtime) {
@@ -146,8 +149,8 @@ async function buildActionsForCopy(
         return;
       }
 
-      if (bothFolders) {
-        // remove files that aren't in source
+      if (bothFolders && !noExtraneous) {
+        // mark files that aren't in this folder as possibly extraneous
         const destFiles = await readdir(dest);
         invariant(srcFiles, 'src files not initialised');
 
@@ -225,15 +228,19 @@ export function copy(src: string, dest: string): Promise<void> {
 
 export async function copyBulk(
   queue: CopyQueue,
-  _events?: CopyEvents,
-  possibleExtraneous?: Iterable<string>,
+  _events?: {
+    onProgress?: ?(dest: string) => void,
+    onStart?: ?(num: number) => void,
+    possibleExtraneous?: PossibleExtraneous,
+  },
 ): Promise<void> {
-  const events: CopyEvents = _events || {
-    onStart: noop,
-    onProgress: noop,
+  const events: CopyEvents = {
+    onStart: (_events && _events.onStart) || noop,
+    onProgress: (_events && _events.onProgress) || noop,
+    possibleExtraneous: _events ? _events.possibleExtraneous : [],
   };
 
-  const actions: CopyActions = await buildActionsForCopy(queue, events, possibleExtraneous);
+  const actions: CopyActions = await buildActionsForCopy(queue, events, events.possibleExtraneous);
   events.onStart(actions.length);
 
   const fileActions = actions.filter((action): boolean => action.type === 'file');
@@ -263,7 +270,7 @@ export async function copyBulk(
   // we need to copy symlinks last as the could reference files we were copying
   const symlinkActions = actions.filter((action): boolean => action.type === 'symlink');
   await promise.queue(symlinkActions, (data): Promise<void> => {
-    return fsSymlink(data.linkname, data.dest);
+    return symlink(data.linkname, data.dest);
   });
 }
 

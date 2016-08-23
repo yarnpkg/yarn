@@ -16,6 +16,7 @@ import {stringify} from '../../util/misc.js';
 import {spawn} from '../../util/child.js';
 import * as fs from '../../util/fs.js';
 
+let invariant = require('invariant');
 let semver = require('semver');
 let path = require('path');
 
@@ -62,6 +63,7 @@ export async function run(
     }
   }
   newVersion = semver.inc(oldVersion, newVersion) || newVersion;
+  invariant(newVersion, 'expected new version');
 
   // update version
   reporter.info(`New version ${newVersion}`);

@@ -14,8 +14,10 @@ import type PackageResolver from './PackageResolver.js';
 import type {Reporter} from './reporters/index.js';
 import type Config from './config.js';
 import type {ReporterSpinner} from './reporters/types.js';
+import type {LifecycleReturn} from './util/execute-lifecycle-script.js';
 import executeLifecycleScript from './util/execute-lifecycle-script.js';
 import * as fs from './util/fs.js';
+import * as constants from './constants.js';
 
 const invariant = require('invariant');
 const path = require('path');
@@ -53,39 +55,64 @@ export default class PackageInstallScripts {
     return mtimes;
   }
 
-  async install(cmds: Array<string>, pkg: Manifest, spinner: ReporterSpinner): Promise<Array<{
-    cwd: string,
-    command: string,
-    stdout: string,
-  }>> {
+  async wrapCopyBuildArtifacts<T>(
+    loc: string,
+    pkg: Manifest,
+    spinner: ReporterSpinner,
+    factory: () => Promise<T>,
+  ): Promise<T> {
+    let beforeFiles = await this.walk(loc);
+    let res = await factory();
+    let afterFiles = await this.walk(loc);
+
+    // work out what files have been created/modified
+    let buildArtifacts = [];
+    for (let [file, mtime] of afterFiles) {
+      if (!beforeFiles.has(file) || beforeFiles.get(file) !== mtime) {
+        buildArtifacts.push(file);
+      }
+    }
+
+    // copy over build artifacts to cache directory
+    if (buildArtifacts.length) {
+      const cachedLoc = this.config.generateHardModulePath(pkg._reference, true);
+      const copyRequests = [];
+
+      // if the process is killed while copying over build artifacts then we'll leave
+      // the cache in a bad state. remove the metadata file and add it back once we've
+      // done our copies to ensure cache integrity.
+      const cachedMetadataLoc = path.join(cachedLoc, constants.METADATA_FILENAME);
+      const cachedMetadata = await fs.readFile(cachedMetadataLoc);
+      await fs.unlink(cachedMetadataLoc);
+
+      for (let file of buildArtifacts) {
+        copyRequests.push({
+          src: path.join(loc, file),
+          dest: path.join(cachedLoc, file),
+          onDone() {
+            spinner.tick(`Cached build artifact ${file}`);
+          },
+        });
+      }
+
+      await fs.copyBulk(copyRequests, {
+        possibleExtraneous: false,
+      });
+      await fs.writeFile(cachedMetadataLoc, cachedMetadata);
+    }
+
+    return res;
+  }
+
+  async install(cmds: Array<string>, pkg: Manifest, spinner: ReporterSpinner): LifecycleReturn {
     const loc = this.config.generateHardModulePath(pkg._reference);
     try {
-      let beforeFiles = await this.walk(loc);
-      let res = await executeLifecycleScript(this.config, loc, cmds, spinner);
-      let afterFiles = await this.walk(loc);
-
-      // work out what files have been created/modified
-      let buildArtifacts = [];
-      for (let [file, mtime] of afterFiles) {
-        if (!beforeFiles.has(file) || beforeFiles.get(file) !== mtime) {
-          buildArtifacts.push(file);
-        }
-      }
-
-      // copy over build artifacts to cache directory
-      if (buildArtifacts.length) {
-        const cachedLoc = this.config.generateHardModulePath(pkg._reference, true);
-        const copyRequests = [];
-        for (let file of buildArtifacts) {
-          copyRequests.push({
-            src: path.join(loc, file),
-            dest: path.join(cachedLoc, file),
-          });
-        }
-        await fs.copyBulk(copyRequests);
-      }
-
-      return res;
+      return this.wrapCopyBuildArtifacts(
+        loc,
+        pkg,
+        spinner,
+        (): LifecycleReturn => executeLifecycleScript(this.config, loc, cmds, spinner),
+      );
     } catch (err) {
       err.message = `${loc}: ${err.message}`;
 

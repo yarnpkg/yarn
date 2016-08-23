@@ -67,7 +67,7 @@ export function queue<T>(
   const results = [];
   let total = arr.length;
   if (!total) {
-    return Promise.resolve();
+    return Promise.resolve(results);
   }
 
   return new Promise((resolve, reject) => {

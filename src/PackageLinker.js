@@ -156,6 +156,8 @@ export default class PackageLinker {
     //
     let tick;
     await fs.copyBulk(queue, {
+      possibleExtraneous,
+      
       onStart: (num: number) => {
         tick = this.reporter.progress(num);
       },
@@ -165,7 +167,7 @@ export default class PackageLinker {
           tick(src);
         }
       },
-    }, possibleExtraneous);
+    });
 
     //
     const tickBin = this.reporter.progress(flatTree.length);

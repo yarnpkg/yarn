@@ -17,16 +17,18 @@ import type {ReporterSpinner} from '../reporters/types.js';
 
 const path = require('path');
 
+export type LifecycleReturn = Promise<Array<{
+  cwd: string,
+  command: string,
+  stdout: string,
+}>>;
+
 export default async function (
   config: Config,
   cwd: string,
   cmds: Array<string>,
   spinner?: ReporterSpinner,
-): Promise<Array<{
-  cwd: string,
-  command: string,
-  stdout: string,
-}>> {
+): LifecycleReturn {
   const results = [];
 
   for (const cmd of cmds) {
