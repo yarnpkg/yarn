@@ -47,8 +47,6 @@ export function spawn(
       }
     });
 
-    proc.stderr.on('data', updateStdout);
-
     function updateStdout(chunk) {
       stdout += chunk;
       if (onData) {
@@ -73,6 +71,7 @@ export function spawn(
         }
       });
     } else {
+      proc.stderr.on('data', updateStdout);
       proc.stdout.on('data', updateStdout);
       processingDone = true;
     }

@@ -107,7 +107,7 @@ test("Lockfile.getLockfile", () => {
     foobar: {
       name: "foobar",
       version: "0.0.0",
-      uid: "0.0.0",
+      _uid: "0.0.0",
       dependencies: {},
       optionalDependencies: {},
       _reference: {
@@ -122,7 +122,7 @@ test("Lockfile.getLockfile", () => {
     barfoo: {
       name: "barfoo",
       version: "0.0.1",
-      uid: "0.1.0",
+      _uid: "0.1.0",
       dependencies: {
         yes: "no",
       },
@@ -140,15 +140,14 @@ test("Lockfile.getLockfile", () => {
       },
     },
 
-    foobar2: {},
+    "foobar@2": {},
   };
 
-  patterns.foobar2 = patterns.foobar;
+  patterns["foobar@2"] = patterns.foobar;
 
   let actual = new Lockfile().getLockfile(patterns);
 
   let expectedFoobar = {
-    name: "foobar",
     version: "0.0.0",
     uid: undefined,
     resolved: "http://example.com/foobar",
@@ -159,8 +158,6 @@ test("Lockfile.getLockfile", () => {
   };
 
   let expected = {
-    foobar: expectedFoobar,
-
     barfoo: {
       version: "0.0.1",
       uid: "0.1.0",
@@ -170,8 +167,8 @@ test("Lockfile.getLockfile", () => {
       optionalDependencies: {no: "yes"},
       permissions: {foo: "bar"},
     },
-
-    foobar2: expectedFoobar,
+    foobar: expectedFoobar,
+    "foobar@2": expectedFoobar,
   };
 
   expect(actual).toEqual(expected);
