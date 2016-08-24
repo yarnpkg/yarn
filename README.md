@@ -16,7 +16,7 @@
 
 ---
 
-kpm is a new CLI for the npm and bower registry with a few specific focuses.
+kpm is a package manager for the npm and bower registries with a few specific focuses.
 
 **Determinism:** kpm is based around a version lockfile which ensures that operations on the
 dependency graph can be easily transitioned. We check module directories and verify their
