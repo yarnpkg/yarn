@@ -134,7 +134,12 @@ async function buildActionsForCopy(
       const bothFiles = srcStat.isFile() && destStat.isFile();
 
       if (srcStat.mode !== destStat.mode) {
-        await access(dest, srcStat.mode);
+        try {
+          await access(dest, srcStat.mode);
+        } catch (err) {
+          // EINVAL access errors sometimes happen which shouldn't because node shouldn't be giving
+          // us modes that aren't valid. investigate this, it's generally safe to proceed.
+        }
       }
 
       if (bothFiles && srcStat.size === destStat.size && +srcStat.mtime === +destStat.mtime) {
