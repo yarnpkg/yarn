@@ -18,7 +18,7 @@
 
 kpm is a package manager for the npm and bower registries with a few specific focuses.
 
-**Determinism:** kpm is based around a version lockfile which ensures that operations on the
+**Determinism:** Based around a version lockfile which ensures that operations on the
 dependency graph can be easily transitioned. We check module directories and verify their
 integrity to ensure `kpm install` always produces the same file structure.
 
