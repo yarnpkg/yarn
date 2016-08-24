@@ -216,10 +216,12 @@ test('install should dedupe dependencies avoiding conflicts 2', (): Promise<void
   //            -> D@1
   // B@1 -> C@1
   // should become
+  // A@2
   // A@2 -> B@2
   // A@2 -> C@2
   // D@1
   // C@1
+  // B@1
 
   return run({}, [], 'install-should-dedupe-avoiding-conflicts-2', async (config) => {
     assert.equal(await getPackageVersion(config, 'dep-a'), '2.0.0');
