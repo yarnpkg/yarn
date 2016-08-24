@@ -217,17 +217,17 @@ test('install should dedupe dependencies avoiding conflicts 2', (): Promise<void
   // B@1 -> C@1
   // should become
   // A@2 -> B@2
+  // A@2 -> C@2
   // D@1
-  // B@1 -> C@1
-  // C@2
+  // C@1
 
   return run({}, [], 'install-should-dedupe-avoiding-conflicts-2', async (config) => {
     assert.equal(await getPackageVersion(config, 'dep-a'), '2.0.0');
     assert.equal(await getPackageVersion(config, 'dep-a/dep-b'), '2.0.0');
-    assert.equal(await getPackageVersion(config, 'dep-c'), '2.0.0');
+    assert.equal(await getPackageVersion(config, 'dep-c'), '1.0.0');
     assert.equal(await getPackageVersion(config, 'dep-d'), '1.0.0');
     assert.equal(await getPackageVersion(config, 'dep-b'), '1.0.0');
-    assert.equal(await getPackageVersion(config, 'dep-b/dep-c'), '1.0.0');
+    assert.equal(await getPackageVersion(config, 'dep-a/dep-c'), '2.0.0');
   });
 });
 
@@ -236,16 +236,16 @@ test('install should dedupe dependencies avoiding conflicts 3', (): Promise<void
   //            -> D@1
   //     -> C@1
   // should become
-  // A@2 -> C@1
-  // B@2
-  // C@2
+  // A@2
+  // B@2 -> C@2
+  // C@1
   // D@1
   return run({}, [], 'install-should-dedupe-avoiding-conflicts-3', async (config) => {
     assert.equal(await getPackageVersion(config, 'dep-a'), '2.0.0');
-    assert.equal(await getPackageVersion(config, 'dep-c'), '2.0.0');
+    assert.equal(await getPackageVersion(config, 'dep-c'), '1.0.0');
     assert.equal(await getPackageVersion(config, 'dep-d'), '1.0.0');
     assert.equal(await getPackageVersion(config, 'dep-b'), '2.0.0');
-    assert.equal(await getPackageVersion(config, 'dep-a/dep-c'), '1.0.0');
+    assert.equal(await getPackageVersion(config, 'dep-b/dep-c'), '2.0.0');
   });
 });
 
@@ -255,17 +255,16 @@ test('install should dedupe dependencies avoiding conflicts 4', (): Promise<void
   //     -> C@1
 
   // should become
-
-  // A@2 -> C@1
-  // C@2
+  // A@2
+  // D@1 -> C@2
+  // C@1
   // B@2
-  // D@1
   return run({}, [], 'install-should-dedupe-avoiding-conflicts-4', async (config) => {
     assert.equal(await getPackageVersion(config, 'dep-a'), '2.0.0');
-    assert.equal(await getPackageVersion(config, 'dep-c'), '2.0.0');
+    assert.equal(await getPackageVersion(config, 'dep-c'), '1.0.0');
     assert.equal(await getPackageVersion(config, 'dep-d'), '1.0.0');
+    assert.equal(await getPackageVersion(config, 'dep-d/dep-c'), '2.0.0');
     assert.equal(await getPackageVersion(config, 'dep-b'), '2.0.0');
-    assert.equal(await getPackageVersion(config, 'dep-a/dep-c'), '1.0.0');
   });
 });
 
