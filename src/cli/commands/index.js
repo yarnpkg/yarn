@@ -24,6 +24,18 @@ export {access};
 import * as clean from './clean.js';
 export {clean};
 
+import * as config from './config.js';
+export {config};
+
+import * as team from './team.js';
+export {team};
+
+import * as link from './link.js';
+export {link};
+
+import * as outdated from './outdated.js';
+export {outdated};
+
 import * as pack from './pack.js';
 export {pack};
 
