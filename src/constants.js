@@ -35,8 +35,8 @@ function or(filenames: Array<string>, cwd: string): string {
   return filenames.pop();
 }
 
+export const DEFAULT_PORT_FOR_SINGLE_INSTANCE = 31997;
 export const MODULE_CACHE_DIRECTORY = or(['.fbkpm', '.kpm'], userHome);
-export const SINGLE_SOCKET_FILENAME = '.kpm-single-socket';
 export const INTEGRITY_FILENAME = or(['.fbkpm-integrity', '.kpm-integrity'], path.join(cwd, 'node_modules'));
 export const LOCKFILE_FILENAME = or(['fbkpm.lock', 'kpm.lock'], cwd);
 export const METADATA_FILENAME = '.kpm-metadata.json';
