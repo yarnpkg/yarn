@@ -46,6 +46,7 @@ export async function buildTree(
   linker: PackageLinker,
   patterns: Array<string>,
   onlyFresh?: boolean,
+  ignoreHoisted?: boolean,
 ): Promise<{
   count: number,
   trees: Trees
@@ -61,7 +62,7 @@ export async function buildTree(
 
   // build initial trees
   for (let [, info] of hoisted) {
-    const ref = info.pkg.reference;
+    const ref = info.pkg._reference;
     invariant(ref, 'expected reference');
 
     if (onlyFresh) {
@@ -85,25 +86,27 @@ export async function buildTree(
       color = null;
     }
 
-    const tree = {
+    const children = [];
+    treesByKey[info.key] = {
       name: `${info.pkg.name}@${info.pkg.version}`,
-      children: [],
+      children,
       hint,
       color,
     };
-    treesByKey[info.key] = tree;
 
     // add in dummy children for hoisted dependencies
     invariant(ref, 'expected reference');
-    for (const pattern of resolver.dedupePatterns(ref.dependencies)) {
-      const pkg = resolver.getStrictResolvedPattern(pattern);
+    if (!ignoreHoisted) {
+      for (const pattern of resolver.dedupePatterns(ref.dependencies)) {
+        const pkg = resolver.getStrictResolvedPattern(pattern);
 
-      if (!hoistedByKey[`${info.key}#${pkg.name}`]) {
-        tree.children.push({
-          name: pattern,
-          color: 'dim',
-          shadow: true,
-        });
+        if (!hoistedByKey[`${info.key}#${pkg.name}`]) {
+          children.push({
+            name: pattern,
+            color: 'dim',
+            shadow: true,
+          });
+        }
       }
     }
   }

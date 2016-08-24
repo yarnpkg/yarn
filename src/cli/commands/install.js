@@ -12,6 +12,8 @@
 import type {Reporter} from '../../reporters/index.js';
 import type {DependencyRequestPatterns} from '../../types.js';
 import type Config from '../../config.js';
+import type {RegistryNames} from '../../registries/index.js';
+import {registryNames} from '../../registries/index.js';
 import Lockfile from '../../lockfile/Lockfile.js';
 import lockStringify from '../../lockfile/stringify.js';
 import PackageInstallScripts from '../../PackageInstallScripts.js';
@@ -21,6 +23,7 @@ import PackageLinker from '../../PackageLinker.js';
 import PackageRequest from '../../PackageRequest.js';
 import {buildTree} from './ls.js';
 import {registries} from '../../registries/index.js';
+import {clean} from './clean.js';
 import * as constants from '../../constants.js';
 import * as fs from '../../util/fs.js';
 import * as util from '../../util/misc.js';
@@ -43,25 +46,24 @@ export class Install {
     lockfile: Lockfile,
   ) {
     this.rootPatternsToOrigin = map();
-    this.resolutions          = map();
-    this.registries           = [];
-    this.lockfile             = lockfile;
-    this.reporter             = reporter;
-    this.config               = config;
-    this.action               = action;
-    this.flags                = flags;
-    this.args                 = args;
+    this.resolutions = map();
+    this.lockfile = lockfile;
+    this.reporter = reporter;
+    this.config = config;
+    this.action = action;
+    this.flags = flags;
+    this.args = args;
 
-    this.resolver      = new PackageResolver(config, lockfile);
+    this.resolver = new PackageResolver(config, lockfile);
     this.compatibility = new PackageCompatibility(config, this.resolver);
-    this.linker        = new PackageLinker(config, this.resolver);
-    this.scripts       = new PackageInstallScripts(config, this.resolver, flags.rebuild);
+    this.linker = new PackageLinker(config, this.resolver);
+    this.scripts = new PackageInstallScripts(config, this.resolver, flags.rebuild);
   }
 
   action: InstallActions;
   args: Array<string>;
   flags: Object;
-  registries: Array<string>;
+  registries: Array<RegistryNames>;
   lockfile: Lockfile;
   resolutions: { [packageName: string]: string };
   config: Config;
@@ -99,46 +101,41 @@ export class Install {
     }
 
     for (const registry of Object.keys(registries)) {
-      const filenames = registries[registry].filenames;
-
-      for (const filename of filenames) {
-        const loc = path.join(this.config.cwd, filename);
-        if (!(await fs.exists(loc))) {
-          continue;
-        }
-
-        this.registries.push(registry);
-
-        const json = await fs.readJson(loc);
-        Object.assign(this.resolutions, json.resolutions);
-        Object.assign(manifest, json);
-
-        const pushDeps = (depType, {hint, ignore, optional}) => {
-          const depMap = json[depType];
-          for (const name in depMap) {
-            if (excludeNames.indexOf(name) >= 0) {
-              continue;
-            }
-
-            let pattern = name;
-            if (!this.lockfile.getLocked(pattern, true)) {
-              // when we use --save we save the dependency to the lockfile with just the name rather than the
-              // version combo
-              pattern += '@' + depMap[name];
-            }
-
-            this.rootPatternsToOrigin[pattern] = depType;
-            patterns.push(pattern);
-            deps.push({pattern, registry, ignore, hint, optional});
-          }
-        };
-
-        pushDeps('dependencies', {hint: null, ignore: false, optional: false});
-        pushDeps('devDependencies', {hint: 'dev', ignore: !!this.flags.production, optional: false});
-        pushDeps('optionalDependencies', {hint: 'optional', ignore: false, optional: true});
-
-        break;
+      const {filename} = registries[registry];
+      const loc = path.join(this.config.cwd, filename);
+      if (!(await fs.exists(loc))) {
+        continue;
       }
+
+      const json = await fs.readJson(loc);
+      Object.assign(this.resolutions, json.resolutions);
+      Object.assign(manifest, json);
+
+      const pushDeps = (depType, {hint, ignore, optional}) => {
+        const depMap = json[depType];
+        for (const name in depMap) {
+          if (excludeNames.indexOf(name) >= 0) {
+            continue;
+          }
+
+          let pattern = name;
+          if (!this.lockfile.getLocked(pattern, true)) {
+            // when we use --save we save the dependency to the lockfile with just the name rather than the
+            // version combo
+            pattern += '@' + depMap[name];
+          }
+
+          this.rootPatternsToOrigin[pattern] = depType;
+          patterns.push(pattern);
+          deps.push({pattern, registry, ignore, hint, optional});
+        }
+      };
+
+      pushDeps('dependencies', {hint: null, ignore: false, optional: false});
+      pushDeps('devDependencies', {hint: 'dev', ignore: !!this.flags.production, optional: false});
+      pushDeps('optionalDependencies', {hint: 'optional', ignore: false, optional: true});
+
+      break;
     }
 
     return [deps, patterns, manifest];
@@ -160,23 +157,42 @@ export class Install {
     }
 
     //
-    this.reporter.step(1, 3, 'Resolving and fetching packages', emoji.get('truck'));
-    await this.resolver.init(depRequests);
-    const patterns = await this.flatten(rawPatterns);
-    await this.compatibility.init();
+    let patterns = rawPatterns;
+    let steps: Array<(curr: number, total: number) => Promise<void>> = [];
 
-    //
-    this.reporter.step(2, 3, 'Linking dependencies', emoji.get('link'));
-    await this.linker.init(patterns);
+    steps.push(async (curr: number, total: number) => {
+      this.reporter.step(curr, total, 'Resolving and fetching packages', emoji.get('truck'));
+      await this.resolver.init(depRequests);
+      patterns = await this.flatten(rawPatterns);
+      await this.compatibility.init();
+    });
 
-    //
-    this.reporter.step(
-      3,
-      3,
-      this.flags.rebuild ? 'Rebuilding all packages' : 'Building fresh packages',
-      emoji.get('page_with_curl'),
-    );
-    await this.scripts.init();
+    steps.push(async (curr: number, total: number) => {
+      this.reporter.step(curr, total, 'Linking dependencies', emoji.get('link'));
+      await this.linker.init(patterns);
+    });
+
+    steps.push(async (curr: number, total: number) => {
+      this.reporter.step(
+        curr,
+        total,
+        this.flags.rebuild ? 'Rebuilding all packages' : 'Building fresh packages',
+        emoji.get('page_with_curl'),
+      );
+      await this.scripts.init(patterns);
+    });
+
+    if (await this.shouldClean()) {
+      steps.push(async (curr: number, total: number) => {
+        this.reporter.step(curr, total, 'Cleaning modules', emoji.get('recycle'));
+        await clean(this.config, this.reporter);
+      });
+    }
+
+    let currentStep = 0;
+    for (let step of steps) {
+      await step(++currentStep, steps.length);
+    }
 
     // fin!
     await this.maybeSaveTree(patterns);
@@ -188,18 +204,26 @@ export class Install {
    * TODO
    */
 
+  shouldClean(): Promise<boolean> {
+    return fs.exists(path.join(this.config.cwd, constants.CLEAN_FILENAME));
+  }
+
+  /**
+   * TODO
+   */
+
   async maybeSaveTree(patterns: Array<string>): Promise<void> {
     if (!hasSaveFlags(this.flags)) {
       return;
     }
 
-    let {trees, count} = await buildTree(this.resolver, this.linker, patterns, true);
+    let {trees, count} = await buildTree(this.resolver, this.linker, patterns, true, true);
     this.reporter.success(`Saved ${count} new ${count === 1 ? 'dependency' : 'dependencies'}`);
     this.reporter.tree('newDependencies', trees);
   }
 
   /**
-   * Save added packages to `package.json` if any of the --save flags were used
+   * Save added packages to manifest if any of the --save flags were used
    */
 
   async savePackages(): Promise<void> {
@@ -212,15 +236,26 @@ export class Install {
       return;
     }
 
-    let json = {};
-    const jsonLoc = path.join(this.config.cwd, 'package.json');
-    if (await fs.exists(jsonLoc)) {
-      json = await fs.readJson(jsonLoc);
+    let jsons: {
+      [registryName: RegistryNames]: [string, Object]
+    } = {};
+    for (let registryName of registryNames) {
+      const registry = registries[registryName];
+      const jsonLoc = path.join(this.config.cwd, registry.filename);
+
+      let json = {};
+      if (await fs.exists(jsonLoc)) {
+        json = await fs.readJson(jsonLoc);
+      }
+      jsons[registryName] = [jsonLoc, json];
     }
 
     for (const pattern of this.resolver.dedupePatterns(this.args)) {
       const pkg = this.resolver.getResolvedPattern(pattern);
       invariant(pkg, `missing package ${pattern}`);
+
+      const ref = pkg._reference;
+      invariant(ref, 'expected package reference');
 
       const parts = PackageRequest.normalisePattern(pattern);
       let version;
@@ -239,7 +274,7 @@ export class Install {
       }
 
       // build up list of objects to put ourselves into from the cli args
-      const targetKeys = [];
+      const targetKeys: Array<string> = [];
       if (save) {
         targetKeys.push('dependencies');
       }
@@ -256,7 +291,8 @@ export class Install {
         continue;
       }
 
-      // add it to package.json
+      // add it to manifest
+      const json = jsons[ref.registry][1];
       for (const key of targetKeys) {
         const target = json[key] = json[key] || {};
         target[pkg.name] = version;
@@ -271,7 +307,14 @@ export class Install {
       this.resolver.removePattern(pattern);
     }
 
-    await fs.writeFile(jsonLoc, stringify(json) + '\n');
+    for (let registryName of registryNames) {
+      let [loc, json] = jsons[registryName];
+      if (!Object.keys(json).length) {
+        continue;
+      }
+
+      await fs.writeFile(loc, stringify(json) + '\n');
+    }
   }
 
   /**
@@ -286,7 +329,7 @@ export class Install {
     for (const name of this.resolver.getAllDependencyNames()) {
       const infos = this.resolver.getAllInfoForPackageName(name);
 
-      const firstRemote = infos[0] && infos[0].remote;
+      const firstRemote = infos[0] && infos[0]._remote;
       invariant(firstRemote, 'Missing first remote');
 
       if (infos.length === 1) {
@@ -326,10 +369,7 @@ export class Install {
     const lockSource = lockStringify(this.lockfile.getLockfile(this.resolver.patterns)) + '\n';
 
     // write integrity hash
-    await fs.writeFile(
-      path.join(this.config.cwd, 'node_modules', constants.INTEGRITY_FILENAME),
-      util.hash(lockSource),
-    );
+    this.writeIntegrityHash(lockSource);
 
     // check if we should write a lockfile in the first place
     if (!shouldWriteLockfile(this.flags, this.args)) {
@@ -350,6 +390,36 @@ export class Install {
     await fs.writeFile(loc, lockSource);
 
     this.reporter.success(`Saved lockfile to ${constants.LOCKFILE_FILENAME}`);
+  }
+
+  /**
+   * Description
+   */
+
+  async writeIntegrityHash(lockSource: string): Promise<void> {
+    // build up possible folders
+    let possibleFolders = [];
+    if (this.config.modulesFolder) {
+      possibleFolders.push(this.config.modulesFolder);
+    }
+    for (let name of this.resolver.usedRegistries) {
+      let loc = path.join(this.config.cwd, this.config.registries[name].folder);
+      if (await fs.exists(loc)) {
+        possibleFolders.push(loc);
+      }
+    }
+
+    //
+    let possibles = possibleFolders.map((folder): string => path.join(folder, constants.INTEGRITY_FILENAME));
+    let loc = possibles[0];
+    for (let possibleLoc of possibles) {
+      if (await fs.exists(possibleLoc)) {
+        loc = possibleLoc;
+        break;
+      }
+    }
+
+    await fs.writeFile(loc, util.hash(lockSource));
   }
 }
 

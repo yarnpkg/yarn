@@ -10,7 +10,7 @@
  */
 /* eslint no-unused-vars: 0 */
 
-import type {Trees, Stdout, Stdin, Package} from './types.js';
+import type {Trees, Stdout, Stdin, Package, ReporterSpinner} from './types.js';
 
 export type ReporterOptions = {
   stdout?: Stdout,
@@ -23,14 +23,14 @@ export default class BaseReporter {
   constructor(opts?: ReporterOptions = {}) {
     this.stdout = opts.stdout || process.stdout;
     this.stderr = opts.stderr || process.stderr;
-    this.stdin  = opts.stdin || process.stdin;
-    this.emoji  = !!opts.emoji;
+    this.stdin = opts.stdin || process.stdin;
+    this.emoji = !!opts.emoji;
 
     // $FlowFixMe: this is valid!
     this.isTTY = this.stdout.isTTY;
 
     this.peakMemory = 0;
-    this.startTime  = Date.now();
+    this.startTime = Date.now();
   }
 
   stdout: Stdout;
@@ -103,10 +103,7 @@ export default class BaseReporter {
   footer(showPeakMemory: boolean) {}
 
   // render an activity spinner and return a function that will trigger an update
-  activity(): {
-    tick: (name: string) => void,
-    end: () => void
-  } {
+  activity(): ReporterSpinner {
     return {
       tick(name: string) {},
       end() {},
@@ -114,8 +111,35 @@ export default class BaseReporter {
   }
 
   //
-  question(question: string): Promise<boolean> {
+  activityStep(current: number, total: number, message: string, emoji?: string): ReporterSpinner {
+    return this.activity();
+  }
+
+  //
+  question(question: string, password?: boolean): Promise<string> {
     return Promise.reject(new Error('Not implemented'));
+  }
+
+  //
+  async questionAffirm(question: string): Promise<boolean> {
+    let condition = true; // trick eslint
+
+    while (condition) {
+      let answer = await this.question(question);
+      answer = answer.toLowerCase();
+
+      if (answer === 'y' || answer === 'yes') {
+        return true;
+      }
+
+      if (answer === 'n' || answer === 'no') {
+        return false;
+      }
+
+      this.error('Invalid answer for question');
+    }
+
+    return false;
   }
 
   // prompt the user to select an option from an array

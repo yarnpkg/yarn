@@ -9,13 +9,17 @@
  * @flow
  */
 
+import type RequestManager from '../util/RequestManager.js';
+import type {RegistryRequestOptions} from './Registry.js';
 import * as fs from '../util/fs.js';
 import Registry from './Registry.js';
+import {removeSuffix} from '../util/misc.js';
 
 const userHome = require('user-home');
 const path = require('path');
-const _ = require('lodash');
+const url = require('url');
 const ini = require('ini');
+const _ = require('lodash');
 
 function getGlobalPrefix(): string {
   if (process.env.PREFIX) {
@@ -37,32 +41,67 @@ function getGlobalPrefix(): string {
 }
 
 export default class NpmRegistry extends Registry {
-  static filenames = ['package.json'];
-  static directory = 'node_modules';
-
-  async loadConfig(): Promise<void> {
-    // docs: https://docs.npmjs.com/misc/config
+  constructor(cwd: string, requestManager: RequestManager) {
+    super(cwd, requestManager);
     this.folder = 'node_modules';
+  }
 
+  static filename = 'package.json';
+
+  static escapeName(name: string): string {
+    // scoped packages contain slashes and the npm registry expects them to be escaped
+    return name.replace('/', '%2f');
+  }
+
+  async request(pathname: string, opts?: RegistryRequestOptions = {}): Promise<Object | false> {
+    const registry = removeSuffix(this.config.registry, '/');
+
+    let headers = {};
+    if (this.token) {
+      headers.authorization = `Bearer ${this.token}`;
+    }
+
+    return this.requestManager.request({
+      url: url.resolve(registry, pathname),
+      method: opts.method,
+      body: opts.body,
+      headers,
+      json: true,
+    });
+  }
+
+  async getPossibleConfigLocations(filename: string): Promise<Array<[boolean, string, string]>> {
     const possibles = [
-      path.join(getGlobalPrefix(), '.npmrc'),
-      path.join(userHome, '.npmrc'),
-      path.join(this.cwd, '.npmrc'),
+      [false, path.join(getGlobalPrefix(), filename)],
+      [true, path.join(userHome, filename)],
+      [false, path.join(this.cwd, filename)],
     ];
+
     const foldersFromRootToCwd = this.cwd.split(path.sep);
     while (foldersFromRootToCwd.length > 1) {
-      possibles.push(path.join(foldersFromRootToCwd.join(path.sep), '.npmrc'));
+      possibles.push([false, path.join(foldersFromRootToCwd.join(path.sep), filename)]);
       foldersFromRootToCwd.pop();
     }
 
+    let actuals = [];
+    for (let [isHome, loc] of possibles) {
+      if (await fs.exists(loc)) {
+        actuals.push([
+          isHome,
+          loc,
+          await fs.readFile(loc),
+        ]);
+      }
+    }
+    return actuals;
+  }
+
+  async loadConfig(): Promise<void> {
+    // docs: https://docs.npmjs.com/misc/config
     this.mergeEnv('npm_config_');
 
-    for (const loc of possibles) {
-      if (!(await fs.exists(loc))) {
-        continue;
-      }
-
-      const config = ini.parse(await fs.readFile(loc));
+    for (const [, loc, file] of await this.getPossibleConfigLocations('.npmrc')) {
+      const config = ini.parse(file);
 
       // normalise kpm offline mirror path relative to the current npmrc
       const offlineLoc = config['kpm-offline-mirror'];

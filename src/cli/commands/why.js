@@ -78,7 +78,7 @@ export async function run(
     return;
   }
 
-  const matchRef = match.pkg.reference;
+  const matchRef = match.pkg._reference;
   invariant(matchRef, 'expected reference');
 
   const matchPatterns = matchRef.patterns;

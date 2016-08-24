@@ -20,20 +20,23 @@ const fs = require('fs');
 export const lockQueue = new BlockingQueue('fs lock');
 
 export const readFileBuffer = promisify(fs.readFile);
-export const writeFile      = promisify(fs.writeFile);
-export const realpath       = promisify(fs.realpath);
-export const readdir        = promisify(fs.readdir);
-export const rename         = promisify(fs.rename);
-export const access         = promisify(fs.access);
-export const unlink         = promisify(require('rimraf'));
-export const mkdirp         = promisify(require('mkdirp'));
-export const exists         = promisify(fs.exists, true);
-export const lstat          = promisify(fs.lstat);
-export const chmod          = promisify(fs.chmod);
+export const writeFile = promisify(fs.writeFile);
+export const readlink = promisify(fs.readlink);
+export const realpath = promisify(fs.realpath);
+export const readdir = promisify(fs.readdir);
+export const rename = promisify(fs.rename);
+export const access = promisify(fs.access);
+export const unlink = promisify(require('rimraf'));
+export const mkdirp = promisify(require('mkdirp'));
+export const exists = promisify(fs.exists, true);
+export const lstat = promisify(fs.lstat);
+export const chmod = promisify(fs.chmod);
 
 const fsSymlink = promisify(fs.symlink);
 const invariant = require('invariant');
 const stripBOM = require('strip-bom');
+
+const noop = () => {};
 
 type CopyQueue = Array<{
   src: string,
@@ -42,31 +45,48 @@ type CopyQueue = Array<{
   onDone?: ?() => void,
 }>;
 
-type CopyActions = Array<{
+type CopyFileAction = {
+  type: 'file',
   src: string,
   dest: string,
   atime: number,
   mtime: number,
   mode: number
-}>;
+};
+
+type CopySymlinkAction = {
+  type: 'symlink',
+  dest: string,
+  linkname: string,
+};
+
+type CopyActions = Array<CopyFileAction | CopySymlinkAction>;
+
+type PossibleExtraneous = void | false | Iterable<string>;
 
 type CopyEvents = {
   onProgress: (dest: string) => void,
-  onStart: (num: number) => void
+  onStart: (num: number) => void,
+  possibleExtraneous: PossibleExtraneous,
 };
 
 async function buildActionsForCopy(
   queue: CopyQueue,
   events: CopyEvents,
-  possibleExtraneousSeed: ?Iterable<string>,
+  possibleExtraneousSeed: PossibleExtraneous,
 ): Promise<CopyActions> {
   const possibleExtraneous: Set<string> = new Set(possibleExtraneousSeed || []);
+  const noExtraneous = possibleExtraneousSeed === false;
   const files: Set<string> = new Set();
 
   // initialise events
   for (const item of queue) {
+    const onDone = item.onDone;
     item.onDone = () => {
       events.onProgress(item.dest);
+      if (onDone) {
+        onDone();
+      }
     };
   }
   events.onStart(queue.length);
@@ -82,9 +102,11 @@ async function buildActionsForCopy(
   }
 
   // remove all extraneous files that weren't in the tree
-  for (const loc of possibleExtraneous) {
-    if (!files.has(loc)) {
-      await unlink(loc);
+  if (!noExtraneous) {
+    for (const loc of possibleExtraneous) {
+      if (!files.has(loc)) {
+        await unlink(loc);
+      }
     }
   }
 
@@ -92,8 +114,9 @@ async function buildActionsForCopy(
 
   //
   async function build(data) {
-    let {src, dest, onFresh} = data;
-    const onDone = data.onDone || (() => {});
+    let {src, dest} = data;
+    const onFresh = data.onFresh || noop;
+    const onDone = data.onDone || noop;
     files.add(dest);
 
     const srcStat = await lstat(src);
@@ -106,17 +129,16 @@ async function buildActionsForCopy(
     if (await exists(dest)) {
       const destStat = await lstat(dest);
 
-      const bothFiles   = srcStat.isFile() && destStat.isFile();
-      const bothFolders = !bothFiles && srcStat.isDirectory() && destStat.isDirectory();
+      const bothSymlinks = srcStat.isSymbolicLink() && destStat.isSymbolicLink();
+      const bothFolders = srcStat.isDirectory() && destStat.isDirectory();
+      const bothFiles = srcStat.isFile() && destStat.isFile();
 
       if (srcStat.mode !== destStat.mode) {
-        if (bothFiles) {
+        try {
           await access(dest, srcStat.mode);
-        } else {
-          possibleExtraneous.delete(dest);
-          await unlink(dest);
-          await build(data);
-          return;
+        } catch (err) {
+          // EINVAL access errors sometimes happen which shouldn't because node shouldn't be giving
+          // us modes that aren't valid. investigate this, it's generally safe to proceed.
         }
       }
 
@@ -126,8 +148,14 @@ async function buildActionsForCopy(
         return;
       }
 
-      if (bothFolders) {
-        // remove files that aren't in source
+      if (bothSymlinks && await readlink(src) === await readlink(dest)) {
+        // if both symlinks are the same then we can continue on
+        onDone();
+        return;
+      }
+
+      if (bothFolders && !noExtraneous) {
+        // mark files that aren't in this folder as possibly extraneous
         const destFiles = await readdir(dest);
         invariant(srcFiles, 'src files not initialised');
 
@@ -146,7 +174,16 @@ async function buildActionsForCopy(
       }
     }
 
-    if (srcStat.isDirectory()) {
+    if (srcStat.isSymbolicLink()) {
+      onFresh();
+      let linkname = await readlink(src);
+      actions.push({
+        type: 'symlink',
+        dest,
+        linkname,
+      });
+      onDone();
+    } else if (srcStat.isDirectory()) {
       await mkdirp(dest);
 
       const destParts = dest.split(path.sep);
@@ -174,10 +211,9 @@ async function buildActionsForCopy(
         });
       }
     } else if (srcStat.isFile()) {
-      if (onFresh) {
-        onFresh();
-      }
+      onFresh();
       actions.push({
+        type: 'file',
         src,
         dest,
         atime: srcStat.atime,
@@ -186,7 +222,7 @@ async function buildActionsForCopy(
       });
       onDone();
     } else {
-      throw new Error('unsure how to copy this?');
+      throw new Error(`unsure how to copy this: ${src}`);
     }
   }
 }
@@ -197,19 +233,23 @@ export function copy(src: string, dest: string): Promise<void> {
 
 export async function copyBulk(
   queue: CopyQueue,
-  _events?: CopyEvents,
-  possibleExtraneous?: Iterable<string>,
+  _events?: {
+    onProgress?: ?(dest: string) => void,
+    onStart?: ?(num: number) => void,
+    possibleExtraneous?: PossibleExtraneous,
+  },
 ): Promise<void> {
-  const events: CopyEvents = _events || {
-    onStart: () => {},
-    onProgress: () => {},
+  const events: CopyEvents = {
+    onStart: (_events && _events.onStart) || noop,
+    onProgress: (_events && _events.onProgress) || noop,
+    possibleExtraneous: _events ? _events.possibleExtraneous : [],
   };
 
-  const actions: CopyActions = await buildActionsForCopy(queue, events, possibleExtraneous);
-
+  const actions: CopyActions = await buildActionsForCopy(queue, events, events.possibleExtraneous);
   events.onStart(actions.length);
 
-  await promise.queue(actions, (data): Promise<void> => new Promise((resolve, reject) => {
+  const fileActions = actions.filter((action): boolean => action.type === 'file');
+  await promise.queue(fileActions, (data): Promise<void> => new Promise((resolve, reject) => {
     const readStream = fs.createReadStream(data.src);
     const writeStream = fs.createWriteStream(data.dest, {mode: data.mode});
 
@@ -231,11 +271,17 @@ export async function copyBulk(
       });
     });
   }), 4);
+
+  // we need to copy symlinks last as the could reference files we were copying
+  const symlinkActions = actions.filter((action): boolean => action.type === 'symlink');
+  await promise.queue(symlinkActions, (data): Promise<void> => {
+    return symlink(data.linkname, data.dest);
+  });
 }
 
-export async function readFile(loc: string): Promise<string> {
+async function _readFile(loc: string, encoding: string): Promise<any> {
   return new Promise((resolve, reject) => {
-    fs.readFile(loc, 'utf8', function(err, content) {
+    fs.readFile(loc, encoding, function(err, content) {
       if (err) {
         reject(err);
       } else {
@@ -243,6 +289,23 @@ export async function readFile(loc: string): Promise<string> {
       }
     });
   });
+}
+
+export async function readFile(loc: string): Promise<string> {
+  return _readFile(loc, 'utf8');
+}
+
+export async function readFileRaw(loc: string): Promise<Buffer> {
+  return _readFile(loc, 'binary');
+}
+
+export async function readFileAny(files: Array<string>): Promise<?string> {
+  for (let file of files) {
+    if (await exists(file)) {
+      return readFile(file);
+    }
+  }
+  return null;
 }
 
 export async function readJson(loc: string): Promise<Object> {
@@ -308,19 +371,39 @@ export async function symlink(src: string, dest: string): Promise<void> {
   }
 }
 
-export async function walk(dir: string, relativeDir?: string): Promise<Array<{
+export type WalkFiles = Array<{
   relative: string,
-  absolute: string
-}>> {
+  absolute: string,
+  basename: string,
+  mtime: number,
+}>;
+
+export async function walk(
+  dir: string,
+  relativeDir?: ?string,
+  ignoreBasenames?: Array<string> = [],
+): Promise<WalkFiles> {
   let files = [];
 
-  for (const name of await readdir(dir)) {
+  let filenames = await readdir(dir);
+  if (ignoreBasenames.length) {
+    filenames = filenames.filter((name): boolean => ignoreBasenames.indexOf(name) < 0);
+  }
+
+  for (let name of filenames) {
     const relative = relativeDir ? path.join(relativeDir, name) : name;
     const loc = path.join(dir, name);
-    if ((await lstat(loc)).isDirectory()) {
-      files = files.concat(await walk(loc, relative));
-    } else {
-      files.push({relative, absolute: loc});
+    const stat = await lstat(loc);
+
+    files.push({
+      relative,
+      basename: name,
+      absolute: loc,
+      mtime: +stat.mtime,
+    });
+
+    if (stat.isDirectory()) {
+      files = files.concat(await walk(loc, relative, ignoreBasenames));
     }
   }
 

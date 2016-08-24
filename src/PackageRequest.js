@@ -10,11 +10,10 @@
  */
 
 import type {Manifest, FetchedManifest} from './types.js';
-import type {RegistryNames} from './registries/index.js';
 import type PackageResolver from './PackageResolver.js';
 import type {Reporter} from './reporters/index.js';
 import type Config from './config.js';
-import Lockfile, {parse as parseLock} from './lockfile/Lockfile.js';
+import Lockfile from './lockfile/Lockfile.js';
 import PackageReference from './PackageReference.js';
 import {registries as registryResolvers} from './resolvers/index.js';
 import {MessageError} from './errors.js';
@@ -27,34 +26,35 @@ import * as fs from './util/fs.js';
 const invariant = require('invariant');
 const path = require('path');
 
+type ResolverRegistryNames = $Keys<typeof registryResolvers>;
+
 export default class PackageRequest {
   constructor({
     pattern,
     registry,
     resolver,
-    lockfile,
     parentRequest,
     optional,
     ignore,
   }: {
     pattern: string,
-    lockfile: ?Lockfile,
-    registry: RegistryNames,
+    registry: ResolverRegistryNames,
     resolver: PackageResolver,
     optional: boolean,
     ignore: boolean,
     parentRequest: ?PackageRequest // eslint-disable-line no-unused-vars
   }) {
     this.parentRequest = parentRequest;
-    this.rootLockfile  = resolver.lockfile;
-    this.subLockfile   = lockfile;
-    this.registry      = registry;
-    this.reporter      = resolver.reporter;
-    this.resolver      = resolver;
-    this.optional      = optional;
-    this.pattern       = pattern;
-    this.config        = resolver.config;
-    this.ignore        = ignore;
+    this.lockfile = resolver.lockfile;
+    this.registry = registry;
+    this.reporter = resolver.reporter;
+    this.resolver = resolver;
+    this.optional = optional;
+    this.pattern = pattern;
+    this.config = resolver.config;
+    this.ignore = ignore;
+
+    resolver.usedRegistries.add(registry);
   }
 
   static getExoticResolver(pattern: string): ?Function { // TODO make this type more refined
@@ -67,13 +67,12 @@ export default class PackageRequest {
   }
 
   parentRequest: ?PackageRequest;
-  rootLockfile: Lockfile;
-  subLockfile: ?Lockfile;
+  lockfile: Lockfile;
   reporter: Reporter;
   resolver: PackageResolver;
   pattern: string;
   config: Config;
-  registry: RegistryNames;
+  registry: ResolverRegistryNames;
   ignore: boolean;
   optional: boolean;
 
@@ -90,12 +89,7 @@ export default class PackageRequest {
 
   getLocked(remoteType: string): ?Object {
     // always prioritise root lockfile
-    let shrunk = this.rootLockfile.getLocked(this.pattern, !!this.subLockfile);
-
-    // fallback to sub lockfile if exists
-    if (this.subLockfile && !shrunk) {
-      shrunk = this.subLockfile.getLocked(this.pattern);
-    }
+    let shrunk = this.lockfile.getLocked(this.pattern);
 
     if (shrunk) {
       const resolvedParts = versionUtil.explodeHashedUrl(shrunk.resolved);
@@ -103,8 +97,8 @@ export default class PackageRequest {
       return {
         name: shrunk.name,
         version: shrunk.version,
-        uid: shrunk.uid,
-        remote: {
+        _uid: shrunk.uid,
+        _remote: {
           resolved: shrunk.resolved,
           type: remoteType,
           reference: resolvedParts.url,
@@ -135,7 +129,7 @@ export default class PackageRequest {
       data = Object.assign({}, data);
 
       // this is so the returned package response uses the overridden name. ie. if the
-      // package's actual name is `bar`, but it's been specified in package.json like:
+      // package's actual name is `bar`, but it's been specified in the manifest like:
       //   "foo": "http://foo.com/bar.tar.gz"
       // then we use the foo name
       data.name = name;
@@ -166,11 +160,13 @@ export default class PackageRequest {
    */
 
   static normalisePattern(pattern: string): {
+    hasVersion: boolean,
     name: string,
-    range: string
+    range: string,
   } {
+    let hasVersion = false;
     let range = 'latest';
-    let name  = pattern;
+    let name = pattern;
 
     // if we're a scope then remove the @ and add it back later
     let isScoped = false;
@@ -183,7 +179,13 @@ export default class PackageRequest {
     const parts = name.split('@');
     if (parts.length > 1) {
       name = parts.shift();
-      range = parts.join('@') || '*';
+      range = parts.join('@');
+
+      if (range) {
+        hasVersion = true;
+      } else {
+        range = '*';
+      }
     }
 
     // add back @ scope suffix
@@ -191,26 +193,7 @@ export default class PackageRequest {
       name = `@${name}`;
     }
 
-    return {name, range};
-  }
-
-  /**
-   * Request a registry response if the passed pattern is a registry one. This is used to
-   * warm the cache.
-   */
-
-  async warmCacheIfRegistry(pattern: string): Promise<void> {
-    let {range, name} = PackageRequest.normalisePattern(pattern);
-
-    // ensure this is a registry request
-    const exoticResolver = PackageRequest.getExoticResolver(range);
-    if (exoticResolver) {
-      return;
-    }
-
-    const Resolver = this.getRegistryResolver();
-    const resolver = new Resolver(this, name, range);
-    await resolver.warmCache();
+    return {name, range, hasVersion};
   }
 
   /**
@@ -251,7 +234,7 @@ export default class PackageRequest {
     // the same range
     const resolved: ?Manifest = this.resolver.getExactVersionMatch(info.name, info.version);
     if (resolved) {
-      const ref = resolved.reference;
+      const ref = resolved._reference;
       invariant(ref, 'Resolved package info has no package reference');
       ref.addRequest(this);
       ref.addPattern(this.pattern);
@@ -265,31 +248,18 @@ export default class PackageRequest {
     PackageRequest.validateVersionInfo(info);
 
     //
-    const remote = info.remote;
+    const remote = info._remote;
     invariant(remote, 'Missing remote');
 
     // set package reference
     const ref = new PackageReference(this, info, remote, this.resolver.lockfile.save);
 
-    // in order to support lockfiles inside transitive dependencies we need to block
-    // resolution to fetch the package so we can peek inside of it for a kpm.lock
-    // only do this in strict lockfile mode as otherwise we can just use our root lockfile
-    let subLockfile = null;
-
     // get possible mirror path
-    const offlineMirrorPath = this.config.getOfflineMirrorPath(ref.remote.registry, ref.remote.reference);
-
-    // while we're fetching the package we have some idle time to warm the cache with
-    // registry responses for known dependencies
-    if (!offlineMirrorPath) {
-      for (const name in info.dependencies) {
-        this.warmCacheIfRegistry(`${name}@${info.dependencies[name]}`);
-      }
-    }
+    const offlineMirrorPath = this.config.getOfflineMirrorPath(remote.registry, remote.reference);
 
     //
     const shouldSaveMirror = this.resolver.lockfile.save && !!offlineMirrorPath;
-    let {package: newInfo, hash, dest }:FetchedManifest = await this.resolver.fetchingQueue.push(
+    let {package: newInfo, hash }:FetchedManifest = await this.resolver.fetchingQueue.push(
       info.name,
       (): Promise<FetchedManifest> => this.resolver.fetcher.fetch(ref, shouldSaveMirror),
     );
@@ -297,23 +267,15 @@ export default class PackageRequest {
     // replace resolved remote URL with local path if lockfile is in save mode and we have a path
     if (this.resolver.lockfile.save && offlineMirrorPath && await fs.exists(offlineMirrorPath)) {
       remote.resolved = path.relative(
-        this.config.getOfflineMirrorPath(ref.remote.registry),
+        this.config.getOfflineMirrorPath(remote.registry),
         offlineMirrorPath,
       ) + `#${hash}`;
     }
     remote.hash = hash;
     newInfo.name = info.name;
-    newInfo.reference = ref;
-    newInfo.remote = remote;
+    newInfo._reference = ref;
+    newInfo._remote = remote;
     info = newInfo;
-
-    // find and load in kpm.lock from this module if it exists
-    const lockfileLoc = path.join(dest, constants.LOCKFILE_FILENAME);
-    if (await fs.exists(lockfileLoc)) {
-      const rawLockfile = await fs.readFile(lockfileLoc);
-      const lockfileObj = parseLock(rawLockfile);
-      subLockfile = new Lockfile(lockfileObj, false, false, rawLockfile);
-    }
 
     // start installation of dependencies
     const promises = [];
@@ -328,7 +290,6 @@ export default class PackageRequest {
         registry: remote.registry,
         optional: false,
         parentRequest: this,
-        subLockfile,
       }));
     }
 
@@ -341,14 +302,13 @@ export default class PackageRequest {
         registry: remote.registry,
         optional: true,
         parentRequest: this,
-        subLockfile,
       }));
     }
 
     await Promise.all(promises);
 
     this.resolver.addPattern(this.pattern, info);
-    ref.setDependencies(deps);
+    ref.addDependencies(deps);
     ref.addPattern(this.pattern);
     ref.addOptional(this.optional);
     ref.addIgnore(this.ignore);
@@ -378,6 +338,6 @@ export default class PackageRequest {
 
   static getPackageVersion(info: Manifest): string {
     // TODO possibly reconsider this behaviour
-    return info.version === undefined ? info.uid : info.version;
+    return info.version === undefined ? info._uid : info.version;
   }
 }

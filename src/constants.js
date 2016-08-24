@@ -22,7 +22,7 @@ export const NETWORK_CONCURRENCY = 15;
 // max amount of child processes to execute concurrently
 export const CHILD_CONCURRENCY = 5;
 
-export const REQUIRED_PACKAGE_KEYS = ['name', 'version', 'uid'];
+export const REQUIRED_PACKAGE_KEYS = ['name', 'version', '_uid'];
 
 function or(filenames: Array<string>, cwd: string): string {
   for (const filename of filenames) {
@@ -40,6 +40,7 @@ export const SINGLE_SOCKET_FILENAME = '.kpm-single-socket';
 export const INTEGRITY_FILENAME = or(['.fbkpm-integrity', '.kpm-integrity'], path.join(cwd, 'node_modules'));
 export const LOCKFILE_FILENAME = or(['fbkpm.lock', 'kpm.lock'], cwd);
 export const METADATA_FILENAME = '.kpm-metadata.json';
+export const CLEAN_FILENAME = '.kpmclean';
 
 export const USER_AGENT = `kpm v${pkg.version}`;
 

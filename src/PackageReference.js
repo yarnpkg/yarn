@@ -28,25 +28,25 @@ export default class PackageReference {
     saveForOffline: boolean,
   ) {
     this.resolver = request.resolver;
-    this.lockfile = request.rootLockfile;
+    this.lockfile = request.lockfile;
     this.requests = [request];
-    this.config   = request.config;
+    this.config = request.config;
 
     this.registry = remote.registry;
-    this.version  = info.version;
-    this.name     = info.name;
-    this.uid      = info.uid;
+    this.version = info.version;
+    this.name = info.name;
+    this.uid = info._uid;
 
     this.remote = remote;
 
     this.dependencies = [];
 
     this.permissions = {};
-    this.patterns    = [];
-    this.optional    = null;
-    this.ignore      = null;
-    this.fresh       = false;
-    this.location    = null;
+    this.patterns = [];
+    this.optional = null;
+    this.ignore = null;
+    this.fresh = false;
+    this.location = null;
     this.saveForOffline = !!saveForOffline;
   }
 
@@ -69,10 +69,6 @@ export default class PackageReference {
   location: ?string;
   resolver: PackageResolver;
 
-  async getFolder(): Promise<string> {
-    return this.config.registries[this.registry].folder;
-  }
-
   setFresh(fresh: boolean) {
     this.fresh = fresh;
   }
@@ -85,8 +81,8 @@ export default class PackageReference {
     this.requests.push(request);
   }
 
-  setDependencies(deps: Array<string>) {
-    this.dependencies = deps;
+  addDependencies(deps: Array<string>) {
+    this.dependencies = this.dependencies.concat(deps);
   }
 
   setPermission(key: string, val: boolean) {
@@ -151,7 +147,7 @@ export default class PackageReference {
         continue;
       }
 
-      const ref = pkg.reference;
+      const ref = pkg._reference;
       invariant(ref, 'expected package reference');
       ref.addIgnore(ignore, ancestry);
     }

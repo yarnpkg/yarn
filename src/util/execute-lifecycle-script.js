@@ -13,15 +13,22 @@ import type Config from '../config';
 import * as constants from '../constants.js';
 import * as child from './child.js';
 import {registries} from '../resolvers/index.js';
-import type {Reporter} from '../reporters/index.js';
+import type {ReporterSpinner} from '../reporters/types.js';
 
 const path = require('path');
 
-export default async function (config: Config, cwd: string, cmds: Array<string>, reporter?: Reporter): Promise<Array<{
+export type LifecycleReturn = Promise<Array<{
   cwd: string,
   command: string,
   stdout: string,
-}>> {
+}>>;
+
+export default async function (
+  config: Config,
+  cwd: string,
+  cmds: Array<string>,
+  spinner?: ReporterSpinner,
+): LifecycleReturn {
   const results = [];
 
   for (const cmd of cmds) {
@@ -36,7 +43,7 @@ export default async function (config: Config, cwd: string, cmds: Array<string>,
     // add node-gyp
     pathParts.unshift(path.join(__dirname, '..', '..', 'bin', 'node-gyp-bin'));
 
-    // add node_modules .bin
+    // add .bin folders to PATH
     for (const registry of Object.keys(registries)) {
       pathParts.unshift(path.join(cwd, config.registries[registry].folder, '.bin'));
     }
@@ -44,20 +51,19 @@ export default async function (config: Config, cwd: string, cmds: Array<string>,
     // join path back together
     env[constants.ENV_PATH_KEY] = pathParts.join(path.delimiter);
 
-    let spinner;
-    if (reporter) {
-      spinner = reporter.activity();
-    }
-
     let stdout = await child.spawn('sh', ['-c', cmd], {cwd, env}, (data) => {
       if (spinner) {
-        spinner.tick(data.toString().trim().split('\n')[0]);
+        let line = data.toString() // turn buffer into string
+          .trim() // trim whitespace
+          .split('\n') // split into lines
+          .pop() // use only the last line
+          .replace(/\t/g, ' '); // change tabs to spaces as they can interfere with the console
+        
+        if (line) {
+          spinner.tick(line);
+        }
       }
     });
-
-    if (spinner) {
-      spinner.end();
-    }
 
     results.push({cwd, command: cmd, stdout});
   }

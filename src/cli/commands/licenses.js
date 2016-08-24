@@ -11,43 +11,35 @@
 
 import type {Reporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
-import {MessageError} from '../../errors.js';
 import {Install} from './install.js';
 import Lockfile from '../../lockfile/Lockfile.js';
+import buildSubCommands from './_build-sub-commands.js';
 
 export function hasWrapper(flags: Object, args: Array<string>): boolean {
   return args[0] != 'generate-disclaimer';
 }
 
-export function setFlags(commander: Object) {
-  commander.usage('licenses [ls | generate-disclaimer]');
-}
+export let {setFlags, run} = buildSubCommands('licenses', {
+  async ls(): Promise<void> {
+    throw new Error('TODO');
+  },
 
-export async function run(
-  config: Config,
-  reporter: Reporter,
-  flags: Object,
-  args: Array<string>,
-): Promise<void> {
-  // validate subcommand
-  const cmd = args[0];
-  if (args.length !== 1 || (cmd !== 'generate-disclaimer' && cmd !== 'ls')) {
-    throw new MessageError(
-      'Invalid subcommand, use `kpm licenses generate-disclaimer` or `kpm licenses ls`',
-    );
-  }
+  async generateDisclaimer(
+    config: Config,
+    reporter: Reporter,
+    flags: Object,
+    args: Array<string>,
+  ): Promise<void> {
+    const lockfile = await Lockfile.fromDirectory(config.cwd, reporter, {
+      silent: true,
+      strictIfPresent: true,
+    });
 
-  const lockfile = await Lockfile.fromDirectory(config.cwd, reporter, {
-    silent: true,
-    strictIfPresent: true,
-  });
+    const install = new Install('ls', flags, args, config, reporter, lockfile);
 
-  const install = new Install('ls', flags, args, config, reporter, lockfile);
+    let [depRequests,, manifest] = await install.fetchRequestFromCwd();
+    await install.resolver.init(depRequests);
 
-  let [depRequests,, manifest] = await install.fetchRequestFromCwd();
-  await install.resolver.init(depRequests);
-
-  if (cmd === 'generate-disclaimer') {
     console.log(
       'THE FOLLOWING SETS FORTH ATTRIBUTION NOTICES FOR THIRD PARTY SOFTWARE THAT MAY BE CONTAINED ' +
       `IN PORTIONS OF THE ${String(manifest.name).toUpperCase().replace(/-/g, ' ')} PRODUCT.`,
@@ -60,15 +52,15 @@ export async function run(
       if (!a.name && !b.name) {
         return 0;
       }
-      
+
       if (!a.name) {
         return 1;
       }
-      
+
       if (!b.name) {
         return -1;
       }
-      
+
       return a.name.localeCompare(b.name);
     });
 
@@ -98,5 +90,5 @@ export async function run(
 
       console.log();
     }
-  }
-}
+  },
+});

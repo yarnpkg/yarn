@@ -117,33 +117,34 @@ export default class HostedGitResolver extends ExoticResolver {
   }
 
   async resolveOverHTTP(url: string): Promise<Manifest> {
-    // TODO: hashes and lockfile
+    const shrunk = this.request.getLocked('tarball');
+    if (shrunk) {
+      return shrunk;
+    }
+
     const commit = await this.getRefOverHTTP(url);
 
     const tryRegistry = async (registry): Promise<?Manifest> => {
-      const filenames = registries[registry].filenames;
+      const {filename} = registries[registry];
 
-      for (const filename of filenames) {
-        const file = await this.config.requestManager.request({
-          url: this.constructor.getHTTPFileUrl(this.exploded, filename, commit),
-          queue: this.resolver.fetchingQueue,
-        });
-        if (!file) {
-          continue;
-        }
-
-        const json = JSON.parse(file);
-        json.uid = commit;
-        json.remote = {
-          //resolved // TODO
-          type: 'tarball',
-          reference: this.constructor.getTarballUrl(this.exploded, commit),
-          registry,
-        };
-        return json;
+      const file = await this.config.requestManager.request({
+        url: this.constructor.getHTTPFileUrl(this.exploded, filename, commit),
+        queue: this.resolver.fetchingQueue,
+      });
+      if (!file) {
+        return null;
       }
 
-      return null;
+      const tarballUrl = this.constructor.getTarballUrl(this.exploded, commit);
+      const json = JSON.parse(file);
+      json._uid = commit;
+      json._remote = {
+        resolved: tarballUrl,
+        type: 'tarball',
+        reference: tarballUrl,
+        registry,
+      };
+      return json;
     };
 
     const file = await tryRegistry(this.registry);
@@ -175,7 +176,7 @@ export default class HostedGitResolver extends ExoticResolver {
 
   async resolve(): Promise<Manifest> {
     const httpUrl = this.constructor.getGitHTTPUrl(this.exploded);
-    const sshUrl  = this.constructor.getGitSSHUrl(this.exploded);
+    const sshUrl = this.constructor.getGitSSHUrl(this.exploded);
 
     // If we can access the files over HTTP then we should as it's MUCH faster than git
     // archive and tarball unarchiving. The HTTP API is only available for public repos

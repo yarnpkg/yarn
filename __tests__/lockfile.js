@@ -107,13 +107,13 @@ test("Lockfile.getLockfile", () => {
     foobar: {
       name: "foobar",
       version: "0.0.0",
-      uid: "0.0.0",
+      _uid: "0.0.0",
       dependencies: {},
       optionalDependencies: {},
-      reference: {
+      _reference: {
         permissions: {},
       },
-      remote: {
+      _remote: {
         resolved: "http://example.com/foobar",
         registry: "npm",
       },
@@ -122,33 +122,32 @@ test("Lockfile.getLockfile", () => {
     barfoo: {
       name: "barfoo",
       version: "0.0.1",
-      uid: "0.1.0",
+      _uid: "0.1.0",
       dependencies: {
         yes: "no",
       },
       optionalDependencies: {
         no: "yes",
       },
-      reference: {
+      _reference: {
         permissions: {
           foo: "bar",
         },
       },
-      remote: {
+      _remote: {
         resolved: "http://example.com/barfoo",
         registry: "bower",
       },
     },
 
-    foobar2: {},
+    "foobar@2": {},
   };
 
-  patterns.foobar2 = patterns.foobar;
+  patterns["foobar@2"] = patterns.foobar;
 
   let actual = new Lockfile().getLockfile(patterns);
 
   let expectedFoobar = {
-    name: "foobar",
     version: "0.0.0",
     uid: undefined,
     resolved: "http://example.com/foobar",
@@ -159,8 +158,6 @@ test("Lockfile.getLockfile", () => {
   };
 
   let expected = {
-    foobar: expectedFoobar,
-
     barfoo: {
       version: "0.0.1",
       uid: "0.1.0",
@@ -170,8 +167,8 @@ test("Lockfile.getLockfile", () => {
       optionalDependencies: {no: "yes"},
       permissions: {foo: "bar"},
     },
-
-    foobar2: expectedFoobar,
+    foobar: expectedFoobar,
+    "foobar@2": expectedFoobar,
   };
 
   expect(actual).toEqual(expected);
@@ -185,10 +182,10 @@ test("Lockfile.getLockfile (sorting)", () => {
       uid: "0.0.0",
       dependencies: {},
       optionalDependencies: {},
-      reference: {
+      _reference: {
         permissions: {},
       },
-      remote: {
+      _remote: {
         resolved: "http://example.com/foobar",
         registry: "npm",
       },

@@ -12,8 +12,7 @@
 import type {Manifest} from '../../types.js';
 import {MessageError} from '../../errors.js';
 import RegistryResolver from './RegistryResolver.js';
-import {queue} from '../../util/promise.js';
-import {entries, removeSuffix} from '../../util/misc.js';
+import NpmRegistry from '../../registries/NpmRegistry.js';
 import map from '../../util/map.js';
 import * as fs from '../../util/fs.js';
 
@@ -47,39 +46,15 @@ export default class NpmResolver extends RegistryResolver {
     }
   }
 
-  async warmCache(): Promise<void> {
-    const res = await this.resolveRequest();
-    if (!res || !res.dependencies) {
-      return;
-    }
-
-    queue;
-    entries;
-    /*let resolvers = [];
-
-    for (let [name, range] of entries(res.dependencies)) {
-      resolvers.push(new NpmResolver(this.request, name, range));
-    }
-
-    await queue(resolvers, (resolver) => resolver.warmCache(), 5);*/
-  }
-
   async resolveRequest(): Promise<false | Manifest> {
     if (this.config.offline) {
-      return this.resolveRequestOffline();
+      let res = this.resolveRequestOffline();
+      if (res) {
+        return res;
+      }
     }
 
-    const registry = removeSuffix(this.registryConfig.registry, '/');
-
-    let name = this.name;
-
-    // scoped packages contain slashes and the npm registry expects them to be escaped
-    name = name.replace('/', '%2F');
-
-    const body = await this.config.requestManager.request({
-      url: `${registry}/${name}`,
-      json: true,
-    });
+    const body = await this.config.registries.npm.request(NpmRegistry.escapeName(this.name));
 
     if (body) {
       return await this.findVersionInRegistryResponse(body);
@@ -134,21 +109,23 @@ export default class NpmResolver extends RegistryResolver {
 
       // read package metadata
       const metadata = await this.config.readPackageMetadata(dir);
-      if (!metadata.remote) {
+      if (!metadata._remote) {
         continue; // old kpm metadata
       }
 
-      versions[pkg.version] = Object.assign({}, pkg, {remote: metadata.remote});
+      versions[pkg.version] = Object.assign({}, pkg, {_remote: metadata.remote});
     }
 
     const satisfied = await this.config.resolveConstraints(Object.keys(versions), this.range);
     if (satisfied) {
       return versions[satisfied];
-    } else {
+    } else if (!this.config.preferOffline) {
       throw new MessageError(
         `Couldn't find any versions for ${this.name} that matches ${this.range} in our cache. ` +
         `Possible versions: ${Object.keys(versions).join(', ')} ${prefix}`,
       );
+    } else {
+      return false;
     }
   }
 
@@ -173,7 +150,7 @@ export default class NpmResolver extends RegistryResolver {
     }
 
     if (info.dist && info.dist.tarball) {
-      info.remote = {
+      info._remote = {
         resolved: `${info.dist.tarball}#${info.dist.shasum}`,
         type: 'tarball',
         reference: info.dist.tarball,
@@ -182,7 +159,7 @@ export default class NpmResolver extends RegistryResolver {
       };
     }
 
-    info.uid = info.version;
+    info._uid = info.version;
     return info;
   }
 }

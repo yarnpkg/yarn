@@ -43,8 +43,11 @@ type Dependencies = {
   [key: string]: string
 };
 
-// package info is the complete package.json of a package
+// package.json/bower.json etc
 export type Manifest = {
+  _registry?: ?RegistryNames,
+  _loc?: ?string,
+
   name: string,
   version: string,
 
@@ -64,13 +67,13 @@ export type Manifest = {
   },
 
   // the package reference that we pass around as a minimal way to refer to it
-  reference?: ?PackageReference,
+  _reference?: ?PackageReference,
 
   // unique identifier to refer to this package by, if it doesn't exist in a registry then
   // we need to use this to ensure it's unique
-  uid: string,
+  _uid: string,
 
-  remote?: ?PackageRemote,
+  _remote?: ?PackageRemote,
 
   dist?: {
     tarball: string,

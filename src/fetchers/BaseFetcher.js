@@ -21,11 +21,11 @@ const path = require('path');
 
 export default class BaseFetcher {
   constructor(remote: PackageRemote, config: Config, saveForOffline?: boolean) {
-    this.reference      = remote.reference;
-    this.registry       = remote.registry;
-    this.hash           = remote.hash;
-    this.remote         = remote;
-    this.config         = config;
+    this.reference = remote.reference;
+    this.registry = remote.registry;
+    this.hash = remote.hash;
+    this.remote = remote;
+    this.config = config;
     this.saveForOffline = !!saveForOffline;
   }
 
@@ -45,7 +45,7 @@ export default class BaseFetcher {
       // fetch package and get the hash
       const hash = await this._fetch(dest);
 
-      // load the new normalised package.json
+      // load the new normalised manifest
       const pkg = await this.config.readManifest(dest, this.registry);
 
       await fs.writeFile(path.join(dest, constants.METADATA_FILENAME), JSON.stringify({

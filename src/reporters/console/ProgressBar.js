@@ -17,10 +17,10 @@ const repeat = require('repeating');
 export default class ProgressBar {
   constructor(total: number, stdout: Stdout = process.stderr) {
     this.stdout = stdout;
-    this.total  = total;
-    this.chars  = ProgressBar.bars[0].split('');
-    this.delay  = 60;
-    this.curr   = 0;
+    this.total = total;
+    this.chars = ProgressBar.bars[0].split('');
+    this.delay = 60;
+    this.curr = 0;
   }
 
   stdout: Stdout;
@@ -64,9 +64,9 @@ export default class ProgressBar {
     // calculate size of actual bar
     // $FlowFixMe: investigate process.stderr.columns flow error
     const availableSpace = Math.max(0, this.stdout.columns - bar.length);
-    const width          = Math.min(this.total, availableSpace);
+    const width = Math.min(this.total, availableSpace);
     const completeLength = Math.round(width * ratio);
-    const complete   = repeat(this.chars[0], completeLength);
+    const complete = repeat(this.chars[0], completeLength);
     const incomplete = repeat(this.chars[1], width - completeLength);
     bar = `${complete}${incomplete}${bar}`;
 

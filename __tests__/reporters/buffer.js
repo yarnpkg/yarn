@@ -20,6 +20,7 @@ test('BufferReporter.finished', async () => {
   })).toEqual([{
     type: 'finished',
     data: 0,
+    error: false,
   }]);
 });
 
@@ -33,6 +34,7 @@ test('BufferReporter.step', async () => {
       total: 5,
       message: 'foobar',
     },
+    error: false,
   }]);
 });
 
@@ -42,6 +44,7 @@ test('BufferReporter.log', async () => {
   })).toEqual([{
     type: 'log',
     data: 'foobar',
+    error: false,
   }]);
 });
 
@@ -51,6 +54,7 @@ test('BufferReporter.success', async () => {
   })).toEqual([{
     type: 'success',
     data: 'foobar',
+    error: false,
   }]);
 });
 
@@ -60,6 +64,7 @@ test('BufferReporter.error', async () => {
   })).toEqual([{
     type: 'error',
     data: 'foobar',
+    error: true,
   }]);
 });
 
@@ -69,6 +74,7 @@ test('BufferReporter.info', async () => {
   })).toEqual([{
     type: 'info',
     data: 'foobar',
+    error: false,
   }]);
 });
 
@@ -78,6 +84,7 @@ test('BufferReporter.command', async () => {
   })).toEqual([{
     type: 'command',
     data: 'foobar',
+    error: false,
   }]);
 });
 
@@ -87,5 +94,6 @@ test('BufferReporter.warn', async () => {
   })).toEqual([{
     type: 'warning',
     data: 'foobar',
+    error: true,
   }]);
 });

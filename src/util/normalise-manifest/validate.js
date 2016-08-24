@@ -32,6 +32,10 @@ function isValidScopedName(name: string): boolean {
   return parts.length === 2 && isValidName(parts[0]) && isValidName(parts[1]);
 }
 
+export function isValidPackageName(name: string): boolean {
+  return isValidName(name) || isValidScopedName(name);
+}
+
 export default function(info: Object, warn: (msg: string) => void) {
   for (const key in typos) {
     if (key in info) {
@@ -51,7 +55,7 @@ export default function(info: Object, warn: (msg: string) => void) {
     }
 
     // cannot contain the following characters
-    if (!isValidName(name) && !isValidScopedName(name)) {
+    if (!isValidPackageName(name)) {
       throw new TypeError('Name contains illegal characters');
     }
 

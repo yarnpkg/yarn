@@ -32,6 +32,7 @@ type ConfigOptions = {
   tempFolder?: string,
   modulesFolder?: string,
   offline?: boolean,
+  preferOffline?: boolean,
 };
 
 type PackageMetadata = {
@@ -44,21 +45,24 @@ type PackageMetadata = {
 export default class Config {
   constructor(reporter: Reporter, opts?: ConfigOptions = {}) {
     this.constraintResolver = new ConstraintResolver(this, reporter);
-    this.requestManager     = new RequestManager(reporter);
-    this.reporter           = reporter;
+    this.requestManager = new RequestManager(reporter, opts.offline && !opts.preferOffline);
+    this.reporter = reporter;
 
+    this.registryFolders = [];
     this.registries = map();
-    this.cache      = map();
-    this.cwd        = opts.cwd || process.cwd();
+    this.cache = map();
+    this.cwd = opts.cwd || process.cwd();
 
-    this.modulesFolder = opts.modulesFolder || path.join(this.cwd, 'node_modules');
-    this.packagesRoot  = opts.packagesRoot;
-    this.tempFolder    = opts.tempFolder;
-    this.offline       = !!opts.offline;
+    this.preferOffline = !!opts.preferOffline;
+    this.modulesFolder = opts.modulesFolder;
+    this.packagesRoot = opts.packagesRoot;
+    this.tempFolder = opts.tempFolder;
+    this.offline = !!opts.offline;
   }
 
   //
   offline: boolean;
+  preferOffline: boolean;
 
   //
   constraintResolver: ConstraintResolver;
@@ -67,7 +71,7 @@ export default class Config {
   requestManager: RequestManager;
 
   //
-  modulesFolder: string;
+  modulesFolder: ?string;
 
   //
   packagesRoot: ?string;
@@ -85,6 +89,7 @@ export default class Config {
   registries: {
     [name: RegistryNames]: Registry
   };
+  registryFolders: Array<string>;
 
   //
   cache: {
@@ -137,10 +142,11 @@ export default class Config {
       const Registry = registries[key];
 
       // instantiate registry
-      const registry = new Registry(this.cwd);
+      const registry = new Registry(this.cwd, this.requestManager);
       await registry.init();
 
       this.registries[key] = registry;
+      this.registryFolders.push(registry.folder);
     }
   }
 
@@ -154,12 +160,12 @@ export default class Config {
     version: string,
     registry: RegistryNames,
     location: ?string
-  }): string {
+  }, ignoreLocation?: ?boolean): string {
     invariant(this.packagesRoot, 'No package root');
     invariant(pkg, 'Undefined package');
     invariant(pkg.name, 'No name field in package');
     invariant(pkg.uid, 'No uid field in package');
-    if (pkg.location) {
+    if (pkg.location && !ignoreLocation) {
       return pkg.location;
     }
 
@@ -315,7 +321,7 @@ export default class Config {
         }
       }
 
-      throw new Error(`Couldn't find a package.json in ${dir}`);
+      throw new Error(`Couldn't find a manifest in ${dir}`);
     });
   }
 
@@ -324,19 +330,33 @@ export default class Config {
    */
 
   async tryManifest(dir: string, registry: RegistryNames): ?Object {
-    const filenames = registries[registry].filenames;
-    for (const filename of filenames) {
-      const loc = path.join(dir, filename);
-      if (await fs.exists(loc)) {
-        const data = await fs.readJson(loc);
-        data.registry = registry;
+    const {filename} = registries[registry];
+    const loc = path.join(dir, filename);
+    if (await fs.exists(loc)) {
+      const data = await fs.readJson(loc);
+      data._registry = registry;
+      data._loc = loc;
 
-        // TODO: warn
-        await normaliseManifest(data, dir);
+      // TODO: warn
+      await normaliseManifest(data, dir);
 
-        return data;
-      }
+      return data;
+    } else {
+      return null;
     }
-    return null;
+  }
+
+  /**
+   * Description
+   */
+
+  getFolder(pkg: Manifest): string {
+    let registryName = pkg._registry;
+    if (!registryName) {
+      let ref = pkg._reference;
+      invariant(ref, 'expected reference');
+      registryName = ref.registry;
+    }
+    return this.registries[registryName].folder;
   }
 }

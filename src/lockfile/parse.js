@@ -13,7 +13,7 @@
 import map from "../util/map.js";
 
 const invariant = require("invariant");
-const stripBOM  = require("strip-bom");
+const stripBOM = require("strip-bom");
 
 const TOKEN_TYPES = {
   boolean: "BOOLEAN",

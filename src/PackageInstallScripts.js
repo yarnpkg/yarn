@@ -13,18 +13,22 @@ import type {Manifest} from './types.js';
 import type PackageResolver from './PackageResolver.js';
 import type {Reporter} from './reporters/index.js';
 import type Config from './config.js';
+import type {ReporterSpinner} from './reporters/types.js';
+import type {LifecycleReturn} from './util/execute-lifecycle-script.js';
 import executeLifecycleScript from './util/execute-lifecycle-script.js';
-import * as promise from './util/promise.js';
+import * as fs from './util/fs.js';
+import * as constants from './constants.js';
 
 const invariant = require('invariant');
+const path = require('path');
 const _ = require('lodash');
 
 export default class PackageInstallScripts {
   constructor(config: Config, resolver: PackageResolver, force: boolean) {
-    this.resolver  = resolver;
-    this.reporter  = config.reporter;
-    this.config    = config;
-    this.force     = force;
+    this.resolver = resolver;
+    this.reporter = config.reporter;
+    this.config = config;
+    this.force = force;
   }
 
   needsPermission: boolean;
@@ -42,19 +46,95 @@ export default class PackageInstallScripts {
     }
   }
 
-  async install(cmds: Array<string>, pkg: Manifest): Promise<Array<{
-    cwd: string,
-    command: string,
-    stdout: string,
-  }>> {
-    const loc = this.config.generateHardModulePath(pkg.reference);
+  async walk(loc: string): Promise<Map<string, number>> {
+    let files = await fs.walk(loc, null, this.config.registryFolders);
+    let mtimes = new Map();
+    for (let file of files) {
+      mtimes.set(file.relative, file.mtime);
+    }
+    return mtimes;
+  }
+
+  async wrapCopyBuildArtifacts<T>(
+    loc: string,
+    pkg: Manifest,
+    spinner: ReporterSpinner,
+    factory: () => Promise<T>,
+  ): Promise<T> {
+    const beforeFiles = await this.walk(loc);
+    const res = await factory();
+    const afterFiles = await this.walk(loc);
+
+    // work out what files have been created/modified
+    const buildArtifacts = [];
+    for (const [file, mtime] of afterFiles) {
+      if (!beforeFiles.has(file) || beforeFiles.get(file) !== mtime) {
+        buildArtifacts.push(file);
+      }
+    }
+
+    // install script may have removed files, remove them from the cache too
+    const removedFiles = [];
+    for (const [file] of beforeFiles) {
+      if (!afterFiles.has(file)) {
+        removedFiles.push(file);
+      }
+    }
+
+    if (!removedFiles.length && !buildArtifacts.length) {
+      // nothing else to do here since we have no build side effects
+      return res;
+    }
+
+    // if the process is killed while copying over build artifacts then we'll leave
+    // the cache in a bad state. remove the metadata file and add it back once we've
+    // done our copies to ensure cache integrity.
+    const cachedLoc = this.config.generateHardModulePath(pkg._reference, true);
+    const cachedMetadataLoc = path.join(cachedLoc, constants.METADATA_FILENAME);
+    const cachedMetadata = await fs.readFile(cachedMetadataLoc);
+    await fs.unlink(cachedMetadataLoc);
+
+    // remove files that install script removed
+    if (removedFiles.length) {
+      for (let file of removedFiles) {
+        await fs.unlink(path.join(cachedLoc, file));
+      }
+    }
+
+    // copy over build artifacts to cache directory
+    if (buildArtifacts.length) {
+      const copyRequests = [];
+      for (let file of buildArtifacts) {
+        copyRequests.push({
+          src: path.join(loc, file),
+          dest: path.join(cachedLoc, file),
+          onDone() {
+            spinner.tick(`Cached build artifact ${file}`);
+          },
+        });
+      }
+      await fs.copyBulk(copyRequests, {
+        possibleExtraneous: false,
+      });
+      await fs.writeFile(cachedMetadataLoc, cachedMetadata);
+    }
+
+    return res;
+  }
+
+  async install(cmds: Array<string>, pkg: Manifest, spinner: ReporterSpinner): LifecycleReturn {
+    const loc = this.config.generateHardModulePath(pkg._reference);
     try {
-      this.reporter.info(`Running install scripts for ${pkg.name}`);
-      return await executeLifecycleScript(this.config, loc, cmds, this.reporter);
+      return this.wrapCopyBuildArtifacts(
+        loc,
+        pkg,
+        spinner,
+        (): LifecycleReturn => executeLifecycleScript(this.config, loc, cmds, spinner),
+      );
     } catch (err) {
       err.message = `${loc}: ${err.message}`;
 
-      const ref = pkg.reference;
+      const ref = pkg._reference;
       invariant(ref, 'expected reference');
 
       if (ref.optional) {
@@ -62,12 +142,17 @@ export default class PackageInstallScripts {
         this.reporter.info('This module is OPTIONAL, you can safely ignore this error');
         return [];
       } else {
+        // TODO log all stderr maybe?
         throw err;
       }
     }
   }
 
-  async installPackagesBatch(pkgs: Manifest[]): Promise<void> {
+  async init(seedPatterns: Array<string>): Promise<void> {
+    // get list of packages in topological order
+    let pkgs: Iterable<Manifest> = this.resolver.getTopologicalManifests(seedPatterns);
+
+    // refine packages to just those that have install scripts
     const refinedInfos = [];
     for (const pkg of pkgs) {
       const cmds = this.getInstallCommands(pkg);
@@ -75,14 +160,20 @@ export default class PackageInstallScripts {
         continue;
       }
 
-      const ref = pkg.reference;
+      const ref = pkg._reference;
       invariant(ref, 'Missing package reference');
       if (!ref.fresh && !this.force) {
+        // this package hasn't been touched
+        continue;
+      }
+
+      // we haven't actually written this module out
+      if (ref.ignore) {
         continue;
       }
 
       if (this.needsPermission && !ref.hasPermission('scripts')) {
-        const can = await this.reporter.question(
+        const can = await this.reporter.questionAffirm(
           `Module ${pkg.name} wants to execute the commands ${JSON.stringify(cmds)}. Do you want to accept?`,
         );
         if (!can) {
@@ -94,48 +185,19 @@ export default class PackageInstallScripts {
 
       refinedInfos.push({pkg, cmds});
     }
+
+    // nothing to install
     if (!refinedInfos.length) {
       return;
     }
 
-    const tick = this.reporter.progress(refinedInfos.length);
-
-    await promise.queue(refinedInfos, ({pkg, cmds}): Promise<void> => {
-      return this.install(cmds, pkg).then(function() {
-        tick(pkg.name);
-      });
-    });
-  }
-
-  async init(): Promise<void> {
-    function getDependenciesList(pkg: Manifest): string[] {
-      let deps = [];
-      if (pkg.dependencies) {
-        deps.push(...Object.keys(pkg.dependencies));
-      }
-      // TODO are devDependencies and peerDependencies required to build this one?
-      return deps;
+    // run install scripts
+    let i = 0;
+    for (let {pkg, cmds} of refinedInfos) {
+      i++;
+      const spinner = this.reporter.activityStep(i, refinedInfos.length, pkg.name);
+      await this.install(cmds, pkg, spinner);
+      spinner.end();
     }
-
-    const builtPackages: Set<string> = new Set();
-    const notBuiltPackages: Set<Manifest> = new Set(this.resolver.getManifests());
-
-    // refine packages to those with install commands
-    while (notBuiltPackages.size > 0) {
-      const batchSafeToBuild: Manifest[] = [];
-      for (let pkg of notBuiltPackages) {
-        const depsList = getDependenciesList(pkg);
-        // if dependencies that were not built exust then skip
-        if (!(depsList.some((dep): boolean => !builtPackages.has(dep)))) {
-          batchSafeToBuild.push(pkg);
-        }
-      }
-      await this.installPackagesBatch(batchSafeToBuild);
-      for (let pkg of batchSafeToBuild) {
-        builtPackages.add(pkg.name);
-        notBuiltPackages.delete(pkg);
-      }
-    }
-
   }
 }

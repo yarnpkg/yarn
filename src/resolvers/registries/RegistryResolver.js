@@ -16,7 +16,7 @@ import BaseResolver from '../BaseResolver.js';
 export default class RegistryResolver extends BaseResolver {
   constructor(request: PackageRequest, name: string, range: string) {
     super(request, `${name}@${range}`);
-    this.name  = name;
+    this.name = name;
     this.range = range;
 
     this.registryConfig = request.config.registries[this.constructor.registry].config;
@@ -27,10 +27,4 @@ export default class RegistryResolver extends BaseResolver {
 
   static registry: RegistryNames;
   registryConfig: Object;
-
-  async warmCache(): Promise<void> {}
-
-  async resolveRequest(): Promise<any> {
-    await this.warmCache();
-  }
 }

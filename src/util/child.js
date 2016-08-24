@@ -37,8 +37,7 @@ export function spawn(
     let processClosed = false;
     let err = null;
 
-    let errBuf = '';
-    let buf = '';
+    let stdout = '';
 
     proc.on('error', (err) => {
       if (err.code === 'ENOENT') {
@@ -48,27 +47,23 @@ export function spawn(
       }
     });
 
-    proc.stderr.on('data', (chunk) => {
-      errBuf += chunk;
+    function updateStdout(chunk) {
+      stdout += chunk;
       if (onData) {
         onData(chunk);
       }
-    });
-
-    function update(chunk) {
-      buf += chunk;
     }
 
     function finish() {
       if (err) {
         reject(err);
       } else {
-        resolve(buf.trim());
+        resolve(stdout.trim());
       }
     }
 
     if (opts.process) {
-      opts.process(proc, update, reject, function() {
+      opts.process(proc, updateStdout, reject, function() {
         if (processClosed) {
           finish();
         } else {
@@ -76,15 +71,22 @@ export function spawn(
         }
       });
     } else {
-      proc.stdout.on('data', update);
+      proc.stderr.on('data', updateStdout);
+      proc.stdout.on('data', updateStdout);
       processingDone = true;
     }
 
     proc.on('close', (code) => {
       if (code >= 1) {
-        const cmd = JSON.stringify(`${program} ${args.join(' ')}`);
-        errBuf = errBuf || `Process exited with code ${code}`;
-        err = new Error(`${cmd}@${opts.cwd || process.cwd()}: ${errBuf.trim()}`);
+        // TODO make this output nicer
+        err = new Error([
+          'Command failed.',
+          `Exit code: ${code}`,
+          `Command: ${program}`,
+          `Arguments: ${args.join(' ')}`,
+          `Directory: ${opts.cwd || process.cwd()}`,
+          `Output:\n${stdout.trim()}`,
+        ].join('\n'));
       }
 
       if (processingDone || err) {

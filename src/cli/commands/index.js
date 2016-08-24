@@ -18,6 +18,42 @@ export {ls};
 import * as why from './why.js';
 export {why};
 
+import * as access from './access.js';
+export {access};
+
+import * as clean from './clean.js';
+export {clean};
+
+import * as config from './config.js';
+export {config};
+
+import * as team from './team.js';
+export {team};
+
+import * as link from './link.js';
+export {link};
+
+import * as outdated from './outdated.js';
+export {outdated};
+
+import * as pack from './pack.js';
+export {pack};
+
+import * as owner from './owner.js';
+export {owner};
+
+import * as distTag from './dist-tag.js';
+export {distTag};
+
+import * as publish from './publish.js';
+export {publish};
+
+import * as login from './login.js';
+export {login};
+
+import * as logout from './logout.js';
+export {logout};
+
 import * as licenses from './licenses.js';
 export {licenses};
 

@@ -12,14 +12,15 @@
 import BaseReporter from '../BaseReporter.js';
 import Progress from './ProgressBar.js';
 import Spinner from './Spinner.js';
-import type {Package, Trees} from '../types.js';
+import type {Package, Trees, ReporterSpinner} from '../types.js';
 import {clearLine} from './util.js';
 import {removeSuffix} from '../../util/misc.js';
 
 let readline = require('readline');
-let repeat   = require('repeating');
-let chalk    = require('chalk');
-let _        = require('lodash');
+let repeat = require('repeating');
+let chalk = require('chalk');
+let read = require('read');
+let _ = require('lodash');
 
 function sortTrees(trees: Trees = []): Trees {
   return trees.sort(function(tree1, tree2): number {
@@ -94,13 +95,25 @@ export default class ConsoleReporter extends BaseReporter {
     this.stderr.write(`${chalk.yellow('warning')} ${msg}\n`);
   }
 
-  question(question: string): Promise<boolean> {
+  question(question: string, password?: boolean): Promise<string> {
     if (!process.stdout.isTTY) {
       return Promise.reject(new Error("Can't answer a question unless a user TTY"));
     }
 
-    question;
-    return Promise.resolve(false);
+    return new Promise((resolve, reject) => {
+      read({
+        prompt: `${chalk.grey('question')} ${question}: `,
+        silent: !!password,
+        output: this.stdout,
+        input: this.stdin,
+      }, (err, answer) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(answer);
+        }
+      });
+    });
   }
 
   tree(key: string, trees: Trees) {
@@ -140,10 +153,29 @@ export default class ConsoleReporter extends BaseReporter {
     }
   }
 
-  activity(): {
-    tick: (name: string) => void,
-    end: () => void
-  } {
+  activityStep(current: number, total: number, msg: string, emoji?: string): ReporterSpinner {
+    if (!this.isTTY) {
+      return this.activity();
+    }
+
+    msg = this._prependEmoji(msg, emoji);
+
+    let spinner = new Spinner(this.stderr, `${chalk.grey(`[${current}/${total}]`)} `);
+    spinner.start();
+    spinner.setText(msg);
+
+    return {
+      tick(name: string) {
+        spinner.setText(`${msg}: ${name}`);
+      },
+
+      end() {
+        spinner.stop();
+      },
+    };
+  }
+
+  activity(): ReporterSpinner {
     if (!this.isTTY) {
       return {
         tick() {},

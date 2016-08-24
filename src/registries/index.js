@@ -9,12 +9,16 @@
  * @flow
  */
 
+import KpmRegistry from './KpmRegistry.js';
 import NpmRegistry from './NpmRegistry.js';
 import BowerRegistry from './BowerRegistry.js';
 
 export let registries = {
   npm: NpmRegistry,
+  kpm: KpmRegistry,
   bower: BowerRegistry,
 };
+
+export let registryNames = Object.keys(registries);
 
 export type RegistryNames = $Keys<typeof registries>;

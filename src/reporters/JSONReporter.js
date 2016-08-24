@@ -9,7 +9,7 @@
  * @flow
  */
 
-import type {Trees} from './types.js';
+import type {Trees, ReporterSpinner} from './types.js';
 import BaseReporter from './BaseReporter.js';
 
 export default class JSONReporter extends BaseReporter {
@@ -71,16 +71,21 @@ export default class JSONReporter extends BaseReporter {
     this._dump('info', msg);
   }
 
-  activity(): {
-    tick: (name: string) => void,
-    end: () => void
-  } {
+  activityStep(current: number, total: number, message: string, emoji?: string): ReporterSpinner {
+    return this._activity({step: true, current, total, message});
+  }
+
+  activity(): ReporterSpinner {
+    return this._activity({});
+  }
+
+  _activity(data: Object): ReporterSpinner {
     const id = this._activityId++;
-    this._dump('activityStart', {id});
+    this._dump('activityStart', {id, ...data});
 
     return {
       tick: (name: string) => {
-        this._dump('activitytick', {id, name});
+        this._dump('activityTick', {id, name});
       },
 
       end: () => {

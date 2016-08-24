@@ -24,15 +24,15 @@ export default class PackageFetcher {
   constructor(config: Config, resolver: PackageResolver) {
     this.reporter = config.reporter;
     this.resolver = resolver;
-    this.config   = config;
+    this.config = config;
   }
 
   resolver: PackageResolver;
   reporter: Reporter;
   config: Config;
 
-  async fetch(reference: PackageReference, overwriteDestination: boolean): Promise<FetchedManifest> {
-    const dest = this.config.generateHardModulePath(reference);
+  async fetch(ref: PackageReference, overwriteDestination: boolean): Promise<FetchedManifest> {
+    const dest = this.config.generateHardModulePath(ref);
 
     if (!overwriteDestination && await this.config.isValidModuleDest(dest)) {
       let {hash, package: pkg} = await this.config.readPackageMetadata(dest);
@@ -46,7 +46,7 @@ export default class PackageFetcher {
     // remove as the module may be invalid
     await fs.unlink(dest);
 
-    const remote = reference.remote;
+    const remote = ref.remote;
     invariant(remote, 'Missing remote');
 
     const Fetcher = fetchers[remote.type];
@@ -57,7 +57,7 @@ export default class PackageFetcher {
     await fs.mkdirp(dest);
 
     try {
-      const fetcher = new Fetcher(remote, this.config, reference.saveForOffline);
+      const fetcher = new Fetcher(remote, this.config, ref.saveForOffline);
       return await fetcher.fetch(dest);
     } catch (err) {
       try {
@@ -69,10 +69,10 @@ export default class PackageFetcher {
     }
   }
 
-  async maybeFetch(reference: PackageReference): Promise<?FetchedManifest> {
-    let promise = this.fetch(reference, false);
+  async maybeFetch(ref: PackageReference): Promise<?FetchedManifest> {
+    let promise = this.fetch(ref, false);
 
-    if (reference.optional) {
+    if (ref.optional) {
       // swallow the error
       promise = promise.catch((err) => {
         this.reporter.error(err.message);
@@ -88,7 +88,7 @@ export default class PackageFetcher {
 
     await promise.queue(pkgs, async (ref) => {
       const res = await this.maybeFetch(ref);
-      
+
       if (res) {
         ref.remote.hash = res.hash;
 
