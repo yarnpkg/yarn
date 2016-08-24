@@ -41,6 +41,8 @@ export const INTEGRITY_FILENAME = or(['.fbkpm-integrity', '.kpm-integrity'], pat
 export const LOCKFILE_FILENAME = or(['fbkpm.lock', 'kpm.lock'], cwd);
 export const METADATA_FILENAME = '.kpm-metadata.json';
 export const CLEAN_FILENAME = '.kpmclean';
+export const SINGLE_INSTANCE_FILENAME = '.kpm-single-instance';
+
 
 export const USER_AGENT = `kpm v${pkg.version}`;
 

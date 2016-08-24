@@ -14,6 +14,7 @@ import {ConsoleReporter, JSONReporter} from '../reporters/index.js';
 import * as commands from './commands/index.js';
 import * as constants from '../constants.js';
 import * as network from '../util/network.js';
+import * as lockfile from 'proper-lockfile';
 
 import aliases from './aliases.js';
 import Config from '../config.js';
@@ -45,11 +46,15 @@ commander.option('--packages-root [path]', 'rather than storing modules into a g
                                            'store them here');
 commander.option(
  '--force-single-instance',
- 'pause and wait if other instances are running on the same folder',
+ 'pause and wait if other instances are running on the same folder using a tcp server',
 );
 commander.option(
   '--port [port]',
   `use with --force-single-instance to ovveride the default port (${constants.DEFAULT_PORT_FOR_SINGLE_INSTANCE})`,
+);
+commander.option(
+  '--force-single-instance-with-file',
+  'pause and wait if other instances are running on the same folder using a operating system lock file',
 );
 
 // get command name
@@ -147,6 +152,28 @@ const run = (): Promise<void> => {
 };
 
 //
+const runEventuallyWithLockFile = (isFirstTime): Promise<void> => {
+  return new Promise((ok) => {
+    const lock = path.join(config.cwd, constants.SINGLE_INSTANCE_FILENAME);
+    lockfile.lock(lock, {realpath: false}, (err, release) => {
+      if (err) {
+        if (isFirstTime) {
+          reporter.warn('waiting until the other kpm instance finish.');
+        }
+        setTimeout(() => {
+          ok(runEventuallyWithLockFile());
+        }, 200); // do not starve the CPU
+      } else {
+        onDeath(() => {
+          process.exit(1);
+        });
+        ok(run().then(release));
+      }
+    });
+  });
+};
+
+//
 const runEventually = (): Promise<void> => {
   return new Promise((ok) => {
     const connectionOptions = {
@@ -199,14 +226,17 @@ const runEventually = (): Promise<void> => {
 
 //
 config.init().then(function(): Promise<void> {
-  if (commander.forceSingleInstance) {
-    return runEventually().then(() => {
-      process.exit(0);
-    });
+  const exit = () => {
+    process.exit(0);
+  };
+
+  if (commander.forceSingleInstanceWithFile || commander.forceSingleInstance) {
+    if (commander.forceSingleInstanceWithFile) {
+      return runEventuallyWithLockFile(true).then(exit);
+    }
+    return runEventually().then(exit);
   } else {
-    return run().then(() => {
-      process.exit(0);
-    });
+    return run().then(exit);
   }
 }).catch(function(errs) {
   function logError(err) {

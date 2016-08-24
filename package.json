@@ -24,6 +24,7 @@
     "mkdirp": "^0.5.1",
     "node-emoji": "^1.0.4",
     "node-gyp": "^3.2.1",
+    "proper-lockfile": "^1.1.3",
     "read": "^1.0.7",
     "repeating": "^2.0.0",
     "request": "^2.67.0",
