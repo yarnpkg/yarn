@@ -230,14 +230,15 @@ config.init().then(function(): Promise<void> {
     process.exit(0);
   };
 
-  if (commander.forceSingleInstanceWithFile || commander.forceSingleInstance) {
-    if (commander.forceSingleInstanceWithFile) {
-      return runEventuallyWithLockFile(true).then(exit);
-    }
-    return runEventually().then(exit);
-  } else {
-    return run().then(exit);
+  if (commander.forceSingleInstanceWithFile) {
+    return runEventuallyWithLockFile(true).then(exit);
   }
+
+  if (commander.forceSingleInstance) {
+    return runEventually().then(exit);
+  }
+
+  return run().then(exit);
 }).catch(function(errs) {
   function logError(err) {
     reporter.error(err.stack.replace(/^Error: /, ''));
