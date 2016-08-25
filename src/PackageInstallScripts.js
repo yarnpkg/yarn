@@ -28,6 +28,8 @@ export default class PackageInstallScripts {
     this.resolver = resolver;
     this.reporter = config.reporter;
     this.config = config;
+    this.installedDependencies = 0;
+    this.totalDependencies = 0;
     this.force = force;
   }
 
@@ -35,7 +37,10 @@ export default class PackageInstallScripts {
   resolver: PackageResolver;
   reporter: Reporter;
   config: Config;
+  installedDependencies: number;
+  totalDependencies: number;
   force: boolean;
+
 
   getInstallCommands(pkg: Manifest): Array<string> {
     const scripts = pkg.scripts;
@@ -148,56 +153,93 @@ export default class PackageInstallScripts {
     }
   }
 
-  async init(seedPatterns: Array<string>): Promise<void> {
-    // get list of packages in topological order
-    let pkgs: Iterable<Manifest> = this.resolver.getTopologicalManifests(seedPatterns);
-
-    // refine packages to just those that have install scripts
-    const refinedInfos = [];
-    for (const pkg of pkgs) {
-      const cmds = this.getInstallCommands(pkg);
-      if (!cmds.length) {
-        continue;
-      }
-
-      const ref = pkg._reference;
-      invariant(ref, 'Missing package reference');
-      if (!ref.fresh && !this.force) {
-        // this package hasn't been touched
-        continue;
-      }
-
-      // we haven't actually written this module out
-      if (ref.ignore) {
-        continue;
-      }
-
-      if (this.needsPermission && !ref.hasPermission('scripts')) {
-        const can = await this.reporter.questionAffirm(
-          `Module ${pkg.name} wants to execute the commands ${JSON.stringify(cmds)}. Do you want to accept?`,
-        );
-        if (!can) {
-          continue;
-        }
-
-        ref.setPermission('scripts', can);
-      }
-
-      refinedInfos.push({pkg, cmds});
+  async runCMD(pkg: Manifest): Promise<void> {
+    const cmds = this.getInstallCommands(pkg);
+    if (!cmds.length) {
+      return;
     }
-
-    // nothing to install
-    if (!refinedInfos.length) {
+    const ref = pkg._reference;
+    invariant(ref, 'Missing package reference');
+    if (!ref.fresh && !this.force) {
+      // this package hasn't been touched
       return;
     }
 
-    // run install scripts
-    let i = 0;
-    for (let {pkg, cmds} of refinedInfos) {
-      i++;
-      const spinner = this.reporter.activityStep(i, refinedInfos.length, pkg.name);
-      await this.install(cmds, pkg, spinner);
-      spinner.end();
+    // we haven't actually written this module out
+    if (ref.ignore) {
+      return;
     }
+
+    if (this.needsPermission && !ref.hasPermission('scripts')) {
+      const can = await this.reporter.questionAffirm(
+        `Module ${pkg.name} wants to execute the commands ${JSON.stringify(cmds)}. Do you want to accept?`,
+      );
+      if (!can) {
+        return;
+      }
+
+      ref.setPermission('scripts', can);
+    }
+    const spinner = this.reporter.activityStep(this.installedDependencies, this.totalDependencies, pkg.name);
+    await this.install(cmds, pkg, spinner);
+    spinner.end();
+  }
+
+  // find the next package to be installed
+  findInstallablePackage(workQueue: Set<Manifest>, installed: Set<Manifest>): ?Manifest {
+    for (let pkg of workQueue) {
+      const ref = pkg._reference;
+      if (ref == null) {
+        invariant(ref, 'expected reference');
+      }
+      const deps = ref.dependencies;
+      let dependenciesFullfilled = true;
+      for (let dep of deps) {
+        const pkgDep = this.resolver.getStrictResolvedPattern(dep);
+        if (!installed.has(pkgDep)) {
+          dependenciesFullfilled = false;
+          break;
+        }
+      }
+      // all depedencies are installed
+      if (dependenciesFullfilled) {
+        return pkg;
+      }
+    }
+    return null;
+  }
+
+  async worker(workQueue: Set<Manifest>, installed: Set<Manifest>): Promise<void> {
+    while (true) {
+      if (workQueue.size == 0) {
+        break;
+      }
+      // find a installable package
+      const pkg = this.findInstallablePackage(workQueue, installed);
+      // can't find a package to install
+      if (pkg == null) {
+        await new Promise((resolve): number => setTimeout(resolve, 100));
+        continue;
+      }
+      // found the package to install
+      workQueue.delete(pkg);
+      this.installedDependencies += 1;
+      await this.runCMD(pkg);
+      installed.add(pkg);
+    }
+  }
+
+  async init(seedPatterns: Array<string>): Promise<void> {
+    let pkgs: Iterable<Manifest> = this.resolver.getTopologicalManifests(seedPatterns);
+    let workQueue = new Set(pkgs);
+    this.totalDependencies = workQueue.size;
+
+    let installed = new Set();
+    // TODO: Make the number of workers configerable
+    let workers = [];
+    for (let i = 0; i < 4; i++) {
+      workers.push(this.worker(workQueue, installed));
+    }
+    await Promise.all(workers);
   }
 }
