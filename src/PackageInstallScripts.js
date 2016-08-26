@@ -153,7 +153,7 @@ export default class PackageInstallScripts {
     }
   }
 
-  async runCMD(pkg: Manifest): Promise<void> {
+  async runCmd(pkg: Manifest, runId: number): Promise<void> {
     const cmds = this.getInstallCommands(pkg);
     if (!cmds.length) {
       return;
@@ -180,7 +180,7 @@ export default class PackageInstallScripts {
 
       ref.setPermission('scripts', can);
     }
-    const spinner = this.reporter.activityStep(this.installedDependencies, this.totalDependencies, pkg.name);
+    const spinner = this.reporter.activityStep(this.installedDependencies, this.totalDependencies, pkg.name, runId);
     await this.install(cmds, pkg, spinner);
     spinner.end();
   }
@@ -209,7 +209,8 @@ export default class PackageInstallScripts {
     return null;
   }
 
-  async worker(workQueue: Set<Manifest>, installed: Set<Manifest>, waitQueue: Set<Function>): Promise<void> {
+  async worker(id: number, workQueue: Set<Manifest>, installed: Set<Manifest>,
+               waitQueue: Set<Function>): Promise<void> {
     while (true) {
       // No more work to be done
       if (workQueue.size == 0) {
@@ -219,13 +220,17 @@ export default class PackageInstallScripts {
       const pkg = this.findInstallablePackage(workQueue, installed);
       // can't find a package to install, register into waitQueue
       if (pkg == null) {
+        const spinner = this.reporter.activityStep(this.installedDependencies,
+                                                   this.totalDependencies, `worker-${id}`, id);
+        spinner.tick('waiting');
         await new Promise((resolve): Set<Function> => waitQueue.add(resolve));
+        spinner.end();
         continue;
       }
       // found the package to install
       workQueue.delete(pkg);
       this.installedDependencies += 1;
-      await this.runCMD(pkg);
+      await this.runCmd(pkg, id);
       installed.add(pkg);
       for (let workerResolve of waitQueue) {
         workerResolve();
@@ -243,10 +248,13 @@ export default class PackageInstallScripts {
     // waitQueue acts like a semaphore to allow workers to register to be notified
     // when there are more work added to the work queue
     let waitQueue = new Set();
-    // TODO: Make the number of workers configerable
     let workers = [];
-    for (let i = 0; i < 4; i++) {
-      workers.push(this.worker(workQueue, installed, waitQueue));
+
+    for (let i = 0; i < constants.CHILD_CONCURRENCY; i++) {
+      if (i != 0) {
+        this.reporter.log('');
+      }
+      workers.push(this.worker(i, workQueue, installed, waitQueue));
     }
     await Promise.all(workers);
   }

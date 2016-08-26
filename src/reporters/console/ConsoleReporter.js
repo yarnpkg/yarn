@@ -153,14 +153,14 @@ export default class ConsoleReporter extends BaseReporter {
     }
   }
 
-  activityStep(current: number, total: number, msg: string, emoji?: string): ReporterSpinner {
+  activityStep(current: number, total: number, msg: string, lineNumber?: number, emoji?: string): ReporterSpinner {
     if (!this.isTTY) {
       return this.activity();
     }
 
     msg = this._prependEmoji(msg, emoji);
 
-    let spinner = new Spinner(this.stderr, `${chalk.grey(`[${current}/${total}]`)} `);
+    let spinner = new Spinner(this.stderr, `${chalk.grey(`[${current}/${total}]`)} `, lineNumber);
     spinner.start();
     spinner.setText(msg);
 
