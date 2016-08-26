@@ -219,7 +219,7 @@ export default class PackageInstallScripts {
       const pkg = this.findInstallablePackage(workQueue, installed);
       // can't find a package to install, register into waitQueue
       if (pkg == null) {
-        await new Promise((resolve) => waitQueue.add(resolve));
+        await new Promise((resolve): Set<Function> => waitQueue.add(resolve));
         continue;
       }
       // found the package to install
