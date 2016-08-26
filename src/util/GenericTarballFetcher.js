@@ -12,8 +12,8 @@
 const zlib = require('zlib');
 const tar = require('tar');
 const url = require('url');
-const https = require('https');
 const Request = require('request').Request;
+import {SecurityError, MessageError} from '../errors.js';
 
 import {USER_AGENT} from '../constants';
 
@@ -25,7 +25,7 @@ export default class GenericTarballFetcher {
   async fetch(ref: string, dest: string): Promise<string> {
     const parts = url.parse(ref);
     if (parts.protocol === 'http:') {
-      throw new Error(`${ref}: Refusing to fetch tarball over plain HTTP without a hash`);
+      throw new SecurityError(`${ref}: Refusing to fetch tarball over plain HTTP without a hash`);
     }
 
     return new Promise((resolve, reject) => {
@@ -38,11 +38,11 @@ export default class GenericTarballFetcher {
         },
       });
       req
-        .on('redirect', function () {
+        .on('redirect', function() {
           const href = this.uri.href;
           const parts = url.parse(href);
           if (parts.protocol === 'http:') {
-            throw new Error(
+            throw new SecurityError(
               `While downloading the tarball ${ref} we encountered a HTTP redirect of ${href}. ` +
               'This is not allowed unless a tarball hash is specified.',
             );
@@ -51,7 +51,7 @@ export default class GenericTarballFetcher {
         .on('response', function(response) {
           if (response.statusCode !== 200) {
             const errMsg = `Request ${ref} returned a ${response.statusCode}`;
-            reject(new Error(errMsg));
+            reject(new MessageError(errMsg));
           }
         })
         .pipe(zlib.createUnzip())

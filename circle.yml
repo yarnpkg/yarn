@@ -6,9 +6,9 @@ dependencies:
   override:
     # Upgrading Make because it fails in CI
     # TODO install and download make only if it is not in caches
-    - wget http://ftp.gnu.org/gnu/make/make-4.2.tar.gz -P ~/make
-    - cd ~/make && tar xvf make-4.2.tar.gz
-    - cd ~/make/make-4.2 && ./configure && make && sudo make install
+#    - wget http://ftp.gnu.org/gnu/make/make-4.2.tar.gz -P ~/make
+#    - cd ~/make && tar xvf make-4.2.tar.gz
+#    - cd ~/make/make-4.2 && ./configure && make && sudo make install
     - /usr/local/bin/make -v
     - nvm install 4.3.2
     - nvm install 6

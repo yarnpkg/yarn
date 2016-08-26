@@ -44,9 +44,9 @@ export async function run(
     headers: {
       'user-agent': USER_AGENT,
     },
-    Promise: Promise,
+    Promise,
     followRedirects: false,
-    timeout: 5000
+    timeout: 5000,
   });
 
   github.authenticate({
@@ -70,7 +70,7 @@ export async function run(
   const assets = await github.repos.listAssets({
     user: GITHUB_USER,
     repo: GITHUB_REPO,
-    id: release.id
+    id: release.id,
   });
 
   reporter.info(`Downloading asset ${assets[0].name} from release ${release.tag_name}`);
