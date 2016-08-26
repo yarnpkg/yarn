@@ -11,7 +11,7 @@
 
 import BaseReporter from '../BaseReporter.js';
 import Progress from './ProgressBar.js';
-import Spinner from './Spinner.js';
+import Spinner from './SpinnerProgress.js';
 import type {Package, Trees, ReporterSpinner} from '../types.js';
 import {clearLine} from './util.js';
 import {removeSuffix} from '../../util/misc.js';
