@@ -9,7 +9,8 @@ dependencies:
 #    - wget http://ftp.gnu.org/gnu/make/make-4.2.tar.gz -P ~/make
 #    - cd ~/make && tar xvf make-4.2.tar.gz
 #    - cd ~/make/make-4.2 && ./configure && make && sudo make install
-    - /usr/local/bin/make -v
+#    - /usr/local/bin/make -v
+    - make -v
     - nvm install 4.3.2
     - nvm install 6
     - nvm use 6 && nvm alias default 6
