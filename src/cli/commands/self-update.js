@@ -55,16 +55,18 @@ export async function run(
   });
 
   let release;
-  if (!flags.gitTag) {
-    release = await github.repos.getLatestRelease({
-      user: GITHUB_USER,
-      repo: GITHUB_REPO,
-    });
-  } else {
-    release = await github.repos.getReleaseByTag({
+  if (flags.gitTag) {
+    release = await
+    github.repos.getReleaseByTag({
       user: GITHUB_USER,
       repo: GITHUB_REPO,
       tag: flags.gitTag,
+    });
+  } else {
+    release = await
+    github.repos.getLatestRelease({
+      user: GITHUB_USER,
+      repo: GITHUB_REPO,
     });
   }
   const assets = await github.repos.listAssets({
