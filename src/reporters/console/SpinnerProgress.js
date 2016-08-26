@@ -12,7 +12,7 @@
 import type {Stdout} from '../types.js';
 import {clearLine} from './util.js';
 
-export default class SpinnerProgress {
+export default class Spinner {
   constructor(stdout: Stdout = process.stderr, prefix?: string = '') {
     this.current = 0;
     this.prefix = prefix;
