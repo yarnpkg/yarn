@@ -209,16 +209,17 @@ export default class PackageInstallScripts {
     return null;
   }
 
-  async worker(workQueue: Set<Manifest>, installed: Set<Manifest>): Promise<void> {
+  async worker(workQueue: Set<Manifest>, installed: Set<Manifest>, waitQueue: Set<Function>): Promise<void> {
     while (true) {
+      // No more work to be done
       if (workQueue.size == 0) {
         break;
       }
       // find a installable package
       const pkg = this.findInstallablePackage(workQueue, installed);
-      // can't find a package to install
+      // can't find a package to install, register into waitQueue
       if (pkg == null) {
-        await new Promise((resolve): number => setTimeout(resolve, 100));
+        await new Promise((resolve) => waitQueue.add(resolve));
         continue;
       }
       // found the package to install
@@ -226,6 +227,10 @@ export default class PackageInstallScripts {
       this.installedDependencies += 1;
       await this.runCMD(pkg);
       installed.add(pkg);
+      for (let workerResolve of waitQueue) {
+        workerResolve();
+      }
+      waitQueue.clear();
     }
   }
 
@@ -235,10 +240,13 @@ export default class PackageInstallScripts {
     this.totalDependencies = workQueue.size;
 
     let installed = new Set();
+    // waitQueue acts like a semaphore to allow workers to register to be notified
+    // when there are more work added to the work queue
+    let waitQueue = new Set();
     // TODO: Make the number of workers configerable
     let workers = [];
     for (let i = 0; i < 4; i++) {
-      workers.push(this.worker(workQueue, installed));
+      workers.push(this.worker(workQueue, installed, waitQueue));
     }
     await Promise.all(workers);
   }
