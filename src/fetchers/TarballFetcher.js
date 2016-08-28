@@ -14,6 +14,8 @@ import type {HashStream} from '../util/crypto.js';
 import * as crypto from '../util/crypto.js';
 import BaseFetcher from './BaseFetcher.js';
 import * as fsUtil from '../util/fs.js';
+import {USER_AGENT} from '../constants';
+
 
 const through = require('through2');
 const zlib = require('zlib');
@@ -113,6 +115,8 @@ export default class TarballFetcher extends BaseFetcher {
       url: ref,
       headers: {
         'Accept-Encoding': 'gzip',
+        'Accept': 'application/octet-stream',
+        'user-agent': USER_AGENT,
       },
       process(req, resolve, reject) {
         let {validateStream, extractor} = createExtractor(resolve, reject);
