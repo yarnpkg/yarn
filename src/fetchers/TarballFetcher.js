@@ -16,7 +16,6 @@ import BaseFetcher from './BaseFetcher.js';
 import * as fsUtil from '../util/fs.js';
 import {USER_AGENT} from '../constants';
 
-
 const through = require('through2');
 const zlib = require('zlib');
 const path = require('path');

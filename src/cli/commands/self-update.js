@@ -24,7 +24,6 @@ const GitHubApi = require('github');
 
 export function setFlags(commander: Object) {
   // token needed because it is a private repo now
-  commander.option('--github-auth0-token <value>', 'Auth0 token to download a kpm .tar.gz release');
   commander.arguments('[tag]', 'e.g. v0.10.0');
 }
 
@@ -49,9 +48,11 @@ export async function run(
     timeout: 5000,
   });
 
+  // while KPM is close sourced we need an auth token to be passed
+  const githubAuth0Token = process.env.KPM_AUTH_TOKEN;
   github.authenticate({
     type: 'oauth',
-    token: flags.githubAuth0Token,
+    token: githubAuth0Token,
   });
 
   let release;
@@ -78,7 +79,16 @@ export async function run(
 
   reporter.info(`Downloading asset ${assets[0].name} from release ${release.tag_name}`);
 
-  const updatesFolder = path.resolve(__dirname, '..', '..', '..', SELF_UPDATE_DOWNLOAD_FOLDER);
+  const thisVersionRoot = path.resolve(__dirname, '..', '..', '..');
+  const isCurrentVersionAnUpdate =
+    path.dirname(path.resolve(thisVersionRoot, '..', '..')) === SELF_UPDATE_DOWNLOAD_FOLDER;
+  let updatesFolder;
+  if (isCurrentVersionAnUpdate) {
+    updatesFolder = path.resolve(thisVersionRoot, '..', '..');
+  } else {
+    updatesFolder = path.resolve(thisVersionRoot, SELF_UPDATE_DOWNLOAD_FOLDER);
+  }
+
   const locToUnzip = path.resolve(updatesFolder, release.tag_name);
 
   await unlink(locToUnzip);
@@ -86,20 +96,20 @@ export async function run(
   const fetcher = new TarballFetcher({
     type: 'tarball',
     registry: 'npm',
-    reference: `${assets[0].url}?access_token=${flags.githubAuth0Token}`,
+    reference: `${assets[0].url}?access_token=${githubAuth0Token}`,
     hash: null,
   }, config, false);
   await fetcher.fetch(locToUnzip);
 
-  // now the downloaded release is used in bin/kpm.js
+  // this links the downloaded release to bin/kpm.js
   await symlink(locToUnzip, `${updatesFolder}/current`);
-  // symlink updates folder of the downloaed release to the top
-  await symlink(`${updatesFolder}`, `${locToUnzip}/updates`);
-  // remove previous installation if there was one
-  await unlink(`${updatesFolder}/previous`);
-  // this will be deleted during next update
-  // TODO mark current folder as previous
-  // await symlink(locToUnzip, `${updatesFolder}/previous`);
+  // clean garbage
+  await unlink(`${updatesFolder}/to_clean`);
+  if (isCurrentVersionAnUpdate) {
+    // current kpm installation is an update, let's clean it next time an update is run
+    // because it may still be in use now
+    await symlink(path.dirname(path.resolve(thisVersionRoot, '..'), `${updatesFolder}/to_clean`));
+  }
 
   reporter.info(`Replaced current release with ${release.tag_name}`);
 }
