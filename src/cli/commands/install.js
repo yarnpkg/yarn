@@ -32,6 +32,7 @@ import * as util from '../../util/misc.js';
 import map from '../../util/map.js';
 
 const invariant = require('invariant');
+const requestHarCapture = require('request-capture-har');
 const emoji = require('node-emoji');
 const path = require('path');
 
@@ -219,6 +220,13 @@ export class Install {
       );
       await this.scripts.init(patterns);
     });
+
+    if (this.flags.har) {
+      steps.push(async (curr: number, total: number) => {
+        this.reporter.step(curr, total, 'Saving a HAR', emoji.get('recycle'));
+        await requestHarCapture.saveHar(`kpm-install_${new Date().toISOString()}.har`);
+      });
+    }
 
     if (await this.shouldClean()) {
       steps.push(async (curr: number, total: number) => {
