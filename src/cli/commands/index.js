@@ -72,9 +72,6 @@ export {upgrade};
 import * as check from './check.js';
 export {check};
 
-import * as version from './version.js';
-export {version};
-
 import buildUseless from './_useless.js';
 
 export let runScript = buildUseless(
