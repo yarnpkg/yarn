@@ -9,6 +9,7 @@
  * @flow
  */
 
+import BlockingQueue from '../../src/util/BlockingQueue.js';
 import * as child from '../../src/util/child.js';
 import Config from '../../src/config.js';
 import {SELF_UPDATE_DOWNLOAD_FOLDER} from '../../src/constants.js';
@@ -18,6 +19,8 @@ import * as reporters from '../../src/reporters/index.js';
 
 const path = require('path');
 const stream = require('stream');
+// these tests touch "updates" folder and must be run in sequence
+const queue = new BlockingQueue('self-update-tests', 1);
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000;
 const updatesFolder = path.resolve(__dirname, '..', '..', SELF_UPDATE_DOWNLOAD_FOLDER);
@@ -40,28 +43,32 @@ afterAll(async (done) => {
   done();
 });
 
-async function run(checks: (reporter: reporters.Reporter, config: Config) => Promise<void>) {
-  let out = '';
-  let stdout = new stream.Writable({
-    decodeStrings: false,
-    write(data, encoding, cb) {
-      out += data;
-      cb();
-    },
+let queueCounter = 0;
+async function run(checks: (reporter: reporters.Reporter, config: Config) => Promise<void>): Promise<void> {
+  return queue.push(`${queueCounter++}`, async () => {
+    let out = '';
+    let stdout = new stream.Writable({
+      decodeStrings: false,
+      write(data, encoding, cb) {
+        out += data;
+        cb();
+      },
+    });
+    try {
+      const reporter = new reporters.ConsoleReporter({stdout, stderr: stdout});
+      const cwd = path.resolve(updatesFolder, '..');
+      const config = new Config(reporter, {cwd});
+      await checks(reporter, config);
+    } catch (err) {
+      throw new Error(`${err} \nConsole output:\n ${out}`);
+    } finally {
+      await fs.unlink(updatesFolder);
+    }
   });
-  try {
-    const reporter = new reporters.ConsoleReporter({stdout, stderr: stdout});
-    const cwd = path.resolve(updatesFolder, '..');
-    const config = new Config(reporter, {cwd});
-    await checks(reporter, config);
-  } catch (err) {
-    throw new Error(`${err} \nConsole output:\n ${out}`);
-  } finally {
-    await fs.unlink(updatesFolder);
-  }
 }
 
-test('Self-update should download a release and symlink it as "current"', async (): Promise<void> => {
+// TODO enable tests when kpm becomes OSS
+xit('Self-update should download a release and symlink it as "current"', async (): Promise<void> => {
   return run(async (reporter, config) => {
     await selfUpdate(config, reporter, {}, ['v0.11.0']);
     expect(await fs.exists(path.resolve(updatesFolder, 'current')));
@@ -74,7 +81,7 @@ test('Self-update should download a release and symlink it as "current"', async 
 });
 
 
-test('Self-update should work from self-updated location', async (): Promise<void> => {
+xit('Self-update should work from self-updated location', async (): Promise<void> => {
   return run(async (reporter, config) => {
     // mock an existing self-update
     await child.exec('make build');
