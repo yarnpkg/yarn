@@ -16,8 +16,10 @@ import {GITHUB_REPO} from '../../constants.js';
 import {GITHUB_USER} from '../../constants.js';
 import {SELF_UPDATE_DOWNLOAD_FOLDER} from '../../constants.js';
 import TarballFetcher from '../../fetchers/TarballFetcher.js';
+import {exists} from '../../util/fs.js';
 import {symlink} from '../../util/fs.js';
 import {unlink} from '../../util/fs.js';
+import {realpath} from '../../util/fs.js';
 
 const path = require('path');
 const GitHubApi = require('github');
@@ -81,10 +83,10 @@ export async function run(
 
   const thisVersionRoot = path.resolve(__dirname, '..', '..', '..');
   const isCurrentVersionAnUpdate =
-    path.dirname(path.resolve(thisVersionRoot, '..', '..')) === SELF_UPDATE_DOWNLOAD_FOLDER;
+    path.basename(path.resolve(thisVersionRoot, '..')) === SELF_UPDATE_DOWNLOAD_FOLDER;
   let updatesFolder;
   if (isCurrentVersionAnUpdate) {
-    updatesFolder = path.resolve(thisVersionRoot, '..', '..');
+    updatesFolder = path.resolve(thisVersionRoot, '..');
   } else {
     updatesFolder = path.resolve(thisVersionRoot, SELF_UPDATE_DOWNLOAD_FOLDER);
   }
@@ -102,13 +104,18 @@ export async function run(
   await fetcher.fetch(locToUnzip);
 
   // this links the downloaded release to bin/kpm.js
-  await symlink(locToUnzip, `${updatesFolder}/current`);
+  await symlink(locToUnzip, path.resolve(updatesFolder, 'current'));
   // clean garbage
-  await unlink(`${updatesFolder}/to_clean`);
+  const pathToClean = path.resolve(updatesFolder, 'to_clean');
+  if (await exists(pathToClean)) {
+    const previousVersionToCleanup = await realpath(pathToClean);
+    await unlink(previousVersionToCleanup);
+    await unlink(pathToClean);
+  }
   if (isCurrentVersionAnUpdate) {
     // current kpm installation is an update, let's clean it next time an update is run
     // because it may still be in use now
-    await symlink(path.dirname(path.resolve(thisVersionRoot, '..'), `${updatesFolder}/to_clean`));
+    await symlink(thisVersionRoot, pathToClean);
   }
 
   reporter.info(`Replaced current release with ${release.tag_name}`);
