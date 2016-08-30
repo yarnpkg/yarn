@@ -9,17 +9,11 @@
  * @flow
  */
 
-import type {Reporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
-import {USER_AGENT} from '../../constants.js';
-import {GITHUB_REPO} from '../../constants.js';
-import {GITHUB_USER} from '../../constants.js';
-import {SELF_UPDATE_DOWNLOAD_FOLDER} from '../../constants.js';
+import {GITHUB_REPO, GITHUB_USER, SELF_UPDATE_DOWNLOAD_FOLDER, USER_AGENT} from '../../constants.js';
 import TarballFetcher from '../../fetchers/TarballFetcher.js';
-import {exists} from '../../util/fs.js';
-import {symlink} from '../../util/fs.js';
-import {unlink} from '../../util/fs.js';
-import {realpath} from '../../util/fs.js';
+import type {Reporter} from '../../reporters/index.js';
+import {exists, realpath, symlink, unlink} from '../../util/fs.js';
 
 const path = require('path');
 const GitHubApi = require('github');
