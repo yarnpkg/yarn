@@ -71,7 +71,7 @@ export default class JSONReporter extends BaseReporter {
     this._dump('info', msg);
   }
 
-  activityStep(current: number, total: number, message: string, emoji?: string): ReporterSpinner {
+  activityStep(current: number, total: number, message: string, runId?: number, emoji?: string): ReporterSpinner {
     return this._activity({step: true, current, total, message});
   }
 

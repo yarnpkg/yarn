@@ -10,12 +10,13 @@
  */
 
 import type {Stdout} from '../types.js';
-import {clearLine} from './util.js';
+import {writeOnNthLine, clearNthLine} from './util.js';
 
 export default class Spinner {
-  constructor(stdout: Stdout = process.stderr, prefix?: string = '') {
+  constructor(stdout: Stdout = process.stderr, prefix?: string = '', lineNumber?: number = 0) {
     this.current = 0;
     this.prefix = prefix;
+    this.lineNumber = lineNumber;
     this.stdout = stdout;
     this.delay = 60;
     this.chars = Spinner.spinners[28].split('');
@@ -26,6 +27,7 @@ export default class Spinner {
   stdout: Stdout;
   prefix: string;
   current: number;
+  lineNumber: number;
   delay: number;
   chars: Array<string>;
   text: string;
@@ -81,8 +83,7 @@ export default class Spinner {
     let msg = `${this.prefix}${this.chars[this.current]} ${this.text}`;
     msg = msg.slice(0, this.stdout.columns || 100);
 
-    clearLine(this.stdout);
-    this.stdout.write(msg);
+    writeOnNthLine(this.stdout, this.lineNumber, msg);
 
     this.current = ++this.current % this.chars.length;
     this.id = setTimeout((): void => this.render(), this.delay);
@@ -94,6 +95,6 @@ export default class Spinner {
       this.id = null;
     }
 
-    clearLine(this.stdout);
+    clearNthLine(this.stdout, this.lineNumber);
   }
 }
