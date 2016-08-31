@@ -259,7 +259,7 @@ export default class PackageRequest {
 
     //
     const shouldSaveMirror = this.resolver.lockfile.save && !!offlineMirrorPath;
-    let {package: newInfo, hash }:FetchedManifest = await this.resolver.fetchingQueue.push(
+    let {package: newInfo, hash}:FetchedManifest = await this.resolver.fetchingQueue.push(
       info.name,
       (): Promise<FetchedManifest> => this.resolver.fetcher.fetch(ref, shouldSaveMirror),
     );

@@ -153,23 +153,29 @@ export default class PackageInstallScripts {
     }
   }
 
-  async runCmd(pkg: Manifest, runId: number): Promise<void> {
+  pkgCanBeInstalled(pkg: Manifest): boolean {
     const cmds = this.getInstallCommands(pkg);
     if (!cmds.length) {
-      return;
+      return false;
     }
     const ref = pkg._reference;
     invariant(ref, 'Missing package reference');
     if (!ref.fresh && !this.force) {
       // this package hasn't been touched
-      return;
+      return false;
     }
 
     // we haven't actually written this module out
     if (ref.ignore) {
-      return;
+      return false;
     }
+    return true;
+  }
 
+  async runCmd(pkg: Manifest, runId: number): Promise<void> {
+    const cmds = this.getInstallCommands(pkg);
+    const ref = pkg._reference;
+    invariant(ref, 'Missing package reference');
     if (this.needsPermission && !ref.hasPermission('scripts')) {
       const can = await this.reporter.questionAffirm(
         `Module ${pkg.name} wants to execute the commands ${JSON.stringify(cmds)}. Do you want to accept?`,
@@ -240,11 +246,11 @@ export default class PackageInstallScripts {
   }
 
   async init(seedPatterns: Array<string>): Promise<void> {
-    let pkgs: Iterable<Manifest> = this.resolver.getTopologicalManifests(seedPatterns);
-    let workQueue = new Set(pkgs);
-    this.totalDependencies = workQueue.size;
+    let pkgs: Array<Manifest> = Array.from(this.resolver.getTopologicalManifests(seedPatterns));
+    let workQueue = new Set(pkgs.filter((pkg): boolean => this.pkgCanBeInstalled(pkg)));
+    this.totalDependencies = pkgs.length;
 
-    let installed = new Set();
+    let installed = new Set(pkgs.filter((pkg): boolean => !this.pkgCanBeInstalled(pkg)));
     // waitQueue acts like a semaphore to allow workers to register to be notified
     // when there are more work added to the work queue
     let waitQueue = new Set();
