@@ -41,8 +41,8 @@
     "babel-core": "^6.10.4",
     "babel-eslint": "^6.1.2",
     "babel-jest": "^14.0.0",
-    "babel-plugin-transform-runtime": "^6.4.3",
     "babel-plugin-transform-es2015-typeof-symbol": "^6.8.0",
+    "babel-plugin-transform-runtime": "^6.4.3",
     "babel-preset-es2015": "^6.3.13",
     "babel-preset-es2015-node4": "^2.1.0",
     "babel-preset-node5": "^10.2.0",
@@ -65,7 +65,7 @@
     "gulp-plumber": "^1.0.1",
     "gulp-util": "^3.0.7",
     "gulp-watch": "^4.3.5",
-    "jest": "^14.0.0",
+    "jest": "^15.1.1",
     "mock-stdin": "^0.3.0",
     "temp": "^0.8.3",
     "unexpected": "^10.8.1"
@@ -115,8 +115,7 @@
     }
   },
   "jest": {
-    "automock": false,
-    "persistModuleRegistryBetweenSpecs": true,
+    "timers": "fake",
     "testEnvironment": "node",
     "testPathIgnorePatterns": [
       "__tests__/fixtures/",
