@@ -169,6 +169,15 @@ test('[network] install with --save and without offline mirror', (): Promise<voi
   });
 });
 
+test('install file: protocol', (): Promise<void> => {
+  return run({noLockfile: true}, [], 'install-file', async (config) => {
+    assert.equal(
+      await fs.readFile(path.join(config.cwd, 'node_modules', 'foo', 'index.js')),
+      'foobar\n',
+    );
+  });
+});
+
 it('install renamed packages', (): Promise<void> => {
   return run({}, [], 'install-renamed-packages', async (config): Promise<void> => {
     let dir = path.join(config.cwd, 'node_modules');
