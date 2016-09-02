@@ -11,8 +11,12 @@
 
 import type {Manifest} from '../../types.js';
 import type PackageRequest from '../../PackageRequest.js';
+import {MessageError} from '../../errors.js';
 import ExoticResolver from './ExoticResolver.js';
 import * as util from '../../util/misc.js';
+import * as fs from '../../util/fs.js';
+
+let path = require('path');
 
 export default class FileResolver extends ExoticResolver {
   constructor(request: PackageRequest, fragment: string) {
@@ -24,7 +28,25 @@ export default class FileResolver extends ExoticResolver {
 
   static protocol = 'file';
 
-  resolve(): Promise<Manifest> {
-    throw new Error('TODO ' + this.loc);
+  async resolve(): Promise<Manifest> {
+    let loc = this.loc;
+    if (!path.isAbsolute(loc)) {
+      loc = path.join(this.config.cwd, loc);
+    }
+    if (!(await fs.exists(loc))) {
+      throw new MessageError(`${loc} doesn't exist`);
+    }
+
+    let manifest = await this.config.readManifest(loc, this.registry);
+
+    manifest._remote = {
+      type: 'copy',
+      registry: manifest._registry,
+      reference: loc,
+    };
+
+    manifest._uid = manifest.version;
+
+    return manifest;
   }
 }
