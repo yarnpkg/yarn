@@ -65,7 +65,7 @@ export default class Lockfile {
   static async fromDirectory(
     dir: string,
     reporter: Reporter,
-    {strictIfPresent, save, silent }: {
+    {strictIfPresent, save, silent}: {
       strictIfPresent?: boolean,
       save?: boolean,
       silent?: boolean

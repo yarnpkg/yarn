@@ -669,6 +669,27 @@ test('uninstall should remove dependency from package.json, kpm.lock and node_mo
   });
 });
 
+test('install should circumvent circular dependencies', (): Promise<void> => {
+  // A@1 -> B@1
+  // B@1 -> C@1
+  // C@1 -> A@1
+
+  return run({}, [], 'uninstall-should-remove-subdependencies', async (config, reporter) => {
+    assert.equal(
+      await getPackageVersion(config, 'dep-a'),
+      '1.0.0',
+    );
+    assert.equal(
+      await getPackageVersion(config, 'dep-b'),
+      '1.0.0',
+    );
+    assert.equal(
+      await getPackageVersion(config, 'dep-c'),
+      '1.0.0',
+    );
+  });
+});
+
 test('uninstall should remove subdependencies', (): Promise<void> => {
   // A@1 -> B@1
   // C@1
