@@ -57,6 +57,9 @@ export {logout};
 import * as licenses from './licenses.js';
 export {licenses};
 
+import * as selfUpdate from './self-update.js';
+export {selfUpdate};
+
 import * as uninstall from './uninstall.js';
 export {uninstall};
 

@@ -1,6 +1,8 @@
 [ignore]
 .*/node_modules/babel.*
 .*/node_modules/y18n/test/.*
+.*/updates/.*
+.*/dist/.*
 
 [include]
 

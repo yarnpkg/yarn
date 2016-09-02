@@ -16,9 +16,17 @@ var semver = require('semver');
 var ver = process.versions.node;
 
 if (semver.satisfies(ver, '>=5.0.0')) {
-  module.exports = require('../lib/cli/index.js');
+  try {
+    module.exports = require('../updates/current/lib/cli/index.js');
+  } catch (e) {
+    module.exports = require('../lib/cli/index.js');
+  }
 } else if (semver.satisfies(ver, '>=4.0.0')) {
-  module.exports = require('../lib-legacy/cli/index.js');
+  try {
+    module.exports = require('../updates/current/lib-legacy/cli/index.js');
+  } catch (e) {
+    module.exports = require('../lib-legacy/cli/index.js');
+  }
 } else {
   throw new Error('Node version ' + ver + ' is not supported');
 }

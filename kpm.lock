@@ -34,6 +34,13 @@ acorn@^3.0.4, acorn@^3.3.0:
   name acorn
   version "3.3.0"
   resolved "https://registry.npmjs.org/acorn/-/acorn-3.3.0.tgz#45e37fb39e8da3f25baee3ff5369e2bb5f22017a"
+agent-base@2:
+  name agent-base
+  version "2.0.1"
+  resolved "https://registry.npmjs.org/agent-base/-/agent-base-2.0.1.tgz#bd8f9e86a8eb221fffa07bd14befd55df142815e"
+  dependencies:
+    extend "~3.0.0"
+    semver "~5.0.1"
 align-text@^0.1.1, align-text@^0.1.3:
   name align-text
   version "0.1.4"
@@ -801,7 +808,7 @@ babel-plugin-transform-es2015-template-literals@^6.6.0:
   resolved "https://registry.npmjs.org/babel-plugin-transform-es2015-template-literals/-/babel-plugin-transform-es2015-template-literals-6.8.0.tgz#86eb876d0a2c635da4ec048b4f7de9dfc897e66b"
   dependencies:
     babel-runtime "^6.0.0"
-babel-plugin-transform-es2015-typeof-symbol@^6.6.0:
+babel-plugin-transform-es2015-typeof-symbol@^6.6.0, babel-plugin-transform-es2015-typeof-symbol@^6.8.0:
   name babel-plugin-transform-es2015-typeof-symbol
   version "6.8.0"
   resolved "https://registry.npmjs.org/babel-plugin-transform-es2015-typeof-symbol/-/babel-plugin-transform-es2015-typeof-symbol-6.8.0.tgz#84c29eb1219372480955a020fef7a65c44f30533"
@@ -1429,7 +1436,7 @@ concat-map@0.0.1:
   name concat-map
   version "0.0.1"
   resolved "https://registry.npmjs.org/concat-map/-/concat-map-0.0.1.tgz#d8a96bd77fd68df7793a73036a3ba0d5405d477b"
-concat-stream@^1.4.6, concat-stream@^1.4.7:
+concat-stream@^1.4.6, concat-stream@^1.4.7, concat-stream@^1.5.1:
   name concat-stream
   version "1.5.1"
   resolved "https://registry.npmjs.org/concat-stream/-/concat-stream-1.5.1.tgz#f3b80acf9e1f48e3875c0688b41b6c31602eea1c"
@@ -1512,7 +1519,7 @@ death@^1.0.0:
   name death
   version "1.0.0"
   resolved "https://registry.npmjs.org/death/-/death-1.0.0.tgz#4d46e15488d4b636b699f0671b04632d752fd2de"
-debug@^2.1.1, debug@^2.2.0, debug@~2.2.0:
+debug@^2.1.1, debug@^2.2.0, debug@~2.2.0, debug@2:
   name debug
   version "2.2.0"
   resolved "https://registry.npmjs.org/debug/-/debug-2.2.0.tgz#f87057e995b1a1f6ae6a4960664137bc56f039da"
@@ -2012,7 +2019,7 @@ extend-shallow@^2.0.1:
   resolved "https://registry.npmjs.org/extend-shallow/-/extend-shallow-2.0.1.tgz#51af7d614ad9a9f610ea1bafbb989d6b1c56890f"
   dependencies:
     is-extendable "^0.1.0"
-extend@^3.0.0, extend@~3.0.0:
+extend@^3.0.0, extend@~3.0.0, extend@3:
   name extend
   version "3.0.0"
   resolved "https://registry.npmjs.org/extend/-/extend-3.0.0.tgz#5a474353b9f3353ddd8176dfd37b91c83a46f1d4"
@@ -2166,6 +2173,13 @@ flow-bin@^0.30.0:
   dependencies:
     bin-wrapper "^3.0.2"
     logalot "^2.0.0"
+follow-redirects@0.0.7:
+  name follow-redirects
+  version "0.0.7"
+  resolved "https://registry.npmjs.org/follow-redirects/-/follow-redirects-0.0.7.tgz#34b90bab2a911aa347571da90f22bd36ecd8a919"
+  dependencies:
+    debug "^2.2.0"
+    stream-consume "^0.1.0"
 for-in@^0.1.5:
   name for-in
   version "0.1.5"
@@ -2215,7 +2229,7 @@ fstream-ignore@~1.0.5:
     fstream "^1.0.0"
     inherits "2"
     minimatch "^3.0.0"
-fstream@^1.0.0, fstream@^1.0.2, fstream@~1.0.10:
+fstream@^1.0.0, fstream@^1.0.10, fstream@^1.0.2, fstream@~1.0.10:
   name fstream
   version "1.0.10"
   resolved "https://registry.npmjs.org/fstream/-/fstream-1.0.10.tgz#604e8a92fe26ffd9f6fae30399d4984e1ab22822"
@@ -2274,6 +2288,14 @@ getpass@^0.1.1:
   resolved "https://registry.npmjs.org/getpass/-/getpass-0.1.6.tgz#283ffd9fc1256840875311c1b60e8c40187110e6"
   dependencies:
     assert-plus "^1.0.0"
+github@2.5.1:
+  name github
+  version "2.5.1"
+  resolved "https://registry.npmjs.org/github/-/github-2.5.1.tgz#5adf2b3012af7505b1f2177aae3ff3963143b428"
+  dependencies:
+    follow-redirects "0.0.7"
+    https-proxy-agent "^1.0.0"
+    mime "^1.2.11"
 glob-base@^0.3.0:
   name glob-base
   version "0.3.0"
@@ -2640,6 +2662,14 @@ http-signature@~1.1.0:
     assert-plus "^0.2.0"
     jsprim "^1.2.2"
     sshpk "^1.7.0"
+https-proxy-agent@^1.0.0:
+  name https-proxy-agent
+  version "1.0.0"
+  resolved "https://registry.npmjs.org/https-proxy-agent/-/https-proxy-agent-1.0.0.tgz#35f7da6c48ce4ddbfa264891ac593ee5ff8671e6"
+  dependencies:
+    agent-base "2"
+    debug "2"
+    extend "3"
 iconv-lite@^0.4.13, iconv-lite@^0.4.5:
   name iconv-lite
   version "0.4.13"
@@ -3663,6 +3693,10 @@ mime-types@^2.1.10, mime-types@~2.1.7:
   resolved "https://registry.npmjs.org/mime-types/-/mime-types-2.1.11.tgz#c259c471bda808a85d6cd193b430a5fae4473b3c"
   dependencies:
     mime-db "~1.23.0"
+mime@^1.2.11:
+  name mime
+  version "1.3.4"
+  resolved "https://registry.npmjs.org/mime/-/mime-1.3.4.tgz#115f9e3b6b3daf2959983cb38f149a2d40eb5d53"
 minimatch@^2.0.1, minimatch@^2.0.3, minimatch@2.x:
   name minimatch
   version "2.0.10"
@@ -3718,6 +3752,10 @@ multipipe@^0.1.2:
   resolved "https://registry.npmjs.org/multipipe/-/multipipe-0.1.2.tgz#2a8f2ddf70eed564dff2d57f1e1a137d9f05078b"
   dependencies:
     duplexer2 "0.0.2"
+mute-stream@~0.0.4:
+  name mute-stream
+  version "0.0.6"
+  resolved "https://registry.npmjs.org/mute-stream/-/mute-stream-0.0.6.tgz#48962b19e169fd1dfc240b3f1e7317627bbc47db"
 mute-stream@0.0.5:
   name mute-stream
   version "0.0.5"
@@ -4109,6 +4147,12 @@ read-pkg@^1.0.0:
     load-json-file "^1.0.0"
     normalize-package-data "^2.3.2"
     path-type "^1.0.0"
+read@^1.0.7:
+  name read
+  version "1.0.7"
+  resolved "https://registry.npmjs.org/read/-/read-1.0.7.tgz#b3da19bd052431a97671d44a42634adf710b40c4"
+  dependencies:
+    mute-stream "~0.0.4"
 readable-stream@^2.0.0, "readable-stream@^2.0.0 || ^1.1.13", readable-stream@^2.0.1, readable-stream@^2.0.2, readable-stream@^2.0.4, readable-stream@^2.0.5, readable-stream@~2.1.4:
   name readable-stream
   version "2.1.5"
@@ -4410,6 +4454,10 @@ semver@^5.1.0, semver@^5.3.0, "semver@2 || 3 || 4 || 5", "semver@2.x || 3.x || 4
   name semver
   version "5.3.0"
   resolved "https://registry.npmjs.org/semver/-/semver-5.3.0.tgz#9b2ce5d3de02d17c6012ad326aa6b4d0cf54f94f"
+semver@~5.0.1:
+  name semver
+  version "5.0.3"
+  resolved "https://registry.npmjs.org/semver/-/semver-5.0.3.tgz#77466de589cd5d3c95f138aa78bc569a3cb5d27a"
 semver@~5.2.0:
   name semver
   version "5.2.0"
@@ -4562,7 +4610,7 @@ stream-combiner2@^1.1.1:
   dependencies:
     duplexer2 "~0.1.0"
     readable-stream "^2.0.2"
-stream-consume@~0.1.0:
+stream-consume@^0.1.0, stream-consume@~0.1.0:
   name stream-consume
   version "0.1.0"
   resolved "https://registry.npmjs.org/stream-consume/-/stream-consume-0.1.0.tgz#a41ead1a6d6081ceb79f65b061901b6d8f3d1d0f"
@@ -4705,7 +4753,7 @@ tar-pack@~3.1.0:
     rimraf "~2.5.1"
     tar "~2.2.1"
     uid-number "~0.0.6"
-tar-stream@^1.1.1:
+tar-stream@^1.1.1, tar-stream@^1.5.2:
   name tar-stream
   version "1.5.2"
   resolved "https://registry.npmjs.org/tar-stream/-/tar-stream-1.5.2.tgz#fbc6c6e83c1a19d4cb48c7d96171fc248effc7bf"

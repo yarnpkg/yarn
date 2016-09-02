@@ -44,6 +44,10 @@ export const CLEAN_FILENAME = '.kpmclean';
 
 export const USER_AGENT = `kpm v${pkg.version}`;
 
+export const GITHUB_USER = 'facebook';
+export const GITHUB_REPO = 'fbkpm';
+export const SELF_UPDATE_DOWNLOAD_FOLDER = 'updates';
+
 export const ENV_PATH_KEY = getPathKey(process.platform, process.env);
 
 export function getPathKey(platform: string, env: { [key: string]: any }): string {
