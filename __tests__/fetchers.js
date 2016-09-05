@@ -107,20 +107,3 @@ test('[network] TarballFetcher.fetch throws', async () => {
   }
   expect(error && error.message).toMatchSnapshot();
 });
-
-test('TarballFetcher.fetch plain http error', async () => {
-  let dir = await mkdir('tarball-fetcher');
-  let fetcher = new TarballFetcher(dir, {
-    type: 'tarball',
-    reference: 'http://example.com/',
-    registry: 'npm',
-  }, await createConfig());
-
-  let error;
-  try {
-    await fetcher.fetch();
-  } catch (e) {
-    error = e;
-  }
-  expect(error && error.message).toMatchSnapshot();
-});
