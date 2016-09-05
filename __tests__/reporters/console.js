@@ -134,8 +134,8 @@ test('ConsoleReporter.select', async () => {
     expect(res, 'foo');
   })).toEqual({
     stderr: '',
-    stdout: '\u001b[2K\u001b[1G\u001b[34minfo\u001b[39m Ayo\n\u001b[2K\u001b[1G  1) foo\n\u001b[2K\u001b[1G  2) ' +
-            'bar\n\u001b[1G\u001b[0JSelect one?: \u001b[14G1',
+    stdout: '\u001b[2K\u001b[1G\u001b[34minfo\u001b[39m Ayo\n\u001b[2K\u001b[1G  \u001b[2m1)\u001b[22m ' +
+            'foo\n\u001b[2K\u001b[1G  \u001b[2m2)\u001b[22m bar\n\u001b[1G\u001b[0JSelect one?: \u001b[14G1',
   });
 });
 
