@@ -720,13 +720,13 @@ test('uninstall should remove subdependencies', (): Promise<void> => {
 
       await uninstall(config, reporter, {}, ['dep-a']);
 
-      assert(!await fs.exists(path.join(config.cwd, 'node_modules/dep-a')), 'expected modules a');
-      assert(!await fs.exists(path.join(config.cwd, 'node_modules/dep-b')), 'expected modules b');
-      assert(await fs.exists(path.join(config.cwd, 'node_modules/dep-c')), 'expected modules c');
+      assert(!await fs.exists(path.join(config.cwd, 'node_modules/dep-a')));
+      assert(!await fs.exists(path.join(config.cwd, 'node_modules/dep-b')));
+      assert(await fs.exists(path.join(config.cwd, 'node_modules/dep-c')));
 
-      assert(await fs.exists(path.join(config.cwd, `${mirrorPath}/dep-a-1.0.0.tgz`)), 'expected tarball a');
-      assert(await fs.exists(path.join(config.cwd, `${mirrorPath}/dep-b-1.0.0.tgz`)), 'expected tarball b');
-      assert(await fs.exists(path.join(config.cwd, `${mirrorPath}/dep-c-1.0.0.tgz`)), 'expected tarball c');
+      assert(await fs.exists(path.join(config.cwd, `${mirrorPath}/dep-a-1.0.0.tgz`)));
+      assert(await fs.exists(path.join(config.cwd, `${mirrorPath}/dep-b-1.0.0.tgz`)));
+      assert(await fs.exists(path.join(config.cwd, `${mirrorPath}/dep-c-1.0.0.tgz`)));
 
       assert.deepEqual(
         JSON.parse(await fs.readFile(path.join(config.cwd, 'package.json'))).dependencies,
