@@ -120,6 +120,7 @@
     "testEnvironment": "node",
     "testPathIgnorePatterns": [
       "__tests__/fixtures/",
+      "__tests__/__mocks__/",
       "updates/",
       "/_(temp|mock).js$"
     ]
