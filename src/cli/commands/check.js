@@ -25,7 +25,7 @@ export const requireLockfile = true;
 export const noArguments = true;
 
 export function setFlags(commander: Object) {
-  commander.option('--quick-sloppy');
+  commander.option('--integrity');
 }
 
 export async function run(
@@ -63,7 +63,7 @@ export async function run(
     }
   }
 
-  if (flags.quickSloppy) {
+  if (flags.integrity) {
     // in sloppy mode we don't resolve dependencies, we just check a hash of the lockfile
     // against one that is created when we run `kpm install`
     const integrityLoc = path.join(config.cwd, 'node_modules', constants.INTEGRITY_FILENAME);
@@ -198,7 +198,7 @@ export async function run(
     if (errCount > 1) {
       reporter.info(`Found ${errCount} errors`);
     }
-    
+
     return Promise.reject();
   } else {
     reporter.success('Folder in sync');
