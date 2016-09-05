@@ -14,6 +14,7 @@ import {ConsoleReporter, JSONReporter} from '../reporters/index.js';
 import * as commands from './commands/index.js';
 import * as constants from '../constants.js';
 import * as network from '../util/network.js';
+import * as lockfile from 'proper-lockfile';
 
 import aliases from './aliases.js';
 import Config from '../config.js';
@@ -28,7 +29,6 @@ let commander = require('commander');
 let invariant = require('invariant');
 let pkg = require('../../package');
 let _ = require('lodash');
-let lastWillExpressed = false;
 
 loudRejection();
 
@@ -46,7 +46,15 @@ commander.option('--packages-root [path]', 'rather than storing modules into a g
                                            'store them here');
 commander.option(
  '--force-single-instance',
- 'pause and wait if other instances are running on the same folder',
+ 'pause and wait if other instances are running on the same folder using a tcp server',
+);
+commander.option(
+  '--port [port]',
+  `use with --force-single-instance to ovveride the default port (${constants.DEFAULT_PORT_FOR_SINGLE_INSTANCE})`,
+);
+commander.option(
+  '--force-single-instance-with-file',
+  'pause and wait if other instances are running on the same folder using a operating system lock file',
 );
 
 // get command name
@@ -144,61 +152,93 @@ const run = (): Promise<void> => {
 };
 
 //
+const runEventuallyWithLockFile = (isFirstTime): Promise<void> => {
+  return new Promise((ok) => {
+    const lock = path.join(config.cwd, constants.SINGLE_INSTANCE_FILENAME);
+    lockfile.lock(lock, {realpath: false}, (err, release) => {
+      if (err) {
+        if (isFirstTime) {
+          reporter.warn('waiting until the other kpm instance finish.');
+        }
+        setTimeout(() => {
+          ok(runEventuallyWithLockFile());
+        }, 200); // do not starve the CPU
+      } else {
+        onDeath(() => {
+          process.exit(1);
+        });
+        ok(run().then(release));
+      }
+    });
+  });
+};
+
+//
 const runEventually = (): Promise<void> => {
   return new Promise((ok) => {
-    const socketFile = path.join(config.cwd, constants.SINGLE_SOCKET_FILENAME);
+    const connectionOptions = {
+      port: commander.port || constants.DEFAULT_PORT_FOR_SINGLE_INSTANCE,
+    };
+
     const clients = [];
-    const unixServer = net.createServer((client) => {
+    const server = net.createServer((client) => {
       clients.push(client);
     });
-    unixServer.on('error', () => {
-      // another process exists, wait until it dies.
+
+    server.on('error', () => {
+      // another kpm instance exists, let's connect to it to know when it dies.
       reporter.warn('waiting until the other kpm instance finish.');
+      let socket = net.createConnection(connectionOptions);
 
-      let socket = net.createConnection(socketFile);
-
-      socket.on('connect', () => {}).on('data', () => {
-        socket.unref();
-        setTimeout(() => {
-          ok(runEventually().then(process.exit));
-        }, 200);
-      }).on('error', (e) => {
-        ok(runEventually().then(process.exit));
-      });
+      socket
+        .on('data', () => {
+          // the server has informed us he's going to die soon™.
+          socket.unref(); // let it die
+          process.nextTick(() => {
+            ok(runEventually());
+          });
+        })
+        .on('error', (e) => {
+          // No server to listen to ? :O let's retry to become the next server then.
+          process.nextTick(() => {
+            ok(runEventually());
+          });
+        });
     });
 
-    const clean = () => {
-      // clean after ourself.
+    const onServerEnd = (): Promise<void> => {
       clients.forEach((client) => {
         client.write('closing. kthanx, bye.');
       });
-      unixServer.close();
-      try {
-        fs.unlinkSync(socketFile);
-      } catch (e) {}
-      process.exit();
+      server.close();
+      return Promise.resolve();
     };
 
-    if (!lastWillExpressed) {
-      onDeath(clean);
-      lastWillExpressed = true;
-    }
+    // open the server and continue only if succeed.
+    server.listen(connectionOptions, () => {
+      // ensure the server gets closed properly on SIGNALS.
+      onDeath(onServerEnd);
 
-    unixServer.listen(socketFile, () => {
-      ok(run().then(clean));
+      ok(run().then(onServerEnd));
     });
   });
 };
 
 //
 config.init().then(function(): Promise<void> {
-  if (commander.forceSingleInstance) {
-    return runEventually();
-  } else {
-    return run().then(() => {
-      process.exit(0);
-    });
+  const exit = () => {
+    process.exit(0);
+  };
+
+  if (commander.forceSingleInstanceWithFile) {
+    return runEventuallyWithLockFile(true).then(exit);
   }
+
+  if (commander.forceSingleInstance) {
+    return runEventually().then(exit);
+  }
+
+  return run().then(exit);
 }).catch(function(errs) {
   function logError(err) {
     reporter.error(err.stack.replace(/^Error: /, ''));
