@@ -140,12 +140,8 @@ export async function run(
   flags: Object,
   args: Array<string>,
 ): Promise<void> {
-  const lockfile = await Lockfile.fromDirectory(config.cwd, reporter, {
-    silent: true,
-    strictIfPresent: true,
-  });
-
-  const install = new Install('ls', flags, args, config, reporter, lockfile);
+  const lockfile = await Lockfile.fromDirectory(config.cwd, reporter);
+  const install = new Install(flags, args, config, reporter, lockfile);
   let [depRequests, patterns] = await install.fetchRequestFromCwd();
   await install.resolver.init(depRequests);
 

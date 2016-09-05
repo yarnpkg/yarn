@@ -53,7 +53,7 @@ export default class Lockfile {
     [key: string]: string | LockManifest
   };
 
-  static async fromDirectory(dir: string, reporter?: ?Reporter): Promise<Lockfile> {
+  static async fromDirectory(dir: string, reporter?: Reporter): Promise<Lockfile> {
     // read the manifest in this directory
     let lockfileLoc = path.join(dir, constants.LOCKFILE_FILENAME);
     let lockfile;
@@ -62,9 +62,6 @@ export default class Lockfile {
     if (await fs.exists(lockfileLoc)) {
       rawLockfile = await fs.readFile(lockfileLoc);
       lockfile = parse(rawLockfile);
-      if (reporter) {
-        reporter.success(`Read lockfile ${constants.LOCKFILE_FILENAME}`);
-      }
     } else {
       if (reporter) {
         reporter.info('No lockfile found.');

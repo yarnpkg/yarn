@@ -87,7 +87,7 @@ async function run(
     let config = new Config(reporter, {cwd});
     await config.init();
 
-    let install = new Install('install', flags, args, config, reporter, lockfile);
+    let install = new Install(flags, args, config, reporter, lockfile);
     await install.init();
     // self check to verify consistency after installation
     await check(config, reporter, flags, args);
@@ -701,48 +701,50 @@ test('uninstall should remove subdependencies', (): Promise<void> => {
   let mirrorPath = 'mirror-for-offline';
 
   return run({}, [], 'uninstall-should-remove-subdependencies', async (config, reporter) => {
-    assert.equal(
-      await getPackageVersion(config, 'dep-a'),
-      '1.0.0',
-    );
-    assert.equal(
-      await getPackageVersion(config, 'dep-b'),
-      '1.0.0',
-    );
-    assert.equal(
-      await getPackageVersion(config, 'dep-c'),
-      '1.0.0',
-    );
+    try {
+      assert.equal(
+        await getPackageVersion(config, 'dep-a'),
+        '1.0.0',
+      );
+      assert.equal(
+        await getPackageVersion(config, 'dep-b'),
+        '1.0.0',
+      );
+      assert.equal(
+        await getPackageVersion(config, 'dep-c'),
+        '1.0.0',
+      );
 
-    await fs.copy(path.join(config.cwd, 'kpm.lock'), path.join(config.cwd, 'kpm.lock.orig'));
-    await fs.copy(path.join(config.cwd, 'package.json'), path.join(config.cwd, 'package.json.orig'));
+      await fs.copy(path.join(config.cwd, 'kpm.lock'), path.join(config.cwd, 'kpm.lock.orig'));
+      await fs.copy(path.join(config.cwd, 'package.json'), path.join(config.cwd, 'package.json.orig'));
 
-    await uninstall(config, reporter, {}, ['dep-a']);
+      await uninstall(config, reporter, {}, ['dep-a']);
 
-    assert(!await fs.exists(path.join(config.cwd, 'node_modules/dep-a')));
-    assert(!await fs.exists(path.join(config.cwd, 'node_modules/dep-b')));
-    assert(await fs.exists(path.join(config.cwd, 'node_modules/dep-c')));
+      assert(!await fs.exists(path.join(config.cwd, 'node_modules/dep-a')), 'expected modules a');
+      assert(!await fs.exists(path.join(config.cwd, 'node_modules/dep-b')), 'expected modules b');
+      assert(await fs.exists(path.join(config.cwd, 'node_modules/dep-c')), 'expected modules c');
 
-    assert(await fs.exists(path.join(config.cwd, `${mirrorPath}/dep-a-1.0.0.tgz`)));
-    assert(await fs.exists(path.join(config.cwd, `${mirrorPath}/dep-b-1.0.0.tgz`)));
-    assert(await fs.exists(path.join(config.cwd, `${mirrorPath}/dep-c-1.0.0.tgz`)));
+      assert(await fs.exists(path.join(config.cwd, `${mirrorPath}/dep-a-1.0.0.tgz`)), 'expected tarball a');
+      assert(await fs.exists(path.join(config.cwd, `${mirrorPath}/dep-b-1.0.0.tgz`)), 'expected tarball b');
+      assert(await fs.exists(path.join(config.cwd, `${mirrorPath}/dep-c-1.0.0.tgz`)), 'expected tarball c');
 
-    assert.deepEqual(
-      JSON.parse(await fs.readFile(path.join(config.cwd, 'package.json'))).dependencies,
-      {'dep-c': '^1.0.0'},
-    );
+      assert.deepEqual(
+        JSON.parse(await fs.readFile(path.join(config.cwd, 'package.json'))).dependencies,
+        {'dep-c': '^1.0.0'},
+      );
 
-    let lockFileContent = await fs.readFile(path.join(config.cwd, 'kpm.lock'));
-    let lockFileLines = lockFileContent.split('\n').filter((line): boolean => !!line);
-    assert.equal(lockFileLines.length, 3);
-    assert.equal(lockFileLines[0], 'dep-c@^1.0.0:');
-
-    await fs.unlink(path.join(config.cwd, 'kpm.lock'));
-    await fs.unlink(path.join(config.cwd, 'package.json'));
-    await fs.copy(path.join(config.cwd, 'kpm.lock.orig'), path.join(config.cwd, 'kpm.lock'));
-    await fs.copy(path.join(config.cwd, 'package.json.orig'), path.join(config.cwd, 'package.json'));
-    await fs.unlink(path.join(config.cwd, 'kpm.lock.orig'));
-    await fs.unlink(path.join(config.cwd, 'package.json.orig'));
+      let lockFileContent = await fs.readFile(path.join(config.cwd, 'kpm.lock'));
+      let lockFileLines = lockFileContent.split('\n').filter((line): boolean => !!line);
+      assert.equal(lockFileLines.length, 3);
+      assert.equal(lockFileLines[0], 'dep-c@^1.0.0:');
+    } finally {
+      await fs.unlink(path.join(config.cwd, 'kpm.lock'));
+      await fs.unlink(path.join(config.cwd, 'package.json'));
+      await fs.copy(path.join(config.cwd, 'kpm.lock.orig'), path.join(config.cwd, 'kpm.lock'));
+      await fs.copy(path.join(config.cwd, 'package.json.orig'), path.join(config.cwd, 'package.json'));
+      await fs.unlink(path.join(config.cwd, 'kpm.lock.orig'));
+      await fs.unlink(path.join(config.cwd, 'package.json.orig'));
+    }
   });
 });
 
@@ -985,7 +987,7 @@ test('[network] install --save with new dependency should be deterministic 3', a
     await fs.copy(path.join(cwd, 'package.json.after'), path.join(cwd, 'package.json'));
 
     let lockfile = await createLockfile(config.cwd);
-    let install = new Install('install', {save: true}, [], config, reporter, lockfile);
+    let install = new Install({save: true}, [], config, reporter, lockfile);
     await install.init();
     let allCorrect = true;
     try {
@@ -1016,7 +1018,7 @@ test('[network] install --save should ignore cache', (): Promise<void> => {
     );
 
     let lockfile = await createLockfile(config.cwd);
-    let install = new Install('install', {save: true}, ['left-pad@1.1.0'], config, reporter, lockfile);
+    let install = new Install({save: true}, ['left-pad@1.1.0'], config, reporter, lockfile);
     await install.init();
     assert.equal(
       await getPackageVersion(config, 'left-pad'),

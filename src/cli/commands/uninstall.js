@@ -36,15 +36,6 @@ export async function run(
   const totalSteps = args.length + 1;
   let step = 0;
 
-  async function runInstall(): Promise<Install> {
-    const lockfile = await Lockfile.fromDirectory(config.cwd, reporter, {
-      silent: true,
-    });
-    const install = new Install('uninstall', flags, [], config, new NoopReporter(), lockfile);
-    await install.init();
-    return install;
-  }
-
   // load manifests
   let jsons: {
     [loc: string]: Object
@@ -86,7 +77,9 @@ export async function run(
 
   // reinstall so we can get the updated lockfile
   reporter.step(++step, totalSteps, 'Regenerating lockfile and installing missing dependencies');
-  await runInstall();
+  const lockfile = await Lockfile.fromDirectory(config.cwd);
+  const install = new Install({force: true, ...flags}, [], config, new NoopReporter(), lockfile);
+  await install.init();
 
   //
   reporter.success('Successfully uninstalled packages.');

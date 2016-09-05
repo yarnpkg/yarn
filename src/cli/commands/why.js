@@ -53,11 +53,8 @@ export async function run(
 
   // init
   reporter.step(2, 3, 'Initialising dependency graph', emoji.get('truck'));
-  const lockfile = await Lockfile.fromDirectory(config.cwd, reporter, {
-    silent: true,
-    strictIfPresent: true,
-  });
-  const install = new Install('ls', flags, args, config, reporter, lockfile);
+  const lockfile = await Lockfile.fromDirectory(config.cwd, reporter);
+  const install = new Install(flags, args, config, reporter, lockfile);
   let [depRequests, patterns] = await install.fetchRequestFromCwd();
   await install.resolver.init(depRequests);
   const hoisted = await install.linker.getFlatHoistedTree(patterns);

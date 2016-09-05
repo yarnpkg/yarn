@@ -36,11 +36,8 @@ const invariant = require('invariant');
 const emoji = require('node-emoji');
 const path = require('path');
 
-type InstallActions = "install" | "update" | "uninstall" | "ls";
-
 export class Install {
   constructor(
-    action: InstallActions,
     flags: Object,
     args: Array<string>,
     config: Config,
@@ -52,7 +49,6 @@ export class Install {
     this.lockfile = lockfile;
     this.reporter = reporter;
     this.config = config;
-    this.action = action;
     this.flags = flags;
     this.args = args;
 
@@ -62,7 +58,6 @@ export class Install {
     this.scripts = new PackageInstallScripts(config, this.resolver, flags.rebuild);
   }
 
-  action: InstallActions;
   args: Array<string>;
   flags: Object;
   registries: Array<RegistryNames>;
@@ -77,7 +72,7 @@ export class Install {
   rootPatternsToOrigin: { [pattern: string]: string };
 
   /**
-   * TODO description
+   * Create a list of dependency requests from the current directories manifests.
    */
 
   async fetchRequestFromCwd(excludePatterns?: Array<string> = []): Promise<[
@@ -146,10 +141,15 @@ export class Install {
     return [deps, patterns, manifest];
   }
 
+  /**
+   * TODO description
+   */
+
   async init(): Promise<void> {
     let [depRequests, rawPatterns] = await this.fetchRequestFromCwd(this.args);
+    let match = await this.matchesIntegrityHash();
 
-    // calculate deps we need to install
+    // add any dependency patterns specified on the command line
     if (this.args.length) {
       // just use the args passed in the cli
       rawPatterns = rawPatterns.concat(this.args);
@@ -164,7 +164,13 @@ export class Install {
           optional: false,
         });
       }
+    } else if (!this.flags.force && match.matches) {
+      this.reporter.success('Already up-to-date.');
+      return;
     }
+
+    // remove integrity hash to make this operation atomic
+    await fs.unlink(match.loc);
 
     //
     let patterns = rawPatterns;
@@ -211,7 +217,7 @@ export class Install {
   }
 
   /**
-   * TODO
+   * Check if we should run the cleaning step.
    */
 
   shouldClean(): Promise<boolean> {
@@ -219,7 +225,7 @@ export class Install {
   }
 
   /**
-   * TODO
+   * Output a tree of any newly added dependencies.
    */
 
   async maybeOutputSaveTree(patterns: Array<string>): Promise<void> {
@@ -234,7 +240,7 @@ export class Install {
   }
 
   /**
-   * Save added packages to manifest if any of the --save flags were used
+   * Save added packages to manifest if any of the --save flags were used.
    */
 
   async savePackages(): Promise<void> {
@@ -387,7 +393,7 @@ export class Install {
   }
 
   /**
-   * TODO
+   * Save updated integrity and lockfiles.
    */
 
   async saveLockfileAndIntegrity(): Promise<void> {
@@ -395,7 +401,7 @@ export class Install {
     const lockSource = lockStringify(this.lockfile.getLockfile(this.resolver.patterns)) + '\n';
 
     // write integrity hash
-    this.writeIntegrityHash(lockSource);
+    await this.writeIntegrityHash(lockSource);
 
     // --no-lockfile flag
     if (this.flags.lockfile === false) {
@@ -408,27 +414,69 @@ export class Install {
     // write lockfile
     await fs.writeFile(loc, lockSource);
 
-    this.reporter.success(`Saved lockfile to ${constants.LOCKFILE_FILENAME}`);
+    this.reporter.success(`Saved lockfile.`);
   }
 
   /**
-   * Description
+   * Check if the integrity hash of this installation matches one on disk.
    */
 
-  async writeIntegrityHash(lockSource: string): Promise<void> {
+  async matchesIntegrityHash(): Promise<{
+    actual: string,
+    expected: string,
+    loc: string,
+    matches: boolean,
+  }> {
+    let loc = await this.getIntegrityHashLocation();
+    if (!await fs.exists(loc)) {
+      return {
+        actual: '',
+        expected: '',
+        loc,
+        matches: false,
+      };
+    }
+
+    let actual = util.hash(this.lockfile.source);
+    let expected = (await fs.readFile(loc)).trim();
+
+    return {
+      actual,
+      expected,
+      loc,
+      matches: actual === expected,
+    };
+  }
+
+  /**
+   * Get the location of an existing integrity hash. If none exists then return the location where we should
+   * write a new one.
+   */
+
+  async getIntegrityHashLocation(): Promise<string> {
     // build up possible folders
     let possibleFolders = [];
     if (this.config.modulesFolder) {
       possibleFolders.push(this.config.modulesFolder);
     }
-    for (let name of this.resolver.usedRegistries) {
+
+    // get a list of registry names to check existence in
+    let checkRegistryNames = this.resolver.usedRegistries;
+    if (!checkRegistryNames.length) {
+      // we haven't used any registries yet
+      checkRegistryNames = registryNames;
+    }
+
+    // ensure we only write to a registry folder that was used
+    for (let name of checkRegistryNames) {
       let loc = path.join(this.config.cwd, this.config.registries[name].folder);
       if (await fs.exists(loc)) {
         possibleFolders.push(loc);
       }
     }
 
-    //
+    // if we already have an integrity hash in one of these folders then use it's location otherwise use the
+    // first folder
     let possibles = possibleFolders.map((folder): string => path.join(folder, constants.INTEGRITY_FILENAME));
     let loc = possibles[0];
     for (let possibleLoc of possibles) {
@@ -437,13 +485,22 @@ export class Install {
         break;
       }
     }
+    return loc;
+  }
+  /**
+   * Write the integrity hash of the current install to disk.
+   */
 
+  async writeIntegrityHash(lockSource: string): Promise<void> {
+    let loc = await this.getIntegrityHashLocation();
+    invariant(loc, 'expected integrity hash location');
     await fs.writeFile(loc, util.hash(lockSource));
   }
 }
 
 export function setFlags(commander: Object) {
   commander.usage('install [packages ...] [flags]');
+  commander.option('--force', '');
   commander.option('-f, --flat', 'only allow one version of a package');
   commander.option('-S, --save', 'save package to your `dependencies`');
   commander.option('-D, --save-dev', 'save package to your `devDependencies`');
@@ -477,6 +534,6 @@ export async function run(
     flags.save = true;
   }
 
-  const install = new Install('install', flags, args, config, reporter, lockfile);
+  const install = new Install(flags, args, config, reporter, lockfile);
   return install.init();
 }

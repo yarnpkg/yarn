@@ -30,12 +30,8 @@ export let {setFlags, run} = buildSubCommands('licenses', {
     flags: Object,
     args: Array<string>,
   ): Promise<void> {
-    const lockfile = await Lockfile.fromDirectory(config.cwd, reporter, {
-      silent: true,
-      strictIfPresent: true,
-    });
-
-    const install = new Install('ls', flags, args, config, reporter, lockfile);
+    const lockfile = await Lockfile.fromDirectory(config.cwd);
+    const install = new Install(flags, args, config, reporter, lockfile);
 
     let [depRequests,, manifest] = await install.fetchRequestFromCwd();
     await install.resolver.init(depRequests);
