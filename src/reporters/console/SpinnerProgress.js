@@ -13,9 +13,9 @@ import type {Stdout} from '../types.js';
 import {writeOnNthLine, clearNthLine} from './util.js';
 
 export default class Spinner {
-  constructor(stdout: Stdout = process.stderr, prefix?: string = '', lineNumber?: number = 0) {
+  constructor(stdout: Stdout = process.stderr, lineNumber?: number = 0) {
     this.current = 0;
-    this.prefix = prefix;
+    this.prefix = '';
     this.lineNumber = lineNumber;
     this.stdout = stdout;
     this.delay = 60;
@@ -64,6 +64,10 @@ export default class Spinner {
     '⣾⣽⣻⢿⡿⣟⣯⣷',
     '⠁⠂⠄⡀⢀⠠⠐⠈',
   ];
+
+  setPrefix(prefix: string) {
+    this.prefix = prefix;
+  }
 
   setText(text: string) {
     this.text = text;

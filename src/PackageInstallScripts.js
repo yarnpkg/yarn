@@ -13,7 +13,7 @@ import type {Manifest} from './types.js';
 import type PackageResolver from './PackageResolver.js';
 import type {Reporter} from './reporters/index.js';
 import type Config from './config.js';
-import type {ReporterSpinner} from './reporters/types.js';
+import type {ReporterSetSpinner} from './reporters/types.js';
 import type {LifecycleReturn} from './util/execute-lifecycle-script.js';
 import executeLifecycleScript from './util/execute-lifecycle-script.js';
 import * as fs from './util/fs.js';
@@ -25,20 +25,18 @@ const _ = require('lodash');
 
 export default class PackageInstallScripts {
   constructor(config: Config, resolver: PackageResolver, force: boolean) {
+    this.installed = 0;
     this.resolver = resolver;
     this.reporter = config.reporter;
     this.config = config;
-    this.installedDependencies = 0;
-    this.totalDependencies = 0;
     this.force = force;
   }
 
   needsPermission: boolean;
   resolver: PackageResolver;
   reporter: Reporter;
+  installed: number;
   config: Config;
-  installedDependencies: number;
-  totalDependencies: number;
   force: boolean;
 
 
@@ -63,7 +61,7 @@ export default class PackageInstallScripts {
   async wrapCopyBuildArtifacts<T>(
     loc: string,
     pkg: Manifest,
-    spinner: ReporterSpinner,
+    spinner: ReporterSetSpinner,
     factory: () => Promise<T>,
   ): Promise<T> {
     const beforeFiles = await this.walk(loc);
@@ -127,7 +125,7 @@ export default class PackageInstallScripts {
     return res;
   }
 
-  async install(cmds: Array<string>, pkg: Manifest, spinner: ReporterSpinner): LifecycleReturn {
+  async install(cmds: Array<string>, pkg: Manifest, spinner: ReporterSetSpinner): LifecycleReturn {
     const loc = this.config.generateHardModulePath(pkg._reference);
     try {
       return this.wrapCopyBuildArtifacts(
@@ -147,13 +145,12 @@ export default class PackageInstallScripts {
         this.reporter.info('This module is OPTIONAL, you can safely ignore this error');
         return [];
       } else {
-        // TODO log all stderr maybe?
         throw err;
       }
     }
   }
 
-  pkgCanBeInstalled(pkg: Manifest): boolean {
+  packageCanBeInstalled(pkg: Manifest): boolean {
     const cmds = this.getInstallCommands(pkg);
     if (!cmds.length) {
       return false;
@@ -172,32 +169,18 @@ export default class PackageInstallScripts {
     return true;
   }
 
-  async runCmd(pkg: Manifest, runId: number): Promise<void> {
+  async runCommand(spinner: ReporterSetSpinner, pkg: Manifest): Promise<void> {
     const cmds = this.getInstallCommands(pkg);
-    const ref = pkg._reference;
-    invariant(ref, 'Missing package reference');
-    if (this.needsPermission && !ref.hasPermission('scripts')) {
-      const can = await this.reporter.questionAffirm(
-        `Module ${pkg.name} wants to execute the commands ${JSON.stringify(cmds)}. Do you want to accept?`,
-      );
-      if (!can) {
-        return;
-      }
-
-      ref.setPermission('scripts', can);
-    }
-    const spinner = this.reporter.activityStep(this.installedDependencies, this.totalDependencies, pkg.name, runId);
+    spinner.setPrefix(++this.installed, pkg.name);
     await this.install(cmds, pkg, spinner);
-    spinner.end();
   }
 
   // find the next package to be installed
   findInstallablePackage(workQueue: Set<Manifest>, installed: Set<Manifest>): ?Manifest {
     for (let pkg of workQueue) {
       const ref = pkg._reference;
-      if (ref == null) {
-        invariant(ref, 'expected reference');
-      }
+      invariant(ref, 'expected reference');
+
       const deps = ref.dependencies;
       let dependenciesFullfilled = true;
       for (let dep of deps) {
@@ -207,6 +190,7 @@ export default class PackageInstallScripts {
           break;
         }
       }
+
       // all depedencies are installed
       if (dependenciesFullfilled) {
         return pkg;
@@ -215,28 +199,31 @@ export default class PackageInstallScripts {
     return null;
   }
 
-  async worker(id: number, workQueue: Set<Manifest>, installed: Set<Manifest>,
-               waitQueue: Set<Function>): Promise<void> {
+  async worker(
+    spinner: ReporterSetSpinner,
+    workQueue: Set<Manifest>,
+    installed: Set<Manifest>,
+    waitQueue: Set<Function>,
+  ): Promise<void> {
     while (true) {
       // No more work to be done
       if (workQueue.size == 0) {
         break;
       }
+
       // find a installable package
       const pkg = this.findInstallablePackage(workQueue, installed);
+
       // can't find a package to install, register into waitQueue
       if (pkg == null) {
-        const spinner = this.reporter.activityStep(this.installedDependencies,
-                                                   this.totalDependencies, `worker-${id}`, id);
-        spinner.tick('waiting');
+        spinner.clear();
         await new Promise((resolve): Set<Function> => waitQueue.add(resolve));
-        spinner.end();
         continue;
       }
-      // found the package to install
+
+      // found a package to install
       workQueue.delete(pkg);
-      this.installedDependencies += 1;
-      await this.runCmd(pkg, id);
+      await this.runCommand(spinner, pkg);
       installed.add(pkg);
       for (let workerResolve of waitQueue) {
         workerResolve();
@@ -246,22 +233,30 @@ export default class PackageInstallScripts {
   }
 
   async init(seedPatterns: Array<string>): Promise<void> {
-    let pkgs: Array<Manifest> = Array.from(this.resolver.getTopologicalManifests(seedPatterns));
-    let workQueue = new Set(pkgs.filter((pkg): boolean => this.pkgCanBeInstalled(pkg)));
-    this.totalDependencies = pkgs.length;
+    let workQueue = new Set();
+    let installed = new Set();
+    let pkgs = this.resolver.getTopologicalManifests(seedPatterns);
+    for (let pkg of pkgs) {
+      if (this.packageCanBeInstalled(pkg)) {
+        workQueue.add(pkg);
+      } else {
+        installed.add(pkg);
+      }
+    }
 
-    let installed = new Set(pkgs.filter((pkg): boolean => !this.pkgCanBeInstalled(pkg)));
     // waitQueue acts like a semaphore to allow workers to register to be notified
     // when there are more work added to the work queue
     let waitQueue = new Set();
     let workers = [];
 
-    for (let i = 0; i < constants.CHILD_CONCURRENCY; i++) {
-      if (i != 0) {
-        this.reporter.log('');
-      }
-      workers.push(this.worker(i, workQueue, installed, waitQueue));
+    const set = this.reporter.activitySet(workQueue.size, Math.min(constants.CHILD_CONCURRENCY, workQueue.size));
+
+    for (let spinner of set.spinners) {
+      workers.push(this.worker(spinner, workQueue, installed, waitQueue));
     }
+
     await Promise.all(workers);
+
+    set.end();
   }
 }

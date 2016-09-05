@@ -157,7 +157,7 @@ export default class PackageLinker {
     let tick;
     await fs.copyBulk(queue, {
       possibleExtraneous,
-      
+
       onStart: (num: number) => {
         tick = this.reporter.progress(num);
       },

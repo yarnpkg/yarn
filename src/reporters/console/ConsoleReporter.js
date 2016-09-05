@@ -9,7 +9,13 @@
  * @flow
  */
 
-import type {Package, Trees, ReporterSpinner, ReporterSelectOption} from '../types.js';
+import type {
+  ReporterSpinnerSet,
+  Package,
+  Trees,
+  ReporterSpinner,
+  ReporterSelectOption,
+} from '../types.js';
 import BaseReporter from '../BaseReporter.js';
 import Progress from './ProgressBar.js';
 import Spinner from './SpinnerProgress.js';
@@ -153,24 +159,66 @@ export default class ConsoleReporter extends BaseReporter {
     }
   }
 
-  activityStep(current: number, total: number, msg: string, lineNumber?: number, emoji?: string): ReporterSpinner {
+  activitySet(total: number, workers: number): ReporterSpinnerSet {
     if (!this.isTTY) {
-      return this.activity();
+      return super.activitySet(total, workers);
     }
 
-    msg = this._prependEmoji(msg, emoji);
+    let spinners = [];
 
-    let spinner = new Spinner(this.stderr, `${chalk.grey(`[${current}/${total}]`)} `, lineNumber);
-    spinner.start();
-    spinner.setText(msg);
+    for (let i = 1; i < workers; i++) {
+      this.log('');
+    }
+
+    for (let i = 0; i < workers; i++) {
+      let spinner = new Spinner(this.stderr, i);
+      spinner.start();
+
+      let prefix: ?string = null;
+      let current = 0;
+      function updatePrefix() {
+        spinner.setPrefix(
+          `${chalk.grey(`[${current === 0 ? '-' : current}/${total}]`)} `,
+        );
+      }
+      function clear() {
+        prefix = null;
+        current = 0;
+        updatePrefix();
+        spinner.setText('waiting...');
+      }
+      clear();
+
+      spinners.unshift({
+        clear,
+
+        setPrefix(_current: number, _prefix: string) {
+          current = _current;
+          prefix = _prefix;
+          spinner.setText(prefix);
+          updatePrefix();
+        },
+
+        tick(msg: string) {
+          if (prefix) {
+            msg = `${prefix}: ${msg}`;
+          }
+          spinner.setText(msg);
+        },
+
+        end() {
+          spinner.stop();
+        },
+      });
+    }
 
     return {
-      tick(name: string) {
-        spinner.setText(`${msg}: ${name}`);
-      },
-
-      end() {
-        spinner.stop();
+      spinners,
+      end: () => {
+        for (let spinner of spinners) {
+          spinner.end();
+        }
+        readline.moveCursor(this.stdout, 0, -workers + 1);
       },
     };
   }

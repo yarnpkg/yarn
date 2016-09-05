@@ -101,7 +101,7 @@ export default class TarballFetcher extends BaseFetcher {
   }
 
   async fetchFromExternal(): Promise<FetchedOverride> {
-    let {reference: ref, hash, config, registry} = this;
+    let {reference: ref, config, registry} = this;
 
     return this.config.requestManager.request({
       url: ref,

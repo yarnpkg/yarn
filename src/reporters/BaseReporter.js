@@ -10,7 +10,15 @@
  */
 /* eslint no-unused-vars: 0 */
 
-import type {ReporterSelectOption, Trees, Stdout, Stdin, Package, ReporterSpinner} from './types.js';
+import type {
+  ReporterSpinnerSet,
+  ReporterSelectOption,
+  Trees,
+  Stdout,
+  Stdin,
+  Package,
+  ReporterSpinner,
+} from './types.js';
 
 export type ReporterOptions = {
   stdout?: Stdout,
@@ -111,8 +119,16 @@ export default class BaseReporter {
   }
 
   //
-  activityStep(current: number, total: number, message: string, runId?: number, emoji?: string): ReporterSpinner {
-    return this.activity();
+  activitySet(total: number, workers: number): ReporterSpinnerSet {
+    return {
+      spinners: Array(workers).fill({
+        clear() {},
+        setPrefix() {},
+        tick() {},
+        end() {},
+      }),
+      end() {},
+    };
   }
 
   //
@@ -131,7 +147,6 @@ export default class BaseReporter {
       if (answer === 'y' || answer === 'yes') {
         return true;
       }
-
       if (answer === 'n' || answer === 'no') {
         return false;
       }
