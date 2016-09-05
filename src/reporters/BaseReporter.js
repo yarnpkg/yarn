@@ -10,7 +10,7 @@
  */
 /* eslint no-unused-vars: 0 */
 
-import type {Trees, Stdout, Stdin, Package, ReporterSpinner} from './types.js';
+import type {ReporterSelectOption, Trees, Stdout, Stdin, Package, ReporterSpinner} from './types.js';
 
 export type ReporterOptions = {
   stdout?: Stdout,
@@ -143,7 +143,7 @@ export default class BaseReporter {
   }
 
   // prompt the user to select an option from an array
-  select(header: string, question: string, options: Array<string>): Promise<string> {
+  select(header: string, question: string, options: Array<ReporterSelectOption>): Promise<string> {
     return Promise.reject(new Error('Not implemented'));
   }
 

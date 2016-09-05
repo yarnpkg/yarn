@@ -9,11 +9,12 @@
  * @flow
  */
 
-import type {Manifest, DependencyRequestPatterns} from './types.js';
+import type {Manifest, DependencyRequestPatterns, DependencyRequestPattern} from './types.js';
 import type {RegistryNames} from './registries/index.js';
 import type PackageReference from './PackageReference.js';
 import type {Reporter} from './reporters/index.js';
 import type Config from './config.js';
+import {REMOVED_ANCESTOR} from './PackageReference.js';
 import PackageFetcher from './PackageFetcher.js';
 import PackageRequest from './PackageRequest.js';
 import RequestManager from './util/RequestManager.js';
@@ -25,7 +26,6 @@ const invariant = require('invariant');
 
 export default class PackageResolver {
   constructor(config: Config, lockfile: Lockfile) {
-    this.packageReferencesByName = map();
     this.patternsByPackage = map();
     this.fetchingPatterns = map();
     this.fetchingQueue = new BlockingQueue('resolver fetching');
@@ -68,11 +68,6 @@ export default class PackageResolver {
 
   // manages and throttles json api http requests
   requestManager: RequestManager;
-
-  // flat list of all dependencies we've resolved
-  packageReferencesByName: {
-    [packageName: string]: Array<PackageReference>
-  };
 
   // list of patterns associated with a package
   patternsByPackage: {
@@ -171,8 +166,12 @@ export default class PackageResolver {
    * Get a list of all package names in the depenency graph.
    */
 
-  getAllDependencyNames(): Array<string> {
-    return Object.keys(this.patternsByPackage);
+  getAllDependencyNames(seedPatterns: Array<string>): Iterable<string> {
+    let names = new Set();
+    for (let {name} of this.getTopologicalManifests(seedPatterns)) {
+      names.add(name);
+    }
+    return names;
   }
 
   /**
@@ -201,13 +200,17 @@ export default class PackageResolver {
    */
 
   getPackageReferences(): Array<PackageReference> {
-    let packages = [];
+    let refs = [];
 
-    for (const name in this.packageReferencesByName) {
-      packages = packages.concat(this.packageReferencesByName[name]);
+    for (const pattern in this.patterns) {
+      let manifest = this.patterns[pattern];
+      let ref = manifest._reference;
+      if (ref) {
+        refs.push(ref);
+      }
     }
 
-    return packages;
+    return refs;
   }
 
   /**
@@ -232,54 +235,52 @@ export default class PackageResolver {
   }
 
   /**
-   * TODO description
-   */
-
-  registerPackageReference(ref: ?PackageReference) {
-    invariant(ref, 'No package reference passed');
-    const pkgs = this.packageReferencesByName[ref.name] = this.packageReferencesByName[ref.name] || [];
-    pkgs.push(ref);
-  }
-
-  /**
    * Make all versions of this package resolve to it.
    */
 
   collapseAllVersionsOfPackage(name: string, version: string): string {
-    const patterns = this.patternsByPackage[name];
+    const patterns = this.dedupePatterns(this.patternsByPackage[name]);
     const human = `${name}@${version}`;
 
-    // get package info
-    let info: Manifest;
+    // get manifest that matches the version we're collapsing too
+    let collapseToReference: ?PackageReference;
+    let collapseToManifest: Manifest;
+    let collapseToPattern: string;
     for (const pattern of patterns) {
-      const _info = this.patterns[pattern];
-      if (_info.version === version) {
-        info = _info;
+      const _manifest = this.patterns[pattern];
+      if (_manifest.version === version) {
+        collapseToReference = _manifest._reference;
+        collapseToManifest = _manifest;
+        collapseToPattern = pattern;
         break;
       }
     }
-    invariant(info, `Couldn't find package info for ${human}`);
+    invariant(
+      collapseToReference && collapseToManifest && collapseToPattern,
+      `Couldn't find package manifest for ${human}`,
+    );
 
-    // get package ref
-    let ref: PackageReference;
-    for (const _ref of this.packageReferencesByName[name]) {
-      if (_ref.version === version) {
-        ref = _ref;
-        break;
+    for (let pattern of patterns) {
+      // don't touch the pattern we're collapsing to
+      if (pattern === collapseToPattern) {
+        continue;
       }
-    }
-    invariant(ref, `Couldn't find package ref for ${human}`);
 
-    // set the package reference to a single package
-    this.packageReferencesByName[name] = [ref];
+      // remove this pattern
+      let ref = this.getStrictResolvedPattern(pattern)._reference;
+      invariant(ref, 'expected package reference');
+      ref.addVisibility(REMOVED_ANCESTOR);
+      ref.prune();
 
-    // set patterns to reference our package info, return the last one
-    let pattern;
-    for (pattern of patterns) {
-      this.patterns[pattern] = info;
+      for (let action in ref.visibility) {
+        collapseToReference.visibility[action] += ref.visibility[action];
+      }
+
+      // add pattern to the manifest we're collapsing to
+      collapseToReference.addPattern(pattern, collapseToManifest);
     }
-    invariant(pattern, `Couldn't find a single pattern for ${human}`);
-    return pattern;
+
+    return collapseToPattern;
   }
 
   /**
@@ -354,20 +355,8 @@ export default class PackageResolver {
    * TODO description
    */
 
-  async find({
-    pattern,
-    registry,
-    ignore = false,
-    optional = false,
-    parentRequest,
-  }: {
-    pattern: string,
-    registry: RegistryNames,
-    optional?: boolean,
-    ignore?: boolean,
-    parentRequest?: ?PackageRequest,
-  }): Promise<void> {
-    const fetchKey = `${registry}:${pattern}`;
+  async find(req: DependencyRequestPattern): Promise<void> {
+    const fetchKey = `${req.registry}:${req.pattern}`;
     if (this.fetchingPatterns[fetchKey]) {
       return;
     } else {
@@ -375,26 +364,20 @@ export default class PackageResolver {
     }
 
     if (this.activity) {
-      this.activity.tick(pattern);
+      this.activity.tick(req.pattern);
     }
 
-    if (!this.lockfile.getLocked(pattern, true)) {
-      this.newPatterns.push(pattern);
+    if (!this.lockfile.getLocked(req.pattern, true)) {
+      this.newPatterns.push(req.pattern);
     }
 
-    // propagate `ignore` option
-    if (parentRequest && parentRequest.ignore) {
-      ignore = true;
+    // propagate `visibility` option
+    let {parentRequest} = req;
+    if (parentRequest && parentRequest.visibility) {
+      req.visibility = parentRequest.visibility;
     }
 
-    const request = new PackageRequest({
-      pattern,
-      registry,
-      parentRequest,
-      optional,
-      ignore,
-      resolver: this,
-    });
+    const request = new PackageRequest(req, this);
     await request.find();
   }
 
@@ -411,8 +394,8 @@ export default class PackageResolver {
 
     // build up promises
     const promises = [];
-    for (let {pattern, registry, optional} of deps) {
-      promises.push(this.find({pattern, registry, optional}));
+    for (let req of deps) {
+      promises.push(this.find(req));
     }
     await Promise.all(promises);
 

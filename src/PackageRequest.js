@@ -9,12 +9,13 @@
  * @flow
  */
 
-import type {Manifest, FetchedManifest} from './types.js';
+import type {DependencyRequestPattern, Manifest, FetchedManifest} from './types.js';
 import type PackageResolver from './PackageResolver.js';
 import type {Reporter} from './reporters/index.js';
 import type Config from './config.js';
+import type {VisibilityAction} from './PackageReference.js';
 import Lockfile from './lockfile/Lockfile.js';
-import PackageReference from './PackageReference.js';
+import {USED as USED_VISIBILITY, default as PackageReference} from './PackageReference.js';
 import {registries as registryResolvers} from './resolvers/index.js';
 import {MessageError} from './errors.js';
 import {entries} from './util/misc.js';
@@ -29,32 +30,18 @@ const path = require('path');
 type ResolverRegistryNames = $Keys<typeof registryResolvers>;
 
 export default class PackageRequest {
-  constructor({
-    pattern,
-    registry,
-    resolver,
-    parentRequest,
-    optional,
-    ignore,
-  }: {
-    pattern: string,
-    registry: ResolverRegistryNames,
-    resolver: PackageResolver,
-    optional: boolean,
-    ignore: boolean,
-    parentRequest: ?PackageRequest // eslint-disable-line no-unused-vars
-  }) {
-    this.parentRequest = parentRequest;
+  constructor(req: DependencyRequestPattern, resolver: PackageResolver) {
+    this.parentRequest = req.parentRequest;
+    this.visibility = req.visibility;
     this.lockfile = resolver.lockfile;
-    this.registry = registry;
+    this.registry = req.registry;
     this.reporter = resolver.reporter;
     this.resolver = resolver;
-    this.optional = optional;
-    this.pattern = pattern;
+    this.optional = req.optional;
+    this.pattern = req.pattern;
     this.config = resolver.config;
-    this.ignore = ignore;
 
-    resolver.usedRegistries.add(registry);
+    resolver.usedRegistries.add(req.registry);
   }
 
   static getExoticResolver(pattern: string): ?Function { // TODO make this type more refined
@@ -73,7 +60,7 @@ export default class PackageRequest {
   pattern: string;
   config: Config;
   registry: ResolverRegistryNames;
-  ignore: boolean;
+  visibility: VisibilityAction;
   optional: boolean;
 
   getHuman(): string {
@@ -237,10 +224,9 @@ export default class PackageRequest {
       const ref = resolved._reference;
       invariant(ref, 'Resolved package info has no package reference');
       ref.addRequest(this);
-      ref.addPattern(this.pattern);
+      ref.addPattern(this.pattern, resolved);
       ref.addOptional(this.optional);
-      ref.addIgnore(this.ignore);
-      this.resolver.addPattern(this.pattern, resolved);
+      ref.addVisibility(this.visibility);
       return;
     }
 
@@ -288,6 +274,7 @@ export default class PackageRequest {
       promises.push(this.resolver.find({
         pattern: depPattern,
         registry: remote.registry,
+        visibility: USED_VISIBILITY,
         optional: false,
         parentRequest: this,
       }));
@@ -300,6 +287,7 @@ export default class PackageRequest {
       promises.push(this.resolver.find({
         pattern: depPattern,
         registry: remote.registry,
+        visibility: USED_VISIBILITY,
         optional: true,
         parentRequest: this,
       }));
@@ -307,12 +295,10 @@ export default class PackageRequest {
 
     await Promise.all(promises);
 
-    this.resolver.addPattern(this.pattern, info);
+    ref.addPattern(this.pattern, info);
     ref.addDependencies(deps);
-    ref.addPattern(this.pattern);
     ref.addOptional(this.optional);
-    ref.addIgnore(this.ignore);
-    this.resolver.registerPackageReference(ref);
+    ref.addVisibility(this.visibility);
   }
 
   /**

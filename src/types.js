@@ -11,16 +11,20 @@
 
 import type {RegistryNames} from './registries/index.js';
 import type PackageReference from './PackageReference.js';
+import type {VisibilityAction} from './PackageReference.js';
+import type PackageRequest from './PackageRequest.js';
 
 // dependency request pattern data structure that's used to request dependencies from a
 // PackageResolver
-export type DependencyRequestPatterns = Array<{
+export type DependencyRequestPattern = {
   pattern: string,
   registry: RegistryNames,
-  optional?: boolean,
-  ignore?: boolean,
-  hint?: ?string
-}>;
+  optional: boolean,
+  visibility: VisibilityAction,
+  hint?: ?string,
+  parentRequest?: ?PackageRequest,
+};
+export type DependencyRequestPatterns = Array<DependencyRequestPattern>;
 
 // person object, the exploded version of a `maintainers`/`authors` field
 export type PersonObject = {
