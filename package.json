@@ -116,7 +116,7 @@
     }
   },
   "jest": {
-    "timers": "fake",
+    "timers": "real",
     "testEnvironment": "node",
     "testPathIgnorePatterns": [
       "__tests__/fixtures/",

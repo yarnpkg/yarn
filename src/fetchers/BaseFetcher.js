@@ -10,7 +10,7 @@
  */
 /* eslint no-unused-vars: 0 */
 
-import type {Manifest, PackageRemote, FetchedManifest} from '../types.js';
+import type {Manifest, PackageRemote, FetchedMetadata, FetchedOverride} from '../types.js';
 import type {RegistryNames} from '../registries/index.js';
 import type Config from '../config.js';
 import * as constants from '../constants.js';
@@ -20,12 +20,13 @@ import * as fs from '../util/fs.js';
 const path = require('path');
 
 export default class BaseFetcher {
-  constructor(remote: PackageRemote, config: Config) {
+  constructor(dest: string, remote: PackageRemote, config: Config) {
     this.reference = remote.reference;
     this.registry = remote.registry;
     this.hash = remote.hash;
     this.remote = remote;
     this.config = config;
+    this.dest = dest;
   }
 
   remote: PackageRemote;
@@ -33,15 +34,18 @@ export default class BaseFetcher {
   reference: string;
   config: Config;
   hash: ?string;
+  dest: string;
 
-  async _fetch(dest: string): Promise<string> {
+  async _fetch(): Promise<FetchedOverride> {
     throw new Error('Not implemented');
   }
 
-  fetch(dest: string): Promise<FetchedManifest> {
-    return fs.lockQueue.push(dest, async (): Promise<FetchedManifest> => {
+  fetch(): Promise<FetchedMetadata> {
+    let {dest} = this;
+
+    return fs.lockQueue.push(dest, async (): Promise<FetchedMetadata> => {
       // fetch package and get the hash
-      const hash = await this._fetch(dest);
+      const {hash, resolved} = await this._fetch();
 
       // load the new normalised manifest
       const pkg = await this.config.readManifest(dest, this.registry);
@@ -53,6 +57,7 @@ export default class BaseFetcher {
       }, null, '  '));
 
       return {
+        resolved,
         hash,
         dest,
         package: pkg,

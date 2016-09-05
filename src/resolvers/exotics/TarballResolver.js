@@ -9,7 +9,7 @@
  * @flow
  */
 
-import type {Manifest, FetchedManifest} from '../../types.js';
+import type {Manifest, FetchedMetadata} from '../../types.js';
 import type PackageRequest from '../../PackageRequest.js';
 import TarballFetcher from '../../fetchers/TarballFetcher.js';
 import ExoticResolver from './ExoticResolver.js';
@@ -71,7 +71,7 @@ export default class TarballResolver extends ExoticResolver {
       // delete if invalid
       await fs.unlink(dest);
 
-      const fetcher = new TarballFetcher({
+      const fetcher = new TarballFetcher(dest, {
         type: 'tarball',
         reference: url,
         registry,
@@ -79,7 +79,7 @@ export default class TarballResolver extends ExoticResolver {
       }, this.config, false);
 
       // fetch file and get it's hash
-      const fetched: FetchedManifest = await fetcher.fetch(dest);
+      const fetched: FetchedMetadata = await fetcher.fetch();
       pkgJson = fetched.package;
       hash = fetched.hash;
 

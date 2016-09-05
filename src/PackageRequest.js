@@ -9,7 +9,7 @@
  * @flow
  */
 
-import type {DependencyRequestPattern, Manifest, FetchedManifest} from './types.js';
+import type {DependencyRequestPattern, Manifest} from './types.js';
 import type PackageResolver from './PackageResolver.js';
 import type {Reporter} from './reporters/index.js';
 import type Config from './config.js';
@@ -22,10 +22,8 @@ import {entries} from './util/misc.js';
 import * as constants from './constants.js';
 import * as versionUtil from './util/version.js';
 import * as resolvers from './resolvers/index.js';
-import * as fs from './util/fs.js';
 
 const invariant = require('invariant');
-const path = require('path');
 
 type ResolverRegistryNames = $Keys<typeof registryResolvers>;
 
@@ -240,27 +238,8 @@ export default class PackageRequest {
     // set package reference
     const ref = new PackageReference(this, info, remote);
 
-    // get possible mirror path
-    const offlineMirrorPath = this.config.getOfflineMirrorPath(remote.registry, remote.reference);
-
-    //
-    let {package: newInfo, hash}:FetchedManifest = await this.resolver.fetchingQueue.push(
-      info.name,
-      (): Promise<FetchedManifest> => this.resolver.fetcher.fetch(ref),
-    );
-
-    // replace resolved remote URL with local path if lockfile is in save mode and we have a path
-    if (offlineMirrorPath && await fs.exists(offlineMirrorPath)) {
-      remote.resolved = path.relative(
-        this.config.getOfflineMirrorPath(remote.registry),
-        offlineMirrorPath,
-      ) + `#${hash}`;
-    }
-    remote.hash = hash;
-    newInfo.name = info.name;
-    newInfo._reference = ref;
-    newInfo._remote = remote;
-    info = newInfo;
+    info._reference = ref;
+    info._remote = remote;
 
     // start installation of dependencies
     const promises = [];

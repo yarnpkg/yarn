@@ -9,7 +9,7 @@
  * @flow
  */
 
-import type {FetchedManifest} from './types.js';
+import type {FetchedMetadata} from './types.js';
 import type PackageResolver from './PackageResolver.js';
 import type {Reporter} from './reporters/index.js';
 import type PackageReference from './PackageReference.js';
@@ -31,13 +31,14 @@ export default class PackageFetcher {
   reporter: Reporter;
   config: Config;
 
-  async fetch(ref: PackageReference): Promise<FetchedManifest> {
+  async fetch(ref: PackageReference): Promise<FetchedMetadata> {
     const dest = this.config.generateHardModulePath(ref);
 
     if (await this.config.isValidModuleDest(dest)) {
       let {hash, package: pkg} = await this.config.readPackageMetadata(dest);
       return {
         package: pkg,
+        resolved: null,
         hash,
         dest,
       };
@@ -57,11 +58,11 @@ export default class PackageFetcher {
     await fs.mkdirp(dest);
 
     try {
-      const fetcher = new Fetcher(remote, this.config);
-      return await fetcher.fetch(dest);
+      const fetcher = new Fetcher(dest, remote, this.config);
+      return await fetcher.fetch();
     } catch (err) {
       try {
-        //await fs.unlink(dest);
+        await fs.unlink(dest);
       } catch (err2) {
         // what do?
       }
@@ -69,8 +70,8 @@ export default class PackageFetcher {
     }
   }
 
-  async maybeFetch(ref: PackageReference): Promise<?FetchedManifest> {
-    let promise = this.fetch(ref, false);
+  async maybeFetch(ref: PackageReference): Promise<?FetchedMetadata> {
+    let promise = this.fetch(ref);
 
     if (ref.optional) {
       // swallow the error
@@ -90,8 +91,13 @@ export default class PackageFetcher {
       const res = await this.maybeFetch(ref);
 
       if (res) {
+        // update with new remote
         ref.remote.hash = res.hash;
+        if (res.resolved) {
+          ref.remote.resolved = res.resolved;
+        }
 
+        // update with fresh manifest
         await this.resolver.updateManifest(ref, res.package);
 
         if (tick) {

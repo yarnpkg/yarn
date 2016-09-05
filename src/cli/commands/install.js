@@ -18,6 +18,7 @@ import {registryNames} from '../../registries/index.js';
 import Lockfile from '../../lockfile/Lockfile.js';
 import lockStringify from '../../lockfile/stringify.js';
 import * as PackageReference from '../../PackageReference.js';
+import PackageFetcher from '../../PackageFetcher.js';
 import PackageInstallScripts from '../../PackageInstallScripts.js';
 import PackageCompatibility from '../../PackageCompatibility.js';
 import PackageResolver from '../../PackageResolver.js';
@@ -53,6 +54,7 @@ export class Install {
     this.args = args;
 
     this.resolver = new PackageResolver(config, lockfile);
+    this.fetcher = new PackageFetcher(config, this.resolver);
     this.compatibility = new PackageCompatibility(config, this.resolver);
     this.linker = new PackageLinker(config, this.resolver);
     this.scripts = new PackageInstallScripts(config, this.resolver, flags.rebuild);
@@ -69,6 +71,7 @@ export class Install {
   scripts: PackageInstallScripts;
   linker: PackageLinker;
   compatibility: PackageCompatibility;
+  fetcher: PackageFetcher;
   rootPatternsToOrigin: { [pattern: string]: string };
 
   /**
@@ -177,9 +180,14 @@ export class Install {
     let steps: Array<(curr: number, total: number) => Promise<void>> = [];
 
     steps.push(async (curr: number, total: number) => {
-      this.reporter.step(curr, total, 'Resolving and fetching packages', emoji.get('truck'));
+      this.reporter.step(curr, total, 'Resolving packages', emoji.get('mag'));
       await this.resolver.init(depRequests);
       patterns = await this.flatten(rawPatterns);
+    });
+
+    steps.push(async (curr: number, total: number) => {
+      this.reporter.step(curr, total, 'Fetching packages', emoji.get('truck'));
+      await this.fetcher.init();
       await this.compatibility.init();
     });
 
@@ -470,9 +478,7 @@ export class Install {
     // ensure we only write to a registry folder that was used
     for (let name of checkRegistryNames) {
       let loc = path.join(this.config.cwd, this.config.registries[name].folder);
-      if (await fs.exists(loc)) {
-        possibleFolders.push(loc);
-      }
+      possibleFolders.push(loc);
     }
 
     // if we already have an integrity hash in one of these folders then use it's location otherwise use the

@@ -37,10 +37,12 @@ type RequestParams<T> = {
     password?: string,
     token?: string,
   },
+  buffer?: boolean,
   method?: RequestMethods,
   queue?: BlockingQueue,
   json?: boolean,
   body?: Object,
+  encoding?: ?string,
   forever?: boolean,
   headers?: {
     [name: string]: string
@@ -252,6 +254,10 @@ export default class RequestManager {
           resolve(body);
         }
       };
+    }
+
+    if (params.buffer) {
+      params.encoding = null;
     }
 
     const req = new Request(params);

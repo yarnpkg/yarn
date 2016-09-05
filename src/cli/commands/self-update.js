@@ -89,13 +89,13 @@ export async function run(
 
   await unlink(locToUnzip);
 
-  const fetcher = new TarballFetcher({
+  const fetcher = new TarballFetcher(locToUnzip, {
     type: 'tarball',
     registry: 'npm',
     reference: `${assets[0].url}?access_token=${githubAuth0Token}`,
     hash: null,
   }, config, false);
-  await fetcher.fetch(locToUnzip);
+  await fetcher.fetch();
 
   // this links the downloaded release to bin/kpm.js
   await symlink(locToUnzip, path.resolve(updatesFolder, 'current'));

@@ -10,11 +10,11 @@
  */
 
 import {SecurityError, MessageError} from '../errors.js';
+import type {FetchedOverride} from '../types.js';
 import type {HashStream} from '../util/crypto.js';
 import * as crypto from '../util/crypto.js';
 import BaseFetcher from './BaseFetcher.js';
 import * as fsUtil from '../util/fs.js';
-import {USER_AGENT} from '../constants';
 
 const through = require('through2');
 const zlib = require('zlib');
@@ -24,106 +24,99 @@ const url = require('url');
 const fs = require('fs');
 
 export default class TarballFetcher extends BaseFetcher {
-  async _fetch(dest: string): Promise<string> {
+  createExtractor(mirrorPath: ?string, resolve: Function, reject: Function): {
+    validateStream: HashStream,
+    extractor: stream$Readable,
+  } {
+    const validateStream = crypto.hashStreamValidation();
+
+    const extractor = tar.Extract({path: this.dest, strip: 1})
+      .on('error', reject)
+      .on('end', () => {
+        const expectHash = this.hash;
+        const actualHash = validateStream.getHash();
+        if (!expectHash || expectHash === actualHash) {
+          resolve({
+            hash: actualHash,
+            resolved: mirrorPath ? `${mirrorPath}#${actualHash}` : null,
+          });
+        } else {
+          reject(new SecurityError(
+            `Bad hash. Expected ${expectHash} but got ${actualHash} `,
+          ));
+        }
+      });
+
+    return {validateStream, extractor};
+  }
+
+  async fetchFromLocal(parts: Object): Promise<FetchedOverride> {
+    let {reference: ref, config, registry} = this;
+
+    // path to the local tarball
+    let localTarball;
+    let isOfflineTarball = false;
+
+    const relativeFileLoc = parts.pathname && path.join(config.cwd, parts.pathname);
+    if (relativeFileLoc && await fsUtil.exists(relativeFileLoc)) {
+      // this is a reference to a file relative to the cwd
+      localTarball = relativeFileLoc;
+    } else {
+      // generate a offline cache location
+      localTarball = path.resolve(config.getOfflineMirrorPath(registry, null), ref);
+      isOfflineTarball = true;
+    }
+
+    if (!(await fsUtil.exists(localTarball))) {
+      throw new MessageError(`${ref}: Tarball is not in network and can't be located in cache`);
+    }
+
+    return new Promise((resolve, reject) => {
+      let {validateStream, extractor} = this.createExtractor(null, resolve, reject);
+
+      // flow gets confused with the pipe/on types chain
+      const cachedStream: Object = fs.createReadStream(localTarball);
+
+      const decompressStream = zlib.createUnzip();
+
+      // nicer errors for corrupted compressed tarballs
+      decompressStream.on('error', function(err) {
+        let msg = `${err.message}. `;
+        if (isOfflineTarball) {
+          msg += `Mirror tarball appears to be corrupt. You can resolve this by running:\n\n` +
+                 `  $ rm -rf ${localTarball}\n` +
+                 '  $ kpm install --save';
+        } else {
+          msg += `Error decompressing ${localTarball}, it appears to be corrupt.`;
+        }
+        reject(new MessageError(msg));
+      });
+
+      cachedStream
+        .pipe(validateStream)
+        .pipe(decompressStream)
+        .on('error', reject)
+        .pipe(extractor);
+    });
+  }
+
+  async fetchFromExternal(): Promise<FetchedOverride> {
     let {reference: ref, hash, config, registry} = this;
 
-    const parts = url.parse(ref);
-
-    // basic security check
-    if (!hash) {
-      if (parts.protocol === 'http:') {
-        throw new SecurityError(`${ref}: Refusing to fetch tarball over plain HTTP without a hash`);
-      }
-    }
-
-    // create an extractor
-    function createExtractor(resolve: Function, reject: Function): {
-      validateStream: HashStream,
-      extractor: stream$Readable,
-    } {
-      const validateStream = crypto.hashStreamValidation();
-
-      const extractor = tar.Extract({path: dest, strip: 1})
-        .on('error', reject)
-        .on('end', function() {
-          const expectHash = hash;
-          const actualHash = validateStream.getHash();
-          if (!expectHash || expectHash === actualHash) {
-            resolve(actualHash);
-          } else {
-            reject(new SecurityError(
-              `Bad hash. Expected ${expectHash} but got ${actualHash} `,
-            ));
-          }
-        });
-
-      return {validateStream, extractor};
-    }
-
-    // offline mirror path
-    if (parts.protocol === null) {
-      // path to the local tarball
-      let localTarball;
-      let isOfflineTarball = false;
-
-      const relativeFileLoc = parts.pathname && path.join(this.config.cwd, parts.pathname);
-      if (relativeFileLoc && await fsUtil.exists(relativeFileLoc)) {
-        // this is a reference to a file relative to the cwd
-        localTarball = relativeFileLoc;
-      } else {
-        // generate a offline cache location
-        localTarball = path.resolve(this.config.getOfflineMirrorPath(registry, null), ref);
-        isOfflineTarball = true;
-      }
-
-      if (!(await fsUtil.exists(localTarball))) {
-        throw new MessageError(`${ref}: Tarball is not in network and can't be located in cache`);
-      }
-
-      return new Promise((resolve, reject) => {
-        let {validateStream, extractor} = createExtractor(resolve, reject);
-
-        // flow gets confused with the pipe/on types chain
-        const cachedStream: Object = fs.createReadStream(localTarball);
-
-        const decompressStream = zlib.createUnzip();
-
-        // nicer errors for corrupted compressed tarballs
-        decompressStream.on('error', function(err) {
-          let msg = `${err.message}. `;
-          if (isOfflineTarball) {
-            msg += `Mirror tarball appears to be corrupt. You can resolve this by running:\n\n` +
-                   `  $ rm -rf ${localTarball}\n` +
-                   '  $ kpm install --save';
-          } else {
-            msg += `Error decompressing ${localTarball}, it appears to be corrupt.`;
-          }
-          reject(new MessageError(msg));
-        });
-
-        cachedStream
-          .pipe(validateStream)
-          .pipe(decompressStream)
-          .on('error', reject)
-          .pipe(extractor);
-      });
-    }
-
-    // http url
     return this.config.requestManager.request({
       url: ref,
       headers: {
         'Accept-Encoding': 'gzip',
         'Accept': 'application/octet-stream',
-        'user-agent': USER_AGENT,
       },
-      process(req, resolve, reject) {
-        let {validateStream, extractor} = createExtractor(resolve, reject);
-
+      buffer: true,
+      process: (req, resolve, reject) => {
         // should we save this to the offline cache?
         const mirrorPath = config.getOfflineMirrorPath(registry, ref);
         let mirrorTarballStream;
+        let overwriteResolved;
         if (mirrorPath) {
+          overwriteResolved = path.relative(config.getOfflineMirrorPath(registry), mirrorPath);
           mirrorTarballStream = fs.createWriteStream(mirrorPath);
           mirrorTarballStream.on('error', reject);
         }
@@ -135,21 +128,10 @@ export default class TarballFetcher extends BaseFetcher {
         });
 
         //
-        req
-          .on('redirect', function() {
-            if (hash) {
-              return;
-            }
+        let {validateStream, extractor} = this.createExtractor(overwriteResolved, resolve, reject);
 
-            const href = this.uri.href;
-            const parts = url.parse(href);
-            if (parts.protocol === 'http:') {
-              throw new SecurityError(
-                `While downloading the tarball ${ref} we encountered a HTTP redirect of ${href}. ` +
-                'This is not allowed unless a tarball hash is specified.',
-              );
-            }
-          })
+        //
+        req
           .pipe(validateStream)
           .pipe(mirrorSaver)
           .pipe(zlib.createUnzip())
@@ -157,5 +139,14 @@ export default class TarballFetcher extends BaseFetcher {
           .pipe(extractor);
       },
     });
+  }
+
+  async _fetch(): Promise<FetchedOverride> {
+    const parts = url.parse(this.reference);
+    if (parts.protocol === null) {
+      return this.fetchFromLocal(parts);
+    } else {
+      return this.fetchFromExternal();
+    }
   }
 }

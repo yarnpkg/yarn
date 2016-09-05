@@ -15,7 +15,6 @@ import type PackageReference from './PackageReference.js';
 import type {Reporter} from './reporters/index.js';
 import type Config from './config.js';
 import {REMOVED_ANCESTOR} from './PackageReference.js';
-import PackageFetcher from './PackageFetcher.js';
 import PackageRequest from './PackageRequest.js';
 import RequestManager from './util/RequestManager.js';
 import BlockingQueue from './util/BlockingQueue.js';
@@ -33,7 +32,6 @@ export default class PackageResolver {
     this.patterns = map();
     this.usedRegistries = new Set();
 
-    this.fetcher = new PackageFetcher(config, this);
     this.reporter = config.reporter;
     this.lockfile = lockfile;
     this.config = config;
@@ -58,9 +56,6 @@ export default class PackageResolver {
 
   // TODO
   fetchingQueue: BlockingQueue;
-
-  // TODO
-  fetcher: PackageFetcher;
 
   // these are patterns that the package resolver was seeded with. these are required in
   // order to resolve top level peerDependencies

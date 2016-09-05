@@ -116,8 +116,13 @@ export type Manifest = {
 };
 
 //
-export type FetchedManifest = {
+export type FetchedMetadata = {
   package: Manifest,
+  resolved: ?string,
   hash: string,
-  dest: string
+  dest: string,
+};
+export type FetchedOverride = {
+  hash: string,
+  resolved: ?string,
 };

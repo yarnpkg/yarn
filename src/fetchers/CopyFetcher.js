@@ -9,12 +9,16 @@
  * @flow
  */
 
+import type {FetchedOverride} from '../types.js';
 import BaseFetcher from './BaseFetcher.js';
 import * as fs from '../util/fs.js';
 
 export default class CopyFetcher extends BaseFetcher {
-  async _fetch(dest: string): Promise<string> {
-    await fs.copy(this.reference, dest);
-    return this.hash || '';
+  async _fetch(): Promise<FetchedOverride> {
+    await fs.copy(this.reference, this.dest);
+    return {
+      hash: this.hash || '',
+      resolved: null,
+    };
   }
 }
