@@ -124,11 +124,17 @@ test('ConsoleReporter.select', async () => {
       streams.stdin.end();
     });
 
-    let res = await r.select('Ayo', 'Select one', ['foo', 'bar']);
+    let res = await r.select('Ayo', 'Select one', [{
+      name: 'foo',
+      value: 'foo',
+    }, {
+      name: 'bar',
+      value: 'bar',
+    }]);
     expect(res, 'foo');
   })).toEqual({
     stderr: '',
-    stdout: '\u001b[2K\u001b[1GAyo\n\u001b[2K\u001b[1G1. foo\n\u001b[2K\u001b[1G2. ' +
+    stdout: '\u001b[2K\u001b[1G\u001b[34minfo\u001b[39m Ayo\n\u001b[2K\u001b[1G  1) foo\n\u001b[2K\u001b[1G  2) ' +
             'bar\n\u001b[1G\u001b[0JSelect one?: \u001b[14G1',
   });
 });

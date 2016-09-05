@@ -10,12 +10,14 @@
  */
 
 import type {Reporter} from '../../reporters/index.js';
-import type {DependencyRequestPatterns} from '../../types.js';
+import type {ReporterSelectOption} from '../../reporters/types.js';
+import type {Manifest, DependencyRequestPatterns} from '../../types.js';
 import type Config from '../../config.js';
 import type {RegistryNames} from '../../registries/index.js';
 import {registryNames} from '../../registries/index.js';
 import Lockfile from '../../lockfile/Lockfile.js';
 import lockStringify from '../../lockfile/stringify.js';
+import * as PackageReference from '../../PackageReference.js';
 import PackageInstallScripts from '../../PackageInstallScripts.js';
 import PackageCompatibility from '../../PackageCompatibility.js';
 import PackageResolver from '../../PackageResolver.js';
@@ -111,7 +113,7 @@ export class Install {
       Object.assign(this.resolutions, json.resolutions);
       Object.assign(manifest, json);
 
-      const pushDeps = (depType, {hint, ignore, optional}) => {
+      const pushDeps = (depType, {hint, visibility, optional}) => {
         const depMap = json[depType];
         for (const name in depMap) {
           if (excludeNames.indexOf(name) >= 0) {
@@ -127,13 +129,16 @@ export class Install {
 
           this.rootPatternsToOrigin[pattern] = depType;
           patterns.push(pattern);
-          deps.push({pattern, registry, ignore, hint, optional});
+          deps.push({pattern, registry, visibility, hint, optional});
         }
       };
 
-      pushDeps('dependencies', {hint: null, ignore: false, optional: false});
-      pushDeps('devDependencies', {hint: 'dev', ignore: !!this.flags.production, optional: false});
-      pushDeps('optionalDependencies', {hint: 'optional', ignore: false, optional: true});
+      pushDeps('dependencies', {hint: null, visibility: PackageReference.USED, optional: false});
+
+      const devVisibility = this.flags.production ? PackageReference.ENVIRONMENT_IGNORE : PackageReference.USED;
+      pushDeps('devDependencies', {hint: 'dev', visibility: devVisibility, optional: false});
+
+      pushDeps('optionalDependencies', {hint: 'optional', visibility: PackageReference.USED, optional: true});
 
       break;
     }
@@ -152,7 +157,12 @@ export class Install {
       for (const pattern of rawPatterns) {
         // default the registry to npm, if the pattern contains an exotic registry
         // in the pattern then it'll be set to it
-        depRequests.push({pattern, registry: 'npm'});
+        depRequests.push({
+          pattern,
+          registry: 'npm',
+          visibility: PackageReference.USED,
+          optional: false,
+        });
       }
     }
 
@@ -326,11 +336,16 @@ export class Install {
       return patterns;
     }
 
-    for (const name of this.resolver.getAllDependencyNames()) {
-      const infos = this.resolver.getAllInfoForPackageName(name);
+    for (const name of this.resolver.getAllDependencyNames(patterns)) {
+      const infos = this.resolver.getAllInfoForPackageName(name).filter((manifest: Manifest): boolean => {
+        let ref = manifest._reference;
+        invariant(ref, 'expected package reference');
+        return !ref.ignore;
+      });
 
-      const firstRemote = infos[0] && infos[0]._remote;
-      invariant(firstRemote, 'Missing first remote');
+      if (infos.length === 0) {
+        continue;
+      }
 
       if (infos.length === 1) {
         // single version of this package
@@ -339,6 +354,14 @@ export class Install {
         continue;
       }
 
+      const options = infos.map((info): ReporterSelectOption => {
+        let ref = info._reference;
+        invariant(ref, 'expected reference');
+        return {
+          name: `${ref.patterns.join(', ')} which resolved to ${info.version}`, // TODO `and is required by {PARENT}`,
+          value: info.version,
+        };
+      });
       const versions = infos.map((info): string => info.version);
       let version: ?string;
 
@@ -348,9 +371,9 @@ export class Install {
         version = resolutionVersion;
       } else {
         version = await this.reporter.select(
-          `We found a version in package ${name} that we couldn't resolve`,
-          "Please select a version you'd like to use",
-          versions,
+          `Unable to find a suitable version for ${name}, please choose one by typing one of the numbers below:`,
+          'Answer',
+          options,
         );
       }
 
@@ -495,7 +518,7 @@ export function setFlags(commander: Object) {
   commander.option('-E, --save-exact', '');
   commander.option('-T, --save-tilde', '');
   commander.option('--rebuild', 'rerun install scripts of modules already installed');
-  commander.option('--production, --prod', '');
+  commander.option('--prod, --production', '');
   commander.option('--no-lockfile');
   commander.option('--init-mirror', 'initialise local package mirror and copy module tarballs');
 }

@@ -9,10 +9,10 @@
  * @flow
  */
 
+import type {Package, Trees, ReporterSpinner, ReporterSelectOption} from '../types.js';
 import BaseReporter from '../BaseReporter.js';
 import Progress from './ProgressBar.js';
 import Spinner from './SpinnerProgress.js';
-import type {Package, Trees, ReporterSpinner} from '../types.js';
 import {clearLine} from './util.js';
 import {removeSuffix} from '../../util/misc.js';
 
@@ -197,7 +197,7 @@ export default class ConsoleReporter extends BaseReporter {
     };
   }
 
-  select(header: string, question: string, options: Array<string>): Promise<string> {
+  select(header: string, question: string, options: Array<ReporterSelectOption>): Promise<string> {
     if (!this.isTTY) {
       return Promise.reject(new Error("Can't answer a question unless a user TTY"));
     }
@@ -208,16 +208,29 @@ export default class ConsoleReporter extends BaseReporter {
       terminal: true,
     });
 
-    return new Promise((resolve) => {
-      this.log(header);
+    let questions = options.map((opt): string => opt.name);
+    let answers = options.map((opt): string => opt.value);
 
-      for (let i = 0; i < options.length; i++) {
-        this.log(`${i + 1}. ${options[i]}`);
+    function toIndex(input: string): number {
+      let index = answers.indexOf(input);
+
+      if (index >= 0) {
+        return index;
+      } else {
+        return +input;
+      }
+    }
+
+    return new Promise((resolve) => {
+      this.info(header);
+
+      for (let i = 0; i < questions.length; i++) {
+        this.log(`  ${chalk.dim(`${i + 1})`)} ${questions[i]}`);
       }
 
       let ask = () => {
-        rl.question(`${question}?: `, (index) => {
-          index = +index;
+        rl.question(`${question}?: `, (input) => {
+          let index = toIndex(input);
 
           if (isNaN(index)) {
             this.log('Not a number');
@@ -234,7 +247,7 @@ export default class ConsoleReporter extends BaseReporter {
           // get index
           index--;
           rl.close();
-          resolve(options[index]);
+          resolve(answers[index]);
         });
       };
 

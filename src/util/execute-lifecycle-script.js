@@ -58,7 +58,7 @@ export default async function (
           .split('\n') // split into lines
           .pop() // use only the last line
           .replace(/\t/g, ' '); // change tabs to spaces as they can interfere with the console
-        
+
         if (line) {
           spinner.tick(line);
         }

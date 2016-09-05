@@ -20,6 +20,12 @@ import {MessageError} from './errors.js';
 
 const invariant = require('invariant');
 
+export const ENVIRONMENT_IGNORE = 'ENVIRONMENT_IGNORE';
+export const REMOVED_ANCESTOR = 'REMOVED_ANCESTOR';
+export const USED = 'USED';
+
+export type VisibilityAction = 'ENVIRONMENT_IGNORE' | 'REMOVED_ANCESTOR' | 'USED';
+
 export default class PackageReference {
   constructor(
     request: PackageRequest,
@@ -29,7 +35,7 @@ export default class PackageReference {
   ) {
     this.resolver = request.resolver;
     this.lockfile = request.lockfile;
-    this.requests = [request];
+    this.requests = [];
     this.config = request.config;
 
     this.registry = remote.registry;
@@ -44,10 +50,13 @@ export default class PackageReference {
     this.permissions = {};
     this.patterns = [];
     this.optional = null;
-    this.ignore = null;
+    this.visibility = {[ENVIRONMENT_IGNORE]: 0, [REMOVED_ANCESTOR]: 0, [USED]: 0};
+    this.ignore = false;
     this.fresh = false;
     this.location = null;
     this.saveForOffline = !!saveForOffline;
+
+    this.addRequest(request);
   }
 
   requests: Array<PackageRequest>;
@@ -58,7 +67,8 @@ export default class PackageReference {
   version: string;
   uid: string;
   optional: ?boolean;
-  ignore: ?boolean;
+  visibility: {[action: string]: number};
+  ignore: boolean;
   fresh: boolean;
   saveForOffline: boolean;
   dependencies: Array<string>;
@@ -81,6 +91,13 @@ export default class PackageReference {
     this.requests.push(request);
   }
 
+  prune() {
+    for (let selfPattern of this.patterns) {
+      // remove ourselves from the resolver
+      this.resolver.removePattern(selfPattern);
+    }
+  }
+
   addDependencies(deps: Array<string>) {
     this.dependencies = this.dependencies.concat(deps);
   }
@@ -101,7 +118,9 @@ export default class PackageReference {
     }
   }
 
-  addPattern(pattern: string) {
+  addPattern(pattern: string, manifest: Manifest) {
+    this.resolver.addPattern(pattern, manifest);
+
     this.patterns.push(pattern);
 
     const shrunk = this.lockfile.getLocked(pattern);
@@ -123,17 +142,26 @@ export default class PackageReference {
     }
   }
 
-  addIgnore(ignore: boolean, ancestry?: Set<PackageReference> = new Set()) {
-    // see comments in addOptional
-    if (this.ignore == null) {
-      this.ignore = ignore;
-    } else if (!ignore) {
-      this.ignore = false;
-    } else {
-      // we haven't changed our `ignore` so don't mess with
-      // dependencies
-      return;
+  calculateVisibility() {
+    let nowIgnore = false;
+    let stack = this.visibility;
+
+    // if we don't use this module then mark it as ignored
+    if (stack[USED] === 0) {
+      nowIgnore = true;
     }
+
+    // if we have removed as many ancestors as it's used then it's out of the tree
+    if (stack[REMOVED_ANCESTOR] >= stack[USED]) {
+      nowIgnore = true;
+    }
+
+    this.ignore = nowIgnore;
+  }
+
+  addVisibility(action: VisibilityAction, ancestry?: Set<PackageReference> = new Set()) {
+    this.visibility[action]++;
+    this.calculateVisibility();
 
     if (ancestry.has(this)) {
       return;
@@ -149,7 +177,7 @@ export default class PackageReference {
 
       const ref = pkg._reference;
       invariant(ref, 'expected package reference');
-      ref.addIgnore(ignore, ancestry);
+      ref.addVisibility(action, ancestry);
     }
   }
 }

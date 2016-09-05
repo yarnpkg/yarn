@@ -34,3 +34,8 @@ export type ReporterSpinner = {
   tick: (name: string) => void,
   end: () => void
 };
+
+export type ReporterSelectOption = {
+  name: string,
+  value: string,
+};

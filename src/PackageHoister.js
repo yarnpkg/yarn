@@ -343,16 +343,6 @@ export default class PackageHoister {
   init(): Array<[string, HoistManifest]> {
     const flatTree = [];
 
-    // remove ignored modules from the tree
-    for (let [key, info] of this.tree.entries()) {
-      const ref = info.pkg._reference;
-      invariant(ref, 'expected reference');
-      if (ref.ignore) {
-        info.addHistory('Deleted as this module was ignored');
-        this.tree.delete(key);
-      }
-    }
-
     //
     for (let [key, info] of this.tree.entries()) {
       // decompress the location and push it to the flat tree. this path could be made
@@ -382,6 +372,17 @@ export default class PackageHoister {
       flatTree.push([loc, info]);
     }
 
-    return flatTree;
+    // remove ignored modules from the tree
+    const visibleFlatTree = [];
+    for (let [loc, info] of flatTree) {
+      const ref = info.pkg._reference;
+      invariant(ref, 'expected reference');
+      if (ref.ignore) {
+        info.addHistory('Deleted as this module was ignored');
+      } else {
+        visibleFlatTree.push([loc, info]);
+      }
+    }
+    return visibleFlatTree;
   }
 }
