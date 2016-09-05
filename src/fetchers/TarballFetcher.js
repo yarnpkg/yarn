@@ -25,7 +25,7 @@ const fs = require('fs');
 
 export default class TarballFetcher extends BaseFetcher {
   async _fetch(dest: string): Promise<string> {
-    let {reference: ref, hash, config, saveForOffline, registry} = this;
+    let {reference: ref, hash, config, registry} = this;
 
     const parts = url.parse(ref);
 
@@ -123,7 +123,7 @@ export default class TarballFetcher extends BaseFetcher {
         // should we save this to the offline cache?
         const mirrorPath = config.getOfflineMirrorPath(registry, ref);
         let mirrorTarballStream;
-        if (mirrorPath && saveForOffline) {
+        if (mirrorPath) {
           mirrorTarballStream = fs.createWriteStream(mirrorPath);
           mirrorTarballStream.on('error', reject);
         }

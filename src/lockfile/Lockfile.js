@@ -12,7 +12,6 @@
 import type {Reporter} from '../reporters/index.js';
 import type {Manifest} from '../types.js';
 import {sortAlpha} from '../util/misc.js';
-import {MessageError} from '../errors.js';
 import PackageRequest from '../PackageRequest.js';
 import parse from './parse.js';
 import * as constants from '../constants.js';
@@ -42,68 +41,40 @@ function getName(pattern: string): string {
 }
 
 export default class Lockfile {
-  constructor(cache?: ?Object, strict?: boolean, save?: boolean, source?: string) {
-    this.strict = !!strict;
+  constructor(cache?: ?Object, source?: string) {
     this.source = source || '';
     this.cache = cache;
-    this.save = !!save;
   }
 
   // source string if the `cache` was parsed
   source: string;
 
-  // true if operation is just rehydrating node_modules folder
-  strict: boolean;
-
-  // true if lockfile will be persisted
-  save: boolean;
-
   cache: ?{
     [key: string]: string | LockManifest
   };
 
-  static async fromDirectory(
-    dir: string,
-    reporter: Reporter,
-    {strictIfPresent, save, silent}: {
-      strictIfPresent?: boolean,
-      save?: boolean,
-      silent?: boolean
-    },
-  ): Promise<Lockfile> {
+  static async fromDirectory(dir: string, reporter?: ?Reporter): Promise<Lockfile> {
     // read the manifest in this directory
     let lockfileLoc = path.join(dir, constants.LOCKFILE_FILENAME);
     let lockfile;
     let rawLockfile = '';
-    let strict = false;
 
     if (await fs.exists(lockfileLoc)) {
       rawLockfile = await fs.readFile(lockfileLoc);
       lockfile = parse(rawLockfile);
-      strict = strictIfPresent;
-      if (!silent) {
+      if (reporter) {
         reporter.success(`Read lockfile ${constants.LOCKFILE_FILENAME}`);
       }
-
-      if (!strict) {
-        if (!silent) {
-          reporter.warn('Lockfile is not in strict mode. Any new versions will be installed arbitrarily.');
-        }
-      }
     } else {
-      if (!silent) {
+      if (reporter) {
         reporter.info('No lockfile found.');
       }
     }
 
-    return new Lockfile(lockfile, strict, save, rawLockfile);
+    return new Lockfile(lockfile, rawLockfile);
   }
 
-  isStrict(): boolean {
-    return this.strict;
-  }
-
-  getLocked(pattern: string, noStrict?: boolean): ?LockManifest {
+  getLocked(pattern: string): ?LockManifest {
     let cache = this.cache;
     if (!cache) {
       return undefined;
@@ -111,17 +82,13 @@ export default class Lockfile {
 
     let shrunk = pattern in cache && cache[pattern];
     if (typeof shrunk === 'string') {
-      return this.getLocked(shrunk, noStrict);
+      return this.getLocked(shrunk);
     } else if (shrunk) {
       shrunk.uid = shrunk.uid || shrunk.version;
       shrunk.permissions = shrunk.permissions || {};
       shrunk.registry = shrunk.registry || 'npm';
       shrunk.name = shrunk.name || getName(pattern);
       return shrunk;
-    } else {
-      if (!noStrict && this.strict) {
-        throw new MessageError(`The pattern ${pattern} not found in lockfile`);
-      }
     }
 
     return undefined;

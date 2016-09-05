@@ -238,20 +238,19 @@ export default class PackageRequest {
     invariant(remote, 'Missing remote');
 
     // set package reference
-    const ref = new PackageReference(this, info, remote, this.resolver.lockfile.save);
+    const ref = new PackageReference(this, info, remote);
 
     // get possible mirror path
     const offlineMirrorPath = this.config.getOfflineMirrorPath(remote.registry, remote.reference);
 
     //
-    const shouldSaveMirror = this.resolver.lockfile.save && !!offlineMirrorPath;
     let {package: newInfo, hash}:FetchedManifest = await this.resolver.fetchingQueue.push(
       info.name,
-      (): Promise<FetchedManifest> => this.resolver.fetcher.fetch(ref, shouldSaveMirror),
+      (): Promise<FetchedManifest> => this.resolver.fetcher.fetch(ref),
     );
 
     // replace resolved remote URL with local path if lockfile is in save mode and we have a path
-    if (this.resolver.lockfile.save && offlineMirrorPath && await fs.exists(offlineMirrorPath)) {
+    if (offlineMirrorPath && await fs.exists(offlineMirrorPath)) {
       remote.resolved = path.relative(
         this.config.getOfflineMirrorPath(remote.registry),
         offlineMirrorPath,

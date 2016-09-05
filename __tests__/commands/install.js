@@ -36,7 +36,7 @@ async function clean(cwd, removeLock) {
   }
 }
 
-async function createLockfile(dir, strict, save): Promise<Lockfile> {
+async function createLockfile(dir): Promise<Lockfile> {
   let lockfileLoc = path.join(dir, constants.LOCKFILE_FILENAME);
   let lockfile;
 
@@ -45,7 +45,7 @@ async function createLockfile(dir, strict, save): Promise<Lockfile> {
     lockfile = parse(rawLockfile);
   }
 
-  return new Lockfile(lockfile, strict, save);
+  return new Lockfile(lockfile);
 }
 
 async function run(
@@ -74,7 +74,7 @@ async function run(
 
   // remove the lockfile if we create one and it didn't exist before
   let removeLock = !(await fs.exists(path.join(cwd, constants.LOCKFILE_FILENAME)));
-  let lockfile = await createLockfile(cwd, flags.strict, flags.save);
+  let lockfile = await createLockfile(cwd);
 
   // clean up if we weren't successful last time
   await clean(cwd);
@@ -984,7 +984,7 @@ test('[network] install --save with new dependency should be deterministic 3', a
     await fs.copy(path.join(cwd, 'kpm.lock.after'), path.join(cwd, 'kpm.lock'));
     await fs.copy(path.join(cwd, 'package.json.after'), path.join(cwd, 'package.json'));
 
-    let lockfile = await createLockfile(config.cwd, false, true);
+    let lockfile = await createLockfile(config.cwd);
     let install = new Install('install', {save: true}, [], config, reporter, lockfile);
     await install.init();
     let allCorrect = true;
@@ -1015,7 +1015,7 @@ test('[network] install --save should ignore cache', (): Promise<void> => {
       '1.1.0',
     );
 
-    let lockfile = await createLockfile(config.cwd, false, true);
+    let lockfile = await createLockfile(config.cwd);
     let install = new Install('install', {save: true}, ['left-pad@1.1.0'], config, reporter, lockfile);
     await install.init();
     assert.equal(

@@ -205,7 +205,7 @@ export class Install {
     }
 
     // fin!
-    await this.maybeSaveTree(patterns);
+    await this.maybeOutputSaveTree(patterns);
     await this.savePackages();
     await this.saveLockfileAndIntegrity();
   }
@@ -222,8 +222,9 @@ export class Install {
    * TODO
    */
 
-  async maybeSaveTree(patterns: Array<string>): Promise<void> {
-    if (!hasSaveFlags(this.flags)) {
+  async maybeOutputSaveTree(patterns: Array<string>): Promise<void> {
+    if (!this.args.length) {
+      // no saved dependencies
       return;
     }
 
@@ -246,6 +247,7 @@ export class Install {
       return;
     }
 
+    // get all the different registry manifests in this folder
     let jsons: {
       [registryName: RegistryNames]: [string, Object]
     } = {};
@@ -260,6 +262,7 @@ export class Install {
       jsons[registryName] = [jsonLoc, json];
     }
 
+    // add new patterns to their appropriate registry manifest
     for (const pattern of this.resolver.dedupePatterns(this.args)) {
       const pkg = this.resolver.getResolvedPattern(pattern);
       invariant(pkg, `missing package ${pattern}`);
@@ -394,20 +397,13 @@ export class Install {
     // write integrity hash
     this.writeIntegrityHash(lockSource);
 
-    // check if we should write a lockfile in the first place
-    if (!shouldWriteLockfile(this.flags, this.args)) {
+    // --no-lockfile flag
+    if (this.flags.lockfile === false) {
       return;
     }
 
     // build lockfile location
     const loc = path.join(this.config.cwd, constants.LOCKFILE_FILENAME);
-
-    // check if we should overwrite a lockfile if it exists
-    if (this.action === 'install' && !shouldWriteLockfileIfExists(this.flags, this.args)) {
-      if (await fs.exists(loc)) {
-        return;
-      }
-    }
 
     // write lockfile
     await fs.writeFile(loc, lockSource);
@@ -446,68 +442,6 @@ export class Install {
   }
 }
 
-/**
- * TODO
- */
-
-function hasSaveFlags(flags: Object): boolean {
-  return flags.save || flags.saveExact || flags.saveTilde ||
-         flags.saveDev || flags.saveExact || flags.savePeer;
-}
-
-/**
- * TODO
- */
-
-function isStrictLockfile(flags: Object, args: Array<string>): boolean {
-  if (hasSaveFlags(flags)) {
-    // we're introducing new dependencies so we can't be strict
-    return false;
-  }
-
-  if (!args.length) {
-    // we're running `kpm install` so should be strict on lockfile usage
-    return true;
-  }
-
-  // we're installing individual modules
-  return false;
-}
-
-/**
- * TODO
- */
-
-function shouldWriteLockfileIfExists(flags: Object, args: Array<string>): boolean {
-  if (args.length || flags.save) {
-    return shouldWriteLockfile(flags, args);
-  } else {
-    return false;
-  }
-}
-
-/**
- * TODO
- */
-
-function shouldWriteLockfile(flags: Object, args: Array<string>): boolean {
-  if (flags.lockfile === false) {
-    return false;
-  }
-
-  if (hasSaveFlags(flags)) {
-    // we should write a new lockfile as we're introducing new dependencies
-    return true;
-  }
-
-  if (!args.length) {
-    // we're running `kpm install` so should save a new lockfile
-    return true;
-  }
-
-  return false;
-}
-
 export function setFlags(commander: Object) {
   commander.usage('install [packages ...] [flags]');
   commander.option('-f, --flat', 'only allow one version of a package');
@@ -530,13 +464,17 @@ export async function run(
   args: Array<string>,
 ): Promise<void> {
   let lockfile;
-  if (flags.lockfile !== false) {
-    lockfile = await Lockfile.fromDirectory(config.cwd, reporter, {
-      strictIfPresent: isStrictLockfile(flags, args),
-      save: hasSaveFlags(flags) || flags.initMirror,
-    });
-  } else {
+  if (flags.lockfile === false) {
     lockfile = new Lockfile();
+  } else {
+    lockfile = await Lockfile.fromDirectory(config.cwd, reporter);
+  }
+
+  const hasSaveFlag = flags.save || flags.saveDev || flags.savePeer ||
+                      flags.saveOptional || flags.saveExact || flags.saveTilde;
+  if (args.length && !hasSaveFlag) {
+    reporter.info('Added implicit --save flag');
+    flags.save = true;
   }
 
   const install = new Install('install', flags, args, config, reporter, lockfile);

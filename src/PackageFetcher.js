@@ -31,10 +31,10 @@ export default class PackageFetcher {
   reporter: Reporter;
   config: Config;
 
-  async fetch(ref: PackageReference, overwriteDestination: boolean): Promise<FetchedManifest> {
+  async fetch(ref: PackageReference): Promise<FetchedManifest> {
     const dest = this.config.generateHardModulePath(ref);
 
-    if (!overwriteDestination && await this.config.isValidModuleDest(dest)) {
+    if (await this.config.isValidModuleDest(dest)) {
       let {hash, package: pkg} = await this.config.readPackageMetadata(dest);
       return {
         package: pkg,
@@ -57,7 +57,7 @@ export default class PackageFetcher {
     await fs.mkdirp(dest);
 
     try {
-      const fetcher = new Fetcher(remote, this.config, ref.saveForOffline);
+      const fetcher = new Fetcher(remote, this.config);
       return await fetcher.fetch(dest);
     } catch (err) {
       try {

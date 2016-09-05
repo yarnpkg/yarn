@@ -16,7 +16,6 @@ import type PackageRequest from './PackageRequest.js';
 import type PackageResolver from './PackageResolver.js';
 import type {RegistryNames} from './registries/index.js';
 import {entries} from './util/misc.js';
-import {MessageError} from './errors.js';
 
 const invariant = require('invariant');
 
@@ -31,7 +30,6 @@ export default class PackageReference {
     request: PackageRequest,
     info: Manifest,
     remote: PackageRemote,
-    saveForOffline: boolean,
   ) {
     this.resolver = request.resolver;
     this.lockfile = request.lockfile;
@@ -54,7 +52,6 @@ export default class PackageReference {
     this.ignore = false;
     this.fresh = false;
     this.location = null;
-    this.saveForOffline = !!saveForOffline;
 
     this.addRequest(request);
   }
@@ -70,7 +67,6 @@ export default class PackageReference {
   visibility: {[action: string]: number};
   ignore: boolean;
   fresh: boolean;
-  saveForOffline: boolean;
   dependencies: Array<string>;
   patterns: Array<string>;
   permissions: { [key: string]: boolean };
@@ -110,11 +106,7 @@ export default class PackageReference {
     if (key in this.permissions) {
       return this.permissions[key];
     } else {
-      if (this.lockfile.isStrict()) {
-        throw new MessageError(`Permission ${key} not found in permissions for ${this.name}@${this.version}`);
-      } else {
-        return false;
-      }
+      return false;
     }
   }
 

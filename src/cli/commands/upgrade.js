@@ -28,7 +28,7 @@ export async function run(
   flags: Object,
   args: Array<string>,
 ): Promise<void> {
-  const lockfile = new Lockfile(null, false);
+  const lockfile = new Lockfile();
   const install = new Install('update', flags, args, config, reporter, lockfile);
   return install.init();
 }

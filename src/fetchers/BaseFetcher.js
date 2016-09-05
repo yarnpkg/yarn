@@ -20,13 +20,12 @@ import * as fs from '../util/fs.js';
 const path = require('path');
 
 export default class BaseFetcher {
-  constructor(remote: PackageRemote, config: Config, saveForOffline?: boolean) {
+  constructor(remote: PackageRemote, config: Config) {
     this.reference = remote.reference;
     this.registry = remote.registry;
     this.hash = remote.hash;
     this.remote = remote;
     this.config = config;
-    this.saveForOffline = !!saveForOffline;
   }
 
   remote: PackageRemote;
@@ -34,7 +33,6 @@ export default class BaseFetcher {
   reference: string;
   config: Config;
   hash: ?string;
-  saveForOffline: boolean;
 
   async _fetch(dest: string): Promise<string> {
     throw new Error('Not implemented');

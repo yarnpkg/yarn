@@ -54,12 +54,6 @@ test("stringify", () => {
   expect(stringify({a: obj, b: obj})).toEqual("a, b:\n  foo bar");
 });
 
-test("Lockfile.isStrict", () => {
-  expect(new Lockfile(null, true).isStrict()).toBe(true);
-  expect(new Lockfile(null, false).isStrict()).toBe(false);
-  expect(new Lockfile(null).isStrict()).toBe(false);
-});
-
 test("Lockfile.fromDirectory", () => {
 
 });
@@ -95,11 +89,8 @@ test("Lockfile.getLocked defaults", () => {
   expect(pattern.version).toBe("0.0.0");
 });
 
-test("Lockfile.getLocked strict unknown", () => {
-  new Lockfile({}, false).getLocked("foobar");
-  expect(() => {
-    new Lockfile({}, true).getLocked("foobar");
-  }).toThrowError("The pattern foobar not found in lockfile");
+test("Lockfile.getLocked unknown", () => {
+  new Lockfile({}).getLocked("foobar");
 });
 
 test("Lockfile.getLockfile", () => {
