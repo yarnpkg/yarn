@@ -26,7 +26,7 @@ jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000;
 
 let path = require('path');
 
-let fixturesLoc = path.join(__dirname, '..', 'fixtures', 'install');
+let fixturesLoc = path.join(__dirname, '..', 'fixtures', 'add');
 
 async function runAdd(
   flags: Object,
@@ -178,7 +178,7 @@ async (): Promise<void> => {
   await fs.copy(path.join(cwd, 'kpm.lock.before'), path.join(cwd, 'kpm.lock'));
   await fs.copy(path.join(cwd, 'package.json.before'), path.join(cwd, 'package.json'));
 
-  return runInstall({}, fixture, async (config): Promise<void> => {
+  return runInstall({}, path.join('..', 'add', fixture), async (config): Promise<void> => {
     assert(semver.satisfies(
       await getPackageVersion(config, 'mime-db'),
       '~1.0.1'),
@@ -261,7 +261,7 @@ test('[network] install --save with new dependency should be deterministic', asy
   await fs.copy(path.join(cwd, 'kpm.lock.before'), path.join(cwd, 'kpm.lock'));
   await fs.copy(path.join(cwd, 'package.json.before'), path.join(cwd, 'package.json'));
 
-  return runInstall({}, fixture, async (config): Promise<void> => {
+  return runInstall({}, path.join('..', 'add', fixture), async (config): Promise<void> => {
     assert(semver.satisfies(
       await getPackageVersion(config, 'mime-db'),
       '~1.0.1'),
@@ -318,7 +318,7 @@ xit('[network] install --save with new dependency should be deterministic 2', as
   await fs.copy(path.join(cwd, 'kpm.lock.before'), path.join(cwd, 'kpm.lock'));
   await fs.copy(path.join(cwd, 'package.json.before'), path.join(cwd, 'package.json'));
 
-  return runInstall({}, fixture, async (config): Promise<void> => {
+  return runInstall({}, path.join('..', 'add', fixture), async (config): Promise<void> => {
     assert.equal(
       await getPackageVersion(config, 'mime-db'),
       '1.0.1',
@@ -467,7 +467,7 @@ test('[network] upgrade scenario 2 (with sub dependencies)', async (): Promise<v
   await fs.copy(path.join(cwd, 'kpm.lock.before'), path.join(cwd, 'kpm.lock'));
   await fs.copy(path.join(cwd, 'package.json.before'), path.join(cwd, 'package.json'));
 
-  return runInstall({}, fixture, async (config): Promise<void> => {
+  return runInstall({}, path.join('..', 'add', fixture), async (config): Promise<void> => {
     assert(semver.satisfies(
       await getPackageVersion(config, 'mime-db'),
       '~1.0.1'),
