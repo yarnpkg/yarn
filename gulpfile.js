@@ -29,18 +29,14 @@ function build(lib, opts) {
         gutil.log(err.stack);
       }
     }))
+    .pipe(newer(lib))
     .pipe(through.obj(function (file, enc, callback) {
-      file._path = file.path;
-      file.path = file.path.replace("src", lib);
-      callback(null, file);
-    }))
-    .pipe(newer("lib"))
-    .pipe(through.obj(function (file, enc, callback) {
-      gutil.log("Compiling", "'" + chalk.cyan(file._path) + "' to '" + chalk.cyan(file.path) + "'...");
+      const dest = path.join(file.cwd, lib, file.relative);
+      gutil.log("Compiling", "'" + chalk.cyan(file.path) + "' to '" + chalk.cyan(dest) + "'...");
       callback(null, file);
     }))
     .pipe(babel(opts))
-    .pipe(gulp.dest("lib"));
+    .pipe(gulp.dest(lib));
 }
 
 gulp.task("default", ["build"]);
