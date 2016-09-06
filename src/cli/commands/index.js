@@ -21,6 +21,9 @@ export {why};
 import * as access from './access.js';
 export {access};
 
+import * as add from './add.js';
+export {add};
+
 import * as clean from './clean.js';
 export {clean};
 
@@ -73,6 +76,10 @@ import * as check from './check.js';
 export {check};
 
 import buildUseless from './_useless.js';
+
+export let version = buildUseless(
+  'Use `kpm --version` instead of `kpm version`',
+);
 
 export let runScript = buildUseless(
   'Use `kpm <script-name>` instead of `kpm run-script <script-name>`',

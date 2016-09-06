@@ -3,7 +3,6 @@
   "version": "0.12.0",
   "license": "BSD-3-Clause",
   "preferGlobal": true,
-  "main": "./index.js",
   "dependencies": {
     "babel-runtime": "^6.0.0",
     "chalk": "^1.1.1",
@@ -77,7 +76,14 @@
     "🐱": "./bin/kpm.js"
   },
   "scripts": {
-    "test": "make test"
+    "test": "npm run lint && npm run test-only",
+    "test-ci": "npm run build && npm run test",
+    "build": "gulp build",
+    "watch": "gulp watch",
+    "test-only": "jest --coverage --verbose -i",
+    "lint": "eslint . && flow check",
+    "release-branch": "./scripts/release-branch.sh",
+    "build-dist": "./scripts/build-dist.sh"
   },
   "eslintConfig": {
     "extends": "eslint-config-fb-strict",
@@ -120,8 +126,9 @@
     "testEnvironment": "node",
     "testPathIgnorePatterns": [
       "__tests__/fixtures/",
+      "__tests__/__mocks__/",
       "updates/",
-      "/_(temp|mock).js$"
+      "/_(temp|mock|install).js$"
     ]
   }
 }

@@ -12,7 +12,7 @@
 import type {Reporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
 import {Install} from './install.js';
-import Lockfile from '../../lockfile/Lockfile.js';
+import Lockfile from '../../lockfile/wrapper.js';
 import buildSubCommands from './_build-sub-commands.js';
 
 export function hasWrapper(flags: Object, args: Array<string>): boolean {
@@ -30,12 +30,8 @@ export let {setFlags, run} = buildSubCommands('licenses', {
     flags: Object,
     args: Array<string>,
   ): Promise<void> {
-    const lockfile = await Lockfile.fromDirectory(config.cwd, reporter, {
-      silent: true,
-      strictIfPresent: true,
-    });
-
-    const install = new Install('ls', flags, args, config, reporter, lockfile);
+    const lockfile = await Lockfile.fromDirectory(config.cwd);
+    const install = new Install(flags, config, reporter, lockfile);
 
     let [depRequests,, manifest] = await install.fetchRequestFromCwd();
     await install.resolver.init(depRequests);

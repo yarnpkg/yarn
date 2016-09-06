@@ -9,9 +9,9 @@
  * @flow
  */
 
-import RegistryNpm from './registries/NpmResolver.js';
-import RegistryBower from './registries/BowerResolver.js';
-import RegistryKpm from './registries/KpmResolver.js';
+import RegistryNpm from './registries/npm-resolver.js';
+import RegistryBower from './registries/bower-resolver.js';
+import RegistryKpm from './registries/kpm-resolver.js';
 
 export let registries = {
   bower: RegistryBower,
@@ -21,13 +21,13 @@ export let registries = {
 
 //
 
-import ExoticGit from './exotics/GitResolver.js';
-import ExoticTarball from './exotics/TarballResolver.js';
-import ExoticGitHub from './exotics/GitHubResolver.js';
-import ExoticFile from './exotics/FileResolver.js';
-import ExoticGitLab from './exotics/GitlabResolver.js';
-import ExoticGist from './exotics/GistResolver.js';
-import ExoticBitbucket from './exotics/BitbucketResolver.js';
+import ExoticGit from './exotics/git-resolver.js';
+import ExoticTarball from './exotics/tarball-resolver.js';
+import ExoticGitHub from './exotics/github-resolver.js';
+import ExoticFile from './exotics/file-resolver.js';
+import ExoticGitLab from './exotics/gitlab-resolver.js';
+import ExoticGist from './exotics/gist-resolver.js';
+import ExoticBitbucket from './exotics/bitbucket-resolver.js';
 
 export let exotics = {
   git: ExoticGit,
@@ -41,7 +41,7 @@ export let exotics = {
 
 //
 
-import {explodeHostedGitFragment} from './exotics/HostedGitResolver.js';
+import {explodeHostedGitFragment} from './exotics/hosted-git-resolver.js';
 
 export let hostedGit = {
   github: ExoticGitHub,
@@ -62,7 +62,7 @@ export function hostedGitFragmentToGitUrl(fragment: string): string {
 
 //
 
-import ExoticRegistryResolver from './exotics/RegistryResolver.js';
+import ExoticRegistryResolver from './exotics/registry-resolver.js';
 
 for (let key in registries) {
   let RegistryResolver = registries[key];

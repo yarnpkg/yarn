@@ -9,7 +9,7 @@
  * @flow
  */
 
-import type Config from '../config';
+import type Config from '../config.js';
 import * as constants from '../constants.js';
 import * as child from './child.js';
 import {registries} from '../resolvers/index.js';

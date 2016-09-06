@@ -16,7 +16,7 @@ import buildSubCommands from './_build-sub-commands.js';
 import {isValidPackageName} from '../../util/normalise-manifest/validate.js';
 import {getName} from './dist-tag.js';
 import {getToken} from './login.js';
-import NpmRegistry from '../../registries/NpmRegistry.js';
+import NpmRegistry from '../../registries/npm-registry.js';
 
 type Messages = {
   info: string,

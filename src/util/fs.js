@@ -9,7 +9,7 @@
  * @flow
  */
 
-import BlockingQueue from './BlockingQueue.js';
+import BlockingQueue from './blocking-queue.js';
 import * as promise from './promise.js';
 import {promisify} from './promise.js';
 import map from './map.js';

@@ -10,22 +10,27 @@
  */
 /* eslint quotes: 0 */
 
-import map from "../util/map.js";
+import {LOCKFILE_VERSION} from '../constants.js';
+import {MessageError} from '../errors.js';
+import map from '../util/map.js';
 
-const invariant = require("invariant");
-const stripBOM = require("strip-bom");
+const invariant = require('invariant');
+const stripBOM = require('strip-bom');
+
+const VERSION_REGEX = /^kpm lockfile v(\d+)$/;
 
 const TOKEN_TYPES = {
-  boolean: "BOOLEAN",
-  string: "STRING",
-  identifier: "IDENTIFIER",
-  eof: "EOF",
-  colon: "COLON",
-  newline: "NEWLINE",
-  indent: "INDENT",
-  invalid: "INVALID",
-  number: "NUMBER",
-  comma: "COMMA",
+  boolean: 'BOOLEAN',
+  string: 'STRING',
+  identifier: 'IDENTIFIER',
+  eof: 'EOF',
+  colon: 'COLON',
+  newline: 'NEWLINE',
+  comment: 'COMMENT',
+  indent: 'INDENT',
+  invalid: 'INVALID',
+  number: 'NUMBER',
+  comma: 'COMMA',
 };
 
 const VALID_PROP_VALUE_TOKENS = [TOKEN_TYPES.boolean, TOKEN_TYPES.string, TOKEN_TYPES.number];
@@ -38,7 +43,7 @@ type Token = {
   line: number,
   col: number,
   type: string,
-  value: boolean | number | string | void
+  value: boolean | number | string | void,
 };
 
 export function* tokenise(input: string): Iterator<Token> {
@@ -53,25 +58,29 @@ export function* tokenise(input: string): Iterator<Token> {
   while (input.length) {
     let chop = 0;
 
-    if (input[0] === "\n") {
+    if (input[0] === '\n') {
       chop++;
       line++;
       col = 0;
       yield buildToken(TOKEN_TYPES.newline);
-    } else if (input[0] === "#") {
-      // ignore comments
-      while (input[chop] !== "\n") {
+    } else if (input[0] === '#') {
+      chop++;
+
+      let val = '';
+      while (input[chop] !== '\n') {
+        val += input[chop];
         chop++;
       }
-    } else if (input[0] === " ") {
+      yield buildToken(TOKEN_TYPES.comment, val);
+    } else if (input[0] === ' ') {
       if (lastNewline) {
-        let indent = "";
-        for (let i = 0; input[i] === " "; i++) {
+        let indent = '';
+        for (let i = 0; input[i] === ' '; i++) {
           indent += input[i];
         }
 
         if (indent.length % 2) {
-          throw new TypeError("Invalid number of spaces");
+          throw new TypeError('Invalid number of spaces');
         } else {
           chop = indent.length;
           yield buildToken(TOKEN_TYPES.indent, indent.length / 2);
@@ -80,7 +89,7 @@ export function* tokenise(input: string): Iterator<Token> {
         chop++;
       }
     } else if (input[0] === '"') {
-      let val = "";
+      let val = '';
       for (let i = 0; ; i++) {
         const char = input[i];
         val += char;
@@ -100,7 +109,7 @@ export function* tokenise(input: string): Iterator<Token> {
         }
       }
     } else if (/^[0-9]/.test(input)) {
-      let val = "";
+      let val = '';
       for (let i = 0; /^[0-9]$/.test(input[i]); i++) {
         val += input[i];
       }
@@ -113,17 +122,17 @@ export function* tokenise(input: string): Iterator<Token> {
     } else if (/^false/.test(input)) {
       yield buildToken(TOKEN_TYPES.boolean, false);
       chop = 5;
-    } else if (input[0] === ":") {
+    } else if (input[0] === ':') {
       yield buildToken(TOKEN_TYPES.colon);
       chop++;
-    } else if (input[0] === ",") {
+    } else if (input[0] === ',') {
       yield buildToken(TOKEN_TYPES.comma);
       chop++;
     } else if (/^[a-zA-Z]/g.test(input)) {
       let name = "";
       for (let i = 0; i < input.length; i++) {
         const char = input[i];
-        if (char === ":" || char === " " || char === "\n" || char === ",") {
+        if (char === ':' || char === ' ' || char === '\n' || char === ',') {
           break;
         } else {
           name += char;
@@ -142,7 +151,7 @@ export function* tokenise(input: string): Iterator<Token> {
     }
 
     col += chop;
-    lastNewline = input[0] === "\n";
+    lastNewline = input[0] === '\n';
     input = input.slice(chop);
   }
 
@@ -151,24 +160,50 @@ export function* tokenise(input: string): Iterator<Token> {
 
 export class Parser {
   constructor(input: string) {
+    this.comments = [];
     this.tokens = tokenise(input);
   }
 
   token: Token;
   tokens: Iterator<Token>;
+  comments: Array<string>;
+
+  onComment(token: Token) {
+    let value = token.value;
+    invariant(typeof value === 'string', 'expected token value to be a string');
+
+    let comment = value.trim();
+
+    let versionMatch = comment.match(VERSION_REGEX);
+    if (versionMatch) {
+      let version = +versionMatch[1];
+      if (version > LOCKFILE_VERSION) {
+        throw new MessageError(
+          `Can't install from a lockfile of version ${version} as you're on an old kpm version that only ` +
+          `supports versions up to ${LOCKFILE_VERSION}. Please update your client.`,
+        );
+      }
+    }
+
+    this.comments.push(comment);
+  }
 
   next(): Token {
     const item = this.tokens.next();
-    if (item.done) {
-      throw new Error("No more tokens");
-    } else if (item.value) {
-      return this.token = item.value;
+    invariant(item, 'expected a token');
+
+    const {done, value} = item;
+    if (done || !value) {
+      throw new Error('No more tokens');
+    } else if (value.type === TOKEN_TYPES.comment) {
+      this.onComment(value);
+      return this.next();
     } else {
-      throw new Error("Expected a token");
+      return this.token = value;
     }
   }
 
-  unexpected(msg: string = "Unexpected token") {
+  unexpected(msg: string = 'Unexpected token') {
     throw new SyntaxError(`${msg} ${this.token.line}:${this.token.col}`);
   }
 
@@ -225,7 +260,7 @@ export class Parser {
       } else if (propToken.type === TOKEN_TYPES.string) {
         // property key
         const key = propToken.value;
-        invariant(key, "Expected a key");
+        invariant(key, 'Expected a key');
 
         const keys = [key];
         this.next();
@@ -236,11 +271,11 @@ export class Parser {
 
           const keyToken = this.token;
           if (keyToken.type !== TOKEN_TYPES.string) {
-            this.unexpected("Expected string");
+            this.unexpected('Expected string');
           }
 
           const key = keyToken.value;
-          invariant(key, "Expected a key");
+          invariant(key, 'Expected a key');
           keys.push(key);
           this.next();
         }
@@ -267,10 +302,10 @@ export class Parser {
 
           this.next();
         } else {
-          this.unexpected("Invalid value type");
+          this.unexpected('Invalid value type');
         }
       } else {
-        this.unexpected("Unknown token");
+        this.unexpected('Unknown token');
       }
     }
 

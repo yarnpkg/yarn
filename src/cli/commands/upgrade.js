@@ -12,7 +12,7 @@
 import type {Reporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
 import {Install} from './install.js';
-import Lockfile from '../../lockfile/Lockfile.js';
+import Lockfile from '../../lockfile/wrapper.js';
 
 export function setFlags(commander: Object) {
   // TODO: support some flags that install command has
@@ -28,7 +28,7 @@ export async function run(
   flags: Object,
   args: Array<string>,
 ): Promise<void> {
-  const lockfile = new Lockfile(null, false);
-  const install = new Install('update', flags, args, config, reporter, lockfile);
-  return install.init();
+  const lockfile = new Lockfile();
+  const install = new Install(flags, config, reporter, lockfile);
+  await install.init();
 }

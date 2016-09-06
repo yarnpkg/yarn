@@ -9,9 +9,9 @@
  * @flow
  */
 
-export {default as ConsoleReporter} from './console/ConsoleReporter.js';
-export {default as BufferReporter} from './BufferReporter.js';
-export {default as EventReporter} from './EventReporter.js';
-export {default as JSONReporter} from './JSONReporter.js';
-export {default as NoopReporter} from './BaseReporter.js';
-export {default as Reporter} from './BaseReporter.js';
+export {default as ConsoleReporter} from './console/console-reporter.js';
+export {default as BufferReporter} from './buffer-reporter.js';
+export {default as EventReporter} from './event-reporter.js';
+export {default as JSONReporter} from './json-reporter.js';
+export {default as NoopReporter} from './base-reporter.js';
+export {default as Reporter} from './base-reporter.js';

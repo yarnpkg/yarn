@@ -11,13 +11,13 @@
 
 import type {RegistryNames} from './registries/index.js';
 import type {Reporter} from './reporters/index.js';
-import type Registry from './registries/Registry.js';
+import type Registry from './registries/base-registry.js';
 import type {Manifest, PackageRemote} from './types.js';
 import normaliseManifest from './util/normalise-manifest/index.js';
 import * as fs from './util/fs.js';
 import * as constants from './constants.js';
-import ConstraintResolver from './PackageConstraintResolver.js';
-import RequestManager from './util/RequestManager.js';
+import ConstraintResolver from './package-constraint-resolver.js';
+import RequestManager from './util/request-manager.js';
 import {registries} from './registries/index.js';
 import map from './util/map.js';
 
@@ -117,7 +117,7 @@ export default class Config {
    * Reduce a list of versions to a single one based on an input range.
    */
 
-  resolveConstraints(versions: Array<string>, range: string): Promise<string> {
+  resolveConstraints(versions: Array<string>, range: string): Promise<?string> {
     return this.constraintResolver.reduce(versions, range);
   }
 

@@ -11,11 +11,11 @@
 
 import type {Reporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
-import type PackageResolver from '../../PackageResolver.js';
-import type PackageLinker from '../../PackageLinker.js';
+import type PackageResolver from '../../package-resolver.js';
+import type PackageLinker from '../../package-linker.js';
 import type {Trees} from '../../reporters/types.js';
 import {Install} from './install.js';
-import Lockfile from '../../lockfile/Lockfile.js';
+import Lockfile from '../../lockfile/wrapper.js';
 
 const invariant = require('invariant');
 
@@ -140,12 +140,8 @@ export async function run(
   flags: Object,
   args: Array<string>,
 ): Promise<void> {
-  const lockfile = await Lockfile.fromDirectory(config.cwd, reporter, {
-    silent: true,
-    strictIfPresent: true,
-  });
-
-  const install = new Install('ls', flags, args, config, reporter, lockfile);
+  const lockfile = await Lockfile.fromDirectory(config.cwd, reporter);
+  const install = new Install(flags, config, reporter, lockfile);
   let [depRequests, patterns] = await install.fetchRequestFromCwd();
   await install.resolver.init(depRequests);
 

@@ -1,10 +1,8 @@
 dep-a@^1.2.0:
-  name dep-a
   version "1.2.0"
   resolved dep-a-1.2.0.tgz#1e0d57d4c2055944ab042b617a064dc2ce1308fb
   dependencies:
-    dep-b "1.2.0"
+    dep-b "^1.2.0"
 dep-b@^1.2.0:
-  name dep-b
   version "1.2.0"
   resolved dep-b-1.2.0.tgz#d82ed4984566c1aea13d3d369b231bf52b672de3
