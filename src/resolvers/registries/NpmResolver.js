@@ -144,7 +144,7 @@ export default class NpmResolver extends RegistryResolver {
       );
     }
 
-    if (info.deprecated) {
+    if (typeof info.deprecated === 'string') {
       const name = info.name; // TODO verbose this.request.getHuman();
       this.reporter.warn(`${name}@${info.version}: ${info.deprecated}`);
     }
