@@ -237,6 +237,9 @@ export default class PackageRequest {
 
     // set package reference
     const ref = new PackageReference(this, info, remote);
+    ref.addPattern(this.pattern, info);
+    ref.addOptional(this.optional);
+    ref.addVisibility(this.visibility);
 
     info._reference = ref;
     info._remote = remote;
@@ -273,10 +276,7 @@ export default class PackageRequest {
 
     await Promise.all(promises);
 
-    ref.addPattern(this.pattern, info);
     ref.addDependencies(deps);
-    ref.addOptional(this.optional);
-    ref.addVisibility(this.visibility);
   }
 
   /**
