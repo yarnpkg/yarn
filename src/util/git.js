@@ -9,7 +9,7 @@
  * @flow
  */
 
-import type Config from '../Config.js';
+import type Config from '../config.js';
 import {MessageError, SecurityError} from '../errors.js';
 import {removeSuffix} from './misc.js';
 import * as crypto from './crypto.js';

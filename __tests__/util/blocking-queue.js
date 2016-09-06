@@ -9,7 +9,7 @@
  * @flow
  */
 
-import BlockingQueue from '../../src/util/BlockingQueue.js';
+import BlockingQueue from '../../src/util/blocking-queue.js';
 
 test('max concurrency', async function () {
   let queue = new BlockingQueue('test', 5);

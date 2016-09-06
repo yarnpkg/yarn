@@ -10,12 +10,12 @@
  */
 /* eslint max-len: 0 */
 
-import TarballFetcher from '../src/fetchers/TarballFetcher.js';
-import BaseFetcher from '../src/fetchers/BaseFetcher.js';
-import CopyFetcher from '../src/fetchers/CopyFetcher.js';
-import GitFetcher from '../src/fetchers/GitFetcher.js';
+import TarballFetcher from '../src/fetchers/tarball-fetcher.js';
+import BaseFetcher from '../src/fetchers/base-fetcher.js';
+import CopyFetcher from '../src/fetchers/copy-fetcher.js';
+import GitFetcher from '../src/fetchers/git-fetcher.js';
 import {NoopReporter} from '../src/reporters/index.js';
-import Config from '../src/Config.js';
+import Config from '../src/config.js';
 import mkdir from './_temp.js';
 import * as fs from '../src/util/fs.js';
 

@@ -10,7 +10,7 @@
  */
 
 import type {Reporter} from '../../reporters/index.js';
-import type Config from '../../Config.js';
+import type Config from '../../config.js';
 
 let _ = require('lodash');
 

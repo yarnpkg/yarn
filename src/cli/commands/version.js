@@ -10,7 +10,7 @@
  */
 
 import type {Reporter} from '../../reporters/index.js';
-import type Config from '../../Config.js';
+import type Config from '../../config.js';
 import {MessageError} from '../../errors.js';
 import {stringify} from '../../util/misc.js';
 import {spawn} from '../../util/child.js';

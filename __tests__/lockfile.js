@@ -10,7 +10,7 @@
  */
 /* eslint quotes: 0 */
 
-import Lockfile from "../src/lockfile/Lockfile.js";
+import Lockfile from "../src/lockfile/wrapper.js";
 import stringify from "../src/lockfile/stringify.js";
 import parse from "../src/lockfile/parse.js";
 import nullify from "../src/util/map.js";

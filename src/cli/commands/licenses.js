@@ -10,9 +10,9 @@
  */
 
 import type {Reporter} from '../../reporters/index.js';
-import type Config from '../../Config.js';
+import type Config from '../../config.js';
 import {Install} from './install.js';
-import Lockfile from '../../lockfile/Lockfile.js';
+import Lockfile from '../../lockfile/wrapper.js';
 import buildSubCommands from './_build-sub-commands.js';
 
 export function hasWrapper(flags: Object, args: Array<string>): boolean {

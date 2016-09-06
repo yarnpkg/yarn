@@ -10,8 +10,8 @@
  */
 
 import type {Reporter} from '../../reporters/index.js';
-import type Config from '../../Config.js';
-import Lockfile from '../../lockfile/Lockfile.js';
+import type Config from '../../config.js';
+import Lockfile from '../../lockfile/wrapper.js';
 import {registries} from '../../registries/index.js';
 import {Install} from './install.js';
 import {MessageError} from '../../errors.js';

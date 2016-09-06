@@ -10,8 +10,8 @@
  */
 
 import type {Reporter} from '../../reporters/index.js';
-import type Config from '../../Config.js';
-import NpmRegistry from '../../registries/NpmRegistry.js';
+import type Config from '../../config.js';
+import NpmRegistry from '../../registries/npm-registry.js';
 import {MessageError} from '../../errors.js';
 import {run as runVersion, setFlags as versionSetFlags} from './version.js';
 import * as fs from '../../util/fs.js';

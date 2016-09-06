@@ -10,7 +10,7 @@
  */
 
 import type {Reporter} from '../../reporters/index.js';
-import type Config from '../../Config.js';
+import type Config from '../../config.js';
 import {MessageError} from '../../errors.js';
 
 async function getCredentials(config: Config, reporter: Reporter): Promise<?{

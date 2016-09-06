@@ -9,7 +9,7 @@
  * @flow
  */
 
-import type Config from '../../Config.js';
+import type Config from '../../config.js';
 import {MessageError} from '../../errors.js';
 import executeLifecycleScript from '../../util/execute-lifecycle-script.js';
 import * as commands from './index.js';
