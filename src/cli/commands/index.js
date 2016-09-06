@@ -75,11 +75,10 @@ export {upgrade};
 import * as check from './check.js';
 export {check};
 
-import buildUseless from './_useless.js';
+import * as version from './version.js';
+export {version};
 
-export let version = buildUseless(
-  'Use `kpm --version` instead of `kpm version`',
-);
+import buildUseless from './_useless.js';
 
 export let runScript = buildUseless(
   'Use `kpm <script-name>` instead of `kpm run-script <script-name>`',
