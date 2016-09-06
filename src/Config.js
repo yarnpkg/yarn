@@ -117,7 +117,7 @@ export default class Config {
    * Reduce a list of versions to a single one based on an input range.
    */
 
-  resolveConstraints(versions: Array<string>, range: string): Promise<string> {
+  resolveConstraints(versions: Array<string>, range: string): Promise<?string> {
     return this.constraintResolver.reduce(versions, range);
   }
 
