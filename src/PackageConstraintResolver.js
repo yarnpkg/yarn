@@ -12,7 +12,6 @@
 import type {Reporter} from './reporters/index.js';
 import type Config from './Config.js';
 
-const invariant = require('invariant');
 const semver = require('semver');
 
 // This isn't really a "proper" constraint resolver. We just return the highest semver

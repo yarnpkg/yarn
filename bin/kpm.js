@@ -27,11 +27,13 @@ if (semver.satisfies(ver, '>=5.0.0')) {
   throw new Error('Node version ' + ver + ' is not supported');
 }
 
-for (var i = 0; i < possibles.length; i++) {
+var i = 0;
+for (; i < possibles.length; i++) {
   var possible = possibles[i];
   try {
     module.exports = require(possible);
     found = true;
+    break;
   } catch (err) {
     if (err.code === 'MODULE_NOT_FOUND') {
       continue;
