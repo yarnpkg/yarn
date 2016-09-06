@@ -1,6 +1,6 @@
 {
   "name": "kpm",
-  "version": "0.11.0",
+  "version": "0.12.0",
   "license": "BSD-3-Clause",
   "preferGlobal": true,
   "main": "./index.js",
