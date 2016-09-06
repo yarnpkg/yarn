@@ -27,7 +27,7 @@ export {add};
 import * as clean from './clean.js';
 export {clean};
 
-import * as config from './Config.js';
+import * as config from './config.js';
 export {config};
 
 import * as team from './team.js';

@@ -17,7 +17,6 @@ import {spawn} from '../../util/child.js';
 import * as fs from '../../util/fs.js';
 
 let invariant = require('invariant');
-let commander = require('commander');
 let semver = require('semver');
 let path = require('path');
 
