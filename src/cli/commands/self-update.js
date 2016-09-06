@@ -37,7 +37,7 @@ export async function run(
     protocol: 'https',
     host: 'api.github.com',
     headers: {
-      'user-agent': USER_AGENT,
+      'User-Agent': USER_AGENT,
     },
     Promise,
     followRedirects: false,

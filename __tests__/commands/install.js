@@ -48,6 +48,10 @@ async function createLockfile(dir): Promise<Lockfile> {
   return new Lockfile(lockfile);
 }
 
+function explodeLockfile(lockfile: string): Array<string> {
+  return lockfile.split('\n').filter((line): boolean => !!line && line[0] !== '#');
+}
+
 async function run(
   flags: Object,
   args: Array<string>,
@@ -100,7 +104,7 @@ async function run(
       await clean(cwd, removeLock);
     }
   } catch (err) {
-    throw new Error(`${err} \nConsole output:\n ${out}`);
+    throw new Error(`${err && err.stack} \nConsole output:\n ${out}`);
   }
 }
 
@@ -417,7 +421,7 @@ test('upgrade scenario', (): Promise<void> => {
     );
 
     let lockFileWritten = await fs.readFile(path.join(config.cwd, 'kpm.lock'));
-    let lockFileLines = lockFileWritten.split('\n').filter((line): boolean => !!line);
+    let lockFileLines = explodeLockfile(lockFileWritten);
     assert.equal(lockFileLines[0], 'left-pad@0.0.9:');
     assert.equal(lockFileLines.length, 3);
     assert.notEqual(lockFileLines[2].indexOf('resolved left-pad-0.0.9.tgz'), -1);
@@ -437,7 +441,7 @@ test('upgrade scenario', (): Promise<void> => {
       );
 
       let lockFileWritten = await fs.readFile(path.join(config.cwd, 'kpm.lock'));
-      let lockFileLines = lockFileWritten.split('\n').filter((line): boolean => !!line);
+      let lockFileLines = explodeLockfile(lockFileWritten);
       assert.equal(lockFileLines[0], 'left-pad@1.1.0:');
       assert.equal(lockFileLines.length, 3);
       assert.notEqual(lockFileLines[2].indexOf('resolved left-pad-1.1.0.tgz'), -1);
@@ -482,7 +486,7 @@ test('[network] upgrade scenario 2 (with sub dependencies)', async (): Promise<v
       );
 
       let lockFileWritten = await fs.readFile(path.join(config.cwd, 'kpm.lock'));
-      let lockFileLines = lockFileWritten.split('\n').filter((line): boolean => !!line);
+      let lockFileLines = explodeLockfile(lockFileWritten);
       assert.equal(lockFileLines[0], 'mime-db@~1.23.0:');
       assert.notEqual(lockFileLines[2].indexOf('resolved mime-db-'), -1);
       assert.equal(lockFileLines[3], 'mime-types@^2.1.11:');
@@ -521,7 +525,7 @@ test('[network] downgrade scenario', (): Promise<void> => {
 
     let mirrorPath = 'mirror-for-offline';
     let lockFileWritten = await fs.readFile(path.join(config.cwd, 'kpm.lock'));
-    let lockFileLines = lockFileWritten.split('\n').filter((line): boolean => !!line);
+    let lockFileLines = explodeLockfile(lockFileWritten);
     assert.equal(lockFileLines[0], 'left-pad@1.1.0:');
     assert.equal(lockFileLines.length, 3);
     assert.notEqual(lockFileLines[2].indexOf('resolved left-pad-1.1.0.tgz'), -1);
@@ -541,7 +545,7 @@ test('[network] downgrade scenario', (): Promise<void> => {
       );
 
       let lockFileWritten = await fs.readFile(path.join(config.cwd, 'kpm.lock'));
-      let lockFileLines = lockFileWritten.split('\n').filter((line): boolean => !!line);
+      let lockFileLines = explodeLockfile(lockFileWritten);
       assert.equal(lockFileLines[0], 'left-pad@0.0.9:');
       assert.equal(lockFileLines.length, 3);
       assert.notEqual(lockFileLines[2].indexOf('resolved left-pad-0.0.9.tgz'), -1);
@@ -656,7 +660,7 @@ test('uninstall should remove dependency from package.json, kpm.lock and node_mo
       );
 
       let lockFileContent = await fs.readFile(path.join(config.cwd, 'kpm.lock'));
-      let lockFileLines = lockFileContent.split('\n').filter((line): boolean => !!line);
+      let lockFileLines = explodeLockfile(lockFileContent);
       assert.equal(lockFileLines.length, 0);
     } finally {
       await fs.unlink(path.join(config.cwd, 'kpm.lock'));
@@ -734,7 +738,7 @@ test('uninstall should remove subdependencies', (): Promise<void> => {
       );
 
       let lockFileContent = await fs.readFile(path.join(config.cwd, 'kpm.lock'));
-      let lockFileLines = lockFileContent.split('\n').filter((line): boolean => !!line);
+      let lockFileLines = explodeLockfile(lockFileContent);
       assert.equal(lockFileLines.length, 3);
       assert.equal(lockFileLines[0], 'dep-c@^1.0.0:');
     } finally {
@@ -767,7 +771,7 @@ async (): Promise<void> => {
     assert.equal(mirror[2].relative, 'mime-types-2.0.0.tgz');
 
     let lockFileContent = await fs.readFile(path.join(config.cwd, 'kpm.lock'));
-    let lockFileLines = lockFileContent.split('\n').filter((line): boolean => !!line);
+    let lockFileLines = explodeLockfile(lockFileContent);
     assert.equal(lockFileLines.length, 11);
     assert.equal(lockFileLines[3].indexOf('mime-db@'), 0);
     assert.equal(lockFileLines[6].indexOf('mime-types@2.0.0'), 0);
@@ -814,7 +818,7 @@ async (): Promise<void> => {
       );
 
       let lockFileWritten = await fs.readFile(path.join(config.cwd, 'kpm.lock'));
-      let lockFileLines = lockFileWritten.split('\n').filter((line): boolean => !!line);
+      let lockFileLines = explodeLockfile(lockFileWritten);
       assert.equal(lockFileLines[0], 'mime-db@~1.23.0:');
       assert.notEqual(lockFileLines[2].indexOf('resolved mime-db-'), -1);
       assert.equal(lockFileLines[3], 'mime-types@2.1.11:');
@@ -852,7 +856,7 @@ test('[network] install --initMirror should add init mirror deps from package.js
     assert.equal(mirror[1].relative, 'mime-types-2.0.0.tgz');
 
     let lockFileContent = await fs.readFile(path.join(config.cwd, 'kpm.lock'));
-    let lockFileLines = lockFileContent.split('\n').filter((line): boolean => !!line);
+    let lockFileLines = explodeLockfile(lockFileContent);
     assert.equal(lockFileLines.length, 8);
     assert.equal(lockFileLines[0].indexOf('mime-db@'), 0);
     assert.equal(lockFileLines[3].indexOf('mime-types@2.0.0'), 0);
@@ -904,7 +908,7 @@ test('[network] install --save with new dependency should be deterministic', asy
       );
 
       let lockFileWritten = await fs.readFile(path.join(config.cwd, 'kpm.lock'));
-      let lockFileLines = lockFileWritten.split('\n').filter((line): boolean => !!line);
+      let lockFileLines = explodeLockfile(lockFileWritten);
       assert.equal(lockFileLines.length, 11);
 
 
@@ -958,7 +962,7 @@ xit('[network] install --save with new dependency should be deterministic 2', as
       );
 
       let lockFileWritten = await fs.readFile(path.join(config.cwd, 'kpm.lock'));
-      let lockFileLines = lockFileWritten.split('\n').filter((line): boolean => !!line);
+      let lockFileLines = explodeLockfile(lockFileWritten);
       assert.equal(lockFileLines.length, 8);
 
       let mirror = await fs.walk(path.join(config.cwd, mirrorPath));
@@ -1034,7 +1038,7 @@ test('[network] install --save should ignore cache', (): Promise<void> => {
     assert.equal(mirror[0].relative, 'left-pad-1.1.0.tgz');
 
     let lockFileWritten = await fs.readFile(path.join(config.cwd, 'kpm.lock'));
-    let lockFileLines = lockFileWritten.split('\n').filter((line): boolean => !!line);
+    let lockFileLines = explodeLockfile(lockFileWritten);
     assert.equal(lockFileLines[0], 'left-pad@1.1.0:');
     assert.equal(lockFileLines.length, 3);
     assert.notEqual(lockFileLines[2].indexOf('resolved left-pad-1.1.0.tgz'), -1);

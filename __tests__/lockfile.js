@@ -51,7 +51,7 @@ test("parse", () => {
 
 test("stringify", () => {
   let obj = {foo: "bar"};
-  expect(stringify({a: obj, b: obj})).toEqual("a, b:\n  foo bar");
+  expect(stringify({a: obj, b: obj}, true)).toEqual("a, b:\n  foo bar");
 });
 
 test("Lockfile.fromDirectory", () => {

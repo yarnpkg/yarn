@@ -16,6 +16,9 @@ const fs = require('fs');
 
 const cwd = process.cwd();
 
+// lockfile version, bump whenever we make backwards incompatible changes
+export const LOCKFILE_VERSION = 1;
+
 // max amount of network requests to perform concurrently
 export const NETWORK_CONCURRENCY = 15;
 
@@ -42,7 +45,6 @@ export const LOCKFILE_FILENAME = or(['fbkpm.lock', 'kpm.lock'], cwd);
 export const METADATA_FILENAME = '.kpm-metadata.json';
 export const CLEAN_FILENAME = '.kpmclean';
 export const SINGLE_INSTANCE_FILENAME = '.kpm-single-instance';
-
 
 export const USER_AGENT = `kpm v${pkg.version}`;
 
