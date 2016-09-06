@@ -17,7 +17,7 @@ import * as network from '../util/network.js';
 import * as lockfile from 'proper-lockfile';
 
 import aliases from './aliases.js';
-import Config from '../config.js';
+import Config from '../Config.js';
 import onDeath from 'death';
 
 const net = require('net');

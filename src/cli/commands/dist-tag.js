@@ -10,7 +10,7 @@
  */
 
 import type {Reporter} from '../../reporters/index.js';
-import type Config from '../../config.js';
+import type Config from '../../Config.js';
 import PackageRequest from '../../PackageRequest.js';
 import buildSubCommands from './_build-sub-commands.js';
 import {getToken} from './login.js';

@@ -13,7 +13,7 @@ import type {FetchedMetadata} from './types.js';
 import type PackageResolver from './PackageResolver.js';
 import type {Reporter} from './reporters/index.js';
 import type PackageReference from './PackageReference.js';
-import type Config from './config.js';
+import type Config from './Config.js';
 import * as fetchers from './fetchers/index.js';
 import * as fs from './util/fs.js';
 import * as promise from './util/promise.js';

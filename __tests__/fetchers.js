@@ -15,7 +15,7 @@ import BaseFetcher from '../src/fetchers/BaseFetcher.js';
 import CopyFetcher from '../src/fetchers/CopyFetcher.js';
 import GitFetcher from '../src/fetchers/GitFetcher.js';
 import {NoopReporter} from '../src/reporters/index.js';
-import Config from '../src/config.js';
+import Config from '../src/Config.js';
 import mkdir from './_temp.js';
 import * as fs from '../src/util/fs.js';
 

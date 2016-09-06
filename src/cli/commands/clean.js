@@ -10,7 +10,7 @@
  */
 
 import type {Reporter} from '../../reporters/index.js';
-import type Config from '../../config.js';
+import type Config from '../../Config.js';
 import {registryNames} from '../../registries/index.js';
 import {sortFilter, ignoreLinesToRegex} from '../../util/filter.js';
 import {CLEAN_FILENAME} from '../../constants.js';

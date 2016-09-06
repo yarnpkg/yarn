@@ -13,7 +13,7 @@ import type {Manifest, DependencyRequestPatterns, DependencyRequestPattern} from
 import type {RegistryNames} from './registries/index.js';
 import type PackageReference from './PackageReference.js';
 import type {Reporter} from './reporters/index.js';
-import type Config from './config.js';
+import type Config from './Config.js';
 import {REMOVED_ANCESTOR} from './PackageReference.js';
 import PackageRequest from './PackageRequest.js';
 import RequestManager from './util/RequestManager.js';

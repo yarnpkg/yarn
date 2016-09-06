@@ -14,7 +14,7 @@ import type PackageResolver from '../PackageResolver.js';
 import type {Manifest} from '../types.js';
 import type {RegistryNames} from '../registries/index.js';
 import type {Reporter} from '../reporters/index.js';
-import type Config from '../config.js';
+import type Config from '../Config.js';
 
 export default class BaseResolver {
   constructor(request: PackageRequest, fragment: string) {

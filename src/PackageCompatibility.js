@@ -12,7 +12,7 @@
 import type PackageResolver from './PackageResolver.js';
 import type {Reporter} from './reporters/index.js';
 import type {Manifest} from './types.js';
-import type Config from './config.js';
+import type Config from './Config.js';
 import * as PackageReference from './PackageReference.js';
 import {MessageError} from './errors.js';
 import map from './util/map.js';

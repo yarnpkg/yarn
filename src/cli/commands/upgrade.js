@@ -10,7 +10,7 @@
  */
 
 import type {Reporter} from '../../reporters/index.js';
-import type Config from '../../config.js';
+import type Config from '../../Config.js';
 import {Install} from './install.js';
 import Lockfile from '../../lockfile/Lockfile.js';
 

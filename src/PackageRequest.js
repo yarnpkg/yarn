@@ -12,7 +12,7 @@
 import type {DependencyRequestPattern, Manifest} from './types.js';
 import type PackageResolver from './PackageResolver.js';
 import type {Reporter} from './reporters/index.js';
-import type Config from './config.js';
+import type Config from './Config.js';
 import type {VisibilityAction} from './PackageReference.js';
 import Lockfile from './lockfile/Lockfile.js';
 import {USED as USED_VISIBILITY, default as PackageReference} from './PackageReference.js';

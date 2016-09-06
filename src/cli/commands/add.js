@@ -13,7 +13,7 @@ import type {RegistryNames} from '../../registries/index.js';
 import type {Reporter} from '../../reporters/index.js';
 import type {InstallCwdRequest, InstallPrepared} from './install.js';
 import type {DependencyRequestPatterns} from '../../types.js';
-import type Config from '../../config.js';
+import type Config from '../../Config.js';
 import Lockfile from '../../lockfile/Lockfile.js';
 import * as PackageReference from '../../PackageReference.js';
 import {registryNames} from '../../registries/index.js';

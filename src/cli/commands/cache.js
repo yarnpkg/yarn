@@ -10,7 +10,7 @@
  */
 
 import type {Reporter} from '../../reporters/index.js';
-import type Config from '../../config.js';
+import type Config from '../../Config.js';
 import buildSubCommands from './_build-sub-commands.js';
 import * as fs from '../../util/fs.js';
 

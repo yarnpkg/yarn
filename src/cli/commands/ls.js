@@ -10,7 +10,7 @@
  */
 
 import type {Reporter} from '../../reporters/index.js';
-import type Config from '../../config.js';
+import type Config from '../../Config.js';
 import type PackageResolver from '../../PackageResolver.js';
 import type PackageLinker from '../../PackageLinker.js';
 import type {Trees} from '../../reporters/types.js';

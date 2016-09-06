@@ -14,7 +14,7 @@ import * as reporters from '../src/reporters/index.js';
 import PackageResolver from '../src/PackageResolver.js';
 import * as constants from '../src/constants.js';
 import Lockfile from '../src/lockfile/Lockfile.js';
-import Config from '../src/config.js';
+import Config from '../src/Config.js';
 import makeTemp from './_temp.js';
 import * as fs from '../src/util/fs.js';
 

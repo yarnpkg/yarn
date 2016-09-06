@@ -17,7 +17,7 @@ import * as constants from '../../src/constants.js';
 import {run as check} from '../../src/cli/commands/check.js';
 import * as fs from '../../src/util/fs.js';
 import {Install} from '../../src/cli/commands/install.js';
-import Config from '../../src/config.js';
+import Config from '../../src/Config.js';
 
 let stream = require('stream');
 let path = require('path');

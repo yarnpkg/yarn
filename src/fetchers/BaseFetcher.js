@@ -12,7 +12,7 @@
 
 import type {Manifest, PackageRemote, FetchedMetadata, FetchedOverride} from '../types.js';
 import type {RegistryNames} from '../registries/index.js';
-import type Config from '../config.js';
+import type Config from '../Config.js';
 import * as constants from '../constants.js';
 import * as util from '../util/misc.js';
 import * as fs from '../util/fs.js';

@@ -12,7 +12,7 @@
 import type {Manifest} from './types.js';
 import type PackageResolver from './PackageResolver.js';
 import type {Reporter} from './reporters/index.js';
-import type Config from './config.js';
+import type Config from './Config.js';
 import type {HoistManifest} from './PackageHoister.js';
 import {registries} from './registries/index.js';
 import PackageHoister from './PackageHoister.js';

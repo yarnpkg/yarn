@@ -13,7 +13,7 @@ import {Reporter} from '../../src/reporters/index.js';
 import {Install} from '../../src/cli/commands/install.js';
 import {run as uninstall} from '../../src/cli/commands/uninstall.js';
 import {run as check} from '../../src/cli/commands/check.js';
-import Config from '../../src/config.js';
+import Config from '../../src/Config.js';
 import * as fs from '../../src/util/fs.js';
 import assert from 'assert';
 import semver from 'semver';

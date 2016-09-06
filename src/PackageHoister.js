@@ -10,7 +10,7 @@
  */
 
 import type PackageResolver from './PackageResolver.js';
-import type Config from './config.js';
+import type Config from './Config.js';
 import type {Manifest} from './types.js';
 
 const invariant = require('invariant');

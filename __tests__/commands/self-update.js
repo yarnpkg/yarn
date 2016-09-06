@@ -11,7 +11,7 @@
 
 import BlockingQueue from '../../src/util/BlockingQueue.js';
 import * as child from '../../src/util/child.js';
-import Config from '../../src/config.js';
+import Config from '../../src/Config.js';
 import {SELF_UPDATE_DOWNLOAD_FOLDER} from '../../src/constants.js';
 import * as fs from '../../src/util/fs.js';
 import {run as selfUpdate} from '../../src/cli/commands/self-update.js';

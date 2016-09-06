@@ -12,7 +12,7 @@
 import type {Reporter} from '../../reporters/index.js';
 import type {ReporterSelectOption} from '../../reporters/types.js';
 import type {Manifest, DependencyRequestPatterns} from '../../types.js';
-import type Config from '../../config.js';
+import type Config from '../../Config.js';
 import type {RegistryNames} from '../../registries/index.js';
 import {registryNames} from '../../registries/index.js';
 import Lockfile from '../../lockfile/Lockfile.js';

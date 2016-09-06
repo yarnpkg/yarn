@@ -16,7 +16,7 @@ import * as constants from '../../src/constants.js';
 import {parse} from '../../src/lockfile/Lockfile.js';
 import {Install} from '../../src/cli/commands/install.js';
 import {run as check} from '../../src/cli/commands/check.js';
-import Config from '../../src/config.js';
+import Config from '../../src/Config.js';
 import * as fs from '../../src/util/fs.js';
 import {runInstall} from './install.js';
 import assert from 'assert';
