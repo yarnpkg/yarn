@@ -9,14 +9,12 @@
  * @flow
  */
 
-import {getPackageVersion, clean, createLockfile, explodeLockfile, run as buildRun} from './_install.js';
+import {getPackageVersion, createLockfile, explodeLockfile, run as buildRun} from './_install.js';
 import {Add} from '../../src/cli/commands/add.js';
 import {Reporter} from '../../src/reporters/index.js';
-import * as reporters from '../../src/reporters/index.js';
 import * as constants from '../../src/constants.js';
-import {default as Lockfile, parse} from '../../src/lockfile/Lockfile.js';
+import {parse} from '../../src/lockfile/Lockfile.js';
 import {Install} from '../../src/cli/commands/install.js';
-import {run as uninstall} from '../../src/cli/commands/uninstall.js';
 import {run as check} from '../../src/cli/commands/check.js';
 import Config from '../../src/config.js';
 import * as fs from '../../src/util/fs.js';
@@ -26,7 +24,6 @@ import semver from 'semver';
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000;
 
-let stream = require('stream');
 let path = require('path');
 
 let fixturesLoc = path.join(__dirname, '..', 'fixtures', 'install');
@@ -44,131 +41,129 @@ async function runAdd(
 }
 
 test('[network] install with arg that has install scripts', (): Promise<void> => {
- return runAdd({}, ['flow-bin'], 'install-with-arg-and-install-scripts');
+  return runAdd({}, ['flow-bin'], 'install-with-arg-and-install-scripts');
 });
 
 test('[network] install with arg', (): Promise<void> => {
- return runAdd({}, ['is-online'], 'install-with-arg');
+  return runAdd({}, ['is-online'], 'install-with-arg');
 });
 
 test('[network] install with arg that has binaries', (): Promise<void> => {
- return runAdd({}, ['react-native-cli'], 'install-with-arg-and-bin');
+  return runAdd({}, ['react-native-cli'], 'install-with-arg-and-bin');
 });
 
 test('[network] install --save should ignore cache', (): Promise<void> => {
- // left-pad@1.1.0 gets installed without --save
- // left-pad@1.1.0 gets installed with --save
- // files in mirror, kpm.lock, package.json and node_modules should reflect that
+  // left-pad@1.1.0 gets installed without --save
+  // left-pad@1.1.0 gets installed with --save
+  // files in mirror, kpm.lock, package.json and node_modules should reflect that
 
- let mirrorPath = 'mirror-for-offline';
- let fixture = 'install-save-to-mirror-when-cached';
+  let mirrorPath = 'mirror-for-offline';
+  let fixture = 'install-save-to-mirror-when-cached';
 
- return runAdd({}, ['left-pad@1.1.0'], fixture, async (config, reporter) => {
-   assert.equal(
-     await getPackageVersion(config, 'left-pad'),
-     '1.1.0',
-   );
+  return runAdd({}, ['left-pad@1.1.0'], fixture, async (config, reporter) => {
+    assert.equal(
+      await getPackageVersion(config, 'left-pad'),
+      '1.1.0',
+    );
 
-   let lockfile = await createLockfile(config.cwd);
-   let install = new Add(['left-pad@1.1.0'], {}, config, reporter, lockfile);
-   await install.init();
-   assert.equal(
-     await getPackageVersion(config, 'left-pad'),
-     '1.1.0',
-   );
-   assert.deepEqual(
-     JSON.parse(await fs.readFile(path.join(config.cwd, 'package.json'))).dependencies,
-     {'left-pad': '1.1.0'},
-   );
+    let lockfile = await createLockfile(config.cwd);
+    let install = new Add(['left-pad@1.1.0'], {}, config, reporter, lockfile);
+    await install.init();
+    assert.equal(
+      await getPackageVersion(config, 'left-pad'),
+      '1.1.0',
+    );
+    assert.deepEqual(
+      JSON.parse(await fs.readFile(path.join(config.cwd, 'package.json'))).dependencies,
+      {'left-pad': '1.1.0'},
+    );
 
-   let mirror = await fs.walk(path.join(config.cwd, mirrorPath));
-   assert.equal(mirror.length, 1);
-   assert.equal(mirror[0].relative, 'left-pad-1.1.0.tgz');
+    let mirror = await fs.walk(path.join(config.cwd, mirrorPath));
+    assert.equal(mirror.length, 1);
+    assert.equal(mirror[0].relative, 'left-pad-1.1.0.tgz');
 
-   let lockFileWritten = await fs.readFile(path.join(config.cwd, 'kpm.lock'));
-   let lockFileLines = explodeLockfile(lockFileWritten);
-   assert.equal(lockFileLines[0], 'left-pad@1.1.0:');
-   assert.equal(lockFileLines.length, 3);
-   assert.notEqual(lockFileLines[2].indexOf('resolved left-pad-1.1.0.tgz'), -1);
+    let lockFileWritten = await fs.readFile(path.join(config.cwd, 'kpm.lock'));
+    let lockFileLines = explodeLockfile(lockFileWritten);
+    assert.equal(lockFileLines[0], 'left-pad@1.1.0:');
+    assert.equal(lockFileLines.length, 3);
+    assert.notEqual(lockFileLines[2].indexOf('resolved left-pad-1.1.0.tgz'), -1);
 
-   await fs.unlink(path.join(config.cwd, mirrorPath));
-   await fs.unlink(path.join(config.cwd, 'package.json'));
- });
+    await fs.unlink(path.join(config.cwd, mirrorPath));
+    await fs.unlink(path.join(config.cwd, 'package.json'));
+  });
 });
 
 test('[network] install --save should not make package.json strict', async (): Promise<void> => {
- let mirrorPath = 'mirror-for-offline';
- let fixture = 'install-no-strict';
- let cwd = path.join(fixturesLoc, fixture);
- await fs.copy(path.join(cwd, 'kpm.lock.before'), path.join(cwd, 'kpm.lock'));
- await fs.copy(path.join(cwd, 'package.json.before'), path.join(cwd, 'package.json'));
+  let mirrorPath = 'mirror-for-offline';
+  let fixture = 'install-no-strict';
+  let cwd = path.join(fixturesLoc, fixture);
+  await fs.copy(path.join(cwd, 'kpm.lock.before'), path.join(cwd, 'kpm.lock'));
+  await fs.copy(path.join(cwd, 'package.json.before'), path.join(cwd, 'package.json'));
 
- return runAdd({}, ['left-pad@^1.1.0'], fixture, async (config) => {
-   assert.deepEqual(
-     JSON.parse(await fs.readFile(path.join(config.cwd, 'package.json'))).dependencies,
-     {
-       'left-pad': '^1.1.0',
-       'mime-types': '^2.0.0',
-     },
-   );
+  return runAdd({}, ['left-pad@^1.1.0'], fixture, async (config) => {
+    assert.deepEqual(
+      JSON.parse(await fs.readFile(path.join(config.cwd, 'package.json'))).dependencies,
+      {
+        'left-pad': '^1.1.0',
+        'mime-types': '^2.0.0',
+      },
+    );
 
-   await fs.unlink(path.join(config.cwd, `${mirrorPath}/left-pad-*.tgz`));
-   await fs.unlink(path.join(config.cwd, 'package.json'));
-   await fs.unlink(path.join(config.cwd, 'kpm.lock'));
-
- });
+    await fs.unlink(path.join(config.cwd, `${mirrorPath}/left-pad-*.tgz`));
+    await fs.unlink(path.join(config.cwd, 'package.json'));
+    await fs.unlink(path.join(config.cwd, 'kpm.lock'));
+  });
 });
 
 test('[network] install --save-exact should not make all package.json strict', async (): Promise<void> => {
- let mirrorPath = 'mirror-for-offline';
- let fixture = 'install-no-strict-all';
- let cwd = path.join(fixturesLoc, fixture);
- await fs.copy(path.join(cwd, 'kpm.lock.before'), path.join(cwd, 'kpm.lock'));
- await fs.copy(path.join(cwd, 'package.json.before'), path.join(cwd, 'package.json'));
+  let mirrorPath = 'mirror-for-offline';
+  let fixture = 'install-no-strict-all';
+  let cwd = path.join(fixturesLoc, fixture);
+  await fs.copy(path.join(cwd, 'kpm.lock.before'), path.join(cwd, 'kpm.lock'));
+  await fs.copy(path.join(cwd, 'package.json.before'), path.join(cwd, 'package.json'));
 
- return runAdd({saveExact: true, }, ['left-pad@1.1.0'], fixture, async (config) => {
-   assert.deepEqual(
-     JSON.parse(await fs.readFile(path.join(config.cwd, 'package.json'))).dependencies,
-     {
-       'left-pad': '1.1.0',
-       'mime-types': '^2.0.0',
-     },
-   );
+  return runAdd({saveExact: true}, ['left-pad@1.1.0'], fixture, async (config) => {
+    assert.deepEqual(
+      JSON.parse(await fs.readFile(path.join(config.cwd, 'package.json'))).dependencies,
+      {
+        'left-pad': '1.1.0',
+        'mime-types': '^2.0.0',
+      },
+    );
 
-   await fs.unlink(path.join(config.cwd, `${mirrorPath}/left-pad-1.1.0.tgz`));
-   await fs.unlink(path.join(config.cwd, 'package.json'));
-   await fs.unlink(path.join(config.cwd, 'kpm.lock'));
-
- });
+    await fs.unlink(path.join(config.cwd, `${mirrorPath}/left-pad-1.1.0.tgz`));
+    await fs.unlink(path.join(config.cwd, 'package.json'));
+    await fs.unlink(path.join(config.cwd, 'kpm.lock'));
+  });
 });
 
 test('[network] install --save with new dependency should be deterministic 3', async (): Promise<void> => {
- let fixture = 'install-should-cleanup-when-package-json-changed-3';
- let cwd = path.join(fixturesLoc, fixture);
- await fs.copy(path.join(cwd, 'kpm.lock.before'), path.join(cwd, 'kpm.lock'));
- await fs.copy(path.join(cwd, 'package.json.before'), path.join(cwd, 'package.json'));
+  let fixture = 'install-should-cleanup-when-package-json-changed-3';
+  let cwd = path.join(fixturesLoc, fixture);
+  await fs.copy(path.join(cwd, 'kpm.lock.before'), path.join(cwd, 'kpm.lock'));
+  await fs.copy(path.join(cwd, 'package.json.before'), path.join(cwd, 'package.json'));
 
- return runAdd({}, [], fixture, async (config, reporter) => {
-   // expecting kpm check after installation not to fail
+  return runAdd({}, [], fixture, async (config, reporter) => {
+    // expecting kpm check after installation not to fail
 
-   await fs.copy(path.join(cwd, 'kpm.lock.after'), path.join(cwd, 'kpm.lock'));
-   await fs.copy(path.join(cwd, 'package.json.after'), path.join(cwd, 'package.json'));
+    await fs.copy(path.join(cwd, 'kpm.lock.after'), path.join(cwd, 'kpm.lock'));
+    await fs.copy(path.join(cwd, 'package.json.after'), path.join(cwd, 'package.json'));
 
-   let lockfile = await createLockfile(config.cwd);
-   let install = new Install({}, config, reporter, lockfile);
-   await install.init();
-   let allCorrect = true;
-   try {
-     await check(config, reporter, {}, []);
-   } catch (err) {
-     allCorrect = false;
-   }
-   expect(allCorrect).toBe(true);
+    let lockfile = await createLockfile(config.cwd);
+    let install = new Install({}, config, reporter, lockfile);
+    await install.init();
+    let allCorrect = true;
+    try {
+      await check(config, reporter, {}, []);
+    } catch (err) {
+      allCorrect = false;
+    }
+    expect(allCorrect).toBe(true);
 
-   // cleanup
-   await fs.unlink(path.join(config.cwd, 'kpm.lock'));
-   await fs.unlink(path.join(config.cwd, 'package.json'));
- });
+    // cleanup
+    await fs.unlink(path.join(config.cwd, 'kpm.lock'));
+    await fs.unlink(path.join(config.cwd, 'package.json'));
+  });
 });
 
 test('[network] install --save should update a dependency to kpm and mirror (PR import scenario 2)',

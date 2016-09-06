@@ -10,9 +10,6 @@
  */
 
 import {Reporter} from '../../src/reporters/index.js';
-import * as reporters from '../../src/reporters/index.js';
-import * as constants from '../../src/constants.js';
-import {default as Lockfile, parse} from '../../src/lockfile/Lockfile.js';
 import {Install} from '../../src/cli/commands/install.js';
 import {run as uninstall} from '../../src/cli/commands/uninstall.js';
 import {run as check} from '../../src/cli/commands/check.js';
@@ -20,11 +17,10 @@ import Config from '../../src/config.js';
 import * as fs from '../../src/util/fs.js';
 import assert from 'assert';
 import semver from 'semver';
-import {getPackageVersion, clean, createLockfile, explodeLockfile, run as buildRun} from './_install.js';
+import {getPackageVersion, explodeLockfile, run as buildRun} from './_install.js';
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000;
 
-let stream = require('stream');
 let path = require('path');
 
 let fixturesLoc = path.join(__dirname, '..', 'fixtures', 'install');
