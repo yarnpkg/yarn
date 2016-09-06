@@ -17,11 +17,12 @@ import {spawn} from '../../util/child.js';
 import * as fs from '../../util/fs.js';
 
 let invariant = require('invariant');
+let commander = require('commander');
 let semver = require('semver');
 let path = require('path');
 
 function isValidNewVersion(oldVersion: string, newVersion: string): boolean {
-  return semver.valid(newVersion) || semver.inc(oldVersion, newVersion);
+  return !!(semver.valid(newVersion) || semver.inc(oldVersion, newVersion));
 }
 
 export function setFlags(commander: Object) {
@@ -62,7 +63,9 @@ export async function run(
       reporter.error('Invalid semver version');
     }
   }
-  newVersion = semver.inc(oldVersion, newVersion) || newVersion;
+  if (newVersion) {
+    newVersion = semver.inc(oldVersion, newVersion) || newVersion;
+  }
   invariant(newVersion, 'expected new version');
 
   // update version

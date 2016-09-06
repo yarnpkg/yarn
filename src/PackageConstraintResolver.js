@@ -12,6 +12,7 @@
 import type {Reporter} from './reporters/index.js';
 import type Config from './Config.js';
 
+const invariant = require('invariant');
 const semver = require('semver');
 
 // This isn't really a "proper" constraint resolver. We just return the highest semver
@@ -28,6 +29,8 @@ export default class PackageConstraintResolver {
   config: Config;
 
   async reduce(versions: Array<string>, range: string): Promise<string> {
-    return semver.maxSatisfying(versions, range);
+    let max = semver.maxSatisfying(versions, range);
+    invariant(max, 'expected range');
+    return max;
   }
 }

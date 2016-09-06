@@ -118,8 +118,8 @@ export default class PackageCompatibility {
           name = aliases[name];
         }
 
-        if (_.has(process.versions, name)) {
-          const actual = process.versions[name];
+        const actual = process.versions[name];
+        if (actual) {
           if (!semver.satisfies(actual, range)) {
             pushError(`The engine ${name} is incompatible with this module. Expected version ${range}.`);
           }
