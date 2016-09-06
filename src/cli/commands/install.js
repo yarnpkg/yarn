@@ -24,23 +24,39 @@ import PackageCompatibility from '../../PackageCompatibility.js';
 import PackageResolver from '../../PackageResolver.js';
 import PackageLinker from '../../PackageLinker.js';
 import PackageRequest from '../../PackageRequest.js';
-import {buildTree} from './ls.js';
 import {registries} from '../../registries/index.js';
 import {clean} from './clean.js';
 import * as constants from '../../constants.js';
 import * as fs from '../../util/fs.js';
 import * as util from '../../util/misc.js';
-import {stringify} from '../../util/misc.js';
 import map from '../../util/map.js';
 
 const invariant = require('invariant');
 const emoji = require('node-emoji');
 const path = require('path');
 
+export type InstallPrepared = {
+  skip: boolean,
+  requests: DependencyRequestPatterns,
+  patterns: Array<string>,
+};
+
+export type InstallCwdRequest = [
+  DependencyRequestPatterns,
+  Array<string>,
+  Object
+];
+
+type IntegrityMatch = {
+  actual: string,
+  expected: string,
+  loc: string,
+  matches: boolean,
+};
+
 export class Install {
   constructor(
     flags: Object,
-    args: Array<string>,
     config: Config,
     reporter: Reporter,
     lockfile: Lockfile,
@@ -51,16 +67,14 @@ export class Install {
     this.reporter = reporter;
     this.config = config;
     this.flags = flags;
-    this.args = args;
 
     this.resolver = new PackageResolver(config, lockfile);
     this.fetcher = new PackageFetcher(config, this.resolver);
     this.compatibility = new PackageCompatibility(config, this.resolver);
     this.linker = new PackageLinker(config, this.resolver);
-    this.scripts = new PackageInstallScripts(config, this.resolver, flags.rebuild);
+    this.scripts = new PackageInstallScripts(config, this.resolver, flags.force);
   }
 
-  args: Array<string>;
   flags: Object;
   registries: Array<RegistryNames>;
   lockfile: Lockfile;
@@ -78,11 +92,7 @@ export class Install {
    * Create a list of dependency requests from the current directories manifests.
    */
 
-  async fetchRequestFromCwd(excludePatterns?: Array<string> = []): Promise<[
-    DependencyRequestPatterns,
-    Array<string>,
-    Object
-  ]> {
+  async fetchRequestFromCwd(excludePatterns?: Array<string> = []): Promise<InstallCwdRequest> {
     const patterns = [];
     const deps = [];
     const manifest = {};
@@ -148,28 +158,32 @@ export class Install {
    * TODO description
    */
 
-  async init(): Promise<void> {
-    let [depRequests, rawPatterns] = await this.fetchRequestFromCwd(this.args);
+  async prepare(
+    patterns: Array<string>,
+    requests: DependencyRequestPatterns,
+    match: IntegrityMatch,
+  ): Promise<InstallPrepared> {
+    if (!this.flags.force && match.matches) {
+      this.reporter.success('Already up-to-date.');
+      return {patterns, requests, skip: true};
+    }
+
+    return {patterns, requests, skip: false};
+  }
+
+  /**
+   * TODO description
+   */
+
+  async init(): Promise<Array<string>> {
+    let [depRequests, rawPatterns] = await this.fetchRequestFromCwd();
     let match = await this.matchesIntegrityHash();
 
-    // add any dependency patterns specified on the command line
-    if (this.args.length) {
-      // just use the args passed in the cli
-      rawPatterns = rawPatterns.concat(this.args);
-
-      for (const pattern of rawPatterns) {
-        // default the registry to npm, if the pattern contains an exotic registry
-        // in the pattern then it'll be set to it
-        depRequests.push({
-          pattern,
-          registry: 'npm',
-          visibility: PackageReference.USED,
-          optional: false,
-        });
-      }
-    } else if (!this.flags.force && match.matches) {
-      this.reporter.success('Already up-to-date.');
-      return;
+    let prepared = await this.prepare(rawPatterns, depRequests, match);
+    rawPatterns = prepared.patterns;
+    depRequests = prepared.requests;
+    if (prepared.skip) {
+      return rawPatterns;
     }
 
     // remove integrity hash to make this operation atomic
@@ -200,7 +214,7 @@ export class Install {
       this.reporter.step(
         curr,
         total,
-        this.flags.rebuild ? 'Rebuilding all packages' : 'Building fresh packages',
+        this.flags.force ? 'Rebuilding all packages' : 'Building fresh packages',
         emoji.get('page_with_curl'),
       );
       await this.scripts.init(patterns);
@@ -219,9 +233,8 @@ export class Install {
     }
 
     // fin!
-    await this.maybeOutputSaveTree(patterns);
-    await this.savePackages();
     await this.saveLockfileAndIntegrity();
+    return patterns;
   }
 
   /**
@@ -230,118 +243,6 @@ export class Install {
 
   shouldClean(): Promise<boolean> {
     return fs.exists(path.join(this.config.cwd, constants.CLEAN_FILENAME));
-  }
-
-  /**
-   * Output a tree of any newly added dependencies.
-   */
-
-  async maybeOutputSaveTree(patterns: Array<string>): Promise<void> {
-    if (!this.args.length) {
-      // no saved dependencies
-      return;
-    }
-
-    let {trees, count} = await buildTree(this.resolver, this.linker, patterns, true, true);
-    this.reporter.success(`Saved ${count} new ${count === 1 ? 'dependency' : 'dependencies'}`);
-    this.reporter.tree('newDependencies', trees);
-  }
-
-  /**
-   * Save added packages to manifest if any of the --save flags were used.
-   */
-
-  async savePackages(): Promise<void> {
-    if (!this.args.length) {
-      return;
-    }
-
-    let {save, saveDev, saveExact, saveTilde, saveOptional, savePeer} = this.flags;
-    if (!save && !saveDev && !saveOptional && !savePeer) {
-      return;
-    }
-
-    // get all the different registry manifests in this folder
-    let jsons: {
-      [registryName: RegistryNames]: [string, Object]
-    } = {};
-    for (let registryName of registryNames) {
-      const registry = registries[registryName];
-      const jsonLoc = path.join(this.config.cwd, registry.filename);
-
-      let json = {};
-      if (await fs.exists(jsonLoc)) {
-        json = await fs.readJson(jsonLoc);
-      }
-      jsons[registryName] = [jsonLoc, json];
-    }
-
-    // add new patterns to their appropriate registry manifest
-    for (const pattern of this.resolver.dedupePatterns(this.args)) {
-      const pkg = this.resolver.getResolvedPattern(pattern);
-      invariant(pkg, `missing package ${pattern}`);
-
-      const ref = pkg._reference;
-      invariant(ref, 'expected package reference');
-
-      const parts = PackageRequest.normalisePattern(pattern);
-      let version;
-      if (parts.range) {
-        // if the user specified a range then use it verbatim
-        version = parts.range;
-      } else if (PackageRequest.getExoticResolver(pattern)) {
-        // wasn't a name/range tuple so this is just a raw exotic pattern
-        version = pattern;
-      } else if (saveTilde) { // --save-tilde
-        version = `~${pkg.version}`;
-      } else if (saveExact) { // --save-exact
-        version = pkg.version;
-      } else { // default to caret
-        version = `^${pkg.version}`;
-      }
-
-      // build up list of objects to put ourselves into from the cli args
-      const targetKeys: Array<string> = [];
-      if (save) {
-        targetKeys.push('dependencies');
-      }
-      if (saveDev) {
-        targetKeys.push('devDependencies');
-      }
-      if (savePeer) {
-        targetKeys.push('peerDependencies');
-      }
-      if (saveOptional) {
-        targetKeys.push('optionalDependencies');
-      }
-      if (!targetKeys.length) {
-        continue;
-      }
-
-      // add it to manifest
-      const json = jsons[ref.registry][1];
-      for (const key of targetKeys) {
-        const target = json[key] = json[key] || {};
-        target[pkg.name] = version;
-      }
-
-      // add pattern so it's aliased in the lockfile
-      const newPattern = `${pkg.name}@${version}`;
-      if (newPattern === pattern) {
-        continue;
-      }
-      this.resolver.addPattern(newPattern, pkg);
-      this.resolver.removePattern(pattern);
-    }
-
-    for (let registryName of registryNames) {
-      let [loc, json] = jsons[registryName];
-      if (!Object.keys(json).length) {
-        continue;
-      }
-
-      await fs.writeFile(loc, stringify(json) + '\n');
-    }
   }
 
   /**
@@ -429,12 +330,7 @@ export class Install {
    * Check if the integrity hash of this installation matches one on disk.
    */
 
-  async matchesIntegrityHash(): Promise<{
-    actual: string,
-    expected: string,
-    loc: string,
-    matches: boolean,
-  }> {
+  async matchesIntegrityHash(): Promise<IntegrityMatch> {
     let loc = await this.getIntegrityHashLocation();
     if (!await fs.exists(loc)) {
       return {
@@ -505,19 +401,17 @@ export class Install {
 }
 
 export function setFlags(commander: Object) {
-  commander.usage('install [packages ...] [flags]');
+  commander.usage('install [flags]');
   commander.option('--force', '');
   commander.option('-f, --flat', 'only allow one version of a package');
-  commander.option('-S, --save', 'save package to your `dependencies`');
-  commander.option('-D, --save-dev', 'save package to your `devDependencies`');
-  commander.option('-P, --save-peer', 'save package to your `peerDependencies`');
-  commander.option('-O, --save-optional', 'save package to your `optionalDependencies`');
-  commander.option('-E, --save-exact', '');
-  commander.option('-T, --save-tilde', '');
-  commander.option('--rebuild', 'rerun install scripts of modules already installed');
+  commander.option('-S, --save', 'DEPRECATED - save package to your `dependencies`');
+  commander.option('-D, --save-dev', 'DEPRECATED - save package to your `devDependencies`');
+  commander.option('-P, --save-peer', 'DEPRECATED - save package to your `peerDependencies`');
+  commander.option('-O, --save-optional', 'DEPRECATED - save package to your `optionalDependencies`');
+  commander.option('-E, --save-exact', 'DEPRECATED');
+  commander.option('-T, --save-tilde', 'DEPRECATED');
   commander.option('--prod, --production', '');
   commander.option('--no-lockfile');
-  commander.option('--init-mirror', 'initialise local package mirror and copy module tarballs');
 }
 
 export async function run(
@@ -533,13 +427,29 @@ export async function run(
     lockfile = await Lockfile.fromDirectory(config.cwd, reporter);
   }
 
-  const hasSaveFlag = flags.save || flags.saveDev || flags.savePeer ||
-                      flags.saveOptional || flags.saveExact || flags.saveTilde;
-  if (args.length && !hasSaveFlag) {
-    reporter.info('Added implicit --save flag');
-    flags.save = true;
+  if (args.length) {
+    let exampleArgs = args.slice();
+    if (flags.saveDev) {
+      exampleArgs.push('--dev');
+    }
+    if (flags.savePeer) {
+      exampleArgs.push('--peer');
+    }
+    if (flags.saveOptional) {
+      exampleArgs.push('--optional');
+    }
+    if (flags.saveExact) {
+      exampleArgs.push('--exact');
+    }
+    if (flags.saveTilde) {
+      exampleArgs.push('--tilde');
+    }
+    reporter.info('`install` has been replaced with `add` to add new dependencies.');
+    reporter.command(`kpm add ${exampleArgs.join(' ')}`);
+    return Promise.reject();
   }
 
-  const install = new Install(flags, args, config, reporter, lockfile);
-  return install.init();
+  const install = new Install(flags, config, reporter, lockfile);
+  await install.init();
+  return Promise.resolve();
 }

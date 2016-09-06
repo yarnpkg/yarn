@@ -33,7 +33,7 @@ export async function run(
   args: Array<string>,
 ): Promise<void> {
   const lockfile = await Lockfile.fromDirectory(config.cwd);
-  const install = new Install(flags, args, config, reporter, lockfile);
+  const install = new Install(flags, config, reporter, lockfile);
 
   function humaniseLocation(loc: string): Array<string> {
     const relative = path.relative(path.join(config.cwd, 'node_modules'), loc);

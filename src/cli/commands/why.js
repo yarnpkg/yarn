@@ -54,7 +54,7 @@ export async function run(
   // init
   reporter.step(2, 3, 'Initialising dependency graph', emoji.get('truck'));
   const lockfile = await Lockfile.fromDirectory(config.cwd, reporter);
-  const install = new Install(flags, args, config, reporter, lockfile);
+  const install = new Install(flags, config, reporter, lockfile);
   let [depRequests, patterns] = await install.fetchRequestFromCwd();
   await install.resolver.init(depRequests);
   const hoisted = await install.linker.getFlatHoistedTree(patterns);

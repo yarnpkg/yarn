@@ -78,7 +78,7 @@ export async function run(
   // reinstall so we can get the updated lockfile
   reporter.step(++step, totalSteps, 'Regenerating lockfile and installing missing dependencies');
   const lockfile = await Lockfile.fromDirectory(config.cwd);
-  const install = new Install({force: true, ...flags}, [], config, new NoopReporter(), lockfile);
+  const install = new Install({force: true, ...flags}, config, new NoopReporter(), lockfile);
   await install.init();
 
   //

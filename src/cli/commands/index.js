@@ -21,6 +21,9 @@ export {why};
 import * as access from './access.js';
 export {access};
 
+import * as add from './add.js';
+export {add};
+
 import * as clean from './clean.js';
 export {clean};
 

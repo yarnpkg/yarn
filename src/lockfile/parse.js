@@ -11,7 +11,7 @@
 /* eslint quotes: 0 */
 
 import {LOCKFILE_VERSION} from '../constants.js';
-import {MessageError} from '../errors.js'
+import {MessageError} from '../errors.js';
 import map from '../util/map.js';
 
 const invariant = require('invariant');
@@ -178,7 +178,10 @@ export class Parser {
     if (versionMatch) {
       let version = +versionMatch[1];
       if (version > LOCKFILE_VERSION) {
-        throw new MessageError(`Can't install from a lockfile of version ${version} as you're on an old kpm version that only supports versions up to ${LOCKFILE_VERSION}. Please update your client.`);
+        throw new MessageError(
+          `Can't install from a lockfile of version ${version} as you're on an old kpm version that only ` +
+          `supports versions up to ${LOCKFILE_VERSION}. Please update your client.`,
+        );
       }
     }
 

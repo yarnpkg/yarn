@@ -122,7 +122,7 @@
       "__tests__/fixtures/",
       "__tests__/__mocks__/",
       "updates/",
-      "/_(temp|mock).js$"
+      "/_(temp|mock|install).js$"
     ]
   }
 }
