@@ -125,7 +125,7 @@ export class Add extends Install {
 
       const parts = PackageRequest.normalisePattern(pattern);
       let version;
-      if (parts.range) {
+      if (parts.hasVersion && parts.range) {
         // if the user specified a range then use it verbatim
         version = parts.range;
       } else if (PackageRequest.getExoticResolver(pattern)) {
@@ -141,9 +141,6 @@ export class Add extends Install {
 
       // build up list of objects to put ourselves into from the cli args
       const targetKeys: Array<string> = [];
-      if (!dev && peer && optional) {
-        targetKeys.push('dependencies');
-      }
       if (dev) {
         targetKeys.push('devDependencies');
       }
@@ -154,7 +151,7 @@ export class Add extends Install {
         targetKeys.push('optionalDependencies');
       }
       if (!targetKeys.length) {
-        continue;
+        targetKeys.push('dependencies');
       }
 
       // add it to manifest
