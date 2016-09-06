@@ -77,6 +77,10 @@ export {check};
 
 import buildUseless from './_useless.js';
 
+export let version = buildUseless(
+  'Use `kpm --version` instead of `kpm version`',
+);
+
 export let runScript = buildUseless(
   'Use `kpm <script-name>` instead of `kpm run-script <script-name>`',
 );
