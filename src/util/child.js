@@ -62,7 +62,7 @@ export function spawn(
       }
     }
 
-    if (opts.process) {
+    if (typeof opts.process === 'function') {
       opts.process(proc, updateStdout, reject, function() {
         if (processClosed) {
           finish();

@@ -222,7 +222,7 @@ export default class RequestManager {
       const attempts = params.retryAttempts || 0;
       if (attempts < 5 && this.isPossibleOfflineError(err)) {
         params.retryAttempts = attempts + 1;
-        if (params.cleanup) {
+        if (typeof params.cleanup === 'function') {
           params.cleanup();
         }
         this.queueForOffline(opts);

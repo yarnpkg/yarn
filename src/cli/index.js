@@ -87,7 +87,7 @@ if (!command) {
 }
 
 // parse flags
-if (command.setFlags) {
+if (typeof command.setFlags === 'function') {
   command.setFlags(commander);
 }
 commander.parse(args);
@@ -112,7 +112,7 @@ let config = new Config(reporter, {
 
 // print header
 let outputWrapper = true;
-if (command.hasWrapper) {
+if (typeof command.hasWrapper === 'function') {
   outputWrapper = command.hasWrapper(commander, commander.args);
 }
 if (outputWrapper) {
