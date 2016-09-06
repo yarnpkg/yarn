@@ -180,7 +180,8 @@ export class Parser {
       if (version > LOCKFILE_VERSION) {
         throw new MessageError(
           `Can't install from a lockfile of version ${version} as you're on an old kpm version that only ` +
-          `supports versions up to ${LOCKFILE_VERSION}. Please update your client.`,
+          `supports versions up to ${LOCKFILE_VERSION}. Run \`$ kpm self-udpate\` to upgrade to the latest ` +
+          'version.',
         );
       }
     }
