@@ -12,16 +12,25 @@
 type Return<T> = T | Object;
 
 export default function nullify<T>(obj?: Return<T> = {}): Return<T> {
+  return nullify(obj);
+}
+
+export function nullify<T>(obj: T): T {
   if (Array.isArray(obj)) {
-    for (const item of obj) {
-      nullify(item);
-    }
+    return obj.map(nullify);
   } else if (obj !== null && typeof obj === 'object' || typeof obj === 'function') {
     Object.setPrototypeOf(obj, null);
     for (const key in obj) {
-      nullify(obj[key]);
+      obj[key] = nullify(obj[key]);
     }
+    return obj;
+  } else if (typeof obj === 'string') {
+    return normalizeLineEndings(obj);
   }
 
   return obj;
+}
+
+function normalizeLineEndings(s: string): string {
+  return s.replace(/\r\n/, '\n');
 }
