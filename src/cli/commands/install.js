@@ -156,6 +156,11 @@ export class Install {
       break;
     }
 
+    // inherit root flat flag
+    if (manifest.flat) {
+      this.flags.flat = true;
+    }
+
     return [deps, patterns, manifest];
   }
 
@@ -182,9 +187,6 @@ export class Install {
 
   async init(): Promise<Array<string>> {
     let [depRequests, rawPatterns, manifest] = await this.fetchRequestFromCwd();
-    if (manifest.flat) {
-      this.flags.flat = true;
-    }
     let match = await this.matchesIntegrityHash();
 
     let prepared = await this.prepare(rawPatterns, depRequests, match);

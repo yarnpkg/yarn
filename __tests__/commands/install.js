@@ -9,8 +9,14 @@
  * @flow
  */
 
+
+import type {ReporterSelectOption} from '../../src/reporters/types.js';
 import {run as uninstall} from '../../src/cli/commands/uninstall.js';
 import {run as check} from '../../src/cli/commands/check.js';
+import * as reporters from '../../src/reporters/index.js';
+import {Install} from '../../src/cli/commands/install.js';
+import Lockfile from '../../src/lockfile/wrapper.js';
+import Config from '../../src/config.js';
 import * as fs from '../../src/util/fs.js';
 import assert from 'assert';
 import semver from 'semver';
@@ -22,6 +28,33 @@ jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000;
 let path = require('path');
 
 let fixturesLoc = path.join(__dirname, '..', 'fixtures', 'install');
+
+parallelTest('integrity hash respects flat and production flags', () => {
+  let cwd = path.join(fixturesLoc, 'noop');
+  let reporter = new reporters.NoopReporter();
+  let config = new Config(reporter, {cwd});
+  let lockfile = new Lockfile();
+
+  let install = new Install({}, config, reporter, lockfile);
+
+  let install2 = new Install({flat: true}, config, reporter, lockfile);
+  assert(install2.generateIntegrityHash('foo') !== install.generateIntegrityHash('foo'));
+
+  let install3 = new Install({production: true}, config, reporter, lockfile);
+  assert(install3.generateIntegrityHash('foo') !== install.generateIntegrityHash('foo'));
+  assert(install3.generateIntegrityHash('foo') !== install2.generateIntegrityHash('foo'));
+});
+
+parallelTest('flat arg is inherited from root manifest', (): Promise<void> => {
+  let cwd = path.join(fixturesLoc, 'top-level-flat-parameter');
+  let reporter = new reporters.NoopReporter();
+  let config = new Config(reporter, {cwd});
+  let install = new Install({}, config, reporter, new Lockfile());
+  return install.fetchRequestFromCwd().then(function([,, manifest]) {
+    assert.equal(manifest.flat, true);
+    assert.equal(install.flags.flat, true);
+  });
+});
 
 parallelTest('[network] root install from shrinkwrap', (): Promise<void> => {
   return runInstall({}, 'root-install-with-lockfile');
