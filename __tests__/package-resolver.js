@@ -13,6 +13,7 @@
 import * as reporters from '../src/reporters/index.js';
 import PackageResolver from '../src/package-resolver.js';
 import * as constants from '../src/constants.js';
+import parallelTest from './_parallel-test.js';
 import Lockfile from '../src/lockfile/wrapper.js';
 import Config from '../src/config.js';
 import makeTemp from './_temp.js';
@@ -23,7 +24,9 @@ jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000;
 let path = require('path');
 
 function addTest(pattern, registry = 'npm') {
-  test(`[network] resolve ${pattern}`, async () => {
+  let requestManager;
+
+  parallelTest(`[network] resolve ${pattern}`, async () => {
     let lockfile = new Lockfile();
     let reporter = new reporters.NoopReporter({});
 
@@ -36,6 +39,11 @@ function addTest(pattern, registry = 'npm') {
       packagesRoot: loc,
       tempFolder: loc,
     });
+    //if (requestManager) {
+    //  config.requestManager = requestManager;
+    //} else {
+    //  requestManager = config.requestManager;
+    //}
     await config.init();
     let resolver = new PackageResolver(config, lockfile);
     await resolver.init([{pattern, registry}]);

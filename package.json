@@ -128,7 +128,7 @@
       "__tests__/fixtures/",
       "__tests__/__mocks__/",
       "updates/",
-      "/_(temp|mock|install).js$"
+      "/_(temp|mock|install|parallel-test).js$"
     ]
   }
 }
