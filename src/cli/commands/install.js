@@ -416,7 +416,7 @@ export class Install {
       };
     }
 
-    let actual = util.hash(this.lockfile.source);
+    let actual = this.generateIntegrityHash(this.lockfile.source);
     let expected = (await fs.readFile(loc)).trim();
 
     return {
@@ -471,7 +471,22 @@ export class Install {
   async writeIntegrityHash(lockSource: string): Promise<void> {
     let loc = await this.getIntegrityHashLocation();
     invariant(loc, 'expected integrity hash location');
-    await fs.writeFile(loc, util.hash(lockSource));
+    await fs.writeFile(loc, this.generateIntegrityHash(lockSource));
+  }
+
+  /**
+   * Generate integrity hash of input lockfile.
+   */
+
+  generateIntegrityHash(lockfile: string): string {
+    let opts = [lockfile];
+    if (this.flags.flat) {
+      opts.push('flat');
+    }
+    if (this.flags.production) {
+      opts.push('production');
+    }
+    return util.hash(opts.join(':'));
   }
 }
 
