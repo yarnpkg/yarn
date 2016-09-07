@@ -9,6 +9,9 @@
  * @flow
  */
 
+import type {ClientRequest} from 'http';
+import type {ReadStream} from 'fs';
+
 const realRequest = require.requireActual('request');
 const RealRequest = realRequest.Request;
 
@@ -46,7 +49,7 @@ export class Request extends RealRequest {
 }
 
 let httpMock = {
-  request(options, callback?) {
+  request(options: Object, callback?: ?Function): ClientRequest {
     let alias = getRequestAlias(options);
     let loc = path.join(CACHE_DIR, `${alias}.bin`);
 
@@ -57,7 +60,7 @@ let httpMock = {
       // cached
       options.agent = null;
       options.socketPath = null;
-      options.createConnection = () => {
+      options.createConnection = (): ReadStream => {
         return fs.createReadStream(loc);
       };
       return httpModule.request(options, callback);
@@ -67,18 +70,18 @@ let httpMock = {
       let errored = false;
       let bufs = [];
 
-      req.once('socket', function (socket) {
+      req.once('socket', function(socket) {
         socket.setMaxListeners(Infinity);
-        socket.on('data', function (buf) {
+        socket.on('data', function(buf) {
           bufs.push(buf);
         });
       });
 
-      req.on('error', function () {
+      req.on('error', function() {
         errored = true;
       });
 
-      req.on('response', function (res) {
+      req.on('response', function(res) {
         if (res.statusCode >= 400) {
           errored = true;
         }
@@ -86,7 +89,7 @@ let httpMock = {
           return;
         }
 
-        res.on('end', function () {
+        res.on('end', function() {
           mkdirp.sync(path.dirname(loc));
           fs.writeFileSync(loc, Buffer.concat(bufs));
         });
@@ -94,5 +97,5 @@ let httpMock = {
 
       return req;
     }
-  }
+  },
 };

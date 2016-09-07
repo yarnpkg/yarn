@@ -226,7 +226,8 @@ async (): Promise<void> => {
   });
 });
 
-parallelTest('[network] install --initMirror should add init mirror deps from package.json', async (): Promise<void> => {
+parallelTest('[network] install --initMirror should add init mirror deps from package.json',
+async (): Promise<void> => {
   let mirrorPath = 'mirror-for-offline';
   let fixture = 'install-init-mirror';
 

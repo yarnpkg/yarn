@@ -9,16 +9,13 @@
  * @flow
  */
 
-import {Reporter} from '../../src/reporters/index.js';
-import {Install} from '../../src/cli/commands/install.js';
 import {run as uninstall} from '../../src/cli/commands/uninstall.js';
 import {run as check} from '../../src/cli/commands/check.js';
-import Config from '../../src/config.js';
 import * as fs from '../../src/util/fs.js';
 import assert from 'assert';
 import semver from 'semver';
 import parallelTest from '../_parallel-test.js';
-import {getPackageVersion, explodeLockfile, run as buildRun, runInstall} from './_install.js';
+import {getPackageVersion, explodeLockfile, runInstall} from './_install.js';
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000;
 
@@ -259,7 +256,8 @@ parallelTest('install should dedupe dependencies avoiding conflicts 9', (): Prom
   });
 });
 
-parallelTest('install have a clean node_modules after lockfile update (branch switch scenario)', async (): Promise<void> => {
+parallelTest('install have a clean node_modules after lockfile update (branch switch scenario)',
+async (): Promise<void> => {
   // A@1 -> B@1
   // B@2
 
@@ -300,7 +298,8 @@ parallelTest('install have a clean node_modules after lockfile update (branch sw
 });
 
 
-parallelTest('install have a clean node_modules after lockfile update (branch switch scenario 2)', async (): Promise<void> => {
+parallelTest('install have a clean node_modules after lockfile update (branch switch scenario 2)',
+async (): Promise<void> => {
   // A@1 -> B@1
 
   // after package.json/lock file update
