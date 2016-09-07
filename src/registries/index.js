@@ -9,9 +9,9 @@
  * @flow
  */
 
-import KpmRegistry from './KpmRegistry.js';
-import NpmRegistry from './NpmRegistry.js';
-import BowerRegistry from './BowerRegistry.js';
+import KpmRegistry from './kpm-registry.js';
+import NpmRegistry from './npm-registry.js';
+import BowerRegistry from './bower-registry.js';
 
 export let registries = {
   npm: NpmRegistry,

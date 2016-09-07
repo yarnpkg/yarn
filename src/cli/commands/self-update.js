@@ -11,7 +11,7 @@
 
 import type Config from '../../config.js';
 import {GITHUB_REPO, GITHUB_USER, SELF_UPDATE_DOWNLOAD_FOLDER, USER_AGENT} from '../../constants.js';
-import TarballFetcher from '../../fetchers/TarballFetcher.js';
+import TarballFetcher from '../../fetchers/tarball-fetcher.js';
 import type {Reporter} from '../../reporters/index.js';
 import {exists, realpath, symlink, unlink} from '../../util/fs.js';
 
@@ -37,7 +37,7 @@ export async function run(
     protocol: 'https',
     host: 'api.github.com',
     headers: {
-      'user-agent': USER_AGENT,
+      'User-Agent': USER_AGENT,
     },
     Promise,
     followRedirects: false,
@@ -89,13 +89,13 @@ export async function run(
 
   await unlink(locToUnzip);
 
-  const fetcher = new TarballFetcher({
+  const fetcher = new TarballFetcher(locToUnzip, {
     type: 'tarball',
     registry: 'npm',
     reference: `${assets[0].url}?access_token=${githubAuth0Token}`,
     hash: null,
   }, config, false);
-  await fetcher.fetch(locToUnzip);
+  await fetcher.fetch();
 
   // this links the downloaded release to bin/kpm.js
   await symlink(locToUnzip, path.resolve(updatesFolder, 'current'));

@@ -11,7 +11,7 @@
 /* global child_process$spawnOpts */
 
 import * as constants from '../constants.js';
-import BlockingQueue from './BlockingQueue.js';
+import BlockingQueue from './blocking-queue.js';
 import {promisify} from './promise.js';
 import {MessageError} from '../errors.js';
 
@@ -62,7 +62,7 @@ export function spawn(
       }
     }
 
-    if (opts.process) {
+    if (typeof opts.process === 'function') {
       opts.process(proc, updateStdout, reject, function() {
         if (processClosed) {
           finish();

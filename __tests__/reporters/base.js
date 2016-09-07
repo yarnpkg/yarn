@@ -9,7 +9,7 @@
  * @flow
  */
 
-import BaseReporter from '../../src/reporters/BaseReporter.js';
+import BaseReporter from '../../src/reporters/base-reporter.js';
 
 test('BaseReporter.getTotalTime', () => {
   let reporter = new BaseReporter();

@@ -6,21 +6,21 @@ please read the [code of conduct](CODE_OF_CONDUCT.md).
 ## Building
 
 ```sh
-$ make build
+$ npm run build
 ```
 
 ```sh
-$ make watch
+$ npm run watch
 ```
 
 ## Testing
 
 ```sh
-$ make test
+$ npm run test
 ```
 
 ```sh
-$ make lint
+$ npm run lint
 ```
 
 ## Pull Requests

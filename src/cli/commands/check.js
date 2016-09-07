@@ -12,10 +12,8 @@
 import type {Reporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
 import {Install} from './install.js';
-import Lockfile from '../../lockfile/Lockfile.js';
-import * as constants from '../../constants.js';
+import Lockfile from '../../lockfile/wrapper.js';
 import * as fs from '../../util/fs.js';
-import * as util from '../../util/misc.js';
 
 const semver = require('semver');
 const chalk = require('chalk');
@@ -25,7 +23,7 @@ export const requireLockfile = true;
 export const noArguments = true;
 
 export function setFlags(commander: Object) {
-  commander.option('--quick-sloppy');
+  commander.option('--integrity');
 }
 
 export async function run(
@@ -34,12 +32,8 @@ export async function run(
   flags: Object,
   args: Array<string>,
 ): Promise<void> {
-  const lockfile = await Lockfile.fromDirectory(config.cwd, reporter, {
-    silent: true,
-    strict: true,
-  });
-
-  const install = new Install('update', flags, args, config, reporter, lockfile, true);
+  const lockfile = await Lockfile.fromDirectory(config.cwd);
+  const install = new Install(flags, config, reporter, lockfile);
 
   function humaniseLocation(loc: string): Array<string> {
     const relative = path.relative(path.join(config.cwd, 'node_modules'), loc);
@@ -63,17 +57,14 @@ export async function run(
     }
   }
 
-  if (flags.quickSloppy) {
-    // in sloppy mode we don't resolve dependencies, we just check a hash of the lockfile
-    // against one that is created when we run `kpm install`
-    const integrityLoc = path.join(config.cwd, 'node_modules', constants.INTEGRITY_FILENAME);
+  if (flags.integrity) {
+    // just check the integrity hash for validity
+    const integrityLoc = await install.getIntegrityHashLocation();
 
-    if (await fs.exists(integrityLoc)) {
-      const actual = await fs.readFile(integrityLoc);
-      const expected = util.hash(lockfile.source);
-
-      if (actual.trim() !== expected) {
-        reportError(`Expected an integrity hash of ${expected} but got ${actual}`);
+    if (integrityLoc && await fs.exists(integrityLoc)) {
+      let match = await install.matchesIntegrityHash();
+      if (match.matches === false) {
+        reportError(`Integrity hashes don't match, expected ${match.expected} but got ${match.actual}`);
       }
     } else {
       reportError("Couldn't find an integrity hash file");
@@ -198,7 +189,7 @@ export async function run(
     if (errCount > 1) {
       reporter.info(`Found ${errCount} errors`);
     }
-    
+
     return Promise.reject();
   } else {
     reporter.success('Folder in sync');

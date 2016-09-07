@@ -10,9 +10,9 @@
  */
 
 import type {RegistryNames} from './registries/index.js';
-import type PackageReference from './PackageReference.js';
-import type {VisibilityAction} from './PackageReference.js';
-import type PackageRequest from './PackageRequest.js';
+import type PackageReference from './package-reference.js';
+import type {VisibilityAction} from './package-reference.js';
+import type PackageRequest from './package-request.js';
 
 // dependency request pattern data structure that's used to request dependencies from a
 // PackageResolver
@@ -116,8 +116,13 @@ export type Manifest = {
 };
 
 //
-export type FetchedManifest = {
+export type FetchedMetadata = {
   package: Manifest,
+  resolved: ?string,
   hash: string,
-  dest: string
+  dest: string,
+};
+export type FetchedOverride = {
+  hash: string,
+  resolved: ?string,
 };

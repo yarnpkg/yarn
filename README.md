@@ -53,7 +53,7 @@ ensures little idle time and maximum resource utilization.
 $ git clone git@github.com:facebook/fbkpm.git
 $ cd kpm
 $ npm install
-$ make build
+$ npm run build
 $ npm link
 # go into some random directory
 $ mkdir node_modules
@@ -66,6 +66,5 @@ kpm wouldn't exist if it wasn't for excellent prior art. Followed are projects w
 been inspired by:
 
  - [Bundler](https://github.com/bundler/bundler)
- - [Carthage](https://github.com/Carthage/Carthage)
  - [Cargo](https://github.com/rust-lang/cargo)
  - [npm](https://github.com/npm/npm)

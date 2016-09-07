@@ -14,19 +14,35 @@
 
 var semver = require('semver');
 var ver = process.versions.node;
+var possibles = [];
+var found = false;
 
 if (semver.satisfies(ver, '>=5.0.0')) {
-  try {
-    module.exports = require('../updates/current/lib/cli/index.js');
-  } catch (e) {
-    module.exports = require('../lib/cli/index.js');
-  }
+  possibles.push('../updates/current/lib/cli/index.js');
+  possibles.push('../lib/cli/index.js');
 } else if (semver.satisfies(ver, '>=4.0.0')) {
-  try {
-    module.exports = require('../updates/current/lib-legacy/cli/index.js');
-  } catch (e) {
-    module.exports = require('../lib-legacy/cli/index.js');
-  }
+  possibles.push('../updates/current/lib-legacy/cli/index.js');
+  possibles.push('../lib-legacy/cli/index.js');
 } else {
   throw new Error('Node version ' + ver + ' is not supported');
+}
+
+var i = 0;
+for (; i < possibles.length; i++) {
+  var possible = possibles[i];
+  try {
+    module.exports = require(possible);
+    found = true;
+    break;
+  } catch (err) {
+    if (err.code === 'MODULE_NOT_FOUND') {
+      continue;
+    } else {
+      throw err;
+    }
+  }
+}
+
+if (!found) {
+  throw new Error('Failed to load');
 }

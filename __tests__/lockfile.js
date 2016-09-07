@@ -10,7 +10,7 @@
  */
 /* eslint quotes: 0 */
 
-import Lockfile from "../src/lockfile/Lockfile.js";
+import Lockfile from "../src/lockfile/wrapper.js";
 import stringify from "../src/lockfile/stringify.js";
 import parse from "../src/lockfile/parse.js";
 import nullify from "../src/util/map.js";
@@ -51,13 +51,7 @@ test("parse", () => {
 
 test("stringify", () => {
   let obj = {foo: "bar"};
-  expect(stringify({a: obj, b: obj})).toEqual("a, b:\n  foo bar");
-});
-
-test("Lockfile.isStrict", () => {
-  expect(new Lockfile(null, true).isStrict()).toBe(true);
-  expect(new Lockfile(null, false).isStrict()).toBe(false);
-  expect(new Lockfile(null).isStrict()).toBe(false);
+  expect(stringify({a: obj, b: obj}, true)).toEqual("a, b:\n  foo bar");
 });
 
 test("Lockfile.fromDirectory", () => {
@@ -95,11 +89,8 @@ test("Lockfile.getLocked defaults", () => {
   expect(pattern.version).toBe("0.0.0");
 });
 
-test("Lockfile.getLocked strict unknown", () => {
-  new Lockfile({}, false).getLocked("foobar");
-  expect(() => {
-    new Lockfile({}, true).getLocked("foobar");
-  }).toThrowError("The pattern foobar not found in lockfile");
+test("Lockfile.getLocked unknown", () => {
+  new Lockfile({}).getLocked("foobar");
 });
 
 test("Lockfile.getLockfile", () => {

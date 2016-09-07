@@ -46,4 +46,4 @@ install:
 os:
  - osx
 
-script: make test-ci
+script: npm run test-ci

@@ -9,7 +9,7 @@
  * @flow
  */
 
-import BlockingQueue from '../../src/util/BlockingQueue.js';
+import BlockingQueue from '../../src/util/blocking-queue.js';
 import * as child from '../../src/util/child.js';
 import Config from '../../src/config.js';
 import {SELF_UPDATE_DOWNLOAD_FOLDER} from '../../src/constants.js';

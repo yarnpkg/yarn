@@ -39,3 +39,15 @@ export type ReporterSelectOption = {
   name: string,
   value: string,
 };
+
+export type ReporterSpinnerSet = {
+  spinners: Array<ReporterSetSpinner>,
+  end: () => void,
+};
+
+export type ReporterSetSpinner = {
+  clear: () => void,
+  setPrefix: (current: number, prefix: string) => void,
+  tick: (msg: string) => void,
+  end: () => void,
+};

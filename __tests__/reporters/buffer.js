@@ -9,7 +9,7 @@
  * @flow
  */
 
-import BufferReporter from '../../src/reporters/BufferReporter.js';
+import BufferReporter from '../../src/reporters/buffer-reporter.js';
 import build from './_mock.js';
 
 let getBuff = build(BufferReporter, (data, reporter: any): Array<Object> => reporter.getBuffer());

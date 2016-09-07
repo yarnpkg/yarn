@@ -16,11 +16,11 @@ test:
   override:
     - nvm use 4.3.2 && nvm alias default 4.3.2
     - node -v
-    - make test-ci
+    - npm run test-ci
     - nvm use 6 && nvm alias default 6
     - node -v
-    - make test-ci
-    - make build-dist
+    - npm run test-ci
+    - npm run build-dist
 deployment:
   release:
     tag: /v[0-9]+(\.[0-9]+)*/

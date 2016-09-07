@@ -21,6 +21,9 @@ export {why};
 import * as access from './access.js';
 export {access};
 
+import * as add from './add.js';
+export {add};
+
 import * as clean from './clean.js';
 export {clean};
 
@@ -71,6 +74,9 @@ export {upgrade};
 
 import * as check from './check.js';
 export {check};
+
+import * as version from './version.js';
+export {version};
 
 import buildUseless from './_useless.js';
 
