@@ -9,23 +9,23 @@
  * @flow
  */
 
-import * as fs from '../../src/util/fs.js';
-
 const realRequest = require.requireActual('request');
 const RealRequest = realRequest.Request;
 
-const path = require('path');
+const mkdirp = require('mkdirp');
+const https = require('https');
 const http = require('http');
+const path = require('path');
 const url = require('url');
-const _fs = require('fs');
+const fs = require('fs');
 
 const CACHE_DIR = path.join(__dirname, '..', 'fixtures', 'request-cache');
 
 function getRequestAlias(params: Object): string {
-  const parts = url.parse(params.url);
-
+  const parts = url.parse(params.path);
   const pathname = cleanAlias(parts.pathname);
-  const host = cleanAlias(parts.hostname);
+
+  const host = cleanAlias(params.host || params.hostname);
 
   return path.join(params.method, host, pathname);
 }
@@ -38,99 +38,61 @@ function cleanAlias(str: string): string {
     .replace(/-+$/, ''); // remove trailing dashes
 }
 
-const RESPONSE_KEYS = [
-  'headers',
-  'httpVersion',
-  'method',
-  'rawHeaders',
-  'rawTrailers',
-  'statusCode',
-  'statusMessage',
-  'url',
-];
-
 export class Request extends RealRequest {
   init(params: Object) {
-    if (!params) {
-      return;
-    }
-
-    this._alias = getRequestAlias(params);
-    this._dir = path.join(CACHE_DIR, this._alias);
-    this._resLoc = path.join(this._dir, 'response.json');
-    this._bodyLoc = path.join(this._dir, 'body');
-    this.dests = [];
-
-    this._init(params).catch((err) => {
-      this.emit('err', err);
-    });
-  }
-
-  _inited: boolean;
-
-  async _hasValidCache(): Promise<boolean> {
-    return await fs.exists(this._resLoc) && await fs.exists(this._bodyLoc);
-  }
-
-  async _init(params: Object): Promise<void> {
-    if (await this._hasValidCache()) {
-      return this._initCached(params);
-    } else {
-      return this._initReal(params);
-    }
-  }
-
-  async _initCached(params: Object): Promise<void> {
-    const resCached = await fs.readJson(this._resLoc);
-
-    this.httpModule = {
-      request: (reqOptions): http$ClientRequest => {
-        let res = new http.IncomingMessage();
-        Object.assign(res, resCached);
-        _fs.createReadStream(this._bodyLoc).pipe(res);
-
-        let req = new http.ClientRequest();
-        req.emit('response', res);
-
-        return req;
-      },
-    };
-
     RealRequest.prototype.init.call(this, params);
-  }
-
-  async _initReal(params: Object): Promise<void> {
-    await fs.mkdirp(this._dir);
-
-    let realParams = Object.assign({}, params, {json: false});
-    realRequest(realParams, (err, res, body) => {
-      if (err) {
-        this.emit('error', err);
-        return;
-      }
-
-      // emit body
-      this.emit('data', body);
-      this.emit('end');
-      this.emit('close');
-
-      // write body
-      _fs.writeFileSync(this._bodyLoc, body);
-
-      // write response
-      let resCache = {};
-      for (let key of RESPONSE_KEYS) {
-        resCache[key] = res[key];
-      }
-      _fs.writeFileSync(this._resLoc, JSON.stringify(resCache, null, '  '));
-
-      //
-      if (params.callback) {
-        if (params.json) {
-          body = JSON.parse(body.toString());
-        }
-        params.callback(err, res, body);
-      }
-    });
+    this.httpModule = httpMock;
   }
 }
+
+let httpMock = {
+  request(options, callback?) {
+    let alias = getRequestAlias(options);
+    let loc = path.join(CACHE_DIR, `${alias}.bin`);
+
+    // TODO better way to do this
+    let httpModule = options.port === 443 ? https : http;
+
+    if (fs.existsSync(loc)) {
+      // cached
+      options.agent = null;
+      options.socketPath = null;
+      options.createConnection = () => {
+        return fs.createReadStream(loc);
+      };
+      return httpModule.request(options, callback);
+    } else {
+      // not cached
+      let req = httpModule.request(options, callback);
+      let errored = false;
+      let bufs = [];
+
+      req.once('socket', function (socket) {
+        socket.setMaxListeners(Infinity);
+        socket.on('data', function (buf) {
+          bufs.push(buf);
+        });
+      });
+
+      req.on('error', function () {
+        errored = true;
+      });
+
+      req.on('response', function (res) {
+        if (res.statusCode >= 400) {
+          errored = true;
+        }
+        if (errored) {
+          return;
+        }
+
+        res.on('end', function () {
+          mkdirp.sync(path.dirname(loc));
+          fs.writeFileSync(loc, Buffer.concat(bufs));
+        });
+      });
+
+      return req;
+    }
+  }
+};
