@@ -76,12 +76,12 @@
     "🐱": "./bin/kpm.js"
   },
   "scripts": {
-    "test": "npm run lint & npm run test-only",
-    "test-ci": "npm run build & npm run test",
+    "test": "npm run lint && npm run test-only",
+    "test-ci": "npm run build && npm run test",
     "build": "gulp build",
     "watch": "gulp watch",
     "test-only": "jest --coverage --verbose -i",
-    "lint": "eslint . & flow check",
+    "lint": "eslint . && flow check",
     "release-branch": "./scripts/release-branch.sh",
     "build-dist": "./scripts/build-dist.sh"
   },

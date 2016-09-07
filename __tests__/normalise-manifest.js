@@ -77,12 +77,12 @@ test('util.parsePerson', () => {
   expect(util.parsePerson('Sebastian McKenzie <sebmck@gmail.com> (https://sebmck.com)')).toEqual({name: 'Sebastian McKenzie', email: 'sebmck@gmail.com', url: 'https://sebmck.com'});
 });
 
-fit('util.extractDescription', () => {
-  expect(util.extractDescription(map('# header\n\ndescription here'))).toEqual(map('description here'));
-  expect(util.extractDescription(map('# header\ndescription here'))).toEqual(map('description here'));
-  expect(util.extractDescription(map('# header\ndescription here\nfoobar'))).toEqual(map('description here foobar'));
-  expect(util.extractDescription(map('# header\ndescription here\n\nfoobar'))).toEqual(map('description here'));
-  expect(util.extractDescription(map(''))).toEqual(map(undefined));
-  expect(util.extractDescription(map(null))).toEqual(map(undefined));
-  expect(util.extractDescription(map(undefined))).toEqual(map(undefined));
+test('util.extractDescription', () => {
+  expect(util.extractDescription('# header\n\ndescription here')).toEqual('description here');
+  expect(util.extractDescription('# header\ndescription here')).toEqual('description here');
+  expect(util.extractDescription('# header\ndescription here\nfoobar')).toEqual('description here foobar');
+  expect(util.extractDescription('# header\ndescription here\n\nfoobar')).toEqual('description here');
+  expect(util.extractDescription('')).toEqual(undefined);
+  expect(util.extractDescription(null)).toEqual(undefined);
+  expect(util.extractDescription(undefined)).toEqual(undefined);
 });
