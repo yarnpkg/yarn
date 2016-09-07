@@ -1,4 +1,4 @@
-__tests__/fixtures
+test/fixtures
 lib
 lib-legacy
 node_modules
