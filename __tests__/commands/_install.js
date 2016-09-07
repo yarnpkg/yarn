@@ -22,6 +22,19 @@ import Config from '../../src/config.js';
 let stream = require('stream');
 let path = require('path');
 
+let fixturesLoc = path.join(__dirname, '..', 'fixtures', 'install');
+
+export async function runInstall(
+  flags: Object,
+  name: string,
+  checkInstalled?: ?(config: Config, reporter: Reporter) => ?Promise<void>,
+  beforeInstall?: ?(cwd: string) => ?Promise<void>,
+): Promise<void> {
+  return run((config, reporter, lockfile): Install => {
+    return new Install(flags, config, reporter, lockfile);
+  }, path.join(fixturesLoc, name), checkInstalled, beforeInstall);
+}
+
 export async function clean(cwd: string, removeLock?: boolean) {
   await fs.unlink(path.join(cwd, constants.MODULE_CACHE_DIRECTORY));
   await fs.unlink(path.join(cwd, 'node_modules'));

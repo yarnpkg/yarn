@@ -9,15 +9,13 @@
  * @flow
  */
 
-import {Reporter} from '../../src/reporters/index.js';
-import {Install} from '../../src/cli/commands/install.js';
 import {run as uninstall} from '../../src/cli/commands/uninstall.js';
 import {run as check} from '../../src/cli/commands/check.js';
-import Config from '../../src/config.js';
 import * as fs from '../../src/util/fs.js';
 import assert from 'assert';
 import semver from 'semver';
-import {getPackageVersion, explodeLockfile, run as buildRun} from './_install.js';
+import parallelTest from '../_parallel-test.js';
+import {getPackageVersion, explodeLockfile, runInstall} from './_install.js';
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000;
 
@@ -25,26 +23,15 @@ let path = require('path');
 
 let fixturesLoc = path.join(__dirname, '..', 'fixtures', 'install');
 
-export async function runInstall(
-  flags: Object,
-  name: string,
-  checkInstalled?: ?(config: Config, reporter: Reporter) => ?Promise<void>,
-  beforeInstall?: ?(cwd: string) => ?Promise<void>,
-): Promise<void> {
-  return buildRun((config, reporter, lockfile): Install => {
-    return new Install(flags, config, reporter, lockfile);
-  }, path.join(fixturesLoc, name), checkInstalled, beforeInstall);
-}
-
-test('[network] root install from shrinkwrap', (): Promise<void> => {
+parallelTest('[network] root install from shrinkwrap', (): Promise<void> => {
   return runInstall({}, 'root-install-with-lockfile');
 });
 
-test('[network] root install with optional deps', (): Promise<void> => {
+parallelTest('[network] root install with optional deps', (): Promise<void> => {
   return runInstall({}, 'root-install-with-optional-dependency');
 });
 
-test('install file: protocol', (): Promise<void> => {
+parallelTest('install file: protocol', (): Promise<void> => {
   return runInstall({noLockfile: true}, 'install-file', async (config) => {
     assert.equal(
       await fs.readFile(path.join(config.cwd, 'node_modules', 'foo', 'index.js')),
@@ -53,7 +40,7 @@ test('install file: protocol', (): Promise<void> => {
   });
 });
 
-it('install renamed packages', (): Promise<void> => {
+parallelTest('install renamed packages', (): Promise<void> => {
   return runInstall({}, 'install-renamed-packages', async (config): Promise<void> => {
     let dir = path.join(config.cwd, 'node_modules');
 
@@ -65,7 +52,7 @@ it('install renamed packages', (): Promise<void> => {
   });
 });
 
-test('install from offline mirror', (): Promise<void> => {
+parallelTest('install from offline mirror', (): Promise<void> => {
   return runInstall({}, 'install-from-offline-mirror', async (config): Promise<void> => {
 
     let allFiles = await fs.walk(config.cwd);
@@ -76,7 +63,7 @@ test('install from offline mirror', (): Promise<void> => {
   });
 });
 
-test('install should dedupe dependencies avoiding conflicts 0', (): Promise<void> => {
+parallelTest('install should dedupe dependencies avoiding conflicts 0', (): Promise<void> => {
   // A@2.0.1 -> B@2.0.0
   // B@1.0.0
   // should result in B@2.0.0 not flattened
@@ -86,7 +73,7 @@ test('install should dedupe dependencies avoiding conflicts 0', (): Promise<void
   });
 });
 
-test('install should dedupe dependencies avoiding conflicts 1', (): Promise<void> => {
+parallelTest('install should dedupe dependencies avoiding conflicts 1', (): Promise<void> => {
   // A@2.0.1 -> B@2.0.0
   // should result in B@2.0.0 flattened
   return runInstall({}, 'install-should-dedupe-avoiding-conflicts-1', async (config) => {
@@ -95,7 +82,7 @@ test('install should dedupe dependencies avoiding conflicts 1', (): Promise<void
   });
 });
 
-test('install should dedupe dependencies avoiding conflicts 2', (): Promise<void> => {
+parallelTest('install should dedupe dependencies avoiding conflicts 2', (): Promise<void> => {
   // A@2 -> B@2 -> C@2
   //            -> D@1
   // B@1 -> C@1
@@ -117,7 +104,7 @@ test('install should dedupe dependencies avoiding conflicts 2', (): Promise<void
   });
 });
 
-test('install should dedupe dependencies avoiding conflicts 3', (): Promise<void> => {
+parallelTest('install should dedupe dependencies avoiding conflicts 3', (): Promise<void> => {
   // A@2 -> B@2 -> C@2
   //            -> D@1
   //     -> C@1
@@ -135,7 +122,7 @@ test('install should dedupe dependencies avoiding conflicts 3', (): Promise<void
   });
 });
 
-test('install should dedupe dependencies avoiding conflicts 4', (): Promise<void> => {
+parallelTest('install should dedupe dependencies avoiding conflicts 4', (): Promise<void> => {
   // A@2 -> B@2 -> D@1 -> C@2
   //
   //     -> C@1
@@ -154,7 +141,7 @@ test('install should dedupe dependencies avoiding conflicts 4', (): Promise<void
   });
 });
 
-test('install should dedupe dependencies avoiding conflicts 5', (): Promise<void> => {
+parallelTest('install should dedupe dependencies avoiding conflicts 5', (): Promise<void> => {
   // A@1 -> B@1
   // C@1 -> D@1 -> A@2 -> B@2
 
@@ -177,7 +164,7 @@ test('install should dedupe dependencies avoiding conflicts 5', (): Promise<void
   });
 });
 
-test('install should dedupe dependencies avoiding conflicts 6 (jest/jest-runtime case)', (): Promise<void> => {
+parallelTest('install should dedupe dependencies avoiding conflicts 6 (jest/jest-runtime case)', (): Promise<void> => {
   // C@1 -> D@1 -> E@1
   // B@1 -> C@1 -> D@1 -> E@1
   // D@2
@@ -202,7 +189,7 @@ test('install should dedupe dependencies avoiding conflicts 6 (jest/jest-runtime
   });
 });
 
-test('install should dedupe dependencies avoiding conflicts 7', (): Promise<void> => {
+parallelTest('install should dedupe dependencies avoiding conflicts 7', (): Promise<void> => {
   // A@1 -> C@1 -> D@1 -> E@1
   // B@1 -> C@1 -> D@1 -> E@1
   // C@2
@@ -240,7 +227,7 @@ test('install should dedupe dependencies avoiding conflicts 7', (): Promise<void
   });
 });
 
-test('install should dedupe dependencies avoiding conflicts 8', (): Promise<void> => {
+parallelTest('install should dedupe dependencies avoiding conflicts 8', (): Promise<void> => {
   // revealed in https://github.com/facebook/fbkpm/issues/112
   return runInstall({}, 'install-should-dedupe-avoiding-conflicts-8', async (config) => {
     assert.equal(await getPackageVersion(config, 'glob'), '5.0.15');
@@ -255,7 +242,7 @@ test('install should dedupe dependencies avoiding conflicts 8', (): Promise<void
 });
 
 
-test('install should dedupe dependencies avoiding conflicts 9', (): Promise<void> => {
+parallelTest('install should dedupe dependencies avoiding conflicts 9', (): Promise<void> => {
   // revealed in https://github.com/facebook/fbkpm/issues/112
   return runInstall({}, 'install-should-dedupe-avoiding-conflicts-9', async (config) => {
     assert.equal(await getPackageVersion(config, 'glob'), '5.0.15');
@@ -269,7 +256,8 @@ test('install should dedupe dependencies avoiding conflicts 9', (): Promise<void
   });
 });
 
-test('install have a clean node_modules after lockfile update (branch switch scenario)', async (): Promise<void> => {
+parallelTest('install have a clean node_modules after lockfile update (branch switch scenario)',
+async (): Promise<void> => {
   // A@1 -> B@1
   // B@2
 
@@ -310,7 +298,8 @@ test('install have a clean node_modules after lockfile update (branch switch sce
 });
 
 
-test('install have a clean node_modules after lockfile update (branch switch scenario 2)', async (): Promise<void> => {
+parallelTest('install have a clean node_modules after lockfile update (branch switch scenario 2)',
+async (): Promise<void> => {
   // A@1 -> B@1
 
   // after package.json/lock file update
@@ -344,7 +333,7 @@ test('install have a clean node_modules after lockfile update (branch switch sce
   });
 });
 
-test('uninstall should remove dependency from package.json, kpm.lock and node_modules', (): Promise<void> => {
+parallelTest('uninstall should remove dependency from package.json, kpm.lock and node_modules', (): Promise<void> => {
   let mirrorPath = 'mirror-for-offline';
 
   return runInstall({}, 'uninstall-should-clean', async (config, reporter) => {
@@ -381,28 +370,7 @@ test('uninstall should remove dependency from package.json, kpm.lock and node_mo
   });
 });
 
-test('install should circumvent circular dependencies', (): Promise<void> => {
-  // A@1 -> B@1
-  // B@1 -> C@1
-  // C@1 -> A@1
-
-  return runInstall({}, 'uninstall-should-remove-subdependencies', async (config, reporter) => {
-    assert.equal(
-      await getPackageVersion(config, 'dep-a'),
-      '1.0.0',
-    );
-    assert.equal(
-      await getPackageVersion(config, 'dep-b'),
-      '1.0.0',
-    );
-    assert.equal(
-      await getPackageVersion(config, 'dep-c'),
-      '1.0.0',
-    );
-  });
-});
-
-test('uninstall should remove subdependencies', (): Promise<void> => {
+parallelTest('uninstall should remove subdependencies', (): Promise<void> => {
   // A@1 -> B@1
   // C@1
 
@@ -460,7 +428,7 @@ test('uninstall should remove subdependencies', (): Promise<void> => {
   });
 });
 
-test('check should verify that top level dependencies are installed correctly', async (): Promise<void> => {
+parallelTest('check should verify that top level dependencies are installed correctly', async (): Promise<void> => {
   let fixture = 'check-top-correct';
 
   return runInstall({}, fixture, async (config, reporter) => {
@@ -484,7 +452,7 @@ test('check should verify that top level dependencies are installed correctly', 
   });
 });
 
-test('install should run install scripts in the order of dependencies', async (): Promise<void> => {
+parallelTest('install should run install scripts in the order of dependencies', async (): Promise<void> => {
   let fixture = 'scripts-order';
 
   return runInstall({}, fixture, async (config, reporter) => {
@@ -495,7 +463,7 @@ test('install should run install scripts in the order of dependencies', async ()
 });
 
 
-test('[network] install should add missing deps to kpm and mirror (PR import scenario)',
+parallelTest('[network] install should add missing deps to kpm and mirror (PR import scenario)',
 async (): Promise<void> => {
   let mirrorPath = 'mirror-for-offline';
   let fixture = 'install-import-pr';

@@ -17,8 +17,9 @@ import {parse} from '../../src/lockfile/wrapper.js';
 import {Install} from '../../src/cli/commands/install.js';
 import {run as check} from '../../src/cli/commands/check.js';
 import Config from '../../src/config.js';
+import parallelTest from '../_parallel-test.js';
 import * as fs from '../../src/util/fs.js';
-import {runInstall} from './install.js';
+import {runInstall} from './_install.js';
 import assert from 'assert';
 import semver from 'semver';
 
@@ -40,19 +41,19 @@ async function runAdd(
   }, path.join(fixturesLoc, name), checkInstalled, beforeInstall);
 }
 
-test('[network] install with arg that has install scripts', (): Promise<void> => {
+parallelTest('[network] install with arg that has install scripts', (): Promise<void> => {
   return runAdd({}, ['flow-bin'], 'install-with-arg-and-install-scripts');
 });
 
-test('[network] install with arg', (): Promise<void> => {
+parallelTest('[network] install with arg', (): Promise<void> => {
   return runAdd({}, ['is-online'], 'install-with-arg');
 });
 
-test('[network] install with arg that has binaries', (): Promise<void> => {
+parallelTest('[network] install with arg that has binaries', (): Promise<void> => {
   return runAdd({}, ['react-native-cli'], 'install-with-arg-and-bin');
 });
 
-test('[network] install --save should ignore cache', (): Promise<void> => {
+parallelTest('[network] install --save should ignore cache', (): Promise<void> => {
   // left-pad@1.1.0 gets installed without --save
   // left-pad@1.1.0 gets installed with --save
   // files in mirror, kpm.lock, package.json and node_modules should reflect that
@@ -93,7 +94,7 @@ test('[network] install --save should ignore cache', (): Promise<void> => {
   });
 });
 
-test('[network] install --save should not make package.json strict', async (): Promise<void> => {
+parallelTest('[network] install --save should not make package.json strict', async (): Promise<void> => {
   let mirrorPath = 'mirror-for-offline';
   let fixture = 'install-no-strict';
   let cwd = path.join(fixturesLoc, fixture);
@@ -115,7 +116,7 @@ test('[network] install --save should not make package.json strict', async (): P
   });
 });
 
-test('[network] install --save-exact should not make all package.json strict', async (): Promise<void> => {
+parallelTest('[network] install --save-exact should not make all package.json strict', async (): Promise<void> => {
   let mirrorPath = 'mirror-for-offline';
   let fixture = 'install-no-strict-all';
   let cwd = path.join(fixturesLoc, fixture);
@@ -137,7 +138,7 @@ test('[network] install --save-exact should not make all package.json strict', a
   });
 });
 
-test('[network] install --save with new dependency should be deterministic 3', async (): Promise<void> => {
+parallelTest('[network] install --save with new dependency should be deterministic 3', async (): Promise<void> => {
   let fixture = 'install-should-cleanup-when-package-json-changed-3';
   let cwd = path.join(fixturesLoc, fixture);
   await fs.copy(path.join(cwd, 'kpm.lock.before'), path.join(cwd, 'kpm.lock'));
@@ -166,7 +167,7 @@ test('[network] install --save with new dependency should be deterministic 3', a
   });
 });
 
-test('[network] install --save should update a dependency to kpm and mirror (PR import scenario 2)',
+parallelTest('[network] install --save should update a dependency to kpm and mirror (PR import scenario 2)',
 async (): Promise<void> => {
   // mime-types@2.0.0 is saved in local mirror and gets updated to mime-types@2.1.11 via
   // a change in package.json,
@@ -225,7 +226,8 @@ async (): Promise<void> => {
   });
 });
 
-test('[network] install --initMirror should add init mirror deps from package.json', async (): Promise<void> => {
+parallelTest('[network] install --initMirror should add init mirror deps from package.json',
+async (): Promise<void> => {
   let mirrorPath = 'mirror-for-offline';
   let fixture = 'install-init-mirror';
 
@@ -251,7 +253,7 @@ test('[network] install --initMirror should add init mirror deps from package.js
   });
 });
 
-test('[network] install --save with new dependency should be deterministic', async (): Promise<void> => {
+parallelTest('[network] install --save with new dependency should be deterministic', async (): Promise<void> => {
   // mime-types@2.0.0->mime-db@1.0.3 is saved in local mirror and is deduped
   // install mime-db@1.23.0 should move mime-db@1.0.3 deep into mime-types
 
@@ -361,7 +363,7 @@ xit('[network] install --save with new dependency should be deterministic 2', as
 });
 
 
-test('[network] install with --save and offline mirror', (): Promise<void> => {
+parallelTest('[network] install with --save and offline mirror', (): Promise<void> => {
   let mirrorPath = 'mirror-for-offline';
   return runAdd({}, ['is-array@^1.0.1'], 'install-with-save-offline-mirror', async (config) => {
     let allFiles = await fs.walk(config.cwd);
@@ -380,7 +382,7 @@ test('[network] install with --save and offline mirror', (): Promise<void> => {
   });
 });
 
-test('[network] install with --save and without offline mirror', (): Promise<void> => {
+parallelTest('[network] install with --save and without offline mirror', (): Promise<void> => {
   let mirrorPath = 'mirror-for-offline';
   return runAdd({}, ['is-array@^1.0.1'], 'install-with-save-no-offline-mirror', async (config) => {
 
@@ -400,7 +402,7 @@ test('[network] install with --save and without offline mirror', (): Promise<voi
   });
 });
 
-test('upgrade scenario', (): Promise<void> => {
+parallelTest('upgrade scenario', (): Promise<void> => {
   // left-pad first installed 0.0.9 then updated to 1.1.0
   // files in mirror, kpm.lock, package.json and node_modules should reflect that
 
@@ -457,7 +459,7 @@ test('upgrade scenario', (): Promise<void> => {
   }, clean);
 });
 
-test('[network] upgrade scenario 2 (with sub dependencies)', async (): Promise<void> => {
+parallelTest('[network] upgrade scenario 2 (with sub dependencies)', async (): Promise<void> => {
   // mime-types@2.0.0 is saved in local mirror and gets updated to mime-types@2.1.11
   // files in mirror, kpm.lock, package.json and node_modules should reflect that
 
@@ -511,7 +513,7 @@ test('[network] upgrade scenario 2 (with sub dependencies)', async (): Promise<v
   });
 });
 
-test('[network] downgrade scenario', (): Promise<void> => {
+parallelTest('[network] downgrade scenario', (): Promise<void> => {
   // left-pad first installed 1.1.0 then downgraded to 0.0.9
   // files in mirror, kpm.lock, package.json and node_modules should reflect that
 
