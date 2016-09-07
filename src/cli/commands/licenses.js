@@ -34,7 +34,7 @@ export let {setFlags, run} = buildSubCommands('licenses', {
     const install = new Install(flags, config, reporter, lockfile);
 
     let [depRequests,, manifest] = await install.fetchRequestFromCwd();
-    await install.resolver.init(depRequests);
+    await install.resolver.init(depRequests, install.flags.flat);
 
     console.log(
       'THE FOLLOWING SETS FORTH ATTRIBUTION NOTICES FOR THIRD PARTY SOFTWARE THAT MAY BE CONTAINED ' +

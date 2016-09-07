@@ -31,11 +31,15 @@ export default class PackageResolver {
     this.newPatterns = [];
     this.patterns = map();
     this.usedRegistries = new Set();
+    this.flat = false;
 
     this.reporter = config.reporter;
     this.lockfile = lockfile;
     this.config = config;
   }
+
+  // whether the dependency graph will be flattened
+  flat: boolean;
 
   // list of registries that have been used in this resolution
   usedRegistries: Set<RegistryNames>;
@@ -380,7 +384,9 @@ export default class PackageResolver {
    * TODO description
    */
 
-  async init(deps: DependencyRequestPatterns): Promise<void> {
+  async init(deps: DependencyRequestPatterns, isFlat: boolean): Promise<void> {
+    this.flat = isFlat;
+
     //
     const activity = this.activity = this.reporter.activity();
 

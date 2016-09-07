@@ -71,7 +71,7 @@ export async function run(
     }
   } else {
     // seed resolver
-    await install.resolver.init(depRequests);
+    await install.resolver.init(depRequests, install.flags.flat);
 
     // check if any of the node_modules are out of sync
     const res = await install.linker.getFlatHoistedTree(rawPatterns);
