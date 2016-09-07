@@ -14,6 +14,7 @@ import type {ReporterSelectOption} from '../../reporters/types.js';
 import type {Manifest, DependencyRequestPatterns} from '../../types.js';
 import type Config from '../../config.js';
 import type {RegistryNames} from '../../registries/index.js';
+import {stringify} from '../../util/misc.js';
 import {registryNames} from '../../registries/index.js';
 import Lockfile from '../../lockfile/wrapper.js';
 import lockStringify from '../../lockfile/stringify.js';
@@ -46,6 +47,10 @@ export type InstallCwdRequest = [
   Array<string>,
   Object
 ];
+
+type RootManifests = {
+  [registryName: RegistryNames]: [string, Object]
+};
 
 type IntegrityMatch = {
   actual: string,
@@ -296,12 +301,79 @@ export class Install {
           'Answer',
           options,
         );
+        this.resolutions[name] = version;
       }
 
       patterns.push(this.resolver.collapseAllVersionsOfPackage(name, version));
     }
 
+    // save resolutions to their appropriate root manifest
+    if (Object.keys(this.resolutions).length) {
+      let jsons = await this.getRootManifests();
+
+      for (let name in this.resolutions) {
+        let version = this.resolutions[name];
+
+        let patterns = this.resolver.patternsByPackage[name];
+        if (!patterns) {
+          continue;
+        }
+
+        let manifest;
+        for (let pattern of patterns) {
+          manifest = this.resolver.getResolvedPattern(pattern);
+          if (manifest) {
+            break;
+          }
+        }
+        invariant(manifest, 'expected manifest');
+
+        let ref = manifest._reference;
+        invariant(ref, 'expected reference');
+
+        let json = jsons[ref.registry][1];
+        json.resolutions = json.resolutions || {};
+        json.resolutions[name] = version;
+      }
+
+      await this.saveRootManifests(jsons);
+    }
+
     return patterns;
+  }
+
+  /**
+   * Get root manifests.
+   */
+
+  async getRootManifests(): Promise<RootManifests> {
+    let jsons: RootManifests = {};
+    for (let registryName of registryNames) {
+      const registry = registries[registryName];
+      const jsonLoc = path.join(this.config.cwd, registry.filename);
+
+      let json = {};
+      if (await fs.exists(jsonLoc)) {
+        json = await fs.readJson(jsonLoc);
+      }
+      jsons[registryName] = [jsonLoc, json];
+    }
+    return jsons;
+  }
+
+  /**
+   * Save root manifests.
+   */
+
+  async saveRootManifests(jsons: RootManifests) {
+    for (let registryName of registryNames) {
+      let [loc, json] = jsons[registryName];
+      if (!Object.keys(json).length) {
+        continue;
+      }
+
+      await fs.writeFile(loc, stringify(json) + '\n');
+    }
   }
 
   /**

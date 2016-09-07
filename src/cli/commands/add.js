@@ -101,19 +101,7 @@ export class Add extends Install {
     let {dev, exact, tilde, optional, peer} = this.flags;
 
     // get all the different registry manifests in this folder
-    let jsons: {
-      [registryName: RegistryNames]: [string, Object]
-    } = {};
-    for (let registryName of registryNames) {
-      const registry = registries[registryName];
-      const jsonLoc = path.join(this.config.cwd, registry.filename);
-
-      let json = {};
-      if (await fs.exists(jsonLoc)) {
-        json = await fs.readJson(jsonLoc);
-      }
-      jsons[registryName] = [jsonLoc, json];
-    }
+    let jsons = await this.getRootManifests();
 
     // add new patterns to their appropriate registry manifest
     for (const pattern of this.resolver.dedupePatterns(this.args)) {
@@ -170,14 +158,7 @@ export class Add extends Install {
       this.resolver.removePattern(pattern);
     }
 
-    for (let registryName of registryNames) {
-      let [loc, json] = jsons[registryName];
-      if (!Object.keys(json).length) {
-        continue;
-      }
-
-      await fs.writeFile(loc, stringify(json) + '\n');
-    }
+    await this.saveRootManifests(jsons);
   }
 }
 
