@@ -262,7 +262,7 @@ export class Install {
       return patterns;
     }
 
-    for (const name of this.resolver.getAllDependencyNames(patterns)) {
+    for (const name of this.resolver.getAllDependencyNamesByLevelOrder(patterns)) {
       const infos = this.resolver.getAllInfoForPackageName(name).filter((manifest: Manifest): boolean => {
         let ref = manifest._reference;
         invariant(ref, 'expected package reference');

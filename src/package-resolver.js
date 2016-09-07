@@ -134,7 +134,7 @@ export default class PackageResolver {
   }
 
   /**
-   * Description
+   * Get a list of all manifests by topological order.
    */
 
   getTopologicalManifests(seedPatterns: Array<string>): Iterable<Manifest> {
@@ -162,12 +162,47 @@ export default class PackageResolver {
   }
 
   /**
+   * Get a list of all manifests by level sort order.
+   */
+
+  getLevelOrderManifests(seedPatterns: Array<string>): Iterable<Manfiest> {
+    let pkgs: Set<Manifest> = new Set();
+    let skip: Set<Manifest> = new Set();
+
+    let add = (seedPatterns: Array<string>) => {
+      let refs = [];
+
+      for (let pattern of seedPatterns) {
+        let pkg = this.getStrictResolvedPattern(pattern);
+        if (skip.has(pkg)) {
+          continue;
+        }
+
+        let ref = pkg._reference;
+        invariant(ref, 'expected reference');
+
+        refs.push(ref);
+        skip.add(pkg);
+        pkgs.add(pkg);
+      }
+
+      for (let ref of refs) {
+        add(ref.dependencies);
+      }
+    };
+
+    add(seedPatterns);
+
+    return pkgs;
+  }
+
+  /**
    * Get a list of all package names in the depenency graph.
    */
 
-  getAllDependencyNames(seedPatterns: Array<string>): Iterable<string> {
+  getAllDependencyNamesByLevelOrder(seedPatterns: Array<string>): Iterable<string> {
     let names = new Set();
-    for (let {name} of this.getTopologicalManifests(seedPatterns)) {
+    for (let {name} of this.getLevelOrderManifests(seedPatterns)) {
       names.add(name);
     }
     return names;
