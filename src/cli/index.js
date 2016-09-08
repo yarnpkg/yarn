@@ -108,6 +108,7 @@ let config = new Config(reporter, {
   modulesFolder: commander.modulesFolder,
   packagesRoot: commander.packagesRoot,
   preferOffline: commander.preferOffline,
+  captureHar: commander.har,
   offline: commander.preferOffline || commander.offline,
 });
 

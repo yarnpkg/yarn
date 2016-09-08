@@ -16,7 +16,9 @@ import * as constants from '../constants.js';
 import * as network from './network.js';
 import map from '../util/map.js';
 
-const Request = require('request-capture-har')('request');
+const Request = require('request');
+const RequestCaptureHar = require('request-capture-har');
+
 const url = require('url');
 
 const successHosts = map();
@@ -63,18 +65,22 @@ type RequestOptions = {
 };
 
 export default class RequestManager {
-  constructor(reporter: Reporter, offlineNoRequests?: boolean) {
+  constructor(reporter: Reporter, offlineNoRequests?: boolean, captureHar?: boolean) {
     this.offlineNoRequests = !!offlineNoRequests;
+    this.captureHar = !!captureHar;
     this.offlineQueue = [];
     this.reporter = reporter;
     this.running = 0;
     this.queue = [];
     this.cache = {};
     this.max = constants.NETWORK_CONCURRENCY;
+
+    this.requestCaptureHar = new RequestCaptureHar(Request);
   }
 
   // whether we should throw errors and disallow HTTP requests
   offlineNoRequests: boolean;
+  captureHar: boolean;
 
   reporter: Reporter;
   running: number;
@@ -127,6 +133,7 @@ export default class RequestManager {
 
   clearCache() {
     this.cache = {};
+    this.requestCaptureHar.clear();
   }
 
   /**
@@ -260,7 +267,7 @@ export default class RequestManager {
       params.encoding = null;
     }
 
-    const req = new Request(params);
+    const req = this.captureHar ? this.requestCaptureHar.request(params) : new Request(params);
 
     req.on('error', onError);
 

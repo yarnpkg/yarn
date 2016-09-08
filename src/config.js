@@ -45,7 +45,7 @@ type PackageMetadata = {
 export default class Config {
   constructor(reporter: Reporter, opts?: ConfigOptions = {}) {
     this.constraintResolver = new ConstraintResolver(this, reporter);
-    this.requestManager = new RequestManager(reporter, opts.offline && !opts.preferOffline);
+    this.requestManager = new RequestManager(reporter, opts.offline && !opts.preferOffline, opts.captureHar);
     this.reporter = reporter;
 
     this.registryFolders = [];

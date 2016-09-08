@@ -27,7 +27,7 @@
     "read": "^1.0.7",
     "repeating": "^2.0.0",
     "request": "request/request#bfb3a46",
-    "request-capture-har": "^1.1.2",
+    "request-capture-har": "^1.1.3",
     "rimraf": "^2.5.0",
     "semver": "^5.1.0",
     "strip-bom": "^2.0.0",
