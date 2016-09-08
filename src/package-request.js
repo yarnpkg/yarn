@@ -255,20 +255,10 @@ export default class PackageRequest {
     const promises = [];
     const deps = [];
 
-    // normal deps
-    for (const depName in info.dependencies) {
-      const depPattern = depName + '@' + info.dependencies[depName];
-      deps.push(depPattern);
-      promises.push(this.resolver.find({
-        pattern: depPattern,
-        registry: remote.registry,
-        visibility: USED_VISIBILITY,
-        optional: false,
-        parentRequest: this,
-      }));
-    }
-
-    // optional deps
+    // optional deps -- we iterate through these first because with npm,
+    // it includes "optionalDependencies" in the "dependencies" array, and thus
+    // we want to mark the optional ones as optional before we iterate through them
+    // as dependencies
     for (const depName in info.optionalDependencies) {
       const depPattern = depName + '@' + info.optionalDependencies[depName];
       deps.push(depPattern);
@@ -277,6 +267,23 @@ export default class PackageRequest {
         registry: remote.registry,
         visibility: USED_VISIBILITY,
         optional: true,
+        parentRequest: this,
+      }));
+    }
+
+    // normal deps
+    for (const depName in info.dependencies) {
+      // Skip duplicative dependencies
+      if (info.optionalDependencies && depName in info.optionalDependencies) {
+        continue;
+      }
+      const depPattern = depName + '@' + info.dependencies[depName];
+      deps.push(depPattern);
+      promises.push(this.resolver.find({
+        pattern: depPattern,
+        registry: remote.registry,
+        visibility: USED_VISIBILITY,
+        optional: false,
         parentRequest: this,
       }));
     }
