@@ -178,6 +178,11 @@ export class Install {
       return {patterns, requests, skip: true};
     }
 
+    if (!patterns.length && !match.expected) {
+      this.reporter.success('Nothing to install.');
+      return {patterns, requests, skip: true};
+    }
+
     return {patterns, requests, skip: false};
   }
 
