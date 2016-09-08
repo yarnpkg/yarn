@@ -193,8 +193,8 @@ export default class Config {
    * Second time the same package needs to be installed it will be loaded from there
    */
 
-  getOfflineMirrorPath(registryName: RegistryNames, tarUrl: ?string): string {
-    const registry = this.registries[registryName];
+  getOfflineMirrorPath(tarUrl: ?string): string {
+    let registry = this.registries.npm;
     if (!registry) {
       return '';
     }

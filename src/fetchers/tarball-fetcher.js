@@ -74,11 +74,11 @@ export default class TarballFetcher extends BaseFetcher {
   }
 
   getMirrorPath(): ?string {
-    return this.config.getOfflineMirrorPath(this.registry, this.reference);
+    return this.config.getOfflineMirrorPath(this.reference);
   }
 
   getRelativeMirrorPath(mirrorPath: string): string {
-    return path.relative(this.config.getOfflineMirrorPath(this.registry), mirrorPath);
+    return path.relative(this.config.getOfflineMirrorPath(), mirrorPath);
   }
 
   createExtractor(mirrorPath: ?string, resolve: Function, reject: Function): {
@@ -120,7 +120,7 @@ export default class TarballFetcher extends BaseFetcher {
       localTarball = relativeFileLoc;
     } else {
       // generate a offline cache location
-      localTarball = path.resolve(config.getOfflineMirrorPath(registry, null), ref);
+      localTarball = path.resolve(config.getOfflineMirrorPath(), ref);
       isOfflineTarball = true;
     }
 
