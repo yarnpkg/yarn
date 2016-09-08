@@ -249,6 +249,7 @@ export class Install {
 
     // fin!
     await this.saveLockfileAndIntegrity();
+    this.config.requestManager.clearCache();
     return patterns;
   }
 

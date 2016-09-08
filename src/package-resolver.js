@@ -437,7 +437,5 @@ export default class PackageResolver {
 
     activity.end();
     this.activity = null;
-
-    this.config.requestManager.clearCache();
   }
 }
