@@ -178,6 +178,7 @@ export default class TarballFetcher extends BaseFetcher {
           mirrorTarballStream.on('error', reject);
         }
         let tarballStoreStream = fs.createWriteStream(path.join(this.dest, constants.TARBALL_FILENAME));
+        tarballStoreStream.on('error', reject);
         const saver = through(function(chunk, enc, callback) {
           if (mirrorTarballStream) {
             mirrorTarballStream.write(chunk, enc);

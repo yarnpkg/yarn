@@ -60,7 +60,6 @@ export default class PackageFetcher {
 
     // remove as the module may be invalid
     await fs.unlink(dest);
-    await fs.mkdirp(dest);
 
     try {
       return await fetcher.fetch();

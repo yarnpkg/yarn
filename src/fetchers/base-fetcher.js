@@ -51,6 +51,8 @@ export default class BaseFetcher {
     let {dest} = this;
 
     return fs.lockQueue.push(dest, async (): Promise<FetchedMetadata> => {
+      await fs.mkdirp(dest);
+
       // fetch package and get the hash
       const {hash, resolved} = await this._fetch();
 
