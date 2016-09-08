@@ -27,7 +27,7 @@ function hasGzipHeader(chunk: Buffer): boolean {
   return chunk[0] === 0x1F && chunk[1] === 0x8B && chunk[2] === 0x08;
 }
 
-function degzipper(factory): any {
+function createUnzip(factory): any {
   let readHeader = false;
   let isGzip = false;
 
@@ -101,7 +101,7 @@ export default class TarballFetcher extends BaseFetcher {
       // flow gets confused with the pipe/on types chain
       const cachedStream: Object = fs.createReadStream(localTarball);
 
-      const decompressStream = degzipper((stream) => {
+      const decompressStream = createUnzip((stream) => {
         stream
           .on('error', reject)
           .pipe(extractor);
@@ -160,7 +160,7 @@ export default class TarballFetcher extends BaseFetcher {
         req
           .pipe(validateStream)
           .pipe(mirrorSaver)
-          .pipe(degzipper((stream) => {
+          .pipe(createUnzip((stream) => {
             stream
               .on('error', reject)
               .pipe(extractor);

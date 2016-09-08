@@ -107,7 +107,7 @@ test('[network] TarballFetcher.fetch throws', async () => {
   expect(error && error.message).toMatchSnapshot();
 });
 
-fit('TarballFetcher.fetch supports local ungzipped tarball', async () => {
+test('TarballFetcher.fetch supports local ungzipped tarball', async () => {
   let dir = await mkdir('tarball-fetcher');
   let fetcher = new TarballFetcher(dir, {
     type: 'tarball',
