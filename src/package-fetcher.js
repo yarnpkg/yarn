@@ -31,21 +31,18 @@ export default class PackageFetcher {
   reporter: Reporter;
   config: Config;
 
+  async fetchCache(dest: string, fetcher: any): Promise<FetchedMetadata> {
+    let {hash, package: pkg} = await this.config.readPackageMetadata(dest);
+    return {
+      package: pkg,
+      resolved: await fetcher.getResolvedFromCached(hash),
+      hash,
+      dest,
+    };
+  }
+
   async fetch(ref: PackageReference): Promise<FetchedMetadata> {
     const dest = this.config.generateHardModulePath(ref);
-
-    if (await this.config.isValidModuleDest(dest)) {
-      let {hash, package: pkg} = await this.config.readPackageMetadata(dest);
-      return {
-        package: pkg,
-        resolved: null,
-        hash,
-        dest,
-      };
-    }
-
-    // remove as the module may be invalid
-    await fs.unlink(dest);
 
     const remote = ref.remote;
     invariant(remote, 'Missing remote');
@@ -55,10 +52,16 @@ export default class PackageFetcher {
       throw new Error(`Unknown fetcher for ${remote.type}`);
     }
 
-    await fs.mkdirp(dest);
+    const fetcher = new Fetcher(dest, remote, this.config);
+
+    if (await this.config.isValidModuleDest(dest)) {
+      return this.fetchCache(dest, fetcher);
+    }
+
+    // remove as the module may be invalid
+    await fs.unlink(dest);
 
     try {
-      const fetcher = new Fetcher(dest, remote, this.config);
       return await fetcher.fetch();
     } catch (err) {
       try {

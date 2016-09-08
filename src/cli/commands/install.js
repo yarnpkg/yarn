@@ -496,12 +496,20 @@ export class Install {
 
   generateIntegrityHash(lockfile: string): string {
     let opts = [lockfile];
+
     if (this.flags.flat) {
       opts.push('flat');
     }
+
     if (this.flags.production) {
       opts.push('production');
     }
+
+    let mirror = this.config.getOfflineMirrorPath();
+    if (mirror) {
+      opts.push(`mirror:${mirror}`);
+    }
+
     return util.hash(opts.join(':'));
   }
 }
