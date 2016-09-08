@@ -9,23 +9,18 @@
  * @flow
  */
 
-import type {RegistryNames} from '../../registries/index.js';
 import type {Reporter} from '../../reporters/index.js';
 import type {InstallCwdRequest, InstallPrepared} from './install.js';
 import type {DependencyRequestPatterns} from '../../types.js';
 import type Config from '../../config.js';
 import Lockfile from '../../lockfile/wrapper.js';
 import * as PackageReference from '../../package-reference.js';
-import {registryNames} from '../../registries/index.js';
 import PackageRequest from '../../package-request.js';
 import {registries} from '../../registries/index.js';
 import {buildTree} from './ls.js';
 import {Install} from './install.js';
-import {stringify} from '../../util/misc.js';
-import * as fs from '../../util/fs.js';
 
 let invariant = require('invariant');
-let path = require('path');
 
 export class Add extends Install {
   constructor(

@@ -27,11 +27,11 @@ function hasGzipHeader(chunk: Buffer): boolean {
   return chunk[0] === 0x1F && chunk[1] === 0x8B && chunk[2] === 0x08;
 }
 
-function degzipper(factory) {
+function degzipper(factory): any {
   let readHeader = false;
   let isGzip = false;
 
-  let stream = through(function (chunk, enc, callback) {
+  let stream = through(function(chunk, enc, callback) {
     if (!readHeader) {
       readHeader = true;
       isGzip = hasGzipHeader(chunk);

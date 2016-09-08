@@ -165,7 +165,7 @@ export default class PackageResolver {
    * Get a list of all manifests by level sort order.
    */
 
-  getLevelOrderManifests(seedPatterns: Array<string>): Iterable<Manfiest> {
+  getLevelOrderManifests(seedPatterns: Array<string>): Iterable<Manifest> {
     let pkgs: Set<Manifest> = new Set();
     let skip: Set<Manifest> = new Set();
 

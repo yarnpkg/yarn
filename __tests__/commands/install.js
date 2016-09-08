@@ -9,8 +9,6 @@
  * @flow
  */
 
-
-import type {ReporterSelectOption} from '../../src/reporters/types.js';
 import {run as uninstall} from '../../src/cli/commands/uninstall.js';
 import {run as check} from '../../src/cli/commands/check.js';
 import * as reporters from '../../src/reporters/index.js';
@@ -29,7 +27,7 @@ let path = require('path');
 
 let fixturesLoc = path.join(__dirname, '..', 'fixtures', 'install');
 
-parallelTest('integrity hash respects flat and production flags', () => {
+parallelTest('integrity hash respects flat and production flags', async () => {
   let cwd = path.join(fixturesLoc, 'noop');
   let reporter = new reporters.NoopReporter();
   let config = new Config(reporter, {cwd});

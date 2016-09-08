@@ -186,7 +186,7 @@ export class Install {
    */
 
   async init(): Promise<Array<string>> {
-    let [depRequests, rawPatterns, manifest] = await this.fetchRequestFromCwd();
+    let [depRequests, rawPatterns] = await this.fetchRequestFromCwd();
     let match = await this.matchesIntegrityHash();
 
     let prepared = await this.prepare(rawPatterns, depRequests, match);
