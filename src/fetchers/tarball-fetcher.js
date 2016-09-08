@@ -136,26 +136,24 @@ export default class TarballFetcher extends BaseFetcher {
 
       const decompressStream = createUnzip((stream) => {
         stream
-          .on('error', reject)
-          .pipe(extractor);
-      });
-
-      // nicer errors for corrupted compressed tarballs
-      decompressStream.on('error', function(err) {
-        let msg = `${err.message}. `;
-        if (isOfflineTarball) {
-          msg += `Mirror tarball appears to be corrupt. You can resolve this by running:\n\n` +
-                 `  $ rm -rf ${localTarball}\n` +
-                 '  $ kpm install --save';
-        } else {
-          msg += `Error decompressing ${localTarball}, it appears to be corrupt.`;
-        }
-        reject(new MessageError(msg));
+          .pipe(extractor)
+          .on('error', reject);
       });
 
       cachedStream
         .pipe(validateStream)
-        .pipe(decompressStream);
+        .pipe(decompressStream)
+        .on('error', function(err) {
+          let msg = `${err.message}. `;
+          if (isOfflineTarball) {
+            msg += `Mirror tarball appears to be corrupt. You can resolve this by running:\n\n` +
+                   `  $ rm -rf ${localTarball}\n` +
+                   '  $ kpm install --save';
+          } else {
+            msg += `Error decompressing ${localTarball}, it appears to be corrupt.`;
+          }
+          reject(new MessageError(msg));
+        });
     });
   }
 
@@ -195,10 +193,11 @@ export default class TarballFetcher extends BaseFetcher {
         req
           .pipe(validateStream)
           .pipe(saver)
+          .on('error', reject)
           .pipe(createUnzip((stream) => {
             stream
-              .on('error', reject)
-              .pipe(extractor);
+              .pipe(extractor)
+              .on('error', reject);
           }));
       },
     });
