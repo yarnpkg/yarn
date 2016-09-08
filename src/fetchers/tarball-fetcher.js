@@ -12,6 +12,7 @@
 import {SecurityError, MessageError} from '../errors.js';
 import type {FetchedOverride} from '../types.js';
 import type {HashStream} from '../util/crypto.js';
+import * as constants from '../constants.js';
 import * as crypto from '../util/crypto.js';
 import BaseFetcher from './base-fetcher.js';
 import * as fsUtil from '../util/fs.js';
@@ -48,6 +49,38 @@ function createUnzip(factory): any {
 }
 
 export default class TarballFetcher extends BaseFetcher {
+  async getResolvedFromCached(hash: string): Promise<?string> {
+    let mirrorPath = this.getMirrorPath();
+    if (!mirrorPath) {
+      // no mirror
+      return null;
+    }
+
+    if (await fsUtil.exists(mirrorPath)) {
+      // already exists in the mirror
+      return null;
+    }
+
+    let tarballLoc = path.join(this.dest, constants.TARBALL_FILENAME);
+    if (!(await fsUtil.exists(tarballLoc))) {
+      // no tarball located in the cache
+      return null;
+    }
+
+    // copy the file over
+    await fsUtil.copy(tarballLoc, mirrorPath);
+
+    return `${this.getRelativeMirrorPath(mirrorPath)}#${hash}`;
+  }
+
+  getMirrorPath(): ?string {
+    return this.config.getOfflineMirrorPath(this.registry, this.reference);
+  }
+
+  getRelativeMirrorPath(mirrorPath: string): string {
+    return path.relative(this.config.getOfflineMirrorPath(this.registry), mirrorPath);
+  }
+
   createExtractor(mirrorPath: ?string, resolve: Function, reject: Function): {
     validateStream: HashStream,
     extractor: stream$Readable,
@@ -127,7 +160,7 @@ export default class TarballFetcher extends BaseFetcher {
   }
 
   async fetchFromExternal(): Promise<FetchedOverride> {
-    let {reference: ref, config, registry} = this;
+    let {reference: ref} = this;
 
     return this.config.requestManager.request({
       url: ref,
@@ -138,18 +171,20 @@ export default class TarballFetcher extends BaseFetcher {
       buffer: true,
       process: (req, resolve, reject) => {
         // should we save this to the offline cache?
-        const mirrorPath = config.getOfflineMirrorPath(registry, ref);
+        const mirrorPath = this.getMirrorPath();
         let mirrorTarballStream;
         let overwriteResolved;
         if (mirrorPath) {
-          overwriteResolved = path.relative(config.getOfflineMirrorPath(registry), mirrorPath);
+          overwriteResolved = this.getRelativeMirrorPath(mirrorPath);
           mirrorTarballStream = fs.createWriteStream(mirrorPath);
           mirrorTarballStream.on('error', reject);
         }
-        const mirrorSaver = through(function(chunk, enc, callback) {
+        let tarballStoreStream = fs.createWriteStream(path.join(this.dest, constants.TARBALL_FILENAME));
+        const saver = through(function(chunk, enc, callback) {
           if (mirrorTarballStream) {
             mirrorTarballStream.write(chunk, enc);
           }
+          tarballStoreStream.write(chunk, enc);
           callback(null, chunk);
         });
 
@@ -159,7 +194,7 @@ export default class TarballFetcher extends BaseFetcher {
         //
         req
           .pipe(validateStream)
-          .pipe(mirrorSaver)
+          .pipe(saver)
           .pipe(createUnzip((stream) => {
             stream
               .on('error', reject)

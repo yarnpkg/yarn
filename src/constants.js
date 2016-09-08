@@ -43,6 +43,7 @@ export const MODULE_CACHE_DIRECTORY = or(['.fbkpm', '.kpm'], userHome);
 export const INTEGRITY_FILENAME = or(['.fbkpm-integrity', '.kpm-integrity'], path.join(cwd, 'node_modules'));
 export const LOCKFILE_FILENAME = or(['fbkpm.lock', 'kpm.lock'], cwd);
 export const METADATA_FILENAME = '.kpm-metadata.json';
+export const TARBALL_FILENAME = '.kpm-tarball.tgz';
 export const CLEAN_FILENAME = '.kpmclean';
 export const SINGLE_INSTANCE_FILENAME = '.kpm-single-instance';
 
