@@ -61,9 +61,11 @@ commander.option(
 let commandName = args.splice(2, 1)[0] || '';
 
 // if command name looks like a flag or doesn't exist then print help
-if (commandName[0] === '-') {
-  args.splice(2, 0, commandName);
-  commandName = null;
+if (!commandName || commandName[0] === '-') {
+  if (commandName) {
+    args.splice(2, 0, commandName);
+  }
+  commandName = 'install';
 }
 
 // handle aliases: i -> install
