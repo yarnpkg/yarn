@@ -90,6 +90,7 @@ export default class RequestManager {
   cache: {
     [key: string]: Promise<any>
   };
+  requestCaptureHar: RequestCaptureHar;
 
   /**
    * Queue up a request.

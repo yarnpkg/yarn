@@ -33,6 +33,7 @@ type ConfigOptions = {
   modulesFolder?: string,
   offline?: boolean,
   preferOffline?: boolean,
+  captureHar?: boolean,
 };
 
 type PackageMetadata = {
