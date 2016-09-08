@@ -235,6 +235,14 @@ export class Install {
       await this.scripts.init(patterns);
     });
 
+    if (this.flags.har) {
+      steps.push(async (curr: number, total: number) => {
+        const filename = `kpm-install_${new Date().toISOString()}.har`;
+        this.reporter.step(curr, total, `Saving HAR file: ${filename}`, emoji.get('black_circle_for_record'));
+        await this.config.requestManager.requestCaptureHar.saveHar(filename);
+      });
+    }
+
     if (await this.shouldClean()) {
       steps.push(async (curr: number, total: number) => {
         this.reporter.step(curr, total, 'Cleaning modules', emoji.get('recycle'));

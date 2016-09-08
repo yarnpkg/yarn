@@ -39,6 +39,7 @@ commander.version(pkg.version);
 commander.usage('[command] [flags]');
 commander.option('--offline');
 commander.option('--prefer-offline');
+commander.option('--har', 'Save HAR output of network traffic');
 commander.option('--json', '');
 commander.option('--modules-folder [path]', 'rather than installing modules into the node_modules ' +
                                             'folder relative to the cwd, output them here');
@@ -110,6 +111,7 @@ let config = new Config(reporter, {
   modulesFolder: commander.modulesFolder,
   packagesRoot: commander.packagesRoot,
   preferOffline: commander.preferOffline,
+  captureHar: commander.har,
   offline: commander.preferOffline || commander.offline,
 });
 
