@@ -16,6 +16,7 @@ import type Config from './config.js';
 import type {HoistManifest} from './package-hoister.js';
 import {registries} from './registries/index.js';
 import PackageHoister from './package-hoister.js';
+import * as constants from './constants.js';
 import * as promise from './util/promise.js';
 import {entries} from './util/misc.js';
 import * as fs from './util/fs.js';
@@ -157,6 +158,10 @@ export default class PackageLinker {
     let tick;
     await fs.copyBulk(queue, {
       possibleExtraneous,
+
+      ignoreBasenames: [
+        constants.METADATA_FILENAME,
+      ],
 
       onStart: (num: number) => {
         tick = this.reporter.progress(num);
