@@ -64,15 +64,16 @@ type CopyActions = Array<CopyFileAction | CopySymlinkAction>;
 
 type PossibleExtraneous = void | false | Iterable<string>;
 
-type CopyEvents = {
+type CopyOptions = {
   onProgress: (dest: string) => void,
   onStart: (num: number) => void,
   possibleExtraneous: PossibleExtraneous,
+  ignoreBasenames: Array<string>,
 };
 
 async function buildActionsForCopy(
   queue: CopyQueue,
-  events: CopyEvents,
+  events: CopyOptions,
   possibleExtraneousSeed: PossibleExtraneous,
 ): Promise<CopyActions> {
   const possibleExtraneous: Set<string> = new Set(possibleExtraneousSeed || []);
@@ -118,6 +119,11 @@ async function buildActionsForCopy(
     const onFresh = data.onFresh || noop;
     const onDone = data.onDone || noop;
     files.add(dest);
+
+    if (events.ignoreBasenames.indexOf(path.basename(src)) >= 0) {
+      // ignored file
+      return;
+    }
 
     const srcStat = await lstat(src);
     let srcFiles;
@@ -237,12 +243,14 @@ export async function copyBulk(
     onProgress?: ?(dest: string) => void,
     onStart?: ?(num: number) => void,
     possibleExtraneous?: PossibleExtraneous,
+    ignoreBasenames?: Array<string>,
   },
 ): Promise<void> {
-  const events: CopyEvents = {
+  const events: CopyOptions = {
     onStart: (_events && _events.onStart) || noop,
     onProgress: (_events && _events.onProgress) || noop,
     possibleExtraneous: _events ? _events.possibleExtraneous : [],
+    ignoreBasenames: (_events && _events.ignoreBasenames) || [],
   };
 
   const actions: CopyActions = await buildActionsForCopy(queue, events, events.possibleExtraneous);
