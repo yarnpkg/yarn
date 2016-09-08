@@ -9,23 +9,17 @@
  * @flow
  */
 
-import type {RegistryNames} from '../../registries/index.js';
 import type {Reporter} from '../../reporters/index.js';
 import type {InstallCwdRequest, InstallPrepared} from './install.js';
 import type {DependencyRequestPatterns} from '../../types.js';
 import type Config from '../../config.js';
 import Lockfile from '../../lockfile/wrapper.js';
 import * as PackageReference from '../../package-reference.js';
-import {registryNames} from '../../registries/index.js';
 import PackageRequest from '../../package-request.js';
-import {registries} from '../../registries/index.js';
 import {buildTree} from './ls.js';
 import {Install} from './install.js';
-import {stringify} from '../../util/misc.js';
-import * as fs from '../../util/fs.js';
 
 let invariant = require('invariant');
-let path = require('path');
 
 export class Add extends Install {
   constructor(
@@ -101,19 +95,7 @@ export class Add extends Install {
     let {dev, exact, tilde, optional, peer} = this.flags;
 
     // get all the different registry manifests in this folder
-    let jsons: {
-      [registryName: RegistryNames]: [string, Object]
-    } = {};
-    for (let registryName of registryNames) {
-      const registry = registries[registryName];
-      const jsonLoc = path.join(this.config.cwd, registry.filename);
-
-      let json = {};
-      if (await fs.exists(jsonLoc)) {
-        json = await fs.readJson(jsonLoc);
-      }
-      jsons[registryName] = [jsonLoc, json];
-    }
+    let jsons = await this.getRootManifests();
 
     // add new patterns to their appropriate registry manifest
     for (const pattern of this.resolver.dedupePatterns(this.args)) {
@@ -170,14 +152,7 @@ export class Add extends Install {
       this.resolver.removePattern(pattern);
     }
 
-    for (let registryName of registryNames) {
-      let [loc, json] = jsons[registryName];
-      if (!Object.keys(json).length) {
-        continue;
-      }
-
-      await fs.writeFile(loc, stringify(json) + '\n');
-    }
+    await this.saveRootManifests(jsons);
   }
 }
 

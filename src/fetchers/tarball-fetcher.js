@@ -23,6 +23,30 @@ const tar = require('tar');
 const url = require('url');
 const fs = require('fs');
 
+function hasGzipHeader(chunk: Buffer): boolean {
+  return chunk[0] === 0x1F && chunk[1] === 0x8B && chunk[2] === 0x08;
+}
+
+function createUnzip(factory): any {
+  let readHeader = false;
+  let isGzip = false;
+
+  let stream = through(function(chunk, enc, callback) {
+    if (!readHeader) {
+      readHeader = true;
+      isGzip = hasGzipHeader(chunk);
+      if (isGzip) {
+        factory(stream.pipe(zlib.createUnzip()));
+      } else {
+        factory(stream);
+      }
+    }
+
+    callback(null, chunk);
+  });
+  return stream;
+}
+
 export default class TarballFetcher extends BaseFetcher {
   createExtractor(mirrorPath: ?string, resolve: Function, reject: Function): {
     validateStream: HashStream,
@@ -77,7 +101,11 @@ export default class TarballFetcher extends BaseFetcher {
       // flow gets confused with the pipe/on types chain
       const cachedStream: Object = fs.createReadStream(localTarball);
 
-      const decompressStream = zlib.createUnzip();
+      const decompressStream = createUnzip((stream) => {
+        stream
+          .on('error', reject)
+          .pipe(extractor);
+      });
 
       // nicer errors for corrupted compressed tarballs
       decompressStream.on('error', function(err) {
@@ -94,9 +122,7 @@ export default class TarballFetcher extends BaseFetcher {
 
       cachedStream
         .pipe(validateStream)
-        .pipe(decompressStream)
-        .on('error', reject)
-        .pipe(extractor);
+        .pipe(decompressStream);
     });
   }
 
@@ -134,9 +160,11 @@ export default class TarballFetcher extends BaseFetcher {
         req
           .pipe(validateStream)
           .pipe(mirrorSaver)
-          .pipe(zlib.createUnzip())
-          .on('error', reject)
-          .pipe(extractor);
+          .pipe(createUnzip((stream) => {
+            stream
+              .on('error', reject)
+              .pipe(extractor);
+          }));
       },
     });
   }

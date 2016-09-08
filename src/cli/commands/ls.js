@@ -143,7 +143,7 @@ export async function run(
   const lockfile = await Lockfile.fromDirectory(config.cwd, reporter);
   const install = new Install(flags, config, reporter, lockfile);
   let [depRequests, patterns] = await install.fetchRequestFromCwd();
-  await install.resolver.init(depRequests);
+  await install.resolver.init(depRequests, install.flags.flat);
 
   const {trees} = await buildTree(install.resolver, install.linker, patterns);
   reporter.tree('ls', trees);

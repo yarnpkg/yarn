@@ -84,7 +84,6 @@ test('[network] TarballFetcher.fetch', async () => {
     registry: 'bower',
   }, await createConfig());
 
-
   await fetcher.fetch();
   const name = (await fs.readJson(path.join(dir, 'bower.json'))).name;
   expect(name).toBe('font-roboto');
@@ -106,4 +105,17 @@ test('[network] TarballFetcher.fetch throws', async () => {
     error = e;
   }
   expect(error && error.message).toMatchSnapshot();
+});
+
+test('TarballFetcher.fetch supports local ungzipped tarball', async () => {
+  let dir = await mkdir('tarball-fetcher');
+  let fetcher = new TarballFetcher(dir, {
+    type: 'tarball',
+    hash: '76d4316a3965259f7074f167f44a7a7a393884be',
+    reference: path.join(__dirname, 'fixtures', 'fetchers', 'tarball', 'ungzipped.tar'),
+    registry: 'bower',
+  }, await createConfig());
+  await fetcher.fetch();
+  const name = (await fs.readJson(path.join(dir, 'bower.json'))).name;
+  expect(name).toBe('font-roboto');
 });

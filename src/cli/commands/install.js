@@ -14,6 +14,7 @@ import type {ReporterSelectOption} from '../../reporters/types.js';
 import type {Manifest, DependencyRequestPatterns} from '../../types.js';
 import type Config from '../../config.js';
 import type {RegistryNames} from '../../registries/index.js';
+import {stringify} from '../../util/misc.js';
 import {registryNames} from '../../registries/index.js';
 import Lockfile from '../../lockfile/wrapper.js';
 import lockStringify from '../../lockfile/stringify.js';
@@ -46,6 +47,10 @@ export type InstallCwdRequest = [
   Array<string>,
   Object
 ];
+
+type RootManifests = {
+  [registryName: RegistryNames]: [string, Object]
+};
 
 type IntegrityMatch = {
   actual: string,
@@ -151,6 +156,11 @@ export class Install {
       break;
     }
 
+    // inherit root flat flag
+    if (manifest.flat) {
+      this.flags.flat = true;
+    }
+
     return [deps, patterns, manifest];
   }
 
@@ -195,7 +205,7 @@ export class Install {
 
     steps.push(async (curr: number, total: number) => {
       this.reporter.step(curr, total, 'Resolving packages', emoji.get('mag'));
-      await this.resolver.init(depRequests);
+      await this.resolver.init(depRequests, this.flags.flat);
       patterns = await this.flatten(rawPatterns);
     });
 
@@ -254,7 +264,7 @@ export class Install {
       return patterns;
     }
 
-    for (const name of this.resolver.getAllDependencyNames(patterns)) {
+    for (const name of this.resolver.getAllDependencyNamesByLevelOrder(patterns)) {
       const infos = this.resolver.getAllInfoForPackageName(name).filter((manifest: Manifest): boolean => {
         let ref = manifest._reference;
         invariant(ref, 'expected package reference');
@@ -293,12 +303,79 @@ export class Install {
           'Answer',
           options,
         );
+        this.resolutions[name] = version;
       }
 
       patterns.push(this.resolver.collapseAllVersionsOfPackage(name, version));
     }
 
+    // save resolutions to their appropriate root manifest
+    if (Object.keys(this.resolutions).length) {
+      let jsons = await this.getRootManifests();
+
+      for (let name in this.resolutions) {
+        let version = this.resolutions[name];
+
+        let patterns = this.resolver.patternsByPackage[name];
+        if (!patterns) {
+          continue;
+        }
+
+        let manifest;
+        for (let pattern of patterns) {
+          manifest = this.resolver.getResolvedPattern(pattern);
+          if (manifest) {
+            break;
+          }
+        }
+        invariant(manifest, 'expected manifest');
+
+        let ref = manifest._reference;
+        invariant(ref, 'expected reference');
+
+        let json = jsons[ref.registry][1];
+        json.resolutions = json.resolutions || {};
+        json.resolutions[name] = version;
+      }
+
+      await this.saveRootManifests(jsons);
+    }
+
     return patterns;
+  }
+
+  /**
+   * Get root manifests.
+   */
+
+  async getRootManifests(): Promise<RootManifests> {
+    let jsons: RootManifests = {};
+    for (let registryName of registryNames) {
+      const registry = registries[registryName];
+      const jsonLoc = path.join(this.config.cwd, registry.filename);
+
+      let json = {};
+      if (await fs.exists(jsonLoc)) {
+        json = await fs.readJson(jsonLoc);
+      }
+      jsons[registryName] = [jsonLoc, json];
+    }
+    return jsons;
+  }
+
+  /**
+   * Save root manifests.
+   */
+
+  async saveRootManifests(jsons: RootManifests) {
+    for (let registryName of registryNames) {
+      let [loc, json] = jsons[registryName];
+      if (!Object.keys(json).length) {
+        continue;
+      }
+
+      await fs.writeFile(loc, stringify(json) + '\n');
+    }
   }
 
   /**
@@ -341,7 +418,7 @@ export class Install {
       };
     }
 
-    let actual = util.hash(this.lockfile.source);
+    let actual = this.generateIntegrityHash(this.lockfile.source);
     let expected = (await fs.readFile(loc)).trim();
 
     return {
@@ -396,7 +473,22 @@ export class Install {
   async writeIntegrityHash(lockSource: string): Promise<void> {
     let loc = await this.getIntegrityHashLocation();
     invariant(loc, 'expected integrity hash location');
-    await fs.writeFile(loc, util.hash(lockSource));
+    await fs.writeFile(loc, this.generateIntegrityHash(lockSource));
+  }
+
+  /**
+   * Generate integrity hash of input lockfile.
+   */
+
+  generateIntegrityHash(lockfile: string): string {
+    let opts = [lockfile];
+    if (this.flags.flat) {
+      opts.push('flat');
+    }
+    if (this.flags.production) {
+      opts.push('production');
+    }
+    return util.hash(opts.join(':'));
   }
 }
 

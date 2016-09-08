@@ -31,11 +31,15 @@ export default class PackageResolver {
     this.newPatterns = [];
     this.patterns = map();
     this.usedRegistries = new Set();
+    this.flat = false;
 
     this.reporter = config.reporter;
     this.lockfile = lockfile;
     this.config = config;
   }
+
+  // whether the dependency graph will be flattened
+  flat: boolean;
 
   // list of registries that have been used in this resolution
   usedRegistries: Set<RegistryNames>;
@@ -130,7 +134,7 @@ export default class PackageResolver {
   }
 
   /**
-   * Description
+   * Get a list of all manifests by topological order.
    */
 
   getTopologicalManifests(seedPatterns: Array<string>): Iterable<Manifest> {
@@ -158,12 +162,47 @@ export default class PackageResolver {
   }
 
   /**
+   * Get a list of all manifests by level sort order.
+   */
+
+  getLevelOrderManifests(seedPatterns: Array<string>): Iterable<Manifest> {
+    let pkgs: Set<Manifest> = new Set();
+    let skip: Set<Manifest> = new Set();
+
+    let add = (seedPatterns: Array<string>) => {
+      let refs = [];
+
+      for (let pattern of seedPatterns) {
+        let pkg = this.getStrictResolvedPattern(pattern);
+        if (skip.has(pkg)) {
+          continue;
+        }
+
+        let ref = pkg._reference;
+        invariant(ref, 'expected reference');
+
+        refs.push(ref);
+        skip.add(pkg);
+        pkgs.add(pkg);
+      }
+
+      for (let ref of refs) {
+        add(ref.dependencies);
+      }
+    };
+
+    add(seedPatterns);
+
+    return pkgs;
+  }
+
+  /**
    * Get a list of all package names in the depenency graph.
    */
 
-  getAllDependencyNames(seedPatterns: Array<string>): Iterable<string> {
+  getAllDependencyNamesByLevelOrder(seedPatterns: Array<string>): Iterable<string> {
     let names = new Set();
-    for (let {name} of this.getTopologicalManifests(seedPatterns)) {
+    for (let {name} of this.getLevelOrderManifests(seedPatterns)) {
       names.add(name);
     }
     return names;
@@ -380,7 +419,9 @@ export default class PackageResolver {
    * TODO description
    */
 
-  async init(deps: DependencyRequestPatterns): Promise<void> {
+  async init(deps: DependencyRequestPatterns, isFlat: boolean): Promise<void> {
+    this.flat = isFlat;
+
     //
     const activity = this.activity = this.reporter.activity();
 
