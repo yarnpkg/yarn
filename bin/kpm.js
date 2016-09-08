@@ -16,6 +16,7 @@ var semver = require('semver');
 var ver = process.versions.node;
 var possibles = [];
 var found = false;
+var _err;
 
 if (semver.satisfies(ver, '>=5.0.0')) {
   possibles.push('../updates/current/lib/cli/index.js');
@@ -36,6 +37,7 @@ for (; i < possibles.length; i++) {
     break;
   } catch (err) {
     if (err.code === 'MODULE_NOT_FOUND') {
+      _err = err;
       continue;
     } else {
       throw err;
@@ -44,5 +46,5 @@ for (; i < possibles.length; i++) {
 }
 
 if (!found) {
-  throw new Error('Failed to load');
+  throw _err || new Error('Failed to load');
 }
