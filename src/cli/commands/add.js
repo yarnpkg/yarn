@@ -16,7 +16,6 @@ import type Config from '../../config.js';
 import Lockfile from '../../lockfile/wrapper.js';
 import * as PackageReference from '../../package-reference.js';
 import PackageRequest from '../../package-request.js';
-import {registries} from '../../registries/index.js';
 import {buildTree} from './ls.js';
 import {Install} from './install.js';
 
