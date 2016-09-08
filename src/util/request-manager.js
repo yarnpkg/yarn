@@ -16,7 +16,7 @@ import * as constants from '../constants.js';
 import * as network from './network.js';
 import map from '../util/map.js';
 
-const Request = require('request-capture-har');
+const Request = require('request-capture-har')('request');
 const url = require('url');
 
 const successHosts = map();
