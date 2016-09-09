@@ -16,7 +16,7 @@ import * as constants from '../constants.js';
 import * as network from './network.js';
 import map from '../util/map.js';
 
-const Request = require('request');
+const request = require('request');
 const RequestCaptureHar = require('request-capture-har');
 
 const url = require('url');
@@ -75,7 +75,7 @@ export default class RequestManager {
     this.cache = {};
     this.max = constants.NETWORK_CONCURRENCY;
 
-    this.requestCaptureHar = new RequestCaptureHar(Request);
+    this.requestCaptureHar = new RequestCaptureHar(request);
   }
 
   // whether we should throw errors and disallow HTTP requests
@@ -268,7 +268,7 @@ export default class RequestManager {
       params.encoding = null;
     }
 
-    const req = this.captureHar ? this.requestCaptureHar.request(params) : new Request(params);
+    const req = this.captureHar ? this.requestCaptureHar.request(params) : request(params);
 
     req.on('error', onError);
 

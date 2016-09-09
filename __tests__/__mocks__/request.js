@@ -41,12 +41,18 @@ function cleanAlias(str: string): string {
     .replace(/-+$/, ''); // remove trailing dashes
 }
 
-export class Request extends RealRequest {
+class Request extends RealRequest {
   init(params: Object) {
     RealRequest.prototype.init.call(this, params);
     this.httpModule = httpMock;
   }
 }
+
+module.exports = function (params: Object): Request {
+  return new Request(params);
+};
+
+module.exports.Request = Request;
 
 let httpMock = {
   request(options: Object, callback?: ?Function): ClientRequest {
