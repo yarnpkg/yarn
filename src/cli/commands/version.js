@@ -37,29 +37,29 @@ export async function run(
 ): Promise<void> {
   let pkg = await config.readManifest(config.cwd);
 
-  if (!pkg.version) {
-    throw new MessageError(`Package doesn't have a version`);
-  }
-
   // get old version
   let oldVersion = pkg.version;
-  reporter.info(`Current version ${oldVersion}`);
+  if (oldVersion) {
+    reporter.info(`${reporter.lang('currentVersion')}: ${oldVersion}`);
+  } else {
+    oldVersion = '0.0.0';
+  }
 
   // get new version
   let newVersion = flags.newVersion;
   if (newVersion && !isValidNewVersion(oldVersion, newVersion)) {
-    throw new MessageError('Invalid version supplied');
+    throw new MessageError(reporter.lang('invalidVersion'));
   }
 
   // wasn't passed a version arg so ask interactively
   while (!newVersion) {
-    newVersion = await reporter.question(`New version`);
+    newVersion = await reporter.question(reporter.lang('newVersion'));
 
     if (isValidNewVersion(oldVersion, newVersion)) {
       break;
     } else {
       newVersion = null;
-      reporter.error('Invalid semver version');
+      reporter.error(reporter.lang('invalidSemver'));
     }
   }
   if (newVersion) {
@@ -68,7 +68,7 @@ export async function run(
   invariant(newVersion, 'expected new version');
 
   // update version
-  reporter.info(`New version ${newVersion}`);
+  reporter.info(`${reporter.lang('newVersion')}: ${newVersion}`);
   let json = await fs.readJson(pkg._loc);
   pkg.version = json.version = newVersion;
   await fs.writeFile(pkg._loc, `${stringify(json)}\n`);

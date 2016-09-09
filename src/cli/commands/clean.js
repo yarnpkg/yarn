@@ -137,6 +137,6 @@ export async function run(
 
   reporter.step(2, 2, 'Cleaning modules');
   let {removedFiles, removedSize} = await clean(config, reporter);
-  reporter.info(`Removed ${removedFiles} files`);
-  reporter.info(`Saved ${(removedSize / 1024 / 1024).toFixed(2)}MB`);
+  reporter.info(reporter.lang('cleanRemovedFiles', removedFiles));
+  reporter.info(reporter.lang('cleanSavedSize', (removedSize / 1024 / 1024).toFixed(2)));
 }

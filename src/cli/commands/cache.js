@@ -28,7 +28,7 @@ export let {run, setFlags} = buildSubCommands('cache', {
     const packagesRoot = config.packagesRoot;
     if (packagesRoot) {
       await fs.unlink(packagesRoot);
-      reporter.success(`Cleared ${packagesRoot}`);
+      reporter.success(reporter.lang('clearedCache'));
     }
   },
 });

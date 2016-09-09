@@ -142,6 +142,6 @@ export default class GitResolver extends ExoticResolver {
       }
     }
 
-    throw new MessageError(`Could not find package metadata file in ${url}`);
+    throw new MessageError(this.reporter.lang('couldntFindManifestIn', url));
   }
 }

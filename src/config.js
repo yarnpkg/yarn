@@ -337,10 +337,7 @@ export default class Config {
       const data = await fs.readJson(loc);
       data._registry = registry;
       data._loc = loc;
-
-      // TODO: warn
-      await normaliseManifest(data, dir);
-
+      await normaliseManifest(data, dir, this);
       return data;
     } else {
       return null;

@@ -23,5 +23,5 @@ export async function run(
     email: undefined,
   });
 
-  reporter.success('Cleared login credentials');
+  reporter.success(reporter.lang('clearedCredentials'));
 }

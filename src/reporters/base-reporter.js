@@ -19,16 +19,40 @@ import type {
   Package,
   ReporterSpinner,
 } from './types.js';
+import type {LanguageKeys} from './lang/en.js';
+import * as languages from './lang/index.js';
+
+let util = require('util');
+
+type Language = $Keys<typeof languages>;
 
 export type ReporterOptions = {
+  language?: Language,
   stdout?: Stdout,
   stderr?: Stdout,
   stdin?: Stdin,
   emoji?: boolean,
 };
 
+export function stringifyLangArgs(args: Array<any>): Array<string> {
+  return args.map(function(val): string {
+    if (val != null && val.inspect) {
+      return val.inspect();
+    } else {
+      try {
+        return JSON.stringify(val) || val + '';
+      } catch (e) {
+        return util.inspect(val);
+      }
+    }
+  });
+}
+
 export default class BaseReporter {
   constructor(opts?: ReporterOptions = {}) {
+    let lang = 'en';
+    this.language = lang;
+
     this.stdout = opts.stdout || process.stdout;
     this.stderr = opts.stderr || process.stderr;
     this.stdin = opts.stdin || process.stdin;
@@ -41,6 +65,7 @@ export default class BaseReporter {
     this.startTime = Date.now();
   }
 
+  language: Language;
   stdout: Stdout;
   stderr: Stdout;
   stdin: Stdin;
@@ -50,6 +75,21 @@ export default class BaseReporter {
   peakMemoryInterval: ?number;
   peakMemory: number;
   startTime: number;
+
+  lang(key: LanguageKeys, ...args: Array<any>): string {
+    let msg = languages[this.language][key] || languages.en[key];
+    if (!msg) {
+      throw new ReferenceError(`Unknown language key ${key}`);
+    }
+
+    // stringify args
+    args = stringifyLangArgs(args);
+
+    // replace $0 placeholders with args
+    return msg.replace(/\$(\d+)/g, function(str, i): string {
+      return args[i];
+    });
+  }
 
   initPeakMemoryCounter() {
     this.checkPeakMemory();

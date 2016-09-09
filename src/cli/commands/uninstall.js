@@ -30,7 +30,7 @@ export async function run(
   args: Array<string>,
 ): Promise<void> {
   if (!args.length) {
-    throw new MessageError('Expected one or more arguments');
+    throw new MessageError(reporter.lang('tooFewArguments', 1));
   }
 
   const totalSteps = args.length + 1;
@@ -66,7 +66,7 @@ export async function run(
     }
 
     if (!found) {
-      throw new MessageError("This module isn't specified in a manifest");
+      throw new MessageError(reporter.lang('moduleNotInManifest'));
     }
   }
 
@@ -76,11 +76,11 @@ export async function run(
   }
 
   // reinstall so we can get the updated lockfile
-  reporter.step(++step, totalSteps, 'Regenerating lockfile and installing missing dependencies');
+  reporter.step(++step, totalSteps, reporter.lang('uninstallRegenerate'));
   const lockfile = await Lockfile.fromDirectory(config.cwd);
   const install = new Install({force: true, ...flags}, config, new NoopReporter(), lockfile);
   await install.init();
 
   //
-  reporter.success('Successfully uninstalled packages.');
+  reporter.success(reporter.lang('uninstalledPackages'));
 }

@@ -9,6 +9,7 @@
  * @flow
  */
 
+import type {Reporter} from '../../reporters/index.js';
 import {normalisePerson, extractDescription} from './util.js';
 import {hostedGitFragmentToGitUrl} from '../../resolvers/index.js';
 import inferLicense from './infer-license.js';
@@ -19,7 +20,7 @@ const path = require('path');
 const url = require('url');
 const _ = require('lodash');
 
-export default async function (info: Object, moduleLoc: string): Promise<void> {
+export default async function (info: Object, moduleLoc: string, reporter: Reporter): Promise<void> {
   const files = await fs.readdir(moduleLoc);
 
   // clean info.version
@@ -92,7 +93,7 @@ export default async function (info: Object, moduleLoc: string): Promise<void> {
 
   // explode info.repository.url if it's a hosted git shorthand
   if (typeof info.repository === 'object' && typeof info.repository.url === 'string') {
-    info.repository.url = hostedGitFragmentToGitUrl(info.repository.url);
+    info.repository.url = hostedGitFragmentToGitUrl(info.repository.url, reporter);
   }
 
   // allow bugs to be specified as a string, expand it to an object with a single url prop

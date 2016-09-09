@@ -237,10 +237,10 @@ export default class PackageLinker {
         if (range === '*' || semver.satisfies(foundDep.version, range)) {
           ref.addDependencies([foundDep.pattern]);
         } else {
-          this.reporter.warn(`Incorrect peer dependency ${name}@${range}`);
+          this.reporter.warn(this.reporter.lang('incorrectPeer', `${name}@${range}`));
         }
       } else {
-        this.reporter.warn(`Unmet peer dependency ${name}@${range}`);
+        this.reporter.warn(this.reporter.lang('unmetPeer', `${name}@${range}`));
       }
     }
   }

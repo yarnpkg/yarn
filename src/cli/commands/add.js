@@ -83,7 +83,12 @@ export class Add extends Install {
 
   async maybeOutputSaveTree(patterns: Array<string>): Promise<void> {
     let {trees, count} = await buildTree(this.resolver, this.linker, patterns, true, true);
-    this.reporter.success(`Saved ${count} new ${count === 1 ? 'dependency' : 'dependencies'}`);
+    this.reporter.success(
+      count === 1 ?
+        this.reporter.lang('savedNewDependency')
+      :
+        this.reporter.lang('savedNewDependencies', count),
+    );
     this.reporter.tree('newDependencies', trees);
   }
 

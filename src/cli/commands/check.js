@@ -183,17 +183,17 @@ export async function run(
   }
 
   if (warningCount > 1) {
-    reporter.info(`Found ${warningCount} warnings`);
+    reporter.info(reporter.lang('foundWarnings', warningCount));
   }
 
   if (errCount > 0) {
     if (errCount > 1) {
-      reporter.info(`Found ${errCount} errors`);
+      reporter.info(reporter.lang('foundErrors', errCount));
     }
 
     return Promise.reject();
   } else {
-    reporter.success('Folder in sync');
+    reporter.success(reporter.lang('folderInSync'));
     return Promise.resolve();
   }
 }

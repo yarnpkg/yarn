@@ -64,7 +64,7 @@ export default class Lockfile {
       lockfile = parse(rawLockfile);
     } else {
       if (reporter) {
-        reporter.info('No lockfile found.');
+        reporter.info(reporter.lang('noLockfileFound'));
       }
     }
 

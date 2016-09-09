@@ -28,12 +28,12 @@ export async function getName(args: Array<string>, config: Config): Promise<stri
 
   if (name) {
     if (!isValidPackageName(name)) {
-      throw new MessageError('Invalid package name');
+      throw new MessageError(config.reporter.lang('invalidPackageName'));
     }
 
     return NpmRegistry.escapeName(name);
   } else {
-    throw new MessageError("Couldn't find package name");
+    throw new MessageError(config.reporter.lang('unknownPackageName'));
   }
 }
 
@@ -50,18 +50,18 @@ export let {run, setFlags} = buildSubCommands('dist-tag', {
 
     const {name, range, hasVersion} = PackageRequest.normalisePattern(args.shift());
     if (!hasVersion) {
-      throw new MessageError('required version in range');
+      throw new MessageError(reporter.lang('requiredVersionInRange'));
     }
     if (!isValidPackageName(name)) {
-      throw new MessageError('invalid package name');
+      throw new MessageError(reporter.lang('invalidPackageName'));
     }
 
     const tag = args.shift();
 
-    reporter.step(1, 3, 'Logging in');
+    reporter.step(1, 3, reporter.lang('loggingIn'));
     let revoke = await getToken(config, reporter);
 
-    reporter.step(2, 3, `Creating tag ${tag} = ${range}`);
+    reporter.step(2, 3, reporter.lang('creatingTag', tag, range));
     let result = await config.registries.npm.request(
       `-/package/${NpmRegistry.escapeName(name)}/dist-tags/${encodeURI(tag)}`,
       {
@@ -71,12 +71,12 @@ export let {run, setFlags} = buildSubCommands('dist-tag', {
     );
 
     if (result.ok) {
-      reporter.success('Created tag');
+      reporter.success(reporter.lang('createdTag'));
     } else {
-      reporter.error("Couldn't add tag");
+      reporter.error(reporter.lang('createdTagFail'));
     }
 
-    reporter.step(3, 3, 'Revoking token');
+    reporter.step(3, 3, reporter.lang('revokingToken'));
     await revoke();
 
     if (result.ok) {
@@ -99,21 +99,21 @@ export let {run, setFlags} = buildSubCommands('dist-tag', {
     const name = await getName(args, config);
     const tag = args.shift();
 
-    reporter.step(1, 3, 'Logging in');
+    reporter.step(1, 3, reporter.lang('loggingIn'));
     let revoke = await getToken(config, reporter);
 
-    reporter.step(2, 3, 'Deleting tag');
+    reporter.step(2, 3, reporter.lang('deletingTags'));
     const result = await config.registries.npm.request(`-/package/${name}/dist-tags/${encodeURI(tag)}`, {
       method: 'DELETE',
     });
 
     if (result === false) {
-      reporter.error("Couldn't delete tag");
+      reporter.error(reporter.lang('deletedTagFail'));
     } else {
-      reporter.success('Deleted tag');
+      reporter.success(reporter.lang('deletedTag'));
     }
 
-    reporter.step(3, 3, 'Revoking token');
+    reporter.step(3, 3, reporter.lang('revokingToken'));
     await revoke();
 
     if (result === false) {
@@ -129,10 +129,10 @@ export let {run, setFlags} = buildSubCommands('dist-tag', {
     flags: Object,
     args: Array<string>,
   ): Promise<void> {
-    reporter.step(1, 3, 'Logging in');
+    reporter.step(1, 3, reporter.lang('loggingIn'));
     let revoke = await getToken(config, reporter);
 
-    reporter.step(2, 3, 'Getting tags');
+    reporter.step(2, 3, reporter.lang('gettingTags'));
     const name = await getName(args, config);
     const tags = await config.registries.npm.request(`-/package/${name}/dist-tags`);
 
@@ -143,11 +143,11 @@ export let {run, setFlags} = buildSubCommands('dist-tag', {
       }
     }
 
-    reporter.step(3, 3, 'Revoking token');
+    reporter.step(3, 3, reporter.lang('revokingToken'));
     await revoke();
 
     if (!tags) {
-      throw new MessageError("Couldn't find this package on the registry");
+      throw new MessageError(reporter.lang('packageNotFoundRegistry', name, 'npm'));
     }
   },
 }, [

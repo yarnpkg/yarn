@@ -142,7 +142,7 @@ if (!commander.offline && network.isOffline()) {
 
 //
 if (command.requireLockfile && !fs.existsSync(path.join(config.cwd, constants.LOCKFILE_FILENAME))) {
-  reporter.error('No lockfile in this directory. Run `kpm install` to generate one.');
+  reporter.error(reporter.lang('noRequiredLockfile'));
   process.exit(1);
 }
 
@@ -163,7 +163,7 @@ const runEventuallyWithLockFile = (isFirstTime): Promise<void> => {
     lockfile.lock(lock, {realpath: false}, (err, release) => {
       if (err) {
         if (isFirstTime) {
-          reporter.warn('waiting until the other kpm instance finish.');
+          reporter.warn(reporter.lang('waitingInstance'));
         }
         setTimeout(() => {
           ok(runEventuallyWithLockFile());
@@ -192,7 +192,7 @@ const runEventually = (): Promise<void> => {
 
     server.on('error', () => {
       // another kpm instance exists, let's connect to it to know when it dies.
-      reporter.warn('waiting until the other kpm instance finish.');
+      reporter.warn(reporter.lang('waitingInstance'));
       let socket = net.createConnection(connectionOptions);
 
       socket

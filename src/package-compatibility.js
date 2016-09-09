@@ -88,10 +88,7 @@ export default class PackageCompatibility {
 
         reporter.warn(`${human}: ${msg}`);
         if (!didIgnore) {
-          reporter.info(
-            `${human} is an optional dependency and failed compatibility check. ` +
-            'Excluding it from installation.',
-          );
+          reporter.info(reporter.lang('optionalCompatibilityExcluded', human));
           didIgnore = true;
         }
       } else {
@@ -102,13 +99,13 @@ export default class PackageCompatibility {
 
     if (Array.isArray(info.os)) {
       if (!PackageCompatibility.isValidPlatform(info.os)) {
-        pushError(`The platform ${process.platform} is incompatible with this module.`);
+        pushError(this.reporter.lang('incompatibleOS', process.platform));
       }
     }
 
     if (Array.isArray(info.cpu)) {
       if (!PackageCompatibility.isValidArch(info.cpu)) {
-        pushError(`The CPU architecture ${process.arch} is incompatible with this module.`);
+        pushError(this.reporter.lang('incompatibleCPU', process.arch));
       }
     }
 
@@ -121,16 +118,16 @@ export default class PackageCompatibility {
         const actual = process.versions[name];
         if (actual) {
           if (!semver.satisfies(actual, range)) {
-            pushError(`The engine ${name} is incompatible with this module. Expected version ${range}.`);
+            pushError(this.reporter.lang('incompatibleEngine', name, range));
           }
         } else if (!_.includes(ignore, name)) {
-          this.reporter.warn(`${human}: The engine ${name} appears to be invalid.`);
+          this.reporter.warn(`${human}: ${this.reporter.lang('invalidEngine', name)}`);
         }
       }
     }
 
     if (didError) {
-      throw new MessageError('Found incompatible module');
+      throw new MessageError(reporter.lang('foundIncompatible'));
     }
   }
 

@@ -10,19 +10,27 @@
  */
 
 import type {Manifest} from '../../types.js';
+import type Config from '../../config.js';
 import validate from './validate.js';
 import fix from './fix.js';
 
-type WarnFunction = ?(msg: string) => void;
+export default async function (info: Object, moduleLoc: string, config: Config): Promise<Manifest> {
+  await fix(info, moduleLoc, config.reporter);
 
-export default async function (info: Object, moduleLoc: string, warn?: WarnFunction): Promise<Manifest> {
-  if (info.private) {
-    warn = null;
+  let {name, version} = info;
+  let human: ?string;
+  if (typeof name === 'string') {
+    human = name;
   }
-  if (!warn) {
-    warn = function() {};
+  if (human && typeof version === 'string') {
+    name += `@${version}`;
   }
-  await fix(info, moduleLoc);
-  validate(info, warn);
+  validate(info, (msg: string) => {
+    if (human) {
+      msg = `${human}: ${msg}`;
+    }
+    config.reporter.warn(msg);
+  });
+
   return info;
 }

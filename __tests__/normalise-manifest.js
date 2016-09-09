@@ -11,6 +11,8 @@
 /* eslint max-len: 0 */
 
 import normaliseManifest from '../src/util/normalise-manifest/index.js';
+import NoopReporter from '../src/reporters/base-reporter.js';
+import Config from '../src/config.js';
 import map from '../src/util/map.js';
 import * as util from '../src/util/normalise-manifest/util.js';
 import * as fs from '../src/util/fs.js';
@@ -31,9 +33,14 @@ for (let name of nativeFs.readdirSync(fixturesLoc)) {
     let actualWarnings   = [];
     let expectedWarnings = await fs.readJson(path.join(loc, 'warnings.json'));
 
-    function warn(msg) {
+    let reporter = new NoopReporter();
+
+    // $FlowFixMe: investigate
+    reporter.warn = function(msg) {
       actualWarnings.push(msg);
-    }
+    };
+
+    let config = new Config(reporter, {cwd: loc});
 
     let actual   = await fs.readJson(path.join(loc, 'actual.json'));
     let expected = await fs.readJson(path.join(loc, 'expected.json'));
@@ -44,7 +51,7 @@ for (let name of nativeFs.readdirSync(fixturesLoc)) {
     }
 
     try {
-      actual = await normaliseManifest(actual, loc, warn);
+      actual = await normaliseManifest(actual, loc, config);
     } catch (err) {
       if (error && err.message === error) {
         return;

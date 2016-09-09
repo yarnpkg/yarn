@@ -34,7 +34,7 @@ export default class FileResolver extends ExoticResolver {
       loc = path.join(this.config.cwd, loc);
     }
     if (!(await fs.exists(loc))) {
-      throw new MessageError(`${loc} doesn't exist`);
+      throw new MessageError(this.reporter.lang('doesntExist', loc));
     }
 
     let manifest = await this.config.readManifest(loc, this.registry);

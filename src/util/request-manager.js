@@ -50,7 +50,7 @@ type RequestParams<T> = {
     [name: string]: string
   },
   process?: (
-    req: Request,
+    req: request,
     resolve: (body: T) => void,
     reject: (err: Error) => void
   ) => void,
@@ -178,7 +178,7 @@ export default class RequestManager {
 
   queueForOffline(opts: RequestOptions) {
     if (!this.offlineQueue.length) {
-      this.reporter.warn('There appears to be trouble with your network connection. Retrying...');
+      this.reporter.warn(this.reporter.lang('offlineRetrying'));
       this.initOfflineRetry();
     }
 
