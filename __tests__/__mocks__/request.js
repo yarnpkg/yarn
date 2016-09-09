@@ -48,7 +48,7 @@ class Request extends RealRequest {
   }
 }
 
-module.exports = function (params: Object): Request {
+module.exports = function(params: Object): Request {
   return new Request(params);
 };
 

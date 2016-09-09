@@ -108,7 +108,7 @@ export default class TarballFetcher extends BaseFetcher {
   }
 
   async fetchFromLocal(parts: Object): Promise<FetchedOverride> {
-    let {reference: ref, config, registry} = this;
+    let {reference: ref, config} = this;
 
     // path to the local tarball
     let localTarball;

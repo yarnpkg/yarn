@@ -212,7 +212,7 @@ export default class PackageRequest {
     // find version info for this package pattern
     let info: ?Manifest = await this.findVersionInfo();
     if (!info) {
-      throw new MessageError(`Couldn't find package ${this.pattern}`);
+      throw new MessageError(this.reporter.lang('unknownPackagePattern', this.pattern));
     }
 
     // check if while we were resolving this dep we've already resolved one that satisfies
@@ -236,7 +236,7 @@ export default class PackageRequest {
     }
 
     // validate version info
-    PackageRequest.validateVersionInfo(info);
+    PackageRequest.validateVersionInfo(info, this.reporter);
 
     //
     const remote = info._remote;
@@ -290,7 +290,7 @@ export default class PackageRequest {
    * TODO description
    */
 
-  static validateVersionInfo(info: Manifest) {
+  static validateVersionInfo(info: Manifest, reporter: Reporter) {
     // human readable name to use in errors
     const human = `${info.name}@${info.version}`;
 
@@ -298,7 +298,7 @@ export default class PackageRequest {
 
     for (const key of constants.REQUIRED_PACKAGE_KEYS) {
       if (!info[key]) {
-        throw new MessageError(`Package ${human} doesn't have a ${key}`);
+        throw new MessageError(reporter.lang('missingRequiredPackageKey', human, key));
       }
     }
   }

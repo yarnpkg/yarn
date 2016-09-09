@@ -176,5 +176,5 @@ export async function run(
     stream.on('close', resolve);
   });
 
-  reporter.success(`Wrote tarball to ${filename}`);
+  reporter.success(reporter.lang('packWroteTarball', filename));
 }

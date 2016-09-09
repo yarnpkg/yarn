@@ -121,8 +121,12 @@ export default class NpmResolver extends RegistryResolver {
       return versions[satisfied];
     } else if (!this.config.preferOffline) {
       throw new MessageError(
-        `Couldn't find any versions for ${this.name} that matches ${this.range} in our cache. ` +
-        `Possible versions: ${Object.keys(versions).join(', ')} ${prefix}`,
+        this.reporter.lang(
+          'couldntFindPackageInCache',
+          this.name,
+          this.range,
+          Object.keys(versions).join(', '),
+        ),
       );
     } else {
       return false;
@@ -139,9 +143,7 @@ export default class NpmResolver extends RegistryResolver {
     const info = await this.resolveRequest();
 
     if (!info) {
-      throw new MessageError(
-        `Couldn't find package ${this.name} on the npm registry. ${this.request.getHuman()}`,
-      );
+      throw new MessageError(this.reporter.lang('packageNotFoundRegistry', this.name, 'npm'));
     }
 
     if (typeof info.deprecated === 'string') {

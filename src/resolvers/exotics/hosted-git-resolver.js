@@ -9,6 +9,7 @@
  * @flow
  */
 
+import type {Reporter} from '../../reporters/index.js';
 import type {Manifest} from '../../types.js';
 import type PackageRequest from '../../package-request.js';
 import {MessageError} from '../../errors.js';
@@ -23,7 +24,7 @@ export type ExplodedFragment = {
   hash: string,
 };
 
-export function explodeHostedGitFragment(fragment: string): ExplodedFragment {
+export function explodeHostedGitFragment(fragment: string, reporter: Reporter): ExplodedFragment {
   // TODO: make sure this only has a length of 2
   const parts = fragment.split(':');
   fragment = parts.pop();
@@ -43,14 +44,14 @@ export function explodeHostedGitFragment(fragment: string): ExplodedFragment {
     }
   }
 
-  throw new MessageError(`Invalid hosted git fragment ${fragment}`);
+  throw new MessageError(reporter.lang('invalidHostedGitFragment', fragment));
 }
 
 export default class HostedGitResolver extends ExoticResolver {
   constructor(request: PackageRequest, fragment: string) {
     super(request, fragment);
 
-    const exploded = this.exploded = explodeHostedGitFragment(fragment);
+    const exploded = this.exploded = explodeHostedGitFragment(fragment, this.reporter);
     let {user, repo, hash} = exploded;
     this.user = user;
     this.repo = repo;
@@ -163,7 +164,7 @@ export default class HostedGitResolver extends ExoticResolver {
       }
     }
 
-    throw new MessageError(`Could not find package metadata file in ${url}`);
+    throw new MessageError(this.reporter.lang('couldntFindManifestIn', url));
   }
 
   async hasHTTPCapability(url: string): Promise<boolean> {

@@ -42,7 +42,7 @@ async function publish(
   // validate access argument
   let access = flags.access;
   if (access && access !== 'public' && access !== 'restricted') {
-    throw new MessageError(`Invalid argument for access, expected public or restricted`);
+    throw new MessageError(config.reporter.lang('invalidAccess'));
   }
 
   // get tarball stream
@@ -107,7 +107,7 @@ async function publish(
     body: root,
   });
   if (!res.success) {
-    throw new MessageError(`Couldn't publish package`);
+    throw new MessageError(config.reporter.lang('publishFail'));
   }
 }
 
@@ -120,35 +120,35 @@ export async function run(
   // validate package fields that are required for publishing
   let pkg = await config.readManifest(config.cwd);
   if (pkg.private) {
-    throw new MessageError(`Package marked as private, not publishing`);
+    throw new MessageError(reporter.lang('publishPrivate'));
   }
   if (!pkg.name) {
-    throw new MessageError(`Package doesn't have a name`);
+    throw new MessageError(reporter.lang('publishNoName'));
   }
 
   // validate arguments
   let dir = args[0] || config.cwd;
   if (args.length > 1) {
-    throw new MessageError(`Too many arguments, expected max of 1`);
+    throw new MessageError(reporter.lang('tooManyArguments', 1));
   }
   if (!(await fs.exists(dir))) {
-    throw new MessageError("Passed folder/tarball doesn't exist");
+    throw new MessageError(reporter.lang('unknownFolderOrTarball'));
   }
 
   //
-  reporter.step(1, 4, 'Bumping version');
+  reporter.step(1, 4, reporter.lang('bumpingVersion'));
   await runVersion(config, reporter, flags, args);
 
   //
-  reporter.step(2, 4, 'Logging in');
+  reporter.step(2, 4, reporter.lang('loggingIn'));
   let revoke = await getToken(config, reporter);
 
   //
-  reporter.step(3, 4, 'Publishing');
+  reporter.step(3, 4, reporter.lang('publishing'));
   await publish(config, pkg, flags, dir);
-  reporter.success('Published');
+  reporter.success(reporter.lang('published'));
 
   //
-  reporter.step(4, 4, 'Revoking token');
+  reporter.step(4, 4, reporter.lang('revokingToken'));
   await revoke();
 }

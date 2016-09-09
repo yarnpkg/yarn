@@ -284,9 +284,7 @@ export default class Git {
       this.ref = ref;
       return this.hash = commit;
     } else {
-      throw new MessageError(
-        `Could not find match for ${JSON.stringify(ref)} in ${names.join(',')} for ${this.url}`,
-      );
+      throw new MessageError(this.config.reporter.lang('couldntFindMatch', ref, names.join(','), this.url));
     }
   }
 

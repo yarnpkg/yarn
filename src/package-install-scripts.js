@@ -141,8 +141,8 @@ export default class PackageInstallScripts {
       invariant(ref, 'expected reference');
 
       if (ref.optional) {
-        this.reporter.error(`Error running install script for optional dependency: ${err.message}`);
-        this.reporter.info('This module is OPTIONAL, you can safely ignore this error');
+        this.reporter.error(this.reporter.lang('optionalModuleScriptFail', err.message));
+        this.reporter.info(this.reporter.lang('optionalModuleFail'));
         return [];
       } else {
         throw err;

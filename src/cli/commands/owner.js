@@ -38,11 +38,11 @@ export async function mutate(
   let username = args.shift();
   let name = await getName(args, config);
   if (!isValidPackageName(name)) {
-    throw new MessageError('Invalid package name');
+    throw new MessageError(reporter.lang('invalidPackageName'));
   }
 
   let msgs = buildMessages(username, name);
-  reporter.step(1, 3, 'Logging in');
+  reporter.step(1, 3, reporter.lang('loggingIn'));
   let revoke = await getToken(config, reporter);
 
   reporter.step(2, 3, msgs.info);
@@ -82,7 +82,7 @@ export async function mutate(
     reporter.error("Couldn't find user");
   }
 
-  reporter.step(3, 3, 'Revoking token');
+  reporter.step(3, 3, reporter.lang('revokingToken'));
   await revoke();
 
   if (error) {
@@ -104,14 +104,14 @@ export let {run, setFlags} = buildSubCommands('owner', {
       config,
       reporter,
       (username: string, name: string): Messages => ({
-        info: `Adding owner ${username} to package ${name}`,
-        success: 'Added owner',
-        error: "Couldn't add owner",
+        info: reporter.lang('addingOwner', username, name),
+        success: reporter.lang('addedOwner'),
+        error: reporter.lang('addedOwnerFail'),
       }),
       (user: Object, pkg: Object): boolean => {
         for (let owner of pkg.maintainers) {
           if (owner.name === user) {
-            reporter.error('This user is already an owner of this package');
+            reporter.error(reporter.lang('alreadyAnOwner'));
             return true;
           }
         }
@@ -168,7 +168,7 @@ export let {run, setFlags} = buildSubCommands('owner', {
 
     let name = await getName(args, config);
 
-    reporter.step(1, 3, 'Logging in');
+    reporter.step(1, 3, reporter.lang('loggingIn'));
     let revoke = await getToken(config, reporter);
 
     reporter.step(2, 3, `Getting owners of package ${name}`);
@@ -186,7 +186,7 @@ export let {run, setFlags} = buildSubCommands('owner', {
       reporter.error("Couldn't get owners");
     }
 
-    reporter.step(3, 3, 'Revoking token');
+    reporter.step(3, 3, reporter.lang('revokingToken'));
     await revoke();
 
     if (pkg) {

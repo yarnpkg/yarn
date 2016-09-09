@@ -41,6 +41,7 @@ export let exotics = {
 
 //
 
+import type {Reporter} from '../reporters/index.js';
 import {explodeHostedGitFragment} from './exotics/hosted-git-resolver.js';
 
 export let hostedGit = {
@@ -49,11 +50,11 @@ export let hostedGit = {
   bitbucket: ExoticBitbucket,
 };
 
-export function hostedGitFragmentToGitUrl(fragment: string): string {
+export function hostedGitFragmentToGitUrl(fragment: string, reporter: Reporter): string {
   for (let key in hostedGit) {
     let Resolver = hostedGit[key];
     if (Resolver.isVersion(fragment)) {
-      return Resolver.getGitHTTPUrl(explodeHostedGitFragment(fragment));
+      return Resolver.getGitHTTPUrl(explodeHostedGitFragment(fragment, reporter));
     }
   }
 

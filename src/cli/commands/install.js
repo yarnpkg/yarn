@@ -174,12 +174,12 @@ export class Install {
     match: IntegrityMatch,
   ): Promise<InstallPrepared> {
     if (!this.flags.force && match.matches) {
-      this.reporter.success('Already up-to-date.');
+      this.reporter.success(this.reporter.lang('upToDate'));
       return {patterns, requests, skip: true};
     }
 
     if (!patterns.length && !match.expected) {
-      this.reporter.success('Nothing to install.');
+      this.reporter.success(this.reporter.lang('nothingToInstall'));
       return {patterns, requests, skip: true};
     }
 
@@ -209,19 +209,19 @@ export class Install {
     let steps: Array<(curr: number, total: number) => Promise<void>> = [];
 
     steps.push(async (curr: number, total: number) => {
-      this.reporter.step(curr, total, 'Resolving packages', emoji.get('mag'));
+      this.reporter.step(curr, total, this.reporter.lang('resolvingPackages'), emoji.get('mag'));
       await this.resolver.init(depRequests, this.flags.flat);
       patterns = await this.flatten(rawPatterns);
     });
 
     steps.push(async (curr: number, total: number) => {
-      this.reporter.step(curr, total, 'Fetching packages', emoji.get('truck'));
+      this.reporter.step(curr, total, this.reporter.lang('fetchingPackages'), emoji.get('truck'));
       await this.fetcher.init();
       await this.compatibility.init();
     });
 
     steps.push(async (curr: number, total: number) => {
-      this.reporter.step(curr, total, 'Linking dependencies', emoji.get('link'));
+      this.reporter.step(curr, total, this.reporter.lang('linkingDependencies'), emoji.get('link'));
       await this.linker.init(patterns);
     });
 
@@ -229,7 +229,7 @@ export class Install {
       this.reporter.step(
         curr,
         total,
-        this.flags.force ? 'Rebuilding all packages' : 'Building fresh packages',
+        this.flags.force ? this.reporter.lang('rebuildingPackages') : this.reporter.lang('buildingFreshPackages'),
         emoji.get('page_with_curl'),
       );
       await this.scripts.init(patterns);
@@ -238,14 +238,19 @@ export class Install {
     if (this.flags.har) {
       steps.push(async (curr: number, total: number) => {
         const filename = `kpm-install_${new Date().toISOString()}.har`;
-        this.reporter.step(curr, total, `Saving HAR file: ${filename}`, emoji.get('black_circle_for_record'));
+        this.reporter.step(
+          curr,
+          total,
+          this.reporter.lang('savingHar', filename),
+          emoji.get('black_circle_for_record'),
+        );
         await this.config.requestManager.requestCaptureHar.saveHar(filename);
       });
     }
 
     if (await this.shouldClean()) {
       steps.push(async (curr: number, total: number) => {
-        this.reporter.step(curr, total, 'Cleaning modules', emoji.get('recycle'));
+        this.reporter.step(curr, total, this.reporter.lang('cleaningModules'), emoji.get('recycle'));
         await clean(this.config, this.reporter);
       });
     }
@@ -300,7 +305,9 @@ export class Install {
         let ref = info._reference;
         invariant(ref, 'expected reference');
         return {
-          name: `${ref.patterns.join(', ')} which resolved to ${info.version}`, // TODO `and is required by {PARENT}`,
+          // TODO `and is required by {PARENT}`,
+          name: this.reporter.lang('manualVersionResolutionOption', ref.patterns.join(', '), info.version),
+          
           value: info.version,
         };
       });
@@ -313,8 +320,8 @@ export class Install {
         version = resolutionVersion;
       } else {
         version = await this.reporter.select(
-          `Unable to find a suitable version for ${name}, please choose one by typing one of the numbers below:`,
-          'Answer',
+          this.reporter.lang('manualVersionResolution', name),
+          this.reporter.lang('answer'),
           options,
         );
         this.resolutions[name] = version;
@@ -414,7 +421,7 @@ export class Install {
     // write lockfile
     await fs.writeFile(loc, lockSource);
 
-    this.reporter.success(`Saved lockfile.`);
+    this.reporter.success(this.reporter.lang('savedLockfile'));
   }
 
   /**
@@ -558,7 +565,7 @@ export async function run(
     if (flags.saveTilde) {
       exampleArgs.push('--tilde');
     }
-    reporter.info('`install` has been replaced with `add` to add new dependencies.');
+    reporter.info(reporter.lang('installCommandRenamed'));
     reporter.command(`kpm add ${exampleArgs.join(' ')}`);
     return Promise.reject();
   }

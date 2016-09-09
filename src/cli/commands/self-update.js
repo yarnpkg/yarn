@@ -73,7 +73,7 @@ export async function run(
     id: release.id,
   });
 
-  reporter.info(`Downloading asset ${assets[0].name} from release ${release.tag_name}`);
+  reporter.info(reporter.lang('selfUpdateDownloading', assets[0].name, release.tag_name));
 
   const thisVersionRoot = path.resolve(__dirname, '..', '..', '..');
   const isCurrentVersionAnUpdate =
@@ -112,5 +112,5 @@ export async function run(
     await symlink(thisVersionRoot, pathToClean);
   }
 
-  reporter.info(`Replaced current release with ${release.tag_name}`);
+  reporter.success(reporter.lang('selfUpdateReleased', release.tag_name));
 }

@@ -55,7 +55,7 @@ export default function(rootCommandName: string, subCommands: SubCommands, usage
       }
     }
 
-    reporter.error(`Usage:`);
+    reporter.error(`${reporter.lang('usage')}:`);
     for (let msg of usage) {
       reporter.error(`kpm ${rootCommandName} ${msg}`);
     }

@@ -33,7 +33,7 @@ export default class BowerResolver extends RegistryResolver {
     if (body) {
       return this.fork(GitResolver, false, `${body.url}#${this.range}`);
     } else {
-      throw new MessageError(`Couldn't find package ${this.name} on the bower registry`);
+      throw new MessageError(this.reporter.lang('packageNotFoundRegistry', this.name, 'bower'));
     }
   }
 }
