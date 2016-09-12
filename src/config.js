@@ -296,8 +296,7 @@ export default class Config {
    * Read normalised package info.
    */
 
-  async readManifest(dir: string, priorityRegistry?: RegistryNames): Promise<Object> {
-    // TODO work out how priorityRegistry fits into this cache
+  async readManifest(dir: string, priorityRegistry?: RegistryNames, isRoot?: boolean = false): Promise<Manifest> {
     return this.getCache(`manifest-${dir}`, async (): Promise<Manifest> => {
       const metadataLoc = path.join(dir, constants.METADATA_FILENAME);
       if (!priorityRegistry && await fs.exists(metadataLoc)) {
@@ -305,7 +304,7 @@ export default class Config {
       }
 
       if (priorityRegistry) {
-        const file = await this.tryManifest(dir, priorityRegistry);
+        const file = await this.tryManifest(dir, priorityRegistry, isRoot);
         if (file) {
           return file;
         }
@@ -316,7 +315,7 @@ export default class Config {
           continue;
         }
 
-        const file = await this.tryManifest(dir, registry);
+        const file = await this.tryManifest(dir, registry, isRoot);
         if (file) {
           return file;
         }
@@ -327,18 +326,25 @@ export default class Config {
   }
 
   /**
+   * Read the root manifest.
+   */
+
+  async readRootManifest(): Promise<Manifest> {
+    return this.readManifest(this.cwd, 'npm', true);
+  }
+
+  /**
    * Try and find package info with the input directory and registry.
    */
 
-  async tryManifest(dir: string, registry: RegistryNames): ?Object {
+  async tryManifest(dir: string, registry: RegistryNames, isRoot: boolean): Promise<?Manifest> {
     const {filename} = registries[registry];
     const loc = path.join(dir, filename);
     if (await fs.exists(loc)) {
       const data = await fs.readJson(loc);
       data._registry = registry;
       data._loc = loc;
-      await normaliseManifest(data, dir, this);
-      return data;
+      return normaliseManifest(data, dir, this, isRoot);
     } else {
       return null;
     }

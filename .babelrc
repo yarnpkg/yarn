@@ -1,4 +1,5 @@
 {
+  "only": "*.js",
   "env": {
     "pre-node5": {
       "presets": ["es2015-node4"],

@@ -22,7 +22,7 @@ export default function(action: string): { run: Function, argumentLength: number
     argumentLength: 0,
 
     async run(config: Config): Promise<void> {
-      const pkg = await config.readManifest(config.cwd);
+      const pkg = await config.readRootManifest();
 
       // build up list of commands for this script
       let scripts = pkg.scripts || {};
