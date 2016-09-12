@@ -118,7 +118,7 @@ export async function run(
  args: Array<string>,
 ): Promise<void> {
   // validate package fields that are required for publishing
-  let pkg = await config.readManifest(config.cwd);
+  let pkg = await config.readRootManifest();
   if (pkg.private) {
     throw new MessageError(reporter.lang('publishPrivate'));
   }

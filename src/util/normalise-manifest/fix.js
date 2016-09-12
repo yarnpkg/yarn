@@ -10,6 +10,7 @@
  */
 
 import type {Reporter} from '../../reporters/index.js';
+import {isValidLicense} from './util.js';
 import {normalisePerson, extractDescription} from './util.js';
 import {hostedGitFragmentToGitUrl} from '../../resolvers/index.js';
 import inferLicense from './infer-license.js';
@@ -19,6 +20,11 @@ const semver = require('semver');
 const path = require('path');
 const url = require('url');
 const _ = require('lodash');
+
+const LICENSE_RENAMES = {
+  'MIT/X11': 'MIT',
+  X11: 'MIT',
+};
 
 export default async function (info: Object, moduleLoc: string, reporter: Reporter): Promise<void> {
   const files = await fs.readdir(moduleLoc);
@@ -171,19 +177,71 @@ export default async function (info: Object, moduleLoc: string, reporter: Report
     delete info.directories;
   }
 
-  // infer license file
-  // TODO: show that this were inferred and may not be accurate
+  // normalise licenses field
+  let licenses = info.licenses;
+  if (Array.isArray(licenses) && !info.license) {
+    let licenseTypes = [];
+
+    for (let license of licenses) {
+      if (typeof license === 'object') {
+        license = license.type;
+      }
+      if (typeof license === 'string') {
+        licenseTypes.push(license);
+      }
+    }
+
+    licenseTypes = licenseTypes.filter(isValidLicense);
+
+    if (licenseTypes.length === 1) {
+      info.license = licenseTypes[0];
+    } else if (licenseTypes.length) {
+      info.license = `(${licenseTypes.join(' OR ')})`;
+    }
+  }
+
+  // normalise license
+  if (typeof info.license === 'object') {
+    info.license = info.license.type;
+  }
+
+  // get license file
   const licenseFile = _.find(files, (filename): boolean => {
     const lower = filename.toLowerCase();
     return lower === 'license' || lower.indexOf('license.') === 0;
   });
-
   if (licenseFile) {
     const licenseContent = await fs.readFile(path.join(moduleLoc, licenseFile));
+    const inferredLicense = inferLicense(licenseContent);
     info.licenseText = licenseContent;
 
-    if (!info.license) {
-      info.license = inferLicense(licenseContent) || inferLicense(info.readme);
+    if (info.license) {
+      if (inferredLicense && isValidLicense(inferredLicense) && !isValidLicense(info.license)) {
+        // some packages don't specify their license version but we can infer it based on their license file
+        const basicLicense = info.license.toLowerCase().replace(/(-like|\*)$/g, '');
+        const expandedLicense = inferredLicense.toLowerCase();
+        if (_.startsWith(expandedLicense, basicLicense)) {
+          // TODO consider doing something to notify the user
+          info.license = inferredLicense;
+        }
+      }
+    } else if (inferredLicense) {
+      // if there's no license then infer it based on the license file
+      info.license = inferredLicense;
+    } else {
+        // valid expression to refer to a license in a file
+      info.license = `SEE LICENSE IN ${licenseFile}`;
+    }
+  }
+
+  if (typeof info.license === 'string') {
+    // sometimes licenses are known by different names, reduce them
+    info.license = LICENSE_RENAMES[info.license] || info.license;
+  } else if (typeof info.readme === 'string') {
+    // the license might be at the bottom of the README
+    const inferredLicense = inferLicense(info.readme);
+    if (inferredLicense) {
+      info.license = inferredLicense;
     }
   }
 }

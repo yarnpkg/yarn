@@ -67,16 +67,17 @@ function addEntry(packer: any, entry: Object, buffer?: ?Buffer): Promise<void> {
 }
 
 export async function pack(config: Config, dir: string): Promise<stream$Duplex> {
-  let pkg = await config.readManifest(config.cwd);
+  let pkg = await config.readRootManifest();
 
   //
   let filters: Array<IgnoreFilter> = DEFAULT_IGNORE.slice();
 
   //
-  if (pkg.bundledDependencies) {
+  let {bundledDependencies} = pkg;
+  if (bundledDependencies) {
     let folder = config.getFolder(pkg);
     filters = ignoreLinesToRegex(
-      pkg.bundledDependencies.map((name): string => `!${folder}/${name}`),
+      bundledDependencies.map((name): string => `!${folder}/${name}`),
       '.',
     );
   }
@@ -165,7 +166,7 @@ export async function run(
  flags: Object,
  args: Array<string>,
 ): Promise<void> {
-  let pkg = await config.readManifest(config.cwd);
+  let pkg = await config.readRootManifest();
   let filename = flags.filename || path.join(config.cwd, `${pkg.name}-v${pkg.version}.tgz`);
 
   let stream = await pack(config, config.cwd);

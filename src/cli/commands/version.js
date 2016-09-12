@@ -35,7 +35,9 @@ export async function run(
  flags: Object,
  args: Array<string>,
 ): Promise<void> {
-  let pkg = await config.readManifest(config.cwd);
+  let pkg = await config.readRootManifest();
+  let pkgLoc = pkg._loc;
+  invariant(pkgLoc, 'expected package location');
 
   // get old version
   let oldVersion = pkg.version;
@@ -69,9 +71,9 @@ export async function run(
 
   // update version
   reporter.info(`${reporter.lang('newVersion')}: ${newVersion}`);
-  let json = await fs.readJson(pkg._loc);
+  let json = await fs.readJson(pkgLoc);
   pkg.version = json.version = newVersion;
-  await fs.writeFile(pkg._loc, `${stringify(json)}\n`);
+  await fs.writeFile(pkgLoc, `${stringify(json)}\n`);
 
   // add git commit and tag
   let isGit = false;
@@ -91,7 +93,7 @@ export async function run(
     let prefix = 'v'; // TODO tag-version-prefix npm config
 
     // add manifest
-    await spawn('git', ['add', pkg._loc]);
+    await spawn('git', ['add', pkgLoc]);
 
     // create git commit
     await spawn('git', ['commit', '-m', message]);
