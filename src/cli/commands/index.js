@@ -78,11 +78,10 @@ export {check};
 import * as version from './version.js';
 export {version};
 
-import buildUseless from './_useless.js';
+import * as run from './run.js';
+export {run};
 
-export let runScript = buildUseless(
-  'Use `kpm <script-name>` instead of `kpm run-script <script-name>`',
-);
+import buildUseless from './_useless.js';
 
 export let lockfile = buildUseless(
   "The lockfile command isn't necessary. `kpm install` will produce a lockfile.",

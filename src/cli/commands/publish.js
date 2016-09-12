@@ -11,6 +11,7 @@
 
 import type {Reporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
+import executeLifecycleScript from './_execute-lifecycle-script.js';
 import NpmRegistry from '../../registries/npm-registry.js';
 import {MessageError} from '../../errors.js';
 import {run as runVersion, setFlags as versionSetFlags} from './version.js';
@@ -74,6 +75,9 @@ async function publish(
   let tbName = `${pkg.name}-${pkg.version}.tgz`;
   let tbURI = `${pkg.name}/-/${tbName}`;
 
+  // TODO this might modify package.json, do we need to reload it?
+  await executeLifecycleScript(config, 'prepublish');
+
   // create body
   let root = {
     _id: pkg.name,
@@ -106,7 +110,11 @@ async function publish(
     method: 'PUT',
     body: root,
   });
-  if (!res.success) {
+
+  if (res.success) {
+    await executeLifecycleScript(config, 'publish');
+    await executeLifecycleScript(config, 'postpublish');
+  } else {
     throw new MessageError(config.reporter.lang('publishFail'));
   }
 }

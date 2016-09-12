@@ -14,6 +14,7 @@ import type {ReporterSelectOption} from '../../reporters/types.js';
 import type {Manifest, DependencyRequestPatterns} from '../../types.js';
 import type Config from '../../config.js';
 import type {RegistryNames} from '../../registries/index.js';
+import executeLifecycleScript from './_execute-lifecycle-script.js';
 import {stringify} from '../../util/misc.js';
 import {registryNames} from '../../registries/index.js';
 import Lockfile from '../../lockfile/wrapper.js';
@@ -307,7 +308,7 @@ export class Install {
         return {
           // TODO `and is required by {PARENT}`,
           name: this.reporter.lang('manualVersionResolutionOption', ref.patterns.join(', '), info.version),
-          
+
           value: info.version,
         };
       });
@@ -525,14 +526,15 @@ export function setFlags(commander: Object) {
   commander.usage('install [flags]');
   commander.option('--force', '');
   commander.option('-f, --flat', 'only allow one version of a package');
+  commander.option('--prod, --production', '');
+  commander.option('--no-lockfile');
+
   commander.option('-S, --save', 'DEPRECATED - save package to your `dependencies`');
   commander.option('-D, --save-dev', 'DEPRECATED - save package to your `devDependencies`');
   commander.option('-P, --save-peer', 'DEPRECATED - save package to your `peerDependencies`');
   commander.option('-O, --save-optional', 'DEPRECATED - save package to your `optionalDependencies`');
   commander.option('-E, --save-exact', 'DEPRECATED');
   commander.option('-T, --save-tilde', 'DEPRECATED');
-  commander.option('--prod, --production', '');
-  commander.option('--no-lockfile');
 }
 
 export async function run(
@@ -565,10 +567,13 @@ export async function run(
     if (flags.saveTilde) {
       exampleArgs.push('--tilde');
     }
-    reporter.info(reporter.lang('installCommandRenamed'));
+    reporter.error(reporter.lang('installCommandRenamed'));
     reporter.command(`kpm add ${exampleArgs.join(' ')}`);
     return Promise.reject();
   }
+
+  // npm behaviour, seems kinda funky but yay compatibility
+  await executeLifecycleScript(config, 'prepublish');
 
   const install = new Install(flags, config, reporter, lockfile);
   await install.init();

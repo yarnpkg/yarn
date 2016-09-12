@@ -11,6 +11,7 @@
 
 import type {Reporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
+import executeLifecycleScript from './_execute-lifecycle-script.js';
 import {MessageError} from '../../errors.js';
 import {stringify} from '../../util/misc.js';
 import {spawn} from '../../util/child.js';
@@ -67,6 +68,8 @@ export async function run(
   }
   invariant(newVersion, 'expected new version');
 
+  await executeLifecycleScript(config, 'preversion');
+
   // update version
   reporter.info(`${reporter.lang('newVersion')}: ${newVersion}`);
   let json = await fs.readJson(pkg._loc);
@@ -99,4 +102,6 @@ export async function run(
     // create git tag
     await spawn('git', ['tag', `${prefix}${newVersion}`, flag, message]);
   }
+
+  await executeLifecycleScript(config, 'postversion');
 }
