@@ -51,7 +51,7 @@ for (let name of nativeFs.readdirSync(fixturesLoc)) {
     }
 
     try {
-      actual = await normaliseManifest(actual, loc, config);
+      actual = await normaliseManifest(actual, loc, config, true);
     } catch (err) {
       if (error && err.message === error) {
         return;

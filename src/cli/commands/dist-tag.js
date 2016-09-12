@@ -22,7 +22,7 @@ export async function getName(args: Array<string>, config: Config): Promise<stri
   let name = args.shift();
 
   if (!name) {
-    let pkg = await config.readManifest(config.cwd);
+    let pkg = await config.readRootManifest();
     name = pkg.name;
   }
 

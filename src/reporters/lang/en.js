@@ -30,6 +30,17 @@ let messages = {
   clearedCache: 'Cleared cache.',
   packWroteTarball: 'Wrote tarball to $0.',
 
+  manifestPotentialType: 'Potential typo $0, did you mean $1?',
+  manifestBuiltinModule: '$0 is also the name of a node core module',
+  manifestNameDot: "Name can't start with a dot",
+  manifestNameIllegalChars: 'Name contains illegal characters',
+  manifestNameBlacklisted: 'Name is blacklisted',
+  manifestLicenseInvalid: 'License should be a valid SPDX license expression',
+  manifestLicenseNone: 'No license field',
+  manifestStringExpected: '$0 is not a string',
+  manifestDependencyBuiltin: 'Dependency $0 listed in $1 is the name of a built-in module',
+  manifestDependencyCollision: '$0 has dependency $1 with range $2 that collides with a dependecy in $3 of the same name with version $4',
+
   couldntFindMatch: "Couldn't find match for $0 in $1 for $2.",
   couldntFindPackageInCache: "Couldn't find any versions for $0 that matches $1 in our cache. Possible versions: $2",
   moduleNotInManifest: "This module isn't specified in a manifest.",

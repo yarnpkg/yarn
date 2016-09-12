@@ -23,7 +23,7 @@ var fs      = require("fs");
 var babelRc = JSON.parse(fs.readFileSync(path.join(__dirname, ".babelrc"), "utf8"));
 
 function build(lib, opts) {
-  return gulp.src("src/**/*.js")
+  return gulp.src("src/**/*")
     .pipe(plumber({
       errorHandler: function (err) {
         gutil.log(err.stack);
@@ -52,7 +52,7 @@ gulp.task("build-legacy", function () {
 });
 
 gulp.task("watch", ["build"], function () {
-  watch("src/**/*.js", function () {
+  watch("src/**/*", function () {
     gulp.start("build");
   });
 });

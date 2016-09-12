@@ -16,6 +16,7 @@ import ExoticResolver from './exotic-resolver.js';
 import * as util from '../../util/misc.js';
 import * as fs from '../../util/fs.js';
 
+let invariant = require('invariant');
 let path = require('path');
 
 export default class FileResolver extends ExoticResolver {
@@ -38,10 +39,12 @@ export default class FileResolver extends ExoticResolver {
     }
 
     let manifest = await this.config.readManifest(loc, this.registry);
+    let registry = manifest._registry;
+    invariant(registry, 'expected registry');
 
     manifest._remote = {
       type: 'copy',
-      registry: manifest._registry,
+      registry,
       reference: loc,
     };
 
