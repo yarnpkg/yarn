@@ -50,7 +50,7 @@ ensures little idle time and maximum resource utilization.
 ## Usage (while in development)
 
 ```sh
-$ git clone git@github.com:facebook/fbkpm.git
+$ git clone git@github.com:facebook/fbkpm.git kpm
 $ cd kpm
 $ npm install
 $ npm run build
