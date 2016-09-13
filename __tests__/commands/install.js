@@ -264,9 +264,9 @@ parallelTest('install should dedupe dependencies avoiding conflicts 8', (): Prom
     assert.equal(await getPackageVersion(config, 'glob'), '5.0.15');
     assert.equal(await getPackageVersion(config, 'yeoman-generator/globby/glob'), '6.0.4');
     assert.equal(await getPackageVersion(config, 'inquirer'), '0.8.5');
-    assert.equal(await getPackageVersion(config, 'yeoman-generator/yeoman-environment/inquirer'), '1.1.2');
+    assert.equal(await getPackageVersion(config, 'yeoman-generator/yeoman-environment/inquirer'), '1.1.3');
     assert.equal(await getPackageVersion(config, 'lodash'), '3.10.1');
-    assert.equal(await getPackageVersion(config, 'yeoman-generator/yeoman-environment/lodash'), '4.13.1');
+    assert.equal(await getPackageVersion(config, 'yeoman-generator/yeoman-environment/lodash'), '4.15.0');
     assert.equal(await getPackageVersion(config, 'run-async'), '0.1.0');
     assert.equal(await getPackageVersion(config, 'yeoman-generator/yeoman-environment/run-async'), '2.2.0');
   });
@@ -279,9 +279,9 @@ parallelTest('install should dedupe dependencies avoiding conflicts 9', (): Prom
     assert.equal(await getPackageVersion(config, 'glob'), '5.0.15');
     assert.equal(await getPackageVersion(config, 'yeoman-generator/globby/glob'), '6.0.4');
     assert.equal(await getPackageVersion(config, 'inquirer'), '0.8.5');
-    assert.equal(await getPackageVersion(config, 'yeoman-generator/yeoman-environment/inquirer'), '1.1.2');
+    assert.equal(await getPackageVersion(config, 'yeoman-generator/yeoman-environment/inquirer'), '1.1.3');
     assert.equal(await getPackageVersion(config, 'lodash'), '3.10.1');
-    assert.equal(await getPackageVersion(config, 'yeoman-generator/yeoman-environment/lodash'), '4.13.1');
+    assert.equal(await getPackageVersion(config, 'yeoman-generator/yeoman-environment/lodash'), '4.15.0');
     assert.equal(await getPackageVersion(config, 'run-async'), '0.1.0');
     assert.equal(await getPackageVersion(config, 'yeoman-generator/yeoman-environment/run-async'), '2.2.0');
   });
