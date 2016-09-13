@@ -24,7 +24,7 @@ jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000;
 let path = require('path');
 
 function addTest(pattern, registry = 'npm') {
-  parallelTest(`[network] resolve ${pattern}`, async () => {
+  parallelTest(`resolve ${pattern}`, async () => {
     let lockfile = new Lockfile();
     let reporter = new reporters.NoopReporter({});
 
