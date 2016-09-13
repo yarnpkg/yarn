@@ -13,7 +13,7 @@
 import * as constants from '../constants.js';
 import BlockingQueue from './blocking-queue.js';
 import {promisify} from './promise.js';
-import {MessageError} from '../errors.js';
+import {MessageError, SpawnError} from '../errors.js';
 
 const child = require('child_process');
 
@@ -71,15 +71,21 @@ export function spawn(
         }
       });
     } else {
-      proc.stderr.on('data', updateStdout);
-      proc.stdout.on('data', updateStdout);
+      if (proc.stderr) {
+        proc.stderr.on('data', updateStdout);
+      }
+
+      if (proc.stdout) {
+        proc.stdout.on('data', updateStdout);
+      }
+
       processingDone = true;
     }
 
     proc.on('close', (code) => {
       if (code >= 1) {
         // TODO make this output nicer
-        err = new Error([
+        err = new SpawnError([
           'Command failed.',
           `Exit code: ${code}`,
           `Command: ${program}`,
@@ -87,6 +93,7 @@ export function spawn(
           `Directory: ${opts.cwd || process.cwd()}`,
           `Output:\n${stdout.trim()}`,
         ].join('\n'));
+        err.EXIT_CODE = code;
       }
 
       if (processingDone || err) {

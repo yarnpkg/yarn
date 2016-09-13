@@ -19,6 +19,6 @@ export default {
   r: 'uninstall',
   remove: 'uninstall',
   unlink: 'uninstall',
-  run: 'runScript',
-  'run-script': 'runScript',
+  runScript: 'run',
+  'run-script': 'run',
 };

@@ -14,7 +14,6 @@ import type PackageResolver from './package-resolver.js';
 import type {Reporter} from './reporters/index.js';
 import type Config from './config.js';
 import type {ReporterSetSpinner} from './reporters/types.js';
-import type {LifecycleReturn} from './util/execute-lifecycle-script.js';
 import executeLifecycleScript from './util/execute-lifecycle-script.js';
 import * as fs from './util/fs.js';
 import * as constants from './constants.js';
@@ -125,14 +124,18 @@ export default class PackageInstallScripts {
     return res;
   }
 
-  async install(cmds: Array<string>, pkg: Manifest, spinner: ReporterSetSpinner): LifecycleReturn {
+  async install(cmds: Array<string>, pkg: Manifest, spinner: ReporterSetSpinner): Promise<void> {
     const loc = this.config.generateHardModulePath(pkg._reference);
     try {
-      return this.wrapCopyBuildArtifacts(
+      await this.wrapCopyBuildArtifacts(
         loc,
         pkg,
         spinner,
-        (): LifecycleReturn => executeLifecycleScript(this.config, loc, cmds, spinner),
+        async (): Promise<void> => {
+          for (let cmd of cmds) {
+            await executeLifecycleScript(this.config, loc, cmd, spinner);
+          }
+        },
       );
     } catch (err) {
       err.message = `${loc}: ${err.message}`;
@@ -143,7 +146,6 @@ export default class PackageInstallScripts {
       if (ref.optional) {
         this.reporter.error(this.reporter.lang('optionalModuleScriptFail', err.message));
         this.reporter.info(this.reporter.lang('optionalModuleFail'));
-        return [];
       } else {
         throw err;
       }

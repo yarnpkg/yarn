@@ -9,7 +9,6 @@
  * @flow
  */
 
-import buildExecuteLifecycleScript from './commands/_execute-lifecycle-script.js';
 import {ConsoleReporter, JSONReporter} from '../reporters/index.js';
 import * as commands from './commands/index.js';
 import * as constants from '../constants.js';
@@ -88,7 +87,8 @@ invariant(commandName, 'Missing command name');
 let command = commands[_.camelCase(commandName)];
 
 if (!command) {
-  command = buildExecuteLifecycleScript(commandName);
+  args.splice(2, 0, commandName);
+  command = commands.run;
 }
 
 // parse flags

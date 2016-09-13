@@ -10,48 +10,37 @@
  */
 
 import type Config from '../../config.js';
-import {MessageError} from '../../errors.js';
+import {SpawnError} from '../../errors.js';
 import executeLifecycleScript from '../../util/execute-lifecycle-script.js';
-import * as commands from './index.js';
 
-const leven = require('leven');
+export default async function (config: Config, commandName: string): Promise<void> {
+  const pkg = await config.readManifest(config.cwd);
+  await execFromManifest(config, commandName, pkg, config.cwd);
+}
 
-export default function(action: string): { run: Function, argumentLength: number } {
-  let actions = [`pre${action}`, action, `post${action}`];
-  return {
-    argumentLength: 0,
+export async function execFromManifest(config: Config, commandName: string, pkg: Object, cwd: string): Promise<void> {
+  if (!pkg.scripts) {
+    return;
+  }
 
-    async run(config: Config): Promise<void> {
-      const pkg = await config.readRootManifest();
+  const cmd = pkg.scripts[commandName];
+  if (cmd) {
+    await execCommand(config, cmd, cwd);
+  }
+}
 
-      // build up list of commands for this script
-      let scripts = pkg.scripts || {};
-      let cmds = [];
-      for (let action of actions) {
-        let cmd = scripts[action];
-        if (cmd) {
-          cmds.push(cmd);
-        }
-      }
-
-      if (cmds.length) {
-        await executeLifecycleScript(config, config.cwd, cmds);
-      } else {
-        let suggestion;
-
-        for (const commandName in commands) {
-          const steps = leven(commandName, action);
-          if (steps < 2) {
-            suggestion = commandName;
-          }
-        }
-
-        let msg = `Command ${JSON.stringify(action)} not found.`;
-        if (suggestion) {
-          msg += ` Did you mean ${JSON.stringify(suggestion)}?`;
-        }
-        throw new MessageError(msg);
-      }
-    },
-  };
+export async function execCommand(config: Config, cmd: string, cwd: string): Promise<void> {
+  let {reporter} = config;
+  try {
+    reporter.command(cmd);
+    await executeLifecycleScript(config, cwd, cmd);
+    return Promise.resolve();
+  } catch (err) {
+    if (err instanceof SpawnError) {
+      reporter.error(reporter.lang('commandFailed', err.EXIT_CODE));
+      return Promise.reject();
+    } else {
+      throw err;
+    }
+  }
 }

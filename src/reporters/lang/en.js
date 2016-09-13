@@ -61,6 +61,10 @@ let messages = {
   couldntFindManifestIn: "Couldn't find manifest in $0.",
   invalidFragment: 'Invalid fragment $0.',
 
+  commandNotSpecified: 'No command specified.',
+  possibleCommands: 'Possible commands',
+  commandFailed: 'Command failed with exit code $0.',
+
   foundIncompatible: 'Found incompatible module',
   incompatibleEngine: `The engine $0 is incompatible with this module. Expected version $1.`,
   incompatibleCPU: `The CPU architecture $0 is incompatible with this module.`,
