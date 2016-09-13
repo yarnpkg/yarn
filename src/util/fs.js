@@ -283,7 +283,7 @@ export async function copyBulk(
   // we need to copy symlinks last as the could reference files we were copying
   const symlinkActions = actions.filter((action): boolean => action.type === 'symlink');
   await promise.queue(symlinkActions, (data): Promise<void> => {
-    return symlink(data.linkname, data.dest);
+    return symlink(path.resolve(path.dirname(data.dest), data.linkname), data.dest);
   });
 }
 
