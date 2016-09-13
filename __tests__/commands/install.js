@@ -19,7 +19,7 @@ import * as fs from '../../src/util/fs.js';
 import assert from 'assert';
 import semver from 'semver';
 import parallelTest from '../_parallel-test.js';
-import {getPackageVersion, explodeLockfile, runInstall} from './_install.js';
+import {getPackageVersion, explodeLockfile, runInstall, createLockfile} from './_install.js';
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000;
 
@@ -521,5 +521,21 @@ async (): Promise<void> => {
     await fs.unlink(path.join(mirror[1].absolute));
     await fs.unlink(path.join(mirror[2].absolute));
     await fs.unlink(path.join(config.cwd, 'kpm.lock'));
+  });
+});
+
+parallelTest('install cache symlinks properly', async (): Promise<void> => {
+  let fixture = 'cache-symlinks';
+
+  return runInstall({}, fixture, async (config, reporter) => {
+    const symlink = path.resolve(config.cwd, 'node_modules/dep-a/link-index.js');
+    expect(await fs.exists(symlink)).toBe(true);
+    await fs.unlink(path.resolve(config.cwd, 'node_modules'));
+
+    let lockfile = await createLockfile(config.cwd);
+    let install = new Install({}, config, reporter, lockfile);
+    await install.init();
+
+    expect(await fs.exists(symlink)).toBe(true);
   });
 });
