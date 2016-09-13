@@ -109,7 +109,7 @@ export default class PackageCompatibility {
       }
     }
 
-    if (_.isPlainObject(info.engines)) {
+    if (!this.config.ignoreEngines && _.isPlainObject(info.engines)) {
       for (let [name, range] of entries(info.engines)) {
         if (aliases[name]) {
           name = aliases[name];

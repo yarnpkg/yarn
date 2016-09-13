@@ -34,6 +34,7 @@ type ConfigOptions = {
   offline?: boolean,
   preferOffline?: boolean,
   captureHar?: boolean,
+  ignoreEngines?: boolean,
 };
 
 type PackageMetadata = {
