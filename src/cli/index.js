@@ -40,6 +40,7 @@ commander.usage('[command] [flags]');
 commander.option('--offline');
 commander.option('--prefer-offline');
 commander.option('--har', 'Save HAR output of network traffic');
+commander.option('--ignore-engines', 'Ignore engines check');
 commander.option('--json', '');
 commander.option('--modules-folder [path]', 'rather than installing modules into the node_modules ' +
                                             'folder relative to the cwd, output them here');
@@ -112,6 +113,7 @@ let config = new Config(reporter, {
   packagesRoot: commander.packagesRoot,
   preferOffline: commander.preferOffline,
   captureHar: commander.har,
+  ignoreEngines: commander.ignoreEngines,
   offline: commander.preferOffline || commander.offline,
 });
 
