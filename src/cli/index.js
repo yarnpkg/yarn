@@ -76,7 +76,7 @@ if (commandName && typeof aliases[commandName] === 'string') {
 }
 
 //
-if (!commandName) {
+if (!commandName || commandName === 'help') {
   commander.parse(args);
   commander.help();
   process.exit(1);
