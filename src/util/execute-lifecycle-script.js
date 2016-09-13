@@ -29,10 +29,8 @@ export default async function (
   cmd: string,
   spinner?: ReporterSpinner,
 ): LifecycleReturn {
-  let stdio;
-  if (!spinner) {
-    stdio = 'inherit';
-  }
+  // if we don't have a spinner then pipe everything to the terminal
+  const stdio = spinner ? undefined : 'inherit';
 
   const env = Object.assign({}, process.env);
 
@@ -58,8 +56,15 @@ export default async function (
   let sh = 'sh';
   let shFlag = '-c';
   if (process.platform === 'win32') {
+    // cmd or command.com
     sh = process.env.comspec || 'cmd';
+
+    // d - Ignore registry AutoRun commands
+    // s - Strip " quote characters from command.
+    // c - Run Command and then terminate
     shFlag = '/d /s /c';
+
+    // handle quotes properly in windows environments - https://github.com/nodejs/node/issues/5060
     conf.windowsVerbatimArguments = true;
   }
 

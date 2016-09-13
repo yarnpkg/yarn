@@ -85,8 +85,8 @@ export async function run(
 
   // reinstall so we can get the updated lockfile
   reporter.step(++step, totalSteps, reporter.lang('uninstallRegenerate'));
-  const install2 = new Install({force: true, ...flags}, config, new NoopReporter(), lockfile);
-  await install2.init();
+  const reinstall = new Install({force: true, ...flags}, config, new NoopReporter(), lockfile);
+  await reinstall.init();
 
   //
   reporter.success(reporter.lang('uninstalledPackages'));

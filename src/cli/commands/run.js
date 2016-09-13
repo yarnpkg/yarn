@@ -15,6 +15,7 @@ import {execCommand} from './_execute-lifecycle-script.js';
 import {MessageError} from '../../errors.js';
 import {registries} from '../../resolvers/index.js';
 import * as fs from '../../util/fs.js';
+import map from '../../util/map.js';
 
 let leven = require('leven');
 let path = require('path');
@@ -27,7 +28,7 @@ export async function run(
 ): Promise<void> {
   // build up a list of possible scripts
   const pkg = await config.readManifest(config.cwd);
-  const scripts = {};
+  const scripts = map();
   for (const registry of Object.keys(registries)) {
     const binFolder = path.join(config.cwd, config.registries[registry].folder, '.bin');
     if (await fs.exists(binFolder)) {
@@ -49,7 +50,7 @@ export async function run(
     return Promise.reject();
   }
 
-  //
+  // get action
   const action = args.shift();
   const actions = [`pre${action}`, action, `post${action}`];
 
