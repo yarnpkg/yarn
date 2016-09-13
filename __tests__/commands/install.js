@@ -54,11 +54,11 @@ parallelTest('flat arg is inherited from root manifest', (): Promise<void> => {
   });
 });
 
-parallelTest('[network] root install from shrinkwrap', (): Promise<void> => {
+parallelTest('root install from shrinkwrap', (): Promise<void> => {
   return runInstall({}, 'root-install-with-lockfile');
 });
 
-parallelTest('[network] root install with optional deps', (): Promise<void> => {
+parallelTest('root install with optional deps', (): Promise<void> => {
   return runInstall({}, 'root-install-with-optional-dependency');
 });
 
@@ -494,7 +494,7 @@ parallelTest('install should run install scripts in the order of dependencies', 
 });
 
 
-parallelTest('[network] install should add missing deps to kpm and mirror (PR import scenario)',
+parallelTest('install should add missing deps to kpm and mirror (PR import scenario)',
 async (): Promise<void> => {
   let mirrorPath = 'mirror-for-offline';
   let fixture = 'install-import-pr';
