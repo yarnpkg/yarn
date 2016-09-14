@@ -389,7 +389,7 @@ export class Install {
    * Save root manifests.
    */
 
-  async saveRootManifests(jsons: RootManifests) {
+  async saveRootManifests(jsons: RootManifests): Promise<void> {
     for (let registryName of registryNames) {
       let [loc, json] = jsons[registryName];
       if (!Object.keys(json).length) {

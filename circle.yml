@@ -4,7 +4,6 @@ general:
       - gh-pages
 dependencies:
   override:
-    - make -v
     - nvm install 4.3.2
     - nvm install 6
     - nvm use 6 && nvm alias default 6

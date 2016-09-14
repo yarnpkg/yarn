@@ -11,7 +11,7 @@
 
 import * as promise from '../../src/util/promise.js';
 
-test('promisify', async function () {
+test('promisify', async function (): Promise<void> {
   expect(await promise.promisify(function(callback) {
     callback(null, 'foo');
   })()).toBe('foo');
@@ -35,7 +35,7 @@ test('promisify', async function () {
   expect(error && error.message).toEqual('yep');
 });
 
-test('promisifyObject', async function () {
+test('promisifyObject', async function (): Promise<void> {
   let obj = promise.promisifyObject({
     foo(callback) {
       callback(null, 'foo');
@@ -61,10 +61,10 @@ test('promisifyObject', async function () {
   expect(error && error.message).toEqual('yep');
 });
 
-test('queue', async function () {
+test('queue', async function (): Promise<void> {
   let running = 0;
 
-  async function create() {
+  async function create(): Promise<void> {
     running++;
     jest.runAllTimers();
 
