@@ -408,7 +408,7 @@ parallelTest('upgrade scenario', (): Promise<void> => {
 
   let mirrorPath = 'mirror-for-offline';
 
-  async function clean(cwd) {
+  async function clean(cwd): Promise<void> {
     await fs.unlink(path.join(cwd, mirrorPath));
     await fs.unlink(path.join(cwd, 'kpm.lock'));
     await fs.unlink(path.join(cwd, 'package.json'));

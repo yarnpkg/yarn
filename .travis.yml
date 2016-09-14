@@ -19,16 +19,6 @@ env:
  - NODE_VERSION="4"
 
 install:
- # install more modern make
- - wget http://ftp.gnu.org/gnu/make/make-4.2.tar.gz
- - tar xvf make-4.2.tar.gz
- - pushd make-4.2
- - ./configure
- - make
- - sudo make install
- - popd
- - /usr/local/bin/make -v
-
  # install latest git
  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install git; fi
  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then ./scripts/update-linux-git.sh; fi

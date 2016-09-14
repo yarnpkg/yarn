@@ -118,7 +118,7 @@ test('ConsoleReporter.activity', async () => {
 });
 
 test('ConsoleReporter.select', async () => {
-  expect(await getConsoleBuff(async function (r, streams) {
+  expect(await getConsoleBuff(async function (r, streams): Promise<void> {
     streams.stdin.on('resume', function() {
       streams.stdin.send('1\n', 'ascii');
       streams.stdin.end();
@@ -140,7 +140,7 @@ test('ConsoleReporter.select', async () => {
 });
 
 test('ConsoleReporter.progress', async () => {
-  expect(await getConsoleBuff(async function (r) {
+  expect(await getConsoleBuff(async function (r): Promise<void> {
     let tick = r.progress(2);
     tick();
     jest.runAllTimers();
@@ -150,7 +150,7 @@ test('ConsoleReporter.progress', async () => {
     stdout: '',
   });
 
-  expect(await getConsoleBuff(async function (r) {
+  expect(await getConsoleBuff(async function (r): Promise<void> {
     let tick = r.progress(0);
     tick();
   })).toEqual({
@@ -158,7 +158,7 @@ test('ConsoleReporter.progress', async () => {
     stdout: '',
   });
 
-  expect(await getConsoleBuff(async function (r) {
+  expect(await getConsoleBuff(async function (r): Promise<void> {
     r.isTTY = false;
     let tick = r.progress(2);
     tick();

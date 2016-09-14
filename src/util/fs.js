@@ -114,7 +114,7 @@ async function buildActionsForCopy(
   return actions;
 
   //
-  async function build(data) {
+  async function build(data): Promise<void> {
     let {src, dest} = data;
     const onFresh = data.onFresh || noop;
     const onDone = data.onDone || noop;
