@@ -50,7 +50,7 @@ export async function getToken(config: Config, reporter: Reporter): Promise<
   let env = process.env.KPM_AUTH_TOKEN || process.env.NPM_AUTH_TOKEN;
   if (env) {
     config.registries.npm.setToken(env);
-    return async function revoke() {
+    return async function revoke(): Promise<void> {
       reporter.info(reporter.lang('notRevokingEnvToken'));
     };
   }
@@ -61,7 +61,7 @@ export async function getToken(config: Config, reporter: Reporter): Promise<
   let creds = await getCredentials(config, reporter);
   if (!creds) {
     reporter.warn(reporter.lang('loginAsPublic'));
-    return async function revoke() {
+    return async function revoke(): Promise<void> {
       reporter.info(reporter.lang('noTokenToRevoke'));
     };
   }

@@ -19,7 +19,7 @@ import * as fs from '../../src/util/fs.js';
 import assert from 'assert';
 import semver from 'semver';
 import parallelTest from '../_parallel-test.js';
-import {getPackageVersion, explodeLockfile, runInstall} from './_install.js';
+import {getPackageVersion, explodeLockfile, runInstall, createLockfile} from './_install.js';
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000;
 
@@ -54,11 +54,11 @@ parallelTest('flat arg is inherited from root manifest', (): Promise<void> => {
   });
 });
 
-parallelTest('[network] root install from shrinkwrap', (): Promise<void> => {
+parallelTest('root install from shrinkwrap', (): Promise<void> => {
   return runInstall({}, 'root-install-with-lockfile');
 });
 
-parallelTest('[network] root install with optional deps', (): Promise<void> => {
+parallelTest('root install with optional deps', (): Promise<void> => {
   return runInstall({}, 'root-install-with-optional-dependency');
 });
 
@@ -264,9 +264,9 @@ parallelTest('install should dedupe dependencies avoiding conflicts 8', (): Prom
     assert.equal(await getPackageVersion(config, 'glob'), '5.0.15');
     assert.equal(await getPackageVersion(config, 'yeoman-generator/globby/glob'), '6.0.4');
     assert.equal(await getPackageVersion(config, 'inquirer'), '0.8.5');
-    assert.equal(await getPackageVersion(config, 'yeoman-generator/yeoman-environment/inquirer'), '1.1.2');
+    assert.equal(await getPackageVersion(config, 'yeoman-generator/yeoman-environment/inquirer'), '1.1.3');
     assert.equal(await getPackageVersion(config, 'lodash'), '3.10.1');
-    assert.equal(await getPackageVersion(config, 'yeoman-generator/yeoman-environment/lodash'), '4.13.1');
+    assert.equal(await getPackageVersion(config, 'yeoman-generator/yeoman-environment/lodash'), '4.15.0');
     assert.equal(await getPackageVersion(config, 'run-async'), '0.1.0');
     assert.equal(await getPackageVersion(config, 'yeoman-generator/yeoman-environment/run-async'), '2.2.0');
   });
@@ -279,9 +279,9 @@ parallelTest('install should dedupe dependencies avoiding conflicts 9', (): Prom
     assert.equal(await getPackageVersion(config, 'glob'), '5.0.15');
     assert.equal(await getPackageVersion(config, 'yeoman-generator/globby/glob'), '6.0.4');
     assert.equal(await getPackageVersion(config, 'inquirer'), '0.8.5');
-    assert.equal(await getPackageVersion(config, 'yeoman-generator/yeoman-environment/inquirer'), '1.1.2');
+    assert.equal(await getPackageVersion(config, 'yeoman-generator/yeoman-environment/inquirer'), '1.1.3');
     assert.equal(await getPackageVersion(config, 'lodash'), '3.10.1');
-    assert.equal(await getPackageVersion(config, 'yeoman-generator/yeoman-environment/lodash'), '4.13.1');
+    assert.equal(await getPackageVersion(config, 'yeoman-generator/yeoman-environment/lodash'), '4.15.0');
     assert.equal(await getPackageVersion(config, 'run-async'), '0.1.0');
     assert.equal(await getPackageVersion(config, 'yeoman-generator/yeoman-environment/run-async'), '2.2.0');
   });
@@ -494,7 +494,7 @@ parallelTest('install should run install scripts in the order of dependencies', 
 });
 
 
-parallelTest('[network] install should add missing deps to kpm and mirror (PR import scenario)',
+parallelTest('install should add missing deps to kpm and mirror (PR import scenario)',
 async (): Promise<void> => {
   let mirrorPath = 'mirror-for-offline';
   let fixture = 'install-import-pr';
@@ -521,5 +521,21 @@ async (): Promise<void> => {
     await fs.unlink(path.join(mirror[1].absolute));
     await fs.unlink(path.join(mirror[2].absolute));
     await fs.unlink(path.join(config.cwd, 'kpm.lock'));
+  });
+});
+
+parallelTest('install cache symlinks properly', async (): Promise<void> => {
+  let fixture = 'cache-symlinks';
+
+  return runInstall({}, fixture, async (config, reporter) => {
+    const symlink = path.resolve(config.cwd, 'node_modules/dep-a/link-index.js');
+    expect(await fs.exists(symlink)).toBe(true);
+    await fs.unlink(path.resolve(config.cwd, 'node_modules'));
+
+    let lockfile = await createLockfile(config.cwd);
+    let install = new Install({}, config, reporter, lockfile);
+    await install.init();
+
+    expect(await fs.exists(symlink)).toBe(true);
   });
 });

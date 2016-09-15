@@ -35,7 +35,7 @@ export async function runInstall(
   }, path.join(fixturesLoc, name), checkInstalled, beforeInstall);
 }
 
-export async function clean(cwd: string, removeLock?: boolean) {
+export async function clean(cwd: string, removeLock?: boolean): Promise<void> {
   await fs.unlink(path.join(cwd, constants.MODULE_CACHE_DIRECTORY));
   await fs.unlink(path.join(cwd, 'node_modules'));
   if (removeLock) {

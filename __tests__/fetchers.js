@@ -62,7 +62,7 @@ test('CopyFetcher.fetch', async () => {
   expect(contentFoo).toBe('bar');
 });
 
-test('[network] GitFetcher.fetch', async () => {
+test('GitFetcher.fetch', async () => {
   let dir = await mkdir('git-fetcher');
   let fetcher = new GitFetcher(dir, {
     type: 'git',
@@ -75,7 +75,7 @@ test('[network] GitFetcher.fetch', async () => {
   expect(name).toBe('font-roboto');
 });
 
-test('[network] TarballFetcher.fetch', async () => {
+test('TarballFetcher.fetch', async () => {
   let dir = await mkdir('tarball-fetcher');
   let fetcher = new TarballFetcher(dir, {
     type: 'tarball',
@@ -89,7 +89,7 @@ test('[network] TarballFetcher.fetch', async () => {
   expect(name).toBe('font-roboto');
 });
 
-test('[network] TarballFetcher.fetch throws', async () => {
+test('TarballFetcher.fetch throws', async () => {
   let dir = await mkdir('tarball-fetcher');
   let url = 'https://github.com/PolymerElements/font-roboto/archive/2fd5c7bd715a24fb5b250298a140a3ba1b71fe46.tar.gz';
   let fetcher = new TarballFetcher(dir, {
