@@ -7,3 +7,5 @@
 **If the current behavior is a bug, please provide the steps to reproduce.**
 
 **What is the expected behavior?**
+
+**Please mention your node.js, fbkpm and operating system version.**
