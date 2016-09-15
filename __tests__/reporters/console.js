@@ -21,89 +21,59 @@ let stream = require('stream');
 test('ConsoleReporter.step', async () => {
   expect(await getConsoleBuff((r) => {
     r.step(1, 5, 'foboar');
-  })).toEqual({
-    stderr: '',
-    stdout: '\u001b[2K\u001b[1G\u001b[90m[1/5]\u001b[39m foboar...',
-  });
+  })).toMatchSnapshot();
 });
 
 test('ConsoleReporter.header', async () => {
   expect(await getConsoleBuff((r) => {
     r.header('foobar', {name: 'kpm', version: '0.0.0'});
-  })).toEqual({
-    stderr: '',
-    stdout: '\u001b[2K\u001b[1G\u001b[1mkpm foobar v0.0.0\u001b[22m',
-  });
+  })).toMatchSnapshot();
 });
 
 test('ConsoleReporter.footer', async () => {
   expect(await getConsoleBuff((r) => {
     r.footer(false);
-  })).toEqual({
-    stderr: '',
-    stdout: '\u001b[2K\u001b[1G✨  Done in 0.00s.',
-  });
+  })).toMatchSnapshot();
 
   expect(await getConsoleBuff((r) => {
     r.footer(true);
-  })).toEqual({
-    stderr: '',
-    stdout: '\u001b[2K\u001b[1G✨  Done in 0.00s. Peak memory usage 0.00MB.',
-  });
+  })).toMatchSnapshot();
 });
 
 test('ConsoleReporter.log', async () => {
   expect(await getConsoleBuff((r) => {
     r.log('foobar');
-  })).toEqual({
-    stderr: '',
-    stdout: '\u001b[2K\u001b[1Gfoobar',
-  });
+  })).toMatchSnapshot();
 });
 
 test('ConsoleReporter.success', async () => {
   expect(await getConsoleBuff((r) => {
     r.success('foobar');
-  })).toEqual({
-    stderr: '',
-    stdout: '\u001b[2K\u001b[1G\u001b[32msuccess\u001b[39m foobar',
-  });
+  })).toMatchSnapshot();
 });
 
 test('ConsoleReporter.error', async () => {
   expect(await getConsoleBuff((r) => {
     r.error('foobar');
-  })).toEqual({
-    stderr: '\u001b[2K\u001b[1G\u001b[31merror\u001b[39m foobar',
-    stdout: '',
-  });
+  })).toMatchSnapshot();
 });
 
 test('ConsoleReporter.info', async () => {
   expect(await getConsoleBuff((r) => {
     r.info('foobar');
-  })).toEqual({
-    stderr: '',
-    stdout: '\u001b[2K\u001b[1G\u001b[34minfo\u001b[39m foobar',
-  });
+  })).toMatchSnapshot();
 });
 
 test('ConsoleReporter.command', async () => {
   expect(await getConsoleBuff((r) => {
     r.command('foobar');
-  })).toEqual({
-    stderr: '',
-    stdout: '\u001b[2K\u001b[1G\u001b[90m$ foobar\u001b[39m',
-  });
+  })).toMatchSnapshot();
 });
 
 test('ConsoleReporter.warn', async () => {
   expect(await getConsoleBuff((r) => {
     r.warn('foobar');
-  })).toEqual({
-    stderr: '\u001b[2K\u001b[1G\u001b[33mwarning\u001b[39m foobar',
-    stdout: '',
-  });
+  })).toMatchSnapshot();
 });
 
 test('ConsoleReporter.activity', async () => {
@@ -111,10 +81,7 @@ test('ConsoleReporter.activity', async () => {
     let activity = r.activity();
     activity.tick('foo');
     activity.end();
-  })).toEqual({
-    stderr: '\u001b[2K\u001b[1G⠁ \u001b[2K\u001b[1G',
-    stdout: '',
-  });
+  })).toMatchSnapshot();
 });
 
 test('ConsoleReporter.select', async () => {
@@ -132,11 +99,7 @@ test('ConsoleReporter.select', async () => {
       value: 'bar',
     }]);
     expect(res, 'foo');
-  })).toEqual({
-    stderr: '',
-    stdout: '\u001b[2K\u001b[1G\u001b[34minfo\u001b[39m Ayo\n\u001b[2K\u001b[1G  \u001b[2m1)\u001b[22m ' +
-            'foo\n\u001b[2K\u001b[1G  \u001b[2m2)\u001b[22m bar\n\u001b[1G\u001b[0JSelect one?: \u001b[14G1',
-  });
+  })).toMatchSnapshot();
 });
 
 test('ConsoleReporter.progress', async () => {
@@ -145,28 +108,19 @@ test('ConsoleReporter.progress', async () => {
     tick();
     jest.runAllTimers();
     tick();
-  })).toEqual({
-    stderr: '\u001b[2K\u001b[1G░░ 0/2\u001b[2K\u001b[1G█░ 1/2\u001b[2K\u001b[1G',
-    stdout: '',
-  });
+  })).toMatchSnapshot();
 
   expect(await getConsoleBuff(async function (r): Promise<void> {
     let tick = r.progress(0);
     tick();
-  })).toEqual({
-    stderr: '',
-    stdout: '',
-  });
+  })).toMatchSnapshot();
 
   expect(await getConsoleBuff(async function (r): Promise<void> {
     r.isTTY = false;
     let tick = r.progress(2);
     tick();
     tick();
-  })).toEqual({
-    stderr: '',
-    stdout: '',
-  });
+  })).toMatchSnapshot();
 });
 
 test('ProgressBar', () => {

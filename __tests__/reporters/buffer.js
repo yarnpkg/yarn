@@ -17,83 +17,47 @@ let getBuff = build(BufferReporter, (data, reporter: any): Array<Object> => repo
 test('BufferReporter.finished', async () => {
   expect(await getBuff((r) => {
     r.footer(false);
-  })).toEqual([{
-    type: 'finished',
-    data: 0,
-    error: false,
-  }]);
+  })).toMatchSnapshot();
 });
 
 test('BufferReporter.step', async () => {
   expect(await getBuff((r) => {
     r.step(1, 5, 'foobar');
-  })).toEqual([{
-    type: 'step',
-    data: {
-      current: 1,
-      total: 5,
-      message: 'foobar',
-    },
-    error: false,
-  }]);
+  })).toMatchSnapshot();
 });
 
 test('BufferReporter.log', async () => {
   expect(await getBuff((r) => {
     r.log('foobar');
-  })).toEqual([{
-    type: 'log',
-    data: 'foobar',
-    error: false,
-  }]);
+  })).toMatchSnapshot();
 });
 
 test('BufferReporter.success', async () => {
   expect(await getBuff((r) => {
     r.success('foobar');
-  })).toEqual([{
-    type: 'success',
-    data: 'foobar',
-    error: false,
-  }]);
+  })).toMatchSnapshot();
 });
 
 test('BufferReporter.error', async () => {
   expect(await getBuff((r) => {
     r.error('foobar');
-  })).toEqual([{
-    type: 'error',
-    data: 'foobar',
-    error: true,
-  }]);
+  })).toMatchSnapshot();
 });
 
 test('BufferReporter.info', async () => {
   expect(await getBuff((r) => {
     r.info('foobar');
-  })).toEqual([{
-    type: 'info',
-    data: 'foobar',
-    error: false,
-  }]);
+  })).toMatchSnapshot();
 });
 
 test('BufferReporter.command', async () => {
   expect(await getBuff((r) => {
     r.command('foobar');
-  })).toEqual([{
-    type: 'command',
-    data: 'foobar',
-    error: false,
-  }]);
+  })).toMatchSnapshot();
 });
 
 test('BufferReporter.warn', async () => {
   expect(await getBuff((r) => {
     r.warn('foobar');
-  })).toEqual([{
-    type: 'warning',
-    data: 'foobar',
-    error: true,
-  }]);
+  })).toMatchSnapshot();
 });

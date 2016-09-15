@@ -1,0 +1,83 @@
+exports[`test BufferReporter.command 1`] = `
+Array [
+  Object {
+    "data": "foobar",
+    "error": false,
+    "type": "command"
+  }
+]
+`;
+
+exports[`test BufferReporter.error 1`] = `
+Array [
+  Object {
+    "data": "foobar",
+    "error": true,
+    "type": "error"
+  }
+]
+`;
+
+exports[`test BufferReporter.finished 1`] = `
+Array [
+  Object {
+    "data": 0,
+    "error": false,
+    "type": "finished"
+  }
+]
+`;
+
+exports[`test BufferReporter.info 1`] = `
+Array [
+  Object {
+    "data": "foobar",
+    "error": false,
+    "type": "info"
+  }
+]
+`;
+
+exports[`test BufferReporter.log 1`] = `
+Array [
+  Object {
+    "data": "foobar",
+    "error": false,
+    "type": "log"
+  }
+]
+`;
+
+exports[`test BufferReporter.step 1`] = `
+Array [
+  Object {
+    "data": Object {
+      "current": 1,
+      "message": "foobar",
+      "total": 5
+    },
+    "error": false,
+    "type": "step"
+  }
+]
+`;
+
+exports[`test BufferReporter.success 1`] = `
+Array [
+  Object {
+    "data": "foobar",
+    "error": false,
+    "type": "success"
+  }
+]
+`;
+
+exports[`test BufferReporter.warn 1`] = `
+Array [
+  Object {
+    "data": "foobar",
+    "error": true,
+    "type": "warning"
+  }
+]
+`;
