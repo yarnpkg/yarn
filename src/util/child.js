@@ -4,6 +4,7 @@
 import * as constants from '../constants.js';
 import BlockingQueue from './blocking-queue.js';
 import {MessageError, SpawnError} from '../errors.js';
+import {promisify} from './promise.js';
 
 const child = require('child_process');
 
@@ -11,6 +12,8 @@ export const queue = new BlockingQueue('child', constants.CHILD_CONCURRENCY);
 
 // TODO: this uid check is kinda whack
 let uid = 0;
+
+export const exec = promisify(child.exec);
 
 export function spawn(
   program: string,
