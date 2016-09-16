@@ -1,6 +1,6 @@
 <p align="center">
-  <a href="https://facebook.github.io/kpm">
-    <img alt="kpm" src="https://github.com/yarnpkg/yarn/blob/master/assets/logo.png?raw=true" width="546">
+  <a href="https://yarnpkg.io/">
+    <img alt="Yarn" src="https://github.com/yarnpkg/yarn/blob/master/assets/logo.png?raw=true" width="546">
   </a>
 </p>
 
@@ -16,7 +16,7 @@
 
 ---
 
-kpm is a package manager for the npm and bower registries with a few specific focuses.
+Yarn is a package manager for the npm and bower registries with a few specific focuses.
 
 **Determinism:** Based around a version lockfile which ensures that operations on the
 dependency graph can be easily transitioned. We check module directories and verify their
@@ -50,8 +50,8 @@ ensures little idle time and maximum resource utilization.
 ## Usage (while in development)
 
 ```sh
-$ git clone git@github.com:yarnpkg/yarn.git kpm
-$ cd kpm
+$ git clone git@github.com:yarnpkg/yarn.git yarn
+$ cd yarn
 $ npm install
 $ npm run build
 $ npm link
@@ -62,7 +62,7 @@ $ kpm install your-package
 
 ## Prior art
 
-kpm wouldn't exist if it wasn't for excellent prior art. Followed are projects which kpm has
+Yarn wouldn't exist if it wasn't for excellent prior art. Followed are projects which Yarn has
 been inspired by:
 
  - [Bundler](https://github.com/bundler/bundler)
