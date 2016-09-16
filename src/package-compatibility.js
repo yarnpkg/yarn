@@ -45,6 +45,43 @@ const ignore = [
   'teleport', // a module bundler used by some modules
 ];
 
+type Versions = {
+  [engineName: string]: ?string
+};
+
+export function testEngine(name: string, range: string, versions: Versions): boolean {
+  const actual = versions[name];
+  if (!actual) {
+    return false;
+  }
+
+  if (semver.satisfies(actual, range)) {
+    return true;
+  }
+
+  if (name === 'node' && semver.gt(actual, '1.0.0')) {
+    // WARNING: this is a massive hack and is super gross but necessary for compatibility
+    // some modules have the `engines.node` field set to a caret version below semver major v1
+    // eg. ^0.12.0. this is problematic as we enforce engines checks and node is now on version >=1
+    // to allow this pattern we transform the node version to fake ones in the minor range 10-13
+    const major = semver.major(actual);
+    const fakes = [
+      `0.10.${major}`,
+      `0.11.${major}`,
+      `0.12.${major}`,
+      `0.13.${major}`,
+    ];
+    for (const actualFake of fakes) {
+      if (semver.satisfies(actualFake, range)) {
+        return true;
+      }
+    }
+  }
+
+  // incompatible version
+  return false;
+}
+
 export default class PackageCompatibility {
   constructor(config: Config, resolver: PackageResolver) {
     this.reporter = config.reporter;
@@ -106,9 +143,8 @@ export default class PackageCompatibility {
           name = aliases[name];
         }
 
-        const actual = process.versions[name];
-        if (actual) {
-          if (!semver.satisfies(actual, range)) {
+        if (process.versions[name]) {
+          if (!testEngine(name, range, process.versions)) {
             pushError(this.reporter.lang('incompatibleEngine', name, range));
           }
         } else if (!_.includes(ignore, name)) {
