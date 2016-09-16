@@ -1,6 +1,6 @@
 <p align="center">
   <a href="https://facebook.github.io/kpm">
-    <img alt="kpm" src="https://github.com/facebook/fbkpm/blob/master/assets/logo.png?raw=true" width="546">
+    <img alt="kpm" src="https://github.com/yarnpkg/yarn/blob/master/assets/logo.png?raw=true" width="546">
   </a>
 </p>
 
@@ -9,9 +9,9 @@
 </p>
 
 <p align="center">
-  <a href="https://travis-ci.org/facebook/fbkpm"><img alt="Travis Status" src="https://travis-ci.com/facebook/fbkpm.svg?token=DxqWAqRqs3zWAF8EhBHy"></a>
-  <a href="https://circleci.com/gh/facebook/fbkpm"><img alt="Circle Status" src="https://circleci.com/gh/facebook/fbkpm.svg?style=svg&circle-token=5f0a78473b0f440afb218bf2b82323cc6b3cb43f"></a>
-  <!--<a href="https://ci.appveyor.com/project/facebook/fbkpm/branch/master"><img alt="Appveyor Status" src="https://ci.appveyor.com/api/projects/status/SECRET_KEY/branch/master?svg=true"></a>-->
+  <a href="https://travis-ci.org/yarnpkg/yarn"><img alt="Travis Status" src="https://travis-ci.com/yarnpkg/yarn.svg?token=DxqWAqRqs3zWAF8EhBHy"></a>
+  <a href="https://circleci.com/gh/yarnpkg/yarn"><img alt="Circle Status" src="https://circleci.com/gh/yarnpkg/yarn.svg?style=svg&circle-token=5f0a78473b0f440afb218bf2b82323cc6b3cb43f"></a>
+  <!--<a href="https://ci.appveyor.com/project/yarnpkg/yarn/branch/master"><img alt="Appveyor Status" src="https://ci.appveyor.com/api/projects/status/SECRET_KEY/branch/master?svg=true"></a>-->
 </p>
 
 ---
@@ -50,7 +50,7 @@ ensures little idle time and maximum resource utilization.
 ## Usage (while in development)
 
 ```sh
-$ git clone git@github.com:facebook/fbkpm.git kpm
+$ git clone git@github.com:yarnpkg/yarn.git kpm
 $ cd kpm
 $ npm install
 $ npm run build

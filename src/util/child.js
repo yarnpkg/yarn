@@ -5,7 +5,7 @@ import * as constants from '../constants.js';
 import BlockingQueue from './blocking-queue.js';
 import {MessageError, SpawnError} from '../errors.js';
 
-const child = require('child_process2');
+const child = require('child_process');
 
 export const queue = new BlockingQueue('child', constants.CHILD_CONCURRENCY);
 

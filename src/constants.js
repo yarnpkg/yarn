@@ -40,8 +40,8 @@ export const SINGLE_INSTANCE_FILENAME = '.kpm-single-instance';
 
 export const USER_AGENT = `kpm v${pkg.version}`;
 
-export const GITHUB_USER = 'facebook';
-export const GITHUB_REPO = 'fbkpm';
+export const GITHUB_USER = 'yarnpkg';
+export const GITHUB_REPO = 'yarn';
 export const SELF_UPDATE_DOWNLOAD_FOLDER = 'updates';
 
 export const ENV_PATH_KEY = getPathKey(process.platform, process.env);
