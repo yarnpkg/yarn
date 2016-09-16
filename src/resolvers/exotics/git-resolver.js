@@ -1,13 +1,4 @@
-/**
- * Copyright (c) 2016-present, Facebook, Inc.
- * All rights reserved.
- *
- * This source code is licensed under the BSD-style license found in the
- * LICENSE file in the root directory of this source tree. An additional grant
- * of patent rights can be found in the PATENTS file in the same directory.
- *
- * @flow
- */
+/* @flow */
 
 import type {Manifest} from '../../types.js';
 import type PackageRequest from '../../package-request.js';
@@ -79,7 +70,7 @@ export default class GitResolver extends ExoticResolver {
     // optimisations fail which the `forked` flag indicates so we don't get into an
     // infinite loop
     const parts = urlParse(url);
-    if (!forked && !parts.auth && parts.pathname) {
+    if (false && !forked && !parts.auth && parts.pathname) {
       // check if this git url uses any of the hostnames defined in our hosted git resolvers
       for (const name in hostedGitResolvers) {
         const Resolver = hostedGitResolvers[name];

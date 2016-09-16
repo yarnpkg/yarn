@@ -34,27 +34,6 @@ We actively welcome your pull requests.
 5. Make sure your code lints.
 6. If you haven't already, complete the Contributor License Agreement ("CLA").
 
-## Contributor License Agreement ("CLA")
-
-In order to accept your pull request, we need you to submit a CLA. You only need to do this
-once to work on any of Facebook's open source projects.
-
-Complete your CLA here: <https://code.facebook.com/cla>
-
-## Issues
-
-We use GitHub issues to track public bugs. Please ensure your description is clear and has
-sufficient instructions to be able to reproduce the issue.
-
-Facebook has a [bounty program](https://www.facebook.com/whitehat/) for the safe disclosure
-of security bugs. In those cases, please go through the process outlined on that page and
-do not file a public issue.
-
-## Coding Style
-
-Use the same coding style, spacing and naming scheme as existing code. When in doubt run
-`make lint`.
-
 ## License
 
 By contributing to fbkpm, you agree that your contributions will be licensed

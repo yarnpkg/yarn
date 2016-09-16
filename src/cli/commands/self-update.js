@@ -1,13 +1,4 @@
-/**
- * Copyright (c) 2016-present, Facebook, Inc.
- * All rights reserved.
- *
- * This source code is licensed under the BSD-style license found in the
- * LICENSE file in the root directory of this source tree. An additional grant
- * of patent rights can be found in the PATENTS file in the same directory.
- *
- * @flow
- */
+/* @flow */
 
 import type Config from '../../config.js';
 import {GITHUB_REPO, GITHUB_USER, SELF_UPDATE_DOWNLOAD_FOLDER, USER_AGENT} from '../../constants.js';
