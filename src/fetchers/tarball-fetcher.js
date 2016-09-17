@@ -121,8 +121,7 @@ export default class TarballFetcher extends BaseFetcher {
     return new Promise((resolve, reject) => {
       let {validateStream, extractor} = this.createExtractor(null, resolve, reject);
 
-      // flow gets confused with the pipe/on types chain
-      const cachedStream: Object = fs.createReadStream(localTarball);
+      const cachedStream = fs.createReadStream(localTarball);
 
       const decompressStream = createUnzip((stream) => {
         stream
