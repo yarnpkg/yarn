@@ -1,31 +1,39 @@
 /* @flow */
 
-const through = require('through2');
 const crypto = require('crypto');
+const stream = require('stream');
 
 export function hash(content: string, type: string = 'md5'): string {
   return crypto.createHash(type).update(content).digest('hex');
 }
 
-declare class HashStream extends stream$Readable {
-  getHash: () => string,
-  test: (sum: string) => boolean,
-}
-export type {HashStream};
+type HashOptions = duplexStreamOptions;
 
-export function hashStreamValidation(): HashStream {
-  const hash = crypto.createHash('sha1');
-  let updated = false;
+export class HashStream extends stream.Transform {
+  constructor(options?: HashOptions) {
+    super(options);
+    this._hash = crypto.createHash('sha1');
+    this._updated = false;
+  }
 
-  const validationStream = through(function(chunk, enc, done) {
-    updated = true;
-    hash.update(chunk);
-    done(null, chunk);
-  });
+  _hash: crypto$Hash;
+  _updated: boolean;
 
-  validationStream.getHash = (): string => hash.digest('hex');
+  _transform(
+    chunk: Buffer | string,
+    encoding: string,
+    callback: (error: ?Error, data?: Buffer | string) => void,
+  ) {
+    this._updated = true;
+    this._hash.update(chunk);
+    callback(null, chunk);
+  }
 
-  validationStream.test = (sum): boolean => updated && sum === validationStream.getHash();
+  getHash(): string {
+    return this._hash.digest('hex');
+  }
 
-  return validationStream;
+  test(sum: string): boolean {
+    return this._updated && sum === this.getHash();
+  }
 }
