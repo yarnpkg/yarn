@@ -8,7 +8,6 @@ import * as crypto from '../util/crypto.js';
 import BaseFetcher from './base-fetcher.js';
 import * as fsUtil from '../util/fs.js';
 
-const through = require('through2');
 const path = require('path');
 const tar = require('tar');
 const url = require('url');
@@ -136,22 +135,10 @@ export default class TarballFetcher extends BaseFetcher {
       process: (req, resolve, reject) => {
         // should we save this to the offline cache?
         const mirrorPath = this.getMirrorPath();
-        let mirrorTarballStream;
-        let overwriteResolved;
-        if (mirrorPath) {
-          overwriteResolved = this.getRelativeMirrorPath(mirrorPath);
-          mirrorTarballStream = fs.createWriteStream(mirrorPath);
-          mirrorTarballStream.on('error', reject);
-        }
-        let tarballStoreStream = fs.createWriteStream(path.join(this.dest, constants.TARBALL_FILENAME));
-        tarballStoreStream.on('error', reject);
-        const saver = through(function(chunk, enc, callback) {
-          if (mirrorTarballStream) {
-            mirrorTarballStream.write(chunk, enc);
-          }
-          tarballStoreStream.write(chunk, enc);
-          callback(null, chunk);
-        });
+        const tarballStorePath = path.join(this.dest, constants.TARBALL_FILENAME);
+        const overwriteResolved = mirrorPath
+          ? this.getRelativeMirrorPath(mirrorPath)
+          : null;
 
         //
         let {
@@ -160,12 +147,21 @@ export default class TarballFetcher extends BaseFetcher {
         } = this.createExtractor(overwriteResolved, resolve, reject);
 
         //
-        req
-          .pipe(validateStream)
-          .pipe(saver)
-          .on('error', reject)
+        req.pipe(validateStream);
+
+        validateStream
+          .pipe(fs.createWriteStream(tarballStorePath))
+          .on('error', reject);
+
+        validateStream
           .pipe(extractorStream)
           .on('error', reject);
+
+        if (mirrorPath) {
+          validateStream
+            .pipe(fs.createWriteStream(mirrorPath))
+            .on('error', reject);
+        }
       },
     });
   }
