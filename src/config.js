@@ -270,10 +270,9 @@ export default class Config {
    */
 
   readPackageMetadata(dir: string): Promise<PackageMetadata> {
-    const self = this;
-    return this.getCache(`metadata-${dir}`, async function (): Promise<PackageMetadata> {
+    return this.getCache(`metadata-${dir}`, async (): Promise<PackageMetadata> => {
       const metadata = await fs.readJson(path.join(dir, constants.METADATA_FILENAME));
-      const pkg = await self.readManifest(dir, metadata.registry);
+      const pkg = await this.readManifest(dir, metadata.registry);
 
       return {
         package: pkg,
