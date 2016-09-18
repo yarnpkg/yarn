@@ -47,7 +47,7 @@ export async function run(
     reporter.error(reporter.lang('commandNotSpecified'));
     reporter.info(`${reporter.lang('possibleCommands')}:`);
     reporter.list('possibleCommands', Object.keys(scripts).sort());
-    return Promise.reject();
+    throw new Error();
   }
 
   // get action
@@ -67,7 +67,6 @@ export async function run(
     for (const cmd of cmds) {
       await execCommand(config, cmd, config.cwd);
     }
-    return Promise.resolve();
   } else {
     let suggestion;
 

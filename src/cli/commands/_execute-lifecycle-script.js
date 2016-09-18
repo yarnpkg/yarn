@@ -25,11 +25,10 @@ export async function execCommand(config: Config, cmd: string, cwd: string): Pro
   try {
     reporter.command(cmd);
     await executeLifecycleScript(config, cwd, cmd);
-    return Promise.resolve();
   } catch (err) {
     if (err instanceof SpawnError) {
       reporter.error(reporter.lang('commandFailed', err.EXIT_CODE));
-      return Promise.reject();
+      throw new Error();
     } else {
       throw err;
     }

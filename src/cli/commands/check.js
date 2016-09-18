@@ -181,10 +181,8 @@ export async function run(
     if (errCount > 1) {
       reporter.info(reporter.lang('foundErrors', errCount));
     }
-
-    return Promise.reject();
+    throw new Error();
   } else {
     reporter.success(reporter.lang('folderInSync'));
-    return Promise.resolve();
   }
 }

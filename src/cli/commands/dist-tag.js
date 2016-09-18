@@ -73,7 +73,7 @@ export let {run, setFlags} = buildSubCommands('dist-tag', {
     if (result.ok) {
       return true;
     } else {
-      return Promise.reject();
+      throw new Error();
     }
   },
 
@@ -108,7 +108,7 @@ export let {run, setFlags} = buildSubCommands('dist-tag', {
     await revoke();
 
     if (result === false) {
-      return Promise.reject();
+      throw new Error();
     } else {
       return true;
     }

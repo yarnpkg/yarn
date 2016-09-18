@@ -560,7 +560,7 @@ export async function run(
     }
     reporter.error(reporter.lang('installCommandRenamed'));
     reporter.command(`kpm add ${exampleArgs.join(' ')}`);
-    return Promise.reject();
+    throw new Error();
   }
 
   // npm behaviour, seems kinda funky but yay compatibility
@@ -568,5 +568,4 @@ export async function run(
 
   const install = new Install(flags, config, reporter, lockfile);
   await install.init();
-  return Promise.resolve();
 }

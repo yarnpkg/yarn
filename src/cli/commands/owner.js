@@ -77,7 +77,7 @@ export async function mutate(
   await revoke();
 
   if (error) {
-    return Promise.reject();
+    throw new Error();
   } else {
     return true;
   }
@@ -183,7 +183,7 @@ export let {run, setFlags} = buildSubCommands('owner', {
     if (pkg) {
       return true;
     } else {
-      return Promise.reject();
+      throw new Error();
     }
   },
 }, [
