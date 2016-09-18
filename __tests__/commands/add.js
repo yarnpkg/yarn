@@ -555,3 +555,34 @@ parallelTest('downgrade scenario', (): Promise<void> => {
     });
   });
 });
+
+// https://github.com/yarnpkg/yarn/issues/318
+parallelTest('modules resolved multiple times should save to mirror correctly', (): Promise<void> => {
+  // the package.json in this fixture has 4 transitive dependants on module which that should resolve to
+  // which@^1.0.5, which@^1.1.1, which@^1.2.8, which@^1.2.9:
+  //   version "1.2.11"
+  //   resolved which-1.2.11.tgz#c8b2eeea6b8c1659fa7c1dd4fdaabe9533dc5e8b
+  return runAdd({}, [], 'no-mirror-remote-when-duplicates', async (config): Promise<void> => {
+    const mirrorPath = 'mirror-for-offline';
+
+    try {
+      // check that which module was downloaded to mirror
+      const mirror = await fs.walk(path.join(config.cwd, mirrorPath));
+      const whichModule = mirror.find((elem) => elem.relative.match(/which-1.*\.tgz/));
+      expect(whichModule).toBeDefined();
+
+      const lockFileWritten = await fs.readFile(path.join(config.cwd, 'kpm.lock'));
+      const lockFileLines = explodeLockfile(lockFileWritten);
+
+      // no entry in lockfile that resolves to https
+      const httpResolved = lockFileLines.find((elem) => elem.match(/resolved "https:\/\//));
+      expect(httpResolved).toBeUndefined();
+
+      // which dependency must be resolved to file in local mirror
+      const whichResolved = lockFileLines.find((elem) => elem.match(/  resolved which-1.*\.tgz#.*/));
+      expect(whichResolved).toBeDefined();
+    } finally {
+      await fs.unlink(path.join(config.cwd, mirrorPath));
+    }
+  });
+});
