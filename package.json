@@ -57,6 +57,7 @@
     "eslint-plugin-babel": "^3.3.0",
     "eslint-plugin-flow-vars": "^0.4.0",
     "eslint-plugin-flowtype": "^2.15.0",
+    "eslint-plugin-no-async-without-await": "^1.0.0",
     "eslint-plugin-react": "^5.2.2",
     "estraverse-fb": "^1.3.1",
     "flow-bin": "0.32.0",
@@ -92,7 +93,8 @@
       "jest": true
     },
     "plugins": [
-      "flowtype"
+      "flowtype",
+      "no-async-without-await"
     ],
     "rules": {
       "max-len": [
@@ -119,7 +121,8 @@
         {
           "excludeArrowFunctions": true
         }
-      ]
+      ],
+      "no-async-without-await/no-async-without-await": 2
     }
   },
   "jest": {
