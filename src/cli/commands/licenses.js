@@ -11,8 +11,8 @@ export function hasWrapper(flags: Object, args: Array<string>): boolean {
 }
 
 export let {setFlags, run} = buildSubCommands('licenses', {
-  async ls(): Promise<void> {
-    throw new Error('TODO');
+  ls(): Promise<void> {
+    return Promise.reject(new Error('TODO'));
   },
 
   async generateDisclaimer(

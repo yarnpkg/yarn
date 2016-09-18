@@ -160,22 +160,22 @@ export class Install {
    * TODO description
    */
 
-  async prepare(
+  prepare(
     patterns: Array<string>,
     requests: DependencyRequestPatterns,
     match: IntegrityMatch,
   ): Promise<InstallPrepared> {
     if (!this.flags.force && match.matches) {
       this.reporter.success(this.reporter.lang('upToDate'));
-      return {patterns, requests, skip: true};
+      return Promise.resolve({patterns, requests, skip: true});
     }
 
     if (!patterns.length && !match.expected) {
       this.reporter.success(this.reporter.lang('nothingToInstall'));
-      return {patterns, requests, skip: true};
+      return Promise.resolve({patterns, requests, skip: true});
     }
 
-    return {patterns, requests, skip: false};
+    return Promise.resolve({patterns, requests, skip: false});
   }
 
   /**

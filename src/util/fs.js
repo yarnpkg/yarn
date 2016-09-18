@@ -278,7 +278,7 @@ export async function copyBulk(
   });
 }
 
-async function _readFile(loc: string, encoding: string): Promise<any> {
+function _readFile(loc: string, encoding: string): Promise<any> {
   return new Promise((resolve, reject) => {
     fs.readFile(loc, encoding, function(err, content) {
       if (err) {
@@ -290,11 +290,11 @@ async function _readFile(loc: string, encoding: string): Promise<any> {
   });
 }
 
-export async function readFile(loc: string): Promise<string> {
+export function readFile(loc: string): Promise<string> {
   return _readFile(loc, 'utf8');
 }
 
-export async function readFileRaw(loc: string): Promise<Buffer> {
+export function readFileRaw(loc: string): Promise<Buffer> {
   return _readFile(loc, 'binary');
 }
 

@@ -99,10 +99,10 @@ export default class PackageLinker {
     }
   }
 
-  async getFlatHoistedTree(patterns: Array<string>): Promise<Array<[string, HoistManifest]>> {
+  getFlatHoistedTree(patterns: Array<string>): Promise<Array<[string, HoistManifest]>> {
     const hoister = new PackageHoister(this.config, this.resolver);
     hoister.seed(patterns);
-    return hoister.init();
+    return Promise.resolve(hoister.init());
   }
 
   async copyModules(patterns: Array<string>): Promise<void> {

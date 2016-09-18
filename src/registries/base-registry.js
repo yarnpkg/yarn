@@ -50,16 +50,18 @@ export default class BaseRegistry {
     this.token = token;
   }
 
-  async loadConfig(): Promise<void> {}
+  loadConfig(): Promise<void> {
+    return Promise.resolve();
+  }
 
   saveHomeConfig(config: Object): Promise<void> {
     return Promise.reject(new Error('unimplemented'));
   }
 
-  async request(pathname: string, opts?: RegistryRequestOptions = {}): Promise<Object | false> {
+  request(pathname: string, opts?: RegistryRequestOptions = {}): Promise<Object | false> {
     pathname;
     opts;
-    throw new Error('unimplemented');
+    return Promise.reject(new Error('unimplemented'));
   }
 
   async init(): Promise<void> {

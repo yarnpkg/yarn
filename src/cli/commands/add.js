@@ -30,7 +30,7 @@ export class Add extends Install {
    * TODO
    */
 
-  async prepare(patterns: Array<string>, requests: DependencyRequestPatterns): Promise<InstallPrepared> {
+  prepare(patterns: Array<string>, requests: DependencyRequestPatterns): Promise<InstallPrepared> {
     let requestsWithArgs = requests.slice();
 
     for (let pattern of this.args) {
@@ -42,11 +42,11 @@ export class Add extends Install {
       });
     }
 
-    return {
+    return Promise.resolve({
       patterns: patterns.concat(this.args),
       requests: requestsWithArgs,
       skip: false,
-    };
+    });
   }
 
   /**
@@ -64,7 +64,7 @@ export class Add extends Install {
    * Description
    */
 
-  async fetchRequestFromCwd(): Promise<InstallCwdRequest> {
+  fetchRequestFromCwd(): Promise<InstallCwdRequest> {
     return Install.prototype.fetchRequestFromCwd.call(this, this.args);
   }
 

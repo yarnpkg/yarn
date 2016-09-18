@@ -148,7 +148,7 @@ export default class TarballFetcher extends BaseFetcher {
     });
   }
 
-  async fetchFromExternal(): Promise<FetchedOverride> {
+  fetchFromExternal(): Promise<FetchedOverride> {
     let {reference: ref} = this;
 
     return this.config.requestManager.request({
@@ -195,7 +195,7 @@ export default class TarballFetcher extends BaseFetcher {
     });
   }
 
-  async _fetch(): Promise<FetchedOverride> {
+  _fetch(): Promise<FetchedOverride> {
     const parts = url.parse(this.reference);
     if (parts.protocol === null) {
       return this.fetchFromLocal(parts);

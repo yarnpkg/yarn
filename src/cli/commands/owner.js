@@ -84,7 +84,7 @@ export async function mutate(
 }
 
 export let {run, setFlags} = buildSubCommands('owner', {
-  async add(
+  add(
     config: Config,
     reporter: Reporter,
     flags: Object,
@@ -114,7 +114,7 @@ export let {run, setFlags} = buildSubCommands('owner', {
     );
   },
 
-  async rm(
+  rm(
     config: Config,
     reporter: Reporter,
     flags: Object,

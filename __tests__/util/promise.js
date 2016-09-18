@@ -55,15 +55,17 @@ test('promisifyObject', async function (): Promise<void> {
 test('queue', async function (): Promise<void> {
   let running = 0;
 
-  async function create(): Promise<void> {
+  function create(): Promise<void> {
     running++;
     jest.runAllTimers();
 
     if (running > 5)  {
-      throw new Error('Concurrency is broken');
+      return Promise.reject(new Error('Concurrency is broken'));
     }
 
     running--;
+
+    return Promise.resolve();
   }
 
   await promise.queue([], function() {

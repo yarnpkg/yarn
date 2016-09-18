@@ -27,15 +27,14 @@ export default class BaseFetcher {
   hash: ?string;
   dest: string;
 
-  async getResolvedFromCached(hash: string): Promise<?string> {
+  getResolvedFromCached(hash: string): Promise<?string> {
     // fetcher subclasses may use this to perform actions such as copying over a cached tarbal to the offline
     // mirror etc
-    hash;
-    return null;
+    return Promise.resolve();
   }
 
-  async _fetch(): Promise<FetchedOverride> {
-    throw new Error('Not implemented');
+  _fetch(): Promise<FetchedOverride> {
+    return Promise.reject(new Error('Not implemented'));
   }
 
   fetch(): Promise<FetchedMetadata> {

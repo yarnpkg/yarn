@@ -107,7 +107,7 @@ export default class Git {
    * back to `git clone`.
    */
 
-  async clone(dest: string): Promise<void> {
+  clone(dest: string): Promise<void> {
     if (this.supportsArchive) {
       return this._cloneViaRemoteArchive(dest);
     } else {
@@ -181,7 +181,7 @@ export default class Git {
    * Fetch the file by cloning the repo and reading it.
    */
 
-  async getFile(filename: string): Promise<string | false> {
+  getFile(filename: string): Promise<string | false> {
     if (this.supportsArchive) {
       return this._getFileFromArchive(filename);
     } else {

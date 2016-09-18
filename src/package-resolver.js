@@ -90,7 +90,7 @@ export default class PackageResolver {
    * TODO description
    */
 
-  async updateManifest(ref: PackageReference, newPkg: Manifest): Promise<void> {
+  updateManifest(ref: PackageReference, newPkg: Manifest): Promise<void> {
     // inherit fields
     const oldPkg = this.patterns[ref.patterns[0]];
     newPkg._reference = ref;
@@ -101,6 +101,8 @@ export default class PackageResolver {
     for (const pattern of ref.patterns) {
       this.patterns[pattern] = newPkg;
     }
+
+    return Promise.resolve();
   }
 
   /**
