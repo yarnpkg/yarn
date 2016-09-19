@@ -1,5 +1,8 @@
 [ignore]
+<PROJECT_ROOT>/coverage/.*
 <PROJECT_ROOT>/dist/.*
+<PROJECT_ROOT>/lib-legacy/.*
+<PROJECT_ROOT>/lib/.*
 <PROJECT_ROOT>/node_modules/babel.*
 <PROJECT_ROOT>/node_modules/y18n/test/.*
 <PROJECT_ROOT>/updates/.*
@@ -11,7 +14,6 @@
 [options]
 strip_root=true
 suppress_comment= \\(.\\|\n\\)*\\$FlowFixMe
-esproposal.class_static_fields=enable
 
 [version]
 0.32.0
