@@ -26,8 +26,8 @@ integrity to ensure `kpm install` always produces the same file structure.
 whether lifecycle scripts are executed for packages and package hashes are stored in the
 lockfile to ensure you get the same package each time.
 
-**Performance:** We're always performing operations such as package resolving and fetching. This
-ensures little idle time and maximum resource utilization.
+**Performance:** We're always performing operations such as package resolving and fetching in
+parallel. This ensures little idle time and maximum resource utilization.
 
 ## Features
 
