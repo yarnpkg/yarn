@@ -1,3 +1,0 @@
-# `why`
-
-## `kpm why <query>`

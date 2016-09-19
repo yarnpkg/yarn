@@ -1,3 +1,0 @@
-# `upgrade`
-
-## `kpm upgrade`

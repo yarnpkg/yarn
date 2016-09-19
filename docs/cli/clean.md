@@ -1,3 +1,0 @@
-# `clean`
-
-## `kpm clean`
