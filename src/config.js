@@ -269,7 +269,7 @@ export default class Config {
    * Read package metadata and normalised package info.
    */
 
-  async readPackageMetadata(dir: string): Promise<PackageMetadata> {
+  readPackageMetadata(dir: string): Promise<PackageMetadata> {
     const self = this;
     return this.getCache(`metadata-${dir}`, async function (): Promise<PackageMetadata> {
       const metadata = await fs.readJson(path.join(dir, constants.METADATA_FILENAME));
@@ -288,7 +288,7 @@ export default class Config {
    * Read normalised package info.
    */
 
-  async readManifest(dir: string, priorityRegistry?: RegistryNames, isRoot?: boolean = false): Promise<Manifest> {
+  readManifest(dir: string, priorityRegistry?: RegistryNames, isRoot?: boolean = false): Promise<Manifest> {
     return this.getCache(`manifest-${dir}`, async (): Promise<Manifest> => {
       const metadataLoc = path.join(dir, constants.METADATA_FILENAME);
       if (!priorityRegistry && await fs.exists(metadataLoc)) {
@@ -321,7 +321,7 @@ export default class Config {
    * Read the root manifest.
    */
 
-  async readRootManifest(): Promise<Manifest> {
+  readRootManifest(): Promise<Manifest> {
     return this.readManifest(this.cwd, 'npm', true);
   }
 

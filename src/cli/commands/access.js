@@ -3,31 +3,31 @@
 import buildSubCommands from './_build-sub-commands.js';
 
 export let {run, setFlags} = buildSubCommands('access', {
-  async public(): Promise<void> {
-    throw new Error('TODO');
+  public(): Promise<void> {
+    return Promise.reject(new Error('TODO'));
   },
 
-  async restricted(): Promise<void> {
-    throw new Error('TODO');
+  restricted(): Promise<void> {
+    return Promise.reject(new Error('TODO'));
   },
 
-  async grant(): Promise<void> {
-    throw new Error('TODO');
+  grant(): Promise<void> {
+    return Promise.reject(new Error('TODO'));
   },
 
-  async revoke(): Promise<void> {
-    throw new Error('TODO');
+  revoke(): Promise<void> {
+    return Promise.reject(new Error('TODO'));
   },
 
-  async lsPackages(): Promise<void> {
-    throw new Error('TODO');
+  lsPackages(): Promise<void> {
+    return Promise.reject(new Error('TODO'));
   },
 
-  async lsCollaborators(): Promise<void> {
-    throw new Error('TODO');
+  lsCollaborators(): Promise<void> {
+    return Promise.reject(new Error('TODO'));
   },
 
-  async edit(): Promise<void> {
-    throw new Error('TODO');
+  edit(): Promise<void> {
+    return Promise.reject(new Error('TODO'));
   },
 });

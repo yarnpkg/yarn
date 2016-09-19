@@ -18,7 +18,7 @@ export default class PackageConstraintResolver {
   reporter: Reporter;
   config: Config;
 
-  async reduce(versions: Array<string>, range: string): Promise<?string> {
-    return semver.maxSatisfying(versions, range);
+  reduce(versions: Array<string>, range: string): Promise<?string> {
+    return Promise.resolve(semver.maxSatisfying(versions, range));
   }
 }

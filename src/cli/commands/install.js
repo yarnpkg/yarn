@@ -160,22 +160,22 @@ export class Install {
    * TODO description
    */
 
-  async prepare(
+  prepare(
     patterns: Array<string>,
     requests: DependencyRequestPatterns,
     match: IntegrityMatch,
   ): Promise<InstallPrepared> {
     if (!this.flags.force && match.matches) {
       this.reporter.success(this.reporter.lang('upToDate'));
-      return {patterns, requests, skip: true};
+      return Promise.resolve({patterns, requests, skip: true});
     }
 
     if (!patterns.length && !match.expected) {
       this.reporter.success(this.reporter.lang('nothingToInstall'));
-      return {patterns, requests, skip: true};
+      return Promise.resolve({patterns, requests, skip: true});
     }
 
-    return {patterns, requests, skip: false};
+    return Promise.resolve({patterns, requests, skip: false});
   }
 
   /**
@@ -560,7 +560,7 @@ export async function run(
     }
     reporter.error(reporter.lang('installCommandRenamed'));
     reporter.command(`kpm add ${exampleArgs.join(' ')}`);
-    return Promise.reject();
+    throw new Error();
   }
 
   // npm behaviour, seems kinda funky but yay compatibility
@@ -568,5 +568,4 @@ export async function run(
 
   const install = new Install(flags, config, reporter, lockfile);
   await install.init();
-  return Promise.resolve();
 }

@@ -35,7 +35,7 @@ afterAll(async (done) => {
 });
 
 let queueCounter = 0;
-async function run(checks: (reporter: reporters.Reporter, config: Config) => Promise<void>): Promise<void> {
+function run(checks: (reporter: reporters.Reporter, config: Config) => Promise<void>): Promise<void> {
   return queue.push(`${queueCounter++}`, async () => {
     let out = '';
     let stdout = new stream.Writable({
@@ -59,7 +59,7 @@ async function run(checks: (reporter: reporters.Reporter, config: Config) => Pro
 }
 
 // TODO enable tests when kpm becomes OSS
-xit('Self-update should download a release and symlink it as "current"', async (): Promise<void> => {
+xit('Self-update should download a release and symlink it as "current"', (): Promise<void> => {
   return run(async (reporter, config) => {
     await selfUpdate(config, reporter, {}, ['v0.11.0']);
     expect(await fs.exists(path.resolve(updatesFolder, 'current')));
@@ -72,7 +72,7 @@ xit('Self-update should download a release and symlink it as "current"', async (
 });
 
 
-xit('Self-update should work from self-updated location', async (): Promise<void> => {
+xit('Self-update should work from self-updated location', (): Promise<void> => {
   return run(async (reporter, config) => {
     // mock an existing self-update
     await child.exec('make build');

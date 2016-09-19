@@ -8,7 +8,7 @@ import GitResolver from '../exotics/git-resolver.js';
 export default class BowerResolver extends RegistryResolver {
   static registry = 'bower';
 
-  async resolveRequest(): Promise<false | {
+  resolveRequest(): Promise<false | {
     url: string
   }> {
     return this.config.requestManager.request({

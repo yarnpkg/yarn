@@ -6,8 +6,8 @@ import buildSubCommands from './_build-sub-commands.js';
 import * as fs from '../../util/fs.js';
 
 export let {run, setFlags} = buildSubCommands('cache', {
-  async ls(): Promise<void> {
-    throw new Error('TODO');
+  ls(): Promise<void> {
+    return Promise.reject(new Error('TODO'));
   },
 
   async clear(

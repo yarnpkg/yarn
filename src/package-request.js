@@ -176,7 +176,7 @@ export default class PackageRequest {
    * Construct an exotic resolver instance with the input `ExoticResolver` and `range`.
    */
 
-  async findExoticVersionInfo(ExoticResolver: Function, range: string): Promise<Manifest> {
+  findExoticVersionInfo(ExoticResolver: Function, range: string): Promise<Manifest> {
     const resolver = new ExoticResolver(this, range);
     return resolver.resolve();
   }

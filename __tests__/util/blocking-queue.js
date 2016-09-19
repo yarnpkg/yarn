@@ -8,15 +8,17 @@ test('max concurrency', async function (): Promise<void> {
   let running = 0;
 
   function create(): Promise<void> {
-    return queue.push(++i + '', async function (): Promise<void> {
+    return queue.push(++i + '', () => {
       running++;
       jest.runAllTimers();
 
       if (running > 5)  {
-        throw new Error('Concurrency is broken');
+        return Promise.reject(new Error('Concurrency is broken'));
       }
 
       running--;
+
+      return Promise.resolve();
     });
   }
 

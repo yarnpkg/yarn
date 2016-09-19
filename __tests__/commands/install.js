@@ -18,7 +18,7 @@ let path = require('path');
 
 let fixturesLoc = path.join(__dirname, '..', 'fixtures', 'install');
 
-parallelTest('integrity hash respects flat and production flags', async () => {
+parallelTest('integrity hash respects flat and production flags', () => {
   let cwd = path.join(fixturesLoc, 'noop');
   let reporter = new reporters.NoopReporter();
   let config = new Config(reporter, {cwd});
@@ -450,7 +450,7 @@ parallelTest('uninstall should remove subdependencies', (): Promise<void> => {
   });
 });
 
-parallelTest('check should verify that top level dependencies are installed correctly', async (): Promise<void> => {
+parallelTest('check should verify that top level dependencies are installed correctly', (): Promise<void> => {
   let fixture = 'check-top-correct';
 
   return runInstall({}, fixture, async (config, reporter) => {
@@ -474,7 +474,7 @@ parallelTest('check should verify that top level dependencies are installed corr
   });
 });
 
-parallelTest('install should run install scripts in the order of dependencies', async (): Promise<void> => {
+parallelTest('install should run install scripts in the order of dependencies', (): Promise<void> => {
   let fixture = 'scripts-order';
 
   return runInstall({}, fixture, async (config, reporter) => {
@@ -515,7 +515,7 @@ async (): Promise<void> => {
   });
 });
 
-parallelTest('install cache symlinks properly', async (): Promise<void> => {
+parallelTest('install cache symlinks properly', (): Promise<void> => {
   let fixture = 'cache-symlinks';
 
   return runInstall({}, fixture, async (config, reporter) => {

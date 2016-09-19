@@ -15,7 +15,7 @@ let path = require('path');
 
 let fixturesLoc = path.join(__dirname, '..', 'fixtures', 'install');
 
-export async function runInstall(
+export function runInstall(
   flags: Object,
   name: string,
   checkInstalled?: ?(config: Config, reporter: Reporter) => ?Promise<void>,

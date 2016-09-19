@@ -20,7 +20,7 @@ let path = require('path');
 
 let fixturesLoc = path.join(__dirname, '..', 'fixtures', 'add');
 
-async function runAdd(
+function runAdd(
   flags: Object,
   args: Array<string>,
   name: string,
@@ -218,7 +218,7 @@ async (): Promise<void> => {
 });
 
 parallelTest('install --initMirror should add init mirror deps from package.json',
-async (): Promise<void> => {
+(): Promise<void> => {
   let mirrorPath = 'mirror-for-offline';
   let fixture = 'install-init-mirror';
 

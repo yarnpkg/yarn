@@ -44,7 +44,7 @@ export default class NpmRegistry extends Registry {
     return name.replace('/', '%2f');
   }
 
-  async request(pathname: string, opts?: RegistryRequestOptions = {}): Promise<Object | false> {
+  request(pathname: string, opts?: RegistryRequestOptions = {}): Promise<Object | false> {
     const registry = removeSuffix(this.config.registry, '/');
 
     let headers = {};

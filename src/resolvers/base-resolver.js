@@ -26,7 +26,7 @@ export default class BaseResolver {
   config: Config;
   registry: RegistryNames;
 
-  async fork(
+  fork(
     Resolver: Function,
     resolveArg: any,
     ...args: Array<string>

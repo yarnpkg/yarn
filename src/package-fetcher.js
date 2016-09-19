@@ -65,16 +65,16 @@ export default class PackageFetcher {
   }
 
   async maybeFetch(ref: PackageReference): Promise<?FetchedMetadata> {
-    let promise = this.fetch(ref);
-
-    if (ref.optional) {
-      // swallow the error
-      promise = promise.catch((err) => {
+    try {
+      return await this.fetch(ref);
+    } catch (err) {
+      if (ref.optional) {
         this.reporter.error(err.message);
-      });
+        return null;
+      } else {
+        throw err;
+      }
     }
-
-    return promise;
   }
 
   async init(): Promise<void> {

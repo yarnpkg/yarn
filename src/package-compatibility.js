@@ -158,10 +158,11 @@ export default class PackageCompatibility {
     }
   }
 
-  async init(): Promise<void> {
+  init(): Promise<void> {
     const infos = this.resolver.getManifests();
     for (const info of infos) {
       this.check(info);
     }
+    return Promise.resolve();
   }
 }
