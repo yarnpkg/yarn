@@ -94,7 +94,7 @@ export default class PackageResolver {
     // inherit fields
     const oldPkg = this.patterns[ref.patterns[0]];
     newPkg._reference = ref;
-    newPkg._remote = oldPkg._remote;
+    newPkg._remote = ref.remote;
     newPkg.name = oldPkg.name;
 
     // update patterns
@@ -229,8 +229,7 @@ export default class PackageResolver {
   getPackageReferences(): Array<PackageReference> {
     let refs = [];
 
-    for (const pattern in this.patterns) {
-      let manifest = this.patterns[pattern];
+    for (const manifest of this.getManifests()) {
       let ref = manifest._reference;
       if (ref) {
         refs.push(ref);
