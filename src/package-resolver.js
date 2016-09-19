@@ -420,12 +420,8 @@ export default class PackageResolver {
     //
     this.seedPatterns = deps.map((dep): string => dep.pattern);
 
-    // build up promises
-    const promises = [];
-    for (let req of deps) {
-      promises.push(this.find(req));
-    }
-    await Promise.all(promises);
+    //
+    await Promise.all(deps.map((req) => this.find(req)));
 
     activity.end();
     this.activity = null;
