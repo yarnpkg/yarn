@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "node-notifier": "4.6.1",
+    "jest-cli": "15.1.1",
+    "cross-spawn": "3.0.1",
+    "cross-spawn-async": "2.2.4"
+  }
+}
