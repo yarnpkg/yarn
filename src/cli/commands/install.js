@@ -563,9 +563,9 @@ export async function run(
     throw new Error();
   }
 
-  // npm behaviour, seems kinda funky but yay compatibility
-  await executeLifecycleScript(config, 'prepublish');
-
   const install = new Install(flags, config, reporter, lockfile);
   await install.init();
+
+  // npm behaviour, seems kinda funky but yay compatibility
+  await executeLifecycleScript(config, 'prepublish');
 }
