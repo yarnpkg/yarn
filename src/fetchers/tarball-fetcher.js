@@ -2,42 +2,16 @@
 
 import {SecurityError, MessageError} from '../errors.js';
 import type {FetchedOverride} from '../types.js';
-import type {HashStream} from '../util/crypto.js';
 import * as constants from '../constants.js';
+import * as compress from '../util/compress.js';
 import * as crypto from '../util/crypto.js';
 import BaseFetcher from './base-fetcher.js';
 import * as fsUtil from '../util/fs.js';
 
-const through = require('through2');
-const zlib = require('zlib');
 const path = require('path');
 const tar = require('tar');
 const url = require('url');
 const fs = require('fs');
-
-function hasGzipHeader(chunk: Buffer): boolean {
-  return chunk[0] === 0x1F && chunk[1] === 0x8B && chunk[2] === 0x08;
-}
-
-function createUnzip(factory): any {
-  let readHeader = false;
-  let isGzip = false;
-
-  let stream = through(function(chunk, enc, callback) {
-    if (!readHeader) {
-      readHeader = true;
-      isGzip = hasGzipHeader(chunk);
-      if (isGzip) {
-        factory(stream.pipe(zlib.createUnzip()));
-      } else {
-        factory(stream);
-      }
-    }
-
-    callback(null, chunk);
-  });
-  return stream;
-}
 
 export default class TarballFetcher extends BaseFetcher {
   async getResolvedFromCached(hash: string): Promise<?string> {
@@ -72,13 +46,20 @@ export default class TarballFetcher extends BaseFetcher {
     return path.relative(this.config.getOfflineMirrorPath(), mirrorPath);
   }
 
-  createExtractor(mirrorPath: ?string, resolve: Function, reject: Function): {
-    validateStream: HashStream,
-    extractor: stream$Readable,
+  createExtractor(
+    mirrorPath: ?string,
+    resolve: (fetched: FetchedOverride) => void,
+    reject: (error: any) => void,
+  ): {
+    validateStream: crypto.HashStream,
+    extractorStream: compress.UnpackStream,
   } {
-    const validateStream = crypto.hashStreamValidation();
+    const validateStream = new crypto.HashStream();
+    const extractorStream = new compress.UnpackStream();
+    const untarStream = tar.Extract({path: this.dest, strip: 1});
 
-    const extractor = tar.Extract({path: this.dest, strip: 1})
+    extractorStream
+      .pipe(untarStream)
       .on('error', reject)
       .on('end', () => {
         const expectHash = this.hash;
@@ -95,7 +76,7 @@ export default class TarballFetcher extends BaseFetcher {
         }
       });
 
-    return {validateStream, extractor};
+    return {validateStream, extractorStream};
   }
 
   async fetchFromLocal(parts: Object): Promise<FetchedOverride> {
@@ -120,20 +101,13 @@ export default class TarballFetcher extends BaseFetcher {
     }
 
     return new Promise((resolve, reject) => {
-      let {validateStream, extractor} = this.createExtractor(null, resolve, reject);
+      let {validateStream, extractorStream} = this.createExtractor(null, resolve, reject);
 
-      // flow gets confused with the pipe/on types chain
-      const cachedStream: Object = fs.createReadStream(localTarball);
-
-      const decompressStream = createUnzip((stream) => {
-        stream
-          .pipe(extractor)
-          .on('error', reject);
-      });
+      const cachedStream = fs.createReadStream(localTarball);
 
       cachedStream
         .pipe(validateStream)
-        .pipe(decompressStream)
+        .pipe(extractorStream)
         .on('error', function(err) {
           let msg = `${err.message}. `;
           if (isOfflineTarball) {
@@ -161,36 +135,33 @@ export default class TarballFetcher extends BaseFetcher {
       process: (req, resolve, reject) => {
         // should we save this to the offline cache?
         const mirrorPath = this.getMirrorPath();
-        let mirrorTarballStream;
-        let overwriteResolved;
+        const tarballStorePath = path.join(this.dest, constants.TARBALL_FILENAME);
+        const overwriteResolved = mirrorPath
+          ? this.getRelativeMirrorPath(mirrorPath)
+          : null;
+
+        //
+        let {
+          validateStream,
+          extractorStream,
+        } = this.createExtractor(overwriteResolved, resolve, reject);
+
+        //
+        req.pipe(validateStream);
+
+        validateStream
+          .pipe(fs.createWriteStream(tarballStorePath))
+          .on('error', reject);
+
+        validateStream
+          .pipe(extractorStream)
+          .on('error', reject);
+
         if (mirrorPath) {
-          overwriteResolved = this.getRelativeMirrorPath(mirrorPath);
-          mirrorTarballStream = fs.createWriteStream(mirrorPath);
-          mirrorTarballStream.on('error', reject);
+          validateStream
+            .pipe(fs.createWriteStream(mirrorPath))
+            .on('error', reject);
         }
-        let tarballStoreStream = fs.createWriteStream(path.join(this.dest, constants.TARBALL_FILENAME));
-        tarballStoreStream.on('error', reject);
-        const saver = through(function(chunk, enc, callback) {
-          if (mirrorTarballStream) {
-            mirrorTarballStream.write(chunk, enc);
-          }
-          tarballStoreStream.write(chunk, enc);
-          callback(null, chunk);
-        });
-
-        //
-        let {validateStream, extractor} = this.createExtractor(overwriteResolved, resolve, reject);
-
-        //
-        req
-          .pipe(validateStream)
-          .pipe(saver)
-          .on('error', reject)
-          .pipe(createUnzip((stream) => {
-            stream
-              .pipe(extractor)
-              .on('error', reject);
-          }));
       },
     });
   }

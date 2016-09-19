@@ -1,7 +1,7 @@
 "use strict";
 
 var plumber = require("gulp-plumber");
-var through = require("through2");
+var stream  = require("stream");
 var chalk   = require("chalk");
 var newer   = require("gulp-newer");
 var babel   = require("gulp-babel");
@@ -21,10 +21,9 @@ function build(lib, opts) {
       }
     }))
     .pipe(newer(lib))
-    .pipe(through.obj(function (file, enc, callback) {
+    .pipe(new stream.PassThrough({objectMode: true}).on('data', function (file) {
       const dest = path.join(file.cwd, lib, file.relative);
       gutil.log("Compiling", "'" + chalk.cyan(file.path) + "' to '" + chalk.cyan(dest) + "'...");
-      callback(null, file);
     }))
     .pipe(babel(opts))
     .pipe(gulp.dest(lib));
