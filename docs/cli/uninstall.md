@@ -1,3 +1,0 @@
-# `uninstall`
-
-## `kpm uninstall <package...>`
