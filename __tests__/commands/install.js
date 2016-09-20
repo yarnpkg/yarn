@@ -45,6 +45,29 @@ parallelTest('flat arg is inherited from root manifest', (): Promise<void> => {
   });
 });
 
+
+parallelTest("doesn't write new lockfile if existing one satisfied", (): Promise<void> => {
+  return runInstall({}, 'install-dont-write-lockfile-if-satisfied', async (config): Promise<void> => {
+    const lockfile = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
+    assert(lockfile.indexOf('foobar') >= 0);
+  });
+});
+
+parallelTest("writes new lockfile if existing one isn't satisfied", async (): Promise<void> => {
+  let fixture = 'install-write-lockfile-if-not-satisfied';
+  let cwd = path.join(fixturesLoc, fixture);
+  await fs.copy(path.join(cwd, 'yarn.lock.before'), path.join(cwd, 'yarn.lock'));
+
+  try {
+    await runInstall({}, fixture, async (config): Promise<void> => {
+      const lockfile = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
+      assert(lockfile.indexOf('foobar') === -1);
+    });
+  } finally {
+    await fs.unlink(path.join(cwd, 'yarn.lock'));
+  }
+});
+
 parallelTest('root install from shrinkwrap', (): Promise<void> => {
   return runInstall({}, 'root-install-with-lockfile');
 });
