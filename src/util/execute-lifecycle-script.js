@@ -59,7 +59,7 @@ export default async function (
     conf.windowsVerbatimArguments = true;
   }
 
-  let stdout = await child.spawn(sh, [shFlag, cmd], {cwd, env, stdio}, (data) => {
+  let stdout = await child.spawn(sh, [shFlag, cmd], {cwd, env, stdio, ...conf}, (data) => {
     if (spinner) {
       let line = data.toString() // turn buffer into string
         .trim() // trim whitespace
