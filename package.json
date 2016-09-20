@@ -72,6 +72,7 @@
     "unexpected": "^10.8.1"
   },
   "bin": {
+    "kpm": "./bin/yarn.js",
     "yarn": "./bin/yarn.js"
   },
   "scripts": {
