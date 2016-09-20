@@ -186,31 +186,31 @@ export default class Config {
    * Second time the same package needs to be installed it will be loaded from there
    */
 
-  getOfflineMirrorPath(tarUrl: ?string): string {
+  getOfflineMirrorPath(tarUrl: ?string): ?string {
     let registry = this.registries.npm;
-    if (!registry) {
-      return '';
+    if (registry == null) {
+      return null;
     }
 
     //
     const mirrorPath = registry.config['yarn-offline-mirror'];
-    if (!mirrorPath) {
-      return '';
+    if (mirrorPath == null) {
+      return null;
     }
 
     //
-    if (!tarUrl) {
+    if (tarUrl == null) {
       return mirrorPath;
     }
 
     //
-    const parsed = url.parse(tarUrl);
-    if (!parsed || !parsed.pathname) {
+    const {pathname} = url.parse(tarUrl);
+    if (pathname == null) {
       return mirrorPath;
     }
 
     //
-    return path.join(mirrorPath, path.basename(parsed.pathname));
+    return path.join(mirrorPath, path.basename(pathname));
   }
 
   /**
