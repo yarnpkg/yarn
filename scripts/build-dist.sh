@@ -1,5 +1,8 @@
 #!/bin/sh
 
+set -ex
+
+npm run build
 npm pack
 rm -rf dist
 mkdir dist

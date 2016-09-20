@@ -1,7 +1,6 @@
 #!/bin/bash
 
 set -ex
-set -o pipefail
 
 npm version minor
 VERSION=$(node -p -e "require('./package.json').version")
