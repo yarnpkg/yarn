@@ -8,6 +8,7 @@ import * as crypto from '../util/crypto.js';
 import BaseFetcher from './base-fetcher.js';
 import * as fsUtil from '../util/fs.js';
 
+const invariant = require('invariant');
 const path = require('path');
 const tar = require('tar');
 const url = require('url');
@@ -16,7 +17,7 @@ const fs = require('fs');
 export default class TarballFetcher extends BaseFetcher {
   async getResolvedFromCached(hash: string): Promise<?string> {
     let mirrorPath = this.getMirrorPath();
-    if (!mirrorPath) {
+    if (mirrorPath == null) {
       // no mirror
       return null;
     }
@@ -35,15 +36,22 @@ export default class TarballFetcher extends BaseFetcher {
     // copy the file over
     await fsUtil.copy(tarballLoc, mirrorPath);
 
-    return `${this.getRelativeMirrorPath(mirrorPath)}#${hash}`;
+    const relativeMirrorPath = this.getRelativeMirrorPath(mirrorPath);
+    invariant(relativeMirrorPath != null, 'Missing offline mirror path');
+
+    return `${relativeMirrorPath}#${hash}`;
   }
 
   getMirrorPath(): ?string {
     return this.config.getOfflineMirrorPath(this.reference);
   }
 
-  getRelativeMirrorPath(mirrorPath: string): string {
-    return path.relative(this.config.getOfflineMirrorPath(), mirrorPath);
+  getRelativeMirrorPath(mirrorPath: string): ?string {
+    const offlineMirrorPath = this.config.getOfflineMirrorPath();
+    if (offlineMirrorPath == null) {
+      return null;
+    }
+    return path.relative(offlineMirrorPath, mirrorPath);
   }
 
   createExtractor(
@@ -79,20 +87,21 @@ export default class TarballFetcher extends BaseFetcher {
     return {validateStream, extractorStream};
   }
 
-  async fetchFromLocal(parts: Object): Promise<FetchedOverride> {
+  async fetchFromLocal(pathname: ?string): Promise<FetchedOverride> {
     let {reference: ref, config} = this;
 
     // path to the local tarball
     let localTarball;
     let isOfflineTarball = false;
 
-    const relativeFileLoc = parts.pathname && path.join(config.cwd, parts.pathname);
+    const relativeFileLoc = pathname ? path.join(config.cwd, pathname) : null;
     if (relativeFileLoc && await fsUtil.exists(relativeFileLoc)) {
       // this is a reference to a file relative to the cwd
       localTarball = relativeFileLoc;
     } else {
       // generate a offline cache location
-      localTarball = path.resolve(config.getOfflineMirrorPath(), ref);
+      const offlineMirrorPath = config.getOfflineMirrorPath() || '';
+      localTarball = path.resolve(offlineMirrorPath, ref);
       isOfflineTarball = true;
     }
 
@@ -167,9 +176,9 @@ export default class TarballFetcher extends BaseFetcher {
   }
 
   _fetch(): Promise<FetchedOverride> {
-    const parts = url.parse(this.reference);
-    if (parts.protocol === null) {
-      return this.fetchFromLocal(parts);
+    const {protocol, pathname} = url.parse(this.reference);
+    if (protocol == null) {
+      return this.fetchFromLocal(pathname);
     } else {
       return this.fetchFromExternal();
     }

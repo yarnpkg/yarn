@@ -525,7 +525,7 @@ export class Install {
     }
 
     let mirror = this.config.getOfflineMirrorPath();
-    if (mirror) {
+    if (mirror != null) {
       opts.push(`mirror:${mirror}`);
     }
 
