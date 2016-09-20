@@ -73,9 +73,7 @@
   },
   "bin": {
     "kpm": "./bin/yarn.js",
-    "yarn": "./bin/yarn.js",
-    "🐈": "./bin/yarn.js",
-    "🐱": "./bin/yarn.js"
+    "yarn": "./bin/yarn.js"
   },
   "scripts": {
     "test": "npm run lint && npm run test-only",
