@@ -253,7 +253,7 @@ export class Install {
     }
 
     // fin!
-    await this.saveLockfileAndIntegrity();
+    await this.saveLockfileAndIntegrity(rawPatterns);
     this.config.requestManager.clearCache();
     return patterns;
   }
@@ -395,7 +395,7 @@ export class Install {
    * Save updated integrity and lockfiles.
    */
 
-  async saveLockfileAndIntegrity(): Promise<void> {
+  async saveLockfileAndIntegrity(patterns: Array<string>): Promise<void> {
     // stringify current lockfile
     const lockSource = lockStringify(this.lockfile.getLockfile(this.resolver.patterns)) + '\n';
 
@@ -404,6 +404,26 @@ export class Install {
 
     // --no-lockfile flag
     if (this.flags.lockfile === false) {
+      return;
+    }
+
+    // check if the loaded lockfile has all the included patterns
+    let inSync = true;
+    for (let pattern of patterns) {
+      if (!this.lockfile.getLocked(pattern)) {
+        inSync = false;
+        break;
+      }
+    }
+    // check if loaded lockfile has patterns we don't have, eg. uninstall
+    for (let pattern in this.lockfile.cache) {
+      if (patterns.indexOf(pattern) === -1) {
+        inSync = false;
+        break;
+      }
+    }
+    // don't write new lockfile if in sync
+    if (inSync) {
       return;
     }
 
@@ -518,7 +538,7 @@ export function setFlags(commander: Object) {
   commander.option('--force', '');
   commander.option('-f, --flat', 'only allow one version of a package');
   commander.option('--prod, --production', '');
-  commander.option('--no-lockfile');
+  commander.option('--no-lockfile', "don't read or generate a lockfile");
 
   commander.option('-S, --save', 'DEPRECATED - save package to your `dependencies`');
   commander.option('-D, --save-dev', 'DEPRECATED - save package to your `devDependencies`');
