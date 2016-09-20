@@ -62,7 +62,7 @@ for (let name of nativeFs.readdirSync(fixturesLoc)) {
       throw new Error(`Expected to throw error: ${error}`);
     }
 
-    expect(map(actual)).toEqual(map(expected));
+    expect(map(actual)).toEqual(expand(expected));
     expect(actualWarnings).toEqual(expectedWarnings);
   });
 }
@@ -91,3 +91,64 @@ test('util.extractDescription', () => {
   expect(util.extractDescription(null)).toEqual(undefined);
   expect(util.extractDescription(undefined)).toEqual(undefined);
 });
+
+
+type Dict<T> = {
+  [index: string]: T;
+}
+
+// fill out expected and normalise paths
+function expand<T>(expected: T): T {
+  if (expected.man && Array.isArray(expected.man)) {
+    expected = {...expected, man: normalisePaths(expected.man)};
+  }
+
+  if (expected.bin && typeof expected.bin === 'object') {
+    expected = {...expected, bin: normalisePathDict(expected.bin)};
+  }
+
+  return expected;
+}
+
+function normalise(input: string): string {
+  return path.normalize(input);
+}
+
+function normalisePath<T>(path: T): ?string {
+  if (typeof path === 'string') {
+    return normalise(path);
+  } else {
+    return null;
+  }
+}
+
+function normalisePaths(paths: mixed): ?string[] {
+  if (Array.isArray(paths)) {
+    return paths.map(p => {
+      if (typeof p !== 'string') {
+        throw new Error(`Expected string in paths, got ${JSON.stringify(paths)}`);
+      }
+      return normalise(p);
+    });
+  } else {
+    return null;
+  }
+}
+
+function normalisePathDict(paths: mixed) {
+  let out = {};
+
+  if (!paths || typeof paths !== 'object') {
+    return null;
+  }
+
+  for (let prop in paths) {
+    if (typeof paths[prop] === 'string') {
+      out[prop] = normalisePath(paths[prop]);
+    } else {
+      out[prop] = paths[prop];
+    }
+  }
+
+  return out;
+}

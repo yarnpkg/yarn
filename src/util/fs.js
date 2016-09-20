@@ -291,7 +291,7 @@ function _readFile(loc: string, encoding: string): Promise<any> {
 }
 
 export function readFile(loc: string): Promise<string> {
-  return _readFile(loc, 'utf8');
+  return _readFile(loc, 'utf8').then(normaliseOS);
 }
 
 export function readFileRaw(loc: string): Promise<Buffer> {
@@ -407,4 +407,8 @@ export async function walk(
   }
 
   return files;
+}
+
+export function normaliseOS(body: string): string {
+  return body.replace(/\r\n/g, '\n');
 }
