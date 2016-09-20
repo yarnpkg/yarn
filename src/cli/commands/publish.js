@@ -102,7 +102,7 @@ async function publish(
     body: root,
   });
 
-  if (res.success) {
+  if (res != null && res.success) {
     await executeLifecycleScript(config, 'publish');
     await executeLifecycleScript(config, 'postpublish');
   } else {

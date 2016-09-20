@@ -58,9 +58,7 @@ export default class BaseRegistry {
     return Promise.reject(new Error('unimplemented'));
   }
 
-  request(pathname: string, opts?: RegistryRequestOptions = {}): Promise<Object | false> {
-    pathname;
-    opts;
+  request(pathname: string, opts?: RegistryRequestOptions = {}): Promise<?Object> {
     return Promise.reject(new Error('unimplemented'));
   }
 

@@ -37,10 +37,10 @@ export default class NpmResolver extends RegistryResolver {
     }
   }
 
-  async resolveRequest(): Promise<false | Manifest> {
+  async resolveRequest(): Promise<?Manifest> {
     if (this.config.offline) {
       let res = this.resolveRequestOffline();
-      if (res) {
+      if (res != null) {
         return res;
       }
     }
@@ -50,11 +50,11 @@ export default class NpmResolver extends RegistryResolver {
     if (body) {
       return await this.findVersionInRegistryResponse(body);
     } else {
-      return false;
+      return null;
     }
   }
 
-  async resolveRequestOffline(): Promise<false | Manifest> {
+  async resolveRequestOffline(): Promise<?Manifest> {
     // find modules of this name
     const prefix = `npm-${this.name}-`;
 
@@ -62,7 +62,6 @@ export default class NpmResolver extends RegistryResolver {
     invariant(packagesRoot, 'expected packages root');
 
     const files = await this.config.getCache('cachedPackages', async (): Promise<Array<string>> => {
-      invariant(packagesRoot, 'expected packages root');
       const files = await fs.readdir(packagesRoot);
       const validFiles = [];
 
@@ -120,7 +119,7 @@ export default class NpmResolver extends RegistryResolver {
         ),
       );
     } else {
-      return false;
+      return null;
     }
   }
 
@@ -132,8 +131,7 @@ export default class NpmResolver extends RegistryResolver {
     }
 
     const info = await this.resolveRequest();
-
-    if (!info) {
+    if (info == null) {
       throw new MessageError(this.reporter.lang('packageNotFoundRegistry', this.name, 'npm'));
     }
 
