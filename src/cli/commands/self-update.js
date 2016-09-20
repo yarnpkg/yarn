@@ -35,8 +35,8 @@ export async function run(
     timeout: 5000,
   });
 
-  // while KPM is close sourced we need an auth token to be passed
-  const githubAuth0Token = process.env.KPM_AUTH_TOKEN;
+  // while yarn is close sourced we need an auth token to be passed
+  const githubAuth0Token = process.env.YARN_AUTH_TOKEN || process.env.KPM_AUTH_TOKEN;
   github.authenticate({
     type: 'oauth',
     token: githubAuth0Token,
@@ -88,8 +88,9 @@ export async function run(
   }, config, false);
   await fetcher.fetch();
 
-  // this links the downloaded release to bin/kpm.js
+  // this links the downloaded release to bin/yarn.js
   await symlink(locToUnzip, path.resolve(updatesFolder, 'current'));
+
   // clean garbage
   const pathToClean = path.resolve(updatesFolder, 'to_clean');
   if (await exists(pathToClean)) {
@@ -97,8 +98,9 @@ export async function run(
     await unlink(previousVersionToCleanup);
     await unlink(pathToClean);
   }
+
   if (isCurrentVersionAnUpdate) {
-    // current kpm installation is an update, let's clean it next time an update is run
+    // current yarn installation is an update, let's clean it next time an update is run
     // because it may still be in use now
     await symlink(thisVersionRoot, pathToClean);
   }

@@ -2,7 +2,7 @@
 
 import map from './map.js';
 
-let debug = require('debug')('kpm');
+let debug = require('debug')('yarn');
 
 export default class BlockingQueue {
   constructor(alias: string, maxConcurrency?: number = Infinity) {

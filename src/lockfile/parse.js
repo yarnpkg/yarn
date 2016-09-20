@@ -8,7 +8,7 @@ import map from '../util/map.js';
 const invariant = require('invariant');
 const stripBOM = require('strip-bom');
 
-const VERSION_REGEX = /^kpm lockfile v(\d+)$/;
+const VERSION_REGEX = /^yarn lockfile v(\d+)$/;
 
 const TOKEN_TYPES = {
   boolean: 'BOOLEAN',
@@ -170,8 +170,8 @@ export class Parser {
       let version = +versionMatch[1];
       if (version > LOCKFILE_VERSION) {
         throw new MessageError(
-          `Can't install from a lockfile of version ${version} as you're on an old kpm version that only ` +
-          `supports versions up to ${LOCKFILE_VERSION}. Run \`$ kpm self-udpate\` to upgrade to the latest ` +
+          `Can't install from a lockfile of version ${version} as you're on an old yarn version that only ` +
+          `supports versions up to ${LOCKFILE_VERSION}. Run \`$ yarn self-udpate\` to upgrade to the latest ` +
           'version.',
         );
       }

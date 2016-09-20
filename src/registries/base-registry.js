@@ -65,8 +65,7 @@ export default class BaseRegistry {
   }
 
   async init(): Promise<void> {
-    this.mergeEnv('kpm_');
-    this.mergeEnv('fbkpm_');
+    this.mergeEnv('yarn_');
     await this.loadConfig();
 
     // find in upper directories

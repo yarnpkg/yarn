@@ -49,6 +49,7 @@ const DEFAULT_FILTERS = ignoreLinesToRegex([
   '.flowconfig',
   '.documentup.json',
   '.kpm-metadata.json',
+  '.yarn-metadata.json',
   '.*.yml',
   '*.yml',
 

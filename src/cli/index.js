@@ -184,7 +184,7 @@ const runEventually = (): Promise<void> => {
     });
 
     server.on('error', () => {
-      // another kpm instance exists, let's connect to it to know when it dies.
+      // another yarnn instance exists, let's connect to it to know when it dies.
       reporter.warn(reporter.lang('waitingInstance'));
       let socket = net.createConnection(connectionOptions);
 

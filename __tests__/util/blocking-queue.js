@@ -8,7 +8,7 @@ test('max concurrency', async function (): Promise<void> {
   let running = 0;
 
   function create(): Promise<void> {
-    return queue.push(++i + '', () => {
+    return queue.push(++i + '', (): Promise<void> => {
       running++;
       jest.runAllTimers();
 

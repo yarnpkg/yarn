@@ -17,7 +17,7 @@ test('ConsoleReporter.step', async () => {
 
 test('ConsoleReporter.header', async () => {
   expect(await getConsoleBuff((r) => {
-    r.header('foobar', {name: 'kpm', version: '0.0.0'});
+    r.header('foobar', {name: 'yarn', version: '0.0.0'});
   })).toMatchSnapshot();
 });
 

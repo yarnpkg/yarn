@@ -10,21 +10,21 @@ const userHome = require('user-home');
 const path = require('path');
 const _ = require('lodash');
 
-export default class KpmRegistry extends NpmRegistry {
+export default class YarnRegistry extends NpmRegistry {
   constructor(cwd: string, requestManager: RequestManager) {
     super(cwd, requestManager);
 
-    this.homeConfigLoc = path.join(userHome, '.kpmrc');
+    this.homeConfigLoc = path.join(userHome, '.yarnrc');
     this.homeConfig = {};
   }
 
-  static filename = 'kpm.json';
+  static filename = 'yarn.json';
 
   homeConfigLoc: string;
   homeConfig: Object;
 
   async loadConfig(): Promise<void> {
-    for (const [isHome,, file] of await this.getPossibleConfigLocations('.kpmrc')) {
+    for (const [isHome,, file] of await this.getPossibleConfigLocations('.yarnrc')) {
       const config = parse(file);
 
       if (isHome) {

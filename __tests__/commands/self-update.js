@@ -58,7 +58,7 @@ function run(checks: (reporter: reporters.Reporter, config: Config) => Promise<v
   });
 }
 
-// TODO enable tests when kpm becomes OSS
+// TODO enable tests when yarn becomes OSS
 xit('Self-update should download a release and symlink it as "current"', (): Promise<void> => {
   return run(async (reporter, config) => {
     await selfUpdate(config, reporter, {}, ['v0.11.0']);
@@ -66,7 +66,7 @@ xit('Self-update should download a release and symlink it as "current"', (): Pro
     expect(await fs.exists(path.resolve(updatesFolder, 'v0.11.0')));
     const packageJson = await fs.readJson(path.resolve(updatesFolder, 'current', 'package.json'));
     expect(packageJson.version === '0.11.0');
-    const version = await child.exec('node bin/kpm.js -V');
+    const version = await child.exec('node bin/yarn.js -V');
     expect(version[0].trim(), `0.11.0`);
   });
 });
@@ -82,7 +82,7 @@ xit('Self-update should work from self-updated location', (): Promise<void> => {
     packageJson.version = '0.99.0';
     await fs.writeFile(path.resolve(updatesFolder, 'current', 'package.json'),
       JSON.stringify(packageJson, null, 4));
-    let version = await child.exec('node bin/kpm.js -V');
+    let version = await child.exec('node bin/yarn.js -V');
     expect(version[0].trim(), `0.99.0`);
 
     // mock a to_clean folder
@@ -92,10 +92,10 @@ xit('Self-update should work from self-updated location', (): Promise<void> => {
     await fs.writeFile(path.resolve(updatesFolder, 'v0.98.0', 'package.json'),
       JSON.stringify(packageJson, null, 4));
 
-    await child.exec('node bin/kpm.js self-update v0.11.0');
+    await child.exec('node bin/yarn.js self-update v0.11.0');
 
     // new version is current
-    version = await child.exec('node bin/kpm.js -V');
+    version = await child.exec('node bin/yarn.js -V');
     expect(version[0].trim(), `0.11.0`);
 
     expect(await fs.exists(path.resolve(updatesFolder, 'v0.98.0'))).toBe(false);

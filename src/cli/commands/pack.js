@@ -26,6 +26,7 @@ const DEFAULT_IGNORE = ignoreLinesToRegex([
 
   // ignore cruft
   'kpm.lock',
+  'yarn.lock',
   '.lock-wscript',
   '.wafpickle-{0..9}',
   '*.swp',
@@ -33,6 +34,7 @@ const DEFAULT_IGNORE = ignoreLinesToRegex([
   'npm-debug.log',
   '.npmrc',
   '.kpmrc',
+  '.yarnrc',
   '.npmignore',
   '.gitignore',
   '.DS_Store',

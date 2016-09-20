@@ -38,7 +38,7 @@ export async function run(
     errCount++;
   }
 
-  // get patterns that are installed when running `kpm install`
+  // get patterns that are installed when running `yarn install`
   let [depRequests, rawPatterns] = await install.fetchRequestFromCwd();
 
   // check if patterns exist in lockfile

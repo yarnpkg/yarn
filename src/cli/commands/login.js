@@ -8,9 +8,8 @@ async function getCredentials(config: Config, reporter: Reporter): Promise<?{
   username: string,
   email: string,
 }> {
-  let kpmConfig = config.registries.kpm.config;
+  let {username, email} = config.registries.yarn.config;
 
-  let username = kpmConfig.username;
   if (username) {
     reporter.info(`${reporter.lang('npmUsername')}: ${username}`);
   } else {
@@ -20,7 +19,6 @@ async function getCredentials(config: Config, reporter: Reporter): Promise<?{
     }
   }
 
-  let email = kpmConfig.email;
   if (email) {
     reporter.info(`${reporter.lang('npmUsername')}: ${email}`);
   } else {
@@ -30,7 +28,7 @@ async function getCredentials(config: Config, reporter: Reporter): Promise<?{
     }
   }
 
-  await config.registries.kpm.saveHomeConfig({username, email});
+  await config.registries.yarn.saveHomeConfig({username, email});
 
   return {username, email};
 }
@@ -38,7 +36,7 @@ async function getCredentials(config: Config, reporter: Reporter): Promise<?{
 export async function getToken(config: Config, reporter: Reporter): Promise<
   () => Promise<void>
 > {
-  let env = process.env.KPM_AUTH_TOKEN || process.env.NPM_AUTH_TOKEN;
+  let env = process.env.YARN_AUTH_TOKEN || process.env.KPM_AUTH_TOKEN || process.env.NPM_AUTH_TOKEN;
   if (env) {
     config.registries.npm.setToken(env);
     return function revoke(): Promise<void> {

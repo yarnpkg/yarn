@@ -2,12 +2,12 @@
 
 import RegistryNpm from './registries/npm-resolver.js';
 import RegistryBower from './registries/bower-resolver.js';
-import RegistryKpm from './registries/kpm-resolver.js';
+import RegistryYarn from './registries/yarn-resolver.js';
 
 export let registries = {
   bower: RegistryBower,
   npm: RegistryNpm,
-  kpm: RegistryKpm,
+  yarn: RegistryYarn,
 };
 
 //

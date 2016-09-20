@@ -75,13 +75,13 @@ export {run};
 import buildUseless from './_useless.js';
 
 export let lockfile = buildUseless(
-  "The lockfile command isn't necessary. `kpm install` will produce a lockfile.",
+  "The lockfile command isn't necessary. `yarn install` will produce a lockfile.",
 );
 
 export let dedupe = buildUseless(
-  "The dedupe command isn't necessary. `kpm install` will already dedupe.",
+  "The dedupe command isn't necessary. `yarn install` will already dedupe.",
 );
 
 export let prune = buildUseless(
-  "The prune command isn't necessary. `kpm install` will prune extraneous packages.",
+  "The prune command isn't necessary. `yarn install` will prune extraneous packages.",
 );

@@ -9,7 +9,7 @@ export async function run(
  flags: Object,
  args: Array<string>,
 ): Promise<void> {
-  await config.registries.kpm.saveHomeConfig({
+  await config.registries.yarn.saveHomeConfig({
     username: undefined,
     email: undefined,
   });

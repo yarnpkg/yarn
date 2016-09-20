@@ -47,7 +47,7 @@ parallelTest('install with arg that has binaries', (): Promise<void> => {
 parallelTest('install --save should ignore cache', (): Promise<void> => {
   // left-pad@1.1.0 gets installed without --save
   // left-pad@1.1.0 gets installed with --save
-  // files in mirror, kpm.lock, package.json and node_modules should reflect that
+  // files in mirror, yarn.lock, package.json and node_modules should reflect that
 
   let mirrorPath = 'mirror-for-offline';
   let fixture = 'install-save-to-mirror-when-cached';
@@ -74,7 +74,7 @@ parallelTest('install --save should ignore cache', (): Promise<void> => {
     assert.equal(mirror.length, 1);
     assert.equal(mirror[0].relative, 'left-pad-1.1.0.tgz');
 
-    let lockFileWritten = await fs.readFile(path.join(config.cwd, 'kpm.lock'));
+    let lockFileWritten = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
     let lockFileLines = explodeLockfile(lockFileWritten);
     assert.equal(lockFileLines[0], 'left-pad@1.1.0:');
     assert.equal(lockFileLines.length, 3);
@@ -89,7 +89,7 @@ parallelTest('install --save should not make package.json strict', async (): Pro
   let mirrorPath = 'mirror-for-offline';
   let fixture = 'install-no-strict';
   let cwd = path.join(fixturesLoc, fixture);
-  await fs.copy(path.join(cwd, 'kpm.lock.before'), path.join(cwd, 'kpm.lock'));
+  await fs.copy(path.join(cwd, 'yarn.lock.before'), path.join(cwd, 'yarn.lock'));
   await fs.copy(path.join(cwd, 'package.json.before'), path.join(cwd, 'package.json'));
 
   return runAdd({}, ['left-pad@^1.1.0'], fixture, async (config) => {
@@ -103,7 +103,7 @@ parallelTest('install --save should not make package.json strict', async (): Pro
 
     await fs.unlink(path.join(config.cwd, `${mirrorPath}/left-pad-*.tgz`));
     await fs.unlink(path.join(config.cwd, 'package.json'));
-    await fs.unlink(path.join(config.cwd, 'kpm.lock'));
+    await fs.unlink(path.join(config.cwd, 'yarn.lock'));
   });
 });
 
@@ -111,7 +111,7 @@ parallelTest('install --save-exact should not make all package.json strict', asy
   let mirrorPath = 'mirror-for-offline';
   let fixture = 'install-no-strict-all';
   let cwd = path.join(fixturesLoc, fixture);
-  await fs.copy(path.join(cwd, 'kpm.lock.before'), path.join(cwd, 'kpm.lock'));
+  await fs.copy(path.join(cwd, 'yarn.lock.before'), path.join(cwd, 'yarn.lock'));
   await fs.copy(path.join(cwd, 'package.json.before'), path.join(cwd, 'package.json'));
 
   return runAdd({saveExact: true}, ['left-pad@1.1.0'], fixture, async (config) => {
@@ -125,20 +125,20 @@ parallelTest('install --save-exact should not make all package.json strict', asy
 
     await fs.unlink(path.join(config.cwd, `${mirrorPath}/left-pad-1.1.0.tgz`));
     await fs.unlink(path.join(config.cwd, 'package.json'));
-    await fs.unlink(path.join(config.cwd, 'kpm.lock'));
+    await fs.unlink(path.join(config.cwd, 'yarn.lock'));
   });
 });
 
 parallelTest('install --save with new dependency should be deterministic 3', async (): Promise<void> => {
   let fixture = 'install-should-cleanup-when-package-json-changed-3';
   let cwd = path.join(fixturesLoc, fixture);
-  await fs.copy(path.join(cwd, 'kpm.lock.before'), path.join(cwd, 'kpm.lock'));
+  await fs.copy(path.join(cwd, 'yarn.lock.before'), path.join(cwd, 'yarn.lock'));
   await fs.copy(path.join(cwd, 'package.json.before'), path.join(cwd, 'package.json'));
 
   return runAdd({}, [], fixture, async (config, reporter) => {
-    // expecting kpm check after installation not to fail
+    // expecting yarn check after installation not to fail
 
-    await fs.copy(path.join(cwd, 'kpm.lock.after'), path.join(cwd, 'kpm.lock'));
+    await fs.copy(path.join(cwd, 'yarn.lock.after'), path.join(cwd, 'yarn.lock'));
     await fs.copy(path.join(cwd, 'package.json.after'), path.join(cwd, 'package.json'));
 
     let lockfile = await createLockfile(config.cwd);
@@ -153,21 +153,21 @@ parallelTest('install --save with new dependency should be deterministic 3', asy
     expect(allCorrect).toBe(true);
 
     // cleanup
-    await fs.unlink(path.join(config.cwd, 'kpm.lock'));
+    await fs.unlink(path.join(config.cwd, 'yarn.lock'));
     await fs.unlink(path.join(config.cwd, 'package.json'));
   });
 });
 
-parallelTest('install --save should update a dependency to kpm and mirror (PR import scenario 2)',
+parallelTest('install --save should update a dependency to yarn and mirror (PR import scenario 2)',
 async (): Promise<void> => {
   // mime-types@2.0.0 is saved in local mirror and gets updated to mime-types@2.1.11 via
   // a change in package.json,
-  // files in mirror, kpm.lock, package.json and node_modules should reflect that
+  // files in mirror, yarn.lock, package.json and node_modules should reflect that
 
   let mirrorPath = 'mirror-for-offline';
   let fixture = 'install-import-pr-2';
   let cwd = path.join(fixturesLoc, fixture);
-  await fs.copy(path.join(cwd, 'kpm.lock.before'), path.join(cwd, 'kpm.lock'));
+  await fs.copy(path.join(cwd, 'yarn.lock.before'), path.join(cwd, 'yarn.lock'));
   await fs.copy(path.join(cwd, 'package.json.before'), path.join(cwd, 'package.json'));
 
   return runInstall({}, path.join('..', 'add', fixture), async (config): Promise<void> => {
@@ -193,7 +193,7 @@ async (): Promise<void> => {
         '2.1.11',
       );
 
-      let lockFileWritten = await fs.readFile(path.join(config.cwd, 'kpm.lock'));
+      let lockFileWritten = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
       let lockFileLines = explodeLockfile(lockFileWritten);
       assert.equal(lockFileLines[0], 'mime-db@~1.23.0:');
       assert.notEqual(lockFileLines[2].indexOf('resolved mime-db-'), -1);
@@ -211,7 +211,7 @@ async (): Promise<void> => {
       await fs.unlink(newFilesInMirror[0].absolute);
       await fs.unlink(newFilesInMirror[1].absolute);
 
-      await fs.unlink(path.join(config.cwd, 'kpm.lock'));
+      await fs.unlink(path.join(config.cwd, 'yarn.lock'));
       await fs.unlink(path.join(config.cwd, 'package.json'));
     });
   });
@@ -232,14 +232,14 @@ parallelTest('install --initMirror should add init mirror deps from package.json
     assert.equal(mirror[0].relative.indexOf('mime-db-1.0.'), 0);
     assert.equal(mirror[1].relative, 'mime-types-2.0.0.tgz');
 
-    let lockFileContent = await fs.readFile(path.join(config.cwd, 'kpm.lock'));
+    let lockFileContent = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
     let lockFileLines = explodeLockfile(lockFileContent);
     assert.equal(lockFileLines.length, 8);
     assert.equal(lockFileLines[0].indexOf('mime-db@'), 0);
     assert.equal(lockFileLines[3].indexOf('mime-types@2.0.0'), 0);
 
     await fs.unlink(path.join(config.cwd, mirrorPath));
-    await fs.unlink(path.join(config.cwd, 'kpm.lock'));
+    await fs.unlink(path.join(config.cwd, 'yarn.lock'));
 
   });
 });
@@ -251,7 +251,7 @@ parallelTest('install --save with new dependency should be deterministic', async
   let mirrorPath = 'mirror-for-offline';
   let fixture = 'install-deterministic';
   let cwd = path.join(fixturesLoc, fixture);
-  await fs.copy(path.join(cwd, 'kpm.lock.before'), path.join(cwd, 'kpm.lock'));
+  await fs.copy(path.join(cwd, 'yarn.lock.before'), path.join(cwd, 'yarn.lock'));
   await fs.copy(path.join(cwd, 'package.json.before'), path.join(cwd, 'package.json'));
 
   return runInstall({}, path.join('..', 'add', fixture), async (config): Promise<void> => {
@@ -284,7 +284,7 @@ parallelTest('install --save with new dependency should be deterministic', async
         },
       );
 
-      let lockFileWritten = await fs.readFile(path.join(config.cwd, 'kpm.lock'));
+      let lockFileWritten = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
       let lockFileLines = explodeLockfile(lockFileWritten);
       assert.equal(lockFileLines.length, 11);
 
@@ -294,13 +294,13 @@ parallelTest('install --save with new dependency should be deterministic', async
       assert.equal(mirror[1].relative, 'mime-db-1.23.0.tgz');
 
       await fs.unlink(mirror[1].absolute);
-      await fs.unlink(path.join(config.cwd, 'kpm.lock'));
+      await fs.unlink(path.join(config.cwd, 'yarn.lock'));
       await fs.unlink(path.join(config.cwd, 'package.json'));
     });
   });
 });
 
-// TODO https://github.com/facebook/kpm/issues/79
+// TODO https://github.com/facebook/yarn/issues/79
 xit('install --save with new dependency should be deterministic 2', async (): Promise<void> => {
   // mime-types@2.0.0->mime-db@1.0.1 is saved in local mirror and is deduped
   // install mime-db@1.0.3 should replace mime-db@1.0.1 in root
@@ -308,7 +308,7 @@ xit('install --save with new dependency should be deterministic 2', async (): Pr
   let mirrorPath = 'mirror-for-offline';
   let fixture = 'install-deterministic-2';
   let cwd = path.join(fixturesLoc, fixture);
-  await fs.copy(path.join(cwd, 'kpm.lock.before'), path.join(cwd, 'kpm.lock'));
+  await fs.copy(path.join(cwd, 'yarn.lock.before'), path.join(cwd, 'yarn.lock'));
   await fs.copy(path.join(cwd, 'package.json.before'), path.join(cwd, 'package.json'));
 
   return runInstall({}, path.join('..', 'add', fixture), async (config): Promise<void> => {
@@ -338,7 +338,7 @@ xit('install --save with new dependency should be deterministic 2', async (): Pr
         },
       );
 
-      let lockFileWritten = await fs.readFile(path.join(config.cwd, 'kpm.lock'));
+      let lockFileWritten = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
       let lockFileLines = explodeLockfile(lockFileWritten);
       assert.equal(lockFileLines.length, 8);
 
@@ -347,7 +347,7 @@ xit('install --save with new dependency should be deterministic 2', async (): Pr
       assert.equal(mirror[1].relative, 'mime-db-1.0.3.tgz');
 
       await fs.unlink(mirror[1].absolute);
-      await fs.unlink(path.join(config.cwd, 'kpm.lock'));
+      await fs.unlink(path.join(config.cwd, 'yarn.lock'));
       await fs.unlink(path.join(config.cwd, 'package.json'));
     });
   });
@@ -395,13 +395,13 @@ parallelTest('install with --save and without offline mirror', (): Promise<void>
 
 parallelTest('upgrade scenario', (): Promise<void> => {
   // left-pad first installed 0.0.9 then updated to 1.1.0
-  // files in mirror, kpm.lock, package.json and node_modules should reflect that
+  // files in mirror, yarn.lock, package.json and node_modules should reflect that
 
   let mirrorPath = 'mirror-for-offline';
 
   async function clean(cwd): Promise<void> {
     await fs.unlink(path.join(cwd, mirrorPath));
-    await fs.unlink(path.join(cwd, 'kpm.lock'));
+    await fs.unlink(path.join(cwd, 'yarn.lock'));
     await fs.unlink(path.join(cwd, 'package.json'));
   }
 
@@ -415,7 +415,7 @@ parallelTest('upgrade scenario', (): Promise<void> => {
       {'left-pad': '0.0.9'},
     );
 
-    let lockFileWritten = await fs.readFile(path.join(config.cwd, 'kpm.lock'));
+    let lockFileWritten = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
     let lockFileLines = explodeLockfile(lockFileWritten);
     assert.equal(lockFileLines[0], 'left-pad@0.0.9:');
     assert.equal(lockFileLines.length, 3);
@@ -435,7 +435,7 @@ parallelTest('upgrade scenario', (): Promise<void> => {
         {'left-pad': '1.1.0'},
       );
 
-      let lockFileWritten = await fs.readFile(path.join(config.cwd, 'kpm.lock'));
+      let lockFileWritten = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
       let lockFileLines = explodeLockfile(lockFileWritten);
       assert.equal(lockFileLines[0], 'left-pad@1.1.0:');
       assert.equal(lockFileLines.length, 3);
@@ -452,12 +452,12 @@ parallelTest('upgrade scenario', (): Promise<void> => {
 
 parallelTest('upgrade scenario 2 (with sub dependencies)', async (): Promise<void> => {
   // mime-types@2.0.0 is saved in local mirror and gets updated to mime-types@2.1.11
-  // files in mirror, kpm.lock, package.json and node_modules should reflect that
+  // files in mirror, yarn.lock, package.json and node_modules should reflect that
 
   let mirrorPath = 'mirror-for-offline';
   let fixture = 'install-upgrade-scenario-2';
   let cwd = path.join(fixturesLoc, fixture);
-  await fs.copy(path.join(cwd, 'kpm.lock.before'), path.join(cwd, 'kpm.lock'));
+  await fs.copy(path.join(cwd, 'yarn.lock.before'), path.join(cwd, 'yarn.lock'));
   await fs.copy(path.join(cwd, 'package.json.before'), path.join(cwd, 'package.json'));
 
   return runInstall({}, path.join('..', 'add', fixture), async (config): Promise<void> => {
@@ -480,7 +480,7 @@ parallelTest('upgrade scenario 2 (with sub dependencies)', async (): Promise<voi
         '2.1.11',
       );
 
-      let lockFileWritten = await fs.readFile(path.join(config.cwd, 'kpm.lock'));
+      let lockFileWritten = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
       let lockFileLines = explodeLockfile(lockFileWritten);
       assert.equal(lockFileLines[0], 'mime-db@~1.23.0:');
       assert.notEqual(lockFileLines[2].indexOf('resolved mime-db-'), -1);
@@ -498,7 +498,7 @@ parallelTest('upgrade scenario 2 (with sub dependencies)', async (): Promise<voi
       await fs.unlink(newFilesInMirror[0].absolute);
       await fs.unlink(newFilesInMirror[1].absolute);
 
-      await fs.unlink(path.join(config.cwd, 'kpm.lock'));
+      await fs.unlink(path.join(config.cwd, 'yarn.lock'));
       await fs.unlink(path.join(config.cwd, 'package.json'));
     });
   });
@@ -506,7 +506,7 @@ parallelTest('upgrade scenario 2 (with sub dependencies)', async (): Promise<voi
 
 parallelTest('downgrade scenario', (): Promise<void> => {
   // left-pad first installed 1.1.0 then downgraded to 0.0.9
-  // files in mirror, kpm.lock, package.json and node_modules should reflect that
+  // files in mirror, yarn.lock, package.json and node_modules should reflect that
 
   return runAdd({}, ['left-pad@1.1.0'], 'install-downgrade-scenario', async (config): Promise<void> => {
     assert.equal(
@@ -519,7 +519,7 @@ parallelTest('downgrade scenario', (): Promise<void> => {
     );
 
     let mirrorPath = 'mirror-for-offline';
-    let lockFileWritten = await fs.readFile(path.join(config.cwd, 'kpm.lock'));
+    let lockFileWritten = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
     let lockFileLines = explodeLockfile(lockFileWritten);
     assert.equal(lockFileLines[0], 'left-pad@1.1.0:');
     assert.equal(lockFileLines.length, 3);
@@ -539,7 +539,7 @@ parallelTest('downgrade scenario', (): Promise<void> => {
         {'left-pad': '0.0.9'},
       );
 
-      let lockFileWritten = await fs.readFile(path.join(config.cwd, 'kpm.lock'));
+      let lockFileWritten = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
       let lockFileLines = explodeLockfile(lockFileWritten);
       assert.equal(lockFileLines[0], 'left-pad@0.0.9:');
       assert.equal(lockFileLines.length, 3);
@@ -550,7 +550,7 @@ parallelTest('downgrade scenario', (): Promise<void> => {
       assert.equal(mirror[0].relative, 'left-pad-0.0.9.tgz');
 
       await fs.unlink(path.join(config.cwd, mirrorPath));
-      await fs.unlink(path.join(config.cwd, 'kpm.lock'));
+      await fs.unlink(path.join(config.cwd, 'yarn.lock'));
       await fs.unlink(path.join(config.cwd, 'package.json'));
     });
   });
@@ -568,18 +568,18 @@ parallelTest('modules resolved multiple times should save to mirror correctly', 
     try {
       // check that which module was downloaded to mirror
       const mirror = await fs.walk(path.join(config.cwd, mirrorPath));
-      const whichModule = mirror.find((elem) => elem.relative.match(/which-1.*\.tgz/));
+      const whichModule = mirror.find((elem): any => elem.relative.match(/which-1.*\.tgz/));
       expect(whichModule).toBeDefined();
 
-      const lockFileWritten = await fs.readFile(path.join(config.cwd, 'kpm.lock'));
+      const lockFileWritten = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
       const lockFileLines = explodeLockfile(lockFileWritten);
 
       // no entry in lockfile that resolves to https
-      const httpResolved = lockFileLines.find((elem) => elem.match(/resolved "https:\/\//));
+      const httpResolved = lockFileLines.find((elem): any => elem.match(/resolved "https:\/\//));
       expect(httpResolved).toBeUndefined();
 
       // which dependency must be resolved to file in local mirror
-      const whichResolved = lockFileLines.find((elem) => elem.match(/  resolved which-1.*\.tgz#.*/));
+      const whichResolved = lockFileLines.find((elem): any => elem.match(/ {2}resolved which-1.*\.tgz#.*/));
       expect(whichResolved).toBeDefined();
     } finally {
       await fs.unlink(path.join(config.cwd, mirrorPath));

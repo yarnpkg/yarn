@@ -229,7 +229,7 @@ export class Install {
 
     if (this.flags.har) {
       steps.push(async (curr: number, total: number) => {
-        const filename = `kpm-install_${new Date().toISOString()}.har`;
+        const filename = `yarn-install_${new Date().toISOString()}.har`;
         this.reporter.step(
           curr,
           total,
@@ -559,7 +559,7 @@ export async function run(
       exampleArgs.push('--tilde');
     }
     reporter.error(reporter.lang('installCommandRenamed'));
-    reporter.command(`kpm add ${exampleArgs.join(' ')}`);
+    reporter.command(`yarn add ${exampleArgs.join(' ')}`);
     throw new Error();
   }
 

@@ -10,5 +10,5 @@ export default function(title: string, fn: () => ?Promise<any>) {
   }
 
   // then register a test with existing (already running) promise
-  it(title, () => promise);
+  it(title, (): ?Promise<any> => promise);
 }
