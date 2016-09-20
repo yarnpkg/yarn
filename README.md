@@ -45,7 +45,6 @@ parallel. This ensures little idle time and maximum resource utilization.
  - Ability to manually resolve version conflicts so only a single version per package exists. (Bower style)
  - Efficient resolution, fetching and storage of git repos. We use hosted git APIs when using GitHub and Bitbucket for performance.
  - Caching of build artifacts produced by install scripts.
- - More emojis. 🐈
 
 ## Usage (while in development)
 
