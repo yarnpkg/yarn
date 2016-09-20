@@ -132,14 +132,18 @@ export default class NpmResolver extends RegistryResolver {
     }
 
     const info = await this.resolveRequest();
-
     if (!info) {
       throw new MessageError(this.reporter.lang('packageNotFoundRegistry', this.name, 'npm'));
     }
 
     if (typeof info.deprecated === 'string') {
-      const name = info.name; // TODO verbose this.request.getHuman();
-      this.reporter.warn(`${name}@${info.version}: ${info.deprecated}`);
+      const deprecated = info.deprecated;
+      let human = `${info.name}@${info.version}`;
+      const parentNames = this.request.getParentNames();
+      if (parentNames.length) {
+        human = parentNames.concat(human).join(' > ');
+      }
+      this.reporter.warn(`${human}: ${deprecated}`);
     }
 
     if (info.dist && info.dist.tarball) {
