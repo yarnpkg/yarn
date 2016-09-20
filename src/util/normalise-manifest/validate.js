@@ -112,9 +112,6 @@ export default function(info: Object, isRoot: boolean, reporter: Reporter, warn:
   for (let [type, deps] of depTypes) {
     for (let name in deps) {
       let version = deps[name];
-      if (version === '*') {
-        continue;
-      }
 
       // check collisions
       for (let [type2, deps2] of depTypes) {
@@ -124,9 +121,13 @@ export default function(info: Object, isRoot: boolean, reporter: Reporter, warn:
         }
 
         if (version !== version2) {
-          throw new TypeError(
-            reporter.lang('manifestDependencyCollision', type, name, version, type2, version2),
-          );
+          if (isRoot) {
+            // only throw a warning when at the root
+            warn(
+              reporter.lang('manifestDependencyCollision', type, name, version, type2, version2),
+            );
+          }
+          delete deps2[name];
         }
       }
     }
