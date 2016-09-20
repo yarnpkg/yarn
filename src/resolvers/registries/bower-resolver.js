@@ -8,9 +8,7 @@ import GitResolver from '../exotics/git-resolver.js';
 export default class BowerResolver extends RegistryResolver {
   static registry = 'bower';
 
-  resolveRequest(): Promise<false | {
-    url: string
-  }> {
+  resolveRequest(): Promise<?{url: string}> {
     return this.config.requestManager.request({
       url: `${this.registryConfig.registry}/packages/${this.name}`,
       json: true,
@@ -21,7 +19,7 @@ export default class BowerResolver extends RegistryResolver {
   async resolve(): Promise<Manifest> {
     const body = await this.resolveRequest();
 
-    if (body) {
+    if (body != null) {
       return this.fork(GitResolver, false, `${body.url}#${this.range}`);
     } else {
       throw new MessageError(this.reporter.lang('packageNotFoundRegistry', this.name, 'bower'));

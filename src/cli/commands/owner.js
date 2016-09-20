@@ -61,7 +61,7 @@ export async function mutate(
         },
       });
 
-      if (res.success) {
+      if (res != null && res.success) {
         reporter.success(msgs.success);
       } else {
         error = true;
