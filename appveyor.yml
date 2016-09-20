@@ -4,6 +4,11 @@ environment:
     - node_version: "5"
     - node_version: "4"
 
+branches:
+  only:
+  - master
+  - /.*-stable/
+
 install:
   - ps: Install-Product node $env:node_version
   - npm install
