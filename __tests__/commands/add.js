@@ -44,7 +44,7 @@ parallelTest('install with arg that has binaries', (): Promise<void> => {
   return runAdd({}, ['react-native-cli'], 'install-with-arg-and-bin');
 });
 
-parallelTest('install --save should ignore cache', (): Promise<void> => {
+parallelTest('add should ignore cache', (): Promise<void> => {
   // left-pad@1.1.0 gets installed without --save
   // left-pad@1.1.0 gets installed with --save
   // files in mirror, yarn.lock, package.json and node_modules should reflect that
@@ -85,7 +85,7 @@ parallelTest('install --save should ignore cache', (): Promise<void> => {
   });
 });
 
-parallelTest('install --save should not make package.json strict', async (): Promise<void> => {
+parallelTest('add should not make package.json strict', async (): Promise<void> => {
   let mirrorPath = 'mirror-for-offline';
   let fixture = 'install-no-strict';
   let cwd = path.join(fixturesLoc, fixture);
@@ -107,7 +107,7 @@ parallelTest('install --save should not make package.json strict', async (): Pro
   });
 });
 
-parallelTest('install --save-exact should not make all package.json strict', async (): Promise<void> => {
+parallelTest('add --save-exact should not make all package.json strict', async (): Promise<void> => {
   let mirrorPath = 'mirror-for-offline';
   let fixture = 'install-no-strict-all';
   let cwd = path.join(fixturesLoc, fixture);
@@ -129,7 +129,7 @@ parallelTest('install --save-exact should not make all package.json strict', asy
   });
 });
 
-parallelTest('install --save with new dependency should be deterministic 3', async (): Promise<void> => {
+parallelTest('add with new dependency should be deterministic 3', async (): Promise<void> => {
   let fixture = 'install-should-cleanup-when-package-json-changed-3';
   let cwd = path.join(fixturesLoc, fixture);
   await fs.copy(path.join(cwd, 'yarn.lock.before'), path.join(cwd, 'yarn.lock'));
@@ -158,8 +158,7 @@ parallelTest('install --save with new dependency should be deterministic 3', asy
   });
 });
 
-parallelTest('install --save should update a dependency to yarn and mirror (PR import scenario 2)',
-async (): Promise<void> => {
+parallelTest('add should update a dependency to yarn and mirror (PR import scenario 2)', async (): Promise<void> => {
   // mime-types@2.0.0 is saved in local mirror and gets updated to mime-types@2.1.11 via
   // a change in package.json,
   // files in mirror, yarn.lock, package.json and node_modules should reflect that
@@ -244,7 +243,7 @@ parallelTest('install --initMirror should add init mirror deps from package.json
   });
 });
 
-parallelTest('install --save with new dependency should be deterministic', async (): Promise<void> => {
+parallelTest('add with new dependency should be deterministic', async (): Promise<void> => {
   // mime-types@2.0.0->mime-db@1.0.3 is saved in local mirror and is deduped
   // install mime-db@1.23.0 should move mime-db@1.0.3 deep into mime-types
 
@@ -301,7 +300,7 @@ parallelTest('install --save with new dependency should be deterministic', async
 });
 
 // TODO https://github.com/facebook/yarn/issues/79
-xit('install --save with new dependency should be deterministic 2', async (): Promise<void> => {
+xit('add with new dependency should be deterministic 2', async (): Promise<void> => {
   // mime-types@2.0.0->mime-db@1.0.1 is saved in local mirror and is deduped
   // install mime-db@1.0.3 should replace mime-db@1.0.1 in root
 
@@ -353,14 +352,14 @@ xit('install --save with new dependency should be deterministic 2', async (): Pr
   });
 });
 
-
-parallelTest('install with --save and offline mirror', (): Promise<void> => {
+parallelTest('add with offline mirror', (): Promise<void> => {
   let mirrorPath = 'mirror-for-offline';
   return runAdd({}, ['is-array@^1.0.1'], 'install-with-save-offline-mirror', async (config) => {
     let allFiles = await fs.walk(config.cwd);
 
     assert(allFiles.findIndex((file): boolean => {
-      return file.relative === `${mirrorPath}/is-array-1.0.1.tgz`;
+      console.log(file.relative, mirrorPath);
+      return file.relative === path.join(mirrorPath, 'is-array-1.0.1.tgz');
     }) !== -1);
 
     let rawLockfile = await fs.readFile(path.join(config.cwd, constants.LOCKFILE_FILENAME));

@@ -207,10 +207,10 @@ export default class Config {
     const {pathname} = url.parse(tarUrl);
     if (pathname == null) {
       return mirrorPath;
+    } else {
+      return path.join(mirrorPath, path.basename(pathname));
     }
 
-    //
-    return path.join(mirrorPath, path.basename(pathname));
   }
 
   /**

@@ -106,7 +106,7 @@ export default class TarballFetcher extends BaseFetcher {
     }
 
     if (!(await fsUtil.exists(localTarball))) {
-      throw new MessageError(`${ref}: Tarball is not in network and can't be located in cache`);
+      throw new MessageError(`${ref}: Tarball is not in network and can't be located in cache (${localTarball})`);
     }
 
     return new Promise((resolve, reject) => {
