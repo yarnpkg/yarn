@@ -62,7 +62,6 @@ export default class NpmResolver extends RegistryResolver {
     invariant(packagesRoot, 'expected packages root');
 
     const files = await this.config.getCache('cachedPackages', async (): Promise<Array<string>> => {
-      invariant(packagesRoot, 'expected packages root');
       const files = await fs.readdir(packagesRoot);
       const validFiles = [];
 
