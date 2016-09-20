@@ -106,7 +106,9 @@ export async function run(
       const pkgLoc = path.join(loc, 'package.json');
       if (!(await fs.exists(loc)) || !(await fs.exists(pkgLoc))) {
         reportError(`${human} not installed`);
+        continue;
       }
+
       const packageJson = await fs.readJson(pkgLoc);
       if (pkg.version !== packageJson.version) {
         // node_modules contains wrong version
@@ -190,7 +192,6 @@ export async function run(
     if (errCount > 1) {
       reporter.info(reporter.lang('foundErrors', errCount));
     }
-
     return Promise.reject();
   } else {
     reporter.success(reporter.lang('folderInSync'));

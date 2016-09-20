@@ -12,6 +12,7 @@
 import type PackageResolver from './package-resolver.js';
 import type Config from './config.js';
 import type {Manifest} from './types.js';
+import {sortAlpha} from './util/misc.js';
 
 const invariant = require('invariant');
 const path = require('path');
@@ -96,12 +97,17 @@ export default class PackageHoister {
     }
 
     while (true) {
-      const queue = this.levelQueue;
+      let queue = this.levelQueue;
       if (!queue.length) {
         return;
       }
 
       this.levelQueue = [];
+
+      // sort queue to get determinism between runs
+      queue = queue.sort(([aPattern], [bPattern]) => {
+        return sortAlpha(aPattern, bPattern);
+      });
 
       //
       const infos = [];
@@ -165,6 +171,8 @@ export default class PackageHoister {
     duplicate: boolean,
   } {
     let stepUp = false;
+
+    const fullKey = this.implodeKey(parts);
     const stack = []; // stack of removed parts
     const name = parts.pop();
 
@@ -177,6 +185,7 @@ export default class PackageHoister {
       const existing = this.tree.get(checkKey);
       if (existing) {
         if (existing.loc === info.loc) {
+          existing.addHistory(`Deduped ${fullKey} to this item`);
           return {parts: checkParts, duplicate: true};
         } else {
           // everything above will be shadowed and this is a conflict
