@@ -177,10 +177,16 @@ export default class TarballFetcher extends BaseFetcher {
 
   _fetch(): Promise<FetchedOverride> {
     const {protocol, pathname} = url.parse(this.reference);
-    if (protocol == null) {
+    if (protocol === null && typeof pathname === 'string') {
       return this.fetchFromLocal(pathname);
     } else {
       return this.fetchFromExternal();
     }
   }
+}
+
+export class LocalTarballFetcher extends TarballFetcher {
+  _fetch(): Promise<FetchedOverride> {
+    return this.fetchFromLocal(this.reference);;
+  } 
 }
