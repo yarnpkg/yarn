@@ -1,5 +1,5 @@
 {
-  "name": "kpm",
+  "name": "yarn",
   "version": "0.13.0",
   "license": "BSD-2-Clause",
   "preferGlobal": true,
@@ -72,9 +72,10 @@
     "unexpected": "^10.8.1"
   },
   "bin": {
-    "kpm": "./bin/kpm.js",
-    "🐈": "./bin/kpm.js",
-    "🐱": "./bin/kpm.js"
+    "kpm": "./bin/yarn.js",
+    "yarn": "./bin/yarn.js",
+    "🐈": "./bin/yarn.js",
+    "🐱": "./bin/yarn.js"
   },
   "scripts": {
     "test": "npm run lint && npm run test-only",

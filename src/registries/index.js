@@ -1,12 +1,12 @@
 /* @flow */
 
-import KpmRegistry from './kpm-registry.js';
+import YarnRegistry from './yarn-registry.js';
 import NpmRegistry from './npm-registry.js';
 import BowerRegistry from './bower-registry.js';
 
 export let registries = {
   npm: NpmRegistry,
-  kpm: KpmRegistry,
+  yarn: YarnRegistry,
   bower: BowerRegistry,
 };
 

@@ -2,4 +2,4 @@
 
 import NpmResolver from './npm-resolver.js';
 
-export default class KpmResolver extends NpmResolver {}
+export default class YarnResolver extends NpmResolver {}

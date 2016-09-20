@@ -16,7 +16,7 @@ let messages = {
   answer: 'Answer',
   usage: 'Usage',
   installCommandRenamed: '`install` has been replaced with `add` to add new dependencies.',
-  waitingInstance: 'Waiting until the other kpm instance finish',
+  waitingInstance: 'Waiting until the other yarn instance finish',
   offlineRetrying: 'There appears to be trouble with your network connection. Retrying...',
   clearedCache: 'Cleared cache.',
   packWroteTarball: 'Wrote tarball to $0.',
@@ -79,7 +79,7 @@ let messages = {
   foundErrors: 'Found $0 errors.',
 
   savedLockfile: 'Saved lockfile.',
-  noRequiredLockfile: 'No lockfile in this directory. Run `kpm install` to generate one.',
+  noRequiredLockfile: 'No lockfile in this directory. Run `yarn install` to generate one.',
   noLockfileFound: 'No lockfile found.',
 
   invalidSemver: 'Invalid semver version',

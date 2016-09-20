@@ -250,7 +250,7 @@ parallelTest('install should dedupe dependencies avoiding conflicts 7', (): Prom
 });
 
 parallelTest('install should dedupe dependencies avoiding conflicts 8', (): Promise<void> => {
-  // revealed in https://github.com/facebook/fbkpm/issues/112
+  // revealed in https://github.com/yarnpkg/yarn/issues/112
   return runInstall({}, 'install-should-dedupe-avoiding-conflicts-8', async (config) => {
     assert.equal(await getPackageVersion(config, 'glob'), '5.0.15');
     assert.equal(await getPackageVersion(config, 'yeoman-generator/globby/glob'), '6.0.4');
@@ -265,7 +265,7 @@ parallelTest('install should dedupe dependencies avoiding conflicts 8', (): Prom
 
 
 parallelTest('install should dedupe dependencies avoiding conflicts 9', (): Promise<void> => {
-  // revealed in https://github.com/facebook/fbkpm/issues/112
+  // revealed in https://github.com/yarnpkg/yarn/issues/112
   return runInstall({}, 'install-should-dedupe-avoiding-conflicts-9', async (config) => {
     assert.equal(await getPackageVersion(config, 'glob'), '5.0.15');
     assert.equal(await getPackageVersion(config, 'yeoman-generator/globby/glob'), '6.0.4');
@@ -295,7 +295,7 @@ async (): Promise<void> => {
   let fixture = 'install-should-cleanup-when-package-json-changed';
   let cwd = path.join(fixturesLoc, fixture);
 
-  await fs.copy(path.join(cwd, 'kpm.lock.before'), path.join(cwd, 'kpm.lock'));
+  await fs.copy(path.join(cwd, 'yarn.lock.before'), path.join(cwd, 'yarn.lock'));
   await fs.copy(path.join(cwd, 'package.json.before'), path.join(cwd, 'package.json'));
 
   return runInstall({}, fixture, async (config): Promise<void> => {
@@ -303,17 +303,17 @@ async (): Promise<void> => {
     assert.equal(await getPackageVersion(config, 'dep-b'), '2.0.0');
     assert.equal(await getPackageVersion(config, 'dep-a/dep-b'), '1.0.0');
 
-    await fs.unlink(path.join(config.cwd, 'kpm.lock'));
+    await fs.unlink(path.join(config.cwd, 'yarn.lock'));
     await fs.unlink(path.join(config.cwd, 'package.json'));
 
-    await fs.copy(path.join(cwd, 'kpm.lock.after'), path.join(cwd, 'kpm.lock'));
+    await fs.copy(path.join(cwd, 'yarn.lock.after'), path.join(cwd, 'yarn.lock'));
     await fs.copy(path.join(cwd, 'package.json.after'), path.join(cwd, 'package.json'));
 
     return runInstall({}, fixture, async (config) => {
       assert.equal(await getPackageVersion(config, 'dep-a'), '1.2.0');
       assert.equal(await getPackageVersion(config, 'dep-b'), '1.2.0');
 
-      await fs.unlink(path.join(config.cwd, 'kpm.lock'));
+      await fs.unlink(path.join(config.cwd, 'yarn.lock'));
       await fs.unlink(path.join(config.cwd, 'package.json'));
     });
   });
@@ -331,17 +331,17 @@ async (): Promise<void> => {
   let fixture = 'install-should-cleanup-when-package-json-changed-2';
   let cwd = path.join(fixturesLoc, fixture);
 
-  await fs.copy(path.join(cwd, 'kpm.lock.before'), path.join(cwd, 'kpm.lock'));
+  await fs.copy(path.join(cwd, 'yarn.lock.before'), path.join(cwd, 'yarn.lock'));
   await fs.copy(path.join(cwd, 'package.json.before'), path.join(cwd, 'package.json'));
 
   return runInstall({}, fixture, async (config): Promise<void> => {
     assert.equal(await getPackageVersion(config, 'dep-a'), '1.0.0');
     assert.equal(await getPackageVersion(config, 'dep-b'), '1.0.0');
 
-    await fs.unlink(path.join(config.cwd, 'kpm.lock'));
+    await fs.unlink(path.join(config.cwd, 'yarn.lock'));
     await fs.unlink(path.join(config.cwd, 'package.json'));
 
-    await fs.copy(path.join(cwd, 'kpm.lock.after'), path.join(cwd, 'kpm.lock'));
+    await fs.copy(path.join(cwd, 'yarn.lock.after'), path.join(cwd, 'yarn.lock'));
     await fs.copy(path.join(cwd, 'package.json.after'), path.join(cwd, 'package.json'));
 
     return runInstall({}, fixture, async (config) => {
@@ -349,13 +349,13 @@ async (): Promise<void> => {
 
       assert(!await fs.exists(path.join(config.cwd, 'node_modules/dep-b')));
 
-      await fs.unlink(path.join(config.cwd, 'kpm.lock'));
+      await fs.unlink(path.join(config.cwd, 'yarn.lock'));
       await fs.unlink(path.join(config.cwd, 'package.json'));
     });
   });
 });
 
-parallelTest('uninstall should remove dependency from package.json, kpm.lock and node_modules', (): Promise<void> => {
+parallelTest('uninstall should remove dependency from package.json, yarn.lock and node_modules', (): Promise<void> => {
   let mirrorPath = 'mirror-for-offline';
 
   return runInstall({}, 'uninstall-should-clean', async (config, reporter) => {
@@ -364,7 +364,7 @@ parallelTest('uninstall should remove dependency from package.json, kpm.lock and
       '1.0.0',
     );
 
-    await fs.copy(path.join(config.cwd, 'kpm.lock'), path.join(config.cwd, 'kpm.lock.orig'));
+    await fs.copy(path.join(config.cwd, 'yarn.lock'), path.join(config.cwd, 'yarn.lock.orig'));
     await fs.copy(path.join(config.cwd, 'package.json'), path.join(config.cwd, 'package.json.orig'));
 
     try {
@@ -378,15 +378,15 @@ parallelTest('uninstall should remove dependency from package.json, kpm.lock and
         {},
       );
 
-      let lockFileContent = await fs.readFile(path.join(config.cwd, 'kpm.lock'));
+      let lockFileContent = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
       let lockFileLines = explodeLockfile(lockFileContent);
       assert.equal(lockFileLines.length, 0);
     } finally {
-      await fs.unlink(path.join(config.cwd, 'kpm.lock'));
+      await fs.unlink(path.join(config.cwd, 'yarn.lock'));
       await fs.unlink(path.join(config.cwd, 'package.json'));
-      await fs.copy(path.join(config.cwd, 'kpm.lock.orig'), path.join(config.cwd, 'kpm.lock'));
+      await fs.copy(path.join(config.cwd, 'yarn.lock.orig'), path.join(config.cwd, 'yarn.lock'));
       await fs.copy(path.join(config.cwd, 'package.json.orig'), path.join(config.cwd, 'package.json'));
-      await fs.unlink(path.join(config.cwd, 'kpm.lock.orig'));
+      await fs.unlink(path.join(config.cwd, 'yarn.lock.orig'));
       await fs.unlink(path.join(config.cwd, 'package.json.orig'));
     }
   });
@@ -417,7 +417,7 @@ parallelTest('uninstall should remove subdependencies', (): Promise<void> => {
         '1.0.0',
       );
 
-      await fs.copy(path.join(config.cwd, 'kpm.lock'), path.join(config.cwd, 'kpm.lock.orig'));
+      await fs.copy(path.join(config.cwd, 'yarn.lock'), path.join(config.cwd, 'yarn.lock.orig'));
       await fs.copy(path.join(config.cwd, 'package.json'), path.join(config.cwd, 'package.json.orig'));
 
       await uninstall(config, reporter, {}, ['dep-a']);
@@ -435,16 +435,16 @@ parallelTest('uninstall should remove subdependencies', (): Promise<void> => {
         {'dep-c': '^1.0.0'},
       );
 
-      let lockFileContent = await fs.readFile(path.join(config.cwd, 'kpm.lock'));
+      let lockFileContent = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
       let lockFileLines = explodeLockfile(lockFileContent);
       assert.equal(lockFileLines.length, 3);
       assert.equal(lockFileLines[0], 'dep-c@^1.0.0:');
     } finally {
-      await fs.unlink(path.join(config.cwd, 'kpm.lock'));
+      await fs.unlink(path.join(config.cwd, 'yarn.lock'));
       await fs.unlink(path.join(config.cwd, 'package.json'));
-      await fs.copy(path.join(config.cwd, 'kpm.lock.orig'), path.join(config.cwd, 'kpm.lock'));
+      await fs.copy(path.join(config.cwd, 'yarn.lock.orig'), path.join(config.cwd, 'yarn.lock'));
       await fs.copy(path.join(config.cwd, 'package.json.orig'), path.join(config.cwd, 'package.json'));
-      await fs.unlink(path.join(config.cwd, 'kpm.lock.orig'));
+      await fs.unlink(path.join(config.cwd, 'yarn.lock.orig'));
       await fs.unlink(path.join(config.cwd, 'package.json.orig'));
     }
   });
@@ -456,10 +456,10 @@ parallelTest('check should verify that top level dependencies are installed corr
   return runInstall({}, fixture, async (config, reporter) => {
 
     let pkgDep = JSON.parse(await fs.readFile(path.join(config.cwd,
-      'node_modules/fake-kpm-dependency/package.json')));
+      'node_modules/fake-yarn-dependency/package.json')));
     pkgDep.version = '2.0.0';
     await fs.writeFile(
-      path.join(config.cwd, 'node_modules/fake-kpm-dependency/package.json'),
+      path.join(config.cwd, 'node_modules/fake-yarn-dependency/package.json'),
       JSON.stringify(pkgDep, null, 4),
     );
 
@@ -485,25 +485,25 @@ parallelTest('install should run install scripts in the order of dependencies', 
 });
 
 
-parallelTest('install should add missing deps to kpm and mirror (PR import scenario)',
+parallelTest('install should add missing deps to yarn and mirror (PR import scenario)',
 async (): Promise<void> => {
   let mirrorPath = 'mirror-for-offline';
   let fixture = 'install-import-pr';
   let cwd = path.join(fixturesLoc, fixture);
-  await fs.copy(path.join(cwd, 'kpm.lock.before'), path.join(cwd, 'kpm.lock'));
+  await fs.copy(path.join(cwd, 'yarn.lock.before'), path.join(cwd, 'yarn.lock'));
 
   return runInstall({}, fixture, async (config) => {
     assert.equal(await getPackageVersion(config, 'mime-types'), '2.0.0');
     assert(semver.satisfies(await getPackageVersion(config, 'mime-db'), '~1.0.1'));
-    assert.equal(await getPackageVersion(config, 'fake-kpm-dependency'), '1.0.1');
+    assert.equal(await getPackageVersion(config, 'fake-yarn-dependency'), '1.0.1');
 
     let mirror = await fs.walk(path.join(config.cwd, mirrorPath));
     assert.equal(mirror.length, 3);
-    assert.equal(mirror[0].relative, 'fake-kpm-dependency-1.0.1.tgz');
+    assert.equal(mirror[0].relative, 'fake-yarn-dependency-1.0.1.tgz');
     assert.equal(mirror[1].relative.indexOf('mime-db-1.0.'), 0);
     assert.equal(mirror[2].relative, 'mime-types-2.0.0.tgz');
 
-    let lockFileContent = await fs.readFile(path.join(config.cwd, 'kpm.lock'));
+    let lockFileContent = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
     let lockFileLines = explodeLockfile(lockFileContent);
     assert.equal(lockFileLines.length, 11);
     assert.equal(lockFileLines[3].indexOf('mime-db@'), 0);
@@ -511,7 +511,7 @@ async (): Promise<void> => {
 
     await fs.unlink(path.join(mirror[1].absolute));
     await fs.unlink(path.join(mirror[2].absolute));
-    await fs.unlink(path.join(config.cwd, 'kpm.lock'));
+    await fs.unlink(path.join(config.cwd, 'yarn.lock'));
   });
 });
 

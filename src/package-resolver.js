@@ -421,7 +421,7 @@ export default class PackageResolver {
     this.seedPatterns = deps.map((dep): string => dep.pattern);
 
     //
-    await Promise.all(deps.map((req) => this.find(req)));
+    await Promise.all(deps.map((req): Promise<void> => this.find(req)));
 
     activity.end();
     this.activity = null;

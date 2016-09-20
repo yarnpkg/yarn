@@ -113,7 +113,7 @@ export default class TarballFetcher extends BaseFetcher {
           if (isOfflineTarball) {
             msg += `Mirror tarball appears to be corrupt. You can resolve this by running:\n\n` +
                    `  $ rm -rf ${localTarball}\n` +
-                   '  $ kpm install --save';
+                   '  $ yarn install';
           } else {
             msg += `Error decompressing ${localTarball}, it appears to be corrupt.`;
           }

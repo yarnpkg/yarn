@@ -26,7 +26,7 @@ export default async function (
   const env = Object.assign({}, process.env);
 
   // this is used in some places apparently..
-  env.npm_execpath = path.join(__dirname, '..', '..', 'bin', 'kpm.js');
+  env.npm_execpath = path.join(__dirname, '..', '..', 'bin', 'yarn.js');
 
   // split up the path
   const pathParts = (env[constants.ENV_PATH_KEY] || '').split(path.delimiter);

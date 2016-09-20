@@ -54,7 +54,7 @@ async function publish(
     );
   });
 
-  // copy normalised package and remove internal keys as they may be sensitive or kpm specific
+  // copy normalised package and remove internal keys as they may be sensitive or yarn specific
   pkg = Object.assign({}, pkg);
   for (let key in pkg) {
     if (key[0] === '_') {

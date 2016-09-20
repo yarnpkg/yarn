@@ -48,7 +48,7 @@ export default function(rootCommandName: string, subCommands: SubCommands, usage
 
     reporter.error(`${reporter.lang('usage')}:`);
     for (let msg of usage) {
-      reporter.error(`kpm ${rootCommandName} ${msg}`);
+      reporter.error(`yarn ${rootCommandName} ${msg}`);
     }
     return Promise.reject();
   }

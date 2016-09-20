@@ -29,14 +29,18 @@ function or(filenames: Array<string>, cwd: string): string {
   return filenames.pop();
 }
 
+// the kpm and fbkpm names here are legacy names for yarn here for compatibility
 export const DEFAULT_PORT_FOR_SINGLE_INSTANCE = 31997;
-export const MODULE_CACHE_DIRECTORY = or(['.fbkpm', '.kpm'], userHome);
-export const INTEGRITY_FILENAME = or(['.fbkpm-integrity', '.kpm-integrity'], path.join(cwd, 'node_modules'));
-export const LOCKFILE_FILENAME = or(['fbkpm.lock', 'kpm.lock'], cwd);
-export const METADATA_FILENAME = '.kpm-metadata.json';
-export const TARBALL_FILENAME = '.kpm-tarball.tgz';
-export const CLEAN_FILENAME = '.kpmclean';
-export const SINGLE_INSTANCE_FILENAME = '.kpm-single-instance';
+export const MODULE_CACHE_DIRECTORY = or(['.fbkpm', '.kpm', '.yarn'], userHome);
+export const INTEGRITY_FILENAME = or(
+  ['.fbkpm-integrity', '.kpm-integrity', '.yarn-integrity'],
+  path.join(cwd, 'node_modules'),
+);
+export const LOCKFILE_FILENAME = or(['fbkpm.lock', 'kpm.lock', 'yarn.lock'], cwd);
+export const METADATA_FILENAME = '.yarn-metadata.json';
+export const TARBALL_FILENAME = '.yarn-tarball.tgz';
+export const CLEAN_FILENAME = '.yarnclean';
+export const SINGLE_INSTANCE_FILENAME = '.yarn-single-instance';
 
 export const USER_AGENT = `kpm v${pkg.version}`;
 
