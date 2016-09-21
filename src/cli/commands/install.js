@@ -589,7 +589,7 @@ export async function run(
     }
     reporter.error(reporter.lang('installCommandRenamed'));
     reporter.command(`yarn add ${exampleArgs.join(' ')}`);
-    throw new Error();
+    return Promise.reject();
   }
 
   const install = new Install(flags, config, reporter, lockfile);
@@ -597,4 +597,6 @@ export async function run(
 
   // npm behaviour, seems kinda funky but yay compatibility
   await executeLifecycleScript(config, 'prepublish');
+
+  return Promise.resolve();
 }

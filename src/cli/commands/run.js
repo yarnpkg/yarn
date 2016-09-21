@@ -47,7 +47,7 @@ export async function run(
     reporter.error(reporter.lang('commandNotSpecified'));
     reporter.info(`${reporter.lang('possibleCommands')}:`);
     reporter.list('possibleCommands', Object.keys(scripts).sort());
-    throw new Error();
+    return Promise.reject();
   }
 
   // get action
@@ -83,4 +83,6 @@ export async function run(
     }
     throw new MessageError(msg);
   }
+
+  return Promise.resolve();
 }
