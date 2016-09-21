@@ -34,7 +34,7 @@ type RequestParams<T> = {
   method?: RequestMethods,
   queue?: BlockingQueue,
   json?: boolean,
-  body?: Object,
+  body?: mixed,
   encoding?: ?string,
   forever?: boolean,
   headers?: {

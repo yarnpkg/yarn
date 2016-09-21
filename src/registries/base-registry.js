@@ -9,7 +9,7 @@ const _ = require('lodash');
 
 export type RegistryRequestOptions = {
   method?: RequestMethods,
-  body?: any,
+  body?: mixed,
 };
 
 export default class BaseRegistry {
