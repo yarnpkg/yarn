@@ -24,6 +24,10 @@ let _ = require('lodash');
 export {default as parse} from './parse';
 export {default as stringify} from './stringify';
 
+type Dependencies = {
+  [key: string]: string,
+};
+
 type LockManifest = {
   name: string,
   version: string,
@@ -31,9 +35,8 @@ type LockManifest = {
   registry: string,
   uid?: string,
   permissions?: { [key: string]: boolean },
-  dependencies?: {
-    [key: string]: string
-  }
+  optionalDependencies?: Dependencies,
+  dependencies?: Dependencies,
 };
 
 function getName(pattern: string): string {
