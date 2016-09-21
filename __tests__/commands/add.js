@@ -358,7 +358,6 @@ parallelTest('add with offline mirror', (): Promise<void> => {
     let allFiles = await fs.walk(config.cwd);
 
     assert(allFiles.findIndex((file): boolean => {
-      console.log(file.relative, mirrorPath);
       return file.relative === path.join(mirrorPath, 'is-array-1.0.1.tgz');
     }) !== -1);
 

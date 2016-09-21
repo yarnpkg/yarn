@@ -17,6 +17,7 @@ export const realpath = promisify(fs.realpath);
 export const readdir = promisify(fs.readdir);
 export const rename = promisify(fs.rename);
 export const access = promisify(fs.access);
+export const stat = promisify(fs.stat);
 export const unlink = promisify(require('rimraf'));
 export const mkdirp = promisify(require('mkdirp'));
 export const exists = promisify(fs.exists, true);
