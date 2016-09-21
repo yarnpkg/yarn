@@ -199,6 +199,11 @@ export class Install {
     // remove integrity hash to make this operation atomic
     await fs.unlink(match.loc);
 
+    // warn if we have a shrinkwrap
+    if (await fs.exists(path.join(this.config.cwd, 'npm-shrinkwrap.json'))) {
+      this.reporter.error(this.reporter.lang('shrinkwrapWarning'));
+    }
+
     //
     let patterns = rawPatterns;
     let steps: Array<(curr: number, total: number) => Promise<void>> = [];

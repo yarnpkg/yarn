@@ -51,6 +51,7 @@ let messages = {
   invalidHostedGitFragment: 'Invalid hosted git fragment $0.',
   couldntFindManifestIn: "Couldn't find manifest in $0.",
   invalidFragment: 'Invalid fragment $0.',
+  shrinkwrapWarning: 'npm-shrinkwrap.json found. This will not be updated or respected. See [TODO] for more information.',
 
   commandNotSpecified: 'No command specified.',
   possibleCommands: 'Possible commands',
