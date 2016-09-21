@@ -16,8 +16,7 @@ export default class BlockingQueue {
     this.running = map();
     this.queue = map();
 
-    // $FlowFixMe: for performance we refer to this in `stillActive`
-    this.stuckTick = this.stuckTick.bind(this);
+    (this: any).stuckTick = this.stuckTick.bind(this);
   }
 
   concurrencyQueue: Array<Function>;
