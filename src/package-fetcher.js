@@ -2,6 +2,7 @@
 
 import type {FetchedMetadata} from './types.js';
 import type PackageResolver from './package-resolver.js';
+import type {Fetchers} from './fetchers/index.js';
 import type {Reporter} from './reporters/index.js';
 import type PackageReference from './package-reference.js';
 import type Config from './config.js';
@@ -20,7 +21,7 @@ export default class PackageFetcher {
   reporter: Reporter;
   config: Config;
 
-  async fetchCache(dest: string, fetcher: any): Promise<FetchedMetadata> {
+  async fetchCache(dest: string, fetcher: Fetchers): Promise<FetchedMetadata> {
     let {hash, package: pkg} = await this.config.readPackageMetadata(dest);
     return {
       package: pkg,
