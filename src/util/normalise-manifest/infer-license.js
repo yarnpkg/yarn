@@ -29,19 +29,19 @@ function createExplicitLicenseRegex(license: string): RegExp {
 
 const LICENSES = {};
 const licensesDir = path.join(__dirname, 'licenses');
-for (let name of fs.readdirSync(licensesDir)) {
-  let regex = createExplicitLicenseRegex(fs.readFileSync(
-    path.join(licensesDir, name),
-    'utf8',
-  ));
-  let key = name.replace(/_(\d)+$/g, '');
-  let existing = LICENSES[key];
-  if (existing) {
-    LICENSES[key] = new RegExp(`(${regex.source}|${existing.source})`, 'g');
-  } else {
-    LICENSES[key] = regex;
-  }
-}
+// for (let name of fs.readdirSync(licensesDir)) {
+//   let regex = createExplicitLicenseRegex(fs.readFileSync(
+//     path.join(licensesDir, name),
+//     'utf8',
+//   ));
+//   let key = name.replace(/_(\d)+$/g, '');
+//   let existing = LICENSES[key];
+//   if (existing) {
+//     LICENSES[key] = new RegExp(`(${regex.source}|${existing.source})`, 'g');
+//   } else {
+//     LICENSES[key] = regex;
+//   }
+// }
 
 const REGEXES = {
   WTFPL: [/DO WHAT THE FUCK YOU WANT TO PUBLIC LICENSE/, /WTFPL\b/],
