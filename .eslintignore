@@ -5,7 +5,6 @@ node_modules
 flow-typed
 coverage
 Gulpfile.js
-/index.js
 scripts
 updates
 dist
