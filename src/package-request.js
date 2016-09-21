@@ -5,6 +5,7 @@ import type PackageResolver from './package-resolver.js';
 import type {Reporter} from './reporters/index.js';
 import type Config from './config.js';
 import type {VisibilityAction} from './package-reference.js';
+import {cleanDependencies} from './util/normalise-manifest/validate.js';
 import Lockfile from './lockfile/wrapper.js';
 import {USED as USED_VISIBILITY, default as PackageReference} from './package-reference.js';
 import {registries as registryResolvers} from './resolvers/index.js';
@@ -208,6 +209,10 @@ export default class PackageRequest {
     if (!info) {
       throw new MessageError(this.reporter.lang('unknownPackagePattern', this.pattern));
     }
+
+    cleanDependencies(info, false, this.reporter, () => {
+      // swallow warnings
+    });
 
     // check if while we were resolving this dep we've already resolved one that satisfies
     // the same range

@@ -41,7 +41,9 @@ export function isValidPackageName(name: string): boolean {
   return isValidName(name) || isValidScopedName(name);
 }
 
-export default function(info: Object, isRoot: boolean, reporter: Reporter, warn: (msg: string) => void) {
+type WarnFunction = (msg: string) => void;
+
+export default function(info: Object, isRoot: boolean, reporter: Reporter, warn: WarnFunction) {
   if (isRoot) {
     for (const key in typos) {
       if (key in info) {
@@ -94,6 +96,10 @@ export default function(info: Object, isRoot: boolean, reporter: Reporter, warn:
     }
   }
 
+  cleanDependencies(info, isRoot, reporter, warn);
+}
+
+export function cleanDependencies(info: Object, isRoot: boolean, reporter: Reporter, warn: WarnFunction) {
   // get dependency objects
   let depTypes = [];
   for (let type of dependencyKeys) {
