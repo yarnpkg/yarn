@@ -15,9 +15,9 @@ const url = require('url');
 const successHosts = map();
 const controlOffline = network.isOffline();
 
-declare class RequestError extends Error {
-  hostname: string,
-  code: string,
+interface RequestError extends Error {
+  hostname?: ?string,
+  code?: ?string,
 }
 
 export type RequestMethods = 'GET' | 'HEAD' | 'POST' | 'PUT' | 'DELETE';
@@ -34,7 +34,7 @@ type RequestParams<T> = {
   method?: RequestMethods,
   queue?: BlockingQueue,
   json?: boolean,
-  body?: Object,
+  body?: mixed,
   encoding?: ?string,
   forever?: boolean,
   headers?: {
@@ -132,10 +132,9 @@ export default class RequestManager {
    * Check if an error is possibly due to lost or poor network connectivity.
    */
 
-  isPossibleOfflineError(err: Error | RequestError): boolean {
-    // $FlowFixMe: dunno how else to do this
-    let {code, hostname} = err;
-    if (!code || !hostname) {
+  isPossibleOfflineError(err: RequestError): boolean {
+    const {code, hostname} = err;
+    if (code == null || hostname == null) {
       return false;
     }
 

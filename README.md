@@ -57,7 +57,7 @@ $ npm run build
 $ npm link
 # go into some random directory
 $ mkdir node_modules
-$ kpm install your-package
+$ yarn add your-package
 ```
 
 ## Prior art

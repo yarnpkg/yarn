@@ -61,7 +61,7 @@ export let {run, setFlags} = buildSubCommands('dist-tag', {
       },
     );
 
-    if (result.ok) {
+    if (result != null && result.ok) {
       reporter.success(reporter.lang('createdTag'));
     } else {
       reporter.error(reporter.lang('createdTagFail'));
@@ -70,7 +70,7 @@ export let {run, setFlags} = buildSubCommands('dist-tag', {
     reporter.step(3, 3, reporter.lang('revokingToken'));
     await revoke();
 
-    if (result.ok) {
+    if (result != null && result.ok) {
       return true;
     } else {
       throw new Error();

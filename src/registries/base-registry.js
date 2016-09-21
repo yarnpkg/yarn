@@ -9,7 +9,7 @@ const _ = require('lodash');
 
 export type RegistryRequestOptions = {
   method?: RequestMethods,
-  body?: any,
+  body?: mixed,
 };
 
 export default class BaseRegistry {
@@ -58,9 +58,7 @@ export default class BaseRegistry {
     return Promise.reject(new Error('unimplemented'));
   }
 
-  request(pathname: string, opts?: RegistryRequestOptions = {}): Promise<Object | false> {
-    pathname;
-    opts;
+  request(pathname: string, opts?: RegistryRequestOptions = {}): Promise<?Object> {
     return Promise.reject(new Error('unimplemented'));
   }
 

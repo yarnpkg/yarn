@@ -402,8 +402,8 @@ export class Install {
     // write integrity hash
     await this.writeIntegrityHash(lockSource);
 
-    // --no-lockfile flag
-    if (this.flags.lockfile === false) {
+    // --no-lockfile or --pure-lockfile flag
+    if (this.flags.lockfile === false || this.flags.pureLockfile) {
       return;
     }
 
@@ -525,7 +525,7 @@ export class Install {
     }
 
     let mirror = this.config.getOfflineMirrorPath();
-    if (mirror) {
+    if (mirror != null) {
       opts.push(`mirror:${mirror}`);
     }
 
@@ -539,6 +539,7 @@ export function setFlags(commander: Object) {
   commander.option('-f, --flat', 'only allow one version of a package');
   commander.option('--prod, --production', '');
   commander.option('--no-lockfile', "don't read or generate a lockfile");
+  commander.option('--pure-lockfile', "don't generate a lockfile");
 
   commander.option('-S, --save', 'DEPRECATED - save package to your `dependencies`');
   commander.option('-D, --save-dev', 'DEPRECATED - save package to your `devDependencies`');

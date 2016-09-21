@@ -8,7 +8,7 @@ dependencies:
     - nvm install 6
     - nvm use 6 && nvm alias default 6
     - which node
-    # TODO test kpm with node_modules installed via npm2, npm3 and latest stable kpm
+    # TODO test yarn with node_modules installed via npm2, npm3 and latest stable yarn
     - npm install
     - go get github.com/tcnksm/ghr
 test:
@@ -19,10 +19,9 @@ test:
     - nvm use 6 && nvm alias default 6
     - node -v
     - npm run test-ci
-    - npm run build-dist
 deployment:
   release:
     tag: /v[0-9]+(\.[0-9]+)*/
     owner: yarnpkg
     commands:
-      - ghr --username yarnpkg --repository yarn --token $KPM_CIRCLE_RELEASE_TOKEN v$(node dist/bin/kpm --version) dist/kpm-v*.tar.gz
+      - ghr --username yarnpkg --repository yarn --token $KPM_CIRCLE_RELEASE_TOKEN v$(node dist/bin/yarn --version) dist/yarn-v*.tar.gz

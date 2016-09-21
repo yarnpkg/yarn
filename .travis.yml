@@ -2,7 +2,7 @@
 git:
   depth: 1
 sudo: true # can't use this due to git upgrade requirement
-language: c
+language: generic
 
 branches:
   only:
@@ -12,11 +12,26 @@ branches:
 cache:
   directories:
   - node_modules
+  - lib
+  - lib-legacy
 
 env:
- - NODE_VERSION="6"
- - NODE_VERSION="5"
- - NODE_VERSION="4"
+  matrix:
+  - TEST_TYPE="build-dist"
+  - TEST_TYPE="lockfile"
+  - TEST_TYPE="lint"
+  - NODE_VERSION="6" TEST_TYPE="js"
+  - NODE_VERSION="5" TEST_TYPE="js"
+  - NODE_VERSION="4" TEST_TYPE="js"
+
+matrix:
+  exclude:
+  - env: TEST_TYPE="build-dist"
+    os: osx
+  - env: TEST_TYPE="lockfile"
+    os: osx
+  - env: TEST_TYPE="lint"
+    os: osx
 
 install:
  # install latest git
@@ -28,12 +43,17 @@ install:
  - rm -rf ~/.nvm
  - git clone https://github.com/creationix/nvm.git ~/.nvm
  - source ~/.nvm/nvm.sh
- - nvm install $NODE_VERSION
+ - nvm install ${NODE_VERSION:=6}
  - node --version
  - npm install -g npm@3
  - npm install
 
 os:
  - osx
+ - linux
 
-script: npm run test-ci
+script:
+ - if [[ "$TEST_TYPE" == "js" ]]; then npm run test-ci; fi
+ - if [[ "$TEST_TYPE" == "build-dist" ]]; then npm run build-dist; fi
+ - if [[ "$TEST_TYPE" == "lockfile" ]]; then npm run check-lockfile; fi
+ - if [[ "$TEST_TYPE" == "lint" ]]; then npm run lint; fi

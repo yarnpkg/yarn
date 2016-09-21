@@ -2,14 +2,13 @@
 
 import type {FetchedMetadata} from './types.js';
 import type PackageResolver from './package-resolver.js';
+import type {Fetchers} from './fetchers/index.js';
 import type {Reporter} from './reporters/index.js';
 import type PackageReference from './package-reference.js';
 import type Config from './config.js';
 import * as fetchers from './fetchers/index.js';
 import * as fs from './util/fs.js';
 import * as promise from './util/promise.js';
-
-const invariant = require('invariant');
 
 export default class PackageFetcher {
   constructor(config: Config, resolver: PackageResolver) {
@@ -22,7 +21,7 @@ export default class PackageFetcher {
   reporter: Reporter;
   config: Config;
 
-  async fetchCache(dest: string, fetcher: any): Promise<FetchedMetadata> {
+  async fetchCache(dest: string, fetcher: Fetchers): Promise<FetchedMetadata> {
     let {hash, package: pkg} = await this.config.readPackageMetadata(dest);
     return {
       package: pkg,
@@ -36,8 +35,6 @@ export default class PackageFetcher {
     const dest = this.config.generateHardModulePath(ref);
 
     const remote = ref.remote;
-    invariant(remote, 'Missing remote');
-
     const Fetcher = fetchers[remote.type];
     if (!Fetcher) {
       throw new Error(`Unknown fetcher for ${remote.type}`);

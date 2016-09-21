@@ -4,6 +4,7 @@ import type {RegistryNames} from './registries/index.js';
 import type PackageReference from './package-reference.js';
 import type {VisibilityAction} from './package-reference.js';
 import type PackageRequest from './package-request.js';
+import type {FetcherNames} from './fetchers/index.js';
 
 // dependency request pattern data structure that's used to request dependencies from a
 // PackageResolver
@@ -26,7 +27,7 @@ export type PersonObject = {
 
 // package remote that's used to store how to fetch a package
 export type PackageRemote = {
-  type: "tarball" | "git" | "copy" | "base",
+  type: FetcherNames,
   registry: RegistryNames,
   reference: string,
   resolved?: ?string,

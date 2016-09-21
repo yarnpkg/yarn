@@ -12,7 +12,6 @@
 [libs]
 
 [options]
-strip_root=true
 suppress_comment= \\(.\\|\n\\)*\\$FlowFixMe
 
 [version]

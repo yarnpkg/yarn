@@ -10,7 +10,7 @@ export let {run, setFlags} = buildSubCommands('cache', {
     return Promise.reject(new Error('TODO'));
   },
 
-  async clear(
+  async clean(
     config: Config,
     reporter: Reporter,
     flags: Object,
