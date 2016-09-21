@@ -32,7 +32,6 @@ We actively welcome your pull requests.
 3. If you've changed APIs, update the documentation.
 4. Ensure the test suite passes.
 5. Make sure your code lints.
-6. If you haven't already, complete the Contributor License Agreement ("CLA").
 
 ## License
 
