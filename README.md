@@ -20,7 +20,7 @@ Yarn is a package manager for the npm and bower registries with a few specific f
 
 **Determinism:** Based around a version lockfile which ensures that operations on the
 dependency graph can be easily transitioned. We check module directories and verify their
-integrity to ensure `kpm install` always produces the same file structure.
+integrity to ensure `yarn install` always produces the same file structure.
 
 **Security:** Strict guarantees are placed around package installation. You have control over
 whether lifecycle scripts are executed for packages and package hashes are stored in the
@@ -62,8 +62,7 @@ $ yarn add your-package
 
 ## Prior art
 
-Yarn wouldn't exist if it wasn't for excellent prior art. Followed are projects which Yarn has
-been inspired by:
+Yarn wouldn't exist if it wasn't for excellent prior art. Yarn has been inspired by the following projects:
 
  - [Bundler](https://github.com/bundler/bundler)
  - [Cargo](https://github.com/rust-lang/cargo)
