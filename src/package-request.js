@@ -85,6 +85,7 @@ export default class PackageRequest {
           hash: resolvedParts.hash,
           registry: shrunk.registry,
         },
+        optionalDependencies: shrunk.optionalDependencies,
         dependencies: shrunk.dependencies,
       };
     } else {
