@@ -42,7 +42,13 @@ export const TARBALL_FILENAME = '.yarn-tarball.tgz';
 export const CLEAN_FILENAME = '.yarnclean';
 export const SINGLE_INSTANCE_FILENAME = '.yarn-single-instance';
 
-export const USER_AGENT = `kpm v${pkg.version}`;
+export const USER_AGENT = [
+  `yarn/${pkg.version}`,
+  'npm/?',
+  `node/${process.version}`,
+  process.platform,
+  process.arch,
+].join(' ');
 
 export const GITHUB_USER = 'yarnpkg';
 export const GITHUB_REPO = 'yarn';
