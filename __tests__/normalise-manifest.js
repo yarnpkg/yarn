@@ -36,13 +36,20 @@ for (let name of nativeFs.readdirSync(fixturesLoc)) {
     let actual   = await fs.readJson(path.join(loc, 'actual.json'));
     let expected = await fs.readJson(path.join(loc, 'expected.json'));
 
+    let isRoot = actual._root;
+    if (isRoot == null) {
+      isRoot = true;
+    } else {
+      delete actual._root;
+    }
+
     let error = expected._error;
     if (error) {
       delete expected._error;
     }
 
     try {
-      actual = await normaliseManifest(actual, loc, config, true);
+      actual = await normaliseManifest(actual, loc, config, isRoot);
     } catch (err) {
       if (error && err.message === error) {
         return;

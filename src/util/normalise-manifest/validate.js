@@ -12,9 +12,16 @@ const strings = [
 ];
 
 const dependencyKeys = [
-  'dependencies',
-  'devDependencies',
+  // npm registry will include optionalDependencies in dependencies and we'll want to dedupe them from the
+  // other fields first
   'optionalDependencies',
+
+  // it's seemingly common to include a dependency in dependencies and devDependencies of the same name but
+  // different ranges, this can cause a lot of issues with our determinism and the behaviour of npm is
+  // currently unspecified.
+  'dependencies',
+
+  'devDependencies',
 ];
 
 function isValidName(name: string): boolean {
@@ -112,9 +119,6 @@ export default function(info: Object, isRoot: boolean, reporter: Reporter, warn:
   for (let [type, deps] of depTypes) {
     for (let name in deps) {
       let version = deps[name];
-      if (version === '*') {
-        continue;
-      }
 
       // check collisions
       for (let [type2, deps2] of depTypes) {
@@ -124,9 +128,13 @@ export default function(info: Object, isRoot: boolean, reporter: Reporter, warn:
         }
 
         if (version !== version2) {
-          throw new TypeError(
-            reporter.lang('manifestDependencyCollision', type, name, version, type2, version2),
-          );
+          if (isRoot) {
+            // only throw a warning when at the root
+            warn(
+              reporter.lang('manifestDependencyCollision', type, name, version, type2, version2),
+            );
+          }
+          delete deps2[name];
         }
       }
     }
