@@ -86,7 +86,7 @@ export default class JSONReporter extends BaseReporter {
 
     return {
       spinners,
-      end() {
+      end: () => {
         this._dump('activitySetEnd', {id});
       },
     };
