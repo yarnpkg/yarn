@@ -52,15 +52,18 @@ export default class PackageRequest {
   visibility: VisibilityAction;
   optional: boolean;
 
-  getHuman(): string {
+  getParentNames(): Array<string> {
     const chain = [];
 
-    let delegator = this;
-    do {
-      chain.push(delegator.pattern);
-    } while (delegator = delegator.parentRequest);
+    let request = this.parentRequest;
+    while (request) {
+      let info = this.resolver.getStrictResolvedPattern(request.pattern);
+      chain.unshift(info.name);
 
-    return chain.reverse().join(' > ');
+      request = request.parentRequest;
+    }
+
+    return chain;
   }
 
   getLocked(remoteType: string): ?Object {
