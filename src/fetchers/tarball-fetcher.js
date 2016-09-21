@@ -187,6 +187,6 @@ export default class TarballFetcher extends BaseFetcher {
 
 export class LocalTarballFetcher extends TarballFetcher {
   _fetch(): Promise<FetchedOverride> {
-    return this.fetchFromLocal(this.reference);;
+    return this.fetchFromLocal(this.reference);
   } 
 }

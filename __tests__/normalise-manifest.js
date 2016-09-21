@@ -92,11 +92,6 @@ test('util.extractDescription', () => {
   expect(util.extractDescription(undefined)).toEqual(undefined);
 });
 
-
-type Dict<T> = {
-  [index: string]: T;
-}
-
 // fill out expected and normalise paths
 function expand<T>(expected: T): T {
   if (expected.man && Array.isArray(expected.man)) {
@@ -124,7 +119,7 @@ function normalisePath<T>(path: T): ?string {
 
 function normalisePaths(paths: mixed): ?string[] {
   if (Array.isArray(paths)) {
-    return paths.map(p => {
+    return paths.map((p) => {
       if (typeof p !== 'string') {
         throw new Error(`Expected string in paths, got ${JSON.stringify(paths)}`);
       }
@@ -135,7 +130,7 @@ function normalisePaths(paths: mixed): ?string[] {
   }
 }
 
-function normalisePathDict(paths: mixed) {
+function normalisePathDict(paths: mixed): { [key: string]: mixed } {
   let out = {};
 
   if (!paths || typeof paths !== 'object') {
