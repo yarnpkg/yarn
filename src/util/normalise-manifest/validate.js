@@ -12,9 +12,16 @@ const strings = [
 ];
 
 const dependencyKeys = [
-  'dependencies',
-  'devDependencies',
+  // npm registry will include optionalDependencies in dependencies and we'll want to dedupe them from the
+  // other fields first
   'optionalDependencies',
+
+  // it's seemingly common to include a dependency in dependencies and devDependencies of the same name but
+  // different ranges, this can cause a lot of issues with our determinism and the behaviour of npm is
+  // currently unspecified.
+  'dependencies',
+
+  'devDependencies',
 ];
 
 function isValidName(name: string): boolean {
