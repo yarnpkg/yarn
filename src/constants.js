@@ -50,7 +50,7 @@ export const SELF_UPDATE_DOWNLOAD_FOLDER = 'updates';
 
 export const ENV_PATH_KEY = getPathKey(process.platform, process.env);
 
-export function getPathKey(platform: string, env: { [key: string]: any }): string {
+export function getPathKey(platform: string, env: { [key: string]: ?string }): string {
   let pathKey = 'PATH';
 
   // windows calls it's path "Path" usually, but this is not guaranteed.
