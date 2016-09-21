@@ -59,7 +59,7 @@ export async function getPackageVersion(config: Config, packagePath: string): Pr
 export async function run(
   factory: (config: Config, reporter: Reporter, lockfile: Lockfile) => Install,
   cwd: string,
-  checkInstalled: ?(config: Config, reporter: Reporter) => ?Promise<void>,
+  checkInstalled: ?(config: Config, reporter: Reporter, install: Install) => ?Promise<void>,
   beforeInstall: ?(cwd: string) => ?Promise<void>,
 ): Promise<void> {
   let out = '';
@@ -98,7 +98,7 @@ export async function run(
     await check(config, reporter, {}, []);
     try {
       if (checkInstalled) {
-        await checkInstalled(config, reporter);
+        await checkInstalled(config, reporter, install);
       }
     } finally {
       // clean up

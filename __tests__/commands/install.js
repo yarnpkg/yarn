@@ -68,6 +68,12 @@ parallelTest("writes new lockfile if existing one isn't satisfied", async (): Pr
   }
 });
 
+parallelTest('install transitive optional dependency from lockfile', (): Promise<void> => {
+  return runInstall({}, 'install-optional-dep-from-lockfile', (config, reporter, install) => {
+    assert(install && install.resolver && install.resolver.patterns['fsevents@^1.0.0']);
+  });
+});
+
 parallelTest('root install from shrinkwrap', (): Promise<void> => {
   return runInstall({}, 'root-install-with-lockfile');
 });
