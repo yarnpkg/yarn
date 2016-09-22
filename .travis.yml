@@ -4,6 +4,11 @@ git:
 sudo: true # can't use this due to git upgrade requirement
 language: generic
 
+os:
+- osx
+- linux
+osx_image: xcode7.3
+
 branches:
   only:
   - master
@@ -17,10 +22,9 @@ cache:
 
 env:
   matrix:
-  - TEST_TYPE="build-dist"
-  - TEST_TYPE="lockfile"
+  - TEST_TYPE="check-lockfile"
   - TEST_TYPE="lint"
-  - TEST_TYPE="homebrew"
+  - TEST_TYPE="homebrew-formula"
   - TEST_TYPE="release"
   - NODE_VERSION="6" TEST_TYPE="js"
   - NODE_VERSION="5" TEST_TYPE="js"
@@ -29,12 +33,12 @@ env:
 matrix:
   exclude:
   # don't run homebrew test on linux
-  - env: TEST_TYPE="homebrew"
+  - env: TEST_TYPE="homebrew-formula"
     os: linux
   # don't run these on osx since we don't need cross-os testing
   - env: TEST_TYPE="release"
     os: osx
-  - env: TEST_TYPE="lockfile"
+  - env: TEST_TYPE="check-lockfile"
     os: osx
   - env: TEST_TYPE="lint"
     os: osx
@@ -54,11 +58,6 @@ install:
  - npm install -g npm@3
  - npm install
 
-os:
- - osx
- - linux
-osx_image: xcode7.3
-
 deploy:
   provider: releases
   api_key:
@@ -66,32 +65,32 @@ deploy:
   file: dist/yarn.tar.gz
   on:
     tags: true
-    condition: $TEST_TYPE = "release"
+    condition: "$TEST_TYPE" == "release"
     repo: yarnpkg/yarn
 
 script:
  # js task - only run when src, tests or js/json files are touched
  - >
-  if [[ "$TEST_TYPE" == "js" ] && [ -n `git diff master -- src "*.js" __tests__ "*.json"` ]]; then
+  if [ "$TEST_TYPE" == "js" ] && [ -n `git diff master -- src "*.js" __tests__ "*.json"` ]; then
     npm run test-ci
   fi
- # homebrew task - only run when Formula directory is touched
+ # homebrew-formula task - only run when Formula directory is touched
  - >
-  if [[ "$TEST_TYPE" == "homebrew"] && [ -n `git diff master -- Formula` ]]; then
+  if [ "$TEST_TYPE" == "homebrew-formula"] && [ -n `git diff master -- Formula` ]; then
     npm run test-homebrew
   fi
- # build-dist task - only run when src or package.json is tocuhed
+ # release task - only run when src or package.json is tocuhed
  - >
-  if [[ "$TEST_TYPE" == "release" ] && [ -n `git diff master -- src package.json ]]; then
+  if [ "$TEST_TYPE" == "release" ] && [ -n `git diff master -- src package.json ]; then
     npm run build-dist
   fi
- # lockfile task - only run when package.json or yarn.lock are touched
+ # check-lockfile task - only run when package.json or yarn.lock are touched
  - >
-  if [[ "$TEST_TYPE" == "lockfile" ] && [ -n `git diff master -- yarn.lock package.json` ]]; then
+  if [ "$TEST_TYPE" == "check-lockfile" ] && [ -n `git diff master -- yarn.lock package.json` ]]; then
     npm run check-lockfile
   fi
  # lint task - only run on changes to js/json files
  - >
-  if [[ "$TEST_TYPE" == "lint" ] && [ -n `git diff master -- "*.js" "*.json"` ]]; then
+  if [ "$TEST_TYPE" == "lint" ] && [ -n `git diff master -- "*.js" "*.json"` ]; then
     npm run lint
   fi
