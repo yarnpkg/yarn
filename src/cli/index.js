@@ -17,8 +17,9 @@ let commander = require('commander');
 let invariant = require('invariant');
 let lockfile = require('proper-lockfile');
 let onDeath = require('death');
-let pkg = require('../../package');
 let _ = require('lodash');
+
+let pkg = require('../../package.json');
 
 loudRejection();
 
