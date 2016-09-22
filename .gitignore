@@ -5,10 +5,7 @@
 *.log
 /.nyc_output
 /coverage
-/test/.tmp
-/test/fixtures/**/kpm_modules
-/test/fixtures/**/node_modules
+/__tests__/fixtures/**/.kpm
+/__tests__/fixtures/**/node_modules
 /dist
 /updates
-fbkpm_modules
-test/fixtures/**/.fbkpm
