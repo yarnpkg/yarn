@@ -94,7 +94,7 @@ if (commander.json) {
   Reporter = JSONReporter;
 }
 let reporter = new Reporter({
-  emoji: true,
+  emoji: process.stdout.isTTY && process.platform === 'darwin',
 });
 reporter.initPeakMemoryCounter();
 
