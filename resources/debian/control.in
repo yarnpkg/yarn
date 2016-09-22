@@ -1,0 +1,10 @@
+Package: yarn
+Version: $VERSION-1
+Depends: nodejs
+Section: devel
+Priority: optional
+Architecture: all
+Installed-Size: $INSTALLED_SIZE
+Maintainer: Yarn Developers <yarn@dan.cx>
+Homepage: https://yarnpkg.com/
+Description: A package manager for the npm and bower package repositories
