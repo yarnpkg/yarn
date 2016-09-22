@@ -544,7 +544,7 @@ export class Install {
 export function setFlags(commander: Object) {
   commander.usage('install [flags]');
   commander.option('--force', '');
-  commander.option('-f, --flat', 'only allow one version of a package');
+  commander.option('--flat', 'only allow one version of a package');
   commander.option('--prod, --production', '');
   commander.option('--no-lockfile', "don't read or generate a lockfile");
   commander.option('--pure-lockfile', "don't generate a lockfile");
