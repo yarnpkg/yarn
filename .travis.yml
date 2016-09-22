@@ -20,13 +20,19 @@ env:
   - TEST_TYPE="build-dist"
   - TEST_TYPE="lockfile"
   - TEST_TYPE="lint"
+  - TEST_TYPE="homebrew"
+  - TEST_TYPE="release"
   - NODE_VERSION="6" TEST_TYPE="js"
   - NODE_VERSION="5" TEST_TYPE="js"
   - NODE_VERSION="4" TEST_TYPE="js"
 
 matrix:
   exclude:
-  - env: TEST_TYPE="build-dist"
+  # don't run homebrew test on linux
+  - env: TEST_TYPE="homebrew"
+    os: linux
+  # don't run these on osx since we don't need cross-os testing
+  - env: TEST_TYPE="release"
     os: osx
   - env: TEST_TYPE="lockfile"
     os: osx
@@ -51,9 +57,41 @@ install:
 os:
  - osx
  - linux
+osx_image: xcode7.3
+
+deploy:
+  provider: releases
+  api_key:
+    secure: c2BapON/spJym9NM4ltz/k1dHWs1+/zELS+21f4btKbA6XbFBYhry9nfEWrGmLYphAp/GcJhUbjH9cLh1k2JcqsD6x7CzXls/XTLlMhRSPDAfDPkzBAlu7Ftzo15sdDFIact4HIhDPPBSqehrJWQnXgnwfKuxG3nkhVKwIIRaMq74dtEggBGwDMupqvlcHD5DFvMcd72Q4DIGOXEa6H2mEcrAdBdwLx7ts2T3h+QMMLtXIAQZlN2H0ZGUpyATM649bUfSFihyjIGQrLcGCVVKTaQSfZ7nF4s7T8lUvbx5KxFNYcsq4UR1b+6tqRHHBkHQ+arrbekGHFkK2ODrPRNz0kcmS4L8CZlKJ2WYvChvN7v0Bu2m3qG6H7rkkWt18xGLnPL45W9ARHMYB9CF7CLzdls0Y3iOA7Zjq9mW3Cpp9gEaoajvxcgMrrLW1m1aQsqxg/0d2vJbqQ6qSnrP6xDmg4L1jvlQJq/1dTAeH4Zco7qDZpRD3yzTTkZb1uWkfCk7bkQ+Fmlk+L759s0YhmySKpB1MUhUjra3FOAzzM8z7ZzREwCs4doNuCaVlir+NKQ/bkyt6hxDJyu/SnN1TfkyQ9eItAkqgxxOBng5CrR0n9VFKgEXe471SSs3/Fux4sn6tmzP9f1KFMsJPpXzQb6EZl5f0x9JdE+MRzI7vwi62Y=
+  file: dist/yarn.tar.gz
+  on:
+    tags: true
+    condition: $TEST_TYPE = "release"
+    repo: yarnpkg/yarn
 
 script:
- - if [[ "$TEST_TYPE" == "js" ]]; then npm run test-ci; fi
- - if [[ "$TEST_TYPE" == "build-dist" ]]; then npm run build-dist; fi
- - if [[ "$TEST_TYPE" == "lockfile" ]]; then npm run check-lockfile; fi
- - if [[ "$TEST_TYPE" == "lint" ]]; then npm run lint; fi
+ # js task - only run when src, tests or js/json files are touched
+ - >
+  if [[ "$TEST_TYPE" == "js" ] && [ -n `git diff master -- src "*.js" __tests__ "*.json"` ]]; then
+    npm run test-ci
+  fi
+ # homebrew task - only run when Formula directory is touched
+ - >
+  if [[ "$TEST_TYPE" == "homebrew"] && [ -n `git diff master -- Formula` ]]; then
+    npm run test-homebrew
+  fi
+ # build-dist task - only run when src or package.json is tocuhed
+ - >
+  if [[ "$TEST_TYPE" == "release" ] && [ -n `git diff master -- src package.json ]]; then
+    npm run build-dist
+  fi
+ # lockfile task - only run when package.json or yarn.lock are touched
+ - >
+  if [[ "$TEST_TYPE" == "lockfile" ] && [ -n `git diff master -- yarn.lock package.json` ]]; then
+    npm run check-lockfile
+  fi
+ # lint task - only run on changes to js/json files
+ - >
+  if [[ "$TEST_TYPE" == "lint" ] && [ -n `git diff master -- "*.js" "*.json"` ]]; then
+    npm run lint
+  fi
