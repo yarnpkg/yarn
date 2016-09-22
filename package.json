@@ -1,5 +1,8 @@
 {
   "name": "yarn",
+  "description": "JavaScript package manager",
+  "homepage": "https://yarnpkg.io/",
+  "bugs": "https://github.com/yarnpkg/yarn/issues",
   "version": "0.13.0",
   "license": "BSD-2-Clause",
   "preferGlobal": true,
@@ -77,7 +80,6 @@
   },
   "scripts": {
     "test": "npm run lint && npm run test-only",
-    "test-ci": "npm run build && npm run test-only",
     "check-lockfile": "./scripts/check-lockfile.sh",
     "build": "gulp build",
     "watch": "gulp watch",

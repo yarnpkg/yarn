@@ -13,6 +13,8 @@ const fs = require('fs');
 
 const babelRc = JSON.parse(fs.readFileSync(path.join(__dirname, '.babelrc'), 'utf8'));
 
+const compiled = {};
+
 function build(lib, opts) {
   return gulp.src('src/**/*')
     .pipe(plumber({
@@ -22,6 +24,12 @@ function build(lib, opts) {
     }))
     .pipe(newer(lib))
     .pipe(new stream.PassThrough({objectMode: true}).on('data', (file) => {
+      // don't output compiled files on first appearance
+      if (!compiled[file.relative]) {
+        compiled[file.relative] = true;
+        return;
+      }
+
       const dest = path.join(file.cwd, lib, file.relative);
       gutil.log('Compiling', '"' + chalk.cyan(file.path) + '" to "' + chalk.cyan(dest) + '"...');
     }))
