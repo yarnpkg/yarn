@@ -3,9 +3,6 @@ set -ex
 
 DIR="TEMP_LOCKFILE_CHECK"
 
-# build yarn
-npm run build
-
 # create temp directory
 rm -rf $DIR
 mkdir $DIR
