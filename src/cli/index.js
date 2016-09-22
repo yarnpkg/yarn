@@ -95,6 +95,7 @@ if (commander.json) {
   Reporter = JSONReporter;
 }
 let reporter = new Reporter({
+  // $FlowFixMe
   emoji: process.stdout.isTTY && process.platform === 'darwin',
 });
 reporter.initPeakMemoryCounter();
