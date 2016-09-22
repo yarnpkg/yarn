@@ -73,26 +73,26 @@ script:
  - npm run build
  # js task - only run when src, tests or js/json files are touched
  - >
-  if [ "$TEST_TYPE" == "js" ] && [ -n "`git diff master -- src "*.js" __tests__ "*.json"`" ]; then
+  if [ "$TEST_TYPE" == "js" ]; then
     npm run test-only
   fi
  # homebrew-formula task - only run when Formula directory is touched
  - >
-  if [ "$TEST_TYPE" == "homebrew-formula"] && [ -n "`git diff master -- Formula`" ]; then
+  if [ "$TEST_TYPE" == "homebrew-formula" ]; then
     ./scripts/test-homebrew.sh
   fi
  # release task - only run when src or package.json is tocuhed
  - >
-  if [ "$TEST_TYPE" == "release" ] && [ -n "`git diff master -- src package.json`" ]; then
+  if [ "$TEST_TYPE" == "release" ]; then
     npm run build-dist
   fi
  # check-lockfile task - only run when package.json or yarn.lock are touched
  - >
-  if [ "$TEST_TYPE" == "check-lockfile" ] && [ -n "`git diff master -- yarn.lock package.json`" ]; then
+  if [ "$TEST_TYPE" == "check-lockfile" ]; then
     npm run check-lockfile
   fi
  # lint task - only run on changes to js/json files
  - >
-  if [ "$TEST_TYPE" == "lint" ] && [ -n "`git diff master -- "*.js" "*.json"`" ]; then
+  if [ "$TEST_TYPE" == "lint" ]; then
     npm run lint
   fi
