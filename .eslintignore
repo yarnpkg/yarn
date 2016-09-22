@@ -4,8 +4,7 @@ lib-legacy
 node_modules
 flow-typed
 coverage
-Gulpfile.js
-/index.js
+gulpfile.js
 scripts
 updates
 dist

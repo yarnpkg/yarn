@@ -2,6 +2,7 @@
 
 /* eslint-disable no-var */
 /* eslint-disable flowtype/require-valid-file-annotation */
+'use strict';
 
 var semver = require('semver');
 var ver = process.versions.node;
