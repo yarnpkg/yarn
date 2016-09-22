@@ -1,5 +1,8 @@
 {
   "name": "yarn",
+  "description": "JavaScript package manager",
+  "homepage": "https://yarnpkg.io/",
+  "bugs": "https://github.com/yarnpkg/yarn/issues",
   "version": "0.13.0",
   "license": "BSD-2-Clause",
   "preferGlobal": true,
@@ -84,7 +87,8 @@
     "test-only": "jest --coverage --verbose -i",
     "lint": "eslint . && flow check",
     "release-branch": "./scripts/release-branch.sh",
-    "build-dist": "./scripts/build-dist.sh"
+    "build-dist": "./scripts/build-dist.sh",
+    "homebrew": "./scripts/test-homebrew.sh"
   },
   "eslintConfig": {
     "extends": "eslint-config-fb-strict",

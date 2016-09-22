@@ -1,5 +1,4 @@
 #!/bin/bash
-
 set -ex
 
 DIR="TEMP_LOCKFILE_CHECK"
