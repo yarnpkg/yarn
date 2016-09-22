@@ -4,11 +4,9 @@ import {ConsoleReporter, JSONReporter} from '../reporters/index.js';
 import * as commands from './commands/index.js';
 import * as constants from '../constants.js';
 import * as network from '../util/network.js';
-import * as lockfile from 'proper-lockfile';
 
 import aliases from './aliases.js';
 import Config from '../config.js';
-import onDeath from 'death';
 
 const net = require('net');
 const path = require('path');
@@ -17,8 +15,11 @@ const fs = require('fs');
 let loudRejection = require('loud-rejection');
 let commander = require('commander');
 let invariant = require('invariant');
-let pkg = require('../../package');
+let lockfile = require('proper-lockfile');
+let onDeath = require('death');
 let _ = require('lodash');
+
+let pkg = require('../../package.json');
 
 loudRejection();
 
