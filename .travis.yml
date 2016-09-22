@@ -65,7 +65,7 @@ deploy:
   file: dist/yarn.tar.gz
   on:
     tags: true
-    condition: "$TEST_TYPE" == "release"
+    condition: $TEST_TYPE == "release"
     repo: yarnpkg/yarn
 
 script:
