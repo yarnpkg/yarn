@@ -70,7 +70,7 @@ export class Install {
     this.fetcher = new PackageFetcher(config, this.resolver);
     this.compatibility = new PackageCompatibility(config, this.resolver);
     this.linker = new PackageLinker(config, this.resolver);
-    this.scripts = new PackageInstallScripts(config, this.resolver, flags.force);
+    this.scripts = new PackageInstallScripts(config, this.resolver, flags.rebuild);
   }
 
   flags: Object;
@@ -168,7 +168,7 @@ export class Install {
     requests: DependencyRequestPatterns,
     match: IntegrityMatch,
   ): Promise<InstallPrepared> {
-    if (!this.flags.force && match.matches) {
+    if (!this.flags.rebuild && match.matches) {
       this.reporter.success(this.reporter.lang('upToDate'));
       return Promise.resolve({patterns, requests, skip: true});
     }
@@ -229,7 +229,7 @@ export class Install {
       this.reporter.step(
         curr,
         total,
-        this.flags.force ? this.reporter.lang('rebuildingPackages') : this.reporter.lang('buildingFreshPackages'),
+        this.flags.rebuild ? this.reporter.lang('rebuildingPackages') : this.reporter.lang('buildingFreshPackages'),
         emoji.get('page_with_curl'),
       );
       await this.scripts.init(patterns);
@@ -543,7 +543,7 @@ export class Install {
 
 export function setFlags(commander: Object) {
   commander.usage('install [flags]');
-  commander.option('--force', '');
+  commander.option('--rebuild', 'Force already installed packages to rebuild');
   commander.option('--flat', 'only allow one version of a package');
   commander.option('--prod, --production', '');
   commander.option('--no-lockfile', "don't read or generate a lockfile");

@@ -14,12 +14,12 @@ const path = require('path');
 const _ = require('lodash');
 
 export default class PackageInstallScripts {
-  constructor(config: Config, resolver: PackageResolver, force: boolean) {
+  constructor(config: Config, resolver: PackageResolver, rebuild: boolean) {
     this.installed = 0;
     this.resolver = resolver;
     this.reporter = config.reporter;
     this.config = config;
-    this.force = force;
+    this.rebuild = rebuild;
   }
 
   needsPermission: boolean;
@@ -27,7 +27,7 @@ export default class PackageInstallScripts {
   reporter: Reporter;
   installed: number;
   config: Config;
-  force: boolean;
+  rebuild: boolean;
 
 
   getInstallCommands(pkg: Manifest): Array<string> {
@@ -150,7 +150,7 @@ export default class PackageInstallScripts {
     }
     const ref = pkg._reference;
     invariant(ref, 'Missing package reference');
-    if (!ref.fresh && !this.force) {
+    if (!ref.fresh && !this.rebuild) {
       // this package hasn't been touched
       return false;
     }
