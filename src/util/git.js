@@ -31,7 +31,7 @@ export default class Git {
     this.hash = hash;
     this.ref = hash;
     // TODO: Fix this workaround for #411
-    if (url.startsWith('git+')) {
+    if (url.startsWith('git+http')) {
       url = url.replace('git+', '');
     }
     this.url = url;
