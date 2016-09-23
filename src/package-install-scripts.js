@@ -173,6 +173,7 @@ export default class PackageInstallScripts {
 
   // find the next package to be installed
   findInstallablePackage(workQueue: Set<Manifest>, installed: Set<Manifest>): ?Manifest {
+
     for (let pkg of workQueue) {
       const ref = pkg._reference;
       invariant(ref, 'expected reference');
@@ -219,7 +220,9 @@ export default class PackageInstallScripts {
 
       // found a package to install
       workQueue.delete(pkg);
-      await this.runCommand(spinner, pkg);
+      if (this.packageCanBeInstalled(pkg)) {
+        await this.runCommand(spinner, pkg);
+      }
       installed.add(pkg);
       for (let workerResolve of waitQueue) {
         workerResolve();
@@ -233,11 +236,7 @@ export default class PackageInstallScripts {
     let installed = new Set();
     let pkgs = this.resolver.getTopologicalManifests(seedPatterns);
     for (let pkg of pkgs) {
-      if (this.packageCanBeInstalled(pkg)) {
-        workQueue.add(pkg);
-      } else {
-        installed.add(pkg);
-      }
+      workQueue.add(pkg);
     }
 
     // waitQueue acts like a semaphore to allow workers to register to be notified
