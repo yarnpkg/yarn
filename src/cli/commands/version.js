@@ -13,7 +13,7 @@ let semver = require('semver');
 let path = require('path');
 
 function isValidNewVersion(oldVersion: string, newVersion: string): boolean {
-  return !!(semver.valid(newVersion) || semver.inc(oldVersion, newVersion));
+  return !!(semver.valid(newVersion, true) || semver.inc(oldVersion, newVersion, true));
 }
 
 export function setFlags(commander: Object) {
@@ -57,7 +57,7 @@ export async function run(
     }
   }
   if (newVersion) {
-    newVersion = semver.inc(oldVersion, newVersion) || newVersion;
+    newVersion = semver.inc(oldVersion, newVersion, true) || newVersion;
   }
   invariant(newVersion, 'expected new version');
 

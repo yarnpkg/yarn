@@ -55,16 +55,16 @@ export function testEngine(name: string, range: string, versions: Versions): boo
     return false;
   }
 
-  if (semver.satisfies(actual, range)) {
+  if (semver.satisfies(actual, range, true)) {
     return true;
   }
 
-  if (name === 'node' && semver.gt(actual, '1.0.0')) {
+  if (name === 'node' && semver.gt(actual, '1.0.0', true)) {
     // WARNING: this is a massive hack and is super gross but necessary for compatibility
     // some modules have the `engines.node` field set to a caret version below semver major v1
     // eg. ^0.12.0. this is problematic as we enforce engines checks and node is now on version >=1
     // to allow this pattern we transform the node version to fake ones in the minor range 10-13
-    const major = semver.major(actual);
+    const major = semver.major(actual, true);
     const fakes = [
       `0.10.${major}`,
       `0.11.${major}`,
@@ -72,7 +72,7 @@ export function testEngine(name: string, range: string, versions: Versions): boo
       `0.13.${major}`,
     ];
     for (const actualFake of fakes) {
-      if (semver.satisfies(actualFake, range)) {
+      if (semver.satisfies(actualFake, range, true)) {
         return true;
       }
     }
