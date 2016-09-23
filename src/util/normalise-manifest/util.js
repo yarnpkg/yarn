@@ -65,8 +65,8 @@ export function normalisePerson(person: mixed): mixed | PersonObject {
   return parsePerson(stringifyPerson(person));
 }
 
-export function extractDescription(readme: ?string): ?string {
-  if (!readme) {
+export function extractDescription(readme: mixed): ?string {
+  if (typeof readme !== 'string') {
     return undefined;
   }
 
