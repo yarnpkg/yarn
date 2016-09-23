@@ -110,7 +110,7 @@ export async function run(
 
       for (const name in deps) {
         const range = deps[name];
-        if (!semver.validRange(range, true)) {
+        if (!semver.validRange(range, config.looseSemver)) {
           continue; // exotic
         }
 
@@ -147,7 +147,7 @@ export async function run(
         //
         const depPkg = await fs.readJson(depPkgLoc);
         const foundHuman = `${humaniseLocation(path.dirname(depPkgLoc)).join('#')}@${depPkg.version}`;
-        if (!semver.satisfies(depPkg.version, range, true)) {
+        if (!semver.satisfies(depPkg.version, range, config.looseSemver)) {
           // module isn't correct semver
           reportError(`${subHuman} doesn't satisfy found match of ${foundHuman}`);
           continue;
@@ -161,8 +161,8 @@ export async function run(
 
           const packageJson = await fs.readJson(loc);
           if (packageJson.version === depPkg.version ||
-             (semver.satisfies(packageJson.version, range, true) &&
-             semver.gt(packageJson.version, depPkg.version, true))) {
+             (semver.satisfies(packageJson.version, range, config.looseSemver) &&
+             semver.gt(packageJson.version, depPkg.version, config.looseSemver))) {
             reporter.warn(
               `${subHuman} could be deduped from ${packageJson.version} to ` +
               `${humaniseLocation(path.dirname(loc)).join('#')}@${packageJson.version}`,

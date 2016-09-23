@@ -13,7 +13,7 @@ export default async function (
   config: Config,
   isRoot: boolean,
 ): Promise<Manifest> {
-  await fix(info, moduleLoc, config.reporter);
+  await fix(info, moduleLoc, config.reporter, config.looseSemver);
 
   // create human readable name
   let {name, version} = info;
