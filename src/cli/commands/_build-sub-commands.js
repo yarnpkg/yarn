@@ -3,7 +3,7 @@
 import type {Reporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
 
-let _ = require('lodash');
+const camelCase = require('camelcase');
 
 type RunCommand = (
   config: Config,
@@ -36,7 +36,7 @@ export default function(rootCommandName: string, subCommands: SubCommands, usage
     flags: Object,
     args: Array<string>,
   ): Promise<void> {
-    let subName = _.camelCase(args.shift() || '');
+    let subName = camelCase(args.shift() || '');
     let isValidCommand = subName && subCommandNames.indexOf(subName) >= 0;
     if (isValidCommand) {
       let command: RunCommand = subCommands[subName];

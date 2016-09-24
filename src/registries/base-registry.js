@@ -4,8 +4,8 @@ import type RequestManager, {RequestMethods} from '../util/request-manager.js';
 import {removePrefix} from '../util/misc.js';
 import * as fs from '../util/fs.js';
 
+const objectPath = require('object-path');
 const path = require('path');
-const _ = require('lodash');
 
 export type RegistryRequestOptions = {
   method?: RequestMethods,
@@ -98,7 +98,7 @@ export default class BaseRegistry {
       key = key.replace(/_/g, '-');
 
       // set it via a path
-      _.set(this.config, key, val);
+      objectPath.set(this.config, key, val);
     }
   }
 }

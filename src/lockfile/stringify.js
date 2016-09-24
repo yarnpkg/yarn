@@ -3,8 +3,6 @@
 import {sortAlpha} from '../util/misc.js';
 import {LOCKFILE_VERSION} from '../constants.js';
 
-const _ = require('lodash');
-
 function shouldWrapKey(str: string): boolean {
   return str.indexOf('true') === 0 || str.indexOf('false') === 0 ||
          /[:\s\n\\",\[\]]/g.test(str) || /^[0-9]/g.test(str) || !/^[a-zA-Z]/g.test(str);
@@ -43,8 +41,8 @@ function _stringify(obj: Object, indent: string = ''): string {
   // However priorities can be duplicated and native sort can shuffle things from run to run
   let keys = Object.keys(obj).sort(sortAlpha);
 
-  // stable sort, V8 Array.prototype.sort is not stable and we don't want to shuffle things randomly
-  keys = _.sortBy(keys, getKeyPriority);
+  // sort keys depending on priority
+  keys = keys.sort((a: string, b: string): boolean => getKeyPriority(a) > getKeyPriority(b));
 
   let addedKeys = [];
 

@@ -1,7 +1,6 @@
 /* @flow */
 
 const crypto = require('crypto');
-const _ = require('lodash');
 
 export function hash(str: string): string {
   return crypto.createHash('sha256').update(str).digest('hex');
@@ -23,7 +22,7 @@ export function entries<T>(obj: ?{ [key: string]: T }): Array<[string, T]> {
 }
 
 export function removePrefix(pattern: string, prefix: string): string {
-  if (pattern.indexOf(prefix) === 0) {
+  if (pattern.startsWith(prefix)) {
     pattern = pattern.slice(prefix.length);
   }
 
@@ -31,7 +30,7 @@ export function removePrefix(pattern: string, prefix: string): string {
 }
 
 export function removeSuffix(pattern: string, suffix: string): string {
-  if (_.endsWith(pattern, suffix)) {
+  if (pattern.endsWith(suffix)) {
     return pattern.slice(0, -suffix.length);
   }
 

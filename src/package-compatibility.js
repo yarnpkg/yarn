@@ -11,7 +11,6 @@ import {entries} from './util/misc.js';
 
 const invariant = require('invariant');
 const semver = require('semver');
-const _ = require('lodash');
 
 function isValid(items: Array<string>, actual: string): boolean {
   let isBlacklist = false;
@@ -137,7 +136,7 @@ export default class PackageCompatibility {
       }
     }
 
-    if (!this.config.ignoreEngines && _.isPlainObject(info.engines)) {
+    if (!this.config.ignoreEngines && typeof info.engines === 'object') {
       for (let [name, range] of entries(info.engines)) {
         if (aliases[name]) {
           name = aliases[name];
@@ -147,7 +146,7 @@ export default class PackageCompatibility {
           if (!testEngine(name, range, process.versions)) {
             pushError(this.reporter.lang('incompatibleEngine', name, range));
           }
-        } else if (!_.includes(ignore, name)) {
+        } else if (ignore.indexOf(name) < 0) {
           this.reporter.warn(`${human}: ${this.reporter.lang('invalidEngine', name)}`);
         }
       }

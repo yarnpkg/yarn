@@ -7,8 +7,8 @@ import parse from '../lockfile/parse.js';
 import * as fs from '../util/fs.js';
 
 const userHome = require('user-home');
+const defaults = require('defaults');
 const path = require('path');
-const _ = require('lodash');
 
 export default class YarnRegistry extends NpmRegistry {
   constructor(cwd: string, requestManager: RequestManager) {
@@ -31,7 +31,7 @@ export default class YarnRegistry extends NpmRegistry {
         this.homeConfig = config;
       }
 
-      _.defaults(this.config, config);
+      defaults(this.config, config);
     }
   }
 

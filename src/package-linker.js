@@ -16,7 +16,6 @@ const invariant = require('invariant');
 const cmdShim = promise.promisify(require('cmd-shim'));
 const semver = require('semver');
 const path = require('path');
-const _ = require('lodash');
 
 type DependencyPairs = Array<{
   dep: Manifest,
@@ -62,7 +61,7 @@ export default class PackageLinker {
     // link up `bin scripts` in `dependencies`
     for (const pattern of ref.dependencies) {
       const dep = this.resolver.getStrictResolvedPattern(pattern);
-      if (!_.isEmpty(dep.bin)) {
+      if (dep.bin && Object.keys(dep.bin).length) {
         deps.push({dep, loc: this.config.generateHardModulePath(dep._reference)});
       }
     }
@@ -78,7 +77,7 @@ export default class PackageLinker {
 
         const dep = await this.config.readManifest(loc, remote.registry);
 
-        if (!_.isEmpty(dep.bin)) {
+        if (dep.bin && Object.keys(dep.bin).length) {
           deps.push({dep, loc});
         }
       }
@@ -253,7 +252,7 @@ export default class PackageLinker {
     const src = this.config.generateHardModulePath(ref);
 
     // link bins
-    if (!_.isEmpty(resolved.bin)) {
+    if (resolved.bin && Object.keys(resolved.bin).length) {
       const folder = this.config.modulesFolder || path.join(this.config.cwd, this.config.getFolder(resolved));
       const binLoc = path.join(folder, '.bin');
       await fs.mkdirp(binLoc);

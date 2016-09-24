@@ -17,7 +17,6 @@ let readline = require('readline');
 let repeat = require('repeating');
 let chalk = require('chalk');
 let read = require('read');
-let _ = require('lodash');
 
 function sortTrees(trees: Trees = []): Trees {
   return trees.sort(function(tree1, tree2): number {
@@ -36,7 +35,7 @@ export default class ConsoleReporter extends BaseReporter {
   step(current: number, total: number, msg: string, emoji?: string) {
     msg = this._prependEmoji(msg, emoji);
 
-    if (_.endsWith(msg, '?')) {
+    if (msg.endsWith('?')) {
       msg = `${removeSuffix(msg, '?')}...?`;
     } else {
       msg += '...';

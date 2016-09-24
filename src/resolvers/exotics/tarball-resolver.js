@@ -10,7 +10,6 @@ import * as crypto from '../../util/crypto.js';
 import * as fs from '../../util/fs.js';
 
 const invariant = require('invariant');
-const _ = require('lodash');
 
 export default class TarballResolver extends ExoticResolver {
   constructor(request: PackageRequest, fragment: string) {
@@ -31,12 +30,12 @@ export default class TarballResolver extends ExoticResolver {
     }
 
     // full http url
-    if (pattern.indexOf('http://') === 0 || pattern.indexOf('https://') === 0) {
+    if (pattern.startsWith('http://') || pattern.startsWith('https://')) {
       return true;
     }
 
     // local file reference
-    if (_.endsWith(pattern, '.tgz') || _.endsWith(pattern, 'tar.gz')) {
+    if (pattern.endsWith('.tgz') || pattern.endsWith('tar.gz')) {
       return true;
     }
 

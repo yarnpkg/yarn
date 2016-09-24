@@ -10,7 +10,6 @@ import * as fs from '../fs.js';
 const semver = require('semver');
 const path = require('path');
 const url = require('url');
-const _ = require('lodash');
 
 const LICENSE_RENAMES = {
   'MIT/X11': 'MIT',
@@ -49,7 +48,7 @@ export default async function (info: Object, moduleLoc: string, reporter: Report
   }
 
   // expand people fields to objects
-  if (typeof info.author === 'string' || _.isPlainObject(info.author)) {
+  if (typeof info.author === 'string' || typeof info.author === 'object') {
     info.author = normalisePerson(info.author);
   }
   if (Array.isArray(info.contributors)) {
@@ -61,7 +60,7 @@ export default async function (info: Object, moduleLoc: string, reporter: Report
 
   // if there's no readme field then load the README file from the cwd
   if (!info.readme) {
-    const readmeFilename = _.find(files, (filename): boolean => {
+    const readmeFilename = files.find((filename): boolean => {
       const lower = filename.toLowerCase();
       return lower === 'readme' || lower.indexOf('readme.') === 0;
     });
@@ -137,7 +136,7 @@ export default async function (info: Object, moduleLoc: string, reporter: Report
   }
 
   // set scripts if we've polluted the empty object
-  if (!_.isEmpty(scripts)) {
+  if (Object.keys(scripts).length) {
     info.scripts = scripts;
   }
 
@@ -197,7 +196,7 @@ export default async function (info: Object, moduleLoc: string, reporter: Report
   }
 
   // get license file
-  const licenseFile = _.find(files, (filename): boolean => {
+  const licenseFile = files.find((filename): boolean => {
     const lower = filename.toLowerCase();
     return lower === 'license' || lower.indexOf('license.') === 0;
   });
@@ -211,7 +210,7 @@ export default async function (info: Object, moduleLoc: string, reporter: Report
         // some packages don't specify their license version but we can infer it based on their license file
         const basicLicense = info.license.toLowerCase().replace(/(-like|\*)$/g, '');
         const expandedLicense = inferredLicense.toLowerCase();
-        if (_.startsWith(expandedLicense, basicLicense)) {
+        if (expandedLicense.startsWith(basicLicense)) {
           // TODO consider doing something to notify the user
           info.license = inferredLicense;
         }

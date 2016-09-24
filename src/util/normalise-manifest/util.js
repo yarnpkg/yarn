@@ -3,14 +3,13 @@
 import type {PersonObject} from '../../types.js';
 
 const validateLicense = require('validate-npm-package-license');
-const _ = require('lodash');
 
 export function isValidLicense(license: string): boolean {
   return validateLicense(license).validForNewPackages;
 }
 
 export function stringifyPerson(person: any): any | string {
-  if (!_.isPlainObject(person)) {
+  if (typeof person !== 'object') {
     return person;
   }
 
