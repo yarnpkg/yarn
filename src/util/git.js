@@ -172,7 +172,7 @@ export default class Git {
     }
 
     return await this.config.resolveConstraints(
-      tags.filter((tag): boolean => !!semver.valid(tag)),
+      tags.filter((tag): boolean => !!semver.valid(tag, this.config.looseSemver)),
       range,
     ) || range;
   }

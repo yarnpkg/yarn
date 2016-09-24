@@ -12,8 +12,8 @@ let invariant = require('invariant');
 let semver = require('semver');
 let path = require('path');
 
-function isValidNewVersion(oldVersion: string, newVersion: string): boolean {
-  return !!(semver.valid(newVersion) || semver.inc(oldVersion, newVersion));
+function isValidNewVersion(oldVersion: string, newVersion: string, looseSemver: boolean): boolean {
+  return !!(semver.valid(newVersion, looseSemver) || semver.inc(oldVersion, newVersion, looseSemver));
 }
 
 export function setFlags(commander: Object) {
@@ -41,7 +41,7 @@ export async function run(
 
   // get new version
   let newVersion = flags.newVersion;
-  if (newVersion && !isValidNewVersion(oldVersion, newVersion)) {
+  if (newVersion && !isValidNewVersion(oldVersion, newVersion, config.looseSemver)) {
     throw new MessageError(reporter.lang('invalidVersion'));
   }
 
@@ -49,7 +49,7 @@ export async function run(
   while (!newVersion) {
     newVersion = await reporter.question(reporter.lang('newVersion'));
 
-    if (isValidNewVersion(oldVersion, newVersion)) {
+    if (isValidNewVersion(oldVersion, newVersion, config.looseSemver)) {
       break;
     } else {
       newVersion = null;
@@ -57,7 +57,7 @@ export async function run(
     }
   }
   if (newVersion) {
-    newVersion = semver.inc(oldVersion, newVersion) || newVersion;
+    newVersion = semver.inc(oldVersion, newVersion, config.looseSemver) || newVersion;
   }
   invariant(newVersion, 'expected new version');
 

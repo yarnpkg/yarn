@@ -19,6 +19,6 @@ export default class PackageConstraintResolver {
   config: Config;
 
   reduce(versions: Array<string>, range: string): Promise<?string> {
-    return Promise.resolve(semver.maxSatisfying(versions, range));
+    return Promise.resolve(semver.maxSatisfying(versions, range, this.config.looseSemver));
   }
 }

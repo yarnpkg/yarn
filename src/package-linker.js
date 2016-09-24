@@ -224,7 +224,7 @@ export default class PackageLinker {
 
       // validate found peer dependency
       if (foundDep) {
-        if (range === '*' || semver.satisfies(foundDep.version, range)) {
+        if (range === '*' || semver.satisfies(foundDep.version, range, this.config.looseSemver)) {
           ref.addDependencies([foundDep.pattern]);
         } else {
           this.reporter.warn(this.reporter.lang('incorrectPeer', `${name}@${range}`));

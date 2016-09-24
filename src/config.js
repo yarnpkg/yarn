@@ -26,6 +26,8 @@ type ConfigOptions = {
   preferOffline?: boolean,
   captureHar?: boolean,
   ignoreEngines?: boolean,
+  // Loosely compare semver for invalid cases like "0.01.0"
+  looseSemver?: boolean,
 };
 
 type PackageMetadata = {
@@ -46,6 +48,8 @@ export default class Config {
     this.cache = map();
     this.cwd = opts.cwd || process.cwd();
 
+    this.looseSemver = opts.looseSemver == undefined ? true : opts.looseSemver;
+
     this.preferOffline = !!opts.preferOffline;
     this.modulesFolder = opts.modulesFolder;
     this.packagesRoot = opts.packagesRoot;
@@ -54,6 +58,7 @@ export default class Config {
   }
 
   //
+  looseSemver: boolean;
   offline: boolean;
   preferOffline: boolean;
 

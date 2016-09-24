@@ -16,12 +16,17 @@ const LICENSE_RENAMES = {
   X11: 'MIT',
 };
 
-export default async function (info: Object, moduleLoc: string, reporter: Reporter): Promise<void> {
+export default async function (
+  info: Object,
+  moduleLoc: string,
+  reporter: Reporter,
+  looseSemver: boolean,
+): Promise<void> {
   const files = await fs.readdir(moduleLoc);
 
   // clean info.version
   if (typeof info.version === 'string' && !semver.valid(info.version)) {
-    info.version = semver.clean(info.version) || info.version;
+    info.version = semver.clean(info.version, looseSemver) || info.version;
   }
 
   // if name or version aren't set then set them to empty strings
