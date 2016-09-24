@@ -55,6 +55,10 @@ export function testEngine(name: string, range: string, versions: Versions, loos
     return false;
   }
 
+  if (!semver.valid(actual, looseSemver)) {
+    return false;
+  }
+
   if (semver.satisfies(actual, range, looseSemver)) {
     return true;
   }
