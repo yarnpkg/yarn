@@ -29,6 +29,7 @@ commander.version(pkg.version);
 commander.usage('[command] [flags]');
 commander.option('--offline');
 commander.option('--prefer-offline');
+commander.option('--strict-semver');
 commander.option('--har', 'Save HAR output of network traffic');
 commander.option('--ignore-engines', 'Ignore engines check');
 commander.option('--json', '');
@@ -106,6 +107,7 @@ let config = new Config(reporter, {
   captureHar: commander.har,
   ignoreEngines: commander.ignoreEngines,
   offline: commander.preferOffline || commander.offline,
+  looseSemver: !commander.strictSemver,
 });
 
 // print header

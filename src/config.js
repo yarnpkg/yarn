@@ -48,7 +48,7 @@ export default class Config {
     this.cache = map();
     this.cwd = opts.cwd || process.cwd();
 
-    this.looseSemver = opts.looseSemver || true;
+    this.looseSemver = opts.looseSemver == undefined ? true : opts.looseSemver;
 
     this.preferOffline = !!opts.preferOffline;
     this.modulesFolder = opts.modulesFolder;
