@@ -35,5 +35,5 @@ We actively welcome your pull requests.
 
 ## License
 
-By contributing to fbkpm, you agree that your contributions will be licensed
+By contributing to Yarn, you agree that your contributions will be licensed
 under its BSD license.
