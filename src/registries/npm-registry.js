@@ -6,11 +6,11 @@ import * as fs from '../util/fs.js';
 import Registry from './base-registry.js';
 import {removeSuffix} from '../util/misc.js';
 
+const defaults = require('defaults');
 const userHome = require('user-home');
 const path = require('path');
 const url = require('url');
 const ini = require('ini');
-const _ = require('lodash');
 
 function getGlobalPrefix(): string {
   if (process.env.PREFIX) {
@@ -107,10 +107,10 @@ export default class NpmRegistry extends Registry {
         await fs.mkdirp(mirrorLoc);
       }
 
-      _.defaults(this.config, config);
+      defaults(this.config, config);
     }
 
-    _.defaults(this.config, {
+    defaults(this.config, {
       registry: 'http://registry.npmjs.org',
     });
   }

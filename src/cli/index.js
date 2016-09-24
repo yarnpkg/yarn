@@ -13,6 +13,7 @@ const path = require('path');
 const fs = require('fs');
 
 let loudRejection = require('loud-rejection');
+let camelCase = require('camelcase');
 let commander = require('commander');
 let invariant = require('invariant');
 let lockfile = require('proper-lockfile');
@@ -76,7 +77,7 @@ if (!commandName || commandName === 'help') {
 
 //
 invariant(commandName, 'Missing command name');
-let command = commands[_.camelCase(commandName)];
+let command = commands[camelCase(commandName)];
 
 if (!command) {
   args.splice(2, 0, commandName);

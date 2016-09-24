@@ -3,15 +3,13 @@
 import type {ExplodedFragment} from './hosted-git-resolver.js';
 import HostedGitResolver from './hosted-git-resolver.js';
 
-const _ = require('lodash');
-
 export default class GitHubResolver extends HostedGitResolver {
   static protocol = 'github';
   static hostname = 'github.com';
 
   static isVersion(pattern: string): boolean {
     // github proto
-    if (_.startsWith(pattern, 'github:')) {
+    if (pattern.startsWith('github:')) {
       return true;
     }
 

@@ -10,7 +10,6 @@ import * as fs from '../util/fs.js';
 
 let invariant = require('invariant');
 let path = require('path');
-let _ = require('lodash');
 
 export {default as parse} from './parse';
 export {default as stringify} from './stringify';
@@ -32,6 +31,10 @@ type LockManifest = {
 
 function getName(pattern: string): string {
   return PackageRequest.normalisePattern(pattern).name;
+}
+
+function blankObjectUndefined(obj: ?Object): ?Object {
+  return obj && Object.keys(obj).length ? obj : undefined;
 }
 
 export default class Lockfile {
@@ -122,9 +125,9 @@ export default class Lockfile {
         uid: pkg._uid === pkg.version ? undefined : pkg._uid,
         resolved: remote.resolved,
         registry: remote.registry === 'npm' ? undefined : remote.registry,
-        dependencies: _.isEmpty(pkg.dependencies) ? undefined : pkg.dependencies,
-        optionalDependencies: _.isEmpty(pkg.optionalDependencies) ? undefined : pkg.optionalDependencies,
-        permissions: _.isEmpty(ref.permissions) ? undefined : ref.permissions,
+        dependencies: blankObjectUndefined(pkg.dependencies),
+        optionalDependencies: blankObjectUndefined(pkg.optionalDependencies),
+        permissions: blankObjectUndefined(ref.permissions),
       };
       lockfile[pattern] = obj;
 

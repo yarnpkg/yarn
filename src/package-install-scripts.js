@@ -11,7 +11,6 @@ import * as constants from './constants.js';
 
 const invariant = require('invariant');
 const path = require('path');
-const _ = require('lodash');
 
 export default class PackageInstallScripts {
   constructor(config: Config, resolver: PackageResolver, force: boolean) {
@@ -33,7 +32,11 @@ export default class PackageInstallScripts {
   getInstallCommands(pkg: Manifest): Array<string> {
     const scripts = pkg.scripts;
     if (scripts) {
-      return _.compact([scripts.preinstall, scripts.install, scripts.postinstall]);
+      return [
+        scripts.preinstall,
+        scripts.install,
+        scripts.postinstall,
+      ].filter((cmd: string): boolean => !!cmd);
     } else {
       return [];
     }

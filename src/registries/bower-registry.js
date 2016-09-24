@@ -3,9 +3,9 @@
 import Registry from './base-registry.js';
 import * as fs from '../util/fs.js';
 
+const defaults = require('defaults');
 const userHome = require('user-home');
 const path = require('path');
-const _ = require('lodash');
 
 export default class BowerRegistry extends Registry {
   static alwaysFlatten = true;
@@ -30,7 +30,7 @@ export default class BowerRegistry extends Registry {
       }
     }
 
-    _.defaults(this.config, {
+    defaults(this.config, {
       registry: 'https://bower.herokuapp.com',
       directory: 'bower_components',
     });

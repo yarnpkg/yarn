@@ -11,7 +11,6 @@ import ExoticResolver from './exotic-resolver.js';
 import Git from '../../util/git.js';
 
 const urlParse = require('url').parse;
-const _ = require('lodash');
 
 // we purposefully omit https and http as those are only valid if they end in the .git extension
 const GIT_PROTOCOLS = ['git', 'git+ssh', 'git+https', 'ssh'];
@@ -40,7 +39,7 @@ export default class GitResolver extends ExoticResolver {
     const parts = urlParse(pattern);
 
     const pathname = parts.pathname;
-    if (_.endsWith(pathname, '.git')) {
+    if (pathname && pathname.endsWith('.git')) {
       // ends in .git
       return true;
     }
