@@ -34,21 +34,17 @@ commander.option('--prefer-offline');
 commander.option('--strict-semver');
 commander.option('--json', '');
 commander.option('--global-folder [path]', '');
-commander.option('--modules-folder [path]', 'rather than installing modules into the node_modules ' +
-                                            'folder relative to the cwd, output them here');
-commander.option('--packages-root [path]', 'rather than storing modules into a global packages root,' +
-                                           'store them here');
 commander.option(
- '--force-single-instance',
- 'pause and wait if other instances are running on the same folder using a tcp server',
+  '--modules-folder [path]',
+  'rather than installing modules into the node_modules folder relative to the cwd, output them here',
 );
 commander.option(
-  '--port [port]',
-  `use with --force-single-instance to ovveride the default port (${constants.DEFAULT_PORT_FOR_SINGLE_INSTANCE})`,
+  '--packages-root [path]',
+  'rather than storing modules into a global packages root, store them here',
 );
 commander.option(
-  '--force-single-instance-with-file',
-  'pause and wait if other instances are running on the same folder using a operating system lock file',
+  '--mutex [type][:specifier]',
+  'use a mutex to ensure only one yarn instance is executing',
 );
 
 // get command name
@@ -80,10 +76,10 @@ if (!commandName || commandName[0] === '-') {
 // aliases: i -> install
 if (commandName && commandName !== 'install' && typeof aliases[commandName] === 'string') {
   command = {
-    run(config: Config, reporter: Reporter) {
+    run(config: Config, reporter: Reporter): Promise<void> {
       reporter.error(`Did you mean \`yarn ${aliases[commandName]}\`?`);
       return Promise.reject();
-    }
+    },
   };
 }
 
@@ -103,18 +99,24 @@ if (command && typeof command.setFlags === 'function') {
 }
 
 //
+const DEFAULT_EXAMPLES = [
+  '--mutex file',
+  '--mutex file:my-custom-filename',
+  '--mutex network',
+  '--mutex network:8008',
+];
+
+//
 if (commandName === 'help' || args.indexOf('--help') >= 0 || args.indexOf('-h') >= 0) {
-  const examples = command && command.examples;
-  if (Array.isArray(examples) && examples.length) {
-    commander.on('--help', function() {
-      console.log('  Examples:');
-      console.log();
-      for (let example of examples) {
-        console.log(`    $ yarn ${example}`);
-      }
-      console.log();
-    });
-  }
+  const examples = DEFAULT_EXAMPLES.concat(command ? command.examples : []);
+  commander.on('--help', function() {
+    console.log('  Examples:');
+    console.log();
+    for (let example of examples) {
+      console.log(`    $ yarn ${example}`);
+    }
+    console.log();
+  });
 
   commander.parse(startArgs.concat(args));
   commander.help();
@@ -194,16 +196,16 @@ const run = (): Promise<void> => {
 };
 
 //
-const runEventuallyWithLockFile = (isFirstTime): Promise<void> => {
+const runEventuallyWithFile = (mutexFilename: ?string, isFirstTime: boolean): Promise<void> => {
   return new Promise((ok) => {
-    const lock = path.join(config.cwd, constants.SINGLE_INSTANCE_FILENAME);
-    lockfile.lock(lock, {realpath: false}, (err, release) => {
+    const lockFilename = mutexFilename || path.join(config.cwd, constants.SINGLE_INSTANCE_FILENAME);
+    lockfile.lock(lockFilename, {realpath: false}, (err, release) => {
       if (err) {
         if (isFirstTime) {
           reporter.warn(reporter.lang('waitingInstance'));
         }
         setTimeout(() => {
-          ok(runEventuallyWithLockFile());
+          ok(runEventuallyWithFile());
         }, 200); // do not starve the CPU
       } else {
         onDeath(() => {
@@ -216,10 +218,10 @@ const runEventuallyWithLockFile = (isFirstTime): Promise<void> => {
 };
 
 //
-const runEventually = (): Promise<void> => {
+const runEventuallyWithNetwork = (mutexPort: ?string): Promise<void> => {
   return new Promise((ok) => {
     const connectionOptions = {
-      port: commander.port || constants.DEFAULT_PORT_FOR_SINGLE_INSTANCE,
+      port: +mutexPort || constants.DEFAULT_PORT_FOR_SINGLE_INSTANCE,
     };
 
     const clients = [];
@@ -237,13 +239,13 @@ const runEventually = (): Promise<void> => {
           // the server has informed us he's going to die soon™.
           socket.unref(); // let it die
           process.nextTick(() => {
-            ok(runEventually());
+            ok(runEventuallyWithNetwork());
           });
         })
         .on('error', (e) => {
           // No server to listen to ? :O let's retry to become the next server then.
           process.nextTick(() => {
-            ok(runEventually());
+            ok(runEventuallyWithNetwork());
           });
         });
     });
@@ -272,15 +274,22 @@ config.init().then(function(): Promise<void> {
     process.exit(0);
   };
 
-  if (commander.forceSingleInstanceWithFile) {
-    return runEventuallyWithLockFile(true).then(exit);
-  }
+  const mutex = commander.mutex;
+  if (mutex) {
+    const parts = mutex.split(':');
+    const mutexType = parts.shift();
+    const mutexSpecifier = parts.join(':');
 
-  if (commander.forceSingleInstance) {
-    return runEventually().then(exit);
+    if (mutexType === 'file') {
+      return runEventuallyWithFile(mutexSpecifier, true).then(exit);
+    } else if (mutexType === 'network') {
+      return runEventuallyWithNetwork(mutexSpecifier).then(exit);
+    } else {
+      throw new Error(`Unknown single instance type ${mutexType}`);
+    }
+  } else {
+    return run().then(exit);
   }
-
-  return run().then(exit);
 }).catch(function(errs) {
   function logError(err) {
     reporter.error(err.stack.replace(/^Error: /, ''));
