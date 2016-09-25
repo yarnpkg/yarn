@@ -557,10 +557,6 @@ if (process.platform !== 'win32') {
       let install = new Install({}, config, reporter, lockfile);
       await install.init();
 
-      let files = await fs.walk(path.join(config.cwd, 'node_modules'));
-
-      console.log(symlink, await fs.lstat(symlink), await fs.readlink(symlink), files);
-
       expect(await fs.exists(symlink)).toBe(true);
     });
   });

@@ -130,7 +130,7 @@ function normalisePaths(paths: mixed): ?string[] {
   }
 }
 
-function normalisePathDict(paths: mixed): { [key: string]: mixed } {
+function normalisePathDict(paths: mixed): ?{ [key: string]: mixed } {
   let out = {};
 
   if (!paths || typeof paths !== 'object') {

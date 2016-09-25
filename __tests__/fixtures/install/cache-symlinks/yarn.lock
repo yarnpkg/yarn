@@ -2,4 +2,4 @@
 # yarn lockfile v1
 dep-a@1.0.0:
   version "1.0.0"
-  resolved dep-a-1.0.0.tgz#742aa27a6869c5cf18f59ed10612be219f2a03a4
+  resolved dep-a-1.0.0.tgz#b755726d9205afefedafce1067562d37d0f478cb
