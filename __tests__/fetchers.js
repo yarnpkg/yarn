@@ -1,7 +1,7 @@
 /* @flow */
 /* eslint max-len: 0 */
 
-import TarballFetcher from '../src/fetchers/tarball-fetcher.js';
+import TarballFetcher, {LocalTarballFetcher} from '../src/fetchers/tarball-fetcher.js';
 import BaseFetcher from '../src/fetchers/base-fetcher.js';
 import CopyFetcher from '../src/fetchers/copy-fetcher.js';
 import GitFetcher from '../src/fetchers/git-fetcher.js';
@@ -100,7 +100,7 @@ test('TarballFetcher.fetch throws', async () => {
 
 test('TarballFetcher.fetch supports local ungzipped tarball', async () => {
   let dir = await mkdir('tarball-fetcher');
-  let fetcher = new TarballFetcher(dir, {
+  let fetcher = new LocalTarballFetcher(dir, {
     type: 'tarball',
     hash: '76d4316a3965259f7074f167f44a7a7a393884be',
     reference: path.join(__dirname, 'fixtures', 'fetchers', 'tarball', 'ungzipped.tar'),

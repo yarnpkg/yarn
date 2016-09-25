@@ -75,6 +75,7 @@ export default class Lockfile {
     }
 
     let shrunk = pattern in cache && cache[pattern];
+
     if (typeof shrunk === 'string') {
       return this.getLocked(shrunk);
     } else if (shrunk) {

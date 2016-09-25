@@ -106,7 +106,7 @@ export default class TarballFetcher extends BaseFetcher {
     }
 
     if (!(await fsUtil.exists(localTarball))) {
-      throw new MessageError(`${ref}: Tarball is not in network and can't be located in cache`);
+      throw new MessageError(`${ref}: Tarball is not in network and can't be located in cache (${localTarball})`);
     }
 
     return new Promise((resolve, reject) => {
@@ -177,10 +177,16 @@ export default class TarballFetcher extends BaseFetcher {
 
   _fetch(): Promise<FetchedOverride> {
     const {protocol, pathname} = url.parse(this.reference);
-    if (protocol == null) {
+    if (protocol === null && typeof pathname === 'string') {
       return this.fetchFromLocal(pathname);
     } else {
       return this.fetchFromExternal();
     }
   }
+}
+
+export class LocalTarballFetcher extends TarballFetcher {
+  _fetch(): Promise<FetchedOverride> {
+    return this.fetchFromLocal(this.reference);
+  } 
 }
