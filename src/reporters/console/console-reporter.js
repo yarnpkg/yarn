@@ -13,11 +13,12 @@ import Spinner from './spinner-progress.js';
 import {clearLine} from './util.js';
 import {removeSuffix} from '../../util/misc.js';
 
-let {inspect} = require('util');
-let chalk = require('chalk');
-let read = require('read');
-let readline = require('readline');
-let repeat = require('repeating');
+const {inspect} = require('util');
+const chalk = require('chalk');
+const read = require('read');
+const readline = require('readline');
+const repeat = require('repeating');
+const stripAnsi = require('strip-ansi');
 
 function sortTrees(trees: Trees = []): Trees {
   return trees.sort(function(tree1, tree2): number {
@@ -25,12 +26,42 @@ function sortTrees(trees: Trees = []): Trees {
   });
 }
 
+type Row = Array<string>;
+
 export default class ConsoleReporter extends BaseReporter {
   _prependEmoji(msg: string, emoji: ?string): string {
     if (this.emoji && emoji && this.isTTY) {
       msg = `${emoji}  ${msg}`;
     }
     return msg;
+  }
+
+  table(head: Array<string>, body: Array<Row>) {
+    //
+    head = head.map((field: string): string => chalk.underline(field));
+
+    //
+    let rows = [head].concat(body);
+
+    // get column widths
+    let cols: Array<number> = [];
+    for (let i = 0; i < head.length; i++) {
+      let widths = rows.map((row: Row): number => stripAnsi(row[i]).length);
+      cols[i] = Math.max(...widths);
+    }
+
+    //
+    let builtRows = rows.map((row: Row): string => {
+      for (let i = 0; i < row.length; i++) {
+        let field = row[i];
+        let padding = cols[i] - stripAnsi(field).length;
+
+        row[i] = field + repeat(' ', padding);
+      }
+      return row.join(' ');
+    });
+
+    this.log(builtRows.join('\n'));
   }
 
   step(current: number, total: number, msg: string, emoji?: string) {

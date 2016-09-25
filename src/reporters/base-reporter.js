@@ -144,6 +144,9 @@ export default class BaseReporter {
   // the screen shown at the very end of the CLI
   footer(showPeakMemory: boolean) {}
 
+  //
+  table(head: Array<string>, body: Array<Array<string>>) {}
+
   // render an activity spinner and return a function that will trigger an update
   activity(): ReporterSpinner {
     return {
