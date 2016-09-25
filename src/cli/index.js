@@ -24,7 +24,17 @@ loudRejection();
 
 //
 const startArgs = process.argv.slice(0, 2);
-const args = process.argv.slice(2);
+let args = process.argv.slice(2);
+
+// ignore all arguments after a -- 
+let endArgs = [];
+for (let i = 0; i < args.length; i++) {
+  const arg = args[i];
+  if (arg === '--') {
+    endArgs = args.slice(i + 1);
+    args = args.slice(0, i);
+  }
+}
 
 // set global options
 commander.version(pkg.version);
@@ -131,6 +141,7 @@ if (!command) {
 
 // parse flags
 commander.parse(startArgs.concat(args));
+commander.args = commander.args.concat(endArgs);
 
 //
 let Reporter = ConsoleReporter;
