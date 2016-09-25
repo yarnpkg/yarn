@@ -42,7 +42,11 @@ export type InstallCwdRequest = [
 ];
 
 type RootManifests = {
-  [registryName: RegistryNames]: [string, Object]
+  [registryName: RegistryNames]: {
+    loc: string,
+    json: Object,
+    exists: boolean,
+  }
 };
 
 type IntegrityMatch = {
@@ -356,7 +360,7 @@ export class Install {
         let ref = manifest._reference;
         invariant(ref, 'expected reference');
 
-        let json = jsons[ref.registry][1];
+        let json = jsons[ref.registry].json;
         json.resolutions = json.resolutions || {};
         json.resolutions[name] = version;
       }
@@ -378,10 +382,12 @@ export class Install {
       const jsonLoc = path.join(this.config.cwd, registry.filename);
 
       let json = {};
+      let exists = false;
       if (await fs.exists(jsonLoc)) {
+        exists = true;
         json = await fs.readJson(jsonLoc);
       }
-      jsons[registryName] = [jsonLoc, json];
+      jsons[registryName] = {loc: jsonLoc, json, exists};
     }
     return jsons;
   }
@@ -392,8 +398,8 @@ export class Install {
 
   async saveRootManifests(jsons: RootManifests): Promise<void> {
     for (let registryName of registryNames) {
-      let [loc, json] = jsons[registryName];
-      if (!Object.keys(json).length) {
+      let {loc, json, exists} = jsons[registryName];
+      if (!exists && !Object.keys(json).length) {
         continue;
       }
 
@@ -545,6 +551,8 @@ export class Install {
 
 export function setFlags(commander: Object) {
   commander.usage('install [flags]');
+  commander.option('--har', 'save HAR output of network traffic');
+  commander.option('--ignore-engines', 'ignore engines check');
   commander.option('--force', '');
   commander.option('--flat', 'only allow one version of a package');
   commander.option('--prod, --production', '');
