@@ -3,7 +3,7 @@
 import type {Reporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
 import {sortAlpha} from '../../util/misc.js';
-import PackageRequest from '../../package-request.js'
+import PackageRequest from '../../package-request.js';
 import Lockfile from '../../lockfile/wrapper.js';
 import {Install} from './install.js';
 
@@ -31,11 +31,7 @@ export async function run(
   const [, patterns] = await install.fetchRequestFromCwd();
 
   await Promise.all(patterns.map(async (pattern): Promise<void> => {
-    const locked = lockfile.getLocked(pattern);
-    if (!locked) {
-      reporter.error('Outdated lockfile. Please run `$ yarn install` and try again.');
-      return Promise.reject();
-    }
+    const locked = lockfile.getStrictLocked(pattern);
 
     let normalised = PackageRequest.normalisePattern(pattern);
 

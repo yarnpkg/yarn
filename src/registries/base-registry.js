@@ -1,8 +1,8 @@
 /* @flow */
 
 import type RequestManager, {RequestMethods} from '../util/request-manager.js';
+import type Config from '../config.js';
 import {removePrefix} from '../util/misc.js';
-import * as fs from '../util/fs.js';
 
 const objectPath = require('object-path');
 const path = require('path');
@@ -11,6 +11,11 @@ export type RegistryRequestOptions = {
   method?: RequestMethods,
   body?: mixed,
 };
+
+export type CheckOutdatedReturn = Promise<{
+  wanted: string,
+  latest: string,
+}>;
 
 export default class BaseRegistry {
   constructor(cwd: string, requestManager: RequestManager) {
@@ -54,6 +59,10 @@ export default class BaseRegistry {
     return Promise.resolve();
   }
 
+  checkOutdated(config: Config, name: string, range: string): CheckOutdatedReturn {
+    return Promise.reject(new Error('unimplemented'));
+  }
+
   saveHomeConfig(config: Object): Promise<void> {
     return Promise.reject(new Error('unimplemented'));
   }
@@ -65,15 +74,7 @@ export default class BaseRegistry {
   async init(): Promise<void> {
     this.mergeEnv('yarn_');
     await this.loadConfig();
-
-    // find in upper directories
-    let loc = await fs.find(this.folder, this.cwd);
-
-    // default to folder
-    loc = loc || path.join(this.cwd, this.folder);
-
-    // set output directory
-    this.loc = loc;
+    this.loc = path.join(this.cwd, this.folder);
   }
 
   mergeEnv(prefix: string) {

@@ -22,6 +22,15 @@ type DependencyPairs = Array<{
   loc: string
 }>;
 
+export async function linkBin(src: string, dest: string): Promise<void> {
+  if (process.platform === 'win32') {
+    await cmdShim(src, dest);
+  } else {
+    await fs.symlink(src, dest);
+    await fs.chmod(dest, '755');
+  }
+}
+
 export default class PackageLinker {
   constructor(config: Config, resolver: PackageResolver) {
     this.resolver = resolver;
@@ -39,13 +48,7 @@ export default class PackageLinker {
     for (let [scriptName, scriptCmd] of entries(pkg.bin)) {
       const dest = path.join(targetBinLoc, scriptName);
       const src = path.join(pkgLoc, scriptCmd);
-
-      if (process.platform === 'win32') {
-        await cmdShim(src, dest);
-      } else {
-        await fs.symlink(src, dest);
-        await fs.chmod(dest, '755');
-      }
+      await linkBin(src, dest);
     }
   }
 

@@ -2,6 +2,7 @@
 
 import type {Reporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
+import {registryNames} from '../../registries/index.js';
 import Lockfile from '../../lockfile/wrapper.js';
 import {Install} from './install.js';
 import * as child from '../../util/child.js';
@@ -75,7 +76,7 @@ export async function run(
   // get answers
   const pkg = {};
   for (let {key: manifestKey, question, default: def} of keys) {
-    for (let registryName in manifests) {
+    for (let registryName of registryNames) {
       const {json} = manifests[registryName];
       const val = objectPath.get(json, manifestKey);
       if (val) {
@@ -101,7 +102,7 @@ export async function run(
 
   // save answers
   let targetManifests = [];
-  for (let registryName in manifests) {
+  for (let registryName of registryNames) {
     let info = manifests[registryName];
     if (info.exists) {
       targetManifests.push(info);

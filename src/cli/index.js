@@ -18,7 +18,6 @@ const onDeath = require('death');
 const path = require('path');
 const net = require('net');
 const fs = require('fs');
-const _ = require('lodash');
 
 let pkg = require('../../package.json');
 
@@ -35,6 +34,7 @@ commander.option('--offline');
 commander.option('--prefer-offline');
 commander.option('--strict-semver');
 commander.option('--json', '');
+commander.option('--global-folder [path]', '');
 commander.option('--modules-folder [path]', 'rather than installing modules into the node_modules ' +
                                             'folder relative to the cwd, output them here');
 commander.option('--packages-root [path]', 'rather than storing modules into a global packages root,' +
@@ -78,6 +78,7 @@ if (!commandName || commandName[0] === '-') {
 }
 
 // aliases: i -> install
+// $FlowFixMe
 if (commandName && typeof aliases[commandName] === 'string') {
   commandName = aliases[commandName];
 }
@@ -131,7 +132,6 @@ if (commander.json) {
   Reporter = JSONReporter;
 }
 let reporter = new Reporter({
-  // $FlowFixMe
   emoji: process.stdout.isTTY && process.platform === 'darwin',
 });
 reporter.initPeakMemoryCounter();
@@ -139,6 +139,7 @@ reporter.initPeakMemoryCounter();
 //
 let config = new Config(reporter, {
   modulesFolder: commander.modulesFolder,
+  globalFolder: commander.globalFolder,
   packagesRoot: commander.packagesRoot,
   preferOffline: commander.preferOffline,
   captureHar: commander.har,

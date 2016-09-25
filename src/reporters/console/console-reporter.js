@@ -28,11 +28,23 @@ function sortTrees(trees: Trees = []): Trees {
 type Row = Array<string>;
 
 export default class ConsoleReporter extends BaseReporter {
+  constructor(opts: Object) {
+    super(opts);
+    this._lastCategorySize = 0;
+  }
+
+  _lastCategorySize: number;
+
   _prependEmoji(msg: string, emoji: ?string): string {
     if (this.emoji && emoji && this.isTTY) {
       msg = `${emoji}  ${msg}`;
     }
     return msg;
+  }
+
+  _logCategory(category: string, color: string, msg: string) {
+    this._lastCategorySize = category.length;
+    this._log(`${chalk[color](category)} ${msg}`);
   }
 
   table(head: Array<string>, body: Array<Row>) {
@@ -76,8 +88,9 @@ export default class ConsoleReporter extends BaseReporter {
   }
 
   list(key: string, items: Array<string>) {
+    const gutterWidth = (this._lastCategorySize || 2) - 1;
     for (let item of items) {
-      this.log(`   - ${item}`);
+      this._log(`${repeat(' ', gutterWidth)}- ${item}`);
     }
   }
 
@@ -96,12 +109,17 @@ export default class ConsoleReporter extends BaseReporter {
   }
 
   log(msg: string) {
+    this._lastCategorySize = 0;
+    this._log(msg);
+  }
+
+  _log(msg: string) {
     clearLine(this.stdout);
     this.stdout.write(`${msg}\n`);
   }
 
   success(msg: string) {
-    this.log(`${chalk.green('success')} ${msg}`);
+    this._logCategory('success', 'green', msg);
   }
 
   error(msg: string) {
@@ -110,7 +128,7 @@ export default class ConsoleReporter extends BaseReporter {
   }
 
   info(msg: string) {
-    this.log(`${chalk.blue('info')} ${msg}`);
+    this._logCategory('info', 'blue', msg);
   }
 
   command(command: string) {
