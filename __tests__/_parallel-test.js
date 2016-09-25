@@ -1,6 +1,6 @@
 /* @flow */
 
-export default function(title: string, fn: () => ?Promise<any>) {
+export default function(title: string, fn: () => ?Promise<any>, test?: typeof it = it) {
   let promise;
   try {
     // first run the test
@@ -10,5 +10,5 @@ export default function(title: string, fn: () => ?Promise<any>) {
   }
 
   // then register a test with existing (already running) promise
-  it(title, (): ?Promise<any> => promise);
+  test(title, (): ?Promise<any> => promise);
 }
