@@ -40,7 +40,7 @@ export async function run(
 
     for (const registryName of Object.keys(registries)) {
       const registry = config.registries[registryName];
-      let json = jsons[registryName][1];
+      let json = jsons[registryName].json;
 
       for (const type of ['devDependencies', 'dependencies', 'optionalDependencies', 'peerDependencies']) {
         const deps = json[type];
