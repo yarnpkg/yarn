@@ -1,7 +1,7 @@
 /* @flow */
 
 import type RequestManager from '../util/request-manager.js';
-import type {RegistryRequestOptions} from './base-registry.js';
+import type {RegistryRequestOptions, CheckOutdatedReturn} from './base-registry.js';
 import type Config from '../config.js';
 import * as fs from '../util/fs.js';
 import NpmResolver from '../resolvers/registries/npm-resolver.js';
@@ -63,10 +63,7 @@ export default class NpmRegistry extends Registry {
     });
   }
 
-  async checkOutdated(config: Config, name: string, range: string): Promise<{
-    wanted: string,
-    latest: string,
-  }> {
+  async checkOutdated(config: Config, name: string, range: string): CheckOutdatedReturn {
     let req = await this.request(name);
     if (!req) {
       throw new Error('couldnt find ' + name);

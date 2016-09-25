@@ -18,16 +18,18 @@ const path = require('path');
 const url = require('url');
 
 type ConfigOptions = {
-  cwd?: string,
-  packagesRoot?: string,
-  tempFolder?: string,
-  modulesFolder?: string,
+  cwd?: ?string,
+  packagesRoot?: ?string,
+  tempFolder?: ?string,
+  modulesFolder?: ?string,
+  globalFolder?: ?string,
   offline?: boolean,
   preferOffline?: boolean,
   captureHar?: boolean,
   ignoreEngines?: boolean,
+
   // Loosely compare semver for invalid cases like "0.01.0"
-  looseSemver?: boolean,
+  looseSemver?: ?boolean,
 };
 
 type PackageMetadata = {
@@ -52,6 +54,7 @@ export default class Config {
 
     this.preferOffline = !!opts.preferOffline;
     this.modulesFolder = opts.modulesFolder;
+    this.globalFolder = opts.globalFolder;
     this.packagesRoot = opts.packagesRoot;
     this.tempFolder = opts.tempFolder;
     this.offline = !!opts.offline;
@@ -61,6 +64,9 @@ export default class Config {
   looseSemver: boolean;
   offline: boolean;
   preferOffline: boolean;
+
+  //
+  globalFolder: ?string;
 
   //
   constraintResolver: ConstraintResolver;
@@ -136,6 +142,10 @@ export default class Config {
       this.tempFolder = await this.getTempFolder();
     }
 
+    if (!this.globalFolder) {
+      this.globalFolder = await this.getGlobalFolder();
+    }
+
     for (const key of Object.keys(registries)) {
       const Registry = registries[key];
 
@@ -146,6 +156,16 @@ export default class Config {
       this.registries[key] = registry;
       this.registryFolders.push(registry.folder);
     }
+  }
+
+  /**
+   * Get default path to our global module folder.
+   */
+
+  async getGlobalFolder(): Promise<string> {
+    let loc = path.join(userHome, constants.GLOBAL_MODULE_DIRECTORY);
+    await fs.mkdirp(loc);
+    return loc;
   }
 
   /**

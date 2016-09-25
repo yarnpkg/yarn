@@ -172,7 +172,7 @@ export class Install {
     requests: DependencyRequestPatterns,
     match: IntegrityMatch,
   ): Promise<InstallPrepared> {
-    if (!this.flags.force && match.matches) {
+    if (!this.flags.skipIntegrity && !this.flags.force && match.matches) {
       this.reporter.success(this.reporter.lang('upToDate'));
       return Promise.resolve({patterns, requests, skip: true});
     }
@@ -449,6 +449,10 @@ export class Install {
     // write lockfile
     await fs.writeFile(loc, lockSource);
 
+    this._logSuccessSaveLockfile();
+  }
+
+  _logSuccessSaveLockfile() {
     this.reporter.success(this.reporter.lang('savedLockfile'));
   }
 
@@ -559,6 +563,7 @@ export function setFlags(commander: Object) {
   commander.option('--no-lockfile', "don't read or generate a lockfile");
   commander.option('--pure-lockfile', "don't generate a lockfile");
 
+  commander.option('-g, --global', 'DEPRECATED');
   commander.option('-S, --save', 'DEPRECATED - save package to your `dependencies`');
   commander.option('-D, --save-dev', 'DEPRECATED - save package to your `devDependencies`');
   commander.option('-P, --save-peer', 'DEPRECATED - save package to your `peerDependencies`');
@@ -597,8 +602,12 @@ export async function run(
     if (flags.saveTilde) {
       exampleArgs.push('--tilde');
     }
+    let command = 'add';
+    if (flags.global) {
+      command = 'global add';
+    }
     reporter.error(reporter.lang('installCommandRenamed'));
-    reporter.command(`yarn add ${exampleArgs.join(' ')}`);
+    reporter.command(`yarn ${command} ${exampleArgs.join(' ')}`);
     return Promise.reject();
   }
 
