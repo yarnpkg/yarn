@@ -1,6 +1,7 @@
 /* @flow */
 
 import type {Manifest} from '../../types.js';
+import type Config from '../../config.js';
 import {MessageError} from '../../errors.js';
 import RegistryResolver from './registry-resolver.js';
 import NpmRegistry from '../../registries/npm-registry.js';
@@ -19,14 +20,12 @@ type RegistryResponse = {
 export default class NpmResolver extends RegistryResolver {
   static registry = 'npm';
 
-  async findVersionInRegistryResponse(body: RegistryResponse): Promise<Manifest> {
-    let range = this.range;
-
+  static async findVersionInRegistryResponse(config: Config, range: string, body: RegistryResponse): Promise<Manifest> {
     if (range in body['dist-tags']) {
       range = body['dist-tags'][range];
     }
 
-    const satisfied = await this.config.resolveConstraints(Object.keys(body.versions), range);
+    const satisfied = await config.resolveConstraints(Object.keys(body.versions), range);
     if (satisfied) {
       return body.versions[satisfied];
     } else {
@@ -48,7 +47,7 @@ export default class NpmResolver extends RegistryResolver {
     const body = await this.config.registries.npm.request(NpmRegistry.escapeName(this.name));
 
     if (body) {
-      return await this.findVersionInRegistryResponse(body);
+      return await NpmResolver.findVersionInRegistryResponse(this.config, this.range, body);
     } else {
       return null;
     }

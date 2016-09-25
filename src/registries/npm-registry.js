@@ -2,7 +2,9 @@
 
 import type RequestManager from '../util/request-manager.js';
 import type {RegistryRequestOptions} from './base-registry.js';
+import type Config from '../config.js';
 import * as fs from '../util/fs.js';
+import NpmResolver from '../resolvers/registries/npm-resolver.js';
 import Registry from './base-registry.js';
 import {removeSuffix} from '../util/misc.js';
 
@@ -59,6 +61,21 @@ export default class NpmRegistry extends Registry {
       headers,
       json: true,
     });
+  }
+
+  async checkOutdated(config: Config, name: string, range: string): Promise<{
+    wanted: string,
+    latest: string,
+  }> {
+    let req = await this.request(name);
+    if (!req) {
+      throw new Error('couldnt find ' + name);
+    }
+
+    return {
+      latest: req['dist-tags'].latest,
+      wanted: (await NpmResolver.findVersionInRegistryResponse(config, range, req)).version,
+    };
   }
 
   async getPossibleConfigLocations(filename: string): Promise<Array<[boolean, string, string]>> {

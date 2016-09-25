@@ -33,6 +33,7 @@
     "request-capture-har": "^1.1.3",
     "rimraf": "^2.5.0",
     "semver": "^5.1.0",
+    "strip-ansi": "^3.0.1",
     "strip-bom": "^2.0.0",
     "tar": "^2.2.1",
     "tar-stream": "^1.5.2",
