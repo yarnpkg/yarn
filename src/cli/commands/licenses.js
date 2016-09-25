@@ -2,6 +2,7 @@
 
 import type {Reporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
+import NoopReporter from '../../reporters/base-reporter.js';
 import {Install} from './install.js';
 import Lockfile from '../../lockfile/wrapper.js';
 import buildSubCommands from './_build-sub-commands.js';
@@ -21,12 +22,13 @@ export let {setFlags, run} = buildSubCommands('licenses', {
     flags: Object,
     args: Array<string>,
   ): Promise<void> {
+    // install
     const lockfile = await Lockfile.fromDirectory(config.cwd);
-    const install = new Install(flags, config, reporter, lockfile);
+    const install = new Install({skipIntegrity: true}, config, new NoopReporter(), lockfile);
+    await install.init();
 
-    let [depRequests,, manifest] = await install.fetchRequestFromCwd();
-    await install.resolver.init(depRequests, install.flags.flat);
-
+    //
+    const manifest = await config.readRootManifest();
     console.log(
       'THE FOLLOWING SETS FORTH ATTRIBUTION NOTICES FOR THIRD PARTY SOFTWARE THAT MAY BE CONTAINED ' +
       `IN PORTIONS OF THE ${String(manifest.name).toUpperCase().replace(/-/g, ' ')} PRODUCT.`,
