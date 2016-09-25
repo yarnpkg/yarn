@@ -30,6 +30,9 @@ export {team};
 import * as link from './link.js';
 export {link};
 
+import * as unlink from './unlink.js';
+export {unlink};
+
 import * as init from './init.js';
 export {init};
 
