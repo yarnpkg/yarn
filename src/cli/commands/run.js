@@ -33,7 +33,7 @@ export async function run(
     const binFolder = path.join(config.cwd, config.registries[registry].folder, '.bin');
     if (await fs.exists(binFolder)) {
       for (const name of await fs.readdir(binFolder)) {
-        scripts[name] = `${path.join(binFolder, name)}`; // TODO add args
+        scripts[name] = `${path.join(binFolder, name)} ${args.join(' ')}`;
       }
     }
   }
