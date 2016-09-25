@@ -1,6 +1,7 @@
 /* @flow */
 
 import {ConsoleReporter, JSONReporter} from '../reporters/index.js';
+import {sortAlpha} from '../util/misc.js';
 import * as commands from './commands/index.js';
 import * as constants from '../constants.js';
 import * as network from '../util/network.js';
@@ -8,23 +9,24 @@ import * as network from '../util/network.js';
 import aliases from './aliases.js';
 import Config from '../config.js';
 
-const net = require('net');
+const loudRejection = require('loud-rejection');
+const camelCase = require('camelcase');
+const commander = require('commander');
+const invariant = require('invariant');
+const lockfile = require('proper-lockfile');
+const onDeath = require('death');
 const path = require('path');
+const net = require('net');
 const fs = require('fs');
-
-let loudRejection = require('loud-rejection');
-let camelCase = require('camelcase');
-let commander = require('commander');
-let invariant = require('invariant');
-let lockfile = require('proper-lockfile');
-let onDeath = require('death');
-let _ = require('lodash');
+const _ = require('lodash');
 
 let pkg = require('../../package.json');
 
 loudRejection();
 
-let args = process.argv;
+//
+const startArgs = process.argv.slice(0, 2);
+const args = process.argv.slice(2);
 
 // set global options
 commander.version(pkg.version);
@@ -32,8 +34,6 @@ commander.usage('[command] [flags]');
 commander.option('--offline');
 commander.option('--prefer-offline');
 commander.option('--strict-semver');
-commander.option('--har', 'Save HAR output of network traffic');
-commander.option('--ignore-engines', 'Ignore engines check');
 commander.option('--json', '');
 commander.option('--modules-folder [path]', 'rather than installing modules into the node_modules ' +
                                             'folder relative to the cwd, output them here');
@@ -53,43 +53,77 @@ commander.option(
 );
 
 // get command name
-let commandName: string = args.splice(2, 1)[0] || '';
+let commandName: string = args.shift() || '';
 
-// if command name looks like a flag or doesn't exist then print help
+//
+if (commandName === 'help' && !args.length) {
+  commander.on('--help', function() {
+    console.log('  Commands:');
+    console.log();
+    for (let name of Object.keys(commands).sort(sortAlpha)) {
+      console.log(`    * ${name}`);
+    }
+    console.log();
+    console.log('  Run `yarn help COMMAND` for more information on specific commands.');
+    console.log();
+  });
+}
+
+// if no args or command name looks like a flag then default to `install`
 if (!commandName || commandName[0] === '-') {
   if (commandName) {
-    args.splice(2, 0, commandName);
+    args.unshift(commandName);
   }
   commandName = 'install';
 }
 
-// handle aliases: i -> install
-// $FlowFixMe: this is a perfectly fine pattern
+// aliases: i -> install
 if (commandName && typeof aliases[commandName] === 'string') {
   commandName = aliases[commandName];
 }
 
 //
-if (!commandName || commandName === 'help') {
-  commander.parse(args);
-  commander.help();
-  process.exit(1);
+if (commandName === 'help' && args.length) {
+  commandName = camelCase(args.shift());
+  args.push('--help');
 }
 
 //
 invariant(commandName, 'Missing command name');
 let command = commands[camelCase(commandName)];
 
+//
+if (command && typeof command.setFlags === 'function') {
+  command.setFlags(commander);
+}
+
+//
+if (commandName === 'help' || args.indexOf('--help') >= 0 || args.indexOf('-h') >= 0) {
+  const examples = command && command.examples;
+  if (Array.isArray(examples) && examples.length) {
+    commander.on('--help', function() {
+      console.log('  Examples:');
+      console.log();
+      for (let example of examples) {
+        console.log(`    $ yarn ${example}`);
+      }
+      console.log();
+    });
+  }
+
+  commander.parse(startArgs.concat(args));
+  commander.help();
+  process.exit(1);
+}
+
+//
 if (!command) {
-  args.splice(2, 0, commandName);
+  args.unshift(commandName);
   command = commands.run;
 }
 
 // parse flags
-if (typeof command.setFlags === 'function') {
-  command.setFlags(commander);
-}
-commander.parse(args);
+commander.parse(startArgs.concat(args));
 
 //
 let Reporter = ConsoleReporter;
