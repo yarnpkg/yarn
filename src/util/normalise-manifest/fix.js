@@ -16,8 +16,27 @@ const LICENSE_RENAMES = {
   X11: 'MIT',
 };
 
+type Dict<T> = {
+  [key: string]: T;
+};
+
+class ManifestError extends Error {
+  key: string;
+  problem: string;
+
+  constructor(key: string, problem: string) {
+    super();
+    this.key = key;
+    this.problem = problem;
+  }
+
+  get message(): string {
+    return `Fatal problem with ${this.key} in manifest: ${this.problem}`;
+  }
+}
+
 export default async function (
-  info: Object,
+  info: Dict<mixed>,
   moduleLoc: string,
   reporter: Reporter,
   looseSemver: boolean,
@@ -92,9 +111,11 @@ export default async function (
     };
   }
 
+  let repo = info.repository;
+
   // explode info.repository.url if it's a hosted git shorthand
-  if (typeof info.repository === 'object' && typeof info.repository.url === 'string') {
-    info.repository.url = hostedGitFragmentToGitUrl(info.repository.url, reporter);
+  if (repo && typeof repo === 'object' && typeof repo.url === 'string') {
+    repo.url = hostedGitFragmentToGitUrl(repo.url, reporter);
   }
 
   // allow bugs to be specified as a string, expand it to an object with a single url prop
@@ -114,11 +135,17 @@ export default async function (
     info.homepage = url.format(parts);
   }
 
+  const name = info.name;
+
+  if (typeof name !== 'string') {
+    throw new ManifestError('name', 'must be a string');
+  }
+
   // if the `bin` field is as string then expand it to an object with a single property
   // based on the original `bin` field and `name field`
   // { name: "foo", bin: "cli.js" } -> { name: "foo", bin: { foo: "cli.js" } }
   if (typeof info.bin === 'string') {
-    info.bin = {[info.name]: info.bin};
+    info.bin = {[name]: info.bin};
   }
 
   // bundleDependencies is an alias for bundledDependencies
@@ -127,8 +154,14 @@ export default async function (
     delete info.bundledDependencies;
   }
 
+  let scripts: Object;
+
   // dummy script object to shove file inferred scripts onto
-  const scripts = info.scripts || {};
+  if (info.scripts && typeof info.scripts === 'object') {
+    scripts = info.scripts;
+  } else {
+    scripts = {};
+  }
 
   // if there's a server.js file and no start script then set it to `node server.js`
   if (!scripts.start && files.indexOf('server.js') >= 0) {
@@ -145,32 +178,36 @@ export default async function (
     info.scripts = scripts;
   }
 
-  // explode directories
-  const dirs = info.directories;
-  if (dirs) {
-    if (!info.bin && dirs.bin) {
+  let dirs = info.directories;
+
+  if (dirs && typeof dirs === 'object') {
+    const binDir = dirs.bin;
+
+    if (!info.bin && binDir && typeof binDir === 'string') {
       const bin = info.bin = {};
 
-      for (const scriptName of await fs.readdir(path.join(moduleLoc, dirs.bin))) {
+      for (const scriptName of await fs.readdir(path.join(moduleLoc, binDir))) {
         if (scriptName[0] === '.') {
           continue;
         }
-        bin[scriptName] = path.join('.', dirs.bin, scriptName);
+        bin[scriptName] = path.join('.', binDir, scriptName);
       }
     }
 
-    if (!info.man && dirs.man) {
+    const manDir = dirs.man;
+
+    if  (!info.man && typeof manDir === 'string') {
       const man = info.man = [];
 
-      for (const filename of await fs.readdir(path.join(moduleLoc, dirs.man))) {
+      for (const filename of await fs.readdir(path.join(moduleLoc, manDir))) {
         if (/^(.*?)\.[0-9]$/.test(filename)) {
-          man.push(path.join('.', dirs.man, filename));
+          man.push(path.join('.', manDir, filename));
         }
       }
     }
-
-    delete info.directories;
   }
+
+  delete info.directories;
 
   // normalise licenses field
   let licenses = info.licenses;
@@ -178,7 +215,7 @@ export default async function (
     let licenseTypes = [];
 
     for (let license of licenses) {
-      if (typeof license === 'object') {
+      if (license && typeof license === 'object') {
         license = license.type;
       }
       if (typeof license === 'string') {
@@ -195,9 +232,11 @@ export default async function (
     }
   }
 
+  let license = info.license;
+
   // normalise license
-  if (typeof info.license === 'object') {
-    info.license = info.license.type;
+  if (license && typeof license === 'object') {
+    info.license = license.type;
   }
 
   // get license file
@@ -210,10 +249,12 @@ export default async function (
     const inferredLicense = inferLicense(licenseContent);
     info.licenseText = licenseContent;
 
-    if (info.license) {
-      if (inferredLicense && isValidLicense(inferredLicense) && !isValidLicense(info.license)) {
+    const license = info.license;
+
+    if (typeof license === 'string') {
+      if (inferredLicense && isValidLicense(inferredLicense) && !isValidLicense(license)) {
         // some packages don't specify their license version but we can infer it based on their license file
-        const basicLicense = info.license.toLowerCase().replace(/(-like|\*)$/g, '');
+        const basicLicense = license.toLowerCase().replace(/(-like|\*)$/g, '');
         const expandedLicense = inferredLicense.toLowerCase();
         if (expandedLicense.startsWith(basicLicense)) {
           // TODO consider doing something to notify the user
