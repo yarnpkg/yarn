@@ -42,7 +42,7 @@ function _stringify(obj: Object, indent: string = ''): string {
   let keys = Object.keys(obj).sort(sortAlpha);
 
   // sort keys depending on priority
-  keys = keys.sort((a: string, b: string): boolean => getKeyPriority(a) > getKeyPriority(b));
+  keys = keys.sort((a: string, b: string): number => +(getKeyPriority(a) > getKeyPriority(b)));
 
   let addedKeys = [];
 
