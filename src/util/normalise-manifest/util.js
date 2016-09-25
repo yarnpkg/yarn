@@ -66,7 +66,7 @@ export function normalisePerson(person: mixed): mixed | PersonObject {
 }
 
 export function extractDescription(readme: mixed): ?string {
-  if (typeof readme !== 'string') {
+  if (typeof readme !== 'string' || readme === '') {
     return undefined;
   }
 
