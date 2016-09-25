@@ -244,7 +244,7 @@ export class Install {
           this.reporter.lang('savingHar', filename),
           emoji.get('black_circle_for_record'),
         );
-        await this.config.requestManager.requestCaptureHar.saveHar(filename);
+        await this.config.requestManager.saveHar(filename);
       });
     }
 
