@@ -10,3 +10,8 @@
 /dist
 /updates
 /.roadrunner.json
+/resources/winsetup/generated.wxs
+/resources/winsetup/obj
+/resources/winsetup/bin
+.vs
+*.msi

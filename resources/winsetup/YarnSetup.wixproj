@@ -1,0 +1,73 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
+    <ProductVersion>3.10</ProductVersion>
+    <ProjectGuid>fe1c2574-72c2-4f4a-80d6-dc3aa428bb00</ProjectGuid>
+    <SchemaVersion>2.0</SchemaVersion>
+    <OutputName>Yarn</OutputName>
+    <OutputType>Package</OutputType>
+    <WixTargetsPath Condition=" '$(WixTargetsPath)' == '' AND '$(MSBuildExtensionsPath32)' != '' ">$(MSBuildExtensionsPath32)\Microsoft\WiX\v3.x\Wix.targets</WixTargetsPath>
+    <WixTargetsPath Condition=" '$(WixTargetsPath)' == '' ">$(MSBuildExtensionsPath)\Microsoft\WiX\v3.x\Wix.targets</WixTargetsPath>
+    <YarnDistPath>..\..\dist</YarnDistPath>
+    <DefineSolutionProperties>false</DefineSolutionProperties>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
+    <OutputPath>bin\$(Configuration)\</OutputPath>
+    <IntermediateOutputPath>obj\$(Configuration)\</IntermediateOutputPath>
+    <DefineConstants>Debug;YarnDistPath=$(YarnDistPath)</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
+    <OutputPath>bin\$(Configuration)\</OutputPath>
+    <IntermediateOutputPath>obj\$(Configuration)\</IntermediateOutputPath>
+    <DefineConstants>YarnDistPath=$(YarnDistPath)</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="generated.wxs" />
+    <Compile Include="Yarn.wxs" />
+  </ItemGroup>
+  <ItemGroup>
+    <WixExtension Include="WixUIExtension">
+      <HintPath>$(WixExtDir)\WixUIExtension.dll</HintPath>
+      <Name>WixUIExtension</Name>
+    </WixExtension>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="license.rtf" />
+    <Content Include="yarn-banner.bmp" />
+    <Content Include="yarn-dialog.bmp" />
+    <Content Include="yarn.ico" />
+  </ItemGroup>
+  <Import Project="$(WixTargetsPath)" />
+  <Target Name="BeforeBuild">
+    <!-- Ensure Yarn build was performed already -->
+    <Error
+      Condition="!Exists('$(YarnDistPath)\bin\yarn.js')"
+      Text="Please run scripts\build-dist.sh before building the installer"
+    />
+    <!-- Delete .tar.gz from dist path, leaving only the files -->
+    <Delete Files="$(YarnDistPath)\*.tar.gz" />
+
+    <HeatDirectory
+      AutogenerateGuids="true"
+      ComponentGroupName="YarnFiles"
+      Directory="$(YarnDistPath)"
+      DirectoryRefId="INSTALLDIR"
+      OutputFile="generated.wxs"
+      PreprocessorVariable="var.YarnDistPath"
+      SuppressRootDirectory="true"
+      ToolPath="$(WixToolPath)"
+    />
+  </Target>
+  <Target Name="AfterBuild">
+    <!-- Get Yarn version and rename installer to yarn-[version].msi -->
+    <Exec Command="node $(YarnDistPath)\bin\yarn.js --version" ConsoleToMSBuild="true">
+      <Output TaskParameter="ConsoleOutput" PropertyName="YarnVersion" />
+    </Exec>
+    <Copy
+      SourceFiles="$(OutputPath)\Yarn.msi"
+      DestinationFiles="$(YarnDistPath)\..\yarn-$(YarnVersion).msi"
+    />
+  </Target>
+</Project>

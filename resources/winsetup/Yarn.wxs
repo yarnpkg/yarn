@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+	<Product Id="*" Name="Yarn" Language="1033" Version="0.13.0" Manufacturer="Yarn Contributors" UpgradeCode="241362e6-53bb-4a50-9c58-15f95734e43d">
+		<Package InstallerVersion="200" Compressed="yes" InstallScope="perMachine" />
+
+		<MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
+		<MediaTemplate EmbedCab="yes" />
+
+		<!-- Ensure Node.js is installed. Can be either 32-bit or 64-bit, we don't particularly care -->
+		<Property Id="NODEVERSION">
+			<RegistrySearch Id="NodeVersionReg32bit" Root="HKLM" Key="SOFTWARE\Node.js" Name="Version" Type="raw" Win64="no" />
+			<RegistrySearch Id="NodeVersionReg64bit" Root="HKLM" Key="SOFTWARE\Node.js" Name="Version" Type="raw" Win64="yes" />
+		</Property>
+		<Condition Message="Yarn requires Node.js 4.0 or higher to be installed">NODEVERSION</Condition>
+
+		<Feature Id="MainFeature" Title="Yarn" Level="1">
+			<ComponentGroupRef Id="YarnFiles" />
+			<ComponentRef Id="YarnRegistryAndPath" />
+		</Feature>
+
+		<Directory Id="TARGETDIR" Name="SourceDir">
+			<Directory Id="ProgramFilesFolder">
+				<Directory Id="INSTALLDIR" Name="Yarn" />
+			</Directory>
+		</Directory>
+
+		<DirectoryRef Id="INSTALLDIR">
+			<Component Id="YarnRegistryAndPath">
+				<RegistryValue Root="HKLM" Key="SOFTWARE\Yarn" Type="string" Name="InstallDir" Value="[INSTALLDIR]" KeyPath="yes" />
+				<Environment
+					Id="Path"
+					Name="PATH"
+					Value="[INSTALLDIR]\bin"
+					Permanent="no"
+					Part="last"
+					Action="set"
+					System="yes"
+				/>
+			</Component>
+		</DirectoryRef>
+
+		<Property Id="WIXUI_INSTALLDIR" Value="INSTALLDIR" />
+		<WixVariable Id="WixUILicenseRtf" Value="license.rtf" />
+		<UIRef Id="WixUI_InstallDir" />
+
+		<WixVariable Id="WixUIBannerBmp" Value="yarn-banner.bmp" />
+		<WixVariable Id="WixUIDialogBmp" Value="yarn-dialog.bmp" />
+		<Icon Id="YarnIcon" SourceFile="yarn.ico" />
+		<Property Id="ARPPRODUCTICON" Value="YarnIcon" />
+	</Product>
+</Wix>
