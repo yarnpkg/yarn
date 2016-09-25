@@ -287,6 +287,8 @@ export class Install {
       return patterns;
     }
 
+    let flattenedPatterns = [];
+
     for (const name of this.resolver.getAllDependencyNamesByLevelOrder(patterns)) {
       const infos = this.resolver.getAllInfoForPackageName(name).filter((manifest: Manifest): boolean => {
         let ref = manifest._reference;
@@ -331,7 +333,7 @@ export class Install {
         this.resolutions[name] = version;
       }
 
-      patterns.push(this.resolver.collapseAllVersionsOfPackage(name, version));
+      flattenedPatterns.push(this.resolver.collapseAllVersionsOfPackage(name, version));
     }
 
     // save resolutions to their appropriate root manifest
@@ -366,7 +368,7 @@ export class Install {
       await this.saveRootManifests(jsons);
     }
 
-    return patterns;
+    return flattenedPatterns;
   }
 
   /**
