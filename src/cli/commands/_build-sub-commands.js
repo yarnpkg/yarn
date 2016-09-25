@@ -19,6 +19,7 @@ type SubCommands =  {
 type Return = {
   run: RunCommand,
   setFlags: (commander: Object) => void,
+  examples: Array<string>,
 };
 
 type Usage = Array<string>;
@@ -27,7 +28,7 @@ export default function(rootCommandName: string, subCommands: SubCommands, usage
   let subCommandNames = Object.keys(subCommands);
 
   function setFlags(commander: Object) {
-    commander.usage(`${rootCommandName} [${subCommandNames.join(' | ')}] [flags]`);
+    commander.usage(`${rootCommandName} [${subCommandNames.join('|')}] [flags]`);
   }
 
   async function run(
@@ -53,5 +54,9 @@ export default function(rootCommandName: string, subCommands: SubCommands, usage
     return Promise.reject();
   }
 
-  return {run, setFlags};
+  const examples = usage.map((cmd: string): string => {
+    return `${rootCommandName} ${cmd}`;
+  });
+
+  return {run, setFlags, examples};
 }
