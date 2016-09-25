@@ -29,7 +29,7 @@ export async function run(
   function humaniseLocation(loc: string): Array<string> {
     const relative = path.relative(path.join(config.cwd, 'node_modules'), loc);
     const normalised = path.normalize(relative).split(path.sep);
-    return normalised.filter(p => p !== "node_modules");
+    return normalised.filter((p) => p !== 'node_modules');
   }
 
   let warningCount = 0;
