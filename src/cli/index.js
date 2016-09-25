@@ -6,7 +6,7 @@ import * as commands from './commands/index.js';
 import * as constants from '../constants.js';
 import * as network from '../util/network.js';
 
-import aliases from './aliases.js';
+import aliases from './aliases.json';
 import Config from '../config.js';
 
 const loudRejection = require('loud-rejection');
@@ -53,6 +53,7 @@ commander.option(
 
 // get command name
 let commandName: string = args.shift() || '';
+let command;
 
 //
 if (commandName === 'help' && !args.length) {
@@ -78,7 +79,12 @@ if (!commandName || commandName[0] === '-') {
 
 // aliases: i -> install
 if (commandName && commandName !== 'install' && typeof aliases[commandName] === 'string') {
-  commandName = aliases[commandName];
+  command = {
+    run(config: Config, reporter: Reporter) {
+      reporter.error(`Did you mean \`yarn ${aliases[commandName]}\`?`);
+      return Promise.reject();
+    }
+  };
 }
 
 //
@@ -89,7 +95,7 @@ if (commandName === 'help' && args.length) {
 
 //
 invariant(commandName, 'Missing command name');
-let command = commands[camelCase(commandName)];
+command = command || commands[camelCase(commandName)];
 
 //
 if (command && typeof command.setFlags === 'function') {
