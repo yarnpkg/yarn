@@ -2,6 +2,7 @@
 
 import type {Reporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
+import {MessageError} from '../../errors.js';
 
 const camelCase = require('camelcase');
 
@@ -51,7 +52,7 @@ export default function(rootCommandName: string, subCommands: SubCommands, usage
     for (let msg of usage) {
       reporter.error(`yarn ${rootCommandName} ${msg}`);
     }
-    return Promise.reject();
+    return Promise.reject(new MessageError('Invalid arguments.'));
   }
 
   const examples = usage.map((cmd: string): string => {

@@ -5,7 +5,7 @@ import {sortAlpha} from '../util/misc.js';
 import * as commands from './commands/index.js';
 import * as constants from '../constants.js';
 import * as network from '../util/network.js';
-
+import {MessageError} from '../errors.js';
 import aliases from './aliases.js';
 import Config from '../config.js';
 
@@ -85,11 +85,11 @@ if (!commandName || commandName[0] === '-') {
 }
 
 // aliases: i -> install
+// $FlowFixMe
 if (commandName && typeof aliases[commandName] === 'string') {
   command = {
-    run(config: Config, reporter: Reporter): Promise<void> {
-      reporter.error(`Did you mean \`yarn ${aliases[commandName]}\`?`);
-      return Promise.reject();
+    run(config: Config, reporter: ConsoleReporter | JSONReporter): Promise<void> {
+      throw new MessageError(`Did you mean \`yarn ${aliases[commandName]}\`?`);
     },
   };
 }
@@ -119,7 +119,7 @@ const DEFAULT_EXAMPLES = [
 
 //
 if (commandName === 'help' || args.indexOf('--help') >= 0 || args.indexOf('-h') >= 0) {
-  const examples = DEFAULT_EXAMPLES.concat(command ? command.examples : []);
+  const examples = DEFAULT_EXAMPLES.concat((command && command.examples) || []);
   commander.on('--help', function() {
     console.log('  Examples:');
     console.log();
@@ -139,6 +139,7 @@ if (!command) {
   args.unshift(commandName);
   command = commands.run;
 }
+invariant(command, 'missing command');
 
 // parse flags
 commander.parse(startArgs.concat(args));
@@ -199,6 +200,7 @@ if (command.requireLockfile && !fs.existsSync(path.join(config.cwd, constants.LO
 
 //
 const run = (): Promise<void> => {
+  invariant(command, 'missing command');
   return command.run(config, reporter, commander, commander.args).then(function() {
     reporter.close();
     if (outputWrapper) {
@@ -208,7 +210,7 @@ const run = (): Promise<void> => {
 };
 
 //
-const runEventuallyWithFile = (mutexFilename: ?string, isFirstTime: boolean): Promise<void> => {
+const runEventuallyWithFile = (mutexFilename: ?string, isFirstTime?: boolean): Promise<void> => {
   return new Promise((ok) => {
     const lockFilename = mutexFilename || path.join(config.cwd, constants.SINGLE_INSTANCE_FILENAME);
     lockfile.lock(lockFilename, {realpath: false}, (err, release) => {
@@ -304,7 +306,11 @@ config.init().then(function(): Promise<void> {
   }
 }).catch(function(errs) {
   function logError(err) {
-    reporter.error(err.stack.replace(/^Error: /, ''));
+    if (err instanceof MessageError) {
+      reporter.error(err.message);
+    } else {
+      reporter.error(err.stack.replace(/^Error: /, ''));
+    }
   }
 
   if (errs) {

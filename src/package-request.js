@@ -208,7 +208,7 @@ export default class PackageRequest {
     // find version info for this package pattern
     let info: ?Manifest = await this.findVersionInfo();
     if (!info) {
-      throw new MessageError(this.reporter.lang('unknownPackagePattern', this.pattern));
+      throw new MessageError(this.reporter.lang('unknownPackage', this.pattern));
     }
 
     cleanDependencies(info, false, this.reporter, () => {

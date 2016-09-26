@@ -2,6 +2,7 @@
 
 import type {Reporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
+import {MessageError} from '../../errors.js';
 import {Install} from './install.js';
 import Lockfile from '../../lockfile/wrapper.js';
 import * as fs from '../../util/fs.js';
@@ -181,12 +182,8 @@ export async function run(
   }
 
   if (errCount > 0) {
-    if (errCount > 1) {
-      reporter.info(reporter.lang('foundErrors', errCount));
-    }
-    return Promise.reject();
+    throw new MessageError(reporter.lang('foundErrors', errCount));
   } else {
     reporter.success(reporter.lang('folderInSync'));
-    return Promise.resolve();
   }
 }

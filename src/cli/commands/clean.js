@@ -124,10 +124,10 @@ export async function run(
   flags: Object,
   args: Array<string>,
 ): Promise<void> {
-  reporter.step(1, 2, `Creating ${CLEAN_FILENAME}`);
+  reporter.step(1, 2, reporter.lang('cleanCreatingFile', CLEAN_FILENAME));
   await fs.writeFile(path.join(config.cwd, CLEAN_FILENAME), '\n');
 
-  reporter.step(2, 2, 'Cleaning modules');
+  reporter.step(2, 2, reporter.lang('cleaning'));
   let {removedFiles, removedSize} = await clean(config, reporter);
   reporter.info(reporter.lang('cleanRemovedFiles', removedFiles));
   reporter.info(reporter.lang('cleanSavedSize', (removedSize / 1024 / 1024).toFixed(2)));
