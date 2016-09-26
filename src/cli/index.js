@@ -5,13 +5,9 @@ import {sortAlpha} from '../util/misc.js';
 import * as commands from './commands/index.js';
 import * as constants from '../constants.js';
 import * as network from '../util/network.js';
-<<<<<<< HEAD
-
 import aliases from './aliases.json';
-=======
+
 import {MessageError} from '../errors.js';
-import aliases from './aliases.js';
->>>>>>> add lint rule against non-language keys
 import Config from '../config.js';
 
 const loudRejection = require('loud-rejection');

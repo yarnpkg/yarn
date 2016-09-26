@@ -76,6 +76,7 @@ let messages = {
   linkInstallMessage: 'You can now run `yarn install` in the projects where you want to use this module and it will be used instead.',
   linkRegistered: 'Registered $0.',
   linkUnregistered: 'Unregistered $0.',
+  linkUsing: 'Using linked module for $0.',
 
   commandNotSpecified: 'No command specified.',
   possibleCommands: 'Possible commands',

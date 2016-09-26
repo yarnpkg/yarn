@@ -18,10 +18,10 @@ let path = require('path');
 
 let fixturesLoc = path.join(__dirname, '..', 'fixtures', 'install');
 
-parallelTest('integrity hash respects flat and production flags', () => {
+parallelTest('integrity hash respects flat and production flags', async () => {
   let cwd = path.join(fixturesLoc, 'noop');
   let reporter = new reporters.NoopReporter();
-  let config = new Config(reporter, );
+  let config = new Config(reporter);
   await config.init({cwd});
 
   let lockfile = new Lockfile();
@@ -36,7 +36,7 @@ parallelTest('integrity hash respects flat and production flags', () => {
   assert(install3.generateIntegrityHash('foo') !== install2.generateIntegrityHash('foo'));
 });
 
-parallelTest('flat arg is inherited from root manifest', (): Promise<void> => {
+parallelTest('flat arg is inherited from root manifest', async (): Promise<void> => {
   let cwd = path.join(fixturesLoc, 'top-level-flat-parameter');
   let reporter = new reporters.NoopReporter();
   let config = new Config(reporter);
