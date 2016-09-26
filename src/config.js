@@ -23,6 +23,7 @@ type ConfigOptions = {
   tempFolder?: ?string,
   modulesFolder?: ?string,
   globalFolder?: ?string,
+  linkFolder?: ?string,
   offline?: boolean,
   preferOffline?: boolean,
   captureHar?: boolean,
@@ -40,24 +41,11 @@ type PackageMetadata = {
 };
 
 export default class Config {
-  constructor(reporter: Reporter, opts?: ConfigOptions = {}) {
+  constructor(reporter: Reporter) {
     this.constraintResolver = new ConstraintResolver(this, reporter);
-    this.requestManager = new RequestManager(reporter, opts.offline && !opts.preferOffline, opts.captureHar);
+    this.requestManager = new RequestManager(reporter);
     this.reporter = reporter;
-
-    this.registryFolders = [];
-    this.registries = map();
-    this.cache = map();
-    this.cwd = opts.cwd || process.cwd();
-
-    this.looseSemver = opts.looseSemver == undefined ? true : opts.looseSemver;
-
-    this.preferOffline = !!opts.preferOffline;
-    this.modulesFolder = opts.modulesFolder;
-    this.globalFolder = opts.globalFolder;
-    this.packagesRoot = opts.packagesRoot;
-    this.tempFolder = opts.tempFolder;
-    this.offline = !!opts.offline;
+    this._init({});
   }
 
   //
@@ -66,7 +54,16 @@ export default class Config {
   preferOffline: boolean;
 
   //
-  globalFolder: ?string;
+  linkedModules: Array<string>;
+
+  //
+  rootModuleFolders: Array<string>;
+
+  //
+  linkFolder: string;
+
+  //
+  globalFolder: string;
 
   //
   constraintResolver: ConstraintResolver;
@@ -78,10 +75,10 @@ export default class Config {
   modulesFolder: ?string;
 
   //
-  packagesRoot: ?string;
+  packagesRoot: string;
 
   //
-  tempFolder: ?string;
+  tempFolder: string;
 
   //
   reporter: Reporter;
@@ -130,21 +127,14 @@ export default class Config {
    */
 
   async init(opts: ConfigOptions = {}): Promise<void> {
-    if (opts.cwd) {
-      this.cwd = opts.cwd;
-    }
+    this._init(opts);
 
-    if (!this.packagesRoot) {
-      this.packagesRoot = await this.getPackageRoot(opts);
-    }
+    await fs.mkdirp(this.globalFolder);
+    await fs.mkdirp(this.packagesRoot);
+    await fs.mkdirp(this.tempFolder);
 
-    if (!this.tempFolder) {
-      this.tempFolder = await this.getTempFolder();
-    }
-
-    if (!this.globalFolder) {
-      this.globalFolder = await this.getGlobalFolder();
-    }
+    await fs.mkdirp(this.linkFolder);
+    this.linkedModules = await fs.readdir(this.linkFolder);
 
     for (const key of Object.keys(registries)) {
       const Registry = registries[key];
@@ -155,17 +145,35 @@ export default class Config {
 
       this.registries[key] = registry;
       this.registryFolders.push(registry.folder);
+      this.rootModuleFolders.push(path.join(this.cwd, registry.folder));
     }
   }
 
-  /**
-   * Get default path to our global module folder.
-   */
+  _init(opts: ConfigOptions) {
+    this.rootModuleFolders = [];
+    this.registryFolders = [];
+    this.linkedModules = [];
 
-  async getGlobalFolder(): Promise<string> {
-    let loc = path.join(userHome, constants.GLOBAL_MODULE_DIRECTORY);
-    await fs.mkdirp(loc);
-    return loc;
+    this.registries = map();
+    this.cache = map();
+    this.cwd = opts.cwd || this.cwd || process.cwd();
+
+    this.looseSemver = opts.looseSemver == undefined ? true : opts.looseSemver;
+
+    this.preferOffline = !!opts.preferOffline;
+    this.modulesFolder = opts.modulesFolder;
+    this.globalFolder = opts.globalFolder || path.join(userHome, constants.GLOBAL_MODULE_DIRECTORY);
+    this.packagesRoot = opts.packagesRoot || path.join(userHome, constants.MODULE_CACHE_DIRECTORY);
+    this.linkFolder = opts.linkFolder || path.join(userHome, constants.LINK_REGISTRY_DIRECTORY);
+    this.tempFolder = opts.tempFolder || path.join(this.packagesRoot, '.tmp');
+    this.offline = !!opts.offline;
+
+    this.requestManager.setOffline(!!opts.offline && !opts.preferOffline);
+    this.requestManager.setCaptureHar(!!opts.captureHar);
+
+    if (this.modulesFolder) {
+      this.rootModuleFolders.push(this.modulesFolder);
+    }
   }
 
   /**
@@ -236,41 +244,6 @@ export default class Config {
       return path.join(mirrorPath, path.basename(pathname));
     }
 
-  }
-
-  /**
-   * Find temporary folder.
-   */
-
-  async getTempFolder(): Promise<string> {
-    invariant(this.packagesRoot, 'No package root');
-    const folder = path.join(this.packagesRoot, '.tmp');
-    await fs.mkdirp(folder);
-    return folder;
-  }
-
-  /**
-   * Find package folder to store modules in.
-   */
-
-  async getPackageRoot(opts: ConfigOptions): Promise<string> {
-    if (opts.packagesRoot) {
-      return opts.packagesRoot;
-    }
-
-    // walk up from current directory looking for .yarn folders
-    const parts = this.cwd.split(path.sep);
-    for (let i = parts.length; i > 0; i--) {
-      const loc = parts.slice(0, i).concat(constants.MODULE_CACHE_DIRECTORY).join(path.sep);
-      if (await fs.exists(loc)) {
-        return loc;
-      }
-    }
-
-    // try and create ~/.yarn
-    const loc = path.join(userHome, constants.MODULE_CACHE_DIRECTORY);
-    await fs.mkdirp(loc);
-    return loc;
   }
 
   /**

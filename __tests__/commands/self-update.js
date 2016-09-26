@@ -48,7 +48,8 @@ function run(checks: (reporter: reporters.Reporter, config: Config) => Promise<v
     try {
       const reporter = new reporters.ConsoleReporter({stdout, stderr: stdout});
       const cwd = path.resolve(updatesFolder, '..');
-      const config = new Config(reporter, {cwd});
+      const config = new Config(reporter);
+      await config.init({cwd});
       await checks(reporter, config);
     } catch (err) {
       throw new Error(`${err} \nConsole output:\n ${out}`);

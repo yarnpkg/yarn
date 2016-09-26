@@ -89,8 +89,8 @@ export async function run(
   await fs.mkdirp(path.join(cwd, 'node_modules'));
 
   try {
-    let config = new Config(reporter, {cwd});
-    await config.init();
+    let config = new Config(reporter);
+    await config.init({cwd});
 
     let install = factory(config, reporter, lockfile);
     await install.init();
