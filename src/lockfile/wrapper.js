@@ -3,7 +3,6 @@
 import type {Reporter} from '../reporters/index.js';
 import type {Manifest} from '../types.js';
 import type {RegistryNames} from '../registries/index.js';
-import {MessageError} from '../errors.js';
 import {sortAlpha} from '../util/misc.js';
 import PackageRequest from '../package-request.js';
 import parse from './parse.js';
@@ -68,15 +67,6 @@ export default class Lockfile {
     }
 
     return new Lockfile(lockfile, rawLockfile);
-  }
-
-  getStrictLocked(pattern: string): LockManifest {
-    let locked = this.getLocked(pattern);
-    if (locked) {
-      return locked;
-    } else {
-      throw new MessageError('Outdated lockfile. Please run `$ yarn install` and try again.');
-    }
   }
 
   getLocked(pattern: string): ?LockManifest {
