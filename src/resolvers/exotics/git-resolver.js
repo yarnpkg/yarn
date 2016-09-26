@@ -22,12 +22,16 @@ export default class GitResolver extends ExoticResolver {
     super(request, fragment);
 
     let {url, hash} = versionUtil.explodeHashedUrl(fragment);
-    this.url = url;
+    this.url = GitResolver.cleanUrl(url);
     this.hash = hash;
   }
 
   url: string;
   hash: string;
+
+  static cleanUrl(url: string): string {
+    return url.replace(/^git\+/, '');
+  }
 
   static isVersion(pattern: string): boolean {
     // this pattern hasn't been exploded yet, we'll hit this code path again later once

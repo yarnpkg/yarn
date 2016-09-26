@@ -155,6 +155,7 @@ export default class NpmResolver extends RegistryResolver {
     }
 
     info._uid = info.version;
+
     return info;
   }
 }

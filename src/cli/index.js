@@ -27,7 +27,7 @@ loudRejection();
 const startArgs = process.argv.slice(0, 2);
 let args = process.argv.slice(2);
 
-// ignore all arguments after a -- 
+// ignore all arguments after a --
 let endArgs = [];
 for (let i = 0; i < args.length; i++) {
   const arg = args[i];

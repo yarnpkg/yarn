@@ -17,6 +17,7 @@ export const realpath = promisify(fs.realpath);
 export const readdir = promisify(fs.readdir);
 export const rename = promisify(fs.rename);
 export const access = promisify(fs.access);
+export const stat = promisify(fs.stat);
 export const unlink = promisify(require('rimraf'));
 export const mkdirp = promisify(require('mkdirp'));
 export const exists = promisify(fs.exists, true);
@@ -291,7 +292,7 @@ function _readFile(loc: string, encoding: string): Promise<any> {
 }
 
 export function readFile(loc: string): Promise<string> {
-  return _readFile(loc, 'utf8');
+  return _readFile(loc, 'utf8').then(normaliseOS);
 }
 
 export function readFileRaw(loc: string): Promise<Buffer> {
@@ -407,4 +408,8 @@ export async function walk(
   }
 
   return files;
+}
+
+export function normaliseOS(body: string): string {
+  return body.replace(/\r\n/g, '\n');
 }

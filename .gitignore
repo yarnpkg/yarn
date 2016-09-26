@@ -9,3 +9,4 @@
 /__tests__/fixtures/**/node_modules
 /dist
 /updates
+/.roadrunner.json
