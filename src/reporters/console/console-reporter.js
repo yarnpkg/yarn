@@ -14,6 +14,7 @@ import {clearLine} from './util.js';
 import {removeSuffix} from '../../util/misc.js';
 
 let stripAnsi = require('strip-ansi');
+let {inspect} = require('util');
 let readline = require('readline');
 let repeat = require('repeating');
 let chalk = require('chalk');
@@ -85,6 +86,19 @@ export default class ConsoleReporter extends BaseReporter {
     }
 
     this.log(`${chalk.grey(`[${current}/${total}]`)} ${msg}`);
+  }
+
+  inspect(value: any) {
+    if (typeof value !== 'number' && typeof value !== 'string') {
+      value = inspect(value, {
+        breakLength: 0,
+        colors: true,
+        depth: null,
+        maxArrayLength: null,
+      });
+    }
+
+    this.log(value);
   }
 
   list(key: string, items: Array<string>) {

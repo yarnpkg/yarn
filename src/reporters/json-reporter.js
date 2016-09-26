@@ -34,6 +34,10 @@ export default class JSONReporter extends BaseReporter {
     this._dump('step', {message, current, total});
   }
 
+  inspect(value: any) {
+    this._dump('inspect', value);
+  }
+
   footer() {
     this._dump('finished', this.getTotalTime());
   }
