@@ -2,6 +2,7 @@
 
 import type {Reporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
+import {MessageError} from '../../errors.js';
 import {sortAlpha} from '../../util/misc.js';
 import PackageRequest from '../../package-request.js';
 import Lockfile from '../../lockfile/wrapper.js';
@@ -31,7 +32,10 @@ export async function run(
   const [, patterns] = await install.fetchRequestFromCwd();
 
   await Promise.all(patterns.map(async (pattern): Promise<void> => {
-    const locked = lockfile.getStrictLocked(pattern);
+    const locked = lockfile.getLocked(pattern);
+    if (!locked) {
+      throw new MessageError(reporter.lang('lockfileOutdated'));
+    }
 
     let normalised = PackageRequest.normalisePattern(pattern);
 

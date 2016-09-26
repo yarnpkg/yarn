@@ -1,7 +1,7 @@
 /* @flow */
 
 import type Config from '../../config.js';
-import {SpawnError} from '../../errors.js';
+import {SpawnError, MessageError} from '../../errors.js';
 import executeLifecycleScript from '../../util/execute-lifecycle-script.js';
 
 export default async function (config: Config, commandName: string): Promise<void> {
@@ -28,8 +28,7 @@ export async function execCommand(config: Config, cmd: string, cwd: string): Pro
     return Promise.resolve();
   } catch (err) {
     if (err instanceof SpawnError) {
-      reporter.error(reporter.lang('commandFailed', err.EXIT_CODE));
-      return Promise.reject();
+      throw new MessageError(reporter.lang('commandFailed', err.EXIT_CODE));
     } else {
       throw err;
     }
