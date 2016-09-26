@@ -7,9 +7,11 @@ import * as constants from '../constants.js';
 import * as network from './network.js';
 import map from '../util/map.js';
 
-const request = require('request');
-const RequestCaptureHar = require('request-capture-har');
+import typeof * as RequestModuleT from 'request';
+import type RequestT from 'request';
 
+const RequestCaptureHar = require('request-capture-har');
+const invariant = require('invariant');
 const url = require('url');
 
 const successHosts = map();
@@ -41,7 +43,7 @@ type RequestParams<T> = {
     [name: string]: string
   },
   process?: (
-    req: request,
+    req: RequestT,
     resolve: (body: T) => void,
     reject: (err: Error) => void
   ) => void,
@@ -58,6 +60,8 @@ type RequestOptions = {
 export default class RequestManager {
   constructor(reporter: Reporter, offlineNoRequests?: boolean, captureHar?: boolean) {
     this.offlineNoRequests = !!offlineNoRequests;
+    this._requestCaptureHar = null;
+    this._requestModule = null;
     this.captureHar = !!captureHar;
     this.offlineQueue = [];
     this.reporter = reporter;
@@ -65,8 +69,6 @@ export default class RequestManager {
     this.queue = [];
     this.cache = {};
     this.max = constants.NETWORK_CONCURRENCY;
-
-    this.requestCaptureHar = new RequestCaptureHar(request);
   }
 
   // whether we should throw errors and disallow HTTP requests
@@ -81,7 +83,27 @@ export default class RequestManager {
   cache: {
     [key: string]: Promise<any>
   };
-  requestCaptureHar: RequestCaptureHar;
+
+  _requestCaptureHar: ?RequestCaptureHar;
+  _requestModule: ?RequestModuleT;
+
+  /**
+   * Lazy load `request` since it is exceptionally expensive to load and is
+   * often not needed at all.
+   */
+
+  _getRequestModule(): RequestModuleT {
+    if (!this._requestModule) {
+      const request = require('request');
+      if (this.captureHar) {
+        this._requestCaptureHar = new RequestCaptureHar(request);
+        this._requestModule = this._requestCaptureHar.request.bind(this._requestCaptureHar);
+      } else {
+        this._requestModule = request;
+      }
+    }
+    return this._requestModule;
+  }
 
   /**
    * Queue up a request.
@@ -125,7 +147,9 @@ export default class RequestManager {
 
   clearCache() {
     this.cache = {};
-    this.requestCaptureHar.clear();
+    if (this._requestCaptureHar != null) {
+      this._requestCaptureHar.clear();
+    }
   }
 
   /**
@@ -258,7 +282,8 @@ export default class RequestManager {
       params.encoding = null;
     }
 
-    const req = this.captureHar ? this.requestCaptureHar.request(params) : request(params);
+    const request = this._getRequestModule();
+    const req = request(params);
 
     req.on('error', onError);
 
@@ -285,5 +310,15 @@ export default class RequestManager {
 
     this.running++;
     this.execute(opts);
+  }
+
+  saveHar(filename: string) {
+    if (!this.captureHar) {
+      throw new Error('RequestManager was not setup to capture HAR files');
+    }
+    // No request may have occured at all.
+    this._getRequestModule();
+    invariant(this._requestCaptureHar != null, 'request-capture-har not setup');
+    this._requestCaptureHar.saveHar(filename);
   }
 }
