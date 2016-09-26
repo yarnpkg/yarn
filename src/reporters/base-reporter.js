@@ -135,6 +135,9 @@ export default class BaseReporter {
   // a shell command has been executed
   command(command: string) {}
 
+  // inspect and pretty-print any value
+  inspect(value: any) {}
+
   // the screen shown at the very start of the CLI
   header(command: string, pkg: Package) {}
 
