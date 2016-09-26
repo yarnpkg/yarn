@@ -14,3 +14,4 @@
 /coverage
 /dist
 /__tests__
+/.roadrunner.json

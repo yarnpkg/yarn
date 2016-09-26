@@ -41,11 +41,11 @@ agent-base@2:
     extend "~3.0.0"
     semver "~5.0.1"
 ajv-keywords@^1.0.0:
-  version "1.0.0"
-  resolved "https://registry.npmjs.org/ajv-keywords/-/ajv-keywords-1.0.0.tgz#3dc461b3ef08f87242657419b062369bd758dd8d"
+  version "1.1.1"
+  resolved "https://registry.npmjs.org/ajv-keywords/-/ajv-keywords-1.1.1.tgz#02550bc605a3e576041565628af972e06c549d50"
 ajv@^4.7.0:
-  version "4.7.2"
-  resolved "https://registry.npmjs.org/ajv/-/ajv-4.7.2.tgz#ad1a8a461ac96df1b1dee030a18ebd72225b1b22"
+  version "4.7.4"
+  resolved "https://registry.npmjs.org/ajv/-/ajv-4.7.4.tgz#a1cbebe691f5b2abe3338ca2c4db7beec5cfb5e1"
   dependencies:
     co "^4.6.0"
     json-stable-stringify "^1.0.1"
@@ -953,8 +953,8 @@ babylon@^5.8.38:
   version "5.8.38"
   resolved "https://registry.npmjs.org/babylon/-/babylon-5.8.38.tgz#ec9b120b11bf6ccd4173a18bf217e60b79859ffd"
 babylon@^6.0.18, babylon@^6.5.0, babylon@^6.8.1, babylon@^6.9.0:
-  version "6.10.0"
-  resolved "https://registry.npmjs.org/babylon/-/babylon-6.10.0.tgz#ebab5f4402c85261f77fecc3e10627ef90e53121"
+  version "6.11.2"
+  resolved "https://registry.npmjs.org/babylon/-/babylon-6.11.2.tgz#3a64361fedee6d9f8276a9abc0c88a9e5237ff7a"
 balanced-match@^0.4.1:
   version "0.4.2"
   resolved "https://registry.npmjs.org/balanced-match/-/balanced-match-0.4.2.tgz#cb3f3e3c732dc0f01ee70b403f302e61d7709838"
@@ -1444,8 +1444,8 @@ eslint-plugin-flow-vars@^0.4.0:
   version "0.4.0"
   resolved "https://registry.npmjs.org/eslint-plugin-flow-vars/-/eslint-plugin-flow-vars-0.4.0.tgz#b3acca59997cc93f6cbd3ca069eb790995951ffa"
 eslint-plugin-flowtype@^2.15.0:
-  version "2.18.2"
-  resolved "https://registry.npmjs.org/eslint-plugin-flowtype/-/eslint-plugin-flowtype-2.18.2.tgz#bd8142f783204cf0bba6030951ac3faa51d06436"
+  version "2.19.0"
+  resolved "https://registry.npmjs.org/eslint-plugin-flowtype/-/eslint-plugin-flowtype-2.19.0.tgz#c4a8e9387cebbbe45deecd7c067ffb47ed99385a"
   dependencies:
     lodash "^4.15.0"
 eslint-plugin-no-async-without-await@^1.0.0:
@@ -1458,15 +1458,15 @@ eslint-plugin-react@^5.2.2:
     doctrine "^1.2.2"
     jsx-ast-utils "^1.2.1"
 eslint@^3.3.0, eslint@^3.3.1:
-  version "3.5.0"
-  resolved "https://registry.npmjs.org/eslint/-/eslint-3.5.0.tgz#22fc9f780ea5bca1306fab2b6d3336b0fa62c754"
+  version "3.6.0"
+  resolved "https://registry.npmjs.org/eslint/-/eslint-3.6.0.tgz#591eafde2e686867669cc5ab49e4c492c6d53faf"
   dependencies:
     js-yaml "^3.5.1"
     chalk "^1.1.3"
     debug "^2.1.1"
     doctrine "^1.2.2"
     escope "^3.6.0"
-    espree "^3.1.6"
+    espree "^3.2.0"
     estraverse "^4.2.0"
     esutils "^2.0.2"
     file-entry-cache "^2.0.0"
@@ -1494,9 +1494,9 @@ eslint@^3.3.0, eslint@^3.3.1:
     table "^3.7.8"
     text-table "~0.2.0"
     user-home "^2.0.0"
-espree@^3.1.6:
-  version "3.2.0"
-  resolved "https://registry.npmjs.org/espree/-/espree-3.2.0.tgz#f99e18207c220f4c4c3f88a22ab3ff809ad06923"
+espree@^3.2.0:
+  version "3.3.0"
+  resolved "https://registry.npmjs.org/espree/-/espree-3.3.0.tgz#9b32fc5127eeea573c339b99873046638ed91761"
   dependencies:
     acorn "^4.0.1"
     acorn-jsx "^3.0.0"
@@ -1570,9 +1570,9 @@ fancy-log@^1.1.0:
   dependencies:
     chalk "^1.1.1"
     time-stamp "^1.0.0"
-fast-levenshtein@^1.1.0:
-  version "1.1.4"
-  resolved "https://registry.npmjs.org/fast-levenshtein/-/fast-levenshtein-1.1.4.tgz#e6a754cc8f15e58987aa9cbd27af66fd6f4e5af9"
+fast-levenshtein@~2.0.4:
+  version "2.0.4"
+  resolved "https://registry.npmjs.org/fast-levenshtein/-/fast-levenshtein-2.0.4.tgz#e31e729eea62233c60a7bc9dce2bdcc88b4fffe3"
 fb-watchman@^1.8.0, fb-watchman@^1.9.0:
   version "1.9.0"
   resolved "https://registry.npmjs.org/fb-watchman/-/fb-watchman-1.9.0.tgz#6f268f1f347a6b3c875d1e89da7e1ed79adfc0ec"
@@ -1803,8 +1803,8 @@ glob@^5.0.15, glob@5.x:
     once "^1.3.0"
     path-is-absolute "^1.0.0"
 glob@^7.0.3, glob@^7.0.5:
-  version "7.0.6"
-  resolved "https://registry.npmjs.org/glob/-/glob-7.0.6.tgz#211bafaf49e525b8cd93260d14ab136152b3f57a"
+  version "7.1.0"
+  resolved "https://registry.npmjs.org/glob/-/glob-7.1.0.tgz#36add856d746d0d99e4cc2797bba1ae2c67272fd"
   dependencies:
     fs.realpath "^1.0.0"
     inflight "^1.0.4"
@@ -2765,8 +2765,8 @@ lodash@^3.10.0, lodash@^3.9.3:
   version "3.10.1"
   resolved "https://registry.npmjs.org/lodash/-/lodash-3.10.1.tgz#5bf45e8e49ba4189e17d482789dfd15bd140b7b6"
 lodash@^4.0.0, lodash@^4.15.0, lodash@^4.2.0, lodash@^4.3.0, lodash@^4.8.0:
-  version "4.16.0"
-  resolved "https://registry.npmjs.org/lodash/-/lodash-4.16.0.tgz#834cb785057157032242beaf101bb3d99e55d0d8"
+  version "4.16.2"
+  resolved "https://registry.npmjs.org/lodash/-/lodash-4.16.2.tgz#3e626db827048a699281a8a125226326cfc0e652"
 lodash@~1.0.1:
   version "1.0.2"
   resolved "https://registry.npmjs.org/lodash/-/lodash-1.0.2.tgz#8f57560c83b59fc270bd3d561b690043430e2551"
@@ -3048,11 +3048,11 @@ optimist@^0.6.1:
     minimist "~0.0.1"
     wordwrap "~0.0.2"
 optionator@^0.8.1:
-  version "0.8.1"
-  resolved "https://registry.npmjs.org/optionator/-/optionator-0.8.1.tgz#e31b4932cdd5fb862a8b0d10bc63d3ee1ec7d78b"
+  version "0.8.2"
+  resolved "https://registry.npmjs.org/optionator/-/optionator-0.8.2.tgz#364c5e409d3f4d6301d6c0b4c05bba50180aeb64"
   dependencies:
     deep-is "~0.1.3"
-    fast-levenshtein "^1.1.0"
+    fast-levenshtein "~2.0.4"
     levn "~0.3.0"
     prelude-ls "~1.1.2"
     type-check "~0.3.2"
@@ -3483,6 +3483,9 @@ rimraf@^2.2.8, rimraf@^2.4.3, rimraf@^2.4.4, rimraf@^2.5.0, rimraf@~2.5.0, rimra
 rimraf@~2.2.6:
   version "2.2.8"
   resolved "https://registry.npmjs.org/rimraf/-/rimraf-2.2.8.tgz#e439be2aaee327321952730f99a8929e4fc50582"
+roadrunner@^1.0.6:
+  version "1.0.6"
+  resolved "https://registry.npmjs.org/roadrunner/-/roadrunner-1.0.6.tgz#e466a15f9844289413d09943ad263574623ec1c9"
 run-async@^0.1.0:
   version "0.1.0"
   resolved "https://registry.npmjs.org/run-async/-/run-async-0.1.0.tgz#c8ad4a5e110661e402a7d21b530e009f25f8e389"
