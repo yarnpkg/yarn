@@ -4,6 +4,13 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
 'use strict';
 
+// init roadrunner
+var path = require('path');
+var CACHE_FILENAME = path.join(__dirname, '..', '.roadrunner.json');
+var roadrunner = require('roadrunner');
+roadrunner.load(CACHE_FILENAME);
+roadrunner.setup(CACHE_FILENAME);
+
 var semver = require('semver');
 var ver = process.versions.node;
 var possibles = [];
