@@ -13,10 +13,11 @@ import Spinner from './spinner-progress.js';
 import {clearLine} from './util.js';
 import {removeSuffix} from '../../util/misc.js';
 
-let readline = require('readline');
-let repeat = require('repeating');
+let {inspect} = require('util');
 let chalk = require('chalk');
 let read = require('read');
+let readline = require('readline');
+let repeat = require('repeating');
 
 function sortTrees(trees: Trees = []): Trees {
   return trees.sort(function(tree1, tree2): number {
@@ -42,6 +43,19 @@ export default class ConsoleReporter extends BaseReporter {
     }
 
     this.log(`${chalk.grey(`[${current}/${total}]`)} ${msg}`);
+  }
+
+  inspect(value: any) {
+    if (typeof value !== 'number' && typeof value !== 'string') {
+      value = inspect(value, {
+        breakLength: 0,
+        colors: true,
+        depth: null,
+        maxArrayLength: null,
+      });
+    }
+
+    this.log(value);
   }
 
   list(key: string, items: Array<string>) {

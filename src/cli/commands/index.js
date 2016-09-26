@@ -27,6 +27,9 @@ export {team};
 import * as link from './link.js';
 export {link};
 
+import * as info from './info.js';
+export {info};
+
 import * as outdated from './outdated.js';
 export {outdated};
 

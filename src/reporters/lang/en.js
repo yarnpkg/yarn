@@ -145,6 +145,8 @@ let messages = {
   publishNoName: `Package doesn't have a name.`,
   published: 'Published.',
   publishing: 'Publishing',
+
+  infoFail: 'Received invalid response from npm.',
 };
 
 export type LanguageKeys = $Keys<typeof messages>;
