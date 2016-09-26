@@ -5,6 +5,7 @@ import type {ReporterSelectOption} from '../../reporters/types.js';
 import type {Manifest, DependencyRequestPatterns} from '../../types.js';
 import type Config from '../../config.js';
 import type {RegistryNames} from '../../registries/index.js';
+import {MessageError} from '../../errors.js';
 import normaliseManifest from '../../util/normalise-manifest/index.js';
 import executeLifecycleScript from './_execute-lifecycle-script.js';
 import {stringify} from '../../util/misc.js';
@@ -544,12 +545,17 @@ export class Install {
       opts.push('production');
     }
 
+    let linkedModules = this.config.linkedModules;
+    if (linkedModules.length) {
+      opts.push(`linked:${linkedModules.join(',')}`);
+    }
+
     let mirror = this.config.getOfflineMirrorPath();
     if (mirror != null) {
       opts.push(`mirror:${mirror}`);
     }
 
-    return util.hash(opts.join(':'));
+    return util.hash(opts.join('-'));
   }
 }
 

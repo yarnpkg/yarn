@@ -31,6 +31,7 @@ function or(filenames: Array<string>, cwd: string): string {
 
 // the kpm and fbkpm names here are legacy names for yarn here for compatibility
 export const DEFAULT_PORT_FOR_SINGLE_INSTANCE = 31997;
+export const LINK_REGISTRY_DIRECTORY = '.yarn/.link';
 export const GLOBAL_MODULE_DIRECTORY = '.yarn/.global';
 export const MODULE_CACHE_DIRECTORY = or(['.fbkpm', '.kpm', '.yarn'], userHome);
 export const INTEGRITY_FILENAME = or(
