@@ -4,6 +4,7 @@ import type {Reporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
 import executeLifecycleScript from './_execute-lifecycle-script.js';
 import NpmRegistry from '../../registries/npm-registry.js';
+import {ConcatStream} from '../../util/stream.js';
 import {MessageError} from '../../errors.js';
 import {run as runVersion, setFlags as versionSetFlags} from './version.js';
 import * as fs from '../../util/fs.js';
@@ -12,7 +13,6 @@ import {getToken} from './login.js';
 
 let invariant = require('invariant');
 let crypto = require('crypto');
-let concat = require('concat-stream');
 let url = require('url');
 let fs2 = require('fs');
 
@@ -49,9 +49,7 @@ async function publish(
   }
   invariant(stream, 'expected stream');
   let buffer = await new Promise((resolve, reject) => {
-    stream.pipe(
-      concat(resolve).on('error', reject),
-    );
+    stream.pipe(new ConcatStream(resolve)).on('error', reject);
   });
 
   // copy normalised package and remove internal keys as they may be sensitive or yarn specific

@@ -1,4 +1,4 @@
-*Before creating an issue please make sure you are using the latest version of yarn.*
+<!-- *Before creating an issue please make sure you are using the latest version of yarn.* -->
 
 **Do you want to request a *feature* or report a *bug*?**
 
