@@ -18,8 +18,7 @@ let path = require('path');
 
 let fixturesLoc = path.join(__dirname, '..', 'fixtures', 'install');
 
-parallelTest('integrity hash respects flat and production flags', async () => {
-  let cwd = path.join(fixturesLoc, 'noop');
+parallelTest('integrity hash respects flat and production flags', () => {
   let reporter = new reporters.NoopReporter();
   let config = new Config(reporter);
 

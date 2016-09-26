@@ -158,6 +158,7 @@ export default class PackageLinker {
     for (let {name, dest} of linkedRefs) {
       possibleExtraneous.delete(dest);
 
+      this.reporter.info(this.reporter.lang('linkUsing', name));
       const src = path.join(this.config.linkFolder, name);
       await fs.mkdirp(path.join(dest, '..'));
       await fs.symlink(src, dest);

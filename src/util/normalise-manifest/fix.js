@@ -107,8 +107,10 @@ export default async function (
   if (Array.isArray(info.engines)) {
     const engines = {};
     for (let str of info.engines) {
-      let [name, ...patternParts] = str.trim().split(/ +/g);
-      engines[name] = patternParts.join(' ');
+      if (typeof str === 'string') {
+        let [name, ...patternParts] = str.trim().split(/ +/g);
+        engines[name] = patternParts.join(' ');
+      }
     }
     info.engines = engines;
   }
