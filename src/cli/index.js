@@ -156,16 +156,7 @@ let reporter = new Reporter({
 reporter.initPeakMemoryCounter();
 
 //
-let config = new Config(reporter, {
-  modulesFolder: commander.modulesFolder,
-  globalFolder: commander.globalFolder,
-  packagesRoot: commander.packagesRoot,
-  preferOffline: commander.preferOffline,
-  captureHar: commander.har,
-  ignoreEngines: commander.ignoreEngines,
-  offline: commander.preferOffline || commander.offline,
-  looseSemver: !commander.strictSemver,
-});
+let config = new Config(reporter);
 
 // print header
 let outputWrapper = true;
@@ -283,7 +274,16 @@ const runEventuallyWithNetwork = (mutexPort: ?string): Promise<void> => {
 };
 
 //
-config.init().then(function(): Promise<void> {
+config.init({
+  modulesFolder: commander.modulesFolder,
+  globalFolder: commander.globalFolder,
+  packagesRoot: commander.packagesRoot,
+  preferOffline: commander.preferOffline,
+  captureHar: commander.har,
+  ignoreEngines: commander.ignoreEngines,
+  offline: commander.preferOffline || commander.offline,
+  looseSemver: !commander.strictSemver,
+}).then(function(): Promise<void> {
   const exit = () => {
     process.exit(0);
   };

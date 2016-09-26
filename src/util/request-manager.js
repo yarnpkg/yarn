@@ -58,11 +58,11 @@ type RequestOptions = {
 };
 
 export default class RequestManager {
-  constructor(reporter: Reporter, offlineNoRequests?: boolean, captureHar?: boolean) {
-    this.offlineNoRequests = !!offlineNoRequests;
+  constructor(reporter: Reporter) {
+    this.offlineNoRequests = false;
     this._requestCaptureHar = null;
     this._requestModule = null;
-    this.captureHar = !!captureHar;
+    this.captureHar = false;
     this.offlineQueue = [];
     this.reporter = reporter;
     this.running = 0;
@@ -86,6 +86,14 @@ export default class RequestManager {
 
   _requestCaptureHar: ?RequestCaptureHar;
   _requestModule: ?RequestModuleT;
+
+  setOffline(offline: boolean) {
+    this.offlineNoRequests = offline;
+  }
+
+  setCaptureHar(capture: boolean) {
+    this.captureHar = capture;
+  }
 
   /**
    * Lazy load `request` since it is exceptionally expensive to load and is

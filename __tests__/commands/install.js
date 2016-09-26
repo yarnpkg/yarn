@@ -21,7 +21,9 @@ let fixturesLoc = path.join(__dirname, '..', 'fixtures', 'install');
 parallelTest('integrity hash respects flat and production flags', () => {
   let cwd = path.join(fixturesLoc, 'noop');
   let reporter = new reporters.NoopReporter();
-  let config = new Config(reporter, {cwd});
+  let config = new Config(reporter, );
+  await config.init({cwd});
+
   let lockfile = new Lockfile();
 
   let install = new Install({}, config, reporter, lockfile);
@@ -37,7 +39,8 @@ parallelTest('integrity hash respects flat and production flags', () => {
 parallelTest('flat arg is inherited from root manifest', (): Promise<void> => {
   let cwd = path.join(fixturesLoc, 'top-level-flat-parameter');
   let reporter = new reporters.NoopReporter();
-  let config = new Config(reporter, {cwd});
+  let config = new Config(reporter);
+  await config.init({cwd});
   let install = new Install({}, config, reporter, new Lockfile());
   return install.fetchRequestFromCwd().then(function([,, manifest]) {
     assert.equal(manifest.flat, true);
