@@ -13,5 +13,7 @@
 /resources/winsetup/generated.wxs
 /resources/winsetup/obj
 /resources/winsetup/bin
+/resources/win-chocolatey/tools/chocolateyinstall.ps1
 .vs
 *.msi
+*.nupkg
