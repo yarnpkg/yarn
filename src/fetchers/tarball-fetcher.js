@@ -2,8 +2,8 @@
 
 import {SecurityError, MessageError} from '../errors.js';
 import type {FetchedOverride} from '../types.js';
+import {UnpackStream} from '../util/stream.js';
 import * as constants from '../constants.js';
-import * as compress from '../util/compress.js';
 import * as crypto from '../util/crypto.js';
 import BaseFetcher from './base-fetcher.js';
 import * as fsUtil from '../util/fs.js';
@@ -60,10 +60,10 @@ export default class TarballFetcher extends BaseFetcher {
     reject: (error: any) => void,
   ): {
     validateStream: crypto.HashStream,
-    extractorStream: compress.UnpackStream,
+    extractorStream: UnpackStream,
   } {
     const validateStream = new crypto.HashStream();
-    const extractorStream = new compress.UnpackStream();
+    const extractorStream = new UnpackStream();
     const untarStream = tar.Extract({path: this.dest, strip: 1});
 
     extractorStream
