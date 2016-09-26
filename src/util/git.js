@@ -30,6 +30,10 @@ export default class Git {
     this.config = config;
     this.hash = hash;
     this.ref = hash;
+    // TODO: Fix this workaround for #411
+    if (url.startsWith('git+http')) {
+      url = url.replace('git+', '');
+    }
     this.url = url;
     this.cwd = this.config.getTemp(crypto.hash(this.url));
   }
