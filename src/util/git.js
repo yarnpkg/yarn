@@ -30,7 +30,7 @@ export default class Git {
     this.config = config;
     this.hash = hash;
     this.ref = hash;
-    this.url = url;
+    this.url = Git.cleanUrl(url);
     this.cwd = this.config.getTemp(crypto.hash(this.url));
   }
 
@@ -41,6 +41,11 @@ export default class Git {
   ref: string;
   cwd: string;
   url: string;
+
+
+  static cleanUrl(url): string {
+    return url.replace(/^git\+/, '');
+  }
 
   /**
    * Check if the host specified in the input `gitUrl` has archive capability.
