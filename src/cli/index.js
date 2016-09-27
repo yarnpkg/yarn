@@ -226,7 +226,7 @@ const runEventuallyWithFile = (mutexFilename: ?string, isFirstTime?: boolean): P
 const runEventuallyWithNetwork = (mutexPort: ?string): Promise<void> => {
   return new Promise((ok) => {
     const connectionOptions = {
-      port: +mutexPort || constants.DEFAULT_PORT_FOR_SINGLE_INSTANCE,
+      port: +mutexPort || constants.SINGLE_INSTANCE_PORT,
     };
 
     const clients = [];

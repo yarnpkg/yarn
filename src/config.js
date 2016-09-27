@@ -13,7 +13,6 @@ import {registries} from './registries/index.js';
 import map from './util/map.js';
 
 const invariant = require('invariant');
-const userHome = require('user-home');
 const path = require('path');
 const url = require('url');
 
@@ -38,6 +37,10 @@ type PackageMetadata = {
   hash: string,
   remote: ?PackageRemote,
   package: Manifest
+};
+
+export type ConfigRegistries = {
+  [name: RegistryNames]: Registry
 };
 
 export default class Config {
@@ -87,9 +90,7 @@ export default class Config {
   cwd: string;
 
   //
-  registries: {
-    [name: RegistryNames]: Registry
-  };
+  registries: ConfigRegistries;
   registryFolders: Array<string>;
 
   //
@@ -112,6 +113,14 @@ export default class Config {
       this.cache[key] = null;
       throw err;
     });
+  }
+
+  /**
+   * Get a config option from our yarn config.
+   */
+
+  getOption(key: string): mixed {
+    return this.registries.yarn.getOption(key);
   }
 
   /**
@@ -140,13 +149,17 @@ export default class Config {
       const Registry = registries[key];
 
       // instantiate registry
-      const registry = new Registry(this.cwd, this.requestManager);
+      const registry = new Registry(this.cwd, this.registries, this.requestManager);
       await registry.init();
 
       this.registries[key] = registry;
       this.registryFolders.push(registry.folder);
       this.rootModuleFolders.push(path.join(this.cwd, registry.folder));
     }
+
+    this.requestManager.setOptions({
+      userAgent: String(this.getOption('user-agent')),
+    });
   }
 
   _init(opts: ConfigOptions) {
@@ -162,14 +175,16 @@ export default class Config {
 
     this.preferOffline = !!opts.preferOffline;
     this.modulesFolder = opts.modulesFolder;
-    this.globalFolder = opts.globalFolder || path.join(userHome, constants.GLOBAL_MODULE_DIRECTORY);
-    this.packagesRoot = opts.packagesRoot || path.join(userHome, constants.MODULE_CACHE_DIRECTORY);
-    this.linkFolder = opts.linkFolder || path.join(userHome, constants.LINK_REGISTRY_DIRECTORY);
+    this.globalFolder = opts.globalFolder || constants.GLOBAL_MODULE_DIRECTORY;
+    this.packagesRoot = opts.packagesRoot || constants.MODULE_CACHE_DIRECTORY;
+    this.linkFolder = opts.linkFolder || constants.LINK_REGISTRY_DIRECTORY;
     this.tempFolder = opts.tempFolder || path.join(this.packagesRoot, '.tmp');
     this.offline = !!opts.offline;
 
-    this.requestManager.setOffline(!!opts.offline && !opts.preferOffline);
-    this.requestManager.setCaptureHar(!!opts.captureHar);
+    this.requestManager.setOptions({
+      offline: !!opts.offline && !opts.preferOffline,
+      captureHar: !!opts.captureHar,
+    });
 
     if (this.modulesFolder) {
       this.rootModuleFolders.push(this.modulesFolder);

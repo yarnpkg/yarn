@@ -1,7 +1,7 @@
 /* @flow */
 
 import type Config from '../../config.js';
-import {GITHUB_REPO, GITHUB_USER, SELF_UPDATE_DOWNLOAD_FOLDER, USER_AGENT} from '../../constants.js';
+import {GITHUB_REPO, GITHUB_USER, SELF_UPDATE_DOWNLOAD_FOLDER} from '../../constants.js';
 import TarballFetcher from '../../fetchers/tarball-fetcher.js';
 import type {Reporter} from '../../reporters/index.js';
 import {exists, realpath, symlink, unlink} from '../../util/fs.js';
@@ -28,7 +28,7 @@ export async function run(
     protocol: 'https',
     host: 'api.github.com',
     headers: {
-      'User-Agent': USER_AGENT,
+      'User-Agent': config.getOption('user-agent'),
     },
     Promise,
     followRedirects: false,
