@@ -21,10 +21,6 @@ function build(lib, opts) {
       },
     }))
     .pipe(newer(lib))
-    .pipe(new stream.PassThrough({objectMode: true}).on('data', (file) => {
-      const dest = path.join(file.cwd, lib, file.relative);
-      gutil.log('Compiling', '"' + chalk.cyan(file.path) + '" to "' + chalk.cyan(dest) + '"...');
-    }))
     .pipe(babel(opts))
     .pipe(gulp.dest(lib));
 }
