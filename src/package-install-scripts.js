@@ -258,7 +258,11 @@ export default class PackageInstallScripts {
     let workQueue = new Set();
     let installed = new Set();
     let pkgs = this.resolver.getTopologicalManifests(seedPatterns);
+    let installablePkgs = 0;
     for (let pkg of pkgs) {
+      if (this.packageCanBeInstalled(pkg)) {
+        installablePkgs += 1;
+      }
       workQueue.add(pkg);
     }
 
@@ -267,7 +271,7 @@ export default class PackageInstallScripts {
     let waitQueue = new Set();
     let workers = [];
 
-    const set = this.reporter.activitySet(workQueue.size, Math.min(constants.CHILD_CONCURRENCY, workQueue.size));
+    const set = this.reporter.activitySet(installablePkgs, Math.min(constants.CHILD_CONCURRENCY, workQueue.size));
 
     for (let spinner of set.spinners) {
       workers.push(this.worker(spinner, workQueue, installed, waitQueue));
