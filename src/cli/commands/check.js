@@ -8,7 +8,6 @@ import Lockfile from '../../lockfile/wrapper.js';
 import * as fs from '../../util/fs.js';
 
 const semver = require('semver');
-const chalk = require('chalk');
 const path = require('path');
 
 export const requireLockfile = true;
@@ -89,7 +88,7 @@ export async function run(
               humanParts[i] += '#';
             }
           } else {
-            humanParts[i] = chalk.dim(`${humanPart}#`);
+            humanParts[i] = reporter.format.dim(`${humanPart}#`);
           }
         }
 

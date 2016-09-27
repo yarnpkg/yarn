@@ -11,7 +11,7 @@ type RunCommand = (
   reporter: Reporter,
   flags: Object,
   args: Array<string>,
-) => Promise<?boolean>;
+) => ?boolean | Promise<?boolean>;
 
 type SubCommands =  {
   [commandName: string]: RunCommand

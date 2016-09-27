@@ -8,8 +8,6 @@ import PackageRequest from '../../package-request.js';
 import Lockfile from '../../lockfile/wrapper.js';
 import {Install} from './install.js';
 
-const chalk = require('chalk');
-
 export const requireLockfile = true;
 export const noArguments = true;
 
@@ -57,9 +55,9 @@ export async function run(
     }
 
     if (current === wanted) {
-      name = chalk.yellow(name);
+      name = reporter.format.yellow(name);
     } else {
-      name = chalk.red(name);
+      name = reporter.format.red(name);
     }
 
     items.push({
@@ -76,8 +74,8 @@ export async function run(
       return [
         info.name,
         info.current,
-        chalk.green(info.wanted),
-        chalk.magenta(info.latest),
+        reporter.format.green(info.wanted),
+        reporter.format.magenta(info.latest),
       ];
     });
 

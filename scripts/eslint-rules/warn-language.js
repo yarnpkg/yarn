@@ -5,7 +5,8 @@ module.exports = function(context) {
   var LOG_METHODS = ['info', 'log', 'step', 'error', 'warn', 'success'];
 
   function isLiteral(node) {
-    return node.type === 'Literal';
+    return node.type === 'Literal' ||
+          (node.type === 'BinaryExpression' && (isLiteral(node.left) || isLiteral(node.right)));
   }
 
   function getCallee(node) {

@@ -2,6 +2,7 @@
 
 import type {Reporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
+import {stringifyPerson} from '../../util/normalise-manifest/util.js';
 import {registryNames} from '../../registries/index.js';
 import Lockfile from '../../lockfile/wrapper.js';
 import {Install} from './install.js';
@@ -24,15 +25,18 @@ export async function run(
   const manifests = await install.getRootManifests();
 
   let gitUrl;
-  let author;
+  let author = {
+    name: config.getOption('init-author-name'),
+    email: config.getOption('init-author-email'),
+    url: config.getOption('init-author-url'),
+  };
   if (await fs.exists(path.join(config.cwd, '.git'))) {
     // get git origin of the cwd
     gitUrl = await child.spawn('git', ['config', 'remote.origin.url'], {cwd: config.cwd});
 
     // get author default based on git config
-    const name = await child.spawn('git', ['config', 'user.name']);
-    const email = await child.spawn('git', ['config', 'user.email']);
-    author = `${name} (${email})`;
+    author.name = author.name || await child.spawn('git', ['config', 'user.name']);
+    author.email = author.email || await child.spawn('git', ['config', 'user.email']);
   }
 
   const keys = [
@@ -44,7 +48,7 @@ export async function run(
     {
       key: 'version',
       question: 'version',
-      default: '1.0.0',
+      default: String(config.getOption('init-version')),
     },
     {
       key: 'description',
@@ -64,12 +68,12 @@ export async function run(
     {
       key: 'author',
       question: 'author',
-      default: author,
+      default: stringifyPerson(author),
     },
     {
       key: 'license',
       question: 'license',
-      default: 'MIT',
+      default: String(config.getOption('init-license')),
     },
   ];
 

@@ -31,12 +31,14 @@ export async function linkBin(src: string, dest: string): Promise<void> {
 }
 
 export default class PackageLinker {
-  constructor(config: Config, resolver: PackageResolver) {
+  constructor(config: Config, resolver: PackageResolver, ignoreOptional: boolean) {
+    this.ignoreOptional = ignoreOptional;
     this.resolver = resolver;
     this.reporter = config.reporter;
     this.config = config;
   }
 
+  ignoreOptional: boolean;
   reporter: Reporter;
   resolver: PackageResolver;
   config: Config;
@@ -101,7 +103,7 @@ export default class PackageLinker {
   }
 
   getFlatHoistedTree(patterns: Array<string>): Promise<Array<[string, HoistManifest]>> {
-    const hoister = new PackageHoister(this.config, this.resolver);
+    const hoister = new PackageHoister(this.config, this.resolver, this.ignoreOptional);
     hoister.seed(patterns);
     return Promise.resolve(hoister.init());
   }

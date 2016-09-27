@@ -65,16 +65,16 @@ export default class RequestManager {
     this.captureHar = false;
     this.offlineQueue = [];
     this.reporter = reporter;
+    this.userAgent = '';
     this.running = 0;
     this.queue = [];
     this.cache = {};
     this.max = constants.NETWORK_CONCURRENCY;
   }
 
-  // whether we should throw errors and disallow HTTP requests
   offlineNoRequests: boolean;
   captureHar: boolean;
-
+  userAgent: string;
   reporter: Reporter;
   running: number;
   offlineQueue: Array<RequestOptions>;
@@ -87,12 +87,22 @@ export default class RequestManager {
   _requestCaptureHar: ?RequestCaptureHar;
   _requestModule: ?RequestModuleT;
 
-  setOffline(offline: boolean) {
-    this.offlineNoRequests = offline;
-  }
+  setOptions(opts: {
+    userAgent?: string,
+    offline?: boolean,
+    captureHar?: boolean,
+  }) {
+    if (opts.userAgent != null) {
+      this.userAgent = opts.userAgent;
+    }
 
-  setCaptureHar(capture: boolean) {
-    this.captureHar = capture;
+    if (opts.offline != null) {
+      this.offlineNoRequests = opts.offline;
+    }
+
+    if (opts.captureHar != null) {
+      this.captureHar = opts.captureHar;
+    }
   }
 
   /**
@@ -132,7 +142,7 @@ export default class RequestManager {
     params.retryAttempts = 0;
 
     params.headers = Object.assign({
-      'User-Agent': constants.USER_AGENT,
+      'User-Agent': this.userAgent,
     }, params.headers);
 
     const promise = new Promise((resolve, reject) => {

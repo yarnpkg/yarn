@@ -7,7 +7,6 @@ import type Config from '../../config.js';
 import type {RegistryNames} from '../../registries/index.js';
 import {MessageError} from '../../errors.js';
 import normaliseManifest from '../../util/normalise-manifest/index.js';
-import executeLifecycleScript from './_execute-lifecycle-script.js';
 import {stringify} from '../../util/misc.js';
 import {registryNames} from '../../registries/index.js';
 import Lockfile from '../../lockfile/wrapper.js';
@@ -57,6 +56,70 @@ type IntegrityMatch = {
   matches: boolean,
 };
 
+type Flags = {
+  // install
+  ignoreEngines: boolean,
+  ignoreScripts: boolean,
+  ignoreOptional: boolean,
+  har: boolean,
+  force: boolean,
+  flat: boolean,
+  production: boolean,
+  lockfile: boolean,
+  pureLockfile: boolean,
+
+  // add
+  peer: boolean,
+  dev: boolean,
+  optional: boolean,
+  exact: boolean,
+  tilde: boolean,
+};
+
+function normaliseFlags(config: Config, rawFlags: Object): Flags {
+  const flags = {
+    // install
+    har: !!rawFlags.har,
+    ignoreEngines: !!rawFlags.ignoreEngines,
+    ignoreScripts: !!rawFlags.ignoreScripts,
+    ignoreOptional: !!rawFlags.ignoreOptional,
+    force: !!rawFlags.force,
+    flat: !!rawFlags.flat,
+    production: !!rawFlags.production,
+    lockfile: !!rawFlags.lockfile,
+    pureLockfile: !!rawFlags.pureLockfile,
+
+    // add
+    peer: !!rawFlags.peer,
+    dev: !!rawFlags.dev,
+    optional: !!rawFlags.optional,
+    exact: !!rawFlags.exact,
+    tilde: !!rawFlags.tilde,
+  };
+
+  if (config.getOption('ignore-scripts')) {
+    flags.ignoreScripts = true;
+  }
+
+  if (config.getOption('ignore-engines')) {
+    flags.ignoreEngines = true;
+  }
+
+  if (config.getOption('ignore-optional')) {
+    flags.ignoreOptional = true;
+  }
+
+  if (config.getOption('force')) {
+    flags.force = true;
+  }
+
+  if (config.getOption('production')) {
+    flags.production = true;
+  }
+
+  return flags;
+}
+
 export class Install {
   constructor(
     flags: Object,
@@ -69,16 +132,16 @@ export class Install {
     this.lockfile = lockfile;
     this.reporter = reporter;
     this.config = config;
-    this.flags = flags;
+    this.flags = normaliseFlags(config, flags);
 
     this.resolver = new PackageResolver(config, lockfile);
     this.fetcher = new PackageFetcher(config, this.resolver);
     this.compatibility = new PackageCompatibility(config, this.resolver);
-    this.linker = new PackageLinker(config, this.resolver);
-    this.scripts = new PackageInstallScripts(config, this.resolver, flags.force);
+    this.linker = new PackageLinker(config, this.resolver, this.flags.ignoreOptional);
+    this.scripts = new PackageInstallScripts(config, this.resolver, this.flags.force);
   }
 
-  flags: Object;
+  flags: Flags;
   registries: Array<RegistryNames>;
   lockfile: Lockfile;
   resolutions: { [packageName: string]: string };
@@ -237,7 +300,12 @@ export class Install {
         this.flags.force ? this.reporter.lang('rebuildingPackages') : this.reporter.lang('buildingFreshPackages'),
         emoji.get('page_with_curl'),
       );
-      await this.scripts.init(patterns);
+
+      if (this.flags.ignoreScripts) {
+        this.reporter.warn(this.reporter.lang('ignoredScripts'));
+      } else {
+        await this.scripts.init(patterns);
+      }
     });
 
     if (this.flags.har) {
@@ -559,15 +627,21 @@ export class Install {
   }
 }
 
-export function setFlags(commander: Object) {
-  commander.usage('install [flags]');
+export function _setFlags(commander: Object) {
   commander.option('--har', 'save HAR output of network traffic');
   commander.option('--ignore-engines', 'ignore engines check');
+  commander.option('--ignore-scripts', '');
+  commander.option('--ignore-optional', '');
   commander.option('--force', '');
   commander.option('--flat', 'only allow one version of a package');
   commander.option('--prod, --production', '');
   commander.option('--no-lockfile', "don't read or generate a lockfile");
   commander.option('--pure-lockfile', "don't generate a lockfile");
+}
+
+export function setFlags(commander: Object) {
+  commander.usage('install [flags]');
+  _setFlags(commander);
 
   commander.option('-g, --global', 'DEPRECATED');
   commander.option('-S, --save', 'DEPRECATED - save package to your `dependencies`');
@@ -619,7 +693,4 @@ export async function run(
 
   const install = new Install(flags, config, reporter, lockfile);
   await install.init();
-
-  // npm behaviour, seems kinda funky but yay compatibility
-  await executeLifecycleScript(config, 'prepublish');
 }

@@ -32,6 +32,11 @@ let messages = {
   manifestDependencyBuiltin: 'Dependency $0 listed in $1 is the name of a built-in module',
   manifestDependencyCollision: '$0 has dependency $1 with range $2 that collides with a dependency in $3 of the same name with version $4',
 
+  configSet: 'Set $0 to $1.',
+  configDelete: 'Deleted $0.',
+  configNpm: 'npm config',
+  configYarn: 'yarn config',
+
   couldntFindMatch: "Couldn't find match for $0 in $1 for $2.",
   couldntFindPackageInCache: "Couldn't find any versions for $0 that matches $1 in our cache. Possible versions: $2",
   moduleNotInManifest: "This module isn't specified in a manifest.",
@@ -56,6 +61,7 @@ let messages = {
   couldntFindManifestIn: "Couldn't find manifest in $0.",
   shrinkwrapWarning: 'npm-shrinkwrap.json found. This will not be updated or respected. See [TODO] for more information.',
   lockfileOutdated: 'Outdated lockfile. Please run `$ yarn install` and try again.',
+  ignoredScripts: 'Ignored scripts due to flag.',
 
   ownerRemoving: 'Removing owner $0 from package $1.',
   ownerRemoved: 'Owner removed.',
