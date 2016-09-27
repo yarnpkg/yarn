@@ -5,7 +5,7 @@ import {sortAlpha} from '../util/misc.js';
 import * as commands from './commands/index.js';
 import * as constants from '../constants.js';
 import * as network from '../util/network.js';
-import aliases from './aliases.json';
+import aliases from './aliases.js';
 
 import {MessageError} from '../errors.js';
 import Config from '../config.js';

@@ -50,7 +50,7 @@ export function getModuleCacheDirectory(): string {
 
   // otherwise use ~/.yarn
   let name = or(['.fbkpm', '.kpm', '.yarn'], userHome);
-  return path.join(name, userHome);
+  return path.join(userHome, name);
 }
 
 // the kpm and fbkpm names here are legacy names for yarn here for compatibility
