@@ -192,7 +192,6 @@ export default class PackageInstallScripts {
 
   // find the next package to be installed
   findInstallablePackage(workQueue: Set<Manifest>, installed: Set<Manifest>): ?Manifest {
-
     for (let pkg of workQueue) {
       const ref = pkg._reference;
       invariant(ref, 'expected reference');
@@ -214,7 +213,7 @@ export default class PackageInstallScripts {
 
       // detect circular dependency, mark this pkg as installable to break the circle
       if (this.detectCircularDependencies(pkg, pkg)) {
-        return pkg
+        return pkg;
       }
     }
     return null;
