@@ -513,6 +513,36 @@ parallelTest('install should run install scripts in the order of dependencies', 
   });
 });
 
+parallelTest('run install scripts in the order when one dependency does not have install script',
+             (): Promise<void> => {
+               let fixture = 'scripts-order-with-one-package-missing-install-script';
+
+               return runInstall({}, fixture, async (config, reporter) => {
+                 expect(await fs.exists(path.join(config.cwd, 'node_modules/dep-a/dep-a-built'))).toBe(true);
+                 expect(await fs.exists(path.join(config.cwd, 'node_modules/dep-b/dep-b-built'))).toBe(true);
+                 expect(await fs.exists(path.join(config.cwd, 'node_modules/dep-d/dep-d-built'))).toBe(true);
+               });
+             });
+
+parallelTest('install should circumvent circular dependencies', (): Promise<void> => {
+  let fixture = 'install-should-circumvent-circular-dependencies';
+
+  return runInstall({}, fixture, async (config, reporter) => {
+    assert.equal(
+      await getPackageVersion(config, 'dep-a'),
+      '1.0.0',
+    );
+    assert.equal(
+      await getPackageVersion(config, 'dep-b'),
+      '1.0.0',
+    );
+    assert.equal(
+      await getPackageVersion(config, 'dep-c'),
+      '1.0.0',
+    );
+  });
+});
+
 parallelTest('install should add missing deps to yarn and mirror (PR import scenario)',
 async (): Promise<void> => {
   let mirrorPath = 'mirror-for-offline';
