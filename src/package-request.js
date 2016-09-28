@@ -247,7 +247,6 @@ export default class PackageRequest {
     ref.addPattern(this.pattern, info);
     ref.addOptional(this.optional);
     ref.addVisibility(this.visibility);
-
     info._reference = ref;
     info._remote = remote;
 
@@ -281,8 +280,20 @@ export default class PackageRequest {
       }));
     }
 
-    await Promise.all(promises);
+    // peer deps
+    for (const depName in info.peerDependencies) {
+      const depPattern = depName + '@' + info.peerDependencies[depName];
+      deps.push(depPattern);
+      promises.push(this.resolver.find({
+        pattern: depPattern,
+        registry: remote.registry,
+        visibility: USED_VISIBILITY,
+        optional: true,
+        parentRequest: this,
+      }));
+    }
 
+    await Promise.all(promises);
     ref.addDependencies(deps);
   }
 
