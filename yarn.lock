@@ -3384,10 +3384,10 @@ repeating@^2.0.0:
 replace-ext@0.0.1:
   version "0.0.1"
   resolved "https://registry.npmjs.org/replace-ext/-/replace-ext-0.0.1.tgz#29bbd92078a739f0bcce2b4ee41e837953522924"
-request-capture-har@^1.1.3:
+request-capture-har@^1.1.4:
   version "1.1.4"
   resolved "https://registry.npmjs.org/request-capture-har/-/request-capture-har-1.1.4.tgz#e6ad76eb8e7a1714553fdbeef32cd4518e4e2013"
-request@^2.55.0, request@2, request@2.x:
+request@^2.75.0, request@^2.55.0, request@2, request@2.x:
   version "2.75.0"
   resolved "https://registry.npmjs.org/request/-/request-2.75.0.tgz#d2b8268a286da13eaa5d01adf5d18cc90f657d93"
   dependencies:
@@ -3399,31 +3399,6 @@ request@^2.55.0, request@2, request@2.x:
     extend "~3.0.0"
     forever-agent "~0.6.1"
     form-data "~2.0.0"
-    har-validator "~2.0.6"
-    hawk "~3.1.3"
-    aws4 "^1.2.1"
-    is-typedarray "~1.0.0"
-    isstream "~0.1.2"
-    json-stringify-safe "~5.0.1"
-    mime-types "~2.1.7"
-    node-uuid "~1.4.7"
-    oauth-sign "~0.8.1"
-    qs "~6.2.0"
-    stringstream "~0.0.4"
-    tough-cookie "~2.3.0"
-    tunnel-agent "~0.4.1"
-request@request/request#bfb3a46:
-  version "2.74.1"
-  resolved "https://codeload.github.com/request/request/tar.gz/bfb3a46"
-  dependencies:
-    http-signature "~1.1.0"
-    aws-sign2 "~0.6.0"
-    bl "~1.1.2"
-    caseless "~0.11.0"
-    combined-stream "~1.0.5"
-    extend "~3.0.0"
-    forever-agent "~0.6.1"
-    form-data "~1.0.1"
     har-validator "~2.0.6"
     hawk "~3.1.3"
     aws4 "^1.2.1"
