@@ -195,8 +195,8 @@ export default class PackageInstallScripts {
     for (let pkg of workQueue) {
       const ref = pkg._reference;
       invariant(ref, 'expected reference');
-
       const deps = ref.dependencies;
+
       let dependenciesFullfilled = true;
       for (let dep of deps) {
         const pkgDep = this.resolver.getStrictResolvedPattern(dep);
