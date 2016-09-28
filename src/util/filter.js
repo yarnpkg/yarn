@@ -6,6 +6,8 @@ import {removeSuffix} from './misc.js';
 let minimatch = require('minimatch');
 let path = require('path');
 
+const WHITESPACE_RE = /^\s+$/;
+
 export type IgnoreFilter = {
   base: string,
   isNegation: boolean,
@@ -102,14 +104,14 @@ export function matchesFilter(filter: IgnoreFilter, basename: string, loc: strin
 
 export function ignoreLinesToRegex(lines: Array<string>, base: string = '.'): Array<IgnoreFilter> {
   return lines
-    // remove comments
-    .map((line): string => line.replace(/# (.*?)$/g, '').trim())
-
-    // remove empty lines
-    .filter((line): boolean => !!line)
-
     // create regex
-    .map((pattern): IgnoreFilter => {
+    .map((line): ?IgnoreFilter => {
+      // remove empty lines, comments, etc
+      if (line === '' || line === '!' || line[0] === '#' || WHITESPACE_RE.test(line)) {
+        return null;
+      }
+
+      let pattern = line;
       let isNegation = false;
 
       // hide the fact that it's a negation from minimatch since we'll handle this specifally
@@ -122,10 +124,18 @@ export function ignoreLinesToRegex(lines: Array<string>, base: string = '.'): Ar
       // remove trailing slash
       pattern = removeSuffix(pattern, '/');
 
-      return {
-        base,
-        isNegation,
-        regex: minimatch.makeRe(pattern, {nocase: true}),
-      };
-    });
+      const regex = minimatch.makeRe(pattern, {nocase: true});
+
+      if (regex) {
+        return {
+          base,
+          isNegation,
+          regex,
+        };
+      } else {
+        return null;
+      }
+    })
+
+    .filter(Boolean);
 }
