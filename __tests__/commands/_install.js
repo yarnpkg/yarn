@@ -78,19 +78,24 @@ export async function run(
   }
 
   // remove the lockfile if we create one and it didn't exist before
-  let removeLock = !(await fs.exists(path.join(cwd, constants.LOCKFILE_FILENAME)));
+  let removeLock = !(await fs.exists(path.join(cwd, 'yarn.lock')));
   let lockfile = await createLockfile(cwd);
 
   // clean up if we weren't successful last time
   await clean(cwd);
 
   // create directories
-  await fs.mkdirp(path.join(cwd, constants.MODULE_CACHE_DIRECTORY));
+  await fs.mkdirp(path.join(cwd, '.yarn'));
   await fs.mkdirp(path.join(cwd, 'node_modules'));
 
   try {
     let config = new Config(reporter);
-    await config.init({cwd});
+    await config.init({
+      cwd,
+      globalFolder: path.join(cwd, '.yarn/.global'),
+      packagesRoot: path.join(cwd, '.yarn'),
+      linkFolder: path.join(cwd, '.yarn/.link'),
+    });
 
     let install = factory(config, reporter, lockfile);
     await install.init();
