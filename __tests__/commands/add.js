@@ -584,3 +584,34 @@ parallelTest('modules resolved multiple times should save to mirror correctly', 
     }
   });
 });
+
+parallelTest('add should put a git dependency to mirror', async (): Promise<void> => {
+  let mirrorPath = 'mirror-for-offline';
+  let fixture = 'install-git-mirror';
+
+  return runAdd({}, ['mime-db@https://github.com/jshttp/mime-db.git#1.24.0'], fixture, async (config): Promise<void> => {
+    assert(semver.satisfies(
+      await getPackageVersion(config, 'mime-db'),
+      '1.24.0'),
+    );
+    const mirror = await fs.walk(path.join(config.cwd, mirrorPath));
+    assert.equal(mirror.length, 1);
+    expect(mirror[0].relative).toMatch(/mime-db\.git.*/);
+
+    let lockFileWritten = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
+    let lockFileLines = explodeLockfile(lockFileWritten);
+    // lock file contains mirror resolved line
+    expect(lockFileLines.find((line) => line.match(/.*resolved mime-db\.git\-.*/))).toBeDefined();
+
+    // can reinstall, now from mirror
+    await fs.unlink(path.join(config.cwd, 'node_modules'));
+    return runInstall({}, path.join('..', 'add', fixture), async (config): Promise<void> => {
+      assert(semver.satisfies(
+        await getPackageVersion(config, 'mime-db'),
+        '1.24.0'),
+      );
+      await fs.unlink(path.join(config.cwd, mirrorPath));
+      await fs.unlink(path.join(config.cwd, 'package.json'));
+    });
+  });
+});
