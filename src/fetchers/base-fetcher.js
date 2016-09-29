@@ -37,18 +37,6 @@ export default class BaseFetcher {
     return Promise.reject(new Error('Not implemented'));
   }
 
-  getMirrorPath(): ?string {
-    return this.config.getOfflineMirrorPath(this.reference);
-  }
-
-  getRelativeMirrorPath(mirrorPath: string): ?string {
-    const offlineMirrorPath = this.config.getOfflineMirrorPath();
-    if (offlineMirrorPath == null) {
-      return null;
-    }
-    return path.relative(offlineMirrorPath, mirrorPath);
-  }
-
   fetch(): Promise<FetchedMetadata> {
     let {dest} = this;
 
