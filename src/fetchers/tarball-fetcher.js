@@ -42,18 +42,6 @@ export default class TarballFetcher extends BaseFetcher {
     return `${relativeMirrorPath}#${hash}`;
   }
 
-  getMirrorPath(): ?string {
-    return this.config.getOfflineMirrorPath(this.reference);
-  }
-
-  getRelativeMirrorPath(mirrorPath: string): ?string {
-    const offlineMirrorPath = this.config.getOfflineMirrorPath();
-    if (offlineMirrorPath == null) {
-      return null;
-    }
-    return path.relative(offlineMirrorPath, mirrorPath);
-  }
-
   createExtractor(
     mirrorPath: ?string,
     resolve: (fetched: FetchedOverride) => void,
@@ -165,7 +153,6 @@ export default class TarballFetcher extends BaseFetcher {
         validateStream
           .pipe(extractorStream)
           .on('error', reject);
-
         if (mirrorPath) {
           validateStream
             .pipe(fs.createWriteStream(mirrorPath))
@@ -188,5 +175,5 @@ export default class TarballFetcher extends BaseFetcher {
 export class LocalTarballFetcher extends TarballFetcher {
   _fetch(): Promise<FetchedOverride> {
     return this.fetchFromLocal(this.reference);
-  } 
+  }
 }
