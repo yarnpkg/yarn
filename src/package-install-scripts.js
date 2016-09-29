@@ -172,18 +172,23 @@ export default class PackageInstallScripts {
   }
 
   // detect if there is a circularDependency in the dependency tree
-  detectCircularDependencies(root: Manifest, pkg: Manifest): boolean {
+  detectCircularDependencies(root: Manifest, seenManifests: Set<Manifest>, pkg: Manifest): boolean {
     const ref = pkg._reference;
     invariant(ref, 'expected reference');
 
     const deps = ref.dependencies;
     for (let dep of deps) {
       const pkgDep = this.resolver.getStrictResolvedPattern(dep);
+      if (seenManifests.has(pkgDep)) {
+        // there is a cycle but not with the root
+        continue;
+      }
+      seenManifests.add(pkgDep);
       // found a dependency pointing to root
       if (pkgDep == root) {
         return true;
       }
-      if (this.detectCircularDependencies(root, pkgDep)) {
+      if (this.detectCircularDependencies(root, seenManifests, pkgDep)) {
         return true;
       }
     }
@@ -212,7 +217,7 @@ export default class PackageInstallScripts {
       }
 
       // detect circular dependency, mark this pkg as installable to break the circle
-      if (this.detectCircularDependencies(pkg, pkg)) {
+      if (this.detectCircularDependencies(pkg, new Set(), pkg)) {
         return pkg;
       }
     }

@@ -73,11 +73,12 @@ export default class GitFetcher extends BaseFetcher {
     await git.initRemote();
     await git.clone(this.dest);
 
-    let mirrorPath = this.config.getOfflineMirrorPath(this.reference);
-    if (mirrorPath) {
-      mirrorPath = `${mirrorPath}-${this.hash}`;
-      const hash = await git.achive(mirrorPath);
-      const relativeMirrorPath = path.relative(this.config.getOfflineMirrorPath(), mirrorPath);
+    let tarballInMirrorPath = this.config.getOfflineMirrorPath(this.reference);
+    const mirrorRootPath = this.config.getOfflineMirrorPath();
+    if (tarballInMirrorPath && this.hash && mirrorRootPath) {
+      tarballInMirrorPath = `${tarballInMirrorPath}-${this.hash}`;
+      const hash = await git.achive(tarballInMirrorPath);
+      const relativeMirrorPath = path.relative(mirrorRootPath, tarballInMirrorPath);
       return {
         hash,
         resolved: relativeMirrorPath ? `${relativeMirrorPath}#${hash}` : null,
