@@ -9,6 +9,7 @@ import * as PackageReference from '../../package-reference.js';
 import PackageRequest from '../../package-request.js';
 import {buildTree} from './ls.js';
 import {Install, _setFlags} from './install.js';
+import {MessageError} from '../../errors.js';
 
 let invariant = require('invariant');
 
@@ -168,6 +169,10 @@ export async function run(
   flags: Object,
   args: Array<string>,
 ): Promise<void> {
+  if (!args.length) {
+    throw new MessageError(reporter.lang('missingAddDependencies'));
+  }
+
   let lockfile = await Lockfile.fromDirectory(config.cwd, reporter);
   const install = new Add(args, flags, config, reporter, lockfile);
   await install.init();
