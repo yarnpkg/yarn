@@ -170,9 +170,8 @@ export class Parser {
       let version = +versionMatch[1];
       if (version > LOCKFILE_VERSION) {
         throw new MessageError(
-          `Can't install from a lockfile of version ${version} as you're on an old yarn version that only ` +
-          `supports versions up to ${LOCKFILE_VERSION}. Run \`$ yarn self-udpate\` to upgrade to the latest ` +
-          'version.',
+          `Can't install from a lockfile of version ${version} as you're on an old yarn version that only supports ` +
+          `versions up to ${LOCKFILE_VERSION}. Run \`$ yarn self-udpate\` to upgrade to the latest version.`,
         );
       }
     }

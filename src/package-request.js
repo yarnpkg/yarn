@@ -229,10 +229,7 @@ export default class PackageRequest {
     }
 
     if (info.flat && !this.resolver.flat) {
-      throw new MessageError(
-        `The package ${info.name}@${info.version} requires a flat dependency graph. ` +
-        'Add `"flat": true` to your package.json and try again.',
-      );
+      throw new MessageError(this.reporter.lang('flatGlobalError'));
     }
 
     // validate version info

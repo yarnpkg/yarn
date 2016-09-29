@@ -68,6 +68,10 @@ if (commandName === 'help' && !args.length) {
     console.log('  Commands:');
     console.log();
     for (let name of Object.keys(commands).sort(sortAlpha)) {
+      if (commands[name].useless) {
+        continue;
+      }
+      
       console.log(`    * ${name}`);
     }
     console.log();
@@ -167,20 +171,19 @@ if (outputWrapper) {
   reporter.header(commandName, pkg);
 }
 
+if (command.noArguments && args.length) {
+  reporter.error(reporter.lang('noArguments'));
+  process.exit(1);
+}
+
 //
 if (commander.yes) {
-  reporter.warn(
-    'The yes flag has been set. This will automatically answer yes to all questions which ' +
-    'may have security implications.',
-  );
+  reporter.warn(reporter.lang('yesWarning'));
 }
 
 //
 if (!commander.offline && network.isOffline()) {
-  reporter.warn(
-    "You don't appear to have an internet connection. " +
-    'Try the --offline flag to use the cache for registry queries.',
-  );
+  reporter.warn(reporter.lang('networkWarning'));
 }
 
 //

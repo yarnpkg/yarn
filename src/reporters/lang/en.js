@@ -40,8 +40,6 @@ let messages = {
   couldntFindMatch: "Couldn't find match for $0 in $1 for $2.",
   couldntFindPackageInCache: "Couldn't find any versions for $0 that matches $1 in our cache. Possible versions: $2",
   moduleNotInManifest: "This module isn't specified in a manifest.",
-  tooManyArguments: 'Too many arguments, maximum of $0.',
-  tooFewArguments: 'Not enoguh arguments, expected at least $0.',
   unknownFolderOrTarball: "Passed folder/tarball doesn't exist,",
   unknownPackage: "Couldn't find package $0.",
   unknownPackageName: "Couldn't find package name.",
@@ -62,6 +60,15 @@ let messages = {
   shrinkwrapWarning: 'npm-shrinkwrap.json found. This will not be updated or respected. See [TODO] for more information.',
   lockfileOutdated: 'Outdated lockfile. Please run `$ yarn install` and try again.',
   ignoredScripts: 'Ignored scripts due to flag.',
+  missingAddDependencies: 'Missing list of packages to add to your project.',
+  yesWarning: 'The yes flag has been set. This will automatically answer yes to all questions which may have security implications.',
+  networkWarning: "You don't appear to have an internet connection. Try the --offline flag to use the cache for registry queries.",
+  flatGlobalError: 'The package $0@$1 requires a flat dependency graph. Add `"flat": true` to your package.json and try again.',
+
+
+  tooManyArguments: 'Too many arguments, maximum of $0.',
+  tooFewArguments: 'Not enoguh arguments, expected at least $0.',
+  noArguments: "This command doesn't require any arguments.",
 
   ownerRemoving: 'Removing owner $0 from package $1.',
   ownerRemoved: 'Owner removed.',
