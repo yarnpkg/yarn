@@ -585,11 +585,12 @@ parallelTest('modules resolved multiple times should save to mirror correctly', 
   });
 });
 
-parallelTest('add should put a git dependency to mirror', async (): Promise<void> => {
+parallelTest('add should put a git dependency to mirror', (): Promise<void> => {
   let mirrorPath = 'mirror-for-offline';
   let fixture = 'install-git-mirror';
 
-  return runAdd({}, ['mime-db@https://github.com/jshttp/mime-db.git#1.24.0'], fixture, async (config): Promise<void> => {
+  return runAdd({}, ['mime-db@https://github.com/jshttp/mime-db.git#1.24.0'], fixture,
+  async (config): Promise<void> => {
     assert(semver.satisfies(
       await getPackageVersion(config, 'mime-db'),
       '1.24.0'),

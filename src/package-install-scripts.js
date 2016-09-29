@@ -178,12 +178,12 @@ export default class PackageInstallScripts {
 
     const deps = ref.dependencies;
     for (let dep of deps) {
-      if (seenManifests.has(dep)) {
-        // there is a cycle but not with the root
-        return false;
-      }
-      seenManifests.add(dep);
       const pkgDep = this.resolver.getStrictResolvedPattern(dep);
+      if (seenManifests.has(pkgDep)) {
+        // there is a cycle but not with the root
+        continue;
+      }
+      seenManifests.add(pkgDep);
       // found a dependency pointing to root
       if (pkgDep == root) {
         return true;
