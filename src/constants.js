@@ -8,6 +8,13 @@ type Env = {[key: string]: ?string};
 
 const cwd = process.cwd();
 
+export const DEPENDENCY_TYPES = [
+  'devDependencies',
+  'dependencies',
+  'optionalDependencies',
+  'peerDependencies',
+];
+
 // lockfile version, bump whenever we make backwards incompatible changes
 export const LOCKFILE_VERSION = 1;
 

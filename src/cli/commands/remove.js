@@ -9,6 +9,7 @@ import {Install} from './install.js';
 import {MessageError} from '../../errors.js';
 import {NoopReporter} from '../../reporters/index.js';
 import * as fs from '../../util/fs.js';
+import * as constants from '../../constants.js';
 
 const path = require('path');
 
@@ -42,7 +43,7 @@ export async function run(
       const registry = config.registries[registryName];
       let json = jsons[registryName].json;
 
-      for (const type of ['devDependencies', 'dependencies', 'optionalDependencies', 'peerDependencies']) {
+      for (const type of constants.DEPENDENCY_TYPES) {
         const deps = json[type];
         if (deps) {
           found = true;
