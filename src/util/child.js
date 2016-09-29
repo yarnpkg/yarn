@@ -21,6 +21,7 @@ export function spawn(
   opts?: child_process$spawnOpts = {},
   onData?: (chunk: Buffer | String | any) => void,
 ): Promise<string> {
+  console.log(`spawning: ${program}, ${args} at ${opts.cwd}`);
   return queue.push(opts.cwd || String(++uid), (): Promise<string> => new Promise((resolve, reject) => {
     const proc = child.spawn(program, args, opts);
 

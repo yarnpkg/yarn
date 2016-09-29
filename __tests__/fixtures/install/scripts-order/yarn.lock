@@ -13,5 +13,3 @@ dep-b@1.0.0:
 dep-c@1.0.0:
   version "1.0.0"
   resolved dep-c-1.0.0.tgz#7a92f8ee11cb80f335a943438479cce7a4c943b6
-  dependencies:
-    dep-a "1.0.0"

@@ -42,18 +42,6 @@ export default class TarballFetcher extends BaseFetcher {
     return `${relativeMirrorPath}#${hash}`;
   }
 
-  getMirrorPath(): ?string {
-    return this.config.getOfflineMirrorPath(this.reference);
-  }
-
-  getRelativeMirrorPath(mirrorPath: string): ?string {
-    const offlineMirrorPath = this.config.getOfflineMirrorPath();
-    if (offlineMirrorPath == null) {
-      return null;
-    }
-    return path.relative(offlineMirrorPath, mirrorPath);
-  }
-
   createExtractor(
     mirrorPath: ?string,
     resolve: (fetched: FetchedOverride) => void,
@@ -145,6 +133,7 @@ export default class TarballFetcher extends BaseFetcher {
         // should we save this to the offline cache?
         const mirrorPath = this.getMirrorPath();
         const tarballStorePath = path.join(this.dest, constants.TARBALL_FILENAME);
+        console.log(`fetching to ${this.dest}`);
         const overwriteResolved = mirrorPath
           ? this.getRelativeMirrorPath(mirrorPath)
           : null;
@@ -165,7 +154,7 @@ export default class TarballFetcher extends BaseFetcher {
         validateStream
           .pipe(extractorStream)
           .on('error', reject);
-
+        console.log("mirror: " + mirrorPath);
         if (mirrorPath) {
           validateStream
             .pipe(fs.createWriteStream(mirrorPath))
@@ -178,6 +167,7 @@ export default class TarballFetcher extends BaseFetcher {
   _fetch(): Promise<FetchedOverride> {
     const {protocol, pathname} = url.parse(this.reference);
     if (protocol === null && typeof pathname === 'string') {
+      console.log(`fetching local from ${pathname}`);
       return this.fetchFromLocal(pathname);
     } else {
       return this.fetchFromExternal();
@@ -188,5 +178,5 @@ export default class TarballFetcher extends BaseFetcher {
 export class LocalTarballFetcher extends TarballFetcher {
   _fetch(): Promise<FetchedOverride> {
     return this.fetchFromLocal(this.reference);
-  } 
+  }
 }
