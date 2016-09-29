@@ -1,0 +1,6 @@
+{
+  "name": "speedline",
+  "dependencies": {
+    "es5-ext": "0.10.12"
+  }
+}

@@ -549,6 +549,17 @@ parallelTest('install should circumvent circular dependencies', (): Promise<void
   });
 });
 
+// fix https://github.com/yarnpkg/yarn/issues/466
+parallelTest('install should resolve circular dependencies 2', (): Promise<void> => {
+  let fixture = 'install-should-circumvent-circular-dependencies-2';
+  return runInstall({}, fixture, async (config, reporter) => {
+    assert.equal(
+      await getPackageVersion(config, 'es5-ext'),
+      '0.10.12',
+    );
+  });
+});
+
 parallelTest('install should add missing deps to yarn and mirror (PR import scenario)',
 async (): Promise<void> => {
   let mirrorPath = 'mirror-for-offline';
