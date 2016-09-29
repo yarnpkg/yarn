@@ -12,6 +12,7 @@ const invariant = require('invariant');
 const semver = require('semver');
 const url = require('url');
 const tar = require('tar');
+import {createWriteStream} from 'fs';
 
 type GitRefs = {
   [name: string]: string
@@ -105,6 +106,52 @@ export default class Git {
         `Refusing to download the git repo ${ref} over HTTP without a commit hash`,
       );
     }
+  }
+
+  /**
+   * Arhieve a repo to destination
+   */
+
+  achive(dest: string): Promise<string> {
+    if (this.supportsArchive) {
+      return this._achiveViaRemoteArchive(dest);
+    } else {
+      return this._achiveViaLocalFetched(dest);
+    }
+  }
+
+  async _achiveViaRemoteArchive(dest: string): Promise<string> {
+    const hashStream = new crypto.HashStream();
+    await child.spawn('git', ['archive', `--remote=${this.url}`, this.ref], {
+      process(proc, resolve, reject, done) {
+        const writeStream = createWriteStream(dest);
+        proc.on('error', reject);
+        writeStream.on('error', reject);
+        writeStream.on('end', done);
+        writeStream.on('open', function() {
+          proc.stdout.pipe(hashStream).pipe(writeStream);
+        });
+        writeStream.once('finish', done);
+      },
+    });
+    return hashStream.getHash();
+  }
+
+  async _achiveViaLocalFetched(dest: string): Promise<string> {
+    const hashStream = new crypto.HashStream();
+    await child.spawn('git', ['archive', this.hash], {
+      cwd: this.cwd,
+      process(proc, resolve, reject, done) {
+        const writeStream = createWriteStream(dest);
+        proc.on('error', reject);
+        writeStream.on('error', reject);
+        writeStream.on('open', function() {
+          proc.stdout.pipe(hashStream).pipe(writeStream);
+        });
+        writeStream.once('finish', done);
+      },
+    });
+    return hashStream.getHash();
   }
 
   /**

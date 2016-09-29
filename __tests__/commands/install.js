@@ -114,6 +114,12 @@ parallelTest('install from offline mirror', (): Promise<void> => {
   });
 });
 
+parallelTest('install from git cache', (): Promise<void> => {
+  return runInstall({}, 'install-from-git-cache', async (config): Promise<void> => {
+    assert.equal(await getPackageVersion(config, 'dep-a'), '0.0.1');
+  });
+});
+
 parallelTest('install should dedupe dependencies avoiding conflicts 0', (): Promise<void> => {
   // A@2.0.1 -> B@2.0.0
   // B@1.0.0
