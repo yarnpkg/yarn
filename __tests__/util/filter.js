@@ -1,0 +1,50 @@
+/* @flow */
+
+import {ignoreLinesToRegex} from '../../src/util/filter.js';
+
+test('ignoreLinesToRegex', () => {
+  expect(ignoreLinesToRegex([
+    'a',
+    'b ',
+    ' c ',
+    'd #',
+    'e#',
+    'f # ',
+    'g# ',
+    'h # foo',
+    'i# foo',
+    'j # foo #',
+    'k # foo # #',
+    '# l',
+    '# m #',
+    '# ',
+    '#',
+    '',
+    '!',
+    '!A',
+    '! B',
+    '! C ',
+    '! D #',
+    '! E # ',
+    '! F # # ',
+    '#! G',
+  ])).toEqual([
+    {base: '.', isNegation: false, regex: /^(?:(?=.)a)$/i},
+    {base: '.', isNegation: false, regex: /^(?:(?=.)b)$/i},
+    {base: '.', isNegation: false, regex: /^(?:(?=.)c)$/i},
+    {base: '.', isNegation: false, regex: /^(?:(?=.)d #)$/i},
+    {base: '.', isNegation: false, regex: /^(?:(?=.)e#)$/i},
+    {base: '.', isNegation: false, regex: /^(?:(?=.)f #)$/i},
+    {base: '.', isNegation: false, regex: /^(?:(?=.)g#)$/i},
+    {base: '.', isNegation: false, regex: /^(?:(?=.)h # foo)$/i},
+    {base: '.', isNegation: false, regex: /^(?:(?=.)i# foo)$/i},
+    {base: '.', isNegation: false, regex: /^(?:(?=.)j # foo #)$/i},
+    {base: '.', isNegation: false, regex: /^(?:(?=.)k # foo # #)$/i},
+    {base: '.', isNegation: true, regex: /^(?:(?=.)A)$/i},
+    {base: '.', isNegation: true, regex: /^(?:(?=.)B)$/i},
+    {base: '.', isNegation: true, regex: /^(?:(?=.)C)$/i},
+    {base: '.', isNegation: true, regex: /^(?:(?=.)D #)$/i},
+    {base: '.', isNegation: true, regex: /^(?:(?=.)E #)$/i},
+    {base: '.', isNegation: true, regex: /^(?:(?=.)F # #)$/i},
+  ]);
+});
