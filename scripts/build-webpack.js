@@ -20,8 +20,8 @@ const compiler = webpack({
     }],
   },
   output: {
-    filename: 'index.js',
-    path: path.join(basedir, 'lib/cli'),
+    filename: 'kpm.js',
+    path: path.join(basedir, 'dist/bundled'),
   },
   target: 'node',
 });
