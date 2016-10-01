@@ -3,6 +3,7 @@
 	<metadata>
 		<id>yarn</id>
 		<title>Yarn (Install)</title>
+		<!-- Version number inserted in build-chocolatey.ps1 -->
 		<version>0.0.0</version>
 		<authors>Yarn Maintainers</authors>
 		<owners>Daniel Lo Nigro</owners>

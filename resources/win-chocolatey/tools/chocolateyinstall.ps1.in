@@ -8,9 +8,7 @@ $packageArgs = @{
   validExitCodes = @(0, 3010, 1641)
   checksumType = 'sha256'
 
-  #url = 'https://yarndev.dan.cx/windows/yarn-{VERSION}.msi'
-  #url = 'https://yarnpkg.com/downloads/yarn-{VERSION}.msi'
-  url = 'https://github.com/yarnpkg/yarn/releases/download/v{VERSION}/kpm-v{VERSION}.msi'
+  url = 'https://yarnpkg.com/downloads/{VERSION}/yarn-{VERSION}.msi'
   checksum = '{CHECKSUM}'
 }
 
