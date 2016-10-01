@@ -70,6 +70,10 @@
     "mock-stdin": "^0.3.0",
     "temp": "^0.8.3"
   },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/yarnpkg/yarn.git"
+  },
   "bin": {
     "kpm": "./bin/yarn.js",
     "yarn": "./bin/yarn.js"
