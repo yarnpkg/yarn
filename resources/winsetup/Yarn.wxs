@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
-	<Product Id="*" Name="Yarn" Language="1033" Version="0.13.0" Manufacturer="Yarn Contributors" UpgradeCode="241362e6-53bb-4a50-9c58-15f95734e43d">
+	<Product Id="*" Name="Yarn" Language="1033" Version="$(var.YarnVersion)" Manufacturer="Yarn Contributors" UpgradeCode="241362e6-53bb-4a50-9c58-15f95734e43d">
 		<Package InstallerVersion="200" Compressed="yes" InstallScope="perMachine" />
 
 		<MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
