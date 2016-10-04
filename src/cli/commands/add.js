@@ -134,9 +134,9 @@ export class Add extends Install {
       }
 
       // add it to manifest
-      const json = jsons[ref.registry].json;
+      const object = jsons[ref.registry].object;
       for (const key of targetKeys) {
-        const target = json[key] = json[key] || {};
+        const target = object[key] = object[key] || {};
         target[pkg.name] = version;
       }
 

@@ -31,7 +31,7 @@ export async function run(
   // load manifests
   const lockfile = await Lockfile.fromDirectory(config.cwd);
   const install = new Install(flags, config, new NoopReporter(), lockfile);
-  const jsons = await install.getRootManifests();
+  const rootManifests = await install.getRootManifests();
   const manifests = [];
 
   for (const name of args) {
@@ -41,10 +41,10 @@ export async function run(
 
     for (const registryName of Object.keys(registries)) {
       const registry = config.registries[registryName];
-      let json = jsons[registryName].json;
+      let object = rootManifests[registryName].object;
 
       for (const type of constants.DEPENDENCY_TYPES) {
-        const deps = json[type];
+        const deps = object[type];
         if (deps) {
           found = true;
           delete deps[name];
@@ -66,7 +66,7 @@ export async function run(
   }
 
   // save manifests
-  await install.saveRootManifests(jsons);
+  await install.saveRootManifests(rootManifests);
 
   // run hooks - npm runs these one after another
   for (let action of ['preuninstall', 'uninstall', 'postuninstall']) {

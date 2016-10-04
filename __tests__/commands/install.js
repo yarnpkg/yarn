@@ -323,23 +323,27 @@ parallelTest(
     // A@1.2
     // B@1.2
 
-    return runInstall({}, 'install-should-cleanup-when-package-json-changed', async (config, reporter): Promise<void> => {
-      assert.equal(await getPackageVersion(config, 'dep-a'), '1.0.0');
-      assert.equal(await getPackageVersion(config, 'dep-b'), '2.0.0');
-      assert.equal(await getPackageVersion(config, 'dep-a/dep-b'), '1.0.0');
+    return runInstall(
+      {},
+      'install-should-cleanup-when-package-json-changed',
+      async (config, reporter): Promise<void> => {
+        assert.equal(await getPackageVersion(config, 'dep-a'), '1.0.0');
+        assert.equal(await getPackageVersion(config, 'dep-b'), '2.0.0');
+        assert.equal(await getPackageVersion(config, 'dep-a/dep-b'), '1.0.0');
 
-      await fs.unlink(path.join(config.cwd, 'yarn.lock'));
-      await fs.unlink(path.join(config.cwd, 'package.json'));
+        await fs.unlink(path.join(config.cwd, 'yarn.lock'));
+        await fs.unlink(path.join(config.cwd, 'package.json'));
 
-      await fs.copy(path.join(config.cwd, 'yarn.lock.after'), path.join(config.cwd, 'yarn.lock'));
-      await fs.copy(path.join(config.cwd, 'package.json.after'), path.join(config.cwd, 'package.json'));
+        await fs.copy(path.join(config.cwd, 'yarn.lock.after'), path.join(config.cwd, 'yarn.lock'));
+        await fs.copy(path.join(config.cwd, 'package.json.after'), path.join(config.cwd, 'package.json'));
 
-      const reinstall = new Install({}, config, reporter, await Lockfile.fromDirectory(config.cwd));
-      await reinstall.init();
+        const reinstall = new Install({}, config, reporter, await Lockfile.fromDirectory(config.cwd));
+        await reinstall.init();
 
-      assert.equal(await getPackageVersion(config, 'dep-a'), '1.2.0');
-      assert.equal(await getPackageVersion(config, 'dep-b'), '1.2.0');
-    });
+        assert.equal(await getPackageVersion(config, 'dep-a'), '1.2.0');
+        assert.equal(await getPackageVersion(config, 'dep-b'), '1.2.0');
+      },
+    );
   },
 );
 
@@ -352,22 +356,26 @@ parallelTest(
 
     // A@1.2
 
-    return runInstall({}, 'install-should-cleanup-when-package-json-changed-2', async (config, reporter): Promise<void> => {
-      assert.equal(await getPackageVersion(config, 'dep-a'), '1.0.0');
-      assert.equal(await getPackageVersion(config, 'dep-b'), '1.0.0');
+    return runInstall(
+      {},
+      'install-should-cleanup-when-package-json-changed-2',
+      async (config, reporter): Promise<void> => {
+        assert.equal(await getPackageVersion(config, 'dep-a'), '1.0.0');
+        assert.equal(await getPackageVersion(config, 'dep-b'), '1.0.0');
 
-      await fs.unlink(path.join(config.cwd, 'yarn.lock'));
-      await fs.unlink(path.join(config.cwd, 'package.json'));
+        await fs.unlink(path.join(config.cwd, 'yarn.lock'));
+        await fs.unlink(path.join(config.cwd, 'package.json'));
 
-      await fs.copy(path.join(config.cwd, 'yarn.lock.after'), path.join(config.cwd, 'yarn.lock'));
-      await fs.copy(path.join(config.cwd, 'package.json.after'), path.join(config.cwd, 'package.json'));
+        await fs.copy(path.join(config.cwd, 'yarn.lock.after'), path.join(config.cwd, 'yarn.lock'));
+        await fs.copy(path.join(config.cwd, 'package.json.after'), path.join(config.cwd, 'package.json'));
 
-      const reinstall = new Install({}, config, reporter, await Lockfile.fromDirectory(config.cwd));
-      await reinstall.init();
+        const reinstall = new Install({}, config, reporter, await Lockfile.fromDirectory(config.cwd));
+        await reinstall.init();
 
-      assert.equal(await getPackageVersion(config, 'dep-a'), '1.2.0');
-      assert(!await fs.exists(path.join(config.cwd, 'node_modules/dep-b')));
-    });
+        assert.equal(await getPackageVersion(config, 'dep-a'), '1.2.0');
+        assert(!await fs.exists(path.join(config.cwd, 'node_modules/dep-b')));
+      },
+    );
   },
 );
 

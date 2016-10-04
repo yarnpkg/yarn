@@ -81,8 +81,8 @@ export async function run(
   const pkg = {};
   for (let {key: manifestKey, question, default: def} of keys) {
     for (let registryName of registryNames) {
-      const {json} = manifests[registryName];
-      const val = objectPath.get(json, manifestKey);
+      const {object} = manifests[registryName];
+      const val = objectPath.get(object, manifestKey);
       if (val) {
         def = val;
         break;
@@ -116,7 +116,7 @@ export async function run(
     targetManifests.push(manifests.npm);
   }
   for (let targetManifest of targetManifests) {
-    Object.assign(targetManifest.json, pkg);
+    Object.assign(targetManifest.object, pkg);
     reporter.success(`Saved ${path.basename(targetManifest.loc)}`);
   }
 

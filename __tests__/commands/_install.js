@@ -49,8 +49,6 @@ export async function getPackageVersion(config: Config, packagePath: string): Pr
   return json.version;
 }
 
-const tempDirectories = {};
-
 export async function run(
   factory: (config: Config, reporter: Reporter, lockfile: Lockfile) => Install,
   dir: string,

@@ -44,7 +44,7 @@ export type InstallCwdRequest = [
 type RootManifests = {
   [registryName: RegistryNames]: {
     loc: string,
-    json: Object,
+    object: Object,
     exists: boolean,
   }
 };
@@ -437,9 +437,9 @@ export class Install {
         let ref = manifest._reference;
         invariant(ref, 'expected reference');
 
-        let json = jsons[ref.registry].json;
-        json.resolutions = json.resolutions || {};
-        json.resolutions[name] = version;
+        let object = jsons[ref.registry].object;
+        object.resolutions = object.resolutions || {};
+        object.resolutions[name] = version;
       }
 
       await this.saveRootManifests(jsons);
@@ -453,20 +453,20 @@ export class Install {
    */
 
   async getRootManifests(): Promise<RootManifests> {
-    let jsons = {};
+    let manifests: RootManifests = {};
     for (let registryName of registryNames) {
       const registry = registries[registryName];
       const jsonLoc = path.join(this.config.cwd, registry.filename);
 
-      let json = {};
+      let object = {};
       let exists = false;
       if (await fs.exists(jsonLoc)) {
         exists = true;
-        json = await fs.readJson(jsonLoc);
+        object = await fs.readJson(jsonLoc);
       }
-      jsons[registryName] = {loc: jsonLoc, json, exists};
+      manifests[registryName] = {loc: jsonLoc, object, exists};
     }
-    return jsons;
+    return manifests;
   }
 
   /**
@@ -475,21 +475,16 @@ export class Install {
 
   async saveRootManifests(manifests: RootManifests): Promise<void> {
     for (let registryName of registryNames) {
-      let {loc, json, exists} = jsons[registryName];
-      if (!exists && !Object.keys(json).length) {
+      let {loc, object, exists} = manifests[registryName];
+      if (!exists && !Object.keys(object).length) {
         continue;
       }
 
-      [
-        'devDependencies',
-        'peerDependencies',
-        'optionalDependencies',
-        'dependencies',
-      ].forEach((field) => {
+      for (let field of constants.DEPENDENCY_TYPES) {
         if (object[field]) {
           object[field] = sortObject(object[field]);
         }
-      });
+      }
 
       await fs.writeFile(loc, stringify(object) + '\n');
     }
