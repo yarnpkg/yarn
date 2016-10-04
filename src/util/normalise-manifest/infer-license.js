@@ -1,7 +1,6 @@
 /* @flow */
 
-const path = require('path');
-const fs = require('fs');
+import LICENSES from './licenses.js';
 
 function clean(str: string): string {
   return str
@@ -9,29 +8,6 @@ function clean(str: string): string {
     .replace(/[\s]+/g, ' ')
     .trim()
     .toLowerCase();
-}
-
-function createExplicitLicenseRegex(license: string): RegExp {
-  let regex = clean(license);
-  regex = regex.replace(/ wildcard /g, '(.*?| )');
-  regex += '$'; // matches end of string
-  return new RegExp(regex, 'g');
-}
-
-const LICENSES = {};
-const licensesDir = path.join(__dirname, 'licenses');
-for (let name of fs.readdirSync(licensesDir)) {
-  let regex = createExplicitLicenseRegex(fs.readFileSync(
-    path.join(licensesDir, name),
-    'utf8',
-  ));
-  let key = name.replace(/_(\d)+$/g, '');
-  let existing = LICENSES[key];
-  if (existing) {
-    LICENSES[key] = new RegExp(`(${regex.source}|${existing.source})`, 'g');
-  } else {
-    LICENSES[key] = regex;
-  }
 }
 
 const REGEXES = {
