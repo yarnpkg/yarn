@@ -317,7 +317,7 @@ export default class Config {
         }
       }
 
-      throw new Error(`Couldn't find a manifest in ${dir}`);
+      throw new Error(`Couldn't find a package.json (or bower.json) file in ${dir}`);
     });
   }
 
