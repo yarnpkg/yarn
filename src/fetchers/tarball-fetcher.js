@@ -67,6 +67,7 @@ export default class TarballFetcher extends BaseFetcher {
     const untarStream = tar.Extract({path: this.dest, strip: 1});
 
     extractorStream
+      .on('error', reject)
       .pipe(untarStream)
       .on('error', reject)
       .on('end', () => {
