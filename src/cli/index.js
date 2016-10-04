@@ -50,6 +50,7 @@ commander.option(
   '--force-single-instance-with-file',
   'pause and wait if other instances are running on the same folder using a operating system lock file',
 );
+commander.allowUnknownOption();
 
 // get command name
 let commandName: string = args.splice(2, 1)[0] || '';
