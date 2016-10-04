@@ -93,13 +93,10 @@ parallelTest('add should not make package.json strict', async (): Promise<void> 
   await fs.copy(path.join(cwd, 'package.json.before'), path.join(cwd, 'package.json'));
 
   return runAdd({}, ['left-pad@^1.1.0'], fixture, async (config) => {
-    assert.deepEqual(
-      JSON.parse(await fs.readFile(path.join(config.cwd, 'package.json'))).dependencies,
-      {
-        'left-pad': '^1.1.0',
-        'mime-types': '^2.0.0',
-      },
-    );
+    // Make sure left-pad is added and the resulting dependencies are sorted properly.
+    expect(
+      await fs.readFile(path.join(config.cwd, 'package.json')),
+    ).toMatchSnapshot();
 
     await fs.unlink(path.join(config.cwd, `${mirrorPath}/left-pad-*.tgz`));
     await fs.unlink(path.join(config.cwd, 'package.json'));

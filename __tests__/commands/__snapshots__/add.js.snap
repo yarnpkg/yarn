@@ -1,0 +1,9 @@
+exports[`test install with arg that has install scripts 1`] = `
+"{
+  \"dependencies\": {
+    \"left-pad\": \"^1.1.0\",
+    \"mime-types\": \"^2.0.0\"
+  }
+}
+"
+`;

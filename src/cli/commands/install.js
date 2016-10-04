@@ -52,6 +52,14 @@ type IntegrityMatch = {
   matches: boolean,
 };
 
+const sortObject = (object) => {
+  const sortedObject = {};
+  Object.keys(object).sort().forEach((item) => {
+    sortedObject[item] = object[item];
+  });
+  return sortedObject;
+};
+
 export class Install {
   constructor(
     flags: Object,
@@ -390,14 +398,25 @@ export class Install {
    * Save root manifests.
    */
 
-  async saveRootManifests(jsons: RootManifests): Promise<void> {
+  async saveRootManifests(manifests: RootManifests): Promise<void> {
     for (let registryName of registryNames) {
-      let [loc, json] = jsons[registryName];
-      if (!Object.keys(json).length) {
+      let [loc, object] = manifests[registryName];
+      if (!Object.keys(object).length) {
         continue;
       }
 
-      await fs.writeFile(loc, stringify(json) + '\n');
+      [
+        'devDependencies',
+        'peerDependencies',
+        'optionalDependencies',
+        'dependencies',
+      ].forEach((field) => {
+        if (object[field]) {
+          object[field] = sortObject(object[field]);
+        }
+      });
+
+      await fs.writeFile(loc, stringify(object) + '\n');
     }
   }
 
