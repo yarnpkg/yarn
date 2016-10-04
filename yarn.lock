@@ -417,13 +417,13 @@ babel-jest@^14.0.0:
   dependencies:
     babel-core "^6.0.0"
     babel-preset-jest "^14.1.0"
-babel-jest@^15.0.0:
-  version "15.0.0"
-  resolved "https://registry.npmjs.org/babel-jest/-/babel-jest-15.0.0.tgz#6a9e2e3999f241383db9ab1e2ef6704401d74242"
+babel-jest@^16.0.0:
+  version "16.0.0"
+  resolved "https://registry.npmjs.org/babel-jest/-/babel-jest-16.0.0.tgz#348729aea6d624a4774b8a934d07a40dd2cfd640"
   dependencies:
     babel-core "^6.0.0"
     babel-plugin-istanbul "^2.0.0"
-    babel-preset-jest "^15.0.0"
+    babel-preset-jest "^16.0.0"
 babel-loader@^6.2.5:
   version "6.2.5"
   resolved "https://registry.npmjs.org/babel-loader/-/babel-loader-6.2.5.tgz#576d548520689a5e6b70c65b85d76af1ffedd005"
@@ -464,9 +464,9 @@ babel-plugin-istanbul@^2.0.0:
 babel-plugin-jest-hoist@^14.1.0:
   version "14.1.1"
   resolved "https://registry.npmjs.org/babel-plugin-jest-hoist/-/babel-plugin-jest-hoist-14.1.1.tgz#6d6bbd09ba2441e707308bab32521d3ad5c7536d"
-babel-plugin-jest-hoist@^15.0.0:
-  version "15.0.0"
-  resolved "https://registry.npmjs.org/babel-plugin-jest-hoist/-/babel-plugin-jest-hoist-15.0.0.tgz#7b2fdbd0cd12fc36a84d3f5ff001ec504262bb59"
+babel-plugin-jest-hoist@^16.0.0:
+  version "16.0.0"
+  resolved "https://registry.npmjs.org/babel-plugin-jest-hoist/-/babel-plugin-jest-hoist-16.0.0.tgz#b58ca3f770982a7e7c25b5614b2e57e9dafc6e76"
 babel-plugin-jscript@^1.0.4:
   version "1.0.4"
   resolved "https://registry.npmjs.org/babel-plugin-jscript/-/babel-plugin-jscript-1.0.4.tgz#8f342c38276e87a47d5fa0a8bd3d5eb6ccad8fcc"
@@ -859,11 +859,11 @@ babel-preset-jest@^14.1.0:
   resolved "https://registry.npmjs.org/babel-preset-jest/-/babel-preset-jest-14.1.0.tgz#55da655d620ad10005b2bedf46accc525ad9c2a7"
   dependencies:
     babel-plugin-jest-hoist "^14.1.0"
-babel-preset-jest@^15.0.0:
-  version "15.0.0"
-  resolved "https://registry.npmjs.org/babel-preset-jest/-/babel-preset-jest-15.0.0.tgz#f23988f1f918673ff9b470fdfd60fcc19bc618f5"
+babel-preset-jest@^16.0.0:
+  version "16.0.0"
+  resolved "https://registry.npmjs.org/babel-preset-jest/-/babel-preset-jest-16.0.0.tgz#417aabc2d7d93170f43c20ef1ea0145e8f7f2db5"
   dependencies:
-    babel-plugin-jest-hoist "^15.0.0"
+    babel-plugin-jest-hoist "^16.0.0"
 babel-preset-node5@^10.2.0:
   version "10.9.0"
   resolved "https://registry.npmjs.org/babel-preset-node5/-/babel-preset-node5-10.9.0.tgz#1614a4a14dec98e35bb5c69d4cf26f78dff847fa"
@@ -2325,6 +2325,9 @@ is-builtin-module@^1.0.0:
   resolved "https://registry.npmjs.org/is-builtin-module/-/is-builtin-module-1.0.0.tgz#540572d34f7ac3119f8f76c30cbc1b1e037affbe"
   dependencies:
     builtin-modules "^1.0.0"
+is-ci@^1.0.9:
+  version "1.0.9"
+  resolved "https://registry.npmjs.org/is-ci/-/is-ci-1.0.9.tgz#de2c5ffe49ab3237fda38c47c8a3bbfd55bbcca7"
 is-dotfile@^1.0.0:
   version "1.0.2"
   resolved "https://registry.npmjs.org/is-dotfile/-/is-dotfile-1.0.2.tgz#2c132383f39199f8edc268ca01b9b007d205cc4d"
@@ -2526,161 +2529,169 @@ jasmine-check@^0.1.4:
   resolved "https://registry.npmjs.org/jasmine-check/-/jasmine-check-0.1.5.tgz#dbad7eec56261c4b3d175ada55fe59b09ac9e415"
   dependencies:
     testcheck "^0.1.0"
-jest-changed-files@^15.0.0:
-  version "15.0.0"
-  resolved "https://registry.npmjs.org/jest-changed-files/-/jest-changed-files-15.0.0.tgz#3ac99d97dc4ac045ad4adae8d967cc1317382571"
-jest-cli@^15.1.1:
-  version "15.1.1"
-  resolved "https://registry.npmjs.org/jest-cli/-/jest-cli-15.1.1.tgz#53f271281f90d3b4043eca9ce9af69dd04bbda3e"
+jest:
+  version "16.0.1"
+  resolved "https://registry.npmjs.org/jest/-/jest-16.0.1.tgz#538af80e55a96140f55a2e7d3190157eba806d61"
+  dependencies:
+    jest-cli "^16.0.1"
+jest-changed-files@^16.0.0:
+  version "16.0.0"
+  resolved "https://registry.npmjs.org/jest-changed-files/-/jest-changed-files-16.0.0.tgz#7931deff4424182b8173d80e06800d7363b19c45"
+jest-cli@^16.0.1:
+  version "16.0.1"
+  resolved "https://registry.npmjs.org/jest-cli/-/jest-cli-16.0.1.tgz#c8c48ce0d1ece34d470562105b236f4f34f39f9d"
   dependencies:
     ansi-escapes "^1.4.0"
     callsites "^2.0.0"
     chalk "^1.1.1"
     graceful-fs "^4.1.6"
+    is-ci "^1.0.9"
     istanbul-api "^1.0.0-aplha.10"
     istanbul-lib-coverage "^1.0.0"
     istanbul-lib-instrument "^1.1.1"
-    jest-changed-files "^15.0.0"
-    jest-config "^15.1.1"
-    jest-environment-jsdom "^15.1.1"
+    jest-changed-files "^16.0.0"
+    jest-config "^16.0.0"
+    jest-environment-jsdom "^16.0.0"
     jest-file-exists "^15.0.0"
-    jest-haste-map "^15.0.1"
-    jest-jasmine2 "^15.1.1"
-    jest-mock "^15.0.0"
-    jest-resolve "^15.0.1"
-    jest-resolve-dependencies "^15.0.1"
-    jest-runtime "^15.1.1"
-    jest-snapshot "^15.1.1"
-    jest-util "^15.1.1"
+    jest-haste-map "^16.0.0"
+    jest-jasmine2 "^16.0.0"
+    jest-mock "^16.0.0"
+    jest-resolve "^16.0.0"
+    jest-resolve-dependencies "^16.0.0"
+    jest-runtime "^16.0.0"
+    jest-snapshot "^16.0.0"
+    jest-util "^16.0.0"
     json-stable-stringify "^1.0.0"
     node-notifier "^4.6.1"
     sane "~1.4.1"
+    strip-ansi "^3.0.1"
+    throat "^3.0.0"
     which "^1.1.1"
     worker-farm "^1.3.1"
     yargs "^5.0.0"
-jest-config@^15.1.1:
-  version "15.1.1"
-  resolved "https://registry.npmjs.org/jest-config/-/jest-config-15.1.1.tgz#abdbe5b4a49a404d04754d42d7d88b94e58009f7"
+jest-config@^16.0.0:
+  version "16.0.0"
+  resolved "https://registry.npmjs.org/jest-config/-/jest-config-16.0.0.tgz#9be05c331c43a972ab03f9efd582dceefc998386"
   dependencies:
     chalk "^1.1.1"
     istanbul "^0.4.5"
-    jest-environment-jsdom "^15.1.1"
-    jest-environment-node "^15.1.1"
-    jest-jasmine2 "^15.1.1"
-    jest-mock "^15.0.0"
-    jest-resolve "^15.0.1"
-    jest-util "^15.1.1"
+    jest-environment-jsdom "^16.0.0"
+    jest-environment-node "^16.0.0"
+    jest-jasmine2 "^16.0.0"
+    jest-mock "^16.0.0"
+    jest-resolve "^16.0.0"
+    jest-util "^16.0.0"
     json-stable-stringify "^1.0.0"
-jest-diff@^15.1.0:
-  version "15.1.0"
-  resolved "https://registry.npmjs.org/jest-diff/-/jest-diff-15.1.0.tgz#bda40ad77c6beec1e6b8b5e46e3bbaed6e81c9f4"
+jest-diff@^16.0.0:
+  version "16.0.0"
+  resolved "https://registry.npmjs.org/jest-diff/-/jest-diff-16.0.0.tgz#4a5d13b1e36c5b8020d5d9e69639e486a675ce14"
   dependencies:
     chalk "^1.1.3"
     diff "^3.0.0"
-    jest-matcher-utils "^15.1.0"
-    pretty-format "^3.7.0"
-jest-environment-jsdom@^15.1.1:
-  version "15.1.1"
-  resolved "https://registry.npmjs.org/jest-environment-jsdom/-/jest-environment-jsdom-15.1.1.tgz#f0368c13e8e0b81adad123a051b94294338b97e0"
+    jest-matcher-utils "^16.0.0"
+    pretty-format "~4.2.1"
+jest-environment-jsdom@^16.0.0:
+  version "16.0.0"
+  resolved "https://registry.npmjs.org/jest-environment-jsdom/-/jest-environment-jsdom-16.0.0.tgz#1fc405a249583281ad6b8ef8863ebe2b9d47b57e"
   dependencies:
-    jest-util "^15.1.1"
-    jsdom "^9.4.0"
-jest-environment-node@^15.1.1:
-  version "15.1.1"
-  resolved "https://registry.npmjs.org/jest-environment-node/-/jest-environment-node-15.1.1.tgz#7a8d4868e027e5d16026468e248dd5946fe43c04"
+    jest-mock "^16.0.0"
+    jest-util "^16.0.0"
+    jsdom "^9.5.0"
+jest-environment-node@^16.0.0:
+  version "16.0.0"
+  resolved "https://registry.npmjs.org/jest-environment-node/-/jest-environment-node-16.0.0.tgz#470776f814e8997b143708e98ff58b830e374827"
   dependencies:
-    jest-util "^15.1.1"
+    jest-mock "^16.0.0"
+    jest-util "^16.0.0"
 jest-file-exists@^15.0.0:
   version "15.0.0"
   resolved "https://registry.npmjs.org/jest-file-exists/-/jest-file-exists-15.0.0.tgz#b7fefdd3f4b227cb686bb156ecc7661ee6935a88"
-jest-haste-map@^15.0.1:
-  version "15.0.1"
-  resolved "https://registry.npmjs.org/jest-haste-map/-/jest-haste-map-15.0.1.tgz#1d1c342fa6f6d62d9bc2af76428d2e20f74a44d3"
+jest-haste-map@^16.0.0:
+  version "16.0.0"
+  resolved "https://registry.npmjs.org/jest-haste-map/-/jest-haste-map-16.0.0.tgz#2dd23905a9dbefd0e6baf08523ea9931089a33ff"
   dependencies:
     fb-watchman "^1.9.0"
     graceful-fs "^4.1.6"
     multimatch "^2.1.0"
     worker-farm "^1.3.1"
-jest-jasmine2@^15.1.1:
-  version "15.1.1"
-  resolved "https://registry.npmjs.org/jest-jasmine2/-/jest-jasmine2-15.1.1.tgz#cac8b016ab6ce16d95b291875773c2494a1b4672"
+jest-jasmine2@^16.0.0:
+  version "16.0.0"
+  resolved "https://registry.npmjs.org/jest-jasmine2/-/jest-jasmine2-16.0.0.tgz#825efed2b4c3236ef1af0ab8d78d52c45a963323"
   dependencies:
     graceful-fs "^4.1.6"
     jasmine-check "^0.1.4"
-    jest-matchers "^15.1.1"
-    jest-snapshot "^15.1.1"
-    jest-util "^15.1.1"
-jest-matcher-utils@^15.1.0:
-  version "15.1.0"
-  resolved "https://registry.npmjs.org/jest-matcher-utils/-/jest-matcher-utils-15.1.0.tgz#2c506ab9f396d286afa74872f2a3afe3ff454986"
+    jest-matchers "^16.0.0"
+    jest-snapshot "^16.0.0"
+    jest-util "^16.0.0"
+jest-matcher-utils@^16.0.0:
+  version "16.0.0"
+  resolved "https://registry.npmjs.org/jest-matcher-utils/-/jest-matcher-utils-16.0.0.tgz#705af3ff85944bec1c25bc813f427aff8642b0cd"
   dependencies:
     chalk "^1.1.3"
-jest-matchers@^15.1.1:
-  version "15.1.1"
-  resolved "https://registry.npmjs.org/jest-matchers/-/jest-matchers-15.1.1.tgz#faff50acbbf9743323ec2270a24743cb59d638f0"
+    pretty-format "~4.2.1"
+jest-matchers@^16.0.0:
+  version "16.0.0"
+  resolved "https://registry.npmjs.org/jest-matchers/-/jest-matchers-16.0.0.tgz#8f65d99e716ba8f4544479601ae4cfaaa4866d16"
   dependencies:
-    jest-diff "^15.1.0"
-    jest-matcher-utils "^15.1.0"
-    jest-util "^15.1.1"
-jest-mock@^15.0.0:
-  version "15.0.0"
-  resolved "https://registry.npmjs.org/jest-mock/-/jest-mock-15.0.0.tgz#b6639699eb0f021aa3648803432ebd950f75dc02"
-jest-resolve-dependencies@^15.0.1:
-  version "15.0.1"
-  resolved "https://registry.npmjs.org/jest-resolve-dependencies/-/jest-resolve-dependencies-15.0.1.tgz#43ebc69b7d81d2cdc70474d4bf634304b06ea411"
+    jest-diff "^16.0.0"
+    jest-matcher-utils "^16.0.0"
+    jest-util "^16.0.0"
+jest-mock@^16.0.0:
+  version "16.0.0"
+  resolved "https://registry.npmjs.org/jest-mock/-/jest-mock-16.0.0.tgz#39fa77d18b430a9c940d571131961085e2030a6c"
+jest-resolve-dependencies@^16.0.0:
+  version "16.0.0"
+  resolved "https://registry.npmjs.org/jest-resolve-dependencies/-/jest-resolve-dependencies-16.0.0.tgz#7779e36109b571ef0661482efac0c8f2c3a61a80"
   dependencies:
     jest-file-exists "^15.0.0"
-    jest-resolve "^15.0.1"
-jest-resolve@^15.0.1:
-  version "15.0.1"
-  resolved "https://registry.npmjs.org/jest-resolve/-/jest-resolve-15.0.1.tgz#18a32d5ebfb7883c2eac16830917a37c5102ffa1"
+    jest-resolve "^16.0.0"
+jest-resolve@^16.0.0:
+  version "16.0.0"
+  resolved "https://registry.npmjs.org/jest-resolve/-/jest-resolve-16.0.0.tgz#9a819b02c3d1581716aac7d5bcdab36df4f30f68"
   dependencies:
     browser-resolve "^1.11.2"
     jest-file-exists "^15.0.0"
-    jest-haste-map "^15.0.1"
+    jest-haste-map "^16.0.0"
     resolve "^1.1.6"
-jest-runtime@^15.1.1:
-  version "15.1.1"
-  resolved "https://registry.npmjs.org/jest-runtime/-/jest-runtime-15.1.1.tgz#3907b8d46e5fe21b4395f3f884031fae22267191"
+jest-runtime@^16.0.0:
+  version "16.0.0"
+  resolved "https://registry.npmjs.org/jest-runtime/-/jest-runtime-16.0.0.tgz#c5af0c4957198256abcd3d8c5c003188eabb037d"
   dependencies:
     babel-core "^6.11.4"
-    babel-jest "^15.0.0"
+    babel-jest "^16.0.0"
     babel-plugin-istanbul "^2.0.0"
     chalk "^1.1.3"
     graceful-fs "^4.1.6"
-    jest-config "^15.1.1"
+    jest-config "^16.0.0"
     jest-file-exists "^15.0.0"
-    jest-haste-map "^15.0.1"
-    jest-mock "^15.0.0"
-    jest-resolve "^15.0.1"
-    jest-snapshot "^15.1.1"
-    jest-util "^15.1.1"
+    jest-haste-map "^16.0.0"
+    jest-mock "^16.0.0"
+    jest-resolve "^16.0.0"
+    jest-snapshot "^16.0.0"
+    jest-util "^16.0.0"
     json-stable-stringify "^1.0.0"
     multimatch "^2.1.0"
     yargs "^5.0.0"
-jest-snapshot@^15.1.1:
-  version "15.1.1"
-  resolved "https://registry.npmjs.org/jest-snapshot/-/jest-snapshot-15.1.1.tgz#95d0d2729512d64d1a1a42724ca551c1d2079a71"
+jest-snapshot@^16.0.0:
+  version "16.0.0"
+  resolved "https://registry.npmjs.org/jest-snapshot/-/jest-snapshot-16.0.0.tgz#a71060d62534e3eb9e61807119b47f971230eb4b"
   dependencies:
-    jest-diff "^15.1.0"
+    jest-diff "^16.0.0"
     jest-file-exists "^15.0.0"
-    jest-util "^15.1.1"
-    pretty-format "^3.7.0"
-jest-util@^15.1.1:
-  version "15.1.1"
-  resolved "https://registry.npmjs.org/jest-util/-/jest-util-15.1.1.tgz#5e19edab2c573f992c9d45ba118fa8d90f9d220e"
+    jest-matcher-utils "^16.0.0"
+    jest-util "^16.0.0"
+    natural-compare "^1.4.0"
+    pretty-format "~4.2.1"
+jest-util@^16.0.0:
+  version "16.0.0"
+  resolved "https://registry.npmjs.org/jest-util/-/jest-util-16.0.0.tgz#a72abcd23ba9be1a02c450324f9beb711f61c9c9"
   dependencies:
     chalk "^1.1.1"
     diff "^3.0.0"
     graceful-fs "^4.1.6"
     jest-file-exists "^15.0.0"
-    jest-mock "^15.0.0"
+    jest-mock "^16.0.0"
     mkdirp "^0.5.1"
-jest@^15.1.1:
-  version "15.1.1"
-  resolved "https://registry.npmjs.org/jest/-/jest-15.1.1.tgz#d02972b3ba27067b7713e44219b4731aa48540a6"
-  dependencies:
-    jest-cli "^15.1.1"
 jodid25519@^1.0.0:
   version "1.0.2"
   resolved "https://registry.npmjs.org/jodid25519/-/jodid25519-1.0.2.tgz#06d4912255093419477d425633606e0e90782967"
@@ -2704,7 +2715,7 @@ js-yaml@^3.5.1, js-yaml@3.x:
 jsbn@~0.1.0:
   version "0.1.0"
   resolved "https://registry.npmjs.org/jsbn/-/jsbn-0.1.0.tgz#650987da0dd74f4ebf5a11377a2aa2d273e97dfd"
-jsdom@^9.4.0:
+jsdom@^9.5.0:
   version "9.6.0"
   resolved "https://registry.npmjs.org/jsdom/-/jsdom-9.6.0.tgz#e0e9b15ba07e90b1d9ec083f9bedee0f6800a4fb"
   dependencies:
@@ -3477,9 +3488,9 @@ prelude-ls@~1.1.2:
 preserve@^0.2.0:
   version "0.2.0"
   resolved "https://registry.npmjs.org/preserve/-/preserve-0.2.0.tgz#815ed1f6ebc65926f865b310c0713bcb3315ce4b"
-pretty-format@^3.7.0:
-  version "3.8.0"
-  resolved "https://registry.npmjs.org/pretty-format/-/pretty-format-3.8.0.tgz#bfbed56d5e9a776645f4b1ff7aa1a3ac4fa3c385"
+pretty-format@~4.2.1:
+  version "4.2.1"
+  resolved "https://registry.npmjs.org/pretty-format/-/pretty-format-4.2.1.tgz#b1dad18c3be0c8209e64c7791fa67e252d2d3e07"
 pretty-hrtime@^1.0.0:
   version "1.0.2"
   resolved "https://registry.npmjs.org/pretty-hrtime/-/pretty-hrtime-1.0.2.tgz#70ca96f4d0628a443b918758f79416a9a7bc9fa8"
@@ -4074,6 +4085,9 @@ testcheck@^0.1.0:
 text-table@~0.2.0:
   version "0.2.0"
   resolved "https://registry.npmjs.org/text-table/-/text-table-0.2.0.tgz#7f5ee823ae805207c00af2df4a84ec3fcfa570b4"
+throat@^3.0.0:
+  version "3.0.0"
+  resolved "https://registry.npmjs.org/throat/-/throat-3.0.0.tgz#e7c64c867cbb3845f10877642f7b60055b8ec0d6"
 through@^2.3.6, through@~2.3.8:
   version "2.3.8"
   resolved "https://registry.npmjs.org/through/-/through-2.3.8.tgz#0dd4c9ffaabc357960b1b724115d7e0e86a2e1f5"

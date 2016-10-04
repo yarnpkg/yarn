@@ -9,7 +9,6 @@ import Config from '../../src/config.js';
 import * as fs from '../../src/util/fs.js';
 import assert from 'assert';
 import semver from 'semver';
-import parallelTest from '../_parallel-test.js';
 import {getPackageVersion, explodeLockfile, runInstall, createLockfile} from './_install.js';
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000;
@@ -18,7 +17,7 @@ let path = require('path');
 
 let fixturesLoc = path.join(__dirname, '..', 'fixtures', 'install');
 
-parallelTest('integrity hash respects flat and production flags', () => {
+test('integrity hash respects flat and production flags', () => {
   let cwd = path.join(fixturesLoc, 'noop');
   let reporter = new reporters.NoopReporter();
   let config = new Config(reporter, {cwd});
@@ -34,7 +33,7 @@ parallelTest('integrity hash respects flat and production flags', () => {
   assert(install3.generateIntegrityHash('foo') !== install2.generateIntegrityHash('foo'));
 });
 
-parallelTest('flat arg is inherited from root manifest', (): Promise<void> => {
+test.concurrent('flat arg is inherited from root manifest', (): Promise<void> => {
   let cwd = path.join(fixturesLoc, 'top-level-flat-parameter');
   let reporter = new reporters.NoopReporter();
   let config = new Config(reporter, {cwd});
@@ -46,14 +45,14 @@ parallelTest('flat arg is inherited from root manifest', (): Promise<void> => {
 });
 
 
-parallelTest("doesn't write new lockfile if existing one satisfied", (): Promise<void> => {
+test.concurrent("doesn't write new lockfile if existing one satisfied", (): Promise<void> => {
   return runInstall({}, 'install-dont-write-lockfile-if-satisfied', async (config): Promise<void> => {
     const lockfile = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
     assert(lockfile.indexOf('foobar') >= 0);
   });
 });
 
-parallelTest("writes new lockfile if existing one isn't satisfied", async (): Promise<void> => {
+test.concurrent("writes new lockfile if existing one isn't satisfied", async (): Promise<void> => {
   let fixture = 'install-write-lockfile-if-not-satisfied';
   let cwd = path.join(fixturesLoc, fixture);
   await fs.copy(path.join(cwd, 'yarn.lock.before'), path.join(cwd, 'yarn.lock'));
@@ -68,21 +67,21 @@ parallelTest("writes new lockfile if existing one isn't satisfied", async (): Pr
   }
 });
 
-parallelTest('install transitive optional dependency from lockfile', (): Promise<void> => {
+test.concurrent('install transitive optional dependency from lockfile', (): Promise<void> => {
   return runInstall({}, 'install-optional-dep-from-lockfile', (config, reporter, install) => {
     assert(install && install.resolver && install.resolver.patterns['fsevents@^1.0.0']);
   });
 });
 
-parallelTest('root install from shrinkwrap', (): Promise<void> => {
+test.concurrent('root install from shrinkwrap', (): Promise<void> => {
   return runInstall({}, 'root-install-with-lockfile');
 });
 
-parallelTest('root install with optional deps', (): Promise<void> => {
+test.concurrent('root install with optional deps', (): Promise<void> => {
   return runInstall({}, 'root-install-with-optional-dependency');
 });
 
-parallelTest('install file: protocol', (): Promise<void> => {
+test.concurrent('install file: protocol', (): Promise<void> => {
   return runInstall({noLockfile: true}, 'install-file', async (config) => {
     assert.equal(
       await fs.readFile(path.join(config.cwd, 'node_modules', 'foo', 'index.js')),
@@ -91,7 +90,7 @@ parallelTest('install file: protocol', (): Promise<void> => {
   });
 });
 
-parallelTest('install renamed packages', (): Promise<void> => {
+test.concurrent('install renamed packages', (): Promise<void> => {
   return runInstall({}, 'install-renamed-packages', async (config): Promise<void> => {
     let dir = path.join(config.cwd, 'node_modules');
 
@@ -103,7 +102,7 @@ parallelTest('install renamed packages', (): Promise<void> => {
   });
 });
 
-parallelTest('install from offline mirror', (): Promise<void> => {
+test.concurrent('install from offline mirror', (): Promise<void> => {
   return runInstall({}, 'install-from-offline-mirror', async (config): Promise<void> => {
 
     let allFiles = await fs.walk(config.cwd);
@@ -114,13 +113,13 @@ parallelTest('install from offline mirror', (): Promise<void> => {
   });
 });
 
-parallelTest('install from git cache', (): Promise<void> => {
+test.concurrent('install from git cache', (): Promise<void> => {
   return runInstall({}, 'install-from-git-cache', async (config): Promise<void> => {
     assert.equal(await getPackageVersion(config, 'dep-a'), '0.0.1');
   });
 });
 
-parallelTest('install should dedupe dependencies avoiding conflicts 0', (): Promise<void> => {
+test.concurrent('install should dedupe dependencies avoiding conflicts 0', (): Promise<void> => {
   // A@2.0.1 -> B@2.0.0
   // B@1.0.0
   // should result in B@2.0.0 not flattened
@@ -130,7 +129,7 @@ parallelTest('install should dedupe dependencies avoiding conflicts 0', (): Prom
   });
 });
 
-parallelTest('install should dedupe dependencies avoiding conflicts 1', (): Promise<void> => {
+test.concurrent('install should dedupe dependencies avoiding conflicts 1', (): Promise<void> => {
   // A@2.0.1 -> B@2.0.0
   // should result in B@2.0.0 flattened
   return runInstall({}, 'install-should-dedupe-avoiding-conflicts-1', async (config) => {
@@ -139,7 +138,7 @@ parallelTest('install should dedupe dependencies avoiding conflicts 1', (): Prom
   });
 });
 
-parallelTest('install should dedupe dependencies avoiding conflicts 2', (): Promise<void> => {
+test.concurrent('install should dedupe dependencies avoiding conflicts 2', (): Promise<void> => {
   // A@2 -> B@2 -> C@2
   //            -> D@1
   // B@1 -> C@1
@@ -161,7 +160,7 @@ parallelTest('install should dedupe dependencies avoiding conflicts 2', (): Prom
   });
 });
 
-parallelTest('install should dedupe dependencies avoiding conflicts 3', (): Promise<void> => {
+test.concurrent('install should dedupe dependencies avoiding conflicts 3', (): Promise<void> => {
   // A@2 -> B@2 -> C@2
   //            -> D@1
   //     -> C@1
@@ -179,7 +178,7 @@ parallelTest('install should dedupe dependencies avoiding conflicts 3', (): Prom
   });
 });
 
-parallelTest('install should dedupe dependencies avoiding conflicts 4', (): Promise<void> => {
+test.concurrent('install should dedupe dependencies avoiding conflicts 4', (): Promise<void> => {
   // A@2 -> B@2 -> D@1 -> C@2
   //
   //     -> C@1
@@ -198,7 +197,7 @@ parallelTest('install should dedupe dependencies avoiding conflicts 4', (): Prom
   });
 });
 
-parallelTest('install should dedupe dependencies avoiding conflicts 5', (): Promise<void> => {
+test.concurrent('install should dedupe dependencies avoiding conflicts 5', (): Promise<void> => {
   // A@1 -> B@1
   // C@1 -> D@1 -> A@2 -> B@2
 
@@ -221,7 +220,7 @@ parallelTest('install should dedupe dependencies avoiding conflicts 5', (): Prom
   });
 });
 
-parallelTest('install should dedupe dependencies avoiding conflicts 6 (jest/jest-runtime case)', (): Promise<void> => {
+test.concurrent('install dedupes dependencies avoiding conflicts 6 (jest/jest-runtime case)', (): Promise<void> => {
   // C@1 -> D@1 -> E@1
   // B@1 -> C@1 -> D@1 -> E@1
   // D@2
@@ -246,7 +245,7 @@ parallelTest('install should dedupe dependencies avoiding conflicts 6 (jest/jest
   });
 });
 
-parallelTest('install should dedupe dependencies avoiding conflicts 7', (): Promise<void> => {
+test.concurrent('install should dedupe dependencies avoiding conflicts 7', (): Promise<void> => {
   // A@1 -> C@1 -> D@1 -> E@1
   // B@1 -> C@1 -> D@1 -> E@1
   // C@2
@@ -284,7 +283,7 @@ parallelTest('install should dedupe dependencies avoiding conflicts 7', (): Prom
   });
 });
 
-parallelTest('install should dedupe dependencies avoiding conflicts 8', (): Promise<void> => {
+test.concurrent('install should dedupe dependencies avoiding conflicts 8', (): Promise<void> => {
   // revealed in https://github.com/yarnpkg/yarn/issues/112
   return runInstall({}, 'install-should-dedupe-avoiding-conflicts-8', async (config) => {
     assert.equal(await getPackageVersion(config, 'glob'), '5.0.15');
@@ -299,7 +298,7 @@ parallelTest('install should dedupe dependencies avoiding conflicts 8', (): Prom
 });
 
 
-parallelTest('install should dedupe dependencies avoiding conflicts 9', (): Promise<void> => {
+test.concurrent('install should dedupe dependencies avoiding conflicts 9', (): Promise<void> => {
   // revealed in https://github.com/yarnpkg/yarn/issues/112
   return runInstall({}, 'install-should-dedupe-avoiding-conflicts-9', async (config) => {
     assert.equal(await getPackageVersion(config, 'glob'), '5.0.15');
@@ -313,7 +312,7 @@ parallelTest('install should dedupe dependencies avoiding conflicts 9', (): Prom
   });
 });
 
-parallelTest('install have a clean node_modules after lockfile update (branch switch scenario)',
+test.concurrent('install have a clean node_modules after lockfile update (branch switch scenario)',
 async (): Promise<void> => {
   // A@1 -> B@1
   // B@2
@@ -355,7 +354,7 @@ async (): Promise<void> => {
 });
 
 
-parallelTest('install have a clean node_modules after lockfile update (branch switch scenario 2)',
+test.concurrent('install have a clean node_modules after lockfile update (branch switch scenario 2)',
 async (): Promise<void> => {
   // A@1 -> B@1
 
@@ -390,7 +389,7 @@ async (): Promise<void> => {
   });
 });
 
-parallelTest('uninstall should remove dependency from package.json, yarn.lock and node_modules', (): Promise<void> => {
+test.concurrent('uninstall removes dependency from package.json, yarn.lock and node_modules', (): Promise<void> => {
   let mirrorPath = 'mirror-for-offline';
 
   return runInstall({}, 'uninstall-should-clean', async (config, reporter) => {
@@ -427,7 +426,7 @@ parallelTest('uninstall should remove dependency from package.json, yarn.lock an
   });
 });
 
-parallelTest('uninstall should remove subdependencies', (): Promise<void> => {
+test.concurrent('uninstall should remove subdependencies', (): Promise<void> => {
   // A@1 -> B@1
   // C@1
 
@@ -485,7 +484,7 @@ parallelTest('uninstall should remove subdependencies', (): Promise<void> => {
   });
 });
 
-parallelTest('check should verify that top level dependencies are installed correctly', (): Promise<void> => {
+test.concurrent('check should verify that top level dependencies are installed correctly', (): Promise<void> => {
   let fixture = 'check-top-correct';
 
   return runInstall({}, fixture, async (config, reporter) => {
@@ -509,7 +508,7 @@ parallelTest('check should verify that top level dependencies are installed corr
   });
 });
 
-parallelTest('install should run install scripts in the order of dependencies', (): Promise<void> => {
+test.concurrent('install should run install scripts in the order of dependencies', (): Promise<void> => {
   let fixture = 'scripts-order';
 
   return runInstall({}, fixture, async (config, reporter) => {
@@ -519,7 +518,7 @@ parallelTest('install should run install scripts in the order of dependencies', 
   });
 });
 
-parallelTest('run install scripts in the order when one dependency does not have install script',
+test.concurrent('run install scripts in the order when one dependency does not have install script',
              (): Promise<void> => {
                let fixture = 'scripts-order-with-one-package-missing-install-script';
 
@@ -530,7 +529,7 @@ parallelTest('run install scripts in the order when one dependency does not have
                });
              });
 
-parallelTest('install should circumvent circular dependencies', (): Promise<void> => {
+test.concurrent('install should circumvent circular dependencies', (): Promise<void> => {
   let fixture = 'install-should-circumvent-circular-dependencies';
 
   return runInstall({}, fixture, async (config, reporter) => {
@@ -550,7 +549,7 @@ parallelTest('install should circumvent circular dependencies', (): Promise<void
 });
 
 // fix https://github.com/yarnpkg/yarn/issues/466
-parallelTest('install should resolve circular dependencies 2', (): Promise<void> => {
+test.concurrent('install should resolve circular dependencies 2', (): Promise<void> => {
   let fixture = 'install-should-circumvent-circular-dependencies-2';
   return runInstall({}, fixture, async (config, reporter) => {
     assert.equal(
@@ -560,7 +559,7 @@ parallelTest('install should resolve circular dependencies 2', (): Promise<void>
   });
 });
 
-parallelTest('install should add missing deps to yarn and mirror (PR import scenario)',
+test.concurrent('install should add missing deps to yarn and mirror (PR import scenario)',
 async (): Promise<void> => {
   let mirrorPath = 'mirror-for-offline';
   let fixture = 'install-import-pr';
@@ -592,7 +591,7 @@ async (): Promise<void> => {
 
 if (process.platform !== 'win32') {
   // TODO: This seems like a real issue, not just a config issue
-  parallelTest('install cache symlinks properly', (): Promise<void> => {
+  test.concurrent('install cache symlinks properly', (): Promise<void> => {
     let fixture = 'cache-symlinks';
 
     return runInstall({}, fixture, async (config, reporter) => {
