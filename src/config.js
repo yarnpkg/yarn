@@ -4,7 +4,7 @@ import type {RegistryNames} from './registries/index.js';
 import type {Reporter} from './reporters/index.js';
 import type Registry from './registries/base-registry.js';
 import type {Manifest, PackageRemote} from './types.js';
-import normaliseManifest from './util/normalise-manifest/index.js';
+import normalizeManifest from './util/normalize-manifest/index.js';
 import * as fs from './util/fs.js';
 import * as constants from './constants.js';
 import ConstraintResolver from './package-constraint-resolver.js';
@@ -279,7 +279,7 @@ export default class Config {
   }
 
   /**
-   * Read package metadata and normalised package info.
+   * Read package metadata and normalized package info.
    */
 
   readPackageMetadata(dir: string): Promise<PackageMetadata> {
@@ -297,7 +297,7 @@ export default class Config {
   }
 
   /**
-   * Read normalised package info.
+   * Read normalized package info.
    */
 
   readManifest(dir: string, priorityRegistry?: RegistryNames, isRoot?: boolean = false): Promise<Manifest> {
@@ -348,7 +348,7 @@ export default class Config {
       const data = await fs.readJson(loc);
       data._registry = registry;
       data._loc = loc;
-      return normaliseManifest(data, dir, this, isRoot);
+      return normalizeManifest(data, dir, this, isRoot);
     } else {
       return null;
     }

@@ -25,8 +25,12 @@ const priorities = {
   dependencies: 6,
 };
 
-function getKeyPriority(key: string): number {
-  return priorities[key] || 100;
+function priorityThenAlphaSort(a: string, b: string): number {
+  if (priorities[a] || priorities[b]) {
+    return (priorities[a] || 100) > (priorities[b] || 100) ? 1 : -1;
+  } else {
+    return sortAlpha(a, b);
+  }
 }
 
 function _stringify(obj: Object, indent: string = ''): string {
@@ -39,10 +43,7 @@ function _stringify(obj: Object, indent: string = ''): string {
   // Sorting order needs to be consistent between runs, we run native sort by name because there are no
   // problems with it being unstable because there are no to keys the same
   // However priorities can be duplicated and native sort can shuffle things from run to run
-  let keys = Object.keys(obj).sort(sortAlpha);
-
-  // sort keys depending on priority
-  keys = keys.sort((a: string, b: string): number => +(getKeyPriority(a) > getKeyPriority(b)));
+  let keys = Object.keys(obj).sort(priorityThenAlphaSort);
 
   let addedKeys = [];
 

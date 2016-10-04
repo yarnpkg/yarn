@@ -35,7 +35,7 @@ export async function run(
       throw new MessageError(reporter.lang('lockfileOutdated'));
     }
 
-    let normalised = PackageRequest.normalisePattern(pattern);
+    let normalized = PackageRequest.normalizePattern(pattern);
 
     let current = locked.version;
     let name = locked.name;
@@ -44,10 +44,10 @@ export async function run(
     let wanted = '';
 
     if (PackageRequest.getExoticResolver(pattern) ||
-        PackageRequest.getExoticResolver(normalised.range)) {
+        PackageRequest.getExoticResolver(normalized.range)) {
       latest = wanted = 'exotic';
     } else {
-      ({latest, wanted} = await config.registries[locked.registry].checkOutdated(config, name, normalised.range));
+      ({latest, wanted} = await config.registries[locked.registry].checkOutdated(config, name, normalized.range));
     }
 
     if (current === latest) {

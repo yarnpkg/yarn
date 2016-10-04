@@ -6,7 +6,7 @@ import type {Manifest, DependencyRequestPatterns} from '../../types.js';
 import type Config from '../../config.js';
 import type {RegistryNames} from '../../registries/index.js';
 import {MessageError} from '../../errors.js';
-import normaliseManifest from '../../util/normalise-manifest/index.js';
+import normalizeManifest from '../../util/normalize-manifest/index.js';
 import {stringify} from '../../util/misc.js';
 import {registryNames} from '../../registries/index.js';
 import Lockfile from '../../lockfile/wrapper.js';
@@ -76,7 +76,7 @@ type Flags = {
   tilde: boolean,
 };
 
-function normaliseFlags(config: Config, rawFlags: Object): Flags {
+function normalizeFlags(config: Config, rawFlags: Object): Flags {
   const flags = {
     // install
     har: !!rawFlags.har,
@@ -120,6 +120,14 @@ function normaliseFlags(config: Config, rawFlags: Object): Flags {
   return flags;
 }
 
+const sortObject = (object) => {
+  const sortedObject = {};
+  Object.keys(object).sort().forEach((item) => {
+    sortedObject[item] = object[item];
+  });
+  return sortedObject;
+};
+
 export class Install {
   constructor(
     flags: Object,
@@ -132,7 +140,7 @@ export class Install {
     this.lockfile = lockfile;
     this.reporter = reporter;
     this.config = config;
-    this.flags = normaliseFlags(config, flags);
+    this.flags = normalizeFlags(config, flags);
 
     this.resolver = new PackageResolver(config, lockfile);
     this.fetcher = new PackageFetcher(config, this.resolver);
@@ -172,7 +180,7 @@ export class Install {
       }
 
       // extract the name
-      const parts = PackageRequest.normalisePattern(pattern);
+      const parts = PackageRequest.normalizePattern(pattern);
       excludeNames.push(parts.name);
     }
 
@@ -184,7 +192,7 @@ export class Install {
       }
 
       const json = await fs.readJson(loc);
-      await normaliseManifest(json, this.config.cwd, this.config, true);
+      await normalizeManifest(json, this.config.cwd, this.config, true);
 
       Object.assign(this.resolutions, json.resolutions);
       Object.assign(manifest, json);
@@ -465,14 +473,25 @@ export class Install {
    * Save root manifests.
    */
 
-  async saveRootManifests(jsons: RootManifests): Promise<void> {
+  async saveRootManifests(manifests: RootManifests): Promise<void> {
     for (let registryName of registryNames) {
       let {loc, json, exists} = jsons[registryName];
       if (!exists && !Object.keys(json).length) {
         continue;
       }
 
-      await fs.writeFile(loc, stringify(json) + '\n');
+      [
+        'devDependencies',
+        'peerDependencies',
+        'optionalDependencies',
+        'dependencies',
+      ].forEach((field) => {
+        if (object[field]) {
+          object[field] = sortObject(object[field]);
+        }
+      });
+
+      await fs.writeFile(loc, stringify(object) + '\n');
     }
   }
 

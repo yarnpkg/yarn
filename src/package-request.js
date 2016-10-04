@@ -5,7 +5,7 @@ import type PackageResolver from './package-resolver.js';
 import type {Reporter} from './reporters/index.js';
 import type Config from './config.js';
 import type {VisibilityAction} from './package-reference.js';
-import {cleanDependencies} from './util/normalise-manifest/validate.js';
+import {cleanDependencies} from './util/normalize-manifest/validate.js';
 import Lockfile from './lockfile/wrapper.js';
 import {USED as USED_VISIBILITY, default as PackageReference} from './package-reference.js';
 import {registries as registryResolvers} from './resolvers/index.js';
@@ -99,7 +99,7 @@ export default class PackageRequest {
    */
 
   async findVersionOnRegistry(pattern: string): Promise<Manifest> {
-    let {range, name} = PackageRequest.normalisePattern(pattern);
+    let {range, name} = PackageRequest.normalizePattern(pattern);
 
     const exoticResolver = PackageRequest.getExoticResolver(range);
     if (exoticResolver) {
@@ -137,10 +137,10 @@ export default class PackageRequest {
   }
 
   /**
-   * Explode and normalise a pattern into it's name and range.
+   * Explode and normalize a pattern into it's name and range.
    */
 
-  static normalisePattern(pattern: string): {
+  static normalizePattern(pattern: string): {
     hasVersion: boolean,
     name: string,
     range: string,

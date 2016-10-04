@@ -57,6 +57,7 @@ commander.option(
   '--mutex [type][:specifier]',
   'use a mutex to ensure only one yarn instance is executing',
 );
+commander.allowUnknownOption();
 
 // get command name
 let commandName: string = args.shift() || '';

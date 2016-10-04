@@ -2,7 +2,7 @@
 
 import type {Reporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
-import {stringifyPerson} from '../../util/normalise-manifest/util.js';
+import {stringifyPerson} from '../../util/normalize-manifest/util.js';
 import {registryNames} from '../../registries/index.js';
 import Lockfile from '../../lockfile/wrapper.js';
 import {Install} from './install.js';

@@ -4,7 +4,7 @@ import type {Reporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
 import {MessageError} from '../../errors.js';
 import buildSubCommands from './_build-sub-commands.js';
-import {isValidPackageName} from '../../util/normalise-manifest/validate.js';
+import {isValidPackageName} from '../../util/normalize-manifest/validate.js';
 import {getName} from './dist-tag.js';
 import {getToken} from './login.js';
 import NpmRegistry from '../../registries/npm-registry.js';
