@@ -17,3 +17,6 @@
 .vs
 *.msi
 *.nupkg
+fbkpm_modules
+test/fixtures/**/.fbkpm
+/tmp/
