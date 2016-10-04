@@ -78,10 +78,10 @@ Object {
 exports[`test ConsoleReporter.select 1`] = `
 Object {
   "stderr": "",
-  "stdout": "[2K[1G[34minfo[39m Ayo
+  "stdout": "[2K[1G[34minfo[39m Ayo?
 [2K[1G  [2m1)[22m foo
 [2K[1G  [2m2)[22m bar
-[1G[0JSelect one?: [14G1"
+[1G[0JSelect one: [13G1"
 }
 `;
 

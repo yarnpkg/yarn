@@ -92,7 +92,7 @@ test('BaseReporter.select', async () => {
   let reporter = new BaseReporter();
   let error;
   try {
-    await reporter.select('', '', []);
+    await reporter.select('?', '', []);
   } catch (e) {
     error = e;
   }

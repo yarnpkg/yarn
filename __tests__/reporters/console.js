@@ -82,7 +82,7 @@ test('ConsoleReporter.select', async () => {
       streams.stdin.end();
     });
 
-    let res = await r.select('Ayo', 'Select one', [{
+    let res = await r.select('Ayo?', 'Select one', [{
       name: 'foo',
       value: 'foo',
     }, {
