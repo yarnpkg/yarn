@@ -83,7 +83,7 @@ export async function run(
   const fetcher = new TarballFetcher(locToUnzip, {
     type: 'tarball',
     registry: 'npm',
-    reference: `${assets[0].url}?access_token=${githubAuth0Token}`,
+    reference: `${assets[0].url}?access_token=${String(githubAuth0Token)}`,
     hash: null,
   }, config, false);
   await fetcher.fetch();

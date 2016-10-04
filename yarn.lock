@@ -163,11 +163,6 @@ async-each@^1.0.0:
 async@^1.4.0, async@^1.4.2, async@1.x:
   version "1.5.2"
   resolved "https://registry.npmjs.org/async/-/async-1.5.2.tgz#ec6a61ae56480c0c3cb241c95618e20892f9672a"
-async@^2.0.1:
-  version "2.0.1"
-  resolved "https://registry.npmjs.org/async/-/async-2.0.1.tgz#b709cc0280a9c36f09f4536be823c838a9049e25"
-  dependencies:
-    lodash "^4.8.0"
 async@~0.2.6:
   version "0.2.10"
   resolved "https://registry.npmjs.org/async/-/async-0.2.10.tgz#b6bbe0b0674b9d719708ca38de8c237cb526c3d1"
@@ -1651,9 +1646,9 @@ flat-cache@^1.2.1:
     del "^2.0.2"
     graceful-fs "^4.1.2"
     write "^0.2.1"
-flow-bin@0.32.0:
-  version "0.32.0"
-  resolved "https://registry.npmjs.org/flow-bin/-/flow-bin-0.32.0.tgz#a1d69d153a07b0a9cd4a633d13bf746d4ace5730"
+flow-bin@0.33.0:
+  version "0.33.0"
+  resolved "https://registry.npmjs.org/flow-bin/-/flow-bin-0.33.0.tgz#ef011eace7a6100f1ae08b852db78279032b8750"
 follow-redirects@0.0.7:
   version "0.0.7"
   resolved "https://registry.npmjs.org/follow-redirects/-/follow-redirects-0.0.7.tgz#34b90bab2a911aa347571da90f22bd36ecd8a919"
@@ -1671,13 +1666,6 @@ for-own@^0.1.3:
 forever-agent@~0.6.1:
   version "0.6.1"
   resolved "https://registry.npmjs.org/forever-agent/-/forever-agent-0.6.1.tgz#fbc71f0c41adeb37f96c577ad1ed42d8fdacca91"
-form-data@~1.0.1:
-  version "1.0.1"
-  resolved "https://registry.npmjs.org/form-data/-/form-data-1.0.1.tgz#ae315db9a4907fa065502304a66d7733475ee37c"
-  dependencies:
-    async "^2.0.1"
-    combined-stream "^1.0.5"
-    mime-types "^2.1.11"
 form-data@~2.0.0:
   version "2.0.0"
   resolved "https://registry.npmjs.org/form-data/-/form-data-2.0.0.tgz#6f0aebadcc5da16c13e1ecc11137d85f9b883b25"
@@ -2764,7 +2752,7 @@ lodash.templatesettings@^3.0.0:
 lodash@^3.10.0, lodash@^3.9.3:
   version "3.10.1"
   resolved "https://registry.npmjs.org/lodash/-/lodash-3.10.1.tgz#5bf45e8e49ba4189e17d482789dfd15bd140b7b6"
-lodash@^4.0.0, lodash@^4.15.0, lodash@^4.2.0, lodash@^4.3.0, lodash@^4.8.0:
+lodash@^4.0.0, lodash@^4.15.0, lodash@^4.2.0, lodash@^4.3.0:
   version "4.16.2"
   resolved "https://registry.npmjs.org/lodash/-/lodash-4.16.2.tgz#3e626db827048a699281a8a125226326cfc0e652"
 lodash@~1.0.1:
@@ -3387,7 +3375,7 @@ replace-ext@0.0.1:
 request-capture-har@^1.1.4:
   version "1.1.4"
   resolved "https://registry.npmjs.org/request-capture-har/-/request-capture-har-1.1.4.tgz#e6ad76eb8e7a1714553fdbeef32cd4518e4e2013"
-request@^2.75.0, request@^2.55.0, request@2, request@2.x:
+request@^2.55.0, request@^2.75.0, request@2, request@2.x:
   version "2.75.0"
   resolved "https://registry.npmjs.org/request/-/request-2.75.0.tgz#d2b8268a286da13eaa5d01adf5d18cc90f657d93"
   dependencies:
