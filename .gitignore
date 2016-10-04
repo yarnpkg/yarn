@@ -5,8 +5,7 @@
 *.log
 /.nyc_output
 /coverage
-/__tests__/fixtures/**/.yarn
-/__tests__/fixtures/**/node_modules
+/__tests__/fixtures/**/_*
 /dist
 /updates
 /.roadrunner.json

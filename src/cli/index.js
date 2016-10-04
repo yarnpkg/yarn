@@ -7,8 +7,6 @@ import * as constants from '../constants.js';
 import * as network from '../util/network.js';
 import {MessageError} from '../errors.js';
 import aliases from './aliases.js';
-
-import {MessageError} from '../errors.js';
 import Config from '../config.js';
 
 const loudRejection = require('loud-rejection');

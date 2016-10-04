@@ -86,7 +86,7 @@ function normaliseFlags(config: Config, rawFlags: Object): Flags {
     force: !!rawFlags.force,
     flat: !!rawFlags.flat,
     production: !!rawFlags.production,
-    lockfile: !!rawFlags.lockfile,
+    lockfile: rawFlags.lockfile !== false,
     pureLockfile: !!rawFlags.pureLockfile,
 
     // add
@@ -255,7 +255,7 @@ export class Install {
 
   async init(): Promise<Array<string>> {
     let [depRequests, rawPatterns] = await this.fetchRequestFromCwd();
-    let match = await this.matchesIntegrityHash();
+    let match = await this.matchesIntegrityHash(rawPatterns);
 
     let prepared = await this.prepare(rawPatterns, depRequests, match);
     rawPatterns = prepared.patterns;
@@ -485,7 +485,7 @@ export class Install {
     const lockSource = lockStringify(this.lockfile.getLockfile(this.resolver.patterns)) + '\n';
 
     // write integrity hash
-    await this.writeIntegrityHash(lockSource);
+    await this.writeIntegrityHash(lockSource, patterns);
 
     // --no-lockfile or --pure-lockfile flag
     if (this.flags.lockfile === false || this.flags.pureLockfile) {
@@ -529,7 +529,7 @@ export class Install {
    * Check if the integrity hash of this installation matches one on disk.
    */
 
-  async matchesIntegrityHash(): Promise<IntegrityMatch> {
+  async matchesIntegrityHash(patterns: Array<string>): Promise<IntegrityMatch> {
     let loc = await this.getIntegrityHashLocation();
     if (!await fs.exists(loc)) {
       return {
@@ -540,7 +540,7 @@ export class Install {
       };
     }
 
-    let actual = this.generateIntegrityHash(this.lockfile.source);
+    let actual = this.generateIntegrityHash(this.lockfile.source, patterns);
     let expected = (await fs.readFile(loc)).trim();
 
     return {
@@ -592,18 +592,20 @@ export class Install {
    * Write the integrity hash of the current install to disk.
    */
 
-  async writeIntegrityHash(lockSource: string): Promise<void> {
+  async writeIntegrityHash(lockSource: string, patterns: Array<string>): Promise<void> {
     let loc = await this.getIntegrityHashLocation();
     invariant(loc, 'expected integrity hash location');
-    await fs.writeFile(loc, this.generateIntegrityHash(lockSource));
+    await fs.writeFile(loc, this.generateIntegrityHash(lockSource, patterns));
   }
 
   /**
    * Generate integrity hash of input lockfile.
    */
 
-  generateIntegrityHash(lockfile: string): string {
+  generateIntegrityHash(lockfile: string, patterns: Array<string>): string {
     let opts = [lockfile];
+
+    opts.push(`patterns:${patterns.join(',')}`);
 
     if (this.flags.flat) {
       opts.push('flat');

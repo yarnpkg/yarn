@@ -54,7 +54,7 @@ export async function run(
     const integrityLoc = await install.getIntegrityHashLocation();
 
     if (integrityLoc && await fs.exists(integrityLoc)) {
-      let match = await install.matchesIntegrityHash();
+      let match = await install.matchesIntegrityHash(rawPatterns);
       if (match.matches === false) {
         reportError(`Integrity hashes don't match, expected ${match.expected} but got ${match.actual}`);
       }

@@ -12,26 +12,19 @@ import Config from '../../src/config.js';
 
 let stream = require('stream');
 let path = require('path');
+let os = require('os');
 
 let fixturesLoc = path.join(__dirname, '..', 'fixtures', 'install');
 
 export function runInstall(
   flags: Object,
   name: string,
-  checkInstalled?: ?(config: Config, reporter: Reporter) => ?Promise<void>,
+  checkInstalled?: ?(config: Config, reporter: Reporter, install: Install) => ?Promise<void>,
   beforeInstall?: ?(cwd: string) => ?Promise<void>,
 ): Promise<void> {
   return run((config, reporter, lockfile): Install => {
     return new Install(flags, config, reporter, lockfile);
   }, path.join(fixturesLoc, name), checkInstalled, beforeInstall);
-}
-
-export async function clean(cwd: string, removeLock?: boolean): Promise<void> {
-  await fs.unlink(path.join(cwd, constants.MODULE_CACHE_DIRECTORY));
-  await fs.unlink(path.join(cwd, 'node_modules'));
-  if (removeLock) {
-    await fs.unlink(path.join(cwd, constants.LOCKFILE_FILENAME));
-  }
 }
 
 export async function createLockfile(dir: string): Promise<Lockfile> {
@@ -56,12 +49,21 @@ export async function getPackageVersion(config: Config, packagePath: string): Pr
   return json.version;
 }
 
+const tempDirectories = {};
+
 export async function run(
   factory: (config: Config, reporter: Reporter, lockfile: Lockfile) => Install,
-  cwd: string,
+  dir: string,
   checkInstalled: ?(config: Config, reporter: Reporter, install: Install) => ?Promise<void>,
   beforeInstall: ?(cwd: string) => ?Promise<void>,
 ): Promise<void> {
+  let cwd = path.join(
+    os.tmpdir(),
+    `yarn-${path.basename(dir)}-${Math.random()}`,
+  );
+  await fs.unlink(cwd);
+  await fs.copy(dir, cwd);
+
   let out = '';
   let stdout = new stream.Writable({
     decodeStrings: false,
@@ -78,11 +80,7 @@ export async function run(
   }
 
   // remove the lockfile if we create one and it didn't exist before
-  let removeLock = !(await fs.exists(path.join(cwd, 'yarn.lock')));
   let lockfile = await createLockfile(cwd);
-
-  // clean up if we weren't successful last time
-  await clean(cwd);
 
   // create directories
   await fs.mkdirp(path.join(cwd, '.yarn'));
@@ -99,6 +97,7 @@ export async function run(
 
     let install = factory(config, reporter, lockfile);
     await install.init();
+
     // self check to verify consistency after installation
     await check(config, reporter, {}, []);
     try {
@@ -107,7 +106,7 @@ export async function run(
       }
     } finally {
       // clean up
-      await clean(cwd, removeLock);
+      await fs.unlink(cwd);
     }
   } catch (err) {
     throw new Error(`${err && err.stack} \nConsole output:\n ${out}`);
