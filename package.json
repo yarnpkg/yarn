@@ -86,7 +86,8 @@
     "test-only": "jest --coverage --verbose -i",
     "lint": "eslint . && flow check",
     "release-branch": "./scripts/release-branch.sh",
-    "build-dist": "./scripts/build-dist.sh"
+    "build-dist": "./scripts/build-dist.sh",
+    "build-single-js": "node ./scripts/build-webpack.js"
   },
   "eslintConfig": {
     "extends": "eslint-config-fb-strict",
