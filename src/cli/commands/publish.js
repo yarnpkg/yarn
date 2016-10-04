@@ -52,7 +52,7 @@ async function publish(
     stream.pipe(new ConcatStream(resolve)).on('error', reject);
   });
 
-  // copy normalised package and remove internal keys as they may be sensitive or yarn specific
+  // copy normalized package and remove internal keys as they may be sensitive or yarn specific
   pkg = Object.assign({}, pkg);
   for (let key in pkg) {
     if (key[0] === '_') {

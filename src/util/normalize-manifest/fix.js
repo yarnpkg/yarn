@@ -2,7 +2,7 @@
 
 import type {Reporter} from '../../reporters/index.js';
 import {isValidLicense} from './util.js';
-import {normalisePerson, extractDescription} from './util.js';
+import {normalizePerson, extractDescription} from './util.js';
 import {hostedGitFragmentToGitUrl} from '../../resolvers/index.js';
 import inferLicense from './infer-license.js';
 import * as fs from '../fs.js';
@@ -73,13 +73,13 @@ export default async function (
 
   // expand people fields to objects
   if (typeof info.author === 'string' || typeof info.author === 'object') {
-    info.author = normalisePerson(info.author);
+    info.author = normalizePerson(info.author);
   }
   if (Array.isArray(info.contributors)) {
-    info.contributors = info.contributors.map(normalisePerson);
+    info.contributors = info.contributors.map(normalizePerson);
   }
   if (Array.isArray(info.maintainers)) {
-    info.maintainers = info.maintainers.map(normalisePerson);
+    info.maintainers = info.maintainers.map(normalizePerson);
   }
 
   // if there's no readme field then load the README file from the cwd
@@ -123,7 +123,7 @@ export default async function (
     info.bugs = {url: info.bugs};
   }
 
-  // normalise homepage url to http
+  // normalize homepage url to http
   if (typeof info.homepage === 'string') {
     const parts = url.parse(info.homepage);
     parts.protocol = parts.protocol || 'http:';
@@ -209,7 +209,7 @@ export default async function (
 
   delete info.directories;
 
-  // normalise licenses field
+  // normalize licenses field
   let licenses = info.licenses;
   if (Array.isArray(licenses) && !info.license) {
     let licenseTypes = [];
@@ -234,7 +234,7 @@ export default async function (
 
   let license = info.license;
 
-  // normalise license
+  // normalize license
   if (license && typeof license === 'object') {
     info.license = license.type;
   }

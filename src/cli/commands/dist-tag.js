@@ -7,7 +7,7 @@ import buildSubCommands from './_build-sub-commands.js';
 import {getToken} from './login.js';
 import NpmRegistry from '../../registries/npm-registry.js';
 import {MessageError} from '../../errors.js';
-import {isValidPackageName} from '../../util/normalise-manifest/validate.js';
+import {isValidPackageName} from '../../util/normalize-manifest/validate.js';
 
 export async function getName(args: Array<string>, config: Config): Promise<string> {
   let name = args.shift();
@@ -39,7 +39,7 @@ export let {run, setFlags} = buildSubCommands('dist-tag', {
       return false;
     }
 
-    const {name, range, hasVersion} = PackageRequest.normalisePattern(args.shift());
+    const {name, range, hasVersion} = PackageRequest.normalizePattern(args.shift());
     if (!hasVersion) {
       throw new MessageError(reporter.lang('requiredVersionInRange'));
     }

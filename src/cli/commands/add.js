@@ -101,7 +101,7 @@ export class Add extends Install {
       const ref = pkg._reference;
       invariant(ref, 'expected package reference');
 
-      const parts = PackageRequest.normalisePattern(pattern);
+      const parts = PackageRequest.normalizePattern(pattern);
       let version;
       if (parts.hasVersion && parts.range) {
         // if the user specified a range then use it verbatim

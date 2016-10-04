@@ -60,7 +60,7 @@ export function parsePerson(person: any): any | PersonObject {
   return obj;
 }
 
-export function normalisePerson(person: mixed): mixed | PersonObject {
+export function normalizePerson(person: mixed): mixed | PersonObject {
   return parsePerson(stringifyPerson(person));
 }
 

@@ -5,7 +5,7 @@ import type {ReporterSelectOption} from '../../reporters/types.js';
 import type {Manifest, DependencyRequestPatterns} from '../../types.js';
 import type Config from '../../config.js';
 import type {RegistryNames} from '../../registries/index.js';
-import normaliseManifest from '../../util/normalise-manifest/index.js';
+import normalizeManifest from '../../util/normalize-manifest/index.js';
 import executeLifecycleScript from './_execute-lifecycle-script.js';
 import {stringify} from '../../util/misc.js';
 import {registryNames} from '../../registries/index.js';
@@ -112,7 +112,7 @@ export class Install {
       }
 
       // extract the name
-      const parts = PackageRequest.normalisePattern(pattern);
+      const parts = PackageRequest.normalizePattern(pattern);
       excludeNames.push(parts.name);
     }
 
@@ -124,7 +124,7 @@ export class Install {
       }
 
       const json = await fs.readJson(loc);
-      await normaliseManifest(json, this.config.cwd, this.config, true);
+      await normalizeManifest(json, this.config.cwd, this.config, true);
 
       Object.assign(this.resolutions, json.resolutions);
       Object.assign(manifest, json);
