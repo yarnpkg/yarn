@@ -1,0 +1,15 @@
+﻿$ErrorActionPreference = 'Stop'; # stop on all errors
+$packageName = 'yarn'
+$packageArgs = @{
+  packageName = $packageName
+  softwareName = 'Yarn*'
+  fileType = 'msi'
+  silentArgs = "/qn /norestart /l*v `"$env:TEMP\chocolatey\$($packageName)\$($packageName).MsiInstall.log`""
+  validExitCodes = @(0, 3010, 1641)
+  checksumType = 'sha256'
+
+  url = 'https://yarnpkg.com/downloads/{VERSION}/yarn-{VERSION}.msi'
+  checksum = '{CHECKSUM}'
+}
+
+Install-ChocolateyPackage @packageArgs

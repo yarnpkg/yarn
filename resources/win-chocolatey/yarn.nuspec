@@ -1,0 +1,43 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd">
+	<metadata>
+		<id>yarn</id>
+		<title>Yarn (Install)</title>
+		<!-- Version number inserted in build-chocolatey.ps1 -->
+		<version>0.0.0</version>
+		<authors>Yarn Maintainers</authors>
+		<owners>Daniel Lo Nigro</owners>
+		<tags>yarn node nodejs npm javascript packages bower</tags>
+		<summary>Package manager for the npm and bower package repositories</summary>
+		<description>
+Yarn is a package manager for the npm and bower registries with a few specific
+focuses.
+
+**Determinism:** Based around a version lockfile which ensures that operations on
+the dependency graph can be easily transitioned. We check module directories
+and verify their integrity to ensure yarn install always produces the same file
+structure.
+
+**Security:** Strict guarantees are placed around package installation. You have
+control over whether lifecycle scripts are executed for packages and package
+hashes are stored in the lockfile to ensure you get the same package each time.
+
+**Performance:** We're always performing operations such as package resolving and
+fetching in parallel. This ensures little idle time and maximum resource
+utilization.
+		</description>
+		<projectUrl>https://yarnpkg.com/</projectUrl>
+		<packageSourceUrl>https://github.com/yarnpkg/yarn</packageSourceUrl>
+		<licenseUrl>https://github.com/yarnpkg/yarn/raw/master/LICENSE</licenseUrl>
+		<requireLicenseAcceptance>false</requireLicenseAcceptance>
+		<iconUrl>https://cdn.rawgit.com/yarnpkg/assets/master/yarn-kitten-circle.png</iconUrl>
+
+		<dependencies>
+			<dependency id="nodejs.install" version="6.0" />
+		</dependencies>
+	</metadata>
+
+	<files>
+		<file src="tools\**" target="tools" />
+	</files>
+</package>
