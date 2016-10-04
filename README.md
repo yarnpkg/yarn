@@ -47,19 +47,7 @@ parallel. This ensures little idle time and maximum resource utilization.
  - Caching of build artifacts produced by install scripts.
  - More emojis. 🐈
 
-## Installation
-
-### Debian/Ubuntu
-
-Set up our package repository:
-```
-wget -O - https://yarndev.dan.cx/pubkey.gpg | sudo apt-key add -
-echo "deb https://yarndev.dan.cx/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
-```
-
-Then simply `sudo apt-get install yarn`
-
-### Development builds
+## Usage (while in development)
 
 ```sh
 git clone git@github.com:yarnpkg/yarn.git yarn
