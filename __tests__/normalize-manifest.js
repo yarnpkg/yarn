@@ -1,17 +1,17 @@
 /* @flow */
 /* eslint max-len: 0 */
 
-import normaliseManifest from '../src/util/normalise-manifest/index.js';
+import normalizeManifest from '../src/util/normalize-manifest/index.js';
 import NoopReporter from '../src/reporters/base-reporter.js';
 import Config from '../src/config.js';
 import map from '../src/util/map.js';
-import * as util from '../src/util/normalise-manifest/util.js';
+import * as util from '../src/util/normalize-manifest/util.js';
 import * as fs from '../src/util/fs.js';
 
 let nativeFs = require('fs');
 let path     = require('path');
 
-let fixturesLoc = path.join(__dirname, 'fixtures', 'normalise-manifest');
+let fixturesLoc = path.join(__dirname, 'fixtures', 'normalize-manifest');
 
 for (let name of nativeFs.readdirSync(fixturesLoc)) {
   if (name[0] === '.') {
@@ -49,7 +49,7 @@ for (let name of nativeFs.readdirSync(fixturesLoc)) {
     }
 
     try {
-      actual = await normaliseManifest(actual, loc, config, isRoot);
+      actual = await normalizeManifest(actual, loc, config, isRoot);
     } catch (err) {
       if (error && err.message === error) {
         return;
@@ -92,45 +92,45 @@ test('util.extractDescription', () => {
   expect(util.extractDescription(undefined)).toEqual(undefined);
 });
 
-// fill out expected and normalise paths
+// fill out expected and normalize paths
 function expand<T>(expected: T): T {
   if (expected.man && Array.isArray(expected.man)) {
-    expected = {...expected, man: normalisePaths(expected.man)};
+    expected = {...expected, man: normalizePaths(expected.man)};
   }
 
   if (expected.bin && typeof expected.bin === 'object') {
-    expected = {...expected, bin: normalisePathDict(expected.bin)};
+    expected = {...expected, bin: normalizePathDict(expected.bin)};
   }
 
   return expected;
 }
 
-function normalise(input: string): string {
+function normalize(input: string): string {
   return path.normalize(input);
 }
 
-function normalisePath<T>(path: T): ?string {
+function normalizePath<T>(path: T): ?string {
   if (typeof path === 'string') {
-    return normalise(path);
+    return normalize(path);
   } else {
     return null;
   }
 }
 
-function normalisePaths(paths: mixed): ?string[] {
+function normalizePaths(paths: mixed): ?string[] {
   if (Array.isArray(paths)) {
     return paths.map((p) => {
       if (typeof p !== 'string') {
         throw new Error(`Expected string in paths, got ${JSON.stringify(paths)}`);
       }
-      return normalise(p);
+      return normalize(p);
     });
   } else {
     return null;
   }
 }
 
-function normalisePathDict(paths: mixed): ?{ [key: string]: mixed } {
+function normalizePathDict(paths: mixed): ?{ [key: string]: mixed } {
   let out = {};
 
   if (!paths || typeof paths !== 'object') {
@@ -139,7 +139,7 @@ function normalisePathDict(paths: mixed): ?{ [key: string]: mixed } {
 
   for (let prop in paths) {
     if (typeof paths[prop] === 'string') {
-      out[prop] = normalisePath(paths[prop]);
+      out[prop] = normalizePath(paths[prop]);
     } else {
       out[prop] = paths[prop];
     }

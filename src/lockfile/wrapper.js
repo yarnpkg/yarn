@@ -30,7 +30,7 @@ type LockManifest = {
 };
 
 function getName(pattern: string): string {
-  return PackageRequest.normalisePattern(pattern).name;
+  return PackageRequest.normalizePattern(pattern).name;
 }
 
 function blankObjectUndefined(obj: ?Object): ?Object {

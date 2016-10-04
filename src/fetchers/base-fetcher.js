@@ -46,7 +46,7 @@ export default class BaseFetcher {
       // fetch package and get the hash
       const {hash, resolved} = await this._fetch();
 
-      // load the new normalised manifest
+      // load the new normalized manifest
       const pkg = await this.config.readManifest(dest, this.registry);
 
       await fs.writeFile(path.join(dest, constants.METADATA_FILENAME), JSON.stringify({

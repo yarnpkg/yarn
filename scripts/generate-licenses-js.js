@@ -6,7 +6,7 @@ const fs = require('fs');
 
 const LICENSES_DIRNAME = path.join(__dirname, 'licenses');
 const LICENSES_REGEX_FILENAME =
-  path.join(__dirname, '../src/util/normalise-manifest/licenses.js');
+  path.join(__dirname, '../src/util/normalize-manifest/licenses.js');
 
 function clean(str) {
   return str
