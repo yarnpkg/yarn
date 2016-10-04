@@ -50,14 +50,14 @@ parallel. This ensures little idle time and maximum resource utilization.
 ## Usage (while in development)
 
 ```sh
-$ git clone git@github.com:yarnpkg/yarn.git yarn
-$ cd yarn
-$ npm install
-$ npm run build
-$ npm link
+git clone git@github.com:yarnpkg/yarn.git yarn
+cd yarn
+npm install
+npm run build
+npm link
 # go into some random directory
-$ mkdir node_modules
-$ yarn add your-package
+mkdir node_modules
+yarn add your-package
 ```
 
 ## Prior art

@@ -65,7 +65,6 @@ let messages = {
   networkWarning: "You don't appear to have an internet connection. Try the --offline flag to use the cache for registry queries.",
   flatGlobalError: 'The package $0@$1 requires a flat dependency graph. Add `"flat": true` to your package.json and try again.',
 
-
   tooManyArguments: 'Too many arguments, maximum of $0.',
   tooFewArguments: 'Not enoguh arguments, expected at least $0.',
   noArguments: "This command doesn't require any arguments.",

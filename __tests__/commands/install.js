@@ -18,9 +18,11 @@ let path = require('path');
 
 let fixturesLoc = path.join(__dirname, '..', 'fixtures', 'install');
 
-parallelTest('integrity hash respects flat and production flags', () => {
+parallelTest('integrity hash respects flat and production flags', async () => {
+  let cwd = path.join(fixturesLoc, 'noop');
   let reporter = new reporters.NoopReporter();
   let config = new Config(reporter);
+  await config.init({cwd});
 
   let lockfile = new Lockfile();
 
@@ -112,6 +114,12 @@ parallelTest('install from offline mirror', (): Promise<void> => {
     assert(allFiles.findIndex((file): boolean => {
       return file.relative === path.join('node_modules', 'fake-dependency', 'package.json');
     }) !== -1);
+  });
+});
+
+parallelTest('install from git cache', (): Promise<void> => {
+  return runInstall({}, 'install-from-git-cache', async (config): Promise<void> => {
+    assert.equal(await getPackageVersion(config, 'dep-a'), '0.0.1');
   });
 });
 
@@ -511,6 +519,47 @@ parallelTest('install should run install scripts in the order of dependencies', 
     expect(await fs.exists(path.join(config.cwd, 'node_modules/dep-a/dep-a-built'))).toBe(true);
     expect(await fs.exists(path.join(config.cwd, 'node_modules/dep-b/dep-b-built'))).toBe(true);
     expect(await fs.exists(path.join(config.cwd, 'node_modules/dep-c/dep-c-built'))).toBe(true);
+  });
+});
+
+parallelTest('run install scripts in the order when one dependency does not have install script',
+             (): Promise<void> => {
+               let fixture = 'scripts-order-with-one-package-missing-install-script';
+
+               return runInstall({}, fixture, async (config, reporter) => {
+                 expect(await fs.exists(path.join(config.cwd, 'node_modules/dep-a/dep-a-built'))).toBe(true);
+                 expect(await fs.exists(path.join(config.cwd, 'node_modules/dep-b/dep-b-built'))).toBe(true);
+                 expect(await fs.exists(path.join(config.cwd, 'node_modules/dep-d/dep-d-built'))).toBe(true);
+               });
+             });
+
+parallelTest('install should circumvent circular dependencies', (): Promise<void> => {
+  let fixture = 'install-should-circumvent-circular-dependencies';
+
+  return runInstall({}, fixture, async (config, reporter) => {
+    assert.equal(
+      await getPackageVersion(config, 'dep-a'),
+      '1.0.0',
+    );
+    assert.equal(
+      await getPackageVersion(config, 'dep-b'),
+      '1.0.0',
+    );
+    assert.equal(
+      await getPackageVersion(config, 'dep-c'),
+      '1.0.0',
+    );
+  });
+});
+
+// fix https://github.com/yarnpkg/yarn/issues/466
+parallelTest('install should resolve circular dependencies 2', (): Promise<void> => {
+  let fixture = 'install-should-circumvent-circular-dependencies-2';
+  return runInstall({}, fixture, async (config, reporter) => {
+    assert.equal(
+      await getPackageVersion(config, 'es5-ext'),
+      '0.10.12',
+    );
   });
 });
 

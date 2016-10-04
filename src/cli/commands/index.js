@@ -39,6 +39,12 @@ export {init};
 import * as info from './info.js';
 export {info};
 
+import * as unlink from './unlink.js';
+export {unlink};
+
+import * as init from './init.js';
+export {init};
+
 import * as outdated from './outdated.js';
 export {outdated};
 

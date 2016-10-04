@@ -165,7 +165,6 @@ export default class TarballFetcher extends BaseFetcher {
         validateStream
           .pipe(extractorStream)
           .on('error', reject);
-
         if (mirrorPath) {
           validateStream
             .pipe(fs.createWriteStream(mirrorPath))
@@ -188,5 +187,5 @@ export default class TarballFetcher extends BaseFetcher {
 export class LocalTarballFetcher extends TarballFetcher {
   _fetch(): Promise<FetchedOverride> {
     return this.fetchFromLocal(this.reference);
-  } 
+  }
 }

@@ -14,11 +14,11 @@ import Spinner from './spinner-progress.js';
 import {clearLine} from './util.js';
 import {removeSuffix} from '../../util/misc.js';
 
-let {inspect} = require('util');
-let readline = require('readline');
-let repeat = require('repeating');
-let chalk = require('chalk');
-let read = require('read');
+const {inspect} = require('util');
+const readline = require('readline');
+const repeat = require('repeating');
+const chalk = require('chalk');
+const read = require('read');
 
 function sortTrees(trees: Trees = []): Trees {
   return trees.sort(function(tree1, tree2): number {

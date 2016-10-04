@@ -12,6 +12,7 @@ let tar = require('tar-stream');
 let fs2 = require('fs');
 
 const IGNORE_FILENAMES = [
+  '.yarnignore',
   '.kpmignore',
   '.npmignore',
   '.gitignore',

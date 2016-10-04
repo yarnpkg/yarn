@@ -7,6 +7,8 @@ import * as constants from '../constants.js';
 import * as network from '../util/network.js';
 import {MessageError} from '../errors.js';
 import aliases from './aliases.js';
+
+import {MessageError} from '../errors.js';
 import Config from '../config.js';
 
 const loudRejection = require('loud-rejection');
@@ -19,7 +21,7 @@ const path = require('path');
 const net = require('net');
 const fs = require('fs');
 
-let pkg = require('../../package.json');
+const pkg = require('../../package.json');
 
 loudRejection();
 
@@ -71,7 +73,7 @@ if (commandName === 'help' && !args.length) {
       if (commands[name].useless) {
         continue;
       }
-      
+
       console.log(`    * ${name}`);
     }
     console.log();

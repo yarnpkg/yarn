@@ -445,7 +445,7 @@ export class Install {
    */
 
   async getRootManifests(): Promise<RootManifests> {
-    let jsons: RootManifests = {};
+    let jsons = {};
     for (let registryName of registryNames) {
       const registry = registries[registryName];
       const jsonLoc = path.join(this.config.cwd, registry.filename);
