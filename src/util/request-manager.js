@@ -198,7 +198,10 @@ export default class RequestManager {
       return true;
     }
 
-    // TODO: detect timeouts
+    // connection was reset or dropped
+    if (code === 'ECONNRESET') {
+      return true;
+    }
 
     return false;
   }

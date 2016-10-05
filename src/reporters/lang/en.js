@@ -13,7 +13,7 @@ let messages = {
   cleaningModules: 'Cleaning modules',
   bumpingVersion: 'Bumping version',
   savingHar: 'Saving HAR file: $0',
-  answer: 'Answer',
+  answer: 'Answer?',
   usage: 'Usage',
   installCommandRenamed: '`install` has been replaced with `add` to add new dependencies.',
   waitingInstance: 'Waiting until the other yarn instance finish',
@@ -91,7 +91,9 @@ let messages = {
   linkUsing: 'Using linked module for $0.',
 
   commandNotSpecified: 'No command specified.',
-  possibleCommands: 'Possible commands',
+  binCommands: 'Commands available from binary scripts: ',
+  possibleCommands: 'Project commands',
+  commandQuestion: 'Which command would you like to run?',
   commandFailed: 'Command failed with exit code $0.',
 
   foundIncompatible: 'Found incompatible module',
