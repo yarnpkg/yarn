@@ -1,6 +1,6 @@
 {
   "name": "yarn",
-  "version": "0.14.2",
+  "version": "0.14.3",
   "license": "BSD-2-Clause",
   "preferGlobal": true,
   "dependencies": {
