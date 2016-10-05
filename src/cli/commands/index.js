@@ -12,6 +12,9 @@ export {why};
 import * as access from './access.js';
 export {access};
 
+import * as global from './global.js';
+export {global};
+
 import * as add from './add.js';
 export {add};
 
@@ -27,8 +30,14 @@ export {team};
 import * as link from './link.js';
 export {link};
 
+import * as unlink from './unlink.js';
+export {unlink};
+
 import * as info from './info.js';
 export {info};
+
+import * as init from './init.js';
+export {init};
 
 import * as outdated from './outdated.js';
 export {outdated};
@@ -57,8 +66,8 @@ export {licenses};
 import * as selfUpdate from './self-update.js';
 export {selfUpdate};
 
-import * as uninstall from './uninstall.js';
-export {uninstall};
+import * as remove from './remove.js';
+export {remove};
 
 import * as install from './install.js';
 export {install};

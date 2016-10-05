@@ -2,6 +2,7 @@
 
 import type {Reporter} from '../reporters/index.js';
 import type {Manifest} from '../types.js';
+import type {RegistryNames} from '../registries/index.js';
 import {sortAlpha} from '../util/misc.js';
 import PackageRequest from '../package-request.js';
 import parse from './parse.js';
@@ -22,7 +23,7 @@ type LockManifest = {
   name: string,
   version: string,
   resolved: string,
-  registry: string,
+  registry: RegistryNames,
   uid?: string,
   permissions?: { [key: string]: boolean },
   optionalDependencies?: Dependencies,

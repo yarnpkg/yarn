@@ -1,8 +1,8 @@
 /* @flow */
 
 import type RequestManager, {RequestMethods} from '../util/request-manager.js';
+import type Config, {ConfigRegistries} from '../config.js';
 import {removePrefix} from '../util/misc.js';
-import * as fs from '../util/fs.js';
 
 const objectPath = require('object-path');
 const path = require('path');
@@ -12,9 +12,15 @@ export type RegistryRequestOptions = {
   body?: mixed,
 };
 
+export type CheckOutdatedReturn = Promise<{
+  wanted: string,
+  latest: string,
+}>;
+
 export default class BaseRegistry {
-  constructor(cwd: string, requestManager: RequestManager) {
+  constructor(cwd: string, registries: ConfigRegistries, requestManager: RequestManager) {
     this.requestManager = requestManager;
+    this.registries = registries;
     this.config = {};
     this.folder = '';
     this.token = '';
@@ -27,6 +33,9 @@ export default class BaseRegistry {
 
   // the filename to use for package metadata
   static filename: string;
+
+  //
+  registries: ConfigRegistries;
 
   //
   requestManager: RequestManager;
@@ -50,8 +59,16 @@ export default class BaseRegistry {
     this.token = token;
   }
 
+  getOption(key: string): mixed {
+    return this.config[key];
+  }
+
   loadConfig(): Promise<void> {
     return Promise.resolve();
+  }
+
+  checkOutdated(config: Config, name: string, range: string): CheckOutdatedReturn {
+    return Promise.reject(new Error('unimplemented'));
   }
 
   saveHomeConfig(config: Object): Promise<void> {
@@ -65,15 +82,7 @@ export default class BaseRegistry {
   async init(): Promise<void> {
     this.mergeEnv('yarn_');
     await this.loadConfig();
-
-    // find in upper directories
-    let loc = await fs.find(this.folder, this.cwd);
-
-    // default to folder
-    loc = loc || path.join(this.cwd, this.folder);
-
-    // set output directory
-    this.loc = loc;
+    this.loc = path.join(this.cwd, this.folder);
   }
 
   mergeEnv(prefix: string) {

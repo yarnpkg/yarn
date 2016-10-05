@@ -5,8 +5,8 @@ import type {ReporterSelectOption} from '../../reporters/types.js';
 import type {Manifest, DependencyRequestPatterns} from '../../types.js';
 import type Config from '../../config.js';
 import type {RegistryNames} from '../../registries/index.js';
+import {MessageError} from '../../errors.js';
 import normalizeManifest from '../../util/normalize-manifest/index.js';
-import executeLifecycleScript from './_execute-lifecycle-script.js';
 import {stringify} from '../../util/misc.js';
 import {registryNames} from '../../registries/index.js';
 import Lockfile from '../../lockfile/wrapper.js';
@@ -42,7 +42,11 @@ export type InstallCwdRequest = [
 ];
 
 type RootManifests = {
-  [registryName: RegistryNames]: [string, Object]
+  [registryName: RegistryNames]: {
+    loc: string,
+    object: Object,
+    exists: boolean,
+  }
 };
 
 type IntegrityMatch = {
@@ -51,6 +55,70 @@ type IntegrityMatch = {
   loc: string,
   matches: boolean,
 };
+
+type Flags = {
+  // install
+  ignoreEngines: boolean,
+  ignoreScripts: boolean,
+  ignoreOptional: boolean,
+  har: boolean,
+  force: boolean,
+  flat: boolean,
+  production: boolean,
+  lockfile: boolean,
+  pureLockfile: boolean,
+
+  // add
+  peer: boolean,
+  dev: boolean,
+  optional: boolean,
+  exact: boolean,
+  tilde: boolean,
+};
+
+function normalizeFlags(config: Config, rawFlags: Object): Flags {
+  const flags = {
+    // install
+    har: !!rawFlags.har,
+    ignoreEngines: !!rawFlags.ignoreEngines,
+    ignoreScripts: !!rawFlags.ignoreScripts,
+    ignoreOptional: !!rawFlags.ignoreOptional,
+    force: !!rawFlags.force,
+    flat: !!rawFlags.flat,
+    production: !!rawFlags.production,
+    lockfile: rawFlags.lockfile !== false,
+    pureLockfile: !!rawFlags.pureLockfile,
+
+    // add
+    peer: !!rawFlags.peer,
+    dev: !!rawFlags.dev,
+    optional: !!rawFlags.optional,
+    exact: !!rawFlags.exact,
+    tilde: !!rawFlags.tilde,
+  };
+
+  if (config.getOption('ignore-scripts')) {
+    flags.ignoreScripts = true;
+  }
+
+  if (config.getOption('ignore-engines')) {
+    flags.ignoreEngines = true;
+  }
+
+  if (config.getOption('ignore-optional')) {
+    flags.ignoreOptional = true;
+  }
+
+  if (config.getOption('force')) {
+    flags.force = true;
+  }
+
+  if (config.getOption('production')) {
+    flags.production = true;
+  }
+
+  return flags;
+}
 
 const sortObject = (object) => {
   const sortedObject = {};
@@ -72,16 +140,16 @@ export class Install {
     this.lockfile = lockfile;
     this.reporter = reporter;
     this.config = config;
-    this.flags = flags;
+    this.flags = normalizeFlags(config, flags);
 
     this.resolver = new PackageResolver(config, lockfile);
     this.fetcher = new PackageFetcher(config, this.resolver);
     this.compatibility = new PackageCompatibility(config, this.resolver);
-    this.linker = new PackageLinker(config, this.resolver);
-    this.scripts = new PackageInstallScripts(config, this.resolver, flags.force);
+    this.linker = new PackageLinker(config, this.resolver, this.flags.ignoreOptional);
+    this.scripts = new PackageInstallScripts(config, this.resolver, this.flags.force);
   }
 
-  flags: Object;
+  flags: Flags;
   registries: Array<RegistryNames>;
   lockfile: Lockfile;
   resolutions: { [packageName: string]: string };
@@ -176,7 +244,7 @@ export class Install {
     requests: DependencyRequestPatterns,
     match: IntegrityMatch,
   ): Promise<InstallPrepared> {
-    if (!this.flags.force && match.matches) {
+    if (!this.flags.skipIntegrity && !this.flags.force && match.matches) {
       this.reporter.success(this.reporter.lang('upToDate'));
       return Promise.resolve({patterns, requests, skip: true});
     }
@@ -195,7 +263,7 @@ export class Install {
 
   async init(): Promise<Array<string>> {
     let [depRequests, rawPatterns] = await this.fetchRequestFromCwd();
-    let match = await this.matchesIntegrityHash();
+    let match = await this.matchesIntegrityHash(rawPatterns);
 
     let prepared = await this.prepare(rawPatterns, depRequests, match);
     rawPatterns = prepared.patterns;
@@ -240,7 +308,12 @@ export class Install {
         this.flags.force ? this.reporter.lang('rebuildingPackages') : this.reporter.lang('buildingFreshPackages'),
         emoji.get('page_with_curl'),
       );
-      await this.scripts.init(patterns);
+
+      if (this.flags.ignoreScripts) {
+        this.reporter.warn(this.reporter.lang('ignoredScripts'));
+      } else {
+        await this.scripts.init(patterns);
+      }
     });
 
     if (this.flags.har) {
@@ -364,9 +437,9 @@ export class Install {
         let ref = manifest._reference;
         invariant(ref, 'expected reference');
 
-        let json = jsons[ref.registry][1];
-        json.resolutions = json.resolutions || {};
-        json.resolutions[name] = version;
+        let object = jsons[ref.registry].object;
+        object.resolutions = object.resolutions || {};
+        object.resolutions[name] = version;
       }
 
       await this.saveRootManifests(jsons);
@@ -380,18 +453,20 @@ export class Install {
    */
 
   async getRootManifests(): Promise<RootManifests> {
-    let jsons: RootManifests = {};
+    let manifests: RootManifests = {};
     for (let registryName of registryNames) {
       const registry = registries[registryName];
       const jsonLoc = path.join(this.config.cwd, registry.filename);
 
-      let json = {};
+      let object = {};
+      let exists = false;
       if (await fs.exists(jsonLoc)) {
-        json = await fs.readJson(jsonLoc);
+        exists = true;
+        object = await fs.readJson(jsonLoc);
       }
-      jsons[registryName] = [jsonLoc, json];
+      manifests[registryName] = {loc: jsonLoc, object, exists};
     }
-    return jsons;
+    return manifests;
   }
 
   /**
@@ -400,21 +475,16 @@ export class Install {
 
   async saveRootManifests(manifests: RootManifests): Promise<void> {
     for (let registryName of registryNames) {
-      let [loc, object] = manifests[registryName];
-      if (!Object.keys(object).length) {
+      let {loc, object, exists} = manifests[registryName];
+      if (!exists && !Object.keys(object).length) {
         continue;
       }
 
-      [
-        'devDependencies',
-        'peerDependencies',
-        'optionalDependencies',
-        'dependencies',
-      ].forEach((field) => {
+      for (let field of constants.DEPENDENCY_TYPES) {
         if (object[field]) {
           object[field] = sortObject(object[field]);
         }
-      });
+      }
 
       await fs.writeFile(loc, stringify(object) + '\n');
     }
@@ -429,7 +499,7 @@ export class Install {
     const lockSource = lockStringify(this.lockfile.getLockfile(this.resolver.patterns)) + '\n';
 
     // write integrity hash
-    await this.writeIntegrityHash(lockSource);
+    await this.writeIntegrityHash(lockSource, patterns);
 
     // --no-lockfile or --pure-lockfile flag
     if (this.flags.lockfile === false || this.flags.pureLockfile) {
@@ -462,6 +532,10 @@ export class Install {
     // write lockfile
     await fs.writeFile(loc, lockSource);
 
+    this._logSuccessSaveLockfile();
+  }
+
+  _logSuccessSaveLockfile() {
     this.reporter.success(this.reporter.lang('savedLockfile'));
   }
 
@@ -469,7 +543,7 @@ export class Install {
    * Check if the integrity hash of this installation matches one on disk.
    */
 
-  async matchesIntegrityHash(): Promise<IntegrityMatch> {
+  async matchesIntegrityHash(patterns: Array<string>): Promise<IntegrityMatch> {
     let loc = await this.getIntegrityHashLocation();
     if (!await fs.exists(loc)) {
       return {
@@ -480,7 +554,7 @@ export class Install {
       };
     }
 
-    let actual = this.generateIntegrityHash(this.lockfile.source);
+    let actual = this.generateIntegrityHash(this.lockfile.source, patterns);
     let expected = (await fs.readFile(loc)).trim();
 
     return {
@@ -532,18 +606,20 @@ export class Install {
    * Write the integrity hash of the current install to disk.
    */
 
-  async writeIntegrityHash(lockSource: string): Promise<void> {
+  async writeIntegrityHash(lockSource: string, patterns: Array<string>): Promise<void> {
     let loc = await this.getIntegrityHashLocation();
     invariant(loc, 'expected integrity hash location');
-    await fs.writeFile(loc, this.generateIntegrityHash(lockSource));
+    await fs.writeFile(loc, this.generateIntegrityHash(lockSource, patterns));
   }
 
   /**
    * Generate integrity hash of input lockfile.
    */
 
-  generateIntegrityHash(lockfile: string): string {
+  generateIntegrityHash(lockfile: string, patterns: Array<string>): string {
     let opts = [lockfile];
+
+    opts.push(`patterns:${patterns.join(',')}`);
 
     if (this.flags.flat) {
       opts.push('flat');
@@ -553,23 +629,37 @@ export class Install {
       opts.push('production');
     }
 
+    let linkedModules = this.config.linkedModules;
+    if (linkedModules.length) {
+      opts.push(`linked:${linkedModules.join(',')}`);
+    }
+
     let mirror = this.config.getOfflineMirrorPath();
     if (mirror != null) {
       opts.push(`mirror:${mirror}`);
     }
 
-    return util.hash(opts.join(':'));
+    return util.hash(opts.join('-'));
   }
 }
 
-export function setFlags(commander: Object) {
-  commander.usage('install [flags]');
+export function _setFlags(commander: Object) {
+  commander.option('--har', 'save HAR output of network traffic');
+  commander.option('--ignore-engines', 'ignore engines check');
+  commander.option('--ignore-scripts', '');
+  commander.option('--ignore-optional', '');
   commander.option('--force', '');
   commander.option('--flat', 'only allow one version of a package');
   commander.option('--prod, --production', '');
   commander.option('--no-lockfile', "don't read or generate a lockfile");
   commander.option('--pure-lockfile', "don't generate a lockfile");
+}
 
+export function setFlags(commander: Object) {
+  commander.usage('install [flags]');
+  _setFlags(commander);
+
+  commander.option('-g, --global', 'DEPRECATED');
   commander.option('-S, --save', 'DEPRECATED - save package to your `dependencies`');
   commander.option('-D, --save-dev', 'DEPRECATED - save package to your `devDependencies`');
   commander.option('-P, --save-peer', 'DEPRECATED - save package to your `peerDependencies`');
@@ -608,16 +698,15 @@ export async function run(
     if (flags.saveTilde) {
       exampleArgs.push('--tilde');
     }
+    let command = 'add';
+    if (flags.global) {
+      command = 'global add';
+    }
     reporter.error(reporter.lang('installCommandRenamed'));
-    reporter.command(`yarn add ${exampleArgs.join(' ')}`);
-    return Promise.reject();
+    reporter.command(`yarn ${command} ${exampleArgs.join(' ')}`);
+    throw new MessageError(reporter.lang('invalidArguments'));
   }
 
   const install = new Install(flags, config, reporter, lockfile);
   await install.init();
-
-  // npm behaviour, seems kinda funky but yay compatibility
-  await executeLifecycleScript(config, 'prepublish');
-
-  return Promise.resolve();
 }

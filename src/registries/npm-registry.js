@@ -1,8 +1,10 @@
 /* @flow */
 
 import type RequestManager from '../util/request-manager.js';
-import type {RegistryRequestOptions} from './base-registry.js';
+import type {RegistryRequestOptions, CheckOutdatedReturn} from './base-registry.js';
+import type Config, {ConfigRegistries} from '../config.js';
 import * as fs from '../util/fs.js';
+import NpmResolver from '../resolvers/registries/npm-resolver.js';
 import Registry from './base-registry.js';
 import {removeSuffix} from '../util/misc.js';
 
@@ -32,8 +34,8 @@ function getGlobalPrefix(): string {
 }
 
 export default class NpmRegistry extends Registry {
-  constructor(cwd: string, requestManager: RequestManager) {
-    super(cwd, requestManager);
+  constructor(cwd: string, registries: ConfigRegistries, requestManager: RequestManager) {
+    super(cwd, registries, requestManager);
     this.folder = 'node_modules';
   }
 
@@ -45,7 +47,7 @@ export default class NpmRegistry extends Registry {
   }
 
   request(pathname: string, opts?: RegistryRequestOptions = {}): Promise<?Object> {
-    const registry = removeSuffix(this.config.registry, '/');
+    const registry = removeSuffix(String(this.registries.yarn.getOption('registry')), '/');
 
     let headers = {};
     if (this.token) {
@@ -59,6 +61,18 @@ export default class NpmRegistry extends Registry {
       headers,
       json: true,
     });
+  }
+
+  async checkOutdated(config: Config, name: string, range: string): CheckOutdatedReturn {
+    let req = await this.request(name);
+    if (!req) {
+      throw new Error('couldnt find ' + name);
+    }
+
+    return {
+      latest: req['dist-tags'].latest,
+      wanted: (await NpmResolver.findVersionInRegistryResponse(config, range, req)).version,
+    };
   }
 
   async getPossibleConfigLocations(filename: string): Promise<Array<[boolean, string, string]>> {
@@ -109,9 +123,5 @@ export default class NpmRegistry extends Registry {
 
       defaults(this.config, config);
     }
-
-    defaults(this.config, {
-      registry: 'http://registry.npmjs.org',
-    });
   }
 }

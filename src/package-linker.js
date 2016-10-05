@@ -5,7 +5,6 @@ import type PackageResolver from './package-resolver.js';
 import type {Reporter} from './reporters/index.js';
 import type Config from './config.js';
 import type {HoistManifest} from './package-hoister.js';
-import {registries} from './registries/index.js';
 import PackageHoister from './package-hoister.js';
 import * as constants from './constants.js';
 import * as promise from './util/promise.js';
@@ -22,13 +21,24 @@ type DependencyPairs = Array<{
   loc: string
 }>;
 
+export async function linkBin(src: string, dest: string): Promise<void> {
+  if (process.platform === 'win32') {
+    await cmdShim(src, dest);
+  } else {
+    await fs.symlink(src, dest);
+    await fs.chmod(dest, '755');
+  }
+}
+
 export default class PackageLinker {
-  constructor(config: Config, resolver: PackageResolver) {
+  constructor(config: Config, resolver: PackageResolver, ignoreOptional: boolean) {
+    this.ignoreOptional = ignoreOptional;
     this.resolver = resolver;
     this.reporter = config.reporter;
     this.config = config;
   }
 
+  ignoreOptional: boolean;
   reporter: Reporter;
   resolver: PackageResolver;
   config: Config;
@@ -39,13 +49,7 @@ export default class PackageLinker {
     for (let [scriptName, scriptCmd] of entries(pkg.bin)) {
       const dest = path.join(targetBinLoc, scriptName);
       const src = path.join(pkgLoc, scriptCmd);
-
-      if (process.platform === 'win32') {
-        await cmdShim(src, dest);
-      } else {
-        await fs.symlink(src, dest);
-        await fs.chmod(dest, '755');
-      }
+      await linkBin(src, dest);
     }
   }
 
@@ -99,13 +103,17 @@ export default class PackageLinker {
   }
 
   getFlatHoistedTree(patterns: Array<string>): Promise<Array<[string, HoistManifest]>> {
-    const hoister = new PackageHoister(this.config, this.resolver);
+    const hoister = new PackageHoister(this.config, this.resolver, this.ignoreOptional);
     hoister.seed(patterns);
     return Promise.resolve(hoister.init());
   }
 
   async copyModules(patterns: Array<string>): Promise<void> {
     let flatTree = await this.getFlatHoistedTree(patterns);
+    let linkedRefs: Array<{
+      dest: string,
+      name: string,
+    }> = [];
 
     // sorted tree makes file creation and copying not to interfere with each other
     flatTree = flatTree.sort(function(dep1, dep2): number {
@@ -117,8 +125,13 @@ export default class PackageLinker {
     for (let [dest, {pkg, loc: src}] of flatTree) {
       const ref = pkg._reference;
       invariant(ref, 'expected package reference');
-
       ref.setLocation(dest);
+
+      if (ref.shouldLink()) {
+        linkedRefs.push({name: pkg.name, dest});
+        continue;
+      }
+
       queue.push({
         src,
         dest,
@@ -131,17 +144,26 @@ export default class PackageLinker {
     }
 
     // register root packages as being possibly extraneous
-    const possibleExtraneous = [];
-    for (const registry of Object.keys(registries)) {
-      const {folder} = this.config.registries[registry];
+    const possibleExtraneous: Set<string> = new Set();
+    for (const folder of this.config.registryFolders) {
       const loc = path.join(this.config.cwd, folder);
 
       if (await fs.exists(loc)) {
         const files = await fs.readdir(loc);
         for (const file of files) {
-          possibleExtraneous.push(path.join(loc, file));
+          possibleExtraneous.add(path.join(loc, file));
         }
       }
+    }
+
+    // linked modules
+    for (let {name, dest} of linkedRefs) {
+      possibleExtraneous.delete(dest);
+
+      this.reporter.info(this.reporter.lang('linkUsing', name));
+      const src = path.join(this.config.linkFolder, name);
+      await fs.mkdirp(path.join(dest, '..'));
+      await fs.symlink(src, dest);
     }
 
     //

@@ -11,6 +11,7 @@ npm run build
 rm -rf $DIR
 mkdir $DIR
 cp package.json yarn.lock $DIR
+cp -r scripts $DIR/scripts
 cd $DIR
 
 # install with yarn and run check

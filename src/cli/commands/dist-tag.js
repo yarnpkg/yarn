@@ -28,7 +28,7 @@ export async function getName(args: Array<string>, config: Config): Promise<stri
   }
 }
 
-export let {run, setFlags} = buildSubCommands('dist-tag', {
+export let {run, setFlags, examples} = buildSubCommands('dist-tag', {
   async add(
     config: Config,
     reporter: Reporter,

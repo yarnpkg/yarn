@@ -31,7 +31,8 @@ for (let name of nativeFs.readdirSync(fixturesLoc)) {
       actualWarnings.push(msg);
     };
 
-    let config = new Config(reporter, {cwd: loc});
+    let config = new Config(reporter);
+    await config.init({cwd: loc});
 
     let actual   = await fs.readJson(path.join(loc, 'actual.json'));
     let expected = await fs.readJson(path.join(loc, 'expected.json'));

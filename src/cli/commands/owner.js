@@ -47,7 +47,7 @@ export async function mutate(
       error = mutator({name: user.name, email: user.email}, pkg);
     } else {
       error = true;
-      reporter.error("Couldn't find package");
+      reporter.error(reporter.lang('unknownPackage', name));
     }
 
     // update package
@@ -70,7 +70,7 @@ export async function mutate(
     }
   } else {
     error = true;
-    reporter.error("Couldn't find user");
+    reporter.error(reporter.lang('unknownUser', username));
   }
 
   reporter.step(3, 3, reporter.lang('revokingToken'));
@@ -95,14 +95,14 @@ export let {run, setFlags} = buildSubCommands('owner', {
       config,
       reporter,
       (username: string, name: string): Messages => ({
-        info: reporter.lang('addingOwner', username, name),
-        success: reporter.lang('addedOwner'),
-        error: reporter.lang('addedOwnerFail'),
+        info: reporter.lang('ownerAdding', username, name),
+        success: reporter.lang('ownerAdded'),
+        error: reporter.lang('ownerAddingFailed'),
       }),
       (user: Object, pkg: Object): boolean => {
         for (let owner of pkg.maintainers) {
           if (owner.name === user) {
-            reporter.error(reporter.lang('alreadyAnOwner'));
+            reporter.error(reporter.lang('ownerAlready'));
             return true;
           }
         }
@@ -125,9 +125,9 @@ export let {run, setFlags} = buildSubCommands('owner', {
       config,
       reporter,
       (username: string, name: string): Messages => ({
-        info: `Removing owner ${username} from package ${name}`,
-        success: 'Removed owner',
-        error: "Couldn't remove owner",
+        info: reporter.lang('ownerRemoving', username, name),
+        success: reporter.lang('ownerRemoved'),
+        error: reporter.lang('ownerRemoveError'),
       }),
       (user: Object, pkg: Object): boolean => {
         let found = false;
@@ -139,7 +139,7 @@ export let {run, setFlags} = buildSubCommands('owner', {
         });
 
         if (!found) {
-          reporter.error("User isn't an owner of this package");
+          reporter.error(reporter.lang('userNotAnOwner', user.name));
         }
 
         return found;
@@ -162,19 +162,19 @@ export let {run, setFlags} = buildSubCommands('owner', {
     reporter.step(1, 3, reporter.lang('loggingIn'));
     let revoke = await getToken(config, reporter);
 
-    reporter.step(2, 3, `Getting owners of package ${name}`);
+    reporter.step(2, 3, reporter.lang('ownerGetting', name));
     let pkg = await config.registries.npm.request(name);
     if (pkg) {
       let owners = pkg.maintainers;
       if (!owners || !owners.length) {
-        reporter.warn('No owners');
+        reporter.warn(reporter.lang('ownerNone'));
       } else {
         for (let owner of owners) {
           reporter.info(`${owner.name} <${owner.email}>`);
         }
       }
     } else {
-      reporter.error("Couldn't get owners");
+      reporter.error(reporter.lang('ownerGettingFailed'));
     }
 
     reporter.step(3, 3, reporter.lang('revokingToken'));

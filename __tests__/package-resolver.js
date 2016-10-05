@@ -22,12 +22,12 @@ function addTest(pattern, registry = 'npm') {
     await fs.mkdirp(path.join(loc, 'node_modules'));
     await fs.mkdirp(path.join(loc, constants.MODULE_CACHE_DIRECTORY));
 
-    let config = new Config(reporter, {
+    let config = new Config(reporter);
+    await config.init({
       cwd: loc,
       packagesRoot: loc,
       tempFolder: loc,
     });
-    await config.init();
     let resolver = new PackageResolver(config, lockfile);
     await resolver.init([{pattern, registry}]);
     await reporter.close();

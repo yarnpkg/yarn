@@ -1,29 +1,41 @@
 /* @flow */
 
 import {ConsoleReporter, JSONReporter} from '../reporters/index.js';
+import {sortAlpha} from '../util/misc.js';
 import * as commands from './commands/index.js';
 import * as constants from '../constants.js';
 import * as network from '../util/network.js';
-
+import {MessageError} from '../errors.js';
 import aliases from './aliases.js';
 import Config from '../config.js';
 
-const net = require('net');
+const loudRejection = require('loud-rejection');
+const camelCase = require('camelcase');
+const commander = require('commander');
+const invariant = require('invariant');
+const lockfile = require('proper-lockfile');
+const onDeath = require('death');
 const path = require('path');
+const net = require('net');
 const fs = require('fs');
 
-let loudRejection = require('loud-rejection');
-let camelCase = require('camelcase');
-let commander = require('commander');
-let invariant = require('invariant');
-let lockfile = require('proper-lockfile');
-let onDeath = require('death');
-
-let pkg = require('../../package.json');
+const pkg = require('../../package.json');
 
 loudRejection();
 
-let args = process.argv;
+//
+const startArgs = process.argv.slice(0, 2);
+let args = process.argv.slice(2);
+
+// ignore all arguments after a --
+let endArgs = [];
+for (let i = 0; i < args.length; i++) {
+  const arg = args[i];
+  if (arg === '--') {
+    endArgs = args.slice(i + 1);
+    args = args.slice(0, i);
+  }
+}
 
 // set global options
 commander.version(pkg.version);
@@ -31,65 +43,112 @@ commander.usage('[command] [flags]');
 commander.option('--offline');
 commander.option('--prefer-offline');
 commander.option('--strict-semver');
-commander.option('--har', 'Save HAR output of network traffic');
-commander.option('--ignore-engines', 'Ignore engines check');
 commander.option('--json', '');
-commander.option('--modules-folder [path]', 'rather than installing modules into the node_modules ' +
-                                            'folder relative to the cwd, output them here');
-commander.option('--packages-root [path]', 'rather than storing modules into a global packages root,' +
-                                           'store them here');
+commander.option('--global-folder [path]', '');
 commander.option(
- '--force-single-instance',
- 'pause and wait if other instances are running on the same folder using a tcp server',
+  '--modules-folder [path]',
+  'rather than installing modules into the node_modules folder relative to the cwd, output them here',
 );
 commander.option(
-  '--port [port]',
-  `use with --force-single-instance to ovveride the default port (${constants.DEFAULT_PORT_FOR_SINGLE_INSTANCE})`,
+  '--packages-root [path]',
+  'rather than storing modules into a global packages root, store them here',
 );
 commander.option(
-  '--force-single-instance-with-file',
-  'pause and wait if other instances are running on the same folder using a operating system lock file',
+  '--mutex [type][:specifier]',
+  'use a mutex to ensure only one yarn instance is executing',
 );
 commander.allowUnknownOption();
 
 // get command name
-let commandName: string = args.splice(2, 1)[0] || '';
+let commandName: string = args.shift() || '';
+let command;
 
-// if command name looks like a flag or doesn't exist then print help
+//
+if (commandName === 'help' && !args.length) {
+  commander.on('--help', function() {
+    console.log('  Commands:');
+    console.log();
+    for (let name of Object.keys(commands).sort(sortAlpha)) {
+      if (commands[name].useless) {
+        continue;
+      }
+
+      console.log(`    * ${name}`);
+    }
+    console.log();
+    console.log('  Run `yarn help COMMAND` for more information on specific commands.');
+    console.log();
+  });
+}
+
+// if no args or command name looks like a flag then default to `install`
 if (!commandName || commandName[0] === '-') {
   if (commandName) {
-    args.splice(2, 0, commandName);
+    args.unshift(commandName);
   }
   commandName = 'install';
 }
 
-// handle aliases: i -> install
-// $FlowFixMe: this is a perfectly fine pattern
+// aliases: i -> install
+// $FlowFixMe
 if (commandName && typeof aliases[commandName] === 'string') {
-  commandName = aliases[commandName];
+  command = {
+    run(config: Config, reporter: ConsoleReporter | JSONReporter): Promise<void> {
+      throw new MessageError(`Did you mean \`yarn ${aliases[commandName]}\`?`);
+    },
+  };
 }
 
 //
-if (!commandName || commandName === 'help') {
-  commander.parse(args);
+if (commandName === 'help' && args.length) {
+  commandName = camelCase(args.shift());
+  args.push('--help');
+}
+
+//
+invariant(commandName, 'Missing command name');
+command = command || commands[camelCase(commandName)];
+
+//
+if (command && typeof command.setFlags === 'function') {
+  command.setFlags(commander);
+}
+
+//
+const DEFAULT_EXAMPLES = [
+  '--mutex file',
+  '--mutex file:my-custom-filename',
+  '--mutex network',
+  '--mutex network:8008',
+];
+
+//
+if (commandName === 'help' || args.indexOf('--help') >= 0 || args.indexOf('-h') >= 0) {
+  const examples = DEFAULT_EXAMPLES.concat((command && command.examples) || []);
+  commander.on('--help', function() {
+    console.log('  Examples:');
+    console.log();
+    for (let example of examples) {
+      console.log(`    $ yarn ${example}`);
+    }
+    console.log();
+  });
+
+  commander.parse(startArgs.concat(args));
   commander.help();
   process.exit(1);
 }
 
 //
-invariant(commandName, 'Missing command name');
-let command = commands[camelCase(commandName)];
-
 if (!command) {
-  args.splice(2, 0, commandName);
+  args.unshift(commandName);
   command = commands.run;
 }
+invariant(command, 'missing command');
 
 // parse flags
-if (typeof command.setFlags === 'function') {
-  command.setFlags(commander);
-}
-commander.parse(args);
+commander.parse(startArgs.concat(args));
+commander.args = commander.args.concat(endArgs);
 
 //
 let Reporter = ConsoleReporter;
@@ -97,21 +156,12 @@ if (commander.json) {
   Reporter = JSONReporter;
 }
 let reporter = new Reporter({
-  // $FlowFixMe
   emoji: process.stdout.isTTY && process.platform === 'darwin',
 });
 reporter.initPeakMemoryCounter();
 
 //
-let config = new Config(reporter, {
-  modulesFolder: commander.modulesFolder,
-  packagesRoot: commander.packagesRoot,
-  preferOffline: commander.preferOffline,
-  captureHar: commander.har,
-  ignoreEngines: commander.ignoreEngines,
-  offline: commander.preferOffline || commander.offline,
-  looseSemver: !commander.strictSemver,
-});
+let config = new Config(reporter);
 
 // print header
 let outputWrapper = true;
@@ -122,20 +172,19 @@ if (outputWrapper) {
   reporter.header(commandName, pkg);
 }
 
+if (command.noArguments && args.length) {
+  reporter.error(reporter.lang('noArguments'));
+  process.exit(1);
+}
+
 //
 if (commander.yes) {
-  reporter.warn(
-    'The yes flag has been set. This will automatically answer yes to all questions which ' +
-    'may have security implications.',
-  );
+  reporter.warn(reporter.lang('yesWarning'));
 }
 
 //
 if (!commander.offline && network.isOffline()) {
-  reporter.warn(
-    "You don't appear to have an internet connection. " +
-    'Try the --offline flag to use the cache for registry queries.',
-  );
+  reporter.warn(reporter.lang('networkWarning'));
 }
 
 //
@@ -146,6 +195,7 @@ if (command.requireLockfile && !fs.existsSync(path.join(config.cwd, constants.LO
 
 //
 const run = (): Promise<void> => {
+  invariant(command, 'missing command');
   return command.run(config, reporter, commander, commander.args).then(function() {
     reporter.close();
     if (outputWrapper) {
@@ -155,16 +205,16 @@ const run = (): Promise<void> => {
 };
 
 //
-const runEventuallyWithLockFile = (isFirstTime): Promise<void> => {
+const runEventuallyWithFile = (mutexFilename: ?string, isFirstTime?: boolean): Promise<void> => {
   return new Promise((ok) => {
-    const lock = path.join(config.cwd, constants.SINGLE_INSTANCE_FILENAME);
-    lockfile.lock(lock, {realpath: false}, (err, release) => {
+    const lockFilename = mutexFilename || path.join(config.cwd, constants.SINGLE_INSTANCE_FILENAME);
+    lockfile.lock(lockFilename, {realpath: false}, (err, release) => {
       if (err) {
         if (isFirstTime) {
           reporter.warn(reporter.lang('waitingInstance'));
         }
         setTimeout(() => {
-          ok(runEventuallyWithLockFile());
+          ok(runEventuallyWithFile());
         }, 200); // do not starve the CPU
       } else {
         onDeath(() => {
@@ -177,10 +227,10 @@ const runEventuallyWithLockFile = (isFirstTime): Promise<void> => {
 };
 
 //
-const runEventually = (): Promise<void> => {
+const runEventuallyWithNetwork = (mutexPort: ?string): Promise<void> => {
   return new Promise((ok) => {
     const connectionOptions = {
-      port: commander.port || constants.DEFAULT_PORT_FOR_SINGLE_INSTANCE,
+      port: +mutexPort || constants.SINGLE_INSTANCE_PORT,
     };
 
     const clients = [];
@@ -198,13 +248,13 @@ const runEventually = (): Promise<void> => {
           // the server has informed us he's going to die soon™.
           socket.unref(); // let it die
           process.nextTick(() => {
-            ok(runEventually());
+            ok(runEventuallyWithNetwork());
           });
         })
         .on('error', (e) => {
           // No server to listen to ? :O let's retry to become the next server then.
           process.nextTick(() => {
-            ok(runEventually());
+            ok(runEventuallyWithNetwork());
           });
         });
     });
@@ -228,23 +278,43 @@ const runEventually = (): Promise<void> => {
 };
 
 //
-config.init().then(function(): Promise<void> {
+config.init({
+  modulesFolder: commander.modulesFolder,
+  globalFolder: commander.globalFolder,
+  packagesRoot: commander.packagesRoot,
+  preferOffline: commander.preferOffline,
+  captureHar: commander.har,
+  ignoreEngines: commander.ignoreEngines,
+  offline: commander.preferOffline || commander.offline,
+  looseSemver: !commander.strictSemver,
+}).then(function(): Promise<void> {
   const exit = () => {
     process.exit(0);
   };
 
-  if (commander.forceSingleInstanceWithFile) {
-    return runEventuallyWithLockFile(true).then(exit);
-  }
+  const mutex = commander.mutex;
+  if (mutex) {
+    const parts = mutex.split(':');
+    const mutexType = parts.shift();
+    const mutexSpecifier = parts.join(':');
 
-  if (commander.forceSingleInstance) {
-    return runEventually().then(exit);
+    if (mutexType === 'file') {
+      return runEventuallyWithFile(mutexSpecifier, true).then(exit);
+    } else if (mutexType === 'network') {
+      return runEventuallyWithNetwork(mutexSpecifier).then(exit);
+    } else {
+      throw new Error(`Unknown single instance type ${mutexType}`);
+    }
+  } else {
+    return run().then(exit);
   }
-
-  return run().then(exit);
 }).catch(function(errs) {
   function logError(err) {
-    reporter.error(err.stack.replace(/^Error: /, ''));
+    if (err instanceof MessageError) {
+      reporter.error(err.message);
+    } else {
+      reporter.error(err.stack.replace(/^Error: /, ''));
+    }
   }
 
   if (errs) {

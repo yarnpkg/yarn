@@ -8,7 +8,8 @@ import Lockfile from '../../lockfile/wrapper.js';
 import * as PackageReference from '../../package-reference.js';
 import PackageRequest from '../../package-request.js';
 import {buildTree} from './ls.js';
-import {Install} from './install.js';
+import {Install, _setFlags} from './install.js';
+import {MessageError} from '../../errors.js';
 
 let invariant = require('invariant');
 
@@ -113,8 +114,8 @@ export class Add extends Install {
         version = `~${pkg.version}`;
       } else if (exact) { // --save-exact
         version = pkg.version;
-      } else { // default to caret
-        version = `^${pkg.version}`;
+      } else { // default to save prefix
+        version = `${String(this.config.getOption('save-prefix'))}${pkg.version}`;
       }
 
       // build up list of objects to put ourselves into from the cli args
@@ -133,9 +134,9 @@ export class Add extends Install {
       }
 
       // add it to manifest
-      const json = jsons[ref.registry][1];
+      const object = jsons[ref.registry].object;
       for (const key of targetKeys) {
-        const target = json[key] = json[key] || {};
+        const target = object[key] = object[key] || {};
         target[pkg.name] = version;
       }
 
@@ -154,12 +155,12 @@ export class Add extends Install {
 
 export function setFlags(commander: Object) {
   commander.usage('add [packages ...] [flags]');
-  commander.option('--force', '');
-  commander.option('-D, --dev', 'save package to your `devDependencies`');
-  commander.option('-P, --peer', 'save package to your `peerDependencies`');
-  commander.option('-O, --optional', 'save package to your `optionalDependencies`');
-  commander.option('-E, --exact', '');
-  commander.option('-T, --tilde', '');
+  _setFlags(commander);
+  commander.option('--dev', 'save package to your `devDependencies`');
+  commander.option('--peer', 'save package to your `peerDependencies`');
+  commander.option('--optional', 'save package to your `optionalDependencies`');
+  commander.option('--exact', '');
+  commander.option('--tilde', '');
 }
 
 export async function run(
@@ -168,6 +169,10 @@ export async function run(
   flags: Object,
   args: Array<string>,
 ): Promise<void> {
+  if (!args.length) {
+    throw new MessageError(reporter.lang('missingAddDependencies'));
+  }
+
   let lockfile = await Lockfile.fromDirectory(config.cwd, reporter);
   const install = new Add(args, flags, config, reporter, lockfile);
   await install.init();

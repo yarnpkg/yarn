@@ -40,6 +40,7 @@ export default class PackageReference {
     this.patterns = [];
     this.optional = null;
     this.visibility = {[ENVIRONMENT_IGNORE]: 0, [REMOVED_ANCESTOR]: 0, [USED]: 0};
+    this.root = false;
     this.ignore = false;
     this.fresh = false;
     this.location = null;
@@ -51,6 +52,7 @@ export default class PackageReference {
   lockfile: Lockfile;
   config: Config;
 
+  root: boolean;
   name: string;
   version: string;
   uid: string;
@@ -74,8 +76,16 @@ export default class PackageReference {
     return this.location = loc;
   }
 
+  shouldLink(): boolean {
+    return this.root && this.config.linkedModules.indexOf(this.name) >= 0;
+  }
+
   addRequest(request: PackageRequest) {
     this.requests.push(request);
+
+    if (!request.parentRequest) {
+      this.root = true;
+    }
   }
 
   prune() {

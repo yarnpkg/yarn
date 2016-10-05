@@ -58,23 +58,23 @@ type RequestOptions = {
 };
 
 export default class RequestManager {
-  constructor(reporter: Reporter, offlineNoRequests?: boolean, captureHar?: boolean) {
-    this.offlineNoRequests = !!offlineNoRequests;
+  constructor(reporter: Reporter) {
+    this.offlineNoRequests = false;
     this._requestCaptureHar = null;
     this._requestModule = null;
-    this.captureHar = !!captureHar;
+    this.captureHar = false;
     this.offlineQueue = [];
     this.reporter = reporter;
+    this.userAgent = '';
     this.running = 0;
     this.queue = [];
     this.cache = {};
     this.max = constants.NETWORK_CONCURRENCY;
   }
 
-  // whether we should throw errors and disallow HTTP requests
   offlineNoRequests: boolean;
   captureHar: boolean;
-
+  userAgent: string;
   reporter: Reporter;
   running: number;
   offlineQueue: Array<RequestOptions>;
@@ -86,6 +86,24 @@ export default class RequestManager {
 
   _requestCaptureHar: ?RequestCaptureHar;
   _requestModule: ?RequestModuleT;
+
+  setOptions(opts: {
+    userAgent?: string,
+    offline?: boolean,
+    captureHar?: boolean,
+  }) {
+    if (opts.userAgent != null) {
+      this.userAgent = opts.userAgent;
+    }
+
+    if (opts.offline != null) {
+      this.offlineNoRequests = opts.offline;
+    }
+
+    if (opts.captureHar != null) {
+      this.captureHar = opts.captureHar;
+    }
+  }
 
   /**
    * Lazy load `request` since it is exceptionally expensive to load and is
@@ -124,7 +142,7 @@ export default class RequestManager {
     params.retryAttempts = 0;
 
     params.headers = Object.assign({
-      'User-Agent': constants.USER_AGENT,
+      'User-Agent': this.userAgent,
     }, params.headers);
 
     const promise = new Promise((resolve, reject) => {
@@ -180,7 +198,10 @@ export default class RequestManager {
       return true;
     }
 
-    // TODO: detect timeouts
+    // connection was reset or dropped
+    if (code === 'ECONNRESET') {
+      return true;
+    }
 
     return false;
   }

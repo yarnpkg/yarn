@@ -13,21 +13,23 @@ import {registries} from './registries/index.js';
 import map from './util/map.js';
 
 const invariant = require('invariant');
-const userHome = require('user-home');
 const path = require('path');
 const url = require('url');
 
 type ConfigOptions = {
-  cwd?: string,
-  packagesRoot?: string,
-  tempFolder?: string,
-  modulesFolder?: string,
+  cwd?: ?string,
+  packagesRoot?: ?string,
+  tempFolder?: ?string,
+  modulesFolder?: ?string,
+  globalFolder?: ?string,
+  linkFolder?: ?string,
   offline?: boolean,
   preferOffline?: boolean,
   captureHar?: boolean,
   ignoreEngines?: boolean,
+
   // Loosely compare semver for invalid cases like "0.01.0"
-  looseSemver?: boolean,
+  looseSemver?: ?boolean,
 };
 
 type PackageMetadata = {
@@ -37,30 +39,34 @@ type PackageMetadata = {
   package: Manifest
 };
 
+export type ConfigRegistries = {
+  [name: RegistryNames]: Registry
+};
+
 export default class Config {
-  constructor(reporter: Reporter, opts?: ConfigOptions = {}) {
+  constructor(reporter: Reporter) {
     this.constraintResolver = new ConstraintResolver(this, reporter);
-    this.requestManager = new RequestManager(reporter, opts.offline && !opts.preferOffline, opts.captureHar);
+    this.requestManager = new RequestManager(reporter);
     this.reporter = reporter;
-
-    this.registryFolders = [];
-    this.registries = map();
-    this.cache = map();
-    this.cwd = opts.cwd || process.cwd();
-
-    this.looseSemver = opts.looseSemver == undefined ? true : opts.looseSemver;
-
-    this.preferOffline = !!opts.preferOffline;
-    this.modulesFolder = opts.modulesFolder;
-    this.packagesRoot = opts.packagesRoot;
-    this.tempFolder = opts.tempFolder;
-    this.offline = !!opts.offline;
+    this._init({});
   }
 
   //
   looseSemver: boolean;
   offline: boolean;
   preferOffline: boolean;
+
+  //
+  linkedModules: Array<string>;
+
+  //
+  rootModuleFolders: Array<string>;
+
+  //
+  linkFolder: string;
+
+  //
+  globalFolder: string;
 
   //
   constraintResolver: ConstraintResolver;
@@ -72,10 +78,10 @@ export default class Config {
   modulesFolder: ?string;
 
   //
-  packagesRoot: ?string;
+  packagesRoot: string;
 
   //
-  tempFolder: ?string;
+  tempFolder: string;
 
   //
   reporter: Reporter;
@@ -84,9 +90,7 @@ export default class Config {
   cwd: string;
 
   //
-  registries: {
-    [name: RegistryNames]: Registry
-  };
+  registries: ConfigRegistries;
   registryFolders: Array<string>;
 
   //
@@ -112,6 +116,14 @@ export default class Config {
   }
 
   /**
+   * Get a config option from our yarn config.
+   */
+
+  getOption(key: string): mixed {
+    return this.registries.yarn.getOption(key);
+  }
+
+  /**
    * Reduce a list of versions to a single one based on an input range.
    */
 
@@ -124,27 +136,58 @@ export default class Config {
    */
 
   async init(opts: ConfigOptions = {}): Promise<void> {
-    if (opts.cwd) {
-      this.cwd = opts.cwd;
-    }
+    this._init(opts);
 
-    if (!this.packagesRoot) {
-      this.packagesRoot = await this.getPackageRoot(opts);
-    }
+    await fs.mkdirp(this.globalFolder);
+    await fs.mkdirp(this.packagesRoot);
+    await fs.mkdirp(this.tempFolder);
 
-    if (!this.tempFolder) {
-      this.tempFolder = await this.getTempFolder();
-    }
+    await fs.mkdirp(this.linkFolder);
+    this.linkedModules = await fs.readdir(this.linkFolder);
 
     for (const key of Object.keys(registries)) {
       const Registry = registries[key];
 
       // instantiate registry
-      const registry = new Registry(this.cwd, this.requestManager);
+      const registry = new Registry(this.cwd, this.registries, this.requestManager);
       await registry.init();
 
       this.registries[key] = registry;
       this.registryFolders.push(registry.folder);
+      this.rootModuleFolders.push(path.join(this.cwd, registry.folder));
+    }
+
+    this.requestManager.setOptions({
+      userAgent: String(this.getOption('user-agent')),
+    });
+  }
+
+  _init(opts: ConfigOptions) {
+    this.rootModuleFolders = [];
+    this.registryFolders = [];
+    this.linkedModules = [];
+
+    this.registries = map();
+    this.cache = map();
+    this.cwd = opts.cwd || this.cwd || process.cwd();
+
+    this.looseSemver = opts.looseSemver == undefined ? true : opts.looseSemver;
+
+    this.preferOffline = !!opts.preferOffline;
+    this.modulesFolder = opts.modulesFolder;
+    this.globalFolder = opts.globalFolder || constants.GLOBAL_MODULE_DIRECTORY;
+    this.packagesRoot = opts.packagesRoot || constants.MODULE_CACHE_DIRECTORY;
+    this.linkFolder = opts.linkFolder || constants.LINK_REGISTRY_DIRECTORY;
+    this.tempFolder = opts.tempFolder || path.join(this.packagesRoot, '.tmp');
+    this.offline = !!opts.offline;
+
+    this.requestManager.setOptions({
+      offline: !!opts.offline && !opts.preferOffline,
+      captureHar: !!opts.captureHar,
+    });
+
+    if (this.modulesFolder) {
+      this.rootModuleFolders.push(this.modulesFolder);
     }
   }
 
@@ -216,41 +259,6 @@ export default class Config {
       return path.join(mirrorPath, path.basename(pathname));
     }
 
-  }
-
-  /**
-   * Find temporary folder.
-   */
-
-  async getTempFolder(): Promise<string> {
-    invariant(this.packagesRoot, 'No package root');
-    const folder = path.join(this.packagesRoot, '.tmp');
-    await fs.mkdirp(folder);
-    return folder;
-  }
-
-  /**
-   * Find package folder to store modules in.
-   */
-
-  async getPackageRoot(opts: ConfigOptions): Promise<string> {
-    if (opts.packagesRoot) {
-      return opts.packagesRoot;
-    }
-
-    // walk up from current directory looking for .yarn folders
-    const parts = this.cwd.split(path.sep);
-    for (let i = parts.length; i > 0; i--) {
-      const loc = parts.slice(0, i).concat(constants.MODULE_CACHE_DIRECTORY).join(path.sep);
-      if (await fs.exists(loc)) {
-        return loc;
-      }
-    }
-
-    // try and create ~/.yarn
-    const loc = path.join(userHome, constants.MODULE_CACHE_DIRECTORY);
-    await fs.mkdirp(loc);
-    return loc;
   }
 
   /**

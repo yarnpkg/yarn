@@ -40,7 +40,8 @@ export class HoistManifest {
 }
 
 export default class PackageHoister {
-  constructor(config: Config, resolver: PackageResolver) {
+  constructor(config: Config, resolver: PackageResolver, ignoreOptional: boolean) {
+    this.ignoreOptional = ignoreOptional;
     this.resolver = resolver;
     this.config = config;
 
@@ -49,6 +50,7 @@ export default class PackageHoister {
     this.tree = new Map();
   }
 
+  ignoreOptional: boolean;
   resolver: PackageResolver;
   config: Config;
 
@@ -377,7 +379,12 @@ export default class PackageHoister {
     for (let [loc, info] of flatTree) {
       const ref = info.pkg._reference;
       invariant(ref, 'expected reference');
-      if (ref.ignore) {
+
+      let ignored = ref.ignore;
+      if (ref.optional && this.ignoreOptional) {
+        ignored = true;
+      }
+      if (ignored) {
         info.addHistory('Deleted as this module was ignored');
       } else {
         visibleFlatTree.push([loc, info]);

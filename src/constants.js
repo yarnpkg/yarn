@@ -2,10 +2,18 @@
 
 const userHome = require('user-home');
 const path = require('path');
-const pkg = require('../package.json');
 const fs = require('fs');
 
+type Env = {[key: string]: ?string};
+
 const cwd = process.cwd();
+
+export const DEPENDENCY_TYPES = [
+  'devDependencies',
+  'dependencies',
+  'optionalDependencies',
+  'peerDependencies',
+];
 
 // lockfile version, bump whenever we make backwards incompatible changes
 export const LOCKFILE_VERSION = 1;
@@ -29,9 +37,35 @@ function or(filenames: Array<string>, cwd: string): string {
   return filenames.pop();
 }
 
+export function getAppData(env: Env): ?string {
+  for (const key in env) {
+    if (key.toLowerCase() === 'appdata') {
+      return env[key];
+    }
+  }
+  return null;
+}
+
+export function getModuleCacheDirectory(): string {
+  // use %APPDATA%/Yarn on Windows
+  if (process.platform === 'win32') {
+    const appData = getAppData(process.env);
+    if (appData) {
+      return path.join(appData, 'Yarn');
+    }
+  }
+
+  // otherwise use ~/.yarn
+  let name = or(['.fbkpm', '.kpm', '.yarn'], userHome);
+  return path.join(userHome, name);
+}
+
 // the kpm and fbkpm names here are legacy names for yarn here for compatibility
-export const DEFAULT_PORT_FOR_SINGLE_INSTANCE = 31997;
-export const MODULE_CACHE_DIRECTORY = or(['.fbkpm', '.kpm', '.yarn'], userHome);
+
+export const MODULE_CACHE_DIRECTORY = getModuleCacheDirectory();
+export const LINK_REGISTRY_DIRECTORY = `${MODULE_CACHE_DIRECTORY}/.link`;
+export const GLOBAL_MODULE_DIRECTORY = `${MODULE_CACHE_DIRECTORY}/.global`;
+
 export const INTEGRITY_FILENAME = or(
   ['.fbkpm-integrity', '.kpm-integrity', '.yarn-integrity'],
   path.join(cwd, 'node_modules'),
@@ -40,15 +74,9 @@ export const LOCKFILE_FILENAME = or(['fbkpm.lock', 'kpm.lock', 'yarn.lock'], cwd
 export const METADATA_FILENAME = '.yarn-metadata.json';
 export const TARBALL_FILENAME = '.yarn-tarball.tgz';
 export const CLEAN_FILENAME = '.yarnclean';
-export const SINGLE_INSTANCE_FILENAME = '.yarn-single-instance';
 
-export const USER_AGENT = [
-  `yarn/${pkg.version}`,
-  'npm/?',
-  `node/${process.version}`,
-  process.platform,
-  process.arch,
-].join(' ');
+export const SINGLE_INSTANCE_PORT = 31997;
+export const SINGLE_INSTANCE_FILENAME = '.yarn-single-instance';
 
 export const GITHUB_USER = 'yarnpkg';
 export const GITHUB_REPO = 'yarn';
@@ -56,7 +84,7 @@ export const SELF_UPDATE_DOWNLOAD_FOLDER = 'updates';
 
 export const ENV_PATH_KEY = getPathKey(process.platform, process.env);
 
-export function getPathKey(platform: string, env: { [key: string]: ?string }): string {
+export function getPathKey(platform: string, env: Env): string {
   let pathKey = 'PATH';
 
   // windows calls it's path "Path" usually, but this is not guaranteed.

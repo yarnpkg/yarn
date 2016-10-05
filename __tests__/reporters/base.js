@@ -1,4 +1,5 @@
 /* @flow */
+/* eslint yarn-internal/warn-language: 0 */
 
 import BaseReporter from '../../src/reporters/base-reporter.js';
 

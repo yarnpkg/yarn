@@ -2,12 +2,12 @@
 
 import type {Reporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
+import {MessageError} from '../../errors.js';
 import {Install} from './install.js';
 import Lockfile from '../../lockfile/wrapper.js';
 import * as fs from '../../util/fs.js';
 
 const semver = require('semver');
-const chalk = require('chalk');
 const path = require('path');
 
 export const requireLockfile = true;
@@ -54,7 +54,7 @@ export async function run(
     const integrityLoc = await install.getIntegrityHashLocation();
 
     if (integrityLoc && await fs.exists(integrityLoc)) {
-      let match = await install.matchesIntegrityHash();
+      let match = await install.matchesIntegrityHash(rawPatterns);
       if (match.matches === false) {
         reportError(`Integrity hashes don't match, expected ${match.expected} but got ${match.actual}`);
       }
@@ -88,7 +88,7 @@ export async function run(
               humanParts[i] += '#';
             }
           } else {
-            humanParts[i] = chalk.dim(`${humanPart}#`);
+            humanParts[i] = reporter.format.dim(`${humanPart}#`);
           }
         }
 
@@ -181,12 +181,8 @@ export async function run(
   }
 
   if (errCount > 0) {
-    if (errCount > 1) {
-      reporter.info(reporter.lang('foundErrors', errCount));
-    }
-    return Promise.reject();
+    throw new MessageError(reporter.lang('foundErrors', errCount));
   } else {
     reporter.success(reporter.lang('folderInSync'));
-    return Promise.resolve();
   }
 }

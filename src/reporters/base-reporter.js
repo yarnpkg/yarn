@@ -11,6 +11,8 @@ import type {
   ReporterSpinner,
 } from './types.js';
 import type {LanguageKeys} from './lang/en.js';
+import type {Formatter} from './format.js';
+import {defaultFormatter} from './format.js';
 import * as languages from './lang/index.js';
 
 let util = require('util');
@@ -54,14 +56,17 @@ export default class BaseReporter {
 
     this.peakMemory = 0;
     this.startTime = Date.now();
+    this.format = defaultFormatter;
   }
 
+  formatter: Formatter;
   language: Language;
   stdout: Stdout;
   stderr: Stdout;
   stdin: Stdin;
   isTTY: boolean;
   emoji: boolean;
+  format: Formatter;
 
   peakMemoryInterval: ?number;
   peakMemory: number;
@@ -143,6 +148,9 @@ export default class BaseReporter {
 
   // the screen shown at the very end of the CLI
   footer(showPeakMemory: boolean) {}
+
+  //
+  table(head: Array<string>, body: Array<Array<string>>) {}
 
   // render an activity spinner and return a function that will trigger an update
   activity(): ReporterSpinner {

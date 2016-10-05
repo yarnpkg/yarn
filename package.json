@@ -61,6 +61,7 @@
     "eslint-plugin-flowtype": "^2.15.0",
     "eslint-plugin-no-async-without-await": "^1.0.0",
     "eslint-plugin-react": "^5.2.2",
+    "eslint-plugin-yarn-internal": "file:scripts/eslint-rules",
     "flow-bin": "0.33.0",
     "gulp": "^3.9.0",
     "gulp-babel": "^6.0.0",
@@ -102,9 +103,11 @@
     },
     "plugins": [
       "flowtype",
-      "no-async-without-await"
+      "no-async-without-await",
+      "yarn-internal"
     ],
     "rules": {
+      "yarn-internal/warn-language": 2,
       "max-len": [
         2,
         120

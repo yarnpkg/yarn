@@ -10,6 +10,8 @@ import * as fetchers from './fetchers/index.js';
 import * as fs from './util/fs.js';
 import * as promise from './util/promise.js';
 
+const path = require('path');
+
 export default class PackageFetcher {
   constructor(config: Config, resolver: PackageResolver) {
     this.reporter = config.reporter;
@@ -80,20 +82,38 @@ export default class PackageFetcher {
 
     await promise.queue(pkgs, async (ref) => {
       const res = await this.maybeFetch(ref);
+      let newPkg;
 
       if (res) {
+        newPkg = res.package;
+
         // update with new remote
         ref.remote.hash = res.hash;
         if (res.resolved) {
           ref.remote.resolved = res.resolved;
         }
+      }
+
+      if (newPkg) {
+        // read linked module manifest if one exists
+        if (ref.shouldLink()) {
+          let linkPkg = await this.config.readManifest(path.join(this.config.linkFolder, ref.name));
+
+          // copy over fields that will influence the lockfile
+          linkPkg.name = newPkg.name;
+          linkPkg.version = newPkg.version;
+          linkPkg.dependencies = newPkg.dependencies;
+          linkPkg.optionalDependencies = newPkg.optionalDependencies;
+
+          newPkg = linkPkg;
+        }
 
         // update with fresh manifest
-        await this.resolver.updateManifest(ref, res.package);
+        await this.resolver.updateManifest(ref, newPkg);
+      }
 
-        if (tick) {
-          tick(ref.name);
-        }
+      if (tick) {
+        tick(ref.name);
       }
     });
   }

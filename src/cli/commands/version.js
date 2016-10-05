@@ -85,11 +85,11 @@ export async function run(
       parts.pop();
     }
   }
-  if (isGit) {
-    const message = (flags.message || 'v%s').replace(/%s/g, newVersion);
-    const sign = false; // TODO sign-git-tag npm config
+  if (isGit && Boolean(config.getOption('version-git-tag'))) {
+    const message = (flags.message || String(config.getOption('version-git-message'))).replace(/%s/g, newVersion);
+    const sign: boolean = Boolean(config.getOption('version-sign-git-tag'));
     const flag = sign ? '-sm' : '-am';
-    const prefix = 'v'; // TODO tag-version-prefix npm config
+    const prefix: string = String(config.getOption('version-tag-prefix'));
 
     // add manifest
     await spawn('git', ['add', pkgLoc]);

@@ -1633,6 +1633,8 @@ eslint-plugin-react@^5.2.2:
   dependencies:
     doctrine "^1.2.2"
     jsx-ast-utils "^1.2.1"
+"eslint-plugin-yarn-internal@file:scripts/eslint-rules":
+  version "0.0.0"
 eslint@^3.0.0, eslint@^3.3.0, eslint@^3.3.1, eslint@>=1.0.0, eslint@>=2.0.0:
   version "3.7.1"
   resolved "https://registry.npmjs.org/eslint/-/eslint-3.7.1.tgz#7faa84599e0fea422f04bc32db49054051a3f11a"

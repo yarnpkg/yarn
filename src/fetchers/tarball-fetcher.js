@@ -22,11 +22,6 @@ export default class TarballFetcher extends BaseFetcher {
       return null;
     }
 
-    if (await fsUtil.exists(mirrorPath)) {
-      // already exists in the mirror
-      return null;
-    }
-
     let tarballLoc = path.join(this.dest, constants.TARBALL_FILENAME);
     if (!(await fsUtil.exists(tarballLoc))) {
       // no tarball located in the cache
@@ -34,7 +29,9 @@ export default class TarballFetcher extends BaseFetcher {
     }
 
     // copy the file over
-    await fsUtil.copy(tarballLoc, mirrorPath);
+    if (!await fsUtil.exists(mirrorPath)) {
+      await fsUtil.copy(tarballLoc, mirrorPath);
+    }
 
     const relativeMirrorPath = this.getRelativeMirrorPath(mirrorPath);
     invariant(relativeMirrorPath != null, 'Missing offline mirror path');

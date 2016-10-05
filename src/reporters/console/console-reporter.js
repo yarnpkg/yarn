@@ -7,17 +7,18 @@ import type {
   ReporterSpinner,
   ReporterSelectOption,
 } from '../types.js';
+import type {FormatKeys} from '../format.js';
 import BaseReporter from '../base-reporter.js';
 import Progress from './progress-bar.js';
 import Spinner from './spinner-progress.js';
 import {clearLine} from './util.js';
 import {removeSuffix} from '../../util/misc.js';
 
-let {inspect} = require('util');
-let chalk = require('chalk');
-let read = require('read');
-let readline = require('readline');
-let repeat = require('repeating');
+const {inspect} = require('util');
+const readline = require('readline');
+const repeat = require('repeating');
+const chalk = require('chalk');
+const read = require('read');
 
 function sortTrees(trees: Trees = []): Trees {
   return trees.sort(function(tree1, tree2): number {
@@ -25,12 +26,59 @@ function sortTrees(trees: Trees = []): Trees {
   });
 }
 
+type Row = Array<string>;
+
 export default class ConsoleReporter extends BaseReporter {
+  constructor(opts: Object) {
+    super(opts);
+    this._lastCategorySize = 0;
+
+    this.format = chalk;
+  }
+
+  // TODO flow bug
+  format: any;
+
+  _lastCategorySize: number;
+
   _prependEmoji(msg: string, emoji: ?string): string {
     if (this.emoji && emoji && this.isTTY) {
       msg = `${emoji}  ${msg}`;
     }
     return msg;
+  }
+
+  _logCategory(category: string, color: FormatKeys, msg: string) {
+    this._lastCategorySize = category.length;
+    this._log(`${this.format[color](category)} ${msg}`);
+  }
+
+  table(head: Array<string>, body: Array<Row>) {
+    //
+    head = head.map((field: string): string => this.format.underline(field));
+
+    //
+    let rows = [head].concat(body);
+
+    // get column widths
+    let cols: Array<number> = [];
+    for (let i = 0; i < head.length; i++) {
+      let widths = rows.map((row: Row): number => this.format.stripColor(row[i]).length);
+      cols[i] = Math.max(...widths);
+    }
+
+    //
+    let builtRows = rows.map((row: Row): string => {
+      for (let i = 0; i < row.length; i++) {
+        let field = row[i];
+        let padding = cols[i] - this.format.stripColor(field).length;
+
+        row[i] = field + repeat(' ', padding);
+      }
+      return row.join(' ');
+    });
+
+    this.log(builtRows.join('\n'));
   }
 
   step(current: number, total: number, msg: string, emoji?: string) {
@@ -42,7 +90,7 @@ export default class ConsoleReporter extends BaseReporter {
       msg += '...';
     }
 
-    this.log(`${chalk.grey(`[${current}/${total}]`)} ${msg}`);
+    this.log(`${this.format.grey(`[${current}/${total}]`)} ${msg}`);
   }
 
   inspect(value: any) {
@@ -59,13 +107,14 @@ export default class ConsoleReporter extends BaseReporter {
   }
 
   list(key: string, items: Array<string>) {
+    const gutterWidth = (this._lastCategorySize || 2) - 1;
     for (let item of items) {
-      this.log(`   - ${item}`);
+      this._log(`${repeat(' ', gutterWidth)}- ${item}`);
     }
   }
 
   header(command: string, pkg: Package) {
-    this.log(chalk.bold(`${pkg.name} ${command} v${pkg.version}`));
+    this.log(this.format.bold(`${pkg.name} ${command} v${pkg.version}`));
   }
 
   footer(showPeakMemory?: boolean) {
@@ -79,30 +128,35 @@ export default class ConsoleReporter extends BaseReporter {
   }
 
   log(msg: string) {
+    this._lastCategorySize = 0;
+    this._log(msg);
+  }
+
+  _log(msg: string) {
     clearLine(this.stdout);
     this.stdout.write(`${msg}\n`);
   }
 
   success(msg: string) {
-    this.log(`${chalk.green('success')} ${msg}`);
+    this._logCategory('success', 'green', msg);
   }
 
   error(msg: string) {
     clearLine(this.stderr);
-    this.stderr.write(`${chalk.red('error')} ${msg}\n`);
+    this.stderr.write(`${this.format.red('error')} ${msg}\n`);
   }
 
   info(msg: string) {
-    this.log(`${chalk.blue('info')} ${msg}`);
+    this._logCategory('info', 'blue', msg);
   }
 
   command(command: string) {
-    this.log(chalk.grey(`$ ${command}`));
+    this.log(this.format.grey(`$ ${command}`));
   }
 
   warn(msg: string) {
     clearLine(this.stderr);
-    this.stderr.write(`${chalk.yellow('warning')} ${msg}\n`);
+    this.stderr.write(`${this.format.yellow('warning')} ${msg}\n`);
   }
 
   question(question: string, password?: boolean): Promise<string> {
@@ -112,7 +166,7 @@ export default class ConsoleReporter extends BaseReporter {
 
     return new Promise((resolve, reject) => {
       read({
-        prompt: `${chalk.grey('question')} ${question}: `,
+        prompt: `${this.format.grey('question')} ${question}: `,
         silent: !!password,
         output: this.stdout,
         input: this.stdin,
@@ -131,7 +185,7 @@ export default class ConsoleReporter extends BaseReporter {
 
     let stdout = this.stdout;
 
-    function output({name, children, hint, color}, level, end) {
+    let output = ({name, children, hint, color}, level, end) => {
       children = sortTrees(children);
 
       let indent = end ? '└' : '├';
@@ -142,10 +196,10 @@ export default class ConsoleReporter extends BaseReporter {
 
       let suffix = '';
       if (hint) {
-        suffix += ` (${chalk.grey(hint)})`;
+        suffix += ` (${this.format.grey(hint)})`;
       }
       if (color) {
-        name = chalk[color](name);
+        name = this.format[color](name);
       }
       stdout.write(`${indent}─ ${name}${suffix}\n`);
 
@@ -155,7 +209,7 @@ export default class ConsoleReporter extends BaseReporter {
           output(tree, level + 1, i === children.length - 1);
         }
       }
-    }
+    };
 
     for (let i = 0; i < trees.length; i++) {
       let tree = trees[i];
@@ -180,11 +234,11 @@ export default class ConsoleReporter extends BaseReporter {
 
       let prefix: ?string = null;
       let current = 0;
-      function updatePrefix() {
+      let updatePrefix = () => {
         spinner.setPrefix(
-          `${chalk.grey(`[${current === 0 ? '-' : current}/${total}]`)} `,
+          `${this.format.grey(`[${current === 0 ? '-' : current}/${total}]`)} `,
         );
-      }
+      };
       function clear() {
         prefix = null;
         current = 0;
@@ -277,7 +331,7 @@ export default class ConsoleReporter extends BaseReporter {
       this.info(header);
 
       for (let i = 0; i < questions.length; i++) {
-        this.log(`  ${chalk.dim(`${i + 1})`)} ${questions[i]}`);
+        this.log(`  ${this.format.dim(`${i + 1})`)} ${questions[i]}`);
       }
 
       let ask = () => {

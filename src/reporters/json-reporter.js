@@ -50,6 +50,10 @@ export default class JSONReporter extends BaseReporter {
     this._dump('command', msg);
   }
 
+  table(head: Array<string>, body: Array<Array<string>>) {
+    this._dump('table', {head, body});
+  }
+
   success(msg: string) {
     this._dump('success', msg);
   }

@@ -103,6 +103,18 @@ export default async function (
     }
   }
 
+  // support array of engine keys
+  if (Array.isArray(info.engines)) {
+    const engines = {};
+    for (let str of info.engines) {
+      if (typeof str === 'string') {
+        let [name, ...patternParts] = str.trim().split(/ +/g);
+        engines[name] = patternParts.join(' ');
+      }
+    }
+    info.engines = engines;
+  }
+
   // if the repository field is a string then assume it's a git repo and expand it
   if (typeof info.repository === 'string') {
     info.repository = {

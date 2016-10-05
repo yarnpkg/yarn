@@ -2,7 +2,7 @@
 
 import type {Reporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
-import {Install} from './install.js';
+import {Add} from './add.js';
 import Lockfile from '../../lockfile/wrapper.js';
 
 export function setFlags(commander: Object) {
@@ -19,7 +19,7 @@ export async function run(
   flags: Object,
   args: Array<string>,
 ): Promise<void> {
-  const lockfile = new Lockfile();
-  const install = new Install(flags, config, reporter, lockfile);
+  let lockfile = args.length ? await Lockfile.fromDirectory(config.cwd, reporter) : new Lockfile();
+  const install = new Add(args, flags, config, reporter, lockfile);
   await install.init();
 }
