@@ -21,7 +21,6 @@ env:
   - TEST_TYPE="lockfile"
   - TEST_TYPE="lint"
   - NODE_VERSION="6" TEST_TYPE="js"
-  - NODE_VERSION="5" TEST_TYPE="js"
   - NODE_VERSION="4" TEST_TYPE="js"
 
 matrix:
@@ -35,7 +34,7 @@ matrix:
 
 install:
  # install latest git
- - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install git; fi
+ - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew unlink git; brew install git; fi
  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then ./scripts/update-linux-git.sh; fi
  - git --version
 

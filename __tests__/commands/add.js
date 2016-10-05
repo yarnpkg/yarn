@@ -8,7 +8,6 @@ import {parse} from '../../src/lockfile/wrapper.js';
 import {Install} from '../../src/cli/commands/install.js';
 import {run as check} from '../../src/cli/commands/check.js';
 import Config from '../../src/config.js';
-import parallelTest from '../_parallel-test.js';
 import * as fs from '../../src/util/fs.js';
 import {runInstall} from './_install.js';
 import assert from 'assert';
@@ -32,19 +31,19 @@ function runAdd(
   }, path.join(fixturesLoc, name), checkInstalled, beforeInstall);
 }
 
-parallelTest('install with arg that has install scripts', (): Promise<void> => {
+test.concurrent('install with arg that has install scripts', (): Promise<void> => {
   return runAdd({}, ['flow-bin'], 'install-with-arg-and-install-scripts');
 });
 
-parallelTest('install with arg', (): Promise<void> => {
+test.concurrent('install with arg', (): Promise<void> => {
   return runAdd({}, ['is-online'], 'install-with-arg');
 });
 
-parallelTest('install with arg that has binaries', (): Promise<void> => {
+test.concurrent('install with arg that has binaries', (): Promise<void> => {
   return runAdd({}, ['react-native-cli'], 'install-with-arg-and-bin');
 });
 
-parallelTest('add should ignore cache', (): Promise<void> => {
+test.concurrent('add should ignore cache', (): Promise<void> => {
   // left-pad@1.1.0 gets installed without --save
   // left-pad@1.1.0 gets installed with --save
   // files in mirror, yarn.lock, package.json and node_modules should reflect that
@@ -85,7 +84,7 @@ parallelTest('add should ignore cache', (): Promise<void> => {
   });
 });
 
-parallelTest('add should not make package.json strict', async (): Promise<void> => {
+test.concurrent('add should not make package.json strict', async (): Promise<void> => {
   let mirrorPath = 'mirror-for-offline';
   let fixture = 'install-no-strict';
   let cwd = path.join(fixturesLoc, fixture);
@@ -104,7 +103,7 @@ parallelTest('add should not make package.json strict', async (): Promise<void> 
   });
 });
 
-parallelTest('add --save-exact should not make all package.json strict', async (): Promise<void> => {
+test.concurrent('add --save-exact should not make all package.json strict', async (): Promise<void> => {
   let mirrorPath = 'mirror-for-offline';
   let fixture = 'install-no-strict-all';
   let cwd = path.join(fixturesLoc, fixture);
@@ -126,7 +125,7 @@ parallelTest('add --save-exact should not make all package.json strict', async (
   });
 });
 
-parallelTest('add with new dependency should be deterministic 3', async (): Promise<void> => {
+test.concurrent('add with new dependency should be deterministic 3', async (): Promise<void> => {
   let fixture = 'install-should-cleanup-when-package-json-changed-3';
   let cwd = path.join(fixturesLoc, fixture);
   await fs.copy(path.join(cwd, 'yarn.lock.before'), path.join(cwd, 'yarn.lock'));
@@ -155,7 +154,7 @@ parallelTest('add with new dependency should be deterministic 3', async (): Prom
   });
 });
 
-parallelTest('add should update a dependency to yarn and mirror (PR import scenario 2)', async (): Promise<void> => {
+test.concurrent('add should update a dependency to yarn and mirror (PR import scenario 2)', async (): Promise<void> => {
   // mime-types@2.0.0 is saved in local mirror and gets updated to mime-types@2.1.11 via
   // a change in package.json,
   // files in mirror, yarn.lock, package.json and node_modules should reflect that
@@ -213,7 +212,7 @@ parallelTest('add should update a dependency to yarn and mirror (PR import scena
   });
 });
 
-parallelTest('install --initMirror should add init mirror deps from package.json',
+test.concurrent('install --initMirror should add init mirror deps from package.json',
 (): Promise<void> => {
   let mirrorPath = 'mirror-for-offline';
   let fixture = 'install-init-mirror';
@@ -240,7 +239,7 @@ parallelTest('install --initMirror should add init mirror deps from package.json
   });
 });
 
-parallelTest('add with new dependency should be deterministic', async (): Promise<void> => {
+test.concurrent('add with new dependency should be deterministic', async (): Promise<void> => {
   // mime-types@2.0.0->mime-db@1.0.3 is saved in local mirror and is deduped
   // install mime-db@1.23.0 should move mime-db@1.0.3 deep into mime-types
 
@@ -349,7 +348,7 @@ xit('add with new dependency should be deterministic 2', async (): Promise<void>
   });
 });
 
-parallelTest('add with offline mirror', (): Promise<void> => {
+test.concurrent('add with offline mirror', (): Promise<void> => {
   let mirrorPath = 'mirror-for-offline';
   return runAdd({}, ['is-array@^1.0.1'], 'install-with-save-offline-mirror', async (config) => {
     let allFiles = await fs.walk(config.cwd);
@@ -368,7 +367,7 @@ parallelTest('add with offline mirror', (): Promise<void> => {
   });
 });
 
-parallelTest('install with --save and without offline mirror', (): Promise<void> => {
+test.concurrent('install with --save and without offline mirror', (): Promise<void> => {
   let mirrorPath = 'mirror-for-offline';
   return runAdd({}, ['is-array@^1.0.1'], 'install-with-save-no-offline-mirror', async (config) => {
 
@@ -388,7 +387,7 @@ parallelTest('install with --save and without offline mirror', (): Promise<void>
   });
 });
 
-parallelTest('upgrade scenario', (): Promise<void> => {
+test.concurrent('upgrade scenario', (): Promise<void> => {
   // left-pad first installed 0.0.9 then updated to 1.1.0
   // files in mirror, yarn.lock, package.json and node_modules should reflect that
 
@@ -445,7 +444,7 @@ parallelTest('upgrade scenario', (): Promise<void> => {
   }, clean);
 });
 
-parallelTest('upgrade scenario 2 (with sub dependencies)', async (): Promise<void> => {
+test.concurrent('upgrade scenario 2 (with sub dependencies)', async (): Promise<void> => {
   // mime-types@2.0.0 is saved in local mirror and gets updated to mime-types@2.1.11
   // files in mirror, yarn.lock, package.json and node_modules should reflect that
 
@@ -499,7 +498,7 @@ parallelTest('upgrade scenario 2 (with sub dependencies)', async (): Promise<voi
   });
 });
 
-parallelTest('downgrade scenario', (): Promise<void> => {
+test.concurrent('downgrade scenario', (): Promise<void> => {
   // left-pad first installed 1.1.0 then downgraded to 0.0.9
   // files in mirror, yarn.lock, package.json and node_modules should reflect that
 
@@ -552,7 +551,7 @@ parallelTest('downgrade scenario', (): Promise<void> => {
 });
 
 // https://github.com/yarnpkg/yarn/issues/318
-parallelTest('modules resolved multiple times should save to mirror correctly', (): Promise<void> => {
+test.concurrent('modules resolved multiple times should save to mirror correctly', (): Promise<void> => {
   // the package.json in this fixture has 4 transitive dependants on module which that should resolve to
   // which@^1.0.5, which@^1.1.1, which@^1.2.8, which@^1.2.9:
   //   version "1.2.11"
@@ -582,7 +581,7 @@ parallelTest('modules resolved multiple times should save to mirror correctly', 
   });
 });
 
-parallelTest('add should put a git dependency to mirror', (): Promise<void> => {
+test.concurrent('add should put a git dependency to mirror', (): Promise<void> => {
   let mirrorPath = 'mirror-for-offline';
   let fixture = 'install-git-mirror';
 
