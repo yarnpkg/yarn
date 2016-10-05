@@ -27,6 +27,9 @@ export {config};
 import * as team from './team.js';
 export {team};
 
+import * as generateLockEntry from './generate-lock-entry.js';
+export {generateLockEntry};
+
 import * as link from './link.js';
 export {link};
 

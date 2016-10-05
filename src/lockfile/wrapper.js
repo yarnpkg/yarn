@@ -24,10 +24,21 @@ type LockManifest = {
   version: string,
   resolved: string,
   registry: RegistryNames,
-  uid?: string,
-  permissions?: { [key: string]: boolean },
-  optionalDependencies?: Dependencies,
-  dependencies?: Dependencies,
+  uid: string,
+  permissions: ?{ [key: string]: boolean },
+  optionalDependencies: ?Dependencies,
+  dependencies: ?Dependencies,
+};
+
+type MinimalLockManifest = {
+  name: ?string,
+  version: string,
+  resolved: string,
+  registry: ?RegistryNames,
+  uid: ?string,
+  permissions: ?{ [key: string]: boolean },
+  optionalDependencies: ?Dependencies,
+  dependencies: ?Dependencies,
 };
 
 function getName(pattern: string): string {
@@ -36,6 +47,30 @@ function getName(pattern: string): string {
 
 function blankObjectUndefined(obj: ?Object): ?Object {
   return obj && Object.keys(obj).length ? obj : undefined;
+}
+
+export function implodeEntry(pattern: string, obj: Object): MinimalLockManifest {
+  const inferredName = getName(pattern);
+  return {
+    name: inferredName === obj.name ? undefined : obj.name,
+    version: obj.version,
+    uid: obj.uid === obj.version ? undefined : obj.uid,
+    resolved: obj.resolved,
+    registry: obj.registry === 'npm' ? undefined : obj.registry,
+    dependencies: blankObjectUndefined(obj.dependencies),
+    optionalDependencies: blankObjectUndefined(obj.optionalDependencies),
+    permissions: blankObjectUndefined(obj.permissions),
+  };
+}
+
+export function explodeEntry(pattern: string, obj: Object): LockManifest {
+  obj.optionalDependencies = obj.optionalDependencies || {};
+  obj.dependencies = obj.dependencies || {};
+  obj.uid = obj.uid || obj.version;
+  obj.permissions = obj.permissions || {};
+  obj.registry = obj.registry || 'npm';
+  obj.name = obj.name || getName(pattern);
+  return obj;
 }
 
 export default class Lockfile {
@@ -80,10 +115,7 @@ export default class Lockfile {
     if (typeof shrunk === 'string') {
       return this.getLocked(shrunk);
     } else if (shrunk) {
-      shrunk.uid = shrunk.uid || shrunk.version;
-      shrunk.permissions = shrunk.permissions || {};
-      shrunk.registry = shrunk.registry || 'npm';
-      shrunk.name = shrunk.name || getName(pattern);
+      explodeEntry(pattern, shrunk);
       return shrunk;
     }
 
@@ -120,17 +152,17 @@ export default class Lockfile {
         continue;
       }
 
-      const inferredName = getName(pattern);
-      const obj = {
-        name: inferredName === pkg.name ? undefined : pkg.name,
+      const obj = implodeEntry(pattern, {
+        name: pkg.name,
         version: pkg.version,
-        uid: pkg._uid === pkg.version ? undefined : pkg._uid,
+        uid: pkg._uid,
         resolved: remote.resolved,
-        registry: remote.registry === 'npm' ? undefined : remote.registry,
-        dependencies: blankObjectUndefined(pkg.dependencies),
-        optionalDependencies: blankObjectUndefined(pkg.optionalDependencies),
-        permissions: blankObjectUndefined(ref.permissions),
-      };
+        registry: remote.registry,
+        dependencies: pkg.dependencies,
+        peerDependencies: pkg.peerDependencies,
+        optionalDependencies: pkg.optionalDependencies,
+        permissions: ref.permissions,
+      });
       lockfile[pattern] = obj;
 
       if (remote.resolved) {
