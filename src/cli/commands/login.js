@@ -78,7 +78,7 @@ export async function getToken(config: Config, reporter: Reporter): Promise<
     auth: {username, password, email},
   });
 
-  if (res.ok) {
+  if (res && res.ok) {
     reporter.success(reporter.lang('loggedIn'));
 
     const token = res.token;
