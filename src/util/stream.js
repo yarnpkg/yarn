@@ -35,11 +35,14 @@ export class UnpackStream extends stream.Transform {
         // Stop receiving data from the src stream, and pipe it instead to zlib,
         // then pipe it's output through us.
         const unzipStream = zlib.createUnzip();
+        unzipStream.on('error', (err) => this.emit('error', err));
+
         const srcStream = this._srcStream;
         invariant(srcStream, 'How? To get here a stream must have been piped!');
         srcStream
           .pipe(unzipStream)
           .pipe(this);
+
         // Unpipe after another stream has been piped so it's always piping to
         // something, thus avoiding pausing it.
         srcStream.unpipe(this);
