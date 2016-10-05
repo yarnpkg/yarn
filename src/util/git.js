@@ -204,7 +204,7 @@ export default class Git {
       if (await fs.exists(cwd)) {
         await child.spawn('git', ['pull'], {cwd});
       } else {
-        await child.spawn('git', ['clone', url, cwd], {cwd});
+        await child.spawn('git', ['clone', url, cwd]);
       }
 
       this.fetched = true;
