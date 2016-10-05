@@ -41,7 +41,7 @@ export async function run(
 
     for (const registryName of Object.keys(registries)) {
       const registry = config.registries[registryName];
-      let object = rootManifests[registryName].object;
+      const object = rootManifests[registryName].object;
 
       for (const type of constants.DEPENDENCY_TYPES) {
         const deps = object[type];
@@ -69,7 +69,7 @@ export async function run(
   await install.saveRootManifests(rootManifests);
 
   // run hooks - npm runs these one after another
-  for (let action of ['preuninstall', 'uninstall', 'postuninstall']) {
+  for (const action of ['preuninstall', 'uninstall', 'postuninstall']) {
     for (const [loc, manifest] of manifests) {
       await execFromManifest(config, action, manifest, loc);
     }

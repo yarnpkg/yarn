@@ -49,7 +49,7 @@ export default class NpmRegistry extends Registry {
   request(pathname: string, opts?: RegistryRequestOptions = {}): Promise<?Object> {
     const registry = removeSuffix(String(this.registries.yarn.getOption('registry')), '/');
 
-    let headers = {};
+    const headers = {};
     if (this.token) {
       headers.authorization = `Bearer ${this.token}`;
     }
@@ -64,7 +64,7 @@ export default class NpmRegistry extends Registry {
   }
 
   async checkOutdated(config: Config, name: string, range: string): CheckOutdatedReturn {
-    let req = await this.request(name);
+    const req = await this.request(name);
     if (!req) {
       throw new Error('couldnt find ' + name);
     }
@@ -88,8 +88,8 @@ export default class NpmRegistry extends Registry {
       foldersFromRootToCwd.pop();
     }
 
-    let actuals = [];
-    for (let [isHome, loc] of possibles) {
+    const actuals = [];
+    for (const [isHome, loc] of possibles) {
       if (await fs.exists(loc)) {
         actuals.push([
           isHome,

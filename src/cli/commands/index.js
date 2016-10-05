@@ -86,14 +86,14 @@ export {run};
 
 import buildUseless from './_useless.js';
 
-export let lockfile = buildUseless(
+export const lockfile = buildUseless(
   "The lockfile command isn't necessary. `yarn install` will produce a lockfile.",
 );
 
-export let dedupe = buildUseless(
+export const dedupe = buildUseless(
   "The dedupe command isn't necessary. `yarn install` will already dedupe.",
 );
 
-export let prune = buildUseless(
+export const prune = buildUseless(
   "The prune command isn't necessary. `yarn install` will prune extraneous packages.",
 );

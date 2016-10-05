@@ -11,24 +11,24 @@ import * as fs from '../src/util/fs.js';
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000;
 
-let path = require('path');
+const path = require('path');
 
 function addTest(pattern, registry = 'npm') {
   test.concurrent(`resolve ${pattern}`, async () => {
-    let lockfile = new Lockfile();
-    let reporter = new reporters.NoopReporter({});
+    const lockfile = new Lockfile();
+    const reporter = new reporters.NoopReporter({});
 
-    let loc = await makeTemp();
+    const loc = await makeTemp();
     await fs.mkdirp(path.join(loc, 'node_modules'));
     await fs.mkdirp(path.join(loc, constants.MODULE_CACHE_DIRECTORY));
 
-    let config = new Config(reporter);
+    const config = new Config(reporter);
     await config.init({
       cwd: loc,
       packagesRoot: loc,
       tempFolder: loc,
     });
-    let resolver = new PackageResolver(config, lockfile);
+    const resolver = new PackageResolver(config, lockfile);
     await resolver.init([{pattern, registry}]);
     await reporter.close();
   });

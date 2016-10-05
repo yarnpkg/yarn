@@ -3,8 +3,8 @@
 import type {WalkFiles} from './fs.js';
 import {removeSuffix} from './misc.js';
 
-let minimatch = require('minimatch');
-let path = require('path');
+const minimatch = require('minimatch');
+const path = require('path');
 
 const WHITESPACE_RE = /^\s+$/;
 
@@ -62,7 +62,7 @@ export function sortFilter(
     let parts = path.dirname(file).split(path.sep);
 
     while (parts.length) {
-      let folder = parts.join(path.sep);
+      const folder = parts.join(path.sep);
       if (ignoreFiles.has(folder)) {
         ignoreFiles.add(file);
         break;

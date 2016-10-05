@@ -13,7 +13,7 @@ export async function getName(args: Array<string>, config: Config): Promise<stri
   let name = args.shift();
 
   if (!name) {
-    let pkg = await config.readRootManifest();
+    const pkg = await config.readRootManifest();
     name = pkg.name;
   }
 
@@ -28,7 +28,7 @@ export async function getName(args: Array<string>, config: Config): Promise<stri
   }
 }
 
-export let {run, setFlags, examples} = buildSubCommands('dist-tag', {
+export const {run, setFlags, examples} = buildSubCommands('dist-tag', {
   async add(
     config: Config,
     reporter: Reporter,
@@ -50,10 +50,10 @@ export let {run, setFlags, examples} = buildSubCommands('dist-tag', {
     const tag = args.shift();
 
     reporter.step(1, 3, reporter.lang('loggingIn'));
-    let revoke = await getToken(config, reporter);
+    const revoke = await getToken(config, reporter);
 
     reporter.step(2, 3, reporter.lang('creatingTag', tag, range));
-    let result = await config.registries.npm.request(
+    const result = await config.registries.npm.request(
       `-/package/${NpmRegistry.escapeName(name)}/dist-tags/${encodeURI(tag)}`,
       {
         method: 'PUT',
@@ -91,7 +91,7 @@ export let {run, setFlags, examples} = buildSubCommands('dist-tag', {
     const tag = args.shift();
 
     reporter.step(1, 3, reporter.lang('loggingIn'));
-    let revoke = await getToken(config, reporter);
+    const revoke = await getToken(config, reporter);
 
     reporter.step(2, 3, reporter.lang('deletingTags'));
     const result = await config.registries.npm.request(`-/package/${name}/dist-tags/${encodeURI(tag)}`, {
@@ -121,7 +121,7 @@ export let {run, setFlags, examples} = buildSubCommands('dist-tag', {
     args: Array<string>,
   ): Promise<void> {
     reporter.step(1, 3, reporter.lang('loggingIn'));
-    let revoke = await getToken(config, reporter);
+    const revoke = await getToken(config, reporter);
 
     reporter.step(2, 3, reporter.lang('gettingTags'));
     const name = await getName(args, config);

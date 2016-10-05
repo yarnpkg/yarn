@@ -1,7 +1,7 @@
 /* @flow */
  /* eslint max-len: 0 */
 
-let messages = {
+const messages = {
   upToDate: 'Already up-to-date.',
   folderInSync: 'Folder in sync.',
   nothingToInstall: 'Nothing to install.',

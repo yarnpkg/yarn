@@ -38,7 +38,7 @@ export default class NpmResolver extends RegistryResolver {
 
   async resolveRequest(): Promise<?Manifest> {
     if (this.config.offline) {
-      let res = this.resolveRequestOffline();
+      const res = this.resolveRequestOffline();
       if (res != null) {
         return res;
       }

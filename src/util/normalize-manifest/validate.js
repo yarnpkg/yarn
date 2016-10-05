@@ -79,7 +79,7 @@ export default function(info: Object, isRoot: boolean, reporter: Reporter, warn:
   // validate license
   if (isRoot && !info.private) {
     if (typeof info.license === 'string') {
-      let license = info.license.replace(/\*$/g, '');
+      const license = info.license.replace(/\*$/g, '');
       if (!isValidLicense(license)) {
         warn(reporter.lang('manifestLicenseInvalid'));
       }
@@ -101,7 +101,7 @@ export default function(info: Object, isRoot: boolean, reporter: Reporter, warn:
 
 export function cleanDependencies(info: Object, isRoot: boolean, reporter: Reporter, warn: WarnFunction) {
   // get dependency objects
-  let depTypes = [];
+  const depTypes = [];
   for (let type of dependencyKeys) {
     let deps = info[type];
     if (!deps || typeof deps !== 'object') {
@@ -124,11 +124,11 @@ export function cleanDependencies(info: Object, isRoot: boolean, reporter: Repor
   // ensure that dependencies don't have ones that can collide
   for (let [type, deps] of depTypes) {
     for (let name in deps) {
-      let version = deps[name];
+      const version = deps[name];
 
       // check collisions
-      for (let [type2, deps2] of depTypes) {
-        let version2 = deps2[name];
+      for (const [type2, deps2] of depTypes) {
+        const version2 = deps2[name];
         if (!version2 || version2 === '*') {
           continue;
         }

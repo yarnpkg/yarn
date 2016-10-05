@@ -5,7 +5,7 @@ import type {MockData} from "./_mock.js";
 import JSONReporter from "../../src/reporters/json-reporter.js";
 import build from "./_mock.js";
 
-let getJSONBuff = build(JSONReporter, (data): MockData => data);
+const getJSONBuff = build(JSONReporter, (data): MockData => data);
 
 test("JSONReporter.step", async () => {
   expect(await getJSONBuff((r) => {
@@ -57,7 +57,7 @@ test("JSONReporter.info", async () => {
 
 test("JSONReporter.activity", async () => {
   expect(await getJSONBuff(async function (r): Promise<void> {
-    let activity = await r.activity();
+    const activity = await r.activity();
     activity.tick("foo");
     activity.tick("bar");
     activity.end();
@@ -66,7 +66,7 @@ test("JSONReporter.activity", async () => {
 
 test("JSONReporter.progress", async () => {
   expect(await getJSONBuff(async function (r): Promise<void> {
-    let tick = await r.progress(2);
+    const tick = await r.progress(2);
     tick();
     tick();
   })).toMatchSnapshot();

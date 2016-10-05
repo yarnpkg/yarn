@@ -258,7 +258,7 @@ export default class RequestManager {
 
     //
     let calledOnError = false;
-    let onError = (err) => {
+    const onError = (err) => {
       if (calledOnError) {
         return;
       }

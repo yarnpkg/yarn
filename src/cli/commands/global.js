@@ -27,7 +27,7 @@ class GlobalAdd extends Add {
   }
 }
 
-let path = require('path');
+const path = require('path');
 
 async function updateCwd(config: Config): Promise<void> {
   await config.init({cwd: config.globalFolder});
@@ -35,21 +35,21 @@ async function updateCwd(config: Config): Promise<void> {
 
 async function getBins(config: Config): Promise<Set<string>> {
   // build up list of registry folders to search for binaries
-  let dirs = [];
+  const dirs = [];
   for (const registryName of Object.keys(registries)) {
     const registry = config.registries[registryName];
     dirs.push(registry.loc);
   }
 
   // build up list of binary files
-  let paths = new Set();
+  const paths = new Set();
   for (const dir of dirs) {
     const binDir = path.join(dir, '.bin');
     if (!await fs.exists(binDir)) {
       continue;
     }
 
-    for (let name of await fs.readdir(binDir)) {
+    for (const name of await fs.readdir(binDir)) {
       paths.add(path.join(binDir, name));
     }
   }
@@ -73,7 +73,7 @@ async function checkOwnership(cwd: string, binLoc: string): Promise<boolean> {
 async function initUpdateBins(config: Config, reporter: Reporter): Promise<() => Promise<void>> {
   const beforeBins = await getBins(config);
 
-  let binFolder = '/Users/sebmck/Scratch/test-global';
+  const binFolder = '/Users/sebmck/Scratch/test-global';
 
   return async function(): Promise<void> {
     const afterBins = await getBins(config);
@@ -141,7 +141,7 @@ function ls(manifest: Manifest, reporter: Reporter, saved: boolean) {
   }
 }
 
-export let {run, setFlags} = buildSubCommands('global', {
+export const {run, setFlags} = buildSubCommands('global', {
   async add(
     config: Config,
     reporter: Reporter,
@@ -150,7 +150,7 @@ export let {run, setFlags} = buildSubCommands('global', {
   ): Promise<void> {
     await updateCwd(config);
 
-    let updateBins = await initUpdateBins(config, reporter);
+    const updateBins = await initUpdateBins(config, reporter);
 
     // install module
     const lockfile = await Lockfile.fromDirectory(config.cwd);
@@ -189,7 +189,7 @@ export let {run, setFlags} = buildSubCommands('global', {
   ): Promise<void> {
     await updateCwd(config);
 
-    let updateBins = await initUpdateBins(config, reporter);
+    const updateBins = await initUpdateBins(config, reporter);
 
     // remove module
     await runRemove(config, reporter, flags, args);

@@ -235,7 +235,7 @@ export default class Config {
    */
 
   getOfflineMirrorPath(tarUrl: ?string): ?string {
-    let registry = this.registries.npm;
+    const registry = this.registries.npm;
     if (registry == null) {
       return null;
     }
@@ -361,7 +361,7 @@ export default class Config {
   getFolder(pkg: Manifest): string {
     let registryName = pkg._registry;
     if (!registryName) {
-      let ref = pkg._reference;
+      const ref = pkg._reference;
       invariant(ref, 'expected reference');
       registryName = ref.registry;
     }

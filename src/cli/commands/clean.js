@@ -7,7 +7,7 @@ import {sortFilter, ignoreLinesToRegex} from '../../util/filter.js';
 import {CLEAN_FILENAME} from '../../constants.js';
 import * as fs from '../../util/fs.js';
 
-let path = require('path');
+const path = require('path');
 
 export const requireLockfile = true;
 export const noArguments = true;
@@ -72,38 +72,38 @@ export async function clean(config: Config, reporter: Reporter): Promise<{
 }> {
   let loc = path.join(config.cwd, CLEAN_FILENAME);
   let file = await fs.readFile(loc);
-  let lines = file.split('\n');
-  let filters = DEFAULT_FILTERS.concat(ignoreLinesToRegex(lines));
+  const lines = file.split('\n');
+  const filters = DEFAULT_FILTERS.concat(ignoreLinesToRegex(lines));
 
   let removedFiles = 0;
   let removedSize = 0;
 
   // build list of possible module folders
-  let locs = new Set();
+  const locs = new Set();
   if (config.modulesFolder) {
     locs.add(config.modulesFolder);
   }
-  for (let name of registryNames) {
-    let registry = config.registries[name];
+  for (const name of registryNames) {
+    const registry = config.registries[name];
     locs.add(path.join(config.cwd, registry.folder));
   }
 
-  for (let folder of locs) {
+  for (const folder of locs) {
     if (!(await fs.exists(folder))) {
       continue;
     }
 
-    let spinner = reporter.activity();
-    let files = await fs.walk(folder);
-    let {ignoreFiles} = sortFilter(files, filters);
+    const spinner = reporter.activity();
+    const files = await fs.walk(folder);
+    const {ignoreFiles} = sortFilter(files, filters);
     spinner.end();
 
-    let tick = reporter.progress(ignoreFiles.size);
+    const tick = reporter.progress(ignoreFiles.size);
     // TODO make sure `main` field of all modules isn't ignored
 
     for (let file of ignoreFiles) {
       let loc = path.join(folder, file);
-      let stat = await fs.lstat(loc);
+      const stat = await fs.lstat(loc);
       removedSize += stat.size;
       removedFiles++;
     }
@@ -128,7 +128,7 @@ export async function run(
   await fs.writeFile(path.join(config.cwd, CLEAN_FILENAME), '\n');
 
   reporter.step(2, 2, reporter.lang('cleaning'));
-  let {removedFiles, removedSize} = await clean(config, reporter);
+  const {removedFiles, removedSize} = await clean(config, reporter);
   reporter.info(reporter.lang('cleanRemovedFiles', removedFiles));
   reporter.info(reporter.lang('cleanSavedSize', (removedSize / 1024 / 1024).toFixed(2)));
 }

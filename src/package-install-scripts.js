@@ -43,9 +43,9 @@ export default class PackageInstallScripts {
   }
 
   async walk(loc: string): Promise<Map<string, number>> {
-    let files = await fs.walk(loc, null, this.config.registryFolders);
-    let mtimes = new Map();
-    for (let file of files) {
+    const files = await fs.walk(loc, null, this.config.registryFolders);
+    const mtimes = new Map();
+    for (const file of files) {
       mtimes.set(file.relative, file.mtime);
     }
     return mtimes;
@@ -126,7 +126,7 @@ export default class PackageInstallScripts {
         pkg,
         spinner,
         async (): Promise<void> => {
-          for (let cmd of cmds) {
+          for (const cmd of cmds) {
             await executeLifecycleScript(this.config, loc, cmd, spinner);
           }
         },
@@ -177,7 +177,7 @@ export default class PackageInstallScripts {
     invariant(ref, 'expected reference');
 
     const deps = ref.dependencies;
-    for (let dep of deps) {
+    for (const dep of deps) {
       const pkgDep = this.resolver.getStrictResolvedPattern(dep);
       if (seenManifests.has(pkgDep)) {
         // there is a cycle but not with the root
@@ -197,13 +197,13 @@ export default class PackageInstallScripts {
 
   // find the next package to be installed
   findInstallablePackage(workQueue: Set<Manifest>, installed: Set<Manifest>): ?Manifest {
-    for (let pkg of workQueue) {
+    for (const pkg of workQueue) {
       const ref = pkg._reference;
       invariant(ref, 'expected reference');
       const deps = ref.dependencies;
 
       let dependenciesFullfilled = true;
-      for (let dep of deps) {
+      for (const dep of deps) {
         const pkgDep = this.resolver.getStrictResolvedPattern(dep);
         if (!installed.has(pkgDep)) {
           dependenciesFullfilled = false;
@@ -252,7 +252,7 @@ export default class PackageInstallScripts {
         await this.runCommand(spinner, pkg);
       }
       installed.add(pkg);
-      for (let workerResolve of waitQueue) {
+      for (const workerResolve of waitQueue) {
         workerResolve();
       }
       waitQueue.clear();
@@ -260,11 +260,11 @@ export default class PackageInstallScripts {
   }
 
   async init(seedPatterns: Array<string>): Promise<void> {
-    let workQueue = new Set();
-    let installed = new Set();
-    let pkgs = this.resolver.getTopologicalManifests(seedPatterns);
+    const workQueue = new Set();
+    const installed = new Set();
+    const pkgs = this.resolver.getTopologicalManifests(seedPatterns);
     let installablePkgs = 0;
-    for (let pkg of pkgs) {
+    for (const pkg of pkgs) {
       if (this.packageCanBeInstalled(pkg)) {
         installablePkgs += 1;
       }
@@ -273,12 +273,12 @@ export default class PackageInstallScripts {
 
     // waitQueue acts like a semaphore to allow workers to register to be notified
     // when there are more work added to the work queue
-    let waitQueue = new Set();
-    let workers = [];
+    const waitQueue = new Set();
+    const workers = [];
 
     const set = this.reporter.activitySet(installablePkgs, Math.min(constants.CHILD_CONCURRENCY, workQueue.size));
 
-    for (let spinner of set.spinners) {
+    for (const spinner of set.spinners) {
       workers.push(this.worker(spinner, workQueue, installed, waitQueue));
     }
 

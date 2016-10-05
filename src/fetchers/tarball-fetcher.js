@@ -16,13 +16,13 @@ const fs = require('fs');
 
 export default class TarballFetcher extends BaseFetcher {
   async getResolvedFromCached(hash: string): Promise<?string> {
-    let mirrorPath = this.getMirrorPath();
+    const mirrorPath = this.getMirrorPath();
     if (mirrorPath == null) {
       // no mirror
       return null;
     }
 
-    let tarballLoc = path.join(this.dest, constants.TARBALL_FILENAME);
+    const tarballLoc = path.join(this.dest, constants.TARBALL_FILENAME);
     if (!(await fsUtil.exists(tarballLoc))) {
       // no tarball located in the cache
       return null;
@@ -85,7 +85,7 @@ export default class TarballFetcher extends BaseFetcher {
   }
 
   async fetchFromLocal(pathname: ?string): Promise<FetchedOverride> {
-    let {reference: ref, config} = this;
+    const {reference: ref, config} = this;
 
     // path to the local tarball
     let localTarball;
@@ -107,7 +107,7 @@ export default class TarballFetcher extends BaseFetcher {
     }
 
     return new Promise((resolve, reject) => {
-      let {validateStream, extractorStream} = this.createExtractor(null, resolve, reject);
+      const {validateStream, extractorStream} = this.createExtractor(null, resolve, reject);
 
       const cachedStream = fs.createReadStream(localTarball);
 
@@ -129,7 +129,7 @@ export default class TarballFetcher extends BaseFetcher {
   }
 
   fetchFromExternal(): Promise<FetchedOverride> {
-    let {reference: ref} = this;
+    const {reference: ref} = this;
 
     return this.config.requestManager.request({
       url: ref,
@@ -147,7 +147,7 @@ export default class TarballFetcher extends BaseFetcher {
           : null;
 
         //
-        let {
+        const {
           validateStream,
           extractorStream,
         } = this.createExtractor(overwriteResolved, resolve, reject);

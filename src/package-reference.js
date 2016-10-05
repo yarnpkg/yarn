@@ -89,7 +89,7 @@ export default class PackageReference {
   }
 
   prune() {
-    for (let selfPattern of this.patterns) {
+    for (const selfPattern of this.patterns) {
       // remove ourselves from the resolver
       this.resolver.removePattern(selfPattern);
     }
@@ -118,7 +118,7 @@ export default class PackageReference {
 
     const shrunk = this.lockfile.getLocked(pattern);
     if (shrunk && shrunk.permissions) {
-      for (let [key, perm] of entries(shrunk.permissions)) {
+      for (const [key, perm] of entries(shrunk.permissions)) {
         this.setPermission(key, perm);
       }
     }
@@ -137,7 +137,7 @@ export default class PackageReference {
 
   calculateVisibility() {
     let nowIgnore = false;
-    let stack = this.visibility;
+    const stack = this.visibility;
 
     // if we don't use this module then mark it as ignored
     if (stack[USED] === 0) {

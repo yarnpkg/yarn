@@ -35,9 +35,9 @@ export async function run(
       throw new MessageError(reporter.lang('lockfileOutdated'));
     }
 
-    let normalized = PackageRequest.normalizePattern(pattern);
+    const normalized = PackageRequest.normalizePattern(pattern);
 
-    let current = locked.version;
+    const current = locked.version;
     let name = locked.name;
 
     let latest = '';

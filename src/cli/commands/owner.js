@@ -26,22 +26,22 @@ export async function mutate(
     return false;
   }
 
-  let username = args.shift();
-  let name = await getName(args, config);
+  const username = args.shift();
+  const name = await getName(args, config);
   if (!isValidPackageName(name)) {
     throw new MessageError(reporter.lang('invalidPackageName'));
   }
 
-  let msgs = buildMessages(username, name);
+  const msgs = buildMessages(username, name);
   reporter.step(1, 3, reporter.lang('loggingIn'));
-  let revoke = await getToken(config, reporter);
+  const revoke = await getToken(config, reporter);
 
   reporter.step(2, 3, msgs.info);
-  let user = await config.registries.npm.request(`-/user/org.couchdb.user:${username}`);
+  const user = await config.registries.npm.request(`-/user/org.couchdb.user:${username}`);
   let error = false;
   if (user) {
     // get package
-    let pkg = await config.registries.npm.request(NpmRegistry.escapeName(name));
+    const pkg = await config.registries.npm.request(NpmRegistry.escapeName(name));
     if (pkg) {
       pkg.maintainers = pkg.maintainers || [];
       error = mutator({name: user.name, email: user.email}, pkg);
@@ -52,7 +52,7 @@ export async function mutate(
 
     // update package
     if (pkg && !error) {
-      let res = await config.registries.npm.request(`${NpmRegistry.escapeName(name)}/-rev/${pkg._rev}`, {
+      const res = await config.registries.npm.request(`${NpmRegistry.escapeName(name)}/-rev/${pkg._rev}`, {
         method: 'PUT',
         body: {
           _id: pkg._id,
@@ -83,7 +83,7 @@ export async function mutate(
   }
 }
 
-export let {run, setFlags} = buildSubCommands('owner', {
+export const {run, setFlags} = buildSubCommands('owner', {
   add(
     config: Config,
     reporter: Reporter,
@@ -100,7 +100,7 @@ export let {run, setFlags} = buildSubCommands('owner', {
         error: reporter.lang('ownerAddingFailed'),
       }),
       (user: Object, pkg: Object): boolean => {
-        for (let owner of pkg.maintainers) {
+        for (const owner of pkg.maintainers) {
           if (owner.name === user) {
             reporter.error(reporter.lang('ownerAlready'));
             return true;
@@ -133,7 +133,7 @@ export let {run, setFlags} = buildSubCommands('owner', {
         let found = false;
 
         pkg.maintainers = pkg.maintainers.filter((o): boolean => {
-          let match = o.name === user.name;
+          const match = o.name === user.name;
           found = found || match;
           return !match;
         });
@@ -157,19 +157,19 @@ export let {run, setFlags} = buildSubCommands('owner', {
       return false;
     }
 
-    let name = await getName(args, config);
+    const name = await getName(args, config);
 
     reporter.step(1, 3, reporter.lang('loggingIn'));
-    let revoke = await getToken(config, reporter);
+    const revoke = await getToken(config, reporter);
 
     reporter.step(2, 3, reporter.lang('ownerGetting', name));
-    let pkg = await config.registries.npm.request(name);
+    const pkg = await config.registries.npm.request(name);
     if (pkg) {
-      let owners = pkg.maintainers;
+      const owners = pkg.maintainers;
       if (!owners || !owners.length) {
         reporter.warn(reporter.lang('ownerNone'));
       } else {
-        for (let owner of owners) {
+        for (const owner of owners) {
           reporter.info(`${owner.name} <${owner.email}>`);
         }
       }

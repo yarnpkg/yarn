@@ -7,8 +7,8 @@ import ExoticResolver from './exotic-resolver.js';
 import * as util from '../../util/misc.js';
 import * as fs from '../../util/fs.js';
 
-let invariant = require('invariant');
-let path = require('path');
+const invariant = require('invariant');
+const path = require('path');
 
 export default class FileResolver extends ExoticResolver {
   constructor(request: PackageRequest, fragment: string) {
@@ -29,8 +29,8 @@ export default class FileResolver extends ExoticResolver {
       throw new MessageError(this.reporter.lang('doesntExist', loc));
     }
 
-    let manifest = await this.config.readManifest(loc, this.registry);
-    let registry = manifest._registry;
+    const manifest = await this.config.readManifest(loc, this.registry);
+    const registry = manifest._registry;
     invariant(registry, 'expected registry');
 
     manifest._remote = {

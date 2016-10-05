@@ -160,14 +160,14 @@ export class Parser {
   comments: Array<string>;
 
   onComment(token: Token) {
-    let value = token.value;
+    const value = token.value;
     invariant(typeof value === 'string', 'expected token value to be a string');
 
-    let comment = value.trim();
+    const comment = value.trim();
 
-    let versionMatch = comment.match(VERSION_REGEX);
+    const versionMatch = comment.match(VERSION_REGEX);
     if (versionMatch) {
-      let version = +versionMatch[1];
+      const version = +versionMatch[1];
       if (version > LOCKFILE_VERSION) {
         throw new MessageError(
           `Can't install from a lockfile of version ${version} as you're on an old yarn version that only supports ` +

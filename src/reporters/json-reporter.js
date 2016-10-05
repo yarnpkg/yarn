@@ -74,7 +74,7 @@ export default class JSONReporter extends BaseReporter {
     const id = this._activityId++;
     this._dump('activitySetStart', {id, total, workers});
 
-    let spinners = [];
+    const spinners = [];
     for (let i = 0; i < workers; i++) {
       let current = 0;
       let header = '';

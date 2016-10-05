@@ -59,7 +59,7 @@ export default class Git {
       return false;
     }
 
-    let [,, hostname] = match;
+    const [,, hostname] = match;
     const cached = supportsArchiveCache[hostname];
     if (cached != null) {
       return cached;
@@ -198,7 +198,7 @@ export default class Git {
    */
 
   fetch(): Promise<void> {
-    let {url, cwd} = this;
+    const {url, cwd} = this;
 
     return fs.lockQueue.push(url, async () => {
       if (!(await fs.exists(cwd))) {
@@ -344,7 +344,7 @@ export default class Git {
 
     for (const line of refLines) {
       // line example: 64b2c0cee9e829f73c5ad32b8cc8cb6f3bec65bb refs/tags/v4.2.2
-      let [sha, id] = line.split(/\s+/g);
+      const [sha, id] = line.split(/\s+/g);
       let [,, name] = id.split('/');
 
       // TODO: find out why this is necessary. idk it makes it work...

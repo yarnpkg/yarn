@@ -15,7 +15,7 @@ export default class TarballResolver extends ExoticResolver {
   constructor(request: PackageRequest, fragment: string) {
     super(request, fragment);
 
-    let {hash, url} = versionUtil.explodeHashedUrl(fragment);
+    const {hash, url} = versionUtil.explodeHashedUrl(fragment);
     this.hash = hash;
     this.url = url;
   }

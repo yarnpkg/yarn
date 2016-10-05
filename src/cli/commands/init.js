@@ -25,7 +25,7 @@ export async function run(
   const manifests = await install.getRootManifests();
 
   let gitUrl;
-  let author = {
+  const author = {
     name: config.getOption('init-author-name'),
     email: config.getOption('init-author-email'),
     url: config.getOption('init-author-url'),
@@ -105,9 +105,9 @@ export async function run(
   }
 
   // save answers
-  let targetManifests = [];
+  const targetManifests = [];
   for (let registryName of registryNames) {
-    let info = manifests[registryName];
+    const info = manifests[registryName];
     if (info.exists) {
       targetManifests.push(info);
     }
@@ -115,7 +115,7 @@ export async function run(
   if (!targetManifests.length) {
     targetManifests.push(manifests.npm);
   }
-  for (let targetManifest of targetManifests) {
+  for (const targetManifest of targetManifests) {
     Object.assign(targetManifest.object, pkg);
     reporter.success(`Saved ${path.basename(targetManifest.loc)}`);
   }

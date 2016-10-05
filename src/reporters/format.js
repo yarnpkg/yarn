@@ -4,7 +4,7 @@ function formatFunction(...strs: Array<string>): string {
   return strs.join(' ');
 }
 
-export let defaultFormatter = {
+export const defaultFormatter = {
   bold: formatFunction,
   dim: formatFunction,
   italic: formatFunction,

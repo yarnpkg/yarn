@@ -8,9 +8,9 @@ import {stringify} from '../../util/misc.js';
 import {spawn} from '../../util/child.js';
 import * as fs from '../../util/fs.js';
 
-let invariant = require('invariant');
-let semver = require('semver');
-let path = require('path');
+const invariant = require('invariant');
+const semver = require('semver');
+const path = require('path');
 
 const NEW_VERSION_FLAG = '--new-version [version]';
 function isValidNewVersion(oldVersion: string, newVersion: string, looseSemver: boolean): boolean {

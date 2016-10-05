@@ -3,13 +3,13 @@
  * isArray
  */
 
-var isArray = Array.isArray;
+const isArray = Array.isArray;
 
 /**
  * toString
  */
 
-var str = Object.prototype.toString;
+const str = Object.prototype.toString;
 
 /**
  * Whether or not the given `val`

@@ -43,7 +43,7 @@ export default class HostedGitResolver extends ExoticResolver {
     super(request, fragment);
 
     const exploded = this.exploded = explodeHostedGitFragment(fragment, this.reporter);
-    let {user, repo, hash} = exploded;
+    const {user, repo, hash} = exploded;
     this.user = user;
     this.repo = repo;
     this.hash = hash;

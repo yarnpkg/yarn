@@ -10,11 +10,11 @@ import * as fs from '../../src/util/fs.js';
 import {Install} from '../../src/cli/commands/install.js';
 import Config from '../../src/config.js';
 
-let stream = require('stream');
-let path = require('path');
-let os = require('os');
+const stream = require('stream');
+const path = require('path');
+const os = require('os');
 
-let fixturesLoc = path.join(__dirname, '..', 'fixtures', 'install');
+const fixturesLoc = path.join(__dirname, '..', 'fixtures', 'install');
 
 export function runInstall(
   flags: Object,
@@ -28,11 +28,11 @@ export function runInstall(
 }
 
 export async function createLockfile(dir: string): Promise<Lockfile> {
-  let lockfileLoc = path.join(dir, constants.LOCKFILE_FILENAME);
+  const lockfileLoc = path.join(dir, constants.LOCKFILE_FILENAME);
   let lockfile;
 
   if (await fs.exists(lockfileLoc)) {
-    let rawLockfile = await fs.readFile(lockfileLoc);
+    const rawLockfile = await fs.readFile(lockfileLoc);
     lockfile = parse(rawLockfile);
   }
 
@@ -44,8 +44,8 @@ export function explodeLockfile(lockfile: string): Array<string> {
 }
 
 export async function getPackageVersion(config: Config, packagePath: string): Promise<string> {
-  let loc = path.join(config.cwd, `node_modules/${packagePath.replace(/\//g, '/node_modules/')}/package.json`);
-  let json = JSON.parse(await fs.readFile(loc));
+  const loc = path.join(config.cwd, `node_modules/${packagePath.replace(/\//g, '/node_modules/')}/package.json`);
+  const json = JSON.parse(await fs.readFile(loc));
   return json.version;
 }
 
@@ -55,21 +55,21 @@ export async function run(
   checkInstalled: ?(config: Config, reporter: Reporter, install: Install) => ?Promise<void>,
   beforeInstall: ?(cwd: string) => ?Promise<void>,
 ): Promise<void> {
-  let cwd = path.join(
+  const cwd = path.join(
     os.tmpdir(),
     `yarn-${path.basename(dir)}-${Math.random()}`,
   );
   await fs.unlink(cwd);
   await fs.copy(dir, cwd);
 
-  for (let {basename, absolute} of await fs.walk(cwd)) {
+  for (const {basename, absolute} of await fs.walk(cwd)) {
     if (basename.toLowerCase() === '.ds_store') {
       await fs.unlink(absolute);
     }
   }
 
   let out = '';
-  let stdout = new stream.Writable({
+  const stdout = new stream.Writable({
     decodeStrings: false,
     write(data, encoding, cb) {
       out += data;
@@ -77,21 +77,21 @@ export async function run(
     },
   });
 
-  let reporter = new reporters.ConsoleReporter({stdout, stderr: stdout});
+  const reporter = new reporters.ConsoleReporter({stdout, stderr: stdout});
 
   if (beforeInstall) {
     await beforeInstall(cwd);
   }
 
   // remove the lockfile if we create one and it didn't exist before
-  let lockfile = await createLockfile(cwd);
+  const lockfile = await createLockfile(cwd);
 
   // create directories
   await fs.mkdirp(path.join(cwd, '.yarn'));
   await fs.mkdirp(path.join(cwd, 'node_modules'));
 
   try {
-    let config = new Config(reporter);
+    const config = new Config(reporter);
     await config.init({
       cwd,
       globalFolder: path.join(cwd, '.yarn/.global'),
@@ -99,7 +99,7 @@ export async function run(
       linkFolder: path.join(cwd, '.yarn/.link'),
     });
 
-    let install = factory(config, reporter, lockfile);
+    const install = factory(config, reporter, lockfile);
     await install.init();
 
     // self check to verify consistency after installation

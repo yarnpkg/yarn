@@ -15,7 +15,7 @@ import type {Formatter} from './format.js';
 import {defaultFormatter} from './format.js';
 import * as languages from './lang/index.js';
 
-let util = require('util');
+const util = require('util');
 
 type Language = $Keys<typeof languages>;
 
@@ -43,7 +43,7 @@ export function stringifyLangArgs(args: Array<any>): Array<string> {
 
 export default class BaseReporter {
   constructor(opts?: ReporterOptions = {}) {
-    let lang = 'en';
+    const lang = 'en';
     this.language = lang;
 
     this.stdout = opts.stdout || process.stdout;
@@ -73,7 +73,7 @@ export default class BaseReporter {
   startTime: number;
 
   lang(key: LanguageKeys, ...args: Array<any>): string {
-    let msg = languages[this.language][key] || languages.en[key];
+    const msg = languages[this.language][key] || languages.en[key];
     if (!msg) {
       throw new ReferenceError(`Unknown language key ${key}`);
     }
@@ -180,7 +180,7 @@ export default class BaseReporter {
 
   //
   async questionAffirm(question: string): Promise<boolean> {
-    let condition = true; // trick eslint
+    const condition = true; // trick eslint
 
     while (condition) {
       let answer = await this.question(question);

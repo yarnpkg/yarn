@@ -13,34 +13,34 @@ import {getPackageVersion, explodeLockfile, runInstall, createLockfile} from './
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000;
 
-let path = require('path');
+const path = require('path');
 
-let fixturesLoc = path.join(__dirname, '..', 'fixtures', 'install');
+const fixturesLoc = path.join(__dirname, '..', 'fixtures', 'install');
 
 test.concurrent('integrity hash respects flat and production flags', async () => {
-  let cwd = path.join(fixturesLoc, 'noop');
-  let reporter = new reporters.NoopReporter();
-  let config = new Config(reporter);
+  const cwd = path.join(fixturesLoc, 'noop');
+  const reporter = new reporters.NoopReporter();
+  const config = new Config(reporter);
   await config.init({cwd});
 
-  let lockfile = new Lockfile();
+  const lockfile = new Lockfile();
 
-  let install = new Install({}, config, reporter, lockfile);
+  const install = new Install({}, config, reporter, lockfile);
 
-  let install2 = new Install({flat: true}, config, reporter, lockfile);
+  const install2 = new Install({flat: true}, config, reporter, lockfile);
   assert(install2.generateIntegrityHash('foo', []) !== install.generateIntegrityHash('foo', []));
 
-  let install3 = new Install({production: true}, config, reporter, lockfile);
+  const install3 = new Install({production: true}, config, reporter, lockfile);
   assert(install3.generateIntegrityHash('foo', []) !== install.generateIntegrityHash('foo', []));
   assert(install3.generateIntegrityHash('foo', []) !== install2.generateIntegrityHash('foo', []));
 });
 
 test.concurrent('flat arg is inherited from root manifest', async (): Promise<void> => {
-  let cwd = path.join(fixturesLoc, 'top-level-flat-parameter');
-  let reporter = new reporters.NoopReporter();
-  let config = new Config(reporter);
+  const cwd = path.join(fixturesLoc, 'top-level-flat-parameter');
+  const reporter = new reporters.NoopReporter();
+  const config = new Config(reporter);
   await config.init({cwd});
-  let install = new Install({}, config, reporter, new Lockfile());
+  const install = new Install({}, config, reporter, new Lockfile());
   return install.fetchRequestFromCwd().then(function([,, manifest]) {
     assert.equal(manifest.flat, true);
     assert.equal(install.flags.flat, true);
@@ -87,12 +87,12 @@ test.concurrent('install file: protocol', (): Promise<void> => {
 
 test.concurrent('install renamed packages', (): Promise<void> => {
   return runInstall({}, 'install-renamed-packages', async (config): Promise<void> => {
-    let dir = path.join(config.cwd, 'node_modules');
+    const dir = path.join(config.cwd, 'node_modules');
 
-    let json = await fs.readJson(path.join(dir, 'left-pad', 'package.json'));
+    const json = await fs.readJson(path.join(dir, 'left-pad', 'package.json'));
     assert.equal(json.version, '1.0.0');
 
-    let json2 = await fs.readJson(path.join(dir, 'left-pad2', 'package.json'));
+    const json2 = await fs.readJson(path.join(dir, 'left-pad2', 'package.json'));
     assert.equal(json2.version, '1.1.0');
   });
 });
@@ -100,7 +100,7 @@ test.concurrent('install renamed packages', (): Promise<void> => {
 test.concurrent('install from offline mirror', (): Promise<void> => {
   return runInstall({}, 'install-from-offline-mirror', async (config): Promise<void> => {
 
-    let allFiles = await fs.walk(config.cwd);
+    const allFiles = await fs.walk(config.cwd);
 
     assert(allFiles.findIndex((file): boolean => {
       return file.relative === path.join('node_modules', 'fake-dependency', 'package.json');
@@ -382,7 +382,7 @@ test.concurrent(
 test.concurrent(
   'uninstall should remove dependency from package.json, yarn.lock and node_modules',
   (): Promise<void> => {
-    let mirrorPath = 'mirror-for-offline';
+    const mirrorPath = 'mirror-for-offline';
 
     return runInstall({}, 'uninstall-should-clean', async (config, reporter) => {
       assert.equal(
@@ -404,8 +404,8 @@ test.concurrent(
           {},
         );
 
-        let lockFileContent = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
-        let lockFileLines = explodeLockfile(lockFileContent);
+        const lockFileContent = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
+        const lockFileLines = explodeLockfile(lockFileContent);
         assert.equal(lockFileLines.length, 0);
       } finally {
         await fs.unlink(path.join(config.cwd, 'yarn.lock'));
@@ -427,7 +427,7 @@ test.concurrent('uninstall should remove subdependencies', (): Promise<void> => 
 
   // C@1
 
-  let mirrorPath = 'mirror-for-offline';
+  const mirrorPath = 'mirror-for-offline';
 
   return runInstall({}, 'uninstall-should-remove-subdependencies', async (config, reporter) => {
     try {
@@ -462,8 +462,8 @@ test.concurrent('uninstall should remove subdependencies', (): Promise<void> => 
         {'dep-c': '^1.0.0'},
       );
 
-      let lockFileContent = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
-      let lockFileLines = explodeLockfile(lockFileContent);
+      const lockFileContent = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
+      const lockFileLines = explodeLockfile(lockFileContent);
       assert.equal(lockFileLines.length, 3);
       assert.equal(lockFileLines[0], 'dep-c@^1.0.0:');
     } finally {
@@ -480,7 +480,7 @@ test.concurrent('uninstall should remove subdependencies', (): Promise<void> => 
 test.concurrent('check should verify that top level dependencies are installed correctly', (): Promise<void> => {
   return runInstall({}, 'check-top-correct', async (config, reporter) => {
 
-    let pkgDep = JSON.parse(await fs.readFile(path.join(
+    const pkgDep = JSON.parse(await fs.readFile(path.join(
       config.cwd,
       'node_modules/fake-yarn-dependency/package.json',
     )));
@@ -555,14 +555,14 @@ test.concurrent(
       assert(semver.satisfies(await getPackageVersion(config, 'mime-db'), '~1.0.1'));
       assert.equal(await getPackageVersion(config, 'fake-yarn-dependency'), '1.0.1');
 
-      let mirror = await fs.walk(path.join(config.cwd, 'mirror-for-offline'));
+      const mirror = await fs.walk(path.join(config.cwd, 'mirror-for-offline'));
       assert.equal(mirror.length, 3);
       assert.equal(mirror[0].relative, 'fake-yarn-dependency-1.0.1.tgz');
       assert.equal(mirror[1].relative.indexOf('mime-db-1.0.'), 0);
       assert.equal(mirror[2].relative, 'mime-types-2.0.0.tgz');
 
-      let lockFileContent = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
-      let lockFileLines = explodeLockfile(lockFileContent);
+      const lockFileContent = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
+      const lockFileLines = explodeLockfile(lockFileContent);
       assert.equal(lockFileLines.length, 11);
       assert.equal(lockFileLines[3].indexOf('mime-db@'), 0);
       assert.equal(lockFileLines[6].indexOf('mime-types@2.0.0'), 0);
@@ -600,16 +600,16 @@ xit('install should update a dependency to yarn and mirror (PR import scenario 2
       '2.1.11',
     );
 
-    let lockFileWritten = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
-    let lockFileLines = explodeLockfile(lockFileWritten);
+    const lockFileWritten = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
+    const lockFileLines = explodeLockfile(lockFileWritten);
     assert.equal(lockFileLines[0], 'mime-db@~1.23.0:');
     assert.notEqual(lockFileLines[2].indexOf('resolved mime-db-'), -1);
     assert.equal(lockFileLines[3], 'mime-types@2.1.11:');
     assert.notEqual(lockFileLines[5].indexOf('resolved mime-types-2.1.11.tgz'), -1);
 
-    let mirror = await fs.walk(path.join(config.cwd, 'mirror-for-offline'));
+    const mirror = await fs.walk(path.join(config.cwd, 'mirror-for-offline'));
     assert.equal(mirror.length, 4);
-    let newFilesInMirror = mirror.filter((elem): boolean => {
+    const newFilesInMirror = mirror.filter((elem): boolean => {
       return elem.relative !== 'mime-db-1.0.3.tgz' && elem.relative !== 'mime-types-2.0.0.tgz';
     });
 
@@ -625,8 +625,8 @@ if (process.platform !== 'win32') {
       expect(await fs.exists(symlink)).toBe(true);
       await fs.unlink(path.resolve(config.cwd, 'node_modules'));
 
-      let lockfile = await createLockfile(config.cwd);
-      let install = new Install({}, config, reporter, lockfile);
+      const lockfile = await createLockfile(config.cwd);
+      const install = new Install({}, config, reporter, lockfile);
       await install.init();
 
       expect(await fs.exists(symlink)).toBe(true);

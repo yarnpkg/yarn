@@ -9,8 +9,8 @@ import parse from './parse.js';
 import * as constants from '../constants.js';
 import * as fs from '../util/fs.js';
 
-let invariant = require('invariant');
-let path = require('path');
+const invariant = require('invariant');
+const path = require('path');
 
 export {default as parse} from './parse';
 export {default as stringify} from './stringify';
@@ -53,7 +53,7 @@ export default class Lockfile {
 
   static async fromDirectory(dir: string, reporter?: Reporter): Promise<Lockfile> {
     // read the manifest in this directory
-    let lockfileLoc = path.join(dir, constants.LOCKFILE_FILENAME);
+    const lockfileLoc = path.join(dir, constants.LOCKFILE_FILENAME);
     let lockfile;
     let rawLockfile = '';
 
@@ -70,12 +70,12 @@ export default class Lockfile {
   }
 
   getLocked(pattern: string): ?LockManifest {
-    let cache = this.cache;
+    const cache = this.cache;
     if (!cache) {
       return undefined;
     }
 
-    let shrunk = pattern in cache && cache[pattern];
+    const shrunk = pattern in cache && cache[pattern];
 
     if (typeof shrunk === 'string') {
       return this.getLocked(shrunk);
@@ -93,21 +93,21 @@ export default class Lockfile {
   getLockfile(patterns: {
     [packagePattern: string]: Manifest
   }): Object {
-    let lockfile = {};
-    let seen: Map<string, Object> = new Map();
+    const lockfile = {};
+    const seen: Map<string, Object> = new Map();
 
     // order by name so that lockfile manifest is assigned to the first dependency with this manifest
     // the others that have the same remote.resolved will just refer to the first
     // ordering allows for consistency in lockfile when it is serialized
-    let sortedPatternsKeys: Array<string> = Object.keys(patterns).sort(sortAlpha);
+    const sortedPatternsKeys: Array<string> = Object.keys(patterns).sort(sortAlpha);
 
-    for (let pattern of sortedPatternsKeys) {
-      let pkg = patterns[pattern];
-      let {_remote: remote, _reference: ref} = pkg;
+    for (const pattern of sortedPatternsKeys) {
+      const pkg = patterns[pattern];
+      const {_remote: remote, _reference: ref} = pkg;
       invariant(ref, 'Package is missing a reference');
       invariant(remote, 'Package is missing a remote');
 
-      let seenPattern = remote.resolved && seen.get(remote.resolved);
+      const seenPattern = remote.resolved && seen.get(remote.resolved);
       if (seenPattern) {
         // no point in duplicating it
         lockfile[pattern] = seenPattern;
@@ -120,8 +120,8 @@ export default class Lockfile {
         continue;
       }
 
-      let inferredName = getName(pattern);
-      let obj = {
+      const inferredName = getName(pattern);
+      const obj = {
         name: inferredName === pkg.name ? undefined : pkg.name,
         version: pkg.version,
         uid: pkg._uid === pkg.version ? undefined : pkg._uid,

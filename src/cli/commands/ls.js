@@ -133,7 +133,7 @@ export async function run(
 ): Promise<void> {
   const lockfile = await Lockfile.fromDirectory(config.cwd, reporter);
   const install = new Install(flags, config, reporter, lockfile);
-  let [depRequests, patterns] = await install.fetchRequestFromCwd();
+  const [depRequests, patterns] = await install.fetchRequestFromCwd();
   await install.resolver.init(depRequests, install.flags.flat);
 
   const {trees} = await buildTree(install.resolver, install.linker, patterns);

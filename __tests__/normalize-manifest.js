@@ -8,12 +8,12 @@ import map from '../src/util/map.js';
 import * as util from '../src/util/normalize-manifest/util.js';
 import * as fs from '../src/util/fs.js';
 
-let nativeFs = require('fs');
-let path     = require('path');
+const nativeFs = require('fs');
+const path     = require('path');
 
-let fixturesLoc = path.join(__dirname, 'fixtures', 'normalize-manifest');
+const fixturesLoc = path.join(__dirname, 'fixtures', 'normalize-manifest');
 
-for (let name of nativeFs.readdirSync(fixturesLoc)) {
+for (const name of nativeFs.readdirSync(fixturesLoc)) {
   if (name[0] === '.') {
     continue;
   }
@@ -21,21 +21,21 @@ for (let name of nativeFs.readdirSync(fixturesLoc)) {
   let loc = path.join(fixturesLoc, name);
 
   test(name, async () => {
-    let actualWarnings   = [];
-    let expectedWarnings = await fs.readJson(path.join(loc, 'warnings.json'));
+    const actualWarnings   = [];
+    const expectedWarnings = await fs.readJson(path.join(loc, 'warnings.json'));
 
-    let reporter = new NoopReporter();
+    const reporter = new NoopReporter();
 
     // $FlowFixMe: investigate
     reporter.warn = function(msg) {
       actualWarnings.push(msg);
     };
 
-    let config = new Config(reporter);
+    const config = new Config(reporter);
     await config.init({cwd: loc});
 
     let actual   = await fs.readJson(path.join(loc, 'actual.json'));
-    let expected = await fs.readJson(path.join(loc, 'expected.json'));
+    const expected = await fs.readJson(path.join(loc, 'expected.json'));
 
     let isRoot = actual._root;
     if (isRoot == null) {
@@ -44,7 +44,7 @@ for (let name of nativeFs.readdirSync(fixturesLoc)) {
       delete actual._root;
     }
 
-    let error = expected._error;
+    const error = expected._error;
     if (error) {
       delete expected._error;
     }
@@ -132,13 +132,13 @@ function normalizePaths(paths: mixed): ?string[] {
 }
 
 function normalizePathDict(paths: mixed): ?{ [key: string]: mixed } {
-  let out = {};
+  const out = {};
 
   if (!paths || typeof paths !== 'object') {
     return null;
   }
 
-  for (let prop in paths) {
+  for (const prop in paths) {
     if (typeof paths[prop] === 'string') {
       out[prop] = normalizePath(paths[prop]);
     } else {

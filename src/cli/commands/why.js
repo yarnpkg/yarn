@@ -46,7 +46,7 @@ export async function run(
   reporter.step(2, 3, reporter.lang('whyInitGraph'), emoji.get('truck'));
   const lockfile = await Lockfile.fromDirectory(config.cwd, reporter);
   const install = new Install(flags, config, reporter, lockfile);
-  let [depRequests, patterns] = await install.fetchRequestFromCwd();
+  const [depRequests, patterns] = await install.fetchRequestFromCwd();
   await install.resolver.init(depRequests, install.flags.flat);
   const hoisted = await install.linker.getFlatHoistedTree(patterns);
 
@@ -54,7 +54,7 @@ export async function run(
   reporter.step(3, 3, reporter.lang('whyFinding'), emoji.get('mag'));
 
   let match;
-  for (let [, info] of hoisted) {
+  for (const [, info] of hoisted) {
     if (info.key === query || info.previousKeys.indexOf(query) >= 0) {
       match = info;
       break;

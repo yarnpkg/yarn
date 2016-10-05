@@ -107,7 +107,7 @@ async function buildActionsForCopy(
 
   //
   async function build(data): Promise<void> {
-    let {src, dest} = data;
+    const {src, dest} = data;
     const onFresh = data.onFresh || noop;
     const onDone = data.onDone || noop;
     files.add(dest);
@@ -174,7 +174,7 @@ async function buildActionsForCopy(
 
     if (srcStat.isSymbolicLink()) {
       onFresh();
-      let linkname = await readlink(src);
+      const linkname = await readlink(src);
       actions.push({
         type: 'symlink',
         dest,
@@ -300,7 +300,7 @@ export function readFileRaw(loc: string): Promise<Buffer> {
 }
 
 export async function readFileAny(files: Array<string>): Promise<?string> {
-  for (let file of files) {
+  for (const file of files) {
     if (await exists(file)) {
       return readFile(file);
     }
@@ -390,7 +390,7 @@ export async function walk(
     filenames = filenames.filter((name): boolean => ignoreBasenames.indexOf(name) < 0);
   }
 
-  for (let name of filenames) {
+  for (const name of filenames) {
     const relative = relativeDir ? path.join(relativeDir, name) : name;
     const loc = path.join(dir, name);
     const stat = await lstat(loc);

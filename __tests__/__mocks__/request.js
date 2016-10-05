@@ -45,13 +45,13 @@ module.exports = function(params: Object): Request {
 
 module.exports.Request = Request;
 
-let httpMock = {
+const httpMock = {
   request(options: Object, callback?: ?Function): ClientRequest {
-    let alias = getRequestAlias(options);
-    let loc = path.join(CACHE_DIR, `${alias}.bin`);
+    const alias = getRequestAlias(options);
+    const loc = path.join(CACHE_DIR, `${alias}.bin`);
 
     // TODO better way to do this
-    let httpModule = options.port === 443 ? https : http;
+    const httpModule = options.port === 443 ? https : http;
 
     if (fs.existsSync(loc)) {
       // cached
@@ -63,9 +63,9 @@ let httpMock = {
       return httpModule.request(options, callback);
     } else {
       // not cached
-      let req = httpModule.request(options, callback);
+      const req = httpModule.request(options, callback);
       let errored = false;
-      let bufs = [];
+      const bufs = [];
 
       req.once('socket', function(socket) {
         socket.setMaxListeners(Infinity);
