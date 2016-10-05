@@ -72,13 +72,10 @@ export async function getToken(config: Config, reporter: Reporter): Promise<
   };
 
   //
-  const url = `${config.registries.npm.config.registry}/-/user/org.couchdb.user:${encodeURIComponent(username)}`;
-  const res = await requestManager.request({
-    url,
+  const res = await config.registries.npm.request(`-/user/org.couchdb.user:${encodeURIComponent(username)}`, {
     method: 'PUT',
     body: userobj,
     auth: {username, password, email},
-    json: true,
   });
 
   if (res.ok) {
@@ -89,8 +86,7 @@ export async function getToken(config: Config, reporter: Reporter): Promise<
 
     return async function revoke(): Promise<void> {
       reporter.success(reporter.lang('revokedToken'));
-      await config.requestManager.request({
-        url: `${config.registries.npm.config.registry}/-/user/token/${token}`,
+      await config.registries.npm.request(`-/user/token/${token}`, {
         method: 'DELETE',
       });
     };
