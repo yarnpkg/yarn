@@ -2529,11 +2529,6 @@ jasmine-check@^0.1.4:
   resolved "https://registry.npmjs.org/jasmine-check/-/jasmine-check-0.1.5.tgz#dbad7eec56261c4b3d175ada55fe59b09ac9e415"
   dependencies:
     testcheck "^0.1.0"
-jest:
-  version "16.0.1"
-  resolved "https://registry.npmjs.org/jest/-/jest-16.0.1.tgz#538af80e55a96140f55a2e7d3190157eba806d61"
-  dependencies:
-    jest-cli "^16.0.1"
 jest-changed-files@^16.0.0:
   version "16.0.0"
   resolved "https://registry.npmjs.org/jest-changed-files/-/jest-changed-files-16.0.0.tgz#7931deff4424182b8173d80e06800d7363b19c45"
@@ -2692,6 +2687,11 @@ jest-util@^16.0.0:
     jest-file-exists "^15.0.0"
     jest-mock "^16.0.0"
     mkdirp "^0.5.1"
+jest@^16.0.1:
+  version "16.0.1"
+  resolved "https://registry.npmjs.org/jest/-/jest-16.0.1.tgz#538af80e55a96140f55a2e7d3190157eba806d61"
+  dependencies:
+    jest-cli "^16.0.1"
 jodid25519@^1.0.0:
   version "1.0.2"
   resolved "https://registry.npmjs.org/jodid25519/-/jodid25519-1.0.2.tgz#06d4912255093419477d425633606e0e90782967"

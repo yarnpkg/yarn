@@ -33,11 +33,17 @@ function priorityThenAlphaSort(a: string, b: string): number {
   }
 }
 
-function _stringify(obj: Object, indent: string = ''): string {
+type Options = {
+  indent: string,
+  topLevel?: boolean,
+};
+
+function _stringify(obj: Object, options: Options): string {
   if (typeof obj !== 'object') {
     throw new TypeError();
   }
 
+  const indent = options.indent;
   const lines = [];
 
   // Sorting order needs to be consistent between runs, we run native sort by name because there are no
@@ -73,7 +79,10 @@ function _stringify(obj: Object, indent: string = ''): string {
     if (typeof val === 'string' || typeof val === 'boolean' || typeof val === 'number') {
       lines.push(`${keyLine} ${maybeWrap(val)}`);
     } else if (typeof val === 'object') {
-      lines.push(`${keyLine}:\n${_stringify(val, indent + '  ')}`);
+      lines.push(
+        `${keyLine}:\n${_stringify(val, {indent: indent + '  '})}` +
+        (options.topLevel ? '\n' : ''),
+      );
     } else {
       throw new TypeError();
     }
@@ -85,7 +94,10 @@ function _stringify(obj: Object, indent: string = ''): string {
 }
 
 export default function stringify(obj: Object, noHeader?: boolean): string {
-  let val = _stringify(obj);
+  let val = _stringify(obj, {
+    indent: '',
+    topLevel: true,
+  });
   if (noHeader) {
     return val;
   }
