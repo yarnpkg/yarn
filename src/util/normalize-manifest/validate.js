@@ -102,8 +102,8 @@ export default function(info: Object, isRoot: boolean, reporter: Reporter, warn:
 export function cleanDependencies(info: Object, isRoot: boolean, reporter: Reporter, warn: WarnFunction) {
   // get dependency objects
   const depTypes = [];
-  for (let type of dependencyKeys) {
-    let deps = info[type];
+  for (const type of dependencyKeys) {
+    const deps = info[type];
     if (!deps || typeof deps !== 'object') {
       continue;
     }
@@ -112,8 +112,8 @@ export function cleanDependencies(info: Object, isRoot: boolean, reporter: Repor
 
   // check root dependencies for builtin module names
   if (isRoot) {
-    for (let [type, deps] of depTypes) {
-      for (let name in deps) {
+    for (const [type, deps] of depTypes) {
+      for (const name in deps) {
         if (isBuiltinModule(name)) {
           warn(reporter.lang('manifestDependencyBuiltin', name, type));
         }
@@ -122,8 +122,8 @@ export function cleanDependencies(info: Object, isRoot: boolean, reporter: Repor
   }
 
   // ensure that dependencies don't have ones that can collide
-  for (let [type, deps] of depTypes) {
-    for (let name in deps) {
+  for (const [type, deps] of depTypes) {
+    for (const name in deps) {
       const version = deps[name];
 
       // check collisions

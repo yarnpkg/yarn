@@ -68,7 +68,7 @@ export async function run(
 
     // check if any of the node_modules are out of sync
     const res = await install.linker.getFlatHoistedTree(rawPatterns);
-    for (let [loc, {originalKey, pkg}] of res) {
+    for (const [loc, {originalKey, pkg}] of res) {
       const parts = humaniseLocation(loc);
 
       // grey out hoisted portions of key

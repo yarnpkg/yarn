@@ -14,7 +14,7 @@ const objs = [
 ];
 
 let i = 0;
-for (let obj of objs) {
+for (const obj of objs) {
   test(`parse/stringify ${++i}`, () => {
     expect(parse(stringify(obj))).toEqual(nullify(obj));
   });

@@ -141,7 +141,10 @@ export default class PackageCompatibility {
     }
 
     if (!this.config.ignoreEngines && typeof info.engines === 'object') {
-      for (let [name, range] of entries(info.engines)) {
+      for (const entry of entries(info.engines)) {
+        let name = entry[0];
+        const range = entry[1];
+
         if (aliases[name]) {
           name = aliases[name];
         }

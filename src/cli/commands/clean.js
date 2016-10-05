@@ -70,8 +70,8 @@ export async function clean(config: Config, reporter: Reporter): Promise<{
   removedFiles: number,
   removedSize: number,
 }> {
-  let loc = path.join(config.cwd, CLEAN_FILENAME);
-  let file = await fs.readFile(loc);
+  const loc = path.join(config.cwd, CLEAN_FILENAME);
+  const file = await fs.readFile(loc);
   const lines = file.split('\n');
   const filters = DEFAULT_FILTERS.concat(ignoreLinesToRegex(lines));
 
@@ -101,15 +101,15 @@ export async function clean(config: Config, reporter: Reporter): Promise<{
     const tick = reporter.progress(ignoreFiles.size);
     // TODO make sure `main` field of all modules isn't ignored
 
-    for (let file of ignoreFiles) {
-      let loc = path.join(folder, file);
+    for (const file of ignoreFiles) {
+      const loc = path.join(folder, file);
       const stat = await fs.lstat(loc);
       removedSize += stat.size;
       removedFiles++;
     }
 
-    for (let file of ignoreFiles) {
-      let loc = path.join(folder, file);
+    for (const file of ignoreFiles) {
+      const loc = path.join(folder, file);
       await fs.unlink(loc);
       tick();
     }

@@ -16,7 +16,7 @@ export async function run(
   const names = args;
   if (!names.length) {
     const manifest = await config.readRootManifest();
-    let name = manifest.name;
+    const name = manifest.name;
     if (name) {
       names.push(name);
     } else {
@@ -24,7 +24,7 @@ export async function run(
     }
   }
 
-  for (let name of names) {
+  for (const name of names) {
     const linkLoc = path.join(config.linkFolder, name);
     if (await fs.exists(linkLoc)) {
       await fs.unlink(linkLoc);

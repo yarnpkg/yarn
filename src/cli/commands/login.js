@@ -45,8 +45,6 @@ export async function getToken(config: Config, reporter: Reporter): Promise<
     };
   }
 
-  const requestManager = config.requestManager;
-
   //
   const creds = await getCredentials(config, reporter);
   if (!creds) {

@@ -50,7 +50,8 @@ export default class TarballResolver extends ExoticResolver {
       return shrunk;
     }
 
-    let {url, hash, registry} = this;
+    const {url} = this;
+    let {hash, registry} = this;
     let pkgJson;
 
     // generate temp directory

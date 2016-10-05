@@ -104,15 +104,15 @@ export default class PackageHoister {
 
       //
       const infos = [];
-      for (let [pattern, parents] of queue) {
-        let info = this._seed(pattern, parents);
+      for (const [pattern, parents] of queue) {
+        const info = this._seed(pattern, parents);
         if (info) {
           infos.push(info);
         }
       }
 
       //
-      for (let info of infos) {
+      for (const info of infos) {
         this.hoist(info);
       }
     }
@@ -346,14 +346,13 @@ export default class PackageHoister {
     const flatTree = [];
 
     //
-    for (let [key, info] of this.tree.entries()) {
+    for (const [key, info] of this.tree.entries()) {
       // decompress the location and push it to the flat tree. this path could be made
       // up of modules from different registries so we need to handle this specially
       const parts = [];
       const keyParts = key.split('#');
       for (let i = 0; i < keyParts.length; i++) {
-        let key = keyParts.slice(0, i + 1).join('#');
-
+        const key = keyParts.slice(0, i + 1).join('#');
         const hoisted = this.tree.get(key);
         invariant(hoisted, 'expected hoisted manifest');
         parts.push(this.config.getFolder(hoisted.pkg));
@@ -376,7 +375,7 @@ export default class PackageHoister {
 
     // remove ignored modules from the tree
     const visibleFlatTree = [];
-    for (let [loc, info] of flatTree) {
+    for (const [loc, info] of flatTree) {
       const ref = info.pkg._reference;
       invariant(ref, 'expected reference');
 

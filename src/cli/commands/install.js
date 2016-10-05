@@ -437,8 +437,8 @@ export class Install {
     if (Object.keys(this.resolutions).length) {
       const jsons = await this.getRootManifests();
 
-      for (let name in this.resolutions) {
-        let version = this.resolutions[name];
+      for (const name in this.resolutions) {
+        const version = this.resolutions[name];
 
         const patterns = this.resolver.patternsByPackage[name];
         if (!patterns) {
@@ -528,14 +528,14 @@ export class Install {
 
     // check if the loaded lockfile has all the included patterns
     let inSync = true;
-    for (let pattern of patterns) {
+    for (const pattern of patterns) {
       if (!this.lockfile.getLocked(pattern)) {
         inSync = false;
         break;
       }
     }
     // check if loaded lockfile has patterns we don't have, eg. uninstall
-    for (let pattern in this.lockfile.cache) {
+    for (const pattern in this.lockfile.cache) {
       if (patterns.indexOf(pattern) === -1) {
         inSync = false;
         break;
@@ -606,7 +606,7 @@ export class Install {
 
     // ensure we only write to a registry folder that was used
     for (const name of checkRegistryNames) {
-      let loc = path.join(this.config.cwd, this.config.registries[name].folder);
+      const loc = path.join(this.config.cwd, this.config.registries[name].folder);
       possibleFolders.push(loc);
     }
 

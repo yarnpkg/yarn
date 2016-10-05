@@ -129,7 +129,7 @@ export const {run, setFlags, examples} = buildSubCommands('dist-tag', {
 
     if (tags) {
       reporter.info(`Package ${name}`);
-      for (let name in tags) {
+      for (const name in tags) {
         reporter.info(`${name}: ${tags[name]}`);
       }
     }

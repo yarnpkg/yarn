@@ -171,7 +171,7 @@ export default class PackageResolver {
           continue;
         }
 
-        let ref = pkg._reference;
+        const ref = pkg._reference;
         invariant(ref, 'expected reference');
 
         refs.push(ref);
@@ -179,7 +179,7 @@ export default class PackageResolver {
         pkgs.add(pkg);
       }
 
-      for (let ref of refs) {
+      for (const ref of refs) {
         add(ref.dependencies);
       }
     };
@@ -286,7 +286,7 @@ export default class PackageResolver {
       `Couldn't find package manifest for ${human}`,
     );
 
-    for (let pattern of patterns) {
+    for (const pattern of patterns) {
       // don't touch the pattern we're collapsing to
       if (pattern === collapseToPattern) {
         continue;

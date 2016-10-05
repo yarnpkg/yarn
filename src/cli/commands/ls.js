@@ -47,12 +47,12 @@ export async function buildTree(
   const hoisted = await linker.getFlatHoistedTree(patterns);
 
   const hoistedByKey = {};
-  for (let [key, info] of hoisted) {
+  for (const [key, info] of hoisted) {
     hoistedByKey[key] = info;
   }
 
   // build initial trees
-  for (let [, info] of hoisted) {
+  for (const [, info] of hoisted) {
     const ref = info.pkg._reference;
     invariant(ref, 'expected reference');
 
@@ -103,7 +103,7 @@ export async function buildTree(
   }
 
   // add children
-  for (let [, info] of hoisted) {
+  for (const [, info] of hoisted) {
     const tree = treesByKey[info.key];
     if (!tree) {
       continue;

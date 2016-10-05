@@ -108,7 +108,7 @@ export default async function (
     const engines = {};
     for (const str of info.engines) {
       if (typeof str === 'string') {
-        let [name, ...patternParts] = str.trim().split(/ +/g);
+        const [name, ...patternParts] = str.trim().split(/ +/g);
         engines[name] = patternParts.join(' ');
       }
     }
@@ -244,7 +244,7 @@ export default async function (
     }
   }
 
-  let license = info.license;
+  const license = info.license;
 
   // normalize license
   if (license && typeof license === 'object') {

@@ -24,11 +24,11 @@ export function sortFilter(
   keepFiles: Set<string>,
   ignoreFiles: Set<string>,
 } {
-  for (let file of files) {
+  for (const file of files) {
     let keep = false;
 
     // always keep a file if a ! pattern matches it
-    for (let filter of filters) {
+    for (const filter of filters) {
       if (filter.isNegation && matchesFilter(filter, file.basename, file.relative)) {
         keep = true;
         break;
@@ -43,7 +43,7 @@ export function sortFilter(
 
     // otherwise don't keep it if a pattern matches it
     keep = true;
-    for (let filter of filters) {
+    for (const filter of filters) {
       if (!filter.isNegation && matchesFilter(filter, file.basename, file.relative)) {
         keep = false;
         break;
@@ -58,8 +58,8 @@ export function sortFilter(
   }
 
   // exclude file
-  for (let file of possibleKeepFiles) {
-    let parts = path.dirname(file).split(path.sep);
+  for (const file of possibleKeepFiles) {
+    const parts = path.dirname(file).split(path.sep);
 
     while (parts.length) {
       const folder = parts.join(path.sep);
@@ -72,15 +72,15 @@ export function sortFilter(
   }
 
   //
-  for (let file of possibleKeepFiles) {
+  for (const file of possibleKeepFiles) {
     if (!ignoreFiles.has(file)) {
       keepFiles.add(file);
     }
   }
 
   //
-  for (let file of keepFiles) {
-    let parts = path.dirname(file).split(path.sep);
+  for (const file of keepFiles) {
+    const parts = path.dirname(file).split(path.sep);
 
     while (parts.length) {
       // deregister this folder from being ignored, any files inside

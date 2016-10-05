@@ -79,8 +79,11 @@ export async function run(
 
   // get answers
   const pkg = {};
-  for (let {key: manifestKey, question, default: def} of keys) {
-    for (let registryName of registryNames) {
+  for (const entry of keys) {
+    const {key: manifestKey} = entry;
+    let {question, default: def} = entry;
+
+    for (const registryName of registryNames) {
       const {object} = manifests[registryName];
       const val = objectPath.get(object, manifestKey);
       if (val) {
@@ -106,7 +109,7 @@ export async function run(
 
   // save answers
   const targetManifests = [];
-  for (let registryName of registryNames) {
+  for (const registryName of registryNames) {
     const info = manifests[registryName];
     if (info.exists) {
       targetManifests.push(info);

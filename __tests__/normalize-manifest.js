@@ -18,7 +18,7 @@ for (const name of nativeFs.readdirSync(fixturesLoc)) {
     continue;
   }
 
-  let loc = path.join(fixturesLoc, name);
+  const loc = path.join(fixturesLoc, name);
 
   test(name, async () => {
     const actualWarnings   = [];

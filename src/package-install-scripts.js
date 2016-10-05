@@ -97,7 +97,7 @@ export default class PackageInstallScripts {
 
     // remove files that install script removed
     if (removedFiles.length) {
-      for (let file of removedFiles) {
+      for (const file of removedFiles) {
         await fs.unlink(path.join(cachedLoc, file));
       }
     }
@@ -105,7 +105,7 @@ export default class PackageInstallScripts {
     // copy over build artifacts to cache directory
     if (buildArtifacts.length) {
       const copyRequests = [];
-      for (let file of buildArtifacts) {
+      for (const file of buildArtifacts) {
         copyRequests.push({
           src: path.join(loc, file),
           dest: path.join(cachedLoc, file),

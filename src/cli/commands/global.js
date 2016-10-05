@@ -93,7 +93,7 @@ async function initUpdateBins(config: Config, reporter: Reporter): Promise<() =>
       }
 
       // check if this bin belongs to us
-      let owned = await checkOwnership(config.cwd, dest);
+      const owned = await checkOwnership(config.cwd, dest);
       if (owned) {
         await fs.unlink(dest);
       } else {
