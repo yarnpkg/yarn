@@ -40,6 +40,7 @@ let messages = {
   unknownFolderOrTarball: "Passed folder/tarball doesn't exist,",
   invalidPackageName: 'Invalid package name.',
   unknownPackageName: "Couldn't find package name.",
+  invalidVersionArgument: 'Use the $0 flag to create a new version.',
   invalidVersion: 'Invalid version supplied.',
   requiredVersionInRange: 'Required version in range.',
   packageNotFoundRegistry: "Couldn't find package $0 on the $1 registry.",
