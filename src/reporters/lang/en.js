@@ -13,7 +13,7 @@ let messages = {
   cleaningModules: 'Cleaning modules',
   bumpingVersion: 'Bumping version',
   savingHar: 'Saving HAR file: $0',
-  answer: 'Answer',
+  answer: 'Answer?',
   usage: 'Usage',
   installCommandRenamed: '`install` has been replaced with `add` to add new dependencies.',
   waitingInstance: 'Waiting until the other yarn instance finish',
@@ -54,7 +54,9 @@ let messages = {
   shrinkwrapWarning: 'npm-shrinkwrap.json found. This will not be updated or respected. See [TODO] for more information.',
 
   commandNotSpecified: 'No command specified.',
-  possibleCommands: 'Possible commands',
+  binCommands: 'Commands available from binary scripts: ',
+  possibleCommands: 'Project commands',
+  commandQuestion: 'Which command would you like to run?',
   commandFailed: 'Command failed with exit code $0.',
 
   foundIncompatible: 'Found incompatible module',

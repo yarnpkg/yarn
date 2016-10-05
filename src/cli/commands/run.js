@@ -29,60 +29,70 @@ export async function run(
   // build up a list of possible scripts
   const pkg = await config.readManifest(config.cwd);
   const scripts = map();
+  const binCommands = [];
+  let pkgCommands = [];
   for (const registry of Object.keys(registries)) {
     const binFolder = path.join(config.cwd, config.registries[registry].folder, '.bin');
     if (await fs.exists(binFolder)) {
       for (const name of await fs.readdir(binFolder)) {
-        scripts[name] = `${path.join(binFolder, name)}`; // TODO add args
+        binCommands.push(name);
+        scripts[name] = `${path.join(binFolder, name)}`;
       }
     }
   }
   if (pkg.scripts) {
     // inherit `scripts` from manifest
+    pkgCommands = Object.keys(pkg.scripts);
     Object.assign(scripts, pkg.scripts);
   }
+
+  const runCommand = async (args) => {
+    const action = args.shift();
+    const actions = [`pre${action}`, action, `post${action}`];
+
+    // build up list of commands
+    const cmds = [];
+    for (const action of actions) {
+      const cmd = scripts[action];
+      if (cmd) {
+        cmds.push(cmd);
+      }
+    }
+
+    if (cmds.length) {
+      for (const cmd of cmds) {
+        await execCommand(config, cmd + ' ' + args.join(' '), config.cwd);
+      }
+    } else {
+      let suggestion;
+
+      for (const commandName in scripts) {
+        const steps = leven(commandName, action);
+        if (steps < 2) {
+          suggestion = commandName;
+        }
+      }
+
+      let msg = `Command ${JSON.stringify(action)} not found.`;
+      if (suggestion) {
+        msg += ` Did you mean ${JSON.stringify(suggestion)}?`;
+      }
+      throw new MessageError(msg);
+    }
+  };
 
   // list possible scripts if none specified
   if (args.length === 0) {
     reporter.error(reporter.lang('commandNotSpecified'));
-    reporter.info(`${reporter.lang('possibleCommands')}:`);
-    reporter.list('possibleCommands', Object.keys(scripts).sort());
-    return Promise.reject();
-  }
-
-  // get action
-  const action = args.shift();
-  const actions = [`pre${action}`, action, `post${action}`];
-
-  // build up list of commands
-  const cmds = [];
-  for (const action of actions) {
-    const cmd = scripts[action];
-    if (cmd) {
-      cmds.push(cmd);
-    }
-  }
-
-  if (cmds.length) {
-    for (const cmd of cmds) {
-      await execCommand(config, cmd, config.cwd);
-    }
+    reporter.info(`${reporter.lang('binCommands') + binCommands.join(', ')}`);
+    reporter.info(`${reporter.lang('possibleCommands')}`);
+    reporter.list('possibleCommands', pkgCommands.sort());
+    await reporter.question(reporter.lang('commandQuestion')).then(
+      (answer) => runCommand(answer.split(' ')),
+      () => reporter.error(reporter.lang('commandNotSpecified')),
+    );
+    return Promise.resolve();
   } else {
-    let suggestion;
-
-    for (const commandName in scripts) {
-      const steps = leven(commandName, action);
-      if (steps < 2) {
-        suggestion = commandName;
-      }
-    }
-
-    let msg = `Command ${JSON.stringify(action)} not found.`;
-    if (suggestion) {
-      msg += ` Did you mean ${JSON.stringify(suggestion)}?`;
-    }
-    throw new MessageError(msg);
+    return await runCommand(args);
   }
-
-  return Promise.resolve();
 }

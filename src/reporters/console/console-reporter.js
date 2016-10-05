@@ -281,7 +281,7 @@ export default class ConsoleReporter extends BaseReporter {
       }
 
       let ask = () => {
-        rl.question(`${question}?: `, (input) => {
+        rl.question(`${question}: `, (input) => {
           let index = toIndex(input);
 
           if (isNaN(index)) {
