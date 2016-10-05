@@ -273,11 +273,9 @@ test.concurrent('install should dedupe dependencies avoiding conflicts 7', (): P
     assert.equal(await getPackageVersion(config, 'dep-a/dep-d'), '1.0.0');
     assert.equal(await getPackageVersion(config, 'dep-a/dep-e'), '1.0.0');
 
-
     assert.equal(await getPackageVersion(config, 'dep-b/dep-c'), '1.0.0');
     assert.equal(await getPackageVersion(config, 'dep-b/dep-d'), '1.0.0');
     assert.equal(await getPackageVersion(config, 'dep-b/dep-e'), '1.0.0');
-
   });
 });
 

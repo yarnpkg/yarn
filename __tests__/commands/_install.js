@@ -62,6 +62,12 @@ export async function run(
   await fs.unlink(cwd);
   await fs.copy(dir, cwd);
 
+  for (let {basename, absolute} of await fs.walk(cwd)) {
+    if (basename.toLowerCase() === '.ds_store') {
+      await fs.unlink(absolute);
+    }
+  }
+
   let out = '';
   let stdout = new stream.Writable({
     decodeStrings: false,
