@@ -201,12 +201,11 @@ export default class Git {
     const {url, cwd} = this;
 
     return fs.lockQueue.push(url, async () => {
-      if (!(await fs.exists(cwd))) {
-        await fs.mkdirp(cwd);
-        await child.spawn('git', ['init', '--bare'], {cwd});
+      if (await fs.exists(cwd)) {
+        await child.spawn('git', ['pull'], {cwd});
+      } else {
+        await child.spawn('git', ['clone', url, cwd], {cwd});
       }
-
-      await child.spawn('git', ['fetch', url, '--tags'], {cwd});
 
       this.fetched = true;
     });
