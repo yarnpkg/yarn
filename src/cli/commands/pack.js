@@ -161,6 +161,13 @@ export async function run(
  args: Array<string>,
 ): Promise<void> {
   const pkg = await config.readRootManifest();
+  if (!pkg.name) {
+    throw new MessageError(reporter.lang('noName'));
+  }
+  if (!pkg.version) {
+    throw new MessageError(reporter.lang('noVersion'));
+  }
+
   const filename = flags.filename || path.join(config.cwd, `${pkg.name}-v${pkg.version}.tgz`);
 
   const stream = await pack(config, config.cwd);
