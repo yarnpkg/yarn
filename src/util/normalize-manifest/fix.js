@@ -106,7 +106,7 @@ export default async function (
   // support array of engine keys
   if (Array.isArray(info.engines)) {
     const engines = {};
-    for (let str of info.engines) {
+    for (const str of info.engines) {
       if (typeof str === 'string') {
         let [name, ...patternParts] = str.trim().split(/ +/g);
         engines[name] = patternParts.join(' ');
@@ -123,7 +123,7 @@ export default async function (
     };
   }
 
-  let repo = info.repository;
+  const repo = info.repository;
 
   // explode info.repository.url if it's a hosted git shorthand
   if (repo && typeof repo === 'object' && typeof repo.url === 'string') {
@@ -190,7 +190,7 @@ export default async function (
     info.scripts = scripts;
   }
 
-  let dirs = info.directories;
+  const dirs = info.directories;
 
   if (dirs && typeof dirs === 'object') {
     const binDir = dirs.bin;
@@ -222,7 +222,7 @@ export default async function (
   delete info.directories;
 
   // normalize licenses field
-  let licenses = info.licenses;
+  const licenses = info.licenses;
   if (Array.isArray(licenses) && !info.license) {
     let licenseTypes = [];
 

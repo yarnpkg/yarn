@@ -6,8 +6,8 @@ import Spinner from '../../src/reporters/console/spinner-progress.js';
 import ConsoleReporter from '../../src/reporters/console/console-reporter.js';
 import build from './_mock.js';
 
-let getConsoleBuff = build(ConsoleReporter, (data): MockData => data);
-let stream = require('stream');
+const getConsoleBuff = build(ConsoleReporter, (data): MockData => data);
+const stream = require('stream');
 
 test('ConsoleReporter.step', async () => {
   expect(await getConsoleBuff((r) => {
@@ -69,7 +69,7 @@ test('ConsoleReporter.warn', async () => {
 
 test('ConsoleReporter.activity', async () => {
   expect(await getConsoleBuff(function(r) {
-    let activity = r.activity();
+    const activity = r.activity();
     activity.tick('foo');
     activity.end();
   })).toMatchSnapshot();
@@ -82,7 +82,7 @@ test('ConsoleReporter.select', async () => {
       streams.stdin.end();
     });
 
-    let res = await r.select('Ayo?', 'Select one', [{
+    const res = await r.select('Ayo?', 'Select one', [{
       name: 'foo',
       value: 'foo',
     }, {
@@ -95,20 +95,20 @@ test('ConsoleReporter.select', async () => {
 
 test('ConsoleReporter.progress', async () => {
   expect(await getConsoleBuff((r) => {
-    let tick = r.progress(2);
+    const tick = r.progress(2);
     tick();
     jest.runAllTimers();
     tick();
   })).toMatchSnapshot();
 
   expect(await getConsoleBuff((r) => {
-    let tick = r.progress(0);
+    const tick = r.progress(0);
     tick();
   })).toMatchSnapshot();
 
   expect(await getConsoleBuff((r) => {
     r.isTTY = false;
-    let tick = r.progress(2);
+    const tick = r.progress(2);
     tick();
     tick();
   })).toMatchSnapshot();
@@ -128,7 +128,7 @@ test('ProgressBar', () => {
       return true;
     }
   }
-  let bar = new ProgressBar(2, new TestStream());
+  const bar = new ProgressBar(2, new TestStream());
 
   bar.render();
   expect(data).toBe('\u001b[2K\u001b[1G░░ 0/2');
@@ -151,7 +151,7 @@ test('Spinner', () => {
       return true;
     }
   }
-  let spinner = new Spinner(new TestStream());
+  const spinner = new Spinner(new TestStream());
 
   spinner.start();
   expect(data).toBe('\u001b[2K\u001b[1G⠁ ');

@@ -24,7 +24,7 @@ export default class PackageFetcher {
   config: Config;
 
   async fetchCache(dest: string, fetcher: Fetchers): Promise<FetchedMetadata> {
-    let {hash, package: pkg} = await this.config.readPackageMetadata(dest);
+    const {hash, package: pkg} = await this.config.readPackageMetadata(dest);
     return {
       package: pkg,
       resolved: await fetcher.getResolvedFromCached(hash),
@@ -97,7 +97,7 @@ export default class PackageFetcher {
       if (newPkg) {
         // read linked module manifest if one exists
         if (ref.shouldLink()) {
-          let linkPkg = await this.config.readManifest(path.join(this.config.linkFolder, ref.name));
+          const linkPkg = await this.config.readManifest(path.join(this.config.linkFolder, ref.name));
 
           // copy over fields that will influence the lockfile
           linkPkg.name = newPkg.name;

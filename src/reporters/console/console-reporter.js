@@ -58,20 +58,20 @@ export default class ConsoleReporter extends BaseReporter {
     head = head.map((field: string): string => this.format.underline(field));
 
     //
-    let rows = [head].concat(body);
+    const rows = [head].concat(body);
 
     // get column widths
-    let cols: Array<number> = [];
+    const cols: Array<number> = [];
     for (let i = 0; i < head.length; i++) {
-      let widths = rows.map((row: Row): number => this.format.stripColor(row[i]).length);
+      const widths = rows.map((row: Row): number => this.format.stripColor(row[i]).length);
       cols[i] = Math.max(...widths);
     }
 
     //
-    let builtRows = rows.map((row: Row): string => {
+    const builtRows = rows.map((row: Row): string => {
       for (let i = 0; i < row.length; i++) {
-        let field = row[i];
-        let padding = cols[i] - this.format.stripColor(field).length;
+        const field = row[i];
+        const padding = cols[i] - this.format.stripColor(field).length;
 
         row[i] = field + repeat(' ', padding);
       }
@@ -108,7 +108,7 @@ export default class ConsoleReporter extends BaseReporter {
 
   list(key: string, items: Array<string>) {
     const gutterWidth = (this._lastCategorySize || 2) - 1;
-    for (let item of items) {
+    for (const item of items) {
       this._log(`${repeat(' ', gutterWidth)}- ${item}`);
     }
   }
@@ -118,10 +118,10 @@ export default class ConsoleReporter extends BaseReporter {
   }
 
   footer(showPeakMemory?: boolean) {
-    let totalTime = (this.getTotalTime() / 1000).toFixed(2);
+    const totalTime = (this.getTotalTime() / 1000).toFixed(2);
     let msg = `Done in ${totalTime}s.`;
     if (showPeakMemory) {
-      let peakMemory = (this.peakMemory / 1024 / 1024).toFixed(2);
+      const peakMemory = (this.peakMemory / 1024 / 1024).toFixed(2);
       msg += ` Peak memory usage ${peakMemory}MB.`;
     }
     this.log(this._prependEmoji(msg, '✨'));
@@ -183,9 +183,9 @@ export default class ConsoleReporter extends BaseReporter {
   tree(key: string, trees: Trees) {
     trees = sortTrees(trees);
 
-    let stdout = this.stdout;
+    const stdout = this.stdout;
 
-    let output = ({name, children, hint, color}, level, end) => {
+    const output = ({name, children, hint, color}, level, end) => {
       children = sortTrees(children);
 
       let indent = end ? '└' : '├';
@@ -205,14 +205,14 @@ export default class ConsoleReporter extends BaseReporter {
 
       if (children && children.length) {
         for (let i = 0; i < children.length; i++) {
-          let tree = children[i];
+          const tree = children[i];
           output(tree, level + 1, i === children.length - 1);
         }
       }
     };
 
     for (let i = 0; i < trees.length; i++) {
-      let tree = trees[i];
+      const tree = trees[i];
       output(tree, 0, i === trees.length - 1);
     }
   }
@@ -222,29 +222,29 @@ export default class ConsoleReporter extends BaseReporter {
       return super.activitySet(total, workers);
     }
 
-    let spinners = [];
+    const spinners = [];
 
     for (let i = 1; i < workers; i++) {
       this.log('');
     }
 
     for (let i = 0; i < workers; i++) {
-      let spinner = new Spinner(this.stderr, i);
+      const spinner = new Spinner(this.stderr, i);
       spinner.start();
 
       let prefix: ?string = null;
       let current = 0;
-      let updatePrefix = () => {
+      const updatePrefix = () => {
         spinner.setPrefix(
           `${this.format.grey(`[${current === 0 ? '-' : current}/${total}]`)} `,
         );
       };
-      function clear() {
+      const clear = () => {
         prefix = null;
         current = 0;
         updatePrefix();
         spinner.setText('waiting...');
-      }
+      };
       clear();
 
       spinners.unshift({
@@ -273,7 +273,7 @@ export default class ConsoleReporter extends BaseReporter {
     return {
       spinners,
       end: () => {
-        for (let spinner of spinners) {
+        for (const spinner of spinners) {
           spinner.end();
         }
         readline.moveCursor(this.stdout, 0, -workers + 1);
@@ -289,7 +289,7 @@ export default class ConsoleReporter extends BaseReporter {
       };
     }
 
-    let spinner = new Spinner(this.stderr);
+    const spinner = new Spinner(this.stderr);
     spinner.start();
 
     return {
@@ -308,17 +308,17 @@ export default class ConsoleReporter extends BaseReporter {
       return Promise.reject(new Error("Can't answer a question unless a user TTY"));
     }
 
-    let rl = readline.createInterface({
+    const rl = readline.createInterface({
       input: this.stdin,
       output: this.stdout,
       terminal: true,
     });
 
-    let questions = options.map((opt): string => opt.name);
-    let answers = options.map((opt): string => opt.value);
+    const questions = options.map((opt): string => opt.name);
+    const answers = options.map((opt): string => opt.value);
 
     function toIndex(input: string): number {
-      let index = answers.indexOf(input);
+      const index = answers.indexOf(input);
 
       if (index >= 0) {
         return index;
@@ -334,7 +334,7 @@ export default class ConsoleReporter extends BaseReporter {
         this.log(`  ${this.format.dim(`${i + 1})`)} ${questions[i]}`);
       }
 
-      let ask = () => {
+      const ask = () => {
         rl.question(`${question}: `, (input) => {
           let index = toIndex(input);
 
@@ -374,7 +374,7 @@ export default class ConsoleReporter extends BaseReporter {
       };
     }
 
-    let bar = new Progress(count, this.stderr);
+    const bar = new Progress(count, this.stderr);
 
     bar.render();
 

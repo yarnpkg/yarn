@@ -36,7 +36,7 @@ async function getCredentials(config: Config, reporter: Reporter): Promise<?{
 export async function getToken(config: Config, reporter: Reporter): Promise<
   () => Promise<void>
 > {
-  let env = process.env.YARN_AUTH_TOKEN || process.env.KPM_AUTH_TOKEN || process.env.NPM_AUTH_TOKEN;
+  const env = process.env.YARN_AUTH_TOKEN || process.env.KPM_AUTH_TOKEN || process.env.NPM_AUTH_TOKEN;
   if (env) {
     config.registries.npm.setToken(env);
     return function revoke(): Promise<void> {
@@ -45,10 +45,10 @@ export async function getToken(config: Config, reporter: Reporter): Promise<
     };
   }
 
-  let requestManager = config.requestManager;
+  const requestManager = config.requestManager;
 
   //
-  let creds = await getCredentials(config, reporter);
+  const creds = await getCredentials(config, reporter);
   if (!creds) {
     reporter.warn(reporter.lang('loginAsPublic'));
     return function revoke(): Promise<void> {
@@ -57,11 +57,11 @@ export async function getToken(config: Config, reporter: Reporter): Promise<
     };
   }
 
-  let {username, email} = creds;
-  let password = await reporter.question(reporter.lang('npmPassword'), true);
+  const {username, email} = creds;
+  const password = await reporter.question(reporter.lang('npmPassword'), true);
 
   //
-  let userobj = {
+  const userobj = {
     _id: `org.couchdb.user:${username}`,
     name: username,
     password,
@@ -72,8 +72,8 @@ export async function getToken(config: Config, reporter: Reporter): Promise<
   };
 
   //
-  let url = `${config.registries.npm.config.registry}/-/user/org.couchdb.user:${encodeURIComponent(username)}`;
-  let res = await requestManager.request({
+  const url = `${config.registries.npm.config.registry}/-/user/org.couchdb.user:${encodeURIComponent(username)}`;
+  const res = await requestManager.request({
     url,
     method: 'PUT',
     body: userobj,
@@ -84,7 +84,7 @@ export async function getToken(config: Config, reporter: Reporter): Promise<
   if (res.ok) {
     reporter.success(reporter.lang('loggedIn'));
 
-    let token = res.token;
+    const token = res.token;
     config.registries.npm.setToken(token);
 
     return async function revoke(): Promise<void> {

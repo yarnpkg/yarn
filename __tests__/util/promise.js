@@ -27,7 +27,7 @@ test('promisify', async function (): Promise<void> {
 });
 
 test('promisifyObject', async function (): Promise<void> {
-  let obj = promise.promisifyObject({
+  const obj = promise.promisifyObject({
     foo(callback) {
       callback(null, 'foo');
     },

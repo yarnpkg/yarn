@@ -38,7 +38,7 @@ export default class BaseFetcher {
   }
 
   fetch(): Promise<FetchedMetadata> {
-    let {dest} = this;
+    const {dest} = this;
 
     return fs.lockQueue.push(dest, async (): Promise<FetchedMetadata> => {
       await fs.mkdirp(dest);

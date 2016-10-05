@@ -21,7 +21,7 @@ export default class GitResolver extends ExoticResolver {
   constructor(request: PackageRequest, fragment: string) {
     super(request, fragment);
 
-    let {url, hash} = versionUtil.explodeHashedUrl(fragment);
+    const {url, hash} = versionUtil.explodeHashedUrl(fragment);
     this.url = url;
     this.hash = hash;
   }

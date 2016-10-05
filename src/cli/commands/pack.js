@@ -6,10 +6,10 @@ import type {IgnoreFilter} from '../../util/filter.js';
 import * as fs from '../../util/fs.js';
 import {sortFilter, ignoreLinesToRegex} from '../../util/filter.js';
 
-let zlib = require('zlib');
-let path = require('path');
-let tar = require('tar-stream');
-let fs2 = require('fs');
+const zlib = require('zlib');
+const path = require('path');
+const tar = require('tar-stream');
+const fs2 = require('fs');
 
 const IGNORE_FILENAMES = [
   '.yarnignore',
@@ -61,15 +61,15 @@ function addEntry(packer: any, entry: Object, buffer?: ?Buffer): Promise<void> {
 }
 
 export async function pack(config: Config, dir: string): Promise<stream$Duplex> {
-  let pkg = await config.readRootManifest();
+  const pkg = await config.readRootManifest();
 
   //
   let filters: Array<IgnoreFilter> = DEFAULT_IGNORE.slice();
 
   //
-  let {bundledDependencies} = pkg;
+  const {bundledDependencies} = pkg;
   if (bundledDependencies) {
-    let folder = config.getFolder(pkg);
+    const folder = config.getFolder(pkg);
     filters = ignoreLinesToRegex(
       bundledDependencies.map((name): string => `!${folder}/${name}`),
       '.',
@@ -77,28 +77,28 @@ export async function pack(config: Config, dir: string): Promise<stream$Duplex> 
   }
 
   //
-  let files = await fs.walk(config.cwd);
+  const files = await fs.walk(config.cwd);
 
   // create ignores
-  for (let file of files) {
+  for (const file of files) {
     if (IGNORE_FILENAMES.indexOf(path.basename(file.relative)) >= 0) {
-      let raw = await fs.readFile(file.absolute);
-      let lines = raw.split('\n');
+      const raw = await fs.readFile(file.absolute);
+      const lines = raw.split('\n');
 
-      let regexes = ignoreLinesToRegex(lines, path.dirname(file.relative));
+      const regexes = ignoreLinesToRegex(lines, path.dirname(file.relative));
       filters = filters.concat(regexes);
     }
   }
 
   // files to definently keep, takes precedence over ignore filter
-  let keepFiles: Set<string> = new Set();
+  const keepFiles: Set<string> = new Set();
 
   // files to definently ignore
-  let ignoredFiles: Set<string> = new Set();
+  const ignoredFiles: Set<string> = new Set();
 
   // list of files that didn't match any of our patterns, if a directory in the chain above was matched
   // then we should inherit it
-  let possibleKeepFiles: Set<string> = new Set();
+  const possibleKeepFiles: Set<string> = new Set();
 
   //
   sortFilter(files, filters, keepFiles, possibleKeepFiles, ignoredFiles);
@@ -106,17 +106,17 @@ export async function pack(config: Config, dir: string): Promise<stream$Duplex> 
   // TODO files property
   // TODO throw error on possible suspect file patterns
 
-  let packer = tar.pack();
-  let compressor = packer.pipe(new zlib.Gzip());
+  const packer = tar.pack();
+  const compressor = packer.pipe(new zlib.Gzip());
 
   await addEntry(packer, {
     name: 'package',
     type: 'directory',
   });
 
-  for (let name of keepFiles) {
-    let loc = path.join(config.cwd, name);
-    let stat = await fs.lstat(loc);
+  for (const name of keepFiles) {
+    const loc = path.join(config.cwd, name);
+    const stat = await fs.lstat(loc);
 
     let type: ?string;
     let buffer: ?Buffer;
@@ -133,7 +133,7 @@ export async function pack(config: Config, dir: string): Promise<stream$Duplex> 
       throw new Error();
     }
 
-    let entry = {
+    const entry = {
       name: `package/${name}`,
       size: stat.size,
       mode: stat.mode,
@@ -160,10 +160,10 @@ export async function run(
  flags: Object,
  args: Array<string>,
 ): Promise<void> {
-  let pkg = await config.readRootManifest();
-  let filename = flags.filename || path.join(config.cwd, `${pkg.name}-v${pkg.version}.tgz`);
+  const pkg = await config.readRootManifest();
+  const filename = flags.filename || path.join(config.cwd, `${pkg.name}-v${pkg.version}.tgz`);
 
-  let stream = await pack(config, config.cwd);
+  const stream = await pack(config, config.cwd);
 
   await new Promise((resolve, reject) => {
     stream.pipe(fs2.createWriteStream(filename));

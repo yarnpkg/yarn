@@ -17,8 +17,8 @@ import {registries} from '../../resolvers/index.js';
 import * as fs from '../../util/fs.js';
 import map from '../../util/map.js';
 
-let leven = require('leven');
-let path = require('path');
+const leven = require('leven');
+const path = require('path');
 
 export async function run(
   config: Config,

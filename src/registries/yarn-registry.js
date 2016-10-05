@@ -74,8 +74,8 @@ export default class YarnRegistry extends NpmRegistry {
   }
 
   async saveHomeConfig(config: Object): Promise<void> {
-    for (let key in config) {
-      let val = config[key];
+    for (const key in config) {
+      const val = config[key];
 
       // if the current config key was taken from home config then update
       // the global config

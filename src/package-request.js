@@ -35,7 +35,7 @@ export default class PackageRequest {
   }
 
   static getExoticResolver(pattern: string): ?Function { // TODO make this type more refined
-    for (let [, Resolver] of entries(resolvers.exotics)) {
+    for (const [, Resolver] of entries(resolvers.exotics)) {
       if (Resolver.isVersion(pattern)) {
         return Resolver;
       }
@@ -58,7 +58,7 @@ export default class PackageRequest {
 
     let request = this.parentRequest;
     while (request) {
-      let info = this.resolver.getStrictResolvedPattern(request.pattern);
+      const info = this.resolver.getStrictResolvedPattern(request.pattern);
       chain.unshift(info.name);
 
       request = request.parentRequest;
@@ -69,7 +69,7 @@ export default class PackageRequest {
 
   getLocked(remoteType: string): ?Object {
     // always prioritise root lockfile
-    let shrunk = this.lockfile.getLocked(this.pattern);
+    const shrunk = this.lockfile.getLocked(this.pattern);
 
     if (shrunk) {
       const resolvedParts = versionUtil.explodeHashedUrl(shrunk.resolved);
@@ -99,7 +99,7 @@ export default class PackageRequest {
    */
 
   async findVersionOnRegistry(pattern: string): Promise<Manifest> {
-    let {range, name} = PackageRequest.normalizePattern(pattern);
+    const {range, name} = PackageRequest.normalizePattern(pattern);
 
     const exoticResolver = PackageRequest.getExoticResolver(range);
     if (exoticResolver) {
@@ -206,7 +206,7 @@ export default class PackageRequest {
 
   async find(): Promise<void> {
     // find version info for this package pattern
-    let info: ?Manifest = await this.findVersionInfo();
+    const info: ?Manifest = await this.findVersionInfo();
     if (!info) {
       throw new MessageError(this.reporter.lang('unknownPackage', this.pattern));
     }

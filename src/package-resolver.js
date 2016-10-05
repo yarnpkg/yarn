@@ -131,17 +131,17 @@ export default class PackageResolver {
    */
 
   getTopologicalManifests(seedPatterns: Array<string>): Iterable<Manifest> {
-    let pkgs: Set<Manifest> = new Set();
-    let skip: Set<Manifest> = new Set();
+    const pkgs: Set<Manifest> = new Set();
+    const skip: Set<Manifest> = new Set();
 
-    let add = (seedPatterns: Array<string>) => {
-      for (let pattern of seedPatterns) {
-        let pkg = this.getStrictResolvedPattern(pattern);
+    const add = (seedPatterns: Array<string>) => {
+      for (const pattern of seedPatterns) {
+        const pkg = this.getStrictResolvedPattern(pattern);
         if (skip.has(pkg)) {
           continue;
         }
 
-        let ref = pkg._reference;
+        const ref = pkg._reference;
         invariant(ref, 'expected reference');
         skip.add(pkg);
         add(ref.dependencies);
@@ -159,14 +159,14 @@ export default class PackageResolver {
    */
 
   getLevelOrderManifests(seedPatterns: Array<string>): Iterable<Manifest> {
-    let pkgs: Set<Manifest> = new Set();
-    let skip: Set<Manifest> = new Set();
+    const pkgs: Set<Manifest> = new Set();
+    const skip: Set<Manifest> = new Set();
 
-    let add = (seedPatterns: Array<string>) => {
-      let refs = [];
+    const add = (seedPatterns: Array<string>) => {
+      const refs = [];
 
-      for (let pattern of seedPatterns) {
-        let pkg = this.getStrictResolvedPattern(pattern);
+      for (const pattern of seedPatterns) {
+        const pkg = this.getStrictResolvedPattern(pattern);
         if (skip.has(pkg)) {
           continue;
         }
@@ -194,8 +194,8 @@ export default class PackageResolver {
    */
 
   getAllDependencyNamesByLevelOrder(seedPatterns: Array<string>): Iterable<string> {
-    let names = new Set();
-    for (let {name} of this.getLevelOrderManifests(seedPatterns)) {
+    const names = new Set();
+    for (const {name} of this.getLevelOrderManifests(seedPatterns)) {
       names.add(name);
     }
     return names;
@@ -227,10 +227,10 @@ export default class PackageResolver {
    */
 
   getPackageReferences(): Array<PackageReference> {
-    let refs = [];
+    const refs = [];
 
     for (const manifest of this.getManifests()) {
-      let ref = manifest._reference;
+      const ref = manifest._reference;
       if (ref) {
         refs.push(ref);
       }
@@ -293,12 +293,12 @@ export default class PackageResolver {
       }
 
       // remove this pattern
-      let ref = this.getStrictResolvedPattern(pattern)._reference;
+      const ref = this.getStrictResolvedPattern(pattern)._reference;
       invariant(ref, 'expected package reference');
       ref.addVisibility(REMOVED_ANCESTOR);
       ref.prune();
 
-      for (let action in ref.visibility) {
+      for (const action in ref.visibility) {
         collapseToReference.visibility[action] += ref.visibility[action];
       }
 
@@ -398,7 +398,7 @@ export default class PackageResolver {
     }
 
     // propagate `visibility` option
-    let {parentRequest} = req;
+    const {parentRequest} = req;
     if (parentRequest && parentRequest.visibility) {
       req.visibility = parentRequest.visibility;
     }

@@ -4,7 +4,7 @@ import RegistryNpm from './registries/npm-resolver.js';
 import RegistryBower from './registries/bower-resolver.js';
 import RegistryYarn from './registries/yarn-resolver.js';
 
-export let registries = {
+export const registries = {
   bower: RegistryBower,
   npm: RegistryNpm,
   yarn: RegistryYarn,
@@ -20,7 +20,7 @@ import ExoticGitLab from './exotics/gitlab-resolver.js';
 import ExoticGist from './exotics/gist-resolver.js';
 import ExoticBitbucket from './exotics/bitbucket-resolver.js';
 
-export let exotics = {
+export const exotics = {
   git: ExoticGit,
   tarball: ExoticTarball,
   github: ExoticGitHub,
@@ -35,15 +35,15 @@ export let exotics = {
 import type {Reporter} from '../reporters/index.js';
 import {explodeHostedGitFragment} from './exotics/hosted-git-resolver.js';
 
-export let hostedGit = {
+export const hostedGit = {
   github: ExoticGitHub,
   gitlab: ExoticGitLab,
   bitbucket: ExoticBitbucket,
 };
 
 export function hostedGitFragmentToGitUrl(fragment: string, reporter: Reporter): string {
-  for (let key in hostedGit) {
-    let Resolver = hostedGit[key];
+  for (const key in hostedGit) {
+    const Resolver = hostedGit[key];
     if (Resolver.isVersion(fragment)) {
       return Resolver.getGitHTTPUrl(explodeHostedGitFragment(fragment, reporter));
     }
@@ -56,8 +56,8 @@ export function hostedGitFragmentToGitUrl(fragment: string, reporter: Reporter):
 
 import ExoticRegistryResolver from './exotics/registry-resolver.js';
 
-for (let key in registries) {
-  let RegistryResolver = registries[key];
+for (const key in registries) {
+  const RegistryResolver = registries[key];
 
   exotics[key] = class extends ExoticRegistryResolver {
     static protocol = key;

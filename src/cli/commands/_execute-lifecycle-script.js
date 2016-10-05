@@ -21,7 +21,7 @@ export async function execFromManifest(config: Config, commandName: string, pkg:
 }
 
 export async function execCommand(config: Config, cmd: string, cwd: string): Promise<void> {
-  let {reporter} = config;
+  const {reporter} = config;
   try {
     reporter.command(cmd);
     await executeLifecycleScript(config, cwd, cmd);

@@ -5,7 +5,7 @@ import type Config from '../../config.js';
 import buildSubCommands from './_build-sub-commands.js';
 import * as fs from '../../util/fs.js';
 
-export let {run, setFlags} = buildSubCommands('cache', {
+export const {run, setFlags} = buildSubCommands('cache', {
   ls(): Promise<void> {
     return Promise.reject(new Error('TODO'));
   },

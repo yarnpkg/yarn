@@ -43,7 +43,7 @@ export default async function (
   env[constants.ENV_PATH_KEY] = pathParts.join(path.delimiter);
 
   // get shell
-  let conf = {windowsVerbatimArguments: false};
+  const conf = {windowsVerbatimArguments: false};
   let sh = 'sh';
   let shFlag = '-c';
   if (process.platform === 'win32') {
@@ -59,9 +59,9 @@ export default async function (
     conf.windowsVerbatimArguments = true;
   }
 
-  let stdout = await child.spawn(sh, [shFlag, cmd], {cwd, env, stdio, ...conf}, (data) => {
+  const stdout = await child.spawn(sh, [shFlag, cmd], {cwd, env, stdio, ...conf}, (data) => {
     if (spinner) {
-      let line = data.toString() // turn buffer into string
+      const line = data.toString() // turn buffer into string
         .trim() // trim whitespace
         .split('\n') // split into lines
         .pop() // use only the last line

@@ -263,9 +263,9 @@ export class Install {
 
   async init(): Promise<Array<string>> {
     let [depRequests, rawPatterns] = await this.fetchRequestFromCwd();
-    let match = await this.matchesIntegrityHash(rawPatterns);
+    const match = await this.matchesIntegrityHash(rawPatterns);
 
-    let prepared = await this.prepare(rawPatterns, depRequests, match);
+    const prepared = await this.prepare(rawPatterns, depRequests, match);
     rawPatterns = prepared.patterns;
     depRequests = prepared.requests;
     if (prepared.skip) {
@@ -282,7 +282,7 @@ export class Install {
 
     //
     let patterns = rawPatterns;
-    let steps: Array<(curr: number, total: number) => Promise<void>> = [];
+    const steps: Array<(curr: number, total: number) => Promise<void>> = [];
 
     steps.push(async (curr: number, total: number) => {
       this.reporter.step(curr, total, this.reporter.lang('resolvingPackages'), emoji.get('mag'));
@@ -337,7 +337,7 @@ export class Install {
     }
 
     let currentStep = 0;
-    for (let step of steps) {
+    for (const step of steps) {
       await step(++currentStep, steps.length);
     }
 
@@ -364,11 +364,11 @@ export class Install {
       return patterns;
     }
 
-    let flattenedPatterns = [];
+    const flattenedPatterns = [];
 
     for (const name of this.resolver.getAllDependencyNamesByLevelOrder(patterns)) {
       const infos = this.resolver.getAllInfoForPackageName(name).filter((manifest: Manifest): boolean => {
-        let ref = manifest._reference;
+        const ref = manifest._reference;
         invariant(ref, 'expected package reference');
         return !ref.ignore;
       });
@@ -385,7 +385,7 @@ export class Install {
       }
 
       const options = infos.map((info): ReporterSelectOption => {
-        let ref = info._reference;
+        const ref = info._reference;
         invariant(ref, 'expected reference');
         return {
           // TODO `and is required by {PARENT}`,
@@ -415,18 +415,18 @@ export class Install {
 
     // save resolutions to their appropriate root manifest
     if (Object.keys(this.resolutions).length) {
-      let jsons = await this.getRootManifests();
+      const jsons = await this.getRootManifests();
 
       for (let name in this.resolutions) {
         let version = this.resolutions[name];
 
-        let patterns = this.resolver.patternsByPackage[name];
+        const patterns = this.resolver.patternsByPackage[name];
         if (!patterns) {
           continue;
         }
 
         let manifest;
-        for (let pattern of patterns) {
+        for (const pattern of patterns) {
           manifest = this.resolver.getResolvedPattern(pattern);
           if (manifest) {
             break;
@@ -434,10 +434,10 @@ export class Install {
         }
         invariant(manifest, 'expected manifest');
 
-        let ref = manifest._reference;
+        const ref = manifest._reference;
         invariant(ref, 'expected reference');
 
-        let object = jsons[ref.registry].object;
+        const object = jsons[ref.registry].object;
         object.resolutions = object.resolutions || {};
         object.resolutions[name] = version;
       }
@@ -453,8 +453,8 @@ export class Install {
    */
 
   async getRootManifests(): Promise<RootManifests> {
-    let manifests: RootManifests = {};
-    for (let registryName of registryNames) {
+    const manifests: RootManifests = {};
+    for (const registryName of registryNames) {
       const registry = registries[registryName];
       const jsonLoc = path.join(this.config.cwd, registry.filename);
 
@@ -474,13 +474,13 @@ export class Install {
    */
 
   async saveRootManifests(manifests: RootManifests): Promise<void> {
-    for (let registryName of registryNames) {
-      let {loc, object, exists} = manifests[registryName];
+    for (const registryName of registryNames) {
+      const {loc, object, exists} = manifests[registryName];
       if (!exists && !Object.keys(object).length) {
         continue;
       }
 
-      for (let field of constants.DEPENDENCY_TYPES) {
+      for (const field of constants.DEPENDENCY_TYPES) {
         if (object[field]) {
           object[field] = sortObject(object[field]);
         }
@@ -544,7 +544,7 @@ export class Install {
    */
 
   async matchesIntegrityHash(patterns: Array<string>): Promise<IntegrityMatch> {
-    let loc = await this.getIntegrityHashLocation();
+    const loc = await this.getIntegrityHashLocation();
     if (!await fs.exists(loc)) {
       return {
         actual: '',
@@ -554,8 +554,8 @@ export class Install {
       };
     }
 
-    let actual = this.generateIntegrityHash(this.lockfile.source, patterns);
-    let expected = (await fs.readFile(loc)).trim();
+    const actual = this.generateIntegrityHash(this.lockfile.source, patterns);
+    const expected = (await fs.readFile(loc)).trim();
 
     return {
       actual,
@@ -572,7 +572,7 @@ export class Install {
 
   async getIntegrityHashLocation(): Promise<string> {
     // build up possible folders
-    let possibleFolders = [];
+    const possibleFolders = [];
     if (this.config.modulesFolder) {
       possibleFolders.push(this.config.modulesFolder);
     }
@@ -585,16 +585,16 @@ export class Install {
     }
 
     // ensure we only write to a registry folder that was used
-    for (let name of checkRegistryNames) {
+    for (const name of checkRegistryNames) {
       let loc = path.join(this.config.cwd, this.config.registries[name].folder);
       possibleFolders.push(loc);
     }
 
     // if we already have an integrity hash in one of these folders then use it's location otherwise use the
     // first folder
-    let possibles = possibleFolders.map((folder): string => path.join(folder, constants.INTEGRITY_FILENAME));
+    const possibles = possibleFolders.map((folder): string => path.join(folder, constants.INTEGRITY_FILENAME));
     let loc = possibles[0];
-    for (let possibleLoc of possibles) {
+    for (const possibleLoc of possibles) {
       if (await fs.exists(possibleLoc)) {
         loc = possibleLoc;
         break;
@@ -607,7 +607,7 @@ export class Install {
    */
 
   async writeIntegrityHash(lockSource: string, patterns: Array<string>): Promise<void> {
-    let loc = await this.getIntegrityHashLocation();
+    const loc = await this.getIntegrityHashLocation();
     invariant(loc, 'expected integrity hash location');
     await fs.writeFile(loc, this.generateIntegrityHash(lockSource, patterns));
   }
@@ -617,7 +617,7 @@ export class Install {
    */
 
   generateIntegrityHash(lockfile: string, patterns: Array<string>): string {
-    let opts = [lockfile];
+    const opts = [lockfile];
 
     opts.push(`patterns:${patterns.join(',')}`);
 
@@ -629,12 +629,12 @@ export class Install {
       opts.push('production');
     }
 
-    let linkedModules = this.config.linkedModules;
+    const linkedModules = this.config.linkedModules;
     if (linkedModules.length) {
       opts.push(`linked:${linkedModules.join(',')}`);
     }
 
-    let mirror = this.config.getOfflineMirrorPath();
+    const mirror = this.config.getOfflineMirrorPath();
     if (mirror != null) {
       opts.push(`mirror:${mirror}`);
     }
@@ -682,7 +682,7 @@ export async function run(
   }
 
   if (args.length) {
-    let exampleArgs = args.slice();
+    const exampleArgs = args.slice();
     if (flags.saveDev) {
       exampleArgs.push('--dev');
     }

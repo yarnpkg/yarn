@@ -1,8 +1,8 @@
 /* @flow */
 
 import type Reporter from '../../src/reporters/base-reporter.js';
-let Stdin = require('mock-stdin').stdin.Class;
-let {Writable} = require('stream');
+const Stdin = require('mock-stdin').stdin.Class;
+const {Writable} = require('stream');
 
 export type MockData = {
   stdout: string,
@@ -18,13 +18,13 @@ export default function<T>(
   interceptor: Interceptor<T>,
 ): (callback: MockCallback) => Promise<T> {
   return async function (callback: MockCallback): * {
-    let data: MockData = {
+    const data: MockData = {
       stderr: '',
       stdout: '',
     };
 
-    let buildStream = (key): Writable => {
-      let stream = new Writable();
+    const buildStream = (key): Writable => {
+      const stream = new Writable();
 
       // $FlowFixMe: TODO add to flow definition
       stream.columns = 1000;
@@ -38,14 +38,14 @@ export default function<T>(
       return stream;
     };
 
-    let opts = {
+    const opts = {
       stdin: new Stdin(),
       stdout: buildStream('stdout'),
       stderr: buildStream('stderr'),
       emoji: true,
     };
 
-    let reporter = new Reporter(opts);
+    const reporter = new Reporter(opts);
 
     reporter.peakMemory = 0;
     reporter.isTTY = true;
@@ -54,7 +54,7 @@ export default function<T>(
     await callback(reporter, opts);
     reporter.close();
 
-    for (let key in data) {
+    for (const key in data) {
       data[key] = data[key].trim();
     }
 

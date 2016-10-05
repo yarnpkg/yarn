@@ -29,7 +29,7 @@ export default class GistResolver extends ExoticResolver {
   constructor(request: PackageRequest, fragment: string) {
     super(request, fragment);
 
-    let {id, hash} = explodeGistFragment(fragment, this.reporter);
+    const {id, hash} = explodeGistFragment(fragment, this.reporter);
     this.id = id;
     this.hash = hash;
   }

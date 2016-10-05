@@ -11,7 +11,7 @@ import {buildTree} from './ls.js';
 import {Install, _setFlags} from './install.js';
 import {MessageError} from '../../errors.js';
 
-let invariant = require('invariant');
+const invariant = require('invariant');
 
 export class Add extends Install {
   constructor(
@@ -32,9 +32,9 @@ export class Add extends Install {
    */
 
   prepare(patterns: Array<string>, requests: DependencyRequestPatterns): Promise<InstallPrepared> {
-    let requestsWithArgs = requests.slice();
+    const requestsWithArgs = requests.slice();
 
-    for (let pattern of this.args) {
+    for (const pattern of this.args) {
       requestsWithArgs.push({
         pattern,
         registry: 'npm',
@@ -55,7 +55,7 @@ export class Add extends Install {
    */
 
   async init(): Promise<Array<string>> {
-    let patterns = await Install.prototype.init.call(this);
+    const patterns = await Install.prototype.init.call(this);
     await this.maybeOutputSaveTree(patterns);
     await this.savePackages();
     return patterns;
@@ -74,7 +74,7 @@ export class Add extends Install {
    */
 
   async maybeOutputSaveTree(patterns: Array<string>): Promise<void> {
-    let {trees, count} = await buildTree(this.resolver, this.linker, patterns, true, true);
+    const {trees, count} = await buildTree(this.resolver, this.linker, patterns, true, true);
     this.reporter.success(
       count === 1 ?
         this.reporter.lang('savedNewDependency')
@@ -89,10 +89,10 @@ export class Add extends Install {
    */
 
   async savePackages(): Promise<void> {
-    let {dev, exact, tilde, optional, peer} = this.flags;
+    const {dev, exact, tilde, optional, peer} = this.flags;
 
     // get all the different registry manifests in this folder
-    let jsons = await this.getRootManifests();
+    const jsons = await this.getRootManifests();
 
     // add new patterns to their appropriate registry manifest
     for (const pattern of this.resolver.dedupePatterns(this.args)) {
@@ -173,7 +173,7 @@ export async function run(
     throw new MessageError(reporter.lang('missingAddDependencies'));
   }
 
-  let lockfile = await Lockfile.fromDirectory(config.cwd, reporter);
+  const lockfile = await Lockfile.fromDirectory(config.cwd, reporter);
   const install = new Add(args, flags, config, reporter, lockfile);
   await install.init();
 }

@@ -68,7 +68,7 @@ if (commandName === 'help' && !args.length) {
   commander.on('--help', function() {
     console.log('  Commands:');
     console.log();
-    for (let name of Object.keys(commands).sort(sortAlpha)) {
+    for (const name of Object.keys(commands).sort(sortAlpha)) {
       if (commands[name].useless) {
         continue;
       }
@@ -128,7 +128,7 @@ if (commandName === 'help' || args.indexOf('--help') >= 0 || args.indexOf('-h') 
   commander.on('--help', function() {
     console.log('  Examples:');
     console.log();
-    for (let example of examples) {
+    for (const example of examples) {
       console.log(`    $ yarn ${example}`);
     }
     console.log();
@@ -155,13 +155,13 @@ let Reporter = ConsoleReporter;
 if (commander.json) {
   Reporter = JSONReporter;
 }
-let reporter = new Reporter({
+const reporter = new Reporter({
   emoji: process.stdout.isTTY && process.platform === 'darwin',
 });
 reporter.initPeakMemoryCounter();
 
 //
-let config = new Config(reporter);
+const config = new Config(reporter);
 
 // print header
 let outputWrapper = true;
@@ -241,7 +241,7 @@ const runEventuallyWithNetwork = (mutexPort: ?string): Promise<void> => {
     server.on('error', () => {
       // another yarnn instance exists, let's connect to it to know when it dies.
       reporter.warn(reporter.lang('waitingInstance'));
-      let socket = net.createConnection(connectionOptions);
+      const socket = net.createConnection(connectionOptions);
 
       socket
         .on('data', () => {
@@ -319,7 +319,7 @@ config.init({
 
   if (errs) {
     if (Array.isArray(errs)) {
-      for (let err of errs) {
+      for (const err of errs) {
         logError(err);
       }
     } else {

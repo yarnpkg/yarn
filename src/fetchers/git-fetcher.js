@@ -25,7 +25,7 @@ export default class GitFetcher extends BaseFetcher {
   }
 
   async fetchFromLocal(pathname: string): Promise<FetchedOverride> {
-    let {reference: ref, config} = this;
+    const {reference: ref, config} = this;
     const offlineMirrorPath = config.getOfflineMirrorPath() || '';
     const localTarball = path.resolve(offlineMirrorPath, ref);
     if (!(await fsUtil.exists(localTarball))) {

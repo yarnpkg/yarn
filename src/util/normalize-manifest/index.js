@@ -5,7 +5,7 @@ import type Config from '../../config.js';
 import validate from './validate.js';
 import fix from './fix.js';
 
-let path = require('path');
+const path = require('path');
 
 export default async function (
   info: Object,
@@ -16,7 +16,7 @@ export default async function (
   await fix(info, moduleLoc, config.reporter, config.looseSemver);
 
   // create human readable name
-  let {name, version} = info;
+  const {name, version} = info;
   let human: ?string;
   if (typeof name === 'string') {
     human = name;

@@ -6,7 +6,7 @@ import stringify from "../src/lockfile/stringify.js";
 import parse from "../src/lockfile/parse.js";
 import nullify from "../src/util/map.js";
 
-let objs = [
+const objs = [
   {foo: "bar"},
   {foo: {}},
   {foo: "foo", bar: "bar"},
@@ -41,7 +41,7 @@ test("parse", () => {
 });
 
 test("stringify", () => {
-  let obj = {foo: "bar"};
+  const obj = {foo: "bar"};
   expect(stringify({a: obj, b: obj}, true)).toEqual("a, b:\n  foo bar\n");
 });
 
@@ -50,7 +50,7 @@ test("Lockfile.fromDirectory", () => {
 });
 
 test("Lockfile.getLocked", () => {
-  let lockfile = new Lockfile({
+  const lockfile = new Lockfile({
     foo: "bar",
     bar: {},
   });
@@ -58,7 +58,7 @@ test("Lockfile.getLocked", () => {
 });
 
 test("Lockfile.getLocked pointer", () => {
-  let lockfile = new Lockfile({
+  const lockfile = new Lockfile({
     foo: "bar",
     bar: {},
   });
@@ -70,7 +70,7 @@ test("Lockfile.getLocked no cache", () => {
 });
 
 test("Lockfile.getLocked defaults", () => {
-  let pattern = new Lockfile({
+  const pattern = new Lockfile({
     foobar: {
       version: "0.0.0",
     },
@@ -85,7 +85,7 @@ test("Lockfile.getLocked unknown", () => {
 });
 
 test("Lockfile.getLockfile", () => {
-  let patterns = {
+  const patterns = {
     foobar: {
       name: "foobar",
       version: "0.0.0",
@@ -127,9 +127,9 @@ test("Lockfile.getLockfile", () => {
 
   patterns["foobar@2"] = patterns.foobar;
 
-  let actual = new Lockfile().getLockfile(patterns);
+  const actual = new Lockfile().getLockfile(patterns);
 
-  let expectedFoobar = {
+  const expectedFoobar = {
     version: "0.0.0",
     uid: undefined,
     resolved: "http://example.com/foobar",
@@ -139,7 +139,7 @@ test("Lockfile.getLockfile", () => {
     permissions: undefined,
   };
 
-  let expected = {
+  const expected = {
     barfoo: {
       version: "0.0.1",
       uid: "0.1.0",
@@ -157,7 +157,7 @@ test("Lockfile.getLockfile", () => {
 });
 
 test("Lockfile.getLockfile (sorting)", () => {
-  let patterns = {
+  const patterns = {
     foobar2: {
       name: "foobar",
       version: "0.0.0",
@@ -178,9 +178,9 @@ test("Lockfile.getLockfile (sorting)", () => {
 
   patterns.foobar1 = patterns.foobar2;
 
-  let actual = new Lockfile().getLockfile(patterns);
+  const actual = new Lockfile().getLockfile(patterns);
 
-  let expectedFoobar = {
+  const expectedFoobar = {
     name: "foobar",
     version: "0.0.0",
     uid: undefined,
@@ -191,7 +191,7 @@ test("Lockfile.getLockfile (sorting)", () => {
     permissions: undefined,
   };
 
-  let expected = {
+  const expected = {
     foobar1: expectedFoobar,
     foobar2: expectedFoobar,
   };

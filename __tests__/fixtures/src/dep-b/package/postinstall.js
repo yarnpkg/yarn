@@ -1,4 +1,4 @@
-var fs = require('fs');
+const fs = require('fs');
 
 if (!fs.existsSync('../dep-c/dep-c-built')) {
   process.exit(1);

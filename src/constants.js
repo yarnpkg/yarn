@@ -56,7 +56,7 @@ export function getModuleCacheDirectory(): string {
   }
 
   // otherwise use ~/.yarn
-  let name = or(['.fbkpm', '.kpm', '.yarn'], userHome);
+  const name = or(['.fbkpm', '.kpm', '.yarn'], userHome);
   return path.join(userHome, name);
 }
 

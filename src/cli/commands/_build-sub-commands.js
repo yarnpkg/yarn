@@ -26,7 +26,7 @@ type Return = {
 type Usage = Array<string>;
 
 export default function(rootCommandName: string, subCommands: SubCommands, usage?: Usage = []): Return {
-  let subCommandNames = Object.keys(subCommands);
+  const subCommandNames = Object.keys(subCommands);
 
   function setFlags(commander: Object) {
     commander.usage(`${rootCommandName} [${subCommandNames.join('|')}] [flags]`);
@@ -38,18 +38,18 @@ export default function(rootCommandName: string, subCommands: SubCommands, usage
     flags: Object,
     args: Array<string>,
   ): Promise<void> {
-    let subName = camelCase(args.shift() || '');
-    let isValidCommand = subName && subCommandNames.indexOf(subName) >= 0;
+    const subName = camelCase(args.shift() || '');
+    const isValidCommand = subName && subCommandNames.indexOf(subName) >= 0;
     if (isValidCommand) {
-      let command: RunCommand = subCommands[subName];
-      let res = await command(config, reporter, flags, args);
+      const command: RunCommand = subCommands[subName];
+      const res = await command(config, reporter, flags, args);
       if (res !== false) {
         return Promise.resolve();
       }
     }
 
     reporter.error(`${reporter.lang('usage')}:`);
-    for (let msg of usage) {
+    for (const msg of usage) {
       reporter.error(`yarn ${rootCommandName} ${msg}`);
     }
     return Promise.reject(new MessageError('Invalid arguments.'));

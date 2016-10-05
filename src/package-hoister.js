@@ -270,7 +270,7 @@ export default class PackageHoister {
     this.tree.delete(key);
 
     //
-    let {parts, duplicate} = this.getNewParts(key, info, rawParts.slice());
+    const {parts, duplicate} = this.getNewParts(key, info, rawParts.slice());
     const newKey = this.implodeKey(parts);
     const oldKey = key;
     if (duplicate) {
@@ -349,12 +349,12 @@ export default class PackageHoister {
     for (let [key, info] of this.tree.entries()) {
       // decompress the location and push it to the flat tree. this path could be made
       // up of modules from different registries so we need to handle this specially
-      let parts = [];
-      let keyParts = key.split('#');
+      const parts = [];
+      const keyParts = key.split('#');
       for (let i = 0; i < keyParts.length; i++) {
         let key = keyParts.slice(0, i + 1).join('#');
 
-        let hoisted = this.tree.get(key);
+        const hoisted = this.tree.get(key);
         invariant(hoisted, 'expected hoisted manifest');
         parts.push(this.config.getFolder(hoisted.pkg));
         parts.push(keyParts[i]);

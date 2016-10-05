@@ -11,7 +11,7 @@ export function hasWrapper(flags: Object, args: Array<string>): boolean {
   return args[0] != 'generate-disclaimer';
 }
 
-export let {setFlags, run} = buildSubCommands('licenses', {
+export const {setFlags, run} = buildSubCommands('licenses', {
   ls(): Promise<void> {
     return Promise.reject(new Error('TODO'));
   },
@@ -53,7 +53,7 @@ export let {setFlags, run} = buildSubCommands('licenses', {
       return a.name.localeCompare(b.name);
     });
 
-    for (let {name, license, licenseText, repository} of manifests) {
+    for (const {name, license, licenseText, repository} of manifests) {
       console.log('-----');
       console.log();
 

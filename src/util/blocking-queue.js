@@ -2,7 +2,7 @@
 
 import map from './map.js';
 
-let debug = require('debug')('yarn');
+const debug = require('debug')('yarn');
 
 export default class BlockingQueue {
   constructor(alias: string, maxConcurrency?: number = Infinity) {
@@ -93,7 +93,7 @@ export default class BlockingQueue {
       return;
     }
 
-    let {resolve, reject, factory} = queue.shift();
+    const {resolve, reject, factory} = queue.shift();
     if (!queue.length) {
       delete this.queue[key];
     }

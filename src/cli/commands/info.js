@@ -4,7 +4,7 @@ import type {Reporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
 import NpmRegistry from '../../registries/npm-registry.js';
 
-let semver = require('semver');
+const semver = require('semver');
 const PKG_INPUT = /(^\S[^\s@]+)(?:@(\S+))?$/;
 
 function clean(object: any): any {
@@ -47,7 +47,7 @@ export async function run(
     return;
   }
 
-  let packageInput = NpmRegistry.escapeName(args.shift());
+  const packageInput = NpmRegistry.escapeName(args.shift());
   const field = args.shift();
 
   const parts = PKG_INPUT.exec(packageInput);

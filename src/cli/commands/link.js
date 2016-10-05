@@ -7,7 +7,7 @@ import * as fs from '../../util/fs.js';
 
 export const noArguments = true;
 
-let path = require('path');
+const path = require('path');
 
 export async function run(
   config: Config,
@@ -16,13 +16,13 @@ export async function run(
   args: Array<string>,
 ): Promise<void> {
   // add cwd module to the global registry
-  let manifest = await config.readRootManifest();
-  let name = manifest.name;
+  const manifest = await config.readRootManifest();
+  const name = manifest.name;
   if (!name) {
     throw new MessageError(reporter.lang('unknownPackageName'));
   }
 
-  let linkLoc = path.join(config.linkFolder, name);
+  const linkLoc = path.join(config.linkFolder, name);
   if (await fs.exists(linkLoc)) {
     throw new MessageError(reporter.lang('linkCollision', name));
   } else {

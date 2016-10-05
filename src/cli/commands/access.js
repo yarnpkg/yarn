@@ -2,7 +2,7 @@
 
 import buildSubCommands from './_build-sub-commands.js';
 
-export let {run, setFlags} = buildSubCommands('access', {
+export const {run, setFlags} = buildSubCommands('access', {
   public(): Promise<void> {
     return Promise.reject(new Error('TODO'));
   },

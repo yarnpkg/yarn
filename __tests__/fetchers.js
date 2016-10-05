@@ -10,17 +10,17 @@ import Config from '../src/config.js';
 import mkdir from './_temp.js';
 import * as fs from '../src/util/fs.js';
 
-let path = require('path');
+const path = require('path');
 
 async function createConfig(): Promise<Config> {
-  let config = new Config(new NoopReporter());
+  const config = new Config(new NoopReporter());
   await config.init();
   return config;
 }
 
 test('BaseFetcher.fetch', async () => {
-  let dir = await mkdir('base-fetcher');
-  let fetcher = new BaseFetcher(dir, {
+  const dir = await mkdir('base-fetcher');
+  const fetcher = new BaseFetcher(dir, {
     type: 'base',
     registry: 'npm',
     reference: '',
@@ -36,12 +36,12 @@ test('BaseFetcher.fetch', async () => {
 });
 
 test('CopyFetcher.fetch', async () => {
-  let a = await mkdir('copy-fetcher-a');
+  const a = await mkdir('copy-fetcher-a');
   await fs.writeFile(path.join(a, 'package.json'), '{}');
   await fs.writeFile(path.join(a, 'foo'), 'bar');
 
-  let b = await mkdir('copy-fetcher-b');
-  let fetcher = new CopyFetcher(b, {
+  const b = await mkdir('copy-fetcher-b');
+  const fetcher = new CopyFetcher(b, {
     type: 'copy',
     reference: a,
     registry: 'npm',
@@ -54,8 +54,8 @@ test('CopyFetcher.fetch', async () => {
 });
 
 test('GitFetcher.fetch', async () => {
-  let dir = await mkdir('git-fetcher');
-  let fetcher = new GitFetcher(dir, {
+  const dir = await mkdir('git-fetcher');
+  const fetcher = new GitFetcher(dir, {
     type: 'git',
     reference: 'https://github.com/PolymerElements/font-roboto',
     hash: '2fd5c7bd715a24fb5b250298a140a3ba1b71fe46',
@@ -67,8 +67,8 @@ test('GitFetcher.fetch', async () => {
 });
 
 test('TarballFetcher.fetch', async () => {
-  let dir = await mkdir('tarball-fetcher');
-  let fetcher = new TarballFetcher(dir, {
+  const dir = await mkdir('tarball-fetcher');
+  const fetcher = new TarballFetcher(dir, {
     type: 'tarball',
     hash: '9689b3b48d63ff70f170a192bec3c01b04f58f45',
     reference: 'https://github.com/PolymerElements/font-roboto/archive/2fd5c7bd715a24fb5b250298a140a3ba1b71fe46.tar.gz',
@@ -81,9 +81,9 @@ test('TarballFetcher.fetch', async () => {
 });
 
 test('TarballFetcher.fetch throws', async () => {
-  let dir = await mkdir('tarball-fetcher');
-  let url = 'https://github.com/PolymerElements/font-roboto/archive/2fd5c7bd715a24fb5b250298a140a3ba1b71fe46.tar.gz';
-  let fetcher = new TarballFetcher(dir, {
+  const dir = await mkdir('tarball-fetcher');
+  const url = 'https://github.com/PolymerElements/font-roboto/archive/2fd5c7bd715a24fb5b250298a140a3ba1b71fe46.tar.gz';
+  const fetcher = new TarballFetcher(dir, {
     type: 'tarball',
     hash: 'foo',
     reference: url,
@@ -99,8 +99,8 @@ test('TarballFetcher.fetch throws', async () => {
 });
 
 test('TarballFetcher.fetch supports local ungzipped tarball', async () => {
-  let dir = await mkdir('tarball-fetcher');
-  let fetcher = new LocalTarballFetcher(dir, {
+  const dir = await mkdir('tarball-fetcher');
+  const fetcher = new LocalTarballFetcher(dir, {
     type: 'tarball',
     hash: '76d4316a3965259f7074f167f44a7a7a393884be',
     reference: path.join(__dirname, 'fixtures', 'fetchers', 'tarball', 'ungzipped.tar'),

@@ -49,7 +49,7 @@ function _stringify(obj: Object, options: Options): string {
   // Sorting order needs to be consistent between runs, we run native sort by name because there are no
   // problems with it being unstable because there are no to keys the same
   // However priorities can be duplicated and native sort can shuffle things from run to run
-  let keys = Object.keys(obj).sort(priorityThenAlphaSort);
+  const keys = Object.keys(obj).sort(priorityThenAlphaSort);
 
   let addedKeys = [];
 
@@ -94,7 +94,7 @@ function _stringify(obj: Object, options: Options): string {
 }
 
 export default function stringify(obj: Object, noHeader?: boolean): string {
-  let val = _stringify(obj, {
+  const val = _stringify(obj, {
     indent: '',
     topLevel: true,
   });

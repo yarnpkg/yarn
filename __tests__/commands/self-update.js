@@ -38,7 +38,7 @@ let queueCounter = 0;
 function run(checks: (reporter: reporters.Reporter, config: Config) => Promise<void>): Promise<void> {
   return queue.push(`${queueCounter++}`, async () => {
     let out = '';
-    let stdout = new stream.Writable({
+    const stdout = new stream.Writable({
       decodeStrings: false,
       write(data, encoding, cb) {
         out += data;

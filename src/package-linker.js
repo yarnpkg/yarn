@@ -46,7 +46,7 @@ export default class PackageLinker {
   async linkSelfDependencies(pkg: Manifest, pkgLoc: string, targetBinLoc: string): Promise<void> {
     targetBinLoc = await fs.realpath(targetBinLoc);
     pkgLoc = await fs.realpath(pkgLoc);
-    for (let [scriptName, scriptCmd] of entries(pkg.bin)) {
+    for (const [scriptName, scriptCmd] of entries(pkg.bin)) {
       const dest = path.join(targetBinLoc, scriptName);
       const src = path.join(pkgLoc, scriptCmd);
       await linkBin(src, dest);
@@ -97,7 +97,7 @@ export default class PackageLinker {
     await fs.mkdirp(binLoc);
 
     // write the executables
-    for (let {dep, loc} of deps) {
+    for (const {dep, loc} of deps) {
       await this.linkSelfDependencies(dep, loc, binLoc);
     }
   }
@@ -110,7 +110,7 @@ export default class PackageLinker {
 
   async copyModules(patterns: Array<string>): Promise<void> {
     let flatTree = await this.getFlatHoistedTree(patterns);
-    let linkedRefs: Array<{
+    const linkedRefs: Array<{
       dest: string,
       name: string,
     }> = [];
@@ -122,7 +122,7 @@ export default class PackageLinker {
 
     //
     const queue = [];
-    for (let [dest, {pkg, loc: src}] of flatTree) {
+    for (const [dest, {pkg, loc: src}] of flatTree) {
       const ref = pkg._reference;
       invariant(ref, 'expected package reference');
       ref.setLocation(dest);
@@ -157,7 +157,7 @@ export default class PackageLinker {
     }
 
     // linked modules
-    for (let {name, dest} of linkedRefs) {
+    for (const {name, dest} of linkedRefs) {
       possibleExtraneous.delete(dest);
 
       this.reporter.info(this.reporter.lang('linkUsing', name));
@@ -197,13 +197,13 @@ export default class PackageLinker {
   }
 
   resolvePeerModules() {
-    for (let pkg of this.resolver.getManifests()) {
+    for (const pkg of this.resolver.getManifests()) {
       this._resolvePeerModules(pkg);
     }
   }
 
   _resolvePeerModules(pkg: Manifest) {
-    let peerDeps = pkg.peerDependencies;
+    const peerDeps = pkg.peerDependencies;
     if (!peerDeps) {
       return;
     }
