@@ -5,18 +5,19 @@
 'use strict';
 
 // init roadrunner
+var userHome = require('user-home');
+var mkdirp = require('mkdirp');
 var path = require('path');
-var CACHE_FILENAME = path.join(__dirname, '..', '.roadrunner.json');
+var CACHE_FILENAME = path.join(userHome, '.yarn', '.roadrunner.json');
+mkdirp.sync(path.dirname(CACHE_FILENAME));
 var roadrunner = require('roadrunner');
 roadrunner.load(CACHE_FILENAME);
 roadrunner.setup(CACHE_FILENAME);
 
+// get node version
 var semver = require('semver');
-
 var ver = process.versions.node;
-
-// explode and truncate tag from version https://github.com/yarnpkg/yarn/issues/511
-ver = ver.split('-')[0];
+ver = ver.split('-')[0]; // explode and truncate tag from version #511
 
 var possibles = [];
 var found = false;
