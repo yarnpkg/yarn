@@ -14,7 +14,20 @@ export type LifecycleReturn = Promise<{
   stdout: string,
 }>;
 
+function makeEnv(stage: string): {
+  [key: string]: string
+} {
+  const env = Object.assign({}, process.env);
+
+  env.npm_lifecycle_event = stage;
+  env.npm_node_execpath = env.NODE || process.execPath;
+  env.npm_execpath = path.join(__dirname, '..', '..', 'bin', 'yarn.js');
+
+  return env;
+}
+
 export default async function (
+  stage: string,
   config: Config,
   cwd: string,
   cmd: string,
@@ -23,10 +36,7 @@ export default async function (
   // if we don't have a spinner then pipe everything to the terminal
   const stdio = spinner ? undefined : 'inherit';
 
-  const env = Object.assign({}, process.env);
-
-  // this is used in some places apparently..
-  env.npm_execpath = path.join(__dirname, '..', '..', 'bin', 'yarn.js');
+  const env = makeEnv(stage);
 
   // split up the path
   const pathParts = (env[constants.ENV_PATH_KEY] || '').split(path.delimiter);

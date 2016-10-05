@@ -16,15 +16,15 @@ export async function execFromManifest(config: Config, commandName: string, pkg:
 
   const cmd = pkg.scripts[commandName];
   if (cmd) {
-    await execCommand(config, cmd, cwd);
+    await execCommand(commandName, config, cmd, cwd);
   }
 }
 
-export async function execCommand(config: Config, cmd: string, cwd: string): Promise<void> {
+export async function execCommand(stage: string, config: Config, cmd: string, cwd: string): Promise<void> {
   const {reporter} = config;
   try {
     reporter.command(cmd);
-    await executeLifecycleScript(config, cwd, cmd);
+    await executeLifecycleScript(stage, config, cwd, cmd);
     return Promise.resolve();
   } catch (err) {
     if (err instanceof SpawnError) {

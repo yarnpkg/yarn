@@ -55,13 +55,13 @@ export async function run(
     for (const action of actions) {
       const cmd = scripts[action];
       if (cmd) {
-        cmds.push(cmd);
+        cmds.push([action, cmd]);
       }
     }
 
     if (cmds.length) {
-      for (const cmd of cmds) {
-        await execCommand(config, cmd + ' ' + args.join(' '), config.cwd);
+      for (const [stage, cmd] of cmds) {
+        await execCommand(stage, config, `${cmd} ${args.join(' ')}`, config.cwd);
       }
     } else {
       let suggestion;

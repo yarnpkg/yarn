@@ -9,6 +9,7 @@ const path = require('path');
 
 export type RegistryRequestOptions = {
   method?: RequestMethods,
+  auth?: Object,
   body?: mixed,
 };
 

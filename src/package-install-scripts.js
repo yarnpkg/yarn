@@ -12,6 +12,8 @@ import * as constants from './constants.js';
 const invariant = require('invariant');
 const path = require('path');
 
+const INSTALL_STAGES = ['preinstall', 'install', 'postinstall'];
+
 export default class PackageInstallScripts {
   constructor(config: Config, resolver: PackageResolver, force: boolean) {
     this.installed = 0;
@@ -29,14 +31,17 @@ export default class PackageInstallScripts {
   force: boolean;
 
 
-  getInstallCommands(pkg: Manifest): Array<string> {
+  getInstallCommands(pkg: Manifest): Array<[string]> {
     const scripts = pkg.scripts;
     if (scripts) {
-      return [
-        scripts.preinstall,
-        scripts.install,
-        scripts.postinstall,
-      ].filter((cmd: string): boolean => !!cmd);
+      const cmds = [];
+      for (const stage of INSTALL_STAGES) {
+        const cmd = scripts[stage];
+        if (cmd) {
+          cmds.push([stage, cmd]);
+        }
+      }
+      return cmds;
     } else {
       return [];
     }
@@ -118,7 +123,7 @@ export default class PackageInstallScripts {
     return res;
   }
 
-  async install(cmds: Array<string>, pkg: Manifest, spinner: ReporterSetSpinner): Promise<void> {
+  async install(cmds: Array<[string, string]>, pkg: Manifest, spinner: ReporterSetSpinner): Promise<void> {
     const loc = this.config.generateHardModulePath(pkg._reference);
     try {
       await this.wrapCopyBuildArtifacts(
@@ -126,8 +131,8 @@ export default class PackageInstallScripts {
         pkg,
         spinner,
         async (): Promise<void> => {
-          for (const cmd of cmds) {
-            await executeLifecycleScript(this.config, loc, cmd, spinner);
+          for (const [stage, cmd] of cmds) {
+            await executeLifecycleScript(stage, this.config, loc, cmd, spinner);
           }
         },
       );

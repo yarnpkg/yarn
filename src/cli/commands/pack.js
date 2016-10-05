@@ -5,6 +5,7 @@ import type Config from '../../config.js';
 import type {IgnoreFilter} from '../../util/filter.js';
 import * as fs from '../../util/fs.js';
 import {sortFilter, ignoreLinesToRegex} from '../../util/filter.js';
+import {MessageError} from '../../errors.js';
 
 const zlib = require('zlib');
 const path = require('path');
