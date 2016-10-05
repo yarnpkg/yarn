@@ -100,7 +100,7 @@ export async function run(
   }
 
   // if we have a git url then set the type
-  if (pkg.repository.url) {
+  if (pkg.repository && pkg.repository.url) {
     pkg.repository.type = 'git';
   }
 
