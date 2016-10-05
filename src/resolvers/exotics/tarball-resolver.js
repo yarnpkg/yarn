@@ -34,9 +34,11 @@ export default class TarballResolver extends ExoticResolver {
       return true;
     }
 
-    // local file reference
-    if (pattern.endsWith('.tgz') || pattern.endsWith('tar.gz')) {
-      return true;
+    // local file reference - ignore patterns with names
+    if (pattern.indexOf('@') < 0) {
+      if (pattern.endsWith('.tgz') || pattern.endsWith('tar.gz')) {
+        return true;
+      }
     }
 
     return false;
