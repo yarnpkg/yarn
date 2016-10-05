@@ -120,7 +120,7 @@ export async function run(
     throw new MessageError(reporter.lang('publishPrivate'));
   }
   if (!pkg.name) {
-    throw new MessageError(reporter.lang('publishNoName'));
+    throw new MessageError(reporter.lang('noName'));
   }
 
   // validate arguments

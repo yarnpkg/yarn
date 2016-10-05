@@ -65,6 +65,8 @@ const messages = {
   yesWarning: 'The yes flag has been set. This will automatically answer yes to all questions which may have security implications.',
   networkWarning: "You don't appear to have an internet connection. Try the --offline flag to use the cache for registry queries.",
   flatGlobalError: 'The package $0@$1 requires a flat dependency graph. Add `"flat": true` to your package.json and try again.',
+  noName: `Package doesn't have a name.`,
+  noVersion: `Package doesn't have a version.`,
 
   tooManyArguments: 'Too many arguments, maximum of $0.',
   tooFewArguments: 'Not enoguh arguments, expected at least $0.',
@@ -180,7 +182,6 @@ const messages = {
 
   publishFail: "Couldn't publish package.",
   publishPrivate: 'Package marked as private, not publishing.',
-  publishNoName: `Package doesn't have a name.`,
   published: 'Published.',
   publishing: 'Publishing',
 
