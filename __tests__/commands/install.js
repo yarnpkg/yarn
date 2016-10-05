@@ -215,30 +215,33 @@ test.concurrent('install should dedupe dependencies avoiding conflicts 5', (): P
   });
 });
 
-test.concurrent('install should dedupe dependencies avoiding conflicts 6 (jest/jest-runtime case)', (): Promise<void> => {
-  // C@1 -> D@1 -> E@1
-  // B@1 -> C@1 -> D@1 -> E@1
-  // D@2
-  // E@2
+test.concurrent(
+  'install should dedupe dependencies avoiding conflicts 6 (jest/jest-runtime case)',
+  (): Promise<void> => {
+    // C@1 -> D@1 -> E@1
+    // B@1 -> C@1 -> D@1 -> E@1
+    // D@2
+    // E@2
 
-  // should become
+    // should become
 
-  // C@1 -> D@1
-  //     -> E@1
-  // B@1
-  // D@2
-  // E@2
+    // C@1 -> D@1
+    //     -> E@1
+    // B@1
+    // D@2
+    // E@2
 
-  return runInstall({}, 'install-should-dedupe-avoiding-conflicts-6', async (config): Promise<void> => {
-    assert.equal(await getPackageVersion(config, 'dep-b'), '1.0.0');
-    assert.equal(await getPackageVersion(config, 'dep-c'), '1.0.0');
-    assert.equal(await getPackageVersion(config, 'dep-d'), '2.0.0');
-    assert.equal(await getPackageVersion(config, 'dep-e'), '2.0.0');
+    return runInstall({}, 'install-should-dedupe-avoiding-conflicts-6', async (config): Promise<void> => {
+      assert.equal(await getPackageVersion(config, 'dep-b'), '1.0.0');
+      assert.equal(await getPackageVersion(config, 'dep-c'), '1.0.0');
+      assert.equal(await getPackageVersion(config, 'dep-d'), '2.0.0');
+      assert.equal(await getPackageVersion(config, 'dep-e'), '2.0.0');
 
-    assert.equal(await getPackageVersion(config, 'dep-c/dep-d'), '1.0.0');
-    assert.equal(await getPackageVersion(config, 'dep-c/dep-e'), '1.0.0');
-  });
-});
+      assert.equal(await getPackageVersion(config, 'dep-c/dep-d'), '1.0.0');
+      assert.equal(await getPackageVersion(config, 'dep-c/dep-e'), '1.0.0');
+    });
+  },
+);
 
 test.concurrent('install should dedupe dependencies avoiding conflicts 7', (): Promise<void> => {
   // A@1 -> C@1 -> D@1 -> E@1
@@ -378,42 +381,45 @@ test.concurrent(
   },
 );
 
-test.concurrent('uninstall should remove dependency from package.json, yarn.lock and node_modules', (): Promise<void> => {
-  let mirrorPath = 'mirror-for-offline';
+test.concurrent(
+  'uninstall should remove dependency from package.json, yarn.lock and node_modules',
+  (): Promise<void> => {
+    let mirrorPath = 'mirror-for-offline';
 
-  return runInstall({}, 'uninstall-should-clean', async (config, reporter) => {
-    assert.equal(
-      await getPackageVersion(config, 'dep-a'),
-      '1.0.0',
-    );
-
-    await fs.copy(path.join(config.cwd, 'yarn.lock'), path.join(config.cwd, 'yarn.lock.orig'));
-    await fs.copy(path.join(config.cwd, 'package.json'), path.join(config.cwd, 'package.json.orig'));
-
-    try {
-      await uninstall(config, reporter, {}, ['dep-a']);
-
-      assert(!await fs.exists(path.join(config.cwd, 'node_modules/dep-a')));
-      assert(await fs.exists(path.join(config.cwd, `${mirrorPath}/dep-a-1.0.0.tgz`)));
-
-      assert.deepEqual(
-        JSON.parse(await fs.readFile(path.join(config.cwd, 'package.json'))).dependencies,
-        {},
+    return runInstall({}, 'uninstall-should-clean', async (config, reporter) => {
+      assert.equal(
+        await getPackageVersion(config, 'dep-a'),
+        '1.0.0',
       );
 
-      let lockFileContent = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
-      let lockFileLines = explodeLockfile(lockFileContent);
-      assert.equal(lockFileLines.length, 0);
-    } finally {
-      await fs.unlink(path.join(config.cwd, 'yarn.lock'));
-      await fs.unlink(path.join(config.cwd, 'package.json'));
-      await fs.copy(path.join(config.cwd, 'yarn.lock.orig'), path.join(config.cwd, 'yarn.lock'));
-      await fs.copy(path.join(config.cwd, 'package.json.orig'), path.join(config.cwd, 'package.json'));
-      await fs.unlink(path.join(config.cwd, 'yarn.lock.orig'));
-      await fs.unlink(path.join(config.cwd, 'package.json.orig'));
-    }
-  });
-});
+      await fs.copy(path.join(config.cwd, 'yarn.lock'), path.join(config.cwd, 'yarn.lock.orig'));
+      await fs.copy(path.join(config.cwd, 'package.json'), path.join(config.cwd, 'package.json.orig'));
+
+      try {
+        await uninstall(config, reporter, {}, ['dep-a']);
+
+        assert(!await fs.exists(path.join(config.cwd, 'node_modules/dep-a')));
+        assert(await fs.exists(path.join(config.cwd, `${mirrorPath}/dep-a-1.0.0.tgz`)));
+
+        assert.deepEqual(
+          JSON.parse(await fs.readFile(path.join(config.cwd, 'package.json'))).dependencies,
+          {},
+        );
+
+        let lockFileContent = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
+        let lockFileLines = explodeLockfile(lockFileContent);
+        assert.equal(lockFileLines.length, 0);
+      } finally {
+        await fs.unlink(path.join(config.cwd, 'yarn.lock'));
+        await fs.unlink(path.join(config.cwd, 'package.json'));
+        await fs.copy(path.join(config.cwd, 'yarn.lock.orig'), path.join(config.cwd, 'yarn.lock'));
+        await fs.copy(path.join(config.cwd, 'package.json.orig'), path.join(config.cwd, 'package.json'));
+        await fs.unlink(path.join(config.cwd, 'yarn.lock.orig'));
+        await fs.unlink(path.join(config.cwd, 'package.json.orig'));
+      }
+    });
+  },
+);
 
 test.concurrent('uninstall should remove subdependencies', (): Promise<void> => {
   // A@1 -> B@1
