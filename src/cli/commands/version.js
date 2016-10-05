@@ -12,12 +12,13 @@ let invariant = require('invariant');
 let semver = require('semver');
 let path = require('path');
 
+const NEW_VERSION_FLAG = '--new-version [version]';
 function isValidNewVersion(oldVersion: string, newVersion: string, looseSemver: boolean): boolean {
   return !!(semver.valid(newVersion, looseSemver) || semver.inc(oldVersion, newVersion, looseSemver));
 }
 
 export function setFlags(commander: Object) {
-  commander.option('--new-version [version]', 'new version');
+  commander.option(NEW_VERSION_FLAG, 'new version');
   commander.option('--message [message]', 'message');
 }
 
@@ -27,9 +28,14 @@ export async function run(
  flags: Object,
  args: Array<string>,
 ): Promise<void> {
-  let pkg = await config.readRootManifest();
-  let pkgLoc = pkg._loc;
+  const pkg = await config.readRootManifest();
+  const pkgLoc = pkg._loc;
+  let newVersion = flags.newVersion;
   invariant(pkgLoc, 'expected package location');
+
+  if (args.length && !newVersion) {
+    throw new MessageError(reporter.lang('invalidVersionArgument', NEW_VERSION_FLAG));
+  }
 
   // get old version
   let oldVersion = pkg.version;
@@ -40,7 +46,6 @@ export async function run(
   }
 
   // get new version
-  let newVersion = flags.newVersion;
   if (newVersion && !isValidNewVersion(oldVersion, newVersion, config.looseSemver)) {
     throw new MessageError(reporter.lang('invalidVersion'));
   }
@@ -65,13 +70,13 @@ export async function run(
 
   // update version
   reporter.info(`${reporter.lang('newVersion')}: ${newVersion}`);
-  let json = await fs.readJson(pkgLoc);
+  const json = await fs.readJson(pkgLoc);
   pkg.version = json.version = newVersion;
   await fs.writeFile(pkgLoc, `${stringify(json)}\n`);
 
   // add git commit and tag
   let isGit = false;
-  let parts = config.cwd.split(path.sep);
+  const parts = config.cwd.split(path.sep);
   while (parts.length) {
     isGit = await fs.exists(path.join(parts.join(path.sep), '.git'));
     if (isGit) {
@@ -81,10 +86,10 @@ export async function run(
     }
   }
   if (isGit) {
-    let message = (flags.message || 'v%s').replace(/%s/g, newVersion);
-    let sign = false; // TODO sign-git-tag npm config
-    let flag = sign ? '-sm' : '-am';
-    let prefix = 'v'; // TODO tag-version-prefix npm config
+    const message = (flags.message || 'v%s').replace(/%s/g, newVersion);
+    const sign = false; // TODO sign-git-tag npm config
+    const flag = sign ? '-sm' : '-am';
+    const prefix = 'v'; // TODO tag-version-prefix npm config
 
     // add manifest
     await spawn('git', ['add', pkgLoc]);
