@@ -12,7 +12,12 @@ roadrunner.load(CACHE_FILENAME);
 roadrunner.setup(CACHE_FILENAME);
 
 var semver = require('semver');
+
 var ver = process.versions.node;
+
+// explode and truncate tag from version https://github.com/yarnpkg/yarn/issues/511
+ver = ver.split('-')[0];
+
 var possibles = [];
 var found = false;
 var _err;
