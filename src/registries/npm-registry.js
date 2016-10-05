@@ -58,6 +58,7 @@ export default class NpmRegistry extends Registry {
       url: url.resolve(registry, pathname),
       method: opts.method,
       body: opts.body,
+      auth: opts.auth,
       headers,
       json: true,
     });

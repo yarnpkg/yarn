@@ -29,8 +29,6 @@ async function publish(
   flags: Object,
   dir: string,
 ): Promise<void> {
-  const registry = config.registries.npm.config.registry;
-
   // validate access argument
   const access = flags.access;
   if (access && access !== 'public' && access !== 'restricted') {
@@ -92,6 +90,8 @@ async function publish(
   pkg._id = `${pkg.name}@${pkg.version}`;
   pkg.dist = pkg.dist || {};
   pkg.dist.shasum = crypto.createHash('sha1').update(buffer).digest('hex');
+
+  const registry = String(config.registries.yarn.getOption('registry'));
   pkg.dist.tarball = url.resolve(registry, tbURI).replace(/^https:\/\//, 'http://');
 
   // publish package
