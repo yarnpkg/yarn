@@ -135,6 +135,7 @@ export class Install {
     reporter: Reporter,
     lockfile: Lockfile,
   ) {
+    this.rootManifestRegistries = [];
     this.rootPatternsToOrigin = map();
     this.resolutions = map();
     this.lockfile = lockfile;
@@ -150,6 +151,7 @@ export class Install {
   }
 
   flags: Flags;
+  rootManifestRegistries: Array<RegistryNames>;
   registries: Array<RegistryNames>;
   lockfile: Lockfile;
   resolutions: { [packageName: string]: string };
@@ -191,6 +193,7 @@ export class Install {
         continue;
       }
 
+      this.rootManifestRegistries.push(registry);
       const json = await fs.readJson(loc);
       await normalizeManifest(json, this.config.cwd, this.config, true);
 
@@ -239,22 +242,39 @@ export class Install {
    * TODO description
    */
 
-  prepare(
+  async prepare(
     patterns: Array<string>,
     requests: DependencyRequestPatterns,
     match: IntegrityMatch,
   ): Promise<InstallPrepared> {
     if (!this.flags.skipIntegrity && !this.flags.force && match.matches) {
       this.reporter.success(this.reporter.lang('upToDate'));
-      return Promise.resolve({patterns, requests, skip: true});
+      return {patterns, requests, skip: true};
     }
 
     if (!patterns.length && !match.expected) {
       this.reporter.success(this.reporter.lang('nothingToInstall'));
-      return Promise.resolve({patterns, requests, skip: true});
+      await this.createEmptyManifestFolders();
+      return {patterns, requests, skip: true};
     }
 
-    return Promise.resolve({patterns, requests, skip: false});
+    return {patterns, requests, skip: false};
+  }
+
+  /**
+   * Produce empty folders for all used root manifests.
+   */
+
+  async createEmptyManifestFolders(): Promise<void> {
+    if (this.config.modulesFolder) {
+      // already created
+      return;
+    }
+
+    for (let registryName of this.rootManifestRegistries) {
+      let {folder} = this.config.registries[registryName];
+      await fs.mkdirp(path.join(this.config.cwd, folder));
+    }
   }
 
   /**
