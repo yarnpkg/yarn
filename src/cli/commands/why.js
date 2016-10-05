@@ -40,7 +40,7 @@ export async function run(
 ): Promise<void> {
   const query = await cleanQuery(config, args[0]);
 
-  reporter.step(1, 3, reporter.lang('whyStart'), emoji.get('thinking_face'));
+  reporter.step(1, 3, reporter.lang('whyStart', args[0]), emoji.get('thinking_face'));
 
   // init
   reporter.step(2, 3, reporter.lang('whyInitGraph'), emoji.get('truck'));
@@ -72,8 +72,13 @@ export async function run(
   const matchPatterns = matchRef.patterns;
   const matchRequests = matchRef.requests;
 
-  const reasons = [];
 
+  // reason: hoisted
+  if (query === match.originalKey) {
+    reporter.info(reporter.lang('whyHoistedTo', match.key));
+  }
+
+  const reasons = [];
   // reason: dependency of these modules
   for (const request of matchRequests) {
     const parentRequest = request.parentRequest;
@@ -93,7 +98,11 @@ export async function run(
       chain.push(install.resolver.getStrictResolvedPattern(delegator.pattern).name);
     } while (delegator = delegator.parentRequest);
 
-    reasons.push(reporter.lang('whyDependedOn', chain.reverse().join('#')));
+    reasons.push({
+      type: 'whyDependedOn',
+      typeSimple: 'whyDependedOnSimple',
+      value: chain.reverse().join('#'),
+    });
   }
 
   // reason: exists in manifest
@@ -101,28 +110,33 @@ export async function run(
   for (const pattern of matchPatterns) {
     rootType = install.rootPatternsToOrigin[pattern];
     if (rootType) {
-      reasons.push(reporter.lang('whySpecified', rootType));
+      reasons.push({
+        type: 'whySpecified',
+        typeSimple: 'whySpecifiedSimple',
+        value: rootType,
+      });
     }
-  }
-
-  // reason:
-  if (query === match.originalKey) {
-    reporter.info(reporter.lang('whyHoistedTo', match.key));
   }
 
   // reason: this is hoisted from these modules
   for (const pattern of match.previousKeys) {
     if (pattern !== match.key) {
-      reasons.push(reporter.lang('whyHoistedFrom', pattern));
+      reasons.push({
+        type: 'whyHoistedFrom',
+        typeSimple: 'whyHoistedFromSimple',
+        value: pattern,
+      });
     }
   }
 
   //
   if (reasons.length === 1) {
-    reporter.info(reporter.lang('whyReason', reasons[0]));
+    reporter.info(reporter.lang(reasons[0].typeSimple, reasons[0].value));
   } else if (reasons.length > 1) {
     reporter.info(reporter.lang('whyReasons'));
-    reporter.list('reasons', reasons);
+    reporter.list('reasons', reasons.map(
+      (reason) => reporter.lang(reason.type, reason.value)),
+    );
   } else {
     reporter.error(reporter.lang('whyWhoKnows'));
   }
