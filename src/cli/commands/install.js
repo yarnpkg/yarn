@@ -271,8 +271,8 @@ export class Install {
       return;
     }
 
-    for (let registryName of this.rootManifestRegistries) {
-      let {folder} = this.config.registries[registryName];
+    for (const registryName of this.rootManifestRegistries) {
+      const {folder} = this.config.registries[registryName];
       await fs.mkdirp(path.join(this.config.cwd, folder));
     }
   }
