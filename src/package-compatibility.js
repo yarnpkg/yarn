@@ -12,6 +12,10 @@ import {entries} from './util/misc.js';
 const invariant = require('invariant');
 const semver = require('semver');
 
+const VERSIONS = Object.assign({}, process.versions, {
+  yarn: require('../package.json').version,
+});
+
 function isValid(items: Array<string>, actual: string): boolean {
   let isNotWhitelist = true;
   let isBlacklist = false;
@@ -153,8 +157,8 @@ export default class PackageCompatibility {
           name = aliases[name];
         }
 
-        if (process.versions[name]) {
-          if (!testEngine(name, range, process.versions, this.config.looseSemver)) {
+        if (VERSIONS[name]) {
+          if (!testEngine(name, range, VERSIONS, this.config.looseSemver)) {
             pushError(this.reporter.lang('incompatibleEngine', name, range));
           }
         } else if (ignore.indexOf(name) < 0) {
