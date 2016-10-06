@@ -9,16 +9,16 @@ import {MessageError} from '../errors.js';
 import aliases from './aliases.js';
 import Config from '../config.js';
 
-const loudRejection = require('loud-rejection');
 const camelCase = require('camelcase');
+const chalk = require('chalk');
 const commander = require('commander');
+const fs = require('fs');
 const invariant = require('invariant');
 const lockfile = require('proper-lockfile');
+const loudRejection = require('loud-rejection');
+const net = require('net');
 const onDeath = require('death');
 const path = require('path');
-const net = require('net');
-const fs = require('fs');
-
 const pkg = require('../../package.json');
 
 loudRejection();
@@ -64,21 +64,34 @@ let commandName: string = args.shift() || '';
 let command;
 
 //
-if (commandName === 'help' && !args.length) {
-  commander.on('--help', function() {
-    console.log('  Commands:');
-    console.log();
-    for (const name of Object.keys(commands).sort(sortAlpha)) {
-      if (commands[name].useless) {
-        continue;
-      }
+const hyphenate = (string) => string.replace(/[A-Z]/g, (match) => ('-' + match.charAt(0).toLowerCase()));
 
-      console.log(`    * ${name}`);
-    }
-    console.log();
-    console.log('  Run `yarn help COMMAND` for more information on specific commands.');
-    console.log();
-  });
+//
+if (commandName === 'help') {
+  if (args.length) {
+    const helpCommand = hyphenate(args[0]);
+    commander.on('--help', () => {
+      console.log(
+        '  Visit ' +
+        chalk.bold('http://yarnpkg.com/en/docs/' + helpCommand) +
+        ' for documentation about this command.\n',
+      );
+
+    });
+  } else {
+    commander.on('--help', () => {
+      console.log('  Commands:\n');
+      for (const name of Object.keys(commands).sort(sortAlpha)) {
+        if (commands[name].useless) {
+          continue;
+        }
+
+        console.log(`    - ${hyphenate(name)}`);
+      }
+      console.log('\n  Run `' + chalk.bold('yarn help COMMAND') + '` for more information on specific commands.');
+      console.log('  Visit ' + chalk.bold('http://yarnpkg.com/en/docs/') + ' to learn more about Yarn.\n');
+    });
+  }
 }
 
 // if no args or command name looks like a flag then default to `install`
@@ -114,25 +127,17 @@ if (command && typeof command.setFlags === 'function') {
   command.setFlags(commander);
 }
 
-//
-const DEFAULT_EXAMPLES = [
-  '--mutex file',
-  '--mutex file:my-custom-filename',
-  '--mutex network',
-  '--mutex network:8008',
-];
-
-//
 if (commandName === 'help' || args.indexOf('--help') >= 0 || args.indexOf('-h') >= 0) {
-  const examples = DEFAULT_EXAMPLES.concat((command && command.examples) || []);
-  commander.on('--help', function() {
-    console.log('  Examples:');
-    console.log();
-    for (const example of examples) {
-      console.log(`    $ yarn ${example}`);
-    }
-    console.log();
-  });
+  const examples = (command && command.examples) || [];
+  if (examples.length) {
+    commander.on('--help', () => {
+      console.log('  Examples:\n');
+      for (const example of examples) {
+        console.log(`    $ yarn ${example}`);
+      }
+      console.log();
+    });
+  }
 
   commander.parse(startArgs.concat(args));
   commander.help();
@@ -196,7 +201,7 @@ if (command.requireLockfile && !fs.existsSync(path.join(config.cwd, constants.LO
 //
 const run = (): Promise<void> => {
   invariant(command, 'missing command');
-  return command.run(config, reporter, commander, commander.args).then(function() {
+  return command.run(config, reporter, commander, commander.args).then(() => {
     reporter.close();
     if (outputWrapper) {
       reporter.footer(false);
@@ -287,7 +292,7 @@ config.init({
   ignoreEngines: commander.ignoreEngines,
   offline: commander.preferOffline || commander.offline,
   looseSemver: !commander.strictSemver,
-}).then(function(): Promise<void> {
+}).then((): Promise<void> => {
   const exit = () => {
     process.exit(0);
   };
@@ -308,7 +313,7 @@ config.init({
   } else {
     return run().then(exit);
   }
-}).catch(function(errs) {
+}).catch((errs) => {
   function logError(err) {
     if (err instanceof MessageError) {
       reporter.error(err.message);
