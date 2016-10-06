@@ -131,15 +131,15 @@ test('ProgressBar', () => {
   const bar = new ProgressBar(2, new TestStream());
 
   bar.render();
-  expect(data).toBe('\u001b[2K\u001b[1G░░ 0/2');
+  expect(data).toBe('\u001b[2K\u001b[1G\u001b[1G░░ 0/2');
 
   bar.tick();
   bar.render();
-  expect(data).toBe('\u001b[2K\u001b[1G░░ 0/2\u001b[2K\u001b[1G█░ 1/2');
+  expect(data).toBe('\u001b[2K\u001b[1G\u001b[1G░░ 0/2\u001b[1G█░ 1/2');
 
   bar.tick();
   bar.render();
-  expect(data).toBe('\u001b[2K\u001b[1G░░ 0/2\u001b[2K\u001b[1G█░ 1/2\u001b[2K\u001b[1G\u001b[2K\u001b[1G██ 2/2');
+  expect(data).toBe('\u001b[2K\u001b[1G\u001b[1G░░ 0/2\u001b[1G█░ 1/2\u001b[2K\u001b[1G\u001b[1G██ 2/2');
 });
 
 test('Spinner', () => {
