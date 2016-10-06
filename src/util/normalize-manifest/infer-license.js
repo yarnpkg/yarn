@@ -11,6 +11,7 @@ function clean(str: string): string {
 }
 
 const REGEXES = {
+  Unlicense: [/http:\/\/unlicense.org\//],
   WTFPL: [/DO WHAT THE FUCK YOU WANT TO PUBLIC LICENSE/, /WTFPL\b/],
   ISC: [/The ISC License/, /ISC\b/],
   Apache: [/Apache License\b/],
