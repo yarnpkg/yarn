@@ -51,8 +51,8 @@ export {pack};
 import * as owner from './owner.js';
 export {owner};
 
-import * as distTag from './dist-tag.js';
-export {distTag};
+import * as tag from './tag.js';
+export {tag};
 
 import * as publish from './publish.js';
 export {publish};
