@@ -1,7 +1,7 @@
 /* @flow */
 
 import type {Stdout} from '../types.js';
-import {clearLine} from './util.js';
+import {clearLine, toStartOfLine} from './util.js';
 
 const repeat = require('repeating');
 
@@ -12,6 +12,7 @@ export default class ProgressBar {
     this.chars = ProgressBar.bars[0].split('');
     this.delay = 60;
     this.curr = 0;
+    clearLine(stdout);
   }
 
   stdout: Stdout;
@@ -54,15 +55,14 @@ export default class ProgressBar {
 
     // calculate size of actual bar
     // $FlowFixMe: investigate process.stderr.columns flow error
-    const availableSpace = Math.max(0, this.stdout.columns - bar.length);
+    const availableSpace = Math.max(0, this.stdout.columns - bar.length - 1);
     const width = Math.min(this.total, availableSpace);
     const completeLength = Math.round(width * ratio);
     const complete = repeat(this.chars[0], completeLength);
     const incomplete = repeat(this.chars[1], width - completeLength);
     bar = `${complete}${incomplete}${bar}`;
 
-    //
-    clearLine(this.stdout);
+    toStartOfLine(this.stdout);
     this.stdout.write(bar);
   }
 }

@@ -9,6 +9,10 @@ export function clearLine(stdout: Stdout) {
   readline.cursorTo(stdout, 0);
 }
 
+export function toStartOfLine(stdout: Stdout) {
+  readline.cursorTo(stdout, 0);
+}
+
 export function writeOnNthLine(stdout: Stdout, n: number, msg: string) {
   if (n == 0) {
     clearLine(stdout);
