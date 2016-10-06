@@ -9,13 +9,14 @@ export type MockData = {
   stderr: string
 };
 
-type Interceptor<T> = (data: MockData, reporter: Reporter) => T;
+type Interceptor<T> = (data: MockData, reporter: Reporter, prepared: any) => T;
 
 type MockCallback = (reporter: Reporter, opts: Object) => ?Promise<void>;
 
 export default function<T>(
   Reporter: Function,
   interceptor: Interceptor<T>,
+  prepare?: (reporter: Reporter) => void,
 ): (callback: MockCallback) => Promise<T> {
   return async function (callback: MockCallback): * {
     const data: MockData = {
@@ -46,6 +47,11 @@ export default function<T>(
     };
 
     const reporter = new Reporter(opts);
+    let prepared;
+
+    if (prepare) {
+      prepared = prepare(reporter);
+    }
 
     reporter.peakMemory = 0;
     reporter.isTTY = true;
@@ -58,6 +64,6 @@ export default function<T>(
       data[key] = data[key].trim();
     }
 
-    return interceptor(data, reporter);
+    return interceptor(data, reporter, prepared);
   };
 }

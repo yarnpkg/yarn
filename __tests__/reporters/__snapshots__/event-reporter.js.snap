@@ -1,0 +1,75 @@
+exports[`test EventReporter.command 1`] = `
+Array [
+  Object {
+    "data": "foobar",
+    "type": "command",
+  },
+]
+`;
+
+exports[`test EventReporter.error 1`] = `
+Array [
+  Object {
+    "data": "foobar",
+    "type": "error",
+  },
+]
+`;
+
+exports[`test EventReporter.finished 1`] = `
+Array [
+  Object {
+    "data": 0,
+    "type": "finished",
+  },
+]
+`;
+
+exports[`test EventReporter.info 1`] = `
+Array [
+  Object {
+    "data": "foobar",
+    "type": "info",
+  },
+]
+`;
+
+exports[`test EventReporter.log 1`] = `
+Array [
+  Object {
+    "data": "foobar",
+    "type": "log",
+  },
+]
+`;
+
+exports[`test EventReporter.step 1`] = `
+Array [
+  Object {
+    "data": Object {
+      "current": 1,
+      "message": "foobar",
+      "total": 5,
+    },
+    "type": "step",
+  },
+]
+`;
+
+exports[`test EventReporter.success 1`] = `
+Array [
+  Object {
+    "data": "foobar",
+    "type": "success",
+  },
+]
+`;
+
+exports[`test EventReporter.warn 1`] = `
+Array [
+  Object {
+    "data": "foobar",
+    "type": "warning",
+  },
+]
+`;
