@@ -47,6 +47,7 @@ export type Manifest = {
   name: string,
   version: string,
 
+  homepage?: string,
   flat?: boolean,
   license?: string,
   licenseText?: string,

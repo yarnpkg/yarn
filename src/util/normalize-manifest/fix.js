@@ -254,7 +254,8 @@ export default async function (
   // get license file
   const licenseFile = files.find((filename): boolean => {
     const lower = filename.toLowerCase();
-    return lower === 'license' || lower.indexOf('license.') === 0;
+    return lower === 'license' || lower.startsWith('license.') ||
+           lower === 'unlicense' || lower.startsWith('unlicense.');
   });
   if (licenseFile) {
     const licenseContent = await fs.readFile(path.join(moduleLoc, licenseFile));

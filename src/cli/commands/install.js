@@ -67,6 +67,7 @@ type Flags = {
   production: boolean,
   lockfile: boolean,
   pureLockfile: boolean,
+  skipIntegrity: boolean,
 
   // add
   peer: boolean,
@@ -88,6 +89,7 @@ function normalizeFlags(config: Config, rawFlags: Object): Flags {
     production: !!rawFlags.production,
     lockfile: rawFlags.lockfile !== false,
     pureLockfile: !!rawFlags.pureLockfile,
+    skipIntegrity: !!rawFlags.skipIntegrity,
 
     // add
     peer: !!rawFlags.peer,
