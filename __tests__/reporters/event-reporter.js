@@ -7,8 +7,8 @@ type Events = Array<Object>;
 
 const getBuff = build(
   EventReporter,
-  (data, reporter: EventReporter, events: Events): Events => events,
-  (reporter: EventReporter): Events => {
+  (data, reporter: any, events: Events): Events => events,
+  (reporter: any): Events => {
     const events: Events = [];
     reporter.emit = (type: string, data: any) => {
       events.push({type, data});

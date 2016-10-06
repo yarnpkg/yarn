@@ -16,7 +16,7 @@ type MockCallback = (reporter: Reporter, opts: Object) => ?Promise<void>;
 export default function<T>(
   Reporter: Function,
   interceptor: Interceptor<T>,
-  prepare?: (reporter: Reporter) => void,
+  prepare?: (reporter: Reporter) => any,
 ): (callback: MockCallback) => Promise<T> {
   return async function (callback: MockCallback): * {
     const data: MockData = {
