@@ -13,26 +13,30 @@ const invariant = require('invariant');
 const semver = require('semver');
 
 function isValid(items: Array<string>, actual: string): boolean {
+  let isNotWhitelist = true;
   let isBlacklist = false;
 
   for (const item of items) {
-    // whitelist
-    if (item === actual) {
-      return true;
-    }
-
     // blacklist
     if (item[0] === '!') {
-      // we're in a blacklist so anything that doesn't match this is fine to have
       isBlacklist = true;
 
       if (actual === item.slice(1)) {
         return false;
       }
+    // whitelist
+    } else {
+      isNotWhitelist = false;
+
+      if (item === actual) {
+        return true;
+      }
     }
   }
 
-  return isBlacklist;
+  // npm allows blacklists and whitelists to be mixed. Blacklists with
+  // whitelisted items should be treated as whitelists.
+  return isBlacklist && isNotWhitelist;
 }
 
 const aliases = map({
