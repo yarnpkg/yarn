@@ -48,7 +48,7 @@ export default class PackageInstallScripts {
   }
 
   async walk(loc: string): Promise<Map<string, number>> {
-    const files = await fs.walk(loc, null, this.config.registryFolders);
+    const files = await fs.walk(loc, null, new Set(this.config.registryFolders));
     const mtimes = new Map();
     for (const file of files) {
       mtimes.set(file.relative, file.mtime);

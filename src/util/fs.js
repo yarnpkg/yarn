@@ -381,13 +381,13 @@ export type WalkFiles = Array<{
 export async function walk(
   dir: string,
   relativeDir?: ?string,
-  ignoreBasenames?: Array<string> = [],
+  ignoreBasenames?: Set<string> = new Set(),
 ): Promise<WalkFiles> {
   let files = [];
 
   let filenames = await readdir(dir);
-  if (ignoreBasenames.length) {
-    filenames = filenames.filter((name): boolean => ignoreBasenames.indexOf(name) < 0);
+  if (ignoreBasenames.size) {
+    filenames = filenames.filter((name) => !ignoreBasenames.has(name));
   }
 
   for (const name of filenames) {
