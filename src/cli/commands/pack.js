@@ -14,7 +14,6 @@ const fs2 = require('fs');
 
 const IGNORE_FILENAMES = [
   '.yarnignore',
-  '.kpmignore',
   '.npmignore',
   '.gitignore',
 ];
@@ -27,7 +26,6 @@ const DEFAULT_IGNORE = ignoreLinesToRegex([
   '.hg',
 
   // ignore cruft
-  'kpm.lock',
   'yarn.lock',
   '.lock-wscript',
   '.wafpickle-{0..9}',
@@ -35,7 +33,6 @@ const DEFAULT_IGNORE = ignoreLinesToRegex([
   '._*',
   'npm-debug.log',
   '.npmrc',
-  '.kpmrc',
   '.yarnrc',
   '.npmignore',
   '.gitignore',

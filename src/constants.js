@@ -26,17 +26,6 @@ export const CHILD_CONCURRENCY = 5;
 
 export const REQUIRED_PACKAGE_KEYS = ['name', 'version', '_uid'];
 
-function or(filenames: Array<string>, cwd: string): string {
-  for (const filename of filenames) {
-    const loc = path.join(cwd, filename);
-    if (fs.existsSync(loc)) {
-      return filename;
-    }
-  }
-
-  return filenames.pop();
-}
-
 export function getAppData(env: Env): ?string {
   for (const key in env) {
     if (key.toLowerCase() === 'appdata') {
@@ -56,8 +45,7 @@ export function getModuleCacheDirectory(): string {
   }
 
   // otherwise use ~/.yarn
-  const name = or(['.fbkpm', '.kpm', '.yarn'], userHome);
-  return path.join(userHome, name);
+  return path.join(userHome, '.yarn');
 }
 
 // the kpm and fbkpm names here are legacy names for yarn here for compatibility
@@ -66,11 +54,8 @@ export const MODULE_CACHE_DIRECTORY = getModuleCacheDirectory();
 export const LINK_REGISTRY_DIRECTORY = `${MODULE_CACHE_DIRECTORY}/.link`;
 export const GLOBAL_MODULE_DIRECTORY = `${MODULE_CACHE_DIRECTORY}/.global`;
 
-export const INTEGRITY_FILENAME = or(
-  ['.fbkpm-integrity', '.kpm-integrity', '.yarn-integrity'],
-  path.join(cwd, 'node_modules'),
-);
-export const LOCKFILE_FILENAME = or(['fbkpm.lock', 'kpm.lock', 'yarn.lock'], cwd);
+export const INTEGRITY_FILENAME = '.yarn-integrity';
+export const LOCKFILE_FILENAME = 'yarn.lock';
 export const METADATA_FILENAME = '.yarn-metadata.json';
 export const TARBALL_FILENAME = '.yarn-tarball.tgz';
 export const CLEAN_FILENAME = '.yarnclean';
