@@ -5,7 +5,6 @@ import type {ReporterSelectOption} from '../../reporters/types.js';
 import type {Manifest, DependencyRequestPatterns} from '../../types.js';
 import type Config from '../../config.js';
 import type {RegistryNames} from '../../registries/index.js';
-import {MessageError} from '../../errors.js';
 import normalizeManifest from '../../util/normalize-manifest/index.js';
 import {stringify} from '../../util/misc.js';
 import {registryNames} from '../../registries/index.js';
@@ -726,7 +725,7 @@ export async function run(
     }
     reporter.error(reporter.lang('installCommandRenamed'));
     reporter.command(`yarn ${command} ${exampleArgs.join(' ')}`);
-    throw new MessageError(reporter.lang('invalidArguments'));
+    return;
   }
 
   const install = new Install(flags, config, reporter, lockfile);
