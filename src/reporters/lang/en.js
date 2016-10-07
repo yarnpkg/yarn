@@ -142,6 +142,7 @@ const messages = {
 
   whyStart: 'Why do we have the module $0?',
   whyFinding: 'Finding dependency',
+  whyCalculating: 'Calculating file sizes',
   whyUnknownMatch: "We couldn't find a match!",
   whyInitGraph: 'Initialising dependency graph',
   whyWhoKnows: "We don't know why this module exists",
