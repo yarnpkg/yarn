@@ -3,7 +3,7 @@
 import type {Reporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
 import NpmRegistry from '../../registries/npm-registry.js';
-import parsePackageName from '../../util/parsePackageName.js';
+import parsePackageName from '../../util/parse-package-name.js';
 
 const semver = require('semver');
 

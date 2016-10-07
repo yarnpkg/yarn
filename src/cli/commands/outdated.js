@@ -7,7 +7,7 @@ import {sortAlpha} from '../../util/misc.js';
 import PackageRequest from '../../package-request.js';
 import Lockfile from '../../lockfile/wrapper.js';
 import {Install} from './install.js';
-import parsePackageName from '../../util/parsePackageName.js';
+import parsePackageName from '../../util/parse-package-name.js';
 
 export const requireLockfile = true;
 
