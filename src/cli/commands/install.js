@@ -10,6 +10,7 @@ import {stringify} from '../../util/misc.js';
 import {registryNames} from '../../registries/index.js';
 import {MessageError} from '../../errors.js';
 import Lockfile from '../../lockfile/wrapper.js';
+import executeLifecycleScript from './_execute-lifecycle-script.js';
 import lockStringify from '../../lockfile/stringify.js';
 import * as PackageReference from '../../package-reference.js';
 import PackageFetcher from '../../package-fetcher.js';
@@ -729,4 +730,7 @@ export async function run(
 
   const install = new Install(flags, config, reporter, lockfile);
   await install.init();
+
+  // npm behaviour, seems kinda funky but yay compatibility
+  await executeLifecycleScript(config, 'prepublish');
 }
