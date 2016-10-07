@@ -8,6 +8,7 @@ import type {RegistryNames} from '../../registries/index.js';
 import normalizeManifest from '../../util/normalize-manifest/index.js';
 import {stringify} from '../../util/misc.js';
 import {registryNames} from '../../registries/index.js';
+import {MessageError} from '../../errors.js';
 import Lockfile from '../../lockfile/wrapper.js';
 import lockStringify from '../../lockfile/stringify.js';
 import * as PackageReference from '../../package-reference.js';
@@ -723,9 +724,7 @@ export async function run(
     if (flags.global) {
       command = 'global add';
     }
-    reporter.error(reporter.lang('installCommandRenamed'));
-    reporter.command(`yarn ${command} ${exampleArgs.join(' ')}`);
-    return;
+    throw new MessageError(reporter.lang('installCommandRenamed', `yarn ${command} ${exampleArgs.join(' ')}`));
   }
 
   const install = new Install(flags, config, reporter, lockfile);

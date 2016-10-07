@@ -15,7 +15,7 @@ const messages = {
   savingHar: 'Saving HAR file: $0',
   answer: 'Answer?',
   usage: 'Usage',
-  installCommandRenamed: '`install` has been replaced with `add` to add new dependencies.',
+  installCommandRenamed: '`install` has been replaced with `add` to add new dependencies. Run $0 instead.',
   waitingInstance: 'Waiting until the other yarn instance finish',
   offlineRetrying: 'There appears to be trouble with your network connection. Retrying...',
   clearedCache: 'Cleared cache.',
