@@ -81,7 +81,6 @@
     "url": "git://github.com/yarnpkg/yarn.git"
   },
   "bin": {
-    "kpm": "./bin/yarn.js",
     "yarn": "./bin/yarn.js"
   },
   "scripts": {

@@ -109,7 +109,7 @@ export default class NpmRegistry extends Registry {
     for (const [, loc, file] of await this.getPossibleConfigLocations('.npmrc')) {
       const config = ini.parse(file);
 
-      // normalize kpm offline mirror path relative to the current npmrc
+      // normalize offline mirror path relative to the current npmrc
       let offlineLoc = config['yarn-offline-mirror'];
       // old kpm compatibility
       if (config['kpm-offline-mirror']) {
