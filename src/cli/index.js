@@ -65,19 +65,14 @@ let command;
 
 //
 const hyphenate = (string) => string.replace(/[A-Z]/g, (match) => ('-' + match.charAt(0).toLowerCase()));
+const getDocsLink = (name) => `http://yarnpkg.com/en/docs/${name || ''}`;
+const getDocsInfo = (name) => 'Visit ' + chalk.bold(getDocsLink(name)) + ' for documentation about this command.';
 
 //
 if (commandName === 'help') {
   if (args.length) {
     const helpCommand = hyphenate(args[0]);
-    commander.on('--help', () => {
-      console.log(
-        '  Visit ' +
-        chalk.bold('http://yarnpkg.com/en/docs/' + helpCommand) +
-        ' for documentation about this command.\n',
-      );
-
-    });
+    commander.on('--help', () => console.log('  ' + getDocsInfo(helpCommand) + '\n'));
   } else {
     commander.on('--help', () => {
       console.log('  Commands:\n');
@@ -89,7 +84,7 @@ if (commandName === 'help') {
         console.log(`    - ${hyphenate(name)}`);
       }
       console.log('\n  Run `' + chalk.bold('yarn help COMMAND') + '` for more information on specific commands.');
-      console.log('  Visit ' + chalk.bold('http://yarnpkg.com/en/docs/') + ' to learn more about Yarn.\n');
+      console.log('  Visit ' + chalk.bold(getDocsLink()) + ' to learn more about Yarn.\n');
     });
   }
 }
@@ -179,6 +174,7 @@ if (outputWrapper) {
 
 if (command.noArguments && args.length) {
   reporter.error(reporter.lang('noArguments'));
+  reporter.info(getDocsInfo(commandName));
   process.exit(1);
 }
 
@@ -329,6 +325,10 @@ config.init({
       }
     } else {
       logError(errs);
+    }
+
+    if (commandName) {
+      reporter.info(getDocsInfo(commandName));
     }
   }
 

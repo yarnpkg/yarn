@@ -7,9 +7,13 @@ import {sortAlpha} from '../../util/misc.js';
 import PackageRequest from '../../package-request.js';
 import Lockfile from '../../lockfile/wrapper.js';
 import {Install} from './install.js';
+import parsePackageName from '../../util/parse-package-name.js';
 
 export const requireLockfile = true;
-export const noArguments = true;
+
+export function setFlags(commander: Object) {
+  commander.usage('outdated [packages ...]');
+}
 
 export async function run(
   config: Config,
@@ -17,6 +21,8 @@ export async function run(
   flags: Object,
   args: Array<string>,
 ): Promise<void> {
+  const requestedDependencies = args.length ? new Set(args) : null;
+
   const lockfile = await Lockfile.fromDirectory(config.cwd);
   const install = new Install(flags, config, reporter, lockfile);
 
@@ -27,7 +33,13 @@ export async function run(
     latest: string,
   }> = [];
 
-  const [, patterns] = await install.fetchRequestFromCwd();
+  let [, patterns] = await install.fetchRequestFromCwd();
+
+  if (requestedDependencies) {
+    patterns = patterns.filter(
+      (pattern) => requestedDependencies.has(parsePackageName(pattern).name),
+    );
+  }
 
   await Promise.all(patterns.map(async (pattern): Promise<void> => {
     const locked = lockfile.getLocked(pattern);
