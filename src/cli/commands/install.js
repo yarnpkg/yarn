@@ -341,7 +341,8 @@ export class Install {
 
     if (this.flags.har) {
       steps.push(async (curr: number, total: number) => {
-        const filename = `yarn-install_${new Date().toISOString()}.har`;
+        const formattedDate = new Date().toISOString().replace(/:/g, '-');
+        const filename = `yarn-install_${formattedDate}.har`;
         this.reporter.step(
           curr,
           total,
