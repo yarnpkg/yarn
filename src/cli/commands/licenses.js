@@ -89,24 +89,47 @@ const {setFlags: setUsage, run} = buildSubCommands('licenses', {
   ): Promise<void> {
     const manifests = await getManifests(config, flags);
     const manifest = await config.readRootManifest();
+
+    // Create a map of license text to manifest so that packages with exactly
+    // the same license text are grouped together.
+    const manifestsByLicense: Map<string, Map<string, Manifest>> = new Map();
+    manifests.forEach(manifest => {
+      if (manifest.licenseText) {
+        if (!manifestsByLicense.has(manifest.licenseText)) {
+          manifestsByLicense.set(manifest.licenseText, new Map());
+        }
+        manifestsByLicense.get(manifest.licenseText).set(manifest.name, manifest);
+      }
+    });
+
     console.log(
       'THE FOLLOWING SETS FORTH ATTRIBUTION NOTICES FOR THIRD PARTY SOFTWARE THAT MAY BE CONTAINED ' +
       `IN PORTIONS OF THE ${String(manifest.name).toUpperCase().replace(/-/g, ' ')} PRODUCT.`,
     );
     console.log();
 
-    for (const {name, license, licenseText, repository} of manifests) {
+    for (const [licenseText, manifests] of manifestsByLicense) {
       console.log('-----');
       console.log();
 
-      const heading = [];
-      heading.push(`The following software may be included in this product: ${name}.`);
-
-      const url = repository && repository.url;
-      if (url) {
-        heading.push(`A copy of the source code may be downloaded from ${url}.`);
+      const names = [];
+      const urls = [];
+      for (var [name, {repository}] of manifests) {
+        names.push(name);
+        if (repository && repository.url) {
+          urls.push(
+            manifests.size === 1
+              ? repository.url
+              : `${repository.url} (${name})`
+          );
+        }
       }
 
+      const heading = [];
+      heading.push(`The following software may be included in this product: ${names.join(', ')}.`);
+      if (urls.length > 0) {
+        heading.push(`A copy of the source code may be downloaded from ${urls.join(', ')}.`);
+      }
       heading.push('This software contains the following license and notice below:');
 
       console.log(heading.join(' '));
