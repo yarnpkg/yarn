@@ -26,22 +26,10 @@ export const CHILD_CONCURRENCY = 5;
 
 export const REQUIRED_PACKAGE_KEYS = ['name', 'version', '_uid'];
 
-export function getAppData(env: Env): ?string {
-  for (const key in env) {
-    if (key.toLowerCase() === 'appdata') {
-      return env[key];
-    }
-  }
-  return null;
-}
-
 export function getModuleCacheDirectory(): string {
-  // use %APPDATA%/Yarn on Windows
-  if (process.platform === 'win32') {
-    const appData = getAppData(process.env);
-    if (appData) {
-      return path.join(appData, 'Yarn');
-    }
+  // use %LOCALAPPDATA%/Yarn on Windows
+  if (process.platform === 'win32' && process.env.LOCALAPPDATA) {
+    return path.join(process.env.LOCALAPPDATA, 'Yarn');
   }
 
   // otherwise use ~/.yarn
