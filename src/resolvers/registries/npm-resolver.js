@@ -7,9 +7,12 @@ import RegistryResolver from './registry-resolver.js';
 import NpmRegistry from '../../registries/npm-registry.js';
 import map from '../../util/map.js';
 import * as fs from '../../util/fs.js';
+import {YARN_REGISTRY} from '../../constants.js';
 
 const invariant = require('invariant');
 const path = require('path');
+
+const NPM_REGISTRY = /http[s]:\/\/registry.npmjs.org/g;
 
 type RegistryResponse = {
   name: string,
@@ -122,6 +125,14 @@ export default class NpmResolver extends RegistryResolver {
     }
   }
 
+  cleanRegistry(url: string): string {
+    if (this.config.getOption('registry') === YARN_REGISTRY) {
+      return url.replace(NPM_REGISTRY, YARN_REGISTRY);
+    } else {
+      return url;
+    }
+  }
+
   async resolve(): Promise<Manifest> {
     // lockfile
     const shrunk = this.request.getLocked('tarball');
@@ -146,7 +157,7 @@ export default class NpmResolver extends RegistryResolver {
 
     if (info.dist && info.dist.tarball) {
       info._remote = {
-        resolved: `${info.dist.tarball}#${info.dist.shasum}`,
+        resolved: `${this.cleanRegistry(info.dist.tarball)}#${info.dist.shasum}`,
         type: 'tarball',
         reference: info.dist.tarball,
         hash: info.dist.shasum,
