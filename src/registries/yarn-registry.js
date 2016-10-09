@@ -2,6 +2,7 @@
 
 import type RequestManager from '../util/request-manager.js';
 import type {ConfigRegistries} from '../config.js';
+import {YARN_REGISTRY} from '../constants.js';
 import NpmRegistry from './npm-registry.js';
 import stringify from '../lockfile/stringify.js';
 import parse from '../lockfile/parse.js';
@@ -12,7 +13,7 @@ const defaults = require('defaults');
 const path = require('path');
 const pkg = require('../../package.json');
 
-const DEFAULTS = {
+export const DEFAULTS = {
   'version-tag-prefix': 'v',
   'version-git-tag': true,
   'version-git-sign': false,
@@ -24,7 +25,7 @@ const DEFAULTS = {
   'save-prefix': '^',
   'ignore-scripts': false,
   'ignore-optional': true,
-  registry: 'http://registry.npmjs.org',
+  registry: YARN_REGISTRY,
   'user-agent': [
     `yarn/${pkg.version}`,
     'npm/?',
