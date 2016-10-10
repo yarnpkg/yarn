@@ -8,6 +8,8 @@ import {Install} from './install.js';
 import Lockfile from '../../lockfile/wrapper.js';
 import buildSubCommands from './_build-sub-commands.js';
 
+const invariant = require('invariant');
+
 export function hasWrapper(flags: Object, args: Array<string>): boolean {
   return args[0] != 'generate-disclaimer';
 }
@@ -48,7 +50,7 @@ const {setFlags: setUsage, run} = buildSubCommands('licenses', {
     flags: Object,
     args: Array<string>,
   ): Promise<void> {
-    const manifests = await getManifests(config, flags);
+    const manifests: Array<Manifest> = await getManifests(config, flags);
 
     if (flags.json) {
       const body = [];
@@ -87,20 +89,26 @@ const {setFlags: setUsage, run} = buildSubCommands('licenses', {
     flags: Object,
     args: Array<string>,
   ): Promise<void> {
-    const manifests = await getManifests(config, flags);
+    const manifests: Array<Manifest> = await getManifests(config, flags);
     const manifest = await config.readRootManifest();
 
     // Create a map of license text to manifest so that packages with exactly
     // the same license text are grouped together.
     const manifestsByLicense: Map<string, Map<string, Manifest>> = new Map();
-    manifests.forEach(manifest => {
-      if (manifest.licenseText) {
-        if (!manifestsByLicense.has(manifest.licenseText)) {
-          manifestsByLicense.set(manifest.licenseText, new Map());
-        }
-        manifestsByLicense.get(manifest.licenseText).set(manifest.name, manifest);
+    for (const manifest of manifests) {
+      const {licenseText} = manifest;
+      if (!licenseText) {
+        continue;
       }
-    });
+
+      if (!manifestsByLicense.has(licenseText)) {
+        manifestsByLicense.set(licenseText, new Map());
+      }
+
+      const byLicense = manifestsByLicense.get(licenseText);
+      invariant(byLicense, 'expected value');
+      byLicense.set(manifest.name, manifest);
+    }
 
     console.log(
       'THE FOLLOWING SETS FORTH ATTRIBUTION NOTICES FOR THIRD PARTY SOFTWARE THAT MAY BE CONTAINED ' +
@@ -114,13 +122,13 @@ const {setFlags: setUsage, run} = buildSubCommands('licenses', {
 
       const names = [];
       const urls = [];
-      for (var [name, {repository}] of manifests) {
+      for (const [name, {repository}] of manifests) {
         names.push(name);
         if (repository && repository.url) {
           urls.push(
             manifests.size === 1
               ? repository.url
-              : `${repository.url} (${name})`
+              : `${repository.url} (${name})`,
           );
         }
       }
@@ -139,7 +147,6 @@ const {setFlags: setUsage, run} = buildSubCommands('licenses', {
         console.log(licenseText.trim());
       } else {
         // what do we do here? base it on `license`?
-        license;
       }
 
       console.log();

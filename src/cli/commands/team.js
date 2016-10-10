@@ -112,7 +112,7 @@ export const {run, setFlags} = buildSubCommands('team', {
       method: 'PUT',
       body: {
         team: parts.team,
-      }
+      },
     }));
     return true;
   }),
@@ -143,7 +143,7 @@ export const {run, setFlags} = buildSubCommands('team', {
       method: 'PUT',
       body: {
         user: parts.user,
-      }
+      },
     }));
     return true;
   }),
@@ -160,7 +160,7 @@ export const {run, setFlags} = buildSubCommands('team', {
       method: 'DELETE',
       body: {
         user: parts.user,
-      }
+      },
     }));
     return true;
   }),
