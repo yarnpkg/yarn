@@ -1,2 +1,2 @@
 #!/bin/sh
-node yarn.js "$@"
+node bin/yarn.js "$@"
