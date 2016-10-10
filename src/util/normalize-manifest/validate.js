@@ -133,15 +133,14 @@ export function cleanDependencies(info: Object, isRoot: boolean, reporter: Repor
           continue;
         }
 
-        if (version !== version2) {
-          if (isRoot) {
-            // only throw a warning when at the root
-            warn(
-              reporter.lang('manifestDependencyCollision', type, name, version, type2, version2),
-            );
-          }
-          delete deps2[name];
+        if (version !== version2 && isRoot) {
+          // only throw a warning when at the root
+          warn(
+            reporter.lang('manifestDependencyCollision', type, name, version, type2, version2),
+          );
         }
+
+        delete deps2[name];
       }
     }
   }
