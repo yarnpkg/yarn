@@ -140,7 +140,7 @@ export default class NpmResolver extends RegistryResolver {
       return shrunk;
     }
 
-    const info = await this.resolveRequest();
+    const info: ?Manifest = await this.resolveRequest();
     if (info == null) {
       throw new MessageError(this.reporter.lang('packageNotFoundRegistry', this.name, 'npm'));
     }
@@ -156,11 +156,12 @@ export default class NpmResolver extends RegistryResolver {
     }
 
     if (info.dist && info.dist.tarball) {
+      const dist = info.dist;
       info._remote = {
-        resolved: `${this.cleanRegistry(info.dist.tarball)}#${info.dist.shasum}`,
+        resolved: `${this.cleanRegistry(dist.tarball)}#${dist.shasum}`,
         type: 'tarball',
-        reference: info.dist.tarball,
-        hash: info.dist.shasum,
+        reference: dist.tarball,
+        hash: dist.shasum,
         registry: 'npm',
       };
     }

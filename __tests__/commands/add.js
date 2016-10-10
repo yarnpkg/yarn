@@ -164,10 +164,10 @@ test.concurrent('add with new dependency should be deterministic', (): Promise<v
       '2.0.0',
     );
 
-    return runAdd({}, ['mime-db@^1.23.0'], fixture, async (config) => {
+    return runAdd({}, ['mime-db@1.23.0'], fixture, async (config) => {
       assert(semver.satisfies(
         await getPackageVersion(config, 'mime-db'),
-        '~1.23.0',
+        '1.23.0',
       ));
       assert.equal(
         await getPackageVersion(config, 'mime-types'),
@@ -180,7 +180,7 @@ test.concurrent('add with new dependency should be deterministic', (): Promise<v
       assert.deepEqual(
         JSON.parse(await fs.readFile(path.join(config.cwd, 'package.json'))).dependencies, {
           'mime-types': '2.0.0',
-          'mime-db': '^1.23.0',
+          'mime-db': '1.23.0',
         },
       );
 
@@ -273,7 +273,7 @@ test.concurrent('install with --save and without offline mirror', (): Promise<vo
     const rawLockfile = await fs.readFile(path.join(config.cwd, constants.LOCKFILE_FILENAME));
     const lockfile = parse(rawLockfile);
     assert.equal(lockfile['is-array@^1.0.1']['resolved'],
-      'https://registry.npmjs.org/is-array/-/is-array-1.0.1.tgz#e9850cc2cc860c3bc0977e84ccf0dd464584279a');
+      'https://registry.yarnpkg.com/is-array/-/is-array-1.0.1.tgz#e9850cc2cc860c3bc0977e84ccf0dd464584279a');
   });
 });
 
@@ -345,7 +345,7 @@ test.concurrent('upgrade scenario 2 (with sub dependencies)', (): Promise<void> 
       '2.0.0',
     );
 
-    return runAdd({}, ['mime-types@^2.1.11'], fixture, async (config) => {
+    return runAdd({}, ['mime-types@2.1.11'], fixture, async (config) => {
       assert(semver.satisfies(
         await getPackageVersion(config, 'mime-db'),
         '~1.23.0',
@@ -359,7 +359,7 @@ test.concurrent('upgrade scenario 2 (with sub dependencies)', (): Promise<void> 
       const lockFileLines = explodeLockfile(lockFileWritten);
       assert.equal(lockFileLines[0], 'mime-db@~1.23.0:');
       assert.notEqual(lockFileLines[2].indexOf('resolved mime-db-'), -1);
-      assert.equal(lockFileLines[3], 'mime-types@^2.1.11:');
+      assert.equal(lockFileLines[3], 'mime-types@2.1.11:');
       assert.notEqual(lockFileLines[5].indexOf('resolved mime-types-2.1.11.tgz'), -1);
 
       const mirror = await fs.walk(path.join(config.cwd, mirrorPath));
