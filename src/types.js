@@ -5,6 +5,18 @@ import type PackageReference from './package-reference.js';
 import type {VisibilityAction} from './package-reference.js';
 import type PackageRequest from './package-request.js';
 import type {FetcherNames} from './fetchers/index.js';
+import type {Reporter} from './reporters/index.js';
+import type Config from './config.js';
+
+export type CLIFunction = (
+  config: Config,
+  reporter: Reporter,
+  flags: Object,
+  args: Array<string>,
+) => CLIFunctionReturn;
+
+type _CLIFunctionReturn = boolean;
+export type CLIFunctionReturn = ?_CLIFunctionReturn | Promise<?_CLIFunctionReturn>;
 
 // dependency request pattern data structure that's used to request dependencies from a
 // PackageResolver
