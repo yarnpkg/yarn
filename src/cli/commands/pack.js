@@ -64,7 +64,7 @@ export async function pack(config: Config, dir: string): Promise<stream$Duplex> 
   //
   let filters: Array<IgnoreFilter> = DEFAULT_IGNORE.slice();
 
-  //
+  // include bundledDependencies
   const {bundledDependencies} = pkg;
   if (bundledDependencies) {
     const folder = config.getFolder(pkg);
@@ -72,6 +72,18 @@ export async function pack(config: Config, dir: string): Promise<stream$Duplex> 
       bundledDependencies.map((name): string => `!${folder}/${name}`),
       '.',
     );
+  }
+
+  // `files` field
+  const {files: onlyFiles} = pkg;
+  if (onlyFiles) {
+    let lines = [
+      '*', // ignore all files except those that are explicitly included with a negation filter
+    ];
+    lines = lines.concat(
+      onlyFiles.map((filename: string): string => `!${filename}`),
+    );
+    filters = ignoreLinesToRegex(lines, '.');
   }
 
   //
@@ -98,11 +110,8 @@ export async function pack(config: Config, dir: string): Promise<stream$Duplex> 
   // then we should inherit it
   const possibleKeepFiles: Set<string> = new Set();
 
-  //
+  // apply filters
   sortFilter(files, filters, keepFiles, possibleKeepFiles, ignoredFiles);
-
-  // TODO files property
-  // TODO throw error on possible suspect file patterns
 
   const packer = tar.pack();
   const compressor = packer.pipe(new zlib.Gzip());
