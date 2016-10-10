@@ -129,7 +129,7 @@ export function cleanDependencies(info: Object, isRoot: boolean, reporter: Repor
       // check collisions
       for (const [type2, deps2] of depTypes) {
         const version2 = deps2[name];
-        if (!version2 || version2 === '*') {
+        if (deps === deps2 || !version2 || version2 === '*') {
           continue;
         }
 

@@ -121,7 +121,6 @@ export default class PackageCompatibility {
     const pushError = (msg) => {
       const ref = info._reference;
       invariant(ref, 'expected package reference');
-      console.log(ref.optional, msg);
 
       if (ref.optional) {
         ref.addVisibility(PackageReference.ENVIRONMENT_IGNORE);

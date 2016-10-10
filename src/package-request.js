@@ -251,8 +251,6 @@ export default class PackageRequest {
     const promises = [];
     const deps = [];
 
-    console.log(info.dependencies, info.optionalDependencies);
-
     // normal deps
     for (const depName in info.dependencies) {
       const depPattern = depName + '@' + info.dependencies[depName];
