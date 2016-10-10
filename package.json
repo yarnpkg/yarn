@@ -1,5 +1,5 @@
 {
-  "name": "yarn",
+  "name": "yarnpkg",
   "version": "0.14.0",
   "license": "BSD-2-Clause",
   "preferGlobal": true,
@@ -82,7 +82,7 @@
     "url": "git://github.com/yarnpkg/yarn.git"
   },
   "bin": {
-    "yarn": "./bin/yarn.js"
+    "yarn": "./bin/yarn"
   },
   "scripts": {
     "test": "npm run lint && npm run test-only",
