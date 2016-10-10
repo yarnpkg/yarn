@@ -83,6 +83,12 @@ const messages = {
   ownerAddingFailed: "Couldn't add owner.",
   ownerNone: 'No owners.',
 
+  teamCreating: 'Creating team...',
+  teamRemoving: 'Removing team...',
+  teamAddingUser: 'Adding user to team...',
+  teamRemovingUser: 'Removing user from team...',
+  teamListing: 'Listing teams...',
+
   cleaning: 'Cleaning modules',
   cleanCreatingFile: 'Creating $0',
 

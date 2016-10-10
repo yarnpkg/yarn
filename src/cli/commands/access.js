@@ -30,4 +30,12 @@ export const {run, setFlags} = buildSubCommands('access', {
   edit(): Promise<void> {
     return Promise.reject(new Error('TODO'));
   },
-});
+}, [
+  'access public [<package>]',
+  'access restricted [<package>]',
+  'access grant <read-only|read-write> <scope:team> [<package>]',
+  'access revoke <scope:team> [<package>]',
+  'access ls-packages [<user>|<scope>|<scope:team>]',
+  'access ls-collaborators [<package> [<user>]]',
+  'access edit [<package>]',
+]);

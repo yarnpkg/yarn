@@ -287,6 +287,11 @@ export default class RequestManager {
 
         successHosts[parts.hostname] = true;
 
+        if (body && typeof body.error === 'string') {
+          reject(new Error(body.error));
+          return;
+        }
+
         if (res.statusCode === 403) {
           const errMsg = (body && body.message) || `Request ${params.url} returned a ${res.statusCode}`;
           reject(new Error(errMsg));

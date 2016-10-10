@@ -2,23 +2,17 @@
 
 import type {Reporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
+import type {CLIFunction} from '../../types.js';
 import {MessageError} from '../../errors.js';
 
 const camelCase = require('camelcase');
 
-type RunCommand = (
-  config: Config,
-  reporter: Reporter,
-  flags: Object,
-  args: Array<string>,
-) => ?boolean | Promise<?boolean>;
-
 type SubCommands =  {
-  [commandName: string]: RunCommand
+  [commandName: string]: CLIFunction,
 };
 
 type Return = {
-  run: RunCommand,
+  run: CLIFunction,
   setFlags: (commander: Object) => void,
   examples: Array<string>,
 };
@@ -41,7 +35,7 @@ export default function(rootCommandName: string, subCommands: SubCommands, usage
     const subName = camelCase(args.shift() || '');
     const isValidCommand = subName && subCommandNames.indexOf(subName) >= 0;
     if (isValidCommand) {
-      const command: RunCommand = subCommands[subName];
+      const command: CLIFunction = subCommands[subName];
       const res = await command(config, reporter, flags, args);
       if (res !== false) {
         return Promise.resolve();
