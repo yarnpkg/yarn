@@ -294,6 +294,7 @@ export default class PackageResolver {
 
       // remove this pattern
       const ref = this.getStrictResolvedPattern(pattern)._reference;
+      const refPatterns = ref.patterns.slice();
       invariant(ref, 'expected package reference');
       ref.addVisibility(REMOVED_ANCESTOR);
       ref.prune();
@@ -303,7 +304,9 @@ export default class PackageResolver {
       }
 
       // add pattern to the manifest we're collapsing to
-      collapseToReference.addPattern(pattern, collapseToManifest);
+      for (const pattern of refPatterns) {
+        collapseToReference.addPattern(pattern, collapseToManifest);
+      }
     }
 
     return collapseToPattern;
