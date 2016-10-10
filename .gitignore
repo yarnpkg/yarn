@@ -7,6 +7,7 @@
 /coverage
 /__tests__/fixtures/**/_*
 /dist
+/artifacts
 /updates
 /.roadrunner.json
 /resources/winsetup/generated.wxs
