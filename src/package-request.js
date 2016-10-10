@@ -251,6 +251,8 @@ export default class PackageRequest {
     const promises = [];
     const deps = [];
 
+    console.log(info.dependencies, info.optionalDependencies);
+
     // normal deps
     for (const depName in info.dependencies) {
       const depPattern = depName + '@' + info.dependencies[depName];
@@ -267,19 +269,6 @@ export default class PackageRequest {
     // optional deps
     for (const depName in info.optionalDependencies) {
       const depPattern = depName + '@' + info.optionalDependencies[depName];
-      deps.push(depPattern);
-      promises.push(this.resolver.find({
-        pattern: depPattern,
-        registry: remote.registry,
-        visibility: USED_VISIBILITY,
-        optional: true,
-        parentRequest: this,
-      }));
-    }
-
-    // peer deps
-    for (const depName in info.peerDependencies) {
-      const depPattern = depName + '@' + info.peerDependencies[depName];
       deps.push(depPattern);
       promises.push(this.resolver.find({
         pattern: depPattern,
