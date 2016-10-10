@@ -9,6 +9,7 @@ import type {
   Stdin,
   Package,
   ReporterSpinner,
+  QuestionOptions,
 } from './types.js';
 import type {LanguageKeys} from './lang/en.js';
 import type {Formatter} from './format.js';
@@ -174,7 +175,7 @@ export default class BaseReporter {
   }
 
   //
-  question(question: string, password?: boolean): Promise<string> {
+  question(question: string, options?: QuestionOptions = {}): Promise<string> {
     return Promise.reject(new Error('Not implemented'));
   }
 

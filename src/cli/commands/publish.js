@@ -6,7 +6,7 @@ import executeLifecycleScript from './_execute-lifecycle-script.js';
 import NpmRegistry from '../../registries/npm-registry.js';
 import {ConcatStream} from '../../util/stream.js';
 import {MessageError} from '../../errors.js';
-import {run as runVersion, setFlags as versionSetFlags} from './version.js';
+import {setVersion, setFlags as versionSetFlags} from './version.js';
 import * as fs from '../../util/fs.js';
 import {pack} from './pack.js';
 import {getToken} from './login.js';
@@ -134,7 +134,7 @@ export async function run(
 
   //
   reporter.step(1, 4, reporter.lang('bumpingVersion'));
-  await runVersion(config, reporter, flags, args);
+  const commitVersion = await setVersion(config, reporter, flags, args, false);
 
   //
   reporter.step(2, 4, reporter.lang('loggingIn'));
@@ -143,6 +143,7 @@ export async function run(
   //
   reporter.step(3, 4, reporter.lang('publishing'));
   await publish(config, pkg, flags, dir);
+  await commitVersion();
   reporter.success(reporter.lang('published'));
 
   //

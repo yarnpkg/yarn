@@ -42,3 +42,8 @@ export type ReporterSetSpinner = {
   tick: (msg: string) => void,
   end: () => void,
 };
+
+export type QuestionOptions = {
+  password?: boolean,
+  required?: boolean,
+};
