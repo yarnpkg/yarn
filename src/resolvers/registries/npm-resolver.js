@@ -145,8 +145,8 @@ export default class NpmResolver extends RegistryResolver {
       throw new MessageError(this.reporter.lang('packageNotFoundRegistry', this.name, 'npm'));
     }
 
-    if (typeof info.deprecated === 'string') {
-      const deprecated = info.deprecated;
+    const {deprecated, dist} = info;
+    if (typeof deprecated === 'string') {
       let human = `${info.name}@${info.version}`;
       const parentNames = this.request.getParentNames();
       if (parentNames.length) {
@@ -155,8 +155,7 @@ export default class NpmResolver extends RegistryResolver {
       this.reporter.warn(`${human}: ${deprecated}`);
     }
 
-    if (info.dist && info.dist.tarball) {
-      const dist = info.dist;
+    if (dist != null && dist.tarball) {
       info._remote = {
         resolved: `${this.cleanRegistry(dist.tarball)}#${dist.shasum}`,
         type: 'tarball',
