@@ -140,13 +140,13 @@ export default class NpmResolver extends RegistryResolver {
       return shrunk;
     }
 
-    const info = await this.resolveRequest();
+    const info: ?Manifest = await this.resolveRequest();
     if (info == null) {
       throw new MessageError(this.reporter.lang('packageNotFoundRegistry', this.name, 'npm'));
     }
 
-    if (typeof info.deprecated === 'string') {
-      const deprecated = info.deprecated;
+    const {deprecated, dist} = info;
+    if (typeof deprecated === 'string') {
       let human = `${info.name}@${info.version}`;
       const parentNames = this.request.getParentNames();
       if (parentNames.length) {
@@ -155,12 +155,12 @@ export default class NpmResolver extends RegistryResolver {
       this.reporter.warn(`${human}: ${deprecated}`);
     }
 
-    if (info.dist && info.dist.tarball) {
+    if (dist != null && dist.tarball) {
       info._remote = {
-        resolved: `${this.cleanRegistry(info.dist.tarball)}#${info.dist.shasum}`,
+        resolved: `${this.cleanRegistry(dist.tarball)}#${dist.shasum}`,
         type: 'tarball',
-        reference: info.dist.tarball,
-        hash: info.dist.shasum,
+        reference: dist.tarball,
+        hash: dist.shasum,
         registry: 'npm',
       };
     }

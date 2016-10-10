@@ -107,6 +107,8 @@ export type Manifest = {
 
   bundleDependencies?: Array<string>,
   bundledDependencies?: Array<string>,
+
+  deprecated?: string,
 };
 
 //

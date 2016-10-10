@@ -2,11 +2,8 @@
 
 const userHome = require('user-home');
 const path = require('path');
-const fs = require('fs');
 
 type Env = {[key: string]: ?string};
-
-const cwd = process.cwd();
 
 export const DEPENDENCY_TYPES = [
   'devDependencies',
