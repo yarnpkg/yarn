@@ -56,7 +56,7 @@ Object {
 
 exports[`test ConsoleReporter.progress 1`] = `
 Object {
-  "stderr": "[2K[1G░░ 0/2[2K[1G█░ 1/2[2K[1G",
+  "stderr": "[2K[1G[1G░░ 0/2[1G█░ 1/2[2K[1G",
   "stdout": "",
 }
 `;
