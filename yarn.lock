@@ -888,6 +888,12 @@ babel-plugin-transform-function-bind@^6.3.13:
     babel-plugin-syntax-function-bind "^6.8.0"
     babel-runtime "^6.0.0"
 
+babel-plugin-transform-inline-imports-commonjs:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/babel-plugin-transform-inline-imports-commonjs/-/babel-plugin-transform-inline-imports-commonjs-1.0.0.tgz#4b7351b4c021b3922d58200719e98083f7b4709f"
+  dependencies:
+    babel-plugin-transform-strict-mode "^6.8.0"
+
 babel-plugin-transform-object-rest-spread@^6.16.0, babel-plugin-transform-object-rest-spread@^6.6.5:
   version "6.16.0"
   resolved "https://registry.npmjs.org/babel-plugin-transform-object-rest-spread/-/babel-plugin-transform-object-rest-spread-6.16.0.tgz#db441d56fffc1999052fdebe2e2f25ebd28e36a9"
