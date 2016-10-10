@@ -40,6 +40,7 @@ export const {run, setFlags} = buildSubCommands('cache', {
     const packagesRoot = config.packagesRoot;
     if (packagesRoot) {
       await fs.unlink(packagesRoot);
+      await fs.mkdirp(packagesRoot);
       reporter.success(reporter.lang('clearedCache'));
     }
   },
