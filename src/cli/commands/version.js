@@ -22,12 +22,13 @@ export function setFlags(commander: Object) {
   commander.option('--message [message]', 'message');
 }
 
-export async function run(
+export async function setVersion(
  config: Config,
  reporter: Reporter,
  flags: Object,
  args: Array<string>,
-): Promise<void> {
+ required: boolean,
+): Promise<() => Promise<void>> {
   const pkg = await config.readRootManifest();
   const pkgLoc = pkg._loc;
   let newVersion = flags.newVersion;
@@ -54,6 +55,12 @@ export async function run(
   while (!newVersion) {
     newVersion = await reporter.question(reporter.lang('newVersion'));
 
+    if (!required && !newVersion) {
+      return function(): Promise<void> {
+        return Promise.resolve();
+      };
+    }
+
     if (isValidNewVersion(oldVersion, newVersion, config.looseSemver)) {
       break;
     } else {
@@ -66,6 +73,10 @@ export async function run(
   }
   invariant(newVersion, 'expected new version');
 
+  if (newVersion === pkg.version) {
+    throw new MessageError(reporter.lang('publishSame'));
+  }
+
   await executeLifecycleScript(config, 'preversion');
 
   // update version
@@ -74,32 +85,46 @@ export async function run(
   pkg.version = json.version = newVersion;
   await fs.writeFile(pkgLoc, `${stringify(json)}\n`);
 
-  // add git commit and tag
-  let isGit = false;
-  const parts = config.cwd.split(path.sep);
-  while (parts.length) {
-    isGit = await fs.exists(path.join(parts.join(path.sep), '.git'));
-    if (isGit) {
-      break;
-    } else {
-      parts.pop();
+  return async function(): Promise<void> {
+    invariant(newVersion, 'expected version');
+
+    // add git commit and tag
+    let isGit = false;
+    const parts = config.cwd.split(path.sep);
+    while (parts.length) {
+      isGit = await fs.exists(path.join(parts.join(path.sep), '.git'));
+      if (isGit) {
+        break;
+      } else {
+        parts.pop();
+      }
     }
-  }
-  if (isGit && Boolean(config.getOption('version-git-tag'))) {
-    const message = (flags.message || String(config.getOption('version-git-message'))).replace(/%s/g, newVersion);
-    const sign: boolean = Boolean(config.getOption('version-sign-git-tag'));
-    const flag = sign ? '-sm' : '-am';
-    const prefix: string = String(config.getOption('version-tag-prefix'));
+    if (isGit && Boolean(config.getOption('version-git-tag'))) {
+      const message = (flags.message || String(config.getOption('version-git-message'))).replace(/%s/g, newVersion);
+      const sign: boolean = Boolean(config.getOption('version-sign-git-tag'));
+      const flag = sign ? '-sm' : '-am';
+      const prefix: string = String(config.getOption('version-tag-prefix'));
 
-    // add manifest
-    await spawn('git', ['add', pkgLoc]);
+      // add manifest
+      await spawn('git', ['add', pkgLoc]);
 
-    // create git commit
-    await spawn('git', ['commit', '-m', message]);
+      // create git commit
+      await spawn('git', ['commit', '-m', message]);
 
-    // create git tag
-    await spawn('git', ['tag', `${prefix}${newVersion}`, flag, message]);
-  }
+      // create git tag
+      await spawn('git', ['tag', `${prefix}${newVersion}`, flag, message]);
+    }
 
-  await executeLifecycleScript(config, 'postversion');
+    await executeLifecycleScript(config, 'postversion');
+  };
+}
+
+export async function run(
+ config: Config,
+ reporter: Reporter,
+ flags: Object,
+ args: Array<string>,
+): Promise<void> {
+  const commit = await setVersion(config, reporter, flags, args, true);
+  await commit();
 }

@@ -56,7 +56,7 @@ export async function getToken(config: Config, reporter: Reporter): Promise<
   }
 
   const {username, email} = creds;
-  const password = await reporter.question(reporter.lang('npmPassword'), true);
+  const password = await reporter.question(reporter.lang('npmPassword'), {password: true, required: true});
 
   //
   const userobj = {

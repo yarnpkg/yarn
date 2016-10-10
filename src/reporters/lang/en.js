@@ -67,6 +67,7 @@ const messages = {
   flatGlobalError: 'The package $0@$1 requires a flat dependency graph. Add `"flat": true` to your package.json and try again.',
   noName: `Package doesn't have a name.`,
   noVersion: `Package doesn't have a version.`,
+  answerRequired: 'An answer is required.',
 
   tooManyArguments: 'Too many arguments, maximum of $0.',
   tooFewArguments: 'Not enoguh arguments, expected at least $0.',
@@ -83,11 +84,11 @@ const messages = {
   ownerAddingFailed: "Couldn't add owner.",
   ownerNone: 'No owners.',
 
-  teamCreating: 'Creating team...',
-  teamRemoving: 'Removing team...',
-  teamAddingUser: 'Adding user to team...',
-  teamRemovingUser: 'Removing user from team...',
-  teamListing: 'Listing teams...',
+  teamCreating: 'Creating team',
+  teamRemoving: 'Removing team',
+  teamAddingUser: 'Adding user to team',
+  teamRemovingUser: 'Removing user from team',
+  teamListing: 'Listing teams',
 
   cleaning: 'Cleaning modules',
   cleanCreatingFile: 'Creating $0',
@@ -187,6 +188,7 @@ const messages = {
   incorrectCredentials: 'Incorrect username or password.',
   clearedCredentials: 'Cleared login credentials.',
 
+  publishSame: 'New version is the same as the current version.',
   publishFail: "Couldn't publish package.",
   publishPrivate: 'Package marked as private, not publishing.',
   published: 'Published.',

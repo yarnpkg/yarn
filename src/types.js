@@ -121,6 +121,7 @@ export type Manifest = {
   bundledDependencies?: Array<string>,
 
   deprecated?: string,
+  files?: Array<string>,
 };
 
 //

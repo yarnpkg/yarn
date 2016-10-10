@@ -6,6 +6,7 @@ import type {
   Trees,
   ReporterSpinner,
   ReporterSelectOption,
+  QuestionOptions,
 } from '../types.js';
 import type {FormatKeys} from '../format.js';
 import BaseReporter from '../base-reporter.js';
@@ -159,7 +160,7 @@ export default class ConsoleReporter extends BaseReporter {
     this.stderr.write(`${this.format.yellow('warning')} ${msg}\n`);
   }
 
-  question(question: string, password?: boolean): Promise<string> {
+  question(question: string, options?: QuestionOptions = {}): Promise<string> {
     if (!process.stdout.isTTY) {
       return Promise.reject(new Error("Can't answer a question unless a user TTY"));
     }
@@ -167,14 +168,19 @@ export default class ConsoleReporter extends BaseReporter {
     return new Promise((resolve, reject) => {
       read({
         prompt: `${this.format.grey('question')} ${question}: `,
-        silent: !!password,
+        silent: !!options.password,
         output: this.stdout,
         input: this.stdin,
       }, (err, answer) => {
         if (err) {
           reject(err);
         } else {
-          resolve(answer);
+          if (!answer && options.required) {
+            this.error(this.lang('answerRequired'));
+            resolve(this.question(question, options));
+          } else {
+            resolve(answer);
+          }
         }
       });
     });
