@@ -169,7 +169,10 @@ if (typeof command.hasWrapper === 'function') {
   outputWrapper = command.hasWrapper(commander, commander.args);
 }
 if (outputWrapper) {
-  reporter.header(commandName, pkg);
+  reporter.header(commandName, {
+    name: 'yarn',
+    version: pkg.version,
+  });
 }
 
 if (command.noArguments && args.length) {
