@@ -29,7 +29,7 @@ export function isOffline(): boolean {
     const addrs = interfaces[name];
     for (const addr of addrs) {
       if (LOCAL_IPS.indexOf(addr.address) < 0) {
-        // found a possible local ip
+        // found a possible remote ip
         return false;
       }
     }
