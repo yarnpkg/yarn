@@ -42,11 +42,13 @@ export default function(rootCommandName: string, subCommands: SubCommands, usage
       }
     }
 
-    reporter.error(`${reporter.lang('usage')}:`);
-    for (const msg of usage) {
-      reporter.error(`yarn ${rootCommandName} ${msg}`);
+    if (usage && usage.length) {
+      reporter.error(`${reporter.lang('usage')}:`);
+      for (const msg of usage) {
+        reporter.error(`yarn ${rootCommandName} ${msg}`);
+      }
     }
-    return Promise.reject(new MessageError('Invalid arguments.'));
+    return Promise.reject(new MessageError(reporter.lang('invalidCommand', subCommandNames.join(', '))));
   }
 
   const examples = usage.map((cmd: string): string => {
