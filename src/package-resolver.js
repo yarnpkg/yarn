@@ -294,8 +294,8 @@ export default class PackageResolver {
 
       // remove this pattern
       const ref = this.getStrictResolvedPattern(pattern)._reference;
-      const refPatterns = ref.patterns.slice();
       invariant(ref, 'expected package reference');
+      const refPatterns = ref.patterns.slice();
       ref.addVisibility(REMOVED_ANCESTOR);
       ref.prune();
 
