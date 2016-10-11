@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-  alternate npm and bower client focused on determinism, security and performance.
+  Fast, reliable, and secure dependency management.
 </p>
 
 <p align="center">
@@ -16,49 +16,32 @@
 
 ---
 
-Yarn is a package manager for the npm and bower registries with a few specific focuses.
+**Fast:** Yarn caches every package it downloads so it never needs to again. It also parallelizes operations to maximize resource utilization so install times are faster than ever.
 
-**Determinism:** Based around a version lockfile which ensures that operations on the
-dependency graph can be easily transitioned. We check module directories and verify their
-integrity to ensure `yarn install` always produces the same file structure.
+**Reliable:** Using a detailed, but concise, lockfile format, and a deterministic algorithm for installs, Yarn is able to guarantee that an install that worked on one system will work exactly the same way on any other system.
 
-**Security:** Strict guarantees are placed around package installation. You have control over
-whether lifecycle scripts are executed for packages and package hashes are stored in the
-lockfile to ensure you get the same package each time.
-
-**Performance:** We're always performing operations such as package resolving and fetching in
-parallel. This ensures little idle time and maximum resource utilization.
+**Secure:** Yarn uses checksums to verify the integrity of every installed package before its code is executed.
 
 ## Features
 
- - Compatible with npm and bower. Supports mixing registries.
- - Offline mode which resolves registry queries against local cache.
- - Pretty, readable and minimal CLI output.
- - Ability to rename packages and have multiple root level packages of the same name but different versions.
- - Efficient and reliable package cache.
- - Deterministic package installation.
- - Stable public JS API with logging abstracted for consumption via build tools.
- - Mutex to ensure multiple running CLI instances don't collide and pollute each other.
- - Ability to restrict licenses of installed modules and ways to output licensing information.*
- - Concise lockfile format. No whitespace, ordered keys to ensure minimal changes and noise.
- - Vendored tarball dependencies.
- - Ability to manually resolve version conflicts so only a single version per package exists. (Bower style)
- - Efficient resolution, fetching and storage of git repos. We use hosted git APIs when using GitHub and Bitbucket for performance.
- - Caching of build artifacts produced by install scripts.
- - More emojis. 🐈
+* Offline Mode: If you've installed a package before, you can install it again without any internet connection.
+* Deterministic: The same dependencies will be installed the same exact way across every machine regardless of install order.
+* Network Performance: Yarn efficiently queues up requests and avoids request waterfalls in order to maximize network utilization.
+* Multiple Registries: Install any package from either npm or Bower and keep your package workflow the same.
+* Network Resilience: A single request failing won't cause an install to fail. Requests are retried upon failure.
+* Flat Mode: Resolve mismatching versions of dependencies to a single version to avoid creating duplicates.
+* More emojis. 🐈
 
-## Usage (while in development)
+## Installing Yarn
 
-```sh
-git clone git@github.com:yarnpkg/yarn.git yarn
-cd yarn
-npm install
-npm run build
-npm link
-# go into some random directory
-mkdir node_modules
-yarn add your-package
-```
+Read the [Installation Guide](https://yarnpkg.com/en/docs/install) on our website for detailed instructions on how to install Yarn on your operating system.
+
+## Contributing to Yarn
+
+Contributions are always welcome, no matter how large or small. Before contributing,
+please read the [code of conduct](CODE_OF_CONDUCT.md).
+
+See [Contributing](CONTRIBUTING.md).
 
 ## Prior art
 
