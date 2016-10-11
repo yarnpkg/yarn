@@ -65,7 +65,7 @@ let command;
 
 //
 const hyphenate = (string) => string.replace(/[A-Z]/g, (match) => ('-' + match.charAt(0).toLowerCase()));
-const getDocsLink = (name) => `http://yarnpkg.com/en/docs/cli/${name || ''}`;
+const getDocsLink = (name) => `https://yarnpkg.com/en/docs/cli/${name || ''}`;
 const getDocsInfo = (name) => 'Visit ' + chalk.bold(getDocsLink(name)) + ' for documentation about this command.';
 
 //
