@@ -28,7 +28,7 @@ export async function run(
   args: Array<string>,
 ): Promise<void> {
   if (args.length) {
-    for (let name of args) {
+    for (const name of args) {
       const src = path.join(config.linkFolder, name);
 
       if (await fs.exists(src)) {

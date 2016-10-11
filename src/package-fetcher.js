@@ -10,8 +10,6 @@ import * as fetchers from './fetchers/index.js';
 import * as fs from './util/fs.js';
 import * as promise from './util/promise.js';
 
-const path = require('path');
-
 export default class PackageFetcher {
   constructor(config: Config, resolver: PackageResolver) {
     this.reporter = config.reporter;

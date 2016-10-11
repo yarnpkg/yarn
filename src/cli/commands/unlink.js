@@ -15,7 +15,7 @@ export async function run(
   args: Array<string>,
 ): Promise<void> {
   if (args.length) {
-    for (let name of args) {
+    for (const name of args) {
       const linkLoc = path.join(config.linkFolder, name);
       if (await fs.exists(linkLoc)) {
         await fs.unlink(path.join(await getRegistryFolder(config, name), name));

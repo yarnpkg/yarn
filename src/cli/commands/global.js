@@ -9,7 +9,6 @@ import buildSubCommands from './_build-sub-commands.js';
 import Lockfile from '../../lockfile/wrapper.js';
 import {Install} from './install.js';
 import {Add} from './add.js';
-import {run as bin} from './bin.js';
 import {run as runRemove} from './remove.js';
 import {linkBin} from '../../package-linker.js';
 import * as fs from '../../util/fs.js';
@@ -69,7 +68,7 @@ function getGlobalPrefix(): string {
 
     // destdir only is respected on Unix
     if (process.env.DESTDIR) {
-      prefix = path.join(process.env.DESTDIR, globalPrefix);
+      prefix = path.join(process.env.DESTDIR, prefix);
     }
 
     return prefix;
@@ -77,7 +76,7 @@ function getGlobalPrefix(): string {
 }
 
 function getBinFolder(): string {
-  var prefix = getGlobalPrefix();
+  const prefix = getGlobalPrefix();
   if (process.platform === 'win32') {
     return prefix;
   } else {
@@ -158,12 +157,12 @@ export const {run, setFlags} = buildSubCommands('global', {
     await updateBins();
   },
 
-  async bin(
+  bin(
     config: Config,
     reporter: Reporter,
     flags: Object,
     args: Array<string>,
-  ): Promise<void> {
+  ) {
     reporter.log(getBinFolder());
   },
 
