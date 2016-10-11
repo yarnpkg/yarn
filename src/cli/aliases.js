@@ -28,7 +28,6 @@ export default {
   rm: 'remove',
   show: 'info',
   uninstall: 'remove',
-  unlink: 'remove',
   update: 'upgrade',
   verison: 'version',
   view: 'info',
