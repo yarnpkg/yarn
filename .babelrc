@@ -15,7 +15,7 @@
       ]
     }
   },
-  "presets": ["node5", "react", "stage-0"],
+  "presets": ["node5", "stage-0"],
   "plugins": [
     ["transform-inline-imports-commonjs"],
     ["transform-runtime", { "polyfill": false, "regenerator": true }]
