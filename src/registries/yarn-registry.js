@@ -56,7 +56,7 @@ export default class YarnRegistry extends NpmRegistry {
   homeConfig: Object;
 
   getOption(key: string): mixed {
-    return this.config[key] || this.registries.npm.getOption(npmMap[key]);
+    return this.config[key] || this.registries.npm.getOption(npmMap[key] || key);
   }
 
   async loadConfig(): Promise<void> {
