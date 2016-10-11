@@ -4,6 +4,7 @@ import type {Reporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
 import {MessageError} from '../../errors.js';
 import * as fs from '../../util/fs.js';
+import {getRegistryFolder} from './link.js';
 
 const path = require('path');
 
@@ -13,18 +14,24 @@ export async function run(
   flags: Object,
   args: Array<string>,
 ): Promise<void> {
-  const names = args;
-  if (!names.length) {
+  if (args.length) {
+    for (let name of args) {
+      const linkLoc = path.join(config.linkFolder, name);
+      if (await fs.exists(linkLoc)) {
+        await fs.unlink(path.join(await getRegistryFolder(config, name), name));
+        reporter.success(reporter.lang('linkUnregistered', name));
+      } else {
+        throw new MessageError(reporter.lang('linkMissing', name));
+      }
+    }
+  } else {
+    // remove from registry
     const manifest = await config.readRootManifest();
     const name = manifest.name;
-    if (name) {
-      names.push(name);
-    } else {
+    if (!name) {
       throw new MessageError(reporter.lang('unknownPackageName'));
     }
-  }
 
-  for (const name of names) {
     const linkLoc = path.join(config.linkFolder, name);
     if (await fs.exists(linkLoc)) {
       await fs.unlink(linkLoc);

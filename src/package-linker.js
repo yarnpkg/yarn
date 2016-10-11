@@ -5,6 +5,7 @@ import type PackageResolver from './package-resolver.js';
 import type {Reporter} from './reporters/index.js';
 import type Config from './config.js';
 import type {HoistManifest} from './package-hoister.js';
+import type {CopyQueueItem} from './util/fs.js';
 import PackageHoister from './package-hoister.js';
 import * as constants from './constants.js';
 import * as promise from './util/promise.js';
@@ -125,18 +126,13 @@ export default class PackageLinker {
     });
 
     //
-    const queue = [];
+    const queue: Map<string, CopyQueueItem> = new Map();
     for (const [dest, {pkg, loc: src}] of flatTree) {
       const ref = pkg._reference;
       invariant(ref, 'expected package reference');
       ref.setLocation(dest);
 
-      if (ref.shouldLink()) {
-        linkedRefs.push({name: pkg.name, dest});
-        continue;
-      }
-
-      queue.push({
+      queue.set(dest, {
         src,
         dest,
         onFresh() {
@@ -161,18 +157,17 @@ export default class PackageLinker {
     }
 
     // linked modules
-    for (const {name, dest} of linkedRefs) {
-      possibleExtraneous.delete(dest);
-
-      this.reporter.info(this.reporter.lang('linkUsing', name));
-      const src = path.join(this.config.linkFolder, name);
-      await fs.mkdirp(path.join(dest, '..'));
-      await fs.symlink(src, dest);
+    for (const loc of possibleExtraneous) {
+      const stat = await fs.lstat(loc);
+      if (stat.isSymbolicLink()) {
+        possibleExtraneous.delete(loc);
+        queue.delete(loc);
+      }
     }
 
     //
     let tick;
-    await fs.copyBulk(queue, {
+    await fs.copyBulk(Array.from(queue.values()), {
       possibleExtraneous,
 
       ignoreBasenames: [

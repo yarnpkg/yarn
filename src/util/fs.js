@@ -30,12 +30,14 @@ const stripBOM = require('strip-bom');
 
 const noop = () => {};
 
-type CopyQueue = Array<{
+export type CopyQueueItem = {
   src: string,
   dest: string,
   onFresh?: ?() => void,
   onDone?: ?() => void,
-}>;
+};
+
+type CopyQueue = Array<CopyQueueItem>;
 
 type CopyFileAction = {
   type: 'file',

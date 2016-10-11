@@ -95,7 +95,7 @@ const messages = {
 
   linkCollision: "There's already a module called $0 registered.",
   linkMissing: 'No registered module found called $0.',
-  linkInstallMessage: 'You can now run `yarn install` in the projects where you want to use this module and it will be used instead.',
+  linkInstallMessage: 'You can now run `yarn link $0` in the projects where you want to use this module and it will be used instead.',
   linkRegistered: 'Registered $0.',
   linkUnregistered: 'Unregistered $0.',
   linkUsing: 'Using linked module for $0.',
