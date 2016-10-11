@@ -35,13 +35,6 @@ export async function run(
     timeout: 5000,
   });
 
-  // while yarn is close sourced we need an auth token to be passed
-  const githubAuth0Token = process.env.YARN_AUTH_TOKEN || process.env.KPM_AUTH_TOKEN;
-  github.authenticate({
-    type: 'oauth',
-    token: githubAuth0Token,
-  });
-
   let release;
   const gitTag = args[0];
   if (gitTag) {
@@ -83,7 +76,7 @@ export async function run(
   const fetcher = new TarballFetcher(locToUnzip, {
     type: 'tarball',
     registry: 'npm',
-    reference: `${assets[0].url}?access_token=${String(githubAuth0Token)}`,
+    reference: assets[0].url,
     hash: null,
   }, config, false);
   await fetcher.fetch();
