@@ -171,7 +171,7 @@ const messages = {
   uninstallRegenerate: 'Regenerating lockfile and installing missing dependencies',
 
   cleanRemovedFiles: 'Removed $0 files',
-  cleanSavedSize: 'Saved $0.',
+  cleanSavedSize: 'Saved $0 MB.',
 
   npmUsername: 'npm username',
   npmPassword: 'npm password',
