@@ -14,7 +14,9 @@ export type LifecycleReturn = Promise<{
   stdout: string,
 }>;
 
-function makeEnv(stage: string): {
+const IGNORE_MANIFEST_KEYS = ['readme'];
+
+async function makeEnv(stage: string, cwd: string, config: Config): {
   [key: string]: string
 } {
   const env = Object.assign({}, process.env);
@@ -22,6 +24,60 @@ function makeEnv(stage: string): {
   env.npm_lifecycle_event = stage;
   env.npm_node_execpath = env.NODE || process.execPath;
   env.npm_execpath = path.join(__dirname, '..', '..', 'bin', 'yarn.js');
+
+  // add npm_package_*
+  const manifest = await config.readManifest(cwd);
+  const queue = [['', manifest]];
+  while (queue.length) {
+    const [key, val] = queue.pop();
+    if (key[0] === '_') {
+      continue;
+    }
+
+    if (typeof val === 'object') {
+      for (const subKey in val) {
+        const completeKey = [key, subKey]
+          .filter((part: ?string): boolean => !!part)
+          .join('_');
+        queue.push([completeKey, val[subKey]]);
+      }
+    } else if (IGNORE_MANIFEST_KEYS.indexOf(key) < 0) {
+      let cleanVal = String(val);
+      if (cleanVal.indexOf('\n') >= 0) {
+        cleanVal = JSON.stringify(cleanVal);
+      }
+      env[`npm_package_${key}`] = cleanVal;
+    }
+  }
+
+  // add npm_config_*
+  const keys = new Set([
+    ...Object.keys(config.registries.yarn.config),
+    ...Object.keys(config.registries.npm.config),
+  ]);
+  for (const key of keys) {
+    if (key.match(/:_/)) {
+      continue;
+    }
+
+    let val = config.getOption(key);
+
+    if (!val) {
+      val = '';
+    } else if (typeof val === 'number') {
+      value = '' + val;
+    } else if (typeof val !== 'string') {
+      val = JSON.stringify(val);
+    }
+
+    if (val.indexOf('\n') >= 0) {
+      val = JSON.stringify(val);
+    }
+
+    const cleanKey = key.replace(/^_+/, '');
+    const envKey = `npm_config_${cleanKey}`.replace(/[^a-zA-Z0-9_]/g, '_');
+    env[envKey] = val;
+  }
 
   return env;
 }
@@ -36,7 +92,7 @@ export default async function (
   // if we don't have a spinner then pipe everything to the terminal
   const stdio = spinner ? undefined : 'inherit';
 
-  const env = makeEnv(stage);
+  const env = await makeEnv(stage, cwd, config);
 
   // split up the path
   const pathParts = (env[constants.ENV_PATH_KEY] || '').split(path.delimiter);
