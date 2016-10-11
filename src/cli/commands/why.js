@@ -97,6 +97,9 @@ export async function run(
   if (!args.length) {
     throw new MessageError(reporter.lang('missingWhyDependency'));
   }
+  if (args.length > 1) {
+    throw new MessageError(reporter.lang('tooManyArguments', 1));
+  }
 
   const query = await cleanQuery(config, args[0]);
 
