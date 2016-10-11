@@ -62,10 +62,12 @@ export default class RequestManager {
     this.offlineNoRequests = false;
     this._requestCaptureHar = null;
     this._requestModule = null;
-    this.captureHar = false;
     this.offlineQueue = [];
-    this.reporter = reporter;
+    this.captureHar = false;
+    this.httpsProxy = null;
+    this.httpProxy = null;
     this.userAgent = '';
+    this.reporter = reporter;
     this.running = 0;
     this.queue = [];
     this.cache = {};
@@ -77,6 +79,8 @@ export default class RequestManager {
   userAgent: string;
   reporter: Reporter;
   running: number;
+  httpsProxy: ?string;
+  httpProxy: ?string;
   offlineQueue: Array<RequestOptions>;
   queue: Array<Object>;
   max: number;
@@ -91,6 +95,8 @@ export default class RequestManager {
     userAgent?: string,
     offline?: boolean,
     captureHar?: boolean,
+    httpProxy?: string,
+    httpsProxy?: string,
   }) {
     if (opts.userAgent != null) {
       this.userAgent = opts.userAgent;
@@ -102,6 +108,14 @@ export default class RequestManager {
 
     if (opts.captureHar != null) {
       this.captureHar = opts.captureHar;
+    }
+
+    if (opts.httpProxy != null) {
+      this.httpProxy = opts.httpProxy;
+    }
+
+    if (opts.httpsProxy != null) {
+      this.httpsProxy = opts.httpsProxy;
     }
   }
 
@@ -306,6 +320,14 @@ export default class RequestManager {
 
     if (params.buffer) {
       params.encoding = null;
+    }
+
+    let proxy = this.httpProxy;
+    if (params.url.startsWith('https:')) {
+      proxy = this.httpsProxy || proxy;
+    }
+    if (proxy) {
+      params.proxy = proxy;
     }
 
     const request = this._getRequestModule();

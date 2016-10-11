@@ -159,6 +159,8 @@ export default class Config {
 
     this.requestManager.setOptions({
       userAgent: String(this.getOption('user-agent')),
+      httpProxy: String(this.getOption('proxy') || ''),
+      httpsProxy: String(this.getOption('https-proxy') || ''),
     });
   }
 
