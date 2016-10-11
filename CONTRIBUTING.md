@@ -5,7 +5,7 @@ please read the [code of conduct](CODE_OF_CONDUCT.md).
 
 ## Setup
 
-> First check that `yarn` is installed globally with `npm install yarn --global`
+> Install yarn on your system: https://yarnpkg.com/en/docs/install
 
 ```sh
 $ git clone https://github.com/yarnpkg/yarn.git
