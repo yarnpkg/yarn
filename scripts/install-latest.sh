@@ -13,7 +13,6 @@ yarn_get_tarball() {
 
   printf "$cyan> Extracting to ~/.yarn...$reset\n"
   mkdir .yarn
-  rm -rf yarn.tar.gz
   tar zxf yarn.tar.gz -C .yarn --strip 1 # extract tarball
   rm -rf yarn.tar.gz # remove tarball
 }
