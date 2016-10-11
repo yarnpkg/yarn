@@ -1,5 +1,5 @@
 {
-  "name": "yarnpkg",
+  "name": "yarn",
   "version": "0.15.1",
   "license": "BSD-2-Clause",
   "preferGlobal": true,
