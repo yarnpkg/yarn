@@ -1,8 +1,14 @@
 ---
 git:
   depth: 1
-sudo: true # can't use this due to git upgrade requirement
 language: generic
+
+sudo: false
+
+addons:
+  apt:
+    packages:
+      - git
 
 branches:
   only:
@@ -33,9 +39,7 @@ matrix:
     os: osx
 
 install:
- # install latest git
  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew unlink git; brew install git; fi
- - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then ./scripts/update-linux-git.sh; fi
  - git --version
 
  # install proper node version
