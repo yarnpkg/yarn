@@ -20,7 +20,7 @@ yarn_get_tarball() {
 yarn_link() {
   printf "$cyan> Adding to \$PATH...$reset\n"
   YARN_PROFILE="$(yarn_detect_profile)"
-  SOURCE_STR="\nexport PATH=\"~/.yarn/bin:\$PATH\"\n"
+  SOURCE_STR="\nexport PATH=\"\$HOME/.yarn/bin:\$PATH\"\n"
 
   if [ -z "${YARN_PROFILE-}" ] ; then
     printf "$red> Profile not found. Tried ${YARN_PROFILE} (as defined in \$PROFILE), ~/.bashrc, ~/.bash_profile, ~/.zshrc, and ~/.profile.\n"
