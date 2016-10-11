@@ -7,11 +7,11 @@
 		<MediaTemplate EmbedCab="yes" />
 
 		<!-- Ensure Node.js is installed. Can be either 32-bit or 64-bit, we don't particularly care -->
-		<Property Id="NODEVERSION">
+		<!--<Property Id="NODEVERSION">
 			<RegistrySearch Id="NodeVersionReg32bit" Root="HKLM" Key="SOFTWARE\Node.js" Name="Version" Type="raw" Win64="no" />
 			<RegistrySearch Id="NodeVersionReg64bit" Root="HKLM" Key="SOFTWARE\Node.js" Name="Version" Type="raw" Win64="yes" />
 		</Property>
-		<Condition Message="Yarn requires Node.js 4.0 or higher to be installed">NODEVERSION</Condition>
+		<Condition Message="Yarn requires Node.js 4.0 or higher to be installed">NODEVERSION</Condition>-->
 
 		<Feature Id="MainFeature" Title="Yarn" Level="1">
 			<ComponentGroupRef Id="YarnFiles" />
