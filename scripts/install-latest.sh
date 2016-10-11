@@ -11,17 +11,17 @@ yarn_get_tarball() {
   printf "$cyan> Downloading tarball...$reset\n"
   curl -o yarn.tar.gz "https://yarnpkg.com/latest.tar.gz" >/dev/null # get tarball
 
-  printf "$cyan> Extracting to ~/.yarn-cli...$reset\n"
-  mkdir .yarn-cli
+  printf "$cyan> Extracting to ~/.yarn...$reset\n"
+  mkdir .yarn
   rm -rf yarn.tar.gz
-  tar zxf yarn.tar.gz -C .yarn-cli --strip 1 # extract tarball
+  tar zxf yarn.tar.gz -C .yarn --strip 1 # extract tarball
   rm -rf yarn.tar.gz # remove tarball
 }
 
 yarn_link() {
   printf "$cyan> Adding to \$PATH...$reset\n"
   YARN_PROFILE="$(yarn_detect_profile)"
-  SOURCE_STR="\nexport PATH=\"~/.yarn-cli/bin:\$PATH\"\n"
+  SOURCE_STR="\nexport PATH=\"~/.yarn/bin:\$PATH\"\n"
 
   if [ -z "${YARN_PROFILE-}" ] ; then
     printf "$red> Profile not found. Tried ${YARN_PROFILE} (as defined in \$PROFILE), ~/.bashrc, ~/.bash_profile, ~/.zshrc, and ~/.profile.\n"
@@ -31,7 +31,7 @@ yarn_link() {
     printf "> Append the following lines to the correct file yourself:$reset\n"
     command printf "${SOURCE_STR}"
   else
-    if ! grep -q 'yarn-cli' "$YARN_PROFILE"; then
+    if ! grep -q 'yarn' "$YARN_PROFILE"; then
       command printf "$SOURCE_STR" >> "$YARN_PROFILE"
     fi
 
@@ -84,9 +84,9 @@ yarn_reset() {
 yarn_install() {
   printf "${white}Installing Yarn!$reset\n"
 
-  if [ -d "$HOME/.yarn-cli" ]; then
-    printf "$red> ~/.yarn-cli already exists, possibly from a past Yarn install.$reset\n"
-    printf "$red> Remove it (rm -rf ~/.yarn-cli) and run this script again.$reset\n"
+  if [ -d "$HOME/.yarn" ]; then
+    printf "$red> ~/.yarn already exists, possibly from a past Yarn install.$reset\n"
+    printf "$red> Remove it (rm -rf ~/.yarn) and run this script again.$reset\n"
     exit 1
   fi
 
