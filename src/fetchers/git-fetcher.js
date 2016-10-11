@@ -77,7 +77,7 @@ export default class GitFetcher extends BaseFetcher {
     const mirrorRootPath = this.config.getOfflineMirrorPath();
     if (tarballInMirrorPath && this.hash && mirrorRootPath) {
       tarballInMirrorPath = `${tarballInMirrorPath}-${this.hash}`;
-      const hash = await git.achive(tarballInMirrorPath);
+      const hash = await git.archive(tarballInMirrorPath);
       const relativeMirrorPath = path.relative(mirrorRootPath, tarballInMirrorPath);
       return {
         hash,

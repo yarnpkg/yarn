@@ -109,18 +109,18 @@ export default class Git {
   }
 
   /**
-   * Arhieve a repo to destination
+   * Archive a repo to destination
    */
 
-  achive(dest: string): Promise<string> {
+  archive(dest: string): Promise<string> {
     if (this.supportsArchive) {
-      return this._achiveViaRemoteArchive(dest);
+      return this._archiveViaRemoteArchive(dest);
     } else {
-      return this._achiveViaLocalFetched(dest);
+      return this._archiveViaLocalFetched(dest);
     }
   }
 
-  async _achiveViaRemoteArchive(dest: string): Promise<string> {
+  async _archiveViaRemoteArchive(dest: string): Promise<string> {
     const hashStream = new crypto.HashStream();
     await child.spawn('git', ['archive', `--remote=${this.url}`, this.ref], {
       process(proc, resolve, reject, done) {
@@ -137,7 +137,7 @@ export default class Git {
     return hashStream.getHash();
   }
 
-  async _achiveViaLocalFetched(dest: string): Promise<string> {
+  async _archiveViaLocalFetched(dest: string): Promise<string> {
     const hashStream = new crypto.HashStream();
     await child.spawn('git', ['archive', this.hash], {
       cwd: this.cwd,
@@ -338,7 +338,7 @@ export default class Git {
     // store references
     const refs = {};
 
-    // line delimetered
+    // line delimited
     const refLines = stdout.split('\n');
 
     for (const line of refLines) {
