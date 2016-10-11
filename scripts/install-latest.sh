@@ -21,6 +21,7 @@ yarn_link() {
   printf "$cyan> Adding to \$PATH...$reset\n"
   YARN_PROFILE="$(yarn_detect_profile)"
   SOURCE_STR="\nexport PATH=\"\$HOME/.yarn/bin:\$PATH\"\n"
+  FISH_SOURCE_STR="\nset -xg PATH ~/.yarn/bin \$PATH"
 
   if [ -z "${YARN_PROFILE-}" ] ; then
     printf "$red> Profile not found. Tried ${YARN_PROFILE} (as defined in \$PROFILE), ~/.bashrc, ~/.bash_profile, ~/.zshrc, and ~/.profile.\n"
@@ -31,7 +32,11 @@ yarn_link() {
     command printf "${SOURCE_STR}"
   else
     if ! grep -q 'yarn' "$YARN_PROFILE"; then
-      command printf "$SOURCE_STR" >> "$YARN_PROFILE"
+      if [[ $YARN_PROFILE == *"fish"* ]]; then
+        command printf "$FISH_SOURCE_STR" >> "$YARN_PROFILE"  
+      else
+        command printf "$SOURCE_STR" >> "$YARN_PROFILE"
+      fi
     fi
 
     printf "$cyan> We've added the following to your $YARN_PROFILE\n"
@@ -61,6 +66,8 @@ yarn_detect_profile() {
     fi
   elif [ "$SHELLTYPE" = "zsh" ]; then
     DETECTED_PROFILE="$HOME/.zshrc"
+  elif [ "$SHELLTYPE" = "fish" ]; then
+    DETECTED_PROFILE="$HOME/.config/fish/config.fish"
   fi
 
   if [ -z "$DETECTED_PROFILE" ]; then
@@ -72,6 +79,8 @@ yarn_detect_profile() {
       DETECTED_PROFILE="$HOME/.bash_profile"
     elif [ -f "$HOME/.zshrc" ]; then
       DETECTED_PROFILE="$HOME/.zshrc"
+    elif [ -f "$HOME/.config/fish/config.fish" ]; then
+      DETECTED_PROFILE="$HOME/.config/fish/config.fish"
     fi
   fi
 
