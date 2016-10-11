@@ -69,7 +69,8 @@ const getDocsLink = (name) => `https://yarnpkg.com/en/docs/cli/${name || ''}`;
 const getDocsInfo = (name) => 'Visit ' + chalk.bold(getDocsLink(name)) + ' for documentation about this command.';
 
 //
-if (commandName === 'help') {
+if (commandName === 'help' || commandName === '--help' || commandName === '-h') {
+  commandName = 'help';
   if (args.length) {
     const helpCommand = hyphenate(args[0]);
     commander.on('--help', () => console.log('  ' + getDocsInfo(helpCommand) + '\n'));
