@@ -116,6 +116,7 @@ const messages = {
 
   selfUpdateReleased: 'Replaced current release with $0.',
   selfUpdateDownloading: `Downloading asset $0 from release $1`,
+  selfUpdateFailed: `Failed to retrieve asset from release $0`,
 
   optionalCompatibilityExcluded: '$0 is an optional dependency and failed compatibility check. Excluding it from installation.',
   optionalModuleFail: 'This module is OPTIONAL, you can safely ignore this error',

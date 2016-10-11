@@ -1,7 +1,13 @@
 /* @flow */
 
+import roadrunner from 'roadrunner';
 import type Config from '../../config.js';
-import {GITHUB_REPO, GITHUB_USER, SELF_UPDATE_DOWNLOAD_FOLDER} from '../../constants.js';
+import {
+  GITHUB_REPO,
+  GITHUB_USER,
+  SELF_UPDATE_DOWNLOAD_FOLDER,
+  CACHE_FILENAME
+} from '../../constants.js';
 import TarballFetcher from '../../fetchers/tarball-fetcher.js';
 import type {Reporter} from '../../reporters/index.js';
 import {exists, realpath, symlink, unlink} from '../../util/fs.js';
@@ -35,13 +41,6 @@ export async function run(
     timeout: 5000,
   });
 
-  // while yarn is close sourced we need an auth token to be passed
-  const githubAuth0Token = process.env.YARN_AUTH_TOKEN || process.env.KPM_AUTH_TOKEN;
-  github.authenticate({
-    type: 'oauth',
-    token: githubAuth0Token,
-  });
-
   let release;
   const gitTag = args[0];
   if (gitTag) {
@@ -58,13 +57,17 @@ export async function run(
       repo: GITHUB_REPO,
     });
   }
-  const assets = await github.repos.listAssets({
-    user: GITHUB_USER,
-    repo: GITHUB_REPO,
-    id: release.id,
-  });
+  const assets = release.assets;
+  const pkgName = `yarn-${release.tag_name}.tar.gz`;
 
-  reporter.info(reporter.lang('selfUpdateDownloading', assets[0].name, release.tag_name));
+  // check with package-name as content_type is not always accurate
+  const asset = assets.find(asset => asset.name === pkgName);
+  if (!asset) {
+    reporter.error(reporter.lang('selfUpdateFailed', release.tag_name));
+    return;
+  }
+
+  reporter.info(reporter.lang('selfUpdateDownloading', asset.name, release.tag_name));
 
   const thisVersionRoot = path.resolve(__dirname, '..', '..', '..');
   const isCurrentVersionAnUpdate =
@@ -83,7 +86,7 @@ export async function run(
   const fetcher = new TarballFetcher(locToUnzip, {
     type: 'tarball',
     registry: 'npm',
-    reference: `${assets[0].url}?access_token=${String(githubAuth0Token)}`,
+    reference: asset.url,
     hash: null,
   }, config, false);
   await fetcher.fetch();
@@ -104,6 +107,9 @@ export async function run(
     // because it may still be in use now
     await symlink(thisVersionRoot, pathToClean);
   }
+
+  // reset the roadrunner cache
+  roadrunner.reset(CACHE_FILENAME);
 
   reporter.success(reporter.lang('selfUpdateReleased', release.tag_name));
 }

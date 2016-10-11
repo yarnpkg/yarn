@@ -38,6 +38,7 @@ function getDirectory(type: string): string {
 export const MODULE_CACHE_DIRECTORY = getDirectory('cache');
 export const LINK_REGISTRY_DIRECTORY = getDirectory('config/link');
 export const GLOBAL_MODULE_DIRECTORY = getDirectory('config/global');
+export const CACHE_FILENAME = path.join(userHome, '.yarn', '.roadrunner.json');
 
 export const INTEGRITY_FILENAME = '.yarn-integrity';
 export const LOCKFILE_FILENAME = 'yarn.lock';

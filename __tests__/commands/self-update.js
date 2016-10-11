@@ -1,9 +1,10 @@
 /* @flow */
 
+import roadrunner from 'roadrunner';
 import BlockingQueue from '../../src/util/blocking-queue.js';
 import * as child from '../../src/util/child.js';
 import Config from '../../src/config.js';
-import {SELF_UPDATE_DOWNLOAD_FOLDER} from '../../src/constants.js';
+import {SELF_UPDATE_DOWNLOAD_FOLDER, CACHE_FILENAME} from '../../src/constants.js';
 import * as fs from '../../src/util/fs.js';
 import {run as selfUpdate} from '../../src/cli/commands/self-update.js';
 import * as reporters from '../../src/reporters/index.js';
@@ -50,7 +51,9 @@ function run(checks: (reporter: reporters.Reporter, config: Config) => Promise<v
       const cwd = path.resolve(updatesFolder, '..');
       const config = new Config(reporter);
       await config.init({cwd});
+      roadrunner.reset(CACHE_FILENAME);
       await checks(reporter, config);
+      roadrunner.reset(CACHE_FILENAME);
     } catch (err) {
       throw new Error(`${err} \nConsole output:\n ${out}`);
     } finally {
@@ -59,24 +62,23 @@ function run(checks: (reporter: reporters.Reporter, config: Config) => Promise<v
   });
 }
 
-// TODO enable tests when yarn becomes OSS
-xit('Self-update should download a release and symlink it as "current"', (): Promise<void> => {
+it('Self-update should download a release and symlink it as "current"', (): Promise<void> => {
   return run(async (reporter, config) => {
-    await selfUpdate(config, reporter, {}, ['v0.11.0']);
+    await selfUpdate(config, reporter, {}, ['v0.14.1']);
     expect(await fs.exists(path.resolve(updatesFolder, 'current')));
-    expect(await fs.exists(path.resolve(updatesFolder, 'v0.11.0')));
+    expect(await fs.exists(path.resolve(updatesFolder, 'v0.14.1')));
     const packageJson = await fs.readJson(path.resolve(updatesFolder, 'current', 'package.json'));
-    expect(packageJson.version === '0.11.0');
+    expect(packageJson.version === '0.14.1');
     const version = await child.exec('node bin/yarn.js -V');
-    expect(version[0].trim(), `0.11.0`);
+    expect(version[0].trim(), '0.14.1');
   });
 });
 
 
-xit('Self-update should work from self-updated location', (): Promise<void> => {
+it('Self-update should work from self-updated location', (): Promise<void> => {
   return run(async (reporter, config) => {
     // mock an existing self-update
-    await child.exec('make build');
+    await child.exec('npm run build');
     await fs.copy(path.resolve(updatesFolder, '..'), path.resolve(updatesFolder, 'v0.99.0'));
     await fs.symlink(path.resolve(updatesFolder, 'v0.99.0'), path.resolve(updatesFolder, 'current'));
     let packageJson = await fs.readJson(path.resolve(updatesFolder, 'current', 'package.json'));
@@ -84,7 +86,7 @@ xit('Self-update should work from self-updated location', (): Promise<void> => {
     await fs.writeFile(path.resolve(updatesFolder, 'current', 'package.json'),
       JSON.stringify(packageJson, null, 4));
     let version = await child.exec('node bin/yarn.js -V');
-    expect(version[0].trim(), `0.99.0`);
+    expect(version[0].trim(), '0.99.0');
 
     // mock a to_clean folder
     packageJson.version = '0.98.0';
@@ -93,15 +95,15 @@ xit('Self-update should work from self-updated location', (): Promise<void> => {
     await fs.writeFile(path.resolve(updatesFolder, 'v0.98.0', 'package.json'),
       JSON.stringify(packageJson, null, 4));
 
-    await child.exec('node bin/yarn.js self-update v0.11.0');
+    await child.exec('node bin/yarn.js self-update v0.15.0');
 
     // new version is current
     version = await child.exec('node bin/yarn.js -V');
-    expect(version[0].trim(), `0.11.0`);
+    expect(version[0].trim(), '0.15.0');
 
     expect(await fs.exists(path.resolve(updatesFolder, 'v0.98.0'))).toBe(false);
     expect(await fs.exists(path.resolve(updatesFolder, 'v0.99.0'))).toBe(true);
-    expect(await fs.exists(path.resolve(updatesFolder, 'v0.11.0'))).toBe(true);
+    expect(await fs.exists(path.resolve(updatesFolder, 'v0.15.0'))).toBe(true);
 
     packageJson = await fs.readJson(path.resolve(updatesFolder, 'to_clean', 'package.json'));
     expect(packageJson.version).toBe('0.99.0');
