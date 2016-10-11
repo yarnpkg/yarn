@@ -37,9 +37,6 @@ matrix:
       os: osx
 
 install:
- - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew unlink git; brew install git; fi
- - git --version
-
  # install proper node version
  - nvm install ${NODE_VERSION:=6}
  - node --version
