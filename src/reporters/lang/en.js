@@ -72,6 +72,7 @@ const messages = {
   tooManyArguments: 'Too many arguments, maximum of $0.',
   tooFewArguments: 'Not enough arguments, expected at least $0.',
   noArguments: "This command doesn't require any arguments.",
+  unknownArgument: '`$0` is an unknown option for `$1`.',
 
   ownerRemoving: 'Removing owner $0 from package $1.',
   ownerRemoved: 'Owner removed.',
