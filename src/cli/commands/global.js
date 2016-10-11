@@ -9,6 +9,7 @@ import buildSubCommands from './_build-sub-commands.js';
 import Lockfile from '../../lockfile/wrapper.js';
 import {Install} from './install.js';
 import {Add} from './add.js';
+import {run as bin} from './bin.js';
 import {run as runRemove} from './remove.js';
 import {linkBin} from '../../package-linker.js';
 import * as fs from '../../util/fs.js';
@@ -141,6 +142,10 @@ function ls(manifest: Manifest, reporter: Reporter, saved: boolean) {
   }
 }
 
+export function hasWrapper(flags: Object, args: Array<string>): boolean {
+  return args[0] !== 'bin';
+}
+
 export const {run, setFlags} = buildSubCommands('global', {
   async add(
     config: Config,
@@ -159,6 +164,16 @@ export const {run, setFlags} = buildSubCommands('global', {
 
     // link binaries
     await updateBins();
+  },
+
+  async bin(
+    config: Config,
+    reporter: Reporter,
+    flags: Object,
+    args: Array<string>,
+  ): Promise<void> {
+    await updateCwd(config);
+    bin(config, reporter, flags, args);
   },
 
   async ls(
