@@ -26,7 +26,6 @@
 /dist
 /__tests__
 /.roadrunner.json
-/yarn.lock
 .vs
 *.msi
 *.nupkg
