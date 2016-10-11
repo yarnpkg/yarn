@@ -128,12 +128,6 @@ export async function run(
   const matchPatterns = matchRef.patterns;
   const matchRequests = matchRef.requests;
 
-
-  // reason: hoisted
-  if (query === match.originalKey) {
-    reporter.info(reporter.lang('whyHoistedTo', match.key));
-  }
-
   const reasons = [];
   // reason: dependency of these modules
   for (const request of matchRequests) {
@@ -188,17 +182,30 @@ export async function run(
   // package sizes
   reporter.step(4, 4, reporter.lang('whyCalculating'), emoji.get('aerial_tramway'));
 
-  const packageSize = await getPackageSize(match);
+  let packageSize = 0;
+  let directSizes = [];
+  let transitiveSizes = [];
+  try {
+    packageSize = await getPackageSize(match);
+  } catch (e) {}
+
   const dependencies = Array.from(collect(hoisted, new Set(), match));
   const transitiveDependencies = Array.from(collect(hoisted, new Set(), match, {recursive: true}));
 
-  const directSizes = await Promise.all(dependencies.map(getPackageSize));
-  const transitiveSizes = await Promise.all(transitiveDependencies.map(getPackageSize));
+  try {
+    directSizes = await Promise.all(dependencies.map(getPackageSize));
+    transitiveSizes = await Promise.all(transitiveDependencies.map(getPackageSize));
+  } catch (e) {}
 
   const transitiveKeys = new Set(transitiveDependencies.map((info) => info.key));
   const sharedDependencies = getSharedDependencies(hoisted, transitiveKeys);
 
   //
+  // reason: hoisted
+  if (query === match.originalKey) {
+    reporter.info(reporter.lang('whyHoistedTo', match.key));
+  }
+
   if (reasons.length === 1) {
     reporter.info(reporter.lang(reasons[0].typeSimple, reasons[0].value));
   } else if (reasons.length > 1) {
@@ -210,15 +217,17 @@ export async function run(
     reporter.error(reporter.lang('whyWhoKnows'));
   }
 
-  // stats: file size of this dependency without any dependencies
-  reporter.info(reporter.lang('whyDiskSizeWithout', bytes(packageSize)));
+  if (packageSize) {
+    // stats: file size of this dependency without any dependencies
+    reporter.info(reporter.lang('whyDiskSizeWithout', bytes(packageSize)));
 
-  // stats: file size of this dependency including dependencies that aren't shared
-  reporter.info(reporter.lang('whyDiskSizeUnique', bytes(packageSize + sum(directSizes))));
+    // stats: file size of this dependency including dependencies that aren't shared
+    reporter.info(reporter.lang('whyDiskSizeUnique', bytes(packageSize + sum(directSizes))));
 
-  // stats: file size of this dependency including dependencies
-  reporter.info(reporter.lang('whyDiskSizeTransitive', bytes(packageSize + sum(transitiveSizes))));
+    // stats: file size of this dependency including dependencies
+    reporter.info(reporter.lang('whyDiskSizeTransitive', bytes(packageSize + sum(transitiveSizes))));
 
-  // stats: shared transitive dependencies
-  reporter.info(reporter.lang('whySharedDependencies', sharedDependencies.size));
+    // stats: shared transitive dependencies
+    reporter.info(reporter.lang('whySharedDependencies', sharedDependencies.size));
+  }
 }
