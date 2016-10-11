@@ -4,7 +4,6 @@ general:
       - gh-pages
 dependencies:
   override:
-    - nvm install 4.3.2
     - nvm install 6
     - nvm use 6 && nvm alias default 6
     - which node
@@ -13,14 +12,11 @@ dependencies:
     - go get github.com/tcnksm/ghr
 test:
   override:
-    - nvm use 4.3.2 && nvm alias default 4.3.2
     - node -v
     - npm run test-ci
-    - nvm use 6 && nvm alias default 6
-    - node -v
-    - npm run test-ci
-    - npm run build-dist
     - npm run check-lockfile
+    - npm run build-dist
+    - node ./scripts/build-webpack.js
 
 deployment:
   release:
@@ -28,3 +24,5 @@ deployment:
     owner: yarnpkg
     commands:
       - ghr --username yarnpkg --repository yarn --token $KPM_CIRCLE_RELEASE_TOKEN v$(node dist/bin/yarn --version) dist/yarn-v*.tar.gz
+      - ghr --username yarnpkg --repository yarn --token $KPM_CIRCLE_RELEASE_TOKEN v$(node dist/bin/yarn --version) dist/yarn-$(node dist/bin/yarn --version).js
+      - ghr --username yarnpkg --repository yarn --token $KPM_CIRCLE_RELEASE_TOKEN v$(node dist/bin/yarn --version) dist/yarn-legacy-$(node dist/bin/yarn --version).js
