@@ -43,9 +43,6 @@ install:
  - git --version
 
  # install proper node version
- - rm -rf ~/.nvm
- - git clone https://github.com/creationix/nvm.git ~/.nvm
- - source ~/.nvm/nvm.sh
  - nvm install ${NODE_VERSION:=6}
  - node --version
  - npm install -g npm@3
