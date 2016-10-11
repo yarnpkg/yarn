@@ -12,8 +12,6 @@ import * as fs from '../../util/fs.js';
 const objectPath = require('object-path');
 const path = require('path');
 
-export const noArguments = true;
-
 export async function run(
   config: Config,
   reporter: Reporter,
@@ -100,9 +98,18 @@ export async function run(
       question += ` (${def})`;
     }
 
-    const answer = (await reporter.question(question)) || def;
-    if (answer) {
-      objectPath.set(pkg, manifestKey, answer);
+    const initializeWithDefaultValues = (
+      flags.rawArgs.includes('--yes') || flags.rawArgs.includes('-y')
+    );
+
+    if (initializeWithDefaultValues) {
+      objectPath.set(pkg, manifestKey, def);
+    } else {
+      const answer = (await reporter.question(question)) || def;
+
+      if (answer) {
+        objectPath.set(pkg, manifestKey, answer);
+      }
     }
   }
 
