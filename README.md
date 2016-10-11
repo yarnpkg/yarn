@@ -50,3 +50,7 @@ Yarn wouldn't exist if it wasn't for excellent prior art. Yarn has been inspired
  - [Bundler](https://github.com/bundler/bundler)
  - [Cargo](https://github.com/rust-lang/cargo)
  - [npm](https://github.com/npm/npm)
+
+## Credits
+
+Thanks to [Sam Holmes](https://github.com/samholmes) for donating the npm package name!
