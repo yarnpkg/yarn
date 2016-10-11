@@ -73,7 +73,6 @@ for (let i = 0; i < args.length; i++) {
 
 let command;
 
-
 //
 const hyphenate = (string) => string.replace(/[A-Z]/g, (match) => ('-' + match.charAt(0).toLowerCase()));
 const getDocsLink = (name) => `http://yarnpkg.com/en/docs/cli/${name || ''}`;
