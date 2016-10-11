@@ -95,19 +95,6 @@ export default class PackageFetcher {
       }
 
       if (newPkg) {
-        // read linked module manifest if one exists
-        if (ref.shouldLink()) {
-          const linkPkg = await this.config.readManifest(path.join(this.config.linkFolder, ref.name));
-
-          // copy over fields that will influence the lockfile
-          linkPkg.name = newPkg.name;
-          linkPkg.version = newPkg.version;
-          linkPkg.dependencies = newPkg.dependencies;
-          linkPkg.optionalDependencies = newPkg.optionalDependencies;
-
-          newPkg = linkPkg;
-        }
-
         // update with fresh manifest
         await this.resolver.updateManifest(ref, newPkg);
       }

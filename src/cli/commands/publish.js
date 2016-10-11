@@ -91,7 +91,7 @@ async function publish(
   pkg.dist = pkg.dist || {};
   pkg.dist.shasum = crypto.createHash('sha1').update(buffer).digest('hex');
 
-  const registry = String(config.registries.yarn.getOption('registry'));
+  const registry = String(config.getOption('registry'));
   pkg.dist.tarball = url.resolve(registry, tbURI).replace(/^https:\/\//, 'http://');
 
   // publish package

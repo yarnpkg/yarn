@@ -76,10 +76,6 @@ export default class PackageReference {
     return this.location = loc;
   }
 
-  shouldLink(): boolean {
-    return this.root && this.config.linkedModules.indexOf(this.name) >= 0;
-  }
-
   addRequest(request: PackageRequest) {
     this.requests.push(request);
 
