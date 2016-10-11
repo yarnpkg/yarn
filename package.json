@@ -1,6 +1,6 @@
 {
   "name": "yarnpkg",
-  "version": "0.15.0",
+  "version": "0.15.1",
   "license": "BSD-2-Clause",
   "preferGlobal": true,
   "dependencies": {
