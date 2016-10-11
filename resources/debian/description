@@ -1,16 +1,13 @@
-Package manager for the npm and bower package repositories
-Yarn is a package manager for the npm and bower registries with a few specific
-focuses.
+Fast, reliable, and secure dependency management.
+Yarn: Fast, reliable, and secure dependency management.
 
-Determinism: Based around a version lockfile which ensures that operations on
-the dependency graph can be easily transitioned. We check module directories
-and verify their integrity to ensure yarn install always produces the same file
-structure.
+Fast: Yarn caches every package it downloads so it never needs to again. It also
+parallelizes operations to maximize resource utilization so install times are
+faster than ever.
 
-Security: Strict guarantees are placed around package installation. You have
-control over whether lifecycle scripts are executed for packages and package
-hashes are stored in the lockfile to ensure you get the same package each time.
+Reliable: Using a detailed, but concise, lockfile format, and a deterministic
+algorithm for installs, Yarn is able to guarantee that an install that worked
+on one system will work exactly the same way on any other system.
 
-Performance: We are always performing operations such as package resolving and
-fetching in parallel. This ensures little idle time and maximum resource
-utilization.
+Secure: Yarn uses checksums to verify the integrity of every installed package
+before its code is executed.
