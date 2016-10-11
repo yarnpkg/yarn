@@ -81,7 +81,7 @@
     "url": "git://github.com/yarnpkg/yarn.git"
   },
   "bin": {
-    "yarn": "./bin/yarn"
+    "yarn": "./bin/yarn.js"
   },
   "scripts": {
     "test": "npm run lint && npm run test-only",
