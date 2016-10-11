@@ -35,8 +35,6 @@ export function getModuleCacheDirectory(): string {
   return path.join(userHome, '.yarn-cache');
 }
 
-// the kpm and fbkpm names here are legacy names for yarn here for compatibility
-
 export const MODULE_CACHE_DIRECTORY = getModuleCacheDirectory();
 export const LINK_REGISTRY_DIRECTORY = `${MODULE_CACHE_DIRECTORY}/.link`;
 export const GLOBAL_MODULE_DIRECTORY = `${MODULE_CACHE_DIRECTORY}/.global`;
