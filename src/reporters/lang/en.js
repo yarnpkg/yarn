@@ -52,7 +52,7 @@ const messages = {
   doesntExist: "$0 doesn't exist.",
   missingRequiredPackageKey: `Package $0 doesn't have a $1.`,
   invalidAccess: 'Invalid argument for access, expected public or restricted.',
-  invalidArguments: 'Invalid arguments.',
+  invalidCommand: 'Invalid subcommand. Try $0',
   invalidGistFragment: 'Invalid gist fragment $0.',
   invalidHostedGitFragment: 'Invalid hosted git fragment $0.',
   invalidFragment: 'Invalid fragment $0.',
