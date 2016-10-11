@@ -65,7 +65,7 @@ async function makeEnv(stage: string, cwd: string, config: Config): {
     if (!val) {
       val = '';
     } else if (typeof val === 'number') {
-      value = '' + val;
+      val = '' + val;
     } else if (typeof val !== 'string') {
       val = JSON.stringify(val);
     }
