@@ -3,6 +3,16 @@
 Contributions are always welcome, no matter how large or small. Before contributing,
 please read the [code of conduct](CODE_OF_CONDUCT.md).
 
+## Setup
+
+> First check that `yarn` is installed globally with `npm install yarn --global`
+
+```sh
+$ git clone https://github.com/yarnpkg/yarn.git
+$ cd yarn
+$ yarn
+```
+
 ## Building
 
 ```sh
