@@ -89,8 +89,8 @@ if (commandName === 'help') {
   }
 }
 
-// if no args or command name looks like a flag then default to `install`
-if (!commandName || commandName[0] === '-') {
+// if no args then default to `install`
+if (!commandName) {
   if (commandName) {
     args.unshift(commandName);
   }
