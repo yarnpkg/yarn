@@ -70,7 +70,7 @@ const messages = {
   answerRequired: 'An answer is required.',
 
   tooManyArguments: 'Too many arguments, maximum of $0.',
-  tooFewArguments: 'Not enoguh arguments, expected at least $0.',
+  tooFewArguments: 'Not enough arguments, expected at least $0.',
   noArguments: "This command doesn't require any arguments.",
 
   ownerRemoving: 'Removing owner $0 from package $1.',
