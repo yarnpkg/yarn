@@ -32,7 +32,11 @@ export async function run(
   };
   if (await fs.exists(path.join(config.cwd, '.git'))) {
     // get git origin of the cwd
-    gitUrl = await child.spawn('git', ['config', 'remote.origin.url'], {cwd: config.cwd});
+    try {
+      gitUrl = await child.spawn('git', ['config', 'remote.origin.url'], {cwd: config.cwd});
+    } catch (ex) {
+      // Ignore - Git repo may not have an origin URL yet (eg. if it only exists locally)
+    }
 
     // get author default based on git config
     author.name = author.name || await child.spawn('git', ['config', 'user.name']);
