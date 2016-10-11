@@ -57,24 +57,37 @@ async function getBins(config: Config): Promise<Set<string>> {
   return paths;
 }
 
-async function checkOwnership(cwd: string, binLoc: string): Promise<boolean> {
-  // fully resolve if a symlink
-  binLoc = await fs.realpath(binLoc);
+function getGlobalPrefix(): string {
+  if (process.env.PREFIX) {
+    return process.env.PREFIX;
+  } else if (process.platform === 'win32') {
+    // c:\node\node.exe --> prefix=c:\node\
+    return path.dirname(process.execPath);
+  } else {
+    // /usr/local/bin/node --> prefix=/usr/local
+    let prefix = path.dirname(path.dirname(process.execPath));
 
-  // check if the path is now inside our cwd
-  if (binLoc.startsWith(cwd)) {
-    return true;
+    // destdir only is respected on Unix
+    if (process.env.DESTDIR) {
+      prefix = path.join(process.env.DESTDIR, globalPrefix);
+    }
+
+    return prefix;
   }
+}
 
-  // TODO check if it's a file that starts with YARN-BIN which will be inserted by cmd-shim
-
-  return false;
+function getBinFolder(): string {
+  var prefix = getGlobalPrefix();
+  if (process.platform === 'win32') {
+    return prefix;
+  } else {
+    return path.resolve(prefix, 'bin');
+  }
 }
 
 async function initUpdateBins(config: Config, reporter: Reporter): Promise<() => Promise<void>> {
   const beforeBins = await getBins(config);
-
-  const binFolder = '/Users/sebmck/Scratch/test-global';
+  const binFolder = getBinFolder();
 
   return async function(): Promise<void> {
     const afterBins = await getBins(config);
@@ -88,18 +101,7 @@ async function initUpdateBins(config: Config, reporter: Reporter): Promise<() =>
 
       // remove old bin
       const dest = path.join(binFolder, path.basename(src));
-      if (!await fs.exists(dest)) {
-        // doesn't exist
-        continue;
-      }
-
-      // check if this bin belongs to us
-      const owned = await checkOwnership(config.cwd, dest);
-      if (owned) {
-        await fs.unlink(dest);
-      } else {
-        reporter.warn(`Refusing to delete binary at ${dest} as it doesn't appear to be owned by us.`);
-      }
+      await fs.unlink(dest);
     }
 
     // add new bins
@@ -111,17 +113,7 @@ async function initUpdateBins(config: Config, reporter: Reporter): Promise<() =>
 
       // insert new bin
       const dest = path.join(binFolder, path.basename(src));
-      if (await fs.exists(dest)) {
-        const owned = await checkOwnership(config.cwd, dest);
-        if (owned) {
-          await fs.unlink(dest);
-        } else {
-          reporter.warn(`Cannot add binary ${src} as there already exists one at ${dest}`);
-          continue;
-        }
-      }
-
-      //
+      await fs.unlink(dest);
       await linkBin(src, dest);
     }
   };
@@ -172,8 +164,7 @@ export const {run, setFlags} = buildSubCommands('global', {
     flags: Object,
     args: Array<string>,
   ): Promise<void> {
-    await updateCwd(config);
-    bin(config, reporter, flags, args);
+    reporter.log(getBinFolder());
   },
 
   async ls(

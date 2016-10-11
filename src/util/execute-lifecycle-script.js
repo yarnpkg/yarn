@@ -46,7 +46,9 @@ export default async function (
 
   // add .bin folders to PATH
   for (const registry of Object.keys(registries)) {
-    pathParts.unshift(path.join(cwd, config.registries[registry].folder, '.bin'));
+    const binFolder = path.join(config.registries[registry].folder, '.bin');
+    pathParts.unshift(path.join(config.linkFolder, binFolder));
+    pathParts.unshift(path.join(cwd, binFolder));
   }
 
   // join path back together
