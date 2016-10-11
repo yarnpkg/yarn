@@ -148,7 +148,7 @@ export class Install {
 
     this.resolver = new PackageResolver(config, lockfile);
     this.fetcher = new PackageFetcher(config, this.resolver);
-    this.compatibility = new PackageCompatibility(config, this.resolver);
+    this.compatibility = new PackageCompatibility(config, this.resolver, this.flags.ignoreEngines);
     this.linker = new PackageLinker(config, this.resolver, this.flags.ignoreOptional);
     this.scripts = new PackageInstallScripts(config, this.resolver, this.flags.force);
   }

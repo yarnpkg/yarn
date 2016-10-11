@@ -94,15 +94,17 @@ export function testEngine(name: string, range: string, versions: Versions, loos
 }
 
 export default class PackageCompatibility {
-  constructor(config: Config, resolver: PackageResolver) {
+  constructor(config: Config, resolver: PackageResolver, ignoreEngines: boolean) {
     this.reporter = config.reporter;
     this.resolver = resolver;
     this.config = config;
+    this.ignoreEngines = ignoreEngines;
   }
 
   resolver: PackageResolver;
   reporter: Reporter;
   config: Config;
+  ignoreEngines: boolean;
 
   static isValidArch(archs: Array<string>): boolean {
     return isValid(archs, process.arch);
@@ -148,7 +150,7 @@ export default class PackageCompatibility {
       }
     }
 
-    if (!this.config.ignoreEngines && typeof info.engines === 'object') {
+    if (!this.ignoreEngines && typeof info.engines === 'object') {
       for (const entry of entries(info.engines)) {
         let name = entry[0];
         const range = entry[1];
