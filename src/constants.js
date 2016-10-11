@@ -32,7 +32,7 @@ export function getModuleCacheDirectory(): string {
   }
 
   // otherwise use ~/.yarn
-  return path.join(userHome, '.yarn');
+  return path.join(userHome, '.yarn-cache');
 }
 
 // the kpm and fbkpm names here are legacy names for yarn here for compatibility
