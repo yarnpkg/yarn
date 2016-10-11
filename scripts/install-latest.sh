@@ -21,7 +21,6 @@ yarn_link() {
   printf "$cyan> Adding to \$PATH...$reset\n"
   YARN_PROFILE="$(yarn_detect_profile)"
   SOURCE_STR="\nexport PATH=\"\$HOME/.yarn/bin:\$PATH\"\n"
-  FISH_SOURCE_STR="fish -c 'set -U fish_user_paths \$fish_user_paths ~/.yarn/bin'"
 
   if [ -z "${YARN_PROFILE-}" ] ; then
     printf "$red> Profile not found. Tried ${YARN_PROFILE} (as defined in \$PROFILE), ~/.bashrc, ~/.bash_profile, ~/.zshrc, and ~/.profile.\n"
@@ -33,7 +32,7 @@ yarn_link() {
   else
     if ! grep -q 'yarn' "$YARN_PROFILE"; then
       if [[ $YARN_PROFILE == *"fish"* ]]; then
-        eval $FISH_SOURCE_STR
+        command fish -c 'set -U fish_user_paths $fish_user_paths ~/.yarn/bin'
       else
         command printf "$SOURCE_STR" >> "$YARN_PROFILE"
       fi
