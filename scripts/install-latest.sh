@@ -9,7 +9,7 @@ white="\e[0;37m"
 
 yarn_get_tarball() {
   printf "$cyan> Downloading tarball...$reset\n"
-  curl -o yarn.tar.gz "https://yarnpkg.com/latest.tar.gz" >/dev/null # get tarball
+  curl -L -o yarn.tar.gz "https://yarnpkg.com/latest.tar.gz" >/dev/null # get tarball
 
   printf "$cyan> Extracting to ~/.yarn...$reset\n"
   mkdir .yarn
