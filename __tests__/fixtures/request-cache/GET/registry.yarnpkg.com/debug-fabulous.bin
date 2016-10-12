@@ -1,0 +1,24 @@
+HTTP/1.1 200 OK
+Date: Wed, 12 Oct 2016 08:58:56 GMT
+Content-Type: application/json
+Transfer-Encoding: chunked
+Connection: keep-alive
+Set-Cookie: __cfduid=d12fe70332e47de8a5f48d84476b6a30d1476262736; expires=Thu, 12-Oct-17 08:58:56 GMT; path=/; domain=.yarnpkg.com; HttpOnly
+etag: W/"9YUJ0CBLXUJ3VB9RJIZAEJK0A"
+Cache-Control: max-age=300
+Via: 1.1 varnish
+Age: 217
+X-Served-By: cache-lcy1129-LCY
+X-Cache: HIT
+X-Cache-Hits: 264
+X-Timer: S1476262736.385198,VS0,VE0
+Vary: Accept-Encoding
+Server: cloudflare-nginx
+CF-RAY: 2f095a566cd635ae-LHR
+
+3a0
+{"_id":"debug-fabulous","_rev":"4-2ea40af111daf105e7b4dc95f9fc1ea9","name":"debug-fabulous","description":"visionmedia debug extensions rolled into one","dist-tags":{"latest":"0.0.3"},"versions":{"0.0.2":{"name":"debug-fabulous","version":"0.0.2","description":"visionmedia debug extensions rolled into one","main":"index.js","scripts":{"test":"mocha ./test/**/*test.js"},"repository":{"type":"git","url":"http://www.github.com/nmccready/debug-fabulous"},"keywords":["debug","lazy","lazy-eval"],"author":{"name":"Nicholas McCready"},"license":"MIT","dependencies":{"debug":"2.X","lazy-debug":"0.X","object-assign":"4.1.0"},"devDependencies":{"chai":"3.X","eslint":"3.X","mocha":"3.X"},"gitHead":"5f4ab5df6b263419646c5027f8babea76376e4dc","_id":"debug-fabulous@0.0.2","_shasum":"5e3bed8f3ebfdd4e2d9bfb87179bbf160a8df1a3","_from":".","_npmVersion":"2.15.11","_nodeVersion":"4.5.0","_npmUser":{"name":"nmccready","email":"nemtcan@g
+b15
+mail.com"},"maintainers":[{"name":"nmccready","email":"nemtcan@gmail.com"}],"dist":{"shasum":"5e3bed8f3ebfdd4e2d9bfb87179bbf160a8df1a3","tarball":"https://registry.npmjs.org/debug-fabulous/-/debug-fabulous-0.0.2.tgz"},"_npmOperationalInternal":{"host":"packages-16-east.internal.npmjs.com","tmp":"tmp/debug-fabulous-0.0.2.tgz_1476222160296_0.2146097864024341"},"directories":{}},"0.0.3":{"name":"debug-fabulous","version":"0.0.3","description":"visionmedia debug extensions rolled into one","main":"index.js","scripts":{"test":"mocha ./test/**/*test.js"},"repository":{"type":"git","url":"http://www.github.com/nmccready/debug-fabulous"},"keywords":["debug","lazy","lazy-eval"],"author":{"name":"Nicholas McCready"},"license":"MIT","dependencies":{"debug":"2.X","lazy-debug":"0.X","object-assign":"4.1.0"},"devDependencies":{"babel-eslint":"7.X","chai":"3.X","eslint":"3.X","hook-std":"0.X","mocha":"3.X"},"gitHead":"6cee36ae4a7916aba7a7724469555f365cacddd3","_id":"debug-fabulous@0.0.3","_shasum":"d154582976646bcf35b4b8a47ce174439dd5019b","_from":".","_npmVersion":"2.15.11","_nodeVersion":"4.5.0","_npmUser":{"name":"nmccready","email":"nemtcan@gmail.com"},"maintainers":[{"name":"nmccready","email":"nemtcan@gmail.com"}],"dist":{"shasum":"d154582976646bcf35b4b8a47ce174439dd5019b","tarball":"https://registry.npmjs.org/debug-fabulous/-/debug-fabulous-0.0.3.tgz"},"_npmOperationalInternal":{"host":"packages-16-east.internal.npmjs.com","tmp":"tmp/debug-fabulous-0.0.3.tgz_1476230894103_0.43484283913858235"},"directories":{}}},"readme":"# debug-fabulous\n\n## Install\n`npm install --save debug-fabulous`\n\n# Purpose\n\nWrapper / Extension around [visionmedia's debug](https://github.com/visionmedia/debug) to allow lazy evaluation of debugging via closure handling.\n\nThis library essentially wraps two things:\n\n- [lazy-debug](https://github.com/apihlaja/lazy-debug) for easy namespace naming by files\n- [lazy-eval](./src/lazy-eval.js) debug closure handling\n\n## Use\n\nFor thorough usage see the [tests](./test).\n\n## lazy-eval\n\n```js\nvar debug = require('')();\n// force namespace to be enabled otherwise it assumes process.env.DEBUG is setup\n// debug.save('myNamespace');\n// debug.enable(debug.load())\ndebug = debug('debug-fabulous');\ndebug(function(){return 'ya something to log' + someLargeHarryString;});\ndebug('small out');\n```\n","maintainers":[{"name":"nmccready","email":"nemtcan@gmail.com"}],"time":{"modified":"2016-10-12T00:08:14.805Z","created":"2016-10-11T21:38:20.194Z","0.0.1":"2016-10-11T21:38:20.194Z","0.0.2":"2016-10-11T21:42:40.959Z","0.0.3":"2016-10-12T00:08:14.805Z"},"keywords":["debug","lazy","lazy-eval"],"repository":{"type":"git","url":"http://www.github.com/nmccready/debug-fabulous"},"author":{"name":"Nicholas McCready"},"license":"MIT","readmeFilename":"README.md","_attachments":{}}
+0
+

@@ -1,0 +1,24 @@
+HTTP/1.1 200 OK
+Date: Wed, 12 Oct 2016 08:58:55 GMT
+Content-Type: application/json
+Transfer-Encoding: chunked
+Connection: keep-alive
+Set-Cookie: __cfduid=d7ded2a69c2e6b346b13ffad33d2a2a121476262735; expires=Thu, 12-Oct-17 08:58:55 GMT; path=/; domain=.yarnpkg.com; HttpOnly
+etag: W/"ZEE8IJIDFX5BG7BGOQN9YBZP"
+Cache-Control: max-age=300
+Via: 1.1 varnish
+Age: 90
+X-Served-By: cache-lcy1125-LCY
+X-Cache: HIT
+X-Cache-Hits: 4
+X-Timer: S1476262735.840950,VS0,VE0
+Vary: Accept-Encoding
+Server: cloudflare-nginx
+CF-RAY: 2f095a530b103572-LHR
+
+42f
+{"_id":"base64id","_rev":"6-389773bdaf9e86c332cc5ff890076421","name":"base64id","description":"Generates a base64 id","dist-tags":{"latest":"0.1.0"},"versions":{"0.1.0":{"name":"base64id","version":"0.1.0","description":"Generates a base64 id","author":{"name":"Kristian Faeldt","email":"faeldt_kristian@cyberagent.co.jp"},"repository":{"type":"git","url":"git://github.com/faeldt/base64id.git"},"main":"./lib/base64id.js","engines":{"node":">= 0.4.0"},"_npmUser":{"name":"faeldt_kristian","email":"faeldt_kristian@cyberagent.co.jp"},"_id":"base64id@0.1.0","dependencies":{},"devDependencies":{},"optionalDependencies":{},"_engineSupported":true,"_npmVersion":"1.1.16","_nodeVersion":"v0.6.15","_defaultsLoaded":true,"dist":{"shasum":"02ce0fdeee0cef4f40080e1e73e834f0b1bfce3f","tarball":"https://registry.npmjs.org/base64id/-/base64id-0.1.0.tgz"},"maintainers":[{"name":"faeldt_kristian","email":"faeldt_kristian@cyberagent.co.jp"}],"directories":{}}},"readme":"base64id\n========\n\nNode.js module that generates a base64 id.\n\nUses crypto.randomBytes when available, f
+2da
+alls back to unsafe methods for node.js <= 0.4.\n\nTo increase performance, random bytes are buffered to minimize the number of synchronous calls to crypto.randomBytes.\n\n## Installation\n\n   $ npm install mongoose\n\n## Usage\n\n   var base64id = require('base64id');\n\n   var id = base64id.generateId();\n","maintainers":[{"name":"faeldt_kristian","email":"faeldt_kristian@cyberagent.co.jp"}],"time":{"modified":"2012-09-07T10:44:50.335Z","created":"2012-09-07T10:44:48.141Z","0.1.0":"2012-09-07T10:44:50.335Z"},"author":{"name":"Kristian Faeldt","email":"faeldt_kristian@cyberagent.co.jp"},"repository":{"type":"git","url":"git://github.com/faeldt/base64id.git"},"users":{"306766053":true,"damianof":true},"_attachments":{}}
+0
+

@@ -1,0 +1,22 @@
+HTTP/1.1 200 OK
+Date: Wed, 12 Oct 2016 08:58:48 GMT
+Content-Type: application/json
+Transfer-Encoding: chunked
+Connection: keep-alive
+Set-Cookie: __cfduid=d01f56abafdbfd09672896d0a2bcd09b61476262728; expires=Thu, 12-Oct-17 08:58:48 GMT; path=/; domain=.yarnpkg.com; HttpOnly
+etag: W/"1H62LJL0ON77PW313DETCLATV"
+Cache-Control: max-age=300
+Via: 1.1 varnish
+Age: 7
+X-Served-By: cache-lcy1125-LCY
+X-Cache: HIT
+X-Cache-Hits: 2
+X-Timer: S1476262728.695616,VS0,VE0
+Vary: Accept-Encoding
+Server: cloudflare-nginx
+CF-RAY: 2f095a265e1835e4-LHR
+
+913
+{"_id":"styled_string","_rev":"5-ee309ffab3676cea4b1d5e271f102d37","name":"styled_string","description":"Print styled text with a StyledString object that has an interface similar to String.","dist-tags":{"latest":"0.0.1"},"versions":{"0.0.0":{"name":"styled_string","version":"0.0.0","description":"Print styled text with a StyledString object that has an interface similar to String.","main":"index.js","devDependencies":{"mocha":"*","chai":"*"},"scripts":{"test":"mocha tests.js"},"repository":"","keywords":["terminal"],"author":{"name":"Toby Ho"},"license":"MIT","readme":"StyledString\n============\n\n`StyledString` has an interface similar to String, but allows you to represent styled text that can be rendered to the terminal.\n\nFor now, see the `tests.js` for usage.","_id":"styled_string@0.0.0","dist":{"shasum":"c4ab8d6d5c05039e38762097ed8ebbbe39a9f35f","tarball":"https://registry.npmjs.org/styled_string/-/styled_string-0.0.0.tgz"},"maintainers":[{"name":"airportyh","email":"airportyh@gmail.com"}],"directories":{}},"0.0.1":{"name":"styled_string","version":"0.0.1","description":"Print styled text with a StyledString object that has an interface similar to String.","main":"index.js","devDependencies":{"mocha":"*","chai":"*","sinon":"*"},"scripts":{"test":"mocha tests.js"},"repository":"","keywords":["terminal"],"author":{"name":"Toby Ho"},"license":"MIT","readme":"StyledString\n============\n\n`StyledString` has an interface similar to String, but allows you to represent styled text that can be rendered to the terminal.\n\nFor now, see the `tests.js` for usage.","_id":"styled_string@0.0.1","dist":{"shasum":"d22782bd81295459bc4f1df18c4bad8e94dd124a","tarball":"https://registry.npmjs.org/styled_string/-/styled_string-0.0.1.tgz"},"maintainers":[{"name":"airportyh","email":"airportyh@gmail.com"}],"directories":{}}},"readme":"StyledString\n============\n\n`StyledString` has an interface similar to String, but allows you to represent styled text that can be rendered to the terminal.\n\nFor now, see the `tests.js` for usage.","maintainers":[{"name":"airportyh","email":"airportyh@gmail.com"}],"time":{"modified":"2012-08-09T16:37:57.929Z","created":"2012-08-09T15:48:51.559Z","0.0.0":"2012-08-09T15:48:52.114Z","0.0.1":"2012-08-09T16:37:57.929Z"},"author":{"name":"Toby Ho"},"_attachments":{}}
+0
+

@@ -1,0 +1,22 @@
+HTTP/1.1 200 OK
+Date: Wed, 12 Oct 2016 08:58:40 GMT
+Content-Type: application/json
+Transfer-Encoding: chunked
+Connection: keep-alive
+Set-Cookie: __cfduid=de430c74291fb04ea6f05e5a7132ea0691476262720; expires=Thu, 12-Oct-17 08:58:40 GMT; path=/; domain=.yarnpkg.com; HttpOnly
+etag: W/"90LDPU899SO9997I0VG4D3XL7"
+Cache-Control: max-age=300
+Via: 1.1 varnish
+Age: 152
+X-Served-By: cache-lcy1127-LCY
+X-Cache: HIT
+X-Cache-Hits: 13
+X-Timer: S1476262720.678989,VS0,VE0
+Vary: Accept-Encoding
+Server: cloudflare-nginx
+CF-RAY: 2f0959f43d013536-LHR
+
+cee
+{"_id":"lodash._reevaluate","_rev":"9-7d3d6b0512c6387468440e74cdea0e42","name":"lodash._reevaluate","description":"The modern build of lodash’s internal `reEvaluate` as a module.","dist-tags":{"latest":"3.0.0"},"versions":{"3.0.0":{"name":"lodash._reevaluate","version":"3.0.0","description":"The modern build of lodash’s internal `reEvaluate` as a module.","homepage":"https://lodash.com/","icon":"https://lodash.com/icon.svg","license":"MIT","author":{"name":"John-David Dalton","email":"john.david.dalton@gmail.com","url":"http://allyoucanleet.com/"},"contributors":[{"name":"John-David Dalton","email":"john.david.dalton@gmail.com","url":"http://allyoucanleet.com/"},{"name":"Benjamin Tan","email":"demoneaux@gmail.com","url":"https://d10.github.io/"},{"name":"Blaine Bublitz","email":"blaine@iceddev.com","url":"http://www.iceddev.com/"},{"name":"Kit Cambridge","email":"github@kitcambridge.be","url":"http://kitcambridge.be/"},{"name":"Mathias Bynens","email":"mathias@qiwi.be","url":"https://mathiasbynens.be/"}],"repository":{"type":"git","url":"https://github.com/lodash/lodash"},"scripts":{"test":"echo \"See https://travis-ci.org/lodash/lodash-cli for testing details.\""},"bugs":{"url":"https://github.com/lodash/lodash/issues"},"_id":"lodash._reevaluate@3.0.0","_shasum":"58bc74c40664953ae0b124d806996daca431e2ed","_from":".","_npmVersion":"2.3.0","_nodeVersion":"0.10.35","_npmUser":{"name":"jdalton","email":"john.david.dalton@gmail.com"},"maintainers":[{"name":"jdalton","email":"john.david.dalton@gmail.com"}],"dist":{"shasum":"58bc74c40664953ae0b124d806996daca431e2ed","tarball":"https://registry.npmjs.org/lodash._reevaluate/-/lodash._reevaluate-3.0.0.tgz"},"directories":{}}},"readme":"# lodash._reevaluate v3.0.0\n\nThe [modern build](https://github.com/lodash/lodash/wiki/Build-Differences) of [lodash’s](https://lodash.com/) internal `reEvaluate` exported as a [Node.js](http://nodejs.org/)/[io.js](https://iojs.org/) module.\n\n## Installation\n\nUsing npm:\n\n```bash\n$ {sudo -H} npm i -g npm\n$ npm i --save lodash._reevaluate\n```\n\nIn Node.js/io.js:\n\n```js\nvar reEvaluate = require('lodash._reevaluate');\n```\n\nSee the [package source](https://github.com/lodash/lodash/blob/3.0.0-npm-packages/lodash._reevaluate) for more details.\n","maintainers":[{"name":"jdalton","email":"john.david.dalton@gmail.com"},{"name":"mathias","email":"mathias@qiwi.be"}],"time":{"modified":"2016-10-06T17:02:18.232Z","created":"2015-02-04T17:44:17.295Z","3.0.0":"2015-02-04T17:44:17.295Z"},"homepage":"https://lodash.com/","repository":{"type":"git","url":"https://github.com/lodash/lodash"},"contributors":[{"name":"John-David Dalton","email":"john.david.dalton@gmail.com","url":"http://allyoucanleet.com/"},{"name":"Benjamin Tan","email":"demoneaux@gmail.com","url":"https://d10.github.io/"},{"name":"Blaine Bublitz","email":"blaine@iceddev.com","url":"http://www.iceddev.com/"},{"name":"Kit Cambridge","email":"github@kitcambridge.be","url":"http://kitcambridge.be/"},{"name":"Mathias Bynens","email":"mathias@qiwi.be","url":"https://mathiasbynens.be/"}],"author":{"name":"John-David Dalton","email":"john.david.dalton@gmail.com","url":"http://allyoucanleet.com/"},"bugs":{"url":"https://github.com/lodash/lodash/issues"},"license":"MIT","readmeFilename":"README.md","_attachments":{}}
+0
+

@@ -1,0 +1,22 @@
+HTTP/1.1 200 OK
+Date: Wed, 12 Oct 2016 08:58:55 GMT
+Content-Type: application/json
+Transfer-Encoding: chunked
+Connection: keep-alive
+Set-Cookie: __cfduid=dbbc9e24038b93f1e3dccfca5ee9cb3ee1476262735; expires=Thu, 12-Oct-17 08:58:55 GMT; path=/; domain=.yarnpkg.com; HttpOnly
+etag: W/"B16YQ5OPQ3E499Z15YCERDY6W"
+Cache-Control: max-age=300
+Via: 1.1 varnish
+Age: 97
+X-Served-By: cache-lcy1125-LCY
+X-Cache: HIT
+X-Cache-Hits: 2
+X-Timer: S1476262735.944581,VS0,VE0
+Vary: Accept-Encoding
+Server: cloudflare-nginx
+CF-RAY: 2f095a53adbc06fa-LHR
+
+b45
+{"_id":"backo2","_rev":"4-512c609bca72355e224ba97c5603563d","name":"backo2","description":"simple backoff based on segmentio/backo","dist-tags":{"latest":"1.0.2"},"versions":{"1.0.1":{"name":"backo2","version":"1.0.1","repository":{"type":"git","url":"https://github.com/mokesmokes/backo"},"description":"simple backoff based on segmentio/backo","keywords":["backoff"],"dependencies":{},"devDependencies":{"mocha":"*","should":"*"},"license":"MIT","gitHead":"de41fb05d1ce94b82e3b1df827fa25511a95b779","bugs":{"url":"https://github.com/mokesmokes/backo/issues"},"homepage":"https://github.com/mokesmokes/backo","_id":"backo2@1.0.1","scripts":{},"_shasum":"2e4bd2ed1b9c09b4bd9fe6773f64755dda605abf","_from":"./","_npmVersion":"1.4.28","_npmUser":{"name":"mokesmokes","email":"mokesmokes@gmail.com"},"maintainers":[{"name":"mokesmokes","email":"mokesmokes@gmail.com"}],"dist":{"shasum":"2e4bd2ed1b9c09b4bd9fe6773f64755dda605abf","tarball":"https://registry.npmjs.org/backo2/-/backo2-1.0.1.tgz"},"directories":{}},"1.0.2":{"name":"backo2","version":"1.0.2","repository":{"type":"git","url":"https://github.com/mokesmokes/backo"},"description":"simple backoff based on segmentio/backo","keywords":["backoff"],"dependencies":{},"devDependencies":{"mocha":"*","should":"*"},"license":"MIT","gitHead":"3e695bade7756fef2295e8883bf3570a06e5d9ec","bugs":{"url":"https://github.com/mokesmokes/backo/issues"},"homepage":"https://github.com/mokesmokes/backo","_id":"backo2@1.0.2","scripts":{},"_shasum":"31ab1ac8b129363463e35b3ebb69f4dfcfba7947","_from":"./","_npmVersion":"1.4.28","_npmUser":{"name":"mokesmokes","email":"mokesmokes@gmail.com"},"maintainers":[{"name":"mokesmokes","email":"mokesmokes@gmail.com"}],"dist":{"shasum":"31ab1ac8b129363463e35b3ebb69f4dfcfba7947","tarball":"https://registry.npmjs.org/backo2/-/backo2-1.0.2.tgz"},"directories":{}}},"readme":"# backo\n\n  Simple exponential backoff because the others seem to have weird abstractions.\n\n## Installation\n\n```\n$ npm install backo\n```\n\n## Options\n\n - `min` initial timeout in milliseconds [100]\n - `max` max timeout [10000]\n - `jitter` [0]\n - `factor` [2]\n\n## Example\n\n```js\nvar Backoff = require('backo');\nvar backoff = new Backoff({ min: 100, max: 20000 });\n\nsetTimeout(function(){\n  something.reconnect();\n}, backoff.duration());\n\n// later when something works\nbackoff.reset()\n```\n\n# License\n\n  MIT\n","maintainers":[{"name":"mokesmokes","email":"mokesmokes@gmail.com"}],"time":{"modified":"2014-11-23T06:10:58.817Z","created":"2014-11-22T21:57:18.558Z","1.0.1":"2014-11-22T21:57:18.558Z","1.0.2":"2014-11-23T06:10:58.817Z"},"homepage":"https://github.com/mokesmokes/backo","keywords":["backoff"],"repository":{"type":"git","url":"https://github.com/mokesmokes/backo"},"bugs":{"url":"https://github.com/mokesmokes/backo/issues"},"license":"MIT","readmeFilename":"Readme.md","_attachments":{}}
+0
+

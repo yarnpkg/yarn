@@ -1,0 +1,22 @@
+HTTP/1.1 200 OK
+Date: Wed, 12 Oct 2016 08:58:42 GMT
+Content-Type: application/json
+Transfer-Encoding: chunked
+Connection: keep-alive
+Set-Cookie: __cfduid=dff05f81b0a9fe8ba4eea0dfbb37c0f0e1476262722; expires=Thu, 12-Oct-17 08:58:42 GMT; path=/; domain=.yarnpkg.com; HttpOnly
+etag: W/"9T13BCUZ55NNTUQDNMR8HJ9MO"
+Cache-Control: max-age=300
+Via: 1.1 varnish
+Age: 128
+X-Served-By: cache-lcy1121-LCY
+X-Cache: HIT
+X-Cache-Hits: 9
+X-Timer: S1476262722.218436,VS0,VE0
+Vary: Accept-Encoding
+Server: cloudflare-nginx
+CF-RAY: 2f0959fddf6434a6-LHR
+
+cee
+{"_id":"lodash._basevalues","_rev":"9-d5c40e85e1fe0fb6163798a114ff5665","name":"lodash._basevalues","description":"The modern build of lodash’s internal `baseValues` as a module.","dist-tags":{"latest":"3.0.0"},"versions":{"3.0.0":{"name":"lodash._basevalues","version":"3.0.0","description":"The modern build of lodash’s internal `baseValues` as a module.","homepage":"https://lodash.com/","icon":"https://lodash.com/icon.svg","license":"MIT","author":{"name":"John-David Dalton","email":"john.david.dalton@gmail.com","url":"http://allyoucanleet.com/"},"contributors":[{"name":"John-David Dalton","email":"john.david.dalton@gmail.com","url":"http://allyoucanleet.com/"},{"name":"Benjamin Tan","email":"demoneaux@gmail.com","url":"https://d10.github.io/"},{"name":"Blaine Bublitz","email":"blaine@iceddev.com","url":"http://www.iceddev.com/"},{"name":"Kit Cambridge","email":"github@kitcambridge.be","url":"http://kitcambridge.be/"},{"name":"Mathias Bynens","email":"mathias@qiwi.be","url":"https://mathiasbynens.be/"}],"repository":{"type":"git","url":"https://github.com/lodash/lodash"},"scripts":{"test":"echo \"See https://travis-ci.org/lodash/lodash-cli for testing details.\""},"bugs":{"url":"https://github.com/lodash/lodash/issues"},"_id":"lodash._basevalues@3.0.0","_shasum":"5b775762802bde3d3297503e26300820fdf661b7","_from":".","_npmVersion":"2.3.0","_nodeVersion":"0.10.35","_npmUser":{"name":"jdalton","email":"john.david.dalton@gmail.com"},"maintainers":[{"name":"jdalton","email":"john.david.dalton@gmail.com"}],"dist":{"shasum":"5b775762802bde3d3297503e26300820fdf661b7","tarball":"https://registry.npmjs.org/lodash._basevalues/-/lodash._basevalues-3.0.0.tgz"},"directories":{}}},"readme":"# lodash._basevalues v3.0.0\n\nThe [modern build](https://github.com/lodash/lodash/wiki/Build-Differences) of [lodash’s](https://lodash.com/) internal `baseValues` exported as a [Node.js](http://nodejs.org/)/[io.js](https://iojs.org/) module.\n\n## Installation\n\nUsing npm:\n\n```bash\n$ {sudo -H} npm i -g npm\n$ npm i --save lodash._basevalues\n```\n\nIn Node.js/io.js:\n\n```js\nvar baseValues = require('lodash._basevalues');\n```\n\nSee the [package source](https://github.com/lodash/lodash/blob/3.0.0-npm-packages/lodash._basevalues) for more details.\n","maintainers":[{"name":"jdalton","email":"john.david.dalton@gmail.com"},{"name":"mathias","email":"mathias@qiwi.be"}],"time":{"modified":"2016-10-06T16:55:09.814Z","created":"2015-01-26T15:28:08.615Z","3.0.0":"2015-01-26T15:28:08.615Z"},"homepage":"https://lodash.com/","repository":{"type":"git","url":"https://github.com/lodash/lodash"},"contributors":[{"name":"John-David Dalton","email":"john.david.dalton@gmail.com","url":"http://allyoucanleet.com/"},{"name":"Benjamin Tan","email":"demoneaux@gmail.com","url":"https://d10.github.io/"},{"name":"Blaine Bublitz","email":"blaine@iceddev.com","url":"http://www.iceddev.com/"},{"name":"Kit Cambridge","email":"github@kitcambridge.be","url":"http://kitcambridge.be/"},{"name":"Mathias Bynens","email":"mathias@qiwi.be","url":"https://mathiasbynens.be/"}],"author":{"name":"John-David Dalton","email":"john.david.dalton@gmail.com","url":"http://allyoucanleet.com/"},"bugs":{"url":"https://github.com/lodash/lodash/issues"},"license":"MIT","readmeFilename":"README.md","_attachments":{}}
+0
+

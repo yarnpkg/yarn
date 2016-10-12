@@ -1,0 +1,22 @@
+HTTP/1.1 200 OK
+Date: Wed, 12 Oct 2016 08:58:56 GMT
+Content-Type: application/json
+Transfer-Encoding: chunked
+Connection: keep-alive
+Set-Cookie: __cfduid=d0b427d55ea46e1a7a2a25f4f6c41c34c1476262736; expires=Thu, 12-Oct-17 08:58:56 GMT; path=/; domain=.yarnpkg.com; HttpOnly
+etag: W/"9Q87GMKMOVP1Q32UAFHQUR012"
+Cache-Control: max-age=300
+Via: 1.1 varnish
+Age: 55
+X-Served-By: cache-lcy1132-LCY
+X-Cache: HIT
+X-Cache-Hits: 2
+X-Timer: S1476262736.908986,VS0,VE0
+Vary: Accept-Encoding
+Server: cloudflare-nginx
+CF-RAY: 2f095a59adc10ccb-LHR
+
+f68
+{"_id":"alter","_rev":"9-b599099524fb71bb658901a62e404cae","name":"alter","description":"alters a string by replacing multiple range fragments in one fast pass","dist-tags":{"latest":"0.2.0"},"versions":{"0.1.0":{"name":"alter","version":"0.1.0","description":"alters a string by replacing multiple range fragments in one fast pass","main":"alter.js","repository":{"type":"git","url":"https://github.com/olov/alter.git"},"keywords":["string","manipulation","replace","alter","modify"],"scripts":{"test":"tap test/*.js"},"devDependencies":{"tap":"~0.4.0"},"author":{"name":"Olov Lassus","email":"olov.lassus@gmail.com"},"license":"MIT","_id":"alter@0.1.0","dist":{"shasum":"06c8b097d6bb3b106d5a4f3e5bc1e4b38587f9be","tarball":"https://registry.npmjs.org/alter/-/alter-0.1.0.tgz"},"_resolved":"/tmp/alter.tgz","_from":"/tmp/alter.tgz","_npmVersion":"1.2.18","_npmUser":{"name":"olov","email":"olov.lassus@gmail.com"},"maintainers":[{"name":"olov","email":"olov.lassus@gmail.com"}],"directories":{}},"0.1.1":{"name":"alter","version":"0.1.1","description":"alters a string by replacing multiple range fragments in one fast pass","main":"alter.js","repository":{"type":"git","url":"https://github.com/olov/alter.git"},"keywords":["string","manipulation","replace","alter","modify"],"scripts":{"test":"tap test/*.js"},"devDependencies":{"tap":"~0.4.0"},"author":{"name":"Olov Lassus","email":"olov.lassus@gmail.com"},"license":"MIT","_id":"alter@0.1.1","dist":{"shasum":"2494c8c80bad934724ae95096a570cbc9b88f98e","tarball":"https://registry.npmjs.org/alter/-/alter-0.1.1.tgz"},"_resolved":"/tmp/alter.tgz","_from":"/tmp/alter.tgz","_npmVersion":"1.2.18","_npmUser":{"name":"olov","email":"olov.lassus@gmail.com"},"maintainers":[{"name":"olov","email":"olov.lassus@gmail.com"}],"directories":{}},"0.2.0":{"name":"alter","version":"0.2.0","description":"alters a string by replacing multiple range fragments in one fast pass","main":"alter.js","repository":{"type":"git","url":"https://github.com/olov/alter.git"},"keywords":["string","manipulation","replace","alter","modify"],"scripts":{"test":"tap test/*.js"},"dependencies":{"stable":"~0.1.3"},"devDependencies":{"tap":"~0.4.0"},"author":{"name":"Olov Lassus","email":"olov.lassus@gmail.com"},"license":"MIT","_id":"alter@0.2.0","dist":{"shasum":"c7588808617572034aae62480af26b1d4d1cb3cd","tarball":"https://registry.npmjs.org/alter/-/alter-0.2.0.tgz"},"_resolved":"/tmp/alter.tgz.tgz","_from":"/tmp/alter.tgz.tgz","_npmVersion":"1.2.18","_npmUser":{"name":"olov","email":"olov.lassus@gmail.com"},"maintainers":[{"name":"olov","email":"olov.lassus@gmail.com"}],"directories":{}}},"readme":"# alter.js\nAlters a string by replacing multiple range fragments in one fast pass.\nWorks in node and browsers.\n\n\n\n## Usage\n```javascript\n    var alter = require(\"alter\");\n    alter(\"0123456789\", [\n        {start: 1, end: 3, str: \"first\"},\n        {start: 5, end: 9, str: \"second\"},\n    ]); // => \"0first34second9\"\n```\n\nThe fragments does not need to be sorted but must not overlap. More examples in `test/alter-tests.js`\n\n\n## Installation\n\n### Node\nInstall using npm\n\n    npm install alter\n\n```javascript\nvar alter = require(\"alter\");\n```\n\n### Browser\nClone the repo and include it in a script tag\n\n    git clone https://github.com/olov/alter.git\n\n```html\n<script src=\"alter/alter.js\"></script>\n```\n","maintainers":[{"name":"olov","email":"olov.lassus@gmail.com"}],"time":{"modified":"2014-09-20T15:06:43.093Z","created":"2013-04-21T12:18:14.912Z","0.1.0":"2013-04-21T12:18:17.839Z","0.1.1":"2013-04-21T12:31:58.061Z","0.2.0":"2013-09-08T22:48:09.626Z"},"author":{"name":"Olov Lassus","email":"olov.lassus@gmail.com"},"repository":{"type":"git","url":"https://github.com/olov/alter.git"},"users":{"fgribreau":true,"bojand":true},"keywords":["string","manipulation","replace","alter","modify"],"license":"MIT","readmeFilename":"README.md","_attachments":{}}
+0
+

@@ -1,0 +1,22 @@
+HTTP/1.1 200 OK
+Date: Wed, 12 Oct 2016 08:58:48 GMT
+Content-Type: application/json
+Transfer-Encoding: chunked
+Connection: keep-alive
+Set-Cookie: __cfduid=d74debcd53c9b758895df81dbd75df7281476262728; expires=Thu, 12-Oct-17 08:58:48 GMT; path=/; domain=.yarnpkg.com; HttpOnly
+etag: W/"5XWCF98OGP01LPV22C1C92T64"
+Cache-Control: max-age=300
+Via: 1.1 varnish
+Age: 96
+X-Served-By: cache-lcy1126-LCY
+X-Cache: HIT
+X-Cache-Hits: 4
+X-Timer: S1476262728.791040,VS0,VE0
+Vary: Accept-Encoding
+Server: cloudflare-nginx
+CF-RAY: 2f095a26f9441383-LHR
+
+87f
+{"_id":"babel-plugin-eval","_rev":"1-c8fd8fa9a85d8c2da84313b9bb613b40","name":"babel-plugin-eval","description":"Compile eval calls with string literals","dist-tags":{"latest":"1.0.1"},"versions":{"1.0.1":{"name":"babel-plugin-eval","version":"1.0.1","description":"Compile eval calls with string literals","repository":{"type":"git","url":"git+https://github.com/babel-plugins/babel-plugin-eval.git"},"license":"MIT","main":"lib/index.js","devDependencies":{"babel":"^5.6.0"},"scripts":{"build":"babel-plugin build","push":"babel-plugin publish","test":"babel-plugin test"},"keywords":["babel-plugin"],"gitHead":"9f82fbf7a753bd9d50241037894e206cf1090ad0","bugs":{"url":"https://github.com/babel-plugins/babel-plugin-eval/issues"},"homepage":"https://github.com/babel-plugins/babel-plugin-eval#readme","_id":"babel-plugin-eval@1.0.1","_shasum":"a2faed25ce6be69ade4bfec263f70169195950da","_from":".","_npmVersion":"2.9.0","_nodeVersion":"2.0.0","_npmUser":{"name":"sebmck","email":"sebmck@gmail.com"},"maintainers":[{"name":"sebmck","email":"sebmck@gmail.com"}],"dist":{"shasum":"a2faed25ce6be69ade4bfec263f70169195950da","tarball":"https://registry.npmjs.org/babel-plugin-eval/-/babel-plugin-eval-1.0.1.tgz"},"directories":{}}},"readme":"# babel-plugin-eval\n\nCompile eval calls with string literals\n\n## Installation\n\n```sh\n$ npm install babel-plugin-eval\n```\n\n## Usage\n\n### Via `.babelrc` (Recommended)\n\n**.babelrc**\n\n```json\n{\n  \"plugins\": [\"eval\"]\n}\n```\n\n### Via CLI\n\n```sh\n$ babel --plugins eval script.js\n```\n\n### Via Node API\n\n```javascript\nrequire(\"babel-core\").transform(\"code\", {\n  plugins: [\"eval\"]\n});\n```\n","maintainers":[{"name":"sebmck","email":"sebmck@gmail.com"}],"time":{"modified":"2015-06-15T15:10:07.483Z","created":"2015-06-15T15:10:07.483Z","1.0.1":"2015-06-15T15:10:07.483Z"},"homepage":"https://github.com/babel-plugins/babel-plugin-eval#readme","keywords":["babel-plugin"],"repository":{"type":"git","url":"git+https://github.com/babel-plugins/babel-plugin-eval.git"},"bugs":{"url":"https://github.com/babel-plugins/babel-plugin-eval/issues"},"license":"MIT","readmeFilename":"README.md","_attachments":{}}
+0
+
