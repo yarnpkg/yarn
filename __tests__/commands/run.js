@@ -29,3 +29,11 @@ test.concurrent('run should run script', (): Promise<void> => {
 test.concurrent('run should run binary', (): Promise<void> => {
   return runRun({}, ['echo'], 'run-should-run-binary');
 });
+
+test.concurrent('run should run binary with args', (): Promise<void> => {
+  return runRun({}, ['echo', '--test-arg'], 'run-should-run-binary-with-args');
+});
+
+test.concurrent('run should run binary with space in path', (): Promise<void> => {
+  return runRun({}, ['echo'], 'run should run binary with space in path');
+});
