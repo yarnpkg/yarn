@@ -58,7 +58,6 @@
     "eslint-config-fbjs": "^1.0.0",
     "eslint-config-kittens": "^2.0.1",
     "eslint-plugin-babel": "^3.3.0",
-    "eslint-plugin-flow-vars": "^0.4.0",
     "eslint-plugin-flowtype": "^2.15.0",
     "eslint-plugin-no-async-without-await": "^1.0.0",
     "eslint-plugin-yarn-internal": "file:scripts/eslint-rules",
