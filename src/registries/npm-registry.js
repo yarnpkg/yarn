@@ -55,7 +55,7 @@ export default class NpmRegistry extends Registry {
     }
 
     return this.requestManager.request({
-      url: url.resolve(registry, pathname),
+      url: `${registry}/${pathname}`,
       method: opts.method,
       body: opts.body,
       auth: opts.auth,
