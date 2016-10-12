@@ -73,7 +73,9 @@ if (commandName === 'help' || commandName === '--help' || commandName === '-h') 
   commandName = 'help';
   if (args.length) {
     const helpCommand = hyphenate(args[0]);
-    commander.on('--help', () => console.log('  ' + getDocsInfo(helpCommand) + '\n'));
+    if (commands[helpCommand]) {
+      commander.on('--help', () => console.log('  ' + getDocsInfo(helpCommand) + '\n'));
+    }
   } else {
     commander.on('--help', () => {
       console.log('  Commands:\n');
@@ -331,7 +333,7 @@ config.init({
       logError(errs);
     }
 
-    if (commandName) {
+    if (commands[commandName]) {
       reporter.info(getDocsInfo(commandName));
     }
   }
