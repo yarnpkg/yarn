@@ -36,7 +36,7 @@ export async function run(
     if (await fs.exists(binFolder)) {
       for (const name of await fs.readdir(binFolder)) {
         binCommands.push(name);
-        scripts[name] = `${path.join(binFolder, name)}`;
+        scripts[name] = `"${path.join(binFolder, name)}"`;
       }
     }
   }
@@ -61,7 +61,7 @@ export async function run(
 
     if (cmds.length) {
       for (const [stage, cmd] of cmds) {
-        await execCommand(stage, config, `"${cmd}" ${args.join(' ')}`, config.cwd);
+        await execCommand(stage, config, `${cmd} ${args.join(' ')}`, config.cwd);
       }
     } else {
       let suggestion;
