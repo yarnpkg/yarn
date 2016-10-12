@@ -47,7 +47,7 @@ export async function getToken(config: Config, reporter: Reporter, name: ?string
 
   const env = process.env.YARN_AUTH_TOKEN || process.env.KPM_AUTH_TOKEN || process.env.NPM_AUTH_TOKEN;
   if (env) {
-    config.registries.npm.setToken(env);
+    config.registries.npm.setToken(`Bearer ${env}`);
     return function revoke(): Promise<void> {
       reporter.info(reporter.lang('notRevokingEnvToken'));
       return Promise.resolve();
@@ -89,7 +89,7 @@ export async function getToken(config: Config, reporter: Reporter, name: ?string
     reporter.success(reporter.lang('loggedIn'));
 
     const token = res.token;
-    config.registries.npm.setToken(token);
+    config.registries.npm.setToken(`Bearer ${token}`);
 
     return async function revoke(): Promise<void> {
       reporter.success(reporter.lang('revokedToken'));

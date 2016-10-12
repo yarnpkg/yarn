@@ -53,7 +53,7 @@ export default class NpmRegistry extends Registry {
 
     const headers = {};
     if (this.token || this.getOption('always-auth')) {
-      headers.authorization = `Bearer ${this.getAuth(pathname)}`;
+      headers.authorization = this.getAuth(pathname);
     }
 
     // $FlowFixMe : https://github.com/facebook/flow/issues/908
@@ -158,16 +158,22 @@ export default class NpmRegistry extends Registry {
     for (let registry of [this.getRegistry(packageName), '', DEFAULT_REGISTRY]) {
       // Check for auth token.
       registry = registry.replace(/^https?:/, '');
-      const auth = this.getScopedOption(registry, '_auth') || this.getScopedOption(registry, '_authToken');
+
+      let auth = this.getScopedOption(registry, '_authToken');
       if (auth) {
-        return auth;
+        return `Bearer ${auth}`;
+      }
+
+      auth = this.getScopedOption(registry, '_auth');
+      if (auth) {
+        return `Basic ${auth}`;
       }
 
       // Check for basic username/password auth.
       const username = this.getScopedOption(registry, 'username');
       const password = this.getScopedOption(registry, '_password');
       if (username && password) {
-        return new Buffer(username + ':' + new Buffer(password, 'base64')).toString('base64');
+        return 'Basic ' + new Buffer(username + ':' + new Buffer(password, 'base64')).toString('base64');
       }
     }
 
