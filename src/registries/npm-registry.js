@@ -157,14 +157,15 @@ export default class NpmRegistry extends Registry {
     }
 
     for (let registry of [this.getRegistry(packageName), '', DEFAULT_REGISTRY]) {
-      // Check for auth token.
       registry = registry.replace(/^https?:/, '');
 
+      // Check for bearer token.
       let auth = this.getScopedOption(registry, '_authToken');
       if (auth) {
         return `Bearer ${String(auth)}`;
       }
 
+      // Check for basic auth token.
       auth = this.getScopedOption(registry, '_auth');
       if (auth) {
         return `Basic ${String(auth)}`;
