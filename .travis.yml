@@ -30,10 +30,12 @@ env:
   - NODE_VERSION="4" TEST_TYPE="test-ci"
 
 matrix:
-  include:
-    - env: NODE_VERSION="6" TEST_TYPE="test-ci"
+  exclude:
+    - env: TEST_TYPE="build-dist"
       os: osx
-    - env: NODE_VERSION="4" TEST_TYPE="test-ci"
+    - env: TEST_TYPE="check-lockfile"
+      os: osx
+    - env: TEST_TYPE="lint"
       os: osx
 
 install:
@@ -42,6 +44,10 @@ install:
  - node --version
  - npm install -g npm@3
  - npm install
+
+os:
+  - osx
+  - linux
 
 script: npm run $TEST_TYPE
 
