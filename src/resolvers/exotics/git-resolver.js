@@ -29,10 +29,22 @@ export default class GitResolver extends ExoticResolver {
   url: string;
   hash: string;
 
+  static isUnexploded(pattern: string): boolean {
+    if (pattern.indexOf('@') >= 0) {
+      for (const protocol of [...GIT_PROTOCOLS, 'http', 'https']) {
+        if (pattern.indexOf(`@${protocol}:`) >= 0) {
+          return true;
+        }
+      }
+    }
+
+    return false;
+  }
+
   static isVersion(pattern: string): boolean {
     // this pattern hasn't been exploded yet, we'll hit this code path again later once
     // we've been normalized #59
-    if (pattern.indexOf('@') >= 0) {
+    if (GitResolver.isUnexploded(pattern)) {
       return false;
     }
 
