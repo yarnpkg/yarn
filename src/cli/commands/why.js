@@ -43,8 +43,7 @@ async function getPackageSize(info: HoistManifest): Promise<number> {
   ]));
   const sizes = await Promise.all(
     files.map(
-      (walkFile) => fs.stat(walkFile.absolute)
-        .then((stat) => stat.size),
+      (walkFile) => fs.fileSizeOnDisk(walkFile.absolute),
     ),
   );
   return sum(sizes);
