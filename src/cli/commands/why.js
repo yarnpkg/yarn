@@ -94,6 +94,13 @@ export async function run(
   flags: Object,
   args: Array<string>,
 ): Promise<void> {
+  if (!args.length) {
+    throw new MessageError(reporter.lang('missingWhyDependency'));
+  }
+  if (args.length > 1) {
+    throw new MessageError(reporter.lang('tooManyArguments', 1));
+  }
+
   const query = await cleanQuery(config, args[0]);
 
   reporter.step(1, 4, reporter.lang('whyStart', args[0]), emoji.get('thinking_face'));
