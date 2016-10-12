@@ -73,7 +73,17 @@ export default class GitFetcher extends BaseFetcher {
     await git.initRemote();
     await git.clone(this.dest);
 
-    let tarballInMirrorPath = this.config.getOfflineMirrorPath(this.reference);
+    // Get the tarball filename from the url
+    const {pathname} = url.parse(this.reference);
+    let tarballFilename;
+    if (pathname == null) {
+      tarballFilename = this.reference;
+    } else {
+      tarballFilename = path.basename(pathname);
+    }
+
+    let tarballInMirrorPath = this.config.getOfflineMirrorPath(tarballFilename);
+
     const mirrorRootPath = this.config.getOfflineMirrorPath();
     if (tarballInMirrorPath && this.hash && mirrorRootPath) {
       tarballInMirrorPath = `${tarballInMirrorPath}-${this.hash}`;
