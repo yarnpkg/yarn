@@ -100,7 +100,7 @@
     "testPathIgnorePatterns": [
       "__tests__/(fixtures|__mocks__)/",
       "updates/",
-      "/_(temp|mock|install).js$"
+      "/_(temp|mock|install|init).js$"
     ]
   }
 }
