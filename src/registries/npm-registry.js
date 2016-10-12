@@ -47,11 +47,9 @@ export default class NpmRegistry extends Registry {
   }
 
   request(pathname: string, opts?: RegistryRequestOptions = {}): Promise<?Object> {
-    let registry = removeSuffix(String(this.registries.yarn.getOption('registry')), '/');
-
-    if (this.config.registry) {
-      registry = this.config.registry;
-    }
+    const registry = this.config.registry ?
+      removeSuffix(this.config.registry, '/') :
+      removeSuffix(String(this.registries.yarn.getOption('registry')), '/');
 
     const headers = {};
     if (this.token) {

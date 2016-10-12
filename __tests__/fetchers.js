@@ -68,6 +68,19 @@ test('GitFetcher.fetch', async () => {
   expect(name).toBe('font-roboto');
 });
 
+test('GitFetcher.fetch with git+https', async () => {
+  const dir = await mkdir('git-fetcher');
+  const fetcher = new GitFetcher(dir, {
+    type: 'git',
+    reference: 'git+https://github.com/PolymerElements/font-roboto',
+    hash: '2fd5c7bd715a24fb5b250298a140a3ba1b71fe46',
+    registry: 'bower',
+  }, await createConfig());
+  await fetcher.fetch();
+  const name = (await fs.readJson(path.join(dir, 'bower.json'))).name;
+  expect(name).toBe('font-roboto');
+});
+
 test('TarballFetcher.fetch', async () => {
   const dir = await mkdir('tarball-fetcher');
   const fetcher = new TarballFetcher(dir, {

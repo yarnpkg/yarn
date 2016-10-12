@@ -13,6 +13,7 @@ import * as fs from '../../src/util/fs.js';
 import {runInstall} from './_install.js';
 import assert from 'assert';
 import semver from 'semver';
+import {removeSuffix} from '../../src/util/misc.js';
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 90000;
 
@@ -265,7 +266,6 @@ test.concurrent('install with --save and without offline mirror', (): Promise<vo
   return runAdd({}, ['is-array@^1.0.1'], 'install-with-save-no-offline-mirror', async (config) => {
 
     const allFiles = await fs.walk(config.cwd);
-
     assert(allFiles.findIndex((file): boolean => {
       return file.relative === `${mirrorPath}/is-array-1.0.1.tgz`;
     }) === -1);
