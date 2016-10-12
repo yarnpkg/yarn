@@ -7,6 +7,7 @@ import type {ConfigRegistries} from './index.js';
 import * as fs from '../util/fs.js';
 import NpmResolver from '../resolvers/registries/npm-resolver.js';
 import Registry from './base-registry.js';
+import {addSuffix} from '../util/misc';
 
 const defaults = require('defaults');
 const userHome = require('user-home');
@@ -49,15 +50,13 @@ export default class NpmRegistry extends Registry {
   }
 
   request(pathname: string, opts?: RegistryRequestOptions = {}): Promise<*> {
-    const registry = this.getRegistry(pathname);
+    const registry = addSuffix(this.getRegistry(pathname), '/');
+    const requestUrl = url.resolve(registry, pathname);
 
     const headers = {};
-    if (this.token || this.getOption('always-auth')) {
+    if (this.token || (this.getOption('always-auth') && requestUrl.startsWith(registry))) {
       headers.authorization = this.getAuth(pathname);
     }
-
-    // $FlowFixMe : https://github.com/facebook/flow/issues/908
-    const requestUrl = url.format(`${registry}/${pathname}`);
 
     return this.requestManager.request({
       url: requestUrl,
