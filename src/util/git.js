@@ -344,7 +344,7 @@ export default class Git {
     for (const line of refLines) {
       // line example: 64b2c0cee9e829f73c5ad32b8cc8cb6f3bec65bb refs/tags/v4.2.2
       const [sha, id] = line.split(/\s+/g);
-      let [,, name] = id.split('/');
+      let name = id.split('/').slice(2).join('/');
 
       // TODO: find out why this is necessary. idk it makes it work...
       name = removeSuffix(name, '^{}');
