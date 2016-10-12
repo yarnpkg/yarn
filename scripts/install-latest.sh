@@ -41,8 +41,8 @@ yarn_link() {
     printf "$cyan> We've added the following to your $YARN_PROFILE\n"
     echo "> If this isn't the profile of your current shell then please add the following to your correct profile:"
     printf "   $SOURCE_STR$reset\n"
-
-    printf "$green> Successfully installed! Please open another terminal where the \`yarn\` command will now be available.$reset\n"
+    source $YARN_PROFILE
+    printf "$green> Successfully installed! `yarn` command will now be available. $reset\n"
   fi
 }
 
