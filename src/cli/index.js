@@ -59,7 +59,7 @@ commander.option(
 );
 
 // get command name
-let commandName: string = args.shift() || '';
+let commandName: string = args.shift() || 'help';
 let command;
 
 //
