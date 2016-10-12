@@ -291,6 +291,7 @@ config.init({
   packagesRoot: commander.packagesRoot,
   preferOffline: commander.preferOffline,
   captureHar: commander.har,
+  ignorePlatform: commander.ignorePlatform,
   ignoreEngines: commander.ignoreEngines,
   offline: commander.preferOffline || commander.offline,
   looseSemver: !commander.strictSemver,

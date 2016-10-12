@@ -26,6 +26,7 @@ type ConfigOptions = {
   offline?: boolean,
   preferOffline?: boolean,
   captureHar?: boolean,
+  ignorePlatform?: boolean,
   ignoreEngines?: boolean,
 
   // Loosely compare semver for invalid cases like "0.01.0"
@@ -55,6 +56,7 @@ export default class Config {
   looseSemver: boolean;
   offline: boolean;
   preferOffline: boolean;
+  ignorePlatform: boolean;
 
   //
   linkedModules: Array<string>;
@@ -182,6 +184,7 @@ export default class Config {
     this.linkFolder = opts.linkFolder || constants.LINK_REGISTRY_DIRECTORY;
     this.tempFolder = opts.tempFolder || path.join(this.packagesRoot, '.tmp');
     this.offline = !!opts.offline;
+    this.ignorePlatform = !!opts.ignorePlatform;
 
     this.requestManager.setOptions({
       offline: !!opts.offline && !opts.preferOffline,

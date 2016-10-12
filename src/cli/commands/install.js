@@ -59,6 +59,7 @@ type IntegrityMatch = {
 
 type Flags = {
   // install
+  ignorePlatform: boolean,
   ignoreEngines: boolean,
   ignoreScripts: boolean,
   ignoreOptional: boolean,
@@ -82,6 +83,7 @@ function normalizeFlags(config: Config, rawFlags: Object): Flags {
   const flags = {
     // install
     har: !!rawFlags.har,
+    ignorePlatform: !!rawFlags.ignorePlatform,
     ignoreEngines: !!rawFlags.ignoreEngines,
     ignoreScripts: !!rawFlags.ignoreScripts,
     ignoreOptional: !!rawFlags.ignoreOptional,
@@ -102,6 +104,10 @@ function normalizeFlags(config: Config, rawFlags: Object): Flags {
 
   if (config.getOption('ignore-scripts')) {
     flags.ignoreScripts = true;
+  }
+
+  if (config.getOption('ignore-platform')) {
+    flags.ignorePlatform = true;
   }
 
   if (config.getOption('ignore-engines')) {
@@ -669,6 +675,7 @@ export class Install {
 
 export function _setFlags(commander: Object) {
   commander.option('--har', 'save HAR output of network traffic');
+  commander.option('--ignore-platform', 'ignore platform checks');
   commander.option('--ignore-engines', 'ignore engines check');
   commander.option('--ignore-scripts', '');
   commander.option('--ignore-optional', '');

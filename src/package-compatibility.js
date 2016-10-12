@@ -138,13 +138,13 @@ export default class PackageCompatibility {
       }
     };
 
-    if (Array.isArray(info.os)) {
+    if (!this.config.ignorePlatform && Array.isArray(info.os)) {
       if (!PackageCompatibility.isValidPlatform(info.os)) {
         pushError(this.reporter.lang('incompatibleOS', process.platform));
       }
     }
 
-    if (Array.isArray(info.cpu)) {
+    if (!this.config.ignorePlatform && Array.isArray(info.cpu)) {
       if (!PackageCompatibility.isValidArch(info.cpu)) {
         pushError(this.reporter.lang('incompatibleCPU', process.arch));
       }
