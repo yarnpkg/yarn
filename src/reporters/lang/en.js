@@ -132,6 +132,7 @@ const messages = {
   savedLockfile: 'Saved lockfile.',
   noRequiredLockfile: 'No lockfile in this directory. Run `yarn install` to generate one.',
   noLockfileFound: 'No lockfile found.',
+  noManifestFound: 'Couldn\'t find a package.json (or bower.json) file in $0',
 
   invalidSemver: 'Invalid semver version',
   newVersion: 'New version',
