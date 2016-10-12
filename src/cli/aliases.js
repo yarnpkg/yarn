@@ -21,7 +21,6 @@ export default {
   'dist-tags': 'tag',
   adduser: 'login',
   author: 'owner',
-  isntall: 'install',
   la: 'ls',
   ll: 'ls',
   r: 'remove',
