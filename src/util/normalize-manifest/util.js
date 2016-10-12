@@ -5,7 +5,7 @@ import type {PersonObject} from '../../types.js';
 const validateLicense = require('validate-npm-package-license');
 
 export function isValidLicense(license: string): boolean {
-  return validateLicense(license).validForNewPackages;
+  return !!license && validateLicense(license).validForNewPackages;
 }
 
 export function stringifyPerson(person: any): any | string {
