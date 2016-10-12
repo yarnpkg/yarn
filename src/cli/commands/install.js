@@ -736,9 +736,15 @@ export async function run(
     throw new MessageError(reporter.lang('installCommandRenamed', `yarn ${command} ${exampleArgs.join(' ')}`));
   }
 
+  await executeLifecycleScript(config, 'preinstall');
+
   const install = new Install(flags, config, reporter, lockfile);
   await install.init();
 
   // npm behaviour, seems kinda funky but yay compatibility
-  await executeLifecycleScript(config, 'prepublish');
+  await executeLifecycleScript(config, 'install');
+  await executeLifecycleScript(config, 'postinstall');
+  if (!flags.production) {
+    await executeLifecycleScript(config, 'prepublish');
+  }
 }
