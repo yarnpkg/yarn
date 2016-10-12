@@ -54,8 +54,9 @@ commander.option(
   'rather than storing modules into a global packages root, store them here',
 );
 commander.option(
-  '--mutex [type][:specifier]',
+  '--mutex <type>[:specifier]',
   'use a mutex to ensure only one yarn instance is executing',
+  ''
 );
 commander.allowUnknownOption();
 
@@ -300,7 +301,7 @@ config.init({
   };
 
   const mutex = commander.mutex;
-  if (mutex) {
+  if (mutex && typeof mutex === 'string') {
     const parts = mutex.split(':');
     const mutexType = parts.shift();
     const mutexSpecifier = parts.join(':');
