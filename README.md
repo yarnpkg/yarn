@@ -44,6 +44,11 @@ please read the [code of conduct](CODE_OF_CONDUCT.md).
 
 See [Contributing](CONTRIBUTING.md).
 
+
+## Continuous integration
+
+[Here is an example of using Yarn in continuous integration.](https://github.com/javascriptair/site/blob/master/.travis.yml)
+
 ## Prior art
 
 Yarn wouldn't exist if it wasn't for excellent prior art. Yarn has been inspired by the following projects:
