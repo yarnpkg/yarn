@@ -23,7 +23,7 @@ import {registries} from '../../registries/index.js';
 import {clean} from './clean.js';
 import * as constants from '../../constants.js';
 import * as fs from '../../util/fs.js';
-import * as util from '../../util/misc.js';
+import * as crypto from '../../util/crypto.js';
 import map from '../../util/map.js';
 
 const invariant = require('invariant');
@@ -663,7 +663,7 @@ export class Install {
       opts.push(`mirror:${mirror}`);
     }
 
-    return util.hash(opts.join('-'));
+    return crypto.hash(opts.join('-'), 'sha256');
   }
 }
 
