@@ -24,7 +24,7 @@ export const DEFAULTS = {
 
   'save-prefix': '^',
   'ignore-scripts': false,
-  'ignore-optional': true,
+  'ignore-optional': false,
   registry: YARN_REGISTRY,
   'user-agent': [
     `yarn/${pkg.version}`,
