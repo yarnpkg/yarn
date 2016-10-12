@@ -14,6 +14,8 @@ const path = require('path');
 const url = require('url');
 const ini = require('ini');
 
+const DEFAULT_REGISTRY = '//registry.npmjs.org/';
+
 function getGlobalPrefix(): string {
   if (process.env.PREFIX) {
     return process.env.PREFIX;
@@ -47,11 +49,11 @@ export default class NpmRegistry extends Registry {
   }
 
   request(pathname: string, opts?: RegistryRequestOptions = {}): Promise<?Object> {
-    const registry = removeSuffix(String(this.registries.yarn.getOption('registry')), '/');
+    const registry = this.getRegistry(pathname);
 
     const headers = {};
-    if (this.token) {
-      headers.authorization = `Bearer ${this.token}`;
+    if (this.token || this.getOption('always-auth')) {
+      headers.authorization = `Bearer ${this.getAuth(pathname)}`;
     }
 
     // $FlowFixMe : https://github.com/facebook/flow/issues/908
@@ -128,5 +130,42 @@ export default class NpmRegistry extends Registry {
 
       defaults(this.config, config);
     }
+  }
+
+  getScope(name: string): string {
+    return !name || name[0] !== '@' ? '' : name.split(/\/|%2f/)[0];
+  }
+
+  getRegistry(name: ?string): string {
+    const scope = this.getScope(name);
+    return this.getScopedOption(scope, 'registry') || this.registries.yarn.getScopedOption(scope, 'registry');
+  }
+
+  getAuth(name: ?string): ?string {
+    if (this.token) {
+      return this.token;
+    }
+
+    for (let registry of [this.getRegistry(name), '', DEFAULT_REGISTRY]) {
+      // Check for auth token.
+      registry = registry.replace(/^https?:/, '');
+      const auth = this.getScopedOption(registry, '_auth') || this.getScopedOption(registry, '_authToken');
+      if (auth) {
+        return auth;
+      }
+
+      // Check for basic username/password auth.
+      const username = this.getScopedOption(registry, 'username');
+      const password = this.getScopedOption(registry, '_password');
+      if (username && password) {
+        return new Buffer(username + ':' + new Buffer(password, 'base64')).toString('base64');
+      }
+    }
+
+    return null;
+  }
+
+  getScopedOption(scope: ?string, option: string): string {
+    return this.getOption(scope + (scope ? ':' : '') + option);
   }
 }
