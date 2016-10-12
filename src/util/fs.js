@@ -11,20 +11,24 @@ const fs = require('fs');
 export const lockQueue = new BlockingQueue('fs lock');
 
 export const readFileBuffer = promisify(fs.readFile);
-export const writeFile = promisify(fs.writeFile);
-export const readlink = promisify(fs.readlink);
-export const realpath = promisify(fs.realpath);
-export const readdir = promisify(fs.readdir);
-export const rename = promisify(fs.rename);
-export const access = promisify(fs.access);
-export const stat = promisify(fs.stat);
-export const unlink = promisify(require('rimraf'));
-export const mkdirp = promisify(require('mkdirp'));
-export const exists = promisify(fs.exists, true);
-export const lstat = promisify(fs.lstat);
-export const chmod = promisify(fs.chmod);
+export const writeFile: (path: string, data: string) => Promise<void> = promisify(fs.writeFile);
+export const readlink: (path: string, opts: void) => Promise<string> = promisify(fs.readlink);
+export const realpath: (path: string, opts: void) => Promise<string> = promisify(fs.realpath);
+export const readdir: (path: string, opts: void) => Promise<Array<string>> = promisify(fs.readdir);
+export const rename: (oldPath: string, newPath: string) => Promise<void> = promisify(fs.rename);
+export const access: (path: string, mode?: number) => Promise<void> = promisify(fs.access);
+export const stat: (path: string) => Promise<fs.Stats> = promisify(fs.stat);
+export const unlink: (path: string) => Promise<void> = promisify(require('rimraf'));
+export const mkdirp: (path: string) => Promise<void> = promisify(require('mkdirp'));
+export const exists: (path: string) => Promise<boolean>  = promisify(fs.exists, true);
+export const lstat: (path: string) => Promise<fs.Stats> = promisify(fs.lstat);
+export const chmod: (path: string, mode: number | string) => Promise<void> = promisify(fs.chmod);
 
-const fsSymlink = promisify(fs.symlink);
+const fsSymlink: (
+  target: string,
+  path: string,
+  type?: 'dir' | 'file' | 'junction'
+) => Promise<void> = promisify(fs.symlink);
 const invariant = require('invariant');
 const stripBOM = require('strip-bom');
 
@@ -250,7 +254,7 @@ export async function copyBulk(
   const actions: CopyActions = await buildActionsForCopy(queue, events, events.possibleExtraneous);
   events.onStart(actions.length);
 
-  const fileActions = actions.filter((action): boolean => action.type === 'file');
+  const fileActions: Array<CopyFileAction> = (actions.filter((action) => action.type === 'file'): any);
   await promise.queue(fileActions, (data): Promise<void> => new Promise((resolve, reject) => {
     const readStream = fs.createReadStream(data.src);
     const writeStream = fs.createWriteStream(data.dest, {mode: data.mode});
@@ -275,7 +279,7 @@ export async function copyBulk(
   }), 4);
 
   // we need to copy symlinks last as the could reference files we were copying
-  const symlinkActions = actions.filter((action): boolean => action.type === 'symlink');
+  const symlinkActions: Array<CopySymlinkAction> = (actions.filter((action) => action.type === 'symlink'): any);
   await promise.queue(symlinkActions, (data): Promise<void> => {
     return symlink(path.resolve(path.dirname(data.dest), data.linkname), data.dest);
   });
