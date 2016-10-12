@@ -144,7 +144,7 @@ export default class NpmRegistry extends Registry {
       const registry = this.getScopedOption(scope, 'registry')
                     || this.registries.yarn.getScopedOption(scope, 'registry');
       if (registry) {
-        return registry;
+        return String(registry);
       }
     }
 
@@ -162,26 +162,27 @@ export default class NpmRegistry extends Registry {
 
       let auth = this.getScopedOption(registry, '_authToken');
       if (auth) {
-        return `Bearer ${auth}`;
+        return `Bearer ${String(auth)}`;
       }
 
       auth = this.getScopedOption(registry, '_auth');
       if (auth) {
-        return `Basic ${auth}`;
+        return `Basic ${String(auth)}`;
       }
 
       // Check for basic username/password auth.
       const username = this.getScopedOption(registry, 'username');
       const password = this.getScopedOption(registry, '_password');
       if (username && password) {
-        return 'Basic ' + new Buffer(username + ':' + new Buffer(password, 'base64').toString()).toString('base64');
+        const pw = new Buffer(String(password), 'base64').toString();
+        return 'Basic ' + new Buffer(String(username) + ':' + pw).toString('base64');
       }
     }
 
     return '';
   }
 
-  getScopedOption(scope: string, option: string): string {
-    return String(this.getOption(scope + (scope ? ':' : '') + option));
+  getScopedOption(scope: string, option: string): mixed {
+    return this.getOption(scope + (scope ? ':' : '') + option);
   }
 }
