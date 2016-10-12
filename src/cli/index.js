@@ -333,8 +333,9 @@ config.init({
       logError(errs);
     }
 
-    if (commands[commandName]) {
-      reporter.info(getDocsInfo(commandName));
+    const actualCommandForHelp = commands[commandName] ? commandName : aliases[commandName];
+    if (actualCommandForHelp) {
+      reporter.info(getDocsInfo(actualCommandForHelp));
     }
   }
 
