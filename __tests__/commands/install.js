@@ -85,6 +85,15 @@ test.concurrent('install file: protocol', (): Promise<void> => {
   });
 });
 
+test.concurrent('install everything when flat is enabled', (): Promise<void> => {
+  return runInstall({noLockfile: true, flat: true}, 'install-file', async (config) => {
+    assert.equal(
+      await fs.readFile(path.join(config.cwd, 'node_modules', 'foo', 'index.js')),
+      'foobar\n',
+    );
+  });
+});
+
 test.concurrent('install renamed packages', (): Promise<void> => {
   return runInstall({}, 'install-renamed-packages', async (config): Promise<void> => {
     const dir = path.join(config.cwd, 'node_modules');

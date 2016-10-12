@@ -410,7 +410,7 @@ export class Install {
       if (infos.length === 1) {
         // single version of this package
         // take out a single pattern as multiple patterns may have resolved to this package
-        patterns.push(this.resolver.patternsByPackage[name][0]);
+        flattenedPatterns.push(this.resolver.patternsByPackage[name][0]);
         continue;
       }
 
