@@ -14,7 +14,7 @@ const path = require('path');
 const url = require('url');
 const ini = require('ini');
 
-const DEFAULT_REGISTRY = '//registry.npmjs.org/';
+const DEFAULT_REGISTRY = 'https://registry.npmjs.org/';
 
 function getGlobalPrefix(): string {
   if (process.env.PREFIX) {
@@ -65,7 +65,9 @@ export default class NpmRegistry extends Registry {
       body: opts.body,
       auth: opts.auth,
       headers,
-      json: true,
+      json: !opts.buffer,
+      buffer: opts.buffer,
+      process: opts.process,
       gzip: true,
     });
   }
@@ -132,21 +134,28 @@ export default class NpmRegistry extends Registry {
     }
   }
 
-  getScope(name: string): string {
-    return !name || name[0] !== '@' ? '' : name.split(/\/|%2f/)[0];
+  getScope(packageName: string): string {
+    return !packageName || packageName[0] !== '@' ? '' : packageName.split(/\/|%2f/)[0];
   }
 
-  getRegistry(name: ?string): string {
-    const scope = this.getScope(name);
-    return this.getScopedOption(scope, 'registry') || this.registries.yarn.getScopedOption(scope, 'registry');
+  getRegistry(packageName: ?string): string {
+    // Try scoped registry, and default registry
+    for (const scope of [this.getScope(packageName), '']) {
+      const registry = this.getScopedOption(scope, 'registry') || this.registries.yarn.getScopedOption(scope, 'registry');
+      if (registry) {
+        return registry;
+      }
+    }
+
+    return DEFAULT_REGISTRY;
   }
 
-  getAuth(name: ?string): ?string {
+  getAuth(packageName: ?string): ?string {
     if (this.token) {
       return this.token;
     }
 
-    for (let registry of [this.getRegistry(name), '', DEFAULT_REGISTRY]) {
+    for (let registry of [this.getRegistry(packageName), '', DEFAULT_REGISTRY]) {
       // Check for auth token.
       registry = registry.replace(/^https?:/, '');
       const auth = this.getScopedOption(registry, '_auth') || this.getScopedOption(registry, '_authToken');
