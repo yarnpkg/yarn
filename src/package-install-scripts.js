@@ -56,14 +56,12 @@ export default class PackageInstallScripts {
     return mtimes;
   }
 
-  async wrapCopyBuildArtifacts<T>(
+  async copyBuildArtifacts(
     loc: string,
     pkg: Manifest,
+    beforeFiles: Map<string, number>,
     spinner: ReporterSetSpinner,
-    factory: () => Promise<T>,
-  ): Promise<T> {
-    const beforeFiles = await this.walk(loc);
-    const res = await factory();
+  ): Promise<void> {
     const afterFiles = await this.walk(loc);
 
     // work out what files have been created/modified
@@ -84,7 +82,7 @@ export default class PackageInstallScripts {
 
     if (!removedFiles.length && !buildArtifacts.length) {
       // nothing else to do here since we have no build side effects
-      return res;
+      return;
     }
 
     // if the process is killed while copying over build artifacts then we'll leave
@@ -119,23 +117,21 @@ export default class PackageInstallScripts {
       });
       await fs.writeFile(cachedMetadataLoc, cachedMetadata);
     }
-
-    return res;
   }
 
   async install(cmds: Array<[string, string]>, pkg: Manifest, spinner: ReporterSetSpinner): Promise<void> {
-    const loc = this.config.generateHardModulePath(pkg._reference);
+    const ref = pkg._reference;
+    invariant(ref, 'expected reference');
+    const loc = this.config.generateHardModulePath(ref);
+    if (ref.cached) {
+      // This package is fetched directly from installed cache with build artifacts
+      // No need to rebuild
+      return;
+    }
     try {
-      await this.wrapCopyBuildArtifacts(
-        loc,
-        pkg,
-        spinner,
-        async (): Promise<void> => {
-          for (const [stage, cmd] of cmds) {
-            await executeLifecycleScript(stage, this.config, loc, cmd, spinner);
-          }
-        },
-      );
+      for (const [stage, cmd] of cmds) {
+        await executeLifecycleScript(stage, this.config, loc, cmd, spinner);
+      }
     } catch (err) {
       err.message = `${loc}: ${err.message}`;
 
@@ -269,8 +265,14 @@ export default class PackageInstallScripts {
     const installed = new Set();
     const pkgs = this.resolver.getTopologicalManifests(seedPatterns);
     let installablePkgs = 0;
+    // A map to keep track of what files exist before installation
+    const beforeFilesMap = new Map();
     for (const pkg of pkgs) {
       if (this.packageCanBeInstalled(pkg)) {
+        const ref = pkg._reference;
+        invariant(ref, 'expected reference');
+        const loc = this.config.generateHardModulePath(ref);
+        beforeFilesMap.set(loc, await this.walk(loc));
         installablePkgs += 1;
       }
       workQueue.add(pkg);
@@ -288,6 +290,18 @@ export default class PackageInstallScripts {
     }
 
     await Promise.all(workers);
+
+    // cache all build artifacts
+    for (const pkg of pkgs) {
+      if (this.packageCanBeInstalled(pkg)) {
+        const ref = pkg._reference;
+        invariant(ref, 'expected reference');
+        const loc = this.config.generateHardModulePath(ref);
+        const beforeFiles = beforeFilesMap.get(loc);
+        invariant(beforeFiles, 'files before installation should always be recorded');
+        await this.copyBuildArtifacts(loc, pkg, beforeFiles, set.spinners[0]);
+      }
+    }
 
     set.end();
   }

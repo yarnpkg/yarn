@@ -553,6 +553,7 @@ test.concurrent('install should resolve circular dependencies 2', (): Promise<vo
   });
 });
 
+
 test('install should respect NODE_ENV=production', (): Promise<void> => {
   const env = process.env.NODE_ENV;
   process.env.NODE_ENV = 'production';
@@ -560,6 +561,33 @@ test('install should respect NODE_ENV=production', (): Promise<void> => {
     expect(await fs.exists(path.join(config.cwd, 'node_modules/is-negative-zero/package.json'))).toBe(false);
     // restore env
     process.env.NODE_ENV = env;
+  });
+});
+
+
+test.concurrent('install should resolve circular dependencies 2', (): Promise<void> => {
+  return runInstall({}, 'install-should-circumvent-circular-dependencies-2', async (config, reporter) => {
+    assert.equal(
+      await getPackageVersion(config, 'es5-ext'),
+      '0.10.12',
+    );
+  });
+});
+
+test.concurrent('install should be idempotent', (): Promise<void> => {
+  // Install a package twice
+  runInstall({}, 'install-should-be-idempotent', async (config, reporter) => {
+    assert.equal(
+      await getPackageVersion(config, 'dep-a'),
+      '1.0.0',
+    );
+  }, null, false);
+
+  return runInstall({}, 'install-should-be-idempotent', async (config, reporter) => {
+    assert.equal(
+      await getPackageVersion(config, 'dep-a'),
+      '1.0.0',
+    );
   });
 });
 

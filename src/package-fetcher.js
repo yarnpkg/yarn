@@ -29,6 +29,7 @@ export default class PackageFetcher {
       resolved: await fetcher.getResolvedFromCached(hash),
       hash,
       dest,
+      cached: true,
     };
   }
 
@@ -90,6 +91,10 @@ export default class PackageFetcher {
         ref.remote.hash = res.hash;
         if (res.resolved) {
           ref.remote.resolved = res.resolved;
+        }
+
+        if (res.cached) {
+          ref.cached = true;
         }
       }
 
