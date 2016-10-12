@@ -1,6 +1,6 @@
 ---
 git:
-  depth: 1
+  depth: 10
 language: generic
 
 sudo: false
