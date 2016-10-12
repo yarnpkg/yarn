@@ -36,8 +36,8 @@ export function getModuleCacheDirectory(): string {
 }
 
 export const MODULE_CACHE_DIRECTORY = getModuleCacheDirectory();
-export const LINK_REGISTRY_DIRECTORY = `${MODULE_CACHE_DIRECTORY}/.link`;
-export const GLOBAL_MODULE_DIRECTORY = `${MODULE_CACHE_DIRECTORY}/.global`;
+export const LINK_REGISTRY_DIRECTORY = path.join(userHome, '.yarn-config', 'link');
+export const GLOBAL_MODULE_DIRECTORY = path.join(userHome, '.yarn-config', 'global');
 
 export const INTEGRITY_FILENAME = '.yarn-integrity';
 export const LOCKFILE_FILENAME = 'yarn.lock';
