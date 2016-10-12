@@ -7,6 +7,7 @@ import * as constants from '../constants.js';
 import * as network from '../util/network.js';
 import {MessageError} from '../errors.js';
 import aliases from './aliases.js';
+import shortHands from './shortHands.js';
 import Config from '../config.js';
 
 const camelCase = require('camelcase');
@@ -98,7 +99,6 @@ if (!commandName || commandName[0] === '-') {
   commandName = 'install';
 }
 
-// aliases: i -> install
 // $FlowFixMe
 if (commandName && typeof aliases[commandName] === 'string') {
   command = {
@@ -106,6 +106,12 @@ if (commandName && typeof aliases[commandName] === 'string') {
       throw new MessageError(`Did you mean \`yarn ${aliases[commandName]}\`?`);
     },
   };
+}
+
+// shorthands - e.g. i -> install
+// $FlowFixMe
+if (commandName && typeof shortHands[commandName] === 'string') {
+  commandName = shortHands[commandName];
 }
 
 //
