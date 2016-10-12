@@ -20,3 +20,6 @@
 fbkpm_modules
 test/fixtures/**/.fbkpm
 /tmp/
+
+# IDE
+.idea/
