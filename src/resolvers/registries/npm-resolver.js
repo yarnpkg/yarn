@@ -60,11 +60,11 @@ export default class NpmResolver extends RegistryResolver {
     // find modules of this name
     const prefix = `npm-${this.name}-`;
 
-    const packagesRoot = this.config.packagesRoot;
-    invariant(packagesRoot, 'expected packages root');
+    const cacheFolder = this.config.cacheFolder;
+    invariant(cacheFolder, 'expected packages root');
 
     const files = await this.config.getCache('cachedPackages', async (): Promise<Array<string>> => {
-      const files = await fs.readdir(packagesRoot);
+      const files = await fs.readdir(cacheFolder);
       const validFiles = [];
 
       for (const name of files) {
@@ -74,7 +74,7 @@ export default class NpmResolver extends RegistryResolver {
         }
 
         // ensure valid module cache
-        const dir = path.join(packagesRoot, name);
+        const dir = path.join(cacheFolder, name);
         if (await this.config.isValidModuleDest(dir)) {
           validFiles.push(name);
         }
@@ -91,7 +91,7 @@ export default class NpmResolver extends RegistryResolver {
         continue;
       }
 
-      const dir = path.join(packagesRoot, name);
+      const dir = path.join(cacheFolder, name);
 
       // read manifest and validate correct name
       const pkg = await this.config.readManifest(dir, 'npm');

@@ -44,14 +44,14 @@ commander.option('--offline');
 commander.option('--prefer-offline');
 commander.option('--strict-semver');
 commander.option('--json', '');
-commander.option('--global-folder [path]', '');
+commander.option('--global-folder <path>', '');
 commander.option(
-  '--modules-folder [path]',
+  '--modules-folder <path>',
   'rather than installing modules into the node_modules folder relative to the cwd, output them here',
 );
 commander.option(
-  '--packages-root [path]',
-  'rather than storing modules into a global packages root, store them here',
+  '--cache-folder <path>',
+  'specify a custom folder to store the yarn cache',
 );
 commander.option(
   '--mutex <type>[:specifier]',
@@ -287,7 +287,7 @@ const runEventuallyWithNetwork = (mutexPort: ?string): Promise<void> => {
 config.init({
   modulesFolder: commander.modulesFolder,
   globalFolder: commander.globalFolder,
-  packagesRoot: commander.packagesRoot,
+  cacheFolder: commander.cacheFolder,
   preferOffline: commander.preferOffline,
   captureHar: commander.har,
   ignorePlatform: commander.ignorePlatform,

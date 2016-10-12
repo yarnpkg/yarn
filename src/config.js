@@ -18,7 +18,7 @@ const url = require('url');
 
 type ConfigOptions = {
   cwd?: ?string,
-  packagesRoot?: ?string,
+  cacheFolder?: ?string,
   tempFolder?: ?string,
   modulesFolder?: ?string,
   globalFolder?: ?string,
@@ -80,7 +80,7 @@ export default class Config {
   modulesFolder: ?string;
 
   //
-  packagesRoot: string;
+  cacheFolder: string;
 
   //
   tempFolder: string;
@@ -141,7 +141,7 @@ export default class Config {
     this._init(opts);
 
     await fs.mkdirp(this.globalFolder);
-    await fs.mkdirp(this.packagesRoot);
+    await fs.mkdirp(this.cacheFolder);
     await fs.mkdirp(this.tempFolder);
 
     await fs.mkdirp(this.linkFolder);
@@ -180,9 +180,9 @@ export default class Config {
     this.preferOffline = !!opts.preferOffline;
     this.modulesFolder = opts.modulesFolder;
     this.globalFolder = opts.globalFolder || constants.GLOBAL_MODULE_DIRECTORY;
-    this.packagesRoot = opts.packagesRoot || constants.MODULE_CACHE_DIRECTORY;
+    this.cacheFolder = opts.cacheFolder || constants.MODULE_CACHE_DIRECTORY;
     this.linkFolder = opts.linkFolder || constants.LINK_REGISTRY_DIRECTORY;
-    this.tempFolder = opts.tempFolder || path.join(this.packagesRoot, '.tmp');
+    this.tempFolder = opts.tempFolder || path.join(this.cacheFolder, '.tmp');
     this.offline = !!opts.offline;
     this.ignorePlatform = !!opts.ignorePlatform;
 
@@ -207,7 +207,7 @@ export default class Config {
     registry: RegistryNames,
     location: ?string
   }, ignoreLocation?: ?boolean): string {
-    invariant(this.packagesRoot, 'No package root');
+    invariant(this.cacheFolder, 'No package root');
     invariant(pkg, 'Undefined package');
     invariant(pkg.name, 'No name field in package');
     invariant(pkg.uid, 'No uid field in package');
@@ -222,7 +222,7 @@ export default class Config {
       uid = pkg.version || uid;
     }
 
-    return path.join(this.packagesRoot, `${name}-${uid}`);
+    return path.join(this.cacheFolder, `${name}-${uid}`);
   }
 
   /**
