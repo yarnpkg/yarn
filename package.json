@@ -75,10 +75,7 @@
     "temp": "^0.8.3",
     "webpack": "^2.1.0-beta.25"
   },
-  "repository": {
-    "type": "git",
-    "url": "git://github.com/yarnpkg/yarn.git"
-  },
+  "repository": "yarnpkg/yarn",
   "bin": {
     "yarn": "./bin/yarn.js"
   },
