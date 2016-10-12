@@ -6,7 +6,7 @@ if (Test-Path dist) {
   rm dist -Recurse
 }
 mkdir dist
-mv yarnpkg-*.tgz dist/pack.tgz
+mv yarn-*.tgz dist/pack.tgz
 
 cd dist
 tar -xzf pack.tgz --strip 1
