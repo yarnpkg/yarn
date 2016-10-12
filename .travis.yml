@@ -1,8 +1,14 @@
 ---
 git:
   depth: 1
-sudo: true # can't use this due to git upgrade requirement
 language: generic
+
+sudo: false
+
+addons:
+  apt:
+    packages:
+      - git
 
 branches:
   only:
@@ -18,41 +24,30 @@ cache:
 env:
   matrix:
   - TEST_TYPE="build-dist"
-  - TEST_TYPE="lockfile"
+  - TEST_TYPE="check-lockfile"
   - TEST_TYPE="lint"
-  - NODE_VERSION="6" TEST_TYPE="js"
-  - NODE_VERSION="4" TEST_TYPE="js"
+  - NODE_VERSION="6" TEST_TYPE="test-ci"
+  - NODE_VERSION="4" TEST_TYPE="test-ci"
 
 matrix:
   exclude:
-  - env: TEST_TYPE="build-dist"
-    os: osx
-  - env: TEST_TYPE="lockfile"
-    os: osx
-  - env: TEST_TYPE="lint"
-    os: osx
+    - env: TEST_TYPE="build-dist"
+      os: osx
+    - env: TEST_TYPE="check-lockfile"
+      os: osx
+    - env: TEST_TYPE="lint"
+      os: osx
 
 install:
- # install latest git
- - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew unlink git; brew install git; fi
- - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then ./scripts/update-linux-git.sh; fi
- - git --version
-
  # install proper node version
- - rm -rf ~/.nvm
- - git clone https://github.com/creationix/nvm.git ~/.nvm
- - source ~/.nvm/nvm.sh
  - nvm install ${NODE_VERSION:=6}
  - node --version
  - npm install -g npm@3
  - npm install
 
 os:
- - osx
- - linux
+  - osx
+  - linux
 
-script:
- - if [[ "$TEST_TYPE" == "js" ]]; then npm run test-ci; fi
- - if [[ "$TEST_TYPE" == "build-dist" ]]; then npm run build-dist; fi
- - if [[ "$TEST_TYPE" == "lockfile" ]]; then npm run check-lockfile; fi
- - if [[ "$TEST_TYPE" == "lint" ]]; then npm run lint; fi
+script: npm run $TEST_TYPE
+
