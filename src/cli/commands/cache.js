@@ -14,7 +14,7 @@ export const {run, setFlags} = buildSubCommands('cache', {
     flags: Object,
     args: Array<string>,
   ): Promise<void> {
-    const files = await fs.readdir(config.packagesRoot);
+    const files = await fs.readdir(config.cacheFolder);
     const body = [];
 
     for (const file of files) {
@@ -22,7 +22,7 @@ export const {run, setFlags} = buildSubCommands('cache', {
         continue;
       }
 
-      const loc = path.join(config.packagesRoot, file);
+      const loc = path.join(config.cacheFolder, file);
       const {registry, package: manifest, remote} = await config.readPackageMetadata(loc);
 
       body.push([manifest.name, manifest.version, registry, (remote && remote.resolved) || '']);
@@ -37,10 +37,10 @@ export const {run, setFlags} = buildSubCommands('cache', {
     flags: Object,
     args: Array<string>,
   ): Promise<void> {
-    const packagesRoot = config.packagesRoot;
-    if (packagesRoot) {
-      await fs.unlink(packagesRoot);
-      await fs.mkdirp(packagesRoot);
+    const cacheFolder = config.cacheFolder;
+    if (cacheFolder) {
+      await fs.unlink(cacheFolder);
+      await fs.mkdirp(cacheFolder);
       reporter.success(reporter.lang('clearedCache'));
     }
   },
