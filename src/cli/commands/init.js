@@ -12,7 +12,9 @@ import * as fs from '../../util/fs.js';
 const objectPath = require('object-path');
 const path = require('path');
 
-export const noArguments = true;
+export function setFlags(commander: Object) {
+  commander.option('-y, --yes', 'use default options');
+}
 
 export async function run(
   config: Config,
@@ -84,6 +86,7 @@ export async function run(
   // get answers
   const pkg = {};
   for (const entry of keys) {
+    const {yes} = flags;
     const {key: manifestKey} = entry;
     let {question, default: def} = entry;
 
@@ -100,7 +103,14 @@ export async function run(
       question += ` (${def})`;
     }
 
-    const answer = (await reporter.question(question)) || def;
+    let answer;
+
+    if (yes) {
+      answer = def;
+    } else {
+      answer = (await reporter.question(question)) || def;
+    }
+
     if (answer) {
       objectPath.set(pkg, manifestKey, answer);
     }
