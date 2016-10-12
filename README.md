@@ -31,7 +31,7 @@
 * Multiple Registries: Install any package from either npm or Bower and keep your package workflow the same.
 * Network Resilience: A single request failing won't cause an install to fail. Requests are retried upon failure.
 * Flat Mode: Resolve mismatching versions of dependencies to a single version to avoid creating duplicates.
-* More emojis. 🐈
+* More emoji. 🐈
 
 ## Installing Yarn
 
