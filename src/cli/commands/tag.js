@@ -120,11 +120,12 @@ export const {run, setFlags, examples} = buildSubCommands('tag', {
     flags: Object,
     args: Array<string>,
   ): Promise<void> {
+    const name = await getName(args, config);
+
     reporter.step(1, 3, reporter.lang('loggingIn'));
     const revoke = await getToken(config, reporter, name);
 
     reporter.step(2, 3, reporter.lang('gettingTags'));
-    const name = await getName(args, config);
     const tags = await config.registries.npm.request(`-/package/${name}/dist-tags`);
 
     if (tags) {

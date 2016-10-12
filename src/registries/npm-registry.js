@@ -2,11 +2,11 @@
 
 import type RequestManager from '../util/request-manager.js';
 import type {RegistryRequestOptions, CheckOutdatedReturn} from './base-registry.js';
-import type Config, {ConfigRegistries} from '../config.js';
+import type Config from '../config.js';
+import type {ConfigRegistries} from './index.js';
 import * as fs from '../util/fs.js';
 import NpmResolver from '../resolvers/registries/npm-resolver.js';
 import Registry from './base-registry.js';
-import {removeSuffix} from '../util/misc.js';
 
 const defaults = require('defaults');
 const userHome = require('user-home');
@@ -48,7 +48,7 @@ export default class NpmRegistry extends Registry {
     return name.replace('/', '%2f');
   }
 
-  request(pathname: string, opts?: RegistryRequestOptions = {}): Promise<?Object> {
+  request(pathname: string, opts?: RegistryRequestOptions = {}): Promise<*> {
     const registry = this.getRegistry(pathname);
 
     const headers = {};
@@ -138,10 +138,11 @@ export default class NpmRegistry extends Registry {
     return !packageName || packageName[0] !== '@' ? '' : packageName.split(/\/|%2f/)[0];
   }
 
-  getRegistry(packageName: ?string): string {
+  getRegistry(packageName: string): string {
     // Try scoped registry, and default registry
     for (const scope of [this.getScope(packageName), '']) {
-      const registry = this.getScopedOption(scope, 'registry') || this.registries.yarn.getScopedOption(scope, 'registry');
+      const registry = this.getScopedOption(scope, 'registry')
+                    || this.registries.yarn.getScopedOption(scope, 'registry');
       if (registry) {
         return registry;
       }
@@ -150,7 +151,7 @@ export default class NpmRegistry extends Registry {
     return DEFAULT_REGISTRY;
   }
 
-  getAuth(packageName: ?string): ?string {
+  getAuth(packageName: string): string {
     if (this.token) {
       return this.token;
     }
@@ -173,14 +174,14 @@ export default class NpmRegistry extends Registry {
       const username = this.getScopedOption(registry, 'username');
       const password = this.getScopedOption(registry, '_password');
       if (username && password) {
-        return 'Basic ' + new Buffer(username + ':' + new Buffer(password, 'base64')).toString('base64');
+        return 'Basic ' + new Buffer(username + ':' + new Buffer(password, 'base64').toString()).toString('base64');
       }
     }
 
-    return null;
+    return '';
   }
 
-  getScopedOption(scope: ?string, option: string): string {
-    return this.getOption(scope + (scope ? ':' : '') + option);
+  getScopedOption(scope: string, option: string): string {
+    return String(this.getOption(scope + (scope ? ':' : '') + option));
   }
 }

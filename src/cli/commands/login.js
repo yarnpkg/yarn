@@ -33,7 +33,7 @@ async function getCredentials(config: Config, reporter: Reporter): Promise<?{
   return {username, email};
 }
 
-export async function getToken(config: Config, reporter: Reporter, name: ?string): Promise<
+export async function getToken(config: Config, reporter: Reporter, name: string = ''): Promise<
   () => Promise<void>
 > {
   const auth = config.registries.npm.getAuth(name);

@@ -1,8 +1,7 @@
 /* @flow */
 
-import type {RegistryNames} from './registries/index.js';
+import type {RegistryNames, ConfigRegistries} from './registries/index.js';
 import type {Reporter} from './reporters/index.js';
-import type Registry from './registries/base-registry.js';
 import type {Manifest, PackageRemote} from './types.js';
 import normalizeManifest from './util/normalize-manifest/index.js';
 import {MessageError} from './errors.js';
@@ -42,7 +41,6 @@ type PackageMetadata = {
   package: Manifest
 };
 
-
 type RootManifests = {
   [registryName: RegistryNames]: {
     loc: string,
@@ -59,10 +57,6 @@ function sortObject(object: Object): Object {
   });
   return sortedObject;
 }
-
-export type ConfigRegistries = {
-  [name: RegistryNames]: Registry
-};
 
 export default class Config {
   constructor(reporter: Reporter) {
