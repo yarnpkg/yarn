@@ -173,7 +173,11 @@ export default class ConsoleReporter extends BaseReporter {
         input: this.stdin,
       }, (err, answer) => {
         if (err) {
-          reject(err);
+          if (err.message === 'canceled') {
+            process.exit(1);
+          } else {
+            reject(err);
+          }
         } else {
           if (!answer && options.required) {
             this.error(this.lang('answerRequired'));
