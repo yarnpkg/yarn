@@ -31,6 +31,10 @@ export const {run, setFlags} = buildSubCommands('cache', {
     reporter.table(['Name', 'Version', 'Registry', 'Resolved'], body);
   },
 
+  dir(config: Config) {
+    console.log(config.packagesRoot);
+  },
+
   async clean(
     config: Config,
     reporter: Reporter,
