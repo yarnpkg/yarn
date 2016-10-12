@@ -56,7 +56,15 @@ export default class YarnRegistry extends NpmRegistry {
   homeConfig: Object;
 
   getOption(key: string): mixed {
-    return this.config[key] || this.registries.npm.getOption(npmMap[key] || key);
+    let val = this.config[key] || this.registries.npm.getOption(npmMap[key]);
+
+    // if we have no yarn option for this or have used a default then use the npm
+    // value if it exists
+    if (!val || val === DEFAULTS[key]) {
+      val = this.registries.npm.getOption(key) || val;
+    }
+
+    return val;
   }
 
   async loadConfig(): Promise<void> {
