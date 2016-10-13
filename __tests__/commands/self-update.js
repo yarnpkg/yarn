@@ -66,11 +66,13 @@ it('Self-update should download a release and symlink it as "current"', (): Prom
   return run(async (reporter, config) => {
     await selfUpdate(config, reporter, {version: () => '0.0.1'}, []);
 
-    expect(await fs.exists(path.resolve(updatesFolder, 'current'))).toBe(true);
+    const currentFolder = path.resolve(updatesFolder, 'current');
+    expect(await fs.exists(currentFolder)).toBe(true);
     const packageJson = await fs.readJson(path.resolve(updatesFolder, 'current', 'package.json'));
 
-    expect(await fs.exists(path.resolve(updatesFolder, packageJson.version))).toBe(true);
+    expect(await fs.exists(await fs.realpath(currentFolder))).toBe(true);
     const version = await child.exec('node bin/yarn.js -V');
+
     expect(version[0].trim()).toBe(packageJson.version);
   });
 });
@@ -100,13 +102,14 @@ it('Self-update should work from self-updated location', (): Promise<void> => {
 
     // new version is current
     version = await child.exec('node bin/yarn.js -V');
-    expect(await fs.exists(path.resolve(updatesFolder, 'current'))).toBe(true);
+    const currentFolder = path.resolve(updatesFolder, 'current');
+    expect(await fs.exists(currentFolder)).toBe(true);
     packageJson = await fs.readJson(path.resolve(updatesFolder, 'current', 'package.json'));
     expect(version[0].trim()).toBe(packageJson.version);
 
     expect(await fs.exists(path.resolve(updatesFolder, '0.1.0'))).toBe(false);
     expect(await fs.exists(path.resolve(updatesFolder, '0.2.0'))).toBe(true);
-    expect(await fs.exists(path.resolve(updatesFolder, packageJson.version))).toBe(true);
+    expect(await fs.exists(await fs.realpath(currentFolder))).toBe(true);
 
     packageJson = await fs.readJson(path.resolve(updatesFolder, 'to_clean', 'package.json'));
     expect(packageJson.version).toBe('0.2.0');
