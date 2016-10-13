@@ -2,6 +2,8 @@ general:
   branches:
     ignore:
       - gh-pages
+  artifacts:
+    - "artifacts/"
 dependencies:
   override:
     - nvm install 6
@@ -10,6 +12,7 @@ dependencies:
     # TODO test yarn with node_modules installed via npm2, npm3 and latest stable yarn
     - npm install
     - go get github.com/tcnksm/ghr
+    - ./scripts/bootstrap-env-ubuntu.sh
 test:
   override:
     - node -v
@@ -17,12 +20,15 @@ test:
     - npm run check-lockfile
     - npm run build-dist
     - node ./scripts/build-webpack.js
+    - ./scripts/build-deb.sh
 
 deployment:
   release:
     tag: /v[0-9]+(\.[0-9]+)*/
     owner: yarnpkg
     commands:
+      - ghr --username yarnpkg --repository yarn --token $KPM_CIRCLE_RELEASE_TOKEN v$(node dist/bin/yarn --version) artifacts/
+      # TODO(#548): All artifacts should come from artifacts/ directory
       - ghr --username yarnpkg --repository yarn --token $KPM_CIRCLE_RELEASE_TOKEN v$(node dist/bin/yarn --version) dist/yarn-v*.tar.gz
       - ghr --username yarnpkg --repository yarn --token $KPM_CIRCLE_RELEASE_TOKEN v$(node dist/bin/yarn --version) dist/yarn-$(node dist/bin/yarn --version).js
       - ghr --username yarnpkg --repository yarn --token $KPM_CIRCLE_RELEASE_TOKEN v$(node dist/bin/yarn --version) dist/yarn-legacy-$(node dist/bin/yarn --version).js
