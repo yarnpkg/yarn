@@ -12,6 +12,7 @@ import * as fs from '../src/util/fs.js';
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000;
 
 const path = require('path');
+const isCI = require('is-ci');
 
 function addTest(pattern, registry = 'npm') {
   // TODO renable these test.concurrent
@@ -35,6 +36,7 @@ function addTest(pattern, registry = 'npm') {
   });
 }
 
+// Public deps
 addTest('https://github.com/npm-ml/re'); // git url with no .git
 addTest('https://bitbucket.org/hgarcia/node-bitbucket-api.git'); // hosted git url
 addTest('https://github.com/PolymerElements/font-roboto/archive/2fd5c7bd715a24fb5b250298a140a3ba1b71fe46.tar.gz'); // tarball
@@ -51,3 +53,12 @@ addTest('react-native'); // npm
 addTest('ember-cli'); // npm
 addTest('npm:gulp'); // npm
 addTest('@polymer/iron-icon'); // npm scoped package
+
+// Private deps
+
+// Only the yarn CI tools have access to this private deps. If you want to test this locally,
+// remove the if condition and change the urls to match your private deps.
+if (isCI) {
+  addTest('yarnpkg/private-dep#c6cf811'); // private github shortcut
+  addTest('github:yarnpkg/private-dep#c6cf811'); // private github shortcut, with provider
+}

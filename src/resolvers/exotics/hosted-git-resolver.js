@@ -72,6 +72,11 @@ export default class HostedGitResolver extends ExoticResolver {
     throw new Error('Not implemented');
   }
 
+  static getGitSSH(exploded: ExplodedFragment): string {
+    exploded;
+    throw new Error('Not implemented');
+  }
+
   static getHTTPFileUrl(exploded: ExplodedFragment, filename: string, commit: string) {
     exploded;
     filename;
@@ -170,14 +175,15 @@ export default class HostedGitResolver extends ExoticResolver {
   }
 
   async resolve(): Promise<Manifest> {
-    const httpUrl = this.constructor.getGitHTTPUrl(this.exploded);
-    const sshUrl = this.constructor.getGitSSHUrl(this.exploded);
+    const gitHTTPUrl = this.constructor.getGitHTTPUrl(this.exploded);
+    const gitSSHUrl = this.constructor.getGitSSHUrl(this.exploded);
+    const gitSSH = this.constructor.getGitSSH(this.exploded);
 
     // If we can access the files over HTTP then we should as it's MUCH faster than git
     // archive and tarball unarchiving. The HTTP API is only available for public repos
     // though.
-    if (await this.hasHTTPCapability(httpUrl)) {
-      return await this.resolveOverHTTP(httpUrl);
+    if (await this.hasHTTPCapability(gitHTTPUrl)) {
+      return await this.resolveOverHTTP(gitHTTPUrl);
     }
 
     // If the url is accessible over git archive then we should immediately delegate to
@@ -186,13 +192,13 @@ export default class HostedGitResolver extends ExoticResolver {
     // NOTE: Here we use a different url than when we delegate to the git resolver later on.
     // This is because `git archive` requires access over ssh and github only allows that
     // if you have write permissions
-    if (await Git.hasArchiveCapability(sshUrl)) {
-      const archiveClient = new Git(this.config, sshUrl, this.hash);
+    if (await Git.hasArchiveCapability(gitSSH)) {
+      const archiveClient = new Git(this.config, gitSSH, this.hash);
       const commit = await archiveClient.initRemote();
-      return await this.fork(GitResolver, true, `${sshUrl}#${commit}`);
+      return await this.fork(GitResolver, true, `${gitSSH}#${commit}`);
     }
 
     // fallback to the plain git resolver
-    return await this.fork(GitResolver, true, sshUrl);
+    return await this.fork(GitResolver, true, gitSSHUrl);
   }
 }

@@ -16,6 +16,10 @@ export default class GitLabResolver extends HostedGitResolver {
   }
 
   static getGitSSHUrl(parts: ExplodedFragment): string {
+    return `git+ssh://git@gitlab.com/${ parts.user }/${ parts.repo }.git`;
+  }
+
+  static getGitSSH(parts: ExplodedFragment): string {
     return `git@gitlab.com:${parts.user}/${parts.repo}.git`;
   }
 
