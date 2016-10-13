@@ -49,7 +49,12 @@ export default class BaseReporter {
 
     this.stdout = opts.stdout || process.stdout;
     this.stderr = opts.stderr || process.stderr;
-    this.stdin = opts.stdin || process.stdin;
+    
+    //The IISNode process, in Windows, lacks a stdin
+    if (process.platform !== 'win32' && !process.env.IISNODE_VERSION) {
+      this.stdin = opts.stdin || process.stdin;
+    }
+
     this.emoji = !!opts.emoji;
 
     // $FlowFixMe: this is valid!
