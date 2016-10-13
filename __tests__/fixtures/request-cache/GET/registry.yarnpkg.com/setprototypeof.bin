@@ -1,0 +1,24 @@
+HTTP/1.1 200 OK
+Date: Wed, 12 Oct 2016 08:58:55 GMT
+Content-Type: application/json
+Transfer-Encoding: chunked
+Connection: keep-alive
+Set-Cookie: __cfduid=d9fd977fd807096d6347b15f4e29667db1476262735; expires=Thu, 12-Oct-17 08:58:55 GMT; path=/; domain=.yarnpkg.com; HttpOnly
+etag: W/"CJTDSET8SGVXM6LF4HLS3YM9C"
+Cache-Control: max-age=300
+Via: 1.1 varnish
+Age: 42
+X-Served-By: cache-lcy1129-LCY
+X-Cache: HIT
+X-Cache-Hits: 3
+X-Timer: S1476262735.128345,VS0,VE0
+Vary: Accept-Encoding
+Server: cloudflare-nginx
+CF-RAY: 2f095a4e8bd51383-LHR
+
+b02
+{"_id":"setprototypeof","_rev":"3-7cef12a9a0cf189ca9f271428ed2d910","name":"setprototypeof","description":"A small polyfill for Object.setprototypeof","dist-tags":{"latest":"1.0.1"},"versions":{"1.0.0":{"name":"setprototypeof","version":"1.0.0","description":"A small polyfill for Object.setprototypeof","main":"index.js","scripts":{"test":"echo \"Error: no test specified\" && exit 1"},"repository":{"type":"git","url":"https://github.com/wesleytodd/setprototypeof.git"},"keywords":["polyfill","object","setprototypeof"],"author":{"name":"Wes Todd"},"license":"ISC","bugs":{"url":"https://github.com/wesleytodd/setprototypeof/issues"},"homepage":"https://github.com/wesleytodd/setprototypeof","gitHead":"737c200fa382c4d10466b48e7426f9c6b38ea358","_id":"setprototypeof@1.0.0","_shasum":"d5fafca01e1174d0079bd1bf881f09c8a339794c","_from":".","_npmVersion":"2.1.4","_nodeVersion":"0.10.29","_npmUser":{"name":"wesleytodd","email":"wes@wesleytodd.com"},"maintainers":[{"name":"wesleytodd","email":"wes@wesleytodd.com"}],"dist":{"shasum":"d5fafca01e1174d0079bd1bf881f09c8a339794c","tarball":"https://registry.npmjs.org/setprototypeof/-/setprototypeof-1.0.0.tgz"},"directories":{}},"1.0.1":{"name":"setprototypeof","version":"1.0.1","description":"A small polyfill for Object.setprototypeof","main":"index.js","scripts":{"test":"echo \"Error: no test specified\" && exit 1"},"repository":{"type":"git","url":"git+https://github.com/wesleytodd/setprototypeof.git"},"keywords":["polyfill","object","setprototypeof"],"author":{"name":"Wes Todd"},"license":"ISC","bugs":{"url":"https://github.com/wesleytodd/setprototypeof/issues"},"homepage":"https://github.com/wesleytodd/setprototypeof","gitHead":"1e3d0cde6b7f4a9fba10cd28e62b200c9d8f899f","_id":"setprototypeof@1.0.1","_shasum":"52009b27888c4dc48f591949c0a8275834c1ca7e","_from":".","_npmVersion":"3.3.6","_nodeVersion":"5.0.0","_npmUser":{"name":"wesleytodd","email":"wes@wesleytodd.com"},"dist":{"shasum":"52009b27888c4dc48f591949c0a8275834c1ca7e","tarball":"https://registry.npmjs.org/setprototypeof/-/setprototypeof-1.0.1.tgz"},"maintainers":[{"name":"wesleytodd","email":"wes@wesleytodd.com"}],"_npmOperationalInternal":{"host":"packages-5-east.internal.npmjs.com","tmp":"tmp/setprototypeof-1.0.1.tgz_1454803015119_0.7522649802267551"},"directories":{}}},"readme":"# Polyfill for `Object.setPrototypeOf`\n\nA simple cross platform implementation to set the prototype of an instianted object.  Supports all modern browsers and at least back to IE8.\n\n## Usage:\n\n```\n$ npm install --save setprototypeof\n```\n\n```javascript\nvar setPrototypeOf = require('setprototypeof');\n\nvar obj = {};\nsetPrototypeOf(obj, {\n\tfoo: function() {\n\t\treturn 'bar';\n\t}\n});\nobj.foo(); // bar\n```\n","maintainers":[{"name":"wesleytodd","email":"wes@wesleytodd.com"}],"time":{
+1f8
+"modified":"2016-02-06T23:56:57.210Z","created":"2015-02-04T13:56:57.705Z","1.0.0":"2015-02-04T13:56:57.705Z","1.0.1":"2016-02-06T23:56:57.210Z"},"homepage":"https://github.com/wesleytodd/setprototypeof","keywords":["polyfill","object","setprototypeof"],"repository":{"type":"git","url":"git+https://github.com/wesleytodd/setprototypeof.git"},"author":{"name":"Wes Todd"},"bugs":{"url":"https://github.com/wesleytodd/setprototypeof/issues"},"license":"ISC","readmeFilename":"README.md","_attachments":{}}
+0
+

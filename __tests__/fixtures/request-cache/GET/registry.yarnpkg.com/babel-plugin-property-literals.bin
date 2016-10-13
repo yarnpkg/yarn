@@ -1,0 +1,22 @@
+HTTP/1.1 200 OK
+Date: Wed, 12 Oct 2016 08:58:48 GMT
+Content-Type: application/json
+Transfer-Encoding: chunked
+Connection: keep-alive
+Set-Cookie: __cfduid=dbc01cee038967cc092775d1186dd5e751476262728; expires=Thu, 12-Oct-17 08:58:48 GMT; path=/; domain=.yarnpkg.com; HttpOnly
+etag: W/"52391DUIV48A0OBS6SKJ9PJB2"
+Cache-Control: max-age=300
+Via: 1.1 varnish
+Age: 24
+X-Served-By: cache-lcy1122-LCY
+X-Cache: HIT
+X-Cache-Hits: 1
+X-Timer: S1476262728.861995,VS0,VE0
+Vary: Accept-Encoding
+Server: cloudflare-nginx
+CF-RAY: 2f095a275bc534a6-LHR
+
+986
+{"_id":"babel-plugin-property-literals","_rev":"1-d53db84b38630e4a206d4d04a9613594","name":"babel-plugin-property-literals","description":"Turn valid property key literals to plain identifiers","dist-tags":{"latest":"1.0.1"},"versions":{"1.0.1":{"name":"babel-plugin-property-literals","version":"1.0.1","description":"Turn valid property key literals to plain identifiers","repository":{"type":"git","url":"git+https://github.com/babel-plugins/babel-plugin-property-literals.git"},"license":"MIT","main":"lib/index.js","devDependencies":{"babel":"^5.6.0"},"scripts":{"build":"babel-plugin build","push":"babel-plugin publish","test":"babel-plugin test"},"keywords":["babel-plugin"],"gitHead":"5dd55859844d40afeacdd2bd85b68e1d407d28da","bugs":{"url":"https://github.com/babel-plugins/babel-plugin-property-literals/issues"},"homepage":"https://github.com/babel-plugins/babel-plugin-property-literals#readme","_id":"babel-plugin-property-literals@1.0.1","_shasum":"0252301900192980b1c118efea48ce93aab83336","_from":".","_npmVersion":"2.9.0","_nodeVersion":"2.0.0","_npmUser":{"name":"sebmck","email":"sebmck@gmail.com"},"maintainers":[{"name":"sebmck","email":"sebmck@gmail.com"}],"dist":{"shasum":"0252301900192980b1c118efea48ce93aab83336","tarball":"https://registry.npmjs.org/babel-plugin-property-literals/-/babel-plugin-property-literals-1.0.1.tgz"},"directories":{}}},"readme":"# babel-plugin-property-literals\n\nTurn valid property key literals to plain identifiers\n\n## Installation\n\n```sh\n$ npm install babel-plugin-property-literals\n```\n\n## Usage\n\n### Via `.babelrc` (Recommended)\n\n**.babelrc**\n\n```json\n{\n  \"plugins\": [\"property-literals\"]\n}\n```\n\n### Via CLI\n\n```sh\n$ babel --plugins property-literals script.js\n```\n\n### Via Node API\n\n```javascript\nrequire(\"babel-core\").transform(\"code\", {\n  plugins: [\"property-literals\"]\n});\n```\n","maintainers":[{"name":"sebmck","email":"sebmck@gmail.com"}],"time":{"modified":"2015-06-15T15:31:01.687Z","created":"2015-06-15T15:31:01.687Z","1.0.1":"2015-06-15T15:31:01.687Z"},"homepage":"https://github.com/babel-plugins/babel-plugin-property-literals#readme","keywords":["babel-plugin"],"repository":{"type":"git","url":"git+https://github.com/babel-plugins/babel-plugin-property-literals.git"},"bugs":{"url":"https://github.com/babel-plugins/babel-plugin-property-literals/issues"},"license":"MIT","readmeFilename":"README.md","_attachments":{}}
+0
+

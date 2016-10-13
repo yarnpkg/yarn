@@ -1,0 +1,22 @@
+HTTP/1.1 200 OK
+Date: Wed, 12 Oct 2016 08:58:57 GMT
+Content-Type: application/json
+Transfer-Encoding: chunked
+Connection: keep-alive
+Set-Cookie: __cfduid=dc7535e850e2d4edb42409cc427f2ddad1476262737; expires=Thu, 12-Oct-17 08:58:57 GMT; path=/; domain=.yarnpkg.com; HttpOnly
+etag: W/"2NEP26XWYPKME76RL1FEBDM7N"
+Cache-Control: max-age=300
+Via: 1.1 varnish
+Age: 66
+X-Served-By: cache-lcy1125-LCY
+X-Cache: HIT
+X-Cache-Hits: 3
+X-Timer: S1476262737.340815,VS0,VE0
+Vary: Accept-Encoding
+Server: cloudflare-nginx
+CF-RAY: 2f095a5c6a1734d6-LHR
+
+9b1
+{"_id":"urix","_rev":"2-1d2f728f764ba87eebbfb1e23848ea6e","name":"urix","description":"Makes Windows-style paths more unix and URI friendly.","dist-tags":{"latest":"0.1.0"},"versions":{"0.1.0":{"name":"urix","version":"0.1.0","author":{"name":"Simon Lydell"},"license":"MIT","description":"Makes Windows-style paths more unix and URI friendly.","main":"index.js","repository":{"type":"git","url":"git://github.com/lydell/urix"},"keywords":["path","url","uri","unix","windows","backslash","slash"],"scripts":{"test":"jshint index.js test/ && mocha"},"devDependencies":{"mocha":"^1.17.1","jshint":"^2.4.4"},"bugs":{"url":"https://github.com/lydell/urix/issues"},"homepage":"https://github.com/lydell/urix","_id":"urix@0.1.0","dist":{"shasum":"da937f7a62e21fec1fd18d49b35c2935067a6c72","tarball":"https://registry.npmjs.org/urix/-/urix-0.1.0.tgz"},"_from":".","_npmVersion":"1.4.4","_npmUser":{"name":"lydell","email":"simon.lydell@gmail.com"},"maintainers":[{"name":"lydell","email":"simon.lydell@gmail.com"}],"directories":{}}},"readme":"[![Build Status](https://travis-ci.org/lydell/urix.png?branch=master)](https://travis-ci.org/lydell/urix)\r\n\r\nOverview\r\n========\r\n\r\nMakes Windows-style paths more unix and URI friendly. Useful if you work with\r\npaths that eventually will be used in URLs.\r\n\r\n```js\r\nvar urix = require(\"urix\")\r\n\r\n// On Windows:\r\nurix(\"c:\\\\users\\\\you\\\\foo\")\r\n// /users/you/foo\r\n\r\n// On unix-like systems:\r\nurix(\"c:\\\\users\\\\you\\\\foo\")\r\n// c:\\users\\you\\foo\r\n```\r\n\r\n\r\nInstallation\r\n============\r\n\r\n`npm install urix`\r\n\r\n```js\r\nvar urix = require(\"urix\")\r\n```\r\n\r\n\r\nUsage\r\n=====\r\n\r\n### `urix(path)` ###\r\n\r\nOn Windows, replaces all backslashes with slashes and uses a slash instead of a\r\ndrive letter and a colon for absolute paths.\r\n\r\nOn unix-like systems it is a no-op.\r\n\r\n\r\nLicense\r\n=======\r\n\r\n[The X11 (“MIT”) License](LICENSE).\r\n","maintainers":[{"name":"lydell","email":"simon.lydell@gmail.com"}],"time":{"modified":"2014-03-01T21:02:32.481Z","created":"2014-03-01T21:02:32.481Z","0.1.0":"2014-03-01T21:02:32.481Z"},"homepage":"https://github.com/lydell/urix","keywords":["path","url","uri","unix","windows","backslash","slash"],"repository":{"type":"git","url":"git://github.com/lydell/urix"},"author":{"name":"Simon Lydell"},"bugs":{"url":"https://github.com/lydell/urix/issues"},"license":"MIT","readmeFilename":"readme.md","_attachments":{}}
+0
+

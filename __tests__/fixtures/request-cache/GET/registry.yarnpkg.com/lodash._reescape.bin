@@ -1,0 +1,22 @@
+HTTP/1.1 200 OK
+Date: Wed, 12 Oct 2016 08:58:40 GMT
+Content-Type: application/json
+Transfer-Encoding: chunked
+Connection: keep-alive
+Set-Cookie: __cfduid=d336d690b557a2a22fd5988423b5ef4c61476262720; expires=Thu, 12-Oct-17 08:58:40 GMT; path=/; domain=.yarnpkg.com; HttpOnly
+etag: W/"1NNK4AWI4DUVPEZCNBQCDHMHM"
+Cache-Control: max-age=300
+Via: 1.1 varnish
+Age: 159
+X-Served-By: cache-lcy1122-LCY
+X-Cache: HIT
+X-Cache-Hits: 8
+X-Timer: S1476262720.679953,VS0,VE0
+Vary: Accept-Encoding
+Server: cloudflare-nginx
+CF-RAY: 2f0959f43c250a8a-LHR
+
+cd2
+{"_id":"lodash._reescape","_rev":"9-121f5cca987c718b31beb469bd03c555","name":"lodash._reescape","description":"The modern build of lodash’s internal `reEscape` as a module.","dist-tags":{"latest":"3.0.0"},"versions":{"3.0.0":{"name":"lodash._reescape","version":"3.0.0","description":"The modern build of lodash’s internal `reEscape` as a module.","homepage":"https://lodash.com/","icon":"https://lodash.com/icon.svg","license":"MIT","author":{"name":"John-David Dalton","email":"john.david.dalton@gmail.com","url":"http://allyoucanleet.com/"},"contributors":[{"name":"John-David Dalton","email":"john.david.dalton@gmail.com","url":"http://allyoucanleet.com/"},{"name":"Benjamin Tan","email":"demoneaux@gmail.com","url":"https://d10.github.io/"},{"name":"Blaine Bublitz","email":"blaine@iceddev.com","url":"http://www.iceddev.com/"},{"name":"Kit Cambridge","email":"github@kitcambridge.be","url":"http://kitcambridge.be/"},{"name":"Mathias Bynens","email":"mathias@qiwi.be","url":"https://mathiasbynens.be/"}],"repository":{"type":"git","url":"https://github.com/lodash/lodash"},"scripts":{"test":"echo \"See https://travis-ci.org/lodash/lodash-cli for testing details.\""},"bugs":{"url":"https://github.com/lodash/lodash/issues"},"_id":"lodash._reescape@3.0.0","_shasum":"2b1d6f5dfe07c8a355753e5f27fac7f1cde1616a","_from":".","_npmVersion":"2.3.0","_nodeVersion":"0.10.35","_npmUser":{"name":"jdalton","email":"john.david.dalton@gmail.com"},"maintainers":[{"name":"jdalton","email":"john.david.dalton@gmail.com"}],"dist":{"shasum":"2b1d6f5dfe07c8a355753e5f27fac7f1cde1616a","tarball":"https://registry.npmjs.org/lodash._reescape/-/lodash._reescape-3.0.0.tgz"},"directories":{}}},"readme":"# lodash._reescape v3.0.0\n\nThe [modern build](https://github.com/lodash/lodash/wiki/Build-Differences) of [lodash’s](https://lodash.com/) internal `reEscape` exported as a [Node.js](http://nodejs.org/)/[io.js](https://iojs.org/) module.\n\n## Installation\n\nUsing npm:\n\n```bash\n$ {sudo -H} npm i -g npm\n$ npm i --save lodash._reescape\n```\n\nIn Node.js/io.js:\n\n```js\nvar reEscape = require('lodash._reescape');\n```\n\nSee the [package source](https://github.com/lodash/lodash/blob/3.0.0-npm-packages/lodash._reescape) for more details.\n","maintainers":[{"name":"jdalton","email":"john.david.dalton@gmail.com"},{"name":"mathias","email":"mathias@qiwi.be"}],"time":{"modified":"2016-10-06T17:02:47.178Z","created":"2015-02-04T17:44:16.538Z","3.0.0":"2015-02-04T17:44:16.538Z"},"homepage":"https://lodash.com/","repository":{"type":"git","url":"https://github.com/lodash/lodash"},"contributors":[{"name":"John-David Dalton","email":"john.david.dalton@gmail.com","url":"http://allyoucanleet.com/"},{"name":"Benjamin Tan","email":"demoneaux@gmail.com","url":"https://d10.github.io/"},{"name":"Blaine Bublitz","email":"blaine@iceddev.com","url":"http://www.iceddev.com/"},{"name":"Kit Cambridge","email":"github@kitcambridge.be","url":"http://kitcambridge.be/"},{"name":"Mathias Bynens","email":"mathias@qiwi.be","url":"https://mathiasbynens.be/"}],"author":{"name":"John-David Dalton","email":"john.david.dalton@gmail.com","url":"http://allyoucanleet.com/"},"bugs":{"url":"https://github.com/lodash/lodash/issues"},"license":"MIT","readmeFilename":"README.md","_attachments":{}}
+0
+

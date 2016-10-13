@@ -1,0 +1,22 @@
+HTTP/1.1 200 OK
+Date: Wed, 12 Oct 2016 08:58:39 GMT
+Content-Type: application/json
+Transfer-Encoding: chunked
+Connection: keep-alive
+Set-Cookie: __cfduid=d0f230950fd7224c6dfec8975a81b66c11476262719; expires=Thu, 12-Oct-17 08:58:39 GMT; path=/; domain=.yarnpkg.com; HttpOnly
+etag: W/"CDTGZ6K1NQC2I3JXBVRU1JTKU"
+Cache-Control: max-age=300
+Via: 1.1 varnish
+Age: 27
+X-Served-By: cache-lcy1128-LCY
+X-Cache: HIT
+X-Cache-Hits: 1
+X-Timer: S1476262719.632305,VS0,VE0
+Vary: Accept-Encoding
+Server: cloudflare-nginx
+CF-RAY: 2f0959edbf4335ae-LHR
+
+674
+{"_id":"clean-base-url","_rev":"1-197e3f7ebb2639c658571268c005ec02","name":"clean-base-url","dist-tags":{"latest":"1.0.0"},"versions":{"1.0.0":{"name":"clean-base-url","version":"1.0.0","description":"","main":"index.js","scripts":{"test":"node test.js"},"repository":{"type":"git","url":"git+ssh://git@github.com/stefanpenner/clean-base-url.git"},"author":{"name":"Stefan Penner","email":"stefan.penner@gmail.com"},"license":"ISC","bugs":{"url":"https://github.com/stefanpenner/clean-base-url/issues"},"homepage":"https://github.com/stefanpenner/clean-base-url#readme","gitHead":"df7c12457208803567f5c5ca7e7d1fd6fa52ea18","_id":"clean-base-url@1.0.0","_shasum":"c901cf0a20b972435b0eccd52d056824a4351b7b","_from":".","_npmVersion":"2.9.0","_nodeVersion":"2.0.2","_npmUser":{"name":"stefanpenner","email":"stefan.penner@gmail.com"},"maintainers":[{"name":"stefanpenner","email":"stefan.penner@gmail.com"}],"dist":{"shasum":"c901cf0a20b972435b0eccd52d056824a4351b7b","tarball":"https://registry.npmjs.org/clean-base-url/-/clean-base-url-1.0.0.tgz"},"directories":{}}},"readme":"ERROR: No README data found!","maintainers":[{"name":"stefanpenner","email":"stefan.penner@gmail.com"}],"time":{"modified":"2015-06-03T00:51:33.256Z","created":"2015-06-03T00:51:33.256Z","1.0.0":"2015-06-03T00:51:33.256Z"},"homepage":"https://github.com/stefanpenner/clean-base-url#readme","repository":{"type":"git","url":"git+ssh://git@github.com/stefanpenner/clean-base-url.git"},"author":{"name":"Stefan Penner","email":"stefan.penner@gmail.com"},"bugs":{"url":"https://github.com/stefanpenner/clean-base-url/issues"},"license":"ISC","readmeFilename":"","_attachments":{}}
+0
+

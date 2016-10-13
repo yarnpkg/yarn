@@ -1,0 +1,24 @@
+HTTP/1.1 200 OK
+Date: Wed, 12 Oct 2016 08:58:56 GMT
+Content-Type: application/json
+Transfer-Encoding: chunked
+Connection: keep-alive
+Set-Cookie: __cfduid=d341df688eb512615e7a0213c64b220c41476262736; expires=Thu, 12-Oct-17 08:58:56 GMT; path=/; domain=.yarnpkg.com; HttpOnly
+etag: W/"1IVMVRJZPS9QX41AN95WI0MYH"
+Cache-Control: max-age=300
+Via: 1.1 varnish
+Age: 129
+X-Served-By: cache-lcy1131-LCY
+X-Cache: HIT
+X-Cache-Hits: 1
+X-Timer: S1476262736.581351,VS0,VE0
+Vary: Accept-Encoding
+Server: cloudflare-nginx
+CF-RAY: 2f095a579fef3476-LHR
+
+415
+{"_id":"boolbase","_rev":"2-00b616c8178d2ebc413329d9c109a9c6","name":"boolbase","description":"two functions: One that returns true, one that returns false","dist-tags":{"latest":"1.0.0"},"versions":{"1.0.0":{"name":"boolbase","version":"1.0.0","description":"two functions: One that returns true, one that returns false","main":"index.js","scripts":{"test":"echo \"Error: no test specified\" && exit 1"},"repository":{"type":"git","url":"https://github.com/fb55/boolbase"},"keywords":["boolean","function"],"author":{"name":"Felix Boehm","email":"me@feedic.com"},"license":"ISC","bugs":{"url":"https://github.com/fb55/boolbase/issues"},"homepage":"https://github.com/fb55/boolbase","_id":"boolbase@1.0.0","dist":{"shasum":"68dff5fbe60c51eb37725ea9e3ed310dcc1e776e","tarball":"https://registry.npmjs.org/boolbase/-/boolbase-1.0.0.tgz"},"_from":".","_npmVersion":"1.4.2","_npmUser":{"name":"feedic","email":"me@feedic.com"},"maintainers":[{"name":"feedic","email":"me@feedic.com"}],"directories":{}}},"readme":"#boolbase\nThis very simple module 
+357
+provides two basic functions, one that always returns true (`trueFunc`) and one that always returns false (`falseFunc`).\n\n###WTF?\n\nBy having only a single instance of these functions around, it's possible to do some nice optimizations. Eg. [`CSSselect`](https://github.com/fb55/CSSselect) uses these functions to determine whether a selector won't match any elements. If that's the case, the DOM doesn't even have to be touched.\n\n###And why is this a separate module?\n\nI'm trying to modularize `CSSselect` and most modules depend on these functions. IMHO, having a separate module is the easiest solution to this problem.","maintainers":[{"name":"feedic","email":"me@feedic.com"}],"time":{"modified":"2014-02-15T14:44:50.619Z","created":"2014-02-15T14:44:50.619Z","1.0.0":"2014-02-15T14:44:50.620Z"},"readmeFilename":"README.md","_attachments":{}}
+0
+
