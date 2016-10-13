@@ -6,6 +6,7 @@ import buildSubCommands from './_build-sub-commands.js';
 import * as fs from '../../util/fs.js';
 
 const path = require('path');
+const semverRegex = require('semver-regex');
 
 export const {run, setFlags} = buildSubCommands('cache', {
   async ls(
@@ -18,6 +19,12 @@ export const {run, setFlags} = buildSubCommands('cache', {
     const body = [];
 
     for (const file of files) {
+      if (/^npm-@/.test(file) && !semverRegex().test(file)) {
+        const add = await fs.readdir(`${config.cacheFolder}/${file}`);
+        files.push(...add.map((f) => `${file}/${f}`));
+        continue;
+      }
+
       if (file[0] === '.') {
         continue;
       }
