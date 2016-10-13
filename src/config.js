@@ -18,7 +18,7 @@ const invariant = require('invariant');
 const path = require('path');
 const url = require('url');
 
-type ConfigOptions = {
+export type ConfigOptions = {
   cwd?: ?string,
   cacheFolder?: ?string,
   tempFolder?: ?string,
@@ -30,6 +30,7 @@ type ConfigOptions = {
   captureHar?: boolean,
   ignorePlatform?: boolean,
   ignoreEngines?: boolean,
+  cafile?: ?string,
 
   // Loosely compare semver for invalid cases like "0.01.0"
   looseSemver?: ?boolean,
@@ -184,6 +185,7 @@ export default class Config {
       httpProxy: String(this.getOption('proxy') || ''),
       httpsProxy: String(this.getOption('https-proxy') || ''),
       strictSSL: Boolean(this.getOption('strict-ssl')),
+      cafile: String(opts.cafile || this.getOption('cafile') || ''),
     });
   }
 
