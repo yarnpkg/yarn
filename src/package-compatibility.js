@@ -138,16 +138,12 @@ export default class PackageCompatibility {
       }
     };
 
-    if (!this.config.ignorePlatform && Array.isArray(info.os)) {
-      if (!PackageCompatibility.isValidPlatform(info.os)) {
+    if (!this.config.ignorePlatform && Array.isArray(info.os) && !PackageCompatibility.isValidPlatform(info.os)) {
         pushError(this.reporter.lang('incompatibleOS', process.platform));
-      }
     }
 
-    if (!this.config.ignorePlatform && Array.isArray(info.cpu)) {
-      if (!PackageCompatibility.isValidArch(info.cpu)) {
+    if (!this.config.ignorePlatform && Array.isArray(info.cpu) && !PackageCompatibility.isValidArch(info.cpu)) {
         pushError(this.reporter.lang('incompatibleCPU', process.arch));
-      }
     }
 
     if (!this.ignoreEngines && typeof info.engines === 'object') {
@@ -159,10 +155,8 @@ export default class PackageCompatibility {
           name = aliases[name];
         }
 
-        if (VERSIONS[name]) {
-          if (!testEngine(name, range, VERSIONS, this.config.looseSemver)) {
+        if (VERSIONS[name] && !testEngine(name, range, VERSIONS, this.config.looseSemver)) {
             pushError(this.reporter.lang('incompatibleEngine', name, range));
-          }
         } else if (ignore.indexOf(name) < 0) {
           this.reporter.warn(`${human}: ${this.reporter.lang('invalidEngine', name)}`);
         }
