@@ -5,14 +5,12 @@
 'use strict';
 
 // init roadrunner
-var userHome = require('user-home');
 var mkdirp = require('mkdirp');
-var path = require('path');
-var CACHE_FILENAME = path.join(userHome, '.yarn', '.roadrunner.json');
-mkdirp.sync(path.dirname(CACHE_FILENAME));
+var constants = require('../lib-legacy/constants');
+mkdirp.sync(constants.GLOBAL_INSTALL_DIRECTORY);
 var roadrunner = require('roadrunner');
-roadrunner.load(CACHE_FILENAME);
-roadrunner.setup(CACHE_FILENAME);
+roadrunner.load(constants.CACHE_FILENAME);
+roadrunner.setup(constants.CACHE_FILENAME);
 
 // get node version
 var semver = require('semver');

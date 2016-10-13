@@ -1,26 +1,20 @@
 /* @flow */
 
 import roadrunner from 'roadrunner';
+import semver from 'semver';
+import path from 'path';
 import type Config from '../../config.js';
 import {
-  GITHUB_REPO,
-  GITHUB_USER,
+  CACHE_FILENAME,
   SELF_UPDATE_DOWNLOAD_FOLDER,
-  CACHE_FILENAME
+  SELF_UPDATE_TARBALL_URL,
+  SELF_UPDATE_VERSION_URL,
 } from '../../constants.js';
 import TarballFetcher from '../../fetchers/tarball-fetcher.js';
 import type {Reporter} from '../../reporters/index.js';
 import {exists, realpath, symlink, unlink} from '../../util/fs.js';
 
-const path = require('path');
-const GitHubApi = require('github');
-
-export function setFlags(commander: Object) {
-  // token needed because it is a private repo now
-  commander.arguments('[tag]', 'e.g. v0.10.0');
-}
-
-export const noArguments = false;
+export const noArguments = true;
 export const requireLockfile = false;
 
 export async function run(
@@ -29,64 +23,38 @@ export async function run(
   flags: Object,
   args: Array<string>,
 ): Promise<void> {
-  const github = new GitHubApi({
-    debug: false,
-    protocol: 'https',
-    host: 'api.github.com',
+  const currentVersion = flags.version();
+  const latestVersion = await config.requestManager.request({
+    url: SELF_UPDATE_VERSION_URL,
     headers: {
-      'User-Agent': config.getOption('user-agent'),
+      'Accept': 'text/plain',
     },
-    Promise,
-    followRedirects: false,
-    timeout: 5000,
   });
 
-  let release;
-  const gitTag = args[0];
-  if (gitTag) {
-    release = await
-    github.repos.getReleaseByTag({
-      user: GITHUB_USER,
-      repo: GITHUB_REPO,
-      tag: gitTag,
-    });
-  } else {
-    release = await
-    github.repos.getLatestRelease({
-      user: GITHUB_USER,
-      repo: GITHUB_REPO,
-    });
-  }
-  const assets = release.assets;
-  const pkgName = `yarn-${release.tag_name}.tar.gz`;
-
-  // check with package-name as content_type is not always accurate
-  const asset = assets.find(asset => asset.name === pkgName);
-  if (!asset) {
-    reporter.error(reporter.lang('selfUpdateFailed', release.tag_name));
+  // Check if we already use the latest or a newer version
+  if (semver.compare(currentVersion, latestVersion) >= 0) {
+    reporter.success(reporter.lang('selfUpdateNoNewer'));
     return;
   }
 
-  reporter.info(reporter.lang('selfUpdateDownloading', asset.name, release.tag_name));
+  reporter.info(reporter.lang('selfUpdateDownloading', latestVersion));
 
   const thisVersionRoot = path.resolve(__dirname, '..', '..', '..');
-  const isCurrentVersionAnUpdate =
-    path.basename(path.resolve(thisVersionRoot, '..')) === SELF_UPDATE_DOWNLOAD_FOLDER;
-  let updatesFolder;
-  if (isCurrentVersionAnUpdate) {
-    updatesFolder = path.resolve(thisVersionRoot, '..');
-  } else {
+  let updatesFolder = path.resolve(thisVersionRoot, '..');
+  const isCurrentVersionAnUpdate = path.basename(updatesFolder) === SELF_UPDATE_DOWNLOAD_FOLDER;
+
+  if (!isCurrentVersionAnUpdate) {
     updatesFolder = path.resolve(thisVersionRoot, SELF_UPDATE_DOWNLOAD_FOLDER);
   }
 
-  const locToUnzip = path.resolve(updatesFolder, release.tag_name);
+  const locToUnzip = path.resolve(updatesFolder, latestVersion);
 
   await unlink(locToUnzip);
 
   const fetcher = new TarballFetcher(locToUnzip, {
     type: 'tarball',
-    registry: 'npm',
-    reference: asset.url,
+    registry: 'yarn',
+    reference: SELF_UPDATE_TARBALL_URL,
     hash: null,
   }, config, false);
   await fetcher.fetch();
@@ -111,5 +79,5 @@ export async function run(
   // reset the roadrunner cache
   roadrunner.reset(CACHE_FILENAME);
 
-  reporter.success(reporter.lang('selfUpdateReleased', release.tag_name));
+  reporter.success(reporter.lang('selfUpdateReleased', latestVersion));
 }
