@@ -58,8 +58,18 @@ commander.option(
   'use a mutex to ensure only one yarn instance is executing',
 );
 
-// get command name
-let commandName: string = args.shift() || '';
+// get command name, defaulting to `install`
+let commandName: string = 'install';
+
+for (let i = 0; i < args.length; i++) {
+  const token = args[i];
+  if (token[0] !== '-') {
+    commandName = token;
+    args.splice(i, 1);
+    break;
+  }
+}
+
 let command;
 
 //
@@ -91,13 +101,6 @@ if (commandName === 'help' || commandName === '--help' || commandName === '-h') 
   }
 }
 
-// if no args or command name looks like a flag then default to `install`
-if (!commandName || commandName[0] === '-') {
-  if (commandName) {
-    args.unshift(commandName);
-  }
-  commandName = 'install';
-}
 
 // aliases: i -> install
 // $FlowFixMe
