@@ -8,7 +8,6 @@ const userHome = require('user-home');
 const path = require('path');
 
 export default class BowerRegistry extends Registry {
-  static alwaysFlatten = true;
   static filename = 'bower.json';
 
   async loadConfig(): Promise<void> {

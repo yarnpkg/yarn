@@ -21,6 +21,7 @@ export const defaultFormatter = {
   white: formatFunction,
   gray: formatFunction,
   grey: formatFunction,
+  stripColor: formatFunction,
 };
 
 type FormatFunction = (...strs: Array<string>) => string;
@@ -44,4 +45,5 @@ export type Formatter = {
   white: FormatFunction,
   gray: FormatFunction,
   grey: FormatFunction,
+  stripColor: FormatFunction
 };

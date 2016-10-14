@@ -1,0 +1,22 @@
+HTTP/1.1 200 OK
+Date: Fri, 14 Oct 2016 21:05:41 GMT
+Content-Type: application/json
+Transfer-Encoding: chunked
+Connection: keep-alive
+Set-Cookie: __cfduid=d5104e5c00c72c4bca9229e993f2200dd1476479141; expires=Sat, 14-Oct-17 21:05:41 GMT; path=/; domain=.yarnpkg.com; HttpOnly
+etag: W/"AYV82TNJX2GFUVZQCHRZ6JGEO"
+Cache-Control: max-age=300
+Via: 1.1 varnish
+Age: 290
+X-Served-By: cache-ams4423-AMS
+X-Cache: HIT
+X-Cache-Hits: 3
+X-Timer: S1476479141.597053,VS0,VE0
+Vary: Accept-Encoding
+Server: cloudflare-nginx
+CF-RAY: 2f1dfdaaf8542b88-AMS
+
+ce0
+{"_id":"lodash._arrayeach","_rev":"9-e43b3622db3e43a5fe6e2bfcb542c81d","name":"lodash._arrayeach","description":"The modern build of lodash’s internal `arrayEach` as a module.","dist-tags":{"latest":"3.0.0"},"versions":{"3.0.0":{"name":"lodash._arrayeach","version":"3.0.0","description":"The modern build of lodash’s internal `arrayEach` as a module.","homepage":"https://lodash.com/","icon":"https://lodash.com/icon.svg","license":"MIT","author":{"name":"John-David Dalton","email":"john.david.dalton@gmail.com","url":"http://allyoucanleet.com/"},"contributors":[{"name":"John-David Dalton","email":"john.david.dalton@gmail.com","url":"http://allyoucanleet.com/"},{"name":"Benjamin Tan","email":"demoneaux@gmail.com","url":"https://d10.github.io/"},{"name":"Blaine Bublitz","email":"blaine@iceddev.com","url":"http://www.iceddev.com/"},{"name":"Kit Cambridge","email":"github@kitcambridge.be","url":"http://kitcambridge.be/"},{"name":"Mathias Bynens","email":"mathias@qiwi.be","url":"https://mathiasbynens.be/"}],"repository":{"type":"git","url":"https://github.com/lodash/lodash"},"scripts":{"test":"echo \"See https://travis-ci.org/lodash/lodash-cli for testing details.\""},"bugs":{"url":"https://github.com/lodash/lodash/issues"},"_id":"lodash._arrayeach@3.0.0","_shasum":"bab156b2a90d3f1bbd5c653403349e5e5933ef9e","_from":".","_npmVersion":"2.3.0","_nodeVersion":"0.10.35","_npmUser":{"name":"jdalton","email":"john.david.dalton@gmail.com"},"maintainers":[{"name":"jdalton","email":"john.david.dalton@gmail.com"}],"dist":{"shasum":"bab156b2a90d3f1bbd5c653403349e5e5933ef9e","tarball":"https://registry.npmjs.org/lodash._arrayeach/-/lodash._arrayeach-3.0.0.tgz"},"directories":{}}},"readme":"# lodash._arrayeach v3.0.0\n\nThe [modern build](https://github.com/lodash/lodash/wiki/Build-Differences) of [lodash’s](https://lodash.com/) internal `arrayEach` exported as a [Node.js](http://nodejs.org/)/[io.js](https://iojs.org/) module.\n\n## Installation\n\nUsing npm:\n\n```bash\n$ {sudo -H} npm i -g npm\n$ npm i --save lodash._arrayeach\n```\n\nIn Node.js/io.js:\n\n```js\nvar arrayEach = require('lodash._arrayeach');\n```\n\nSee the [package source](https://github.com/lodash/lodash/blob/3.0.0-npm-packages/lodash._arrayeach) for more details.\n","maintainers":[{"name":"jdalton","email":"john.david.dalton@gmail.com"},{"name":"mathias","email":"mathias@qiwi.be"}],"time":{"modified":"2016-10-06T16:54:12.858Z","created":"2015-01-26T15:27:43.461Z","3.0.0":"2015-01-26T15:27:43.461Z"},"homepage":"https://lodash.com/","repository":{"type":"git","url":"https://github.com/lodash/lodash"},"contributors":[{"name":"John-David Dalton","email":"john.david.dalton@gmail.com","url":"http://allyoucanleet.com/"},{"name":"Benjamin Tan","email":"demoneaux@gmail.com","url":"https://d10.github.io/"},{"name":"Blaine Bublitz","email":"blaine@iceddev.com","url":"http://www.iceddev.com/"},{"name":"Kit Cambridge","email":"github@kitcambridge.be","url":"http://kitcambridge.be/"},{"name":"Mathias Bynens","email":"mathias@qiwi.be","url":"https://mathiasbynens.be/"}],"author":{"name":"John-David Dalton","email":"john.david.dalton@gmail.com","url":"http://allyoucanleet.com/"},"bugs":{"url":"https://github.com/lodash/lodash/issues"},"license":"MIT","readmeFilename":"README.md","_attachments":{}}
+0
+

@@ -1,0 +1,24 @@
+HTTP/1.1 200 OK
+Date: Fri, 14 Oct 2016 21:05:18 GMT
+Content-Type: application/json
+Transfer-Encoding: chunked
+Connection: keep-alive
+Set-Cookie: __cfduid=d8da3b0406027b8f3eee8c5c74a0546931476479118; expires=Sat, 14-Oct-17 21:05:18 GMT; path=/; domain=.yarnpkg.com; HttpOnly
+etag: W/"EHTLU3BE2PY4VZ30RONTAM8RD"
+Cache-Control: max-age=300
+Via: 1.1 varnish
+Age: 130
+X-Served-By: cache-ams4430-AMS
+X-Cache: HIT
+X-Cache-Hits: 1
+X-Timer: S1476479118.175045,VS0,VE0
+Vary: Accept-Encoding
+Server: cloudflare-nginx
+CF-RAY: 2f1dfd189c39146d-AMS
+
+419
+{"_id":"buffer-shims","_rev":"1-35bc21d6546d2dc901e7fc269fab6c3e","name":"buffer-shims","description":"some shims for node buffers","dist-tags":{"latest":"1.0.0"},"versions":{"1.0.0":{"name":"buffer-shims","version":"1.0.0","description":"some shims for node buffers","main":"index.js","scripts":{"test":"tape test/*.js"},"files":["index.js"],"license":"MIT","devDependencies":{"tape":"^4.5.1"},"repository":{"type":"git","url":"git@github.com:calvinmetcalf/buffer-shims.git"},"gitHead":"ea89b3857ab5b8203957922a84e9a48cf4c47e0a","bugs":{"url":"https://github.com/calvinmetcalf/buffer-shims/issues"},"_id":"buffer-shims@1.0.0","_shasum":"9978ce317388c649ad8793028c3477ef044a8b51","_from":".","_npmVersion":"3.8.6","_nodeVersion":"5.11.0","_npmUser":{"name":"cwmma","email":"calvin.metcalf@gmail.com"},"dist":{"shasum":"9978ce317388c649ad8793028c3477ef044a8b51","tarball":"https://registry.npmjs.org/buffer-shims/-/buffer-shims-1.0.0.tgz"},"maintainers":[{"name":"cwmma","email":"calvin.metcalf@gmail.com"}],"_npmOperationalInternal":{"host":"package
+41a
+s-16-east.internal.npmjs.com","tmp":"tmp/buffer-shims-1.0.0.tgz_1462560889323_0.8640750856138766"},"directories":{}}},"readme":"buffer-shims\n===\n\nfunctions to make sure the new buffer methods work in older browsers.\n\n```js\nvar bufferShim = require('buffer-shims');\nbufferShim.from('foo');\nbufferShim.alloc(9, 'cafeface', 'hex');\nbufferShim.allocUnsafe(15);\nbufferShim.allocUnsafeSlow(21);\n```\n\nshould just use the original  in newer nodes and on older nodes uses fallbacks.\n\nKnown Issues\n===\n- this does not patch the buffer object, only the constructor stuff\n- it's actually a polyfill\n\n![](https://i.imgur.com/zxII3jJ.gif)\n","maintainers":[{"name":"cwmma","email":"calvin.metcalf@gmail.com"}],"time":{"modified":"2016-05-06T18:54:51.096Z","created":"2016-05-06T18:54:51.096Z","1.0.0":"2016-05-06T18:54:51.096Z"},"repository":{"type":"git","url":"git@github.com:calvinmetcalf/buffer-shims.git"},"bugs":{"url":"https://github.com/calvinmetcalf/buffer-shims/issues"},"license":"MIT","readmeFilename":"readme.md","_attachments":{}}
+0
+
