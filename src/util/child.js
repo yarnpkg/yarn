@@ -15,11 +15,18 @@ let uid = 0;
 
 export const exec = promisify(child.exec);
 
+type ProcessFn = (
+  proc: child_process$ChildProcess,
+  update: (chunk: string) => void,
+  reject: (err: mixed) => void,
+  done: () => void
+) => void;
+
 export function spawn(
   program: string,
   args: Array<string>,
-  opts?: child_process$spawnOpts = {},
-  onData?: (chunk: Buffer | String | any) => void,
+  opts?: child_process$spawnOpts & {process?: ProcessFn} = {},
+  onData?: (chunk: Buffer | string) => void,
 ): Promise<string> {
   return queue.push(opts.cwd || String(++uid), (): Promise<string> => new Promise((resolve, reject) => {
     const proc = child.spawn(program, args, opts);
@@ -38,7 +45,7 @@ export function spawn(
       }
     });
 
-    function updateStdout(chunk) {
+    function updateStdout(chunk: string) {
       stdout += chunk;
       if (onData) {
         onData(chunk);
@@ -73,7 +80,7 @@ export function spawn(
       processingDone = true;
     }
 
-    proc.on('close', (code) => {
+    proc.on('close', (code: number) => {
       if (code >= 1) {
         // TODO make this output nicer
         err = new SpawnError([

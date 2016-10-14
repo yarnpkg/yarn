@@ -73,18 +73,18 @@ export default class BaseReporter {
   peakMemory: number;
   startTime: number;
 
-  lang(key: LanguageKeys, ...args: Array<any>): string {
+  lang(key: LanguageKeys, ...args: Array<mixed>): string {
     const msg = languages[this.language][key] || languages.en[key];
     if (!msg) {
       throw new ReferenceError(`Unknown language key ${key}`);
     }
 
     // stringify args
-    args = stringifyLangArgs(args);
+    const stringifiedArgs = stringifyLangArgs(args);
 
     // replace $0 placeholders with args
-    return msg.replace(/\$(\d+)/g, function(str, i): string {
-      return args[i];
+    return msg.replace(/\$(\d+)/g, (str, i: number) => {
+      return stringifiedArgs[i];
     });
   }
 
@@ -206,7 +206,7 @@ export default class BaseReporter {
   }
 
   // render a progress bar and return a function which when called will trigger an update
-  progress(total: number): Function {
+  progress(total: number): () => void {
     return function() {};
   }
 }
