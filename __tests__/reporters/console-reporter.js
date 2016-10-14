@@ -131,15 +131,15 @@ test('ProgressBar', () => {
   const bar = new ProgressBar(2, new TestStream());
 
   bar.render();
-  expect(data).toBe('\u001b[2K\u001b[1G\u001b[1G░░ 0/2');
+  expect(data).toMatchSnapshot();
 
   bar.tick();
   bar.render();
-  expect(data).toBe('\u001b[2K\u001b[1G\u001b[1G░░ 0/2\u001b[1G█░ 1/2');
+  expect(data).toMatchSnapshot();
 
   bar.tick();
   bar.render();
-  expect(data).toBe('\u001b[2K\u001b[1G\u001b[1G░░ 0/2\u001b[1G█░ 1/2\u001b[2K\u001b[1G\u001b[1G██ 2/2');
+  expect(data).toMatchSnapshot();
 });
 
 test('Spinner', () => {
@@ -154,16 +154,16 @@ test('Spinner', () => {
   const spinner = new Spinner(new TestStream());
 
   spinner.start();
-  expect(data).toBe('\u001b[2K\u001b[1G⠁ ');
+  expect(data).toMatchSnapshot();
 
   spinner.setText('foo');
   spinner.render();
-  expect(data).toBe('\u001b[2K\u001b[1G⠁ \u001b[2K\u001b[1G⠂ foo');
+  expect(data).toMatchSnapshot();
 
   spinner.setText('bar');
   spinner.render();
-  expect(data).toBe('\u001b[2K\u001b[1G⠁ \u001b[2K\u001b[1G⠂ foo\u001b[2K\u001b[1G⠄ bar');
+  expect(data).toMatchSnapshot();
 
   spinner.stop();
-  expect(data).toBe('\u001b[2K\u001b[1G⠁ \u001b[2K\u001b[1G⠂ foo\u001b[2K\u001b[1G⠄ bar\u001b[2K\u001b[1G');
+  expect(data).toMatchSnapshot();
 });
