@@ -1,0 +1,39 @@
+{
+  "extends": "eslint-config-fb-strict",
+  "env": {
+    "jest": true
+  },
+  "plugins": [
+    "flowtype",
+    "no-async-without-await",
+    "yarn-internal"
+  ],
+  "rules": {
+    "yarn-internal/warn-language": 2,
+    "max-len": [
+      2,
+      120
+    ],
+    "prefer-arrow-callback": 0,
+    "babel/arrow-parens": [
+      2,
+      "always"
+    ],
+    "flowtype/require-valid-file-annotation": [
+      2,
+      "always"
+    ],
+    "flowtype/space-after-type-colon": [
+      2,
+      "always"
+    ],
+    "flowtype/require-return-type": [
+      2,
+      "always",
+      {
+        "excludeArrowFunctions": true
+      }
+    ],
+    "no-async-without-await/no-async-without-await": 2
+  }
+}

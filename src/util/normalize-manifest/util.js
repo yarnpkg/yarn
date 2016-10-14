@@ -5,11 +5,11 @@ import type {PersonObject} from '../../types.js';
 const validateLicense = require('validate-npm-package-license');
 
 export function isValidLicense(license: string): boolean {
-  return validateLicense(license).validForNewPackages;
+  return !!license && validateLicense(license).validForNewPackages;
 }
 
-export function stringifyPerson(person: any): any | string {
-  if (typeof person !== 'object') {
+export function stringifyPerson(person: mixed): any {
+  if (!person || typeof person !== 'object') {
     return person;
   }
 
@@ -19,19 +19,19 @@ export function stringifyPerson(person: any): any | string {
   }
 
   const email = person.email || person.mail;
-  if (email) {
+  if (typeof email === 'string') {
     parts.push(`<${email}>`);
   }
 
   const url = person.url || person.web;
-  if (url) {
+  if (typeof url === 'string') {
     parts.push(`(${url})`);
   }
 
   return parts.join(' ');
 }
 
-export function parsePerson(person: any): any | PersonObject {
+export function parsePerson(person: mixed): any {
   if (typeof person !== 'string') {
     return person;
   }

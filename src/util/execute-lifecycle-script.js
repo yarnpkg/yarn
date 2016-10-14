@@ -51,7 +51,7 @@ async function makeEnv(stage: string, cwd: string, config: Config): {
   }
 
   // add npm_config_*
-  const keys = new Set([
+  const keys: Set<string> = new Set([
     ...Object.keys(config.registries.yarn.config),
     ...Object.keys(config.registries.npm.config),
   ]);

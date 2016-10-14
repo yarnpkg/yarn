@@ -44,20 +44,19 @@ commander.option('--offline');
 commander.option('--prefer-offline');
 commander.option('--strict-semver');
 commander.option('--json', '');
-commander.option('--global-folder [path]', '');
+commander.option('--global-folder <path>', '');
 commander.option(
-  '--modules-folder [path]',
+  '--modules-folder <path>',
   'rather than installing modules into the node_modules folder relative to the cwd, output them here',
 );
 commander.option(
-  '--packages-root [path]',
-  'rather than storing modules into a global packages root, store them here',
+  '--cache-folder <path>',
+  'specify a custom folder to store the yarn cache',
 );
 commander.option(
-  '--mutex [type][:specifier]',
+  '--mutex <type>[:specifier]',
   'use a mutex to ensure only one yarn instance is executing',
 );
-commander.allowUnknownOption();
 
 // get command name
 let commandName: string = args.shift() || '';
@@ -69,10 +68,13 @@ const getDocsLink = (name) => `https://yarnpkg.com/en/docs/cli/${name || ''}`;
 const getDocsInfo = (name) => 'Visit ' + chalk.bold(getDocsLink(name)) + ' for documentation about this command.';
 
 //
-if (commandName === 'help') {
+if (commandName === 'help' || commandName === '--help' || commandName === '-h') {
+  commandName = 'help';
   if (args.length) {
     const helpCommand = hyphenate(args[0]);
-    commander.on('--help', () => console.log('  ' + getDocsInfo(helpCommand) + '\n'));
+    if (commands[helpCommand]) {
+      commander.on('--help', () => console.log('  ' + getDocsInfo(helpCommand) + '\n'));
+    }
   } else {
     commander.on('--help', () => {
       console.log('  Commands:\n');
@@ -98,11 +100,11 @@ if (!commandName || commandName[0] === '-') {
 }
 
 // aliases: i -> install
-// $FlowFixMe
 if (commandName && typeof aliases[commandName] === 'string') {
+  const alias = aliases[commandName];
   command = {
     run(config: Config, reporter: ConsoleReporter | JSONReporter): Promise<void> {
-      throw new MessageError(`Did you mean \`yarn ${aliases[commandName]}\`?`);
+      throw new MessageError(`Did you mean \`yarn ${alias}\`?`);
     },
   };
 }
@@ -123,7 +125,7 @@ if (command && typeof command.setFlags === 'function') {
 }
 
 if (commandName === 'help' || args.indexOf('--help') >= 0 || args.indexOf('-h') >= 0) {
-  const examples = (command && command.examples) || [];
+  const examples: Array<string> = (command && command.examples) || [];
   if (examples.length) {
     commander.on('--help', () => {
       console.log('  Examples:\n');
@@ -212,7 +214,7 @@ const run = (): Promise<void> => {
 const runEventuallyWithFile = (mutexFilename: ?string, isFirstTime?: boolean): Promise<void> => {
   return new Promise((ok) => {
     const lockFilename = mutexFilename || path.join(config.cwd, constants.SINGLE_INSTANCE_FILENAME);
-    lockfile.lock(lockFilename, {realpath: false}, (err, release) => {
+    lockfile.lock(lockFilename, {realpath: false}, (err: mixed, release: () => void) => {
       if (err) {
         if (isFirstTime) {
           reporter.warn(reporter.lang('waitingInstance'));
@@ -238,7 +240,7 @@ const runEventuallyWithNetwork = (mutexPort: ?string): Promise<void> => {
     };
 
     const clients = [];
-    const server = net.createServer((client) => {
+    const server = net.createServer((client: net$Socket) => {
       clients.push(client);
     });
 
@@ -255,7 +257,7 @@ const runEventuallyWithNetwork = (mutexPort: ?string): Promise<void> => {
             ok(runEventuallyWithNetwork());
           });
         })
-        .on('error', (e) => {
+        .on('error', () => {
           // No server to listen to ? :O let's retry to become the next server then.
           process.nextTick(() => {
             ok(runEventuallyWithNetwork());
@@ -285,19 +287,20 @@ const runEventuallyWithNetwork = (mutexPort: ?string): Promise<void> => {
 config.init({
   modulesFolder: commander.modulesFolder,
   globalFolder: commander.globalFolder,
-  packagesRoot: commander.packagesRoot,
+  cacheFolder: commander.cacheFolder,
   preferOffline: commander.preferOffline,
   captureHar: commander.har,
+  ignorePlatform: commander.ignorePlatform,
   ignoreEngines: commander.ignoreEngines,
   offline: commander.preferOffline || commander.offline,
   looseSemver: !commander.strictSemver,
-}).then((): Promise<void> => {
+}).then(() => {
   const exit = () => {
     process.exit(0);
   };
 
-  const mutex = commander.mutex;
-  if (mutex) {
+  const mutex: mixed = commander.mutex;
+  if (mutex && typeof mutex === 'string') {
     const parts = mutex.split(':');
     const mutexType = parts.shift();
     const mutexSpecifier = parts.join(':');
@@ -312,7 +315,7 @@ config.init({
   } else {
     return run().then(exit);
   }
-}).catch((errs) => {
+}).catch((errs: ?(Array<Error> | Error)) => {
   function logError(err) {
     if (err instanceof MessageError) {
       reporter.error(err.message);
@@ -330,8 +333,9 @@ config.init({
       logError(errs);
     }
 
-    if (commandName) {
-      reporter.info(getDocsInfo(commandName));
+    const actualCommandForHelp = commands[commandName] ? commandName : aliases[commandName];
+    if (actualCommandForHelp) {
+      reporter.info(getDocsInfo(actualCommandForHelp));
     }
   }
 

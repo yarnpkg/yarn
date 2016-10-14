@@ -1,0 +1,24 @@
+HTTP/1.1 200 OK
+Date: Fri, 14 Oct 2016 21:05:59 GMT
+Content-Type: application/json
+Transfer-Encoding: chunked
+Connection: keep-alive
+Set-Cookie: __cfduid=d443b467da69a40eed02ca8e4777b94981476479159; expires=Sat, 14-Oct-17 21:05:59 GMT; path=/; domain=.yarnpkg.com; HttpOnly
+etag: W/"BA1BO8IMBZB2DNN342TLEBYZH"
+Cache-Control: max-age=300
+Via: 1.1 varnish
+Age: 259
+X-Served-By: cache-ams4141-AMS
+X-Cache: HIT
+X-Cache-Hits: 1
+X-Timer: S1476479159.936049,VS0,VE0
+Vary: Accept-Encoding
+Server: cloudflare-nginx
+CF-RAY: 2f1dfe1d8ebe0731-AMS
+
+414
+{"_id":"home-or-tmp","_rev":"3-c33b819508a5abca4e349c56c2c63ab8","name":"home-or-tmp","description":"Get the user home directory with fallback to the system temp directory","dist-tags":{"latest":"2.0.0"},"versions":{"1.0.0":{"name":"home-or-tmp","version":"1.0.0","description":"Get the user home directory with fallback to the system temp directory","license":"MIT","repository":{"type":"git","url":"https://github.com/sindresorhus/home-or-tmp"},"author":{"name":"Sindre Sorhus","email":"sindresorhus@gmail.com","url":"sindresorhus.com"},"engines":{"node":">=0.10.0"},"scripts":{"test":"node test.js"},"files":["index.js"],"keywords":["user","home","homedir","dir","directory","folder","path","tmp","temp","fallback","graceful"],"dependencies":{"os-tmpdir":"^1.0.1","user-home":"^1.1.1"},"devDependencies":{"ava":"0.0.4"},"gitHead":"d74b7b3af367dddde6138061ca67118f86011b67","bugs":{"url":"https://github.com/sindresorhus/home-or-tmp/issues"},"homepage":"https://github.com/sindresorhus/home-or-tmp","_id":"home-or-tmp@1.0.0","_shasum":"4b9f1e
+c01
+40800c3e50c6c27f781676afcce71f3985","_from":".","_npmVersion":"2.9.1","_nodeVersion":"0.12.3","_npmUser":{"name":"sindresorhus","email":"sindresorhus@gmail.com"},"dist":{"shasum":"4b9f1e40800c3e50c6c27f781676afcce71f3985","tarball":"https://registry.npmjs.org/home-or-tmp/-/home-or-tmp-1.0.0.tgz"},"maintainers":[{"name":"sindresorhus","email":"sindresorhus@gmail.com"}],"directories":{}},"2.0.0":{"name":"home-or-tmp","version":"2.0.0","description":"Get the user home directory with fallback to the system temp directory","license":"MIT","repository":{"type":"git","url":"https://github.com/sindresorhus/home-or-tmp"},"author":{"name":"Sindre Sorhus","email":"sindresorhus@gmail.com","url":"sindresorhus.com"},"engines":{"node":">=0.10.0"},"scripts":{"test":"node test.js"},"files":["index.js"],"keywords":["user","home","homedir","dir","directory","folder","path","tmp","temp","temporary","fallback","graceful","userprofile"],"dependencies":{"os-homedir":"^1.0.0","os-tmpdir":"^1.0.1"},"devDependencies":{"ava":"0.0.4"},"gitHead":"dd1411a0b2531a4e2c592ae733fd45dd0f9c7163","bugs":{"url":"https://github.com/sindresorhus/home-or-tmp/issues"},"homepage":"https://github.com/sindresorhus/home-or-tmp","_id":"home-or-tmp@2.0.0","_shasum":"e36c3f2d2cae7d746a857e38d18d5f32a7882db8","_from":".","_npmVersion":"2.10.1","_nodeVersion":"0.12.4","_npmUser":{"name":"sindresorhus","email":"sindresorhus@gmail.com"},"dist":{"shasum":"e36c3f2d2cae7d746a857e38d18d5f32a7882db8","tarball":"https://registry.npmjs.org/home-or-tmp/-/home-or-tmp-2.0.0.tgz"},"maintainers":[{"name":"sindresorhus","email":"sindresorhus@gmail.com"}],"directories":{}}},"readme":"# home-or-tmp [![Build Status](https://travis-ci.org/sindresorhus/home-or-tmp.svg?branch=master)](https://travis-ci.org/sindresorhus/home-or-tmp)\n\n> Get the user home directory with fallback to the system temp directory\n\nUseful in cases where the home directory either isn't set or doesn't exist.\n\n\n## Install\n\n```\n$ npm install --save home-or-tmp\n```\n\n\n## Usage\n\n```js\nvar homeOrTmp = require('home-or-tmp');\n\nconsole.log(homeOrTmp);\n//=> '/Users/sindresorhus'\n\n// and if there's no home directory:\n\nconsole.log(homeOrTmp);\n//=> '/var/folders/m3/5574nnhn0yj488ccryqr7tc80000gn/T'\n```\n\n\n## License\n\nMIT © [Sindre Sorhus](http://sindresorhus.com)\n","maintainers":[{"name":"sindresorhus","email":"sindresorhus@gmail.com"}],"time":{"modified":"2015-06-13T12:42:42.545Z","created":"2015-05-17T22:19:07.323Z","1.0.0":"2015-05-17T22:19:07.323Z","2.0.0":"2015-06-13T12:42:42.545Z"},"homepage":"https://github.com/sindresorhus/home-or-tmp","keywords":["user","home","homedir","dir","directory","folder","path","tmp","temp","temporary","fallback","graceful","userprofile"],"repository":{"type":"git","url":"https://github.com/sindresorhus/home-or-tmp"},"author":{"name":"Sindre Sorhus","email":"sindresorhus@gmail.com","url":"sindresorhus.com"},"bugs":{"url":"https://github.com/sindresorhus/home-or-tmp/issues"},"license":"MIT","readmeFilename":"readme.md","users":{"ristomatti":true},"_attachments":{}}
+0
+

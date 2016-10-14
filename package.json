@@ -4,7 +4,6 @@
   "license": "BSD-2-Clause",
   "preferGlobal": true,
   "dependencies": {
-    "babel-plugin-transform-inline-imports-commonjs": "^1.0.0",
     "babel-runtime": "^6.0.0",
     "bytes": "^2.4.0",
     "camelcase": "^3.0.0",
@@ -47,6 +46,7 @@
     "babel-jest": "^14.0.0",
     "babel-loader": "^6.2.5",
     "babel-plugin-transform-es2015-typeof-symbol": "^6.8.0",
+    "babel-plugin-transform-inline-imports-commonjs": "^1.0.0",
     "babel-plugin-transform-runtime": "^6.4.3",
     "babel-preset-es2015": "^6.3.13",
     "babel-preset-es2015-node4": "^2.1.0",
@@ -58,7 +58,6 @@
     "eslint-config-fbjs": "^1.0.0",
     "eslint-config-kittens": "^2.0.1",
     "eslint-plugin-babel": "^3.3.0",
-    "eslint-plugin-flow-vars": "^0.4.0",
     "eslint-plugin-flowtype": "^2.15.0",
     "eslint-plugin-no-async-without-await": "^1.0.0",
     "eslint-plugin-yarn-internal": "file:scripts/eslint-rules",
@@ -75,10 +74,7 @@
     "temp": "^0.8.3",
     "webpack": "^2.1.0-beta.25"
   },
-  "repository": {
-    "type": "git",
-    "url": "git://github.com/yarnpkg/yarn.git"
-  },
+  "repository": "yarnpkg/yarn",
   "bin": {
     "yarn": "./bin/yarn.js"
   },
@@ -95,45 +91,6 @@
     "build-chocolatey": "powershell ./scripts/build-chocolatey.ps1",
     "build-win-installer": "scripts\\build-windows-installer.bat"
   },
-  "eslintConfig": {
-    "extends": "eslint-config-fb-strict",
-    "env": {
-      "jest": true
-    },
-    "plugins": [
-      "flowtype",
-      "no-async-without-await",
-      "yarn-internal"
-    ],
-    "rules": {
-      "yarn-internal/warn-language": 2,
-      "max-len": [
-        2,
-        120
-      ],
-      "prefer-arrow-callback": 0,
-      "babel/arrow-parens": [
-        2,
-        "always"
-      ],
-      "flowtype/require-valid-file-annotation": [
-        2,
-        "always"
-      ],
-      "flowtype/space-after-type-colon": [
-        2,
-        "always"
-      ],
-      "flowtype/require-return-type": [
-        2,
-        "always",
-        {
-          "excludeArrowFunctions": true
-        }
-      ],
-      "no-async-without-await/no-async-without-await": 2
-    }
-  },
   "jest": {
     "timers": "fake",
     "testEnvironment": "node",
@@ -143,7 +100,7 @@
     "testPathIgnorePatterns": [
       "__tests__/(fixtures|__mocks__)/",
       "updates/",
-      "/_(temp|mock|install).js$"
+      "/_(temp|mock|install|init).js$"
     ]
   }
 }

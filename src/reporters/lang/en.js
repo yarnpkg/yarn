@@ -68,6 +68,7 @@ const messages = {
   noName: `Package doesn't have a name.`,
   noVersion: `Package doesn't have a version.`,
   answerRequired: 'An answer is required.',
+  missingWhyDependency: 'Missing package name, folder or path to file to identify why a package has been installed',
 
   tooManyArguments: 'Too many arguments, maximum of $0.',
   tooFewArguments: 'Not enough arguments, expected at least $0.',

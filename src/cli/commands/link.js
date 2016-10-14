@@ -55,6 +55,7 @@ export async function run(
     if (await fs.exists(linkLoc)) {
       throw new MessageError(reporter.lang('linkCollision', name));
     } else {
+      await fs.mkdirp(path.dirname(linkLoc));
       await fs.symlink(config.cwd, linkLoc);
       reporter.success(reporter.lang('linkRegistered', name));
       reporter.info(reporter.lang('linkInstallMessage', name));

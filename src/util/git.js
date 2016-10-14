@@ -18,7 +18,7 @@ type GitRefs = {
   [name: string]: string
 };
 
-const supportsArchiveCache = map({
+const supportsArchiveCache: { [key: string]: ?boolean } = map({
   'github.com': false, // not support, doubt they will ever support it
 });
 
@@ -249,7 +249,7 @@ export default class Git {
           parser.on('error', reject);
           parser.on('end', done);
 
-          parser.on('data', function(entry) {
+          parser.on('data', (entry: Buffer) => {
             update(entry.toString());
           });
 
@@ -344,7 +344,7 @@ export default class Git {
     for (const line of refLines) {
       // line example: 64b2c0cee9e829f73c5ad32b8cc8cb6f3bec65bb refs/tags/v4.2.2
       const [sha, id] = line.split(/\s+/g);
-      let [,, name] = id.split('/');
+      let name = id.split('/').slice(2).join('/');
 
       // TODO: find out why this is necessary. idk it makes it work...
       name = removeSuffix(name, '^{}');

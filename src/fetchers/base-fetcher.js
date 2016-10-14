@@ -1,7 +1,7 @@
 /* @flow */
 /* eslint no-unused-vars: 0 */
 
-import type {Manifest, PackageRemote, FetchedMetadata, FetchedOverride} from '../types.js';
+import type {PackageRemote, FetchedMetadata, FetchedOverride} from '../types.js';
 import type {RegistryNames} from '../registries/index.js';
 import type Config from '../config.js';
 import * as constants from '../constants.js';
@@ -28,7 +28,7 @@ export default class BaseFetcher {
   dest: string;
 
   getResolvedFromCached(hash: string): Promise<?string> {
-    // fetcher subclasses may use this to perform actions such as copying over a cached tarbal to the offline
+    // fetcher subclasses may use this to perform actions such as copying over a cached tarball to the offline
     // mirror etc
     return Promise.resolve();
   }
@@ -49,11 +49,11 @@ export default class BaseFetcher {
       // load the new normalized manifest
       const pkg = await this.config.readManifest(dest, this.registry);
 
-      await fs.writeFile(path.join(dest, constants.METADATA_FILENAME), JSON.stringify({
+      await fs.writeFile(path.join(dest, constants.METADATA_FILENAME), util.stringify({
         remote: this.remote,
         registry: this.registry,
         hash,
-      }, null, '  '));
+      }));
 
       return {
         resolved,

@@ -1,8 +1,6 @@
 'use strict';
 
 const plumber = require('gulp-plumber');
-const stream = require('stream');
-const chalk = require('chalk');
 const newer = require('gulp-newer');
 const babel = require('gulp-babel');
 const watch = require('gulp-watch');

@@ -1,0 +1,22 @@
+HTTP/1.1 200 OK
+Date: Fri, 14 Oct 2016 21:05:55 GMT
+Content-Type: application/json
+Transfer-Encoding: chunked
+Connection: keep-alive
+Set-Cookie: __cfduid=ded7c2d5f76eef5b5f66f7b028faed7fe1476479155; expires=Sat, 14-Oct-17 21:05:55 GMT; path=/; domain=.yarnpkg.com; HttpOnly
+etag: W/"69KC1T1PSO1737K2Q0HV99JAI"
+Cache-Control: max-age=300
+Via: 1.1 varnish
+Age: 266
+X-Served-By: cache-ams4148-AMS
+X-Cache: HIT
+X-Cache-Hits: 1
+X-Timer: S1476479155.196132,VS0,VE0
+Vary: Accept-Encoding
+Server: cloudflare-nginx
+CF-RAY: 2f1dfdffff070c2f-AMS
+
+d12
+{"_id":"is-utf8","_rev":"8-aaef4be735fafceac018bb021ecb3a79","name":"is-utf8","description":"Detect if a buffer is utf8 encoded.","dist-tags":{"latest":"0.2.1"},"versions":{"0.1.0":{"name":"is-utf8","version":"0.1.0","description":"detect if a buffer is utf8 encoded.","main":"is-utf8.js","scripts":{"test":"echo \"Error: no test specified\" && exit 1"},"repository":{"type":"git","url":"https://github.com/wayfind/is-utf8.git"},"keywords":["utf8","charset"],"author":{"name":"wayfind"},"license":"BSD","_id":"is-utf8@0.1.0","dist":{"shasum":"813d72a6f0219952b3814f38cd277876802d9ebb","tarball":"https://registry.npmjs.org/is-utf8/-/is-utf8-0.1.0.tgz"},"_npmVersion":"1.1.59","_npmUser":{"name":"wayfind","email":"whyer1@gmail.com"},"maintainers":[{"name":"wayfind","email":"whyer1@gmail.com"}],"directories":{}},"0.2.0":{"name":"is-utf8","version":"0.2.0","description":"detect if a buffer is utf8 encoded.","main":"is-utf8.js","scripts":{"test":"node test.js"},"repository":{"type":"git","url":"https://github.com/wayfind/is-utf8.git"},"keywords":["utf8","charset"],"author":{"name":"wayfind"},"license":"BSD","_id":"is-utf8@0.2.0","dist":{"shasum":"b8aa54125ae626bfe4e3beb965f16a89c58a1137","tarball":"https://registry.npmjs.org/is-utf8/-/is-utf8-0.2.0.tgz"},"_npmVersion":"1.1.59","_npmUser":{"name":"wayfind","email":"whyer1@gmail.com"},"maintainers":[{"name":"wayfind","email":"whyer1@gmail.com"}],"directories":{}},"0.2.1":{"name":"is-utf8","version":"0.2.1","description":"Detect if a buffer is utf8 encoded.","main":"is-utf8.js","scripts":{"test":"node test.js"},"repository":{"type":"git","url":"git+https://github.com/wayfind/is-utf8.git"},"keywords":["utf8","charset"],"files":["is-utf8.js"],"author":{"name":"wayfind"},"license":"MIT","gitHead":"709df7202f9c3f93cdc2463b352dd80d8de9ce0b","bugs":{"url":"https://github.com/wayfind/is-utf8/issues"},"homepage":"https://github.com/wayfind/is-utf8#readme","_id":"is-utf8@0.2.1","_shasum":"4b0da1442104d1b336340e80797e865cf39f7d72","_from":".","_npmVersion":"2.12.1","_nodeVersion":"2.3.4","_npmUser":{"name":"wayfind","email":"whyer1@gmail.com"},"maintainers":[{"name":"wayfind","email":"whyer1@gmail.com"}],"dist":{"shasum":"4b0da1442104d1b336340e80797e865cf39f7d72","tarball":"https://registry.npmjs.org/is-utf8/-/is-utf8-0.2.1.tgz"},"directories":{}}},"readme":"#utf8 detector\n\nDetect if a Buffer is utf8 encoded. \nIt need The minimum amount of bytes is 4.\n\n\n```javascript\n    var fs = require('fs');\n    var isUtf8 = require('is-utf8');\n    var ansi = fs.readFileSync('ansi.txt');\n    var utf8 = fs.readFileSync('utf8.txt');\n    \n    console.log('ansi.txt is utf8: '+isUtf8(ansi)); //false\n    console.log('utf8.txt is utf8: '+isUtf8(utf8)); //true\n```\n    \n","maintainers":[{"name":"wayfind","email":"whyer1@gmail.com"}],"time":{"modified":"2015-12-19T04:04:22.462Z","created":"2012-09-12T09:23:46.194Z","0.1.0":"2012-09-12T09:23:51.635Z","0.2.0":"2012-09-12T09:47:48.160Z","0.2.1":"2015-12-19T04:04:22.462Z"},"author":{"name":"wayfind"},"repository":{"type":"git","url":"git+https://github.com/wayfind/is-utf8.git"},"users":{"alanshaw":true,"robermac":true},"homepage":"https://github.com/wayfind/is-utf8#readme","keywords":["utf8","charset"],"bugs":{"url":"https://github.com/wayfind/is-utf8/issues"},"license":"MIT","readmeFilename":"README.md","_attachments":{}}
+0
+
