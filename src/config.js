@@ -111,7 +111,7 @@ export default class Config {
       return cached;
     }
 
-    return this.cache[key] = factory().catch((err) => {
+    return this.cache[key] = factory().catch((err: mixed) => {
       this.cache[key] = null;
       throw err;
     });

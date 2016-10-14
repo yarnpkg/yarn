@@ -11,7 +11,7 @@ const semver = require('semver');
 const path = require('path');
 const url = require('url');
 
-const LICENSE_RENAMES = {
+const LICENSE_RENAMES: { [key: string]: ?string } = {
   'MIT/X11': 'MIT',
   X11: 'MIT',
 };

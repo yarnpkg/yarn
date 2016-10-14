@@ -1,9 +1,0 @@
-HTTP/1.1 200 OK
-Server: Cowboy
-Connection: keep-alive
-Content-Type: application/json
-Date: Wed, 07 Sep 2016 14:25:04 GMT
-Content-Length: 81
-Via: 1.1 vegur
-
-{"name":"webcomponentsjs","url":"https://github.com/Polymer/webcomponentsjs.git"}
