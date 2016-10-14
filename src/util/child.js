@@ -1,5 +1,5 @@
 /* @flow */
-/* global child_process$spawnOpts */
+/* global child_process$ChildProcess */
 
 import * as constants from '../constants.js';
 import BlockingQueue from './blocking-queue.js';
@@ -15,10 +15,22 @@ let uid = 0;
 
 export const exec = promisify(child.exec);
 
+type SpawnOptions = {
+  cwd?: string,
+  env?: Object,
+  stdio?: string | Array<any>,
+  detached?: boolean,
+  uid?: number,
+  gid?: number,
+  windowsVerbatimArguments?: boolean,
+  process?: (proc: child_process$ChildProcess,
+    resolve: Function, reject: Function, done: Function) => void,
+};
+
 export function spawn(
   program: string,
   args: Array<string>,
-  opts?: child_process$spawnOpts = {},
+  opts?: $Shape<SpawnOptions> = {},
   onData?: (chunk: Buffer | String | any) => void,
 ): Promise<string> {
   return queue.push(opts.cwd || String(++uid), (): Promise<string> => new Promise((resolve, reject) => {
