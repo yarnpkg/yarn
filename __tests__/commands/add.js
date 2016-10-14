@@ -273,7 +273,7 @@ test.concurrent('install with --save and without offline mirror', (): Promise<vo
     const rawLockfile = await fs.readFile(path.join(config.cwd, constants.LOCKFILE_FILENAME));
     const lockfile = parse(rawLockfile);
     assert.equal(lockfile['is-array@^1.0.1']['resolved'],
-      'https://registry.yarnpkg.com/is-array/-/is-array-1.0.1.tgz#e9850cc2cc860c3bc0977e84ccf0dd464584279a');
+      'https://registry.npmjs.org/is-array/-/is-array-1.0.1.tgz#e9850cc2cc860c3bc0977e84ccf0dd464584279a');
   });
 });
 
