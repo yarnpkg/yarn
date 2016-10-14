@@ -14,7 +14,7 @@ export async function execFromManifest(config: Config, commandName: string, pkg:
     return;
   }
 
-  const cmd = pkg.scripts[commandName];
+  const cmd: ?string = pkg.scripts[commandName];
   if (cmd) {
     await execCommand(commandName, config, cmd, cwd);
   }

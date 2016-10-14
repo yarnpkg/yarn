@@ -32,7 +32,7 @@ export default function(rootCommandName: string, subCommands: SubCommands, usage
     flags: Object,
     args: Array<string>,
   ): Promise<void> {
-    const subName = camelCase(args.shift() || '');
+    const subName: string = camelCase(args.shift() || '');
     const isValidCommand = subName && subCommandNames.indexOf(subName) >= 0;
     if (isValidCommand) {
       const command: CLIFunction = subCommands[subName];

@@ -32,7 +32,7 @@ export const {run, setFlags} = buildSubCommands('cache', {
   },
 
   dir(config: Config) {
-    console.log(config.packagesRoot);
+    console.log(config.cacheFolder);
   },
 
   async clean(

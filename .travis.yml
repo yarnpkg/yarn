@@ -46,8 +46,7 @@ install:
  - npm install
 
 os:
-  - osx
+  #- osx
   - linux
 
 script: npm run $TEST_TYPE
-

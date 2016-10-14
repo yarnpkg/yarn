@@ -54,7 +54,7 @@ export default class TarballFetcher extends BaseFetcher {
   createExtractor(
     mirrorPath: ?string,
     resolve: (fetched: FetchedOverride) => void,
-    reject: (error: any) => void,
+    reject: (error: Error) => void,
   ): {
     validateStream: crypto.HashStream,
     extractorStream: UnpackStream,

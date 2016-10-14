@@ -9,15 +9,15 @@
 </p>
 
 <p align="center">
-  <a href="https://travis-ci.org/yarnpkg/yarn"><img alt="Travis Status" src="https://travis-ci.com/yarnpkg/yarn.svg?token=DxqWAqRqs3zWAF8EhBHy"></a>
+  <a href="https://travis-ci.org/yarnpkg/yarn"><img alt="Travis Status" src="https://travis-ci.org/yarnpkg/yarn.svg"></a>
   <a href="https://circleci.com/gh/yarnpkg/yarn"><img alt="Circle Status" src="https://circleci.com/gh/yarnpkg/yarn.svg?style=svg&circle-token=5f0a78473b0f440afb218bf2b82323cc6b3cb43f"></a>
-  <a href="https://ci.appveyor.com/project/yarnpkg/yarn/branch/master"><img alt="Appveyor Status" src="https://ci.appveyor.com/api/projects/status/rhcdj4980ccy7su3/branch/master?svg=true"></a>
+  <a href="https://ci.appveyor.com/project/kittens/yarn/branch/master"><img alt="Appveyor Status" src="https://ci.appveyor.com/api/projects/status/0xdv8chwe2kmk463?svg=true"></a>
   <a href="https://discord.gg/yarnpkg"><img alt="Discord Chat" src="https://discordapp.com/api/guilds/226791405589233664/widget.png"></a>
 </p>
 
 ---
 
-**Fast:** Yarn caches every package it downloads so it never needs to again. It also parallelizes operations to maximize resource utilization so install times are faster than ever.
+**Fast:** Yarn caches every package it downloads so it never needs to download the same package again. It also parallelizes operations to maximize resource utilization so install times are faster than ever.
 
 **Reliable:** Using a detailed, but concise, lockfile format, and a deterministic algorithm for installs, Yarn is able to guarantee that an install that worked on one system will work exactly the same way on any other system.
 

@@ -2,23 +2,22 @@
 # yarn lockfile v1
 dep-a@1.0.0:
   version "1.0.0"
-  resolved dep-a-1.0.0.tgz#60bffb29fffe0216df658379ff3b13663de48e18
+  resolved dep-a-1.0.0.tgz
   dependencies:
     dep-b "1.0.0"
 
 dep-b@1.0.0:
   version "1.0.0"
-  resolved dep-b-1.0.0.tgz#e6f01f6c76e9ebfc8e52d82e539edc0a3b042273
+  resolved dep-b-1.0.0.tgz
   dependencies:
     dep-c "1.0.0"
 
 dep-c@1.0.0:
   version "1.0.0"
-  resolved dep-c-1.0.0.tgz#968769f835949a29dbb6a45884b5bdcee3ab9b20
+  resolved dep-c-1.0.0.tgz
   dependencies:
     dep-d "1.0.0"
 
 dep-d@1.0.0:
   version "1.0.0"
-  resolved dep-d-1.0.0.tgz#9181cda471e87b58999ee57afc73f87fa2a7f744
-
+  resolved dep-d-1.0.0.tgz
