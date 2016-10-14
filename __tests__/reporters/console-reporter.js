@@ -9,7 +9,9 @@ import build from './_mock.js';
 const getConsoleBuff = build(ConsoleReporter, (data): MockData => data);
 const stream = require('stream');
 
+// ensures consistency across environments
 require('chalk').enabled = true;
+require('ansi-styles').blue.open = '\u001b[34m';
 
 test('ConsoleReporter.step', async () => {
   expect(await getConsoleBuff((r) => {
