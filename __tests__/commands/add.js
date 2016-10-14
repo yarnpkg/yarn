@@ -274,7 +274,7 @@ test.concurrent('install with --save and without offline mirror', (): Promise<vo
     const lockfile = parse(rawLockfile);
     assert(
       lockfile['is-array@^1.0.1']['resolved']
-        .indexOf('is-array-1.0.1.tgz#e9850cc2cc860c3bc0977e84ccf0dd464584279a') >= 0
+        .indexOf('is-array-1.0.1.tgz#e9850cc2cc860c3bc0977e84ccf0dd464584279a') >= 0,
     );
   });
 });
