@@ -1,6 +1,6 @@
 /* @flow */
 
-export default {
+export const aliases = {
   // shorthands
   'run-script': 'run',
   c: 'config',
@@ -14,8 +14,9 @@ export default {
   un: 'remove',
   up: 'update',
   v: 'info',
+};
 
-  // affordances
+export const affordances = {
   'add-user': 'login',
   'dist-tag': 'tag',
   'dist-tags': 'tag',

@@ -6,7 +6,7 @@ import * as commands from './commands/index.js';
 import * as constants from '../constants.js';
 import * as network from '../util/network.js';
 import {MessageError} from '../errors.js';
-import aliases from './aliases.js';
+import {affordances, aliases} from './aliases.js';
 import Config from '../config.js';
 
 const camelCase = require('camelcase');
@@ -99,14 +99,18 @@ if (!commandName || commandName[0] === '-') {
   commandName = 'install';
 }
 
-// aliases: i -> install
-// $FlowFixMe
-if (commandName && typeof aliases[commandName] === 'string') {
+// affordances:  verison -> version?
+if (commandName && typeof affordances[commandName] === 'string') {
   command = {
     run(config: Config, reporter: ConsoleReporter | JSONReporter): Promise<void> {
-      throw new MessageError(`Did you mean \`yarn ${aliases[commandName]}\`?`);
+      throw new MessageError(`Did you mean \`yarn ${affordances[commandName]}\`?`);
     },
   };
+}
+
+// aliases: i -> install
+if (commandName && typeof aliases[commandName] === 'string') {
+  commandName = aliases[commandName];
 }
 
 //
