@@ -10,7 +10,7 @@ function clean(str: string): string {
     .toLowerCase();
 }
 
-const REGEXES = {
+const REGEXES: { [key: string]: Array<RegExp> } = {
   Unlicense: [/http:\/\/unlicense.org\//],
   WTFPL: [/DO WHAT THE FUCK YOU WANT TO PUBLIC LICENSE/, /WTFPL\b/],
   ISC: [/The ISC License/, /ISC\b/],

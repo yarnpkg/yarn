@@ -8,7 +8,7 @@ function shouldWrapKey(str: string): boolean {
          /[:\s\n\\",\[\]]/g.test(str) || /^[0-9]/g.test(str) || !/^[a-zA-Z]/g.test(str);
 }
 
-function maybeWrap(str: string): string {
+function maybeWrap(str: string | boolean | number): string {
   if (typeof str === 'boolean' || typeof str === 'number' || shouldWrapKey(str)) {
     return JSON.stringify(str);
   } else {
@@ -16,7 +16,7 @@ function maybeWrap(str: string): string {
   }
 }
 
-const priorities = {
+const priorities: { [key: string]: ?number } = {
   name: 1,
   version: 2,
   uid: 3,
@@ -38,7 +38,7 @@ type Options = {
   topLevel?: boolean,
 };
 
-function _stringify(obj: Object, options: Options): string {
+function _stringify(obj: { [key: string]: mixed }, options: Options): string {
   if (typeof obj !== 'object') {
     throw new TypeError();
   }
