@@ -9,6 +9,8 @@ import build from './_mock.js';
 const getConsoleBuff = build(ConsoleReporter, (data): MockData => data);
 const stream = require('stream');
 
+require('chalk').enabled = true;
+
 test('ConsoleReporter.step', async () => {
   expect(await getConsoleBuff((r) => {
     r.step(1, 5, 'foboar');
