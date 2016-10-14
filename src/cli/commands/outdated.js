@@ -59,7 +59,7 @@ export async function run(
         PackageRequest.getExoticResolver(normalized.range)) {
       latest = wanted = 'exotic';
     } else {
-      ({latest, wanted} = await config.registries[locked.registry].checkOutdated(config, name, normalized.range));
+      ({latest, wanted} = await config.registries[locked.registry].checkOutdated(config, name.replace('/', '%2F'), normalized.range));
     }
 
     if (current === latest) {
