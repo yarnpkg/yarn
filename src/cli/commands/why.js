@@ -42,7 +42,7 @@ async function getPackageSize([loc, info]): Promise<number> {
   ]));
   const sizes = await Promise.all(
     files.map(
-      (walkFile) => fs.fileSizeOnDisk(walkFile.absolute),
+      (walkFile) => fs.getFileSizeOnDisk(walkFile.absolute),
     ),
   );
 
