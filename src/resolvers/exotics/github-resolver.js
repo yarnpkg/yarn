@@ -26,7 +26,7 @@ export default class GitHubResolver extends HostedGitResolver {
   }
 
   static getGitSSHUrl(parts: ExplodedFragment): string {
-    return `git@github.com:${parts.user}/${parts.repo}.git`;
+    return `git://git@github.com:${parts.user}/${parts.repo}.git`;
   }
 
   static getGitHTTPUrl(parts: ExplodedFragment): string {
