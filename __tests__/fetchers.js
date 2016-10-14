@@ -18,6 +18,8 @@ async function createConfig(): Promise<Config> {
   return config;
 }
 
+jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000;
+
 test('BaseFetcher.fetch', async () => {
   const dir = await mkdir('base-fetcher');
   const fetcher = new BaseFetcher(dir, {

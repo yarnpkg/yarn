@@ -1,6 +1,6 @@
 exports[`test ConsoleReporter.activity 1`] = `
 Object {
-  "stderr": "[2K[1G⠁ [2K[1G",
+  "stderr": "[1G⠁ [0K[2K[1G",
   "stdout": "",
 }
 `;
@@ -105,3 +105,17 @@ Object {
   "stdout": "",
 }
 `;
+
+exports[`test ProgressBar 1`] = `"[2K[1G[1G░░ 0/2"`;
+
+exports[`test ProgressBar 2`] = `"[2K[1G[1G░░ 0/2[1G█░ 1/2"`;
+
+exports[`test ProgressBar 3`] = `"[2K[1G[1G░░ 0/2[1G█░ 1/2[2K[1G[1G██ 2/2"`;
+
+exports[`test Spinner 1`] = `"[1G⠁ [0K"`;
+
+exports[`test Spinner 2`] = `"[1G⠁ [0K[1G⠂ foo[0K"`;
+
+exports[`test Spinner 3`] = `"[1G⠁ [0K[1G⠂ foo[0K[1G⠄ bar[0K"`;
+
+exports[`test Spinner 4`] = `"[1G⠁ [0K[1G⠂ foo[0K[1G⠄ bar[0K[2K[1G"`;

@@ -1,0 +1,22 @@
+HTTP/1.1 200 OK
+Date: Fri, 14 Oct 2016 21:05:40 GMT
+Content-Type: application/json
+Transfer-Encoding: chunked
+Connection: keep-alive
+Set-Cookie: __cfduid=db667664f60b0fd91bab7a0cac00fba751476479140; expires=Sat, 14-Oct-17 21:05:40 GMT; path=/; domain=.yarnpkg.com; HttpOnly
+etag: W/"BPF63G3OOITUY2G75O703FK3O"
+Cache-Control: max-age=300
+Via: 1.1 varnish
+Age: 289
+X-Served-By: cache-ams4142-AMS
+X-Cache: HIT
+X-Cache-Hits: 1
+X-Timer: S1476479140.913126,VS0,VE0
+Vary: Accept-Encoding
+Server: cloudflare-nginx
+CF-RAY: 2f1dfda6a97b149d-AMS
+
+ce0
+{"_id":"lodash._arraycopy","_rev":"9-c71de11f40309cf04c9c7c00e80ae635","name":"lodash._arraycopy","description":"The modern build of lodash’s internal `arrayCopy` as a module.","dist-tags":{"latest":"3.0.0"},"versions":{"3.0.0":{"name":"lodash._arraycopy","version":"3.0.0","description":"The modern build of lodash’s internal `arrayCopy` as a module.","homepage":"https://lodash.com/","icon":"https://lodash.com/icon.svg","license":"MIT","author":{"name":"John-David Dalton","email":"john.david.dalton@gmail.com","url":"http://allyoucanleet.com/"},"contributors":[{"name":"John-David Dalton","email":"john.david.dalton@gmail.com","url":"http://allyoucanleet.com/"},{"name":"Benjamin Tan","email":"demoneaux@gmail.com","url":"https://d10.github.io/"},{"name":"Blaine Bublitz","email":"blaine@iceddev.com","url":"http://www.iceddev.com/"},{"name":"Kit Cambridge","email":"github@kitcambridge.be","url":"http://kitcambridge.be/"},{"name":"Mathias Bynens","email":"mathias@qiwi.be","url":"https://mathiasbynens.be/"}],"repository":{"type":"git","url":"https://github.com/lodash/lodash"},"scripts":{"test":"echo \"See https://travis-ci.org/lodash/lodash-cli for testing details.\""},"bugs":{"url":"https://github.com/lodash/lodash/issues"},"_id":"lodash._arraycopy@3.0.0","_shasum":"76e7b7c1f1fb92547374878a562ed06a3e50f6e1","_from":".","_npmVersion":"2.3.0","_nodeVersion":"0.10.35","_npmUser":{"name":"jdalton","email":"john.david.dalton@gmail.com"},"maintainers":[{"name":"jdalton","email":"john.david.dalton@gmail.com"}],"dist":{"shasum":"76e7b7c1f1fb92547374878a562ed06a3e50f6e1","tarball":"https://registry.npmjs.org/lodash._arraycopy/-/lodash._arraycopy-3.0.0.tgz"},"directories":{}}},"readme":"# lodash._arraycopy v3.0.0\n\nThe [modern build](https://github.com/lodash/lodash/wiki/Build-Differences) of [lodash’s](https://lodash.com/) internal `arrayCopy` exported as a [Node.js](http://nodejs.org/)/[io.js](https://iojs.org/) module.\n\n## Installation\n\nUsing npm:\n\n```bash\n$ {sudo -H} npm i -g npm\n$ npm i --save lodash._arraycopy\n```\n\nIn Node.js/io.js:\n\n```js\nvar arrayCopy = require('lodash._arraycopy');\n```\n\nSee the [package source](https://github.com/lodash/lodash/blob/3.0.0-npm-packages/lodash._arraycopy) for more details.\n","maintainers":[{"name":"jdalton","email":"john.david.dalton@gmail.com"},{"name":"mathias","email":"mathias@qiwi.be"}],"time":{"modified":"2016-10-06T16:54:11.356Z","created":"2015-01-26T15:27:42.598Z","3.0.0":"2015-01-26T15:27:42.598Z"},"homepage":"https://lodash.com/","repository":{"type":"git","url":"https://github.com/lodash/lodash"},"contributors":[{"name":"John-David Dalton","email":"john.david.dalton@gmail.com","url":"http://allyoucanleet.com/"},{"name":"Benjamin Tan","email":"demoneaux@gmail.com","url":"https://d10.github.io/"},{"name":"Blaine Bublitz","email":"blaine@iceddev.com","url":"http://www.iceddev.com/"},{"name":"Kit Cambridge","email":"github@kitcambridge.be","url":"http://kitcambridge.be/"},{"name":"Mathias Bynens","email":"mathias@qiwi.be","url":"https://mathiasbynens.be/"}],"author":{"name":"John-David Dalton","email":"john.david.dalton@gmail.com","url":"http://allyoucanleet.com/"},"bugs":{"url":"https://github.com/lodash/lodash/issues"},"license":"MIT","readmeFilename":"README.md","_attachments":{}}
+0
+
