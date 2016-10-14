@@ -18,7 +18,7 @@ type GitRefs = {
   [name: string]: string
 };
 
-const supportsArchiveCache = map({
+const supportsArchiveCache: { [key: string]: ?boolean } = map({
   'github.com': false, // not support, doubt they will ever support it
 });
 
@@ -249,7 +249,7 @@ export default class Git {
           parser.on('error', reject);
           parser.on('end', done);
 
-          parser.on('data', function(entry) {
+          parser.on('data', (entry: Buffer) => {
             update(entry.toString());
           });
 

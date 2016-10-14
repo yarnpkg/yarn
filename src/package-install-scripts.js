@@ -233,7 +233,7 @@ export default class PackageInstallScripts {
     spinner: ReporterSetSpinner,
     workQueue: Set<Manifest>,
     installed: Set<Manifest>,
-    waitQueue: Set<Function>,
+    waitQueue: Set<() => void>,
   ): Promise<void> {
     while (true) {
       // No more work to be done

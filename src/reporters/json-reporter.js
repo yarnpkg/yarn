@@ -14,7 +14,7 @@ export default class JSONReporter extends BaseReporter {
   _activityId: number;
   _progressId: number;
 
-  _dump(type: string, data: any, error?: boolean) {
+  _dump(type: string, data: mixed, error?: boolean) {
     let stdout = this.stdout;
     if (error) {
       stdout = this.stderr;
@@ -34,7 +34,7 @@ export default class JSONReporter extends BaseReporter {
     this._dump('step', {message, current, total});
   }
 
-  inspect(value: any) {
+  inspect(value: mixed) {
     this._dump('inspect', value);
   }
 
@@ -119,7 +119,7 @@ export default class JSONReporter extends BaseReporter {
     };
   }
 
-  progress(total: number): Function {
+  progress(total: number): () => void {
     const id = this._progressId++;
     let current = 0;
     this._dump('progressStart', {id, total});
