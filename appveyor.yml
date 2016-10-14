@@ -1,7 +1,6 @@
 environment:
   matrix:
     - node_version: "6"
-    - node_version: "5"
     - node_version: "4"
 
 branches:
@@ -11,6 +10,7 @@ branches:
 
 install:
   - ps: Install-Product node $env:node_version
+  - npm install -g npm@3
   - npm install
 
 test_script:

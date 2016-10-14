@@ -34,11 +34,8 @@ export default class ConsoleReporter extends BaseReporter {
     super(opts);
     this._lastCategorySize = 0;
 
-    this.format = chalk;
+    this.format = (chalk: any);
   }
-
-  // TODO flow bug
-  format: any;
 
   _lastCategorySize: number;
 
@@ -94,7 +91,7 @@ export default class ConsoleReporter extends BaseReporter {
     this.log(`${this.format.grey(`[${current}/${total}]`)} ${msg}`);
   }
 
-  inspect(value: any) {
+  inspect(value: mixed) {
     if (typeof value !== 'number' && typeof value !== 'string') {
       value = inspect(value, {
         breakLength: 0,
@@ -104,7 +101,7 @@ export default class ConsoleReporter extends BaseReporter {
       });
     }
 
-    this.log(value);
+    this.log('' + value);
   }
 
   list(key: string, items: Array<string>) {

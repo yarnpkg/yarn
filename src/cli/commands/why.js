@@ -1,6 +1,5 @@
 /* @flow */
 
-import type {HoistManifest} from '../../package-hoister.js';
 import type {Reporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
 
@@ -36,34 +35,39 @@ async function cleanQuery(config: Config, query: string): Promise<string> {
   return query;
 }
 
-async function getPackageSize(info: HoistManifest): Promise<number> {
-  const files = await fs.walk(info.loc, null, new Set([
+async function getPackageSize([loc, info]): Promise<number> {
+  const files = await fs.walk(loc, null, new Set([
     METADATA_FILENAME,
     TARBALL_FILENAME,
   ]));
   const sizes = await Promise.all(
     files.map(
-      (walkFile) => fs.stat(walkFile.absolute)
-        .then((stat) => stat.size),
+      (walkFile) => fs.getFileSizeOnDisk(walkFile.absolute),
     ),
   );
+
   return sum(sizes);
 }
 
 
 const sum = (array) => array.length ? array.reduce((a, b) => a + b, 0) : 0;
 const collect = (hoistManifests, allDependencies, dependency, {recursive} = {recursive: false}) => {
-  const deps = dependency.pkg.dependencies;
+  const [, depInfo] = dependency;
+  const deps = depInfo.pkg.dependencies;
+
   if (!deps) {
     return allDependencies;
   }
 
   const dependencyKeys = new Set(Object.keys(deps));
   const directDependencies = [];
-  for (const [, info] of hoistManifests) {
-    if (!allDependencies.has(info) && dependencyKeys.has(info.key)) {
-      allDependencies.add(info);
-      directDependencies.push(info);
+
+  for (const dep of hoistManifests) {
+    const [, info] = dep;
+
+    if (!allDependencies.has(dep) && dependencyKeys.has(info.key)) {
+      allDependencies.add(dep);
+      directDependencies.push(dep);
     }
   }
 
@@ -118,9 +122,9 @@ export async function run(
   reporter.step(3, 4, reporter.lang('whyFinding'), emoji.get('mag'));
 
   let match;
-  for (const [, info] of hoisted) {
+  for (const [loc, info] of hoisted) {
     if (info.key === query || info.previousKeys.indexOf(query) >= 0) {
-      match = info;
+      match = [loc, info];
       break;
     }
   }
@@ -130,7 +134,8 @@ export async function run(
     return;
   }
 
-  const matchRef = match.pkg._reference;
+  const [, matchInfo] = match;
+  const matchRef = matchInfo.pkg._reference;
   invariant(matchRef, 'expected reference');
 
   const matchPatterns = matchRef.patterns;
@@ -177,8 +182,8 @@ export async function run(
   }
 
   // reason: this is hoisted from these modules
-  for (const pattern of match.previousKeys) {
-    if (pattern !== match.key) {
+  for (const pattern of matchInfo.previousKeys) {
+    if (pattern !== matchInfo.key) {
       reasons.push({
         type: 'whyHoistedFrom',
         typeSimple: 'whyHoistedFromSimple',
@@ -205,13 +210,13 @@ export async function run(
     transitiveSizes = await Promise.all(transitiveDependencies.map(getPackageSize));
   } catch (e) {}
 
-  const transitiveKeys = new Set(transitiveDependencies.map((info) => info.key));
+  const transitiveKeys = new Set(transitiveDependencies.map(([, info]) => info.key));
   const sharedDependencies = getSharedDependencies(hoisted, transitiveKeys);
 
   //
   // reason: hoisted
-  if (query === match.originalKey) {
-    reporter.info(reporter.lang('whyHoistedTo', match.key));
+  if (query === matchInfo.originalKey) {
+    reporter.info(reporter.lang('whyHoistedTo', matchInfo.key));
   }
 
   if (reasons.length === 1) {

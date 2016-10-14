@@ -410,7 +410,7 @@ export class Install {
       if (infos.length === 1) {
         // single version of this package
         // take out a single pattern as multiple patterns may have resolved to this package
-        patterns.push(this.resolver.patternsByPackage[name][0]);
+        flattenedPatterns.push(this.resolver.patternsByPackage[name][0]);
         continue;
       }
 
@@ -679,7 +679,7 @@ export function _setFlags(commander: Object) {
   commander.option('--ignore-engines', 'ignore engines check');
   commander.option('--ignore-scripts', '');
   commander.option('--ignore-optional', '');
-  commander.option('--force', '');
+  commander.option('--force', 'ignore all caches');
   commander.option('--flat', 'only allow one version of a package');
   commander.option('--prod, --production', '');
   commander.option('--no-lockfile', "don't read or generate a lockfile");
@@ -736,9 +736,15 @@ export async function run(
     throw new MessageError(reporter.lang('installCommandRenamed', `yarn ${command} ${exampleArgs.join(' ')}`));
   }
 
+  await executeLifecycleScript(config, 'preinstall');
+
   const install = new Install(flags, config, reporter, lockfile);
   await install.init();
 
   // npm behaviour, seems kinda funky but yay compatibility
-  await executeLifecycleScript(config, 'prepublish');
+  await executeLifecycleScript(config, 'install');
+  await executeLifecycleScript(config, 'postinstall');
+  if (!flags.production) {
+    await executeLifecycleScript(config, 'prepublish');
+  }
 }
