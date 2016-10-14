@@ -1,11 +1,5 @@
 /* @flow */
 
-const crypto = require('crypto');
-
-export function hash(str: string): string {
-  return crypto.createHash('sha256').update(str).digest('hex');
-}
-
 export function sortAlpha(a: string, b: string): number {
   // sort alphabetically
   return a.toLowerCase().localeCompare(b.toLowerCase());

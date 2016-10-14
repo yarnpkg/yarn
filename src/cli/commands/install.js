@@ -23,7 +23,7 @@ import {registries} from '../../registries/index.js';
 import {clean} from './clean.js';
 import * as constants from '../../constants.js';
 import * as fs from '../../util/fs.js';
-import * as util from '../../util/misc.js';
+import * as crypto from '../../util/crypto.js';
 import map from '../../util/map.js';
 
 const invariant = require('invariant');
@@ -59,6 +59,7 @@ type IntegrityMatch = {
 
 type Flags = {
   // install
+  ignorePlatform: boolean,
   ignoreEngines: boolean,
   ignoreScripts: boolean,
   ignoreOptional: boolean,
@@ -82,6 +83,7 @@ function normalizeFlags(config: Config, rawFlags: Object): Flags {
   const flags = {
     // install
     har: !!rawFlags.har,
+    ignorePlatform: !!rawFlags.ignorePlatform,
     ignoreEngines: !!rawFlags.ignoreEngines,
     ignoreScripts: !!rawFlags.ignoreScripts,
     ignoreOptional: !!rawFlags.ignoreOptional,
@@ -102,6 +104,10 @@ function normalizeFlags(config: Config, rawFlags: Object): Flags {
 
   if (config.getOption('ignore-scripts')) {
     flags.ignoreScripts = true;
+  }
+
+  if (config.getOption('ignore-platform')) {
+    flags.ignorePlatform = true;
   }
 
   if (config.getOption('ignore-engines')) {
@@ -404,7 +410,7 @@ export class Install {
       if (infos.length === 1) {
         // single version of this package
         // take out a single pattern as multiple patterns may have resolved to this package
-        patterns.push(this.resolver.patternsByPackage[name][0]);
+        flattenedPatterns.push(this.resolver.patternsByPackage[name][0]);
         continue;
       }
 
@@ -663,16 +669,17 @@ export class Install {
       opts.push(`mirror:${mirror}`);
     }
 
-    return util.hash(opts.join('-'));
+    return crypto.hash(opts.join('-'), 'sha256');
   }
 }
 
 export function _setFlags(commander: Object) {
   commander.option('--har', 'save HAR output of network traffic');
+  commander.option('--ignore-platform', 'ignore platform checks');
   commander.option('--ignore-engines', 'ignore engines check');
   commander.option('--ignore-scripts', '');
   commander.option('--ignore-optional', '');
-  commander.option('--force', '');
+  commander.option('--force', 'ignore all caches');
   commander.option('--flat', 'only allow one version of a package');
   commander.option('--prod, --production', '');
   commander.option('--no-lockfile', "don't read or generate a lockfile");
@@ -729,9 +736,15 @@ export async function run(
     throw new MessageError(reporter.lang('installCommandRenamed', `yarn ${command} ${exampleArgs.join(' ')}`));
   }
 
+  await executeLifecycleScript(config, 'preinstall');
+
   const install = new Install(flags, config, reporter, lockfile);
   await install.init();
 
   // npm behaviour, seems kinda funky but yay compatibility
-  await executeLifecycleScript(config, 'prepublish');
+  await executeLifecycleScript(config, 'install');
+  await executeLifecycleScript(config, 'postinstall');
+  if (!flags.production) {
+    await executeLifecycleScript(config, 'prepublish');
+  }
 }

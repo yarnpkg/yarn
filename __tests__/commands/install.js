@@ -11,7 +11,7 @@ import assert from 'assert';
 import semver from 'semver';
 import {getPackageVersion, explodeLockfile, runInstall, createLockfile} from './_install.js';
 
-jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000;
+jasmine.DEFAULT_TIMEOUT_INTERVAL = 90000;
 
 const path = require('path');
 
@@ -78,6 +78,15 @@ test.concurrent('root install with optional deps', (): Promise<void> => {
 
 test.concurrent('install file: protocol', (): Promise<void> => {
   return runInstall({noLockfile: true}, 'install-file', async (config) => {
+    assert.equal(
+      await fs.readFile(path.join(config.cwd, 'node_modules', 'foo', 'index.js')),
+      'foobar\n',
+    );
+  });
+});
+
+test.concurrent('install everything when flat is enabled', (): Promise<void> => {
+  return runInstall({noLockfile: true, flat: true}, 'install-file', async (config) => {
     assert.equal(
       await fs.readFile(path.join(config.cwd, 'node_modules', 'foo', 'index.js')),
       'foobar\n',

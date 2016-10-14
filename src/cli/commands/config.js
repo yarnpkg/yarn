@@ -5,7 +5,7 @@ import type {Reporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
 import buildSubCommands from './_build-sub-commands.js';
 
-export const {run, setFlags} = buildSubCommands('access', {
+export const {run, setFlags} = buildSubCommands('config', {
   async set(
     config: Config,
     reporter: Reporter,

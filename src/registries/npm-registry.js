@@ -54,8 +54,11 @@ export default class NpmRegistry extends Registry {
       headers.authorization = `Bearer ${this.token}`;
     }
 
+    // $FlowFixMe : https://github.com/facebook/flow/issues/908
+    const requestUrl = url.format(`${registry}/${pathname}`);
+
     return this.requestManager.request({
-      url: url.resolve(registry, pathname),
+      url: requestUrl,
       method: opts.method,
       body: opts.body,
       auth: opts.auth,

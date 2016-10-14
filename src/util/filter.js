@@ -124,7 +124,7 @@ export function ignoreLinesToRegex(lines: Array<string>, base: string = '.'): Ar
       // remove trailing slash
       pattern = removeSuffix(pattern, '/');
 
-      const regex = minimatch.makeRe(pattern, {nocase: true});
+      const regex: ?RegExp = minimatch.makeRe(pattern, {nocase: true});
 
       if (regex) {
         return {

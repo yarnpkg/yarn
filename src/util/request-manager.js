@@ -191,7 +191,7 @@ export default class RequestManager {
 
   isPossibleOfflineError(err: RequestError): boolean {
     const {code, hostname} = err;
-    if (code == null || hostname == null) {
+    if (!code) {
       return false;
     }
 
@@ -203,7 +203,7 @@ export default class RequestManager {
     }
 
     // used to be able to resolve this domain! something is wrong
-    if (code === 'ENOTFOUND' && successHosts[hostname]) {
+    if (code === 'ENOTFOUND' && hostname && successHosts[hostname]) {
       // can't resolve this domain but we've successfully resolved it before
       return true;
     }
@@ -257,7 +257,7 @@ export default class RequestManager {
   execute(opts: RequestOptions) {
     const {params} = opts;
 
-    const buildNext = (fn): Function => (data) => {
+    const buildNext = (fn) => (data) => {
       fn(data);
       this.running--;
       this.shiftQueue();
