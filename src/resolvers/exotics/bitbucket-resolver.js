@@ -16,7 +16,7 @@ export default class BitbucketResolver extends HostedGitResolver {
   }
 
   static getGitSSHUrl(parts: ExplodedFragment): string {
-    return `git@bitbucket.org:${parts.user}/${parts.repo}.git`;
+    return `git+ssh://git@bitbucket.org/${parts.user}/${parts.repo}.git`;
   }
 
   static getHTTPFileUrl(parts: ExplodedFragment, filename: string, commit: string): string {
