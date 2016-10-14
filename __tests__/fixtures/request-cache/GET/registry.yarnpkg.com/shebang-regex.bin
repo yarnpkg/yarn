@@ -1,0 +1,22 @@
+HTTP/1.1 200 OK
+Date: Fri, 14 Oct 2016 21:05:56 GMT
+Content-Type: application/json
+Transfer-Encoding: chunked
+Connection: keep-alive
+Set-Cookie: __cfduid=d000ce167ce8f9b5c1640712b4e967da71476479156; expires=Sat, 14-Oct-17 21:05:56 GMT; path=/; domain=.yarnpkg.com; HttpOnly
+etag: W/"4RSJWNTTHA5S6MPVECWNVDSD"
+Cache-Control: max-age=300
+Via: 1.1 varnish
+Age: 147
+X-Served-By: cache-ams4423-AMS
+X-Cache: HIT
+X-Cache-Hits: 1
+X-Timer: S1476479156.638804,VS0,VE0
+Vary: Accept-Encoding
+Server: cloudflare-nginx
+CF-RAY: 2f1dfe08fcfa2b7c-AMS
+
+e72
+{"_id":"shebang-regex","_rev":"3-c2b7c61e832482aac273ae2785a63983","name":"shebang-regex","description":"Regular expression for matching a shebang line","dist-tags":{"latest":"2.0.0"},"versions":{"1.0.0":{"name":"shebang-regex","version":"1.0.0","description":"Regular expression for matching a shebang","license":"MIT","repository":{"type":"git","url":"https://github.com/sindresorhus/shebang-regex"},"author":{"name":"Sindre Sorhus","email":"sindresorhus@gmail.com","url":"sindresorhus.com"},"engines":{"node":">=0.10.0"},"scripts":{"test":"node test.js"},"files":["index.js"],"keywords":["re","regex","regexp","shebang","match","test"],"devDependencies":{"ava":"0.0.4"},"gitHead":"cb774c70d5f569479ca997abf8ee7e558e617284","bugs":{"url":"https://github.com/sindresorhus/shebang-regex/issues"},"homepage":"https://github.com/sindresorhus/shebang-regex","_id":"shebang-regex@1.0.0","_shasum":"da42f49740c0b42db2ca9728571cb190c98efea3","_from":".","_npmVersion":"2.5.1","_nodeVersion":"0.12.0","_npmUser":{"name":"sindresorhus","email":"sindresorhus@gmail.com"},"maintainers":[{"name":"sindresorhus","email":"sindresorhus@gmail.com"}],"dist":{"shasum":"da42f49740c0b42db2ca9728571cb190c98efea3","tarball":"https://registry.npmjs.org/shebang-regex/-/shebang-regex-1.0.0.tgz"},"directories":{}},"2.0.0":{"name":"shebang-regex","version":"2.0.0","description":"Regular expression for matching a shebang line","license":"MIT","repository":{"type":"git","url":"https://github.com/sindresorhus/shebang-regex"},"author":{"name":"Sindre Sorhus","email":"sindresorhus@gmail.com","url":"sindresorhus.com"},"engines":{"node":">=0.10.0"},"scripts":{"test":"xo && ava"},"files":["index.js"],"keywords":["re","regex","regexp","shebang","match","test","line"],"devDependencies":{"ava":"*","xo":"*"},"gitHead":"62d96ada2264e959e28874b486de85a9593c69ae","bugs":{"url":"https://github.com/sindresorhus/shebang-regex/issues"},"homepage":"https://github.com/sindresorhus/shebang-regex","_id":"shebang-regex@2.0.0","_shasum":"f500bf6851b61356236167de2cc319b0fd7f0681","_from":".","_npmVersion":"2.14.7","_nodeVersion":"4.2.1","_npmUser":{"name":"sindresorhus","email":"sindresorhus@gmail.com"},"dist":{"shasum":"f500bf6851b61356236167de2cc319b0fd7f0681","tarball":"https://registry.npmjs.org/shebang-regex/-/shebang-regex-2.0.0.tgz"},"maintainers":[{"name":"sindresorhus","email":"sindresorhus@gmail.com"}],"directories":{}}},"readme":"# shebang-regex [![Build Status](https://travis-ci.org/sindresorhus/shebang-regex.svg?branch=master)](https://travis-ci.org/sindresorhus/shebang-regex)\n\n> Regular expression for matching a [shebang](https://en.wikipedia.org/wiki/Shebang_(Unix)) line\n\n\n## Install\n\n```\n$ npm install --save shebang-regex\n```\n\n\n## Usage\n\n```js\nconst shebangRegex = require('shebang-regex');\nconst str = '#!/usr/bin/env node\\nconsole.log(\"unicorns\");';\n\nshebangRegex.test(str);\n//=> true\n\nshebangRegex.exec(str)[0];\n//=> '#!/usr/bin/env node'\n```\n\n\n## License\n\nMIT © [Sindre Sorhus](http://sindresorhus.com)\n","maintainers":[{"name":"sindresorhus","email":"sindresorhus@gmail.com"}],"time":{"modified":"2015-12-04T16:40:07.830Z","created":"2015-02-17T05:24:58.945Z","1.0.0":"2015-02-17T05:24:58.945Z","2.0.0":"2015-12-04T16:40:07.830Z"},"homepage":"https://github.com/sindresorhus/shebang-regex","keywords":["re","regex","regexp","shebang","match","test","line"],"repository":{"type":"git","url":"https://github.com/sindresorhus/shebang-regex"},"author":{"name":"Sindre Sorhus","email":"sindresorhus@gmail.com","url":"sindresorhus.com"},"bugs":{"url":"https://github.com/sindresorhus/shebang-regex/issues"},"license":"MIT","readmeFilename":"readme.md","_attachments":{}}
+0
+

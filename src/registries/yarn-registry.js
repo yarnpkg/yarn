@@ -11,7 +11,7 @@ import * as fs from '../util/fs.js';
 const userHome = require('user-home');
 const defaults = require('defaults');
 const path = require('path');
-const pkg = require('../../package.json');
+const pkg: { version: string } = require('../../package.json');
 
 export const DEFAULTS = {
   'version-tag-prefix': 'v',

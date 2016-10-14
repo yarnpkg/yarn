@@ -98,7 +98,7 @@ yarn_install() {
   if [ -d "$HOME/.yarn" ]; then
     printf "$red> ~/.yarn already exists, possibly from a past Yarn install.$reset\n"
     printf "$red> Remove it (rm -rf ~/.yarn) and run this script again.$reset\n"
-    exit 1
+    exit 0
   fi
 
   yarn_get_tarball

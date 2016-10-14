@@ -257,7 +257,7 @@ export default class RequestManager {
   execute(opts: RequestOptions) {
     const {params} = opts;
 
-    const buildNext = (fn): Function => (data) => {
+    const buildNext = (fn) => (data) => {
       fn(data);
       this.running--;
       this.shiftQueue();
