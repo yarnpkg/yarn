@@ -412,6 +412,13 @@ export async function walk(
   return files;
 }
 
+export async function getFileSizeOnDisk(loc: string): Promise<number> {
+  const stat = await lstat(loc);
+  const {size, blksize: blockSize} = stat;
+
+  return (Math.ceil(size / blockSize) * blockSize);
+}
+
 export function normalizeOS(body: string): string {
   return body.replace(/\r\n/g, '\n');
 }
