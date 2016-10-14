@@ -14,25 +14,6 @@ const path = require('path');
 const url = require('url');
 const ini = require('ini');
 
-function getGlobalPrefix(): string {
-  if (process.env.PREFIX) {
-    return process.env.PREFIX;
-  } else if (process.platform === 'win32') {
-    // c:\node\node.exe --> prefix=c:\node\
-    return path.dirname(process.execPath);
-  } else {
-    // /usr/local/bin/node --> prefix=/usr/local
-    let prefix = path.dirname(path.dirname(process.execPath));
-
-    // destdir only is respected on Unix
-    if (process.env.DESTDIR) {
-      prefix = path.join(process.env.DESTDIR, prefix);
-    }
-
-    return prefix;
-  }
-}
-
 export default class NpmRegistry extends Registry {
   constructor(cwd: string, registries: ConfigRegistries, requestManager: RequestManager) {
     super(cwd, registries, requestManager);
@@ -79,24 +60,25 @@ export default class NpmRegistry extends Registry {
     };
   }
 
-  async getPossibleConfigLocations(filename: string): Promise<Array<[boolean, string, string]>> {
+  async getPossibleConfigLocations(filename: string): Promise<Array<[boolean, boolean, string, string]>> {
     const possibles = [
-      [false, path.join(getGlobalPrefix(), filename)],
-      [true, path.join(userHome, filename)],
-      [false, path.join(this.cwd, filename)],
+      [false, true, path.join(this.getGlobalPrefix(), filename)],
+      [true, false, path.join(userHome, filename)],
+      [false, false, path.join(this.cwd, filename)],
     ];
 
     const foldersFromRootToCwd = this.cwd.split(path.sep);
     while (foldersFromRootToCwd.length > 1) {
-      possibles.push([false, path.join(foldersFromRootToCwd.join(path.sep), filename)]);
+      possibles.push([false, false, path.join(foldersFromRootToCwd.join(path.sep), filename)]);
       foldersFromRootToCwd.pop();
     }
 
     const actuals = [];
-    for (const [isHome, loc] of possibles) {
+    for (const [isHome, isGlobal, loc] of possibles) {
       if (await fs.exists(loc)) {
         actuals.push([
           isHome,
+          isGlobal,
           loc,
           await fs.readFile(loc),
         ]);
@@ -109,7 +91,7 @@ export default class NpmRegistry extends Registry {
     // docs: https://docs.npmjs.com/misc/config
     this.mergeEnv('npm_config_');
 
-    for (const [, loc, file] of await this.getPossibleConfigLocations('.npmrc')) {
+    for (const [,, loc, file] of await this.getPossibleConfigLocations('.npmrc')) {
       const config = ini.parse(file);
 
       // normalize offline mirror path relative to the current npmrc
@@ -126,6 +108,25 @@ export default class NpmRegistry extends Registry {
       }
 
       defaults(this.config, config);
+    }
+  }
+
+  getGlobalPrefix(): string {
+    if (process.env.PREFIX) {
+      return process.env.PREFIX;
+    } else if (process.platform === 'win32') {
+      // c:\node\node.exe --> prefix=c:\node\
+      return path.dirname(process.execPath);
+    } else {
+      // /usr/local/bin/node --> prefix=/usr/local
+      let prefix = path.dirname(path.dirname(process.execPath));
+
+      // destdir only is respected on Unix
+      if (process.env.DESTDIR) {
+        prefix = path.join(process.env.DESTDIR, prefix);
+      }
+
+      return prefix;
     }
   }
 }
