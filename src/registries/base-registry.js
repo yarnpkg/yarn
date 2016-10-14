@@ -29,9 +29,6 @@ export default class BaseRegistry {
     this.cwd = cwd;
   }
 
-  // whether to always flatten the graph for this registry, will cause manual conflict resolution
-  static alwaysFlatten = false;
-
   // the filename to use for package metadata
   static filename: string;
 
