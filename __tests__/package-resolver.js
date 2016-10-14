@@ -25,7 +25,7 @@ function addTest(pattern, registry = 'npm') {
     const config = new Config(reporter);
     await config.init({
       cwd: loc,
-      packagesRoot: loc,
+      cacheFolder: loc,
       tempFolder: loc,
     });
     const resolver = new PackageResolver(config, lockfile);
