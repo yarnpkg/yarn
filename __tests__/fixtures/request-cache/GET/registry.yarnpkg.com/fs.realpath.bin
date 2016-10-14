@@ -1,0 +1,24 @@
+HTTP/1.1 200 OK
+Date: Fri, 14 Oct 2016 21:05:36 GMT
+Content-Type: application/json
+Transfer-Encoding: chunked
+Connection: keep-alive
+Set-Cookie: __cfduid=df93ceb7a5738cc48cccb0e5fdb826c0c1476479136; expires=Sat, 14-Oct-17 21:05:36 GMT; path=/; domain=.yarnpkg.com; HttpOnly
+etag: W/"4L4KO97PBAAM1IBW695IOBBPE"
+Cache-Control: max-age=300
+Via: 1.1 varnish
+Age: 282
+X-Served-By: cache-ams4423-AMS
+X-Cache: HIT
+X-Cache-Hits: 7
+X-Timer: S1476479136.097822,VS0,VE0
+Vary: Accept-Encoding
+Server: cloudflare-nginx
+CF-RAY: 2f1dfd889d772bb2-AMS
+
+3e5
+{"_id":"fs.realpath","_rev":"3-4cedd60c71bdfe7c2fa10218ba108a3d","name":"fs.realpath","description":"Use node's fs.realpath, but fall back to the JS implementation if the native one fails","dist-tags":{"latest":"1.0.0"},"versions":{"0.0.0":{"name":"fs.realpath","version":"0.0.0","description":"Use node's fs.realpath, but fall back to the JS implementation if the native one fails","main":"index.js","dependencies":{},"devDependencies":{},"scripts":{"test":"tap test/*.js --cov"},"repository":{"type":"git","url":"git+https://github.com/isaacs/fs.realpath.git"},"keywords":["realpath","fs","polyfill"],"author":{"name":"Isaac Z. Schlueter","email":"i@izs.me","url":"http://blog.izs.me/"},"license":"ISC","files":["old.js","index.js"],"gitHead":"f29be5918ad14bf7dec90f5d33948a792fe5b7db","bugs":{"url":"https://github.com/isaacs/fs.realpath/issues"},"homepage":"https://github.com/isaacs/fs.realpath#readme","_id":"fs.realpath@0.0.0","_shasum":"ee31b09e1272a8c6e58714abcacded5bd7cf7c6d","_from":".
+c85
+","_npmVersion":"3.9.1","_nodeVersion":"4.4.4","_npmUser":{"name":"isaacs","email":"i@izs.me"},"dist":{"shasum":"ee31b09e1272a8c6e58714abcacded5bd7cf7c6d","tarball":"https://registry.npmjs.org/fs.realpath/-/fs.realpath-0.0.0.tgz"},"maintainers":[{"name":"isaacs","email":"i@izs.me"}],"_npmOperationalInternal":{"host":"packages-12-west.internal.npmjs.com","tmp":"tmp/fs.realpath-0.0.0.tgz_1466015928899_0.7730964215006679"},"directories":{}},"1.0.0":{"name":"fs.realpath","version":"1.0.0","description":"Use node's fs.realpath, but fall back to the JS implementation if the native one fails","main":"index.js","dependencies":{},"devDependencies":{},"scripts":{"test":"tap test/*.js --cov"},"repository":{"type":"git","url":"git+https://github.com/isaacs/fs.realpath.git"},"keywords":["realpath","fs","polyfill"],"author":{"name":"Isaac Z. Schlueter","email":"i@izs.me","url":"http://blog.izs.me/"},"license":"ISC","files":["old.js","index.js"],"gitHead":"03e7c884431fe185dfebbc9b771aeca339c1807a","bugs":{"url":"https://github.com/isaacs/fs.realpath/issues"},"homepage":"https://github.com/isaacs/fs.realpath#readme","_id":"fs.realpath@1.0.0","_shasum":"1504ad2523158caa40db4a2787cb01411994ea4f","_from":".","_npmVersion":"3.9.1","_nodeVersion":"4.4.4","_npmUser":{"name":"isaacs","email":"i@izs.me"},"dist":{"shasum":"1504ad2523158caa40db4a2787cb01411994ea4f","tarball":"https://registry.npmjs.org/fs.realpath/-/fs.realpath-1.0.0.tgz"},"maintainers":[{"name":"isaacs","email":"i@izs.me"}],"_npmOperationalInternal":{"host":"packages-16-east.internal.npmjs.com","tmp":"tmp/fs.realpath-1.0.0.tgz_1466015941059_0.3332864767871797"},"directories":{}}},"readme":"# fs.realpath\n\nA backwards-compatible fs.realpath for Node v6 and above\n\nIn Node v6, the JavaScript implementation of fs.realpath was replaced\nwith a faster (but less resilient) native implementation.  That raises\nnew and platform-specific errors and cannot handle long or excessively\nsymlink-looping paths.\n\nThis module handles those cases by detecting the new errors and\nfalling back to the JavaScript implementation.  On versions of Node\nprior to v6, it has no effect.\n\n## USAGE\n\n```js\nvar rp = require('fs.realpath')\n\n// async version\nrp.realpath(someLongAndLoopingPath, function (er, real) {\n  // the ELOOP was handled, but it was a bit slower\n})\n\n// sync version\nvar real = rp.realpathSync(someLongAndLoopingPath)\n\n// monkeypatch at your own risk!\n// This replaces the fs.realpath/fs.realpathSync builtins\nrp.monkeypatch()\n\n// un-do the monkeypatching\nrp.unmonkeypatch()\n```\n","maintainers":[{"name":"isaacs","email":"i@izs.me"}],"time":{"modified":"2016-10-03T05:58:28.566Z","created":"2016-06-15T18:38:49.471Z","0.0.0":"2016-06-15T18:38:49.471Z","1.0.0":"2016-06-15T18:39:05.978Z"},"homepage":"https://github.com/isaacs/fs.realpath#readme","keywords":["realpath","fs","polyfill"],"repository":{"type":"git","url":"git+https://github.com/isaacs/fs.realpath.git"},"author":{"name":"Isaac Z. Schlueter","email":"i@izs.me","url":"http://blog.izs.me/"},"bugs":{"url":"https://github.com/isaacs/fs.realpath/issues"},"license":"ISC","readmeFilename":"README.md","users":{"scottfreecode":true},"_attachments":{}}
+0
+
