@@ -27,6 +27,12 @@ const compiler = webpack({
       loader: 'json',
     }],
   },
+  plugins: [
+    new webpack.BannerPlugin({
+      banner: "#!/usr/bin/env node",
+      raw: true
+    })
+  ],
   output: {
     filename: `yarn-${version}.js`,
     path: path.join(basedir, 'dist'),
@@ -58,6 +64,12 @@ const compilerLegacy = webpack({
       loader: 'json',
     }],
   },
+  plugins: [
+    new webpack.BannerPlugin({
+      banner: "#!/usr/bin/env node",
+      raw: true
+    })
+  ],
   output: {
     filename: `yarn-legacy-${version}.js`,
     path: path.join(basedir, 'dist'),

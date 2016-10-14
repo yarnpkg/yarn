@@ -11,7 +11,7 @@ import * as fs from '../util/fs.js';
 const userHome = require('user-home');
 const defaults = require('defaults');
 const path = require('path');
-const pkg = require('../../package.json');
+const pkg: { version: string } = require('../../package.json');
 
 export const DEFAULTS = {
   'version-tag-prefix': 'v',
@@ -24,7 +24,7 @@ export const DEFAULTS = {
 
   'save-prefix': '^',
   'ignore-scripts': false,
-  'ignore-optional': true,
+  'ignore-optional': false,
   registry: YARN_REGISTRY,
   'user-agent': [
     `yarn/${pkg.version}`,
@@ -56,7 +56,15 @@ export default class YarnRegistry extends NpmRegistry {
   homeConfig: Object;
 
   getOption(key: string): mixed {
-    return this.config[key] || this.registries.npm.getOption(npmMap[key] || key);
+    let val = this.config[key] || this.registries.npm.getOption(npmMap[key]);
+
+    // if we have no yarn option for this or have used a default then use the npm
+    // value if it exists
+    if (!val || val === DEFAULTS[key]) {
+      val = this.registries.npm.getOption(key) || val;
+    }
+
+    return val;
   }
 
   async loadConfig(): Promise<void> {

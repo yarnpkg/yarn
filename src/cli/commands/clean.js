@@ -52,10 +52,6 @@ const DEFAULT_FILTERS = ignoreLinesToRegex([
   '.*.yml',
   '*.yml',
 
-  // compiled files
-  '*.min.js',
-  '*-min.js',
-
   //
   '*.gz',
   '*.md',

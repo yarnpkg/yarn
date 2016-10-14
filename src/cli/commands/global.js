@@ -163,7 +163,7 @@ export const {run, setFlags} = buildSubCommands('global', {
     flags: Object,
     args: Array<string>,
   ) {
-    reporter.log(getBinFolder());
+    console.log(getBinFolder());
   },
 
   async ls(

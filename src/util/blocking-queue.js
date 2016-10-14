@@ -19,7 +19,7 @@ export default class BlockingQueue {
     (this: any).stuckTick = this.stuckTick.bind(this);
   }
 
-  concurrencyQueue: Array<Function>;
+  concurrencyQueue: Array<() => void>;
   warnedStuck: boolean;
   maxConcurrency: number;
   runningCount: number;
@@ -120,7 +120,7 @@ export default class BlockingQueue {
     this.maybePushConcurrencyQueue(run);
   }
 
-  maybePushConcurrencyQueue(run: Function) {
+  maybePushConcurrencyQueue(run: () => void) {
     if (this.runningCount < this.maxConcurrency) {
       run();
     } else {
