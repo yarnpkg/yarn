@@ -1,6 +1,6 @@
 /* @flow */
 
-export default {
+export default ({
   // shorthands
   'run-script': 'run',
   c: 'config',
@@ -31,4 +31,4 @@ export default {
   update: 'upgrade',
   verison: 'version',
   view: 'info',
-};
+}: { [key: string]: ?string });
