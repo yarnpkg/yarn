@@ -45,7 +45,7 @@ export default class Git {
 
 
   static cleanUrl(url): string {
-    return url.replace(/^git\+/, '');
+    return url.replace(/^git:\/\//, '').replace(/^git\+/, '');
   }
 
   /**
