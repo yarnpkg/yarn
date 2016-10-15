@@ -4,8 +4,6 @@ import type {Reporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
 import {stringifyPerson} from '../../util/normalize-manifest/util.js';
 import {registryNames} from '../../registries/index.js';
-import Lockfile from '../../lockfile/wrapper.js';
-import {Install} from './install.js';
 import * as child from '../../util/child.js';
 import * as fs from '../../util/fs.js';
 
@@ -22,9 +20,7 @@ export async function run(
   flags: Object,
   args: Array<string>,
 ): Promise<void> {
-  const lockfile = new Lockfile();
-  const install = new Install(flags, config, reporter, lockfile);
-  const manifests = await install.getRootManifests();
+  const manifests = await config.getRootManifests();
 
   let gitUrl;
   const author = {
@@ -137,5 +133,5 @@ export async function run(
     reporter.success(`Saved ${path.basename(targetManifest.loc)}`);
   }
 
-  await install.saveRootManifests(manifests);
+  await config.saveRootManifests(manifests);
 }
