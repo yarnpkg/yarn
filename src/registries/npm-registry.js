@@ -47,7 +47,9 @@ export default class NpmRegistry extends Registry {
   }
 
   request(pathname: string, opts?: RegistryRequestOptions = {}): Promise<?Object> {
-    const registry = removeSuffix(String(this.registries.yarn.getOption('registry')), '/');
+    const registry = this.config.registry ?
+      removeSuffix(this.config.registry, '/') :
+      removeSuffix(String(this.registries.yarn.getOption('registry')), '/');
 
     const headers = {};
     if (this.token) {
@@ -112,7 +114,6 @@ export default class NpmRegistry extends Registry {
 
     for (const [, loc, file] of await this.getPossibleConfigLocations('.npmrc')) {
       const config = ini.parse(file);
-
       // normalize offline mirror path relative to the current npmrc
       let offlineLoc = config['yarn-offline-mirror'];
       // old kpm compatibility
