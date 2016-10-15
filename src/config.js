@@ -330,7 +330,7 @@ export default class Config {
         }
       }
 
-      throw new Error(`Couldn't find a package.json (or bower.json) file in ${dir}`);
+      throw new MessageError(`Couldn't find a package.json (or bower.json) file in ${dir}`);
     });
   }
 

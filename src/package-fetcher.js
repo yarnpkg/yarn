@@ -37,7 +37,7 @@ export default class PackageFetcher {
     const remote = ref.remote;
     const Fetcher = fetchers[remote.type];
     if (!Fetcher) {
-      throw new Error(`Unknown fetcher for ${remote.type}`);
+      throw new MessageError(`Unknown fetcher for ${remote.type}`);
     }
 
     const fetcher = new Fetcher(dest, remote, this.config);

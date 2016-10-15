@@ -1,6 +1,7 @@
 /* @flow */
 
 import type {Reporter} from '../../reporters/index.js';
+import {MessageError} from '../../errors.js';
 import {isValidLicense} from './util.js';
 import {normalizePerson, extractDescription} from './util.js';
 import {hostedGitFragmentToGitUrl} from '../../resolvers/index.js';
@@ -19,21 +20,6 @@ const LICENSE_RENAMES: { [key: string]: ?string } = {
 type Dict<T> = {
   [key: string]: T;
 };
-
-class ManifestError extends Error {
-  key: string;
-  problem: string;
-
-  constructor(key: string, problem: string) {
-    super();
-    this.key = key;
-    this.problem = problem;
-  }
-
-  get message(): string {
-    return `Fatal problem with ${this.key} in manifest: ${this.problem}`;
-  }
-}
 
 export default async function (
   info: Dict<mixed>,
@@ -147,17 +133,11 @@ export default async function (
     info.homepage = url.format(parts);
   }
 
-  const name = info.name;
-
-  if (typeof name !== 'string') {
-    throw new ManifestError('name', 'must be a string');
-  }
-
   // if the `bin` field is as string then expand it to an object with a single property
   // based on the original `bin` field and `name field`
   // { name: "foo", bin: "cli.js" } -> { name: "foo", bin: { foo: "cli.js" } }
-  if (typeof info.bin === 'string') {
-    info.bin = {[name]: info.bin};
+  if (typeof info.name === 'string' && typeof info.bin === 'string') {
+    info.bin = {[info.name]: info.bin};
   }
 
   // bundleDependencies is an alias for bundledDependencies
