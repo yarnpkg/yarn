@@ -95,7 +95,7 @@ export async function run(
     await config.init({
       cwd,
       globalFolder: path.join(cwd, '.yarn/.global'),
-      packagesRoot: path.join(cwd, '.yarn'),
+      cacheFolder: path.join(cwd, '.yarn'),
       linkFolder: path.join(cwd, '.yarn/.link'),
     });
 
