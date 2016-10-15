@@ -20,6 +20,7 @@ cache:
   - node_modules
   - lib
   - lib-legacy
+  - $HOME/.yarn-cache
 
 env:
   matrix:
@@ -42,8 +43,10 @@ install:
  # install proper node version
  - nvm install ${NODE_VERSION:=6}
  - node --version
- - npm install -g npm@3
- - npm install
+
+ # install deps
+ - npm install -g yarn
+ - yarn install
 
 os:
   #- osx
