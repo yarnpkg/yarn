@@ -5,7 +5,6 @@ import type {PackageRemote, FetchedMetadata, FetchedOverride} from '../types.js'
 import type {RegistryNames} from '../registries/index.js';
 import type Config from '../config.js';
 import * as constants from '../constants.js';
-import * as util from '../util/misc.js';
 import * as fs from '../util/fs.js';
 
 const path = require('path');
@@ -49,11 +48,11 @@ export default class BaseFetcher {
       // load the new normalized manifest
       const pkg = await this.config.readManifest(dest, this.registry);
 
-      await fs.writeFile(path.join(dest, constants.METADATA_FILENAME), util.stringify({
+      await fs.writeFile(path.join(dest, constants.METADATA_FILENAME), JSON.stringify({
         remote: this.remote,
         registry: this.registry,
         hash,
-      }));
+      }, null, '  '));
 
       return {
         resolved,

@@ -9,9 +9,10 @@ import * as fs from './util/fs.js';
 import * as constants from './constants.js';
 import ConstraintResolver from './package-constraint-resolver.js';
 import RequestManager from './util/request-manager.js';
-import {registries} from './registries/index.js';
+import {registries, registryNames} from './registries/index.js';
 import map from './util/map.js';
 
+const detectIndent = require('detect-indent');
 const invariant = require('invariant');
 const path = require('path');
 const url = require('url');
@@ -39,6 +40,24 @@ type PackageMetadata = {
   remote: ?PackageRemote,
   package: Manifest
 };
+
+
+type RootManifests = {
+  [registryName: RegistryNames]: {
+    loc: string,
+    indent: ?string,
+    object: Object,
+    exists: boolean,
+  }
+};
+
+function sortObject(object: Object): Object {
+  const sortedObject = {};
+  Object.keys(object).sort().forEach((item) => {
+    sortedObject[item] = object[item];
+  });
+  return sortedObject;
+}
 
 export type ConfigRegistries = {
   [name: RegistryNames]: Registry
@@ -371,5 +390,51 @@ export default class Config {
       registryName = ref.registry;
     }
     return this.registries[registryName].folder;
+  }
+
+  /**
+   * Get root manifests.
+   */
+
+  async getRootManifests(): Promise<RootManifests> {
+    const manifests: RootManifests = {};
+    for (const registryName of registryNames) {
+      const registry = registries[registryName];
+      const jsonLoc = path.join(this.cwd, registry.filename);
+
+      let object = {};
+      let exists = false;
+      let indent;
+      if (await fs.exists(jsonLoc)) {
+        exists = true;
+
+        const info = await fs.readJsonAndFile(jsonLoc);
+        object = info.object;
+        indent = detectIndent(info.content).indent || undefined;
+      }
+      manifests[registryName] = {loc: jsonLoc, object, exists, indent};
+    }
+    return manifests;
+  }
+
+  /**
+   * Save root manifests.
+   */
+
+  async saveRootManifests(manifests: RootManifests): Promise<void> {
+    for (const registryName of registryNames) {
+      const {loc, object, exists, indent} = manifests[registryName];
+      if (!exists && !Object.keys(object).length) {
+        continue;
+      }
+
+      for (const field of constants.DEPENDENCY_TYPES) {
+        if (object[field]) {
+          object[field] = sortObject(object[field]);
+        }
+      }
+
+      await fs.writeFile(loc, JSON.stringify(object, null, indent || constants.DEFAULT_INDENT) + '\n');
+    }
   }
 }
