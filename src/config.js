@@ -5,6 +5,7 @@ import type {Reporter} from './reporters/index.js';
 import type Registry from './registries/base-registry.js';
 import type {Manifest, PackageRemote} from './types.js';
 import normalizeManifest from './util/normalize-manifest/index.js';
+import {MessageError} from './errors.js';
 import * as fs from './util/fs.js';
 import * as constants from './constants.js';
 import ConstraintResolver from './package-constraint-resolver.js';

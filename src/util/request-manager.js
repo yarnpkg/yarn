@@ -363,7 +363,7 @@ export default class RequestManager {
 
   saveHar(filename: string) {
     if (!this.captureHar) {
-      throw new MessageError('RequestManager was not setup to capture HAR files');
+      throw new Error('RequestManager was not setup to capture HAR files');
     }
     // No request may have occured at all.
     this._getRequestModule();

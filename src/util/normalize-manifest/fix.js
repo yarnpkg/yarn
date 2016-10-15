@@ -1,7 +1,6 @@
 /* @flow */
 
 import type {Reporter} from '../../reporters/index.js';
-import {MessageError} from '../../errors.js';
 import {isValidLicense} from './util.js';
 import {normalizePerson, extractDescription} from './util.js';
 import {hostedGitFragmentToGitUrl} from '../../resolvers/index.js';
