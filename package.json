@@ -13,6 +13,7 @@
     "death": "^1.0.0",
     "debug": "^2.2.0",
     "defaults": "^1.0.3",
+    "detect-indent": "^4.0.0",
     "diff": "^2.2.1",
     "eslint-plugin-react": "5.2.2",
     "github": "2.5.1",
