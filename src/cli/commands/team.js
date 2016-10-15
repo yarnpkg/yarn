@@ -190,9 +190,9 @@ export const {run, setFlags} = buildSubCommands('team', {
     return true;
   }, false),
 }, [
-  'team create <scope:team>',
-  'team destroy <scope:team>',
-  'team add <scope:team> <user>',
-  'team rm <scope:team> <user>',
-  'team ls <scope>|<scope:team>',
+  'create <scope:team>',
+  'destroy <scope:team>',
+  'add <scope:team> <user>',
+  'rm <scope:team> <user>',
+  'ls <scope>|<scope:team>',
 ]);
