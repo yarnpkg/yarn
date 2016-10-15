@@ -45,6 +45,10 @@ function wrapRequired(callback: CLIFunctionWithParts, requireTeam: boolean): CLI
     flags: Object,
     args: Array<string>,
   ): CLIFunctionReturn {
+    if (!args.length) {
+      return false;
+    }
+
     const parts = explodeScopeTeam(args[0], requireTeam, reporter);
     if (!parts) {
       return false;

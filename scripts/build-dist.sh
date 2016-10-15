@@ -9,6 +9,7 @@ mkdir dist
 mv yarn-*.tgz dist/pack.tgz
 
 cd dist
+umask 0022 # Ensure permissions are correct (0755 for dirs, 0644 for files)
 tar -xzf pack.tgz --strip 1
 rm -rf pack.tgz
 npm install --production
