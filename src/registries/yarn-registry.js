@@ -56,14 +56,22 @@ export default class YarnRegistry extends NpmRegistry {
   homeConfig: Object;
 
   getOption(key: string): mixed {
-    let val = this.config[key] || this.registries.npm.getOption(npmMap[key]);
+    let val = this.config[key];
 
-    // if we have no yarn option for this or have used a default then use the npm
-    // value if it exists
-    if (!val || val === DEFAULTS[key]) {
-      val = this.registries.npm.getOption(key) || val;
+    // if this isn't set in a yarn config, then use npm
+    if (typeof val === 'undefined') {
+      val = this.registries.npm.getOption(npmMap[key]);
     }
 
+    if (typeof val === 'undefined') {
+      val = this.registries.npm.getOption(key);
+    }
+
+    // if this isn't set in a yarn config or npm config, then use the default (or undefined)
+    if (typeof val === 'undefined') {
+      val = DEFAULTS[key];
+    }
+    
     return val;
   }
 
