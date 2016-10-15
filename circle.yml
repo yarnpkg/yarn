@@ -6,6 +6,9 @@ general:
     - "artifacts/"
 
 dependencies:
+  cache_directories:
+    - "~/.yarn-cache"
+
   override:
     # install node
     - nvm install 6
