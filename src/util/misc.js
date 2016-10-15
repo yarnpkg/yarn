@@ -38,7 +38,3 @@ export function addSuffix(pattern: string, suffix: string): string {
 
   return pattern;
 }
-
-export function stringify(obj: Object): string {
-  return JSON.stringify(obj, null, '  ');
-}
