@@ -197,6 +197,8 @@ const messages = {
   publishing: 'Publishing',
 
   infoFail: 'Received invalid response from npm.',
+  homeFail: 'Received invalid response from npm.',
+  homeNoPackage: 'package does not specify homepage',
 };
 
 export type LanguageKeys = $Keys<typeof messages>;
