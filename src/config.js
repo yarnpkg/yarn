@@ -330,7 +330,8 @@ export default class Config {
         }
       }
 
-      throw new Error(`Couldn't find a package.json (or bower.json) file in ${dir}`);
+      this.reporter.error(this.reporter.lang('noManifestFound', dir));
+      return {};
     });
   }
 
