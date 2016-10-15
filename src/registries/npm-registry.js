@@ -87,9 +87,9 @@ export default class NpmRegistry extends Registry {
 
   async getPossibleConfigLocations(filename: string): Promise<Array<[boolean, string, string]>> {
     const possibles = [
-      [false, path.join(getGlobalPrefix(), filename)],
-      [true, path.join(userHome, filename)],
       [false, path.join(this.cwd, filename)],
+      [true, path.join(userHome, filename)],
+      [false, path.join(getGlobalPrefix(), filename)],
     ];
 
     const foldersFromRootToCwd = this.cwd.split(path.sep);
