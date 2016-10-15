@@ -44,6 +44,12 @@ export type PackageRemote = {
   reference: string,
   resolved?: ?string,
   hash?: ?string,
+  auth?: {
+    email?: string,
+    username?: string,
+    password?: string,
+    token?: string,
+  }
 };
 
 // `dependencies` field in package info

@@ -162,6 +162,9 @@ export default class NpmResolver extends RegistryResolver {
         reference: dist.tarball,
         hash: dist.shasum,
         registry: 'npm',
+        auth: {
+          token: this.config.registries.npm.token,
+        },
       };
     }
 

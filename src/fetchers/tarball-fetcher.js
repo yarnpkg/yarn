@@ -131,12 +131,18 @@ export default class TarballFetcher extends BaseFetcher {
   fetchFromExternal(): Promise<FetchedOverride> {
     const {reference: ref} = this;
 
+    const headers: Object = {
+      'Accept-Encoding': 'gzip',
+      'Accept': 'application/octet-stream',
+    };
+
+    if (this.remote.auth && this.remote.auth.token) {
+      headers.authorization = `Bearer ${this.remote.auth.token}`;
+    }
+
     return this.config.requestManager.request({
       url: ref,
-      headers: {
-        'Accept-Encoding': 'gzip',
-        'Accept': 'application/octet-stream',
-      },
+      headers,
       buffer: true,
       process: (req, resolve, reject) => {
         // should we save this to the offline cache?
