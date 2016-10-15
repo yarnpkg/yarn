@@ -288,7 +288,7 @@ function onUnexpectedError(err: Error) {
 
   const log = [];
   log.push(`Arguments: ${indent(process.argv.join(' '))}`);
-  log.push(`PATH: ${indent(process.env.PATH)}`);
+  log.push(`PATH: ${indent(process.env.PATH || 'undefined')}`);
   log.push(`Yarn version: ${indent(pkg.version)}`);
   log.push(`Node version: ${indent(process.versions.node)}`);
   log.push(`Platform: ${indent(process.platform + ' ' + process.arch)}`);
