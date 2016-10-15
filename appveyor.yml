@@ -10,9 +10,9 @@ branches:
 
 install:
   - ps: Install-Product node $env:node_version
-  - npm install -g npm@3
-  - npm install
-  
+  - npm install -g yarn
+  - yarn install
+
 build_script:
   - npm run build
   - ps: ./scripts/build-dist.ps1
@@ -20,7 +20,7 @@ build_script:
 
 test_script:
   - npm run test-only
-  
+
 artifacts:
   - path: artifacts/*.msi
     name: Installer
