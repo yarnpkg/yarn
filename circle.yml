@@ -4,16 +4,24 @@ general:
       - gh-pages
   artifacts:
     - "artifacts/"
+
 dependencies:
   override:
+    # install node
     - nvm install 6
     - nvm use 6 && nvm alias default 6
     - which node
-    # TODO test yarn with node_modules installed via npm2, npm3 and latest stable yarn
-    - npm install
-    - curl -o ghr.zip https://github.com/tcnksm/ghr/releases/download/v0.5.0/ghr_v0.5.0_linux_amd64.zip
+
+    # install dependencies
+    - npm install -g yarn
+    - yarn install
+
+    # setup ghr
+    - curl -L -o ghr.zip https://github.com/tcnksm/ghr/releases/download/v0.5.0/ghr_v0.5.0_linux_amd64.zip
     - unzip ghr.zip
+
     - ./scripts/bootstrap-env-ubuntu.sh
+
 test:
   override:
     - node -v
