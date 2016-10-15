@@ -58,6 +58,10 @@ commander.option(
   '--mutex <type>[:specifier]',
   'use a mutex to ensure only one yarn instance is executing',
 );
+commander.option(
+  '--no-emoji',
+  'disable emoji in output',
+);
 
 // get command name
 let commandName: string = args.shift() || '';
@@ -159,7 +163,7 @@ if (commander.json) {
   Reporter = JSONReporter;
 }
 const reporter = new Reporter({
-  emoji: process.stdout.isTTY && process.platform === 'darwin',
+  emoji: commander.emoji && process.stdout.isTTY && process.platform === 'darwin',
 });
 reporter.initPeakMemoryCounter();
 
