@@ -30,6 +30,7 @@ rm -f dist/*.deb $OUTPUT_DIR/*.deb $OUTPUT_DIR/*.rpm
 # Extract to a temporary directory
 rm -rf $PACKAGE_TMPDIR
 mkdir -p $PACKAGE_TMPDIR/
+umask 0022 # Ensure permissions are correct (0755 for dirs, 0644 for files)
 tar zxf $TARBALL_NAME -C $PACKAGE_TMPDIR/
 
 # Create Linux package structure
