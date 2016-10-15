@@ -183,6 +183,7 @@ export default class Config {
       userAgent: String(this.getOption('user-agent')),
       httpProxy: String(this.getOption('proxy') || ''),
       httpsProxy: String(this.getOption('https-proxy') || ''),
+      strictSSL: Boolean(this.getOption('strict-ssl')),
     });
   }
 

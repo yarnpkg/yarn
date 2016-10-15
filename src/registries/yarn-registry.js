@@ -26,6 +26,7 @@ export const DEFAULTS = {
   'ignore-scripts': false,
   'ignore-optional': false,
   registry: YARN_REGISTRY,
+  'strict-ssl': true,
   'user-agent': [
     `yarn/${pkg.version}`,
     'npm/?',

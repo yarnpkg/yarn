@@ -40,6 +40,7 @@ type RequestParams<T> = {
   proxy?: string,
   encoding?: ?string,
   forever?: boolean,
+  strictSSL?: boolean,
   headers?: {
     [name: string]: string
   },
@@ -67,6 +68,7 @@ export default class RequestManager {
     this.captureHar = false;
     this.httpsProxy = null;
     this.httpProxy = null;
+    this.strictSSL = true;
     this.userAgent = '';
     this.reporter = reporter;
     this.running = 0;
@@ -82,6 +84,7 @@ export default class RequestManager {
   running: number;
   httpsProxy: ?string;
   httpProxy: ?string;
+  strictSSL: boolean;
   offlineQueue: Array<RequestOptions>;
   queue: Array<Object>;
   max: number;
@@ -98,6 +101,7 @@ export default class RequestManager {
     captureHar?: boolean,
     httpProxy?: string,
     httpsProxy?: string,
+    strictSSL?: boolean,
   }) {
     if (opts.userAgent != null) {
       this.userAgent = opts.userAgent;
@@ -117,6 +121,10 @@ export default class RequestManager {
 
     if (opts.httpsProxy != null) {
       this.httpsProxy = opts.httpsProxy;
+    }
+
+    if (opts.strictSSL !== null && typeof opts.strictSSL !== 'undefined') {
+      this.strictSSL = opts.strictSSL;
     }
   }
 
@@ -155,7 +163,8 @@ export default class RequestManager {
     params.method = params.method || 'GET';
     params.forever = true;
     params.retryAttempts = 0;
-
+    params.strictSSL = this.strictSSL;
+    
     params.headers = Object.assign({
       'User-Agent': this.userAgent,
     }, params.headers);
