@@ -24,3 +24,7 @@ test_script:
 artifacts:
   - path: artifacts/*.msi
     name: Installer
+
+cache:
+ - node_modules
+ - "%LOCALAPPDATA%/Yarn"
