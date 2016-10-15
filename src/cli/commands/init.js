@@ -138,4 +138,14 @@ export async function run(
   }
 
   await install.saveRootManifests(manifests);
+
+  const npmignoreLoc = `${path.join(config.cwd, '.npmignore')}`;
+  if (!(await fs.exists(npmignoreLoc))) {
+    const npmignoreContent = [
+      'yarn.lock',
+      '',
+    ].join('\n');
+
+    await fs.writeFile(npmignoreLoc, npmignoreContent);
+  }
 }

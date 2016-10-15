@@ -20,3 +20,11 @@ test.concurrent('init --yes should create package.json with defaults',  (): Prom
     assert.equal(manifest.license, String(config.getOption('init-license')));
   });
 });
+
+test.concurrent('init should create .npmignore ignoring yarn.lock',  (): Promise<void> => {
+  return runInit({yes: true}, 'init-yes', async (config): Promise<void> => {
+    const {cwd} = config;
+    const npmignoreFile = await fs.readFile(path.join(cwd, '.npmignore'));
+    assert.equal(npmignoreFile, 'yarn.lock\n');
+  });
+});
