@@ -126,6 +126,10 @@ export default class NpmRegistry extends Registry {
         await fs.mkdirp(mirrorLoc);
       }
 
+      if (config['_auth']) {
+        this.token = config['_auth'];
+      }
+
       defaults(this.config, config);
     }
   }
