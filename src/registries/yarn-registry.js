@@ -1,7 +1,7 @@
 /* @flow */
 
 import type RequestManager from '../util/request-manager.js';
-import type {ConfigRegistries} from '../config.js';
+import type {ConfigRegistries} from './index.js';
 import {YARN_REGISTRY} from '../constants.js';
 import NpmRegistry from './npm-registry.js';
 import stringify from '../lockfile/stringify.js';

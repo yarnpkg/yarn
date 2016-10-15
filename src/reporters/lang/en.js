@@ -182,6 +182,7 @@ const messages = {
   loggingIn: 'Logging in',
   loggedIn: 'Logged in.',
   notRevokingEnvToken: 'Not revoking login token, specified via environment variable.',
+  notRevokingConfigToken: 'Not revoking login token, specified via config file.',
   noTokenToRevoke: 'No login token to revoke.',
   revokingToken: 'Revoking token',
   revokedToken: 'Revoked login token.',

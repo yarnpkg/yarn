@@ -2,17 +2,20 @@
 
 import type RequestManager from '../util/request-manager.js';
 import type {RegistryRequestOptions, CheckOutdatedReturn} from './base-registry.js';
-import type Config, {ConfigRegistries} from '../config.js';
+import type Config from '../config.js';
+import type {ConfigRegistries} from './index.js';
 import * as fs from '../util/fs.js';
 import NpmResolver from '../resolvers/registries/npm-resolver.js';
 import Registry from './base-registry.js';
-import {removeSuffix} from '../util/misc.js';
+import {addSuffix} from '../util/misc';
 
 const defaults = require('defaults');
 const userHome = require('user-home');
 const path = require('path');
 const url = require('url');
 const ini = require('ini');
+
+const DEFAULT_REGISTRY = 'https://registry.npmjs.org/';
 
 function getGlobalPrefix(): string {
   if (process.env.PREFIX) {
@@ -46,16 +49,16 @@ export default class NpmRegistry extends Registry {
     return name.replace('/', '%2f');
   }
 
-  request(pathname: string, opts?: RegistryRequestOptions = {}): Promise<?Object> {
-    const registry = removeSuffix(String(this.registries.yarn.getOption('registry')), '/');
+  request(pathname: string, opts?: RegistryRequestOptions = {}): Promise<*> {
+    const registry = addSuffix(this.getRegistry(pathname), '/');
+    const requestUrl = url.resolve(registry, pathname);
+    const alwaysAuth = this.getScopedOption(registry.replace(/^https?:/, ''), 'always-auth')
+                    || this.getOption('always-auth');
 
     const headers = {};
-    if (this.token) {
-      headers.authorization = `Bearer ${this.token}`;
+    if (this.token || (alwaysAuth && requestUrl.startsWith(registry))) {
+      headers.authorization = this.getAuth(pathname);
     }
-
-    // $FlowFixMe : https://github.com/facebook/flow/issues/908
-    const requestUrl = url.format(`${registry}/${pathname}`);
 
     return this.requestManager.request({
       url: requestUrl,
@@ -63,7 +66,9 @@ export default class NpmRegistry extends Registry {
       body: opts.body,
       auth: opts.auth,
       headers,
-      json: true,
+      json: !opts.buffer,
+      buffer: opts.buffer,
+      process: opts.process,
       gzip: true,
     });
   }
@@ -128,5 +133,58 @@ export default class NpmRegistry extends Registry {
 
       defaults(this.config, config);
     }
+  }
+
+  getScope(packageName: string): string {
+    return !packageName || packageName[0] !== '@' ? '' : packageName.split(/\/|%2f/)[0];
+  }
+
+  getRegistry(packageName: string): string {
+    // Try scoped registry, and default registry
+    for (const scope of [this.getScope(packageName), '']) {
+      const registry = this.getScopedOption(scope, 'registry')
+                    || this.registries.yarn.getScopedOption(scope, 'registry');
+      if (registry) {
+        return String(registry);
+      }
+    }
+
+    return DEFAULT_REGISTRY;
+  }
+
+  getAuth(packageName: string): string {
+    if (this.token) {
+      return this.token;
+    }
+
+    for (let registry of [this.getRegistry(packageName), '', DEFAULT_REGISTRY]) {
+      registry = registry.replace(/^https?:/, '');
+
+      // Check for bearer token.
+      let auth = this.getScopedOption(registry, '_authToken');
+      if (auth) {
+        return `Bearer ${String(auth)}`;
+      }
+
+      // Check for basic auth token.
+      auth = this.getScopedOption(registry, '_auth');
+      if (auth) {
+        return `Basic ${String(auth)}`;
+      }
+
+      // Check for basic username/password auth.
+      const username = this.getScopedOption(registry, 'username');
+      const password = this.getScopedOption(registry, '_password');
+      if (username && password) {
+        const pw = new Buffer(String(password), 'base64').toString();
+        return 'Basic ' + new Buffer(String(username) + ':' + pw).toString('base64');
+      }
+    }
+
+    return '';
+  }
+
+  getScopedOption(scope: string, option: string): mixed {
+    return this.getOption(scope + (scope ? ':' : '') + option);
   }
 }

@@ -30,3 +30,11 @@ export function removeSuffix(pattern: string, suffix: string): string {
 
   return pattern;
 }
+
+export function addSuffix(pattern: string, suffix: string): string {
+  if (!pattern.endsWith(suffix)) {
+    return pattern + suffix;
+  }
+
+  return pattern;
+}
