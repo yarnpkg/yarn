@@ -6,6 +6,7 @@ import type {Fetchers} from './fetchers/index.js';
 import type {Reporter} from './reporters/index.js';
 import type PackageReference from './package-reference.js';
 import type Config from './config.js';
+import {MessageError} from './errors.js';
 import * as fetchers from './fetchers/index.js';
 import * as fs from './util/fs.js';
 import * as promise from './util/promise.js';
@@ -37,7 +38,7 @@ export default class PackageFetcher {
     const remote = ref.remote;
     const Fetcher = fetchers[remote.type];
     if (!Fetcher) {
-      throw new Error(`Unknown fetcher for ${remote.type}`);
+      throw new MessageError(`Unknown fetcher for ${remote.type}`);
     }
 
     const fetcher = new Fetcher(dest, remote, this.config);

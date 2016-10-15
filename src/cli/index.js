@@ -2,6 +2,7 @@
 
 import {ConsoleReporter, JSONReporter} from '../reporters/index.js';
 import {sortAlpha} from '../util/misc.js';
+import {registries, registryNames} from '../registries/index.js';
 import * as commands from './commands/index.js';
 import * as constants from '../constants.js';
 import * as network from '../util/network.js';
@@ -171,10 +172,7 @@ if (typeof command.hasWrapper === 'function') {
   outputWrapper = command.hasWrapper(commander, commander.args);
 }
 if (outputWrapper) {
-  reporter.header(commandName, {
-    name: 'yarn',
-    version: pkg.version,
-  });
+  reporter.header(commandName, pkg);
 }
 
 if (command.noArguments && args.length) {
@@ -283,6 +281,38 @@ const runEventuallyWithNetwork = (mutexPort: ?string): Promise<void> => {
   });
 };
 
+function onUnexpectedError(err: Error) {
+  function indent(str: string): string {
+    return '\n  ' + str.trim().split('\n').join('\n  ');
+  }
+
+  const log = [];
+  log.push(`Arguments: ${indent(process.argv.join(' '))}`);
+  log.push(`PATH: ${indent(process.env.PATH || 'undefined')}`);
+  log.push(`Yarn version: ${indent(pkg.version)}`);
+  log.push(`Node version: ${indent(process.versions.node)}`);
+  log.push(`Platform: ${indent(process.platform + ' ' + process.arch)}`);
+
+  // add manifests
+  for (const registryName of registryNames) {
+    const possibleLoc = path.join(config.cwd, registries[registryName].filename);
+    const manifest = fs.existsSync(possibleLoc) ? fs.readFileSync(possibleLoc, 'utf8') : 'No manifest';
+    log.push(`${registryName} manifest: ${indent(manifest)}`);
+  }
+
+  // lockfile
+  const lockLoc = path.join(config.cwd, constants.LOCKFILE_FILENAME);
+  const lockfile = fs.existsSync(lockLoc) ? fs.readFileSync(lockLoc, 'utf8') : 'No lockfile';
+  log.push(`Lockfile: ${indent(lockfile)}`);
+
+  log.push(`Trace: ${indent(err.stack)}`);
+
+  const errorLoc = path.join(config.cwd, 'yarn-error.log');
+  fs.writeFileSync(errorLoc, log.join('\n\n') + '\n');
+
+  reporter.error(reporter.lang('unexpectedError', errorLoc));
+}
+
 //
 config.init({
   modulesFolder: commander.modulesFolder,
@@ -310,33 +340,21 @@ config.init({
     } else if (mutexType === 'network') {
       return runEventuallyWithNetwork(mutexSpecifier).then(exit);
     } else {
-      throw new Error(`Unknown single instance type ${mutexType}`);
+      throw new MessageError(`Unknown single instance type ${mutexType}`);
     }
   } else {
     return run().then(exit);
   }
-}).catch((errs: ?(Array<Error> | Error)) => {
-  function logError(err) {
-    if (err instanceof MessageError) {
-      reporter.error(err.message);
-    } else {
-      reporter.error(err.stack.replace(/^Error: /, ''));
-    }
+}).catch((err: Error) => {
+  if (err instanceof MessageError) {
+    reporter.error(err.message);
+  } else {
+    onUnexpectedError(err);
   }
 
-  if (errs) {
-    if (Array.isArray(errs)) {
-      for (const err of errs) {
-        logError(err);
-      }
-    } else {
-      logError(errs);
-    }
-
-    const actualCommandForHelp = commands[commandName] ? commandName : aliases[commandName];
-    if (actualCommandForHelp) {
-      reporter.info(getDocsInfo(actualCommandForHelp));
-    }
+  const actualCommandForHelp = commands[commandName] ? commandName : aliases[commandName];
+  if (actualCommandForHelp) {
+    reporter.info(getDocsInfo(actualCommandForHelp));
   }
 
   process.exit(1);
