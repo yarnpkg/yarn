@@ -77,7 +77,8 @@
   },
   "repository": "yarnpkg/yarn",
   "bin": {
-    "yarn": "./bin/yarn.js"
+    "yarn": "./bin/yarn.js",
+    "yarnpkg": "./bin/yarn.js"
   },
   "scripts": {
     "test": "npm run lint && npm run test-only",
