@@ -64,6 +64,7 @@ export default class NpmRegistry extends Registry {
       auth: opts.auth,
       headers,
       json: true,
+      gzip: true,
     });
   }
 
