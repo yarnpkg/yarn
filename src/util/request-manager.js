@@ -40,6 +40,7 @@ type RequestParams<T> = {
   proxy?: string,
   encoding?: ?string,
   forever?: boolean,
+  strictSSL?: boolean,
   headers?: {
     [name: string]: string
   },
@@ -83,6 +84,7 @@ export default class RequestManager {
   running: number;
   httpsProxy: ?string;
   httpProxy: ?string;
+  strictSSL: boolean;
   offlineQueue: Array<RequestOptions>;
   queue: Array<Object>;
   max: number;
