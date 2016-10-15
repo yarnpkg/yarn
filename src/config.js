@@ -33,6 +33,7 @@ export type ConfigOptions = {
 
   // Loosely compare semver for invalid cases like "0.01.0"
   looseSemver?: ?boolean,
+  commandName?: ?string
 };
 
 type PackageMetadata = {
@@ -115,6 +116,9 @@ export default class Config {
     [key: string]: ?Promise<any>
   };
 
+  //
+  commandName: string;
+
   /**
    * Execute a promise produced by factory if it doesn't exist in our cache with
    * the associated key.
@@ -193,6 +197,8 @@ export default class Config {
     this.cwd = opts.cwd || this.cwd || process.cwd();
 
     this.looseSemver = opts.looseSemver == undefined ? true : opts.looseSemver;
+
+    this.commandName = opts.commandName || '';
 
     this.preferOffline = !!opts.preferOffline;
     this.modulesFolder = opts.modulesFolder;

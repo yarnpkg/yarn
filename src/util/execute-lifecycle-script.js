@@ -25,6 +25,10 @@ async function makeEnv(stage: string, cwd: string, config: Config): {
   env.npm_node_execpath = env.NODE || process.execPath;
   env.npm_execpath = path.join(__dirname, '..', '..', 'bin', 'yarn.js');
 
+  // Note: npm_config_argv environment variable contains output of nopt - command-line
+  // parser used by npm. Since we use other parser, we just roughly emulate it's output. (See: #684)
+  env.npm_config_argv = JSON.stringify({remain:[], cooked: [config.commandName], original: [config.commandName]});
+
   // add npm_package_*
   const manifest = await config.readManifest(cwd);
   const queue = [['', manifest]];

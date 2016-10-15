@@ -328,6 +328,7 @@ config.init({
   ignoreEngines: commander.ignoreEngines,
   offline: commander.preferOffline || commander.offline,
   looseSemver: !commander.strictSemver,
+  commandName,
 }).then(() => {
   const exit = () => {
     process.exit(0);
