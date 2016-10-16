@@ -5,25 +5,23 @@ general:
   artifacts:
     - "artifacts/"
 
+machine:
+  node:
+    version: 6
+
 dependencies:
   cache_directories:
     - "~/.yarn-cache"
 
   override:
-    # install node
-    - nvm install 6
-    - nvm use 6 && nvm alias default 6
     - which node
 
     # install dependencies
-    - npm install -g yarn
-    - yarn install
+    - ./scripts/bootstrap-env-ubuntu.sh
 
     # setup ghr
     - curl -L -o ghr.zip https://github.com/tcnksm/ghr/releases/download/v0.5.0/ghr_v0.5.0_linux_amd64.zip
     - unzip ghr.zip
-
-    - ./scripts/bootstrap-env-ubuntu.sh
 
 test:
   override:
