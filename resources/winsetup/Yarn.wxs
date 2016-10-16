@@ -36,6 +36,15 @@
 					Action="set"
 					System="yes"
 				/>
+				<Environment
+					Id="BinPath"
+					Name="PATH"
+					Value="[LocalAppDataFolder]Yarn\.bin"
+					Permanent="no"
+					Part="last"
+					Action="set"
+					System="yes"
+				/>
 			</Component>
 		</DirectoryRef>
 
