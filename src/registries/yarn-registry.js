@@ -76,7 +76,7 @@ export default class YarnRegistry extends NpmRegistry {
     if (typeof val === 'undefined') {
       val = DEFAULTS[key];
     }
-    
+
     return val;
   }
 
@@ -105,7 +105,7 @@ export default class YarnRegistry extends NpmRegistry {
     await this._saveConfig(config, this.homeConfig, this.homeConfigLoc);
   }
 
-  async _saveConfig(newConfig: Object, configToEdit: Object, configLoc: String): Promise<void> {
+  async _saveConfig(newConfig: Object, configToEdit: Object, configLoc: string): Promise<void> {
     for (const key in newConfig) {
       const val = newConfig[key];
 
