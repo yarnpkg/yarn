@@ -70,12 +70,12 @@ export default class NpmRegistry extends Registry {
     const possibles = [
       [false, false, path.join(this.cwd, filename)],
       [true, false, path.join(userHome, filename)],
-      [false, true, path.join(getGlobalPrefix(), filename)],
+      [false, true, path.join(this.getGlobalPrefix(), filename)],
     ];
 
     const foldersFromRootToCwd = this.cwd.split(path.sep);
     while (foldersFromRootToCwd.length > 1) {
-      possibles.push([false, path.join(foldersFromRootToCwd.join(path.sep), filename)]);
+      possibles.push([false, false, path.join(foldersFromRootToCwd.join(path.sep), filename)]);
       foldersFromRootToCwd.pop();
     }
 
