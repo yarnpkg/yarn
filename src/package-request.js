@@ -132,7 +132,7 @@ export default class PackageRequest {
     if (Resolver) {
       return Resolver;
     } else {
-      throw new Error(`Unknown registry resolver ${this.registry}`);
+      throw new MessageError(`Unknown registry resolver ${this.registry}`);
     }
   }
 

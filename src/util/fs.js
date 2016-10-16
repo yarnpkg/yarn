@@ -315,9 +315,19 @@ export async function readFileAny(files: Array<string>): Promise<?string> {
 }
 
 export async function readJson(loc: string): Promise<Object> {
+  return (await readJsonAndFile(loc)).object;
+}
+
+export async function readJsonAndFile(loc: string): Promise<{
+  object: Object,
+  content: string,
+}> {
   const file = await readFile(loc);
   try {
-    return map(JSON.parse(stripBOM(file)));
+    return {
+      object: map(JSON.parse(stripBOM(file))),
+      content: file,
+    };
   } catch (err) {
     err.message = `${loc}: ${err.message}`;
     throw err;

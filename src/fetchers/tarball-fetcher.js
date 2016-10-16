@@ -130,9 +130,9 @@ export default class TarballFetcher extends BaseFetcher {
 
   fetchFromExternal(): Promise<FetchedOverride> {
     const {reference: ref} = this;
+    const registry = this.config.registries[this.registry];
 
-    return this.config.requestManager.request({
-      url: ref,
+    return registry.request(ref, {
       headers: {
         'Accept-Encoding': 'gzip',
         'Accept': 'application/octet-stream',

@@ -4,6 +4,8 @@ import {ConcatStream} from '../../src/util/stream.js';
 
 const fs = require('fs');
 
+jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000;
+
 test('ConcatStream', async function (): Promise<void> {
   const [
     actual,

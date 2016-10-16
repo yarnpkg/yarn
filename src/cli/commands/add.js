@@ -92,7 +92,7 @@ export class Add extends Install {
     const {dev, exact, tilde, optional, peer} = this.flags;
 
     // get all the different registry manifests in this folder
-    const jsons = await this.getRootManifests();
+    const manifests = await this.config.getRootManifests();
 
     // add new patterns to their appropriate registry manifest
     for (const pattern of this.resolver.dedupePatterns(this.args)) {
@@ -134,7 +134,7 @@ export class Add extends Install {
       }
 
       // add it to manifest
-      const object = jsons[ref.registry].object;
+      const object = manifests[ref.registry].object;
       for (const key of targetKeys) {
         const target = object[key] = object[key] || {};
         target[pkg.name] = version;
@@ -149,7 +149,7 @@ export class Add extends Install {
       this.resolver.removePattern(pattern);
     }
 
-    await this.saveRootManifests(jsons);
+    await this.config.saveRootManifests(manifests);
   }
 }
 
