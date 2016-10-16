@@ -295,23 +295,32 @@ export default class Config {
    */
 
   getOfflineMirrorPath(packageFilename: ?string): ?string {
-    const registry = this.registries.npm;
-    if (registry == null) {
-      return null;
+    let mirrorPath;
+
+    for (const key of ['npm', 'yarn']) {
+      const registry = this.registries[key];
+
+      if (registry == null) {
+        continue;
+      }
+
+      const registryMirrorPath = registry.config['yarn-offline-mirror'];
+
+      if (registryMirrorPath == null) {
+        continue;
+      }
+
+      mirrorPath = registryMirrorPath;
     }
 
-    //
-    const mirrorPath = registry.config['yarn-offline-mirror'];
     if (mirrorPath == null) {
       return null;
     }
 
-    //
     if (packageFilename == null) {
       return mirrorPath;
     }
 
-    //
     return path.join(mirrorPath, path.basename(packageFilename));
   }
 

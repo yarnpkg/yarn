@@ -72,16 +72,25 @@ export default class YarnRegistry extends NpmRegistry {
     if (typeof val === 'undefined') {
       val = DEFAULTS[key];
     }
-    
+
     return val;
   }
 
   async loadConfig(): Promise<void> {
-    for (const [isHome,, file] of await this.getPossibleConfigLocations('.yarnrc')) {
+    for (const [isHome, loc, file] of await this.getPossibleConfigLocations('.yarnrc')) {
       const config = parse(file);
 
       if (isHome) {
         this.homeConfig = config;
+      }
+
+      // normalize offline mirror path relative to the current yarnrc
+      const offlineLoc = config['yarn-offline-mirror'];
+
+      // don't normalize if we already have a mirror path
+      if (!this.config['yarn-offline-mirror'] && offlineLoc) {
+        const mirrorLoc = config['yarn-offline-mirror'] = path.resolve(path.dirname(loc), offlineLoc);
+        await fs.mkdirp(mirrorLoc);
       }
 
       defaults(this.config, config);
