@@ -109,13 +109,14 @@ const messages = {
   commandFailed: 'Command failed with exit code $0.',
 
   foundIncompatible: 'Found incompatible module',
-  incompatibleEngine: `The engine $0 is incompatible with this module. Expected version $1.`,
-  incompatibleCPU: `The CPU architecture $0 is incompatible with this module.`,
+  incompatibleEngine: 'The engine $0 is incompatible with this module. Expected version $1.',
+  incompatibleCPU: 'The CPU architecture $0 is incompatible with this module.',
   incompatibleOS: 'The platform $0 is incompatible with this module.',
   invalidEngine: 'The engine $0 appears to be invalid.',
 
   selfUpdateReleased: 'Replaced current release with $0.',
-  selfUpdateDownloading: `Downloading asset $0 from release $1`,
+  selfUpdateDownloading: 'Downloading yarn version $0.',
+  selfUpdateNoNewer: 'Yarn is already using the latest version.',
 
   optionalCompatibilityExcluded: '$0 is an optional dependency and failed compatibility check. Excluding it from installation.',
   optionalModuleFail: 'This module is OPTIONAL, you can safely ignore this error',
