@@ -4,8 +4,6 @@
 /* global tty$ReadStream */
 /* global tty$WriteStream */
 
-export class StandinStdIn extends stream$Readable {}
-
 export type Stdout = stream$Writable | tty$WriteStream;
 export type Stdin = stream$Readable | tty$ReadStream;
 export type Package = {
