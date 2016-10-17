@@ -32,7 +32,7 @@
     "request": "^2.75.0",
     "request-capture-har": "^1.1.4",
     "rimraf": "^2.5.0",
-    "roadrunner": "danez/roadrunner#patch-1",
+    "roadrunner": "^1.1.0",
     "semver": "^5.1.0",
     "strip-bom": "^2.0.0",
     "tar": "^2.2.1",

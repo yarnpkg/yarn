@@ -81,9 +81,10 @@ it('Self-update should download a release and symlink it as "current"', (): Prom
 it('Self-update should work from self-updated location', (): Promise<void> => {
   return run(async (reporter, config) => {
     // mock an existing self-update
-    await child.exec('yarn run build');
-    await fs.copy(path.resolve(updatesFolder, '..'), path.resolve(updatesFolder, '0.2.0'));
-    await fs.symlink(path.resolve(updatesFolder, '0.2.0'), path.resolve(updatesFolder, 'current'));
+    await child.exec('npm run build');
+    const versionFolder = path.resolve(updatesFolder, '0.2.0');
+    await fs.copy(path.resolve(updatesFolder, '..'), versionFolder);
+    await fs.symlink(versionFolder, path.resolve(updatesFolder, 'current'));
     let packageJson = await fs.readJson(path.resolve(updatesFolder, 'current', 'package.json'));
     packageJson.version = '0.2.0';
     await fs.writeFile(path.resolve(updatesFolder, 'current', 'package.json'),

@@ -4421,9 +4421,9 @@ ripemd160@^1.0.0:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/ripemd160/-/ripemd160-1.0.1.tgz#93a4bbd4942bc574b69a8fa57c71de10ecca7d6e"
 
-roadrunner@danez/roadrunner#patch-1:
-  version "1.0.6"
-  resolved "https://codeload.github.com/danez/roadrunner/tar.gz/2ead9501e3681fa7584b79e6e6546fb046a83f54"
+roadrunner@^1.1.0:
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/roadrunner/-/roadrunner-1.1.0.tgz#1180a30d64e1970d8f55dd8cb0da8ffccecad71e"
 
 run-async@^0.1.0:
   version "0.1.0"
