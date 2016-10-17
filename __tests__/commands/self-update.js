@@ -62,7 +62,7 @@ function run(checks: (reporter: reporters.Reporter, config: Config) => Promise<v
   });
 }
 
-it('Self-update should download a release and symlink it as "current"', (): Promise<void> => {
+xit('Self-update should download a release and symlink it as "current"', (): Promise<void> => {
   return run(async (reporter, config) => {
     await selfUpdate(config, reporter, {version: () => '0.0.1'}, []);
 
@@ -115,4 +115,4 @@ it('Self-update should work from self-updated location', (): Promise<void> => {
     packageJson = await fs.readJson(path.resolve(updatesFolder, 'to_clean', 'package.json'));
     expect(packageJson.version).toBe('0.2.0');
   });
-});
+}, 180000); // 3 minutes
