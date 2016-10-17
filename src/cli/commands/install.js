@@ -612,6 +612,35 @@ export class Install {
 
     return crypto.hash(opts.join('-'), 'sha256');
   }
+
+  /**
+   * Load the dependency graph of the current install. Only does package resolving and wont write to the cwd.
+   */
+
+  async hydrate(fetch?: boolean): Promise<InstallCwdRequest> {
+    const request = await this.fetchRequestFromCwd();
+    const [depRequests, rawPatterns] = request;
+
+    await this.resolver.init(depRequests, this.flags.flat);
+    await this.flatten(rawPatterns);
+
+    if (fetch) {
+      // fetch packages, should hit cache most of the time
+      await this.fetcher.init();
+
+      // expand minimal manifests
+      for (const manifest of this.resolver.getManifests()) {
+        const ref = manifest._reference;
+        invariant(ref, 'expected reference');
+
+        const loc = this.config.generateHardModulePath(ref);
+        const newPkg = await this.config.readManifest(loc);
+        await this.resolver.updateManifest(ref, newPkg);
+      }
+    }
+
+    return request;
+  }
 }
 
 export function _setFlags(commander: Object) {

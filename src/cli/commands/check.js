@@ -40,7 +40,7 @@ export async function run(
   }
 
   // get patterns that are installed when running `yarn install`
-  const [depRequests, rawPatterns] = await install.fetchRequestFromCwd();
+  const [, rawPatterns] = await install.hydrate();
 
   // check if patterns exist in lockfile
   for (const pattern of rawPatterns) {
@@ -62,10 +62,6 @@ export async function run(
       reportError("Couldn't find an integrity hash file");
     }
   } else {
-    // seed resolver
-    await install.resolver.init(depRequests, install.flags.flat);
-    await install.flatten(rawPatterns);
-
     // check if any of the node_modules are out of sync
     const res = await install.linker.getFlatHoistedTree(rawPatterns);
     for (const [loc, {originalKey, pkg}] of res) {
