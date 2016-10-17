@@ -43,7 +43,7 @@
 					Permanent="no"
 					Part="last"
 					Action="set"
-					System="yes"
+					System="no"
 				/>
 			</Component>
 		</DirectoryRef>
