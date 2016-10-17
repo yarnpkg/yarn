@@ -179,7 +179,7 @@ if (outputWrapper) {
   reporter.header(commandName, pkg);
 }
 
-if (command.noArguments && args.length) {
+if (command.noArguments && commander.args.length) {
   reporter.error(reporter.lang('noArguments'));
   reporter.info(getDocsInfo(commandName));
   process.exit(1);
