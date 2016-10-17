@@ -11,7 +11,7 @@ import type {
   ReporterSpinner,
   QuestionOptions,
 } from './types.js';
-import {StandinStdIn} from './types.js';
+import {StandinStdIn} from './standin-stdin.js';
 import type {LanguageKeys} from './lang/en.js';
 import type {Formatter} from './format.js';
 import {defaultFormatter} from './format.js';
