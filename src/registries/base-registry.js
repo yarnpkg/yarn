@@ -1,7 +1,8 @@
 /* @flow */
 
 import type RequestManager, {RequestMethods} from '../util/request-manager.js';
-import type Config, {ConfigRegistries} from '../config.js';
+import type Config from '../config.js';
+import type {ConfigRegistries} from './index.js';
 import {removePrefix} from '../util/misc.js';
 
 const objectPath = require('object-path');
@@ -11,6 +12,8 @@ export type RegistryRequestOptions = {
   method?: RequestMethods,
   auth?: Object,
   body?: mixed,
+  buffer?: bool,
+  process?: Function
 };
 
 export type CheckOutdatedReturn = Promise<{
@@ -73,8 +76,11 @@ export default class BaseRegistry {
     return Promise.reject(new Error('unimplemented'));
   }
 
-  request(pathname: string, opts?: RegistryRequestOptions = {}): Promise<?Object> {
-    return Promise.reject(new Error('unimplemented'));
+  request(pathname: string, opts?: RegistryRequestOptions = {}): Promise<*> {
+    return this.requestManager.request({
+      url: pathname,
+      ...opts,
+    });
   }
 
   async init(): Promise<void> {

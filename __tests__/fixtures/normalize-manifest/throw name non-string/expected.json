@@ -1,3 +1,3 @@
 {
-  "_error": "Fatal problem with name in manifest: must be a string"
+  "_error": "\"name\" is not a string"
 }

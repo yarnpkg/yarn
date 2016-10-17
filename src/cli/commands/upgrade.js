@@ -10,7 +10,6 @@ export function setFlags(commander: Object) {
   commander;
 }
 
-export const noArguments = true;
 export const requireLockfile = true;
 
 export async function run(
