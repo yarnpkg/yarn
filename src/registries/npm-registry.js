@@ -7,7 +7,7 @@ import type {ConfigRegistries} from './index.js';
 import * as fs from '../util/fs.js';
 import NpmResolver from '../resolvers/registries/npm-resolver.js';
 import Registry from './base-registry.js';
-import {addSuffix} from '../util/misc';
+import {addSuffix, removePrefix} from '../util/misc';
 
 const defaults = require('defaults');
 const userHome = require('user-home');
@@ -53,7 +53,8 @@ export default class NpmRegistry extends Registry {
     const registry = addSuffix(this.getRegistry(pathname), '/');
     const requestUrl = url.resolve(registry, pathname);
     const alwaysAuth = this.getScopedOption(registry.replace(/^https?:/, ''), 'always-auth')
-                    || this.getOption('always-auth');
+      || this.getOption('always-auth')
+      || removePrefix(requestUrl, registry)[0] === '@';
 
     const headers = {};
     if (this.token || (alwaysAuth && requestUrl.startsWith(registry))) {
