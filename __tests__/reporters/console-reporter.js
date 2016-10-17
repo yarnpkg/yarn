@@ -9,6 +9,11 @@ import build from './_mock.js';
 const getConsoleBuff = build(ConsoleReporter, (data): MockData => data);
 const stream = require('stream');
 
+// ensures consistency across environments
+require('chalk').enabled = true;
+require('chalk').supportsColor = true;
+require('chalk').styles.blue.open = '\u001b[34m';
+
 test('ConsoleReporter.step', async () => {
   expect(await getConsoleBuff((r) => {
     r.step(1, 5, 'foboar');
@@ -131,15 +136,15 @@ test('ProgressBar', () => {
   const bar = new ProgressBar(2, new TestStream());
 
   bar.render();
-  expect(data).toBe('\u001b[2K\u001b[1G\u001b[1G░░ 0/2');
+  expect(data).toMatchSnapshot();
 
   bar.tick();
   bar.render();
-  expect(data).toBe('\u001b[2K\u001b[1G\u001b[1G░░ 0/2\u001b[1G█░ 1/2');
+  expect(data).toMatchSnapshot();
 
   bar.tick();
   bar.render();
-  expect(data).toBe('\u001b[2K\u001b[1G\u001b[1G░░ 0/2\u001b[1G█░ 1/2\u001b[2K\u001b[1G\u001b[1G██ 2/2');
+  expect(data).toMatchSnapshot();
 });
 
 test('Spinner', () => {
@@ -154,16 +159,16 @@ test('Spinner', () => {
   const spinner = new Spinner(new TestStream());
 
   spinner.start();
-  expect(data).toBe('\u001b[2K\u001b[1G⠁ ');
+  expect(data).toMatchSnapshot();
 
   spinner.setText('foo');
   spinner.render();
-  expect(data).toBe('\u001b[2K\u001b[1G⠁ \u001b[2K\u001b[1G⠂ foo');
+  expect(data).toMatchSnapshot();
 
   spinner.setText('bar');
   spinner.render();
-  expect(data).toBe('\u001b[2K\u001b[1G⠁ \u001b[2K\u001b[1G⠂ foo\u001b[2K\u001b[1G⠄ bar');
+  expect(data).toMatchSnapshot();
 
   spinner.stop();
-  expect(data).toBe('\u001b[2K\u001b[1G⠁ \u001b[2K\u001b[1G⠂ foo\u001b[2K\u001b[1G⠄ bar\u001b[2K\u001b[1G');
+  expect(data).toMatchSnapshot();
 });

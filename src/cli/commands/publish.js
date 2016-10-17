@@ -138,7 +138,7 @@ export async function run(
 
   //
   reporter.step(2, 4, reporter.lang('loggingIn'));
-  const revoke = await getToken(config, reporter);
+  const revoke = await getToken(config, reporter, pkg.name);
 
   //
   reporter.step(3, 4, reporter.lang('publishing'));

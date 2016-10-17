@@ -13,7 +13,7 @@ import Git from '../../util/git.js';
 const urlParse = require('url').parse;
 
 // we purposefully omit https and http as those are only valid if they end in the .git extension
-const GIT_PROTOCOLS = ['git', 'git+ssh', 'git+https', 'ssh'];
+const GIT_PROTOCOLS = ['git:', 'git+ssh:', 'git+https:', 'ssh:'];
 
 const GIT_HOSTS = ['github.com', 'gitlab.com', 'bitbucket.com'];
 

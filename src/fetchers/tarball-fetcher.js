@@ -54,7 +54,7 @@ export default class TarballFetcher extends BaseFetcher {
   createExtractor(
     mirrorPath: ?string,
     resolve: (fetched: FetchedOverride) => void,
-    reject: (error: any) => void,
+    reject: (error: Error) => void,
   ): {
     validateStream: crypto.HashStream,
     extractorStream: UnpackStream,
@@ -130,9 +130,9 @@ export default class TarballFetcher extends BaseFetcher {
 
   fetchFromExternal(): Promise<FetchedOverride> {
     const {reference: ref} = this;
+    const registry = this.config.registries[this.registry];
 
-    return this.config.requestManager.request({
-      url: ref,
+    return registry.request(ref, {
       headers: {
         'Accept-Encoding': 'gzip',
         'Accept': 'application/octet-stream',

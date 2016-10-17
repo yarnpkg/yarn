@@ -32,6 +32,7 @@ const DEFAULT_IGNORE = ignoreLinesToRegex([
   '*.swp',
   '._*',
   'npm-debug.log',
+  'yarn-error.log',
   '.npmrc',
   '.yarnrc',
   '.npmignore',

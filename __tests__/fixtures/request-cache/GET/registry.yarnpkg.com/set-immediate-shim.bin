@@ -1,0 +1,24 @@
+HTTP/1.1 200 OK
+Date: Fri, 14 Oct 2016 21:05:03 GMT
+Content-Type: application/json
+Transfer-Encoding: chunked
+Connection: keep-alive
+Set-Cookie: __cfduid=d86d93b4ef6fe1f3bd527a1be46d8039b1476479103; expires=Sat, 14-Oct-17 21:05:03 GMT; path=/; domain=.yarnpkg.com; HttpOnly
+etag: W/"21GF2NQD0VWPPJV7BP1J9QWJY"
+Cache-Control: max-age=300
+Via: 1.1 varnish
+Age: 254
+X-Served-By: cache-ams4423-AMS
+X-Cache: HIT
+X-Cache-Hits: 3
+X-Timer: S1476479103.937512,VS0,VE0
+Vary: Accept-Encoding
+Server: cloudflare-nginx
+CF-RAY: 2f1dfcbf9e181497-AMS
+
+3fc
+{"_id":"set-immediate-shim","_rev":"5-325ed4c371ee0813c5140d43185d456d","name":"set-immediate-shim","description":"Simple setImmediate shim","dist-tags":{"latest":"1.0.1"},"versions":{"1.0.0":{"name":"set-immediate-shim","version":"1.0.0","description":"Simple setImmediate shim","license":"MIT","repository":{"type":"git","url":"https://github.com/sindresorhus/set-immediate-shim"},"author":{"name":"Sindre Sorhus","email":"sindresorhus@gmail.com","url":"sindresorhus.com"},"engines":{"node":">=0.10.0"},"scripts":{"test":"node test.js"},"files":["index.js"],"keywords":["setImmediate","immediate","setTimeout","timeout","shim","polyfill","ponyfill"],"devDependencies":{"ava":"0.0.4","require-uncached":"^1.0.2"},"gitHead":"29ac611e181046f2cf8b61ed5d038c64733a1cbc","bugs":{"url":"https://github.com/sindresorhus/set-immediate-shim/issues"},"homepage":"https://github.com/sindresorhus/set-immediate-shim","_id":"set-immediate-shim@1.0.0","_shasum":"e23b45a33244f6f2dcd90359bc38bdbf048de152","_from":".","_npmVersion":"2
+b06
+.1.16","_nodeVersion":"0.10.32","_npmUser":{"name":"sindresorhus","email":"sindresorhus@gmail.com"},"maintainers":[{"name":"sindresorhus","email":"sindresorhus@gmail.com"}],"dist":{"shasum":"e23b45a33244f6f2dcd90359bc38bdbf048de152","tarball":"https://registry.npmjs.org/set-immediate-shim/-/set-immediate-shim-1.0.0.tgz"},"directories":{}},"1.0.1":{"name":"set-immediate-shim","version":"1.0.1","description":"Simple setImmediate shim","license":"MIT","repository":{"type":"git","url":"https://github.com/sindresorhus/set-immediate-shim"},"author":{"name":"Sindre Sorhus","email":"sindresorhus@gmail.com","url":"sindresorhus.com"},"engines":{"node":">=0.10.0"},"scripts":{"test":"node test.js"},"files":["index.js"],"keywords":["setImmediate","immediate","setTimeout","timeout","shim","polyfill","ponyfill"],"devDependencies":{"ava":"0.0.4","require-uncached":"^1.0.2"},"gitHead":"4c50df7ade5a368e106fee82351ee0a378c990f7","bugs":{"url":"https://github.com/sindresorhus/set-immediate-shim/issues"},"homepage":"https://github.com/sindresorhus/set-immediate-shim","_id":"set-immediate-shim@1.0.1","_shasum":"4b2b1b27eb808a9f8dcc481a58e5e56f599f3f61","_from":".","_npmVersion":"1.4.28","_npmUser":{"name":"sindresorhus","email":"sindresorhus@gmail.com"},"maintainers":[{"name":"sindresorhus","email":"sindresorhus@gmail.com"}],"dist":{"shasum":"4b2b1b27eb808a9f8dcc481a58e5e56f599f3f61","tarball":"https://registry.npmjs.org/set-immediate-shim/-/set-immediate-shim-1.0.1.tgz"},"directories":{}}},"readme":"# set-immediate-shim [![Build Status](https://travis-ci.org/sindresorhus/set-immediate-shim.svg?branch=master)](https://travis-ci.org/sindresorhus/set-immediate-shim)\n\n> Simple [`setImmediate`](https://developer.mozilla.org/en-US/docs/Web/API/Window.setImmediate) shim\n\n\n## Install\n\n```\n$ npm install --save set-immediate-shim\n```\n\n\n## Usage\n\n```js\nvar setImmediateShim = require('set-immediate-shim');\n\nsetImmediateShim(function () {\n\tconsole.log('2');\n});\n\nconsole.log('1');\n\n//=> 1\n//=> 2\n```\n\n\n## License\n\nMIT © [Sindre Sorhus](http://sindresorhus.com)\n","maintainers":[{"name":"sindresorhus","email":"sindresorhus@gmail.com"}],"time":{"modified":"2015-03-12T07:46:00.857Z","created":"2014-12-29T09:41:39.091Z","1.0.0":"2014-12-29T09:41:39.091Z","1.0.1":"2015-03-12T07:46:00.857Z"},"homepage":"https://github.com/sindresorhus/set-immediate-shim","keywords":["setImmediate","immediate","setTimeout","timeout","shim","polyfill","ponyfill"],"repository":{"type":"git","url":"https://github.com/sindresorhus/set-immediate-shim"},"author":{"name":"Sindre Sorhus","email":"sindresorhus@gmail.com","url":"sindresorhus.com"},"bugs":{"url":"https://github.com/sindresorhus/set-immediate-shim/issues"},"license":"MIT","readmeFilename":"readme.md","users":{"koulmomo":true},"_attachments":{}}
+0
+

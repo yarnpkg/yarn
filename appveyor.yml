@@ -1,7 +1,6 @@
 environment:
   matrix:
     - node_version: "6"
-    - node_version: "5"
     - node_version: "4"
 
 branches:
@@ -11,10 +10,22 @@ branches:
 
 install:
   - ps: Install-Product node $env:node_version
-  - npm install
+  - choco install yarn
+  - refreshenv
+  - yarn install
+
+build_script:
+  - npm run build
+  - ps: ./scripts/build-dist.ps1
+  - npm run build-win-installer
 
 test_script:
-  - npm run build
   - npm run test-only
 
-build: off
+artifacts:
+  - path: artifacts/*.msi
+    name: Installer
+
+cache:
+ - node_modules
+ - "%LOCALAPPDATA%/Yarn"

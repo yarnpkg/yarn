@@ -2,6 +2,7 @@
 
 import {ConsoleReporter, JSONReporter} from '../reporters/index.js';
 import {sortAlpha} from '../util/misc.js';
+import {registries, registryNames} from '../registries/index.js';
 import * as commands from './commands/index.js';
 import * as constants from '../constants.js';
 import * as network from '../util/network.js';
@@ -57,6 +58,10 @@ commander.option(
   '--mutex <type>[:specifier]',
   'use a mutex to ensure only one yarn instance is executing',
 );
+commander.option(
+  '--no-emoji',
+  'disable emoji in output',
+);
 
 // get command name
 let commandName: string = args.shift() || '';
@@ -100,11 +105,11 @@ if (!commandName || commandName[0] === '-') {
 }
 
 // aliases: i -> install
-// $FlowFixMe
 if (commandName && typeof aliases[commandName] === 'string') {
+  const alias = aliases[commandName];
   command = {
     run(config: Config, reporter: ConsoleReporter | JSONReporter): Promise<void> {
-      throw new MessageError(`Did you mean \`yarn ${aliases[commandName]}\`?`);
+      throw new MessageError(`Did you mean \`yarn ${alias}\`?`);
     },
   };
 }
@@ -125,7 +130,7 @@ if (command && typeof command.setFlags === 'function') {
 }
 
 if (commandName === 'help' || args.indexOf('--help') >= 0 || args.indexOf('-h') >= 0) {
-  const examples = (command && command.examples) || [];
+  const examples: Array<string> = (command && command.examples) || [];
   if (examples.length) {
     commander.on('--help', () => {
       console.log('  Examples:\n');
@@ -158,7 +163,7 @@ if (commander.json) {
   Reporter = JSONReporter;
 }
 const reporter = new Reporter({
-  emoji: process.stdout.isTTY && process.platform === 'darwin',
+  emoji: commander.emoji && process.stdout.isTTY && process.platform === 'darwin',
 });
 reporter.initPeakMemoryCounter();
 
@@ -171,10 +176,7 @@ if (typeof command.hasWrapper === 'function') {
   outputWrapper = command.hasWrapper(commander, commander.args);
 }
 if (outputWrapper) {
-  reporter.header(commandName, {
-    name: 'yarn',
-    version: pkg.version,
-  });
+  reporter.header(commandName, pkg);
 }
 
 if (command.noArguments && args.length) {
@@ -214,7 +216,7 @@ const run = (): Promise<void> => {
 const runEventuallyWithFile = (mutexFilename: ?string, isFirstTime?: boolean): Promise<void> => {
   return new Promise((ok) => {
     const lockFilename = mutexFilename || path.join(config.cwd, constants.SINGLE_INSTANCE_FILENAME);
-    lockfile.lock(lockFilename, {realpath: false}, (err, release) => {
+    lockfile.lock(lockFilename, {realpath: false}, (err: mixed, release: () => void) => {
       if (err) {
         if (isFirstTime) {
           reporter.warn(reporter.lang('waitingInstance'));
@@ -240,7 +242,7 @@ const runEventuallyWithNetwork = (mutexPort: ?string): Promise<void> => {
     };
 
     const clients = [];
-    const server = net.createServer((client) => {
+    const server = net.createServer((client: net$Socket) => {
       clients.push(client);
     });
 
@@ -257,7 +259,7 @@ const runEventuallyWithNetwork = (mutexPort: ?string): Promise<void> => {
             ok(runEventuallyWithNetwork());
           });
         })
-        .on('error', (e) => {
+        .on('error', () => {
           // No server to listen to ? :O let's retry to become the next server then.
           process.nextTick(() => {
             ok(runEventuallyWithNetwork());
@@ -283,6 +285,38 @@ const runEventuallyWithNetwork = (mutexPort: ?string): Promise<void> => {
   });
 };
 
+function onUnexpectedError(err: Error) {
+  function indent(str: string): string {
+    return '\n  ' + str.trim().split('\n').join('\n  ');
+  }
+
+  const log = [];
+  log.push(`Arguments: ${indent(process.argv.join(' '))}`);
+  log.push(`PATH: ${indent(process.env.PATH || 'undefined')}`);
+  log.push(`Yarn version: ${indent(pkg.version)}`);
+  log.push(`Node version: ${indent(process.versions.node)}`);
+  log.push(`Platform: ${indent(process.platform + ' ' + process.arch)}`);
+
+  // add manifests
+  for (const registryName of registryNames) {
+    const possibleLoc = path.join(config.cwd, registries[registryName].filename);
+    const manifest = fs.existsSync(possibleLoc) ? fs.readFileSync(possibleLoc, 'utf8') : 'No manifest';
+    log.push(`${registryName} manifest: ${indent(manifest)}`);
+  }
+
+  // lockfile
+  const lockLoc = path.join(config.cwd, constants.LOCKFILE_FILENAME);
+  const lockfile = fs.existsSync(lockLoc) ? fs.readFileSync(lockLoc, 'utf8') : 'No lockfile';
+  log.push(`Lockfile: ${indent(lockfile)}`);
+
+  log.push(`Trace: ${indent(err.stack)}`);
+
+  const errorLoc = path.join(config.cwd, 'yarn-error.log');
+  fs.writeFileSync(errorLoc, log.join('\n\n') + '\n');
+
+  reporter.error(reporter.lang('unexpectedError', errorLoc));
+}
+
 //
 config.init({
   modulesFolder: commander.modulesFolder,
@@ -294,12 +328,12 @@ config.init({
   ignoreEngines: commander.ignoreEngines,
   offline: commander.preferOffline || commander.offline,
   looseSemver: !commander.strictSemver,
-}).then((): Promise<void> => {
+}).then(() => {
   const exit = () => {
     process.exit(0);
   };
 
-  const mutex = commander.mutex;
+  const mutex: mixed = commander.mutex;
   if (mutex && typeof mutex === 'string') {
     const parts = mutex.split(':');
     const mutexType = parts.shift();
@@ -310,33 +344,21 @@ config.init({
     } else if (mutexType === 'network') {
       return runEventuallyWithNetwork(mutexSpecifier).then(exit);
     } else {
-      throw new Error(`Unknown single instance type ${mutexType}`);
+      throw new MessageError(`Unknown single instance type ${mutexType}`);
     }
   } else {
     return run().then(exit);
   }
-}).catch((errs) => {
-  function logError(err) {
-    if (err instanceof MessageError) {
-      reporter.error(err.message);
-    } else {
-      reporter.error(err.stack.replace(/^Error: /, ''));
-    }
+}).catch((err: Error) => {
+  if (err instanceof MessageError) {
+    reporter.error(err.message);
+  } else {
+    onUnexpectedError(err);
   }
 
-  if (errs) {
-    if (Array.isArray(errs)) {
-      for (const err of errs) {
-        logError(err);
-      }
-    } else {
-      logError(errs);
-    }
-
-    const actualCommandForHelp = commands[commandName] ? commandName : aliases[commandName];
-    if (actualCommandForHelp) {
-      reporter.info(getDocsInfo(actualCommandForHelp));
-    }
+  const actualCommandForHelp = commands[commandName] ? commandName : aliases[commandName];
+  if (actualCommandForHelp) {
+    reporter.info(getDocsInfo(actualCommandForHelp));
   }
 
   process.exit(1);
