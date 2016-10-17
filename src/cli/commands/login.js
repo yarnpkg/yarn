@@ -45,7 +45,7 @@ export async function getToken(config: Config, reporter: Reporter, name: string 
     };
   }
 
-  const env = process.env.YARN_AUTH_TOKEN || process.env.KPM_AUTH_TOKEN || process.env.NPM_AUTH_TOKEN;
+  const env = process.env.YARN_AUTH_TOKEN || process.env.NPM_AUTH_TOKEN;
   if (env) {
     config.registries.npm.setToken(`Bearer ${env}`);
     return function revoke(): Promise<void> {
