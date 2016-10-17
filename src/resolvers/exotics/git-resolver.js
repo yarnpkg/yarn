@@ -32,7 +32,8 @@ export default class GitResolver extends ExoticResolver {
   static isVersion(pattern: string): boolean {
     // this pattern hasn't been exploded yet, we'll hit this code path again later once
     // we've been normalized #59
-    if (pattern.indexOf('@') >= 0) {
+    const hasPackageNamePrefix : RegExp = /@.*(http)s?:\/\//i;
+    if (hasPackageNamePrefix.test(pattern)) {
       return false;
     }
 
