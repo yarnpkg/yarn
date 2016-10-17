@@ -58,7 +58,7 @@ const messages = {
   invalidFragment: 'Invalid fragment $0.',
   invalidPackageName: 'Invalid package name.',
   couldntFindManifestIn: "Couldn't find manifest in $0.",
-  shrinkwrapWarning: 'npm-shrinkwrap.json found. This will not be updated or respected. See [TODO] for more information.',
+  shrinkwrapWarning: 'npm-shrinkwrap.json found. This will not be updated or respected. See https://yarnpkg.com/en/docs/migrating-from-npm for more information.',
   lockfileOutdated: 'Outdated lockfile. Please run `$ yarn install` and try again.',
   ignoredScripts: 'Ignored scripts due to flag.',
   missingAddDependencies: 'Missing list of packages to add to your project.',
