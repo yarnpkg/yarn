@@ -69,6 +69,7 @@ const messages = {
   noVersion: `Package doesn't have a version.`,
   answerRequired: 'An answer is required.',
   missingWhyDependency: 'Missing package name, folder or path to file to identify why a package has been installed',
+  unexpectedError: 'An unexpected error occured, please open a bug report with the information provided in $0.',
 
   tooManyArguments: 'Too many arguments, maximum of $0.',
   tooFewArguments: 'Not enough arguments, expected at least $0.',
@@ -181,6 +182,7 @@ const messages = {
   loggingIn: 'Logging in',
   loggedIn: 'Logged in.',
   notRevokingEnvToken: 'Not revoking login token, specified via environment variable.',
+  notRevokingConfigToken: 'Not revoking login token, specified via config file.',
   noTokenToRevoke: 'No login token to revoke.',
   revokingToken: 'Revoking token',
   revokedToken: 'Revoked login token.',

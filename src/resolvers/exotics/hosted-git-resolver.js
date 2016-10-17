@@ -22,9 +22,9 @@ export function explodeHostedGitFragment(fragment: string, reporter: Reporter): 
 
   const userParts = fragment.split('/');
 
-  if (userParts.length === 2) {
+  if (userParts.length >= 2) {
     const user = userParts.shift();
-    const repoParts = userParts.shift().split('#');
+    const repoParts = userParts.join('/').split('#');
 
     if (repoParts.length <= 2) {
       return {

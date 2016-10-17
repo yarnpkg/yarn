@@ -13,6 +13,7 @@ import type RequestT from 'request';
 const RequestCaptureHar = require('request-capture-har');
 const invariant = require('invariant');
 const url = require('url');
+const fs = require('fs');
 
 const successHosts = map();
 const controlOffline = network.isOffline();
@@ -39,7 +40,9 @@ type RequestParams<T> = {
   body?: mixed,
   proxy?: string,
   encoding?: ?string,
+  ca?: Array<string>,
   forever?: boolean,
+  strictSSL?: boolean,
   headers?: {
     [name: string]: string
   },
@@ -66,7 +69,9 @@ export default class RequestManager {
     this.offlineQueue = [];
     this.captureHar = false;
     this.httpsProxy = null;
+    this.ca = null;
     this.httpProxy = null;
+    this.strictSSL = true;
     this.userAgent = '';
     this.reporter = reporter;
     this.running = 0;
@@ -82,6 +87,8 @@ export default class RequestManager {
   running: number;
   httpsProxy: ?string;
   httpProxy: ?string;
+  strictSSL: boolean;
+  ca: ?Array<string>;
   offlineQueue: Array<RequestOptions>;
   queue: Array<Object>;
   max: number;
@@ -98,6 +105,8 @@ export default class RequestManager {
     captureHar?: boolean,
     httpProxy?: string,
     httpsProxy?: string,
+    strictSSL?: boolean,
+    cafile?: string,
   }) {
     if (opts.userAgent != null) {
       this.userAgent = opts.userAgent;
@@ -117,6 +126,23 @@ export default class RequestManager {
 
     if (opts.httpsProxy != null) {
       this.httpsProxy = opts.httpsProxy;
+    }
+
+    if (opts.strictSSL !== null && typeof opts.strictSSL !== 'undefined') {
+      this.strictSSL = opts.strictSSL;
+    }
+
+    if (opts.cafile != null && opts.cafile != '') {
+      // The CA bundle file can contain one or more certificates with comments/text between each PEM block.
+      // tls.connect wants an array of certificates without any comments/text, so we need to split the string
+      // and strip out any text in between the certificates
+      try {
+        const bundle = fs.readFileSync(opts.cafile).toString();
+        const hasPemPrefix = (block) => block.startsWith('-----BEGIN ');
+        this.ca = bundle.split(/(-----BEGIN .*\r?\n[^-]+\r?\n--.*)/).filter(hasPemPrefix);
+      } catch (err) {
+        this.reporter.error(`Could not open cafile: ${err.message}`);
+      }
     }
   }
 
@@ -155,7 +181,8 @@ export default class RequestManager {
     params.method = params.method || 'GET';
     params.forever = true;
     params.retryAttempts = 0;
-
+    params.strictSSL = this.strictSSL;
+    
     params.headers = Object.assign({
       'User-Agent': this.userAgent,
     }, params.headers);
@@ -329,6 +356,10 @@ export default class RequestManager {
     }
     if (proxy) {
       params.proxy = proxy;
+    }
+
+    if (this.ca != null) {
+      params.ca = this.ca;
     }
 
     const request = this._getRequestModule();

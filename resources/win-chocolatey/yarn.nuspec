@@ -7,7 +7,7 @@
 		<version>0.0.0</version>
 		<authors>Yarn Maintainers</authors>
 		<owners>Daniel Lo Nigro</owners>
-		<tags>yarn node nodejs npm javascript packages bower</tags>
+		<tags>yarn node nodejs npm javascript packages bower admin</tags>
 		<summary>Package manager for the npm and bower package repositories</summary>
 		<description>
 Yarn is a package manager for the npm and bower registries with a few specific
@@ -28,9 +28,12 @@ utilization.
 		</description>
 		<projectUrl>https://yarnpkg.com/</projectUrl>
 		<packageSourceUrl>https://github.com/yarnpkg/yarn</packageSourceUrl>
+		<projectSourceUrl>https://github.com/yarnpkg/yarn</projectSourceUrl>
 		<licenseUrl>https://github.com/yarnpkg/yarn/raw/master/LICENSE</licenseUrl>
 		<requireLicenseAcceptance>false</requireLicenseAcceptance>
 		<iconUrl>https://cdn.rawgit.com/yarnpkg/assets/master/yarn-kitten-circle.png</iconUrl>
+		<docsUrl>https://yarnpkg.com/en/docs/</docsUrl>
+		<bugTrackerUrl>https://github.com/yarnpkg/yarn/issues</bugTrackerUrl>
 
 		<dependencies>
 			<dependency id="nodejs.install" version="6.0" />
@@ -38,6 +41,6 @@ utilization.
 	</metadata>
 
 	<files>
-		<file src="tools\**" target="tools" />
+		<file src="tools\chocolateyinstall.ps1" target="tools" />
 	</files>
 </package>
