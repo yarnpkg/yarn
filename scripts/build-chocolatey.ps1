@@ -1,19 +1,50 @@
-# build-chocolatey.ps1: Builds a Chocolatey package for Yarn
+# build-chocolatey.ps1: Builds a Chocolatey package for Yarn, and optionally pushes it to 
+# Chocolatey.org (if the -Publish flag is passed).
+
+param(
+  [switch] $Publish = $false
+)
 
 $ErrorActionPreference = 'Stop'; # stop on all errors
 
-$version = node dist/bin/yarn --version
-$installer_file = "yarn-$version.msi"
-if (-not (Test-Path $installer_file)) {
-  throw 'Hey! Listen! You need to build the installer with scripts/build-windows-installer.bat before building the Chocolatey package'
+$latest_version = [String](Invoke-WebRequest -Uri https://yarnpkg.com/latest-version)
+$latest_chocolatey_version = (Find-Package -Name Yarn).Version
+
+if ([Version]$latest_chocolatey_version -ge [Version]$latest_version) {
+  Write-Output ('Current version ({0}) is the latest' -f $latest_chocolatey_version)
+  Exit
 }
+
+Write-Output ('Latest version is {0}, version on Chocolatey is {1}. Updating...' -f $latest_version, $latest_chocolatey_version)
+
+if (-Not (Test-Path artifacts)) {
+  mkdir artifacts
+}
+# Remove any existing Chocolatey packages, we don't care about them any more
+rm artifacts/*.nupkg
+
+# Download the installer so we can compute its hash
+# Keep this in sync with chocolateyInstall.ps1.in
+# This is intentionally not using /latest.msi to ensure the URL used by the Chocolatey package is valid.
+$url = "https://yarnpkg.com/downloads/$latest_version/yarn-$latest_version.msi"
+$installer_file = [IO.Path]::GetTempFileName()
+Invoke-WebRequest -Uri $url -OutFile $installer_file
 
 $hash = (Get-FileHash -Path $installer_file -Algorithm SHA256).Hash
 
 # Replace placeholders in chocolateyInstall.ps1
 (Get-Content .\resources\win-chocolatey\tools\chocolateyinstall.ps1.in) `
-  -replace '{VERSION}', $version `
+  -replace '{VERSION}', $latest_version `
   -replace '{CHECKSUM}', $hash | 
   Set-Content .\resources\win-chocolatey\tools\chocolateyinstall.ps1
   
-choco pack .\resources\win-chocolatey\yarn.nuspec --version $version
+choco pack .\resources\win-chocolatey\yarn.nuspec --version $latest_version
+mv *.nupkg artifacts
+
+if (!$Publish) {
+  Write-Output 'Not publishing the package - Use "-Publish" flag if you want to publish it'
+  Exit
+}
+
+$filename = ls artifacts\*.nupkg | % FullName
+choco push $filename
