@@ -78,7 +78,7 @@ xit('Self-update should download a release and symlink it as "current"', (): Pro
 });
 
 
-it('Self-update should work from self-updated location', (): Promise<void> => {
+xit('Self-update should work from self-updated location', (): Promise<void> => {
   return run(async (reporter, config) => {
     // mock an existing self-update
     await child.exec('npm run build');
