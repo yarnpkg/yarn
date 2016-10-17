@@ -28,9 +28,12 @@ utilization.
 		</description>
 		<projectUrl>https://yarnpkg.com/</projectUrl>
 		<packageSourceUrl>https://github.com/yarnpkg/yarn</packageSourceUrl>
+		<projectSourceUrl>https://github.com/yarnpkg/yarn</projectSourceUrl>
 		<licenseUrl>https://github.com/yarnpkg/yarn/raw/master/LICENSE</licenseUrl>
 		<requireLicenseAcceptance>false</requireLicenseAcceptance>
 		<iconUrl>https://cdn.rawgit.com/yarnpkg/assets/master/yarn-kitten-circle.png</iconUrl>
+		<docsUrl>https://yarnpkg.com/en/docs/</docsUrl>
+		<bugTrackerUrl>https://github.com/yarnpkg/yarn/issues</bugTrackerUrl>
 
 		<dependencies>
 			<dependency id="nodejs.install" version="6.0" />
