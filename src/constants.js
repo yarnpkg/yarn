@@ -35,9 +35,11 @@ function getDirectory(type: string): string {
   return path.join(userHome, `.yarn-${type}`);
 }
 
+export const GLOBAL_INSTALL_DIRECTORY = path.join(userHome, '.yarn');
 export const MODULE_CACHE_DIRECTORY = getDirectory('cache');
 export const LINK_REGISTRY_DIRECTORY = getDirectory('config/link');
 export const GLOBAL_MODULE_DIRECTORY = getDirectory('config/global');
+export const CACHE_FILENAME = path.join(GLOBAL_INSTALL_DIRECTORY, '.roadrunner.json');
 
 export const INTEGRITY_FILENAME = '.yarn-integrity';
 export const LOCKFILE_FILENAME = 'yarn.lock';
@@ -49,8 +51,8 @@ export const DEFAULT_INDENT = '  ';
 export const SINGLE_INSTANCE_PORT = 31997;
 export const SINGLE_INSTANCE_FILENAME = '.yarn-single-instance';
 
-export const GITHUB_USER = 'yarnpkg';
-export const GITHUB_REPO = 'yarn';
+export const SELF_UPDATE_VERSION_URL = 'https://yarnpkg.com/latest-version';
+export const SELF_UPDATE_TARBALL_URL = 'https://yarnpkg.com/latest.tar.gz';
 export const SELF_UPDATE_DOWNLOAD_FOLDER = 'updates';
 
 export const ENV_PATH_KEY = getPathKey(process.platform, process.env);
