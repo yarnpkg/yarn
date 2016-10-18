@@ -45,4 +45,5 @@ deployment:
       - ./ghr --username yarnpkg --repository yarn --token $KPM_CIRCLE_RELEASE_TOKEN v$(dist/bin/yarn --version) dist/yarn-v*.tar.gz
       - ./ghr --username yarnpkg --repository yarn --token $KPM_CIRCLE_RELEASE_TOKEN v$(dist/bin/yarn --version) dist/yarn-$(dist/bin/yarn --version).js
       - ./ghr --username yarnpkg --repository yarn --token $KPM_CIRCLE_RELEASE_TOKEN v$(dist/bin/yarn --version) dist/yarn-legacy-$(dist/bin/yarn --version).js
+      - echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
       - npm publish
