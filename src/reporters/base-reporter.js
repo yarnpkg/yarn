@@ -26,7 +26,7 @@ export type ReporterOptions = {
   stderr?: Stdout,
   stdin?: Stdin,
   emoji?: boolean,
-  disableProgress?: boolean,
+  noProgress?: boolean,
 };
 
 export function stringifyLangArgs(args: Array<any>): Array<string> {
@@ -52,7 +52,7 @@ export default class BaseReporter {
     this.stderr = opts.stderr || process.stderr;
     this.stdin = opts.stdin || process.stdin;
     this.emoji = !!opts.emoji;
-    this.disableProgress = !!opts.disableProgress;
+    this.noProgress = !!opts.noProgress;
 
     // $FlowFixMe: this is valid!
     this.isTTY = this.stdout.isTTY;
@@ -69,7 +69,7 @@ export default class BaseReporter {
   stdin: Stdin;
   isTTY: boolean;
   emoji: boolean;
-  disableProgress: boolean;
+  noProgress: boolean;
   format: Formatter;
 
   peakMemoryInterval: ?number;

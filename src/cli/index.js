@@ -63,7 +63,7 @@ commander.option(
   'disable emoji in output',
 );
 commander.option(
-  '--disable-progress',
+  '--no-progress',
   'disable progress bar',
 );
 
@@ -168,7 +168,7 @@ if (commander.json) {
 }
 const reporter = new Reporter({
   emoji: commander.emoji && process.stdout.isTTY && process.platform === 'darwin',
-  disableProgress: commander.disableProgress,
+  noProgress: commander.noProgress,
 });
 reporter.initPeakMemoryCounter();
 

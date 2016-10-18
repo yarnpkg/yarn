@@ -119,7 +119,7 @@ test('ConsoleReporter.progress', async () => {
   })).toMatchSnapshot();
   
   expect(await getConsoleBuff((r) => {
-    r.disableProgress = true;
+    r.noProgress = true;
     const tick = r.progress(2);
     tick();
   })).toMatchSnapshot();
