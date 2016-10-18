@@ -369,7 +369,7 @@ export default class ConsoleReporter extends BaseReporter {
   }
 
   progress(count: number): () => void {
-    if (count <= 0) {
+    if (this.disableProgress || count <= 0) {
       return function() {
         // noop
       };
