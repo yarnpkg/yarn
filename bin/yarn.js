@@ -28,7 +28,8 @@ if (semver.satisfies(ver, '>=5.0.0')) {
   possibles.push('../updates/current/lib-legacy/cli/index.js');
   possibles.push('../lib-legacy/cli/index.js');
 } else {
-  throw new Error('Node version ' + ver + ' is not supported');
+  console.log(require('chalk').red('Node version ' + ver + ' is not supported, please use Node.js 4.0 or higher.'));
+  process.exit(1);
 }
 
 var i = 0;
