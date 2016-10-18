@@ -467,7 +467,7 @@ export class Install {
 
   async saveLockfileAndIntegrity(patterns: Array<string>): Promise<void> {
     // stringify current lockfile
-    const lockSource = lockStringify(this.lockfile.getLockfile(this.resolver.patterns)) + '\n';
+    const lockSource = lockStringify(this.lockfile.getLockfile(this.resolver.patterns));
 
     // write integrity hash
     await this.writeIntegrityHash(lockSource, patterns);
