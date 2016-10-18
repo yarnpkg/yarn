@@ -136,7 +136,7 @@ export default class NpmRegistry extends Registry {
 
     for (const [, loc, file] of await this.getPossibleConfigLocations('.npmrc')) {
       const config = ini.parse(file);
-      Object.keys(config).forEach((key) => {
+      Object.keys(config).forEach((key: string) => {
         config[key] = envReplace(config[key]);
       });
 
