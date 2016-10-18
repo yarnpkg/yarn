@@ -36,6 +36,24 @@ function getGlobalPrefix(): string {
   }
 }
 
+function envReplace(f: string): string {
+  if (typeof f !== 'string' || !f) {
+    return f;
+  }
+
+  const envExpr = /(\\*)\$\{([^}]+)\}/g;
+  return f.replace(envExpr, (orig, esc, name) => {
+    esc = esc.length && esc.length % 2;
+    if (esc) {
+      return orig;
+    }
+    if (undefined === process.env[name]) {
+      throw new Error('Failed to replace env in config: ' + orig);
+    }
+    return process.env[name] || '';
+  });
+}
+
 export default class NpmRegistry extends Registry {
   constructor(cwd: string, registries: ConfigRegistries, requestManager: RequestManager) {
     super(cwd, registries, requestManager);
@@ -118,6 +136,9 @@ export default class NpmRegistry extends Registry {
 
     for (const [, loc, file] of await this.getPossibleConfigLocations('.npmrc')) {
       const config = ini.parse(file);
+      Object.keys(config).forEach((key) => {
+        config[key] = envReplace(config[key]);
+      });
 
       // normalize offline mirror path relative to the current npmrc
       const offlineLoc = config['yarn-offline-mirror'];
