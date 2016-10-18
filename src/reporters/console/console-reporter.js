@@ -225,7 +225,7 @@ export default class ConsoleReporter extends BaseReporter {
   }
 
   activitySet(total: number, workers: number): ReporterSpinnerSet {
-    if (!this.isTTY) {
+    if (!this.isTTY || this.disableProgress) {
       return super.activitySet(total, workers);
     }
 
