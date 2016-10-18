@@ -58,7 +58,6 @@ export default class BaseReporter {
       this.stdin = opts.stdin || process.stdin;
     }
     
-
     this.emoji = !!opts.emoji;
 
     // $FlowFixMe: this is valid!

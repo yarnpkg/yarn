@@ -2,12 +2,13 @@
 
 const Readable = require('stream').Readable;
 
+
 export class StandinStdIn extends Readable {
-  constructor() {
-    super();
+  constructor(options: any) {
+    super(options);
   }
 
   _read(size: number) {
-    //do nothing
+    this.push(null);
   }
 }
