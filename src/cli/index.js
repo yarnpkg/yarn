@@ -64,7 +64,7 @@ commander.option(
 );
 commander.option(
   '--disable-progress',
-  'disable progress bar'
+  'disable progress bar',
 );
 
 // get command name
