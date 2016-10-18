@@ -1,4 +1,9 @@
 /* @flow */
-/* global stream$Readable */
 
-export class StandinStdIn extends stream$Readable {}
+const Readable = require('stream').Readable;
+
+export class StandinStdIn extends Readable {
+  constructor() {
+    super();
+  }
+}
