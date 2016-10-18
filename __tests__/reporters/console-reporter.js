@@ -122,7 +122,6 @@ test('ConsoleReporter.progress', async () => {
     r.disableProgress = true;
     const tick = r.progress(2);
     tick();
-    tick();
   })).toMatchSnapshot();
 });
 
