@@ -10,7 +10,7 @@ branches:
 
 install:
   - ps: Install-Product node $env:node_version
-  - choco install yarn
+  - choco install -i yarn
   - refreshenv
   - yarn install
 
