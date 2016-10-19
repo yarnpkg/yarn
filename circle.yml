@@ -28,7 +28,6 @@ dependencies:
         curl -L --create-dirs -o ~/ghr/ghr.zip https://github.com/tcnksm/ghr/releases/download/v0.5.0/ghr_v0.5.0_linux_amd64.zip;
         unzip ~/ghr/ghr.zip -d ~/ghr
       fi
-    - ln -sF  ~/Downloads/ghr /usr/local/bin/ghr
 
 test:
   override:
