@@ -120,7 +120,9 @@ export async function run(
   args: Array<string>,
 ): Promise<void> {
   reporter.step(1, 2, reporter.lang('cleanCreatingFile', CLEAN_FILENAME));
-  await fs.writeFile(path.join(config.cwd, CLEAN_FILENAME), '\n', {flag: 'wx'});
+  try {
+      await fs.writeFile(path.join(config.cwd, CLEAN_FILENAME), '\n', {flag: 'wx'});
+  } catch (e) {}
 
   reporter.step(2, 2, reporter.lang('cleaning'));
   const {removedFiles, removedSize} = await clean(config, reporter);
