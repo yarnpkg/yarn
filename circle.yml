@@ -27,13 +27,7 @@ dependencies:
 
 test:
   override:
-    - node -v
-    - npm run lint
-    - npm run test-ci
-    - npm run check-lockfile
-    - npm run build-dist
-    - node ./scripts/build-webpack.js
-    - ./scripts/build-deb.sh
+    - ./scripts/build-ci.sh
 
 deployment:
   release:
