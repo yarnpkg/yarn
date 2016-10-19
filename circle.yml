@@ -19,8 +19,7 @@ dependencies:
     # install dependencies
     - ./scripts/bootstrap-env-ubuntu.sh
 
-    # https://github.com/yarnpkg/yarn/issues/1142, /usr/bin/node is not available in ubuntu
-    - node $(which yarn) install
+    - yarn install
 
     # setup ghr
     - curl -L -o ghr.zip https://github.com/tcnksm/ghr/releases/download/v0.5.0/ghr_v0.5.0_linux_amd64.zip
