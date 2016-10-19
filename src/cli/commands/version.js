@@ -20,6 +20,7 @@ function isValidNewVersion(oldVersion: string, newVersion: string, looseSemver: 
 export function setFlags(commander: Object) {
   commander.option(NEW_VERSION_FLAG, 'new version');
   commander.option('--message [message]', 'message');
+  commander.option('--no-git-tag-version', 'no git tag version');
 }
 
 export async function setVersion(
@@ -92,6 +93,13 @@ export async function setVersion(
     }
   }
   await config.saveRootManifests(manifests);
+
+  // check if committing the new version to git is overriden
+  if (!flags.gitTagVersion) {
+    return function(): Promise<void> {
+      return Promise.resolve();
+    };
+  }
 
   return async function(): Promise<void> {
     invariant(newVersion, 'expected version');
