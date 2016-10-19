@@ -72,7 +72,7 @@ export default class YarnRegistry extends NpmRegistry {
     if (typeof val === 'undefined') {
       val = DEFAULTS[key];
     }
-    
+
     return val;
   }
 
@@ -102,7 +102,7 @@ export default class YarnRegistry extends NpmRegistry {
       }
 
       // update just the home config
-      this.homeConfig[key] = config[key];
+      this.homeConfig[key] = JSON.parse(config[key]);
     }
 
     await fs.writeFile(this.homeConfigLoc, `${stringify(this.homeConfig)}\n`);
