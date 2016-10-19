@@ -4,15 +4,27 @@ general:
       - gh-pages
   artifacts:
     - "artifacts/"
+
+machine:
+  node:
+    version: 6
+
 dependencies:
+  cache_directories:
+    - "~/.yarn-cache"
+
   override:
-    - nvm install 6
-    - nvm use 6 && nvm alias default 6
     - which node
-    # TODO test yarn with node_modules installed via npm2, npm3 and latest stable yarn
-    - npm install
-    - go get github.com/tcnksm/ghr
+
+    # install dependencies
     - ./scripts/bootstrap-env-ubuntu.sh
+
+    - yarn install
+
+    # setup ghr
+    - curl -L -o ghr.zip https://github.com/tcnksm/ghr/releases/download/v0.5.0/ghr_v0.5.0_linux_amd64.zip
+    - unzip ghr.zip
+
 test:
   override:
     - node -v
@@ -28,8 +40,10 @@ deployment:
     tag: /v[0-9]+(\.[0-9]+)*/
     owner: yarnpkg
     commands:
-      - ghr --username yarnpkg --repository yarn --token $KPM_CIRCLE_RELEASE_TOKEN v$(node dist/bin/yarn --version) artifacts/
+      - ./ghr --username yarnpkg --repository yarn --token $KPM_CIRCLE_RELEASE_TOKEN v$(dist/bin/yarn --version) artifacts/
       # TODO(#548): All artifacts should come from artifacts/ directory
-      - ghr --username yarnpkg --repository yarn --token $KPM_CIRCLE_RELEASE_TOKEN v$(node dist/bin/yarn --version) dist/yarn-v*.tar.gz
-      - ghr --username yarnpkg --repository yarn --token $KPM_CIRCLE_RELEASE_TOKEN v$(node dist/bin/yarn --version) dist/yarn-$(node dist/bin/yarn --version).js
-      - ghr --username yarnpkg --repository yarn --token $KPM_CIRCLE_RELEASE_TOKEN v$(node dist/bin/yarn --version) dist/yarn-legacy-$(node dist/bin/yarn --version).js
+      - ./ghr --username yarnpkg --repository yarn --token $KPM_CIRCLE_RELEASE_TOKEN v$(dist/bin/yarn --version) dist/yarn-v*.tar.gz
+      - ./ghr --username yarnpkg --repository yarn --token $KPM_CIRCLE_RELEASE_TOKEN v$(dist/bin/yarn --version) dist/yarn-$(dist/bin/yarn --version).js
+      - ./ghr --username yarnpkg --repository yarn --token $KPM_CIRCLE_RELEASE_TOKEN v$(dist/bin/yarn --version) dist/yarn-legacy-$(dist/bin/yarn --version).js
+      - echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
+      - npm publish

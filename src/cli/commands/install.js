@@ -6,7 +6,6 @@ import type {Manifest, DependencyRequestPatterns} from '../../types.js';
 import type Config from '../../config.js';
 import type {RegistryNames} from '../../registries/index.js';
 import normalizeManifest from '../../util/normalize-manifest/index.js';
-import {stringify} from '../../util/misc.js';
 import {registryNames} from '../../registries/index.js';
 import {MessageError} from '../../errors.js';
 import Lockfile from '../../lockfile/wrapper.js';
@@ -41,14 +40,6 @@ export type InstallCwdRequest = [
   Array<string>,
   Object
 ];
-
-type RootManifests = {
-  [registryName: RegistryNames]: {
-    loc: string,
-    object: Object,
-    exists: boolean,
-  }
-};
 
 type IntegrityMatch = {
   actual: string,
@@ -128,14 +119,6 @@ function normalizeFlags(config: Config, rawFlags: Object): Flags {
 
   return flags;
 }
-
-const sortObject = (object) => {
-  const sortedObject = {};
-  Object.keys(object).sort().forEach((item) => {
-    sortedObject[item] = object[item];
-  });
-  return sortedObject;
-};
 
 export class Install {
   constructor(
@@ -445,7 +428,7 @@ export class Install {
 
     // save resolutions to their appropriate root manifest
     if (Object.keys(this.resolutions).length) {
-      const jsons = await this.getRootManifests();
+      const manifests = await this.config.getRootManifests();
 
       for (const name in this.resolutions) {
         const version = this.resolutions[name];
@@ -467,57 +450,15 @@ export class Install {
         const ref = manifest._reference;
         invariant(ref, 'expected reference');
 
-        const object = jsons[ref.registry].object;
+        const object = manifests[ref.registry].object;
         object.resolutions = object.resolutions || {};
         object.resolutions[name] = version;
       }
 
-      await this.saveRootManifests(jsons);
+      await this.config.saveRootManifests(manifests);
     }
 
     return flattenedPatterns;
-  }
-
-  /**
-   * Get root manifests.
-   */
-
-  async getRootManifests(): Promise<RootManifests> {
-    const manifests: RootManifests = {};
-    for (const registryName of registryNames) {
-      const registry = registries[registryName];
-      const jsonLoc = path.join(this.config.cwd, registry.filename);
-
-      let object = {};
-      let exists = false;
-      if (await fs.exists(jsonLoc)) {
-        exists = true;
-        object = await fs.readJson(jsonLoc);
-      }
-      manifests[registryName] = {loc: jsonLoc, object, exists};
-    }
-    return manifests;
-  }
-
-  /**
-   * Save root manifests.
-   */
-
-  async saveRootManifests(manifests: RootManifests): Promise<void> {
-    for (const registryName of registryNames) {
-      const {loc, object, exists} = manifests[registryName];
-      if (!exists && !Object.keys(object).length) {
-        continue;
-      }
-
-      for (const field of constants.DEPENDENCY_TYPES) {
-        if (object[field]) {
-          object[field] = sortObject(object[field]);
-        }
-      }
-
-      await fs.writeFile(loc, stringify(object) + '\n');
-    }
   }
 
   /**
@@ -670,6 +611,35 @@ export class Install {
     }
 
     return crypto.hash(opts.join('-'), 'sha256');
+  }
+
+  /**
+   * Load the dependency graph of the current install. Only does package resolving and wont write to the cwd.
+   */
+
+  async hydrate(fetch?: boolean): Promise<InstallCwdRequest> {
+    const request = await this.fetchRequestFromCwd();
+    const [depRequests, rawPatterns] = request;
+
+    await this.resolver.init(depRequests, this.flags.flat);
+    await this.flatten(rawPatterns);
+
+    if (fetch) {
+      // fetch packages, should hit cache most of the time
+      await this.fetcher.init();
+
+      // expand minimal manifests
+      for (const manifest of this.resolver.getManifests()) {
+        const ref = manifest._reference;
+        invariant(ref, 'expected reference');
+
+        const loc = this.config.generateHardModulePath(ref);
+        const newPkg = await this.config.readManifest(loc);
+        await this.resolver.updateManifest(ref, newPkg);
+      }
+    }
+
+    return request;
   }
 }
 

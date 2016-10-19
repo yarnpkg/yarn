@@ -49,11 +49,13 @@ const httpMock = {
   request(options: Object, callback?: ?Function): ClientRequest {
     const alias = getRequestAlias(options);
     const loc = path.join(CACHE_DIR, `${alias}.bin`);
+    // allow the client to bypass the local fs fixture cache by adding nocache to the query string
+    const allowCache = options.uri.href.indexOf('nocache') == -1;
 
     // TODO better way to do this
-    const httpModule = options.port === 443 ? https : http;
+    const httpModule = options.uri.href.startsWith('https:') ? https : http;
 
-    if (fs.existsSync(loc)) {
+    if (allowCache && fs.existsSync(loc)) {
       // cached
       options.agent = null;
       options.socketPath = null;

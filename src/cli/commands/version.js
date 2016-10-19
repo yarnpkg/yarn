@@ -2,9 +2,9 @@
 
 import type {Reporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
+import {registryNames} from '../../registries/index.js';
 import executeLifecycleScript from './_execute-lifecycle-script.js';
 import {MessageError} from '../../errors.js';
-import {stringify} from '../../util/misc.js';
 import {spawn} from '../../util/child.js';
 import * as fs from '../../util/fs.js';
 
@@ -81,9 +81,17 @@ export async function setVersion(
 
   // update version
   reporter.info(`${reporter.lang('newVersion')}: ${newVersion}`);
-  const json = await fs.readJson(pkgLoc);
-  pkg.version = json.version = newVersion;
-  await fs.writeFile(pkgLoc, `${stringify(json)}\n`);
+  pkg.version = newVersion;
+
+  // update versions in manifests
+  const manifests = await config.getRootManifests();
+  for (const registryName of registryNames) {
+    const manifest = manifests[registryName];
+    if (manifest.exists) {
+      manifest.object.version = newVersion;
+    }
+  }
+  await config.saveRootManifests(manifests);
 
   return async function(): Promise<void> {
     invariant(newVersion, 'expected version');

@@ -159,7 +159,7 @@ export default class NpmResolver extends RegistryResolver {
       info._remote = {
         resolved: `${this.cleanRegistry(dist.tarball)}#${dist.shasum}`,
         type: 'tarball',
-        reference: dist.tarball,
+        reference: this.cleanRegistry(dist.tarball),
         hash: dist.shasum,
         registry: 'npm',
       };

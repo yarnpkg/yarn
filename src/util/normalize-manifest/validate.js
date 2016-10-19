@@ -1,6 +1,7 @@
 /* @flow */
 
 import type {Reporter} from '../../reporters/index.js';
+import {MessageError} from '../../errors.js';
 import {isValidLicense} from './util.js';
 import typos from './typos.js';
 
@@ -61,18 +62,18 @@ export default function(info: Object, isRoot: boolean, reporter: Reporter, warn:
 
     // cannot start with a dot
     if (name[0] === '.') {
-      throw new TypeError(reporter.lang('manifestNameDot'));
+      throw new MessageError(reporter.lang('manifestNameDot'));
     }
 
     // cannot contain the following characters
     if (!isValidPackageName(name)) {
-      throw new TypeError(reporter.lang('manifestNameIllegalChars'));
+      throw new MessageError(reporter.lang('manifestNameIllegalChars'));
     }
 
     // cannot equal node_modules or favicon.ico
     const lower = name.toLowerCase();
     if (lower === 'node_modules' || lower === 'favicon.ico') {
-      throw new TypeError(reporter.lang('manifestNameBlacklisted'));
+      throw new MessageError(reporter.lang('manifestNameBlacklisted'));
     }
   }
 
@@ -92,7 +93,7 @@ export default function(info: Object, isRoot: boolean, reporter: Reporter, warn:
   for (const key of strings) {
     const val = info[key];
     if (val && typeof val !== 'string') {
-      throw new TypeError(reporter.lang('manifestStringExpected', key));
+      throw new MessageError(reporter.lang('manifestStringExpected', key));
     }
   }
 
