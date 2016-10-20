@@ -24,8 +24,9 @@ export default class NpmResolver extends RegistryResolver {
   static registry = 'npm';
 
   static async findVersionInRegistryResponse(config: Config, range: string, body: RegistryResponse): Promise<Manifest> {
-    if (range in body['dist-tags']) {
-      range = body['dist-tags'][range];
+    const tags = body['dist-tags'];
+    if (tags && range in tags) {
+      range = tags[range];
     }
 
     const satisfied = await config.resolveConstraints(Object.keys(body.versions), range);
