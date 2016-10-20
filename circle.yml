@@ -27,7 +27,17 @@ dependencies:
 
 test:
   override:
-    - ./scripts/build-ci.sh
+    - node -v
+    - >
+      if [ "$CIRCLE_BRANCH" == 'master' ]; then
+        ./scripts/set-dev-version.sh
+      fi;
+    - npm run lint
+    - npm run test-ci
+    - npm run check-lockfile
+    - npm run build-dist
+    - node ./scripts/build-webpack.js
+    - ./scripts/build-deb.sh
 
 deployment:
   release:
