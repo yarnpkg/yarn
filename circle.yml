@@ -30,7 +30,7 @@ test:
     - node -v
     - >
       if [ "$CIRCLE_BRANCH" == 'master' ]; then
-        ./scripts/set-dev-version.sh
+        ./scripts/set-dev-version.js
       fi;
     - npm run lint
     - npm run test-ci
