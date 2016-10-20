@@ -15,13 +15,37 @@ const path = require('path');
 
 export const requireLockfile = true;
 
+export function setFlags(commander: Object) {
+  commander.option('--all', 'remove all packages');
+}
+
+export function checkAllFlag(
+  flags: Object,
+  args: Array<string>,
+  rootManifests: Object): Array<string> {
+  const packages = [];
+  if (flags.all) {
+    const object = rootManifests['npm'].object;
+    for (const type of constants.DEPENDENCY_TYPES) {
+      const deps = object[type];
+      if (deps) {
+        for (const entries of Object.keys(deps)) {
+          packages.push(entries);
+        }
+      }
+    }
+    return packages;
+  }
+  return args;
+}
+
 export async function run(
   config: Config,
   reporter: Reporter,
   flags: Object,
   args: Array<string>,
 ): Promise<void> {
-  if (!args.length) {
+  if (!args.length && !flags.all) {
     throw new MessageError(reporter.lang('tooFewArguments', 1));
   }
 
@@ -32,6 +56,8 @@ export async function run(
   const lockfile = await Lockfile.fromDirectory(config.cwd);
   const rootManifests = await config.getRootManifests();
   const manifests = [];
+
+  args = checkAllFlag(flags, args, rootManifests);
 
   for (const name of args) {
     reporter.step(++step, totalSteps, `Removing module ${name}`);
