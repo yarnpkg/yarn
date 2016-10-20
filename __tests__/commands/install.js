@@ -49,14 +49,18 @@ test.concurrent('flat arg is inherited from root manifest', async (): Promise<vo
 
 
 test.concurrent("doesn't write new lockfile if existing one satisfied", (): Promise<void> => {
-  return runInstall({}, 'install-dont-write-lockfile-if-satisfied', async (config): Promise<void> => {
-    const lockfile = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
-    assert(lockfile.indexOf('foobar') >= 0);
-  });
+  return runInstall(
+    {writeLockfile: true},
+    'install-dont-write-lockfile-if-satisfied',
+    async (config): Promise<void> => {
+      const lockfile = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
+      assert(lockfile.indexOf('foobar') >= 0);
+    },
+  );
 });
 
 test.concurrent("writes new lockfile if existing one isn't satisfied", async (): Promise<void> => {
-  await runInstall({}, 'install-write-lockfile-if-not-satisfied', async (config): Promise<void> => {
+  await runInstall({writeLockfile: true}, 'install-write-lockfile-if-not-satisfied', async (config): Promise<void> => {
     const lockfile = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
     assert(lockfile.indexOf('foobar') === -1);
   });
@@ -393,7 +397,7 @@ test.concurrent(
   (): Promise<void> => {
     const mirrorPath = 'mirror-for-offline';
 
-    return runInstall({}, 'uninstall-should-clean', async (config, reporter) => {
+    return runInstall({writeLockfile: true}, 'uninstall-should-clean', async (config, reporter) => {
       assert.equal(
         await getPackageVersion(config, 'dep-a'),
         '1.0.0',
@@ -557,9 +561,9 @@ test.concurrent('install should resolve circular dependencies 2', (): Promise<vo
 });
 
 test.concurrent(
-  'install should add missing deps to yarn and mirror (PR import scenario)',
+  'install should add missing deps to yarn and mirror when given --write-lockfile (PR import scenario)',
   (): Promise<void> => {
-    return runInstall({}, 'install-import-pr', async (config) => {
+    return runInstall({writeLockfile: true}, 'install-import-pr', async (config) => {
       assert.equal(await getPackageVersion(config, 'mime-types'), '2.0.0');
       assert(semver.satisfies(await getPackageVersion(config, 'mime-db'), '~1.0.1'));
       assert.equal(await getPackageVersion(config, 'fake-yarn-dependency'), '1.0.1');
@@ -578,7 +582,6 @@ test.concurrent(
     });
   },
 );
-
 
 xit('install should update a dependency to yarn and mirror (PR import scenario 2)', (): Promise<void> => {
   // mime-types@2.0.0 is saved in local mirror and gets updated to mime-types@2.1.11 via

@@ -59,7 +59,7 @@ type Flags = {
   flat: boolean,
   production: boolean,
   lockfile: boolean,
-  pureLockfile: boolean,
+  writeLockfile: boolean,
   skipIntegrity: boolean,
 
   // add
@@ -82,7 +82,7 @@ function normalizeFlags(config: Config, rawFlags: Object): Flags {
     flat: !!rawFlags.flat,
     production: !!rawFlags.production,
     lockfile: rawFlags.lockfile !== false,
-    pureLockfile: !!rawFlags.pureLockfile,
+    writeLockfile: !!rawFlags.writeLockfile,
     skipIntegrity: !!rawFlags.skipIntegrity,
 
     // add
@@ -354,8 +354,12 @@ export class Install {
       await step(++currentStep, steps.length);
     }
 
-    // fin!
-    await this.saveLockfileAndIntegrity(rawPatterns);
+    // Write lockfile if none exist, or if flag given
+    const lockfileLoc = path.join(this.config.cwd, constants.LOCKFILE_FILENAME);
+    if (!(await fs.exists(lockfileLoc)) || this.flags.writeLockfile) {
+      await this.saveLockfileAndIntegrity(rawPatterns);
+    }
+
     this.config.requestManager.clearCache();
     return patterns;
   }
@@ -472,8 +476,8 @@ export class Install {
     // write integrity hash
     await this.writeIntegrityHash(lockSource, patterns);
 
-    // --no-lockfile or --pure-lockfile flag
-    if (this.flags.lockfile === false || this.flags.pureLockfile) {
+    // --no-lockfile flag
+    if (this.flags.lockfile === false) {
       return;
     }
 
@@ -653,7 +657,7 @@ export function _setFlags(commander: Object) {
   commander.option('--flat', 'only allow one version of a package');
   commander.option('--prod, --production', '');
   commander.option('--no-lockfile', "don't read or generate a lockfile");
-  commander.option('--pure-lockfile', "don't generate a lockfile");
+  commander.option('--write-lockfile', 'generate a lockfile');
 }
 
 export function setFlags(commander: Object) {
