@@ -24,6 +24,10 @@ export default class NpmResolver extends RegistryResolver {
   static registry = 'npm';
 
   static async findVersionInRegistryResponse(config: Config, range: string, body: RegistryResponse): Promise<Manifest> {
+    if (!body['dist-tags']) {
+      throw new MessageError(`Received malformed response from registry. The registry may be down.`);
+    }
+    
     if (range in body['dist-tags']) {
       range = body['dist-tags'][range];
     }
