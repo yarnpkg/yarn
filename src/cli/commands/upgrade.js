@@ -7,7 +7,7 @@ import Lockfile from '../../lockfile/wrapper.js';
 
 export function setFlags(commander: Object) {
   // TODO: support some flags that install command has
-  commander;
+  commander.usage('upgrade [flags]');
 }
 
 export const requireLockfile = true;

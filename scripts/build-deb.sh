@@ -4,7 +4,7 @@ set -ex
 
 # Ensure all the tools we need are available
 ensureAvailable() {
-  eval $1 --version >/dev/null || (echo "You need to install $1" && exit 2)
+  command -v "$1" >/dev/null 2>&1 || (echo "You need to install $1" && exit 2)
 }
 ensureAvailable dpkg-deb
 ensureAvailable fpm
@@ -13,10 +13,10 @@ ensureAvailable lintian
 ensureAvailable rpmbuild
 
 PACKAGE_TMPDIR=tmp/debian_pkg
-VERSION=`node dist/bin/yarn --version`
-TARBALL_NAME=dist/yarn-v$VERSION.tar.gz
-DEB_PACKAGE_NAME=yarn_$VERSION'_all.deb'
+VERSION=`dist/bin/yarn --version`
 OUTPUT_DIR=artifacts
+TARBALL_NAME=$OUTPUT_DIR/yarn-v$VERSION.tar.gz
+DEB_PACKAGE_NAME=yarn_$VERSION'_all.deb'
 
 if [ ! -e $TARBALL_NAME ]; then
   echo "Hey! Listen! You need to run build-dist.sh first."
@@ -25,7 +25,7 @@ fi;
 
 mkdir -p $OUTPUT_DIR
 # Remove old packages
-rm -f dist/*.deb $OUTPUT_DIR/*.deb $OUTPUT_DIR/*.rpm
+rm -f $OUTPUT_DIR/*.deb $OUTPUT_DIR/*.rpm
 
 # Extract to a temporary directory
 rm -rf $PACKAGE_TMPDIR
@@ -50,11 +50,16 @@ find $PACKAGE_TMPDIR/usr/share/yarn \( -name '*.md' -o  -name '*.md~' -o -name '
 # Assume everything else is junk we don't need
 rm -rf $PACKAGE_TMPDIR/dist
 
-# Currently the "binaries" are JavaScript files that expect to be in the same
-# directory as the libraries, so we can't just copy them directly to /usr/bin.
-# Symlink them instead.
+# Swap out the basedir calculation code with a hard-coded path, as the default
+# way we do this doesn't follow symlinks.
+sed -i 's/basedir\=\$.*/basedir=\/usr\/share\/yarn\/bin/' $PACKAGE_TMPDIR/usr/share/yarn/bin/yarn
+
+# The Yarn executable expects to be in the same directory as the libraries, so
+# we can't just copy it directly to /usr/bin. Symlink them instead.
 mkdir -p $PACKAGE_TMPDIR/usr/bin/
-ln -s ../share/yarn/bin/yarn.js $PACKAGE_TMPDIR/usr/bin/yarn
+ln -s ../share/yarn/bin/yarn $PACKAGE_TMPDIR/usr/bin/yarn
+# Alias as "yarnpkg" too.
+ln -s ../share/yarn/bin/yarn $PACKAGE_TMPDIR/usr/bin/yarnpkg
 
 # Common FPM parameters for all packages we'll build using FPM
 FPM="fpm --input-type dir --chdir $PACKAGE_TMPDIR --name yarn --version $VERSION "`
@@ -69,9 +74,6 @@ mv *.rpm $OUTPUT_DIR
 mkdir -p $PACKAGE_TMPDIR/DEBIAN
 mkdir -p $PACKAGE_TMPDIR/usr/share/lintian/overrides/
 cp resources/debian/lintian-overrides $PACKAGE_TMPDIR/usr/share/lintian/overrides/yarn
-
-# Debian/Ubuntu call the Node.js binary "nodejs", not "node".
-sed -i 's/env node/env nodejs/' $PACKAGE_TMPDIR/usr/share/yarn/bin/yarn.js
 
 # Replace variables in Debian package control file
 INSTALLED_SIZE=`du -sk $PACKAGE_TMPDIR | cut -f 1`

@@ -120,7 +120,12 @@ export async function run(
   args: Array<string>,
 ): Promise<void> {
   reporter.step(1, 2, reporter.lang('cleanCreatingFile', CLEAN_FILENAME));
-  await fs.writeFile(path.join(config.cwd, CLEAN_FILENAME), '\n');
+  try {
+    await fs.writeFile(path.join(config.cwd, CLEAN_FILENAME), '\n', {flag: 'wx'});
+  } catch (e) {
+    // The file exists and can not be replaced.
+    // Catch is suppressed, because this error does not reflect a problem.
+  }
 
   reporter.step(2, 2, reporter.lang('cleaning'));
   const {removedFiles, removedSize} = await clean(config, reporter);

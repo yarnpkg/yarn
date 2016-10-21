@@ -30,13 +30,13 @@ export default class GitResolver extends ExoticResolver {
   hash: string;
 
   static isVersion(pattern: string): boolean {
+    const parts = urlParse(pattern);
+
     // this pattern hasn't been exploded yet, we'll hit this code path again later once
     // we've been normalized #59
-    if (pattern.indexOf('@') >= 0) {
+    if (!parts.protocol) {
       return false;
     }
-
-    const parts = urlParse(pattern);
 
     const pathname = parts.pathname;
     if (pathname && pathname.endsWith('.git')) {
@@ -44,10 +44,8 @@ export default class GitResolver extends ExoticResolver {
       return true;
     }
 
-    if (parts.protocol) {
-      if (GIT_PROTOCOLS.indexOf(parts.protocol) >= 0) {
-        return true;
-      }
+    if (GIT_PROTOCOLS.indexOf(parts.protocol) >= 0) {
+      return true;
     }
 
     if (parts.hostname && parts.path) {

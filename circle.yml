@@ -19,8 +19,7 @@ dependencies:
     # install dependencies
     - ./scripts/bootstrap-env-ubuntu.sh
 
-    # https://github.com/yarnpkg/yarn/issues/1142, /usr/bin/node is not available in ubuntu
-    - node $(which yarn) install
+    - yarn install
 
     # setup ghr
     - curl -L -o ghr.zip https://github.com/tcnksm/ghr/releases/download/v0.5.0/ghr_v0.5.0_linux_amd64.zip
@@ -29,6 +28,10 @@ dependencies:
 test:
   override:
     - node -v
+    - >
+      if [ "$CIRCLE_BRANCH" == 'master' ]; then
+        ./scripts/set-dev-version.js
+      fi;
     - npm run lint
     - npm run test-ci
     - npm run check-lockfile
@@ -41,9 +44,6 @@ deployment:
     tag: /v[0-9]+(\.[0-9]+)*/
     owner: yarnpkg
     commands:
-      - ./ghr --username yarnpkg --repository yarn --token $KPM_CIRCLE_RELEASE_TOKEN v$(node dist/bin/yarn --version) artifacts/
-      # TODO(#548): All artifacts should come from artifacts/ directory
-      - ./ghr --username yarnpkg --repository yarn --token $KPM_CIRCLE_RELEASE_TOKEN v$(node dist/bin/yarn --version) dist/yarn-v*.tar.gz
-      - ./ghr --username yarnpkg --repository yarn --token $KPM_CIRCLE_RELEASE_TOKEN v$(node dist/bin/yarn --version) dist/yarn-$(node dist/bin/yarn --version).js
-      - ./ghr --username yarnpkg --repository yarn --token $KPM_CIRCLE_RELEASE_TOKEN v$(node dist/bin/yarn --version) dist/yarn-legacy-$(node dist/bin/yarn --version).js
+      - ./ghr --username yarnpkg --repository yarn --token $KPM_CIRCLE_RELEASE_TOKEN v$(dist/bin/yarn --version) artifacts/
+      - echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
       - npm publish
