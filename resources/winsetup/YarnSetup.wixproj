@@ -49,12 +49,20 @@
     <!-- Delete .tar.gz from dist path, leaving only the files -->
     <Delete Files="$(YarnDistPath)\*.tar.gz" />
 
-    <!-- Get Yarn version and pass it to WiX -->
+    <!-- Get Yarn version -->
     <Exec Command="node $(YarnDistPath)\bin\yarn.js --version" ConsoleToMSBuild="true">
       <Output TaskParameter="ConsoleOutput" PropertyName="YarnVersion" />
     </Exec>
+    <!-- WiX doesn't allow extra stuff in the version number, so we omit the
+         date/time for nightly builds here -->
+    <Exec
+      Command="node -p &quot;require('./package.json').version.replace(/\-(.+)$/, '')&quot;"
+      ConsoleToMSBuild="true"
+      WorkingDirectory="$(YarnDistPath)\..">
+      <Output TaskParameter="ConsoleOutput" PropertyName="YarnShortVersion" />
+    </Exec>
     <PropertyGroup>
-      <DefineConstants>$(DefineConstants);YarnDistPath=$(YarnDistPath);YarnVersion=$(YarnVersion)</DefineConstants>
+      <DefineConstants>$(DefineConstants);YarnDistPath=$(YarnDistPath);YarnVersion=$(YarnShortVersion)</DefineConstants>
     </PropertyGroup>
 
     <HeatDirectory
