@@ -1,7 +1,9 @@
 /* @flow */
-
-const userHome = require('user-home');
 const path = require('path');
+let userHome = require('user-home');
+if (process.platform === 'linux' && process.env.USER === 'root') {
+  userHome = path.resolve(process.execPath, '..', '..', 'lib');
+}
 
 type Env = {[key: string]: ?string};
 
