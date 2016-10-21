@@ -177,7 +177,7 @@ export default class NpmRegistry extends Registry {
       }
     }
 
-    return '';
+    return undefined;
   }
 
   getScopedOption(scope: string, option: string): mixed {
