@@ -75,7 +75,7 @@ export default class Git {
   }
 
   /**
-   * Check if the input `target` is a 40 character hex commit hash.
+   * Check if the input `target` is a 5-40 character hex commit hash.
    */
 
   static isCommitHash(target: string): boolean {
@@ -95,7 +95,7 @@ export default class Git {
 
     const parts = url.parse(ref);
 
-    if (parts.protocol === 'git') {
+    if (parts.protocol === 'git:') {
       throw new SecurityError(
         `Refusing to download the git repo ${ref} over plain git without a commit hash`,
       );
