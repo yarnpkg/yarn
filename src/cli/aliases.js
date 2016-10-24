@@ -14,6 +14,7 @@ export default ({
   un: 'remove',
   up: 'update',
   v: 'info',
+  a: 'add',
 
   // affordances
   'add-user': 'login',

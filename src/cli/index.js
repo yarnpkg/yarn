@@ -104,14 +104,9 @@ if (!commandName || commandName[0] === '-') {
   commandName = 'install';
 }
 
-// aliases: i -> install
+// Map alias shorthand to command, ex: yarn a --> yarn add
 if (commandName && typeof aliases[commandName] === 'string') {
-  const alias = aliases[commandName];
-  command = {
-    run(config: Config, reporter: ConsoleReporter | JSONReporter): Promise<void> {
-      throw new MessageError(`Did you mean \`yarn ${alias}\`?`);
-    },
-  };
+  commandName = aliases[commandName];
 }
 
 //
