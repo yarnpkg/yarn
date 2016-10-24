@@ -31,6 +31,7 @@ export async function run(
     current: string,
     wanted: string,
     latest: string,
+    packageType: string,
   }> = [];
 
   let [, patterns] = await install.fetchRequestFromCwd();
@@ -51,6 +52,7 @@ export async function run(
 
     const current = locked.version;
     let name = locked.name;
+    const packageType = install.rootPatternsToOrigin[`${name}@${current}`];
 
     let latest = '';
     let wanted = '';
@@ -77,6 +79,7 @@ export async function run(
       current,
       wanted,
       latest,
+      packageType,
     });
   }));
 
@@ -87,6 +90,7 @@ export async function run(
         info.current,
         reporter.format.green(info.wanted),
         reporter.format.magenta(info.latest),
+        info.packageType,
       ];
     });
 
@@ -94,7 +98,7 @@ export async function run(
       return sortAlpha(a[0], b[0]);
     });
 
-    reporter.table(['Package', 'Current', 'Wanted', 'Latest'], body);
+    reporter.table(['Package', 'Current', 'Wanted', 'Latest', 'Package Type'], body);
   }
 
   return Promise.resolve();
