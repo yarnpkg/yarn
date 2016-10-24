@@ -7,11 +7,12 @@ import map from './map.js';
 
 const path = require('path');
 const fs = require('fs');
+const os = require('os');
 
 export const lockQueue = new BlockingQueue('fs lock');
 
 export const readFileBuffer = promisify(fs.readFile);
-export const writeFile: (path: string, data: string) => Promise<void> = promisify(fs.writeFile);
+export const writeFile = writeFilePreservingEol;
 export const readlink: (path: string, opts: void) => Promise<string> = promisify(fs.readlink);
 export const realpath: (path: string, opts: void) => Promise<string> = promisify(fs.realpath);
 export const readdir: (path: string, opts: void) => Promise<Array<string>> = promisify(fs.readdir);
@@ -453,4 +454,34 @@ export async function getFileSizeOnDisk(loc: string): Promise<number> {
 
 export function normalizeOS(body: string): string {
   return body.replace(/\r\n/g, '\n');
+}
+
+const cr = new Buffer('\r', 'utf8')[0];
+const lf = new Buffer('\n', 'utf8')[0];
+
+async function getEolFromFile(path: string) : Promise<string | void>  {
+  let buffer;
+  try {
+    buffer = await readFileBuffer(path);
+  } catch (err) {
+    return undefined;
+  }
+
+  for (let i = 0; i < buffer.length; ++i) {
+    if (buffer[i] === cr) {
+      return '\r\n';
+    }
+    if (buffer[i] === lf) {
+      return '\n';
+    }
+  }
+  return undefined;
+}
+
+async function writeFilePreservingEol(path: string, data: string) : Promise<void> {
+  const eol = (await getEolFromFile(path)) || os.EOL;
+  if (eol !== '\n') {
+    data = data.replace(/\n/g, eol);
+  }
+  await promisify(fs.writeFile)(path, data);
 }
