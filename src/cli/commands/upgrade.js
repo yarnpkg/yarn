@@ -8,6 +8,8 @@ import Lockfile from '../../lockfile/wrapper.js';
 export function setFlags(commander: Object) {
   // TODO: support some flags that install command has
   commander.usage('upgrade [flags]');
+
+  commander.option('--ignore-engines', 'ignore engines check');
 }
 
 export const requireLockfile = true;
