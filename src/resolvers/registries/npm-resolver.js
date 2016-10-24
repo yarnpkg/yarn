@@ -39,8 +39,12 @@ export default class NpmResolver extends RegistryResolver {
     } else {
       const versions = Object.keys(body.versions);
       throw new MessageError(
-        `Couldn't find any versions for ${body.name} that matches ${range}. ` +
-        `Possible versions: ${(versions.length > 20) ? versions.join(os.EOL) : versions.join(', ')}`,
+        config.reporter.lang(
+          'couldntFindVersionThatMatchesRange',
+          body.name,
+          range,
+          (versions.length > 20) ? versions.join(os.EOL) : versions.join(', '),
+        ),
       );
     }
   }
