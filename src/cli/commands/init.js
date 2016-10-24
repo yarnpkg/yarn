@@ -138,12 +138,12 @@ export async function run(
 
 async function getAuthorData(
   reporter: Reporter,
-  credential: String,
-): string {
+  credential: string,
+): Promise<string> {
   try {
     // try to get author default based on git config
     return await child.spawn('git', ['config', credential]);
   } catch (e) {
-    return await reporter.question(credential.replace('user.', 'author '));
+    return await reporter.question(credential.replace('user.', 'author\'s '));
   }
 }
