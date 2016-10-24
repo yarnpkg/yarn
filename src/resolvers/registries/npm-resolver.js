@@ -105,7 +105,7 @@ export default class NpmResolver extends RegistryResolver {
 
       // read package metadata
       const metadata = await this.config.readPackageMetadata(dir);
-      if (!metadata._remote) {
+      if (!metadata.remote) {
         continue; // old yarn metadata
       }
 
