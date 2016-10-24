@@ -1,6 +1,7 @@
 /* @flow */
 
 import {run as uninstall} from '../../src/cli/commands/remove.js';
+import {checkAllFlag} from '../../src/cli/commands/remove.js';
 import {run as check} from '../../src/cli/commands/check.js';
 import * as reporters from '../../src/reporters/index.js';
 import {Install} from '../../src/cli/commands/install.js';
@@ -485,6 +486,19 @@ test.concurrent('uninstall should remove subdependencies', (): Promise<void> => 
     }
   });
 });
+
+test.concurrent('uninstall should remove all dependencies in package.json with --all flag', (): Promise<void> => {
+  return runInstall({}, 'uninstall-should-remove-subdependencies', async (config, reporter) => {
+    const rootManifests = await config.getRootManifests();
+    const args = checkAllFlag({all: true}, [], rootManifests);
+
+    const packageJSON = JSON.parse(await fs.readFile(path.join(config.cwd, 'package.json')));
+    const dep = Object.keys(packageJSON.dependencies);
+
+    assert.deepEqual(args.sort(), dep.sort());
+  });
+});
+
 
 test.concurrent('check should verify that top level dependencies are installed correctly', (): Promise<void> => {
   return runInstall({}, 'check-top-correct', async (config, reporter) => {
