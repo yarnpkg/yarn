@@ -15,9 +15,19 @@ export async function execFromManifest(config: Config, commandName: string, pkg:
   }
 
   const cmd: ?string = pkg.scripts[commandName];
-  if (cmd) {
+  if (cmd && isValidCommand(commandName, cmd)) {
     await execCommand(commandName, config, cmd, cwd);
   }
+}
+
+function isValidCommand(commandName: string, cmd: string): boolean {
+  // prevent infinite loop (see: https://github.com/yarnpkg/yarn/issues/1227)
+  // blocks `yarn`, `yarn i`, `yarn install`, with any flags as well
+  if (commandName.endsWith('install') && /^yarn(\si(nstall)?)?(\s\-.*)?$/.test(cmd)) {
+    return false;
+  }
+
+  return true;
 }
 
 export async function execCommand(stage: string, config: Config, cmd: string, cwd: string): Promise<void> {
