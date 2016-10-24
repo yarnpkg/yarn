@@ -199,6 +199,7 @@ const messages = {
   publishing: 'Publishing',
 
   infoFail: 'Received invalid response from npm.',
+  malformedRegistryResponse: 'Received malformed response from registry. The registry may be down.',
 };
 
 export type LanguageKeys = $Keys<typeof messages>;
