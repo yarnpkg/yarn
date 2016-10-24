@@ -151,7 +151,7 @@ export default class NpmRegistry extends Registry {
     return DEFAULT_REGISTRY;
   }
 
-  getAuth(packageName: string): ?string {
+  getAuth(packageName: string): string {
     if (this.token) {
       return this.token;
     }
@@ -180,7 +180,7 @@ export default class NpmRegistry extends Registry {
       }
     }
 
-    return undefined;
+    return '';
   }
 
   getScopedOption(scope: string, option: string): mixed {
