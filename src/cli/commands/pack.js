@@ -159,7 +159,7 @@ export async function pack(config: Config, dir: string): Promise<stream$Duplex> 
 }
 
 export function setFlags(commander: Object) {
-  commander.option('-f, --filename [filename]', 'filename');
+  commander.option('-f, --filename <filename>', 'filename');
 }
 
 export async function run(
