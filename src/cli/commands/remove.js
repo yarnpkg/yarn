@@ -44,7 +44,7 @@ export async function run(
 
       for (const type of constants.DEPENDENCY_TYPES) {
         const deps = object[type];
-        if (deps) {
+        if (deps && deps[name]) {
           found = true;
           delete deps[name];
         }
