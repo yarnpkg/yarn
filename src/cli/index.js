@@ -24,6 +24,11 @@ const pkg = require('../../package.json');
 
 loudRejection();
 
+// helper function to make alias rewrites easy to test
+export const setAliasCmd = (cmd: string, alias: Object): string => {
+  return aliases[cmd] ? aliases[cmd] : '';
+};
+
 //
 const startArgs = process.argv.slice(0, 2);
 let args = process.argv.slice(2);
@@ -122,7 +127,7 @@ if (!commandName || commandName[0] === '-') {
 
 // aliases: i -> install
 if (commandName && typeof aliases[commandName] === 'string') {
-  const alias = aliases[commandName];
+  const alias = setAliasCmd(commandName, aliases);
   command = {
     run(config: Config, reporter: ConsoleReporter | JSONReporter): Promise<void> {
       throw new MessageError(`Did you mean \`yarn ${alias}\`?`);
