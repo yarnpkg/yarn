@@ -128,7 +128,7 @@ const messages = {
   unmetPeer: 'Unmet peer dependency $0.',
   incorrectPeer: 'Incorrect peer dependency $0.',
 
-  savedNewDependency: 'Saved 1 new dependency',
+  savedNewDependency: 'Saved 1 new dependency.',
   savedNewDependencies: 'Saved $0 new dependencies.',
 
   foundWarnings: 'Found $0 warnings.',
