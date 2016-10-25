@@ -3,7 +3,6 @@
 import aliases from '../../src/cli/aliases.js';
 
 test('shorthands and affordances', () => {
-  // shorthands
   expect(aliases['run-script']).toBe('run');
   expect(aliases['c']).toBe('config');
   expect(aliases['i']).toBe('install');
@@ -16,8 +15,6 @@ test('shorthands and affordances', () => {
   expect(aliases['up']).toBe('update');
   expect(aliases['v']).toBe('info');
   expect(aliases['a']).toBe('add');
-
-  // affordances
   expect(aliases['add-user']).toBe('login');
   expect(aliases['dist-tag']).toBe('tag');
   expect(aliases['dist-tags']).toBe('tag');
