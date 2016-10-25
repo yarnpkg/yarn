@@ -2,7 +2,6 @@
 
 import type {Reporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
-import executeLifecycleScript from './_execute-lifecycle-script.js';
 import NpmRegistry from '../../registries/npm-registry.js';
 import {ConcatStream} from '../../util/stream.js';
 import {MessageError} from '../../errors.js';
@@ -63,7 +62,7 @@ async function publish(
   const tbURI = `${pkg.name}/-/${tbName}`;
 
   // TODO this might modify package.json, do we need to reload it?
-  await executeLifecycleScript(config, 'prepublish');
+  await config.executeLifecycleScript('prepublish');
 
   // create body
   const root = {
@@ -101,8 +100,8 @@ async function publish(
   });
 
   if (res != null && res.success) {
-    await executeLifecycleScript(config, 'publish');
-    await executeLifecycleScript(config, 'postpublish');
+    await config.executeLifecycleScript('publish');
+    await config.executeLifecycleScript('postpublish');
   } else {
     throw new MessageError(config.reporter.lang('publishFail'));
   }

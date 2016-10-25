@@ -8,7 +8,7 @@ import Lockfile from '../../lockfile/wrapper.js';
 import * as PackageReference from '../../package-reference.js';
 import PackageRequest from '../../package-request.js';
 import {buildTree} from './ls.js';
-import {Install, _setFlags} from './install.js';
+import {wrapLifecycle, Install, _setFlags} from './install.js';
 import {MessageError} from '../../errors.js';
 
 const invariant = require('invariant');
@@ -174,6 +174,9 @@ export async function run(
   }
 
   const lockfile = await Lockfile.fromDirectory(config.cwd, reporter);
-  const install = new Add(args, flags, config, reporter, lockfile);
-  await install.init();
+
+  await wrapLifecycle(config, flags, async () => {
+    const install = new Add(args, flags, config, reporter, lockfile);
+    await install.init();
+  });
 }

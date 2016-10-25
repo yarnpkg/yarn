@@ -46,6 +46,7 @@ commander.option('--prefer-offline');
 commander.option('--strict-semver');
 commander.option('--json', '');
 commander.option('--global-folder <path>', '');
+commander.option('--ignore-scripts', "don't run lifecycle scripts");
 commander.option(
   '--modules-folder <path>',
   'rather than installing modules into the node_modules folder relative to the cwd, output them here',
@@ -326,6 +327,7 @@ config.init({
   captureHar: commander.har,
   ignorePlatform: commander.ignorePlatform,
   ignoreEngines: commander.ignoreEngines,
+  ignoreScripts: commander.ignoreScripts,
   offline: commander.preferOffline || commander.offline,
   looseSemver: !commander.strictSemver,
 }).then(() => {
