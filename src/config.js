@@ -465,7 +465,8 @@ export default class Config {
   }
 
   /**
-   *
+   * Call the passed factory (defaults to fs.readJson) and rethrow a pretty error message if it was the result
+   * of a syntax error.
    */
 
   async readJson(loc: string, factory: (filename: string) => Promise<Object> = fs.readJson): Promise<Object> {
