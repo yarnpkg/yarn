@@ -72,6 +72,10 @@ const messages = {
   unexpectedError: 'An unexpected error occurred, please open a bug report with the information provided in $0.',
   jsonError: 'Error parsing JSON at $0, $1.',
 
+  yarnOutdated: "Your current version of Yarn is out of date. The latest version is $0 while you're on $1.",
+  yarnOutdatedInstaller: 'To upgrade, download the latest installer at $0.',
+  yarnOutdatedCommand: 'To upgrade, run $0.',
+
   tooManyArguments: 'Too many arguments, maximum of $0.',
   tooFewArguments: 'Not enough arguments, expected at least $0.',
   noArguments: "This command doesn't require any arguments.",
