@@ -3,7 +3,6 @@
 import type {Reporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
 import {registryNames} from '../../registries/index.js';
-import executeLifecycleScript from './_execute-lifecycle-script.js';
 import {MessageError} from '../../errors.js';
 import {spawn} from '../../util/child.js';
 import * as fs from '../../util/fs.js';
@@ -77,7 +76,7 @@ export async function setVersion(
     throw new MessageError(reporter.lang('publishSame'));
   }
 
-  await executeLifecycleScript(config, 'preversion');
+  await config.executeLifecycleScript('preversion');
 
   // update version
   reporter.info(`${reporter.lang('newVersion')}: ${newVersion}`);
@@ -123,7 +122,7 @@ export async function setVersion(
       await spawn('git', ['tag', `${prefix}${newVersion}`, flag, message]);
     }
 
-    await executeLifecycleScript(config, 'postversion');
+    await config.executeLifecycleScript('postversion');
   };
 }
 

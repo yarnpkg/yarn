@@ -3,6 +3,7 @@
 import type {RegistryNames, ConfigRegistries} from './registries/index.js';
 import type {Reporter} from './reporters/index.js';
 import type {Manifest, PackageRemote} from './types.js';
+import {execFromManifest} from './util/execute-lifecycle-script.js';
 import normalizeManifest from './util/normalize-manifest/index.js';
 import {MessageError} from './errors.js';
 import * as fs from './util/fs.js';
@@ -27,6 +28,7 @@ export type ConfigOptions = {
   offline?: boolean,
   preferOffline?: boolean,
   captureHar?: boolean,
+  ignoreScripts?: boolean,
   ignorePlatform?: boolean,
   ignoreEngines?: boolean,
   cafile?: ?string,
@@ -102,6 +104,9 @@ export default class Config {
 
   //
   reporter: Reporter;
+
+  // Whether we should ignore executing lifecycle scripts
+  ignoreScripts: boolean;
 
   //
   cwd: string;
@@ -201,7 +206,9 @@ export default class Config {
     this.linkFolder = opts.linkFolder || constants.LINK_REGISTRY_DIRECTORY;
     this.tempFolder = opts.tempFolder || path.join(this.cacheFolder, '.tmp');
     this.offline = !!opts.offline;
+
     this.ignorePlatform = !!opts.ignorePlatform;
+    this.ignoreScripts = !!opts.ignoreScripts;
 
     this.requestManager.setOptions({
       offline: !!opts.offline && !opts.preferOffline,
@@ -240,6 +247,19 @@ export default class Config {
     }
 
     return path.join(this.cacheFolder, `${name}-${uid}`);
+  }
+
+  /**
+   * Execute lifecycle scripts in the specified directory. Ignoring when the --ignore-scripts flag has been
+   * passed.
+   */
+
+  executeLifecycleScript(commandName: string, cwd?: string): Promise<void> {
+    if (this.ignoreScripts) {
+      return Promise.resolve();
+    } else {
+      return execFromManifest(this, commandName, cwd || this.cwd);
+    }
   }
 
   /**

@@ -1,10 +1,11 @@
 /* @flow */
 
+import type {ReporterSpinner} from '../reporters/types.js';
 import type Config from '../config.js';
+import {MessageError, SpawnError} from '../errors.js';
 import * as constants from '../constants.js';
 import * as child from './child.js';
 import {registries} from '../resolvers/index.js';
-import type {ReporterSpinner} from '../reporters/types.js';
 
 const path = require('path');
 
@@ -82,7 +83,7 @@ async function makeEnv(stage: string, cwd: string, config: Config): {
   return env;
 }
 
-export default async function (
+export async function executeLifecycleScript(
   stage: string,
   config: Config,
   cwd: string,
@@ -142,4 +143,33 @@ export default async function (
   });
 
   return {cwd, command: cmd, stdout};
+}
+
+export default executeLifecycleScript;
+
+export async function execFromManifest(config: Config, commandName: string, cwd: string): Promise<void> {
+  const pkg = await config.readManifest(cwd);
+  if (!pkg.scripts) {
+    return;
+  }
+
+  const cmd: ?string = pkg.scripts[commandName];
+  if (cmd) {
+    await execCommand(commandName, config, cmd, cwd);
+  }
+}
+
+export async function execCommand(stage: string, config: Config, cmd: string, cwd: string): Promise<void> {
+  const {reporter} = config;
+  try {
+    reporter.command(cmd);
+    await executeLifecycleScript(stage, config, cwd, cmd);
+    return Promise.resolve();
+  } catch (err) {
+    if (err instanceof SpawnError) {
+      throw new MessageError(reporter.lang('commandFailed', err.EXIT_CODE));
+    } else {
+      throw err;
+    }
+  }
 }
