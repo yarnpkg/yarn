@@ -322,8 +322,18 @@ export default class Config {
    * Read normalized package info.
    */
 
-  readManifest(dir: string, priorityRegistry?: RegistryNames, isRoot?: boolean = false): Promise<Manifest> {
-    return this.getCache(`manifest-${dir}`, async (): Promise<Manifest> => {
+  async readManifest(dir: string, priorityRegistry?: RegistryNames, isRoot?: boolean = false): Promise<Manifest> {
+    const manifest = await this.maybeReadManifest(dir, priorityRegistry, isRoot);
+
+    if (manifest) {
+      return manifest;
+    } else {
+      throw new MessageError(`Couldn't find a package.json (or bower.json) file in ${dir}`);
+    }
+  }
+
+  maybeReadManifest(dir: string, priorityRegistry?: RegistryNames, isRoot?: boolean = false): Promise<?Manifest> {
+    return this.getCache(`manifest-${dir}`, async (): Promise<?Manifest> => {
       const metadataLoc = path.join(dir, constants.METADATA_FILENAME);
       if (!priorityRegistry && await fs.exists(metadataLoc)) {
         ({registry: priorityRegistry} = await fs.readJson(metadataLoc));
@@ -346,8 +356,6 @@ export default class Config {
           return file;
         }
       }
-
-      throw new MessageError(`Couldn't find a package.json (or bower.json) file in ${dir}`);
     });
   }
 

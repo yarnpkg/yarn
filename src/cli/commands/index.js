@@ -29,6 +29,7 @@ import * as team from './team.js'; export {team};
 import * as unlink from './unlink.js'; export {unlink};
 import * as upgrade from './upgrade.js'; export {upgrade};
 import * as version from './version.js'; export {version};
+import * as versions from './versions.js'; export {versions};
 import * as why from './why.js'; export {why};
 
 import buildUseless from './_useless.js';
