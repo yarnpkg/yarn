@@ -4,6 +4,7 @@ import type {Reporter} from '../../reporters/index.js';
 import type {InstallCwdRequest, InstallPrepared} from './install.js';
 import type {DependencyRequestPatterns} from '../../types.js';
 import type Config from '../../config.js';
+import type {LsOptions} from './ls.js';
 import Lockfile from '../../lockfile/wrapper.js';
 import * as PackageReference from '../../package-reference.js';
 import PackageRequest from '../../package-request.js';
@@ -82,7 +83,11 @@ export class Add extends Install {
    */
 
   async maybeOutputSaveTree(patterns: Array<string>): Promise<void> {
-    const {trees, count} = await buildTree(this.resolver, this.linker, patterns, true, true);
+    // don't limit the shown tree depth
+    const opts: LsOptions = {
+      reqDepth: 0,
+    };
+    const {trees, count} = await buildTree(this.resolver, this.linker, patterns, opts, true, true);
     this.reporter.success(
       count === 1 ?
         this.reporter.lang('savedNewDependency')
