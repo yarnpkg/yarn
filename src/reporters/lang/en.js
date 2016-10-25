@@ -207,6 +207,7 @@ const messages = {
   cantRequestOffline: 'Can\'t make a request in offline mode',
   requestManagerNotSetupHAR: 'RequestManager was not setup to capture HAR files',
   requestError: 'Request $0 returned a $1',
+  updateInstalling: 'Installing $0...',
 };
 
 export type LanguageKeys = $Keys<typeof messages>;
