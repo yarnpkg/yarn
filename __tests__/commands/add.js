@@ -13,7 +13,6 @@ import * as fs from '../../src/util/fs.js';
 import {runInstall} from './_install.js';
 import assert from 'assert';
 import semver from 'semver';
-import {spawn} from '../../src/util/child.js';
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 90000;
 
@@ -101,43 +100,6 @@ test.concurrent('add --save-exact should not make all package.json strict', (): 
         'mime-types': '^2.0.0',
       },
     );
-  });
-});
-
-test.concurrent(' "yarn a" should map to "yarn add" ', (): Promise<void> => {
-  return new Promise( async(resolve, reject) => {
-    await spawn('bin/yarn', ['a', 'left-pad@1.1.0']);
-
-  });
-});
-
-test.concurrent(' "yarn add -D" should run "yard add --dev" ', (): Promise<void> => {
-  return new Promise( async(resolve, reject) => {
-
-  });
-});
-
-test.concurrent(' "yarn add -P" should run "yard add --peer" ', (): Promise<void> => {
-  return new Promise( async(resolve, reject) => {
-
-  });
-});
-
-test.concurrent(' "yarn add -O" should run "yard add --optional" ', (): Promise<void> => {
-  return new Promise( async(resolve, reject) => {
-
-  });
-});
-
-test.concurrent(' "yarn add -E" should run "yard add --exact" ', (): Promise<void> => {
-  return new Promise( async(resolve, reject) => {
-
-  });
-});
-
-test.concurrent(' "yarn add -T" should run "yard add --tilde" ', (): Promise<void> => {
-  return new Promise( async(resolve, reject) => {
-
   });
 });
 
