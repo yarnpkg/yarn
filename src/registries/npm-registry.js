@@ -58,7 +58,10 @@ export default class NpmRegistry extends Registry {
 
     const headers = {};
     if (this.token || (alwaysAuth && requestUrl.startsWith(registry))) {
-      headers.authorization = this.getAuth(pathname);
+      const authorization = this.getAuth(pathname);
+      if (authorization) {
+        headers.authorization = authorization;
+      }
     }
 
     return this.requestManager.request({
