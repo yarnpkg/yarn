@@ -36,21 +36,20 @@ function getGlobalPrefix(): string {
   }
 }
 
-function envReplace(f: string): string {
-  if (typeof f !== 'string' || !f) {
-    return f;
+function envReplace(value: string): string {
+  if (typeof value !== 'string' || !value) {
+    return value;
   }
 
   const envExpr = /(\\*)\$\{([^}]+)\}/g;
-  return f.replace(envExpr, (orig, esc, name) => {
-    esc = esc.length && esc.length % 2;
-    if (esc) {
-      return orig;
+  return value.replace(envExpr, (match: string, esc: string, envVarName: string) => {
+    if (esc.length && esc.length % 2) {
+      return match;
     }
-    if (undefined === process.env[name]) {
-      throw new Error('Failed to replace env in config: ' + orig);
+    if (undefined === process.env[envVarName]) {
+      throw new Error('Failed to replace env in config: ' + match);
     }
-    return process.env[name] || '';
+    return process.env[envVarName] || '';
   });
 }
 
