@@ -11,6 +11,7 @@ import {YARN_REGISTRY} from '../../constants.js';
 
 const invariant = require('invariant');
 const path = require('path');
+const os = require('os');
 
 const NPM_REGISTRY = /http[s]:\/\/registry.npmjs.org/g;
 
@@ -36,9 +37,10 @@ export default class NpmResolver extends RegistryResolver {
     if (satisfied) {
       return body.versions[satisfied];
     } else {
+      const versions = Object.keys(body.versions);
       throw new MessageError(
         `Couldn't find any versions for ${body.name} that matches ${range}. ` +
-        `Possible versions: ${Object.keys(body.versions).join(', ')}`,
+        `Possible versions: ${(versions.length > 20) ? versions.join(os.EOL) : versions.join(', ')}`,
       );
     }
   }
