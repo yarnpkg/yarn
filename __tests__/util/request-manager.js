@@ -34,3 +34,38 @@ test('RequestManager.request with cafile', async () => {
   }
   expect(body).toBe('ok');
 });
+
+test('RequestManager.execute Request 403 error', async () => {
+  const config = await createConfig({});
+  jest.mock('request', (factory) => (options) => {
+    options.callback('', {statusCode: 403}, '');
+    return {
+      on: () => {},
+    };
+  });
+  await config.requestManager.execute({
+    params: {url: `https://localhost:port/?nocache`, headers: {Connection: 'close'}},
+    resolve: (body) => {},
+    reject: (err) => {
+      expect(err.message).toBe('https://localhost:port/?nocache: Request "https://localhost:port/?nocache" returned a 403');
+    },
+  });
+});
+
+test('RequestManager.request with offlineNoRequests', async () => {
+  const config = await createConfig({offline: true});
+  try {
+    await config.requestManager.request({url: `https://localhost:port/?nocache`, headers: {Connection: 'close'}});
+  } catch (err) {
+    expect(err.message).toBe('Can\'t make a request in offline mode');
+  }
+});
+
+test('RequestManager.saveHar no captureHar error message', async () => {
+  const config = await createConfig({captureHar: false});
+  try {
+    config.requestManager.saveHar('testFile');
+  } catch (err) {
+    expect(err.message).toBe('RequestManager was not setup to capture HAR files');
+  }
+});
