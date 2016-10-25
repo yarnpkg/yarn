@@ -49,11 +49,15 @@ export default async function (
 
   // if there's no contributors field but an authors field then expand it
   if (!info.contributors && files.indexOf('AUTHORS') >= 0) {
-    let authors = await fs.readFile(path.join(moduleLoc, 'AUTHORS'));
-    authors = authors.split(/\r?\n/g) // split on lines
-      .map((line): string => line.replace(/^\s*#.*$/, '').trim()) // remove comments
-      .filter((line): boolean => !!line); // remove empty lines
-    info.contributors = authors;
+    const authorsFilepath = path.join(moduleLoc, 'AUTHORS');
+    const authorsFilestats = await fs.stat(authorsFilepath);
+    if (authorsFilestats.isFile()) {
+      let authors = await fs.readFile(authorsFilepath);
+      authors = authors.split(/\r?\n/g) // split on lines
+        .map((line): string => line.replace(/^\s*#.*$/, '').trim()) // remove comments
+        .filter((line): boolean => !!line); // remove empty lines
+      info.contributors = authors;
+    }
   }
 
   // expand people fields to objects
@@ -75,8 +79,12 @@ export default async function (
     });
 
     if (readmeFilename) {
-      info.readmeFilename = readmeFilename;
-      info.readme = await fs.readFile(path.join(moduleLoc, readmeFilename));
+      const readmeFilepath = path.join(moduleLoc, readmeFilename);
+      const readmeFileStats = await fs.stat(readmeFilepath);
+      if (readmeFileStats.isFile()) {
+        info.readmeFilename = readmeFilename;
+        info.readme = await fs.readFile(readmeFilepath);
+      }
     }
   }
 
@@ -237,28 +245,32 @@ export default async function (
            lower === 'unlicense' || lower.startsWith('unlicense.');
   });
   if (licenseFile) {
-    const licenseContent = await fs.readFile(path.join(moduleLoc, licenseFile));
-    const inferredLicense = inferLicense(licenseContent);
-    info.licenseText = licenseContent;
+    const licenseFilepath = path.join(moduleLoc, licenseFile);
+    const licenseFileStats = await fs.stat(licenseFilepath);
+    if (licenseFileStats.isFile()) {
+      const licenseContent = await fs.readFile(licenseFilepath);
+      const inferredLicense = inferLicense(licenseContent);
+      info.licenseText = licenseContent;
 
-    const license = info.license;
+      const license = info.license;
 
-    if (typeof license === 'string') {
-      if (inferredLicense && isValidLicense(inferredLicense) && !isValidLicense(license)) {
-        // some packages don't specify their license version but we can infer it based on their license file
-        const basicLicense = license.toLowerCase().replace(/(-like|\*)$/g, '');
-        const expandedLicense = inferredLicense.toLowerCase();
-        if (expandedLicense.startsWith(basicLicense)) {
-          // TODO consider doing something to notify the user
-          info.license = inferredLicense;
+      if (typeof license === 'string') {
+        if (inferredLicense && isValidLicense(inferredLicense) && !isValidLicense(license)) {
+          // some packages don't specify their license version but we can infer it based on their license file
+          const basicLicense = license.toLowerCase().replace(/(-like|\*)$/g, '');
+          const expandedLicense = inferredLicense.toLowerCase();
+          if (expandedLicense.startsWith(basicLicense)) {
+            // TODO consider doing something to notify the user
+            info.license = inferredLicense;
+          }
         }
+      } else if (inferredLicense) {
+        // if there's no license then infer it based on the license file
+        info.license = inferredLicense;
+      } else {
+          // valid expression to refer to a license in a file
+        info.license = `SEE LICENSE IN ${licenseFile}`;
       }
-    } else if (inferredLicense) {
-      // if there's no license then infer it based on the license file
-      info.license = inferredLicense;
-    } else {
-        // valid expression to refer to a license in a file
-      info.license = `SEE LICENSE IN ${licenseFile}`;
     }
   }
 
