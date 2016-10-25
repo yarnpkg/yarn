@@ -100,7 +100,7 @@ async function publish(
     body: root,
   });
 
-  if (res != null && res.success) {
+  if (res !== null && res !== false) {
     await executeLifecycleScript(config, 'publish');
     await executeLifecycleScript(config, 'postpublish');
   } else {
