@@ -185,7 +185,7 @@ export class Install {
       }
 
       this.rootManifestRegistries.push(registry);
-      const json = await fs.readJson(loc);
+      const json = await this.config.readJson(loc);
       await normalizeManifest(json, this.config.cwd, this.config, true);
 
       Object.assign(this.resolutions, json.resolutions);

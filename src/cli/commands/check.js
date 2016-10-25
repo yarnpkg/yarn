@@ -97,7 +97,7 @@ export async function run(
         continue;
       }
 
-      const packageJson = await fs.readJson(pkgLoc);
+      const packageJson = await config.readJson(pkgLoc);
       if (pkg.version !== packageJson.version) {
         // node_modules contains wrong version
         reportError(`${human} is wrong version: expected ${pkg.version}, got ${packageJson.version}`);
@@ -142,7 +142,7 @@ export async function run(
         }
 
         //
-        const depPkg = await fs.readJson(depPkgLoc);
+        const depPkg = await config.readJson(depPkgLoc);
         const foundHuman = `${humaniseLocation(path.dirname(depPkgLoc)).join('#')}@${depPkg.version}`;
         if (!semver.satisfies(depPkg.version, range, config.looseSemver)) {
           // module isn't correct semver
@@ -156,7 +156,7 @@ export async function run(
             continue;
           }
 
-          const packageJson = await fs.readJson(loc);
+          const packageJson = await config.readJson(loc);
           if (packageJson.version === depPkg.version ||
              (semver.satisfies(packageJson.version, range, config.looseSemver) &&
              semver.gt(packageJson.version, depPkg.version, config.looseSemver))) {

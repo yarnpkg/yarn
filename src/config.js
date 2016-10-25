@@ -326,7 +326,7 @@ export default class Config {
 
   readPackageMetadata(dir: string): Promise<PackageMetadata> {
     return this.getCache(`metadata-${dir}`, async (): Promise<PackageMetadata> => {
-      const metadata = await fs.readJson(path.join(dir, constants.METADATA_FILENAME));
+      const metadata = await this.readJson(path.join(dir, constants.METADATA_FILENAME));
       const pkg = await this.readManifest(dir, metadata.registry);
 
       return {
@@ -356,7 +356,7 @@ export default class Config {
     return this.getCache(`manifest-${dir}`, async (): Promise<?Manifest> => {
       const metadataLoc = path.join(dir, constants.METADATA_FILENAME);
       if (!priorityRegistry && await fs.exists(metadataLoc)) {
-        ({registry: priorityRegistry} = await fs.readJson(metadataLoc));
+        ({registry: priorityRegistry} = await this.readJson(metadataLoc));
       }
 
       if (priorityRegistry) {
@@ -395,7 +395,7 @@ export default class Config {
     const {filename} = registries[registry];
     const loc = path.join(dir, filename);
     if (await fs.exists(loc)) {
-      const data = await fs.readJson(loc);
+      const data = await this.readJson(loc);
       data._registry = registry;
       data._loc = loc;
       return normalizeManifest(data, dir, this, isRoot);
@@ -434,7 +434,7 @@ export default class Config {
       if (await fs.exists(jsonLoc)) {
         exists = true;
 
-        const info = await fs.readJsonAndFile(jsonLoc);
+        const info = await this.readJson(jsonLoc, fs.readJsonAndFile);
         object = info.object;
         indent = detectIndent(info.content).indent || undefined;
       }
@@ -461,6 +461,22 @@ export default class Config {
       }
 
       await fs.writeFile(loc, JSON.stringify(object, null, indent || constants.DEFAULT_INDENT) + '\n');
+    }
+  }
+
+  /**
+   *
+   */
+
+  async readJson(loc: string, factory: (filename: string) => Promise<Object> = fs.readJson): Promise<Object> {
+    try {
+      return await factory(loc);
+    } catch (err) {
+      if (err instanceof SyntaxError) {
+        throw new MessageError(this.reporter.lang('jsonError', loc, err.message));
+      } else {
+        throw err;
+      }
     }
   }
 }
