@@ -6,6 +6,7 @@ import {stringifyPerson} from '../../util/normalize-manifest/util.js';
 import {registryNames} from '../../registries/index.js';
 import * as child from '../../util/child.js';
 import * as fs from '../../util/fs.js';
+import * as validate from '../../util/normalize-manifest/validate.js';
 
 const objectPath = require('object-path');
 const path = require('path');
@@ -46,6 +47,8 @@ export async function run(
       key: 'name',
       question: 'name',
       default: path.basename(config.cwd),
+      validation: validate.isValidPackageName,
+      validationError: 'invalidPackageName',
     },
     {
       key: 'version',
@@ -100,11 +103,25 @@ export async function run(
     }
 
     let answer;
+    let validAnswer = false;
 
     if (yes) {
       answer = def;
     } else {
-      answer = (await reporter.question(question)) || def;
+      // loop until a valid answer is provided, if validation is on entry
+      if (entry.validation) {
+        while (!validAnswer) {
+          answer = (await reporter.question(question)) || def;
+          // validate answer
+          if (entry.validation(String(answer))) {
+            validAnswer = true;
+          } else {
+            reporter.error(reporter.lang('invalidPackageName'));
+          }
+        }
+      } else {
+        answer = (await reporter.question(question)) || def;
+      }
     }
 
     if (answer) {
