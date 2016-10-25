@@ -7,6 +7,7 @@ import type Config from '../../config.js';
 import Lockfile from '../../lockfile/wrapper.js';
 import * as PackageReference from '../../package-reference.js';
 import PackageRequest from '../../package-request.js';
+import executeLifecycleScript from './_execute-lifecycle-script.js';
 import {buildTree} from './ls.js';
 import {Install, _setFlags} from './install.js';
 import {MessageError} from '../../errors.js';
@@ -174,6 +175,11 @@ export async function run(
   }
 
   const lockfile = await Lockfile.fromDirectory(config.cwd, reporter);
+
+  await executeLifecycleScript(config, 'preinstall');
+
   const install = new Add(args, flags, config, reporter, lockfile);
   await install.init();
+
+  await executeLifecycleScript(config, 'postinstall');
 }
