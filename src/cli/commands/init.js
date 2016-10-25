@@ -144,6 +144,6 @@ async function getAuthorData(
     // try to get author default based on git config
     return await child.spawn('git', ['config', credential]);
   } catch (e) {
-    return await reporter.question(credential.replace('user.', 'author\'s '));
+    return await reporter.question(credential.replace('user.', "author's"));
   }
 }
