@@ -58,6 +58,7 @@ export class Add extends Install {
     const patterns = await Install.prototype.init.call(this);
     await this.maybeOutputSaveTree(patterns);
     await this.savePackages();
+    await Install.prototype.saveLockfileAndIntegrity.call(this, patterns);
     return patterns;
   }
 
@@ -106,7 +107,11 @@ export class Add extends Install {
       let version;
       if (parts.hasVersion && parts.range) {
         // if the user specified a range then use it verbatim
-        version = parts.range;
+        if (parts.range.match(/^[a-zA-Z]+.*/) != null) {
+          version = pkg.version;
+        } else {
+          version = parts.range;
+        }
       } else if (PackageRequest.getExoticResolver(pattern)) {
         // wasn't a name/range tuple so this is just a raw exotic pattern
         version = pattern;
