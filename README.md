@@ -28,7 +28,6 @@
 * **Offline Mode.** If you've installed a package before, you can install it again without any internet connection.
 * **Deterministic.** The same dependencies will be installed in the same exact way on any machine, regardless of install order.
 * **Network Performance.** Yarn efficiently queues up requests and avoids request waterfalls in order to maximize network utilization.
-* **Multiple Registries.** Install any package from either npm or Bower. Keep your package workflow the same.
 * **Network Resilience.** A single request failing won't cause an install to fail. Requests are retried upon failure.
 * **Flat Mode.** Yarn resolves mismatched versions of dependencies to a single version to avoid creating duplicates.
 * **More emojis.** 🐈
