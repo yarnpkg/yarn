@@ -1,1 +1,1 @@
-exports[`test TarballFetcher.fetch throws 1`] = `"https://github.com/PolymerElements/font-roboto/archive/2fd5c7bd715a24fb5b250298a140a3ba1b71fe46.tar.gz: Bad hash. Expected foo but got 9689b3b48d63ff70f170a192bec3c01b04f58f45 "`;
+exports[`test TarballFetcher.fetch throws on invalid hash 1`] = `"https://github.com/sindresorhus/beeper/archive/master.tar.gz: Bad hash. Expected foo but got a32262ca1e22a3746b970936d3944b4bfd6cb9e9 "`;

@@ -51,7 +51,7 @@ type Dependencies = {
   [key: string]: string
 };
 
-// package.json/bower.json etc
+// package.json
 export type Manifest = {
   _registry?: ?RegistryNames,
   _loc?: ?string,
