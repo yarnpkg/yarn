@@ -32,6 +32,7 @@ export type ConfigOptions = {
   ignorePlatform?: boolean,
   ignoreEngines?: boolean,
   cafile?: ?string,
+  production?: boolean,
 
   // Loosely compare semver for invalid cases like "0.01.0"
   looseSemver?: ?boolean,
@@ -107,6 +108,8 @@ export default class Config {
 
   // Whether we should ignore executing lifecycle scripts
   ignoreScripts: boolean;
+
+  production: boolean;
 
   //
   cwd: string;
@@ -206,6 +209,7 @@ export default class Config {
     this.linkFolder = opts.linkFolder || constants.LINK_REGISTRY_DIRECTORY;
     this.tempFolder = opts.tempFolder || path.join(this.cacheFolder, '.tmp');
     this.offline = !!opts.offline;
+    this.production = !!opts.production;
 
     this.ignorePlatform = !!opts.ignorePlatform;
     this.ignoreScripts = !!opts.ignoreScripts;

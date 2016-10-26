@@ -330,6 +330,7 @@ config.init({
   ignoreScripts: commander.ignoreScripts,
   offline: commander.preferOffline || commander.offline,
   looseSemver: !commander.strictSemver,
+  production: commander.production,
 }).then(() => {
   const exit = () => {
     process.exit(0);
