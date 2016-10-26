@@ -6,6 +6,7 @@ import type Config from '../config.js';
 import type {ConfigRegistries} from './index.js';
 import * as fs from '../util/fs.js';
 import NpmResolver from '../resolvers/registries/npm-resolver.js';
+import envReplace from '../util/env-replace.js';
 import Registry from './base-registry.js';
 import {addSuffix, removePrefix} from '../util/misc';
 
@@ -34,23 +35,6 @@ function getGlobalPrefix(): string {
 
     return prefix;
   }
-}
-
-function envReplace(value: string): string {
-  if (typeof value !== 'string' || !value) {
-    return value;
-  }
-
-  const envExpr = /(\\*)\$\{([^}]+)\}/g;
-  return value.replace(envExpr, (match: string, esc: string, envVarName: string) => {
-    if (esc.length && esc.length % 2) {
-      return match;
-    }
-    if (undefined === process.env[envVarName]) {
-      throw new Error('Failed to replace env in config: ' + match);
-    }
-    return process.env[envVarName] || '';
-  });
 }
 
 export default class NpmRegistry extends Registry {
