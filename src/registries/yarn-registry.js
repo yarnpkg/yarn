@@ -47,12 +47,16 @@ export default class YarnRegistry extends NpmRegistry {
   constructor(cwd: string, registries: ConfigRegistries, requestManager: RequestManager) {
     super(cwd, registries, requestManager);
 
+    this.globalConfigLoc = path.join(this.getGlobalPrefix(), '.yarnrc');
+    this.globalConfig = {};
     this.homeConfigLoc = path.join(userHome, '.yarnrc');
     this.homeConfig = {};
   }
 
   static filename = 'yarn.json';
 
+  globalConfigLoc: string;
+  globalConfig: Object;
   homeConfigLoc: string;
   homeConfig: Object;
 
@@ -72,16 +76,18 @@ export default class YarnRegistry extends NpmRegistry {
     if (typeof val === 'undefined') {
       val = DEFAULTS[key];
     }
-    
+
     return val;
   }
 
   async loadConfig(): Promise<void> {
-    for (const [isHome,, file] of await this.getPossibleConfigLocations('.yarnrc')) {
+    for (const [isHome, isGlobal,, file] of await this.getPossibleConfigLocations('.yarnrc')) {
       const config = parse(file);
 
       if (isHome) {
         this.homeConfig = config;
+      } else if (isGlobal) {
+        this.globalConfig = config;
       }
 
       defaults(this.config, config);
@@ -91,20 +97,28 @@ export default class YarnRegistry extends NpmRegistry {
     defaults(this.config, DEFAULTS);
   }
 
-  async saveHomeConfig(config: Object): Promise<void> {
-    for (const key in config) {
-      const val = config[key];
+  async saveGlobalConfig(config: Object): Promise<void> {
+    await this._saveConfig(config, this.globalConfig, this.globalConfigLoc);
+  }
 
-      // if the current config key was taken from home config then update
-      // the global config
-      if (this.homeConfig[key] === this.config[key]) {
+  async saveHomeConfig(config: Object): Promise<void> {
+    await this._saveConfig(config, this.homeConfig, this.homeConfigLoc);
+  }
+
+  async _saveConfig(newConfig: Object, configToEdit: Object, configLoc: string): Promise<void> {
+    for (const key in newConfig) {
+      const val = newConfig[key];
+
+      // if the current config key was taken from the currently editing config then update
+      // the result config
+      if (configToEdit[key] === this.config[key]) {
         this.config[key] = val;
       }
 
-      // update just the home config
-      this.homeConfig[key] = config[key];
+      // update just the currently editing config
+      configToEdit[key] = newConfig[key];
     }
 
-    await fs.writeFile(this.homeConfigLoc, `${stringify(this.homeConfig)}\n`);
+    await fs.writeFile(configLoc, `${stringify(configToEdit)}\n`);
   }
 }

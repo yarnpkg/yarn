@@ -5,7 +5,7 @@ import type {Reporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
 import buildSubCommands from './_build-sub-commands.js';
 
-export const {run, setFlags} = buildSubCommands('config', {
+export const {setFlags: setUsage, run} = buildSubCommands('config', {
   async set(
     config: Config,
     reporter: Reporter,
@@ -18,7 +18,11 @@ export const {run, setFlags} = buildSubCommands('config', {
 
     const [key, val = true] = args;
     const yarnConfig = config.registries.yarn;
-    await yarnConfig.saveHomeConfig({[key]: val});
+    if (flags.global) {
+      await yarnConfig.saveGlobalConfig({[key]: val});
+    } else {
+      await yarnConfig.saveHomeConfig({[key]: val});
+    }
     reporter.success(reporter.lang('configSet', key, val));
     return true;
   },
@@ -49,7 +53,11 @@ export const {run, setFlags} = buildSubCommands('config', {
 
     const key = args[0];
     const yarnConfig = config.registries.yarn;
-    await yarnConfig.saveHomeConfig({[key]: undefined});
+    if (flags.global) {
+      await yarnConfig.saveGlobalConfig({[key]: undefined});
+    } else {
+      await yarnConfig.saveHomeConfig({[key]: undefined});
+    }
     reporter.success(reporter.lang('configDelete', key));
     return true;
   },
@@ -73,6 +81,11 @@ export const {run, setFlags} = buildSubCommands('config', {
     return true;
   },
 });
+
+export function setFlags(commander: Object) {
+  setUsage(commander);
+  commander.option('-g, --global', '');
+}
 
 export function hasWrapper(flags: Object, args: Array<string>): boolean {
   return args[0] !== 'get';
