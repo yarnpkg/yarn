@@ -37,9 +37,13 @@ export async function run(
       // Ignore - Git repo may not have an origin URL yet (eg. if it only exists locally)
     }
 
-    // get author default based on git config
-    author.name = author.name || await child.spawn('git', ['config', 'user.name']);
-    author.email = author.email || await child.spawn('git', ['config', 'user.email']);
+    if (author.name === undefined) {
+      author.name = await getGitConfigInfo('user.name');
+    }
+
+    if (author.email === undefined) {
+      author.email = await getGitConfigInfo('user.email');
+    }
   }
 
   const keys = [
@@ -151,4 +155,17 @@ export async function run(
   }
 
   await config.saveRootManifests(manifests);
+}
+
+
+export async function getGitConfigInfo(
+  credential: string,
+  spawn = child.spawn,
+): Promise<string> {
+  try {
+    // try to get author default based on git config
+    return await spawn('git', ['config', credential]);
+  } catch (e) {
+    return '';
+  }
 }
