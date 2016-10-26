@@ -24,9 +24,9 @@ export function explodeHostedGitFragment(fragment: string, reporter: Reporter): 
 
   if (userParts.length >= 2) {
     const user = userParts.shift();
-    const repoParts = userParts.join('/').split('#');
+    const repoParts = userParts.join('/').split(/#(.*)/);
 
-    if (repoParts.length <= 2) {
+    if (repoParts.length <= 3) {
       return {
         user,
         repo: repoParts[0],
@@ -34,6 +34,7 @@ export function explodeHostedGitFragment(fragment: string, reporter: Reporter): 
       };
     }
   }
+
 
   throw new MessageError(reporter.lang('invalidHostedGitFragment', fragment));
 }
