@@ -37,8 +37,13 @@ export async function run(
       // Ignore - Git repo may not have an origin URL yet (eg. if it only exists locally)
     }
 
-    author.name = author.name || await getAuthorData('user.name');
-    author.email = author.email || await getAuthorData('user.email');
+    if (author.name === undefined) {
+      author.name = await getGitConfigInfo('user.name');
+    }
+
+    if (author.email === undefined) {
+      author.email = await getGitConfigInfo('user.email');
+    }
   }
 
   const keys = [
@@ -153,12 +158,13 @@ export async function run(
 }
 
 
-async function getAuthorData(
+export async function getGitConfigInfo(
   credential: string,
+  spawn = child.spawn,
 ): Promise<string> {
   try {
     // try to get author default based on git config
-    return await child.spawn('git', ['config', credential]);
+    return await spawn('git', ['config', credential]);
   } catch (e) {
     return '';
   }
