@@ -101,7 +101,7 @@ export default class BaseRegistry {
 
       const val = process.env[key];
 
-      // remove bower prefix
+      // remove config prefix
       key = removePrefix(key, prefix);
 
       // replace dunders with dots
