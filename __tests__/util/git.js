@@ -26,17 +26,50 @@ test('isCommitHash', () => {
     .toBeFalsy();
 });
 
-test('assertUrl', () => {
-  expect(() => Git.assertUrl('http://random.repo', ''))
-    .toThrow();
-  expect(() => Git.assertUrl('http://random.repo', 'ab_12'))
-    .toThrow();
-  expect(() => Git.assertUrl('git://random.repo', ''))
-    .toThrow();
-  expect(() => Git.assertUrl('https://random.repo', ''))
-    .not.toThrow();
-  expect(() => Git.assertUrl('http://random.repo', 'abc12'))
-    .not.toThrow();
-  expect(() => Git.assertUrl('git://random.repo', 'abc12'))
-    .not.toThrow();
-});
+async function toThrow(f): Promise <boolean> {
+  try {
+    await f();
+    return false;
+  } catch (e) {
+    return true;
+  }
+}
+
+test('secureUrl', async function (): Promise<void> {
+  expect(await
+         toThrow(() => {
+           return Git.secureUrl('http://random.repo', '');
+         }),
+        ).toEqual(true);
+
+  expect(await
+         toThrow(() => {
+           return Git.secureUrl('http://random.repo', 'ab_12');
+         }),
+        ).toEqual(true);
+
+  expect(await
+         toThrow(() => {
+           return Git.secureUrl('git://random.repo', '');
+         }),
+        ).toEqual(true);
+
+  expect(await
+         toThrow(() => {
+           return Git.secureUrl('https://random.repo', '');
+         }),
+        ).toEqual(false);
+
+  expect(await
+         toThrow(() => {
+           return Git.secureUrl('http://random.repo', 'abc12');
+         }),
+        ).toEqual(false);
+
+  expect(await
+         toThrow(() => {
+           return Git.secureUrl('git://random.repo', 'abc12');
+         }),
+        ).toEqual(false);
+},
+);
