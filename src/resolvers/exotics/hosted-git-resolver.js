@@ -130,7 +130,7 @@ export default class HostedGitResolver extends ExoticResolver {
       }
 
       const tarballUrl = this.constructor.getTarballUrl(this.exploded, commit);
-      const json = await config.readJson(href, JSON.parse(file));
+      const json = await config.readJson(href, () => JSON.parse(file));
       json._uid = commit;
       json._remote = {
         resolved: tarballUrl,
