@@ -47,3 +47,7 @@ deployment:
       - ./ghr --username yarnpkg --repository yarn --token $KPM_CIRCLE_RELEASE_TOKEN v$(dist/bin/yarn --version) artifacts/
       - echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
       - npm publish
+
+notify:
+  webhooks:
+    - url: https://nightly.yarnpkg.com/api/archive_circleci
