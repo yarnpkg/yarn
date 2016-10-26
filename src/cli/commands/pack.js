@@ -85,6 +85,7 @@ export async function pack(config: Config, dir: string): Promise<stream$Duplex> 
   if (onlyFiles) {
     let lines = [
       '*', // ignore all files except those that are explicitly included with a negation filter
+      '.*', // files with "." as first character have to be excluded explicitly 
     ];
     lines = lines.concat(
       onlyFiles.map((filename: string): string => `!${filename}`),
