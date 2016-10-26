@@ -70,7 +70,7 @@ export async function run(
       default: 'index.js',
     },
     {
-      key: 'repository.url',
+      key: 'repository',
       question: 'git repository',
       default: gitUrl,
     },
@@ -131,11 +131,6 @@ export async function run(
     if (answer) {
       objectPath.set(pkg, manifestKey, answer);
     }
-  }
-
-  // if we have a git url then set the type
-  if (pkg.repository && pkg.repository.url) {
-    pkg.repository.type = 'git';
   }
 
   // save answers
