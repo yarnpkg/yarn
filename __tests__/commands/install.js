@@ -556,6 +556,16 @@ test.concurrent('install should resolve circular dependencies 2', (): Promise<vo
   });
 });
 
+test('install should respect NODE_ENV=production', (): Promise<void> => {
+  const env = process.env.NODE_ENV;
+  process.env.NODE_ENV = 'production';
+  return runInstall({}, 'install-should-respect-node_env', async (config) => {
+    expect(await fs.exists(path.join(config.cwd, 'node_modules/is-negative-zero/package.json'))).toBe(false);
+    // restore env
+    process.env.NODE_ENV = env;
+  });
+});
+
 test.concurrent(
   'install should add missing deps to yarn and mirror (PR import scenario)',
   (): Promise<void> => {

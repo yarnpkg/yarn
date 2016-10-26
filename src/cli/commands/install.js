@@ -112,7 +112,7 @@ function normalizeFlags(config: Config, rawFlags: Object): Flags {
     flags.force = true;
   }
 
-  if (config.getOption('production')) {
+  if (config.getOption('production') || process.env.NODE_ENV === 'production') {
     flags.production = true;
   }
 
