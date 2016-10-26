@@ -159,8 +159,8 @@ export function setFlags(commander: Object) {
   commander.option('--dev', 'save package to your `devDependencies`');
   commander.option('--peer', 'save package to your `peerDependencies`');
   commander.option('--optional', 'save package to your `optionalDependencies`');
-  commander.option('--exact', '');
-  commander.option('--tilde', '');
+  commander.option('--exact', 'install exact version');
+  commander.option('--tilde', 'install most recent release with the same minor version');
 }
 
 export async function run(
