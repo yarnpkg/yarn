@@ -2,26 +2,32 @@
 import envReplace from '../../src/util/env-replace';
 import assert from 'assert';
 
-test('environment variable replacement', () => {
+describe('environment variable replacement', () => {
 
   it('will replace a token that exists in the environment', () => {
     let result = envReplace('test ${a} replacement', {a: 'token'});
-    assert(result === 'test token replacement');
+    assert(result === 'test token replacement', `result: ${result}`);
 
     result = envReplace('${a} replacement', {a: 'token'});
-    assert(result === 'token replacement');
+    assert(result === 'token replacement', `result: ${result}`);
 
     result = envReplace('${a}', {a: 'token'});
-    assert(result === 'token');
+    assert(result === 'token', `result: ${result}`);
   });
 
   it('will not replace a token that does not exist in the environment', () => {
-    const result = envReplace('${a} replacement', {b: 'token'});
-    assert(result === '${a} replacement');
+    let thrown = false;
+    try {
+      envReplace('${a} replacement', {b: 'token'});
+    } catch (err) {
+      thrown = true;
+      assert(err.message === 'Failed to replace env in config: ${a}', `error message: ${err.message}`);
+    }
+    assert(thrown);
   });
 
-  it('will not replace a token when a the token-replacement mechanism is prefixed with backslashes', () => {
+  it('will not replace a token when a the token-replacement mechanism is prefixed a backslash literal', () => {
     const result = envReplace('\\${a} replacement', {a: 'token'});
-    assert(result === '${a} replacement');
+    assert(result === '\\${a} replacement', `result: ${result}`);
   });
 });
