@@ -1,6 +1,6 @@
 /* @flow */
 
-import GitHubResolver from '../../src/resolvers/exotics/github-resolver.js';
+import GitHubResolver from '../../../src/resolvers/exotics/github-resolver.js';
 
 test('getGitSSHUrl with hash', () => {
   const gitSSHUrl = GitHubResolver.getGitSSHUrl({
