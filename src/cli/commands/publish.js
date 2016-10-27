@@ -63,6 +63,8 @@ async function publish(
 
   // TODO this might modify package.json, do we need to reload it?
   await config.executeLifecycleScript('prepublish');
+  await config.executeLifecycleScript('prepublishOnly');
+  await config.executeLifecycleScript('prepare');
 
   // create body
   const root = {

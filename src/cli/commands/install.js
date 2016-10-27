@@ -693,6 +693,10 @@ export async function run(
   await wrapLifecycle(config, flags, async () => {
     const install = new Install(flags, config, reporter, lockfile);
     await install.init();
+
+    if (await config.hasLifecycleScript('prepublish')) {
+      reporter.warn(reporter.lang('prepublishOnInstall'));
+    }
   });
 }
 
@@ -707,5 +711,6 @@ export async function wrapLifecycle(config: Config, flags: Object, factory: () =
 
   if (!flags.production) {
     await config.executeLifecycleScript('prepublish');
+    await config.executeLifecycleScript('prepare');
   }
 }
