@@ -52,7 +52,7 @@ export async function run(
   const install = new Install(flags, config, reporter, lockfile);
   const [deps] = await install.fetchRequestFromCwd();
 
-  const outdatedDeps = (await Promise.all(deps.map(async ({pattern, hint}): Promise<Dependency> => {
+  const allOutdatedDeps = (await Promise.all(deps.map(async ({pattern, hint}): Promise<Dependency> => {
     const locked = lockfile.getLocked(pattern);
     if (!locked) {
       throw new MessageError(reporter.lang('lockfileOutdated'));
@@ -72,26 +72,27 @@ export async function run(
     }
 
     return ({name, current, wanted, latest, hint});
-  })))
-  .filter(({latest, current}) => latest !== current)
-  .sort((depA, depB) => {
-    const isExpected = (dep) => dep.current === dep.wanted;
-    if (isExpected(depA) && !isExpected(depB)) {
-      return 1;
-    }
-    return -1;
-  });
+  })));
+
+  const isDepOld = ({latest, current}) => latest !== current;
+  const isDepExpected = ({current, wanted}) => current === wanted;
+
+  const outdatedDeps = allOutdatedDeps
+    .filter(isDepOld)
+    .sort((depA, depB) => {
+      if (isDepExpected(depA) && !isDepExpected(depB)) {
+        return 1;
+      }
+      return -1;
+    });
 
   const getNameFromHint = (hint) => hint ? `${hint}Dependencies` : 'dependencies';
 
-  const maxLengthArr = outdatedDeps.reduce(
-    (acc, dep) =>
-      ['name', 'current', 'latest'].
-        reduce((obj, key) => {
-          obj[key] = Math.max(obj[key], dep[key].length);
-          return obj;
-        }, acc),
-    {name: 0, current: 0, latest: 0},
+  const maxLengthArr = {name: 0, current: 0, latest: 0};
+  outdatedDeps.forEach((dep) =>
+    ['name', 'current', 'latest'].forEach((key) => {
+      maxLengthArr[key] = Math.max(maxLengthArr[key], dep[key].length);
+    }),
   );
 
   // Depends on maxLengthArr
