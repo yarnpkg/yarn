@@ -1,0 +1,11 @@
+
+{
+  "name": "dep-a",
+  "description": "Check if the given value is an Array",
+  "version": "1.0.0",
+  "keywords": ["isArray", "es5", "array"],
+  "dependencies": {
+    "dep-b": "1.0.0"
+  },
+  "license": "MIT"
+}
