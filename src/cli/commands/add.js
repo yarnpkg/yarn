@@ -23,6 +23,7 @@ export class Add extends Install {
   ) {
     super(flags, config, reporter, lockfile);
     this.args = args;
+    this.flags.writeLockfile = true;
   }
 
   args: Array<string>;

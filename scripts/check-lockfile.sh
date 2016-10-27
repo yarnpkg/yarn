@@ -15,7 +15,7 @@ cp -r scripts $DIR/scripts
 cd $DIR
 
 # install with yarn and run check
-../bin/yarn.js install --pure-lockfile
+../bin/yarn.js install
 ../bin/yarn.js check
 
 # cleanup
