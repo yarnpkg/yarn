@@ -130,6 +130,7 @@ export type FetchedMetadata = {
   resolved: ?string,
   hash: string,
   dest: string,
+  cached: boolean,
 };
 export type FetchedOverride = {
   hash: string,

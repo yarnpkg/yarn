@@ -5,13 +5,11 @@ dep-a@1.0.0:
   resolved dep-a-1.0.0.tgz
   dependencies:
     dep-b "1.0.0"
-
 dep-b@1.0.0:
   version "1.0.0"
   resolved dep-b-1.0.0.tgz
   dependencies:
     dep-c "1.0.0"
-
 dep-c@1.0.0:
   version "1.0.0"
   resolved dep-c-1.0.0.tgz

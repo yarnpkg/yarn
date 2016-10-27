@@ -376,6 +376,7 @@ export default class Config {
           return file;
         }
       }
+      return null;
     });
   }
 
