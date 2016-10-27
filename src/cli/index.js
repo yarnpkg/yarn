@@ -45,8 +45,17 @@ commander.option('--offline');
 commander.option('--prefer-offline');
 commander.option('--strict-semver');
 commander.option('--json', '');
-commander.option('--global-folder <path>', '');
 commander.option('--ignore-scripts', "don't run lifecycle scripts");
+commander.option('--har', 'save HAR output of network traffic');
+commander.option('--ignore-platform', 'ignore platform checks');
+commander.option('--ignore-engines', 'ignore engines check');
+commander.option('--ignore-optional', '');
+commander.option('--force', 'ignore all caches');
+commander.option('--flat', 'only allow one version of a package');
+commander.option('--prod, --production', '');
+commander.option('--no-lockfile', "don't read or generate a lockfile");
+commander.option('--pure-lockfile', "don't generate a lockfile");
+commander.option('--global-folder <path>', '');
 commander.option(
   '--modules-folder <path>',
   'rather than installing modules into the node_modules folder relative to the cwd, output them here',

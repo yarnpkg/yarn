@@ -642,22 +642,8 @@ export class Install {
   }
 }
 
-export function _setFlags(commander: Object) {
-  commander.option('--har', 'save HAR output of network traffic');
-  commander.option('--ignore-platform', 'ignore platform checks');
-  commander.option('--ignore-engines', 'ignore engines check');
-  commander.option('--ignore-optional', '');
-  commander.option('--force', 'ignore all caches');
-  commander.option('--flat', 'only allow one version of a package');
-  commander.option('--prod, --production', '');
-  commander.option('--no-lockfile', "don't read or generate a lockfile");
-  commander.option('--pure-lockfile', "don't generate a lockfile");
-}
-
 export function setFlags(commander: Object) {
   commander.usage('install [flags]');
-  _setFlags(commander);
-
   commander.option('-g, --global', 'DEPRECATED');
   commander.option('-S, --save', 'DEPRECATED - save package to your `dependencies`');
   commander.option('-D, --save-dev', 'DEPRECATED - save package to your `devDependencies`');
