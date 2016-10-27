@@ -8,7 +8,7 @@ import Lockfile from '../../lockfile/wrapper.js';
 import * as PackageReference from '../../package-reference.js';
 import PackageRequest from '../../package-request.js';
 import {buildTree} from './ls.js';
-import {wrapLifecycle, Install, _setFlags} from './install.js';
+import {wrapLifecycle, Install} from './install.js';
 import {MessageError} from '../../errors.js';
 
 const invariant = require('invariant');
@@ -155,7 +155,6 @@ export class Add extends Install {
 
 export function setFlags(commander: Object) {
   commander.usage('add [packages ...] [flags]');
-  _setFlags(commander);
   commander.option('--dev', 'save package to your `devDependencies`');
   commander.option('--peer', 'save package to your `peerDependencies`');
   commander.option('--optional', 'save package to your `optionalDependencies`');
