@@ -82,3 +82,8 @@ export async function run(
   //
   reporter.success(reporter.lang('uninstalledPackages'));
 }
+
+export function setFlags(commander: Object) {
+    commander.usage('remove [flags]');
+    commander.option('--ignore-engines', 'ignore engines check');
+  }
