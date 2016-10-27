@@ -315,7 +315,8 @@ function onUnexpectedError(err: Error) {
   const errorLoc = path.join(config.cwd, 'yarn-error.log');
   fs.writeFileSync(errorLoc, log.join('\n\n') + '\n');
 
-  reporter.error(reporter.lang('unexpectedError', errorLoc));
+  reporter.error(reporter.lang('unexpectedError', err.stack));
+  reporter.info(reporter.lang('bugReport', errorLoc));
 }
 
 //
