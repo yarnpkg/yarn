@@ -8,10 +8,11 @@ import {Install} from './install.js';
 import Lockfile from '../../lockfile/wrapper.js';
 import buildSubCommands from './_build-sub-commands.js';
 
+const camelCase = require('camelcase');
 const invariant = require('invariant');
 
 export function hasWrapper(flags: Object, args: Array<string>): boolean {
-  return args[0] != 'generate-disclaimer';
+  return camelCase(args[0]) != 'generateDisclaimer';
 }
 
 export function setFlags(commander: Object) {
