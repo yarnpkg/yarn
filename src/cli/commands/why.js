@@ -29,8 +29,10 @@ async function cleanQuery(config: Config, query: string): Promise<string> {
   // remove trailing hashes
   query = query.replace(/^#+/g, '');
 
-  // remove path after last hash
-  query = query.replace(/[\\/](.*?)$/g, '');
+  // remove path after last hash, except if it is scoped
+  if (query[0] !== '@') {
+    query = query.replace(/[\\/](.*?)$/g, '');
+  }
 
   return query;
 }
