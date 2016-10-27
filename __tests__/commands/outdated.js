@@ -122,12 +122,35 @@ test.concurrent('works with exotic resolvers', (): Promise<void> => {
   return runOutdated({}, [], 'exotic-resolvers',
     (config, reporter, out): ?Promise<void> => {
       const json: Object = JSON.parse(out);
-      const first = ['max-safe-integer', '1.0.1', 'exotic', 'exotic', null];
-      const second = ['yarn', '0.16.2', 'exotic', 'exotic', null];
+      const first = ['max-safe-integer', '1.0.1', 'exotic', 'exotic', 'dependencies'];
+      const second = ['yarn', '0.16.2', 'exotic', 'exotic', 'dependencies'];
 
       expect(json.data.body.length).toBe(2);
       expect(json.data.body[0]).toEqual(first);
       expect(json.data.body[1]).toEqual(second);
+    },
+  );
+});
+
+test.concurrent('works with different packageTypes', (): Promise<void> => {
+  return runOutdated({}, [], 'package-types',
+    (config, reporter, out): ?Promise<void> => {
+      const json: Object = JSON.parse(out);
+
+      expect(json.data.body.length).toBe(4);
+      expect(json.data.body.every((row) => row.length === 5)).toBe(true);
+      expect(json.data.body.map((row) => row[0])).toEqual([
+        '@financial-times/n-bottle',
+        'is-negative-zero',
+        'left-pad',
+        'max-safe-integer',
+      ]);
+      expect(json.data.body.map((row) => row[4])).toEqual([
+        'devDependencies',
+        'devDependencies',
+        'optionalDependencies',
+        'dependencies',
+      ]);
     },
   );
 });

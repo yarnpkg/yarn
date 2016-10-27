@@ -1,0 +1,16 @@
+{
+  "license": "ISC",
+  "dependencies": {
+    "max-safe-integer": "1.0.0"
+  },
+  "optionalDependencies": {
+    "left-pad": "1.0.0"
+  },
+  "devDependencies": {
+    "@financial-times/n-bottle": "1.0.0",
+    "is-negative-zero": "^1.0.0"
+  },
+  "peerDependencies": {
+    "@financial-times/n-bottle": "^1.0.0"
+  }
+}
