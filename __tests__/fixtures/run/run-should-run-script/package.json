@@ -1,0 +1,5 @@
+{
+  "scripts": {
+    "some-script": "echo success"
+  }
+}
