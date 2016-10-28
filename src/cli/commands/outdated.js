@@ -52,7 +52,7 @@ export async function run(
 
     const current = locked.version;
     let name = locked.name;
-    const packageType = install.rootPatternsToOrigin[`${name}@${current}`];
+    const packageType = install.rootPatternsToOrigin[pattern];
 
     let latest = '';
     let wanted = '';
