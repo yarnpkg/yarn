@@ -52,7 +52,7 @@ export async function run(
   const install = new Install(flags, config, reporter, lockfile);
   const [deps] = await install.fetchRequestFromCwd();
 
-  const allOutdatedDeps = (await Promise.all(deps.map(async ({pattern, hint}): Promise<Dependency> => {
+  const allDeps = (await Promise.all(deps.map(async ({pattern, hint}): Promise<Dependency> => {
     const locked = lockfile.getLocked(pattern);
     if (!locked) {
       throw new MessageError(reporter.lang('lockfileOutdated'));
@@ -77,7 +77,7 @@ export async function run(
   const isDepOld = ({latest, current}) => latest !== current;
   const isDepExpected = ({current, wanted}) => current === wanted;
 
-  const outdatedDeps = allOutdatedDeps
+  const outdatedDeps = allDeps
     .filter(isDepOld)
     .sort((depA, depB) => {
       if (isDepExpected(depA) && !isDepExpected(depB)) {
