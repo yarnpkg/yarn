@@ -1,0 +1,10 @@
+{
+  "dependencies": {
+    "mime-types": "2.1.12",
+    "glob": "7.1.1",
+    "uglifyify": "3.0.0"
+  },
+  "devDependencies": {
+    "left-pad": "1.1.3"
+  }
+}
