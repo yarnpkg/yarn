@@ -45,6 +45,7 @@ export default class FileResolver extends ExoticResolver {
 
     manifest._uid = manifest.version;
 
+    // Normalize relative paths; if anything changes, make a copy of the manifest
     const dependencies = this.normalizeDependencyPaths(manifest.dependencies, loc);
     const optionalDependencies = this.normalizeDependencyPaths(manifest.optionalDependencies, loc);
     
