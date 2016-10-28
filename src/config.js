@@ -272,11 +272,12 @@ export default class Config {
   }
 
   /**
-   * Remote packages may be cached in a file system to be available for offline installation
-   * Second time the same package needs to be installed it will be loaded from there
+   * Remote packages may be cached in a file system to be available for offline installation.
+   * Second time the same package needs to be installed it will be loaded from there.
+   * Given a package's filename, return a path in the offline mirror location.
    */
 
-  getOfflineMirrorPath(tarUrl: ?string): ?string {
+  getOfflineMirrorPath(packageFilename: ?string): ?string {
     const registry = this.registries.npm;
     if (registry == null) {
       return null;
@@ -289,18 +290,12 @@ export default class Config {
     }
 
     //
-    if (tarUrl == null) {
+    if (packageFilename == null) {
       return mirrorPath;
     }
 
     //
-    const {pathname} = url.parse(tarUrl);
-    if (pathname == null) {
-      return mirrorPath;
-    } else {
-      return path.join(mirrorPath, path.basename(pathname));
-    }
-
+    return path.join(mirrorPath, path.basename(packageFilename));
   }
 
   /**

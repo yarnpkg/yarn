@@ -114,6 +114,10 @@ test.concurrent('install from offline mirror', (): Promise<void> => {
     assert(allFiles.findIndex((file): boolean => {
       return file.relative === path.join('node_modules', 'fake-dependency', 'package.json');
     }) !== -1);
+
+    assert(allFiles.findIndex((file): boolean => {
+      return file.relative === path.join('node_modules', '@fakescope', 'fake-dependency', 'package.json');
+    }) !== -1);
   });
 });
 

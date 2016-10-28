@@ -112,3 +112,41 @@ test('TarballFetcher.fetch supports local ungzipped tarball', async () => {
   const name = (await fs.readJson(path.join(dir, 'package.json'))).name;
   expect(name).toBe('beeper');
 });
+
+test('TarballFetcher.fetch properly stores tarball of package in offline mirror', async () => {
+  const dir = await mkdir('tarball-fetcher');
+  const offlineMirrorDir = await mkdir('offline-mirror');
+
+  const config = await createConfig();
+  config.registries.npm.config['yarn-offline-mirror'] = offlineMirrorDir;
+
+  const fetcher = new TarballFetcher(dir, {
+    type: 'tarball',
+    hash: '6f86cbedd8be4ec987be9aaf33c9684db1b31e7e',
+    reference: 'https://registry.npmjs.org/lodash.isempty/-/lodash.isempty-4.4.0.tgz',
+    registry: 'npm',
+  }, config);
+
+  await fetcher.fetch();
+  const exists = await fs.exists(path.join(offlineMirrorDir, 'lodash.isempty-4.4.0.tgz'));
+  expect(exists).toBe(true);
+});
+
+test('TarballFetcher.fetch properly stores tarball of scoped package in offline mirror', async () => {
+  const dir = await mkdir('tarball-fetcher');
+  const offlineMirrorDir = await mkdir('offline-mirror');
+
+  const config = await createConfig();
+  config.registries.npm.config['yarn-offline-mirror'] = offlineMirrorDir;
+
+  const fetcher = new TarballFetcher(dir, {
+    type: 'tarball',
+    hash: '6f0ab73cdd7b82d8e81e80838b49e9e4c7fbcc44',
+    reference: 'https://registry.npmjs.org/@exponent/configurator/-/configurator-1.0.2.tgz',
+    registry: 'npm',
+  }, config);
+
+  await fetcher.fetch();
+  const exists = await fs.exists(path.join(offlineMirrorDir, '@exponent-configurator-1.0.2.tgz'));
+  expect(exists).toBe(true);
+});

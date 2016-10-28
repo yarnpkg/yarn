@@ -40,7 +40,22 @@ export default class TarballFetcher extends BaseFetcher {
   }
 
   getMirrorPath(): ?string {
-    return this.config.getOfflineMirrorPath(this.reference);
+    const {pathname} = url.parse(this.reference);
+
+    if (pathname == null) {
+      return this.config.getOfflineMirrorPath();
+    }
+
+    let packageFilename = path.basename(pathname);
+
+    // handle scoped packages
+    const pathParts = pathname.slice(1).split('/');
+    if (pathParts[0][0] === '@') {
+      // scoped npm package
+      packageFilename = `${pathParts[0]}-${packageFilename}`;
+    }
+
+    return this.config.getOfflineMirrorPath(packageFilename);
   }
 
   getRelativeMirrorPath(mirrorPath: string): ?string {
