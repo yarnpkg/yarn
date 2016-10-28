@@ -8,7 +8,7 @@ import Lockfile from '../../lockfile/wrapper.js';
 import * as PackageReference from '../../package-reference.js';
 import PackageRequest from '../../package-request.js';
 import {buildTree} from './ls.js';
-import {Install, _setFlags} from './install.js';
+import {wrapLifecycle, Install} from './install.js';
 import {MessageError} from '../../errors.js';
 
 const invariant = require('invariant');
@@ -155,12 +155,11 @@ export class Add extends Install {
 
 export function setFlags(commander: Object) {
   commander.usage('add [packages ...] [flags]');
-  _setFlags(commander);
   commander.option('--dev', 'save package to your `devDependencies`');
   commander.option('--peer', 'save package to your `peerDependencies`');
   commander.option('--optional', 'save package to your `optionalDependencies`');
-  commander.option('--exact', '');
-  commander.option('--tilde', '');
+  commander.option('--exact', 'install exact version');
+  commander.option('--tilde', 'install most recent release with the same minor version');
 }
 
 export async function run(
@@ -174,6 +173,9 @@ export async function run(
   }
 
   const lockfile = await Lockfile.fromDirectory(config.cwd, reporter);
-  const install = new Add(args, flags, config, reporter, lockfile);
-  await install.init();
+
+  await wrapLifecycle(config, flags, async () => {
+    const install = new Add(args, flags, config, reporter, lockfile);
+    await install.init();
+  });
 }

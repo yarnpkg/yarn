@@ -170,7 +170,7 @@ export default class RequestManager {
 
   request<T>(params: RequestParams<T>): Promise<T> {
     if (this.offlineNoRequests) {
-      return Promise.reject(new MessageError("Can't make a request in offline mode"));
+      return Promise.reject(new MessageError(this.reporter.lang('cantRequestOffline')));
     }
 
     const cached = this.cache[params.url];
@@ -182,7 +182,6 @@ export default class RequestManager {
     params.forever = true;
     params.retryAttempts = 0;
     params.strictSSL = this.strictSSL;
-    
     params.headers = Object.assign({
       'User-Agent': this.userAgent,
     }, params.headers);
@@ -283,6 +282,7 @@ export default class RequestManager {
 
   execute(opts: RequestOptions) {
     const {params} = opts;
+    const {reporter} = this;
 
     const buildNext = (fn) => (data) => {
       fn(data);
@@ -335,7 +335,7 @@ export default class RequestManager {
         }
 
         if (res.statusCode === 403) {
-          const errMsg = (body && body.message) || `Request ${params.url} returned a ${res.statusCode}`;
+          const errMsg = (body && body.message) || reporter.lang('requestError', params.url, res.statusCode);
           reject(new Error(errMsg));
         } else {
           if (res.statusCode === 400 || res.statusCode === 404) {
@@ -394,9 +394,9 @@ export default class RequestManager {
 
   saveHar(filename: string) {
     if (!this.captureHar) {
-      throw new Error('RequestManager was not setup to capture HAR files');
+      throw new Error(this.reporter.lang('requestManagerNotSetupHAR'));
     }
-    // No request may have occured at all.
+    // No request may have occurred at all.
     this._getRequestModule();
     invariant(this._requestCaptureHar != null, 'request-capture-har not setup');
     this._requestCaptureHar.saveHar(filename);

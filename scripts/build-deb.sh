@@ -14,9 +14,9 @@ ensureAvailable rpmbuild
 
 PACKAGE_TMPDIR=tmp/debian_pkg
 VERSION=`dist/bin/yarn --version`
-TARBALL_NAME=dist/yarn-v$VERSION.tar.gz
-DEB_PACKAGE_NAME=yarn_$VERSION'_all.deb'
 OUTPUT_DIR=artifacts
+TARBALL_NAME=$OUTPUT_DIR/yarn-v$VERSION.tar.gz
+DEB_PACKAGE_NAME=yarn_$VERSION'_all.deb'
 
 if [ ! -e $TARBALL_NAME ]; then
   echo "Hey! Listen! You need to run build-dist.sh first."
@@ -25,7 +25,7 @@ fi;
 
 mkdir -p $OUTPUT_DIR
 # Remove old packages
-rm -f dist/*.deb $OUTPUT_DIR/*.deb $OUTPUT_DIR/*.rpm
+rm -f $OUTPUT_DIR/*.deb $OUTPUT_DIR/*.rpm
 
 # Extract to a temporary directory
 rm -rf $PACKAGE_TMPDIR

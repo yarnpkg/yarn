@@ -3,6 +3,7 @@
 import type {RegistryNames, ConfigRegistries} from './registries/index.js';
 import type {Reporter} from './reporters/index.js';
 import type {Manifest, PackageRemote} from './types.js';
+import {execFromManifest} from './util/execute-lifecycle-script.js';
 import normalizeManifest from './util/normalize-manifest/index.js';
 import {MessageError} from './errors.js';
 import * as fs from './util/fs.js';
@@ -27,6 +28,7 @@ export type ConfigOptions = {
   offline?: boolean,
   preferOffline?: boolean,
   captureHar?: boolean,
+  ignoreScripts?: boolean,
   ignorePlatform?: boolean,
   ignoreEngines?: boolean,
   cafile?: ?string,
@@ -102,6 +104,9 @@ export default class Config {
 
   //
   reporter: Reporter;
+
+  // Whether we should ignore executing lifecycle scripts
+  ignoreScripts: boolean;
 
   //
   cwd: string;
@@ -201,7 +206,9 @@ export default class Config {
     this.linkFolder = opts.linkFolder || constants.LINK_REGISTRY_DIRECTORY;
     this.tempFolder = opts.tempFolder || path.join(this.cacheFolder, '.tmp');
     this.offline = !!opts.offline;
+
     this.ignorePlatform = !!opts.ignorePlatform;
+    this.ignoreScripts = !!opts.ignoreScripts;
 
     this.requestManager.setOptions({
       offline: !!opts.offline && !opts.preferOffline,
@@ -240,6 +247,19 @@ export default class Config {
     }
 
     return path.join(this.cacheFolder, `${name}-${uid}`);
+  }
+
+  /**
+   * Execute lifecycle scripts in the specified directory. Ignoring when the --ignore-scripts flag has been
+   * passed.
+   */
+
+  executeLifecycleScript(commandName: string, cwd?: string): Promise<void> {
+    if (this.ignoreScripts) {
+      return Promise.resolve();
+    } else {
+      return execFromManifest(this, commandName, cwd || this.cwd);
+    }
   }
 
   /**
@@ -306,7 +326,7 @@ export default class Config {
 
   readPackageMetadata(dir: string): Promise<PackageMetadata> {
     return this.getCache(`metadata-${dir}`, async (): Promise<PackageMetadata> => {
-      const metadata = await fs.readJson(path.join(dir, constants.METADATA_FILENAME));
+      const metadata = await this.readJson(path.join(dir, constants.METADATA_FILENAME));
       const pkg = await this.readManifest(dir, metadata.registry);
 
       return {
@@ -322,11 +342,21 @@ export default class Config {
    * Read normalized package info.
    */
 
-  readManifest(dir: string, priorityRegistry?: RegistryNames, isRoot?: boolean = false): Promise<Manifest> {
-    return this.getCache(`manifest-${dir}`, async (): Promise<Manifest> => {
+  async readManifest(dir: string, priorityRegistry?: RegistryNames, isRoot?: boolean = false): Promise<Manifest> {
+    const manifest = await this.maybeReadManifest(dir, priorityRegistry, isRoot);
+
+    if (manifest) {
+      return manifest;
+    } else {
+      throw new MessageError(`Couldn't find a package.json file in ${dir}`);
+    }
+  }
+
+  maybeReadManifest(dir: string, priorityRegistry?: RegistryNames, isRoot?: boolean = false): Promise<?Manifest> {
+    return this.getCache(`manifest-${dir}`, async (): Promise<?Manifest> => {
       const metadataLoc = path.join(dir, constants.METADATA_FILENAME);
       if (!priorityRegistry && await fs.exists(metadataLoc)) {
-        ({registry: priorityRegistry} = await fs.readJson(metadataLoc));
+        ({registry: priorityRegistry} = await this.readJson(metadataLoc));
       }
 
       if (priorityRegistry) {
@@ -346,8 +376,7 @@ export default class Config {
           return file;
         }
       }
-
-      throw new MessageError(`Couldn't find a package.json (or bower.json) file in ${dir}`);
+      return null;
     });
   }
 
@@ -367,7 +396,7 @@ export default class Config {
     const {filename} = registries[registry];
     const loc = path.join(dir, filename);
     if (await fs.exists(loc)) {
-      const data = await fs.readJson(loc);
+      const data = await this.readJson(loc);
       data._registry = registry;
       data._loc = loc;
       return normalizeManifest(data, dir, this, isRoot);
@@ -406,7 +435,7 @@ export default class Config {
       if (await fs.exists(jsonLoc)) {
         exists = true;
 
-        const info = await fs.readJsonAndFile(jsonLoc);
+        const info = await this.readJson(jsonLoc, fs.readJsonAndFile);
         object = info.object;
         indent = detectIndent(info.content).indent || undefined;
       }
@@ -433,6 +462,23 @@ export default class Config {
       }
 
       await fs.writeFile(loc, JSON.stringify(object, null, indent || constants.DEFAULT_INDENT) + '\n');
+    }
+  }
+
+  /**
+   * Call the passed factory (defaults to fs.readJson) and rethrow a pretty error message if it was the result
+   * of a syntax error.
+   */
+
+  async readJson(loc: string, factory: (filename: string) => Promise<Object> = fs.readJson): Promise<Object> {
+    try {
+      return await factory(loc);
+    } catch (err) {
+      if (err instanceof SyntaxError) {
+        throw new MessageError(this.reporter.lang('jsonError', loc, err.message));
+      } else {
+        throw err;
+      }
     }
   }
 }

@@ -39,11 +39,13 @@ const messages = {
 
   couldntFindMatch: "Couldn't find match for $0 in $1 for $2.",
   couldntFindPackageInCache: "Couldn't find any versions for $0 that matches $1 in our cache. Possible versions: $2",
+  couldntFindVersionThatMatchesRange: "Couldn't find any versions for $0 that matches $1. Possible versions: $2",
   moduleNotInManifest: "This module isn't specified in a manifest.",
   unknownFolderOrTarball: "Passed folder/tarball doesn't exist,",
   unknownPackage: "Couldn't find package $0.",
   unknownPackageName: "Couldn't find package name.",
   unknownUser: "Couldn't find user $0.",
+  unknownRegistryResolver: 'Unknown registry resolver $0',
   userNotAnOwner: "User $0 isn't an owner of this package.",
   invalidVersionArgument: 'Use the $0 flag to create a new version.',
   invalidVersion: 'Invalid version supplied.',
@@ -69,7 +71,8 @@ const messages = {
   noVersion: `Package doesn't have a version.`,
   answerRequired: 'An answer is required.',
   missingWhyDependency: 'Missing package name, folder or path to file to identify why a package has been installed',
-  unexpectedError: 'An unexpected error occured, please open a bug report with the information provided in $0.',
+  unexpectedError: 'An unexpected error occurred, please open a bug report with the information provided in $0.',
+  jsonError: 'Error parsing JSON at $0, $1.',
 
   tooManyArguments: 'Too many arguments, maximum of $0.',
   tooFewArguments: 'Not enough arguments, expected at least $0.',
@@ -125,7 +128,7 @@ const messages = {
   unmetPeer: 'Unmet peer dependency $0.',
   incorrectPeer: 'Incorrect peer dependency $0.',
 
-  savedNewDependency: 'Saved 1 new dependency',
+  savedNewDependency: 'Saved 1 new dependency.',
   savedNewDependencies: 'Saved $0 new dependencies.',
 
   foundWarnings: 'Found $0 warnings.',
@@ -199,6 +202,11 @@ const messages = {
   publishing: 'Publishing',
 
   infoFail: 'Received invalid response from npm.',
+  malformedRegistryResponse: 'Received malformed response from registry. The registry may be down.',
+
+  cantRequestOffline: 'Can\'t make a request in offline mode',
+  requestManagerNotSetupHAR: 'RequestManager was not setup to capture HAR files',
+  requestError: 'Request $0 returned a $1',
 };
 
 export type LanguageKeys = $Keys<typeof messages>;

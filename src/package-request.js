@@ -132,7 +132,7 @@ export default class PackageRequest {
     if (Resolver) {
       return Resolver;
     } else {
-      throw new MessageError(`Unknown registry resolver ${this.registry}`);
+      throw new MessageError(this.reporter.lang('unknownRegistryResolver', this.registry));
     }
   }
 
@@ -217,7 +217,8 @@ export default class PackageRequest {
 
     // check if while we were resolving this dep we've already resolved one that satisfies
     // the same range
-    const resolved: ?Manifest = this.resolver.getExactVersionMatch(info.name, info.version);
+    const {range, name} = PackageRequest.normalizePattern(this.pattern);
+    const resolved: ?Manifest = this.resolver.getHighestRangeVersionMatch(name, range);
     if (resolved) {
       const ref = resolved._reference;
       invariant(ref, 'Resolved package info has no package reference');

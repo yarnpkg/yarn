@@ -12,54 +12,50 @@ const path = require('path');
 export const requireLockfile = true;
 export const noArguments = true;
 
-const DEFAULT_FILTERS = ignoreLinesToRegex([
-  // test directories
-  '__tests__',
-  'test',
-  'tests',
-  'powered-test',
+const DEFAULT_FILTER = `
+# test directories
+__tests__
+test
+tests
+powered-test
 
-  // asset directories
-  'docs',
-  'doc',
-  'website',
-  'images',
-  'assets',
+# asset directories
+docs
+doc
+website
+images
+assets
 
-  // examples
-  'example',
-  'examples',
+# examples
+example
+examples
 
-  // code coverage/test data
-  'coverage',
-  '.nyc_output',
+# code coverage directories
+coverage
+.nyc_output
 
-  // build scripts
-  'Makefile',
-  'Gulpfile.js',
-  'Gruntfile.js',
+# build scripts
+Makefile
+Gulpfile.js
+Gruntfile.js
 
-  // configs
-  '.tern-project',
-  '.gitattributes',
-  '.editorconfig',
-  '.*ignore',
-  '.eslintrc',
-  '.jshintrc',
-  '.flowconfig',
-  '.documentup.json',
-  '.yarn-metadata.json',
-  '.*.yml',
-  '*.yml',
+# configs
+.tern-project
+.gitattributes
+.editorconfig
+.*ignore
+.eslintrc
+.jshintrc
+.flowconfig
+.documentup.json
+.yarn-metadata.json
+.*.yml
+*.yml
 
-  //
-  '*.gz',
-  '*.md',
-
-  //
-  'CHANGES',
-  'HISTORY',
-]);
+# misc
+*.gz
+*.md
+`.trim();
 
 export async function clean(config: Config, reporter: Reporter): Promise<{
   removedFiles: number,
@@ -68,7 +64,7 @@ export async function clean(config: Config, reporter: Reporter): Promise<{
   const loc = path.join(config.cwd, CLEAN_FILENAME);
   const file = await fs.readFile(loc);
   const lines = file.split('\n');
-  const filters = DEFAULT_FILTERS.concat(ignoreLinesToRegex(lines));
+  const filters = ignoreLinesToRegex(lines);
 
   let removedFiles = 0;
   let removedSize = 0;
@@ -120,7 +116,11 @@ export async function run(
   args: Array<string>,
 ): Promise<void> {
   reporter.step(1, 2, reporter.lang('cleanCreatingFile', CLEAN_FILENAME));
-  await fs.writeFile(path.join(config.cwd, CLEAN_FILENAME), '\n', {flag: 'wx'});
+
+  const cleanLoc = path.join(config.cwd, CLEAN_FILENAME);
+  if (!await fs.exists(cleanLoc)) {
+    await fs.writeFile(cleanLoc, `${DEFAULT_FILTER}\n`, {flag: 'wx'});
+  }
 
   reporter.step(2, 2, reporter.lang('cleaning'));
   const {removedFiles, removedSize} = await clean(config, reporter);

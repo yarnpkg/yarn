@@ -290,30 +290,27 @@ test.concurrent('install should dedupe dependencies avoiding conflicts 7', (): P
 
 test.concurrent('install should dedupe dependencies avoiding conflicts 8', (): Promise<void> => {
   // revealed in https://github.com/yarnpkg/yarn/issues/112
+  // adapted for https://github.com/yarnpkg/yarn/issues/1158
   return runInstall({}, 'install-should-dedupe-avoiding-conflicts-8', async (config) => {
     assert.equal(await getPackageVersion(config, 'glob'), '5.0.15');
-    assert.equal(await getPackageVersion(config, 'yeoman-generator/globby/glob'), '6.0.4');
+    assert.equal(await getPackageVersion(config, 'findup-sync/glob'), '4.3.5');
     assert.equal(await getPackageVersion(config, 'inquirer'), '0.8.5');
-    assert.equal(await getPackageVersion(config, 'yeoman-generator/yeoman-environment/inquirer'), '1.1.3');
     assert.equal(await getPackageVersion(config, 'lodash'), '3.10.1');
-    assert.equal(await getPackageVersion(config, 'yeoman-generator/yeoman-environment/lodash'), '4.15.0');
+    assert.equal(await getPackageVersion(config, 'ast-query/lodash'), '4.15.0');
     assert.equal(await getPackageVersion(config, 'run-async'), '0.1.0');
-    assert.equal(await getPackageVersion(config, 'yeoman-generator/yeoman-environment/run-async'), '2.2.0');
   });
 });
 
-
 test.concurrent('install should dedupe dependencies avoiding conflicts 9', (): Promise<void> => {
   // revealed in https://github.com/yarnpkg/yarn/issues/112
+  // adapted for https://github.com/yarnpkg/yarn/issues/1158
   return runInstall({}, 'install-should-dedupe-avoiding-conflicts-9', async (config) => {
     assert.equal(await getPackageVersion(config, 'glob'), '5.0.15');
-    assert.equal(await getPackageVersion(config, 'yeoman-generator/globby/glob'), '6.0.4');
+    assert.equal(await getPackageVersion(config, 'findup-sync/glob'), '4.3.5');
     assert.equal(await getPackageVersion(config, 'inquirer'), '0.8.5');
-    assert.equal(await getPackageVersion(config, 'yeoman-generator/yeoman-environment/inquirer'), '1.1.3');
     assert.equal(await getPackageVersion(config, 'lodash'), '3.10.1');
-    assert.equal(await getPackageVersion(config, 'yeoman-generator/yeoman-environment/lodash'), '4.15.0');
+    assert.equal(await getPackageVersion(config, 'ast-query/lodash'), '4.15.0');
     assert.equal(await getPackageVersion(config, 'run-async'), '0.1.0');
-    assert.equal(await getPackageVersion(config, 'yeoman-generator/yeoman-environment/run-async'), '2.2.0');
   });
 });
 
@@ -552,6 +549,44 @@ test.concurrent('install should resolve circular dependencies 2', (): Promise<vo
     assert.equal(
       await getPackageVersion(config, 'es5-ext'),
       '0.10.12',
+    );
+  });
+});
+
+
+test('install should respect NODE_ENV=production', (): Promise<void> => {
+  const env = process.env.NODE_ENV;
+  process.env.NODE_ENV = 'production';
+  return runInstall({}, 'install-should-respect-node_env', async (config) => {
+    expect(await fs.exists(path.join(config.cwd, 'node_modules/is-negative-zero/package.json'))).toBe(false);
+    // restore env
+    process.env.NODE_ENV = env;
+  });
+});
+
+
+test.concurrent('install should resolve circular dependencies 2', (): Promise<void> => {
+  return runInstall({}, 'install-should-circumvent-circular-dependencies-2', async (config, reporter) => {
+    assert.equal(
+      await getPackageVersion(config, 'es5-ext'),
+      '0.10.12',
+    );
+  });
+});
+
+test.concurrent('install should be idempotent', (): Promise<void> => {
+  // Install a package twice
+  runInstall({}, 'install-should-be-idempotent', async (config, reporter) => {
+    assert.equal(
+      await getPackageVersion(config, 'dep-a'),
+      '1.0.0',
+    );
+  }, null, false);
+
+  return runInstall({}, 'install-should-be-idempotent', async (config, reporter) => {
+    assert.equal(
+      await getPackageVersion(config, 'dep-a'),
+      '1.0.0',
     );
   });
 });

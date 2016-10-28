@@ -58,7 +58,10 @@ export default class NpmRegistry extends Registry {
 
     const headers = {};
     if (this.token || (alwaysAuth && requestUrl.startsWith(registry))) {
-      headers.authorization = this.getAuth(pathname);
+      const authorization = this.getAuth(pathname);
+      if (authorization) {
+        headers.authorization = authorization;
+      }
     }
 
     return this.requestManager.request({
@@ -75,7 +78,7 @@ export default class NpmRegistry extends Registry {
   }
 
   async checkOutdated(config: Config, name: string, range: string): CheckOutdatedReturn {
-    const req = await this.request(name);
+    const req = await this.request(NpmRegistry.escapeName(name));
     if (!req) {
       throw new Error('couldnt find ' + name);
     }
@@ -89,7 +92,7 @@ export default class NpmRegistry extends Registry {
   async getPossibleConfigLocations(filename: string): Promise<Array<[boolean, string, string]>> {
     const possibles = [
       [false, path.join(this.cwd, filename)],
-      [true, path.join(userHome, filename)],
+      [true, this.config.userconfig || path.join(userHome, filename)],
       [false, path.join(getGlobalPrefix(), filename)],
     ];
 

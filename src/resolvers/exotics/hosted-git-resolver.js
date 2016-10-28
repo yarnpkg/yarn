@@ -24,9 +24,9 @@ export function explodeHostedGitFragment(fragment: string, reporter: Reporter): 
 
   if (userParts.length >= 2) {
     const user = userParts.shift();
-    const repoParts = userParts.join('/').split('#');
+    const repoParts = userParts.join('/').split(/#(.*)/);
 
-    if (repoParts.length <= 2) {
+    if (repoParts.length <= 3) {
       return {
         user,
         repo: repoParts[0],
@@ -34,6 +34,7 @@ export function explodeHostedGitFragment(fragment: string, reporter: Reporter): 
       };
     }
   }
+
 
   throw new MessageError(reporter.lang('invalidHostedGitFragment', fragment));
 }
@@ -115,12 +116,14 @@ export default class HostedGitResolver extends ExoticResolver {
     }
 
     const commit = await this.getRefOverHTTP(url);
+    const {config} = this;
 
     const tryRegistry = async (registry): Promise<?Manifest> => {
       const {filename} = registries[registry];
 
-      const file = await this.config.requestManager.request({
-        url: this.constructor.getHTTPFileUrl(this.exploded, filename, commit),
+      const href = this.constructor.getHTTPFileUrl(this.exploded, filename, commit);
+      const file = await config.requestManager.request({
+        url: href,
         queue: this.resolver.fetchingQueue,
       });
       if (!file) {
@@ -128,7 +131,7 @@ export default class HostedGitResolver extends ExoticResolver {
       }
 
       const tarballUrl = this.constructor.getTarballUrl(this.exploded, commit);
-      const json = JSON.parse(file);
+      const json = await config.readJson(href, () => JSON.parse(file));
       json._uid = commit;
       json._remote = {
         resolved: tarballUrl,

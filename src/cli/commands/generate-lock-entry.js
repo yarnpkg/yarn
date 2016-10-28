@@ -5,7 +5,6 @@ import type Config from '../../config.js';
 import {MessageError} from '../../errors.js';
 import {implodeEntry} from '../../lockfile/wrapper.js';
 import stringify from '../../lockfile/stringify.js';
-import * as fs from '../../util/fs.js';
 
 export function hasWrapper(): boolean {
   return false;
@@ -19,7 +18,7 @@ export async function run(
 ): Promise<void> {
   let manifest;
   if (flags.useManifest) {
-    manifest = await fs.readJson(flags.useManifest);
+    manifest = await config.readJson(flags.useManifest);
   } else {
     manifest = await config.readRootManifest();
   }
@@ -53,6 +52,5 @@ export function setFlags(commander: Object) {
 export const examples = [
   'generate-lock-entry',
   'generate-lock-entry --use-manifest ./package.json',
-  'generate-lock-entry --registry bower',
   'generate-lock-entry --resolved local-file.tgz#hash',
 ];

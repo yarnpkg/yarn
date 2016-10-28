@@ -59,37 +59,37 @@ test('GitFetcher.fetch', async () => {
   const dir = await mkdir('git-fetcher');
   const fetcher = new GitFetcher(dir, {
     type: 'git',
-    reference: 'https://github.com/PolymerElements/font-roboto',
-    hash: '2fd5c7bd715a24fb5b250298a140a3ba1b71fe46',
-    registry: 'bower',
+    reference: 'https://github.com/sindresorhus/beeper',
+    hash: '8beb0413a8028ca2d52dbb86c75f42069535591b',
+    registry: 'npm',
   }, await createConfig());
   await fetcher.fetch();
-  const name = (await fs.readJson(path.join(dir, 'bower.json'))).name;
-  expect(name).toBe('font-roboto');
+  const name = (await fs.readJson(path.join(dir, 'package.json'))).name;
+  expect(name).toBe('beeper');
 });
 
 test('TarballFetcher.fetch', async () => {
   const dir = await mkdir('tarball-fetcher');
   const fetcher = new TarballFetcher(dir, {
     type: 'tarball',
-    hash: '9689b3b48d63ff70f170a192bec3c01b04f58f45',
-    reference: 'https://github.com/PolymerElements/font-roboto/archive/2fd5c7bd715a24fb5b250298a140a3ba1b71fe46.tar.gz',
-    registry: 'bower',
+    hash: 'a32262ca1e22a3746b970936d3944b4bfd6cb9e9',
+    reference: 'https://github.com/sindresorhus/beeper/archive/master.tar.gz',
+    registry: 'npm',
   }, await createConfig());
 
   await fetcher.fetch();
-  const name = (await fs.readJson(path.join(dir, 'bower.json'))).name;
-  expect(name).toBe('font-roboto');
+  const name = (await fs.readJson(path.join(dir, 'package.json'))).name;
+  expect(name).toBe('beeper');
 });
 
-test('TarballFetcher.fetch throws', async () => {
+test('TarballFetcher.fetch throws on invalid hash', async () => {
   const dir = await mkdir('tarball-fetcher');
-  const url = 'https://github.com/PolymerElements/font-roboto/archive/2fd5c7bd715a24fb5b250298a140a3ba1b71fe46.tar.gz';
+  const url = 'https://github.com/sindresorhus/beeper/archive/master.tar.gz';
   const fetcher = new TarballFetcher(dir, {
     type: 'tarball',
     hash: 'foo',
     reference: url,
-    registry: 'bower',
+    registry: 'npm',
   }, await createConfig());
   let error;
   try {
@@ -104,11 +104,11 @@ test('TarballFetcher.fetch supports local ungzipped tarball', async () => {
   const dir = await mkdir('tarball-fetcher');
   const fetcher = new LocalTarballFetcher(dir, {
     type: 'tarball',
-    hash: '76d4316a3965259f7074f167f44a7a7a393884be',
+    hash: '25c5098052a7bd322c7db80c26852e9209f98d4f',
     reference: path.join(__dirname, 'fixtures', 'fetchers', 'tarball', 'ungzipped.tar'),
-    registry: 'bower',
+    registry: 'npm',
   }, await createConfig());
   await fetcher.fetch();
-  const name = (await fs.readJson(path.join(dir, 'bower.json'))).name;
-  expect(name).toBe('font-roboto');
+  const name = (await fs.readJson(path.join(dir, 'package.json'))).name;
+  expect(name).toBe('beeper');
 });

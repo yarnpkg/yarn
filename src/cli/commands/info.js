@@ -4,7 +4,6 @@ import type {Reporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
 import NpmRegistry from '../../registries/npm-registry.js';
 import parsePackageName from '../../util/parse-package-name.js';
-
 const semver = require('semver');
 
 function clean(object: any): any {
@@ -47,9 +46,15 @@ export async function run(
     return;
   }
 
-  const packageInput = NpmRegistry.escapeName(args.shift());
-  const field = args.shift();
+  let packageName = args.shift();
 
+  // Handle the case when we are referencing a local package.
+  if (packageName === '.') {
+    packageName = (await config.readRootManifest()).name;
+  }
+
+  const packageInput = NpmRegistry.escapeName(packageName);
+  const field = args.shift();
   const {name, version} = parsePackageName(packageInput);
 
   let result = await config.registries.npm.request(name);
