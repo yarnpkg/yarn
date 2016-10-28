@@ -100,6 +100,7 @@ test('ConsoleReporter.select', async () => {
 
 test('ConsoleReporter.progress', async () => {
   expect(await getConsoleBuff((r) => {
+    r.noProgress = false; // we need this to override is-ci when running tests on ci
     const tick = r.progress(2);
     tick();
     jest.runAllTimers();
@@ -117,7 +118,7 @@ test('ConsoleReporter.progress', async () => {
     tick();
     tick();
   })).toMatchSnapshot();
-  
+
   expect(await getConsoleBuff((r) => {
     r.noProgress = true;
     const tick = r.progress(2);
