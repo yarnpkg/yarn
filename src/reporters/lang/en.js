@@ -37,6 +37,7 @@ const messages = {
   configNpm: 'npm config',
   configYarn: 'yarn config',
 
+  couldntFindPackagejson: "Couldn't find a package.json file in $0",
   couldntFindMatch: "Couldn't find match for $0 in $1 for $2.",
   couldntFindPackageInCache: "Couldn't find any versions for $0 that matches $1 in our cache. Possible versions: $2",
   couldntFindVersionThatMatchesRange: "Couldn't find any versions for $0 that matches $1. Possible versions: $2",
@@ -207,6 +208,11 @@ const messages = {
   cantRequestOffline: 'Can\'t make a request in offline mode',
   requestManagerNotSetupHAR: 'RequestManager was not setup to capture HAR files',
   requestError: 'Request $0 returned a $1',
+
+  tarballNotInNetworkOrCache: '$0: Tarball is not in network and can not be located in cache ($1)',
+  fetchBadHash: 'Bad hash. Expected $0 but got $1 ',
+  fetchErrorCorrupt: '$0. Mirror tarball appears to be corrupt. You can resolve this by running:\n\n  $ rm -rf $1\n  $ yarn install',
+  errorDecompressingTarball: '$0. Error decompressing $1, it appears to be corrupt.',
 };
 
 export type LanguageKeys = $Keys<typeof messages>;

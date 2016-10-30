@@ -16,7 +16,6 @@ import map from './util/map.js';
 const detectIndent = require('detect-indent');
 const invariant = require('invariant');
 const path = require('path');
-const url = require('url');
 
 export type ConfigOptions = {
   cwd?: ?string,
@@ -343,7 +342,7 @@ export default class Config {
     if (manifest) {
       return manifest;
     } else {
-      throw new MessageError(`Couldn't find a package.json file in ${dir}`);
+      throw new MessageError(this.reporter.lang('couldntFindPackagejson', dir));
     }
   }
 
