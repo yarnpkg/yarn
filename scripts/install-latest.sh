@@ -1,11 +1,11 @@
 #!/bin/sh
 set -e
 
-reset="\e[0m"
-red="\e[0;31m"
-green="\e[0;32m"
-cyan="\e[0;36m"
-white="\e[0;37m"
+reset=`tput sgr0`
+red=`tput setaf 1`
+green=`tput setaf 2`
+cyan=`tput setaf 6`
+white=`tput setaf 7`
 
 yarn_get_tarball() {
   printf "$cyan> Downloading tarball...$reset\n"
