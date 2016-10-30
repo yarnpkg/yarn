@@ -142,7 +142,11 @@ export default class NpmRegistry extends Registry {
   getRegistry(packageName: string): string {
     // If this is a request for a file, return the registry from the URL
     if (HTTPS_EXPRESSION.test(packageName)) {
-      return packageName.match(/https?:\/\/[^\/]+\//i)[0];
+      const registryProtocolHost = packageName.match(/^https?:\/\/[^\/]+\//i);
+
+      if (registryProtocolHost) {
+        return registryProtocolHost[0];
+      }
     }
 
     // Try scoped registry, and default registry
