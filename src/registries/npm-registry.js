@@ -16,6 +16,7 @@ const url = require('url');
 const ini = require('ini');
 
 const DEFAULT_REGISTRY = 'https://registry.npmjs.org/';
+const HTTPS_EXPRESSION = /^https?:(?=\/\/)/i;
 
 function getGlobalPrefix(): string {
   if (process.env.PREFIX) {
@@ -52,7 +53,7 @@ export default class NpmRegistry extends Registry {
   request(pathname: string, opts?: RegistryRequestOptions = {}): Promise<*> {
     const registry = addSuffix(this.getRegistry(pathname), '/');
     const requestUrl = url.resolve(registry, pathname);
-    const alwaysAuth = this.getScopedOption(registry.replace(/^https?:/, ''), 'always-auth')
+    const alwaysAuth = this.getScopedOption(registry.replace(HTTPS_EXPRESSION, ''), 'always-auth')
       || this.getOption('always-auth')
       || removePrefix(requestUrl, registry)[0] === '@';
 
@@ -139,6 +140,11 @@ export default class NpmRegistry extends Registry {
   }
 
   getRegistry(packageName: string): string {
+    // If this is a request for a file, return the registry from the URL
+    if (HTTPS_EXPRESSION.test(packageName)) {
+      return packageName.match(/https?:\/\/[^\/]+\//i)[0];
+    }
+
     // Try scoped registry, and default registry
     for (const scope of [this.getScope(packageName), '']) {
       const registry = this.getScopedOption(scope, 'registry')
@@ -157,7 +163,7 @@ export default class NpmRegistry extends Registry {
     }
 
     for (let registry of [this.getRegistry(packageName), '', DEFAULT_REGISTRY]) {
-      registry = registry.replace(/^https?:/, '');
+      registry = registry.replace(HTTPS_EXPRESSION, '');
 
       // Check for bearer token.
       let auth = this.getScopedOption(registry, '_authToken');
