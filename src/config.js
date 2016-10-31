@@ -16,7 +16,6 @@ import map from './util/map.js';
 const detectIndent = require('detect-indent');
 const invariant = require('invariant');
 const path = require('path');
-const url = require('url');
 
 export type ConfigOptions = {
   cwd?: ?string,

@@ -94,7 +94,7 @@ export async function setVersion(
   await config.saveRootManifests(manifests);
 
   // check if committing the new version to git is overriden
-  if (!flags.gitTagVersion || !Boolean(config.getOption('version-git-tag'))) {
+  if (!flags.gitTagVersion || !config.getOption('version-git-tag')) {
     // Don't tag the version in Git
     return function(): Promise<void> {
       return Promise.resolve();
