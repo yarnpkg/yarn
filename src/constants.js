@@ -1,9 +1,13 @@
 /* @flow */
-
-const userHome = require('user-home');
 const path = require('path');
+let userHome = require('user-home');
+if (process.platform === 'linux' && process.env.USER === 'root') {
+  userHome = path.resolve('/usr/local/share');
+}
 
-type Env = {[key: string]: ?string};
+type Env = {
+  [key: string]: ? string
+};
 
 export const DEPENDENCY_TYPES = [
   'devDependencies',
