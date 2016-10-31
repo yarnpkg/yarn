@@ -166,6 +166,7 @@ export default class HostedGitResolver extends ExoticResolver {
       url,
       method: 'HEAD',
       queue: this.resolver.fetchingQueue,
+      followRedirect: false,
     })) !== false;
   }
 

@@ -52,7 +52,8 @@ type RequestParams<T> = {
     reject: (err: Error) => void
   ) => void,
   callback?: (err: ?Error, res: any, body: any) => void,
-  retryAttempts?: number
+  retryAttempts?: number,
+  followRedirect?: boolean
 };
 
 type RequestOptions = {
@@ -338,7 +339,7 @@ export default class RequestManager {
           const errMsg = (body && body.message) || reporter.lang('requestError', params.url, res.statusCode);
           reject(new Error(errMsg));
         } else {
-          if (res.statusCode === 400 || res.statusCode === 404) {
+          if (res.statusCode === 400 || res.statusCode === 404 || res.statusCode === 401) {
             body = false;
           }
           resolve(body);
