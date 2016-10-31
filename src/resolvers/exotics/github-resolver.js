@@ -26,6 +26,11 @@ export default class GitHubResolver extends HostedGitResolver {
   }
 
   static getGitSSHUrl(parts: ExplodedFragment): string {
+    return `git+ssh://git@github.com/${ parts.user }/${ parts.repo }.git` +
+      `${parts.hash ? '#' + decodeURIComponent(parts.hash) : ''}`;
+  }
+
+  static getGitSSH(parts: ExplodedFragment): string {
     return `git@${this.hostname}:${parts.user}/${parts.repo}.git` +
       `${parts.hash ? '#' + decodeURIComponent(parts.hash) : ''}`;
   }

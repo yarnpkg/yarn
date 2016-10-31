@@ -35,14 +35,25 @@ test('getGitHTTPUrl should return the correct git bitbucket url', () => {
   expect(BitBucketResolver.getGitHTTPUrl(fragment)).toBe(expected);
 });
 
-test('getGitHTTPUrl should return the correct git bitbucket SSH url', () => {
+test('getGitSSH should return the correct git bitbucket SSH url', () => {
   const fragment: ExplodedFragment = {
     user: 'foo',
     repo: 'bar',
     hash: '',
   };
 
-  const expected =  'git@bitbucket.org:' + fragment.user + '/' + fragment.repo + '.git';
+  const expected =  `git@bitbucket.org:${fragment.user}/${fragment.repo}.git`;
+  expect(BitBucketResolver.getGitSSH(fragment)).toBe(expected);
+});
+
+test('getGitSSHUrl should return the correct git bitbucket SSH url', () => {
+  const fragment: ExplodedFragment = {
+    user: 'foo',
+    repo: 'bar',
+    hash: '',
+  };
+
+  const expected =  `git+ssh://git@bitbucket.org/${fragment.user}/${fragment.repo}.git`;
   expect(BitBucketResolver.getGitSSHUrl(fragment)).toBe(expected);
 });
 
