@@ -9,7 +9,12 @@ white=`tput setaf 7`
 
 yarn_get_tarball() {
   printf "$cyan> Downloading tarball...$reset\n"
-  curl -L -o yarn.tar.gz "https://yarnpkg.com/latest.tar.gz" >/dev/null # get tarball
+  if [ "$1" = '--nightly' ]; then
+    url=https://nightly.yarnpkg.com/latest.tar.gz
+  else
+    url=https://yarnpkg.com/latest.tar.gz
+  fi
+  curl -L -o yarn.tar.gz "$url" >/dev/null # get tarball
 
   printf "$cyan> Extracting to ~/.yarn...$reset\n"
   mkdir .yarn
@@ -42,7 +47,12 @@ yarn_link() {
     echo "> If this isn't the profile of your current shell then please add the following to your correct profile:"
     printf "   $SOURCE_STR$reset\n"
 
-    printf "$green> Successfully installed! Please open another terminal where the \`yarn\` command will now be available.$reset\n"
+    version=`./.yarn/bin/yarn --version` || (
+      printf "$red> Yarn was installed, but doesn't seem to be working :(.$reset\n"
+      exit 1;
+    )
+
+    printf "$green> Successfully installed Yarn $version! Please open another terminal where the \`yarn\` command will now be available.$reset\n"
   fi
 }
 
@@ -101,10 +111,10 @@ yarn_install() {
     exit 0
   fi
 
-  yarn_get_tarball
+  yarn_get_tarball $1
   yarn_link
   yarn_reset
 }
 
 cd ~
-yarn_install
+yarn_install $1
