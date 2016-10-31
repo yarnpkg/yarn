@@ -344,7 +344,7 @@ export default class Config {
     if (manifest) {
       return manifest;
     } else {
-      throw new MessageError(`Couldn't find a package.json file in ${dir}`);
+      throw new MessageError(this.reporter.lang('couldntFindPackagejson', dir));
     }
   }
 

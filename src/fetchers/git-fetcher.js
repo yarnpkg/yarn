@@ -28,8 +28,9 @@ export default class GitFetcher extends BaseFetcher {
     const {reference: ref, config} = this;
     const offlineMirrorPath = config.getOfflineMirrorPath() || '';
     const localTarball = path.resolve(offlineMirrorPath, ref);
+    const {reporter} = config;
     if (!(await fsUtil.exists(localTarball))) {
-      throw new MessageError(`${ref}: Tarball is not in network and can not be located in cache (${localTarball})`);
+      throw new MessageError(reporter.lang('tarballNotInNetworkOrCache', ref, localTarball));
     }
 
     return new Promise((resolve, reject) => {
@@ -51,16 +52,12 @@ export default class GitFetcher extends BaseFetcher {
             });
           } else {
             reject(new SecurityError(
-              `Bad hash. Expected ${expectHash} but got ${actualHash} `,
+              reporter.lang('fetchBadHash', expectHash, actualHash),
             ));
           }
         })
         .on('error', function(err) {
-          let msg = `${err.message}. `;
-          msg += `Mirror tarball appears to be corrupt. You can resolve this by running:\n\n` +
-            `  $ rm -rf ${localTarball}\n` +
-            '  $ yarn install';
-          reject(new MessageError(msg));
+          reject(new MessageError(reporter.lang('fetchErrorCorrupt', err.message, localTarball)));
         });
     });
   }

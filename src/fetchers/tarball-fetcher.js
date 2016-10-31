@@ -91,7 +91,7 @@ export default class TarballFetcher extends BaseFetcher {
           });
         } else {
           reject(new SecurityError(
-            `Bad hash. Expected ${expectHash} but got ${actualHash} `,
+            this.config.reporter.lang('fetchBadHash', expectHash, actualHash),
           ));
         }
       });
@@ -101,6 +101,7 @@ export default class TarballFetcher extends BaseFetcher {
 
   async fetchFromLocal(pathname: ?string): Promise<FetchedOverride> {
     const {reference: ref, config} = this;
+    const {reporter} = config;
 
     // path to the local tarball
     let localTarball;
@@ -118,7 +119,7 @@ export default class TarballFetcher extends BaseFetcher {
     }
 
     if (!(await fsUtil.exists(localTarball))) {
-      throw new MessageError(`${ref}: Tarball is not in network and can't be located in cache (${localTarball})`);
+      throw new MessageError(reporter.lang('tarballNotInNetworkOrCache', ref, localTarball));
     }
 
     return new Promise((resolve, reject) => {
@@ -130,15 +131,11 @@ export default class TarballFetcher extends BaseFetcher {
         .pipe(validateStream)
         .pipe(extractorStream)
         .on('error', function(err) {
-          let msg = `${err.message}. `;
+          let msg = 'errorDecompressingTarball';
           if (isOfflineTarball) {
-            msg += `Mirror tarball appears to be corrupt. You can resolve this by running:\n\n` +
-                   `  $ rm -rf ${localTarball}\n` +
-                   '  $ yarn install';
-          } else {
-            msg += `Error decompressing ${localTarball}, it appears to be corrupt.`;
+            msg = 'fetchErrorCorrupt';
           }
-          reject(new MessageError(msg));
+          reject(new MessageError(reporter.lang(msg, err.message, localTarball)));
         });
     });
   }
