@@ -28,3 +28,17 @@ test('explodeHostedGitFragment should work for branch names without hashes', () 
 
   expect(explodeHostedGitFragment(fragmentString, reporter)).toEqual(expectedFragment);
 });
+
+test('explodeHostedGitFragment should work identical with and without .git suffix', () => {
+  const fragmentWithGit = 'jure/lens.git#feature/fix-issue';
+  const fragmentWithoutGit = 'jure/lens#feature/fix-issue';
+
+  const expectedFragment: ExplodedFragment = {
+    user: 'jure',
+    repo: 'lens',
+    hash: 'feature/fix-issue',
+  };
+
+  expect(explodeHostedGitFragment(fragmentWithoutGit, reporter)).toEqual(expectedFragment);
+  expect(explodeHostedGitFragment(fragmentWithGit, reporter)).toEqual(expectedFragment);
+});
