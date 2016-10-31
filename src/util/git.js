@@ -24,8 +24,6 @@ const supportsArchiveCache: { [key: string]: ?boolean } = map({
 
 export default class Git {
   constructor(config: Config, url: string, hash: string) {
-    Git.assertUrl(url, hash);
-
     this.supportsArchive = false;
     this.fetched = false;
     this.config = config;
@@ -82,30 +80,50 @@ export default class Git {
     return !!target && /^[a-f0-9]{5,40}$/.test(target);
   }
 
+  static async repoExists(gitUrl: string): Promise<boolean> {
+    try {
+      await child.spawn('git', ['ls-remote', '-t', gitUrl]);
+      return true;
+    } catch (err) {
+      return false;
+    }
+  }
+
   /**
-   * Assert that a URL is safe to fetch from. Forbid insecure URLs like plain HTTP with no
-   * hash.
+   * attempt to upgrade unsecure protocols to securl protocol
    */
 
-  static assertUrl(ref: string, hash: string) {
+  static async secureUrl(ref: string, hash: string): Promise<string> {
     if (Git.isCommitHash(hash)) {
       // this is cryptographically secure
-      return;
+      return ref;
     }
 
     const parts = url.parse(ref);
 
     if (parts.protocol === 'git:') {
-      throw new SecurityError(
-        `Refusing to download the git repo ${ref} over plain git without a commit hash`,
-      );
+      const secureUrl = ref.replace(/^git:/, 'https:');
+      if (await Git.repoExists(secureUrl)) {
+        return secureUrl;
+      } else {
+        throw new SecurityError(
+          `Refusing to download the git repo ${ref} over plain git without a commit hash`,
+        );
+      }
     }
 
     if (parts.protocol === 'http:') {
-      throw new SecurityError(
-        `Refusing to download the git repo ${ref} over HTTP without a commit hash`,
-      );
+      const secureUrl = ref.replace(/^http:/, 'https:');
+      if (await Git.repoExists(secureUrl)) {
+        return secureUrl;
+      } else {
+        throw new SecurityError(
+          `Refusing to download the git repo ${ref} over HTTP without a commit hash`,
+        );
+      }
     }
+
+    return ref;
   }
 
   /**
@@ -277,10 +295,11 @@ export default class Git {
   }
 
   /**
-   * Try and find a ref from this repo that matches an input `target`.
+   * Initialize the repo, find a secure url to use and
+   * set the ref to match an input `target`.
    */
-
-  async initRemote(): Promise<string> {
+  async init(): Promise<string> {
+    this.url = await Git.secureUrl(this.url, this.hash);
     // check capabilities
     if (await Git.hasArchiveCapability(this.url)) {
       this.supportsArchive = true;

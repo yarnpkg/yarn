@@ -93,7 +93,7 @@ export default class GitResolver extends ExoticResolver {
 
     const {config} = this;
     const client = new Git(config, url, this.hash);
-    const commit = await client.initRemote();
+    const commit = await client.init();
 
     async function tryRegistry(registry): Promise<?Manifest> {
       const {filename} = registries[registry];

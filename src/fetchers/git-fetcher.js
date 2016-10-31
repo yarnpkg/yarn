@@ -67,7 +67,7 @@ export default class GitFetcher extends BaseFetcher {
     invariant(hash, 'Commit hash required');
 
     const git = new Git(this.config, this.reference, hash);
-    await git.initRemote();
+    await git.init();
     await git.clone(this.dest);
 
     // Get the tarball filename from the url

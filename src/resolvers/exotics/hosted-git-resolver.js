@@ -189,7 +189,7 @@ export default class HostedGitResolver extends ExoticResolver {
     // if you have write permissions
     if (await Git.hasArchiveCapability(sshUrl)) {
       const archiveClient = new Git(this.config, sshUrl, this.hash);
-      const commit = await archiveClient.initRemote();
+      const commit = await archiveClient.init();
       return await this.fork(GitResolver, true, `${sshUrl}#${commit}`);
     }
 
