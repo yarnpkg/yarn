@@ -35,6 +35,8 @@ export type ConfigOptions = {
 
   // Loosely compare semver for invalid cases like "0.01.0"
   looseSemver?: ?boolean,
+  httpProxy?: ?string,
+  httpsProxy?: ?string,
 };
 
 type PackageMetadata = {
@@ -181,8 +183,8 @@ export default class Config {
 
     this.requestManager.setOptions({
       userAgent: String(this.getOption('user-agent')),
-      httpProxy: String(this.getOption('proxy') || ''),
-      httpsProxy: String(this.getOption('https-proxy') || ''),
+      httpProxy: String(opts.httpProxy || this.getOption('proxy') || ''),
+      httpsProxy: String(opts.httpsProxy || this.getOption('https-proxy') || ''),
       strictSSL: Boolean(this.getOption('strict-ssl')),
       cafile: String(opts.cafile || this.getOption('cafile') || ''),
     });
