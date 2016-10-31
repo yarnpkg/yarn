@@ -72,6 +72,8 @@ commander.option(
   '--no-emoji',
   'disable emoji in output',
 );
+commander.option('--proxy <host>', '');
+commander.option('--https-proxy <host>', '');
 
 // get command name
 let commandName: string = args.shift() || '';
@@ -339,6 +341,8 @@ config.init({
   ignoreScripts: commander.ignoreScripts,
   offline: commander.preferOffline || commander.offline,
   looseSemver: !commander.strictSemver,
+  httpProxy: commander.proxy,
+  httpsProxy: commander.httpsProxy,
 }).then(() => {
   const exit = () => {
     process.exit(0);
