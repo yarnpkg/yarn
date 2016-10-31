@@ -115,7 +115,7 @@ export class Add extends Install {
       } else if (exact) { // --save-exact
         version = pkg.version;
       } else { // default to save prefix
-        version = `${String(this.config.getOption('save-prefix'))}${pkg.version}`;
+        version = `${String(this.config.getOption('save-prefix') || '')}${pkg.version}`;
       }
 
       // build up list of objects to put ourselves into from the cli args
