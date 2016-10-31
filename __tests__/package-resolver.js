@@ -51,3 +51,6 @@ addTest('react-native'); // npm
 addTest('ember-cli'); // npm
 addTest('npm:gulp'); // npm
 addTest('@polymer/iron-icon'); // npm scoped package
+addTest(`file:${__dirname}/../node_modules/babel-core`); // file
+addTest(`link:${__dirname}/../node_modules/eslint`); // existing link
+addTest(`link:./../not-created-yet`); // not existing link

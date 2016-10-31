@@ -116,7 +116,7 @@ export default class PackageLinker {
 
   async copyModules(patterns: Array<string>): Promise<void> {
     let flatTree = await this.getFlatHoistedTree(patterns);
-    
+
     // sorted tree makes file creation and copying not to interfere with each other
     flatTree = flatTree.sort(function(dep1, dep2): number {
       return dep1[0].localeCompare(dep2[0]);
@@ -124,14 +124,17 @@ export default class PackageLinker {
 
     //
     const queue: Map<string, CopyQueueItem> = new Map();
-    for (const [dest, {pkg, loc: src}] of flatTree) {
+    for (const [dest, {pkg, loc}] of flatTree) {
+      const remote = pkg._remote || {type: ''};
       const ref = pkg._reference;
+      const src = remote.type === 'link' ? remote.reference : loc;
       invariant(ref, 'expected package reference');
       ref.setLocation(dest);
 
       queue.set(dest, {
         src,
         dest,
+        type: remote.type,
         onFresh() {
           if (ref) {
             ref.setFresh(true);
@@ -148,7 +151,15 @@ export default class PackageLinker {
       if (await fs.exists(loc)) {
         const files = await fs.readdir(loc);
         for (const file of files) {
-          possibleExtraneous.add(path.join(loc, file));
+          // scoped packages
+          if (file.startsWith('@')) {
+            const scopedFiles = await fs.readdir(path.join(loc, file));
+            for (const scopedFile of scopedFiles) {
+              possibleExtraneous.add(path.join(loc, file, scopedFile));
+            }
+          } else {
+            possibleExtraneous.add(path.join(loc, file));
+          }
         }
       }
     }

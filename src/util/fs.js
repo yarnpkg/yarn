@@ -37,6 +37,7 @@ const noop = () => {};
 export type CopyQueueItem = {
   src: string,
   dest: string,
+  type?: string,
   onFresh?: ?() => void,
   onDone?: ?() => void,
 };
@@ -113,10 +114,22 @@ async function buildActionsForCopy(
 
   //
   async function build(data): Promise<void> {
-    const {src, dest} = data;
+    const {src, dest, type} = data;
     const onFresh = data.onFresh || noop;
     const onDone = data.onDone || noop;
     files.add(dest);
+
+    if (type === 'link') {
+      await mkdirp(path.dirname(dest));
+      onFresh();
+      actions.push({
+        type: 'symlink',
+        dest,
+        linkname: src,
+      });
+      onDone();
+      return;
+    }
 
     if (events.ignoreBasenames.indexOf(path.basename(src)) >= 0) {
       // ignored file
