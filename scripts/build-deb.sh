@@ -32,6 +32,7 @@ rm -rf $PACKAGE_TMPDIR
 mkdir -p $PACKAGE_TMPDIR/
 umask 0022 # Ensure permissions are correct (0755 for dirs, 0644 for files)
 tar zxf $TARBALL_NAME -C $PACKAGE_TMPDIR/
+PACKAGE_TMPDIR_ABSOLUTE=$(readlink -f $PACKAGE_TMPDIR)
 
 # Create Linux package structure
 mkdir -p $PACKAGE_TMPDIR/usr/share/yarn/
@@ -67,10 +68,12 @@ FPM="fpm --input-type dir --chdir $PACKAGE_TMPDIR --name yarn --version $VERSION
   `"--url https://yarnpkg.com/ --license BSD --description '$(cat resources/debian/description)'"
 
 ##### Build RPM (CentOS, Fedora) package
+./scripts/set-installation-method.js $PACKAGE_TMPDIR_ABSOLUTE/usr/share/yarn/package.json rpm
 eval "$FPM --output-type rpm  --architecture noarch --depends nodejs --category 'Development/Languages' ."
 mv *.rpm $OUTPUT_DIR
 
 ##### Build DEB (Debian, Ubuntu) package
+./scripts/set-installation-method.js $PACKAGE_TMPDIR_ABSOLUTE/usr/share/yarn/package.json deb
 mkdir -p $PACKAGE_TMPDIR/DEBIAN
 mkdir -p $PACKAGE_TMPDIR/usr/share/lintian/overrides/
 cp resources/debian/lintian-overrides $PACKAGE_TMPDIR/usr/share/lintian/overrides/yarn
