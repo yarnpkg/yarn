@@ -120,7 +120,7 @@ export default class NpmRegistry extends Registry {
     this.mergeEnv('npm_config_');
 
     for (const [, loc, file] of await this.getPossibleConfigLocations('.npmrc')) {
-      const config = ini.parse(file);
+      const config = Registry.normalizeConfig(ini.parse(file));
 
       // normalize offline mirror path relative to the current npmrc
       const offlineLoc = config['yarn-offline-mirror'];
