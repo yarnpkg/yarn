@@ -9,8 +9,8 @@ import * as network from '../util/network.js';
 import {MessageError} from '../errors.js';
 import aliases from './aliases.js';
 import Config from '../config.js';
+import {hyphenate, camelCase} from '../util/misc.js';
 
-const camelCase = require('camelcase');
 const chalk = require('chalk');
 const commander = require('commander');
 const fs = require('fs');
@@ -80,11 +80,10 @@ commander.option(
 );
 
 // get command name
-let commandName: string = args.shift() || '';
+let commandName: ?string = args.shift() || '';
 let command;
 
 //
-const hyphenate = (string) => string.replace(/[A-Z]/g, (match) => ('-' + match.charAt(0).toLowerCase()));
 const getDocsLink = (name) => `https://yarnpkg.com/en/docs/cli/${name || ''}`;
 const getDocsInfo = (name) => 'Visit ' + chalk.bold(getDocsLink(name)) + ' for documentation about this command.';
 
@@ -138,7 +137,12 @@ if (commandName === 'help' && args.length) {
 
 //
 invariant(commandName, 'Missing command name');
-command = command || commands[camelCase(commandName)];
+if (!command) {
+  const camelised = camelCase(commandName);
+  if (camelised) {
+    command = commands[camelised];
+  }
+}
 
 //
 if (command && typeof command.setFlags === 'function') {
@@ -378,9 +382,11 @@ config.init({
     onUnexpectedError(err);
   }
 
-  const actualCommandForHelp = commands[commandName] ? commandName : aliases[commandName];
-  if (actualCommandForHelp) {
-    reporter.info(getDocsInfo(actualCommandForHelp));
+  if (commandName) {
+    const actualCommandForHelp = commands[commandName] ? commandName : aliases[commandName];
+    if (command && actualCommandForHelp) {
+      reporter.info(getDocsInfo(actualCommandForHelp));
+    }
   }
 
   process.exit(1);
