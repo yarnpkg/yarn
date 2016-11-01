@@ -104,12 +104,12 @@ export class Add extends Install {
 
       const parts = PackageRequest.normalizePattern(pattern);
       let version;
-      if (parts.hasVersion && parts.range) {
-        // if the user specified a range then use it verbatim
-        version = parts.range;
-      } else if (PackageRequest.getExoticResolver(pattern)) {
+      if (PackageRequest.getExoticResolver(pattern)) {
         // wasn't a name/range tuple so this is just a raw exotic pattern
         version = pattern;
+      } else if (parts.hasVersion && parts.range) {
+        // if the user specified a range then use it verbatim
+        version = parts.range;
       } else if (tilde) { // --save-tilde
         version = `~${pkg.version}`;
       } else if (exact) { // --save-exact
