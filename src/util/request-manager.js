@@ -41,6 +41,8 @@ type RequestParams<T> = {
   proxy?: string,
   encoding?: ?string,
   ca?: Array<string>,
+  cert?: string,
+  key?: string,
   forever?: boolean,
   strictSSL?: boolean,
   headers?: {
@@ -90,6 +92,8 @@ export default class RequestManager {
   httpProxy: ?string;
   strictSSL: boolean;
   ca: ?Array<string>;
+  cert: ?string;
+  key: ?string;
   offlineQueue: Array<RequestOptions>;
   queue: Array<Object>;
   max: number;
@@ -108,6 +112,8 @@ export default class RequestManager {
     httpsProxy?: string,
     strictSSL?: boolean,
     cafile?: string,
+    cert?: string,
+    key?: string,
   }) {
     if (opts.userAgent != null) {
       this.userAgent = opts.userAgent;
@@ -144,6 +150,14 @@ export default class RequestManager {
       } catch (err) {
         this.reporter.error(`Could not open cafile: ${err.message}`);
       }
+    }
+
+    if (opts.cert != null) {
+      this.cert = opts.cert;
+    }
+
+    if (opts.key != null) {
+      this.key = opts.key;
     }
   }
 
@@ -361,6 +375,14 @@ export default class RequestManager {
 
     if (this.ca != null) {
       params.ca = this.ca;
+    }
+
+    if (this.cert != null) {
+      params.cert = this.cert;
+    }
+
+    if (this.key != null) {
+      params.key = this.key;
     }
 
     const request = this._getRequestModule();
