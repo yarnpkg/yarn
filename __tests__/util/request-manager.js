@@ -35,6 +35,31 @@ test('RequestManager.request with cafile', async () => {
   expect(body).toBe('ok');
 });
 
+test('RequestManager.request with mutual TLS', async () => {
+  let body;
+  const options = {
+    key: await fs.readFile(path.join(__dirname, '..', 'fixtures', 'certificates', 'server-key.pem')),
+    cert: await fs.readFile(path.join(__dirname, '..', 'fixtures', 'certificates', 'server-cert.pem')),
+    ca: await fs.readFile(path.join(__dirname, '..', 'fixtures', 'certificates', 'server-ca-cert.pem')),
+    requestCert: true,
+    rejectUnauthorized: true,
+  };
+  const server = https.createServer(options, (req, res) => { res.end('ok'); });
+  try {
+    server.listen(0);
+    const config = await createConfig({
+      'cafile': path.join(__dirname, '..', 'fixtures', 'certificates', 'server-ca-cert.pem'),
+      'key': await fs.readFile(path.join(__dirname, '..', 'fixtures', 'certificates', 'client-key.pem')),
+      'cert': await fs.readFile(path.join(__dirname, '..', 'fixtures', 'certificates', 'client-cert.pem')),
+    });
+    const port = server.address().port;
+    body = await config.requestManager.request({url: `https://localhost:${port}/?nocache`, headers: {Connection: 'close'}});
+  } finally {
+    server.close();
+  }
+  expect(body).toBe('ok');
+});
+
 test('RequestManager.execute Request 403 error', async () => {
   const config = await createConfig({});
   jest.mock('request', (factory) => (options) => {
