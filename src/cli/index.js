@@ -74,6 +74,10 @@ commander.option(
 );
 commander.option('--proxy <host>', '');
 commander.option('--https-proxy <host>', '');
+commander.option(
+  '--no-progress',
+  'disable progress bar',
+);
 
 // get command name
 let commandName: string = args.shift() || '';
@@ -176,6 +180,7 @@ if (commander.json) {
 }
 const reporter = new Reporter({
   emoji: commander.emoji && process.stdout.isTTY && process.platform === 'darwin',
+  noProgress: commander.noProgress,
 });
 reporter.initPeakMemoryCounter();
 
