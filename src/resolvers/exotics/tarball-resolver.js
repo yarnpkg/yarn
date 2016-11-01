@@ -50,7 +50,11 @@ export default class TarballResolver extends ExoticResolver {
       return shrunk;
     }
 
-    const {url} = this;
+    let {url} = this;
+    if (url.startsWith('file:')) {
+      url = url.substring(5);
+    }
+    
     let {hash, registry} = this;
     let pkgJson;
 
