@@ -21,7 +21,7 @@ const messages = {
   clearedCache: 'Cleared cache.',
   packWroteTarball: 'Wrote tarball to $0.',
 
-  manifestPotentialType: 'Potential typo $0, did you mean $1?',
+  manifestPotentialTypo: 'Potential typo $0, did you mean $1?',
   manifestBuiltinModule: '$0 is also the name of a node core module',
   manifestNameDot: "Name can't start with a dot",
   manifestNameIllegalChars: 'Name contains illegal characters',
