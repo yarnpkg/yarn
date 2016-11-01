@@ -349,6 +349,7 @@ config.init({
   production: commander.production,
   httpProxy: commander.proxy,
   httpsProxy: commander.httpsProxy,
+  commandName,
 }).then(() => {
   const exit = () => {
     process.exit(0);
