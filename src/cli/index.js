@@ -346,6 +346,7 @@ config.init({
   ignoreScripts: commander.ignoreScripts,
   offline: commander.preferOffline || commander.offline,
   looseSemver: !commander.strictSemver,
+  production: commander.production,
   httpProxy: commander.proxy,
   httpsProxy: commander.httpsProxy,
 }).then(() => {

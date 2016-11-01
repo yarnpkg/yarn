@@ -26,6 +26,12 @@ async function makeEnv(stage: string, cwd: string, config: Config): {
   env.npm_node_execpath = env.NODE || process.execPath;
   env.npm_execpath = path.join(__dirname, '..', '..', 'bin', 'yarn.js');
 
+  // Set the env to production for npm compat if production mode.
+  // https://github.com/npm/npm/blob/30d75e738b9cb7a6a3f9b50e971adcbe63458ed3/lib/utils/lifecycle.js#L336
+  if (config.production) {
+    env.NODE_ENV = 'production';
+  }
+
   // add npm_package_*
   const manifest = await config.readManifest(cwd);
   const queue = [['', manifest]];
