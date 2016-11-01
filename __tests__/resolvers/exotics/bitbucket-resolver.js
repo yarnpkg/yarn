@@ -2,7 +2,9 @@
 
 import BitBucketResolver from '../../../src/resolvers/exotics/bitbucket-resolver.js';
 import type {ExplodedFragment} from '../../../src/resolvers/exotics/hosted-git-resolver.js';
+import Git from '../../../src/util/git.js';
 
+const url = require('url');
 const _bitBucketBase = 'https://bitbucket.org/';
 
 test('hostname should be "bitbucket.org" ', () => {
@@ -42,7 +44,7 @@ test('getGitHTTPUrl should return the correct git bitbucket SSH url', () => {
     hash: '',
   };
 
-  const expected =  'git@bitbucket.org:' + fragment.user + '/' + fragment.repo + '.git';
+  const expected =  'git+ssh://git@bitbucket.org/' + fragment.user + '/' + fragment.repo + '.git';
   expect(BitBucketResolver.getGitSSHUrl(fragment)).toBe(expected);
 });
 
@@ -58,4 +60,15 @@ test('getHTTPFileUrl should return the correct HTTP file url', () => {
 
   const expected =  _bitBucketBase + fragment.user + '/' + fragment.repo + '/raw/' + commit + '/' + filename;
   expect(BitBucketResolver.getHTTPFileUrl(fragment, filename, commit)).toBe(expected);
+});
+
+test('getGitSSHUrl should return URL containing protocol', () => {
+  const gitSSHUrl = BitBucketResolver.getGitSSHUrl({
+    hash: '',
+    repo: 'some-repo',
+    user: 'some-user',
+  });
+
+  expect(url.parse(gitSSHUrl).protocol).toEqual('git+ssh:');
+  expect(url.parse(Git.cleanUrl(gitSSHUrl)).protocol).toEqual('ssh:');
 });

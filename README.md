@@ -19,7 +19,7 @@
 
 **Fast:** Yarn caches every package it downloads so it never needs to download the same package again. It also parallelizes operations to maximize resource utilization so install times are faster than ever.
 
-**Reliable:** Using a a detailed, concise lockfile format, and a deterministic algorithm for installs, Yarn is able to guarantee that an install that worked on one system will work exactly the same way on any other system.
+**Reliable:** Using a detailed, concise lockfile format and a deterministic algorithm for installs, Yarn is able to guarantee that an install that worked on one system will work exactly the same way on any other system.
 
 **Secure:** Yarn uses checksums to verify the integrity of every installed package before its code is executed.
 
@@ -38,8 +38,7 @@ Read the [Installation Guide](https://yarnpkg.com/en/docs/install) on our websit
 
 ## Contributing to Yarn
 
-Contributions are always welcome, no matter how large or small. Before contributing,
-please read the [code of conduct](CODE_OF_CONDUCT.md).
+Contributions are always welcome, no matter how large or small. Before contributing, please read the [code of conduct](CODE_OF_CONDUCT.md).
 
 See [Contributing](CONTRIBUTING.md).
 

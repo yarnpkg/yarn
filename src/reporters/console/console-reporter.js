@@ -225,7 +225,7 @@ export default class ConsoleReporter extends BaseReporter {
   }
 
   activitySet(total: number, workers: number): ReporterSpinnerSet {
-    if (!this.isTTY) {
+    if (!this.isTTY || this.noProgress) {
       return super.activitySet(total, workers);
     }
 
@@ -369,7 +369,7 @@ export default class ConsoleReporter extends BaseReporter {
   }
 
   progress(count: number): () => void {
-    if (count <= 0) {
+    if (this.noProgress || count <= 0) {
       return function() {
         // noop
       };

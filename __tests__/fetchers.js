@@ -55,6 +55,22 @@ test('CopyFetcher.fetch', async () => {
   expect(contentFoo).toBe('bar');
 });
 
+test('GitFetcher.fetch fetchFromLocal not in network or cache', async () => {
+  const config = await createConfig();
+  const dir = await mkdir('git-fetcher');
+  const fetcher = new GitFetcher(dir, {
+    type: 'git',
+    reference: './offline-mirror/fetch-test',
+    hash: '8beb0413a8028ca2d52dbb86c75f42069535591b',
+    registry: 'npm',
+  }, config);
+  try {
+    await fetcher.fetch();
+  } catch (err) {
+    expect(err.message).toBe(config.reporter.lang('tarballNotInNetworkOrCache', './offline-mirror/fetch-test', path.resolve('./offline-mirror/fetch-test')));
+  }
+});
+
 test('GitFetcher.fetch', async () => {
   const dir = await mkdir('git-fetcher');
   const fetcher = new GitFetcher(dir, {
@@ -111,4 +127,42 @@ test('TarballFetcher.fetch supports local ungzipped tarball', async () => {
   await fetcher.fetch();
   const name = (await fs.readJson(path.join(dir, 'package.json'))).name;
   expect(name).toBe('beeper');
+});
+
+test('TarballFetcher.fetch properly stores tarball of package in offline mirror', async () => {
+  const dir = await mkdir('tarball-fetcher');
+  const offlineMirrorDir = await mkdir('offline-mirror');
+
+  const config = await createConfig();
+  config.registries.npm.config['yarn-offline-mirror'] = offlineMirrorDir;
+
+  const fetcher = new TarballFetcher(dir, {
+    type: 'tarball',
+    hash: '6f86cbedd8be4ec987be9aaf33c9684db1b31e7e',
+    reference: 'https://registry.npmjs.org/lodash.isempty/-/lodash.isempty-4.4.0.tgz',
+    registry: 'npm',
+  }, config);
+
+  await fetcher.fetch();
+  const exists = await fs.exists(path.join(offlineMirrorDir, 'lodash.isempty-4.4.0.tgz'));
+  expect(exists).toBe(true);
+});
+
+test('TarballFetcher.fetch properly stores tarball of scoped package in offline mirror', async () => {
+  const dir = await mkdir('tarball-fetcher');
+  const offlineMirrorDir = await mkdir('offline-mirror');
+
+  const config = await createConfig();
+  config.registries.npm.config['yarn-offline-mirror'] = offlineMirrorDir;
+
+  const fetcher = new TarballFetcher(dir, {
+    type: 'tarball',
+    hash: '6f0ab73cdd7b82d8e81e80838b49e9e4c7fbcc44',
+    reference: 'https://registry.npmjs.org/@exponent/configurator/-/configurator-1.0.2.tgz',
+    registry: 'npm',
+  }, config);
+
+  await fetcher.fetch();
+  const exists = await fs.exists(path.join(offlineMirrorDir, '@exponent-configurator-1.0.2.tgz'));
+  expect(exists).toBe(true);
 });

@@ -41,12 +41,21 @@ for (let i = 0; i < args.length; i++) {
 // set global options
 commander.version(pkg.version);
 commander.usage('[command] [flags]');
-commander.option('--offline');
-commander.option('--prefer-offline');
+commander.option('--offline', 'trigger an error if any required dependencies are not available in local cache');
+commander.option('--prefer-offline', 'use network only if dependencies are not available in local cache');
 commander.option('--strict-semver');
 commander.option('--json', '');
-commander.option('--global-folder <path>', '');
 commander.option('--ignore-scripts', "don't run lifecycle scripts");
+commander.option('--har', 'save HAR output of network traffic');
+commander.option('--ignore-platform', 'ignore platform checks');
+commander.option('--ignore-engines', 'ignore engines check');
+commander.option('--ignore-optional', '');
+commander.option('--force', 'ignore all caches');
+commander.option('--flat', 'only allow one version of a package');
+commander.option('--prod, --production', '');
+commander.option('--no-lockfile', "don't read or generate a lockfile");
+commander.option('--pure-lockfile', "don't generate a lockfile");
+commander.option('--global-folder <path>', '');
 commander.option(
   '--modules-folder <path>',
   'rather than installing modules into the node_modules folder relative to the cwd, output them here',
@@ -62,6 +71,12 @@ commander.option(
 commander.option(
   '--no-emoji',
   'disable emoji in output',
+);
+commander.option('--proxy <host>', '');
+commander.option('--https-proxy <host>', '');
+commander.option(
+  '--no-progress',
+  'disable progress bar',
 );
 
 // get command name
@@ -165,6 +180,7 @@ if (commander.json) {
 }
 const reporter = new Reporter({
   emoji: commander.emoji && process.stdout.isTTY && process.platform === 'darwin',
+  noProgress: commander.noProgress,
 });
 reporter.initPeakMemoryCounter();
 
@@ -331,6 +347,8 @@ config.init({
   offline: commander.preferOffline || commander.offline,
   looseSemver: !commander.strictSemver,
   production: commander.production,
+  httpProxy: commander.proxy,
+  httpsProxy: commander.httpsProxy,
 }).then(() => {
   const exit = () => {
     process.exit(0);

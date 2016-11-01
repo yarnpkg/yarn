@@ -16,7 +16,6 @@ import map from './util/map.js';
 const detectIndent = require('detect-indent');
 const invariant = require('invariant');
 const path = require('path');
-const url = require('url');
 
 export type ConfigOptions = {
   cwd?: ?string,
@@ -36,6 +35,8 @@ export type ConfigOptions = {
 
   // Loosely compare semver for invalid cases like "0.01.0"
   looseSemver?: ?boolean,
+  httpProxy?: ?string,
+  httpsProxy?: ?string,
 };
 
 type PackageMetadata = {
@@ -184,8 +185,8 @@ export default class Config {
 
     this.requestManager.setOptions({
       userAgent: String(this.getOption('user-agent')),
-      httpProxy: String(this.getOption('proxy') || ''),
-      httpsProxy: String(this.getOption('https-proxy') || ''),
+      httpProxy: String(opts.httpProxy || this.getOption('proxy') || ''),
+      httpsProxy: String(opts.httpsProxy || this.getOption('https-proxy') || ''),
       strictSSL: Boolean(this.getOption('strict-ssl')),
       cafile: String(opts.cafile || this.getOption('cafile') || ''),
     });
@@ -276,11 +277,12 @@ export default class Config {
   }
 
   /**
-   * Remote packages may be cached in a file system to be available for offline installation
-   * Second time the same package needs to be installed it will be loaded from there
+   * Remote packages may be cached in a file system to be available for offline installation.
+   * Second time the same package needs to be installed it will be loaded from there.
+   * Given a package's filename, return a path in the offline mirror location.
    */
 
-  getOfflineMirrorPath(tarUrl: ?string): ?string {
+  getOfflineMirrorPath(packageFilename: ?string): ?string {
     const registry = this.registries.npm;
     if (registry == null) {
       return null;
@@ -293,18 +295,12 @@ export default class Config {
     }
 
     //
-    if (tarUrl == null) {
+    if (packageFilename == null) {
       return mirrorPath;
     }
 
     //
-    const {pathname} = url.parse(tarUrl);
-    if (pathname == null) {
-      return mirrorPath;
-    } else {
-      return path.join(mirrorPath, path.basename(pathname));
-    }
-
+    return path.join(mirrorPath, path.basename(packageFilename));
   }
 
   /**
@@ -352,7 +348,7 @@ export default class Config {
     if (manifest) {
       return manifest;
     } else {
-      throw new MessageError(`Couldn't find a package.json file in ${dir}`);
+      throw new MessageError(this.reporter.lang('couldntFindPackagejson', dir));
     }
   }
 

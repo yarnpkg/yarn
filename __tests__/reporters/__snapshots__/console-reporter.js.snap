@@ -75,6 +75,13 @@ Object {
 }
 `;
 
+exports[`test ConsoleReporter.progress 4`] = `
+Object {
+  "stderr": "",
+  "stdout": "",
+}
+`;
+
 exports[`test ConsoleReporter.select 1`] = `
 Object {
   "stderr": "",
