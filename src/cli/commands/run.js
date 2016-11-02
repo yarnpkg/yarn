@@ -46,7 +46,7 @@ export async function run(
     Object.assign(scripts, pkg.scripts);
   }
 
-  const runCommand = async (args) => {
+  async function runCommand(args): Promise<void> {
     const action = args.shift();
     const actions = [`pre${action}`, action, `post${action}`];
 
@@ -61,7 +61,9 @@ export async function run(
 
     if (cmds.length) {
       for (const [stage, cmd] of cmds) {
-        await execCommand(stage, config, `${cmd} ${args.join(' ')}`, config.cwd);
+        // only tack on trailing arguments for default script, ignore for pre and post - #1595
+        const cmdWithArgs = cmd === action ? `${cmd} ${args.join(' ')}` : cmd;
+        await execCommand(stage, config, cmdWithArgs, config.cwd);
       }
     } else {
       let suggestion;
@@ -79,7 +81,7 @@ export async function run(
       }
       throw new MessageError(msg);
     }
-  };
+  }
 
   // list possible scripts if none specified
   if (args.length === 0) {
