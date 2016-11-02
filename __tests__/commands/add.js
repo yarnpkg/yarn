@@ -41,6 +41,33 @@ test.concurrent('install with arg', (): Promise<void> => {
   return runAdd({}, ['is-online'], 'install-with-arg');
 });
 
+test.concurrent('install with --dev flag', (): Promise<void> => {
+  return runAdd({dev: true}, ['left-pad@1.1.0'], 'add-with-flag', async (config) => {
+    const pkg = await fs.readJson(path.join(config.cwd, 'package.json'));
+
+    assert.deepEqual(pkg.devDependencies, {'left-pad': '1.1.0'});
+    assert.deepEqual(pkg.dependencies, {});
+  });
+});
+
+test.concurrent('install with --peer flag', (): Promise<void> => {
+  return runAdd({peer: true}, ['left-pad@1.1.0'], 'add-with-flag', async (config) => {
+    const pkg = await fs.readJson(path.join(config.cwd, 'package.json'));
+
+    assert.deepEqual(pkg.peerDependencies, {'left-pad': '1.1.0'});
+    assert.deepEqual(pkg.dependencies, {});
+  });
+});
+
+test.concurrent('install with --optional flag', (): Promise<void> => {
+  return runAdd({optional: true}, ['left-pad@1.1.0'], 'add-with-flag', async (config) => {
+    const pkg = await fs.readJson(path.join(config.cwd, 'package.json'));
+
+    assert.deepEqual(pkg.optionalDependencies, {'left-pad': '1.1.0'});
+    assert.deepEqual(pkg.dependencies, {});
+  });
+});
+
 test.concurrent('install with arg that has binaries', (): Promise<void> => {
   return runAdd({}, ['react-native-cli'], 'install-with-arg-and-bin');
 });
