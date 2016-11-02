@@ -3,7 +3,6 @@ import envReplace from '../../src/util/env-replace';
 import assert from 'assert';
 
 describe('environment variable replacement', () => {
-
   it('will replace a token that exists in the environment', () => {
     let result = envReplace('test ${a} replacement', {a: 'token'});
     assert(result === 'test token replacement', `result: ${result}`);

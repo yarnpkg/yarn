@@ -119,9 +119,9 @@ export default class NpmRegistry extends Registry {
 
     for (const [, loc, file] of await this.getPossibleConfigLocations('.npmrc')) {
       const config = ini.parse(file);
-      Object.keys(config).forEach((key: string) => {
+      for (const key: string in config) {
         config[key] = envReplace(config[key]);
-      });
+      }
 
       // normalize offline mirror path relative to the current npmrc
       const offlineLoc = config['yarn-offline-mirror'];
