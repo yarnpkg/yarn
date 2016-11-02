@@ -11,6 +11,7 @@ import Lockfile from '../../lockfile/wrapper.js';
 import {Install} from './install.js';
 import {Add} from './add.js';
 import {run as runRemove} from './remove.js';
+import {run as runUpgrade} from './upgrade.js';
 import {linkBin} from '../../package-linker.js';
 import * as fs from '../../util/fs.js';
 
@@ -217,6 +218,23 @@ export const {run, setFlags} = buildSubCommands('global', {
     await runRemove(config, reporter, flags, args);
 
     // remove binaries
+    await updateBins();
+  },
+
+  async upgrade(
+    config: Config,
+    reporter: Reporter,
+    flags: Object,
+    args: Array<string>,
+  ): Promise<void> {
+    await updateCwd(config);
+
+    const updateBins = await initUpdateBins(config, reporter);
+    
+    // upgrade module
+    await runUpgrade(config, reporter, flags, args);
+
+    // update binaries
     await updateBins();
   },
 });
