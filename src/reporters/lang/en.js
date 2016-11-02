@@ -72,7 +72,8 @@ const messages = {
   noVersion: `Package doesn't have a version.`,
   answerRequired: 'An answer is required.',
   missingWhyDependency: 'Missing package name, folder or path to file to identify why a package has been installed',
-  unexpectedError: 'An unexpected error occurred, please open a bug report with the information provided in $0.',
+  bugReport: 'If you think this is a bug, please open a bug report with the information provided in $0.',
+  unexpectedError: 'An unexpected error occurred: $0.',
   jsonError: 'Error parsing JSON at $0, $1.',
   noFilePermission: "We don't have permissions to touch the file $0.",
 
