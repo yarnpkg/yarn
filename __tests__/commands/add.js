@@ -602,3 +602,16 @@ test.concurrent('add infers line endings from existing unix manifest file', asyn
       await promisify(fsNode.writeFile)(path.join(cwd, 'package.json'), existingLockfile, 'utf8');
     });
 });
+
+test.concurrent('install package "flat"', (): Promise<void> => {
+  return runAdd(['flat'], {}, 'install-with-save-offline-mirror', async (config, reporter) => {
+    const lockfile = await createLockfile(config.cwd);
+    const install = new Add(['flat'], {}, config, reporter, lockfile);
+    await install.init();
+    assert.ok(JSON.parse(await fs.readFile(path.join(config.cwd, 'package.json'))).dependencies.flat);
+
+    const lockFileWritten = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
+    const lockFileLines = explodeLockfile(lockFileWritten);
+    assert.ok(lockFileLines[0].includes('flat'));
+  });
+});
