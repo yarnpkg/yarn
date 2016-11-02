@@ -74,6 +74,7 @@ const messages = {
   missingWhyDependency: 'Missing package name, folder or path to file to identify why a package has been installed',
   unexpectedError: 'An unexpected error occurred, please open a bug report with the information provided in $0.',
   jsonError: 'Error parsing JSON at $0, $1.',
+  noFilePermission: "We don't have permissions to touch the file $0.",
 
   tooManyArguments: 'Too many arguments, maximum of $0.',
   tooFewArguments: 'Not enough arguments, expected at least $0.',

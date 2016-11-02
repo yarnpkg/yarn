@@ -3,6 +3,7 @@
 import type {Reporter} from '../../reporters/index.js';
 import type {Manifest} from '../../types.js';
 import type Config from '../../config.js';
+import {MessageError} from '../../errors.js';
 import {registries} from '../../registries/index.js';
 import NoopReporter from '../../reporters/base-reporter.js';
 import buildSubCommands from './_build-sub-commands.js';
@@ -88,6 +89,14 @@ async function initUpdateBins(config: Config, reporter: Reporter): Promise<() =>
   const beforeBins = await getBins(config);
   const binFolder = getBinFolder();
 
+  function throwPermError(err: Error & { [code: string]: string }, dest: string) {
+    if (err.code === 'EACCES') {
+      throw new MessageError(reporter.lang('noFilePermission', dest));
+    } else {
+      throw err;
+    }
+  }
+
   return async function(): Promise<void> {
     const afterBins = await getBins(config);
 
@@ -100,7 +109,11 @@ async function initUpdateBins(config: Config, reporter: Reporter): Promise<() =>
 
       // remove old bin
       const dest = path.join(binFolder, path.basename(src));
-      await fs.unlink(dest);
+      try {
+        await fs.unlink(dest);
+      } catch (err) {
+        throwPermError(err, dest);
+      }
     }
 
     // add new bins
@@ -112,8 +125,12 @@ async function initUpdateBins(config: Config, reporter: Reporter): Promise<() =>
 
       // insert new bin
       const dest = path.join(binFolder, path.basename(src));
-      await fs.unlink(dest);
-      await linkBin(src, dest);
+      try {
+        await fs.unlink(dest);
+        await linkBin(src, dest);
+      } catch (err) {
+        throwPermError(err, dest);
+      }
     }
   };
 }
