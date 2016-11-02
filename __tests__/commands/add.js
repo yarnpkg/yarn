@@ -26,10 +26,11 @@ function runAdd(
   name: string,
   checkInstalled?: ?(config: Config, reporter: Reporter) => ?Promise<void>,
   beforeInstall?: ?(cwd: string) => ?Promise<void>,
+  cleanupAfterInstall: boolean = true,
 ): Promise<void> {
   return buildRun((config, reporter, lockfile): Install => {
     return new Add(args, flags, config, reporter, lockfile);
-  }, path.join(fixturesLoc, name), checkInstalled, beforeInstall);
+  }, path.join(fixturesLoc, name), checkInstalled, beforeInstall, cleanupAfterInstall);
 }
 
 test.concurrent('install with arg that has install scripts', (): Promise<void> => {

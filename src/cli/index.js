@@ -9,8 +9,8 @@ import * as network from '../util/network.js';
 import {MessageError} from '../errors.js';
 import aliases from './aliases.js';
 import Config from '../config.js';
+import {hyphenate, camelCase} from '../util/misc.js';
 
-const camelCase = require('camelcase');
 const chalk = require('chalk');
 const commander = require('commander');
 const fs = require('fs');
@@ -41,10 +41,20 @@ for (let i = 0; i < args.length; i++) {
 // set global options
 commander.version(pkg.version);
 commander.usage('[command] [flags]');
-commander.option('--offline');
-commander.option('--prefer-offline');
+commander.option('--offline', 'trigger an error if any required dependencies are not available in local cache');
+commander.option('--prefer-offline', 'use network only if dependencies are not available in local cache');
 commander.option('--strict-semver');
 commander.option('--json', '');
+commander.option('--ignore-scripts', "don't run lifecycle scripts");
+commander.option('--har', 'save HAR output of network traffic');
+commander.option('--ignore-platform', 'ignore platform checks');
+commander.option('--ignore-engines', 'ignore engines check');
+commander.option('--ignore-optional', '');
+commander.option('--force', 'ignore all caches');
+commander.option('--flat', 'only allow one version of a package');
+commander.option('--prod, --production', '');
+commander.option('--no-lockfile', "don't read or generate a lockfile");
+commander.option('--pure-lockfile', "don't generate a lockfile");
 commander.option('--global-folder <path>', '');
 commander.option(
   '--modules-folder <path>',
@@ -62,13 +72,18 @@ commander.option(
   '--no-emoji',
   'disable emoji in output',
 );
+commander.option('--proxy <host>', '');
+commander.option('--https-proxy <host>', '');
+commander.option(
+  '--no-progress',
+  'disable progress bar',
+);
 
 // get command name
-let commandName: string = args.shift() || '';
+let commandName: ?string = args.shift() || '';
 let command;
 
 //
-const hyphenate = (string) => string.replace(/[A-Z]/g, (match) => ('-' + match.charAt(0).toLowerCase()));
 const getDocsLink = (name) => `https://yarnpkg.com/en/docs/cli/${name || ''}`;
 const getDocsInfo = (name) => 'Visit ' + chalk.bold(getDocsLink(name)) + ' for documentation about this command.';
 
@@ -122,7 +137,12 @@ if (commandName === 'help' && args.length) {
 
 //
 invariant(commandName, 'Missing command name');
-command = command || commands[camelCase(commandName)];
+if (!command) {
+  const camelised = camelCase(commandName);
+  if (camelised) {
+    command = commands[camelised];
+  }
+}
 
 //
 if (command && typeof command.setFlags === 'function') {
@@ -164,6 +184,7 @@ if (commander.json) {
 }
 const reporter = new Reporter({
   emoji: commander.emoji && process.stdout.isTTY && process.platform === 'darwin',
+  noProgress: commander.noProgress,
 });
 reporter.initPeakMemoryCounter();
 
@@ -314,7 +335,8 @@ function onUnexpectedError(err: Error) {
   const errorLoc = path.join(config.cwd, 'yarn-error.log');
   fs.writeFileSync(errorLoc, log.join('\n\n') + '\n');
 
-  reporter.error(reporter.lang('unexpectedError', errorLoc));
+  reporter.error(reporter.lang('unexpectedError', err.message));
+  reporter.info(reporter.lang('bugReport', errorLoc));
 }
 
 //
@@ -326,8 +348,13 @@ config.init({
   captureHar: commander.har,
   ignorePlatform: commander.ignorePlatform,
   ignoreEngines: commander.ignoreEngines,
+  ignoreScripts: commander.ignoreScripts,
   offline: commander.preferOffline || commander.offline,
   looseSemver: !commander.strictSemver,
+  production: commander.production,
+  httpProxy: commander.proxy,
+  httpsProxy: commander.httpsProxy,
+  commandName,
 }).then(() => {
   const exit = () => {
     process.exit(0);
@@ -356,9 +383,11 @@ config.init({
     onUnexpectedError(err);
   }
 
-  const actualCommandForHelp = commands[commandName] ? commandName : aliases[commandName];
-  if (actualCommandForHelp) {
-    reporter.info(getDocsInfo(actualCommandForHelp));
+  if (commandName) {
+    const actualCommandForHelp = commands[commandName] ? commandName : aliases[commandName];
+    if (command && actualCommandForHelp) {
+      reporter.info(getDocsInfo(actualCommandForHelp));
+    }
   }
 
   process.exit(1);

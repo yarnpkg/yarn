@@ -9,7 +9,6 @@ import normalizeManifest from '../../util/normalize-manifest/index.js';
 import {registryNames} from '../../registries/index.js';
 import {MessageError} from '../../errors.js';
 import Lockfile from '../../lockfile/wrapper.js';
-import executeLifecycleScript from './_execute-lifecycle-script.js';
 import lockStringify from '../../lockfile/stringify.js';
 import * as PackageReference from '../../package-reference.js';
 import PackageFetcher from '../../package-fetcher.js';
@@ -113,7 +112,7 @@ function normalizeFlags(config: Config, rawFlags: Object): Flags {
     flags.force = true;
   }
 
-  if (config.getOption('production')) {
+  if (config.getOption('production') || process.env.NODE_ENV === 'production') {
     flags.production = true;
   }
 
@@ -186,7 +185,7 @@ export class Install {
       }
 
       this.rootManifestRegistries.push(registry);
-      const json = await fs.readJson(loc);
+      const json = await this.config.readJson(loc);
       await normalizeManifest(json, this.config.cwd, this.config, true);
 
       Object.assign(this.resolutions, json.resolutions);
@@ -467,7 +466,7 @@ export class Install {
 
   async saveLockfileAndIntegrity(patterns: Array<string>): Promise<void> {
     // stringify current lockfile
-    const lockSource = lockStringify(this.lockfile.getLockfile(this.resolver.patterns)) + '\n';
+    const lockSource = lockStringify(this.lockfile.getLockfile(this.resolver.patterns));
 
     // write integrity hash
     await this.writeIntegrityHash(lockSource, patterns);
@@ -643,23 +642,8 @@ export class Install {
   }
 }
 
-export function _setFlags(commander: Object) {
-  commander.option('--har', 'save HAR output of network traffic');
-  commander.option('--ignore-platform', 'ignore platform checks');
-  commander.option('--ignore-engines', 'ignore engines check');
-  commander.option('--ignore-scripts', '');
-  commander.option('--ignore-optional', '');
-  commander.option('--force', 'ignore all caches');
-  commander.option('--flat', 'only allow one version of a package');
-  commander.option('--prod, --production', '');
-  commander.option('--no-lockfile', "don't read or generate a lockfile");
-  commander.option('--pure-lockfile', "don't generate a lockfile");
-}
-
 export function setFlags(commander: Object) {
   commander.usage('install [flags]');
-  _setFlags(commander);
-
   commander.option('-g, --global', 'DEPRECATED');
   commander.option('-S, --save', 'DEPRECATED - save package to your `dependencies`');
   commander.option('-D, --save-dev', 'DEPRECATED - save package to your `devDependencies`');
@@ -706,15 +690,22 @@ export async function run(
     throw new MessageError(reporter.lang('installCommandRenamed', `yarn ${command} ${exampleArgs.join(' ')}`));
   }
 
-  await executeLifecycleScript(config, 'preinstall');
+  await wrapLifecycle(config, flags, async () => {
+    const install = new Install(flags, config, reporter, lockfile);
+    await install.init();
+  });
+}
 
-  const install = new Install(flags, config, reporter, lockfile);
-  await install.init();
+export async function wrapLifecycle(config: Config, flags: Object, factory: () => Promise<void>): Promise<void> {
+  await config.executeLifecycleScript('preinstall');
+
+  await factory();
 
   // npm behaviour, seems kinda funky but yay compatibility
-  await executeLifecycleScript(config, 'install');
-  await executeLifecycleScript(config, 'postinstall');
+  await config.executeLifecycleScript('install');
+  await config.executeLifecycleScript('postinstall');
+
   if (!flags.production) {
-    await executeLifecycleScript(config, 'prepublish');
+    await config.executeLifecycleScript('prepublish');
   }
 }

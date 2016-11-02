@@ -35,8 +35,6 @@ function addTest(pattern, registry = 'npm') {
   });
 }
 
-addTest('github:PolymerElements/paper-elements', 'bower'); // github url
-addTest('https://github.com/PolymerElements/font-roboto.git', 'bower'); // hosted git url
 addTest('https://github.com/npm-ml/re'); // git url with no .git
 addTest('https://bitbucket.org/hgarcia/node-bitbucket-api.git'); // hosted git url
 addTest('https://github.com/PolymerElements/font-roboto/archive/2fd5c7bd715a24fb5b250298a140a3ba1b71fe46.tar.gz'); // tarball

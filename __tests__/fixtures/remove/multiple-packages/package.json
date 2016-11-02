@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "dep-a": "^1.0.0",
+    "max-safe-integer": "sindresorhus/max-safe-integer"
+  }
+}

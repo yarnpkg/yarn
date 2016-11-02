@@ -1,6 +1,7 @@
 {
   "name": "yarn",
-  "version": "0.16.0",
+  "installationMethod": "unknown",
+  "version": "0.16.2",
   "license": "BSD-2-Clause",
   "preferGlobal": true,
   "dependencies": {
@@ -19,6 +20,7 @@
     "ini": "^1.3.4",
     "invariant": "^2.2.0",
     "is-builtin-module": "^1.0.0",
+    "is-ci": "^1.0.9",
     "leven": "^2.0.0",
     "loud-rejection": "^1.2.0",
     "minimatch": "^3.0.3",

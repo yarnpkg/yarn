@@ -1,11 +1,9 @@
 /* @flow */
 
 import RegistryNpm from './registries/npm-resolver.js';
-import RegistryBower from './registries/bower-resolver.js';
 import RegistryYarn from './registries/yarn-resolver.js';
 
 export const registries = {
-  bower: RegistryBower,
   npm: RegistryNpm,
   yarn: RegistryYarn,
 };

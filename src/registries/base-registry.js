@@ -89,6 +89,23 @@ export default class BaseRegistry {
     this.loc = path.join(this.cwd, this.folder);
   }
 
+  static normalizeConfig(config: Object): Object {
+    for (const key in config) {
+      config[key] = BaseRegistry.normalizeConfigOption(config[key]);
+    }
+    return config;
+  }
+
+  static normalizeConfigOption(val: any): any {
+    if (val === 'true') {
+      return true;
+    } else if (val === 'false') {
+      return false;
+    } else {
+      return val;
+    }
+  }
+
   mergeEnv(prefix: string) {
     // try environment variables
     for (let key in process.env) {
@@ -99,9 +116,9 @@ export default class BaseRegistry {
         continue;
       }
 
-      const val = process.env[key];
+      const val = BaseRegistry.normalizeConfigOption(process.env[key]);
 
-      // remove bower prefix
+      // remove config prefix
       key = removePrefix(key, prefix);
 
       // replace dunders with dots

@@ -15,6 +15,7 @@ import type {LanguageKeys} from './lang/en.js';
 import type {Formatter} from './format.js';
 import {defaultFormatter} from './format.js';
 import * as languages from './lang/index.js';
+import isCI from 'is-ci';
 
 const util = require('util');
 
@@ -26,6 +27,7 @@ export type ReporterOptions = {
   stderr?: Stdout,
   stdin?: Stdin,
   emoji?: boolean,
+  noProgress?: boolean,
 };
 
 export function stringifyLangArgs(args: Array<any>): Array<string> {
@@ -51,6 +53,7 @@ export default class BaseReporter {
     this.stderr = opts.stderr || process.stderr;
     this.stdin = opts.stdin || process.stdin;
     this.emoji = !!opts.emoji;
+    this.noProgress = !!opts.noProgress || isCI;
 
     // $FlowFixMe: this is valid!
     this.isTTY = this.stdout.isTTY;
@@ -67,6 +70,7 @@ export default class BaseReporter {
   stdin: Stdin;
   isTTY: boolean;
   emoji: boolean;
+  noProgress: boolean;
   format: Formatter;
 
   peakMemoryInterval: ?number;

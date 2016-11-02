@@ -11,6 +11,7 @@ import {YARN_REGISTRY} from '../../constants.js';
 
 const invariant = require('invariant');
 const path = require('path');
+const os = require('os');
 
 const NPM_REGISTRY = /http[s]:\/\/registry.npmjs.org/g;
 
@@ -24,6 +25,10 @@ export default class NpmResolver extends RegistryResolver {
   static registry = 'npm';
 
   static async findVersionInRegistryResponse(config: Config, range: string, body: RegistryResponse): Promise<Manifest> {
+    if (!body['dist-tags']) {
+      throw new MessageError(config.reporter.lang('malformedRegistryResponse'));
+    }
+
     if (range in body['dist-tags']) {
       range = body['dist-tags'][range];
     }
@@ -32,9 +37,14 @@ export default class NpmResolver extends RegistryResolver {
     if (satisfied) {
       return body.versions[satisfied];
     } else {
+      const versions = Object.keys(body.versions);
       throw new MessageError(
-        `Couldn't find any versions for ${body.name} that matches ${range}. ` +
-        `Possible versions: ${Object.keys(body.versions).join(', ')}`,
+        config.reporter.lang(
+          'couldntFindVersionThatMatchesRange',
+          body.name,
+          range,
+          (versions.length > 20) ? versions.join(os.EOL) : versions.join(', '),
+        ),
       );
     }
   }
@@ -101,7 +111,7 @@ export default class NpmResolver extends RegistryResolver {
 
       // read package metadata
       const metadata = await this.config.readPackageMetadata(dir);
-      if (!metadata._remote) {
+      if (!metadata.remote) {
         continue; // old yarn metadata
       }
 

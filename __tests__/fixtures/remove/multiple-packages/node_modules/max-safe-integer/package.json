@@ -1,0 +1,36 @@
+{
+  "name": "max-safe-integer",
+  "version": "1.0.1",
+  "description": "ES2015 Number.MAX_SAFE_INTEGER ponyfill",
+  "license": "MIT",
+  "repository": "sindresorhus/max-safe-integer",
+  "author": {
+    "name": "Sindre Sorhus",
+    "email": "sindresorhus@gmail.com",
+    "url": "sindresorhus.com"
+  },
+  "engines": {
+    "node": ">=0.10.0"
+  },
+  "scripts": {
+    "test": "xo && ava"
+  },
+  "files": [
+    "index.js"
+  ],
+  "keywords": [
+    "es2015",
+    "ponyfill",
+    "polyfill",
+    "shim",
+    "number",
+    "safe",
+    "is",
+    "integer",
+    "max"
+  ],
+  "devDependencies": {
+    "ava": "*",
+    "xo": "*"
+  }
+}

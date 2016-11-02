@@ -3,7 +3,6 @@
 import type {Reporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
 import {registryNames} from '../../registries/index.js';
-import executeLifecycleScript from './_execute-lifecycle-script.js';
 import {MessageError} from '../../errors.js';
 import {spawn} from '../../util/child.js';
 import * as fs from '../../util/fs.js';
@@ -20,6 +19,7 @@ function isValidNewVersion(oldVersion: string, newVersion: string, looseSemver: 
 export function setFlags(commander: Object) {
   commander.option(NEW_VERSION_FLAG, 'new version');
   commander.option('--message [message]', 'message');
+  commander.option('--no-git-tag-version', 'no git tag version');
 }
 
 export async function setVersion(
@@ -77,7 +77,7 @@ export async function setVersion(
     throw new MessageError(reporter.lang('publishSame'));
   }
 
-  await executeLifecycleScript(config, 'preversion');
+  await config.executeLifecycleScript('preversion');
 
   // update version
   reporter.info(`${reporter.lang('newVersion')}: ${newVersion}`);
@@ -93,6 +93,14 @@ export async function setVersion(
   }
   await config.saveRootManifests(manifests);
 
+  // check if committing the new version to git is overriden
+  if (!flags.gitTagVersion || !config.getOption('version-git-tag')) {
+    // Don't tag the version in Git
+    return function(): Promise<void> {
+      return Promise.resolve();
+    };
+  }
+
   return async function(): Promise<void> {
     invariant(newVersion, 'expected version');
 
@@ -107,7 +115,7 @@ export async function setVersion(
         parts.pop();
       }
     }
-    if (isGit && Boolean(config.getOption('version-git-tag'))) {
+    if (isGit) {
       const message = (flags.message || String(config.getOption('version-git-message'))).replace(/%s/g, newVersion);
       const sign: boolean = Boolean(config.getOption('version-sign-git-tag'));
       const flag = sign ? '-sm' : '-am';
@@ -123,7 +131,7 @@ export async function setVersion(
       await spawn('git', ['tag', `${prefix}${newVersion}`, flag, message]);
     }
 
-    await executeLifecycleScript(config, 'postversion');
+    await config.executeLifecycleScript('postversion');
   };
 }
 
