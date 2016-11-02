@@ -3,6 +3,7 @@
 import type PackageResolver from './package-resolver.js';
 import type Config from './config.js';
 import type {Manifest} from './types.js';
+import {USED} from './package-reference.js';
 import {sortAlpha} from './util/misc.js';
 
 const invariant = require('invariant');
@@ -119,6 +120,40 @@ export default class PackageHoister {
   }
 
   /**
+   * Handle possible hoisted devDeps packages in `production` pkgs
+   * without ignoring the devDep if shared
+   */
+
+  getPossibleHoistedPattern(pattern: string, parent?: HoistManifest): Manifest {
+    const pkg = this.resolver.getStrictResolvedPattern(pattern);
+
+    if (parent) {
+      let possibleIncluded = true;
+
+      // If the parent is ignored, not possibleIncluded
+      const parentRef = parent.pkg._reference;
+      if (!parentRef || parentRef.ignore) {
+        possibleIncluded = false;
+      }
+
+      // If the parent does not has pkg as direct dep, not possibleIncluded
+      const parentDeps = parent.pkg.dependencies;
+      if (!parentDeps || !parentDeps[pkg.name]) {
+        possibleIncluded = false;
+      }
+
+      // If possibleIncluded, set USED visibilty on devDep
+      // and prevent ignoring possible shared deps
+      const pkgRef = pkg._reference;
+      if (possibleIncluded && pkgRef && pkgRef.ignore) {
+        pkgRef.addVisibility(USED);
+      }
+    }
+
+    return pkg;
+  }
+
+  /**
    * Seed the hoister with a specific pattern.
    */
 
@@ -133,7 +168,7 @@ export default class PackageHoister {
     }
 
     //
-    const pkg = this.resolver.getStrictResolvedPattern(pattern);
+    const pkg = this.getPossibleHoistedPattern(pattern, parent);
     const ref = pkg._reference;
     invariant(ref, 'expected reference');
 

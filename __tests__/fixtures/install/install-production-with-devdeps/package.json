@@ -1,0 +1,9 @@
+{
+  "dependencies": {
+    "dep-a": "1.0.0",
+    "dep-e": "2.0.0"
+  },
+  "devDependencies": {
+    "dep-b": "1.0.0"
+  }
+}
