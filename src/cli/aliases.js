@@ -13,7 +13,8 @@ export default ({
   tst: 'test',
   un: 'remove',
   up: 'update',
-  v: 'info',
+  v: 'version',
+ 
 
   // affordances
   'add-user': 'login',
