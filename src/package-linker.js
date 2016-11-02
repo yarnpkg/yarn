@@ -4,7 +4,7 @@ import type {Manifest} from './types.js';
 import type PackageResolver from './package-resolver.js';
 import type {Reporter} from './reporters/index.js';
 import type Config from './config.js';
-import type {HoistManifest} from './package-hoister.js';
+import type {HoistManifestTuples} from './package-hoister.js';
 import type {CopyQueueItem} from './util/fs.js';
 import PackageHoister from './package-hoister.js';
 import * as constants from './constants.js';
@@ -108,7 +108,7 @@ export default class PackageLinker {
     }
   }
 
-  getFlatHoistedTree(patterns: Array<string>): Promise<Array<[string, HoistManifest]>> {
+  getFlatHoistedTree(patterns: Array<string>): Promise<HoistManifestTuples> {
     const hoister = new PackageHoister(this.config, this.resolver, this.ignoreOptional);
     hoister.seed(patterns);
     return Promise.resolve(hoister.init());
@@ -116,7 +116,7 @@ export default class PackageLinker {
 
   async copyModules(patterns: Array<string>): Promise<void> {
     let flatTree = await this.getFlatHoistedTree(patterns);
-    
+
     // sorted tree makes file creation and copying not to interfere with each other
     flatTree = flatTree.sort(function(dep1, dep2): number {
       return dep1[0].localeCompare(dep2[0]);
