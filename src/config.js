@@ -33,6 +33,7 @@ export type ConfigOptions = {
   ignoreEngines?: boolean,
   cafile?: ?string,
   production?: boolean,
+  binLinks?: boolean,
 
   // Loosely compare semver for invalid cases like "0.01.0"
   looseSemver?: ?boolean,
@@ -80,6 +81,7 @@ export default class Config {
   offline: boolean;
   preferOffline: boolean;
   ignorePlatform: boolean;
+  binLinks: boolean;
 
   //
   linkedModules: Array<string>;
@@ -220,8 +222,9 @@ export default class Config {
     this.cacheFolder = opts.cacheFolder || constants.MODULE_CACHE_DIRECTORY;
     this.linkFolder = opts.linkFolder || constants.LINK_REGISTRY_DIRECTORY;
     this.tempFolder = opts.tempFolder || path.join(this.cacheFolder, '.tmp');
-    this.offline = !!opts.offline;
     this.production = !!opts.production;
+    this.offline = !!opts.offline;
+    this.binLinks = !!opts.binLinks;
 
     this.ignorePlatform = !!opts.ignorePlatform;
     this.ignoreScripts = !!opts.ignoreScripts;
