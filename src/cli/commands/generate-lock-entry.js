@@ -38,7 +38,7 @@ export async function run(
     dependencies: manifest.dependencies,
   };
   const pattern = flags.pattern || `${entry.name}@${entry.version}`;
-  reporter.log(stringify({
+  console.log(stringify({
     [pattern]: implodeEntry(pattern, entry),
   }));
 }

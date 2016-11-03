@@ -1,6 +1,7 @@
 <!-- *Before creating an issue please make sure you are using the latest version of yarn.* -->
 
 **Do you want to request a *feature* or report a *bug*?**
+<!-- Is the feature a substantial feature request? Please use https://github.com/yarnpkg/rfcs -->
 
 **What is the current behavior?**
 
