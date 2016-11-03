@@ -155,11 +155,11 @@ export class Add extends Install {
 
 export function setFlags(commander: Object) {
   commander.usage('add [packages ...] [flags]');
-  commander.option('--dev', 'save package to your `devDependencies`');
-  commander.option('--peer', 'save package to your `peerDependencies`');
-  commander.option('--optional', 'save package to your `optionalDependencies`');
-  commander.option('--exact', 'install exact version');
-  commander.option('--tilde', 'install most recent release with the same minor version');
+  commander.option('--dev, -D', 'save package to your `devDependencies`');
+  commander.option('--peer, -P', 'save package to your `peerDependencies`');
+  commander.option('--optional, -O', 'save package to your `optionalDependencies`');
+  commander.option('--exact, E', 'install exact version');
+  commander.option('--tilde, -T', 'install most recent release with the same minor version');
 }
 
 export async function run(
