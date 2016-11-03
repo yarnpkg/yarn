@@ -62,7 +62,7 @@ function getGlobalPrefix(config: Config, flags: Object): string {
   if (flags.prefix) {
     return flags.prefix;
   } else if (config.getOption('prefix')) {
-    return config.getOption('prefix');
+    return String(config.getOption('prefix'));
   } else if (process.env.PREFIX) {
     return process.env.PREFIX;
   } else if (process.platform === 'win32') {
@@ -185,7 +185,7 @@ const {run, setFlags: _setFlags} = buildSubCommands('global', {
     flags: Object,
     args: Array<string>,
   ) {
-    console.log(getBinFolder());
+    console.log(getBinFolder(config, flags));
   },
 
   async ls(

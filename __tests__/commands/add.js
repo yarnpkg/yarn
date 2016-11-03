@@ -30,7 +30,7 @@ function runAdd(
 ): Promise<void> {
   return buildRun((config, reporter, lockfile): Install => {
     return new Add(args, flags, config, reporter, lockfile);
-  }, path.join(fixturesLoc, name), checkInstalled, beforeInstall, cleanupAfterInstall);
+  }, flags, path.join(fixturesLoc, name), checkInstalled, beforeInstall, cleanupAfterInstall);
 }
 
 test.concurrent('install with arg that has install scripts', (): Promise<void> => {
