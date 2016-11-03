@@ -8,7 +8,7 @@ import Lockfile from '../../lockfile/wrapper.js';
 import * as PackageReference from '../../package-reference.js';
 import PackageRequest from '../../package-request.js';
 import {buildTree} from './ls.js';
-import {wrapLifecycle, Install, _setFlags} from './install.js';
+import {wrapLifecycle, Install} from './install.js';
 import {MessageError} from '../../errors.js';
 
 const invariant = require('invariant');
@@ -104,18 +104,18 @@ export class Add extends Install {
 
       const parts = PackageRequest.normalizePattern(pattern);
       let version;
-      if (parts.hasVersion && parts.range) {
-        // if the user specified a range then use it verbatim
-        version = parts.range;
-      } else if (PackageRequest.getExoticResolver(pattern)) {
+      if (PackageRequest.getExoticResolver(pattern)) {
         // wasn't a name/range tuple so this is just a raw exotic pattern
         version = pattern;
+      } else if (parts.hasVersion && parts.range) {
+        // if the user specified a range then use it verbatim
+        version = parts.range;
       } else if (tilde) { // --save-tilde
         version = `~${pkg.version}`;
       } else if (exact) { // --save-exact
         version = pkg.version;
       } else { // default to save prefix
-        version = `${String(this.config.getOption('save-prefix'))}${pkg.version}`;
+        version = `${String(this.config.getOption('save-prefix') || '')}${pkg.version}`;
       }
 
       // build up list of objects to put ourselves into from the cli args
@@ -155,12 +155,11 @@ export class Add extends Install {
 
 export function setFlags(commander: Object) {
   commander.usage('add [packages ...] [flags]');
-  _setFlags(commander);
   commander.option('--dev', 'save package to your `devDependencies`');
   commander.option('--peer', 'save package to your `peerDependencies`');
   commander.option('--optional', 'save package to your `optionalDependencies`');
-  commander.option('--exact', '');
-  commander.option('--tilde', '');
+  commander.option('--exact', 'install exact version');
+  commander.option('--tilde', 'install most recent release with the same minor version');
 }
 
 export async function run(

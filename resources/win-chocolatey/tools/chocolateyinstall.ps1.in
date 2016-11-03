@@ -13,3 +13,16 @@ $packageArgs = @{
 }
 
 Install-ChocolateyPackage @packageArgs
+
+# Update Yarn's package.json file so it can tell that it was installed via Chocolatey.
+if (Test-Path "${env:ProgramFiles(x86)}\Yarn\package.json") {
+  $path = "${env:ProgramFiles(x86)}\Yarn\package.json"
+} else {
+  $path = "$env:ProgramFiles\Yarn\package.json"
+}
+$script = @"
+  `$package_manifest = Get-Content -Path '$path' | ConvertFrom-Json
+  `$package_manifest.installationMethod = 'choco'
+  ConvertTo-Json -InputObject `$package_manifest | Set-Content -Path '$path'
+"@
+Start-ChocolateyProcessAsAdmin -Statements $script

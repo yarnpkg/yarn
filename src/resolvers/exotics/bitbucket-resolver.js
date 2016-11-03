@@ -8,18 +8,19 @@ export default class BitbucketResolver extends HostedGitResolver {
   static protocol = 'bitbucket';
 
   static getTarballUrl(parts: ExplodedFragment, hash: string): string {
-    return `https://bitbucket.org/${parts.user}/${parts.repo}/get/${hash}.tar.gz`;
+    return `https://${this.hostname}/${parts.user}/${parts.repo}/get/${hash}.tar.gz`;
   }
 
   static getGitHTTPUrl(parts: ExplodedFragment): string {
-    return `https://bitbucket.org/${parts.user}/${parts.repo}.git`;
+    return `https://${this.hostname}/${parts.user}/${parts.repo}.git`;
   }
 
   static getGitSSHUrl(parts: ExplodedFragment): string {
-    return `git@bitbucket.org:${parts.user}/${parts.repo}.git`;
+    return `git+ssh://git@${this.hostname}/${parts.user}/${parts.repo}.git` +
+      `${parts.hash ? '#' + decodeURIComponent(parts.hash) : ''}`;
   }
 
   static getHTTPFileUrl(parts: ExplodedFragment, filename: string, commit: string): string {
-    return `https://bitbucket.org/${parts.user}/${parts.repo}/raw/${commit}/${filename}`;
+    return `https://${this.hostname}/${parts.user}/${parts.repo}/raw/${commit}/${filename}`;
   }
 }

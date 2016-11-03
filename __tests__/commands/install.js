@@ -1,6 +1,5 @@
 /* @flow */
 
-import {run as uninstall} from '../../src/cli/commands/remove.js';
 import {run as check} from '../../src/cli/commands/check.js';
 import * as reporters from '../../src/reporters/index.js';
 import {Install} from '../../src/cli/commands/install.js';
@@ -113,6 +112,10 @@ test.concurrent('install from offline mirror', (): Promise<void> => {
 
     assert(allFiles.findIndex((file): boolean => {
       return file.relative === path.join('node_modules', 'fake-dependency', 'package.json');
+    }) !== -1);
+
+    assert(allFiles.findIndex((file): boolean => {
+      return file.relative === path.join('node_modules', '@fakescope', 'fake-dependency', 'package.json');
     }) !== -1);
   });
 });
@@ -290,30 +293,27 @@ test.concurrent('install should dedupe dependencies avoiding conflicts 7', (): P
 
 test.concurrent('install should dedupe dependencies avoiding conflicts 8', (): Promise<void> => {
   // revealed in https://github.com/yarnpkg/yarn/issues/112
+  // adapted for https://github.com/yarnpkg/yarn/issues/1158
   return runInstall({}, 'install-should-dedupe-avoiding-conflicts-8', async (config) => {
     assert.equal(await getPackageVersion(config, 'glob'), '5.0.15');
-    assert.equal(await getPackageVersion(config, 'yeoman-generator/globby/glob'), '6.0.4');
+    assert.equal(await getPackageVersion(config, 'findup-sync/glob'), '4.3.5');
     assert.equal(await getPackageVersion(config, 'inquirer'), '0.8.5');
-    assert.equal(await getPackageVersion(config, 'yeoman-generator/yeoman-environment/inquirer'), '1.1.3');
     assert.equal(await getPackageVersion(config, 'lodash'), '3.10.1');
-    assert.equal(await getPackageVersion(config, 'yeoman-generator/yeoman-environment/lodash'), '4.15.0');
+    assert.equal(await getPackageVersion(config, 'ast-query/lodash'), '4.15.0');
     assert.equal(await getPackageVersion(config, 'run-async'), '0.1.0');
-    assert.equal(await getPackageVersion(config, 'yeoman-generator/yeoman-environment/run-async'), '2.2.0');
   });
 });
 
-
 test.concurrent('install should dedupe dependencies avoiding conflicts 9', (): Promise<void> => {
   // revealed in https://github.com/yarnpkg/yarn/issues/112
+  // adapted for https://github.com/yarnpkg/yarn/issues/1158
   return runInstall({}, 'install-should-dedupe-avoiding-conflicts-9', async (config) => {
     assert.equal(await getPackageVersion(config, 'glob'), '5.0.15');
-    assert.equal(await getPackageVersion(config, 'yeoman-generator/globby/glob'), '6.0.4');
+    assert.equal(await getPackageVersion(config, 'findup-sync/glob'), '4.3.5');
     assert.equal(await getPackageVersion(config, 'inquirer'), '0.8.5');
-    assert.equal(await getPackageVersion(config, 'yeoman-generator/yeoman-environment/inquirer'), '1.1.3');
     assert.equal(await getPackageVersion(config, 'lodash'), '3.10.1');
-    assert.equal(await getPackageVersion(config, 'yeoman-generator/yeoman-environment/lodash'), '4.15.0');
+    assert.equal(await getPackageVersion(config, 'ast-query/lodash'), '4.15.0');
     assert.equal(await getPackageVersion(config, 'run-async'), '0.1.0');
-    assert.equal(await getPackageVersion(config, 'yeoman-generator/yeoman-environment/run-async'), '2.2.0');
   });
 });
 
@@ -388,104 +388,6 @@ test.concurrent(
   },
 );
 
-test.concurrent(
-  'uninstall should remove dependency from package.json, yarn.lock and node_modules',
-  (): Promise<void> => {
-    const mirrorPath = 'mirror-for-offline';
-
-    return runInstall({}, 'uninstall-should-clean', async (config, reporter) => {
-      assert.equal(
-        await getPackageVersion(config, 'dep-a'),
-        '1.0.0',
-      );
-
-      await fs.copy(path.join(config.cwd, 'yarn.lock'), path.join(config.cwd, 'yarn.lock.orig'));
-      await fs.copy(path.join(config.cwd, 'package.json'), path.join(config.cwd, 'package.json.orig'));
-
-      try {
-        await uninstall(config, reporter, {}, ['dep-a']);
-
-        assert(!await fs.exists(path.join(config.cwd, 'node_modules/dep-a')));
-        assert(await fs.exists(path.join(config.cwd, `${mirrorPath}/dep-a-1.0.0.tgz`)));
-
-        assert.deepEqual(
-          JSON.parse(await fs.readFile(path.join(config.cwd, 'package.json'))).dependencies,
-          {},
-        );
-
-        const lockFileContent = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
-        const lockFileLines = explodeLockfile(lockFileContent);
-        assert.equal(lockFileLines.length, 0);
-      } finally {
-        await fs.unlink(path.join(config.cwd, 'yarn.lock'));
-        await fs.unlink(path.join(config.cwd, 'package.json'));
-        await fs.copy(path.join(config.cwd, 'yarn.lock.orig'), path.join(config.cwd, 'yarn.lock'));
-        await fs.copy(path.join(config.cwd, 'package.json.orig'), path.join(config.cwd, 'package.json'));
-        await fs.unlink(path.join(config.cwd, 'yarn.lock.orig'));
-        await fs.unlink(path.join(config.cwd, 'package.json.orig'));
-      }
-    });
-  },
-);
-
-test.concurrent('uninstall should remove subdependencies', (): Promise<void> => {
-  // A@1 -> B@1
-  // C@1
-
-  // remove A
-
-  // C@1
-
-  const mirrorPath = 'mirror-for-offline';
-
-  return runInstall({}, 'uninstall-should-remove-subdependencies', async (config, reporter) => {
-    try {
-      assert.equal(
-        await getPackageVersion(config, 'dep-a'),
-        '1.0.0',
-      );
-      assert.equal(
-        await getPackageVersion(config, 'dep-b'),
-        '1.0.0',
-      );
-      assert.equal(
-        await getPackageVersion(config, 'dep-c'),
-        '1.0.0',
-      );
-
-      await fs.copy(path.join(config.cwd, 'yarn.lock'), path.join(config.cwd, 'yarn.lock.orig'));
-      await fs.copy(path.join(config.cwd, 'package.json'), path.join(config.cwd, 'package.json.orig'));
-
-      await uninstall(config, reporter, {}, ['dep-a']);
-
-      assert(!await fs.exists(path.join(config.cwd, 'node_modules/dep-a')));
-      assert(!await fs.exists(path.join(config.cwd, 'node_modules/dep-b')));
-      assert(await fs.exists(path.join(config.cwd, 'node_modules/dep-c')));
-
-      assert(await fs.exists(path.join(config.cwd, `${mirrorPath}/dep-a-1.0.0.tgz`)));
-      assert(await fs.exists(path.join(config.cwd, `${mirrorPath}/dep-b-1.0.0.tgz`)));
-      assert(await fs.exists(path.join(config.cwd, `${mirrorPath}/dep-c-1.0.0.tgz`)));
-
-      assert.deepEqual(
-        JSON.parse(await fs.readFile(path.join(config.cwd, 'package.json'))).dependencies,
-        {'dep-c': '^1.0.0'},
-      );
-
-      const lockFileContent = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
-      const lockFileLines = explodeLockfile(lockFileContent);
-      assert.equal(lockFileLines.length, 3);
-      assert.equal(lockFileLines[0], 'dep-c@^1.0.0:');
-    } finally {
-      await fs.unlink(path.join(config.cwd, 'yarn.lock'));
-      await fs.unlink(path.join(config.cwd, 'package.json'));
-      await fs.copy(path.join(config.cwd, 'yarn.lock.orig'), path.join(config.cwd, 'yarn.lock'));
-      await fs.copy(path.join(config.cwd, 'package.json.orig'), path.join(config.cwd, 'package.json'));
-      await fs.unlink(path.join(config.cwd, 'yarn.lock.orig'));
-      await fs.unlink(path.join(config.cwd, 'package.json.orig'));
-    }
-  });
-});
-
 test.concurrent('check should verify that top level dependencies are installed correctly', (): Promise<void> => {
   return runInstall({}, 'check-top-correct', async (config, reporter) => {
 
@@ -552,6 +454,44 @@ test.concurrent('install should resolve circular dependencies 2', (): Promise<vo
     assert.equal(
       await getPackageVersion(config, 'es5-ext'),
       '0.10.12',
+    );
+  });
+});
+
+
+test('install should respect NODE_ENV=production', (): Promise<void> => {
+  const env = process.env.NODE_ENV;
+  process.env.NODE_ENV = 'production';
+  return runInstall({}, 'install-should-respect-node_env', async (config) => {
+    expect(await fs.exists(path.join(config.cwd, 'node_modules/is-negative-zero/package.json'))).toBe(false);
+    // restore env
+    process.env.NODE_ENV = env;
+  });
+});
+
+
+test.concurrent('install should resolve circular dependencies 2', (): Promise<void> => {
+  return runInstall({}, 'install-should-circumvent-circular-dependencies-2', async (config, reporter) => {
+    assert.equal(
+      await getPackageVersion(config, 'es5-ext'),
+      '0.10.12',
+    );
+  });
+});
+
+test.concurrent('install should be idempotent', (): Promise<void> => {
+  // Install a package twice
+  runInstall({}, 'install-should-be-idempotent', async (config, reporter) => {
+    assert.equal(
+      await getPackageVersion(config, 'dep-a'),
+      '1.0.0',
+    );
+  }, null, false);
+
+  return runInstall({}, 'install-should-be-idempotent', async (config, reporter) => {
+    assert.equal(
+      await getPackageVersion(config, 'dep-a'),
+      '1.0.0',
     );
   });
 });

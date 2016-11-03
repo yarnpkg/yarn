@@ -51,7 +51,7 @@ type Dependencies = {
   [key: string]: string
 };
 
-// package.json/bower.json etc
+// package.json
 export type Manifest = {
   _registry?: ?RegistryNames,
   _loc?: ?string,
@@ -130,6 +130,7 @@ export type FetchedMetadata = {
   resolved: ?string,
   hash: string,
   dest: string,
+  cached: boolean,
 };
 export type FetchedOverride = {
   hash: string,

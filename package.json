@@ -1,5 +1,6 @@
 {
   "name": "yarn",
+  "installationMethod": "unknown",
   "version": "0.16.2",
   "license": "BSD-2-Clause",
   "preferGlobal": true,

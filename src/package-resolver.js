@@ -13,6 +13,7 @@ import Lockfile from './lockfile/wrapper.js';
 import map from './util/map.js';
 
 const invariant = require('invariant');
+const semver = require('semver');
 
 export default class PackageResolver {
   constructor(config: Config, lockfile: Lockfile) {
@@ -378,6 +379,35 @@ export default class PackageResolver {
     }
 
     return null;
+  }
+
+  /**
+   * Get the manifest of the highest known version that satisfies a package range
+   */
+
+  getHighestRangeVersionMatch(name: string, range: string): ?Manifest {
+    const patterns = this.patternsByPackage[name];
+    if (!patterns) {
+      return null;
+    }
+
+    const versionNumbers = [];
+    const resolvedPatterns = patterns.map((pattern): Manifest => {
+      const info = this.getStrictResolvedPattern(pattern);
+      versionNumbers.push(info.version);
+
+      return info;
+    });
+
+    const maxValidRange = semver.maxSatisfying(versionNumbers, range);
+    if (!maxValidRange) {
+      return null;
+    }
+
+    const indexOfmaxValidRange = versionNumbers.indexOf(maxValidRange);
+    const maxValidRangeManifest = resolvedPatterns[indexOfmaxValidRange];
+
+    return maxValidRangeManifest;
   }
 
   /**

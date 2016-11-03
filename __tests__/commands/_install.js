@@ -21,10 +21,11 @@ export function runInstall(
   name: string,
   checkInstalled?: ?(config: Config, reporter: Reporter, install: Install) => ?Promise<void>,
   beforeInstall?: ?(cwd: string) => ?Promise<void>,
+  cleanupAfterInstall: boolean = true,
 ): Promise<void> {
   return run((config, reporter, lockfile): Install => {
     return new Install(flags, config, reporter, lockfile);
-  }, path.join(fixturesLoc, name), checkInstalled, beforeInstall);
+  }, path.join(fixturesLoc, name), checkInstalled, beforeInstall, cleanupAfterInstall);
 }
 
 export async function createLockfile(dir: string): Promise<Lockfile> {
@@ -54,6 +55,7 @@ export async function run(
   dir: string,
   checkInstalled: ?(config: Config, reporter: Reporter, install: Install) => ?Promise<void>,
   beforeInstall: ?(cwd: string) => ?Promise<void>,
+  cleanupAfterInstall: boolean,
 ): Promise<void> {
   const cwd = path.join(
     os.tmpdir(),
@@ -110,7 +112,9 @@ export async function run(
       }
     } finally {
       // clean up
-      await fs.unlink(cwd);
+      if (cleanupAfterInstall) {
+        await fs.unlink(cwd);
+      }
     }
   } catch (err) {
     throw new Error(`${err && err.stack} \nConsole output:\n ${out}`);

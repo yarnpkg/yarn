@@ -52,6 +52,5 @@ export function setFlags(commander: Object) {
 export const examples = [
   'generate-lock-entry',
   'generate-lock-entry --use-manifest ./package.json',
-  'generate-lock-entry --registry bower',
   'generate-lock-entry --resolved local-file.tgz#hash',
 ];
