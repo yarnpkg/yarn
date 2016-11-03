@@ -244,7 +244,8 @@ export default class Config {
     uid: string,
     version: string,
     registry: RegistryNames,
-    location: ?string
+    remote: PackageRemote,
+    location: ?string,
   }, ignoreLocation?: ?boolean): string {
     invariant(this.cacheFolder, 'No package root');
     invariant(pkg, 'Undefined package');
@@ -259,6 +260,13 @@ export default class Config {
     if (pkg.registry) {
       name = `${pkg.registry}-${name}`;
       uid = pkg.version || uid;
+    }
+
+    if (pkg.remote) {
+      const {hash} = pkg.remote;
+      if (hash) {
+        uid += `-${hash}`;
+      }
     }
 
     return path.join(this.cacheFolder, `${name}-${uid}`);
