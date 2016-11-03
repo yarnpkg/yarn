@@ -32,7 +32,7 @@ const isCI = require('is-ci');
 const path = require('path');
 const fs2 = require('fs');
 
-const YARN_VERSION = require('../../../package.json').version;
+const {verison: YARN_VERSION, installationMethod: YARN_INSTALL_METHOD} = require('../../../package.json');
 const ONE_DAY = 1000 * 60 * 60 * 24;
 
 export type InstallPrepared = {
@@ -81,23 +81,23 @@ type Flags = {
  */
 
 function getUpdateCommand(): ?string {
-  // Tarball install
-  if (fs2.existsSync(path.join(userHome, '.yarn'))) {
-    return 'yarn self-update';
+  if (YARN_INSTALL_METHOD === 'tar') {
+    return 'curl -o- -L https://yarnpkg.com/install.sh | bash';
   }
 
-  // OSX
-  if (fs2.existsSync('/usr/local/Cellar')) {
+  if (YARN_INSTALL_METHOD === 'homebrwe') {
     return 'brew upgrade yarn';
   }
 
-  // Debian
-  if (fs2.existsSync('/usr/share/lintian/overrides/yarn')) {
-    return 'sudo apt-get install yarn';
+  if (YARN_INSTALL_METHOD === 'deb') {
+    return 'sudo apt-get updat e&& sudo apt-get install yarn';
   }
 
-  // npm
-  if (__dirname.indexOf('node_modules') >= 0) {
+  if (YARN_INSTALL_METHOD === 'rpm') {
+    return 'sudo yum install yarn';
+  }
+
+  if (YARN_INSTALL_METHOD === 'npm') {
     return 'npm upgrade --global yarn';
   }
 
@@ -106,7 +106,7 @@ function getUpdateCommand(): ?string {
 
 function getUpdateInstaller(): ?string {
   // Windows
-  if (fs2.existsSync('C:/Program Files/Yarn') || fs2.existsSync('C:/Program Files (x86)/Yarn')) {
+  if (YARN_INSTALL_METHOD === 'msi') {
     return 'https://yarnpkg.com/latest.msi';
   }
 
@@ -735,7 +735,8 @@ export class Install {
 
         const command = getUpdateCommand();
         if (command) {
-          this.reporter.info(this.reporter.lang('yarnOutdatedCommand', command));
+          this.reporter.info(this.reporter.lang('yarnOutdatedCommand'));
+          this.reporter.command(command);
         } else {
           const installer = getUpdateInstaller();
           if (installer) {
