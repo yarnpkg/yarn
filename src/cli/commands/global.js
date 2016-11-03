@@ -3,6 +3,7 @@
 import type {Reporter} from '../../reporters/index.js';
 import type {Manifest} from '../../types.js';
 import type Config from '../../config.js';
+import {MessageError} from '../../errors.js';
 import {registries} from '../../registries/index.js';
 import NoopReporter from '../../reporters/base-reporter.js';
 import buildSubCommands from './_build-sub-commands.js';
@@ -10,6 +11,7 @@ import Lockfile from '../../lockfile/wrapper.js';
 import {Install} from './install.js';
 import {Add} from './add.js';
 import {run as runRemove} from './remove.js';
+import {run as runUpgrade} from './upgrade.js';
 import {linkBin} from '../../package-linker.js';
 import * as fs from '../../util/fs.js';
 
@@ -56,8 +58,12 @@ async function getBins(config: Config): Promise<Set<string>> {
   return paths;
 }
 
-function getGlobalPrefix(): string {
-  if (process.env.PREFIX) {
+function getGlobalPrefix(config: Config, flags: Object): string {
+  if (flags.prefix) {
+    return flags.prefix;
+  } else if (config.getOption('prefix')) {
+    return config.getOption('prefix');
+  } else if (process.env.PREFIX) {
     return process.env.PREFIX;
   } else if (process.platform === 'win32') {
     // c:\node\node.exe --> prefix=c:\node\
@@ -75,8 +81,8 @@ function getGlobalPrefix(): string {
   }
 }
 
-function getBinFolder(): string {
-  const prefix = getGlobalPrefix();
+function getBinFolder(config: Config, flags: Object): string {
+  const prefix = getGlobalPrefix(config, flags);
   if (process.platform === 'win32') {
     return prefix;
   } else {
@@ -84,9 +90,17 @@ function getBinFolder(): string {
   }
 }
 
-async function initUpdateBins(config: Config, reporter: Reporter): Promise<() => Promise<void>> {
+async function initUpdateBins(config: Config, reporter: Reporter, flags: Object): Promise<() => Promise<void>> {
   const beforeBins = await getBins(config);
-  const binFolder = getBinFolder();
+  const binFolder = getBinFolder(config, flags);
+
+  function throwPermError(err: Error & { [code: string]: string }, dest: string) {
+    if (err.code === 'EACCES') {
+      throw new MessageError(reporter.lang('noFilePermission', dest));
+    } else {
+      throw err;
+    }
+  }
 
   return async function(): Promise<void> {
     const afterBins = await getBins(config);
@@ -100,7 +114,11 @@ async function initUpdateBins(config: Config, reporter: Reporter): Promise<() =>
 
       // remove old bin
       const dest = path.join(binFolder, path.basename(src));
-      await fs.unlink(dest);
+      try {
+        await fs.unlink(dest);
+      } catch (err) {
+        throwPermError(err, dest);
+      }
     }
 
     // add new bins
@@ -112,8 +130,12 @@ async function initUpdateBins(config: Config, reporter: Reporter): Promise<() =>
 
       // insert new bin
       const dest = path.join(binFolder, path.basename(src));
-      await fs.unlink(dest);
-      await linkBin(src, dest);
+      try {
+        await fs.unlink(dest);
+        await linkBin(src, dest);
+      } catch (err) {
+        throwPermError(err, dest);
+      }
     }
   };
 }
@@ -137,7 +159,7 @@ export function hasWrapper(flags: Object, args: Array<string>): boolean {
   return args[0] !== 'bin';
 }
 
-export const {run, setFlags} = buildSubCommands('global', {
+const {run, setFlags: _setFlags} = buildSubCommands('global', {
   async add(
     config: Config,
     reporter: Reporter,
@@ -146,7 +168,7 @@ export const {run, setFlags} = buildSubCommands('global', {
   ): Promise<void> {
     await updateCwd(config);
 
-    const updateBins = await initUpdateBins(config, reporter);
+    const updateBins = await initUpdateBins(config, reporter, flags);
 
     // install module
     const lockfile = await Lockfile.fromDirectory(config.cwd);
@@ -194,7 +216,7 @@ export const {run, setFlags} = buildSubCommands('global', {
   ): Promise<void> {
     await updateCwd(config);
 
-    const updateBins = await initUpdateBins(config, reporter);
+    const updateBins = await initUpdateBins(config, reporter, flags);
 
     // remove module
     await runRemove(config, reporter, flags, args);
@@ -202,4 +224,28 @@ export const {run, setFlags} = buildSubCommands('global', {
     // remove binaries
     await updateBins();
   },
+
+  async upgrade(
+    config: Config,
+    reporter: Reporter,
+    flags: Object,
+    args: Array<string>,
+  ): Promise<void> {
+    await updateCwd(config);
+
+    const updateBins = await initUpdateBins(config, reporter, flags);
+
+    // upgrade module
+    await runUpgrade(config, reporter, flags, args);
+
+    // update binaries
+    await updateBins();
+  },
 });
+
+export {run};
+
+export function setFlags(commander: Object) {
+  _setFlags(commander);
+  commander.option('--prefix <prefix>', 'bin prefix to use to install binaries');
+}

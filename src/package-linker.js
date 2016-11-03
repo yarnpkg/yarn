@@ -4,7 +4,7 @@ import type {Manifest} from './types.js';
 import type PackageResolver from './package-resolver.js';
 import type {Reporter} from './reporters/index.js';
 import type Config from './config.js';
-import type {HoistManifest} from './package-hoister.js';
+import type {HoistManifestTuples} from './package-hoister.js';
 import type {CopyQueueItem} from './util/fs.js';
 import PackageHoister from './package-hoister.js';
 import * as constants from './constants.js';
@@ -108,7 +108,7 @@ export default class PackageLinker {
     }
   }
 
-  getFlatHoistedTree(patterns: Array<string>): Promise<Array<[string, HoistManifest]>> {
+  getFlatHoistedTree(patterns: Array<string>): Promise<HoistManifestTuples> {
     const hoister = new PackageHoister(this.config, this.resolver, this.ignoreOptional);
     hoister.seed(patterns);
     return Promise.resolve(hoister.init());
@@ -116,7 +116,7 @@ export default class PackageLinker {
 
   async copyModules(patterns: Array<string>): Promise<void> {
     let flatTree = await this.getFlatHoistedTree(patterns);
-    
+
     // sorted tree makes file creation and copying not to interfere with each other
     flatTree = flatTree.sort(function(dep1, dep2): number {
       return dep1[0].localeCompare(dep2[0]);
@@ -184,12 +184,14 @@ export default class PackageLinker {
     });
 
     //
-    const tickBin = this.reporter.progress(flatTree.length);
-    await promise.queue(flatTree, async ([dest, {pkg}]) => {
-      const binLoc = path.join(dest, this.config.getFolder(pkg));
-      await this.linkBinDependencies(pkg, binLoc);
-      tickBin(dest);
-    }, 4);
+    if (this.config.binLinks) {
+      const tickBin = this.reporter.progress(flatTree.length);
+      await promise.queue(flatTree, async ([dest, {pkg}]) => {
+        const binLoc = path.join(this.config.cwd, this.config.getFolder(pkg));
+        await this.linkBinDependencies(pkg, binLoc);
+        tickBin(dest);
+      }, 4);
+    }
   }
 
   resolvePeerModules() {
@@ -270,7 +272,7 @@ export default class PackageLinker {
     const src = this.config.generateHardModulePath(ref);
 
     // link bins
-    if (resolved.bin && Object.keys(resolved.bin).length) {
+    if (this.config.binLinks && resolved.bin && Object.keys(resolved.bin).length) {
       const folder = this.config.modulesFolder || path.join(this.config.cwd, this.config.getFolder(resolved));
       const binLoc = path.join(folder, '.bin');
       await fs.mkdirp(binLoc);

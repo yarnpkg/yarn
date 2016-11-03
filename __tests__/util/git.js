@@ -2,6 +2,8 @@
 
 import Git from '../../src/util/git.js';
 
+jasmine.DEFAULT_TIMEOUT_INTERVAL = 90000;
+
 test('cleanUrl', () => {
   expect(Git.cleanUrl('git+https://github.com/npm-opam/ocamlfind.git'))
     .toEqual('https://github.com/npm-opam/ocamlfind.git');
@@ -35,7 +37,7 @@ async function toThrow(f): Promise <boolean> {
   }
 }
 
-test('secureUrl', async function (): Promise<void> {
+xit('secureUrl', async function (): Promise<void> {
   expect(await
          toThrow(() => {
            return Git.secureUrl('http://random.repo', '');

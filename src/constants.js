@@ -39,8 +39,16 @@ function getDirectory(type: string): string {
   return path.join(userHome, `.yarn-${type}`);
 }
 
+function getCacheDirectory(): string {
+  if (process.platform === 'darwin') {
+    return path.join(userHome, 'Library', 'Caches', 'Yarn');
+  }
+
+  return getDirectory('cache');
+}
+
 export const GLOBAL_INSTALL_DIRECTORY = path.join(userHome, '.yarn');
-export const MODULE_CACHE_DIRECTORY = getDirectory('cache');
+export const MODULE_CACHE_DIRECTORY = getCacheDirectory();
 export const LINK_REGISTRY_DIRECTORY = getDirectory('config/link');
 export const GLOBAL_MODULE_DIRECTORY = getDirectory('config/global');
 export const CACHE_FILENAME = path.join(GLOBAL_INSTALL_DIRECTORY, '.roadrunner.json');

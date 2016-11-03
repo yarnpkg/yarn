@@ -104,12 +104,12 @@ export class Add extends Install {
 
       const parts = PackageRequest.normalizePattern(pattern);
       let version;
-      if (parts.hasVersion && parts.range) {
-        // if the user specified a range then use it verbatim
-        version = parts.range;
-      } else if (PackageRequest.getExoticResolver(pattern)) {
+      if (PackageRequest.getExoticResolver(pattern)) {
         // wasn't a name/range tuple so this is just a raw exotic pattern
         version = pattern;
+      } else if (parts.hasVersion && parts.range) {
+        // if the user specified a range then use it verbatim
+        version = parts.range;
       } else if (tilde) { // --save-tilde
         version = `~${pkg.version}`;
       } else if (exact) { // --save-exact
@@ -155,11 +155,11 @@ export class Add extends Install {
 
 export function setFlags(commander: Object) {
   commander.usage('add [packages ...] [flags]');
-  commander.option('--dev', 'save package to your `devDependencies`');
-  commander.option('--peer', 'save package to your `peerDependencies`');
-  commander.option('--optional', 'save package to your `optionalDependencies`');
-  commander.option('--exact', 'install exact version');
-  commander.option('--tilde', 'install most recent release with the same minor version');
+  commander.option('--dev, -D', 'save package to your `devDependencies`');
+  commander.option('--peer, -P', 'save package to your `peerDependencies`');
+  commander.option('--optional, -O', 'save package to your `optionalDependencies`');
+  commander.option('--exact, -E', 'install exact version');
+  commander.option('--tilde, -T', 'install most recent release with the same minor version');
 }
 
 export async function run(

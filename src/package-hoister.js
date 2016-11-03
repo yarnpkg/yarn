@@ -427,3 +427,6 @@ export default class PackageHoister {
     return visibleFlatTree;
   }
 }
+
+export type HoistManifestTuple = [string, HoistManifest];
+export type HoistManifestTuples = Array<HoistManifestTuple>;

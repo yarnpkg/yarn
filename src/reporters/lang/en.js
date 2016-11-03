@@ -21,7 +21,7 @@ const messages = {
   clearedCache: 'Cleared cache.',
   packWroteTarball: 'Wrote tarball to $0.',
 
-  manifestPotentialType: 'Potential typo $0, did you mean $1?',
+  manifestPotentialTypo: 'Potential typo $0, did you mean $1?',
   manifestBuiltinModule: '$0 is also the name of a node core module',
   manifestNameDot: "Name can't start with a dot",
   manifestNameIllegalChars: 'Name contains illegal characters',
@@ -72,8 +72,10 @@ const messages = {
   noVersion: `Package doesn't have a version.`,
   answerRequired: 'An answer is required.',
   missingWhyDependency: 'Missing package name, folder or path to file to identify why a package has been installed',
-  unexpectedError: 'An unexpected error occurred, please open a bug report with the information provided in $0.',
+  bugReport: 'If you think this is a bug, please open a bug report with the information provided in $0.',
+  unexpectedError: 'An unexpected error occurred: $0.',
   jsonError: 'Error parsing JSON at $0, $1.',
+  noFilePermission: "We don't have permissions to touch the file $0.",
 
   tooManyArguments: 'Too many arguments, maximum of $0.',
   tooFewArguments: 'Not enough arguments, expected at least $0.',

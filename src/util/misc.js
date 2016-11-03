@@ -1,5 +1,7 @@
 /* @flow */
 
+const _camelCase = require('camelcase');
+
 export function sortAlpha(a: string, b: string): number {
   // sort alphabetically
   return a.toLowerCase().localeCompare(b.toLowerCase());
@@ -37,4 +39,18 @@ export function addSuffix(pattern: string, suffix: string): string {
   }
 
   return pattern;
+}
+
+export function hyphenate(str: string): string {
+  return str.replace(/[A-Z]/g, (match) => {
+    return '-' + match.charAt(0).toLowerCase();
+  });
+}
+
+export function camelCase(str: string): ?string {
+  if (/[A-Z]/.test(str)) {
+    return null;
+  } else {
+    return _camelCase(str);
+  }
 }

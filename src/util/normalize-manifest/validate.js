@@ -48,7 +48,7 @@ export default function(info: Object, isRoot: boolean, reporter: Reporter, warn:
   if (isRoot) {
     for (const key in typos) {
       if (key in info) {
-        warn(reporter.lang('manifestPotentialType', key, typos[key]));
+        warn(reporter.lang('manifestPotentialTypo', key, typos[key]));
       }
     }
   }
