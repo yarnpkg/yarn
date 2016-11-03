@@ -243,7 +243,7 @@ export default class Config {
   generateHardModulePath(pkg: ?PackageReference, ignoreLocation?: ?boolean): string {
     invariant(this.cacheFolder, 'No package root');
     invariant(pkg, 'Undefined package');
-    
+
     if (pkg.location && !ignoreLocation) {
       return pkg.location;
     }
