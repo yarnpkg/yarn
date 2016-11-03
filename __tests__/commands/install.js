@@ -519,6 +519,14 @@ test.concurrent(
   },
 );
 
+test.concurrent('install should hoist nested bin scripts', (): Promise<void> => {
+  return runInstall({}, 'install-nested-bin', async (config) => {
+    const binScripts = await fs.walk(path.join(config.cwd, 'node_modules', '.bin'));
+    assert.equal(binScripts.length, 10);
+    assert(binScripts.findIndex((f) => f.basename === 'eslint') > -1);
+  });
+});
+
 
 xit('install should update a dependency to yarn and mirror (PR import scenario 2)', (): Promise<void> => {
   // mime-types@2.0.0 is saved in local mirror and gets updated to mime-types@2.1.11 via
