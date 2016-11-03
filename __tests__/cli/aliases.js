@@ -13,7 +13,7 @@ test('shorthands and affordances', () => {
   expect(aliases['tst']).toBe('test');
   expect(aliases['un']).toBe('remove');
   expect(aliases['up']).toBe('update');
-  expect(aliases['v']).toBe('info');
+  expect(aliases['v']).toBe('version');
   expect(aliases['add-user']).toBe('login');
   expect(aliases['dist-tag']).toBe('tag');
   expect(aliases['dist-tags']).toBe('tag');
