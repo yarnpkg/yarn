@@ -161,6 +161,6 @@ export async function run(
     filteredPatterns = patterns;
   }
 
-  const {trees} = await buildTree(install.resolver, install.linker, patterns);
+  const {trees} = await buildTree(install.resolver, install.linker, filteredPatterns);
   reporter.tree('ls', trees);
 }
