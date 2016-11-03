@@ -186,7 +186,7 @@ export default class PackageLinker {
     //
     const tickBin = this.reporter.progress(flatTree.length);
     await promise.queue(flatTree, async ([dest, {pkg}]) => {
-      const binLoc = path.join(dest, this.config.getFolder(pkg));
+      const binLoc = path.join(this.config.cwd, this.config.getFolder(pkg));
       await this.linkBinDependencies(pkg, binLoc);
       tickBin(dest);
     }, 4);
