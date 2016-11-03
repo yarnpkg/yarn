@@ -38,6 +38,17 @@ test('getGitHTTPUrl should return the correct git github SSH url', () => {
   expect(GitHubResolver.getGitSSHUrl(fragment)).toBe(expected);
 });
 
+test('getGitHTTPUrl with hash should return the correct git github SSH url', () => {
+  const fragment: ExplodedFragment = {
+    user: 'foo',
+    repo: 'bar',
+    hash: 'hash',
+  };
+
+  const expected =  'git+ssh://git@github.com/' + fragment.user + '/' + fragment.repo + '.git#hash';
+  expect(GitHubResolver.getGitSSHUrl(fragment)).toBe(expected);
+});
+
 test('getGitSSHUrl should return URL containing protocol', () => {
   const gitSSHUrl = GitHubResolver.getGitSSHUrl({
     hash: '',
