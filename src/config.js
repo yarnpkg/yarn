@@ -3,6 +3,7 @@
 import type {RegistryNames, ConfigRegistries} from './registries/index.js';
 import type {Reporter} from './reporters/index.js';
 import type {Manifest, PackageRemote} from './types.js';
+import type PackageReference from './package-reference.js';
 import {execFromManifest} from './util/execute-lifecycle-script.js';
 import normalizeManifest from './util/normalize-manifest/index.js';
 import {MessageError} from './errors.js';
@@ -239,17 +240,10 @@ export default class Config {
    * Generate an absolute module path.
    */
 
-  generateHardModulePath(pkg: ?{
-    name: string,
-    uid: string,
-    version: string,
-    registry: RegistryNames,
-    location: ?string
-  }, ignoreLocation?: ?boolean): string {
+  generateHardModulePath(pkg: ?PackageReference, ignoreLocation?: ?boolean): string {
     invariant(this.cacheFolder, 'No package root');
     invariant(pkg, 'Undefined package');
-    invariant(pkg.name, 'No name field in package');
-    invariant(pkg.uid, 'No uid field in package');
+    
     if (pkg.location && !ignoreLocation) {
       return pkg.location;
     }
