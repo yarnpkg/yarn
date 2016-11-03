@@ -20,10 +20,13 @@ type Dict<T> = {
   [key: string]: T;
 };
 
+type WarnFunction = (msg: string) => void;
+
 export default async function (
   info: Dict<mixed>,
   moduleLoc: string,
   reporter: Reporter,
+  warn: WarnFunction,
   looseSemver: boolean,
 ): Promise<void> {
   const files = await fs.readdir(moduleLoc);
@@ -185,11 +188,17 @@ export default async function (
     if (!info.bin && binDir && typeof binDir === 'string') {
       const bin = info.bin = {};
 
-      for (const scriptName of await fs.readdir(path.join(moduleLoc, binDir))) {
-        if (scriptName[0] === '.') {
-          continue;
+      try {
+        for (const scriptName of await fs.readdir(path.join(moduleLoc, binDir))) {
+          if (scriptName[0] === '.') {
+            continue;
+          }
+          bin[scriptName] = path.join('.', binDir, scriptName);
         }
-        bin[scriptName] = path.join('.', binDir, scriptName);
+      } catch (err) {
+        if (err.code && err.code === 'ENOTENT') {
+          warn(reporter.lang('manifestDirectoryNotFound', binDir, info.name));
+        }
       }
     }
 
@@ -198,9 +207,15 @@ export default async function (
     if  (!info.man && typeof manDir === 'string') {
       const man = info.man = [];
 
-      for (const filename of await fs.readdir(path.join(moduleLoc, manDir))) {
-        if (/^(.*?)\.[0-9]$/.test(filename)) {
-          man.push(path.join('.', manDir, filename));
+      try {
+        for (const filename of await fs.readdir(path.join(moduleLoc, manDir))) {
+          if (/^(.*?)\.[0-9]$/.test(filename)) {
+            man.push(path.join('.', manDir, filename));
+          }
+        }
+      } catch (err) {
+        if (err.code && err.code === 'ENOTENT') {
+          warn(reporter.lang('manifestDirectoryNotFound', manDir, info.name));
         }
       }
     }
