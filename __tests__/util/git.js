@@ -2,6 +2,8 @@
 
 import Git from '../../src/util/git.js';
 
+jasmine.DEFAULT_TIMEOUT_INTERVAL = 90000;
+
 test('cleanUrl', () => {
   expect(Git.cleanUrl('git+https://github.com/npm-opam/ocamlfind.git'))
     .toEqual('https://github.com/npm-opam/ocamlfind.git');
