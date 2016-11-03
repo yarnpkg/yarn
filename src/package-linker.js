@@ -184,12 +184,14 @@ export default class PackageLinker {
     });
 
     //
-    const tickBin = this.reporter.progress(flatTree.length);
-    await promise.queue(flatTree, async ([dest, {pkg}]) => {
-      const binLoc = path.join(this.config.cwd, this.config.getFolder(pkg));
-      await this.linkBinDependencies(pkg, binLoc);
-      tickBin(dest);
-    }, 4);
+    if (this.config.binLinks) {
+      const tickBin = this.reporter.progress(flatTree.length);
+      await promise.queue(flatTree, async ([dest, {pkg}]) => {
+        const binLoc = path.join(this.config.cwd, this.config.getFolder(pkg));
+        await this.linkBinDependencies(pkg, binLoc);
+        tickBin(dest);
+      }, 4);
+    }
   }
 
   resolvePeerModules() {
@@ -270,7 +272,7 @@ export default class PackageLinker {
     const src = this.config.generateHardModulePath(ref);
 
     // link bins
-    if (resolved.bin && Object.keys(resolved.bin).length) {
+    if (this.config.binLinks && resolved.bin && Object.keys(resolved.bin).length) {
       const folder = this.config.modulesFolder || path.join(this.config.cwd, this.config.getFolder(resolved));
       const binLoc = path.join(folder, '.bin');
       await fs.mkdirp(binLoc);
