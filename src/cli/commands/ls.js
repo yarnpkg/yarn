@@ -5,13 +5,13 @@ import type Config from '../../config.js';
 import type PackageResolver from '../../package-resolver.js';
 import type PackageLinker from '../../package-linker.js';
 import type {Trees} from '../../reporters/types.js';
+import {MessageError} from '../../errors.js';
 import {Install} from './install.js';
 import Lockfile from '../../lockfile/wrapper.js';
 
 const invariant = require('invariant');
 
 export const requireLockfile = true;
-export const noArguments = true;
 
 function buildCount(trees: ?Trees): number {
   if (!trees || !trees.length) {
@@ -135,6 +135,31 @@ export async function run(
   const install = new Install(flags, config, reporter, lockfile);
   const [depRequests, patterns] = await install.fetchRequestFromCwd();
   await install.resolver.init(depRequests, install.flags.flat);
+
+  let filteredPatterns: Array<string> = [];
+
+  if (args.length) {
+    const matchedArgs: Array<string> = [];
+
+    for (const pattern of patterns) {
+      const pkg = install.resolver.getStrictResolvedPattern(pattern);
+
+      // ignore patterns if their package names have been specified in arguments
+      if (args.indexOf(pkg.name) >= 0) {
+        matchedArgs.push(pkg.name);
+        filteredPatterns.push(pattern);
+      }
+    }
+
+    // throw an error if any package names were passed to filter that don't exist
+    for (const arg of args) {
+      if (matchedArgs.indexOf(arg) < 0) {
+        throw new MessageError(reporter.lang('unknownPackage', arg));
+      }
+    }
+  } else {
+    filteredPatterns = patterns;
+  }
 
   const {trees} = await buildTree(install.resolver, install.linker, patterns);
   reporter.tree('ls', trees);
