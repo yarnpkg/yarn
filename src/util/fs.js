@@ -255,28 +255,46 @@ export async function copyBulk(
   events.onStart(actions.length);
 
   const fileActions: Array<CopyFileAction> = (actions.filter((action) => action.type === 'file'): any);
-  await promise.queue(fileActions, (data): Promise<void> => new Promise((resolve, reject) => {
-    const readStream = fs.createReadStream(data.src);
-    const writeStream = fs.createWriteStream(data.dest, {mode: data.mode});
 
-    readStream.on('error', reject);
-    writeStream.on('error', reject);
+  const currentlyWriting: { [dest: string]: Promise<void> } = {};
 
-    writeStream.on('open', function() {
-      readStream.pipe(writeStream);
-    });
+  await promise.queue(fileActions, async (data): Promise<void> => {
+    let writePromise: Promise<void>;
+    while (writePromise = currentlyWriting[data.dest]) {
+      await writePromise;
+    }
 
-    writeStream.once('finish', function() {
-      fs.utimes(data.dest, data.atime, data.mtime, function(err) {
-        if (err) {
-          reject(err);
-        } else {
-          events.onProgress(data.dest);
-          resolve();
-        }
+    const cleanup = () => delete currentlyWriting[data.dest];
+    return currentlyWriting[data.dest] = new Promise((resolve, reject) => {
+      const readStream = fs.createReadStream(data.src);
+      const writeStream = fs.createWriteStream(data.dest, {mode: data.mode});
+
+      readStream.on('error', reject);
+      writeStream.on('error', reject);
+
+      writeStream.on('open', function() {
+        readStream.pipe(writeStream);
       });
+
+      writeStream.once('finish', function() {
+        fs.utimes(data.dest, data.atime, data.mtime, function(err) {
+          if (err) {
+            reject(err);
+          } else {
+            events.onProgress(data.dest);
+            cleanup();
+            resolve();
+          }
+        });
+      });
+    }).then((arg) => {
+      cleanup();
+      return arg;
+    }).catch((arg) => {
+      cleanup();
+      throw arg;
     });
-  }), 4);
+  }, 4);
 
   // we need to copy symlinks last as the could reference files we were copying
   const symlinkActions: Array<CopySymlinkAction> = (actions.filter((action) => action.type === 'symlink'): any);
