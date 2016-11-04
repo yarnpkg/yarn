@@ -36,6 +36,7 @@ export default class FileResolver extends ExoticResolver {
     manifest._remote = {
       type: 'copy',
       registry,
+      hash: null,
       reference: loc,
     };
 

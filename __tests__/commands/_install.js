@@ -90,7 +90,9 @@ export async function run(
   const lockfile = await createLockfile(cwd);
 
   // create directories
-  await fs.mkdirp(path.join(cwd, '.yarn'));
+  await fs.mkdirp(path.join(cwd, '.yarn-global'));
+  await fs.mkdirp(path.join(cwd, '.yarn-link'));
+  await fs.mkdirp(path.join(cwd, '.yarn-cache'));
   await fs.mkdirp(path.join(cwd, 'node_modules'));
 
   try {
@@ -98,9 +100,9 @@ export async function run(
     await config.init({
       binLinks: !!flags.binLinks,
       cwd,
-      globalFolder: path.join(cwd, '.yarn/.global'),
-      cacheFolder: path.join(cwd, '.yarn'),
-      linkFolder: path.join(cwd, '.yarn/.link'),
+      globalFolder: path.join(cwd, '.yarn-global'),
+      cacheFolder: path.join(cwd, '.yarn-cache'),
+      linkFolder: path.join(cwd, '.yarn-link'),
     });
 
     const install = factory(config, reporter, lockfile);
@@ -115,7 +117,7 @@ export async function run(
     } finally {
       // clean up
       if (cleanupAfterInstall) {
-        await fs.unlink(cwd);
+        //await fs.unlink(cwd);
       }
     }
   } catch (err) {

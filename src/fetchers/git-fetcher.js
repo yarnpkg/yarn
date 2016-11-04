@@ -63,10 +63,10 @@ export default class GitFetcher extends BaseFetcher {
   }
 
   async fetchFromExternal(): Promise<FetchedOverride> {
-    const hash = this.hash;
-    invariant(hash, 'Commit hash required');
+    const commit = this.hash;
+    invariant(commit, 'Commit hash required');
 
-    const git = new Git(this.config, this.reference, hash);
+    const git = new Git(this.config, this.reference, commit);
     await git.init();
     await git.clone(this.dest);
 
@@ -83,20 +83,18 @@ export default class GitFetcher extends BaseFetcher {
 
     const mirrorRootPath = this.config.getOfflineMirrorPath();
     if (tarballInMirrorPath && this.hash && mirrorRootPath) {
-      tarballInMirrorPath = `${tarballInMirrorPath}-${this.hash}`;
+      tarballInMirrorPath = `${tarballInMirrorPath}-${commit}`;
       const hash = await git.archive(tarballInMirrorPath);
       const relativeMirrorPath = path.relative(mirrorRootPath, tarballInMirrorPath);
       return {
-        hash,
+        hash: commit,
         resolved: relativeMirrorPath ? `${relativeMirrorPath}#${hash}` : null,
       };
     }
 
     return {
-      hash,
+      hash: commit,
       resolved: null,
     };
   }
-
-
 }
