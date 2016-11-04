@@ -25,7 +25,7 @@ export function runInstall(
 ): Promise<void> {
   return run((config, reporter, lockfile): Install => {
     return new Install(flags, config, reporter, lockfile);
-  }, path.join(fixturesLoc, name), checkInstalled, beforeInstall, cleanupAfterInstall);
+  }, flags, path.join(fixturesLoc, name), checkInstalled, beforeInstall, cleanupAfterInstall);
 }
 
 export async function createLockfile(dir: string): Promise<Lockfile> {
@@ -52,6 +52,7 @@ export async function getPackageVersion(config: Config, packagePath: string): Pr
 
 export async function run(
   factory: (config: Config, reporter: Reporter, lockfile: Lockfile) => Install,
+  flags: Object,
   dir: string,
   checkInstalled: ?(config: Config, reporter: Reporter, install: Install) => ?Promise<void>,
   beforeInstall: ?(cwd: string) => ?Promise<void>,
@@ -95,6 +96,7 @@ export async function run(
   try {
     const config = new Config(reporter);
     await config.init({
+      binLinks: !!flags.binLinks,
       cwd,
       globalFolder: path.join(cwd, '.yarn/.global'),
       cacheFolder: path.join(cwd, '.yarn'),
