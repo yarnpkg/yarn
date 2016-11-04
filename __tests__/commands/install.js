@@ -538,8 +538,8 @@ test.concurrent('install should respect --no-bin-links flag', (): Promise<void> 
 });
 
 
-xit('install should update a dependency to yarn and mirror (PR import scenario 2)', (): Promise<void> => {
-  // mime-types@2.0.0 is saved in local mirror and gets updated to mime-types@2.1.11 via
+test.concurrent('install should update a dependency to yarn and mirror (PR import scenario 2)', (): Promise<void> => {
+  // mime-types@2.0.0 is gets updated to mime-types@2.1.11 via
   // a change in package.json,
   // files in mirror, yarn.lock, package.json and node_modules should reflect that
 

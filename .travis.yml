@@ -55,4 +55,4 @@ os:
   #- osx
   - linux
 
-script: npm run $TEST_TYPE
+script: yarn $TEST_TYPE
