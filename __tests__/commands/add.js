@@ -238,8 +238,7 @@ test.concurrent('add with new dependency should be deterministic', (): Promise<v
   });
 });
 
-// TODO https://github.com/facebook/yarn/issues/79
-xit('add with new dependency should be deterministic 2', (): Promise<void> => {
+test.concurrent('add with new dependency should be deterministic 2', (): Promise<void> => {
   // mime-types@2.0.0->mime-db@1.0.1 is saved in local mirror and is deduped
   // install mime-db@1.0.3 should replace mime-db@1.0.1 in root
 
@@ -275,7 +274,8 @@ xit('add with new dependency should be deterministic 2', (): Promise<void> => {
 
       const lockFileWritten = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
       const lockFileLines = explodeLockfile(lockFileWritten);
-      assert.equal(lockFileLines.length, 8);
+      // see why we don't cleanup lockfile https://github.com/yarnpkg/yarn/issues/79
+      assert.equal(lockFileLines.length, 11);
 
       const mirror = await fs.walk(path.join(config.cwd, mirrorPath));
       assert.equal(mirror.length, 3);
