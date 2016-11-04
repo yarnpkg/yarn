@@ -98,6 +98,8 @@ export class Add extends Install {
 
   async savePackages(): Promise<void> {
     const {exact, tilde} = this.flags;
+    // hold only patterns for lockfile
+    const patterns = [];
 
     // fill rootPatternsToOrigin without `excludePatterns`
     await Install.prototype.fetchRequestFromCwd.call(this);
@@ -155,9 +157,13 @@ export class Add extends Install {
       }
       this.resolver.addPattern(newPattern, pkg);
       this.resolver.removePattern(pattern);
+
+      // push new pattern to the lockfile
+      patterns.push(newPattern);
     }
 
     await this.config.saveRootManifests(manifests);
+    await this.saveLockfileAndIntegrity(patterns);
   }
 }
 
