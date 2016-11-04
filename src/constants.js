@@ -29,14 +29,14 @@ export const CHILD_CONCURRENCY = 5;
 
 export const REQUIRED_PACKAGE_KEYS = ['name', 'version', '_uid'];
 
-function getDirectory(type: string): string {
+function getDirectory(category: string): string {
   // use %LOCALAPPDATA%/Yarn on Windows
   if (process.platform === 'win32' && process.env.LOCALAPPDATA) {
-    return path.join(process.env.LOCALAPPDATA, 'Yarn', type);
+    return path.join(process.env.LOCALAPPDATA, 'Yarn', category);
   }
 
   // otherwise use ~/.yarn
-  return path.join(userHome, `.yarn-${type}`);
+  return path.join(userHome, `.${category}`, 'yarn');
 }
 
 function getCacheDirectory(): string {
@@ -49,9 +49,10 @@ function getCacheDirectory(): string {
 
 export const GLOBAL_INSTALL_DIRECTORY = path.join(userHome, '.yarn');
 export const MODULE_CACHE_DIRECTORY = getCacheDirectory();
-export const LINK_REGISTRY_DIRECTORY = getDirectory('config/link');
-export const GLOBAL_MODULE_DIRECTORY = getDirectory('config/global');
-export const CACHE_FILENAME = path.join(GLOBAL_INSTALL_DIRECTORY, '.roadrunner.json');
+export const CONFIG_DIRECTORY = getDirectory('config');
+export const LINK_REGISTRY_DIRECTORY = path.join(CONFIG_DIRECTORY, 'link');
+export const GLOBAL_MODULE_DIRECTORY = path.join(CONFIG_DIRECTORY, 'global');
+export const CACHE_FILENAME = path.join(MODULE_CACHE_DIRECTORY, '.roadrunner.json');
 
 export const INTEGRITY_FILENAME = '.yarn-integrity';
 export const LOCKFILE_FILENAME = 'yarn.lock';
