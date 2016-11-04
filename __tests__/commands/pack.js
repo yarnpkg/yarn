@@ -100,6 +100,16 @@ export async function getFilesFromArchive(source, destination): Promise<Array<st
   return files;
 }
 
+function compareFiles(actual, expected): Array<string> {
+  const missing = [];
+  expected.forEach((filename) => {
+    if (actual.indexOf(filename) < 0) {
+      missing.push(filename);
+    }
+  });
+  return missing;
+}
+
 
 test.concurrent('pack should work with a minimal example',  (): Promise<void> => {
   return runPack({}, 'minimal', async (config): Promise<void> => {
@@ -210,6 +220,7 @@ test.concurrent('pack should add all files if no other rules are defined',  (): 
       'index.js',
       'package.json',
     ];
-    assert.deepEqual(files, expected);
+    const missing = compareFiles(files, expected);
+    assert.deepEqual([], missing);
   });
 });
