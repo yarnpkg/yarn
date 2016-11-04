@@ -17,6 +17,7 @@ import map from './util/map.js';
 const detectIndent = require('detect-indent');
 const invariant = require('invariant');
 const path = require('path');
+const hasha = require('hasha');
 
 export type ConfigOptions = {
   cwd?: ?string,
@@ -256,6 +257,10 @@ export default class Config {
     if (pkg.registry) {
       name = `${pkg.registry}-${name}`;
       uid = pkg.version || uid;
+    }
+    if (pkg.remote && pkg.remote.resolved) {
+      const hash = hasha(pkg.remote.resolved, {algorithm: 'sha1'});
+      uid = `${uid}-${hash}`;
     }
 
     return path.join(this.cacheFolder, `${name}-${uid}`);
