@@ -23,9 +23,17 @@ export class Add extends Install {
   ) {
     super(flags, config, reporter, lockfile);
     this.args = args;
+    // only one flag is supported, so we can figure out which one was passed to `yarn add`
+    this.flagToOrigin = [
+      flags.dev && 'devDependencies',
+      flags.optional && 'optionalDependencies',
+      flags.peer && 'peerDependencies',
+      'dependencies',
+    ].filter(Boolean).shift();
   }
 
   args: Array<string>;
+  flagToOrigin: string;
 
   /**
    * TODO
@@ -89,7 +97,11 @@ export class Add extends Install {
    */
 
   async savePackages(): Promise<void> {
-    const {dev, exact, tilde, optional, peer} = this.flags;
+    const {exact, tilde} = this.flags;
+
+    // fill rootPatternsToOrigin without `excludePatterns`
+    await Install.prototype.fetchRequestFromCwd.call(this);
+    const patternOrigins = Object.keys(this.rootPatternsToOrigin);
 
     // get all the different registry manifests in this folder
     const manifests = await this.config.getRootManifests();
@@ -118,27 +130,23 @@ export class Add extends Install {
         version = `${String(this.config.getOption('save-prefix') || '')}${pkg.version}`;
       }
 
-      // build up list of objects to put ourselves into from the cli args
-      const targetKeys: Array<string> = [];
-      if (dev) {
-        targetKeys.push('devDependencies');
-      }
-      if (peer) {
-        targetKeys.push('peerDependencies');
-      }
-      if (optional) {
-        targetKeys.push('optionalDependencies');
-      }
-      if (!targetKeys.length) {
-        targetKeys.push('dependencies');
-      }
+      // lookup the package to determine dependency type; used during `yarn upgrade`
+      const depType = patternOrigins.reduce((acc, prev) => {
+        if (prev.indexOf(`${pkg.name}@`) === 0) {
+          return this.rootPatternsToOrigin[prev];
+        }
+
+        return acc;
+      }, null);
+
+      // depType is calculated when `yarn upgrade` command is used
+      const target = depType || this.flagToOrigin;
 
       // add it to manifest
-      const object = manifests[ref.registry].object;
-      for (const key of targetKeys) {
-        const target = object[key] = object[key] || {};
-        target[pkg.name] = version;
-      }
+      const {object} = manifests[ref.registry];
+
+      object[target] = object[target] || {};
+      object[target][pkg.name] = version;
 
       // add pattern so it's aliased in the lockfile
       const newPattern = `${pkg.name}@${version}`;
