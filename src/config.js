@@ -258,6 +258,13 @@ export default class Config {
       uid = pkg.version || uid;
     }
 
+    if (pkg.remote) {
+      const {hash} = pkg.remote;
+      if (hash) {
+        uid += `-${hash}`;
+      }
+    }
+
     return path.join(this.cacheFolder, `${name}-${uid}`);
   }
 
