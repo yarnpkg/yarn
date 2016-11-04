@@ -317,20 +317,15 @@ test.concurrent('install should dedupe dependencies avoiding conflicts 9', (): P
   });
 });
 
-test.concurrent('install production with dev-deps', async () => {
-  const cwd = path.join(fixturesLoc, 'install-production-with-devdeps');
-  const reporter = new reporters.NoopReporter();
-  const config = new Config(reporter);
-  await config.init({cwd});
-
-  const install = new Install({production: true}, config, reporter, await Lockfile.fromDirectory(config.cwd));
-  await install.init();
-
-  assert.equal(await getPackageVersion(config, 'dep-a'), '1.0.0');
-  assert.equal(await getPackageVersion(config, 'dep-e'), '2.0.0');
-  // `dep-b`is the important one to test
-  // is dependency of `dep-a`, but also ignored as devDep in `production`
-  assert.equal(await getPackageVersion(config, 'dep-b'), '1.0.0');
+test.concurrent('install production with dev-deps', (): Promise<void> => {
+  // https://github.com/yarnpkg/yarn/issues/761
+  return runInstall({production: true}, 'install-production-with-devdeps', async (config) => {
+    assert.equal(await getPackageVersion(config, 'dep-a'), '1.0.0');
+    assert.equal(await getPackageVersion(config, 'dep-b'), '1.0.0');
+    // now check if devdeps were not ignored through --production as dep-a uses dep-c
+    assert.equal(await getPackageVersion(config, 'dep-c'), '1.0.0');
+    assert.equal(await getPackageVersion(config, 'dep-d'), '1.0.0');
+  });
 });
 
 test.concurrent(
