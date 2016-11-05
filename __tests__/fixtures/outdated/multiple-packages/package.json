@@ -1,4 +1,5 @@
 {
+  "license": "ISC",
   "dependencies": {
     "is-negative-zero": "1.0.0",
     "left-pad": "1.0.0",
