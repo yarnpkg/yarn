@@ -9,6 +9,8 @@ import Lockfile from '../../lockfile/wrapper.js';
 import {Install} from './install.js';
 import parsePackageName from '../../util/parse-package-name.js';
 
+const semver = require('semver');
+
 export const requireLockfile = true;
 
 export function setFlags(commander: Object) {
@@ -52,7 +54,7 @@ export async function run(
 
     const current = locked.version;
     let name = locked.name;
-    const packageType = install.rootPatternsToOrigin[`${name}@${current}`];
+    const packageType = install.rootPatternsToOrigin[pattern];
 
     let latest = '';
     let wanted = '';
@@ -64,7 +66,7 @@ export async function run(
       ({latest, wanted} = await config.registries[locked.registry].checkOutdated(config, name, normalized.range));
     }
 
-    if (current === latest) {
+    if (latest !== 'exotic' && semver.gte(current, latest)) {
       return;
     }
 
