@@ -88,7 +88,7 @@ export default class ConsoleReporter extends BaseReporter {
       msg += '...';
     }
 
-    this.log(`${this.format.grey(`[${current}/${total}]`)} ${msg}`);
+    this.log(`${this.format.dim(`[${current}/${total}]`)} ${msg}`);
   }
 
   inspect(value: mixed) {
@@ -149,7 +149,7 @@ export default class ConsoleReporter extends BaseReporter {
   }
 
   command(command: string) {
-    this.log(this.format.grey(`$ ${command}`));
+    this.log(this.format.dim(`$ ${command}`));
   }
 
   warn(msg: string) {
@@ -164,7 +164,7 @@ export default class ConsoleReporter extends BaseReporter {
 
     return new Promise((resolve, reject) => {
       read({
-        prompt: `${this.format.grey('question')} ${question}: `,
+        prompt: `${this.format.dim('question')} ${question}: `,
         silent: !!options.password,
         output: this.stdout,
         input: this.stdin,
@@ -203,7 +203,7 @@ export default class ConsoleReporter extends BaseReporter {
 
       let suffix = '';
       if (hint) {
-        suffix += ` (${this.format.grey(hint)})`;
+        suffix += ` (${this.format.dim(hint)})`;
       }
       if (color) {
         name = this.format[color](name);
@@ -243,7 +243,7 @@ export default class ConsoleReporter extends BaseReporter {
       let current = 0;
       const updatePrefix = () => {
         spinner.setPrefix(
-          `${this.format.grey(`[${current === 0 ? '-' : current}/${total}]`)} `,
+          `${this.format.dim(`[${current === 0 ? '-' : current}/${total}]`)} `,
         );
       };
       const clear = () => {
