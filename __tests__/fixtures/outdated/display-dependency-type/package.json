@@ -1,0 +1,14 @@
+{
+  "dependencies": {
+    "left-pad": "1.0.0"
+  },
+  "devDependencies": {
+    "max-safe-integer": "1.0.0"
+  },
+  "peerDependencies": {
+    "is-negative-zero": "1.0.0"
+  },
+  "optionalDependencies": {
+    "is-online": "1.0.0"
+  }
+}
