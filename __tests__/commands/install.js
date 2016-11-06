@@ -611,7 +611,7 @@ test.concurrent('install should write and read integrity file based on lockfile 
     `;
     await fs.writeFile(
       path.join(config.cwd, 'yarn.lock'),
-      lockContent
+      lockContent,
     );
     let allCorrect = true;
     try {
