@@ -524,7 +524,8 @@ export class Install {
       };
     }
 
-    const actual = this.generateIntegrityHash(this.lockfile.source, patterns);
+    const lockSource = lockStringify(this.lockfile.getLockfile(this.resolver.patterns));
+    const actual = this.generateIntegrityHash(lockSource, patterns);
     const expected = (await fs.readFile(loc)).trim();
 
     return {

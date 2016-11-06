@@ -600,3 +600,25 @@ if (process.platform !== 'win32') {
     });
   });
 }
+
+test.concurrent('install should write and read integrity file based on lockfile entries', (): Promise<void> => {
+  return runInstall({}, 'lockfile-stability', async (config, reporter) => {
+    let lockContent = await fs.readFile(
+      path.join(config.cwd, 'yarn.lock'),
+    );
+    lockContent += `
+    # changed the file, integrity should be fine
+    `;
+    await fs.writeFile(
+      path.join(config.cwd, 'yarn.lock'),
+      lockContent
+    );
+    let allCorrect = true;
+    try {
+      await check(config, reporter, {integrity: true}, []);
+    } catch (err) {
+      allCorrect = false;
+    }
+    expect(allCorrect).toBe(true);
+  });
+});
