@@ -196,7 +196,7 @@ export default async function (
           bin[scriptName] = path.join('.', binDir, scriptName);
         }
       } catch (err) {
-        if (err.code && err.code === 'ENOTENT') {
+        if (err.code && err.code === 'ENOENT') {
           warn(reporter.lang('manifestDirectoryNotFound', binDir, info.name));
         }
       }
@@ -214,7 +214,7 @@ export default async function (
           }
         }
       } catch (err) {
-        if (err.code && err.code === 'ENOTENT') {
+        if (err.code && err.code === 'ENOENT') {
           warn(reporter.lang('manifestDirectoryNotFound', manDir, info.name));
         }
       }
