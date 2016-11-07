@@ -187,18 +187,17 @@ export default async function (
 
     if (!info.bin && binDir && typeof binDir === 'string') {
       const bin = info.bin = {};
+      const fullBinDir = path.join(moduleLoc, binDir);
 
-      try {
-        for (const scriptName of await fs.readdir(path.join(moduleLoc, binDir))) {
+      if (await fs.exists(fullBinDir)) {
+        for (const scriptName of await fs.readdir(fullBinDir)) {
           if (scriptName[0] === '.') {
             continue;
           }
           bin[scriptName] = path.join('.', binDir, scriptName);
         }
-      } catch (err) {
-        if (err.code && err.code === 'ENOENT') {
-          warn(reporter.lang('manifestDirectoryNotFound', binDir, info.name));
-        }
+      } else {
+        warn(reporter.lang('manifestDirectoryNotFound', binDir, info.name));
       }
     }
 
@@ -206,17 +205,16 @@ export default async function (
 
     if  (!info.man && typeof manDir === 'string') {
       const man = info.man = [];
+      const fullManDir = path.join(moduleLoc, manDir);
 
-      try {
-        for (const filename of await fs.readdir(path.join(moduleLoc, manDir))) {
+      if (await fs.exists(fullManDir)) {
+        for (const filename of await fs.readdir(fullManDir)) {
           if (/^(.*?)\.[0-9]$/.test(filename)) {
             man.push(path.join('.', manDir, filename));
           }
         }
-      } catch (err) {
-        if (err.code && err.code === 'ENOENT') {
-          warn(reporter.lang('manifestDirectoryNotFound', manDir, info.name));
-        }
+      } else {
+        warn(reporter.lang('manifestDirectoryNotFound', manDir, info.name));
       }
     }
   }
