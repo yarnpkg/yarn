@@ -13,6 +13,10 @@ const invariant = require('invariant');
 
 export const requireLockfile = true;
 
+export type LsOptions = {
+  reqDepth?: ?number,
+};
+
 function buildCount(trees: ?Trees): number {
   if (!trees || !trees.length) {
     return 0;
@@ -36,6 +40,7 @@ export async function buildTree(
   resolver: PackageResolver,
   linker: PackageLinker,
   patterns: Array<string>,
+  opts: LsOptions,
   onlyFresh?: boolean,
   ignoreHoisted?: boolean,
 ): Promise<{
@@ -54,6 +59,11 @@ export async function buildTree(
   // build initial trees
   for (const [, info] of hoisted) {
     const ref = info.pkg._reference;
+    const hint = null;
+    const parent = getParent(info.key, treesByKey);
+    const children = [];
+    let depth =  0;
+    let color = 'bold';
     invariant(ref, 'expected reference');
 
     if (onlyFresh) {
@@ -69,29 +79,39 @@ export async function buildTree(
       }
     }
 
-    const hint = null;
-    let color = 'bold';
-
-    if (info.originalKey !== info.key) {
+    if (info.originalKey !== info.key || opts.reqDepth === 0) {
       // was hoisted
       color = null;
     }
+    // check parent to obtain next depth
+    if (parent && parent.depth > 0) {
+      depth = parent.depth + 1;
+    } else {
+      depth = 0;
+    }
 
-    const children = [];
-    treesByKey[info.key] = {
-      name: `${info.pkg.name}@${info.pkg.version}`,
-      children,
-      hint,
-      color,
-    };
+    const topLevel = opts.reqDepth === 0 && !parent;
+    const showAll = opts.reqDepth === -1;
+    const nextDepthIsValid = (depth + 1 <= Number(opts.reqDepth));
+
+    if (topLevel || nextDepthIsValid || showAll) {
+      treesByKey[info.key] = {
+        name: `${info.pkg.name}@${info.pkg.version}`,
+        children,
+        hint,
+        color,
+        depth,
+      };
+    }
 
     // add in dummy children for hoisted dependencies
+    const nextChildDepthIsValid = (depth + 1 < Number(opts.reqDepth));
     invariant(ref, 'expected reference');
-    if (!ignoreHoisted) {
+    if ((!ignoreHoisted && nextDepthIsValid) || showAll) {
       for (const pattern of resolver.dedupePatterns(ref.dependencies)) {
         const pkg = resolver.getStrictResolvedPattern(pattern);
 
-        if (!hoistedByKey[`${info.key}#${pkg.name}`]) {
+        if (!hoistedByKey[`${info.key}#${pkg.name}`] && (nextChildDepthIsValid || showAll)) {
           children.push({
             name: pattern,
             color: 'dim',
@@ -105,18 +125,16 @@ export async function buildTree(
   // add children
   for (const [, info] of hoisted) {
     const tree = treesByKey[info.key];
+    const parent = getParent(info.key, treesByKey);
     if (!tree) {
       continue;
     }
 
-    const keyParts = info.key.split('#');
-    if (keyParts.length === 1) {
+    if (info.key.split('#').length === 1) {
       trees.push(tree);
       continue;
     }
 
-    const parentKey = keyParts.slice(0, -1).join('#');
-    const parent = treesByKey[parentKey];
     if (parent) {
       parent.children.push(tree);
     }
@@ -125,16 +143,34 @@ export async function buildTree(
   return {trees, count: buildCount(trees)};
 }
 
+export function getParent(key: string, treesByKey: Object) : Object {
+  const parentKey = key.split('#').slice(0, -1).join('#');
+  return treesByKey[parentKey];
+}
+
+export function setFlags(commander: Object) {
+  commander.option('--depth [depth]', 'Limit the depth of the shown dependencies');
+}
+
+export function getReqDepth(inputDepth: string) : number {
+  return inputDepth && /^\d+$/.test(inputDepth) ?  Number(inputDepth) : -1;
+}
+
 export async function run(
   config: Config,
   reporter: Reporter,
   flags: Object,
   args: Array<string>,
 ): Promise<void> {
+
   const lockfile = await Lockfile.fromDirectory(config.cwd, reporter);
   const install = new Install(flags, config, reporter, lockfile);
   const [depRequests, patterns] = await install.fetchRequestFromCwd();
   await install.resolver.init(depRequests, install.flags.flat);
+
+  const opts: LsOptions = {
+    reqDepth: getReqDepth(flags.depth),
+  };
 
   let filteredPatterns: Array<string> = [];
 
@@ -161,6 +197,6 @@ export async function run(
     filteredPatterns = patterns;
   }
 
-  const {trees} = await buildTree(install.resolver, install.linker, filteredPatterns);
+  const {trees} = await buildTree(install.resolver, install.linker, filteredPatterns, opts);
   reporter.tree('ls', trees);
 }

@@ -14,18 +14,13 @@ import Progress from './progress-bar.js';
 import Spinner from './spinner-progress.js';
 import {clearLine} from './util.js';
 import {removeSuffix} from '../../util/misc.js';
+import {sortTrees, recurseTree, getFormattedOutput} from './helpers/tree-helper.js';
 
 const {inspect} = require('util');
 const readline = require('readline');
 const repeat = require('repeating');
 const chalk = require('chalk');
 const read = require('read');
-
-function sortTrees(trees: Trees = []): Trees {
-  return trees.sort(function(tree1, tree2): number {
-    return tree1.name.localeCompare(tree2.name);
-  });
-}
 
 type Row = Array<string>;
 
@@ -186,42 +181,19 @@ export default class ConsoleReporter extends BaseReporter {
       });
     });
   }
-
+  // handles basic tree output to console
   tree(key: string, trees: Trees) {
-    trees = sortTrees(trees);
-
-    const stdout = this.stdout;
-
+    //
     const output = ({name, children, hint, color}, level, end) => {
-      children = sortTrees(children);
-
-      let indent = end ? '└' : '├';
-
-      if (level) {
-        indent = repeat('│  ', level) + indent;
-      }
-
-      let suffix = '';
-      if (hint) {
-        suffix += ` (${this.format.dim(hint)})`;
-      }
-      if (color) {
-        name = this.format[color](name);
-      }
-      stdout.write(`${indent}─ ${name}${suffix}\n`);
+      const formatter = this.format;
+      const out = getFormattedOutput({end, level, hint, color, name, formatter});
+      this.stdout.write(out);
 
       if (children && children.length) {
-        for (let i = 0; i < children.length; i++) {
-          const tree = children[i];
-          output(tree, level + 1, i === children.length - 1);
-        }
+        recurseTree(sortTrees(children), level, output);
       }
     };
-
-    for (let i = 0; i < trees.length; i++) {
-      const tree = trees[i];
-      output(tree, 0, i === trees.length - 1);
-    }
+    recurseTree(sortTrees(trees), -1, output);
   }
 
   activitySet(total: number, workers: number): ReporterSpinnerSet {
