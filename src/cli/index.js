@@ -244,7 +244,7 @@ const runEventuallyWithFile = (mutexFilename: ?string, isFirstTime?: boolean): P
           reporter.warn(reporter.lang('waitingInstance'));
         }
         setTimeout(() => {
-          ok(runEventuallyWithFile());
+          ok(runEventuallyWithFile(mutexFilename, isFirstTime));
         }, 200); // do not starve the CPU
       } else {
         onDeath(() => {
@@ -278,13 +278,13 @@ const runEventuallyWithNetwork = (mutexPort: ?string): Promise<void> => {
           // the server has informed us he's going to die soon™.
           socket.unref(); // let it die
           process.nextTick(() => {
-            ok(runEventuallyWithNetwork());
+            ok(runEventuallyWithNetwork(mutexPort));
           });
         })
         .on('error', () => {
           // No server to listen to ? :O let's retry to become the next server then.
           process.nextTick(() => {
-            ok(runEventuallyWithNetwork());
+            ok(runEventuallyWithNetwork(mutexPort));
           });
         });
     });
