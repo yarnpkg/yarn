@@ -620,5 +620,28 @@ test.concurrent('install should write and read integrity file based on lockfile 
       allCorrect = false;
     }
     expect(allCorrect).toBe(true);
+    // install should bail out with integrity check
+    await fs.unlink(path.join(config.cwd, 'node_modules', 'mime-types', 'package.json'));
+    const reinstall = new Install({}, config, reporter, await Lockfile.fromDirectory(config.cwd));
+    await reinstall.init();
+
+    // integrity check should keep passing
+    allCorrect = true;
+    try {
+      await check(config, reporter, {integrity: true}, []);
+    } catch (err) {
+      allCorrect = false;
+    }
+    expect(allCorrect).toBe(true);
+
+    // full check should fail because of deleted file
+    allCorrect = false;
+    try {
+      await check(config, reporter, {integrity: false}, []);
+    } catch (err) {
+      allCorrect = true;
+    }
+    expect(allCorrect).toBe(true);
+
   });
 });

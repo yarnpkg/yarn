@@ -274,6 +274,7 @@ export class Install {
 
   async init(): Promise<Array<string>> {
     let [depRequests, rawPatterns] = await this.fetchRequestFromCwd();
+    await this.resolver.init(depRequests, this.flags.flat);
     const match = await this.matchesIntegrityHash(rawPatterns);
 
     const prepared = await this.prepare(rawPatterns, depRequests, match);
@@ -297,7 +298,6 @@ export class Install {
 
     steps.push(async (curr: number, total: number) => {
       this.reporter.step(curr, total, this.reporter.lang('resolvingPackages'), emoji.get('mag'));
-      await this.resolver.init(depRequests, this.flags.flat);
       patterns = await this.flatten(rawPatterns);
     });
 
