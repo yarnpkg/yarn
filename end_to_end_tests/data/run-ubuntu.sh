@@ -11,8 +11,7 @@ fi;
 
 # Add Yarn repo
 apt-key adv --keyserver pgp.mit.edu --recv D101F7899D41F3C3
-# TODO: Use nightly repo once it's configured
-echo "deb http://dl.yarnpkg.com/debian/ stable main" > /etc/apt/sources.list.d/yarn.list
+echo "deb http://nightly.yarnpkg.com/debian/ nightly main" > /etc/apt/sources.list.d/yarn.list
 apt-get update -y
 
 if [ "$DISTRIB_RELEASE" == '12.04' -o "$DISTRIB_RELEASE" == '14.04' ]; then
