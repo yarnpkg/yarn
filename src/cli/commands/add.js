@@ -169,7 +169,7 @@ export class Add extends Install {
     }
 
     await this.config.saveRootManifests(manifests);
-    await this.saveLockfileAndIntegrity(patterns);
+    // await this.saveLockfileAndIntegrity(patterns);
   }
 }
 

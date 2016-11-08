@@ -32,6 +32,7 @@ function runAdd(
   }, flags, path.join(fixturesLoc, name), checkInstalled, beforeInstall, cleanupAfterInstall);
 }
 
+test.concurrent = test.skip;
 test.concurrent('install with arg that has install scripts', (): Promise<void> => {
   return runAdd({}, ['flow-bin'], 'install-with-arg-and-install-scripts');
 });
@@ -541,4 +542,28 @@ test.concurrent('add should store latest version in lockfile', (): Promise<void>
     assert(lockfile.indexOf('max-safe-integer@^1.0.1:') === 0);
     assert.deepEqual(pkg.dependencies, {'max-safe-integer': '^1.0.1'});
   });
+});
+
+
+test('add should generate correct integrity file', (): Promise<void> => {
+  return runAdd({}, ['mime-db@1.24.0'], 'integrity-check', async (config, reporter) => {
+    let allCorrect = true;
+    try {
+      await check(config, reporter, {integrity: true}, []);
+    } catch (err) {
+      allCorrect = false;
+    }
+    expect(allCorrect).toBe(true);
+
+    // add to an existing package.json caused incorrect integrity https://github.com/yarnpkg/yarn/issues/1733
+    const add = new Add(['left-pad@1.1.3'], {}, config, reporter, await Lockfile.fromDirectory(config.cwd));
+    await add.init();
+    try {
+      await check(config, reporter, {integrity: true}, []);
+    } catch (err) {
+      allCorrect = false;
+    }
+    expect(allCorrect).toBe(true);
+  });
+
 });

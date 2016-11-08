@@ -584,6 +584,7 @@ export class Install {
    */
 
   async writeIntegrityHash(lockSource: string, patterns: Array<string>): Promise<void> {
+    console.log("patterns", patterns)
     const loc = await this.getIntegrityHashLocation();
     invariant(loc, 'expected integrity hash location');
     await fs.writeFile(loc, this.generateIntegrityHash(lockSource, patterns));
