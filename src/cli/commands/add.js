@@ -54,11 +54,18 @@ export class Add extends Install {
     return Promise.resolve({
       patterns: patterns.concat(this.args),
       requests: requestsWithArgs,
-      skip: false,
     });
   }
 
-  /**
+  async bailout(
+    patterns: Array<string>,
+    match: IntegrityMatch,
+  ): Promise<boolean> {
+      return false;
+  }
+
+
+    /**
    * Description
    */
 
