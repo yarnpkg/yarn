@@ -59,7 +59,6 @@ export class Add extends Install {
 
   bailout(
     patterns: Array<string>,
-    match: IntegrityMatch,
   ): Promise<boolean> {
     return Promise.resolve(false);
   }
@@ -71,7 +70,6 @@ export class Add extends Install {
   async init(): Promise<Array<string>> {
     const patterns = await Install.prototype.init.call(this);
     await this.maybeOutputSaveTree(patterns);
-    await this.savePackages();
     return patterns;
   }
 
@@ -102,10 +100,10 @@ export class Add extends Install {
    * Save added packages to manifest if any of the --save flags were used.
    */
 
-  async savePackages(): Promise<void> {
+  async saveIntegrityFilesAndManifests(rawPatterns): Promise<void> {
     const {exact, tilde} = this.flags;
     // hold only patterns for lockfile
-    const patterns = [];
+    const patterns = rawPatterns;
 
     // fill rootPatternsToOrigin without `excludePatterns`
     await Install.prototype.fetchRequestFromCwd.call(this);
@@ -169,7 +167,7 @@ export class Add extends Install {
     }
 
     await this.config.saveRootManifests(manifests);
-    // await this.saveLockfileAndIntegrity(patterns);
+    await this.saveLockfileAndIntegrity(patterns);
   }
 }
 

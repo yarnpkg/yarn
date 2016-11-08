@@ -534,13 +534,15 @@ test.concurrent('add should put a git dependency to mirror', (): Promise<void> =
   );
 });
 
-test.concurrent('add should store latest version in lockfile', (): Promise<void> => {
+test('add should store latest version in lockfile', (): Promise<void> => {
   return runAdd({}, ['max-safe-integer'], 'latest-version-in-lockfile', async (config) => {
     const lockfile = explodeLockfile(await fs.readFile(path.join(config.cwd, 'yarn.lock')));
     const pkg = await fs.readJson(path.join(config.cwd, 'package.json'));
 
-    assert(lockfile.indexOf('max-safe-integer@^1.0.1:') === 0);
-    assert.deepEqual(pkg.dependencies, {'max-safe-integer': '^1.0.1'});
+    const version = pkg.dependencies['max-safe-integer'];
+    assert(semver.valid(version.slice(1)));
+    assert(lockfile.indexOf('max-safe-integer:') === -1);
+    assert(lockfile.indexOf(`max-safe-integer@${version}:`) === 0);
   });
 });
 
