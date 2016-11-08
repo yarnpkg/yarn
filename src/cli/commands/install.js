@@ -39,7 +39,7 @@ export type InstallCwdRequest = [
   Object
 ];
 
-type IntegrityMatch = {
+export type IntegrityMatch = {
   actual: string,
   expected: string,
   loc: string,
@@ -236,7 +236,7 @@ export class Install {
     patterns: Array<string>,
     requests: DependencyRequestPatterns,
   ): Promise<InstallPrepared> {
-     return {patterns, requests};
+    return Promise.resolve({patterns, requests});
   }
 
   async bailout(
@@ -290,7 +290,7 @@ export class Install {
     }
 
     let patterns = rawPatterns;
-    const steps: Array<(curr: number, total: number) => Promise<void>> = [];
+    const steps: Array<(curr: number, total: number) => Promise<{bailout: boolean} | void>> = [];
 
     steps.push(async (curr: number, total: number) => {
       this.reporter.step(curr, total, this.reporter.lang('resolvingPackages'), emoji.get('mag'));

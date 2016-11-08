@@ -1,7 +1,7 @@
 /* @flow */
 
 import type {Reporter} from '../../reporters/index.js';
-import type {InstallCwdRequest, InstallPrepared} from './install.js';
+import type {InstallCwdRequest, InstallPrepared, IntegrityMatch} from './install.js';
 import type {DependencyRequestPatterns} from '../../types.js';
 import type Config from '../../config.js';
 import Lockfile from '../../lockfile/wrapper.js';
@@ -57,15 +57,14 @@ export class Add extends Install {
     });
   }
 
-  async bailout(
+  bailout(
     patterns: Array<string>,
     match: IntegrityMatch,
   ): Promise<boolean> {
-      return false;
+    return Promise.resolve(false);
   }
 
-
-    /**
+  /**
    * Description
    */
 
