@@ -1,7 +1,7 @@
 /* @flow */
 
 import type {Reporter} from '../../reporters/index.js';
-import type {InstallCwdRequest, InstallPrepared, IntegrityMatch} from './install.js';
+import type {InstallCwdRequest, IntegrityMatch} from './install.js';
 import type {DependencyRequestPatterns} from '../../types.js';
 import type Config from '../../config.js';
 import type {LsOptions} from './ls.js';

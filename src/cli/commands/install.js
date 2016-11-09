@@ -284,7 +284,7 @@ export class Install {
 
     let patterns;
     const steps: Array<(curr: number, total: number) => Promise<{bailout: boolean} | void>> = [];
-    let [depRequests, rawPatterns] = await this.fetchRequestFromCwd();
+    const [depRequests, rawPatterns] = await this.fetchRequestFromCwd();
 
     steps.push(async (curr: number, total: number) => {
       this.reporter.step(curr, total, this.reporter.lang('resolvingPackages'), emoji.get('mag'));
