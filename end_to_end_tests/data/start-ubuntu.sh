@@ -8,4 +8,4 @@ if [ -z "$1" ]; then
 fi;
 
 data_path=$(dirname $(readlink -f "$0"))
-docker run -v $data_path:/data -w=/data -e APT_PROXY=$APT_PROXY $1 /data/run-ubuntu.sh
+docker run -v $data_path:/data -w=/data -e APT_PROXY=$APT_PROXY -e DEBIAN_FRONTEND=noninteractive $1 /data/run-ubuntu.sh
