@@ -1,7 +1,7 @@
 /* @flow */
 
 import type {Reporter} from '../../reporters/index.js';
-import type {InstallCwdRequest, IntegrityMatch} from './install.js';
+import type {InstallCwdRequest} from './install.js';
 import type {DependencyRequestPatterns} from '../../types.js';
 import type Config from '../../config.js';
 import type {LsOptions} from './ls.js';
@@ -63,9 +63,6 @@ export class Add extends Install {
       const pkg = this.resolver.getResolvedPattern(pattern);
       invariant(pkg, `missing package ${pattern}`);
 
-      const ref = pkg._reference;
-      invariant(ref, 'expected package reference');
-
       const parts = PackageRequest.normalizePattern(pattern);
       let version;
       if (PackageRequest.getExoticResolver(pattern)) {
@@ -87,11 +84,7 @@ export class Add extends Install {
       if (newPattern === pattern) {
         continue;
       }
-      // TODO move replacement into resolver
-      ref.patterns = [newPattern];
-      this.resolver.newPatterns.splice(this.resolver.newPatterns.indexOf(pattern), 1, newPattern);
-      this.resolver.addPattern(newPattern, pkg);
-      this.resolver.removePattern(pattern);
+      this.resolver.replacePattern(pattern, newPattern);
     }
     return preparedPatterns;
   }
