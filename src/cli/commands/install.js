@@ -282,7 +282,7 @@ export class Install {
       this.reporter.error(this.reporter.lang('shrinkwrapWarning'));
     }
 
-    let patterns;
+    let patterns: Array<string> = [];
     const steps: Array<(curr: number, total: number) => Promise<{bailout: boolean} | void>> = [];
     const [depRequests, rawPatterns] = await this.fetchRequestFromCwd();
 

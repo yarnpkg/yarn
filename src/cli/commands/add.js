@@ -88,7 +88,7 @@ export class Add extends Install {
         continue;
       }
       // TODO move replacement into resolver
-      pkg._reference.patterns = [newPattern];
+      ref.patterns = [newPattern];
       this.resolver.newPatterns.splice(this.resolver.newPatterns.indexOf(pattern), 1, newPattern);
       this.resolver.addPattern(newPattern, pkg);
       this.resolver.removePattern(pattern);
@@ -98,7 +98,6 @@ export class Add extends Install {
 
   bailout(
     patterns: Array<string>,
-    match: IntegrityMatch,
   ): Promise<boolean> {
     return Promise.resolve(false);
   }
