@@ -8,18 +8,11 @@ export function sortAlpha(a: string, b: string): number {
   for (let i = 0; i < shortLen; i++) {
     const aChar = a.charCodeAt(i);
     const bChar = b.charCodeAt(i);
-    if (aChar < bChar) {
-      return -1;
-    } else if (aChar > bChar) {
-      return 1;
+    if (aChar !== bChar) {
+      return aChar - bChar;
     }
   }
-  if (a.length < b.length) {
-    return -1;
-  } else if (a.length > b.length) {
-    return 1;
-  }
-  return 0;
+  return a.length - b.length;
 }
 
 export function entries<T>(obj: ?{ [key: string]: T }): Array<[string, T]> {
