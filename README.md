@@ -40,7 +40,7 @@ Read the [Installation Guide](https://yarnpkg.com/en/docs/install) on our websit
 
 Contributions are always welcome, no matter how large or small. Before contributing, please read the [code of conduct](CODE_OF_CONDUCT.md).
 
-See [Contributing](CONTRIBUTING.md).
+See [Contributing](https://yarnpkg.com/en/org/contributing).
 
 ## Prior art
 
