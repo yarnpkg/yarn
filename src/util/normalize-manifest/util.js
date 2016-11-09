@@ -64,6 +64,22 @@ export function normalizePerson(person: mixed): mixed | PersonObject {
   return parsePerson(stringifyPerson(person));
 }
 
+export function parseScript(script: string): string {
+  const relativeBinPath = /^(\.[\/\\])?node_modules[\/\\].bin[\\\/]/;
+  if (script.match(relativeBinPath)) {
+    script = script.replace(relativeBinPath, '');
+  }
+  return script;
+}
+
+export function normalizeScripts(scripts: Object): Object {
+  const normalizedScripts = {};
+  Object.keys(scripts).forEach((scriptName) => {
+    normalizedScripts[scriptName] = parseScript(scripts[scriptName]);
+  });
+  return normalizedScripts;
+}
+
 export function extractDescription(readme: mixed): ?string {
   if (typeof readme !== 'string' || readme === '') {
     return undefined;

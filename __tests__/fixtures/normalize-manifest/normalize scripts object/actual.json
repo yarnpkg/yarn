@@ -1,0 +1,9 @@
+{
+  "name": "",
+  "version": "",
+  "scripts": {
+    "test": "./node_modules/.bin/karma",
+    "build": "./node_modules/.bin/webpack -d --no-color",
+    "watch": "node_modules\\.bin\\webpack --watch"
+  }
+}

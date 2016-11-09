@@ -2,7 +2,7 @@
 
 import type {Reporter} from '../../reporters/index.js';
 import {isValidLicense} from './util.js';
-import {normalizePerson, extractDescription} from './util.js';
+import {normalizePerson, extractDescription, normalizeScripts} from './util.js';
 import {hostedGitFragmentToGitUrl} from '../../resolvers/index.js';
 import inferLicense from './infer-license.js';
 import * as fs from '../fs.js';
@@ -157,7 +157,7 @@ export default async function (
 
   // dummy script object to shove file inferred scripts onto
   if (info.scripts && typeof info.scripts === 'object') {
-    scripts = info.scripts;
+    scripts = normalizeScripts(info.scripts);
   } else {
     scripts = {};
   }
