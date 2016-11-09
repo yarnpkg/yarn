@@ -29,7 +29,6 @@ const emoji = require('node-emoji');
 const path = require('path');
 
 export type InstallPrepared = {
-  skip: boolean,
   requests: DependencyRequestPatterns,
   patterns: Array<string>,
 };
@@ -40,7 +39,7 @@ export type InstallCwdRequest = [
   Object
 ];
 
-type IntegrityMatch = {
+export type IntegrityMatch = {
   actual: string,
   expected: string,
   loc: string,
@@ -233,23 +232,29 @@ export class Install {
    * TODO description
    */
 
-  async prepare(
+  prepare(
     patterns: Array<string>,
     requests: DependencyRequestPatterns,
-    match: IntegrityMatch,
   ): Promise<InstallPrepared> {
+    return Promise.resolve({patterns, requests});
+  }
+
+  async bailout(
+    patterns: Array<string>,
+    match: IntegrityMatch,
+  ): Promise<boolean> {
     if (!this.flags.skipIntegrity && !this.flags.force && match.matches) {
       this.reporter.success(this.reporter.lang('upToDate'));
-      return {patterns, requests, skip: true};
+      return true;
     }
 
     if (!patterns.length && !match.expected) {
       this.reporter.success(this.reporter.lang('nothingToInstall'));
       await this.createEmptyManifestFolders();
-      return {patterns, requests, skip: true};
+      return true;
     }
 
-    return {patterns, requests, skip: false};
+    return false;
   }
 
   /**
@@ -274,32 +279,27 @@ export class Install {
 
   async init(): Promise<Array<string>> {
     let [depRequests, rawPatterns] = await this.fetchRequestFromCwd();
-    const match = await this.matchesIntegrityHash(rawPatterns);
 
-    const prepared = await this.prepare(rawPatterns, depRequests, match);
+    const prepared = await this.prepare(rawPatterns, depRequests);
     rawPatterns = prepared.patterns;
     depRequests = prepared.requests;
-    if (prepared.skip) {
-      return rawPatterns;
-    }
-
-    // remove integrity hash to make this operation atomic
-    await fs.unlink(match.loc);
 
     // warn if we have a shrinkwrap
     if (await fs.exists(path.join(this.config.cwd, 'npm-shrinkwrap.json'))) {
       this.reporter.error(this.reporter.lang('shrinkwrapWarning'));
     }
 
-    //
     let patterns = rawPatterns;
-    const steps: Array<(curr: number, total: number) => Promise<void>> = [];
+    const steps: Array<(curr: number, total: number) => Promise<{bailout: boolean} | void>> = [];
 
     steps.push(async (curr: number, total: number) => {
       this.reporter.step(curr, total, this.reporter.lang('resolvingPackages'), emoji.get('mag'));
       await this.resolver.init(depRequests, this.flags.flat);
       patterns = await this.flatten(rawPatterns);
+      const match = await this.matchesIntegrityHash(rawPatterns);
+      return {bailout: await this.bailout(rawPatterns, match)};
     });
+
 
     steps.push(async (curr: number, total: number) => {
       this.reporter.step(curr, total, this.reporter.lang('fetchingPackages'), emoji.get('truck'));
@@ -308,6 +308,9 @@ export class Install {
     });
 
     steps.push(async (curr: number, total: number) => {
+      // remove integrity hash to make this operation atomic
+      const loc = await this.getIntegrityHashLocation();
+      await fs.unlink(loc);
       this.reporter.step(curr, total, this.reporter.lang('linkingDependencies'), emoji.get('link'));
       await this.linker.init(patterns);
     });
@@ -350,7 +353,10 @@ export class Install {
 
     let currentStep = 0;
     for (const step of steps) {
-      await step(++currentStep, steps.length);
+      const stepResult = await step(++currentStep, steps.length);
+      if (stepResult && stepResult.bailout) {
+        return patterns;
+      }
     }
 
     // fin!
@@ -524,7 +530,8 @@ export class Install {
       };
     }
 
-    const actual = this.generateIntegrityHash(this.lockfile.source, patterns);
+    const lockSource = lockStringify(this.lockfile.getLockfile(this.resolver.patterns));
+    const actual = this.generateIntegrityHash(lockSource, patterns);
     const expected = (await fs.readFile(loc)).trim();
 
     return {

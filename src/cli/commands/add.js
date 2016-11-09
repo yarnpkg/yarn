@@ -1,7 +1,7 @@
 /* @flow */
 
 import type {Reporter} from '../../reporters/index.js';
-import type {InstallCwdRequest, InstallPrepared} from './install.js';
+import type {InstallCwdRequest, InstallPrepared, IntegrityMatch} from './install.js';
 import type {DependencyRequestPatterns} from '../../types.js';
 import type Config from '../../config.js';
 import type {LsOptions} from './ls.js';
@@ -55,8 +55,14 @@ export class Add extends Install {
     return Promise.resolve({
       patterns: patterns.concat(this.args),
       requests: requestsWithArgs,
-      skip: false,
     });
+  }
+
+  bailout(
+    patterns: Array<string>,
+    match: IntegrityMatch,
+  ): Promise<boolean> {
+    return Promise.resolve(false);
   }
 
   /**
