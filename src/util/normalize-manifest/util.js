@@ -74,9 +74,9 @@ export function parseScript(script: string): string {
 
 export function normalizeScripts(scripts: Object): Object {
   const normalizedScripts = {};
-  Object.keys(scripts).forEach((scriptName) => {
+  for (const scriptName in scripts) {
     normalizedScripts[scriptName] = parseScript(scripts[scriptName]);
-  });
+  }
   return normalizedScripts;
 }
 
