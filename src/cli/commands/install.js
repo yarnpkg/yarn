@@ -8,7 +8,7 @@ import type {RegistryNames} from '../../registries/index.js';
 import normalizeManifest from '../../util/normalize-manifest/index.js';
 import {registryNames} from '../../registries/index.js';
 import {MessageError} from '../../errors.js';
-import Lockfile from '../../lockfile/wrapper.js';
+import Lockfile, {sortAlpha} from '../../lockfile/wrapper.js';
 import lockStringify from '../../lockfile/stringify.js';
 import * as PackageReference from '../../package-reference.js';
 import PackageFetcher from '../../package-fetcher.js';
@@ -29,7 +29,6 @@ const emoji = require('node-emoji');
 const path = require('path');
 
 export type InstallPrepared = {
-  skip: boolean,
   requests: DependencyRequestPatterns,
   patterns: Array<string>,
 };
@@ -40,7 +39,7 @@ export type InstallCwdRequest = [
   Object
 ];
 
-type IntegrityMatch = {
+export type IntegrityMatch = {
   actual: string,
   expected: string,
   loc: string,
@@ -233,23 +232,29 @@ export class Install {
    * TODO description
    */
 
-  async prepare(
+  prepare(
     patterns: Array<string>,
     requests: DependencyRequestPatterns,
-    match: IntegrityMatch,
   ): Promise<InstallPrepared> {
+    return Promise.resolve({patterns, requests});
+  }
+
+  async bailout(
+    patterns: Array<string>,
+  ): Promise<boolean> {
+    const match = await this.matchesIntegrityHash(patterns);
     if (!this.flags.skipIntegrity && !this.flags.force && match.matches) {
       this.reporter.success(this.reporter.lang('upToDate'));
-      return {patterns, requests, skip: true};
+      return true;
     }
 
     if (!patterns.length && !match.expected) {
       this.reporter.success(this.reporter.lang('nothingToInstall'));
       await this.createEmptyManifestFolders();
-      return {patterns, requests, skip: true};
+      return true;
     }
 
-    return {patterns, requests, skip: false};
+    return false;
   }
 
   /**
@@ -273,33 +278,25 @@ export class Install {
    */
 
   async init(): Promise<Array<string>> {
-    let [depRequests, rawPatterns] = await this.fetchRequestFromCwd();
-    const match = await this.matchesIntegrityHash(rawPatterns);
-
-    const prepared = await this.prepare(rawPatterns, depRequests, match);
-    rawPatterns = prepared.patterns;
-    depRequests = prepared.requests;
-    if (prepared.skip) {
-      return rawPatterns;
-    }
-
-    // remove integrity hash to make this operation atomic
-    await fs.unlink(match.loc);
-
     // warn if we have a shrinkwrap
     if (await fs.exists(path.join(this.config.cwd, 'npm-shrinkwrap.json'))) {
       this.reporter.error(this.reporter.lang('shrinkwrapWarning'));
     }
 
-    //
-    let patterns = rawPatterns;
-    const steps: Array<(curr: number, total: number) => Promise<void>> = [];
+    let [depRequests, rawPatterns] = await this.fetchRequestFromCwd();
+    const prepared = await this.prepare(rawPatterns, depRequests);
+    depRequests = prepared.requests;
+    let patterns;
+    const steps: Array<(curr: number, total: number) => Promise<{bailout: boolean} | void>> = [];
 
     steps.push(async (curr: number, total: number) => {
       this.reporter.step(curr, total, this.reporter.lang('resolvingPackages'), emoji.get('mag'));
       await this.resolver.init(depRequests, this.flags.flat);
-      patterns = await this.flatten(rawPatterns);
+      patterns = await this.flatten(prepared.patterns);
+      console.log("WTFFFF", patterns, rawPatterns)
+      return {bailout: await this.bailout(rawPatterns)};
     });
+
 
     steps.push(async (curr: number, total: number) => {
       this.reporter.step(curr, total, this.reporter.lang('fetchingPackages'), emoji.get('truck'));
@@ -308,6 +305,9 @@ export class Install {
     });
 
     steps.push(async (curr: number, total: number) => {
+      // remove integrity hash to make this operation atomic
+      const loc = await this.getIntegrityHashLocation();
+      await fs.unlink(loc);
       this.reporter.step(curr, total, this.reporter.lang('linkingDependencies'), emoji.get('link'));
       await this.linker.init(patterns);
     });
@@ -350,13 +350,20 @@ export class Install {
 
     let currentStep = 0;
     for (const step of steps) {
-      await step(++currentStep, steps.length);
+      const stepResult = await step(++currentStep, steps.length);
+      if (stepResult && stepResult.bailout) {
+        return patterns;
+      }
     }
 
     // fin!
-    await this.saveLockfileAndIntegrity(rawPatterns);
+    await this.saveIntegrityFilesAndManifests(rawPatterns);
     this.config.requestManager.clearCache();
     return patterns;
+  }
+
+  async saveIntegrityFilesAndManifests(rawPatterns): Promise<void> {
+    await this.saveLockfileAndIntegrity(rawPatterns);
   }
 
   /**
@@ -425,6 +432,7 @@ export class Install {
       flattenedPatterns.push(this.resolver.collapseAllVersionsOfPackage(name, version));
     }
 
+    // TODO really unexpected that we write root manifests in the middle of install in a function called flatten
     // save resolutions to their appropriate root manifest
     if (Object.keys(this.resolutions).length) {
       const manifests = await this.config.getRootManifests();
@@ -468,6 +476,7 @@ export class Install {
     // stringify current lockfile
     const lockSource = lockStringify(this.lockfile.getLockfile(this.resolver.patterns));
 
+    console.log("!!!!", patterns)
     // write integrity hash
     await this.writeIntegrityHash(lockSource, patterns);
 
@@ -524,7 +533,8 @@ export class Install {
       };
     }
 
-    const actual = this.generateIntegrityHash(this.lockfile.source, patterns);
+    const lockSource = lockStringify(this.lockfile.getLockfile(this.resolver.patterns));
+    const actual = this.generateIntegrityHash(lockSource, patterns);
     const expected = (await fs.readFile(loc)).trim();
 
     return {
@@ -589,7 +599,7 @@ export class Install {
   generateIntegrityHash(lockfile: string, patterns: Array<string>): string {
     const opts = [lockfile];
 
-    opts.push(`patterns:${patterns.join(',')}`);
+    opts.push(`patterns:${patterns.sort(sortAlpha).join(',')}`);
 
     if (this.flags.flat) {
       opts.push('flat');

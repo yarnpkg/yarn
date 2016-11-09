@@ -1,7 +1,7 @@
 /* @flow */
 
 import type {Reporter} from '../../reporters/index.js';
-import type {InstallCwdRequest, InstallPrepared} from './install.js';
+import type {InstallCwdRequest, InstallPrepared, IntegrityMatch} from './install.js';
 import type {DependencyRequestPatterns} from '../../types.js';
 import type Config from '../../config.js';
 import type {LsOptions} from './ls.js';
@@ -55,8 +55,13 @@ export class Add extends Install {
     return Promise.resolve({
       patterns: patterns.concat(this.args),
       requests: requestsWithArgs,
-      skip: false,
     });
+  }
+
+  bailout(
+    patterns: Array<string>,
+  ): Promise<boolean> {
+    return Promise.resolve(false);
   }
 
   /**
@@ -66,7 +71,6 @@ export class Add extends Install {
   async init(): Promise<Array<string>> {
     const patterns = await Install.prototype.init.call(this);
     await this.maybeOutputSaveTree(patterns);
-    await this.savePackages();
     return patterns;
   }
 
@@ -101,10 +105,10 @@ export class Add extends Install {
    * Save added packages to manifest if any of the --save flags were used.
    */
 
-  async savePackages(): Promise<void> {
+  async saveIntegrityFilesAndManifests(rawPatterns): Promise<void> {
     const {exact, tilde} = this.flags;
     // hold only patterns for lockfile
-    const patterns = [];
+    const patterns = rawPatterns;
 
     // fill rootPatternsToOrigin without `excludePatterns`
     await Install.prototype.fetchRequestFromCwd.call(this);
