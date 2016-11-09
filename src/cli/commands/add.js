@@ -82,16 +82,16 @@ export class Add extends Install {
         version = `${String(this.config.getOption('save-prefix') || '')}${pkg.version}`;
       }
       const newPattern = `${pkg.name}@${version}`;
+      preparedPatterns.push(newPattern);
+      this.addedPatterns.push(newPattern);
       if (newPattern === pattern) {
         continue;
       }
+      // TODO move replacement into resolver
       pkg._reference.patterns = [newPattern];
       this.resolver.newPatterns.splice(this.resolver.newPatterns.indexOf(pattern), 1, newPattern);
       this.resolver.addPattern(newPattern, pkg);
       this.resolver.removePattern(pattern);
-      this.addedPatterns.push(newPattern);
-
-      preparedPatterns.push(newPattern);
     }
     return preparedPatterns;
   }
