@@ -8,7 +8,7 @@ import type {RegistryNames} from '../../registries/index.js';
 import normalizeManifest from '../../util/normalize-manifest/index.js';
 import {registryNames} from '../../registries/index.js';
 import {MessageError} from '../../errors.js';
-import Lockfile, {sortAlpha} from '../../lockfile/wrapper.js';
+import Lockfile from '../../lockfile/wrapper.js';
 import lockStringify from '../../lockfile/stringify.js';
 import * as PackageReference from '../../package-reference.js';
 import PackageFetcher from '../../package-fetcher.js';
@@ -23,6 +23,7 @@ import * as constants from '../../constants.js';
 import * as fs from '../../util/fs.js';
 import * as crypto from '../../util/crypto.js';
 import map from '../../util/map.js';
+import {sortAlpha} from '../../util/misc.js';
 
 const invariant = require('invariant');
 const emoji = require('node-emoji');
