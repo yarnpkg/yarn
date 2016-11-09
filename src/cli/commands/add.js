@@ -35,12 +35,12 @@ export class Add extends Install {
 
   args: Array<string>;
   flagToOrigin: string;
+  addedPatterns: Array<string>;
 
   /**
    * TODO
    */
-
-  prepare(patterns: Array<string>, requests: DependencyRequestPatterns): Promise<InstallPrepared> {
+  prepareRequests(requests: DependencyRequestPatterns): DependencyRequestPatterns {
     const requestsWithArgs = requests.slice();
 
     for (const pattern of this.args) {
@@ -51,11 +51,49 @@ export class Add extends Install {
         optional: false,
       });
     }
+    return requestsWithArgs;
+  }
 
-    return Promise.resolve({
-      patterns: patterns.concat(this.args),
-      requests: requestsWithArgs,
-    });
+  preparePatterns(
+    patterns: Array<string>,
+  ): Array<string> {
+    const {exact, tilde} = this.flags;
+    const preparedPatterns = patterns.slice();
+    for (const pattern of this.resolver.dedupePatterns(this.args)) {
+      const pkg = this.resolver.getResolvedPattern(pattern);
+      invariant(pkg, `missing package ${pattern}`);
+
+      const ref = pkg._reference;
+      invariant(ref, 'expected package reference');
+
+      const parts = PackageRequest.normalizePattern(pattern);
+      let version;
+      if (PackageRequest.getExoticResolver(pattern)) {
+        // wasn't a name/range tuple so this is just a raw exotic pattern
+        version = pattern;
+      } else if (parts.hasVersion && parts.range) {
+        // if the user specified a range then use it verbatim
+        version = parts.range;
+      } else if (tilde) { // --save-tilde
+        version = `~${pkg.version}`;
+      } else if (exact) { // --save-exact
+        version = pkg.version;
+      } else { // default to save prefix
+        version = `${String(this.config.getOption('save-prefix') || '')}${pkg.version}`;
+      }
+      const newPattern = `${pkg.name}@${version}`;
+      if (newPattern === pattern) {
+        continue;
+      }
+      pkg._reference.patterns = [newPattern];
+      this.resolver.newPatterns.splice(this.resolver.newPatterns.indexOf(pattern), 1, newPattern);
+      this.resolver.addPattern(newPattern, pkg);
+      this.resolver.removePattern(pattern);
+      this.addedPatterns.push(newPattern);
+
+      preparedPatterns.push(newPattern);
+    }
+    return preparedPatterns;
   }
 
   bailout(
@@ -70,6 +108,7 @@ export class Add extends Install {
    */
 
   async init(): Promise<Array<string>> {
+    this.addedPatterns = [];
     const patterns = await Install.prototype.init.call(this);
     await this.maybeOutputSaveTree(patterns);
     await this.savePackages();
@@ -109,8 +148,6 @@ export class Add extends Install {
 
   async savePackages(): Promise<void> {
     const {exact, tilde} = this.flags;
-    // hold only patterns for lockfile
-    const patterns = [];
 
     // fill rootPatternsToOrigin without `excludePatterns`
     await Install.prototype.fetchRequestFromCwd.call(this);
@@ -120,7 +157,7 @@ export class Add extends Install {
     const manifests = await this.config.getRootManifests();
 
     // add new patterns to their appropriate registry manifest
-    for (const pattern of this.resolver.dedupePatterns(this.args)) {
+    for (const pattern of this.addedPatterns) {
       const pkg = this.resolver.getResolvedPattern(pattern);
       invariant(pkg, `missing package ${pattern}`);
 
@@ -148,7 +185,6 @@ export class Add extends Install {
         if (prev.indexOf(`${pkg.name}@`) === 0) {
           return this.rootPatternsToOrigin[prev];
         }
-
         return acc;
       }, null);
 
@@ -160,21 +196,9 @@ export class Add extends Install {
 
       object[target] = object[target] || {};
       object[target][pkg.name] = version;
-
-      // add pattern so it's aliased in the lockfile
-      const newPattern = `${pkg.name}@${version}`;
-      if (newPattern === pattern) {
-        continue;
-      }
-      this.resolver.addPattern(newPattern, pkg);
-      this.resolver.removePattern(pattern);
-
-      // push new pattern to the lockfile
-      patterns.push(newPattern);
     }
 
     await this.config.saveRootManifests(manifests);
-    await this.saveLockfileAndIntegrity(patterns);
   }
 }
 
