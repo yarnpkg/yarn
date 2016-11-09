@@ -1,25 +1,24 @@
 #!/usr/bin/env node
 
-/* eslint-disable no-var */
 /* eslint-disable flowtype/require-valid-file-annotation */
 'use strict';
 
 // init roadrunner
-var mkdirp = require('mkdirp');
-var constants = require('../lib-legacy/constants');
+const mkdirp = require('mkdirp');
+const constants = require('../lib-legacy/constants');
 mkdirp.sync(constants.GLOBAL_INSTALL_DIRECTORY);
-var roadrunner = require('roadrunner');
+const roadrunner = require('roadrunner');
 roadrunner.load(constants.CACHE_FILENAME);
 roadrunner.setup(constants.CACHE_FILENAME);
 
 // get node version
-var semver = require('semver');
-var ver = process.versions.node;
+const semver = require('semver');
+let ver = process.versions.node;
 ver = ver.split('-')[0]; // explode and truncate tag from version #511
 
-var possibles = [];
-var found = false;
-var _err;
+const possibles = [];
+let found = false;
+let _err;
 
 if (semver.satisfies(ver, '>=5.0.0')) {
   possibles.push('../updates/current/lib/cli/index.js');
@@ -32,9 +31,9 @@ if (semver.satisfies(ver, '>=5.0.0')) {
   process.exit(1);
 }
 
-var i = 0;
+let i = 0;
 for (; i < possibles.length; i++) {
-  var possible = possibles[i];
+  const possible = possibles[i];
   try {
     module.exports = require(possible);
     found = true;
