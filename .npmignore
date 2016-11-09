@@ -13,7 +13,6 @@
 /appveyor.yml
 /artifacts/
 /circle.yml
-/CONTRIBUTING.md
 /CODE_OF_CONDUCT.md
 /flow-typed/
 /RELEASING.md
