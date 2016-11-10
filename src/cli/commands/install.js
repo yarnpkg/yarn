@@ -470,6 +470,11 @@ export class Install {
     // write integrity hash
     await this.writeIntegrityHash(lockSource, patterns);
 
+    // --no-lockfile or --pure-lockfile flag
+    if (this.flags.lockfile === false || this.flags.pureLockfile) {
+      return;
+    }
+
     // check if the loaded lockfile has all the included patterns
     let inSync = true;
     for (const pattern of patterns) {
@@ -478,15 +483,7 @@ export class Install {
         break;
       }
     }
-    // don't write new lockfile if in sync
-    if (inSync) {
-      return;
-    }
 
-    // --no-lockfile or --pure-lockfile flag
-    if (this.flags.lockfile === false || this.flags.pureLockfile) {
-      return;
-    }
     // remove is followed by install with force on which we rewrite lockfile
     if (inSync && !this.flags.force) {
       return;
