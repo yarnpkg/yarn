@@ -28,11 +28,11 @@ test.concurrent('integrity hash respects flat and production flags', async () =>
   const install = new Install({}, config, reporter, lockfile);
 
   const install2 = new Install({flat: true}, config, reporter, lockfile);
-  assert(install2.generateIntegrityHash('foo', []) !== install.generateIntegrityHash('foo', []));
+  expect(install2.generateIntegrityHash('foo', [])).not.toEqual(install.generateIntegrityHash('foo', []));
 
   const install3 = new Install({production: true}, config, reporter, lockfile);
-  assert(install3.generateIntegrityHash('foo', []) !== install.generateIntegrityHash('foo', []));
-  assert(install3.generateIntegrityHash('foo', []) !== install2.generateIntegrityHash('foo', []));
+  expect(install3.generateIntegrityHash('foo', [])).not.toEqual(install.generateIntegrityHash('foo', []));
+  expect(install3.generateIntegrityHash('foo', [])).not.toEqual(install2.generateIntegrityHash('foo', []));
 });
 
 test.concurrent('flat arg is inherited from root manifest', async (): Promise<void> => {
@@ -460,7 +460,8 @@ test.concurrent('install should resolve circular dependencies 2', (): Promise<vo
 });
 
 
-test.concurrent('install should respect NODE_ENV=production', (): Promise<void> => {
+// don't run this test in `concurrent`, it will affect other tests
+test('install should respect NODE_ENV=production', (): Promise<void> => {
   const env = process.env.NODE_ENV;
   process.env.NODE_ENV = 'production';
   return runInstall({}, 'install-should-respect-node_env', async (config) => {
@@ -654,7 +655,7 @@ test.concurrent('install should not rewrite lockfile with no substantial changes
     const originalLockContent = await fs.readFile(
       path.join(config.cwd, 'yarn.lock'),
     );
-    let lockContent = originalLockContent + `
+    const lockContent = originalLockContent + `
 # changed the file, and it should remain changed after force install
     `;
     await fs.writeFile(
