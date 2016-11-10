@@ -545,8 +545,7 @@ test.concurrent('add should store latest version in lockfile', (): Promise<void>
   });
 });
 
-// TODO disabled until https://github.com/yarnpkg/yarn/issues/1733 is fixed
-test.skip('add should generate correct integrity file', (): Promise<void> => {
+test.concurrent('add should generate correct integrity file', (): Promise<void> => {
   return runAdd({}, ['mime-db@1.24.0'], 'integrity-check', async (config, reporter) => {
     let allCorrect = true;
     try {

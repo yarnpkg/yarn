@@ -1,8 +1,8 @@
 /* @flow */
 
 import type {Reporter} from '../../reporters/index.js';
-import type {InstallCwdRequest, InstallPrepared, IntegrityMatch} from './install.js';
-import type {DependencyRequestPatterns} from '../../types.js';
+import type {InstallCwdRequest} from './install.js';
+import type {DependencyRequestPatterns, Manifest} from '../../types.js';
 import type Config from '../../config.js';
 import type {LsOptions} from './ls.js';
 import Lockfile from '../../lockfile/wrapper.js';
@@ -35,12 +35,12 @@ export class Add extends Install {
 
   args: Array<string>;
   flagToOrigin: string;
+  addedPatterns: Array<string>;
 
   /**
    * TODO
    */
-
-  prepare(patterns: Array<string>, requests: DependencyRequestPatterns): Promise<InstallPrepared> {
+  prepareRequests(requests: DependencyRequestPatterns): DependencyRequestPatterns {
     const requestsWithArgs = requests.slice();
 
     for (const pattern of this.args) {
@@ -51,16 +51,53 @@ export class Add extends Install {
         optional: false,
       });
     }
+    return requestsWithArgs;
+  }
 
-    return Promise.resolve({
-      patterns: patterns.concat(this.args),
-      requests: requestsWithArgs,
-    });
+  /**
+   * returns version for a pattern based on Manifest
+   */
+  getPatternVersion(pattern: string, pkg: Manifest): string {
+    const {exact, tilde} = this.flags;
+    const parts = PackageRequest.normalizePattern(pattern);
+    let version;
+    if (PackageRequest.getExoticResolver(pattern)) {
+      // wasn't a name/range tuple so this is just a raw exotic pattern
+      version = pattern;
+    } else if (parts.hasVersion && parts.range) {
+      // if the user specified a range then use it verbatim
+      version = parts.range;
+    } else if (tilde) { // --save-tilde
+      version = `~${pkg.version}`;
+    } else if (exact) { // --save-exact
+      version = pkg.version;
+    } else { // default to save prefix
+      version = `${String(this.config.getOption('save-prefix') || '')}${pkg.version}`;
+    }
+    return version;
+  }
+
+  preparePatterns(
+    patterns: Array<string>,
+  ): Array<string> {
+    const preparedPatterns = patterns.slice();
+    for (const pattern of this.resolver.dedupePatterns(this.args)) {
+      const pkg = this.resolver.getResolvedPattern(pattern);
+      invariant(pkg, `missing package ${pattern}`);
+      const version = this.getPatternVersion(pattern, pkg);
+      const newPattern = `${pkg.name}@${version}`;
+      preparedPatterns.push(newPattern);
+      this.addedPatterns.push(newPattern);
+      if (newPattern === pattern) {
+        continue;
+      }
+      this.resolver.replacePattern(pattern, newPattern);
+    }
+    return preparedPatterns;
   }
 
   bailout(
     patterns: Array<string>,
-    match: IntegrityMatch,
   ): Promise<boolean> {
     return Promise.resolve(false);
   }
@@ -70,6 +107,7 @@ export class Add extends Install {
    */
 
   async init(): Promise<Array<string>> {
+    this.addedPatterns = [];
     const patterns = await Install.prototype.init.call(this);
     await this.maybeOutputSaveTree(patterns);
     await this.savePackages();
@@ -108,10 +146,6 @@ export class Add extends Install {
    */
 
   async savePackages(): Promise<void> {
-    const {exact, tilde} = this.flags;
-    // hold only patterns for lockfile
-    const patterns = [];
-
     // fill rootPatternsToOrigin without `excludePatterns`
     await Install.prototype.fetchRequestFromCwd.call(this);
     const patternOrigins = Object.keys(this.rootPatternsToOrigin);
@@ -120,35 +154,17 @@ export class Add extends Install {
     const manifests = await this.config.getRootManifests();
 
     // add new patterns to their appropriate registry manifest
-    for (const pattern of this.resolver.dedupePatterns(this.args)) {
+    for (const pattern of this.addedPatterns) {
       const pkg = this.resolver.getResolvedPattern(pattern);
       invariant(pkg, `missing package ${pattern}`);
-
+      const version = this.getPatternVersion(pattern, pkg);
       const ref = pkg._reference;
       invariant(ref, 'expected package reference');
-
-      const parts = PackageRequest.normalizePattern(pattern);
-      let version;
-      if (PackageRequest.getExoticResolver(pattern)) {
-        // wasn't a name/range tuple so this is just a raw exotic pattern
-        version = pattern;
-      } else if (parts.hasVersion && parts.range) {
-        // if the user specified a range then use it verbatim
-        version = parts.range;
-      } else if (tilde) { // --save-tilde
-        version = `~${pkg.version}`;
-      } else if (exact) { // --save-exact
-        version = pkg.version;
-      } else { // default to save prefix
-        version = `${String(this.config.getOption('save-prefix') || '')}${pkg.version}`;
-      }
-
       // lookup the package to determine dependency type; used during `yarn upgrade`
       const depType = patternOrigins.reduce((acc, prev) => {
         if (prev.indexOf(`${pkg.name}@`) === 0) {
           return this.rootPatternsToOrigin[prev];
         }
-
         return acc;
       }, null);
 
@@ -160,21 +176,9 @@ export class Add extends Install {
 
       object[target] = object[target] || {};
       object[target][pkg.name] = version;
-
-      // add pattern so it's aliased in the lockfile
-      const newPattern = `${pkg.name}@${version}`;
-      if (newPattern === pattern) {
-        continue;
-      }
-      this.resolver.addPattern(newPattern, pkg);
-      this.resolver.removePattern(pattern);
-
-      // push new pattern to the lockfile
-      patterns.push(newPattern);
     }
 
     await this.config.saveRootManifests(manifests);
-    await this.saveLockfileAndIntegrity(patterns);
   }
 }
 

@@ -23,15 +23,11 @@ import * as constants from '../../constants.js';
 import * as fs from '../../util/fs.js';
 import * as crypto from '../../util/crypto.js';
 import map from '../../util/map.js';
+import {sortAlpha} from '../../util/misc.js';
 
 const invariant = require('invariant');
 const emoji = require('node-emoji');
 const path = require('path');
-
-export type InstallPrepared = {
-  requests: DependencyRequestPatterns,
-  patterns: Array<string>,
-};
 
 export type InstallCwdRequest = [
   DependencyRequestPatterns,
@@ -232,17 +228,20 @@ export class Install {
    * TODO description
    */
 
-  prepare(
+  prepareRequests(requests: DependencyRequestPatterns): DependencyRequestPatterns {
+    return requests;
+  }
+
+  preparePatterns(
     patterns: Array<string>,
-    requests: DependencyRequestPatterns,
-  ): Promise<InstallPrepared> {
-    return Promise.resolve({patterns, requests});
+  ): Array<string> {
+    return patterns;
   }
 
   async bailout(
     patterns: Array<string>,
-    match: IntegrityMatch,
   ): Promise<boolean> {
+    const match = await this.matchesIntegrityHash(patterns);
     if (!this.flags.skipIntegrity && !this.flags.force && match.matches) {
       this.reporter.success(this.reporter.lang('upToDate'));
       return true;
@@ -278,26 +277,20 @@ export class Install {
    */
 
   async init(): Promise<Array<string>> {
-    let [depRequests, rawPatterns] = await this.fetchRequestFromCwd();
-
-    const prepared = await this.prepare(rawPatterns, depRequests);
-    rawPatterns = prepared.patterns;
-    depRequests = prepared.requests;
-
     // warn if we have a shrinkwrap
     if (await fs.exists(path.join(this.config.cwd, 'npm-shrinkwrap.json'))) {
       this.reporter.error(this.reporter.lang('shrinkwrapWarning'));
     }
 
-    let patterns = rawPatterns;
+    let patterns: Array<string> = [];
     const steps: Array<(curr: number, total: number) => Promise<{bailout: boolean} | void>> = [];
+    const [depRequests, rawPatterns] = await this.fetchRequestFromCwd();
 
     steps.push(async (curr: number, total: number) => {
       this.reporter.step(curr, total, this.reporter.lang('resolvingPackages'), emoji.get('mag'));
-      await this.resolver.init(depRequests, this.flags.flat);
-      patterns = await this.flatten(rawPatterns);
-      const match = await this.matchesIntegrityHash(rawPatterns);
-      return {bailout: await this.bailout(rawPatterns, match)};
+      await this.resolver.init(this.prepareRequests(depRequests), this.flags.flat);
+      patterns = await this.flatten(this.preparePatterns(rawPatterns));
+      return {bailout: await this.bailout(patterns)};
     });
 
 
@@ -360,7 +353,7 @@ export class Install {
     }
 
     // fin!
-    await this.saveLockfileAndIntegrity(rawPatterns);
+    await this.saveLockfileAndIntegrity(patterns);
     this.config.requestManager.clearCache();
     return patterns;
   }
@@ -596,7 +589,7 @@ export class Install {
   generateIntegrityHash(lockfile: string, patterns: Array<string>): string {
     const opts = [lockfile];
 
-    opts.push(`patterns:${patterns.join(',')}`);
+    opts.push(`patterns:${patterns.sort(sortAlpha).join(',')}`);
 
     if (this.flags.flat) {
       opts.push('flat');

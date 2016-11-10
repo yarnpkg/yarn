@@ -262,6 +262,20 @@ export default class PackageResolver {
   }
 
   /**
+   * replace pattern in resolver, e.g. `name` is replaced with `name@^1.0.1`
+   */
+  replacePattern(pattern: string, newPattern: string) {
+    const pkg = this.getResolvedPattern(pattern);
+    invariant(pkg, `missing package ${pattern}`);
+    const ref = pkg._reference;
+    invariant(ref, 'expected package reference');
+    ref.patterns = [newPattern];
+    this.newPatterns.splice(this.newPatterns.indexOf(pattern), 1, newPattern);
+    this.addPattern(newPattern, pkg);
+    this.removePattern(pattern);
+  }
+
+  /**
    * Make all versions of this package resolve to it.
    */
 
