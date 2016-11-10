@@ -1,6 +1,7 @@
 /* @flow */
 
 import {run as check} from '../../src/cli/commands/check.js';
+import * as constants from '../../src/constants.js';
 import * as reporters from '../../src/reporters/index.js';
 import {Install} from '../../src/cli/commands/install.js';
 import Lockfile from '../../src/lockfile/wrapper.js';
@@ -650,10 +651,10 @@ test.concurrent('install should not rewrite lockfile with no substantial changes
   const fixture = 'lockfile-no-rewrites';
 
   return runInstall({}, fixture, async (config, reporter) => {
-    let lockContent = await fs.readFile(
+    const originalLockContent = await fs.readFile(
       path.join(config.cwd, 'yarn.lock'),
     );
-    lockContent += `
+    let lockContent = originalLockContent + `
 # changed the file, and it should remain changed after force install
     `;
     await fs.writeFile(
@@ -661,11 +662,21 @@ test.concurrent('install should not rewrite lockfile with no substantial changes
       lockContent,
     );
 
-    const reinstall = new Install({force: true}, config, reporter, await Lockfile.fromDirectory(config.cwd));
+    await fs.unlink(path.join(config.cwd, 'node_modules', constants.INTEGRITY_FILENAME));
+
+    let reinstall = new Install({}, config, reporter, await Lockfile.fromDirectory(config.cwd));
     await reinstall.init();
-    const newLockContent = await fs.readFile(
+    let newLockContent = await fs.readFile(
       path.join(config.cwd, 'yarn.lock'),
     );
     expect(newLockContent).toEqual(lockContent);
+
+    // force should rewrite lockfile
+    reinstall = new Install({force: true}, config, reporter, await Lockfile.fromDirectory(config.cwd));
+    await reinstall.init();
+    newLockContent = await fs.readFile(
+      path.join(config.cwd, 'yarn.lock'),
+    );
+    expect(newLockContent).not.toEqual(lockContent);
   });
 });
