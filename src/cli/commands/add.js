@@ -2,7 +2,7 @@
 
 import type {Reporter} from '../../reporters/index.js';
 import type {InstallCwdRequest} from './install.js';
-import type {DependencyRequestPatterns} from '../../types.js';
+import type {DependencyRequestPatterns, Manifest} from '../../types.js';
 import type Config from '../../config.js';
 import type {LsOptions} from './ls.js';
 import Lockfile from '../../lockfile/wrapper.js';
@@ -54,30 +54,37 @@ export class Add extends Install {
     return requestsWithArgs;
   }
 
+  /**
+   * returns version for a pattern based on Manifest
+   */
+  getPatternVersion(pattern: string, pkg: Manifest): string {
+    const {exact, tilde} = this.flags;
+    const parts = PackageRequest.normalizePattern(pattern);
+    let version;
+    if (PackageRequest.getExoticResolver(pattern)) {
+      // wasn't a name/range tuple so this is just a raw exotic pattern
+      version = pattern;
+    } else if (parts.hasVersion && parts.range) {
+      // if the user specified a range then use it verbatim
+      version = parts.range;
+    } else if (tilde) { // --save-tilde
+      version = `~${pkg.version}`;
+    } else if (exact) { // --save-exact
+      version = pkg.version;
+    } else { // default to save prefix
+      version = `${String(this.config.getOption('save-prefix') || '')}${pkg.version}`;
+    }
+    return version;
+  }
+
   preparePatterns(
     patterns: Array<string>,
   ): Array<string> {
-    const {exact, tilde} = this.flags;
     const preparedPatterns = patterns.slice();
     for (const pattern of this.resolver.dedupePatterns(this.args)) {
       const pkg = this.resolver.getResolvedPattern(pattern);
       invariant(pkg, `missing package ${pattern}`);
-
-      const parts = PackageRequest.normalizePattern(pattern);
-      let version;
-      if (PackageRequest.getExoticResolver(pattern)) {
-        // wasn't a name/range tuple so this is just a raw exotic pattern
-        version = pattern;
-      } else if (parts.hasVersion && parts.range) {
-        // if the user specified a range then use it verbatim
-        version = parts.range;
-      } else if (tilde) { // --save-tilde
-        version = `~${pkg.version}`;
-      } else if (exact) { // --save-exact
-        version = pkg.version;
-      } else { // default to save prefix
-        version = `${String(this.config.getOption('save-prefix') || '')}${pkg.version}`;
-      }
+      const version = this.getPatternVersion(pattern, pkg);
       const newPattern = `${pkg.name}@${version}`;
       preparedPatterns.push(newPattern);
       this.addedPatterns.push(newPattern);
@@ -139,8 +146,6 @@ export class Add extends Install {
    */
 
   async savePackages(): Promise<void> {
-    const {exact, tilde} = this.flags;
-
     // fill rootPatternsToOrigin without `excludePatterns`
     await Install.prototype.fetchRequestFromCwd.call(this);
     const patternOrigins = Object.keys(this.rootPatternsToOrigin);
@@ -152,26 +157,9 @@ export class Add extends Install {
     for (const pattern of this.addedPatterns) {
       const pkg = this.resolver.getResolvedPattern(pattern);
       invariant(pkg, `missing package ${pattern}`);
-
+      const version = this.getPatternVersion(pattern, pkg);
       const ref = pkg._reference;
       invariant(ref, 'expected package reference');
-
-      const parts = PackageRequest.normalizePattern(pattern);
-      let version;
-      if (PackageRequest.getExoticResolver(pattern)) {
-        // wasn't a name/range tuple so this is just a raw exotic pattern
-        version = pattern;
-      } else if (parts.hasVersion && parts.range) {
-        // if the user specified a range then use it verbatim
-        version = parts.range;
-      } else if (tilde) { // --save-tilde
-        version = `~${pkg.version}`;
-      } else if (exact) { // --save-exact
-        version = pkg.version;
-      } else { // default to save prefix
-        version = `${String(this.config.getOption('save-prefix') || '')}${pkg.version}`;
-      }
-
       // lookup the package to determine dependency type; used during `yarn upgrade`
       const depType = patternOrigins.reduce((acc, prev) => {
         if (prev.indexOf(`${pkg.name}@`) === 0) {
