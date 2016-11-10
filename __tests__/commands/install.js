@@ -459,7 +459,7 @@ test.concurrent('install should resolve circular dependencies 2', (): Promise<vo
 });
 
 
-test('install should respect NODE_ENV=production', (): Promise<void> => {
+test.concurrent('install should respect NODE_ENV=production', (): Promise<void> => {
   const env = process.env.NODE_ENV;
   process.env.NODE_ENV = 'production';
   return runInstall({}, 'install-should-respect-node_env', async (config) => {
@@ -607,7 +607,7 @@ test.concurrent('install should write and read integrity file based on lockfile 
       path.join(config.cwd, 'yarn.lock'),
     );
     lockContent += `
-    # changed the file, integrity should be fine
+# changed the file, integrity should be fine
     `;
     await fs.writeFile(
       path.join(config.cwd, 'yarn.lock'),
@@ -643,5 +643,29 @@ test.concurrent('install should write and read integrity file based on lockfile 
     }
     expect(allCorrect).toBe(true);
 
+  });
+});
+
+test.concurrent('install should not rewrite lockfile with no substantial changes', (): Promise<void> => {
+  const fixture = 'lockfile-no-rewrites';
+
+  return runInstall({}, fixture, async (config, reporter) => {
+    let lockContent = await fs.readFile(
+      path.join(config.cwd, 'yarn.lock'),
+    );
+    lockContent += `
+# changed the file, and it should remain changed after force install
+    `;
+    await fs.writeFile(
+      path.join(config.cwd, 'yarn.lock'),
+      lockContent,
+    );
+
+    const reinstall = new Install({force: true}, config, reporter, await Lockfile.fromDirectory(config.cwd));
+    await reinstall.init();
+    const newLockContent = await fs.readFile(
+      path.join(config.cwd, 'yarn.lock'),
+    );
+    expect(newLockContent).toEqual(lockContent);
   });
 });
