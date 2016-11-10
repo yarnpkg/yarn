@@ -538,7 +538,32 @@ test.concurrent('add should store latest version in lockfile', (): Promise<void>
     const lockfile = explodeLockfile(await fs.readFile(path.join(config.cwd, 'yarn.lock')));
     const pkg = await fs.readJson(path.join(config.cwd, 'package.json'));
 
-    assert(lockfile.indexOf('max-safe-integer@^1.0.1:') === 0);
-    assert.deepEqual(pkg.dependencies, {'max-safe-integer': '^1.0.1'});
+    const version = pkg.dependencies['max-safe-integer'];
+    assert(semver.valid(version.slice(1)));
+    assert(lockfile.indexOf('max-safe-integer:') === -1);
+    assert(lockfile.indexOf(`max-safe-integer@${version}:`) === 0);
   });
+});
+
+test.concurrent('add should generate correct integrity file', (): Promise<void> => {
+  return runAdd({}, ['mime-db@1.24.0'], 'integrity-check', async (config, reporter) => {
+    let allCorrect = true;
+    try {
+      await check(config, reporter, {integrity: true}, []);
+    } catch (err) {
+      allCorrect = false;
+    }
+    expect(allCorrect).toBe(true);
+
+    // add to an existing package.json caused incorrect integrity https://github.com/yarnpkg/yarn/issues/1733
+    const add = new Add(['left-pad@1.1.3'], {}, config, reporter, await Lockfile.fromDirectory(config.cwd));
+    await add.init();
+    try {
+      await check(config, reporter, {integrity: true}, []);
+    } catch (err) {
+      allCorrect = false;
+    }
+    expect(allCorrect).toBe(true);
+  });
+
 });

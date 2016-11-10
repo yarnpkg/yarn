@@ -12,6 +12,7 @@ machine:
 dependencies:
   cache_directories:
     - "~/.yarn-cache"
+    - "~/ghr"
 
   override:
     - which node
@@ -22,8 +23,12 @@ dependencies:
     - yarn install
 
     # setup ghr
-    - curl -L -o ghr.zip https://github.com/tcnksm/ghr/releases/download/v0.5.0/ghr_v0.5.0_linux_amd64.zip
-    - unzip ghr.zip
+    - >
+      if [[ ! -e ~/ghr ]]; then
+        curl -L --create-dirs -o ~/ghr/ghr.zip https://github.com/tcnksm/ghr/releases/download/v0.5.0/ghr_v0.5.0_linux_amd64.zip;
+        unzip ~/ghr/ghr.zip -d ~/ghr
+      fi
+    - sudo ln -sF  ~/ghr/ghr /usr/local/bin/ghr
 
 test:
   override:
@@ -44,7 +49,7 @@ deployment:
     tag: /v[0-9]+(\.[0-9]+)*/
     owner: yarnpkg
     commands:
-      - ./ghr --username yarnpkg --repository yarn --token $KPM_CIRCLE_RELEASE_TOKEN v$(dist/bin/yarn --version) artifacts/
+      - ~/ghr/ghr --username yarnpkg --repository yarn --token $KPM_CIRCLE_RELEASE_TOKEN v$(dist/bin/yarn --version) artifacts/
       - echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
       - npm publish
 

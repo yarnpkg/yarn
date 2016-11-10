@@ -10,7 +10,7 @@ if [ -n "$APT_PROXY" ]; then
 fi;
 
 # Add Yarn repo
-apt-key adv --keyserver pgp.mit.edu --recv D101F7899D41F3C3
+apt-key adv --fetch-keys http://dl.yarnpkg.com/debian/pubkey.gpg
 echo "deb http://nightly.yarnpkg.com/debian/ nightly main" > /etc/apt/sources.list.d/yarn.list
 apt-get update -y
 

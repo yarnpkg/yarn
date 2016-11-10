@@ -23,16 +23,11 @@ import * as constants from '../../constants.js';
 import * as fs from '../../util/fs.js';
 import * as crypto from '../../util/crypto.js';
 import map from '../../util/map.js';
+import {sortAlpha} from '../../util/misc.js';
 
 const invariant = require('invariant');
 const emoji = require('node-emoji');
 const path = require('path');
-
-export type InstallPrepared = {
-  skip: boolean,
-  requests: DependencyRequestPatterns,
-  patterns: Array<string>,
-};
 
 export type InstallCwdRequest = [
   DependencyRequestPatterns,
@@ -40,7 +35,7 @@ export type InstallCwdRequest = [
   Object
 ];
 
-type IntegrityMatch = {
+export type IntegrityMatch = {
   actual: string,
   expected: string,
   loc: string,
@@ -233,23 +228,32 @@ export class Install {
    * TODO description
    */
 
-  async prepare(
+  prepareRequests(requests: DependencyRequestPatterns): DependencyRequestPatterns {
+    return requests;
+  }
+
+  preparePatterns(
     patterns: Array<string>,
-    requests: DependencyRequestPatterns,
-    match: IntegrityMatch,
-  ): Promise<InstallPrepared> {
+  ): Array<string> {
+    return patterns;
+  }
+
+  async bailout(
+    patterns: Array<string>,
+  ): Promise<boolean> {
+    const match = await this.matchesIntegrityHash(patterns);
     if (!this.flags.skipIntegrity && !this.flags.force && match.matches) {
       this.reporter.success(this.reporter.lang('upToDate'));
-      return {patterns, requests, skip: true};
+      return true;
     }
 
     if (!patterns.length && !match.expected) {
       this.reporter.success(this.reporter.lang('nothingToInstall'));
       await this.createEmptyManifestFolders();
-      return {patterns, requests, skip: true};
+      return true;
     }
 
-    return {patterns, requests, skip: false};
+    return false;
   }
 
   /**
@@ -273,33 +277,22 @@ export class Install {
    */
 
   async init(): Promise<Array<string>> {
-    let [depRequests, rawPatterns] = await this.fetchRequestFromCwd();
-    const match = await this.matchesIntegrityHash(rawPatterns);
-
-    const prepared = await this.prepare(rawPatterns, depRequests, match);
-    rawPatterns = prepared.patterns;
-    depRequests = prepared.requests;
-    if (prepared.skip) {
-      return rawPatterns;
-    }
-
-    // remove integrity hash to make this operation atomic
-    await fs.unlink(match.loc);
-
     // warn if we have a shrinkwrap
     if (await fs.exists(path.join(this.config.cwd, 'npm-shrinkwrap.json'))) {
       this.reporter.error(this.reporter.lang('shrinkwrapWarning'));
     }
 
-    //
-    let patterns = rawPatterns;
-    const steps: Array<(curr: number, total: number) => Promise<void>> = [];
+    let patterns: Array<string> = [];
+    const steps: Array<(curr: number, total: number) => Promise<{bailout: boolean} | void>> = [];
+    const [depRequests, rawPatterns] = await this.fetchRequestFromCwd();
 
     steps.push(async (curr: number, total: number) => {
       this.reporter.step(curr, total, this.reporter.lang('resolvingPackages'), emoji.get('mag'));
-      await this.resolver.init(depRequests, this.flags.flat);
-      patterns = await this.flatten(rawPatterns);
+      await this.resolver.init(this.prepareRequests(depRequests), this.flags.flat);
+      patterns = await this.flatten(this.preparePatterns(rawPatterns));
+      return {bailout: await this.bailout(patterns)};
     });
+
 
     steps.push(async (curr: number, total: number) => {
       this.reporter.step(curr, total, this.reporter.lang('fetchingPackages'), emoji.get('truck'));
@@ -308,6 +301,9 @@ export class Install {
     });
 
     steps.push(async (curr: number, total: number) => {
+      // remove integrity hash to make this operation atomic
+      const loc = await this.getIntegrityHashLocation();
+      await fs.unlink(loc);
       this.reporter.step(curr, total, this.reporter.lang('linkingDependencies'), emoji.get('link'));
       await this.linker.init(patterns);
     });
@@ -350,11 +346,14 @@ export class Install {
 
     let currentStep = 0;
     for (const step of steps) {
-      await step(++currentStep, steps.length);
+      const stepResult = await step(++currentStep, steps.length);
+      if (stepResult && stepResult.bailout) {
+        return patterns;
+      }
     }
 
     // fin!
-    await this.saveLockfileAndIntegrity(rawPatterns);
+    await this.saveLockfileAndIntegrity(patterns);
     this.config.requestManager.clearCache();
     return patterns;
   }
@@ -524,7 +523,8 @@ export class Install {
       };
     }
 
-    const actual = this.generateIntegrityHash(this.lockfile.source, patterns);
+    const lockSource = lockStringify(this.lockfile.getLockfile(this.resolver.patterns));
+    const actual = this.generateIntegrityHash(lockSource, patterns);
     const expected = (await fs.readFile(loc)).trim();
 
     return {
@@ -589,7 +589,7 @@ export class Install {
   generateIntegrityHash(lockfile: string, patterns: Array<string>): string {
     const opts = [lockfile];
 
-    opts.push(`patterns:${patterns.join(',')}`);
+    opts.push(`patterns:${patterns.sort(sortAlpha).join(',')}`);
 
     if (this.flags.flat) {
       opts.push('flat');
