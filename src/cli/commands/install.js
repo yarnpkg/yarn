@@ -483,15 +483,9 @@ export class Install {
         break;
       }
     }
-    // check if loaded lockfile has patterns we don't have, eg. uninstall
-    for (const pattern in this.lockfile.cache) {
-      if (patterns.indexOf(pattern) === -1) {
-        inSync = false;
-        break;
-      }
-    }
-    // don't write new lockfile if in sync
-    if (inSync) {
+
+    // remove is followed by install with force on which we rewrite lockfile
+    if (inSync && !this.flags.force) {
       return;
     }
 
