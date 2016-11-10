@@ -362,6 +362,9 @@ export default class RequestManager {
           if (res.statusCode === 400 || res.statusCode === 404 || res.statusCode === 401) {
             body = false;
           }
+          if (res.request.followRedirect == false && (res.statusCode == 301 || res.statusCode == 302)) {
+            body = false;
+          }
           resolve(body);
         }
       };
