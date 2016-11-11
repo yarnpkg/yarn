@@ -224,8 +224,6 @@ export default class PackageRequest {
       invariant(ref, 'Resolved package info has no package reference');
       ref.addRequest(this);
       ref.addPattern(this.pattern, resolved);
-      ref.addOptional(this.optional);
-      ref.addVisibility(this.visibility);
       return;
     }
 
@@ -280,6 +278,12 @@ export default class PackageRequest {
 
     await Promise.all(promises);
     ref.addDependencies(deps);
+
+    // Now that we have all dependencies, it's safe to propagate optional & visibility
+    for (const otherRequest of ref.requests.slice(1)) {
+      ref.addOptional(otherRequest.optional);
+      ref.addVisibility(otherRequest.visibility);
+    }
   }
 
   /**
