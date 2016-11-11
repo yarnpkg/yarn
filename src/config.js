@@ -369,7 +369,7 @@ export default class Config {
     if (manifest) {
       return manifest;
     } else {
-      throw new MessageError(this.reporter.lang('couldntFindPackagejson', dir));
+      throw new MessageError(this.reporter.lang('couldntFindPackagejson', dir), 'ENOENT');
     }
   }
 
