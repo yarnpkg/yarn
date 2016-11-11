@@ -78,15 +78,9 @@ export async function run(
 
   const isDepOld = ({latest, current}) => latest !== 'exotic' && semver.lt(current, latest);
   const isDepExpected = ({current, wanted}) => current === wanted;
+  const orderByExpected = (depA, depB) => isDepExpected(depA) && !isDepExpected(depB) ? 1 : -1;
 
-  const outdatedDeps = allDeps
-    .filter(isDepOld)
-    .sort((depA, depB) => {
-      if (isDepExpected(depA) && !isDepExpected(depB)) {
-        return 1;
-      }
-      return -1;
-    });
+  const outdatedDeps = allDeps.filter(isDepOld).sort(orderByExpected);
 
   const getNameFromHint = (hint) => hint ? `${hint}Dependencies` : 'dependencies';
 
