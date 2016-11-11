@@ -215,6 +215,8 @@ const messages = {
   fetchBadHash: 'Bad hash. Expected $0 but got $1 ',
   fetchErrorCorrupt: '$0. Mirror tarball appears to be corrupt. You can resolve this by running:\n\n  $ rm -rf $1\n  $ yarn install',
   errorDecompressingTarball: '$0. Error decompressing $1, it appears to be corrupt.',
+
+  prepublishOnInstall: '`prepublish` on install is deprecated and will stop running in the future.',
 };
 
 export type LanguageKeys = $Keys<typeof messages>;

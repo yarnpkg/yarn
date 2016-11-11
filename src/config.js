@@ -280,6 +280,23 @@ export default class Config {
   }
 
   /**
+   * Returns whether the given lifecycle script is defined in the manifest.
+   * Always false when --ignore-scripts has been passed.
+   */
+
+  async hasLifecycleScript(commandName: string, cwd?: string): Promise<bool> {
+    if (this.ignoreScripts) {
+      return false;
+    } else {
+      const pkg = await this.readManifest(cwd || this.cwd);
+      if (!pkg.scripts) {
+        return false;
+      }
+      return commandName in pkg.scripts;
+    }
+  }
+
+  /**
    * Generate an absolute temporary filename location based on the input filename.
    */
 
