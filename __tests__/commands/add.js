@@ -77,6 +77,12 @@ test.concurrent('install with arg that has binaries', (): Promise<void> => {
   return runAdd({}, ['react-native-cli'], 'install-with-arg-and-bin');
 });
 
+test.concurrent('add with no manifest creates blank manifest', (): Promise<void> => {
+  return runAdd({}, ['lodash'], 'add-with-no-manifest', async (config) => {
+    assert.ok(await fs.exists(path.join(config.cwd, 'package.json')));
+  });
+});
+
 test.concurrent('add should ignore cache', (): Promise<void> => {
   // left-pad@1.1.0 gets installed without --save
   // left-pad@1.1.0 gets installed with --save
