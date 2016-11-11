@@ -31,7 +31,7 @@ import * as upgrade from './upgrade.js'; export {upgrade};
 import * as version from './version.js'; export {version};
 import * as versions from './versions.js'; export {versions};
 import * as why from './why.js'; export {why};
-import * as update from './update.js'; export {update};
+import * as upgradeInteractive from './upgrade-interactive.js'; export {upgradeInteractive};
 
 import buildUseless from './_useless.js';
 

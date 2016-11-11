@@ -26,7 +26,7 @@ test('shorthands and affordances', () => {
   expect(aliases['rm']).toBe('remove');
   expect(aliases['show']).toBe('info');
   expect(aliases['uninstall']).toBe('remove');
-  expect(aliases['udpate']).toBe('update');
+  expect(aliases['update']).toBe('upgrade');
   expect(aliases['verison']).toBe('version');
   expect(aliases['view']).toBe('info');
 });
