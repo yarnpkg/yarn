@@ -10,6 +10,8 @@ import {Add} from './add.js';
 import {Install} from './install.js';
 import Lockfile from '../../lockfile/wrapper.js';
 
+const semver = require('semver');
+
 export const requireLockfile = true;
 
 export function setFlags(commander: Object) {
@@ -74,7 +76,7 @@ export async function run(
     return ({name, current, wanted, latest, hint});
   })));
 
-  const isDepOld = ({latest, current}) => latest !== current;
+  const isDepOld = ({latest, current}) => latest !== 'exotic' && semver.lt(current, latest);
   const isDepExpected = ({current, wanted}) => current === wanted;
 
   const outdatedDeps = allDeps

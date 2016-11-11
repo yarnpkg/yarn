@@ -28,7 +28,7 @@ export default ({
   rm: 'remove',
   show: 'info',
   uninstall: 'remove',
-  udpate: 'upgrade',
+  update: 'upgrade',
   verison: 'version',
   view: 'info',
 }: { [key: string]: ?string });
