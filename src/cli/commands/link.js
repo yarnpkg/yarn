@@ -53,7 +53,7 @@ export async function run(
 
     const linkLoc = path.join(config.linkFolder, name);
     if (await fs.exists(linkLoc)) {
-      throw new MessageError(reporter.lang('linkCollision', name));
+      reporter.warn(reporter.lang('linkCollision', name));
     } else {
       await fs.mkdirp(path.dirname(linkLoc));
       await fs.symlink(config.cwd, linkLoc);
