@@ -4,8 +4,7 @@ import type {Reporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
 import type PackageResolver from '../../package-resolver.js';
 import type PackageLinker from '../../package-linker.js';
-import type {Trees} from '../../reporters/types.js';
-import {MessageError} from '../../errors.js';
+import type {Tree, Trees} from '../../reporters/types.js';
 import {Install} from './install.js';
 import Lockfile from '../../lockfile/wrapper.js';
 
@@ -156,6 +155,18 @@ export function getReqDepth(inputDepth: string) : number {
   return inputDepth && /^\d+$/.test(inputDepth) ?  Number(inputDepth) : -1;
 }
 
+export function filterTree(tree: Tree, filters: Array<string>): boolean {
+  if (tree.children) {
+    tree.children = tree.children.filter((child) => filterTree(child, filters));
+  }
+
+  const notDim = tree.color !== 'dim';
+  const found = (filters.includes(tree.name.slice(0, tree.name.lastIndexOf('@'))) : boolean);
+  const hasChildren = tree.children == null ? false : tree.children.length > 0;
+
+  return notDim && (found || hasChildren);
+}
+
 export async function run(
   config: Config,
   reporter: Reporter,
@@ -172,31 +183,11 @@ export async function run(
     reqDepth: getReqDepth(flags.depth),
   };
 
-  let filteredPatterns: Array<string> = [];
+  let {trees}: {trees: Trees} = await buildTree(install.resolver, install.linker, patterns, opts);
 
   if (args.length) {
-    const matchedArgs: Array<string> = [];
-
-    for (const pattern of patterns) {
-      const pkg = install.resolver.getStrictResolvedPattern(pattern);
-
-      // ignore patterns if their package names have been specified in arguments
-      if (args.indexOf(pkg.name) >= 0) {
-        matchedArgs.push(pkg.name);
-        filteredPatterns.push(pattern);
-      }
-    }
-
-    // throw an error if any package names were passed to filter that don't exist
-    for (const arg of args) {
-      if (matchedArgs.indexOf(arg) < 0) {
-        throw new MessageError(reporter.lang('unknownPackage', arg));
-      }
-    }
-  } else {
-    filteredPatterns = patterns;
+    trees = trees.filter((tree) => filterTree(tree, args));
   }
 
-  const {trees} = await buildTree(install.resolver, install.linker, filteredPatterns, opts);
   reporter.tree('ls', trees);
 }
