@@ -107,7 +107,12 @@ yarn_install() {
 
   if [ -d "$HOME/.yarn" ]; then
     if [ -n `which yarn` ]; then
-      LATEST_VERSION=`curl https://yarnpkg.com/latest-version`
+      if [ "$1" = '--nightly' ]; then
+        latest_url=https://nightly.yarnpkg.com/latest-tar-version
+      else
+        latest_url=https://yarnpkg.com/latest-version
+      fi
+      LATEST_VERSION=`curl $latest_url`
       YARN_VERSION=`yarn -V`
 
       if [ "$LATEST_VERSION" -eq "$YARN_VERSION" ]; then

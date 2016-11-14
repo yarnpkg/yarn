@@ -80,12 +80,12 @@ function getUpdateCommand(): ?string {
     return 'curl -o- -L https://yarnpkg.com/install.sh | bash';
   }
 
-  if (YARN_INSTALL_METHOD === 'homebrwe') {
+  if (YARN_INSTALL_METHOD === 'homebrew') {
     return 'brew upgrade yarn';
   }
 
   if (YARN_INSTALL_METHOD === 'deb') {
-    return 'sudo apt-get updat e&& sudo apt-get install yarn';
+    return 'sudo apt-get update && sudo apt-get install yarn';
   }
 
   if (YARN_INSTALL_METHOD === 'rpm') {
@@ -94,6 +94,10 @@ function getUpdateCommand(): ?string {
 
   if (YARN_INSTALL_METHOD === 'npm') {
     return 'npm upgrade --global yarn';
+  }
+
+  if (YARN_INSTALL_METHOD === 'chocolatey') {
+      return 'choco upgrade yarn';
   }
 
   return null;
