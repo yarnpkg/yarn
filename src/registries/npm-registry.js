@@ -6,6 +6,7 @@ import type Config from '../config.js';
 import type {ConfigRegistries} from './index.js';
 import * as fs from '../util/fs.js';
 import NpmResolver from '../resolvers/registries/npm-resolver.js';
+import envReplace from '../util/env-replace.js';
 import Registry from './base-registry.js';
 import {addSuffix, removePrefix} from '../util/misc';
 
@@ -121,6 +122,9 @@ export default class NpmRegistry extends Registry {
 
     for (const [, loc, file] of await this.getPossibleConfigLocations('.npmrc')) {
       const config = Registry.normalizeConfig(ini.parse(file));
+      for (const key: string in config) {
+        config[key] = envReplace(config[key]);
+      }
 
       // normalize offline mirror path relative to the current npmrc
       const offlineLoc = config['yarn-offline-mirror'];
