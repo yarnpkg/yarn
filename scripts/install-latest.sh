@@ -106,9 +106,25 @@ yarn_install() {
   printf "${white}Installing Yarn!$reset\n"
 
   if [ -d "$HOME/.yarn" ]; then
-    printf "$red> ~/.yarn already exists, possibly from a past Yarn install.$reset\n"
-    printf "$red> Remove it (rm -rf ~/.yarn) and run this script again.$reset\n"
-    exit 0
+    if [ -n `which yarn` ]; then
+      if [ "$1" = '--nightly' ]; then
+        latest_url=https://nightly.yarnpkg.com/latest-tar-version
+      else
+        latest_url=https://yarnpkg.com/latest-version
+      fi
+      LATEST_VERSION=`curl $latest_url`
+      YARN_VERSION=`yarn -V`
+
+      if [ "$LATEST_VERSION" -eq "$YARN_VERSION" ]; then
+        printf "$green> Yarn is already at the latest version.$reset\n"
+      else
+        rm -rf "$HOME/.yarn"
+      fi
+    else
+      printf "$red> ~/.yarn already exists, possibly from a past Yarn install.$reset\n"
+      printf "$red> Remove it (rm -rf ~/.yarn) and run this script again.$reset\n"
+      exit 0
+    fi
   fi
 
   yarn_get_tarball $1

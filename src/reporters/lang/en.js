@@ -77,6 +77,10 @@ const messages = {
   jsonError: 'Error parsing JSON at $0, $1.',
   noFilePermission: "We don't have permissions to touch the file $0.",
 
+  yarnOutdated: "Your current version of Yarn is out of date. The latest version is $0 while you're on $1.",
+  yarnOutdatedInstaller: 'To upgrade, download the latest installer at $0.',
+  yarnOutdatedCommand: 'To upgrade, run the following command:',
+
   tooManyArguments: 'Too many arguments, maximum of $0.',
   tooFewArguments: 'Not enough arguments, expected at least $0.',
   noArguments: "This command doesn't require any arguments.",

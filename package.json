@@ -20,7 +20,7 @@
     "inquirer": "^1.2.2",
     "invariant": "^2.2.0",
     "is-builtin-module": "^1.0.0",
-    "is-ci": "^1.0.9",
+    "is-ci": "^1.0.10",
     "leven": "^2.0.0",
     "loud-rejection": "^1.2.0",
     "minimatch": "^3.0.3",
