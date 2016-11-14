@@ -1,0 +1,8 @@
+HTTP/1.1 401 OK
+Date: Fri, 14 Oct 2016 21:05:22 GMT
+Content-Type: application/json
+Transfer-Encoding: chunked
+Connection: keep-alive
+
+49
+{"error":"unauthorized","reason":"token missing"}

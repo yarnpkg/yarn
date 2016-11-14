@@ -775,3 +775,12 @@ test.concurrent('install uses OS line endings when lockfile doesn\'t exist', asy
       assert(lockfile.indexOf(os.EOL) >= 0);
     });
 });
+
+test.concurrent('install from authed private registry', (): Promise<void> => {
+  return runInstall({noLockfile: true}, 'install-from-authed-private-registry', async (config) => {
+    assert.equal(
+      (await fs.readFile(path.join(config.cwd, 'node_modules', '@types', 'lodash', 'index.d.ts'))).split('\n')[0],
+      '// Type definitions for Lo-Dash 4.14',
+    );
+  });
+});
