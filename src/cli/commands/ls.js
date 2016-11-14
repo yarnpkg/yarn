@@ -161,7 +161,7 @@ export function filterTree(tree: Tree, filters: Array<string>): boolean {
   }
 
   const notDim = tree.color !== 'dim';
-  const found = (filters.includes(tree.name.slice(0, tree.name.lastIndexOf('@'))) : boolean);
+  const found = filters.indexOf(tree.name.slice(0, tree.name.lastIndexOf('@'))) > -1;
   const hasChildren = tree.children == null ? false : tree.children.length > 0;
 
   return notDim && (found || hasChildren);
