@@ -197,6 +197,7 @@ export default class Config {
       httpProxy: String(opts.httpProxy || this.getOption('proxy') || ''),
       httpsProxy: String(opts.httpsProxy || this.getOption('https-proxy') || ''),
       strictSSL: Boolean(this.getOption('strict-ssl')),
+      ca: Array.prototype.concat(opts.ca || this.getOption('ca') || []).map(String),
       cafile: String(opts.cafile || this.getOption('cafile') || ''),
       cert: String(opts.cert || this.getOption('cert') || ''),
       key: String(opts.key || this.getOption('key') || ''),

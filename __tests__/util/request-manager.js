@@ -35,6 +35,49 @@ test('RequestManager.request with cafile', async () => {
   expect(body).toBe('ok');
 });
 
+test('RequestManager.request with ca (string)', async () => {
+  let body;
+  const options = {
+    key: await fs.readFile(path.join(__dirname, '..', 'fixtures', 'certificates', 'server-key.pem')),
+    cert: await fs.readFile(path.join(__dirname, '..', 'fixtures', 'certificates', 'server-cert.pem')),
+  };
+  const server = https.createServer(options, (req, res) => { res.end('ok'); });
+  try {
+    server.listen(0);
+    const bundle = await fs.readFile(path.join(__dirname, '..', 'fixtures', 'certificates', 'cacerts.pem'));
+    const hasPemPrefix = (block) => block.startsWith('-----BEGIN ');
+    const caCerts = bundle.split(/(-----BEGIN .*\r?\n[^-]+\r?\n--.*)/).filter(hasPemPrefix);
+    // the 2nd cert is valid one
+    const config = await createConfig({'ca': caCerts[1]});
+    const port = server.address().port;
+    body = await config.requestManager.request({url: `https://localhost:${port}/?nocache`, headers: {Connection: 'close'}});
+  } finally {
+    server.close();
+  }
+  expect(body).toBe('ok');
+});
+
+test('RequestManager.request with ca (array)', async () => {
+  let body;
+  const options = {
+    key: await fs.readFile(path.join(__dirname, '..', 'fixtures', 'certificates', 'server-key.pem')),
+    cert: await fs.readFile(path.join(__dirname, '..', 'fixtures', 'certificates', 'server-cert.pem')),
+  };
+  const server = https.createServer(options, (req, res) => { res.end('ok'); });
+  try {
+    server.listen(0);
+    const bundle = await fs.readFile(path.join(__dirname, '..', 'fixtures', 'certificates', 'cacerts.pem'));
+    const hasPemPrefix = (block) => block.startsWith('-----BEGIN ');
+    const caCerts = bundle.split(/(-----BEGIN .*\r?\n[^-]+\r?\n--.*)/).filter(hasPemPrefix);
+    const config = await createConfig({'ca': caCerts});
+    const port = server.address().port;
+    body = await config.requestManager.request({url: `https://localhost:${port}/?nocache`, headers: {Connection: 'close'}});
+  } finally {
+    server.close();
+  }
+  expect(body).toBe('ok');
+});
+
 test('RequestManager.request with mutual TLS', async () => {
   let body;
   const options = {
