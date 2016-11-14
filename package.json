@@ -88,7 +88,7 @@
     "check-lockfile": "./scripts/check-lockfile.sh",
     "build": "gulp build",
     "watch": "gulp watch",
-    "test-only": "jest --coverage --verbose",
+    "test-only": "jest --coverage --verbose --maxWorkers 3",
     "lint": "eslint . && flow check",
     "release-branch": "./scripts/release-branch.sh",
     "build-dist": "./scripts/build-dist.sh",
