@@ -15,7 +15,7 @@ tar -xzf pack.tgz --strip 1
 rm -rf pack.tgz
 # Change this to "yarn install --production" once #1115 is fixed
 npm install --production
-rm -rf node_modules/*/test node_modules/*/dist
+../scripts/clean-node-modules.sh
 ../scripts/set-installation-method.js $(readlink -f package.json) tar
 cd ..
 
