@@ -73,17 +73,23 @@ export default async function (
 
   // if there's no readme field then load the README file from the cwd
   if (!info.readme) {
-    const readmeFilename = files.find((filename): boolean => {
-      const lower = filename.toLowerCase();
-      return lower === 'readme' || lower.indexOf('readme.') === 0;
-    });
+    const readmeCandidates = files
+      .filter((filename): boolean => {
+        const lower = filename.toLowerCase();
+        return lower === 'readme' || lower.indexOf('readme.') === 0;
+      })
+      .sort((filename1, filename2): number => {
+        // favor files with extensions
+        return filename2.indexOf('.') - filename1.indexOf('.');
+      });
 
-    if (readmeFilename) {
+    for (const readmeFilename of readmeCandidates) {
       const readmeFilepath = path.join(moduleLoc, readmeFilename);
       const readmeFileStats = await fs.stat(readmeFilepath);
       if (readmeFileStats.isFile()) {
         info.readmeFilename = readmeFilename;
         info.readme = await fs.readFile(readmeFilepath);
+        break;
       }
     }
   }

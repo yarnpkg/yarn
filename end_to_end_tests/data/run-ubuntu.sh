@@ -10,17 +10,19 @@ if [ -n "$APT_PROXY" ]; then
 fi;
 
 # Add Yarn repo
-apt-key adv --keyserver pgp.mit.edu --recv D101F7899D41F3C3
-# TODO: Use nightly repo once it's configured
-echo "deb http://dl.yarnpkg.com/debian/ stable main" > /etc/apt/sources.list.d/yarn.list
-apt-get update -y
+apt-key adv --fetch-keys http://dl.yarnpkg.com/debian/pubkey.gpg
+echo "deb http://nightly.yarnpkg.com/debian/ nightly main" > /etc/apt/sources.list.d/yarn.list
 
-if [ "$DISTRIB_RELEASE" == '12.04' -o "$DISTRIB_RELEASE" == '14.04' ]; then
-  # This is an old Ubuntu version; we need to add the NodeSource repo too
-  apt-get install curl -y
-  curl -sL https://deb.nodesource.com/setup_6.x | bash -
+# Check if this is an old Ubuntu version that needs the NodeSource repo
+if [ "$DISTRIB_RELEASE" == '14.04' ]; then
+  apt-key adv --fetch-keys http://deb.nodesource.com/gpgkey/nodesource.gpg.key
+  echo 'deb http://deb.nodesource.com/node_6.x trusty main' > /etc/apt/sources.list.d/nodesource.list
+elif [ "$DISTRIB_RELEASE" == '12.04' ]; then
+  apt-key adv --fetch-keys http://deb.nodesource.com/gpgkey/nodesource.gpg.key
+  echo 'deb http://deb.nodesource.com/node_6.x precise main' > /etc/apt/sources.list.d/nodesource.list
 fi;
 
+apt-get update -y
 # TODO: Remove ca-certificates from this list once https://github.com/yarnpkg/yarn/issues/1390 is fixed
 apt-get install yarn ca-certificates -y
 

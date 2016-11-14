@@ -5,7 +5,7 @@ import type PackageRequest from '../../package-request.js';
 import TarballFetcher from '../../fetchers/tarball-fetcher.js';
 import ExoticResolver from './exotic-resolver.js';
 import Git from './git-resolver.js';
-import {removeSuffix} from '../../util/misc.js';
+import {removePrefix} from '../../util/misc.js';
 import * as versionUtil from '../../util/version.js';
 import * as crypto from '../../util/crypto.js';
 import * as fs from '../../util/fs.js';
@@ -51,7 +51,7 @@ export default class TarballResolver extends ExoticResolver {
       return shrunk;
     }
 
-    const url = removeSuffix(this.url, 'file:');
+    const url = removePrefix(this.url, 'file:');
     let {hash, registry} = this;
     let pkgJson;
 

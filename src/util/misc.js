@@ -3,8 +3,16 @@
 const _camelCase = require('camelcase');
 
 export function sortAlpha(a: string, b: string): number {
-  // sort alphabetically
-  return a.toLowerCase().localeCompare(b.toLowerCase());
+  // sort alphabetically in a deterministic way
+  const shortLen = Math.min(a.length, b.length);
+  for (let i = 0; i < shortLen; i++) {
+    const aChar = a.charCodeAt(i);
+    const bChar = b.charCodeAt(i);
+    if (aChar !== bChar) {
+      return aChar - bChar;
+    }
+  }
+  return a.length - b.length;
 }
 
 export function entries<T>(obj: ?{ [key: string]: T }): Array<[string, T]> {

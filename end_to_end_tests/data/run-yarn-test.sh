@@ -15,4 +15,5 @@ fail_with_log() {
 cd /tmp
 mkdir yarntest
 cd yarntest
+echo {} > package.json
 yarn add react || fail_with_log

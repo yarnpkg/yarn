@@ -26,6 +26,7 @@ test('BaseFetcher.fetch', async () => {
     type: 'base',
     registry: 'npm',
     reference: '',
+    hash: null,
   }, await createConfig());
   let error;
 
@@ -47,6 +48,7 @@ test('CopyFetcher.fetch', async () => {
     type: 'copy',
     reference: a,
     registry: 'npm',
+    hash: null,
   }, await createConfig());
   await fetcher.fetch();
   const content = await fs.readFile(path.join(b, 'package.json'));

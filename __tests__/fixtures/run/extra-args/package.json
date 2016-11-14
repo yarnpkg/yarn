@@ -1,0 +1,7 @@
+{
+  "scripts": {
+    "start": "node index.js",
+    "prestart": "echo 'prestart'",
+    "poststart": "echo 'poststart'"
+  }
+}

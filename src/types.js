@@ -43,7 +43,7 @@ export type PackageRemote = {
   registry: RegistryNames,
   reference: string,
   resolved?: ?string,
-  hash?: ?string,
+  hash: ?string,
 };
 
 // `dependencies` field in package info

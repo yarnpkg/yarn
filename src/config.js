@@ -3,6 +3,7 @@
 import type {RegistryNames, ConfigRegistries} from './registries/index.js';
 import type {Reporter} from './reporters/index.js';
 import type {Manifest, PackageRemote} from './types.js';
+import type PackageReference from './package-reference.js';
 import {execFromManifest} from './util/execute-lifecycle-script.js';
 import normalizeManifest from './util/normalize-manifest/index.js';
 import {MessageError} from './errors.js';
@@ -32,6 +33,7 @@ export type ConfigOptions = {
   ignoreEngines?: boolean,
   cafile?: ?string,
   production?: boolean,
+  binLinks?: boolean,
 
   // Loosely compare semver for invalid cases like "0.01.0"
   looseSemver?: ?boolean,
@@ -79,6 +81,7 @@ export default class Config {
   offline: boolean;
   preferOffline: boolean;
   ignorePlatform: boolean;
+  binLinks: boolean;
 
   //
   linkedModules: Array<string>;
@@ -219,8 +222,9 @@ export default class Config {
     this.cacheFolder = opts.cacheFolder || constants.MODULE_CACHE_DIRECTORY;
     this.linkFolder = opts.linkFolder || constants.LINK_REGISTRY_DIRECTORY;
     this.tempFolder = opts.tempFolder || path.join(this.cacheFolder, '.tmp');
-    this.offline = !!opts.offline;
     this.production = !!opts.production;
+    this.offline = !!opts.offline;
+    this.binLinks = !!opts.binLinks;
 
     this.ignorePlatform = !!opts.ignorePlatform;
     this.ignoreScripts = !!opts.ignoreScripts;
@@ -239,17 +243,10 @@ export default class Config {
    * Generate an absolute module path.
    */
 
-  generateHardModulePath(pkg: ?{
-    name: string,
-    uid: string,
-    version: string,
-    registry: RegistryNames,
-    location: ?string
-  }, ignoreLocation?: ?boolean): string {
+  generateHardModulePath(pkg: ?PackageReference, ignoreLocation?: ?boolean): string {
     invariant(this.cacheFolder, 'No package root');
     invariant(pkg, 'Undefined package');
-    invariant(pkg.name, 'No name field in package');
-    invariant(pkg.uid, 'No uid field in package');
+
     if (pkg.location && !ignoreLocation) {
       return pkg.location;
     }
@@ -259,6 +256,11 @@ export default class Config {
     if (pkg.registry) {
       name = `${pkg.registry}-${name}`;
       uid = pkg.version || uid;
+    }
+
+    const {hash} = pkg.remote;
+    if (hash) {
+      uid += `-${hash}`;
     }
 
     return path.join(this.cacheFolder, `${name}-${uid}`);
@@ -293,23 +295,32 @@ export default class Config {
    */
 
   getOfflineMirrorPath(packageFilename: ?string): ?string {
-    const registry = this.registries.npm;
-    if (registry == null) {
-      return null;
+    let mirrorPath;
+
+    for (const key of ['npm', 'yarn']) {
+      const registry = this.registries[key];
+
+      if (registry == null) {
+        continue;
+      }
+
+      const registryMirrorPath = registry.config['yarn-offline-mirror'];
+
+      if (registryMirrorPath == null) {
+        continue;
+      }
+
+      mirrorPath = registryMirrorPath;
     }
 
-    //
-    const mirrorPath = registry.config['yarn-offline-mirror'];
     if (mirrorPath == null) {
       return null;
     }
 
-    //
     if (packageFilename == null) {
       return mirrorPath;
     }
 
-    //
     return path.join(mirrorPath, path.basename(packageFilename));
   }
 
@@ -358,7 +369,7 @@ export default class Config {
     if (manifest) {
       return manifest;
     } else {
-      throw new MessageError(this.reporter.lang('couldntFindPackagejson', dir));
+      throw new MessageError(this.reporter.lang('couldntFindPackagejson', dir), 'ENOENT');
     }
   }
 

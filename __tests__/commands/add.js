@@ -1,6 +1,6 @@
 /* @flow */
 
-import {getPackageVersion, createLockfile, explodeLockfile, run as buildRun} from './_install.js';
+import {getPackageVersion, createLockfile, explodeLockfile, run as buildRun, runInstall} from './_install.js';
 import {Add} from '../../src/cli/commands/add.js';
 import {Reporter} from '../../src/reporters/index.js';
 import * as constants from '../../src/constants.js';
@@ -10,7 +10,6 @@ import Lockfile from '../../src/lockfile/wrapper.js';
 import {run as check} from '../../src/cli/commands/check.js';
 import Config from '../../src/config.js';
 import * as fs from '../../src/util/fs.js';
-import {runInstall} from './_install.js';
 import assert from 'assert';
 import semver from 'semver';
 
@@ -30,7 +29,7 @@ function runAdd(
 ): Promise<void> {
   return buildRun((config, reporter, lockfile): Install => {
     return new Add(args, flags, config, reporter, lockfile);
-  }, path.join(fixturesLoc, name), checkInstalled, beforeInstall, cleanupAfterInstall);
+  }, flags, path.join(fixturesLoc, name), checkInstalled, beforeInstall, cleanupAfterInstall);
 }
 
 test.concurrent('install with arg that has install scripts', (): Promise<void> => {
@@ -41,8 +40,47 @@ test.concurrent('install with arg', (): Promise<void> => {
   return runAdd({}, ['is-online'], 'install-with-arg');
 });
 
+test.concurrent('install with --dev flag', (): Promise<void> => {
+  return runAdd({dev: true}, ['left-pad@1.1.0'], 'add-with-flag', async (config) => {
+    const lockfile = explodeLockfile(await fs.readFile(path.join(config.cwd, 'yarn.lock')));
+    const pkg = await fs.readJson(path.join(config.cwd, 'package.json'));
+
+    assert(lockfile.indexOf('left-pad@1.1.0:') === 0);
+    assert.deepEqual(pkg.devDependencies, {'left-pad': '1.1.0'});
+    assert.deepEqual(pkg.dependencies, {});
+  });
+});
+
+test.concurrent('install with --peer flag', (): Promise<void> => {
+  return runAdd({peer: true}, ['left-pad@1.1.0'], 'add-with-flag', async (config) => {
+    const lockfile = explodeLockfile(await fs.readFile(path.join(config.cwd, 'yarn.lock')));
+    const pkg = await fs.readJson(path.join(config.cwd, 'package.json'));
+
+    assert(lockfile.indexOf('left-pad@1.1.0:') === 0);
+    assert.deepEqual(pkg.peerDependencies, {'left-pad': '1.1.0'});
+    assert.deepEqual(pkg.dependencies, {});
+  });
+});
+
+test.concurrent('install with --optional flag', (): Promise<void> => {
+  return runAdd({optional: true}, ['left-pad@1.1.0'], 'add-with-flag', async (config) => {
+    const lockfile = explodeLockfile(await fs.readFile(path.join(config.cwd, 'yarn.lock')));
+    const pkg = await fs.readJson(path.join(config.cwd, 'package.json'));
+
+    assert(lockfile.indexOf('left-pad@1.1.0:') === 0);
+    assert.deepEqual(pkg.optionalDependencies, {'left-pad': '1.1.0'});
+    assert.deepEqual(pkg.dependencies, {});
+  });
+});
+
 test.concurrent('install with arg that has binaries', (): Promise<void> => {
   return runAdd({}, ['react-native-cli'], 'install-with-arg-and-bin');
+});
+
+test.concurrent('add with no manifest creates blank manifest', (): Promise<void> => {
+  return runAdd({}, ['lodash'], 'add-with-no-manifest', async (config) => {
+    assert.ok(await fs.exists(path.join(config.cwd, 'package.json')));
+  });
 });
 
 test.concurrent('add should ignore cache', (): Promise<void> => {
@@ -82,6 +120,9 @@ test.concurrent('add should ignore cache', (): Promise<void> => {
 
 test.concurrent('add should not make package.json strict', (): Promise<void> => {
   return runAdd({}, ['left-pad@^1.1.0'], 'install-no-strict', async (config) => {
+    const lockfile = explodeLockfile(await fs.readFile(path.join(config.cwd, 'yarn.lock')));
+
+    assert(lockfile.indexOf('left-pad@^1.1.0:') >= 0);
     assert.deepEqual(
       JSON.parse(await fs.readFile(path.join(config.cwd, 'package.json'))).dependencies,
       {
@@ -94,6 +135,9 @@ test.concurrent('add should not make package.json strict', (): Promise<void> => 
 
 test.concurrent('add --save-exact should not make all package.json strict', (): Promise<void> => {
   return runAdd({saveExact: true}, ['left-pad@1.1.0'], 'install-no-strict-all', async (config) => {
+    const lockfile = explodeLockfile(await fs.readFile(path.join(config.cwd, 'yarn.lock')));
+
+    assert(lockfile.indexOf('left-pad@1.1.0:') === 0);
     assert.deepEqual(
       JSON.parse(await fs.readFile(path.join(config.cwd, 'package.json'))).dependencies,
       {
@@ -188,6 +232,9 @@ test.concurrent('add with new dependency should be deterministic', (): Promise<v
       const lockFileWritten = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
       const lockFileLines = explodeLockfile(lockFileWritten);
       assert.equal(lockFileLines.length, 11);
+      assert(lockFileLines.indexOf('mime-db@~1.0.1:') >= 0);
+      assert(lockFileLines.indexOf('mime-db@1.23.0:') >= 0);
+      assert(lockFileLines.indexOf('mime-types@2.0.0:') >= 0);
 
 
       const mirror = await fs.walk(path.join(config.cwd, mirrorPath));
@@ -197,8 +244,7 @@ test.concurrent('add with new dependency should be deterministic', (): Promise<v
   });
 });
 
-// TODO https://github.com/facebook/yarn/issues/79
-xit('add with new dependency should be deterministic 2', (): Promise<void> => {
+test.concurrent('add with new dependency should be deterministic 2', (): Promise<void> => {
   // mime-types@2.0.0->mime-db@1.0.1 is saved in local mirror and is deduped
   // install mime-db@1.0.3 should replace mime-db@1.0.1 in root
 
@@ -234,7 +280,8 @@ xit('add with new dependency should be deterministic 2', (): Promise<void> => {
 
       const lockFileWritten = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
       const lockFileLines = explodeLockfile(lockFileWritten);
-      assert.equal(lockFileLines.length, 8);
+      // see why we don't cleanup lockfile https://github.com/yarnpkg/yarn/issues/79
+      assert.equal(lockFileLines.length, 11);
 
       const mirror = await fs.walk(path.join(config.cwd, mirrorPath));
       assert.equal(mirror.length, 3);
@@ -490,4 +537,39 @@ test.concurrent('add should put a git dependency to mirror', (): Promise<void> =
       await fs.unlink(path.join(config.cwd, 'package.json'));
     },
   );
+});
+
+test.concurrent('add should store latest version in lockfile', (): Promise<void> => {
+  return runAdd({}, ['max-safe-integer'], 'latest-version-in-lockfile', async (config) => {
+    const lockfile = explodeLockfile(await fs.readFile(path.join(config.cwd, 'yarn.lock')));
+    const pkg = await fs.readJson(path.join(config.cwd, 'package.json'));
+
+    const version = pkg.dependencies['max-safe-integer'];
+    assert(semver.valid(version.slice(1)));
+    assert(lockfile.indexOf('max-safe-integer:') === -1);
+    assert(lockfile.indexOf(`max-safe-integer@${version}:`) === 0);
+  });
+});
+
+test.concurrent('add should generate correct integrity file', (): Promise<void> => {
+  return runAdd({}, ['mime-db@1.24.0'], 'integrity-check', async (config, reporter) => {
+    let allCorrect = true;
+    try {
+      await check(config, reporter, {integrity: true}, []);
+    } catch (err) {
+      allCorrect = false;
+    }
+    expect(allCorrect).toBe(true);
+
+    // add to an existing package.json caused incorrect integrity https://github.com/yarnpkg/yarn/issues/1733
+    const add = new Add(['left-pad@1.1.3'], {}, config, reporter, await Lockfile.fromDirectory(config.cwd));
+    await add.init();
+    try {
+      await check(config, reporter, {integrity: true}, []);
+    } catch (err) {
+      allCorrect = false;
+    }
+    expect(allCorrect).toBe(true);
+  });
+
 });

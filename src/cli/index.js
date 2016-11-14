@@ -51,6 +51,7 @@ commander.option('--ignore-platform', 'ignore platform checks');
 commander.option('--ignore-engines', 'ignore engines check');
 commander.option('--ignore-optional', '');
 commander.option('--force', 'ignore all caches');
+commander.option('--no-bin-links', "don't generate bin links when setting up packages");
 commander.option('--flat', 'only allow one version of a package');
 commander.option('--prod, --production', '');
 commander.option('--no-lockfile', "don't read or generate a lockfile");
@@ -243,7 +244,7 @@ const runEventuallyWithFile = (mutexFilename: ?string, isFirstTime?: boolean): P
           reporter.warn(reporter.lang('waitingInstance'));
         }
         setTimeout(() => {
-          ok(runEventuallyWithFile());
+          ok(runEventuallyWithFile(mutexFilename, isFirstTime));
         }, 200); // do not starve the CPU
       } else {
         onDeath(() => {
@@ -277,13 +278,13 @@ const runEventuallyWithNetwork = (mutexPort: ?string): Promise<void> => {
           // the server has informed us he's going to die soon™.
           socket.unref(); // let it die
           process.nextTick(() => {
-            ok(runEventuallyWithNetwork());
+            ok(runEventuallyWithNetwork(mutexPort));
           });
         })
         .on('error', () => {
           // No server to listen to ? :O let's retry to become the next server then.
           process.nextTick(() => {
-            ok(runEventuallyWithNetwork());
+            ok(runEventuallyWithNetwork(mutexPort));
           });
         });
     });
@@ -341,6 +342,7 @@ function onUnexpectedError(err: Error) {
 
 //
 config.init({
+  binLinks: commander.binLinks,
   modulesFolder: commander.modulesFolder,
   globalFolder: commander.globalFolder,
   cacheFolder: commander.cacheFolder,
