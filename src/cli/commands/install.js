@@ -33,7 +33,7 @@ const isCI = require('is-ci');
 const path = require('path');
 const fs2 = require('fs');
 
-const {verison: YARN_VERSION, installationMethod: YARN_INSTALL_METHOD} = require('../../../package.json');
+const {version: YARN_VERSION, installationMethod: YARN_INSTALL_METHOD} = require('../../../package.json');
 const ONE_DAY = 1000 * 60 * 60 * 24;
 
 export type InstallCwdRequest = [
