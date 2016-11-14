@@ -14,6 +14,5 @@ tar -xzf pack.tgz --strip 1
 rm pack.tgz
 # Change this to "yarn install --production" once #1115 is fixed
 npm install --production
-rm node_modules/*/test -Recurse
-rm node_modules/*/dist -Recurse
+../scripts/clean-node-modules.ps1
 cd ..
