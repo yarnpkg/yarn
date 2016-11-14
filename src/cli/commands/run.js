@@ -62,7 +62,7 @@ export async function run(
     if (cmds.length) {
       for (const [stage, cmd] of cmds) {
         // only tack on trailing arguments for default script, ignore for pre and post - #1595
-        const cmdWithArgs = cmd === action ? `${cmd} ${args.join(' ')}` : cmd;
+        const cmdWithArgs = stage === action ? `${cmd} ${args.join(' ')}` : cmd;
         await execCommand(stage, config, cmdWithArgs, config.cwd);
       }
     } else {
