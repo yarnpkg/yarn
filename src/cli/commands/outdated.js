@@ -47,7 +47,7 @@ export async function run(
   await Promise.all(patterns.map(async (pattern): Promise<void> => {
     const locked = lockfile.getLocked(pattern);
     if (!locked) {
-      throw new MessageError(reporter.lang('lockfileOutdated'));
+      throw new MessageError(this.reporter.lang('lockfileOutdated'));
     }
 
     const normalized = PackageRequest.normalizePattern(pattern);

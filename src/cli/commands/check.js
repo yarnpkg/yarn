@@ -177,7 +177,7 @@ export async function run(
   }
 
   if (errCount > 0) {
-    throw new MessageError(reporter.lang('foundErrors', errCount));
+    throw new MessageError(this.reporter.lang('foundErrors', errCount));
   } else {
     reporter.success(reporter.lang('folderInSync'));
   }

@@ -198,7 +198,7 @@ export async function run(
   args: Array<string>,
 ): Promise<void> {
   if (!args.length) {
-    throw new MessageError(reporter.lang('missingAddDependencies'));
+    throw new MessageError(this.reporter.lang('missingAddDependencies'));
   }
 
   const lockfile = await Lockfile.fromDirectory(config.cwd, reporter);

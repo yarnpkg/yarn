@@ -681,7 +681,7 @@ export async function run(
     if (flags.global) {
       command = 'global add';
     }
-    throw new MessageError(reporter.lang('installCommandRenamed', `yarn ${command} ${exampleArgs.join(' ')}`));
+    throw new MessageError(this.reporter.lang('installCommandRenamed', `yarn ${command} ${exampleArgs.join(' ')}`));
   }
 
   await wrapLifecycle(config, flags, async () => {

@@ -19,12 +19,12 @@ export async function getName(args: Array<string>, config: Config): Promise<stri
 
   if (name) {
     if (!isValidPackageName(name)) {
-      throw new MessageError(config.reporter.lang('invalidPackageName'));
+      throw new MessageError(this.reporter.lang('invalidPackageName'));
     }
 
     return NpmRegistry.escapeName(name);
   } else {
-    throw new MessageError(config.reporter.lang('unknownPackageName'));
+    throw new MessageError(this.reporter.lang('unknownPackageName'));
   }
 }
 
@@ -41,10 +41,10 @@ export const {run, setFlags, examples} = buildSubCommands('tag', {
 
     const {name, range, hasVersion} = PackageRequest.normalizePattern(args.shift());
     if (!hasVersion) {
-      throw new MessageError(reporter.lang('requiredVersionInRange'));
+      throw new MessageError(this.reporter.lang('requiredVersionInRange'));
     }
     if (!isValidPackageName(name)) {
-      throw new MessageError(reporter.lang('invalidPackageName'));
+      throw new MessageError(this.reporter.lang('invalidPackageName'));
     }
 
     const tag = args.shift();
@@ -139,7 +139,7 @@ export const {run, setFlags, examples} = buildSubCommands('tag', {
     await revoke();
 
     if (!tags) {
-      throw new MessageError(reporter.lang('packageNotFoundRegistry', name, 'npm'));
+      throw new MessageError(this.reporter.lang('packageNotFoundRegistry', name, 'npm'));
     }
   },
 }, [

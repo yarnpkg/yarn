@@ -21,7 +21,7 @@ export async function run(
         await fs.unlink(path.join(await getRegistryFolder(config, name), name));
         reporter.success(reporter.lang('linkUnregistered', name));
       } else {
-        throw new MessageError(reporter.lang('linkMissing', name));
+        throw new MessageError(this.reporter.lang('linkMissing', name));
       }
     }
   } else {
@@ -29,7 +29,7 @@ export async function run(
     const manifest = await config.readRootManifest();
     const name = manifest.name;
     if (!name) {
-      throw new MessageError(reporter.lang('unknownPackageName'));
+      throw new MessageError(this.reporter.lang('unknownPackageName'));
     }
 
     const linkLoc = path.join(config.linkFolder, name);
@@ -37,7 +37,7 @@ export async function run(
       await fs.unlink(linkLoc);
       reporter.success(reporter.lang('linkUnregistered', name));
     } else {
-      throw new MessageError(reporter.lang('linkMissing', name));
+      throw new MessageError(this.reporter.lang('linkMissing', name));
     }
   }
 }

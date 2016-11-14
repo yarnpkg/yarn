@@ -26,7 +26,7 @@ export default class NpmResolver extends RegistryResolver {
 
   static async findVersionInRegistryResponse(config: Config, range: string, body: RegistryResponse): Promise<Manifest> {
     if (!body['dist-tags']) {
-      throw new MessageError(config.reporter.lang('malformedRegistryResponse'));
+      throw new MessageError(this.reporter.lang('malformedRegistryResponse'));
     }
 
     if (range in body['dist-tags']) {
@@ -39,7 +39,7 @@ export default class NpmResolver extends RegistryResolver {
     } else {
       const versions = Object.keys(body.versions);
       throw new MessageError(
-        config.reporter.lang(
+          this.reporter.lang(
           'couldntFindVersionThatMatchesRange',
           body.name,
           range,

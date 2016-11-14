@@ -96,7 +96,7 @@ async function initUpdateBins(config: Config, reporter: Reporter, flags: Object)
 
   function throwPermError(err: Error & { [code: string]: string }, dest: string) {
     if (err.code === 'EACCES') {
-      throw new MessageError(reporter.lang('noFilePermission', dest));
+      throw new MessageError(this.reporter.lang('noFilePermission', dest));
     } else {
       throw err;
     }

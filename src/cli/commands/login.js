@@ -98,7 +98,7 @@ export async function getToken(config: Config, reporter: Reporter, name: string 
       });
     };
   } else {
-    throw new MessageError(reporter.lang('incorrectCredentials'));
+    throw new MessageError(this.reporter.lang('incorrectCredentials'));
   }
 }
 

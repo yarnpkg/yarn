@@ -19,7 +19,7 @@ function explodeGistFragment(fragment: string, reporter: Reporter): { id: string
       hash: parts[1] || '',
     };
   } else {
-    throw new MessageError(reporter.lang('invalidGistFragment', fragment));
+    throw new MessageError(this.reporter.lang('invalidGistFragment', fragment));
   }
 }
 

@@ -46,7 +46,7 @@ export default function(rootCommandName: string, subCommands: SubCommands, usage
         reporter.error(`yarn ${rootCommandName} ${msg}`);
       }
     }
-    return Promise.reject(new MessageError(reporter.lang('invalidCommand', subCommandNames.join(', '))));
+    return Promise.reject(new MessageError(this.reporter.lang('invalidCommand', subCommandNames.join(', '))));
   }
 
   const examples = usage.map((cmd: string): string => {

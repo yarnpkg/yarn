@@ -171,7 +171,7 @@ export default class PackageCompatibility {
     }
 
     if (didError) {
-      throw new MessageError(reporter.lang('foundIncompatible'));
+      throw new MessageError(this.reporter.lang('foundIncompatible'));
     }
   }
 

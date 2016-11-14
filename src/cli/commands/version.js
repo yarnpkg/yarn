@@ -35,7 +35,7 @@ export async function setVersion(
   invariant(pkgLoc, 'expected package location');
 
   if (args.length && !newVersion) {
-    throw new MessageError(reporter.lang('invalidVersionArgument', NEW_VERSION_FLAG));
+    throw new MessageError(this.reporter.lang('invalidVersionArgument', NEW_VERSION_FLAG));
   }
 
   // get old version
@@ -48,7 +48,7 @@ export async function setVersion(
 
   // get new version
   if (newVersion && !isValidNewVersion(oldVersion, newVersion, config.looseSemver)) {
-    throw new MessageError(reporter.lang('invalidVersion'));
+    throw new MessageError(this.reporter.lang('invalidVersion'));
   }
 
   // wasn't passed a version arg so ask interactively
@@ -74,7 +74,7 @@ export async function setVersion(
   invariant(newVersion, 'expected new version');
 
   if (newVersion === pkg.version) {
-    throw new MessageError(reporter.lang('publishSame'));
+    throw new MessageError(this.reporter.lang('publishSame'));
   }
 
   await config.executeLifecycleScript('preversion');
