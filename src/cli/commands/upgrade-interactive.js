@@ -10,6 +10,9 @@ import {Add} from './add.js';
 import {Install} from './install.js';
 import Lockfile from '../../lockfile/wrapper.js';
 
+const tty = require('tty');
+const semver = require('semver');
+
 export const requireLockfile = true;
 
 export function setFlags(commander: Object) {
@@ -29,14 +32,16 @@ type InquirerResponses<K, T> = {[key: K]: Array<T>};
 
 // Prompt user with Inquirer
 async function prompt(choices): Promise<Array<Dependency>> {
+  let pageSize;
+  if (process.stdout instanceof tty.WriteStream) {
+    pageSize = process.stdout.rows - 2;
+  }
   const answers: InquirerResponses<'packages', Dependency> = await inquirer.prompt([{
     name: 'packages',
     type: 'checkbox',
     message: 'Choose which packages to update.',
     choices,
-    // Couldn't make it work, I guess I'm missing something here
-    // $FlowFixMe: https://github.com/facebook/flow/blob/f41e66e27b227235750792c34f5a80f38bde6320/lib/node.js#L1197
-    pageSize: process.stdout.rows - 2,
+    pageSize,
     validate: (answer) => !!answer.length || 'You must choose at least one package.',
   }]);
   return answers.packages;
@@ -74,17 +79,11 @@ export async function run(
     return ({name, current, wanted, latest, hint});
   })));
 
-  const isDepOld = ({latest, current}) => latest !== current;
+  const isDepOld = ({latest, current}) => latest !== 'exotic' && semver.lt(current, latest);
   const isDepExpected = ({current, wanted}) => current === wanted;
+  const orderByExpected = (depA, depB) => isDepExpected(depA) && !isDepExpected(depB) ? 1 : -1;
 
-  const outdatedDeps = allDeps
-    .filter(isDepOld)
-    .sort((depA, depB) => {
-      if (isDepExpected(depA) && !isDepExpected(depB)) {
-        return 1;
-      }
-      return -1;
-    });
+  const outdatedDeps = allDeps.filter(isDepOld).sort(orderByExpected);
 
   const getNameFromHint = (hint) => hint ? `${hint}Dependencies` : 'dependencies';
 
