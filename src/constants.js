@@ -86,3 +86,16 @@ export function getPathKey(platform: string, env: Env): string {
 
   return pathKey;
 }
+
+function getUid(): ?number {
+  if (process.platform !== 'win32' && process.getuid) {
+    return process.getuid();
+  }
+  return null;
+}
+
+export const ROOT_USER = isRootUser(process.platform, getUid());
+
+export function isRootUser(platform: string, uid: ?number): boolean {
+  return platform !== 'win32' && uid === 0;
+}
