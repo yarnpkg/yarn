@@ -1,10 +1,11 @@
 /* @flow */
 
-import type {DependencyRequestPattern, Manifest} from './types.js';
+import type {Dependency, DependencyRequestPattern, Manifest} from './types.js';
 import type PackageResolver from './package-resolver.js';
 import type {Reporter} from './reporters/index.js';
 import type Config from './config.js';
 import type {VisibilityAction} from './package-reference.js';
+import type {Install} from './cli/commands/install';
 import {cleanDependencies} from './util/normalize-manifest/validate.js';
 import Lockfile from './lockfile/wrapper.js';
 import {USED as USED_VISIBILITY, default as PackageReference} from './package-reference.js';
@@ -16,6 +17,7 @@ import * as versionUtil from './util/version.js';
 import * as resolvers from './resolvers/index.js';
 
 const invariant = require('invariant');
+const semver = require('semver');
 
 type ResolverRegistryNames = $Keys<typeof registryResolvers>;
 
@@ -310,5 +312,53 @@ export default class PackageRequest {
   static getPackageVersion(info: Manifest): string {
     // TODO possibly reconsider this behaviour
     return info.version === undefined ? info._uid : info.version;
+  }
+
+  /**
+   * Gets all of the outdated packages and sorts them appropriately
+   */
+
+  static async getOutdatedPackages(
+    lockfile: Lockfile,
+    install: Install,
+    config: Config,
+    reporter: Reporter,
+  ): Promise<Array<Dependency>> {
+    const [depReqPatterns] = await install.fetchRequestFromCwd();
+
+    const deps = await Promise.all(
+      depReqPatterns.map(async ({pattern, hint}): Promise<Dependency> => {
+        const locked = lockfile.getLocked(pattern);
+        if (!locked) {
+          throw new MessageError(reporter.lang('lockfileOutdated'));
+        }
+
+        const {name, version: current} = locked;
+        let latest = '';
+        let wanted = '';
+
+        const normalized = PackageRequest.normalizePattern(pattern);
+
+        if (PackageRequest.getExoticResolver(pattern) ||
+            PackageRequest.getExoticResolver(normalized.range)) {
+          latest = wanted = 'exotic';
+        } else {
+          const registry = config.registries[locked.registry];
+
+          ({latest, wanted} = await registry.checkOutdated(config, name, normalized.range));
+        }
+
+        return ({name, current, wanted, latest, hint});
+      }),
+    );
+
+    // Make sure to always output `exotic` versions to be compatible with npm
+    const isDepOld = ({current, latest, wanted}) => latest === 'exotic' || (
+      latest !== 'exotic' && (semver.lt(current, wanted) || semver.lt(current, latest))
+    );
+    const isDepExpected = ({current, wanted}) => current === wanted;
+    const orderByExpected = (depA, depB) => isDepExpected(depA) && !isDepExpected(depB) ? 1 : -1;
+
+    return deps.filter(isDepOld).sort(orderByExpected);
   }
 }
