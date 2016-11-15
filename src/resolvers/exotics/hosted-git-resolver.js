@@ -26,8 +26,6 @@ export function explodeHostedGitFragment(fragment: string, reporter: Reporter): 
   const parts = fragment.split(':');
   //fragment = parts.pop();
 
-  //console.log('Input Fragment: ' + fragment);
-
   if (parts.length == 3) { // protocol + host + folder
     parts[1] = parts[1].indexOf('//') >= 0 ? parts[1].substr(2) : parts[1];
     fragment = parts[1] + '/' + parts[2];
@@ -43,11 +41,7 @@ export function explodeHostedGitFragment(fragment: string, reporter: Reporter): 
     throw new MessageError(reporter.lang('invalidHostedGitFragment', fragment));
   }
 
-  //console.log('Output Fragment: ' + fragment);
-
   const userParts = fragment.split('/');  
-
-  //console.log(userParts);
 
   if (userParts.length >= 2) {
 
@@ -57,14 +51,6 @@ export function explodeHostedGitFragment(fragment: string, reporter: Reporter): 
 
     const user = userParts.shift();
     const repoParts = userParts.join('/').split(/(?:[.]git)?#(.*)/);
-    
-    //console.log(repoParts);
-    
-    // console.log({
-    //   user,
-    //   repo: repoParts[0].replace('.git', ''),
-    //   hash: repoParts[1] || '',
-    // });
 
     if (repoParts.length <= 3) {
       return {
