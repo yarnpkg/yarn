@@ -4,13 +4,12 @@ import type {Reporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
 import minimatch from 'minimatch';
 import {MessageError} from '../../errors.js';
-import * as fs from '../../util/fs.js';
+import {ConcatStream} from '../../util/stream.js';
 
 const zlib = require('zlib');
 const path = require('path');
 const tar = require('tar-fs');
 const fs2 = require('fs');
-const os = require('os');
 
 const IGNORE_FILENAMES = [
   '.yarnignore',
@@ -53,6 +52,39 @@ export function setFlags(commander: Object) {
   commander.option('-f, --filename <filename>', 'filename');
 }
 
+export function pack(config: Config): stream$Duplex {
+  const packer = tar.pack(config.cwd, {
+    ignore: (name) => {
+
+      const neverIgnore = NEVER_IGNORE.map((pattern) => minimatch(name, pattern, {matchBase: true}));
+      // if this matches one of the patterns which should never be ignored,
+      // do not ignore -> exit early
+      if (neverIgnore.reduce((a, b) => a || b, false)) {
+        return false;
+      }
+      // this could be made more efficient,
+      // focus for now was to keep it simple and get all edge-cases to work
+      // in particular: stop evaluating ignore rules if one matches
+      const ignores = DEFAULT_IGNORE
+        .concat(IGNORE_FILENAMES)
+        .map((pattern) => minimatch(name, pattern, {matchBase: true}));
+      // evaluate all ignore rules
+      // const ignores = DEFAULT_IGNORE.map((pattern) => minimatch(name, pattern, {matchBase: true}));
+      // if one ignore rule evaluated to true, this path should be ignored
+      return ignores.reduce((a, b) => a || b, false);
+    },
+    map: (header) => {
+      // rewrite paths: entire package content is in folder "package"
+      header.name = 'package/' + header.name;
+      return header;
+    },
+  })
+  .pipe(new zlib.Gzip());
+
+  return packer;
+}
+
+
 export async function run(
  config: Config,
  reporter: Reporter,
@@ -67,42 +99,24 @@ export async function run(
     throw new MessageError(reporter.lang('noVersion'));
   }
 
-  // create a temp working dir to avoid r/w conflicts during tar
-  const filename = flags.filename || `${pkg.name}-v${pkg.version}.tgz`;
-  const tmpdir = path.join(
-    os.tmpdir(),
-    `yarn-pack-${pkg.name}-${Math.random()}`,
-  );
-  await fs.mkdirp(tmpdir);
-  await new Promise((resolve, reject) => {
-    tar.pack(config.cwd, {
-      ignore: (name) => {
-        // this could be made more efficient,
-        // focus for now was to keep it simple and get all edge-cases to work
-        // in particular: stop evaluating ignore rules if one matches
-
-        // evaluate all ignore rules
-        const ignores = DEFAULT_IGNORE.map((pattern) => minimatch(name, pattern, {matchBase: true}));
-        // if one ignore rule evaluated to true, this path should be ignored
-        return ignores.reduce((a, b) => a || b, false);
-      },
-      map: (header) => {
-        // rewrite paths: entire package content is in folder "package"
-        header.name = 'package/' + header.name;
-        return header;
-      },
-    })
-    .pipe(new zlib.Gzip())
-    // first write to tmp dir to avoid read/write getting in the ways of each other
-    .pipe(fs2.createWriteStream(path.join(tmpdir, filename)))
-    .on('error', reject)
-    .on('close', resolve);
+  // get the pack-stream
+  const stream = pack(config);
+  // first read package content, create archive, write to buffer
+  const buffer = await new Promise((resolve, reject) => {
+    stream.pipe(new ConcatStream(resolve)).on('error', reject);
   });
+  // then write the buffer to a file
+  // (need buffer to avoid read/write conflicts)
+  const filename = flags.filename || `${pkg.name}-v${pkg.version}.tgz`;
 
-  reporter.success(reporter.lang('packWroteTarball', path.join(tmpdir, filename)));
-
-  // move tarball from tmpdir to working cwd
-  await fs.rename(path.join(tmpdir, filename), path.join(config.cwd, filename));
-  // cleanup -> remove tmp-dir
-  await fs.unlink(tmpdir);
+  await new Promise((resolve, reject) => {
+    fs2.writeFile(path.join(config.cwd, filename), buffer, (err) => {
+      if (err) {
+        reporter.info('error writing to file...');
+        reject(err);
+      }
+      resolve();
+    });
+  });
+  reporter.success(reporter.lang('packWroteTarball', filename));
 }
