@@ -76,6 +76,7 @@ const messages = {
   unexpectedError: 'An unexpected error occurred: $0.',
   jsonError: 'Error parsing JSON at $0, $1.',
   noFilePermission: "We don't have permissions to touch the file $0.",
+  allDependenciesUpToDate: 'All of your dependencies are up to date.',
 
   tooManyArguments: 'Too many arguments, maximum of $0.',
   tooFewArguments: 'Not enough arguments, expected at least $0.',
