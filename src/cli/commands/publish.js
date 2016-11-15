@@ -31,7 +31,7 @@ async function publish(
   // validate access argument
   const access = flags.access;
   if (access && access !== 'public' && access !== 'restricted') {
-    throw new MessageError(config.reporter.lang('invalidAccess'));
+    throw new MessageError(this.reporter.lang('invalidAccess'));
   }
 
   // get tarball stream
@@ -103,7 +103,7 @@ async function publish(
     await config.executeLifecycleScript('publish');
     await config.executeLifecycleScript('postpublish');
   } else {
-    throw new MessageError(config.reporter.lang('publishFail'));
+    throw new MessageError(this.reporter.lang('publishFail'));
   }
 }
 
@@ -116,19 +116,19 @@ export async function run(
   // validate package fields that are required for publishing
   const pkg = await config.readRootManifest();
   if (pkg.private) {
-    throw new MessageError(reporter.lang('publishPrivate'));
+    throw new MessageError(this.reporter.lang('publishPrivate'));
   }
   if (!pkg.name) {
-    throw new MessageError(reporter.lang('noName'));
+    throw new MessageError(this.reporter.lang('noName'));
   }
 
   // validate arguments
   const dir = args[0] || config.cwd;
   if (args.length > 1) {
-    throw new MessageError(reporter.lang('tooManyArguments', 1));
+    throw new MessageError(this.reporter.lang('tooManyArguments', 1));
   }
   if (!(await fs.exists(dir))) {
-    throw new MessageError(reporter.lang('unknownFolderOrTarball'));
+    throw new MessageError(this.reporter.lang('unknownFolderOrTarball'));
   }
 
   //

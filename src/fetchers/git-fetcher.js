@@ -30,7 +30,7 @@ export default class GitFetcher extends BaseFetcher {
     const localTarball = path.resolve(offlineMirrorPath, ref);
     const {reporter} = config;
     if (!(await fsUtil.exists(localTarball))) {
-      throw new MessageError(reporter.lang('tarballNotInNetworkOrCache', ref, localTarball));
+      throw new MessageError(this.reporter.lang('tarballNotInNetworkOrCache', ref, localTarball));
     }
 
     return new Promise((resolve, reject) => {
@@ -57,7 +57,7 @@ export default class GitFetcher extends BaseFetcher {
           }
         })
         .on('error', function(err) {
-          reject(new MessageError(reporter.lang('fetchErrorCorrupt', err.message, localTarball)));
+          reject(new MessageError(this.reporter.lang('fetchErrorCorrupt', err.message, localTarball)));
         });
     });
   }

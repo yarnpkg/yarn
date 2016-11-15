@@ -36,7 +36,7 @@ export function explodeHostedGitFragment(fragment: string, reporter: Reporter): 
   }
 
 
-  throw new MessageError(reporter.lang('invalidHostedGitFragment', fragment));
+  throw new MessageError(this.reporter.lang('invalidHostedGitFragment', fragment));
 }
 
 export default class HostedGitResolver extends ExoticResolver {

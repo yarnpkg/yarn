@@ -60,7 +60,7 @@ export async function run(
   const allDeps = await Promise.all(deps.map(async ({pattern, hint}): Promise<Dependency> => {
     const locked = lockfile.getLocked(pattern);
     if (!locked) {
-      throw new MessageError(reporter.lang('lockfileOutdated'));
+      throw new MessageError(this.reporter.lang('lockfileOutdated'));
     }
 
     const {name, version: current} = locked;

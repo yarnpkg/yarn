@@ -23,10 +23,10 @@ export async function run(
     manifest = await config.readRootManifest();
   }
   if (!manifest.name) {
-    throw new MessageError(reporter.lang('noName'));
+    throw new MessageError(this.reporter.lang('noName'));
   }
   if (!manifest.version) {
-    throw new MessageError(reporter.lang('noVersion'));
+    throw new MessageError(this.reporter.lang('noVersion'));
   }
 
   const entry = {

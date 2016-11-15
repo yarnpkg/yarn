@@ -170,10 +170,10 @@ export async function run(
 ): Promise<void> {
   const pkg = await config.readRootManifest();
   if (!pkg.name) {
-    throw new MessageError(reporter.lang('noName'));
+    throw new MessageError(this.reporter.lang('noName'));
   }
   if (!pkg.version) {
-    throw new MessageError(reporter.lang('noVersion'));
+    throw new MessageError(this.reporter.lang('noVersion'));
   }
 
   const filename = flags.filename || path.join(config.cwd, `${pkg.name}-v${pkg.version}.tgz`);

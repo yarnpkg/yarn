@@ -298,7 +298,7 @@ export default class PackageRequest {
 
     for (const key of constants.REQUIRED_PACKAGE_KEYS) {
       if (!info[key]) {
-        throw new MessageError(reporter.lang('missingRequiredPackageKey', human, key));
+        throw new MessageError(this.reporter.lang('missingRequiredPackageKey', human, key));
       }
     }
   }

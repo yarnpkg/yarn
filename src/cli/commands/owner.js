@@ -29,7 +29,7 @@ export async function mutate(
   const username = args.shift();
   const name = await getName(args, config);
   if (!isValidPackageName(name)) {
-    throw new MessageError(reporter.lang('invalidPackageName'));
+    throw new MessageError(this.reporter.lang('invalidPackageName'));
   }
 
   const msgs = buildMessages(username, name);

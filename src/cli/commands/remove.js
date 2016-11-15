@@ -21,7 +21,7 @@ export async function run(
   args: Array<string>,
 ): Promise<void> {
   if (!args.length) {
-    throw new MessageError(reporter.lang('tooFewArguments', 1));
+    throw new MessageError(this.reporter.lang('tooFewArguments', 1));
   }
 
   const totalSteps = args.length + 1;
@@ -59,7 +59,7 @@ export async function run(
     }
 
     if (!found) {
-      throw new MessageError(reporter.lang('moduleNotInManifest'));
+      throw new MessageError(this.reporter.lang('moduleNotInManifest'));
     }
   }
 

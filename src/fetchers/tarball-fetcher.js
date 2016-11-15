@@ -119,7 +119,7 @@ export default class TarballFetcher extends BaseFetcher {
     }
 
     if (!(await fsUtil.exists(localTarball))) {
-      throw new MessageError(reporter.lang('tarballNotInNetworkOrCache', ref, localTarball));
+      throw new MessageError(this.reporter.lang('tarballNotInNetworkOrCache', ref, localTarball));
     }
 
     return new Promise((resolve, reject) => {
@@ -135,7 +135,7 @@ export default class TarballFetcher extends BaseFetcher {
           if (isOfflineTarball) {
             msg = 'fetchErrorCorrupt';
           }
-          reject(new MessageError(reporter.lang(msg, err.message, localTarball)));
+          reject(new MessageError(this.reporter.lang(msg, err.message, localTarball)));
         });
     });
   }

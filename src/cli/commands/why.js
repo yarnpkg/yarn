@@ -128,10 +128,10 @@ export async function run(
   args: Array<string>,
 ): Promise<void> {
   if (!args.length) {
-    throw new MessageError(reporter.lang('missingWhyDependency'));
+    throw new MessageError(this.reporter.lang('missingWhyDependency'));
   }
   if (args.length > 1) {
-    throw new MessageError(reporter.lang('tooManyArguments', 1));
+    throw new MessageError(this.reporter.lang('tooManyArguments', 1));
   }
 
   const query = await cleanQuery(config, args[0]);
