@@ -117,7 +117,7 @@ async function buildActionsForCopy(
     const {src, dest} = data;
     const onFresh = data.onFresh || noop;
     const onDone = data.onDone || noop;
-    files.add(dest);
+    files.add(path.normalize(dest));
 
     if (events.ignoreBasenames.indexOf(path.basename(src)) >= 0) {
       // ignored file
@@ -191,7 +191,7 @@ async function buildActionsForCopy(
     } else if (srcStat.isDirectory()) {
       await mkdirp(dest);
 
-      const destParts = dest.split(path.sep);
+      const destParts = path.normalize(dest).split(path.sep);
       while (destParts.length) {
         files.add(destParts.join(path.sep));
         destParts.pop();
