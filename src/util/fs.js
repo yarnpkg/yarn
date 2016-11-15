@@ -12,7 +12,7 @@ const os = require('os');
 export const lockQueue = new BlockingQueue('fs lock');
 
 export const readFileBuffer = promisify(fs.readFile);
-export const writeFile = writeFilePreservingEol;
+export const writeFile: (path: string, data: string) => Promise<void> = promisify(fs.writeFile);
 export const readlink: (path: string, opts: void) => Promise<string> = promisify(fs.readlink);
 export const realpath: (path: string, opts: void) => Promise<string> = promisify(fs.realpath);
 export const readdir: (path: string, opts: void) => Promise<Array<string>> = promisify(fs.readdir);
@@ -478,7 +478,7 @@ async function getEolFromFile(path: string) : Promise<string | void>  {
   return undefined;
 }
 
-async function writeFilePreservingEol(path: string, data: string) : Promise<void> {
+export async function writeFilePreservingEol(path: string, data: string) : Promise<void> {
   const eol = (await getEolFromFile(path)) || os.EOL;
   if (eol !== '\n') {
     data = data.replace(/\n/g, eol);
