@@ -17,7 +17,7 @@ import * as fs from '../../util/fs.js';
 
 class GlobalAdd extends Add {
   maybeOutputSaveTree(): Promise<void> {
-    for (const pattern of this.args) {
+    for (const pattern of this.addedPatterns) {
       const manifest = this.resolver.getStrictResolvedPattern(pattern);
       ls(manifest, this.reporter, true);
     }
