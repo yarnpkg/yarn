@@ -544,7 +544,7 @@ export class Install {
     const loc = path.join(this.config.cwd, constants.LOCKFILE_FILENAME);
 
     // write lockfile
-    await fs.writeFile(loc, lockSource);
+    await fs.writeFilePreservingEol(loc, lockSource);
 
     this._logSuccessSaveLockfile();
   }
