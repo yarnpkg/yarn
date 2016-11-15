@@ -57,7 +57,7 @@ export async function run(
   const install = new Install(flags, config, reporter, lockfile);
   const [deps] = await install.fetchRequestFromCwd();
 
-  const allDeps = (await Promise.all(deps.map(async ({pattern, hint}): Promise<Dependency> => {
+  const allDeps = await Promise.all(deps.map(async ({pattern, hint}): Promise<Dependency> => {
     const locked = lockfile.getLocked(pattern);
     if (!locked) {
       throw new MessageError(reporter.lang('lockfileOutdated'));
@@ -77,13 +77,18 @@ export async function run(
     }
 
     return ({name, current, wanted, latest, hint});
-  })));
+  }));
 
   const isDepOld = ({latest, current}) => latest !== 'exotic' && semver.lt(current, latest);
   const isDepExpected = ({current, wanted}) => current === wanted;
   const orderByExpected = (depA, depB) => isDepExpected(depA) && !isDepExpected(depB) ? 1 : -1;
 
   const outdatedDeps = allDeps.filter(isDepOld).sort(orderByExpected);
+
+  if (!outdatedDeps.length) {
+    reporter.success(reporter.lang('allDependenciesUpToDate'));
+    return;
+  }
 
   const getNameFromHint = (hint) => hint ? `${hint}Dependencies` : 'dependencies';
 
