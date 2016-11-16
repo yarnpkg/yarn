@@ -22,9 +22,7 @@ export function explodeHostedGitFragment(fragment: string, reporter: Reporter): 
     fragment = preParts[1] + '@' + preParts[2];
   }
 
-  // TODO: make sure this only has a length of 2
   const parts = fragment.split(':');
-  //fragment = parts.pop();
 
   if (parts.length == 3) { // protocol + host + folder
     parts[1] = parts[1].indexOf('//') >= 0 ? parts[1].substr(2) : parts[1];
