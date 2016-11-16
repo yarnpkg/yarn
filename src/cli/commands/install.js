@@ -290,7 +290,9 @@ export class Install {
     patterns: Array<string>,
   ): Promise<boolean> {
     const match = await this.matchesIntegrityHash(patterns);
-    if (!this.flags.skipIntegrity && !this.flags.force && match.matches) {
+    const haveLockfile = await fs.exists(path.join(this.config.cwd, constants.LOCKFILE_FILENAME));
+
+    if (!this.flags.skipIntegrity && !this.flags.force && match.matches && haveLockfile) {
       this.reporter.success(this.reporter.lang('upToDate'));
       return true;
     }
