@@ -5,6 +5,7 @@ import type PackageResolver from './package-resolver.js';
 import type {Reporter} from './reporters/index.js';
 import type Config from './config.js';
 import type {VisibilityAction} from './package-reference.js';
+import PackageCompatibility from './package-compatibility.js';
 import {cleanDependencies} from './util/normalize-manifest/validate.js';
 import Lockfile from './lockfile/wrapper.js';
 import {USED as USED_VISIBILITY, default as PackageReference} from './package-reference.js';
@@ -245,6 +246,13 @@ export default class PackageRequest {
     ref.addVisibility(this.visibility);
     info._reference = ref;
     info._remote = remote;
+
+    // Skip the dependencies if optional and not compatible
+    if (this.optional && Array.isArray(info.os)) {
+      if (!PackageCompatibility.isValidPlatform(info.os)) {
+        return;
+      }
+    }
 
     // start installation of dependencies
     const promises = [];
