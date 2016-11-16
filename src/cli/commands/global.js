@@ -32,7 +32,10 @@ class GlobalAdd extends Add {
 const path = require('path');
 
 async function updateCwd(config: Config): Promise<void> {
-  await config.init({cwd: config.globalFolder});
+  await config.init({
+    cwd: config.globalFolder,
+    binLinks: true,
+  });
 }
 
 async function getBins(config: Config): Promise<Set<string>> {
