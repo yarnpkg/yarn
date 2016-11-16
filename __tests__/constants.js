@@ -12,9 +12,7 @@ test('getPathKey', () => {
 });
 
 test('isRootUser', () => {
-  expect(isRootUser('win32', null)).toBe(false);
-  expect(isRootUser('linux', 1001)).toBe(false);
-  expect(isRootUser('linux', 0)).toBe(true);
-  expect(isRootUser('darwin', 1)).toBe(false);
-  expect(isRootUser('darwin', 0)).toBe(true);
+  expect(isRootUser(null)).toBe(false);
+  expect(isRootUser(1001)).toBe(false);
+  expect(isRootUser(0)).toBe(true);
 });

@@ -94,8 +94,8 @@ function getUid(): ?number {
   return null;
 }
 
-export const ROOT_USER = isRootUser(process.platform, getUid());
+export const ROOT_USER = isRootUser(getUid());
 
-export function isRootUser(platform: string, uid: ?number): boolean {
-  return platform !== 'win32' && uid === 0;
+export function isRootUser(uid: ?number): boolean {
+  return uid === 0;
 }
