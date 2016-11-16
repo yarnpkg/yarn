@@ -682,3 +682,9 @@ test.concurrent('install should not rewrite lockfile with no substantial changes
     expect(newLockContent).not.toEqual(lockContent);
   });
 });
+
+test.concurrent('lockfile should be created when missing even if integrity matches', (): Promise<void> => {
+  return runInstall({}, 'lockfile-missing', async (config, reporter) => {
+    expect(await fs.exists(path.join(config.cwd, 'yarn.lock')));
+  });
+});
