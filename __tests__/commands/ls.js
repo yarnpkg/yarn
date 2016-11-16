@@ -9,6 +9,7 @@ import Config from '../../src/config.js';
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 90000;
 
+const stream = require('stream');
 const path = require('path');
 const os = require('os');
 
@@ -47,7 +48,14 @@ async function runLs(
     }
   }
 
-  const out = '';
+  let out = '';
+  const stdout = new stream.Writable({
+    decodeStrings: false,
+    write(data, encoding, cb) {
+      out += data;
+      cb();
+    },
+  });
 
   const reporter = new reporters.BufferReporter({stdout: null, stdin: null});
 

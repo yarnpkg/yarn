@@ -1,5 +1,0 @@
-{
-  "dependencies": {
-    "mkdirp": "substack/node-mkdirp#master"
-  }
-}
