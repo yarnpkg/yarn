@@ -89,7 +89,7 @@ export default class PackageFetcher {
 
         // update with new remote
         // but only if there was a hash previously as the tarball fetcher does not provide a hash.
-        if(ref.remote.hash) {
+        if (ref.remote.hash) {
           ref.remote.hash = res.hash;
         }
 
