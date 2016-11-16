@@ -127,6 +127,10 @@ test.concurrent('install from git cache', (): Promise<void> => {
   });
 });
 
+test.concurrent('install from github', (): Promise<void> => {
+  return runInstall({}, 'install-github');
+});
+
 test.concurrent('install should dedupe dependencies avoiding conflicts 0', (): Promise<void> => {
   // A@2.0.1 -> B@2.0.0
   // B@1.0.0

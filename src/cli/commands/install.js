@@ -26,12 +26,10 @@ import map from '../../util/map.js';
 import {sortAlpha} from '../../util/misc.js';
 
 const invariant = require('invariant');
-const userHome = require('user-home');
 const semver = require('semver');
 const emoji = require('node-emoji');
 const isCI = require('is-ci');
 const path = require('path');
-const fs2 = require('fs');
 
 const {version: YARN_VERSION, installationMethod: YARN_INSTALL_METHOD} = require('../../../package.json');
 const ONE_DAY = 1000 * 60 * 60 * 24;
@@ -97,7 +95,7 @@ function getUpdateCommand(): ?string {
   }
 
   if (YARN_INSTALL_METHOD === 'chocolatey') {
-      return 'choco upgrade yarn';
+    return 'choco upgrade yarn';
   }
 
   return null;
