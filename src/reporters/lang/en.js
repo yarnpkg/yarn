@@ -29,7 +29,6 @@ const messages = {
   manifestLicenseInvalid: 'License should be a valid SPDX license expression',
   manifestLicenseNone: 'No license field',
   manifestStringExpected: '$0 is not a string',
-  manifestDependencyBuiltin: 'Dependency $0 listed in $1 is the name of a built-in module',
   manifestDependencyCollision: '$0 has dependency $1 with range $2 that collides with a dependency in $3 of the same name with version $4',
 
   configSet: 'Set $0 to $1.',
