@@ -40,6 +40,10 @@ test.concurrent('install with arg', (): Promise<void> => {
   return runAdd({}, ['is-online'], 'install-with-arg');
 });
 
+test.concurrent('install from github', (): Promise<void> => {
+  return runAdd({}, ['substack/node-mkdirp#master'], 'install-github');
+});
+
 test.concurrent('install with --dev flag', (): Promise<void> => {
   return runAdd({dev: true}, ['left-pad@1.1.0'], 'add-with-flag', async (config) => {
     const lockfile = explodeLockfile(await fs.readFile(path.join(config.cwd, 'yarn.lock')));
@@ -571,5 +575,4 @@ test.concurrent('add should generate correct integrity file', (): Promise<void> 
     }
     expect(allCorrect).toBe(true);
   });
-
 });
