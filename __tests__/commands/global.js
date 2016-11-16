@@ -70,8 +70,10 @@ async function runGlobal(
     throw new Error(`${err && err.stack} \nConsole output:\n ${out}`);
   }
 }
+
 test.concurrent('add without flag', (): Promise<void> => {
   return runGlobal('add', {}, ['react-native-cli'], 'add-without-flag', async (config) => {
     assert.ok(await fs.exists(path.join(config.cwd, 'node_modules', 'react-native-cli')));
+    assert.ok(await fs.exists(path.join(config.cwd, 'node_modules', '.bin', 'react-native')));
   });
 });
