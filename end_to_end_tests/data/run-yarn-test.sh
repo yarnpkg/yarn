@@ -17,4 +17,3 @@ mkdir yarntest
 cd yarntest
 echo {} > package.json
 yarn add react || fail_with_log
-yarn add 'substack/node-mkdirp#master' || fail_with_log
