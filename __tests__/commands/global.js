@@ -5,6 +5,7 @@ import {run as global} from '../../src/cli/commands/global.js';
 import * as fs from '../../src/util/fs.js';
 import * as reporters from '../../src/reporters/index.js';
 import Config from '../../src/config.js';
+import assert from 'assert';
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 90000;
 
@@ -19,7 +20,7 @@ async function runGlobal(
   flags: Object,
   args: Array<string>,
   name: string,
-  checkGloabl?: ?(config: Config, reporter: Reporter, out: string) => ?Promise<void>,
+  checkGlobal?: ?(config: Config, reporter: Reporter, out: string) => ?Promise<void>,
 ): Promise<void> {
   const dir = path.join(fixturesLoc, name);
   const cwd = path.join(
@@ -61,8 +62,8 @@ async function runGlobal(
 
     await global(config, reporter, flags, [command, ...args]);
 
-    if (checkGloabl) {
-      await checkGloabl(config, reporter, out);
+    if (checkGlobal) {
+      await checkGlobal(config, reporter, out);
     }
 
   } catch (err) {
@@ -70,5 +71,7 @@ async function runGlobal(
   }
 }
 test.concurrent('add without flag', (): Promise<void> => {
-  return runGlobal('add', {}, ['react-native-cli'], 'add-without-flag');
+  return runGlobal('add', {}, ['react-native-cli'], 'add-without-flag', async (config) => {
+    assert.ok(await fs.exists(path.join(config.cwd, 'node_modules', 'react-native-cli')));
+  });
 });
