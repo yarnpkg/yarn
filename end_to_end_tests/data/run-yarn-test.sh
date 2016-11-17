@@ -16,4 +16,10 @@ cd /tmp
 mkdir yarntest
 cd yarntest
 echo {} > package.json
+
+# Create the cache directory and remove it
+# This simulates issue reported here: https://github.com/yarnpkg/yarn/issues/1724
+yarn --version || fail_with_log
+rm -rf ~/.cache/yarn
+
 yarn add react || fail_with_log
