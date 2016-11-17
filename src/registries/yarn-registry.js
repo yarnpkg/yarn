@@ -114,6 +114,6 @@ export default class YarnRegistry extends NpmRegistry {
       this.homeConfig[key] = config[key];
     }
 
-    await fs.writeFile(this.homeConfigLoc, `${stringify(this.homeConfig)}\n`);
+    await fs.writeFilePreservingEol(this.homeConfigLoc, `${stringify(this.homeConfig)}\n`);
   }
 }
