@@ -15,6 +15,11 @@ const os = require('os');
 
 const fixturesLoc = path.join(__dirname, '..', 'fixtures', 'global');
 
+const tmpGlobalFolder = path.join(
+  os.tmpdir(),
+  `yarn-global-${Math.random()}`,
+);
+
 async function runGlobal(
   command: string,
   flags: Object,
@@ -75,5 +80,12 @@ test.concurrent('add without flag', (): Promise<void> => {
   return runGlobal('add', {}, ['react-native-cli'], 'add-without-flag', async (config) => {
     assert.ok(await fs.exists(path.join(config.cwd, 'node_modules', 'react-native-cli')));
     assert.ok(await fs.exists(path.join(config.cwd, 'node_modules', '.bin', 'react-native')));
+  });
+});
+
+test.concurrent('add with prefix flag', async (): Promise<void> => {
+  await fs.unlink(tmpGlobalFolder);
+  return runGlobal('add', {prefix: tmpGlobalFolder}, ['react-native-cli'], 'add-with-prefix-flag', async (config) => {
+    assert.ok(await fs.exists(path.join(tmpGlobalFolder, 'bin', 'react-native')));
   });
 });
