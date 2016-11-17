@@ -7,6 +7,7 @@ import map from './map.js';
 
 const path = require('path');
 const fs = require('fs');
+const os = require('os');
 
 export const lockQueue = new BlockingQueue('fs lock');
 
@@ -453,4 +454,33 @@ export async function getFileSizeOnDisk(loc: string): Promise<number> {
 
 export function normalizeOS(body: string): string {
   return body.replace(/\r\n/g, '\n');
+}
+
+const cr = new Buffer('\r', 'utf8')[0];
+const lf = new Buffer('\n', 'utf8')[0];
+
+async function getEolFromFile(path: string) : Promise<string | void>  {
+  if (!(await exists(path))) {
+    return undefined;
+  }
+
+  const buffer = await readFileBuffer(path);
+
+  for (let i = 0; i < buffer.length; ++i) {
+    if (buffer[i] === cr) {
+      return '\r\n';
+    }
+    if (buffer[i] === lf) {
+      return '\n';
+    }
+  }
+  return undefined;
+}
+
+export async function writeFilePreservingEol(path: string, data: string) : Promise<void> {
+  const eol = (await getEolFromFile(path)) || os.EOL;
+  if (eol !== '\n') {
+    data = data.replace(/\n/g, eol);
+  }
+  await promisify(fs.writeFile)(path, data);
 }
