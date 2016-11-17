@@ -369,7 +369,7 @@ export default class PackageHoister {
         parts.unshift(this.config.cwd);
       }
 
-      const loc = parts.join(path.sep);
+      const loc = path.join(...parts);
       flatTree.push([loc, info]);
     }
 
