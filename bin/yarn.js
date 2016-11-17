@@ -8,6 +8,7 @@
 var mkdirp = require('mkdirp');
 var constants = require('../lib-legacy/constants');
 mkdirp.sync(constants.GLOBAL_INSTALL_DIRECTORY);
+mkdirp.sync(constants.MODULE_CACHE_DIRECTORY);
 var roadrunner = require('roadrunner');
 roadrunner.load(constants.CACHE_FILENAME);
 roadrunner.setup(constants.CACHE_FILENAME);
