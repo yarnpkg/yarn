@@ -30,6 +30,7 @@ const messages = {
   manifestLicenseNone: 'No license field',
   manifestStringExpected: '$0 is not a string',
   manifestDependencyCollision: '$0 has dependency $1 with range $2 that collides with a dependency in $3 of the same name with version $4',
+  manifestDirectoryNotFound: 'Unable to read $0 directory of module $1',
 
   configSet: 'Set $0 to $1.',
   configDelete: 'Deleted $0.',
