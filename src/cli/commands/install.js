@@ -329,7 +329,7 @@ export class Install {
 
     // warn if we have a shrinkwrap
     if (await fs.exists(path.join(this.config.cwd, 'npm-shrinkwrap.json'))) {
-      this.reporter.error(this.reporter.lang('shrinkwrapWarning'));
+      this.reporter.warn(this.reporter.lang('shrinkwrapWarning'));
     }
 
     let patterns: Array<string> = [];
