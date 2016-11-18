@@ -15,6 +15,14 @@ const os = require('os');
 
 const fixturesLoc = path.join(__dirname, '..', 'fixtures', 'global');
 
+function getBinFolder(prefix: string): string {
+  if (process.platform === 'win32') {
+    return prefix;
+  } else {
+    return path.resolve(prefix, 'bin');
+  }
+}
+
 async function runGlobal(
   command: string,
   flags: Object,
@@ -53,9 +61,8 @@ async function runGlobal(
 
   // set global bin
   if (!flags.prefix) {
-    flags.prefix = path.join(cwd, '.yarn', '.global', '.bin');
+    flags.prefix = path.join(cwd, '.yarn/.tmpbin');
   }
-  await fs.mkdirp(flags.prefix);
 
   try {
     const config = new Config(reporter);
@@ -81,6 +88,9 @@ test.concurrent('add without flag', (): Promise<void> => {
   return runGlobal('add', {}, ['react-native-cli'], 'add-without-flag', async (config) => {
     assert.ok(await fs.exists(path.join(config.cwd, 'node_modules', 'react-native-cli')));
     assert.ok(await fs.exists(path.join(config.cwd, 'node_modules', '.bin', 'react-native')));
-    assert.ok(await fs.exists(path.join(config.cwd, '.bin', 'react-native')));
+    // global function change config.cwd to config.globalFolder,
+    // go one level up to be on the .yarn folder
+    const binFolder = getBinFolder(path.join(config.cwd, '../.tmpbin'));
+    assert.ok(await fs.exists(path.join(binFolder, 'react-native')));
   });
 });
