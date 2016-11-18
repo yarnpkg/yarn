@@ -68,6 +68,7 @@ type CopyOptions = {
   onStart: (num: number) => void,
   possibleExtraneous: PossibleExtraneous,
   ignoreBasenames: Array<string>,
+  phantomFiles: Array<string>,
 };
 
 async function buildActionsForCopy(
@@ -76,6 +77,7 @@ async function buildActionsForCopy(
   possibleExtraneousSeed: PossibleExtraneous,
 ): Promise<CopyActions> {
   const possibleExtraneous: Set<string> = new Set(possibleExtraneousSeed || []);
+  const phantomFiles: Set<string> = new Set(events.phantomFiles || []);
   const noExtraneous = possibleExtraneousSeed === false;
   const files: Set<string> = new Set();
 
@@ -99,6 +101,11 @@ async function buildActionsForCopy(
   while (queue.length) {
     const items = queue.splice(0, 4);
     await Promise.all(items.map(build));
+  }
+
+  // simulate the existence of some files to prevent considering them extraenous
+  for (const file of phantomFiles) {
+    possibleExtraneous.delete(file);
   }
 
   // remove all extraneous files that weren't in the tree
@@ -243,6 +250,7 @@ export async function copyBulk(
     onStart?: ?(num: number) => void,
     possibleExtraneous?: PossibleExtraneous,
     ignoreBasenames?: Array<string>,
+    phantomFiles?: Array<string>,
   },
 ): Promise<void> {
   const events: CopyOptions = {
@@ -250,6 +258,7 @@ export async function copyBulk(
     onProgress: (_events && _events.onProgress) || noop,
     possibleExtraneous: _events ? _events.possibleExtraneous : [],
     ignoreBasenames: (_events && _events.ignoreBasenames) || [],
+    phantomFiles: (_events && _events.phantomFiles) || [],
   };
 
   const actions: CopyActions = await buildActionsForCopy(queue, events, events.possibleExtraneous);

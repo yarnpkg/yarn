@@ -20,6 +20,52 @@ const path = require('path');
 
 const fixturesLoc = path.join(__dirname, '..', 'fixtures', 'install');
 
+test.concurrent('properly find and save build artifacts', async () => {
+  await runInstall({}, 'artifacts-finds-and-saves', async (config): Promise<void> => {
+    const cacheFolder = path.join(config.cacheFolder, 'npm-dummy-0.0.0');
+    assert.deepEqual(
+      (await fs.readJson(path.join(cacheFolder, constants.METADATA_FILENAME))).artifacts,
+      ['dummy', 'dummy/dummy.txt', 'dummy.txt'],
+    );
+
+    // retains artifact
+    const moduleFolder = path.join(config.cwd, 'node_modules', 'dummy');
+    assert.equal(await fs.readFile(path.join(moduleFolder, 'dummy.txt')), 'foobar');
+    assert.equal(await fs.readFile(path.join(moduleFolder, 'dummy', 'dummy.txt')), 'foobar');
+  });
+});
+
+test.concurrent("removes extraneous files that aren't in module or artifacts", async () => {
+  async function check(cwd: string): Promise<void> {
+    // retains artifact
+    const moduleFolder = path.join(cwd, 'node_modules', 'dummy');
+    assert.equal(await fs.readFile(path.join(moduleFolder, 'dummy.txt')), 'foobar');
+    assert.equal(await fs.readFile(path.join(moduleFolder, 'dummy', 'dummy.txt')), 'foobar');
+
+    // removes extraneous
+    assert.ok(!(await fs.exists(path.join(moduleFolder, 'dummy2.txt'))));
+  }
+
+  async function create(cwd: string): Promise<void> {
+    // create an extraneous file
+    const moduleFolder = path.join(cwd, 'node_modules', 'dummy');
+    await fs.mkdirp(moduleFolder);
+    await fs.writeFile(path.join(moduleFolder, 'dummy2.txt'), 'foobar');
+  }
+
+  await runInstall({}, 'artifacts-finds-and-saves', async (config): Promise<void> => {
+    await check(config.cwd);
+
+    await create(config.cwd);
+
+    // run install again
+    const install = new Install({force: true}, config, config.reporter, new Lockfile());
+    await install.init();
+
+    await check(config.cwd);
+  }, create);
+});
+
 test.concurrent('integrity hash respects flat and production flags', async () => {
   const cwd = path.join(fixturesLoc, 'noop');
   const reporter = new reporters.NoopReporter();
@@ -600,7 +646,7 @@ if (process.platform !== 'win32') {
     return runInstall({}, 'cache-symlinks', async (config, reporter) => {
       const symlink = path.resolve(config.cwd, 'node_modules', 'dep-a', 'link-index.js');
       expect(await fs.exists(symlink)).toBe(true);
-      await fs.unlink(path.resolve(config.cwd, 'node_modules'));
+      await fs.unlink(path.join(config.cwd, 'node_modules'));
 
       const lockfile = await createLockfile(config.cwd);
       const install = new Install({}, config, reporter, lockfile);
