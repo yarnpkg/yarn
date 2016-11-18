@@ -104,7 +104,7 @@ async function buildActionsForCopy(
   }
 
   // simulate the existence of some files to prevent considering them extraenous
-  for (let file of phantomFiles) {
+  for (const file of phantomFiles) {
     possibleExtraneous.delete(file);
   }
 

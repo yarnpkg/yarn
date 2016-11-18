@@ -96,10 +96,6 @@ export default class PackageFetcher {
         if (res.resolved) {
           ref.remote.resolved = res.resolved;
         }
-
-        if (res.cached) {
-          ref.cached = true;
-        }
       }
 
       if (newPkg) {

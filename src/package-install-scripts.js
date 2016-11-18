@@ -98,11 +98,7 @@ export default class PackageInstallScripts {
     const ref = pkg._reference;
     invariant(ref, 'expected reference');
     const loc = this.config.generateHardModulePath(ref);
-    if (ref.cached) {
-      // This package is fetched directly from installed cache with build artifacts
-      // No need to rebuild
-      return;
-    }
+
     try {
       for (const [stage, cmd] of cmds) {
         await executeLifecycleScript(stage, this.config, loc, cmd, spinner);
