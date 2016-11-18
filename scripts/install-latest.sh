@@ -109,24 +109,24 @@ yarn_install() {
 
   if [ -d "$HOME/.yarn" ]; then
     if [ -n `which yarn` ]; then
-      local SPECIFIED_VERSION
-      local VERSION_TYPE
+      local specified_version
+      local version_type
       if [ "$1" = '--nightly' ]; then
         latest_url=https://nightly.yarnpkg.com/latest-tar-version
-        SPECIFIED_VERSION=`curl $latest_url`
-        VERSION_TYPE='latest'
+        specified_version=`curl $latest_url`
+        version_type='latest'
       elif [ "$1" = '--version' ]; then
-        SPECIFIED_VERSION=$2
-        VERSION_TYPE='specified'
+        specified_version=$2
+        version_type='specified'
       else
         latest_url=https://yarnpkg.com/latest-version
-        SPECIFIED_VERSION=`curl $latest_url`
-        VERSION_TYPE='latest'
+        specified_version=`curl $latest_url`
+        version_type='latest'
       fi
-      YARN_VERSION=`yarn -V`
-      YARN_ALT_VERSION=`yarn --version`
-      if [ "$SPECIFIED_VERSION" = "$YARN_VERSION" -o "$SPECIFIED_VERSION" = "$YARN_ALT_VERSION" ]; then
-        printf "$green> Yarn is already at the $SPECIFIED_VERSION version.$reset\n"
+      yarn_version=`yarn -V`
+      yarn_alt_version=`yarn --version`
+      if [ "$specified_version" = "$yarn_version" -o "$specified_version" = "$yarn_alt_version" ]; then
+        printf "$green> Yarn is already at the $specified_version version.$reset\n"
       else
         rm -rf "$HOME/.yarn"
       fi
