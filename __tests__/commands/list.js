@@ -2,7 +2,7 @@
 
 import type {Tree} from '../../src/reporters/types.js';
 import {BufferReporter} from '../../src/reporters/index.js';
-import {getParent, getReqDepth, run as ls} from '../../src/cli/commands/ls.js';
+import {getParent, getReqDepth, run as list} from '../../src/cli/commands/list.js';
 import * as fs from '../../src/util/fs.js';
 import * as reporters from '../../src/reporters/index.js';
 import Config from '../../src/config.js';
@@ -25,13 +25,13 @@ function makeTree(
   };
 }
 
-const fixturesLoc = path.join(__dirname, '..', 'fixtures', 'ls');
+const fixturesLoc = path.join(__dirname, '..', 'fixtures', 'list');
 
-async function runLs(
+async function runList(
   flags: Object,
   args: Array<string>,
   name: string,
-  checkLs?: ?(config: Config, reporter: BufferReporter) => ?Promise<void>,
+  checkList?: ?(config: Config, reporter: BufferReporter) => ?Promise<void>,
 ): Promise<void> {
   const dir = path.join(fixturesLoc, name);
   const cwd = path.join(
@@ -64,10 +64,10 @@ async function runLs(
       linkFolder: path.join(cwd, '.yarn/.link'),
     });
 
-    await ls(config, reporter, flags, args);
+    await list(config, reporter, flags, args);
 
-    if (checkLs) {
-      await checkLs(config, reporter);
+    if (checkList) {
+      await checkList(config, reporter);
     }
 
   } catch (err) {
@@ -80,7 +80,7 @@ test.concurrent('throws if lockfile out of date', (): Promise<void> => {
 
   return new Promise(async (resolve) => {
     try {
-      await runLs({}, [], 'lockfile-outdated');
+      await runList({}, [], 'lockfile-outdated');
     } catch (err) {
       expect(err.message).toContain(reporter.lang('lockfileOutdated'));
     } finally {
@@ -90,7 +90,7 @@ test.concurrent('throws if lockfile out of date', (): Promise<void> => {
 });
 
 test.concurrent('lists everything with no args', (): Promise<void> => {
-  return runLs({}, [], 'no-args', (config, reporter): ?Promise<void> => {
+  return runList({}, [], 'no-args', (config, reporter): ?Promise<void> => {
     const rprtr = new reporters.BufferReporter({});
     const tree = reporter.getBuffer().slice(-1);
     const children = [{name: 'is-plain-obj@^1.0.0', color: 'dim', shadow: true}];
@@ -100,14 +100,14 @@ test.concurrent('lists everything with no args', (): Promise<void> => {
       makeTree('is-plain-obj@1.1.0'),
     ];
 
-    rprtr.tree('ls', trees);
+    rprtr.tree('list', trees);
 
     expect(tree).toEqual(rprtr.getBuffer());
   });
 });
 
 test.concurrent('respects depth flag', (): Promise<void> => {
-  return runLs({depth: 1}, [], 'depth-flag', (config, reporter): ?Promise<void> => {
+  return runList({depth: 1}, [], 'depth-flag', (config, reporter): ?Promise<void> => {
     const rprtr = new reporters.BufferReporter({});
     const tree = reporter.getBuffer().slice(-1);
     const trees = [
@@ -115,21 +115,21 @@ test.concurrent('respects depth flag', (): Promise<void> => {
       makeTree('is-plain-obj@1.1.0'),
     ];
 
-    rprtr.tree('ls', trees);
+    rprtr.tree('list', trees);
 
     expect(tree).toEqual(rprtr.getBuffer());
   });
 });
 
 test.concurrent('accepts an argument', (): Promise<void> => {
-  return runLs({}, ['is-plain-obj'], 'one-arg', (config, reporter): ?Promise<void> => {
+  return runList({}, ['is-plain-obj'], 'one-arg', (config, reporter): ?Promise<void> => {
     const rprtr = new reporters.BufferReporter({});
     const tree = reporter.getBuffer().slice(-1);
     const trees = [
       makeTree('is-plain-obj@1.1.0'),
     ];
 
-    rprtr.tree('ls', trees);
+    rprtr.tree('list', trees);
 
     expect(tree).toEqual(rprtr.getBuffer());
   });
