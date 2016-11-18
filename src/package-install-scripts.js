@@ -56,7 +56,7 @@ export default class PackageInstallScripts {
     return mtimes;
   }
 
-  async copyBuildArtifacts(
+  async saveBuildArtifacts(
     loc: string,
     pkg: Manifest,
     beforeFiles: Map<string, number>,
@@ -72,16 +72,8 @@ export default class PackageInstallScripts {
       }
     }
 
-    // install script may have removed files, remove them from the cache too
-    const removedFiles = [];
-    for (const [file] of beforeFiles) {
-      if (!afterFiles.has(file)) {
-        removedFiles.push(file);
-      }
-    }
-
-    if (!removedFiles.length && !buildArtifacts.length) {
-      // nothing else to do here since we have no build side effects
+    if (!buildArtifacts.length) {
+      // nothing else to do here since we have no build artifacts
       return;
     }
 
@@ -89,45 +81,24 @@ export default class PackageInstallScripts {
     // the cache in a bad state. remove the metadata file and add it back once we've
     // done our copies to ensure cache integrity.
     const cachedLoc = this.config.generateHardModulePath(pkg._reference, true);
-    const cachedMetadataLoc = path.join(cachedLoc, constants.METADATA_FILENAME);
-    const cachedMetadata = await fs.readFile(cachedMetadataLoc);
-    await fs.unlink(cachedMetadataLoc);
+    const metadata = await this.config.readPackageMetadata(cachedLoc);
+    metadata.artifacts = buildArtifacts;
 
-    // remove files that install script removed
-    if (removedFiles.length) {
-      for (const file of removedFiles) {
-        await fs.unlink(path.join(cachedLoc, file));
-      }
-    }
+    const metadataLoc = path.join(cachedLoc, constants.METADATA_FILENAME);
+    await fs.writeFile(metadataLoc, JSON.stringify({
+      ...metadata,
 
-    // copy over build artifacts to cache directory
-    if (buildArtifacts.length) {
-      const copyRequests = [];
-      for (const file of buildArtifacts) {
-        copyRequests.push({
-          src: path.join(loc, file),
-          dest: path.join(cachedLoc, file),
-          onDone() {
-            spinner.tick(`Cached build artifact ${file}`);
-          },
-        });
-      }
-      await fs.copyBulk(copyRequests, {
-        possibleExtraneous: false,
-      });
-      await fs.writeFile(cachedMetadataLoc, cachedMetadata);
-    }
+      // config.readPackageMetadata also returns the package manifest but that's not in the original
+      // metadata json
+      package: undefined,
+    }, null, '  '));
   }
 
   async install(cmds: Array<[string, string]>, pkg: Manifest, spinner: ReporterSetSpinner): Promise<void> {
     const ref = pkg._reference;
     invariant(ref, 'expected reference');
     const loc = this.config.generateHardModulePath(ref);
-    if (ref.cached) {
-      // This package is fetched directly from installed cache with build artifacts
-      // No need to rebuild
-      return;
-    }
+
     try {
       for (const [stage, cmd] of cmds) {
         await executeLifecycleScript(stage, this.config, loc, cmd, spinner);
@@ -299,7 +270,7 @@ export default class PackageInstallScripts {
         const loc = this.config.generateHardModulePath(ref);
         const beforeFiles = beforeFilesMap.get(loc);
         invariant(beforeFiles, 'files before installation should always be recorded');
-        await this.copyBuildArtifacts(loc, pkg, beforeFiles, set.spinners[0]);
+        await this.saveBuildArtifacts(loc, pkg, beforeFiles, set.spinners[0]);
       }
     }
 

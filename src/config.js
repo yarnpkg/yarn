@@ -45,6 +45,7 @@ export type ConfigOptions = {
 };
 
 type PackageMetadata = {
+  artifacts: Array<string>,
   registry: RegistryNames,
   hash: string,
   remote: ?PackageRemote,
@@ -353,6 +354,7 @@ export default class Config {
 
       return {
         package: pkg,
+        artifacts: metadata.artifacts || [],
         hash: metadata.hash,
         remote: metadata.remote,
         registry: metadata.registry,
