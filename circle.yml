@@ -51,6 +51,7 @@ deployment:
     commands:
       - ~/ghr/ghr --username yarnpkg --repository yarn --token $KPM_CIRCLE_RELEASE_TOKEN v$(dist/bin/yarn --version) artifacts/
       - echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
+      - ./scripts/set-installation-method.js "`pwd`/package.json" npm
       - npm publish
 
 notify:

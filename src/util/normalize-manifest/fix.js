@@ -20,10 +20,13 @@ type Dict<T> = {
   [key: string]: T;
 };
 
+type WarnFunction = (msg: string) => void;
+
 export default async function (
   info: Dict<mixed>,
   moduleLoc: string,
   reporter: Reporter,
+  warn: WarnFunction,
   looseSemver: boolean,
 ): Promise<void> {
   const files = await fs.readdir(moduleLoc);
@@ -73,17 +76,23 @@ export default async function (
 
   // if there's no readme field then load the README file from the cwd
   if (!info.readme) {
-    const readmeFilename = files.find((filename): boolean => {
-      const lower = filename.toLowerCase();
-      return lower === 'readme' || lower.indexOf('readme.') === 0;
-    });
+    const readmeCandidates = files
+      .filter((filename): boolean => {
+        const lower = filename.toLowerCase();
+        return lower === 'readme' || lower.indexOf('readme.') === 0;
+      })
+      .sort((filename1, filename2): number => {
+        // favor files with extensions
+        return filename2.indexOf('.') - filename1.indexOf('.');
+      });
 
-    if (readmeFilename) {
+    for (const readmeFilename of readmeCandidates) {
       const readmeFilepath = path.join(moduleLoc, readmeFilename);
       const readmeFileStats = await fs.stat(readmeFilepath);
       if (readmeFileStats.isFile()) {
         info.readmeFilename = readmeFilename;
         info.readme = await fs.readFile(readmeFilepath);
+        break;
       }
     }
   }
@@ -184,12 +193,17 @@ export default async function (
 
     if (!info.bin && binDir && typeof binDir === 'string') {
       const bin = info.bin = {};
+      const fullBinDir = path.join(moduleLoc, binDir);
 
-      for (const scriptName of await fs.readdir(path.join(moduleLoc, binDir))) {
-        if (scriptName[0] === '.') {
-          continue;
+      if (await fs.exists(fullBinDir)) {
+        for (const scriptName of await fs.readdir(fullBinDir)) {
+          if (scriptName[0] === '.') {
+            continue;
+          }
+          bin[scriptName] = path.join('.', binDir, scriptName);
         }
-        bin[scriptName] = path.join('.', binDir, scriptName);
+      } else {
+        warn(reporter.lang('manifestDirectoryNotFound', binDir, info.name));
       }
     }
 
@@ -197,11 +211,16 @@ export default async function (
 
     if  (!info.man && typeof manDir === 'string') {
       const man = info.man = [];
+      const fullManDir = path.join(moduleLoc, manDir);
 
-      for (const filename of await fs.readdir(path.join(moduleLoc, manDir))) {
-        if (/^(.*?)\.[0-9]$/.test(filename)) {
-          man.push(path.join('.', manDir, filename));
+      if (await fs.exists(fullManDir)) {
+        for (const filename of await fs.readdir(fullManDir)) {
+          if (/^(.*?)\.[0-9]$/.test(filename)) {
+            man.push(path.join('.', manDir, filename));
+          }
         }
+      } else {
+        warn(reporter.lang('manifestDirectoryNotFound', manDir, info.name));
       }
     }
   }

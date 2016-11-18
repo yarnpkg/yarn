@@ -29,8 +29,8 @@ const messages = {
   manifestLicenseInvalid: 'License should be a valid SPDX license expression',
   manifestLicenseNone: 'No license field',
   manifestStringExpected: '$0 is not a string',
-  manifestDependencyBuiltin: 'Dependency $0 listed in $1 is the name of a built-in module',
   manifestDependencyCollision: '$0 has dependency $1 with range $2 that collides with a dependency in $3 of the same name with version $4',
+  manifestDirectoryNotFound: 'Unable to read $0 directory of module $1',
 
   configSet: 'Set $0 to $1.',
   configDelete: 'Deleted $0.',
@@ -76,6 +76,11 @@ const messages = {
   unexpectedError: 'An unexpected error occurred: $0.',
   jsonError: 'Error parsing JSON at $0, $1.',
   noFilePermission: "We don't have permissions to touch the file $0.",
+  allDependenciesUpToDate: 'All of your dependencies are up to date.',
+
+  yarnOutdated: "Your current version of Yarn is out of date. The latest version is $0 while you're on $1.",
+  yarnOutdatedInstaller: 'To upgrade, download the latest installer at $0.',
+  yarnOutdatedCommand: 'To upgrade, run the following command:',
 
   tooManyArguments: 'Too many arguments, maximum of $0.',
   tooFewArguments: 'Not enough arguments, expected at least $0.',
@@ -210,11 +215,11 @@ const messages = {
   cantRequestOffline: 'Can\'t make a request in offline mode',
   requestManagerNotSetupHAR: 'RequestManager was not setup to capture HAR files',
   requestError: 'Request $0 returned a $1',
-
   tarballNotInNetworkOrCache: '$0: Tarball is not in network and can not be located in cache ($1)',
   fetchBadHash: 'Bad hash. Expected $0 but got $1 ',
   fetchErrorCorrupt: '$0. Mirror tarball appears to be corrupt. You can resolve this by running:\n\n  $ rm -rf $1\n  $ yarn install',
   errorDecompressingTarball: '$0. Error decompressing $1, it appears to be corrupt.',
+  updateInstalling: 'Installing $0...',
 };
 
 export type LanguageKeys = $Keys<typeof messages>;

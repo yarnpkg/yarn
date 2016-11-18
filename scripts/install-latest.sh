@@ -11,6 +11,8 @@ yarn_get_tarball() {
   printf "$cyan> Downloading tarball...$reset\n"
   if [ "$1" = '--nightly' ]; then
     url=https://nightly.yarnpkg.com/latest.tar.gz
+  elif [ "$1" = '--version' ]; then
+    url="https://yarnpkg.com/downloads/$2/yarn-v$2.tar.gz"
   else
     url=https://yarnpkg.com/latest.tar.gz
   fi
@@ -106,15 +108,40 @@ yarn_install() {
   printf "${white}Installing Yarn!$reset\n"
 
   if [ -d "$HOME/.yarn" ]; then
-    printf "$red> ~/.yarn already exists, possibly from a past Yarn install.$reset\n"
-    printf "$red> Remove it (rm -rf ~/.yarn) and run this script again.$reset\n"
-    exit 0
+    if [ -n `which yarn` ]; then
+      local latest_url
+      local specified_version
+      local version_type
+      if [ "$1" = '--nightly' ]; then
+        latest_url=https://nightly.yarnpkg.com/latest-tar-version
+        specified_version=`curl $latest_url`
+        version_type='latest'
+      elif [ "$1" = '--version' ]; then
+        specified_version=$2
+        version_type='specified'
+      else
+        latest_url=https://yarnpkg.com/latest-version
+        specified_version=`curl $latest_url`
+        version_type='latest'
+      fi
+      yarn_version=`yarn -V`
+      yarn_alt_version=`yarn --version`
+      if [ "$specified_version" = "$yarn_version" -o "$specified_version" = "$yarn_alt_version" ]; then
+        printf "$green> Yarn is already at the $specified_version version.$reset\n"
+      else
+        rm -rf "$HOME/.yarn"
+      fi
+    else
+      printf "$red> ~/.yarn already exists, possibly from a past Yarn install.$reset\n"
+      printf "$red> Remove it (rm -rf ~/.yarn) and run this script again.$reset\n"
+      exit 0
+    fi
   fi
 
-  yarn_get_tarball $1
+  yarn_get_tarball $1 $2
   yarn_link
   yarn_reset
 }
 
 cd ~
-yarn_install $1
+yarn_install $1 $2

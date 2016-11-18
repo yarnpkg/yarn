@@ -8,6 +8,7 @@ import Config from '../../src/config.js';
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 90000;
 
+const semver = require('semver');
 const stream = require('stream');
 const path = require('path');
 const os = require('os');
@@ -140,6 +141,18 @@ test.concurrent('hides when current > latest (next, beta tag)', (): Promise<void
   );
 });
 
+test.concurrent('shows when wanted > current and current > latest', (): Promise<void> => {
+  return runOutdated({}, [], 'wanted-newer-than-current',
+    (config, reporter, out): ?Promise<void> => {
+      const json: Object = JSON.parse(out);
+
+      expect(json.data.body.length).toBe(1);
+      expect(json.data.body[0][0]).toBe('webpack');
+      expect(semver.lt(json.data.body[0][1], json.data.body[0][2]));
+    },
+  );
+});
+
 test.concurrent('displays correct dependency types', (): Promise<void> => {
   return runOutdated({}, [], 'display-dependency-type',
     (config, reporter, out): ?Promise<void> => {
@@ -148,12 +161,12 @@ test.concurrent('displays correct dependency types', (): Promise<void> => {
 
       // peerDependencies aren't included in the output
       expect(json.data.body.length).toBe(3);
-      expect(body[0][0]).toBe('is-online');
-      expect(body[0][4]).toBe('optionalDependencies');
-      expect(body[1][0]).toBe('left-pad');
-      expect(body[1][4]).toBe('dependencies');
-      expect(body[2][0]).toBe('max-safe-integer');
-      expect(body[2][4]).toBe('devDependencies');
+      expect(body[0][0]).toBe('left-pad');
+      expect(body[0][4]).toBe('dependencies');
+      expect(body[1][0]).toBe('max-safe-integer');
+      expect(body[1][4]).toBe('devDependencies');
+      expect(body[2][0]).toBe('is-online');
+      expect(body[2][4]).toBe('optionalDependencies');
     },
   );
 });

@@ -45,6 +45,7 @@ export type ConfigOptions = {
 };
 
 type PackageMetadata = {
+  artifacts: Array<string>,
   registry: RegistryNames,
   hash: string,
   remote: ?PackageRemote,
@@ -197,6 +198,7 @@ export default class Config {
       httpProxy: String(opts.httpProxy || this.getOption('proxy') || ''),
       httpsProxy: String(opts.httpsProxy || this.getOption('https-proxy') || ''),
       strictSSL: Boolean(this.getOption('strict-ssl')),
+      ca: Array.prototype.concat(opts.ca || this.getOption('ca') || []).map(String),
       cafile: String(opts.cafile || this.getOption('cafile') || ''),
       cert: String(opts.cert || this.getOption('cert') || ''),
       key: String(opts.key || this.getOption('key') || ''),
@@ -352,6 +354,7 @@ export default class Config {
 
       return {
         package: pkg,
+        artifacts: metadata.artifacts || [],
         hash: metadata.hash,
         remote: metadata.remote,
         registry: metadata.registry,
@@ -369,7 +372,7 @@ export default class Config {
     if (manifest) {
       return manifest;
     } else {
-      throw new MessageError(this.reporter.lang('couldntFindPackagejson', dir));
+      throw new MessageError(this.reporter.lang('couldntFindPackagejson', dir), 'ENOENT');
     }
   }
 
@@ -397,6 +400,7 @@ export default class Config {
           return file;
         }
       }
+
       return null;
     });
   }
@@ -482,7 +486,7 @@ export default class Config {
         }
       }
 
-      await fs.writeFile(loc, JSON.stringify(object, null, indent || constants.DEFAULT_INDENT) + '\n');
+      await fs.writeFilePreservingEol(loc, JSON.stringify(object, null, indent || constants.DEFAULT_INDENT) + '\n');
     }
   }
 

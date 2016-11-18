@@ -12,6 +12,8 @@ import Config from '../../src/config.js';
 import * as fs from '../../src/util/fs.js';
 import assert from 'assert';
 import semver from 'semver';
+import {promisify} from '../../src/util/promise';
+import fsNode from 'fs';
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 90000;
 
@@ -38,6 +40,10 @@ test.concurrent('install with arg that has install scripts', (): Promise<void> =
 
 test.concurrent('install with arg', (): Promise<void> => {
   return runAdd({}, ['is-online'], 'install-with-arg');
+});
+
+test.concurrent('install from github', (): Promise<void> => {
+  return runAdd({}, ['substack/node-mkdirp#master'], 'install-github');
 });
 
 test.concurrent('install with --dev flag', (): Promise<void> => {
@@ -75,6 +81,12 @@ test.concurrent('install with --optional flag', (): Promise<void> => {
 
 test.concurrent('install with arg that has binaries', (): Promise<void> => {
   return runAdd({}, ['react-native-cli'], 'install-with-arg-and-bin');
+});
+
+test.concurrent('add with no manifest creates blank manifest', (): Promise<void> => {
+  return runAdd({}, ['lodash'], 'add-with-no-manifest', async (config) => {
+    assert.ok(await fs.exists(path.join(config.cwd, 'package.json')));
+  });
 });
 
 test.concurrent('add should ignore cache', (): Promise<void> => {
@@ -565,5 +577,30 @@ test.concurrent('add should generate correct integrity file', (): Promise<void> 
     }
     expect(allCorrect).toBe(true);
   });
+});
 
+test.concurrent('add infers line endings from existing win32 manifest file', async (): Promise<void> => {
+  await runAdd({}, ['is-online'], 'add-infers-line-endings-from-existing-manifest-file',
+    async (config): Promise<void> => {
+      const lockfile = await promisify(fsNode.readFile)(path.join(config.cwd, 'package.json'), 'utf8');
+      assert(/\r\n/.test(lockfile));
+      assert(!/[^\r]\n/.test(lockfile));
+    },
+    async (cwd): Promise<void> => {
+      const existingLockfile = '{ "dependencies": {} }\r\n';
+      await promisify(fsNode.writeFile)(path.join(cwd, 'package.json'), existingLockfile, 'utf8');
+    });
+});
+
+test.concurrent('add infers line endings from existing unix manifest file', async (): Promise<void> => {
+  await runAdd({}, ['is-online'], 'add-infers-line-endings-from-existing-manifest-file',
+    async (config): Promise<void> => {
+      const lockfile = await promisify(fsNode.readFile)(path.join(config.cwd, 'package.json'), 'utf8');
+      assert(/[^\r]\n/.test(lockfile));
+      assert(!/\r\n/.test(lockfile));
+    },
+    async (cwd): Promise<void> => {
+      const existingLockfile = '{ "dependencies": {} }\n';
+      await promisify(fsNode.writeFile)(path.join(cwd, 'package.json'), existingLockfile, 'utf8');
+    });
 });

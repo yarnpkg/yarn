@@ -13,8 +13,6 @@ export default async function (
   config: Config,
   isRoot: boolean,
 ): Promise<Manifest> {
-  await fix(info, moduleLoc, config.reporter, config.looseSemver);
-
   // create human readable name
   const {name, version} = info;
   let human: ?string;
@@ -35,6 +33,7 @@ export default async function (
     config.reporter.warn(msg);
   }
 
+  await fix(info, moduleLoc, config.reporter, warn, config.looseSemver);
   try {
     validate(info, isRoot, config.reporter, warn);
   } catch (err) {

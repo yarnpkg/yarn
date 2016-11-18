@@ -37,27 +37,29 @@ async function makeEnv(stage: string, cwd: string, config: Config): {
   env.npm_config_argv = JSON.stringify({remain:[], cooked: [config.commandName], original: [config.commandName]});
 
   // add npm_package_*
-  const manifest = await config.readManifest(cwd);
-  const queue = [['', manifest]];
-  while (queue.length) {
-    const [key, val] = queue.pop();
-    if (key[0] === '_') {
-      continue;
-    }
+  const manifest = await config.maybeReadManifest(cwd);
+  if (manifest) {
+    const queue = [['', manifest]];
+    while (queue.length) {
+      const [key, val] = queue.pop();
+      if (key[0] === '_') {
+        continue;
+      }
 
-    if (typeof val === 'object') {
-      for (const subKey in val) {
-        const completeKey = [key, subKey]
-          .filter((part: ?string): boolean => !!part)
-          .join('_');
-        queue.push([completeKey, val[subKey]]);
+      if (typeof val === 'object') {
+        for (const subKey in val) {
+          const completeKey = [key, subKey]
+            .filter((part: ?string): boolean => !!part)
+            .join('_');
+          queue.push([completeKey, val[subKey]]);
+        }
+      } else if (IGNORE_MANIFEST_KEYS.indexOf(key) < 0) {
+        let cleanVal = String(val);
+        if (cleanVal.indexOf('\n') >= 0) {
+          cleanVal = JSON.stringify(cleanVal);
+        }
+        env[`npm_package_${key}`] = cleanVal;
       }
-    } else if (IGNORE_MANIFEST_KEYS.indexOf(key) < 0) {
-      let cleanVal = String(val);
-      if (cleanVal.indexOf('\n') >= 0) {
-        cleanVal = JSON.stringify(cleanVal);
-      }
-      env[`npm_package_${key}`] = cleanVal;
     }
   }
 
@@ -158,8 +160,8 @@ export async function executeLifecycleScript(
 export default executeLifecycleScript;
 
 export async function execFromManifest(config: Config, commandName: string, cwd: string): Promise<void> {
-  const pkg = await config.readManifest(cwd);
-  if (!pkg.scripts) {
+  const pkg = await config.maybeReadManifest(cwd);
+  if (!pkg || !pkg.scripts) {
     return;
   }
 

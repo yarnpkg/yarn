@@ -136,3 +136,12 @@ export type FetchedOverride = {
   hash: string,
   resolved: ?string,
 };
+
+// Used by outdated and upgrade-interactive
+export type Dependency = {
+  name: string,
+  current: string,
+  wanted: string,
+  latest: string,
+  hint: ?string
+};

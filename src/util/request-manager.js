@@ -111,6 +111,7 @@ export default class RequestManager {
     httpProxy?: string,
     httpsProxy?: string,
     strictSSL?: boolean,
+    ca?: Array<string>,
     cafile?: string,
     cert?: string,
     key?: string,
@@ -139,6 +140,10 @@ export default class RequestManager {
       this.strictSSL = opts.strictSSL;
     }
 
+    if (opts.ca != null && opts.ca.length > 0) {
+      this.ca = opts.ca;
+    }
+
     if (opts.cafile != null && opts.cafile != '') {
       // The CA bundle file can contain one or more certificates with comments/text between each PEM block.
       // tls.connect wants an array of certificates without any comments/text, so we need to split the string
@@ -146,6 +151,7 @@ export default class RequestManager {
       try {
         const bundle = fs.readFileSync(opts.cafile).toString();
         const hasPemPrefix = (block) => block.startsWith('-----BEGIN ');
+        // opts.cafile overrides opts.ca, this matches with npm behavior
         this.ca = bundle.split(/(-----BEGIN .*\r?\n[^-]+\r?\n--.*)/).filter(hasPemPrefix);
       } catch (err) {
         this.reporter.error(`Could not open cafile: ${err.message}`);

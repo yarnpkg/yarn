@@ -23,7 +23,6 @@ import * as pack from './pack.js'; export {pack};
 import * as publish from './publish.js'; export {publish};
 import * as remove from './remove.js'; export {remove};
 import * as run from './run.js'; export {run};
-import * as selfUpdate from './self-update.js'; export {selfUpdate};
 import * as tag from './tag.js'; export {tag};
 import * as team from './team.js'; export {team};
 import * as unlink from './unlink.js'; export {unlink};
@@ -31,6 +30,7 @@ import * as upgrade from './upgrade.js'; export {upgrade};
 import * as version from './version.js'; export {version};
 import * as versions from './versions.js'; export {versions};
 import * as why from './why.js'; export {why};
+import * as upgradeInteractive from './upgrade-interactive.js'; export {upgradeInteractive};
 
 import buildUseless from './_useless.js';
 
