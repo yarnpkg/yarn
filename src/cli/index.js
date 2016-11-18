@@ -185,7 +185,7 @@ if (commander.json) {
 }
 const reporter = new Reporter({
   emoji: commander.emoji && process.stdout.isTTY && process.platform === 'darwin',
-  noProgress: commander.noProgress,
+  noProgress: !commander.progress,
 });
 reporter.initPeakMemoryCounter();
 
