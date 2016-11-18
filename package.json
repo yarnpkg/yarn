@@ -12,7 +12,7 @@
     "cmd-shim": "^2.0.1",
     "commander": "^2.9.0",
     "death": "^1.0.0",
-    "debug": "^2.2.0",
+    "debug": "^2.3.2",
     "defaults": "^1.0.3",
     "detect-indent": "^4.0.0",
     "diff": "^2.2.1",
