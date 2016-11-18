@@ -25,7 +25,7 @@ test.concurrent('properly find and save build artifacts', async () => {
     const cacheFolder = path.join(config.cacheFolder, 'npm-dummy-0.0.0');
     assert.deepEqual(
       (await fs.readJson(path.join(cacheFolder, constants.METADATA_FILENAME))).artifacts,
-      ['dummy', 'dummy/dummy.txt', 'dummy.txt'],
+      ['dummy', path.join('dummy', 'dummy.txt'), 'dummy.txt'],
     );
 
     // retains artifact
