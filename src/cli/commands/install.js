@@ -590,19 +590,19 @@ export class Install {
     const possibleFolders = [];
     if (this.config.modulesFolder) {
       possibleFolders.push(this.config.modulesFolder);
-    }
+    } else {
+      // get a list of registry names to check existence in
+      let checkRegistryNames = this.resolver.usedRegistries;
+      if (!checkRegistryNames.length) {
+        // we haven't used any registries yet
+        checkRegistryNames = registryNames;
+      }
 
-    // get a list of registry names to check existence in
-    let checkRegistryNames = this.resolver.usedRegistries;
-    if (!checkRegistryNames.length) {
-      // we haven't used any registries yet
-      checkRegistryNames = registryNames;
-    }
-
-    // ensure we only write to a registry folder that was used
-    for (const name of checkRegistryNames) {
-      const loc = path.join(this.config.cwd, this.config.registries[name].folder);
-      possibleFolders.push(loc);
+      // ensure we only write to a registry folder that was used
+      for (const name of checkRegistryNames) {
+        const loc = path.join(this.config.cwd, this.config.registries[name].folder);
+        possibleFolders.push(loc);
+      }
     }
 
     // if we already have an integrity hash in one of these folders then use it's location otherwise use the
