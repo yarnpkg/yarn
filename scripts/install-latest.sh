@@ -11,6 +11,8 @@ yarn_get_tarball() {
   printf "$cyan> Downloading tarball...$reset\n"
   if [ "$1" = '--nightly' ]; then
     url=https://nightly.yarnpkg.com/latest.tar.gz
+  elif [ "$1" = '--version' ]; then
+    url="https://yarnpkg.com/downloads/$2/yarn-v$2.tar.gz"
   else
     url=https://yarnpkg.com/latest.tar.gz
   fi
@@ -107,16 +109,24 @@ yarn_install() {
 
   if [ -d "$HOME/.yarn" ]; then
     if [ -n `which yarn` ]; then
+      local SPECIFIED_VERSION
+      local VERSION_TYPE
       if [ "$1" = '--nightly' ]; then
         latest_url=https://nightly.yarnpkg.com/latest-tar-version
+        SPECIFIED_VERSION=`curl $latest_url`
+        VERSION_TYPE='latest'
+      elif [ "$1" = '--version' ]; then
+        SPECIFIED_VERSION=$2
+        VERSION_TYPE='specified'
       else
         latest_url=https://yarnpkg.com/latest-version
+        SPECIFIED_VERSION=`curl $latest_url`
+        VERSION_TYPE='latest'
       fi
-      LATEST_VERSION=`curl $latest_url`
       YARN_VERSION=`yarn -V`
-
-      if [ "$LATEST_VERSION" -eq "$YARN_VERSION" ]; then
-        printf "$green> Yarn is already at the latest version.$reset\n"
+      YARN_ALT_VERSION=`yarn --version`
+      if [ "$SPECIFIED_VERSION" = "$YARN_VERSION" -o "$SPECIFIED_VERSION" = "$YARN_ALT_VERSION" ]; then
+        printf "$green> Yarn is already at the $SPECIFIED_VERSION version.$reset\n"
       else
         rm -rf "$HOME/.yarn"
       fi
@@ -127,10 +137,10 @@ yarn_install() {
     fi
   fi
 
-  yarn_get_tarball $1
+  yarn_get_tarball $1 $2
   yarn_link
   yarn_reset
 }
 
 cd ~
-yarn_install $1
+yarn_install $1 $2
