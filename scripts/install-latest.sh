@@ -109,6 +109,7 @@ yarn_install() {
 
   if [ -d "$HOME/.yarn" ]; then
     if [ -n `which yarn` ]; then
+      local latest_url
       local specified_version
       local version_type
       if [ "$1" = '--nightly' ]; then
