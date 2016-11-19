@@ -17,8 +17,13 @@ import os from 'os';
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 90000;
 
 const path = require('path');
+const request = require('request');
 
 const fixturesLoc = path.join(__dirname, '..', 'fixtures', 'install');
+
+beforeEach(request.__resetAuthedRequests);
+// $FlowFixMe
+afterEach(request.__resetAuthedRequests);
 
 test.concurrent('properly find and save build artifacts', async () => {
   await runInstall({}, 'artifacts-finds-and-saves', async (config): Promise<void> => {
@@ -776,24 +781,16 @@ test.concurrent('install uses OS line endings when lockfile doesn\'t exist', asy
     });
 });
 
-describe('authed registries', (): void => {
-  const request = require('request');
-
-  beforeEach(request.__resetAuthedRequests);
-  // flow doesn't like afterEach
-  // afterEach(request.__resetAuthedRequests);
-
-  test.concurrent('install a scoped module from authed private registry', (): Promise<void> => {
-    return runInstall({noLockfile: true}, 'install-from-authed-private-registry', async (config) => {
-      const authedRequests = request.__getAuthedRequests();
-      assert.equal(authedRequests[0].url, 'https://registry.yarnpkg.com/@types%2flodash');
-      assert.equal(authedRequests[0].headers.authorization, 'Bearer abc123');
-      assert.equal(authedRequests[1].url, 'https://registry.yarnpkg.com/@types/lodash/-/lodash-4.14.37.tgz');
-      assert.equal(authedRequests[1].headers.authorization, 'Bearer abc123');
-      assert.equal(
-        (await fs.readFile(path.join(config.cwd, 'node_modules', '@types', 'lodash', 'index.d.ts'))).split('\n')[0],
-        '// Type definitions for Lo-Dash 4.14',
-      );
-    });
+test('install a scoped module from authed private registry', (): Promise<void> => {
+  return runInstall({noLockfile: true}, 'install-from-authed-private-registry', async (config) => {
+    const authedRequests = request.__getAuthedRequests();
+    assert.equal(authedRequests[0].url, 'https://registry.yarnpkg.com/@types%2flodash');
+    assert.equal(authedRequests[0].headers.authorization, 'Bearer abc123');
+    assert.equal(authedRequests[1].url, 'https://registry.yarnpkg.com/@types/lodash/-/lodash-4.14.37.tgz');
+    assert.equal(authedRequests[1].headers.authorization, 'Bearer abc123');
+    assert.equal(
+      (await fs.readFile(path.join(config.cwd, 'node_modules', '@types', 'lodash', 'index.d.ts'))).split('\n')[0],
+      '// Type definitions for Lo-Dash 4.14',
+    );
   });
 });
