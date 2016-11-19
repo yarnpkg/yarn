@@ -15,8 +15,7 @@ const fs = require('fs');
 
 const CACHE_DIR = path.join(__dirname, '..', 'fixtures', 'request-cache');
 
-const authedPackages = require('../fixtures/authed-packages/config');
-const UNAUTHORIZED_LOC = path.join(__dirname, '..', 'fixtures', 'authed-packages', 'unauthorized.bin');
+let authedRequests = [];
 
 function getRequestAlias(params: Object): string {
   const parts = url.parse(params.path);
@@ -35,22 +34,6 @@ function cleanAlias(str: string): string {
     .replace(/-+$/, ''); // remove trailing dashes
 }
 
-function getAuthInfo(path: string): ?{token: string, registry: string} {
-  path = decodeURIComponent(path);
-  const pkgs = Object.keys(authedPackages);
-  const match = pkgs.find((pkgName) => path.endsWith(pkgName) || path.includes(pkgName + '/'));
-  return match ? authedPackages[match] : null;
-}
-
-function requestFile(path: string, httpModule: Object, options: Object, callback?: ?Function): ClientRequest {
-  options.agent = null;
-  options.socketPath = null;
-  options.createConnection = (): ReadStream => {
-    return fs.createReadStream(path);
-  };
-  return httpModule.request(options, callback);
-}
-
 class Request extends RealRequest {
   init(params: Object) {
     RealRequest.prototype.init.call(this, params);
@@ -64,6 +47,9 @@ module.exports = function(params: Object): Request {
 
 module.exports.Request = Request;
 
+module.exports.__resetAuthedRequests = (): void => { authedRequests = []; };
+module.exports.__getAuthedRequests = (): Array<Object> => authedRequests;
+
 const httpMock = {
   request(options: Object, callback?: ?Function): ClientRequest {
     const alias = getRequestAlias(options);
@@ -74,21 +60,22 @@ const httpMock = {
     // TODO better way to do this
     const httpModule = options.uri.href.startsWith('https:') ? https : http;
 
-    const {token, registry} = getAuthInfo(options.uri.path) || {};
-    if (token && registry) {
-      if (!options.uri.href.startsWith(registry)) {
-        // request is being made to the wrong registry, token gets disclosed
-        throw new Error(`Wrong registry, expected ${registry} to be used.`);
-      }
-      if ((options.headers.authorization || '').split('Bearer ')[1] !== token) {
-        // token missing
-        return requestFile(UNAUTHORIZED_LOC, httpModule, options, callback);
-      }
+    // expose authorized requests to the tests for assertion
+    if (options.headers.authorization) {
+      authedRequests.push({
+        url: options.uri.href,
+        headers: options.headers,
+      });
     }
 
     if (allowCache && fs.existsSync(loc)) {
       // cached
-      return requestFile(loc, httpModule, options, callback);
+      options.agent = null;
+      options.socketPath = null;
+      options.createConnection = (): ReadStream => {
+        return fs.createReadStream(loc);
+      };
+      return httpModule.request(options, callback);
     } else {
       // not cached
       const req = httpModule.request(options, callback);
