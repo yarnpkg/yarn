@@ -67,7 +67,7 @@ export default class BaseRegistry {
   getAvailableRegistries(): Array<string> {
     const config = this.config;
     return Object.keys(config).reduce((registries, option) => {
-      if (option.split(':')[1] === 'registry') {
+      if (option === 'registry' || option.split(':')[1] === 'registry') {
         registries.push(config[option]);
       }
       return registries;
