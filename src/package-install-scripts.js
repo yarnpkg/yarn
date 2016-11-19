@@ -109,10 +109,7 @@ export default class PackageInstallScripts {
       const ref = pkg._reference;
       invariant(ref, 'expected reference');
 
-      if (ref.optional) {
-        this.reporter.error(this.reporter.lang('optionalModuleScriptFail', err.message));
-        this.reporter.info(this.reporter.lang('optionalModuleFail'));
-      } else {
+      if (!ref.optional) {
         throw err;
       }
     }
