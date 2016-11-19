@@ -220,6 +220,7 @@ const messages = {
   fetchErrorCorrupt: '$0. Mirror tarball appears to be corrupt. You can resolve this by running:\n\n  $ rm -rf $1\n  $ yarn install',
   errorDecompressingTarball: '$0. Error decompressing $1, it appears to be corrupt.',
   updateInstalling: 'Installing $0...',
+  hostedGitResolveError: 'Error connecting to repository. Please, check the url.',
 };
 
 export type LanguageKeys = $Keys<typeof messages>;
