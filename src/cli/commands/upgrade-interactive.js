@@ -69,11 +69,22 @@ export async function run(
   const colorizeName = ({current, wanted}) =>
     (current === wanted) ? reporter.format.yellow : reporter.format.red;
 
+  const colorizeDiff = (from, to) => {
+    const parts = to.split('.');
+    const fromParts = from.split('.');
+
+    const index = parts.findIndex((part, i) => part !== fromParts[i]);
+    const splitIndex = index >= 0 ? index : parts.length;
+
+    const colorized = reporter.format.green(parts.slice(splitIndex).join('.'));
+    return parts.slice(0, splitIndex).concat(colorized).join('.');
+  };
+
   const makeRow = (dep) => {
     const padding = addPadding(dep);
     const name = colorizeName(dep)(padding('name'));
     const current = reporter.format.blue(padding('current'));
-    const latest = reporter.format.green(padding('latest'));
+    const latest = colorizeDiff(dep.current, padding('latest'));
     return `${name}  ${current}  ❯  ${latest}`;
   };
 
