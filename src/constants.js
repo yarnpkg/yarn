@@ -1,6 +1,8 @@
 /* @flow */
+
 const path = require('path');
 let userHome = require('user-home');
+
 if (process.platform === 'linux' && process.env.USER === 'root') {
   userHome = path.resolve('/usr/local/share');
 }
