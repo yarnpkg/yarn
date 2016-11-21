@@ -37,15 +37,14 @@ async function publish(
   }
   
   commonDirectories.map((dir) => {
-    if(pkg[dir]){
-
+    if (pkg[dir]) {
       for (const file in pkg[dir]) {
-          fs.access(config.cwd + '/' + pkg[dir][file].replace('./',''), ).then((res)=>{
-            // valid files
-          }).catch((err) => {
-            config.reporter.error(`file not found: ${err.path}`);
-            process.exit(1);
-          });
+        fs.access(config.cwd + '/' + pkg[dir][file].replace('./', '')).then((res) => {
+          // valid files
+        }).catch((err) => {
+          config.reporter.error(`file not found: ${err.path}`);
+          process.exit(1);
+        });
       }
     }
   });
