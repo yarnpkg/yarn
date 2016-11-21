@@ -4,6 +4,8 @@ import type {Reporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
 import NpmRegistry from '../../registries/npm-registry.js';
 import {ConcatStream} from '../../util/stream.js';
+import commonDirectories from '../../util/common-dir.js';
+
 import {MessageError} from '../../errors.js';
 import {setVersion, setFlags as versionSetFlags} from './version.js';
 import * as fs from '../../util/fs.js';
@@ -33,6 +35,20 @@ async function publish(
   if (access && access !== 'public' && access !== 'restricted') {
     throw new MessageError(config.reporter.lang('invalidAccess'));
   }
+  
+  commonDirectories.map((dir) => {
+    if(pkg[dir]){
+
+      for (const file in pkg[dir]) {
+          fs.access(config.cwd + '/' + pkg[dir][file].replace('./',''), ).then((res)=>{
+            // valid files
+          }).catch((err) => {
+            config.reporter.error(`file not found: ${err.path}`);
+            process.exit(1);
+          });
+      }
+    }
+  });
 
   // get tarball stream
   const stat = await fs.lstat(dir);
