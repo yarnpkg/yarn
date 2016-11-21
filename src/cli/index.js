@@ -22,6 +22,17 @@ const onDeath = require('death');
 const path = require('path');
 const pkg = require('../../package.json');
 
+export function createReporter(emoji: boolean, noProgress: boolean): any {
+  return new Reporter({
+    emoji,
+    noProgress,
+  });
+}
+
+export function getNoProgress(commanderNoProgress: boolean = false, pkgNoProgress: boolean = false): boolean {
+  return !!commanderNoProgress || !!pkgNoProgress;
+}
+
 loudRejection();
 
 //
@@ -183,10 +194,13 @@ let Reporter = ConsoleReporter;
 if (commander.json) {
   Reporter = JSONReporter;
 }
-const reporter = new Reporter({
-  emoji: commander.emoji && process.stdout.isTTY && process.platform === 'darwin',
-  noProgress: commander.noProgress,
-});
+
+// set reporter output options for emojis & progress bar
+const showEmoji = commander.emoji && process.stdout.isTTY && process.platform === 'darwin';
+const noProgress = getNoProgress(pkg.noProgress, commander.noProgress);
+
+const reporter = createReporter(showEmoji, noProgress); 
+
 reporter.initPeakMemoryCounter();
 
 //
