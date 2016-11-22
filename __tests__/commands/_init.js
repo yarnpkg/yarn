@@ -28,19 +28,6 @@ export async function run(
   dir: string,
   checkInitialized: ?(config: Config) => ?Promise<void>,
 ): Promise<void> {
-  const cwd = path.join(
-    os.tmpdir(),
-    `yarn-${path.basename(dir)}-${Math.random()}`,
-  );
-  await fs.unlink(cwd);
-  await fs.copy(dir, cwd);
-
-  for (const {basename, absolute} of await fs.walk(cwd)) {
-    if (basename.toLowerCase() === '.ds_store') {
-      await fs.unlink(absolute);
-    }
-  }
-
   let out = '';
   const stdout = new stream.Writable({
     decodeStrings: false,
@@ -51,6 +38,19 @@ export async function run(
   });
 
   const reporter = new reporters.ConsoleReporter({stdout, stderr: stdout});
+
+  const cwd = path.join(
+    os.tmpdir(),
+    `yarn-${path.basename(dir)}-${Math.random()}`,
+  );
+  await fs.unlink(cwd);
+  await fs.copy(dir, cwd, reporter);
+
+  for (const {basename, absolute} of await fs.walk(cwd)) {
+    if (basename.toLowerCase() === '.ds_store') {
+      await fs.unlink(absolute);
+    }
+  }
 
   // create directories
   await fs.mkdirp(path.join(cwd, '.yarn'));

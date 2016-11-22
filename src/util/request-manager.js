@@ -350,6 +350,8 @@ export default class RequestManager {
 
         successHosts[parts.hostname] = true;
 
+        this.reporter.verbose(this.reporter.lang('verboseRequestFinish', params.url, res.statusCode));
+
         if (body && typeof body.error === 'string') {
           reject(new Error(body.error));
           return;
@@ -393,6 +395,7 @@ export default class RequestManager {
 
     const request = this._getRequestModule();
     const req = request(params);
+    this.reporter.verbose(this.reporter.lang('verboseRequestStart', param.method, params.url));
 
     req.on('error', onError);
 

@@ -22,20 +22,6 @@ async function runGlobal(
   name: string,
   checkGlobal?: ?(config: Config, reporter: Reporter, out: string) => ?Promise<void>,
 ): Promise<void> {
-  const dir = path.join(fixturesLoc, name);
-  const cwd = path.join(
-    os.tmpdir(),
-    `yarn-${path.basename(dir)}-${Math.random()}`,
-  );
-  await fs.unlink(cwd);
-  await fs.copy(dir, cwd);
-
-  for (const {basename, absolute} of await fs.walk(cwd)) {
-    if (basename.toLowerCase() === '.ds_store') {
-      await fs.unlink(absolute);
-    }
-  }
-
   let out = '';
   const stdout = new stream.Writable({
     decodeStrings: false,
@@ -46,6 +32,20 @@ async function runGlobal(
   });
 
   const reporter = new reporters.JSONReporter({stdout});
+
+  const dir = path.join(fixturesLoc, name);
+  const cwd = path.join(
+    os.tmpdir(),
+    `yarn-${path.basename(dir)}-${Math.random()}`,
+  );
+  await fs.unlink(cwd);
+  await fs.copy(dir, cwd, reporter);
+
+  for (const {basename, absolute} of await fs.walk(cwd)) {
+    if (basename.toLowerCase() === '.ds_store') {
+      await fs.unlink(absolute);
+    }
+  }
 
   // create directories
   await fs.mkdirp(path.join(cwd, '.yarn'));

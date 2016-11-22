@@ -25,13 +25,15 @@ async function runRun(
   name: string,
   checkRun?: ?(config: Config, reporter: BufferReporter) => ?Promise<void>,
 ): Promise<void> {
+  const reporter = new reporters.BufferReporter({stdout: null, stdin: null});
+
   const dir = path.join(fixturesLoc, name);
   const cwd = path.join(
     os.tmpdir(),
     `yarn-${path.basename(dir)}-${Math.random()}`,
   );
   await fs.unlink(cwd);
-  await fs.copy(dir, cwd);
+  await fs.copy(dir, cwd, reporter);
 
   for (const {basename, absolute} of await fs.walk(cwd)) {
     if (basename.toLowerCase() === '.ds_store') {
@@ -40,8 +42,6 @@ async function runRun(
   }
 
   const out = '';
-
-  const reporter = new reporters.BufferReporter({stdout: null, stdin: null});
 
   // create directories
   await fs.mkdirp(path.join(cwd, '.yarn'));
