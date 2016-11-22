@@ -20,7 +20,7 @@ yarn_get_tarball() {
   fi
   # Get both the tarball and its GPG signature
   tarball_tmp=`mktemp`
-  curl -L -o "$tarball_tmp#1" "$url{,.asc}" >/dev/null
+  curl -L -o "$tarball_tmp#1" "$url{,.asc}"
   yarn_verify_integrity $tarball_tmp
 
   printf "$cyan> Extracting to ~/.yarn...$reset\n"
@@ -37,9 +37,14 @@ yarn_verify_integrity() {
     return
   )
 
+  if [ "$YARN_GPG" == "no" ]; then
+    printf "$cyan> WARNING: Skipping GPG integrity check!$reset\n"
+    return
+  fi
+
   printf "$cyan> Verifying integrity...$reset\n"
   # Grab the public key if it doesn't already exist
-  gpg --list-keys $gpg_key >/dev/null 2>&1 || (curl -sS http://dl.yarnpkg.com/debian/pubkey.gpg | gpg --import)
+  gpg --list-keys $gpg_key >/dev/null 2>&1 || (curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | gpg --import)
 
   if [ ! -f "$1.asc" ]; then
     printf "$red> Could not download GPG signature for this Yarn release. This means the release can not be verified!$reset\n"
