@@ -4,8 +4,10 @@ set -e
 reset="\e[0m"
 red="\e[0;31m"
 green="\e[0;32m"
+yellow="\e[0;33m"
 cyan="\e[0;36m"
 white="\e[0;37m"
+gpg_key=9D41F3C3
 
 yarn_get_tarball() {
   printf "$cyan> Downloading tarball...$reset\n"
@@ -16,12 +18,47 @@ yarn_get_tarball() {
   else
     url=https://yarnpkg.com/latest.tar.gz
   fi
-  curl -L -o yarn.tar.gz "$url" >/dev/null # get tarball
+  # Get both the tarball and its GPG signature
+  tarball_tmp=`mktemp`
+  curl -L -o "$tarball_tmp#1" "$url{,.asc}"
+  yarn_verify_integrity $tarball_tmp
 
   printf "$cyan> Extracting to ~/.yarn...$reset\n"
   mkdir .yarn
-  tar zxf yarn.tar.gz -C .yarn --strip 1 # extract tarball
-  rm -rf yarn.tar.gz # remove tarball
+  tar zxf $tarball_tmp -C .yarn --strip 1 # extract tarball
+  rm $tarball_tmp{,.asc}
+}
+
+# Verifies the GPG signature of the tarball
+yarn_verify_integrity() {
+  # Check if GPG is installed
+  command -v gpg >/dev/null 2>&1 || (
+    printf "$yellow> WARNING: GPG is not installed, integrity can not be verified!$reset\n"
+    return
+  )
+
+  if [ "$YARN_GPG" == "no" ]; then
+    printf "$cyan> WARNING: Skipping GPG integrity check!$reset\n"
+    return
+  fi
+
+  printf "$cyan> Verifying integrity...$reset\n"
+  # Grab the public key if it doesn't already exist
+  gpg --list-keys $gpg_key >/dev/null 2>&1 || (curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | gpg --import)
+
+  if [ ! -f "$1.asc" ]; then
+    printf "$red> Could not download GPG signature for this Yarn release. This means the release can not be verified!$reset\n"
+    yarn_verify_or_quit "> Do you really want to continue?"
+    return
+  fi
+
+  # Actually perform the verification
+  if gpg --verify "$1.asc" $1; then
+    printf "$green> GPG signature looks good$reset\n"
+  else
+    printf "$red> GPG signature for this Yarn release is invalid! This is BAD and may mean the release has been tampered with. It is strongly recommended that you report this to the Yarn developers.$reset\n"
+    yarn_verify_or_quit "> Do you really want to continue?"
+  fi
 }
 
 yarn_link() {
@@ -101,7 +138,7 @@ yarn_detect_profile() {
 }
 
 yarn_reset() {
-  unset -f yarn_install yarn_reset yarn_get_tarball yarn_link yarn_detect_profile
+  unset -f yarn_install yarn_reset yarn_get_tarball yarn_link yarn_detect_profile yarn_verify_integrity yarn_verify_or_quit
 }
 
 yarn_install() {
@@ -114,14 +151,14 @@ yarn_install() {
       local version_type
       if [ "$1" = '--nightly' ]; then
         latest_url=https://nightly.yarnpkg.com/latest-tar-version
-        specified_version=`curl $latest_url`
+        specified_version=`curl -sS $latest_url`
         version_type='latest'
       elif [ "$1" = '--version' ]; then
         specified_version=$2
         version_type='specified'
       else
         latest_url=https://yarnpkg.com/latest-version
-        specified_version=`curl $latest_url`
+        specified_version=`curl -sS $latest_url`
         version_type='latest'
       fi
       yarn_version=`yarn -V`
@@ -141,6 +178,16 @@ yarn_install() {
   yarn_get_tarball $1 $2
   yarn_link
   yarn_reset
+}
+
+yarn_verify_or_quit() {
+  read -p "$1 [y/N] " -n 1 -r
+  echo
+  if [[ ! $REPLY =~ ^[Yy]$ ]]
+  then
+    printf "$red> Aborting$reset\n"
+    exit 1
+  fi
 }
 
 cd ~
