@@ -12,7 +12,7 @@ const invariant = require('invariant');
 
 export const requireLockfile = true;
 
-export type LsOptions = {
+export type ListOptions = {
   reqDepth?: ?number,
 };
 
@@ -39,7 +39,7 @@ export async function buildTree(
   resolver: PackageResolver,
   linker: PackageLinker,
   patterns: Array<string>,
-  opts: LsOptions,
+  opts: ListOptions,
   onlyFresh?: boolean,
   ignoreHoisted?: boolean,
 ): Promise<{
@@ -179,7 +179,7 @@ export async function run(
   const [depRequests, patterns] = await install.fetchRequestFromCwd();
   await install.resolver.init(depRequests, install.flags.flat);
 
-  const opts: LsOptions = {
+  const opts: ListOptions = {
     reqDepth: getReqDepth(flags.depth),
   };
 
@@ -189,5 +189,5 @@ export async function run(
     trees = trees.filter((tree) => filterTree(tree, args));
   }
 
-  reporter.tree('ls', trees);
+  reporter.tree('list', trees);
 }
