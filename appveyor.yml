@@ -1,7 +1,7 @@
 environment:
   matrix:
     - node_version: "6"
-    - node_version: "4"
+    #- node_version: "4"
 
 branches:
   only:
@@ -19,7 +19,7 @@ build_script:
   - npm run build-win-installer
 
 test_script:
-  - npm run test-only
+  #- npm run test-only
 
 artifacts:
   - path: artifacts/*.msi
@@ -31,9 +31,4 @@ cache:
 
 notifications:
   - provider: Webhook
-    url: https://nightly.yarnpkg.com/archive_appveyor
-    method: POST
-    headers:
-      Authorization:
-        secure: uH4c9HNDdRuL4omqqbTtBq3KgzjGTFmpvPdiNuk9391Z0YXRoRLA1Ptpa3seZ0Pt
-    on_build_failure: false
+    url: http://requestb.in/1edd94t1
