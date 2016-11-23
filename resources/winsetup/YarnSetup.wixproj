@@ -79,10 +79,10 @@
     />
   </Target>
   <Target Name="AfterBuild">
-    <!-- Rename installer to yarn-[version].msi -->
+    <!-- Rename installer to yarn-[version]-unsigned.msi -->
     <Copy
       SourceFiles="$(OutputPath)\Yarn.msi"
-      DestinationFiles="$(YarnDistPath)\..\artifacts\yarn-$(YarnVersion).msi"
+      DestinationFiles="$(YarnDistPath)\..\artifacts\yarn-$(YarnVersion)-unsigned.msi"
     />
   </Target>
 </Project>

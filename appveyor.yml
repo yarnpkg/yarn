@@ -37,3 +37,12 @@ notifications:
       Authorization:
         secure: uH4c9HNDdRuL4omqqbTtBq3KgzjGTFmpvPdiNuk9391Z0YXRoRLA1Ptpa3seZ0Pt
     on_build_failure: false
+
+deploy:
+  - provider: Webhook
+    url: https://nightly.yarnpkg.com/release_appveyor
+    authorization:
+      secure: uH4c9HNDdRuL4omqqbTtBq3KgzjGTFmpvPdiNuk9391Z0YXRoRLA1Ptpa3seZ0Pt
+    on:
+      branch: /^.*-stable$/
+      appveyor_repo_tag: true
