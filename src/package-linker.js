@@ -279,6 +279,10 @@ export default class PackageLinker {
     const ref = resolved._reference;
     invariant(ref, 'Missing reference');
 
+    if (ref.ignore) {
+      return;
+    }
+
     //
     const src = this.config.generateHardModulePath(ref);
 

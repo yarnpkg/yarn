@@ -40,7 +40,7 @@ export async function run(
   }
 
   // get patterns that are installed when running `yarn install`
-  const [, rawPatterns] = await install.hydrate();
+  const [, rawPatterns] = await install.hydrate(true);
 
   // check if patterns exist in lockfile
   for (const pattern of rawPatterns) {

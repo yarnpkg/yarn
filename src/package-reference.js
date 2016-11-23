@@ -144,6 +144,11 @@ export default class PackageReference {
       nowIgnore = true;
     }
 
+    // if the package is determinted to be incompatible with the environment, it should be ignored
+    if (stack[ENVIRONMENT_IGNORE] > 0) {
+      nowIgnore = true;
+    }
+
     this.ignore = nowIgnore;
   }
 

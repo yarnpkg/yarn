@@ -624,6 +624,7 @@ export class Install {
   async writeIntegrityHash(lockSource: string, patterns: Array<string>): Promise<void> {
     const loc = await this.getIntegrityHashLocation();
     invariant(loc, 'expected integrity hash location');
+    await fs.mkdirp(path.dirname(loc));
     await fs.writeFile(loc, this.generateIntegrityHash(lockSource, patterns));
   }
 
@@ -671,6 +672,7 @@ export class Install {
     if (fetch) {
       // fetch packages, should hit cache most of the time
       await this.fetcher.init();
+      await this.compatibility.init();
 
       // expand minimal manifests
       for (const manifest of this.resolver.getManifests()) {
