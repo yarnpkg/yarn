@@ -137,6 +137,10 @@ export default class PackageHoister {
     const ref = pkg._reference;
     invariant(ref, 'expected reference');
 
+    if (ref.ignore) {
+      return undefined;
+    }
+
     //
     const loc: string = this.config.generateHardModulePath(ref);
     const parts = parentParts.concat(pkg.name);

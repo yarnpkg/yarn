@@ -145,7 +145,7 @@ export default class PackageReference {
     }
 
     // if the package is determinted to be incompatible with the environment, it should be ignored
-    if (stack[ENVIRONMENT_IGNORE] > 0) {
+    if (stack[ENVIRONMENT_IGNORE] === 1) {
       nowIgnore = true;
     }
 
@@ -170,7 +170,10 @@ export default class PackageReference {
 
       const ref = pkg._reference;
       invariant(ref, 'expected package reference');
-      ref.addVisibility(action, ancestry);
+
+      if (action !== ENVIRONMENT_IGNORE) {
+        ref.addVisibility(action, ancestry);
+      }
     }
   }
 }
