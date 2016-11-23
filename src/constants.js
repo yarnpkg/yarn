@@ -1,6 +1,8 @@
 /* @flow */
+
 const path = require('path');
 let userHome = require('user-home');
+
 if (process.platform === 'linux' && process.env.USER === 'root') {
   userHome = path.resolve('/usr/local/share');
 }
@@ -85,4 +87,17 @@ export function getPathKey(platform: string, env: Env): string {
   }
 
   return pathKey;
+}
+
+function getUid(): ?number {
+  if (process.platform !== 'win32' && process.getuid) {
+    return process.getuid();
+  }
+  return null;
+}
+
+export const ROOT_USER = isRootUser(getUid());
+
+export function isRootUser(uid: ?number): boolean {
+  return uid === 0;
 }

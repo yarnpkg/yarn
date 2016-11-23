@@ -122,12 +122,22 @@ export default class PackageLinker {
       return dep1[0].localeCompare(dep2[0]);
     });
 
+    // list of artifacts in modules to remove from extraneous removal
+    const phantomFiles = [];
+
     //
     const queue: Map<string, CopyQueueItem> = new Map();
     for (const [dest, {pkg, loc: src}] of flatTree) {
       const ref = pkg._reference;
       invariant(ref, 'expected package reference');
       ref.setLocation(dest);
+
+      // get a list of build artifacts contained in this module so we can prevent them from being marked as
+      // extraneous
+      const metadata = await this.config.readPackageMetadata(src);
+      for (const file of metadata.artifacts) {
+        phantomFiles.push(path.join(dest, file));
+      }
 
       queue.set(dest, {
         src,
@@ -166,6 +176,7 @@ export default class PackageLinker {
     let tick;
     await fs.copyBulk(Array.from(queue.values()), {
       possibleExtraneous,
+      phantomFiles,
 
       ignoreBasenames: [
         constants.METADATA_FILENAME,
@@ -187,7 +198,7 @@ export default class PackageLinker {
     if (this.config.binLinks) {
       const tickBin = this.reporter.progress(flatTree.length);
       await promise.queue(flatTree, async ([dest, {pkg}]) => {
-        const binLoc = path.join(this.config.cwd, this.config.getFolder(pkg));
+        const binLoc = path.join(dest, this.config.getFolder(pkg));
         await this.linkBinDependencies(pkg, binLoc);
         tickBin(dest);
       }, 4);

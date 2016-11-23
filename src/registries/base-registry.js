@@ -64,6 +64,16 @@ export default class BaseRegistry {
     return this.config[key];
   }
 
+  getAvailableRegistries(): Array<string> {
+    const config = this.config;
+    return Object.keys(config).reduce((registries, option) => {
+      if (option === 'registry' || option.split(':')[1] === 'registry') {
+        registries.push(config[option]);
+      }
+      return registries;
+    }, []);
+  }
+
   loadConfig(): Promise<void> {
     return Promise.resolve();
   }

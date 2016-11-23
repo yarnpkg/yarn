@@ -44,7 +44,6 @@ export default class PackageReference {
     this.ignore = false;
     this.fresh = false;
     this.location = null;
-    this.cached = false;
     this.addRequest(request);
   }
 
@@ -59,8 +58,6 @@ export default class PackageReference {
   optional: ?boolean;
   visibility: {[action: string]: number};
   ignore: boolean;
-  // whether or not this package is fetched from cache
-  cached: boolean;
   fresh: boolean;
   dependencies: Array<string>;
   patterns: Array<string>;

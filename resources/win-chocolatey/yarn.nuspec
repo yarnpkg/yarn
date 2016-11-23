@@ -15,7 +15,7 @@ focuses.
 
 **Determinism:** Based around a version lockfile which ensures that operations on
 the dependency graph can be easily transitioned. We check module directories
-and verify their integrity to ensure yarn install always produces the same file
+and verify their integrity to ensure Yarn install always produces the same file
 structure.
 
 **Security:** Strict guarantees are placed around package installation. You have

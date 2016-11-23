@@ -10,12 +10,66 @@ import * as fs from '../../src/util/fs.js';
 import assert from 'assert';
 import semver from 'semver';
 import {getPackageVersion, explodeLockfile, runInstall, createLockfile} from './_install.js';
+import {promisify} from '../../src/util/promise';
+import fsNode from 'fs';
+import os from 'os';
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 90000;
 
 const path = require('path');
+const request = require('request');
 
 const fixturesLoc = path.join(__dirname, '..', 'fixtures', 'install');
+
+beforeEach(request.__resetAuthedRequests);
+// $FlowFixMe
+afterEach(request.__resetAuthedRequests);
+
+test.concurrent('properly find and save build artifacts', async () => {
+  await runInstall({}, 'artifacts-finds-and-saves', async (config): Promise<void> => {
+    const cacheFolder = path.join(config.cacheFolder, 'npm-dummy-0.0.0');
+    assert.deepEqual(
+      (await fs.readJson(path.join(cacheFolder, constants.METADATA_FILENAME))).artifacts,
+      ['dummy', path.join('dummy', 'dummy.txt'), 'dummy.txt'],
+    );
+
+    // retains artifact
+    const moduleFolder = path.join(config.cwd, 'node_modules', 'dummy');
+    assert.equal(await fs.readFile(path.join(moduleFolder, 'dummy.txt')), 'foobar');
+    assert.equal(await fs.readFile(path.join(moduleFolder, 'dummy', 'dummy.txt')), 'foobar');
+  });
+});
+
+test.concurrent("removes extraneous files that aren't in module or artifacts", async () => {
+  async function check(cwd: string): Promise<void> {
+    // retains artifact
+    const moduleFolder = path.join(cwd, 'node_modules', 'dummy');
+    assert.equal(await fs.readFile(path.join(moduleFolder, 'dummy.txt')), 'foobar');
+    assert.equal(await fs.readFile(path.join(moduleFolder, 'dummy', 'dummy.txt')), 'foobar');
+
+    // removes extraneous
+    assert.ok(!(await fs.exists(path.join(moduleFolder, 'dummy2.txt'))));
+  }
+
+  async function create(cwd: string): Promise<void> {
+    // create an extraneous file
+    const moduleFolder = path.join(cwd, 'node_modules', 'dummy');
+    await fs.mkdirp(moduleFolder);
+    await fs.writeFile(path.join(moduleFolder, 'dummy2.txt'), 'foobar');
+  }
+
+  await runInstall({}, 'artifacts-finds-and-saves', async (config): Promise<void> => {
+    await check(config.cwd);
+
+    await create(config.cwd);
+
+    // run install again
+    const install = new Install({force: true}, config, config.reporter, new Lockfile());
+    await install.init();
+
+    await check(config.cwd);
+  }, create);
+});
 
 test.concurrent('integrity hash respects flat and production flags', async () => {
   const cwd = path.join(fixturesLoc, 'noop');
@@ -125,6 +179,10 @@ test.concurrent('install from git cache', (): Promise<void> => {
   return runInstall({}, 'install-from-git-cache', async (config): Promise<void> => {
     assert.equal(await getPackageVersion(config, 'dep-a'), '0.0.1');
   });
+});
+
+test.concurrent('install from github', (): Promise<void> => {
+  return runInstall({}, 'install-github');
 });
 
 test.concurrent('install should dedupe dependencies avoiding conflicts 0', (): Promise<void> => {
@@ -521,7 +579,8 @@ test.concurrent(
   },
 );
 
-test.concurrent('install should hoist nested bin scripts', (): Promise<void> => {
+// disabled to resolve https://github.com/yarnpkg/yarn/pull/1210
+test.skip('install should hoist nested bin scripts', (): Promise<void> => {
   return runInstall({binLinks: true}, 'install-nested-bin', async (config) => {
     const binScripts = await fs.walk(path.join(config.cwd, 'node_modules', '.bin'));
     // need to double the amount as windows makes 2 entries for each dependency
@@ -592,7 +651,7 @@ if (process.platform !== 'win32') {
     return runInstall({}, 'cache-symlinks', async (config, reporter) => {
       const symlink = path.resolve(config.cwd, 'node_modules', 'dep-a', 'link-index.js');
       expect(await fs.exists(symlink)).toBe(true);
-      await fs.unlink(path.resolve(config.cwd, 'node_modules'));
+      await fs.unlink(path.join(config.cwd, 'node_modules'));
 
       const lockfile = await createLockfile(config.cwd);
       const install = new Install({}, config, reporter, lockfile);
@@ -679,5 +738,59 @@ test.concurrent('install should not rewrite lockfile with no substantial changes
       path.join(config.cwd, 'yarn.lock'),
     );
     expect(newLockContent).not.toEqual(lockContent);
+  });
+});
+
+test.concurrent('lockfile should be created when missing even if integrity matches', (): Promise<void> => {
+  return runInstall({}, 'lockfile-missing', async (config, reporter) => {
+    expect(await fs.exists(path.join(config.cwd, 'yarn.lock')));
+  });
+});
+
+test.concurrent('install infers line endings from existing win32 lockfile', async (): Promise<void> => {
+  await runInstall({}, 'install-infers-line-endings-from-existing-lockfile',
+    async (config): Promise<void> => {
+      const lockfile = await promisify(fsNode.readFile)(path.join(config.cwd, 'yarn.lock'), 'utf8');
+      assert(/\r\n/.test(lockfile));
+      assert(!/[^\r]\n/.test(lockfile));
+    },
+    async (cwd): Promise<void> => {
+      const existingLockfile = '# THIS IS AN AUTOGENERATED FILE. DO NOT EDIT THIS FILE DIRECTLY.\r\n';
+      await promisify(fsNode.writeFile)(path.join(cwd, 'yarn.lock'), existingLockfile, 'utf8');
+    });
+});
+
+test.concurrent('install infers line endings from existing unix lockfile', async (): Promise<void> => {
+  await runInstall({}, 'install-infers-line-endings-from-existing-lockfile',
+    async (config): Promise<void> => {
+      const lockfile = await promisify(fsNode.readFile)(path.join(config.cwd, 'yarn.lock'), 'utf8');
+      assert(/[^\r]\n/.test(lockfile));
+      assert(!/\r\n/.test(lockfile));
+    },
+    async (cwd): Promise<void> => {
+      const existingLockfile = '# THIS IS AN AUTOGENERATED FILE. DO NOT EDIT THIS FILE DIRECTLY.\n';
+      await promisify(fsNode.writeFile)(path.join(cwd, 'yarn.lock'), existingLockfile, 'utf8');
+    });
+});
+
+test.concurrent('install uses OS line endings when lockfile doesn\'t exist', async (): Promise<void> => {
+  await runInstall({}, 'install-infers-line-endings-from-existing-lockfile',
+    async (config): Promise<void> => {
+      const lockfile = await promisify(fsNode.readFile)(path.join(config.cwd, 'yarn.lock'), 'utf8');
+      assert(lockfile.indexOf(os.EOL) >= 0);
+    });
+});
+
+test('install a scoped module from authed private registry', (): Promise<void> => {
+  return runInstall({noLockfile: true}, 'install-from-authed-private-registry', async (config) => {
+    const authedRequests = request.__getAuthedRequests();
+    assert.equal(authedRequests[0].url, 'https://registry.yarnpkg.com/@types%2flodash');
+    assert.equal(authedRequests[0].headers.authorization, 'Bearer abc123');
+    assert.equal(authedRequests[1].url, 'https://registry.yarnpkg.com/@types/lodash/-/lodash-4.14.37.tgz');
+    assert.equal(authedRequests[1].headers.authorization, 'Bearer abc123');
+    assert.equal(
+      (await fs.readFile(path.join(config.cwd, 'node_modules', '@types', 'lodash', 'index.d.ts'))).split('\n')[0],
+      '// Type definitions for Lo-Dash 4.14',
+    );
   });
 });

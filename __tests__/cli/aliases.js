@@ -6,7 +6,7 @@ test('shorthands and affordances', () => {
   expect(aliases['run-script']).toBe('run');
   expect(aliases['c']).toBe('config');
   expect(aliases['i']).toBe('install');
-  expect(aliases['list']).toBe('ls');
+  expect(aliases['ls']).toBe('list');
   expect(aliases['rb']).toBe('rebuild');
   expect(aliases['runScript']).toBe('run');
   expect(aliases['t']).toBe('test');
@@ -20,8 +20,8 @@ test('shorthands and affordances', () => {
   expect(aliases['adduser']).toBe('login');
   expect(aliases['author']).toBe('owner');
   expect(aliases['isntall']).toBe('install');
-  expect(aliases['la']).toBe('ls');
-  expect(aliases['ll']).toBe('ls');
+  expect(aliases['la']).toBe('list');
+  expect(aliases['ll']).toBe('list');
   expect(aliases['r']).toBe('remove');
   expect(aliases['rm']).toBe('remove');
   expect(aliases['show']).toBe('info');

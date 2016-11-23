@@ -4,11 +4,11 @@ import type {Reporter} from '../../reporters/index.js';
 import type {InstallCwdRequest} from './install.js';
 import type {DependencyRequestPatterns, Manifest} from '../../types.js';
 import type Config from '../../config.js';
-import type {LsOptions} from './ls.js';
+import type {ListOptions} from './list.js';
 import Lockfile from '../../lockfile/wrapper.js';
 import * as PackageReference from '../../package-reference.js';
 import PackageRequest from '../../package-request.js';
-import {buildTree} from './ls.js';
+import {buildTree} from './list.js';
 import {wrapLifecycle, Install} from './install.js';
 import {MessageError} from '../../errors.js';
 
@@ -128,7 +128,7 @@ export class Add extends Install {
 
   async maybeOutputSaveTree(patterns: Array<string>): Promise<void> {
     // don't limit the shown tree depth
-    const opts: LsOptions = {
+    const opts: ListOptions = {
       reqDepth: 0,
     };
     const {trees, count} = await buildTree(this.resolver, this.linker, patterns, opts, true, true);

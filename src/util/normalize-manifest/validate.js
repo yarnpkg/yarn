@@ -111,17 +111,6 @@ export function cleanDependencies(info: Object, isRoot: boolean, reporter: Repor
     depTypes.push([type, deps]);
   }
 
-  // check root dependencies for builtin module names
-  if (isRoot) {
-    for (const [type, deps] of depTypes) {
-      for (const name in deps) {
-        if (isBuiltinModule(name)) {
-          warn(reporter.lang('manifestDependencyBuiltin', name, type));
-        }
-      }
-    }
-  }
-
   // ensure that dependencies don't have ones that can collide
   for (const [type, deps] of depTypes) {
     for (const name in deps) {

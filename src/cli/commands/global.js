@@ -17,7 +17,7 @@ import * as fs from '../../util/fs.js';
 
 class GlobalAdd extends Add {
   maybeOutputSaveTree(): Promise<void> {
-    for (const pattern of this.args) {
+    for (const pattern of this.addedPatterns) {
       const manifest = this.resolver.getStrictResolvedPattern(pattern);
       ls(manifest, this.reporter, true);
     }
@@ -32,7 +32,10 @@ class GlobalAdd extends Add {
 const path = require('path');
 
 async function updateCwd(config: Config): Promise<void> {
-  await config.init({cwd: config.globalFolder});
+  await config.init({
+    cwd: config.globalFolder,
+    binLinks: true,
+  });
 }
 
 async function getBins(config: Config): Promise<Set<string>> {

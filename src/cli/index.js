@@ -49,7 +49,7 @@ commander.option('--ignore-scripts', "don't run lifecycle scripts");
 commander.option('--har', 'save HAR output of network traffic');
 commander.option('--ignore-platform', 'ignore platform checks');
 commander.option('--ignore-engines', 'ignore engines check');
-commander.option('--ignore-optional', '');
+commander.option('--ignore-optional', 'ignore optional dependencies');
 commander.option('--force', 'ignore all caches');
 commander.option('--no-bin-links', "don't generate bin links when setting up packages");
 commander.option('--flat', 'only allow one version of a package');
@@ -185,7 +185,7 @@ if (commander.json) {
 }
 const reporter = new Reporter({
   emoji: commander.emoji && process.stdout.isTTY && process.platform === 'darwin',
-  noProgress: commander.noProgress,
+  noProgress: !commander.progress,
 });
 reporter.initPeakMemoryCounter();
 

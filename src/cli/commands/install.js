@@ -26,8 +26,13 @@ import map from '../../util/map.js';
 import {sortAlpha} from '../../util/misc.js';
 
 const invariant = require('invariant');
+const semver = require('semver');
 const emoji = require('node-emoji');
+const isCI = require('is-ci');
 const path = require('path');
+
+const {version: YARN_VERSION, installationMethod: YARN_INSTALL_METHOD} = require('../../../package.json');
+const ONE_DAY = 1000 * 60 * 60 * 24;
 
 export type InstallCwdRequest = [
   DependencyRequestPatterns,
@@ -63,6 +68,47 @@ type Flags = {
   exact: boolean,
   tilde: boolean,
 };
+
+/**
+ * Try and detect the installation method for Yarn and provide a command to update it with.
+ */
+
+function getUpdateCommand(): ?string {
+  if (YARN_INSTALL_METHOD === 'tar') {
+    return 'curl -o- -L https://yarnpkg.com/install.sh | bash';
+  }
+
+  if (YARN_INSTALL_METHOD === 'homebrew') {
+    return 'brew upgrade yarn';
+  }
+
+  if (YARN_INSTALL_METHOD === 'deb') {
+    return 'sudo apt-get update && sudo apt-get install yarn';
+  }
+
+  if (YARN_INSTALL_METHOD === 'rpm') {
+    return 'sudo yum install yarn';
+  }
+
+  if (YARN_INSTALL_METHOD === 'npm') {
+    return 'npm upgrade --global yarn';
+  }
+
+  if (YARN_INSTALL_METHOD === 'chocolatey') {
+    return 'choco upgrade yarn';
+  }
+
+  return null;
+}
+
+function getUpdateInstaller(): ?string {
+  // Windows
+  if (YARN_INSTALL_METHOD === 'msi') {
+    return 'https://yarnpkg.com/latest.msi';
+  }
+
+  return null;
+}
 
 function normalizeFlags(config: Config, rawFlags: Object): Flags {
   const flags = {
@@ -242,7 +288,9 @@ export class Install {
     patterns: Array<string>,
   ): Promise<boolean> {
     const match = await this.matchesIntegrityHash(patterns);
-    if (!this.flags.skipIntegrity && !this.flags.force && match.matches) {
+    const haveLockfile = await fs.exists(path.join(this.config.cwd, constants.LOCKFILE_FILENAME));
+
+    if (!this.flags.skipIntegrity && !this.flags.force && match.matches && haveLockfile) {
       this.reporter.success(this.reporter.lang('upToDate'));
       return true;
     }
@@ -277,9 +325,11 @@ export class Install {
    */
 
   async init(): Promise<Array<string>> {
+    this.checkUpdate();
+
     // warn if we have a shrinkwrap
     if (await fs.exists(path.join(this.config.cwd, 'npm-shrinkwrap.json'))) {
-      this.reporter.error(this.reporter.lang('shrinkwrapWarning'));
+      this.reporter.warn(this.reporter.lang('shrinkwrapWarning'));
     }
 
     let patterns: Array<string> = [];
@@ -354,6 +404,7 @@ export class Install {
 
     // fin!
     await this.saveLockfileAndIntegrity(patterns);
+    this.maybeOutputUpdate();
     this.config.requestManager.clearCache();
     return patterns;
   }
@@ -493,7 +544,7 @@ export class Install {
     const loc = path.join(this.config.cwd, constants.LOCKFILE_FILENAME);
 
     // write lockfile
-    await fs.writeFile(loc, lockSource);
+    await fs.writeFilePreservingEol(loc, lockSource);
 
     this._logSuccessSaveLockfile();
   }
@@ -634,6 +685,72 @@ export class Install {
 
     return request;
   }
+
+  /**
+   * Check for updates every day and output a nag message if there's a newer version.
+   */
+
+  checkUpdate() {
+    if (!process.stdout.isTTY || isCI) {
+      // don't show upgrade dialog on CI or non-TTY terminals
+      return;
+    }
+
+    // only check for updates once a day
+    const lastUpdateCheck = Number(this.config.getOption('lastUpdateCheck')) || 0;
+    if (lastUpdateCheck && Date.now() - lastUpdateCheck < ONE_DAY) {
+      return;
+    }
+
+    // don't bug for updates on tagged releases
+    if (YARN_VERSION.indexOf('-') >= 0) {
+      return;
+    }
+
+    this._checkUpdate().catch(() => {
+      // swallow errors
+    });
+  }
+
+  async _checkUpdate(): Promise<void> {
+    let latestVersion = await this.config.requestManager.request({
+      url: 'https://yarnpkg.com/latest-version',
+    });
+    invariant(typeof latestVersion === 'string', 'expected string');
+    latestVersion = latestVersion.trim();
+    if (!semver.valid(latestVersion)) {
+      return;
+    }
+
+    // ensure we only check for updates periodically
+    this.config.registries.yarn.saveHomeConfig({
+      lastUpdateCheck: Date.now(),
+    });
+
+    if (semver.gt(latestVersion, YARN_VERSION)) {
+      this.maybeOutputUpdate = () => {
+        this.reporter.warn(this.reporter.lang('yarnOutdated', latestVersion, YARN_VERSION));
+
+        const command = getUpdateCommand();
+        if (command) {
+          this.reporter.info(this.reporter.lang('yarnOutdatedCommand'));
+          this.reporter.command(command);
+        } else {
+          const installer = getUpdateInstaller();
+          if (installer) {
+            this.reporter.info(this.reporter.lang('yarnOutdatedInstaller', installer));
+          }
+        }
+      };
+    }
+  }
+
+  /**
+   * Method to override with a possible upgrade message.
+   */
+
+  maybeOutputUpdate() {}
+  maybeOutputUpdate: any;
 }
 
 export function setFlags(commander: Object) {

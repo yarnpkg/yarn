@@ -20,6 +20,7 @@
 fbkpm_modules
 test/fixtures/**/.fbkpm
 /tmp/
+/__tests__/fixtures/request-cache/GET/localhost/.bin
 
 # IDE
 .idea/

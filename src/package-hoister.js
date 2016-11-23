@@ -349,7 +349,7 @@ export default class PackageHoister {
     for (const [key, info] of this.tree.entries()) {
       // decompress the location and push it to the flat tree. this path could be made
       // up of modules from different registries so we need to handle this specially
-      const parts = [];
+      const parts: Array<string> = [];
       const keyParts = key.split('#');
       for (let i = 0; i < keyParts.length; i++) {
         const key = keyParts.slice(0, i + 1).join('#');
@@ -363,13 +363,15 @@ export default class PackageHoister {
         // remove the first part which will be the folder name and replace it with a
         // hardcoded modules folder
         parts.shift();
-        parts.unshift(this.config.modulesFolder);
+        const modulesFolder = (this.config.modulesFolder == null) ? '' : this.config.modulesFolder;
+        parts.unshift(modulesFolder);
       } else {
         // first part will be the registry-specific module folder
-        parts.unshift(this.config.cwd);
+        const cwd = (this.config.cwd == null) ? '' : this.config.cwd;
+        parts.unshift(cwd);
       }
 
-      const loc = parts.join(path.sep);
+      const loc = path.join(...parts);
       flatTree.push([loc, info]);
     }
 
