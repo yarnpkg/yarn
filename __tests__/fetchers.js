@@ -5,6 +5,7 @@ import TarballFetcher, {LocalTarballFetcher} from '../src/fetchers/tarball-fetch
 import BaseFetcher from '../src/fetchers/base-fetcher.js';
 import CopyFetcher from '../src/fetchers/copy-fetcher.js';
 import GitFetcher from '../src/fetchers/git-fetcher.js';
+import LinkFetcher from '../src/fetchers/link-fetcher.js';
 import {NoopReporter} from '../src/reporters/index.js';
 import Config from '../src/config.js';
 import mkdir from './_temp.js';
@@ -55,6 +56,22 @@ test('CopyFetcher.fetch', async () => {
   expect(content).toBe('{}');
   const contentFoo = await fs.readFile(path.join(b, 'foo'));
   expect(contentFoo).toBe('bar');
+});
+
+test('LinkFetcher.fetch', async () => {
+  const a = await mkdir('link-fetcher-a');
+  await fs.writeFile(path.join(a, 'package.json'), '{}');
+  await fs.writeFile(path.join(a, 'foo'), 'bar');
+
+  const b = await mkdir('link-fetcher-b');
+  const fetcher = new LinkFetcher(b, {
+    type: 'link',
+    reference: a,
+    registry: 'npm',
+  }, await createConfig());
+  await fetcher.fetch();
+  const stat = await fs.lstat(b);
+  expect(stat.isDirectory()).toEqual(true);
 });
 
 test('GitFetcher.fetch fetchFromLocal not in network or cache', async () => {

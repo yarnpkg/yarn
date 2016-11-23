@@ -1,7 +1,7 @@
 /* @flow */
 /* eslint no-unused-vars: 0 */
 
-import type {PackageRemote, FetchedMetadata, FetchedOverride} from '../types.js';
+import type {PackageRemote, FetchedMetadata, FetchedOverride, Manifest} from '../types.js';
 import type {RegistryNames} from '../registries/index.js';
 import type Config from '../config.js';
 import * as constants from '../constants.js';
@@ -44,6 +44,12 @@ export default class BaseFetcher {
 
       // fetch package and get the hash
       const {hash, resolved} = await this._fetch();
+
+      // skip any readManifest operation for link type as dest might not exist yet
+      if (this.remote.type === 'link') {
+        const mockPkg: Manifest = {_uid: '', name: '', version: '0.0.0', _registry: this.registry};
+        return Promise.resolve({resolved, hash, dest, package: mockPkg, cached: false});
+      }
 
       // load the new normalized manifest
       const pkg = await this.config.readManifest(dest, this.registry);

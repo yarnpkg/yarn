@@ -14,6 +14,7 @@ import ExoticGit from './exotics/git-resolver.js';
 import ExoticTarball from './exotics/tarball-resolver.js';
 import ExoticGitHub from './exotics/github-resolver.js';
 import ExoticFile from './exotics/file-resolver.js';
+import ExoticLink from './exotics/link-resolver.js';
 import ExoticGitLab from './exotics/gitlab-resolver.js';
 import ExoticGist from './exotics/gist-resolver.js';
 import ExoticBitbucket from './exotics/bitbucket-resolver.js';
@@ -23,6 +24,7 @@ export const exotics = {
   tarball: ExoticTarball,
   github: ExoticGitHub,
   file: ExoticFile,
+  link: ExoticLink,
   gitlab: ExoticGitLab,
   gist: ExoticGist,
   bitbucket: ExoticBitbucket,
