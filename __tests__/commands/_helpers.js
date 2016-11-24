@@ -1,9 +1,9 @@
 /* @flow */
 
 import Lockfile from '../../src/lockfile/wrapper.js';
+import {ConsoleReporter} from '../../src/reporters/index.js';
 import {Reporter} from '../../src/reporters/index.js';
 import {parse} from '../../src/lockfile/wrapper.js';
-import * as reporters from '../../src/reporters/index.js';
 import * as constants from '../../src/constants.js';
 import {run as check} from '../../src/cli/commands/check.js';
 import * as fs from '../../src/util/fs.js';
@@ -16,17 +16,18 @@ const os = require('os');
 
 const fixturesLoc = path.join(__dirname, '..', 'fixtures', 'install');
 
-export function runInstall(
-  flags: Object,
-  name: string,
-  checkInstalled?: ?(config: Config, reporter: Reporter, install: Install) => ?Promise<void>,
-  beforeInstall?: ?(cwd: string) => ?Promise<void>,
-  cleanupAfterInstall: boolean = true,
-): Promise<void> {
-  return run((config, reporter, lockfile): Install => {
-    return new Install(flags, config, reporter, lockfile);
-  }, flags, path.join(fixturesLoc, name), checkInstalled, beforeInstall, cleanupAfterInstall);
-}
+export const runInstall = run.bind(
+  null,
+  ConsoleReporter,
+  fixturesLoc,
+  async (args, flags, config, reporter, lockfile): Promise<Install> => {
+    const install = new Install(flags, config, reporter, lockfile);
+    await install.init();
+    await check(config, reporter, {}, []);
+    return install;
+  },
+  [],
+);
 
 export async function createLockfile(dir: string): Promise<Lockfile> {
   const lockfileLoc = path.join(dir, constants.LOCKFILE_FILENAME);
@@ -50,14 +51,25 @@ export async function getPackageVersion(config: Config, packagePath: string): Pr
   return json.version;
 }
 
-export async function run(
-  factory: (config: Config, reporter: Reporter, lockfile: Lockfile) => Install,
+export async function run<T, R>(
+  Reporter: Class<Reporter & R>,
+  fixturesLoc: string,
+  factory: (
+    args: Array<string>,
+    flags: Object,
+    config: Config,
+    reporter: R,
+    lockfile: Lockfile,
+    getStdout: () => string,
+  ) => Promise<T> | T,
+  args: Array<string>,
   flags: Object,
-  dir: string,
-  checkInstalled: ?(config: Config, reporter: Reporter, install: Install) => ?Promise<void>,
+  name: string,
+  checkInstalled: ?(config: Config, reporter: R, install: T) => ?Promise<void>,
   beforeInstall: ?(cwd: string) => ?Promise<void>,
-  cleanupAfterInstall: boolean,
 ): Promise<void> {
+  const dir = path.join(fixturesLoc, name);
+
   const cwd = path.join(
     os.tmpdir(),
     `yarn-${path.basename(dir)}-${Math.random()}`,
@@ -80,7 +92,7 @@ export async function run(
     },
   });
 
-  const reporter = new reporters.ConsoleReporter({stdout, stderr: stdout});
+  const reporter = new Reporter({stdout, stderr: stdout});
 
   if (beforeInstall) {
     await beforeInstall(cwd);
@@ -105,20 +117,10 @@ export async function run(
       linkFolder: path.join(cwd, '.yarn-link'),
     });
 
-    const install = factory(config, reporter, lockfile);
-    await install.init();
+    const install = await factory(args, flags, config, reporter, lockfile, () => out);
 
-    // self check to verify consistency after installation
-    await check(config, reporter, {}, []);
-    try {
-      if (checkInstalled) {
-        await checkInstalled(config, reporter, install);
-      }
-    } finally {
-      // clean up
-      if (cleanupAfterInstall) {
-        //await fs.unlink(cwd);
-      }
+    if (checkInstalled) {
+      await checkInstalled(config, reporter, install);
     }
   } catch (err) {
     throw new Error(`${err && err.stack} \nConsole output:\n ${out}`);

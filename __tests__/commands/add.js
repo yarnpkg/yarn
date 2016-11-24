@@ -1,14 +1,13 @@
 /* @flow */
 
-import {getPackageVersion, createLockfile, explodeLockfile, run as buildRun, runInstall} from './_install.js';
+import {ConsoleReporter} from '../../src/reporters/index.js';
+import {getPackageVersion, createLockfile, explodeLockfile, run as buildRun, runInstall} from './_helpers.js';
 import {Add} from '../../src/cli/commands/add.js';
-import {Reporter} from '../../src/reporters/index.js';
 import * as constants from '../../src/constants.js';
 import {parse} from '../../src/lockfile/wrapper.js';
 import {Install} from '../../src/cli/commands/install.js';
 import Lockfile from '../../src/lockfile/wrapper.js';
 import {run as check} from '../../src/cli/commands/check.js';
-import Config from '../../src/config.js';
 import * as fs from '../../src/util/fs.js';
 import assert from 'assert';
 import semver from 'semver';
@@ -21,33 +20,32 @@ const path = require('path');
 
 const fixturesLoc = path.join(__dirname, '..', 'fixtures', 'add');
 
-function runAdd(
-  flags: Object,
-  args: Array<string>,
-  name: string,
-  checkInstalled?: ?(config: Config, reporter: Reporter) => ?Promise<void>,
-  beforeInstall?: ?(cwd: string) => ?Promise<void>,
-  cleanupAfterInstall: boolean = true,
-): Promise<void> {
-  return buildRun((config, reporter, lockfile): Install => {
-    return new Add(args, flags, config, reporter, lockfile);
-  }, flags, path.join(fixturesLoc, name), checkInstalled, beforeInstall, cleanupAfterInstall);
-}
+const runAdd = buildRun.bind(
+  null,
+  ConsoleReporter,
+  fixturesLoc,
+  async (args, flags, config, reporter, lockfile): Promise<Add> => {
+    const add = new Add(args, flags, config, reporter, lockfile);
+    await add.init();
+    await check(config, reporter, {}, []);
+    return add;
+  },
+);
 
 test.concurrent('install with arg that has install scripts', (): Promise<void> => {
-  return runAdd({}, ['flow-bin'], 'install-with-arg-and-install-scripts');
+  return runAdd(['flow-bin'], {}, 'install-with-arg-and-install-scripts');
 });
 
 test.concurrent('install with arg', (): Promise<void> => {
-  return runAdd({}, ['is-online'], 'install-with-arg');
+  return runAdd(['is-online'], {}, 'install-with-arg');
 });
 
 test.concurrent('install from github', (): Promise<void> => {
-  return runAdd({}, ['substack/node-mkdirp#master'], 'install-github');
+  return runAdd(['substack/node-mkdirp#master'], {}, 'install-github');
 });
 
 test.concurrent('install with --dev flag', (): Promise<void> => {
-  return runAdd({dev: true}, ['left-pad@1.1.0'], 'add-with-flag', async (config) => {
+  return runAdd(['left-pad@1.1.0'], {dev: true}, 'add-with-flag', async (config) => {
     const lockfile = explodeLockfile(await fs.readFile(path.join(config.cwd, 'yarn.lock')));
     const pkg = await fs.readJson(path.join(config.cwd, 'package.json'));
 
@@ -58,7 +56,7 @@ test.concurrent('install with --dev flag', (): Promise<void> => {
 });
 
 test.concurrent('install with --peer flag', (): Promise<void> => {
-  return runAdd({peer: true}, ['left-pad@1.1.0'], 'add-with-flag', async (config) => {
+  return runAdd(['left-pad@1.1.0'], {peer: true}, 'add-with-flag', async (config) => {
     const lockfile = explodeLockfile(await fs.readFile(path.join(config.cwd, 'yarn.lock')));
     const pkg = await fs.readJson(path.join(config.cwd, 'package.json'));
 
@@ -69,7 +67,7 @@ test.concurrent('install with --peer flag', (): Promise<void> => {
 });
 
 test.concurrent('install with --optional flag', (): Promise<void> => {
-  return runAdd({optional: true}, ['left-pad@1.1.0'], 'add-with-flag', async (config) => {
+  return runAdd(['left-pad@1.1.0'], {optional: true}, 'add-with-flag', async (config) => {
     const lockfile = explodeLockfile(await fs.readFile(path.join(config.cwd, 'yarn.lock')));
     const pkg = await fs.readJson(path.join(config.cwd, 'package.json'));
 
@@ -80,11 +78,11 @@ test.concurrent('install with --optional flag', (): Promise<void> => {
 });
 
 test.concurrent('install with arg that has binaries', (): Promise<void> => {
-  return runAdd({}, ['react-native-cli'], 'install-with-arg-and-bin');
+  return runAdd(['react-native-cli'], {}, 'install-with-arg-and-bin');
 });
 
 test.concurrent('add with no manifest creates blank manifest', (): Promise<void> => {
-  return runAdd({}, ['lodash'], 'add-with-no-manifest', async (config) => {
+  return runAdd(['lodash'], {}, 'add-with-no-manifest', async (config) => {
     assert.ok(await fs.exists(path.join(config.cwd, 'package.json')));
   });
 });
@@ -94,7 +92,7 @@ test.concurrent('add should ignore cache', (): Promise<void> => {
   // left-pad@1.1.0 gets installed with --save
   // files in mirror, yarn.lock, package.json and node_modules should reflect that
 
-  return runAdd({}, ['left-pad@1.1.0'], 'install-save-to-mirror-when-cached', async (config, reporter) => {
+  return runAdd(['left-pad@1.1.0'], {}, 'install-save-to-mirror-when-cached', async (config, reporter) => {
     assert.equal(
       await getPackageVersion(config, 'left-pad'),
       '1.1.0',
@@ -125,7 +123,7 @@ test.concurrent('add should ignore cache', (): Promise<void> => {
 });
 
 test.concurrent('add should not make package.json strict', (): Promise<void> => {
-  return runAdd({}, ['left-pad@^1.1.0'], 'install-no-strict', async (config) => {
+  return runAdd(['left-pad@^1.1.0'], {}, 'install-no-strict', async (config) => {
     const lockfile = explodeLockfile(await fs.readFile(path.join(config.cwd, 'yarn.lock')));
 
     assert(lockfile.indexOf('left-pad@^1.1.0:') >= 0);
@@ -140,7 +138,7 @@ test.concurrent('add should not make package.json strict', (): Promise<void> => 
 });
 
 test.concurrent('add --save-exact should not make all package.json strict', (): Promise<void> => {
-  return runAdd({saveExact: true}, ['left-pad@1.1.0'], 'install-no-strict-all', async (config) => {
+  return runAdd(['left-pad@1.1.0'], {saveExact: true}, 'install-no-strict-all', async (config) => {
     const lockfile = explodeLockfile(await fs.readFile(path.join(config.cwd, 'yarn.lock')));
 
     assert(lockfile.indexOf('left-pad@1.1.0:') === 0);
@@ -155,7 +153,7 @@ test.concurrent('add --save-exact should not make all package.json strict', (): 
 });
 
 test.concurrent('add with new dependency should be deterministic 3', (): Promise<void> => {
-  return runAdd({}, [], 'install-should-cleanup-when-package-json-changed-3', async (config, reporter) => {
+  return runAdd([], {}, 'install-should-cleanup-when-package-json-changed-3', async (config, reporter) => {
     // expecting yarn check after installation not to fail
 
     await fs.copy(path.join(config.cwd, 'yarn.lock.after'), path.join(config.cwd, 'yarn.lock'));
@@ -181,7 +179,7 @@ test.concurrent('install --initMirror should add init mirror deps from package.j
   const fixture = 'install-init-mirror';
 
   // initMirror gets converted to save flag in cli/install.js
-  return runAdd({}, [], fixture, async (config) => {
+  return runAdd([], {}, fixture, async (config) => {
     assert.equal(await getPackageVersion(config, 'mime-types'), '2.0.0');
     assert(semver.satisfies(await getPackageVersion(config, 'mime-db'), '~1.0.1'));
 
@@ -215,7 +213,7 @@ test.concurrent('add with new dependency should be deterministic', (): Promise<v
       '2.0.0',
     );
 
-    return runAdd({}, ['mime-db@1.23.0'], fixture, async (config) => {
+    return runAdd(['mime-db@1.23.0'], {}, fixture, async (config) => {
       assert(semver.satisfies(
         await getPackageVersion(config, 'mime-db'),
         '1.23.0',
@@ -267,7 +265,7 @@ test.concurrent('add with new dependency should be deterministic 2', (): Promise
       '2.0.0',
     );
 
-    return runAdd({}, ['mime-db@1.0.3'], fixture, async (config) => {
+    return runAdd(['mime-db@1.0.3'], {}, fixture, async (config) => {
       assert.equal(
         await getPackageVersion(config, 'mime-db'),
         '1.0.3',
@@ -298,7 +296,7 @@ test.concurrent('add with new dependency should be deterministic 2', (): Promise
 
 test.concurrent('add with offline mirror', (): Promise<void> => {
   const mirrorPath = 'mirror-for-offline';
-  return runAdd({}, ['is-array@^1.0.1'], 'install-with-save-offline-mirror', async (config) => {
+  return runAdd(['is-array@^1.0.1'], {}, 'install-with-save-offline-mirror', async (config) => {
     const allFiles = await fs.walk(config.cwd);
 
     assert(allFiles.findIndex((file): boolean => {
@@ -316,7 +314,7 @@ test.concurrent('add with offline mirror', (): Promise<void> => {
 
 test.concurrent('install with --save and without offline mirror', (): Promise<void> => {
   const mirrorPath = 'mirror-for-offline';
-  return runAdd({}, ['is-array@^1.0.1'], 'install-with-save-no-offline-mirror', async (config) => {
+  return runAdd(['is-array@^1.0.1'], {}, 'install-with-save-no-offline-mirror', async (config) => {
 
     const allFiles = await fs.walk(config.cwd);
 
@@ -339,7 +337,7 @@ test.concurrent('upgrade scenario', (): Promise<void> => {
 
   const mirrorPath = 'mirror-for-offline';
 
-  return runAdd({}, ['left-pad@0.0.9'], 'install-upgrade-scenario', async (config, reporter): Promise<void> => {
+  return runAdd(['left-pad@0.0.9'], {}, 'install-upgrade-scenario', async (config, reporter): Promise<void> => {
     assert.equal(
       await getPackageVersion(config, 'left-pad'),
       '0.0.9',
@@ -401,7 +399,7 @@ test.concurrent('upgrade scenario 2 (with sub dependencies)', (): Promise<void> 
       '2.0.0',
     );
 
-    return runAdd({}, ['mime-types@2.1.11'], fixture, async (config) => {
+    return runAdd(['mime-types@2.1.11'], {}, fixture, async (config) => {
       assert(semver.satisfies(
         await getPackageVersion(config, 'mime-db'),
         '~1.23.0',
@@ -433,7 +431,7 @@ test.concurrent('downgrade scenario', (): Promise<void> => {
   // left-pad first installed 1.1.0 then downgraded to 0.0.9
   // files in mirror, yarn.lock, package.json and node_modules should reflect that
 
-  return runAdd({}, ['left-pad@1.1.0'], 'install-downgrade-scenario', async (config, reporter): Promise<void> => {
+  return runAdd(['left-pad@1.1.0'], {}, 'install-downgrade-scenario', async (config, reporter): Promise<void> => {
     assert.equal(
       await getPackageVersion(config, 'left-pad'),
       '1.1.0',
@@ -486,7 +484,7 @@ test.concurrent('modules resolved multiple times should save to mirror correctly
   // which@^1.0.5, which@^1.1.1, which@^1.2.8, which@^1.2.9:
   //   version "1.2.11"
   //   resolved which-1.2.11.tgz#c8b2eeea6b8c1659fa7c1dd4fdaabe9533dc5e8b
-  return runAdd({}, [], 'no-mirror-remote-when-duplicates', async (config): Promise<void> => {
+  return runAdd([], {}, 'no-mirror-remote-when-duplicates', async (config): Promise<void> => {
     const mirrorPath = 'mirror-for-offline';
 
     // check that which module was downloaded to mirror
@@ -511,8 +509,8 @@ test.concurrent('add should put a git dependency to mirror', (): Promise<void> =
   const mirrorPath = 'mirror-for-offline';
 
   return runAdd(
-    {},
     ['mime-db@https://github.com/jshttp/mime-db.git#1.24.0'],
+    {},
     'install-git-mirror',
     async (config, reporter): Promise<void> => {
       assert(semver.satisfies(
@@ -546,7 +544,7 @@ test.concurrent('add should put a git dependency to mirror', (): Promise<void> =
 });
 
 test.concurrent('add should store latest version in lockfile', (): Promise<void> => {
-  return runAdd({}, ['max-safe-integer'], 'latest-version-in-lockfile', async (config) => {
+  return runAdd(['max-safe-integer'], {}, 'latest-version-in-lockfile', async (config) => {
     const lockfile = explodeLockfile(await fs.readFile(path.join(config.cwd, 'yarn.lock')));
     const pkg = await fs.readJson(path.join(config.cwd, 'package.json'));
 
@@ -558,7 +556,7 @@ test.concurrent('add should store latest version in lockfile', (): Promise<void>
 });
 
 test.concurrent('add should generate correct integrity file', (): Promise<void> => {
-  return runAdd({}, ['mime-db@1.24.0'], 'integrity-check', async (config, reporter) => {
+  return runAdd(['mime-db@1.24.0'], {}, 'integrity-check', async (config, reporter) => {
     let allCorrect = true;
     try {
       await check(config, reporter, {integrity: true}, []);
@@ -580,7 +578,7 @@ test.concurrent('add should generate correct integrity file', (): Promise<void> 
 });
 
 test.concurrent('add infers line endings from existing win32 manifest file', async (): Promise<void> => {
-  await runAdd({}, ['is-online'], 'add-infers-line-endings-from-existing-manifest-file',
+  await runAdd(['is-online'], {}, 'add-infers-line-endings-from-existing-manifest-file',
     async (config): Promise<void> => {
       const lockfile = await promisify(fsNode.readFile)(path.join(config.cwd, 'package.json'), 'utf8');
       assert(/\r\n/.test(lockfile));
@@ -593,7 +591,7 @@ test.concurrent('add infers line endings from existing win32 manifest file', asy
 });
 
 test.concurrent('add infers line endings from existing unix manifest file', async (): Promise<void> => {
-  await runAdd({}, ['is-online'], 'add-infers-line-endings-from-existing-manifest-file',
+  await runAdd(['is-online'], {}, 'add-infers-line-endings-from-existing-manifest-file',
     async (config): Promise<void> => {
       const lockfile = await promisify(fsNode.readFile)(path.join(config.cwd, 'package.json'), 'utf8');
       assert(/[^\r]\n/.test(lockfile));
