@@ -53,16 +53,18 @@ async function runGlobal(
   const reporter = new reporters.JSONReporter({stdout});
 
   // create directories
-  await fs.mkdirp(path.join(cwd, '.yarn'));
+  await fs.mkdirp(path.join(cwd, '.yarn-global'));
+  await fs.mkdirp(path.join(cwd, '.yarn-link'));
+  await fs.mkdirp(path.join(cwd, '.yarn-cache'));
   await fs.mkdirp(path.join(cwd, 'node_modules'));
 
   try {
     const config = new Config(reporter);
     await config.init({
       cwd,
-      globalFolder: path.join(cwd, '.yarn/.global'),
-      cacheFolder: path.join(cwd, '.yarn'),
-      linkFolder: path.join(cwd, '.yarn/.link'),
+      globalFolder: path.join(cwd, '.yarn-global'),
+      cacheFolder: path.join(cwd, '.yarn-cache'),
+      linkFolder: path.join(cwd, '.yarn-link'),
     });
 
     await global(config, reporter, flags, [command, ...args]);
