@@ -15,6 +15,11 @@ const os = require('os');
 
 const fixturesLoc = path.join(__dirname, '..', 'fixtures', 'global');
 
+const tmpGlobalFolder = path.join(
+  os.tmpdir(),
+  `yarn-global-${Math.random()}`,
+);
+
 async function runGlobal(
   command: string,
   flags: Object,
@@ -48,16 +53,17 @@ async function runGlobal(
   const reporter = new reporters.JSONReporter({stdout});
 
   // create directories
-  await fs.mkdirp(path.join(cwd, '.yarn'));
-  await fs.mkdirp(path.join(cwd, 'node_modules'));
+  await fs.mkdirp(path.join(cwd, '.yarn-global'));
+  await fs.mkdirp(path.join(cwd, '.yarn-link'));
+  await fs.mkdirp(path.join(cwd, '.yarn-cache'));
 
   try {
     const config = new Config(reporter);
     await config.init({
       cwd,
-      globalFolder: path.join(cwd, '.yarn/.global'),
-      cacheFolder: path.join(cwd, '.yarn'),
-      linkFolder: path.join(cwd, '.yarn/.link'),
+      globalFolder: path.join(cwd, '.yarn-global'),
+      cacheFolder: path.join(cwd, '.yarn-cache'),
+      linkFolder: path.join(cwd, '.yarn-link'),
     });
 
     await global(config, reporter, flags, [command, ...args]);
@@ -73,7 +79,18 @@ async function runGlobal(
 
 test.concurrent('add without flag', (): Promise<void> => {
   return runGlobal('add', {}, ['react-native-cli'], 'add-without-flag', async (config) => {
-    assert.ok(await fs.exists(path.join(config.cwd, 'node_modules', 'react-native-cli')));
-    assert.ok(await fs.exists(path.join(config.cwd, 'node_modules', '.bin', 'react-native')));
+    assert.ok(await fs.exists(path.join(config.globalFolder, 'node_modules', 'react-native-cli')));
+    assert.ok(await fs.exists(path.join(config.globalFolder, 'node_modules', '.bin', 'react-native')));
+  });
+});
+
+test.concurrent('add with prefix flag', async (): Promise<void> => {
+  await fs.unlink(tmpGlobalFolder);
+  return runGlobal('add', {prefix: tmpGlobalFolder}, ['react-native-cli'], 'add-with-prefix-flag', async (config) => {
+    if (process.platform === 'win32') {
+      assert.ok(await fs.exists(path.join(tmpGlobalFolder, 'react-native')));
+    } else {
+      assert.ok(await fs.exists(path.join(tmpGlobalFolder, 'bin', 'react-native')));
+    }
   });
 });
