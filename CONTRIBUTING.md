@@ -5,15 +5,13 @@ please read the [code of conduct](CODE_OF_CONDUCT.md).
 
 ## Setup
 
-> Install yarn on your system: https://yarnpkg.com/en/docs/install
-
 ```sh
-$ # fork the repo
+$ # Install yarn on your system: https://yarnpkg.com/en/docs/install
+$ # Fork the repo: https://github.com/yarnpkg/yarn
 $ git clone YOUR_YARN_REPO_URL
 $ cd yarn
-$ npm install
-$ npm run build
-$ ./bin/yarn
+$ yarn
+$ yarn run build
 ```
 
 ## Building
