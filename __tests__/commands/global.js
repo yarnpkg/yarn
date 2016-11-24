@@ -87,6 +87,10 @@ test.concurrent('add without flag', (): Promise<void> => {
 test.concurrent('add with prefix flag', async (): Promise<void> => {
   await fs.unlink(tmpGlobalFolder);
   return runGlobal('add', {prefix: tmpGlobalFolder}, ['react-native-cli'], 'add-with-prefix-flag', async (config) => {
-    assert.ok(await fs.exists(path.join(tmpGlobalFolder, 'bin', 'react-native')));
+    if (process.platform === 'win32') {
+      assert.ok(await fs.exists(path.join(tmpGlobalFolder, 'react-native')));
+    } else {
+      assert.ok(await fs.exists(path.join(tmpGlobalFolder, 'bin', 'react-native')));
+    }
   });
 });
