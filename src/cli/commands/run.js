@@ -19,6 +19,7 @@ import map from '../../util/map.js';
 
 const leven = require('leven');
 const path = require('path');
+const _ = require('lodash');
 
 export async function run(
   config: Config,
@@ -30,18 +31,18 @@ export async function run(
   const pkg = await config.readManifest(config.cwd);
   const scripts = map();
   const binCommands = [];
-  const visitedBinFolders = [];
+  let binFolders = [];
   let pkgCommands = [];
   for (const registry of Object.keys(registries)) {
-    const binFolder = path.join(config.cwd, config.registries[registry].folder, '.bin');
-    if (!visitedBinFolders.includes(binFolder)) {
-      if (await fs.exists(binFolder)) {
-        for (const name of await fs.readdir(binFolder)) {
-          binCommands.push(name);
-          scripts[name] = `"${path.join(binFolder, name)}"`;
-        }
+    binFolders.push(path.join(config.cwd, config.registries[registry].folder, '.bin'));
+  }
+  binFolders = _.uniq(binFolders);
+  for (const binFolder of binFolders) {
+    if (await fs.exists(binFolder)) {
+      for (const name of await fs.readdir(binFolder)) {
+        binCommands.push(name);
+        scripts[name] = `"${path.join(binFolder, name)}"`;
       }
-      visitedBinFolders.push(binFolder);
     }
   }
   if (pkg.scripts) {
