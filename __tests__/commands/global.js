@@ -56,7 +56,6 @@ async function runGlobal(
   await fs.mkdirp(path.join(cwd, '.yarn-global'));
   await fs.mkdirp(path.join(cwd, '.yarn-link'));
   await fs.mkdirp(path.join(cwd, '.yarn-cache'));
-  await fs.mkdirp(path.join(cwd, 'node_modules'));
 
   try {
     const config = new Config(reporter);
@@ -80,8 +79,8 @@ async function runGlobal(
 
 test.concurrent('add without flag', (): Promise<void> => {
   return runGlobal('add', {}, ['react-native-cli'], 'add-without-flag', async (config) => {
-    assert.ok(await fs.exists(path.join(config.cwd, 'node_modules', 'react-native-cli')));
-    assert.ok(await fs.exists(path.join(config.cwd, 'node_modules', '.bin', 'react-native')));
+    assert.ok(await fs.exists(path.join(config.globalFolder, 'node_modules', 'react-native-cli')));
+    assert.ok(await fs.exists(path.join(config.globalFolder, 'node_modules', '.bin', 'react-native')));
   });
 });
 

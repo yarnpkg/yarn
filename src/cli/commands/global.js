@@ -35,6 +35,9 @@ async function updateCwd(config: Config): Promise<void> {
   await config.init({
     cwd: config.globalFolder,
     binLinks: true,
+    cacheFolder: config.cacheFolder,
+    linkFolder: config.linkFolder,
+    globalFolder: config.globalFolder,
   });
 }
 
