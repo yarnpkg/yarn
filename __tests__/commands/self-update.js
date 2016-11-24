@@ -83,7 +83,7 @@ xit('Self-update should work from self-updated location', (): Promise<void> => {
     // mock an existing self-update
     await child.exec('npm run build');
     const versionFolder = path.resolve(updatesFolder, '0.2.0');
-    await fs.copy(path.resolve(updatesFolder, '..'), versionFolder);
+    await fs.copy(path.resolve(updatesFolder, '..'), versionFolder, reporter);
     await fs.symlink(versionFolder, path.resolve(updatesFolder, 'current'));
     let packageJson = await fs.readJson(path.resolve(updatesFolder, 'current', 'package.json'));
     packageJson.version = '0.2.0';

@@ -30,7 +30,7 @@ export default class TarballFetcher extends BaseFetcher {
 
     // copy the file over
     if (!await fsUtil.exists(mirrorPath)) {
-      await fsUtil.copy(tarballLoc, mirrorPath);
+      await fsUtil.copy(tarballLoc, mirrorPath, this.reporter);
     }
 
     const relativeMirrorPath = this.getRelativeMirrorPath(mirrorPath);

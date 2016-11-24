@@ -342,13 +342,15 @@ export default class RequestManager {
     if (!params.process) {
       const parts = url.parse(params.url);
 
-      params.callback = function(err, res, body) {
+      params.callback = (err, res, body) => {
         if (err) {
           onError(err);
           return;
         }
 
         successHosts[parts.hostname] = true;
+
+        this.reporter.verbose(this.reporter.lang('verboseRequestFinish', params.url, res.statusCode));
 
         if (body && typeof body.error === 'string') {
           reject(new Error(body.error));
@@ -393,6 +395,7 @@ export default class RequestManager {
 
     const request = this._getRequestModule();
     const req = request(params);
+    this.reporter.verbose(this.reporter.lang('verboseRequestStart', params.method, params.url));
 
     req.on('error', onError);
 
