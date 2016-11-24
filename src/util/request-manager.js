@@ -395,7 +395,7 @@ export default class RequestManager {
 
     const request = this._getRequestModule();
     const req = request(params);
-    this.reporter.verbose(this.reporter.lang('verboseRequestStart', param.method, params.url));
+    this.reporter.verbose(this.reporter.lang('verboseRequestStart', params.method, params.url));
 
     req.on('error', onError);
 

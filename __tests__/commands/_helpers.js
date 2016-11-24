@@ -77,7 +77,7 @@ export async function run<T, R>(
     },
   });
 
-  const reporter = new reporters.ConsoleReporter({stdout, stderr: stdout});
+  const reporter = new Reporter({stdout, stderr: stdout});
 
   const dir = path.join(fixturesLoc, name);
   const cwd = path.join(

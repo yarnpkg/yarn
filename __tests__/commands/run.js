@@ -15,6 +15,8 @@ const execCommand: $FlowFixMe = require('../../src/util/execute-lifecycle-script
 const path = require('path');
 
 beforeEach(() => execCommand.mockClear());
+
+const fixturesLoc = path.join(__dirname, '..', 'fixtures', 'run');
 const runRun = buildRun.bind(null, BufferReporter, fixturesLoc, (args, flags, config, reporter): Promise<void> => {
   return run(config, reporter, flags, args);
 });
