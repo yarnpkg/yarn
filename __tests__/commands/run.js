@@ -2,73 +2,27 @@
 
 jest.mock('../../src/util/execute-lifecycle-script');
 
+import {run as buildRun} from './_helpers.js';
 import {BufferReporter} from '../../src/reporters/index.js';
 import {run} from '../../src/cli/commands/run.js';
 import * as fs from '../../src/util/fs.js';
 import * as reporters from '../../src/reporters/index.js';
-import Config from '../../src/config.js';
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 90000;
 
 const execCommand: $FlowFixMe = require('../../src/util/execute-lifecycle-script').execCommand;
 
 const path = require('path');
-const os = require('os');
 
 beforeEach(() => execCommand.mockClear());
 
 const fixturesLoc = path.join(__dirname, '..', 'fixtures', 'run');
-
-async function runRun(
-  flags: Object,
-  args: Array<string>,
-  name: string,
-  checkRun?: ?(config: Config, reporter: BufferReporter) => ?Promise<void>,
-): Promise<void> {
-  const dir = path.join(fixturesLoc, name);
-  const cwd = path.join(
-    os.tmpdir(),
-    `yarn-${path.basename(dir)}-${Math.random()}`,
-  );
-  await fs.unlink(cwd);
-  await fs.copy(dir, cwd);
-
-  for (const {basename, absolute} of await fs.walk(cwd)) {
-    if (basename.toLowerCase() === '.ds_store') {
-      await fs.unlink(absolute);
-    }
-  }
-
-  const out = '';
-
-  const reporter = new reporters.BufferReporter({stdout: null, stdin: null});
-
-  // create directories
-  await fs.mkdirp(path.join(cwd, '.yarn'));
-  await fs.mkdirp(path.join(cwd, 'node_modules'));
-
-  try {
-    const config = new Config(reporter);
-    await config.init({
-      cwd,
-      globalFolder: path.join(cwd, '.yarn/.global'),
-      cacheFolder: path.join(cwd, '.yarn'),
-      linkFolder: path.join(cwd, '.yarn/.link'),
-    });
-
-    await run(config, reporter, flags, args);
-
-    if (checkRun) {
-      await checkRun(config, reporter);
-    }
-
-  } catch (err) {
-    throw new Error(`${err && err.stack} \nConsole output:\n ${out}`);
-  }
-}
+const runRun = buildRun.bind(null, BufferReporter, fixturesLoc, (args, flags, config, reporter): Promise<void> => {
+  return run(config, reporter, flags, args);
+});
 
 test('lists all available commands with no arguments', (): Promise<void> => {
-  return runRun({}, [], 'no-args', (config, reporter): ?Promise<void> => {
+  return runRun([], {}, 'no-args', (config, reporter): ?Promise<void> => {
     const rprtr = new reporters.BufferReporter({stdout: null, stdin: null});
     const scripts = ['build', 'prestart', 'start'];
     // Notice `cat-names` is below twice as there is a bug with output duplication
@@ -86,7 +40,7 @@ test('lists all available commands with no arguments', (): Promise<void> => {
 });
 
 test('runs script containing spaces', (): Promise<void> => {
-  return runRun({}, ['build'], 'spaces', async (config): ?Promise<void> => {
+  return runRun(['build'], {}, 'spaces', async (config): ?Promise<void> => {
     const pkg = await fs.readJson(path.join(config.cwd, 'package.json'));
     // The command get's called with a space appended
     const args = ['build', config, pkg.scripts.build + ' ', config.cwd];
@@ -96,7 +50,7 @@ test('runs script containing spaces', (): Promise<void> => {
 });
 
 test('properly handles extra arguments and pre/post scripts', (): Promise<void> => {
-  return runRun({}, ['start', '--hello'], 'extra-args', async (config): ?Promise<void> => {
+  return runRun(['start', '--hello'], {}, 'extra-args', async (config): ?Promise<void> => {
     const pkg = await fs.readJson(path.join(config.cwd, 'package.json'));
     const poststart = ['poststart', config, pkg.scripts.poststart, config.cwd];
     const prestart = ['prestart', config, pkg.scripts.prestart, config.cwd];
@@ -109,7 +63,7 @@ test('properly handles extra arguments and pre/post scripts', (): Promise<void> 
 });
 
 test('handles bin scripts', (): Promise<void> => {
-  return runRun({}, ['cat-names'], 'bin', (config) => {
+  return runRun(['cat-names'], {}, 'bin', (config) => {
     const script = path.join(config.cwd, 'node_modules', '.bin', 'cat-names');
     const args = ['cat-names', config, `"${script}" `, config.cwd];
 
