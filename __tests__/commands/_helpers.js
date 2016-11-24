@@ -68,21 +68,6 @@ export async function run<T, R>(
   checkInstalled: ?(config: Config, reporter: R, install: T) => ?Promise<void>,
   beforeInstall: ?(cwd: string) => ?Promise<void>,
 ): Promise<void> {
-  const dir = path.join(fixturesLoc, name);
-
-  const cwd = path.join(
-    os.tmpdir(),
-    `yarn-${path.basename(dir)}-${Math.random()}`,
-  );
-  await fs.unlink(cwd);
-  await fs.copy(dir, cwd);
-
-  for (const {basename, absolute} of await fs.walk(cwd)) {
-    if (basename.toLowerCase() === '.ds_store') {
-      await fs.unlink(absolute);
-    }
-  }
-
   let out = '';
   const stdout = new stream.Writable({
     decodeStrings: false,
@@ -93,6 +78,20 @@ export async function run<T, R>(
   });
 
   const reporter = new Reporter({stdout, stderr: stdout});
+
+  const dir = path.join(fixturesLoc, name);
+  const cwd = path.join(
+    os.tmpdir(),
+    `yarn-${path.basename(dir)}-${Math.random()}`,
+  );
+  await fs.unlink(cwd);
+  await fs.copy(dir, cwd, reporter);
+
+  for (const {basename, absolute} of await fs.walk(cwd)) {
+    if (basename.toLowerCase() === '.ds_store') {
+      await fs.unlink(absolute);
+    }
+  }
 
   if (beforeInstall) {
     await beforeInstall(cwd);

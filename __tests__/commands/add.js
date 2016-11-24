@@ -156,8 +156,8 @@ test.concurrent('add with new dependency should be deterministic 3', (): Promise
   return runAdd([], {}, 'install-should-cleanup-when-package-json-changed-3', async (config, reporter) => {
     // expecting yarn check after installation not to fail
 
-    await fs.copy(path.join(config.cwd, 'yarn.lock.after'), path.join(config.cwd, 'yarn.lock'));
-    await fs.copy(path.join(config.cwd, 'package.json.after'), path.join(config.cwd, 'package.json'));
+    await fs.copy(path.join(config.cwd, 'yarn.lock.after'), path.join(config.cwd, 'yarn.lock'), reporter);
+    await fs.copy(path.join(config.cwd, 'package.json.after'), path.join(config.cwd, 'package.json'), reporter);
 
     const lockfile = await createLockfile(config.cwd);
     const install = new Install({}, config, reporter, lockfile);

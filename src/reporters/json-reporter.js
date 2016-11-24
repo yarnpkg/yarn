@@ -22,6 +22,10 @@ export default class JSONReporter extends BaseReporter {
     stdout.write(`${JSON.stringify({type, data})}\n`);
   }
 
+  _verbose(msg: string) {
+    this._dump('verbose', msg);
+  }
+
   list(type: string, items: Array<string>) {
     this._dump('list', {type, items});
   }

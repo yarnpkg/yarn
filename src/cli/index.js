@@ -41,6 +41,7 @@ for (let i = 0; i < args.length; i++) {
 // set global options
 commander.version(pkg.version);
 commander.usage('[command] [flags]');
+commander.option('--verbose', 'output verbose messages on internal operations');
 commander.option('--offline', 'trigger an error if any required dependencies are not available in local cache');
 commander.option('--prefer-offline', 'use network only if dependencies are not available in local cache');
 commander.option('--strict-semver');
@@ -185,6 +186,7 @@ if (commander.json) {
 }
 const reporter = new Reporter({
   emoji: commander.emoji && process.stdout.isTTY && process.platform === 'darwin',
+  verbose: commander.verbose,
   noProgress: !commander.progress,
 });
 reporter.initPeakMemoryCounter();
@@ -382,6 +384,8 @@ config.init({
     return run().then(exit);
   }
 }).catch((err: Error) => {
+  reporter.verbose(err.stack);
+  
   if (err instanceof MessageError) {
     reporter.error(err.message);
   } else {
