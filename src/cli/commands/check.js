@@ -41,9 +41,10 @@ export async function run(
 
   // get patterns that are installed when running `yarn install`
   const [, rawPatterns] = await install.hydrate(true);
+  const patterns = await install.flatten(rawPatterns);
 
   // check if patterns exist in lockfile
-  for (const pattern of rawPatterns) {
+  for (const pattern of patterns) {
     if (!lockfile.getLocked(pattern)) {
       reportError(`Lockfile does not contain pattern: ${pattern}`);
     }
@@ -54,7 +55,7 @@ export async function run(
     const integrityLoc = await install.getIntegrityHashLocation();
 
     if (integrityLoc && await fs.exists(integrityLoc)) {
-      const match = await install.matchesIntegrityHash(rawPatterns);
+      const match = await install.matchesIntegrityHash(patterns);
       if (match.matches === false) {
         reportError(`Integrity hashes don't match, expected ${match.expected} but got ${match.actual}`);
       }
@@ -63,7 +64,7 @@ export async function run(
     }
   } else {
     // check if any of the node_modules are out of sync
-    const res = await install.linker.getFlatHoistedTree(rawPatterns);
+    const res = await install.linker.getFlatHoistedTree(patterns);
     for (const [loc, {originalKey, pkg}] of res) {
       const parts = humaniseLocation(loc);
 
