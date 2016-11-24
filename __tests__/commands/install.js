@@ -9,7 +9,7 @@ import Config from '../../src/config.js';
 import * as fs from '../../src/util/fs.js';
 import assert from 'assert';
 import semver from 'semver';
-import {getPackageVersion, explodeLockfile, runInstall, createLockfile} from './_install.js';
+import {getPackageVersion, explodeLockfile, runInstall, createLockfile} from './_helpers.js';
 import {promisify} from '../../src/util/promise';
 import fsNode from 'fs';
 import os from 'os';

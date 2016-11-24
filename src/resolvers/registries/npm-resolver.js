@@ -26,7 +26,7 @@ export default class NpmResolver extends RegistryResolver {
 
   static async findVersionInRegistryResponse(config: Config, range: string, body: RegistryResponse): Promise<Manifest> {
     if (!body['dist-tags']) {
-      throw new MessageError(config.reporter.lang('malformedRegistryResponse'));
+      throw new MessageError(config.reporter.lang('malformedRegistryResponse', body.name));
     }
 
     if (range in body['dist-tags']) {

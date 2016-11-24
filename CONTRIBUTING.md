@@ -5,32 +5,35 @@ please read the [code of conduct](CODE_OF_CONDUCT.md).
 
 ## Setup
 
-> Install yarn on your system: https://yarnpkg.com/en/docs/install
+1. Install yarn on your system: https://yarnpkg.com/en/docs/install
+1. Fork the repo: https://github.com/yarnpkg/yarn
+1. Run the following commands:
 
 ```sh
-$ git clone https://github.com/yarnpkg/yarn.git
+$ git clone YOUR_YARN_REPO_URL
 $ cd yarn
 $ yarn
+$ yarn run build
 ```
 
 ## Building
 
 ```sh
-$ npm run build
+$ yarn run build
 ```
 
 ```sh
-$ npm run watch
+$ yarn run watch
 ```
 
 ## Testing
 
 ```sh
-$ npm run test
+$ yarn run test
 ```
 
 ```sh
-$ npm run lint
+$ yarn run lint
 ```
 
 ## Pull Requests
