@@ -8,9 +8,12 @@ please read the [code of conduct](CODE_OF_CONDUCT.md).
 > Install yarn on your system: https://yarnpkg.com/en/docs/install
 
 ```sh
-$ git clone https://github.com/yarnpkg/yarn.git
+$ # fork the repo
+$ git clone YOUR_YARN_REPO_URL
 $ cd yarn
-$ yarn
+$ npm install
+$ npm run build
+$ ./bin/yarn
 ```
 
 ## Building
