@@ -50,6 +50,10 @@ export default class ConsoleReporter extends BaseReporter {
     this._logCategory('verbose', 'grey', msg);
   }
 
+  _verboseInspect(obj: any) {
+    this.inspect(obj);
+  }
+
   table(head: Array<string>, body: Array<Row>) {
     //
     head = head.map((field: string): string => this.format.underline(field));

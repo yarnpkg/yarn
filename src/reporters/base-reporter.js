@@ -101,7 +101,14 @@ export default class BaseReporter {
     }
   }
 
+  verboseInspect(val: any) {
+    if (this.isVerbose) {
+      this._verboseInspect(val);
+    }
+  }
+
   _verbose(msg: string) {}
+  _verboseInspect(val: any) {}
 
   initPeakMemoryCounter() {
     this.checkPeakMemory();

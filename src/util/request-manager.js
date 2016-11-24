@@ -342,7 +342,7 @@ export default class RequestManager {
     if (!params.process) {
       const parts = url.parse(params.url);
 
-      params.callback = function(err, res, body) {
+      params.callback = (err, res, body) => {
         if (err) {
           onError(err);
           return;
