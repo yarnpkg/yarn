@@ -197,6 +197,9 @@ let outputWrapper = true;
 if (typeof command.hasWrapper === 'function') {
   outputWrapper = command.hasWrapper(commander, commander.args);
 }
+if (commander.json) {
+  outputWrapper = false;
+}
 if (outputWrapper) {
   reporter.header(commandName, pkg);
 }
