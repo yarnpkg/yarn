@@ -19,7 +19,7 @@ yarn_get_tarball() {
     url=https://yarnpkg.com/latest.tar.gz
   fi
   # Get both the tarball and its GPG signature
-  tarball_tmp=`mktemp`
+  tarball_tmp=`mktemp -t yarn.XXXXXXXXXX.tar.gz`
   curl -L -o "$tarball_tmp#1" "$url{,.asc}"
   yarn_verify_integrity $tarball_tmp
 
@@ -32,10 +32,10 @@ yarn_get_tarball() {
 # Verifies the GPG signature of the tarball
 yarn_verify_integrity() {
   # Check if GPG is installed
-  command -v gpg >/dev/null 2>&1 || (
+  if [[ -z "$(command -v gpg)" ]]; then
     printf "$yellow> WARNING: GPG is not installed, integrity can not be verified!$reset\n"
     return
-  )
+  fi
 
   if [ "$YARN_GPG" == "no" ]; then
     printf "$cyan> WARNING: Skipping GPG integrity check!$reset\n"
