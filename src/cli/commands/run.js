@@ -30,8 +30,8 @@ export async function run(
   const pkg = await config.readManifest(config.cwd);
   const scripts = map();
   const binCommands = [];
+  const visitedBinFolders = [];
   let pkgCommands = [];
-  let visitedBinFolders = [];
   for (const registry of Object.keys(registries)) {
     const binFolder = path.join(config.cwd, config.registries[registry].folder, '.bin');
     if (!visitedBinFolders.includes(binFolder)) {
