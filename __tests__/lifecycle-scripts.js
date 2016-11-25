@@ -1,5 +1,6 @@
 /* @flow */
 
+import NoopReporter from '../src/reporters/base-reporter.js';
 import makeTemp from './_temp';
 import * as fs from '../src/util/fs.js';
 
@@ -15,7 +16,7 @@ async function execCommand(cmd: string, packageName: string): Promise<string> {
   const srcPackageDir = path.join(fixturesLoc, packageName);
   const packageDir = await makeTemp(packageName);
 
-  await fs.copy(srcPackageDir, packageDir);
+  await fs.copy(srcPackageDir, packageDir, new NoopReporter());
 
   return new Promise((resolve, reject) => {
     const env = Object.assign({}, process.env);

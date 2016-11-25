@@ -174,7 +174,7 @@ export default class PackageLinker {
 
     //
     let tick;
-    await fs.copyBulk(Array.from(queue.values()), {
+    await fs.copyBulk(Array.from(queue.values()), this.reporter, {
       possibleExtraneous,
       phantomFiles,
 

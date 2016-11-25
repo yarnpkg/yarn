@@ -9,7 +9,7 @@ import Config from '../../src/config.js';
 import * as fs from '../../src/util/fs.js';
 import assert from 'assert';
 import semver from 'semver';
-import {getPackageVersion, explodeLockfile, runInstall, createLockfile} from './_install.js';
+import {getPackageVersion, explodeLockfile, runInstall, createLockfile} from './_helpers.js';
 import {promisify} from '../../src/util/promise';
 import fsNode from 'fs';
 import os from 'os';
@@ -402,8 +402,8 @@ test.concurrent(
         await fs.unlink(path.join(config.cwd, 'yarn.lock'));
         await fs.unlink(path.join(config.cwd, 'package.json'));
 
-        await fs.copy(path.join(config.cwd, 'yarn.lock.after'), path.join(config.cwd, 'yarn.lock'));
-        await fs.copy(path.join(config.cwd, 'package.json.after'), path.join(config.cwd, 'package.json'));
+        await fs.copy(path.join(config.cwd, 'yarn.lock.after'), path.join(config.cwd, 'yarn.lock'), reporter);
+        await fs.copy(path.join(config.cwd, 'package.json.after'), path.join(config.cwd, 'package.json'), reporter);
 
         const reinstall = new Install({}, config, reporter, await Lockfile.fromDirectory(config.cwd));
         await reinstall.init();
@@ -434,8 +434,8 @@ test.concurrent(
         await fs.unlink(path.join(config.cwd, 'yarn.lock'));
         await fs.unlink(path.join(config.cwd, 'package.json'));
 
-        await fs.copy(path.join(config.cwd, 'yarn.lock.after'), path.join(config.cwd, 'yarn.lock'));
-        await fs.copy(path.join(config.cwd, 'package.json.after'), path.join(config.cwd, 'package.json'));
+        await fs.copy(path.join(config.cwd, 'yarn.lock.after'), path.join(config.cwd, 'yarn.lock'), reporter);
+        await fs.copy(path.join(config.cwd, 'package.json.after'), path.join(config.cwd, 'package.json'), reporter);
 
         const reinstall = new Install({}, config, reporter, await Lockfile.fromDirectory(config.cwd));
         await reinstall.init();
@@ -614,7 +614,7 @@ test.concurrent('install should update a dependency to yarn and mirror (PR impor
       '2.0.0',
     );
 
-    await fs.copy(path.join(config.cwd, 'package.json.after'), path.join(config.cwd, 'package.json'));
+    await fs.copy(path.join(config.cwd, 'package.json.after'), path.join(config.cwd, 'package.json'), reporter);
 
     const reinstall = new Install({}, config, reporter, await Lockfile.fromDirectory(config.cwd));
     await reinstall.init();

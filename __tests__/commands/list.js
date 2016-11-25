@@ -2,15 +2,13 @@
 
 import type {Tree} from '../../src/reporters/types.js';
 import {BufferReporter} from '../../src/reporters/index.js';
+import {run as buildRun} from './_helpers.js';
 import {getParent, getReqDepth, run as list} from '../../src/cli/commands/list.js';
-import * as fs from '../../src/util/fs.js';
 import * as reporters from '../../src/reporters/index.js';
-import Config from '../../src/config.js';
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 90000;
 
 const path = require('path');
-const os = require('os');
 
 function makeTree(
   name,
@@ -26,61 +24,16 @@ function makeTree(
 }
 
 const fixturesLoc = path.join(__dirname, '..', 'fixtures', 'list');
-
-async function runList(
-  flags: Object,
-  args: Array<string>,
-  name: string,
-  checkList?: ?(config: Config, reporter: BufferReporter) => ?Promise<void>,
-): Promise<void> {
-  const dir = path.join(fixturesLoc, name);
-  const cwd = path.join(
-    os.tmpdir(),
-    `yarn-${path.basename(dir)}-${Math.random()}`,
-  );
-  await fs.unlink(cwd);
-  await fs.copy(dir, cwd);
-
-  for (const {basename, absolute} of await fs.walk(cwd)) {
-    if (basename.toLowerCase() === '.ds_store') {
-      await fs.unlink(absolute);
-    }
-  }
-
-  const out = '';
-
-  const reporter = new reporters.BufferReporter({stdout: null, stdin: null});
-
-  // create directories
-  await fs.mkdirp(path.join(cwd, '.yarn'));
-  await fs.mkdirp(path.join(cwd, 'node_modules'));
-
-  try {
-    const config = new Config(reporter);
-    await config.init({
-      cwd,
-      globalFolder: path.join(cwd, '.yarn/.global'),
-      cacheFolder: path.join(cwd, '.yarn'),
-      linkFolder: path.join(cwd, '.yarn/.link'),
-    });
-
-    await list(config, reporter, flags, args);
-
-    if (checkList) {
-      await checkList(config, reporter);
-    }
-
-  } catch (err) {
-    throw new Error(`${err && err.stack} \nConsole output:\n ${out}`);
-  }
-}
+const runList = buildRun.bind(null, BufferReporter, fixturesLoc, (args, flags, config, reporter): Promise<void> => {
+  return list(config, reporter, flags, args);
+});
 
 test.concurrent('throws if lockfile out of date', (): Promise<void> => {
   const reporter = new reporters.ConsoleReporter({});
 
   return new Promise(async (resolve) => {
     try {
-      await runList({}, [], 'lockfile-outdated');
+      await runList([], {}, 'lockfile-outdated');
     } catch (err) {
       expect(err.message).toContain(reporter.lang('lockfileOutdated'));
     } finally {
@@ -90,8 +43,8 @@ test.concurrent('throws if lockfile out of date', (): Promise<void> => {
 });
 
 test.concurrent('lists everything with no args', (): Promise<void> => {
-  return runList({}, [], 'no-args', (config, reporter): ?Promise<void> => {
-    const rprtr = new reporters.BufferReporter({});
+  return runList([], {}, 'no-args', (config, reporter): ?Promise<void> => {
+    const rprtr = new BufferReporter({});
     const tree = reporter.getBuffer().slice(-1);
     const children = [{name: 'is-plain-obj@^1.0.0', color: 'dim', shadow: true}];
     const trees = [
@@ -107,8 +60,8 @@ test.concurrent('lists everything with no args', (): Promise<void> => {
 });
 
 test.concurrent('respects depth flag', (): Promise<void> => {
-  return runList({depth: 1}, [], 'depth-flag', (config, reporter): ?Promise<void> => {
-    const rprtr = new reporters.BufferReporter({});
+  return runList([], {depth: 1}, 'depth-flag', (config, reporter): ?Promise<void> => {
+    const rprtr = new BufferReporter({});
     const tree = reporter.getBuffer().slice(-1);
     const trees = [
       makeTree('sort-keys@1.1.2', {color: 'bold'}),
@@ -122,8 +75,8 @@ test.concurrent('respects depth flag', (): Promise<void> => {
 });
 
 test.concurrent('accepts an argument', (): Promise<void> => {
-  return runList({}, ['is-plain-obj'], 'one-arg', (config, reporter): ?Promise<void> => {
-    const rprtr = new reporters.BufferReporter({});
+  return runList(['is-plain-obj'], {}, 'one-arg', (config, reporter): ?Promise<void> => {
+    const rprtr = new BufferReporter({});
     const tree = reporter.getBuffer().slice(-1);
     const trees = [
       makeTree('is-plain-obj@1.1.0'),
