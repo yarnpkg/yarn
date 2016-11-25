@@ -30,18 +30,18 @@ export async function run(
   const pkg = await config.readManifest(config.cwd);
   const scripts = map();
   const binCommands = [];
-  const visitedBinFolders = [];
+  const visitedBinFolders = new Set();
   let pkgCommands = [];
   for (const registry of Object.keys(registries)) {
     const binFolder = path.join(config.cwd, config.registries[registry].folder, '.bin');
-    if (!visitedBinFolders.includes(binFolder)) {
+    if (!visitedBinFolders.has(binFolder)) {
       if (await fs.exists(binFolder)) {
         for (const name of await fs.readdir(binFolder)) {
           binCommands.push(name);
           scripts[name] = `"${path.join(binFolder, name)}"`;
         }
       }
-      visitedBinFolders.push(binFolder);
+      visitedBinFolders.add(binFolder);
     }
   }
   if (pkg.scripts) {
