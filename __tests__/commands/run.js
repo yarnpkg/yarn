@@ -25,8 +25,7 @@ test('lists all available commands with no arguments', (): Promise<void> => {
   return runRun([], {}, 'no-args', (config, reporter): ?Promise<void> => {
     const rprtr = new reporters.BufferReporter({stdout: null, stdin: null});
     const scripts = ['build', 'prestart', 'start'];
-    // Notice `cat-names` is below twice as there is a bug with output duplication
-    const bins = ['cat-names', 'cat-names'];
+    const bins = ['cat-names'];
 
     // Emulate run output
     rprtr.error(rprtr.lang('commandNotSpecified'));
