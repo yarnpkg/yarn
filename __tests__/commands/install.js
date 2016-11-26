@@ -794,3 +794,17 @@ test('install a scoped module from authed private registry', (): Promise<void> =
     );
   });
 });
+
+test.concurrent('install a module with incompatible optional dependency should skip dependency',
+  (): Promise<void> => {
+    return runInstall({}, 'install-should-skip-incompatible-optional-dep', async (config) => {
+      assert.ok(!(await fs.exists(path.join(config.cwd, 'node_modules', 'dep-incompatible'))));
+    });
+  });
+
+test.concurrent('install a module with incompatible optional dependency should skip transient dependencies',
+  (): Promise<void> => {
+    return runInstall({}, 'install-should-skip-incompatible-optional-dep', async (config) => {
+      assert.ok(!(await fs.exists(path.join(config.cwd, 'node_modules', 'dep-a'))));
+    });
+  });
