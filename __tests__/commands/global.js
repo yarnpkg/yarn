@@ -48,7 +48,8 @@ test.concurrent('add with prefix flag', (): Promise<void> => {
   });
 });
 
-test.concurrent('add with PREFIX enviroment variable', (): Promise<void> => {
+// don't run this test in `concurrent`, it will affect other tests
+test('add with PREFIX enviroment variable', (): Promise<void> => {
   const tmpGlobalFolder = getTempGlobalFolder();
   const envPrefix = process.env.PREFIX;
   process.env.PREFIX = tmpGlobalFolder;
