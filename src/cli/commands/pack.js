@@ -39,9 +39,7 @@ const DEFAULT_IGNORE = ignoreLinesToRegex([
   '.gitignore',
   '.DS_Store',
   'node_modules',
-]);
 
-const NEVER_IGNORE = ignoreLinesToRegex([
   // never ignore these files
   '!package.json',
   '!readme*',
@@ -63,16 +61,12 @@ function addEntry(packer: any, entry: Object, buffer?: ?Buffer): Promise<void> {
 
 export async function pack(config: Config, dir: string): Promise<stream$Duplex> {
   const pkg = await config.readRootManifest();
-  const {bundledDependencies, files: onlyFiles} = pkg;
 
-  // inlude required files
-  let filters: Array<IgnoreFilter> = NEVER_IGNORE.slice();
-  // include default filters unless `files` is used
-  if (!onlyFiles) {
-    filters = filters.concat(DEFAULT_IGNORE);
-  }
+  //
+  let filters: Array<IgnoreFilter> = DEFAULT_IGNORE.slice();
 
   // include bundledDependencies
+  const {bundledDependencies} = pkg;
   if (bundledDependencies) {
     const folder = config.getFolder(pkg);
     filters = ignoreLinesToRegex(
@@ -82,16 +76,15 @@ export async function pack(config: Config, dir: string): Promise<stream$Duplex> 
   }
 
   // `files` field
+  const {files: onlyFiles} = pkg;
   if (onlyFiles) {
     let lines = [
       '*', // ignore all files except those that are explicitly included with a negation filter
-      '.*', // files with "." as first character have to be excluded explicitly 
     ];
     lines = lines.concat(
       onlyFiles.map((filename: string): string => `!${filename}`),
     );
-    const regexes = ignoreLinesToRegex(lines, '.');
-    filters = filters.concat(regexes);
+    filters = ignoreLinesToRegex(lines, '.');
   }
 
   //

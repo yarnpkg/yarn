@@ -1,7 +1,0 @@
-{
-  "name": "files-exclude",
-  "version": "1.0.0",
-  "main": "index.js",
-  "license": "MIT",
-  "files": ["index.js", "a.js", "b.js"]
-}
