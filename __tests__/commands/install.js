@@ -538,6 +538,15 @@ test('install should respect NODE_ENV=production', (): Promise<void> => {
   });
 });
 
+test.concurrent('install production should handle common dependency', (): Promise<void> => {
+  return runInstall({production: true}, 'install-production-should-handle-common-dependency', async (config) => {
+    assert.equal(await getPackageVersion(config, 'dep-a'), '1.0.0');
+    assert.equal(await getPackageVersion(config, 'dep-c'), '1.0.0');
+    assert.equal(await getPackageVersion(config, 'dep-d'), '1.0.0');
+    expect(await fs.exists(path.join(config.cwd, 'node_modules/dep-b/package.json'))).toBe(false);
+  });
+});
+
 
 test.concurrent('install should resolve circular dependencies 2', (): Promise<void> => {
   return runInstall({}, 'install-should-circumvent-circular-dependencies-2', async (config, reporter) => {
