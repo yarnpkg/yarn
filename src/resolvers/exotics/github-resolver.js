@@ -12,7 +12,11 @@ export default class GitHubResolver extends HostedGitResolver {
     if (pattern.startsWith('github:')) {
       return true;
     }
-
+    
+    if (pattern.startsWith('git@github.com:')) {
+      return true;
+    }
+    
     // github shorthand
     if (/^[^:@%/\s.-][^:@%/\s]*[/][^:@\s/%]+(?:#.*)?$/.test(pattern)) {
       return true;
