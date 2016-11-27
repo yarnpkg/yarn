@@ -175,9 +175,6 @@ export default class Config {
     this._init(opts);
 
     await fs.mkdirp(this.globalFolder);
-    await fs.mkdirp(this.cacheFolder);
-    await fs.mkdirp(this.tempFolder);
-
     await fs.mkdirp(this.linkFolder);
     this.linkedModules = await fs.readdir(this.linkFolder);
 
@@ -203,6 +200,12 @@ export default class Config {
       cert: String(opts.cert || this.getOption('cert') || ''),
       key: String(opts.key || this.getOption('key') || ''),
     });
+
+    //init & create cacheFolder, tempFolder
+    this.cacheFolder = String(opts.cacheFolder || this.getOption('cache-folder') || constants.MODULE_CACHE_DIRECTORY);
+    this.tempFolder = opts.tempFolder || path.join(this.cacheFolder, '.tmp');
+    await fs.mkdirp(this.cacheFolder);
+    await fs.mkdirp(this.tempFolder);
   }
 
   _init(opts: ConfigOptions) {
@@ -221,9 +224,7 @@ export default class Config {
     this.preferOffline = !!opts.preferOffline;
     this.modulesFolder = opts.modulesFolder;
     this.globalFolder = opts.globalFolder || constants.GLOBAL_MODULE_DIRECTORY;
-    this.cacheFolder = opts.cacheFolder || constants.MODULE_CACHE_DIRECTORY;
     this.linkFolder = opts.linkFolder || constants.LINK_REGISTRY_DIRECTORY;
-    this.tempFolder = opts.tempFolder || path.join(this.cacheFolder, '.tmp');
     this.production = !!opts.production;
     this.offline = !!opts.offline;
     this.binLinks = !!opts.binLinks;
