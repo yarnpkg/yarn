@@ -1,0 +1,7 @@
+{
+  "name": "sub-a",
+  "version": "1.0.0",
+  "dependencies": {
+    "root-b": "file:../../root-b"
+  }
+}

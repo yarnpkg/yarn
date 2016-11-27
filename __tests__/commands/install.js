@@ -130,6 +130,15 @@ test.concurrent('root install with optional deps', (): Promise<void> => {
   return runInstall({}, 'root-install-with-optional-dependency');
 });
 
+test.concurrent('install file: protocol with relative paths', (): Promise<void> => {
+  return runInstall({noLockfile: true}, 'install-file-relative', async (config) => {
+    assert.equal(
+      await fs.readFile(path.join(config.cwd, 'node_modules', 'root-a', 'index.js')),
+      'foobar\n',
+    );
+  });
+});
+
 test.concurrent('install file: protocol', (): Promise<void> => {
   return runInstall({noLockfile: true}, 'install-file', async (config) => {
     assert.equal(
