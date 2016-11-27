@@ -78,9 +78,9 @@ test.concurrent('removes multiple installed packages', (): Promise<void> => {
 });
 
 
-test.concurrent('removes scoped packages', (): Promise<void> => {
-  return runRemove(['@scoped/package'], {}, 'scoped-package', async (config): Promise<void> => {
-    assert(!await fs.exists(path.join(config.cwd, 'node_modules/@scoped')));
+test.concurrent('removes the whole scope when all scoped packages are removed', (): Promise<void> => {
+  return runRemove(['@types/chai', '@types/lodash'], {}, 'scoped-package', async (config): Promise<void> => {
+    assert(!await fs.exists(path.join(config.cwd, 'node_modules/@types')));
 
     assert.deepEqual(
       JSON.parse(await fs.readFile(path.join(config.cwd, 'package.json'))).dependencies,
@@ -90,6 +90,23 @@ test.concurrent('removes scoped packages', (): Promise<void> => {
     const lockFileContent = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
     const lockFileLines = explodeLockfile(lockFileContent);
     assert.equal(lockFileLines.length, 0);
+  });
+});
+
+test.concurrent('removes a single scoped package', (): Promise<void> => {
+  return runRemove(['@types/chai'], {}, 'scoped-package', async (config): Promise<void> => {
+    assert(!await fs.exists(path.join(config.cwd, 'node_modules/@types/chai')));
+
+    assert.deepEqual(
+      JSON.parse(await fs.readFile(path.join(config.cwd, 'package.json'))).dependencies,
+      {
+        '@types/lodash': '^4.14.40',
+      },
+    );
+
+    const lockFileContent = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
+    const lockFileLines = explodeLockfile(lockFileContent);
+    assert.equal(lockFileLines.length, 3);
   });
 });
 

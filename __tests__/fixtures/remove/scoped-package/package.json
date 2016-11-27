@@ -1,5 +1,6 @@
 {
   "dependencies": {
-    "@scoped/package": "^1.0.1"
+    "@types/chai": "^3.4.34",
+    "@types/lodash": "^4.14.40"
   }
 }
