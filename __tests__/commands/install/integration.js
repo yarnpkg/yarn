@@ -161,6 +161,20 @@ test.concurrent("writes new lockfile if existing one isn't satisfied", async ():
   });
 });
 
+test.concurrent("throws an error if existing lockfile isn't satisfied with --frozen-lockfile", (): Promise<void> => {
+  const reporter = new reporters.ConsoleReporter({});
+
+  return new Promise((resolve) => {
+    try {
+      runInstall({frozenLockfile: true}, 'install-throws-error-if-not-satisfied-and-frozen-lockfile', () => {});
+    } catch (err) {
+      expect(err.message).toContain(reporter.lang('frozenLockfileError'));
+    } finally {
+      resolve();
+    }
+  });
+});
+
 test.concurrent('install transitive optional dependency from lockfile', (): Promise<void> => {
   return runInstall({}, 'install-optional-dep-from-lockfile', (config, reporter, install) => {
     assert(install && install.resolver && install.resolver.patterns['fsevents@^1.0.0']);
