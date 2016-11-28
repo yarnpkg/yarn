@@ -1,0 +1,8 @@
+{
+  "license": "ISC",
+  "dependencies": {
+    "dep-a": "^1.0.0",
+    "dep-c": "^1.0.0",
+    "react-native-cli": "^1.0.0"
+  }
+}

@@ -17,10 +17,12 @@ const cmdShim = promise.promisify(require('cmd-shim'));
 const semver = require('semver');
 const path = require('path');
 
-type DependencyPairs = Array<{
+type DependencyPair = {
   dep: Manifest,
   loc: string
-}>;
+};
+
+type DependencyPairs = Array<DependencyPair>;
 
 export async function linkBin(src: string, dest: string): Promise<void> {
   if (process.platform === 'win32') {
@@ -43,6 +45,11 @@ export default class PackageLinker {
   resolver: PackageResolver;
   config: Config;
 
+  // make linkBin testable by inserting the function into PackageLinker
+  async linkBin(src: string, dest: string): Promise<void> {
+    await linkBin(src, dest);
+  }
+
   async linkSelfDependencies(pkg: Manifest, pkgLoc: string, targetBinLoc: string): Promise<void> {
     targetBinLoc = await fs.realpath(targetBinLoc);
     pkgLoc = await fs.realpath(pkgLoc);
@@ -53,11 +60,11 @@ export default class PackageLinker {
         // TODO maybe throw an error
         continue;
       }
-      await linkBin(src, dest);
+      await this.linkBin(src, dest);
     }
   }
 
-  async linkBinDependencies(pkg: Manifest, dir: string): Promise<void> {
+  async getBinDependencies(pkg: Manifest): Promise<DependencyPairs> {
     const deps: DependencyPairs = [];
 
     const ref = pkg._reference;
@@ -91,18 +98,68 @@ export default class PackageLinker {
       }
     }
 
-    // no deps to link
-    if (!deps.length) {
-      return;
+    return deps;
+  }
+
+  async linkDependencies(flatTree: HoistManifestTuples): Promise<void> {
+    // Create a map of .bin location to a map of bin command and its
+    // source location. we remove all duplicates for each .bin location,
+    // this will prevents multiple calls to create the same symlink.
+    const binsByLocation: Map<string, Map<string, Manifest>> = new Map();
+    async function getBinLinks(binLoc: string): Promise<Map<string, Manifest>> {
+      if (!binsByLocation.has(binLoc)) {
+        // ensure our .bin file we're writing these to exists
+        await fs.mkdirp(binLoc);
+        binsByLocation.set(binLoc, new Map());
+      }
+      const binLinks = binsByLocation.get(binLoc);
+      invariant(binLinks, 'expected value');
+      return binLinks;
     }
 
-    // ensure our .bin file we're writing these to exists
-    const binLoc = path.join(dir, '.bin');
-    await fs.mkdirp(binLoc);
+    let binsCount = 0;
+    for (const [dest, {pkg}] of flatTree) {
+      const modules = this.config.getFolder(pkg);
+      const rootLoc = path.join(this.config.cwd, modules);
+      const pkgLoc = path.dirname(dest);
+      const parentBinLoc = path.join(pkgLoc, '.bin');
+      const pkgBinLoc = path.join(dest, modules, '.bin');
+
+      const deps = await this.getBinDependencies(pkg);
+
+      for (const {dep, loc} of deps) {
+        // replace dependency location that point to different package,
+        // if the one in the current location is identical
+        let newDepLoc;
+        const depLoc = path.dirname(loc);
+        if (depLoc !== pkgLoc && depLoc !== rootLoc && path.dirname(depLoc) !== dest) {
+          newDepLoc = path.join(dest, modules, dep.name);
+          const manifest = await this.config.maybeReadManifest(newDepLoc);
+          if (!manifest || manifest.version !== dep.version) {
+            newDepLoc = null;
+          }
+        }
+
+        // When both package and dependency are in the same folder use the .bin
+        // in that folder, else use the .bin in the package.
+        const location = newDepLoc || loc;
+        const binLoc = path.dirname(location) === pkgLoc ? parentBinLoc : pkgBinLoc;
+        const binLinks = await getBinLinks(binLoc);
+        // Remove Duplicates
+        if (!binLinks.has(location)) {
+          binLinks.set(location, dep);
+          binsCount++;
+        }
+      }
+    }
 
     // write the executables
-    for (const {dep, loc} of deps) {
-      await this.linkSelfDependencies(dep, loc, binLoc);
+    const tickBin = this.reporter.progress(binsCount);
+    for (const [binLoc, binLinks] of binsByLocation) {
+      for (const [loc, dep] of binLinks) {
+        await this.linkSelfDependencies(dep, loc, binLoc);
+        tickBin(loc);
+      }
     }
   }
 
@@ -202,12 +259,7 @@ export default class PackageLinker {
 
     //
     if (this.config.binLinks) {
-      const tickBin = this.reporter.progress(flatTree.length);
-      await promise.queue(flatTree, async ([dest, {pkg}]) => {
-        const binLoc = path.join(dest, this.config.getFolder(pkg));
-        await this.linkBinDependencies(pkg, binLoc);
-        tickBin(dest);
-      }, 4);
+      await this.linkDependencies(flatTree);
     }
   }
 

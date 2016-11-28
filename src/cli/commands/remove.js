@@ -19,7 +19,7 @@ export async function run(
   reporter: Reporter,
   flags: Object,
   args: Array<string>,
-): Promise<void> {
+): Promise<Install> {
   if (!args.length) {
     throw new MessageError(reporter.lang('tooFewArguments', 1));
   }
@@ -80,4 +80,5 @@ export async function run(
 
   //
   reporter.success(reporter.lang('uninstalledPackages'));
+  return reinstall;
 }

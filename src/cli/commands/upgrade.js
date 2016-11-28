@@ -17,8 +17,9 @@ export async function run(
   reporter: Reporter,
   flags: Object,
   args: Array<string>,
-): Promise<void> {
+): Promise<Add> {
   const lockfile = args.length ? await Lockfile.fromDirectory(config.cwd, reporter) : new Lockfile();
   const install = new Add(args, flags, config, reporter, lockfile);
   await install.init();
+  return install;
 }
