@@ -145,7 +145,7 @@ yarn_install() {
   printf "${white}Installing Yarn!$reset\n"
 
   if [ -d "$HOME/.yarn" ]; then
-    if [ -n `which yarn` ]; then
+    if which yarn; then
       local latest_url
       local specified_version
       local version_type
@@ -169,8 +169,8 @@ yarn_install() {
         rm -rf "$HOME/.yarn"
       fi
     else
-      printf "$red> ~/.yarn already exists, possibly from a past Yarn install.$reset\n"
-      printf "$red> Remove it (rm -rf ~/.yarn) and run this script again.$reset\n"
+      printf "$red> $HOME/.yarn already exists, possibly from a past Yarn install.$reset\n"
+      printf "$red> Remove it (rm -rf $HOME/.yarn) and run this script again.$reset\n"
       exit 0
     fi
   fi
