@@ -55,6 +55,7 @@ commander.option('--force', 'ignore all caches');
 commander.option('--no-bin-links', "don't generate bin links when setting up packages");
 commander.option('--flat', 'only allow one version of a package');
 commander.option('--prod, --production', '');
+commander.option('--only-dev', 'only install devDependencies');
 commander.option('--no-lockfile', "don't read or generate a lockfile");
 commander.option('--pure-lockfile', "don't generate a lockfile");
 commander.option('--global-folder <path>', '');
@@ -385,7 +386,7 @@ config.init({
   }
 }).catch((err: Error) => {
   reporter.verbose(err.stack);
-  
+
   if (err instanceof MessageError) {
     reporter.error(err.message);
   } else {

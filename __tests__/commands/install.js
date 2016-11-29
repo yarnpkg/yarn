@@ -480,6 +480,18 @@ test.concurrent('check should verify that top level dependencies are installed c
   });
 });
 
+test.concurrent('install should only install dev dependencies', async () => {
+  const cwd = path.join(fixturesLoc, 'install-only-dev-dependencies');
+  const reporter = new reporters.NoopReporter();
+  const config = new Config(reporter);
+  await config.init({cwd});
+
+  const install = new Install({onlyDev: true}, config, reporter, new Lockfile());
+  await install.init();
+  expect(await fs.exists(path.join(config.cwd, 'node_modules/fake-yarn-dependency/package.json'))).toBe(false);
+  expect(await fs.exists(path.join(config.cwd, 'node_modules/mime-types/package.json'))).toBe(true);
+});
+
 test.concurrent('install should run install scripts in the order of dependencies', (): Promise<void> => {
   return runInstall({}, 'scripts-order', async (config, reporter) => {
     expect(await fs.exists(path.join(config.cwd, 'node_modules/dep-a/dep-a-built'))).toBe(true);

@@ -60,6 +60,7 @@ type Flags = {
   lockfile: boolean,
   pureLockfile: boolean,
   skipIntegrity: boolean,
+  onlyDev: boolean,
 
   // add
   peer: boolean,
@@ -124,6 +125,7 @@ function normalizeFlags(config: Config, rawFlags: Object): Flags {
     lockfile: rawFlags.lockfile !== false,
     pureLockfile: !!rawFlags.pureLockfile,
     skipIntegrity: !!rawFlags.skipIntegrity,
+    onlyDev: !!rawFlags.onlyDev,
 
     // add
     peer: !!rawFlags.peer,
@@ -252,12 +254,15 @@ export class Install {
         }
       };
 
-      pushDeps('dependencies', {hint: null, visibility: PackageReference.USED, optional: false});
-
       const devVisibility = this.flags.production ? PackageReference.ENVIRONMENT_IGNORE : PackageReference.USED;
-      pushDeps('devDependencies', {hint: 'dev', visibility: devVisibility, optional: false});
 
-      pushDeps('optionalDependencies', {hint: 'optional', visibility: PackageReference.USED, optional: true});
+      if (this.flags.onlyDev) {
+        pushDeps('devDependencies', {hint: 'dev', visibility: devVisibility, optional: false});
+      } else {
+        pushDeps('dependencies', {hint: null, visibility: PackageReference.USED, optional: false});
+        pushDeps('devDependencies', {hint: 'dev', visibility: devVisibility, optional: false});
+        pushDeps('optionalDependencies', {hint: 'optional', visibility: PackageReference.USED, optional: true});
+      }
 
       break;
     }
