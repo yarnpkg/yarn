@@ -79,8 +79,8 @@ test.concurrent('removes multiple installed packages', (): Promise<void> => {
 
 
 test.concurrent('removes the whole scope when all scoped packages are removed', (): Promise<void> => {
-  return runRemove(['@types/chai', '@types/lodash'], {}, 'scoped-package', async (config): Promise<void> => {
-    assert(!await fs.exists(path.join(config.cwd, 'node_modules/@types')));
+  return runRemove(['@dengorbachev/foo', '@dengorbachev/bar'], {}, 'scoped-package', async (config): Promise<void> => {
+    assert(!await fs.exists(path.join(config.cwd, 'node_modules/@dengorbachev')));
 
     assert.deepEqual(
       JSON.parse(await fs.readFile(path.join(config.cwd, 'package.json'))).dependencies,
@@ -94,13 +94,13 @@ test.concurrent('removes the whole scope when all scoped packages are removed', 
 });
 
 test.concurrent('removes a single scoped package', (): Promise<void> => {
-  return runRemove(['@types/chai'], {}, 'scoped-package', async (config): Promise<void> => {
-    assert(!await fs.exists(path.join(config.cwd, 'node_modules/@types/chai')));
+  return runRemove(['@dengorbachev/foo'], {}, 'scoped-package', async (config): Promise<void> => {
+    assert(!await fs.exists(path.join(config.cwd, 'node_modules/@dengorbachev/foo')));
 
     assert.deepEqual(
       JSON.parse(await fs.readFile(path.join(config.cwd, 'package.json'))).dependencies,
       {
-        '@types/lodash': '^4.14.40',
+        '@dengorbachev/bar': '^1.0.0',
       },
     );
 
