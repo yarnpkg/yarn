@@ -1,5 +1,6 @@
 {
   "dependencies": {
-    "@scoped/package": "^1.0.1"
+    "@dengorbachev/bar": "^1.0.0",
+    "@dengorbachev/foo": "^1.0.0"
   }
 }

@@ -150,15 +150,23 @@ export default class PackageLinker {
       });
     }
 
-    // register root packages as being possibly extraneous
+    // register root & scoped packages as being possibly extraneous
     const possibleExtraneous: Set<string> = new Set();
     for (const folder of this.config.registryFolders) {
       const loc = path.join(this.config.cwd, folder);
 
       if (await fs.exists(loc)) {
         const files = await fs.readdir(loc);
+        let filepath;
         for (const file of files) {
-          possibleExtraneous.add(path.join(loc, file));
+          filepath = path.join(loc, file);
+          possibleExtraneous.add(filepath);
+          if (file[0] === '@') { // it's a scope, not a package
+            const subfiles = await fs.readdir(filepath);
+            for (const subfile of subfiles) {
+              possibleExtraneous.add(path.join(filepath, subfile));
+            }
+          }
         }
       }
     }
