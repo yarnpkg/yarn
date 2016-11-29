@@ -213,6 +213,13 @@ test.concurrent('install should dedupe dependencies avoiding conflicts 1', (): P
   });
 });
 
+test.concurrent('check and install should verify integrity in the same way when flat', (): Promise<void> => {
+  return runInstall({flat: true}, 'install-should-dedupe-avoiding-conflicts-1', async (config, reporter) => {
+    // Will raise if check doesn't flatten the patterns
+    await check(config, reporter, {flat: true, integrity: true}, []);
+  });
+});
+
 test.concurrent('install should dedupe dependencies avoiding conflicts 2', (): Promise<void> => {
   // A@2 -> B@2 -> C@2
   //            -> D@1
