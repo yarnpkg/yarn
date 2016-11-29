@@ -2,10 +2,10 @@
 # yarn lockfile v1
 
 
-"@types/chai@^3.4.34":
-  version "3.4.34"
-  resolved "https://registry.yarnpkg.com/@types/chai/-/chai-3.4.34.tgz#d5335792823bb09cddd5e38c3d211b709183854d"
+"@dengorbachev/bar@^1.0.0":
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/@dengorbachev/bar/-/bar-1.0.0.tgz#f01d868a938353e52703a6751ebf07e92016060d"
 
-"@types/lodash@^4.14.40":
-  version "4.14.40"
-  resolved "https://registry.yarnpkg.com/@types/lodash/-/lodash-4.14.40.tgz#e67478f69bb1ad93a0e7ab6f3f276816d27088de"
+"@dengorbachev/foo@^1.0.0":
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/@dengorbachev/foo/-/foo-1.0.0.tgz#67a8228a6cc54d7062b1de314bad734882302205"
