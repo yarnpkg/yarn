@@ -163,10 +163,8 @@ export default class PackageLinker {
           possibleExtraneous.add(filepath);
           if (file[0] === '@') { // it's a scope, not a package
             const subfiles = await fs.readdir(filepath);
-            let subfilepath;
             for (const subfile of subfiles) {
-              subfilepath = path.join(filepath, subfile);
-              possibleExtraneous.add(subfilepath);
+              possibleExtraneous.add(path.join(filepath, subfile));
             }
           }
         }
