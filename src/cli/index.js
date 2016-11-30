@@ -341,10 +341,16 @@ function onUnexpectedError(err: Error) {
   const errorLoc = path.join(config.cwd, 'yarn-error.log');
   try {
     fs.writeFileSync(errorLoc, log.join('\n\n') + '\n');
-  } catch (err) {}
 
-  reporter.error(reporter.lang('unexpectedError', err.message));
-  reporter.info(reporter.lang('bugReport', errorLoc));
+    reporter.error(reporter.lang('unexpectedError', err.message));
+    reporter.info(reporter.lang('bugReport', errorLoc));
+  } catch (err) {
+    if (err.code === 'EACCES') {
+      reporter.error(reporter.lang('noFilePermission', err.path));
+    } else {
+      console.error(err);
+    }
+  }
 }
 
 //
