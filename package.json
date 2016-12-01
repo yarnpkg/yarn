@@ -1,7 +1,7 @@
 {
   "name": "yarn",
   "installationMethod": "unknown",
-  "version": "0.17.9",
+  "version": "0.17.10",
   "license": "BSD-2-Clause",
   "preferGlobal": true,
   "dependencies": {
