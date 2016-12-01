@@ -277,7 +277,8 @@ const runEventuallyWithNetwork = (mutexPort: ?string): Promise<void> => {
 
       socket
         .on('connect', () => {
-          socket.unref(); // let it die
+          // Allow the program to exit if this is the only active server in the event system.
+          socket.unref();
         })
         .on('close', (hadError?: boolean) => {
           // the `close` event gets always called after the `error` event
