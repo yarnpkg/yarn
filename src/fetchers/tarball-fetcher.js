@@ -81,6 +81,12 @@ export default class TarballFetcher extends BaseFetcher {
     extractorStream
       .pipe(untarStream)
       .on('error', reject)
+      .on('entry', (entry: Object) => {
+        if (constants.ROOT_USER) {
+          entry.props.uid = entry.uid = 0;
+          entry.props.gid = entry.gid = 0;
+        }
+      })
       .on('end', () => {
         const expectHash = this.hash;
         const actualHash = validateStream.getHash();
