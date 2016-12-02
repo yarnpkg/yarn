@@ -23,7 +23,7 @@ export const runInstall = run.bind(
   async (args, flags, config, reporter, lockfile): Promise<Install> => {
     const install = new Install(flags, config, reporter, lockfile);
     await install.init();
-    await check(config, reporter, {}, []);
+    await check(config, reporter, flags, []);
     return install;
   },
   [],

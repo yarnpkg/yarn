@@ -254,8 +254,9 @@ export class Install {
 
       pushDeps('dependencies', {hint: null, visibility: PackageReference.USED, optional: false});
 
-      const devVisibility = this.flags.production ? PackageReference.ENVIRONMENT_IGNORE : PackageReference.USED;
-      pushDeps('devDependencies', {hint: 'dev', visibility: devVisibility, optional: false});
+      if (!this.flags.production) {
+        pushDeps('devDependencies', {hint: 'dev', visibility: PackageReference.USED, optional: false});
+      }
 
       pushDeps('optionalDependencies', {hint: 'optional', visibility: PackageReference.USED, optional: true});
 
