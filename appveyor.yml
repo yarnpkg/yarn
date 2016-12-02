@@ -6,7 +6,7 @@ environment:
 branches:
   only:
   - master
-  - /.*-stable/
+  - /v[0-9]+(\.[0-9]+)*/
 
 install:
   - ps: Install-Product node $env:node_version
@@ -44,5 +44,5 @@ deploy:
     authorization:
       secure: uH4c9HNDdRuL4omqqbTtBq3KgzjGTFmpvPdiNuk9391Z0YXRoRLA1Ptpa3seZ0Pt
     on:
-      branch: /^.*-stable$/
+      branch: /v[0-9]+(\.[0-9]+)*/
       appveyor_repo_tag: true
