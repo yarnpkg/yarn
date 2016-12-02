@@ -23,3 +23,10 @@ test.concurrent('write cache-folder config into .yarnrc file', (): Promise<void>
     expect(configFile).toContain('folder_dir_for_test');
   });
 });
+
+test.concurrent('cache-folder flag has higher priorities than .yarnrc file', (): Promise<void> => {
+  return runConfig(['set', 'cache-folder', 'set_config_folder_dir'], {'cacheFolder': 'flag_config_folder_dir'},
+    '', (config) => {
+      expect(config.cacheFolder).toContain('flag_config_folder_dir');
+    });
+});
