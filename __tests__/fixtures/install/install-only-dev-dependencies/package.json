@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "fake-yarn-dependency": "1.0.1"
+  },
+  "devDependencies": {
+    "mime-types": "^2.1.12"
+  }
+}
