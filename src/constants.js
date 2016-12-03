@@ -3,7 +3,7 @@
 const path = require('path');
 let userHome = require('user-home');
 
-if (process.platform === 'linux' && process.env.USER === 'root') {
+if (process.platform === 'linux' && isRootUser(getUid())) {
   userHome = path.resolve('/usr/local/share');
 }
 
