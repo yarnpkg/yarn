@@ -203,6 +203,10 @@ export default class Config {
       cert: String(opts.cert || this.getOption('cert') || ''),
       key: String(opts.key || this.getOption('key') || ''),
     });
+
+    if (this.getOption('production') || process.env.NODE_ENV === 'production') {
+      this.production = true;
+    }
   }
 
   _init(opts: ConfigOptions) {

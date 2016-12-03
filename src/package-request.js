@@ -4,11 +4,10 @@ import type {Dependency, DependencyRequestPattern, Manifest} from './types.js';
 import type PackageResolver from './package-resolver.js';
 import type {Reporter} from './reporters/index.js';
 import type Config from './config.js';
-import type {VisibilityAction} from './package-reference.js';
 import type {Install} from './cli/commands/install';
 import {cleanDependencies} from './util/normalize-manifest/validate.js';
 import Lockfile from './lockfile/wrapper.js';
-import {USED as USED_VISIBILITY, default as PackageReference} from './package-reference.js';
+import PackageReference from './package-reference.js';
 import {registries as registryResolvers} from './resolvers/index.js';
 import {MessageError} from './errors.js';
 import {entries} from './util/misc.js';
@@ -24,7 +23,6 @@ type ResolverRegistryNames = $Keys<typeof registryResolvers>;
 export default class PackageRequest {
   constructor(req: DependencyRequestPattern, resolver: PackageResolver) {
     this.parentRequest = req.parentRequest;
-    this.visibility = req.visibility;
     this.lockfile = resolver.lockfile;
     this.registry = req.registry;
     this.reporter = resolver.reporter;
@@ -52,7 +50,6 @@ export default class PackageRequest {
   pattern: string;
   config: Config;
   registry: ResolverRegistryNames;
-  visibility: VisibilityAction;
   optional: boolean;
 
   getParentNames(): Array<string> {
@@ -244,7 +241,6 @@ export default class PackageRequest {
     const ref = new PackageReference(this, info, remote);
     ref.addPattern(this.pattern, info);
     ref.addOptional(this.optional);
-    ref.addVisibility(this.visibility);
     info._reference = ref;
     info._remote = remote;
 
@@ -259,7 +255,6 @@ export default class PackageRequest {
       promises.push(this.resolver.find({
         pattern: depPattern,
         registry: remote.registry,
-        visibility: USED_VISIBILITY,
         optional: false,
         parentRequest: this,
       }));
@@ -272,7 +267,6 @@ export default class PackageRequest {
       promises.push(this.resolver.find({
         pattern: depPattern,
         registry: remote.registry,
-        visibility: USED_VISIBILITY,
         optional: true,
         parentRequest: this,
       }));
@@ -281,10 +275,9 @@ export default class PackageRequest {
     await Promise.all(promises);
     ref.addDependencies(deps);
 
-    // Now that we have all dependencies, it's safe to propagate optional & visibility
+    // Now that we have all dependencies, it's safe to propagate optional
     for (const otherRequest of ref.requests.slice(1)) {
       ref.addOptional(otherRequest.optional);
-      ref.addVisibility(otherRequest.visibility);
     }
   }
 
@@ -324,7 +317,7 @@ export default class PackageRequest {
     config: Config,
     reporter: Reporter,
   ): Promise<Array<Dependency>> {
-    const [depReqPatterns] = await install.fetchRequestFromCwd();
+    const {requests: depReqPatterns} = await install.fetchRequestFromCwd();
 
     const deps = await Promise.all(
       depReqPatterns.map(async ({pattern, hint}): Promise<Dependency> => {

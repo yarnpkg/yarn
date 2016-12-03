@@ -40,7 +40,7 @@ export async function run(
   }
 
   // get patterns that are installed when running `yarn install`
-  const [, rawPatterns] = await install.hydrate(true);
+  const {patterns: rawPatterns} = await install.hydrate(true);
   const patterns = await install.flatten(rawPatterns);
 
   // check if patterns exist in lockfile
@@ -65,7 +65,11 @@ export async function run(
   } else {
     // check if any of the node_modules are out of sync
     const res = await install.linker.getFlatHoistedTree(patterns);
-    for (const [loc, {originalKey, pkg}] of res) {
+    for (const [loc, {originalKey, pkg, ignore}] of res) {
+      if (ignore) {
+        continue;
+      }
+
       const parts = humaniseLocation(loc);
 
       // grey out hoisted portions of key

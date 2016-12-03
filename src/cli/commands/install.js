@@ -10,7 +10,6 @@ import {registryNames} from '../../registries/index.js';
 import {MessageError} from '../../errors.js';
 import Lockfile from '../../lockfile/wrapper.js';
 import lockStringify from '../../lockfile/stringify.js';
-import * as PackageReference from '../../package-reference.js';
 import PackageFetcher from '../../package-fetcher.js';
 import PackageInstallScripts from '../../package-install-scripts.js';
 import PackageCompatibility from '../../package-compatibility.js';
@@ -34,11 +33,13 @@ const path = require('path');
 const {version: YARN_VERSION, installationMethod: YARN_INSTALL_METHOD} = require('../../../package.json');
 const ONE_DAY = 1000 * 60 * 60 * 24;
 
-export type InstallCwdRequest = [
-  DependencyRequestPatterns,
-  Array<string>,
-  Object
-];
+export type InstallCwdRequest = {
+  requests: DependencyRequestPatterns,
+  patterns: Array<string>,
+  ignorePatterns: Array<string>,
+  usedPatterns: Array<string>,
+  manifest: Object,
+};
 
 export type IntegrityMatch = {
   actual: string,
@@ -56,7 +57,6 @@ type Flags = {
   har: boolean,
   force: boolean,
   flat: boolean,
-  production: boolean,
   lockfile: boolean,
   pureLockfile: boolean,
   skipIntegrity: boolean,
@@ -120,7 +120,6 @@ function normalizeFlags(config: Config, rawFlags: Object): Flags {
     ignoreOptional: !!rawFlags.ignoreOptional,
     force: !!rawFlags.force,
     flat: !!rawFlags.flat,
-    production: !!rawFlags.production,
     lockfile: rawFlags.lockfile !== false,
     pureLockfile: !!rawFlags.pureLockfile,
     skipIntegrity: !!rawFlags.skipIntegrity,
@@ -153,10 +152,6 @@ function normalizeFlags(config: Config, rawFlags: Object): Flags {
     flags.force = true;
   }
 
-  if (config.getOption('production') || process.env.NODE_ENV === 'production') {
-    flags.production = true;
-  }
-
   return flags;
 }
 
@@ -178,7 +173,7 @@ export class Install {
     this.resolver = new PackageResolver(config, lockfile);
     this.fetcher = new PackageFetcher(config, this.resolver);
     this.compatibility = new PackageCompatibility(config, this.resolver, this.flags.ignoreEngines);
-    this.linker = new PackageLinker(config, this.resolver, this.flags.ignoreOptional);
+    this.linker = new PackageLinker(config, this.resolver);
     this.scripts = new PackageInstallScripts(config, this.resolver, this.flags.force);
   }
 
@@ -204,6 +199,9 @@ export class Install {
     const patterns = [];
     const deps = [];
     const manifest = {};
+
+    const ignorePatterns = [];
+    const usedPatterns = [];
 
     // exclude package names that are in install args
     const excludeNames = [];
@@ -232,7 +230,7 @@ export class Install {
       Object.assign(this.resolutions, json.resolutions);
       Object.assign(manifest, json);
 
-      const pushDeps = (depType, {hint, visibility, optional}) => {
+      const pushDeps = (depType, {hint, optional}, isUsed) => {
         const depMap = json[depType];
         for (const name in depMap) {
           if (excludeNames.indexOf(name) >= 0) {
@@ -246,18 +244,21 @@ export class Install {
             pattern += '@' + depMap[name];
           }
 
+          if (isUsed) {
+            usedPatterns.push(pattern);
+          } else {
+            ignorePatterns.push(pattern);
+          }
+
           this.rootPatternsToOrigin[pattern] = depType;
           patterns.push(pattern);
-          deps.push({pattern, registry, visibility, hint, optional});
+          deps.push({pattern, registry, hint, optional});
         }
       };
 
-      pushDeps('dependencies', {hint: null, visibility: PackageReference.USED, optional: false});
-
-      const devVisibility = this.flags.production ? PackageReference.ENVIRONMENT_IGNORE : PackageReference.USED;
-      pushDeps('devDependencies', {hint: 'dev', visibility: devVisibility, optional: false});
-
-      pushDeps('optionalDependencies', {hint: 'optional', visibility: PackageReference.USED, optional: true});
+      pushDeps('dependencies', {hint: null, optional: false}, true);
+      pushDeps('devDependencies', {hint: 'dev', optional: false}, !this.config.production);
+      pushDeps('optionalDependencies', {hint: 'optional', optional: true}, !this.flags.ignoreOptional);
 
       break;
     }
@@ -267,7 +268,13 @@ export class Install {
       this.flags.flat = true;
     }
 
-    return [deps, patterns, manifest];
+    return {
+      requests: deps,
+      patterns,
+      manifest,
+      usedPatterns,
+      ignorePatterns,
+    };
   }
 
   /**
@@ -324,6 +331,25 @@ export class Install {
    * TODO description
    */
 
+  markIgnored(patterns: Array<string>) {
+    for (const pattern of patterns) {
+      const manifest = this.resolver.getStrictResolvedPattern(pattern);
+      const ref = manifest._reference;
+      invariant(ref, 'expected package reference');
+
+      if (ref.requests.length === 1) {
+        // this module was only depended on once by the root so we can safely ignore it
+        // if it was requested more than once then ignoring it would break a transitive
+        // dep that resolved to it
+        ref.ignore = true;
+      }
+    }
+  }
+
+  /**
+   * TODO description
+   */
+
   async init(): Promise<Array<string>> {
     this.checkUpdate();
 
@@ -334,17 +360,22 @@ export class Install {
 
     let patterns: Array<string> = [];
     const steps: Array<(curr: number, total: number) => Promise<{bailout: boolean} | void>> = [];
-    const [depRequests, rawPatterns] = await this.fetchRequestFromCwd();
+    const {
+      requests: depRequests,
+      patterns: rawPatterns,
+      ignorePatterns,
+      usedPatterns,
+    } = await this.fetchRequestFromCwd();
 
     steps.push(async (curr: number, total: number) => {
       this.reporter.step(curr, total, this.reporter.lang('resolvingPackages'), emoji.get('mag'));
       await this.resolver.init(this.prepareRequests(depRequests), this.flags.flat);
       patterns = await this.flatten(this.preparePatterns(rawPatterns));
-      return {bailout: await this.bailout(patterns)};
+      return {bailout: await this.bailout(usedPatterns)};
     });
 
-
     steps.push(async (curr: number, total: number) => {
+      this.markIgnored(ignorePatterns);
       this.reporter.step(curr, total, this.reporter.lang('fetchingPackages'), emoji.get('truck'));
       await this.fetcher.init();
       await this.compatibility.init();
@@ -641,7 +672,7 @@ export class Install {
       opts.push('flat');
     }
 
-    if (this.flags.production) {
+    if (this.config.production) {
       opts.push('production');
     }
 
@@ -664,10 +695,11 @@ export class Install {
 
   async hydrate(fetch?: boolean): Promise<InstallCwdRequest> {
     const request = await this.fetchRequestFromCwd();
-    const [depRequests, rawPatterns] = request;
+    const {requests: depRequests, patterns: rawPatterns, ignorePatterns} = request;
 
     await this.resolver.init(depRequests, this.flags.flat);
     await this.flatten(rawPatterns);
+    this.markIgnored(ignorePatterns);
 
     if (fetch) {
       // fetch packages, should hit cache most of the time
@@ -818,7 +850,7 @@ export async function wrapLifecycle(config: Config, flags: Object, factory: () =
   await config.executeLifecycleScript('install');
   await config.executeLifecycleScript('postinstall');
 
-  if (!flags.production) {
+  if (!config.production) {
     await config.executeLifecycleScript('prepublish');
   }
 }

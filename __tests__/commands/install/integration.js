@@ -1,25 +1,21 @@
 /* @flow */
 
-import {run as check} from '../../src/cli/commands/check.js';
-import * as constants from '../../src/constants.js';
-import * as reporters from '../../src/reporters/index.js';
-import {Install} from '../../src/cli/commands/install.js';
-import Lockfile from '../../src/lockfile/wrapper.js';
-import Config from '../../src/config.js';
-import * as fs from '../../src/util/fs.js';
-import assert from 'assert';
-import semver from 'semver';
-import {getPackageVersion, explodeLockfile, runInstall, createLockfile} from './_helpers.js';
-import {promisify} from '../../src/util/promise';
-import fsNode from 'fs';
-import os from 'os';
+import {run as check} from '../../../src/cli/commands/check.js';
+import * as constants from '../../../src/constants.js';
+import {Install} from '../../../src/cli/commands/install.js';
+import Lockfile from '../../../src/lockfile/wrapper.js';
+import * as fs from '../../../src/util/fs.js';
+import {getPackageVersion, explodeLockfile, runInstall, createLockfile} from '../_helpers.js';
+import {promisify} from '../../../src/util/promise';
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 90000;
 
-const path = require('path');
 const request = require('request');
-
-const fixturesLoc = path.join(__dirname, '..', 'fixtures', 'install');
+const assert = require('assert');
+const semver = require('semver');
+const fsNode = require('fs');
+const path = require('path');
+const os = require('os');
 
 beforeEach(request.__resetAuthedRequests);
 // $FlowFixMe
@@ -71,36 +67,85 @@ test.concurrent("removes extraneous files that aren't in module or artifacts", a
   }, create);
 });
 
-test.concurrent('integrity hash respects flat and production flags', async () => {
-  const cwd = path.join(fixturesLoc, 'noop');
-  const reporter = new reporters.NoopReporter();
-  const config = new Config(reporter);
-  await config.init({cwd});
+test.concurrent("production mode with deduped dev dep shouldn't be removed", async () => {
+  await runInstall({production: true}, 'install-prod-deduped-dev-dep', async (config) => {
+    assert.equal(
+      (await fs.readJson(path.join(config.cwd, 'node_modules', 'a', 'package.json'))).version,
+      '1.0.0',
+    );
 
-  const lockfile = new Lockfile();
+    assert.equal(
+      (await fs.readJson(path.join(config.cwd, 'node_modules', 'c', 'package.json'))).version,
+      '1.0.0',
+    );
 
-  const install = new Install({}, config, reporter, lockfile);
-
-  const install2 = new Install({flat: true}, config, reporter, lockfile);
-  expect(install2.generateIntegrityHash('foo', [])).not.toEqual(install.generateIntegrityHash('foo', []));
-
-  const install3 = new Install({production: true}, config, reporter, lockfile);
-  expect(install3.generateIntegrityHash('foo', [])).not.toEqual(install.generateIntegrityHash('foo', []));
-  expect(install3.generateIntegrityHash('foo', [])).not.toEqual(install2.generateIntegrityHash('foo', []));
-});
-
-test.concurrent('flat arg is inherited from root manifest', async (): Promise<void> => {
-  const cwd = path.join(fixturesLoc, 'top-level-flat-parameter');
-  const reporter = new reporters.NoopReporter();
-  const config = new Config(reporter);
-  await config.init({cwd});
-  const install = new Install({}, config, reporter, new Lockfile());
-  return install.fetchRequestFromCwd().then(function([,, manifest]) {
-    assert.equal(manifest.flat, true);
-    assert.equal(install.flags.flat, true);
+    assert.ok(
+      !await fs.exists(path.join(config.cwd, 'node_modules', 'b')),
+    );
   });
 });
 
+test.concurrent('hoisting should factor ignored dependencies', async () => {
+  // you should only modify this test if you know what you're doing
+  // when we calculate hoisting we need to factor in ignored dependencies in it
+  // so we get deterministic hoisting across environments, for example in production mode
+  // we should still be taking dev dependencies into consideration
+
+  async function checkNormal(config): Promise<void> {
+    assert.equal(
+      (await fs.readJson(path.join(config.cwd, 'node_modules', 'a', 'package.json'))).version,
+      '1.0.0',
+    );
+
+    assert.equal(
+      (await fs.readJson(path.join(config.cwd, 'node_modules', 'd', 'package.json'))).version,
+      '1.0.0',
+    );
+
+    assert.equal(
+      (await fs.readJson(path.join(config.cwd, 'node_modules', 'd', 'node_modules', 'c', 'package.json'))).version,
+      '2.0.0',
+    );
+  }
+
+  await runInstall({}, 'install-ignored-retains-hoisting-structure', async (config) => {
+    await checkNormal(config);
+
+    assert.equal(
+      (await fs.readJson(path.join(config.cwd, 'node_modules', 'b', 'package.json'))).version,
+      '3.0.0',
+    );
+
+    assert.equal(
+      (await fs.readJson(path.join(config.cwd, 'node_modules', 'c', 'package.json'))).version,
+      '5.0.0',
+    );
+  });
+
+  await runInstall({production: true}, 'install-ignored-retains-hoisting-structure', async (config) => {
+    await checkNormal(config);
+
+    assert.ok(
+      !await fs.exists(path.join(config.cwd, 'node_modules', 'b')),
+    );
+
+    assert.ok(
+      !await fs.exists(path.join(config.cwd, 'node_modules', 'c')),
+    );
+  });
+});
+
+test.concurrent('--production flag ignores dev dependencies', () => {
+  return runInstall({production: true}, 'install-production', async (config) => {
+    assert.ok(
+      !await fs.exists(path.join(config.cwd, 'node_modules', 'lodash')),
+    );
+
+    assert.ok(
+      await fs.exists(path.join(config.cwd, 'node_modules', 'react')),
+    );
+  });
+});
 
 test.concurrent("doesn't write new lockfile if existing one satisfied", (): Promise<void> => {
   return runInstall({}, 'install-dont-write-lockfile-if-satisfied', async (config): Promise<void> => {
@@ -194,201 +239,10 @@ test.concurrent('install from github', (): Promise<void> => {
   return runInstall({}, 'install-github');
 });
 
-test.concurrent('install should dedupe dependencies avoiding conflicts 0', (): Promise<void> => {
-  // A@2.0.1 -> B@2.0.0
-  // B@1.0.0
-  // should result in B@2.0.0 not flattened
-  return runInstall({}, 'install-should-dedupe-avoiding-conflicts-0', async (config) => {
-    assert.equal(await getPackageVersion(config, 'dep-b'), '1.0.0');
-    assert.equal(await getPackageVersion(config, 'dep-a/dep-b'), '2.0.0');
-  });
-});
-
-test.concurrent('install should dedupe dependencies avoiding conflicts 1', (): Promise<void> => {
-  // A@2.0.1 -> B@2.0.0
-  // should result in B@2.0.0 flattened
-  return runInstall({}, 'install-should-dedupe-avoiding-conflicts-1', async (config) => {
-    assert.equal(await getPackageVersion(config, 'dep-b'), '2.0.0');
-    assert.equal(await getPackageVersion(config, 'dep-a'), '2.0.1');
-  });
-});
-
 test.concurrent('check and install should verify integrity in the same way when flat', (): Promise<void> => {
   return runInstall({flat: true}, 'install-should-dedupe-avoiding-conflicts-1', async (config, reporter) => {
     // Will raise if check doesn't flatten the patterns
     await check(config, reporter, {flat: true, integrity: true}, []);
-  });
-});
-
-test.concurrent('install should dedupe dependencies avoiding conflicts 2', (): Promise<void> => {
-  // A@2 -> B@2 -> C@2
-  //            -> D@1
-  // B@1 -> C@1
-  // should become
-  // A@2
-  // A@2 -> B@2
-  // A@2 -> C@2
-  // D@1
-  // C@1
-  // B@1
-
-  return runInstall({}, 'install-should-dedupe-avoiding-conflicts-2', async (config) => {
-    assert.equal(await getPackageVersion(config, 'dep-a'), '2.0.0');
-    assert.equal(await getPackageVersion(config, 'dep-a/dep-b'), '2.0.0');
-    assert.equal(await getPackageVersion(config, 'dep-c'), '1.0.0');
-    assert.equal(await getPackageVersion(config, 'dep-d'), '1.0.0');
-    assert.equal(await getPackageVersion(config, 'dep-b'), '1.0.0');
-    assert.equal(await getPackageVersion(config, 'dep-a/dep-c'), '2.0.0');
-  });
-});
-
-test.concurrent('install should dedupe dependencies avoiding conflicts 3', (): Promise<void> => {
-  // A@2 -> B@2 -> C@2
-  //            -> D@1
-  //     -> C@1
-  // should become
-  // A@2
-  // B@2 -> C@2
-  // C@1
-  // D@1
-  return runInstall({}, 'install-should-dedupe-avoiding-conflicts-3', async (config) => {
-    assert.equal(await getPackageVersion(config, 'dep-a'), '2.0.0');
-    assert.equal(await getPackageVersion(config, 'dep-c'), '1.0.0');
-    assert.equal(await getPackageVersion(config, 'dep-d'), '1.0.0');
-    assert.equal(await getPackageVersion(config, 'dep-b'), '2.0.0');
-    assert.equal(await getPackageVersion(config, 'dep-b/dep-c'), '2.0.0');
-  });
-});
-
-test.concurrent('install should dedupe dependencies avoiding conflicts 4', (): Promise<void> => {
-  // A@2 -> B@2 -> D@1 -> C@2
-  //
-  //     -> C@1
-
-  // should become
-  // A@2
-  // D@1 -> C@2
-  // C@1
-  // B@2
-  return runInstall({}, 'install-should-dedupe-avoiding-conflicts-4', async (config) => {
-    assert.equal(await getPackageVersion(config, 'dep-a'), '2.0.0');
-    assert.equal(await getPackageVersion(config, 'dep-c'), '1.0.0');
-    assert.equal(await getPackageVersion(config, 'dep-d'), '1.0.0');
-    assert.equal(await getPackageVersion(config, 'dep-d/dep-c'), '2.0.0');
-    assert.equal(await getPackageVersion(config, 'dep-b'), '2.0.0');
-  });
-});
-
-test.concurrent('install should dedupe dependencies avoiding conflicts 5', (): Promise<void> => {
-  // A@1 -> B@1
-  // C@1 -> D@1 -> A@2 -> B@2
-
-  // should become
-
-  // A@1
-  // B@1
-  // C@1
-  // D@1 -> A@2
-  //     -> B@2
-
-  return runInstall({}, 'install-should-dedupe-avoiding-conflicts-5', async (config) => {
-    assert.equal(await getPackageVersion(config, 'dep-a'), '1.0.0');
-    assert.equal(await getPackageVersion(config, 'dep-b'), '1.0.0');
-    assert.equal(await getPackageVersion(config, 'dep-c'), '1.0.0');
-    assert.equal(await getPackageVersion(config, 'dep-d'), '1.0.0');
-    assert.equal(await getPackageVersion(config, 'dep-d/dep-a'), '2.0.0');
-    assert.equal(await getPackageVersion(config, 'dep-d/dep-b'), '2.0.0');
-
-  });
-});
-
-test.concurrent(
-  'install should dedupe dependencies avoiding conflicts 6 (jest/jest-runtime case)',
-  (): Promise<void> => {
-    // C@1 -> D@1 -> E@1
-    // B@1 -> C@1 -> D@1 -> E@1
-    // D@2
-    // E@2
-
-    // should become
-
-    // C@1 -> D@1
-    //     -> E@1
-    // B@1
-    // D@2
-    // E@2
-
-    return runInstall({}, 'install-should-dedupe-avoiding-conflicts-6', async (config): Promise<void> => {
-      assert.equal(await getPackageVersion(config, 'dep-b'), '1.0.0');
-      assert.equal(await getPackageVersion(config, 'dep-c'), '1.0.0');
-      assert.equal(await getPackageVersion(config, 'dep-d'), '2.0.0');
-      assert.equal(await getPackageVersion(config, 'dep-e'), '2.0.0');
-
-      assert.equal(await getPackageVersion(config, 'dep-c/dep-d'), '1.0.0');
-      assert.equal(await getPackageVersion(config, 'dep-c/dep-e'), '1.0.0');
-    });
-  },
-);
-
-test.concurrent('install should dedupe dependencies avoiding conflicts 7', (): Promise<void> => {
-  // A@1 -> C@1 -> D@1 -> E@1
-  // B@1 -> C@1 -> D@1 -> E@1
-  // C@2
-  // D@2
-  // E@2
-
-  // should become
-
-  // A@1 -> C@1
-  //     -> D@1
-  //     -> E@1
-  // B@1 -> C@1
-  //     -> D@1
-  //     -> E@1
-  // C@2
-  // D@2
-  // E@2
-
-  return runInstall({}, 'install-should-dedupe-avoiding-conflicts-7', async (config) => {
-    assert.equal(await getPackageVersion(config, 'dep-a'), '1.0.0');
-    assert.equal(await getPackageVersion(config, 'dep-b'), '1.0.0');
-    assert.equal(await getPackageVersion(config, 'dep-c'), '2.0.0');
-    assert.equal(await getPackageVersion(config, 'dep-d'), '2.0.0');
-    assert.equal(await getPackageVersion(config, 'dep-e'), '2.0.0');
-
-    assert.equal(await getPackageVersion(config, 'dep-a/dep-c'), '1.0.0');
-    assert.equal(await getPackageVersion(config, 'dep-a/dep-d'), '1.0.0');
-    assert.equal(await getPackageVersion(config, 'dep-a/dep-e'), '1.0.0');
-
-    assert.equal(await getPackageVersion(config, 'dep-b/dep-c'), '1.0.0');
-    assert.equal(await getPackageVersion(config, 'dep-b/dep-d'), '1.0.0');
-    assert.equal(await getPackageVersion(config, 'dep-b/dep-e'), '1.0.0');
-  });
-});
-
-test.concurrent('install should dedupe dependencies avoiding conflicts 8', (): Promise<void> => {
-  // revealed in https://github.com/yarnpkg/yarn/issues/112
-  // adapted for https://github.com/yarnpkg/yarn/issues/1158
-  return runInstall({}, 'install-should-dedupe-avoiding-conflicts-8', async (config) => {
-    assert.equal(await getPackageVersion(config, 'glob'), '5.0.15');
-    assert.equal(await getPackageVersion(config, 'findup-sync/glob'), '4.3.5');
-    assert.equal(await getPackageVersion(config, 'inquirer'), '0.8.5');
-    assert.equal(await getPackageVersion(config, 'lodash'), '3.10.1');
-    assert.equal(await getPackageVersion(config, 'ast-query/lodash'), '4.15.0');
-    assert.equal(await getPackageVersion(config, 'run-async'), '0.1.0');
-  });
-});
-
-test.concurrent('install should dedupe dependencies avoiding conflicts 9', (): Promise<void> => {
-  // revealed in https://github.com/yarnpkg/yarn/issues/112
-  // adapted for https://github.com/yarnpkg/yarn/issues/1158
-  return runInstall({}, 'install-should-dedupe-avoiding-conflicts-9', async (config) => {
-    assert.equal(await getPackageVersion(config, 'glob'), '5.0.15');
-    assert.equal(await getPackageVersion(config, 'findup-sync/glob'), '4.3.5');
-    assert.equal(await getPackageVersion(config, 'inquirer'), '0.8.5');
-    assert.equal(await getPackageVersion(config, 'lodash'), '3.10.1');
-    assert.equal(await getPackageVersion(config, 'ast-query/lodash'), '4.15.0');
-    assert.equal(await getPackageVersion(config, 'run-async'), '0.1.0');
   });
 });
 
@@ -523,17 +377,6 @@ test.concurrent('install should circumvent circular dependencies', (): Promise<v
   });
 });
 
-// fix https://github.com/yarnpkg/yarn/issues/466
-test.concurrent('install should resolve circular dependencies 2', (): Promise<void> => {
-  return runInstall({}, 'install-should-circumvent-circular-dependencies-2', async (config, reporter) => {
-    assert.equal(
-      await getPackageVersion(config, 'es5-ext'),
-      '0.10.12',
-    );
-  });
-});
-
-
 // don't run this test in `concurrent`, it will affect other tests
 test('install should respect NODE_ENV=production', (): Promise<void> => {
   const env = process.env.NODE_ENV;
@@ -544,7 +387,6 @@ test('install should respect NODE_ENV=production', (): Promise<void> => {
     process.env.NODE_ENV = env;
   });
 });
-
 
 test.concurrent('install should resolve circular dependencies 2', (): Promise<void> => {
   return runInstall({}, 'install-should-circumvent-circular-dependencies-2', async (config, reporter) => {
@@ -613,7 +455,6 @@ test.concurrent('install should respect --no-bin-links flag', (): Promise<void> 
     assert(!binExists);
   });
 });
-
 
 test.concurrent('install should update a dependency to yarn and mirror (PR import scenario 2)', (): Promise<void> => {
   // mime-types@2.0.0 is gets updated to mime-types@2.1.11 via
@@ -797,6 +638,7 @@ test.concurrent('install uses OS line endings when lockfile doesn\'t exist', asy
     });
 });
 
+// sync test because we need to get all the requests to confirm their validity
 test('install a scoped module from authed private registry', (): Promise<void> => {
   return runInstall({noLockfile: true}, 'install-from-authed-private-registry', async (config) => {
     const authedRequests = request.__getAuthedRequests();
