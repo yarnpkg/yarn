@@ -17,14 +17,14 @@ const runConfig = buildRun.bind(
   },
 );
 
-test.concurrent('write cache-folder config into .yarnrc file', (): Promise<void> => {
+test('write cache-folder config into .yarnrc file', (): Promise<void> => {
   return runConfig(['set', 'cache-folder', 'folder_dir_for_test'], {}, '', async (config) => {
     const configFile = await fs.readFile(config.registries.yarn.homeConfigLoc);
     expect(configFile).toContain('folder_dir_for_test');
   });
 });
 
-test.concurrent('cache-folder flag has higher priorities than .yarnrc file', (): Promise<void> => {
+test('cache-folder flag has higher priorities than .yarnrc file', (): Promise<void> => {
   return runConfig(['set', 'cache-folder', 'set_config_folder_dir'], {'cacheFolder': 'flag_config_folder_dir'},
     '', (config) => {
       expect(config.cacheFolder).toContain('flag_config_folder_dir');
