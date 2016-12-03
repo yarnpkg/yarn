@@ -114,6 +114,7 @@ export async function run<T, R>(
       globalFolder: path.join(cwd, '.yarn-global'),
       cacheFolder: path.join(cwd, '.yarn-cache'),
       linkFolder: path.join(cwd, '.yarn-link'),
+      production: flags.production,
     });
 
     const install = await factory(args, flags, config, reporter, lockfile, () => out);
