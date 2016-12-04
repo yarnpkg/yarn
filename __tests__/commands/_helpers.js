@@ -112,7 +112,7 @@ export async function run<T, R>(
       binLinks: !!flags.binLinks,
       cwd,
       globalFolder: path.join(cwd, '.yarn-global'),
-      cacheFolder: path.join(cwd, '.yarn-cache'),
+      cacheFolder: flags.cacheFolder || path.join(cwd, '.yarn-cache'),
       linkFolder: path.join(cwd, '.yarn-link'),
       production: flags.production,
     });
