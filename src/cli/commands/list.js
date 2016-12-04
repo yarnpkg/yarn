@@ -176,7 +176,7 @@ export async function run(
 
   const lockfile = await Lockfile.fromDirectory(config.cwd, reporter);
   const install = new Install(flags, config, reporter, lockfile);
-  const [depRequests, patterns] = await install.fetchRequestFromCwd();
+  const {requests: depRequests, patterns} = await install.fetchRequestFromCwd();
   await install.resolver.init(depRequests, install.flags.flat);
 
   const opts: ListOptions = {

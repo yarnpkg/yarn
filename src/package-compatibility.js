@@ -4,7 +4,6 @@ import type PackageResolver from './package-resolver.js';
 import type {Reporter} from './reporters/index.js';
 import type {Manifest} from './types.js';
 import type Config from './config.js';
-import * as PackageReference from './package-reference.js';
 import {MessageError} from './errors.js';
 import map from './util/map.js';
 import {entries} from './util/misc.js';
@@ -126,7 +125,7 @@ export default class PackageCompatibility {
       invariant(ref, 'expected package reference');
 
       if (ref.optional) {
-        ref.addVisibility(PackageReference.ENVIRONMENT_IGNORE);
+        ref.ignore = true;
 
         reporter.warn(`${human}: ${msg}`);
         if (!didIgnore) {

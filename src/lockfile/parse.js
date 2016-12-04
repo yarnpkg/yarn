@@ -81,13 +81,19 @@ export function* tokenise(input: string): Iterator<Token> {
       }
     } else if (input[0] === '"') {
       let val = '';
+
       for (let i = 0; ; i++) {
-        const char = input[i];
-        val += char;
-        if (i > 0 && char === '"' && input[i - 1] !== "\\" && input[i - 2] !== "\\") {
-          break;
+        const currentChar = input[i];
+        val += currentChar;
+
+        if (i > 0 && currentChar === '"') {
+          const isEscaped = input[i - 1] === "\\" && input[i - 2] !== "\\";
+          if (!isEscaped) {
+            break;
+          }
         }
       }
+
       chop = val.length;
 
       try {

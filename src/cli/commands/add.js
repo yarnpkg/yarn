@@ -6,7 +6,6 @@ import type {DependencyRequestPatterns, Manifest} from '../../types.js';
 import type Config from '../../config.js';
 import type {ListOptions} from './list.js';
 import Lockfile from '../../lockfile/wrapper.js';
-import * as PackageReference from '../../package-reference.js';
 import PackageRequest from '../../package-request.js';
 import {buildTree} from './list.js';
 import {wrapLifecycle, Install} from './install.js';
@@ -40,6 +39,7 @@ export class Add extends Install {
   /**
    * TODO
    */
+
   prepareRequests(requests: DependencyRequestPatterns): DependencyRequestPatterns {
     const requestsWithArgs = requests.slice();
 
@@ -47,7 +47,6 @@ export class Add extends Install {
       requestsWithArgs.push({
         pattern,
         registry: 'npm',
-        visibility: PackageReference.USED,
         optional: false,
       });
     }

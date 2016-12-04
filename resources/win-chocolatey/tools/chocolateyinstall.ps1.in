@@ -21,8 +21,8 @@ if (Test-Path "${env:ProgramFiles(x86)}\Yarn\package.json") {
   $path = "$env:ProgramFiles\Yarn\package.json"
 }
 $script = @"
-  `$package_manifest = Get-Content -Path '$path' | ConvertFrom-Json
-  `$package_manifest.installationMethod = 'choco'
-  ConvertTo-Json -InputObject `$package_manifest | Set-Content -Path '$path'
+  (Get-Content -Path '$path') ``
+    -replace 'installationMethod":.+', 'installationMethod": "choco",' ``
+    | Set-Content '$path'
 "@
 Start-ChocolateyProcessAsAdmin -Statements $script

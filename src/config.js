@@ -206,6 +206,10 @@ export default class Config {
     this.tempFolder = opts.tempFolder || path.join(this.cacheFolder, '.tmp');
     await fs.mkdirp(this.cacheFolder);
     await fs.mkdirp(this.tempFolder);
+
+    if (this.getOption('production') || process.env.NODE_ENV === 'production') {
+      this.production = true;
+    }
   }
 
   _init(opts: ConfigOptions) {

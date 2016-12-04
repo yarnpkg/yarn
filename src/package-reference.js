@@ -8,14 +8,6 @@ import type PackageResolver from './package-resolver.js';
 import type {RegistryNames} from './registries/index.js';
 import {entries} from './util/misc.js';
 
-const invariant = require('invariant');
-
-export const ENVIRONMENT_IGNORE = 'ENVIRONMENT_IGNORE';
-export const REMOVED_ANCESTOR = 'REMOVED_ANCESTOR';
-export const USED = 'USED';
-
-export type VisibilityAction = 'ENVIRONMENT_IGNORE' | 'REMOVED_ANCESTOR' | 'USED';
-
 export default class PackageReference {
   constructor(
     request: PackageRequest,
@@ -39,7 +31,6 @@ export default class PackageReference {
     this.permissions = {};
     this.patterns = [];
     this.optional = null;
-    this.visibility = {[ENVIRONMENT_IGNORE]: 0, [REMOVED_ANCESTOR]: 0, [USED]: 0};
     this.root = false;
     this.ignore = false;
     this.fresh = false;
@@ -56,7 +47,6 @@ export default class PackageReference {
   version: string;
   uid: string;
   optional: ?boolean;
-  visibility: {[action: string]: number};
   ignore: boolean;
   fresh: boolean;
   dependencies: Array<string>;
@@ -127,53 +117,6 @@ export default class PackageReference {
       // otherwise, ignore all subsequent optional assignments and only accept ones making
       // this not optional
       this.optional = false;
-    }
-  }
-
-  calculateVisibility() {
-    let nowIgnore = false;
-    const stack = this.visibility;
-
-    // if we don't use this module then mark it as ignored
-    if (stack[USED] === 0) {
-      nowIgnore = true;
-    }
-
-    // if we have removed as many ancestors as it's used then it's out of the tree
-    if (stack[REMOVED_ANCESTOR] >= stack[USED]) {
-      nowIgnore = true;
-    }
-
-    // if the package is determinted to be incompatible with the environment, it should be ignored
-    if (stack[ENVIRONMENT_IGNORE] === 1) {
-      nowIgnore = true;
-    }
-
-    this.ignore = nowIgnore;
-  }
-
-  addVisibility(action: VisibilityAction, ancestry?: Set<PackageReference> = new Set()) {
-    this.visibility[action]++;
-    this.calculateVisibility();
-
-    if (ancestry.has(this)) {
-      return;
-    }
-    ancestry.add(this);
-
-    // go through and update all transitive dependencies to be ignored
-    for (const pattern of this.dependencies) {
-      const pkg = this.resolver.getResolvedPattern(pattern);
-      if (!pkg) {
-        continue;
-      }
-
-      const ref = pkg._reference;
-      invariant(ref, 'expected package reference');
-
-      if (action !== ENVIRONMENT_IGNORE) {
-        ref.addVisibility(action, ancestry);
-      }
     }
   }
 }
