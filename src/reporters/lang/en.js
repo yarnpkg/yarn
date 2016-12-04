@@ -226,6 +226,7 @@ const messages = {
   cantRequestOffline: 'Can\'t make a request in offline mode',
   requestManagerNotSetupHAR: 'RequestManager was not setup to capture HAR files',
   requestError: 'Request $0 returned a $1',
+  requestFailed: 'Request failed $0',
   tarballNotInNetworkOrCache: '$0: Tarball is not in network and can not be located in cache ($1)',
   fetchBadHash: 'Bad hash. Expected $0 but got $1 ',
   fetchErrorCorrupt: '$0. Mirror tarball appears to be corrupt. You can resolve this by running:\n\n  $ rm -rf $1\n  $ yarn install',
