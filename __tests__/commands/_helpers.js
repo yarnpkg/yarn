@@ -106,6 +106,11 @@ export async function run<T, R>(
   await fs.mkdirp(path.join(cwd, '.yarn-cache'));
   await fs.mkdirp(path.join(cwd, 'node_modules'));
 
+  // make sure the cache folder been created in temp folder
+  if (flags.cacheFolder) {
+    flags.cacheFolder = path.join(cwd, flags.cacheFolder);
+  }
+
   try {
     const config = new Config(reporter);
     await config.init({
