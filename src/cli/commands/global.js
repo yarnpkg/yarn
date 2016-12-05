@@ -31,6 +31,10 @@ class GlobalAdd extends Add {
 
 const path = require('path');
 
+export function hasWrapper(flags: Object, args: Array<string>): boolean {
+  return args[0] !== 'bin';
+}
+
 async function updateCwd(config: Config): Promise<void> {
   await config.init({
     cwd: config.globalFolder,
@@ -159,10 +163,6 @@ function ls(manifest: Manifest, reporter: Reporter, saved: boolean) {
   } else if (saved) {
     reporter.warn(`${human} has no binaries`);
   }
-}
-
-export function hasWrapper(flags: Object, args: Array<string>): boolean {
-  return args[0] !== 'bin';
 }
 
 const {run, setFlags: _setFlags} = buildSubCommands('global', {

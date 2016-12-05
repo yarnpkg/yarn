@@ -8,6 +8,10 @@ import {METADATA_FILENAME} from '../../constants';
 
 const path = require('path');
 
+export function hasWrapper(flags: Object, args: Array<string>): boolean {
+  return args[0] !== 'dir';
+}
+
 export const {run, setFlags} = buildSubCommands('cache', {
   async ls(
     config: Config,
