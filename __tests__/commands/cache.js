@@ -6,6 +6,8 @@ import * as configCmd from '../../src/cli/commands/config.js';
 import {run as buildRun} from './_helpers.js';
 import * as fs from '../../src/util/fs.js';
 
+const path = require('path');
+
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000;
 
 const runConfig = buildRun.bind(
@@ -13,6 +15,7 @@ const runConfig = buildRun.bind(
   reporters.ConsoleReporter,
   '',
   (args, flags, config, reporter): CLIFunctionReturn => {
+    config.registries.yarn.homeConfigLoc = path.join(config.cwd, '.yarnrc');
     return configCmd.run(config, reporter, flags, args);
   },
 );
