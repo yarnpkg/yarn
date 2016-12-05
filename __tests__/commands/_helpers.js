@@ -106,14 +106,20 @@ export async function run<T, R>(
   await fs.mkdirp(path.join(cwd, '.yarn-cache'));
   await fs.mkdirp(path.join(cwd, 'node_modules'));
 
+  // make sure the cache folder been created in temp folder
+  if (flags.cacheFolder) {
+    flags.cacheFolder = path.join(cwd, flags.cacheFolder);
+  }
+
   try {
     const config = new Config(reporter);
     await config.init({
       binLinks: !!flags.binLinks,
       cwd,
       globalFolder: path.join(cwd, '.yarn-global'),
-      cacheFolder: path.join(cwd, '.yarn-cache'),
+      cacheFolder: flags.cacheFolder || path.join(cwd, '.yarn-cache'),
       linkFolder: path.join(cwd, '.yarn-link'),
+      production: flags.production,
     });
 
     const install = await factory(args, flags, config, reporter, lockfile, () => out);

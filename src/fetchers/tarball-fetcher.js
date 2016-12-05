@@ -1,5 +1,6 @@
 /* @flow */
 
+import http from 'http';
 import {SecurityError, MessageError} from '../errors.js';
 import type {FetchedOverride} from '../types.js';
 import {UnpackStream} from '../util/stream.js';
@@ -157,6 +158,7 @@ export default class TarballFetcher extends BaseFetcher {
       },
       buffer: true,
       process: (req, resolve, reject) => {
+        const {reporter} = this.config;
         // should we save this to the offline cache?
         const mirrorPath = this.getMirrorPath();
         const tarballStorePath = path.join(this.dest, constants.TARBALL_FILENAME);
@@ -170,7 +172,17 @@ export default class TarballFetcher extends BaseFetcher {
           extractorStream,
         } = this.createExtractor(overwriteResolved, resolve, reject);
 
-        //
+        const handleRequestError = (res) => {
+          if (res.statusCode >= 400) {
+            // $FlowFixMe
+            const statusDescription = http.STATUS_CODES[res.statusCode];
+            reject(new Error(
+              reporter.lang('requestFailed', `${res.statusCode} ${statusDescription}`),
+            ));
+          }
+        };
+
+        req.on('response', handleRequestError);
         req.pipe(validateStream);
 
         validateStream
