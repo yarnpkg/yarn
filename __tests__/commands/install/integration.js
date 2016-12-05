@@ -2,6 +2,7 @@
 
 import {run as check} from '../../../src/cli/commands/check.js';
 import * as constants from '../../../src/constants.js';
+import * as reporters from '../../../src/reporters/index.js';
 import {Install} from '../../../src/cli/commands/install.js';
 import Lockfile from '../../../src/lockfile/wrapper.js';
 import * as fs from '../../../src/util/fs.js';
