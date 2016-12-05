@@ -57,6 +57,7 @@ commander.option('--flat', 'only allow one version of a package');
 commander.option('--prod, --production', '');
 commander.option('--no-lockfile', "don't read or generate a lockfile");
 commander.option('--pure-lockfile', "don't generate a lockfile");
+commander.option('--frozen-lockfile', "don't generate a lockfile and fail if an update is needed");
 commander.option('--global-folder <path>', '');
 commander.option(
   '--modules-folder <path>',

@@ -123,6 +123,7 @@ function normalizeFlags(config: Config, rawFlags: Object): Flags {
     lockfile: rawFlags.lockfile !== false,
     pureLockfile: !!rawFlags.pureLockfile,
     skipIntegrity: !!rawFlags.skipIntegrity,
+    frozenLockfile: !!rawFlags.frozenLockfile,
 
     // add
     peer: !!rawFlags.peer,
@@ -296,6 +297,11 @@ export class Install {
   ): Promise<boolean> {
     const match = await this.matchesIntegrityHash(patterns);
     const haveLockfile = await fs.exists(path.join(this.config.cwd, constants.LOCKFILE_FILENAME));
+
+    if (this.flags.frozenLockfile && !this.lockFileInSync(patterns)) {
+      this.reporter.error(this.reporter.lang('frozenLockfileError'));
+      return true;
+    }
 
     if (!this.flags.skipIntegrity && !this.flags.force && match.matches && haveLockfile) {
       this.reporter.success(this.reporter.lang('upToDate'));
@@ -542,6 +548,21 @@ export class Install {
   }
 
   /**
+   * Check if the loaded lockfile has all the included patterns
+   */
+
+  lockFileInSync(patterns: Array<string>): boolean {
+    let inSync = true;
+    for (const pattern of patterns) {
+      if (!this.lockfile.getLocked(pattern)) {
+        inSync = false;
+        break;
+      }
+    }
+    return inSync;
+  }
+
+  /**
    * Save updated integrity and lockfiles.
    */
 
@@ -557,14 +578,7 @@ export class Install {
       return;
     }
 
-    // check if the loaded lockfile has all the included patterns
-    let inSync = true;
-    for (const pattern of patterns) {
-      if (!this.lockfile.getLocked(pattern)) {
-        inSync = false;
-        break;
-      }
-    }
+    const inSync = this.lockFileInSync(patterns);
 
     // remove is followed by install with force on which we rewrite lockfile
     if (inSync && !this.flags.force) {

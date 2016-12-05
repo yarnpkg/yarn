@@ -2,6 +2,7 @@
 
 import {run as check} from '../../../src/cli/commands/check.js';
 import * as constants from '../../../src/constants.js';
+import * as reporters from '../../../src/reporters/index.js';
 import {Install} from '../../../src/cli/commands/install.js';
 import Lockfile from '../../../src/lockfile/wrapper.js';
 import * as fs from '../../../src/util/fs.js';
@@ -158,6 +159,20 @@ test.concurrent("writes new lockfile if existing one isn't satisfied", async ():
   await runInstall({}, 'install-write-lockfile-if-not-satisfied', async (config): Promise<void> => {
     const lockfile = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
     assert(lockfile.indexOf('foobar') === -1);
+  });
+});
+
+test.concurrent("throws an error if existing lockfile isn't satisfied with --frozen-lockfile", (): Promise<void> => {
+  const reporter = new reporters.ConsoleReporter({});
+
+  return new Promise((resolve) => {
+    try {
+      runInstall({frozenLockfile: true}, 'install-throws-error-if-not-satisfied-and-frozen-lockfile', () => {});
+    } catch (err) {
+      expect(err.message).toContain(reporter.lang('frozenLockfileError'));
+    } finally {
+      resolve();
+    }
   });
 });
 
