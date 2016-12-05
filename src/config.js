@@ -34,6 +34,7 @@ export type ConfigOptions = {
   cafile?: ?string,
   production?: boolean,
   binLinks?: boolean,
+  networkConcurrency?: number,
 
   // Loosely compare semver for invalid cases like "0.01.0"
   looseSemver?: ?boolean,
@@ -199,6 +200,8 @@ export default class Config {
       cafile: String(opts.cafile || this.getOption('cafile') || ''),
       cert: String(opts.cert || this.getOption('cert') || ''),
       key: String(opts.key || this.getOption('key') || ''),
+      networkConcurrency: Number(opts.networkConcurrency || this.getOption('network-concurrency') ||
+        constants.NETWORK_CONCURRENCY),
     });
 
     //init & create cacheFolder, tempFolder

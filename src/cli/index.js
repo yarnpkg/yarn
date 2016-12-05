@@ -81,6 +81,7 @@ commander.option(
   '--no-progress',
   'disable progress bar',
 );
+commander.option('--network-concurrency <number>', 'maximum number of concurrent network requests');
 
 // get command name
 let commandName: ?string = args.shift() || '';
@@ -361,6 +362,7 @@ config.init({
   production: commander.production,
   httpProxy: commander.proxy,
   httpsProxy: commander.httpsProxy,
+  networkConcurrency: commander.networkConcurrency,
   commandName,
 }).then(() => {
   const exit = () => {
