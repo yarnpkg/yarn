@@ -113,6 +113,11 @@ export default class PackageHoister {
 
       //
       for (const info of infos) {
+        // skip hoisting ignored packages
+        if (info.ignore) {
+          continue;
+        }
+
         this.hoist(info);
       }
     }
