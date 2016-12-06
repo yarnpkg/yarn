@@ -401,7 +401,7 @@ export default class Config {
 
  /**
  * try get the manifest file by looking
- * 1. mainfest fiel in cache
+ * 1. mainfest file in cache
  * 2. manifest file in registry
  */
   maybeReadManifest(dir: string, priorityRegistry?: RegistryNames, isRoot?: boolean = false): Promise<?Manifest> {

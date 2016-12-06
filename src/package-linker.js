@@ -207,8 +207,8 @@ export default class PackageLinker {
 
     // remove any empty scoped directories
     for (const scopedPath of scopedPaths) {
-      const modules = await fs.readdir(scopedPath);
-      if (modules.length === 0) {
+      const files = await fs.readdir(scopedPath);
+      if (files.length === 0) {
         await fs.unlink(scopedPath);
       }
     }
