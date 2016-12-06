@@ -5,7 +5,6 @@ import type {RegistryNames} from './registries/index.js';
 import type PackageReference from './package-reference.js';
 import type {Reporter} from './reporters/index.js';
 import type Config from './config.js';
-import {REMOVED_ANCESTOR} from './package-reference.js';
 import PackageRequest from './package-request.js';
 import RequestManager from './util/request-manager.js';
 import BlockingQueue from './util/blocking-queue.js';
@@ -311,12 +310,7 @@ export default class PackageResolver {
       const ref = this.getStrictResolvedPattern(pattern)._reference;
       invariant(ref, 'expected package reference');
       const refPatterns = ref.patterns.slice();
-      ref.addVisibility(REMOVED_ANCESTOR);
       ref.prune();
-
-      for (const action in ref.visibility) {
-        collapseToReference.visibility[action] += ref.visibility[action];
-      }
 
       // add pattern to the manifest we're collapsing to
       for (const pattern of refPatterns) {
@@ -442,12 +436,6 @@ export default class PackageResolver {
 
     if (!this.lockfile.getLocked(req.pattern, true)) {
       this.newPatterns.push(req.pattern);
-    }
-
-    // propagate `visibility` option
-    const {parentRequest} = req;
-    if (parentRequest && parentRequest.visibility) {
-      req.visibility = parentRequest.visibility;
     }
 
     const request = new PackageRequest(req, this);

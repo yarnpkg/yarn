@@ -2,7 +2,6 @@
 
 import type {RegistryNames} from './registries/index.js';
 import type PackageReference from './package-reference.js';
-import type {VisibilityAction} from './package-reference.js';
 import type PackageRequest from './package-request.js';
 import type {FetcherNames} from './fetchers/index.js';
 import type {Reporter} from './reporters/index.js';
@@ -24,7 +23,6 @@ export type DependencyRequestPattern = {
   pattern: string,
   registry: RegistryNames,
   optional: boolean,
-  visibility: VisibilityAction,
   hint?: ?string,
   parentRequest?: ?PackageRequest,
 };

@@ -42,6 +42,7 @@ type RequestParams<T> = {
   encoding?: ?string,
   ca?: Array<string>,
   cert?: string,
+  networkConcurrency?: number,
   key?: string,
   forever?: boolean,
   strictSSL?: boolean,
@@ -114,6 +115,7 @@ export default class RequestManager {
     ca?: Array<string>,
     cafile?: string,
     cert?: string,
+    networkConcurrency?: number,
     key?: string,
   }) {
     if (opts.userAgent != null) {
@@ -142,6 +144,10 @@ export default class RequestManager {
 
     if (opts.ca != null && opts.ca.length > 0) {
       this.ca = opts.ca;
+    }
+
+    if (opts.networkConcurrency != null) {
+      this.max = opts.networkConcurrency;
     }
 
     if (opts.cafile != null && opts.cafile != '') {

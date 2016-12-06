@@ -27,7 +27,7 @@ fetching in parallel. This ensures little idle time and maximum resource
 utilization.
 		</description>
 		<projectUrl>https://yarnpkg.com/</projectUrl>
-		<packageSourceUrl>https://github.com/yarnpkg/yarn</packageSourceUrl>
+		<packageSourceUrl>https://github.com/yarnpkg/yarn/tree/master/resources/win-chocolatey</packageSourceUrl>
 		<projectSourceUrl>https://github.com/yarnpkg/yarn</projectSourceUrl>
 		<licenseUrl>https://github.com/yarnpkg/yarn/raw/master/LICENSE</licenseUrl>
 		<requireLicenseAcceptance>false</requireLicenseAcceptance>
