@@ -37,6 +37,18 @@ test.concurrent('properly find and save build artifacts', async () => {
   });
 });
 
+test.concurrent('properly ignore file: optionalDependencies', () => {
+  return new Promise((resolve, reject) => {
+    try {
+      runInstall({}, 'install-optional-dep-file', () => {
+        resolve();
+      });
+    } catch (err) {
+      reject();
+    }
+  });
+});
+
 test.concurrent("removes extraneous files that aren't in module or artifacts", async () => {
   async function check(cwd: string): Promise<void> {
     // retains artifact
