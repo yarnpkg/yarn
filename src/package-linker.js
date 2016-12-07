@@ -125,6 +125,7 @@ export default class PackageLinker {
 
     //
     const queue: Map<string, CopyQueueItem> = new Map();
+    const skipped: string[] = [];
     for (const [dest, {pkg, loc: src}] of flatTree) {
       const ref = pkg._reference;
       invariant(ref, 'expected package reference');
@@ -137,6 +138,15 @@ export default class PackageLinker {
         phantomFiles.push(path.join(dest, file));
       }
 
+      try {
+        let obj = await fs.readJson(dest + "\\package.json");
+        // If the package is installed and is the exact same version, skip
+        if(obj.version == ref.version) {
+          skipped.push(dest);
+          continue;
+        }
+      }catch(ex) {};
+
       queue.set(dest, {
         src,
         dest,
@@ -147,6 +157,7 @@ export default class PackageLinker {
         },
       });
     }
+    this.reporter.info('skipped ' + skipped.length + ' modules because they are already installed');
 
     // keep track of all scoped paths to remove empty scopes after copy
     const scopedPaths = new Set();
@@ -181,6 +192,11 @@ export default class PackageLinker {
         possibleExtraneous.delete(loc);
         queue.delete(loc);
       }
+    }
+
+    // skipped modules
+    for(const loc of skipped){
+      possibleExtraneous.delete(loc);
     }
 
     //
