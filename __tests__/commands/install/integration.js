@@ -668,6 +668,20 @@ test('install a scoped module from authed private registry', (): Promise<void> =
   });
 });
 
+test('install a scoped module from authed private registry with a missing trailing slash', (): Promise<void> => {
+  return runInstall({noLockfile: true}, 'install-from-authed-private-registry-no-slash', async (config) => {
+    const authedRequests = request.__getAuthedRequests();
+    assert.equal(authedRequests[0].url, 'https://registry.yarnpkg.com/@types%2flodash');
+    assert.equal(authedRequests[0].headers.authorization, 'Bearer abc123');
+    assert.equal(authedRequests[1].url, 'https://registry.yarnpkg.com/@types/lodash/-/lodash-4.14.37.tgz');
+    assert.equal(authedRequests[1].headers.authorization, 'Bearer abc123');
+    assert.equal(
+      (await fs.readFile(path.join(config.cwd, 'node_modules', '@types', 'lodash', 'index.d.ts'))).split('\n')[0],
+      '// Type definitions for Lo-Dash 4.14',
+    );
+  });
+});
+
 test.concurrent('install a module with incompatible optional dependency should skip dependency',
   (): Promise<void> => {
     return runInstall({}, 'install-should-skip-incompatible-optional-dep', async (config) => {
