@@ -100,6 +100,8 @@ export default class Config {
   //
   constraintResolver: ConstraintResolver;
 
+  networkConcurrency: number;
+
   //
   requestManager: RequestManager;
 
@@ -205,6 +207,12 @@ export default class Config {
       this.rootModuleFolders.push(path.join(this.cwd, registry.folder));
     }
 
+    this.networkConcurrency = (
+      opts.networkConcurrency ||
+      Number(this.getOption('network-concurrency')) ||
+      constants.NETWORK_CONCURRENCY
+    );
+
     this.requestManager.setOptions({
       userAgent: String(this.getOption('user-agent')),
       httpProxy: String(opts.httpProxy || this.getOption('proxy') || ''),
@@ -214,8 +222,7 @@ export default class Config {
       cafile: String(opts.cafile || this.getOption('cafile') || ''),
       cert: String(opts.cert || this.getOption('cert') || ''),
       key: String(opts.key || this.getOption('key') || ''),
-      networkConcurrency: Number(opts.networkConcurrency || this.getOption('network-concurrency') ||
-        constants.NETWORK_CONCURRENCY),
+      networkConcurrency: this.networkConcurrency,
     });
 
     //init & create cacheFolder, tempFolder

@@ -81,7 +81,7 @@ commander.option(
   '--no-progress',
   'disable progress bar',
 );
-commander.option('--network-concurrency <number>', 'maximum number of concurrent network requests');
+commander.option('--network-concurrency <number>', 'maximum number of concurrent network requests', parseInt);
 
 // get command name
 let commandName: ?string = args.shift() || '';
