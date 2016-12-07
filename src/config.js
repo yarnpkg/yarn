@@ -177,7 +177,21 @@ export default class Config {
 
     await fs.mkdirp(this.globalFolder);
     await fs.mkdirp(this.linkFolder);
-    this.linkedModules = await fs.readdir(this.linkFolder);
+
+    this.linkedModules = [];
+
+    const linkedModules = await fs.readdir(this.linkFolder);
+
+    for (const dir of linkedModules) {
+      const linkedPath = path.join(this.linkFolder, dir);
+
+      if (dir[0] === '@') { // it's a scope, not a package
+        const scopedLinked = await fs.readdir(linkedPath);
+        this.linkedModules.push(...scopedLinked.map((scopedDir) => path.join(dir, scopedDir)));
+      } else {
+        this.linkedModules.push(dir);
+      }
+    }
 
     for (const key of Object.keys(registries)) {
       const Registry = registries[key];
@@ -372,7 +386,7 @@ export default class Config {
 
   /**
    * Read normalized package info according yarn-metadata.json
-   * throw an error if package.json was not found 
+   * throw an error if package.json was not found
    */
 
   async readManifest(dir: string, priorityRegistry?: RegistryNames, isRoot?: boolean = false): Promise<Manifest> {
@@ -386,8 +400,8 @@ export default class Config {
   }
 
  /**
- * try get the manifest file by looking 
- * 1. mainfest fiel in cache 
+ * try get the manifest file by looking
+ * 1. mainfest file in cache
  * 2. manifest file in registry
  */
   maybeReadManifest(dir: string, priorityRegistry?: RegistryNames, isRoot?: boolean = false): Promise<?Manifest> {

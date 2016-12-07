@@ -148,6 +148,9 @@ export default class PackageLinker {
       });
     }
 
+    // keep track of all scoped paths to remove empty scopes after copy
+    const scopedPaths = new Set();
+
     // register root & scoped packages as being possibly extraneous
     const possibleExtraneous: Set<string> = new Set();
     for (const folder of this.config.registryFolders) {
@@ -158,12 +161,14 @@ export default class PackageLinker {
         let filepath;
         for (const file of files) {
           filepath = path.join(loc, file);
-          possibleExtraneous.add(filepath);
           if (file[0] === '@') { // it's a scope, not a package
+            scopedPaths.add(filepath);
             const subfiles = await fs.readdir(filepath);
             for (const subfile of subfiles) {
               possibleExtraneous.add(path.join(filepath, subfile));
             }
+          } else {
+            possibleExtraneous.add(filepath);
           }
         }
       }
@@ -199,6 +204,14 @@ export default class PackageLinker {
         }
       },
     });
+
+    // remove any empty scoped directories
+    for (const scopedPath of scopedPaths) {
+      const files = await fs.readdir(scopedPath);
+      if (files.length === 0) {
+        await fs.unlink(scopedPath);
+      }
+    }
 
     //
     if (this.config.binLinks) {

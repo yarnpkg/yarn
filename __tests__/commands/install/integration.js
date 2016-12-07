@@ -695,3 +695,21 @@ test.concurrent('install a module with incompatible optional dependency should s
       assert.ok(!(await fs.exists(path.join(config.cwd, 'node_modules', 'dep-a'))));
     });
   });
+
+test.concurrent('install will not overwrite files in symlinked scoped directories', async (): Promise<void> => {
+  await runInstall({}, 'install-dont-overwrite-linked-scoped', async (config): Promise<void> => {
+    const dependencyPath = path.join(config.cwd, 'node_modules', '@fakescope', 'fake-dependency');
+    assert.equal(
+      'Symlinked scoped package test',
+      (await fs.readJson(path.join(dependencyPath, 'package.json'))).description,
+    );
+    assert.ok(!(await fs.exists(path.join(dependencyPath, 'index.js'))));
+  }, async (cwd) => {
+    const dirToLink = path.join(cwd, 'dir-to-link');
+    await fs.mkdirp(path.join(cwd, '.yarn-link', '@fakescope'));
+    await fs.symlink(dirToLink, path.join(cwd, '.yarn-link', '@fakescope', 'fake-dependency'));
+    await fs.mkdirp(path.join(cwd, 'node_modules', '@fakescope'));
+    await fs.symlink(dirToLink, path.join(cwd, 'node_modules', '@fakescope', 'fake-dependency'));
+  });
+});
+
