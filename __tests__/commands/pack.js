@@ -46,11 +46,13 @@ export async function run(
 
   const reporter = new reporters.ConsoleReporter({stdout, stderr: stdout});
 
-  const cwd = path.join(
+  const tmpRoot = path.join(
     os.tmpdir(),
     `yarn-${path.basename(dir)}-${Math.random()}`,
   );
-  await fs.unlink(cwd);
+
+  await fs.unlink(tmpRoot);
+  const cwd = path.join(tmpRoot, 'cwd');
   await fs.copy(dir, cwd, reporter);
 
   for (const {basename, absolute} of await fs.walk(cwd)) {
@@ -63,20 +65,15 @@ export async function run(
     const config = new Config(reporter);
     await config.init({
       cwd,
-      globalFolder: path.join(cwd, '.yarn/.global'),
-      cacheFolder: path.join(cwd, '.yarn'),
-      linkFolder: path.join(cwd, '.yarn/.link'),
+      globalFolder: path.join(tmpRoot, '.yarn/.global'),
+      cacheFolder: path.join(tmpRoot, '.yarn'),
+      linkFolder: path.join(tmpRoot, '.yarn/.link'),
     });
 
     await pack(config, reporter, flags, []);
 
-    try {
-      if (checkArchive) {
-        await checkArchive(config);
-      }
-    } finally {
-      // clean up
-      await fs.unlink(cwd);
+    if (checkArchive) {
+      await checkArchive(config);
     }
   } catch (err) {
     throw new Error(`${err && err.stack} \nConsole output:\n ${out}`);
@@ -86,22 +83,17 @@ export async function run(
 export async function getFilesFromArchive(source, destination): Promise<Array<string>> {
   const unzip = new Promise((resolve, reject) => {
     fs2.createReadStream(source)
-      .pipe(zlib.createUnzip())
+      .pipe(new zlib.Gunzip())
       .pipe(tar.Extract({path: destination, strip: 1}))
-      .on('end', () => {
-        resolve();
-      })
-      .on('error', (error) => {
-        reject(error);
-      });
+      .on('end', resolve)
+      .on('error', reject);
   });
   await unzip;
   const files = await fs.readdir(destination);
   return files;
 }
 
-// skip for now because this test fails on travis
-test.concurrent.skip('pack should work with a minimal example', (): Promise<void> => {
+test.concurrent('pack should work with a minimal example', (): Promise<void> => {
   return runPack({}, 'minimal', async (config): Promise<void> => {
     const {cwd} = config;
     const files = await getFilesFromArchive(
@@ -139,6 +131,19 @@ test.concurrent('pack should include mandatory files not listed in files array i
     expected.forEach((filename) => {
       assert(files.indexOf(filename) >= 0);
     });
+  });
+});
+
+test.concurrent('pack should exclude mandatory files from ignored directories', (): Promise<void> => {
+  return runPack({}, 'exclude-mandatory-files-from-ignored-directories', async (config): Promise<void> => {
+    const {cwd} = config;
+    const files = await getFilesFromArchive(
+      path.join(cwd, 'exclude-mandatory-files-from-ignored-directories-v1.0.0.tgz'),
+      path.join(cwd, 'exclude-mandatory-files-from-ignored-directories-v1.0.0'),
+    );
+    assert(files.indexOf('index.js') >= 0);
+    assert(files.indexOf('package.json') >= 0);
+    assert(files.indexOf('node_modules') === -1);
   });
 });
 
