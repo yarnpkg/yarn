@@ -231,7 +231,10 @@ export default class Config {
     await fs.mkdirp(this.cacheFolder);
     await fs.mkdirp(this.tempFolder);
 
-    if (this.getOption('production') || process.env.NODE_ENV === 'production') {
+    if (this.getOption('production') || (
+        process.env.NODE_ENV === 'production' &&
+        process.env.NPM_CONFIG_PRODUCTION !== 'false' &&
+        process.env.YARN_PRODUCTION !== 'false')) {
       this.production = true;
     }
   }
