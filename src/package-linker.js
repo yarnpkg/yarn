@@ -33,14 +33,12 @@ export async function linkBin(src: string, dest: string): Promise<void> {
 }
 
 export default class PackageLinker {
-  constructor(config: Config, resolver: PackageResolver, ignoreOptional: boolean) {
-    this.ignoreOptional = ignoreOptional;
+  constructor(config: Config, resolver: PackageResolver) {
     this.resolver = resolver;
     this.reporter = config.reporter;
     this.config = config;
   }
 
-  ignoreOptional: boolean;
   reporter: Reporter;
   resolver: PackageResolver;
   config: Config;
@@ -109,7 +107,7 @@ export default class PackageLinker {
   }
 
   getFlatHoistedTree(patterns: Array<string>): Promise<HoistManifestTuples> {
-    const hoister = new PackageHoister(this.config, this.resolver, this.ignoreOptional);
+    const hoister = new PackageHoister(this.config, this.resolver);
     hoister.seed(patterns);
     return Promise.resolve(hoister.init());
   }
@@ -150,15 +148,28 @@ export default class PackageLinker {
       });
     }
 
-    // register root packages as being possibly extraneous
+    // keep track of all scoped paths to remove empty scopes after copy
+    const scopedPaths = new Set();
+
+    // register root & scoped packages as being possibly extraneous
     const possibleExtraneous: Set<string> = new Set();
     for (const folder of this.config.registryFolders) {
       const loc = path.join(this.config.cwd, folder);
 
       if (await fs.exists(loc)) {
         const files = await fs.readdir(loc);
+        let filepath;
         for (const file of files) {
-          possibleExtraneous.add(path.join(loc, file));
+          filepath = path.join(loc, file);
+          if (file[0] === '@') { // it's a scope, not a package
+            scopedPaths.add(filepath);
+            const subfiles = await fs.readdir(filepath);
+            for (const subfile of subfiles) {
+              possibleExtraneous.add(path.join(filepath, subfile));
+            }
+          } else {
+            possibleExtraneous.add(filepath);
+          }
         }
       }
     }
@@ -174,7 +185,7 @@ export default class PackageLinker {
 
     //
     let tick;
-    await fs.copyBulk(Array.from(queue.values()), {
+    await fs.copyBulk(Array.from(queue.values()), this.reporter, {
       possibleExtraneous,
       phantomFiles,
 
@@ -193,6 +204,14 @@ export default class PackageLinker {
         }
       },
     });
+
+    // remove any empty scoped directories
+    for (const scopedPath of scopedPaths) {
+      const files = await fs.readdir(scopedPath);
+      if (files.length === 0) {
+        await fs.unlink(scopedPath);
+      }
+    }
 
     //
     if (this.config.binLinks) {

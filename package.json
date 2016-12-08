@@ -1,7 +1,7 @@
 {
   "name": "yarn",
   "installationMethod": "unknown",
-  "version": "0.18.0-0",
+  "version": "0.19.0-0",
   "license": "BSD-2-Clause",
   "preferGlobal": true,
   "dependencies": {
@@ -67,15 +67,18 @@
     "flow-bin": "0.33.0",
     "gulp": "^3.9.0",
     "gulp-babel": "^6.0.0",
+    "gulp-if": "^2.0.1",
     "gulp-newer": "^1.0.0",
     "gulp-plumber": "^1.0.1",
+    "gulp-sourcemaps": "^2.2.0",
     "gulp-util": "^3.0.7",
     "gulp-watch": "^4.3.5",
     "jest": "^16.0.1",
     "json-loader": "^0.5.4",
     "mock-stdin": "^0.3.0",
     "temp": "^0.8.3",
-    "webpack": "^2.1.0-beta.25"
+    "webpack": "^2.1.0-beta.25",
+    "yargs": "^6.3.0"
   },
   "repository": "yarnpkg/yarn",
   "bin": {
@@ -104,7 +107,7 @@
     "testPathIgnorePatterns": [
       "__tests__/(fixtures|__mocks__)/",
       "updates/",
-      "/_(temp|mock|install|init).js$"
+      "/_(temp|mock|install|init|helpers).js$"
     ]
   }
 }

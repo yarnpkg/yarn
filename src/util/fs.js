@@ -1,5 +1,6 @@
 /* @flow */
 
+import type Reporter from '../reporters/base-reporter.js';
 import BlockingQueue from './blocking-queue.js';
 import * as promise from './promise.js';
 import {promisify} from './promise.js';
@@ -75,6 +76,7 @@ async function buildActionsForCopy(
   queue: CopyQueue,
   events: CopyOptions,
   possibleExtraneousSeed: PossibleExtraneous,
+  reporter: Reporter,
 ): Promise<CopyActions> {
   const possibleExtraneous: Set<string> = new Set(possibleExtraneousSeed || []);
   const phantomFiles: Set<string> = new Set(events.phantomFiles || []);
@@ -105,13 +107,17 @@ async function buildActionsForCopy(
 
   // simulate the existence of some files to prevent considering them extraenous
   for (const file of phantomFiles) {
-    possibleExtraneous.delete(file);
+    if (possibleExtraneous.has(file)) {
+      reporter.verbose(reporter.lang('verboseFilePhantomExtraneous', file));
+      possibleExtraneous.delete(file);
+    }
   }
 
   // remove all extraneous files that weren't in the tree
   if (!noExtraneous) {
     for (const loc of possibleExtraneous) {
       if (!files.has(loc)) {
+        reporter.verbose(reporter.lang('verboseFileRemoveExtraneous', loc));
         await unlink(loc);
       }
     }
@@ -157,13 +163,18 @@ async function buildActionsForCopy(
       if (bothFiles && srcStat.size === destStat.size && +srcStat.mtime === +destStat.mtime) {
         // we can safely assume this is the same file
         onDone();
+        reporter.verbose(reporter.lang('verboseFileSkip', src, dest, srcStat.size, +srcStat.mtime));
         return;
       }
 
-      if (bothSymlinks && await readlink(src) === await readlink(dest)) {
-        // if both symlinks are the same then we can continue on
-        onDone();
-        return;
+      if (bothSymlinks) {
+        const srcReallink = await readlink(src);
+        if (srcReallink === await readlink(dest)) {
+          // if both symlinks are the same then we can continue on
+          onDone();
+          reporter.verbose(reporter.lang('verboseFileSkipSymlink', src, dest, srcReallink));
+          return;
+        }
       }
 
       if (bothFolders && !noExtraneous) {
@@ -196,6 +207,7 @@ async function buildActionsForCopy(
       });
       onDone();
     } else if (srcStat.isDirectory()) {
+      reporter.verbose(reporter.lang('verboseFileFolder', dest));
       await mkdirp(dest);
 
       const destParts = dest.split(path.sep);
@@ -239,12 +251,13 @@ async function buildActionsForCopy(
   }
 }
 
-export function copy(src: string, dest: string): Promise<void> {
-  return copyBulk([{src, dest}]);
+export function copy(src: string, dest: string, reporter: Reporter): Promise<void> {
+  return copyBulk([{src, dest}], reporter);
 }
 
 export async function copyBulk(
   queue: CopyQueue,
+  reporter: Reporter,
   _events?: {
     onProgress?: ?(dest: string) => void,
     onStart?: ?(num: number) => void,
@@ -261,7 +274,7 @@ export async function copyBulk(
     phantomFiles: (_events && _events.phantomFiles) || [],
   };
 
-  const actions: CopyActions = await buildActionsForCopy(queue, events, events.possibleExtraneous);
+  const actions: CopyActions = await buildActionsForCopy(queue, events, events.possibleExtraneous, reporter);
   events.onStart(actions.length);
 
   const fileActions: Array<CopyFileAction> = (actions.filter((action) => action.type === 'file'): any);
@@ -278,6 +291,8 @@ export async function copyBulk(
     return currentlyWriting[data.dest] = new Promise((resolve, reject) => {
       const readStream = fs.createReadStream(data.src);
       const writeStream = fs.createWriteStream(data.dest, {mode: data.mode});
+
+      reporter.verbose(reporter.lang('verboseFileCopy', data.src, data.dest));
 
       readStream.on('error', reject);
       writeStream.on('error', reject);
@@ -309,7 +324,9 @@ export async function copyBulk(
   // we need to copy symlinks last as the could reference files we were copying
   const symlinkActions: Array<CopySymlinkAction> = (actions.filter((action) => action.type === 'symlink'): any);
   await promise.queue(symlinkActions, (data): Promise<void> => {
-    return symlink(path.resolve(path.dirname(data.dest), data.linkname), data.dest);
+    const linkname = path.resolve(path.dirname(data.dest), data.linkname);
+    reporter.verbose(reporter.lang('verboseFileSymlink', data.dest, linkname));
+    return symlink(linkname, data.dest);
   });
 }
 

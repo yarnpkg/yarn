@@ -34,6 +34,7 @@ export type ConfigOptions = {
   cafile?: ?string,
   production?: boolean,
   binLinks?: boolean,
+  networkConcurrency?: number,
 
   // Loosely compare semver for invalid cases like "0.01.0"
   looseSemver?: ?boolean,
@@ -175,11 +176,22 @@ export default class Config {
     this._init(opts);
 
     await fs.mkdirp(this.globalFolder);
-    await fs.mkdirp(this.cacheFolder);
-    await fs.mkdirp(this.tempFolder);
-
     await fs.mkdirp(this.linkFolder);
-    this.linkedModules = await fs.readdir(this.linkFolder);
+
+    this.linkedModules = [];
+
+    const linkedModules = await fs.readdir(this.linkFolder);
+
+    for (const dir of linkedModules) {
+      const linkedPath = path.join(this.linkFolder, dir);
+
+      if (dir[0] === '@') { // it's a scope, not a package
+        const scopedLinked = await fs.readdir(linkedPath);
+        this.linkedModules.push(...scopedLinked.map((scopedDir) => path.join(dir, scopedDir)));
+      } else {
+        this.linkedModules.push(dir);
+      }
+    }
 
     for (const key of Object.keys(registries)) {
       const Registry = registries[key];
@@ -202,7 +214,19 @@ export default class Config {
       cafile: String(opts.cafile || this.getOption('cafile') || ''),
       cert: String(opts.cert || this.getOption('cert') || ''),
       key: String(opts.key || this.getOption('key') || ''),
+      networkConcurrency: Number(opts.networkConcurrency || this.getOption('network-concurrency') ||
+        constants.NETWORK_CONCURRENCY),
     });
+
+    //init & create cacheFolder, tempFolder
+    this.cacheFolder = String(opts.cacheFolder || this.getOption('cache-folder') || constants.MODULE_CACHE_DIRECTORY);
+    this.tempFolder = opts.tempFolder || path.join(this.cacheFolder, '.tmp');
+    await fs.mkdirp(this.cacheFolder);
+    await fs.mkdirp(this.tempFolder);
+
+    if (this.getOption('production') || process.env.NODE_ENV === 'production') {
+      this.production = true;
+    }
   }
 
   _init(opts: ConfigOptions) {
@@ -221,9 +245,7 @@ export default class Config {
     this.preferOffline = !!opts.preferOffline;
     this.modulesFolder = opts.modulesFolder;
     this.globalFolder = opts.globalFolder || constants.GLOBAL_MODULE_DIRECTORY;
-    this.cacheFolder = opts.cacheFolder || constants.MODULE_CACHE_DIRECTORY;
     this.linkFolder = opts.linkFolder || constants.LINK_REGISTRY_DIRECTORY;
-    this.tempFolder = opts.tempFolder || path.join(this.cacheFolder, '.tmp');
     this.production = !!opts.production;
     this.offline = !!opts.offline;
     this.binLinks = !!opts.binLinks;
@@ -363,7 +385,8 @@ export default class Config {
   }
 
   /**
-   * Read normalized package info.
+   * Read normalized package info according yarn-metadata.json
+   * throw an error if package.json was not found
    */
 
   async readManifest(dir: string, priorityRegistry?: RegistryNames, isRoot?: boolean = false): Promise<Manifest> {
@@ -376,6 +399,11 @@ export default class Config {
     }
   }
 
+ /**
+ * try get the manifest file by looking
+ * 1. mainfest file in cache
+ * 2. manifest file in registry
+ */
   maybeReadManifest(dir: string, priorityRegistry?: RegistryNames, isRoot?: boolean = false): Promise<?Manifest> {
     return this.getCache(`manifest-${dir}`, async (): Promise<?Manifest> => {
       const metadataLoc = path.join(dir, constants.METADATA_FILENAME);

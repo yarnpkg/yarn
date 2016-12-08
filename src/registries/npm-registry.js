@@ -143,7 +143,15 @@ export default class NpmRegistry extends Registry {
   }
 
   getRegistry(packageName: string): string {
-    // Try scoped registry, and default registry
+    // Try extracting registry from the url, then scoped registry, and default registry
+    if (packageName.match(/^https?:/)) {
+      const availableRegistries = this.getAvailableRegistries();
+      const registry = availableRegistries.find((registry) => packageName.startsWith(registry));
+      if (registry) {
+        return registry;
+      }
+    }
+
     for (const scope of [this.getScope(packageName), '']) {
       const registry = this.getScopedOption(scope, 'registry')
                     || this.registries.yarn.getScopedOption(scope, 'registry');
@@ -164,7 +172,7 @@ export default class NpmRegistry extends Registry {
       registry = registry.replace(/^https?:/, '');
 
       // Check for bearer token.
-      let auth = this.getScopedOption(registry, '_authToken');
+      let auth = this.getScopedOption(registry.replace(/\/?$/, '/'), '_authToken');
       if (auth) {
         return `Bearer ${String(auth)}`;
       }

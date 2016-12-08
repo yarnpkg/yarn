@@ -32,6 +32,17 @@ const messages = {
   manifestDependencyCollision: '$0 has dependency $1 with range $2 that collides with a dependency in $3 of the same name with version $4',
   manifestDirectoryNotFound: 'Unable to read $0 directory of module $1',
 
+  verboseFileCopy: 'Copying $0 to $1.',
+  verboseFileSymlink: 'Creating symlink at $0 to $1.',
+  verboseFileSkip: 'Skipping copying of file $0 as the file at $1 is the same size ($2) and mtime ($3).',
+  verboseFileSkipSymlink: 'Skipping copying of $0 as the file at $1 is the same symlink ($2).',
+  verboseFileRemoveExtraneous: 'Removing extraneous file $0.',
+  verboseFilePhantomExtraneous: "File $0 would be marked as extraneous but has been removed as it's listed as a phantom file.",
+  verboseFileFolder: 'Creating directory $0.',
+
+  verboseRequestStart: 'Performing $0 request to $1.',
+  verboseRequestFinish: 'Request $0 finished with status code $1.',
+
   configSet: 'Set $0 to $1.',
   configDelete: 'Deleted $0.',
   configNpm: 'npm config',
@@ -77,6 +88,7 @@ const messages = {
   jsonError: 'Error parsing JSON at $0, $1.',
   noFilePermission: "We don't have permissions to touch the file $0.",
   allDependenciesUpToDate: 'All of your dependencies are up to date.',
+  frozenLockfileError: 'Your lockfile needs to be updated, but yarn was run with `--frozen-lockfile`.',
 
   yarnOutdated: "Your current version of Yarn is out of date. The latest version is $0 while you're on $1.",
   yarnOutdatedInstaller: 'To upgrade, download the latest installer at $0.',
@@ -210,16 +222,18 @@ const messages = {
   publishing: 'Publishing',
 
   infoFail: 'Received invalid response from npm.',
-  malformedRegistryResponse: 'Received malformed response from registry. The registry may be down.',
+  malformedRegistryResponse: 'Received malformed response from registry for $0. The registry may be down.',
 
   cantRequestOffline: 'Can\'t make a request in offline mode',
   requestManagerNotSetupHAR: 'RequestManager was not setup to capture HAR files',
   requestError: 'Request $0 returned a $1',
+  requestFailed: 'Request failed $0',
   tarballNotInNetworkOrCache: '$0: Tarball is not in network and can not be located in cache ($1)',
   fetchBadHash: 'Bad hash. Expected $0 but got $1 ',
   fetchErrorCorrupt: '$0. Mirror tarball appears to be corrupt. You can resolve this by running:\n\n  $ rm -rf $1\n  $ yarn install',
   errorDecompressingTarball: '$0. Error decompressing $1, it appears to be corrupt.',
   updateInstalling: 'Installing $0...',
+  hostedGitResolveError: 'Error connecting to repository. Please, check the url.',
 };
 
 export type LanguageKeys = $Keys<typeof messages>;

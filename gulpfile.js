@@ -1,10 +1,13 @@
 'use strict';
 
+const argv = require('yargs').argv;
 const plumber = require('gulp-plumber');
 const newer = require('gulp-newer');
 const babel = require('gulp-babel');
+const sourcemaps = require('gulp-sourcemaps');
 const watch = require('gulp-watch');
 const gutil = require('gulp-util');
+const gulpif = require('gulp-if');
 const gulp = require('gulp');
 const path = require('path');
 const fs = require('fs');
@@ -19,7 +22,9 @@ function build(lib, opts) {
       },
     }))
     .pipe(newer(lib))
+    .pipe(gulpif(argv.sourcemaps, sourcemaps.init()))
     .pipe(babel(opts))
+    .pipe(gulpif(argv.sourcemaps, sourcemaps.write('.')))
     .pipe(gulp.dest(lib));
 }
 

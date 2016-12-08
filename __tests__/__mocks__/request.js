@@ -15,6 +15,8 @@ const fs = require('fs');
 
 const CACHE_DIR = path.join(__dirname, '..', 'fixtures', 'request-cache');
 
+let authedRequests = [];
+
 function getRequestAlias(params: Object): string {
   const parts = url.parse(params.path);
   const pathname = cleanAlias(parts.pathname);
@@ -45,6 +47,9 @@ module.exports = function(params: Object): Request {
 
 module.exports.Request = Request;
 
+module.exports.__resetAuthedRequests = (): void => { authedRequests = []; };
+module.exports.__getAuthedRequests = (): Array<Object> => authedRequests;
+
 const httpMock = {
   request(options: Object, callback?: ?Function): ClientRequest {
     const alias = getRequestAlias(options);
@@ -54,6 +59,14 @@ const httpMock = {
 
     // TODO better way to do this
     const httpModule = options.uri.href.startsWith('https:') ? https : http;
+
+    // expose authorized requests to the tests for assertion
+    if (options.headers.authorization) {
+      authedRequests.push({
+        url: options.uri.href,
+        headers: options.headers,
+      });
+    }
 
     if (allowCache && fs.existsSync(loc)) {
       // cached

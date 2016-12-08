@@ -5,6 +5,10 @@ import type {Reporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
 import buildSubCommands from './_build-sub-commands.js';
 
+export function hasWrapper(flags: Object, args: Array<string>): boolean {
+  return args[0] !== 'get';
+}
+
 export const {run, setFlags} = buildSubCommands('config', {
   async set(
     config: Config,
@@ -73,7 +77,3 @@ export const {run, setFlags} = buildSubCommands('config', {
     return true;
   },
 });
-
-export function hasWrapper(flags: Object, args: Array<string>): boolean {
-  return args[0] !== 'get';
-}

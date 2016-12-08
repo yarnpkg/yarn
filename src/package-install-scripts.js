@@ -110,6 +110,7 @@ export default class PackageInstallScripts {
       invariant(ref, 'expected reference');
 
       if (ref.optional) {
+        ref.ignore = true;
         this.reporter.error(this.reporter.lang('optionalModuleScriptFail', err.message));
         this.reporter.info(this.reporter.lang('optionalModuleFail'));
       } else {

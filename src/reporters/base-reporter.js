@@ -22,6 +22,7 @@ const util = require('util');
 type Language = $Keys<typeof languages>;
 
 export type ReporterOptions = {
+  verbose?: boolean,
   language?: Language,
   stdout?: Stdout,
   stderr?: Stdout,
@@ -54,6 +55,7 @@ export default class BaseReporter {
     this.stdin = opts.stdin || process.stdin;
     this.emoji = !!opts.emoji;
     this.noProgress = !!opts.noProgress || isCI;
+    this.isVerbose = !!opts.verbose;
 
     // $FlowFixMe: this is valid!
     this.isTTY = this.stdout.isTTY;
@@ -71,6 +73,7 @@ export default class BaseReporter {
   isTTY: boolean;
   emoji: boolean;
   noProgress: boolean;
+  isVerbose: boolean;
   format: Formatter;
 
   peakMemoryInterval: ?number;
@@ -91,6 +94,21 @@ export default class BaseReporter {
       return stringifiedArgs[i];
     });
   }
+
+  verbose(msg: string) {
+    if (this.isVerbose) {
+      this._verbose(msg);
+    }
+  }
+
+  verboseInspect(val: any) {
+    if (this.isVerbose) {
+      this._verboseInspect(val);
+    }
+  }
+
+  _verbose(msg: string) {}
+  _verboseInspect(val: any) {}
 
   initPeakMemoryCounter() {
     this.checkPeakMemory();

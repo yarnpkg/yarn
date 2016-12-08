@@ -102,7 +102,7 @@ export default class HostedGitResolver extends ExoticResolver {
 
       out = lines.join('\n');
     } else {
-      throw new Error('TODO');
+      throw new Error(this.reporter.lang('hostedGitResolveError'));
     }
 
     const refs = Git.parseRefs(out);

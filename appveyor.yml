@@ -6,7 +6,7 @@ environment:
 branches:
   only:
   - master
-  - /.*-stable/
+  - /v[0-9]+(\.[0-9]+)*/
 
 install:
   - ps: Install-Product node $env:node_version
@@ -37,3 +37,12 @@ notifications:
       Authorization:
         secure: uH4c9HNDdRuL4omqqbTtBq3KgzjGTFmpvPdiNuk9391Z0YXRoRLA1Ptpa3seZ0Pt
     on_build_failure: false
+
+deploy:
+  - provider: Webhook
+    url: https://nightly.yarnpkg.com/release_appveyor
+    authorization:
+      secure: uH4c9HNDdRuL4omqqbTtBq3KgzjGTFmpvPdiNuk9391Z0YXRoRLA1Ptpa3seZ0Pt
+    on:
+      branch: /v[0-9]+(\.[0-9]+)*/
+      appveyor_repo_tag: true

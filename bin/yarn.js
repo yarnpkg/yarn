@@ -24,13 +24,27 @@ if (semver.satisfies(ver, '>=5.0.0')) {
   process.exit(1);
 }
 
-// init roadrunner
+// ensure cache directory exists
 var mkdirp = require('mkdirp');
 var constants = require('../lib-legacy/constants');
 mkdirp.sync(constants.GLOBAL_INSTALL_DIRECTORY);
 mkdirp.sync(constants.MODULE_CACHE_DIRECTORY);
+
+// init roadrunner
+var YARN_VERSION = require('../package.json').version;
 var roadrunner = require('roadrunner');
+
+// load cache
 roadrunner.load(constants.CACHE_FILENAME);
+var cacheVersion = roadrunner.get('CACHE_BREAKER').version;
+if (!cacheVersion || cacheVersion !== YARN_VERSION) {
+  // reset cache if it's for an older yarn
+  roadrunner.reset(constants.CACHE_FILENAME);
+}
+// set this cache to the current yarn version
+roadrunner.set('CACHE_BREAKER', {version: YARN_VERSION});
+
+// save cache on SIGINT
 roadrunner.setup(constants.CACHE_FILENAME);
 
 var i = 0;

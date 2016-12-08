@@ -16,7 +16,7 @@ import * as licenses from './licenses.js'; export {licenses};
 import * as link from './link.js'; export {link};
 import * as login from './login.js'; export {login};
 import * as logout from './logout.js'; export {logout};
-import * as ls from './ls.js'; export {ls};
+import * as list from './list.js'; export {list};
 import * as outdated from './outdated.js'; export {outdated};
 import * as owner from './owner.js'; export {owner};
 import * as pack from './pack.js'; export {pack};
