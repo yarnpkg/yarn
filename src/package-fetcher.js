@@ -106,6 +106,6 @@ export default class PackageFetcher {
       if (tick) {
         tick(ref.name);
       }
-    });
+    }, this.config.networkConcurrency);
   }
 }
