@@ -106,7 +106,7 @@ export class Add extends Install {
       let version;
       if (parts.hasVersion && parts.range) {
         // if the user specified a range then use it verbatim
-        version = parts.range;
+        version = pkg.version;
       } else if (PackageRequest.getExoticResolver(pattern)) {
         // wasn't a name/range tuple so this is just a raw exotic pattern
         version = pattern;
