@@ -42,11 +42,11 @@ export async function run(
  flags: Object,
  args: Array<string>,
 ): Promise<void> {
-  if (args.length !== 1 && args.length !== 2) {
+  if (args.length > 2) {
     return;
   }
 
-  let packageName = args.shift();
+  let packageName = args.shift() || '.';
 
   // Handle the case when we are referencing a local package.
   if (packageName === '.') {
@@ -54,7 +54,6 @@ export async function run(
   }
 
   const packageInput = NpmRegistry.escapeName(packageName);
-  const field = args.shift();
   const {name, version} = parsePackageName(packageInput);
 
   let result = await config.registries.npm.request(name);
@@ -71,10 +70,14 @@ export async function run(
   result.version = version || result.versions[result.versions.length - 1];
   result = Object.assign(result, versions[result.version]);
 
+  const fieldPath = args.shift();
+  const fields = fieldPath ? fieldPath.split('.') : [];
+
   // Readmes can be long so exclude them unless explicitly asked for.
-  if (field !== 'readme') {
+  if (fields[0] !== 'readme') {
     delete result.readme;
   }
 
-  reporter.inspect(field ? result[field] : result);
+  result = fields.reduce((prev, cur) => prev && prev[cur], result);
+  reporter.inspect(result);
 }
