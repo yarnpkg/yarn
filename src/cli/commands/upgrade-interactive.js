@@ -86,7 +86,8 @@ export async function run(
     const name = colorizeName(dep)(padding('name'));
     const current = reporter.format.blue(padding('current'));
     const latest = colorizeDiff(dep.current, padding('latest'));
-    return `${name}  ${current}  ❯  ${latest}`;
+    const url = reporter.format.cyan(dep.url);
+    return `${name}  ${current}  ❯  ${latest}  ${url}`;
   };
 
   const groupedDeps = deps.reduce((acc, dep) => {

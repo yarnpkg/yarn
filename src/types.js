@@ -141,5 +141,6 @@ export type Dependency = {
   current: string,
   wanted: string,
   latest: string,
+  url: string,
   hint: ?string
 };
