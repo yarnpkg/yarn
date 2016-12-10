@@ -107,10 +107,18 @@ export default class ConsoleReporter extends BaseReporter {
     this.log('' + value);
   }
 
-  list(key: string, items: Array<string>) {
+  list(key: string, items: Array<string>, hints?: Object) {
     const gutterWidth = (this._lastCategorySize || 2) - 1;
-    for (const item of items) {
-      this._log(`${repeat(' ', gutterWidth)}- ${item}`);
+
+    if (hints) {
+      for (const item of items) {
+        this._log(`${repeat(' ', gutterWidth)}- ${item}`);
+        this._log(`  ${repeat(' ', gutterWidth)} ${hints[item]}`);
+      }
+    } else {
+      for (const item of items) {
+        this._log(`${repeat(' ', gutterWidth)}- ${item}`);
+      }
     }
   }
 

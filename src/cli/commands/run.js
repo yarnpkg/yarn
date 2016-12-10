@@ -44,9 +44,17 @@ export async function run(
       visitedBinFolders.add(binFolder);
     }
   }
-  if (pkg.scripts) {
+  const pkgScripts = pkg.scripts;
+  const cmdHints = {};
+  if (pkgScripts) {
     // inherit `scripts` from manifest
-    pkgCommands = Object.keys(pkg.scripts);
+    pkgCommands = Object.keys(pkgScripts).sort();
+
+    // add command hints (what the actual yarn command will do)
+    for (const cmd of pkgCommands) {
+      cmdHints[cmd] = pkgScripts[cmd] || '';
+    }
+
     Object.assign(scripts, pkg.scripts);
   }
 
@@ -92,7 +100,7 @@ export async function run(
     reporter.error(reporter.lang('commandNotSpecified'));
     reporter.info(`${reporter.lang('binCommands') + binCommands.join(', ')}`);
     reporter.info(`${reporter.lang('possibleCommands')}`);
-    reporter.list('possibleCommands', pkgCommands.sort());
+    reporter.list('possibleCommands', pkgCommands, cmdHints);
     await reporter.question(reporter.lang('commandQuestion')).then(
       (answer) => runCommand(answer.split(' ')),
       () => reporter.error(reporter.lang('commandNotSpecified')),
