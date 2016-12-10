@@ -84,9 +84,13 @@ export default class NpmRegistry extends Registry {
       throw new Error('couldnt find ' + name);
     }
 
+    const {repository, homepage} = req;
+    const url = homepage || (repository && repository.url) || '';
+
     return {
       latest: req['dist-tags'].latest,
       wanted: (await NpmResolver.findVersionInRegistryResponse(config, range, req)).version,
+      url,
     };
   }
 

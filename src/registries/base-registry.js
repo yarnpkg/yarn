@@ -19,6 +19,7 @@ export type RegistryRequestOptions = {
 export type CheckOutdatedReturn = Promise<{
   wanted: string,
   latest: string,
+  url: string
 }>;
 
 export default class BaseRegistry {

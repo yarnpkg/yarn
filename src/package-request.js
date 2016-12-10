@@ -329,19 +329,21 @@ export default class PackageRequest {
         const {name, version: current} = locked;
         let latest = '';
         let wanted = '';
+        let url = '';
 
         const normalized = PackageRequest.normalizePattern(pattern);
 
         if (PackageRequest.getExoticResolver(pattern) ||
             PackageRequest.getExoticResolver(normalized.range)) {
           latest = wanted = 'exotic';
+          url = normalized.range;
         } else {
           const registry = config.registries[locked.registry];
 
-          ({latest, wanted} = await registry.checkOutdated(config, name, normalized.range));
+          ({latest, wanted, url} = await registry.checkOutdated(config, name, normalized.range));
         }
 
-        return ({name, current, wanted, latest, hint});
+        return ({name, current, wanted, latest, url, hint});
       }),
     );
 
