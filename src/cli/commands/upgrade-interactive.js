@@ -56,9 +56,9 @@ export async function run(
 
   const getNameFromHint = (hint) => hint ? `${hint}Dependencies` : 'dependencies';
 
-  const maxLengthArr = {name: 0, current: 0, latest: 0, url: 0};
+  const maxLengthArr = {name: 0, current: 0, latest: 0};
   deps.forEach((dep) =>
-    ['name', 'current', 'latest', 'url'].forEach((key) => {
+    ['name', 'current', 'latest'].forEach((key) => {
       maxLengthArr[key] = Math.max(maxLengthArr[key], dep[key].length);
     }),
   );
