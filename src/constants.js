@@ -49,7 +49,6 @@ function getCacheDirectory(): string {
   return getDirectory('cache');
 }
 
-export const GLOBAL_INSTALL_DIRECTORY = path.join(userHome, '.yarn');
 export const MODULE_CACHE_DIRECTORY = getCacheDirectory();
 export const CONFIG_DIRECTORY = getDirectory('config');
 export const LINK_REGISTRY_DIRECTORY = path.join(CONFIG_DIRECTORY, 'link');
