@@ -25,13 +25,18 @@ test('lists all available commands with no arguments', (): Promise<void> => {
   return runRun([], {}, 'no-args', (config, reporter): ?Promise<void> => {
     const rprtr = new reporters.BufferReporter({stdout: null, stdin: null});
     const scripts = ['build', 'prestart', 'start'];
+    const hints = {
+      build: "echo 'building'",
+      prestart: "echo 'prestart'",
+      start: 'node index.js',
+    };
     const bins = ['cat-names'];
 
     // Emulate run output
     rprtr.error(rprtr.lang('commandNotSpecified'));
     rprtr.info(`${rprtr.lang('binCommands')}${bins.join(', ')}`);
     rprtr.info(rprtr.lang('possibleCommands'));
-    rprtr.list('possibleCommands', scripts);
+    rprtr.list('possibleCommands', scripts, hints);
     rprtr.error(rprtr.lang('commandNotSpecified'));
 
     expect(reporter.getBuffer()).toEqual(rprtr.getBuffer());

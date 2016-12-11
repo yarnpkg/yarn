@@ -1,6 +1,10 @@
 /* @flow */
 
-import type {ReporterSpinnerSet, Trees, ReporterSpinner} from './types.js';
+import type {
+  ReporterSpinnerSet,
+  Trees,
+  ReporterSpinner,
+} from './types.js';
 import BaseReporter from './base-reporter.js';
 
 export default class JSONReporter extends BaseReporter {
@@ -26,8 +30,8 @@ export default class JSONReporter extends BaseReporter {
     this._dump('verbose', msg);
   }
 
-  list(type: string, items: Array<string>) {
-    this._dump('list', {type, items});
+  list(type: string, items: Array<string>, hints?: Object) {
+    this._dump('list', {type, items, hints});
   }
 
   tree(type: string, trees: Trees) {
