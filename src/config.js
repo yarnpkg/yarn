@@ -232,6 +232,7 @@ export default class Config {
     await fs.mkdirp(this.tempFolder);
 
     if (this.getOption('production') || (
+        opts.production !== 'false' &&
         process.env.NODE_ENV === 'production' &&
         process.env.NPM_CONFIG_PRODUCTION !== 'false' &&
         process.env.YARN_PRODUCTION !== 'false')) {
@@ -256,7 +257,7 @@ export default class Config {
     this.modulesFolder = opts.modulesFolder;
     this.globalFolder = opts.globalFolder || constants.GLOBAL_MODULE_DIRECTORY;
     this.linkFolder = opts.linkFolder || constants.LINK_REGISTRY_DIRECTORY;
-    this.production = !!opts.production;
+    this.production = !!opts.production && opts.production !== 'false';
     this.offline = !!opts.offline;
     this.binLinks = !!opts.binLinks;
 
