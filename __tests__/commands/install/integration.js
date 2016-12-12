@@ -93,7 +93,6 @@ test.concurrent('hoisting should factor ignored dependencies', async () => {
   // we should still be taking dev dependencies into consideration
 
   async function checkNormal(config): Promise<void> {
-    // a and d should always be installed
     assert.equal(
       (await fs.readJson(path.join(config.cwd, 'node_modules', 'a', 'package.json'))).version,
       '1.0.0',
@@ -103,43 +102,36 @@ test.concurrent('hoisting should factor ignored dependencies', async () => {
       (await fs.readJson(path.join(config.cwd, 'node_modules', 'd', 'package.json'))).version,
       '1.0.0',
     );
+
+    assert.equal(
+      (await fs.readJson(path.join(config.cwd, 'node_modules', 'd', 'node_modules', 'c', 'package.json'))).version,
+      '2.0.0',
+    );
   }
 
   await runInstall({}, 'install-ignored-retains-hoisting-structure', async (config) => {
     await checkNormal(config);
 
-    // devDependecy b should be installed
     assert.equal(
       (await fs.readJson(path.join(config.cwd, 'node_modules', 'b', 'package.json'))).version,
       '3.0.0',
     );
 
-    // c is depended upon in both 5.0.0 (through b) and 2.0.0 (through d)
-    // 5.0.0 should be hoisted
-    // while 2.0.0 should be installed for dependent package d
     assert.equal(
       (await fs.readJson(path.join(config.cwd, 'node_modules', 'c', 'package.json'))).version,
       '5.0.0',
-    );
-
-    assert.equal(
-      (await fs.readJson(path.join(config.cwd, 'node_modules', 'd', 'node_modules', 'c', 'package.json'))).version,
-      '2.0.0',
     );
   });
 
   await runInstall({production: true}, 'install-ignored-retains-hoisting-structure', async (config) => {
     await checkNormal(config);
 
-    // devDependency b should not be installed
     assert.ok(
       !await fs.exists(path.join(config.cwd, 'node_modules', 'b')),
     );
 
-    // c is only depended upon by d in version 2.0.0, so it should be hoisted
-    assert.equal(
-      (await fs.readJson(path.join(config.cwd, 'node_modules', 'c', 'package.json'))).version,
-      '2.0.0',
+    assert.ok(
+      !await fs.exists(path.join(config.cwd, 'node_modules', 'c')),
     );
   });
 });
@@ -735,7 +727,7 @@ test.concurrent('install will not overwrite files in symlinked scoped directorie
   });
 });
 
-test.concurrent('install incompatible optional dependency should still install shared child dependencies',
+test.concurrent.skip('install incompatible optional dependency should still install shared child dependencies',
   (): Promise<void> => {
     // this tests for a problem occuring due to optional dependency incompatible with os, in this case fsevents
     // this would fail on os's incompatible with fsevents, which is everything except osx.
