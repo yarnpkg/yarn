@@ -1,3 +1,8 @@
+version: 2.0
+executorType: docker
+containerInfo:
+  - image: rohara/yarnenv:0.1
+
 general:
   branches:
     ignore:
