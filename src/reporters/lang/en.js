@@ -148,6 +148,8 @@ const messages = {
   unmetPeer: 'Unmet peer dependency $0.',
   incorrectPeer: 'Incorrect peer dependency $0.',
 
+  skippedInstalledModules: 'Skipped $0 module(s) because they are already installed.',
+
   savedNewDependency: 'Saved 1 new dependency.',
   savedNewDependencies: 'Saved $0 new dependencies.',
 

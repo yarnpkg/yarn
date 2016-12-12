@@ -139,13 +139,13 @@ export default class PackageLinker {
       }
 
       try {
-        let obj = await fs.readJson(dest + "\\package.json");
+        const obj = await fs.readJson(path.join(dest, 'package.json'));
         // If the package is installed and is the exact same version, skip
         if(obj.version == ref.version) {
           skipped.push(dest);
           continue;
         }
-      }catch(ex) {};
+      } catch(ex) {}
 
       queue.set(dest, {
         src,
@@ -157,7 +157,9 @@ export default class PackageLinker {
         },
       });
     }
-    this.reporter.info('skipped ' + skipped.length + ' modules because they are already installed');
+    if(skipped.length > 0) {
+      this.reporter.lang('skippedInstalledModules', skipped.length);
+    }
 
     // keep track of all scoped paths to remove empty scopes after copy
     const scopedPaths = new Set();
@@ -195,7 +197,7 @@ export default class PackageLinker {
     }
 
     // skipped modules
-    for(const loc of skipped){
+    for (const loc of skipped) {
       possibleExtraneous.delete(loc);
     }
 
