@@ -5,7 +5,7 @@ is_msys=0
 
 case `uname` in
   *CYGWIN*) basedir=`cygpath -w "$basedir"`;;
-  *MSYS_NT*) is_msys=1;;
+  MSYS_NT*|MINGW*) is_msys=1;;
 esac
 
 command_exists() {
