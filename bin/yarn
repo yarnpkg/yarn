@@ -5,7 +5,7 @@ use_winpty=0
 
 case `uname` in
   *CYGWIN*) basedir=`cygpath -w "$basedir"`;;
-  MSYS_NT*|MINGW*) use_winpty=1;;
+  MSYS*|MINGW*) use_winpty=1;;
 esac
 
 command_exists() {
