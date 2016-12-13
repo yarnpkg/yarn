@@ -162,6 +162,18 @@ test.concurrent("writes new lockfile if existing one isn't satisfied", async ():
   });
 });
 
+test.concurrent('writes a lockfile even when there are no dependencies', (): Promise<void> => {
+  // https://github.com/yarnpkg/yarn/issues/679
+  return runInstall({}, 'install-without-dependencies', async (config) => {
+    const lockfileExists = await fs.exists(path.join(config.cwd, 'yarn.lock'));
+    const installedDepFiles = await fs.walk(path.join(config.cwd, 'node_modules'));
+
+    assert(lockfileExists);
+    // 1 for integrity file (located in node_modules)
+    assert.equal(installedDepFiles.length, 1);
+  });
+});
+
 test.concurrent("throws an error if existing lockfile isn't satisfied with --frozen-lockfile", (): Promise<void> => {
   const reporter = new reporters.ConsoleReporter({});
 
