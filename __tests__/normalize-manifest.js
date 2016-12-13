@@ -95,6 +95,26 @@ test('util.extractDescription', () => {
   expect(util.extractDescription(undefined)).toEqual(undefined);
 });
 
+test('util.parseScript', () => {
+  expect(util.parseScript('karma')).toEqual('karma');
+  expect(util.parseScript('webpack -d --no-color')).toEqual('webpack -d --no-color');
+  expect(util.parseScript('./node_modules/.bin/webpack -d --no-color')).toEqual('webpack -d --no-color');
+  expect(util.parseScript('node_modules\\.bin\\webpack -d --no-color')).toEqual('webpack -d --no-color');
+  expect(util.parseScript('node_modules/.bin/webpack --watch')).toEqual('webpack --watch');
+});
+
+test('util.normalizeScripts', () => {
+  expect(util.normalizeScripts({
+    'test': 'node_modules/.bin/karma',
+    'build': './node_modules/.bin/webpack -d --no-color',
+    'watch': 'node_modules\\.bin\\webpack --watch',
+  })).toEqual({
+    'test': 'karma',
+    'build': 'webpack -d --no-color',
+    'watch': 'webpack --watch',
+  });
+});
+
 // fill out expected and normalize paths
 function expand<T>(expected: T): T {
   if (expected.man && Array.isArray(expected.man)) {
