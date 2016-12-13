@@ -1,34 +1,39 @@
 /* @flow */
 
-export default ({
-  // shorthands
-  'run-script': 'run',
+const shorthands: { [key: string]: string } = {
   c: 'config',
   i: 'install',
-  ls: 'list',
+  la: 'list',
+  ll: 'list',
   ln: 'link',
+  ls: 'list',
+  r: 'remove',
   rb: 'rebuild',
-  runScript: 'run',
+  rm: 'remove',
   t: 'test',
   tst: 'test',
   un: 'remove',
   up: 'update',
   v: 'version',
+};
 
-  // affordances
+const affordances: { [key: string]: string } = {
   'add-user': 'login',
-  'dist-tag': 'tag',
-  'dist-tags': 'tag',
   adduser: 'login',
   author: 'owner',
+  'dist-tag': 'tag',
+  'dist-tags': 'tag',
   isntall: 'install',
-  la: 'list',
-  ll: 'list',
-  r: 'remove',
-  rm: 'remove',
+  'run-script': 'run',
+  runScript: 'run',
   show: 'info',
   uninstall: 'remove',
   update: 'upgrade',
   verison: 'version',
   view: 'info',
-}: { [key: string]: ?string });
+};
+
+export default ({
+  ...shorthands,
+  ...affordances,
+}: { [key: string]: string });
