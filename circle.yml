@@ -12,7 +12,11 @@ stages:
         key: yarn-{{ .Branch }}-{{ checksum "yarn.lock" }}
 
       - type: shell
-        command: rm -rf ~/.cache/yarn && yarn install
+        command: |
+          ls -la ~/.cache/yarn
+          whoami
+          pwd
+          yarn install
 
       - type: shell
         name: Setup GHR
