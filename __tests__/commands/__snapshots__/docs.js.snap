@@ -1,0 +1,240 @@
+exports[`test setFlags() modifies our commander object 1`] = `
+Object {
+  "calls": Array [
+    Array [
+      "docs [packages ...] [flags]",
+    ],
+  ],
+  "instances": Array [
+    [Function],
+  ],
+}
+`;
+
+exports[`test setFlags() modifies our commander object 2`] = `
+Object {
+  "calls": Array [
+    Array [
+      "-a, --app <app>",
+      "the app that is used to open websites. Defaults: macOS=\"open\", Windows=\"start\", Others=\"xdg-open\"",
+    ],
+  ],
+  "instances": Array [
+    [Function],
+  ],
+}
+`;
+
+exports[`test with 1 argument and a invalid request 1`] = `
+Object {
+  "calls": Array [],
+  "instances": Array [],
+}
+`;
+
+exports[`test with 1 argument and a invalid request 2`] = `
+Object {
+  "calls": Array [
+    Array [
+      "jest",
+    ],
+  ],
+  "instances": Array [
+    Object {
+      "request": [Function],
+    },
+  ],
+}
+`;
+
+exports[`test with 1 argument and a invalid request 3`] = `"Received invalid response from npm."`;
+
+exports[`test with 1 argument and a valid request 1`] = `
+Object {
+  "calls": Array [
+    Array [
+      "https://www.npmjs.org/package/jest",
+      Object {},
+      false,
+    ],
+  ],
+  "instances": Array [
+    undefined,
+  ],
+}
+`;
+
+exports[`test with 1 argument and a valid request 2`] = `
+Object {
+  "calls": Array [
+    Array [
+      "jest",
+    ],
+  ],
+  "instances": Array [
+    Object {
+      "request": [Function],
+    },
+  ],
+}
+`;
+
+exports[`test with 1 argument and a valid request 3`] = `"Opening docs for \"jest\" at \"https://www.npmjs.org/package/jest\""`;
+
+exports[`test with 1 argument, a valid request, and a homepage 1`] = `
+Object {
+  "calls": Array [
+    Array [
+      "http://example.com",
+      Object {},
+      false,
+    ],
+  ],
+  "instances": Array [
+    undefined,
+  ],
+}
+`;
+
+exports[`test with 1 argument, a valid request, and a homepage 2`] = `
+Object {
+  "calls": Array [
+    Array [
+      "jest",
+    ],
+  ],
+  "instances": Array [
+    Object {
+      "request": [Function],
+    },
+  ],
+}
+`;
+
+exports[`test with 1 argument, a valid request, and a homepage 3`] = `"Opening docs for \"jest\" at \"http://example.com\""`;
+
+exports[`test with 1 argument, an app passed in, a valid request, and a homepage 1`] = `
+Object {
+  "calls": Array [
+    Array [
+      "http://example.com",
+      Object {
+        "app": "Google Chrome",
+      },
+      false,
+    ],
+  ],
+  "instances": Array [
+    undefined,
+  ],
+}
+`;
+
+exports[`test with 1 argument, an app passed in, a valid request, and a homepage 2`] = `
+Object {
+  "calls": Array [
+    Array [
+      "jest",
+    ],
+  ],
+  "instances": Array [
+    Object {
+      "request": [Function],
+    },
+  ],
+}
+`;
+
+exports[`test with 1 argument, an app passed in, a valid request, and a homepage 3`] = `"Opening docs for \"jest\" at \"http://example.com\""`;
+
+exports[`test with multiple arguments and a valid request 1`] = `
+Object {
+  "calls": Array [
+    Array [
+      "https://www.npmjs.org/package/jest",
+      Object {},
+      false,
+    ],
+    Array [
+      "https://www.npmjs.org/package/foo",
+      Object {},
+      false,
+    ],
+  ],
+  "instances": Array [
+    undefined,
+    undefined,
+  ],
+}
+`;
+
+exports[`test with multiple arguments and a valid request 2`] = `
+Object {
+  "calls": Array [
+    Array [
+      "jest",
+    ],
+    Array [
+      "foo",
+    ],
+  ],
+  "instances": Array [
+    Object {
+      "request": [Function],
+    },
+    Object {
+      "request": [Function],
+    },
+  ],
+}
+`;
+
+exports[`test with multiple arguments and a valid request 3`] = `"Opening docs for \"foo\" at \"https://www.npmjs.org/package/foo\""`;
+
+exports[`test without arguments and in directory containing a invalid package file 1`] = `
+Object {
+  "calls": Array [],
+  "instances": Array [],
+}
+`;
+
+exports[`test without arguments and in directory containing a invalid package file 2`] = `
+Object {
+  "calls": Array [],
+  "instances": Array [],
+}
+`;
+
+exports[`test without arguments and in directory containing a invalid package file 3`] = `"The current package.json has no \"name\" attribute"`;
+
+exports[`test without arguments and in directory containing a valid package file 1`] = `
+Object {
+  "calls": Array [
+    Array [
+      "https://www.npmjs.org/package/test-docs",
+      Object {},
+      false,
+    ],
+  ],
+  "instances": Array [
+    undefined,
+  ],
+}
+`;
+
+exports[`test without arguments and in directory containing a valid package file 2`] = `
+Object {
+  "calls": Array [
+    Array [
+      "test-docs",
+    ],
+  ],
+  "instances": Array [
+    Object {
+      "request": [Function],
+    },
+  ],
+}
+`;
+
+exports[`test without arguments and in directory containing a valid package file 3`] = `"Opening docs for \"test-docs\" at \"https://www.npmjs.org/package/test-docs\""`;

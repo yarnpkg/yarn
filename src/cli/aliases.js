@@ -23,6 +23,7 @@ const affordances: { [key: string]: string } = {
   author: 'owner',
   'dist-tag': 'tag',
   'dist-tags': 'tag',
+  home: 'docs',
   isntall: 'install',
   'run-script': 'run',
   runScript: 'run',
