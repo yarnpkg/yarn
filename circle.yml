@@ -1,7 +1,7 @@
 version: 2.0
 executorType: docker
 containerInfo:
-  - image: rohara/yarnenv:0.4
+  - image: rohara/yarnenv:0.5
 stages:
   build:
     workDir: /home/ubuntu/project
@@ -12,9 +12,7 @@ stages:
         key: yarn-{{ .Branch }}-{{ checksum "yarn.lock" }}
 
       - type: shell
-        command: |
-          df -T
-          yarn install
+        command: yarn install
 
       - type: shell
         name: Setup GHR
