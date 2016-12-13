@@ -13,9 +13,7 @@ stages:
 
       - type: shell
         command: |
-          mount
-          whoami
-          pwd
+          df -T
           yarn install
 
       - type: shell
