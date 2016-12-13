@@ -145,8 +145,8 @@ const messages = {
   optionalModuleFail: 'This module is OPTIONAL, you can safely ignore this error',
   optionalModuleScriptFail: 'Error running install script for optional dependency: $0',
 
-  unmetPeer: 'Unmet peer dependency $0.',
-  incorrectPeer: 'Incorrect peer dependency $0.',
+  unmetPeer: '$0 has unmet peer dependency $1.',
+  incorrectPeer: '$0 has incorrect peer dependency $1.',
 
   savedNewDependency: 'Saved 1 new dependency.',
   savedNewDependencies: 'Saved $0 new dependencies.',
