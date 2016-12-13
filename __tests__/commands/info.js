@@ -1,5 +1,6 @@
 /* @flow */
 
+import * as reporters from '../../src/reporters/index.js';
 import {run as info} from '../../src/cli/commands/info.js';
 import {BufferReporter} from '../../src/reporters/index.js';
 import Config from '../../src/config.js';
@@ -47,7 +48,7 @@ const expectedKeys = [
 ];
 
 test.concurrent('without arguments and in directory containing a valid package file', (): Promise<void> => {
-  return runInfo(['.'], {}, 'local',
+  return runInfo([], {}, 'local',
     (config, output): ?Promise<void> => {
       const actualKeys = Object.keys(output);
       expectedKeys.forEach((key) => expect(actualKeys).toContain(key));
@@ -124,6 +125,24 @@ test.concurrent('with two arguments and second argument path containing non-exis
   return runInfo(['yarn', 'repository.unknown.type'], {}, '',
     (config, output): ?Promise<void> => {
       expect(output).toBe(undefined);
+    },
+  );
+});
+
+test.concurrent('reports error on invalid package names', (): Promise<void> => {
+  const reporter = new reporters.ConsoleReporter({});
+  return runInfo(['YARN.invalid.package.name.YARN'], {}, '',
+    (config, output): ?Promise<void> => {
+      expect(output).toContain(reporter.lang('infoFail', 2));
+    },
+  );
+});
+
+test.concurrent('reports error with too many arguments', (): Promise<void> => {
+  const reporter = new reporters.ConsoleReporter({});
+  return runInfo(['yarn', 'version', 'extra.invalid.arg'], {}, '',
+    (config, output): ?Promise<void> => {
+      expect(output).toContain(reporter.lang('tooManyArguments', 2));
     },
   );
 });

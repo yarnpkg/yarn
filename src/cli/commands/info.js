@@ -43,6 +43,7 @@ export async function run(
  args: Array<string>,
 ): Promise<void> {
   if (args.length > 2) {
+    reporter.error(reporter.lang('tooManyArguments', 2));
     return;
   }
 
