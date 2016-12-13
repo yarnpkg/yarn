@@ -1,8 +1,11 @@
 #!/bin/sh
 basedir=$(dirname "$(readlink "$0" || echo "$(echo "$0" | sed -e 's,\\,/,g')")")
 
+is_msys=0
+
 case `uname` in
   *CYGWIN*) basedir=`cygpath -w "$basedir"`;;
+  *MSYS_NT*) is_msys=1;;
 esac
 
 command_exists() {
@@ -10,7 +13,11 @@ command_exists() {
 }
 
 if command_exists node; then
-  node "$basedir/yarn.js" "$@"
+  if [ $is_msys -eq 1 ]; then
+    winpty node "$basedir/yarn.js" "$@"
+  else
+    node "$basedir/yarn.js" "$@"
+  fi
   ret=$?
 # Debian and Ubuntu use "nodejs" as the name of the binary, not "node", so we
 # search for that too. See:
