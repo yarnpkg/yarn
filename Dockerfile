@@ -30,7 +30,7 @@ RUN curl -SLO "https://nodejs.org/dist/v$NODE_VERSION/node-v$NODE_VERSION-linux-
   && ln -s /usr/local/bin/node /usr/local/bin/nodejs \
   && apt-key adv --keyserver pgp.mit.edu --recv D101F7899D41F3C3 \
   && echo "deb http://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list \
-  && apt update \
+  && apt update -qq \
   && apt install -y git rpm lintian zip unzip yarn sudo \
   && gem install fpm
 

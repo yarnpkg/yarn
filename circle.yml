@@ -13,7 +13,7 @@ stages:
 
       - type: shell
         command: |
-          mkdir -p ~/.cache/yarn
+          mount
           whoami
           pwd
           yarn install
