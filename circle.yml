@@ -2,64 +2,62 @@ version: 2.0
 executorType: docker
 containerInfo:
   - image: rohara/yarnenv:0.1
+stages:
+  build:
+    workDir: /home/ubuntu/project
+    steps:
+      - type: checkout
 
-general:
-  branches:
-    ignore:
-      - gh-pages
-  artifacts:
-    - "artifacts/"
+      - type: cache-restore
+        key: yarn-{{ .Branch }}-{{ checksum "yarn.lock" }}
 
-machine:
-  node:
-    version: 6
+      - type: shell
+        command: yarn install
 
-dependencies:
-  cache_directories:
-    - "~/.yarn-cache"
-    - "~/ghr"
+      - type: shell
+        name: Setup GHR
+        command: |
+          if [[ ! -e ~/ghr ]]; then
+            curl -L --create-dirs -o ~/ghr/ghr.zip https://github.com/tcnksm/ghr/releases/download/v0.5.0/ghr_v0.5.0_linux_amd64.zip;
+            unzip ~/ghr/ghr.zip -d ~/ghr
+          fi
+          ln -sF  ~/ghr/ghr /usr/local/bin/ghr
 
-  override:
-    - which node
+      - type: shell
+        name: Tests
+        command: |
+          node -v
+          if [ "$CIRCLE_BRANCH" == 'master' ]; then
+            ./scripts/set-dev-version.js
+          fi;
+          yarn lint
+          yarn test-ci
+          yarn check-lockfile
+          yarn build-dist
+          node ./scripts/build-webpack.js
+          ./scripts/build-deb.sh
 
-    # install dependencies
-    - ./scripts/bootstrap-env-ubuntu.sh
+      - type: cache-save
+        key: yarn-{{ .Branch }}-{{ checksum "yarn.lock" }}
+        paths:
+          - "~/.yarn-cache"
+          - "~/ghr"
 
-    - yarn install
+      - type: artifacts-store
+        path: artifacts/
+        destination: yarnpkg
 
-    # setup ghr
-    - >
-      if [[ ! -e ~/ghr ]]; then
-        curl -L --create-dirs -o ~/ghr/ghr.zip https://github.com/tcnksm/ghr/releases/download/v0.5.0/ghr_v0.5.0_linux_amd64.zip;
-        unzip ~/ghr/ghr.zip -d ~/ghr
-      fi
-    - sudo ln -sF  ~/ghr/ghr /usr/local/bin/ghr
+#deployment:
+#  release:
+#    tag: /v[0-9]+(\.[0-9]+)*/
+#    owner: yarnpkg
+#    commands:
+#      - ~/ghr/ghr --username yarnpkg --repository yarn --token $KPM_CIRCLE_RELEASE_TOKEN v$(dist/bin/yarn --version) artifacts/
+#      - curl https://nightly.yarnpkg.com/sign_releases?token=$SIGN_TOKEN
+#      - echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
+#      - ./scripts/set-installation-method.js "`pwd`/package.json" npm
+#      - npm publish
 
-test:
-  override:
-    - node -v
-    - >
-      if [ "$CIRCLE_BRANCH" == 'master' ]; then
-        ./scripts/set-dev-version.js
-      fi;
-    - yarn lint
-    - yarn test-ci
-    - yarn check-lockfile
-    - yarn build-dist
-    - node ./scripts/build-webpack.js
-    - ./scripts/build-deb.sh
-
-deployment:
-  release:
-    tag: /v[0-9]+(\.[0-9]+)*/
-    owner: yarnpkg
-    commands:
-      - ~/ghr/ghr --username yarnpkg --repository yarn --token $KPM_CIRCLE_RELEASE_TOKEN v$(dist/bin/yarn --version) artifacts/
-      - curl https://nightly.yarnpkg.com/sign_releases?token=$SIGN_TOKEN
-      - echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
-      - ./scripts/set-installation-method.js "`pwd`/package.json" npm
-      - npm publish
-
-notify:
-  webhooks:
-    - url: https://nightly.yarnpkg.com/api/archive_circleci
+#notify:
+#  webhooks:
+#    - url: https://nightly.yarnpkg.com/api/archive_circleci
