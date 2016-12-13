@@ -95,6 +95,11 @@ test('util.extractDescription', () => {
   expect(util.extractDescription(undefined)).toEqual(undefined);
 });
 
+test('util.extractRepositoryUrl', () => {
+  expect(util.extractRepositoryUrl('https://github.com/yarnpkg/yarn.git')).toEqual('https://github.com/yarnpkg/yarn.git');
+  expect(util.extractRepositoryUrl({type: 'git', url: 'https://github.com/yarnpkg/yarn.git'})).toEqual('https://github.com/yarnpkg/yarn.git');
+});
+
 // fill out expected and normalize paths
 function expand<T>(expected: T): T {
   if (expected.man && Array.isArray(expected.man)) {

@@ -2,7 +2,7 @@
 
 import type {Reporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
-import {stringifyPerson} from '../../util/normalize-manifest/util.js';
+import {stringifyPerson, extractRepositoryUrl} from '../../util/normalize-manifest/util.js';
 import {registryNames} from '../../registries/index.js';
 import * as child from '../../util/child.js';
 import * as fs from '../../util/fs.js';
@@ -23,7 +23,7 @@ export async function run(
 ): Promise<void> {
   const manifests = await config.getRootManifests();
 
-  let gitUrl;
+  let repository = {};
   const author = {
     name: config.getOption('init-author-name'),
     email: config.getOption('init-author-email'),
@@ -32,7 +32,10 @@ export async function run(
   if (await fs.exists(path.join(config.cwd, '.git'))) {
     // get git origin of the cwd
     try {
-      gitUrl = await child.spawn('git', ['config', 'remote.origin.url'], {cwd: config.cwd});
+      repository = {
+        type: 'git',
+        url: await child.spawn('git', ['config', 'remote.origin.url'], {cwd: config.cwd}),
+      };
     } catch (ex) {
       // Ignore - Git repo may not have an origin URL yet (eg. if it only exists locally)
     }
@@ -71,8 +74,8 @@ export async function run(
     },
     {
       key: 'repository',
-      question: 'git repository',
-      default: gitUrl,
+      question: 'repository url',
+      default: extractRepositoryUrl(repository),
     },
     {
       key: 'author',
@@ -95,11 +98,18 @@ export async function run(
 
     for (const registryName of registryNames) {
       const {object} = manifests[registryName];
-      const val = objectPath.get(object, manifestKey);
-      if (val) {
-        def = val;
+      let val = objectPath.get(object, manifestKey);
+      if (!val) {
         break;
       }
+      if (typeof val === 'object') {
+        if (manifestKey === 'author') {
+          val = stringifyPerson(val);
+        } else if (manifestKey === 'repository') {
+          val = extractRepositoryUrl(val);
+        }
+      }
+      def = val;
     }
 
     if (def) {
