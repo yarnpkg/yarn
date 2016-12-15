@@ -311,6 +311,7 @@ export class Install {
     if (!patterns.length && !match.expected) {
       this.reporter.success(this.reporter.lang('nothingToInstall'));
       await this.createEmptyManifestFolders();
+      await this.saveLockfileAndIntegrity(patterns);
       return true;
     }
 
@@ -581,7 +582,7 @@ export class Install {
     const inSync = this.lockFileInSync(patterns);
 
     // remove is followed by install with force on which we rewrite lockfile
-    if (inSync && !this.flags.force) {
+    if (inSync && patterns.length && !this.flags.force) {
       return;
     }
 
