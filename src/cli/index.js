@@ -170,16 +170,17 @@ if (commandName === 'help' || args.indexOf('--help') >= 0 || args.indexOf('-h') 
   process.exit(1);
 }
 
-//
-if (!command) {
-  args.unshift(commandName);
+// parse flags
+args.unshift(commandName);
+commander.parse(startArgs.concat(args));
+commander.args = commander.args.concat(endArgs);
+
+if (command) {
+  commander.args.shift();
+} else {
   command = commands.run;
 }
 invariant(command, 'missing command');
-
-// parse flags
-commander.parse(startArgs.concat(args));
-commander.args = commander.args.concat(endArgs);
 
 //
 let Reporter = ConsoleReporter;
