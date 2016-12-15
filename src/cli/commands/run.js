@@ -68,7 +68,7 @@ export async function run(
     for (const action of actions) {
       const cmd = scripts[action];
       if (cmd) {
-        const isWin = /win/.test(process.platform);
+        const isWin = 'win32' === process.platform;
         cmds.push([action, isWin ? fixCmdWinSlashes(cmd) : cmd]);
       }
     }
