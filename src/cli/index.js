@@ -54,7 +54,7 @@ commander.option('--ignore-optional', 'ignore optional dependencies');
 commander.option('--force', 'ignore all caches');
 commander.option('--no-bin-links', "don't generate bin links when setting up packages");
 commander.option('--flat', 'only allow one version of a package');
-commander.option('--prod, --production', '');
+commander.option('--prod, --production [prod]', '');
 commander.option('--no-lockfile', "don't read or generate a lockfile");
 commander.option('--pure-lockfile', "don't generate a lockfile");
 commander.option('--frozen-lockfile', "don't generate a lockfile and fail if an update is needed");
