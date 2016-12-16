@@ -1,0 +1,10 @@
+{
+  "name": "optional-failing",
+  "version": "0.0.0",
+  "scripts": {
+    "install": "node install.js"
+  },
+  "dependencies": {
+    "sub-dep": "file:../sub-dep"
+  }
+}
