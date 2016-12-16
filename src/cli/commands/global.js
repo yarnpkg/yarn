@@ -91,7 +91,7 @@ function getGlobalPrefix(config: Config, flags: Object): string {
   }
 }
 
-function getBinFolder(config: Config, flags: Object): string {
+export function getBinFolder(config: Config, flags: Object): string {
   const prefix = getGlobalPrefix(config, flags);
   if (process.platform === 'win32') {
     return prefix;

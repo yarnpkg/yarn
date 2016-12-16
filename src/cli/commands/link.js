@@ -4,6 +4,7 @@ import type {Reporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
 import {MessageError} from '../../errors.js';
 import * as fs from '../../util/fs.js';
+import {getBinFolder as getGlobalBinFolder} from './global';
 
 const invariant = require('invariant');
 const path = require('path');
@@ -57,6 +58,19 @@ export async function run(
     } else {
       await fs.mkdirp(path.dirname(linkLoc));
       await fs.symlink(config.cwd, linkLoc);
+
+      // If there is a `bin` defined in the package.json,
+      // link each bin to the global bin
+      if (manifest.bin) {
+        const globalBinFolder = getGlobalBinFolder(config, flags);
+        for (const binName in manifest.bin) {
+          const binSrc = manifest.bin[binName];
+          const binSrcLoc = path.join(linkLoc, binSrc);
+          const binDestLoc = path.join(globalBinFolder, binName);
+          await fs.symlink(binSrcLoc, binDestLoc);
+        }
+      }
+
       reporter.success(reporter.lang('linkRegistered', name));
       reporter.info(reporter.lang('linkInstallMessage', name));
     }
