@@ -43,7 +43,9 @@ export async function run(
         const globalBinFolder = getGlobalBinFolder(config, flags);
         for (const binName in manifest.bin) {
           const binDestLoc = path.join(globalBinFolder, binName);
-          await fs.unlink(binDestLoc);
+          if (await fs.exists(binDestLoc)) {
+            await fs.unlink(binDestLoc);
+          }
         }
       }
 

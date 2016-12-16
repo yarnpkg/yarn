@@ -67,7 +67,11 @@ export async function run(
           const binSrc = manifest.bin[binName];
           const binSrcLoc = path.join(linkLoc, binSrc);
           const binDestLoc = path.join(globalBinFolder, binName);
-          await fs.symlink(binSrcLoc, binDestLoc);
+          if (await fs.exists(binDestLoc)) {
+            reporter.warn(reporter.lang('binLinkCollision', binName));
+          } else {
+            await fs.symlink(binSrcLoc, binDestLoc);
+          }
         }
       }
 
