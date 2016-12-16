@@ -1,5 +1,6 @@
 /lib
 /lib-legacy
+/lib-es5
 .DS_Store
 /node_modules
 *.log
