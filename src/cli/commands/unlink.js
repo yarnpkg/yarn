@@ -35,8 +35,6 @@ export async function run(
 
     const linkLoc = path.join(config.linkFolder, name);
     if (await fs.exists(linkLoc)) {
-      await fs.unlink(linkLoc);
-
       // If there is a `bin` defined in the package.json,
       // link each bin to the global bin
       if (manifest.bin) {
@@ -48,6 +46,8 @@ export async function run(
           }
         }
       }
+
+      await fs.unlink(linkLoc);
 
       reporter.success(reporter.lang('linkUnregistered', name));
     } else {
