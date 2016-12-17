@@ -136,7 +136,7 @@ test.concurrent('hoisting should factor ignored dependencies', async () => {
   });
 });
 
-test.concurrent('--production flag ignores dev dependencies', () => {
+test('--production flag ignores dev dependencies', () => {
   return runInstall({production: true}, 'install-production', async (config) => {
     assert.ok(
       !await fs.exists(path.join(config.cwd, 'node_modules', 'lodash')),
@@ -467,7 +467,7 @@ test.concurrent(
 );
 
 // disabled to resolve https://github.com/yarnpkg/yarn/pull/1210
-test.skip('install should hoist nested bin scripts', (): Promise<void> => {
+test('install should hoist nested bin scripts', (): Promise<void> => {
   return runInstall({binLinks: true}, 'install-nested-bin', async (config) => {
     const binScripts = await fs.walk(path.join(config.cwd, 'node_modules', '.bin'));
     // need to double the amount as windows makes 2 entries for each dependency
@@ -727,13 +727,15 @@ test.concurrent('install will not overwrite files in symlinked scoped directorie
   });
 });
 
-test.concurrent.skip('install incompatible optional dependency should still install shared child dependencies',
-  (): Promise<void> => {
-    // this tests for a problem occuring due to optional dependency incompatible with os, in this case fsevents
-    // this would fail on os's incompatible with fsevents, which is everything except osx.
-    return runInstall({}, 'install-should-not-skip-required-shared-deps', async (config) => {
-      assert.ok(await fs.exists(path.join(config.cwd, 'node_modules', 'deep-extend')));
-      assert.ok(await fs.exists(path.join(config.cwd, 'node_modules', 'ini')));
-      assert.ok(await fs.exists(path.join(config.cwd, 'node_modules', 'strip-json-comments')));
+if (process.platform !== 'darwin') {
+  test('install incompatible optional dependency should still install shared child dependencies',
+    (): Promise<void> => {
+      // this tests for a problem occuring due to optional dependency incompatible with os, in this case fsevents
+      // this would fail on os's incompatible with fsevents, which is everything except osx.
+      return runInstall({}, 'install-should-not-skip-required-shared-deps', async (config) => {
+        assert.ok(await fs.exists(path.join(config.cwd, 'node_modules', 'deep-extend')));
+        assert.ok(await fs.exists(path.join(config.cwd, 'node_modules', 'ini')));
+        assert.ok(await fs.exists(path.join(config.cwd, 'node_modules', 'strip-json-comments')));
+      });
     });
-  });
+}
