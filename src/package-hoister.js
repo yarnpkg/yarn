@@ -137,7 +137,7 @@ export default class PackageHoister {
         return null;
       }
       // non ignored dependencies inherit parent's ignored status
-      // but parent may transition from ignored to non ignored when hoisting
+      // parent may transition from ignored to non ignored when hoisted if it is used in another non ignored branch
       if (!isIgnored() && parent.isIgnored()) {
         isIgnored = () => !!parent && parent.isIgnored();
       }
@@ -185,7 +185,7 @@ export default class PackageHoister {
       const existing = this.tree.get(checkKey);
       if (existing) {
         if (existing.loc === info.loc) {
-          // deduping an unignored reference to an ignored one
+          // switch to non ignored if earlier deduped version was ignored
           if (existing.isIgnored() && !info.isIgnored()) {
             existing.isIgnored = info.isIgnored;
           }
