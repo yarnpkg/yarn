@@ -467,7 +467,7 @@ test.concurrent(
 );
 
 // disabled to resolve https://github.com/yarnpkg/yarn/pull/1210
-test('install should hoist nested bin scripts', (): Promise<void> => {
+test.skip('install should hoist nested bin scripts', (): Promise<void> => {
   return runInstall({binLinks: true}, 'install-nested-bin', async (config) => {
     const binScripts = await fs.walk(path.join(config.cwd, 'node_modules', '.bin'));
     // need to double the amount as windows makes 2 entries for each dependency
