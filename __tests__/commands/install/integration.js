@@ -727,11 +727,11 @@ test.concurrent('install a module with incompatible optional dependency should s
     });
   });
 
+// this tests for a problem occuring due to optional dependency incompatible with os, in this case fsevents
+// this would fail on os's incompatible with fsevents, which is everything except osx.
 if (process.platform !== 'darwin') {
   test.concurrent('install incompatible optional dependency should still install shared child dependencies',
     (): Promise<void> => {
-      // this tests for a problem occuring due to optional dependency incompatible with os, in this case fsevents
-      // this would fail on os's incompatible with fsevents, which is everything except osx.
       return runInstall({}, 'install-should-not-skip-required-shared-deps', async (config) => {
         assert.ok(await fs.exists(path.join(config.cwd, 'node_modules', 'deep-extend')));
         assert.ok(await fs.exists(path.join(config.cwd, 'node_modules', 'ini')));

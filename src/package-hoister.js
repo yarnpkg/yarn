@@ -130,7 +130,7 @@ export default class PackageHoister {
 
     //
     let parentParts: Parts = [];
-    let isIgnored = () => { return ref.ignore; };
+    let isIgnored = () => ref.ignore;
 
     if (parent) {
       if (!this.tree.get(parent.key)) {
@@ -139,7 +139,7 @@ export default class PackageHoister {
       // non ignored dependencies inherit parent's ignored status
       // but parent may transition from ignored to non ignored when hoisting
       if (!isIgnored() && parent.isIgnored()) {
-        isIgnored = () => { return !!parent && parent.isIgnored(); };
+        isIgnored = () => !!parent && parent.isIgnored();
       }
       parentParts = parent.parts;
     }
