@@ -26,14 +26,24 @@ export default class FileResolver extends ExoticResolver {
 
   async resolve(): Promise<Manifest> {
     let loc = this.loc;
+    const optional = this.request.optional;
     if (!path.isAbsolute(loc)) {
       loc = path.join(this.config.cwd, loc);
     }
-    if (!(await fs.exists(loc))) {
+    if (!(await fs.exists(loc)) && !optional) {
       throw new MessageError(this.reporter.lang('doesntExist', loc));
     }
 
-    const manifest = await this.config.readManifest(loc, this.registry);
+    let manifest = await this.config.tryReadManifest(loc, this.registry);
+    
+    if (!manifest && optional) {
+      manifest = {
+        _uid: '0.0.0',
+        _registry: this.registry,
+        _loc: loc,
+        version: 'undefined',
+      };
+    }
     const registry = manifest._registry;
     invariant(registry, 'expected registry');
 

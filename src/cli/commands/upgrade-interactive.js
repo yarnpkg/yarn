@@ -15,8 +15,9 @@ const tty = require('tty');
 export const requireLockfile = true;
 
 export function setFlags(commander: Object) {
-  // TODO: support some flags that install command has
-  commander.usage('update');
+  commander.usage('upgrade-interactive');
+  commander.option('-E, --exact', 'install exact version');
+  commander.option('-T, --tilde', 'install most recent release with the same minor version');
 }
 
 type InquirerResponses<K, T> = {[key: K]: Array<T>};

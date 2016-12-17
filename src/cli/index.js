@@ -57,6 +57,7 @@ commander.option('--flat', 'only allow one version of a package');
 commander.option('--prod, --production', '');
 commander.option('--no-lockfile', "don't read or generate a lockfile");
 commander.option('--pure-lockfile', "don't generate a lockfile");
+commander.option('--frozen-lockfile', "don't generate a lockfile and fail if an update is needed");
 commander.option('--global-folder <path>', '');
 commander.option(
   '--modules-folder <path>',
@@ -80,6 +81,7 @@ commander.option(
   '--no-progress',
   'disable progress bar',
 );
+commander.option('--network-concurrency <number>', 'maximum number of concurrent network requests');
 
 // get command name
 let commandName: ?string = args.shift() || '';
@@ -360,6 +362,7 @@ config.init({
   production: commander.production,
   httpProxy: commander.proxy,
   httpsProxy: commander.httpsProxy,
+  networkConcurrency: commander.networkConcurrency,
   commandName,
 }).then(() => {
   const exit = () => {
