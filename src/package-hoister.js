@@ -13,8 +13,8 @@ type Parts = Array<string>;
 let historyCounter = 0;
 
 export class HoistManifest {
-  constructor(key: string, parts: Parts, pkg: Manifest, loc: string, isIgnored: boolean) {
-    this.ignore = isIgnored;
+  constructor(key: string, parts: Parts, pkg: Manifest, loc: string, isIgnored: () => boolean) {
+    this.isIgnored = isIgnored;
     this.loc = loc;
     this.pkg = pkg;
 
@@ -27,7 +27,7 @@ export class HoistManifest {
     this.addHistory(`Start position = ${key}`);
   }
 
-  ignore: boolean;
+  isIgnored: () => boolean;
   pkg: Manifest;
   loc: string;
   parts: Parts;
@@ -130,13 +130,17 @@ export default class PackageHoister {
 
     //
     let parentParts: Parts = [];
-    let isIgnored = ref.ignore;
+    let isIgnored = () => ref.ignore;
 
     if (parent) {
       if (!this.tree.get(parent.key)) {
         return null;
       }
-      isIgnored = isIgnored || parent.ignore;
+      // non ignored dependencies inherit parent's ignored status
+      // parent may transition from ignored to non ignored when hoisted if it is used in another non ignored branch
+      if (!isIgnored() && parent.isIgnored()) {
+        isIgnored = () => !!parent && parent.isIgnored();
+      }
       parentParts = parent.parts;
     }
 
@@ -181,9 +185,9 @@ export default class PackageHoister {
       const existing = this.tree.get(checkKey);
       if (existing) {
         if (existing.loc === info.loc) {
-          // deduping an unignored reference to an ignored one
-          if (existing.ignore && !info.ignore) {
-            existing.ignore = false;
+          // switch to non ignored if earlier deduped version was ignored
+          if (existing.isIgnored() && !info.isIgnored()) {
+            existing.isIgnored = info.isIgnored;
           }
 
           existing.addHistory(`Deduped ${fullKey} to this item`);
@@ -277,7 +281,6 @@ export default class PackageHoister {
     // remove this item from the `tree` map so we can ignore it
     this.tree.delete(key);
 
-    //
     const {parts, duplicate} = this.getNewParts(key, info, rawParts.slice());
     const newKey = this.implodeKey(parts);
     const oldKey = key;
@@ -389,7 +392,7 @@ export default class PackageHoister {
       const ref = info.pkg._reference;
       invariant(ref, 'expected reference');
 
-      if (info.ignore) {
+      if (info.isIgnored()) {
         info.addHistory('Deleted as this module was ignored');
       } else {
         visibleFlatTree.push([loc, info]);
