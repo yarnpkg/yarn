@@ -740,7 +740,7 @@ if (process.platform !== 'darwin') {
     });
 }
 
-// Covers current behavior, I think this should be changed https://github.com/yarnpkg/yarn/issues/2274
+// Covers current behavior, issue opened whether this should be changed https://github.com/yarnpkg/yarn/issues/2274
 test.concurrent('optional dependency that fails to build should still be installed',
   (): Promise<void> => {
     return runInstall({}, 'should-install-failing-optional-deps', async (config) => {
@@ -754,4 +754,4 @@ test.concurrent('a subdependency of an optional dependency that fails should be 
       assert.ok(await fs.exists(path.join(config.cwd, 'node_modules', 'optional-failing')));
       assert.ok(await fs.exists(path.join(config.cwd, 'node_modules', 'sub-dep')));
     });
-}
+  });
