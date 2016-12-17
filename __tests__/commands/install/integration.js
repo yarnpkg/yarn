@@ -136,7 +136,7 @@ test.concurrent('hoisting should factor ignored dependencies', async () => {
   });
 });
 
-test('--production flag ignores dev dependencies', () => {
+test.concurrent('--production flag ignores dev dependencies', () => {
   return runInstall({production: true}, 'install-production', async (config) => {
     assert.ok(
       !await fs.exists(path.join(config.cwd, 'node_modules', 'lodash')),
