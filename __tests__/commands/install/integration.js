@@ -653,6 +653,37 @@ test('install a scoped module from authed private registry', (): Promise<void> =
   });
 });
 
+test('install a scoped module from authed private registry with a missing trailing slash', (): Promise<void> => {
+  return runInstall({noLockfile: true}, 'install-from-authed-private-registry-no-slash', async (config) => {
+    const authedRequests = request.__getAuthedRequests();
+    assert.equal(authedRequests[0].url, 'https://registry.yarnpkg.com/@types%2flodash');
+    assert.equal(authedRequests[0].headers.authorization, 'Bearer abc123');
+    assert.equal(authedRequests[1].url, 'https://registry.yarnpkg.com/@types/lodash/-/lodash-4.14.37.tgz');
+    assert.equal(authedRequests[1].headers.authorization, 'Bearer abc123');
+    assert.equal(
+      (await fs.readFile(path.join(config.cwd, 'node_modules', '@types', 'lodash', 'index.d.ts'))).split('\n')[0],
+      '// Type definitions for Lo-Dash 4.14',
+    );
+  });
+});
+
+test.concurrent('install will not overwrite files in symlinked scoped directories', async (): Promise<void> => {
+  await runInstall({}, 'install-dont-overwrite-linked-scoped', async (config): Promise<void> => {
+    const dependencyPath = path.join(config.cwd, 'node_modules', '@fakescope', 'fake-dependency');
+    assert.equal(
+      'Symlinked scoped package test',
+      (await fs.readJson(path.join(dependencyPath, 'package.json'))).description,
+    );
+    assert.ok(!(await fs.exists(path.join(dependencyPath, 'index.js'))));
+  }, async (cwd) => {
+    const dirToLink = path.join(cwd, 'dir-to-link');
+    await fs.mkdirp(path.join(cwd, '.yarn-link', '@fakescope'));
+    await fs.symlink(dirToLink, path.join(cwd, '.yarn-link', '@fakescope', 'fake-dependency'));
+    await fs.mkdirp(path.join(cwd, 'node_modules', '@fakescope'));
+    await fs.symlink(dirToLink, path.join(cwd, 'node_modules', '@fakescope', 'fake-dependency'));
+  });
+});
+
 test.concurrent('install a module with incompatible optional dependency should skip dependency',
   (): Promise<void> => {
     return runInstall({}, 'install-should-skip-incompatible-optional-dep', async (config) => {
@@ -664,5 +695,34 @@ test.concurrent('install a module with incompatible optional dependency should s
   (): Promise<void> => {
     return runInstall({}, 'install-should-skip-incompatible-optional-dep', async (config) => {
       assert.ok(!(await fs.exists(path.join(config.cwd, 'node_modules', 'dep-a'))));
+    });
+  });
+
+// this tests for a problem occuring due to optional dependency incompatible with os, in this case fsevents
+// this would fail on os's incompatible with fsevents, which is everything except osx.
+if (process.platform !== 'darwin') {
+  test.concurrent('install incompatible optional dependency should still install shared child dependencies',
+    (): Promise<void> => {
+      return runInstall({}, 'install-should-not-skip-required-shared-deps', async (config) => {
+        assert.ok(await fs.exists(path.join(config.cwd, 'node_modules', 'deep-extend')));
+        assert.ok(await fs.exists(path.join(config.cwd, 'node_modules', 'ini')));
+        assert.ok(await fs.exists(path.join(config.cwd, 'node_modules', 'strip-json-comments')));
+      });
+    });
+}
+
+// Covers current behavior, issue opened whether this should be changed https://github.com/yarnpkg/yarn/issues/2274
+test.concurrent('optional dependency that fails to build should still be installed',
+  (): Promise<void> => {
+    return runInstall({}, 'should-install-failing-optional-deps', async (config) => {
+      assert.ok(await fs.exists(path.join(config.cwd, 'node_modules', 'optional-failing')));
+    });
+  });
+
+test.concurrent('a subdependency of an optional dependency that fails should be installed',
+  (): Promise<void> => {
+    return runInstall({}, 'should-install-failing-optional-sub-deps', async (config) => {
+      assert.ok(await fs.exists(path.join(config.cwd, 'node_modules', 'optional-failing')));
+      assert.ok(await fs.exists(path.join(config.cwd, 'node_modules', 'sub-dep')));
     });
   });
