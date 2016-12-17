@@ -139,7 +139,7 @@ export default class PackageHoister {
       // non ignored dependencies inherit parent's ignored status
       // but parent may transition from ignored to non ignored when hoisting
       if (!isIgnored() && parent.isIgnored()) {
-        isIgnored = () => { return parent.isIgnored(); };
+        isIgnored = () => { return !!parent && parent.isIgnored(); };
       }
       parentParts = parent.parts;
     }
