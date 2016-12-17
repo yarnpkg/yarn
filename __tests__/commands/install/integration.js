@@ -638,51 +638,6 @@ test.concurrent('install uses OS line endings when lockfile doesn\'t exist', asy
     });
 });
 
-// sync test because we need to get all the requests to confirm their validity
-test('install a scoped module from authed private registry', (): Promise<void> => {
-  return runInstall({noLockfile: true}, 'install-from-authed-private-registry', async (config) => {
-    const authedRequests = request.__getAuthedRequests();
-    assert.equal(authedRequests[0].url, 'https://registry.yarnpkg.com/@types%2flodash');
-    assert.equal(authedRequests[0].headers.authorization, 'Bearer abc123');
-    assert.equal(authedRequests[1].url, 'https://registry.yarnpkg.com/@types/lodash/-/lodash-4.14.37.tgz');
-    assert.equal(authedRequests[1].headers.authorization, 'Bearer abc123');
-    assert.equal(
-      (await fs.readFile(path.join(config.cwd, 'node_modules', '@types', 'lodash', 'index.d.ts'))).split('\n')[0],
-      '// Type definitions for Lo-Dash 4.14',
-    );
-  });
-});
-
-test('install a scoped module from authed private registry with a missing trailing slash', (): Promise<void> => {
-  return runInstall({noLockfile: true}, 'install-from-authed-private-registry-no-slash', async (config) => {
-    const authedRequests = request.__getAuthedRequests();
-    assert.equal(authedRequests[0].url, 'https://registry.yarnpkg.com/@types%2flodash');
-    assert.equal(authedRequests[0].headers.authorization, 'Bearer abc123');
-    assert.equal(authedRequests[1].url, 'https://registry.yarnpkg.com/@types/lodash/-/lodash-4.14.37.tgz');
-    assert.equal(authedRequests[1].headers.authorization, 'Bearer abc123');
-    assert.equal(
-      (await fs.readFile(path.join(config.cwd, 'node_modules', '@types', 'lodash', 'index.d.ts'))).split('\n')[0],
-      '// Type definitions for Lo-Dash 4.14',
-    );
-  });
-});
-
-test.concurrent('install will not overwrite files in symlinked scoped directories', async (): Promise<void> => {
-  await runInstall({}, 'install-dont-overwrite-linked-scoped', async (config): Promise<void> => {
-    const dependencyPath = path.join(config.cwd, 'node_modules', '@fakescope', 'fake-dependency');
-    assert.equal(
-      'Symlinked scoped package test',
-      (await fs.readJson(path.join(dependencyPath, 'package.json'))).description,
-    );
-    assert.ok(!(await fs.exists(path.join(dependencyPath, 'index.js'))));
-  }, async (cwd) => {
-    const dirToLink = path.join(cwd, 'dir-to-link');
-    await fs.mkdirp(path.join(cwd, '.yarn-link', '@fakescope'));
-    await fs.symlink(dirToLink, path.join(cwd, '.yarn-link', '@fakescope', 'fake-dependency'));
-    await fs.mkdirp(path.join(cwd, 'node_modules', '@fakescope'));
-    await fs.symlink(dirToLink, path.join(cwd, 'node_modules', '@fakescope', 'fake-dependency'));
-  });
-});
 
 test.concurrent('install a module with incompatible optional dependency should skip dependency',
   (): Promise<void> => {
