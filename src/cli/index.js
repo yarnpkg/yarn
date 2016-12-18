@@ -22,18 +22,6 @@ const onDeath = require('death');
 const path = require('path');
 const pkg = require('../../package.json');
 
-export function createReporter(emoji: boolean, noProgress: boolean): any {
-  const reporter = new Reporter({
-    emoji: commander.emoji && process.stdout.isTTY && process.platform === 'darwin',
-    verbose: commander.verbose,
-    noProgress: !commander.progress,
-  });
-}
-
-export function getNoProgress(commanderNoProgress: boolean = false, pkgNoProgress: boolean = false): boolean {
-  return !!commanderNoProgress || !!pkgNoProgress;
-}
-
 loudRejection();
 
 //
@@ -198,12 +186,11 @@ let Reporter = ConsoleReporter;
 if (commander.json) {
   Reporter = JSONReporter;
 }
-
-// set reporter output options for emojis & progress bar
-const showEmoji = commander.emoji && process.stdout.isTTY && process.platform === 'darwin';
-const noProgress = getNoProgress(pkg.noProgress, commander.noProgress);
-const reporter = createReporter(showEmoji, noProgress); 
-
+const reporter = new Reporter({
+  emoji: commander.emoji && process.stdout.isTTY && process.platform === 'darwin',
+  verbose: commander.verbose,
+  noProgress: !commander.progress,
+});
 reporter.initPeakMemoryCounter();
 
 //
@@ -378,6 +365,14 @@ config.init({
   networkConcurrency: commander.networkConcurrency,
   commandName,
 }).then(() => {
+
+  // option "no-progress" stored in yarn config
+  const noProgressConfig = config.registries.yarn.getOption('no-progress');
+
+  if (noProgressConfig) {
+    reporter.disableProgress();
+  }
+
   const exit = () => {
     process.exit(0);
   };
