@@ -136,7 +136,7 @@ export default class BaseReporter {
   }
 
   // TODO
-  list(key: string, items: Array<string>) {}
+  list(key: string, items: Array<string>, hints?: Object) {}
 
   // Outputs basic tree structure to console
   tree(key: string, obj: Trees) {}

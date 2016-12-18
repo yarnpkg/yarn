@@ -27,7 +27,6 @@ if (semver.satisfies(ver, '>=5.0.0')) {
 // ensure cache directory exists
 var mkdirp = require('mkdirp');
 var constants = require('../lib-legacy/constants');
-mkdirp.sync(constants.GLOBAL_INSTALL_DIRECTORY);
 mkdirp.sync(constants.MODULE_CACHE_DIRECTORY);
 
 // init roadrunner

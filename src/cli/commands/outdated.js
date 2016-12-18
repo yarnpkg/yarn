@@ -41,10 +41,11 @@ export async function run(
         reporter.format.green(info.wanted),
         reporter.format.magenta(info.latest),
         getNameFromHint(info.hint),
+        reporter.format.cyan(info.url),
       ];
     });
 
-    reporter.table(['Package', 'Current', 'Wanted', 'Latest', 'Package Type'], body);
+    reporter.table(['Package', 'Current', 'Wanted', 'Latest', 'Package Type', 'URL'], body);
   }
 
   return Promise.resolve();

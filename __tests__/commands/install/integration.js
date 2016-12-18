@@ -162,6 +162,18 @@ test.concurrent("writes new lockfile if existing one isn't satisfied", async ():
   });
 });
 
+test.concurrent('writes a lockfile even when there are no dependencies', (): Promise<void> => {
+  // https://github.com/yarnpkg/yarn/issues/679
+  return runInstall({}, 'install-without-dependencies', async (config) => {
+    const lockfileExists = await fs.exists(path.join(config.cwd, 'yarn.lock'));
+    const installedDepFiles = await fs.walk(path.join(config.cwd, 'node_modules'));
+
+    assert(lockfileExists);
+    // 1 for integrity file (located in node_modules)
+    assert.equal(installedDepFiles.length, 1);
+  });
+});
+
 test.concurrent("throws an error if existing lockfile isn't satisfied with --frozen-lockfile", (): Promise<void> => {
   const reporter = new reporters.ConsoleReporter({});
 
@@ -398,6 +410,31 @@ test('install should respect NODE_ENV=production', (): Promise<void> => {
   process.env.NODE_ENV = 'production';
   return runInstall({}, 'install-should-respect-node_env', async (config) => {
     expect(await fs.exists(path.join(config.cwd, 'node_modules/is-negative-zero/package.json'))).toBe(false);
+    // restore env
+    process.env.NODE_ENV = env;
+  });
+});
+
+// don't run this test in `concurrent`, it will affect other tests
+test('install should respect NPM_CONFIG_PRODUCTION=false over NODE_ENV=production', (): Promise<void> => {
+  const env = process.env.NODE_ENV;
+  const prod = process.env.NPM_CONFIG_PRODUCTION;
+  process.env.NODE_ENV = 'production';
+  process.env.NPM_CONFIG_PRODUCTION = 'false';
+  return runInstall({}, 'install-should-respect-npm_config_production', async (config) => {
+    expect(await fs.exists(path.join(config.cwd, 'node_modules/is-negative-zero/package.json'))).toBe(true);
+    // restore env
+    process.env.NODE_ENV = env;
+    process.env.NPM_CONFIG_PRODUCTION = prod;
+  });
+});
+
+// don't run this test in `concurrent`, it will affect other tests
+test('install should respect production flag false over NODE_ENV=production', (): Promise<void> => {
+  const env = process.env.NODE_ENV;
+  process.env.NODE_ENV = 'production';
+  return runInstall({production: 'false'}, 'install-should-respect-production_flag_over_node-env', async (config) => {
+    expect(await fs.exists(path.join(config.cwd, 'node_modules/is-negative-zero/package.json'))).toBe(true);
     // restore env
     process.env.NODE_ENV = env;
   });
@@ -682,20 +719,6 @@ test('install a scoped module from authed private registry with a missing traili
   });
 });
 
-test.concurrent('install a module with incompatible optional dependency should skip dependency',
-  (): Promise<void> => {
-    return runInstall({}, 'install-should-skip-incompatible-optional-dep', async (config) => {
-      assert.ok(!(await fs.exists(path.join(config.cwd, 'node_modules', 'dep-incompatible'))));
-    });
-  });
-
-test.concurrent('install a module with incompatible optional dependency should skip transient dependencies',
-  (): Promise<void> => {
-    return runInstall({}, 'install-should-skip-incompatible-optional-dep', async (config) => {
-      assert.ok(!(await fs.exists(path.join(config.cwd, 'node_modules', 'dep-a'))));
-    });
-  });
-
 test.concurrent('install will not overwrite files in symlinked scoped directories', async (): Promise<void> => {
   await runInstall({}, 'install-dont-overwrite-linked-scoped', async (config): Promise<void> => {
     const dependencyPath = path.join(config.cwd, 'node_modules', '@fakescope', 'fake-dependency');
@@ -713,3 +736,45 @@ test.concurrent('install will not overwrite files in symlinked scoped directorie
   });
 });
 
+test.concurrent('install a module with incompatible optional dependency should skip dependency',
+  (): Promise<void> => {
+    return runInstall({}, 'install-should-skip-incompatible-optional-dep', async (config) => {
+      assert.ok(!(await fs.exists(path.join(config.cwd, 'node_modules', 'dep-incompatible'))));
+    });
+  });
+
+test.concurrent('install a module with incompatible optional dependency should skip transient dependencies',
+  (): Promise<void> => {
+    return runInstall({}, 'install-should-skip-incompatible-optional-dep', async (config) => {
+      assert.ok(!(await fs.exists(path.join(config.cwd, 'node_modules', 'dep-a'))));
+    });
+  });
+
+// this tests for a problem occuring due to optional dependency incompatible with os, in this case fsevents
+// this would fail on os's incompatible with fsevents, which is everything except osx.
+if (process.platform !== 'darwin') {
+  test.concurrent('install incompatible optional dependency should still install shared child dependencies',
+    (): Promise<void> => {
+      return runInstall({}, 'install-should-not-skip-required-shared-deps', async (config) => {
+        assert.ok(await fs.exists(path.join(config.cwd, 'node_modules', 'deep-extend')));
+        assert.ok(await fs.exists(path.join(config.cwd, 'node_modules', 'ini')));
+        assert.ok(await fs.exists(path.join(config.cwd, 'node_modules', 'strip-json-comments')));
+      });
+    });
+}
+
+// Covers current behavior, issue opened whether this should be changed https://github.com/yarnpkg/yarn/issues/2274
+test.concurrent('optional dependency that fails to build should still be installed',
+  (): Promise<void> => {
+    return runInstall({}, 'should-install-failing-optional-deps', async (config) => {
+      assert.ok(await fs.exists(path.join(config.cwd, 'node_modules', 'optional-failing')));
+    });
+  });
+
+test.concurrent('a subdependency of an optional dependency that fails should be installed',
+  (): Promise<void> => {
+    return runInstall({}, 'should-install-failing-optional-sub-deps', async (config) => {
+      assert.ok(await fs.exists(path.join(config.cwd, 'node_modules', 'optional-failing')));
+      assert.ok(await fs.exists(path.join(config.cwd, 'node_modules', 'sub-dep')));
+    });
+  });

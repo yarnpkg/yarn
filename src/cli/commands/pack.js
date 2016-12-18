@@ -18,12 +18,18 @@ const IGNORE_FILENAMES = [
   '.gitignore',
 ];
 
-const DEFAULT_IGNORE = ignoreLinesToRegex([
+const FOLDERS_IGNORE = [
   // never allow version control folders
   '.git',
   'CVS',
   '.svn',
   '.hg',
+
+  'node_modules',
+];
+
+const DEFAULT_IGNORE = ignoreLinesToRegex([
+  ...FOLDERS_IGNORE,
 
   // ignore cruft
   'yarn.lock',
@@ -38,15 +44,14 @@ const DEFAULT_IGNORE = ignoreLinesToRegex([
   '.npmignore',
   '.gitignore',
   '.DS_Store',
-  'node_modules',
 ]);
 
 const NEVER_IGNORE = ignoreLinesToRegex([
   // never ignore these files
-  '!package.json',
-  '!readme*',
-  '!+(license|licence)*',
-  '!+(changes|changelog|history)*',
+  '!/package.json',
+  '!/readme*',
+  '!/+(license|licence)*',
+  '!/+(changes|changelog|history)*',
 ]);
 
 function addEntry(packer: any, entry: Object, buffer?: ?Buffer): Promise<void> {
@@ -85,7 +90,7 @@ export async function pack(config: Config, dir: string): Promise<stream$Duplex> 
   if (onlyFiles) {
     let lines = [
       '*', // ignore all files except those that are explicitly included with a negation filter
-      '.*', // files with "." as first character have to be excluded explicitly 
+      '.*', // files with "." as first character have to be excluded explicitly
     ];
     lines = lines.concat(
       onlyFiles.map((filename: string): string => `!${filename}`),
@@ -95,7 +100,7 @@ export async function pack(config: Config, dir: string): Promise<stream$Duplex> 
   }
 
   //
-  const files = await fs.walk(config.cwd);
+  const files = await fs.walk(config.cwd, null, new Set(FOLDERS_IGNORE));
 
   // create ignores
   for (const file of files) {

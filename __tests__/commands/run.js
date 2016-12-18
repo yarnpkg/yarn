@@ -2,7 +2,7 @@
 
 jest.mock('../../src/util/execute-lifecycle-script');
 
-import {run as buildRun} from './_helpers.js';
+import {run as buildRun, setPlatform} from './_helpers.js';
 import {BufferReporter} from '../../src/reporters/index.js';
 import {run} from '../../src/cli/commands/run.js';
 import * as fs from '../../src/util/fs.js';
@@ -25,13 +25,18 @@ test('lists all available commands with no arguments', (): Promise<void> => {
   return runRun([], {}, 'no-args', (config, reporter): ?Promise<void> => {
     const rprtr = new reporters.BufferReporter({stdout: null, stdin: null});
     const scripts = ['build', 'prestart', 'start'];
+    const hints = {
+      build: "echo 'building'",
+      prestart: "echo 'prestart'",
+      start: 'node index.js',
+    };
     const bins = ['cat-names'];
 
     // Emulate run output
     rprtr.error(rprtr.lang('commandNotSpecified'));
     rprtr.info(`${rprtr.lang('binCommands')}${bins.join(', ')}`);
     rprtr.info(rprtr.lang('possibleCommands'));
-    rprtr.list('possibleCommands', scripts);
+    rprtr.list('possibleCommands', scripts, hints);
     rprtr.error(rprtr.lang('commandNotSpecified'));
 
     expect(reporter.getBuffer()).toEqual(rprtr.getBuffer());
@@ -61,11 +66,17 @@ test('properly handles extra arguments and pre/post scripts', (): Promise<void> 
   });
 });
 
-test('handles bin scripts', (): Promise<void> => {
-  return runRun(['cat-names'], {}, 'bin', (config) => {
-    const script = path.join(config.cwd, 'node_modules', '.bin', 'cat-names');
-    const args = ['cat-names', config, `"${script}" `, config.cwd];
+test('multi-platform bin scripts', () => (
+    ['win32', 'darwin'].reduce((tests, platform) => (
+      tests.then(() =>
+        runRun(['cat-names'], {}, 'bin', (config) => {
+          const originalPlatform = setPlatform(platform);
+          const script = path.join(config.cwd, 'node_modules', '.bin', 'cat-names');
+          const args = ['cat-names', config, `"${script}" `, config.cwd];
 
-    expect(execCommand).toBeCalledWith(...args);
-  });
-});
+          expect(execCommand).toBeCalledWith(...args);
+          setPlatform(originalPlatform);
+        }),
+    ))
+    , Promise.resolve())
+));

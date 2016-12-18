@@ -100,6 +100,8 @@ export default class Config {
   //
   constraintResolver: ConstraintResolver;
 
+  networkConcurrency: number;
+
   //
   requestManager: RequestManager;
 
@@ -205,6 +207,12 @@ export default class Config {
       this.rootModuleFolders.push(path.join(this.cwd, registry.folder));
     }
 
+    this.networkConcurrency = (
+      opts.networkConcurrency ||
+      Number(this.getOption('network-concurrency')) ||
+      constants.NETWORK_CONCURRENCY
+    );
+
     this.requestManager.setOptions({
       userAgent: String(this.getOption('user-agent')),
       httpProxy: String(opts.httpProxy || this.getOption('proxy') || ''),
@@ -214,8 +222,7 @@ export default class Config {
       cafile: String(opts.cafile || this.getOption('cafile') || ''),
       cert: String(opts.cert || this.getOption('cert') || ''),
       key: String(opts.key || this.getOption('key') || ''),
-      networkConcurrency: Number(opts.networkConcurrency || this.getOption('network-concurrency') ||
-        constants.NETWORK_CONCURRENCY),
+      networkConcurrency: this.networkConcurrency,
     });
 
     //init & create cacheFolder, tempFolder
@@ -224,8 +231,15 @@ export default class Config {
     await fs.mkdirp(this.cacheFolder);
     await fs.mkdirp(this.tempFolder);
 
-    if (this.getOption('production') || process.env.NODE_ENV === 'production') {
+    if (opts.production === 'false') {
+      this.production = false;
+    } else if (this.getOption('production') ||
+        process.env.NODE_ENV === 'production' &&
+        process.env.NPM_CONFIG_PRODUCTION !== 'false' &&
+        process.env.YARN_PRODUCTION !== 'false') {
       this.production = true;
+    } else {
+      this.production = !!opts.production;
     }
   }
 
@@ -246,7 +260,6 @@ export default class Config {
     this.modulesFolder = opts.modulesFolder;
     this.globalFolder = opts.globalFolder || constants.GLOBAL_MODULE_DIRECTORY;
     this.linkFolder = opts.linkFolder || constants.LINK_REGISTRY_DIRECTORY;
-    this.production = !!opts.production;
     this.offline = !!opts.offline;
     this.binLinks = !!opts.binLinks;
 
