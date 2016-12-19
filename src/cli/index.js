@@ -366,6 +366,14 @@ config.init({
   networkConcurrency: commander.networkConcurrency,
   commandName,
 }).then(() => {
+
+  // option "no-progress" stored in yarn config
+  const noProgressConfig = config.registries.yarn.getOption('no-progress');
+
+  if (noProgressConfig) {
+    reporter.disableProgress();
+  }
+
   const exit = () => {
     process.exit(0);
   };
