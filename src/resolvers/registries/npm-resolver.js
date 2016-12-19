@@ -52,10 +52,11 @@ export default class NpmResolver extends RegistryResolver {
         choices: Object.keys(body.versions).reverse(),
         pageSize: 20,
       }]);
-      return body.versions[response.package];
-    } else {
-      throw new MessageError(config.reporter.lang('couldntFindVersionThatMatchesRange', body.name, range));
+      if (response && response.package) {
+        return body.versions[response.package];
+      }
     }
+    throw new MessageError(config.reporter.lang('couldntFindVersionThatMatchesRange', body.name, range));
   }
 
   async resolveRequest(): Promise<?Manifest> {
