@@ -607,12 +607,12 @@ test.concurrent('add infers line endings from existing unix manifest file', asyn
 test.concurrent('add asks for correct package version if user passes an incorrect one', async (): Promise<void> => {
   let chosenVersion = null;
   await runAdd(
-    ['is-png@100'],
+    ['is-array@100'],
     {},
     'add-asks-correct-package-version',
     async (config) => {
       assert(chosenVersion);
-      assert.equal(await getPackageVersion(config, 'is-png'), chosenVersion);
+      assert.equal(await getPackageVersion(config, 'is-array'), chosenVersion);
     },
     () => {
       inquirer.prompt = jest.fn((questions) => {

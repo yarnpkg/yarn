@@ -43,8 +43,8 @@ export default class NpmResolver extends RegistryResolver {
     const satisfied = await config.resolveConstraints(Object.keys(body.versions), range);
     if (satisfied) {
       return body.versions[satisfied];
-    } else {
-      if (request && request.resolver && request.resolver.activity) {
+    } else if (request) {
+      if (request.resolver && request.resolver.activity) {
         request.resolver.activity.end();
       }
       config.reporter.log(config.reporter.lang('couldntFindVersionThatMatchesRange', body.name, range));
