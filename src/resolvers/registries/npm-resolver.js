@@ -11,6 +11,7 @@ import * as fs from '../../util/fs.js';
 import {YARN_REGISTRY} from '../../constants.js';
 
 const inquirer = require('inquirer');
+const tty = require('tty');
 const invariant = require('invariant');
 const path = require('path');
 
@@ -42,15 +43,21 @@ export default class NpmResolver extends RegistryResolver {
     const satisfied = await config.resolveConstraints(Object.keys(body.versions), range);
     if (satisfied) {
       return body.versions[satisfied];
-    } else if (request && request.resolver && request.resolver.activity) {
-      request.resolver.activity.end();
+    } else {
+      if (request && request.resolver && request.resolver.activity) {
+        request.resolver.activity.end();
+      }
       config.reporter.log(config.reporter.lang('couldntFindVersionThatMatchesRange', body.name, range));
+      let pageSize;
+      if (process.stdout instanceof tty.WriteStream) {
+        pageSize = process.stdout.rows - 2;
+      }
       const response = await inquirer.prompt([{
         name: 'package',
         type: 'list',
         message: config.reporter.lang('chooseVersionFromList'),
         choices: Object.keys(body.versions).reverse(),
-        pageSize: 20,
+        pageSize,
       }]);
       if (response && response.package) {
         return body.versions[response.package];
