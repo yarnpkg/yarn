@@ -1,0 +1,8 @@
+{
+  "name": "test_install_no_write_permissions",
+  "version": "1.0.0",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "left-pad": "^1.1.3"
+  }
+}

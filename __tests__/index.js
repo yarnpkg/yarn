@@ -106,3 +106,12 @@ test.concurrent('should run add command with help option', async () => {
   const stdout = await execCommand('add', ['--help'], 'run-help');
   expect(stdout[0]).toEqual('Usage: yarn add [packages ...] [flags]');
 });
+
+test.concurrent('should error with code 1 immediately when cannot write into current folder', async () => {
+  // '__tests__/fixtures/index/run-install-no-write-permissions' folder should have no write permissions
+  try {
+    await execCommand('install', [], 'run-install-no-write-permissions');
+  } catch (err) {
+    expect(err.code).toEqual(1);
+  }
+});
