@@ -28,7 +28,7 @@
     "node-emoji": "^1.0.4",
     "node-gyp": "^3.2.1",
     "object-path": "^0.11.2",
-    "proper-lockfile": "^1.1.3",
+    "proper-lockfile": "^2.0.0",
     "read": "^1.0.7",
     "repeating": "^2.0.0",
     "request": "^2.75.0",
