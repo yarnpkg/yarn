@@ -8,8 +8,6 @@
     "dep-b": "2.0.0",
     "dep-d": "1.0.0"
   },
-  "scripts": {
-    "postinstall": "dep-a root0@1.0.0 && dep-b root0@1.0.0 && dep-d root0@1.0.0"
-  },
+  "scripts": {},
   "license": "MIT"
 }
