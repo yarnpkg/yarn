@@ -231,4 +231,9 @@ export default class BaseReporter {
   progress(total: number): () => void {
     return function() {};
   }
+
+  // utility function to disable progress bar
+  disableProgress() {
+    this.noProgress = true;
+  }
 }
