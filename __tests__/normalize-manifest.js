@@ -28,7 +28,7 @@ for (const name of nativeFs.readdirSync(fixturesLoc)) {
 
     const reporter = new NoopReporter();
 
-    // $FlowFixMe: investigate
+    // $FlowFixMe: Investigate
     reporter.warn = function(msg) {
       actualWarnings.push(msg);
     };
@@ -101,7 +101,7 @@ test('util.extractRepositoryUrl', () => {
 });
 
 // fill out expected and normalize paths
-function expand<T>(expected: T): T {
+function expand<T: Object>(expected: T): T {
   if (expected.man && Array.isArray(expected.man)) {
     expected = {...expected, man: normalizePaths(expected.man)};
   }
