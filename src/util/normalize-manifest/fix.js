@@ -153,7 +153,9 @@ export default async function (
   // based on the original `bin` field and `name field`
   // { name: "foo", bin: "cli.js" } -> { name: "foo", bin: { foo: "cli.js" } }
   if (typeof info.name === 'string' && typeof info.bin === 'string') {
-    info.bin = {[info.name]: info.bin};
+    // Remove scoped package name for consistency with NPM's bin field fixing behaviour
+    const name = info.name.replace(/^@[^\/]+\//, '');
+    info.bin = {[name]: info.bin};
   }
 
   // bundleDependencies is an alias for bundledDependencies
