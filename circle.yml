@@ -22,6 +22,7 @@ stages:
             unzip ~/ghr/ghr.zip -d ~/ghr
           fi
           ln -sF  ~/ghr/ghr /usr/local/bin/ghr
+          touch ~/.yarnrc
 
       - type: shell
         name: Tests
