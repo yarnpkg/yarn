@@ -295,11 +295,14 @@ export default class Config {
     let uid = pkg.uid;
     if (pkg.registry) {
       name = `${pkg.registry}-${name}`;
-      uid = pkg.version || uid;
     }
 
     const {hash} = pkg.remote;
-    if (hash) {
+
+    if (pkg.version && (pkg.version !== pkg.uid)) {
+      uid = `${pkg.version}-${uid}`;
+
+    } else if (hash) {
       uid += `-${hash}`;
     }
 
