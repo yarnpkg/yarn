@@ -25,6 +25,7 @@ export const mkdirp: (path: string) => Promise<void> = promisify(require('mkdirp
 export const exists: (path: string) => Promise<boolean>  = promisify(fs.exists, true);
 export const lstat: (path: string) => Promise<fs.Stats> = promisify(fs.lstat);
 export const chmod: (path: string, mode: number | string) => Promise<void> = promisify(fs.chmod);
+export const symlinkSync: (target: string, path: string, type?: 'dir' | 'file' | 'junction') => void = fs.symlinkSync;
 
 const fsSymlink: (
   target: string,

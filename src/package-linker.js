@@ -27,7 +27,8 @@ export async function linkBin(src: string, dest: string): Promise<void> {
     await cmdShim(src, dest);
   } else {
     await fs.mkdirp(path.dirname(dest));
-    await fs.symlink(src, dest);
+    // Async symlink creates invalid symlinks, see issue #2326
+    fs.symlinkSync(src, dest);
     await fs.chmod(dest, '755');
   }
 }
