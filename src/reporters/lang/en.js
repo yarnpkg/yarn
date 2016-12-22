@@ -234,6 +234,11 @@ const messages = {
   errorDecompressingTarball: '$0. Error decompressing $1, it appears to be corrupt.',
   updateInstalling: 'Installing $0...',
   hostedGitResolveError: 'Error connecting to repository. Please, check the url.',
+
+  searchNeedsQuery: 'Please provide a search query.',
+  searchFailed: 'Search is not available right now, please try again later.',
+  searchEmpty: 'No packages found matching $0.',
+  searchStats: 'Search results: $0 packages matching $1. Relevant one(s):',
 };
 
 export type LanguageKeys = $Keys<typeof messages>;
