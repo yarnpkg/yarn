@@ -90,7 +90,7 @@ test('TarballFetcher.fetch', async () => {
   const dir = await mkdir('tarball-fetcher');
   const fetcher = new TarballFetcher(dir, {
     type: 'tarball',
-    hash: 'a32262ca1e22a3746b970936d3944b4bfd6cb9e9',
+    hash: '51f12d36860fc3d2ab747377991746e8ea3faabb',
     reference: 'https://github.com/sindresorhus/beeper/archive/master.tar.gz',
     registry: 'npm',
   }, await createConfig());
