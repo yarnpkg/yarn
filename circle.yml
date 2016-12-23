@@ -32,6 +32,7 @@ stages:
             ./scripts/set-dev-version.js
           fi;
           yarn lint
+          rm -rf __tests__/fixtures/request-cache
           yarn test-ci
           yarn check-lockfile
           yarn build-dist
