@@ -32,7 +32,7 @@ RUN curl -SLO "https://nodejs.org/dist/v$NODE_VERSION/node-v$NODE_VERSION-linux-
   && apt install -y git rpm lintian zip unzip sudo \
   && gem install fpm
 
-RUN npm install -g yarn@0.17.10
+RUN npm install -g yarn@0.18.0
 ENV PATH "$PATH:/root/.yarn/bin/"
 
 CMD [ "node" ]
