@@ -54,7 +54,7 @@ commander.option('--ignore-optional', 'ignore optional dependencies');
 commander.option('--force', 'ignore all caches');
 commander.option('--no-bin-links', "don't generate bin links when setting up packages");
 commander.option('--flat', 'only allow one version of a package');
-commander.option('--prod, --production', '');
+commander.option('--prod, --production [prod]', '');
 commander.option('--no-lockfile', "don't read or generate a lockfile");
 commander.option('--pure-lockfile', "don't generate a lockfile");
 commander.option('--frozen-lockfile', "don't generate a lockfile and fail if an update is needed");
@@ -170,16 +170,17 @@ if (commandName === 'help' || args.indexOf('--help') >= 0 || args.indexOf('-h') 
   process.exit(1);
 }
 
-//
-if (!command) {
-  args.unshift(commandName);
+// parse flags
+args.unshift(commandName);
+commander.parse(startArgs.concat(args));
+commander.args = commander.args.concat(endArgs);
+
+if (command) {
+  commander.args.shift();
+} else {
   command = commands.run;
 }
 invariant(command, 'missing command');
-
-// parse flags
-commander.parse(startArgs.concat(args));
-commander.args = commander.args.concat(endArgs);
 
 //
 let Reporter = ConsoleReporter;
@@ -365,6 +366,14 @@ config.init({
   networkConcurrency: commander.networkConcurrency,
   commandName,
 }).then(() => {
+
+  // option "no-progress" stored in yarn config
+  const noProgressConfig = config.registries.yarn.getOption('no-progress');
+
+  if (noProgressConfig) {
+    reporter.disableProgress();
+  }
+
   const exit = () => {
     process.exit(0);
   };

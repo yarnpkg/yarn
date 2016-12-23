@@ -231,11 +231,15 @@ export default class Config {
     await fs.mkdirp(this.cacheFolder);
     await fs.mkdirp(this.tempFolder);
 
-    if (this.getOption('production') || (
+    if (opts.production === 'false') {
+      this.production = false;
+    } else if (this.getOption('production') ||
         process.env.NODE_ENV === 'production' &&
         process.env.NPM_CONFIG_PRODUCTION !== 'false' &&
-        process.env.YARN_PRODUCTION !== 'false')) {
+        process.env.YARN_PRODUCTION !== 'false') {
       this.production = true;
+    } else {
+      this.production = !!opts.production;
     }
   }
 
@@ -256,7 +260,6 @@ export default class Config {
     this.modulesFolder = opts.modulesFolder;
     this.globalFolder = opts.globalFolder || constants.GLOBAL_MODULE_DIRECTORY;
     this.linkFolder = opts.linkFolder || constants.LINK_REGISTRY_DIRECTORY;
-    this.production = !!opts.production;
     this.offline = !!opts.offline;
     this.binLinks = !!opts.binLinks;
 

@@ -273,16 +273,18 @@ export default class PackageLinker {
       }
 
       // validate found peer dependency
-      if (foundDep) {
-        if (range === '*' || semver.satisfies(foundDep.version, range, this.config.looseSemver)) {
-          ref.addDependencies([foundDep.pattern]);
-        } else {
-          this.reporter.warn(this.reporter.lang('incorrectPeer', `${name}@${range}`));
-        }
+      if (foundDep && this._satisfiesPeerDependency(range, foundDep.version)) {
+        ref.addDependencies([foundDep.pattern]);
       } else {
-        this.reporter.warn(this.reporter.lang('unmetPeer', `${name}@${range}`));
+        const depError = foundDep ? 'incorrectPeer' : 'unmetPeer';
+        const [pkgHuman, depHuman] = [`${pkg.name}@${pkg.version}`, `${name}@${range}`];
+        this.reporter.warn(this.reporter.lang(depError, pkgHuman, depHuman));
       }
     }
+  }
+
+  _satisfiesPeerDependency(range: string, version: string): boolean {
+    return range === '*' || semver.satisfies(version, range, this.config.looseSemver);
   }
 
   async init(patterns: Array<string>): Promise<void> {

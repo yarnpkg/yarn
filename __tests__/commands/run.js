@@ -66,11 +66,11 @@ test('properly handles extra arguments and pre/post scripts', (): Promise<void> 
   });
 });
 
-test('handles bin scripts', (): Promise<void> => {
-  return runRun(['cat-names'], {}, 'bin', (config) => {
+test.only('properly handle bin scripts', (): Promise<void> => (
+  runRun(['cat-names'], {}, 'bin', (config) => {
     const script = path.join(config.cwd, 'node_modules', '.bin', 'cat-names');
     const args = ['cat-names', config, `"${script}" `, config.cwd];
 
     expect(execCommand).toBeCalledWith(...args);
-  });
-});
+  }) : Promise<void>
+));

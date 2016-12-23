@@ -1,0 +1,8 @@
+{
+  "name": "test_run_custom_script",
+  "version": "1.0.0",
+  "license": "UNLICENSED",
+  "scripts": {
+    "custom-script": "echo \"A message from custom script\" && exit 0"
+  }
+}
