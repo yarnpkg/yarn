@@ -33,7 +33,6 @@ stages:
           fi;
           yarn lint
           rm -rf __tests__/fixtures/request-cache/GET/registry.*
-          yarn test-ci
           yarn check-lockfile
           yarn build-dist
           node ./scripts/build-webpack.js
