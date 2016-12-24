@@ -1,7 +1,7 @@
 version: 2.0
 executorType: docker
 containerInfo:
-  - image: rohara/yarnenv:0.6
+  - image: rohara/yarnenv:0.7
 stages:
   build:
     workDir: /home/ubuntu/project

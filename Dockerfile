@@ -29,7 +29,7 @@ RUN curl -SLO "https://nodejs.org/dist/v$NODE_VERSION/node-v$NODE_VERSION-linux-
   && rm "node-v$NODE_VERSION-linux-x64.tar.xz" SHASUMS256.txt.asc SHASUMS256.txt \
   && ln -s /usr/local/bin/node /usr/local/bin/nodejs \
   && apt update \
-  && apt install -y git rpm lintian zip unzip sudo \
+  && apt install -y git rpm lintian zip unzip sudo fakeroot \
   && gem install fpm
 
 RUN npm install -g yarn@0.18.0
