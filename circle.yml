@@ -32,8 +32,8 @@ stages:
             ./scripts/set-dev-version.js
           fi;
           yarn lint
-          yarn test-ci
           rm -rf __tests__/fixtures/request-cache/GET/registry.*
+          yarn test-ci
           yarn check-lockfile
           yarn build-dist
           node ./scripts/build-webpack.js
