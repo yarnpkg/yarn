@@ -131,11 +131,3 @@ export async function run<T, R>(
     throw new Error(`${err && err.stack} \nConsole output:\n ${out}`);
   }
 }
-export const setPlatform = (platform : string) : string => {
-  const previous = process.platform;
-  Object.defineProperty(process, 'platform', {
-    value: platform,
-  });
-
-  return previous;
-};

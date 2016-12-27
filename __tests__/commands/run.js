@@ -2,7 +2,7 @@
 
 jest.mock('../../src/util/execute-lifecycle-script');
 
-import {run as buildRun, setPlatform} from './_helpers.js';
+import {run as buildRun} from './_helpers.js';
 import {BufferReporter} from '../../src/reporters/index.js';
 import {run} from '../../src/cli/commands/run.js';
 import * as fs from '../../src/util/fs.js';
@@ -66,17 +66,11 @@ test('properly handles extra arguments and pre/post scripts', (): Promise<void> 
   });
 });
 
-test('multi-platform bin scripts', () => (
-    ['win32', 'darwin'].reduce((tests, platform) => (
-      tests.then(() =>
-        runRun(['cat-names'], {}, 'bin', (config) => {
-          const originalPlatform = setPlatform(platform);
-          const script = path.join(config.cwd, 'node_modules', '.bin', 'cat-names');
-          const args = ['cat-names', config, `"${script}" `, config.cwd];
+test.only('properly handle bin scripts', (): Promise<void> => (
+  runRun(['cat-names'], {}, 'bin', (config) => {
+    const script = path.join(config.cwd, 'node_modules', '.bin', 'cat-names');
+    const args = ['cat-names', config, `"${script}" `, config.cwd];
 
-          expect(execCommand).toBeCalledWith(...args);
-          setPlatform(originalPlatform);
-        }),
-    ))
-    , Promise.resolve())
+    expect(execCommand).toBeCalledWith(...args);
+  }) : Promise<void>
 ));
