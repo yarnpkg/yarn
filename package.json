@@ -1,6 +1,7 @@
 {
   "name": "yarn",
-  "version": "0.15.1",
+  "installationMethod": "unknown",
+  "version": "0.19.0-0",
   "license": "BSD-2-Clause",
   "preferGlobal": true,
   "dependencies": {
@@ -13,12 +14,13 @@
     "death": "^1.0.0",
     "debug": "^2.2.0",
     "defaults": "^1.0.3",
+    "detect-indent": "^4.0.0",
     "diff": "^2.2.1",
-    "eslint-plugin-react": "5.2.2",
-    "github": "2.5.1",
     "ini": "^1.3.4",
+    "inquirer": "^1.2.2",
     "invariant": "^2.2.0",
     "is-builtin-module": "^1.0.0",
+    "is-ci": "^1.0.10",
     "leven": "^2.0.0",
     "loud-rejection": "^1.2.0",
     "minimatch": "^3.0.3",
@@ -32,7 +34,7 @@
     "request": "^2.75.0",
     "request-capture-har": "^1.1.4",
     "rimraf": "^2.5.0",
-    "roadrunner": "^1.0.6",
+    "roadrunner": "^1.1.0",
     "semver": "^5.1.0",
     "strip-bom": "^2.0.0",
     "tar": "^2.2.1",
@@ -60,23 +62,28 @@
     "eslint-plugin-babel": "^3.3.0",
     "eslint-plugin-flowtype": "^2.15.0",
     "eslint-plugin-no-async-without-await": "^1.0.0",
+    "eslint-plugin-react": "5.2.2",
     "eslint-plugin-yarn-internal": "file:scripts/eslint-rules",
     "flow-bin": "0.33.0",
     "gulp": "^3.9.0",
     "gulp-babel": "^6.0.0",
+    "gulp-if": "^2.0.1",
     "gulp-newer": "^1.0.0",
     "gulp-plumber": "^1.0.1",
+    "gulp-sourcemaps": "^2.2.0",
     "gulp-util": "^3.0.7",
     "gulp-watch": "^4.3.5",
     "jest": "^16.0.1",
     "json-loader": "^0.5.4",
     "mock-stdin": "^0.3.0",
     "temp": "^0.8.3",
-    "webpack": "^2.1.0-beta.25"
+    "webpack": "^2.1.0-beta.25",
+    "yargs": "^6.3.0"
   },
   "repository": "yarnpkg/yarn",
   "bin": {
-    "yarn": "./bin/yarn.js"
+    "yarn": "./bin/yarn.js",
+    "yarnpkg": "./bin/yarn.js"
   },
   "scripts": {
     "test": "npm run lint && npm run test-only",
@@ -84,7 +91,7 @@
     "check-lockfile": "./scripts/check-lockfile.sh",
     "build": "gulp build",
     "watch": "gulp watch",
-    "test-only": "jest --coverage --verbose",
+    "test-only": "jest --coverage --verbose --maxWorkers 3",
     "lint": "eslint . && flow check",
     "release-branch": "./scripts/release-branch.sh",
     "build-dist": "./scripts/build-dist.sh",
@@ -100,7 +107,7 @@
     "testPathIgnorePatterns": [
       "__tests__/(fixtures|__mocks__)/",
       "updates/",
-      "/_(temp|mock|install|init).js$"
+      "/_(temp|mock|install|init|helpers).js$"
     ]
   }
 }

@@ -35,7 +35,7 @@ const compiler = webpack({
   ],
   output: {
     filename: `yarn-${version}.js`,
-    path: path.join(basedir, 'dist'),
+    path: path.join(basedir, 'artifacts'),
   },
   target: 'node',
 });
@@ -72,7 +72,7 @@ const compilerLegacy = webpack({
   ],
   output: {
     filename: `yarn-legacy-${version}.js`,
-    path: path.join(basedir, 'dist'),
+    path: path.join(basedir, 'artifacts'),
   },
   target: 'node',
 });

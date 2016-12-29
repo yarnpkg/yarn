@@ -5,6 +5,7 @@ import type PackageRequest from '../../package-request.js';
 import TarballFetcher from '../../fetchers/tarball-fetcher.js';
 import ExoticResolver from './exotic-resolver.js';
 import Git from './git-resolver.js';
+import {removePrefix} from '../../util/misc.js';
 import * as versionUtil from '../../util/version.js';
 import * as crypto from '../../util/crypto.js';
 import * as fs from '../../util/fs.js';
@@ -36,7 +37,7 @@ export default class TarballResolver extends ExoticResolver {
 
     // local file reference - ignore patterns with names
     if (pattern.indexOf('@') < 0) {
-      if (pattern.endsWith('.tgz') || pattern.endsWith('tar.gz')) {
+      if (pattern.endsWith('.tgz') || pattern.endsWith('.tar.gz')) {
         return true;
       }
     }
@@ -50,7 +51,7 @@ export default class TarballResolver extends ExoticResolver {
       return shrunk;
     }
 
-    const {url} = this;
+    const url = removePrefix(this.url, 'file:');
     let {hash, registry} = this;
     let pkgJson;
 

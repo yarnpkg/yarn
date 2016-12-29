@@ -5,7 +5,6 @@ import type {RegistryNames} from './registries/index.js';
 import type PackageReference from './package-reference.js';
 import type {Reporter} from './reporters/index.js';
 import type Config from './config.js';
-import {REMOVED_ANCESTOR} from './package-reference.js';
 import PackageRequest from './package-request.js';
 import RequestManager from './util/request-manager.js';
 import BlockingQueue from './util/blocking-queue.js';
@@ -13,6 +12,7 @@ import Lockfile from './lockfile/wrapper.js';
 import map from './util/map.js';
 
 const invariant = require('invariant');
+const semver = require('semver');
 
 export default class PackageResolver {
   constructor(config: Config, lockfile: Lockfile) {
@@ -261,6 +261,20 @@ export default class PackageResolver {
   }
 
   /**
+   * replace pattern in resolver, e.g. `name` is replaced with `name@^1.0.1`
+   */
+  replacePattern(pattern: string, newPattern: string) {
+    const pkg = this.getResolvedPattern(pattern);
+    invariant(pkg, `missing package ${pattern}`);
+    const ref = pkg._reference;
+    invariant(ref, 'expected package reference');
+    ref.patterns = [newPattern];
+    this.newPatterns.splice(this.newPatterns.indexOf(pattern), 1, newPattern);
+    this.addPattern(newPattern, pkg);
+    this.removePattern(pattern);
+  }
+
+  /**
    * Make all versions of this package resolve to it.
    */
 
@@ -296,12 +310,7 @@ export default class PackageResolver {
       const ref = this.getStrictResolvedPattern(pattern)._reference;
       invariant(ref, 'expected package reference');
       const refPatterns = ref.patterns.slice();
-      ref.addVisibility(REMOVED_ANCESTOR);
       ref.prune();
-
-      for (const action in ref.visibility) {
-        collapseToReference.visibility[action] += ref.visibility[action];
-      }
 
       // add pattern to the manifest we're collapsing to
       for (const pattern of refPatterns) {
@@ -381,6 +390,35 @@ export default class PackageResolver {
   }
 
   /**
+   * Get the manifest of the highest known version that satisfies a package range
+   */
+
+  getHighestRangeVersionMatch(name: string, range: string): ?Manifest {
+    const patterns = this.patternsByPackage[name];
+    if (!patterns) {
+      return null;
+    }
+
+    const versionNumbers = [];
+    const resolvedPatterns = patterns.map((pattern): Manifest => {
+      const info = this.getStrictResolvedPattern(pattern);
+      versionNumbers.push(info.version);
+
+      return info;
+    });
+
+    const maxValidRange = semver.maxSatisfying(versionNumbers, range);
+    if (!maxValidRange) {
+      return null;
+    }
+
+    const indexOfmaxValidRange = versionNumbers.indexOf(maxValidRange);
+    const maxValidRangeManifest = resolvedPatterns[indexOfmaxValidRange];
+
+    return maxValidRangeManifest;
+  }
+
+  /**
    * TODO description
    */
 
@@ -398,12 +436,6 @@ export default class PackageResolver {
 
     if (!this.lockfile.getLocked(req.pattern, true)) {
       this.newPatterns.push(req.pattern);
-    }
-
-    // propagate `visibility` option
-    const {parentRequest} = req;
-    if (parentRequest && parentRequest.visibility) {
-      req.visibility = parentRequest.visibility;
     }
 
     const request = new PackageRequest(req, this);

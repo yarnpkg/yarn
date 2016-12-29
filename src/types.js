@@ -2,7 +2,6 @@
 
 import type {RegistryNames} from './registries/index.js';
 import type PackageReference from './package-reference.js';
-import type {VisibilityAction} from './package-reference.js';
 import type PackageRequest from './package-request.js';
 import type {FetcherNames} from './fetchers/index.js';
 import type {Reporter} from './reporters/index.js';
@@ -24,7 +23,6 @@ export type DependencyRequestPattern = {
   pattern: string,
   registry: RegistryNames,
   optional: boolean,
-  visibility: VisibilityAction,
   hint?: ?string,
   parentRequest?: ?PackageRequest,
 };
@@ -43,7 +41,7 @@ export type PackageRemote = {
   registry: RegistryNames,
   reference: string,
   resolved?: ?string,
-  hash?: ?string,
+  hash: ?string,
 };
 
 // `dependencies` field in package info
@@ -51,7 +49,7 @@ type Dependencies = {
   [key: string]: string
 };
 
-// package.json/bower.json etc
+// package.json
 export type Manifest = {
   _registry?: ?RegistryNames,
   _loc?: ?string,
@@ -130,8 +128,19 @@ export type FetchedMetadata = {
   resolved: ?string,
   hash: string,
   dest: string,
+  cached: boolean,
 };
 export type FetchedOverride = {
   hash: string,
   resolved: ?string,
+};
+
+// Used by outdated and upgrade-interactive
+export type Dependency = {
+  name: string,
+  current: string,
+  wanted: string,
+  latest: string,
+  url: string,
+  hint: ?string
 };

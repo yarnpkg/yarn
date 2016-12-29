@@ -34,7 +34,7 @@ export async function mutate(
 
   const msgs = buildMessages(username, name);
   reporter.step(1, 3, reporter.lang('loggingIn'));
-  const revoke = await getToken(config, reporter);
+  const revoke = await getToken(config, reporter, name);
 
   reporter.step(2, 3, msgs.info);
   const user = await config.registries.npm.request(`-/user/org.couchdb.user:${username}`);
@@ -160,7 +160,7 @@ export const {run, setFlags} = buildSubCommands('owner', {
     const name = await getName(args, config);
 
     reporter.step(1, 3, reporter.lang('loggingIn'));
-    const revoke = await getToken(config, reporter);
+    const revoke = await getToken(config, reporter, name);
 
     reporter.step(2, 3, reporter.lang('ownerGetting', name));
     const pkg = await config.registries.npm.request(name);

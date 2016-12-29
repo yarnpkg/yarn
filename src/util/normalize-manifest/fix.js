@@ -20,25 +20,13 @@ type Dict<T> = {
   [key: string]: T;
 };
 
-class ManifestError extends Error {
-  key: string;
-  problem: string;
-
-  constructor(key: string, problem: string) {
-    super();
-    this.key = key;
-    this.problem = problem;
-  }
-
-  get message(): string {
-    return `Fatal problem with ${this.key} in manifest: ${this.problem}`;
-  }
-}
+type WarnFunction = (msg: string) => void;
 
 export default async function (
   info: Dict<mixed>,
   moduleLoc: string,
   reporter: Reporter,
+  warn: WarnFunction,
   looseSemver: boolean,
 ): Promise<void> {
   const files = await fs.readdir(moduleLoc);
@@ -64,11 +52,15 @@ export default async function (
 
   // if there's no contributors field but an authors field then expand it
   if (!info.contributors && files.indexOf('AUTHORS') >= 0) {
-    let authors = await fs.readFile(path.join(moduleLoc, 'AUTHORS'));
-    authors = authors.split(/\r?\n/g) // split on lines
-      .map((line): string => line.replace(/^\s*#.*$/, '').trim()) // remove comments
-      .filter((line): boolean => !!line); // remove empty lines
-    info.contributors = authors;
+    const authorsFilepath = path.join(moduleLoc, 'AUTHORS');
+    const authorsFilestats = await fs.stat(authorsFilepath);
+    if (authorsFilestats.isFile()) {
+      let authors = await fs.readFile(authorsFilepath);
+      authors = authors.split(/\r?\n/g) // split on lines
+        .map((line): string => line.replace(/^\s*#.*$/, '').trim()) // remove comments
+        .filter((line): boolean => !!line); // remove empty lines
+      info.contributors = authors;
+    }
   }
 
   // expand people fields to objects
@@ -84,14 +76,24 @@ export default async function (
 
   // if there's no readme field then load the README file from the cwd
   if (!info.readme) {
-    const readmeFilename = files.find((filename): boolean => {
-      const lower = filename.toLowerCase();
-      return lower === 'readme' || lower.indexOf('readme.') === 0;
-    });
+    const readmeCandidates = files
+      .filter((filename): boolean => {
+        const lower = filename.toLowerCase();
+        return lower === 'readme' || lower.indexOf('readme.') === 0;
+      })
+      .sort((filename1, filename2): number => {
+        // favor files with extensions
+        return filename2.indexOf('.') - filename1.indexOf('.');
+      });
 
-    if (readmeFilename) {
-      info.readmeFilename = readmeFilename;
-      info.readme = await fs.readFile(path.join(moduleLoc, readmeFilename));
+    for (const readmeFilename of readmeCandidates) {
+      const readmeFilepath = path.join(moduleLoc, readmeFilename);
+      const readmeFileStats = await fs.stat(readmeFilepath);
+      if (readmeFileStats.isFile()) {
+        info.readmeFilename = readmeFilename;
+        info.readme = await fs.readFile(readmeFilepath);
+        break;
+      }
     }
   }
 
@@ -147,16 +149,12 @@ export default async function (
     info.homepage = url.format(parts);
   }
 
-  const name = info.name;
-
-  if (typeof name !== 'string') {
-    throw new ManifestError('name', 'must be a string');
-  }
-
   // if the `bin` field is as string then expand it to an object with a single property
   // based on the original `bin` field and `name field`
   // { name: "foo", bin: "cli.js" } -> { name: "foo", bin: { foo: "cli.js" } }
-  if (typeof info.bin === 'string') {
+  if (typeof info.name === 'string' && typeof info.bin === 'string') {
+    // Remove scoped package name for consistency with NPM's bin field fixing behaviour
+    const name = info.name.replace(/^@[^\/]+\//, '');
     info.bin = {[name]: info.bin};
   }
 
@@ -197,12 +195,17 @@ export default async function (
 
     if (!info.bin && binDir && typeof binDir === 'string') {
       const bin = info.bin = {};
+      const fullBinDir = path.join(moduleLoc, binDir);
 
-      for (const scriptName of await fs.readdir(path.join(moduleLoc, binDir))) {
-        if (scriptName[0] === '.') {
-          continue;
+      if (await fs.exists(fullBinDir)) {
+        for (const scriptName of await fs.readdir(fullBinDir)) {
+          if (scriptName[0] === '.') {
+            continue;
+          }
+          bin[scriptName] = path.join('.', binDir, scriptName);
         }
-        bin[scriptName] = path.join('.', binDir, scriptName);
+      } else {
+        warn(reporter.lang('manifestDirectoryNotFound', binDir, info.name));
       }
     }
 
@@ -210,11 +213,16 @@ export default async function (
 
     if  (!info.man && typeof manDir === 'string') {
       const man = info.man = [];
+      const fullManDir = path.join(moduleLoc, manDir);
 
-      for (const filename of await fs.readdir(path.join(moduleLoc, manDir))) {
-        if (/^(.*?)\.[0-9]$/.test(filename)) {
-          man.push(path.join('.', manDir, filename));
+      if (await fs.exists(fullManDir)) {
+        for (const filename of await fs.readdir(fullManDir)) {
+          if (/^(.*?)\.[0-9]$/.test(filename)) {
+            man.push(path.join('.', manDir, filename));
+          }
         }
+      } else {
+        warn(reporter.lang('manifestDirectoryNotFound', manDir, info.name));
       }
     }
   }
@@ -258,28 +266,32 @@ export default async function (
            lower === 'unlicense' || lower.startsWith('unlicense.');
   });
   if (licenseFile) {
-    const licenseContent = await fs.readFile(path.join(moduleLoc, licenseFile));
-    const inferredLicense = inferLicense(licenseContent);
-    info.licenseText = licenseContent;
+    const licenseFilepath = path.join(moduleLoc, licenseFile);
+    const licenseFileStats = await fs.stat(licenseFilepath);
+    if (licenseFileStats.isFile()) {
+      const licenseContent = await fs.readFile(licenseFilepath);
+      const inferredLicense = inferLicense(licenseContent);
+      info.licenseText = licenseContent;
 
-    const license = info.license;
+      const license = info.license;
 
-    if (typeof license === 'string') {
-      if (inferredLicense && isValidLicense(inferredLicense) && !isValidLicense(license)) {
-        // some packages don't specify their license version but we can infer it based on their license file
-        const basicLicense = license.toLowerCase().replace(/(-like|\*)$/g, '');
-        const expandedLicense = inferredLicense.toLowerCase();
-        if (expandedLicense.startsWith(basicLicense)) {
-          // TODO consider doing something to notify the user
-          info.license = inferredLicense;
+      if (typeof license === 'string') {
+        if (inferredLicense && isValidLicense(inferredLicense) && !isValidLicense(license)) {
+          // some packages don't specify their license version but we can infer it based on their license file
+          const basicLicense = license.toLowerCase().replace(/(-like|\*)$/g, '');
+          const expandedLicense = inferredLicense.toLowerCase();
+          if (expandedLicense.startsWith(basicLicense)) {
+            // TODO consider doing something to notify the user
+            info.license = inferredLicense;
+          }
         }
+      } else if (inferredLicense) {
+        // if there's no license then infer it based on the license file
+        info.license = inferredLicense;
+      } else {
+          // valid expression to refer to a license in a file
+        info.license = `SEE LICENSE IN ${licenseFile}`;
       }
-    } else if (inferredLicense) {
-      // if there's no license then infer it based on the license file
-      info.license = inferredLicense;
-    } else {
-        // valid expression to refer to a license in a file
-      info.license = `SEE LICENSE IN ${licenseFile}`;
     }
   }
 

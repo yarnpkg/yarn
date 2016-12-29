@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "sub-a": "file:sub/sub-a"
+  }
+}

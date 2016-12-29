@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "@wyze/yarn-outdated-next": "next"
+  }
+}

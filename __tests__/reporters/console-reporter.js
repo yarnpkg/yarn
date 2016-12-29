@@ -11,6 +11,7 @@ const stream = require('stream');
 
 // ensures consistency across environments
 require('chalk').enabled = true;
+require('chalk').supportsColor = true;
 require('chalk').styles.blue.open = '\u001b[34m';
 
 test('ConsoleReporter.step', async () => {
@@ -99,6 +100,7 @@ test('ConsoleReporter.select', async () => {
 
 test('ConsoleReporter.progress', async () => {
   expect(await getConsoleBuff((r) => {
+    r.noProgress = false; // we need this to override is-ci when running tests on ci
     const tick = r.progress(2);
     tick();
     jest.runAllTimers();
@@ -114,6 +116,12 @@ test('ConsoleReporter.progress', async () => {
     r.isTTY = false;
     const tick = r.progress(2);
     tick();
+    tick();
+  })).toMatchSnapshot();
+
+  expect(await getConsoleBuff((r) => {
+    r.noProgress = true;
+    const tick = r.progress(2);
     tick();
   })).toMatchSnapshot();
 });

@@ -107,3 +107,9 @@ test('BaseReporter.progress', () => {
   tick();
   reporter.close();
 });
+
+test('BaseReporter.disableProgress', () => {
+  const reporter = new BaseReporter();
+  reporter.disableProgress();
+  expect(reporter.noProgress).toBeTruthy();
+});

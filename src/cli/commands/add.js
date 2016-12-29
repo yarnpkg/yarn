@@ -1,14 +1,14 @@
 /* @flow */
 
 import type {Reporter} from '../../reporters/index.js';
-import type {InstallCwdRequest, InstallPrepared} from './install.js';
-import type {DependencyRequestPatterns} from '../../types.js';
+import type {InstallCwdRequest} from './install.js';
+import type {DependencyRequestPatterns, Manifest} from '../../types.js';
 import type Config from '../../config.js';
+import type {ListOptions} from './list.js';
 import Lockfile from '../../lockfile/wrapper.js';
-import * as PackageReference from '../../package-reference.js';
 import PackageRequest from '../../package-request.js';
-import {buildTree} from './ls.js';
-import {Install, _setFlags} from './install.js';
+import {buildTree} from './list.js';
+import {wrapLifecycle, Install} from './install.js';
 import {MessageError} from '../../errors.js';
 
 const invariant = require('invariant');
@@ -23,31 +23,82 @@ export class Add extends Install {
   ) {
     super(flags, config, reporter, lockfile);
     this.args = args;
+    // only one flag is supported, so we can figure out which one was passed to `yarn add`
+    this.flagToOrigin = [
+      flags.dev && 'devDependencies',
+      flags.optional && 'optionalDependencies',
+      flags.peer && 'peerDependencies',
+      'dependencies',
+    ].filter(Boolean).shift();
   }
 
   args: Array<string>;
+  flagToOrigin: string;
+  addedPatterns: Array<string>;
 
   /**
    * TODO
    */
 
-  prepare(patterns: Array<string>, requests: DependencyRequestPatterns): Promise<InstallPrepared> {
+  prepareRequests(requests: DependencyRequestPatterns): DependencyRequestPatterns {
     const requestsWithArgs = requests.slice();
 
     for (const pattern of this.args) {
       requestsWithArgs.push({
         pattern,
         registry: 'npm',
-        visibility: PackageReference.USED,
         optional: false,
       });
     }
+    return requestsWithArgs;
+  }
 
-    return Promise.resolve({
-      patterns: patterns.concat(this.args),
-      requests: requestsWithArgs,
-      skip: false,
-    });
+  /**
+   * returns version for a pattern based on Manifest
+   */
+  getPatternVersion(pattern: string, pkg: Manifest): string {
+    const {exact, tilde} = this.flags;
+    const parts = PackageRequest.normalizePattern(pattern);
+    let version;
+    if (PackageRequest.getExoticResolver(pattern)) {
+      // wasn't a name/range tuple so this is just a raw exotic pattern
+      version = pattern;
+    } else if (parts.hasVersion && parts.range) {
+      // if the user specified a range then use it verbatim
+      version = parts.range;
+    } else if (tilde) { // --save-tilde
+      version = `~${pkg.version}`;
+    } else if (exact) { // --save-exact
+      version = pkg.version;
+    } else { // default to save prefix
+      version = `${String(this.config.getOption('save-prefix') || '')}${pkg.version}`;
+    }
+    return version;
+  }
+
+  preparePatterns(
+    patterns: Array<string>,
+  ): Array<string> {
+    const preparedPatterns = patterns.slice();
+    for (const pattern of this.resolver.dedupePatterns(this.args)) {
+      const pkg = this.resolver.getResolvedPattern(pattern);
+      invariant(pkg, `missing package ${pattern}`);
+      const version = this.getPatternVersion(pattern, pkg);
+      const newPattern = `${pkg.name}@${version}`;
+      preparedPatterns.push(newPattern);
+      this.addedPatterns.push(newPattern);
+      if (newPattern === pattern) {
+        continue;
+      }
+      this.resolver.replacePattern(pattern, newPattern);
+    }
+    return preparedPatterns;
+  }
+
+  bailout(
+    patterns: Array<string>,
+  ): Promise<boolean> {
+    return Promise.resolve(false);
   }
 
   /**
@@ -55,6 +106,7 @@ export class Add extends Install {
    */
 
   async init(): Promise<Array<string>> {
+    this.addedPatterns = [];
     const patterns = await Install.prototype.init.call(this);
     await this.maybeOutputSaveTree(patterns);
     await this.savePackages();
@@ -74,7 +126,11 @@ export class Add extends Install {
    */
 
   async maybeOutputSaveTree(patterns: Array<string>): Promise<void> {
-    const {trees, count} = await buildTree(this.resolver, this.linker, patterns, true, true);
+    // don't limit the shown tree depth
+    const opts: ListOptions = {
+      reqDepth: 0,
+    };
+    const {trees, count} = await buildTree(this.resolver, this.linker, patterns, opts, true, true);
     this.reporter.success(
       count === 1 ?
         this.reporter.lang('savedNewDependency')
@@ -89,78 +145,49 @@ export class Add extends Install {
    */
 
   async savePackages(): Promise<void> {
-    const {dev, exact, tilde, optional, peer} = this.flags;
+    // fill rootPatternsToOrigin without `excludePatterns`
+    await Install.prototype.fetchRequestFromCwd.call(this);
+    const patternOrigins = Object.keys(this.rootPatternsToOrigin);
 
     // get all the different registry manifests in this folder
-    const jsons = await this.getRootManifests();
+    const manifests = await this.config.getRootManifests();
 
     // add new patterns to their appropriate registry manifest
-    for (const pattern of this.resolver.dedupePatterns(this.args)) {
+    for (const pattern of this.addedPatterns) {
       const pkg = this.resolver.getResolvedPattern(pattern);
       invariant(pkg, `missing package ${pattern}`);
-
+      const version = this.getPatternVersion(pattern, pkg);
       const ref = pkg._reference;
       invariant(ref, 'expected package reference');
+      // lookup the package to determine dependency type; used during `yarn upgrade`
+      const depType = patternOrigins.reduce((acc, prev) => {
+        if (prev.indexOf(`${pkg.name}@`) === 0) {
+          return this.rootPatternsToOrigin[prev];
+        }
+        return acc;
+      }, null);
 
-      const parts = PackageRequest.normalizePattern(pattern);
-      let version;
-      if (parts.hasVersion && parts.range) {
-        // if the user specified a range then use it verbatim
-        version = parts.range;
-      } else if (PackageRequest.getExoticResolver(pattern)) {
-        // wasn't a name/range tuple so this is just a raw exotic pattern
-        version = pattern;
-      } else if (tilde) { // --save-tilde
-        version = `~${pkg.version}`;
-      } else if (exact) { // --save-exact
-        version = pkg.version;
-      } else { // default to save prefix
-        version = `${String(this.config.getOption('save-prefix'))}${pkg.version}`;
-      }
-
-      // build up list of objects to put ourselves into from the cli args
-      const targetKeys: Array<string> = [];
-      if (dev) {
-        targetKeys.push('devDependencies');
-      }
-      if (peer) {
-        targetKeys.push('peerDependencies');
-      }
-      if (optional) {
-        targetKeys.push('optionalDependencies');
-      }
-      if (!targetKeys.length) {
-        targetKeys.push('dependencies');
-      }
+      // depType is calculated when `yarn upgrade` command is used
+      const target = depType || this.flagToOrigin;
 
       // add it to manifest
-      const object = jsons[ref.registry].object;
-      for (const key of targetKeys) {
-        const target = object[key] = object[key] || {};
-        target[pkg.name] = version;
-      }
+      const {object} = manifests[ref.registry];
 
-      // add pattern so it's aliased in the lockfile
-      const newPattern = `${pkg.name}@${version}`;
-      if (newPattern === pattern) {
-        continue;
-      }
-      this.resolver.addPattern(newPattern, pkg);
-      this.resolver.removePattern(pattern);
+      object[target] = object[target] || {};
+      object[target][pkg.name] = version;
     }
 
-    await this.saveRootManifests(jsons);
+    await this.config.saveRootManifests(manifests);
   }
 }
 
 export function setFlags(commander: Object) {
   commander.usage('add [packages ...] [flags]');
-  _setFlags(commander);
-  commander.option('--dev', 'save package to your `devDependencies`');
-  commander.option('--peer', 'save package to your `peerDependencies`');
-  commander.option('--optional', 'save package to your `optionalDependencies`');
-  commander.option('--exact', '');
-  commander.option('--tilde', '');
+  commander.option('-D, --dev', 'save package to your `devDependencies`');
+  commander.option('-P, --peer', 'save package to your `peerDependencies`');
+  commander.option('-O, --optional', 'save package to your `optionalDependencies`');
+  commander.option('-E, --exact', 'install exact version');
+  commander.option('-T, --tilde', 'install most recent release with the same minor version');
 }
 
 export async function run(
@@ -174,6 +201,9 @@ export async function run(
   }
 
   const lockfile = await Lockfile.fromDirectory(config.cwd, reporter);
-  const install = new Add(args, flags, config, reporter, lockfile);
-  await install.init();
+
+  await wrapLifecycle(config, flags, async () => {
+    const install = new Add(args, flags, config, reporter, lockfile);
+    await install.init();
+  });
 }

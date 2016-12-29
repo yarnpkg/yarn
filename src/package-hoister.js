@@ -13,7 +13,8 @@ type Parts = Array<string>;
 let historyCounter = 0;
 
 export class HoistManifest {
-  constructor(key: string, parts: Parts, pkg: Manifest, loc: string) {
+  constructor(key: string, parts: Parts, pkg: Manifest, loc: string, isIgnored: () => boolean) {
+    this.isIgnored = isIgnored;
     this.loc = loc;
     this.pkg = pkg;
 
@@ -26,6 +27,7 @@ export class HoistManifest {
     this.addHistory(`Start position = ${key}`);
   }
 
+  isIgnored: () => boolean;
   pkg: Manifest;
   loc: string;
   parts: Parts;
@@ -40,8 +42,7 @@ export class HoistManifest {
 }
 
 export default class PackageHoister {
-  constructor(config: Config, resolver: PackageResolver, ignoreOptional: boolean) {
-    this.ignoreOptional = ignoreOptional;
+  constructor(config: Config, resolver: PackageResolver) {
     this.resolver = resolver;
     this.config = config;
 
@@ -50,7 +51,6 @@ export default class PackageHoister {
     this.tree = new Map();
   }
 
-  ignoreOptional: boolean;
   resolver: PackageResolver;
   config: Config;
 
@@ -123,25 +123,32 @@ export default class PackageHoister {
    */
 
   _seed(pattern: string, parent?: HoistManifest): ?HoistManifest {
-    let parentParts: Parts = [];
-
-    if (parent) {
-      if (!this.tree.get(parent.key)) {
-        return null;
-      }
-      parentParts = parent.parts;
-    }
-
     //
     const pkg = this.resolver.getStrictResolvedPattern(pattern);
     const ref = pkg._reference;
     invariant(ref, 'expected reference');
 
     //
+    let parentParts: Parts = [];
+    let isIgnored = () => ref.ignore;
+
+    if (parent) {
+      if (!this.tree.get(parent.key)) {
+        return null;
+      }
+      // non ignored dependencies inherit parent's ignored status
+      // parent may transition from ignored to non ignored when hoisted if it is used in another non ignored branch
+      if (!isIgnored() && parent.isIgnored()) {
+        isIgnored = () => !!parent && parent.isIgnored();
+      }
+      parentParts = parent.parts;
+    }
+
+    //
     const loc: string = this.config.generateHardModulePath(ref);
     const parts = parentParts.concat(pkg.name);
     const key: string = this.implodeKey(parts);
-    const info: HoistManifest = new HoistManifest(key, parts, pkg, loc);
+    const info: HoistManifest = new HoistManifest(key, parts, pkg, loc, isIgnored);
 
     //
     this.tree.set(key, info);
@@ -178,6 +185,11 @@ export default class PackageHoister {
       const existing = this.tree.get(checkKey);
       if (existing) {
         if (existing.loc === info.loc) {
+          // switch to non ignored if earlier deduped version was ignored
+          if (existing.isIgnored() && !info.isIgnored()) {
+            existing.isIgnored = info.isIgnored;
+          }
+
           existing.addHistory(`Deduped ${fullKey} to this item`);
           return {parts: checkParts, duplicate: true};
         } else {
@@ -269,7 +281,6 @@ export default class PackageHoister {
     // remove this item from the `tree` map so we can ignore it
     this.tree.delete(key);
 
-    //
     const {parts, duplicate} = this.getNewParts(key, info, rawParts.slice());
     const newKey = this.implodeKey(parts);
     const oldKey = key;
@@ -349,7 +360,7 @@ export default class PackageHoister {
     for (const [key, info] of this.tree.entries()) {
       // decompress the location and push it to the flat tree. this path could be made
       // up of modules from different registries so we need to handle this specially
-      const parts = [];
+      const parts: Array<string> = [];
       const keyParts = key.split('#');
       for (let i = 0; i < keyParts.length; i++) {
         const key = keyParts.slice(0, i + 1).join('#');
@@ -363,13 +374,15 @@ export default class PackageHoister {
         // remove the first part which will be the folder name and replace it with a
         // hardcoded modules folder
         parts.shift();
-        parts.unshift(this.config.modulesFolder);
+        const modulesFolder = (this.config.modulesFolder == null) ? '' : this.config.modulesFolder;
+        parts.unshift(modulesFolder);
       } else {
         // first part will be the registry-specific module folder
-        parts.unshift(this.config.cwd);
+        const cwd = (this.config.cwd == null) ? '' : this.config.cwd;
+        parts.unshift(cwd);
       }
 
-      const loc = parts.join(path.sep);
+      const loc = path.join(...parts);
       flatTree.push([loc, info]);
     }
 
@@ -379,11 +392,7 @@ export default class PackageHoister {
       const ref = info.pkg._reference;
       invariant(ref, 'expected reference');
 
-      let ignored = ref.ignore;
-      if (ref.optional && this.ignoreOptional) {
-        ignored = true;
-      }
-      if (ignored) {
+      if (info.isIgnored()) {
         info.addHistory('Deleted as this module was ignored');
       } else {
         visibleFlatTree.push([loc, info]);
@@ -392,3 +401,6 @@ export default class PackageHoister {
     return visibleFlatTree;
   }
 }
+
+export type HoistManifestTuple = [string, HoistManifest];
+export type HoistManifestTuples = Array<HoistManifestTuple>;

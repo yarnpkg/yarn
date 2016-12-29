@@ -1,13 +1,13 @@
 /* @flow */
 
-import type {DependencyRequestPattern, Manifest} from './types.js';
+import type {Dependency, DependencyRequestPattern, Manifest} from './types.js';
 import type PackageResolver from './package-resolver.js';
 import type {Reporter} from './reporters/index.js';
 import type Config from './config.js';
-import type {VisibilityAction} from './package-reference.js';
+import type {Install} from './cli/commands/install';
 import {cleanDependencies} from './util/normalize-manifest/validate.js';
 import Lockfile from './lockfile/wrapper.js';
-import {USED as USED_VISIBILITY, default as PackageReference} from './package-reference.js';
+import PackageReference from './package-reference.js';
 import {registries as registryResolvers} from './resolvers/index.js';
 import {MessageError} from './errors.js';
 import {entries} from './util/misc.js';
@@ -16,13 +16,13 @@ import * as versionUtil from './util/version.js';
 import * as resolvers from './resolvers/index.js';
 
 const invariant = require('invariant');
+const semver = require('semver');
 
 type ResolverRegistryNames = $Keys<typeof registryResolvers>;
 
 export default class PackageRequest {
   constructor(req: DependencyRequestPattern, resolver: PackageResolver) {
     this.parentRequest = req.parentRequest;
-    this.visibility = req.visibility;
     this.lockfile = resolver.lockfile;
     this.registry = req.registry;
     this.reporter = resolver.reporter;
@@ -50,7 +50,6 @@ export default class PackageRequest {
   pattern: string;
   config: Config;
   registry: ResolverRegistryNames;
-  visibility: VisibilityAction;
   optional: boolean;
 
   getParentNames(): Array<string> {
@@ -132,7 +131,7 @@ export default class PackageRequest {
     if (Resolver) {
       return Resolver;
     } else {
-      throw new Error(`Unknown registry resolver ${this.registry}`);
+      throw new MessageError(this.reporter.lang('unknownRegistryResolver', this.registry));
     }
   }
 
@@ -217,14 +216,13 @@ export default class PackageRequest {
 
     // check if while we were resolving this dep we've already resolved one that satisfies
     // the same range
-    const resolved: ?Manifest = this.resolver.getExactVersionMatch(info.name, info.version);
+    const {range, name} = PackageRequest.normalizePattern(this.pattern);
+    const resolved: ?Manifest = this.resolver.getHighestRangeVersionMatch(name, range);
     if (resolved) {
       const ref = resolved._reference;
       invariant(ref, 'Resolved package info has no package reference');
       ref.addRequest(this);
       ref.addPattern(this.pattern, resolved);
-      ref.addOptional(this.optional);
-      ref.addVisibility(this.visibility);
       return;
     }
 
@@ -243,7 +241,6 @@ export default class PackageRequest {
     const ref = new PackageReference(this, info, remote);
     ref.addPattern(this.pattern, info);
     ref.addOptional(this.optional);
-    ref.addVisibility(this.visibility);
     info._reference = ref;
     info._remote = remote;
 
@@ -258,7 +255,6 @@ export default class PackageRequest {
       promises.push(this.resolver.find({
         pattern: depPattern,
         registry: remote.registry,
-        visibility: USED_VISIBILITY,
         optional: false,
         parentRequest: this,
       }));
@@ -271,7 +267,6 @@ export default class PackageRequest {
       promises.push(this.resolver.find({
         pattern: depPattern,
         registry: remote.registry,
-        visibility: USED_VISIBILITY,
         optional: true,
         parentRequest: this,
       }));
@@ -279,6 +274,11 @@ export default class PackageRequest {
 
     await Promise.all(promises);
     ref.addDependencies(deps);
+
+    // Now that we have all dependencies, it's safe to propagate optional
+    for (const otherRequest of ref.requests.slice(1)) {
+      ref.addOptional(otherRequest.optional);
+    }
   }
 
   /**
@@ -305,5 +305,55 @@ export default class PackageRequest {
   static getPackageVersion(info: Manifest): string {
     // TODO possibly reconsider this behaviour
     return info.version === undefined ? info._uid : info.version;
+  }
+
+  /**
+   * Gets all of the outdated packages and sorts them appropriately
+   */
+
+  static async getOutdatedPackages(
+    lockfile: Lockfile,
+    install: Install,
+    config: Config,
+    reporter: Reporter,
+  ): Promise<Array<Dependency>> {
+    const {requests: depReqPatterns} = await install.fetchRequestFromCwd();
+
+    const deps = await Promise.all(
+      depReqPatterns.map(async ({pattern, hint}): Promise<Dependency> => {
+        const locked = lockfile.getLocked(pattern);
+        if (!locked) {
+          throw new MessageError(reporter.lang('lockfileOutdated'));
+        }
+
+        const {name, version: current} = locked;
+        let latest = '';
+        let wanted = '';
+        let url = '';
+
+        const normalized = PackageRequest.normalizePattern(pattern);
+
+        if (PackageRequest.getExoticResolver(pattern) ||
+            PackageRequest.getExoticResolver(normalized.range)) {
+          latest = wanted = 'exotic';
+          url = normalized.range;
+        } else {
+          const registry = config.registries[locked.registry];
+
+          ({latest, wanted, url} = await registry.checkOutdated(config, name, normalized.range));
+        }
+
+        return ({name, current, wanted, latest, url, hint});
+      }),
+    );
+
+    // Make sure to always output `exotic` versions to be compatible with npm
+    const isDepOld = ({current, latest, wanted}) => latest === 'exotic' || (
+      latest !== 'exotic' && (semver.lt(current, wanted) || semver.lt(current, latest))
+    );
+    const isDepExpected = ({current, wanted}) => current === wanted;
+    const orderByExpected = (depA, depB) => isDepExpected(depA) && !isDepExpected(depB) ? 1 : -1;
+
+    return deps.filter(isDepOld).sort(orderByExpected);
   }
 }

@@ -8,7 +8,7 @@ Object {
 exports[`test ConsoleReporter.command 1`] = `
 Object {
   "stderr": "",
-  "stdout": "[2K[1G[90m$ foobar[39m",
+  "stdout": "[2K[1G[2m$ foobar[22m",
 }
 `;
 
@@ -75,6 +75,13 @@ Object {
 }
 `;
 
+exports[`test ConsoleReporter.progress 4`] = `
+Object {
+  "stderr": "",
+  "stdout": "",
+}
+`;
+
 exports[`test ConsoleReporter.select 1`] = `
 Object {
   "stderr": "",
@@ -88,7 +95,7 @@ Object {
 exports[`test ConsoleReporter.step 1`] = `
 Object {
   "stderr": "",
-  "stdout": "[2K[1G[90m[1/5][39m foboar...",
+  "stdout": "[2K[1G[2m[1/5][22m foboar...",
 }
 `;
 

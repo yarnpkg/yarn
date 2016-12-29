@@ -118,7 +118,7 @@ test("Lockfile.getLockfile", () => {
       },
       _remote: {
         resolved: "http://example.com/barfoo",
-        registry: "bower",
+        registry: "yarn",
       },
     },
 
@@ -144,7 +144,7 @@ test("Lockfile.getLockfile", () => {
       version: "0.0.1",
       uid: "0.1.0",
       resolved: "http://example.com/barfoo",
-      registry: "bower",
+      registry: "yarn",
       dependencies: {yes: "no"},
       optionalDependencies: {no: "yes"},
       permissions: {foo: "bar"},

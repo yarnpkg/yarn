@@ -14,17 +14,14 @@ export function hasWrapper(flags: Object, args: Array<string>): boolean {
   return args[0] != 'generate-disclaimer';
 }
 
-export function setFlags(commander: Object) {
-  setUsage(commander);
-  commander.option('--production', '');
-}
-
 async function getManifests(config: Config, flags: Object): Promise<Array<Manifest>> {
   const lockfile = await Lockfile.fromDirectory(config.cwd);
   const install = new Install({skipIntegrity: true, ...flags}, config, new NoopReporter(), lockfile);
-  await install.init();
+  await install.hydrate(true);
 
   let manifests = install.resolver.getManifests();
+
+  // sort by name
   manifests = manifests.sort(function(a, b): number {
     if (!a.name && !b.name) {
       return 0;
@@ -40,10 +37,17 @@ async function getManifests(config: Config, flags: Object): Promise<Array<Manife
 
     return a.name.localeCompare(b.name);
   });
+
+  // filter ignored manifests
+  manifests = manifests.filter((manifest: Manifest): boolean => {
+    const ref = manifest._reference;
+    return !!ref && !ref.ignore;
+  });
+
   return manifests;
 }
 
-const {setFlags: setUsage, run} = buildSubCommands('licenses', {
+export const {run, setFlags} = buildSubCommands('licenses', {
   async ls(
     config: Config,
     reporter: Reporter,
@@ -153,5 +157,3 @@ const {setFlags: setUsage, run} = buildSubCommands('licenses', {
     }
   },
 });
-
-export {run};

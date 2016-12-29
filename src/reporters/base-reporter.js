@@ -15,17 +15,20 @@ import type {LanguageKeys} from './lang/en.js';
 import type {Formatter} from './format.js';
 import {defaultFormatter} from './format.js';
 import * as languages from './lang/index.js';
+import isCI from 'is-ci';
 
 const util = require('util');
 
 type Language = $Keys<typeof languages>;
 
 export type ReporterOptions = {
+  verbose?: boolean,
   language?: Language,
   stdout?: Stdout,
   stderr?: Stdout,
   stdin?: Stdin,
   emoji?: boolean,
+  noProgress?: boolean,
 };
 
 export function stringifyLangArgs(args: Array<any>): Array<string> {
@@ -51,6 +54,8 @@ export default class BaseReporter {
     this.stderr = opts.stderr || process.stderr;
     this.stdin = opts.stdin || process.stdin;
     this.emoji = !!opts.emoji;
+    this.noProgress = !!opts.noProgress || isCI;
+    this.isVerbose = !!opts.verbose;
 
     // $FlowFixMe: this is valid!
     this.isTTY = this.stdout.isTTY;
@@ -67,6 +72,8 @@ export default class BaseReporter {
   stdin: Stdin;
   isTTY: boolean;
   emoji: boolean;
+  noProgress: boolean;
+  isVerbose: boolean;
   format: Formatter;
 
   peakMemoryInterval: ?number;
@@ -87,6 +94,21 @@ export default class BaseReporter {
       return stringifiedArgs[i];
     });
   }
+
+  verbose(msg: string) {
+    if (this.isVerbose) {
+      this._verbose(msg);
+    }
+  }
+
+  verboseInspect(val: any) {
+    if (this.isVerbose) {
+      this._verboseInspect(val);
+    }
+  }
+
+  _verbose(msg: string) {}
+  _verboseInspect(val: any) {}
 
   initPeakMemoryCounter() {
     this.checkPeakMemory();
@@ -114,9 +136,9 @@ export default class BaseReporter {
   }
 
   // TODO
-  list(key: string, items: Array<string>) {}
+  list(key: string, items: Array<string>, hints?: Object) {}
 
-  // TODO
+  // Outputs basic tree structure to console
   tree(key: string, obj: Trees) {}
 
   // called whenever we begin a step in the CLI.
@@ -208,5 +230,10 @@ export default class BaseReporter {
   // render a progress bar and return a function which when called will trigger an update
   progress(total: number): () => void {
     return function() {};
+  }
+
+  // utility function to disable progress bar
+  disableProgress() {
+    this.noProgress = true;
   }
 }

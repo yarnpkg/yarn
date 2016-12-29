@@ -4,17 +4,7 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
 'use strict';
 
-// init roadrunner
-var userHome = require('user-home');
-var mkdirp = require('mkdirp');
-var path = require('path');
-var CACHE_FILENAME = path.join(userHome, '.yarn', '.roadrunner.json');
-mkdirp.sync(path.dirname(CACHE_FILENAME));
-var roadrunner = require('roadrunner');
-roadrunner.load(CACHE_FILENAME);
-roadrunner.setup(CACHE_FILENAME);
-
-// get node version
+// validate that used node version is supported
 var semver = require('semver');
 var ver = process.versions.node;
 ver = ver.split('-')[0]; // explode and truncate tag from version #511
@@ -30,8 +20,31 @@ if (semver.satisfies(ver, '>=5.0.0')) {
   possibles.push('../updates/current/lib-legacy/cli/index.js');
   possibles.push('../lib-legacy/cli/index.js');
 } else {
-  throw new Error('Node version ' + ver + ' is not supported');
+  console.log(require('chalk').red('Node version ' + ver + ' is not supported, please use Node.js 4.0 or higher.'));
+  process.exit(1);
 }
+
+// ensure cache directory exists
+var mkdirp = require('mkdirp');
+var constants = require('../lib-legacy/constants');
+mkdirp.sync(constants.MODULE_CACHE_DIRECTORY);
+
+// init roadrunner
+var YARN_VERSION = require('../package.json').version;
+var roadrunner = require('roadrunner');
+
+// load cache
+roadrunner.load(constants.CACHE_FILENAME);
+var cacheVersion = roadrunner.get('CACHE_BREAKER').version;
+if (!cacheVersion || cacheVersion !== YARN_VERSION) {
+  // reset cache if it's for an older yarn
+  roadrunner.reset(constants.CACHE_FILENAME);
+}
+// set this cache to the current yarn version
+roadrunner.set('CACHE_BREAKER', {version: YARN_VERSION});
+
+// save cache on SIGINT
+roadrunner.setup(constants.CACHE_FILENAME);
 
 var i = 0;
 for (; i < possibles.length; i++) {

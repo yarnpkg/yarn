@@ -1,10 +1,11 @@
 /* @flow */
 
+import type {ReporterSpinner} from '../reporters/types.js';
 import type Config from '../config.js';
+import {MessageError, SpawnError} from '../errors.js';
 import * as constants from '../constants.js';
 import * as child from './child.js';
 import {registries} from '../resolvers/index.js';
-import type {ReporterSpinner} from '../reporters/types.js';
 
 const path = require('path');
 
@@ -25,28 +26,40 @@ async function makeEnv(stage: string, cwd: string, config: Config): {
   env.npm_node_execpath = env.NODE || process.execPath;
   env.npm_execpath = path.join(__dirname, '..', '..', 'bin', 'yarn.js');
 
-  // add npm_package_*
-  const manifest = await config.readManifest(cwd);
-  const queue = [['', manifest]];
-  while (queue.length) {
-    const [key, val] = queue.pop();
-    if (key[0] === '_') {
-      continue;
-    }
+  // Set the env to production for npm compat if production mode.
+  // https://github.com/npm/npm/blob/30d75e738b9cb7a6a3f9b50e971adcbe63458ed3/lib/utils/lifecycle.js#L336
+  if (config.production) {
+    env.NODE_ENV = 'production';
+  }
 
-    if (typeof val === 'object') {
-      for (const subKey in val) {
-        const completeKey = [key, subKey]
-          .filter((part: ?string): boolean => !!part)
-          .join('_');
-        queue.push([completeKey, val[subKey]]);
+  // Note: npm_config_argv environment variable contains output of nopt - command-line
+  // parser used by npm. Since we use other parser, we just roughly emulate it's output. (See: #684)
+  env.npm_config_argv = JSON.stringify({remain:[], cooked: [config.commandName], original: [config.commandName]});
+
+  // add npm_package_*
+  const manifest = await config.maybeReadManifest(cwd);
+  if (manifest) {
+    const queue = [['', manifest]];
+    while (queue.length) {
+      const [key, val] = queue.pop();
+      if (key[0] === '_') {
+        continue;
       }
-    } else if (IGNORE_MANIFEST_KEYS.indexOf(key) < 0) {
-      let cleanVal = String(val);
-      if (cleanVal.indexOf('\n') >= 0) {
-        cleanVal = JSON.stringify(cleanVal);
+
+      if (typeof val === 'object') {
+        for (const subKey in val) {
+          const completeKey = [key, subKey]
+            .filter((part: ?string): boolean => !!part)
+            .join('_');
+          queue.push([completeKey, val[subKey]]);
+        }
+      } else if (IGNORE_MANIFEST_KEYS.indexOf(key) < 0) {
+        let cleanVal = String(val);
+        if (cleanVal.indexOf('\n') >= 0) {
+          cleanVal = JSON.stringify(cleanVal);
+        }
+        env[`npm_package_${key}`] = cleanVal;
       }
-      env[`npm_package_${key}`] = cleanVal;
     }
   }
 
@@ -82,7 +95,7 @@ async function makeEnv(stage: string, cwd: string, config: Config): {
   return env;
 }
 
-export default async function (
+export async function executeLifecycleScript(
   stage: string,
   config: Config,
   cwd: string,
@@ -142,4 +155,33 @@ export default async function (
   });
 
   return {cwd, command: cmd, stdout};
+}
+
+export default executeLifecycleScript;
+
+export async function execFromManifest(config: Config, commandName: string, cwd: string): Promise<void> {
+  const pkg = await config.maybeReadManifest(cwd);
+  if (!pkg || !pkg.scripts) {
+    return;
+  }
+
+  const cmd: ?string = pkg.scripts[commandName];
+  if (cmd) {
+    await execCommand(commandName, config, cmd, cwd);
+  }
+}
+
+export async function execCommand(stage: string, config: Config, cmd: string, cwd: string): Promise<void> {
+  const {reporter} = config;
+  try {
+    reporter.command(cmd);
+    await executeLifecycleScript(stage, config, cwd, cmd);
+    return Promise.resolve();
+  } catch (err) {
+    if (err instanceof SpawnError) {
+      throw new MessageError(reporter.lang('commandFailed', err.EXIT_CODE));
+    } else {
+      throw err;
+    }
+  }
 }

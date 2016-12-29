@@ -1,9 +1,12 @@
 ---
 git:
   depth: 10
-language: generic
+language: node_js
 
-sudo: false
+node_js:
+  - "6"
+
+sudo: required # Until Yarn repo is added to apt-source-whitelist
 
 addons:
   apt:
@@ -20,6 +23,7 @@ cache:
   - node_modules
   - lib
   - lib-legacy
+  - $HOME/.yarn-cache
 
 env:
   matrix:
@@ -38,15 +42,15 @@ matrix:
     - env: TEST_TYPE="lint"
       os: osx
 
+before_install:
+  - ./scripts/bootstrap-env-ubuntu.sh
+
 install:
- # install proper node version
- - nvm install ${NODE_VERSION:=6}
  - node --version
- - npm install -g npm@3
- - npm install
+ - yarn install
 
 os:
   #- osx
   - linux
 
-script: npm run $TEST_TYPE
+script: yarn $TEST_TYPE

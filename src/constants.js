@@ -1,9 +1,15 @@
 /* @flow */
 
-const userHome = require('user-home');
 const path = require('path');
+let userHome = require('user-home');
 
-type Env = {[key: string]: ?string};
+if (process.platform === 'linux' && isRootUser(getUid())) {
+  userHome = path.resolve('/usr/local/share');
+}
+
+type Env = {
+  [key: string]: ? string
+};
 
 export const DEPENDENCY_TYPES = [
   'devDependencies',
@@ -25,19 +31,29 @@ export const CHILD_CONCURRENCY = 5;
 
 export const REQUIRED_PACKAGE_KEYS = ['name', 'version', '_uid'];
 
-function getDirectory(type: string): string {
+function getDirectory(category: string): string {
   // use %LOCALAPPDATA%/Yarn on Windows
   if (process.platform === 'win32' && process.env.LOCALAPPDATA) {
-    return path.join(process.env.LOCALAPPDATA, 'Yarn', type);
+    return path.join(process.env.LOCALAPPDATA, 'Yarn', category);
   }
 
   // otherwise use ~/.yarn
-  return path.join(userHome, `.yarn-${type}`);
+  return path.join(userHome, `.${category}`, 'yarn');
 }
 
-export const MODULE_CACHE_DIRECTORY = getDirectory('cache');
-export const LINK_REGISTRY_DIRECTORY = getDirectory('config/link');
-export const GLOBAL_MODULE_DIRECTORY = getDirectory('config/global');
+function getCacheDirectory(): string {
+  if (process.platform === 'darwin') {
+    return path.join(userHome, 'Library', 'Caches', 'Yarn');
+  }
+
+  return getDirectory('cache');
+}
+
+export const MODULE_CACHE_DIRECTORY = getCacheDirectory();
+export const CONFIG_DIRECTORY = getDirectory('config');
+export const LINK_REGISTRY_DIRECTORY = path.join(CONFIG_DIRECTORY, 'link');
+export const GLOBAL_MODULE_DIRECTORY = path.join(CONFIG_DIRECTORY, 'global');
+export const CACHE_FILENAME = path.join(MODULE_CACHE_DIRECTORY, '.roadrunner.json');
 
 export const INTEGRITY_FILENAME = '.yarn-integrity';
 export const LOCKFILE_FILENAME = 'yarn.lock';
@@ -45,11 +61,12 @@ export const METADATA_FILENAME = '.yarn-metadata.json';
 export const TARBALL_FILENAME = '.yarn-tarball.tgz';
 export const CLEAN_FILENAME = '.yarnclean';
 
+export const DEFAULT_INDENT = '  ';
 export const SINGLE_INSTANCE_PORT = 31997;
 export const SINGLE_INSTANCE_FILENAME = '.yarn-single-instance';
 
-export const GITHUB_USER = 'yarnpkg';
-export const GITHUB_REPO = 'yarn';
+export const SELF_UPDATE_VERSION_URL = 'https://yarnpkg.com/latest-version';
+export const SELF_UPDATE_TARBALL_URL = 'https://yarnpkg.com/latest.tar.gz';
 export const SELF_UPDATE_DOWNLOAD_FOLDER = 'updates';
 
 export const ENV_PATH_KEY = getPathKey(process.platform, process.env);
@@ -69,4 +86,17 @@ export function getPathKey(platform: string, env: Env): string {
   }
 
   return pathKey;
+}
+
+function getUid(): ?number {
+  if (process.platform !== 'win32' && process.getuid) {
+    return process.getuid();
+  }
+  return null;
+}
+
+export const ROOT_USER = isRootUser(getUid());
+
+export function isRootUser(uid: ?number): boolean {
+  return uid === 0;
 }

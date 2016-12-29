@@ -1,7 +1,8 @@
 /* @flow */
 
 import type RequestManager, {RequestMethods} from '../util/request-manager.js';
-import type Config, {ConfigRegistries} from '../config.js';
+import type Config from '../config.js';
+import type {ConfigRegistries} from './index.js';
 import {removePrefix} from '../util/misc.js';
 
 const objectPath = require('object-path');
@@ -11,11 +12,14 @@ export type RegistryRequestOptions = {
   method?: RequestMethods,
   auth?: Object,
   body?: mixed,
+  buffer?: bool,
+  process?: Function
 };
 
 export type CheckOutdatedReturn = Promise<{
   wanted: string,
   latest: string,
+  url: string
 }>;
 
 export default class BaseRegistry {
@@ -61,6 +65,16 @@ export default class BaseRegistry {
     return this.config[key];
   }
 
+  getAvailableRegistries(): Array<string> {
+    const config = this.config;
+    return Object.keys(config).reduce((registries, option) => {
+      if (option === 'registry' || option.split(':')[1] === 'registry') {
+        registries.push(config[option]);
+      }
+      return registries;
+    }, []);
+  }
+
   loadConfig(): Promise<void> {
     return Promise.resolve();
   }
@@ -73,14 +87,34 @@ export default class BaseRegistry {
     return Promise.reject(new Error('unimplemented'));
   }
 
-  request(pathname: string, opts?: RegistryRequestOptions = {}): Promise<?Object> {
-    return Promise.reject(new Error('unimplemented'));
+  request(pathname: string, opts?: RegistryRequestOptions = {}): Promise<*> {
+    return this.requestManager.request({
+      url: pathname,
+      ...opts,
+    });
   }
 
   async init(): Promise<void> {
     this.mergeEnv('yarn_');
     await this.loadConfig();
     this.loc = path.join(this.cwd, this.folder);
+  }
+
+  static normalizeConfig(config: Object): Object {
+    for (const key in config) {
+      config[key] = BaseRegistry.normalizeConfigOption(config[key]);
+    }
+    return config;
+  }
+
+  static normalizeConfigOption(val: any): any {
+    if (val === 'true') {
+      return true;
+    } else if (val === 'false') {
+      return false;
+    } else {
+      return val;
+    }
   }
 
   mergeEnv(prefix: string) {
@@ -93,9 +127,9 @@ export default class BaseRegistry {
         continue;
       }
 
-      const val = process.env[key];
+      const val = BaseRegistry.normalizeConfigOption(process.env[key]);
 
-      // remove bower prefix
+      // remove config prefix
       key = removePrefix(key, prefix);
 
       // replace dunders with dots

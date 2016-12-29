@@ -4,7 +4,6 @@ import type {Reporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
 import NpmRegistry from '../../registries/npm-registry.js';
 import parsePackageName from '../../util/parse-package-name.js';
-
 const semver = require('semver');
 
 function clean(object: any): any {
@@ -43,13 +42,19 @@ export async function run(
  flags: Object,
  args: Array<string>,
 ): Promise<void> {
-  if (args.length !== 1 && args.length !== 2) {
+  if (args.length > 2) {
+    reporter.error(reporter.lang('tooManyArguments', 2));
     return;
   }
 
-  const packageInput = NpmRegistry.escapeName(args.shift());
-  const field = args.shift();
+  let packageName = args.shift() || '.';
 
+  // Handle the case when we are referencing a local package.
+  if (packageName === '.') {
+    packageName = (await config.readRootManifest()).name;
+  }
+
+  const packageInput = NpmRegistry.escapeName(packageName);
   const {name, version} = parsePackageName(packageInput);
 
   let result = await config.registries.npm.request(name);
@@ -66,10 +71,14 @@ export async function run(
   result.version = version || result.versions[result.versions.length - 1];
   result = Object.assign(result, versions[result.version]);
 
+  const fieldPath = args.shift();
+  const fields = fieldPath ? fieldPath.split('.') : [];
+
   // Readmes can be long so exclude them unless explicitly asked for.
-  if (field !== 'readme') {
+  if (fields[0] !== 'readme') {
     delete result.readme;
   }
 
-  reporter.inspect(field ? result[field] : result);
+  result = fields.reduce((prev, cur) => prev && prev[cur], result);
+  reporter.inspect(result);
 }

@@ -22,11 +22,11 @@ export function explodeHostedGitFragment(fragment: string, reporter: Reporter): 
 
   const userParts = fragment.split('/');
 
-  if (userParts.length === 2) {
+  if (userParts.length >= 2) {
     const user = userParts.shift();
-    const repoParts = userParts.shift().split('#');
+    const repoParts = userParts.join('/').split(/(?:[.]git)?#(.*)/);
 
-    if (repoParts.length <= 2) {
+    if (repoParts.length <= 3) {
       return {
         user,
         repo: repoParts[0],
@@ -34,6 +34,7 @@ export function explodeHostedGitFragment(fragment: string, reporter: Reporter): 
       };
     }
   }
+
 
   throw new MessageError(reporter.lang('invalidHostedGitFragment', fragment));
 }
@@ -101,7 +102,7 @@ export default class HostedGitResolver extends ExoticResolver {
 
       out = lines.join('\n');
     } else {
-      throw new Error('TODO');
+      throw new Error(this.reporter.lang('hostedGitResolveError'));
     }
 
     const refs = Git.parseRefs(out);
@@ -115,12 +116,14 @@ export default class HostedGitResolver extends ExoticResolver {
     }
 
     const commit = await this.getRefOverHTTP(url);
+    const {config} = this;
 
     const tryRegistry = async (registry): Promise<?Manifest> => {
       const {filename} = registries[registry];
 
-      const file = await this.config.requestManager.request({
-        url: this.constructor.getHTTPFileUrl(this.exploded, filename, commit),
+      const href = this.constructor.getHTTPFileUrl(this.exploded, filename, commit);
+      const file = await config.requestManager.request({
+        url: href,
         queue: this.resolver.fetchingQueue,
       });
       if (!file) {
@@ -128,7 +131,7 @@ export default class HostedGitResolver extends ExoticResolver {
       }
 
       const tarballUrl = this.constructor.getTarballUrl(this.exploded, commit);
-      const json = JSON.parse(file);
+      const json = await config.readJson(href, () => JSON.parse(file));
       json._uid = commit;
       json._remote = {
         resolved: tarballUrl,
@@ -163,6 +166,7 @@ export default class HostedGitResolver extends ExoticResolver {
       url,
       method: 'HEAD',
       queue: this.resolver.fetchingQueue,
+      followRedirect: false,
     })) !== false;
   }
 
@@ -185,7 +189,7 @@ export default class HostedGitResolver extends ExoticResolver {
     // if you have write permissions
     if (await Git.hasArchiveCapability(sshUrl)) {
       const archiveClient = new Git(this.config, sshUrl, this.hash);
-      const commit = await archiveClient.initRemote();
+      const commit = await archiveClient.init();
       return await this.fork(GitResolver, true, `${sshUrl}#${commit}`);
     }
 

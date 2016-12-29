@@ -4,8 +4,13 @@ import type {Reporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
 import buildSubCommands from './_build-sub-commands.js';
 import * as fs from '../../util/fs.js';
+import {METADATA_FILENAME} from '../../constants';
 
 const path = require('path');
+
+export function hasWrapper(flags: Object, args: Array<string>): boolean {
+  return args[0] !== 'dir';
+}
 
 export const {run, setFlags} = buildSubCommands('cache', {
   async ls(
@@ -14,19 +19,33 @@ export const {run, setFlags} = buildSubCommands('cache', {
     flags: Object,
     args: Array<string>,
   ): Promise<void> {
-    const files = await fs.readdir(config.cacheFolder);
-    const body = [];
+    async function readCacheMetadata(
+      parentDir = config.cacheFolder,
+      metadataFile = METADATA_FILENAME,
+    ): Promise<[]> {
+      const folders = await fs.readdir(parentDir);
+      const packagesMetadata = [];
 
-    for (const file of files) {
-      if (file[0] === '.') {
-        continue;
+      for (const folder of folders) {
+        if (folder[0] === '.') {
+          continue;
+        }
+
+        const loc = path.join(config.cacheFolder, parentDir.replace(config.cacheFolder, ''), folder);
+        // Check if this is a scoped package
+        if (!(await fs.exists(path.join(loc, metadataFile)))) {
+          // If so, recurrently read scoped packages metadata
+          packagesMetadata.push(...await readCacheMetadata(loc));
+        } else {
+          const {registry, package: manifest, remote} = await config.readPackageMetadata(loc);
+          packagesMetadata.push([manifest.name, manifest.version, registry, (remote && remote.resolved) || '']);
+        }
       }
 
-      const loc = path.join(config.cacheFolder, file);
-      const {registry, package: manifest, remote} = await config.readPackageMetadata(loc);
-
-      body.push([manifest.name, manifest.version, registry, (remote && remote.resolved) || '']);
+      return packagesMetadata;
     }
+
+    const body = await readCacheMetadata();
 
     reporter.table(['Name', 'Version', 'Registry', 'Resolved'], body);
   },

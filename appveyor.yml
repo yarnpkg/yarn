@@ -6,15 +6,43 @@ environment:
 branches:
   only:
   - master
-  - /.*-stable/
+  - /v[0-9]+(\.[0-9]+)*/
 
 install:
   - ps: Install-Product node $env:node_version
-  - npm install -g npm@3
-  - npm install
+  - yarn install
+
+build_script:
+  - ps: if ($env:APPVEYOR_REPO_BRANCH -eq 'master') { node ./scripts/set-dev-version.js }
+  - npm run build
+  - ps: ./scripts/build-dist.ps1
+  - npm run build-win-installer
 
 test_script:
-  - npm run build
   - npm run test-only
 
-build: off
+artifacts:
+  - path: artifacts/*.msi
+    name: Installer
+
+cache:
+ - node_modules
+ - "%LOCALAPPDATA%/Yarn"
+
+notifications:
+  - provider: Webhook
+    url: https://nightly.yarnpkg.com/archive_appveyor
+    method: POST
+    headers:
+      Authorization:
+        secure: uH4c9HNDdRuL4omqqbTtBq3KgzjGTFmpvPdiNuk9391Z0YXRoRLA1Ptpa3seZ0Pt
+    on_build_failure: false
+
+deploy:
+  - provider: Webhook
+    url: https://nightly.yarnpkg.com/release_appveyor
+    authorization:
+      secure: uH4c9HNDdRuL4omqqbTtBq3KgzjGTFmpvPdiNuk9391Z0YXRoRLA1Ptpa3seZ0Pt
+    on:
+      branch: /v[0-9]+(\.[0-9]+)*/
+      appveyor_repo_tag: true

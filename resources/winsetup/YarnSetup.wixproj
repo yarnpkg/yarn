@@ -49,12 +49,22 @@
     <!-- Delete .tar.gz from dist path, leaving only the files -->
     <Delete Files="$(YarnDistPath)\*.tar.gz" />
 
-    <!-- Get Yarn version and pass it to WiX -->
+    <Exec Command="node $(YarnDistPath)\..\scripts\set-installation-method.js $([System.IO.Path]::GetFullPath($(YarnDistPath)))\package.json msi" />
+
+    <!-- Get Yarn version -->
     <Exec Command="node $(YarnDistPath)\bin\yarn.js --version" ConsoleToMSBuild="true">
       <Output TaskParameter="ConsoleOutput" PropertyName="YarnVersion" />
     </Exec>
+    <!-- WiX doesn't allow extra stuff in the version number, so we omit the
+         date/time for nightly builds here -->
+    <Exec
+      Command="node -p &quot;require('./package.json').version.replace(/\-(.+)$/, '')&quot;"
+      ConsoleToMSBuild="true"
+      WorkingDirectory="$(YarnDistPath)\..">
+      <Output TaskParameter="ConsoleOutput" PropertyName="YarnShortVersion" />
+    </Exec>
     <PropertyGroup>
-      <DefineConstants>$(DefineConstants);YarnDistPath=$(YarnDistPath);YarnVersion=$(YarnVersion)</DefineConstants>
+      <DefineConstants>$(DefineConstants);YarnDistPath=$(YarnDistPath);YarnVersion=$(YarnShortVersion)</DefineConstants>
     </PropertyGroup>
 
     <HeatDirectory
@@ -69,10 +79,10 @@
     />
   </Target>
   <Target Name="AfterBuild">
-    <!-- Rename installer to yarn-[version].msi -->
+    <!-- Rename installer to yarn-[version]-unsigned.msi -->
     <Copy
       SourceFiles="$(OutputPath)\Yarn.msi"
-      DestinationFiles="$(YarnDistPath)\..\artifacts\yarn-$(YarnVersion).msi"
+      DestinationFiles="$(YarnDistPath)\..\artifacts\yarn-$(YarnVersion)-unsigned.msi"
     />
   </Target>
 </Project>

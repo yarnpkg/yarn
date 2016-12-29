@@ -1,5 +1,6 @@
 /* @flow */
 
+import type Reporter from '../reporters/base-reporter.js';
 import BlockingQueue from './blocking-queue.js';
 import * as promise from './promise.js';
 import {promisify} from './promise.js';
@@ -7,6 +8,7 @@ import map from './map.js';
 
 const path = require('path');
 const fs = require('fs');
+const os = require('os');
 
 export const lockQueue = new BlockingQueue('fs lock');
 
@@ -67,14 +69,17 @@ type CopyOptions = {
   onStart: (num: number) => void,
   possibleExtraneous: PossibleExtraneous,
   ignoreBasenames: Array<string>,
+  phantomFiles: Array<string>,
 };
 
 async function buildActionsForCopy(
   queue: CopyQueue,
   events: CopyOptions,
   possibleExtraneousSeed: PossibleExtraneous,
+  reporter: Reporter,
 ): Promise<CopyActions> {
   const possibleExtraneous: Set<string> = new Set(possibleExtraneousSeed || []);
+  const phantomFiles: Set<string> = new Set(events.phantomFiles || []);
   const noExtraneous = possibleExtraneousSeed === false;
   const files: Set<string> = new Set();
 
@@ -100,10 +105,19 @@ async function buildActionsForCopy(
     await Promise.all(items.map(build));
   }
 
+  // simulate the existence of some files to prevent considering them extraenous
+  for (const file of phantomFiles) {
+    if (possibleExtraneous.has(file)) {
+      reporter.verbose(reporter.lang('verboseFilePhantomExtraneous', file));
+      possibleExtraneous.delete(file);
+    }
+  }
+
   // remove all extraneous files that weren't in the tree
   if (!noExtraneous) {
     for (const loc of possibleExtraneous) {
       if (!files.has(loc)) {
+        reporter.verbose(reporter.lang('verboseFileRemoveExtraneous', loc));
         await unlink(loc);
       }
     }
@@ -149,13 +163,18 @@ async function buildActionsForCopy(
       if (bothFiles && srcStat.size === destStat.size && +srcStat.mtime === +destStat.mtime) {
         // we can safely assume this is the same file
         onDone();
+        reporter.verbose(reporter.lang('verboseFileSkip', src, dest, srcStat.size, +srcStat.mtime));
         return;
       }
 
-      if (bothSymlinks && await readlink(src) === await readlink(dest)) {
-        // if both symlinks are the same then we can continue on
-        onDone();
-        return;
+      if (bothSymlinks) {
+        const srcReallink = await readlink(src);
+        if (srcReallink === await readlink(dest)) {
+          // if both symlinks are the same then we can continue on
+          onDone();
+          reporter.verbose(reporter.lang('verboseFileSkipSymlink', src, dest, srcReallink));
+          return;
+        }
       }
 
       if (bothFolders && !noExtraneous) {
@@ -188,6 +207,7 @@ async function buildActionsForCopy(
       });
       onDone();
     } else if (srcStat.isDirectory()) {
+      reporter.verbose(reporter.lang('verboseFileFolder', dest));
       await mkdirp(dest);
 
       const destParts = dest.split(path.sep);
@@ -231,17 +251,19 @@ async function buildActionsForCopy(
   }
 }
 
-export function copy(src: string, dest: string): Promise<void> {
-  return copyBulk([{src, dest}]);
+export function copy(src: string, dest: string, reporter: Reporter): Promise<void> {
+  return copyBulk([{src, dest}], reporter);
 }
 
 export async function copyBulk(
   queue: CopyQueue,
+  reporter: Reporter,
   _events?: {
     onProgress?: ?(dest: string) => void,
     onStart?: ?(num: number) => void,
     possibleExtraneous?: PossibleExtraneous,
     ignoreBasenames?: Array<string>,
+    phantomFiles?: Array<string>,
   },
 ): Promise<void> {
   const events: CopyOptions = {
@@ -249,39 +271,62 @@ export async function copyBulk(
     onProgress: (_events && _events.onProgress) || noop,
     possibleExtraneous: _events ? _events.possibleExtraneous : [],
     ignoreBasenames: (_events && _events.ignoreBasenames) || [],
+    phantomFiles: (_events && _events.phantomFiles) || [],
   };
 
-  const actions: CopyActions = await buildActionsForCopy(queue, events, events.possibleExtraneous);
+  const actions: CopyActions = await buildActionsForCopy(queue, events, events.possibleExtraneous, reporter);
   events.onStart(actions.length);
 
   const fileActions: Array<CopyFileAction> = (actions.filter((action) => action.type === 'file'): any);
-  await promise.queue(fileActions, (data): Promise<void> => new Promise((resolve, reject) => {
-    const readStream = fs.createReadStream(data.src);
-    const writeStream = fs.createWriteStream(data.dest, {mode: data.mode});
 
-    readStream.on('error', reject);
-    writeStream.on('error', reject);
+  const currentlyWriting: { [dest: string]: Promise<void> } = {};
 
-    writeStream.on('open', function() {
-      readStream.pipe(writeStream);
-    });
+  await promise.queue(fileActions, async (data): Promise<void> => {
+    let writePromise: Promise<void>;
+    while (writePromise = currentlyWriting[data.dest]) {
+      await writePromise;
+    }
 
-    writeStream.once('finish', function() {
-      fs.utimes(data.dest, data.atime, data.mtime, function(err) {
-        if (err) {
-          reject(err);
-        } else {
-          events.onProgress(data.dest);
-          resolve();
-        }
+    const cleanup = () => delete currentlyWriting[data.dest];
+    return currentlyWriting[data.dest] = new Promise((resolve, reject) => {
+      const readStream = fs.createReadStream(data.src);
+      const writeStream = fs.createWriteStream(data.dest, {mode: data.mode});
+
+      reporter.verbose(reporter.lang('verboseFileCopy', data.src, data.dest));
+
+      readStream.on('error', reject);
+      writeStream.on('error', reject);
+
+      writeStream.on('open', function() {
+        readStream.pipe(writeStream);
       });
+
+      writeStream.once('finish', function() {
+        fs.utimes(data.dest, data.atime, data.mtime, function(err) {
+          if (err) {
+            reject(err);
+          } else {
+            events.onProgress(data.dest);
+            cleanup();
+            resolve();
+          }
+        });
+      });
+    }).then((arg) => {
+      cleanup();
+      return arg;
+    }).catch((arg) => {
+      cleanup();
+      throw arg;
     });
-  }), 4);
+  }, 4);
 
   // we need to copy symlinks last as the could reference files we were copying
   const symlinkActions: Array<CopySymlinkAction> = (actions.filter((action) => action.type === 'symlink'): any);
   await promise.queue(symlinkActions, (data): Promise<void> => {
-    return symlink(path.resolve(path.dirname(data.dest), data.linkname), data.dest);
+    const linkname = path.resolve(path.dirname(data.dest), data.linkname);
+    reporter.verbose(reporter.lang('verboseFileSymlink', data.dest, linkname));
+    return symlink(linkname, data.dest);
   });
 }
 
@@ -315,9 +360,19 @@ export async function readFileAny(files: Array<string>): Promise<?string> {
 }
 
 export async function readJson(loc: string): Promise<Object> {
+  return (await readJsonAndFile(loc)).object;
+}
+
+export async function readJsonAndFile(loc: string): Promise<{
+  object: Object,
+  content: string,
+}> {
   const file = await readFile(loc);
   try {
-    return map(JSON.parse(stripBOM(file)));
+    return {
+      object: map(JSON.parse(stripBOM(file))),
+      content: file,
+    };
   } catch (err) {
     err.message = `${loc}: ${err.message}`;
     throw err;
@@ -425,4 +480,33 @@ export async function getFileSizeOnDisk(loc: string): Promise<number> {
 
 export function normalizeOS(body: string): string {
   return body.replace(/\r\n/g, '\n');
+}
+
+const cr = new Buffer('\r', 'utf8')[0];
+const lf = new Buffer('\n', 'utf8')[0];
+
+async function getEolFromFile(path: string) : Promise<string | void>  {
+  if (!(await exists(path))) {
+    return undefined;
+  }
+
+  const buffer = await readFileBuffer(path);
+
+  for (let i = 0; i < buffer.length; ++i) {
+    if (buffer[i] === cr) {
+      return '\r\n';
+    }
+    if (buffer[i] === lf) {
+      return '\n';
+    }
+  }
+  return undefined;
+}
+
+export async function writeFilePreservingEol(path: string, data: string) : Promise<void> {
+  const eol = (await getEolFromFile(path)) || os.EOL;
+  if (eol !== '\n') {
+    data = data.replace(/\n/g, eol);
+  }
+  await promisify(fs.writeFile)(path, data);
 }

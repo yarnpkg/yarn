@@ -14,18 +14,13 @@ import Progress from './progress-bar.js';
 import Spinner from './spinner-progress.js';
 import {clearLine} from './util.js';
 import {removeSuffix} from '../../util/misc.js';
+import {sortTrees, recurseTree, getFormattedOutput} from './helpers/tree-helper.js';
 
 const {inspect} = require('util');
 const readline = require('readline');
 const repeat = require('repeating');
 const chalk = require('chalk');
 const read = require('read');
-
-function sortTrees(trees: Trees = []): Trees {
-  return trees.sort(function(tree1, tree2): number {
-    return tree1.name.localeCompare(tree2.name);
-  });
-}
 
 type Row = Array<string>;
 
@@ -49,6 +44,14 @@ export default class ConsoleReporter extends BaseReporter {
   _logCategory(category: string, color: FormatKeys, msg: string) {
     this._lastCategorySize = category.length;
     this._log(`${this.format[color](category)} ${msg}`);
+  }
+
+  _verbose(msg: string) {
+    this._logCategory('verbose', 'grey', msg);
+  }
+
+  _verboseInspect(obj: any) {
+    this.inspect(obj);
   }
 
   table(head: Array<string>, body: Array<Row>) {
@@ -88,7 +91,7 @@ export default class ConsoleReporter extends BaseReporter {
       msg += '...';
     }
 
-    this.log(`${this.format.grey(`[${current}/${total}]`)} ${msg}`);
+    this.log(`${this.format.dim(`[${current}/${total}]`)} ${msg}`);
   }
 
   inspect(value: mixed) {
@@ -104,10 +107,18 @@ export default class ConsoleReporter extends BaseReporter {
     this.log('' + value);
   }
 
-  list(key: string, items: Array<string>) {
+  list(key: string, items: Array<string>, hints?: Object) {
     const gutterWidth = (this._lastCategorySize || 2) - 1;
-    for (const item of items) {
-      this._log(`${repeat(' ', gutterWidth)}- ${item}`);
+
+    if (hints) {
+      for (const item of items) {
+        this._log(`${repeat(' ', gutterWidth)}- ${item}`);
+        this._log(`  ${repeat(' ', gutterWidth)} ${hints[item]}`);
+      }
+    } else {
+      for (const item of items) {
+        this._log(`${repeat(' ', gutterWidth)}- ${item}`);
+      }
     }
   }
 
@@ -149,7 +160,7 @@ export default class ConsoleReporter extends BaseReporter {
   }
 
   command(command: string) {
-    this.log(this.format.grey(`$ ${command}`));
+    this.log(this.format.dim(`$ ${command}`));
   }
 
   warn(msg: string) {
@@ -164,7 +175,7 @@ export default class ConsoleReporter extends BaseReporter {
 
     return new Promise((resolve, reject) => {
       read({
-        prompt: `${this.format.grey('question')} ${question}: `,
+        prompt: `${this.format.dim('question')} ${question}: `,
         silent: !!options.password,
         output: this.stdout,
         input: this.stdin,
@@ -186,46 +197,23 @@ export default class ConsoleReporter extends BaseReporter {
       });
     });
   }
-
+  // handles basic tree output to console
   tree(key: string, trees: Trees) {
-    trees = sortTrees(trees);
-
-    const stdout = this.stdout;
-
+    //
     const output = ({name, children, hint, color}, level, end) => {
-      children = sortTrees(children);
-
-      let indent = end ? '└' : '├';
-
-      if (level) {
-        indent = repeat('│  ', level) + indent;
-      }
-
-      let suffix = '';
-      if (hint) {
-        suffix += ` (${this.format.grey(hint)})`;
-      }
-      if (color) {
-        name = this.format[color](name);
-      }
-      stdout.write(`${indent}─ ${name}${suffix}\n`);
+      const formatter = this.format;
+      const out = getFormattedOutput({end, level, hint, color, name, formatter});
+      this.stdout.write(out);
 
       if (children && children.length) {
-        for (let i = 0; i < children.length; i++) {
-          const tree = children[i];
-          output(tree, level + 1, i === children.length - 1);
-        }
+        recurseTree(sortTrees(children), level, output);
       }
     };
-
-    for (let i = 0; i < trees.length; i++) {
-      const tree = trees[i];
-      output(tree, 0, i === trees.length - 1);
-    }
+    recurseTree(sortTrees(trees), -1, output);
   }
 
   activitySet(total: number, workers: number): ReporterSpinnerSet {
-    if (!this.isTTY) {
+    if (!this.isTTY || this.noProgress) {
       return super.activitySet(total, workers);
     }
 
@@ -243,7 +231,7 @@ export default class ConsoleReporter extends BaseReporter {
       let current = 0;
       const updatePrefix = () => {
         spinner.setPrefix(
-          `${this.format.grey(`[${current === 0 ? '-' : current}/${total}]`)} `,
+          `${this.format.dim(`[${current === 0 ? '-' : current}/${total}]`)} `,
         );
       };
       const clear = () => {
@@ -369,7 +357,7 @@ export default class ConsoleReporter extends BaseReporter {
   }
 
   progress(count: number): () => void {
-    if (count <= 0) {
+    if (this.noProgress || count <= 0) {
       return function() {
         // noop
       };

@@ -2,14 +2,15 @@
 
 import {ConsoleReporter, JSONReporter} from '../reporters/index.js';
 import {sortAlpha} from '../util/misc.js';
+import {registries, registryNames} from '../registries/index.js';
 import * as commands from './commands/index.js';
 import * as constants from '../constants.js';
 import * as network from '../util/network.js';
 import {MessageError} from '../errors.js';
 import aliases from './aliases.js';
 import Config from '../config.js';
+import {hyphenate, camelCase} from '../util/misc.js';
 
-const camelCase = require('camelcase');
 const chalk = require('chalk');
 const commander = require('commander');
 const fs = require('fs');
@@ -40,10 +41,23 @@ for (let i = 0; i < args.length; i++) {
 // set global options
 commander.version(pkg.version);
 commander.usage('[command] [flags]');
-commander.option('--offline');
-commander.option('--prefer-offline');
+commander.option('--verbose', 'output verbose messages on internal operations');
+commander.option('--offline', 'trigger an error if any required dependencies are not available in local cache');
+commander.option('--prefer-offline', 'use network only if dependencies are not available in local cache');
 commander.option('--strict-semver');
 commander.option('--json', '');
+commander.option('--ignore-scripts', "don't run lifecycle scripts");
+commander.option('--har', 'save HAR output of network traffic');
+commander.option('--ignore-platform', 'ignore platform checks');
+commander.option('--ignore-engines', 'ignore engines check');
+commander.option('--ignore-optional', 'ignore optional dependencies');
+commander.option('--force', 'ignore all caches');
+commander.option('--no-bin-links', "don't generate bin links when setting up packages");
+commander.option('--flat', 'only allow one version of a package');
+commander.option('--prod, --production [prod]', '');
+commander.option('--no-lockfile', "don't read or generate a lockfile");
+commander.option('--pure-lockfile', "don't generate a lockfile");
+commander.option('--frozen-lockfile', "don't generate a lockfile and fail if an update is needed");
 commander.option('--global-folder <path>', '');
 commander.option(
   '--modules-folder <path>',
@@ -57,13 +71,23 @@ commander.option(
   '--mutex <type>[:specifier]',
   'use a mutex to ensure only one yarn instance is executing',
 );
+commander.option(
+  '--no-emoji',
+  'disable emoji in output',
+);
+commander.option('--proxy <host>', '');
+commander.option('--https-proxy <host>', '');
+commander.option(
+  '--no-progress',
+  'disable progress bar',
+);
+commander.option('--network-concurrency <number>', 'maximum number of concurrent network requests', parseInt);
 
 // get command name
-let commandName: string = args.shift() || '';
+let commandName: ?string = args.shift() || '';
 let command;
 
 //
-const hyphenate = (string) => string.replace(/[A-Z]/g, (match) => ('-' + match.charAt(0).toLowerCase()));
 const getDocsLink = (name) => `https://yarnpkg.com/en/docs/cli/${name || ''}`;
 const getDocsInfo = (name) => 'Visit ' + chalk.bold(getDocsLink(name)) + ' for documentation about this command.';
 
@@ -117,7 +141,12 @@ if (commandName === 'help' && args.length) {
 
 //
 invariant(commandName, 'Missing command name');
-command = command || commands[camelCase(commandName)];
+if (!command) {
+  const camelised = camelCase(commandName);
+  if (camelised) {
+    command = commands[camelised];
+  }
+}
 
 //
 if (command && typeof command.setFlags === 'function') {
@@ -141,16 +170,17 @@ if (commandName === 'help' || args.indexOf('--help') >= 0 || args.indexOf('-h') 
   process.exit(1);
 }
 
-//
-if (!command) {
-  args.unshift(commandName);
+// parse flags
+args.unshift(commandName);
+commander.parse(startArgs.concat(args));
+commander.args = commander.args.concat(endArgs);
+
+if (command) {
+  commander.args.shift();
+} else {
   command = commands.run;
 }
 invariant(command, 'missing command');
-
-// parse flags
-commander.parse(startArgs.concat(args));
-commander.args = commander.args.concat(endArgs);
 
 //
 let Reporter = ConsoleReporter;
@@ -158,7 +188,9 @@ if (commander.json) {
   Reporter = JSONReporter;
 }
 const reporter = new Reporter({
-  emoji: process.stdout.isTTY && process.platform === 'darwin',
+  emoji: commander.emoji && process.stdout.isTTY && process.platform === 'darwin',
+  verbose: commander.verbose,
+  noProgress: !commander.progress,
 });
 reporter.initPeakMemoryCounter();
 
@@ -170,14 +202,14 @@ let outputWrapper = true;
 if (typeof command.hasWrapper === 'function') {
   outputWrapper = command.hasWrapper(commander, commander.args);
 }
+if (commander.json) {
+  outputWrapper = false;
+}
 if (outputWrapper) {
-  reporter.header(commandName, {
-    name: 'yarn',
-    version: pkg.version,
-  });
+  reporter.header(commandName, pkg);
 }
 
-if (command.noArguments && args.length) {
+if (command.noArguments && commander.args.length) {
   reporter.error(reporter.lang('noArguments'));
   reporter.info(getDocsInfo(commandName));
   process.exit(1);
@@ -220,7 +252,7 @@ const runEventuallyWithFile = (mutexFilename: ?string, isFirstTime?: boolean): P
           reporter.warn(reporter.lang('waitingInstance'));
         }
         setTimeout(() => {
-          ok(runEventuallyWithFile());
+          ok(runEventuallyWithFile(mutexFilename, isFirstTime));
         }, 200); // do not starve the CPU
       } else {
         onDeath(() => {
@@ -239,36 +271,35 @@ const runEventuallyWithNetwork = (mutexPort: ?string): Promise<void> => {
       port: +mutexPort || constants.SINGLE_INSTANCE_PORT,
     };
 
-    const clients = [];
-    const server = net.createServer((client: net$Socket) => {
-      clients.push(client);
-    });
+    const server = net.createServer();
 
     server.on('error', () => {
-      // another yarnn instance exists, let's connect to it to know when it dies.
+      // another Yarn instance exists, let's connect to it to know when it dies.
       reporter.warn(reporter.lang('waitingInstance'));
       const socket = net.createConnection(connectionOptions);
 
       socket
-        .on('data', () => {
-          // the server has informed us he's going to die soon™.
-          socket.unref(); // let it die
-          process.nextTick(() => {
-            ok(runEventuallyWithNetwork());
-          });
+        .on('connect', () => {
+          // Allow the program to exit if this is the only active server in the event system.
+          socket.unref();
+        })
+        .on('close', (hadError?: boolean) => {
+          // the `close` event gets always called after the `error` event
+          if (!hadError) {
+            process.nextTick(() => {
+              ok(runEventuallyWithNetwork(mutexPort));
+            });
+          }
         })
         .on('error', () => {
-          // No server to listen to ? :O let's retry to become the next server then.
+          // No server to listen to ? Let's retry to become the next server then.
           process.nextTick(() => {
-            ok(runEventuallyWithNetwork());
+            ok(runEventuallyWithNetwork(mutexPort));
           });
         });
     });
 
     const onServerEnd = (): Promise<void> => {
-      clients.forEach((client) => {
-        client.write('closing. kthanx, bye.');
-      });
       server.close();
       return Promise.resolve();
     };
@@ -283,8 +314,42 @@ const runEventuallyWithNetwork = (mutexPort: ?string): Promise<void> => {
   });
 };
 
+function onUnexpectedError(err: Error) {
+  function indent(str: string): string {
+    return '\n  ' + str.trim().split('\n').join('\n  ');
+  }
+
+  const log = [];
+  log.push(`Arguments: ${indent(process.argv.join(' '))}`);
+  log.push(`PATH: ${indent(process.env.PATH || 'undefined')}`);
+  log.push(`Yarn version: ${indent(pkg.version)}`);
+  log.push(`Node version: ${indent(process.versions.node)}`);
+  log.push(`Platform: ${indent(process.platform + ' ' + process.arch)}`);
+
+  // add manifests
+  for (const registryName of registryNames) {
+    const possibleLoc = path.join(config.cwd, registries[registryName].filename);
+    const manifest = fs.existsSync(possibleLoc) ? fs.readFileSync(possibleLoc, 'utf8') : 'No manifest';
+    log.push(`${registryName} manifest: ${indent(manifest)}`);
+  }
+
+  // lockfile
+  const lockLoc = path.join(config.cwd, constants.LOCKFILE_FILENAME);
+  const lockfile = fs.existsSync(lockLoc) ? fs.readFileSync(lockLoc, 'utf8') : 'No lockfile';
+  log.push(`Lockfile: ${indent(lockfile)}`);
+
+  log.push(`Trace: ${indent(err.stack)}`);
+
+  const errorLoc = path.join(config.cwd, 'yarn-error.log');
+  fs.writeFileSync(errorLoc, log.join('\n\n') + '\n');
+
+  reporter.error(reporter.lang('unexpectedError', err.message));
+  reporter.info(reporter.lang('bugReport', errorLoc));
+}
+
 //
 config.init({
+  binLinks: commander.binLinks,
   modulesFolder: commander.modulesFolder,
   globalFolder: commander.globalFolder,
   cacheFolder: commander.cacheFolder,
@@ -292,9 +357,23 @@ config.init({
   captureHar: commander.har,
   ignorePlatform: commander.ignorePlatform,
   ignoreEngines: commander.ignoreEngines,
+  ignoreScripts: commander.ignoreScripts,
   offline: commander.preferOffline || commander.offline,
   looseSemver: !commander.strictSemver,
+  production: commander.production,
+  httpProxy: commander.proxy,
+  httpsProxy: commander.httpsProxy,
+  networkConcurrency: commander.networkConcurrency,
+  commandName,
 }).then(() => {
+
+  // option "no-progress" stored in yarn config
+  const noProgressConfig = config.registries.yarn.getOption('no-progress');
+
+  if (noProgressConfig) {
+    reporter.disableProgress();
+  }
+
   const exit = () => {
     process.exit(0);
   };
@@ -310,31 +389,23 @@ config.init({
     } else if (mutexType === 'network') {
       return runEventuallyWithNetwork(mutexSpecifier).then(exit);
     } else {
-      throw new Error(`Unknown single instance type ${mutexType}`);
+      throw new MessageError(`Unknown single instance type ${mutexType}`);
     }
   } else {
     return run().then(exit);
   }
-}).catch((errs: ?(Array<Error> | Error)) => {
-  function logError(err) {
-    if (err instanceof MessageError) {
-      reporter.error(err.message);
-    } else {
-      reporter.error(err.stack.replace(/^Error: /, ''));
-    }
+}).catch((err: Error) => {
+  reporter.verbose(err.stack);
+
+  if (err instanceof MessageError) {
+    reporter.error(err.message);
+  } else {
+    onUnexpectedError(err);
   }
 
-  if (errs) {
-    if (Array.isArray(errs)) {
-      for (const err of errs) {
-        logError(err);
-      }
-    } else {
-      logError(errs);
-    }
-
+  if (commandName) {
     const actualCommandForHelp = commands[commandName] ? commandName : aliases[commandName];
-    if (actualCommandForHelp) {
+    if (command && actualCommandForHelp) {
       reporter.info(getDocsInfo(actualCommandForHelp));
     }
   }

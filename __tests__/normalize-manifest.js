@@ -11,6 +11,8 @@ import * as fs from '../src/util/fs.js';
 const nativeFs = require('fs');
 const path     = require('path');
 
+jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000;
+
 const fixturesLoc = path.join(__dirname, 'fixtures', 'normalize-manifest');
 
 for (const name of nativeFs.readdirSync(fixturesLoc)) {
@@ -91,6 +93,11 @@ test('util.extractDescription', () => {
   expect(util.extractDescription('')).toEqual(undefined);
   expect(util.extractDescription(null)).toEqual(undefined);
   expect(util.extractDescription(undefined)).toEqual(undefined);
+});
+
+test('util.extractRepositoryUrl', () => {
+  expect(util.extractRepositoryUrl('https://github.com/yarnpkg/yarn.git')).toEqual('https://github.com/yarnpkg/yarn.git');
+  expect(util.extractRepositoryUrl({type: 'git', url: 'https://github.com/yarnpkg/yarn.git'})).toEqual('https://github.com/yarnpkg/yarn.git');
 });
 
 // fill out expected and normalize paths

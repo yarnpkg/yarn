@@ -2,12 +2,11 @@
 
 import type {Reporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
-import {stringifyPerson} from '../../util/normalize-manifest/util.js';
+import {stringifyPerson, extractRepositoryUrl} from '../../util/normalize-manifest/util.js';
 import {registryNames} from '../../registries/index.js';
-import Lockfile from '../../lockfile/wrapper.js';
-import {Install} from './install.js';
 import * as child from '../../util/child.js';
 import * as fs from '../../util/fs.js';
+import * as validate from '../../util/normalize-manifest/validate.js';
 
 const objectPath = require('object-path');
 const path = require('path');
@@ -22,11 +21,9 @@ export async function run(
   flags: Object,
   args: Array<string>,
 ): Promise<void> {
-  const lockfile = new Lockfile();
-  const install = new Install(flags, config, reporter, lockfile);
-  const manifests = await install.getRootManifests();
+  const manifests = await config.getRootManifests();
 
-  let gitUrl;
+  let repository = {};
   const author = {
     name: config.getOption('init-author-name'),
     email: config.getOption('init-author-email'),
@@ -35,14 +32,21 @@ export async function run(
   if (await fs.exists(path.join(config.cwd, '.git'))) {
     // get git origin of the cwd
     try {
-      gitUrl = await child.spawn('git', ['config', 'remote.origin.url'], {cwd: config.cwd});
+      repository = {
+        type: 'git',
+        url: await child.spawn('git', ['config', 'remote.origin.url'], {cwd: config.cwd}),
+      };
     } catch (ex) {
       // Ignore - Git repo may not have an origin URL yet (eg. if it only exists locally)
     }
 
-    // get author default based on git config
-    author.name = author.name || await child.spawn('git', ['config', 'user.name']);
-    author.email = author.email || await child.spawn('git', ['config', 'user.email']);
+    if (author.name === undefined) {
+      author.name = await getGitConfigInfo('user.name');
+    }
+
+    if (author.email === undefined) {
+      author.email = await getGitConfigInfo('user.email');
+    }
   }
 
   const keys = [
@@ -50,6 +54,8 @@ export async function run(
       key: 'name',
       question: 'name',
       default: path.basename(config.cwd),
+      validation: validate.isValidPackageName,
+      validationError: 'invalidPackageName',
     },
     {
       key: 'version',
@@ -67,9 +73,9 @@ export async function run(
       default: 'index.js',
     },
     {
-      key: 'repository.url',
-      question: 'git repository',
-      default: gitUrl,
+      key: 'repository',
+      question: 'repository url',
+      default: extractRepositoryUrl(repository),
     },
     {
       key: 'author',
@@ -92,11 +98,18 @@ export async function run(
 
     for (const registryName of registryNames) {
       const {object} = manifests[registryName];
-      const val = objectPath.get(object, manifestKey);
-      if (val) {
-        def = val;
+      let val = objectPath.get(object, manifestKey);
+      if (!val) {
         break;
       }
+      if (typeof val === 'object') {
+        if (manifestKey === 'author') {
+          val = stringifyPerson(val);
+        } else if (manifestKey === 'repository') {
+          val = extractRepositoryUrl(val);
+        }
+      }
+      def = val;
     }
 
     if (def) {
@@ -104,21 +117,30 @@ export async function run(
     }
 
     let answer;
+    let validAnswer = false;
 
     if (yes) {
       answer = def;
     } else {
-      answer = (await reporter.question(question)) || def;
+      // loop until a valid answer is provided, if validation is on entry
+      if (entry.validation) {
+        while (!validAnswer) {
+          answer = (await reporter.question(question)) || def;
+          // validate answer
+          if (entry.validation(String(answer))) {
+            validAnswer = true;
+          } else {
+            reporter.error(reporter.lang('invalidPackageName'));
+          }
+        }
+      } else {
+        answer = (await reporter.question(question)) || def;
+      }
     }
 
     if (answer) {
       objectPath.set(pkg, manifestKey, answer);
     }
-  }
-
-  // if we have a git url then set the type
-  if (pkg.repository && pkg.repository.url) {
-    pkg.repository.type = 'git';
   }
 
   // save answers
@@ -137,5 +159,18 @@ export async function run(
     reporter.success(`Saved ${path.basename(targetManifest.loc)}`);
   }
 
-  await install.saveRootManifests(manifests);
+  await config.saveRootManifests(manifests);
+}
+
+
+export async function getGitConfigInfo(
+  credential: string,
+  spawn = child.spawn,
+): Promise<string> {
+  try {
+    // try to get author default based on git config
+    return await spawn('git', ['config', credential]);
+  } catch (e) {
+    return '';
+  }
 }

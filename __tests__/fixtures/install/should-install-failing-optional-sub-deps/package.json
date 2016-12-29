@@ -1,0 +1,5 @@
+{
+  "optionalDependencies": {
+    "optional-failing": "file:optional-failing"
+  }
+}

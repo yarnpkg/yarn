@@ -1,7 +1,7 @@
 /* @flow */
 
 import type RequestManager from '../util/request-manager.js';
-import type {ConfigRegistries} from '../config.js';
+import type {ConfigRegistries} from './index.js';
 import {YARN_REGISTRY} from '../constants.js';
 import NpmRegistry from './npm-registry.js';
 import stringify from '../lockfile/stringify.js';
@@ -26,6 +26,7 @@ export const DEFAULTS = {
   'ignore-scripts': false,
   'ignore-optional': false,
   registry: YARN_REGISTRY,
+  'strict-ssl': true,
   'user-agent': [
     `yarn/${pkg.version}`,
     'npm/?',
@@ -56,23 +57,40 @@ export default class YarnRegistry extends NpmRegistry {
   homeConfig: Object;
 
   getOption(key: string): mixed {
-    let val = this.config[key] || this.registries.npm.getOption(npmMap[key]);
+    let val = this.config[key];
 
-    // if we have no yarn option for this or have used a default then use the npm
-    // value if it exists
-    if (!val || val === DEFAULTS[key]) {
-      val = this.registries.npm.getOption(key) || val;
+    // if this isn't set in a yarn config, then use npm
+    if (typeof val === 'undefined') {
+      val = this.registries.npm.getOption(npmMap[key]);
+    }
+
+    if (typeof val === 'undefined') {
+      val = this.registries.npm.getOption(key);
+    }
+
+    // if this isn't set in a yarn config or npm config, then use the default (or undefined)
+    if (typeof val === 'undefined') {
+      val = DEFAULTS[key];
     }
 
     return val;
   }
 
   async loadConfig(): Promise<void> {
-    for (const [isHome,, file] of await this.getPossibleConfigLocations('.yarnrc')) {
+    for (const [isHome, loc, file] of await this.getPossibleConfigLocations('.yarnrc')) {
       const config = parse(file);
 
       if (isHome) {
         this.homeConfig = config;
+      }
+
+      // normalize offline mirror path relative to the current yarnrc
+      const offlineLoc = config['yarn-offline-mirror'];
+
+      // don't normalize if we already have a mirror path
+      if (!this.config['yarn-offline-mirror'] && offlineLoc) {
+        const mirrorLoc = config['yarn-offline-mirror'] = path.resolve(path.dirname(loc), offlineLoc);
+        await fs.mkdirp(mirrorLoc);
       }
 
       defaults(this.config, config);
@@ -96,6 +114,6 @@ export default class YarnRegistry extends NpmRegistry {
       this.homeConfig[key] = config[key];
     }
 
-    await fs.writeFile(this.homeConfigLoc, `${stringify(this.homeConfig)}\n`);
+    await fs.writeFilePreservingEol(this.homeConfigLoc, `${stringify(this.homeConfig)}\n`);
   }
 }

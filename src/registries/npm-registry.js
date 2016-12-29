@@ -2,17 +2,21 @@
 
 import type RequestManager from '../util/request-manager.js';
 import type {RegistryRequestOptions, CheckOutdatedReturn} from './base-registry.js';
-import type Config, {ConfigRegistries} from '../config.js';
+import type Config from '../config.js';
+import type {ConfigRegistries} from './index.js';
 import * as fs from '../util/fs.js';
 import NpmResolver from '../resolvers/registries/npm-resolver.js';
+import envReplace from '../util/env-replace.js';
 import Registry from './base-registry.js';
-import {removeSuffix} from '../util/misc.js';
+import {addSuffix, removePrefix} from '../util/misc';
 
 const defaults = require('defaults');
 const userHome = require('user-home');
 const path = require('path');
 const url = require('url');
 const ini = require('ini');
+
+const DEFAULT_REGISTRY = 'https://registry.npmjs.org/';
 
 function getGlobalPrefix(): string {
   if (process.env.PREFIX) {
@@ -46,16 +50,20 @@ export default class NpmRegistry extends Registry {
     return name.replace('/', '%2f');
   }
 
-  request(pathname: string, opts?: RegistryRequestOptions = {}): Promise<?Object> {
-    const registry = removeSuffix(String(this.registries.yarn.getOption('registry')), '/');
+  request(pathname: string, opts?: RegistryRequestOptions = {}): Promise<*> {
+    const registry = addSuffix(this.getRegistry(pathname), '/');
+    const requestUrl = url.resolve(registry, pathname);
+    const alwaysAuth = this.getScopedOption(registry.replace(/^https?:/, ''), 'always-auth')
+      || this.getOption('always-auth')
+      || removePrefix(requestUrl, registry)[0] === '@';
 
     const headers = {};
-    if (this.token) {
-      headers.authorization = `Bearer ${this.token}`;
+    if (this.token || (alwaysAuth && requestUrl.startsWith(registry))) {
+      const authorization = this.getAuth(pathname);
+      if (authorization) {
+        headers.authorization = authorization;
+      }
     }
-
-    // $FlowFixMe : https://github.com/facebook/flow/issues/908
-    const requestUrl = url.format(`${registry}/${pathname}`);
 
     return this.requestManager.request({
       url: requestUrl,
@@ -63,27 +71,34 @@ export default class NpmRegistry extends Registry {
       body: opts.body,
       auth: opts.auth,
       headers,
-      json: true,
+      json: !opts.buffer,
+      buffer: opts.buffer,
+      process: opts.process,
+      gzip: true,
     });
   }
 
   async checkOutdated(config: Config, name: string, range: string): CheckOutdatedReturn {
-    const req = await this.request(name);
+    const req = await this.request(NpmRegistry.escapeName(name));
     if (!req) {
       throw new Error('couldnt find ' + name);
     }
 
+    const {repository, homepage} = req;
+    const url = homepage || (repository && repository.url) || '';
+
     return {
       latest: req['dist-tags'].latest,
       wanted: (await NpmResolver.findVersionInRegistryResponse(config, range, req)).version,
+      url,
     };
   }
 
   async getPossibleConfigLocations(filename: string): Promise<Array<[boolean, string, string]>> {
     const possibles = [
-      [false, path.join(getGlobalPrefix(), filename)],
-      [true, path.join(userHome, filename)],
       [false, path.join(this.cwd, filename)],
+      [true, this.config.userconfig || path.join(userHome, filename)],
+      [false, path.join(getGlobalPrefix(), filename)],
     ];
 
     const foldersFromRootToCwd = this.cwd.split(path.sep);
@@ -110,15 +125,13 @@ export default class NpmRegistry extends Registry {
     this.mergeEnv('npm_config_');
 
     for (const [, loc, file] of await this.getPossibleConfigLocations('.npmrc')) {
-      const config = ini.parse(file);
+      const config = Registry.normalizeConfig(ini.parse(file));
+      for (const key: string in config) {
+        config[key] = envReplace(config[key]);
+      }
 
       // normalize offline mirror path relative to the current npmrc
-      let offlineLoc = config['yarn-offline-mirror'];
-      // old kpm compatibility
-      if (config['kpm-offline-mirror']) {
-        offlineLoc = config['kpm-offline-mirror'];
-        delete config['kpm-offline-mirror'];
-      }
+      const offlineLoc = config['yarn-offline-mirror'];
       // don't normalize if we already have a mirror path
       if (!this.config['yarn-offline-mirror'] && offlineLoc) {
         const mirrorLoc = config['yarn-offline-mirror'] = path.resolve(path.dirname(loc), offlineLoc);
@@ -127,5 +140,66 @@ export default class NpmRegistry extends Registry {
 
       defaults(this.config, config);
     }
+  }
+
+  getScope(packageName: string): string {
+    return !packageName || packageName[0] !== '@' ? '' : packageName.split(/\/|%2f/)[0];
+  }
+
+  getRegistry(packageName: string): string {
+    // Try extracting registry from the url, then scoped registry, and default registry
+    if (packageName.match(/^https?:/)) {
+      const availableRegistries = this.getAvailableRegistries();
+      const registry = availableRegistries.find((registry) => packageName.startsWith(registry));
+      if (registry) {
+        return registry;
+      }
+    }
+
+    for (const scope of [this.getScope(packageName), '']) {
+      const registry = this.getScopedOption(scope, 'registry')
+                    || this.registries.yarn.getScopedOption(scope, 'registry');
+      if (registry) {
+        return String(registry);
+      }
+    }
+
+    return DEFAULT_REGISTRY;
+  }
+
+  getAuth(packageName: string): string {
+    if (this.token) {
+      return this.token;
+    }
+
+    for (let registry of [this.getRegistry(packageName), '', DEFAULT_REGISTRY]) {
+      registry = registry.replace(/^https?:/, '');
+
+      // Check for bearer token.
+      let auth = this.getScopedOption(registry.replace(/\/?$/, '/'), '_authToken');
+      if (auth) {
+        return `Bearer ${String(auth)}`;
+      }
+
+      // Check for basic auth token.
+      auth = this.getScopedOption(registry, '_auth');
+      if (auth) {
+        return `Basic ${String(auth)}`;
+      }
+
+      // Check for basic username/password auth.
+      const username = this.getScopedOption(registry, 'username');
+      const password = this.getScopedOption(registry, '_password');
+      if (username && password) {
+        const pw = new Buffer(String(password), 'base64').toString();
+        return 'Basic ' + new Buffer(String(username) + ':' + pw).toString('base64');
+      }
+    }
+
+    return '';
+  }
+
+  getScopedOption(scope: string, option: string): mixed {
+    return this.getOption(scope + (scope ? ':' : '') + option);
   }
 }

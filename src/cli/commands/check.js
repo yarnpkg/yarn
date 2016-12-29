@@ -40,10 +40,11 @@ export async function run(
   }
 
   // get patterns that are installed when running `yarn install`
-  const [depRequests, rawPatterns] = await install.fetchRequestFromCwd();
+  const {patterns: rawPatterns} = await install.hydrate(true);
+  const patterns = await install.flatten(rawPatterns);
 
   // check if patterns exist in lockfile
-  for (const pattern of rawPatterns) {
+  for (const pattern of patterns) {
     if (!lockfile.getLocked(pattern)) {
       reportError(`Lockfile does not contain pattern: ${pattern}`);
     }
@@ -54,7 +55,7 @@ export async function run(
     const integrityLoc = await install.getIntegrityHashLocation();
 
     if (integrityLoc && await fs.exists(integrityLoc)) {
-      const match = await install.matchesIntegrityHash(rawPatterns);
+      const match = await install.matchesIntegrityHash(patterns);
       if (match.matches === false) {
         reportError(`Integrity hashes don't match, expected ${match.expected} but got ${match.actual}`);
       }
@@ -62,13 +63,13 @@ export async function run(
       reportError("Couldn't find an integrity hash file");
     }
   } else {
-    // seed resolver
-    await install.resolver.init(depRequests, install.flags.flat);
-    await install.flatten(rawPatterns);
-
     // check if any of the node_modules are out of sync
-    const res = await install.linker.getFlatHoistedTree(rawPatterns);
-    for (const [loc, {originalKey, pkg}] of res) {
+    const res = await install.linker.getFlatHoistedTree(patterns);
+    for (const [loc, {originalKey, pkg, ignore}] of res) {
+      if (ignore) {
+        continue;
+      }
+
       const parts = humaniseLocation(loc);
 
       // grey out hoisted portions of key
@@ -101,7 +102,7 @@ export async function run(
         continue;
       }
 
-      const packageJson = await fs.readJson(pkgLoc);
+      const packageJson = await config.readJson(pkgLoc);
       if (pkg.version !== packageJson.version) {
         // node_modules contains wrong version
         reportError(`${human} is wrong version: expected ${pkg.version}, got ${packageJson.version}`);
@@ -146,7 +147,7 @@ export async function run(
         }
 
         //
-        const depPkg = await fs.readJson(depPkgLoc);
+        const depPkg = await config.readJson(depPkgLoc);
         const foundHuman = `${humaniseLocation(path.dirname(depPkgLoc)).join('#')}@${depPkg.version}`;
         if (!semver.satisfies(depPkg.version, range, config.looseSemver)) {
           // module isn't correct semver
@@ -160,7 +161,7 @@ export async function run(
             continue;
           }
 
-          const packageJson = await fs.readJson(loc);
+          const packageJson = await config.readJson(loc);
           if (packageJson.version === depPkg.version ||
              (semver.satisfies(packageJson.version, range, config.looseSemver) &&
              semver.gt(packageJson.version, depPkg.version, config.looseSemver))) {

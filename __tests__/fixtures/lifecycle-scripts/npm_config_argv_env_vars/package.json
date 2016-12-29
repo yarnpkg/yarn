@@ -1,0 +1,10 @@
+{
+  "name": "npm_config_argv_env_vars",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "prepublish" : "node log-command.js",
+    "pretest" : "node log-command.js"
+  }
+}

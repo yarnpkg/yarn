@@ -1,8 +1,18 @@
 /* @flow */
 
+const _camelCase = require('camelcase');
+
 export function sortAlpha(a: string, b: string): number {
-  // sort alphabetically
-  return a.toLowerCase().localeCompare(b.toLowerCase());
+  // sort alphabetically in a deterministic way
+  const shortLen = Math.min(a.length, b.length);
+  for (let i = 0; i < shortLen; i++) {
+    const aChar = a.charCodeAt(i);
+    const bChar = b.charCodeAt(i);
+    if (aChar !== bChar) {
+      return aChar - bChar;
+    }
+  }
+  return a.length - b.length;
 }
 
 export function entries<T>(obj: ?{ [key: string]: T }): Array<[string, T]> {
@@ -31,6 +41,24 @@ export function removeSuffix(pattern: string, suffix: string): string {
   return pattern;
 }
 
-export function stringify(obj: Object): string {
-  return JSON.stringify(obj, null, '  ');
+export function addSuffix(pattern: string, suffix: string): string {
+  if (!pattern.endsWith(suffix)) {
+    return pattern + suffix;
+  }
+
+  return pattern;
+}
+
+export function hyphenate(str: string): string {
+  return str.replace(/[A-Z]/g, (match) => {
+    return '-' + match.charAt(0).toLowerCase();
+  });
+}
+
+export function camelCase(str: string): ?string {
+  if (/[A-Z]/.test(str)) {
+    return null;
+  } else {
+    return _camelCase(str);
+  }
 }
