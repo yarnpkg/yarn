@@ -143,7 +143,7 @@ async function initUpdateBins(config: Config, reporter: Reporter, flags: Object)
       try {
         await fs.unlink(dest);
         await linkBin(src, dest);
-        if (process.platform === 'win32' && dest.indexOf('.cmd') != -1) {
+        if (process.platform === 'win32' && dest.indexOf('.cmd') !== -1) {
           await fs.rename(dest + '.cmd', dest);
         }
       } catch (err) {
