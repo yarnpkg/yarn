@@ -66,7 +66,7 @@ test('properly handles extra arguments and pre/post scripts', (): Promise<void> 
   });
 });
 
-test.only('properly handle bin scripts', (): Promise<void> => (
+test('properly handle bin scripts', (): Promise<void> => (
   runRun(['cat-names'], {}, 'bin', (config) => {
     const script = path.join(config.cwd, 'node_modules', '.bin', 'cat-names');
     const args = ['cat-names', config, `"${script}" `, config.cwd];

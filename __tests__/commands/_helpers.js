@@ -80,9 +80,10 @@ export async function run<T, R>(
   const reporter = new Reporter({stdout, stderr: stdout});
 
   const dir = path.join(fixturesLoc, name);
+  const basename = fixturesLoc ? `${path.basename(dir)}-` : '';
   const cwd = path.join(
     os.tmpdir(),
-    `yarn-${path.basename(dir)}-${Math.random()}`,
+    `yarn-${basename + Math.random()}`,
   );
   await fs.unlink(cwd);
   await fs.copy(dir, cwd, reporter);
