@@ -6,6 +6,7 @@ import {run as buildRun} from './_helpers.js';
 import {run as global} from '../../src/cli/commands/global.js';
 import * as fs from '../../src/util/fs.js';
 import assert from 'assert';
+const isCI = require('is-ci');
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 90000;
 
@@ -34,12 +35,15 @@ function getTempGlobalFolder(): string {
   return path.join(os.tmpdir(), `yarn-global-${Math.random()}`);
 }
 
-test.concurrent('add without flag', (): Promise<void> => {
-  return runGlobal(['add', 'react-native-cli'], {}, 'add-without-flag', async (config) => {
-    assert.ok(await fs.exists(path.join(config.globalFolder, 'node_modules', 'react-native-cli')));
-    assert.ok(await fs.exists(path.join(config.globalFolder, 'node_modules', '.bin', 'react-native')));
+// this test has global folder side effects, run it only in CI
+if (isCI) {
+  test.concurrent('add without flag', (): Promise<void> => {
+    return runGlobal(['add', 'react-native-cli'], {}, 'add-without-flag', async (config) => {
+      assert.ok(await fs.exists(path.join(config.globalFolder, 'node_modules', 'react-native-cli')));
+      assert.ok(await fs.exists(path.join(config.globalFolder, 'node_modules', '.bin', 'react-native')));
+    });
   });
-});
+}
 
 test.concurrent('add with prefix flag', (): Promise<void> => {
   const tmpGlobalFolder = getTempGlobalFolder();
