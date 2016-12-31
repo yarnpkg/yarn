@@ -41,13 +41,13 @@ export async function run(
       const registry = config.registries[registryName];
       const object = rootManifests[registryName].object;
 
-      for (const type of constants.DEPENDENCY_TYPES) {
+      constants.DEPENDENCY_TYPES.forEach((type) =>  {
         const deps = object[type];
         if (deps && deps[name]) {
           found = true;
           delete deps[name];
         }
-      }
+      });
 
       const possibleManifestLoc = path.join(config.cwd, registry.folder, name);
       if (await fs.exists(possibleManifestLoc)) {
