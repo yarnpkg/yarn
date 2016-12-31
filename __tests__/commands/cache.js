@@ -8,8 +8,6 @@ import * as fs from '../../src/util/fs.js';
 
 const path = require('path');
 
-jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000;
-
 const runConfig = buildRun.bind(
   null,
   reporters.ConsoleReporter,

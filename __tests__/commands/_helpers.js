@@ -79,7 +79,16 @@ export async function run<T, R>(
 
   const reporter = new Reporter({stdout, stderr: stdout});
 
-  const dir = path.join(fixturesLoc, name);
+  let dir = path.join(fixturesLoc, name);
+  if (!fixturesLoc) {
+    // if fixture loc is not set create a tmp dir so that we don't copy CWD during test run
+    dir = path.join(
+      os.tmpdir(),
+      `yarn-${path.basename(dir)}-${Math.random()}`,
+    );
+    fs.mkdirp(dir);
+
+  }
   const cwd = path.join(
     os.tmpdir(),
     `yarn-${path.basename(dir)}-${Math.random()}`,
