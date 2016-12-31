@@ -7,6 +7,7 @@ import * as cache from './cache.js'; export {cache};
 import * as check from './check.js'; export {check};
 import * as clean from './clean.js'; export {clean};
 import * as config from './config.js'; export {config};
+import * as docs from './docs.js'; export {docs};
 import * as generateLockEntry from './generate-lock-entry.js'; export {generateLockEntry};
 import * as global from './global.js'; export {global};
 import * as info from './info.js'; export {info};

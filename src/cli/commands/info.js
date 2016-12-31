@@ -2,7 +2,7 @@
 
 import type {Reporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
-import NpmRegistry from '../../registries/npm-registry.js';
+import handlePackageName from '../../util/handle-package-name.js';
 import parsePackageName from '../../util/parse-package-name.js';
 const semver = require('semver');
 
@@ -47,15 +47,8 @@ export async function run(
     return;
   }
 
-  let packageName = args.shift() || '.';
-
-  // Handle the case when we are referencing a local package.
-  if (packageName === '.') {
-    packageName = (await config.readRootManifest()).name;
-  }
-
-  const packageInput = NpmRegistry.escapeName(packageName);
-  const {name, version} = parsePackageName(packageInput);
+  const packageName = await handlePackageName(args.shift(), config);
+  const {name, version} = parsePackageName(packageName);
 
   let result = await config.registries.npm.request(name);
   if (!result) {
