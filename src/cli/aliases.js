@@ -13,7 +13,7 @@ const shorthands: { [key: string]: string } = {
   t: 'test',
   tst: 'test',
   un: 'remove',
-  up: 'update',
+  up: 'upgrade',
   v: 'version',
 };
 
