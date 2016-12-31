@@ -6,7 +6,8 @@ import * as reporters from '../../../src/reporters/index.js';
 import {Install} from '../../../src/cli/commands/install.js';
 import Lockfile from '../../../src/lockfile/wrapper.js';
 import * as fs from '../../../src/util/fs.js';
-import {getPackageVersion, explodeLockfile, runInstall, createLockfile} from '../_helpers.js';
+import {ConsoleReporter} from '../../../src/reporters/index.js';
+import {getPackageVersion, explodeLockfile, createLockfile, runInstall, run as buildRun} from '../_helpers.js';
 import {promisify} from '../../../src/util/promise';
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 90000;
@@ -17,6 +18,8 @@ const semver = require('semver');
 const fsNode = require('fs');
 const path = require('path');
 const os = require('os');
+
+const fixturesLoc = path.join(__dirname, '..', '..', 'fixtures', 'install');
 
 beforeEach(request.__resetAuthedRequests);
 // $FlowFixMe
@@ -489,15 +492,39 @@ test.concurrent(
   },
 );
 
-// disabled to resolve https://github.com/yarnpkg/yarn/pull/1210
-test.skip('install should hoist nested bin scripts', (): Promise<void> => {
-  return runInstall({binLinks: true}, 'install-nested-bin', async (config) => {
+test.concurrent('install should hoist nested bin scripts', (): Promise<void> => {
+  // we mock linkBin to enable us to test it
+  let mockLinkBin;
+
+  const run = buildRun.bind(
+    null,
+    ConsoleReporter,
+    fixturesLoc,
+    async (args, flags, config, reporter, lockfile): Promise<Install> => {
+      const install = new Install(flags, config, reporter, lockfile);
+      const linkBin = install.linker.linkBin;
+      install.linker.linkBin = mockLinkBin = jest.fn((...args) => {
+        return linkBin(...args);
+      });
+      await install.init();
+      await check(config, reporter, {}, []);
+      return install;
+    },
+    [],
+  );
+
+  return run({binLinks: true}, 'install-nested-bin', async (config) => {
     const binScripts = await fs.walk(path.join(config.cwd, 'node_modules', '.bin'));
     // need to double the amount as windows makes 2 entries for each dependency
     // so for below, there would be an entry for eslint and eslint.cmd on win32
     const amount = process.platform === 'win32' ? 20 : 10;
     assert.equal(binScripts.length, amount);
     assert(binScripts.findIndex((f) => f.basename === 'eslint') > -1);
+
+    // linkBin should be called once for each bin
+    const locations = mockLinkBin.mock.calls.map((call) => call[0]);
+    const uniqueResult = locations.filter((loc, index, arr) => arr.indexOf(loc) === index);
+    assert.equal(locations.length, uniqueResult.length);
   });
 });
 

@@ -114,7 +114,7 @@ export async function run<T, R>(
   try {
     const config = new Config(reporter);
     await config.init({
-      binLinks: !!flags.binLinks,
+      binLinks: typeof flags.binLinks === 'boolean' ? flags.binLinks : true,
       cwd,
       globalFolder: path.join(cwd, '.yarn-global'),
       cacheFolder: flags.cacheFolder || path.join(cwd, '.yarn-cache'),

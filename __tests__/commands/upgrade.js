@@ -1,5 +1,6 @@
 /* @flow */
 
+import type {Add} from '../../src/cli/commands/add.js';
 import {ConsoleReporter} from '../../src/reporters/index.js';
 import {explodeLockfile, run as buildRun} from './_helpers.js';
 import {run as upgrade} from '../../src/cli/commands/upgrade.js';
@@ -12,9 +13,12 @@ jasmine.DEFAULT_TIMEOUT_INTERVAL = 90000;
 const path = require('path');
 
 const fixturesLoc = path.join(__dirname, '..', 'fixtures', 'upgrade');
-const runUpgrade = buildRun.bind(null, ConsoleReporter, fixturesLoc, (args, flags, config, reporter): Promise<void> => {
-  return upgrade(config, reporter, flags, args);
-});
+const runUpgrade = buildRun.bind(
+  null,
+  ConsoleReporter,
+  fixturesLoc,
+  (args, flags, config, reporter): Promise<Add> => upgrade(config, reporter, flags, args),
+);
 
 test.concurrent('throws if lockfile is out of date', (): Promise<void> => {
   const reporter = new reporters.ConsoleReporter({});

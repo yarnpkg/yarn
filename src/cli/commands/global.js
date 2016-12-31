@@ -1,10 +1,12 @@
 /* @flow */
 
+import type {RegistryNames} from '../../registries/index.js';
 import type {Reporter} from '../../reporters/index.js';
 import type {Manifest} from '../../types.js';
 import type Config from '../../config.js';
+import type PackageResolver from '../../package-resolver.js';
 import {MessageError} from '../../errors.js';
-import {registries} from '../../registries/index.js';
+import {registryNames} from '../../registries/index.js';
 import NoopReporter from '../../reporters/base-reporter.js';
 import buildSubCommands from './_build-sub-commands.js';
 import Lockfile from '../../lockfile/wrapper.js';
@@ -13,7 +15,13 @@ import {Add} from './add.js';
 import {run as runRemove} from './remove.js';
 import {run as runUpgrade} from './upgrade.js';
 import {linkBin} from '../../package-linker.js';
+import {entries} from '../../util/misc.js';
 import * as fs from '../../util/fs.js';
+
+type BinData = {
+  pkgName: string,
+  scriptName: string,
+};
 
 class GlobalAdd extends Add {
   maybeOutputSaveTree(): Promise<void> {
@@ -38,33 +46,52 @@ export function hasWrapper(flags: Object, args: Array<string>): boolean {
 async function updateCwd(config: Config): Promise<void> {
   await config.init({
     cwd: config.globalFolder,
-    binLinks: true,
+    binLinks: config.binLinks,
     globalFolder: config.globalFolder,
     cacheFolder: config.cacheFolder,
     linkFolder: config.linkFolder,
   });
 }
 
-async function getBins(config: Config): Promise<Set<string>> {
+async function getBins(config: Config, resolver?: PackageResolver): Promise<Map<string, BinData>> {
+  // build up list of existing binary files
+  const paths: Map<string, BinData> = new Map();
+
+  async function selfBinScripts(bin: Array<[string, string]>, loc: string,
+                                pkgLoc: string, pkgName: string): Promise<void> {
+    for (const [scriptName, scriptCmd] of bin) {
+      // Include bins that have a link in the global bin folder,
+      // bins are not linked when config.binLinks is false
+      const src = path.join(pkgLoc, scriptCmd);
+      const binPath = path.join(loc, '.bin', scriptName);
+      if (await fs.exists(binPath) && await fs.exists(src)) {
+        paths.set(src, {scriptName, pkgName});
+      }
+    }
+  }
+
+  async function resolveDependencies(dependencies: Array<[string, string]>, loc: string,
+                                     registryName: RegistryNames): Promise<void> {
+    for (const [name, version] of dependencies) {
+      const pkgLoc = path.join(loc, name);
+      const resolved =  resolver ?
+        resolver.getResolvedPattern(`${name}@${version}`) :
+        await config.readManifest(pkgLoc, registryName);
+      const bin = resolved && resolved.bin || {};
+      await selfBinScripts(entries(bin), loc, pkgLoc, name);
+    }
+  }
+
   // build up list of registry folders to search for binaries
-  const dirs = [];
-  for (const registryName of Object.keys(registries)) {
+  const rootManifests = await config.getRootManifests();
+  for (const registryName of registryNames) {
     const registry = config.registries[registryName];
-    dirs.push(registry.loc);
+    const manifest = rootManifests[registryName];
+    // in global manifets we check only for 'dependencies'
+    const dependencies = manifest.exists ? manifest.object.dependencies : {};
+    await resolveDependencies(entries(dependencies), registry.loc, registryName);
   }
 
-  // build up list of binary files
-  const paths = new Set();
-  for (const dir of dirs) {
-    const binDir = path.join(dir, '.bin');
-    if (!await fs.exists(binDir)) {
-      continue;
-    }
-
-    for (const name of await fs.readdir(binDir)) {
-      paths.add(path.join(binDir, name));
-    }
-  }
   return paths;
 }
 
@@ -100,6 +127,13 @@ function getBinFolder(config: Config, flags: Object): string {
   }
 }
 
+async function unlink(dest: string): Promise<void> {
+  await fs.unlink(dest);
+  if (process.platform === 'win32' && dest.indexOf('.cmd') === -1) {
+    await fs.unlink(dest + '.cmd');
+  }
+}
+
 async function initUpdateBins(config: Config, reporter: Reporter, flags: Object): Promise<() => Promise<void>> {
   const beforeBins = await getBins(config);
   const binFolder = getBinFolder(config, flags);
@@ -112,36 +146,38 @@ async function initUpdateBins(config: Config, reporter: Reporter, flags: Object)
     }
   }
 
-  return async function(): Promise<void> {
-    const afterBins = await getBins(config);
+  return async function(resolver?: PackageResolver, args?: Array<string> = []): Promise<void> {
+    const afterBins = await getBins(config, resolver);
 
     // remove old bins
-    for (const src of beforeBins) {
+    for (const [src, {scriptName}] of beforeBins) {
       if (afterBins.has(src)) {
         // not old
         continue;
       }
 
       // remove old bin
-      const dest = path.join(binFolder, path.basename(src));
+      const dest = path.join(binFolder, scriptName);
       try {
-        await fs.unlink(dest);
+        await unlink(dest);
       } catch (err) {
         throwPermError(err, dest);
       }
     }
 
+    const patterns = args.map((pattern) => pattern.split('@')[0]);
+    const pkgChanged = (pkgName: string): boolean => patterns.indexOf(pkgName) > -1;
     // add new bins
-    for (const src of afterBins) {
-      if (beforeBins.has(src)) {
+    for (const [src, {scriptName, pkgName}] of afterBins) {
+      if (beforeBins.has(src) && !pkgChanged(pkgName)) {
         // already inserted
         continue;
       }
 
       // insert new bin
-      const dest = path.join(binFolder, path.basename(src));
+      const dest = path.join(binFolder, scriptName);
       try {
-        await fs.unlink(dest);
+        await unlink(dest);
         await linkBin(src, dest);
       } catch (err) {
         throwPermError(err, dest);
@@ -182,7 +218,7 @@ const {run, setFlags: _setFlags} = buildSubCommands('global', {
     await install.init();
 
     // link binaries
-    await updateBins();
+    await updateBins(install.resolver, args);
   },
 
   bin(
@@ -225,10 +261,10 @@ const {run, setFlags: _setFlags} = buildSubCommands('global', {
     const updateBins = await initUpdateBins(config, reporter, flags);
 
     // remove module
-    await runRemove(config, reporter, flags, args);
+    const remove = await runRemove(config, reporter, flags, args);
 
     // remove binaries
-    await updateBins();
+    await updateBins(remove.resolver);
   },
 
   async upgrade(
@@ -242,10 +278,10 @@ const {run, setFlags: _setFlags} = buildSubCommands('global', {
     const updateBins = await initUpdateBins(config, reporter, flags);
 
     // upgrade module
-    await runUpgrade(config, reporter, flags, args);
+    const upgrade = await runUpgrade(config, reporter, flags, args);
 
     // update binaries
-    await updateBins();
+    await updateBins(upgrade.resolver, args);
   },
 });
 
