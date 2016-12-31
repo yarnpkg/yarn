@@ -79,22 +79,24 @@ export async function run<T, R>(
 
   const reporter = new Reporter({stdout, stderr: stdout});
 
-  let dir = path.join(fixturesLoc, name);
-  if (!fixturesLoc) {
+  let cwd;
+  if (fixturesLoc) {
     // if fixture loc is not set create a tmp dir so that we don't copy CWD during test run
-    dir = path.join(
+    const dir = path.join(fixturesLoc, name);
+    cwd = path.join(
       os.tmpdir(),
       `yarn-${path.basename(dir)}-${Math.random()}`,
     );
-    fs.mkdirp(dir);
-
+    await fs.unlink(cwd);
+    await fs.copy(dir, cwd, reporter);
+  } else {
+    cwd = path.join(
+      os.tmpdir(),
+      `yarn-${Math.random()}`,
+    );
+    await fs.unlink(cwd);
+    await fs.mkdirp(cwd);
   }
-  const cwd = path.join(
-    os.tmpdir(),
-    `yarn-${path.basename(dir)}-${Math.random()}`,
-  );
-  await fs.unlink(cwd);
-  await fs.copy(dir, cwd, reporter);
 
   for (const {basename, absolute} of await fs.walk(cwd)) {
     if (basename.toLowerCase() === '.ds_store') {
