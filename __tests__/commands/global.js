@@ -41,6 +41,11 @@ if (isCI) {
     return runGlobal(['add', 'react-native-cli'], {}, 'add-without-flag', async (config) => {
       assert.ok(await fs.exists(path.join(config.globalFolder, 'node_modules', 'react-native-cli')));
       assert.ok(await fs.exists(path.join(config.globalFolder, 'node_modules', '.bin', 'react-native')));
+	  if (process.platform === 'win32') {
+      // Test for valid shims on windows.
+      	assert.ok(await fs.exists(path.join(config.globalFolder, 'node_modules', '.bin', 'react-native.cmd')));
+        assert.ok(!await fs.exists(path.join(config.globalFolder, 'node_modules', '.bin', 'react-native.cmd.cmd')));
+      }
     });
   });
 }
@@ -49,6 +54,11 @@ test.concurrent('add with prefix flag', (): Promise<void> => {
   const tmpGlobalFolder = getTempGlobalFolder();
   return runGlobal(['add', 'react-native-cli'], {prefix: tmpGlobalFolder}, 'add-with-prefix-flag', async (config) => {
     assert.ok(await fs.exists(getGlobalPath(tmpGlobalFolder, 'react-native')));
+    if (process.platform === 'win32') {
+      // Test for valid shims on windows.
+      assert.ok(await fs.exists(getGlobalPath(tmpGlobalFolder, 'react-native.cmd')));
+      assert.ok(!await fs.exists(getGlobalPath(tmpGlobalFolder, 'react-native.cmd.cmd')));
+    }
   });
 });
 
