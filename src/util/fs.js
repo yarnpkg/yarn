@@ -510,3 +510,14 @@ export async function writeFilePreservingEol(path: string, data: string) : Promi
   }
   await promisify(fs.writeFile)(path, data);
 }
+
+// not a strict polyfill for Node's fs.mkdtemp
+export async function makeTempDir(prefix?: string): Promise<string> {
+  const dir = path.join(
+    os.tmpdir(),
+    `yarn-${prefix || ''}-${Date.now()}-${Math.random()}`,
+  );
+  await unlink(dir);
+  await mkdirp(dir);
+  return dir;
+}

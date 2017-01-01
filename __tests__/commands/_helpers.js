@@ -12,7 +12,6 @@ import Config from '../../src/config.js';
 
 const stream = require('stream');
 const path = require('path');
-const os = require('os');
 
 const fixturesLoc = path.join(__dirname, '..', 'fixtures', 'install');
 
@@ -81,21 +80,12 @@ export async function run<T, R>(
 
   let cwd;
   if (fixturesLoc) {
-    // if fixture loc is not set create a tmp dir so that we don't copy CWD during test run
     const dir = path.join(fixturesLoc, name);
-    cwd = path.join(
-      os.tmpdir(),
-      `yarn-${path.basename(dir)}-${Math.random()}`,
-    );
-    await fs.unlink(cwd);
+    cwd = await fs.makeTempDir(path.basename(dir));
     await fs.copy(dir, cwd, reporter);
   } else {
-    cwd = path.join(
-      os.tmpdir(),
-      `yarn-${Math.random()}`,
-    );
-    await fs.unlink(cwd);
-    await fs.mkdirp(cwd);
+    // if fixture loc is not set then CWD is some empty temp dir    
+    cwd = await fs.makeTempDir();
   }
 
   for (const {basename, absolute} of await fs.walk(cwd)) {
