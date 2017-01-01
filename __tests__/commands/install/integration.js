@@ -177,16 +177,16 @@ test.concurrent('writes a lockfile even when there are no dependencies', (): Pro
 test.concurrent(
   "throws an error if existing lockfile isn't satisfied with --frozen-lockfile", 
   async (): Promise<void> => {
-  const reporter = new reporters.ConsoleReporter({});
+    const reporter = new reporters.ConsoleReporter({});
 
-  let thrown = false;
-  try {
-    await runInstall({frozenLockfile: true}, 'install-throws-error-if-not-satisfied-and-frozen-lockfile', () => {});
-  } catch (err) {
-    thrown = true;
-    expect(err.message).toContain(reporter.lang('frozenLockfileError'));
-  }
-  assert(thrown);
+    let thrown = false;
+    try {
+      await runInstall({frozenLockfile: true}, 'install-throws-error-if-not-satisfied-and-frozen-lockfile', () => {});
+    } catch (err) {
+      thrown = true;
+      expect(err.message).toContain(reporter.lang('frozenLockfileError'));
+    }
+    assert(thrown);
 });
 
 test.concurrent('install transitive optional dependency from lockfile', (): Promise<void> => {
