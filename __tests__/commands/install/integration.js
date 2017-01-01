@@ -187,7 +187,7 @@ test.concurrent(
       expect(err.message).toContain(reporter.lang('frozenLockfileError'));
     }
     assert(thrown);
-});
+  });
 
 test.concurrent('install transitive optional dependency from lockfile', (): Promise<void> => {
   return runInstall({}, 'install-optional-dep-from-lockfile', (config, reporter, install) => {
