@@ -174,7 +174,9 @@ test.concurrent('writes a lockfile even when there are no dependencies', (): Pro
   });
 });
 
-test.concurrent("throws an error if existing lockfile isn't satisfied with --frozen-lockfile", async (): Promise<void> => {
+test.concurrent(
+  'throws an error if existing lockfile isn't satisfied with --frozen-lockfile', 
+  async (): Promise<void> => {
   const reporter = new reporters.ConsoleReporter({});
 
   let thrown = false;
