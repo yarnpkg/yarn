@@ -340,11 +340,26 @@ function onUnexpectedError(err: Error) {
 
   log.push(`Trace: ${indent(err.stack)}`);
 
-  const errorLoc = path.join(config.cwd, 'yarn-error.log');
-  fs.writeFileSync(errorLoc, log.join('\n\n') + '\n');
+  const errorReportLoc = writeErrorReport(log);
 
   reporter.error(reporter.lang('unexpectedError', err.message));
-  reporter.info(reporter.lang('bugReport', errorLoc));
+
+  if (errorReportLoc) {
+    reporter.info(reporter.lang('bugReport', errorReportLoc));
+  }
+}
+
+function writeErrorReport(log) : ?string {
+  const errorReportLoc = path.join(config.cwd, 'yarn-error.log');
+
+  try {
+    fs.writeFileSync(errorReportLoc, log.join('\n\n') + '\n');
+  } catch (err) {
+    reporter.error(reporter.lang('fileWriteError', errorReportLoc, err.message));
+    return undefined;
+  }
+
+  return errorReportLoc;
 }
 
 //
