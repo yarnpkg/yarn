@@ -43,7 +43,7 @@ export default class NpmResolver extends RegistryResolver {
           'couldntFindVersionThatMatchesRange',
           body.name,
           range,
-          (versions.length > 20) ? versions.join(os.EOL) : versions.join(', '),
+          versions.join(', '),
         ),
       );
     }
