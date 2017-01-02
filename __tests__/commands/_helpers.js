@@ -12,7 +12,6 @@ import Config from '../../src/config.js';
 
 const stream = require('stream');
 const path = require('path');
-const os = require('os');
 
 const fixturesLoc = path.join(__dirname, '..', 'fixtures', 'install');
 
@@ -79,13 +78,15 @@ export async function run<T, R>(
 
   const reporter = new Reporter({stdout, stderr: stdout});
 
-  const dir = path.join(fixturesLoc, name);
-  const cwd = path.join(
-    os.tmpdir(),
-    `yarn-${path.basename(dir)}-${Math.random()}`,
-  );
-  await fs.unlink(cwd);
-  await fs.copy(dir, cwd, reporter);
+  let cwd;
+  if (fixturesLoc) {
+    const dir = path.join(fixturesLoc, name);
+    cwd = await fs.makeTempDir(path.basename(dir));
+    await fs.copy(dir, cwd, reporter);
+  } else {
+    // if fixture loc is not set then CWD is some empty temp dir    
+    cwd = await fs.makeTempDir();
+  }
 
   for (const {basename, absolute} of await fs.walk(cwd)) {
     if (basename.toLowerCase() === '.ds_store') {

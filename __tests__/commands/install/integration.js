@@ -174,19 +174,20 @@ test.concurrent('writes a lockfile even when there are no dependencies', (): Pro
   });
 });
 
-test.concurrent("throws an error if existing lockfile isn't satisfied with --frozen-lockfile", (): Promise<void> => {
-  const reporter = new reporters.ConsoleReporter({});
+test.concurrent(
+  "throws an error if existing lockfile isn't satisfied with --frozen-lockfile", 
+  async (): Promise<void> => {
+    const reporter = new reporters.ConsoleReporter({});
 
-  return new Promise((resolve) => {
+    let thrown = false;
     try {
-      runInstall({frozenLockfile: true}, 'install-throws-error-if-not-satisfied-and-frozen-lockfile', () => {});
+      await runInstall({frozenLockfile: true}, 'install-throws-error-if-not-satisfied-and-frozen-lockfile', () => {});
     } catch (err) {
+      thrown = true;
       expect(err.message).toContain(reporter.lang('frozenLockfileError'));
-    } finally {
-      resolve();
     }
+    assert(thrown);
   });
-});
 
 test.concurrent('install transitive optional dependency from lockfile', (): Promise<void> => {
   return runInstall({}, 'install-optional-dep-from-lockfile', (config, reporter, install) => {
