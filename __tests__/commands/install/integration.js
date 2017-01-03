@@ -6,7 +6,7 @@ import * as reporters from '../../../src/reporters/index.js';
 import {Install} from '../../../src/cli/commands/install.js';
 import Lockfile from '../../../src/lockfile/wrapper.js';
 import * as fs from '../../../src/util/fs.js';
-import {getPackageVersion, explodeLockfile, runInstall, createLockfile} from '../_helpers.js';
+import {getPackageVersion, explodeLockfile, runInstall, runInstallWithoutCheck, createLockfile} from '../_helpers.js';
 import {promisify} from '../../../src/util/promise';
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 90000;
@@ -175,7 +175,7 @@ test.concurrent('writes a lockfile even when there are no dependencies', (): Pro
 });
 
 test.concurrent(
-  "throws an error if existing lockfile isn't satisfied with --frozen-lockfile", 
+  "throws an error if existing lockfile isn't satisfied with --frozen-lockfile",
   async (): Promise<void> => {
     const reporter = new reporters.ConsoleReporter({});
 
@@ -764,18 +764,17 @@ if (process.platform !== 'darwin') {
     });
 }
 
-// Covers current behavior, issue opened whether this should be changed https://github.com/yarnpkg/yarn/issues/2274
-test.concurrent('optional dependency that fails to build should still be installed',
+test.concurrent('optional dependency that fails to build should not be installed',
   (): Promise<void> => {
-    return runInstall({}, 'should-install-failing-optional-deps', async (config) => {
-      assert.ok(await fs.exists(path.join(config.cwd, 'node_modules', 'optional-failing')));
+    return runInstallWithoutCheck({}, 'should-install-failing-optional-deps', (config) => {
+      assert.equal(fsNode.existsSync(path.join(config.cwd, 'node_modules', 'optional-failing')), false);
     });
   });
 
-test.concurrent('a subdependency of an optional dependency that fails should be installed',
+test.concurrent('a subdependency of an optional dependency that fails should not be installed',
   (): Promise<void> => {
-    return runInstall({}, 'should-install-failing-optional-sub-deps', async (config) => {
-      assert.ok(await fs.exists(path.join(config.cwd, 'node_modules', 'optional-failing')));
-      assert.ok(await fs.exists(path.join(config.cwd, 'node_modules', 'sub-dep')));
+    return runInstallWithoutCheck({}, 'should-install-failing-optional-sub-deps', (config) => {
+      assert.equal(fsNode.existsSync(path.join(config.cwd, 'node_modules', 'optional-failing')), false);
+      assert.equal(fsNode.existsSync(path.join(config.cwd, 'node_modules', 'sub-dep')), false);
     });
   });
