@@ -52,7 +52,7 @@ export default class NpmResolver extends RegistryResolver {
       if (process.stdout instanceof tty.WriteStream) {
         pageSize = process.stdout.rows - 2;
       }
-      const response = await inquirer.prompt([{
+      const response: {[key: string]: ?string} = await inquirer.prompt([{
         name: 'package',
         type: 'list',
         message: config.reporter.lang('chooseVersionFromList'),
