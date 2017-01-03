@@ -195,15 +195,19 @@ export async function run(
   reporter: Reporter,
   flags: Object,
   args: Array<string>,
+  rawArgs: Array<string>,
 ): Promise<void> {
-  if (!args.length) {
+  const extraDeps = rawArgs.filter((dep) => dep.indexOf('--') !== 0 && !args.includes(dep));
+  const deps = args.concat(extraDeps);
+
+  if (!deps.length) {
     throw new MessageError(reporter.lang('missingAddDependencies'));
   }
 
   const lockfile = await Lockfile.fromDirectory(config.cwd, reporter);
 
   await wrapLifecycle(config, flags, async () => {
-    const install = new Add(args, flags, config, reporter, lockfile);
+    const install = new Add(deps, flags, config, reporter, lockfile);
     await install.init();
   });
 }

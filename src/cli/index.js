@@ -234,7 +234,7 @@ if (command.requireLockfile && !fs.existsSync(path.join(config.cwd, constants.LO
 //
 const run = (): Promise<void> => {
   invariant(command, 'missing command');
-  return command.run(config, reporter, commander, commander.args).then(() => {
+  return command.run(config, reporter, commander, commander.args, args).then(() => {
     reporter.close();
     if (outputWrapper) {
       reporter.footer(false);
