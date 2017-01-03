@@ -3,7 +3,13 @@
 import type {ClientRequest} from 'http';
 import type {ReadStream} from 'fs';
 
-const realRequest = require.requireActual('request');
+// TODO: create flow-typed libdefs for the 'request' module
+//       for now this will do its job
+type RequestModule = {
+  Request: any,
+};
+
+const realRequest: RequestModule = (require: any).requireActual('request');
 const RealRequest = realRequest.Request;
 
 const mkdirp = require('mkdirp');
