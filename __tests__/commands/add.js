@@ -13,6 +13,7 @@ import assert from 'assert';
 import semver from 'semver';
 import {promisify} from '../../src/util/promise';
 import fsNode from 'fs';
+import inquirer from 'inquirer';
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 120000;
 
@@ -601,4 +602,26 @@ test.concurrent('add infers line endings from existing unix manifest file', asyn
       const existingLockfile = '{ "dependencies": {} }\n';
       await promisify(fsNode.writeFile)(path.join(cwd, 'package.json'), existingLockfile, 'utf8');
     });
+});
+
+test.concurrent('add asks for correct package version if user passes an incorrect one', async (): Promise<void> => {
+  let chosenVersion = null;
+  await runAdd(
+    ['is-array@100'],
+    {},
+    'add-asks-correct-package-version',
+    async (config) => {
+      assert(chosenVersion);
+      assert.equal(await getPackageVersion(config, 'is-array'), chosenVersion);
+    },
+    () => {
+      inquirer.prompt = jest.fn((questions) => {
+        assert(questions.length === 1);
+        assert(questions[0].name === 'package');
+        assert(questions[0].choices.length > 0);
+        chosenVersion = questions[0].choices[0];
+        return Promise.resolve({package: chosenVersion});
+      });
+    },
+  );
 });

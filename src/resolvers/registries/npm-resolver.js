@@ -2,6 +2,7 @@
 
 import type {Manifest} from '../../types.js';
 import type Config from '../../config.js';
+import type PackageRequest from '../../package-request.js';
 import {MessageError} from '../../errors.js';
 import RegistryResolver from './registry-resolver.js';
 import NpmRegistry from '../../registries/npm-registry.js';
@@ -9,9 +10,10 @@ import map from '../../util/map.js';
 import * as fs from '../../util/fs.js';
 import {YARN_REGISTRY} from '../../constants.js';
 
+const inquirer = require('inquirer');
+const tty = require('tty');
 const invariant = require('invariant');
 const path = require('path');
-const os = require('os');
 
 const NPM_REGISTRY = /http[s]:\/\/registry.npmjs.org/g;
 
@@ -24,7 +26,12 @@ type RegistryResponse = {
 export default class NpmResolver extends RegistryResolver {
   static registry = 'npm';
 
-  static async findVersionInRegistryResponse(config: Config, range: string, body: RegistryResponse): Promise<Manifest> {
+  static async findVersionInRegistryResponse(
+    config: Config,
+    range: string,
+    body: RegistryResponse,
+    request: ?PackageRequest,
+  ): Promise<Manifest> {
     if (!body['dist-tags']) {
       throw new MessageError(config.reporter.lang('malformedRegistryResponse', body.name));
     }
@@ -36,17 +43,27 @@ export default class NpmResolver extends RegistryResolver {
     const satisfied = await config.resolveConstraints(Object.keys(body.versions), range);
     if (satisfied) {
       return body.versions[satisfied];
-    } else {
-      const versions = Object.keys(body.versions);
-      throw new MessageError(
-        config.reporter.lang(
-          'couldntFindVersionThatMatchesRange',
-          body.name,
-          range,
-          (versions.length > 20) ? versions.join(os.EOL) : versions.join(', '),
-        ),
-      );
+    } else if (request) {
+      if (request.resolver && request.resolver.activity) {
+        request.resolver.activity.end();
+      }
+      config.reporter.log(config.reporter.lang('couldntFindVersionThatMatchesRange', body.name, range));
+      let pageSize;
+      if (process.stdout instanceof tty.WriteStream) {
+        pageSize = process.stdout.rows - 2;
+      }
+      const response = await inquirer.prompt([{
+        name: 'package',
+        type: 'list',
+        message: config.reporter.lang('chooseVersionFromList'),
+        choices: Object.keys(body.versions).reverse(),
+        pageSize,
+      }]);
+      if (response && response.package) {
+        return body.versions[response.package];
+      }
     }
+    throw new MessageError(config.reporter.lang('couldntFindVersionThatMatchesRange', body.name, range));
   }
 
   async resolveRequest(): Promise<?Manifest> {
@@ -60,7 +77,7 @@ export default class NpmResolver extends RegistryResolver {
     const body = await this.config.registries.npm.request(NpmRegistry.escapeName(this.name));
 
     if (body) {
-      return await NpmResolver.findVersionInRegistryResponse(this.config, this.range, body);
+      return await NpmResolver.findVersionInRegistryResponse(this.config, this.range, body, this.request);
     } else {
       return null;
     }
