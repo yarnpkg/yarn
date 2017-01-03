@@ -19,6 +19,7 @@ build_script:
   - npm run build-win-installer
 
 test_script:
+  - node --version
   - npm run test-only
 
 artifacts:

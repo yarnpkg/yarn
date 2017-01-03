@@ -14,7 +14,7 @@ import semver from 'semver';
 import {promisify} from '../../src/util/promise';
 import fsNode from 'fs';
 
-jasmine.DEFAULT_TIMEOUT_INTERVAL = 90000;
+jasmine.DEFAULT_TIMEOUT_INTERVAL = 120000;
 
 const path = require('path');
 
