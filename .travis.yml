@@ -5,6 +5,7 @@ language: node_js
 
 node_js:
   - "6"
+  - "4"
 
 sudo: required # Until Yarn repo is added to apt-source-whitelist
 
@@ -30,27 +31,37 @@ env:
   - TEST_TYPE="build-dist"
   - TEST_TYPE="check-lockfile"
   - TEST_TYPE="lint"
-  - NODE_VERSION="6" TEST_TYPE="test-ci"
-  - NODE_VERSION="4" TEST_TYPE="test-ci"
+  - TEST_TYPE="test-ci"
 
 matrix:
   exclude:
     - env: TEST_TYPE="build-dist"
       os: osx
+    - env: TEST_TYPE="build-dist"
+      node_js: "4"
     - env: TEST_TYPE="check-lockfile"
       os: osx
+    - env: TEST_TYPE="check-lockfile"
+      node_js: "4"
     - env: TEST_TYPE="lint"
       os: osx
+    - env: TEST_TYPE="lint"
+      node_js: "4"
+    - env: TEST_TYPE="test-ci"
+      os: osx
+      node_js: "4"
 
 before_install:
-  - ./scripts/bootstrap-env-ubuntu.sh
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then ./scripts/bootstrap-env-ubuntu.sh; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install yarn; fi
 
 install:
  - node --version
  - yarn install
 
 os:
-  #- osx
+  - osx
   - linux
 
 script: yarn $TEST_TYPE

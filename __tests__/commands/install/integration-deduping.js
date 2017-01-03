@@ -4,7 +4,7 @@ import {getPackageVersion, runInstall} from '../_helpers.js';
 
 const assert = require('assert');
 
-jasmine.DEFAULT_TIMEOUT_INTERVAL = 90000;
+jasmine.DEFAULT_TIMEOUT_INTERVAL = 120000;
 
 test.concurrent('install should dedupe dependencies avoiding conflicts 0', (): Promise<void> => {
   // A@2.0.1 -> B@2.0.0
