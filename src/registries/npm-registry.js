@@ -23,7 +23,15 @@ function getGlobalPrefix(): string {
     return process.env.PREFIX;
   } else if (process.platform === 'win32') {
     // c:\node\node.exe --> prefix=c:\node\
-    return path.dirname(process.execPath);
+    let prefix = path.dirname(process.execPath);
+
+    if (process.env.LOCALAPPDATA &&
+        process.env.PATH &&
+        process.env.PATH.indexOf('\\AppData\\Local\\Yarn\\.bin') > -1) {
+      prefix = path.join(process.env.LOCALAPPDATA, 'Yarn', '.bin');
+    }
+
+    return prefix;
   } else {
     // /usr/local/bin/node --> prefix=/usr/local
     let prefix = path.dirname(path.dirname(process.execPath));
