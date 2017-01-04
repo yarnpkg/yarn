@@ -15,7 +15,7 @@ import {promisify} from '../../src/util/promise';
 import fsNode from 'fs';
 import inquirer from 'inquirer';
 
-jasmine.DEFAULT_TIMEOUT_INTERVAL = 120000;
+jasmine.DEFAULT_TIMEOUT_INTERVAL = 150000;
 
 const path = require('path');
 
