@@ -766,16 +766,16 @@ if (process.platform !== 'darwin') {
 
 test.concurrent('optional dependency that fails to build should not be installed',
   (): Promise<void> => {
-    return runInstallWithoutCheck({}, 'should-not-install-failing-optional-deps', (config) => {
-      assert.equal(fsNode.existsSync(path.join(config.cwd, 'node_modules', 'optional-failing')), false);
+    return runInstallWithoutCheck({}, 'should-not-install-failing-optional-deps', async (config) => {
+      assert.equal(await fs.exists(path.join(config.cwd, 'node_modules', 'optional-failing')), false);
     });
   });
 
 // Covers current behavior, issue opened whether this should be changed https://github.com/yarnpkg/yarn/issues/2274
 test.concurrent('a subdependency of an optional dependency that fails should be installed',
   (): Promise<void> => {
-    return runInstallWithoutCheck({}, 'should-install-failing-optional-sub-deps', (config) => {
-      assert.equal(fsNode.existsSync(path.join(config.cwd, 'node_modules', 'optional-failing')), false);
-      assert.equal(fsNode.existsSync(path.join(config.cwd, 'node_modules', 'sub-dep')), true);
+    return runInstallWithoutCheck({}, 'should-install-failing-optional-sub-deps', async (config) => {
+      assert.equal(await fs.exists(path.join(config.cwd, 'node_modules', 'optional-failing')), false);
+      assert.equal(await fs.exists(path.join(config.cwd, 'node_modules', 'sub-dep')), true);
     });
   });
