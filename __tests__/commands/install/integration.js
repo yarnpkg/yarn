@@ -175,7 +175,7 @@ test.concurrent('writes a lockfile even when there are no dependencies', (): Pro
 });
 
 test.concurrent(
-  "throws an error if existing lockfile isn't satisfied with --frozen-lockfile", 
+  "throws an error if existing lockfile isn't satisfied with --frozen-lockfile",
   async (): Promise<void> => {
     const reporter = new reporters.ConsoleReporter({});
 
@@ -764,18 +764,18 @@ if (process.platform !== 'darwin') {
     });
 }
 
-// Covers current behavior, issue opened whether this should be changed https://github.com/yarnpkg/yarn/issues/2274
-test.concurrent('optional dependency that fails to build should still be installed',
+test.concurrent('optional dependency that fails to build should not be installed',
   (): Promise<void> => {
-    return runInstall({}, 'should-install-failing-optional-deps', async (config) => {
-      assert.ok(await fs.exists(path.join(config.cwd, 'node_modules', 'optional-failing')));
+    return runInstall({}, 'should-not-install-failing-optional-deps', async (config) => {
+      assert.equal(await fs.exists(path.join(config.cwd, 'node_modules', 'optional-failing')), false);
     });
   });
 
+// Covers current behavior, issue opened whether this should be changed https://github.com/yarnpkg/yarn/issues/2274
 test.concurrent('a subdependency of an optional dependency that fails should be installed',
   (): Promise<void> => {
     return runInstall({}, 'should-install-failing-optional-sub-deps', async (config) => {
-      assert.ok(await fs.exists(path.join(config.cwd, 'node_modules', 'optional-failing')));
-      assert.ok(await fs.exists(path.join(config.cwd, 'node_modules', 'sub-dep')));
+      assert.equal(await fs.exists(path.join(config.cwd, 'node_modules', 'optional-failing')), false);
+      assert.equal(await fs.exists(path.join(config.cwd, 'node_modules', 'sub-dep')), true);
     });
   });

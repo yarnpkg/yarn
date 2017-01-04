@@ -84,7 +84,7 @@ export async function run<T, R>(
     cwd = await fs.makeTempDir(path.basename(dir));
     await fs.copy(dir, cwd, reporter);
   } else {
-    // if fixture loc is not set then CWD is some empty temp dir    
+    // if fixture loc is not set then CWD is some empty temp dir
     cwd = await fs.makeTempDir();
   }
 

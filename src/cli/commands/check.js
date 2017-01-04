@@ -98,7 +98,11 @@ export async function run(
 
       const pkgLoc = path.join(loc, 'package.json');
       if (!(await fs.exists(loc)) || !(await fs.exists(pkgLoc))) {
-        reportError(`${human} not installed`);
+        if (pkg._reference.optional) {
+          reporter.warn(`Optional dependency ${human} not installed`);
+        } else {
+          reportError(`${human} not installed`);
+        }
         continue;
       }
 

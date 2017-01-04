@@ -106,13 +106,19 @@ export default class PackageInstallScripts {
     } catch (err) {
       err.message = `${loc}: ${err.message}`;
 
-      const ref = pkg._reference;
       invariant(ref, 'expected reference');
 
       if (ref.optional) {
         ref.ignore = true;
         this.reporter.warn(this.reporter.lang('optionalModuleScriptFail', err.message));
         this.reporter.info(this.reporter.lang('optionalModuleFail'));
+
+        // Cleanup node_modules
+        try {
+          await fs.unlink(loc);
+        } catch (e) {
+          this.reporter.error(this.reporter.lang('optionalModuleCleanupFail', e.message));
+        }
       } else {
         throw err;
       }
