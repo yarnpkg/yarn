@@ -737,6 +737,19 @@ test.concurrent('install will not overwrite files in symlinked scoped directorie
   });
 });
 
+test.concurrent('install of scoped package with subdependency conflict should pass check', (): Promise<void> => {
+  return runInstall({}, 'install-scoped-package-with-subdependency-conflict', async (config, reporter) => {
+    let allCorrect = true;
+    try {
+      await check(config, reporter, {integrity: false}, []);
+    } catch (err) {
+      console.log('ERR!', err);
+      allCorrect = false;
+    }
+    expect(allCorrect).toBe(true);
+  });
+});
+
 test.concurrent('install a module with incompatible optional dependency should skip dependency',
   (): Promise<void> => {
     return runInstall({}, 'install-should-skip-incompatible-optional-dep', async (config) => {

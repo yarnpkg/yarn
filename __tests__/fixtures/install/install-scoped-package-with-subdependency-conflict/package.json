@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "@turf/helpers": "3.0.16",
+    "@turf/tin": "3.7.0"
+  }
+}
