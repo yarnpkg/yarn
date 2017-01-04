@@ -111,7 +111,7 @@ export default class PackageInstallScripts {
 
       if (ref.optional) {
         ref.ignore = true;
-        this.reporter.error(this.reporter.lang('optionalModuleScriptFail', err.message));
+        this.reporter.warn(this.reporter.lang('optionalModuleScriptFail', err.message));
         this.reporter.info(this.reporter.lang('optionalModuleFail'));
       } else {
         throw err;
