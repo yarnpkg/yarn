@@ -43,10 +43,10 @@ matrix:
       node_js: "4"
     - env: TEST_TYPE="lint"
       node_js: "4"
-    include:
-      - os: osx
-        node_js: "6"
-        env: MAX_WORKERS=1
+  include:
+    - os: osx
+      node_js: "6"
+      env: MAX_WORKERS=1
 
 before_install:
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then ./scripts/bootstrap-env-ubuntu.sh; fi
