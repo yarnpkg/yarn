@@ -1,6 +1,7 @@
 /* @flow */
 
 import Git from '../../src/util/git.js';
+import {NoopReporter} from '../../src/reporters/index.js';
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 90000;
 
@@ -38,39 +39,41 @@ async function toThrow(f): Promise <boolean> {
 }
 
 xit('secureUrl', async function (): Promise<void> {
+  const reporter = new NoopReporter();
+
   expect(await
          toThrow(() => {
-           return Git.secureUrl('http://random.repo', '');
+           return Git.secureUrl('http://random.repo', '', reporter);
          }),
         ).toEqual(true);
 
   expect(await
          toThrow(() => {
-           return Git.secureUrl('http://random.repo', 'ab_12');
+           return Git.secureUrl('http://random.repo', 'ab_12', reporter);
          }),
         ).toEqual(true);
 
   expect(await
          toThrow(() => {
-           return Git.secureUrl('git://random.repo', '');
+           return Git.secureUrl('git://random.repo', '', reporter);
          }),
         ).toEqual(true);
 
   expect(await
          toThrow(() => {
-           return Git.secureUrl('https://random.repo', '');
+           return Git.secureUrl('https://random.repo', '', reporter);
          }),
         ).toEqual(false);
 
   expect(await
          toThrow(() => {
-           return Git.secureUrl('http://random.repo', 'abc12');
+           return Git.secureUrl('http://random.repo', 'abc12', reporter);
          }),
         ).toEqual(false);
 
   expect(await
          toThrow(() => {
-           return Git.secureUrl('git://random.repo', 'abc12');
+           return Git.secureUrl('git://random.repo', 'abc12', reporter);
          }),
         ).toEqual(false);
 },

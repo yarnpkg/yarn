@@ -34,8 +34,8 @@ export async function run(
 
   let warningCount = 0;
   let errCount = 0;
-  function reportError(msg) {
-    reporter.error(msg);
+  function reportError(msg, ...vars) {
+    reporter.error(reporter.lang(msg, ...vars));
     errCount++;
   }
 
@@ -46,7 +46,7 @@ export async function run(
   // check if patterns exist in lockfile
   for (const pattern of patterns) {
     if (!lockfile.getLocked(pattern)) {
-      reportError(`Lockfile does not contain pattern: ${pattern}`);
+      reportError('lockfileNotContainPatter', pattern);
     }
   }
 
@@ -57,10 +57,10 @@ export async function run(
     if (integrityLoc && await fs.exists(integrityLoc)) {
       const match = await install.matchesIntegrityHash(patterns);
       if (match.matches === false) {
-        reportError(`Integrity hashes don't match, expected ${match.expected} but got ${match.actual}`);
+        reportError('integrityHashesDontMatch', match.expected, match.actual);
       }
     } else {
-      reportError("Couldn't find an integrity hash file");
+      reportError('noIntegirtyHashFile');
     }
   } else {
     // check if any of the node_modules are out of sync
@@ -99,9 +99,9 @@ export async function run(
       const pkgLoc = path.join(loc, 'package.json');
       if (!(await fs.exists(loc)) || !(await fs.exists(pkgLoc))) {
         if (pkg._reference.optional) {
-          reporter.warn(`Optional dependency ${human} not installed`);
+          reporter.warn(reporter.lang('optionalDepNotInstalled', human));
         } else {
-          reportError(`${human} not installed`);
+          reportError('packageNotInstalled', human);
         }
         continue;
       }
@@ -109,7 +109,7 @@ export async function run(
       const packageJson = await config.readJson(pkgLoc);
       if (pkg.version !== packageJson.version) {
         // node_modules contains wrong version
-        reportError(`${human} is wrong version: expected ${pkg.version}, got ${packageJson.version}`);
+        reportError('packageWrongVersion', human, pkg.version, packageJson.version);
       }
 
       const deps = Object.assign({}, packageJson.dependencies, packageJson.peerDependencies);
@@ -155,7 +155,7 @@ export async function run(
         const foundHuman = `${humaniseLocation(path.dirname(depPkgLoc)).join('#')}@${depPkg.version}`;
         if (!semver.satisfies(depPkg.version, range, config.looseSemver)) {
           // module isn't correct semver
-          reportError(`${subHuman} doesn't satisfy found match of ${foundHuman}`);
+          reportError('packageDontSatisfy', subHuman, foundHuman);
           continue;
         }
 
@@ -170,8 +170,12 @@ export async function run(
              (semver.satisfies(packageJson.version, range, config.looseSemver) &&
              semver.gt(packageJson.version, depPkg.version, config.looseSemver))) {
             reporter.warn(
-              `${subHuman} could be deduped from ${packageJson.version} to ` +
-              `${humaniseLocation(path.dirname(loc)).join('#')}@${packageJson.version}`,
+              reporter.lang(
+                'couldBeDeduped',
+                subHuman,
+                packageJson.version,
+                `${humaniseLocation(path.dirname(loc)).join('#')}@${packageJson.version}`,
+              ),
             );
             warningCount++;
           }

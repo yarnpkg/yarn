@@ -158,13 +158,13 @@ function ls(manifest: Manifest, reporter: Reporter, saved: boolean) {
   const human = `${manifest.name}@${manifest.version}`;
   if (bins.length) {
     if (saved) {
-      reporter.success(`Installed ${human} with binaries:`);
+      reporter.success(reporter.lang('packageInstalledWithBinaries', human));
     } else {
-      reporter.info(`${human} has binaries:`);
+      reporter.info(reporter.lang('packageHasBinaries', human));
     }
     reporter.list(`bins-${manifest.name}`, bins);
   } else if (saved) {
-    reporter.warn(`${human} has no binaries`);
+    reporter.warn(reporter.lang('packageHasNoBinaries'));
   }
 }
 

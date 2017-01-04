@@ -238,6 +238,24 @@ const messages = {
   errorDecompressingTarball: '$0. Error decompressing $1, it appears to be corrupt.',
   updateInstalling: 'Installing $0...',
   hostedGitResolveError: 'Error connecting to repository. Please, check the url.',
+
+  unknownFetcherFor: 'Unknown fetcher for $0',
+
+  refusingDownloadGitWithoutCommit: 'Refusing to download the git repo $0 over plain git without a commit hash',
+  refusingDownloadHTTPWithoutCommit: 'Refusing to download the git repo $0 over HTTP without a commit hash',
+
+  packageInstalledWithBinaries: 'Installed $0 with binaries:',
+  packageHasBinaries: '$0 has binaries:',
+  packageHasNoBinaries: '$0 has no binaries',
+
+  couldBeDeduped: '$0 could be deduped from $1 to $2',
+  lockfileNotContainPatter: 'Lockfile does not contain pattern: $0',
+  integrityHashesDontMatch: 'Integrity hashes don\'t match, expected $0 but got $1',
+  noIntegirtyHashFile: 'Couldn\'t find an integrity hash file',
+  packageNotInstalled: '$0 not installed',
+  optionalDepNotInstalled: 'Optional dependency $0 not installed',
+  packageWrongVersion: '$0 is wrong version: expected $1, got $2',
+  packageDontSatisfy: '$0 doesn\'t satisfy found match of $1',
 };
 
 export type LanguageKeys = $Keys<typeof messages>;
