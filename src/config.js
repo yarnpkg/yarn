@@ -204,7 +204,10 @@ export default class Config {
 
       this.registries[key] = registry;
       this.registryFolders.push(registry.folder);
-      this.rootModuleFolders.push(path.join(this.cwd, registry.folder));
+      const rootModuleFolder = path.join(this.cwd, registry.folder);
+      if (this.rootModuleFolders.indexOf(rootModuleFolder) < 0) {
+        this.rootModuleFolders.push(rootModuleFolder);
+      }
     }
 
     this.networkConcurrency = (
