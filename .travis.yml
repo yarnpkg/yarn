@@ -61,7 +61,8 @@ install:
  - yarn install
 
 os:
-  - osx
+  # disabled because OSX tests on travis are not stable 
+  # - osx
   - linux
 
 script: yarn $TEST_TYPE
