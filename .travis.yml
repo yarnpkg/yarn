@@ -27,12 +27,13 @@ cache:
   - $HOME/.yarn-cache
 
 env:
-  - MAX_WORKERS=3
+  global:
+    - MAX_WORKERS=3
   matrix:
-  - TEST_TYPE="build-dist"
-  - TEST_TYPE="check-lockfile"
-  - TEST_TYPE="lint"
-  - TEST_TYPE="test-ci -- -- --maxWorkers $MAX_WORKERS"
+    - TEST_TYPE="build-dist"
+    - TEST_TYPE="check-lockfile"
+    - TEST_TYPE="lint"
+    - TEST_TYPE="test-ci -- -- --maxWorkers $MAX_WORKERS"
 
 matrix:
   exclude:
