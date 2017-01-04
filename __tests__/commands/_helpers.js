@@ -28,18 +28,6 @@ export const runInstall = run.bind(
   [],
 );
 
-export const runInstallWithoutCheck = run.bind(
-  null,
-  ConsoleReporter,
-  fixturesLoc,
-  async (args, flags, config, reporter, lockfile): Promise<Install> => {
-    const install = new Install(flags, config, reporter, lockfile);
-    await install.init();
-    return install;
-  },
-  [],
-);
-
 export async function createLockfile(dir: string): Promise<Lockfile> {
   const lockfileLoc = path.join(dir, constants.LOCKFILE_FILENAME);
   let lockfile;

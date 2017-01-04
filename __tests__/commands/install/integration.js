@@ -6,7 +6,7 @@ import * as reporters from '../../../src/reporters/index.js';
 import {Install} from '../../../src/cli/commands/install.js';
 import Lockfile from '../../../src/lockfile/wrapper.js';
 import * as fs from '../../../src/util/fs.js';
-import {getPackageVersion, explodeLockfile, runInstall, runInstallWithoutCheck, createLockfile} from '../_helpers.js';
+import {getPackageVersion, explodeLockfile, runInstall, createLockfile} from '../_helpers.js';
 import {promisify} from '../../../src/util/promise';
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 90000;
@@ -766,7 +766,7 @@ if (process.platform !== 'darwin') {
 
 test.concurrent('optional dependency that fails to build should not be installed',
   (): Promise<void> => {
-    return runInstallWithoutCheck({}, 'should-not-install-failing-optional-deps', async (config) => {
+    return runInstall({}, 'should-not-install-failing-optional-deps', async (config) => {
       assert.equal(await fs.exists(path.join(config.cwd, 'node_modules', 'optional-failing')), false);
     });
   });
@@ -774,7 +774,7 @@ test.concurrent('optional dependency that fails to build should not be installed
 // Covers current behavior, issue opened whether this should be changed https://github.com/yarnpkg/yarn/issues/2274
 test.concurrent('a subdependency of an optional dependency that fails should be installed',
   (): Promise<void> => {
-    return runInstallWithoutCheck({}, 'should-install-failing-optional-sub-deps', async (config) => {
+    return runInstall({}, 'should-install-failing-optional-sub-deps', async (config) => {
       assert.equal(await fs.exists(path.join(config.cwd, 'node_modules', 'optional-failing')), false);
       assert.equal(await fs.exists(path.join(config.cwd, 'node_modules', 'sub-dep')), true);
     });
