@@ -38,7 +38,7 @@ test:
         ./scripts/set-dev-version.js
       fi;
     - yarn lint
-    - yarn test-ci
+    - yarn test-ci -- -- --maxWorkers 3
     - yarn check-lockfile
     - yarn build-dist
     - node ./scripts/build-webpack.js
