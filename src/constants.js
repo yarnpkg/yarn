@@ -37,7 +37,7 @@ function getDirectory(category: string): string {
     return path.join(process.env.LOCALAPPDATA, 'Yarn', category);
   }
 
-  // otherwise use ~/.yarn
+  // otherwise use ~/.{category}/yarn
   return path.join(userHome, `.${category}`, 'yarn');
 }
 
@@ -74,7 +74,7 @@ export const ENV_PATH_KEY = getPathKey(process.platform, process.env);
 export function getPathKey(platform: string, env: Env): string {
   let pathKey = 'PATH';
 
-  // windows calls it's path "Path" usually, but this is not guaranteed.
+  // windows calls its path "Path" usually, but this is not guaranteed.
   if (platform === 'win32') {
     pathKey = 'Path';
 
