@@ -11,7 +11,7 @@ machine:
 
 dependencies:
   cache_directories:
-    - "~/.yarn-cache"
+    - "~/.cache/yarn"
     - "~/ghr"
 
   override:
