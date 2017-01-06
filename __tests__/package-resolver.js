@@ -14,7 +14,8 @@ jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000;
 const path = require('path');
 
 function addTest(pattern, registry = 'npm') {
-  test.concurrent(`resolve ${pattern}`, async () => {
+  // concurrently network requests tend to stall
+  test(`resolve ${pattern}`, async () => {
     const lockfile = new Lockfile();
     const reporter = new reporters.NoopReporter({});
 
@@ -38,7 +39,7 @@ function addTest(pattern, registry = 'npm') {
 // addTest('https://github.com/npm-ml/re'); // git url with no .git
 // addTest('git+https://github.com/npm-ml/ocaml.git#npm-4.02.3'); // git+hash
 // addTest('https://github.com/npm-ml/ocaml.git#npm-4.02.3'); // hash
-addTest('https://git@github.com/babel/babylon.git'); // git url, with username
+addTest('https://git@github.com/stevemao/left-pad.git'); // git url, with username
 addTest('https://bitbucket.org/hgarcia/node-bitbucket-api.git'); // hosted git url
 addTest('https://github.com/yarnpkg/yarn/releases/download/v0.18.1/yarn-v0.18.1.tar.gz'); // tarball
 addTest('https://github.com/babel/babel-loader.git#greenkeeper/cross-env-3.1.4'); // hash with slashes
