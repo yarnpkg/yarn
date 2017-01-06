@@ -49,11 +49,11 @@ deployment:
     tag: /v[0-9]+(\.[0-9]+)*/
     owner: yarnpkg
     commands:
-      - ~/ghr/ghr --username yarnpkg --repository yarn --token $KPM_CIRCLE_RELEASE_TOKEN v$(dist/bin/yarn --version) artifacts/
+      - ~/ghr/ghr -prerelease --username yarnpkg --repository yarn --token $KPM_CIRCLE_RELEASE_TOKEN v$(dist/bin/yarn --version) artifacts/
       - curl https://nightly.yarnpkg.com/sign_releases?token=$SIGN_TOKEN
       - echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
       - ./scripts/set-installation-method.js "`pwd`/package.json" npm
-      - npm publish
+      - npm publish --tag rc
 
 notify:
   webhooks:
