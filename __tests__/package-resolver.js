@@ -3,7 +3,6 @@
 
 import * as reporters from '../src/reporters/index.js';
 import PackageResolver from '../src/package-resolver.js';
-import * as constants from '../src/constants.js';
 import Lockfile from '../src/lockfile/wrapper.js';
 import Config from '../src/config.js';
 import makeTemp from './_temp.js';
@@ -27,7 +26,7 @@ function addTest(pattern, registry = 'npm') {
     const config = new Config(reporter);
     await config.init({
       cwd: loc,
-      cacheFolder: cacheFolder,
+      cacheFolder,
     });
     const resolver = new PackageResolver(config, lockfile);
     await resolver.init([{pattern, registry}]);
