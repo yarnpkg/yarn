@@ -188,7 +188,8 @@ export async function run(
     throw new MessageError(reporter.lang('noVersion'));
   }
 
-  const filename = flags.filename || path.join(config.cwd, `${pkg.name}-v${pkg.version}.tgz`);
+  const normaliseScope = (name) => name[0] === '@' ? name.substr(1).replace('/', '-') : name;
+  const filename = flags.filename || path.join(config.cwd, `${normaliseScope(pkg.name)}-v${pkg.version}.tgz`);
 
   const stream = await pack(config, config.cwd);
 
