@@ -21,13 +21,13 @@ function addTest(pattern, registry = 'npm') {
 
     const loc = await makeTemp();
     await fs.mkdirp(path.join(loc, 'node_modules'));
-    await fs.mkdirp(path.join(loc, constants.MODULE_CACHE_DIRECTORY));
+    const cacheFolder = path.join(loc, 'cache');
+    await fs.mkdirp(cacheFolder);
 
     const config = new Config(reporter);
     await config.init({
       cwd: loc,
-      cacheFolder: loc,
-      tempFolder: loc,
+      cacheFolder: cacheFolder,
     });
     const resolver = new PackageResolver(config, lockfile);
     await resolver.init([{pattern, registry}]);
