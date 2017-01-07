@@ -29,7 +29,15 @@ export async function run(
   function humaniseLocation(loc: string): Array<string> {
     const relative = path.relative(path.join(config.cwd, 'node_modules'), loc);
     const normalized = path.normalize(relative).split(path.sep);
-    return normalized.filter((p) => p !== 'node_modules');
+    return normalized.filter((p) => p !== 'node_modules').reduce((result, part) => {
+      const length = result.length;
+      if (length && result[length - 1].startsWith('@') && !result[length - 1].includes(path.sep)) {
+        result[length - 1] += path.sep + part;
+      } else {
+        result.push(part);
+      }
+      return result;
+    }, []);
   }
 
   let warningCount = 0;
