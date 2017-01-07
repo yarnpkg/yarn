@@ -9,5 +9,7 @@ echo "$BRANCH"
 git checkout -b "$BRANCH"
 git push origin "$BRANCH" --follow-tags
 git checkout master
-yarn version --new-version preminor
-git push origin master --follow-tags
+yarn version --new-version preminor --no-git-tag-version
+NEW_VERSION=$(node -p -e "require('./package.json').version")
+git commit -a -m "$NEW_VERSION"
+git push origin master
