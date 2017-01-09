@@ -6,6 +6,7 @@ import {MessageError} from '../../errors.js';
 import {Install} from './install.js';
 import Lockfile from '../../lockfile/wrapper.js';
 import * as fs from '../../util/fs.js';
+import Registry from '../../registries/base-registry.js';
 
 const semver = require('semver');
 const path = require('path');
@@ -15,6 +16,7 @@ export const noArguments = true;
 
 export function setFlags(commander: Object) {
   commander.option('--integrity');
+  commander.option('--commonjs');
 }
 
 export async function run(
@@ -23,6 +25,97 @@ export async function run(
   flags: Object,
   args: Array<string>,
 ): Promise<void> {
+  let warningCount = 0;
+  let errCount = 0;
+  function reportError(msg, ...vars) {
+    reporter.error(reporter.lang(msg, ...vars));
+    errCount++;
+  }
+    // TODO move to a separate subcommand
+  if (flags.commonjs) {
+    // check all dependencies recursively without relying on internal resolver
+    const registryName = 'yarn';
+    const registry = config.registries[registryName];
+    const pkg = await config.readManifest(registry.cwd, registryName);
+
+    type PackageToVerify = {
+      name: string,
+      originalKey: string, 
+      parentCwd: string,
+      version: string,
+    };
+    // TODO check devDependencies, optionalDependencies, peerDependencies
+    let dependenciesToCheckVersion: PackageToVerify[] = Object.keys(pkg.dependencies).map(
+      (name) => { 
+        return {
+          name: name,
+          originalKey: name,
+          parentCwd: registry.cwd,
+          version: pkg.dependencies[name], 
+        }
+      }
+    );
+    let locationsVisited: Set<string> = new Set();
+    while(dependenciesToCheckVersion.length) {
+      const dep = dependenciesToCheckVersion.shift();
+      const manifestLoc = path.join(dep.parentCwd, registry.folder, dep.name);
+      if (locationsVisited.has(manifestLoc + `@${dep.version}`)) {
+        continue;
+      }
+      locationsVisited.add(manifestLoc + `@${dep.version}`);
+      if (!await fs.exists(manifestLoc)) {
+          console.log("can't find dep hoisted", dep.originalKey);
+          // reportError('packageDontSatisfy', subHuman, foundHuman);
+          continue;
+      }
+      const pkg = await config.readManifest(manifestLoc, registryName);
+      if (!semver.satisfies(pkg.version, dep.version, config.looseSemver)) {
+        // module isn't correct semver
+        console.log("semver does not satisfy", dep.originalKey, manifestLoc, pkg.version, dep.version);
+        // reportError('packageDontSatisfy', subHuman, foundHuman);
+        continue;
+      }
+      if (pkg.dependencies) {
+        for (let subdep in pkg.dependencies) {
+          const subDepPath = path.join(manifestLoc, registry.folder, subdep);
+          let found = false;
+          const relative = path.relative(registry.cwd, subDepPath);
+          const locations = path.normalize(relative).split(path.sep).
+            filter((dir) => dir !== registry.folder);
+          locations.pop();
+          while (locations.length >= 0) {
+            let possiblePath;
+            if (locations.length > 0) { 
+              possiblePath = path.join(registry.cwd, registry.folder, locations.join(path.sep + registry.folder + path.sep));
+            } else {
+              possiblePath = registry.cwd;
+            }
+            if (await fs.exists(path.join(possiblePath, registry.folder, subdep))) {
+              dependenciesToCheckVersion.push({
+                name: subdep,
+                originalKey: `${dep.originalKey}#${subdep}`,
+                parentCwd: possiblePath,
+                version: pkg.dependencies[subdep], 
+              });
+              found = true;
+              break;
+            }
+            if (!locations.length) {
+              break;
+            }
+            locations.pop();
+          }
+          if (!found) {
+            console.log(relative, path.normalize(relative).split(path.sep).filter((dir) => dir !== registry.folder))
+            console.log("can't find dep hoisted", dep.originalKey, subdep);
+            // reportError('packageDontSatisfy', subHuman, foundHuman);
+          }
+        }
+      }
+      // console.log("left to process", dependenciesToCheckVersion.length)
+    }
+    return;
+  }
   const lockfile = await Lockfile.fromDirectory(config.cwd);
   const install = new Install(flags, config, reporter, lockfile);
 
@@ -40,12 +133,6 @@ export async function run(
     }, []);
   }
 
-  let warningCount = 0;
-  let errCount = 0;
-  function reportError(msg, ...vars) {
-    reporter.error(reporter.lang(msg, ...vars));
-    errCount++;
-  }
 
   // get patterns that are installed when running `yarn install`
   const {patterns: rawPatterns} = await install.hydrate(true);
