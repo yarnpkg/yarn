@@ -29,6 +29,7 @@ export type ReporterOptions = {
   stdin?: Stdin,
   emoji?: boolean,
   noProgress?: boolean,
+  silent?: boolean,
 };
 
 export function stringifyLangArgs(args: Array<any>): Array<string> {
@@ -74,6 +75,7 @@ export default class BaseReporter {
   emoji: boolean;
   noProgress: boolean;
   isVerbose: boolean;
+  isSilent: boolean;
   format: Formatter;
 
   peakMemoryInterval: ?number;

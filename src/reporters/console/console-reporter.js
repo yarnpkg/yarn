@@ -27,9 +27,10 @@ type Row = Array<string>;
 export default class ConsoleReporter extends BaseReporter {
   constructor(opts: Object) {
     super(opts);
-    this._lastCategorySize = 0;
 
+    this._lastCategorySize = 0;
     this.format = (chalk: any);
+    this.isSilent = !!opts.isSilent;
   }
 
   _lastCategorySize: number;
@@ -142,6 +143,7 @@ export default class ConsoleReporter extends BaseReporter {
   }
 
   _log(msg: string) {
+    if (this.isSilent) { return; }
     clearLine(this.stdout);
     this.stdout.write(`${msg}\n`);
   }
