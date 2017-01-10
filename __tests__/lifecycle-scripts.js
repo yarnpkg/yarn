@@ -48,7 +48,7 @@ async () => {
 test('should only expose non-internal configs', async () => {
   const env = Object.assign({}, process.env);
   const internalConfigKeys = ['lastUpdateCheck'];
-  const nonInternalConfigKeys = ['registry'];
+  const nonInternalConfigKeys = ['user_agent'];
   const prefix = 'npm_config_';
   [...internalConfigKeys, ...nonInternalConfigKeys].forEach((key) => {
     delete env[prefix + key];
