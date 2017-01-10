@@ -1,0 +1,10 @@
+{
+  "name": "dont-exposing-internal-configs-to-env",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "prepublish" : "node log-configs.js",
+    "pretest" : "node log-configs.js"
+  }
+}

@@ -17,6 +17,11 @@ export type LifecycleReturn = Promise<{
 
 const IGNORE_MANIFEST_KEYS = ['readme'];
 
+// We treat these configs as internal, thus not expose them to process.env.
+// This helps us avoid some gyp issues when building native modules.
+// See https://github.com/yarnpkg/yarn/issues/2286.
+const IGNORE_CONFIG_KEYS = ['lastUpdateCheck'];
+
 async function makeEnv(stage: string, cwd: string, config: Config): {
   [key: string]: string
 } {
@@ -69,7 +74,7 @@ async function makeEnv(stage: string, cwd: string, config: Config): {
     ...Object.keys(config.registries.npm.config),
   ]);
   for (const key of keys) {
-    if (key.match(/:_/)) {
+    if (key.match(/:_/) || IGNORE_CONFIG_KEYS.indexOf(key) >= 0) {
       continue;
     }
 
