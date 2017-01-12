@@ -43,7 +43,8 @@ async function commonJsCheck(
     version: string,
   };
   // TODO check devDependencies, optionalDependencies, peerDependencies
-  let dependenciesToCheckVersion: PackageToVerify[] = Object.keys(pkg.dependencies).map(
+  let dependenciesToCheckVersion: PackageToVerify[] =
+  Object.keys(pkg.dependencies).map(
     (name) => {
       return {
         name: name,
@@ -62,15 +63,12 @@ async function commonJsCheck(
     }
     locationsVisited.add(manifestLoc + `@${dep.version}`);
     if (!await fs.exists(manifestLoc)) {
-        console.log("can't find dep hoisted", dep.originalKey);
-        // reportError('packageDontSatisfy', subHuman, foundHuman);
-        continue;
+      reportError('packageNotInstalled', `${dep.originalKey}`);
+      continue;
     }
     const pkg = await config.readManifest(manifestLoc, registryName);
     if (!semver.satisfies(pkg.version, dep.version, config.looseSemver)) {
-      // module isn't correct semver
-      console.log("semver does not satisfy", dep.originalKey, manifestLoc, pkg.version, dep.version);
-      // reportError('packageDontSatisfy', subHuman, foundHuman);
+      reportError('packageWrongVersion', dep.originalKey, dep.version, pkg.version);
       continue;
     }
     if (pkg.dependencies) {
@@ -104,15 +102,11 @@ async function commonJsCheck(
           locations.pop();
         }
         if (!found) {
-          console.log(relative, path.normalize(relative).split(path.sep).filter((dir) => dir !== registry.folder))
-          console.log("can't find dep hoisted", dep.originalKey, subdep);
-          // reportError('packageDontSatisfy', subHuman, foundHuman);
+          reportError('packageNotInstalled', `${dep.originalKey}#${subdep}`);
         }
       }
     }
-    // console.log("left to process", dependenciesToCheckVersion.length)
   }
-  // TODO would be nice to analyze if any dep could be deduped
 
   if (warningCount > 1) {
     reporter.info(reporter.lang('foundWarnings', warningCount));
