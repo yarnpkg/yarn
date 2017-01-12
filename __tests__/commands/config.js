@@ -31,3 +31,21 @@ test('cache-folder flag has higher priorities than .yarnrc file', (): Promise<vo
       expect(config.cacheFolder).toContain('flag_config_folder_dir');
     });
 });
+
+test('set true when option value is empty', (): Promise<void> => {
+  return runConfig(['set', 'strict-ssl', ''], {}, '', (config) => {
+    expect(config.registries.yarn.homeConfig['strict-ssl']).toBe(true);
+  });
+});
+
+test('set value "false" to an option', (): Promise<void> => {
+  return runConfig(['set', 'strict-ssl', 'false'], {}, '', (config) => {
+    expect(config.registries.yarn.homeConfig['strict-ssl']).toBe(false);
+  });
+});
+
+test('set value "true" to an option', (): Promise<void> => {
+  return runConfig(['set', 'strict-ssl', 'true'], {}, '', (config) => {
+    expect(config.registries.yarn.homeConfig['strict-ssl']).toBe(true);
+  });
+});
