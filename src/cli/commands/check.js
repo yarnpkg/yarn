@@ -166,10 +166,10 @@ export async function run(
   args: Array<string>,
 ): Promise<void> {
   if (flags.commonjs) {
-    commonJsCheck(config, reporter, flags, args);
+    await commonJsCheck(config, reporter, flags, args);
     return;
   } else if (flags.integrity) {
-    integrityHashCheck(config, reporter, flags, args);
+    await integrityHashCheck(config, reporter, flags, args);
     return;
   }
 
