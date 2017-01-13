@@ -12,6 +12,9 @@ jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000;
 
 const path = require('path');
 
+// regexp which verifies that cache path contains semver + hash
+const cachePathRe = /-\d+\.\d+\.\d+-[\dabcdef]{40}$/;
+
 function addTest(pattern, registry = 'npm') {
   // concurrently network requests tend to stall
   test(`resolve ${pattern}`, async () => {
@@ -30,6 +33,11 @@ function addTest(pattern, registry = 'npm') {
     });
     const resolver = new PackageResolver(config, lockfile);
     await resolver.init([{pattern, registry}]);
+
+    const ref = resolver.getPackageReferences()[0];
+    const cachePath = config.generateHardModulePath(ref, true);
+    expect(cachePath).toMatch(cachePathRe);
+
     await reporter.close();
   });
 }
