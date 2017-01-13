@@ -173,13 +173,6 @@ export async function run(
     return;
   }
 
-  let warningCount = 0;
-  let errCount = 0;
-  function reportError(msg, ...vars) {
-    reporter.error(reporter.lang(msg, ...vars));
-    errCount++;
-  }
-
   const lockfile = await Lockfile.fromDirectory(config.cwd);
   const install = new Install(flags, config, reporter, lockfile);
 
@@ -195,6 +188,13 @@ export async function run(
       }
       return result;
     }, []);
+  }
+
+  let warningCount = 0;
+  let errCount = 0;
+  function reportError(msg, ...vars) {
+    reporter.error(reporter.lang(msg, ...vars));
+    errCount++;
   }
 
   // get patterns that are installed when running `yarn install`
