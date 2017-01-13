@@ -20,8 +20,15 @@ export const {run, setFlags} = buildSubCommands('config', {
       return false;
     }
 
-    const [key, val = true] = args;
+    const [key, val] = ((key, val = true) => {
+      if (typeof val === 'string' && (/^(true|false)$/i).test(val)) {
+        val = (val.toLowerCase() === 'true');
+      }
+
+      return [key, val];
+    })(...args);
     const yarnConfig = config.registries.yarn;
+
     await yarnConfig.saveHomeConfig({[key]: val});
     reporter.success(reporter.lang('configSet', key, val));
     return true;
