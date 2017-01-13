@@ -143,7 +143,9 @@ export default class ConsoleReporter extends BaseReporter {
   }
 
   _log(msg: string) {
-    if (this.isSilent) { return; }
+    if (this.isSilent) {
+      return;
+    }
     clearLine(this.stdout);
     this.stdout.write(`${msg}\n`);
   }
