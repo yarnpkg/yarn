@@ -40,7 +40,6 @@ async function commonJsCheck(
     parentCwd: string,
     version: string,
   };
-  // TODO check devDependencies, optionalDependencies
   const dependenciesToCheckVersion: PackageToVerify[] = [];
   if (rootManifest.dependencies) {
     for (const name in rootManifest.dependencies) {
@@ -49,6 +48,16 @@ async function commonJsCheck(
         originalKey: name,
         parentCwd: registry.cwd,
         version: rootManifest.dependencies[name],
+      });
+    }
+  }
+  if (rootManifest.devDependencies && !flags.production) {
+    for (const name in rootManifest.devDependencies) {
+      dependenciesToCheckVersion.push({
+        name,
+        originalKey: name,
+        parentCwd: registry.cwd,
+        version: rootManifest.devDependencies[name],
       });
     }
   }
@@ -66,7 +75,10 @@ async function commonJsCheck(
       continue;
     }
     const pkg = await config.readManifest(manifestLoc, registryName);
-    if (!semver.satisfies(pkg.version, dep.version, config.looseSemver)) {
+    if (
+      semver.validRange(dep.version, config.looseSemver) && 
+      !semver.satisfies(pkg.version, dep.version, config.looseSemver)
+      ) {
       reportError('packageWrongVersion', dep.originalKey, dep.version, pkg.version);
       continue;
     }
