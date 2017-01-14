@@ -93,7 +93,7 @@ export default class Git {
   }
 
   /**
-   * attempt to upgrade unsecure protocols to securl protocol
+   * Attempt to upgrade insecure protocols to secure protocol
    */
 
   static async secureUrl(ref: string, hash: string, reporter: Reporter): Promise<string> {
@@ -120,8 +120,22 @@ export default class Git {
       if (await Git.repoExists(secureUrl)) {
         return secureUrl;
       } else {
+        if (await Git.repoExists(ref)) {
+          return ref;
+        } else {
+          throw new SecurityError(
+            reporter.lang('refusingDownloadHTTPWithoutCommit', ref),
+          );
+        }
+      }
+    }
+
+    if (parts.protocol === 'https:') {
+      if (await Git.repoExists(ref)) {
+        return ref;
+      } else {
         throw new SecurityError(
-          reporter.lang('refusingDownloadHTTPWithoutCommit', ref),
+          reporter.lang('refusingDownloadHTTPSWithoutCommit', ref),
         );
       }
     }

@@ -42,6 +42,24 @@ xit('secureUrl', async function (): Promise<void> {
   const reporter = new NoopReporter();
 
   expect(await
+    toThrow(() => {
+      return Git.secureUrl('http://github.com/yarnpkg/yarn.git', '', reporter);
+    }),
+  ).toEqual('https://github.com/yarnpkg/yarn.git');
+
+  expect(await
+    toThrow(() => {
+      return Git.secureUrl('https://github.com/yarnpkg/yarn.git', '', reporter);
+    }),
+  ).toEqual('https://github.com/yarnpkg/yarn.git');
+
+  expect(await
+    toThrow(() => {
+      return Git.secureUrl('git://github.com/yarnpkg/yarn.git', '', reporter);
+    }),
+  ).toEqual('https://github.com/yarnpkg/yarn.git');
+
+  expect(await
          toThrow(() => {
            return Git.secureUrl('http://random.repo', '', reporter);
          }),
