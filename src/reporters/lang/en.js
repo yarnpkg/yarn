@@ -243,6 +243,7 @@ const messages = {
 
   refusingDownloadGitWithoutCommit: 'Refusing to download the git repo $0 over plain git without a commit hash',
   refusingDownloadHTTPWithoutCommit: 'Refusing to download the git repo $0 over HTTP without a commit hash',
+  refusingDownloadHTTPSWithoutCommit: 'Refusing to download the git repo $0 over HTTPS without a commit hash - possible certificate error?',
 
   packageInstalledWithBinaries: 'Installed $0 with binaries:',
   packageHasBinaries: '$0 has binaries:',
