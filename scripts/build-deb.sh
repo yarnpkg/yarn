@@ -51,10 +51,6 @@ find $PACKAGE_TMPDIR/usr/share/yarn \( -name '*.md' -o  -name '*.md~' -o -name '
 # Assume everything else is junk we don't need
 rm -rf $PACKAGE_TMPDIR/dist
 
-# Swap out the basedir calculation code with a hard-coded path, as the default
-# way we do this doesn't follow symlinks.
-sed -i 's/basedir\=\$.*/basedir=\/usr\/share\/yarn\/bin/' $PACKAGE_TMPDIR/usr/share/yarn/bin/yarn
-
 # The Yarn executable expects to be in the same directory as the libraries, so
 # we can't just copy it directly to /usr/bin. Symlink them instead.
 mkdir -p $PACKAGE_TMPDIR/usr/bin/
