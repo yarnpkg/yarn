@@ -19,50 +19,50 @@ const runCheck = buildRun.bind(
   },
 );
 
-test('--commonjs should report wrong version ', async (): Promise<void> => {
+test('--verify-tree should report wrong version ', async (): Promise<void> => {
   let thrown = false;
   try {
-    await runCheck([], {commonjs: true}, 'commonjs-version-mismatch');
+    await runCheck([], {verifyTree: true}, 'verify-tree-version-mismatch');
   } catch (e) {
     thrown = true;
   }
   assert(thrown);
 });
 
-test('--commonjs should report missing dependency ',
+test('--verify-tree should report missing dependency ',
 async (): Promise<void> => {
   let thrown = false;
   try {
-    await runCheck([], {commonjs: true}, 'commonjs-not-found');
+    await runCheck([], {verifyTree: true}, 'verify-tree-not-found');
   } catch (e) {
     thrown = true;
   }
   assert(thrown);
 });
 
-test('--commonjs should pass on hoisted dependency ',
+test('--verify-tree should pass on hoisted dependency ',
 async (): Promise<void> => {
-  await runCheck([], {commonjs: true}, 'commonjs-hoisted');
+  await runCheck([], {verifyTree: true}, 'verify-tree-hoisted');
 });
 
-test('--commonjs should check dev dependencies ',
+test('--verify-tree should check dev dependencies ',
 async (): Promise<void> => {
   let thrown = false;
   try {
-    await runCheck([], {commonjs: true}, 'commonjs-dev');
+    await runCheck([], {verifyTree: true}, 'verify-tree-dev');
   } catch (e) {
     thrown = true;
   }
   assert(thrown);
 });
 
-test('--commonjs should check skip dev dependencies if --production flag passed',
+test('--verify-tree should check skip dev dependencies if --production flag passed',
 async (): Promise<void> => {
-  await runCheck([], {commonjs: true, production: true}, 'commonjs-dev-prod');
+  await runCheck([], {verifyTree: true, production: true}, 'verify-tree-dev-prod');
 });
 
-test('--commonjs should check skip deeper dev dependencies',
+test('--verify-tree should check skip deeper dev dependencies',
 async (): Promise<void> => {
-  await runCheck([], {commonjs: true, production: true}, 'commonjs-dev-deep');
+  await runCheck([], {verifyTree: true, production: true}, 'verify-tree-dev-deep');
 });
 

@@ -19,7 +19,7 @@ const runRemove = buildRun.bind(
   fixturesLoc,
   async (args, flags, config, reporter): Promise<void> => {
     await remove(config, reporter, flags, args);
-    await check(config, reporter, {commonjs: true}, []);
+    await check(config, reporter, {verifyTree: true}, []);
   });
 
 test.concurrent('throws error with no arguments', (): Promise<void> => {

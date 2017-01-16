@@ -15,10 +15,10 @@ export const noArguments = true;
 
 export function setFlags(commander: Object) {
   commander.option('--integrity');
-  commander.option('--commonjs');
+  commander.option('--verify-tree');
 }
 
-async function commonJsCheck(
+async function verifyTreeCheck(
   config: Config,
   reporter: Reporter,
   flags: Object,
@@ -94,8 +94,11 @@ async function commonJsCheck(
         while (locations.length >= 0) {
           let possiblePath;
           if (locations.length > 0) {
-            possiblePath = path.join(registry.cwd, registry.folder,
-              locations.join(path.sep + registry.folder + path.sep));
+            possiblePath = path.join(
+              registry.cwd,
+              registry.folder,
+              locations.join(path.sep + registry.folder + path.sep),
+            );
           } else {
             possiblePath = registry.cwd;
           }
@@ -177,8 +180,8 @@ export async function run(
   flags: Object,
   args: Array<string>,
 ): Promise<void> {
-  if (flags.commonjs) {
-    await commonJsCheck(config, reporter, flags, args);
+  if (flags.verifyTree) {
+    await verifyTreeCheck(config, reporter, flags, args);
     return;
   } else if (flags.integrity) {
     await integrityHashCheck(config, reporter, flags, args);

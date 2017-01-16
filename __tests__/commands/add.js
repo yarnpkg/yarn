@@ -29,7 +29,7 @@ const runAdd = buildRun.bind(
     const add = new Add(args, flags, config, reporter, lockfile);
     await add.init();
     await check(config, reporter, {}, []);
-    await check(config, reporter, {commonjs: true}, []);
+    await check(config, reporter, {verifyTree: true}, []);
     return add;
   },
 );
