@@ -215,21 +215,28 @@ test.concurrent('install file: protocol with relative paths', (): Promise<void> 
 test.concurrent('install file: protocol without cache', async (): Promise<void> => {
   const fixturesLoc = path.join(__dirname, '..', '..', 'fixtures', 'install');
   const compLoc = path.join(fixturesLoc, 'install-file-without-cache', 'comp', 'index.js');
+  let firstRunCacheLoc;
+  let secondRunCacheLoc;
 
-  return fs.writeFile(compLoc,'foo\n').then(() =>
-    runInstall({noLockfile: true}, 'install-file-without-cache', async (config) => {
-      assert.equal(
-        await fs.readFile(path.join(config.cwd, 'node_modules', 'comp', 'index.js')),
-        'foo\n',
-      );
-      await fs.writeFile(compLoc, 'bar\n');
-      await runInstall({noLockfile: true}, 'install-file-without-cache');
-      assert.equal(
-        await fs.readFile(path.join(config.cwd, 'node_modules', 'comp', 'index.js')),
-        'bar\n',
-      );
-    })
-  );
+  await fs.writeFile(compLoc,'foo\n');
+  await runInstall({noLockfile: true}, 'install-file-without-cache', async (config) => {
+    firstRunCacheLoc = config.cwd;
+    assert.equal(
+      await fs.readFile(path.join(config.cwd, 'node_modules', 'comp', 'index.js')),
+      'foo\n',
+    );
+  });
+
+  await fs.writeFile(compLoc, 'bar\n');
+  await runInstall({noLockfile: true}, 'install-file-without-cache', async (config) => {
+    secondRunCacheLoc = config.cwd;
+    assert.equal(
+      await fs.readFile(path.join(config.cwd, 'node_modules', 'comp', 'index.js')),
+      'bar\n',
+    );
+  });
+
+  assert.notEqual(firstRunCacheLoc, secondRunCacheLoc);
 });
 
 test.concurrent('install file: protocol', (): Promise<void> => {
