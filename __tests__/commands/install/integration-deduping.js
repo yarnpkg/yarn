@@ -173,18 +173,21 @@ test.concurrent('install should dedupe dependencies avoiding conflicts 7', (): P
   });
 });
 
-test.concurrent('install should dedupe dependencies avoiding conflicts 8', (): Promise<void> => {
-  // revealed in https://github.com/yarnpkg/yarn/issues/112
-  // adapted for https://github.com/yarnpkg/yarn/issues/1158
-  return runInstall({}, 'install-should-dedupe-avoiding-conflicts-8', async (config) => {
-    assert.equal(await getPackageVersion(config, 'glob'), '5.0.15');
-    assert.equal(await getPackageVersion(config, 'findup-sync/glob'), '4.3.5');
-    assert.equal(await getPackageVersion(config, 'inquirer'), '0.8.5');
-    assert.equal(await getPackageVersion(config, 'lodash'), '3.10.1');
-    assert.equal(await getPackageVersion(config, 'ast-query/lodash'), '4.15.0');
-    assert.equal(await getPackageVersion(config, 'run-async'), '0.1.0');
+if (!process.env.TRAVIS || process.env.TRAVIS_OS_NAME !== 'osx') {
+  // This test is unstable and timeouts on Travis OSX builds https://travis-ci.org/yarnpkg/yarn/jobs/188864079
+  test.concurrent('install should dedupe dependencies avoiding conflicts 8', (): Promise<void> => {
+    // revealed in https://github.com/yarnpkg/yarn/issues/112
+    // adapted for https://github.com/yarnpkg/yarn/issues/1158
+    return runInstall({}, 'install-should-dedupe-avoiding-conflicts-8', async (config) => {
+      assert.equal(await getPackageVersion(config, 'glob'), '5.0.15');
+      assert.equal(await getPackageVersion(config, 'findup-sync/glob'), '4.3.5');
+      assert.equal(await getPackageVersion(config, 'inquirer'), '0.8.5');
+      assert.equal(await getPackageVersion(config, 'lodash'), '3.10.1');
+      assert.equal(await getPackageVersion(config, 'ast-query/lodash'), '4.15.0');
+      assert.equal(await getPackageVersion(config, 'run-async'), '0.1.0');
+    });
   });
-});
+}
 
 test.concurrent('install should dedupe dependencies avoiding conflicts 9', (): Promise<void> => {
   // revealed in https://github.com/yarnpkg/yarn/issues/112
