@@ -66,5 +66,3 @@ async (): Promise<void> => {
   await runCheck([], {commonjs: true, production: true}, 'commonjs-dev-deep');
 });
 
-// TODO exotic dependency version
-
