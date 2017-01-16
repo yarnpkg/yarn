@@ -65,7 +65,7 @@ export class Add extends Install {
       version = pattern;
     } else if (parts.hasVersion && parts.range) {
       // if the user specified a range then use it verbatim
-      version = parts.range;
+      version = parts.range === 'latest' ? `^${pkg.version}` : parts.range;
     } else if (tilde) { // --save-tilde
       version = `~${pkg.version}`;
     } else if (exact) { // --save-exact

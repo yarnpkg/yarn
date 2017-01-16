@@ -625,3 +625,12 @@ test.concurrent('add asks for correct package version if user passes an incorrec
     },
   );
 });
+
+test.concurrent('install with latest tag', (): Promise<void> => {
+  return runAdd(['left-pad@latest'], {}, 'latest-version-in-package', async (config) => {
+    const pkg = await fs.readJson(path.join(config.cwd, 'package.json'));
+    const version = await getPackageVersion(config, 'left-pad');
+
+    assert.deepEqual(pkg.dependencies, {'left-pad': `^${version}`});
+  });
+});
