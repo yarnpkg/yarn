@@ -3,8 +3,6 @@
 import {getPackageVersion, runInstall} from '../_helpers.js';
 
 const assert = require('assert');
-const isCI = require('is-ci');
-
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 120000;
 
