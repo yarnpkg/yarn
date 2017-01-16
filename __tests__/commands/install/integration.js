@@ -743,7 +743,6 @@ test.concurrent('install of scoped package with subdependency conflict should pa
     try {
       await check(config, reporter, {integrity: false}, []);
     } catch (err) {
-      console.log('ERR!', err);
       allCorrect = false;
     }
     expect(allCorrect).toBe(true);

@@ -29,6 +29,7 @@ const runAdd = buildRun.bind(
     const add = new Add(args, flags, config, reporter, lockfile);
     await add.init();
     await check(config, reporter, {}, []);
+    await check(config, reporter, {verifyTree: true}, []);
     return add;
   },
 );
@@ -604,7 +605,8 @@ test.concurrent('add infers line endings from existing unix manifest file', asyn
     });
 });
 
-test.concurrent('add asks for correct package version if user passes an incorrect one', async (): Promise<void> => {
+// broken https://github.com/yarnpkg/yarn/issues/2466
+test.skip('add asks for correct package version if user passes an incorrect one', async (): Promise<void> => {
   let chosenVersion = null;
   await runAdd(
     ['is-array@100'],

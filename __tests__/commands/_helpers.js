@@ -23,6 +23,7 @@ export const runInstall = run.bind(
     const install = new Install(flags, config, reporter, lockfile);
     await install.init();
     await check(config, reporter, {}, []);
+    await check(config, reporter, {verifyTree: true}, []);
     return install;
   },
   [],
