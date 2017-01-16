@@ -51,7 +51,7 @@ async function commonJsCheck(
       });
     }
   }
-  if (rootManifest.devDependencies && !flags.production) {
+  if (rootManifest.devDependencies && !config.production) {
     for (const name in rootManifest.devDependencies) {
       dependenciesToCheckVersion.push({
         name,
@@ -76,7 +76,7 @@ async function commonJsCheck(
     }
     const pkg = await config.readManifest(manifestLoc, registryName);
     if (
-      semver.validRange(dep.version, config.looseSemver) && 
+      semver.validRange(dep.version, config.looseSemver) &&
       !semver.satisfies(pkg.version, dep.version, config.looseSemver)
       ) {
       reportError('packageWrongVersion', dep.originalKey, dep.version, pkg.version);
@@ -88,8 +88,8 @@ async function commonJsCheck(
         const subDepPath = path.join(manifestLoc, registry.folder, subdep);
         let found = false;
         const relative = path.relative(registry.cwd, subDepPath);
-        const locations = path.normalize(relative).split(path.sep).
-          filter((dir) => dir !== registry.folder);
+        const locations = path.normalize(relative).split(registry.folder + path.sep).
+          filter((dir) => !!dir);
         locations.pop();
         while (locations.length >= 0) {
           let possiblePath;
