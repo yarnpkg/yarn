@@ -30,7 +30,7 @@ function build(lib, opts) {
 
 gulp.task('default', ['build']);
 
-gulp.task('build', ['build-modern', 'build-legacy']);
+gulp.task('build', ['build-modern', 'build-legacy', 'build-es5']);
 
 gulp.task('build-modern', () => {
   return build('lib', babelRc.env.node5);
@@ -38,6 +38,10 @@ gulp.task('build-modern', () => {
 
 gulp.task('build-legacy', () => {
   return build('lib-legacy', babelRc.env['pre-node5']);
+});
+
+gulp.task('build-es5', () => {
+  return build('lib-es5', babelRc.env['es5']);
 });
 
 gulp.task('watch', ['build'], () => {

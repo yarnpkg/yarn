@@ -8,6 +8,14 @@
         ["transform-runtime", { "polyfill": true, "regenerator": false }]
       ]
     },
+    "es5": {
+      "presets": ["es2015"],
+      "plugins": [
+        ["transform-inline-imports-commonjs"],
+        ["transform-class-properties"],
+        ["transform-runtime", { "polyfill": true, "regenerator": false }]
+      ]
+    },
     "test": {
       "presets": ["es2015-node4"],
       "plugins": [

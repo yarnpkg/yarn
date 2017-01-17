@@ -1,6 +1,7 @@
 __tests__/fixtures
 lib
 lib-legacy
+lib-es5
 node_modules
 flow-typed
 coverage

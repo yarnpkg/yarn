@@ -40,6 +40,7 @@ mkdir -p $PACKAGE_TMPDIR/usr/share/doc/yarn/
 mv $PACKAGE_TMPDIR/dist/bin $PACKAGE_TMPDIR/usr/share/yarn/
 mv $PACKAGE_TMPDIR/dist/lib $PACKAGE_TMPDIR/usr/share/yarn/
 mv $PACKAGE_TMPDIR/dist/lib-legacy $PACKAGE_TMPDIR/usr/share/yarn/
+mv $PACKAGE_TMPDIR/dist/lib-es5 $PACKAGE_TMPDIR/usr/share/yarn/
 mv $PACKAGE_TMPDIR/dist/node_modules $PACKAGE_TMPDIR/usr/share/yarn/
 mv $PACKAGE_TMPDIR/dist/package.json $PACKAGE_TMPDIR/usr/share/yarn/
 cp resources/debian/copyright $PACKAGE_TMPDIR/usr/share/doc/yarn/copyright
