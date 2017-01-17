@@ -793,11 +793,11 @@ test.concurrent('a subdependency of an optional dependency that fails should be 
   });
 
 // disabled while fix is not merged
-test.skip('should not lose dependencies when installing with --production', 
+test.skip('should not loose dependencies when installing with --production', 
 (): Promise<void> => {
   // revealed https://github.com/yarnpkg/yarn/issues/2263
   return runInstall({production: true}, 'prod-should-keep-subdeps', async (config) => {
-    assert.equal(await getPackageVersion(config, 
-    'gulp/vinyl-fs/glob-stream/minimatch/brace-expansion/balanced-match'), '0.42.0');
+    // would be hoisted from gulp/vinyl-fs/glob-stream/minimatch/brace-expansion/balanced-match
+    assert.equal(await getPackageVersion(config, 'balanced-match'), '0.4.2');
   });
 });
