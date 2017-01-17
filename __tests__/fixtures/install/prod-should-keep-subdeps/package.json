@@ -1,0 +1,10 @@
+{
+  "dependencies": {
+    "gulp": "3.9.1"
+  },
+  "devDependencies": {
+    "eslint": ">=3.3.0",
+    "eslint-plugin-react": "3.5.1",
+    "stylelint": "^7"
+  }
+}
