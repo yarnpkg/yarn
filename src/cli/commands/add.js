@@ -174,7 +174,11 @@ export class Add extends Install {
       const {object} = manifests[ref.registry];
 
       object[target] = object[target] || {};
-      object[target][pkg.name] = version;
+      if (pattern.endsWith(pkg.version)) {
+        object[target][pkg.name] = version;
+      } else {
+        object[target][pkg.name] = pkg.version;
+      }
     }
 
     await this.config.saveRootManifests(manifests);

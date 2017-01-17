@@ -43,11 +43,11 @@ export default class NpmResolver extends RegistryResolver {
     const satisfied = await config.resolveConstraints(Object.keys(body.versions), range);
     if (satisfied) {
       return body.versions[satisfied];
-    } else if (request) {
+    } else if (config.commandName === 'add' && request) {
       if (request.resolver && request.resolver.activity) {
         request.resolver.activity.end();
       }
-      config.reporter.log(config.reporter.lang('couldntFindVersionThatMatchesRange', body.name, range));
+      config.reporter.log(config.reporter.lang('couldntFindVersionThatMatchesRangeShort', body.name, range));
       let pageSize;
       if (process.stdout instanceof tty.WriteStream) {
         pageSize = process.stdout.rows - 2;
@@ -63,7 +63,12 @@ export default class NpmResolver extends RegistryResolver {
         return body.versions[response.package];
       }
     }
-    throw new MessageError(config.reporter.lang('couldntFindVersionThatMatchesRange', body.name, range));
+    throw new MessageError(config.reporter.lang(
+      'couldntFindVersionThatMatchesRange',
+      body.name,
+      range,
+      Object.keys(body.versions).join(', '),
+    ));
   }
 
   async resolveRequest(): Promise<?Manifest> {
