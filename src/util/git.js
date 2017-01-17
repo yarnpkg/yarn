@@ -352,7 +352,10 @@ export default class Git {
       }
 
       // `git archive` only accepts a treeish and we have no ref to this commit
-      this.supportsArchive = false;
+      if (this.supportsArchive) {
+        this.supportsArchive = false;
+        await this.fetch();
+      }
       return this.ref = this.hash = hash;
     }
 
