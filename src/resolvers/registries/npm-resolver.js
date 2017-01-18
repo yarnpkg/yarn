@@ -23,6 +23,8 @@ type RegistryResponse = {
   "dist-tags": { [key: string]: string },
 };
 
+type InquirerResponses<K, T> = {[key: K]: T};
+
 export default class NpmResolver extends RegistryResolver {
   static registry = 'npm';
 
@@ -52,17 +54,15 @@ export default class NpmResolver extends RegistryResolver {
       if (process.stdout instanceof tty.WriteStream) {
         pageSize = process.stdout.rows - 2;
       }
-      const response: {[key: string]: ?string} = await inquirer.prompt([{
-        name: 'package',
+      const response: InquirerResponses<'version', string> =  await inquirer.prompt([{
+        name: 'version',
         type: 'list',
         message: config.reporter.lang('chooseVersionFromList'),
         choices: Object.keys(body.versions).reverse(),
         pageSize,
       }]);
-      if (response && response.package) {
-        config.reporter.info(config.reporter.lang('packageVersionResolved', body.name, range, response.package));
-        return body.versions[response.package];
-      }
+      config.reporter.info(config.reporter.lang('packageVersionResolved', body.name, range, response.version));
+      return body.versions[response.version];
     }
     throw new MessageError(config.reporter.lang(
       'couldntFindVersionThatMatchesRange',
