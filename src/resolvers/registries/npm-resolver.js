@@ -60,6 +60,7 @@ export default class NpmResolver extends RegistryResolver {
         pageSize,
       }]);
       if (response && response.package) {
+        config.reporter.info(config.reporter.lang('packageVersionResolved', body.name, range, response.package));
         return body.versions[response.package];
       }
     }

@@ -54,6 +54,8 @@ const messages = {
   couldntFindVersionThatMatchesRange: "Couldn't find any versions for $0 that matches $1: Possible versions: $2",
   couldntFindVersionThatMatchesRangeShort: "Couldn't find any versions for $0 that matches $1",
   chooseVersionFromList: 'Please choose a version from this list:',
+  packageVersionResolved: 'Version for $0 has been resolved: $1 will be replaced with $2',
+
   moduleNotInManifest: "This module isn't specified in a manifest.",
   unknownFolderOrTarball: "Passed folder/tarball doesn't exist,",
   unknownPackage: "Couldn't find package $0.",
