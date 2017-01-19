@@ -42,6 +42,7 @@ export type PackageRemote = {
   reference: string,
   resolved?: ?string,
   hash: ?string,
+  packageName: ?string,
 };
 
 // `dependencies` field in package info

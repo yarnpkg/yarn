@@ -13,6 +13,7 @@ const path = require('path');
 export default class BaseFetcher {
   constructor(dest: string, remote: PackageRemote, config: Config) {
     this.reporter = config.reporter;
+    this.packageName = remote.packageName;
     this.reference = remote.reference;
     this.registry = remote.registry;
     this.hash = remote.hash;
