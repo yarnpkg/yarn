@@ -25,6 +25,7 @@ export default class BaseFetcher {
   reporter: Reporter;
   remote: PackageRemote;
   registry: RegistryNames;
+  packageName: ?string;
   reference: string;
   config: Config;
   hash: ?string;
