@@ -743,7 +743,6 @@ test.concurrent('install of scoped package with subdependency conflict should pa
     try {
       await check(config, reporter, {integrity: false}, []);
     } catch (err) {
-      console.log('ERR!', err);
       allCorrect = false;
     }
     expect(allCorrect).toBe(true);
@@ -792,3 +791,13 @@ test.concurrent('a subdependency of an optional dependency that fails should be 
       assert.equal(await fs.exists(path.join(config.cwd, 'node_modules', 'sub-dep')), true);
     });
   });
+
+// disabled while fix is not merged
+test.skip('should not loose dependencies when installing with --production', 
+(): Promise<void> => {
+  // revealed https://github.com/yarnpkg/yarn/issues/2263
+  return runInstall({production: true}, 'prod-should-keep-subdeps', async (config) => {
+    // would be hoisted from gulp/vinyl-fs/glob-stream/minimatch/brace-expansion/balanced-match
+    assert.equal(await getPackageVersion(config, 'balanced-match'), '0.4.2');
+  });
+});

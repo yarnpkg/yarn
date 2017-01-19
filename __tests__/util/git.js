@@ -29,52 +29,26 @@ test('isCommitHash', () => {
     .toBeFalsy();
 });
 
-async function toThrow(f): Promise <boolean> {
-  try {
-    await f();
-    return false;
-  } catch (e) {
-    return true;
-  }
-}
 
-xit('secureUrl', async function (): Promise<void> {
+test('secureUrl', async function (): Promise<void> {
   const reporter = new NoopReporter();
 
-  expect(await
-         toThrow(() => {
-           return Git.secureUrl('http://random.repo', '', reporter);
-         }),
-        ).toEqual(true);
+  let hasException = false;
+  try {
+    await Git.secureUrl('http://fake-fake-fake-fake.com/123.git', '', reporter);
+  } catch (e) {
+    hasException = true;
+  }
+  expect(hasException).toEqual(true);
 
-  expect(await
-         toThrow(() => {
-           return Git.secureUrl('http://random.repo', 'ab_12', reporter);
-         }),
-        ).toEqual(true);
+  let url = await Git.secureUrl('http://github.com/yarnpkg/yarn.git', '', reporter);
+  expect(url).toEqual('https://github.com/yarnpkg/yarn.git');
 
-  expect(await
-         toThrow(() => {
-           return Git.secureUrl('git://random.repo', '', reporter);
-         }),
-        ).toEqual(true);
+  url = await Git.secureUrl('https://github.com/yarnpkg/yarn.git', '', reporter);
+  expect(url).toEqual('https://github.com/yarnpkg/yarn.git');
 
-  expect(await
-         toThrow(() => {
-           return Git.secureUrl('https://random.repo', '', reporter);
-         }),
-        ).toEqual(false);
+  url = await Git.secureUrl('git://github.com/yarnpkg/yarn.git', '', reporter);
+  expect(url).toEqual('https://github.com/yarnpkg/yarn.git');
 
-  expect(await
-         toThrow(() => {
-           return Git.secureUrl('http://random.repo', 'abc12', reporter);
-         }),
-        ).toEqual(false);
-
-  expect(await
-         toThrow(() => {
-           return Git.secureUrl('git://random.repo', 'abc12', reporter);
-         }),
-        ).toEqual(false);
 },
 );

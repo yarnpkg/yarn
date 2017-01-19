@@ -101,6 +101,8 @@ export default class YarnRegistry extends NpmRegistry {
   }
 
   async saveHomeConfig(config: Object): Promise<void> {
+    YarnRegistry.normalizeConfig(config);
+
     for (const key in config) {
       const val = config[key];
 
