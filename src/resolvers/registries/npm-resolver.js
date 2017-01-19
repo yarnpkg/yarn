@@ -189,6 +189,7 @@ export default class NpmResolver extends RegistryResolver {
         reference: this.cleanRegistry(dist.tarball),
         hash: dist.shasum,
         registry: 'npm',
+        packageName: info.name,
       };
     }
 
