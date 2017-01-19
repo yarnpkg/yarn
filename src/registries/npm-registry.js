@@ -52,7 +52,7 @@ export default class NpmRegistry extends Registry {
     return name.replace('/', '%2f');
   }
 
-  request(pathname: string, opts?: RegistryRequestOptions = {}, packageName?: string): Promise<*> {
+  request(pathname: string, opts?: RegistryRequestOptions = {}, packageName: ?string): Promise<*> {
     const registry = addSuffix(this.getRegistry(packageName || pathname), '/');
     const requestUrl = url.resolve(registry, pathname);
     const alwaysAuth = this.getRegistryOrGlobalOption(registry, 'always-auth');
