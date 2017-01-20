@@ -7,6 +7,7 @@ import Lockfile from '../src/lockfile/wrapper.js';
 import Config from '../src/config.js';
 import makeTemp from './_temp.js';
 import * as fs from '../src/util/fs.js';
+import * as constants from '../src/constants.js';
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000;
 
@@ -15,9 +16,9 @@ const path = require('path');
 // regexp which verifies that cache path contains semver + hash
 const cachePathRe = /-\d+\.\d+\.\d+-[\dabcdef]{40}$/;
 
-function addTest(pattern, registry = 'npm') {
+function addTest(pattern, registry = 'npm', init: ?(cacheFolder: string) => Promise<any>, offline = false) {
   // concurrently network requests tend to stall
-  test(`resolve ${pattern}`, async () => {
+  test(`${offline ? 'offline ' : ''}resolve ${pattern}`, async () => {
     const lockfile = new Lockfile();
     const reporter = new reporters.NoopReporter({});
 
@@ -25,10 +26,14 @@ function addTest(pattern, registry = 'npm') {
     await fs.mkdirp(path.join(loc, 'node_modules'));
     const cacheFolder = path.join(loc, 'cache');
     await fs.mkdirp(cacheFolder);
+    if (init) {
+      await init(cacheFolder);
+    }
 
     const config = new Config(reporter);
     await config.init({
       cwd: loc,
+      offline,
       cacheFolder,
     });
     const resolver = new PackageResolver(config, lockfile);
@@ -59,3 +64,9 @@ addTest('react-native'); // npm
 addTest('ember-cli'); // npm
 addTest('npm:gulp'); // npm
 addTest('@polymer/iron-icon'); // npm scoped package
+addTest('@foo/bar@1.2.3', 'npm', async (cacheFolder) => {
+  const folder = path.join(cacheFolder, 'npm-@foo', 'bar');
+  await fs.mkdirp(folder);
+  await fs.writeFile(path.join(folder, constants.METADATA_FILENAME), '{"remote": {"hash": "cafebabecafebabecafebabecafebabecafebabe"}}');
+  await fs.writeFile(path.join(folder, 'package.json'), '{"name": "@foo/bar", "version": "1.2.3"}');
+}, true); // offline npm scoped package
