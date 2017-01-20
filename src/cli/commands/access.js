@@ -31,11 +31,11 @@ export const {run, setFlags} = buildSubCommands('access', {
     return Promise.reject(new Error('TODO'));
   },
 }, [
-  'access public [<package>]',
-  'access restricted [<package>]',
-  'access grant <read-only|read-write> <scope:team> [<package>]',
-  'access revoke <scope:team> [<package>]',
-  'access ls-packages [<user>|<scope>|<scope:team>]',
-  'access ls-collaborators [<package> [<user>]]',
-  'access edit [<package>]',
+  'public [<package>]',
+  'restricted [<package>]',
+  'grant <read-only|read-write> <scope:team> [<package>]',
+  'revoke <scope:team> [<package>]',
+  'ls-packages [<user>|<scope>|<scope:team>]',
+  'ls-collaborators [<package> [<user>]]',
+  'edit [<package>]',
 ]);
