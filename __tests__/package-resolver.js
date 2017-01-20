@@ -60,7 +60,7 @@ addTest('gist:d59975ac23e26ad4e25b'); // gist url
 addTest('bitbucket:hgarcia/node-bitbucket-api'); // bitbucket url
 addTest('scrollin'); // npm
 addTest('gulp'); // npm
-addTest('react-native'); // npm
+addTest('react-native'); // /npm
 addTest('ember-cli'); // npm
 addTest('npm:gulp'); // npm
 addTest('@polymer/iron-icon'); // npm scoped package
