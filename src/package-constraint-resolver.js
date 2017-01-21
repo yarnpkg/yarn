@@ -19,6 +19,11 @@ export default class PackageConstraintResolver {
   config: Config;
 
   reduce(versions: Array<string>, range: string): Promise<?string> {
-    return Promise.resolve(semver.maxSatisfying(versions, range, this.config.looseSemver));
+    if (range === 'latest') {
+      // Usually versions are already ordered and the last one is the latest
+      return Promise.resolve(versions[versions.length - 1]);
+    } else {
+      return Promise.resolve(semver.maxSatisfying(versions, range, this.config.looseSemver));
+    }
   }
 }
