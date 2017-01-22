@@ -53,7 +53,7 @@ export default class NpmRegistry extends Registry {
   }
 
   request(pathname: string, opts?: RegistryRequestOptions = {}, packageName: ?string): Promise<*> {
-    const registry = addSuffix(this.getRegistry(packageName || pathname), '/');
+    const registry = this.getRegistry(packageName || pathname);
     const requestUrl = url.resolve(registry, pathname);
     const alwaysAuth = this.getRegistryOrGlobalOption(registry, 'always-auth');
 
@@ -152,7 +152,7 @@ export default class NpmRegistry extends Registry {
       const availableRegistries = this.getAvailableRegistries();
       const registry = availableRegistries.find((registry) => packageName.startsWith(registry));
       if (registry) {
-        return registry;
+        return addSuffix(registry, '/');
       }
     }
 
@@ -160,7 +160,7 @@ export default class NpmRegistry extends Registry {
       const registry = this.getScopedOption(scope, 'registry')
                     || this.registries.yarn.getScopedOption(scope, 'registry');
       if (registry) {
-        return String(registry);
+        return addSuffix(String(registry), '/');
       }
     }
 
