@@ -3,7 +3,7 @@
 import type {Manifest} from '../../types.js';
 import type Config from '../../config.js';
 import type PackageRequest from '../../package-request.js';
-import {MessageError} from '../../errors.js';
+import {MessageError, PackageVersionError} from '../../errors.js';
 import RegistryResolver from './registry-resolver.js';
 import NpmRegistry from '../../registries/npm-registry.js';
 import map from '../../util/map.js';
@@ -62,7 +62,7 @@ export default class NpmResolver extends RegistryResolver {
         pageSize,
       }]);
       config.reporter.info(config.reporter.lang('packageVersionResolved', body.name, range, response.version));
-      return body.versions[response.version];
+      throw new PackageVersionError(body.name, range, response.package, body.versions[response.package]);
     }
     throw new MessageError(config.reporter.lang(
       'couldntFindVersionThatMatchesRange',
