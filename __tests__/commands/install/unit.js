@@ -41,3 +41,19 @@ test.concurrent('flat arg is inherited from root manifest', async (): Promise<vo
     assert.equal(install.flags.flat, true);
   });
 });
+
+test.concurrent('incorrect versions throw an error', async (): Promise<void> => {
+  const cwd = path.join(fixturesLoc, 'incorrect-version');
+  const reporter = new reporters.NoopReporter();
+  const config = new Config(reporter);
+  await config.init({cwd});
+  const install = new Install({}, config, reporter, new Lockfile());
+  let thrown = false;
+  try {
+    await install.fetchRequestFromCwd();
+  } catch (err) {
+    thrown = true;
+    expect(err.message).toContain(reporter.lang('couldntFindVersionThatMatchesRange', 'is-array', '100', ''));
+  }
+  assert(thrown);
+});

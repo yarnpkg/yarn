@@ -6,12 +6,16 @@ import type {DependencyRequestPatterns, Manifest} from '../../types.js';
 import type Config from '../../config.js';
 import type {ListOptions} from './list.js';
 import Lockfile from '../../lockfile/wrapper.js';
+import lockStringify from '../../lockfile/stringify.js';
 import PackageRequest from '../../package-request.js';
 import {buildTree} from './list.js';
 import {wrapLifecycle, Install} from './install.js';
 import {MessageError} from '../../errors.js';
+import * as constants from '../../constants.js';
+import * as fs from '../../util/fs.js';
 
 const invariant = require('invariant');
+const path = require('path');
 
 export class Add extends Install {
   constructor(
@@ -80,6 +84,9 @@ export class Add extends Install {
     patterns: Array<string>,
   ): Array<string> {
     const preparedPatterns = patterns.slice();
+
+    this.reporter.log(`Add:preparePatterns ${this.resolver.dedupePatterns(this.args)}`);
+
     for (const pattern of this.resolver.dedupePatterns(this.args)) {
       const pkg = this.resolver.getResolvedPattern(pattern);
       invariant(pkg, `missing package ${pattern}`);
@@ -92,6 +99,7 @@ export class Add extends Install {
       }
       this.resolver.replacePattern(pattern, newPattern);
     }
+    this.reporter.log(`addedPatterns: ${JSON.stringify(this.addedPatterns)}`);
     return preparedPatterns;
   }
 
@@ -110,7 +118,38 @@ export class Add extends Install {
     const patterns = await Install.prototype.init.call(this);
     await this.maybeOutputSaveTree(patterns);
     await this.savePackages();
+    await this._saveLockfileAndIntegrity(patterns);
     return patterns;
+  }
+
+  saveLockfileAndIntegrity(patterns: Array<string>): Promise<void> {}
+
+  async _saveLockfileAndIntegrity(patterns: Array<string>): Promise<void> {
+    // stringify current lockfile
+    const lockSource = lockStringify(this.lockfile.getLockfile(this.resolver.patterns));
+
+    // write integrity hash
+    await this.writeIntegrityHash(lockSource, patterns);
+
+    // --no-lockfile or --pure-lockfile flag
+    if (this.flags.lockfile === false || this.flags.pureLockfile) {
+      return;
+    }
+
+    const inSync = this.lockFileInSync(patterns);
+
+    // remove is followed by install with force on which we rewrite lockfile
+    if (inSync && patterns.length && !this.flags.force) {
+      return;
+    }
+
+    // build lockfile location
+    const loc = path.join(this.config.cwd, constants.LOCKFILE_FILENAME);
+
+    // write lockfile
+    await fs.writeFilePreservingEol(loc, lockSource);
+
+    this._logSuccessSaveLockfile();
   }
 
   /**
@@ -154,6 +193,7 @@ export class Add extends Install {
 
     // add new patterns to their appropriate registry manifest
     for (const pattern of this.addedPatterns) {
+      this.reporter.log(`Add:savePackages:addedPattern: ${pattern}`);
       const pkg = this.resolver.getResolvedPattern(pattern);
       invariant(pkg, `missing package ${pattern}`);
       const version = this.getPatternVersion(pattern, pkg);
@@ -174,11 +214,7 @@ export class Add extends Install {
       const {object} = manifests[ref.registry];
 
       object[target] = object[target] || {};
-      if (pattern.endsWith(pkg.version)) {
-        object[target][pkg.name] = version;
-      } else {
-        object[target][pkg.name] = pkg.version;
-      }
+      object[target][pkg.name] = version;
     }
 
     await this.config.saveRootManifests(manifests);

@@ -376,6 +376,7 @@ export class Install {
 
     steps.push(async (curr: number, total: number) => {
       this.reporter.step(curr, total, this.reporter.lang('resolvingPackages'), emoji.get('mag'));
+      this.reporter.log(`depRequests: ${JSON.stringify(depRequests)}`);
       await this.resolver.init(this.prepareRequests(depRequests), this.flags.flat);
       patterns = await this.flatten(this.preparePatterns(rawPatterns));
       return {bailout: await this.bailout(usedPatterns)};

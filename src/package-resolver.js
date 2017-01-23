@@ -326,6 +326,7 @@ export default class PackageResolver {
    */
 
   addPattern(pattern: string, info: Manifest) {
+    this.reporter.log(`PackageResolver:addPattern ${pattern}`);
     this.patterns[pattern] = info;
 
     const byName = this.patternsByPackage[info.name] = this.patternsByPackage[info.name] || [];
