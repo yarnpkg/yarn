@@ -814,7 +814,7 @@ test.concurrent('incorrect versions throw an error', async (): Promise<void> => 
   const reporter = new reporters.ConsoleReporter({});
   let thrown = false;
   try {
-    await runInstall('incorrect-version', () => {});
+    await runInstall({}, 'incorrect-version', () => {});
   } catch (err) {
     thrown = true;
     expect(err.message).toContain(reporter.lang('couldntFindVersionThatMatchesRange', 'is-array', '100', ''));
