@@ -214,13 +214,6 @@ export default class PackageRequest {
       // swallow warnings
     });
 
-    // replace the pattern if we queried the user after an invalid range
-    // if (this.resolver.isNewPattern(this.pattern)) {
-    //   if (!this.pattern.endsWith(info.version)) {
-    //     this.pattern = `${info.name}@${info.version}`;
-    //   }
-    // }
-
     // check if while we were resolving this dep we've already resolved one that satisfies
     // the same range
     const {range, name} = PackageRequest.normalizePattern(this.pattern);

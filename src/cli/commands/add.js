@@ -80,9 +80,6 @@ export class Add extends Install {
     patterns: Array<string>,
   ): Array<string> {
     const preparedPatterns = patterns.slice();
-
-    this.reporter.log(`Add:preparePatterns ${this.resolver.dedupePatterns(this.args)}`);
-
     for (const pattern of this.resolver.dedupePatterns(this.args)) {
       const pkg = this.resolver.getResolvedPattern(pattern);
       invariant(pkg, `missing package ${pattern}`);
@@ -95,7 +92,6 @@ export class Add extends Install {
       }
       this.resolver.replacePattern(pattern, newPattern);
     }
-    this.reporter.log(`addedPatterns: ${JSON.stringify(this.addedPatterns)}`);
     return preparedPatterns;
   }
 
@@ -173,7 +169,6 @@ export class Add extends Install {
 
     // add new patterns to their appropriate registry manifest
     for (const pattern of this.addedPatterns) {
-      this.reporter.log(`Add:savePackages:addedPattern: ${pattern}`);
       const pkg = this.resolver.getResolvedPattern(pattern);
       invariant(pkg, `missing package ${pattern}`);
       const version = this.getPatternVersion(pattern, pkg);

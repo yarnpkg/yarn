@@ -62,7 +62,7 @@ export default class NpmResolver extends RegistryResolver {
         pageSize,
       }]);
       config.reporter.info(config.reporter.lang('packageVersionResolved', body.name, range, response.version));
-      throw new PackageVersionError(body.name, range, response.package, body.versions[response.package]);
+      throw new PackageVersionError(body.name, range, response.package);
     }
     throw new MessageError(config.reporter.lang(
       'couldntFindVersionThatMatchesRange',
