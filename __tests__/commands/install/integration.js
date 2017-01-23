@@ -809,3 +809,15 @@ test.concurrent('a allows dependency with [] in os cpu requirements',
       assert(await fs.exists(path.join(config.cwd, 'node_modules', 'feed')));
     });
   });
+
+test.concurrent('incorrect versions throw an error', async (): Promise<void> => {
+  const reporter = new reporters.ConsoleReporter({});
+  let thrown = false;
+  try {
+    await runInstall('incorrect-version', () => {});
+  } catch (err) {
+    thrown = true;
+    expect(err.message).toContain(reporter.lang('couldntFindVersionThatMatchesRange', 'is-array', '100', ''));
+  }
+  assert(thrown);
+});
