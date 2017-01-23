@@ -793,11 +793,19 @@ test.concurrent('a subdependency of an optional dependency that fails should be 
   });
 
 // disabled while fix is not merged
-test.skip('should not loose dependencies when installing with --production', 
-(): Promise<void> => {
-  // revealed https://github.com/yarnpkg/yarn/issues/2263
-  return runInstall({production: true}, 'prod-should-keep-subdeps', async (config) => {
-    // would be hoisted from gulp/vinyl-fs/glob-stream/minimatch/brace-expansion/balanced-match
-    assert.equal(await getPackageVersion(config, 'balanced-match'), '0.4.2');
+test.skip('should not loose dependencies when installing with --production',
+  (): Promise<void> => {
+    // revealed https://github.com/yarnpkg/yarn/issues/2263
+    return runInstall({production: true}, 'prod-should-keep-subdeps', async (config) => {
+      // would be hoisted from gulp/vinyl-fs/glob-stream/minimatch/brace-expansion/balanced-match
+      assert.equal(await getPackageVersion(config, 'balanced-match'), '0.4.2');
+    });
   });
-});
+
+// https://github.com/yarnpkg/yarn/issues/2470
+test.concurrent('a allows dependency with [] in os cpu requirements',
+  (): Promise<void> => {
+    return runInstall({}, 'empty-os', async (config) => {
+      assert(await fs.exists(path.join(config.cwd, 'node_modules', 'feed')));
+    });
+  });
