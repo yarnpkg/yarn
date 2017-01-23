@@ -817,7 +817,7 @@ test.concurrent('incorrect versions throw an error', async (): Promise<void> => 
     await runInstall({}, 'incorrect-version', () => {});
   } catch (err) {
     thrown = true;
-    expect(err.message).toContain(reporter.lang('couldntFindVersionThatMatchesRange', 'is-array', '100', ''));
+    expect(err.message).toContain(reporter.lang('couldntFindVersionThatMatchesRangeShort', 'is-array', '100'));
   }
   assert(thrown);
 });
