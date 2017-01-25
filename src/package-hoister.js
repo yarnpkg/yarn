@@ -13,8 +13,9 @@ type Parts = Array<string>;
 let historyCounter = 0;
 
 export class HoistManifest {
-  constructor(key: string, parts: Parts, pkg: Manifest, loc: string, isIgnored: () => boolean) {
+  constructor(key: string, parts: Parts, pkg: Manifest, loc: string, isIgnored: boolean, inheritIsIgnored: boolean) {
     this.isIgnored = isIgnored;
+    this.inheritIsIgnored = inheritIsIgnored;
     this.loc = loc;
     this.pkg = pkg;
 
@@ -27,7 +28,8 @@ export class HoistManifest {
     this.addHistory(`Start position = ${key}`);
   }
 
-  isIgnored: () => boolean;
+  isIgnored: boolean;
+  inheritIsIgnored: boolean;
   pkg: Manifest;
   loc: string;
   parts: Parts;
@@ -92,6 +94,7 @@ export default class PackageHoister {
     while (true) {
       let queue = this.levelQueue;
       if (!queue.length) {
+        this._propagateNonIgnored();
         return;
       }
 
@@ -130,7 +133,8 @@ export default class PackageHoister {
 
     //
     let parentParts: Parts = [];
-    let isIgnored = () => ref.ignore;
+    let isIgnored = ref.ignore;
+    let inheritIsIgnored = false;
 
     if (parent) {
       if (!this.tree.get(parent.key)) {
@@ -138,8 +142,9 @@ export default class PackageHoister {
       }
       // non ignored dependencies inherit parent's ignored status
       // parent may transition from ignored to non ignored when hoisted if it is used in another non ignored branch
-      if (!isIgnored() && parent.isIgnored()) {
-        isIgnored = () => !!parent && parent.isIgnored();
+      if (!isIgnored && parent.isIgnored) {
+        isIgnored = parent.isIgnored;
+        inheritIsIgnored = true;
       }
       parentParts = parent.parts;
     }
@@ -148,7 +153,7 @@ export default class PackageHoister {
     const loc: string = this.config.generateHardModulePath(ref);
     const parts = parentParts.concat(pkg.name);
     const key: string = this.implodeKey(parts);
-    const info: HoistManifest = new HoistManifest(key, parts, pkg, loc, isIgnored);
+    const info: HoistManifest = new HoistManifest(key, parts, pkg, loc, isIgnored, inheritIsIgnored);
 
     //
     this.tree.set(key, info);
@@ -160,6 +165,61 @@ export default class PackageHoister {
     }
 
     return info;
+  }
+
+  /**
+   * Propagate inherited ignore statuses from non-ignored to ignored packages
+  */
+
+  _propagateNonIgnored() {
+    //
+    const toVisit: Array<HoistManifest> = [];
+
+    // enumerate all non-ignored packages
+    for (const entry of this.tree.entries()) {
+      if (!entry[1].isIgnored) {
+        toVisit.push(entry[1]);
+      }
+    }
+
+    // visit them
+    while (toVisit.length) {
+      const info = toVisit.shift();
+      const ref = info.pkg._reference;
+      invariant(ref, 'expected reference');
+
+      for (const depPattern of ref.dependencies) {
+        const depinfo = this._lookupDependency(info, depPattern);
+        if (depinfo && depinfo.isIgnored && depinfo.inheritIsIgnored) {
+          depinfo.isIgnored = false;
+          info.addHistory(`Mark as non-ignored because of usage by ${info.key}`);
+          toVisit.push(depinfo);
+        }
+      }
+    }
+  }
+
+  /**
+   * Looks up the package a dependency resolves to
+  */
+
+  _lookupDependency(info: HoistManifest, depPattern: string): ?HoistManifest {
+    //
+    const pkg = this.resolver.getStrictResolvedPattern(depPattern);
+    const ref = pkg._reference;
+    invariant(ref, 'expected reference');
+
+    //
+    for (let i = info.parts.length; i >= 0; i--) {
+      const checkParts = info.parts.slice(0, i).concat(pkg.name);
+      const checkKey = this.implodeKey(checkParts);
+      const existing = this.tree.get(checkKey);
+      if (existing) {
+        return existing;
+      }
+    }
+
+    return null;
   }
 
   /**
@@ -186,7 +246,7 @@ export default class PackageHoister {
       if (existing) {
         if (existing.loc === info.loc) {
           // switch to non ignored if earlier deduped version was ignored
-          if (existing.isIgnored() && !info.isIgnored()) {
+          if (existing.isIgnored && !info.isIgnored) {
             existing.isIgnored = info.isIgnored;
           }
 
@@ -392,7 +452,7 @@ export default class PackageHoister {
       const ref = info.pkg._reference;
       invariant(ref, 'expected reference');
 
-      if (info.isIgnored()) {
+      if (info.isIgnored) {
         info.addHistory('Deleted as this module was ignored');
       } else {
         visibleFlatTree.push([loc, info]);

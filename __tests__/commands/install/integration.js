@@ -816,8 +816,7 @@ test.concurrent('a subdependency of an optional dependency that fails should be 
     });
   });
 
-// disabled while fix is not merged
-test.skip('should not loose dependencies when installing with --production',
+test.concurrent('should not loose dependencies when installing with --production',
   (): Promise<void> => {
     // revealed https://github.com/yarnpkg/yarn/issues/2263
     return runInstall({production: true}, 'prod-should-keep-subdeps', async (config) => {
