@@ -199,6 +199,9 @@ export default class PackageRequest {
     }
   }
 
+  reportResolvedRangeMatch(info: Manifest, resolved: Manifest) {
+  }
+
   /**
    * TODO description
    */
@@ -219,6 +222,7 @@ export default class PackageRequest {
     const {range, name} = PackageRequest.normalizePattern(this.pattern);
     const resolved: ?Manifest = this.resolver.getHighestRangeVersionMatch(name, range);
     if (resolved) {
+      this.reportResolvedRangeMatch(info, resolved);
       const ref = resolved._reference;
       invariant(ref, 'Resolved package info has no package reference');
       ref.addRequest(this);

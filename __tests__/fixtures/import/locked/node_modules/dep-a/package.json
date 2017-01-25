@@ -1,0 +1,9 @@
+{
+  "name": "dep-a",
+  "version": "1.0.0",
+  "dependencies": {
+    "dep-c": "^1.0.0"
+  },
+  "_shasum": "DEP-A_SHASUM",
+  "_resolved": "http://tar.ball/dep-a.tgz"
+}

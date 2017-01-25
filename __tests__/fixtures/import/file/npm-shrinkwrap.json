@@ -1,0 +1,11 @@
+{
+  "name": "file",
+  "version": "1.0.0",
+  "dependencies": {
+    "file-dep-a": {
+      "version": "1.0.0",
+      "from": "deps/a",
+      "resolved": "file:deps/a"
+    }
+  }
+}
