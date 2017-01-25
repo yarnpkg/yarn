@@ -173,37 +173,34 @@ export default class PackageHoister {
 
   _propagateNonIgnored() {
     //
-    const tovisit: Array<HoistManifest> = [];
+    const toVisit: Array<HoistManifest> = [];
 
     // enumerate all non-ignored packages
     for (const entry of this.tree.entries()) {
       if (!entry[1].isIgnored) {
-        tovisit.push(entry[1]);
+        toVisit.push(entry[1]);
       }
     }
 
     // visit them
-    while (tovisit.length) {
-      const info = tovisit.shift();
+    while (toVisit.length) {
+      const info = toVisit.shift();
       const ref = info.pkg._reference;
       invariant(ref, 'expected reference');
 
       for (const depPattern of ref.dependencies) {
-        //
         const depinfo = this._lookupDependency(info, depPattern);
-
-        //
         if (depinfo && depinfo.isIgnored && depinfo.inheritIsIgnored) {
           depinfo.isIgnored = false;
           info.addHistory(`Mark as non-ignored because of usage by ${info.key}`);
-          tovisit.push(depinfo);
+          toVisit.push(depinfo);
         }
       }
     }
   }
 
   /**
-   * Looks up the package a dependency resolved to
+   * Looks up the package a dependency resolves to
   */
 
   _lookupDependency(info: HoistManifest, depPattern: string): ?HoistManifest {
