@@ -12,6 +12,17 @@ import {fixCmdWinSlashes} from '../../util/fix-cmd-win-slashes.js';
 const leven = require('leven');
 const path = require('path');
 
+function sanitizedArgs(args: Array<string>): Array<string> {
+  const newArgs = [];
+  for (let arg of args) {
+    if (/\s/.test(arg)) {
+      arg = `"${arg}"`;
+    }
+    newArgs.push(arg);
+  }
+  return newArgs;
+}
+
 export async function run(
   config: Config,
   reporter: Reporter,
@@ -67,7 +78,8 @@ export async function run(
     if (cmds.length) {
       for (const [stage, cmd] of cmds) {
         // only tack on trailing arguments for default script, ignore for pre and post - #1595
-        const cmdWithArgs = stage === action ? `${cmd} ${args.join(' ')}` : cmd;
+        const defaultScriptCmd = `${cmd} ${sanitizedArgs(args).join(' ')}`;
+        const cmdWithArgs = stage === action ? defaultScriptCmd : cmd;
         await execCommand(stage, config, cmdWithArgs, config.cwd);
       }
     } else {
