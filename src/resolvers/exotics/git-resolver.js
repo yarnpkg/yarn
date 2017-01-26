@@ -11,6 +11,7 @@ import ExoticResolver from './exotic-resolver.js';
 import Git from '../../util/git.js';
 
 const urlParse = require('url').parse;
+const urlFormat = require('url').format;
 
 // we purposefully omit https and http as those are only valid if they end in the .git extension
 const GIT_PROTOCOLS = ['git:', 'git+ssh:', 'git+https:', 'ssh:'];
@@ -92,7 +93,15 @@ export default class GitResolver extends ExoticResolver {
     }
 
     const {config} = this;
-    const client = new Git(config, url, this.hash);
+
+    if (parts.pathname) {
+      parts.pathname = parts.pathname.replace(/^\/:/, '/');
+    }
+
+    // $FlowFixMe: https://github.com/facebook/flow/issues/908
+    const transformedUrl = urlFormat(parts);
+
+    const client = new Git(config, transformedUrl, this.hash);
     const commit = await client.init();
 
     async function tryRegistry(registry): Promise<?Manifest> {
@@ -103,12 +112,12 @@ export default class GitResolver extends ExoticResolver {
         return null;
       }
 
-      const json = await config.readJson(`${url}/${filename}`, () => JSON.parse(file));
+      const json = await config.readJson(`${transformedUrl}/${filename}`, () => JSON.parse(file));
       json._uid = commit;
       json._remote = {
-        resolved: `${url}#${commit}`,
+        resolved: `${transformedUrl}#${commit}`,
         type: 'git',
-        reference: url,
+        reference: transformedUrl,
         hash: commit,
         registry,
       };
@@ -131,6 +140,6 @@ export default class GitResolver extends ExoticResolver {
       }
     }
 
-    throw new MessageError(this.reporter.lang('couldntFindManifestIn', url));
+    throw new MessageError(this.reporter.lang('couldntFindManifestIn', transformedUrl));
   }
 }
