@@ -1,9 +1,11 @@
 #!/bin/sh
-basedir=$(dirname "$(readlink -f "$0" || echo "$(echo "$0" | sed -e 's,\\,/,g')")")
+argv0=$(echo "$0" | sed -e 's,\\,/,g')
+basedir=$(dirname "$(readlink "$0" || echo "$argv0")")
 
 use_winpty=0
 
-case `uname` in
+case "$(uname -s)" in
+  Linux) basedir=$(dirname "$(readlink -f "$0" || echo "$argv0")")
   *CYGWIN*) basedir=`cygpath -w "$basedir"`;;
   MSYS*|MINGW*) use_winpty=1;;
 esac
