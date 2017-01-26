@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "a": "file:./a",
+    "b": "file:./b"
+  }
+}

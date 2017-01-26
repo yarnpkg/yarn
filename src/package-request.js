@@ -70,7 +70,7 @@ export default class PackageRequest {
     // always prioritise root lockfile
     const shrunk = this.lockfile.getLocked(this.pattern);
 
-    if (shrunk) {
+    if (shrunk && shrunk.resolved) {
       const resolvedParts = versionUtil.explodeHashedUrl(shrunk.resolved);
 
       return {
