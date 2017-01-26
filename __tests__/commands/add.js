@@ -630,9 +630,38 @@ test.skip('add asks for correct package version if user passes an incorrect one'
 
 test.concurrent('install with latest tag', (): Promise<void> => {
   return runAdd(['left-pad@latest'], {}, 'latest-version-in-package', async (config) => {
+    const lockfile = explodeLockfile(await fs.readFile(path.join(config.cwd, 'yarn.lock')));
     const pkg = await fs.readJson(path.join(config.cwd, 'package.json'));
     const version = await getPackageVersion(config, 'left-pad');
 
     assert.deepEqual(pkg.dependencies, {'left-pad': `^${version}`});
+    assert(lockfile.indexOf(`left-pad@^${version}:`) === 0);
+  });
+});
+
+test.concurrent('install with latest tag and --offline flag', (): Promise<void> => {
+  return runAdd(['left-pad@latest'], {}, 'latest-version-in-package', async (config, reporter, previousAdd) => {
+    config.offline = true;
+    const add = new Add(['left-pad@latest'], {}, config, reporter, previousAdd.lockfile);
+    await add.init();
+
+    const pkg = await fs.readJson(path.join(config.cwd, 'package.json'));
+    const version = await getPackageVersion(config, 'left-pad');
+
+    assert.deepEqual(pkg.dependencies, {'left-pad': `^${version}`});
+  });
+});
+
+test.concurrent('install with latest tag and --prefer-offline flag', (): Promise<void> => {
+  return runAdd(['left-pad@1.1.0'], {}, 'latest-version-in-package', async (config, reporter, previousAdd) => {
+    config.preferOffline = true;
+    const add = new Add(['left-pad@latest'], {}, config, reporter, previousAdd.lockfile);
+    await add.init();
+
+    const pkg = await fs.readJson(path.join(config.cwd, 'package.json'));
+    const version = await getPackageVersion(config, 'left-pad');
+
+    assert.deepEqual(pkg.dependencies, {'left-pad': `^${version}`});
+    assert.notEqual(version, '1.1.0');
   });
 });
