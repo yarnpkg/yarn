@@ -17,7 +17,7 @@
     "detect-indent": "^4.0.0",
     "diff": "^2.2.1",
     "ini": "^1.3.4",
-    "inquirer": "^1.2.2",
+    "inquirer": "^3.0.1",
     "invariant": "^2.2.0",
     "is-builtin-module": "^1.0.0",
     "is-ci": "^1.0.10",
