@@ -126,6 +126,11 @@ export default class NpmRegistry extends Registry {
 
     for (const [, loc, file] of await this.getPossibleConfigLocations('.npmrc')) {
       const config = Registry.normalizeConfig(ini.parse(file));
+
+      if (config.prefix && userHome) {
+        config.prefix = config.prefix.replace(/^~($|\/)/, `${userHome}$1`);
+      }
+
       for (const key: string in config) {
         config[key] = envReplace(config[key]);
       }

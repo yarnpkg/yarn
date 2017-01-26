@@ -5,13 +5,16 @@ import * as reporters from '../../src/reporters/index.js';
 import * as configCmd from '../../src/cli/commands/config.js';
 import {run as buildRun} from './_helpers.js';
 import * as fs from '../../src/util/fs.js';
+import home from 'user-home';
 
 const path = require('path');
+
+const fixturesLoc = path.join(__dirname, '..', 'fixtures', 'config');
 
 const runConfig = buildRun.bind(
   null,
   reporters.ConsoleReporter,
-  '',
+  fixturesLoc,
   (args, flags, config, reporter): CLIFunctionReturn => {
     config.registries.yarn.homeConfigLoc = path.join(config.cwd, '.yarnrc');
     return configCmd.run(config, reporter, flags, args);
@@ -47,5 +50,11 @@ test('set value "false" to an option', (): Promise<void> => {
 test('set value "true" to an option', (): Promise<void> => {
   return runConfig(['set', 'strict-ssl', 'true'], {}, '', (config) => {
     expect(config.registries.yarn.homeConfig['strict-ssl']).toBe(true);
+  });
+});
+
+test('get prefix interprets tilde', (): Promise<void> => {
+  return runConfig(['get', 'prefix'], {}, 'get-prefix-interprets-tilde', (config) => {
+    expect(config.registries.npm.config.prefix).toBe(`${home}/lol`);
   });
 });
