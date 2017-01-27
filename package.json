@@ -50,7 +50,6 @@
     "babel-plugin-transform-es2015-typeof-symbol": "^6.8.0",
     "babel-plugin-transform-inline-imports-commonjs": "^1.0.0",
     "babel-plugin-transform-runtime": "^6.4.3",
-    "babel-preset-es2015": "^6.3.13",
     "babel-preset-es2015-node4": "^2.1.0",
     "babel-preset-node5": "^10.2.0",
     "babel-preset-stage-0": "^6.0.0",
