@@ -18,7 +18,6 @@ import {sortTrees, recurseTree, getFormattedOutput} from './helpers/tree-helper.
 
 const {inspect} = require('util');
 const readline = require('readline');
-const repeat = require('repeating');
 const chalk = require('chalk');
 const read = require('read');
 
@@ -74,7 +73,7 @@ export default class ConsoleReporter extends BaseReporter {
         const field = row[i];
         const padding = cols[i] - this.format.stripColor(field).length;
 
-        row[i] = field + repeat(' ', padding);
+        row[i] = field + ' '.repeat(padding);
       }
       return row.join(' ');
     });
@@ -112,12 +111,12 @@ export default class ConsoleReporter extends BaseReporter {
 
     if (hints) {
       for (const item of items) {
-        this._log(`${repeat(' ', gutterWidth)}- ${item}`);
-        this._log(`  ${repeat(' ', gutterWidth)} ${hints[item]}`);
+        this._log(`${' '.repeat(gutterWidth)}- ${item}`);
+        this._log(`  ${' '.repeat(gutterWidth)} ${hints[item]}`);
       }
     } else {
       for (const item of items) {
-        this._log(`${repeat(' ', gutterWidth)}- ${item}`);
+        this._log(`${' '.repeat(gutterWidth)}- ${item}`);
       }
     }
   }
