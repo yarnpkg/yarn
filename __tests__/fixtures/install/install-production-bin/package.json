@@ -1,0 +1,9 @@
+{
+  "devDependencies": {
+    "eslint": "^3.14.1"
+  },
+  "dependencies": {
+    "gulp": "^3.9.1",
+    "react": "^15.4.1"
+  }
+}
