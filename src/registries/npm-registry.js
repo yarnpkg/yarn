@@ -9,6 +9,10 @@ import NpmResolver from '../resolvers/registries/npm-resolver.js';
 import envReplace from '../util/env-replace.js';
 import Registry from './base-registry.js';
 import {addSuffix, removePrefix} from '../util/misc';
+import {YARN_REGISTRY} from '../constants.js';
+
+const NPM_REGISTRY = /http[s]:\/\/registry.npmjs.org/g;
+const DEFAULT_REGISTRY = 'https://registry.npmjs.org/';
 
 const defaults = require('defaults');
 const userHome = require('user-home');
@@ -16,7 +20,6 @@ const path = require('path');
 const url = require('url');
 const ini = require('ini');
 
-const DEFAULT_REGISTRY = 'https://registry.npmjs.org/';
 
 function getGlobalPrefix(): string {
   if (process.env.PREFIX) {
@@ -66,7 +69,7 @@ export default class NpmRegistry extends Registry {
     }
 
     return this.requestManager.request({
-      url: requestUrl,
+      url: this.cleanRegistry(requestUrl),
       method: opts.method,
       body: opts.body,
       auth: opts.auth,
@@ -201,5 +204,9 @@ export default class NpmRegistry extends Registry {
 
   getScopedOption(scope: string, option: string): mixed {
     return this.getOption(scope + (scope ? ':' : '') + option);
+  }
+
+  cleanRegistry(url: string): string {
+    return url.replace(NPM_REGISTRY, YARN_REGISTRY);
   }
 }

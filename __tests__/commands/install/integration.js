@@ -744,6 +744,20 @@ test('install a scoped module from authed private registry with a missing traili
   });
 });
 
+test('install a private scoped module from the official npm registry', (): Promise<void> => {
+  return runInstall({noLockfile: true}, 'install-private-pkg-from-npm', async (config) => {
+    const authedRequests = request.__getAuthedRequests();
+    assert.equal(authedRequests[0].url, 'https://registry.yarnpkg.com/@types%2flodash');
+    assert.equal(authedRequests[0].headers.authorization, 'Bearer abc123');
+    assert.equal(authedRequests[1].url, 'https://registry.yarnpkg.com/@types/lodash/-/lodash-4.14.37.tgz');
+    assert.equal(authedRequests[1].headers.authorization, 'Bearer abc123');
+    assert.equal(
+      (await fs.readFile(path.join(config.cwd, 'node_modules', '@types', 'lodash', 'index.d.ts'))).split('\n')[0],
+      '// Type definitions for Lo-Dash 4.14',
+    );
+  });
+});
+
 test.concurrent('install will not overwrite files in symlinked scoped directories', async (): Promise<void> => {
   await runInstall({}, 'install-dont-overwrite-linked-scoped', async (config): Promise<void> => {
     const dependencyPath = path.join(config.cwd, 'node_modules', '@fakescope', 'fake-dependency');
@@ -832,3 +846,4 @@ test.concurrent('a allows dependency with [] in os cpu requirements',
       assert(await fs.exists(path.join(config.cwd, 'node_modules', 'feed')));
     });
   });
+
