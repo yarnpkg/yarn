@@ -3,8 +3,6 @@
 import type {Stdout} from '../types.js';
 import {clearLine, toStartOfLine} from './util.js';
 
-const repeat = require('repeating');
-
 export default class ProgressBar {
   constructor(total: number, stdout: Stdout = process.stderr) {
     this.stdout = stdout;
@@ -58,8 +56,8 @@ export default class ProgressBar {
     const availableSpace = Math.max(0, this.stdout.columns - bar.length - 1);
     const width = Math.min(this.total, availableSpace);
     const completeLength = Math.round(width * ratio);
-    const complete = repeat(this.chars[0], completeLength);
-    const incomplete = repeat(this.chars[1], width - completeLength);
+    const complete = this.chars[0].repeat(completeLength);
+    const incomplete = this.chars[1].repeat(width - completeLength);
     bar = `${complete}${incomplete}${bar}`;
 
     toStartOfLine(this.stdout);

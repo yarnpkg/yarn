@@ -30,7 +30,6 @@
     "object-path": "^0.11.2",
     "proper-lockfile": "^2.0.0",
     "read": "^1.0.7",
-    "repeating": "^2.0.0",
     "request": "^2.75.0",
     "request-capture-har": "^1.1.4",
     "rimraf": "^2.5.0",
