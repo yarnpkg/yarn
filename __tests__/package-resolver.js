@@ -30,12 +30,11 @@ function addTest(pattern, registry = 'npm', init: ?(cacheFolder: string) => Prom
       await init(cacheFolder);
     }
 
-    const config = new Config(reporter);
-    await config.init({
+    const config = await Config.create({
       cwd: loc,
       offline,
       cacheFolder,
-    });
+    }, reporter);
     const resolver = new PackageResolver(config, lockfile);
     await resolver.init([{pattern, registry}]);
 
