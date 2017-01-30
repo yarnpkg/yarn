@@ -151,11 +151,11 @@ test.concurrent('--production flag ignores dev dependencies', () => {
 test.concurrent('--production flag does not link dev dependency bin scripts', () => {
   return runInstall({production: true, binLinks: true}, 'install-production-bin', async (config) => {
     assert.ok(
-      !await fs.exists(path.join(config.cwd, 'node_modules', '.bin', 'eslint')),
+      !await fs.exists(path.join(config.cwd, 'node_modules', '.bin', 'touch')),
     );
 
     assert.ok(
-      await fs.exists(path.join(config.cwd, 'node_modules', '.bin', 'gulp')),
+      await fs.exists(path.join(config.cwd, 'node_modules', '.bin', 'rimraf')),
     );
   });
 });
