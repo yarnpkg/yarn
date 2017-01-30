@@ -1,6 +1,7 @@
 /* @flow */
 /* eslint max-len: 0 */
 
+import {Reporter} from '../../src/reporters/index.js';
 import Config from '../../src/config.js';
 import * as fs from '../../src/util/fs.js';
 
@@ -96,7 +97,7 @@ test('RequestManager.request with mutual TLS', async () => {
 });
 
 test('RequestManager.execute Request 403 error', async () => {
-  const config = await Config.create({});
+  const config = await Config.create({}, new Reporter());
   jest.mock('request', (factory) => (options) => {
     options.callback('', {statusCode: 403}, '');
     return {
@@ -113,7 +114,7 @@ test('RequestManager.execute Request 403 error', async () => {
 });
 
 test('RequestManager.request with offlineNoRequests', async () => {
-  const config = await Config.create({offline: true});
+  const config = await Config.create({offline: true}, new Reporter());
   try {
     await config.requestManager.request({url: `https://localhost:port/?nocache`, headers: {Connection: 'close'}});
   } catch (err) {
@@ -122,7 +123,7 @@ test('RequestManager.request with offlineNoRequests', async () => {
 });
 
 test('RequestManager.saveHar no captureHar error message', async () => {
-  const config = await Config.create({captureHar: false});
+  const config = await Config.create({captureHar: false}, new Reporter());
   try {
     config.requestManager.saveHar('testFile');
   } catch (err) {

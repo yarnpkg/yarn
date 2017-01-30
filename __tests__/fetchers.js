@@ -1,6 +1,7 @@
 /* @flow */
 /* eslint max-len: 0 */
 
+import {Reporter} from '../src/reporters/index.js';
 import TarballFetcher, {LocalTarballFetcher} from '../src/fetchers/tarball-fetcher.js';
 import BaseFetcher from '../src/fetchers/base-fetcher.js';
 import CopyFetcher from '../src/fetchers/copy-fetcher.js';
@@ -101,7 +102,7 @@ test('TarballFetcher.fetch throws on invalid hash', async () => {
     hash: 'foo',
     reference: url,
     registry: 'npm',
-  }, await Config.create());
+  }, await Config.create({}, new Reporter()));
   let error;
   try {
     await fetcher.fetch();
