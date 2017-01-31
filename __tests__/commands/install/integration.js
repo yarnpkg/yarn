@@ -148,6 +148,18 @@ test.concurrent('--production flag ignores dev dependencies', () => {
   });
 });
 
+test.concurrent('--production flag does not link dev dependency bin scripts', () => {
+  return runInstall({production: true, binLinks: true}, 'install-production-bin', async (config) => {
+    assert.ok(
+      !await fs.exists(path.join(config.cwd, 'node_modules', '.bin', 'touch')),
+    );
+
+    assert.ok(
+      await fs.exists(path.join(config.cwd, 'node_modules', '.bin', 'rimraf')),
+    );
+  });
+});
+
 test.concurrent("doesn't write new lockfile if existing one satisfied", (): Promise<void> => {
   return runInstall({}, 'install-dont-write-lockfile-if-satisfied', async (config): Promise<void> => {
     const lockfile = await fs.readFile(path.join(config.cwd, 'yarn.lock'));

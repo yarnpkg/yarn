@@ -1,0 +1,8 @@
+{
+  "devDependencies": {
+    "touch": "^1.0.0"
+  },
+  "dependencies": {
+    "rimraf": "^2.5.4"
+  }
+}

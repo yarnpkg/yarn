@@ -304,7 +304,7 @@ export default class PackageLinker {
     const src = this.config.generateHardModulePath(ref);
 
     // link bins
-    if (this.config.binLinks && resolved.bin && Object.keys(resolved.bin).length) {
+    if (this.config.binLinks && resolved.bin && Object.keys(resolved.bin).length && !ref.ignore) {
       const folder = this.config.modulesFolder || path.join(this.config.cwd, this.config.getFolder(resolved));
       const binLoc = path.join(folder, '.bin');
       await fs.mkdirp(binLoc);
