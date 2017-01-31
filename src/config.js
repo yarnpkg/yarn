@@ -12,6 +12,7 @@ import * as constants from './constants.js';
 import ConstraintResolver from './package-constraint-resolver.js';
 import RequestManager from './util/request-manager.js';
 import {registries, registryNames} from './registries/index.js';
+import {NoopReporter} from './reporters/index.js';
 import map from './util/map.js';
 
 const detectIndent = require('detect-indent');
@@ -552,5 +553,11 @@ export default class Config {
         throw err;
       }
     }
+  }
+
+  static async create(opts: ConfigOptions = {}, reporter: Reporter = new NoopReporter()): Promise<Config> {
+    const config = new Config(reporter);
+    await config.init(opts);
+    return config;
   }
 }
