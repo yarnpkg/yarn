@@ -248,6 +248,21 @@ test.concurrent('install file: protocol without cache', async (): Promise<void> 
   });
 });
 
+test.concurrent('install file: local packages with local dependencies', async (): Promise<void> => {
+  await runInstall({}, 'install-file-local-dependency', async (config, reporter) => {
+    const reinstall = new Install({}, config, reporter, await Lockfile.fromDirectory(config.cwd));
+    await reinstall.init();
+    assert.equal(
+      await fs.readFile(path.join(config.cwd, 'node_modules', 'a', 'index.js')),
+      'foo\n',
+    );
+    assert.equal(
+      await fs.readFile(path.join(config.cwd, 'node_modules', 'b', 'index.js')),
+      'bar\n',
+    );
+  });
+});
+
 test.concurrent('install file: protocol', (): Promise<void> => {
   return runInstall({noLockfile: true}, 'install-file', async (config) => {
     assert.equal(
