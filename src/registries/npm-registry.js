@@ -9,6 +9,7 @@ import NpmResolver from '../resolvers/registries/npm-resolver.js';
 import envReplace from '../util/env-replace.js';
 import Registry from './base-registry.js';
 import {addSuffix, removePrefix} from '../util/misc';
+import isRequestToRegistry from './is-request-to-registry.js';
 
 const defaults = require('defaults');
 const userHome = require('user-home');
@@ -58,7 +59,7 @@ export default class NpmRegistry extends Registry {
       || removePrefix(requestUrl, registry)[0] === '@';
 
     const headers = {};
-    if (this.token || (alwaysAuth && requestUrl.startsWith(registry))) {
+    if (this.token || (alwaysAuth && isRequestToRegistry(requestUrl, registry))) {
       const authorization = this.getAuth(pathname);
       if (authorization) {
         headers.authorization = authorization;
