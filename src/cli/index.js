@@ -171,6 +171,9 @@ if (commandName === 'help' || args.indexOf('--help') >= 0 || args.indexOf('-h') 
       console.log();
     });
   }
+  if (commandName !== 'help') {
+    commander.on('--help', () => console.log('  ' + getDocsInfo(commandName) + '\n'));
+  }
 
   commander.parse(startArgs.concat(args));
   commander.help();
