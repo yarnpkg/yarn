@@ -98,6 +98,10 @@ function getUpdateCommand(): ?string {
     return 'choco upgrade yarn';
   }
 
+  if (YARN_INSTALL_METHOD === 'apk') {
+    return 'apk update && apk add -u yarn';
+  }
+
   return null;
 }
 
