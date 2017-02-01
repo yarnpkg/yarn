@@ -38,6 +38,12 @@ for (let i = 0; i < args.length; i++) {
   }
 }
 
+// NOTE: Pending resolution of https://github.com/tj/commander.js/issues/346
+// Remove this (and subsequent use in the logic below) after bug is resolved and issue is closed
+const ARGS_THAT_SHARE_NAMES_WITH_OPTIONS = [
+  'version',
+];
+
 // set global options
 commander.version(pkg.version);
 commander.usage('[command] [flags]');
@@ -172,6 +178,11 @@ if (commandName === 'help' || args.indexOf('--help') >= 0 || args.indexOf('-h') 
 
 // parse flags
 args.unshift(commandName);
+
+if (ARGS_THAT_SHARE_NAMES_WITH_OPTIONS.indexOf(commandName) >= 0 && args[0] === commandName) {
+  args.shift();
+}
+
 commander.parse(startArgs.concat(args));
 commander.args = commander.args.concat(endArgs);
 
