@@ -201,3 +201,15 @@ test.concurrent('install should dedupe dependencies avoiding conflicts 9', (): P
     assert.equal(await getPackageVersion(config, 'run-async'), '0.1.0');
   });
 });
+
+test.concurrent('install should hardlink repeated dependencies', (): Promise<void> => {
+  // A@1
+  // B@1 -> A@2
+  // C@1 -> A@2 (this is hardlink to B@1->A@2)
+  return runInstall({}, 'hardlink-repeated-dependencies', async (config) => {
+    assert.equal(await getPackageVersion(config, 'run-async'), '0.1.0');
+  });
+});
+
+// TODO don't run lifecycle scripts for for hardlinked package.json
+// instead hardlink built artifacts

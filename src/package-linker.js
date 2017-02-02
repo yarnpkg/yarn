@@ -123,8 +123,9 @@ export default class PackageLinker {
     // list of artifacts in modules to remove from extraneous removal
     const phantomFiles = [];
 
-    //
-    const queue: Map<string, CopyQueueItem> = new Map();
+    const copyQueue: Map<string, CopyQueueItem> = new Map();
+    const hardlinkQueue: Map<string, CopyQueueItem> = new Map();
+    const copiedSrcs: Map<string, string> = new Map();
     for (const [dest, {pkg, loc: src}] of flatTree) {
       const ref = pkg._reference;
       invariant(ref, 'expected package reference');
@@ -137,15 +138,29 @@ export default class PackageLinker {
         phantomFiles.push(path.join(dest, file));
       }
 
-      queue.set(dest, {
-        src,
-        dest,
-        onFresh() {
-          if (ref) {
-            ref.setFresh(true);
-          }
-        },
-      });
+      const copiedDest = copiedSrcs.get(src);
+      if (copiedDest) {
+        hardlinkQueue.set(dest, {
+          src: copiedDest,
+          dest,
+          onFresh() {
+            if (ref) {
+              ref.setFresh(true);
+            }
+          },
+        });
+      } else {
+        copiedSrcs.set(src, dest);
+        copyQueue.set(dest, {
+          src,
+          dest,
+          onFresh() {
+            if (ref) {
+              ref.setFresh(true);
+            }
+          },
+        });
+      }
     }
 
     // keep track of all scoped paths to remove empty scopes after copy
@@ -179,13 +194,13 @@ export default class PackageLinker {
       const stat = await fs.lstat(loc);
       if (stat.isSymbolicLink()) {
         possibleExtraneous.delete(loc);
-        queue.delete(loc);
+        copyQueue.delete(loc);
       }
     }
 
     //
     let tick;
-    await fs.copyBulk(Array.from(queue.values()), this.reporter, {
+    await fs.copyBulk(Array.from(copyQueue.values()), this.reporter, {
       possibleExtraneous,
       phantomFiles,
 
@@ -194,6 +209,17 @@ export default class PackageLinker {
         constants.TARBALL_FILENAME,
       ],
 
+      onStart: (num: number) => {
+        tick = this.reporter.progress(num);
+      },
+
+      onProgress(src: string) {
+        if (tick) {
+          tick(src);
+        }
+      },
+    });
+    await fs.hardlinkBulk(Array.from(hardlinkQueue.values()), this.reporter, {
       onStart: (num: number) => {
         tick = this.reporter.progress(num);
       },

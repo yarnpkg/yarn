@@ -1,0 +1,7 @@
+{
+  "dependencies": {
+    "a": "file:deps/a-1",
+    "b": "file:deps/b-1",
+    "c": "file:deps/c-1"
+  }
+}
