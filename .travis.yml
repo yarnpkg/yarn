@@ -52,4 +52,4 @@ before_install:
 os:
   - linux
 
-script: yarn $TEST_TYPE
+script: travis_retry yarn $TEST_TYPE
