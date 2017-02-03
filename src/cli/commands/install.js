@@ -129,7 +129,7 @@ function normalizeFlags(config: Config, rawFlags: Object): Flags {
     pureLockfile: !!rawFlags.pureLockfile,
     skipIntegrity: !!rawFlags.skipIntegrity,
     frozenLockfile: !!rawFlags.frozenLockfile,
-    linkDuplicates: rawFlags.linkDuplicates !== false,
+    linkDuplicates: !!rawFlags.linkDuplicates,
 
     // add
     peer: !!rawFlags.peer,

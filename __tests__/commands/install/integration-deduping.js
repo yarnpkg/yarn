@@ -208,7 +208,7 @@ test.concurrent('install should hardlink repeated dependencies', (): Promise<voi
   // A@1
   // B@1 -> A@2
   // C@1 -> A@2 (this is hardlink to B@1->A@2)
-  return runInstall({}, 'hardlink-repeated-dependencies', async (config) => {
+  return runInstall({linkDuplicates: true}, 'hardlink-repeated-dependencies', async (config) => {
     const b_a = await fs.stat(path.join(
       config.cwd,
       'node_modules/b/node_modules/a/package.json',
