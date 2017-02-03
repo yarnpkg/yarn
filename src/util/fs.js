@@ -499,7 +499,7 @@ export async function copyBulk(
     });
   }, 4);
 
-  // we need to copy symlinks last as the could reference files we were copying
+  // we need to copy symlinks last as they could reference files we were copying
   const symlinkActions: Array<CopySymlinkAction> = (actions.filter((action) => action.type === 'symlink'): any);
   await promise.queue(symlinkActions, (data): Promise<void> => {
     const linkname = path.resolve(path.dirname(data.dest), data.linkname);
@@ -544,7 +544,7 @@ export async function hardlinkBulk(
     await link(data.src, data.dest);
   }, 4);
 
-  // we need to copy symlinks last as the could reference files we were copying
+  // we need to copy symlinks last as they could reference files we were copying
   const symlinkActions: Array<CopySymlinkAction> = (actions.filter((action) => action.type === 'symlink'): any);
   await promise.queue(symlinkActions, (data): Promise<void> => {
     const linkname = path.resolve(path.dirname(data.dest), data.linkname);
@@ -734,7 +734,7 @@ export async function writeFilePreservingEol(path: string, data: string) : Promi
   await promisify(fs.writeFile)(path, data);
 }
 
-export async function hardlinksEnabled(cwd: string): Promise<boolean> {
+export async function hardlinksWork(cwd: string): Promise<boolean> {
   const filename = 'test-file' + Math.random();
   const file = path.join(cwd, filename);
   const fileLink = path.join(cwd, filename + '-link');

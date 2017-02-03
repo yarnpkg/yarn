@@ -125,7 +125,7 @@ export default class PackageLinker {
 
     const copyQueue: Map<string, CopyQueueItem> = new Map();
     const hardlinkQueue: Map<string, CopyQueueItem> = new Map();
-    const hardlinksEnabled = linkDuplicates && await fs.hardlinksEnabled(this.config.cwd);
+    const hardlinksEnabled = linkDuplicates && await fs.hardlinksWork(this.config.cwd);
 
     const copiedSrcs: Map<string, string> = new Map();
     for (const [dest, {pkg, loc: src}] of flatTree) {
