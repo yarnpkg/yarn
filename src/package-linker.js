@@ -125,7 +125,7 @@ export default class PackageLinker {
 
     const copyQueue: Map<string, CopyQueueItem> = new Map();
     const hardlinkQueue: Map<string, CopyQueueItem> = new Map();
-    // TODO check if hardlinks are supported at location
+    const hardlinksEnabled = linkDuplicates && await fs.hardlinksEnabled(this.config.cwd);
 
     const copiedSrcs: Map<string, string> = new Map();
     for (const [dest, {pkg, loc: src}] of flatTree) {
@@ -139,7 +139,6 @@ export default class PackageLinker {
       for (const file of metadata.artifacts) {
         artifactFiles.push(path.join(dest, file));
       }
-      const hardlinksEnabled = linkDuplicates;
 
       const copiedDest = copiedSrcs.get(src);
       if (!copiedDest) {

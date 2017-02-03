@@ -734,6 +734,22 @@ export async function writeFilePreservingEol(path: string, data: string) : Promi
   await promisify(fs.writeFile)(path, data);
 }
 
+export async function hardlinksEnabled(cwd: string): Promise<boolean> {
+  const filename = 'test-file' + Math.random();
+  const file = path.join(cwd, filename);
+  const fileLink = path.join(cwd, filename + '-link');
+  try {
+    await writeFile(file, 'test');
+    await link(file, fileLink);
+  } catch (err) {
+    return false;
+  } finally {
+    await unlink(file);
+    await unlink(fileLink);
+  }
+  return true;
+}
+
 // not a strict polyfill for Node's fs.mkdtemp
 export async function makeTempDir(prefix?: string): Promise<string> {
   const dir = path.join(
