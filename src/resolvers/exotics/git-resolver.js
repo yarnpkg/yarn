@@ -61,6 +61,14 @@ export default class GitResolver extends ExoticResolver {
     return false;
   }
 
+  // This transformUrl util is here to replace colon separators in the pathname
+  // from private urls. It takes the url parts retrieved using urlFormat and
+  // returns the associated url. Related to #573, introduced in #2519.
+  static transformUrl(parts) : string {
+    const pathname = parts.pathname ? parts.pathname.replace(/^\/:/, '/') : '';
+    return urlFormat({...parts, pathname});
+  }
+
   async resolve(forked?: true): Promise<Manifest> {
     const {url} = this;
 
@@ -94,12 +102,7 @@ export default class GitResolver extends ExoticResolver {
 
     const {config} = this;
 
-    if (parts.pathname) {
-      parts.pathname = parts.pathname.replace(/^\/:/, '/');
-    }
-
-    // $FlowFixMe: https://github.com/facebook/flow/issues/908
-    const transformedUrl = urlFormat(parts);
+    const transformedUrl = GitResolver.transformUrl(parts);
 
     const client = new Git(config, transformedUrl, this.hash);
     const commit = await client.init();

@@ -145,6 +145,7 @@ export default async function (
       parts.hostname = parts.pathname;
       parts.pathname = '';
     }
+    // $FlowFixMe: https://github.com/facebook/flow/issues/908
     info.homepage = url.format(parts);
   }
 
