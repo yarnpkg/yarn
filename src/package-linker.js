@@ -112,7 +112,7 @@ export default class PackageLinker {
     return Promise.resolve(hoister.init());
   }
 
-  async copyModules(patterns: Array<string>): Promise<void> {
+  async copyModules(patterns: Array<string>, linkDuplicates: boolean): Promise<void> {
     let flatTree = await this.getFlatHoistedTree(patterns);
 
     // sorted tree makes file creation and copying not to interfere with each other
@@ -121,10 +121,12 @@ export default class PackageLinker {
     });
 
     // list of artifacts in modules to remove from extraneous removal
-    const phantomFiles = [];
+    const artifactFiles = [];
 
     const copyQueue: Map<string, CopyQueueItem> = new Map();
     const hardlinkQueue: Map<string, CopyQueueItem> = new Map();
+    // TODO check if hardlinks are supported at location
+
     const copiedSrcs: Map<string, string> = new Map();
     for (const [dest, {pkg, loc: src}] of flatTree) {
       const ref = pkg._reference;
@@ -135,13 +137,17 @@ export default class PackageLinker {
       // extraneous
       const metadata = await this.config.readPackageMetadata(src);
       for (const file of metadata.artifacts) {
-        phantomFiles.push(path.join(dest, file));
+        artifactFiles.push(path.join(dest, file));
       }
+      const hardlinksEnabled = linkDuplicates;
 
       const copiedDest = copiedSrcs.get(src);
-      if (copiedDest) {
-        hardlinkQueue.set(dest, {
-          src: copiedDest,
+      if (!copiedDest) {
+        if (hardlinksEnabled) {
+          copiedSrcs.set(src, dest);
+        }
+        copyQueue.set(dest, {
+          src,
           dest,
           onFresh() {
             if (ref) {
@@ -150,9 +156,8 @@ export default class PackageLinker {
           },
         });
       } else {
-        copiedSrcs.set(src, dest);
-        copyQueue.set(dest, {
-          src,
+        hardlinkQueue.set(dest, {
+          src: copiedDest,
           dest,
           onFresh() {
             if (ref) {
@@ -202,7 +207,7 @@ export default class PackageLinker {
     let tick;
     await fs.copyBulk(Array.from(copyQueue.values()), this.reporter, {
       possibleExtraneous,
-      phantomFiles,
+      artifactFiles,
 
       ignoreBasenames: [
         constants.METADATA_FILENAME,
@@ -220,6 +225,9 @@ export default class PackageLinker {
       },
     });
     await fs.hardlinkBulk(Array.from(hardlinkQueue.values()), this.reporter, {
+      possibleExtraneous,
+      artifactFiles,
+
       onStart: (num: number) => {
         tick = this.reporter.progress(num);
       },
@@ -230,6 +238,14 @@ export default class PackageLinker {
         }
       },
     });
+
+    // remove all extraneous files that weren't in the tree
+    for (const loc of possibleExtraneous) {
+      this.reporter.verbose(
+        this.reporter.lang('verboseFileRemoveExtraneous', loc),
+      );
+      await fs.unlink(loc);
+    }
 
     // remove any empty scoped directories
     for (const scopedPath of scopedPaths) {
@@ -313,9 +329,9 @@ export default class PackageLinker {
     return range === '*' || semver.satisfies(version, range, this.config.looseSemver);
   }
 
-  async init(patterns: Array<string>): Promise<void> {
+  async init(patterns: Array<string>, linkDuplicates: boolean): Promise<void> {
     this.resolvePeerModules();
-    await this.copyModules(patterns);
+    await this.copyModules(patterns, linkDuplicates);
     await this.saveAll(patterns);
   }
 

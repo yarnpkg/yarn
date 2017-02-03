@@ -55,33 +55,36 @@ type CopyFileAction = {
   mode: number
 };
 
+type LinkFileAction = {
+  type: 'link',
+  src: string,
+  dest: string,
+  removeDest: boolean,
+};
+
 type CopySymlinkAction = {
   type: 'symlink',
   dest: string,
   linkname: string,
 };
 
-type CopyActions = Array<CopyFileAction | CopySymlinkAction>;
-
-type PossibleExtraneous = void | false | Iterable<string>;
+type CopyActions = Array<CopyFileAction | CopySymlinkAction | LinkFileAction>;
 
 type CopyOptions = {
   onProgress: (dest: string) => void,
   onStart: (num: number) => void,
-  possibleExtraneous: PossibleExtraneous,
+  possibleExtraneous: Set<string>,
   ignoreBasenames: Array<string>,
-  phantomFiles: Array<string>,
+  artifactFiles: Array<string>,
 };
 
 async function buildActionsForCopy(
   queue: CopyQueue,
   events: CopyOptions,
-  possibleExtraneousSeed: PossibleExtraneous,
+  possibleExtraneous: Set<string>,
   reporter: Reporter,
 ): Promise<CopyActions> {
-  const possibleExtraneous: Set<string> = new Set(possibleExtraneousSeed || []);
-  const phantomFiles: Set<string> = new Set(events.phantomFiles || []);
-  const noExtraneous = possibleExtraneousSeed === false;
+  const artifactFiles: Set<string> = new Set(events.artifactFiles || []);
   const files: Set<string> = new Set();
 
   // initialise events
@@ -107,20 +110,16 @@ async function buildActionsForCopy(
   }
 
   // simulate the existence of some files to prevent considering them extraenous
-  for (const file of phantomFiles) {
+  for (const file of artifactFiles) {
     if (possibleExtraneous.has(file)) {
       reporter.verbose(reporter.lang('verboseFilePhantomExtraneous', file));
       possibleExtraneous.delete(file);
     }
   }
 
-  // remove all extraneous files that weren't in the tree
-  if (!noExtraneous) {
-    for (const loc of possibleExtraneous) {
-      if (!files.has(loc)) {
-        reporter.verbose(reporter.lang('verboseFileRemoveExtraneous', loc));
-        await unlink(loc);
-      }
+  for (const loc of possibleExtraneous) {
+    if (files.has(loc)) {
+      possibleExtraneous.delete(loc);
     }
   }
 
@@ -178,7 +177,7 @@ async function buildActionsForCopy(
         }
       }
 
-      if (bothFolders && !noExtraneous) {
+      if (bothFolders) {
         // mark files that aren't in this folder as possibly extraneous
         const destFiles = await readdir(dest);
         invariant(srcFiles, 'src files not initialised');
@@ -255,12 +254,10 @@ async function buildActionsForCopy(
 async function buildActionsForHardlink(
   queue: CopyQueue,
   events: CopyOptions,
+  possibleExtraneous: Set<string>,
   reporter: Reporter,
 ): Promise<CopyActions> {
-  // TODO what to do with extraneous and phantomFiles
-  const possibleExtraneous: Set<string> = new Set();
-  const phantomFiles: Set<string> = new Set();
-  const noExtraneous = false;
+  const artifactFiles: Set<string> = new Set(events.artifactFiles || []);
   const files: Set<string> = new Set();
 
   // initialise events
@@ -286,20 +283,16 @@ async function buildActionsForHardlink(
   }
 
   // simulate the existence of some files to prevent considering them extraenous
-  for (const file of phantomFiles) {
+  for (const file of artifactFiles) {
     if (possibleExtraneous.has(file)) {
       reporter.verbose(reporter.lang('verboseFilePhantomExtraneous', file));
       possibleExtraneous.delete(file);
     }
   }
 
-  // remove all extraneous files that weren't in the tree
-  if (!noExtraneous) {
-    for (const loc of possibleExtraneous) {
-      if (!files.has(loc)) {
-        reporter.verbose(reporter.lang('verboseFileRemoveExtraneous', loc));
-        await unlink(loc);
-      }
+  for (const loc of possibleExtraneous) {
+    if (files.has(loc)) {
+      possibleExtraneous.delete(loc);
     }
   }
 
@@ -324,7 +317,8 @@ async function buildActionsForHardlink(
       srcFiles = await readdir(src);
     }
 
-    if (await exists(dest)) {
+    const destExists = await exists(dest);
+    if (destExists) {
       const destStat = await lstat(dest);
 
       const bothSymlinks = srcStat.isSymbolicLink() && destStat.isSymbolicLink();
@@ -337,14 +331,14 @@ async function buildActionsForHardlink(
         } catch (err) {
           // EINVAL access errors sometimes happen which shouldn't because node shouldn't be giving
           // us modes that aren't valid. investigate this, it's generally safe to proceed.
+          reporter.verbose(err);
         }
       }
 
-      // TODO verify if dest is a link to src
-      if (bothFiles && srcStat.size === destStat.size && +srcStat.mtime === +destStat.mtime) {
-        // we can safely assume this is the same file
+      // correct hardlink
+      if (bothFiles && (srcStat.ino === destStat.ino)) {
         onDone();
-        reporter.verbose(reporter.lang('verboseFileSkip', src, dest, srcStat.size, +srcStat.mtime));
+        reporter.verbose(reporter.lang('verboseFileSkip', src, dest, srcStat.ino));
         return;
       }
 
@@ -358,7 +352,7 @@ async function buildActionsForHardlink(
         }
       }
 
-      if (bothFolders && !noExtraneous) {
+      if (bothFolders) {
         // mark files that aren't in this folder as possibly extraneous
         const destFiles = await readdir(dest);
         invariant(srcFiles, 'src files not initialised');
@@ -418,12 +412,10 @@ async function buildActionsForHardlink(
     } else if (srcStat.isFile()) {
       onFresh();
       actions.push({
-        type: 'file',
+        type: 'link',
         src,
         dest,
-        atime: srcStat.atime,
-        mtime: srcStat.mtime,
-        mode: srcStat.mode,
+        removeDest: destExists,
       });
       onDone();
     } else {
@@ -442,17 +434,17 @@ export async function copyBulk(
   _events?: {
     onProgress?: ?(dest: string) => void,
     onStart?: ?(num: number) => void,
-    possibleExtraneous?: PossibleExtraneous,
+    possibleExtraneous: Set<string>,
     ignoreBasenames?: Array<string>,
-    phantomFiles?: Array<string>,
+    artifactFiles?: Array<string>,
   },
 ): Promise<void> {
   const events: CopyOptions = {
     onStart: (_events && _events.onStart) || noop,
     onProgress: (_events && _events.onProgress) || noop,
-    possibleExtraneous: _events ? _events.possibleExtraneous : [],
+    possibleExtraneous: _events ? _events.possibleExtraneous : new Set(),
     ignoreBasenames: (_events && _events.ignoreBasenames) || [],
-    phantomFiles: (_events && _events.phantomFiles) || [],
+    artifactFiles: (_events && _events.artifactFiles) || [],
   };
 
   const actions: CopyActions = await buildActionsForCopy(
@@ -522,29 +514,43 @@ export async function hardlinkBulk(
   _events?: {
     onProgress?: ?(dest: string) => void,
     onStart?: ?(num: number) => void,
+    possibleExtraneous: Set<string>,
+    artifactFiles?: Array<string>,
   },
 ): Promise<void> {
   const events: CopyOptions = {
     onStart: (_events && _events.onStart) || noop,
     onProgress: (_events && _events.onProgress) || noop,
-    possibleExtraneous: [],
+    possibleExtraneous: _events ? _events.possibleExtraneous : new Set(),
+    artifactFiles: (_events && _events.artifactFiles) || [],
     ignoreBasenames: [],
-    phantomFiles: [],
   };
 
   const actions: CopyActions = await buildActionsForHardlink(
     queue,
     events,
+    events.possibleExtraneous,
     reporter,
   );
   events.onStart(actions.length);
 
-  const fileActions: Array<CopyFileAction> = (actions.filter((action) => action.type === 'file'): any);
+  const fileActions: Array<LinkFileAction> = (actions.filter((action) => action.type === 'link'): any);
 
   await promise.queue(fileActions, async (data): Promise<void> => {
     reporter.verbose(reporter.lang('verboseFileLink', data.src, data.dest));
+    if (data.removeDest) {
+      await unlink(data.dest);
+    }
     await link(data.src, data.dest);
   }, 4);
+
+  // we need to copy symlinks last as the could reference files we were copying
+  const symlinkActions: Array<CopySymlinkAction> = (actions.filter((action) => action.type === 'symlink'): any);
+  await promise.queue(symlinkActions, (data): Promise<void> => {
+    const linkname = path.resolve(path.dirname(data.dest), data.linkname);
+    reporter.verbose(reporter.lang('verboseFileSymlink', data.dest, linkname));
+    return symlink(linkname, data.dest);
+  });
 }
 
 function _readFile(loc: string, encoding: string): Promise<any> {
