@@ -4,7 +4,6 @@ import type {Dependency} from '../../types.js';
 import type {Reporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
 import inquirer from 'inquirer';
-import repeat from 'repeating';
 import PackageRequest from '../../package-request.js';
 import {Add} from './add.js';
 import {Install} from './install.js';
@@ -65,7 +64,7 @@ export async function run(
 
   // Depends on maxLengthArr
   const addPadding = (dep) => (key) =>
-    `${dep[key]}${repeat(' ', maxLengthArr[key] - dep[key].length)}`;
+    `${dep[key]}${' '.repeat(maxLengthArr[key] - dep[key].length)}`;
 
   const colorizeName = ({current, wanted}) =>
     (current === wanted) ? reporter.format.yellow : reporter.format.red;

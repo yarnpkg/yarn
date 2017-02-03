@@ -25,6 +25,9 @@ export const mkdirp: (path: string) => Promise<void> = promisify(require('mkdirp
 export const exists: (path: string) => Promise<boolean>  = promisify(fs.exists, true);
 export const lstat: (path: string) => Promise<fs.Stats> = promisify(fs.lstat);
 export const chmod: (path: string, mode: number | string) => Promise<void> = promisify(fs.chmod);
+export const link: (path: string) => Promise<fs.Stats> = promisify(fs.link);
+
+const CONCURRENT_QUEUE_ITEMS = 4;
 
 const fsSymlink: (
   target: string,
@@ -54,33 +57,36 @@ type CopyFileAction = {
   mode: number
 };
 
+type LinkFileAction = {
+  type: 'link',
+  src: string,
+  dest: string,
+  removeDest: boolean,
+};
+
 type CopySymlinkAction = {
   type: 'symlink',
   dest: string,
   linkname: string,
 };
 
-type CopyActions = Array<CopyFileAction | CopySymlinkAction>;
-
-type PossibleExtraneous = void | false | Iterable<string>;
+type CopyActions = Array<CopyFileAction | CopySymlinkAction | LinkFileAction>;
 
 type CopyOptions = {
   onProgress: (dest: string) => void,
   onStart: (num: number) => void,
-  possibleExtraneous: PossibleExtraneous,
+  possibleExtraneous: Set<string>,
   ignoreBasenames: Array<string>,
-  phantomFiles: Array<string>,
+  artifactFiles: Array<string>,
 };
 
 async function buildActionsForCopy(
   queue: CopyQueue,
   events: CopyOptions,
-  possibleExtraneousSeed: PossibleExtraneous,
+  possibleExtraneous: Set<string>,
   reporter: Reporter,
 ): Promise<CopyActions> {
-  const possibleExtraneous: Set<string> = new Set(possibleExtraneousSeed || []);
-  const phantomFiles: Set<string> = new Set(events.phantomFiles || []);
-  const noExtraneous = possibleExtraneousSeed === false;
+  const artifactFiles: Set<string> = new Set(events.artifactFiles || []);
   const files: Set<string> = new Set();
 
   // initialise events
@@ -98,28 +104,24 @@ async function buildActionsForCopy(
   // start building actions
   const actions: CopyActions = [];
 
-  // custom concurrency logic as we're always executing stacks of 4 queue items
+  // custom concurrency logic as we're always executing stacks of CONCURRENT_QUEUE_ITEMS queue items
   // at a time due to the requirement to push items onto the queue
   while (queue.length) {
-    const items = queue.splice(0, 4);
+    const items = queue.splice(0, CONCURRENT_QUEUE_ITEMS);
     await Promise.all(items.map(build));
   }
 
   // simulate the existence of some files to prevent considering them extraenous
-  for (const file of phantomFiles) {
+  for (const file of artifactFiles) {
     if (possibleExtraneous.has(file)) {
       reporter.verbose(reporter.lang('verboseFilePhantomExtraneous', file));
       possibleExtraneous.delete(file);
     }
   }
 
-  // remove all extraneous files that weren't in the tree
-  if (!noExtraneous) {
-    for (const loc of possibleExtraneous) {
-      if (!files.has(loc)) {
-        reporter.verbose(reporter.lang('verboseFileRemoveExtraneous', loc));
-        await unlink(loc);
-      }
+  for (const loc of possibleExtraneous) {
+    if (files.has(loc)) {
+      possibleExtraneous.delete(loc);
     }
   }
 
@@ -177,7 +179,7 @@ async function buildActionsForCopy(
         }
       }
 
-      if (bothFolders && !noExtraneous) {
+      if (bothFolders) {
         // mark files that aren't in this folder as possibly extraneous
         const destFiles = await readdir(dest);
         invariant(srcFiles, 'src files not initialised');
@@ -251,6 +253,179 @@ async function buildActionsForCopy(
   }
 }
 
+async function buildActionsForHardlink(
+  queue: CopyQueue,
+  events: CopyOptions,
+  possibleExtraneous: Set<string>,
+  reporter: Reporter,
+): Promise<CopyActions> {
+  const artifactFiles: Set<string> = new Set(events.artifactFiles || []);
+  const files: Set<string> = new Set();
+
+  // initialise events
+  for (const item of queue) {
+    const onDone = item.onDone;
+    item.onDone = () => {
+      events.onProgress(item.dest);
+      if (onDone) {
+        onDone();
+      }
+    };
+  }
+  events.onStart(queue.length);
+
+  // start building actions
+  const actions: CopyActions = [];
+
+  // custom concurrency logic as we're always executing stacks of CONCURRENT_QUEUE_ITEMS queue items
+  // at a time due to the requirement to push items onto the queue
+  while (queue.length) {
+    const items = queue.splice(0, CONCURRENT_QUEUE_ITEMS);
+    await Promise.all(items.map(build));
+  }
+
+  // simulate the existence of some files to prevent considering them extraenous
+  for (const file of artifactFiles) {
+    if (possibleExtraneous.has(file)) {
+      reporter.verbose(reporter.lang('verboseFilePhantomExtraneous', file));
+      possibleExtraneous.delete(file);
+    }
+  }
+
+  for (const loc of possibleExtraneous) {
+    if (files.has(loc)) {
+      possibleExtraneous.delete(loc);
+    }
+  }
+
+  return actions;
+
+  //
+  async function build(data): Promise<void> {
+    const {src, dest} = data;
+    const onFresh = data.onFresh || noop;
+    const onDone = data.onDone || noop;
+    files.add(dest);
+
+    if (events.ignoreBasenames.indexOf(path.basename(src)) >= 0) {
+      // ignored file
+      return;
+    }
+
+    const srcStat = await lstat(src);
+    let srcFiles;
+
+    if (srcStat.isDirectory()) {
+      srcFiles = await readdir(src);
+    }
+
+    const destExists = await exists(dest);
+    if (destExists) {
+      const destStat = await lstat(dest);
+
+      const bothSymlinks = srcStat.isSymbolicLink() && destStat.isSymbolicLink();
+      const bothFolders = srcStat.isDirectory() && destStat.isDirectory();
+      const bothFiles = srcStat.isFile() && destStat.isFile();
+
+      if (srcStat.mode !== destStat.mode) {
+        try {
+          await access(dest, srcStat.mode);
+        } catch (err) {
+          // EINVAL access errors sometimes happen which shouldn't because node shouldn't be giving
+          // us modes that aren't valid. investigate this, it's generally safe to proceed.
+          reporter.verbose(err);
+        }
+      }
+
+      // correct hardlink
+      if (bothFiles && (srcStat.ino !== null) && (srcStat.ino === destStat.ino)) {
+        onDone();
+        reporter.verbose(reporter.lang('verboseFileSkip', src, dest, srcStat.ino));
+        return;
+      }
+
+      if (bothSymlinks) {
+        const srcReallink = await readlink(src);
+        if (srcReallink === await readlink(dest)) {
+          // if both symlinks are the same then we can continue on
+          onDone();
+          reporter.verbose(reporter.lang('verboseFileSkipSymlink', src, dest, srcReallink));
+          return;
+        }
+      }
+
+      if (bothFolders) {
+        // mark files that aren't in this folder as possibly extraneous
+        const destFiles = await readdir(dest);
+        invariant(srcFiles, 'src files not initialised');
+
+        for (const file of destFiles) {
+          if (srcFiles.indexOf(file) < 0) {
+            const loc = path.join(dest, file);
+            possibleExtraneous.add(loc);
+
+            if ((await lstat(loc)).isDirectory()) {
+              for (const file of await readdir(loc)) {
+                possibleExtraneous.add(path.join(loc, file));
+              }
+            }
+          }
+        }
+      }
+    }
+
+    if (srcStat.isSymbolicLink()) {
+      onFresh();
+      const linkname = await readlink(src);
+      actions.push({
+        type: 'symlink',
+        dest,
+        linkname,
+      });
+      onDone();
+    } else if (srcStat.isDirectory()) {
+      reporter.verbose(reporter.lang('verboseFileFolder', dest));
+      await mkdirp(dest);
+
+      const destParts = dest.split(path.sep);
+      while (destParts.length) {
+        files.add(destParts.join(path.sep));
+        destParts.pop();
+      }
+
+      // push all files to queue
+      invariant(srcFiles, 'src files not initialised');
+      let remaining = srcFiles.length;
+      if (!remaining) {
+        onDone();
+      }
+      for (const file of srcFiles) {
+        queue.push({
+          onFresh,
+          src: path.join(src, file),
+          dest: path.join(dest, file),
+          onDone: () => {
+            if (--remaining === 0) {
+              onDone();
+            }
+          },
+        });
+      }
+    } else if (srcStat.isFile()) {
+      onFresh();
+      actions.push({
+        type: 'link',
+        src,
+        dest,
+        removeDest: destExists,
+      });
+      onDone();
+    } else {
+      throw new Error(`unsure how to copy this: ${src}`);
+    }
+  }
+}
+
 export function copy(src: string, dest: string, reporter: Reporter): Promise<void> {
   return copyBulk([{src, dest}], reporter);
 }
@@ -261,20 +436,25 @@ export async function copyBulk(
   _events?: {
     onProgress?: ?(dest: string) => void,
     onStart?: ?(num: number) => void,
-    possibleExtraneous?: PossibleExtraneous,
+    possibleExtraneous: Set<string>,
     ignoreBasenames?: Array<string>,
-    phantomFiles?: Array<string>,
+    artifactFiles?: Array<string>,
   },
 ): Promise<void> {
   const events: CopyOptions = {
     onStart: (_events && _events.onStart) || noop,
     onProgress: (_events && _events.onProgress) || noop,
-    possibleExtraneous: _events ? _events.possibleExtraneous : [],
+    possibleExtraneous: _events ? _events.possibleExtraneous : new Set(),
     ignoreBasenames: (_events && _events.ignoreBasenames) || [],
-    phantomFiles: (_events && _events.phantomFiles) || [],
+    artifactFiles: (_events && _events.artifactFiles) || [],
   };
 
-  const actions: CopyActions = await buildActionsForCopy(queue, events, events.possibleExtraneous, reporter);
+  const actions: CopyActions = await buildActionsForCopy(
+    queue,
+    events,
+    events.possibleExtraneous,
+    reporter,
+  );
   events.onStart(actions.length);
 
   const fileActions: Array<CopyFileAction> = (actions.filter((action) => action.type === 'file'): any);
@@ -319,9 +499,54 @@ export async function copyBulk(
       cleanup();
       throw arg;
     });
-  }, 4);
+  }, CONCURRENT_QUEUE_ITEMS);
 
-  // we need to copy symlinks last as the could reference files we were copying
+  // we need to copy symlinks last as they could reference files we were copying
+  const symlinkActions: Array<CopySymlinkAction> = (actions.filter((action) => action.type === 'symlink'): any);
+  await promise.queue(symlinkActions, (data): Promise<void> => {
+    const linkname = path.resolve(path.dirname(data.dest), data.linkname);
+    reporter.verbose(reporter.lang('verboseFileSymlink', data.dest, linkname));
+    return symlink(linkname, data.dest);
+  });
+}
+
+export async function hardlinkBulk(
+  queue: CopyQueue,
+  reporter: Reporter,
+  _events?: {
+    onProgress?: ?(dest: string) => void,
+    onStart?: ?(num: number) => void,
+    possibleExtraneous: Set<string>,
+    artifactFiles?: Array<string>,
+  },
+): Promise<void> {
+  const events: CopyOptions = {
+    onStart: (_events && _events.onStart) || noop,
+    onProgress: (_events && _events.onProgress) || noop,
+    possibleExtraneous: _events ? _events.possibleExtraneous : new Set(),
+    artifactFiles: (_events && _events.artifactFiles) || [],
+    ignoreBasenames: [],
+  };
+
+  const actions: CopyActions = await buildActionsForHardlink(
+    queue,
+    events,
+    events.possibleExtraneous,
+    reporter,
+  );
+  events.onStart(actions.length);
+
+  const fileActions: Array<LinkFileAction> = (actions.filter((action) => action.type === 'link'): any);
+
+  await promise.queue(fileActions, async (data): Promise<void> => {
+    reporter.verbose(reporter.lang('verboseFileLink', data.src, data.dest));
+    if (data.removeDest) {
+      await unlink(data.dest);
+    }
+    await link(data.src, data.dest);
+  }, CONCURRENT_QUEUE_ITEMS);
+
+  // we need to copy symlinks last as they could reference files we were copying
   const symlinkActions: Array<CopySymlinkAction> = (actions.filter((action) => action.type === 'symlink'): any);
   await promise.queue(symlinkActions, (data): Promise<void> => {
     const linkname = path.resolve(path.dirname(data.dest), data.linkname);
@@ -509,6 +734,22 @@ export async function writeFilePreservingEol(path: string, data: string) : Promi
     data = data.replace(/\n/g, eol);
   }
   await promisify(fs.writeFile)(path, data);
+}
+
+export async function hardlinksWork(dir: string): Promise<boolean> {
+  const filename = 'test-file' + Math.random();
+  const file = path.join(dir, filename);
+  const fileLink = path.join(dir, filename + '-link');
+  try {
+    await writeFile(file, 'test');
+    await link(file, fileLink);
+  } catch (err) {
+    return false;
+  } finally {
+    await unlink(file);
+    await unlink(fileLink);
+  }
+  return true;
 }
 
 // not a strict polyfill for Node's fs.mkdtemp

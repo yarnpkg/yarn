@@ -6,6 +6,7 @@ import {MessageError, SpawnError} from '../errors.js';
 import * as constants from '../constants.js';
 import * as child from './child.js';
 import {registries} from '../resolvers/index.js';
+import {fixCmdWinSlashes} from './fix-cmd-win-slashes.js';
 
 const path = require('path');
 
@@ -140,6 +141,9 @@ export async function executeLifecycleScript(
     // s - Strip " quote characters from command.
     // c - Run Command and then terminate
     shFlag = '/d /s /c';
+
+    // handle windows run scripts starting with a relative path
+    cmd = fixCmdWinSlashes(cmd);
 
     // handle quotes properly in windows environments - https://github.com/nodejs/node/issues/5060
     conf.windowsVerbatimArguments = true;

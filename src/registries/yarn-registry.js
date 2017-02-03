@@ -8,7 +8,7 @@ import stringify from '../lockfile/stringify.js';
 import parse from '../lockfile/parse.js';
 import * as fs from '../util/fs.js';
 
-const userHome = require('user-home');
+const userHome = require('../util/user-home-dir').default;
 const defaults = require('defaults');
 const path = require('path');
 const pkg: { version: string } = require('../../package.json');

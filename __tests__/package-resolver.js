@@ -8,8 +8,15 @@ import Config from '../src/config.js';
 import makeTemp from './_temp.js';
 import * as fs from '../src/util/fs.js';
 import * as constants from '../src/constants.js';
+import inquirer from 'inquirer';
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000;
+
+// automatically chose the first available version if cached does not fit
+inquirer.prompt = jest.fn((questions) => {
+  const chosenVersion = questions[0].choices[0];
+  return Promise.resolve({package: chosenVersion});
+});
 
 const path = require('path');
 
@@ -30,12 +37,11 @@ function addTest(pattern, registry = 'npm', init: ?(cacheFolder: string) => Prom
       await init(cacheFolder);
     }
 
-    const config = new Config(reporter);
-    await config.init({
+    const config = await Config.create({
       cwd: loc,
       offline,
       cacheFolder,
-    });
+    }, reporter);
     const resolver = new PackageResolver(config, lockfile);
     await resolver.init([{pattern, registry}]);
 
@@ -54,7 +60,7 @@ function addTest(pattern, registry = 'npm', init: ?(cacheFolder: string) => Prom
 addTest('https://git@github.com/stevemao/left-pad.git'); // git url, with username
 addTest('https://bitbucket.org/hgarcia/node-bitbucket-api.git'); // hosted git url
 addTest('https://github.com/yarnpkg/yarn/releases/download/v0.18.1/yarn-v0.18.1.tar.gz'); // tarball
-addTest('https://github.com/babel/babel-loader.git#greenkeeper/cross-env-3.1.4'); // hash with slashes
+addTest('https://github.com/yarnpkg/e2e-test-repo.git#greenkeeper/cross-env-3.1.4'); // hash with slashes
 addTest('gitlab:leanlabsio/kanban'); // gitlab
 addTest('gist:d59975ac23e26ad4e25b'); // gist url
 addTest('bitbucket:hgarcia/node-bitbucket-api'); // bitbucket url

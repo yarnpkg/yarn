@@ -55,6 +55,19 @@ test.concurrent('should add package with no-lockfile option', async () => {
   expect(lastLines[3]).toMatch(/^Done/);
 });
 
+test.concurrent('should return error', async () => {
+  let wasInCatch = false;
+  try {
+    await execCommand('add', ['left-pad', '--wrong-flag'], 'run-add', true);
+  } catch (e) {
+    wasInCatch = true;
+    expect(e.message).toMatch(/unknown flag/);
+  }
+  if (!wasInCatch) {
+    throw(new Error('adding a wrong flag supposes to throw an error'));
+  }
+});
+
 test.concurrent('should add package with no-lockfile option in front', async () => {
   const stdout = await execCommand('add', ['--no-lockfile', 'split-lines'], 'run-add-option-in-front', true);
   const lastLines = stdout.slice(stdout.length - 4);

@@ -22,9 +22,6 @@ const compiler = webpack({
       test: /\.js$/,
       exclude: /node_modules/,
       loader: 'babel-loader',
-    }, {
-      test: /\.json$/,
-      loader: 'json-loader',
     }],
   },
   plugins: [
@@ -59,9 +56,6 @@ const compilerLegacy = webpack({
       exclude: /node_modules/,
       loader: 'babel-loader',
       query: babelRc.env['pre-node5'],
-    }, {
-      test: /\.json$/,
-      loader: 'json-loader',
     }],
   },
   plugins: [

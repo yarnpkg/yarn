@@ -62,13 +62,12 @@ export async function run(
   }
 
   try {
-    const config = new Config(reporter);
-    await config.init({
+    const config = await Config.create({
       cwd,
       globalFolder: path.join(tmpRoot, '.yarn/.global'),
       cacheFolder: path.join(tmpRoot, '.yarn'),
       linkFolder: path.join(tmpRoot, '.yarn/.link'),
-    });
+    }, reporter);
 
     await pack(config, reporter, flags, []);
 

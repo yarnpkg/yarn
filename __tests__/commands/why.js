@@ -21,9 +21,7 @@ async function runWhy(
   const reporter = new reporters.BufferReporter({stdout: null, stdin: null});
 
   try {
-    const config = new Config(reporter);
-    await config.init({cwd});
-
+    const config = await Config.create({cwd}, reporter);
     await why(config, reporter, flags, args);
 
     if (checkSteps) {

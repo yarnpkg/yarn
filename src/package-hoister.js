@@ -87,6 +87,8 @@ export default class PackageHoister {
    */
 
   seed(patterns: Array<string>) {
+    this.prepass(patterns);
+
     for (const pattern of this.resolver.dedupePatterns(patterns)) {
       this._seed(pattern);
     }
@@ -407,6 +409,95 @@ export default class PackageHoister {
 
     info.previousKeys.push(newKey);
     info.addHistory(`New position = ${newKey}`);
+  }
+
+  /**
+   * Perform a prepass and if there's multiple versions of the same package, hoist the one with
+   * the most dependents to the top.
+   */
+
+  prepass(patterns: Array<string>) {
+    patterns = this.resolver.dedupePatterns(patterns).sort();
+
+    const occurences: {
+      [packageName: string]: {
+        [version: string]: {
+          pattern: string,
+          occurences: Set<Manifest>,
+        },
+      },
+    } = {};
+
+    // add an occuring package to the above data structure
+    const add = (pattern: string, ancestry: Array<Manifest>) => {
+      const pkg = this.resolver.getStrictResolvedPattern(pattern);
+      if (ancestry.indexOf(pkg) >= 0) {
+        // prevent recursive dependencies
+        return;
+      }
+
+      const ref = pkg._reference;
+      invariant(ref, 'expected reference');
+
+      const versions = occurences[pkg.name] = occurences[pkg.name] || {};
+      const version = versions[pkg.version] = versions[pkg.version] || {occurences: new Set(), pattern};
+      version.occurences.add(ancestry[ancestry.length - 1]);
+
+      for (const depPattern of ref.dependencies) {
+        add(depPattern, ancestry.concat(pkg));
+      }
+    };
+
+    // get a list of root package names since we can't hoist other dependencies to these spots!
+    const rootPackageNames: Set<string> = new Set();
+    for (const pattern of patterns) {
+      const pkg = this.resolver.getStrictResolvedPattern(pattern);
+      rootPackageNames.add(pkg.name);
+    }
+
+    // seed occurences
+    for (const pattern of patterns) {
+      add(pattern, []);
+    }
+
+    for (const packageName of Object.keys(occurences).sort()) {
+      const versionOccurences = occurences[packageName];
+      const versions = Object.keys(versionOccurences);
+
+      if (versions.length === 1) {
+        // only one package type so we'll hoist this to the top anyway
+        continue;
+      }
+
+      if (this.tree.get(packageName)) {
+        // a transitive dependency of a previously hoisted dependency exists
+        continue;
+      }
+
+      if (rootPackageNames.has(packageName)) {
+        // can't replace top level packages
+        continue;
+      }
+
+      let mostOccurenceCount;
+      let mostOccurencePattern;
+      for (const version of Object.keys(versionOccurences).sort()) {
+        const {occurences, pattern} = versionOccurences[version];
+        const occurenceCount = occurences.size;
+
+        if (!mostOccurenceCount || occurenceCount > mostOccurenceCount) {
+          mostOccurenceCount = occurenceCount;
+          mostOccurencePattern = pattern;
+        }
+      }
+      invariant(mostOccurencePattern, 'expected most occuring pattern');
+      invariant(mostOccurenceCount, 'expected most occuring count');
+
+      // only hoist this module if it occured more than once
+      if (mostOccurenceCount > 1) {
+        this._seed(mostOccurencePattern);
+      }
+    }
   }
 
   /**

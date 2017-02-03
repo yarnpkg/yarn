@@ -148,6 +148,18 @@ test.concurrent('--production flag ignores dev dependencies', () => {
   });
 });
 
+test.concurrent('--production flag does not link dev dependency bin scripts', () => {
+  return runInstall({production: true, binLinks: true}, 'install-production-bin', async (config) => {
+    assert.ok(
+      !await fs.exists(path.join(config.cwd, 'node_modules', '.bin', 'touch')),
+    );
+
+    assert.ok(
+      await fs.exists(path.join(config.cwd, 'node_modules', '.bin', 'rimraf')),
+    );
+  });
+});
+
 test.concurrent("doesn't write new lockfile if existing one satisfied", (): Promise<void> => {
   return runInstall({}, 'install-dont-write-lockfile-if-satisfied', async (config): Promise<void> => {
     const lockfile = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
@@ -231,6 +243,21 @@ test.concurrent('install file: protocol without cache', async (): Promise<void> 
     // TODO: This should actually be equal. See https://github.com/yarnpkg/yarn/pull/2443.
     assert.notEqual(
       await fs.readFile(path.join(config.cwd, 'node_modules', 'comp', 'index.js')),
+      'bar\n',
+    );
+  });
+});
+
+test.concurrent('install file: local packages with local dependencies', async (): Promise<void> => {
+  await runInstall({}, 'install-file-local-dependency', async (config, reporter) => {
+    const reinstall = new Install({}, config, reporter, await Lockfile.fromDirectory(config.cwd));
+    await reinstall.init();
+    assert.equal(
+      await fs.readFile(path.join(config.cwd, 'node_modules', 'a', 'index.js')),
+      'foo\n',
+    );
+    assert.equal(
+      await fs.readFile(path.join(config.cwd, 'node_modules', 'b', 'index.js')),
       'bar\n',
     );
   });

@@ -38,6 +38,12 @@ for (let i = 0; i < args.length; i++) {
   }
 }
 
+// NOTE: Pending resolution of https://github.com/tj/commander.js/issues/346
+// Remove this (and subsequent use in the logic below) after bug is resolved and issue is closed
+const ARGS_THAT_SHARE_NAMES_WITH_OPTIONS = [
+  'version',
+];
+
 // set global options
 commander.version(pkg.version);
 commander.usage('[command] [flags]');
@@ -58,6 +64,7 @@ commander.option('--prod, --production [prod]', '');
 commander.option('--no-lockfile', "don't read or generate a lockfile");
 commander.option('--pure-lockfile', "don't generate a lockfile");
 commander.option('--frozen-lockfile', "don't generate a lockfile and fail if an update is needed");
+commander.option('--link-duplicates', 'create hardlinks to the repeated modules in node_modules');
 commander.option('--global-folder <path>', '');
 commander.option(
   '--modules-folder <path>',
@@ -88,7 +95,7 @@ let commandName: ?string = args.shift() || '';
 let command;
 
 //
-const getDocsLink = (name) => `https://yarnpkg.com/en/docs/cli/${name || ''}`;
+const getDocsLink = (name) => `${constants.YARN_DOCS}${name || ''}`;
 const getDocsInfo = (name) => 'Visit ' + chalk.bold(getDocsLink(name)) + ' for documentation about this command.';
 
 //
@@ -134,6 +141,27 @@ if (commandName && typeof aliases[commandName] === 'string') {
 }
 
 //
+let Reporter = ConsoleReporter;
+if (commander.json) {
+  Reporter = JSONReporter;
+}
+const reporter = new Reporter({
+  emoji: commander.emoji && process.stdout.isTTY && process.platform === 'darwin',
+  verbose: commander.verbose,
+  noProgress: !commander.progress,
+});
+reporter.initPeakMemoryCounter();
+
+//if we have unknown flag we should exit
+commander.on(commandName, (args, unknown) => {
+  commander.args.unshift(commandName);//the emitter remove the command
+  if (unknown && unknown.length > 0) {
+    reporter.error(reporter.lang('unknownFlag', unknown[0]));
+    process.exit(1);
+  }
+});
+
+//
 if (commandName === 'help' && args.length) {
   commandName = camelCase(args.shift());
   args.push('--help');
@@ -172,6 +200,11 @@ if (commandName === 'help' || args.indexOf('--help') >= 0 || args.indexOf('-h') 
 
 // parse flags
 args.unshift(commandName);
+
+if (ARGS_THAT_SHARE_NAMES_WITH_OPTIONS.indexOf(commandName) >= 0 && args[0] === commandName) {
+  args.shift();
+}
+
 commander.parse(startArgs.concat(args));
 commander.args = commander.args.concat(endArgs);
 
@@ -181,18 +214,6 @@ if (command) {
   command = commands.run;
 }
 invariant(command, 'missing command');
-
-//
-let Reporter = ConsoleReporter;
-if (commander.json) {
-  Reporter = JSONReporter;
-}
-const reporter = new Reporter({
-  emoji: commander.emoji && process.stdout.isTTY && process.platform === 'darwin',
-  verbose: commander.verbose,
-  noProgress: !commander.progress,
-});
-reporter.initPeakMemoryCounter();
 
 //
 const config = new Config(reporter);
@@ -392,6 +413,8 @@ config.init({
   const exit = () => {
     process.exit(0);
   };
+  // verbose logs outputs process.uptime() with this line we can sync uptime to absolute time on the computer
+  reporter.verbose(`current time: ${new Date().toISOString()}`);
 
   const mutex: mixed = commander.mutex;
   if (mutex && typeof mutex === 'string') {

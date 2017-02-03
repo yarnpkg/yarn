@@ -1,7 +1,5 @@
 /* @flow */
 
-const repeat = require('repeating');
-
 // types
 import type {Trees} from '../../types.js';
 
@@ -41,7 +39,7 @@ function getIndentChar(end: boolean) : string {
 }
 
 function getIndent(end: boolean, level: number) : string {
-  const base = repeat('│  ', level);
+  const base = '│  '.repeat(level);
   const indentChar = getIndentChar(end);
   const hasLevel =  base + indentChar;
   return level ? hasLevel : indentChar;
