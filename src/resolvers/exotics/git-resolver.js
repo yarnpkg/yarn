@@ -11,6 +11,7 @@ import ExoticResolver from './exotic-resolver.js';
 import Git from '../../util/git.js';
 
 const urlParse = require('url').parse;
+const urlFormat = require('url').format;
 
 // we purposefully omit https and http as those are only valid if they end in the .git extension
 const GIT_PROTOCOLS = ['git:', 'git+ssh:', 'git+https:', 'ssh:'];
@@ -60,6 +61,14 @@ export default class GitResolver extends ExoticResolver {
     return false;
   }
 
+  // This transformUrl util is here to replace colon separators in the pathname
+  // from private urls. It takes the url parts retrieved using urlFormat and
+  // returns the associated url. Related to #573, introduced in #2519.
+  static transformUrl(parts) : string {
+    const pathname = parts.pathname ? parts.pathname.replace(/^\/:/, '/') : '';
+    return urlFormat({...parts, pathname});
+  }
+
   async resolve(forked?: true): Promise<Manifest> {
     const {url} = this;
 
@@ -92,7 +101,10 @@ export default class GitResolver extends ExoticResolver {
     }
 
     const {config} = this;
-    const client = new Git(config, url, this.hash);
+
+    const transformedUrl = GitResolver.transformUrl(parts);
+
+    const client = new Git(config, transformedUrl, this.hash);
     const commit = await client.init();
 
     async function tryRegistry(registry): Promise<?Manifest> {
@@ -103,12 +115,12 @@ export default class GitResolver extends ExoticResolver {
         return null;
       }
 
-      const json = await config.readJson(`${url}/${filename}`, () => JSON.parse(file));
+      const json = await config.readJson(`${transformedUrl}/${filename}`, () => JSON.parse(file));
       json._uid = commit;
       json._remote = {
-        resolved: `${url}#${commit}`,
+        resolved: `${transformedUrl}#${commit}`,
         type: 'git',
-        reference: url,
+        reference: transformedUrl,
         hash: commit,
         registry,
       };
@@ -131,6 +143,6 @@ export default class GitResolver extends ExoticResolver {
       }
     }
 
-    throw new MessageError(this.reporter.lang('couldntFindManifestIn', url));
+    throw new MessageError(this.reporter.lang('couldntFindManifestIn', transformedUrl));
   }
 }
