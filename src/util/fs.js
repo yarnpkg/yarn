@@ -27,6 +27,8 @@ export const lstat: (path: string) => Promise<fs.Stats> = promisify(fs.lstat);
 export const chmod: (path: string, mode: number | string) => Promise<void> = promisify(fs.chmod);
 export const link: (path: string) => Promise<fs.Stats> = promisify(fs.link);
 
+const CONCURRENT_QUEUE_ITEMS = 4;
+
 const fsSymlink: (
   target: string,
   path: string,
@@ -102,10 +104,10 @@ async function buildActionsForCopy(
   // start building actions
   const actions: CopyActions = [];
 
-  // custom concurrency logic as we're always executing stacks of 4 queue items
+  // custom concurrency logic as we're always executing stacks of CONCURRENT_QUEUE_ITEMS queue items
   // at a time due to the requirement to push items onto the queue
   while (queue.length) {
-    const items = queue.splice(0, 4);
+    const items = queue.splice(0, CONCURRENT_QUEUE_ITEMS);
     await Promise.all(items.map(build));
   }
 
@@ -275,10 +277,10 @@ async function buildActionsForHardlink(
   // start building actions
   const actions: CopyActions = [];
 
-  // custom concurrency logic as we're always executing stacks of 4 queue items
+  // custom concurrency logic as we're always executing stacks of CONCURRENT_QUEUE_ITEMS queue items
   // at a time due to the requirement to push items onto the queue
   while (queue.length) {
-    const items = queue.splice(0, 4);
+    const items = queue.splice(0, CONCURRENT_QUEUE_ITEMS);
     await Promise.all(items.map(build));
   }
 
@@ -336,7 +338,7 @@ async function buildActionsForHardlink(
       }
 
       // correct hardlink
-      if (bothFiles && (srcStat.ino === destStat.ino)) {
+      if (bothFiles && (srcStat.ino !== null) && (srcStat.ino === destStat.ino)) {
         onDone();
         reporter.verbose(reporter.lang('verboseFileSkip', src, dest, srcStat.ino));
         return;
@@ -497,7 +499,7 @@ export async function copyBulk(
       cleanup();
       throw arg;
     });
-  }, 4);
+  }, CONCURRENT_QUEUE_ITEMS);
 
   // we need to copy symlinks last as they could reference files we were copying
   const symlinkActions: Array<CopySymlinkAction> = (actions.filter((action) => action.type === 'symlink'): any);
@@ -542,7 +544,7 @@ export async function hardlinkBulk(
       await unlink(data.dest);
     }
     await link(data.src, data.dest);
-  }, 4);
+  }, CONCURRENT_QUEUE_ITEMS);
 
   // we need to copy symlinks last as they could reference files we were copying
   const symlinkActions: Array<CopySymlinkAction> = (actions.filter((action) => action.type === 'symlink'): any);
@@ -734,10 +736,10 @@ export async function writeFilePreservingEol(path: string, data: string) : Promi
   await promisify(fs.writeFile)(path, data);
 }
 
-export async function hardlinksWork(cwd: string): Promise<boolean> {
+export async function hardlinksWork(dir: string): Promise<boolean> {
   const filename = 'test-file' + Math.random();
-  const file = path.join(cwd, filename);
-  const fileLink = path.join(cwd, filename + '-link');
+  const file = path.join(dir, filename);
+  const fileLink = path.join(dir, filename + '-link');
   try {
     await writeFile(file, 'test');
     await link(file, fileLink);
