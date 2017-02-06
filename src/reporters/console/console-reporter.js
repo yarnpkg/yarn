@@ -46,7 +46,7 @@ export default class ConsoleReporter extends BaseReporter {
   }
 
   _verbose(msg: string) {
-    this._logCategory('verbose', 'grey', msg);
+    this._logCategory('verbose', 'grey', `${process.uptime()} ${msg}`);
   }
 
   _verboseInspect(obj: any) {
