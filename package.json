@@ -4,6 +4,7 @@
   "version": "0.21.0-0",
   "license": "BSD-2-Clause",
   "preferGlobal": true,
+  "description": "📦🐈 Fast, reliable, and secure dependency management.",
   "dependencies": {
     "babel-runtime": "^6.0.0",
     "bytes": "^2.4.0",
