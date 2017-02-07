@@ -424,7 +424,7 @@ config.init({
   reporter.verbose(err.stack);
 
   if (err instanceof MessageError) {
-    reporter.error(err.message);
+    reporter.error(err);
   } else {
     onUnexpectedError(err);
   }
