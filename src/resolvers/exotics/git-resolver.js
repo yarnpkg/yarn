@@ -116,7 +116,6 @@ export default class GitResolver extends ExoticResolver {
       }
 
       const json = await config.readJson(`${transformedUrl}/${filename}`, () => JSON.parse(file));
-
       json._uid = commit;
       json._remote = {
         resolved: `${transformedUrl}#${commit}`,
