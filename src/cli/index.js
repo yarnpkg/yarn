@@ -94,7 +94,7 @@ let commandName: ?string = args.shift() || '';
 let command;
 
 //
-const getDocsLink = (name) => `https://yarnpkg.com/en/docs/cli/${name || ''}`;
+const getDocsLink = (name) => `${constants.YARN_DOCS}${name || ''}`;
 const getDocsInfo = (name) => 'Visit ' + chalk.bold(getDocsLink(name)) + ' for documentation about this command.';
 
 //
