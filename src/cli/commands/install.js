@@ -303,8 +303,7 @@ export class Install {
     const haveLockfile = await fs.exists(path.join(this.config.cwd, constants.LOCKFILE_FILENAME));
 
     if (this.flags.frozenLockfile && !this.lockFileInSync(patterns)) {
-      this.reporter.error(this.reporter.lang('frozenLockfileError'));
-      return true;
+      throw new MessageError(this.reporter.lang('frozenLockfileError'));
     }
 
     if (!this.flags.skipIntegrity && !this.flags.force && match.matches && haveLockfile) {
