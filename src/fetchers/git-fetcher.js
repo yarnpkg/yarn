@@ -3,6 +3,7 @@
 import {SecurityError, MessageError} from '../errors.js';
 import type {FetchedOverride} from '../types.js';
 import BaseFetcher from './base-fetcher.js';
+import {registries} from '../registries/index.js';
 import Git from '../util/git.js';
 import * as fsUtil from '../util/fs.js';
 import * as crypto from '../util/crypto.js';
@@ -15,13 +16,24 @@ const fs = require('fs');
 const invariant = require('invariant');
 
 export default class GitFetcher extends BaseFetcher {
-  _fetch(): Promise<FetchedOverride> {
+  async _fetch(): Promise<FetchedOverride> {
     const {protocol, pathname} = url.parse(this.reference);
+    let result;
     if (protocol === null && typeof pathname === 'string') {
-      return this.fetchFromLocal(pathname);
+      result = await this.fetchFromLocal(pathname);
     } else {
-      return this.fetchFromExternal();
+      result = await this.fetchFromExternal();
     }
+    // TODO hack
+    const manifest = path.join(this.dest, registries[this.registry].filename);
+    if (!await fsUtil.exists(manifest)) {
+      const pkg = {
+        name: 'test',
+        version: '0.0.0'
+      };
+      await fsUtil.writeFile(manifest, JSON.stringify(pkg, null, 4));
+    }
+    return result;
   }
 
   async fetchFromLocal(pathname: string): Promise<FetchedOverride> {

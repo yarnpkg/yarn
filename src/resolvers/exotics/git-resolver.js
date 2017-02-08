@@ -142,7 +142,23 @@ export default class GitResolver extends ExoticResolver {
         return file;
       }
     }
-
-    throw new MessageError(this.reporter.lang('couldntFindManifestIn', transformedUrl));
+    // no registry files were found, in that case we fake a package.json thus allowing leaf dependencies without
+    // any registry file, same as bower
+    // TODO hack
+    const names = parts.path.split('/');
+    const registry = registries.npm;
+    const json = {
+      name: names[names.length - 1],
+      version: '0.0.0',
+      _uid: commit,
+      _remote: {
+        resolved: `${transformedUrl}#${commit}`,
+        type: 'git',
+        reference: transformedUrl,
+        hash: commit,
+        registry: 'npm',
+      }
+    };
+    return json;
   }
 }
