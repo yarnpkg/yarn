@@ -403,6 +403,8 @@ config.init({
   const exit = () => {
     process.exit(0);
   };
+  // verbose logs outputs process.uptime() with this line we can sync uptime to absolute time on the computer
+  reporter.verbose(`current time: ${new Date().toISOString()}`);
 
   const mutex: mixed = commander.mutex;
   if (mutex && typeof mutex === 'string') {
