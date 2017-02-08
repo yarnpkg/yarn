@@ -1,11 +1,7 @@
 /* @flow */
 
 const path = require('path');
-let userHome = require('user-home');
-
-if (process.platform === 'linux' && isRootUser(getUid())) {
-  userHome = path.resolve('/usr/local/share');
-}
+const userHome = require('./util/user-home-dir').default;
 
 type Env = {
   [key: string]: ? string

@@ -12,7 +12,7 @@ import {addSuffix, removePrefix} from '../util/misc';
 import isRequestToRegistry from './is-request-to-registry.js';
 
 const defaults = require('defaults');
-const userHome = require('user-home');
+const userHome = require('../util/user-home-dir').default;
 const path = require('path');
 const url = require('url');
 const ini = require('ini');

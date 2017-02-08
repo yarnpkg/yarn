@@ -38,7 +38,6 @@
     "strip-bom": "^3.0.0",
     "tar": "^2.2.1",
     "tar-stream": "^1.5.2",
-    "user-home": "^2.0.0",
     "validate-npm-package-license": "^3.0.1"
   },
   "devDependencies": {
