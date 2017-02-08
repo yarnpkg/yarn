@@ -75,7 +75,7 @@ type Flags = {
 
 function getUpdateCommand(): ?string {
   if (YARN_INSTALL_METHOD === 'tar') {
-    return 'curl -o- -L https://yarnpkg.com/install.sh | bash';
+    return `curl -o- -L ${constants.YARN_INSTALLER_SH} | bash`;
   }
 
   if (YARN_INSTALL_METHOD === 'homebrew') {
@@ -108,7 +108,7 @@ function getUpdateCommand(): ?string {
 function getUpdateInstaller(): ?string {
   // Windows
   if (YARN_INSTALL_METHOD === 'msi') {
-    return 'https://yarnpkg.com/latest.msi';
+    return constants.YARN_INSTALLER_MSI;
   }
 
   return null;
@@ -766,7 +766,7 @@ export class Install {
 
   async _checkUpdate(): Promise<void> {
     let latestVersion = await this.config.requestManager.request({
-      url: 'https://yarnpkg.com/latest-version',
+      url: constants.SELF_UPDATE_VERSION_URL,
     });
     invariant(typeof latestVersion === 'string', 'expected string');
     latestVersion = latestVersion.trim();
