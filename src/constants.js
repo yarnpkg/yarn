@@ -1,7 +1,7 @@
 /* @flow */
 
 const path = require('path');
-const userHome = require('./util/user-home-dir');
+const userHome = require('./util/user-home-dir').default;
 
 type Env = {
   [key: string]: ? string
