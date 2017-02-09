@@ -323,10 +323,14 @@ export async function copyBulk(
 
   // we need to copy symlinks last as the could reference files we were copying
   const symlinkActions: Array<CopySymlinkAction> = (actions.filter((action) => action.type === 'symlink'): any);
-  await promise.queue(symlinkActions, (data): Promise<void> => {
+  await promise.queue(symlinkActions, async (data): Promise<void> => {
     const linkname = path.resolve(path.dirname(data.dest), data.linkname);
+    // filter out broken symlinks
+    if (!await exists(linkname)) {
+      return;
+    }
     reporter.verbose(reporter.lang('verboseFileSymlink', data.dest, linkname));
-    return symlink(linkname, data.dest);
+    await symlink(linkname, data.dest);
   });
 }
 
