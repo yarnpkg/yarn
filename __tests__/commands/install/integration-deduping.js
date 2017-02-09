@@ -1,8 +1,10 @@
 /* @flow */
 
 import {getPackageVersion, runInstall} from '../_helpers.js';
+import * as fs from '../../../src/util/fs.js';
 
 const assert = require('assert');
+const path = require('path');
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 120000;
 
@@ -199,5 +201,39 @@ test.concurrent('install should dedupe dependencies avoiding conflicts 9', (): P
     assert.equal(await getPackageVersion(config, 'lodash'), '3.10.1');
     assert.equal(await getPackageVersion(config, 'ast-query/lodash'), '4.15.0');
     assert.equal(await getPackageVersion(config, 'run-async'), '0.1.0');
+  });
+});
+
+test.concurrent('install should hardlink repeated dependencies', (): Promise<void> => {
+  // A@1
+  // B@1 -> A@2
+  // C@1 -> A@2 (this is hardlink to B@1->A@2)
+  return runInstall({linkDuplicates: true}, 'hardlink-repeated-dependencies', async (config) => {
+    const b_a = await fs.stat(path.join(
+      config.cwd,
+      'node_modules/b/node_modules/a/package.json',
+    ));
+    const c_a = await fs.stat(path.join(
+      config.cwd,
+      'node_modules/c/node_modules/a/package.json',
+    ));
+    assert.equal(b_a.ino, c_a.ino);
+  });
+});
+
+test.concurrent('install should not hardlink repeated dependencies if linkDuplicates=false', (): Promise<void> => {
+  // A@1
+  // B@1 -> A@2
+  // C@1 -> A@2
+  return runInstall({linkDuplicates: false}, 'hardlink-repeated-dependencies', async (config) => {
+    const b_a = await fs.stat(path.join(
+      config.cwd,
+      'node_modules/b/node_modules/a/package.json',
+    ));
+    const c_a = await fs.stat(path.join(
+      config.cwd,
+      'node_modules/c/node_modules/a/package.json',
+    ));
+    assert(b_a.ino != c_a.ino);
   });
 });

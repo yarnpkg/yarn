@@ -50,11 +50,12 @@ export type IntegrityMatch = {
 
 type Flags = {
   // install
+  har: boolean,
   ignorePlatform: boolean,
   ignoreEngines: boolean,
   ignoreScripts: boolean,
   ignoreOptional: boolean,
-  har: boolean,
+  linkDuplicates: boolean,
   force: boolean,
   flat: boolean,
   lockfile: boolean,
@@ -128,6 +129,7 @@ function normalizeFlags(config: Config, rawFlags: Object): Flags {
     pureLockfile: !!rawFlags.pureLockfile,
     skipIntegrity: !!rawFlags.skipIntegrity,
     frozenLockfile: !!rawFlags.frozenLockfile,
+    linkDuplicates: !!rawFlags.linkDuplicates,
 
     // add
     peer: !!rawFlags.peer,
@@ -396,7 +398,7 @@ export class Install {
       const loc = await this.getIntegrityHashLocation();
       await fs.unlink(loc);
       this.reporter.step(curr, total, this.reporter.lang('linkingDependencies'), emoji.get('link'));
-      await this.linker.init(patterns);
+      await this.linker.init(patterns, this.flags.linkDuplicates);
     });
 
     steps.push(async (curr: number, total: number) => {
