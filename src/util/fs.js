@@ -146,9 +146,14 @@ async function buildActionsForCopy(
 
     let destStat;
     try {
+      // try accessing the destination
       destStat = await lstat(dest);
-    } catch (e) {}
+    } catch (e) {
+      // proceed if destination doesn't exist, otherwise error
+      if (e.code !== 'ENOENT') throw e;
+    }
 
+    // if destination exists
     if (destStat) {
       const bothSymlinks = srcStat.isSymbolicLink() && destStat.isSymbolicLink();
       const bothFolders = srcStat.isDirectory() && destStat.isDirectory();
@@ -157,11 +162,11 @@ async function buildActionsForCopy(
       // EINVAL access errors sometimes happen which shouldn't because node shouldn't be giving
       // us modes that aren't valid. investigate this, it's generally safe to proceed.
 
-      // if (srcStat.mode !== destStat.mode) {
-      //   try {
-      //     await access(dest, srcStat.mode);
-      //   } catch (err) {}
-      // }
+      /* if (srcStat.mode !== destStat.mode) {
+        try {
+          await access(dest, srcStat.mode);
+        } catch (err) {}
+      } */
 
       if (bothFiles && srcStat.size === destStat.size && +srcStat.mtime === +destStat.mtime) {
         // we can safely assume this is the same file
