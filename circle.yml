@@ -1,48 +1,41 @@
-general:
-  branches:
-    ignore:
-      - gh-pages
-  artifacts:
-    - "artifacts/"
+version: 2.0
+executorType: docker
+containerInfo:
+  - image: yarnpkg/dev:latest
+stages:
+  build:
+    workDir: /home/ubuntu/project
+    steps:
+      - type: checkout
 
-machine:
-  node:
-    version: 6
+      - type: cache-restore
+        key: yarn-{{ .Branch }}-{{ checksum "yarn.lock" }}
 
-dependencies:
-  cache_directories:
-    - "~/.cache/yarn"
-    - "~/ghr"
+      - type: shell
+        command: yarn install
 
-  override:
-    - which node
+      - type: shell
+        name: Tests
+        command: |
+          node -v
+          if [ "$CIRCLE_BRANCH" == 'master' ]; then
+            ./scripts/set-dev-version.js
+          fi;
+          yarn lint
+          yarn test-ci -- -- --maxWorkers 3
+          yarn check-lockfile
+          yarn build-dist
+          node ./scripts/build-webpack.js
+          ./scripts/build-deb.sh
 
-    # install dependencies
-    - ./scripts/bootstrap-env-ubuntu.sh
+      - type: cache-save
+        key: yarn-{{ .Branch }}-{{ checksum "yarn.lock" }}
+        paths:
+          - "~/.yarn-cache"
 
-    - yarn install
-
-    # setup ghr
-    - >
-      if [[ ! -e ~/ghr ]]; then
-        curl -L --create-dirs -o ~/ghr/ghr.zip https://github.com/tcnksm/ghr/releases/download/v0.5.0/ghr_v0.5.0_linux_amd64.zip;
-        unzip ~/ghr/ghr.zip -d ~/ghr
-      fi
-    - sudo ln -sF  ~/ghr/ghr /usr/local/bin/ghr
-
-test:
-  override:
-    - node -v
-    - >
-      if [ "$CIRCLE_BRANCH" == 'master' ]; then
-        ./scripts/set-dev-version.js
-      fi;
-    - yarn lint
-    - yarn test-ci -- -- --maxWorkers 3
-    - yarn check-lockfile
-    - yarn build-dist
-    - node ./scripts/build-webpack.js
-    - ./scripts/build-deb.sh
+      - type: artifacts-store
+        path: artifacts/
+        destination: yarnpkg
 
 deployment:
   release:
