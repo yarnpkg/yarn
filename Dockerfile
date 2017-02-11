@@ -2,25 +2,29 @@
 
 #FROM debian:stretch-slim
 FROM ubuntu:16.04
-MAINTAINER Daniel Lo Nigro <daniel@dan.cx>
+MAINTAINER Daniel Lo Nigro <yarn@dan.cx>
+
+ENV DEBIAN_FRONTEND noninteractive
 
 # Add Yarn package repo - We require Yarn to build Yarn itself :D
 ADD https://dl.yarnpkg.com/debian/pubkey.gpg /tmp/yarn-pubkey.gpg
 RUN apt-key add /tmp/yarn-pubkey.gpg && rm /tmp/yarn-pubkey.gpg
 RUN echo "deb http://dl.yarnpkg.com/debian/ stable main" > /etc/apt/sources.list.d/yarn.list
 
+# Add NodeSource Node.js repo for newer Node.js version
+ADD https://deb.nodesource.com/setup_7.x /tmp/nodesource-setup.sh
+RUN chmod +x /tmp/nodesource-setup.sh && /tmp/nodesource-setup.sh && rm /tmp/nodesource-setup.sh
+
 # Debian packages
-ENV DEBIAN_FRONTEND noninteractive
 RUN apt-get -y update && \
   apt-get install -y --no-install-recommends \
+    build-essential \
     fakeroot \
     gcc \
     git \
     lintian \
     make \
     nodejs \
-    nodejs-legacy \
-    npm \
     rpm \
     ruby \
     ruby-dev \
