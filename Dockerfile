@@ -1,6 +1,5 @@
 # Dockerfile for building Yarn.
 
-#FROM debian:stretch-slim
 FROM ubuntu:16.04
 MAINTAINER Daniel Lo Nigro <yarn@dan.cx>
 
