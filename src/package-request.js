@@ -14,7 +14,9 @@ import {entries} from './util/misc.js';
 import * as constants from './constants.js';
 import * as versionUtil from './util/version.js';
 import * as resolvers from './resolvers/index.js';
+import * as fs from './util/fs.js';
 
+const path = require('path');
 const invariant = require('invariant');
 const semver = require('semver');
 
@@ -98,7 +100,7 @@ export default class PackageRequest {
    */
 
   async findVersionOnRegistry(pattern: string): Promise<Manifest> {
-    const {range, name} = PackageRequest.normalizePattern(pattern);
+    const {range, name} = this.normalize(pattern);
 
     const exoticResolver = PackageRequest.getExoticResolver(range);
     if (exoticResolver) {
@@ -133,6 +135,30 @@ export default class PackageRequest {
     } else {
       throw new MessageError(this.reporter.lang('unknownRegistryResolver', this.registry));
     }
+  }
+
+  /**
+   * If pattern:
+   * - contains : it will return because is something like '<protocol>:<something else' or an url
+   * - is a file it will prepend file:
+   * otherwise it will return
+   */
+  normalizeRange(pattern: string): string {
+    if (pattern.includes(':')) {
+      return pattern;
+    }
+
+    if (fs.existsSync(path.join(this.config.cwd, pattern))) {
+      return `file:${pattern}`;
+    }
+
+    return pattern;
+  }
+
+  normalize(pattern: string): any {
+    const {name, range, hasVersion} = PackageRequest.normalizePattern(pattern);
+    const new_range = this.normalizeRange(range);
+    return {name, range: new_range, hasVersion};
   }
 
   /**
@@ -219,7 +245,7 @@ export default class PackageRequest {
 
     // check if while we were resolving this dep we've already resolved one that satisfies
     // the same range
-    const {range, name} = PackageRequest.normalizePattern(this.pattern);
+    const {range, name} = this.normalize(this.pattern);
     const resolved: ?Manifest = this.resolver.getHighestRangeVersionMatch(name, range);
     if (resolved) {
       this.reportResolvedRangeMatch(info, resolved);
