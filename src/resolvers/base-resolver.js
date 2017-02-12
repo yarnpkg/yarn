@@ -39,4 +39,8 @@ export default class BaseResolver {
   resolve(): Promise<Manifest> {
     throw new Error('Not implemented');
   }
+
+  static getPatternVersion(pattern: string, pkg: Manifest): ?string {
+    return null;
+  }
 }

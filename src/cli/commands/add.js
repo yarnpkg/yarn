@@ -60,10 +60,16 @@ export class Add extends Install {
     const {exact, tilde} = this.flags;
     const parts = PackageRequest.normalizePattern(pattern);
     let version;
-    if (PackageRequest.getExoticResolver(pattern)) {
+    const Resolver = PackageRequest.getExoticResolver(pattern);
+    if (Resolver) {
       // wasn't a name/range tuple so this is just a raw exotic pattern
-      version = pattern;
-    } else if (parts.hasVersion && parts.range) {
+      version = Resolver.getPatternVersion(pattern, pkg, this.flags);
+      if (version == null) {
+        return pattern;
+      }
+    }
+
+    if (parts.hasVersion && parts.range) {
       // if the user specified a range then use it verbatim
       version = parts.range === 'latest' ? `^${pkg.version}` : parts.range;
     } else if (tilde) { // --save-tilde
