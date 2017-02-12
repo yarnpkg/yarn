@@ -1,6 +1,6 @@
 /* @flow */
 
-import type {Manifest} from './types.js';
+import type {Manifest, PackageRemote} from './types.js';
 import type PackageResolver from './package-resolver.js';
 import type {Reporter} from './reporters/index.js';
 import type Config from './config.js';
@@ -124,7 +124,7 @@ export default class PackageLinker {
     const phantomFiles = [];
 
     //
-    const queue: Map<string, CopyQueueItem> = new Map();
+    const queue: Map<string, {remote: ?PackageRemote, item: CopyQueueItem}> = new Map();
     for (const [dest, {pkg, loc: src}] of flatTree) {
       const ref = pkg._reference;
       invariant(ref, 'expected package reference');
@@ -138,12 +138,15 @@ export default class PackageLinker {
       }
 
       queue.set(dest, {
-        src,
-        dest,
-        onFresh() {
-          if (ref) {
-            ref.setFresh(true);
-          }
+        remote: metadata.remote,
+        item: {
+          src,
+          dest,
+          onFresh() {
+            if (ref) {
+              ref.setFresh(true);
+            }
+          },
         },
       });
     }
@@ -183,9 +186,11 @@ export default class PackageLinker {
       }
     }
 
+    const linkTasks = Array.from(queue.values());
+
     //
     let tick;
-    await fs.copyBulk(Array.from(queue.values()), this.reporter, {
+    await fs.copyBulk(linkTasks.map((item) => item.item), this.reporter, {
       possibleExtraneous,
       phantomFiles,
 
@@ -204,6 +209,16 @@ export default class PackageLinker {
         }
       },
     });
+
+    // inject PackageRemote info into installation dep tree
+    await Promise.all(linkTasks.map(async ({remote, item: {dest}}) => {
+      const packageJsonFilename = path.join(dest, 'package.json');
+      const packageJson = await fs.readJson(packageJsonFilename);
+      if (remote != null && remote._resolved != null) {
+        packageJson._resolved = remote.resolved;
+      }
+      await fs.writeJson(packageJsonFilename, packageJson);
+    }));
 
     // remove any empty scoped directories
     for (const scopedPath of scopedPaths) {
