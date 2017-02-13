@@ -9,7 +9,6 @@ import parse from '../lockfile/parse.js';
 import * as fs from '../util/fs.js';
 
 const userHome = require('../util/user-home-dir').default;
-const defaults = require('defaults');
 const path = require('path');
 const pkg: { version: string } = require('../../package.json');
 
@@ -93,11 +92,11 @@ export default class YarnRegistry extends NpmRegistry {
         await fs.mkdirp(mirrorLoc);
       }
 
-      defaults(this.config, config);
+      this.config = Object.assign({}, config, this.config);
     }
 
     // default yarn config
-    defaults(this.config, DEFAULTS);
+    this.config = Object.assign({}, DEFAULTS, this.config);
   }
 
   async saveHomeConfig(config: Object): Promise<void> {
