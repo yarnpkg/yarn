@@ -1,0 +1,104 @@
+{
+  "_args": [
+    [
+      {
+        "raw": "beeper@git://github.com/sindresorhus/beeper.git#34f2c73a340f000c9e060f7038362db6782b236e",
+        "scope": null,
+        "escapedName": "beeper",
+        "name": "beeper",
+        "rawSpec": "git://github.com/sindresorhus/beeper.git#34f2c73a340f000c9e060f7038362db6782b236e",
+        "spec": "git://github.com/sindresorhus/beeper.git#34f2c73a340f000c9e060f7038362db6782b236e",
+        "type": "hosted",
+        "hosted": {
+          "type": "github",
+          "ssh": "git@github.com:sindresorhus/beeper.git#34f2c73a340f000c9e060f7038362db6782b236e",
+          "sshUrl": "git+ssh://git@github.com/sindresorhus/beeper.git#34f2c73a340f000c9e060f7038362db6782b236e",
+          "httpsUrl": "git+https://github.com/sindresorhus/beeper.git#34f2c73a340f000c9e060f7038362db6782b236e",
+          "gitUrl": "git://github.com/sindresorhus/beeper.git#34f2c73a340f000c9e060f7038362db6782b236e",
+          "shortcut": "github:sindresorhus/beeper#34f2c73a340f000c9e060f7038362db6782b236e",
+          "directUrl": "https://raw.githubusercontent.com/sindresorhus/beeper/34f2c73a340f000c9e060f7038362db6782b236e/package.json"
+        }
+      },
+      "/Users/xdissent/src/yarn/__tests__/fixtures/import/git"
+    ]
+  ],
+  "_from": "sindresorhus/beeper",
+  "_id": "beeper@1.1.1",
+  "_inCache": true,
+  "_location": "/beeper",
+  "_phantomChildren": {},
+  "_requested": {
+    "raw": "beeper@git://github.com/sindresorhus/beeper.git#34f2c73a340f000c9e060f7038362db6782b236e",
+    "scope": null,
+    "escapedName": "beeper",
+    "name": "beeper",
+    "rawSpec": "git://github.com/sindresorhus/beeper.git#34f2c73a340f000c9e060f7038362db6782b236e",
+    "spec": "git://github.com/sindresorhus/beeper.git#34f2c73a340f000c9e060f7038362db6782b236e",
+    "type": "hosted",
+    "hosted": {
+      "type": "github",
+      "ssh": "git@github.com:sindresorhus/beeper.git#34f2c73a340f000c9e060f7038362db6782b236e",
+      "sshUrl": "git+ssh://git@github.com/sindresorhus/beeper.git#34f2c73a340f000c9e060f7038362db6782b236e",
+      "httpsUrl": "git+https://github.com/sindresorhus/beeper.git#34f2c73a340f000c9e060f7038362db6782b236e",
+      "gitUrl": "git://github.com/sindresorhus/beeper.git#34f2c73a340f000c9e060f7038362db6782b236e",
+      "shortcut": "github:sindresorhus/beeper#34f2c73a340f000c9e060f7038362db6782b236e",
+      "directUrl": "https://raw.githubusercontent.com/sindresorhus/beeper/34f2c73a340f000c9e060f7038362db6782b236e/package.json"
+    }
+  },
+  "_requiredBy": [
+    "/"
+  ],
+  "_resolved": "git://github.com/sindresorhus/beeper.git#34f2c73a340f000c9e060f7038362db6782b236e",
+  "_shasum": "f50ce653497675baefdd5c9662b0e396085366e1",
+  "_shrinkwrap": null,
+  "_spec": "beeper@git://github.com/sindresorhus/beeper.git#34f2c73a340f000c9e060f7038362db6782b236e",
+  "_where": "/Users/xdissent/src/yarn/__tests__/fixtures/import/git",
+  "author": {
+    "name": "Sindre Sorhus",
+    "email": "sindresorhus@gmail.com",
+    "url": "sindresorhus.com"
+  },
+  "bugs": {
+    "url": "https://github.com/sindresorhus/beeper/issues"
+  },
+  "dependencies": {},
+  "description": "Make your terminal beep",
+  "devDependencies": {
+    "hooker": "^0.2.3",
+    "tape": "^4.0.0"
+  },
+  "engines": {
+    "node": ">=0.10.0"
+  },
+  "files": [
+    "index.js"
+  ],
+  "gitHead": "34f2c73a340f000c9e060f7038362db6782b236e",
+  "homepage": "https://github.com/sindresorhus/beeper#readme",
+  "keywords": [
+    "beep",
+    "beeper",
+    "boop",
+    "terminal",
+    "term",
+    "cli",
+    "console",
+    "ding",
+    "ping",
+    "alert",
+    "gulpfriendly"
+  ],
+  "license": "MIT",
+  "name": "beeper",
+  "optionalDependencies": {},
+  "readme": "# beeper [![Build Status](https://travis-ci.org/sindresorhus/beeper.svg?branch=master)](https://travis-ci.org/sindresorhus/beeper)\n\n> Make your terminal beep\n\n![](https://cloud.githubusercontent.com/assets/170270/5261236/f8471100-7a49-11e4-81af-96cd09a522d9.gif)\n\nUseful as an attention grabber e.g. when an error happens.\n\n\n## Install\n\n```\n$ npm install --save beeper\n```\n\n\n## Usage\n\n```js\nvar beeper = require('beeper');\n\nbeeper();\n// beep one time\n\nbeeper(3);\n// beep three times\n\nbeeper('****-*-*');\n// beep, beep, beep, beep, pause, beep, pause, beep\n```\n\n\n## API\n\nIt will not beep if stdout is not TTY or if the user supplies the `--no-beep` flag.\n\n### beeper([count|melody], [callback])\n\n#### count\n\nType: `number`  \nDefault: `1`\n\nHow many times you want it to beep.\n\n#### melody\n\nType: `string`\n\nConstruct your own melody by supplying a string of `*` for beep `-` for pause.\n\n\n## License\n\nMIT © [Sindre Sorhus](http://sindresorhus.com)\n",
+  "readmeFilename": "readme.md",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sindresorhus/beeper.git"
+  },
+  "scripts": {
+    "test": "node test.js"
+  },
+  "version": "1.1.1"
+}

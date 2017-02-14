@@ -1,0 +1,9 @@
+{
+  "name": "locked",
+  "version": "1.0.0",
+  "license": "MIT",
+  "dependencies": {
+    "dep-a": "^1.0.0",
+    "dep-b": "^1.0.0"
+  }
+}

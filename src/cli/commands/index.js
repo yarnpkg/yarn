@@ -9,6 +9,7 @@ import * as clean from './clean.js'; export {clean};
 import * as config from './config.js'; export {config};
 import * as generateLockEntry from './generate-lock-entry.js'; export {generateLockEntry};
 import * as global from './global.js'; export {global};
+import * as import_ from './import.js'; export {import_ as import};
 import * as info from './info.js'; export {info};
 import * as init from './init.js'; export {init};
 import * as install from './install.js'; export {install};
