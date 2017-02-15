@@ -79,7 +79,7 @@ export default class OpamResolver extends ExoticResolver {
 }
 
 export function parseOpamResolution(fragment: string): {name: string, version: string} {
-  fragment = fragment.slice(`@{OPAM_SCOPE}/`.length);
+  fragment = fragment.slice(`@${OPAM_SCOPE}/`.length);
   const [name, version = '*'] = fragment.split('@');
   return {
     name,
