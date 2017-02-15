@@ -12,6 +12,9 @@ import * as fs from './util/fs.js';
 import * as promise from './util/promise.js';
 
 export default class PackageFetcher {
+
+  static fetchInProgress: Map<string, Promise<FetchedMetadata>> = new Map();
+
   constructor(config: Config, resolver: PackageResolver) {
     this.reporter = config.reporter;
     this.resolver = resolver;
@@ -33,8 +36,17 @@ export default class PackageFetcher {
     };
   }
 
-  async fetch(ref: PackageReference): Promise<FetchedMetadata> {
+  fetch(ref: PackageReference): Promise<FetchedMetadata> {
     const dest = this.config.generateHardModulePath(ref);
+    let refFetch = this.constructor.fetchInProgress.get(dest);
+    if (refFetch == null) {
+      refFetch = this.fetchImpl(ref, dest);
+      this.constructor.fetchInProgress.set(dest, refFetch);
+    }
+    return refFetch;
+  }
+
+  async fetchImpl(ref: PackageReference, dest: string): Promise<FetchedMetadata> {
 
     const remote = ref.remote;
     const Fetcher = fetchers[remote.type];
