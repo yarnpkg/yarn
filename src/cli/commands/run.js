@@ -7,7 +7,6 @@ import {MessageError} from '../../errors.js';
 import {registries} from '../../resolvers/index.js';
 import * as fs from '../../util/fs.js';
 import map from '../../util/map.js';
-import {fixCmdWinSlashes} from '../../util/fix-cmd-win-slashes.js';
 
 const leven = require('leven');
 const path = require('path');
@@ -70,8 +69,7 @@ export async function run(
     for (const action of actions) {
       const cmd = scripts[action];
       if (cmd) {
-        const isWin = 'win32' === process.platform;
-        cmds.push([action, isWin ? fixCmdWinSlashes(cmd) : cmd]);
+        cmds.push([action, cmd]);
       }
     }
 
