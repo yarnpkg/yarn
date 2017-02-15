@@ -1,0 +1,128 @@
+#!/usr/bin/env bash
+
+# http://stackoverflow.com/questions/59895/can-a-bash-script-tell-what-directory-its-stored-in
+SOURCE="${BASH_SOURCE[0]}"
+while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink
+  SCRIPTDIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+  SOURCE="$(readlink "$SOURCE")"
+  [[ $SOURCE != /* ]] && SOURCE="$SCRIPTDIR/$SOURCE" # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
+done
+SCRIPTDIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+
+# Had to remove this so that we could just use one command `esy` which we
+# forward everything to.
+# We'll have to reimplement v that feature in the actual js impl.
+# CURDIR=`pwd`
+# while [ ! -e "$CURDIR/package.json" ]; do
+#     if [ "$CURDIR" == "/" ]; then
+#         echo "Cannot find package.json" >&2
+#         exit 1
+#     fi
+#     CURDIR=`cd $CURDIR/..; pwd`
+# done
+
+
+# Capture the error output
+# Capturing stderr is very important to prevent nodejs from setting
+# stderr to nonblocking mode
+
+if [ -z "${ESY__SANDBOX+x}" ]; then
+  export ESY__SANDBOX="$PWD"
+fi
+if [ -z "${ESY__STORE+x}" ]; then
+  export ESY__STORE="$HOME/.esy"
+fi
+
+EJECT_PATH="$ESY__SANDBOX/node_modules/.cache/esy"
+ENV_PATH="$ESY__SANDBOX/node_modules/.cache/esy-env"
+
+if [ -d "$ESY__SANDBOX/node_modules" ]; then
+  DEPENDENCIES_PACKAGE_JSON=`find $ESY__SANDBOX/node_modules -name 'package.json'`
+else
+  DEPENDENCIES_PACKAGE_JSON=""
+fi
+
+needRebuildTarget () {
+  TARGET="$1"
+  NEED_REBUILD="false"
+
+  # check if target exist
+  if [ ! -f "$TARGET" ]; then
+    NEED_REBUILD="true"
+  else
+    # check sandbox package.json
+    if [ "$TARGET" -ot "$ESY__SANDBOX/package.json" ]; then
+      NEED_REBUILD="true"
+    else
+      # check each dependencies' package.json
+      for dep in $DEPENDENCIES_PACKAGE_JSON; do
+        if [ "$TARGET" -ot "$dep" ]; then
+          NEED_REBUILD="true"
+          break
+        fi
+      done
+    fi
+  fi
+
+  echo "$NEED_REBUILD"
+}
+
+builtInEject () {
+  if [ `needRebuildTarget "$EJECT_PATH/Makefile"` == "true" ]; then
+    EJECT_LOG=`node $SCRIPTDIR/esy.js build-eject "$EJECT_PATH" 2>&1`
+    if [ $? -ne 0 ]; then
+      echo "Failed to prepare build environment:"
+      printf "%s\n" "$EJECT_LOG" >&2
+      exit 1
+    fi
+  fi
+}
+
+ensureEnvEjected () {
+  if [ `needRebuildTarget "$ENV_PATH"` == "true" ]; then
+    EJECTED_ENV=`node $SCRIPTDIR/esy.js 2>&1`
+    if [ $? -ne 0 ]; then
+      echo "Failed to get environment:"
+      printf "%s\n" "$EJECTED_ENV" >&2
+      exit 1
+    else
+      mkdir -p `dirname $ENV_PATH`
+      echo "$EJECTED_ENV" > "$ENV_PATH"
+    fi
+  fi
+}
+
+builtIn() {
+	node $SCRIPTDIR/esy.js $@
+}
+
+builtInYarn() {
+	node $SCRIPTDIR/yarn.js $@
+}
+
+if [ "$1" == "build" ] || [ "$1" == "build-shell" ] || [ "$1" == "clean" ]; then
+  builtInEject
+  make -j -s -f "$EJECT_PATH/Makefile" "$1"
+
+elif [ "$1" == "build-eject" ]; then
+  builtInEject
+
+elif [ "$1" == "shell" ]; then
+  ensureEnvEjected
+  source "$ENV_PATH"
+  $SHELL
+
+elif [ "$1" == "install" ] || [ "$1" == "add" ]; then
+  builtInYarn $@
+
+else
+
+  ensureEnvEjected
+
+  if [ "$1" != "" ]; then
+    source "$ENV_PATH"
+    exec "$@"
+  else
+    cat "$ENV_PATH"
+  fi
+fi
