@@ -1,5 +1,5 @@
-SRC = $(shell find src -type f)
-LIB = $(SRC:src/%=lib/%)
+build build-dist build-chocolatey build-win-installer test test-ci test-only check-lockfile watch lint release-branch:
+	@npm run $(@)
 
 convert-opam-packages:
 	@$(MAKE) -C opam-packages-conversion/ convert || true # some conversions fail now
@@ -7,9 +7,6 @@ convert-opam-packages:
 	@mv opam-packages-conversion/output opam-packages
 
 prepare-release: build
-
-build:
-	@$(MAKE) -j $(LIB)
 
 check-version:
 ifndef VERSION
