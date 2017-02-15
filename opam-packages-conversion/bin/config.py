@@ -26,6 +26,9 @@ ESY_EXTRA_DEP = {
     },
     "conf-pkg-config": {
         "yarn-pkg-config": "reasonml/yarn-pkg-config#esy",
+    },
+    "ctypes": {
+        "libffi": "reasonml/libffi#esy",
     }
 }
 
