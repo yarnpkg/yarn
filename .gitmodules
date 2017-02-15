@@ -1,0 +1,9 @@
+[submodule "opam-packages-conversion/opam-repository"]
+	path = opam-packages-conversion/opam-repository
+	url = https://github.com/ocaml/opam-repository.git
+[submodule "opam-packages-conversion/forks/camlp4"]
+	path = opam-packages-conversion/forks/camlp4
+	url = https://github.com/esy-ocaml/camlp4.git
+[submodule "opam-packages-conversion/forks/ocamlfind"]
+	path = opam-packages-conversion/forks/ocamlfind
+	url = https://github.com/esy-ocaml/ocamlfind.git

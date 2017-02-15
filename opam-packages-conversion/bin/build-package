@@ -1,0 +1,78 @@
+#!/usr/bin/env python
+
+import subprocess
+import os
+import sys
+import re
+import urllib2
+import base64
+import json
+
+import config
+
+from lib import generate_package_json
+
+def bash(cmd):
+    p = subprocess.Popen(
+        ['/bin/bash', '-e', '-u', '-o', 'pipefail', '-c', cmd],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE)
+    stdout, stderr = p.communicate()
+    ret = p.wait()
+    if ret != 0:
+        raise Exception(stderr)
+    return stdout, stderr
+
+
+def write_package_json(name, package_json):
+    with open(os.path.join('output', name + '.json'), 'w') as f:
+        f.write(json.dumps(package_json, indent=2))
+
+
+def read_package_json(directory):
+    with open(os.path.join(directory, 'package.json'), 'r') as f:
+        package_json_data = f.read()
+    package_json = json.loads(package_json_data)
+    return package_json
+
+
+def build_package_version_from_git_repo(repo_dir, ref, orig_ref):
+
+    def capture(cmd, *args):
+        return subprocess.check_output(cmd % args, cwd=repo_dir, shell=True)
+
+    package_json = read_package_json(repo_dir)
+    patch = capture('git diff %s..%s | filterdiff -p 1 --clean -x package.json -x .gitignore', orig_ref, ref)
+    package_json.setdefault('opam', {})['patch'] = patch
+    pkg_versions = {package_json['version']: package_json}
+    package_name = package_json['name']
+    name = package_name.split('/')[1]
+    write_package_json(name, {'versions': pkg_versions})
+
+
+def build_package(name, *versions):
+    package_dir = os.path.join(config.OPAM_PACKAGES, name)
+
+    pkg_versions = {}
+    for version in versions:
+        pkg = generate_package_json(
+            name,
+            version,
+            os.path.join(package_dir, name + '.' + version)
+        )
+        pkg_versions[pkg['version']] = pkg
+
+    write_package_json(name, {'versions': pkg_versions})
+
+
+if __name__ == '__main__':
+    name = sys.argv[1]
+
+    print '*** building %s' % (name,)
+
+    if os.path.isdir(name):
+        ref, orig_ref = sys.argv[2:4]
+        build_package_version_from_git_repo(name, ref, orig_ref)
+    else:
+        versions = sys.argv[2:]
+        build_package(name, *versions)

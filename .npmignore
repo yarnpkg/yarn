@@ -29,3 +29,4 @@
 .vs
 *.msi
 *.nupkg
+/opam-packages-conversion/

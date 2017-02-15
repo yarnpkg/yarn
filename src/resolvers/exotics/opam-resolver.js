@@ -1,8 +1,9 @@
 /* @flow */
 
+const path = require('path');
+
 import type {Manifest} from '../../types.js';
 import type Config from '../../config';
-import path from 'path';
 import type PackageRequest from '../../package-request.js';
 import ExoticResolver from './exotic-resolver.js';
 import * as fs from '../../util/fs.js';
@@ -27,8 +28,7 @@ export type OpamManifest = Manifest & {
   }
 };
 
-// TODO: fix it
-const OPAM_METADATA_STORE = '/Users/andreypopp/Workspace/esy/opam-packages';
+const OPAM_METADATA_STORE = path.join(__dirname, '..', '..', '..', 'opam-packages');
 
 const OPAM_SCOPE = 'opam-alpha';
 
