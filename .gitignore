@@ -15,6 +15,7 @@
 .vs
 *.msi
 *.nupkg
+**/*.pyc
 fbkpm_modules
 test/fixtures/**/.fbkpm
 /tmp/
