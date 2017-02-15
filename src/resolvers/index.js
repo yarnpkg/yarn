@@ -17,8 +17,10 @@ import ExoticFile from './exotics/file-resolver.js';
 import ExoticGitLab from './exotics/gitlab-resolver.js';
 import ExoticGist from './exotics/gist-resolver.js';
 import ExoticBitbucket from './exotics/bitbucket-resolver.js';
+import ExoticOpam from './exotics/opam-resolver.js';
 
 export const exotics = {
+  opam: ExoticOpam,
   git: ExoticGit,
   tarball: ExoticTarball,
   github: ExoticGitHub,
