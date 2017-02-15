@@ -214,7 +214,7 @@ export default class PackageLinker {
     await Promise.all(linkTasks.map(async ({remote, item: {dest}}) => {
       const packageJsonFilename = path.join(dest, 'package.json');
       const packageJson = await fs.readJson(packageJsonFilename);
-      if (remote != null && remote._resolved != null) {
+      if (remote != null && remote.resolved != null) {
         packageJson._resolved = remote.resolved;
       }
       await fs.writeJson(packageJsonFilename, packageJson);
