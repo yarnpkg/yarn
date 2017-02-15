@@ -22,7 +22,7 @@ Promise<Array<?string>> {
   }
 
   return new Promise((resolve, reject) => {
-    exec(`node ${yarnBin} ${cmd} ${args.join(' ')}`, {cwd:workingDir, env:process.env}, (err, stdout) => {
+    exec(`node "${yarnBin}" ${cmd} ${args.join(' ')}`, {cwd:workingDir, env:process.env}, (err, stdout) => {
       if (err) {
         reject(err);
       } else {

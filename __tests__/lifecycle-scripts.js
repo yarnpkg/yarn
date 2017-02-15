@@ -20,7 +20,7 @@ async function execCommand(cmd: string, packageName: string, env = process.env):
 
   return new Promise((resolve, reject) => {
 
-    exec(`node ${yarnBin} ${cmd}`, {cwd:packageDir, env}, (err, stdout) => {
+    exec(`node "${yarnBin}" ${cmd}`, {cwd:packageDir, env}, (err, stdout) => {
       if (err) {
         reject(err);
       } else {
