@@ -186,6 +186,10 @@ export default class HostedGitResolver extends ExoticResolver {
   }
 
   async hasHTTPCapability(url: string): Promise<boolean> {
+    if (this.request.getLocked('tarball')) {
+      return true;
+    }
+
     return (await this.config.requestManager.request({
       url,
       method: 'HEAD',
