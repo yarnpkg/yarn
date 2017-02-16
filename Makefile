@@ -32,6 +32,7 @@ beta-release: check-version convert-opam-packages build
 	@git rm -r ./opam-packages-conversion
 	@git add -f lib/*
 	@git add -f opam-packages/*
+	@git add -f lib-legacy/*
 	@git commit -m "Preparing beta release beta-v$(VERSION)"
 	@# Return code is inverted to receive boolean return value
 	@(git tag --delete beta-v$(VERSION) &> /dev/null)|| echo "Tag beta-v$(VERSION) doesn't yet exist, creating it now."
