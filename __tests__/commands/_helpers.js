@@ -106,12 +106,15 @@ export async function run<T, R>(
 
   // remove the lockfile if we create one and it didn't exist before
   const lockfile = await createLockfile(cwd);
+  const homeFolderLocation = process.env.YARN_HOME_FOLDER;
+  process.env.YARN_HOME_FOLDER = path.join(cwd, '.yarn-home');
 
   // create directories
   await fs.mkdirp(path.join(cwd, '.yarn-global'));
   await fs.mkdirp(path.join(cwd, '.yarn-link'));
   await fs.mkdirp(path.join(cwd, '.yarn-cache'));
   await fs.mkdirp(path.join(cwd, 'node_modules'));
+  await fs.mkdirp(path.join(cwd, '.yarn-home'));
 
   // make sure the cache folder been created in temp folder
   if (flags.cacheFolder) {
@@ -135,5 +138,7 @@ export async function run<T, R>(
     }
   } catch (err) {
     throw new Error(`${err && err.stack} \nConsole output:\n ${out}`);
+  } finally {
+    process.env.YARN_HOME_FOLDER = homeFolderLocation;
   }
 }
