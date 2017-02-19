@@ -1,0 +1,11 @@
+{
+  "name": "github",
+  "version": "1.0.0",
+  "dependencies": {
+    "beeper": {
+      "version": "1.1.1",
+      "from": "sindresorhus/beeper",
+      "resolved": "git://github.com/sindresorhus/beeper.git#34f2c73a340f000c9e060f7038362db6782b236e"
+    }
+  }
+}

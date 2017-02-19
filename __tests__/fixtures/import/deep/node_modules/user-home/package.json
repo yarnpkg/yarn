@@ -1,0 +1,56 @@
+{
+  "name": "user-home",
+  "version": "2.0.0",
+  "description": "Get the path to the user home directory",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sindresorhus/user-home.git"
+  },
+  "author": {
+    "name": "Sindre Sorhus",
+    "email": "sindresorhus@gmail.com",
+    "url": "sindresorhus.com"
+  },
+  "engines": {
+    "node": ">=0.10.0"
+  },
+  "scripts": {
+    "test": "node test.js"
+  },
+  "files": [
+    "index.js"
+  ],
+  "keywords": [
+    "user",
+    "home",
+    "homedir",
+    "os-homedir",
+    "dir",
+    "directory",
+    "folder",
+    "path",
+    "env",
+    "vars",
+    "environment",
+    "variables",
+    "userprofile"
+  ],
+  "dependencies": {
+    "os-homedir": "^1.0.0"
+  },
+  "devDependencies": {
+    "ava": "0.0.4",
+    "path-exists": "^1.0.0"
+  },
+  "readme": "# user-home [![Build Status](https://travis-ci.org/sindresorhus/user-home.svg?branch=master)](https://travis-ci.org/sindresorhus/user-home)\n\n> Get the path to the user home directory\n\n\n## Install\n\n```\n$ npm install --save user-home\n```\n\n\n## Usage\n\n```js\nvar userHome = require('user-home');\n\nconsole.log(userHome);\n//=> '/Users/sindresorhus'\n```\n\nReturns `null` in the unlikely scenario that the home directory can't be found.\n\n\n## Related\n\n- [user-home-cli](https://github.com/sindresorhus/user-home-cli) - CLI for this module\n- [home-or-tmp](https://github.com/sindresorhus/home-or-tmp) - Get the user home directory with fallback to the system temp directory\n\n\n## License\n\nMIT © [Sindre Sorhus](http://sindresorhus.com)\n",
+  "readmeFilename": "readme.md",
+  "bugs": {
+    "url": "https://github.com/sindresorhus/user-home/issues"
+  },
+  "homepage": "https://github.com/sindresorhus/user-home#readme",
+  "_id": "user-home@2.0.0",
+  "_shasum": "9c70bfd8169bc1dcbf48604e0f04b8b49cde9e9f",
+  "_resolved": "https://registry.npmjs.org/user-home/-/user-home-2.0.0.tgz",
+  "_from": "https://registry.npmjs.org/user-home/-/user-home-2.0.0.tgz"
+}
