@@ -54,7 +54,7 @@ for (; i < possibles.length; i++) {
     found = true;
     break;
   } catch (err) {
-    if (err.code === 'MODULE_NOT_FOUND') {
+    if (err.code === 'MODULE_NOT_FOUND' || err.code === 'ENOENT') {
       _err = err;
       continue;
     } else {
