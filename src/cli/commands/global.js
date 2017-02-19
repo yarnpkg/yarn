@@ -12,6 +12,7 @@ import {Install} from './install.js';
 import {Add} from './add.js';
 import {run as runRemove} from './remove.js';
 import {run as runUpgrade} from './upgrade.js';
+import {run as runUpgradeInteractive} from './upgrade-interactive.js';
 import {linkBin} from '../../package-linker.js';
 import * as fs from '../../util/fs.js';
 
@@ -246,6 +247,23 @@ const {run, setFlags: _setFlags} = buildSubCommands('global', {
 
     // upgrade module
     await runUpgrade(config, reporter, flags, args);
+
+    // update binaries
+    await updateBins();
+  },
+
+  async upgradeInteractive(
+    config: Config,
+    reporter: Reporter,
+    flags: Object,
+    args: Array<string>,
+  ): Promise<void> {
+    await updateCwd(config);
+
+    const updateBins = await initUpdateBins(config, reporter, flags);
+
+    // upgrade module
+    await runUpgradeInteractive(config, reporter, flags, args);
 
     // update binaries
     await updateBins();
