@@ -1,0 +1,67 @@
+{
+  "_args": [
+    [
+      {
+        "raw": "graceful-readlink@https://registry.npmjs.org/graceful-readlink/-/graceful-readlink-1.0.1.tgz",
+        "scope": null,
+        "escapedName": "graceful-readlink",
+        "name": "graceful-readlink",
+        "rawSpec": "https://registry.npmjs.org/graceful-readlink/-/graceful-readlink-1.0.1.tgz",
+        "spec": "https://registry.npmjs.org/graceful-readlink/-/graceful-readlink-1.0.1.tgz",
+        "type": "remote"
+      },
+      "/Users/xdissent/src/yarn/__tests__/fixtures/import/shallow"
+    ]
+  ],
+  "_from": "graceful-readlink@>=1.0.0",
+  "_id": "graceful-readlink@1.0.1",
+  "_inCache": true,
+  "_location": "/graceful-readlink",
+  "_phantomChildren": {},
+  "_requested": {
+    "raw": "graceful-readlink@https://registry.npmjs.org/graceful-readlink/-/graceful-readlink-1.0.1.tgz",
+    "scope": null,
+    "escapedName": "graceful-readlink",
+    "name": "graceful-readlink",
+    "rawSpec": "https://registry.npmjs.org/graceful-readlink/-/graceful-readlink-1.0.1.tgz",
+    "spec": "https://registry.npmjs.org/graceful-readlink/-/graceful-readlink-1.0.1.tgz",
+    "type": "remote"
+  },
+  "_requiredBy": [
+    "/",
+    "/commander"
+  ],
+  "_resolved": "https://registry.npmjs.org/graceful-readlink/-/graceful-readlink-1.0.1.tgz",
+  "_shasum": "4cafad76bc62f02fa039b2f94e9a3dd3a391a725",
+  "_shrinkwrap": null,
+  "_spec": "graceful-readlink@https://registry.npmjs.org/graceful-readlink/-/graceful-readlink-1.0.1.tgz",
+  "_where": "/Users/xdissent/src/yarn/__tests__/fixtures/import/shallow",
+  "author": {
+    "name": "zhiyelee"
+  },
+  "bugs": {
+    "url": "https://github.com/zhiyelee/graceful-readlink/issues"
+  },
+  "dependencies": {},
+  "description": "graceful fs.readlink",
+  "devDependencies": {},
+  "homepage": "https://github.com/zhiyelee/graceful-readlink",
+  "keywords": [
+    "fs.readlink",
+    "readlink"
+  ],
+  "license": "MIT",
+  "main": "index.js",
+  "name": "graceful-readlink",
+  "optionalDependencies": {},
+  "readme": "# graceful-readlink\n[![NPM Version](http://img.shields.io/npm/v/graceful-readlink.svg?style=flat)](https://www.npmjs.org/package/graceful-readlink)\n[![NPM Downloads](https://img.shields.io/npm/dm/graceful-readlink.svg?style=flat)](https://www.npmjs.org/package/graceful-readlink)\n\n\n## Usage\n\n```js\nvar readlinkSync = require('graceful-readlink').readlinkSync;\nconsole.log(readlinkSync(f));\n// output\n//  the file pointed to when `f` is a symbolic link\n//  the `f` itself when `f` is not a symbolic link\n```\n## Licence\n\nMIT License\n",
+  "readmeFilename": "README.md",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/zhiyelee/graceful-readlink.git"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "version": "1.0.1"
+}

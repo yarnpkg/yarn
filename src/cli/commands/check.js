@@ -18,7 +18,7 @@ export function setFlags(commander: Object) {
   commander.option('--verify-tree');
 }
 
-async function verifyTreeCheck(
+export async function verifyTreeCheck(
   config: Config,
   reporter: Reporter,
   flags: Object,
