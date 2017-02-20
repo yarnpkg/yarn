@@ -6,6 +6,6 @@
     "commander": "^2.9.0"
   },
   "optionalDependencies": {
-    "qs": "^6.3.0"
+    "qs": "6.3.0"
   }
 }
