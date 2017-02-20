@@ -2,6 +2,7 @@
 
 import PackageHoister, {HoistManifest} from '../src/package-hoister.js';
 import PackageResolver from '../src/package-resolver.js';
+import Lockfile from '../src/lockfile/wrapper.js';
 import type PackageReference from '../src/package-reference.js';
 import type Config from '../src/config.js';
 import type {Manifest} from '../src/types.js';
@@ -27,19 +28,20 @@ function createManifestForUid(uid, dependencies): Manifest {
 //   key is the module uid, in the form name@version ('lodash@1.2.3')
 //   value is an array of strings of dependencies (['lodash@1.2.3', 'grunt@4.5.6'])
 // These modules will be loaded into a mock PackageResolver that will use the hash's keys to resolve the package.
-function createTestFixture(testModules = {}): Object {
+function createTestFixture(testModules: any = {}): any {
   const config = (({
     cwd: CWD,
     getFolder(): string {
       return 'node_modules';
     },
     generateHardModulePath(pkg: ?PackageReference): string {
-      return pkg.uid;
+      return pkg ? pkg.uid : '';
     },
   }: any): Config);
 
   // build Manifests with just enough information to get the PackageHoister to work.
-  const packageResolver = new PackageResolver(config, undefined);
+  const lockfile = new Lockfile();
+  const packageResolver = new PackageResolver(config, lockfile);
   Object.keys(testModules).map((uid) => {
     const packageManifest = createManifestForUid(uid, testModules[uid]);
 
