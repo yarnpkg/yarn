@@ -14,7 +14,9 @@ import {entries} from './util/misc.js';
 import * as constants from './constants.js';
 import * as versionUtil from './util/version.js';
 import * as resolvers from './resolvers/index.js';
+import * as fs from './util/fs.js';
 
+const path = require('path');
 const invariant = require('invariant');
 const semver = require('semver');
 
@@ -98,7 +100,7 @@ export default class PackageRequest {
    */
 
   async findVersionOnRegistry(pattern: string): Promise<Manifest> {
-    const {range, name} = PackageRequest.normalizePattern(pattern);
+    const {range, name} = await this.normalize(pattern);
 
     const exoticResolver = PackageRequest.getExoticResolver(range);
     if (exoticResolver) {
@@ -133,6 +135,26 @@ export default class PackageRequest {
     } else {
       throw new MessageError(this.reporter.lang('unknownRegistryResolver', this.registry));
     }
+  }
+
+  async normalizeRange(pattern: string): Promise<string> {
+    if (pattern.includes(':') ||
+      pattern.includes('@') ||
+      PackageRequest.getExoticResolver(pattern)) {
+      return Promise.resolve(pattern);
+    }
+
+    if (await fs.exists(path.join(this.config.cwd, pattern))) {
+      return Promise.resolve(`file:${pattern}`);
+    }
+
+    return Promise.resolve(pattern);
+  }
+
+  async normalize(pattern: string): any {
+    const {name, range, hasVersion} = PackageRequest.normalizePattern(pattern);
+    const newRange = await this.normalizeRange(range);
+    return {name, range: newRange, hasVersion};
   }
 
   /**
