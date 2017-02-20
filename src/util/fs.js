@@ -22,10 +22,11 @@ export const access: (path: string, mode?: number) => Promise<void> = promisify(
 export const stat: (path: string) => Promise<fs.Stats> = promisify(fs.stat);
 export const unlink: (path: string) => Promise<void> = promisify(require('rimraf'));
 export const mkdirp: (path: string) => Promise<void> = promisify(require('mkdirp'));
-export const exists: (path: string) => Promise<boolean>  = promisify(fs.exists, true);
+export const exists: (path: string) => Promise<boolean> = promisify(fs.exists, true);
 export const lstat: (path: string) => Promise<fs.Stats> = promisify(fs.lstat);
 export const chmod: (path: string, mode: number | string) => Promise<void> = promisify(fs.chmod);
 export const link: (path: string) => Promise<fs.Stats> = promisify(fs.link);
+export const existsSync: (path: string) => boolean = fs.existsSync;
 
 const CONCURRENT_QUEUE_ITEMS = 4;
 
