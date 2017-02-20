@@ -103,3 +103,35 @@ test.concurrent('upgrades from fixed version to latest', (): Promise<void> => {
     assert.deepEqual(pkg.dependencies, {'max-safe-integer': '^1.0.1'});
   });
 });
+
+test.concurrent('warns when peer dependency is not met after upgrade', (): Promise<void> => {
+  return buildRun(
+    reporters.BufferReporter,
+    fixturesLoc,
+    async (args, flags, config, reporter): Promise<void> => {
+      await upgrade(config, reporter, flags, args);
+      const output = reporter.getBuffer();
+      const warnings = output.filter((entry) => entry.type === 'warning');
+      assert(warnings.some((warning) => warning.data.toString().toLowerCase().includes('incorrect peer')));
+    },
+    ['themer'],
+    {},
+    'peer-dependency-warn',
+  );
+});
+
+test.concurrent('doesn\'t warn when peer dependency is still met after upgrade', (): Promise<void> => {
+  return buildRun(
+    reporters.BufferReporter,
+    fixturesLoc,
+    async (args, flags, config, reporter): Promise<void> => {
+      await upgrade(config, reporter, flags, args);
+      const output = reporter.getBuffer();
+      const warnings = output.filter((entry) => entry.type === 'warning');
+      assert(!warnings.some((warning) => warning.data.toString().toLowerCase().includes('peer')));
+    },
+    ['themer'],
+    {},
+    'peer-dependency-no-warn',
+  );
+});

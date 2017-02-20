@@ -300,6 +300,12 @@ export default class PackageLinker {
         } while (request = request.parentRequest);
       }
 
+      // if the resolver already knows about the peer dependency, add those patterns as well
+      const packagePatterns = this.resolver.patternsByPackage[name];
+      if (packagePatterns) {
+        searchPatterns = searchPatterns.concat(packagePatterns);
+      }
+
       // include root seed patterns last
       searchPatterns = searchPatterns.concat(this.resolver.seedPatterns);
 
