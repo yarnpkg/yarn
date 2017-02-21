@@ -198,7 +198,9 @@ test.concurrent('should run help of run command if --help is before --', async (
     .toEqual('Visit https://yarnpkg.com/en/docs/cli/run for documentation about this command.');
 });
 
-test.concurrent('should run help of custom-script if --help is after --', async () => {
-  const stdout = await execCommand('run', ['custom-script', '--', '--help'], 'run-custom-script-with-arguments');
-  expect(stdout[stdout.length - 2]).toEqual('A message from custom script with args --help');
-});
+if (process.platform !== 'win32') {
+  test.concurrent('should run help of custom-script if --help is after --', async () => {
+    const stdout = await execCommand('run', ['custom-script', '--', '--help'], 'run-custom-script-with-arguments');
+    expect(stdout[stdout.length - 2]).toEqual('A message from custom script with args --help');
+  });
+}
