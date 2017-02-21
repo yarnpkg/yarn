@@ -37,7 +37,10 @@ export function stringifyLangArgs(args: Array<any>): Array<string> {
       return val.inspect();
     } else {
       try {
-        return JSON.stringify(val) || val + '';
+        const str = JSON.stringify(val) || val + '';
+	// should match all "u001b" that follow an odd number of backslashes and convert them to ESC
+	// we do this because the JSON.stringify process has escaped these characters
+        return str.replace(/((?:^|[^\\])(?:\\{2})*)\\u001[bB]/g, '$1\u001b');
       } catch (e) {
         return util.inspect(val);
       }
