@@ -94,7 +94,7 @@ export default class Lockfile {
 
     if (await fs.exists(lockfileLoc)) {
       rawLockfile = await fs.readFile(lockfileLoc);
-      lockfile = parse(rawLockfile);
+      lockfile = parse(rawLockfile, lockfileLoc);
     } else {
       if (reporter) {
         reporter.info(reporter.lang('noLockfileFound'));
