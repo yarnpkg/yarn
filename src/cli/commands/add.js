@@ -9,7 +9,7 @@ import Lockfile from '../../lockfile/wrapper.js';
 import PackageRequest from '../../package-request.js';
 import {buildTree} from './list.js';
 import {wrapLifecycle, Install} from './install.js';
-import {MessageError} from '../../errors.js';
+import {MessageError, PackageVersionError} from '../../errors.js';
 
 const invariant = require('invariant');
 
@@ -107,7 +107,22 @@ export class Add extends Install {
 
   async init(): Promise<Array<string>> {
     this.addedPatterns = [];
-    const patterns = await Install.prototype.init.call(this);
+    let patterns = [];
+    try {
+      patterns = await Install.prototype.init.call(this);
+    } catch (e) {
+      if (e instanceof PackageVersionError) {
+        const replace = this.args.find((pattern) => pattern.indexOf(e.packageName) > -1);
+        if (replace) {
+          this.args.splice(this.args.indexOf(replace), 1, `${e.packageName}@${e.resolvedVersion}`);
+          patterns = await Install.prototype.init.call(this);
+        } else {
+          throw new MessageError(this.reporter.lang('unknownPackage', e.packageName));
+        }
+      } else {
+        throw e;
+      }
+    }
     await this.maybeOutputSaveTree(patterns);
     await this.savePackages();
     return patterns;

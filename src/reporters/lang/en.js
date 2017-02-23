@@ -53,8 +53,11 @@ const messages = {
   couldntFindPackagejson: "Couldn't find a package.json file in $0",
   couldntFindMatch: "Couldn't find match for $0 in $1 for $2.",
   couldntFindPackageInCache: "Couldn't find any versions for $0 that matches $1 in our cache. Possible versions: $2",
-  couldntFindVersionThatMatchesRange: "Couldn't find any versions for $0 that matches $1",
+  couldntFindVersionThatMatchesRange: "Couldn't find any versions for $0 that matches $1: Possible versions: $2",
+  couldntFindVersionThatMatchesRangeShort: "Couldn't find any versions for $0 that matches $1",
   chooseVersionFromList: 'Please choose a version from this list:',
+  packageVersionResolved: 'Version for $0 has been resolved: $1 will be replaced with $2',
+
   moduleNotInManifest: "This module isn't specified in a manifest.",
   unknownFolderOrTarball: "Passed folder/tarball doesn't exist,",
   unknownPackage: "Couldn't find package $0.",

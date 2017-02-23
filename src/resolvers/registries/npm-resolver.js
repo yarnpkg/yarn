@@ -3,7 +3,7 @@
 import type {Manifest} from '../../types.js';
 import type Config from '../../config.js';
 import type PackageRequest from '../../package-request.js';
-import {MessageError} from '../../errors.js';
+import {MessageError, PackageVersionError} from '../../errors.js';
 import RegistryResolver from './registry-resolver.js';
 import NpmRegistry from '../../registries/npm-registry.js';
 import map from '../../util/map.js';
@@ -22,6 +22,8 @@ type RegistryResponse = {
   versions: { [key: string]: Manifest },
   "dist-tags": { [key: string]: string },
 };
+
+type InquirerResponses<K, T> = {[key: K]: T};
 
 export default class NpmResolver extends RegistryResolver {
   static registry = 'npm';
@@ -43,27 +45,31 @@ export default class NpmResolver extends RegistryResolver {
     const satisfied = await config.resolveConstraints(Object.keys(body.versions), range);
     if (satisfied) {
       return body.versions[satisfied];
-    } else if (request) {
+    } else if (config.commandName === 'add' && request) {
       if (request.resolver && request.resolver.activity) {
         request.resolver.activity.end();
       }
-      config.reporter.log(config.reporter.lang('couldntFindVersionThatMatchesRange', body.name, range));
+      config.reporter.log(config.reporter.lang('couldntFindVersionThatMatchesRangeShort', body.name, range));
       let pageSize;
       if (process.stdout instanceof tty.WriteStream) {
         pageSize = process.stdout.rows - 2;
       }
-      const response: {[key: string]: ?string} = await inquirer.prompt([{
-        name: 'package',
+      const response: InquirerResponses<'version', string> =  await inquirer.prompt([{
+        name: 'version',
         type: 'list',
         message: config.reporter.lang('chooseVersionFromList'),
         choices: Object.keys(body.versions).reverse(),
         pageSize,
       }]);
-      if (response && response.package) {
-        return body.versions[response.package];
-      }
+      config.reporter.info(config.reporter.lang('packageVersionResolved', body.name, range, response.version));
+      throw new PackageVersionError(body.name, range, response.version);
     }
-    throw new MessageError(config.reporter.lang('couldntFindVersionThatMatchesRange', body.name, range));
+    throw new MessageError(config.reporter.lang(
+      'couldntFindVersionThatMatchesRange',
+      body.name,
+      range,
+      Object.keys(body.versions).join(', '),
+    ));
   }
 
   async resolveRequest(): Promise<?Manifest> {

@@ -605,9 +605,8 @@ test.concurrent('add infers line endings from existing unix manifest file', asyn
     });
 });
 
-// broken https://github.com/yarnpkg/yarn/issues/2466
 test.skip('add asks for correct package version if user passes an incorrect one', async (): Promise<void> => {
-  let chosenVersion = null;
+  let chosenVersion: string = '';
   await runAdd(
     ['is-array@100'],
     {},
@@ -615,6 +614,8 @@ test.skip('add asks for correct package version if user passes an incorrect one'
     async (config) => {
       assert(chosenVersion);
       assert.equal(await getPackageVersion(config, 'is-array'), chosenVersion);
+      const lockfile = explodeLockfile(await fs.readFile(path.join(config.cwd, 'yarn.lock')));
+      assert(lockfile.indexOf(`is-array@${chosenVersion}`) === 0);
     },
     () => {
       inquirer.prompt = jest.fn((questions) => {
