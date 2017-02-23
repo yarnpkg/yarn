@@ -6,8 +6,8 @@ import type {Manifest, DependencyRequestPatterns} from '../../types.js';
 import type Config from '../../config.js';
 import type {RegistryNames} from '../../registries/index.js';
 import normalizeManifest from '../../util/normalize-manifest/index.js';
-import {registryNames} from '../../registries/index.js';
 import {MessageError} from '../../errors.js';
+import {InstallationIntegrityChecker} from '../../integrity-checker.js';
 import Lockfile from '../../lockfile/wrapper.js';
 import lockStringify from '../../lockfile/stringify.js';
 import PackageFetcher from '../../package-fetcher.js';
@@ -20,9 +20,7 @@ import {registries} from '../../registries/index.js';
 import {clean} from './clean.js';
 import * as constants from '../../constants.js';
 import * as fs from '../../util/fs.js';
-import * as crypto from '../../util/crypto.js';
 import map from '../../util/map.js';
-import {sortAlpha} from '../../util/misc.js';
 
 const invariant = require('invariant');
 const semver = require('semver');
@@ -39,13 +37,6 @@ export type InstallCwdRequest = {
   ignorePatterns: Array<string>,
   usedPatterns: Array<string>,
   manifest: Object,
-};
-
-export type IntegrityMatch = {
-  actual: string,
-  expected: string,
-  loc: string,
-  matches: boolean,
 };
 
 type Flags = {
@@ -179,6 +170,7 @@ export class Install {
 
     this.resolver = new PackageResolver(config, lockfile);
     this.fetcher = new PackageFetcher(config, this.resolver);
+    this.integrityChecker = new InstallationIntegrityChecker(config);
     this.compatibility = new PackageCompatibility(config, this.resolver, this.flags.ignoreEngines);
     this.linker = new PackageLinker(config, this.resolver);
     this.scripts = new PackageInstallScripts(config, this.resolver, this.flags.force);
@@ -197,6 +189,7 @@ export class Install {
   compatibility: PackageCompatibility;
   fetcher: PackageFetcher;
   rootPatternsToOrigin: { [pattern: string]: string };
+  integrityChecker: InstallationIntegrityChecker;
 
   /**
    * Create a list of dependency requests from the current directories manifests.
@@ -307,16 +300,17 @@ export class Install {
     if (this.flags.skipIntegrityCheck || this.flags.force) {
       return false;
     }
-
-    const match = await this.matchesIntegrityHash(patterns);
+    const match = await this.integrityChecker.check();
     const haveLockfile = await fs.exists(path.join(this.config.cwd, constants.LOCKFILE_FILENAME));
+    // TODO check fs.stat of node_modules content
+    const haveModulesInstalled = false;
 
-    if (match.matches && haveLockfile) {
+    if (match && haveLockfile) {
       this.reporter.success(this.reporter.lang('upToDate'));
       return true;
     }
 
-    if (!patterns.length && !match.expected) {
+    if (!patterns.length && !haveModulesInstalled) {
       this.reporter.success(this.reporter.lang('nothingToInstall'));
       await this.createEmptyManifestFolders();
       await this.saveLockfileAndIntegrity(patterns);
@@ -398,8 +392,7 @@ export class Install {
 
     steps.push(async (curr: number, total: number) => {
       // remove integrity hash to make this operation atomic
-      const loc = await this.getIntegrityHashLocation();
-      await fs.unlink(loc);
+      await this.integrityChecker.removeIntegrityFile();
       this.reporter.step(curr, total, this.reporter.lang('linkingDependencies'), emoji.get('link'));
       await this.linker.init(patterns, this.flags.linkDuplicates);
     });
@@ -605,111 +598,6 @@ export class Install {
 
   _logSuccessSaveLockfile() {
     this.reporter.success(this.reporter.lang('savedLockfile'));
-  }
-
-  /**
-   * Check if the integrity hash of this installation matches one on disk.
-   */
-
-  async matchesIntegrityHash(patterns: Array<string>): Promise<IntegrityMatch> {
-    const loc = await this.getIntegrityHashLocation();
-    if (!await fs.exists(loc)) {
-      return {
-        actual: '',
-        expected: '',
-        loc,
-        matches: false,
-      };
-    }
-
-    const lockSource = lockStringify(this.lockfile.getLockfile(this.resolver.patterns));
-    const actual = this.generateIntegrityHash(lockSource, patterns);
-    const expected = (await fs.readFile(loc)).trim();
-
-    return {
-      actual,
-      expected,
-      loc,
-      matches: actual === expected,
-    };
-  }
-
-  /**
-   * Get the location of an existing integrity hash. If none exists then return the location where we should
-   * write a new one.
-   */
-
-  async getIntegrityHashLocation(): Promise<string> {
-    // build up possible folders
-    const possibleFolders = [];
-    if (this.config.modulesFolder) {
-      possibleFolders.push(this.config.modulesFolder);
-    }
-
-    // get a list of registry names to check existence in
-    let checkRegistryNames = this.resolver.usedRegistries;
-    if (!checkRegistryNames.length) {
-      // we haven't used any registries yet
-      checkRegistryNames = registryNames;
-    }
-
-    // ensure we only write to a registry folder that was used
-    for (const name of checkRegistryNames) {
-      const loc = path.join(this.config.cwd, this.config.registries[name].folder);
-      possibleFolders.push(loc);
-    }
-
-    // if we already have an integrity hash in one of these folders then use it's location otherwise use the
-    // first folder
-    const possibles = possibleFolders.map((folder): string => path.join(folder, constants.INTEGRITY_FILENAME));
-    let loc = possibles[0];
-    for (const possibleLoc of possibles) {
-      if (await fs.exists(possibleLoc)) {
-        loc = possibleLoc;
-        break;
-      }
-    }
-    return loc;
-  }
-  /**
-   * Write the integrity hash of the current install to disk.
-   */
-
-  async writeIntegrityHash(lockSource: string, patterns: Array<string>): Promise<void> {
-    const loc = await this.getIntegrityHashLocation();
-    invariant(loc, 'expected integrity hash location');
-    await fs.mkdirp(path.dirname(loc));
-    await fs.writeFile(loc, this.generateIntegrityHash(lockSource, patterns));
-  }
-
-  /**
-   * Generate integrity hash of input lockfile.
-   */
-
-  generateIntegrityHash(lockfile: string, patterns: Array<string>): string {
-    const opts = [lockfile];
-
-    opts.push(`patterns:${patterns.sort(sortAlpha).join(',')}`);
-
-    if (this.flags.flat) {
-      opts.push('flat');
-    }
-
-    if (this.config.production) {
-      opts.push('production');
-    }
-
-    const linkedModules = this.config.linkedModules;
-    if (linkedModules.length) {
-      opts.push(`linked:${linkedModules.join(',')}`);
-    }
-
-    const mirror = this.config.getOfflineMirrorPath();
-    if (mirror != null) {
-      opts.push(`mirror:${mirror}`);
-    }
-
-    return crypto.hash(opts.join('-'), 'sha256');
   }
 
   /**
