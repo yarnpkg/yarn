@@ -14,6 +14,7 @@ import * as fs from '../util/fs.js';
 import * as child from '../util/child.js';
 import * as nodeFs from 'fs';
 import * as nodeCrypto from 'crypto';
+import DecompressZip from 'decompress-zip';
 
 export default class OpamFetcher extends BaseFetcher {
 
@@ -25,8 +26,9 @@ export default class OpamFetcher extends BaseFetcher {
 
     if (manifest.opam.url != null) {
       const tarballStorePath = path.join(dest, constants.TARBALL_FILENAME);
-      hash = await this._fetchTarball(manifest, tarballStorePath);
-      await unpackTarball(tarballStorePath, dest);
+      const tarballFormat = getTarballFormatFromFilename(manifest.opam.url);
+      hash = await this._fetchTarball(manifest, tarballStorePath, tarballFormat);
+      await unpackTarball(tarballStorePath, dest, tarballFormat);
     }
 
     // opam tarballs don't have package.json (obviously) so we put it there
@@ -119,8 +121,52 @@ function writeJson(filename, object): Promise<void> {
   return fs.writeFile(filename, data, 'utf8');
 }
 
-function unpackTarball(filename, dest): Promise<void> {
-  return child.exec(
-    `tar -xzf ${filename} --strip-components 1 -C ${dest}`,
-  );
+function unpackTarball(
+  filename,
+  dest,
+  format: 'gzip' | 'bzip' | 'zip' | 'xz',
+): Promise<void> {
+  if (format === 'zip') {
+    let seenError = false;
+    return new Promise((resolve, reject) => {
+      const unzipper = new DecompressZip(filename);
+      unzipper.on('error', (err) => {
+        if (!seenError) {
+          seenError = true;
+          reject(err);
+        }
+      });
+
+      unzipper.on('extract', () => {
+        resolve();
+      });
+
+      unzipper.extract({
+        path: dest,
+        strip: 1,
+      });
+    });
+  } else {
+    const unpackOptions = format === 'gzip' ? '-xzf' : format === 'xz' ? '-xJf' : '-xjf';
+    return child.exec(`tar ${unpackOptions} ${filename} --strip-components 1 -C ${dest}`);
+  }
+}
+
+function getTarballFormatFromFilename(filename): 'gzip' | 'bzip' | 'zip' | 'xz' {
+  if (filename.endsWith('.tgz') || filename.endsWith('.tar.gz')) {
+    return 'gzip';
+  } else if (
+    filename.endsWith('.tar.bz') ||
+    filename.endsWith('.tar.bz2') ||
+    filename.endsWith('.tbz')
+  ) {
+    return 'bzip';
+  } else if (filename.endsWith('.zip')) {
+    return 'zip';
+  } else if (filename.endsWith('.xz')) {
+    return 'xz';
+  } else {
+    // XXX: default to gzip? Is this safe?
+    return 'gzip';
+  }
 }
