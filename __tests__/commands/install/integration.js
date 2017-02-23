@@ -868,3 +868,47 @@ test.concurrent('a allows dependency with [] in os cpu requirements',
       assert(await fs.exists(path.join(config.cwd, 'node_modules', 'feed')));
     });
   });
+
+test.concurrent('should skip integrity check and do install when --skip-integrity-check flag is passed',
+  (): Promise<void> => {
+    return runInstall({}, 'skip-integrity-check', async (config, reporter) => {
+      assert.equal(await fs.exists(path.join(config.cwd, 'node_modules', 'sub-dep')), true);
+      await fs.unlink(path.join(config.cwd, 'node_modules', 'sub-dep'));
+
+      let lockContent = await fs.readFile(
+        path.join(config.cwd, 'yarn.lock'),
+      );
+      lockContent += `
+# changed the file, integrity should be fine
+    `;
+      await fs.writeFile(
+        path.join(config.cwd, 'yarn.lock'),
+        lockContent,
+      );
+
+      let reinstall = new Install({}, config, reporter, await Lockfile.fromDirectory(config.cwd));
+      await reinstall.init();
+
+      // reinstall will be successful but it won't reinstall anything
+      assert.equal(await fs.exists(path.join(config.cwd, 'node_modules', 'sub-dep')), false);
+
+      reinstall = new Install({skipIntegrityCheck: true}, config, reporter, await Lockfile.fromDirectory(config.cwd));
+      await reinstall.init();
+      // reinstall will reinstall deps
+      assert.equal(await fs.exists(path.join(config.cwd, 'node_modules', 'sub-dep')), true);
+
+      let newLockContent = await fs.readFile(
+        path.join(config.cwd, 'yarn.lock'),
+      );
+      assert.equal(lockContent, newLockContent);
+
+      reinstall = new Install({force: true}, config, reporter, await Lockfile.fromDirectory(config.cwd));
+      await reinstall.init();
+      // force rewrites lockfile
+      newLockContent = await fs.readFile(
+        path.join(config.cwd, 'yarn.lock'),
+      );
+      assert.notEqual(lockContent, newLockContent);
+
+    });
+  });

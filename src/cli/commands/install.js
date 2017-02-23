@@ -60,7 +60,7 @@ type Flags = {
   flat: boolean,
   lockfile: boolean,
   pureLockfile: boolean,
-  skipIntegrity: boolean,
+  skipIntegrityCheck: boolean,
 
   // add
   peer: boolean,
@@ -127,7 +127,7 @@ function normalizeFlags(config: Config, rawFlags: Object): Flags {
     flat: !!rawFlags.flat,
     lockfile: rawFlags.lockfile !== false,
     pureLockfile: !!rawFlags.pureLockfile,
-    skipIntegrity: !!rawFlags.skipIntegrity,
+    skipIntegrityCheck: !!rawFlags.skipIntegrityCheck,
     frozenLockfile: !!rawFlags.frozenLockfile,
     linkDuplicates: !!rawFlags.linkDuplicates,
 
@@ -301,14 +301,17 @@ export class Install {
   async bailout(
     patterns: Array<string>,
   ): Promise<boolean> {
-    const match = await this.matchesIntegrityHash(patterns);
-    const haveLockfile = await fs.exists(path.join(this.config.cwd, constants.LOCKFILE_FILENAME));
-
     if (this.flags.frozenLockfile && !this.lockFileInSync(patterns)) {
       throw new MessageError(this.reporter.lang('frozenLockfileError'));
     }
+    if (this.flags.skipIntegrityCheck || this.flags.force) {
+      return false;
+    }
 
-    if (!this.flags.skipIntegrity && !this.flags.force && match.matches && haveLockfile) {
+    const match = await this.matchesIntegrityHash(patterns);
+    const haveLockfile = await fs.exists(path.join(this.config.cwd, constants.LOCKFILE_FILENAME));
+
+    if (match.matches && haveLockfile) {
       this.reporter.success(this.reporter.lang('upToDate'));
       return true;
     }
