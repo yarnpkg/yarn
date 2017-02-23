@@ -88,6 +88,7 @@ commander.option(
   'disable progress bar',
 );
 commander.option('--network-concurrency <number>', 'maximum number of concurrent network requests', parseInt);
+commander.option('--non-interactive', 'do not show interactive prompts');
 
 // get command name
 let commandName: ?string = args.shift() || '';
@@ -372,6 +373,7 @@ config.init({
   httpProxy: commander.proxy,
   httpsProxy: commander.httpsProxy,
   networkConcurrency: commander.networkConcurrency,
+  nonInteractive: commander.nonInteractive,
   commandName,
 }).then(() => {
 
