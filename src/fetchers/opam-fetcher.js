@@ -127,29 +127,33 @@ function unpackTarball(
   format: 'gzip' | 'bzip' | 'zip' | 'xz',
 ): Promise<void> {
   if (format === 'zip') {
-    let seenError = false;
-    return new Promise((resolve, reject) => {
-      const unzipper = new DecompressZip(filename);
-      unzipper.on('error', (err) => {
-        if (!seenError) {
-          seenError = true;
-          reject(err);
-        }
-      });
-
-      unzipper.on('extract', () => {
-        resolve();
-      });
-
-      unzipper.extract({
-        path: dest,
-        strip: 1,
-      });
-    });
+    return extractZipIntoDirectory(filename, dest, {strip: 1});
   } else {
     const unpackOptions = format === 'gzip' ? '-xzf' : format === 'xz' ? '-xJf' : '-xjf';
     return child.exec(`tar ${unpackOptions} ${filename} --strip-components 1 -C ${dest}`);
   }
+}
+
+function extractZipIntoDirectory(filename, dest, options): Promise<void> {
+  let seenError = false;
+  return new Promise((resolve, reject) => {
+    const unzipper = new DecompressZip(filename);
+    unzipper.on('error', (err) => {
+      if (!seenError) {
+        seenError = true;
+        reject(err);
+      }
+    });
+
+    unzipper.on('extract', () => {
+      resolve();
+    });
+
+    unzipper.extract({
+      ...options,
+      path: dest,
+    });
+  });
 }
 
 function getTarballFormatFromFilename(filename): 'gzip' | 'bzip' | 'zip' | 'xz' {
