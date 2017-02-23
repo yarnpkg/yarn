@@ -383,7 +383,7 @@ function buildEjectCommand(
     filename: ['bin/replace-string'],
     executable: true,
     contents: outdent`
-      #!/usr/bin/env python
+      #!/usr/bin/env python2
 
       import sys
       import os
@@ -397,12 +397,12 @@ function buildEjectCommand(
       # TODO: we probably should handle symlinks too in a special way,
       # to modify their location to a rewritten path
 
-      with open(filename, 'rb') as input_file:
+      with open(filename, 'r') as input_file:
         data = input_file.read()
 
       data = data.replace(src, dest)
 
-      with open(filename_stage, 'wb') as output_file:
+      with open(filename_stage, 'w') as output_file:
         output_file.write(data)
 
       os.rename(filename_stage, filename)
