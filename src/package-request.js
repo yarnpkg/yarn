@@ -377,9 +377,8 @@ export default class PackageRequest {
     const isDepOld = ({current, latest, wanted}) => latest === 'exotic' || (
       latest !== 'exotic' && (semver.lt(current, wanted) || semver.lt(current, latest))
     );
-    const isDepExpected = ({current, wanted}) => current === wanted;
-    const orderByExpected = (depA, depB) => isDepExpected(depA) && !isDepExpected(depB) ? 1 : -1;
+    const orderByName = (depA, depB) => depA.name.localeCompare(depB.name);
 
-    return deps.filter(isDepOld).sort(orderByExpected);
+    return deps.filter(isDepOld).sort(orderByName);
   }
 }
