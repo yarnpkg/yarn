@@ -60,10 +60,9 @@ export const {run, setFlags} = buildSubCommands('cache', {
     flags: Object,
     args: Array<string>,
   ): Promise<void> {
-    const cacheFolder = config.cacheFolder;
-    if (cacheFolder) {
-      await fs.unlink(cacheFolder);
-      await fs.mkdirp(cacheFolder);
+    if (config.cacheFolder) {
+      await fs.unlink(config.cacheRootFolder);
+      await fs.mkdirp(config.cacheFolder);
       reporter.success(reporter.lang('clearedCache'));
     }
   },
