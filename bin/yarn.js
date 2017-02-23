@@ -20,6 +20,11 @@ if (semver.satisfies(ver, '>=5.0.0')) {
   process.exit(1);
 }
 
+// load v8-compile-cache
+if (semver.satisfies(ver, '>=5.7.0')) {
+  require('v8-compile-cache');
+}
+
 // ensure cache directory exists
 var mkdirp = require('mkdirp');
 var constants = require('../lib-legacy/constants');
