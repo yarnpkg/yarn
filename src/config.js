@@ -44,8 +44,6 @@ export type ConfigOptions = {
   httpProxy?: ?string,
   httpsProxy?: ?string,
 
-  nonInteractive?: ?boolean,
-
   commandName?: ?string,
 };
 
