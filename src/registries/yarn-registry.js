@@ -78,7 +78,7 @@ export default class YarnRegistry extends NpmRegistry {
 
   async loadConfig(): Promise<void> {
     for (const [isHome, loc, file] of await this.getPossibleConfigLocations('.yarnrc')) {
-      const config = parse(file);
+      const config = parse(file, loc);
 
       if (isHome) {
         this.homeConfig = config;

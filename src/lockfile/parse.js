@@ -156,11 +156,13 @@ export function* tokenise(input: string): Iterator<Token> {
 }
 
 export class Parser {
-  constructor(input: string) {
+  constructor(input: string, fileLoc: string = 'lockfile') {
     this.comments = [];
     this.tokens = tokenise(input);
+    this.fileLoc = fileLoc;
   }
 
+  fileLoc: string;
   token: Token;
   tokens: Iterator<Token>;
   comments: Array<string>;
@@ -201,7 +203,7 @@ export class Parser {
   }
 
   unexpected(msg: string = 'Unexpected token') {
-    throw new SyntaxError(`${msg} ${this.token.line}:${this.token.col}`);
+    throw new SyntaxError(`${msg} ${this.token.line}:${this.token.col} in ${this.fileLoc}`);
   }
 
   expect(tokType: string) {
@@ -310,9 +312,9 @@ export class Parser {
   }
 }
 
-export default function(str: string): Object {
+export default function(str: string, fileLoc: string = 'lockfile'): Object {
   str = stripBOM(str);
-  const parser = new Parser(str);
+  const parser = new Parser(str, fileLoc);
   parser.next();
   return parser.parse();
 }
