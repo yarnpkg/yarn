@@ -156,12 +156,13 @@ export function* tokenise(input: string): Iterator<Token> {
 }
 
 export class Parser {
-  constructor(input: string, fileLoc: string) {
+  constructor(input: string, fileLoc: string = 'lockfile') {
     this.comments = [];
     this.tokens = tokenise(input);
     this.fileLoc = fileLoc;
   }
 
+  fileLoc: string;
   token: Token;
   tokens: Iterator<Token>;
   comments: Array<string>;
@@ -311,7 +312,7 @@ export class Parser {
   }
 }
 
-export default function(str: string, fileLoc: string): Object {
+export default function(str: string, fileLoc: string = 'lockfile'): Object {
   str = stripBOM(str);
   const parser = new Parser(str, fileLoc);
   parser.next();
