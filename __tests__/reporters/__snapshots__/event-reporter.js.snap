@@ -1,4 +1,6 @@
-exports[`test EventReporter.command 1`] = `
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`EventReporter.command 1`] = `
 Array [
   Object {
     "data": "foobar",
@@ -7,7 +9,7 @@ Array [
 ]
 `;
 
-exports[`test EventReporter.error 1`] = `
+exports[`EventReporter.error 1`] = `
 Array [
   Object {
     "data": "foobar",
@@ -16,7 +18,7 @@ Array [
 ]
 `;
 
-exports[`test EventReporter.finished 1`] = `
+exports[`EventReporter.finished 1`] = `
 Array [
   Object {
     "data": 0,
@@ -25,7 +27,7 @@ Array [
 ]
 `;
 
-exports[`test EventReporter.info 1`] = `
+exports[`EventReporter.info 1`] = `
 Array [
   Object {
     "data": "foobar",
@@ -34,7 +36,7 @@ Array [
 ]
 `;
 
-exports[`test EventReporter.log 1`] = `
+exports[`EventReporter.log 1`] = `
 Array [
   Object {
     "data": "foobar",
@@ -43,7 +45,7 @@ Array [
 ]
 `;
 
-exports[`test EventReporter.step 1`] = `
+exports[`EventReporter.step 1`] = `
 Array [
   Object {
     "data": Object {
@@ -56,7 +58,7 @@ Array [
 ]
 `;
 
-exports[`test EventReporter.success 1`] = `
+exports[`EventReporter.success 1`] = `
 Array [
   Object {
     "data": "foobar",
@@ -65,7 +67,7 @@ Array [
 ]
 `;
 
-exports[`test EventReporter.warn 1`] = `
+exports[`EventReporter.warn 1`] = `
 Array [
   Object {
     "data": "foobar",
