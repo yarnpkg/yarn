@@ -4,6 +4,7 @@ import type {Reporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
 import {Add} from './add.js';
 import Lockfile from '../../lockfile/wrapper.js';
+import PackageRequest from '../../package-request.js';
 
 export function setFlags(commander: Object) {
   // TODO: support some flags that install command has
@@ -27,7 +28,7 @@ export async function run(
     const dependencies = manifest.dependencies || {};
     const remoteSource = dependencies[dependency];
 
-    if (remoteSource && remoteSource.includes(':')) {
+    if (remoteSource && PackageRequest.getExoticResolver(remoteSource)) {
       const [, ...restArgs] = addArgs;
       addArgs = [remoteSource, ...restArgs];
     }
