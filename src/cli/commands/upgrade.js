@@ -22,8 +22,8 @@ export async function run(
   const lockfile = args.length ? await Lockfile.fromDirectory(config.cwd, reporter) : new Lockfile();
   let addArgs = [...args];
 
-  if (args.length) {
-    const [dependency] = args;
+  if (addArgs.length) {
+    const [dependency] = addArgs;
     const manifest = await config.readRootManifest() || {};
     const dependencies = manifest.dependencies || {};
     const remoteSource = dependencies[dependency];
