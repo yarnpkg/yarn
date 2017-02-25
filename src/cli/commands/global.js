@@ -12,6 +12,7 @@ import {Install} from './install.js';
 import {Add} from './add.js';
 import {run as runRemove} from './remove.js';
 import {run as runUpgrade} from './upgrade.js';
+import {run as runUpgradeInteractive} from './upgrade-interactive.js';
 import {linkBin} from '../../package-linker.js';
 import * as fs from '../../util/fs.js';
 
@@ -91,7 +92,7 @@ function getGlobalPrefix(config: Config, flags: Object): string {
   }
 }
 
-function getBinFolder(config: Config, flags: Object): string {
+export function getBinFolder(config: Config, flags: Object): string {
   const prefix = getGlobalPrefix(config, flags);
   if (process.platform === 'win32') {
     return prefix;
@@ -143,6 +144,9 @@ async function initUpdateBins(config: Config, reporter: Reporter, flags: Object)
       try {
         await fs.unlink(dest);
         await linkBin(src, dest);
+        if (process.platform === 'win32' && dest.indexOf('.cmd') !== -1) {
+          await fs.rename(dest + '.cmd', dest);
+        }
       } catch (err) {
         throwPermError(err, dest);
       }
@@ -155,13 +159,13 @@ function ls(manifest: Manifest, reporter: Reporter, saved: boolean) {
   const human = `${manifest.name}@${manifest.version}`;
   if (bins.length) {
     if (saved) {
-      reporter.success(`Installed ${human} with binaries:`);
+      reporter.success(reporter.lang('packageInstalledWithBinaries', human));
     } else {
-      reporter.info(`${human} has binaries:`);
+      reporter.info(reporter.lang('packageHasBinaries', human));
     }
     reporter.list(`bins-${manifest.name}`, bins);
   } else if (saved) {
-    reporter.warn(`${human} has no binaries`);
+    reporter.warn(reporter.lang('packageHasNoBinaries'));
   }
 }
 
@@ -243,6 +247,23 @@ const {run, setFlags: _setFlags} = buildSubCommands('global', {
 
     // upgrade module
     await runUpgrade(config, reporter, flags, args);
+
+    // update binaries
+    await updateBins();
+  },
+
+  async upgradeInteractive(
+    config: Config,
+    reporter: Reporter,
+    flags: Object,
+    args: Array<string>,
+  ): Promise<void> {
+    await updateCwd(config);
+
+    const updateBins = await initUpdateBins(config, reporter, flags);
+
+    // upgrade module
+    await runUpgradeInteractive(config, reporter, flags, args);
 
     // update binaries
     await updateBins();

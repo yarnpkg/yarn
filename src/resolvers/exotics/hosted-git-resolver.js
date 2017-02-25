@@ -15,21 +15,45 @@ export type ExplodedFragment = {
   hash: string,
 };
 
-export function explodeHostedGitFragment(fragment: string, reporter: Reporter): ExplodedFragment {
-  // TODO: make sure this only has a length of 2
-  const parts = fragment.split(':');
-  fragment = parts.pop();
+export function explodeHostedGitFragment(fragment: string, reporter: Reporter): ExplodedFragment {  
 
-  const userParts = fragment.split('/');
+  const preParts = fragment.split('@');
+  if (preParts.length > 2) {
+    fragment = preParts[1] + '@' + preParts[2];
+  }
+
+  const parts = fragment.split(':');
+
+  if (parts.length == 3) { // protocol + host + folder
+    parts[1] = parts[1].indexOf('//') >= 0 ? parts[1].substr(2) : parts[1];
+    fragment = parts[1] + '/' + parts[2];
+  } else if (parts.length == 2) {
+    if (parts[0].indexOf('@') == -1) { // protocol + host
+      fragment = parts[1];
+    } else { // host + folder
+      fragment = parts[0] + '/' + parts[1];
+    }
+  } else if (parts.length == 1) {
+    fragment = parts[0];
+  } else {
+    throw new MessageError(reporter.lang('invalidHostedGitFragment', fragment));
+  }
+
+  const userParts = fragment.split('/');  
 
   if (userParts.length >= 2) {
+
+    if (userParts[0].indexOf('@') >= 0) {
+      userParts.shift();
+    }
+
     const user = userParts.shift();
     const repoParts = userParts.join('/').split(/(?:[.]git)?#(.*)/);
 
     if (repoParts.length <= 3) {
       return {
         user,
-        repo: repoParts[0],
+        repo: repoParts[0].replace('.git', ''),
         hash: repoParts[1] || '',
       };
     }

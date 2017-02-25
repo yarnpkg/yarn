@@ -33,9 +33,11 @@ const messages = {
   manifestDirectoryNotFound: 'Unable to read $0 directory of module $1',
 
   verboseFileCopy: 'Copying $0 to $1.',
+  verboseFileLink: 'Creating hardlink at $0 to $1.',
   verboseFileSymlink: 'Creating symlink at $0 to $1.',
   verboseFileSkip: 'Skipping copying of file $0 as the file at $1 is the same size ($2) and mtime ($3).',
   verboseFileSkipSymlink: 'Skipping copying of $0 as the file at $1 is the same symlink ($2).',
+  verboseFileSkipHardlink: 'Skipping copying of $0 as the file at $1 is the same hardlink ($2).',
   verboseFileRemoveExtraneous: 'Removing extraneous file $0.',
   verboseFilePhantomExtraneous: "File $0 would be marked as extraneous but has been removed as it's listed as a phantom file.",
   verboseFileFolder: 'Creating directory $0.',
@@ -51,7 +53,8 @@ const messages = {
   couldntFindPackagejson: "Couldn't find a package.json file in $0",
   couldntFindMatch: "Couldn't find match for $0 in $1 for $2.",
   couldntFindPackageInCache: "Couldn't find any versions for $0 that matches $1 in our cache. Possible versions: $2",
-  couldntFindVersionThatMatchesRange: "Couldn't find any versions for $0 that matches $1. Possible versions: $2",
+  couldntFindVersionThatMatchesRange: "Couldn't find any versions for $0 that matches $1",
+  chooseVersionFromList: 'Please choose a version from this list:',
   moduleNotInManifest: "This module isn't specified in a manifest.",
   unknownFolderOrTarball: "Passed folder/tarball doesn't exist,",
   unknownPackage: "Couldn't find package $0.",
@@ -73,7 +76,7 @@ const messages = {
   invalidPackageName: 'Invalid package name.',
   couldntFindManifestIn: "Couldn't find manifest in $0.",
   shrinkwrapWarning: 'npm-shrinkwrap.json found. This will not be updated or respected. See https://yarnpkg.com/en/docs/migrating-from-npm for more information.',
-  lockfileOutdated: 'Outdated lockfile. Please run `$ yarn install` and try again.',
+  lockfileOutdated: 'Outdated lockfile. Please run `yarn install` and try again.',
   ignoredScripts: 'Ignored scripts due to flag.',
   missingAddDependencies: 'Missing list of packages to add to your project.',
   yesWarning: 'The yes flag has been set. This will automatically answer yes to all questions which may have security implications.',
@@ -89,6 +92,7 @@ const messages = {
   noFilePermission: "We don't have permissions to touch the file $0.",
   allDependenciesUpToDate: 'All of your dependencies are up to date.',
   frozenLockfileError: 'Your lockfile needs to be updated, but yarn was run with `--frozen-lockfile`.',
+  fileWriteError: 'Could not write file $0: $1',
 
   yarnOutdated: "Your current version of Yarn is out of date. The latest version is $0 while you're on $1.",
   yarnOutdatedInstaller: 'To upgrade, download the latest installer at $0.',
@@ -118,6 +122,7 @@ const messages = {
   cleaning: 'Cleaning modules',
   cleanCreatingFile: 'Creating $0',
 
+  binLinkCollision: "There's already a linked binary called $0 in your global Yarn bin. Could not link this package's $0 bin entry.",
   linkCollision: "There's already a module called $0 registered.",
   linkMissing: 'No registered module found called $0.',
   linkInstallMessage: 'You can now run `yarn link $0` in the projects where you want to use this module and it will be used instead.',
@@ -144,6 +149,7 @@ const messages = {
   optionalCompatibilityExcluded: '$0 is an optional dependency and failed compatibility check. Excluding it from installation.',
   optionalModuleFail: 'This module is OPTIONAL, you can safely ignore this error',
   optionalModuleScriptFail: 'Error running install script for optional dependency: $0',
+  optionalModuleCleanupFail: 'Could not cleanup build artifacts from failed install: $0',
 
   unmetPeer: '$0 has unmet peer dependency $1.',
   incorrectPeer: '$0 has incorrect peer dependency $1.',
@@ -230,10 +236,35 @@ const messages = {
   requestFailed: 'Request failed $0',
   tarballNotInNetworkOrCache: '$0: Tarball is not in network and can not be located in cache ($1)',
   fetchBadHash: 'Bad hash. Expected $0 but got $1 ',
-  fetchErrorCorrupt: '$0. Mirror tarball appears to be corrupt. You can resolve this by running:\n\n  $ rm -rf $1\n  $ yarn install',
+  fetchErrorCorrupt: '$0. Mirror tarball appears to be corrupt. You can resolve this by running:\n\n  rm -rf $1\n  yarn install',
   errorDecompressingTarball: '$0. Error decompressing $1, it appears to be corrupt.',
   updateInstalling: 'Installing $0...',
   hostedGitResolveError: 'Error connecting to repository. Please, check the url.',
+
+  unknownFetcherFor: 'Unknown fetcher for $0',
+
+  refusingDownloadGitWithoutCommit: 'Refusing to download the git repo $0 over plain git without a commit hash',
+  refusingDownloadHTTPWithoutCommit: 'Refusing to download the git repo $0 over HTTP without a commit hash',
+  refusingDownloadHTTPSWithoutCommit: 'Refusing to download the git repo $0 over HTTPS without a commit hash - possible certificate error?',
+
+  packageInstalledWithBinaries: 'Installed $0 with binaries:',
+  packageHasBinaries: '$0 has binaries:',
+  packageHasNoBinaries: '$0 has no binaries',
+
+  couldBeDeduped: '$0 could be deduped from $1 to $2',
+  lockfileNotContainPatter: 'Lockfile does not contain pattern: $0',
+  integrityHashesDontMatch: 'Integrity hashes don\'t match, expected $0 but got $1',
+  noIntegirtyHashFile: 'Couldn\'t find an integrity hash file',
+  packageNotInstalled: '$0 not installed',
+  optionalDepNotInstalled: 'Optional dependency $0 not installed',
+  packageWrongVersion: '$0 is wrong version: expected $1, got $2',
+  packageDontSatisfy: '$0 doesn\'t satisfy found match of $1',
+
+  lockfileExists: 'Lockfile already exists, not importing.',
+  skippingImport: 'Skipping import of $0 for $1',
+  importFailed: 'Import of $0 for $1 failed, resolving normally.',
+  importResolveFailed: 'Import of $0 failed starting in $1',
+  importResolvedRangeMatch: 'Using version $0 of $1 instead of $2 for $3',
 };
 
 export type LanguageKeys = $Keys<typeof messages>;

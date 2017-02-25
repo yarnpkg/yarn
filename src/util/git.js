@@ -1,6 +1,7 @@
 /* @flow */
 
 import type Config from '../config.js';
+import type {Reporter} from '../reporters/index.js';
 import {MessageError, SecurityError} from '../errors.js';
 import {removeSuffix} from './misc.js';
 import * as crypto from './crypto.js';
@@ -27,6 +28,7 @@ export default class Git {
     this.supportsArchive = false;
     this.fetched = false;
     this.config = config;
+    this.reporter = config.reporter;
     this.hash = hash;
     this.ref = hash;
     this.url = Git.cleanUrl(url);
@@ -36,6 +38,7 @@ export default class Git {
   supportsArchive: boolean;
   fetched: boolean;
   config: Config;
+  reporter: Reporter;
   hash: string;
   ref: string;
   cwd: string;
@@ -90,10 +93,10 @@ export default class Git {
   }
 
   /**
-   * attempt to upgrade unsecure protocols to securl protocol
+   * Attempt to upgrade insecure protocols to secure protocol
    */
 
-  static async secureUrl(ref: string, hash: string): Promise<string> {
+  static async secureUrl(ref: string, hash: string, reporter: Reporter): Promise<string> {
     if (Git.isCommitHash(hash)) {
       // this is cryptographically secure
       return ref;
@@ -107,7 +110,7 @@ export default class Git {
         return secureUrl;
       } else {
         throw new SecurityError(
-          `Refusing to download the git repo ${ref} over plain git without a commit hash`,
+          reporter.lang('refusingDownloadGitWithoutCommit', ref),
         );
       }
     }
@@ -117,8 +120,22 @@ export default class Git {
       if (await Git.repoExists(secureUrl)) {
         return secureUrl;
       } else {
+        if (await Git.repoExists(ref)) {
+          return ref;
+        } else {
+          throw new SecurityError(
+            reporter.lang('refusingDownloadHTTPWithoutCommit', ref),
+          );
+        }
+      }
+    }
+
+    if (parts.protocol === 'https:') {
+      if (await Git.repoExists(ref)) {
+        return ref;
+      } else {
         throw new SecurityError(
-          `Refusing to download the git repo ${ref} over HTTP without a commit hash`,
+          reporter.lang('refusingDownloadHTTPSWithoutCommit', ref),
         );
       }
     }
@@ -299,7 +316,7 @@ export default class Git {
    * set the ref to match an input `target`.
    */
   async init(): Promise<string> {
-    this.url = await Git.secureUrl(this.url, this.hash);
+    this.url = await Git.secureUrl(this.url, this.hash, this.reporter);
     // check capabilities
     if (await Git.hasArchiveCapability(this.url)) {
       this.supportsArchive = true;
@@ -336,6 +353,11 @@ export default class Git {
 
       // `git archive` only accepts a treeish and we have no ref to this commit
       this.supportsArchive = false;
+
+      if (!this.fetched) {
+        // in fact, `git archive` can't be used, and we haven't fetched the project yet. Do it now.
+        await this.fetch();
+      }
       return this.ref = this.hash = hash;
     }
 
@@ -345,7 +367,7 @@ export default class Git {
       this.ref = ref;
       return this.hash = commit;
     } else {
-      throw new MessageError(this.config.reporter.lang('couldntFindMatch', ref, names.join(','), this.url));
+      throw new MessageError(this.reporter.lang('couldntFindMatch', ref, names.join(','), this.url));
     }
   }
 

@@ -6,6 +6,7 @@ import {MessageError, SpawnError} from '../errors.js';
 import * as constants from '../constants.js';
 import * as child from './child.js';
 import {registries} from '../resolvers/index.js';
+import {fixCmdWinSlashes} from './fix-cmd-win-slashes.js';
 
 const path = require('path');
 
@@ -16,6 +17,11 @@ export type LifecycleReturn = Promise<{
 }>;
 
 const IGNORE_MANIFEST_KEYS = ['readme'];
+
+// We treat these configs as internal, thus not expose them to process.env.
+// This helps us avoid some gyp issues when building native modules.
+// See https://github.com/yarnpkg/yarn/issues/2286.
+const IGNORE_CONFIG_KEYS = ['lastUpdateCheck'];
 
 async function makeEnv(stage: string, cwd: string, config: Config): {
   [key: string]: string
@@ -69,7 +75,7 @@ async function makeEnv(stage: string, cwd: string, config: Config): {
     ...Object.keys(config.registries.npm.config),
   ]);
   for (const key of keys) {
-    if (key.match(/:_/)) {
+    if (key.match(/:_/) || IGNORE_CONFIG_KEYS.indexOf(key) >= 0) {
       continue;
     }
 
@@ -135,6 +141,9 @@ export async function executeLifecycleScript(
     // s - Strip " quote characters from command.
     // c - Run Command and then terminate
     shFlag = '/d /s /c';
+
+    // handle windows run scripts starting with a relative path
+    cmd = fixCmdWinSlashes(cmd);
 
     // handle quotes properly in windows environments - https://github.com/nodejs/node/issues/5060
     conf.windowsVerbatimArguments = true;

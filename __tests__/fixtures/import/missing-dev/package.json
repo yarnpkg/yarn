@@ -1,0 +1,11 @@
+{
+  "name": "missing-dev",
+  "version": "1.0.0",
+  "license": "MIT",
+  "dependencies": {
+    "commander": "^2.9.0"
+  },
+  "devDependencies": {
+    "qs": "6.3.0"
+  }
+}

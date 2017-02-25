@@ -138,16 +138,20 @@ export default class PackageCompatibility {
       }
     };
 
-    if (!this.config.ignorePlatform && Array.isArray(info.os)) {
-      if (!PackageCompatibility.isValidPlatform(info.os)) {
-        pushError(this.reporter.lang('incompatibleOS', process.platform));
-      }
+    const invalidPlatform = !this.config.ignorePlatform &&
+      Array.isArray(info.os) &&
+      info.os.length > 0 &&
+      !PackageCompatibility.isValidPlatform(info.os);
+    if (invalidPlatform) {
+      pushError(this.reporter.lang('incompatibleOS', process.platform));
     }
 
-    if (!this.config.ignorePlatform && Array.isArray(info.cpu)) {
-      if (!PackageCompatibility.isValidArch(info.cpu)) {
-        pushError(this.reporter.lang('incompatibleCPU', process.arch));
-      }
+    const invalidCpu = !this.config.ignorePlatform &&
+      Array.isArray(info.cpu) &&
+      info.cpu.length > 0 &&
+      !PackageCompatibility.isValidArch(info.cpu);
+    if (invalidCpu) {
+      pushError(this.reporter.lang('incompatibleCPU', process.arch));
     }
 
     if (!this.ignoreEngines && typeof info.engines === 'object') {

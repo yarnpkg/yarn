@@ -2,6 +2,7 @@
 
 import {ConsoleReporter} from '../../src/reporters/index.js';
 import {run as buildRun, explodeLockfile} from './_helpers.js';
+import {run as check} from '../../src/cli/commands/check.js';
 import {run as remove} from '../../src/cli/commands/remove.js';
 import * as fs from '../../src/util/fs.js';
 import * as reporters from '../../src/reporters/index.js';
@@ -12,9 +13,14 @@ jasmine.DEFAULT_TIMEOUT_INTERVAL = 90000;
 const path = require('path');
 
 const fixturesLoc = path.join(__dirname, '..', 'fixtures', 'remove');
-const runRemove = buildRun.bind(null, ConsoleReporter, fixturesLoc, (args, flags, config, reporter): Promise<void> => {
-  return remove(config, reporter, flags, args);
-});
+const runRemove = buildRun.bind(
+  null,
+  ConsoleReporter,
+  fixturesLoc,
+  async (args, flags, config, reporter): Promise<void> => {
+    await remove(config, reporter, flags, args);
+    await check(config, reporter, {verifyTree: true}, []);
+  });
 
 test.concurrent('throws error with no arguments', (): Promise<void> => {
   const reporter = new reporters.ConsoleReporter({});

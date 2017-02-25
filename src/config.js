@@ -12,6 +12,7 @@ import * as constants from './constants.js';
 import ConstraintResolver from './package-constraint-resolver.js';
 import RequestManager from './util/request-manager.js';
 import {registries, registryNames} from './registries/index.js';
+import {NoopReporter} from './reporters/index.js';
 import map from './util/map.js';
 
 const detectIndent = require('detect-indent');
@@ -204,7 +205,10 @@ export default class Config {
 
       this.registries[key] = registry;
       this.registryFolders.push(registry.folder);
-      this.rootModuleFolders.push(path.join(this.cwd, registry.folder));
+      const rootModuleFolder = path.join(this.cwd, registry.folder);
+      if (this.rootModuleFolders.indexOf(rootModuleFolder) < 0) {
+        this.rootModuleFolders.push(rootModuleFolder);
+      }
     }
 
     this.networkConcurrency = (
@@ -292,11 +296,14 @@ export default class Config {
     let uid = pkg.uid;
     if (pkg.registry) {
       name = `${pkg.registry}-${name}`;
-      uid = pkg.version || uid;
     }
 
     const {hash} = pkg.remote;
-    if (hash) {
+
+    if (pkg.version && (pkg.version !== pkg.uid)) {
+      uid = `${pkg.version}-${uid}`;
+
+    } else if (hash) {
       uid += `-${hash}`;
     }
 
@@ -546,5 +553,11 @@ export default class Config {
         throw err;
       }
     }
+  }
+
+  static async create(opts: ConfigOptions = {}, reporter: Reporter = new NoopReporter()): Promise<Config> {
+    const config = new Config(reporter);
+    await config.init(opts);
+    return config;
   }
 }

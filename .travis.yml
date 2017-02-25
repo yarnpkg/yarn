@@ -5,8 +5,9 @@ language: node_js
 
 node_js:
   - "6"
+  - "4"
 
-sudo: required # Until Yarn repo is added to apt-source-whitelist
+sudo: false
 
 addons:
   apt:
@@ -19,38 +20,36 @@ branches:
   - /^.*-stable$/
 
 cache:
+  yarn: true
   directories:
   - node_modules
   - lib
   - lib-legacy
-  - $HOME/.yarn-cache
 
 env:
   matrix:
-  - TEST_TYPE="build-dist"
-  - TEST_TYPE="check-lockfile"
-  - TEST_TYPE="lint"
-  - NODE_VERSION="6" TEST_TYPE="test-ci"
-  - NODE_VERSION="4" TEST_TYPE="test-ci"
+    - TEST_TYPE="build-dist"
+    - TEST_TYPE="check-lockfile"
+    - TEST_TYPE="lint"
+    - TEST_TYPE="test-ci -- -- --maxWorkers 3"
 
 matrix:
   exclude:
     - env: TEST_TYPE="build-dist"
-      os: osx
+      node_js: "4"
     - env: TEST_TYPE="check-lockfile"
-      os: osx
+      node_js: "4"
     - env: TEST_TYPE="lint"
-      os: osx
+      node_js: "4"
+  include:
+    - os: osx
+      node_js: "6"
+      env: TEST_TYPE="test-ci -- -- --maxWorkers 1"
 
 before_install:
-  - ./scripts/bootstrap-env-ubuntu.sh
-
-install:
- - node --version
- - yarn install
+  - node --version
 
 os:
-  #- osx
   - linux
 
-script: yarn $TEST_TYPE
+script: travis_retry yarn $TEST_TYPE

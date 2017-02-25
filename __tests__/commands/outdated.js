@@ -82,7 +82,7 @@ test.concurrent('works with exotic resolvers', (): Promise<void> => {
     (config, reporter, out): ?Promise<void> => {
       const json: Object = JSON.parse(out);
       const first = ['max-safe-integer', '1.0.1', 'exotic', 'exotic', 'dependencies',
-                     'https://github.com/sindresorhus/max-safe-integer.git'];
+        'https://github.com/sindresorhus/max-safe-integer.git'];
       const second = ['yarn', '0.16.2', 'exotic', 'exotic', 'dependencies', 'yarnpkg/yarn'];
 
       expect(json.data.body.length).toBe(2);
@@ -120,12 +120,12 @@ test.concurrent('displays correct dependency types', (): Promise<void> => {
 
       // peerDependencies aren't included in the output
       expect(json.data.body.length).toBe(3);
-      expect(body[0][0]).toBe('left-pad');
-      expect(body[0][4]).toBe('dependencies');
-      expect(body[1][0]).toBe('max-safe-integer');
-      expect(body[1][4]).toBe('devDependencies');
-      expect(body[2][0]).toBe('is-online');
-      expect(body[2][4]).toBe('optionalDependencies');
+      expect(body[0][0]).toBe('is-online');
+      expect(body[0][4]).toBe('optionalDependencies');
+      expect(body[1][0]).toBe('left-pad');
+      expect(body[1][4]).toBe('dependencies');
+      expect(body[2][0]).toBe('max-safe-integer');
+      expect(body[2][4]).toBe('devDependencies');
     },
   );
 });

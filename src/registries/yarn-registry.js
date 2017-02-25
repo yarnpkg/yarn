@@ -8,7 +8,7 @@ import stringify from '../lockfile/stringify.js';
 import parse from '../lockfile/parse.js';
 import * as fs from '../util/fs.js';
 
-const userHome = require('user-home');
+const userHome = require('../util/user-home-dir').default;
 const defaults = require('defaults');
 const path = require('path');
 const pkg: { version: string } = require('../../package.json');
@@ -78,7 +78,7 @@ export default class YarnRegistry extends NpmRegistry {
 
   async loadConfig(): Promise<void> {
     for (const [isHome, loc, file] of await this.getPossibleConfigLocations('.yarnrc')) {
-      const config = parse(file);
+      const config = parse(file, loc);
 
       if (isHome) {
         this.homeConfig = config;
@@ -101,6 +101,8 @@ export default class YarnRegistry extends NpmRegistry {
   }
 
   async saveHomeConfig(config: Object): Promise<void> {
+    YarnRegistry.normalizeConfig(config);
+
     for (const key in config) {
       const val = config[key];
 

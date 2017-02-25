@@ -1,11 +1,9 @@
 /lib
 /lib-legacy
-.DS_Store
 /node_modules
 *.log
 /.nyc_output
 /coverage
-/__tests__/fixtures/**/_*
 /dist
 /artifacts
 /updates
@@ -20,8 +18,6 @@
 fbkpm_modules
 test/fixtures/**/.fbkpm
 /tmp/
+/__tests__/fixtures/**/_*
 /__tests__/fixtures/request-cache/GET/localhost/.bin
-
-# IDE
-.idea/
 /__tests__/fixtures/request-cache/

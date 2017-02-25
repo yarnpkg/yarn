@@ -19,7 +19,8 @@ build_script:
   - npm run build-win-installer
 
 test_script:
-  - npm run test-only
+  - node --version
+  - npm run test-only -- --maxWorkers 3
 
 artifacts:
   - path: artifacts/*.msi

@@ -99,7 +99,7 @@ export function extractDescription(readme: mixed): ?string {
 
 
 export function extractRepositoryUrl(repository: mixed): any {
-  if (!repository || typeof repository !== 'object' || !repository.url) {
+  if (!repository || typeof repository !== 'object') {
     return repository;
   }
   return repository.url;

@@ -14,7 +14,9 @@ import {entries} from './util/misc.js';
 import * as constants from './constants.js';
 import * as versionUtil from './util/version.js';
 import * as resolvers from './resolvers/index.js';
+import * as fs from './util/fs.js';
 
+const path = require('path');
 const invariant = require('invariant');
 const semver = require('semver');
 
@@ -70,7 +72,7 @@ export default class PackageRequest {
     // always prioritise root lockfile
     const shrunk = this.lockfile.getLocked(this.pattern);
 
-    if (shrunk) {
+    if (shrunk && shrunk.resolved) {
       const resolvedParts = versionUtil.explodeHashedUrl(shrunk.resolved);
 
       return {
@@ -98,7 +100,7 @@ export default class PackageRequest {
    */
 
   async findVersionOnRegistry(pattern: string): Promise<Manifest> {
-    const {range, name} = PackageRequest.normalizePattern(pattern);
+    const {range, name} = await this.normalize(pattern);
 
     const exoticResolver = PackageRequest.getExoticResolver(range);
     if (exoticResolver) {
@@ -133,6 +135,26 @@ export default class PackageRequest {
     } else {
       throw new MessageError(this.reporter.lang('unknownRegistryResolver', this.registry));
     }
+  }
+
+  async normalizeRange(pattern: string): Promise<string> {
+    if (pattern.includes(':') ||
+      pattern.includes('@') ||
+      PackageRequest.getExoticResolver(pattern)) {
+      return Promise.resolve(pattern);
+    }
+
+    if (await fs.exists(path.join(this.config.cwd, pattern))) {
+      return Promise.resolve(`file:${pattern}`);
+    }
+
+    return Promise.resolve(pattern);
+  }
+
+  async normalize(pattern: string): any {
+    const {name, range, hasVersion} = PackageRequest.normalizePattern(pattern);
+    const newRange = await this.normalizeRange(range);
+    return {name, range: newRange, hasVersion};
   }
 
   /**
@@ -199,6 +221,9 @@ export default class PackageRequest {
     }
   }
 
+  reportResolvedRangeMatch(info: Manifest, resolved: Manifest) {
+  }
+
   /**
    * TODO description
    */
@@ -219,6 +244,7 @@ export default class PackageRequest {
     const {range, name} = PackageRequest.normalizePattern(this.pattern);
     const resolved: ?Manifest = this.resolver.getHighestRangeVersionMatch(name, range);
     if (resolved) {
+      this.reportResolvedRangeMatch(info, resolved);
       const ref = resolved._reference;
       invariant(ref, 'Resolved package info has no package reference');
       ref.addRequest(this);
@@ -351,9 +377,8 @@ export default class PackageRequest {
     const isDepOld = ({current, latest, wanted}) => latest === 'exotic' || (
       latest !== 'exotic' && (semver.lt(current, wanted) || semver.lt(current, latest))
     );
-    const isDepExpected = ({current, wanted}) => current === wanted;
-    const orderByExpected = (depA, depB) => isDepExpected(depA) && !isDepExpected(depB) ? 1 : -1;
+    const orderByName = (depA, depB) => depA.name.localeCompare(depB.name);
 
-    return deps.filter(isDepOld).sort(orderByExpected);
+    return deps.filter(isDepOld).sort(orderByName);
   }
 }

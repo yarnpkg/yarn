@@ -13,8 +13,9 @@ import assert from 'assert';
 import semver from 'semver';
 import {promisify} from '../../src/util/promise';
 import fsNode from 'fs';
+import inquirer from 'inquirer';
 
-jasmine.DEFAULT_TIMEOUT_INTERVAL = 90000;
+jasmine.DEFAULT_TIMEOUT_INTERVAL = 150000;
 
 const path = require('path');
 
@@ -28,6 +29,7 @@ const runAdd = buildRun.bind(
     const add = new Add(args, flags, config, reporter, lockfile);
     await add.init();
     await check(config, reporter, {}, []);
+    await check(config, reporter, {verifyTree: true}, []);
     return add;
   },
 );
@@ -601,4 +603,65 @@ test.concurrent('add infers line endings from existing unix manifest file', asyn
       const existingLockfile = '{ "dependencies": {} }\n';
       await promisify(fsNode.writeFile)(path.join(cwd, 'package.json'), existingLockfile, 'utf8');
     });
+});
+
+// broken https://github.com/yarnpkg/yarn/issues/2466
+test.skip('add asks for correct package version if user passes an incorrect one', async (): Promise<void> => {
+  let chosenVersion = null;
+  await runAdd(
+    ['is-array@100'],
+    {},
+    'add-asks-correct-package-version',
+    async (config) => {
+      assert(chosenVersion);
+      assert.equal(await getPackageVersion(config, 'is-array'), chosenVersion);
+    },
+    () => {
+      inquirer.prompt = jest.fn((questions) => {
+        assert(questions.length === 1);
+        assert(questions[0].name === 'package');
+        assert(questions[0].choices.length > 0);
+        chosenVersion = questions[0].choices[0];
+        return Promise.resolve({package: chosenVersion});
+      });
+    },
+  );
+});
+
+test.concurrent('install with latest tag', (): Promise<void> => {
+  return runAdd(['left-pad@latest'], {}, 'latest-version-in-package', async (config) => {
+    const lockfile = explodeLockfile(await fs.readFile(path.join(config.cwd, 'yarn.lock')));
+    const pkg = await fs.readJson(path.join(config.cwd, 'package.json'));
+    const version = await getPackageVersion(config, 'left-pad');
+
+    assert.deepEqual(pkg.dependencies, {'left-pad': `^${version}`});
+    assert(lockfile.indexOf(`left-pad@^${version}:`) === 0);
+  });
+});
+
+test.concurrent('install with latest tag and --offline flag', (): Promise<void> => {
+  return runAdd(['left-pad@latest'], {}, 'latest-version-in-package', async (config, reporter, previousAdd) => {
+    config.offline = true;
+    const add = new Add(['left-pad@latest'], {}, config, reporter, previousAdd.lockfile);
+    await add.init();
+
+    const pkg = await fs.readJson(path.join(config.cwd, 'package.json'));
+    const version = await getPackageVersion(config, 'left-pad');
+
+    assert.deepEqual(pkg.dependencies, {'left-pad': `^${version}`});
+  });
+});
+
+test.concurrent('install with latest tag and --prefer-offline flag', (): Promise<void> => {
+  return runAdd(['left-pad@1.1.0'], {}, 'latest-version-in-package', async (config, reporter, previousAdd) => {
+    config.preferOffline = true;
+    const add = new Add(['left-pad@latest'], {}, config, reporter, previousAdd.lockfile);
+    await add.init();
+
+    const pkg = await fs.readJson(path.join(config.cwd, 'package.json'));
+    const version = await getPackageVersion(config, 'left-pad');
+
+    assert.deepEqual(pkg.dependencies, {'left-pad': `^${version}`});
+    assert.notEqual(version, '1.1.0');
+  });
 });

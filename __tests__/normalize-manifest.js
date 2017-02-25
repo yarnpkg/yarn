@@ -28,13 +28,12 @@ for (const name of nativeFs.readdirSync(fixturesLoc)) {
 
     const reporter = new NoopReporter();
 
-    // $FlowFixMe: investigate
+    // $FlowFixMe: Investigate
     reporter.warn = function(msg) {
       actualWarnings.push(msg);
     };
 
-    const config = new Config(reporter);
-    await config.init({cwd: loc});
+    const config = await Config.create({cwd: loc}, reporter);
 
     let actual   = await fs.readJson(path.join(loc, 'actual.json'));
     const expected = await fs.readJson(path.join(loc, 'expected.json'));
@@ -101,7 +100,7 @@ test('util.extractRepositoryUrl', () => {
 });
 
 // fill out expected and normalize paths
-function expand<T>(expected: T): T {
+function expand<T: Object>(expected: T): T {
   if (expected.man && Array.isArray(expected.man)) {
     expected = {...expected, man: normalizePaths(expected.man)};
   }

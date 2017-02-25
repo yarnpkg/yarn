@@ -1,0 +1,9 @@
+{
+  "name": "deep",
+  "version": "1.0.0",
+  "license": "MIT",
+  "dependencies": {
+    "commander": "^2.9.0",
+    "user-home": "^2.0.0"
+  }
+}

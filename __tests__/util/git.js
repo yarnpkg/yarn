@@ -1,6 +1,7 @@
 /* @flow */
 
 import Git from '../../src/util/git.js';
+import {NoopReporter} from '../../src/reporters/index.js';
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 90000;
 
@@ -28,50 +29,26 @@ test('isCommitHash', () => {
     .toBeFalsy();
 });
 
-async function toThrow(f): Promise <boolean> {
+
+test('secureUrl', async function (): Promise<void> {
+  const reporter = new NoopReporter();
+
+  let hasException = false;
   try {
-    await f();
-    return false;
+    await Git.secureUrl('http://fake-fake-fake-fake.com/123.git', '', reporter);
   } catch (e) {
-    return true;
+    hasException = true;
   }
-}
+  expect(hasException).toEqual(true);
 
-xit('secureUrl', async function (): Promise<void> {
-  expect(await
-         toThrow(() => {
-           return Git.secureUrl('http://random.repo', '');
-         }),
-        ).toEqual(true);
+  let url = await Git.secureUrl('http://github.com/yarnpkg/yarn.git', '', reporter);
+  expect(url).toEqual('https://github.com/yarnpkg/yarn.git');
 
-  expect(await
-         toThrow(() => {
-           return Git.secureUrl('http://random.repo', 'ab_12');
-         }),
-        ).toEqual(true);
+  url = await Git.secureUrl('https://github.com/yarnpkg/yarn.git', '', reporter);
+  expect(url).toEqual('https://github.com/yarnpkg/yarn.git');
 
-  expect(await
-         toThrow(() => {
-           return Git.secureUrl('git://random.repo', '');
-         }),
-        ).toEqual(true);
+  url = await Git.secureUrl('git://github.com/yarnpkg/yarn.git', '', reporter);
+  expect(url).toEqual('https://github.com/yarnpkg/yarn.git');
 
-  expect(await
-         toThrow(() => {
-           return Git.secureUrl('https://random.repo', '');
-         }),
-        ).toEqual(false);
-
-  expect(await
-         toThrow(() => {
-           return Git.secureUrl('http://random.repo', 'abc12');
-         }),
-        ).toEqual(false);
-
-  expect(await
-         toThrow(() => {
-           return Git.secureUrl('git://random.repo', 'abc12');
-         }),
-        ).toEqual(false);
 },
 );
