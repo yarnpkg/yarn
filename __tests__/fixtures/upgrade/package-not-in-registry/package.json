@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "yarn-test-git-repo": "git+ssh://git@github.com/juanca/yarn-test-git-repo.git#master"
+  }
+}
