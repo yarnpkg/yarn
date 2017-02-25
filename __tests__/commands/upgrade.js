@@ -107,7 +107,7 @@ test.concurrent('upgrades from fixed version to latest', (): Promise<void> => {
 test.concurrent('upgrades package not in registry', (): Promise<void> => {
   return runUpgrade(['yarn-test-git-repo'], {}, 'package-not-in-registry', async (config): ?Promise<void> => {
     const lockfile = explodeLockfile(await fs.readFile(path.join(config.cwd, 'yarn.lock')));
-    const gitRemote = 'git+ssh://git@github.com/juanca/yarn-test-git-repo.git';
+    const gitRemote = 'https://github.com/juanca/yarn-test-git-repo.git';
 
     assert.equal(
       lockfile[0],
