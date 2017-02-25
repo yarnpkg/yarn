@@ -9,6 +9,9 @@ import {run as buildRun} from './_helpers.js';
 
 const path = require('path');
 
+const YARN_VERSION_REGEX = /yarn v\S+/;
+const YARN_VERSION = require('../../package.json').version;
+
 const fixturesLoc = path.join(__dirname, '..', 'fixtures', 'import');
 
 const runImport = buildRun.bind(
@@ -31,7 +34,9 @@ const checkReporter = (reporter) => {
 
 const checkLockfile = async (config, reporter) => {
   const lockfile = await Lockfile.fromDirectory(config.cwd, reporter);
-  const imported = await fs.readFile(path.join(config.cwd, 'yarn.lock.import'));
+  // Since the version changes, we need to account for that
+  let imported = await fs.readFile(path.join(config.cwd, 'yarn.lock.import'));
+  imported = imported.replace(YARN_VERSION_REGEX, `yarn v${YARN_VERSION}`);
   expect(lockfile.source).toEqual(imported);
 };
 
