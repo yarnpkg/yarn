@@ -19,6 +19,24 @@ export async function run(
   args: Array<string>,
 ): Promise<void> {
   const lockfile = args.length ? await Lockfile.fromDirectory(config.cwd, reporter) : new Lockfile();
-  const install = new Add(args, flags, config, reporter, lockfile);
+  let addArgs;
+
+  if (args.length) {
+    const [dependency] = args;
+    const manifest = await config.readRootManifest();
+    const dependencies = manifest.dependencies;
+    const remoteSource = dependencies[dependency];
+
+    if (remoteSource && remoteSource.includes(':')) {
+      addArgs = args.slice(0);
+      addArgs.splice(0, 1, remoteSource);
+    }
+  }
+
+  if (!addArgs) {
+    addArgs = args;
+  }
+
+  const install = new Add(addArgs, flags, config, reporter, lockfile);
   await install.init();
 }
