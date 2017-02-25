@@ -23,8 +23,8 @@ export async function run(
 
   if (args.length) {
     const [dependency] = args;
-    const manifest = await config.readRootManifest();
-    const dependencies = manifest.dependencies;
+    const manifest = await config.readRootManifest() || {};
+    const dependencies = manifest.dependencies || {};
     const remoteSource = dependencies[dependency];
 
     if (remoteSource && remoteSource.includes(':')) {
