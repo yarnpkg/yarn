@@ -42,7 +42,8 @@ function buildEjectCommand(
     mkdirp(path.dirname(filename));
     fs.writeFileSync(filename, file.contents);
     if (file.executable) {
-      let mode = fs.constants.S_IRWXU;
+      // fs.constants only became supported in node 6.7 or so.
+      let mode = (fs.constants && fs.constants.S_IRWXU ? fs.constants.S_IRWXU : 448);
       fs.chmodSync(filename, mode);
     }
   }
