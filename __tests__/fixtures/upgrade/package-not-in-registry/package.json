@@ -1,5 +1,6 @@
 {
   "dependencies": {
-    "yarn-test-git-repo": "https://github.com/juanca/e2e-test-repo#package-not-in-registry"
+    "yarn-test-git-repo": "https://github.com/juanca/e2e-test-repo#package-not-in-registry",
+    "e2e-test-repo": "https://github.com/juanca/e2e-test-repo#greenkeeper/cross-env-3.1.4"
   }
 }
