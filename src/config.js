@@ -36,6 +36,7 @@ export type ConfigOptions = {
   production?: boolean,
   binLinks?: boolean,
   networkConcurrency?: number,
+  nonInteractive?: boolean,
 
   // Loosely compare semver for invalid cases like "0.01.0"
   looseSemver?: ?boolean,
@@ -122,6 +123,8 @@ export default class Config {
   ignoreScripts: boolean;
 
   production: boolean;
+
+  nonInteractive: boolean;
 
   //
   cwd: string;
@@ -269,6 +272,8 @@ export default class Config {
 
     this.ignorePlatform = !!opts.ignorePlatform;
     this.ignoreScripts = !!opts.ignoreScripts;
+
+    this.nonInteractive = !!opts.nonInteractive;
 
     this.requestManager.setOptions({
       offline: !!opts.offline && !opts.preferOffline,
