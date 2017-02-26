@@ -116,7 +116,7 @@ test.concurrent('upgrades package not in registry', (): Promise<void> => {
     );
 
     assert(
-      lockfile.indexOf(`${gitRemote}#d2027157d0c7188fc9ed6a6654325d1e3bf4db40`) === -1,
+      lockfile.includes(`  resolved "${gitRemote}#5c57959f3c55a6cd6004e3855ca59ba98bfff56c"`),
       'Lockfile should update yarn-test-git-repo SHA.',
     );
   });
