@@ -33,6 +33,8 @@ export async function run(
     return dependency;
   });
 
-  const install = new Add(addArgs, flags, config, reporter, lockfile);
+  const addFlags = Object.assign({}, flags, {force: true});
+
+  const install = new Add(addArgs, addFlags, config, reporter, lockfile);
   await install.init();
 }
