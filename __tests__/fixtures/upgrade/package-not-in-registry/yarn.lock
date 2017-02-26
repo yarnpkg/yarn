@@ -2,6 +2,6 @@
 # yarn lockfile v1
 
 
-"yarn-test-git-repo@https://github.com/juanca/yarn-test-git-repo.git#master":
+"yarn-test-git-repo@https://github.com/juanca/e2e-test-repo#package-not-in-registry":
   version "1.0.0"
-  resolved "https://github.com/juanca/yarn-test-git-repo.git#8a8a9b2591eb5a7a1f5b20b92e5b3f335a66cd6f"
+  resolved "https://github.com/juanca/e2e-test-repo#d2027157d0c7188fc9ed6a6654325d1e3bf4db40"

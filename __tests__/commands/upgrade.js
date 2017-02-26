@@ -107,16 +107,16 @@ test.concurrent('upgrades from fixed version to latest', (): Promise<void> => {
 test.concurrent('upgrades package not in registry', (): Promise<void> => {
   return runUpgrade(['yarn-test-git-repo'], {}, 'package-not-in-registry', async (config): ?Promise<void> => {
     const lockfile = explodeLockfile(await fs.readFile(path.join(config.cwd, 'yarn.lock')));
-    const gitRemote = 'https://github.com/juanca/yarn-test-git-repo.git';
+    const gitRemote = 'https://github.com/juanca/e2e-test-repo';
 
     assert.equal(
       lockfile[0],
-      `"yarn-test-git-repo@${gitRemote}#master":`,
+      `"yarn-test-git-repo@${gitRemote}#package-not-in-registry":`,
       'Lockfile should point to the same branch.',
     );
 
     assert(
-      lockfile.indexOf(`${gitRemote}#8a8a9b2591eb5a7a1f5b20b92e5b3f335a66cd6f`) === -1,
+      lockfile.indexOf(`${gitRemote}#d2027157d0c7188fc9ed6a6654325d1e3bf4db40`) === -1,
       'Lockfile should update SHA.',
     );
   });
