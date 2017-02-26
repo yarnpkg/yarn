@@ -119,6 +119,16 @@ test.concurrent('upgrades package not in registry', (): Promise<void> => {
       lockfile.includes(`  resolved "${gitRemote}#5c57959f3c55a6cd6004e3855ca59ba98bfff56c"`),
       'Lockfile should update yarn-test-git-repo SHA.',
     );
+
+    assert(
+      lockfile.includes(`"e2e-test-repo@${gitRemote}#greenkeeper/cross-env-3.1.4":`),
+      'Lockfile should point to the same e2e-test-repo branch.',
+    );
+
+    assert(
+      lockfile.includes(`  resolved "${gitRemote}#da5940e1ad2b7451c00edffb6e755bf2411fc705"`),
+      'Lockfile should keep latest e2e-test-repo SHA.',
+    );
   });
 });
 
