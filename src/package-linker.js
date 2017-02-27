@@ -11,6 +11,7 @@ import * as constants from './constants.js';
 import * as promise from './util/promise.js';
 import {entries} from './util/misc.js';
 import * as fs from './util/fs.js';
+import lockMutex from './util/mutex.js';
 
 const invariant = require('invariant');
 const cmdShim = promise.promisify(require('cmd-shim'));
@@ -24,7 +25,12 @@ type DependencyPairs = Array<{
 
 export async function linkBin(src: string, dest: string): Promise<void> {
   if (process.platform === 'win32') {
-    await cmdShim(src, dest);
+    const unlockMutex = await lockMutex(src);
+    try {
+      await cmdShim(src, dest);
+    } finally {
+      unlockMutex();
+    }
   } else {
     await fs.mkdirp(path.dirname(dest));
     await fs.symlink(src, dest);
