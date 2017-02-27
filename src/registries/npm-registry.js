@@ -11,7 +11,6 @@ import Registry from './base-registry.js';
 import {addSuffix, removePrefix} from '../util/misc';
 import isRequestToRegistry from './is-request-to-registry.js';
 
-const defaults = require('defaults');
 const userHome = require('../util/user-home-dir').default;
 const path = require('path');
 const url = require('url');
@@ -139,7 +138,7 @@ export default class NpmRegistry extends Registry {
         await fs.mkdirp(mirrorLoc);
       }
 
-      defaults(this.config, config);
+      this.config = Object.assign({}, config, this.config);
     }
   }
 
