@@ -52,10 +52,14 @@ function buildEjectCommand(
 
   let sandboxPath = (packageInfo, tree: '_install' | '_build' | '_insttmp', ...path) => {
     let packageName = packageInfo.packageJson.name;
+    let packageSourceType = packageInfo.sourceType;
     let packageKey = packageInfoKey(sandbox.env, packageInfo);
     let isRootPackage = packageName === sandbox.packageInfo.packageJson.name;
+    let isNonRootLocalPackage = packageSourceType === 'local';
     if (isRootPackage) {
       return ['$ESY__SANDBOX', tree, ...path].join('/');
+    } else if (isNonRootLocalPackage) {
+      return ['$ESY__LOCAL_STORE', tree, packageKey, ...path].join('/');
     }
     return ['$ESY__STORE', tree, packageKey, ...path].join('/');
   };
@@ -106,6 +110,27 @@ function buildEjectCommand(
       value: 'ESY__SANDBOX ?= $(CURDIR)',
     },
 
+    // ESY__LOCAL_STORE is a special "local" version of an "esy store", where
+    // artifacts for the sandbox's symlinked packages are built into. It makes
+    // sense that they be isolated from the primary global store because:
+    //
+    // 1. They are often altered frequently, and therefore would likely have a
+    // different cache key detection/extraction algorithm (eventually).
+    // Ideally, their cache key would include a hash of their package source
+    // contents.
+    //
+    // 2. We likely want a different eviction policy for this local cache, per
+    // package name - For symlinked packages, we likely only want 1-3 caches
+    // per package at most.
+    //
+    // 3. Their artifacts are less likely to benefit the system by being in the
+    // global build cache because (since they are symlinks) they are likely
+    // experiencing a lot of one off test changes.
+    {
+      type: 'raw',
+      value: 'ESY__LOCAL_STORE ?= $(ESY__SANDBOX)/.esy-local',
+    },
+
   ];
 
   let rules: Array<MakeItem> = [
@@ -142,6 +167,17 @@ function buildEjectCommand(
       target: 'esy-store',
       phony: true,
       dependencies: ['$(ESY__STORE)/_install',  '$(ESY__STORE)/_build', '$(ESY__STORE)/_insttmp'],
+    },
+    {
+      type: 'rule',
+      target: '$(ESY__LOCAL_STORE)/_install $(ESY__LOCAL_STORE)/_build $(ESY__LOCAL_STORE)/_insttmp',
+      command: 'mkdir -p $(@)',
+    },
+    {
+      type: 'rule',
+      target: 'esy-local-store',
+      phony: true,
+      dependencies: ['$(ESY__LOCAL_STORE)/_install',  '$(ESY__LOCAL_STORE)/_build', '$(ESY__LOCAL_STORE)/_insttmp'],
     },
     {
       type: 'rule',
@@ -195,7 +231,7 @@ function buildEjectCommand(
         rules.push({
           type: 'rule',
           target: packageTarget(target),
-          dependencies: ['esy-store', 'esy-root', ...dependencies],
+          dependencies: ['esy-store', 'esy-local-store', 'esy-root', ...dependencies],
           phony: true,
           command: [
             outdent`
@@ -303,6 +339,7 @@ function buildEjectCommand(
             'CI': process.env.CI ? process.env.CI : null,
             'TMPDIR': '$(TMPDIR)',
             'ESY__STORE': '$(ESY__STORE)',
+            'ESY__LOCAL_STORE': '$(ESY__LOCAL_STORE)',
             'ESY__SANDBOX': '$(ESY__SANDBOX)',
             'ESY__ROOT': '$(ESY__ROOT)',
           },
@@ -373,6 +410,7 @@ function buildEjectCommand(
 
       sed \\
         -e "s|\\$ESY__STORE|$ESY__STORE|g"          \\
+        -e "s|\\$ESY__LOCAL_STORE|$ESY__LOCAL_STORE|g"          \\
         -e "s|\\$ESY__SANDBOX|$ESY__SANDBOX|g"      \\
         -e "s|\\$TMPDIR_GLOBAL|$_TMPDIR_GLOBAL|g"   \\
         -e "s|\\$TMPDIR|$_TMPDIR|g"                 \\

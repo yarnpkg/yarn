@@ -355,10 +355,14 @@ function computeEnvVarsForPackage(
 
 function targetPath(sandbox, packageInfo, tree: '_install' | '_build', ...pathTo) {
   let packageName = packageInfo.packageJson.name;
+  let packageSourceType = packageInfo.sourceType;
   let packageKey = packageInfoKey(sandbox.env, packageInfo);
   let isRootPackage = packageName === sandbox.packageInfo.packageJson.name;
+  let isNonRootLocalPackage = packageSourceType === 'local';
   if (isRootPackage) {
     return ['$esy__sandbox', tree, ...pathTo].join('/');
+  } else if (isNonRootLocalPackage) {
+    return ['$esy__local_store', tree, packageKey, ...pathTo].join('/');
   }
   return ['$esy__store', tree, packageKey, ...pathTo].join('/');
 }
@@ -395,6 +399,11 @@ function calculateEnvironment(
       },
       'esy__store': {
         val: '$ESY__STORE',
+        exclusive: true,
+        __BUILT_IN_DO_NOT_USE_OR_YOU_WILL_BE_PIPd: true,
+      },
+      'esy__local_store': {
+        val: '$ESY__LOCAL_STORE',
         exclusive: true,
         __BUILT_IN_DO_NOT_USE_OR_YOU_WILL_BE_PIPd: true,
       },

@@ -9,9 +9,14 @@ const resolveBase = require('resolve');
 const {mapObject} = require('./Utility');
 import * as fs from '../util/fs';
 
-function resolve(packageName, baseDirectory): Promise<string> {
+function resolve(packageName, baseDirectory, topLevelDir): Promise<string> {
   return new Promise((resolve, reject) => {
-    resolveBase(packageName, {basedir: baseDirectory}, (err, resolution) => {
+    // If we don't pass paths:[..] which includes the topLevelDir,
+    // then module resolution won't work when symlinking to a dependency
+    // which hasn't been installed yet. I'm not sure why symlinks are any
+    // different than _resolved modules - perhaps () resolve treats them
+    // differently?l
+    resolveBase(packageName, {basedir: baseDirectory, paths:[topLevelDir]}, (err, resolution) => {
       if (err) {
         reject(err);
       } else {
@@ -21,8 +26,8 @@ function resolve(packageName, baseDirectory): Promise<string> {
   });
 }
 
-async function resolveToRealpath(packageName, baseDirectory): Promise<string> {
-  const resolution = await resolve(packageName, baseDirectory);
+async function resolveToRealpath(packageName, baseDirectory, topLevelDir): Promise<string> {
+  const resolution = await resolve(packageName, baseDirectory, topLevelDir);
   return fs.realpath(resolution);
 }
 
@@ -137,7 +142,7 @@ async function fromDirectory(directory: string): Promise<Sandbox> {
       let key = `${baseDir}__${packageName}`;
       let resolution = resolveCache.get(key);
       if (resolution == null) {
-        resolution = resolveToRealpath(packageName, baseDir);
+        resolution = resolveToRealpath(packageName, baseDir, path.join(directory, 'node_modules'));
         resolveCache.set(key, resolution);
       }
       return resolution;
@@ -337,14 +342,20 @@ async function buildPackageInfo(baseDirectory, context) {
 function formatMissingPackagesError(missingPackages, context) {
   let packagesToReport = missingPackages.slice(0, 3);
   let packagesMessage = packagesToReport.map(p => `"${p}"`).join(', ');
-  let extraPackagesMessage = missingPackages.length > packagesToReport.length
-    ? ` (and ${missingPackages.length - packagesToReport.length} more)`
-    : '';
+  let extraPackagesMessage = missingPackages.length > packagesToReport.length ? ` (and ${missingPackages.length - packagesToReport.length} more)` : '';
+  let problemPackage = context.packageDependencyTrace[context.packageDependencyTrace.length - 1] || 'NotFound';
+  let traceMsg =
+    context.packageDependencyTrace.length > 1 ?
+    `Package ${problemPackage} is depended on by "${context.packageDependencyTrace.join('" -> "')}"` :
+    '';
   return outdent`
-    Cannot resolve ${packagesMessage}${extraPackagesMessage} packages
-      At ${context.packageDependencyTrace.join(' -> ')}
-      Did you forget to run "esy install" command?
-  `
+    The following dependencies of package "${problemPackage}" could not be resolved correctly:
+
+      ${packagesMessage}${extraPackagesMessage} packages
+
+    ${traceMsg}
+    Did you forget to run "esy install" command?
+  `;
 }
 
 function formatCircularDependenciesError(dependency, context) {
