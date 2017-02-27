@@ -6,7 +6,7 @@ import * as fs from '../../../src/util/fs.js';
 const assert = require('assert');
 const path = require('path');
 
-jasmine.DEFAULT_TIMEOUT_INTERVAL = 120000;
+jasmine.DEFAULT_TIMEOUT_INTERVAL = 150000;
 
 test.concurrent('install should dedupe dependencies avoiding conflicts 0', (): Promise<void> => {
   // A@2.0.1 -> B@2.0.0

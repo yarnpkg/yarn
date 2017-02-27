@@ -34,10 +34,6 @@ const runAdd = buildRun.bind(
   },
 );
 
-test.concurrent('install with arg that has install scripts', (): Promise<void> => {
-  return runAdd(['flow-bin'], {}, 'install-with-arg-and-install-scripts');
-});
-
 test.concurrent('install with arg', (): Promise<void> => {
   return runAdd(['is-online'], {}, 'install-with-arg');
 });
