@@ -3,7 +3,7 @@
 import type {CLIFunctionReturn} from '../../src/types.js';
 import {ConsoleReporter} from '../../src/reporters/index.js';
 import {run as buildRun} from './_helpers.js';
-import {run as global} from '../../src/cli/commands/global.js';
+import {run as global, getBinFolder} from '../../src/cli/commands/global.js';
 import * as fs from '../../src/util/fs.js';
 import assert from 'assert';
 const isCI = require('is-ci');
@@ -41,6 +41,11 @@ if (isCI) {
     return runGlobal(['add', 'react-native-cli'], {}, 'add-without-flag', async (config) => {
       assert.ok(await fs.exists(path.join(config.globalFolder, 'node_modules', 'react-native-cli')));
       assert.ok(await fs.exists(path.join(config.globalFolder, 'node_modules', '.bin', 'react-native')));
+      if (process.platform === 'win32') {
+      // Test for valid shims on windows.
+        assert.ok(await fs.exists(path.join(config.globalFolder, 'node_modules', '.bin', 'react-native.cmd')));
+        assert.ok(!await fs.exists(path.join(config.globalFolder, 'node_modules', '.bin', 'react-native.cmd.cmd')));
+      }
     });
   });
 }
@@ -49,6 +54,11 @@ test.concurrent('add with prefix flag', (): Promise<void> => {
   const tmpGlobalFolder = getTempGlobalFolder();
   return runGlobal(['add', 'react-native-cli'], {prefix: tmpGlobalFolder}, 'add-with-prefix-flag', async (config) => {
     assert.ok(await fs.exists(getGlobalPath(tmpGlobalFolder, 'react-native')));
+    if (process.platform === 'win32') {
+      // Test for valid shims on windows.
+      assert.ok(await fs.exists(getGlobalPath(tmpGlobalFolder, 'react-native.cmd')));
+      assert.ok(!await fs.exists(getGlobalPath(tmpGlobalFolder, 'react-native.cmd.cmd')));
+    }
   });
 });
 
@@ -63,3 +73,45 @@ test('add with PREFIX enviroment variable', (): Promise<void> => {
     process.env.PREFIX = envPrefix;
   });
 });
+
+if (process.platform === 'win32' && process.env.PATH && process.env.LOCALAPPDATA) {
+
+  test.only('add with local appdata path', (): Promise<void> => {
+    const envPrefix = process.env.PREFIX;
+    const envAppdata = process.env.LOCALAPPDATA ? process.env.LOCALAPPDATA : '';
+    process.env.PREFIX = `${envAppdata}\\Yarn\\.bin`;
+    const envPath = process.env.PATH ? process.env.PATH : '';
+    const localBinPath = path.join(envAppdata, 'Yarn', '.bin');
+    process.env.PATH = `${localBinPath};envPath`;
+    return runGlobal(['add', 'react-native-cli'], {}, 'add-with-local-appdata-path', async (config) => {
+      console.log(config.getOption('prefix'));
+      assert.equal(getBinFolder(config, {}), localBinPath);
+      assert.ok(await fs.exists(path.join(localBinPath, 'react-native.cmd')));
+      assert.ok(!await fs.exists(path.join(localBinPath, 'react-native.cmd.cmd')));
+      await fs.unlink(path.join(localBinPath, 'react-native.cmd'));
+      await fs.unlink(path.join(localBinPath, 'react-native'));
+      process.env.PATH = envPath;
+      process.env.PREFIX = envPrefix;
+    });
+  });
+
+  test.only('add without local appdata path', (): Promise<void> => {
+    const envPrefix = process.env.PREFIX;
+    process.env.PREFIX = '';
+    const envPath = process.env.PATH ? process.env.PATH : '';
+    const envAppdata = process.env.LOCALAPPDATA ? process.env.LOCALAPPDATA : '';
+    const localBinPath = path.join(envAppdata, 'Yarn', '.bin');
+    process.env.PATH = envPath.replace(/\\AppData\\Local\\Yarn\\.bin/g, '');
+    return runGlobal(['add', 'react-native-cli'], {}, 'add-without-local-appdata-path', async (config) => {
+      console.log(config.getOption('prefix'));
+      assert.notEqual(getBinFolder(config, {}), localBinPath);
+      assert.ok(localBinPath.length > 0);
+      assert.ok(!await fs.exists(path.join(localBinPath, 'react-native.cmd')));
+      assert.ok(!await fs.exists(path.join(localBinPath, 'react-native.cmd.cmd')));
+      await fs.unlink(path.join(getBinFolder(config, {}), 'react-native.cmd'));
+      await fs.unlink(path.join(getBinFolder(config, {}), 'react-native'));
+      process.env.PATH = envPath;
+      process.env.PREFIX = envPrefix;
+    });
+  });
+}
