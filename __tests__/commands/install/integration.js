@@ -912,3 +912,9 @@ test.concurrent('should skip integrity check and do install when --skip-integrit
 
     });
   });
+
+test.concurrent(
+  "should install if symlink source does not exist",
+  async (): Promise<void> => {
+    await runInstall({}, 'relative-symlinks-work', () => {});
+  });
