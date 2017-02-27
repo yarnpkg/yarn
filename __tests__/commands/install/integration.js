@@ -1,5 +1,7 @@
 /* @flow */
 
+import type Config from '../../../src/config';
+import {run as cache} from '../../../src/cli/commands/cache.js';
 import {run as check} from '../../../src/cli/commands/check.js';
 import * as constants from '../../../src/constants.js';
 import * as reporters from '../../../src/reporters/index.js';
@@ -11,15 +13,32 @@ import {promisify} from '../../../src/util/promise';
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 150000;
 
-const request = require('request');
+let request = require('request');
 const assert = require('assert');
 const semver = require('semver');
 const fsNode = require('fs');
 const path = require('path');
+const stream = require('stream');
 const os = require('os');
 
+async function mockConstants(mocks: Object, cb: (config: Config) => Promise<void>): Promise<void> {
+  // We cannot put this function inside _helpers, because we need to change the "request" variable
+  // after resetting the modules. Updating this variable is required because some tests check what
+  // happened during the Yarn execution, and they need to use the same instance of "request" than
+  // the Yarn environment.
+
+  const automock = jest.genMockFromModule('../../../src/constants');
+  jest.setMock('../../../src/constants', Object.assign(automock, mocks));
+
+  jest.resetModules();
+  request = require('request');
+
+  jest.mock('../../../src/constants');
+  await cb(await require('../../../src/config.js').default.create());
+  jest.unmock('../../../src/constants');
+}
+
 beforeEach(request.__resetAuthedRequests);
-// $FlowFixMe
 afterEach(request.__resetAuthedRequests);
 
 test.concurrent('properly find and save build artifacts', async () => {
@@ -34,6 +53,21 @@ test.concurrent('properly find and save build artifacts', async () => {
     const moduleFolder = path.join(config.cwd, 'node_modules', 'dummy');
     assert.equal(await fs.readFile(path.join(moduleFolder, 'dummy.txt')), 'foobar');
     assert.equal(await fs.readFile(path.join(moduleFolder, 'dummy', 'dummy.txt')), 'foobar');
+  });
+});
+
+test('changes the cache path when bumping the cache version', async () => {
+  await runInstall({}, 'install-github', async (config): Promise<void> => {
+    const inOut = new stream.PassThrough();
+    const reporter = new reporters.JSONReporter({stdout: inOut});
+
+    await cache(config, reporter, {}, ['dir']);
+    assert.ok(!!(JSON.parse(String(inOut.read())) : any).data.match(/\/v1\/?$/));
+
+    await mockConstants({CACHE_VERSION: 42}, async (config): Promise<void> => {
+      await cache(config, reporter, {}, ['dir']);
+      assert.ok(!!(JSON.parse(String(inOut.read())) : any).data.match(/\/v42\/?$/));
+    });
   });
 });
 

@@ -239,7 +239,7 @@ export default class Config {
     this.cacheRootFolder = String(
       opts.cacheFolder ||
       this.getOption('cache-folder') ||
-      constants.MODULE_CACHE_DIRECTORY
+      constants.MODULE_CACHE_DIRECTORY,
     );
 
     //init & create cacheFolder, tempFolder
