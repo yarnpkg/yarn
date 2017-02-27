@@ -11,7 +11,7 @@ import {MessageError} from '../../errors.js';
 import Lockfile from '../../lockfile/wrapper.js';
 import lockStringify from '../../lockfile/stringify.js';
 import PackageFetcher from '../../package-fetcher.js';
-import PackageInstallScripts from '../../package-install-scripts.js';
+import PackageBuilder from '../../build/package-builder.js';
 import PackageCompatibility from '../../package-compatibility.js';
 import PackageResolver from '../../package-resolver.js';
 import PackageLinker from '../../package-linker.js';
@@ -181,7 +181,7 @@ export class Install {
     this.fetcher = new PackageFetcher(config, this.resolver);
     this.compatibility = new PackageCompatibility(config, this.resolver, this.flags.ignoreEngines);
     this.linker = new PackageLinker(config, this.resolver);
-    this.scripts = new PackageInstallScripts(config, this.resolver, this.flags.force);
+    this.builder = new PackageBuilder(config, this.resolver, this.flags.force);
   }
 
   flags: Flags;
@@ -192,7 +192,7 @@ export class Install {
   config: Config;
   reporter: Reporter;
   resolver: PackageResolver;
-  scripts: PackageInstallScripts;
+  builder: PackageBuilder;
   linker: PackageLinker;
   compatibility: PackageCompatibility;
   fetcher: PackageFetcher;
@@ -380,6 +380,7 @@ export class Install {
       patterns: rawPatterns,
       ignorePatterns,
       usedPatterns,
+      manifest,
     } = await this.fetchRequestFromCwd();
 
     steps.push(async (curr: number, total: number) => {
@@ -415,7 +416,7 @@ export class Install {
       if (this.flags.ignoreScripts) {
         this.reporter.warn(this.reporter.lang('ignoredScripts'));
       } else {
-        await this.scripts.init(patterns);
+        await this.builder.init(patterns, this.config.cwd, manifest);
       }
     });
 

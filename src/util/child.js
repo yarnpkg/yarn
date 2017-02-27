@@ -1,6 +1,7 @@
 /* @flow */
 /* global child_process$spawnOpts */
 
+import {fixCmdWinSlashes} from './fix-cmd-win-slashes.js';
 import * as constants from '../constants.js';
 import BlockingQueue from './blocking-queue.js';
 import {MessageError, SpawnError} from '../errors.js';
@@ -101,4 +102,49 @@ export function spawn(
       }
     });
   }));
+}
+
+export async function spawnWithTicker(
+  cmd: string,
+  cwd: string,
+  env: Object,
+  tick: ?(msg: string) => void,
+): Promise<string> {
+  // if we don't have a spinner then pipe everything to the terminal
+  const stdio = tick ? undefined : 'inherit';
+
+  const conf = {windowsVerbatimArguments: false};
+  let sh = 'sh';
+  let shFlag = '-c';
+  if (process.platform === 'win32') {
+    // cmd or command.com
+    sh = process.env.comspec || 'cmd';
+
+    // d - Ignore registry AutoRun commands
+    // s - Strip " quote characters from command.
+    // c - Run Command and then terminate
+    shFlag = '/d /s /c';
+
+    // handle windows run scripts starting with a relative path
+    cmd = fixCmdWinSlashes(cmd);
+
+    // handle quotes properly in windows environments - https://github.com/nodejs/node/issues/5060
+    conf.windowsVerbatimArguments = true;
+  }
+
+  const stdout = await spawn(sh, [shFlag, cmd], {cwd, env, stdio, ...conf}, (data) => {
+    if (tick) {
+      const line = data.toString() // turn buffer into string
+        .trim() // trim whitespace
+        .split('\n') // split into lines
+        .pop() // use only the last line
+        .replace(/\t/g, ' '); // change tabs to spaces as they can interfere with the console
+
+      if (line) {
+        tick(line);
+      }
+    }
+  });
+
+  return stdout;
 }
