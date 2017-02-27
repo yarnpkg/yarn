@@ -398,13 +398,9 @@ function buildEjectCommand(
       # TODO: we probably should handle symlinks too in a special way,
       # to modify their location to a rewritten path
 
-      with open(filename, 'r') as input_file:
-        data = input_file.read()
-
-      data = data.replace(src, dest)
-
-      with open(filename_stage, 'w') as output_file:
-        output_file.write(data)
+      with open(filename, 'r') as input_file, open(filename_stage, 'w') as output_file:
+        for line in input_file:
+            output_file.write(line.replace(src, dest))
 
       os.rename(filename_stage, filename)
       os.chmod(filename, stat.S_IMODE(filestat.st_mode))
