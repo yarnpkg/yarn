@@ -9,7 +9,7 @@ import * as fs from '../../../src/util/fs.js';
 import {getPackageVersion, explodeLockfile, runInstall, createLockfile} from '../_helpers.js';
 import {promisify} from '../../../src/util/promise';
 
-jasmine.DEFAULT_TIMEOUT_INTERVAL = 90000;
+jasmine.DEFAULT_TIMEOUT_INTERVAL = 150000;
 
 const request = require('request');
 const assert = require('assert');
@@ -139,11 +139,11 @@ test.concurrent('hoisting should factor ignored dependencies', async () => {
 test.concurrent('--production flag ignores dev dependencies', () => {
   return runInstall({production: true}, 'install-production', async (config) => {
     assert.ok(
-      !await fs.exists(path.join(config.cwd, 'node_modules', 'lodash')),
+      !await fs.exists(path.join(config.cwd, 'node_modules', 'left-pad')),
     );
 
     assert.ok(
-      await fs.exists(path.join(config.cwd, 'node_modules', 'react')),
+      await fs.exists(path.join(config.cwd, 'node_modules', 'is-array')),
     );
   });
 });
@@ -911,4 +911,10 @@ test.concurrent('should skip integrity check and do install when --skip-integrit
       assert.notEqual(lockContent, newLockContent);
 
     });
+  });
+
+test.concurrent(
+  'should install if symlink source does not exist',
+  async (): Promise<void> => {
+    await runInstall({}, 'relative-symlinks-work', () => {});
   });
