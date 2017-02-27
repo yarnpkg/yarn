@@ -108,15 +108,17 @@ test.concurrent('upgrades package not in registry', (): Promise<void> => {
   const packages = ['yarn-test-git-repo', 'e2e-test-repo'];
   return runUpgrade(packages, {}, 'package-not-in-registry', async (config): ?Promise<void> => {
     const lockfile = explodeLockfile(await fs.readFile(path.join(config.cwd, 'yarn.lock')));
-    const gitRemote = 'https://github.com/juanca/e2e-test-repo';
+    const gitRemote = 'https://github.com/yarnpkg/e2e-test-repo';
+
+    const lockFileIncludes = (sha) => lockfile.includes(`  resolved "${gitRemote}#${sha}"`);
 
     assert(
-      lockfile.includes(`"yarn-test-git-repo@${gitRemote}#package-not-in-registry":`),
+      lockfile.includes(`"yarn-test-git-repo@${gitRemote}#master":`),
       'Lockfile should point to the same yarn-test-git-repo branch.',
     );
 
     assert(
-      lockfile.includes(`  resolved "${gitRemote}#5c57959f3c55a6cd6004e3855ca59ba98bfff56c"`),
+      !lockFileIncludes('d2027157d0c7188fc9ed6a6654325d1e3bf4db40'),
       'Lockfile should update yarn-test-git-repo SHA.',
     );
 
@@ -126,7 +128,7 @@ test.concurrent('upgrades package not in registry', (): Promise<void> => {
     );
 
     assert(
-      lockfile.includes(`  resolved "${gitRemote}#da5940e1ad2b7451c00edffb6e755bf2411fc705"`),
+      lockFileIncludes('da5940e1ad2b7451c00edffb6e755bf2411fc705'),
       'Lockfile should keep latest e2e-test-repo SHA.',
     );
   });
