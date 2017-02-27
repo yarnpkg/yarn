@@ -644,7 +644,12 @@ export async function symlink(src: string, dest: string): Promise<void> {
       await fsSymlink(src, dest, 'junction');
     } else {
       // use relative paths otherwise which will be retained if the directory is moved
-      const relative = path.relative(fs.realpathSync(path.dirname(dest)), fs.realpathSync(src));
+      let relative;
+      if (await exists(src)) {
+        relative = path.relative(fs.realpathSync(path.dirname(dest)), fs.realpathSync(src));
+      } else {
+        relative = path.relative(path.dirname(dest), src);
+      }
       await fsSymlink(relative, dest);
     }
   } catch (err) {
