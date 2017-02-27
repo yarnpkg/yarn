@@ -912,3 +912,28 @@ test.concurrent('should skip integrity check and do install when --skip-integrit
 
     });
   });
+
+test.concurrent('ignores unreachable file: optionalDependencies', () => {
+  return runInstall({optional: true}, 'install-optional-dep-file-unreachable', async (config) => {
+    assert.ok(!(await fs.exists(path.join(config.cwd, 'node_modules', 'optionalreachable'))));
+  });
+});
+
+test.concurrent('does not install reachable file: optionalDependencies', () => {
+  return runInstall({optional: true}, 'install-optional-dep-file-reachable', async (config) => {
+    assert.ok(!(await fs.exists(path.join(config.cwd, 'node_modules', 'reachable'))));
+  });
+});
+
+test.concurrent('fails on unreachable file: dependencies', () => {
+  return runInstall({}, 'install-dep-file-unreachable', () => {
+    assert(false, 'should not be installable');
+  })
+  .catch(e => assert(e, 'An error should be received'));
+});
+
+test.concurrent('installs reachable file: dependencies', () => {
+  return runInstall({}, 'install-dep-file-reachable', async (config) => {
+    assert.ok(await fs.exists(path.join(config.cwd, 'node_modules', 'reachable')));
+  });
+});
