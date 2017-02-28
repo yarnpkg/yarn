@@ -7,6 +7,10 @@ import type Config from '../../config.js';
 import {sortAlpha, hyphenate, camelCase} from '../../util/misc.js';
 const chalk = require('chalk');
 
+export function hasWrapper(): boolean {
+  return false;
+}
+
 export function run(
   config: Config,
   reporter: Reporter,
