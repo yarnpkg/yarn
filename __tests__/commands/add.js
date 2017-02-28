@@ -1,6 +1,7 @@
 /* @flow */
 
 import {ConsoleReporter} from '../../src/reporters/index.js';
+import * as reporters from '../../src/reporters/index.js';
 import {getPackageVersion, createLockfile, explodeLockfile, run as buildRun, runInstall} from './_helpers.js';
 import {Add} from '../../src/cli/commands/add.js';
 import * as constants from '../../src/constants.js';
@@ -701,4 +702,56 @@ test.concurrent('install with latest tag and --prefer-offline flag', (): Promise
     assert.deepEqual(pkg.dependencies, {'left-pad': `^${version}`});
     assert.notEqual(version, '1.1.0');
   });
+});
+
+test.concurrent('doesn\'t warn when peer dependency is met during add', (): Promise<void> => {
+  return buildRun(
+    reporters.BufferReporter,
+    fixturesLoc,
+    async (args, flags, config, reporter, lockfile): Promise<void> => {
+      const add = new Add(args, flags, config, reporter, lockfile);
+      await add.init();
+      const output = reporter.getBuffer();
+      const warnings = output.filter((entry) => entry.type === 'warning');
+      assert(!warnings.some((warning) => warning.data.toString().toLowerCase().includes('unmet peer')));
+      assert(!warnings.some((warning) => warning.data.toString().toLowerCase().includes('incorrect peer')));
+    },
+    ['react@15.4.2', 'react-dom@15.4.2'],
+    {},
+    'add-with-peer-dependency-met',
+  );
+});
+
+test.concurrent('warns when peer dependency is not met during add', (): Promise<void> => {
+  return buildRun(
+    reporters.BufferReporter,
+    fixturesLoc,
+    async (args, flags, config, reporter, lockfile): Promise<void> => {
+      const add = new Add(args, flags, config, reporter, lockfile);
+      await add.init();
+      const output = reporter.getBuffer();
+      const warnings = output.filter((entry) => entry.type === 'warning');
+      assert(warnings.some((warning) => warning.data.toString().toLowerCase().includes('unmet peer')));
+    },
+    ['react-dom@15.4.2'],
+    {},
+    'add-with-peer-dependency-not-met',
+  );
+});
+
+test.concurrent('warns when peer dependency is incorrect during add', (): Promise<void> => {
+  return buildRun(
+    reporters.BufferReporter,
+    fixturesLoc,
+    async (args, flags, config, reporter, lockfile): Promise<void> => {
+      const add = new Add(args, flags, config, reporter, lockfile);
+      await add.init();
+      const output = reporter.getBuffer();
+      const warnings = output.filter((entry) => entry.type === 'warning');
+      assert(warnings.some((warning) => warning.data.toString().toLowerCase().includes('incorrect peer')));
+    },
+    ['react@0.14.8', 'react-dom@15.4.2'],
+    {},
+    'add-with-peer-dependency-incorrect',
+  );
 });

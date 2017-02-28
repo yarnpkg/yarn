@@ -288,48 +288,16 @@ export default class PackageLinker {
 
     for (const name in peerDeps) {
       const range = peerDeps[name];
+      const patterns = this.resolver.patternsByPackage[name] || [];
+      const foundPattern = patterns.find((pattern) => {
+        const resolvedPattern = this.resolver.getResolvedPattern(pattern);
+        return resolvedPattern ? this._satisfiesPeerDependency(range, resolvedPattern.version) : false;
+      });
 
-      // find a dependency in the tree above us that matches
-      let searchPatterns: Array<string> = [];
-      for (let request of ref.requests) {
-        do {
-          // get resolved pattern for this request
-          const dep = this.resolver.getResolvedPattern(request.pattern);
-          if (!dep) {
-            continue;
-          }
-
-          //
-          const ref = dep._reference;
-          invariant(ref, 'expected reference');
-          searchPatterns = searchPatterns.concat(ref.dependencies);
-        } while (request = request.parentRequest);
-      }
-
-      // if the resolver already knows about the peer dependency, add those patterns as well
-      const packagePatterns = this.resolver.patternsByPackage[name];
-      if (packagePatterns) {
-        searchPatterns = searchPatterns.concat(packagePatterns);
-      }
-
-      // include root seed patterns last
-      searchPatterns = searchPatterns.concat(this.resolver.seedPatterns);
-
-      // find matching dep in search patterns
-      let foundDep: ?{pattern: string, version: string};
-      for (const pattern of searchPatterns) {
-        const dep = this.resolver.getResolvedPattern(pattern);
-        if (dep && dep.name === name) {
-          foundDep = {pattern, version: dep.version};
-          break;
-        }
-      }
-
-      // validate found peer dependency
-      if (foundDep && this._satisfiesPeerDependency(range, foundDep.version)) {
-        ref.addDependencies([foundDep.pattern]);
+      if (foundPattern) {
+        ref.addDependencies([foundPattern]);
       } else {
-        const depError = foundDep ? 'incorrectPeer' : 'unmetPeer';
+        const depError = patterns.length > 0 ? 'incorrectPeer' : 'unmetPeer';
         const [pkgHuman, depHuman] = [`${pkg.name}@${pkg.version}`, `${name}@${range}`];
         this.reporter.warn(this.reporter.lang(depError, pkgHuman, depHuman));
       }
