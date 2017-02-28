@@ -8,7 +8,7 @@
   "dependencies": {
     "babel-runtime": "^6.0.0",
     "bytes": "^2.4.0",
-    "camelcase": "^3.0.0",
+    "camelcase": "^4.0.0",
     "chalk": "^1.1.1",
     "cmd-shim": "^2.0.1",
     "commander": "^2.9.0",
@@ -60,7 +60,7 @@
     "eslint-plugin-no-async-without-await": "^1.0.0",
     "eslint-plugin-react": "5.2.2",
     "eslint-plugin-yarn-internal": "file:scripts/eslint-rules",
-    "flow-bin": "^0.37.3",
+    "flow-bin": "^0.40.0",
     "gulp": "^3.9.0",
     "gulp-babel": "^6.0.0",
     "gulp-if": "^2.0.1",
@@ -74,6 +74,9 @@
     "temp": "^0.8.3",
     "webpack": "^2.1.0-beta.25",
     "yargs": "^6.3.0"
+  },
+  "engines": {
+    "node": ">=4.0.0"
   },
   "repository": "yarnpkg/yarn",
   "bin": {

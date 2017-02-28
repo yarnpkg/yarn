@@ -22,7 +22,7 @@ export const {run, setFlags} = buildSubCommands('cache', {
     async function readCacheMetadata(
       parentDir = config.cacheFolder,
       metadataFile = METADATA_FILENAME,
-    ): Promise<[]> {
+    ): Promise<Array<Array<string>>> {
       const folders = await fs.readdir(parentDir);
       const packagesMetadata = [];
 
