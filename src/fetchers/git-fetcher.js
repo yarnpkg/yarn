@@ -24,6 +24,32 @@ export default class GitFetcher extends BaseFetcher {
     }
   }
 
+  async getResolvedFromCached(hash: string): Promise<any> {
+    const {reference: ref, config} = this;
+
+    const offlineMirrorPath = config.getOfflineMirrorPath();
+    if (offlineMirrorPath == null) {
+      // no mirror
+      return null;
+    }
+
+    const localTarball = path.resolve(offlineMirrorPath, ref);
+    if (!(await fsUtil.exists(localTarball))) {
+      // no tarball located in the cache
+      return null;
+    }
+
+    // copy the file over
+    if (!await fsUtil.exists(offlineMirrorPath)) {
+      await fsUtil.copy(localTarball, offlineMirrorPath, this.reporter);
+    }
+
+    const relativeMirrorPath = path.basename(path.relative(offlineMirrorPath, ref));
+    invariant(relativeMirrorPath != null, 'Missing offline mirror path');
+
+    return `${relativeMirrorPath}#${hash}`;
+  }
+
   async fetchFromLocal(pathname: string): Promise<FetchedOverride> {
     const {reference: ref, config} = this;
     const offlineMirrorPath = config.getOfflineMirrorPath() || '';
@@ -46,6 +72,8 @@ export default class GitFetcher extends BaseFetcher {
           const expectHash = this.hash;
           const actualHash = hashStream.getHash();
           if (!expectHash || expectHash === actualHash) {
+            console.log('actualHash', actualHash)
+
             resolve({
               hash: actualHash,
               resolved: `${pathname}#${actualHash}`,
@@ -86,6 +114,7 @@ export default class GitFetcher extends BaseFetcher {
       tarballInMirrorPath = `${tarballInMirrorPath}-${commit}`;
       const hash = await git.archive(tarballInMirrorPath);
       const relativeMirrorPath = path.relative(mirrorRootPath, tarballInMirrorPath);
+
       return {
         hash: commit,
         resolved: relativeMirrorPath ? `${relativeMirrorPath}#${hash}` : null,
