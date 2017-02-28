@@ -823,6 +823,14 @@ test.concurrent('install a module with incompatible optional dependency should s
     });
   });
 
+test.concurrent('install a module with optional dependency should skip incompatible transient dependency',
+  (): Promise<void> => {
+    return runInstall({}, 'install-should-skip-incompatible-optional-sub-dep', async (config) => {
+      assert.ok(await fs.exists(path.join(config.cwd, 'node_modules', 'dep-optional')));
+      assert.ok(!(await fs.exists(path.join(config.cwd, 'node_modules', 'dep-incompatible'))));
+    });
+  });
+
 // this tests for a problem occuring due to optional dependency incompatible with os, in this case fsevents
 // this would fail on os's incompatible with fsevents, which is everything except osx.
 if (process.platform !== 'darwin') {
@@ -840,6 +848,14 @@ test.concurrent('optional dependency that fails to build should not be installed
   (): Promise<void> => {
     return runInstall({}, 'should-not-install-failing-optional-deps', async (config) => {
       assert.equal(await fs.exists(path.join(config.cwd, 'node_modules', 'optional-failing')), false);
+    });
+  });
+
+test.concurrent('failing dependency of optional dependency should not be installed',
+  (): Promise<void> => {
+    return runInstall({}, 'should-not-install-failing-deps-of-optional-deps', async (config) => {
+      assert.equal(await fs.exists(path.join(config.cwd, 'node_modules', 'optional-dep')), true);
+      assert.equal(await fs.exists(path.join(config.cwd, 'node_modules', 'sub-failing')), false);
     });
   });
 
