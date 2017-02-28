@@ -73,7 +73,11 @@ function expectHelpOutputAsSubcommand(stdout) {
 }
 
 function expectAnErrorMessage(command: Promise<Array<?string>>, error: string) : Promise<void> {
-  return command.catch((reason) =>
+  return command
+  .then(function() {
+    throw new Error('the command did not fail');
+  })
+  .catch((reason) =>
     expect(reason.message).toContain(error),
   );
 }
