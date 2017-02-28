@@ -193,7 +193,7 @@ if (typeof command.hasWrapper === 'function') {
 if (commander.json) {
   outputWrapper = false;
 }
-if (outputWrapper && commandName !== 'help') {
+if (outputWrapper) {
   reporter.header(commandName, pkg);
 }
 
