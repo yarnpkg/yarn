@@ -39,10 +39,10 @@ function addTest(pattern, registry = 'npm', init: ?(cacheFolder: string) => Prom
     }, reporter);
 
     await fs.mkdirp(path.join(loc, 'node_modules'));
-    await fs.mkdirp(config.cacheFolder);
+    await fs.mkdirp(config.versionedCacheFolder);
 
     if (init) {
-      await init(config.cacheFolder);
+      await init(config.versionedCacheFolder);
     }
 
     const resolver = new PackageResolver(config, lockfile);

@@ -363,6 +363,7 @@ config.init({
   modulesFolder: commander.modulesFolder,
   globalFolder: commander.globalFolder,
   cacheFolder: commander.cacheFolder,
+  versionedCacheFolder: commander.versionedCacheFolder,
   preferOffline: commander.preferOffline,
   captureHar: commander.har,
   ignorePlatform: commander.ignorePlatform,

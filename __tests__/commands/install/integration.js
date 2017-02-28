@@ -43,7 +43,7 @@ afterEach(request.__resetAuthedRequests);
 
 test.concurrent('properly find and save build artifacts', async () => {
   await runInstall({}, 'artifacts-finds-and-saves', async (config): Promise<void> => {
-    const cacheFolder = path.join(config.cacheFolder, 'npm-dummy-0.0.0');
+    const cacheFolder = path.join(config.versionedCacheFolder, 'npm-dummy-0.0.0');
     assert.deepEqual(
       (await fs.readJson(path.join(cacheFolder, constants.METADATA_FILENAME))).artifacts,
       ['dummy', path.join('dummy', 'dummy.txt'), 'dummy.txt'],
