@@ -82,9 +82,6 @@ function expectAnErrorMessage(command: Promise<Array<?string>>, error: string) :
   );
 }
 
-function expectInstallOutput(stdout) {
-}
-
 test.concurrent('should add package', async () => {
   const stdout = await execCommand('add', ['left-pad'], 'run-add', true);
   expectAddSuccessfullOutput(stdout, 'left-pad');
@@ -184,7 +181,7 @@ test.concurrent('should install if no args', async () => {
 
 test.concurrent('should install if first arg looks like a flag', async () => {
   const stdout = await execCommand('--json', [], 'run-add', true);
-  expect(stdout[stdout.length-1]).toEqual("{\"type\":\"success\",\"data\":\"Saved lockfile.\"}");
+  expect(stdout[stdout.length - 1]).toEqual('{"type":"success","data":"Saved lockfile."}');
 });
 
 test.concurrent('should interpolate aliases', async () => {
