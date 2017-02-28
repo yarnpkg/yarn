@@ -310,6 +310,47 @@ test.concurrent('add with offline mirror', (): Promise<void> => {
   });
 });
 
+// broken https://github.com/yarnpkg/yarn/issues/2333
+test.skip('add-then-install git+ssh from offline mirror', () : Promise<void> => {
+  const mirrorPath = 'mirror-for-offline';
+
+  return runAdd(['mime-db@git+ssh://git@github.com/jshttp/mime-db.git#1.24.0'], {},
+  'install-git-ssh-mirror', async (config, reporter) : Promise<void> => {
+    assert(semver.satisfies(
+      await getPackageVersion(config, 'mime-db'),
+      '1.24.0'),
+    );
+
+    const mirror = await fs.walk(path.join(config.cwd, mirrorPath));
+    assert.equal(mirror.length, 1);
+
+    assert(mirror[0].relative.match(/mime-db\.git.*/));
+
+    const lockFileWritten = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
+    const lockFileLines = explodeLockfile(lockFileWritten);
+    // lock file contains mirror resolved line
+    expect(lockFileLines.find((line) => line.match(/.*resolved mime-db\.git\-.*/))).toBeDefined();
+
+    // reinstall
+    await fs.unlink(path.join(config.cwd, 'node_modules'));
+    await fs.unlink(path.join(config.cwd, 'yarn.lock'));
+
+    const install = new Install({}, config, reporter, new Lockfile());
+    await install.init();
+
+    assert(semver.satisfies(
+      await getPackageVersion(config, 'mime-db'),
+      '1.24.0'),
+    );
+
+    const newLockFileWritten = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
+    const newLockFileLines = explodeLockfile(newLockFileWritten);
+    // lock file contains mirror resolved line
+
+    expect(newLockFileLines[2]).toEqual(lockFileLines[2]);
+  });
+});
+
 test.concurrent('install with --save and without offline mirror', (): Promise<void> => {
   const mirrorPath = 'mirror-for-offline';
   return runAdd(['is-array@^1.0.1'], {}, 'install-with-save-no-offline-mirror', async (config) => {
