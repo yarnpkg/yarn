@@ -63,11 +63,11 @@ test('changes the cache path when bumping the cache version', async () => {
     const reporter = new reporters.JSONReporter({stdout: inOut});
 
     await cache(config, reporter, {}, ['dir']);
-    assert.ok(!!(JSON.parse(String(inOut.read())) : any).data.match(/\/v1\/?$/));
+    assert.ok(!!(JSON.parse(String(inOut.read())) : any).data.match(/[\\\/]v1[\\\/]?$/));
 
     await mockConstants({CACHE_VERSION: 42}, async (config): Promise<void> => {
       await cache(config, reporter, {}, ['dir']);
-      assert.ok(!!(JSON.parse(String(inOut.read())) : any).data.match(/\/v42\/?$/));
+      assert.ok(!!(JSON.parse(String(inOut.read())) : any).data.match(/[\\\/]v42[\\\/]?$/));
     });
   });
 });
