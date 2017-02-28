@@ -1,6 +1,7 @@
 /* @flow */
 
 import type Config from '../../../src/config';
+import PackageResolver from '../../../src/package-resolver.js';
 import {run as cache} from '../../../src/cli/commands/cache.js';
 import {run as check} from '../../../src/cli/commands/check.js';
 import * as constants from '../../../src/constants.js';
@@ -67,6 +68,33 @@ test('changes the cache path when bumping the cache version', async () => {
     await mockConstants({CACHE_VERSION: 42}, async (config): Promise<void> => {
       await cache(config, reporter, {}, ['dir']);
       assert.ok(!!(JSON.parse(String(inOut.read())) : any).data.match(/\/v42\/?$/));
+    });
+  });
+});
+
+test('changes the cache directory when bumping the cache version', async () => {
+  await runInstall({}, 'install-production', async (config, reporter): Promise<void> => {
+    const lockfile = await Lockfile.fromDirectory(config.cwd);
+
+    const resolver = new PackageResolver(config, lockfile);
+    await resolver.init([{pattern: 'is-array', registry: 'npm'}]);
+
+    const ref = resolver.getPackageReferences()[0];
+    const cachePath = config.generateHardModulePath(ref, true);
+
+    await fs.writeFile(path.join(cachePath, 'yarn.test'), 'YARN TEST');
+    await fs.unlink(path.join(config.cwd, 'node_modules'));
+
+    const firstReinstall = new Install({}, config, reporter, lockfile);
+    await firstReinstall.init();
+
+    assert.ok(await fs.exists(path.join(config.cwd, 'node_modules', 'is-array', 'yarn.test')));
+
+    await mockConstants({CACHE_VERSION: 42}, async (config): Promise<void> => {
+      const firstReinstall = new Install({}, config, reporter, lockfile);
+      await firstReinstall.init();
+
+      assert.ok(!await fs.exists(path.join(config.cwd, 'node_modules', 'is-array', 'yarn.test')));
     });
   });
 });
