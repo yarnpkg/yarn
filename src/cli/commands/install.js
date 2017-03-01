@@ -563,7 +563,6 @@ export class Install {
     const lockSource = lockStringify(this.lockfile.getLockfile(this.resolver.patterns));
 
     // write integrity hash
-    // TODO don't rewrite file on every install
     await this.integrityChecker.save(patterns, lockSource, this.flags);
 
     const lockFileHasAllPatterns = patterns.filter((p) => !this.lockfile.getLocked(p)).length === 0;
