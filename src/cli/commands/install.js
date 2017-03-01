@@ -294,23 +294,22 @@ export class Install {
   async bailout(
     patterns: Array<string>,
   ): Promise<boolean> {
-    if (this.flags.frozenLockfile && !this.lockFileInSync(patterns)) {
-      throw new MessageError(this.reporter.lang('frozenLockfileError'));
-    }
     if (this.flags.skipIntegrityCheck || this.flags.force) {
       return false;
     }
-    const match = await this.integrityChecker.check();
-    const haveLockfile = await fs.exists(path.join(this.config.cwd, constants.LOCKFILE_FILENAME));
-    // TODO check fs.stat of node_modules content
-    const haveModulesInstalled = false;
+    const match = await this.integrityChecker.check(patterns, this.lockfile);
+    if (this.flags.frozenLockfile && match.missingPatterns.length > 0) {
+      throw new MessageError(this.reporter.lang('frozenLockfileError'));
+    }
 
-    if (match && haveLockfile) {
+    const haveLockfile = await fs.exists(path.join(this.config.cwd, constants.LOCKFILE_FILENAME));
+
+    if (match.integrityHashMatches && haveLockfile) {
       this.reporter.success(this.reporter.lang('upToDate'));
       return true;
     }
 
-    if (!patterns.length && !haveModulesInstalled) {
+    if (!patterns.length && !match.integrityFileMissing) {
       this.reporter.success(this.reporter.lang('nothingToInstall'));
       await this.createEmptyManifestFolders();
       await this.saveLockfileAndIntegrity(patterns);
@@ -550,42 +549,27 @@ export class Install {
   }
 
   /**
-   * Check if the loaded lockfile has all the included patterns
-   */
-
-  lockFileInSync(patterns: Array<string>): boolean {
-    let inSync = true;
-    for (const pattern of patterns) {
-      if (!this.lockfile.getLocked(pattern)) {
-        inSync = false;
-        break;
-      }
-    }
-    return inSync;
-  }
-
-  /**
    * Save updated integrity and lockfiles.
    */
 
   async saveLockfileAndIntegrity(patterns: Array<string>): Promise<void> {
-    // stringify current lockfile
-    const lockSource = lockStringify(this.lockfile.getLockfile(this.resolver.patterns));
-
-    // write integrity hash
-    await this.writeIntegrityHash(lockSource, patterns);
-
     // --no-lockfile or --pure-lockfile flag
     if (this.flags.lockfile === false || this.flags.pureLockfile) {
       return;
     }
 
-    const inSync = this.lockFileInSync(patterns);
+    // stringify current lockfile
+    const lockSource = lockStringify(this.lockfile.getLockfile(this.resolver.patterns));
 
-    // remove is followed by install with force on which we rewrite lockfile
-    if (inSync && patterns.length && !this.flags.force) {
+    const lockFileHasAllPatterns = patterns.filter(p => !this.lockfile.getLocked(p)).length === 0;
+
+    // remove command is followed by install with force, lockfile will be rewritten in any case then
+    if (lockFileHasAllPatterns && patterns.length && !this.flags.force) {
       return;
     }
+
+    // write integrity hash
+    await this.integrityChecker.save(patterns, lockSource);
 
     // build lockfile location
     const loc = path.join(this.config.cwd, constants.LOCKFILE_FILENAME);

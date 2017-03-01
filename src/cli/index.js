@@ -56,7 +56,7 @@ commander.option('--har', 'save HAR output of network traffic');
 commander.option('--ignore-platform', 'ignore platform checks');
 commander.option('--ignore-engines', 'ignore engines check');
 commander.option('--ignore-optional', 'ignore optional dependencies');
-commander.option('--force', 'install and build scripts even if they were built before, overwrite lockfile');
+commander.option('--force', 'install and build packages even if they were built before, overwrite lockfile');
 commander.option('--skip-integrity-check', 'run install without checking if node_modules is installed');
 commander.option('--no-bin-links', "don't generate bin links when setting up packages");
 commander.option('--flat', 'only allow one version of a package');
