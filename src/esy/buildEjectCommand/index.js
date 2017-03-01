@@ -381,21 +381,6 @@ function buildEjectCommand(
   });
 
   emitFile({
-    filename: ['bin/replace-string'],
-    executable: true,
-    contents: outdent`
-      #!/usr/bin/env bash
-
-      FILENAME="$1"
-      SRC="$2"
-      DST="$3"
-
-      # In-place rename, with literal strings -- no regex
-      perl -pi -e "s/\\\Q\${SRC}/\${DST}/g" "\${FILENAME}"
-    `
-  });
-
-  emitFile({
     filename: ['bin', 'runtime.sh'],
     contents: RUNTIME
   });

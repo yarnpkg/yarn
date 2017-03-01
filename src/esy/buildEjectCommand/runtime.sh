@@ -81,6 +81,15 @@ _esy-perform-build () {
 
 }
 
+replace-string () {
+  FILENAME="$1"
+  SRC="$2"
+  DST="$3"
+
+  # In-place rename, with literal strings -- no regex
+  perl -pi -e "s/\\\Q\${SRC}/\${DST}/g" "\${FILENAME}"
+}
+
 esy-build () {
   if [ "$esy_build__source_type" == "local" ]; then
     esy-clean
