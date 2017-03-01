@@ -21,8 +21,8 @@ const path = require('path');
 
 export type ConfigOptions = {
   cwd?: ?string,
+  _cacheRootFolder?: ?string,
   cacheFolder?: ?string,
-  versionedCacheFolder?: ?string,
   tempFolder?: ?string,
   modulesFolder?: ?string,
   globalFolder?: ?string,
@@ -112,10 +112,10 @@ export default class Config {
   modulesFolder: ?string;
 
   //
-  cacheFolder: string;
+  _cacheRootFolder: string;
 
   //
-  versionedCacheFolder: string;
+  cacheFolder: string;
 
   //
   tempFolder: string;
@@ -235,17 +235,16 @@ export default class Config {
       key: String(opts.key || this.getOption('key') || ''),
       networkConcurrency: this.networkConcurrency,
     });
-
-    this.cacheFolder = String(
+    this._cacheRootFolder = String(
       opts.cacheFolder ||
       this.getOption('cache-folder') ||
       constants.MODULE_CACHE_DIRECTORY,
     );
 
     //init & create cacheFolder, tempFolder
-    this.versionedCacheFolder = path.join(this.cacheFolder, 'v' + String(constants.CACHE_VERSION));
-    this.tempFolder = opts.tempFolder || path.join(this.versionedCacheFolder, '.tmp');
-    await fs.mkdirp(this.versionedCacheFolder);
+    this.cacheFolder = path.join(this._cacheRootFolder, 'v' + String(constants.CACHE_VERSION));
+    this.tempFolder = opts.tempFolder || path.join(this.cacheFolder, '.tmp');
+    await fs.mkdirp(this.cacheFolder);
     await fs.mkdirp(this.tempFolder);
 
     if (opts.production === 'false') {
@@ -300,7 +299,7 @@ export default class Config {
    */
 
   generateHardModulePath(pkg: ?PackageReference, ignoreLocation?: ?boolean): string {
-    invariant(this.versionedCacheFolder, 'No package root');
+    invariant(this.cacheFolder, 'No package root');
     invariant(pkg, 'Undefined package');
 
     if (pkg.location && !ignoreLocation) {
@@ -322,7 +321,7 @@ export default class Config {
       uid += `-${hash}`;
     }
 
-    return path.join(this.versionedCacheFolder, `${name}-${uid}`);
+    return path.join(this.cacheFolder, `${name}-${uid}`);
   }
 
   /**

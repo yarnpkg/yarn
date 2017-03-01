@@ -22,11 +22,20 @@ const path = require('path');
 const stream = require('stream');
 const os = require('os');
 
-async function mockConstants(mocks: Object, cb: (config: Config) => Promise<void>): Promise<void> {
+async function mockConstants(base: Config, mocks: Object, cb: (config: Config) => Promise<void>): Promise<void> {
   // We cannot put this function inside _helpers, because we need to change the "request" variable
   // after resetting the modules. Updating this variable is required because some tests check what
   // happened during the Yarn execution, and they need to use the same instance of "request" than
   // the Yarn environment.
+
+  const opts = {};
+  
+  opts.binLinks = base.binLinks;
+  opts.cwd = base.cwd;
+  opts.globalFolder = base.globalFolder;
+  opts.linkFolder = base.linkFolder;
+  opts.production = base.production;
+  opts.cacheFolder = base._cacheRootFolder;
 
   const automock = jest.genMockFromModule('../../../src/constants');
   jest.setMock('../../../src/constants', Object.assign(automock, mocks));
@@ -35,7 +44,7 @@ async function mockConstants(mocks: Object, cb: (config: Config) => Promise<void
   request = require('request');
 
   jest.mock('../../../src/constants');
-  await cb(await require('../../../src/config.js').default.create());
+  await cb(await require('../../../src/config.js').default.create(opts, base.reporter));
   jest.unmock('../../../src/constants');
 }
 
@@ -44,7 +53,7 @@ afterEach(request.__resetAuthedRequests);
 
 test.concurrent('properly find and save build artifacts', async () => {
   await runInstall({}, 'artifacts-finds-and-saves', async (config): Promise<void> => {
-    const cacheFolder = path.join(config.versionedCacheFolder, 'npm-dummy-0.0.0');
+    const cacheFolder = path.join(config.cacheFolder, 'npm-dummy-0.0.0');
     assert.deepEqual(
       (await fs.readJson(path.join(cacheFolder, constants.METADATA_FILENAME))).artifacts,
       ['dummy', path.join('dummy', 'dummy.txt'), 'dummy.txt'],
@@ -65,7 +74,7 @@ test('changes the cache path when bumping the cache version', async () => {
     await cache(config, reporter, {}, ['dir']);
     assert.ok(!!(JSON.parse(String(inOut.read())) : any).data.match(/[\\\/]v1[\\\/]?$/));
 
-    await mockConstants({CACHE_VERSION: 42}, async (config): Promise<void> => {
+    await mockConstants(config, {CACHE_VERSION: 42}, async (config): Promise<void> => {
       await cache(config, reporter, {}, ['dir']);
       assert.ok(!!(JSON.parse(String(inOut.read())) : any).data.match(/[\\\/]v42[\\\/]?$/));
     });
@@ -85,14 +94,14 @@ test('changes the cache directory when bumping the cache version', async () => {
     await fs.writeFile(path.join(cachePath, 'yarn.test'), 'YARN TEST');
     await fs.unlink(path.join(config.cwd, 'node_modules'));
 
-    const firstReinstall = new Install({}, config, reporter, lockfile);
+    const firstReinstall = new Install({skipIntegrityCheck: true}, config, reporter, lockfile);
     await firstReinstall.init();
 
     assert.ok(await fs.exists(path.join(config.cwd, 'node_modules', 'is-array', 'yarn.test')));
 
-    await mockConstants({CACHE_VERSION: 42}, async (config): Promise<void> => {
-      const firstReinstall = new Install({}, config, reporter, lockfile);
-      await firstReinstall.init();
+    await mockConstants(config, {CACHE_VERSION: 42}, async (config): Promise<void> => {
+      const secondReinstall = new Install({skipIntegrityCheck: true}, config, reporter, lockfile);
+      await secondReinstall.init();
 
       assert.ok(!await fs.exists(path.join(config.cwd, 'node_modules', 'is-array', 'yarn.test')));
     });

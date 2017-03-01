@@ -20,7 +20,7 @@ export const {run, setFlags} = buildSubCommands('cache', {
     args: Array<string>,
   ): Promise<void> {
     async function readCacheMetadata(
-      parentDir = config.versionedCacheFolder,
+      parentDir = config.cacheFolder,
       metadataFile = METADATA_FILENAME,
     ): Promise<[]> {
       const folders = await fs.readdir(parentDir);
@@ -31,7 +31,7 @@ export const {run, setFlags} = buildSubCommands('cache', {
           continue;
         }
 
-        const loc = path.join(config.versionedCacheFolder, parentDir.replace(config.versionedCacheFolder, ''), folder);
+        const loc = path.join(config.cacheFolder, parentDir.replace(config.cacheFolder, ''), folder);
         // Check if this is a scoped package
         if (!(await fs.exists(path.join(loc, metadataFile)))) {
           // If so, recurrently read scoped packages metadata
@@ -54,7 +54,7 @@ export const {run, setFlags} = buildSubCommands('cache', {
     config: Config,
     reporter: Reporter,
   ) {
-    reporter.log(config.versionedCacheFolder);
+    reporter.log(config.cacheFolder);
   },
 
   async clean(
@@ -63,9 +63,9 @@ export const {run, setFlags} = buildSubCommands('cache', {
     flags: Object,
     args: Array<string>,
   ): Promise<void> {
-    if (config.versionedCacheFolder) {
-      await fs.unlink(config.cacheFolder);
-      await fs.mkdirp(config.versionedCacheFolder);
+    if (config.cacheFolder) {
+      await fs.unlink(config._cacheRootFolder);
+      await fs.mkdirp(config.cacheFolder);
       reporter.success(reporter.lang('clearedCache'));
     }
   },

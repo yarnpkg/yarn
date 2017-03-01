@@ -89,8 +89,8 @@ export default class NpmResolver extends RegistryResolver {
     // find modules of this name
     const prefix = scope ? this.name.split(/\/|%2f/)[1] : `npm-${this.name}-`;
 
-    invariant(this.config.versionedCacheFolder, 'expected packages root');
-    const cacheFolder = path.join(this.config.versionedCacheFolder, scope ? 'npm-' + scope : '');
+    invariant(this.config.cacheFolder, 'expected packages root');
+    const cacheFolder = path.join(this.config.cacheFolder, scope ? 'npm-' + scope : '');
 
     const files = await this.config.getCache('cachedPackages', async (): Promise<Array<string>> => {
       const files = await fs.readdir(cacheFolder);
