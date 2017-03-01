@@ -43,3 +43,11 @@ test.concurrent('should output correct bin path when executed from package root'
     assert(logSpy.calledWith(expectedBinPath));
   });
 });
+
+test.skip('should output correct bin path when executed from subdir', 
+(): Promise<void> => {
+  return runBin([], {}, 'subdir', (config, reporter) => {
+    const expectedBinPath = path.join(config.cwd, 'node_modules', '.bin');
+    assert(logSpy.calledWith(expectedBinPath));
+  });
+});
