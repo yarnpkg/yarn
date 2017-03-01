@@ -19,6 +19,6 @@ export function run(
     config.registries[RegistryYarn.registry].folder,
     '.bin',
   );
-  reporter.log(binFolder);
+  console.log(binFolder);
   return Promise.resolve();
 }

@@ -1,45 +1,45 @@
 /* @flow */
 
-import {BufferReporter} from '../../src/reporters/index.js';
+import type {CLIFunctionReturn} from '../../src/types.js';
+import * as reporters from '../../src/reporters/index.js';
 import {run as bin} from '../../src/cli/commands/bin.js';
-import Config from '../../src/config.js';
+import {run as buildRun} from './_helpers.js';
 import assert from 'assert';
 import path from 'path';
+import sinon from 'sinon';
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 6000;
 
 const fixturesLoc = path.join(__dirname, '..', 'fixtures', 'bin');
+const runBin = buildRun.bind(
+  null,
+  reporters.ConsoleReporter,
+  fixturesLoc,
+  (args, flags, config, reporter): CLIFunctionReturn => {
+    return bin(config, reporter, flags, args);
+  },
+);
 
-async function runBin(
-  flags: Object,
-  args: Array<string>,
-  name: string,
-  checkSteps?: ?(config: Config, reporter: BufferReporter) => ?Promise<void>,
-): Promise<void> {
-  const cwd = path.join(fixturesLoc, name);
+let sandbox;
+let logSpy;
 
-  const reporter = new BufferReporter({stdout: null, stdin: null});
+beforeAll(() => {
+  sandbox = sinon.sandbox.create();
+  logSpy = sandbox.spy(console, 'log');
+});
 
-  try {
-    const config = new Config(reporter);
-    await config.init({cwd});
+afterAll(() => {
+  sandbox.restore();
+});
 
-    await bin(config, reporter, flags, args);
-
-    if (checkSteps) {
-      await checkSteps(config, reporter);
-    }
-
-  } catch (err) {
-    throw new Error(`${err && err.stack}`);
-  }
-}
+afterEach(() => {
+  sandbox.reset();
+});
 
 test.concurrent('should output correct bin path when executed from package root', 
 (): Promise<void> => {
-  return runBin({}, [], '', (config, reporter) => {
-    const expectedBinPath = path.join(fixturesLoc, 'node_modules', '.bin');
-    const report = reporter.getBuffer();
-    assert.equal(report[0].data, expectedBinPath);
+  return runBin([], {}, '', (config, reporter) => {
+    const expectedBinPath = path.join(config.cwd, 'node_modules', '.bin');
+    assert(logSpy.calledWith(expectedBinPath));
   });
 });
