@@ -7,7 +7,7 @@ import type Config from '../../config.js';
 import type {RegistryNames} from '../../registries/index.js';
 import normalizeManifest from '../../util/normalize-manifest/index.js';
 import {MessageError} from '../../errors.js';
-import {InstallationIntegrityChecker} from '../../integrity-checker.js';
+import InstallationIntegrityChecker from '../../integrity-checker.js';
 import Lockfile from '../../lockfile/wrapper.js';
 import lockStringify from '../../lockfile/stringify.js';
 import PackageFetcher from '../../package-fetcher.js';
@@ -297,7 +297,8 @@ export class Install {
     if (this.flags.skipIntegrityCheck || this.flags.force) {
       return false;
     }
-    const match = await this.integrityChecker.check(patterns, this.lockfile);
+    const lockSource = lockStringify(this.lockfile.getLockfile(this.resolver.patterns));
+    const match = await this.integrityChecker.check(patterns, this.lockfile, lockSource, this.flags);
     if (this.flags.frozenLockfile && match.missingPatterns.length > 0) {
       throw new MessageError(this.reporter.lang('frozenLockfileError'));
     }
@@ -561,15 +562,16 @@ export class Install {
     // stringify current lockfile
     const lockSource = lockStringify(this.lockfile.getLockfile(this.resolver.patterns));
 
-    const lockFileHasAllPatterns = patterns.filter(p => !this.lockfile.getLocked(p)).length === 0;
+    // write integrity hash
+    // TODO don't rewrite file on every install
+    await this.integrityChecker.save(patterns, lockSource, this.flags);
+
+    const lockFileHasAllPatterns = patterns.filter((p) => !this.lockfile.getLocked(p)).length === 0;
 
     // remove command is followed by install with force, lockfile will be rewritten in any case then
     if (lockFileHasAllPatterns && patterns.length && !this.flags.force) {
       return;
     }
-
-    // write integrity hash
-    await this.integrityChecker.save(patterns, lockSource);
 
     // build lockfile location
     const loc = path.join(this.config.cwd, constants.LOCKFILE_FILENAME);

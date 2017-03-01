@@ -2,7 +2,8 @@
 
 import type Config from '../../config.js';
 import {MessageError} from '../../errors.js';
-import {InstallationIntegrityChecker} from '../../integrity-checker.js';
+import InstallationIntegrityChecker from '../../integrity-checker.js';
+import lockStringify from '../../lockfile/stringify.js';
 import Lockfile from '../../lockfile/wrapper.js';
 import type {Reporter} from '../../reporters/index.js';
 import * as fs from '../../util/fs.js';
@@ -152,18 +153,17 @@ async function integrityHashCheck(
   // TODO measure slowdown here
   const {patterns: rawPatterns} = await install.hydrate(true);
   const patterns = await install.flatten(rawPatterns);
+  const lockSource = lockStringify(lockfile.getLockfile(install.resolver.patterns));
 
-  const match = await integrityChecker.check(patterns, lockfile);
-  for(pattern of match.missingPatterns) {
+  const match = await integrityChecker.check(patterns, lockfile, lockSource, flags);
+  for (const pattern of match.missingPatterns) {
     reportError('lockfileNotContainPatter', pattern);
   }
   if (match.integrityFileMissing) {
     reportError('noIntegirtyHashFile');
   }
   if (!match.integrityHashMatches) {
-    // TODO has value is irrelevant in error report
-    // reportError('integrityHashesDontMatch', match.expected, match.actual);
-    reportError('integrityHashesDontMatch');
+    reportError('integrityHashesDontMatch', match.hashExpected, match.hashActual);
   }
 
   if (errCount > 0) {

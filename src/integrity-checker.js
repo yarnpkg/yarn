@@ -1,12 +1,13 @@
 /* @flow */
 
 import type Config from './config.js';
+import * as constants from './constants.js';
 import {registryNames} from './registries/index.js';
-import lockStringify from './lockfile/stringify.js';
 import Lockfile from './lockfile/wrapper.js';
 import * as crypto from './util/crypto.js';
 import * as fs from './util/fs.js';
 import {sortAlpha} from './util/misc.js';
+
 
 const invariant = require('invariant');
 const path = require('path');
@@ -14,7 +15,9 @@ const path = require('path');
 export type IntegrityCheckResult = {
   integrityFileMissing: boolean,
   integrityHashMatches?: boolean,
-  missingPatterns: Array<string>
+  missingPatterns: Array<string>,
+  hashExpected?: string,
+  hashActual?: string,
 };
 
 /**
@@ -62,12 +65,12 @@ export default class InstallationIntegrityChecker {
    * Generate integrity hash of input lockfile.
    */
 
-  _generateIntegrityHash(lockfile: string, patterns: Array<string>): string {
+  _generateIntegrityHash(lockfile: string, patterns: Array<string>, flags: Object): string {
     const opts = [lockfile];
 
     opts.push(`patterns:${patterns.sort(sortAlpha).join(',')}`);
 
-    if (this.flags.flat) {
+    if (flags.flat) {
       opts.push('flat');
     }
 
@@ -81,16 +84,20 @@ export default class InstallationIntegrityChecker {
     }
 
     const mirror = this.config.getOfflineMirrorPath();
-    if (mirror !== null) {
+    if (mirror != null) {
       opts.push(`mirror:${mirror}`);
     }
 
     return crypto.hash(opts.join('-'), 'sha256');
   }
 
-  async check(patterns: Array<string>, lockfile: Lockfile): Promise<IntegrityCheckResult> {
+  async check(
+    patterns: Array<string>,
+    lockfile: Lockfile,
+    normalizedLockSource: string,
+    flags: Object): Promise<IntegrityCheckResult> {
     // check if patterns exist in lockfile
-    const missingPatterns = patterns.filter(p => !lockfile.getLocked(p));
+    const missingPatterns = patterns.filter((p) => !lockfile.getLocked(p));
     const loc = await this._getIntegrityHashLocation();
     const integrityFileMissing = !await fs.exists(loc);
     if (missingPatterns.length || integrityFileMissing) {
@@ -100,29 +107,30 @@ export default class InstallationIntegrityChecker {
       };
     }
 
-    const lockSource = lockStringify(lockfile.getLockfile(patterns));
-    const actual = this._generateIntegrityHash(lockSource, patterns);
+    const actual = this._generateIntegrityHash(normalizedLockSource, patterns, flags);
     const expected = (await fs.readFile(loc)).trim();
 
     return {
       integrityFileMissing,
       integrityHashMatches: actual === expected,
       missingPatterns,
+      hashExpected: expected,
+      hashActual: actual,
     };
   }
 
   /**
    * Write the integrity hash of the current install to disk.
    */
-  async save(patterns: Array<string>, lockSource: string): Promise<void> {
+  async save(patterns: Array<string>, normalizedLockSource: string, flags: Object): Promise<void> {
     const loc = await this._getIntegrityHashLocation();
     invariant(loc, 'expected integrity hash location');
     await fs.mkdirp(path.dirname(loc));
-    await fs.writeFile(loc, this._generateIntegrityHash(lockSource, patterns));
+    await fs.writeFile(loc, this._generateIntegrityHash(normalizedLockSource, patterns, flags));
   }
 
   async removeIntegrityFile(): Promise<void> {
-    const loc = this._getIntegrityHashLocation();
+    const loc = await this._getIntegrityHashLocation();
     await fs.unlink(loc);
   }
 
