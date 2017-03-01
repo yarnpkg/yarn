@@ -163,7 +163,7 @@ async function integrityHashCheck(
     reportError('noIntegirtyHashFile');
   }
   if (!match.integrityHashMatches) {
-    reportError('integrityHashesDontMatch', match.hashExpected, match.hashActual);
+    reportError('integrityHashesDontMatch');
   }
 
   if (errCount > 0) {

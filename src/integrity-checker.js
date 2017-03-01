@@ -16,8 +16,6 @@ export type IntegrityCheckResult = {
   integrityFileMissing: boolean,
   integrityHashMatches?: boolean,
   missingPatterns: Array<string>,
-  hashExpected?: string,
-  hashActual?: string,
 };
 
 /**
@@ -114,8 +112,6 @@ export default class InstallationIntegrityChecker {
       integrityFileMissing,
       integrityHashMatches: actual === expected,
       missingPatterns,
-      hashExpected: expected,
-      hashActual: actual,
     };
   }
 
