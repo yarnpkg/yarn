@@ -11,6 +11,7 @@ import type {
   ReporterSpinner,
   QuestionOptions,
 } from './types.js';
+import {StandinStdIn} from './standin-stdin.js';
 import type {LanguageKeys} from './lang/en.js';
 import type {Formatter} from './format.js';
 import {defaultFormatter} from './format.js';
@@ -55,7 +56,14 @@ export default class BaseReporter {
 
     this.stdout = opts.stdout || process.stdout;
     this.stderr = opts.stderr || process.stderr;
-    this.stdin = opts.stdin || process.stdin;
+    
+    //The IISNode process, in Windows, lacks a stdin
+    if (process.platform !== 'win32' && !process.env.IISNODE_VERSION) {
+      this.stdin = new StandinStdIn();
+    } else {
+      this.stdin = opts.stdin || process.stdin;
+    }
+    
     this.emoji = !!opts.emoji;
     this.noProgress = !!opts.noProgress || isCI;
     this.isVerbose = !!opts.verbose;
