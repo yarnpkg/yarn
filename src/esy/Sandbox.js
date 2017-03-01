@@ -26,11 +26,6 @@ function resolve(packageName, baseDirectory, topLevelDir): Promise<string> {
   });
 }
 
-async function resolveToRealpath(packageName, baseDirectory, topLevelDir): Promise<string> {
-  const resolution = await resolve(packageName, baseDirectory, topLevelDir);
-  return fs.realpath(resolution);
-}
-
 /**
  * Represents sandbox state.
  *
@@ -142,7 +137,7 @@ async function fromDirectory(directory: string): Promise<Sandbox> {
       let key = `${baseDir}__${packageName}`;
       let resolution = resolveCache.get(key);
       if (resolution == null) {
-        resolution = resolveToRealpath(packageName, baseDir, path.join(directory, 'node_modules'));
+        resolution = await resolve(packageName, baseDir, path.join(directory, 'node_modules'));
         resolveCache.set(key, resolution);
       }
       return resolution;

@@ -32,6 +32,9 @@ fi
 if [ -z "${ESY__STORE+x}" ]; then
   export ESY__STORE="$HOME/.esy"
 fi
+if [ -z "${ESY__LOCAL_STORE+x}" ]; then
+  export ESY__LOCAL_STORE="$ESY__SANDBOX/.esy-local"
+fi
 
 EJECT_PATH="$ESY__SANDBOX/node_modules/.cache/esy"
 ENV_PATH="$ESY__SANDBOX/node_modules/.cache/esy-env"
