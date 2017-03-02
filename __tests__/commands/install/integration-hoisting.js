@@ -1,10 +1,7 @@
 /* @flow */
 
+import assert from 'assert';
 import {getPackageVersion, runInstall} from '../_helpers.js';
-import * as fs from '../../../src/util/fs.js';
-
-const assert = require('assert');
-const path = require('path');
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 120000;
 

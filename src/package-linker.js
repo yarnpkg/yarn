@@ -11,6 +11,7 @@ import * as constants from './constants.js';
 import * as promise from './util/promise.js';
 import {entries} from './util/misc.js';
 import * as fs from './util/fs.js';
+import lockMutex from './util/mutex.js';
 
 const invariant = require('invariant');
 const cmdShim = promise.promisify(require('cmd-shim'));
@@ -24,7 +25,12 @@ type DependencyPairs = Array<{
 
 export async function linkBin(src: string, dest: string): Promise<void> {
   if (process.platform === 'win32') {
-    await cmdShim(src, dest);
+    const unlockMutex = await lockMutex(src);
+    try {
+      await cmdShim(src, dest);
+    } finally {
+      unlockMutex();
+    }
   } else {
     await fs.mkdirp(path.dirname(dest));
     await fs.symlink(src, dest);
@@ -282,42 +288,16 @@ export default class PackageLinker {
 
     for (const name in peerDeps) {
       const range = peerDeps[name];
+      const patterns = this.resolver.patternsByPackage[name] || [];
+      const foundPattern = patterns.find((pattern) => {
+        const resolvedPattern = this.resolver.getResolvedPattern(pattern);
+        return resolvedPattern ? this._satisfiesPeerDependency(range, resolvedPattern.version) : false;
+      });
 
-      // find a dependency in the tree above us that matches
-      let searchPatterns: Array<string> = [];
-      for (let request of ref.requests) {
-        do {
-          // get resolved pattern for this request
-          const dep = this.resolver.getResolvedPattern(request.pattern);
-          if (!dep) {
-            continue;
-          }
-
-          //
-          const ref = dep._reference;
-          invariant(ref, 'expected reference');
-          searchPatterns = searchPatterns.concat(ref.dependencies);
-        } while (request = request.parentRequest);
-      }
-
-      // include root seed patterns last
-      searchPatterns = searchPatterns.concat(this.resolver.seedPatterns);
-
-      // find matching dep in search patterns
-      let foundDep: ?{pattern: string, version: string};
-      for (const pattern of searchPatterns) {
-        const dep = this.resolver.getResolvedPattern(pattern);
-        if (dep && dep.name === name) {
-          foundDep = {pattern, version: dep.version};
-          break;
-        }
-      }
-
-      // validate found peer dependency
-      if (foundDep && this._satisfiesPeerDependency(range, foundDep.version)) {
-        ref.addDependencies([foundDep.pattern]);
+      if (foundPattern) {
+        ref.addDependencies([foundPattern]);
       } else {
-        const depError = foundDep ? 'incorrectPeer' : 'unmetPeer';
+        const depError = patterns.length > 0 ? 'incorrectPeer' : 'unmetPeer';
         const [pkgHuman, depHuman] = [`${pkg.name}@${pkg.version}`, `${name}@${range}`];
         this.reporter.warn(this.reporter.lang(depError, pkgHuman, depHuman));
       }

@@ -22,7 +22,7 @@ export const access: (path: string, mode?: number) => Promise<void> = promisify(
 export const stat: (path: string) => Promise<fs.Stats> = promisify(fs.stat);
 export const unlink: (path: string) => Promise<void> = promisify(require('rimraf'));
 export const mkdirp: (path: string) => Promise<void> = promisify(require('mkdirp'));
-export const exists: (path: string) => Promise<boolean>  = promisify(fs.exists, true);
+export const exists: (path: string) => Promise<boolean> = promisify(fs.exists, true);
 export const lstat: (path: string) => Promise<fs.Stats> = promisify(fs.lstat);
 export const chmod: (path: string, mode: number | string) => Promise<void> = promisify(fs.chmod);
 export const link: (path: string) => Promise<fs.Stats> = promisify(fs.link);
@@ -644,7 +644,12 @@ export async function symlink(src: string, dest: string): Promise<void> {
       await fsSymlink(src, dest, 'junction');
     } else {
       // use relative paths otherwise which will be retained if the directory is moved
-      const relative = path.relative(fs.realpathSync(path.dirname(dest)), fs.realpathSync(src));
+      let relative;
+      if (await exists(src)) {
+        relative = path.relative(fs.realpathSync(path.dirname(dest)), fs.realpathSync(src));
+      } else {
+        relative = path.relative(path.dirname(dest), src);
+      }
       await fsSymlink(relative, dest);
     }
   } catch (err) {

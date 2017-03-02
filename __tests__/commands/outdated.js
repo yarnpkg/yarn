@@ -120,12 +120,12 @@ test.concurrent('displays correct dependency types', (): Promise<void> => {
 
       // peerDependencies aren't included in the output
       expect(json.data.body.length).toBe(3);
-      expect(body[0][0]).toBe('left-pad');
-      expect(body[0][4]).toBe('dependencies');
-      expect(body[1][0]).toBe('max-safe-integer');
-      expect(body[1][4]).toBe('devDependencies');
-      expect(body[2][0]).toBe('is-online');
-      expect(body[2][4]).toBe('optionalDependencies');
+      expect(body[0][0]).toBe('is-online');
+      expect(body[0][4]).toBe('optionalDependencies');
+      expect(body[1][0]).toBe('left-pad');
+      expect(body[1][4]).toBe('dependencies');
+      expect(body[2][0]).toBe('max-safe-integer');
+      expect(body[2][4]).toBe('devDependencies');
     },
   );
 });

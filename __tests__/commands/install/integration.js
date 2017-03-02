@@ -1,5 +1,8 @@
 /* @flow */
 
+import type Config from '../../../src/config';
+import PackageResolver from '../../../src/package-resolver.js';
+import {run as cache} from '../../../src/cli/commands/cache.js';
 import {run as check} from '../../../src/cli/commands/check.js';
 import * as constants from '../../../src/constants.js';
 import * as reporters from '../../../src/reporters/index.js';
@@ -9,17 +12,43 @@ import * as fs from '../../../src/util/fs.js';
 import {getPackageVersion, explodeLockfile, runInstall, createLockfile} from '../_helpers.js';
 import {promisify} from '../../../src/util/promise';
 
-jasmine.DEFAULT_TIMEOUT_INTERVAL = 90000;
+jasmine.DEFAULT_TIMEOUT_INTERVAL = 150000;
 
-const request = require('request');
+let request = require('request');
 const assert = require('assert');
 const semver = require('semver');
 const fsNode = require('fs');
 const path = require('path');
+const stream = require('stream');
 const os = require('os');
 
+async function mockConstants(base: Config, mocks: Object, cb: (config: Config) => Promise<void>): Promise<void> {
+  // We cannot put this function inside _helpers, because we need to change the "request" variable
+  // after resetting the modules. Updating this variable is required because some tests check what
+  // happened during the Yarn execution, and they need to use the same instance of "request" than
+  // the Yarn environment.
+
+  const opts = {};
+  
+  opts.binLinks = base.binLinks;
+  opts.cwd = base.cwd;
+  opts.globalFolder = base.globalFolder;
+  opts.linkFolder = base.linkFolder;
+  opts.production = base.production;
+  opts.cacheFolder = base._cacheRootFolder;
+
+  const automock = jest.genMockFromModule('../../../src/constants');
+  jest.setMock('../../../src/constants', Object.assign(automock, mocks));
+
+  jest.resetModules();
+  request = require('request');
+
+  jest.mock('../../../src/constants');
+  await cb(await require('../../../src/config.js').default.create(opts, base.reporter));
+  jest.unmock('../../../src/constants');
+}
+
 beforeEach(request.__resetAuthedRequests);
-// $FlowFixMe
 afterEach(request.__resetAuthedRequests);
 
 test.concurrent('properly find and save build artifacts', async () => {
@@ -34,6 +63,48 @@ test.concurrent('properly find and save build artifacts', async () => {
     const moduleFolder = path.join(config.cwd, 'node_modules', 'dummy');
     assert.equal(await fs.readFile(path.join(moduleFolder, 'dummy.txt')), 'foobar');
     assert.equal(await fs.readFile(path.join(moduleFolder, 'dummy', 'dummy.txt')), 'foobar');
+  });
+});
+
+test('changes the cache path when bumping the cache version', async () => {
+  await runInstall({}, 'install-github', async (config): Promise<void> => {
+    const inOut = new stream.PassThrough();
+    const reporter = new reporters.JSONReporter({stdout: inOut});
+
+    await cache(config, reporter, {}, ['dir']);
+    assert.ok(!!(JSON.parse(String(inOut.read())) : any).data.match(/[\\\/]v1[\\\/]?$/));
+
+    await mockConstants(config, {CACHE_VERSION: 42}, async (config): Promise<void> => {
+      await cache(config, reporter, {}, ['dir']);
+      assert.ok(!!(JSON.parse(String(inOut.read())) : any).data.match(/[\\\/]v42[\\\/]?$/));
+    });
+  });
+});
+
+test('changes the cache directory when bumping the cache version', async () => {
+  await runInstall({}, 'install-production', async (config, reporter): Promise<void> => {
+    const lockfile = await Lockfile.fromDirectory(config.cwd);
+
+    const resolver = new PackageResolver(config, lockfile);
+    await resolver.init([{pattern: 'is-array', registry: 'npm'}]);
+
+    const ref = resolver.getPackageReferences()[0];
+    const cachePath = config.generateHardModulePath(ref, true);
+
+    await fs.writeFile(path.join(cachePath, 'yarn.test'), 'YARN TEST');
+    await fs.unlink(path.join(config.cwd, 'node_modules'));
+
+    const firstReinstall = new Install({skipIntegrityCheck: true}, config, reporter, lockfile);
+    await firstReinstall.init();
+
+    assert.ok(await fs.exists(path.join(config.cwd, 'node_modules', 'is-array', 'yarn.test')));
+
+    await mockConstants(config, {CACHE_VERSION: 42}, async (config): Promise<void> => {
+      const secondReinstall = new Install({skipIntegrityCheck: true}, config, reporter, lockfile);
+      await secondReinstall.init();
+
+      assert.ok(!await fs.exists(path.join(config.cwd, 'node_modules', 'is-array', 'yarn.test')));
+    });
   });
 });
 
@@ -139,11 +210,11 @@ test.concurrent('hoisting should factor ignored dependencies', async () => {
 test.concurrent('--production flag ignores dev dependencies', () => {
   return runInstall({production: true}, 'install-production', async (config) => {
     assert.ok(
-      !await fs.exists(path.join(config.cwd, 'node_modules', 'lodash')),
+      !await fs.exists(path.join(config.cwd, 'node_modules', 'left-pad')),
     );
 
     assert.ok(
-      await fs.exists(path.join(config.cwd, 'node_modules', 'react')),
+      await fs.exists(path.join(config.cwd, 'node_modules', 'is-array')),
     );
   });
 });
@@ -265,6 +336,15 @@ test.concurrent('install file: local packages with local dependencies', async ()
 
 test.concurrent('install file: protocol', (): Promise<void> => {
   return runInstall({noLockfile: true}, 'install-file', async (config) => {
+    assert.equal(
+      await fs.readFile(path.join(config.cwd, 'node_modules', 'foo', 'index.js')),
+      'foobar\n',
+    );
+  });
+});
+
+test.concurrent('install with file: protocol as default', (): Promise<void> => {
+  return runInstall({noLockfile: true}, 'install-file-as-default', async (config) => {
     assert.equal(
       await fs.readFile(path.join(config.cwd, 'node_modules', 'foo', 'index.js')),
       'foobar\n',
@@ -858,4 +938,54 @@ test.concurrent('a allows dependency with [] in os cpu requirements',
     return runInstall({}, 'empty-os', async (config) => {
       assert(await fs.exists(path.join(config.cwd, 'node_modules', 'feed')));
     });
+  });
+
+test.concurrent('should skip integrity check and do install when --skip-integrity-check flag is passed',
+  (): Promise<void> => {
+    return runInstall({}, 'skip-integrity-check', async (config, reporter) => {
+      assert.equal(await fs.exists(path.join(config.cwd, 'node_modules', 'sub-dep')), true);
+      await fs.unlink(path.join(config.cwd, 'node_modules', 'sub-dep'));
+
+      let lockContent = await fs.readFile(
+        path.join(config.cwd, 'yarn.lock'),
+      );
+      lockContent += `
+# changed the file, integrity should be fine
+    `;
+      await fs.writeFile(
+        path.join(config.cwd, 'yarn.lock'),
+        lockContent,
+      );
+
+      let reinstall = new Install({}, config, reporter, await Lockfile.fromDirectory(config.cwd));
+      await reinstall.init();
+
+      // reinstall will be successful but it won't reinstall anything
+      assert.equal(await fs.exists(path.join(config.cwd, 'node_modules', 'sub-dep')), false);
+
+      reinstall = new Install({skipIntegrityCheck: true}, config, reporter, await Lockfile.fromDirectory(config.cwd));
+      await reinstall.init();
+      // reinstall will reinstall deps
+      assert.equal(await fs.exists(path.join(config.cwd, 'node_modules', 'sub-dep')), true);
+
+      let newLockContent = await fs.readFile(
+        path.join(config.cwd, 'yarn.lock'),
+      );
+      assert.equal(lockContent, newLockContent);
+
+      reinstall = new Install({force: true}, config, reporter, await Lockfile.fromDirectory(config.cwd));
+      await reinstall.init();
+      // force rewrites lockfile
+      newLockContent = await fs.readFile(
+        path.join(config.cwd, 'yarn.lock'),
+      );
+      assert.notEqual(lockContent, newLockContent);
+
+    });
+  });
+
+test.concurrent(
+  'should install if symlink source does not exist',
+  async (): Promise<void> => {
+    await runInstall({}, 'relative-symlinks-work', () => {});
   });

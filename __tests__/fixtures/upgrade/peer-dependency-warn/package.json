@@ -1,0 +1,7 @@
+{
+  "private": true,
+  "dependencies": {
+    "themer": "1.0.2",
+    "themer-hyper": "1.0.1"
+  }
+}
