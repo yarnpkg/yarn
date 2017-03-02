@@ -1,7 +1,6 @@
 /* @flow */
 
 import {ConsoleReporter, JSONReporter} from '../reporters/index.js';
-import {sortAlpha} from '../util/misc.js';
 import {registries, registryNames} from '../registries/index.js';
 import * as commands from './commands/index.js';
 import * as constants from '../constants.js';
@@ -9,7 +8,7 @@ import * as network from '../util/network.js';
 import {MessageError} from '../errors.js';
 import aliases from './aliases.js';
 import Config from '../config.js';
-import {hyphenate, camelCase} from '../util/misc.js';
+import {camelCase} from '../util/misc.js';
 
 const chalk = require('chalk');
 const commander = require('commander');
@@ -57,7 +56,8 @@ commander.option('--har', 'save HAR output of network traffic');
 commander.option('--ignore-platform', 'ignore platform checks');
 commander.option('--ignore-engines', 'ignore engines check');
 commander.option('--ignore-optional', 'ignore optional dependencies');
-commander.option('--force', 'ignore all caches');
+commander.option('--force', 'install and build scripts even if they were built before, overwrite lockfile');
+commander.option('--skip-integrity-check', 'run install without checking if node_modules is installed');
 commander.option('--no-bin-links', "don't generate bin links when setting up packages");
 commander.option('--flat', 'only allow one version of a package');
 commander.option('--prod, --production [prod]', '');
@@ -89,6 +89,7 @@ commander.option(
   'disable progress bar',
 );
 commander.option('--network-concurrency <number>', 'maximum number of concurrent network requests', parseInt);
+commander.option('--non-interactive', 'do not show interactive prompts');
 
 // get command name
 let commandName: ?string = args.shift() || '';
@@ -99,27 +100,8 @@ const getDocsLink = (name) => `${constants.YARN_DOCS}${name || ''}`;
 const getDocsInfo = (name) => 'Visit ' + chalk.bold(getDocsLink(name)) + ' for documentation about this command.';
 
 //
-if (commandName === 'help' || commandName === '--help' || commandName === '-h') {
+if (commandName === '--help' || commandName === '-h') {
   commandName = 'help';
-  if (args.length) {
-    const helpCommand = hyphenate(args[0]);
-    if (commands[helpCommand]) {
-      commander.on('--help', () => console.log('  ' + getDocsInfo(helpCommand) + '\n'));
-    }
-  } else {
-    commander.on('--help', () => {
-      console.log('  Commands:\n');
-      for (const name of Object.keys(commands).sort(sortAlpha)) {
-        if (commands[name].useless) {
-          continue;
-        }
-
-        console.log(`    - ${hyphenate(name)}`);
-      }
-      console.log('\n  Run `' + chalk.bold('yarn help COMMAND') + '` for more information on specific commands.');
-      console.log('  Visit ' + chalk.bold(getDocsLink()) + ' to learn more about Yarn.\n');
-    });
-  }
 }
 
 // if no args or command name looks like a flag then default to `install`
@@ -160,7 +142,7 @@ if (command && typeof command.setFlags === 'function') {
   command.setFlags(commander);
 }
 
-if (commandName === 'help' || args.indexOf('--help') >= 0 || args.indexOf('-h') >= 0) {
+if (args.indexOf('--help') >= 0 || args.indexOf('-h') >= 0) {
   const examples: Array<string> = (command && command.examples) || [];
   if (examples.length) {
     commander.on('--help', () => {
@@ -171,6 +153,7 @@ if (commandName === 'help' || args.indexOf('--help') >= 0 || args.indexOf('-h') 
       console.log();
     });
   }
+  commander.on('--help', () => console.log('  ' + getDocsInfo(commandName) + '\n'));
 
   commander.parse(startArgs.concat(args));
   commander.help();
@@ -217,7 +200,7 @@ if (typeof command.hasWrapper === 'function') {
 if (commander.json) {
   outputWrapper = false;
 }
-if (outputWrapper) {
+if (outputWrapper && commandName !== 'help') {
   reporter.header(commandName, pkg);
 }
 
@@ -379,7 +362,7 @@ config.init({
   binLinks: commander.binLinks,
   modulesFolder: commander.modulesFolder,
   globalFolder: commander.globalFolder,
-  cacheFolder: commander.cacheFolder,
+  cacheRootFolder: commander.cacheFolder,
   preferOffline: commander.preferOffline,
   captureHar: commander.har,
   ignorePlatform: commander.ignorePlatform,
@@ -391,6 +374,7 @@ config.init({
   httpProxy: commander.proxy,
   httpsProxy: commander.httpsProxy,
   networkConcurrency: commander.networkConcurrency,
+  nonInteractive: commander.nonInteractive,
   commandName,
 }).then(() => {
 

@@ -21,6 +21,7 @@ const path = require('path');
 
 export type ConfigOptions = {
   cwd?: ?string,
+  _cacheRootFolder?: ?string,
   cacheFolder?: ?string,
   tempFolder?: ?string,
   modulesFolder?: ?string,
@@ -36,6 +37,7 @@ export type ConfigOptions = {
   production?: boolean,
   binLinks?: boolean,
   networkConcurrency?: number,
+  nonInteractive?: boolean,
 
   // Loosely compare semver for invalid cases like "0.01.0"
   looseSemver?: ?boolean,
@@ -110,6 +112,9 @@ export default class Config {
   modulesFolder: ?string;
 
   //
+  _cacheRootFolder: string;
+
+  //
   cacheFolder: string;
 
   //
@@ -122,6 +127,8 @@ export default class Config {
   ignoreScripts: boolean;
 
   production: boolean;
+
+  nonInteractive: boolean;
 
   //
   cwd: string;
@@ -228,9 +235,14 @@ export default class Config {
       key: String(opts.key || this.getOption('key') || ''),
       networkConcurrency: this.networkConcurrency,
     });
+    this._cacheRootFolder = String(
+      opts.cacheFolder ||
+      this.getOption('cache-folder') ||
+      constants.MODULE_CACHE_DIRECTORY,
+    );
 
     //init & create cacheFolder, tempFolder
-    this.cacheFolder = String(opts.cacheFolder || this.getOption('cache-folder') || constants.MODULE_CACHE_DIRECTORY);
+    this.cacheFolder = path.join(this._cacheRootFolder, 'v' + String(constants.CACHE_VERSION));
     this.tempFolder = opts.tempFolder || path.join(this.cacheFolder, '.tmp');
     await fs.mkdirp(this.cacheFolder);
     await fs.mkdirp(this.tempFolder);
@@ -269,6 +281,8 @@ export default class Config {
 
     this.ignorePlatform = !!opts.ignorePlatform;
     this.ignoreScripts = !!opts.ignoreScripts;
+
+    this.nonInteractive = !!opts.nonInteractive;
 
     this.requestManager.setOptions({
       offline: !!opts.offline && !opts.preferOffline,

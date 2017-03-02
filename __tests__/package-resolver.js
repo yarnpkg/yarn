@@ -30,18 +30,21 @@ function addTest(pattern, registry = 'npm', init: ?(cacheFolder: string) => Prom
     const reporter = new reporters.NoopReporter({});
 
     const loc = await makeTemp();
-    await fs.mkdirp(path.join(loc, 'node_modules'));
     const cacheFolder = path.join(loc, 'cache');
-    await fs.mkdirp(cacheFolder);
-    if (init) {
-      await init(cacheFolder);
-    }
 
     const config = await Config.create({
       cwd: loc,
       offline,
       cacheFolder,
     }, reporter);
+
+    await fs.mkdirp(path.join(loc, 'node_modules'));
+    await fs.mkdirp(config.cacheFolder);
+
+    if (init) {
+      await init(config.cacheFolder);
+    }
+
     const resolver = new PackageResolver(config, lockfile);
     await resolver.init([{pattern, registry}]);
 
