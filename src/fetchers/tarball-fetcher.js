@@ -11,7 +11,7 @@ import * as fsUtil from '../util/fs.js';
 
 const invariant = require('invariant');
 const path = require('path');
-const tar = require('tar');
+const tarFs = require('tar-fs');
 const url = require('url');
 const fs = require('fs');
 
@@ -77,7 +77,11 @@ export default class TarballFetcher extends BaseFetcher {
   } {
     const validateStream = new crypto.HashStream();
     const extractorStream = new UnpackStream();
-    const untarStream = tar.Extract({path: this.dest, strip: 1});
+    const untarStream = tarFs.extract(this.dest, {
+      strip: 1,
+      dmode: parseInt(555, 8), // all dirs should be readable
+      fmode: parseInt(444, 8) // all files should be readable
+    });
 
     extractorStream
       .pipe(untarStream)
@@ -88,7 +92,7 @@ export default class TarballFetcher extends BaseFetcher {
           entry.props.gid = entry.gid = 0;
         }
       })
-      .on('end', () => {
+      .on('finish', () => {
         const expectHash = this.hash;
         const actualHash = validateStream.getHash();
         if (!expectHash || expectHash === actualHash) {
