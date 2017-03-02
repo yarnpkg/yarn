@@ -8,10 +8,10 @@ import * as fs from '../util/fs.js';
 import NpmResolver from '../resolvers/registries/npm-resolver.js';
 import envReplace from '../util/env-replace.js';
 import Registry from './base-registry.js';
-import {addSuffix} from '../util/misc';
+import {addSuffix, removePrefix} from '../util/misc';
+import isRequestToRegistry from './is-request-to-registry.js';
 
-const defaults = require('defaults');
-const userHome = require('user-home');
+const userHome = require('../util/user-home-dir').default;
 const path = require('path');
 const url = require('url');
 const ini = require('ini');
@@ -58,7 +58,7 @@ export default class NpmRegistry extends Registry {
     const alwaysAuth = this.getRegistryOrGlobalOption(registry, 'always-auth');
 
     const headers = {};
-    if (this.token || alwaysAuth) {
+    if (this.token || (alwaysAuth && isRequestToRegistry(requestUrl, registry))) {
       const authorization = this.getAuth(packageName || pathname);
       if (authorization) {
         headers.authorization = authorization;
@@ -138,7 +138,7 @@ export default class NpmRegistry extends Registry {
         await fs.mkdirp(mirrorLoc);
       }
 
-      defaults(this.config, config);
+      this.config = Object.assign({}, config, this.config);
     }
   }
 

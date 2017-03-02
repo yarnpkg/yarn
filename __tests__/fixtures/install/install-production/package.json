@@ -1,8 +1,8 @@
 {
-  "devDependencies": {
-    "lodash": "^4.16.4"
-  },
   "dependencies": {
-    "react": "^15.4.1"
+    "is-array": "^1.0.1"
+  },
+  "devDependencies": {
+    "left-pad": "^1.1.3"
   }
 }

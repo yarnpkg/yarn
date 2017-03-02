@@ -7,7 +7,7 @@ param(
 
 $ErrorActionPreference = 'Stop'; # stop on all errors
 
-$latest_version = [String](Invoke-WebRequest -Uri https://yarnpkg.com/latest-version)
+$latest_version = [String](Invoke-WebRequest -Uri https://yarnpkg.com/latest-version -UseBasicParsing)
 $latest_chocolatey_version = (Find-Package -Name Yarn).Version
 
 if ([Version]$latest_chocolatey_version -ge [Version]$latest_version) {

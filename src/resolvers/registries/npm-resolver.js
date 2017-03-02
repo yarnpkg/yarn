@@ -43,7 +43,7 @@ export default class NpmResolver extends RegistryResolver {
     const satisfied = await config.resolveConstraints(Object.keys(body.versions), range);
     if (satisfied) {
       return body.versions[satisfied];
-    } else if (request) {
+    } else if (request && !config.nonInteractive) {
       if (request.resolver && request.resolver.activity) {
         request.resolver.activity.end();
       }
@@ -84,11 +84,13 @@ export default class NpmResolver extends RegistryResolver {
   }
 
   async resolveRequestOffline(): Promise<?Manifest> {
-    // find modules of this name
-    const prefix = `npm-${this.name}-`;
 
-    const cacheFolder = this.config.cacheFolder;
-    invariant(cacheFolder, 'expected packages root');
+    const scope = this.config.registries.npm.getScope(this.name);
+    // find modules of this name
+    const prefix = scope ? this.name.split(/\/|%2f/)[1] : `npm-${this.name}-`;
+
+    invariant(this.config.cacheFolder, 'expected packages root');
+    const cacheFolder = path.join(this.config.cacheFolder, scope ? 'npm-' + scope : '');
 
     const files = await this.config.getCache('cachedPackages', async (): Promise<Array<string>> => {
       const files = await fs.readdir(cacheFolder);

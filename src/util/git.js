@@ -353,6 +353,11 @@ export default class Git {
 
       // `git archive` only accepts a treeish and we have no ref to this commit
       this.supportsArchive = false;
+
+      if (!this.fetched) {
+        // in fact, `git archive` can't be used, and we haven't fetched the project yet. Do it now.
+        await this.fetch();
+      }
       return this.ref = this.hash = hash;
     }
 

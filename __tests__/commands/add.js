@@ -1,6 +1,7 @@
 /* @flow */
 
 import {ConsoleReporter} from '../../src/reporters/index.js';
+import * as reporters from '../../src/reporters/index.js';
 import {getPackageVersion, createLockfile, explodeLockfile, run as buildRun, runInstall} from './_helpers.js';
 import {Add} from '../../src/cli/commands/add.js';
 import * as constants from '../../src/constants.js';
@@ -33,10 +34,6 @@ const runAdd = buildRun.bind(
     return add;
   },
 );
-
-test.concurrent('install with arg that has install scripts', (): Promise<void> => {
-  return runAdd(['flow-bin'], {}, 'install-with-arg-and-install-scripts');
-});
 
 test.concurrent('install with arg', (): Promise<void> => {
   return runAdd(['is-online'], {}, 'install-with-arg');
@@ -311,6 +308,47 @@ test.concurrent('add with offline mirror', (): Promise<void> => {
       lockfile['is-array@^1.0.1']['resolved'],
       'is-array-1.0.1.tgz#e9850cc2cc860c3bc0977e84ccf0dd464584279a',
     );
+  });
+});
+
+// broken https://github.com/yarnpkg/yarn/issues/2333
+test.skip('add-then-install git+ssh from offline mirror', () : Promise<void> => {
+  const mirrorPath = 'mirror-for-offline';
+
+  return runAdd(['mime-db@git+ssh://git@github.com/jshttp/mime-db.git#1.24.0'], {},
+  'install-git-ssh-mirror', async (config, reporter) : Promise<void> => {
+    assert(semver.satisfies(
+      await getPackageVersion(config, 'mime-db'),
+      '1.24.0'),
+    );
+
+    const mirror = await fs.walk(path.join(config.cwd, mirrorPath));
+    assert.equal(mirror.length, 1);
+
+    assert(mirror[0].relative.match(/mime-db\.git.*/));
+
+    const lockFileWritten = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
+    const lockFileLines = explodeLockfile(lockFileWritten);
+    // lock file contains mirror resolved line
+    expect(lockFileLines.find((line) => line.match(/.*resolved mime-db\.git\-.*/))).toBeDefined();
+
+    // reinstall
+    await fs.unlink(path.join(config.cwd, 'node_modules'));
+    await fs.unlink(path.join(config.cwd, 'yarn.lock'));
+
+    const install = new Install({}, config, reporter, new Lockfile());
+    await install.init();
+
+    assert(semver.satisfies(
+      await getPackageVersion(config, 'mime-db'),
+      '1.24.0'),
+    );
+
+    const newLockFileWritten = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
+    const newLockFileLines = explodeLockfile(newLockFileWritten);
+    // lock file contains mirror resolved line
+
+    expect(newLockFileLines[2]).toEqual(lockFileLines[2]);
   });
 });
 
@@ -630,9 +668,90 @@ test.skip('add asks for correct package version if user passes an incorrect one'
 
 test.concurrent('install with latest tag', (): Promise<void> => {
   return runAdd(['left-pad@latest'], {}, 'latest-version-in-package', async (config) => {
+    const lockfile = explodeLockfile(await fs.readFile(path.join(config.cwd, 'yarn.lock')));
+    const pkg = await fs.readJson(path.join(config.cwd, 'package.json'));
+    const version = await getPackageVersion(config, 'left-pad');
+
+    assert.deepEqual(pkg.dependencies, {'left-pad': `^${version}`});
+    assert(lockfile.indexOf(`left-pad@^${version}:`) === 0);
+  });
+});
+
+test.concurrent('install with latest tag and --offline flag', (): Promise<void> => {
+  return runAdd(['left-pad@latest'], {}, 'latest-version-in-package', async (config, reporter, previousAdd) => {
+    config.offline = true;
+    const add = new Add(['left-pad@latest'], {}, config, reporter, previousAdd.lockfile);
+    await add.init();
+
     const pkg = await fs.readJson(path.join(config.cwd, 'package.json'));
     const version = await getPackageVersion(config, 'left-pad');
 
     assert.deepEqual(pkg.dependencies, {'left-pad': `^${version}`});
   });
+});
+
+test.concurrent('install with latest tag and --prefer-offline flag', (): Promise<void> => {
+  return runAdd(['left-pad@1.1.0'], {}, 'latest-version-in-package', async (config, reporter, previousAdd) => {
+    config.preferOffline = true;
+    const add = new Add(['left-pad@latest'], {}, config, reporter, previousAdd.lockfile);
+    await add.init();
+
+    const pkg = await fs.readJson(path.join(config.cwd, 'package.json'));
+    const version = await getPackageVersion(config, 'left-pad');
+
+    assert.deepEqual(pkg.dependencies, {'left-pad': `^${version}`});
+    assert.notEqual(version, '1.1.0');
+  });
+});
+
+test.concurrent('doesn\'t warn when peer dependency is met during add', (): Promise<void> => {
+  return buildRun(
+    reporters.BufferReporter,
+    fixturesLoc,
+    async (args, flags, config, reporter, lockfile): Promise<void> => {
+      const add = new Add(args, flags, config, reporter, lockfile);
+      await add.init();
+      const output = reporter.getBuffer();
+      const warnings = output.filter((entry) => entry.type === 'warning');
+      assert(!warnings.some((warning) => warning.data.toString().toLowerCase().includes('unmet peer')));
+      assert(!warnings.some((warning) => warning.data.toString().toLowerCase().includes('incorrect peer')));
+    },
+    ['react@15.4.2', 'react-dom@15.4.2'],
+    {},
+    'add-with-peer-dependency-met',
+  );
+});
+
+test.concurrent('warns when peer dependency is not met during add', (): Promise<void> => {
+  return buildRun(
+    reporters.BufferReporter,
+    fixturesLoc,
+    async (args, flags, config, reporter, lockfile): Promise<void> => {
+      const add = new Add(args, flags, config, reporter, lockfile);
+      await add.init();
+      const output = reporter.getBuffer();
+      const warnings = output.filter((entry) => entry.type === 'warning');
+      assert(warnings.some((warning) => warning.data.toString().toLowerCase().includes('unmet peer')));
+    },
+    ['react-dom@15.4.2'],
+    {},
+    'add-with-peer-dependency-not-met',
+  );
+});
+
+test.concurrent('warns when peer dependency is incorrect during add', (): Promise<void> => {
+  return buildRun(
+    reporters.BufferReporter,
+    fixturesLoc,
+    async (args, flags, config, reporter, lockfile): Promise<void> => {
+      const add = new Add(args, flags, config, reporter, lockfile);
+      await add.init();
+      const output = reporter.getBuffer();
+      const warnings = output.filter((entry) => entry.type === 'warning');
+      assert(warnings.some((warning) => warning.data.toString().toLowerCase().includes('incorrect peer')));
+    },
+    ['react@0.14.8', 'react-dom@15.4.2'],
+    {},
+    'add-with-peer-dependency-incorrect',
+  );
 });

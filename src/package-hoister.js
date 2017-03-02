@@ -13,8 +13,9 @@ type Parts = Array<string>;
 let historyCounter = 0;
 
 export class HoistManifest {
-  constructor(key: string, parts: Parts, pkg: Manifest, loc: string, isIgnored: () => boolean) {
+  constructor(key: string, parts: Parts, pkg: Manifest, loc: string, isIgnored: boolean, inheritIsIgnored: boolean) {
     this.isIgnored = isIgnored;
+    this.inheritIsIgnored = inheritIsIgnored;
     this.loc = loc;
     this.pkg = pkg;
 
@@ -27,7 +28,8 @@ export class HoistManifest {
     this.addHistory(`Start position = ${key}`);
   }
 
-  isIgnored: () => boolean;
+  isIgnored: boolean;
+  inheritIsIgnored: boolean;
   pkg: Manifest;
   loc: string;
   parts: Parts;
@@ -85,6 +87,8 @@ export default class PackageHoister {
    */
 
   seed(patterns: Array<string>) {
+    this.prepass(patterns);
+
     for (const pattern of this.resolver.dedupePatterns(patterns)) {
       this._seed(pattern);
     }
@@ -92,6 +96,7 @@ export default class PackageHoister {
     while (true) {
       let queue = this.levelQueue;
       if (!queue.length) {
+        this._propagateNonIgnored();
         return;
       }
 
@@ -130,7 +135,8 @@ export default class PackageHoister {
 
     //
     let parentParts: Parts = [];
-    let isIgnored = () => ref.ignore;
+    let isIgnored = ref.ignore;
+    let inheritIsIgnored = false;
 
     if (parent) {
       if (!this.tree.get(parent.key)) {
@@ -138,8 +144,9 @@ export default class PackageHoister {
       }
       // non ignored dependencies inherit parent's ignored status
       // parent may transition from ignored to non ignored when hoisted if it is used in another non ignored branch
-      if (!isIgnored() && parent.isIgnored()) {
-        isIgnored = () => !!parent && parent.isIgnored();
+      if (!isIgnored && parent.isIgnored) {
+        isIgnored = parent.isIgnored;
+        inheritIsIgnored = true;
       }
       parentParts = parent.parts;
     }
@@ -148,7 +155,7 @@ export default class PackageHoister {
     const loc: string = this.config.generateHardModulePath(ref);
     const parts = parentParts.concat(pkg.name);
     const key: string = this.implodeKey(parts);
-    const info: HoistManifest = new HoistManifest(key, parts, pkg, loc, isIgnored);
+    const info: HoistManifest = new HoistManifest(key, parts, pkg, loc, isIgnored, inheritIsIgnored);
 
     //
     this.tree.set(key, info);
@@ -160,6 +167,61 @@ export default class PackageHoister {
     }
 
     return info;
+  }
+
+  /**
+   * Propagate inherited ignore statuses from non-ignored to ignored packages
+  */
+
+  _propagateNonIgnored() {
+    //
+    const toVisit: Array<HoistManifest> = [];
+
+    // enumerate all non-ignored packages
+    for (const entry of this.tree.entries()) {
+      if (!entry[1].isIgnored) {
+        toVisit.push(entry[1]);
+      }
+    }
+
+    // visit them
+    while (toVisit.length) {
+      const info = toVisit.shift();
+      const ref = info.pkg._reference;
+      invariant(ref, 'expected reference');
+
+      for (const depPattern of ref.dependencies) {
+        const depinfo = this._lookupDependency(info, depPattern);
+        if (depinfo && depinfo.isIgnored && depinfo.inheritIsIgnored) {
+          depinfo.isIgnored = false;
+          info.addHistory(`Mark as non-ignored because of usage by ${info.key}`);
+          toVisit.push(depinfo);
+        }
+      }
+    }
+  }
+
+  /**
+   * Looks up the package a dependency resolves to
+  */
+
+  _lookupDependency(info: HoistManifest, depPattern: string): ?HoistManifest {
+    //
+    const pkg = this.resolver.getStrictResolvedPattern(depPattern);
+    const ref = pkg._reference;
+    invariant(ref, 'expected reference');
+
+    //
+    for (let i = info.parts.length; i >= 0; i--) {
+      const checkParts = info.parts.slice(0, i).concat(pkg.name);
+      const checkKey = this.implodeKey(checkParts);
+      const existing = this.tree.get(checkKey);
+      if (existing) {
+        return existing;
+      }
+    }
+
+    return null;
   }
 
   /**
@@ -186,7 +248,7 @@ export default class PackageHoister {
       if (existing) {
         if (existing.loc === info.loc) {
           // switch to non ignored if earlier deduped version was ignored
-          if (existing.isIgnored() && !info.isIgnored()) {
+          if (existing.isIgnored && !info.isIgnored) {
             existing.isIgnored = info.isIgnored;
           }
 
@@ -350,6 +412,95 @@ export default class PackageHoister {
   }
 
   /**
+   * Perform a prepass and if there's multiple versions of the same package, hoist the one with
+   * the most dependents to the top.
+   */
+
+  prepass(patterns: Array<string>) {
+    patterns = this.resolver.dedupePatterns(patterns).sort();
+
+    const occurences: {
+      [packageName: string]: {
+        [version: string]: {
+          pattern: string,
+          occurences: Set<Manifest>,
+        },
+      },
+    } = {};
+
+    // add an occuring package to the above data structure
+    const add = (pattern: string, ancestry: Array<Manifest>) => {
+      const pkg = this.resolver.getStrictResolvedPattern(pattern);
+      if (ancestry.indexOf(pkg) >= 0) {
+        // prevent recursive dependencies
+        return;
+      }
+
+      const ref = pkg._reference;
+      invariant(ref, 'expected reference');
+
+      const versions = occurences[pkg.name] = occurences[pkg.name] || {};
+      const version = versions[pkg.version] = versions[pkg.version] || {occurences: new Set(), pattern};
+      version.occurences.add(ancestry[ancestry.length - 1]);
+
+      for (const depPattern of ref.dependencies) {
+        add(depPattern, ancestry.concat(pkg));
+      }
+    };
+
+    // get a list of root package names since we can't hoist other dependencies to these spots!
+    const rootPackageNames: Set<string> = new Set();
+    for (const pattern of patterns) {
+      const pkg = this.resolver.getStrictResolvedPattern(pattern);
+      rootPackageNames.add(pkg.name);
+    }
+
+    // seed occurences
+    for (const pattern of patterns) {
+      add(pattern, []);
+    }
+
+    for (const packageName of Object.keys(occurences).sort()) {
+      const versionOccurences = occurences[packageName];
+      const versions = Object.keys(versionOccurences);
+
+      if (versions.length === 1) {
+        // only one package type so we'll hoist this to the top anyway
+        continue;
+      }
+
+      if (this.tree.get(packageName)) {
+        // a transitive dependency of a previously hoisted dependency exists
+        continue;
+      }
+
+      if (rootPackageNames.has(packageName)) {
+        // can't replace top level packages
+        continue;
+      }
+
+      let mostOccurenceCount;
+      let mostOccurencePattern;
+      for (const version of Object.keys(versionOccurences).sort()) {
+        const {occurences, pattern} = versionOccurences[version];
+        const occurenceCount = occurences.size;
+
+        if (!mostOccurenceCount || occurenceCount > mostOccurenceCount) {
+          mostOccurenceCount = occurenceCount;
+          mostOccurencePattern = pattern;
+        }
+      }
+      invariant(mostOccurencePattern, 'expected most occuring pattern');
+      invariant(mostOccurenceCount, 'expected most occuring count');
+
+      // only hoist this module if it occured more than once
+      if (mostOccurenceCount > 1) {
+        this._seed(mostOccurencePattern);
+      }
+    }
+  }
+
+  /**
    * Produce a flattened list of module locations and manifests.
    */
 
@@ -392,7 +543,7 @@ export default class PackageHoister {
       const ref = info.pkg._reference;
       invariant(ref, 'expected reference');
 
-      if (info.isIgnored()) {
+      if (info.isIgnored) {
         info.addHistory('Deleted as this module was ignored');
       } else {
         visibleFlatTree.push([loc, info]);

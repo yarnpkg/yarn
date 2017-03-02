@@ -1,0 +1,3 @@
+# None of the files (other than the Dockerfile) are required to build the Docker
+# container, so we don't need to send *any* files to the Docker daemon.
+*

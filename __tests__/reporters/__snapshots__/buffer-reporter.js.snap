@@ -1,4 +1,6 @@
-exports[`test BufferReporter.command 1`] = `
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`BufferReporter.command 1`] = `
 Array [
   Object {
     "data": "foobar",
@@ -8,7 +10,7 @@ Array [
 ]
 `;
 
-exports[`test BufferReporter.error 1`] = `
+exports[`BufferReporter.error 1`] = `
 Array [
   Object {
     "data": "foobar",
@@ -18,7 +20,7 @@ Array [
 ]
 `;
 
-exports[`test BufferReporter.finished 1`] = `
+exports[`BufferReporter.finished 1`] = `
 Array [
   Object {
     "data": 0,
@@ -28,7 +30,7 @@ Array [
 ]
 `;
 
-exports[`test BufferReporter.info 1`] = `
+exports[`BufferReporter.info 1`] = `
 Array [
   Object {
     "data": "foobar",
@@ -38,7 +40,7 @@ Array [
 ]
 `;
 
-exports[`test BufferReporter.log 1`] = `
+exports[`BufferReporter.log 1`] = `
 Array [
   Object {
     "data": "foobar",
@@ -48,7 +50,7 @@ Array [
 ]
 `;
 
-exports[`test BufferReporter.step 1`] = `
+exports[`BufferReporter.step 1`] = `
 Array [
   Object {
     "data": Object {
@@ -62,7 +64,7 @@ Array [
 ]
 `;
 
-exports[`test BufferReporter.success 1`] = `
+exports[`BufferReporter.success 1`] = `
 Array [
   Object {
     "data": "foobar",
@@ -72,7 +74,7 @@ Array [
 ]
 `;
 
-exports[`test BufferReporter.warn 1`] = `
+exports[`BufferReporter.warn 1`] = `
 Array [
   Object {
     "data": "foobar",

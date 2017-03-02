@@ -33,9 +33,11 @@ const messages = {
   manifestDirectoryNotFound: 'Unable to read $0 directory of module $1',
 
   verboseFileCopy: 'Copying $0 to $1.',
+  verboseFileLink: 'Creating hardlink at $0 to $1.',
   verboseFileSymlink: 'Creating symlink at $0 to $1.',
   verboseFileSkip: 'Skipping copying of file $0 as the file at $1 is the same size ($2) and mtime ($3).',
   verboseFileSkipSymlink: 'Skipping copying of $0 as the file at $1 is the same symlink ($2).',
+  verboseFileSkipHardlink: 'Skipping copying of $0 as the file at $1 is the same hardlink ($2).',
   verboseFileRemoveExtraneous: 'Removing extraneous file $0.',
   verboseFilePhantomExtraneous: "File $0 would be marked as extraneous but has been removed as it's listed as a phantom file.",
   verboseFileFolder: 'Creating directory $0.',
@@ -74,7 +76,7 @@ const messages = {
   invalidPackageName: 'Invalid package name.',
   couldntFindManifestIn: "Couldn't find manifest in $0.",
   shrinkwrapWarning: 'npm-shrinkwrap.json found. This will not be updated or respected. See https://yarnpkg.com/en/docs/migrating-from-npm for more information.',
-  lockfileOutdated: 'Outdated lockfile. Please run `$ yarn install` and try again.',
+  lockfileOutdated: 'Outdated lockfile. Please run `yarn install` and try again.',
   ignoredScripts: 'Ignored scripts due to flag.',
   missingAddDependencies: 'Missing list of packages to add to your project.',
   yesWarning: 'The yes flag has been set. This will automatically answer yes to all questions which may have security implications.',
@@ -234,7 +236,7 @@ const messages = {
   requestFailed: 'Request failed $0',
   tarballNotInNetworkOrCache: '$0: Tarball is not in network and can not be located in cache ($1)',
   fetchBadHash: 'Bad hash. Expected $0 but got $1 ',
-  fetchErrorCorrupt: '$0. Mirror tarball appears to be corrupt. You can resolve this by running:\n\n  $ rm -rf $1\n  $ yarn install',
+  fetchErrorCorrupt: '$0. Mirror tarball appears to be corrupt. You can resolve this by running:\n\n  rm -rf $1\n  yarn install',
   errorDecompressingTarball: '$0. Error decompressing $1, it appears to be corrupt.',
   updateInstalling: 'Installing $0...',
   hostedGitResolveError: 'Error connecting to repository. Please, check the url.',
@@ -257,6 +259,12 @@ const messages = {
   optionalDepNotInstalled: 'Optional dependency $0 not installed',
   packageWrongVersion: '$0 is wrong version: expected $1, got $2',
   packageDontSatisfy: '$0 doesn\'t satisfy found match of $1',
+
+  lockfileExists: 'Lockfile already exists, not importing.',
+  skippingImport: 'Skipping import of $0 for $1',
+  importFailed: 'Import of $0 for $1 failed, resolving normally.',
+  importResolveFailed: 'Import of $0 failed starting in $1',
+  importResolvedRangeMatch: 'Using version $0 of $1 instead of $2 for $3',
 };
 
 export type LanguageKeys = $Keys<typeof messages>;

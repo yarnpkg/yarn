@@ -17,9 +17,8 @@ async function runInfo(
   checkSteps?: ?(config: Config, output: any) => ?Promise<void>,
 ): Promise<void> {
   const reporter = new BufferReporter({stdout: null, stdin: null});
-  const config = new Config(reporter);
   const cwd = name && path.join(fixturesLoc, name);
-  await config.init({cwd});
+  const config = await Config.create({cwd}, reporter);
   await info(config, reporter, flags, args);
 
   if (checkSteps) {

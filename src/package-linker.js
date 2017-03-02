@@ -11,6 +11,7 @@ import * as constants from './constants.js';
 import * as promise from './util/promise.js';
 import {entries} from './util/misc.js';
 import * as fs from './util/fs.js';
+import lockMutex from './util/mutex.js';
 
 const invariant = require('invariant');
 const cmdShim = promise.promisify(require('cmd-shim'));
@@ -24,7 +25,12 @@ type DependencyPairs = Array<{
 
 export async function linkBin(src: string, dest: string): Promise<void> {
   if (process.platform === 'win32') {
-    await cmdShim(src, dest);
+    const unlockMutex = await lockMutex(src);
+    try {
+      await cmdShim(src, dest);
+    } finally {
+      unlockMutex();
+    }
   } else {
     await fs.mkdirp(path.dirname(dest));
     await fs.symlink(src, dest);
@@ -112,7 +118,7 @@ export default class PackageLinker {
     return Promise.resolve(hoister.init());
   }
 
-  async copyModules(patterns: Array<string>): Promise<void> {
+  async copyModules(patterns: Array<string>, linkDuplicates: boolean): Promise<void> {
     let flatTree = await this.getFlatHoistedTree(patterns);
 
     // sorted tree makes file creation and copying not to interfere with each other
@@ -121,10 +127,13 @@ export default class PackageLinker {
     });
 
     // list of artifacts in modules to remove from extraneous removal
-    const phantomFiles = [];
+    const artifactFiles = [];
 
-    //
-    const queue: Map<string, CopyQueueItem> = new Map();
+    const copyQueue: Map<string, CopyQueueItem> = new Map();
+    const hardlinkQueue: Map<string, CopyQueueItem> = new Map();
+    const hardlinksEnabled = linkDuplicates && await fs.hardlinksWork(this.config.cwd);
+
+    const copiedSrcs: Map<string, string> = new Map();
     for (const [dest, {pkg, loc: src}] of flatTree) {
       const ref = pkg._reference;
       invariant(ref, 'expected package reference');
@@ -134,18 +143,34 @@ export default class PackageLinker {
       // extraneous
       const metadata = await this.config.readPackageMetadata(src);
       for (const file of metadata.artifacts) {
-        phantomFiles.push(path.join(dest, file));
+        artifactFiles.push(path.join(dest, file));
       }
 
-      queue.set(dest, {
-        src,
-        dest,
-        onFresh() {
-          if (ref) {
-            ref.setFresh(true);
-          }
-        },
-      });
+      const copiedDest = copiedSrcs.get(src);
+      if (!copiedDest) {
+        if (hardlinksEnabled) {
+          copiedSrcs.set(src, dest);
+        }
+        copyQueue.set(dest, {
+          src,
+          dest,
+          onFresh() {
+            if (ref) {
+              ref.setFresh(true);
+            }
+          },
+        });
+      } else {
+        hardlinkQueue.set(dest, {
+          src: copiedDest,
+          dest,
+          onFresh() {
+            if (ref) {
+              ref.setFresh(true);
+            }
+          },
+        });
+      }
     }
 
     // keep track of all scoped paths to remove empty scopes after copy
@@ -179,15 +204,15 @@ export default class PackageLinker {
       const stat = await fs.lstat(loc);
       if (stat.isSymbolicLink()) {
         possibleExtraneous.delete(loc);
-        queue.delete(loc);
+        copyQueue.delete(loc);
       }
     }
 
     //
     let tick;
-    await fs.copyBulk(Array.from(queue.values()), this.reporter, {
+    await fs.copyBulk(Array.from(copyQueue.values()), this.reporter, {
       possibleExtraneous,
-      phantomFiles,
+      artifactFiles,
 
       ignoreBasenames: [
         constants.METADATA_FILENAME,
@@ -204,6 +229,28 @@ export default class PackageLinker {
         }
       },
     });
+    await fs.hardlinkBulk(Array.from(hardlinkQueue.values()), this.reporter, {
+      possibleExtraneous,
+      artifactFiles,
+
+      onStart: (num: number) => {
+        tick = this.reporter.progress(num);
+      },
+
+      onProgress(src: string) {
+        if (tick) {
+          tick(src);
+        }
+      },
+    });
+
+    // remove all extraneous files that weren't in the tree
+    for (const loc of possibleExtraneous) {
+      this.reporter.verbose(
+        this.reporter.lang('verboseFileRemoveExtraneous', loc),
+      );
+      await fs.unlink(loc);
+    }
 
     // remove any empty scoped directories
     for (const scopedPath of scopedPaths) {
@@ -241,42 +288,16 @@ export default class PackageLinker {
 
     for (const name in peerDeps) {
       const range = peerDeps[name];
+      const patterns = this.resolver.patternsByPackage[name] || [];
+      const foundPattern = patterns.find((pattern) => {
+        const resolvedPattern = this.resolver.getResolvedPattern(pattern);
+        return resolvedPattern ? this._satisfiesPeerDependency(range, resolvedPattern.version) : false;
+      });
 
-      // find a dependency in the tree above us that matches
-      let searchPatterns: Array<string> = [];
-      for (let request of ref.requests) {
-        do {
-          // get resolved pattern for this request
-          const dep = this.resolver.getResolvedPattern(request.pattern);
-          if (!dep) {
-            continue;
-          }
-
-          //
-          const ref = dep._reference;
-          invariant(ref, 'expected reference');
-          searchPatterns = searchPatterns.concat(ref.dependencies);
-        } while (request = request.parentRequest);
-      }
-
-      // include root seed patterns last
-      searchPatterns = searchPatterns.concat(this.resolver.seedPatterns);
-
-      // find matching dep in search patterns
-      let foundDep: ?{pattern: string, version: string};
-      for (const pattern of searchPatterns) {
-        const dep = this.resolver.getResolvedPattern(pattern);
-        if (dep && dep.name === name) {
-          foundDep = {pattern, version: dep.version};
-          break;
-        }
-      }
-
-      // validate found peer dependency
-      if (foundDep && this._satisfiesPeerDependency(range, foundDep.version)) {
-        ref.addDependencies([foundDep.pattern]);
+      if (foundPattern) {
+        ref.addDependencies([foundPattern]);
       } else {
-        const depError = foundDep ? 'incorrectPeer' : 'unmetPeer';
+        const depError = patterns.length > 0 ? 'incorrectPeer' : 'unmetPeer';
         const [pkgHuman, depHuman] = [`${pkg.name}@${pkg.version}`, `${name}@${range}`];
         this.reporter.warn(this.reporter.lang(depError, pkgHuman, depHuman));
       }
@@ -287,9 +308,9 @@ export default class PackageLinker {
     return range === '*' || semver.satisfies(version, range, this.config.looseSemver);
   }
 
-  async init(patterns: Array<string>): Promise<void> {
+  async init(patterns: Array<string>, linkDuplicates: boolean): Promise<void> {
     this.resolvePeerModules();
-    await this.copyModules(patterns);
+    await this.copyModules(patterns, linkDuplicates);
     await this.saveAll(patterns);
   }
 
@@ -304,7 +325,7 @@ export default class PackageLinker {
     const src = this.config.generateHardModulePath(ref);
 
     // link bins
-    if (this.config.binLinks && resolved.bin && Object.keys(resolved.bin).length) {
+    if (this.config.binLinks && resolved.bin && Object.keys(resolved.bin).length && !ref.ignore) {
       const folder = this.config.modulesFolder || path.join(this.config.cwd, this.config.getFolder(resolved));
       const binLoc = path.join(folder, '.bin');
       await fs.mkdirp(binLoc);

@@ -7,10 +7,20 @@ import {MessageError} from '../../errors.js';
 import {registries} from '../../resolvers/index.js';
 import * as fs from '../../util/fs.js';
 import map from '../../util/map.js';
-import {fixCmdWinSlashes} from '../../util/fix-cmd-win-slashes.js';
 
 const leven = require('leven');
 const path = require('path');
+
+function sanitizedArgs(args: Array<string>): Array<string> {
+  const newArgs = [];
+  for (let arg of args) {
+    if (/\s/.test(arg)) {
+      arg = `"${arg}"`;
+    }
+    newArgs.push(arg);
+  }
+  return newArgs;
+}
 
 export async function run(
   config: Config,
@@ -59,15 +69,15 @@ export async function run(
     for (const action of actions) {
       const cmd = scripts[action];
       if (cmd) {
-        const isWin = 'win32' === process.platform;
-        cmds.push([action, isWin ? fixCmdWinSlashes(cmd) : cmd]);
+        cmds.push([action, cmd]);
       }
     }
 
     if (cmds.length) {
       for (const [stage, cmd] of cmds) {
         // only tack on trailing arguments for default script, ignore for pre and post - #1595
-        const cmdWithArgs = stage === action ? `${cmd} ${args.join(' ')}` : cmd;
+        const defaultScriptCmd = `${cmd} ${sanitizedArgs(args).join(' ')}`;
+        const cmdWithArgs = stage === action ? defaultScriptCmd : cmd;
         await execCommand(stage, config, cmdWithArgs, config.cwd);
       }
     } else {

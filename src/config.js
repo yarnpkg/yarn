@@ -12,6 +12,7 @@ import * as constants from './constants.js';
 import ConstraintResolver from './package-constraint-resolver.js';
 import RequestManager from './util/request-manager.js';
 import {registries, registryNames} from './registries/index.js';
+import {NoopReporter} from './reporters/index.js';
 import map from './util/map.js';
 
 const detectIndent = require('detect-indent');
@@ -35,6 +36,7 @@ export type ConfigOptions = {
   production?: boolean,
   binLinks?: boolean,
   networkConcurrency?: number,
+  nonInteractive?: boolean,
 
   // Loosely compare semver for invalid cases like "0.01.0"
   looseSemver?: ?boolean,
@@ -121,6 +123,8 @@ export default class Config {
   ignoreScripts: boolean;
 
   production: boolean;
+
+  nonInteractive: boolean;
 
   //
   cwd: string;
@@ -268,6 +272,8 @@ export default class Config {
 
     this.ignorePlatform = !!opts.ignorePlatform;
     this.ignoreScripts = !!opts.ignoreScripts;
+
+    this.nonInteractive = !!opts.nonInteractive;
 
     this.requestManager.setOptions({
       offline: !!opts.offline && !opts.preferOffline,
@@ -552,5 +558,11 @@ export default class Config {
         throw err;
       }
     }
+  }
+
+  static async create(opts: ConfigOptions = {}, reporter: Reporter = new NoopReporter()): Promise<Config> {
+    const config = new Config(reporter);
+    await config.init(opts);
+    return config;
   }
 }

@@ -114,15 +114,14 @@ export async function run<T, R>(
   }
 
   try {
-    const config = new Config(reporter);
-    await config.init({
+    const config = await Config.create({
       binLinks: !!flags.binLinks,
       cwd,
       globalFolder: path.join(cwd, '.yarn-global'),
       cacheFolder: flags.cacheFolder || path.join(cwd, '.yarn-cache'),
       linkFolder: path.join(cwd, '.yarn-link'),
       production: flags.production,
-    });
+    }, reporter);
 
     const install = await factory(args, flags, config, reporter, lockfile, () => out);
 

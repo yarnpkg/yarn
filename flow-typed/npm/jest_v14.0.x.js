@@ -45,6 +45,7 @@ type JestExpectType = {
   toMatchSnapshot(): void;
   toThrow(message?: string | Error): void;
   toThrowError(message?: string): void;
+  toContainPackage(packageName: string, path: string): void;
 }
 
 declare function expect(value: any): JestExpectType;
@@ -68,4 +69,5 @@ declare var jest: {
 
 declare var jasmine: {
   DEFAULT_TIMEOUT_INTERVAL: number;
+  addMatchers(matcher: Object): void;
 }
