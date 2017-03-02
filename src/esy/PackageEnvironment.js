@@ -358,10 +358,9 @@ function targetPath(sandbox, packageInfo, tree: '_install' | '_build', ...pathTo
   let packageSourceType = packageInfo.sourceType;
   let packageKey = packageInfoKey(sandbox.env, packageInfo);
   let isRootPackage = packageName === sandbox.packageInfo.packageJson.name;
-  let isNonRootLocalPackage = packageSourceType === 'local';
   if (isRootPackage) {
     return ['$esy__sandbox', tree, ...pathTo].join('/');
-  } else if (isNonRootLocalPackage) {
+  } else if (packageSourceType === 'local') {
     return ['$esy__local_store', tree, packageKey, ...pathTo].join('/');
   }
   return ['$esy__store', tree, packageKey, ...pathTo].join('/');
