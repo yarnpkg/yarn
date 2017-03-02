@@ -90,11 +90,11 @@ function buildEjectCommand(
       value: `SHELL = ${sandbox.env.SHELL}`,
     },
 
-    // ESY__ROOT is the root directory of the ejected Esy build
+    // ESY__EJECT_ROOT is the root directory of the ejected Esy build
     // environment.
     {
       type: 'raw',
-      value: 'ESY__ROOT := $(dir $(realpath $(lastword $(MAKEFILE_LIST))))'
+      value: 'ESY__EJECT_ROOT := $(dir $(realpath $(lastword $(MAKEFILE_LIST))))'
     },
 
     // ESY__STORE is the directory where build artifacts should be stored.
@@ -181,8 +181,8 @@ function buildEjectCommand(
     },
     {
       type: 'rule',
-      target: '$(ESY__ROOT)/bin/realpath',
-      dependencies: ['$(ESY__ROOT)/bin/realpath.c'],
+      target: '$(ESY__EJECT_ROOT)/bin/realpath',
+      dependencies: ['$(ESY__EJECT_ROOT)/bin/realpath.c'],
       shell: '/bin/bash',
       command: 'gcc -o $(@) -x c $(<) 2> /dev/null',
     },
@@ -190,7 +190,7 @@ function buildEjectCommand(
       type: 'rule',
       target: 'esy-root',
       phony: true,
-      dependencies: ['$(ESY__ROOT)/bin/realpath'],
+      dependencies: ['$(ESY__EJECT_ROOT)/bin/realpath'],
     },
   ];
 
@@ -235,7 +235,7 @@ function buildEjectCommand(
           phony: true,
           command: [
             outdent`
-              $(shell_env_for__${normalizedName}) source $(ESY__ROOT)/bin/runtime.sh
+              $(shell_env_for__${normalizedName}) source $(ESY__EJECT_ROOT)/bin/runtime.sh
               cd $esy_build__source_root
             `,
             command,
@@ -341,11 +341,11 @@ function buildEjectCommand(
             'ESY__STORE': '$(ESY__STORE)',
             'ESY__LOCAL_STORE': '$(ESY__LOCAL_STORE)',
             'ESY__SANDBOX': '$(ESY__SANDBOX)',
-            'ESY__ROOT': '$(ESY__ROOT)',
+            'ESY__EJECT_ROOT': '$(ESY__EJECT_ROOT)',
           },
-          `source $(ESY__ROOT)/${packagePath.join('/')}/env`,
+          `source $(ESY__EJECT_ROOT)/${packagePath.join('/')}/env`,
           {
-            'esy_build__eject': `$(ESY__ROOT)/${packagePath.join('/')}`,
+            'esy_build__eject': `$(ESY__EJECT_ROOT)/${packagePath.join('/')}`,
             'esy_build__type': packageInfo.packageJson.esy.buildsInSource
               ? 'in-source'
               : 'out-of-source',
@@ -400,10 +400,10 @@ function buildEjectCommand(
       set -e
       set -o pipefail
 
-      _TMPDIR_GLOBAL=$($ESY__ROOT/bin/realpath "/tmp")
+      _TMPDIR_GLOBAL=$($ESY__EJECT_ROOT/bin/realpath "/tmp")
 
       if [ -d "$TMPDIR" ]; then
-        _TMPDIR=$($ESY__ROOT/bin/realpath "$TMPDIR")
+        _TMPDIR=$($ESY__EJECT_ROOT/bin/realpath "$TMPDIR")
       else
         _TMPDIR="/does/not/exist"
       fi
