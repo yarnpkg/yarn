@@ -21,6 +21,7 @@ const path = require('path');
 
 export type ConfigOptions = {
   cwd?: ?string,
+  _cacheRootFolder?: ?string,
   cacheFolder?: ?string,
   tempFolder?: ?string,
   modulesFolder?: ?string,
@@ -109,6 +110,9 @@ export default class Config {
 
   //
   modulesFolder: ?string;
+
+  //
+  _cacheRootFolder: string;
 
   //
   cacheFolder: string;
@@ -231,9 +235,14 @@ export default class Config {
       key: String(opts.key || this.getOption('key') || ''),
       networkConcurrency: this.networkConcurrency,
     });
+    this._cacheRootFolder = String(
+      opts.cacheFolder ||
+      this.getOption('cache-folder') ||
+      constants.MODULE_CACHE_DIRECTORY,
+    );
 
     //init & create cacheFolder, tempFolder
-    this.cacheFolder = String(opts.cacheFolder || this.getOption('cache-folder') || constants.MODULE_CACHE_DIRECTORY);
+    this.cacheFolder = path.join(this._cacheRootFolder, 'v' + String(constants.CACHE_VERSION));
     this.tempFolder = opts.tempFolder || path.join(this.cacheFolder, '.tmp');
     await fs.mkdirp(this.cacheFolder);
     await fs.mkdirp(this.tempFolder);

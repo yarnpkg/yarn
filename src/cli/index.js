@@ -362,7 +362,7 @@ config.init({
   binLinks: commander.binLinks,
   modulesFolder: commander.modulesFolder,
   globalFolder: commander.globalFolder,
-  cacheFolder: commander.cacheFolder,
+  cacheRootFolder: commander.cacheFolder,
   preferOffline: commander.preferOffline,
   captureHar: commander.har,
   ignorePlatform: commander.ignorePlatform,
