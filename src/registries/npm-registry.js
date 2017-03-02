@@ -8,7 +8,7 @@ import * as fs from '../util/fs.js';
 import NpmResolver from '../resolvers/registries/npm-resolver.js';
 import envReplace from '../util/env-replace.js';
 import Registry from './base-registry.js';
-import {addSuffix, removePrefix} from '../util/misc';
+import {addSuffix} from '../util/misc';
 import isRequestToRegistry from './is-request-to-registry.js';
 
 const userHome = require('../util/user-home-dir').default;

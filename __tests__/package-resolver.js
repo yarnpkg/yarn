@@ -10,7 +10,7 @@ import * as fs from '../src/util/fs.js';
 import * as constants from '../src/constants.js';
 import inquirer from 'inquirer';
 
-jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000;
+jasmine.DEFAULT_TIMEOUT_INTERVAL = 100000;
 
 // automatically chose the first available version if cached does not fit
 inquirer.prompt = jest.fn((questions) => {
