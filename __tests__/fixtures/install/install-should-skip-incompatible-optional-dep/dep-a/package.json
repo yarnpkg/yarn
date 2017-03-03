@@ -1,0 +1,12 @@
+{
+  "name": "dep-a",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "postinstall": "mkdir lib"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}

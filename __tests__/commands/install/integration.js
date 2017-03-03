@@ -868,6 +868,19 @@ test.concurrent('a subdependency of an optional dependency that fails should be 
     });
   });
 
+test.concurrent('a sub-dependency should be non-optional if any parents mark it non-optional',
+  async (): Promise<void> => {
+    let thrown = false;
+    try {
+      await runInstall({}, 'failing-sub-dep-optional-and-normal', () => {});
+    } catch (err) {
+      thrown = true;
+      expect(err.message).toContain('sub-failing: Command failed');
+    }
+    assert(thrown);
+  });
+
+
 test.concurrent('should not loose dependencies when installing with --production',
   (): Promise<void> => {
     // revealed https://github.com/yarnpkg/yarn/issues/2263

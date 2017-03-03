@@ -1,0 +1,15 @@
+{
+  "name": "dep-optional",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "postinstall": "mkdir lib"
+  },
+  "dependencies": {
+    "dep-incompatible": "file:../dep-incompatible"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}

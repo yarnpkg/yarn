@@ -1,5 +1,5 @@
 {
   "optionalDependencies": {
-    "dep-optional": "1.0.0"
+    "dep-optional": "file:dep-optional"
   }
 }

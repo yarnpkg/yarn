@@ -1,0 +1,18 @@
+{
+  "name": "dep-incompatible",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "postinstall": "mkdir lib"
+  },
+  "dependencies": {
+    "dep-a": "file:../dep-a"
+  },
+  "os": [
+    "invalid"
+  ],
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
