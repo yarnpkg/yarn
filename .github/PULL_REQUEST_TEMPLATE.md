@@ -2,6 +2,8 @@
 
 **Summary**
 
+<!-- Is the feature a substantial feature request? Please use https://github.com/yarnpkg/rfcs -->
+
 <!-- Explain the **motivation** for making this change. What existing problem does the pull request solve? -->
 
 **Test plan**
