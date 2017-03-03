@@ -157,10 +157,10 @@ async function integrityHashCheck(
 
   const match = await integrityChecker.check(patterns, lockfile, lockSource, flags);
   for (const pattern of match.missingPatterns) {
-    reportError('lockfileNotContainPatter', pattern);
+    reportError('lockfileNotContainPattern', pattern);
   }
   if (match.integrityFileMissing) {
-    reportError('noIntegirtyHashFile');
+    reportError('noIntegrityHashFile');
   }
   if (!match.integrityHashMatches) {
     reportError('integrityHashesDontMatch');
@@ -218,7 +218,7 @@ export async function run(
   // check if patterns exist in lockfile
   for (const pattern of patterns) {
     if (!lockfile.getLocked(pattern)) {
-      reportError('lockfileNotContainPatter', pattern);
+      reportError('lockfileNotContainPattern', pattern);
     }
   }
 
