@@ -165,3 +165,16 @@ test.concurrent('doesn\'t warn when peer dependency is still met after upgrade',
     'peer-dependency-no-warn',
   );
 });
+
+test.concurrent('can prune the offline mirror', (): Promise<void> => {
+  return runUpgrade(['dep-a@1.1.0'], {}, 'prune-offline-mirror', async (config): ?Promise<void> => {
+    const lockfile = explodeLockfile(await fs.readFile(path.join(config.cwd, 'yarn.lock')));
+    assert(lockfile.indexOf('dep-a@1.1.0:') === 0);
+
+    const mirrorPath = 'mirror-for-offline';
+    assert(await fs.exists(path.join(config.cwd, `${mirrorPath}/dep-a-1.1.0.tgz`)));
+    assert(!await fs.exists(path.join(config.cwd, `${mirrorPath}/dep-a-1.0.0.tgz`)));
+    // In 1.1.0, dep-a doesn't depend on dep-b anymore, so dep-b should be pruned
+    assert(!await fs.exists(path.join(config.cwd, `${mirrorPath}/dep-b-1.0.0.tgz`)));
+  });
+});
