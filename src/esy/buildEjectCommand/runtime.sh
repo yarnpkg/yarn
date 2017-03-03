@@ -40,8 +40,8 @@ _esy-prepare-build-env () {
   fi
 
   mkdir -p $cur__target_dir/_esy
-  $ESY__ROOT/bin/render-env $esy_build__eject/findlib.conf.in $cur__target_dir/_esy/findlib.conf
-  $ESY__ROOT/bin/render-env $esy_build__eject/sandbox.sb.in $cur__target_dir/_esy/sandbox.sb
+  $ESY__EJECT_ROOT/bin/render-env $esy_build__eject/findlib.conf.in $cur__target_dir/_esy/findlib.conf
+  $ESY__EJECT_ROOT/bin/render-env $esy_build__eject/sandbox.sb.in $cur__target_dir/_esy/sandbox.sb
 
 }
 
@@ -107,7 +107,7 @@ esy-shell () {
     --noprofile                     \
     --rcfile <(echo "
       export PS1=\"[$cur__name sandbox] $ \";
-      source $ESY__ROOT/bin/runtime.sh;
+      source $ESY__EJECT_ROOT/bin/runtime.sh;
       set +e
       set +u
       set +o pipefail

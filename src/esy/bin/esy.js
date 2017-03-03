@@ -5,6 +5,7 @@
 let childProcess = require('child_process');
 
 import chalk from 'chalk';
+const loudRejection = require('loud-rejection');
 const PackageEnvironment = require('../PackageEnvironment');
 const Sandbox = require('../Sandbox');
 
@@ -190,3 +191,5 @@ async function main() {
 }
 
 main().catch(error);
+
+loudRejection();

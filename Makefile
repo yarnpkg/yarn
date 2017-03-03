@@ -63,6 +63,9 @@ release: convert-opam-packages build
 	@mv .tmp/node_modules node_modules
 	@rm -rf lib
 
+# Once you've ran convert-opam-packages, if you change the JS code, rerun make build
+# and then you can use ~/path/to/esy/bin/esy as the binary.
+
 clean:
 	@rm -rf lib/
 

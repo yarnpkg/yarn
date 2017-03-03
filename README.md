@@ -200,6 +200,64 @@ other environment variables.
 
 # Contributing
 
+
+#### Directory Layout
+
+Here's a general overview of the directory layout created by various `esy`
+commands.
+
+###### Global Cache
+
+When building projects, most globally cached artifacts are stored in `~/.esy/store`.
+
+    ~/.esy/
+     ├─ OtherStuffHereToo.md
+     └─ store/
+        ├── _build
+        ├── _install
+        └── _insttmp
+
+
+In the top level project, there is a `./node_modules/.cache/_esy` directory
+that stores things related to your current project.
+
+###### Local Build Cache, Build Eject And Environment Cache
+
+Not all artifacts are cached globally. Build artifacts for your top level
+project and any symlinked dependencies (using `yarn link`) are stored in
+`./node_modules/_esy/store` which is just like the global store, but for your
+locally symlinked projects, and top level package.
+
+This local cache doesn't have the dirtyling logic as the global store for
+(non-symlinked) dependencies. Currently, both symlinked dependencies and your
+top level package are both rebuilt every time you run `esy build`.
+
+Cached environment computations (for commands such as `esy cmd`) are stored in
+`./node_modules/.cache/_esy/command-env`
+
+Support for "ejecting" a build is computed and stored in
+`./node_modules/.cache/_esy/build-eject`.
+
+
+    ./node_modules/
+     └─ .cache/
+        └─ _esy/
+           ├─ command-env
+           ├─ build-eject/
+           │  ├─ Makefile
+           │  ├─ ...
+           │  ├─ eject-env
+           │  └─ node_modules   # Perfect mirror
+           │     └─ FlappyBird
+           │        ├─ ...
+           │        └─ eject-env
+           └─ store/
+              ├── ThisIsBuildCacheForSymlinked
+              ├── _build
+              ├── _install
+              └── _insttmp
+
+
 #### Issues
 
 Issues are still tracked at [the old `esy` repo](https://github.com/jordwalke/esy).
