@@ -55,8 +55,8 @@ export default class Git {
    */
 
   static async hasArchiveCapability(gitUrl: string): Promise<boolean> {
-    // USER@HOSTNAME
-    const match = gitUrl.match(/^(.*?)@(.*?)$/);
+    // USER@HOSTNAME:PATHNAME
+    const match = gitUrl.match(/^(.*?)@(.*?):(.*?)$/);
     if (!match) {
       return false;
     }
