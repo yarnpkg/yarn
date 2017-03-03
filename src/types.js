@@ -120,6 +120,9 @@ export type Manifest = {
 
   deprecated?: string,
   files?: Array<string>,
+
+  esy?: Object,
+  pjc?: Object,
 };
 
 //

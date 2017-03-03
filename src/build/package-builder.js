@@ -1,22 +1,22 @@
 /* @flow */
 
-import type {Manifest} from './types.js';
-import type PackageResolver from './package-resolver.js';
-import type {Reporter} from './reporters/index.js';
-import type Config from './config.js';
-import type {ReporterSetSpinner} from './reporters/types.js';
-import executeLifecycleScript from './util/execute-lifecycle-script.js';
-import * as fs from './util/fs.js';
-import * as constants from './constants.js';
+import type {Manifest} from '../types.js';
+import type PackageResolver from '../package-resolver.js';
+import type {Reporter} from '../reporters/index.js';
+import type Config from '../config.js';
+import type {ReporterSpinner, ReporterSetSpinner} from '../reporters/types.js';
+import executeLifecycleScript from '../util/execute-lifecycle-script.js';
+import * as fs from '../util/fs.js';
+import * as constants from '../constants.js';
 
 const invariant = require('invariant');
 const path = require('path');
 
 const INSTALL_STAGES = ['preinstall', 'install', 'postinstall'];
 
-export default class PackageInstallScripts {
+export default class PackageBuilder {
   constructor(config: Config, resolver: PackageResolver, force: boolean) {
-    this.installed = 0;
+    this.installedCount = 0;
     this.resolver = resolver;
     this.reporter = config.reporter;
     this.config = config;
@@ -26,12 +26,18 @@ export default class PackageInstallScripts {
   needsPermission: boolean;
   resolver: PackageResolver;
   reporter: Reporter;
-  installed: number;
+  installedCount: number;
   config: Config;
   force: boolean;
 
+  getPJCConfig(pkg: Manifest): ?Object {
+    const obj: mixed = pkg.pjc || pkg.esy;
+    if (typeof obj === 'object') {
+      return obj;
+    }
+  }
 
-  getInstallCommands(pkg: Manifest): Array<[string]> {
+  getBuildScriptCommands(pkg: Manifest): Array<[string]> {
     const scripts = pkg.scripts;
     if (scripts) {
       const cmds = [];
@@ -94,15 +100,42 @@ export default class PackageInstallScripts {
     }, null, '  '));
   }
 
-  async install(cmds: Array<[string, string]>, pkg: Manifest, spinner: ReporterSetSpinner): Promise<void> {
+  shouldInstallPackage(pkg: Manifest): boolean {
+    const cmds = this.getBuildScriptCommands(pkg);
+    if (!cmds.length) {
+      return false;
+    }
+
+    const pjcConfig = this.getPJCConfig(pkg);
+    if (!pjcConfig) {
+      return false;
+    }
+
+    const ref = pkg._reference;
+    invariant(ref, 'Missing package reference');
+    if (!ref.fresh && !this.force) {
+      // this package hasn't been touched
+      return false;
+    }
+
+    // we haven't actually written this module out
+    if (ref.ignore) {
+      return false;
+    }
+
+    return true;
+  }
+
+  async install(spinner: ReporterSetSpinner, pkg: Manifest): Promise<void> {
+    spinner.setPrefix(++this.installedCount, pkg.name);
+
     const ref = pkg._reference;
     invariant(ref, 'expected reference');
     const loc = this.config.generateHardModulePath(ref);
 
     try {
-      for (const [stage, cmd] of cmds) {
-        await executeLifecycleScript(stage, this.config, loc, cmd, spinner);
-      }
+      await this._installNPM(spinner, pkg, loc);
+      await this._installPJC(spinner, pkg, loc);
     } catch (err) {
       err.message = `${loc}: ${err.message}`;
 
@@ -125,29 +158,31 @@ export default class PackageInstallScripts {
     }
   }
 
-  packageCanBeInstalled(pkg: Manifest): boolean {
-    const cmds = this.getInstallCommands(pkg);
-    if (!cmds.length) {
-      return false;
+  async _installNPM(spinner: ReporterSetSpinner, pkg: Manifest, loc: string) {
+    // run npm scripts
+    const cmds = this.getBuildScriptCommands(pkg);
+    for (const [stage, cmd] of cmds) {
+      await executeLifecycleScript(stage, this.config, loc, cmd, spinner);
     }
-    const ref = pkg._reference;
-    invariant(ref, 'Missing package reference');
-    if (!ref.fresh && !this.force) {
-      // this package hasn't been touched
-      return false;
-    }
-
-    // we haven't actually written this module out
-    if (ref.ignore) {
-      return false;
-    }
-    return true;
   }
 
-  async runCommand(spinner: ReporterSetSpinner, pkg: Manifest): Promise<void> {
-    const cmds = this.getInstallCommands(pkg);
-    spinner.setPrefix(++this.installed, pkg.name);
-    await this.install(cmds, pkg, spinner);
+  async _installPJC(spinner: ReporterSpinner, pkg: Manifest, loc: string) {
+    // run pjc build commands
+    const config = this.getPJCConfig(pkg);
+    if (!config) {
+      return;
+    }
+
+    // build environment variables
+    const env = Object.assign({}, config.envVars || {});
+
+    // commands
+    const cmds = [].concat(config.build || []);
+    console.log(cmds);
+
+    for (const cmd of cmds) {
+      spinner.tick(cmd);
+    }
   }
 
   // detect if there is a circularDependency in the dependency tree
@@ -162,11 +197,14 @@ export default class PackageInstallScripts {
         // there is a cycle but not with the root
         continue;
       }
+
       seenManifests.add(pkgDep);
+
       // found a dependency pointing to root
       if (pkgDep == root) {
         return true;
       }
+
       if (this.detectCircularDependencies(root, seenManifests, pkgDep)) {
         return true;
       }
@@ -227,8 +265,8 @@ export default class PackageInstallScripts {
 
       // found a package to install
       workQueue.delete(pkg);
-      if (this.packageCanBeInstalled(pkg)) {
-        await this.runCommand(spinner, pkg);
+      if (this.shouldInstallPackage(pkg)) {
+        await this.install(spinner, pkg);
       }
       installed.add(pkg);
       for (const workerResolve of waitQueue) {
@@ -238,20 +276,21 @@ export default class PackageInstallScripts {
     }
   }
 
-  async init(seedPatterns: Array<string>): Promise<void> {
+  async init(seedPatterns: Array<string>, rootLoc: string, rootManifest: Manifest): Promise<void> {
     const workQueue = new Set();
     const installed = new Set();
     const pkgs = this.resolver.getTopologicalManifests(seedPatterns);
-    let installablePkgs = 0;
+    let installableCount = 0;
+
     // A map to keep track of what files exist before installation
     const beforeFilesMap = new Map();
     for (const pkg of pkgs) {
-      if (this.packageCanBeInstalled(pkg)) {
+      if (this.shouldInstallPackage(pkg)) {
         const ref = pkg._reference;
         invariant(ref, 'expected reference');
         const loc = this.config.generateHardModulePath(ref);
         beforeFilesMap.set(loc, await this.walk(loc));
-        installablePkgs += 1;
+        installableCount += 1;
       }
       workQueue.add(pkg);
     }
@@ -261,7 +300,7 @@ export default class PackageInstallScripts {
     const waitQueue = new Set();
     const workers = [];
 
-    const set = this.reporter.activitySet(installablePkgs, Math.min(constants.CHILD_CONCURRENCY, workQueue.size));
+    const set = this.reporter.activitySet(installableCount, Math.min(constants.CHILD_CONCURRENCY, installableCount));
 
     for (const spinner of set.spinners) {
       workers.push(this.worker(spinner, workQueue, installed, waitQueue));
@@ -271,7 +310,7 @@ export default class PackageInstallScripts {
 
     // cache all build artifacts
     for (const pkg of pkgs) {
-      if (this.packageCanBeInstalled(pkg)) {
+      if (this.shouldInstallPackage(pkg)) {
         const ref = pkg._reference;
         invariant(ref, 'expected reference');
         const loc = this.config.generateHardModulePath(ref);
@@ -282,5 +321,8 @@ export default class PackageInstallScripts {
     }
 
     set.end();
+
+    const spinner = this.reporter.activity();
+    await this._installPJC(spinner, rootManifest, rootLoc);
   }
 }
