@@ -86,7 +86,7 @@ export async function getFilesFromArchive(source, destination): Promise<Array<st
       .pipe(tarFs.extract(destination, {
         strip: 1,
         dmode: parseInt(555, 8), // all dirs should be readable
-        fmode: parseInt(444, 8) // all files should be readable
+        fmode: parseInt(444, 8), // all files should be readable
       }))
       .on('finish', resolve)
       .on('error', reject);

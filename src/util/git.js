@@ -12,8 +12,8 @@ import map from './map.js';
 const invariant = require('invariant');
 const semver = require('semver');
 const url = require('url');
-const tar = require('tar');
 const tarFs = require('tar-fs');
+const tarStream = require('tar-stream');
 import {createWriteStream} from 'fs';
 
 type GitRefs = {
@@ -55,8 +55,8 @@ export default class Git {
    */
 
   static async hasArchiveCapability(gitUrl: string): Promise<boolean> {
-    // USER@HOSTNAME:PATHNAME
-    const match = gitUrl.match(/^(.*?)@(.*?):(.*?)$/);
+    // USER@HOSTNAME
+    const match = gitUrl.match(/^(.*?)@(.*?)$/);
     if (!match) {
       return false;
     }
@@ -206,13 +206,12 @@ export default class Git {
   async _cloneViaRemoteArchive(dest: string): Promise<void> {
     await child.spawn('git', ['archive', `--remote=${this.url}`, this.ref], {
       process(proc, update, reject, done) {
-        // TODO should break tests
         const extractor = tarFs.extract(dest, {
           dmode: parseInt(555, 8), // all dirs should be readable
-          fmode: parseInt(444, 8) // all files should be readable
+          fmode: parseInt(444, 8), // all files should be readable
         });
         extractor.on('error', reject);
-        extractor.on('end', done);
+        extractor.on('finish', done);
 
         proc.stdout.pipe(extractor);
         proc.on('error', reject);
@@ -226,7 +225,7 @@ export default class Git {
       process(proc, resolve, reject, done) {
         const extractor = tarFs.extract(dest, {
           dmode: parseInt(555, 8), // all dirs should be readable
-          fmode: parseInt(444, 8) // all files should be readable
+          fmode: parseInt(444, 8), // all files should be readable
         });
 
         extractor.on('error', reject);
@@ -288,13 +287,21 @@ export default class Git {
     try {
       return await child.spawn('git', ['archive', `--remote=${this.url}`, this.ref, filename], {
         process(proc, update, reject, done) {
-          const parser = tar.Parse();
+          const parser = tarStream.extract();
 
           parser.on('error', reject);
-          parser.on('end', done);
+          parser.on('finish', done);
 
-          parser.on('data', (entry: Buffer) => {
-            update(entry.toString());
+          parser.on('entry', (header, stream, next) => {
+            let string = '';
+            stream.on('data', (buffer) => {
+              string += buffer.toString();
+            });
+            stream.on('end', () => {
+              update(string);
+              next();
+            });
+            stream.resume();
           });
 
           proc.stdout.pipe(parser);
