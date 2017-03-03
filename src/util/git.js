@@ -13,6 +13,7 @@ const invariant = require('invariant');
 const semver = require('semver');
 const url = require('url');
 const tar = require('tar');
+const tarFs = require('tar-fs');
 import {createWriteStream} from 'fs';
 
 type GitRefs = {
@@ -205,7 +206,11 @@ export default class Git {
   async _cloneViaRemoteArchive(dest: string): Promise<void> {
     await child.spawn('git', ['archive', `--remote=${this.url}`, this.ref], {
       process(proc, update, reject, done) {
-        const extractor = tar.Extract({path: dest});
+        // TODO should break tests
+        const extractor = tarFs.extract(dest, {
+          dmode: parseInt(555, 8), // all dirs should be readable
+          fmode: parseInt(444, 8) // all files should be readable
+        });
         extractor.on('error', reject);
         extractor.on('end', done);
 
@@ -219,9 +224,13 @@ export default class Git {
     await child.spawn('git', ['archive', this.hash], {
       cwd: this.cwd,
       process(proc, resolve, reject, done) {
-        const extractor = tar.Extract({path: dest});
+        const extractor = tarFs.extract(dest, {
+          dmode: parseInt(555, 8), // all dirs should be readable
+          fmode: parseInt(444, 8) // all files should be readable
+        });
+
         extractor.on('error', reject);
-        extractor.on('end', done);
+        extractor.on('finish', done);
 
         proc.stdout.pipe(extractor);
       },
