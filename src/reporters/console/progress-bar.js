@@ -7,7 +7,7 @@ export default class ProgressBar {
   constructor(total: number, stdout: Stdout = process.stderr) {
     this.stdout = stdout;
     this.total = total;
-    this.chars = ProgressBar.bars[0].split('');
+    this.chars = ProgressBar.bars[0];
     this.delay = 60;
     this.curr = 0;
     clearLine(stdout);
@@ -22,7 +22,7 @@ export default class ProgressBar {
   id: ?number;
 
   static bars = [
-    '█░',
+    ['█', '░'],
   ];
 
   tick() {

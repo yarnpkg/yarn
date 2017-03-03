@@ -31,7 +31,7 @@ export default class PackageInstallScripts {
   force: boolean;
 
 
-  getInstallCommands(pkg: Manifest): Array<[string]> {
+  getInstallCommands(pkg: Manifest): Array<[string, string]> {
     const scripts = pkg.scripts;
     if (scripts) {
       const cmds = [];
