@@ -45,15 +45,6 @@ _esy-prepare-build-env () {
 
 }
 
-replace-string () {
-  FILENAME="$1"
-  SRC="$2"
-  DST="$3"
-
-  # In-place rename, with literal strings -- no regex
-  perl -pi -e "s/\Q${SRC}/${DST}/g" "${FILENAME}"
-}
-
 _esy-perform-build () {
 
   _esy-prepare-build-env
@@ -82,7 +73,7 @@ _esy-perform-build () {
     exit 1
   else
     for filename in `find $cur__install -type f`; do
-      replace-string "$filename" "$cur__install" "$esy_build__install"
+      $ESY__ROOT/bin/replace-string "$filename" "$cur__install" "$esy_build__install"
     done
     mv $cur__install $esy_build__install
     echo -e "${FG_GREEN}*** $cur__name: build complete${FG_RESET}"
