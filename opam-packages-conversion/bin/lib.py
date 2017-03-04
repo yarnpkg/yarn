@@ -67,7 +67,9 @@ def generate_package_json(name, version, directory):
     def unescapeTerm(term):
         if term.startswith("{"):
             return ""
-        g = re.search(r'\"(.*)\"', term)
+        # Anything in quotes, including other escaped quotes.
+        # http://stackoverflow.com/a/16130746
+        g = re.search(r'"(?:\\.|[^"\\])*"', term)
         if g:
             return term
         else:
@@ -84,14 +86,25 @@ def generate_package_json(name, version, directory):
 
     def breakList(txt):
         if txt.startswith("["):
+            # Remove the outermost []
             txt = txt[1:-1]
         txt = txt.strip()
         if txt == "":
             return []
 
+        # Normalize to assume that we had `build [ [cmd x y] ]` even if we only had
+        # `build [ cmd x y ]`. We already removed the outermost [], but now we
+        # want to assume that each item inside is wrapped in [].
+        if not txt.startswith("["):
+            # Remove the outermost []
+            txt = '[' + txt + ']'
         # Look for lists
         g = re.findall(r'\[([^\[\]]*)\]\s*\{?([^\{\}\[\]]*)\}?', txt, re.S)
         if not g:
+            print("splitting" + txt)
+            # Form one: txt = '"./configure" "--prefix" prefix'
+            # Form two: txt = '"sh" "-c" "cd src/parser && ocamlbuild parser_flow.cma parser_flow.cmxa"'
+            # Want to split on individual words
             terms = [unescapeTerm(term) for term in re.split(r"[\s\n]+", txt)]
 
             return [(" ".join(terms), "")]
