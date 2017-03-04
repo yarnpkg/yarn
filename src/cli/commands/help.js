@@ -1,6 +1,6 @@
 /* @flow */
 
-import type BaseCommand from './base.js';
+import BaseCommand from './_base.js';
 import * as commands from './index.js';
 import * as constants from '../../constants.js';
 import type {Reporter} from '../../reporters/index.js';
