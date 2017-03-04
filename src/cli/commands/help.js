@@ -1,5 +1,6 @@
 /* @flow */
 
+import type BaseCommand from './base.js';
 import * as commands from './index.js';
 import * as constants from '../../constants.js';
 import type {Reporter} from '../../reporters/index.js';
@@ -7,7 +8,7 @@ import type Config from '../../config.js';
 import {sortAlpha, hyphenate} from '../../util/misc.js';
 const chalk = require('chalk');
 
-export default class HelpCommand {
+export default class HelpCommand extends BaseCommand {
   static hasWrapper(): boolean {
     return false;
   }
