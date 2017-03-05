@@ -18,6 +18,7 @@ import * as languages from './lang/index.js';
 import isCI from 'is-ci';
 
 const util = require('util');
+const EventEmitter = require('events').EventEmitter;
 
 type Language = $Keys<typeof languages>;
 
@@ -55,7 +56,7 @@ export default class BaseReporter {
 
     this.stdout = opts.stdout || process.stdout;
     this.stderr = opts.stderr || process.stderr;
-    this.stdin = opts.stdin || process.stdin;
+    this.stdin = opts.stdin || this._getStandardInput();
     this.emoji = !!opts.emoji;
     this.noProgress = !!opts.noProgress || isCI;
     this.isVerbose = !!opts.verbose;
@@ -112,6 +113,21 @@ export default class BaseReporter {
 
   _verbose(msg: string) {}
   _verboseInspect(val: any) {}
+
+  _getStandardInput(): Stdin {
+    let standardInput;
+
+    try {
+      standardInput = process.stdin;
+    } catch (e) {
+      delete process.stdin;
+      // $FlowFixMe: this is valid!
+      process.stdin = new EventEmitter();
+      standardInput = process.stdin;
+    }
+
+    return standardInput;
+  }
 
   initPeakMemoryCounter() {
     this.checkPeakMemory();
