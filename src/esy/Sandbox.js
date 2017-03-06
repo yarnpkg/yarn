@@ -414,11 +414,33 @@ function objectToDependencySpecList(...objs) {
   return dependencySpecList;
 }
 
+/**
+ * See https://github.com/reasonml/esy/issues/3
+ *
+ * This scheme:
+ *  - does not use - (hyphen) for normalized names.
+ *  - does not use __ for normalized names (double under is reserved for our
+ *    own suffixes in esy).
+ *
+ *
+ * Details:
+ *
+ *   .                    __dot__
+ *   /                    __slash__
+ *    - (hyphen)          _ (under)
+ *    _ (under)           ___ (triple under)
+ *    __ (double under)   ____ (quadruple)
+ */
 function normalizeName(name) {
   return name
     .toLowerCase()
     .replace(/@/g, '')
-    .replace(/\//g, '_')
+    .replace(/_+/g, (matched, arg2, arg3) => {
+      return matched + '__';
+    })
+    .replace(/\//g, '__slash__')
+    // Add two underscores to every group we see.
+    .replace(/\./g, '__dot__')
     .replace(/\-/g, '_');
 }
 

@@ -7,6 +7,33 @@ import collections
 
 import config
 
+#   See https://github.com/reasonml/esy/issues/3
+#
+#   This scheme:
+#    - does not use - (hyphen) for normalized names.
+#    - does not use __ for normalized names (double under is reserved for our
+#      own suffixes in esy).
+#
+#
+#   Details:
+#
+#     .                    __dot__
+#     /                    __slash__
+#      - (hyphen)          _ (under)
+#      _ (under)           ___ (triple under)
+#      __ (double under)   ____ (quadruple)
+#
+def normalize_package_name_to_var_name(name):
+    def escape_underscore(matched):
+        var = matched.group(1)
+        return var + '__'
+    # This has to be done before the other replacements.
+    name = re.sub(r"(_+)", escape_underscore, name)
+    name = name.replace('.', '__dot__')
+    name = name.replace('.', '__slash__')
+    name = name.replace('-', '_')
+    return name
+
 def generate_package_json(name, version, directory):
     opam_file = os.path.join(directory, 'opam')
     files_directory = os.path.join(directory, 'files')
@@ -153,7 +180,7 @@ def generate_package_json(name, version, directory):
     def normalize_var_name(name):
         if '+' in name:
             name, _ = name.split('+', 1)
-        return name.replace('-', '_')
+        return normalize_package_name_to_var_name(name)
 
     def cmdToStrings(cmd):
         return re.findall(r"\"[^\"]+\"|\S+", cmd)
@@ -314,15 +341,15 @@ def generate_package_json(name, version, directory):
 
     packageJSON["esy"]["buildsInSource"] = True
     packageJSON["esy"]["exportedEnv"] = {
-        "%s_version" % name.replace("-", "_"): {
+        "%s_version" % normalize_package_name_to_var_name(name) : {
             "val": packageJSON["version"],
             "scope": "global"
         },
-        "%s_enable" % name.replace("-", "_"): {
+        "%s_enable" % normalize_package_name_to_var_name(name) : {
             "val": "enable",
             "scope": "global"
         },
-        "%s_installed" % name.replace("-", "_"): {
+        "%s_installed" % normalize_package_name_to_var_name(name) : {
             "val": "true",
             "scope": "global"
         },

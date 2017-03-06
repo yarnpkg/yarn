@@ -1,5 +1,7 @@
 import os.path
 
+from lib import normalize_package_name_to_var_name
+
 __dir__ = os.path.dirname(os.path.realpath(__file__))
 
 os.environ['PATH'] = '%s:%s' % (__dir__, os.environ['PATH'])
@@ -61,11 +63,11 @@ def export_caml_ld_library_path(name, stublibs=False):
     }
 
 def caml_ld_library_path(name, stublibs=False):
-    norm_name = name.replace('-', '_')
+    norm_name = normalize_package_name_to_var_name ('opam-alpha/' + name)
     # Note that opam_alpha comes from opam-alpha prefix that we use.
     return {
         'scope': 'global',
-        'val': '$opam_alpha_%s__lib/%s:$CAML_LD_LIBRARY_PATH' % (
+        'val': '$%s__lib/%s:$CAML_LD_LIBRARY_PATH' % (
             norm_name,
             'stublibs' if stublibs else name),
     }

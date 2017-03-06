@@ -259,8 +259,6 @@ function buildEjectCommand(
 
       let allDependencies = collectTransitiveDependencies(packageInfo);
 
-      let packageEnv = `${packageJson.name}__env`;
-
       emitPackageFile({
         filename: 'env',
         contents: renderEnv(buildEnvironment),
