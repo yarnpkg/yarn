@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "normal-dep": "file:normal-dep"
+  },
+  "optionalDependencies": {
+    "optional-dep": "file:optional-dep"
+  }
+}

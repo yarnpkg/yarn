@@ -281,7 +281,8 @@ export default class PackageRequest {
       promises.push(this.resolver.find({
         pattern: depPattern,
         registry: remote.registry,
-        optional: false,
+        // dependencies of optional dependencies should themselves be optional
+        optional: this.optional,
         parentRequest: this,
       }));
     }

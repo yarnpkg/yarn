@@ -1,0 +1,7 @@
+{
+  "name": "sub-failing",
+  "version": "0.0.0",
+  "scripts": {
+    "install": "node install.js"
+  }
+}

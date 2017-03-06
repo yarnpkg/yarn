@@ -894,6 +894,14 @@ test.concurrent('install a module with incompatible optional dependency should s
     });
   });
 
+test.concurrent('install a module with optional dependency should skip incompatible transient dependency',
+  (): Promise<void> => {
+    return runInstall({}, 'install-should-skip-incompatible-optional-sub-dep', async (config) => {
+      assert.ok(await fs.exists(path.join(config.cwd, 'node_modules', 'dep-optional')));
+      assert.ok(!(await fs.exists(path.join(config.cwd, 'node_modules', 'dep-incompatible'))));
+    });
+  });
+
 // this tests for a problem occuring due to optional dependency incompatible with os, in this case fsevents
 // this would fail on os's incompatible with fsevents, which is everything except osx.
 if (process.platform !== 'darwin') {
@@ -914,6 +922,14 @@ test.concurrent('optional dependency that fails to build should not be installed
     });
   });
 
+test.concurrent('failing dependency of optional dependency should not be installed',
+  (): Promise<void> => {
+    return runInstall({}, 'should-not-install-failing-deps-of-optional-deps', async (config) => {
+      assert.equal(await fs.exists(path.join(config.cwd, 'node_modules', 'optional-dep')), true);
+      assert.equal(await fs.exists(path.join(config.cwd, 'node_modules', 'sub-failing')), false);
+    });
+  });
+
 // Covers current behavior, issue opened whether this should be changed https://github.com/yarnpkg/yarn/issues/2274
 test.concurrent('a subdependency of an optional dependency that fails should be installed',
   (): Promise<void> => {
@@ -922,6 +938,19 @@ test.concurrent('a subdependency of an optional dependency that fails should be 
       assert.equal(await fs.exists(path.join(config.cwd, 'node_modules', 'sub-dep')), true);
     });
   });
+
+test.concurrent('a sub-dependency should be non-optional if any parents mark it non-optional',
+  async (): Promise<void> => {
+    let thrown = false;
+    try {
+      await runInstall({}, 'failing-sub-dep-optional-and-normal', () => {});
+    } catch (err) {
+      thrown = true;
+      expect(err.message).toContain('sub-failing: Command failed');
+    }
+    assert(thrown);
+  });
+
 
 test.concurrent('should not loose dependencies when installing with --production',
   (): Promise<void> => {

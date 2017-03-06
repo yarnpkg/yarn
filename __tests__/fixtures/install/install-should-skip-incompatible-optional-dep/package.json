@@ -1,5 +1,5 @@
 {
   "optionalDependencies": {
-    "dep-incompatible": "1.0.0"
+    "dep-incompatible": "file:dep-incompatible"
   }
 }
