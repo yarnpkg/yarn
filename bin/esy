@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+ESY__VERSION="3.0.0"
+# The store is compatible with any major version 3.
+ESY__STORE_VERSION="3.x.x"
 # http://stackoverflow.com/questions/59895/can-a-bash-script-tell-what-directory-its-stored-in
 SOURCE="${BASH_SOURCE[0]}"
 while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink
@@ -30,7 +33,7 @@ if [ -z "${ESY__SANDBOX+x}" ]; then
   export ESY__SANDBOX="$PWD"
 fi
 if [ -z "${ESY__STORE+x}" ]; then
-  export ESY__STORE="$HOME/.esy/store"
+  export ESY__STORE="$HOME/.esy/store-$ESY__STORE_VERSION"
 fi
 if [ -z "${ESY__LOCAL_STORE+x}" ]; then
   export ESY__LOCAL_STORE="$ESY__SANDBOX/node_modules/.cache/_esy/store"
