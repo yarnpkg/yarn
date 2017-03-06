@@ -9,11 +9,11 @@ import {sortAlpha, hyphenate} from '../../util/misc.js';
 const chalk = require('chalk');
 
 export default class HelpCommand extends BaseCommand {
-  static hasWrapper(): boolean {
+  hasWrapper(): boolean {
     return false;
   }
 
-  static run(
+  run(
     config: Config,
     reporter: Reporter,
     commander: Object,

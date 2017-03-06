@@ -1,7 +1,7 @@
 /* @flow */
 
 export default class BaseCommand {
-  static hasWrapper(): boolean {
+  hasWrapper(): boolean {
     return true;
   }
 }

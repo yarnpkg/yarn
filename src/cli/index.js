@@ -1,5 +1,6 @@
 /* @flow */
 
+import BaseCommand from './commands/_base.js';
 import {ConsoleReporter, JSONReporter} from '../reporters/index.js';
 import {registries, registryNames} from '../registries/index.js';
 import * as commands from './commands/index.js';
@@ -127,6 +128,9 @@ if (!command) {
   const camelised = camelCase(commandName);
   if (camelised) {
     command = commands[camelised];
+    if (command && command.prototype instanceof BaseCommand) {
+      command = new command();
+    }
   }
 }
 
@@ -168,6 +172,7 @@ if (command) {
 } else {
   command = commands.run;
 }
+
 invariant(command, 'missing command');
 
 //
