@@ -269,7 +269,8 @@ Support for "ejecting" a build is computed and stored in
 ###### Package Cache
 
 `esy` currently uses Yarn to perform the installs, but ensures that it uses its
-own isolated cache.  You can see where this cache is by running:
+own isolated package cache. (note: this is different than `esy`'s build cache).
+You can see where this cache is by running:
 
 ```
 dirname $(realpath `which esy`)
