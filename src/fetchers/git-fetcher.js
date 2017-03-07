@@ -7,7 +7,7 @@ import Git from '../util/git.js';
 import * as fsUtil from '../util/fs.js';
 import * as crypto from '../util/crypto.js';
 
-const tar = require('tar');
+const tarFs = require('tar-fs');
 const url = require('url');
 const path = require('path');
 const fs = require('fs');
@@ -34,7 +34,10 @@ export default class GitFetcher extends BaseFetcher {
     }
 
     return new Promise((resolve, reject) => {
-      const untarStream = tar.Extract({path: this.dest});
+      const untarStream = tarFs.extract(this.dest, {
+        dmode: 0o555, // all dirs should be readable
+        fmode: 0o444, // all files should be readable
+      });
 
       const hashStream = new crypto.HashStream();
 
@@ -42,7 +45,7 @@ export default class GitFetcher extends BaseFetcher {
       cachedStream
         .pipe(hashStream)
         .pipe(untarStream)
-        .on('end', () => {
+        .on('finish', () => {
           const expectHash = this.hash;
           const actualHash = hashStream.getHash();
           if (!expectHash || expectHash === actualHash) {

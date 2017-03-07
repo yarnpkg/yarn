@@ -11,8 +11,10 @@ import map from './map.js';
 
 const invariant = require('invariant');
 const semver = require('semver');
+const StringDecoder = require('string_decoder').StringDecoder;
+const tarFs = require('tar-fs');
+const tarStream = require('tar-stream');
 const url = require('url');
-const tar = require('tar');
 import {createWriteStream} from 'fs';
 
 type GitRefs = {
@@ -205,9 +207,12 @@ export default class Git {
   async _cloneViaRemoteArchive(dest: string): Promise<void> {
     await child.spawn('git', ['archive', `--remote=${this.url}`, this.ref], {
       process(proc, update, reject, done) {
-        const extractor = tar.Extract({path: dest});
+        const extractor = tarFs.extract(dest, {
+          dmode: 0o555, // all dirs should be readable
+          fmode: 0o444, // all files should be readable
+        });
         extractor.on('error', reject);
-        extractor.on('end', done);
+        extractor.on('finish', done);
 
         proc.stdout.pipe(extractor);
         proc.on('error', reject);
@@ -219,9 +224,13 @@ export default class Git {
     await child.spawn('git', ['archive', this.hash], {
       cwd: this.cwd,
       process(proc, resolve, reject, done) {
-        const extractor = tar.Extract({path: dest});
+        const extractor = tarFs.extract(dest, {
+          dmode: 0o555, // all dirs should be readable
+          fmode: 0o444, // all files should be readable
+        });
+
         extractor.on('error', reject);
-        extractor.on('end', done);
+        extractor.on('finish', done);
 
         proc.stdout.pipe(extractor);
       },
@@ -279,13 +288,25 @@ export default class Git {
     try {
       return await child.spawn('git', ['archive', `--remote=${this.url}`, this.ref, filename], {
         process(proc, update, reject, done) {
-          const parser = tar.Parse();
+          const parser = tarStream.extract();
 
           parser.on('error', reject);
-          parser.on('end', done);
+          parser.on('finish', done);
 
-          parser.on('data', (entry: Buffer) => {
-            update(entry.toString());
+          parser.on('entry', (header, stream, next) => {
+            const decoder = new StringDecoder('utf8');
+            let fileContent = '';
+
+            stream.on('data', (buffer) => {
+              fileContent += decoder.write(buffer);
+            });
+            stream.on('end', () => {
+              // $FlowFixMe: suppressing this error due to bug https://github.com/facebook/flow/pull/3483
+              const remaining: string = decoder.end();
+              update(fileContent + remaining);
+              next();
+            });
+            stream.resume();
           });
 
           proc.stdout.pipe(parser);
