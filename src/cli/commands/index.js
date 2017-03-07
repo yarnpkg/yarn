@@ -3,7 +3,7 @@
 import * as access from './access.js'; export {access};
 import * as add from './add.js'; export {add};
 import bin from './bin.js'; export {bin};
-import * as cache from './cache.js'; export {cache};
+import cache from './cache.js'; export {cache};
 import * as check from './check.js'; export {check};
 import * as clean from './clean.js'; export {clean};
 import * as config from './config.js'; export {config};

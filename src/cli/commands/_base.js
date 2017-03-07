@@ -1,7 +1,7 @@
 /* @flow */
 
 export default class BaseCommand {
-  hasWrapper(): boolean {
+  hasWrapper(flags: Object, args: Array<string>): boolean {
     return true;
   }
 }
