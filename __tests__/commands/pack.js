@@ -85,8 +85,8 @@ export async function getFilesFromArchive(source, destination): Promise<Array<st
       .pipe(new zlib.Gunzip())
       .pipe(tarFs.extract(destination, {
         strip: 1,
-        dmode: parseInt(555, 8), // all dirs should be readable
-        fmode: parseInt(444, 8), // all files should be readable
+        dmode: 0o555, // all dirs should be readable
+        fmode: 0o444, // all files should be readable
       }))
       .on('finish', resolve)
       .on('error', reject);
