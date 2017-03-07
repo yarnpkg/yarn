@@ -748,6 +748,27 @@ test.concurrent('install should write and read integrity file based on lockfile 
   });
 });
 
+test.concurrent('install should not continue if integrity check passes', (): Promise<void> => {
+  return runInstall({}, 'lockfile-stability', async (config, reporter) => {
+
+    await fs.writeFile(path.join(config.cwd, 'node_modules', 'yarn.test'), 'YARN TEST');
+
+    // install should bail out with integrity check and not remove extraneous file
+    let reinstall = new Install({}, config, reporter, await Lockfile.fromDirectory(config.cwd));
+    await reinstall.init();
+
+    expect(await fs.exists(path.join(config.cwd, 'node_modules', 'yarn.test')));
+
+    await fs.unlink(path.join(config.cwd, 'node_modules', 'yarn.test'));
+
+    reinstall = new Install({}, config, reporter, await Lockfile.fromDirectory(config.cwd));
+    await reinstall.init();
+
+    expect(!await fs.exists(path.join(config.cwd, 'node_modules', 'yarn.test')));
+
+  });
+});
+
 test.concurrent('install should not rewrite lockfile with no substantial changes', (): Promise<void> => {
   const fixture = 'lockfile-no-rewrites';
 

@@ -1,11 +1,13 @@
 /* @flow */
 
-import type {Reporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
 import {MessageError} from '../../errors.js';
-import {Install} from './install.js';
+import InstallationIntegrityChecker from '../../integrity-checker.js';
+import lockStringify from '../../lockfile/stringify.js';
 import Lockfile from '../../lockfile/wrapper.js';
+import type {Reporter} from '../../reporters/index.js';
 import * as fs from '../../util/fs.js';
+import {Install} from './install.js';
 
 const semver = require('semver');
 const path = require('path');
@@ -142,29 +144,26 @@ async function integrityHashCheck(
     reporter.error(reporter.lang(msg, ...vars));
     errCount++;
   }
+  const integrityChecker = new InstallationIntegrityChecker(config);
 
   const lockfile = await Lockfile.fromDirectory(config.cwd);
   const install = new Install(flags, config, reporter, lockfile);
 
   // get patterns that are installed when running `yarn install`
+  // TODO hydrate takes longer then install command bailout https://github.com/yarnpkg/yarn/issues/2514
   const {patterns: rawPatterns} = await install.hydrate(true);
   const patterns = await install.flatten(rawPatterns);
+  const lockSource = lockStringify(lockfile.getLockfile(install.resolver.patterns));
 
-  // check if patterns exist in lockfile
-  for (const pattern of patterns) {
-    if (!lockfile.getLocked(pattern)) {
-      reportError('lockfileNotContainPatter', pattern);
-    }
+  const match = await integrityChecker.check(patterns, lockfile, lockSource, flags);
+  for (const pattern of match.missingPatterns) {
+    reportError('lockfileNotContainPattern', pattern);
   }
-
-  const integrityLoc = await install.getIntegrityHashLocation();
-  if (integrityLoc && await fs.exists(integrityLoc)) {
-    const match = await install.matchesIntegrityHash(patterns);
-    if (match.matches === false) {
-      reportError('integrityHashesDontMatch', match.expected, match.actual);
-    }
-  } else {
-    reportError('noIntegirtyHashFile');
+  if (match.integrityFileMissing) {
+    reportError('noIntegrityHashFile');
+  }
+  if (!match.integrityHashMatches) {
+    reportError('integrityHashesDontMatch');
   }
 
   if (errCount > 0) {
@@ -219,7 +218,7 @@ export async function run(
   // check if patterns exist in lockfile
   for (const pattern of patterns) {
     if (!lockfile.getLocked(pattern)) {
-      reportError('lockfileNotContainPatter', pattern);
+      reportError('lockfileNotContainPattern', pattern);
     }
   }
 

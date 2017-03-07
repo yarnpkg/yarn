@@ -252,9 +252,9 @@ const messages = {
   packageHasNoBinaries: '$0 has no binaries',
 
   couldBeDeduped: '$0 could be deduped from $1 to $2',
-  lockfileNotContainPatter: 'Lockfile does not contain pattern: $0',
-  integrityHashesDontMatch: 'Integrity hashes don\'t match, expected $0 but got $1',
-  noIntegirtyHashFile: 'Couldn\'t find an integrity hash file',
+  lockfileNotContainPattern: 'Lockfile does not contain pattern: $0',
+  integrityHashesDontMatch: 'Integrity hashes don\'t match',
+  noIntegrityHashFile: 'Couldn\'t find an integrity hash file',
   packageNotInstalled: '$0 not installed',
   optionalDepNotInstalled: 'Optional dependency $0 not installed',
   packageWrongVersion: '$0 is wrong version: expected $1, got $2',
