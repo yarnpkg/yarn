@@ -11,10 +11,12 @@ import map from './map.js';
 
 const invariant = require('invariant');
 const semver = require('semver');
-const url = require('url');
+const StringDecoder = require('string_decoder').StringDecoder;
 const tarFs = require('tar-fs');
 const tarStream = require('tar-stream');
+const url = require('url');
 import {createWriteStream} from 'fs';
+
 
 type GitRefs = {
   [name: string]: string
@@ -207,8 +209,8 @@ export default class Git {
     await child.spawn('git', ['archive', `--remote=${this.url}`, this.ref], {
       process(proc, update, reject, done) {
         const extractor = tarFs.extract(dest, {
-          dmode: parseInt(555, 8), // all dirs should be readable
-          fmode: parseInt(444, 8), // all files should be readable
+          dmode: 0o555, // all dirs should be readable
+          fmode: 0o444, // all files should be readable
         });
         extractor.on('error', reject);
         extractor.on('finish', done);
@@ -224,8 +226,8 @@ export default class Git {
       cwd: this.cwd,
       process(proc, resolve, reject, done) {
         const extractor = tarFs.extract(dest, {
-          dmode: parseInt(555, 8), // all dirs should be readable
-          fmode: parseInt(444, 8), // all files should be readable
+          dmode: 0o555, // all dirs should be readable
+          fmode: 0o444, // all files should be readable
         });
 
         extractor.on('error', reject);
@@ -293,12 +295,15 @@ export default class Git {
           parser.on('finish', done);
 
           parser.on('entry', (header, stream, next) => {
-            let string = '';
+            const decoder = new StringDecoder('utf8');
+            let fileContent = '';
+
             stream.on('data', (buffer) => {
-              string += buffer.toString();
+              fileContent += decoder.write(buffer);
             });
             stream.on('end', () => {
-              update(string);
+              fileContent += decoder.end();
+              update(fileContent);
               next();
             });
             stream.resume();

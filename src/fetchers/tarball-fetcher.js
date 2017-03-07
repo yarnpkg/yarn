@@ -79,8 +79,8 @@ export default class TarballFetcher extends BaseFetcher {
     const extractorStream = new UnpackStream();
     const untarStream = tarFs.extract(this.dest, {
       strip: 1,
-      dmode: parseInt(555, 8), // all dirs should be readable
-      fmode: parseInt(444, 8), // all files should be readable
+      dmode: 0o555, // all dirs should be readable
+      fmode: 0o444, // all files should be readable
     });
 
     extractorStream
