@@ -201,12 +201,12 @@ other environment variables.
 # Contributing
 
 
-#### Directory Layout
+### Directory Layout
 
 Here's a general overview of the directory layout created by various `esy`
 commands.
 
-###### Global Cache
+##### Global Cache
 
 When building projects, most globally cached artifacts are stored in `~/.esy/store`.
 
@@ -218,19 +218,26 @@ When building projects, most globally cached artifacts are stored in `~/.esy/sto
         └── _insttmp
 
 
-In the top level project, there is a `./node_modules/.cache/_esy` directory
-that stores things related to your current project.
+The global store's `_build` directory contains the logs for each package that
+is build (whether or not it was successful). The `_install` contains the final
+compilation artifacts that should be retained.
+
+#### Top Level Project Build Artifacts
 
 ###### Local Build Cache, Build Eject And Environment Cache
 
-Not all artifacts are cached globally. Build artifacts for your top level
-project and any symlinked dependencies (using `yarn link`) are stored in
-`./node_modules/_esy/store` which is just like the global store, but for your
-locally symlinked projects, and top level package.
+Not all artifacts are cached globally. Build artifacts for any symlinked
+dependencies (using `yarn link`) are stored in
+`./node_modules/.cache/_esy/store` which is just like the global store, but for
+your locally symlinked projects, and top level package.
 
 This local cache doesn't have the dirtyling logic as the global store for
 (non-symlinked) dependencies. Currently, both symlinked dependencies and your
 top level package are both rebuilt every time you run `esy build`.
+
+Your top level package is build within its source tree, not in a copy of the
+source tree, but as always your package can (and should try to) respect the out
+of source destination `$cur__target_dir`.
 
 Cached environment computations (for commands such as `esy cmd`) are stored in
 `./node_modules/.cache/_esy/command-env`
@@ -257,6 +264,23 @@ Support for "ejecting" a build is computed and stored in
               ├── _install
               └── _insttmp
 
+#### Debugging
+
+###### Package Cache
+
+`esy` currently uses Yarn to perform the installs, but ensures that it uses its
+own isolated cache.  You can see where this cache is by running:
+
+```
+dirname $(realpath `which esy`)
+```
+
+The reason why `esy` has its own cache, and the reason why it is inside of its
+own binary installation location, is to ensure that when you upgrade `esy`, the
+package cache will be purged. This is because many of `esy`'s opam packages are
+precomputed and stored within `esy`'s internals, but then Yarn's cache will
+store them in its own cache. Across `esy` upgrades, we may change how we
+precompute those opam package.json's and want the cache busted.
 
 #### Issues
 
@@ -316,6 +340,9 @@ Once pushed, other people can install that tagged release globally like this:
 - Push the update to `esy` `master`.
 - Clone a *fresh* new clone of `esy` (so that the submodules initialize
   correctly), then publish a new beta release as described next.
+
+If an opam package fails to convert, inspect the output and fix any python
+errors that might be causing the package conversion failure.
   
 
 #### Debugging Failed `esy build`
@@ -325,6 +352,10 @@ When  debugging esy build — do the following:
 1. `esy build-eject` creates `node_modules/.cache/esy/Makefile`
 2. `make -f ./node_modules/.cache/esy/Makefile PKG_NAME.shell` will put you in a build env shell
 3. Try to run commands specified in `package.json's` esy build config and see what goes wrong.
+
+If the package is a converted opam package, you might want to inspect the
+generated package.json, as well as the original opam file and make sure that it
+was converted correctly.
 
 
 

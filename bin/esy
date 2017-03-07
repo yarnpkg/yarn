@@ -3,6 +3,9 @@
 ESY__VERSION="3.0.0"
 # The store is compatible with any major version 3.
 ESY__STORE_VERSION="3.x.x"
+# The caches are compatible with any major version 3.
+ESY__CACHE_VERSION="3.x.x"
+
 # http://stackoverflow.com/questions/59895/can-a-bash-script-tell-what-directory-its-stored-in
 SOURCE="${BASH_SOURCE[0]}"
 while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink
@@ -11,6 +14,11 @@ while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symli
   [[ $SOURCE != /* ]] && SOURCE="$SCRIPTDIR/$SOURCE" # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
 done
 SCRIPTDIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+
+# We store the yarn cache in the binary directory (not the node symlink farm
+# directory, but the real directory where esy lives) so that when you uninstall
+# esy, and then reinstall it, you will intentionally bust the cache.
+ESY__YARN_CACHE_DIR="$SCRIPTDIR/EsyYarnCache-$ESY__CACHE_VERSION/"
 
 # Had to remove this so that we could just use one command `esy` which we
 # forward everything to.
@@ -103,7 +111,7 @@ builtIn() {
 }
 
 builtInYarn() {
-	node $SCRIPTDIR/yarn.js $@
+	node $SCRIPTDIR/yarn.js $@ --cache-folder $ESY__YARN_CACHE_DIR
 }
 
 if [ "$1" == "build" ] || [ "$1" == "build-shell" ] || [ "$1" == "clean" ]; then
