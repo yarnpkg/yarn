@@ -1,6 +1,7 @@
 /* @flow */
 
 import type Config from './config.js';
+import type {RegistryNames} from './registries/index.js';
 import * as constants from './constants.js';
 import {registryNames} from './registries/index.js';
 import Lockfile from './lockfile/wrapper.js';
@@ -18,6 +19,11 @@ export type IntegrityCheckResult = {
   missingPatterns: Array<string>,
 };
 
+type IntegrityHashLocation = {
+  locationPath: string,
+  exists: boolean,
+}
+
 /**
  *
  */
@@ -33,15 +39,19 @@ export default class InstallationIntegrityChecker {
    * write a new one.
    */
 
-  async _getIntegrityHashLocation(): Promise<string> {
+  async _getIntegrityHashLocation(usedRegistries?: Set<RegistryNames>): Promise<IntegrityHashLocation> {
     // build up possible folders
+    let registries = registryNames;
+    if (usedRegistries && usedRegistries.size > 0) {
+      registries = usedRegistries;
+    }
     const possibleFolders = [];
     if (this.config.modulesFolder) {
       possibleFolders.push(this.config.modulesFolder);
     }
 
     // ensure we only write to a registry folder that was used
-    for (const name of registryNames) {
+    for (const name of registries) {
       const loc = path.join(this.config.cwd, this.config.registries[name].folder);
       possibleFolders.push(loc);
     }
@@ -49,14 +59,17 @@ export default class InstallationIntegrityChecker {
     // if we already have an integrity hash in one of these folders then use it's location otherwise use the
     // first folder
     const possibles = possibleFolders.map((folder): string => path.join(folder, constants.INTEGRITY_FILENAME));
-    let loc = possibles[0];
+    let loc;
     for (const possibleLoc of possibles) {
       if (await fs.exists(possibleLoc)) {
         loc = possibleLoc;
         break;
       }
     }
-    return loc;
+    return {
+      locationPath: loc || possibles[0],
+      exists: !!loc,
+    };
   }
 
   /**
@@ -97,19 +110,18 @@ export default class InstallationIntegrityChecker {
     // check if patterns exist in lockfile
     const missingPatterns = patterns.filter((p) => !lockfile.getLocked(p));
     const loc = await this._getIntegrityHashLocation();
-    const integrityFileMissing = !await fs.exists(loc);
-    if (missingPatterns.length || integrityFileMissing) {
+    if (missingPatterns.length || !loc.exists) {
       return {
-        integrityFileMissing,
+        integrityFileMissing: !loc.exists,
         missingPatterns,
       };
     }
 
     const actual = this._generateIntegrityHash(normalizedLockSource, patterns, flags);
-    const expected = (await fs.readFile(loc)).trim();
+    const expected = (await fs.readFile(loc.locationPath)).trim();
 
     return {
-      integrityFileMissing,
+      integrityFileMissing: false,
       integrityHashMatches: actual === expected,
       missingPatterns,
     };
@@ -118,16 +130,22 @@ export default class InstallationIntegrityChecker {
   /**
    * Write the integrity hash of the current install to disk.
    */
-  async save(patterns: Array<string>, normalizedLockSource: string, flags: Object): Promise<void> {
-    const loc = await this._getIntegrityHashLocation();
-    invariant(loc, 'expected integrity hash location');
-    await fs.mkdirp(path.dirname(loc));
-    await fs.writeFile(loc, this._generateIntegrityHash(normalizedLockSource, patterns, flags));
+  async save(
+    patterns: Array<string>,
+    normalizedLockSource: string,
+    flags: Object,
+    usedRegistries?: Set<RegistryNames>): Promise<void> {
+    const loc = await this._getIntegrityHashLocation(usedRegistries);
+    invariant(loc.locationPath, 'expected integrity hash location');
+    await fs.mkdirp(path.dirname(loc.locationPath));
+    await fs.writeFile(loc.locationPath, this._generateIntegrityHash(normalizedLockSource, patterns, flags));
   }
 
   async removeIntegrityFile(): Promise<void> {
     const loc = await this._getIntegrityHashLocation();
-    await fs.unlink(loc);
+    if (loc.exists) {
+      await fs.unlink(loc.locationPath);
+    }
   }
 
 }
