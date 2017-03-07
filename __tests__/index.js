@@ -204,3 +204,9 @@ if (process.platform !== 'win32') {
     expect(stdout[stdout.length - 2]).toEqual('A message from custom script with args --help');
   });
 }
+
+test.concurrent('should run bin command', async () => {
+  const stdout = await execCommand('bin', [], '', false);
+  expect(stdout[0]).toEqual(path.join(fixturesLoc, 'node_modules', '.bin'));
+  expect(stdout.length).toEqual(1);
+});
