@@ -17,7 +17,6 @@ const tarStream = require('tar-stream');
 const url = require('url');
 import {createWriteStream} from 'fs';
 
-
 type GitRefs = {
   [name: string]: string
 };
@@ -302,8 +301,9 @@ export default class Git {
               fileContent += decoder.write(buffer);
             });
             stream.on('end', () => {
-              fileContent += decoder.end();
-              update(fileContent);
+              // $FlowFixMe: suppressing this error due to bug https://github.com/facebook/flow/pull/3483
+              const remaining: string = decoder.end();
+              update(fileContent + remaining);
               next();
             });
             stream.resume();
