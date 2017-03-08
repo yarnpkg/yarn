@@ -322,11 +322,20 @@ async function buildPackageInfo(baseDirectory, context) {
       packageDependencyTrace: context.packageDependencyTrace.concat(packageJson.name),
     }
   );
+  const isLocalModule =
+    !packageJson._resolved ||
+    (packageJson._resolved.indexOf &&
+    packageJson._resolved.indexOf('file:') === 0);
   return {
     errors: packageErrors,
     version: packageJson.version,
-    source: packageJson._resolved || `local:${await fs.realpath(dependencyBaseDir)}`,
-    sourceType: packageJson._resolved ? 'remote' : 'local',
+    /**
+     * TODO: Need to consider _resolved file: as also being local. They could
+     * have also been edited since last time installed, or reinstalled.
+     * Perhaps just checksumming the files is sufficient?
+     */
+    source: !isLocalModule ? packageJson._resolved : `local:${await fs.realpath(dependencyBaseDir)}`,
+    sourceType: !isLocalModule ? 'remote' : 'local',
     rootDirectory: dependencyBaseDir,
     packageJson,
     normalizedName: normalizeName(packageJson.name),
