@@ -29,6 +29,7 @@ export type ConfigOptions = {
   linkFolder?: ?string,
   offline?: boolean,
   preferOffline?: boolean,
+  preferOnline?: boolean,
   captureHar?: boolean,
   ignoreScripts?: boolean,
   ignorePlatform?: boolean,
@@ -85,6 +86,7 @@ export default class Config {
   looseSemver: boolean;
   offline: boolean;
   preferOffline: boolean;
+  preferOnline: boolean;
   ignorePlatform: boolean;
   binLinks: boolean;
 
@@ -273,6 +275,7 @@ export default class Config {
     this.commandName = opts.commandName || '';
 
     this.preferOffline = !!opts.preferOffline;
+    this.preferOnline = !!opts.preferOnline;
     this.modulesFolder = opts.modulesFolder;
     this.globalFolder = opts.globalFolder || constants.GLOBAL_MODULE_DIRECTORY;
     this.linkFolder = opts.linkFolder || constants.LINK_REGISTRY_DIRECTORY;

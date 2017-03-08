@@ -74,13 +74,23 @@ export default class NpmResolver extends RegistryResolver {
       }
     }
 
-    const body = await this.config.registries.npm.request(NpmRegistry.escapeName(this.name));
+    try {
+      const body = await this.config.registries.npm.request(NpmRegistry.escapeName(this.name));
+      if (body) {
+        return await NpmResolver.findVersionInRegistryResponse(this.config, this.range, body, this.request);
+      }
+    } catch (err) {
+      if(this.config.preferOnline) {
+        this.config.offline = true;
 
-    if (body) {
-      return await NpmResolver.findVersionInRegistryResponse(this.config, this.range, body, this.request);
-    } else {
-      return null;
+        const res = this.resolveRequestOffline();
+        if (res != null) {
+          return res;
+        }
+      }
     }
+
+    return null;
   }
 
   async resolveRequestOffline(): Promise<?Manifest> {

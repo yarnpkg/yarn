@@ -49,6 +49,7 @@ commander.usage('[command] [flags]');
 commander.option('--verbose', 'output verbose messages on internal operations');
 commander.option('--offline', 'trigger an error if any required dependencies are not available in local cache');
 commander.option('--prefer-offline', 'use network only if dependencies are not available in local cache');
+commander.option('--prefer-online', 'use cache only if network is not available');
 commander.option('--strict-semver');
 commander.option('--json', '');
 commander.option('--ignore-scripts', "don't run lifecycle scripts");
@@ -364,6 +365,7 @@ config.init({
   globalFolder: commander.globalFolder,
   cacheRootFolder: commander.cacheFolder,
   preferOffline: commander.preferOffline,
+  preferOnline: commander.preferOnline,
   captureHar: commander.har,
   ignorePlatform: commander.ignorePlatform,
   ignoreEngines: commander.ignoreEngines,
