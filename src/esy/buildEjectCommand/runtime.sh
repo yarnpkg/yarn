@@ -6,6 +6,19 @@ if [ "$TMPDIR" == "" ]; then
   unset TMPDIR
 fi
 
+OS='POSIX'
+if [ "$OS" == 'POSIX' ]; then
+  CIRCLE='◯'
+  CIRCLE_FILLED='◉'
+  CIRCLE_DOTTED='◌'
+else
+  CIRCLE='( )'
+  CIRCLE_FILLED='(*)'
+  CIRCLE_DOTTED='( )'
+fi
+# See https://github.com/sindresorhus/figures
+
+
 FG_RED='\033[0;31m'
 FG_GREEN='\033[0;32m'
 FG_WHITE='\033[1;37m'
@@ -51,7 +64,7 @@ _esy-perform-build () {
 
   cd $cur__root
 
-  echo -e "${FG_WHITE}*** $cur__name: building from source...${FG_RESET}"
+  echo -e "${FG_WHITE} $CIRCLE $cur__name: building from source...${FG_RESET}"
   BUILD_LOG="$cur__target_dir/_esy/build.log"
   set +e
   $ESY__SANDBOX_COMMAND /bin/bash   \
@@ -63,11 +76,11 @@ _esy-perform-build () {
   set -e
   if [ "$BUILD_RETURN_CODE" != "0" ]; then
     if [ "$esy_build__source_type" == "local" ] || [ ! -z "${CI+x}" ] ; then
-      echo -e "${FG_RED}*** $cur__name: build failed:\n"
+      echo -e "${FG_RED} $CIRCLE_DOTTED $cur__name: build failed:\n"
       cat "$BUILD_LOG" | sed  's/^/  /'
       echo -e "${FG_RESET}"
     else
-      echo -e "${FG_RED}*** $cur__name: build failed, see:\n\n  $BUILD_LOG\n\nfor details${FG_RESET}"
+      echo -e "${FG_RED} $CIRCLE_DOTTED $cur__name: build failed, see:\n\n  $BUILD_LOG\n\nfor details${FG_RESET}"
     fi
     esy-clean
     exit 1
@@ -76,7 +89,7 @@ _esy-perform-build () {
       $ESY__EJECT_ROOT/bin/replace-string "$filename" "$cur__install" "$esy_build__install"
     done
     mv $cur__install $esy_build__install
-    echo -e "${FG_GREEN}*** $cur__name: build complete${FG_RESET}"
+    echo -e "${FG_GREEN} $CIRCLE_FILLED $cur__name: build complete${FG_RESET}"
   fi
 
 }
