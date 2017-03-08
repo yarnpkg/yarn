@@ -19,10 +19,8 @@ async function setupWorkingDir(fixture: string): Promise<string> {
 }
 
 function execCommand(workingDir: string, cacheDir: string): Promise<string> {
-  const relativeBin = path.relative(workingDir, yarnBin);
-
   return new Promise((resolve, reject) => {
-    exec(`node "${relativeBin}" tag rm non-existing-pkg non-existing-tag --cache-folder ${cacheDir} | cat`,
+    exec(`node "${yarnBin}" tag rm non-existing-pkg non-existing-tag --cache-folder ${cacheDir} | cat`,
     {cwd: workingDir}, (err, stdout) => {
       if (err) {
         reject(err);
