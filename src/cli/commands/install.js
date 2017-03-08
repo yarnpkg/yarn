@@ -550,6 +550,49 @@ export class Install {
   }
 
   /**
+<<<<<<< HEAD
+=======
+   * Check if the loaded lockfile has all the included patterns
+   */
+
+  lockFileInSync(patterns: Array<string>): boolean {
+    let inSync = true;
+    for (const pattern of patterns) {
+      if (!this.lockfile.getLocked(pattern)) {
+        inSync = false;
+        break;
+      }
+    }
+    return inSync;
+  }
+
+  /**
+   * Remove offline tarballs that are no longer required
+   */
+
+  async pruneOfflineMirror(lockfile: Object): Promise<void> {
+    const mirror = this.config.getOfflineMirrorPath();
+    if (!mirror) {
+      return;
+    }
+
+    const requiredTarballs = new Set();
+    for (const dependency in lockfile) {
+      const resolved = lockfile[dependency].resolved;
+      if (resolved) {
+        requiredTarballs.add(resolved.split('#')[0]);
+      }
+    }
+
+    const mirrorTarballs = await fs.walk(mirror);
+    for (const tarball of mirrorTarballs) {
+      if (!requiredTarballs.has(tarball.basename)) {
+        await fs.unlink(tarball.absolute);
+      }
+    }
+  }
+
+  /**
    * Save updated integrity and lockfiles.
    */
 
@@ -559,8 +602,13 @@ export class Install {
       return;
     }
 
-    // stringify current lockfile
-    const lockSource = lockStringify(this.lockfile.getLockfile(this.resolver.patterns));
+    const lockfile = this.lockfile.getLockfile(this.resolver.patterns);
+
+    if (this.config.pruneOfflineMirror) {
+      await this.pruneOfflineMirror(lockfile);
+    }
+
+    const lockSource = lockStringify(lockfile);
 
     // write integrity hash
     await this.integrityChecker.save(patterns, lockSource, this.flags, this.resolver.usedRegistries);

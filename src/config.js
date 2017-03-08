@@ -29,6 +29,7 @@ export type ConfigOptions = {
   linkFolder?: ?string,
   offline?: boolean,
   preferOffline?: boolean,
+  pruneOfflineMirror?: boolean,
   captureHar?: boolean,
   ignoreScripts?: boolean,
   ignorePlatform?: boolean,
@@ -85,6 +86,7 @@ export default class Config {
   looseSemver: boolean;
   offline: boolean;
   preferOffline: boolean;
+  pruneOfflineMirror: boolean;
   ignorePlatform: boolean;
   binLinks: boolean;
 
@@ -240,6 +242,8 @@ export default class Config {
       this.getOption('cache-folder') ||
       constants.MODULE_CACHE_DIRECTORY,
     );
+
+    this.pruneOfflineMirror = Boolean(this.getOption('yarn-offline-mirror-pruning'));
 
     //init & create cacheFolder, tempFolder
     this.cacheFolder = path.join(this._cacheRootFolder, 'v' + String(constants.CACHE_VERSION));

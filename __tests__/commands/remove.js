@@ -140,3 +140,13 @@ test.concurrent('removes subdependencies', (): Promise<void> => {
     assert.equal(lockFileLines[0], 'dep-c@^1.0.0:');
   });
 });
+
+test.concurrent('can prune the offline mirror', (): Promise<void> => {
+  return runRemove(['dep-a'], {}, 'prune-offline-mirror', async (config, reporter) => {
+    const mirrorPath = 'mirror-for-offline';
+    assert(!await fs.exists(path.join(config.cwd, `${mirrorPath}/dep-a-1.0.0.tgz`)));
+    // dep-a depends on dep-b, so dep-b should also be pruned
+    assert(!await fs.exists(path.join(config.cwd, `${mirrorPath}/dep-b-1.0.0.tgz`)));
+    assert(await fs.exists(path.join(config.cwd, `${mirrorPath}/dep-c-1.0.0.tgz`)));
+  });
+});
