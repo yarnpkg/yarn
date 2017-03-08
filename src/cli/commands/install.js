@@ -550,8 +550,6 @@ export class Install {
   }
 
   /**
-<<<<<<< HEAD
-=======
    * Check if the loaded lockfile has all the included patterns
    */
 
