@@ -345,7 +345,7 @@ function onUnexpectedError(err: Error) {
 }
 
 function writeErrorReport(log) : ?string {
-  const errorReportLoc = path.join(config.cwd, 'yarn-error.log');
+  const errorReportLoc = path.join(config.cacheFolder, 'yarn-error.log');
 
   try {
     fs.writeFileSync(errorReportLoc, log.join('\n\n') + '\n');
@@ -362,7 +362,7 @@ config.init({
   binLinks: commander.binLinks,
   modulesFolder: commander.modulesFolder,
   globalFolder: commander.globalFolder,
-  cacheRootFolder: commander.cacheFolder,
+  cacheFolder: commander.cacheFolder,
   preferOffline: commander.preferOffline,
   captureHar: commander.har,
   ignorePlatform: commander.ignorePlatform,
