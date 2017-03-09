@@ -30,7 +30,7 @@ def normalize_package_name_to_var_name(name):
     # This has to be done before the other replacements.
     name = re.sub(r"(_+)", escape_underscore, name)
     name = name.replace('.', '__dot__')
-    name = name.replace('.', '__slash__')
+    name = name.replace('/', '__slash__')
     name = name.replace('-', '_')
     return name
 
@@ -300,7 +300,7 @@ def generate_package_json(name, version, directory):
         packageJSON["dependencies"][scoped(dep)] = npm_range
     if name in config.ESY_EXTRA_DEP:
         for dep_name in config.ESY_EXTRA_DEP[name]:
-            packageJSON["dependencies"][dep_name] = config.ESY_EXTRA_DEP[name][dep_name] 
+            packageJSON["dependencies"][dep_name] = config.ESY_EXTRA_DEP[name][dep_name]
 
     for (dep, range) in buildFlatList(d["depopts"]):
         dep = dep.strip("\" ")
