@@ -89,8 +89,8 @@ export default class TarballFetcher extends BaseFetcher {
       .on('error', reject)
       .on('entry', (entry: Object) => {
         if (ROOT_USER) {
-          entry.props.uid = entry.uid = 0;
-          entry.props.gid = entry.gid = 0;
+          entry.uid = 0;
+          entry.gid = 0;
         }
       })
       .on('finish', () => {
