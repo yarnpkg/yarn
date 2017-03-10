@@ -126,11 +126,9 @@ if (commandName === 'help' && args.length) {
 
 //
 invariant(commandName, 'Missing command name');
-if (!command) {
-  const camelised = camelCase(commandName);
-  if (camelised) {
-    command = commands[camelised];
-  }
+const camelised = camelCase(commandName);
+if (camelised) {
+  command = commands[camelised];
 }
 
 //
