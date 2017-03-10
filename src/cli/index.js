@@ -37,7 +37,7 @@ const startArgs = process.argv.slice(0, 2);
 
 // ignore all arguments after a --
 const doubleDashIndex = process.argv.findIndex((element) => element === '--');
-let args = process.argv.slice(2, doubleDashIndex === -1 ? process.argv.length : doubleDashIndex);
+const args = process.argv.slice(2, doubleDashIndex === -1 ? process.argv.length : doubleDashIndex);
 const endArgs = doubleDashIndex === -1 ? [] : process.argv.slice(doubleDashIndex + 1, process.argv.length);
 
 // NOTE: Pending resolution of https://github.com/tj/commander.js/issues/346
@@ -129,18 +129,16 @@ if (camelised) {
   command = commands[camelised];
 }
 
-//
 if (command && typeof command.setFlags === 'function') {
   command.setFlags(commander);
 }
 
-args = [commandName].concat(getRcArgs(commandName), args);
-
-if (ARGS_THAT_SHARE_NAMES_WITH_OPTIONS.indexOf(commandName) >= 0 && args[0] === commandName) {
-  args.shift();
-}
-
-commander.parse(startArgs.concat(args));
+commander.parse([
+  ...startArgs,
+  ARGS_THAT_SHARE_NAMES_WITH_OPTIONS.indexOf(commandName) === -1 ? commandName : '',
+  ...getRcArgs(commandName),
+  ...args,
+]);
 commander.args = commander.args.concat(endArgs);
 
 if (command) {
