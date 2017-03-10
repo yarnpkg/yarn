@@ -8,7 +8,6 @@ import * as constants from '../constants.js';
 import * as crypto from '../util/crypto.js';
 import BaseFetcher from './base-fetcher.js';
 import * as fsUtil from '../util/fs.js';
-import ROOT_USER from '../util/root-user.js';
 
 const invariant = require('invariant');
 const path = require('path');
@@ -87,12 +86,6 @@ export default class TarballFetcher extends BaseFetcher {
     extractorStream
       .pipe(untarStream)
       .on('error', reject)
-      .on('entry', (entry: Object) => {
-        if (ROOT_USER) {
-          entry.uid = 0;
-          entry.gid = 0;
-        }
-      })
       .on('finish', () => {
         const expectHash = this.hash;
         const actualHash = validateStream.getHash();
