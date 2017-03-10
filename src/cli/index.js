@@ -100,13 +100,12 @@ commander.option('--network-concurrency <number>', 'maximum number of concurrent
 commander.option('--network-timeout <milliseconds>', 'TCP timeout for network requests', parseInt);
 commander.option('--non-interactive', 'do not show interactive prompts');
 
-// get command name
-let commandName: ?string = args.shift() || '';
-let command;
-
-//
 const getDocsLink = (name) => `${constants.YARN_DOCS}${name || ''}`;
 const getDocsInfo = (name) => 'Visit ' + chalk.bold(getDocsLink(name)) + ' for documentation about this command.';
+
+// get command name
+let commandName: ?string = args.shift() || 'install';
+let command;
 
 //
 if (commandName === '--help' || commandName === '-h') {
@@ -114,10 +113,8 @@ if (commandName === '--help' || commandName === '-h') {
 }
 
 // if no args or command name looks like a flag then default to `install`
-if (!commandName || commandName[0] === '-') {
-  if (commandName) {
-    args.unshift(commandName);
-  }
+if (commandName && commandName[0] === '-') {
+  args.unshift(commandName);
   commandName = 'install';
 }
 
