@@ -117,13 +117,11 @@ if (args.indexOf('--help') >= 0 || args.indexOf('-h') >= 0) {
 }
 
 // if no args or command name looks like a flag then default to `install`
-if (commandName && commandName[0] === '-') {
+if (commandName[0] === '-') {
   args.unshift(commandName);
   commandName = 'install';
 }
 
-//
-invariant(commandName, 'Missing command name');
 const camelised = camelCase(commandName);
 if (camelised) {
   command = commands[camelised];
