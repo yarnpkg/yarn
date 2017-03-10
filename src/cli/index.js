@@ -37,7 +37,7 @@ const startArgs = process.argv.slice(0, 2);
 
 // ignore all arguments after a --
 const doubleDashIndex = process.argv.findIndex((element) => element === '--');
-const args = process.argv.slice(2, doubleDashIndex === -1 ? process.argv.length : doubleDashIndex);
+let args = process.argv.slice(2, doubleDashIndex === -1 ? process.argv.length : doubleDashIndex);
 const endArgs = doubleDashIndex === -1 ? [] : process.argv.slice(doubleDashIndex + 1, process.argv.length);
 
 // NOTE: Pending resolution of https://github.com/tj/commander.js/issues/346
@@ -104,11 +104,15 @@ const getDocsLink = (name) => `${constants.YARN_DOCS}${name || ''}`;
 const getDocsInfo = (name) => 'Visit ' + chalk.bold(getDocsLink(name)) + ' for documentation about this command.';
 
 // get command name
-let commandName: ?string = args.shift() || 'install';
+let commandName: string = args.shift() || 'install';
 let command;
 
-//
 if (commandName === '--help' || commandName === '-h') {
+  commandName = 'help';
+}
+
+if (args.indexOf('--help') >= 0 || args.indexOf('-h') >= 0) {
+  args.unshift(commandName);
   commandName = 'help';
 }
 
@@ -116,12 +120,6 @@ if (commandName === '--help' || commandName === '-h') {
 if (commandName && commandName[0] === '-') {
   args.unshift(commandName);
   commandName = 'install';
-}
-
-//
-if (commandName === 'help' && args.length) {
-  commandName = camelCase(args.shift());
-  args.push('--help');
 }
 
 //
@@ -134,24 +132,6 @@ if (camelised) {
 //
 if (command && typeof command.setFlags === 'function') {
   command.setFlags(commander);
-}
-
-if (args.indexOf('--help') >= 0 || args.indexOf('-h') >= 0) {
-  const examples: Array<string> = (command && command.examples) || [];
-  if (examples.length) {
-    commander.on('--help', () => {
-      console.log('  Examples:\n');
-      for (const example of examples) {
-        console.log(`    $ yarn ${example}`);
-      }
-      console.log();
-    });
-  }
-  commander.on('--help', () => console.log('  ' + getDocsInfo(commandName) + '\n'));
-
-  commander.parse(startArgs.concat(args));
-  commander.help();
-  process.exit(1);
 }
 
 args = [commandName].concat(getRcArgs(commandName), args);
