@@ -1039,3 +1039,16 @@ test.concurrent(
   async (): Promise<void> => {
     await runInstall({}, 'relative-symlinks-work', () => {});
   });
+
+test.concurrent('prunes the offline mirror after pruning is enabled', (): Promise<void> => {
+  return runInstall({}, 'prune-offline-mirror', async (config): Promise<void> => {
+    const mirrorPath = 'mirror-for-offline';
+    // Scenario:
+    // dep-a 1.0.0 was originally installed, and it depends on dep-b 1.0.0, so
+    // both of these were added to the offline mirror. Then dep-a was upgraded
+    // to 1.1.0 which doesn't depend on dep-b. After this, pruning was enabled,
+    // so the next install should remove dep-a-1.0.0.tgz and dep-b-1.0.0.tgz.
+    assert(!await fs.exists(path.join(config.cwd, `${mirrorPath}/dep-a-1.0.0.tgz`)));
+    assert(!await fs.exists(path.join(config.cwd, `${mirrorPath}/dep-b-1.0.0.tgz`)));
+  });
+});
