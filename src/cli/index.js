@@ -105,7 +105,6 @@ const getDocsInfo = (name) => 'Visit ' + chalk.bold(getDocsLink(name)) + ' for d
 
 // get command name
 let commandName: string = args.shift() || 'install';
-let command;
 
 if (commandName === '--help' || commandName === '-h') {
   commandName = 'help';
@@ -116,15 +115,23 @@ if (args.indexOf('--help') >= 0 || args.indexOf('-h') >= 0) {
   commandName = 'help';
 }
 
-// if no args or command name looks like a flag then default to `install`
+// if no args or command name looks like a flag then set default to `install`
 if (commandName[0] === '-') {
   args.unshift(commandName);
   commandName = 'install';
 }
 
+let command;
 const camelised = camelCase(commandName);
 if (camelised) {
   command = commands[camelised];
+}
+
+// if command is not recognized, then set default to `run`
+if (!command) {
+  args.unshift(commandName);
+  commandName = 'run';
+  command = commands.run;
 }
 
 if (command && typeof command.setFlags === 'function') {
@@ -138,13 +145,7 @@ commander.parse([
   ...args,
 ]);
 commander.args = commander.args.concat(endArgs);
-
-if (command) {
-  commander.args.shift();
-} else {
-  command = commands.run;
-}
-invariant(command, 'missing command');
+commander.args.shift();
 
 //
 let Reporter = ConsoleReporter;
@@ -345,7 +346,7 @@ config.init({
   httpsProxy: commander.httpsProxy,
   networkConcurrency: commander.networkConcurrency,
   nonInteractive: commander.nonInteractive,
-  commandName,
+  commandName: commandName === 'run' ? commander.args[0] : commandName,
 }).then(() => {
 
   // option "no-progress" stored in yarn config
