@@ -2,7 +2,7 @@
 
 import {ConsoleReporter, JSONReporter} from '../reporters/index.js';
 import {registries, registryNames} from '../registries/index.js';
-import * as commands from './commands/index.js';
+import * as _commands from './commands/index.js';
 import * as constants from '../constants.js';
 import * as network from '../util/network.js';
 import {MessageError} from '../errors.js';
@@ -23,6 +23,15 @@ const path = require('path');
 const pkg = require('../../package.json');
 
 loudRejection();
+
+const commands = {..._commands};
+for (const key in aliases) {
+  commands[key] = {
+    run(config: Config, reporter: ConsoleReporter | JSONReporter): Promise<void> {
+      throw new MessageError(`Did you mean \`yarn ${aliases[key]}\`?`);
+    },
+  };
+}
 
 const startArgs = process.argv.slice(0, 2);
 
@@ -110,16 +119,6 @@ if (!commandName || commandName[0] === '-') {
     args.unshift(commandName);
   }
   commandName = 'install';
-}
-
-// aliases: i -> install
-if (commandName && typeof aliases[commandName] === 'string') {
-  const alias = aliases[commandName];
-  command = {
-    run(config: Config, reporter: ConsoleReporter | JSONReporter): Promise<void> {
-      throw new MessageError(`Did you mean \`yarn ${alias}\`?`);
-    },
-  };
 }
 
 //
