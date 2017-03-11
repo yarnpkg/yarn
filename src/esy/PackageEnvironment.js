@@ -258,6 +258,11 @@ function computeEnvVarsForPackage(
   packageInfo: PackageInfo
 ) {
   let {rootDirectory, packageJson, normalizedName} = packageInfo;
+  // Do not compute package environment for this one package, if it
+  // does not have an `esy` field.
+  if (packageJson.esy && packageJson.esy.__noEsyConfigPresent) {
+    return;
+  }
   var packageJsonDir = path.dirname(rootDirectory);
   var packageName = packageJson.name;
   var envVarConfigPrefix = normalizedName;

@@ -382,6 +382,7 @@ async function readPackageJson(filename): Promise<PackageJson> {
       build: null,
       exportedEnv: {},
       buildsInSource: false,
+      __noEsyConfigPresent: true
     };
   }
   if (packageJson.esy.build == null) {
