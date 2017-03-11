@@ -216,3 +216,24 @@ test.concurrent('should run bin command', async () => {
   expect(stdout[0]).toEqual(path.join(fixturesLoc, 'node_modules', '.bin'));
   expect(stdout.length).toEqual(1);
 });
+
+test.concurrent('should throws missing command for not camelised command', async () => {
+  await expectAnErrorMessage(
+    execCommand('HelP', [], 'run-add', true),
+    'Command \"HelP\" not found',
+  );
+});
+
+test.concurrent('should throws missing command for not alphabetic command', async () => {
+  await expectAnErrorMessage(
+    execCommand('123', [], 'run-add', true),
+    'Command \"123\" not found',
+  );
+});
+
+test.concurrent('should throws missing command for unknown command', async () => {
+  await expectAnErrorMessage(
+    execCommand('unknown', [], 'run-add', true),
+    'Command \"unknown\" not found',
+  );
+});
