@@ -38,13 +38,15 @@ _esy-prepare-build-env () {
   mkdir -p                \
     $cur__target_dir      \
     $cur__install         \
-    $cur__lib             \
-    $cur__bin             \
-    $cur__sbin            \
-    $cur__man             \
-    $cur__doc             \
-    $cur__share           \
-    $cur__etc
+    $cur__install/lib     \
+    $cur__install/bin     \
+    $cur__install/sbin    \
+    $cur__install/man     \
+    $cur__install/doc     \
+    $cur__install/share   \
+    $cur__install/stublibs \
+    $cur__install/toplevel \
+    $cur__install/etc
 
   # for in-source builds copy sources over to build location
   if [ "$esy_build__type" == "in-source" ]; then
