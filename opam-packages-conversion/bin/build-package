@@ -36,13 +36,13 @@ def read_package_json(directory):
     return package_json
 
 
-def build_package_version_from_git_repo(repo_dir, ref, orig_ref):
+def build_package_version_from_git_repo(repo_dir, orig_ref):
 
     def capture(cmd, *args):
         return subprocess.check_output(cmd % args, cwd=repo_dir, shell=True)
 
     package_json = read_package_json(repo_dir)
-    patch = capture('git diff %s..%s | filterdiff -p 1 --clean -x package.json -x .gitignore', orig_ref, ref)
+    patch = capture('git diff %s.. | filterdiff -p 1 --clean -x package.json -x .gitignore', orig_ref)
     package_json.setdefault('opam', {})['patch'] = patch
     pkg_versions = {package_json['version']: package_json}
     package_name = package_json['name']
@@ -71,8 +71,8 @@ if __name__ == '__main__':
     print '*** building %s' % (name,)
 
     if os.path.isdir(name):
-        ref, orig_ref = sys.argv[2:4]
-        build_package_version_from_git_repo(name, ref, orig_ref)
+        orig_ref = sys.argv[2]
+        build_package_version_from_git_repo(name, orig_ref)
     else:
         versions = sys.argv[2:]
         build_package(name, *versions)

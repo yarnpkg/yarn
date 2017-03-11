@@ -1,6 +1,6 @@
 # Forks
-./forks/camlp4 esy/4.02+7 4.02+7
-./forks/ocamlfind origin/esy/1.7.1 origin/master
+./forks/camlp4 4.02+7
+./forks/ocamlfind origin/master
 
 # Direct convertation
 base-threads base
