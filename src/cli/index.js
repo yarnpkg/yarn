@@ -40,12 +40,6 @@ const doubleDashIndex = process.argv.findIndex((element) => element === '--');
 const args = process.argv.slice(2, doubleDashIndex === -1 ? process.argv.length : doubleDashIndex);
 const endArgs = doubleDashIndex === -1 ? [] : process.argv.slice(doubleDashIndex + 1, process.argv.length);
 
-// NOTE: Pending resolution of https://github.com/tj/commander.js/issues/346
-// Remove this (and subsequent use in the logic below) after bug is resolved and issue is closed
-const ARGS_THAT_SHARE_NAMES_WITH_OPTIONS = [
-  'version',
-];
-
 // set global options
 commander.version(pkg.version);
 commander.usage('[command] [flags]');
@@ -130,7 +124,6 @@ if (camelised) {
 // if command is not recognized, then set default to `run`
 if (!command) {
   args.unshift(commandName);
-  commandName = 'run';
   command = commands.run;
 }
 
@@ -140,11 +133,15 @@ if (command && typeof command.setFlags === 'function') {
 
 commander.parse([
   ...startArgs,
-  ARGS_THAT_SHARE_NAMES_WITH_OPTIONS.indexOf(commandName) === -1 ? commandName : '',
+  // we use this for https://github.com/tj/commander.js/issues/346, otherwise
+  // it will strip some args that match with any options
+  'this-arg-will-get-stripped-later',
   ...getRcArgs(commandName),
   ...args,
 ]);
 commander.args = commander.args.concat(endArgs);
+
+// we strip cmd
 commander.args.shift();
 
 //
