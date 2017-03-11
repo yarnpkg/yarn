@@ -17,9 +17,8 @@ const semver = require('semver');
 export default class PackageResolver {
   constructor(config: Config, lockfile: Lockfile) {
     this.patternsByPackage = map();
-    this.fetchingPatterns = map();
     this.fetchingQueue = new BlockingQueue('resolver fetching');
-    this.newPatterns = [];
+    this.newPatterns = new Set();
     this.patterns = map();
     this.usedRegistries = new Set();
     this.flat = false;
@@ -41,13 +40,8 @@ export default class PackageResolver {
     end: () => void
   };
 
-  // patterns we've already resolved or are in the process of resolving
-  fetchingPatterns: {
-    [key: string]: true
-  };
-
   // new patterns that didn't exist in the lockfile
-  newPatterns: Array<string>;
+  newPatterns: Set<string>;
 
   // TODO
   fetchingQueue: BlockingQueue;
@@ -83,7 +77,7 @@ export default class PackageResolver {
    */
 
   isNewPattern(pattern: string): boolean {
-    return this.newPatterns.indexOf(pattern) >= 0;
+    return this.newPatterns.has(pattern);
   }
 
   /**
@@ -269,7 +263,8 @@ export default class PackageResolver {
     const ref = pkg._reference;
     invariant(ref, 'expected package reference');
     ref.patterns = [newPattern];
-    this.newPatterns.splice(this.newPatterns.indexOf(pattern), 1, newPattern);
+    this.newPatterns.delete(pattern);
+    this.newPatterns.add(newPattern);
     this.addPattern(newPattern, pkg);
     this.removePattern(pattern);
   }
@@ -423,19 +418,12 @@ export default class PackageResolver {
    */
 
   async find(req: DependencyRequestPattern): Promise<void> {
-    const fetchKey = `${req.registry}:${req.pattern}`;
-    if (this.fetchingPatterns[fetchKey]) {
-      return;
-    } else {
-      this.fetchingPatterns[fetchKey] = true;
-    }
-
     if (this.activity) {
       this.activity.tick(req.pattern);
     }
 
     if (!this.lockfile.getLocked(req.pattern, true)) {
-      this.newPatterns.push(req.pattern);
+      this.newPatterns.add(req.pattern);
     }
 
     const request = new PackageRequest(req, this);
