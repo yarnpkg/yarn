@@ -207,7 +207,7 @@ test.concurrent('should interpolate aliases', async () => {
   );
 });
 
-test.concurrent('should display correct documentation for aliases', async () => {
+test.concurrent('should display correct documentation link for aliases', async () => {
   await expectAnInfoMessageAfterError(
     execCommand('i', [], 'run-add', true),
     'Visit https://yarnpkg.com/en/docs/cli/install for documentation about this command.',
@@ -252,5 +252,19 @@ test.concurrent('should throws missing command for unknown command', async () =>
   await expectAnErrorMessage(
     execCommand('unknown', [], 'run-add', true),
     'Command \"unknown\" not found',
+  );
+});
+
+test.concurrent('should not display documentation link for unknown command', async () => {
+  await expectAnInfoMessageAfterError(
+    execCommand('unknown', [], 'run-add', true),
+    '',
+  );
+});
+
+test.concurrent('should display documentation link for known command', async () => {
+  await expectAnInfoMessageAfterError(
+    execCommand('add', [], 'run-add', true),
+    'Visit https://yarnpkg.com/en/docs/cli/add for documentation about this command.',
   );
 });

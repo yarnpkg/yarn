@@ -384,11 +384,10 @@ config.init({
     onUnexpectedError(err);
   }
 
-  if (commandName) {
-    const actualCommandForHelp = aliases[commandName] ? aliases[commandName] : commandName;
-    if (command && actualCommandForHelp) {
-      reporter.info(getDocsInfo(actualCommandForHelp));
-    }
+  if (aliases[commandName]) {
+    reporter.info(getDocsInfo(aliases[commandName]));
+  } else if (commands[commandName]) {
+    reporter.info(getDocsInfo(commandName));
   }
 
   process.exit(1);
