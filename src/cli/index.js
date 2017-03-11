@@ -385,7 +385,7 @@ config.init({
   }
 
   if (commandName) {
-    const actualCommandForHelp = commands[commandName] ? commandName : aliases[commandName];
+    const actualCommandForHelp = aliases[commandName] ? aliases[commandName] : commandName;
     if (command && actualCommandForHelp) {
       reporter.info(getDocsInfo(actualCommandForHelp));
     }

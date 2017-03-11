@@ -26,9 +26,9 @@ Promise<Array<?string>> {
   }
 
   return new Promise((resolve, reject) => {
-    exec(`node "${yarnBin}" ${cmd} ${args.join(' ')}`, {cwd:workingDir, env:process.env}, (err, stdout) => {
-      if (err) {
-        reject(err);
+    exec(`node "${yarnBin}" ${cmd} ${args.join(' ')}`, {cwd:workingDir, env:process.env}, (error, stdout) => {
+      if (error) {
+        reject({error, stdout});
       } else {
         const stdoutLines = stdout.toString()
           .split('\n')
@@ -81,7 +81,17 @@ function expectAnErrorMessage(command: Promise<Array<?string>>, error: string) :
     throw new Error('the command did not fail');
   })
   .catch((reason) =>
-    expect(reason.message).toContain(error),
+    expect(reason.error.message).toContain(error),
+  );
+}
+
+function expectAnInfoMessageAfterError(command: Promise<Array<?string>>, info: string) : Promise<void> {
+  return command
+  .then(function() {
+    throw new Error('the command did not fail');
+  })
+  .catch((reason) =>
+    expect(reason.stdout).toContain(info),
   );
 }
 
@@ -194,6 +204,13 @@ test.concurrent('should interpolate aliases', async () => {
   await expectAnErrorMessage(
     execCommand('i', [], 'run-add', true),
     'Did you mean `yarn install`?',
+  );
+});
+
+test.concurrent('should display correct documentation for aliases', async () => {
+  await expectAnInfoMessageAfterError(
+    execCommand('i', [], 'run-add', true),
+    'Visit https://yarnpkg.com/en/docs/cli/install for documentation about this command.',
   );
 });
 
