@@ -29,7 +29,7 @@ async function mockConstants(base: Config, mocks: Object, cb: (config: Config) =
   // the Yarn environment.
 
   const opts = {};
-  
+
   opts.binLinks = base.binLinks;
   opts.cwd = base.cwd;
   opts.globalFolder = base.globalFolder;
@@ -227,6 +227,17 @@ test.concurrent('--production flag does not link dev dependency bin scripts', ()
 
     assert.ok(
       await fs.exists(path.join(config.cwd, 'node_modules', '.bin', 'rimraf')),
+    );
+  });
+});
+
+test.concurrent('--production flag installs transitive dependencies even if they are top-level devDependencies', () => {
+  // Root package: dependencies: ['a'], devDependencies: ['b']
+  // 'a' package: dependencies: ['b']
+  // 'b' should be installed, even with --production
+  return runInstall({production: true}, 'install-production-transitive-dep', async (config) => {
+    assert.ok(
+      await fs.exists(path.join(config.cwd, 'node_modules', 'dep-b')),
     );
   });
 });
