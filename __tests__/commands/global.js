@@ -3,7 +3,6 @@
 import type {CLIFunctionReturn} from '../../src/types.js';
 import {ConsoleReporter} from '../../src/reporters/index.js';
 import {run as buildRun} from './_helpers.js';
-import {run as global} from '../../src/cli/commands/global.js';
 import * as fs from '../../src/util/fs.js';
 const isCI = require('is-ci');
 
@@ -17,7 +16,15 @@ const runGlobal = buildRun.bind(
   null,
   ConsoleReporter,
   fixturesLoc,
-  (args, flags, config, reporter): CLIFunctionReturn => {
+  (args, flags, config, reporter, _lockfile, _out, homeFolderLocation): CLIFunctionReturn => {
+    const automock = jest.genMockFromModule('../../src/util/user-home-dir');
+    jest.setMock('../../src/util/user-home-dir', Object.assign(automock, homeFolderLocation));
+
+    jest.resetModules();
+    jest.mock('../../src/util/user-home-dir');
+
+    const global = require('../../src/cli/commands/global.js').run;
+    jest.unmock('../../src/util/user-home-dir');
     return global(config, reporter, flags, args);
   },
 );
