@@ -268,7 +268,7 @@ test.concurrent('install file: protocol with relative paths', (): Promise<void> 
   });
 });
 
-test.concurrent('install file: protocol without cache', async (): Promise<void> => {
+test.concurrent('install file: protocol without force retains installed package', async (): Promise<void> => {
   const fixturesLoc = path.join(__dirname, '..', '..', 'fixtures', 'install');
   const compLoc = path.join(fixturesLoc, 'install-file-without-cache', 'comp', 'index.js');
 
@@ -280,15 +280,39 @@ test.concurrent('install file: protocol without cache', async (): Promise<void> 
       'foo\n',
     );
 
-    await fs.writeFile(compLoc, 'bar\n');
+    await fs.writeFile(path.join(config.cwd, 'comp', 'index.js'), 'bar\n');
 
     const reinstall = new Install({}, config, reporter, await Lockfile.fromDirectory(config.cwd));
     await reinstall.init();
 
-    // TODO: This should actually be equal. See https://github.com/yarnpkg/yarn/pull/2443.
     expect(
       await fs.readFile(path.join(config.cwd, 'node_modules', 'comp', 'index.js')),
     ).not.toEqual(
+      'bar\n',
+    );
+  });
+});
+
+test.concurrent('install file: protocol with force re-installs local package', async (): Promise<void> => {
+  const fixturesLoc = path.join(__dirname, '..', '..', 'fixtures', 'install');
+  const compLoc = path.join(fixturesLoc, 'install-file-without-cache', 'comp', 'index.js');
+
+  await fs.writeFile(compLoc, 'foo\n');
+  await runInstall({}, 'install-file-without-cache', async (config, reporter) => {
+    expect(
+      await fs.readFile(path.join(config.cwd, 'node_modules', 'comp', 'index.js')),
+    ).toEqual(
+      'foo\n',
+    );
+
+    await fs.writeFile(path.join(config.cwd, 'comp', 'index.js'), 'bar\n');
+
+    const reinstall = new Install({force: true}, config, reporter, await Lockfile.fromDirectory(config.cwd));
+    await reinstall.init();
+
+    expect(
+      await fs.readFile(path.join(config.cwd, 'node_modules', 'comp', 'index.js')),
+    ).toEqual(
       'bar\n',
     );
   });
