@@ -194,6 +194,9 @@ function builtInsPerPackage(
         ? targetPath(sandbox, packageInfo, '_build')
         : relativeToSandbox(sandbox.packageInfo.rootDirectory, rootDirectory)
     ),
+    [`${prefix}__depends`]: builtIn(
+      Object.keys(dependencyTree).join(' ')
+    ),
     [`${prefix}__target_dir`]: builtIn(
       targetPath(sandbox, packageInfo, '_build')
     ),
@@ -201,6 +204,33 @@ function builtInsPerPackage(
       installDirectory != null
         ? installDirectory
         : targetPath(sandbox, packageInfo, '_install')
+    ),
+    [`${prefix}__bin`]: builtIn(
+      `$${prefix}__install/bin`
+    ),
+    [`${prefix}__sbin`]: builtIn(
+      `$${prefix}__install/sbin`
+    ),
+    [`${prefix}__lib`]: builtIn(
+      `$${prefix}__install/lib`
+    ),
+    [`${prefix}__man`]: builtIn(
+      `$${prefix}__install/man`
+    ),
+    [`${prefix}__doc`]: builtIn(
+      `$${prefix}__install/doc`
+    ),
+    [`${prefix}__stublibs`]: builtIn(
+      `$${prefix}__install/stublibs`
+    ),
+    [`${prefix}__toplevel`]: builtIn(
+      `$${prefix}__install/toplevel`
+    ),
+    [`${prefix}__share`]: builtIn(
+      `$${prefix}__install/share`
+    ),
+    [`${prefix}__etc`]: builtIn(
+      `$${prefix}__install/etc`
     ),
   };
 }

@@ -22,7 +22,7 @@ OPAM_PACKAGES_BLACKLIST = {
     }
 
 ESY_EXTRA_DEP = {
-    "camomile": {
+    "camomile": { 
         "@opam-alpha/cppo"  : "*",
         "@opam-alpha/camlp4": "*",
     },
@@ -67,7 +67,7 @@ def caml_ld_library_path(name, stublibs=False):
     # Note that opam_alpha comes from opam-alpha prefix that we use.
     return {
         'scope': 'global',
-        'val': '$%s__install/lib/%s:$CAML_LD_LIBRARY_PATH' % (
+        'val': '$%s__lib/%s:$CAML_LD_LIBRARY_PATH' % (
             norm_name,
             'stublibs' if stublibs else name),
     }
@@ -99,8 +99,8 @@ OVERRIDE = {
             'make all',
             'make opt',
             'make ocamlbuild',
-            'make LIBDIR=$cur__install/lib install-lib',
-            'make BINDIR=$cur__install/bin install-bin',
+            'make LIBDIR=$cur__lib install-lib',
+            'make BINDIR=$cur__bin install-bin',
             opam_install
         ],
     },
