@@ -36,7 +36,7 @@ test:
     - ./scripts/build-deb.sh
     # Test that installing as root works and that it also works
     # behind a user namespace which Circle CI tests are run under
-    - sudo yarn install --force
+    - yarn build && sudo bin/yarn install --force
 
 deployment:
   release:
