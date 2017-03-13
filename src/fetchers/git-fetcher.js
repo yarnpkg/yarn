@@ -4,6 +4,7 @@ import {SecurityError, MessageError} from '../errors.js';
 import type {FetchedOverride} from '../types.js';
 import BaseFetcher from './base-fetcher.js';
 import Git from '../util/git.js';
+import ROOT_USER from '../util/root-user.js';
 import * as fsUtil from '../util/fs.js';
 import * as crypto from '../util/crypto.js';
 
@@ -37,6 +38,12 @@ export default class GitFetcher extends BaseFetcher {
       const untarStream = tarFs.extract(this.dest, {
         dmode: 0o555, // all dirs should be readable
         fmode: 0o444, // all files should be readable
+        map: (header): void => {
+          if (ROOT_USER) {
+            header.uid = 0;
+            header.gid = 0;
+          }
+        },
       });
 
       const hashStream = new crypto.HashStream();
