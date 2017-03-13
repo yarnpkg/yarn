@@ -37,6 +37,7 @@ export default class GitFetcher extends BaseFetcher {
       const untarStream = tarFs.extract(this.dest, {
         dmode: 0o555, // all dirs should be readable
         fmode: 0o444, // all files should be readable
+        chown: false, // don't chown. just leave as it is
       });
 
       const hashStream = new crypto.HashStream();

@@ -87,6 +87,7 @@ export async function getFilesFromArchive(source, destination): Promise<Array<st
         strip: 1,
         dmode: 0o555, // all dirs should be readable
         fmode: 0o444, // all files should be readable
+        chown: false, // don't chown. just leave as it is
       }))
       .on('finish', resolve)
       .on('error', reject);
