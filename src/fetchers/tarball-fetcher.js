@@ -8,7 +8,6 @@ import * as constants from '../constants.js';
 import * as crypto from '../util/crypto.js';
 import BaseFetcher from './base-fetcher.js';
 import * as fsUtil from '../util/fs.js';
-import ROOT_USER from '../util/root-user.js';
 
 const invariant = require('invariant');
 const path = require('path');
@@ -82,12 +81,7 @@ export default class TarballFetcher extends BaseFetcher {
       strip: 1,
       dmode: 0o555, // all dirs should be readable
       fmode: 0o444, // all files should be readable
-      map: (header): void => {
-        if (ROOT_USER) {
-          header.uid = 0;
-          header.gid = 0;
-        }
-      },
+      chown: false, // don't chown. just leave as it is
     });
 
     extractorStream

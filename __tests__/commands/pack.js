@@ -6,7 +6,6 @@ import assert from 'assert';
 import {run as pack} from '../../src/cli/commands/pack.js';
 import * as reporters from '../../src/reporters/index.js';
 import Config from '../../src/config.js';
-import ROOT_USER from '../../src/util/root-user.js';
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000;
 
@@ -88,12 +87,7 @@ export async function getFilesFromArchive(source, destination): Promise<Array<st
         strip: 1,
         dmode: 0o555, // all dirs should be readable
         fmode: 0o444, // all files should be readable
-        map: (header): void => {
-          if (ROOT_USER) {
-            header.uid = 0;
-            header.gid = 0;
-          }
-        },
+        chown: false, // don't chown. just leave as it is
       }))
       .on('finish', resolve)
       .on('error', reject);

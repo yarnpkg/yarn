@@ -29,7 +29,7 @@ async function mockConstants(base: Config, mocks: Object, cb: (config: Config) =
   // the Yarn environment.
 
   const opts = {};
-  
+
   opts.binLinks = base.binLinks;
   opts.cwd = base.cwd;
   opts.globalFolder = base.globalFolder;
