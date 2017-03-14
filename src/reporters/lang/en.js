@@ -31,7 +31,7 @@ const messages = {
   manifestStringExpected: '$0 is not a string',
   manifestDependencyCollision: '$0 has dependency $1 with range $2 that collides with a dependency in $3 of the same name with version $4',
   manifestDirectoryNotFound: 'Unable to read $0 directory of module $1',
-
+  
   verboseFileCopy: 'Copying $0 to $1.',
   verboseFileLink: 'Creating hardlink at $0 to $1.',
   verboseFileSymlink: 'Creating symlink at $0 to $1.',
@@ -259,12 +259,12 @@ const messages = {
   optionalDepNotInstalled: 'Optional dependency $0 not installed',
   packageWrongVersion: '$0 is wrong version: expected $1, got $2',
   packageDontSatisfy: '$0 doesn\'t satisfy found match of $1',
-
   lockfileExists: 'Lockfile already exists, not importing.',
   skippingImport: 'Skipping import of $0 for $1',
   importFailed: 'Import of $0 for $1 failed, resolving normally.',
   importResolveFailed: 'Import of $0 failed starting in $1',
   importResolvedRangeMatch: 'Using version $0 of $1 instead of $2 for $3',
+  unknownFlag: 'unknown flag $0.',
 };
 
 export type LanguageKeys = $Keys<typeof messages>;

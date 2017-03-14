@@ -123,6 +123,27 @@ if (commandName && typeof aliases[commandName] === 'string') {
 }
 
 //
+let Reporter = ConsoleReporter;
+if (commander.json) {
+  Reporter = JSONReporter;
+}
+const reporter = new Reporter({
+  emoji: commander.emoji && process.stdout.isTTY && process.platform === 'darwin',
+  verbose: commander.verbose,
+  noProgress: !commander.progress,
+});
+reporter.initPeakMemoryCounter();
+
+//if we have unknown flag we should exit
+commander.on(commandName, (args, unknown) => {
+  commander.args.unshift(commandName);//the emitter remove the command
+  if (unknown && unknown.length > 0) {
+    reporter.error(reporter.lang('unknownFlag', unknown[0]));
+    process.exit(1);
+  }
+});
+
+//
 if (commandName === 'help' && args.length) {
   commandName = camelCase(args.shift());
   args.push('--help');
@@ -176,18 +197,6 @@ if (command) {
   command = commands.run;
 }
 invariant(command, 'missing command');
-
-//
-let Reporter = ConsoleReporter;
-if (commander.json) {
-  Reporter = JSONReporter;
-}
-const reporter = new Reporter({
-  emoji: commander.emoji && process.stdout.isTTY && process.platform === 'darwin',
-  verbose: commander.verbose,
-  noProgress: !commander.progress,
-});
-reporter.initPeakMemoryCounter();
 
 //
 const config = new Config(reporter);
