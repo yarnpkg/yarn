@@ -97,6 +97,7 @@
     "build-win-installer": "scripts\\build-windows-installer.bat"
   },
   "jest": {
+    "collectCoverageFrom": ["src/**/*.js"],
     "timers": "fake",
     "testEnvironment": "node",
     "modulePathIgnorePatterns": [

@@ -117,9 +117,11 @@ export default class BaseReporter {
   _getStandardInput(): Stdin {
     let standardInput;
 
+    // Accessing stdin in a win32 headless process (e.g., Visual Studio) may throw an exception.
     try {
       standardInput = process.stdin;
     } catch (e) {
+      console.warn(e.message);
       delete process.stdin;
       // $FlowFixMe: this is valid!
       process.stdin = new EventEmitter();

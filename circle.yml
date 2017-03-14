@@ -34,6 +34,9 @@ test:
     - yarn build-dist
     - node ./scripts/build-webpack.js
     - ./scripts/build-deb.sh
+    # Test that installing as root works and that it also works
+    # behind a user namespace which Circle CI tests are run under
+    - sudo env "PATH=$PATH" bin/yarn install --force
 
 deployment:
   release:
