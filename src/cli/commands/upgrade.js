@@ -22,9 +22,10 @@ export async function run(
   const lockfile = args.length ? await Lockfile.fromDirectory(config.cwd, reporter) : new Lockfile();
   const manifest = await config.readRootManifest() || {};
   const dependencies = manifest.dependencies || {};
+  const devDependencies = manifest.devDependencies || {};
 
   const addArgs = args.map((dependency) => {
-    const remoteSource = dependencies[dependency];
+    const remoteSource = dependencies[dependency] || devDependencies[dependency];
 
     if (remoteSource && PackageRequest.getExoticResolver(remoteSource)) {
       return remoteSource;
