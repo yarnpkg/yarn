@@ -550,21 +550,6 @@ export class Install {
   }
 
   /**
-   * Check if the loaded lockfile has all the included patterns
-   */
-
-  lockFileInSync(patterns: Array<string>): boolean {
-    let inSync = true;
-    for (const pattern of patterns) {
-      if (!this.lockfile.getLocked(pattern)) {
-        inSync = false;
-        break;
-      }
-    }
-    return inSync;
-  }
-
-  /**
    * Remove offline tarballs that are no longer required
    */
 
