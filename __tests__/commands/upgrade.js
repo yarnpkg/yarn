@@ -104,7 +104,7 @@ test.concurrent('upgrades from fixed version to latest', (): Promise<void> => {
   });
 });
 
-test.concurrent('upgrades package not in registry', (): Promise<void> => {
+test.concurrent('upgrades packages not in registry', (): Promise<void> => {
   const packages = ['yarn-test-git-repo', 'e2e-test-repo'];
   return runUpgrade(packages, {}, 'package-not-in-registry', async (config): ?Promise<void> => {
     const lockfile = explodeLockfile(await fs.readFile(path.join(config.cwd, 'yarn.lock')));
