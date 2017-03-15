@@ -179,6 +179,9 @@ const {run, setFlags: _setFlags} = buildSubCommands('global', {
     await updateCwd(config);
 
     const updateBins = await initUpdateBins(config, reporter, flags);
+    if (args.includes('yarn')) {
+      reporter.warn(reporter.lang('packageContainsYarnAsGlobal'));
+    }
 
     // install module
     const lockfile = await Lockfile.fromDirectory(config.cwd);
