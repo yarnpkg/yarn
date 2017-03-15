@@ -1,0 +1,14 @@
+{
+  "devDependencies": {
+  },
+  "dependencies": {
+    "foobar1": "1.0.0",
+    "foobar2": "2.0.0"
+  },
+  "optionalDependencies": {
+    "foobar3": "3.0.0",
+    "foobar4": "4.0.0"
+  },
+  "name": "",
+  "version": ""
+}
