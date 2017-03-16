@@ -119,18 +119,18 @@ export default class BaseRegistry {
 
   mergeEnv(prefix: string) {
     // try environment variables
-    for (let key in process.env) {
-      key = key.toLowerCase();
+    for (const envKey in process.env) {
+      let key = envKey.toLowerCase();
 
       // only accept keys prefixed with the prefix
-      if (key.indexOf(prefix) < 0) {
+      if (key.indexOf(prefix.toLowerCase()) < 0) {
         continue;
       }
 
-      const val = BaseRegistry.normalizeConfigOption(process.env[key]);
+      const val = BaseRegistry.normalizeConfigOption(process.env[envKey]);
 
       // remove config prefix
-      key = removePrefix(key, prefix);
+      key = removePrefix(key, prefix.toLowerCase());
 
       // replace dunders with dots
       key = key.replace(/__/g, '.');
