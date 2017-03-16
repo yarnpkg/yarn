@@ -80,7 +80,7 @@ if (isPosix) {
  * script somehow fails and can't clobber the ones dependencies wrote into
  * `node_modules/.hooks`.
  */
-require('./npm-hooks').postinstall(postInstallContents, '.', function(err) {
+require('npm-hooks').postinstall(postInstallContents, '.', function(err) {
   if (err) {
     console.log("ERROR INJECTING esy npm hook", err);
   }
