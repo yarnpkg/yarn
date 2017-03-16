@@ -21,7 +21,7 @@ var os = require('os');
  * that we might make use of one day.
  */
 if (process.env['esy__installing']) {
-  return 0;
+  process.exit(0);
 }
 
 /**
@@ -30,7 +30,7 @@ if (process.env['esy__installing']) {
  * Specifically, they will have to run ./node_modules/.bin/esy build.
  */
 if (process.env['npm_config_user_agent' === 'yarn']) {
-  return 0;
+  process.exit(0);
 }
 
 /**
