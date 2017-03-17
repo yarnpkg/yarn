@@ -29,7 +29,7 @@ export default class BaseFetcher {
   hash: ?string;
   dest: string;
 
-  getResolvedFromCached(hash: string): Promise<?string> {
+  setupMirrorFromCache(): Promise<?string> {
     // fetcher subclasses may use this to perform actions such as copying over a cached tarball to the offline
     // mirror etc
     return Promise.resolve();
@@ -41,12 +41,11 @@ export default class BaseFetcher {
 
   fetch(): Promise<FetchedMetadata> {
     const {dest} = this;
-
     return fs.lockQueue.push(dest, async (): Promise<FetchedMetadata> => {
       await fs.mkdirp(dest);
 
       // fetch package and get the hash
-      const {hash, resolved} = await this._fetch();
+      const {hash} = await this._fetch();
 
       // load the new normalized manifest
       const pkg = await this.config.readManifest(dest, this.registry);
@@ -59,7 +58,6 @@ export default class BaseFetcher {
       }, null, '  '));
 
       return {
-        resolved,
         hash,
         dest,
         package: pkg,
