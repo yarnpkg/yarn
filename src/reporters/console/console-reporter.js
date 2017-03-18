@@ -199,16 +199,16 @@ export default class ConsoleReporter extends BaseReporter {
   // handles basic tree output to console
   tree(key: string, trees: Trees) {
     //
-    const output = ({name, children, hint, color}, level, end) => {
+    const output = ({name, children, hint, color}, titlePrefix, childrenPrefix) => {
       const formatter = this.format;
-      const out = getFormattedOutput({end, level, hint, color, name, formatter});
+      const out = getFormattedOutput({prefix: titlePrefix, hint, color, name, formatter});
       this.stdout.write(out);
 
       if (children && children.length) {
-        recurseTree(sortTrees(children), level, output);
+        recurseTree(sortTrees(children), childrenPrefix, output);
       }
     };
-    recurseTree(sortTrees(trees), -1, output);
+    recurseTree(sortTrees(trees), '', output);
   }
 
   activitySet(total: number, workers: number): ReporterSpinnerSet {
