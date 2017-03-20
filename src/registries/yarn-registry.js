@@ -46,7 +46,11 @@ export default class YarnRegistry extends NpmRegistry {
   constructor(cwd: string, registries: ConfigRegistries, requestManager: RequestManager) {
     super(cwd, registries, requestManager);
 
-    this.homeConfigLoc = path.join(userHome, '.yarnrc');
+    if (process.env.XDG_CONFIG_HOME) {
+      this.homeConfigLoc = path.join(process.env.XDG_CONFIG_HOME, '.yarnrc');
+    } else {
+      this.homeConfigLoc = path.join(userHome, '.yarnrc');
+    }
     this.homeConfig = {};
   }
 
