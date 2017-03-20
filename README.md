@@ -305,6 +305,7 @@ To make changes to `esy` and test them locally, check out and build the `esy` re
     git submodule init
     git submodule update
     make convert-opam-packages
+    make build # also `make watch` for watching for source changes in `src/`
 
 Then you may "point" to that built version of esy by simply referencing its path.
 
