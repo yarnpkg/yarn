@@ -299,7 +299,7 @@ When developing `esy` (or cloning the repo to use locally), you must have `filte
 
 To make changes to `esy` and test them locally, check out and build the `esy` repo as such:
 
-    git clone git@github.com:jordwalke/esy.git
+    git clone git://github.com/reasonml/esy.git
     cd esy
     npm install
     git submodule init
