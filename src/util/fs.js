@@ -472,6 +472,57 @@ export function copy(src: string, dest: string, reporter: Reporter): Promise<voi
   return copyBulk([{src, dest}], reporter);
 }
 
+let copyFile = (reporter: Reporter, data: CopyFileAction) => new Promise((resolve, reject) => {
+  const readStream = fs.createReadStream(data.src);
+  const writeStream = fs.createWriteStream(data.dest, {mode: data.mode});
+
+  reporter.verbose(reporter.lang('verboseFileCopy', data.src, data.dest));
+
+  readStream.on('error', reject);
+  writeStream.on('error', reject);
+
+  writeStream.on('open', function() {
+    readStream.pipe(writeStream);
+  });
+
+  writeStream.once('close', function() {
+    fs.utimes(data.dest, data.atime, data.mtime, function(err) {
+      if (err) {
+        reject(err);
+      } else {
+        resolve();
+      }
+    });
+  });
+});
+
+if (process.platform === 'win32') {
+  const ffi = require('ffi');
+  const wchar_t = require('ref-wchar');
+
+  const kernel32 = ffi.Library('kernel32', {
+    'CopyFileW': ['uint32', [wchar_t.string, wchar_t.string, 'uint32']],
+  });
+
+  const longFileNamePrefix = '\\\\?\\';
+
+  copyFile = (reporter: Reporter, data: CopyFileAction) => new Promise((resolve, reject) => {
+    reporter.verbose(reporter.lang('verboseFileCopy', data.src, data.dest));
+
+    kernel32.CopyFileW.async(longFileNamePrefix + data.src, longFileNamePrefix + data.dest, 0, function(err, res) {
+      if (err) {
+        reject(err);
+      }
+
+      if (res === 0) {
+        reject(new Error('CopyFileW failed'));
+      }
+
+      resolve();
+    });
+  });
+}
+
 export async function copyBulk(
   queue: CopyQueue,
   reporter: Reporter,
@@ -510,31 +561,10 @@ export async function copyBulk(
     }
 
     const cleanup = () => delete currentlyWriting[data.dest];
-    return currentlyWriting[data.dest] = new Promise((resolve, reject) => {
-      const readStream = fs.createReadStream(data.src);
-      const writeStream = fs.createWriteStream(data.dest, {mode: data.mode});
 
-      reporter.verbose(reporter.lang('verboseFileCopy', data.src, data.dest));
-
-      readStream.on('error', reject);
-      writeStream.on('error', reject);
-
-      writeStream.on('open', function() {
-        readStream.pipe(writeStream);
-      });
-
-      writeStream.once('close', function() {
-        fs.utimes(data.dest, data.atime, data.mtime, function(err) {
-          if (err) {
-            reject(err);
-          } else {
-            events.onProgress(data.dest);
-            cleanup();
-            resolve();
-          }
-        });
-      });
-    }).then((arg) => {
+    return currentlyWriting[data.dest] = copyFile(reporter, data)
+    .then((arg) => {
+      events.onProgress(data.dest);
       cleanup();
       return arg;
     }).catch((arg) => {
