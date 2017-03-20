@@ -303,8 +303,7 @@ export class Install {
     if (this.flags.skipIntegrityCheck || this.flags.force) {
       return false;
     }
-    const lockSource = lockStringify(this.lockfile.getLockfile(this.resolver.patterns));
-    const match = await this.integrityChecker.check(patterns, this.lockfile, lockSource, this.flags);
+    const match = await this.integrityChecker.check(patterns, this.lockfile, this.flags);
     if (this.flags.frozenLockfile && match.missingPatterns.length > 0) {
       throw new MessageError(this.reporter.lang('frozenLockfileError'));
     }
@@ -373,6 +372,7 @@ export class Install {
       this.reporter.warn(this.reporter.lang('shrinkwrapWarning'));
     }
 
+
     let patterns: Array<string> = [];
     const steps: Array<(curr: number, total: number) => Promise<{bailout: boolean} | void>> = [];
     const {
@@ -381,13 +381,16 @@ export class Install {
       ignorePatterns,
       usedPatterns,
     } = await this.fetchRequestFromCwd();
+    // let lockSource1;
 
     steps.push(async (curr: number, total: number) => {
       this.reporter.step(curr, total, this.reporter.lang('resolvingPackages'), emoji.get('mag'));
       await this.resolver.init(this.prepareRequests(depRequests), this.flags.flat);
       patterns = await this.flatten(this.preparePatterns(rawPatterns));
+      // lockSource1 = this.lockfile.getLockfile(this.resolver.patterns);
       return {bailout: await this.bailout(usedPatterns)};
     });
+
 
     steps.push(async (curr: number, total: number) => {
       this.markIgnored(ignorePatterns);
@@ -597,10 +600,8 @@ export class Install {
       await this.pruneOfflineMirror(lockfile);
     }
 
-    const lockSource = lockStringify(lockfile);
-
     // write integrity hash
-    await this.integrityChecker.save(patterns, lockSource, this.flags, this.resolver.usedRegistries);
+    await this.integrityChecker.save(patterns, lockfile, this.flags, this.resolver.usedRegistries);
 
     const lockFileHasAllPatterns = patterns.filter((p) => !this.lockfile.getLocked(p)).length === 0;
 
@@ -613,6 +614,7 @@ export class Install {
     const loc = path.join(this.config.cwd, constants.LOCKFILE_FILENAME);
 
     // write lockfile
+    const lockSource = lockStringify(lockfile);
     await fs.writeFilePreservingEol(loc, lockSource);
 
     this._logSuccessSaveLockfile();

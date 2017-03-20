@@ -153,9 +153,8 @@ async function integrityHashCheck(
   // TODO hydrate takes longer then install command bailout https://github.com/yarnpkg/yarn/issues/2514
   const {patterns: rawPatterns} = await install.hydrate(true);
   const patterns = await install.flatten(rawPatterns);
-  const lockSource = lockStringify(lockfile.getLockfile(install.resolver.patterns));
 
-  const match = await integrityChecker.check(patterns, lockfile, lockSource, flags);
+  const match = await integrityChecker.check(patterns, lockfile, flags);
   for (const pattern of match.missingPatterns) {
     reportError('lockfileNotContainPattern', pattern);
   }

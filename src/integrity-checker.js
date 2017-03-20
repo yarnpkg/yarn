@@ -76,8 +76,10 @@ export default class InstallationIntegrityChecker {
    * Generate integrity hash of input lockfile.
    */
 
-  _generateIntegrityHash(lockfile: string, patterns: Array<string>, flags: Object): string {
-    const opts = [lockfile];
+  _generateIntegrityHash(lockfile: Lockfile, patterns: Array<string>, flags: Object): string {
+
+    // TODO hash all lockfile patterns
+    const opts = [];
 
     opts.push(`patterns:${patterns.sort(sortAlpha).join(',')}`);
 
@@ -105,7 +107,6 @@ export default class InstallationIntegrityChecker {
   async check(
     patterns: Array<string>,
     lockfile: Lockfile,
-    normalizedLockSource: string,
     flags: Object): Promise<IntegrityCheckResult> {
     // check if patterns exist in lockfile
     const missingPatterns = patterns.filter((p) => !lockfile.getLocked(p));
@@ -117,7 +118,7 @@ export default class InstallationIntegrityChecker {
       };
     }
 
-    const actual = this._generateIntegrityHash(normalizedLockSource, patterns, flags);
+    const actual = this._generateIntegrityHash(lockfile, patterns, flags);
     const expected = (await fs.readFile(loc.locationPath)).trim();
 
     return {
@@ -132,13 +133,13 @@ export default class InstallationIntegrityChecker {
    */
   async save(
     patterns: Array<string>,
-    normalizedLockSource: string,
+    lockfile: Lockfile,
     flags: Object,
     usedRegistries?: Set<RegistryNames>): Promise<void> {
     const loc = await this._getIntegrityHashLocation(usedRegistries);
     invariant(loc.locationPath, 'expected integrity hash location');
     await fs.mkdirp(path.dirname(loc.locationPath));
-    await fs.writeFile(loc.locationPath, this._generateIntegrityHash(normalizedLockSource, patterns, flags));
+    await fs.writeFile(loc.locationPath, this._generateIntegrityHash(lockfile, patterns, flags));
   }
 
   async removeIntegrityFile(): Promise<void> {
