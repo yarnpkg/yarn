@@ -1,43 +1,38 @@
-<p align="center">
-  <a href="https://yarnpkg.com/">
-    <img alt="Yarn" src="https://github.com/yarnpkg/assets/blob/master/yarn-kitten-full.png?raw=true" width="546">
-  </a>
-</p>
 
-<p align="center">
-  Fast, reliable, and secure dependency management.
-</p>
+# Esy
 
-<p align="center">
-  <a href="https://travis-ci.org/yarnpkg/yarn"><img alt="Travis Status" src="https://travis-ci.org/yarnpkg/yarn.svg"></a>
-  <a href="https://circleci.com/gh/yarnpkg/yarn"><img alt="Circle Status" src="https://circleci.com/gh/yarnpkg/yarn.svg?style=shield&circle-token=5f0a78473b0f440afb218bf2b82323cc6b3cb43f"></a>
-  <a href="https://ci.appveyor.com/project/kittens/yarn/branch/master"><img alt="Appveyor Status" src="https://ci.appveyor.com/api/projects/status/0xdv8chwe2kmk463?svg=true"></a>
-  <a href="https://discord.gg/yarnpkg"><img alt="Discord Chat" src="https://discordapp.com/api/guilds/226791405589233664/widget.png"></a>
-</p>
-
----
-
-# Esy (Yarn fork for native compilation with sandboxing)
-
-Implementation of `package.json` for compiled languages 
+`package.json` workflow for compiled languages.
 -------------------------------------
+
+## What
+
+- Makes natively compiled projects work with `package.json` package managers.
+- Makes sharing of natively compiled projects easier than ever.
+- Makes native projects build faster.
+- Bridges native package managers (OPAM) to `npm` for wider reach.
 
 ## Features
 
 - Directory based projects (like `package.json`).
 - Parallel builds.
 - Clean environment builds for reproducibility.
-- Global build cache shared across all projects.
+- Global build cache automatically shared across all projects. You don't think about the
+  cache and don't think about creating "virtual environments" or "switches". `esy`
+  figures it out.
 - File system sandboxing to prevent builds from mutating locations they don't
   own.
-- Environment variable configuration and management.
+- Solves environment variable pain. Native toolchains rely heavily on environment
+  variables, and `esy` makes them behave predictably, and usually even gets them
+  out of your way entirely.
 - Allows symlink workflows for local development (by enforcing out-of-source
-  builds).
-- Run commands in sandbox quickly `esy any command`.
-- Eject entire entire build to parallel `Makefile`
+  builds). This allows you to work on several projects locally, make changes to
+  one project and the projects that depend on it will automatically know they
+  need to rebuild themselves.
+- Run commands in project environment quickly `esy any command`.
+- Makes sharing of native projects easier than ever by supporting "eject to `Makefile`".
   - Build dependency graph without network access.
-  - Build dependency graph where `node` is not installed.
-
+  - Build dependency graph where `node` is not installed and where no package manager
+    is installed.
 
 ## Install
 
