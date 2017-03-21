@@ -673,7 +673,7 @@ ivy 1.2.2 1.3.1
 jane-street-tests 113.33.03
 javalib 2.2.2 2.3 2.3.1 2.3.2 2.3.3 2.3a
 javascriptcore 0.0.1
-jbuilder 0.1.alpha1
+jbuilder 1.0+beta4
 jekyll-format 0.1.0
 jenga 113.33.03
 jhupllib 0.1
