@@ -10,7 +10,8 @@
 - Makes it trivial to share natively compiled projects with anyone - even if they don't
   have a package manager installed.
 - Makes native projects build faster.
-- Bridges native package managers (OPAM) to `npm` for wider reach.
+- Widens the reach of OPAM packages by allowing them to be installed
+  by `npm` (the most popular package manager).
 
 ## Features
 
