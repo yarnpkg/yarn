@@ -23,6 +23,7 @@ ocamlbuild 0.9.3
 ocamlgraph 1.8.7
 ounit 2.0.0
 ppx_tools 5.0+4.02.0
+ppx_tools_versioned 5.0alpha
 react 1.2.0
 result 1.2
 solvuu-build 0.2.0
