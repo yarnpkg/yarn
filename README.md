@@ -6,8 +6,9 @@
 
 ## What
 
-- Makes natively compiled projects work with `package.json` package managers.
-- Makes sharing of natively compiled projects easier than ever.
+- Makes compiled projects work with `package.json` package managers.
+- Makes it trivial to share natively compiled projects with anyone - even if they don't
+  have a package manager installed.
 - Makes native projects build faster.
 - Bridges native package managers (OPAM) to `npm` for wider reach.
 
