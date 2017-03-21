@@ -57,7 +57,7 @@ export default class TarballFetcher extends BaseFetcher {
     }
 
     // handle scoped packages
-    const pathParts = pathname.slice(1).split('/');
+    const pathParts = pathname.replace(/^\//).split('/');
 
     const packageFilename = pathParts.length >= 2 && pathParts[0][0] === '@'
       ? `${pathParts[0]}-${pathParts[pathParts.length - 1]}` // scopped
