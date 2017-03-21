@@ -51,22 +51,6 @@ test('CopyFetcher.fetch', async () => {
   expect(contentFoo).toBe('bar');
 });
 
-test('GitFetcher.fetch fetchFromLocal not in network or cache', async () => {
-  const config = await Config.create();
-  const dir = await mkdir('git-fetcher');
-  const fetcher = new GitFetcher(dir, {
-    type: 'git',
-    reference: './offline-mirror/fetch-test',
-    hash: '8beb0413a8028ca2d52dbb86c75f42069535591b',
-    registry: 'npm',
-  }, config);
-  try {
-    await fetcher.fetch();
-  } catch (err) {
-    expect(err.message).toBe(config.reporter.lang('tarballNotInNetworkOrCache', './offline-mirror/fetch-test', path.resolve('./offline-mirror/fetch-test')));
-  }
-});
-
 test('GitFetcher.fetch', async () => {
   const dir = await mkdir('git-fetcher');
   const fetcher = new GitFetcher(dir, {

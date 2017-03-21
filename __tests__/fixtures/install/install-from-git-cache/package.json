@@ -1,5 +1,5 @@
 {
   "dependencies": {
-    "dep-a": "https://github.com/dep-a.git"
+    "dep-a": "https://example.org/dep-a.git"
   }
 }

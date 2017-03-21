@@ -4,20 +4,20 @@
 
 dep-a@^1.0.0:
   version "1.0.0"
-  resolved "http://tar.ball/dep-a.tgz#DEP-A_SHASUM"
+  resolved "https://example.org/dep-a.tgz#DEP-A_SHASUM"
   dependencies:
     dep-c "^1.0.0"
 
 dep-b@^1.0.0:
   version "1.0.0"
-  resolved "http://tar.ball/dep-b.tgz#DEP-B_SHASUM"
+  resolved "https://example.org/dep-b.tgz#DEP-B_SHASUM"
 
 dep-c@^1.0.0:
   version "1.0.0"
-  resolved "http://tar.ball/dep-c.tgz#DEP-C_SHASUM"
+  resolved "https://example.org/dep-c.tgz#DEP-C_SHASUM"
   dependencies:
     dep-d "^1.0.0"
 
 dep-d@^1.0.0:
   version "1.0.0"
-  resolved "http://tar.ball/dep-d.tgz#DEP-D_SHASUM"
+  resolved "https://example.org/dep-d.tgz#DEP-D_SHASUM"
