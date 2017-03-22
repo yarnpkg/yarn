@@ -104,9 +104,99 @@ test.concurrent('upgrades from fixed version to latest', (): Promise<void> => {
   });
 });
 
-test.concurrent('upgrades package not in registry', (): Promise<void> => {
+test.concurrent('upgrades dependency packages not in registry', (): Promise<void> => {
   const packages = ['yarn-test-git-repo', 'e2e-test-repo'];
   return runUpgrade(packages, {}, 'package-not-in-registry', async (config): ?Promise<void> => {
+    const lockfile = explodeLockfile(await fs.readFile(path.join(config.cwd, 'yarn.lock')));
+    const gitRemote = 'https://github.com/yarnpkg/e2e-test-repo';
+
+    const lockFileIncludes = (sha) => lockfile.includes(`  resolved "${gitRemote}#${sha}"`);
+
+    assert(
+      lockfile.includes(`"yarn-test-git-repo@${gitRemote}#master":`),
+      'Lockfile should point to the same yarn-test-git-repo branch.',
+    );
+
+    assert(
+      !lockFileIncludes('d2027157d0c7188fc9ed6a6654325d1e3bf4db40'),
+      'Lockfile should update yarn-test-git-repo SHA.',
+    );
+
+    assert(
+      lockfile.includes(`"e2e-test-repo@${gitRemote}#greenkeeper/cross-env-3.1.4":`),
+      'Lockfile should point to the same e2e-test-repo branch.',
+    );
+
+    assert(
+      lockFileIncludes('da5940e1ad2b7451c00edffb6e755bf2411fc705'),
+      'Lockfile should keep latest e2e-test-repo SHA.',
+    );
+  });
+});
+
+test.concurrent('upgrades dev dependency packages not in registry', (): Promise<void> => {
+  const packages = ['yarn-test-git-repo', 'e2e-test-repo'];
+  return runUpgrade(packages, {}, 'package-not-in-registry-dev', async (config): ?Promise<void> => {
+    const lockfile = explodeLockfile(await fs.readFile(path.join(config.cwd, 'yarn.lock')));
+    const gitRemote = 'https://github.com/yarnpkg/e2e-test-repo';
+
+    const lockFileIncludes = (sha) => lockfile.includes(`  resolved "${gitRemote}#${sha}"`);
+
+    assert(
+      lockfile.includes(`"yarn-test-git-repo@${gitRemote}#master":`),
+      'Lockfile should point to the same yarn-test-git-repo branch.',
+    );
+
+    assert(
+      !lockFileIncludes('d2027157d0c7188fc9ed6a6654325d1e3bf4db40'),
+      'Lockfile should update yarn-test-git-repo SHA.',
+    );
+
+    assert(
+      lockfile.includes(`"e2e-test-repo@${gitRemote}#greenkeeper/cross-env-3.1.4":`),
+      'Lockfile should point to the same e2e-test-repo branch.',
+    );
+
+    assert(
+      lockFileIncludes('da5940e1ad2b7451c00edffb6e755bf2411fc705'),
+      'Lockfile should keep latest e2e-test-repo SHA.',
+    );
+  });
+});
+
+test.concurrent('upgrades optional dependency packages not in registry', (): Promise<void> => {
+  const packages = ['yarn-test-git-repo', 'e2e-test-repo'];
+  return runUpgrade(packages, {}, 'package-not-in-registry-optional', async (config): ?Promise<void> => {
+    const lockfile = explodeLockfile(await fs.readFile(path.join(config.cwd, 'yarn.lock')));
+    const gitRemote = 'https://github.com/yarnpkg/e2e-test-repo';
+
+    const lockFileIncludes = (sha) => lockfile.includes(`  resolved "${gitRemote}#${sha}"`);
+
+    assert(
+      lockfile.includes(`"yarn-test-git-repo@${gitRemote}#master":`),
+      'Lockfile should point to the same yarn-test-git-repo branch.',
+    );
+
+    assert(
+      !lockFileIncludes('d2027157d0c7188fc9ed6a6654325d1e3bf4db40'),
+      'Lockfile should update yarn-test-git-repo SHA.',
+    );
+
+    assert(
+      lockfile.includes(`"e2e-test-repo@${gitRemote}#greenkeeper/cross-env-3.1.4":`),
+      'Lockfile should point to the same e2e-test-repo branch.',
+    );
+
+    assert(
+      lockFileIncludes('da5940e1ad2b7451c00edffb6e755bf2411fc705'),
+      'Lockfile should keep latest e2e-test-repo SHA.',
+    );
+  });
+});
+
+test.concurrent('upgrades peer dependency packages not in registry', (): Promise<void> => {
+  const packages = ['yarn-test-git-repo', 'e2e-test-repo'];
+  return runUpgrade(packages, {}, 'package-not-in-registry-peer', async (config): ?Promise<void> => {
     const lockfile = explodeLockfile(await fs.readFile(path.join(config.cwd, 'yarn.lock')));
     const gitRemote = 'https://github.com/yarnpkg/e2e-test-repo';
 
