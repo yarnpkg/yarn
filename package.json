@@ -60,7 +60,7 @@
     "eslint-plugin-no-async-without-await": "^1.0.0",
     "eslint-plugin-react": "5.2.2",
     "eslint-plugin-yarn-internal": "file:scripts/eslint-rules",
-    "flow-bin": "^0.41.0",
+    "flow-bin": "^0.42.0",
     "gulp": "^3.9.0",
     "gulp-babel": "^6.0.0",
     "gulp-if": "^2.0.1",
@@ -97,7 +97,9 @@
     "build-win-installer": "scripts\\build-windows-installer.bat"
   },
   "jest": {
-    "collectCoverageFrom": ["src/**/*.js"],
+    "collectCoverageFrom": [
+      "src/**/*.js"
+    ],
     "timers": "fake",
     "testEnvironment": "node",
     "modulePathIgnorePatterns": [
