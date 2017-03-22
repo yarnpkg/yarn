@@ -31,10 +31,10 @@ export default class GitFetcher extends BaseFetcher {
     return false;
   }
 
-  getTarballMirrorPath() {
+  getTarballMirrorPath(): ?string {
     const {pathname} = url.parse(this.reference);
 
-    if (pathname === null) {
+    if (pathname == null) {
       return null;
     }
 
@@ -47,14 +47,14 @@ export default class GitFetcher extends BaseFetcher {
     return path.join(this.dest, constants.TARBALL_FILENAME);
   }
 
-  async fetchFromLocal(override: string): Promise<FetchedOverride> {
+  async fetchFromLocal(override: ?string): Promise<FetchedOverride> {
     const tarballMirrorPath = this.getTarballMirrorPath();
     const tarballCachePath = this.getTarballCachePath();
 
     const tarballPath = override || tarballMirrorPath || tarballCachePath;
 
     if (!tarballPath || !await fsUtil.exists(tarballPath)) {
-      throw new MessageError(reporter.lang('tarballNotInNetworkOrCache', this.reference, tarballPath));
+      throw new MessageError(this.reporter.lang('tarballNotInNetworkOrCache', this.reference, tarballPath));
     }
 
     return new Promise((resolve, reject) => {
@@ -74,16 +74,16 @@ export default class GitFetcher extends BaseFetcher {
           const actualHash = hashStream.getHash();
           if (!expectHash || expectHash === actualHash) {
             resolve({
-              hash: actualHash
+              hash: actualHash,
             });
           } else {
             reject(new SecurityError(
-              reporter.lang('fetchBadHash', expectHash, actualHash),
+              this.reporter.lang('fetchBadHash', expectHash, actualHash),
             ));
           }
         })
         .on('error', function(err) {
-          reject(new MessageError(reporter.lang('fetchErrorCorrupt', err.message, tarballPath)));
+          reject(new MessageError(this.reporter.lang('fetchErrorCorrupt', err.message, tarballPath)));
         });
     });
   }
@@ -99,11 +99,13 @@ export default class GitFetcher extends BaseFetcher {
     const tarballMirrorPath = this.getTarballMirrorPath();
     const tarballCachePath = this.getTarballCachePath();
 
-    if (tarballMirrorPath)
+    if (tarballMirrorPath) {
       await git.archive(tarballMirrorPath);
+    }
 
-    if (tarballCachePath)
+    if (tarballCachePath) {
       await git.archive(tarballCachePath);
+    }
 
     return {
       hash: commit,

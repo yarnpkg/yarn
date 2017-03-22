@@ -10,8 +10,6 @@ import assert from 'assert';
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 90000;
 
-test.concurrent = () => {}
-
 const path = require('path');
 
 const fixturesLoc = path.join(__dirname, '..', 'fixtures', 'remove');
@@ -20,8 +18,6 @@ const runRemove = buildRun.bind(
   ConsoleReporter,
   fixturesLoc,
   async (args, flags, config, reporter): Promise<void> => {
-        console.log(await fs.readFile(path.join(config.cwd, 'yarn.lock')));
-
     await remove(config, reporter, flags, args);
     await check(config, reporter, {verifyTree: true}, []);
   });
