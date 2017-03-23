@@ -195,7 +195,10 @@ export class Install {
    * Create a list of dependency requests from the current directories manifests.
    */
 
-  async fetchRequestFromCwd(excludePatterns?: Array<string> = []): Promise<InstallCwdRequest> {
+  async fetchRequestFromCwd(
+    excludePatterns?: Array<string> = [],
+    ignoreUnusedPatterns?: boolean = false,
+  ): Promise<InstallCwdRequest> {
     const patterns = [];
     const deps = [];
     const manifest = {};
@@ -231,6 +234,9 @@ export class Install {
       Object.assign(manifest, json);
 
       const pushDeps = (depType, {hint, optional}, isUsed) => {
+        if (ignoreUnusedPatterns && !isUsed) {
+          return;
+        }
         const depMap = json[depType];
         for (const name in depMap) {
           if (excludeNames.indexOf(name) >= 0) {
@@ -619,9 +625,8 @@ export class Install {
   /**
    * Load the dependency graph of the current install. Only does package resolving and wont write to the cwd.
    */
-
-  async hydrate(fetch?: boolean): Promise<InstallCwdRequest> {
-    const request = await this.fetchRequestFromCwd();
+  async hydrate(fetch?: boolean, ignoreUnusedPatterns?: boolean): Promise<InstallCwdRequest> {
+    const request = await this.fetchRequestFromCwd([], ignoreUnusedPatterns);
     const {requests: depRequests, patterns: rawPatterns, ignorePatterns} = request;
 
     await this.resolver.init(depRequests, this.flags.flat);
