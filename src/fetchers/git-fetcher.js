@@ -38,7 +38,9 @@ export default class GitFetcher extends BaseFetcher {
       return null;
     }
 
-    const packageFilename = path.basename(pathname);
+    const packageFilename = this.hash
+      ? `${path.basename(pathname)}-${this.hash}`
+      : `${path.basename(pathname)}`;
 
     return this.config.getOfflineMirrorPath(packageFilename);
   }
@@ -89,10 +91,9 @@ export default class GitFetcher extends BaseFetcher {
   }
 
   async fetchFromExternal(): Promise<FetchedOverride> {
-    const commit = this.hash;
-    invariant(commit, 'Commit hash required');
+    invariant(this.hash, 'Commit hash required');
 
-    const git = new Git(this.config, this.reference, commit);
+    const git = new Git(this.config, this.reference, this.hash);
     await git.init();
     await git.clone(this.dest);
 
@@ -108,7 +109,7 @@ export default class GitFetcher extends BaseFetcher {
     }
 
     return {
-      hash: commit,
+      hash: this.hash,
     };
   }
 
