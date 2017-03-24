@@ -349,8 +349,7 @@ export default class Git {
   }
 
   async setRefRemote(): Promise<string> {
-    const stdout = await child.spawn('git', ['ls-remote', '-q', '--tags', '--heads', this.url], 
-    {env: {GIT_SSH_COMMAND:'ssh -q'}});
+    const stdout = await child.spawn('git', ['ls-remote', '--tags', '--heads', this.url]);
     const refs = Git.parseRefs(stdout);
     return await this.setRef(refs);
   }
