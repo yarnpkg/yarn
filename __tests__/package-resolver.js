@@ -8,15 +8,8 @@ import Config from '../src/config.js';
 import makeTemp from './_temp.js';
 import * as fs from '../src/util/fs.js';
 import * as constants from '../src/constants.js';
-import inquirer from 'inquirer';
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000;
-
-// automatically chose the first available version if cached does not fit
-inquirer.prompt = jest.fn((questions) => {
-  const chosenVersion = questions[0].choices[0];
-  return Promise.resolve({package: chosenVersion});
-});
 
 const path = require('path');
 
