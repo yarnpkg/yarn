@@ -17,10 +17,15 @@ const invariant = require('invariant');
 
 export default class GitFetcher extends BaseFetcher {
   async getLocalAvailabilityStatus(): Promise<bool> {
-    const tarballMirrorPath = this.getTarballMirrorPath();
+    const tarballLegacyMirrorPath = this.getTarballMirrorPath({withCommit: false});
+    const tarballModernMirrorPath = this.getTarballMirrorPath();
     const tarballCachePath = this.getTarballCachePath();
 
-    if (tarballMirrorPath != null && await fsUtil.exists(tarballMirrorPath)) {
+    if (tarballLegacyMirrorPath != null && await fsUtil.exists(tarballLegacyMirrorPath)) {
+      return true;
+    }
+
+    if (tarballModernMirrorPath != null && await fsUtil.exists(tarballModernMirrorPath)) {
       return true;
     }
 
@@ -31,15 +36,17 @@ export default class GitFetcher extends BaseFetcher {
     return false;
   }
 
-  getTarballMirrorPath(): ?string {
+  getTarballMirrorPath({withCommit = true}: {withCommit: boolean} = {}): ?string {
     const {pathname} = url.parse(this.reference);
 
     if (pathname == null) {
       return null;
     }
 
-    const packageFilename = this.hash
-      ? `${path.basename(pathname)}-${this.hash}`
+    const hash = this.hash; // if we don't store it in a temp variable, flow will not persist its invariant state
+
+    const packageFilename = withCommit && hash
+      ? `${path.basename(pathname)}-${hash}`
       : `${path.basename(pathname)}`;
 
     return this.config.getOfflineMirrorPath(packageFilename);
@@ -50,8 +57,15 @@ export default class GitFetcher extends BaseFetcher {
   }
 
   async fetchFromLocal(override: ?string): Promise<FetchedOverride> {
-    const tarballMirrorPath = this.getTarballMirrorPath();
+    const tarballLegacyMirrorPath = this.getTarballMirrorPath({withCommit: false});
+    const tarballModernMirrorPath = this.getTarballMirrorPath();
     const tarballCachePath = this.getTarballCachePath();
+
+      const tarballMirrorPath =
+        tarballModernMirrorPath && !await fsUtil.exists(tarballModernMirrorPath) &&
+        tarballLegacyMirrorPath && await fsUtil.exists(tarballLegacyMirrorPath)
+        ? tarballLegacyMirrorPath
+        : tarballModernMirrorPath;
 
     const tarballPath = override || tarballMirrorPath || tarballCachePath;
 
@@ -91,9 +105,10 @@ export default class GitFetcher extends BaseFetcher {
   }
 
   async fetchFromExternal(): Promise<FetchedOverride> {
-    invariant(this.hash, 'Commit hash required');
+    const hash = this.hash; // if we don't store it in a temp variable, flow will not persist its invariant state
+    invariant(hash, 'Commit hash required');
 
-    const git = new Git(this.config, this.reference, this.hash);
+    const git = new Git(this.config, this.reference, hash);
     await git.init();
     await git.clone(this.dest);
 
@@ -109,7 +124,7 @@ export default class GitFetcher extends BaseFetcher {
     }
 
     return {
-      hash: this.hash,
+      hash,
     };
   }
 
