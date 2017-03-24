@@ -71,6 +71,7 @@
     "gulp-watch": "^4.3.5",
     "jest": "^19.0.2",
     "mock-stdin": "^0.3.0",
+    "sinon": "^1.17.7",
     "temp": "^0.8.3",
     "webpack": "^2.1.0-beta.25",
     "yargs": "^6.3.0"
