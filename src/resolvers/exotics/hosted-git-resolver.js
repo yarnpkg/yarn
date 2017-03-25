@@ -211,7 +211,7 @@ export default class HostedGitResolver extends ExoticResolver {
     // NOTE: Here we use a different url than when we delegate to the git resolver later on.
     // This is because `git archive` requires access over ssh and github only allows that
     // if you have write permissions
-    if (await Git.hasArchiveCapability(sshUrl)) {
+    if (await Git.hasArchiveCapability(Git.npmUrlToGitUrl(sshUrl))) {
       const archiveClient = new Git(this.config, sshUrl, this.hash);
       const commit = await archiveClient.init();
       return await this.fork(GitResolver, true, `${sshUrl}#${commit}`);
