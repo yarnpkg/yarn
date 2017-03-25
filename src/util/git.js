@@ -21,7 +21,7 @@ type GitRefs = {
   [name: string]: string
 };
 
-const supportsArchiveCache: { [key: string]: ?boolean } = map({
+const supportsArchiveCache: { [key: string]: boolean } = map({
   'github.com': false, // not support, doubt they will ever support it
 });
 
@@ -63,9 +63,8 @@ export default class Git {
     }
 
     const [,, hostname] = match;
-    const cached = supportsArchiveCache[hostname];
-    if (cached != null) {
-      return cached;
+    if (hostname in supportsArchiveCache) {
+      return supportsArchiveCache[hostname];
     }
 
     try {
