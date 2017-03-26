@@ -7,6 +7,7 @@ import * as fs from '../../src/util/fs.js';
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000;
 
+const net = require('net');
 const https = require('https');
 const path = require('path');
 
@@ -94,6 +95,25 @@ test('RequestManager.request with mutual TLS', async () => {
     server.close();
   }
   expect(body).toBe('ok');
+});
+
+test('RequestManager.execute timeout Request', async () => {
+  jest.useRealTimers();
+
+  const server = net.createServer((c) => {
+    // emulate TCP server that never closes the connection
+  });
+
+  try {
+    server.listen(0);
+    const config = await Config.create({networkTimeout: 50});
+    const port = server.address().port;
+    await config.requestManager.request({url: `http://localhost:${port}/?nocache`});
+  } catch (err) {
+    expect(err.message).toContain('TIMEDOUT');
+  } finally {
+    server.close();
+  }
 });
 
 test('RequestManager.execute Request 403 error', async () => {
