@@ -54,7 +54,8 @@ test.concurrent('--verify-tree should check dev dependencies ', async (): Promis
   expect(thrown).toEqual(true);
 });
 
-test.concurrent('--verify-tree should check skip dev dependencies if --production flag passed', async (): Promise<void> => {
+test.concurrent('--verify-tree should check skip dev dependencies if --production flag passed',
+async (): Promise<void> => {
   await runCheck([], {verifyTree: true, production: true}, 'verify-tree-dev-prod');
 });
 
@@ -100,7 +101,6 @@ test.concurrent('--integrity should pass if yarn.lock has new pattern', async ()
     lockfile += `\nxtend@^4.0.0:
   version "4.0.1"
   resolved "https://registry.yarnpkg.com/xtend/-/xtend-4.0.1.tgz#a5c6d532be656e23db820efb943a1f04998d63af"`;
-    console.log("???", lockfile)
     await fs.writeFile(path.join(config.cwd, 'yarn.lock'), lockfile);
 
     let thrown = false;
@@ -113,3 +113,19 @@ test.concurrent('--integrity should pass if yarn.lock has new pattern', async ()
   });
 });
 
+test.concurrent('--integrity should fail if yarn.lock has resolved changed', async (): Promise<void> => {
+  await runInstall({}, path.join('..', 'check', 'integrity-lock-check'), async (config, reporter): Promise<void> => {
+    let lockfile = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
+    lockfile = lockfile.replace('https://registry.npmjs.org/left-pad/-/left-pad-1.1.1.tgz',
+      'https://registry.yarnpkg.com/left-pad/-/left-pad-1.1.1.tgz');
+    await fs.writeFile(path.join(config.cwd, 'yarn.lock'), lockfile);
+
+    let thrown = false;
+    try {
+      await checkCmd.run(config, reporter, {integrity: true}, []);
+    } catch (e) {
+      thrown = true;
+    }
+    assert(thrown);
+  });
+});

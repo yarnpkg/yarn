@@ -5,9 +5,8 @@ import type {RegistryNames} from './registries/index.js';
 import * as constants from './constants.js';
 import {registryNames} from './registries/index.js';
 import Lockfile from './lockfile/wrapper.js';
-import * as crypto from './util/crypto.js';
 import * as fs from './util/fs.js';
-import {sortAlpha} from './util/misc.js';
+import {sortAlpha, compareSortedArrays} from './util/misc.js';
 
 
 const invariant = require('invariant');
@@ -22,6 +21,16 @@ export type IntegrityCheckResult = {
 type IntegrityHashLocation = {
   locationPath: string,
   exists: boolean,
+}
+
+type IntegrityFile = {
+  flags: Array<string>,
+  linkedModules: Array<string>,
+  topLevelPatters: Array<string>,
+  lockfileEntries: {
+    [key: string]: string
+  },
+  files: Array<string>,
 }
 
 /**
@@ -76,32 +85,58 @@ export default class InstallationIntegrityChecker {
    * Generate integrity hash of input lockfile.
    */
 
-  _generateIntegrityHash(lockfile: Lockfile, patterns: Array<string>, flags: Object): string {
+  _generateIntegrityFile(lockfile: Lockfile, patterns: Array<string>, flags: Object): IntegrityFile {
 
-    // TODO hash all lockfile patterns
-    const opts = [];
+    const result: IntegrityFile = {
+      flags: [],
+      linkedModules: [],
+      topLevelPatters: [],
+      lockfileEntries: {},
+      files: [],
+    };
 
-    opts.push(`patterns:${patterns.sort(sortAlpha).join(',')}`);
+    result.topLevelPatters = patterns.sort(sortAlpha);
 
     if (flags.flat) {
-      opts.push('flat');
+      result.flags.push('flat');
     }
 
     if (this.config.production) {
-      opts.push('production');
+      result.flags.push('production');
     }
 
     const linkedModules = this.config.linkedModules;
     if (linkedModules.length) {
-      opts.push(`linked:${linkedModules.join(',')}`);
+      result.linkedModules = linkedModules.sort(sortAlpha);
     }
 
-    const mirror = this.config.getOfflineMirrorPath();
-    if (mirror != null) {
-      opts.push(`mirror:${mirror}`);
+    const lockCache = lockfile.cache;
+    if (lockCache) {
+      Object.keys(lockCache).forEach((key) => {
+        const manifest = lockfile.getLocked(key);
+        if (manifest) {
+          result.lockfileEntries[key] = manifest.resolved;
+        }
+      });
     }
 
-    return crypto.hash(opts.join('-'), 'sha256');
+    // TODO files array
+
+    return result;
+  }
+
+  _compareIntegrityFiles(file1: IntegrityFile, file2: IntegrityFile): boolean {
+    if (!compareSortedArrays(file1.linkedModules, file2.linkedModules)) {
+      return false;
+    }
+    if (!compareSortedArrays(file1.topLevelPatters, file2.topLevelPatters)) {
+      return false;
+    }
+    if (!compareSortedArrays(file1.flags, file2.flags)) {
+      return false;
+    }
+    // TODO compare patterns
+    return true;
   }
 
   async check(
@@ -118,12 +153,29 @@ export default class InstallationIntegrityChecker {
       };
     }
 
-    const actual = this._generateIntegrityHash(lockfile, patterns, flags);
-    const expected = (await fs.readFile(loc.locationPath)).trim();
+    const actual = this._generateIntegrityFile(lockfile, patterns, flags);
+    const expectedRaw = await fs.readFile(loc.locationPath);
+    let expected: IntegrityFile;
+    try {
+      expected = JSON.parse(expectedRaw);
+    } catch (e) {
+      // ignore JSON parsing for legacy text integrity files compatibility
+    }
+    // TODO rename property
+    let integrityHashMatches;
+    if (expected) {
+      integrityHashMatches = this._compareIntegrityFiles(actual, expected);
+      // TODO check files presency
+      if (expected.files.length > 0) {
+        integrityHashMatches = true;
+      }
+    } else {
+      integrityHashMatches = false;
+    }
 
     return {
       integrityFileMissing: false,
-      integrityHashMatches: actual === expected,
+      integrityHashMatches,
       missingPatterns,
     };
   }
@@ -139,7 +191,8 @@ export default class InstallationIntegrityChecker {
     const loc = await this._getIntegrityHashLocation(usedRegistries);
     invariant(loc.locationPath, 'expected integrity hash location');
     await fs.mkdirp(path.dirname(loc.locationPath));
-    await fs.writeFile(loc.locationPath, this._generateIntegrityHash(lockfile, patterns, flags));
+    await fs.writeFile(loc.locationPath,
+      JSON.stringify(this._generateIntegrityFile(lockfile, patterns, flags), null, 2));
   }
 
   async removeIntegrityFile(): Promise<void> {

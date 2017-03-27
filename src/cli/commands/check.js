@@ -3,7 +3,6 @@
 import type Config from '../../config.js';
 import {MessageError} from '../../errors.js';
 import InstallationIntegrityChecker from '../../integrity-checker.js';
-import lockStringify from '../../lockfile/stringify.js';
 import Lockfile from '../../lockfile/wrapper.js';
 import type {Reporter} from '../../reporters/index.js';
 import * as fs from '../../util/fs.js';
