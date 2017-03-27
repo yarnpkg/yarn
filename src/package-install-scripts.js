@@ -101,7 +101,8 @@ export default class PackageInstallScripts {
 
     try {
       for (const [stage, cmd] of cmds) {
-        await executeLifecycleScript(stage, this.config, loc, cmd, spinner);
+        const {stdout} = await executeLifecycleScript(stage, this.config, loc, cmd, spinner);
+        this.reporter.verbose(stdout);
       }
     } catch (err) {
       err.message = `${loc}: ${err.message}`;
