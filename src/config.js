@@ -389,6 +389,10 @@ export default class Config {
 
       const registryMirrorPath = registry.config['yarn-offline-mirror'];
 
+      if (registryMirrorPath === false) {
+        return null;
+      }
+
       if (registryMirrorPath == null) {
         continue;
       }
