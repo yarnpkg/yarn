@@ -108,6 +108,23 @@ Object {
 }
 `;
 
+exports[`ConsoleReporter.tree 1`] = `
+Object {
+  "stderr": "",
+  "stdout": "├─ dep1
+├─ dep2
+│  ├─ dep2.1
+│  │  ├─ dep2.1.1
+│  │  └─ dep2.1.2
+│  └─ dep2.2
+│     ├─ dep2.2.1
+│     └─ dep2.2.2
+└─ dep3
+   ├─ dep3.1
+   └─ dep3.2",
+}
+`;
+
 exports[`ConsoleReporter.warn 1`] = `
 Object {
   "stderr": "[2K[1G[33mwarning[39m foobar",
