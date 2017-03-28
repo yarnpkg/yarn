@@ -12,7 +12,7 @@ import {Install} from './install.js';
 const semver = require('semver');
 const path = require('path');
 
-export const requireLockfile = true;
+export const requireLockfile = false;
 export const noArguments = true;
 
 export function setFlags(commander: Object) {
