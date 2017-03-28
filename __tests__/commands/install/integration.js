@@ -671,10 +671,16 @@ test.concurrent('install should update a dependency to yarn and mirror (PR impor
 
     const lockFileWritten = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
     const lockFileLines = explodeLockfile(lockFileWritten);
+
     assert.equal(lockFileLines[0], 'mime-db@~1.23.0:');
-    assert.notEqual(lockFileLines[2].indexOf('resolved mime-db-'), -1);
+    assert.notEqual(lockFileLines[2].match(
+      /resolved "https:\/\/registry\.yarnpkg\.com\/mime-db\/-\/mime-db-/,
+    ));
+
     assert.equal(lockFileLines[3], 'mime-types@2.1.11:');
-    assert.notEqual(lockFileLines[5].indexOf('resolved mime-types-2.1.11.tgz'), -1);
+    assert.notEqual(lockFileLines[5].match(
+      /resolved "https:\/\/registry\.yarnpkg\.com\/mime-types\/-\/mime-types-2\.1\.11\.tgz#[a-f0-9]+"/,
+    ));
 
     const mirror = await fs.walk(path.join(config.cwd, 'mirror-for-offline'));
     assert.equal(mirror.length, 4);

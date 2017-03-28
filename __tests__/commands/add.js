@@ -115,9 +115,13 @@ test.concurrent('add should ignore cache', (): Promise<void> => {
 
     const lockFileWritten = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
     const lockFileLines = explodeLockfile(lockFileWritten);
-    assert.equal(lockFileLines[0], 'left-pad@1.1.0:');
+
     assert.equal(lockFileLines.length, 3);
-    assert.notEqual(lockFileLines[2].indexOf('resolved left-pad-1.1.0.tgz'), -1);
+
+    assert.equal(lockFileLines[0], 'left-pad@1.1.0:');
+    assert.ok(lockFileLines[2].match(
+      /resolved "https:\/\/registry\.yarnpkg\.com\/left-pad\/-\/left-pad-1\.1\.0\.tgz#[a-f0-9]+"/,
+    ));
   });
 });
 
@@ -306,7 +310,7 @@ test.concurrent('add with offline mirror', (): Promise<void> => {
     const lockfile = parse(rawLockfile);
     assert.equal(
       lockfile['is-array@^1.0.1']['resolved'],
-      'is-array-1.0.1.tgz#e9850cc2cc860c3bc0977e84ccf0dd464584279a',
+      'https://registry.yarnpkg.com/is-array/-/is-array-1.0.1.tgz#e9850cc2cc860c3bc0977e84ccf0dd464584279a',
     );
   });
 });
@@ -364,10 +368,10 @@ test.concurrent('install with --save and without offline mirror', (): Promise<vo
 
     const rawLockfile = await fs.readFile(path.join(config.cwd, constants.LOCKFILE_FILENAME));
     const lockfile = parse(rawLockfile);
-    assert(
-      lockfile['is-array@^1.0.1']['resolved']
-        .indexOf('is-array-1.0.1.tgz#e9850cc2cc860c3bc0977e84ccf0dd464584279a') >= 0,
-    );
+
+    assert(lockfile['is-array@^1.0.1']['resolved'].match(
+      /https:\/\/registry\.yarnpkg\.com\/is-array\/-\/is-array-1\.0\.1\.tgz#[a-f0-9]+/,
+    ));
   });
 });
 
@@ -391,7 +395,9 @@ test.concurrent('upgrade scenario', (): Promise<void> => {
     const lockFileLines = explodeLockfile(lockFileWritten);
     assert.equal(lockFileLines[0], 'left-pad@0.0.9:');
     assert.equal(lockFileLines.length, 3);
-    assert.notEqual(lockFileLines[2].indexOf('resolved left-pad-0.0.9.tgz'), -1);
+    assert.ok(lockFileLines[2].match(
+      /resolved "https:\/\/registry\.yarnpkg\.com\/left-pad\/-\/left-pad-0\.0\.9\.tgz#[a-f0-9]+"/,
+    ));
 
     const mirror = await fs.walk(path.join(config.cwd, mirrorPath));
     assert.equal(mirror.length, 1);
@@ -414,7 +420,9 @@ test.concurrent('upgrade scenario', (): Promise<void> => {
     const lockFileLines2 = explodeLockfile(lockFileWritten2);
     assert.equal(lockFileLines2[0], 'left-pad@1.1.0:');
     assert.equal(lockFileLines2.length, 3);
-    assert.notEqual(lockFileLines2[2].indexOf('resolved left-pad-1.1.0.tgz'), -1);
+    assert.ok(lockFileLines2[2].match(
+      /resolved "https:\/\/registry\.yarnpkg\.com\/left-pad\/-\/left-pad-1.1.0.tgz#[a-f0-9]+"/,
+    ));
 
     const mirror2 = await fs.walk(path.join(config.cwd, mirrorPath));
     assert.equal(mirror2.length, 2);
@@ -452,9 +460,13 @@ test.concurrent('upgrade scenario 2 (with sub dependencies)', (): Promise<void> 
       const lockFileWritten = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
       const lockFileLines = explodeLockfile(lockFileWritten);
       assert.equal(lockFileLines[0], 'mime-db@~1.23.0:');
-      assert.notEqual(lockFileLines[2].indexOf('resolved mime-db-'), -1);
+      assert.ok(lockFileLines[2].match(
+        /resolved "https:\/\/registry\.yarnpkg\.com\/mime-db\/-\/mime-db-/,
+      ));
       assert.equal(lockFileLines[3], 'mime-types@2.1.11:');
-      assert.notEqual(lockFileLines[5].indexOf('resolved mime-types-2.1.11.tgz'), -1);
+      assert.ok(lockFileLines[5].match(
+        /resolved "https:\/\/registry\.yarnpkg\.com\/mime-types\/-\/mime-types-2\.1\.11\.tgz#[a-f0-9]+"/,
+      ));
 
       const mirror = await fs.walk(path.join(config.cwd, mirrorPath));
       assert.equal(mirror.length, 4);
@@ -484,9 +496,12 @@ test.concurrent('downgrade scenario', (): Promise<void> => {
     const mirrorPath = 'mirror-for-offline';
     const lockFileWritten = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
     const lockFileLines = explodeLockfile(lockFileWritten);
+
     assert.equal(lockFileLines[0], 'left-pad@1.1.0:');
     assert.equal(lockFileLines.length, 3);
-    assert.notEqual(lockFileLines[2].indexOf('resolved left-pad-1.1.0.tgz'), -1);
+    assert.ok(lockFileLines[2].match(
+      /resolved "https:\/\/registry\.yarnpkg\.com\/left-pad\/-\/left-pad-1\.1\.0\.tgz#[a-f0-9]+"/,
+    ));
 
     const mirror = await fs.walk(path.join(config.cwd, mirrorPath));
     assert.equal(mirror.length, 1);
@@ -508,9 +523,12 @@ test.concurrent('downgrade scenario', (): Promise<void> => {
 
     const lockFileWritten2 = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
     const lockFileLines2 = explodeLockfile(lockFileWritten2);
+
     assert.equal(lockFileLines2[0], 'left-pad@0.0.9:');
     assert.equal(lockFileLines2.length, 3);
-    assert.notEqual(lockFileLines2[2].indexOf('resolved left-pad-0.0.9.tgz'), -1);
+    assert.ok(lockFileLines2[2].match(
+      /resolved "https:\/\/registry\.yarnpkg\.com\/left-pad\/-\/left-pad-0\.0\.9\.tgz#[a-f0-9]+"/,
+    ));
 
     const mirror2 = await fs.walk(path.join(config.cwd, mirrorPath));
     assert.equal(mirror2.length, 2);
@@ -529,18 +547,17 @@ test.concurrent('modules resolved multiple times should save to mirror correctly
 
     // check that which module was downloaded to mirror
     const mirror = await fs.walk(path.join(config.cwd, mirrorPath));
-    const whichModule = mirror.find((elem): any => elem.relative.match(/which-1.*\.tgz/));
+    const whichModule = mirror.find((elem): any => elem.relative.match(/which-1\.2\.12\.tgz/));
     expect(whichModule).toBeDefined();
 
     const lockFileWritten = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
     const lockFileLines = explodeLockfile(lockFileWritten);
 
-    // no entry in lockfile that resolves to https
-    const httpResolved = lockFileLines.find((elem): any => elem.match(/resolved "https:\/\//));
-    expect(httpResolved).toBeUndefined();
-
     // which dependency must be resolved to file in local mirror
-    const whichResolved = lockFileLines.find((elem): any => elem.match(/ {2}resolved which-1.*\.tgz#.*/));
+    const whichResolved = lockFileLines.find((elem): any => elem.match(
+      /resolved "https:\/\/registry\.yarnpkg\.com\/which\/-\/which-1\.2\.12\.tgz#[^"]+"/,
+    ));
+
     expect(whichResolved).toBeDefined();
   });
 });
@@ -564,7 +581,9 @@ test.concurrent('add should put a git dependency to mirror', (): Promise<void> =
       const lockFileWritten = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
       const lockFileLines = explodeLockfile(lockFileWritten);
       // lock file contains mirror resolved line
-      expect(lockFileLines.find((line) => line.match(/.*resolved mime-db\.git\-.*/))).toBeDefined();
+      expect(lockFileLines.find((line) => line.match(
+        /resolved "https:\/\/github.com\/jshttp\/mime-db\.git#[^"]+"/,
+      ))).toBeDefined();
 
       // can reinstall, now from mirror
       await fs.unlink(path.join(config.cwd, 'node_modules'));

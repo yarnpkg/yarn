@@ -125,14 +125,12 @@ export type Manifest = {
 //
 export type FetchedMetadata = {
   package: Manifest,
-  resolved: ?string,
   hash: string,
   dest: string,
   cached: boolean,
 };
 export type FetchedOverride = {
   hash: string,
-  resolved: ?string,
 };
 
 // Used by outdated and upgrade-interactive

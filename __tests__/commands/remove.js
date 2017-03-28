@@ -116,7 +116,7 @@ test.concurrent('removes a single scoped package', (): Promise<void> => {
   });
 });
 
-test.concurrent('removes subdependencies', (): Promise<void> => {
+test('removes subdependencies', (): Promise<void> => {
   // A@1 -> B@1
   // C@1
 
@@ -125,6 +125,7 @@ test.concurrent('removes subdependencies', (): Promise<void> => {
   // C@1
 
   return runRemove(['dep-a'], {}, 'subdependencies', async (config, reporter) => {
+
     assert(!await fs.exists(path.join(config.cwd, 'node_modules/dep-a')));
     assert(!await fs.exists(path.join(config.cwd, 'node_modules/dep-b')));
     assert(await fs.exists(path.join(config.cwd, 'node_modules/dep-c')));
