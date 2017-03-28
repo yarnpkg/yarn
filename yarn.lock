@@ -3869,9 +3869,9 @@ replace-ext@0.0.1:
   version "0.0.1"
   resolved "https://registry.yarnpkg.com/replace-ext/-/replace-ext-0.0.1.tgz#29bbd92078a739f0bcce2b4ee41e837953522924"
 
-request-capture-har@^1.2.0:
-  version "1.2.0"
-  resolved "https://registry.yarnpkg.com/request-capture-har/-/request-capture-har-1.2.0.tgz#f8e34cd18c8ba64802141afc54ba008fba342bc0"
+request-capture-har@^1.2.2:
+  version "1.2.2"
+  resolved "https://registry.yarnpkg.com/request-capture-har/-/request-capture-har-1.2.2.tgz#cd692cfb2cc744fd84a3358aac6ee51528cf720d"
 
 request@2, request@^2.79.0, request@^2.81.0:
   version "2.81.0"

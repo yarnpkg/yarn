@@ -30,7 +30,7 @@
     "proper-lockfile": "^2.0.0",
     "read": "^1.0.7",
     "request": "^2.81.0",
-    "request-capture-har": "^1.2.0",
+    "request-capture-har": "^1.2.2",
     "rimraf": "^2.5.0",
     "roadrunner": "^1.1.0",
     "semver": "^5.1.0",
