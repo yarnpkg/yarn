@@ -10,6 +10,9 @@ const exec = require('child_process').exec;
 
 const fixturesLoc = path.join(__dirname, './fixtures/index');
 const yarnBin = path.join(__dirname, '../bin/yarn.js');
+const semver = require('semver');
+let ver = process.versions.node;
+ver = ver.split('-')[0];
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000;
 
@@ -102,15 +105,17 @@ test.concurrent('should add lockfile package', async () => {
   expectAddSuccessfullOutput(stdout, 'lockfile');
 });
 
-test.concurrent('should add progress package globally', async () => {
-  const stdout = await execCommand('global',
-    ['add', 'progress', '--global-folder', './global'],
-    'run-add-progress-globally',
-    true);
+if (semver.satisfies(ver, '>=5.0.0')) {
+  test.concurrent('should add progress package globally', async () => {
+    const stdout = await execCommand('global',
+      ['add', 'progress', '--global-folder', './global'],
+      'run-add-progress-globally',
+      true);
 
-  const lastLine = stdout[stdout.length - 1];
-  expect(lastLine).toMatch(/^Done/);
-});
+    const lastLine = stdout[stdout.length - 1];
+    expect(lastLine).toMatch(/^Done/);
+  });
+}
 
 test.concurrent('should run custom script', async () => {
   const stdout = await execCommand('run', ['custom-script'], 'run-custom-script');
