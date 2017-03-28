@@ -95,7 +95,7 @@ test.concurrent('--integrity should fail if yarn.lock has patterns changed', asy
   });
 });
 
-test.concurrent('--integrity should pass if yarn.lock has new pattern', async (): Promise<void> => {
+test.concurrent('--integrity should fail if yarn.lock has new pattern', async (): Promise<void> => {
   await runInstall({}, path.join('..', 'check', 'integrity-lock-check'), async (config, reporter): Promise<void> => {
     let lockfile = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
     lockfile += `\nxtend@^4.0.0:

@@ -160,7 +160,7 @@ async function integrityHashCheck(
   if (match.integrityFileMissing) {
     reportError('noIntegrityHashFile');
   }
-  if (!match.integrityHashMatches) {
+  if (!match.integrityMatches) {
     reportError('integrityHashesDontMatch');
   }
 

@@ -310,7 +310,7 @@ export class Install {
 
     const haveLockfile = await fs.exists(path.join(this.config.cwd, constants.LOCKFILE_FILENAME));
 
-    if (match.integrityHashMatches && haveLockfile) {
+    if (match.integrityMatches && haveLockfile) {
       this.reporter.success(this.reporter.lang('upToDate'));
       return true;
     }
@@ -601,7 +601,7 @@ export class Install {
     }
 
     // write integrity hash
-    await this.integrityChecker.save(patterns, lockfile, this.flags, this.resolver.usedRegistries);
+    await this.integrityChecker.save(patterns, this.lockfile, this.flags, this.resolver.usedRegistries);
 
     const lockFileHasAllPatterns = patterns.filter((p) => !this.lockfile.getLocked(p)).length === 0;
 

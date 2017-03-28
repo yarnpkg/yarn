@@ -14,7 +14,7 @@ const path = require('path');
 
 export type IntegrityCheckResult = {
   integrityFileMissing: boolean,
-  integrityHashMatches?: boolean,
+  integrityMatches?: boolean,
   missingPatterns: Array<string>,
 };
 
@@ -125,17 +125,26 @@ export default class InstallationIntegrityChecker {
     return result;
   }
 
-  _compareIntegrityFiles(file1: IntegrityFile, file2: IntegrityFile): boolean {
-    if (!compareSortedArrays(file1.linkedModules, file2.linkedModules)) {
+  _compareIntegrityFiles(actual: IntegrityFile, expected: IntegrityFile): boolean {
+    if (!compareSortedArrays(actual.linkedModules, expected.linkedModules)) {
       return false;
     }
-    if (!compareSortedArrays(file1.topLevelPatters, file2.topLevelPatters)) {
+    if (!compareSortedArrays(actual.topLevelPatters, expected.topLevelPatters)) {
       return false;
     }
-    if (!compareSortedArrays(file1.flags, file2.flags)) {
+    if (!compareSortedArrays(actual.flags, expected.flags)) {
       return false;
     }
-    // TODO compare patterns
+    for (const key of Object.keys(actual.lockfileEntries)) {
+      if (actual.lockfileEntries[key] !== expected.lockfileEntries[key]) {
+        return false;
+      }
+    }
+    for (const key of Object.keys(expected.lockfileEntries)) {
+      if (actual.lockfileEntries[key] !== expected.lockfileEntries[key]) {
+        return false;
+      }
+    }
     return true;
   }
 
@@ -161,21 +170,20 @@ export default class InstallationIntegrityChecker {
     } catch (e) {
       // ignore JSON parsing for legacy text integrity files compatibility
     }
-    // TODO rename property
-    let integrityHashMatches;
+    let integrityMatches;
     if (expected) {
-      integrityHashMatches = this._compareIntegrityFiles(actual, expected);
+      integrityMatches = this._compareIntegrityFiles(actual, expected);
       // TODO check files presency
       if (expected.files.length > 0) {
-        integrityHashMatches = true;
+        integrityMatches = true;
       }
     } else {
-      integrityHashMatches = false;
+      integrityMatches = false;
     }
 
     return {
       integrityFileMissing: false,
-      integrityHashMatches,
+      integrityMatches,
       missingPatterns,
     };
   }
@@ -191,8 +199,8 @@ export default class InstallationIntegrityChecker {
     const loc = await this._getIntegrityHashLocation(usedRegistries);
     invariant(loc.locationPath, 'expected integrity hash location');
     await fs.mkdirp(path.dirname(loc.locationPath));
-    await fs.writeFile(loc.locationPath,
-      JSON.stringify(this._generateIntegrityFile(lockfile, patterns, flags), null, 2));
+    const integrityFileContent = JSON.stringify(this._generateIntegrityFile(lockfile, patterns, flags), null, 2);
+    await fs.writeFile(loc.locationPath, integrityFileContent);
   }
 
   async removeIntegrityFile(): Promise<void> {
