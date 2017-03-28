@@ -7,7 +7,7 @@ node_js:
   - "6"
   - "4"
 
-sudo: false
+sudo: required # Until Yarn repo is added to apt-source-whitelist
 
 addons:
   apt:
