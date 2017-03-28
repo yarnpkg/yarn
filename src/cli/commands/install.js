@@ -784,5 +784,6 @@ export async function wrapLifecycle(config: Config, flags: Object, factory: () =
 
   if (!config.production) {
     await config.executeLifecycleScript('prepublish');
+    await config.executeLifecycleScript('prepare');
   }
 }
