@@ -23,6 +23,7 @@ export default class PackageFetcher {
   config: Config;
 
   async fetchCache(dest: string, fetcher: Fetchers): Promise<FetchedMetadata> {
+    console.log(dest)
     const {hash, package: pkg} = await this.config.readPackageMetadata(dest);
     return {
       package: pkg,
@@ -35,6 +36,7 @@ export default class PackageFetcher {
 
   async fetch(ref: PackageReference): Promise<FetchedMetadata> {
     const dest = this.config.generateHardModulePath(ref);
+    console.log('fetch', dest)
 
     const remote = ref.remote;
     const Fetcher = fetchers[remote.type];
