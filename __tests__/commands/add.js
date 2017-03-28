@@ -547,7 +547,7 @@ test.concurrent('modules resolved multiple times should save to mirror correctly
 
     // check that which module was downloaded to mirror
     const mirror = await fs.walk(path.join(config.cwd, mirrorPath));
-    const whichModule = mirror.find((elem): any => elem.relative.match(/which-1\.2\.12\.tgz/));
+    const whichModule = mirror.find((elem): any => elem.relative.match(/which-1\.2\..*\.tgz/));
     expect(whichModule).toBeDefined();
 
     const lockFileWritten = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
@@ -555,7 +555,7 @@ test.concurrent('modules resolved multiple times should save to mirror correctly
 
     // which dependency must be resolved to file in local mirror
     const whichResolved = lockFileLines.find((elem): any => elem.match(
-      /resolved "https:\/\/registry\.yarnpkg\.com\/which\/-\/which-1\.2\.12\.tgz#[^"]+"/,
+      /resolved "https:\/\/registry\.yarnpkg\.com\/which\/-\/which-1\.2\..*\.tgz#[^"]+"/,
     ));
 
     expect(whichResolved).toBeDefined();
