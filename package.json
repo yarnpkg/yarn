@@ -37,7 +37,7 @@
     "strip-bom": "^3.0.0",
     "tar-fs": "^1.15.1",
     "tar-stream": "^1.5.2",
-    "v8-compile-cache": "^1.0.0",
+    "v8-compile-cache": "^1.1.0",
     "validate-npm-package-license": "^3.0.1"
   },
   "devDependencies": {
