@@ -17,6 +17,7 @@ const invariant = require('invariant');
 
 export default class GitFetcher extends BaseFetcher {
   async getLocalAvailabilityStatus(): Promise<bool> {
+    // Some mirrors might still have files named "./reponame" instead of "./reponame-commit"
     const tarballLegacyMirrorPath = this.getTarballMirrorPath({withCommit: false});
     const tarballModernMirrorPath = this.getTarballMirrorPath();
     const tarballCachePath = this.getTarballCachePath();
@@ -43,7 +44,7 @@ export default class GitFetcher extends BaseFetcher {
       return null;
     }
 
-    const hash = this.hash; // if we don't store it in a temp variable, flow will not persist its invariant state
+    const hash = this.hash;
 
     const packageFilename = withCommit && hash
       ? `${path.basename(pathname)}-${hash}`
@@ -105,7 +106,7 @@ export default class GitFetcher extends BaseFetcher {
   }
 
   async fetchFromExternal(): Promise<FetchedOverride> {
-    const hash = this.hash; // if we don't store it in a temp variable, flow will not persist its invariant state
+    const hash = this.hash;
     invariant(hash, 'Commit hash required');
 
     const git = new Git(this.config, this.reference, hash);
