@@ -3,7 +3,6 @@
 import {getPackageVersion, runInstall} from '../_helpers.js';
 import * as fs from '../../../src/util/fs.js';
 
-const assert = require('assert');
 const path = require('path');
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 150000;
@@ -13,8 +12,8 @@ test.concurrent('install should dedupe dependencies avoiding conflicts 0', (): P
   // B@1.0.0
   // should result in B@2.0.0 not flattened
   return runInstall({}, 'install-should-dedupe-avoiding-conflicts-0', async (config) => {
-    assert.equal(await getPackageVersion(config, 'dep-b'), '1.0.0');
-    assert.equal(await getPackageVersion(config, 'dep-a/dep-b'), '2.0.0');
+    expect(await getPackageVersion(config, 'dep-b')).toEqual('1.0.0');
+    expect(await getPackageVersion(config, 'dep-a/dep-b')).toEqual('2.0.0');
   });
 });
 
@@ -23,8 +22,8 @@ test.concurrent('install should dedupe dependencies avoiding conflicts 1', (): P
   // A@2.0.1 -> B@2.0.0
   // should result in B@2.0.0 flattened
   return runInstall({}, 'install-should-dedupe-avoiding-conflicts-1', async (config) => {
-    assert.equal(await getPackageVersion(config, 'dep-b'), '2.0.0');
-    assert.equal(await getPackageVersion(config, 'dep-a'), '2.0.1');
+    expect(await getPackageVersion(config, 'dep-b')).toEqual('2.0.0');
+    expect(await getPackageVersion(config, 'dep-a')).toEqual('2.0.1');
   });
 });
 
@@ -42,12 +41,12 @@ test.concurrent('install should dedupe dependencies avoiding conflicts 2', (): P
   // B@1
 
   return runInstall({}, 'install-should-dedupe-avoiding-conflicts-2', async (config) => {
-    assert.equal(await getPackageVersion(config, 'dep-a'), '2.0.0');
-    assert.equal(await getPackageVersion(config, 'dep-a/dep-b'), '2.0.0');
-    assert.equal(await getPackageVersion(config, 'dep-c'), '1.0.0');
-    assert.equal(await getPackageVersion(config, 'dep-d'), '1.0.0');
-    assert.equal(await getPackageVersion(config, 'dep-b'), '1.0.0');
-    assert.equal(await getPackageVersion(config, 'dep-a/dep-c'), '2.0.0');
+    expect(await getPackageVersion(config, 'dep-a')).toEqual('2.0.0');
+    expect(await getPackageVersion(config, 'dep-a/dep-b')).toEqual('2.0.0');
+    expect(await getPackageVersion(config, 'dep-c')).toEqual('1.0.0');
+    expect(await getPackageVersion(config, 'dep-d')).toEqual('1.0.0');
+    expect(await getPackageVersion(config, 'dep-b')).toEqual('1.0.0');
+    expect(await getPackageVersion(config, 'dep-a/dep-c')).toEqual('2.0.0');
   });
 });
 
@@ -61,11 +60,11 @@ test.concurrent('install should dedupe dependencies avoiding conflicts 3', (): P
   // C@1
   // D@1
   return runInstall({}, 'install-should-dedupe-avoiding-conflicts-3', async (config) => {
-    assert.equal(await getPackageVersion(config, 'dep-a'), '2.0.0');
-    assert.equal(await getPackageVersion(config, 'dep-c'), '1.0.0');
-    assert.equal(await getPackageVersion(config, 'dep-d'), '1.0.0');
-    assert.equal(await getPackageVersion(config, 'dep-b'), '2.0.0');
-    assert.equal(await getPackageVersion(config, 'dep-b/dep-c'), '2.0.0');
+    expect(await getPackageVersion(config, 'dep-a')).toEqual('2.0.0');
+    expect(await getPackageVersion(config, 'dep-c')).toEqual('1.0.0');
+    expect(await getPackageVersion(config, 'dep-d')).toEqual('1.0.0');
+    expect(await getPackageVersion(config, 'dep-b')).toEqual('2.0.0');
+    expect(await getPackageVersion(config, 'dep-b/dep-c')).toEqual('2.0.0');
   });
 });
 
@@ -80,11 +79,11 @@ test.concurrent('install should dedupe dependencies avoiding conflicts 4', (): P
   // C@1
   // B@2
   return runInstall({}, 'install-should-dedupe-avoiding-conflicts-4', async (config) => {
-    assert.equal(await getPackageVersion(config, 'dep-a'), '2.0.0');
-    assert.equal(await getPackageVersion(config, 'dep-c'), '1.0.0');
-    assert.equal(await getPackageVersion(config, 'dep-d'), '1.0.0');
-    assert.equal(await getPackageVersion(config, 'dep-d/dep-c'), '2.0.0');
-    assert.equal(await getPackageVersion(config, 'dep-b'), '2.0.0');
+    expect(await getPackageVersion(config, 'dep-a')).toEqual('2.0.0');
+    expect(await getPackageVersion(config, 'dep-c')).toEqual('1.0.0');
+    expect(await getPackageVersion(config, 'dep-d')).toEqual('1.0.0');
+    expect(await getPackageVersion(config, 'dep-d/dep-c')).toEqual('2.0.0');
+    expect(await getPackageVersion(config, 'dep-b')).toEqual('2.0.0');
   });
 });
 
@@ -101,13 +100,12 @@ test.concurrent('install should dedupe dependencies avoiding conflicts 5', (): P
   //     -> B@2
 
   return runInstall({}, 'install-should-dedupe-avoiding-conflicts-5', async (config) => {
-    assert.equal(await getPackageVersion(config, 'dep-a'), '1.0.0');
-    assert.equal(await getPackageVersion(config, 'dep-b'), '1.0.0');
-    assert.equal(await getPackageVersion(config, 'dep-c'), '1.0.0');
-    assert.equal(await getPackageVersion(config, 'dep-d'), '1.0.0');
-    assert.equal(await getPackageVersion(config, 'dep-d/dep-a'), '2.0.0');
-    assert.equal(await getPackageVersion(config, 'dep-d/dep-b'), '2.0.0');
-
+    expect(await getPackageVersion(config, 'dep-a')).toEqual('1.0.0');
+    expect(await getPackageVersion(config, 'dep-b')).toEqual('1.0.0');
+    expect(await getPackageVersion(config, 'dep-c')).toEqual('1.0.0');
+    expect(await getPackageVersion(config, 'dep-d')).toEqual('1.0.0');
+    expect(await getPackageVersion(config, 'dep-d/dep-a')).toEqual('2.0.0');
+    expect(await getPackageVersion(config, 'dep-d/dep-b')).toEqual('2.0.0');
   });
 });
 
@@ -128,13 +126,13 @@ test.concurrent(
     // E@2
 
     return runInstall({}, 'install-should-dedupe-avoiding-conflicts-6', async (config): Promise<void> => {
-      assert.equal(await getPackageVersion(config, 'dep-b'), '1.0.0');
-      assert.equal(await getPackageVersion(config, 'dep-c'), '1.0.0');
-      assert.equal(await getPackageVersion(config, 'dep-d'), '2.0.0');
-      assert.equal(await getPackageVersion(config, 'dep-e'), '2.0.0');
+      expect(await getPackageVersion(config, 'dep-b')).toEqual('1.0.0');
+      expect(await getPackageVersion(config, 'dep-c')).toEqual('1.0.0');
+      expect(await getPackageVersion(config, 'dep-d')).toEqual('2.0.0');
+      expect(await getPackageVersion(config, 'dep-e')).toEqual('2.0.0');
 
-      assert.equal(await getPackageVersion(config, 'dep-c/dep-d'), '1.0.0');
-      assert.equal(await getPackageVersion(config, 'dep-c/dep-e'), '1.0.0');
+      expect(await getPackageVersion(config, 'dep-c/dep-d')).toEqual('1.0.0');
+      expect(await getPackageVersion(config, 'dep-c/dep-e')).toEqual('1.0.0');
     });
   },
 );
@@ -159,19 +157,19 @@ test.concurrent('install should dedupe dependencies avoiding conflicts 7', (): P
   // E@2
 
   return runInstall({}, 'install-should-dedupe-avoiding-conflicts-7', async (config) => {
-    assert.equal(await getPackageVersion(config, 'dep-a'), '1.0.0');
-    assert.equal(await getPackageVersion(config, 'dep-b'), '1.0.0');
-    assert.equal(await getPackageVersion(config, 'dep-c'), '2.0.0');
-    assert.equal(await getPackageVersion(config, 'dep-d'), '2.0.0');
-    assert.equal(await getPackageVersion(config, 'dep-e'), '2.0.0');
+    expect(await getPackageVersion(config, 'dep-a')).toEqual('1.0.0');
+    expect(await getPackageVersion(config, 'dep-b')).toEqual('1.0.0');
+    expect(await getPackageVersion(config, 'dep-c')).toEqual('2.0.0');
+    expect(await getPackageVersion(config, 'dep-d')).toEqual('2.0.0');
+    expect(await getPackageVersion(config, 'dep-e')).toEqual('2.0.0');
 
-    assert.equal(await getPackageVersion(config, 'dep-a/dep-c'), '1.0.0');
-    assert.equal(await getPackageVersion(config, 'dep-a/dep-d'), '1.0.0');
-    assert.equal(await getPackageVersion(config, 'dep-a/dep-e'), '1.0.0');
+    expect(await getPackageVersion(config, 'dep-a/dep-c')).toEqual('1.0.0');
+    expect(await getPackageVersion(config, 'dep-a/dep-d')).toEqual('1.0.0');
+    expect(await getPackageVersion(config, 'dep-a/dep-e')).toEqual('1.0.0');
 
-    assert.equal(await getPackageVersion(config, 'dep-b/dep-c'), '1.0.0');
-    assert.equal(await getPackageVersion(config, 'dep-b/dep-d'), '1.0.0');
-    assert.equal(await getPackageVersion(config, 'dep-b/dep-e'), '1.0.0');
+    expect(await getPackageVersion(config, 'dep-b/dep-c')).toEqual('1.0.0');
+    expect(await getPackageVersion(config, 'dep-b/dep-d')).toEqual('1.0.0');
+    expect(await getPackageVersion(config, 'dep-b/dep-e')).toEqual('1.0.0');
   });
 });
 
@@ -181,12 +179,12 @@ if (!process.env.TRAVIS || process.env.TRAVIS_OS_NAME !== 'osx') {
     // revealed in https://github.com/yarnpkg/yarn/issues/112
     // adapted for https://github.com/yarnpkg/yarn/issues/1158
     return runInstall({}, 'install-should-dedupe-avoiding-conflicts-8', async (config) => {
-      assert.equal(await getPackageVersion(config, 'glob'), '5.0.15');
-      assert.equal(await getPackageVersion(config, 'findup-sync/glob'), '4.3.5');
-      assert.equal(await getPackageVersion(config, 'inquirer'), '0.8.5');
-      assert.equal(await getPackageVersion(config, 'lodash'), '3.10.1');
-      assert.equal(await getPackageVersion(config, 'ast-query/lodash'), '4.15.0');
-      assert.equal(await getPackageVersion(config, 'run-async'), '0.1.0');
+      expect(await getPackageVersion(config, 'glob')).toEqual('5.0.15');
+      expect(await getPackageVersion(config, 'findup-sync/glob')).toEqual('4.3.5');
+      expect(await getPackageVersion(config, 'inquirer')).toEqual('0.8.5');
+      expect(await getPackageVersion(config, 'lodash')).toEqual('3.10.1');
+      expect(await getPackageVersion(config, 'ast-query/lodash')).toEqual('4.15.0');
+      expect(await getPackageVersion(config, 'run-async')).toEqual('0.1.0');
     });
   });
 }
@@ -195,12 +193,12 @@ test.concurrent('install should dedupe dependencies avoiding conflicts 9', (): P
   // revealed in https://github.com/yarnpkg/yarn/issues/112
   // adapted for https://github.com/yarnpkg/yarn/issues/1158
   return runInstall({}, 'install-should-dedupe-avoiding-conflicts-9', async (config) => {
-    assert.equal(await getPackageVersion(config, 'glob'), '5.0.15');
-    assert.equal(await getPackageVersion(config, 'findup-sync/glob'), '4.3.5');
-    assert.equal(await getPackageVersion(config, 'inquirer'), '0.8.5');
-    assert.equal(await getPackageVersion(config, 'lodash'), '3.10.1');
-    assert.equal(await getPackageVersion(config, 'ast-query/lodash'), '4.15.0');
-    assert.equal(await getPackageVersion(config, 'run-async'), '0.1.0');
+    expect(await getPackageVersion(config, 'glob')).toEqual('5.0.15');
+    expect(await getPackageVersion(config, 'findup-sync/glob')).toEqual('4.3.5');
+    expect(await getPackageVersion(config, 'inquirer')).toEqual('0.8.5');
+    expect(await getPackageVersion(config, 'lodash')).toEqual('3.10.1');
+    expect(await getPackageVersion(config, 'ast-query/lodash')).toEqual('4.15.0');
+    expect(await getPackageVersion(config, 'run-async')).toEqual('0.1.0');
   });
 });
 
@@ -217,7 +215,7 @@ test.concurrent('install should hardlink repeated dependencies', (): Promise<voi
       config.cwd,
       'node_modules/c/node_modules/a/package.json',
     ));
-    assert.equal(b_a.ino, c_a.ino);
+    expect(b_a.ino).toEqual(c_a.ino);
   });
 });
 
@@ -234,6 +232,6 @@ test.concurrent('install should not hardlink repeated dependencies if linkDuplic
       config.cwd,
       'node_modules/c/node_modules/a/package.json',
     ));
-    assert(b_a.ino != c_a.ino);
+    expect(b_a.ino).not.toEqual(c_a.ino);
   });
 });

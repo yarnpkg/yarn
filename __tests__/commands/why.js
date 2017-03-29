@@ -4,7 +4,6 @@ import {BufferReporter} from '../../src/reporters/index.js';
 import {run as why} from '../../src/cli/commands/why.js';
 import * as reporters from '../../src/reporters/index.js';
 import Config from '../../src/config.js';
-import assert from 'assert';
 import path from 'path';
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 90000;
@@ -76,34 +75,34 @@ test.concurrent('throws error if module does not exist', (): Promise<void> => {
   });
 });
 
-test.concurrent('should determine that the module installed because it is in dependencies', 
+test.concurrent('should determine that the module installed because it is in dependencies',
 (): Promise<void> => {
   return runWhy({}, ['mime-types'], 'basic', (config, reporter) => {
-    const report = reporter.getBuffer(); 
-    assert.equal(report[report.length - 1].data, reporter.lang('whySpecifiedSimple', 'dependencies'));
+    const report = reporter.getBuffer();
+    expect(report[report.length - 1].data).toEqual(reporter.lang('whySpecifiedSimple', 'dependencies'));
   });
 });
 
-test.concurrent('should determine that the module installed because it is in devDependencies', 
+test.concurrent('should determine that the module installed because it is in devDependencies',
 (): Promise<void> => {
   return runWhy({}, ['left-pad'], 'basic', (config, reporter) => {
-    const report = reporter.getBuffer(); 
-    assert.equal(report[report.length - 1].data, reporter.lang('whySpecifiedSimple', 'devDependencies'));
+    const report = reporter.getBuffer();
+    expect(report[report.length - 1].data).toEqual(reporter.lang('whySpecifiedSimple', 'devDependencies'));
   });
 });
 
-test.concurrent('should determine that the module installed because mime-types depend on it', 
+test.concurrent('should determine that the module installed because mime-types depend on it',
 (): Promise<void> => {
   return runWhy({}, ['mime-db'], 'basic', (config, reporter) => {
-    const report = reporter.getBuffer(); 
-    assert.equal(report[report.length - 1].data, reporter.lang('whyDependedOnSimple', 'mime-types'));
+    const report = reporter.getBuffer();
+    expect(report[report.length - 1].data).toEqual(reporter.lang('whyDependedOnSimple', 'mime-types'));
   });
 });
 
-test.concurrent('should determine that the module installed because it is hoisted from glob depend on it', 
+test.concurrent('should determine that the module installed because it is hoisted from glob depend on it',
 (): Promise<void> => {
   return runWhy({}, ['glob#minimatch'], 'basic', (config, reporter) => {
-    const report = reporter.getBuffer(); 
-    assert.equal(report[report.length - 2].data, reporter.lang('whyHoistedTo', 'glob#minimatch'));
+    const report = reporter.getBuffer();
+    expect(report[report.length - 2].data).toEqual(reporter.lang('whyHoistedTo', 'glob#minimatch'));
   });
 });

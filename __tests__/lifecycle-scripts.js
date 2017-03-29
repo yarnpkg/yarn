@@ -76,7 +76,7 @@ test('should only expose non-internal configs', async () => {
 });
 
 test('should run both prepublish and prepare when installing, but not prepublishOnly', async () => {
-  let stdout = await execCommand('install', 'lifecycle-scripts');
+  const stdout = await execCommand('install', 'lifecycle-scripts');
 
   expect(stdout).toMatch(/^running the prepublish hook$/m);
   expect(stdout).toMatch(/^running the prepare hook$/m);

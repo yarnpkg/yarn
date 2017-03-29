@@ -2,7 +2,6 @@
 import type {Reporter} from '../../src/reporters/index.js';
 
 import * as fs from '../../src/util/fs.js';
-import assert from 'assert';
 import {run as pack} from '../../src/cli/commands/pack.js';
 import * as reporters from '../../src/reporters/index.js';
 import Config from '../../src/config.js';
@@ -105,7 +104,7 @@ test.concurrent('pack should work with a minimal example', (): Promise<void> => 
       path.join(cwd, 'pack-minimal-test-v1.0.0'),
     );
 
-    assert.ok(files);
+    expect(files.length).toBeGreaterThanOrEqual(0);
   });
 });
 
@@ -118,7 +117,7 @@ test.concurrent('pack should inlude all files listed in the files array', (): Pr
     );
     const expected = ['index.js', 'a.js', 'b.js'];
     expected.forEach((filename) => {
-      assert(files.indexOf(filename) >= 0);
+      expect(files.indexOf(filename)).toBeGreaterThanOrEqual(0);
     });
   });
 });
@@ -133,7 +132,7 @@ test.concurrent('pack should include mandatory files not listed in files array i
     );
     const expected = ['package.json', 'readme.md', 'license', 'changelog'];
     expected.forEach((filename) => {
-      assert(files.indexOf(filename) >= 0);
+      expect(files.indexOf(filename)).toBeGreaterThanOrEqual(0);
     });
   });
 });
@@ -145,9 +144,9 @@ test.concurrent('pack should exclude mandatory files from ignored directories', 
       path.join(cwd, 'exclude-mandatory-files-from-ignored-directories-v1.0.0.tgz'),
       path.join(cwd, 'exclude-mandatory-files-from-ignored-directories-v1.0.0'),
     );
-    assert(files.indexOf('index.js') >= 0);
-    assert(files.indexOf('package.json') >= 0);
-    assert(files.indexOf('node_modules') === -1);
+    expect(files.indexOf('index.js')).toBeGreaterThanOrEqual(0);
+    expect(files.indexOf('package.json')).toBeGreaterThanOrEqual(0);
+    expect(files.indexOf('node_modules')).toEqual(-1);
   });
 });
 
@@ -161,7 +160,7 @@ test.concurrent('pack should exclude all other files if files array is not empty
     );
     const excluded = ['c.js'];
     excluded.forEach((filename) => {
-      assert(!(files.indexOf(filename) >= 0));
+      expect(files.indexOf(filename)).toEqual(-1);
     });
   });
 });
@@ -174,7 +173,7 @@ test.concurrent('pack should exclude all dotflies if not in files and files not 
       path.join(cwd, 'files-exclude-dotfile-v1.0.0.tgz'),
       path.join(cwd, 'files-exclude-dotfile-v1.0.0'),
     );
-    assert(!(files.indexOf('.dotfile') >= 0));
+    expect(files.indexOf('.dotfile')).toEqual(-1);
   });
 });
 
@@ -186,6 +185,6 @@ test.concurrent('pack should exclude all files in dot-directories if not in file
       path.join(cwd, 'files-exclude-dotdir-v1.0.0.tgz'),
       path.join(cwd, 'files-exclude-dotdir-v1.0.0'),
     );
-    assert(!(files.indexOf('a.js') >= 0));
+    expect(files.indexOf('a.js')).toEqual(-1);
   });
 });
