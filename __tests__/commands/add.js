@@ -10,7 +10,6 @@ import {Install} from '../../src/cli/commands/install.js';
 import Lockfile from '../../src/lockfile/wrapper.js';
 import {run as check} from '../../src/cli/commands/check.js';
 import * as fs from '../../src/util/fs.js';
-import assert from 'assert';
 import semver from 'semver';
 import {promisify} from '../../src/util/promise';
 import fsNode from 'fs';
@@ -48,9 +47,9 @@ test.concurrent('install with --dev flag', (): Promise<void> => {
     const lockfile = explodeLockfile(await fs.readFile(path.join(config.cwd, 'yarn.lock')));
     const pkg = await fs.readJson(path.join(config.cwd, 'package.json'));
 
-    assert(lockfile.indexOf('left-pad@1.1.0:') === 0);
-    assert.deepEqual(pkg.devDependencies, {'left-pad': '1.1.0'});
-    assert.deepEqual(pkg.dependencies, {});
+    expect(lockfile.indexOf('left-pad@1.1.0:')).toEqual(0);
+    expect(pkg.devDependencies).toEqual({'left-pad': '1.1.0'});
+    expect(pkg.dependencies).toEqual({});
   });
 });
 
@@ -59,9 +58,9 @@ test.concurrent('install with --peer flag', (): Promise<void> => {
     const lockfile = explodeLockfile(await fs.readFile(path.join(config.cwd, 'yarn.lock')));
     const pkg = await fs.readJson(path.join(config.cwd, 'package.json'));
 
-    assert(lockfile.indexOf('left-pad@1.1.0:') === 0);
-    assert.deepEqual(pkg.peerDependencies, {'left-pad': '1.1.0'});
-    assert.deepEqual(pkg.dependencies, {});
+    expect(lockfile.indexOf('left-pad@1.1.0:')).toEqual(0);
+    expect(pkg.peerDependencies).toEqual({'left-pad': '1.1.0'});
+    expect(pkg.dependencies).toEqual({});
   });
 });
 
@@ -70,9 +69,9 @@ test.concurrent('install with --optional flag', (): Promise<void> => {
     const lockfile = explodeLockfile(await fs.readFile(path.join(config.cwd, 'yarn.lock')));
     const pkg = await fs.readJson(path.join(config.cwd, 'package.json'));
 
-    assert(lockfile.indexOf('left-pad@1.1.0:') === 0);
-    assert.deepEqual(pkg.optionalDependencies, {'left-pad': '1.1.0'});
-    assert.deepEqual(pkg.dependencies, {});
+    expect(lockfile.indexOf('left-pad@1.1.0:')).toEqual(0);
+    expect(pkg.optionalDependencies).toEqual({'left-pad': '1.1.0'});
+    expect(pkg.dependencies).toEqual({});
   });
 });
 
@@ -82,7 +81,7 @@ test.concurrent('install with arg that has binaries', (): Promise<void> => {
 
 test.concurrent('add with no manifest creates blank manifest', (): Promise<void> => {
   return runAdd(['lodash'], {}, 'add-with-no-manifest', async (config) => {
-    assert.ok(await fs.exists(path.join(config.cwd, 'package.json')));
+    expect(await fs.exists(path.join(config.cwd, 'package.json'))).toBe(true);
   });
 });
 
@@ -92,36 +91,32 @@ test.concurrent('add should ignore cache', (): Promise<void> => {
   // files in mirror, yarn.lock, package.json and node_modules should reflect that
 
   return runAdd(['left-pad@1.1.0'], {}, 'install-save-to-mirror-when-cached', async (config, reporter) => {
-    assert.equal(
-      await getPackageVersion(config, 'left-pad'),
-      '1.1.0',
-    );
+    expect(await getPackageVersion(config, 'left-pad')).toEqual('1.1.0');
 
     const lockfile = await createLockfile(config.cwd);
+
     const install = new Add(['left-pad@1.1.0'], {}, config, reporter, lockfile);
     await install.init();
-    assert.equal(
-      await getPackageVersion(config, 'left-pad'),
-      '1.1.0',
-    );
-    assert.deepEqual(
+
+    expect(await getPackageVersion(config, 'left-pad')).toEqual('1.1.0');
+
+    expect(
       JSON.parse(await fs.readFile(path.join(config.cwd, 'package.json'))).dependencies,
-      {'left-pad': '1.1.0'},
-    );
+    ).toEqual({
+      'left-pad': '1.1.0',
+    });
 
     const mirror = await fs.walk(path.join(config.cwd, 'mirror-for-offline'));
-    assert.equal(mirror.length, 1);
-    assert.equal(mirror[0].relative, 'left-pad-1.1.0.tgz');
+    expect(mirror).toHaveLength(1);
+    expect(mirror[0].relative).toEqual('left-pad-1.1.0.tgz');
 
     const lockFileWritten = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
     const lockFileLines = explodeLockfile(lockFileWritten);
-
-    assert.equal(lockFileLines.length, 3);
-
-    assert.equal(lockFileLines[0], 'left-pad@1.1.0:');
-    assert.ok(lockFileLines[2].match(
+    expect(lockFileLines).toHaveLength(3);
+    expect(lockFileLines[0]).toEqual('left-pad@1.1.0:');
+    expect(lockFileLines[2]).toMatch(
       /resolved "https:\/\/registry\.yarnpkg\.com\/left-pad\/-\/left-pad-1\.1\.0\.tgz#[a-f0-9]+"/,
-    ));
+    );
   });
 });
 
@@ -129,14 +124,13 @@ test.concurrent('add should not make package.json strict', (): Promise<void> => 
   return runAdd(['left-pad@^1.1.0'], {}, 'install-no-strict', async (config) => {
     const lockfile = explodeLockfile(await fs.readFile(path.join(config.cwd, 'yarn.lock')));
 
-    assert(lockfile.indexOf('left-pad@^1.1.0:') >= 0);
-    assert.deepEqual(
+    expect(lockfile.indexOf('left-pad@^1.1.0:')).toBeGreaterThanOrEqual(0);
+    expect(
       JSON.parse(await fs.readFile(path.join(config.cwd, 'package.json'))).dependencies,
-      {
-        'left-pad': '^1.1.0',
-        'mime-types': '^2.0.0',
-      },
-    );
+    ).toEqual({
+      'left-pad': '^1.1.0',
+      'mime-types': '^2.0.0',
+    });
   });
 });
 
@@ -144,14 +138,13 @@ test.concurrent('add --save-exact should not make all package.json strict', (): 
   return runAdd(['left-pad@1.1.0'], {saveExact: true}, 'install-no-strict-all', async (config) => {
     const lockfile = explodeLockfile(await fs.readFile(path.join(config.cwd, 'yarn.lock')));
 
-    assert(lockfile.indexOf('left-pad@1.1.0:') === 0);
-    assert.deepEqual(
+    expect(lockfile.indexOf('left-pad@1.1.0:')).toEqual(0);
+    expect(
       JSON.parse(await fs.readFile(path.join(config.cwd, 'package.json'))).dependencies,
-      {
-        'left-pad': '1.1.0',
-        'mime-types': '^2.0.0',
-      },
-    );
+    ).toEqual({
+      'left-pad': '1.1.0',
+      'mime-types': '^2.0.0',
+    });
   });
 });
 
@@ -183,19 +176,19 @@ test.concurrent('install --initMirror should add init mirror deps from package.j
 
   // initMirror gets converted to save flag in cli/install.js
   return runAdd([], {}, fixture, async (config) => {
-    assert.equal(await getPackageVersion(config, 'mime-types'), '2.0.0');
-    assert(semver.satisfies(await getPackageVersion(config, 'mime-db'), '~1.0.1'));
+    expect(await getPackageVersion(config, 'mime-types')).toEqual('2.0.0');
+    expect(semver.satisfies(await getPackageVersion(config, 'mime-db'), '~1.0.1')).toEqual(true);
 
     const mirror = await fs.walk(path.join(config.cwd, mirrorPath));
-    assert.equal(mirror.length, 2);
-    assert.equal(mirror[0].relative.indexOf('mime-db-1.0.'), 0);
-    assert.equal(mirror[1].relative, 'mime-types-2.0.0.tgz');
+    expect(mirror).toHaveLength(2);
+    expect(mirror[0].relative.indexOf('mime-db-1.0.')).toEqual(0);
+    expect(mirror[1].relative).toEqual('mime-types-2.0.0.tgz');
 
     const lockFileContent = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
     const lockFileLines = explodeLockfile(lockFileContent);
-    assert.equal(lockFileLines.length, 8);
-    assert.equal(lockFileLines[0].indexOf('mime-db@'), 0);
-    assert.equal(lockFileLines[3].indexOf('mime-types@2.0.0'), 0);
+    expect(lockFileLines).toHaveLength(8);
+    expect(lockFileLines[0].indexOf('mime-db@')).toEqual(0);
+    expect(lockFileLines[3].indexOf('mime-types@2.0.0')).toEqual(0);
   });
 });
 
@@ -207,46 +200,45 @@ test.concurrent('add with new dependency should be deterministic', (): Promise<v
   const fixture = 'install-deterministic';
 
   return runInstall({}, path.join('..', 'add', fixture), async (config): Promise<void> => {
-    assert(semver.satisfies(
-      await getPackageVersion(config, 'mime-db'),
-      '~1.0.1'),
-    );
-    assert.equal(
-      await getPackageVersion(config, 'mime-types'),
-      '2.0.0',
-    );
+    expect(semver.satisfies(await getPackageVersion(config, 'mime-db'), '~1.0.1')).toBe(true);
+    expect(await getPackageVersion(config, 'mime-types')).toEqual('2.0.0');
 
     return runAdd(['mime-db@1.23.0'], {}, fixture, async (config) => {
-      assert(semver.satisfies(
-        await getPackageVersion(config, 'mime-db'),
+      expect(
+        semver.satisfies(await getPackageVersion(config, 'mime-db'),
         '1.23.0',
-      ));
-      assert.equal(
+      )).toEqual(true);
+
+      expect(
         await getPackageVersion(config, 'mime-types'),
+      ).toEqual(
         '2.0.0',
       );
-      assert.equal(
+
+      expect(
         await getPackageVersion(config, 'mime-types/mime-db'),
+      ).toEqual(
         '1.0.3',
       );
-      assert.deepEqual(
-        JSON.parse(await fs.readFile(path.join(config.cwd, 'package.json'))).dependencies, {
-          'mime-types': '2.0.0',
-          'mime-db': '1.23.0',
-        },
-      );
+
+      expect(
+        JSON.parse(await fs.readFile(path.join(config.cwd, 'package.json'))).dependencies,
+      ).toEqual({
+        'mime-types': '2.0.0',
+        'mime-db': '1.23.0',
+      });
 
       const lockFileWritten = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
       const lockFileLines = explodeLockfile(lockFileWritten);
-      assert.equal(lockFileLines.length, 11);
-      assert(lockFileLines.indexOf('mime-db@~1.0.1:') >= 0);
-      assert(lockFileLines.indexOf('mime-db@1.23.0:') >= 0);
-      assert(lockFileLines.indexOf('mime-types@2.0.0:') >= 0);
 
+      expect(lockFileLines).toHaveLength(11);
+      expect(lockFileLines.indexOf('mime-db@~1.0.1:')).toBeGreaterThanOrEqual(0);
+      expect(lockFileLines.indexOf('mime-db@1.23.0:')).toBeGreaterThanOrEqual(0);
+      expect(lockFileLines.indexOf('mime-types@2.0.0:')).toBeGreaterThanOrEqual(0);
 
       const mirror = await fs.walk(path.join(config.cwd, mirrorPath));
-      assert.equal(mirror.length, 3);
-      assert.equal(mirror[1].relative, 'mime-db-1.23.0.tgz');
+      expect(mirror).toHaveLength(3);
+      expect(mirror[1].relative).toEqual('mime-db-1.23.0.tgz');
     });
   });
 });
@@ -259,40 +251,48 @@ test.concurrent('add with new dependency should be deterministic 2', (): Promise
   const fixture = 'install-deterministic-2';
 
   return runInstall({}, path.join('..', 'add', fixture), async (config): Promise<void> => {
-    assert.equal(
+    expect(
       await getPackageVersion(config, 'mime-db'),
+    ).toEqual(
       '1.0.1',
     );
-    assert.equal(
+
+    expect(
       await getPackageVersion(config, 'mime-types'),
+    ).toEqual(
       '2.0.0',
     );
 
     return runAdd(['mime-db@1.0.3'], {}, fixture, async (config) => {
-      assert.equal(
+      expect(
         await getPackageVersion(config, 'mime-db'),
+      ).toEqual(
         '1.0.3',
       );
-      assert.equal(
+
+      expect(
         await getPackageVersion(config, 'mime-types'),
+      ).toEqual(
         '2.0.0',
       );
-      assert(!await fs.exists(path.join(config.cwd, 'node_modules/mime-types/node-modules/mime-db')));
-      assert.deepEqual(
-        JSON.parse(await fs.readFile(path.join(config.cwd, 'package.json'))).dependencies, {
-          'mime-types': '2.0.0',
-          'mime-db': '1.0.3',
-        },
-      );
+
+      expect(await fs.exists(path.join(config.cwd, 'node_modules/mime-types/node-modules/mime-db'))).toEqual(false);
+
+      expect(
+        JSON.parse(await fs.readFile(path.join(config.cwd, 'package.json'))).dependencies,
+      ).toEqual({
+        'mime-types': '2.0.0',
+        'mime-db': '1.0.3',
+      });
 
       const lockFileWritten = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
       const lockFileLines = explodeLockfile(lockFileWritten);
       // see why we don't cleanup lockfile https://github.com/yarnpkg/yarn/issues/79
-      assert.equal(lockFileLines.length, 11);
+      expect(lockFileLines).toHaveLength(11);
 
       const mirror = await fs.walk(path.join(config.cwd, mirrorPath));
-      assert.equal(mirror.length, 3);
-      assert.equal(mirror[1].relative, 'mime-db-1.0.3.tgz');
+      expect(mirror).toHaveLength(3);
+      expect(mirror[1].relative).toEqual('mime-db-1.0.3.tgz');
     });
   });
 });
@@ -302,14 +302,16 @@ test.concurrent('add with offline mirror', (): Promise<void> => {
   return runAdd(['is-array@^1.0.1'], {}, 'install-with-save-offline-mirror', async (config) => {
     const allFiles = await fs.walk(config.cwd);
 
-    assert(allFiles.findIndex((file): boolean => {
+    expect(allFiles.findIndex((file): boolean => {
       return file.relative === path.join(mirrorPath, 'is-array-1.0.1.tgz');
-    }) !== -1);
+    })).toBeGreaterThanOrEqual(0);
 
     const rawLockfile = await fs.readFile(path.join(config.cwd, constants.LOCKFILE_FILENAME));
     const lockfile = parse(rawLockfile);
-    assert.equal(
+
+    expect(
       lockfile['is-array@^1.0.1']['resolved'],
+    ).toEqual(
       'https://registry.yarnpkg.com/is-array/-/is-array-1.0.1.tgz#e9850cc2cc860c3bc0977e84ccf0dd464584279a',
     );
   });
@@ -321,20 +323,22 @@ test.skip('add-then-install git+ssh from offline mirror', () : Promise<void> => 
 
   return runAdd(['mime-db@git+ssh://git@github.com/jshttp/mime-db.git#1.24.0'], {},
   'install-git-ssh-mirror', async (config, reporter) : Promise<void> => {
-    assert(semver.satisfies(
+    expect(semver.satisfies(
       await getPackageVersion(config, 'mime-db'),
-      '1.24.0'),
-    );
+      '1.24.0',
+    )).toEqual(true);
 
     const mirror = await fs.walk(path.join(config.cwd, mirrorPath));
-    assert.equal(mirror.length, 1);
+    expect(mirror).toHaveLength(1);
 
-    assert(mirror[0].relative.match(/mime-db\.git.*/));
+    expect(mirror[0].relative).toMatch(/mime-db\.git.*/);
 
     const lockFileWritten = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
     const lockFileLines = explodeLockfile(lockFileWritten);
     // lock file contains mirror resolved line
-    expect(lockFileLines.find((line) => line.match(/.*resolved mime-db\.git\-.*/))).toBeDefined();
+    expect(lockFileLines.findIndex((line) => {
+      return line.match(/.*resolved mime-db\.git\-.*/);
+    })).toBeGreaterThanOrEqual(0);
 
     // reinstall
     await fs.unlink(path.join(config.cwd, 'node_modules'));
@@ -343,10 +347,10 @@ test.skip('add-then-install git+ssh from offline mirror', () : Promise<void> => 
     const install = new Install({}, config, reporter, new Lockfile());
     await install.init();
 
-    assert(semver.satisfies(
+    expect(semver.satisfies(
       await getPackageVersion(config, 'mime-db'),
-      '1.24.0'),
-    );
+      '1.24.0',
+    )).toEqual(true);
 
     const newLockFileWritten = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
     const newLockFileLines = explodeLockfile(newLockFileWritten);
@@ -362,16 +366,16 @@ test.concurrent('install with --save and without offline mirror', (): Promise<vo
 
     const allFiles = await fs.walk(config.cwd);
 
-    assert(allFiles.findIndex((file): boolean => {
+    expect(allFiles.findIndex((file): boolean => {
       return file.relative === `${mirrorPath}/is-array-1.0.1.tgz`;
-    }) === -1);
+    })).toEqual(-1);
 
     const rawLockfile = await fs.readFile(path.join(config.cwd, constants.LOCKFILE_FILENAME));
     const lockfile = parse(rawLockfile);
 
-    assert(lockfile['is-array@^1.0.1']['resolved'].match(
+    expect(lockfile['is-array@^1.0.1']['resolved']).toMatch(
       /https:\/\/registry\.yarnpkg\.com\/is-array\/-\/is-array-1\.0\.1\.tgz#[a-f0-9]+/,
-    ));
+    );
   });
 });
 
@@ -382,51 +386,57 @@ test.concurrent('upgrade scenario', (): Promise<void> => {
   const mirrorPath = 'mirror-for-offline';
 
   return runAdd(['left-pad@0.0.9'], {}, 'install-upgrade-scenario', async (config, reporter): Promise<void> => {
-    assert.equal(
+    expect(
       await getPackageVersion(config, 'left-pad'),
+    ).toEqual(
       '0.0.9',
     );
-    assert.deepEqual(
+
+    expect(
       JSON.parse(await fs.readFile(path.join(config.cwd, 'package.json'))).dependencies,
-      {'left-pad': '0.0.9'},
-    );
+    ).toEqual({
+      'left-pad': '0.0.9',
+    });
 
     const lockFileWritten = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
     const lockFileLines = explodeLockfile(lockFileWritten);
-    assert.equal(lockFileLines[0], 'left-pad@0.0.9:');
-    assert.equal(lockFileLines.length, 3);
-    assert.ok(lockFileLines[2].match(
+    expect(lockFileLines).toHaveLength(3);
+    expect(lockFileLines[0]).toEqual('left-pad@0.0.9:');
+    expect(lockFileLines[2]).toMatch(
       /resolved "https:\/\/registry\.yarnpkg\.com\/left-pad\/-\/left-pad-0\.0\.9\.tgz#[a-f0-9]+"/,
-    ));
+    );
 
     const mirror = await fs.walk(path.join(config.cwd, mirrorPath));
-    assert.equal(mirror.length, 1);
-    assert.equal(mirror[0].relative, 'left-pad-0.0.9.tgz');
+    expect(mirror).toHaveLength(1);
+    expect(mirror[0].relative).toEqual('left-pad-0.0.9.tgz');
 
     //
     const add = new Add(['left-pad@1.1.0'], {}, config, reporter, await Lockfile.fromDirectory(config.cwd));
     await add.init();
 
-    assert.equal(
+    expect(
       await getPackageVersion(config, 'left-pad'),
+    ).toEqual(
       '1.1.0',
     );
-    assert.deepEqual(
+
+    expect(
       JSON.parse(await fs.readFile(path.join(config.cwd, 'package.json'))).dependencies,
-      {'left-pad': '1.1.0'},
-    );
+    ).toEqual({
+      'left-pad': '1.1.0',
+    });
 
     const lockFileWritten2 = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
     const lockFileLines2 = explodeLockfile(lockFileWritten2);
-    assert.equal(lockFileLines2[0], 'left-pad@1.1.0:');
-    assert.equal(lockFileLines2.length, 3);
-    assert.ok(lockFileLines2[2].match(
+    expect(lockFileLines2).toHaveLength(3);
+    expect(lockFileLines2[0]).toEqual('left-pad@1.1.0:');
+    expect(lockFileLines2[2].match(
       /resolved "https:\/\/registry\.yarnpkg\.com\/left-pad\/-\/left-pad-1.1.0.tgz#[a-f0-9]+"/,
     ));
 
     const mirror2 = await fs.walk(path.join(config.cwd, mirrorPath));
-    assert.equal(mirror2.length, 2);
-    assert.equal(mirror2[1].relative, 'left-pad-1.1.0.tgz');
+    expect(mirror2).toHaveLength(2);
+    expect(mirror2[1].relative, 'left-pad-1.1.0.tgz');
   });
 });
 
@@ -438,43 +448,50 @@ test.concurrent('upgrade scenario 2 (with sub dependencies)', (): Promise<void> 
   const fixture = 'install-upgrade-scenario-2';
 
   return runInstall({}, path.join('..', 'add', fixture), async (config): Promise<void> => {
-    assert(semver.satisfies(
+    expect(semver.satisfies(
       await getPackageVersion(config, 'mime-db'),
-      '~1.0.1'),
-    );
-    assert.equal(
+      '~1.0.1',
+    )).toEqual(true);
+
+    expect(
       await getPackageVersion(config, 'mime-types'),
+    ).toEqual(
       '2.0.0',
     );
 
     return runAdd(['mime-types@2.1.11'], {}, fixture, async (config) => {
-      assert(semver.satisfies(
+      expect(semver.satisfies(
         await getPackageVersion(config, 'mime-db'),
         '~1.23.0',
-      ));
-      assert.equal(
+      )).toEqual(true);
+
+      expect(
         await getPackageVersion(config, 'mime-types'),
+      ).toEqual(
         '2.1.11',
       );
 
       const lockFileWritten = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
       const lockFileLines = explodeLockfile(lockFileWritten);
-      assert.equal(lockFileLines[0], 'mime-db@~1.23.0:');
-      assert.ok(lockFileLines[2].match(
+
+      expect(lockFileLines[0]).toEqual('mime-db@~1.23.0:');
+      expect(lockFileLines[2]).toMatch(
         /resolved "https:\/\/registry\.yarnpkg\.com\/mime-db\/-\/mime-db-/,
-      ));
-      assert.equal(lockFileLines[3], 'mime-types@2.1.11:');
-      assert.ok(lockFileLines[5].match(
+      );
+
+      expect(lockFileLines[3]).toEqual('mime-types@2.1.11:');
+      expect(lockFileLines[5]).toMatch(
         /resolved "https:\/\/registry\.yarnpkg\.com\/mime-types\/-\/mime-types-2\.1\.11\.tgz#[a-f0-9]+"/,
-      ));
+      );
 
       const mirror = await fs.walk(path.join(config.cwd, mirrorPath));
-      assert.equal(mirror.length, 4);
+      expect(mirror).toHaveLength(4);
+
       const newFilesInMirror = mirror.filter((elem): boolean => {
         return elem.relative !== 'mime-db-1.0.3.tgz' && elem.relative !== 'mime-types-2.0.0.tgz';
       });
 
-      assert.equal(newFilesInMirror.length, 2);
+      expect(newFilesInMirror).toHaveLength(2);
     });
   });
 });
@@ -484,55 +501,57 @@ test.concurrent('downgrade scenario', (): Promise<void> => {
   // files in mirror, yarn.lock, package.json and node_modules should reflect that
 
   return runAdd(['left-pad@1.1.0'], {}, 'install-downgrade-scenario', async (config, reporter): Promise<void> => {
-    assert.equal(
+    expect(
       await getPackageVersion(config, 'left-pad'),
+    ).toEqual(
       '1.1.0',
     );
-    assert.deepEqual(
+
+    expect(
       JSON.parse(await fs.readFile(path.join(config.cwd, 'package.json'))).dependencies,
-      {'left-pad': '1.1.0'},
-    );
+    ).toEqual({
+      'left-pad': '1.1.0',
+    });
 
     const mirrorPath = 'mirror-for-offline';
     const lockFileWritten = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
     const lockFileLines = explodeLockfile(lockFileWritten);
-
-    assert.equal(lockFileLines[0], 'left-pad@1.1.0:');
-    assert.equal(lockFileLines.length, 3);
-    assert.ok(lockFileLines[2].match(
+    expect(lockFileLines).toHaveLength(3);
+    expect(lockFileLines[0]).toEqual('left-pad@1.1.0:');
+    expect(lockFileLines[2]).toMatch(
       /resolved "https:\/\/registry\.yarnpkg\.com\/left-pad\/-\/left-pad-1\.1\.0\.tgz#[a-f0-9]+"/,
-    ));
+    );
 
     const mirror = await fs.walk(path.join(config.cwd, mirrorPath));
-    assert.equal(mirror.length, 1);
-    assert.equal(mirror[0].relative, 'left-pad-1.1.0.tgz');
-
-    //
+    expect(mirror).toHaveLength(1);
+    expect(mirror[0].relative).toEqual('left-pad-1.1.0.tgz');
 
     const add = new Add(['left-pad@0.0.9'], {},  config, reporter, await Lockfile.fromDirectory(config.cwd));
     await add.init();
 
-    assert.equal(
+    expect(
       await getPackageVersion(config, 'left-pad'),
+    ).toEqual(
       '0.0.9',
     );
-    assert.deepEqual(
+
+    expect(
       JSON.parse(await fs.readFile(path.join(config.cwd, 'package.json'))).dependencies,
-      {'left-pad': '0.0.9'},
-    );
+    ).toEqual({
+      'left-pad': '0.0.9',
+    });
 
     const lockFileWritten2 = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
     const lockFileLines2 = explodeLockfile(lockFileWritten2);
-
-    assert.equal(lockFileLines2[0], 'left-pad@0.0.9:');
-    assert.equal(lockFileLines2.length, 3);
-    assert.ok(lockFileLines2[2].match(
+    expect(lockFileLines2).toHaveLength(3);
+    expect(lockFileLines2[0]).toEqual('left-pad@0.0.9:');
+    expect(lockFileLines2[2]).toMatch(
       /resolved "https:\/\/registry\.yarnpkg\.com\/left-pad\/-\/left-pad-0\.0\.9\.tgz#[a-f0-9]+"/,
-    ));
+    );
 
     const mirror2 = await fs.walk(path.join(config.cwd, mirrorPath));
-    assert.equal(mirror2.length, 2);
-    assert.equal(mirror2[0].relative, 'left-pad-0.0.9.tgz');
+    expect(mirror2).toHaveLength(2);
+    expect(mirror2[0].relative).toEqual('left-pad-0.0.9.tgz');
   });
 });
 
@@ -570,12 +589,13 @@ test.concurrent('add should put a git dependency to mirror', (): Promise<void> =
     {},
     'install-git-mirror',
     async (config, reporter): Promise<void> => {
-      assert(semver.satisfies(
+      expect(semver.satisfies(
         await getPackageVersion(config, 'mime-db'),
-        '1.24.0'),
-      );
+        '1.24.0',
+      )).toEqual(true);
+
       const mirror = await fs.walk(path.join(config.cwd, mirrorPath));
-      assert.equal(mirror.length, 1);
+      expect(mirror).toHaveLength(1);
       expect(mirror[0].relative).toMatch(/mime-db\.git.*/);
 
       const lockFileWritten = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
@@ -592,10 +612,11 @@ test.concurrent('add should put a git dependency to mirror', (): Promise<void> =
       const install = new Install({}, config, reporter, await Lockfile.fromDirectory(config.cwd));
       await install.init();
 
-      assert(semver.satisfies(
+      expect(semver.satisfies(
         await getPackageVersion(config, 'mime-db'),
-        '1.24.0'),
-      );
+        '1.24.0',
+      )).toEqual(true);
+
       await fs.unlink(path.join(config.cwd, mirrorPath));
       await fs.unlink(path.join(config.cwd, 'package.json'));
     },
@@ -608,9 +629,9 @@ test.concurrent('add should store latest version in lockfile', (): Promise<void>
     const pkg = await fs.readJson(path.join(config.cwd, 'package.json'));
 
     const version = pkg.dependencies['max-safe-integer'];
-    assert(semver.valid(version.slice(1)));
-    assert(lockfile.indexOf('max-safe-integer:') === -1);
-    assert(lockfile.indexOf(`max-safe-integer@${version}:`) === 0);
+    expect(semver.valid(version.slice(1))).toBeTruthy();
+    expect(lockfile.indexOf('max-safe-integer:')).toEqual(-1);
+    expect(lockfile.indexOf(`max-safe-integer@${version}:`)).toEqual(0);
   });
 });
 
@@ -640,8 +661,8 @@ test.concurrent('add infers line endings from existing win32 manifest file', asy
   await runAdd(['is-online'], {}, 'add-infers-line-endings-from-existing-manifest-file',
     async (config): Promise<void> => {
       const lockfile = await promisify(fsNode.readFile)(path.join(config.cwd, 'package.json'), 'utf8');
-      assert(/\r\n/.test(lockfile));
-      assert(!/[^\r]\n/.test(lockfile));
+      expect(lockfile).toMatch(/\r\n/);
+      expect(lockfile).not.toMatch(/[^\r]\n/);
     },
     async (cwd): Promise<void> => {
       const existingLockfile = '{ "dependencies": {} }\r\n';
@@ -653,8 +674,8 @@ test.concurrent('add infers line endings from existing unix manifest file', asyn
   await runAdd(['is-online'], {}, 'add-infers-line-endings-from-existing-manifest-file',
     async (config): Promise<void> => {
       const lockfile = await promisify(fsNode.readFile)(path.join(config.cwd, 'package.json'), 'utf8');
-      assert(/[^\r]\n/.test(lockfile));
-      assert(!/\r\n/.test(lockfile));
+      expect(lockfile).toMatch(/[^\r]\n/);
+      expect(lockfile).not.toMatch(/\r\n/);
     },
     async (cwd): Promise<void> => {
       const existingLockfile = '{ "dependencies": {} }\n';
@@ -670,14 +691,14 @@ test.skip('add asks for correct package version if user passes an incorrect one'
     {},
     'add-asks-correct-package-version',
     async (config) => {
-      assert(chosenVersion);
-      assert.equal(await getPackageVersion(config, 'is-array'), chosenVersion);
+      expect(chosenVersion).toBeTruthy();
+      expect(await getPackageVersion(config, 'is-array')).toEqual(chosenVersion);
     },
     () => {
       inquirer.prompt = jest.fn((questions) => {
-        assert(questions.length === 1);
-        assert(questions[0].name === 'package');
-        assert(questions[0].choices.length > 0);
+        expect(questions).toHaveLength(1);
+        expect(questions[0].name).toEqual('package');
+        expect(questions[0].choices.length).toBeGreaterThan(0);
         chosenVersion = questions[0].choices[0];
         return Promise.resolve({package: chosenVersion});
       });
@@ -691,8 +712,8 @@ test.concurrent('install with latest tag', (): Promise<void> => {
     const pkg = await fs.readJson(path.join(config.cwd, 'package.json'));
     const version = await getPackageVersion(config, 'left-pad');
 
-    assert.deepEqual(pkg.dependencies, {'left-pad': `^${version}`});
-    assert(lockfile.indexOf(`left-pad@^${version}:`) === 0);
+    expect(pkg.dependencies).toEqual({'left-pad': `^${version}`});
+    expect(lockfile.indexOf(`left-pad@^${version}:`)).toEqual(0);
   });
 });
 
@@ -705,7 +726,7 @@ test.concurrent('install with latest tag and --offline flag', (): Promise<void> 
     const pkg = await fs.readJson(path.join(config.cwd, 'package.json'));
     const version = await getPackageVersion(config, 'left-pad');
 
-    assert.deepEqual(pkg.dependencies, {'left-pad': `^${version}`});
+    expect(pkg.dependencies).toEqual({'left-pad': `^${version}`});
   });
 });
 
@@ -718,8 +739,8 @@ test.concurrent('install with latest tag and --prefer-offline flag', (): Promise
     const pkg = await fs.readJson(path.join(config.cwd, 'package.json'));
     const version = await getPackageVersion(config, 'left-pad');
 
-    assert.deepEqual(pkg.dependencies, {'left-pad': `^${version}`});
-    assert.notEqual(version, '1.1.0');
+    expect(pkg.dependencies).toEqual({'left-pad': `^${version}`});
+    expect(version).not.toEqual('1.1.0');
   });
 });
 
@@ -730,10 +751,17 @@ test.concurrent('doesn\'t warn when peer dependency is met during add', (): Prom
     async (args, flags, config, reporter, lockfile): Promise<void> => {
       const add = new Add(args, flags, config, reporter, lockfile);
       await add.init();
+
       const output = reporter.getBuffer();
       const warnings = output.filter((entry) => entry.type === 'warning');
-      assert(!warnings.some((warning) => warning.data.toString().toLowerCase().includes('unmet peer')));
-      assert(!warnings.some((warning) => warning.data.toString().toLowerCase().includes('incorrect peer')));
+
+      expect(warnings.some((warning) => {
+        return warning.data.toString().toLowerCase().includes('unmet peer');
+      })).toEqual(false);
+
+      expect(warnings.some((warning) => {
+        return warning.data.toString().toLowerCase().includes('incorrect peer');
+      })).toEqual(false);
     },
     ['react@15.4.2', 'react-dom@15.4.2'],
     {},
@@ -748,9 +776,13 @@ test.concurrent('warns when peer dependency is not met during add', (): Promise<
     async (args, flags, config, reporter, lockfile): Promise<void> => {
       const add = new Add(args, flags, config, reporter, lockfile);
       await add.init();
+
       const output = reporter.getBuffer();
       const warnings = output.filter((entry) => entry.type === 'warning');
-      assert(warnings.some((warning) => warning.data.toString().toLowerCase().includes('unmet peer')));
+
+      expect(warnings.some((warning) => {
+        return warning.data.toString().toLowerCase().includes('unmet peer');
+      })).toEqual(true);
     },
     ['react-dom@15.4.2'],
     {},
@@ -765,9 +797,13 @@ test.concurrent('warns when peer dependency is incorrect during add', (): Promis
     async (args, flags, config, reporter, lockfile): Promise<void> => {
       const add = new Add(args, flags, config, reporter, lockfile);
       await add.init();
+
       const output = reporter.getBuffer();
       const warnings = output.filter((entry) => entry.type === 'warning');
-      assert(warnings.some((warning) => warning.data.toString().toLowerCase().includes('incorrect peer')));
+
+      expect(warnings.some((warning) => {
+        return warning.data.toString().toLowerCase().includes('incorrect peer');
+      })).toEqual(true);
     },
     ['react@0.14.8', 'react-dom@15.4.2'],
     {},

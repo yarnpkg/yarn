@@ -4,7 +4,6 @@ import type {CLIFunctionReturn} from '../../src/types.js';
 import * as reporters from '../../src/reporters/index.js';
 import * as checkCmd from '../../src/cli/commands/check.js';
 import {run as buildRun} from './_helpers.js';
-import assert from 'assert';
 
 const path = require('path');
 
@@ -26,7 +25,7 @@ test('--verify-tree should report wrong version ', async (): Promise<void> => {
   } catch (e) {
     thrown = true;
   }
-  assert(thrown);
+  expect(thrown).toEqual(true);
 });
 
 test('--verify-tree should report missing dependency ',
@@ -37,7 +36,7 @@ async (): Promise<void> => {
   } catch (e) {
     thrown = true;
   }
-  assert(thrown);
+  expect(thrown).toEqual(true);
 });
 
 test('--verify-tree should pass on hoisted dependency ',
@@ -53,7 +52,7 @@ async (): Promise<void> => {
   } catch (e) {
     thrown = true;
   }
-  assert(thrown);
+  expect(thrown).toEqual(true);
 });
 
 test('--verify-tree should check skip dev dependencies if --production flag passed',
@@ -65,4 +64,3 @@ test('--verify-tree should check skip deeper dev dependencies',
 async (): Promise<void> => {
   await runCheck([], {verifyTree: true, production: true}, 'verify-tree-dev-deep');
 });
-

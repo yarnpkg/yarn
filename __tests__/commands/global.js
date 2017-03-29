@@ -5,7 +5,6 @@ import {ConsoleReporter} from '../../src/reporters/index.js';
 import {run as buildRun} from './_helpers.js';
 import {run as global} from '../../src/cli/commands/global.js';
 import * as fs from '../../src/util/fs.js';
-import assert from 'assert';
 const isCI = require('is-ci');
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 90000;
@@ -39,8 +38,8 @@ function getTempGlobalFolder(): string {
 if (isCI) {
   test.concurrent('add without flag', (): Promise<void> => {
     return runGlobal(['add', 'react-native-cli'], {}, 'add-without-flag', async (config) => {
-      assert.ok(await fs.exists(path.join(config.globalFolder, 'node_modules', 'react-native-cli')));
-      assert.ok(await fs.exists(path.join(config.globalFolder, 'node_modules', '.bin', 'react-native')));
+      expect(await fs.exists(path.join(config.globalFolder, 'node_modules', 'react-native-cli'))).toEqual(true);
+      expect(await fs.exists(path.join(config.globalFolder, 'node_modules', '.bin', 'react-native'))).toEqual(true);
     });
   });
 }
@@ -48,7 +47,7 @@ if (isCI) {
 test.concurrent('add with prefix flag', (): Promise<void> => {
   const tmpGlobalFolder = getTempGlobalFolder();
   return runGlobal(['add', 'react-native-cli'], {prefix: tmpGlobalFolder}, 'add-with-prefix-flag', async (config) => {
-    assert.ok(await fs.exists(getGlobalPath(tmpGlobalFolder, 'react-native')));
+    expect(await fs.exists(getGlobalPath(tmpGlobalFolder, 'react-native'))).toEqual(true);
   });
 });
 
@@ -58,7 +57,7 @@ test('add with PREFIX enviroment variable', (): Promise<void> => {
   const envPrefix = process.env.PREFIX;
   process.env.PREFIX = tmpGlobalFolder;
   return runGlobal(['add', 'react-native-cli'], {}, 'add-with-prefix-env', async (config) => {
-    assert.ok(await fs.exists(getGlobalPath(tmpGlobalFolder, 'react-native')));
+    expect(await fs.exists(getGlobalPath(tmpGlobalFolder, 'react-native'))).toEqual(true);
     // restore env
     process.env.PREFIX = envPrefix;
   });
