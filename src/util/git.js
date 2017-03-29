@@ -349,7 +349,7 @@ export default class Git {
   }
 
   async setRefRemote(): Promise<string> {
-    const stdout = await child.spawn('git', ['ls-remote', '--tags', '--heads', this.url]);
+    const stdout = await child.spawn('git', ['ls-remote', this.url]);
     const refs = Git.parseRefs(stdout);
     return await this.setRef(refs);
   }
@@ -360,7 +360,7 @@ export default class Git {
 
   async setRef(refs: GitRefs): Promise<string> {
     // get commit ref
-    const {hash} = this;
+    const {hash, cwd} = this;
 
     const names = Object.keys(refs);
 
@@ -368,6 +368,7 @@ export default class Git {
       for (const name in refs) {
         if (refs[name] === hash) {
           this.ref = name;
+          await child.spawn('git', ['fetch', 'origin', name], {cwd});
           return hash;
         }
       }
@@ -406,7 +407,11 @@ export default class Git {
     for (const line of refLines) {
       // line example: 64b2c0cee9e829f73c5ad32b8cc8cb6f3bec65bb refs/tags/v4.2.2
       const [sha, id] = line.split(/\s+/g);
-      let name = id.split('/').slice(2).join('/');
+      let name = id.split('/').slice(1).join('/');
+
+      if (!name.startsWith('pull/')) {
+        name = name.split('/').slice(1).join('/');
+      }
 
       // TODO: find out why this is necessary. idk it makes it work...
       name = removeSuffix(name, '^{}');
