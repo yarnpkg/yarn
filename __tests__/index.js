@@ -105,6 +105,7 @@ test.concurrent('should add lockfile package', async () => {
   expectAddSuccessfullOutput(stdout, 'lockfile');
 });
 
+// test is failing on Node 4, https://travis-ci.org/yarnpkg/yarn/jobs/216254539
 if (semver.satisfies(ver, '>=5.0.0')) {
   test.concurrent('should add progress package globally', async () => {
     const stdout = await execCommand('global',
