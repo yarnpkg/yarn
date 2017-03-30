@@ -36,7 +36,6 @@ topkg 0.8.1
 fmt 0.8.0
 astring 0.8.3
 alcotest 0.7.2
-reason 1.4.0
 ANSITerminal 0.7
 BetterErrors 0.0.1
 re 1.7.1
@@ -673,7 +672,7 @@ ivy 1.2.2 1.3.1
 jane-street-tests 113.33.03
 javalib 2.2.2 2.3 2.3.1 2.3.2 2.3.3 2.3a
 javascriptcore 0.0.1
-jbuilder 1.0+beta4
+jbuilder 1.0+beta6
 jekyll-format 0.1.0
 jenga 113.33.03
 jhupllib 0.1
@@ -1250,7 +1249,8 @@ re 1.0 1.1.0 1.2.0 1.2.1 1.2.2 1.3.0 1.3.1 1.3.2 1.4.0 1.4.1 1.5.0 1.6.0 1.6.1 1
 re2 111.03.01 111.06.00 111.08.00 112.06.00 112.35.00 113.00.00 113.24.00 113.33.00 113.33.03
 react 0.9.3 0.9.4 1.0.0 1.0.1 1.1.0 1.2.0
 reactiveData 0.1 0.2 0.2.1
-reason 1.3.0 1.4.0
+reason 1.3.0 1.4.0 1.11 1.13
+reason-parser 1.12.0 1.13.0
 receive-mail 0.1.2
 records 0.1.0 0.2.0 0.3.0 0.3.1 0.4.0 0.5.0 0.6.0 0.7.0 0.8.0
 redis 0.2.0 0.2.1 0.2.2 0.2.3 0.3.0 0.3.1 0.3.2 0.3.3
