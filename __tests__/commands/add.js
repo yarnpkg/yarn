@@ -430,13 +430,13 @@ test.concurrent('upgrade scenario', (): Promise<void> => {
     const lockFileLines2 = explodeLockfile(lockFileWritten2);
     expect(lockFileLines2).toHaveLength(3);
     expect(lockFileLines2[0]).toEqual('left-pad@1.1.0:');
-    expect(lockFileLines2[2].match(
+    expect(lockFileLines2[2]).toMatch(
       /resolved "https:\/\/registry\.yarnpkg\.com\/left-pad\/-\/left-pad-1.1.0.tgz#[a-f0-9]+"/,
-    ));
+    );
 
     const mirror2 = await fs.walk(path.join(config.cwd, mirrorPath));
     expect(mirror2).toHaveLength(2);
-    expect(mirror2[1].relative, 'left-pad-1.1.0.tgz');
+    expect(mirror2[1].relative).toBe('left-pad-1.1.0.tgz');
   });
 });
 

@@ -107,7 +107,7 @@ test.concurrent('shows when wanted > current and current > latest', (): Promise<
 
       expect(json.data.body.length).toBe(1);
       expect(json.data.body[0][0]).toBe('webpack');
-      expect(semver.lt(json.data.body[0][1], json.data.body[0][2]));
+      expect(semver.lt(json.data.body[0][1], json.data.body[0][2])).toBe(true);
     },
   );
 });

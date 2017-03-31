@@ -794,14 +794,14 @@ test.concurrent('install should not continue if integrity check passes', (): Pro
     let reinstall = new Install({}, config, reporter, await Lockfile.fromDirectory(config.cwd));
     await reinstall.init();
 
-    expect(await fs.exists(path.join(config.cwd, 'node_modules', 'yarn.test')));
+    expect(await fs.exists(path.join(config.cwd, 'node_modules', 'yarn.test'))).toBe(true);
 
     await fs.unlink(path.join(config.cwd, 'node_modules', 'yarn.test'));
 
     reinstall = new Install({}, config, reporter, await Lockfile.fromDirectory(config.cwd));
     await reinstall.init();
 
-    expect(!await fs.exists(path.join(config.cwd, 'node_modules', 'yarn.test')));
+    expect(await fs.exists(path.join(config.cwd, 'node_modules', 'yarn.test'))).toBe(false);
 
   });
 });
@@ -842,7 +842,7 @@ test.concurrent('install should not rewrite lockfile with no substantial changes
 
 test.concurrent('lockfile should be created when missing even if integrity matches', (): Promise<void> => {
   return runInstall({}, 'lockfile-missing', async (config, reporter) => {
-    expect(await fs.exists(path.join(config.cwd, 'yarn.lock')));
+    expect(await fs.exists(path.join(config.cwd, 'yarn.lock'))).toBe(true);
   });
 });
 
