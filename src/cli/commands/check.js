@@ -153,7 +153,7 @@ async function integrityHashCheck(
   const {patterns: rawPatterns} = await install.hydrate(true);
   const patterns = await install.flatten(rawPatterns);
 
-  const match = await integrityChecker.check(patterns, lockfile, flags);
+  const match = await integrityChecker.check(patterns, lockfile.cache, flags);
   for (const pattern of match.missingPatterns) {
     reportError('lockfileNotContainPattern', pattern);
   }

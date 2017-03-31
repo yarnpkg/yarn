@@ -109,7 +109,7 @@ test.concurrent('--integrity should fail if yarn.lock has new pattern', async ()
     } catch (e) {
       thrown = true;
     }
-    expect(thrown).toEqual(false);
+    expect(thrown).toEqual(true);
   });
 });
 
@@ -126,6 +126,22 @@ test.concurrent('--integrity should fail if yarn.lock has resolved changed', asy
     } catch (e) {
       thrown = true;
     }
-    assert(thrown);
+    expect(thrown).toEqual(true);
+  });
+});
+
+test.concurrent('--integrity should fail if files are missing and --check-files is passed',
+async (): Promise<void> => {
+  await runInstall({checkFiles: true}, path.join('..', 'check', 'integrity-lock-check'),
+  async (config, reporter): Promise<void> => {
+    await fs.unlink(path.join(config.cwd, 'node_modules', 'left-pad', 'index.js'));
+
+    let thrown = false;
+    try {
+      await checkCmd.run(config, reporter, {integrity: true, checkFiles: true}, []);
+    } catch (e) {
+      thrown = true;
+    }
+    expect(thrown).toEqual(true);
   });
 });

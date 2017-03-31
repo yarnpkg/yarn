@@ -1,10 +1,10 @@
 /* @flow */
 
 import type Config from './config.js';
+import type {LockManifest} from './lockfile/wrapper.js';
 import type {RegistryNames} from './registries/index.js';
 import * as constants from './constants.js';
 import {registryNames} from './registries/index.js';
-import Lockfile from './lockfile/wrapper.js';
 import * as fs from './util/fs.js';
 import {sortAlpha, compareSortedArrays} from './util/misc.js';
 
@@ -19,6 +19,7 @@ export type IntegrityCheckResult = {
 };
 
 type IntegrityHashLocation = {
+  locationFolder: string,
   locationPath: string,
   exists: boolean,
 }
@@ -31,6 +32,11 @@ type IntegrityFile = {
     [key: string]: string
   },
   files: Array<string>,
+}
+
+type IntegrityFlags = {
+  flat: boolean,
+  checkFiles: boolean,
 }
 
 /**
@@ -67,25 +73,48 @@ export default class InstallationIntegrityChecker {
 
     // if we already have an integrity hash in one of these folders then use it's location otherwise use the
     // first folder
-    const possibles = possibleFolders.map((folder): string => path.join(folder, constants.INTEGRITY_FILENAME));
     let loc;
-    for (const possibleLoc of possibles) {
-      if (await fs.exists(possibleLoc)) {
+    for (const possibleLoc of possibleFolders) {
+      if (await fs.exists(path.join(possibleLoc, constants.INTEGRITY_FILENAME))) {
         loc = possibleLoc;
         break;
       }
     }
+    const locationFolder = loc || possibleFolders[0];
+    const locationPath = path.join(locationFolder, constants.INTEGRITY_FILENAME);
     return {
-      locationPath: loc || possibles[0],
+      locationFolder,
+      locationPath,
       exists: !!loc,
     };
   }
 
   /**
+   * returns a list of files recursively in a directory
+   */
+  async _getFilePaths(rootDir: string, files: Array<string>, currentDir: string = rootDir): Promise<void> {
+    for (const file of await fs.readdir(currentDir)) {
+      const entry = path.join(currentDir, file);
+      const stat = await fs.stat(entry);
+      if (stat.isDirectory()) {
+        await this._getFilePaths(rootDir, files, entry);
+      } else {
+        files.push(path.relative(rootDir, entry));
+      }
+    }
+  }
+
+
+  /**
    * Generate integrity hash of input lockfile.
    */
 
-  _generateIntegrityFile(lockfile: Lockfile, patterns: Array<string>, flags: Object): IntegrityFile {
+  async _generateIntegrityFile(
+    lockfile: {[key: string]: LockManifest},
+    patterns: Array<string>,
+    flags: IntegrityFlags,
+    modulesFolder: string,
+  ): Promise<IntegrityFile> {
 
     const result: IntegrityFile = {
       flags: [],
@@ -110,17 +139,13 @@ export default class InstallationIntegrityChecker {
       result.linkedModules = linkedModules.sort(sortAlpha);
     }
 
-    const lockCache = lockfile.cache;
-    if (lockCache) {
-      Object.keys(lockCache).forEach((key) => {
-        const manifest = lockfile.getLocked(key);
-        if (manifest) {
-          result.lockfileEntries[key] = manifest.resolved;
-        }
-      });
-    }
+    Object.keys(lockfile).forEach((key) => {
+      result.lockfileEntries[key] = lockfile[key].resolved;
+    });
 
-    // TODO files array
+    if (flags.checkFiles) {
+      await this._getFilePaths(modulesFolder, result.files);
+    }
 
     return result;
   }
@@ -150,10 +175,10 @@ export default class InstallationIntegrityChecker {
 
   async check(
     patterns: Array<string>,
-    lockfile: Lockfile,
-    flags: Object): Promise<IntegrityCheckResult> {
+    lockfile: {[key: string]: LockManifest},
+    flags: IntegrityFlags): Promise<IntegrityCheckResult> {
     // check if patterns exist in lockfile
-    const missingPatterns = patterns.filter((p) => !lockfile.getLocked(p));
+    const missingPatterns = patterns.filter((p) => !lockfile[p]);
     const loc = await this._getIntegrityHashLocation();
     if (missingPatterns.length || !loc.exists) {
       return {
@@ -162,7 +187,11 @@ export default class InstallationIntegrityChecker {
       };
     }
 
-    const actual = this._generateIntegrityFile(lockfile, patterns, flags);
+    const actual = await this._generateIntegrityFile(
+      lockfile,
+      patterns,
+      Object.assign({}, {checkFiles: false}, flags), // don't generate files when checking, we check the files below
+      loc.locationFolder);
     const expectedRaw = await fs.readFile(loc.locationPath);
     let expected: IntegrityFile;
     try {
@@ -173,9 +202,14 @@ export default class InstallationIntegrityChecker {
     let integrityMatches;
     if (expected) {
       integrityMatches = this._compareIntegrityFiles(actual, expected);
-      // TODO check files presency
-      if (expected.files.length > 0) {
-        integrityMatches = true;
+      if (flags.checkFiles && expected.files.length > 0) {
+        // TODO we may want to optimise this check by checking only for package.json files on very large trees
+        for (const file of expected.files) {
+          if (!await fs.exists(path.join(loc.locationFolder, file))) {
+            integrityMatches = false;
+            break;
+          }
+        }
       }
     } else {
       integrityMatches = false;
@@ -193,14 +227,14 @@ export default class InstallationIntegrityChecker {
    */
   async save(
     patterns: Array<string>,
-    lockfile: Lockfile,
-    flags: Object,
+    lockfile: {[key: string]: LockManifest},
+    flags: IntegrityFlags,
     usedRegistries?: Set<RegistryNames>): Promise<void> {
     const loc = await this._getIntegrityHashLocation(usedRegistries);
     invariant(loc.locationPath, 'expected integrity hash location');
     await fs.mkdirp(path.dirname(loc.locationPath));
-    const integrityFileContent = JSON.stringify(this._generateIntegrityFile(lockfile, patterns, flags), null, 2);
-    await fs.writeFile(loc.locationPath, integrityFileContent);
+    const integrityFile = await this._generateIntegrityFile(lockfile, patterns, flags, loc.locationFolder);
+    await fs.writeFile(loc.locationPath, JSON.stringify(integrityFile, null, 2));
   }
 
   async removeIntegrityFile(): Promise<void> {

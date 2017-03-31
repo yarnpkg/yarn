@@ -52,6 +52,7 @@ type Flags = {
   lockfile: boolean,
   pureLockfile: boolean,
   skipIntegrityCheck: boolean,
+  checkFiles: boolean,
 
   // add
   peer: boolean,
@@ -121,6 +122,7 @@ function normalizeFlags(config: Config, rawFlags: Object): Flags {
     skipIntegrityCheck: !!rawFlags.skipIntegrityCheck,
     frozenLockfile: !!rawFlags.frozenLockfile,
     linkDuplicates: !!rawFlags.linkDuplicates,
+    checkFiles: !!rawFlags.checkFiles,
 
     // add
     peer: !!rawFlags.peer,
@@ -303,7 +305,11 @@ export class Install {
     if (this.flags.skipIntegrityCheck || this.flags.force) {
       return false;
     }
-    const match = await this.integrityChecker.check(patterns, this.lockfile, this.flags);
+    const lockfileCache = this.lockfile.cache;
+    if (!lockfileCache) {
+      return false;
+    }
+    const match = await this.integrityChecker.check(patterns, lockfileCache, this.flags);
     if (this.flags.frozenLockfile && match.missingPatterns.length > 0) {
       throw new MessageError(this.reporter.lang('frozenLockfileError'));
     }
@@ -601,7 +607,7 @@ export class Install {
     }
 
     // write integrity hash
-    await this.integrityChecker.save(patterns, this.lockfile, this.flags, this.resolver.usedRegistries);
+    await this.integrityChecker.save(patterns, lockfile, this.flags, this.resolver.usedRegistries);
 
     const lockFileHasAllPatterns = patterns.filter((p) => !this.lockfile.getLocked(p)).length === 0;
 

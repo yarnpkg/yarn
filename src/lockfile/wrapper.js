@@ -19,7 +19,7 @@ type Dependencies = {
   [key: string]: string,
 };
 
-type LockManifest = {
+export type LockManifest = {
   name: string,
   version: string,
   resolved: string,
@@ -83,7 +83,7 @@ export default class Lockfile {
   source: string;
 
   cache: ?{
-    [key: string]: string | LockManifest
+    [key: string]: LockManifest
   };
 
   static async fromDirectory(dir: string, reporter?: Reporter): Promise<Lockfile> {
