@@ -387,16 +387,13 @@ export class Install {
       ignorePatterns,
       usedPatterns,
     } = await this.fetchRequestFromCwd();
-    // let lockSource1;
 
     steps.push(async (curr: number, total: number) => {
       this.reporter.step(curr, total, this.reporter.lang('resolvingPackages'), emoji.get('mag'));
       await this.resolver.init(this.prepareRequests(depRequests), this.flags.flat);
       patterns = await this.flatten(this.preparePatterns(rawPatterns));
-      // lockSource1 = this.lockfile.getLockfile(this.resolver.patterns);
       return {bailout: await this.bailout(usedPatterns)};
     });
-
 
     steps.push(async (curr: number, total: number) => {
       this.markIgnored(ignorePatterns);

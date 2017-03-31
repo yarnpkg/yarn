@@ -643,7 +643,6 @@ test.concurrent('add should generate correct integrity file', (): Promise<void> 
     } catch (err) {
       allCorrect = false;
     }
-
     expect(allCorrect).toBe(true);
 
     // add to an existing package.json caused incorrect integrity https://github.com/yarnpkg/yarn/issues/1733
