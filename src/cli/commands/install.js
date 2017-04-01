@@ -172,7 +172,7 @@ export class Install {
 
     this.resolver = new PackageResolver(config, lockfile);
     this.fetcher = new PackageFetcher(config, this.resolver);
-    this.integrityChecker = new InstallationIntegrityChecker(config);
+    this.integrityChecker = new InstallationIntegrityChecker(config, this.reporter);
     this.compatibility = new PackageCompatibility(config, this.resolver, this.flags.ignoreEngines);
     this.linker = new PackageLinker(config, this.resolver);
     this.scripts = new PackageInstallScripts(config, this.resolver, this.flags.force);
@@ -597,6 +597,8 @@ export class Install {
       return;
     }
 
+    // TODO this lockfile can be different from the one loaded at the start which causes integrity mismatch
+    // TODO add test and resolve
     const lockfile = this.lockfile.getLockfile(this.resolver.patterns);
 
     if (this.config.pruneOfflineMirror) {

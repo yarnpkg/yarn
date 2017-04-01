@@ -143,7 +143,7 @@ async function integrityHashCheck(
     reporter.error(reporter.lang(msg, ...vars));
     errCount++;
   }
-  const integrityChecker = new InstallationIntegrityChecker(config);
+  const integrityChecker = new InstallationIntegrityChecker(config, reporter);
 
   const lockfile = await Lockfile.fromDirectory(config.cwd);
   const install = new Install(flags, config, reporter, lockfile);
@@ -158,10 +158,10 @@ async function integrityHashCheck(
     reportError('lockfileNotContainPattern', pattern);
   }
   if (match.integrityFileMissing) {
-    reportError('noIntegrityHashFile');
+    reportError('noIntegrityFile');
   }
   if (!match.integrityMatches) {
-    reportError('integrityHashesDontMatch');
+    reportError('integrityCheckFailed');
   }
 
   if (errCount > 0) {

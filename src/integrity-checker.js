@@ -3,6 +3,7 @@
 import type Config from './config.js';
 import type {LockManifest} from './lockfile/wrapper.js';
 import type {RegistryNames} from './registries/index.js';
+import type {Reporter} from './reporters/index.js';
 import * as constants from './constants.js';
 import {registryNames} from './registries/index.js';
 import * as fs from './util/fs.js';
@@ -43,11 +44,17 @@ type IntegrityFlags = {
  *
  */
 export default class InstallationIntegrityChecker {
-  constructor(config: Config) {
+  constructor(
+    config: Config,
+    reporter: Reporter,
+  ) {
     this.config = config;
+    this.reporter = reporter;
   }
 
   config: Config;
+  reporter: Reporter;
+
 
   /**
    * Get the location of an existing integrity hash. If none exists then return the location where we should
@@ -152,21 +159,26 @@ export default class InstallationIntegrityChecker {
 
   _compareIntegrityFiles(actual: IntegrityFile, expected: IntegrityFile): boolean {
     if (!compareSortedArrays(actual.linkedModules, expected.linkedModules)) {
+      this.reporter.warn(this.reporter.lang('integrityCheckLinkedModulesDontMatch'));
       return false;
     }
     if (!compareSortedArrays(actual.topLevelPatters, expected.topLevelPatters)) {
+      this.reporter.warn(this.reporter.lang('integrityPatternsDontMatch'));
       return false;
     }
     if (!compareSortedArrays(actual.flags, expected.flags)) {
+      this.reporter.warn(this.reporter.lang('integrityFlagsDontMatch'));
       return false;
     }
     for (const key of Object.keys(actual.lockfileEntries)) {
       if (actual.lockfileEntries[key] !== expected.lockfileEntries[key]) {
+        this.reporter.warn(this.reporter.lang('integrityLockfilesDontMatch'));
         return false;
       }
     }
     for (const key of Object.keys(expected.lockfileEntries)) {
       if (actual.lockfileEntries[key] !== expected.lockfileEntries[key]) {
+        this.reporter.warn(this.reporter.lang('integrityLockfilesDontMatch'));
         return false;
       }
     }
@@ -206,6 +218,7 @@ export default class InstallationIntegrityChecker {
         // TODO we may want to optimise this check by checking only for package.json files on very large trees
         for (const file of expected.files) {
           if (!await fs.exists(path.join(loc.locationFolder, file))) {
+            this.reporter.warn(this.reporter.lang('integrityFailedFilesMissing'));
             integrityMatches = false;
             break;
           }

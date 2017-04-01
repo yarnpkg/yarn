@@ -145,3 +145,6 @@ async (): Promise<void> => {
     expect(thrown).toEqual(true);
   });
 });
+
+// TODO add tests for switching install -> install --check-files
+// TODO install --check-files -> check --integrity shoudl imply --check-files?
