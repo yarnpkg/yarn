@@ -77,7 +77,7 @@ test('util.stringifyPerson', () => {
 });
 
 test('util.parsePerson', () => {
-  expect(util.parsePerson({}), {});
+  expect(util.parsePerson({})).toEqual({});
   expect(util.parsePerson('Sebastian McKenzie')).toEqual({name: 'Sebastian McKenzie'});
   expect(util.parsePerson(' <sebmck@gmail.com>')).toEqual({email: 'sebmck@gmail.com'});
   expect(util.parsePerson('Sebastian McKenzie <sebmck@gmail.com>')).toEqual({name: 'Sebastian McKenzie', email: 'sebmck@gmail.com'});
