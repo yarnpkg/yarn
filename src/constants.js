@@ -31,7 +31,7 @@ export const CACHE_VERSION = 1;
 export const LOCKFILE_VERSION = 1;
 
 // max amount of network requests to perform concurrently
-export const NETWORK_CONCURRENCY = 16;
+export const NETWORK_CONCURRENCY = 8;
 
 // max amount of child processes to execute concurrently
 export const CHILD_CONCURRENCY = 5;
