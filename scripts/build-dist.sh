@@ -4,13 +4,26 @@ set -ex
 
 umask 0022 # Ensure permissions are correct (0755 for dirs, 0644 for files)
 
+# Workaround for https://github.com/yarnpkg/yarn/issues/2591
+case "$(uname -s)" in
+  *CYGWIN*|MSYS*|MINGW*)
+    dist_yarn=dist/bin/yarn.cmd
+    system_yarn=yarn.cmd
+    ;;
+  *)
+    dist_yarn=dist/bin/yarn
+    system_yarn=yarn
+    ;;
+esac
+
 rm -rf artifacts dist
 rm -rf dist
 mkdir artifacts
 mkdir dist{,/bin,/lib}
 
-yarn run build
-yarn run build-bundle
+# Workaround for https://github.com/yarnpkg/yarn/issues/2591
+eval $system_yarn run build
+eval $system_yarn run build-bundle
 
 cp package.json dist/
 cp LICENSE dist/
@@ -21,12 +34,7 @@ cp -r bin/node-gyp-bin dist/bin/
 # We cannot bundle v8-compile-cache as it must be loaded separately to be effective.
 cp node_modules/v8-compile-cache/v8-compile-cache.js dist/lib/v8-compile-cache.js
 
-case "$(uname -s)" in
-  *CYGWIN*|MSYS*|MINGW*) version=`dist/bin/yarn.cmd --version`;;
-  *) version=`dist/bin/yarn --version`;;
-esac
-
+version=`exec $dist_yarn --version`
 ./scripts/set-installation-method.js $(readlink -f dist/package.json) tar
-
 tar -cvzf artifacts/yarn-v$version.tar.gz dist/*
 shasum -a 256 artifacts/yarn-*.tar.gz
