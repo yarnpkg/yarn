@@ -597,21 +597,25 @@ export class Install {
       return;
     }
 
-    // TODO this lockfile can be different from the one loaded at the start which causes integrity mismatch
-    // TODO add test and resolve
-    const lockfile = this.lockfile.getLockfile(this.resolver.patterns);
+    const lockfileBasedOnResolver = this.lockfile.getLockfile(this.resolver.patterns);
 
     if (this.config.pruneOfflineMirror) {
-      await this.pruneOfflineMirror(lockfile);
+      await this.pruneOfflineMirror(lockfileBasedOnResolver);
     }
 
     // write integrity hash
-    await this.integrityChecker.save(patterns, lockfile, this.flags, this.resolver.usedRegistries);
+    await this.integrityChecker.save(patterns, lockfileBasedOnResolver, this.flags, this.resolver.usedRegistries);
 
     const lockFileHasAllPatterns = patterns.filter((p) => !this.lockfile.getLocked(p)).length === 0;
+    const resolverPatternsAreSameAsInLockfile = Object.keys(lockfileBasedOnResolver)
+      .filter((pattern) => {
+        const manifest = this.lockfile.getLocked(pattern);
+        return !manifest || manifest.resolved !== lockfileBasedOnResolver[pattern].resolved;
+      },
+    ).length === 0;
 
     // remove command is followed by install with force, lockfile will be rewritten in any case then
-    if (lockFileHasAllPatterns && patterns.length && !this.flags.force) {
+    if (lockFileHasAllPatterns && resolverPatternsAreSameAsInLockfile && patterns.length && !this.flags.force) {
       return;
     }
 
@@ -619,7 +623,7 @@ export class Install {
     const loc = path.join(this.config.cwd, constants.LOCKFILE_FILENAME);
 
     // write lockfile
-    const lockSource = lockStringify(lockfile);
+    const lockSource = lockStringify(lockfileBasedOnResolver);
     await fs.writeFilePreservingEol(loc, lockSource);
 
     this._logSuccessSaveLockfile();
