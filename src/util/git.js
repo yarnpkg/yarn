@@ -32,14 +32,14 @@ const supportsArchiveCache: { [key: string]: boolean } = map({
 });
 
 export default class Git {
-  constructor(config: Config, url: string, hash: string) {
+  constructor(config: Config, gitUrl: GitUrl, hash: string) {
     this.supportsArchive = false;
     this.fetched = false;
     this.config = config;
     this.reporter = config.reporter;
     this.hash = hash;
     this.ref = hash;
-    this.gitUrl = Git.npmUrlToGitUrl(url);
+    this.gitUrl = gitUrl;
     this.cwd = this.config.getTemp(crypto.hash(this.gitUrl.repository));
   }
 
