@@ -145,7 +145,3 @@ async (): Promise<void> => {
     expect(thrown).toEqual(true);
   });
 });
-
-// TODO install --check-files -> check --integrity should imply --check-files?
-
-

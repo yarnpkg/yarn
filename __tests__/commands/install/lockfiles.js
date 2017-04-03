@@ -314,3 +314,5 @@ test.concurrent('install should rewrite lockfile if patterns can be merged', ():
 // TODO add test for when resolver merges a few repeating manifests and lockfile gets rewritten: install.js:610
 // TODO should rewrite when there are more entries in lockfile than needed
 // TODO add tests for switching install -> install --check-files
+// TODO install --check-files -> check --integrity should imply --check-files?
+// TODO optimize check.js --integrity, no need to hydrate
