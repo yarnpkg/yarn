@@ -120,5 +120,5 @@ test('getGitSSHUrl should return URL containing protocol', () => {
   });
 
   expect(url.parse(gitSSHUrl).protocol).toEqual('git+ssh:');
-  expect(url.parse(Git.cleanUrl(gitSSHUrl)).protocol).toEqual('ssh:');
+  expect(Git.npmUrlToGitUrl(gitSSHUrl).protocol).toEqual('ssh:');
 });

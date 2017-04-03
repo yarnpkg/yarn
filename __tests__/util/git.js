@@ -5,13 +5,43 @@ import {NoopReporter} from '../../src/reporters/index.js';
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 90000;
 
-test('cleanUrl', () => {
-  expect(Git.cleanUrl('git+https://github.com/npm-opam/ocamlfind.git'))
-    .toEqual('https://github.com/npm-opam/ocamlfind.git');
-  expect(Git.cleanUrl('https://github.com/npm-opam/ocamlfind.git'))
-    .toEqual('https://github.com/npm-opam/ocamlfind.git');
-  expect(Git.cleanUrl('git://github.com/npm-opam/ocamlfind.git'))
-    .toEqual('git://github.com/npm-opam/ocamlfind.git');
+test('npmUrlToGitUrl', () => {
+  expect(Git.npmUrlToGitUrl('git+https://github.com/npm-opam/ocamlfind.git'))
+    .toEqual({
+      protocol: 'https:',
+      hostname: 'github.com',
+      repository: 'https://github.com/npm-opam/ocamlfind.git',
+    });
+  expect(Git.npmUrlToGitUrl('https://github.com/npm-opam/ocamlfind.git'))
+    .toEqual({
+      protocol: 'https:',
+      hostname: 'github.com',
+      repository: 'https://github.com/npm-opam/ocamlfind.git',
+    });
+  expect(Git.npmUrlToGitUrl('git://github.com/npm-opam/ocamlfind.git'))
+    .toEqual({
+      protocol: 'git:',
+      hostname: 'github.com',
+      repository: 'git://github.com/npm-opam/ocamlfind.git',
+    });
+  expect(Git.npmUrlToGitUrl('git+ssh://git@github.com/npm-opam/ocamlfind.git'))
+    .toEqual({
+      protocol: 'ssh:',
+      hostname: 'github.com',
+      repository: 'ssh://git@github.com/npm-opam/ocamlfind.git',
+    });
+  expect(Git.npmUrlToGitUrl('git+ssh://scp-host-nickname:npm-opam/ocamlfind.git'))
+    .toEqual({
+      protocol: 'ssh:',
+      hostname: 'scp-host-nickname',
+      repository: 'scp-host-nickname:npm-opam/ocamlfind.git',
+    });
+  expect(Git.npmUrlToGitUrl('git+ssh://user@scp-host-nickname:npm-opam/ocamlfind.git'))
+    .toEqual({
+      protocol: 'ssh:',
+      hostname: 'scp-host-nickname',
+      repository: 'user@scp-host-nickname:npm-opam/ocamlfind.git',
+    });
 });
 
 test('isCommitHash', () => {
@@ -30,25 +60,25 @@ test('isCommitHash', () => {
 });
 
 
-test('secureUrl', async function (): Promise<void> {
+test('secureGitUrl', async function (): Promise<void> {
   const reporter = new NoopReporter();
 
   let hasException = false;
   try {
-    await Git.secureUrl('http://fake-fake-fake-fake.com/123.git', '', reporter);
+    await Git.secureGitUrl(Git.npmUrlToGitUrl('http://fake-fake-fake-fake.com/123.git'), '', reporter);
   } catch (e) {
     hasException = true;
   }
   expect(hasException).toEqual(true);
 
-  let url = await Git.secureUrl('http://github.com/yarnpkg/yarn.git', '', reporter);
-  expect(url).toEqual('https://github.com/yarnpkg/yarn.git');
+  let gitURL = await Git.secureGitUrl(Git.npmUrlToGitUrl('http://github.com/yarnpkg/yarn.git'), '', reporter);
+  expect(gitURL.repository).toEqual('https://github.com/yarnpkg/yarn.git');
 
-  url = await Git.secureUrl('https://github.com/yarnpkg/yarn.git', '', reporter);
-  expect(url).toEqual('https://github.com/yarnpkg/yarn.git');
+  gitURL = await Git.secureGitUrl(Git.npmUrlToGitUrl('https://github.com/yarnpkg/yarn.git'), '', reporter);
+  expect(gitURL.repository).toEqual('https://github.com/yarnpkg/yarn.git');
 
-  url = await Git.secureUrl('git://github.com/yarnpkg/yarn.git', '', reporter);
-  expect(url).toEqual('https://github.com/yarnpkg/yarn.git');
+  gitURL = await Git.secureGitUrl(Git.npmUrlToGitUrl('git://github.com/yarnpkg/yarn.git'), '', reporter);
+  expect(gitURL.repository).toEqual('https://github.com/yarnpkg/yarn.git');
 
 },
 );

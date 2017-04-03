@@ -104,7 +104,8 @@ export default class HostedGitResolver extends ExoticResolver {
   }
 
   async getRefOverHTTP(url: string): Promise<string> {
-    const client = new Git(this.config, url, this.hash);
+    const gitUrl = Git.npmUrlToGitUrl(url);
+    const client = new Git(this.config, gitUrl, this.hash);
 
     let out = await this.config.requestManager.request({
       url: `${url}/info/refs?service=git-upload-pack`,
@@ -211,8 +212,9 @@ export default class HostedGitResolver extends ExoticResolver {
     // NOTE: Here we use a different url than when we delegate to the git resolver later on.
     // This is because `git archive` requires access over ssh and github only allows that
     // if you have write permissions
-    if (await Git.hasArchiveCapability(sshUrl)) {
-      const archiveClient = new Git(this.config, sshUrl, this.hash);
+    const sshGitUrl = Git.npmUrlToGitUrl(sshUrl);
+    if (await Git.hasArchiveCapability(sshGitUrl)) {
+      const archiveClient = new Git(this.config, sshGitUrl, this.hash);
       const commit = await archiveClient.init();
       return await this.fork(GitResolver, true, `${sshUrl}#${commit}`);
     }
