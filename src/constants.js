@@ -37,7 +37,7 @@ export const NETWORK_CONCURRENCY = 8;
 export const NETWORK_TIMEOUT = 30 * 1000; // in milliseconds
 
 // max amount of child processes to execute concurrently
-export const CHILD_CONCURRENCY = Number(process.env.CHILD_CONCURRENCY) || 5;
+export const CHILD_CONCURRENCY = 5;
 
 export const REQUIRED_PACKAGE_KEYS = ['name', 'version', '_uid'];
 
