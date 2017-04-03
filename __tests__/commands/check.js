@@ -146,7 +146,6 @@ async (): Promise<void> => {
   });
 });
 
-// TODO add tests for switching install -> install --check-files
 // TODO install --check-files -> check --integrity should imply --check-files?
-// TODO add test for when resolver merges a few repeating manifests and lockfile gets rewritten: install.js:610
+
 
