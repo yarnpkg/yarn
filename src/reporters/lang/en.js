@@ -253,7 +253,7 @@ const messages = {
   noIntegrityFile: 'Couldn\'t find an integrity file',
   integrityCheckLinkedModulesDontMatch: 'Integrity check: Linked modules don\'t match',
   integrityPatternsDontMatch: 'Integrity check: Patterns don\'t match',
-  integrityFlagsDontMatch: 'Integrity check: flags don\'t match',
+  integrityFlagsDontMatch: 'Integrity check: Flags don\'t match',
   integrityLockfilesDontMatch: 'Integrity check: Lock files don\'t match',
   integrityFailedFilesMissing: 'Integrity check: Files are missing',
   packageNotInstalled: '$0 not installed',
