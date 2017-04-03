@@ -662,6 +662,11 @@ export class Install {
       return;
     }
 
+    // don't check if disabled
+    if (this.config.getOption('disable-self-update-check')) {
+      return;
+    }
+
     // only check for updates once a day
     const lastUpdateCheck = Number(this.config.getOption('lastUpdateCheck')) || 0;
     if (lastUpdateCheck && Date.now() - lastUpdateCheck < ONE_DAY) {
