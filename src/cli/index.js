@@ -8,6 +8,7 @@ import * as network from '../util/network.js';
 import {MessageError} from '../errors.js';
 import aliases from './aliases.js';
 import Config from '../config.js';
+import {getRcArgs} from '../rc.js';
 import {camelCase} from '../util/misc.js';
 
 const chalk = require('chalk');
@@ -173,7 +174,7 @@ if (ARGS_THAT_SHARE_NAMES_WITH_OPTIONS.indexOf(commandName) >= 0 && args[0] === 
   args.shift();
 }
 
-commander.parse(startArgs.concat(args));
+commander.parse(getRcArgs().concat(startArgs).concat(args));
 commander.args = commander.args.concat(endArgs);
 
 if (command) {
