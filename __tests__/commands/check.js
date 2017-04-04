@@ -8,8 +8,6 @@ import * as reporters from '../../src/reporters/index.js';
 import type {CLIFunctionReturn} from '../../src/types.js';
 import * as fs from '../../src/util/fs.js';
 
-
-
 const path = require('path');
 
 const fixturesLoc = path.join(__dirname, '..', 'fixtures', 'check');

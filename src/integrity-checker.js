@@ -214,9 +214,8 @@ export default class InstallationIntegrityChecker {
     if (expected) {
       integrityMatches = this._compareIntegrityFiles(actual, expected);
       if (flags.checkFiles && expected.files.length === 0) {
-        // if integrity file contains empty files array but node_modules contains files then integrity check fails.
-        // generating list of files may be slow for an integrity check but we don't expect running
-        // check with --check-files on node_modules installed without this flag
+        // edge case handling - --check-fies is passed but .yarn-integrity does not contain any files
+        // check and fail if there are file in node_modules after all.
         const actualFiles = [];
         await this._getFilePaths(loc.locationFolder, actualFiles);
         if (actualFiles.length > 0) {
