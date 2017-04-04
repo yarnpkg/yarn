@@ -379,7 +379,7 @@ export class Install {
     }
 
 
-    let patterns: Array<string> = [];
+    let flattenedTopLevelPatterns: Array<string> = [];
     const steps: Array<(curr: number, total: number) => Promise<{bailout: boolean} | void>> = [];
     const {
       requests: depRequests,
@@ -387,11 +387,13 @@ export class Install {
       ignorePatterns,
       usedPatterns,
     } = await this.fetchRequestFromCwd();
+    let topLevelPatterns: Array<string> = [];
 
     steps.push(async (curr: number, total: number) => {
       this.reporter.step(curr, total, this.reporter.lang('resolvingPackages'), emoji.get('mag'));
       await this.resolver.init(this.prepareRequests(depRequests), this.flags.flat);
-      patterns = await this.flatten(this.preparePatterns(rawPatterns));
+      topLevelPatterns = this.preparePatterns(rawPatterns);
+      flattenedTopLevelPatterns = await this.flatten(topLevelPatterns);
       return {bailout: await this.bailout(usedPatterns)};
     });
 
@@ -406,7 +408,7 @@ export class Install {
       // remove integrity hash to make this operation atomic
       await this.integrityChecker.removeIntegrityFile();
       this.reporter.step(curr, total, this.reporter.lang('linkingDependencies'), emoji.get('link'));
-      await this.linker.init(patterns, this.flags.linkDuplicates);
+      await this.linker.init(flattenedTopLevelPatterns, this.flags.linkDuplicates);
     });
 
     steps.push(async (curr: number, total: number) => {
@@ -420,7 +422,7 @@ export class Install {
       if (this.flags.ignoreScripts) {
         this.reporter.warn(this.reporter.lang('ignoredScripts'));
       } else {
-        await this.scripts.init(patterns);
+        await this.scripts.init(flattenedTopLevelPatterns);
       }
     });
 
@@ -449,15 +451,15 @@ export class Install {
     for (const step of steps) {
       const stepResult = await step(++currentStep, steps.length);
       if (stepResult && stepResult.bailout) {
-        return patterns;
+        return flattenedTopLevelPatterns;
       }
     }
 
     // fin!
-    await this.saveLockfileAndIntegrity(patterns);
+    await this.saveLockfileAndIntegrity(topLevelPatterns);
     this.maybeOutputUpdate();
     this.config.requestManager.clearCache();
-    return patterns;
+    return flattenedTopLevelPatterns;
   }
 
   /**

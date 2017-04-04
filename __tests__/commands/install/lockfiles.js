@@ -288,5 +288,3 @@ test.concurrent('install should rewrite lockfile if patterns can be merged', ():
     expect(lockContent).not.toContain('https://fakepath.wont.download.com/mime-db/-/mime-db-1.0.0.tgz');
   });
 });
-
-// TODO optimize check.js --integrity, no need to hydrate

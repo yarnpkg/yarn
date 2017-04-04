@@ -217,7 +217,7 @@ export default class InstallationIntegrityChecker {
         // if integrity file contains empty files array but node_modules contains files then integrity check fails.
         // generating list of files may be slow for an integrity check but we don't expect running
         // check with --check-files on node_modules installed without this flag
-        let actualFiles = [];
+        const actualFiles = [];
         await this._getFilePaths(loc.locationFolder, actualFiles);
         if (actualFiles.length > 0) {
           this.reporter.warn(this.reporter.lang('integrityFailedFilesMissing'));
