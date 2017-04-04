@@ -30,6 +30,10 @@ export async function verifyTreeCheck(
     reporter.error(reporter.lang(msg, ...vars));
     errCount++;
   }
+
+  if (global.foobar)
+    console.log(await fs.walk(config.cwd));
+
   // check all dependencies recursively without relying on internal resolver
   const registryName = 'yarn';
   const registry = config.registries[registryName];
