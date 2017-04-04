@@ -239,6 +239,17 @@ test.concurrent('--production flag does not link dev dependency bin scripts', ()
   });
 });
 
+test.concurrent('--production flag installs transitive dependencies even if they are top-level devDependencies', () => {
+  // Root package: dependencies: ['a'], devDependencies: ['b']
+  // 'a' package: dependencies: ['b']
+  // 'b' should be installed, even with --production
+  return runInstall({production: true}, 'install-production-transitive-dep', async (config) => {
+    assert.ok(
+      await fs.exists(path.join(config.cwd, 'node_modules', 'dep-b')),
+    );
+  });
+});
+
 test.concurrent("doesn't write new lockfile if existing one satisfied", (): Promise<void> => {
   return runInstall({}, 'install-dont-write-lockfile-if-satisfied', async (config): Promise<void> => {
     const lockfile = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
