@@ -15,8 +15,8 @@ const runCheck = buildRun.bind(
   null,
   reporters.ConsoleReporter,
   fixturesLoc,
-  async (args, flags, config, reporter): CLIFunctionReturn => {
-    return await checkCmd.run(config, reporter, flags, args);
+  (args, flags, config, reporter): CLIFunctionReturn => {
+    return checkCmd.run(config, reporter, flags, args);
   },
 );
 
@@ -47,7 +47,9 @@ test.concurrent('--verify-tree should pass on hoisted dependency ', async (): Pr
 test.concurrent('--verify-tree should check dev dependencies ', async (): Promise<void> => {
   let thrown = false;
   try {
-    await runCheck([], {verifyTree: true}, 'verify-tree-dev');
+    // passing production=false explicitly because we have a few tests that touch PRODUCTION env variable and may
+    // affect default config.production resolution
+    await runCheck([], {verifyTree: true, production: false}, 'verify-tree-dev');
   } catch (e) {
     thrown = true;
   }
