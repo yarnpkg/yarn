@@ -15,8 +15,8 @@ const runCheck = buildRun.bind(
   null,
   reporters.ConsoleReporter,
   fixturesLoc,
-  (args, flags, config, reporter): CLIFunctionReturn => {
-    return checkCmd.run(config, reporter, flags, args);
+  async (args, flags, config, reporter): CLIFunctionReturn => {
+    return await checkCmd.run(config, reporter, flags, args);
   },
 );
 
