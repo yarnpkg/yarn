@@ -10,3 +10,6 @@ mime-types@^2.1.12:
   dependencies:
     mime-db "~1.24.0"
 
+mime-db@^1.0.0:
+  version "1.0.0"
+  resolved "https://fakepath.wont.download.com/mime-db/-/mime-db-1.0.0.tgz#e2d13f939f0016c6e4e9ad25a8652f126c467f0c"

@@ -280,39 +280,15 @@ test.concurrent('install uses OS line endings when lockfile doesn\'t exist', asy
 test.concurrent('install should rewrite lockfile if patterns can be merged', (): Promise<void> => {
   const fixture = 'lockfile-trimmed';
 
-  return runInstall({}, fixture, (config, reporter) => {
-//     const originalLockContent = await fs.readFile(
-//       path.join(config.cwd, 'yarn.lock'),
-//     );
-//     const lockContent = originalLockContent + `
-// # changed the file, and it should remain changed after force install
-//     `;
-//     await fs.writeFile(
-//       path.join(config.cwd, 'yarn.lock'),
-//       lockContent,
-//     );
-//
-//     await fs.unlink(path.join(config.cwd, 'node_modules', constants.INTEGRITY_FILENAME));
-//
-//     let reinstall = new Install({}, config, reporter, await Lockfile.fromDirectory(config.cwd));
-//     await reinstall.init();
-//     let newLockContent = await fs.readFile(
-//       path.join(config.cwd, 'yarn.lock'),
-//     );
-//     expect(newLockContent).toEqual(lockContent);
-//
-//     // force should rewrite lockfile
-//     reinstall = new Install({force: true}, config, reporter, await Lockfile.fromDirectory(config.cwd));
-//     await reinstall.init();
-//     newLockContent = await fs.readFile(
-//       path.join(config.cwd, 'yarn.lock'),
-//     );
-//     expect(newLockContent).not.toEqual(lockContent);
+  return runInstall({}, fixture, async (config, reporter) => {
+    const lockContent = await fs.readFile(
+      path.join(config.cwd, 'yarn.lock'),
+    );
+    expect(lockContent).toContain('mime-db@^1.0.0');
+    expect(lockContent).not.toContain('https://fakepath.wont.download.com/mime-db/-/mime-db-1.0.0.tgz');
   });
 });
 
-// TODO add test for when resolver merges a few repeating manifests and lockfile gets rewritten: install.js:610
-// TODO should rewrite when there are more entries in lockfile than needed
 // TODO add tests for switching install -> install --check-files
 // TODO install --check-files -> check --integrity should imply --check-files?
 // TODO optimize check.js --integrity, no need to hydrate
