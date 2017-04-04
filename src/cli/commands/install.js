@@ -52,6 +52,7 @@ type Flags = {
   lockfile: boolean,
   pureLockfile: boolean,
   skipIntegrityCheck: boolean,
+  checkFiles: boolean,
 
   // add
   peer: boolean,
@@ -121,6 +122,7 @@ function normalizeFlags(config: Config, rawFlags: Object): Flags {
     skipIntegrityCheck: !!rawFlags.skipIntegrityCheck,
     frozenLockfile: !!rawFlags.frozenLockfile,
     linkDuplicates: !!rawFlags.linkDuplicates,
+    checkFiles: !!rawFlags.checkFiles,
 
     // add
     peer: !!rawFlags.peer,
@@ -170,7 +172,7 @@ export class Install {
 
     this.resolver = new PackageResolver(config, lockfile);
     this.fetcher = new PackageFetcher(config, this.resolver);
-    this.integrityChecker = new InstallationIntegrityChecker(config);
+    this.integrityChecker = new InstallationIntegrityChecker(config, this.reporter);
     this.compatibility = new PackageCompatibility(config, this.resolver, this.flags.ignoreEngines);
     this.linker = new PackageLinker(config, this.resolver);
     this.scripts = new PackageInstallScripts(config, this.resolver, this.flags.force);
@@ -303,15 +305,18 @@ export class Install {
     if (this.flags.skipIntegrityCheck || this.flags.force) {
       return false;
     }
-    const lockSource = lockStringify(this.lockfile.getLockfile(this.resolver.patterns));
-    const match = await this.integrityChecker.check(patterns, this.lockfile, lockSource, this.flags);
+    const lockfileCache = this.lockfile.cache;
+    if (!lockfileCache) {
+      return false;
+    }
+    const match = await this.integrityChecker.check(patterns, lockfileCache, this.flags);
     if (this.flags.frozenLockfile && match.missingPatterns.length > 0) {
       throw new MessageError(this.reporter.lang('frozenLockfileError'));
     }
 
     const haveLockfile = await fs.exists(path.join(this.config.cwd, constants.LOCKFILE_FILENAME));
 
-    if (match.integrityHashMatches && haveLockfile) {
+    if (match.integrityMatches && haveLockfile) {
       this.reporter.success(this.reporter.lang('upToDate'));
       return true;
     }
@@ -372,6 +377,7 @@ export class Install {
     if (await fs.exists(path.join(this.config.cwd, 'npm-shrinkwrap.json'))) {
       this.reporter.warn(this.reporter.lang('shrinkwrapWarning'));
     }
+
 
     let patterns: Array<string> = [];
     const steps: Array<(curr: number, total: number) => Promise<{bailout: boolean} | void>> = [];
@@ -591,21 +597,25 @@ export class Install {
       return;
     }
 
-    const lockfile = this.lockfile.getLockfile(this.resolver.patterns);
+    const lockfileBasedOnResolver = this.lockfile.getLockfile(this.resolver.patterns);
 
     if (this.config.pruneOfflineMirror) {
-      await this.pruneOfflineMirror(lockfile);
+      await this.pruneOfflineMirror(lockfileBasedOnResolver);
     }
 
-    const lockSource = lockStringify(lockfile);
-
     // write integrity hash
-    await this.integrityChecker.save(patterns, lockSource, this.flags, this.resolver.usedRegistries);
+    await this.integrityChecker.save(patterns, lockfileBasedOnResolver, this.flags, this.resolver.usedRegistries);
 
     const lockFileHasAllPatterns = patterns.filter((p) => !this.lockfile.getLocked(p)).length === 0;
+    const resolverPatternsAreSameAsInLockfile = Object.keys(lockfileBasedOnResolver)
+      .filter((pattern) => {
+        const manifest = this.lockfile.getLocked(pattern);
+        return !manifest || manifest.resolved !== lockfileBasedOnResolver[pattern].resolved;
+      },
+    ).length === 0;
 
     // remove command is followed by install with force, lockfile will be rewritten in any case then
-    if (lockFileHasAllPatterns && patterns.length && !this.flags.force) {
+    if (lockFileHasAllPatterns && resolverPatternsAreSameAsInLockfile && patterns.length && !this.flags.force) {
       return;
     }
 
@@ -613,6 +623,7 @@ export class Install {
     const loc = path.join(this.config.cwd, constants.LOCKFILE_FILENAME);
 
     // write lockfile
+    const lockSource = lockStringify(lockfileBasedOnResolver);
     await fs.writeFilePreservingEol(loc, lockSource);
 
     this._logSuccessSaveLockfile();

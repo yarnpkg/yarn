@@ -1,13 +1,13 @@
 /* @flow */
 
 import type Config from './config.js';
+import type {LockManifest} from './lockfile/wrapper.js';
 import type {RegistryNames} from './registries/index.js';
+import type {Reporter} from './reporters/index.js';
 import * as constants from './constants.js';
 import {registryNames} from './registries/index.js';
-import Lockfile from './lockfile/wrapper.js';
-import * as crypto from './util/crypto.js';
 import * as fs from './util/fs.js';
-import {sortAlpha} from './util/misc.js';
+import {sortAlpha, compareSortedArrays} from './util/misc.js';
 
 
 const invariant = require('invariant');
@@ -15,24 +15,46 @@ const path = require('path');
 
 export type IntegrityCheckResult = {
   integrityFileMissing: boolean,
-  integrityHashMatches?: boolean,
+  integrityMatches?: boolean,
   missingPatterns: Array<string>,
 };
 
 type IntegrityHashLocation = {
+  locationFolder: string,
   locationPath: string,
   exists: boolean,
+}
+
+type IntegrityFile = {
+  flags: Array<string>,
+  linkedModules: Array<string>,
+  topLevelPatters: Array<string>,
+  lockfileEntries: {
+    [key: string]: string
+  },
+  files: Array<string>,
+}
+
+type IntegrityFlags = {
+  flat: boolean,
+  checkFiles: boolean,
 }
 
 /**
  *
  */
 export default class InstallationIntegrityChecker {
-  constructor(config: Config) {
+  constructor(
+    config: Config,
+    reporter: Reporter,
+  ) {
     this.config = config;
+    this.reporter = reporter;
   }
 
   config: Config;
+  reporter: Reporter;
+
 
   /**
    * Get the location of an existing integrity hash. If none exists then return the location where we should
@@ -58,57 +80,117 @@ export default class InstallationIntegrityChecker {
 
     // if we already have an integrity hash in one of these folders then use it's location otherwise use the
     // first folder
-    const possibles = possibleFolders.map((folder): string => path.join(folder, constants.INTEGRITY_FILENAME));
     let loc;
-    for (const possibleLoc of possibles) {
-      if (await fs.exists(possibleLoc)) {
+    for (const possibleLoc of possibleFolders) {
+      if (await fs.exists(path.join(possibleLoc, constants.INTEGRITY_FILENAME))) {
         loc = possibleLoc;
         break;
       }
     }
+    const locationFolder = loc || possibleFolders[0];
+    const locationPath = path.join(locationFolder, constants.INTEGRITY_FILENAME);
     return {
-      locationPath: loc || possibles[0],
+      locationFolder,
+      locationPath,
       exists: !!loc,
     };
   }
 
   /**
+   * returns a list of files recursively in a directory
+   */
+  async _getFilePaths(rootDir: string, files: Array<string>, currentDir: string = rootDir): Promise<void> {
+    for (const file of await fs.readdir(currentDir)) {
+      const entry = path.join(currentDir, file);
+      const stat = await fs.stat(entry);
+      if (stat.isDirectory()) {
+        await this._getFilePaths(rootDir, files, entry);
+      } else {
+        files.push(path.relative(rootDir, entry));
+      }
+    }
+  }
+
+
+  /**
    * Generate integrity hash of input lockfile.
    */
 
-  _generateIntegrityHash(lockfile: string, patterns: Array<string>, flags: Object): string {
-    const opts = [lockfile];
+  async _generateIntegrityFile(
+    lockfile: {[key: string]: LockManifest},
+    patterns: Array<string>,
+    flags: IntegrityFlags,
+    modulesFolder: string,
+  ): Promise<IntegrityFile> {
 
-    opts.push(`patterns:${patterns.sort(sortAlpha).join(',')}`);
+    const result: IntegrityFile = {
+      flags: [],
+      linkedModules: [],
+      topLevelPatters: [],
+      lockfileEntries: {},
+      files: [],
+    };
+
+    result.topLevelPatters = patterns.sort(sortAlpha);
 
     if (flags.flat) {
-      opts.push('flat');
+      result.flags.push('flat');
     }
 
     if (this.config.production) {
-      opts.push('production');
+      result.flags.push('production');
     }
 
     const linkedModules = this.config.linkedModules;
     if (linkedModules.length) {
-      opts.push(`linked:${linkedModules.join(',')}`);
+      result.linkedModules = linkedModules.sort(sortAlpha);
     }
 
-    const mirror = this.config.getOfflineMirrorPath();
-    if (mirror != null) {
-      opts.push(`mirror:${mirror}`);
+    Object.keys(lockfile).forEach((key) => {
+      result.lockfileEntries[key] = lockfile[key].resolved;
+    });
+
+    if (flags.checkFiles) {
+      await this._getFilePaths(modulesFolder, result.files);
     }
 
-    return crypto.hash(opts.join('-'), 'sha256');
+    return result;
+  }
+
+  _compareIntegrityFiles(actual: IntegrityFile, expected: IntegrityFile): boolean {
+    if (!compareSortedArrays(actual.linkedModules, expected.linkedModules)) {
+      this.reporter.warn(this.reporter.lang('integrityCheckLinkedModulesDontMatch'));
+      return false;
+    }
+    if (!compareSortedArrays(actual.topLevelPatters, expected.topLevelPatters)) {
+      this.reporter.warn(this.reporter.lang('integrityPatternsDontMatch'));
+      return false;
+    }
+    if (!compareSortedArrays(actual.flags, expected.flags)) {
+      this.reporter.warn(this.reporter.lang('integrityFlagsDontMatch'));
+      return false;
+    }
+    for (const key of Object.keys(actual.lockfileEntries)) {
+      if (actual.lockfileEntries[key] !== expected.lockfileEntries[key]) {
+        this.reporter.warn(this.reporter.lang('integrityLockfilesDontMatch'));
+        return false;
+      }
+    }
+    for (const key of Object.keys(expected.lockfileEntries)) {
+      if (actual.lockfileEntries[key] !== expected.lockfileEntries[key]) {
+        this.reporter.warn(this.reporter.lang('integrityLockfilesDontMatch'));
+        return false;
+      }
+    }
+    return true;
   }
 
   async check(
     patterns: Array<string>,
-    lockfile: Lockfile,
-    normalizedLockSource: string,
-    flags: Object): Promise<IntegrityCheckResult> {
+    lockfile: {[key: string]: LockManifest},
+    flags: IntegrityFlags): Promise<IntegrityCheckResult> {
     // check if patterns exist in lockfile
-    const missingPatterns = patterns.filter((p) => !lockfile.getLocked(p));
+    const missingPatterns = patterns.filter((p) => !lockfile[p]);
     const loc = await this._getIntegrityHashLocation();
     if (missingPatterns.length || !loc.exists) {
       return {
@@ -117,12 +199,38 @@ export default class InstallationIntegrityChecker {
       };
     }
 
-    const actual = this._generateIntegrityHash(normalizedLockSource, patterns, flags);
-    const expected = (await fs.readFile(loc.locationPath)).trim();
+    const actual = await this._generateIntegrityFile(
+      lockfile,
+      patterns,
+      Object.assign({}, {checkFiles: false}, flags), // don't generate files when checking, we check the files below
+      loc.locationFolder);
+    const expectedRaw = await fs.readFile(loc.locationPath);
+    let expected: IntegrityFile;
+    try {
+      expected = JSON.parse(expectedRaw);
+    } catch (e) {
+      // ignore JSON parsing for legacy text integrity files compatibility
+    }
+    let integrityMatches;
+    if (expected) {
+      integrityMatches = this._compareIntegrityFiles(actual, expected);
+      if (flags.checkFiles && expected.files.length > 0) {
+        // TODO we may want to optimise this check by checking only for package.json files on very large trees
+        for (const file of expected.files) {
+          if (!await fs.exists(path.join(loc.locationFolder, file))) {
+            this.reporter.warn(this.reporter.lang('integrityFailedFilesMissing'));
+            integrityMatches = false;
+            break;
+          }
+        }
+      }
+    } else {
+      integrityMatches = false;
+    }
 
     return {
       integrityFileMissing: false,
-      integrityHashMatches: actual === expected,
+      integrityMatches,
       missingPatterns,
     };
   }
@@ -132,13 +240,14 @@ export default class InstallationIntegrityChecker {
    */
   async save(
     patterns: Array<string>,
-    normalizedLockSource: string,
-    flags: Object,
+    lockfile: {[key: string]: LockManifest},
+    flags: IntegrityFlags,
     usedRegistries?: Set<RegistryNames>): Promise<void> {
     const loc = await this._getIntegrityHashLocation(usedRegistries);
     invariant(loc.locationPath, 'expected integrity hash location');
     await fs.mkdirp(path.dirname(loc.locationPath));
-    await fs.writeFile(loc.locationPath, this._generateIntegrityHash(normalizedLockSource, patterns, flags));
+    const integrityFile = await this._generateIntegrityFile(lockfile, patterns, flags, loc.locationFolder);
+    await fs.writeFile(loc.locationPath, JSON.stringify(integrityFile, null, 2));
   }
 
   async removeIntegrityFile(): Promise<void> {

@@ -142,10 +142,6 @@ const messages = {
   incompatibleOS: 'The platform $0 is incompatible with this module.',
   invalidEngine: 'The engine $0 appears to be invalid.',
 
-  selfUpdateReleased: 'Replaced current release with $0.',
-  selfUpdateDownloading: 'Downloading yarn version $0.',
-  selfUpdateNoNewer: 'Yarn is already using the latest version.',
-
   optionalCompatibilityExcluded: '$0 is an optional dependency and failed compatibility check. Excluding it from installation.',
   optionalModuleFail: 'This module is OPTIONAL, you can safely ignore this error',
   optionalModuleScriptFail: 'Error running install script for optional dependency: $0',
@@ -253,8 +249,13 @@ const messages = {
 
   couldBeDeduped: '$0 could be deduped from $1 to $2',
   lockfileNotContainPattern: 'Lockfile does not contain pattern: $0',
-  integrityHashesDontMatch: 'Integrity hashes don\'t match',
-  noIntegrityHashFile: 'Couldn\'t find an integrity hash file',
+  integrityCheckFailed: 'Integrity check failed',
+  noIntegrityFile: 'Couldn\'t find an integrity file',
+  integrityCheckLinkedModulesDontMatch: 'Integrity check: Linked modules don\'t match',
+  integrityPatternsDontMatch: 'Integrity check: Patterns don\'t match',
+  integrityFlagsDontMatch: 'Integrity check: Flags don\'t match',
+  integrityLockfilesDontMatch: 'Integrity check: Lock files don\'t match',
+  integrityFailedFilesMissing: 'Integrity check: Files are missing',
   packageNotInstalled: '$0 not installed',
   optionalDepNotInstalled: 'Optional dependency $0 not installed',
   packageWrongVersion: '$0 is wrong version: expected $1, got $2',
