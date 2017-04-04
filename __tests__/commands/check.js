@@ -2,9 +2,12 @@
 
 import {run as buildRun, runInstall} from './_helpers.js';
 import * as checkCmd from '../../src/cli/commands/check.js';
+import {Install} from '../../src/cli/commands/install.js';
+import Lockfile from '../../src/lockfile/wrapper.js';
 import * as reporters from '../../src/reporters/index.js';
 import type {CLIFunctionReturn} from '../../src/types.js';
 import * as fs from '../../src/util/fs.js';
+
 
 
 const path = require('path');
@@ -143,5 +146,49 @@ async (): Promise<void> => {
       thrown = true;
     }
     expect(thrown).toEqual(true);
+  });
+});
+
+test.concurrent('when switching to --check-files install should rebuild integrity file',
+async (): Promise<void> => {
+  await runInstall({}, path.join('..', 'check', 'integrity-lock-check'), async (config, reporter): Promise<void> => {
+    await fs.unlink(path.join(config.cwd, 'node_modules', 'left-pad', 'index.js'));
+
+    // reinstall should skip because current installation does not track files
+    let reinstall = new Install({}, config, reporter, await Lockfile.fromDirectory(config.cwd));
+    await reinstall.init();
+    expect(await fs.exists(path.join(config.cwd, 'node_modules', 'left-pad', 'index.js'))).toEqual(false);
+    // integrity check won't notice missing file
+    let thrown = false;
+    try {
+      await checkCmd.run(config, reporter, {integrity: true}, []);
+    } catch (e) {
+      thrown = true;
+    }
+    expect(thrown).toEqual(false);
+
+    // reinstall with --check-files tag should reinstall missing files and generate proper integrity
+    reinstall = new Install({checkFiles: true}, config, reporter, await Lockfile.fromDirectory(config.cwd));
+    await reinstall.init();
+    // all correct
+    thrown = false;
+    try {
+      await checkCmd.run(config, reporter, {integrity: true, checkFiles: true}, []);
+    } catch (e) {
+      thrown = true;
+    }
+    expect(thrown).toEqual(false);
+    expect(await fs.exists(path.join(config.cwd, 'node_modules', 'left-pad', 'index.js'))).toEqual(true);
+
+    // removed file will be noticed
+    thrown = false;
+    await fs.unlink(path.join(config.cwd, 'node_modules', 'left-pad', 'index.js'));
+    try {
+      await checkCmd.run(config, reporter, {integrity: true, checkFiles: true}, []);
+    } catch (e) {
+      thrown = true;
+    }
+    expect(thrown).toEqual(true);
+
   });
 });

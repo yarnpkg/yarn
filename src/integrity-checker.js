@@ -111,7 +111,6 @@ export default class InstallationIntegrityChecker {
     }
   }
 
-
   /**
    * Generate integrity hash of input lockfile.
    */
@@ -214,7 +213,17 @@ export default class InstallationIntegrityChecker {
     let integrityMatches;
     if (expected) {
       integrityMatches = this._compareIntegrityFiles(actual, expected);
-      if (flags.checkFiles && expected.files.length > 0) {
+      if (flags.checkFiles && expected.files.length === 0) {
+        // if integrity file contains empty files array but node_modules contains files then integrity check fails.
+        // generating list of files may be slow for an integrity check but we don't expect running
+        // check with --check-files on node_modules installed without this flag
+        let actualFiles = [];
+        await this._getFilePaths(loc.locationFolder, actualFiles);
+        if (actualFiles.length > 0) {
+          this.reporter.warn(this.reporter.lang('integrityFailedFilesMissing'));
+          integrityMatches = false;
+        }
+      } else if (flags.checkFiles && expected.files.length > 0) {
         // TODO we may want to optimise this check by checking only for package.json files on very large trees
         for (const file of expected.files) {
           if (!await fs.exists(path.join(loc.locationFolder, file))) {

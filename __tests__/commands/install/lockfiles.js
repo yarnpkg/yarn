@@ -289,6 +289,4 @@ test.concurrent('install should rewrite lockfile if patterns can be merged', ():
   });
 });
 
-// TODO add tests for switching install -> install --check-files
-// TODO install --check-files -> check --integrity should imply --check-files?
 // TODO optimize check.js --integrity, no need to hydrate
