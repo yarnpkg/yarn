@@ -85,7 +85,7 @@ commander.option(
 );
 commander.option(
   '-s, --silent',
-  'raw script output',
+  'skip Yarn console logs, other types of logs (script output) will be printed',
 );
 commander.option('--proxy <host>', '');
 commander.option('--https-proxy <host>', '');
