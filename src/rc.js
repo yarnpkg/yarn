@@ -3,44 +3,6 @@ import rc from 'rc';
 
 import parse from './lockfile/parse.js';
 
-// Keys that will be propagated into the command line as arguments
-const ARG_KEYS = [
-    'production',
-
-    'offline',
-    'prefer-offline',
-    'proxy',
-    'https-proxy',
-    'network-concurrency',
-    'har',
-
-    'strict-semver',
-    'ignore-engines',
-    'ignore-optional',
-    'ignore-platform',
-    'ignore-scripts',
-    'skip-integrity-check',
-
-    'no-lockfile',
-    'pure-lockfile',
-    'frozen-lockfile',
-
-    'no-bin-links',
-    'link-duplicates',
-    'flat',
-
-    'cache-folder',
-    'modules-folder',
-    'global-folder',
-
-    'mutex',
-
-    'cli.no-emoji',
-    'cli.verbose',
-
-    'unsafe.force',
-];
-
 // Keys that will get resolved relative to the path of the rc file they belong to
 const PATH_KEYS = [
     'cache-folder',
@@ -48,24 +10,15 @@ const PATH_KEYS = [
     'modules-folder',
 ];
 
-// Map old keys to more recent ones
-const ALIAS_KEYS = {
-    //'yarn-offline-mirror': 'mirror-path'
-    //'skip-integrity-check': 'ignore-integrity'
-};
-
 const buildRcConf = () => rc('yarn', {}, [], fileText => {
     const values = parse(fileText, null);
+    const keys = Object.keys(values);
 
-    for (let key of Object.keys(ALIAS_KEYS)) {
-        if (Object.prototype.hasOwnProperty.call(values, key)) {
-            values[ALIAS_KEYS[key]] = values[key];
-        }
-    }
-
-    for (let key of PATH_KEYS) {
-        if (Object.prototype.hasOwnProperty.call(values, key)) {
-            values[key] = resolve(dirname(filePath), values[key]);
+    for (let key of keys) {
+        for (let pathKey of PATH_KEYS) {
+            if (key === pathKey || key.endsWith(`.${pathKey}`)) {
+                values[key] = resolve(dirname(filePath), values[key]);
+            }
         }
     }
 
@@ -79,26 +32,41 @@ export function getRcConf() {
     return getRcConf.cache;
 }
 
-const buildRcArgs = () => ARG_KEYS.reduce((args, key) => {
+const buildRcArgs = () => Object.keys(getRcConf()).reduce((argLists, key) => {
+    if (!key.startsWith(`--`))
+        return argLists;
+
+    const [, namespace = `*`, arg] = key.match(/^--(?:([^.]+)\.)?(.*)$/);
     const value = getRcConf()[key];
 
-    // some arg keys (such as unsafe.force) are namespaced in the yarnrc
-    const arg = key.replace(/^[^.]\./, ``);
-
-    if (typeof value === 'string') {
-        args = args.concat([ `--${arg}`, value ]);
-    } else if (typeof value === 'boolean') {
-        args = args.concat([ `--${arg}` ]);
+    if (!argLists[namespace]) {
+        argLists[namespace] = [];
     }
 
-    return args;
-}, []);
+    if (typeof value === 'string') {
+        argLists[namespace] = argLists[namespace].concat([`--${arg}`, value]);
+    } else {
+        argLists[namespace] = argLists[namespace].concat([`--${arg}`]);
+    }
 
-export function getRcArgs() {
+    console.error(argLists);
+
+    return argLists;
+}, {});
+
+export function getRcArgs(command) {
     if (!getRcArgs.cache)
         getRcArgs.cache = buildRcArgs();
 
-    return getRcArgs.cache;
+    let result = getRcArgs.cache;
+
+    if (typeof command !== 'undefined')
+        result = result['*'] || [];
+
+    if (command !== '*')
+        result = result.concat(result[command] || []);
+
+    return result;
 }
 
 export function clearRcCache() {

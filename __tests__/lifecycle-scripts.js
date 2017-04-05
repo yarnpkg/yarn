@@ -30,6 +30,16 @@ async function execCommand(cmd: string, packageName: string, env = process.env):
   });
 }
 
+test('should add the yarnrc values to the command line', async () => {
+  let stdout = await execCommand('cache dir', 'yarnrc-cli');
+  expect(stdout).toMatch(/^\/foobar\/v[0-9]+$/);
+});
+
+test('should resolve the yarnrc values relative to where the file lives', async () => {
+  let stdout = await execCommand('cache dir', 'yarnrc-cli');
+  expect(stdout).toMatch(/^(\/[^\/]+)+\/foobar\/hello\/world\/v[0-9]+$/);
+});
+
 test('should expose `npm_config_argv` environment variable to lifecycle scripts for back compatibility with npm (#684)',
 async () => {
   const env = Object.assign({}, process.env);

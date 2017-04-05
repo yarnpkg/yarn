@@ -249,7 +249,7 @@ export default class Config {
       networkTimeout: this.networkTimeout,
     });
     this._cacheRootFolder = String(
-      opts.cacheFolder ||
+      opts.cacheRootFolder ||
       this.getOption('cache-folder') ||
       constants.MODULE_CACHE_DIRECTORY,
     );
