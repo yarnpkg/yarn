@@ -1,75 +1,87 @@
-import { readFileSync } from 'fs';
+/* @flow */
+
 import rc from 'rc';
 
 import parse from './lockfile/parse.js';
 
 // Keys that will get resolved relative to the path of the rc file they belong to
 const PATH_KEYS = [
-    'cache-folder',
-    'global-folder',
-    'modules-folder',
+  'cache-folder',
+  'global-folder',
+  'modules-folder',
 ];
 
-const buildRcConf = () => rc('yarn', {}, [], fileText => {
-    const values = parse(fileText, null);
-    const keys = Object.keys(values);
+let rcConfCache;
+let rcArgsCache;
 
-    for (let key of keys) {
-        for (let pathKey of PATH_KEYS) {
-            if (key === pathKey || key.endsWith(`.${pathKey}`)) {
-                values[key] = resolve(dirname(filePath), values[key]);
-            }
+const buildRcConf = () => rc('yarn', {}, [], (fileText) => {
+  const values = parse(fileText, 'yarnrc');
+  const keys = Object.keys(values);
+
+  // Unfortunately, the "rc" module we use doesn't tell us the file path :(
+  // cf https://github.com/dominictarr/rc/issues/61
+
+  for (const key of keys) {
+    for (const pathKey of PATH_KEYS) {
+      if (key.replace(/^(--)?([^.]+\.)+/, '') === pathKey) {
+        // values[key] = resolve(dirname(filePath), values[key]);
+        if (!values[key].startsWith('/')) {
+          delete values[keys];
         }
+      }
     }
+  }
 
-    return values;
+  return values;
 });
 
-export function getRcConf() {
-    if (!getRcConf.cache)
-        getRcConf.cache = buildRcConf();
+export function getRcConf(): { [string]: Array<string> } {
+  if (!rcConfCache) {
+    rcConfCache = buildRcConf();
+  }
 
-    return getRcConf.cache;
+  return rcConfCache;
 }
 
 const buildRcArgs = () => Object.keys(getRcConf()).reduce((argLists, key) => {
-    if (!key.startsWith(`--`))
-        return argLists;
+  const miniparse = key.match(/^--(?:([^.]+)\.)?(.*)$/);
 
-    const [, namespace = `*`, arg] = key.match(/^--(?:([^.]+)\.)?(.*)$/);
-    const value = getRcConf()[key];
-
-    if (!argLists[namespace]) {
-        argLists[namespace] = [];
-    }
-
-    if (typeof value === 'string') {
-        argLists[namespace] = argLists[namespace].concat([`--${arg}`, value]);
-    } else {
-        argLists[namespace] = argLists[namespace].concat([`--${arg}`]);
-    }
-
-    console.error(argLists);
-
+  if (!miniparse) {
     return argLists;
+  }
+
+  const namespace = miniparse[1] || `*`;
+  const arg = miniparse[2];
+  const value = getRcConf()[key];
+
+  if (!argLists[namespace]) {
+    argLists[namespace] = [];
+  }
+
+  if (typeof value === 'string') {
+    argLists[namespace] = argLists[namespace].concat([`--${arg}`, value]);
+  } else {
+    argLists[namespace] = argLists[namespace].concat([`--${arg}`]);
+  }
+
+  return argLists;
 }, {});
 
-export function getRcArgs(command) {
-    if (!getRcArgs.cache)
-        getRcArgs.cache = buildRcArgs();
+export function getRcArgs(command: string): Array<string> {
+  if (!rcArgsCache) {
+    rcArgsCache = buildRcArgs();
+  }
 
-    let result = getRcArgs.cache;
+  let result = rcArgsCache['*'] || [];
 
-    if (typeof command !== 'undefined')
-        result = result['*'] || [];
+  if (command !== '*') {
+    result = result.concat(rcArgsCache[command] || []);
+  }
 
-    if (command !== '*')
-        result = result.concat(result[command] || []);
-
-    return result;
+  return result;
 }
 
 export function clearRcCache() {
-    getRcConf.cache = null;
-    getRcArgs.cache = null;
+  rcConfCache = null;
+  rcArgsCache = null;
 }
