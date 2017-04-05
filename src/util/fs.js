@@ -80,28 +80,27 @@ type CopyOptions = {
   artifactFiles: Array<string>,
 };
 
-let fileDatesEqual = (a: Date, b: Date) => {
-  return a.getTime() === b.getTime();
-};
+export const fileDatesEqual = (a: Date, b: Date) => {
+  const aTime = a.getTime();
+  const bTime = b.getTime();
 
-if (os.platform() === 'win32') {
-  fileDatesEqual = (a: Date, b: Date) => {
-    const aTime = a.getTime();
-    const bTime = b.getTime();
-    const aTimeSec = Math.floor(aTime / 1000);
-    const bTimeSec = Math.floor(bTime / 1000);
-
-    // See https://github.com/nodejs/node/issues/2069
-    // Some versions of Node on windows zero the milliseconds when utime is used
-    // So if any of the time has a milliseconds part of zero we suspect that the
-    // bug is present and compare only seconds.
-    if ((aTime - aTimeSec * 1000 === 0) || (bTime - bTimeSec * 1000 === 0)) {
-      return aTimeSec === bTimeSec;
-    }
-
+  if (process.platform !== 'win32') {
     return aTime === bTime;
-  };
-}
+  }
+
+  const aTimeSec = Math.floor(aTime / 1000);
+  const bTimeSec = Math.floor(bTime / 1000);
+
+  // See https://github.com/nodejs/node/issues/2069
+  // Some versions of Node on windows zero the milliseconds when utime is used
+  // So if any of the time has a milliseconds part of zero we suspect that the
+  // bug is present and compare only seconds.
+  if ((aTime - aTimeSec * 1000 === 0) || (bTime - bTimeSec * 1000 === 0)) {
+    return aTimeSec === bTimeSec;
+  }
+
+  return aTime === bTime;
+};
 
 async function buildActionsForCopy(
   queue: CopyQueue,
