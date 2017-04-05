@@ -83,6 +83,10 @@ commander.option(
   '--no-emoji',
   'disable emoji in output',
 );
+commander.option(
+  '-s, --silent',
+  'raw script output',
+);
 commander.option('--proxy <host>', '');
 commander.option('--https-proxy <host>', '');
 commander.option(
@@ -188,10 +192,11 @@ const reporter = new Reporter({
   emoji: commander.emoji && process.stdout.isTTY && process.platform === 'darwin',
   verbose: commander.verbose,
   noProgress: !commander.progress,
+  isSilent: commander.silent,
 });
+
 reporter.initPeakMemoryCounter();
 
-//
 const config = new Config(reporter);
 
 // print header
