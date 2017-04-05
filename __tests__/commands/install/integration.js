@@ -559,42 +559,6 @@ test.concurrent('install should circumvent circular dependencies', (): Promise<v
   });
 });
 
-// don't run this test in `concurrent`, it will affect other tests
-test('install should respect NODE_ENV=production', (): Promise<void> => {
-  const env = process.env.NODE_ENV;
-  process.env.NODE_ENV = 'production';
-  return runInstall({}, 'install-should-respect-node_env', async (config) => {
-    expect(await fs.exists(path.join(config.cwd, 'node_modules/is-negative-zero/package.json'))).toBe(false);
-    // restore env
-    process.env.NODE_ENV = env;
-  });
-});
-
-// don't run this test in `concurrent`, it will affect other tests
-test('install should respect NPM_CONFIG_PRODUCTION=false over NODE_ENV=production', (): Promise<void> => {
-  const env = process.env.NODE_ENV;
-  const prod = process.env.NPM_CONFIG_PRODUCTION;
-  process.env.NODE_ENV = 'production';
-  process.env.NPM_CONFIG_PRODUCTION = 'false';
-  return runInstall({}, 'install-should-respect-npm_config_production', async (config) => {
-    expect(await fs.exists(path.join(config.cwd, 'node_modules/is-negative-zero/package.json'))).toBe(true);
-    // restore env
-    process.env.NODE_ENV = env;
-    process.env.NPM_CONFIG_PRODUCTION = prod;
-  });
-});
-
-// don't run this test in `concurrent`, it will affect other tests
-test('install should respect production flag false over NODE_ENV=production', (): Promise<void> => {
-  const env = process.env.NODE_ENV;
-  process.env.NODE_ENV = 'production';
-  return runInstall({production: 'false'}, 'install-should-respect-production_flag_over_node-env', async (config) => {
-    expect(await fs.exists(path.join(config.cwd, 'node_modules/is-negative-zero/package.json'))).toBe(true);
-    // restore env
-    process.env.NODE_ENV = env;
-  });
-});
-
 test.concurrent('install should resolve circular dependencies 2', (): Promise<void> => {
   return runInstall({}, 'install-should-circumvent-circular-dependencies-2', async (config, reporter) => {
     expect(

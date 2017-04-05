@@ -47,7 +47,7 @@ test.concurrent('--verify-tree should pass on hoisted dependency ', async (): Pr
 test.concurrent('--verify-tree should check dev dependencies ', async (): Promise<void> => {
   let thrown = false;
   try {
-    await runCheck([], {verifyTree: true}, 'verify-tree-dev');
+    await runCheck([], {verifyTree: true, production: false}, 'verify-tree-dev');
   } catch (e) {
     thrown = true;
   }
