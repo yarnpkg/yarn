@@ -97,20 +97,24 @@ export default class InstallationIntegrityChecker {
   }
 
   /**
-   * returns a list of files recursively in a directory
+   * returns a list of files recursively in a directory sorted
    */
-  async _getFilePaths(rootDir: string, files: Array<string>, currentDir: string = rootDir): Promise<void> {
-    for (const file of await fs.readdir(currentDir)) {
-      const entry = path.join(currentDir, file);
-      const stat = await fs.stat(entry);
-      if (stat.isDirectory()) {
-        await this._getFilePaths(rootDir, files, entry);
-      } else {
-        files.push(path.relative(rootDir, entry));
+  async _getFilesDeep(rootDir: string): Promise<Array<string>> {
+    async function getFilePaths(rootDir: string, files: Array<string>, currentDir: string = rootDir): Promise<void> {
+      for (const file of await fs.readdir(currentDir)) {
+        const entry = path.join(currentDir, file);
+        const stat = await fs.stat(entry);
+        if (stat.isDirectory()) {
+          await getFilePaths(rootDir, files, entry);
+        } else {
+          files.push(path.relative(rootDir, entry));
+        }
       }
     }
+    const result = [];
+    await getFilePaths(rootDir, result);
+    return result;
   }
-
 
   /**
    * Generate integrity hash of input lockfile.
@@ -151,7 +155,7 @@ export default class InstallationIntegrityChecker {
     });
 
     if (flags.checkFiles) {
-      await this._getFilePaths(modulesFolder, result.files);
+      result.files = await this._getFilesDeep(modulesFolder);
     }
 
     return result;
@@ -214,7 +218,15 @@ export default class InstallationIntegrityChecker {
     let integrityMatches;
     if (expected) {
       integrityMatches = this._compareIntegrityFiles(actual, expected);
-      if (flags.checkFiles && expected.files.length > 0) {
+      if (flags.checkFiles && expected.files.length === 0) {
+        // edge case handling - --check-fies is passed but .yarn-integrity does not contain any files
+        // check and fail if there are file in node_modules after all.
+        const actualFiles = await this._getFilesDeep(loc.locationFolder);
+        if (actualFiles.length > 0) {
+          this.reporter.warn(this.reporter.lang('integrityFailedFilesMissing'));
+          integrityMatches = false;
+        }
+      } else if (flags.checkFiles && expected.files.length > 0) {
         // TODO we may want to optimise this check by checking only for package.json files on very large trees
         for (const file of expected.files) {
           if (!await fs.exists(path.join(loc.locationFolder, file))) {

@@ -149,9 +149,7 @@ async function integrityHashCheck(
   const install = new Install(flags, config, reporter, lockfile);
 
   // get patterns that are installed when running `yarn install`
-  // TODO hydrate takes longer then install command bailout https://github.com/yarnpkg/yarn/issues/2514
-  const {patterns: rawPatterns} = await install.hydrate(true);
-  const patterns = await install.flatten(rawPatterns);
+  const {patterns} = await install.fetchRequestFromCwd();
 
   const match = await integrityChecker.check(patterns, lockfile.cache, flags);
   for (const pattern of match.missingPatterns) {
