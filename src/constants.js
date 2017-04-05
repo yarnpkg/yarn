@@ -33,6 +33,9 @@ export const LOCKFILE_VERSION = 1;
 // max amount of network requests to perform concurrently
 export const NETWORK_CONCURRENCY = 8;
 
+// HTTP timeout used when downloading packages
+export const NETWORK_TIMEOUT = 30 * 1000; // in milliseconds
+
 // max amount of child processes to execute concurrently
 export const CHILD_CONCURRENCY = 5;
 

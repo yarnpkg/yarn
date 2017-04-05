@@ -43,6 +43,7 @@ type RequestParams<T> = {
   ca?: Array<string>,
   cert?: string,
   networkConcurrency?: number,
+  timeout?: number,
   key?: string,
   forever?: boolean,
   strictSSL?: boolean,
@@ -98,6 +99,7 @@ export default class RequestManager {
   offlineQueue: Array<RequestOptions>;
   queue: Array<Object>;
   max: number;
+  timeout: number;
   cache: {
     [key: string]: Promise<any>
   };
@@ -116,6 +118,7 @@ export default class RequestManager {
     cafile?: string,
     cert?: string,
     networkConcurrency?: number,
+    networkTimeout?: number,
     key?: string,
   }) {
     if (opts.userAgent != null) {
@@ -148,6 +151,10 @@ export default class RequestManager {
 
     if (opts.networkConcurrency != null) {
       this.max = opts.networkConcurrency;
+    }
+
+    if (opts.networkTimeout != null) {
+      this.timeout = opts.networkTimeout;
     }
 
     if (opts.cafile != null && opts.cafile != '') {
@@ -271,6 +278,11 @@ export default class RequestManager {
       return true;
     }
 
+    // TCP timeout
+    if (code === 'ESOCKETTIMEDOUT') {
+      return true;
+    }
+
     return false;
   }
 
@@ -325,7 +337,6 @@ export default class RequestManager {
       rejectNext(err);
     };
 
-    //
     let calledOnError = false;
     const onError = (err) => {
       if (calledOnError) {
@@ -397,6 +408,10 @@ export default class RequestManager {
 
     if (this.key != null) {
       params.key = this.key;
+    }
+
+    if (this.timeout != null) {
+      params.timeout = this.timeout;
     }
 
     const request = this._getRequestModule();
