@@ -1,8 +1,8 @@
 /* @flow */
 
-import rc from 'rc';
-
 import parse from './lockfile/parse.js';
+
+const rc = require('rc');
 
 // Keys that will get resolved relative to the path of the rc file they belong to
 const PATH_KEYS = [
@@ -50,7 +50,7 @@ const buildRcArgs = () => Object.keys(getRcConf()).reduce((argLists, key) => {
     return argLists;
   }
 
-  const namespace = miniparse[1] || `*`;
+  const namespace = miniparse[1] || '*';
   const arg = miniparse[2];
   const value = getRcConf()[key];
 
