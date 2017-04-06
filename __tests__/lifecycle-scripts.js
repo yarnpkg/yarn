@@ -35,6 +35,11 @@ test('should add the yarnrc values to the command line', async () => {
   expect(stdout.replace(/\\/g, '/')).toMatch(/^\/tmp\/foobar\/v[0-9]+\n$/);
 });
 
+test('should allow overriding the yarnrc values from the command line', async () => {
+  const stdout = await execCommand('cache dir --cache-folder /tmp/toto', 'yarnrc-cli');
+  expect(stdout.replace(/\\/g, '/')).toMatch(/^\/tmp\/toto\/v[0-9]+\n$/);
+});
+
 // Test disabled for now, cf rc.js
 test.skip('should resolve the yarnrc values relative to where the file lives', async () => {
   const stdout = await execCommand('cache dir', 'yarnrc-cli-relative');
