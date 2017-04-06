@@ -209,7 +209,7 @@ export default class InstallationIntegrityChecker {
       Object.assign({}, {checkFiles: false}, flags), // don't generate files when checking, we check the files below
       loc.locationFolder);
     const expectedRaw = await fs.readFile(loc.locationPath);
-    let expected: IntegrityFile;
+    let expected: ?IntegrityFile;
     try {
       expected = JSON.parse(expectedRaw);
     } catch (e) {
