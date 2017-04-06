@@ -57,6 +57,7 @@ type RequestParams<T> = {
   ) => void,
   callback?: (err: ?Error, res: any, body: any) => void,
   retryAttempts?: number,
+  maxRetryAttempts?: number,
   followRedirect?: boolean
 };
 
@@ -83,6 +84,7 @@ export default class RequestManager {
     this.queue = [];
     this.cache = {};
     this.max = constants.NETWORK_CONCURRENCY;
+    this.maxRetryAttempts = 5;
   }
 
   offlineNoRequests: boolean;
@@ -100,6 +102,7 @@ export default class RequestManager {
   queue: Array<Object>;
   max: number;
   timeout: number;
+  maxRetryAttempts: number;
   cache: {
     [key: string]: Promise<any>
   };
@@ -119,6 +122,7 @@ export default class RequestManager {
     cert?: string,
     networkConcurrency?: number,
     networkTimeout?: number,
+    maxRetryAttempts?: number,
     key?: string,
   }) {
     if (opts.userAgent != null) {
@@ -155,6 +159,10 @@ export default class RequestManager {
 
     if (opts.networkTimeout != null) {
       this.timeout = opts.networkTimeout;
+    }
+
+    if (opts.maxRetryAttempts != null) {
+      this.maxRetryAttempts = opts.maxRetryAttempts;
     }
 
     if (opts.cafile != null && opts.cafile != '') {
@@ -345,7 +353,7 @@ export default class RequestManager {
       calledOnError = true;
 
       const attempts = params.retryAttempts || 0;
-      if (attempts < 5 && this.isPossibleOfflineError(err)) {
+      if (attempts < this.maxRetryAttempts - 1 && this.isPossibleOfflineError(err)) {
         params.retryAttempts = attempts + 1;
         if (typeof params.cleanup === 'function') {
           params.cleanup();

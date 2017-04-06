@@ -97,10 +97,35 @@ test('RequestManager.request with mutual TLS', async () => {
   expect(body).toBe('ok');
 });
 
-test('RequestManager.execute timeout Request', async () => {
+test('RequestManager.execute timeout error with maxRetryAttempts=1', async () => {
   jest.useRealTimers();
 
+  let counter = 0;
   const server = net.createServer((c) => {
+    counter += 1;
+    // emulate TCP server that never closes the connection
+  });
+
+  try {
+    server.listen(0);
+    const config = await Config.create({networkTimeout: 50});
+    config.requestManager.setOptions({maxRetryAttempts: 1});
+    const port = server.address().port;
+    await config.requestManager.request({url: `http://localhost:${port}/?nocache`});
+  } catch (err) {
+    expect(err.message).toContain('TIMEDOUT');
+    expect(counter).toEqual(1);
+  } finally {
+    server.close();
+  }
+});
+
+test('RequestManager.execute timeout error with default maxRetryAttempts', async () => {
+  jest.useRealTimers();
+
+  let counter = 0;
+  const server = net.createServer((c) => {
+    counter += 1;
     // emulate TCP server that never closes the connection
   });
 
@@ -111,6 +136,7 @@ test('RequestManager.execute timeout Request', async () => {
     await config.requestManager.request({url: `http://localhost:${port}/?nocache`});
   } catch (err) {
     expect(err.message).toContain('TIMEDOUT');
+    expect(counter).toEqual(5);
   } finally {
     server.close();
   }
