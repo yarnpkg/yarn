@@ -38,6 +38,7 @@ export type ConfigOptions = {
   production?: boolean,
   binLinks?: boolean,
   networkConcurrency?: number,
+  childConcurrency?: number,
   networkTimeout?: number,
   nonInteractive?: boolean,
 
@@ -107,6 +108,8 @@ export default class Config {
   constraintResolver: ConstraintResolver;
 
   networkConcurrency: number;
+
+  childConcurrency: number;
 
   //
   networkTimeout: number;
@@ -228,6 +231,13 @@ export default class Config {
       opts.networkConcurrency ||
       Number(this.getOption('network-concurrency')) ||
       constants.NETWORK_CONCURRENCY
+    );
+
+    this.childConcurrency = (
+      opts.childConcurrency ||
+      Number(this.getOption('child-concurrency')) ||
+      Number(process.env.CHILD_CONCURRENCY) ||
+      constants.CHILD_CONCURRENCY
     );
 
     this.networkTimeout = (

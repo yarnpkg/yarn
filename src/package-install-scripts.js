@@ -262,7 +262,7 @@ export default class PackageInstallScripts {
     const waitQueue = new Set();
     const workers = [];
 
-    const set = this.reporter.activitySet(installablePkgs, Math.min(constants.CHILD_CONCURRENCY, workQueue.size));
+    const set = this.reporter.activitySet(installablePkgs, Math.min(this.config.childConcurrency, workQueue.size));
 
     for (const spinner of set.spinners) {
       workers.push(this.worker(spinner, workQueue, installed, waitQueue));
