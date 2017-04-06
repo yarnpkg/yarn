@@ -60,8 +60,10 @@ const buildRcArgs = () => Object.keys(getRcConf()).reduce((argLists, key) => {
 
   if (typeof value === 'string') {
     argLists[namespace] = argLists[namespace].concat([`--${arg}`, value]);
-  } else {
+  } else if (value === true) {
     argLists[namespace] = argLists[namespace].concat([`--${arg}`]);
+  } else if (value === false) {
+    argLists[namespace] = argLists[namespace].concat([`--no-${arg}`]);
   }
 
   return argLists;
