@@ -8,6 +8,7 @@ import * as network from '../util/network.js';
 import {MessageError} from '../errors.js';
 import aliases from './aliases.js';
 import Config from '../config.js';
+import {getRcArgs} from '../rc.js';
 import {camelCase} from '../util/misc.js';
 
 const chalk = require('chalk');
@@ -166,8 +167,7 @@ if (args.indexOf('--help') >= 0 || args.indexOf('-h') >= 0) {
   process.exit(1);
 }
 
-// parse flags
-args.unshift(commandName);
+args = [commandName].concat(getRcArgs(commandName), args);
 
 if (ARGS_THAT_SHARE_NAMES_WITH_OPTIONS.indexOf(commandName) >= 0 && args[0] === commandName) {
   args.shift();
@@ -369,7 +369,7 @@ config.init({
   binLinks: commander.binLinks,
   modulesFolder: commander.modulesFolder,
   globalFolder: commander.globalFolder,
-  cacheRootFolder: commander.cacheFolder,
+  cacheFolder: commander.cacheFolder,
   preferOffline: commander.preferOffline,
   captureHar: commander.har,
   ignorePlatform: commander.ignorePlatform,
