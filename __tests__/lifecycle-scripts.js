@@ -30,9 +30,19 @@ async function execCommand(cmd: string, packageName: string, env = process.env):
   });
 }
 
-test('should add the yarnrc values to the command line', async () => {
+test('should add the global yarnrc arguments to the command line', async () => {
   const stdout = await execCommand('cache dir', 'yarnrc-cli');
   expect(stdout.replace(/\\/g, '/')).toMatch(/^\/tmp\/foobar\/v[0-9]+\n$/);
+});
+
+test('should add the command-specific yarnrc arguments to the command line if the command name matches', async () => {
+  const stdout = await execCommand('cache dir', 'yarnrc-cli-command-specific-ok');
+  expect(stdout.replace(/\\/g, '/')).toMatch(/^\/tmp\/foobar\/v[0-9]+\n$/);
+});
+
+test('should not add the command-specific yarnrc arguments if the command name doesn\'t match', async () => {
+  const stdout = await execCommand('cache dir', 'yarnrc-cli-command-specific-ko');
+  expect(stdout.replace(/\\/g, '/')).not.toMatch(/^\/tmp\/foobar\/v[0-9]+\n$/);
 });
 
 test('should allow overriding the yarnrc values from the command line', async () => {
