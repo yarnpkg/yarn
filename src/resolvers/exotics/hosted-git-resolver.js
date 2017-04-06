@@ -91,6 +91,11 @@ export default class HostedGitResolver extends ExoticResolver {
     throw new Error('Not implemented');
   }
 
+  static getGitHTTPBaseUrl(exploded: ExplodedFragment): string {
+    exploded;
+    throw new Error('Not implemented');
+  }
+
   static getGitSSHUrl(exploded: ExplodedFragment): string {
     exploded;
     throw new Error('Not implemented');
@@ -197,12 +202,13 @@ export default class HostedGitResolver extends ExoticResolver {
 
   async resolve(): Promise<Manifest> {
     const httpUrl = this.constructor.getGitHTTPUrl(this.exploded);
+    const httpBaseUrl = this.constructor.getGitHTTPBaseUrl(this.exploded);
     const sshUrl = this.constructor.getGitSSHUrl(this.exploded);
 
     // If we can access the files over HTTP then we should as it's MUCH faster than git
     // archive and tarball unarchiving. The HTTP API is only available for public repos
     // though.
-    if (await this.hasHTTPCapability(httpUrl)) {
+    if (await this.hasHTTPCapability(httpBaseUrl)) {
       return await this.resolveOverHTTP(httpUrl);
     }
 
