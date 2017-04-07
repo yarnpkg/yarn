@@ -55,7 +55,7 @@ export default class NpmResolver extends RegistryResolver {
       const response: {[key: string]: ?string} = await inquirer.prompt([{
         name: 'package',
         type: 'list',
-        message: config.reporter.lang('chooseVersionFromList'),
+        message: config.reporter.lang('chooseVersionFromList', body.name),
         choices: Object.keys(body.versions).reverse(),
         pageSize,
       }]);

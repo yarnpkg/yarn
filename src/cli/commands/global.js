@@ -165,7 +165,7 @@ function ls(manifest: Manifest, reporter: Reporter, saved: boolean) {
     }
     reporter.list(`bins-${manifest.name}`, bins);
   } else if (saved) {
-    reporter.warn(reporter.lang('packageHasNoBinaries'));
+    reporter.warn(reporter.lang('packageHasNoBinaries', human));
   }
 }
 
@@ -179,6 +179,9 @@ const {run, setFlags: _setFlags} = buildSubCommands('global', {
     await updateCwd(config);
 
     const updateBins = await initUpdateBins(config, reporter, flags);
+    if (args.includes('yarn')) {
+      reporter.warn(reporter.lang('packageContainsYarnAsGlobal'));
+    }
 
     // install module
     const lockfile = await Lockfile.fromDirectory(config.cwd);

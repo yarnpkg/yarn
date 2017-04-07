@@ -54,7 +54,7 @@ const messages = {
   couldntFindMatch: "Couldn't find match for $0 in $1 for $2.",
   couldntFindPackageInCache: "Couldn't find any versions for $0 that matches $1 in our cache. Possible versions: $2",
   couldntFindVersionThatMatchesRange: "Couldn't find any versions for $0 that matches $1",
-  chooseVersionFromList: 'Please choose a version from this list:',
+  chooseVersionFromList: 'Please choose a version of $0 from this list:',
   moduleNotInManifest: "This module isn't specified in a manifest.",
   unknownFolderOrTarball: "Passed folder/tarball doesn't exist,",
   unknownPackage: "Couldn't find package $0.",
@@ -141,10 +141,6 @@ const messages = {
   incompatibleCPU: 'The CPU architecture $0 is incompatible with this module.',
   incompatibleOS: 'The platform $0 is incompatible with this module.',
   invalidEngine: 'The engine $0 appears to be invalid.',
-
-  selfUpdateReleased: 'Replaced current release with $0.',
-  selfUpdateDownloading: 'Downloading yarn version $0.',
-  selfUpdateNoNewer: 'Yarn is already using the latest version.',
 
   optionalCompatibilityExcluded: '$0 is an optional dependency and failed compatibility check. Excluding it from installation.',
   optionalModuleFail: 'This module is OPTIONAL, you can safely ignore this error',
@@ -253,8 +249,13 @@ const messages = {
 
   couldBeDeduped: '$0 could be deduped from $1 to $2',
   lockfileNotContainPattern: 'Lockfile does not contain pattern: $0',
-  integrityHashesDontMatch: 'Integrity hashes don\'t match',
-  noIntegrityHashFile: 'Couldn\'t find an integrity hash file',
+  integrityCheckFailed: 'Integrity check failed',
+  noIntegrityFile: 'Couldn\'t find an integrity file',
+  integrityCheckLinkedModulesDontMatch: 'Integrity check: Linked modules don\'t match',
+  integrityPatternsDontMatch: 'Integrity check: Patterns don\'t match',
+  integrityFlagsDontMatch: 'Integrity check: Flags don\'t match',
+  integrityLockfilesDontMatch: 'Integrity check: Lock files don\'t match',
+  integrityFailedFilesMissing: 'Integrity check: Files are missing',
   packageNotInstalled: '$0 not installed',
   optionalDepNotInstalled: 'Optional dependency $0 not installed',
   packageWrongVersion: '$0 is wrong version: expected $1, got $2',
@@ -265,6 +266,7 @@ const messages = {
   importFailed: 'Import of $0 for $1 failed, resolving normally.',
   importResolveFailed: 'Import of $0 failed starting in $1',
   importResolvedRangeMatch: 'Using version $0 of $1 instead of $2 for $3',
+  packageContainsYarnAsGlobal: 'Installing Yarn via Yarn will result in you having two separate versions of Yarn installed at the same time, which is not recommended. To update Yarn please follow https://yarnpkg.com/en/docs/install .',
 };
 
 export type LanguageKeys = $Keys<typeof messages>;

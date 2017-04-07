@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "e2e-test-repo": "https://github.com/yarnpkg/e2e-test-repo#greenkeeper/cross-env-3.1.4"
+  },
+  "devDependencies": {
+    "yarn-test-git-repo": "https://github.com/yarnpkg/e2e-test-repo#master"
+  }
+}

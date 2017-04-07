@@ -8,6 +8,7 @@ import * as network from '../util/network.js';
 import {MessageError} from '../errors.js';
 import aliases from './aliases.js';
 import Config from '../config.js';
+import {getRcArgs} from '../rc.js';
 import {camelCase} from '../util/misc.js';
 
 const chalk = require('chalk');
@@ -58,6 +59,7 @@ commander.option('--ignore-engines', 'ignore engines check');
 commander.option('--ignore-optional', 'ignore optional dependencies');
 commander.option('--force', 'install and build packages even if they were built before, overwrite lockfile');
 commander.option('--skip-integrity-check', 'run install without checking if node_modules is installed');
+commander.option('--check-files', 'install will verify file tree of packages for consistency');
 commander.option('--no-bin-links', "don't generate bin links when setting up packages");
 commander.option('--flat', 'only allow one version of a package');
 commander.option('--prod, --production [prod]', '');
@@ -82,6 +84,10 @@ commander.option(
   '--no-emoji',
   'disable emoji in output',
 );
+commander.option(
+  '-s, --silent',
+  'skip Yarn console logs, other types of logs (script output) will be printed',
+);
 commander.option('--proxy <host>', '');
 commander.option('--https-proxy <host>', '');
 commander.option(
@@ -89,6 +95,7 @@ commander.option(
   'disable progress bar',
 );
 commander.option('--network-concurrency <number>', 'maximum number of concurrent network requests', parseInt);
+commander.option('--network-timeout <milliseconds>', 'TCP timeout for network requests', parseInt);
 commander.option('--non-interactive', 'do not show interactive prompts');
 
 // get command name
@@ -160,8 +167,7 @@ if (args.indexOf('--help') >= 0 || args.indexOf('-h') >= 0) {
   process.exit(1);
 }
 
-// parse flags
-args.unshift(commandName);
+args = [commandName].concat(getRcArgs(commandName), args);
 
 if (ARGS_THAT_SHARE_NAMES_WITH_OPTIONS.indexOf(commandName) >= 0 && args[0] === commandName) {
   args.shift();
@@ -186,10 +192,11 @@ const reporter = new Reporter({
   emoji: commander.emoji && process.stdout.isTTY && process.platform === 'darwin',
   verbose: commander.verbose,
   noProgress: !commander.progress,
+  isSilent: commander.silent,
 });
+
 reporter.initPeakMemoryCounter();
 
-//
 const config = new Config(reporter);
 
 // print header
@@ -362,7 +369,7 @@ config.init({
   binLinks: commander.binLinks,
   modulesFolder: commander.modulesFolder,
   globalFolder: commander.globalFolder,
-  cacheRootFolder: commander.cacheFolder,
+  cacheFolder: commander.cacheFolder,
   preferOffline: commander.preferOffline,
   captureHar: commander.har,
   ignorePlatform: commander.ignorePlatform,

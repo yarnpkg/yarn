@@ -56,7 +56,7 @@ const compilerLegacy = webpack({
       exclude: /node_modules/,
       loader: 'babel-loader',
       query: babelRc.env['pre-node5'],
-    }],
+    }]
   },
   plugins: [
     new webpack.BannerPlugin({

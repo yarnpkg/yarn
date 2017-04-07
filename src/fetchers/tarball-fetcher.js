@@ -9,66 +9,63 @@ import * as crypto from '../util/crypto.js';
 import BaseFetcher from './base-fetcher.js';
 import * as fsUtil from '../util/fs.js';
 
-const invariant = require('invariant');
 const path = require('path');
 const tarFs = require('tar-fs');
 const url = require('url');
 const fs = require('fs');
 
 export default class TarballFetcher extends BaseFetcher {
-  async getResolvedFromCached(hash: string): Promise<?string> {
-    const mirrorPath = this.getMirrorPath();
-    if (mirrorPath == null) {
-      // no mirror
-      return null;
+  async setupMirrorFromCache(): Promise<?string> {
+    const tarballMirrorPath = this.getTarballMirrorPath();
+    const tarballCachePath = this.getTarballCachePath();
+
+    if (tarballMirrorPath == null) {
+      return;
     }
 
-    const tarballLoc = path.join(this.dest, constants.TARBALL_FILENAME);
-    if (!(await fsUtil.exists(tarballLoc))) {
-      // no tarball located in the cache
-      return null;
+    if (!await fsUtil.exists(tarballMirrorPath) && await fsUtil.exists(tarballCachePath)) {
+      // The tarball doesn't exists in the offline cache but does in the cache; we import it to the mirror
+      await fsUtil.copy(tarballCachePath, tarballMirrorPath, this.reporter);
     }
-
-    // copy the file over
-    if (!await fsUtil.exists(mirrorPath)) {
-      await fsUtil.copy(tarballLoc, mirrorPath, this.reporter);
-    }
-
-    const relativeMirrorPath = this.getRelativeMirrorPath(mirrorPath);
-    invariant(relativeMirrorPath != null, 'Missing offline mirror path');
-
-    return `${relativeMirrorPath}#${hash}`;
   }
 
-  getMirrorPath(): ?string {
+  async getLocalAvailabilityStatus(): Promise<bool> {
+    const tarballMirrorPath = this.getTarballMirrorPath();
+    const tarballCachePath = this.getTarballCachePath();
+
+    if (tarballMirrorPath != null && await fsUtil.exists(tarballMirrorPath)) {
+      return true;
+    }
+
+    if (await fsUtil.exists(tarballCachePath)) {
+      return true;
+    }
+
+    return false;
+  }
+
+  getTarballCachePath(): string {
+    return path.join(this.dest, constants.TARBALL_FILENAME);
+  }
+
+  getTarballMirrorPath(): ?string {
     const {pathname} = url.parse(this.reference);
 
     if (pathname == null) {
-      return this.config.getOfflineMirrorPath();
+      return null;
     }
-
-    let packageFilename = path.basename(pathname);
 
     // handle scoped packages
-    const pathParts = pathname.slice(1).split('/');
-    if (pathParts[0][0] === '@') {
-      // scoped npm package
-      packageFilename = `${pathParts[0]}-${packageFilename}`;
-    }
+    const pathParts = pathname.replace(/^\//, '').split(/\//g);
+
+    const packageFilename = pathParts.length >= 2 && pathParts[0][0] === '@'
+      ? `${pathParts[0]}-${pathParts[pathParts.length - 1]}` // scopped
+      : `${pathParts[pathParts.length - 1]}`;
 
     return this.config.getOfflineMirrorPath(packageFilename);
   }
 
-  getRelativeMirrorPath(mirrorPath: string): ?string {
-    const offlineMirrorPath = this.config.getOfflineMirrorPath();
-    if (offlineMirrorPath == null) {
-      return null;
-    }
-    return path.relative(offlineMirrorPath, mirrorPath);
-  }
-
   createExtractor(
-    mirrorPath: ?string,
     resolve: (fetched: FetchedOverride) => void,
     reject: (error: Error) => void,
   ): {
@@ -93,7 +90,6 @@ export default class TarballFetcher extends BaseFetcher {
         if (!expectHash || expectHash === actualHash) {
           resolve({
             hash: actualHash,
-            resolved: mirrorPath ? `${mirrorPath}#${actualHash}` : null,
           });
         } else {
           reject(new SecurityError(
@@ -105,52 +101,33 @@ export default class TarballFetcher extends BaseFetcher {
     return {validateStream, extractorStream};
   }
 
-  async fetchFromLocal(pathname: ?string): Promise<FetchedOverride> {
-    const {reference: ref, config} = this;
-    const {reporter} = config;
+  async fetchFromLocal(override: ?string): Promise<FetchedOverride> {
+    const tarballMirrorPath = this.getTarballMirrorPath();
+    const tarballCachePath = this.getTarballCachePath();
 
-    // path to the local tarball
-    let localTarball;
-    let isOfflineTarball = false;
+    const tarballPath = override || tarballMirrorPath || tarballCachePath;
 
-    const relativeFileLoc = pathname ? path.join(config.cwd, pathname) : null;
-    if (relativeFileLoc && await fsUtil.exists(relativeFileLoc)) {
-      // this is a reference to a file relative to the cwd
-      localTarball = relativeFileLoc;
-    } else {
-      // generate a offline cache location
-      const offlineMirrorPath = config.getOfflineMirrorPath() || '';
-      localTarball = path.resolve(offlineMirrorPath, ref);
-      isOfflineTarball = true;
-    }
-
-    if (!(await fsUtil.exists(localTarball))) {
-      throw new MessageError(reporter.lang('tarballNotInNetworkOrCache', ref, localTarball));
+    if (!tarballPath || !await fsUtil.exists(tarballPath)) {
+      throw new MessageError(this.config.reporter.lang('tarballNotInNetworkOrCache', this.reference, tarballPath));
     }
 
     return new Promise((resolve, reject) => {
-      const {validateStream, extractorStream} = this.createExtractor(null, resolve, reject);
-
-      const cachedStream = fs.createReadStream(localTarball);
+      const {validateStream, extractorStream} = this.createExtractor(resolve, reject);
+      const cachedStream = fs.createReadStream(tarballPath);
 
       cachedStream
         .pipe(validateStream)
         .pipe(extractorStream)
         .on('error', function(err) {
-          let msg = 'errorDecompressingTarball';
-          if (isOfflineTarball) {
-            msg = 'fetchErrorCorrupt';
-          }
-          reject(new MessageError(reporter.lang(msg, err.message, localTarball)));
+          reject(new MessageError(this.config.reporter.lang('fetchErrorCorrupt', err.message, tarballPath)));
         });
     });
   }
 
   fetchFromExternal(): Promise<FetchedOverride> {
-    const {reference: ref} = this;
     const registry = this.config.registries[this.registry];
 
-    return registry.request(ref, {
+    return registry.request(this.reference, {
       headers: {
         'Accept-Encoding': 'gzip',
         'Accept': 'application/octet-stream',
@@ -159,17 +136,13 @@ export default class TarballFetcher extends BaseFetcher {
       process: (req, resolve, reject) => {
         const {reporter} = this.config;
         // should we save this to the offline cache?
-        const mirrorPath = this.getMirrorPath();
-        const tarballStorePath = path.join(this.dest, constants.TARBALL_FILENAME);
-        const overwriteResolved = mirrorPath
-          ? this.getRelativeMirrorPath(mirrorPath)
-          : null;
+        const tarballMirrorPath = this.getTarballMirrorPath();
+        const tarballCachePath = this.getTarballCachePath();
 
-        //
         const {
           validateStream,
           extractorStream,
-        } = this.createExtractor(overwriteResolved, resolve, reject);
+        } = this.createExtractor(resolve, reject);
 
         const handleRequestError = (res) => {
           if (res.statusCode >= 400) {
@@ -184,28 +157,30 @@ export default class TarballFetcher extends BaseFetcher {
         req.on('response', handleRequestError);
         req.pipe(validateStream);
 
-        validateStream
-          .pipe(fs.createWriteStream(tarballStorePath))
-          .on('error', reject);
+        if (tarballMirrorPath) {
+          validateStream
+            .pipe(fs.createWriteStream(tarballMirrorPath))
+            .on('error', reject);
+        }
+
+        if (tarballCachePath) {
+          validateStream
+            .pipe(fs.createWriteStream(tarballCachePath))
+            .on('error', reject);
+        }
 
         validateStream
           .pipe(extractorStream)
           .on('error', reject);
-        if (mirrorPath) {
-          validateStream
-            .pipe(fs.createWriteStream(mirrorPath))
-            .on('error', reject);
-        }
       },
     });
   }
 
-  _fetch(): Promise<FetchedOverride> {
-    const {protocol, pathname} = url.parse(this.reference);
-    if (protocol === null && typeof pathname === 'string') {
-      return this.fetchFromLocal(pathname);
+  async _fetch(): Promise<FetchedOverride> {
+    if (await this.getLocalAvailabilityStatus()) {
+      return await this.fetchFromLocal();
     } else {
-      return this.fetchFromExternal();
+      return await this.fetchFromExternal();
     }
   }
 }

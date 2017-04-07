@@ -7,7 +7,7 @@ node_js:
   - "6"
   - "4"
 
-sudo: false
+sudo: required # Until Yarn repo is added to apt-source-whitelist
 
 addons:
   apt:
@@ -20,11 +20,8 @@ branches:
   - /^.*-stable$/
 
 cache:
-  yarn: true
-  directories:
-  - node_modules
-  - lib
-  - lib-legacy
+  # Yarn installed with Travis breaks in Node 4, see https://travis-ci.org/yarnpkg/yarn/jobs/215947941
+  yarn: false
 
 env:
   matrix:
@@ -47,6 +44,9 @@ matrix:
       env: TEST_TYPE="test-ci -- -- --maxWorkers 1"
 
 before_install:
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then ./scripts/bootstrap-env-ubuntu.sh; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install yarn; fi
   - node --version
 
 os:

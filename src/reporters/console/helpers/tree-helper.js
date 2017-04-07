@@ -4,8 +4,7 @@
 import type {Trees} from '../../types.js';
 
 export type FormattedOutput = {
-  end: boolean,
-  level: number,
+  prefix: string,
   hint: any,
   color: string,
   name: string,
@@ -19,30 +18,27 @@ export function sortTrees(trees: Trees): Trees {
   });
 }
 
-export function recurseTree(tree: Trees, level: number, recurseFunc: Function) {
+export function recurseTree(tree: Trees, prefix: string, recurseFunc: Function) {
   const treeLen = tree.length;
   const treeEnd = treeLen - 1;
   for (let i = 0; i < treeLen; i++) {
-    recurseFunc(tree[i], level + 1, i === treeEnd);
+    const atEnd = i === treeEnd;
+    recurseFunc(tree[i], prefix + getLastIndentChar(atEnd), prefix + getNextIndentChar(atEnd));
   }
 }
 
 export function getFormattedOutput(fmt: FormattedOutput): string {
   const item = formatColor(fmt.color, fmt.name, fmt.formatter);
-  const indent = getIndent(fmt.end, fmt.level);
   const suffix = getSuffix(fmt.hint, fmt.formatter);
-  return `${indent}─ ${item}${suffix}\n`;
+  return `${fmt.prefix}─ ${item}${suffix}\n`;
 }
 
-function getIndentChar(end: boolean) : string {
+function getNextIndentChar(end: boolean) : string {
+  return end ? '   ' :  '│  ';
+}
+
+function getLastIndentChar(end: boolean) : string {
   return end ? '└' : '├';
-}
-
-function getIndent(end: boolean, level: number) : string {
-  const base = '│  '.repeat(level);
-  const indentChar = getIndentChar(end);
-  const hasLevel =  base + indentChar;
-  return level ? hasLevel : indentChar;
 }
 
 function getSuffix(hint: any, formatter: any) : string {

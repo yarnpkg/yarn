@@ -72,6 +72,41 @@ test('ConsoleReporter.warn', async () => {
   })).toMatchSnapshot();
 });
 
+test('ConsoleReporter.tree', async () => {
+  const trees = [
+    {name: 'dep1'},
+    {
+      name: 'dep2',
+      children: [
+        {
+          name: 'dep2.1',
+          children: [
+            {name: 'dep2.1.1'},
+            {name: 'dep2.1.2'},
+          ],
+        },
+        {
+          name: 'dep2.2',
+          children: [
+            {name: 'dep2.2.1'},
+            {name: 'dep2.2.2'},
+          ],
+        },
+      ],
+    },
+    {
+      name: 'dep3',
+      children: [
+        {name: 'dep3.1'},
+        {name: 'dep3.2'},
+      ],
+    },
+  ];
+  expect(await getConsoleBuff((r) => {
+    r.tree('', trees);
+  })).toMatchSnapshot();
+});
+
 test('ConsoleReporter.activity', async () => {
   expect(await getConsoleBuff(function(r) {
     const activity = r.activity();
@@ -94,7 +129,7 @@ test('ConsoleReporter.select', async () => {
       name: 'bar',
       value: 'bar',
     }]);
-    expect(res, 'foo');
+    expect(res).toBe('foo');
   })).toMatchSnapshot();
 });
 

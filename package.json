@@ -1,7 +1,7 @@
 {
   "name": "yarn",
   "installationMethod": "unknown",
-  "version": "0.23.0-0",
+  "version": "0.24.0-0",
   "license": "BSD-2-Clause",
   "preferGlobal": true,
   "description": "📦🐈 Fast, reliable, and secure dependency management.",
@@ -29,15 +29,15 @@
     "object-path": "^0.11.2",
     "proper-lockfile": "^2.0.0",
     "read": "^1.0.7",
-    "request": "^2.75.0",
-    "request-capture-har": "^1.1.4",
+    "request": "^2.81.0",
+    "request-capture-har": "^1.2.2",
     "rimraf": "^2.5.0",
     "roadrunner": "^1.1.0",
     "semver": "^5.1.0",
     "strip-bom": "^3.0.0",
     "tar-fs": "^1.15.1",
     "tar-stream": "^1.5.2",
-    "v8-compile-cache": "^1.0.0",
+    "v8-compile-cache": "^1.1.0",
     "validate-npm-package-license": "^3.0.1"
   },
   "devDependencies": {
@@ -60,7 +60,7 @@
     "eslint-plugin-no-async-without-await": "^1.0.0",
     "eslint-plugin-react": "5.2.2",
     "eslint-plugin-yarn-internal": "file:scripts/eslint-rules",
-    "flow-bin": "^0.41.0",
+    "flow-bin": "^0.43.0",
     "gulp": "^3.9.0",
     "gulp-babel": "^6.0.0",
     "gulp-if": "^2.0.1",
@@ -97,7 +97,9 @@
     "build-win-installer": "scripts\\build-windows-installer.bat"
   },
   "jest": {
-    "collectCoverageFrom": ["src/**/*.js"],
+    "collectCoverageFrom": [
+      "src/**/*.js"
+    ],
     "timers": "fake",
     "testEnvironment": "node",
     "modulePathIgnorePatterns": [

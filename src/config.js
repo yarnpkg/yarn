@@ -38,6 +38,8 @@ export type ConfigOptions = {
   production?: boolean,
   binLinks?: boolean,
   networkConcurrency?: number,
+  childConcurrency?: number,
+  networkTimeout?: number,
   nonInteractive?: boolean,
 
   // Loosely compare semver for invalid cases like "0.01.0"
@@ -106,6 +108,11 @@ export default class Config {
   constraintResolver: ConstraintResolver;
 
   networkConcurrency: number;
+
+  childConcurrency: number;
+
+  //
+  networkTimeout: number;
 
   //
   requestManager: RequestManager;
@@ -226,6 +233,19 @@ export default class Config {
       constants.NETWORK_CONCURRENCY
     );
 
+    this.childConcurrency = (
+      opts.childConcurrency ||
+      Number(this.getOption('child-concurrency')) ||
+      Number(process.env.CHILD_CONCURRENCY) ||
+      constants.CHILD_CONCURRENCY
+    );
+
+    this.networkTimeout = (
+      opts.networkTimeout ||
+      Number(this.getOption('network-timeout')) ||
+      constants.NETWORK_TIMEOUT
+    );
+
     this.requestManager.setOptions({
       userAgent: String(this.getOption('user-agent')),
       httpProxy: String(opts.httpProxy || this.getOption('proxy') || ''),
@@ -236,6 +256,7 @@ export default class Config {
       cert: String(opts.cert || this.getOption('cert') || ''),
       key: String(opts.key || this.getOption('key') || ''),
       networkConcurrency: this.networkConcurrency,
+      networkTimeout: this.networkTimeout,
     });
     this._cacheRootFolder = String(
       opts.cacheFolder ||
@@ -367,6 +388,10 @@ export default class Config {
       }
 
       const registryMirrorPath = registry.config['yarn-offline-mirror'];
+
+      if (registryMirrorPath === false) {
+        return null;
+      }
 
       if (registryMirrorPath == null) {
         continue;

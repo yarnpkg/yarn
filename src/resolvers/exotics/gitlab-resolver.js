@@ -11,8 +11,12 @@ export default class GitLabResolver extends HostedGitResolver {
     return `https://${this.hostname}/${parts.user}/${parts.repo}/repository/archive.tar.gz?ref=${hash}`;
   }
 
+  static getGitHTTPBaseUrl(parts: ExplodedFragment): string {
+    return `https://${this.hostname}/${parts.user}/${parts.repo}`;
+  }
+
   static getGitHTTPUrl(parts: ExplodedFragment): string {
-    return `https://${this.hostname}/${parts.user}/${parts.repo}.git`;
+    return `${GitLabResolver.getGitHTTPBaseUrl(parts)}.git`;
   }
 
   static getGitSSHUrl(parts: ExplodedFragment): string {
