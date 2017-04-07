@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "left-pad": "^1.1.3"
+  },
+  "devDependencies": {
+    "is-array": "^1.0.1"
+  }
+}
