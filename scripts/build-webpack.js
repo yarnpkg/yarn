@@ -19,9 +19,6 @@ const compiler = webpack({
   entry: [path.join(basedir, 'src/cli/index.js')],
   module: {
     loaders: [{
-      test: /\/node_modules\/rc\/index\.js$/,
-      loader: 'shebang-loader'
-     }, {
       test: /\.js$/,
       exclude: /node_modules/,
       loader: 'babel-loader',
@@ -59,9 +56,6 @@ const compilerLegacy = webpack({
       exclude: /node_modules/,
       loader: 'babel-loader',
       query: babelRc.env['pre-node5'],
-    }, {
-      include: [`${basedir}/node_modules/rc/index.js`],
-      loader: 'shebang-loader'
     }]
   },
   plugins: [

@@ -4054,10 +4054,6 @@ sha.js@^2.3.6:
   dependencies:
     inherits "^2.0.1"
 
-shebang-loader@^0.0.1:
-  version "0.0.1"
-  resolved "https://registry.yarnpkg.com/shebang-loader/-/shebang-loader-0.0.1.tgz#a4000495d44cceefbec63435e7b1698569fa52ec"
-
 shelljs@^0.7.5:
   version "0.7.6"
   resolved "https://registry.yarnpkg.com/shelljs/-/shelljs-0.7.6.tgz#379cccfb56b91c8601e4793356eb5382924de9ad"
