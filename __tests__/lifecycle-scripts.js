@@ -51,7 +51,7 @@ test('should allow overriding the yarnrc values from the command line', async ()
 });
 
 // Test disabled for now, cf rc.js
-test.skip('should resolve the yarnrc values relative to where the file lives', async () => {
+test('should resolve the yarnrc values relative to where the file lives', async () => {
   const stdout = await execCommand('cache dir', 'yarnrc-cli-relative');
   expect(stdout.replace(/\\/g, '/')).toMatch(/^(\/[^\/]+)+\/foobar\/hello\/world\/v[0-9]+\n$/);
 });

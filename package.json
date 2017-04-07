@@ -28,7 +28,6 @@
     "node-gyp": "^3.2.1",
     "object-path": "^0.11.2",
     "proper-lockfile": "^2.0.0",
-    "rc": "^1.2.1",
     "read": "^1.0.7",
     "request": "^2.81.0",
     "request-capture-har": "^1.2.2",
@@ -72,6 +71,7 @@
     "gulp-watch": "^4.3.5",
     "jest": "^19.0.2",
     "mock-stdin": "^0.3.0",
+    "shebang-loader": "^0.0.1",
     "temp": "^0.8.3",
     "webpack": "^2.1.0-beta.25",
     "yargs": "^6.3.0"
