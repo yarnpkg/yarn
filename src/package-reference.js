@@ -33,6 +33,7 @@ export default class PackageReference {
     this.optional = null;
     this.root = false;
     this.ignore = false;
+    this.incompatible = false;
     this.fresh = false;
     this.location = null;
     this.addRequest(request);
@@ -48,6 +49,7 @@ export default class PackageReference {
   uid: string;
   optional: ?boolean;
   ignore: boolean;
+  incompatible: boolean;
   fresh: boolean;
   dependencies: Array<string>;
   patterns: Array<string>;

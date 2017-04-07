@@ -158,6 +158,25 @@ test.concurrent("production mode with deduped dev dep shouldn't be removed", asy
   });
 });
 
+test.concurrent("production mode dep on package in dev deps shouldn't be removed", async () => {
+  await runInstall({production: true}, 'install-prod-deduped-direct-dev-dep', async (config) => {
+    assert.equal(
+      (await fs.readJson(path.join(config.cwd, 'node_modules', 'a', 'package.json'))).version,
+      '1.0.0',
+    );
+
+    assert.equal(
+      (await fs.readJson(path.join(config.cwd, 'node_modules', 'b', 'package.json'))).version,
+      '1.0.0',
+    );
+
+    assert.equal(
+      (await fs.readJson(path.join(config.cwd, 'node_modules', 'c', 'package.json'))).version,
+      '1.0.0',
+    );
+  });
+});
+
 test.concurrent('hoisting should factor ignored dependencies', async () => {
   // you should only modify this test if you know what you're doing
   // when we calculate hoisting we need to factor in ignored dependencies in it
