@@ -383,7 +383,6 @@ export class Install {
       requests: depRequests,
       patterns: rawPatterns,
       ignorePatterns,
-      usedPatterns,
     } = await this.fetchRequestFromCwd();
     let topLevelPatterns: Array<string> = [];
 
@@ -392,7 +391,7 @@ export class Install {
       await this.resolver.init(this.prepareRequests(depRequests), this.flags.flat);
       topLevelPatterns = this.preparePatterns(rawPatterns);
       flattenedTopLevelPatterns = await this.flatten(topLevelPatterns);
-      return {bailout: await this.bailout(usedPatterns)};
+      return {bailout: await this.bailout(topLevelPatterns)};
     });
 
     steps.push(async (curr: number, total: number) => {

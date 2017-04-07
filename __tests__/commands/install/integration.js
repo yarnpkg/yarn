@@ -853,3 +853,15 @@ test.concurrent('prunes the offline mirror after pruning is enabled', (): Promis
     expect(await fs.exists(path.join(config.cwd, `${mirrorPath}/dep-b-1.0.0.tgz`))).toEqual(false);
   });
 });
+
+test.concurrent('bailout should work with --production flag too', (): Promise<void> => {
+  return runInstall({production: true}, 'bailout-prod', async (config, reporter): Promise<void> => {
+    // remove file
+    await fs.unlink(path.join(config.cwd, 'node_modules', 'left-pad', 'index.js'));
+    // run install again
+    const reinstall = new Install({production: true}, config, reporter, await Lockfile.fromDirectory(config.cwd));
+    await reinstall.init();
+    // don't expect file being recreated because install should have bailed out
+    expect(await fs.exists(path.join(config.cwd, 'node_modules', 'left-pad', 'index.js'))).toBe(false);
+  });
+});
