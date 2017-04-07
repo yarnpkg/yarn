@@ -161,15 +161,15 @@ test.concurrent("production mode with deduped dev dep shouldn't be removed", asy
 test.concurrent("production mode dep on package in dev deps shouldn't be removed", async () => {
   await runInstall({production: true}, 'install-prod-deduped-direct-dev-dep', async (config) => {
     expect(
-      (await fs.readJson(path.join(config.cwd, 'node_modules', 'a', 'package.json'))).version
+      (await fs.readJson(path.join(config.cwd, 'node_modules', 'a', 'package.json'))).version,
     ).toEqual('1.0.0');
 
     expect(
-      (await fs.readJson(path.join(config.cwd, 'node_modules', 'b', 'package.json'))).version
+      (await fs.readJson(path.join(config.cwd, 'node_modules', 'b', 'package.json'))).version,
     ).toEqual('1.0.0');
 
     expect(
-      (await fs.readJson(path.join(config.cwd, 'node_modules', 'c', 'package.json'))).version
+      (await fs.readJson(path.join(config.cwd, 'node_modules', 'c', 'package.json'))).version,
     ).toEqual('1.0.0');
   });
 });
