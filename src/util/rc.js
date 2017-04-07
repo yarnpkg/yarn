@@ -54,8 +54,10 @@ export function findRc(name: string, parser: Function): Object {
 
   addRecursiveConfigPath(process.cwd(), `.${name}rc`);
 
-  if (process.env[`${name}_config`.toUpperCase()]) {
-    addConfigPath(process.env[`${name}_config`]);
+  const envVariable = `${name}_config`.toUpperCase();
+
+  if (process.env[envVariable]) {
+    addConfigPath(process.env[envVariable]);
   }
 
   return fetchConfigs();
