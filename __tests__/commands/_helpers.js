@@ -64,7 +64,7 @@ export async function run<T, R>(
   ) => Promise<T> | T,
   args: Array<string>,
   flags: Object,
-  name: string,
+  name: string | { source: string, cwd: string },
   checkInstalled: ?(config: Config, reporter: R, install: T) => ?Promise<void>,
   beforeInstall: ?(cwd: string) => ?Promise<void>,
 ): Promise<void> {
@@ -81,9 +81,14 @@ export async function run<T, R>(
 
   let cwd;
   if (fixturesLoc) {
-    const dir = path.join(fixturesLoc, name);
+    const source = typeof name === 'string' ? name : name.source;
+
+    const dir = path.join(fixturesLoc, source);
     cwd = await fs.makeTempDir(path.basename(dir));
     await fs.copy(dir, cwd, reporter);
+    if (typeof name !== 'string') {
+      cwd = path.join(cwd, name.cwd);
+    }
   } else {
     // if fixture loc is not set then CWD is some empty temp dir
     cwd = await fs.makeTempDir();
