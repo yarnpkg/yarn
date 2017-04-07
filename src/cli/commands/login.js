@@ -20,7 +20,7 @@ async function getCredentials(config: Config, reporter: Reporter): Promise<?{
   }
 
   if (email) {
-    reporter.info(`${reporter.lang('npmUsername')}: ${email}`);
+    reporter.info(`${reporter.lang('npmEmail')}: ${email}`);
   } else {
     email = await reporter.question(reporter.lang('npmEmail'));
     if (!email) {
