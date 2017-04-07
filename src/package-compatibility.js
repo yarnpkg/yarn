@@ -126,6 +126,7 @@ export default class PackageCompatibility {
 
       if (ref.optional) {
         ref.ignore = true;
+        ref.incompatible = true;
 
         reporter.warn(`${human}: ${msg}`);
         if (!didIgnore) {

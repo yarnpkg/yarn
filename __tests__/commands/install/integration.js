@@ -157,6 +157,22 @@ test.concurrent("production mode with deduped dev dep shouldn't be removed", asy
   });
 });
 
+test.concurrent("production mode dep on package in dev deps shouldn't be removed", async () => {
+  await runInstall({production: true}, 'install-prod-deduped-direct-dev-dep', async (config) => {
+    expect(
+      (await fs.readJson(path.join(config.cwd, 'node_modules', 'a', 'package.json'))).version,
+    ).toEqual('1.0.0');
+
+    expect(
+      (await fs.readJson(path.join(config.cwd, 'node_modules', 'b', 'package.json'))).version,
+    ).toEqual('1.0.0');
+
+    expect(
+      (await fs.readJson(path.join(config.cwd, 'node_modules', 'c', 'package.json'))).version,
+    ).toEqual('1.0.0');
+  });
+});
+
 test.concurrent('hoisting should factor ignored dependencies', async () => {
   // you should only modify this test if you know what you're doing
   // when we calculate hoisting we need to factor in ignored dependencies in it
@@ -798,5 +814,17 @@ test.concurrent('prunes the offline mirror after pruning is enabled', (): Promis
     // so the next install should remove dep-a-1.0.0.tgz and dep-b-1.0.0.tgz.
     expect(await fs.exists(path.join(config.cwd, `${mirrorPath}/dep-a-1.0.0.tgz`))).toEqual(false);
     expect(await fs.exists(path.join(config.cwd, `${mirrorPath}/dep-b-1.0.0.tgz`))).toEqual(false);
+  });
+});
+
+test.concurrent('bailout should work with --production flag too', (): Promise<void> => {
+  return runInstall({production: true}, 'bailout-prod', async (config, reporter): Promise<void> => {
+    // remove file
+    await fs.unlink(path.join(config.cwd, 'node_modules', 'left-pad', 'index.js'));
+    // run install again
+    const reinstall = new Install({production: true}, config, reporter, await Lockfile.fromDirectory(config.cwd));
+    await reinstall.init();
+    // don't expect file being recreated because install should have bailed out
+    expect(await fs.exists(path.join(config.cwd, 'node_modules', 'left-pad', 'index.js'))).toBe(false);
   });
 });

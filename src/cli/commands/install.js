@@ -252,6 +252,7 @@ export class Install {
             pattern += '@' + depMap[name];
           }
 
+          // normalization made sure packages are mentioned only once
           if (isUsed) {
             usedPatterns.push(pattern);
           } else {
@@ -357,12 +358,9 @@ export class Install {
       const ref = manifest._reference;
       invariant(ref, 'expected package reference');
 
-      if (ref.requests.length === 1) {
-        // this module was only depended on once by the root so we can safely ignore it
-        // if it was requested more than once then ignoring it would break a transitive
-        // dep that resolved to it
-        ref.ignore = true;
-      }
+      // just mark the package as ignored. if the package is used by a required package, the hoister
+      // will take care of that.
+      ref.ignore = true;
     }
   }
 
@@ -385,7 +383,6 @@ export class Install {
       requests: depRequests,
       patterns: rawPatterns,
       ignorePatterns,
-      usedPatterns,
     } = await this.fetchRequestFromCwd();
     let topLevelPatterns: Array<string> = [];
 
@@ -394,7 +391,7 @@ export class Install {
       await this.resolver.init(this.prepareRequests(depRequests), this.flags.flat);
       topLevelPatterns = this.preparePatterns(rawPatterns);
       flattenedTopLevelPatterns = await this.flatten(topLevelPatterns);
-      return {bailout: await this.bailout(usedPatterns)};
+      return {bailout: await this.bailout(topLevelPatterns)};
     });
 
     steps.push(async (curr: number, total: number) => {

@@ -1,8 +1,8 @@
 /* @flow */
 
+import {dirname, resolve} from 'path';
 import parse from './lockfile/parse.js';
-
-const rc = require('rc');
+import * as rcUtil from './util/rc.js';
 
 // Keys that will get resolved relative to the path of the rc file they belong to
 const PATH_KEYS = [
@@ -14,20 +14,14 @@ const PATH_KEYS = [
 let rcConfCache;
 let rcArgsCache;
 
-const buildRcConf = () => rc('yarn', {}, [], (fileText) => {
+const buildRcConf = () => rcUtil.findRc('yarn', (fileText, filePath) => {
   const values = parse(fileText, 'yarnrc');
   const keys = Object.keys(values);
 
-  // Unfortunately, the "rc" module we use doesn't tell us the file path :(
-  // cf https://github.com/dominictarr/rc/issues/61
-
   for (const key of keys) {
     for (const pathKey of PATH_KEYS) {
-      if (key.replace(/^(--)?([^.]+\.)+/, '') === pathKey) {
-        // values[key] = resolve(dirname(filePath), values[key]);
-        if (!values[key].startsWith('/')) {
-          delete values[keys];
-        }
+      if (key.replace(/^(--)?([^.]+\.)*/, '') === pathKey) {
+        values[key] = resolve(dirname(filePath), values[key]);
       }
     }
   }
