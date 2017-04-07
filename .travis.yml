@@ -28,7 +28,7 @@ env:
     - TEST_TYPE="build-dist"
     - TEST_TYPE="check-lockfile"
     - TEST_TYPE="lint"
-    - TEST_TYPE="test-ci -- -- --maxWorkers 3"
+    - TEST_TYPE="test-ci -- -- --maxWorkers 1"
 
 matrix:
   exclude:
