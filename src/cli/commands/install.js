@@ -266,9 +266,7 @@ export class Install {
       };
 
       pushDeps('dependencies', {hint: null, optional: false}, true);
-      if (!this.config.production) {
-        pushDeps('devDependencies', {hint: 'dev', optional: false}, !this.config.production);
-      }
+      pushDeps('devDependencies', {hint: 'dev', optional: false}, !this.config.production);
       pushDeps('optionalDependencies', {hint: 'optional', optional: true}, !this.flags.ignoreOptional);
 
       break;
