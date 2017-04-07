@@ -231,17 +231,17 @@ test.concurrent('hoisting should factor ignored dependencies', async () => {
 
 test.concurrent('--production flag ignores dev dependencies', () => {
   return runInstall({production: true}, 'install-production-without-dev', async (config) => {
-    assert.ok(
-      !await fs.exists(path.join(config.cwd, 'node_modules', 'stylelint')),
-    );
+    expect(
+      await fs.exists(path.join(config.cwd, 'node_modules', 'stylelint')),
+    ).toEqual(false);
 
-    assert.ok(
-      !await fs.exists(path.join(config.cwd, 'node_modules', 'stylelint-order')),
-    );
+    expect(
+      await fs.exists(path.join(config.cwd, 'node_modules', 'stylelint-order')),
+    ).toEqual(false);
 
-    assert.ok(
+    expect(
       await fs.exists(path.join(config.cwd, 'node_modules', 'trim-right')),
-    );
+    ).toEqual(true);
   });
 });
 
