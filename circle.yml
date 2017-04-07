@@ -33,6 +33,7 @@ test:
     - yarn check-lockfile
     - yarn build-dist
     - node ./scripts/build-webpack.js
+    - ls -t1 artifacts | head -n2 | while read entry; do node "./artifacts/$entry" --version; done
     - ./scripts/build-deb.sh
     # Test that installing as root works and that it also works
     # behind a user namespace which Circle CI tests are run under
