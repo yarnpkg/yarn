@@ -385,7 +385,6 @@ export class Install {
       requests: depRequests,
       patterns: rawPatterns,
       ignorePatterns,
-      usedPatterns,
     } = await this.fetchRequestFromCwd();
     let topLevelPatterns: Array<string> = [];
 
