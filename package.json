@@ -92,7 +92,9 @@
     "test-only": "jest --coverage --verbose",
     "lint": "eslint . && flow check",
     "release-branch": "./scripts/release-branch.sh",
-    "build-dist": "./scripts/build-dist.sh",
+    "build-bundle": "node ./scripts/build-webpack.js",
+    "build-deb": "./scripts/build-deb.sh",
+    "build-dist": "bash ./scripts/build-dist.sh",
     "build-chocolatey": "powershell ./scripts/build-chocolatey.ps1",
     "build-win-installer": "scripts\\build-windows-installer.bat"
   },

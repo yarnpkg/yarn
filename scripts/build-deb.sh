@@ -27,29 +27,17 @@ mkdir -p $OUTPUT_DIR
 # Remove old packages
 rm -f $OUTPUT_DIR/*.deb $OUTPUT_DIR/*.rpm
 
-# Extract to a temporary directory
+# Create temporary directory to start building up the package
 rm -rf $PACKAGE_TMPDIR
 mkdir -p $PACKAGE_TMPDIR/
 umask 0022 # Ensure permissions are correct (0755 for dirs, 0644 for files)
-tar zxf $TARBALL_NAME -C $PACKAGE_TMPDIR/
 PACKAGE_TMPDIR_ABSOLUTE=$(readlink -f $PACKAGE_TMPDIR)
 
 # Create Linux package structure
 mkdir -p $PACKAGE_TMPDIR/usr/share/yarn/
 mkdir -p $PACKAGE_TMPDIR/usr/share/doc/yarn/
-mv $PACKAGE_TMPDIR/dist/bin $PACKAGE_TMPDIR/usr/share/yarn/
-mv $PACKAGE_TMPDIR/dist/lib $PACKAGE_TMPDIR/usr/share/yarn/
-mv $PACKAGE_TMPDIR/dist/lib-legacy $PACKAGE_TMPDIR/usr/share/yarn/
-mv $PACKAGE_TMPDIR/dist/node_modules $PACKAGE_TMPDIR/usr/share/yarn/
-mv $PACKAGE_TMPDIR/dist/package.json $PACKAGE_TMPDIR/usr/share/yarn/
+tar zxf $TARBALL_NAME -C $PACKAGE_TMPDIR/usr/share/yarn/ --strip 1
 cp resources/debian/copyright $PACKAGE_TMPDIR/usr/share/doc/yarn/copyright
-
-# These are unneeded and throw lintian lint errors
-rm -f $PACKAGE_TMPDIR/usr/share/yarn/node_modules/node-uuid/benchmark/bench.gnu
-find $PACKAGE_TMPDIR/usr/share/yarn \( -name '*.md' -o  -name '*.md~' -o -name '*.gitmodules' \) -delete
-
-# Assume everything else is junk we don't need
-rm -rf $PACKAGE_TMPDIR/dist
 
 # The Yarn executable expects to be in the same directory as the libraries, so
 # we can't just copy it directly to /usr/bin. Symlink them instead.

@@ -31,10 +31,12 @@ test:
     - yarn lint
     - yarn test-ci -- -- --maxWorkers 3
     - yarn check-lockfile
-    - yarn build-dist
-    - node ./scripts/build-webpack.js
-    - ls -t1 artifacts | head -n2 | while read entry; do node "./artifacts/$entry" --version; done
-    - ./scripts/build-deb.sh
+    - yarn run build-dist
+    - yarn run build-deb
+    # Test that the standalone .js build works as expected
+    - ./artifacts/yarn-`./dist/bin/yarn --version`.js --version
+    - ./artifacts/yarn-legacy-`./dist/bin/yarn --version`.js --version
+
     # Test that installing as root works and that it also works
     # behind a user namespace which Circle CI tests are run under
     - sudo env "PATH=$PATH" bin/yarn install --force

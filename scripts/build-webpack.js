@@ -38,7 +38,7 @@ const compiler = webpack({
 });
 
 compiler.run((err, stats) => {
-  const {fileDependencies} = stats.compilation;
+  const fileDependencies = stats.compilation.fileDependencies;
   const filenames = fileDependencies.map(x => x.replace(basedir, ''));
   console.log(util.inspect(filenames, {maxArrayLength: null}));
 });
