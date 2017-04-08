@@ -24,6 +24,7 @@ mkdir dist{,/bin,/lib}
 # Workaround for https://github.com/yarnpkg/yarn/issues/2591
 eval $system_yarn run build
 eval $system_yarn run build-bundle
+chmod +x artifacts/*.js
 
 cp package.json dist/
 cp LICENSE dist/

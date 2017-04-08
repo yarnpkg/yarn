@@ -34,10 +34,8 @@ test:
     - yarn run build-dist
     - yarn run build-deb
     # Test that the standalone .js build works as expected
-    - >
-      version=`./dist/bin/yarn --version`
-      ./artifacts/yarn-$version.js --version
-      ./artifacts/yarn-legacy-$version.js --version
+    - ./artifacts/yarn-`./dist/bin/yarn --version`.js --version
+    - ./artifacts/yarn-legacy-`./dist/bin/yarn --version`.js --version
 
     # Test that installing as root works and that it also works
     # behind a user namespace which Circle CI tests are run under
