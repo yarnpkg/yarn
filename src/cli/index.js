@@ -1,5 +1,6 @@
 /* @flow */
 
+import BaseCommand from './commands/_base.js';
 import {ConsoleReporter, JSONReporter} from '../reporters/index.js';
 import {registries, registryNames} from '../registries/index.js';
 import * as commands from './commands/index.js';
@@ -24,19 +25,12 @@ const pkg = require('../../package.json');
 
 loudRejection();
 
-//
 const startArgs = process.argv.slice(0, 2);
-let args = process.argv.slice(2);
 
 // ignore all arguments after a --
-let endArgs = [];
-for (let i = 0; i < args.length; i++) {
-  const arg = args[i];
-  if (arg === '--') {
-    endArgs = args.slice(i + 1);
-    args = args.slice(0, i);
-  }
-}
+const doubleDashIndex = process.argv.findIndex((element) => element === '--');
+const args = process.argv.slice(2, doubleDashIndex === -1 ? process.argv.length : doubleDashIndex);
+const endArgs = doubleDashIndex === -1 ? [] : process.argv.slice(doubleDashIndex + 1, process.argv.length);
 
 // NOTE: Pending resolution of https://github.com/tj/commander.js/issues/346
 // Remove this (and subsequent use in the logic below) after bug is resolved and issue is closed
@@ -141,6 +135,9 @@ if (!command) {
   const camelised = camelCase(commandName);
   if (camelised) {
     command = commands[camelised];
+    if (command && command.prototype instanceof BaseCommand) {
+      command = new command();
+    }
   }
 }
 
@@ -181,6 +178,7 @@ if (command) {
 } else {
   command = commands.run;
 }
+
 invariant(command, 'missing command');
 
 //
@@ -207,7 +205,7 @@ if (typeof command.hasWrapper === 'function') {
 if (commander.json) {
   outputWrapper = false;
 }
-if (outputWrapper && commandName !== 'help') {
+if (outputWrapper) {
   reporter.header(commandName, pkg);
 }
 

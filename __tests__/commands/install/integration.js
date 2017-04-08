@@ -2,7 +2,7 @@
 
 import type Config from '../../../src/config';
 import PackageResolver from '../../../src/package-resolver.js';
-import {run as cache} from '../../../src/cli/commands/cache.js';
+import CacheCommand from '../../../src/cli/commands/cache.js';
 import {run as check} from '../../../src/cli/commands/check.js';
 import * as constants from '../../../src/constants.js';
 import * as reporters from '../../../src/reporters/index.js';
@@ -18,6 +18,10 @@ let request = require('request');
 const semver = require('semver');
 const path = require('path');
 const stream = require('stream');
+
+function cache(config: Config, reporter: reporters.Reporter, flags: Object, args: Array<string>): Promise<void> {
+  return new CacheCommand().run(config, reporter, flags, args);
+}
 
 async function mockConstants(base: Config, mocks: Object, cb: (config: Config) => Promise<void>): Promise<void> {
   // We cannot put this function inside _helpers, because we need to change the "request" variable

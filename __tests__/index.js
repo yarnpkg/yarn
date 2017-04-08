@@ -76,13 +76,13 @@ function expectHelpOutputAsSubcommand(stdout) {
 }
 
 function expectAnErrorMessage(command: Promise<Array<?string>>, error: string) : Promise<void> {
-  return command.catch((reason) =>
+  return command
+  .then(function() {
+    throw new Error('the command did not fail');
+  })
+  .catch((reason) =>
     expect(reason.message).toContain(error),
   );
-}
-
-function expectInstallOutput(stdout) {
-  expect(stdout[0]).toEqual(`yarn install v${pkg.version}`);
 }
 
 test.concurrent('should add package', async () => {
@@ -182,12 +182,12 @@ test.concurrent('should run --version command', async () => {
 
 test.concurrent('should install if no args', async () => {
   const stdout = await execCommand('', [], 'run-add', true);
-  expectInstallOutput(stdout);
+  expect(stdout[0]).toEqual(`yarn install v${pkg.version}`);
 });
 
 test.concurrent('should install if first arg looks like a flag', async () => {
-  const stdout = await execCommand('--offline', [], 'run-add', true);
-  expectInstallOutput(stdout);
+  const stdout = await execCommand('--json', [], 'run-add', true);
+  expect(stdout[stdout.length - 1]).toEqual('{"type":"success","data":"Saved lockfile."}');
 });
 
 test.concurrent('should interpolate aliases', async () => {
