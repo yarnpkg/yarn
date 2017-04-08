@@ -26,7 +26,6 @@
 /dist
 /dist-debug
 /__tests__
-/.roadrunner.json
 .vs
 *.msi
 *.nupkg

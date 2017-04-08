@@ -63,7 +63,6 @@ export const MODULE_CACHE_DIRECTORY = getCacheDirectory();
 export const CONFIG_DIRECTORY = getDirectory('config');
 export const LINK_REGISTRY_DIRECTORY = path.join(CONFIG_DIRECTORY, 'link');
 export const GLOBAL_MODULE_DIRECTORY = path.join(CONFIG_DIRECTORY, 'global');
-export const CACHE_FILENAME = path.join(MODULE_CACHE_DIRECTORY, '.roadrunner.json');
 
 export const INTEGRITY_FILENAME = '.yarn-integrity';
 export const LOCKFILE_FILENAME = 'yarn.lock';
