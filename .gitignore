@@ -5,6 +5,7 @@
 /.nyc_output
 /coverage
 /dist
+/dist-debug
 /artifacts
 /updates
 /.roadrunner.json

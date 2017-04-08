@@ -1,6 +1,6 @@
 #!/bin/bash
-
 set -ex
+# Builds the release tarball for Yarn.
 
 umask 0022 # Ensure permissions are correct (0755 for dirs, 0644 for files)
 
