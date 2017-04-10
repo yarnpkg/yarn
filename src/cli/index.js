@@ -142,6 +142,8 @@ commander.parse([
 commander.args = commander.args.concat(endArgs);
 
 // we strip cmd
+console.assert(commander.args.length >= 1);
+console.assert(commander.args[0] === 'this-arg-will-get-stripped-later');
 commander.args.shift();
 
 //
