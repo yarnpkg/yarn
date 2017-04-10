@@ -117,7 +117,7 @@ if (commandName[0] === '-') {
 
 let command;
 const camelised = camelCase(commandName);
-if (camelised) {
+if (camelised && Object.prototype.hasOwnProperty.call(commands, camelised)) {
   command = commands[camelised];
 }
 

@@ -268,3 +268,10 @@ test.concurrent('should display documentation link for known command', async () 
     'Visit https://yarnpkg.com/en/docs/cli/add for documentation about this command.',
   );
 });
+
+test.concurrent('should throws missing command for constructor command', async () => {
+  await expectAnErrorMessage(
+    execCommand('constructor', [], 'run-add', true),
+    'Command \"constructor\" not found',
+  );
+});
