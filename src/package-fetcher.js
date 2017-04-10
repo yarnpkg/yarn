@@ -76,7 +76,19 @@ export default class PackageFetcher {
   }
 
   async init(): Promise<void> {
-    const pkgs = this.resolver.getPackageReferences();
+    let pkgs = this.resolver.getPackageReferences();
+    const pkgsPerDest: Map<string, PackageReference> = new Map();
+    pkgs = pkgs.filter((ref) => {
+      const dest = this.config.generateHardModulePath(ref);
+      const otherPkg = pkgsPerDest.get(dest);
+      if (otherPkg) {
+        this.reporter.warn(this.reporter.lang('multiplePackagesCantUnpackInSameDestination',
+          ref.patterns, dest, otherPkg.patterns));
+        return false;
+      }
+      pkgsPerDest.set(dest, ref);
+      return true;
+    });
     const tick = this.reporter.progress(pkgs.length);
 
     await promise.queue(pkgs, async (ref) => {
