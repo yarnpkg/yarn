@@ -67,6 +67,9 @@ async () => {
   stdout = await execCommand('', 'npm_config_argv_env_vars', env);
   expect(stdout).toContain('##install##');
 
+  stdout = await execCommand('run test', 'npm_config_argv_env_vars', env);
+  expect(stdout).toContain('##test##');
+
   stdout = await execCommand('test', 'npm_config_argv_env_vars', env);
   expect(stdout).toContain('##test##');
 });

@@ -2,7 +2,7 @@
 
 import {ConsoleReporter, JSONReporter} from '../reporters/index.js';
 import {registries, registryNames} from '../registries/index.js';
-import * as commands from './commands/index.js';
+import * as _commands from './commands/index.js';
 import * as constants from '../constants.js';
 import * as network from '../util/network.js';
 import {MessageError} from '../errors.js';
@@ -24,25 +24,21 @@ const pkg = require('../../package.json');
 
 loudRejection();
 
-//
-const startArgs = process.argv.slice(0, 2);
-let args = process.argv.slice(2);
-
-// ignore all arguments after a --
-let endArgs = [];
-for (let i = 0; i < args.length; i++) {
-  const arg = args[i];
-  if (arg === '--') {
-    endArgs = args.slice(i + 1);
-    args = args.slice(0, i);
-  }
+const commands = {..._commands};
+for (const key in aliases) {
+  commands[key] = {
+    run(config: Config, reporter: ConsoleReporter | JSONReporter): Promise<void> {
+      throw new MessageError(`Did you mean \`yarn ${aliases[key]}\`?`);
+    },
+  };
 }
 
-// NOTE: Pending resolution of https://github.com/tj/commander.js/issues/346
-// Remove this (and subsequent use in the logic below) after bug is resolved and issue is closed
-const ARGS_THAT_SHARE_NAMES_WITH_OPTIONS = [
-  'version',
-];
+const startArgs = process.argv.slice(0, 2);
+
+// ignore all arguments after a --
+const doubleDashIndex = process.argv.findIndex((element) => element === '--');
+const args = process.argv.slice(2, doubleDashIndex === -1 ? process.argv.length : doubleDashIndex);
+const endArgs = doubleDashIndex === -1 ? [] : process.argv.slice(doubleDashIndex + 1, process.argv.length);
 
 // set global options
 commander.version(pkg.version);
@@ -98,90 +94,57 @@ commander.option('--network-concurrency <number>', 'maximum number of concurrent
 commander.option('--network-timeout <milliseconds>', 'TCP timeout for network requests', parseInt);
 commander.option('--non-interactive', 'do not show interactive prompts');
 
-// get command name
-let commandName: ?string = args.shift() || '';
-let command;
-
-//
 const getDocsLink = (name) => `${constants.YARN_DOCS}${name || ''}`;
 const getDocsInfo = (name) => 'Visit ' + chalk.bold(getDocsLink(name)) + ' for documentation about this command.';
 
-//
+// get command name
+let commandName: string = args.shift() || 'install';
+
 if (commandName === '--help' || commandName === '-h') {
   commandName = 'help';
 }
 
-// if no args or command name looks like a flag then default to `install`
-if (!commandName || commandName[0] === '-') {
-  if (commandName) {
-    args.unshift(commandName);
-  }
+if (args.indexOf('--help') >= 0 || args.indexOf('-h') >= 0) {
+  args.unshift(commandName);
+  commandName = 'help';
+}
+
+// if no args or command name looks like a flag then set default to `install`
+if (commandName[0] === '-') {
+  args.unshift(commandName);
   commandName = 'install';
 }
 
-// aliases: i -> install
-if (commandName && typeof aliases[commandName] === 'string') {
-  const alias = aliases[commandName];
-  command = {
-    run(config: Config, reporter: ConsoleReporter | JSONReporter): Promise<void> {
-      throw new MessageError(`Did you mean \`yarn ${alias}\`?`);
-    },
-  };
+let command;
+const camelised = camelCase(commandName);
+if (camelised && Object.prototype.hasOwnProperty.call(commands, camelised)) {
+  command = commands[camelised];
 }
 
-//
-if (commandName === 'help' && args.length) {
-  commandName = camelCase(args.shift());
-  args.push('--help');
-}
-
-//
-invariant(commandName, 'Missing command name');
+// if command is not recognized, then set default to `run`
 if (!command) {
-  const camelised = camelCase(commandName);
-  if (camelised) {
-    command = commands[camelised];
-  }
+  args.unshift(commandName);
+  command = commands.run;
 }
 
-//
 if (command && typeof command.setFlags === 'function') {
   command.setFlags(commander);
 }
 
-if (args.indexOf('--help') >= 0 || args.indexOf('-h') >= 0) {
-  const examples: Array<string> = (command && command.examples) || [];
-  if (examples.length) {
-    commander.on('--help', () => {
-      console.log('  Examples:\n');
-      for (const example of examples) {
-        console.log(`    $ yarn ${example}`);
-      }
-      console.log();
-    });
-  }
-  commander.on('--help', () => console.log('  ' + getDocsInfo(commandName) + '\n'));
-
-  commander.parse(startArgs.concat(args));
-  commander.help();
-  process.exit(1);
-}
-
-args = [commandName].concat(getRcArgs(commandName), args);
-
-if (ARGS_THAT_SHARE_NAMES_WITH_OPTIONS.indexOf(commandName) >= 0 && args[0] === commandName) {
-  args.shift();
-}
-
-commander.parse(startArgs.concat(args));
+commander.parse([
+  ...startArgs,
+  // we use this for https://github.com/tj/commander.js/issues/346, otherwise
+  // it will strip some args that match with any options
+  'this-arg-will-get-stripped-later',
+  ...getRcArgs(commandName),
+  ...args,
+]);
 commander.args = commander.args.concat(endArgs);
 
-if (command) {
-  commander.args.shift();
-} else {
-  command = commands.run;
-}
-invariant(command, 'missing command');
+// we strip cmd
+console.assert(commander.args.length >= 1);
+console.assert(commander.args[0] === 'this-arg-will-get-stripped-later');
+commander.args.shift();
 
 //
 let Reporter = ConsoleReporter;
@@ -207,7 +170,7 @@ if (typeof command.hasWrapper === 'function') {
 if (commander.json) {
   outputWrapper = false;
 }
-if (outputWrapper && commandName !== 'help') {
+if (outputWrapper) {
   reporter.header(commandName, pkg);
 }
 
@@ -382,7 +345,7 @@ config.init({
   httpsProxy: commander.httpsProxy,
   networkConcurrency: commander.networkConcurrency,
   nonInteractive: commander.nonInteractive,
-  commandName,
+  commandName: commandName === 'run' ? commander.args[0] : commandName,
 }).then(() => {
 
   // option "no-progress" stored in yarn config
@@ -423,11 +386,10 @@ config.init({
     onUnexpectedError(err);
   }
 
-  if (commandName) {
-    const actualCommandForHelp = commands[commandName] ? commandName : aliases[commandName];
-    if (command && actualCommandForHelp) {
-      reporter.info(getDocsInfo(actualCommandForHelp));
-    }
+  if (aliases[commandName]) {
+    reporter.info(getDocsInfo(aliases[commandName]));
+  } else if (commands[commandName]) {
+    reporter.info(getDocsInfo(commandName));
   }
 
   process.exit(1);
