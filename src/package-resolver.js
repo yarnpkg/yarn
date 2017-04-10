@@ -434,8 +434,20 @@ export default class PackageResolver {
       this.activity.tick(req.pattern);
     }
 
-    if (!this.lockfile.getLocked(req.pattern, true)) {
+    const lockfileEntry = this.lockfile.getLocked(req.pattern);
+    if (!lockfileEntry) {
       this.newPatterns.push(req.pattern);
+    } else {
+      const {range} = PackageRequest.normalizePattern(req.pattern);
+      // TODO anything about exotic?
+      // lockfileEntry is incorrect, remove it from lockfile cache and consider the pattern as new
+      if (!PackageRequest.getExoticResolver(range) && !semver.satisfies(lockfileEntry.version, range)) {
+        // TODO print warning about incorrect lockfile entry for pattern
+        this.removePattern(req.pattern);
+        this.newPatterns.push(req.pattern);
+        // TODO encapsulate in lockfile
+        delete this.lockfile.cache[req.pattern];
+      }
     }
 
     const request = new PackageRequest(req, this);
