@@ -8,8 +8,8 @@ import * as child from '../../util/child.js';
 import * as fs from '../../util/fs.js';
 import * as validate from '../../util/normalize-manifest/validate.js';
 
-const objectPath = require('object-path');
-const path = require('path');
+import objectPath from 'object-path';
+import path from 'path';
 
 export function setFlags(commander: Object) {
   commander.option('-y, --yes', 'use default options');

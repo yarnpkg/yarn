@@ -10,10 +10,10 @@ import map from '../../util/map.js';
 import * as fs from '../../util/fs.js';
 import {YARN_REGISTRY} from '../../constants.js';
 
-const inquirer = require('inquirer');
-const tty = require('tty');
-const invariant = require('invariant');
-const path = require('path');
+import inquirer from 'inquirer';
+import tty from 'tty';
+import invariant from 'invariant';
+import path from 'path';
 
 const NPM_REGISTRY = /http[s]:\/\/registry.npmjs.org/g;
 

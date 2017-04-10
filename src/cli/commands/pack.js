@@ -7,10 +7,10 @@ import * as fs from '../../util/fs.js';
 import {sortFilter, ignoreLinesToRegex} from '../../util/filter.js';
 import {MessageError} from '../../errors.js';
 
-const zlib = require('zlib');
-const path = require('path');
-const tar = require('tar-stream');
-const fs2 = require('fs');
+import zlib from 'zlib';
+import path from 'path';
+import tar from 'tar-stream';
+import fs2 from 'fs';
 
 const IGNORE_FILENAMES = [
   '.yarnignore',

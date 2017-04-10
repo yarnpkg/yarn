@@ -7,9 +7,9 @@ import {hostedGitFragmentToGitUrl} from '../../resolvers/index.js';
 import inferLicense from './infer-license.js';
 import * as fs from '../fs.js';
 
-const semver = require('semver');
-const path = require('path');
-const url = require('url');
+import semver from 'semver';
+import path from 'path';
+import url from 'url';
 
 const LICENSE_RENAMES: { [key: string]: ?string } = {
   'MIT/X11': 'MIT',

@@ -12,10 +12,10 @@ import {MessageError} from '../../errors.js';
 
 export const requireLockfile = true;
 
-const invariant = require('invariant');
-const bytes = require('bytes');
-const emoji = require('node-emoji');
-const path = require('path');
+import invariant from 'invariant';
+import bytes from 'bytes';
+import emoji from 'node-emoji';
+import path from 'path';
 
 async function cleanQuery(config: Config, query: string): Promise<string> {
   // if a location was passed then turn it into a hash query

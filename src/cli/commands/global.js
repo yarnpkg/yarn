@@ -30,7 +30,7 @@ class GlobalAdd extends Add {
   }
 }
 
-const path = require('path');
+import path from 'path';
 
 export function hasWrapper(flags: Object, args: Array<string>): boolean {
   return args[0] !== 'bin';

@@ -8,7 +8,7 @@ import * as child from './child.js';
 import {registries} from '../resolvers/index.js';
 import {fixCmdWinSlashes} from './fix-cmd-win-slashes.js';
 
-const path = require('path');
+import path from 'path';
 
 export type LifecycleReturn = Promise<{
   cwd: string,

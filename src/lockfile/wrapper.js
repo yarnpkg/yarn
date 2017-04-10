@@ -9,8 +9,8 @@ import parse from './parse.js';
 import * as constants from '../constants.js';
 import * as fs from '../util/fs.js';
 
-const invariant = require('invariant');
-const path = require('path');
+import invariant from 'invariant';
+import path from 'path';
 
 export {default as parse} from './parse';
 export {default as stringify} from './stringify';

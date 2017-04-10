@@ -6,8 +6,8 @@ import {MessageError} from '../../errors.js';
 import * as fs from '../../util/fs.js';
 import {getBinFolder as getGlobalBinFolder} from './global';
 
-const invariant = require('invariant');
-const path = require('path');
+import invariant from 'invariant';
+import path from 'path';
 
 export async function getRegistryFolder(config: Config, name: string): Promise<string> {
   if (config.modulesFolder) {

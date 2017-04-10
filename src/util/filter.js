@@ -3,8 +3,8 @@
 import type {WalkFiles} from './fs.js';
 import {removeSuffix} from './misc.js';
 
-const minimatch = require('minimatch');
-const path = require('path');
+import minimatch from 'minimatch';
+import path from 'path';
 
 const WHITESPACE_RE = /^\s+$/;
 

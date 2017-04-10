@@ -10,7 +10,7 @@ import {NoopReporter} from '../../reporters/index.js';
 import * as fs from '../../util/fs.js';
 import * as constants from '../../constants.js';
 
-const path = require('path');
+import path from 'path';
 
 export const requireLockfile = true;
 

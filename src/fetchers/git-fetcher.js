@@ -8,12 +8,12 @@ import * as fsUtil from '../util/fs.js';
 import * as constants from '../constants.js';
 import * as crypto from '../util/crypto.js';
 
-const tarFs = require('tar-fs');
-const url = require('url');
-const path = require('path');
-const fs = require('fs');
+import tarFs from 'tar-fs';
+import url from 'url';
+import path from 'path';
+import fs from 'fs';
 
-const invariant = require('invariant');
+import invariant from 'invariant';
 
 export default class GitFetcher extends BaseFetcher {
   async getLocalAvailabilityStatus(): Promise<bool> {

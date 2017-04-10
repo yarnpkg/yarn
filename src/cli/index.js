@@ -11,16 +11,16 @@ import Config from '../config.js';
 import {getRcArgs} from '../rc.js';
 import {camelCase} from '../util/misc.js';
 
-const chalk = require('chalk');
-const commander = require('commander');
-const fs = require('fs');
-const invariant = require('invariant');
-const lockfile = require('proper-lockfile');
-const loudRejection = require('loud-rejection');
-const net = require('net');
-const onDeath = require('death');
-const path = require('path');
-const pkg = require('../../package.json');
+import chalk from 'chalk';
+import commander from 'commander';
+import fs from 'fs';
+import invariant from 'invariant';
+import lockfile from 'proper-lockfile';
+import loudRejection from 'loud-rejection';
+import net from 'net';
+import onDeath from 'death';
+import path from 'path';
+import pkg from '../../package.json';
 
 loudRejection();
 

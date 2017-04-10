@@ -5,8 +5,8 @@ import type Config from './config.js';
 import type {Manifest} from './types.js';
 import {sortAlpha} from './util/misc.js';
 
-const invariant = require('invariant');
-const path = require('path');
+import invariant from 'invariant';
+import path from 'path';
 
 type Parts = Array<string>;
 

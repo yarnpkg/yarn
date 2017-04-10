@@ -12,11 +12,12 @@ import * as promise from './util/promise.js';
 import {entries} from './util/misc.js';
 import * as fs from './util/fs.js';
 import lockMutex from './util/mutex.js';
+import originalCmdShim from 'cmd-shim';
 
-const invariant = require('invariant');
-const cmdShim = promise.promisify(require('cmd-shim'));
-const semver = require('semver');
-const path = require('path');
+import invariant from 'invariant';
+const cmdShim = promise.promisify(originalCmdShim);
+import semver from 'semver';
+import path from 'path';
 
 type DependencyPairs = Array<{
   dep: Manifest,

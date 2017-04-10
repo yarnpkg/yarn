@@ -5,8 +5,8 @@ import {LOCKFILE_VERSION} from '../constants.js';
 import {MessageError} from '../errors.js';
 import map from '../util/map.js';
 
-const invariant = require('invariant');
-const stripBOM = require('strip-bom');
+import invariant from 'invariant';
+import stripBOM from 'strip-bom';
 
 const VERSION_REGEX = /^yarn lockfile v(\d+)$/;
 

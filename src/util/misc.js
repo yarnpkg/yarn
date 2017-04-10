@@ -1,6 +1,6 @@
 /* @flow */
 
-const _camelCase = require('camelcase');
+import _camelCase from 'camelcase';
 
 export function sortAlpha(a: string, b: string): number {
   // sort alphabetically in a deterministic way

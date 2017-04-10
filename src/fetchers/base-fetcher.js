@@ -8,7 +8,7 @@ import type Config from '../config.js';
 import * as constants from '../constants.js';
 import * as fs from '../util/fs.js';
 
-const path = require('path');
+import path from 'path';
 
 export default class BaseFetcher {
   constructor(dest: string, remote: PackageRemote, config: Config) {

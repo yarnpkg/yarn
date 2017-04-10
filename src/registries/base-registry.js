@@ -5,8 +5,8 @@ import type Config from '../config.js';
 import type {ConfigRegistries} from './index.js';
 import {removePrefix} from '../util/misc.js';
 
-const objectPath = require('object-path');
-const path = require('path');
+import objectPath from 'object-path';
+import path from 'path';
 
 export type RegistryRequestOptions = {
   method?: RequestMethods,

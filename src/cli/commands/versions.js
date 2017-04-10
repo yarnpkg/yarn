@@ -3,7 +3,7 @@
 import type {Reporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
 
-const YARN_VERSION = require('../../../package.json').version;
+import {version as YARN_VERSION} from '../../../package.json';
 
 export async function run(
  config: Config,

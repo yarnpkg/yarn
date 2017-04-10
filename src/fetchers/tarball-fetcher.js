@@ -9,10 +9,10 @@ import * as crypto from '../util/crypto.js';
 import BaseFetcher from './base-fetcher.js';
 import * as fsUtil from '../util/fs.js';
 
-const path = require('path');
-const tarFs = require('tar-fs');
-const url = require('url');
-const fs = require('fs');
+import path from 'path';
+import tarFs from 'tar-fs';
+import url from 'url';
+import fs from 'fs';
 
 export default class TarballFetcher extends BaseFetcher {
   async setupMirrorFromCache(): Promise<?string> {

@@ -1,8 +1,8 @@
 /* @flow */
 
-const invariant = require('invariant');
-const stream = require('stream');
-const zlib = require('zlib');
+import invariant from 'invariant';
+import stream from 'stream';
+import zlib from 'zlib';
 
 function hasGzipHeader(chunk: Buffer): boolean {
   return chunk[0] === 0x1F && chunk[1] === 0x8B && chunk[2] === 0x08;

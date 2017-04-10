@@ -1,7 +1,7 @@
 /* @flow */
 
-const crypto = require('crypto');
-const stream = require('stream');
+import crypto from 'crypto';
+import stream from 'stream';
 
 export function hash(content: string, type: string = 'md5'): string {
   return crypto.createHash(type).update(content).digest('hex');

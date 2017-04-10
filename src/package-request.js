@@ -16,9 +16,9 @@ import * as versionUtil from './util/version.js';
 import * as resolvers from './resolvers/index.js';
 import * as fs from './util/fs.js';
 
-const path = require('path');
-const invariant = require('invariant');
-const semver = require('semver');
+import path from 'path';
+import invariant from 'invariant';
+import semver from 'semver';
 
 type ResolverRegistryNames = $Keys<typeof registryResolvers>;
 

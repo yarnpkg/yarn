@@ -5,7 +5,7 @@ import * as constants from '../../constants.js';
 import type {Reporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
 import {sortAlpha, hyphenate, camelCase} from '../../util/misc.js';
-const chalk = require('chalk');
+import chalk from 'chalk';
 
 export function hasWrapper(): boolean {
   return false;

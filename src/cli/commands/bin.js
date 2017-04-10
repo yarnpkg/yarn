@@ -4,7 +4,7 @@ import type {Reporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
 import RegistryYarn from '../../resolvers/registries/yarn-resolver.js';
 
-const path = require('path');
+import path from 'path';
 
 export function hasWrapper() {}
 

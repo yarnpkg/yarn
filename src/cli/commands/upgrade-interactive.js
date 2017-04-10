@@ -9,7 +9,7 @@ import {Add} from './add.js';
 import {Install} from './install.js';
 import Lockfile from '../../lockfile/wrapper.js';
 
-const tty = require('tty');
+import tty from 'tty';
 
 export const requireLockfile = true;
 

@@ -8,12 +8,13 @@ import * as network from './network.js';
 import map from '../util/map.js';
 
 import typeof * as RequestModuleT from 'request';
+import request from 'request';
 import type RequestT from 'request';
 
-const RequestCaptureHar = require('request-capture-har');
-const invariant = require('invariant');
-const url = require('url');
-const fs = require('fs');
+import RequestCaptureHar from 'request-capture-har';
+import invariant from 'invariant';
+import url from 'url';
+import fs from 'fs';
 
 const successHosts = map();
 const controlOffline = network.isOffline();
@@ -195,7 +196,6 @@ export default class RequestManager {
 
   _getRequestModule(): RequestModuleT {
     if (!this._requestModule) {
-      const request = require('request');
       if (this.captureHar) {
         this._requestCaptureHar = new RequestCaptureHar(request);
         this._requestModule = this._requestCaptureHar.request.bind(this._requestCaptureHar);

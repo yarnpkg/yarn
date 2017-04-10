@@ -8,8 +8,8 @@ import {registries} from '../../resolvers/index.js';
 import * as fs from '../../util/fs.js';
 import map from '../../util/map.js';
 
-const leven = require('leven');
-const path = require('path');
+import leven from 'leven';
+import path from 'path';
 
 function sanitizedArgs(args: Array<string>): Array<string> {
   const newArgs = [];

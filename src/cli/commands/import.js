@@ -23,8 +23,8 @@ import {YARN_REGISTRY, LOCKFILE_FILENAME} from '../../constants.js';
 
 const NPM_REGISTRY = /http[s]:\/\/registry.npmjs.org/g;
 
-const invariant = require('invariant');
-const path = require('path');
+import invariant from 'invariant';
+import path from 'path';
 
 export const noArguments = true;
 

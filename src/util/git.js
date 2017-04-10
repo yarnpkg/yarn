@@ -9,12 +9,12 @@ import * as child from './child.js';
 import * as fs from './fs.js';
 import map from './map.js';
 
-const invariant = require('invariant');
-const semver = require('semver');
-const StringDecoder = require('string_decoder').StringDecoder;
-const tarFs = require('tar-fs');
-const tarStream = require('tar-stream');
-const url = require('url');
+import invariant from 'invariant';
+import semver from 'semver';
+import {StringDecoder} from 'string_decoder';
+import tarFs from 'tar-fs';
+import tarStream from 'tar-stream';
+import url from 'url';
 import {createWriteStream} from 'fs';
 
 type GitRefs = {

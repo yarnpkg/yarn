@@ -8,11 +8,12 @@ import {MessageError} from './errors.js';
 import map from './util/map.js';
 import {entries} from './util/misc.js';
 
-const invariant = require('invariant');
-const semver = require('semver');
+import invariant from 'invariant';
+import semver from 'semver';
 
+import {version as yarnVersion} from '../package.json';
 const VERSIONS = Object.assign({}, process.versions, {
-  yarn: require('../package.json').version,
+  yarn: yarnVersion,
 });
 
 function isValid(items: Array<string>, actual: string): boolean {
