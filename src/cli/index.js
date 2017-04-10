@@ -2,16 +2,13 @@
 
 import {ConsoleReporter, JSONReporter} from '../reporters/index.js';
 import {registries, registryNames} from '../registries/index.js';
-import * as _commands from './commands/index.js';
+import commands from './commands/index.js';
 import * as constants from '../constants.js';
 import * as network from '../util/network.js';
 import {MessageError} from '../errors.js';
-import aliases from './aliases.js';
 import Config from '../config.js';
 import {getRcArgs} from '../rc.js';
-import {camelCase} from '../util/misc.js';
 
-const chalk = require('chalk');
 const commander = require('commander');
 const fs = require('fs');
 const invariant = require('invariant');
@@ -23,17 +20,6 @@ const path = require('path');
 const pkg = require('../../package.json');
 
 loudRejection();
-
-const commands = {..._commands};
-for (const key in aliases) {
-  commands[key] = {
-    run(config: Config, reporter: ConsoleReporter | JSONReporter): Promise<void> {
-      throw new MessageError(`Did you mean \`yarn ${aliases[key]}\`?`);
-    },
-    setFlags: () => {},
-    hasWrapper: () => true,
-  };
-}
 
 const startArgs = process.argv.slice(0, 2);
 
@@ -96,8 +82,6 @@ commander.option('--network-concurrency <number>', 'maximum number of concurrent
 commander.option('--network-timeout <milliseconds>', 'TCP timeout for network requests', parseInt);
 commander.option('--non-interactive', 'do not show interactive prompts');
 
-const getDocsLink = (name) => `${constants.YARN_DOCS}${name || ''}`;
-const getDocsInfo = (name) => 'Visit ' + chalk.bold(getDocsLink(name)) + ' for documentation about this command.';
 
 // get command name
 let commandName: string = args.shift() || 'install';
@@ -118,9 +102,8 @@ if (commandName[0] === '-') {
 }
 
 let command;
-const camelised = camelCase(commandName);
-if (camelised && Object.prototype.hasOwnProperty.call(commands, camelised)) {
-  command = commands[camelised];
+if (Object.prototype.hasOwnProperty.call(commands, commandName)) {
+  command = commands[commandName];
 }
 
 // if command is not recognized, then set default to `run`
@@ -165,7 +148,7 @@ if (outputWrapper) {
 
 if (command.noArguments && commander.args.length) {
   reporter.error(reporter.lang('noArguments'));
-  reporter.info(getDocsInfo(commandName));
+  reporter.info(command.getDocsInfo);
   process.exit(1);
 }
 
@@ -375,10 +358,8 @@ config.init({
     onUnexpectedError(err);
   }
 
-  if (aliases[commandName]) {
-    reporter.info(getDocsInfo(aliases[commandName]));
-  } else if (commands[commandName]) {
-    reporter.info(getDocsInfo(commandName));
+  if (commands[commandName]) {
+    reporter.info(commands[commandName].getDocsInfo);
   }
 
   process.exit(1);
