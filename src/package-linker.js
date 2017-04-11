@@ -267,7 +267,7 @@ export default class PackageLinker {
         const binLoc = path.join(dest, this.config.getFolder(pkg));
         await this.linkBinDependencies(pkg, binLoc);
         tickBin(dest);
-      }, 4);
+      }, 1);
     }
   }
 
