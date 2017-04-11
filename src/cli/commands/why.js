@@ -121,6 +121,8 @@ function getSharedDependencies(
   return sharedDependencies;
 }
 
+export function setFlags() {}
+
 export async function run(
   config: Config,
   reporter: Reporter,

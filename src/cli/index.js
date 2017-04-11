@@ -30,6 +30,7 @@ for (const key in aliases) {
     run(config: Config, reporter: ConsoleReporter | JSONReporter): Promise<void> {
       throw new MessageError(`Did you mean \`yarn ${aliases[key]}\`?`);
     },
+    setFlags: () => {},
   };
 }
 
@@ -127,10 +128,7 @@ if (!command) {
   command = commands.run;
 }
 
-if (command && typeof command.setFlags === 'function') {
-  command.setFlags(commander);
-}
-
+command.setFlags(commander);
 commander.parse([
   ...startArgs,
   // we use this for https://github.com/tj/commander.js/issues/346, otherwise

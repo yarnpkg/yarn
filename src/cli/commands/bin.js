@@ -8,6 +8,8 @@ const path = require('path');
 
 export function hasWrapper() {}
 
+export function setFlags() {}
+
 export function run(
  config: Config,
  reporter: Reporter,

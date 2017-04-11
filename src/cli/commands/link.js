@@ -22,6 +22,8 @@ export async function getRegistryFolder(config: Config, name: string): Promise<s
   return path.join(config.cwd, registryFolder);
 }
 
+export function setFlags() {}
+
 export async function run(
   config: Config,
   reporter: Reporter,

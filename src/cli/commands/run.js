@@ -22,6 +22,8 @@ function sanitizedArgs(args: Array<string>): Array<string> {
   return newArgs;
 }
 
+export function setFlags() {}
+
 export async function run(
   config: Config,
   reporter: Reporter,

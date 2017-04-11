@@ -3,6 +3,8 @@
 import type {Reporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
 
+export function setFlags() {}
+
 export async function run(
  config: Config,
  reporter: Reporter,

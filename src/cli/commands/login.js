@@ -102,6 +102,8 @@ export async function getToken(config: Config, reporter: Reporter, name: string 
   }
 }
 
+export function setFlags() {}
+
 export async function run(
  config: Config,
  reporter: Reporter,

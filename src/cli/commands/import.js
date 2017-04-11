@@ -291,6 +291,8 @@ export class Import extends Install {
   }
 }
 
+export function setFlags() {}
+
 export async function run(
   config: Config,
   reporter: Reporter,

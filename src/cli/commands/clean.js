@@ -127,3 +127,5 @@ export async function run(
   reporter.info(reporter.lang('cleanRemovedFiles', removedFiles));
   reporter.info(reporter.lang('cleanSavedSize', Number((removedSize / 1024 / 1024).toFixed(2))));
 }
+
+export function setFlags() {}
