@@ -13,6 +13,7 @@ export type RegistryRequestOptions = {
   auth?: Object,
   body?: mixed,
   buffer?: bool,
+  headers?: Object,
   process?: Function
 };
 

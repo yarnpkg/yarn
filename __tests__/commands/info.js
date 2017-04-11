@@ -7,6 +7,8 @@ import Config from '../../src/config.js';
 import path from 'path';
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 90000;
+// the mocked requests have stripped metadata, don't use it in the following tests
+jest.unmock('request');
 
 const fixturesLoc = path.join(__dirname, '..', 'fixtures', 'info');
 
