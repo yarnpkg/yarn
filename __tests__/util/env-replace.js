@@ -1,17 +1,16 @@
 /* @flow */
 import envReplace from '../../src/util/env-replace';
-import assert from 'assert';
 
 describe('environment variable replacement', () => {
   it('will replace a token that exists in the environment', () => {
     let result = envReplace('test ${a} replacement', {a: 'token'});
-    assert(result === 'test token replacement', `result: ${result}`);
+    expect(result).toEqual('test token replacement', `result: ${result}`);
 
     result = envReplace('${a} replacement', {a: 'token'});
-    assert(result === 'token replacement', `result: ${result}`);
+    expect(result).toEqual('token replacement', `result: ${result}`);
 
     result = envReplace('${a}', {a: 'token'});
-    assert(result === 'token', `result: ${result}`);
+    expect(result).toEqual('token', `result: ${result}`);
   });
 
   it('will not replace a token that does not exist in the environment', () => {
@@ -20,13 +19,13 @@ describe('environment variable replacement', () => {
       envReplace('${a} replacement', {b: 'token'});
     } catch (err) {
       thrown = true;
-      assert(err.message === 'Failed to replace env in config: ${a}', `error message: ${err.message}`);
+      expect(err.message).toEqual('Failed to replace env in config: ${a}', `error message: ${err.message}`);
     }
-    assert(thrown);
+    expect(thrown).toEqual(true);
   });
 
   it('will not replace a token when a the token-replacement mechanism is prefixed a backslash literal', () => {
     const result = envReplace('\\${a} replacement', {a: 'token'});
-    assert(result === '\\${a} replacement', `result: ${result}`);
+    expect(result).toEqual('\\${a} replacement', `result: ${result}`);
   });
 });

@@ -13,9 +13,9 @@ type Parts = Array<string>;
 let historyCounter = 0;
 
 export class HoistManifest {
-  constructor(key: string, parts: Parts, pkg: Manifest, loc: string, isIgnored: boolean, inheritIsIgnored: boolean) {
-    this.isIgnored = isIgnored;
-    this.inheritIsIgnored = inheritIsIgnored;
+  constructor(key: string, parts: Parts, pkg: Manifest, loc: string, isRequired: boolean, isIncompatible: boolean) {
+    this.isRequired = isRequired;
+    this.isIncompatible = isIncompatible;
     this.loc = loc;
     this.pkg = pkg;
 
@@ -28,8 +28,8 @@ export class HoistManifest {
     this.addHistory(`Start position = ${key}`);
   }
 
-  isIgnored: boolean;
-  inheritIsIgnored: boolean;
+  isRequired: boolean;
+  isIncompatible: boolean;
   pkg: Manifest;
   loc: string;
   parts: Parts;
@@ -96,7 +96,7 @@ export default class PackageHoister {
     while (true) {
       let queue = this.levelQueue;
       if (!queue.length) {
-        this._propagateNonIgnored();
+        this._propagateRequired();
         return;
       }
 
@@ -135,8 +135,8 @@ export default class PackageHoister {
 
     //
     let parentParts: Parts = [];
-    let isIgnored = ref.ignore;
-    let inheritIsIgnored = false;
+    const isIncompatible = ref.incompatible;
+    let isRequired = !parent && !ref.ignore && !isIncompatible;
 
     if (parent) {
       if (!this.tree.get(parent.key)) {
@@ -144,9 +144,8 @@ export default class PackageHoister {
       }
       // non ignored dependencies inherit parent's ignored status
       // parent may transition from ignored to non ignored when hoisted if it is used in another non ignored branch
-      if (!isIgnored && parent.isIgnored) {
-        isIgnored = parent.isIgnored;
-        inheritIsIgnored = true;
+      if (!isRequired && !isIncompatible && parent.isRequired) {
+        isRequired = true;
       }
       parentParts = parent.parts;
     }
@@ -155,7 +154,7 @@ export default class PackageHoister {
     const loc: string = this.config.generateHardModulePath(ref);
     const parts = parentParts.concat(pkg.name);
     const key: string = this.implodeKey(parts);
-    const info: HoistManifest = new HoistManifest(key, parts, pkg, loc, isIgnored, inheritIsIgnored);
+    const info: HoistManifest = new HoistManifest(key, parts, pkg, loc, isRequired, isIncompatible);
 
     //
     this.tree.set(key, info);
@@ -173,13 +172,13 @@ export default class PackageHoister {
    * Propagate inherited ignore statuses from non-ignored to ignored packages
   */
 
-  _propagateNonIgnored() {
+  _propagateRequired() {
     //
     const toVisit: Array<HoistManifest> = [];
 
     // enumerate all non-ignored packages
     for (const entry of this.tree.entries()) {
-      if (!entry[1].isIgnored) {
+      if (entry[1].isRequired) {
         toVisit.push(entry[1]);
       }
     }
@@ -192,9 +191,9 @@ export default class PackageHoister {
 
       for (const depPattern of ref.dependencies) {
         const depinfo = this._lookupDependency(info, depPattern);
-        if (depinfo && depinfo.isIgnored && depinfo.inheritIsIgnored) {
-          depinfo.isIgnored = false;
-          info.addHistory(`Mark as non-ignored because of usage by ${info.key}`);
+        if (depinfo && !depinfo.isRequired && !depinfo.isIncompatible) {
+          depinfo.isRequired = true;
+          depinfo.addHistory(`Mark as non-ignored because of usage by ${info.key}`);
           toVisit.push(depinfo);
         }
       }
@@ -247,12 +246,14 @@ export default class PackageHoister {
       const existing = this.tree.get(checkKey);
       if (existing) {
         if (existing.loc === info.loc) {
-          // switch to non ignored if earlier deduped version was ignored
-          if (existing.isIgnored && !info.isIgnored) {
-            existing.isIgnored = info.isIgnored;
+          // switch to non ignored if earlier deduped version was ignored (must be compatible)
+          if (!existing.isRequired && info.isRequired) {
+            existing.addHistory(`Deduped ${fullKey} to this item, marking as required`);
+            existing.isRequired = true;
+          } else {
+            existing.addHistory(`Deduped ${fullKey} to this item`);
           }
 
-          existing.addHistory(`Deduped ${fullKey} to this item`);
           return {parts: checkParts, duplicate: true};
         } else {
           // everything above will be shadowed and this is a conflict
@@ -543,7 +544,7 @@ export default class PackageHoister {
       const ref = info.pkg._reference;
       invariant(ref, 'expected reference');
 
-      if (info.isIgnored) {
+      if (!info.isRequired) {
         info.addHistory('Deleted as this module was ignored');
       } else {
         visibleFlatTree.push([loc, info]);

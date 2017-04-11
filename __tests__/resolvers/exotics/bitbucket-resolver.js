@@ -76,14 +76,25 @@ test('getTarballUrl should return the correct bitbucket tarball url', () => {
   expect(BitBucketResolver.getTarballUrl(fragment, hash)).toBe(expected);
 });
 
-test('getGitHTTPUrl should return the correct git bitbucket url', () => {
+test('getGitHTTPBaseUrl should return the correct git bitbucket base url', () => {
   const fragment: ExplodedFragment = {
     user: 'foo',
     repo: 'bar',
     hash: '',
   };
 
-  const expected =  _bitBucketBase + fragment.user + '/' + fragment.repo + '.git';
+  const expected =  _bitBucketBase + fragment.user + '/' + fragment.repo;
+  expect(BitBucketResolver.getGitHTTPBaseUrl(fragment)).toBe(expected);
+});
+
+test('getGitHTTPUrl should append ".git" to the HTTP base URL', () => {
+  const fragment: ExplodedFragment = {
+    user: 'foo',
+    repo: 'bar',
+    hash: '',
+  };
+
+  const expected =  BitBucketResolver.getGitHTTPBaseUrl(fragment) + '.git';
   expect(BitBucketResolver.getGitHTTPUrl(fragment)).toBe(expected);
 });
 
@@ -120,5 +131,5 @@ test('getGitSSHUrl should return URL containing protocol', () => {
   });
 
   expect(url.parse(gitSSHUrl).protocol).toEqual('git+ssh:');
-  expect(url.parse(Git.cleanUrl(gitSSHUrl)).protocol).toEqual('ssh:');
+  expect(Git.npmUrlToGitUrl(gitSSHUrl).protocol).toEqual('ssh:');
 });

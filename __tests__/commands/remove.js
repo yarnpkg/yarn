@@ -6,7 +6,6 @@ import {run as check} from '../../src/cli/commands/check.js';
 import {run as remove} from '../../src/cli/commands/remove.js';
 import * as fs from '../../src/util/fs.js';
 import * as reporters from '../../src/reporters/index.js';
-import assert from 'assert';
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 90000;
 
@@ -52,16 +51,17 @@ test.concurrent('throws error when package is not found', (): Promise<void> => {
 
 test.concurrent('removes package installed from npm registry', (): Promise<void> => {
   return runRemove(['dep-a'], {}, 'npm-registry', async (config): Promise<void> => {
-    assert(!await fs.exists(path.join(config.cwd, 'node_modules/dep-a')));
+    expect(await fs.exists(path.join(config.cwd, 'node_modules/dep-a'))).toEqual(false);
 
-    assert.deepEqual(
+    expect(
       JSON.parse(await fs.readFile(path.join(config.cwd, 'package.json'))).dependencies,
+    ).toEqual(
       {},
     );
 
     const lockFileContent = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
     const lockFileLines = explodeLockfile(lockFileContent);
-    assert.equal(lockFileLines.length, 0);
+    expect(lockFileLines).toHaveLength(0);
   });
 });
 
@@ -69,50 +69,50 @@ test.concurrent('removes multiple installed packages', (): Promise<void> => {
   const args: Array<string> = ['dep-a', 'max-safe-integer'];
 
   return runRemove(args, {}, 'multiple-packages', async (config): Promise<void> => {
-    assert(!await fs.exists(path.join(config.cwd, 'node_modules/dep-a')));
-    assert(!await fs.exists(path.join(config.cwd, 'node_modules/max-safe-integer')));
+    expect(await fs.exists(path.join(config.cwd, 'node_modules/dep-a'))).toEqual(false);
+    expect(await fs.exists(path.join(config.cwd, 'node_modules/max-safe-integer'))).toEqual(false);
 
-    assert.deepEqual(
+    expect(
       JSON.parse(await fs.readFile(path.join(config.cwd, 'package.json'))).dependencies,
+    ).toEqual(
       {},
     );
 
     const lockFileContent = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
     const lockFileLines = explodeLockfile(lockFileContent);
-    assert.equal(lockFileLines.length, 0);
+    expect(lockFileLines).toHaveLength(0);
   });
 });
 
-
 test.concurrent('removes the whole scope when all scoped packages are removed', (): Promise<void> => {
   return runRemove(['@dengorbachev/foo', '@dengorbachev/bar'], {}, 'scoped-package', async (config): Promise<void> => {
-    assert(!await fs.exists(path.join(config.cwd, 'node_modules/@dengorbachev')));
+    expect(await fs.exists(path.join(config.cwd, 'node_modules/@dengorbachev'))).toEqual(false);
 
-    assert.deepEqual(
+    expect(
       JSON.parse(await fs.readFile(path.join(config.cwd, 'package.json'))).dependencies,
+    ).toEqual(
       {},
     );
 
     const lockFileContent = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
     const lockFileLines = explodeLockfile(lockFileContent);
-    assert.equal(lockFileLines.length, 0);
+    expect(lockFileLines).toHaveLength(0);
   });
 });
 
 test.concurrent('removes a single scoped package', (): Promise<void> => {
   return runRemove(['@dengorbachev/foo'], {}, 'scoped-package', async (config): Promise<void> => {
-    assert(!await fs.exists(path.join(config.cwd, 'node_modules/@dengorbachev/foo')));
+    expect(await fs.exists(path.join(config.cwd, 'node_modules/@dengorbachev/foo'))).toEqual(false);
 
-    assert.deepEqual(
+    expect(
       JSON.parse(await fs.readFile(path.join(config.cwd, 'package.json'))).dependencies,
-      {
-        '@dengorbachev/bar': '^1.0.0',
-      },
-    );
+    ).toEqual({
+      '@dengorbachev/bar': '^1.0.0',
+    });
 
     const lockFileContent = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
     const lockFileLines = explodeLockfile(lockFileContent);
-    assert.equal(lockFileLines.length, 3);
+    expect(lockFileLines).toHaveLength(3);
   });
 });
 
@@ -126,28 +126,29 @@ test('removes subdependencies', (): Promise<void> => {
 
   return runRemove(['dep-a'], {}, 'subdependencies', async (config, reporter) => {
 
-    assert(!await fs.exists(path.join(config.cwd, 'node_modules/dep-a')));
-    assert(!await fs.exists(path.join(config.cwd, 'node_modules/dep-b')));
-    assert(await fs.exists(path.join(config.cwd, 'node_modules/dep-c')));
+    expect(await fs.exists(path.join(config.cwd, 'node_modules/dep-a'))).toEqual(false);
+    expect(await fs.exists(path.join(config.cwd, 'node_modules/dep-b'))).toEqual(false);
+    expect(await fs.exists(path.join(config.cwd, 'node_modules/dep-c'))).toEqual(true);
 
-    assert.deepEqual(
+    expect(
       JSON.parse(await fs.readFile(path.join(config.cwd, 'package.json'))).dependencies,
-      {'dep-c': '^1.0.0'},
-    );
+    ).toEqual({
+      'dep-c': '^1.0.0',
+    });
 
     const lockFileContent = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
     const lockFileLines = explodeLockfile(lockFileContent);
-    assert.equal(lockFileLines.length, 3);
-    assert.equal(lockFileLines[0], 'dep-c@^1.0.0:');
+    expect(lockFileLines).toHaveLength(3);
+    expect(lockFileLines[0]).toEqual('dep-c@^1.0.0:');
   });
 });
 
 test.concurrent('can prune the offline mirror', (): Promise<void> => {
   return runRemove(['dep-a'], {}, 'prune-offline-mirror', async (config, reporter) => {
     const mirrorPath = 'mirror-for-offline';
-    assert(!await fs.exists(path.join(config.cwd, `${mirrorPath}/dep-a-1.0.0.tgz`)));
+    expect(await fs.exists(path.join(config.cwd, `${mirrorPath}/dep-a-1.0.0.tgz`))).toEqual(false);
     // dep-a depends on dep-b, so dep-b should also be pruned
-    assert(!await fs.exists(path.join(config.cwd, `${mirrorPath}/dep-b-1.0.0.tgz`)));
-    assert(await fs.exists(path.join(config.cwd, `${mirrorPath}/dep-c-1.0.0.tgz`)));
+    expect(await fs.exists(path.join(config.cwd, `${mirrorPath}/dep-b-1.0.0.tgz`))).toEqual(false);
+    expect(await fs.exists(path.join(config.cwd, `${mirrorPath}/dep-c-1.0.0.tgz`))).toEqual(true);
   });
 });

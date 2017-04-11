@@ -10,6 +10,9 @@ const exec = require('child_process').exec;
 
 const fixturesLoc = path.join(__dirname, './fixtures/index');
 const yarnBin = path.join(__dirname, '../bin/yarn.js');
+const semver = require('semver');
+let ver = process.versions.node;
+ver = ver.split('-')[0];
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000;
 
@@ -23,9 +26,9 @@ Promise<Array<?string>> {
   }
 
   return new Promise((resolve, reject) => {
-    exec(`node "${yarnBin}" ${cmd} ${args.join(' ')}`, {cwd:workingDir, env:process.env}, (err, stdout) => {
-      if (err) {
-        reject(err);
+    exec(`node "${yarnBin}" ${cmd} ${args.join(' ')}`, {cwd:workingDir, env:process.env}, (error, stdout) => {
+      if (error) {
+        reject({error, stdout});
       } else {
         const stdoutLines = stdout.toString()
           .split('\n')
@@ -73,13 +76,23 @@ function expectHelpOutputAsSubcommand(stdout) {
 }
 
 function expectAnErrorMessage(command: Promise<Array<?string>>, error: string) : Promise<void> {
-  return command.catch((reason) =>
-    expect(reason.message).toContain(error),
+  return command
+  .then(function() {
+    throw new Error('the command did not fail');
+  })
+  .catch((reason) =>
+    expect(reason.error.message).toContain(error),
   );
 }
 
-function expectInstallOutput(stdout) {
-  expect(stdout[0]).toEqual(`yarn install v${pkg.version}`);
+function expectAnInfoMessageAfterError(command: Promise<Array<?string>>, info: string) : Promise<void> {
+  return command
+  .then(function() {
+    throw new Error('the command did not fail');
+  })
+  .catch((reason) =>
+    expect(reason.stdout).toContain(info),
+  );
 }
 
 test.concurrent('should add package', async () => {
@@ -102,15 +115,18 @@ test.concurrent('should add lockfile package', async () => {
   expectAddSuccessfullOutput(stdout, 'lockfile');
 });
 
-test.concurrent('should add progress package globally', async () => {
-  const stdout = await execCommand('global',
-    ['add', 'progress', '--global-folder', './global'],
-    'run-add-progress-globally',
-    true);
+// test is failing on Node 4, https://travis-ci.org/yarnpkg/yarn/jobs/216254539
+if (semver.satisfies(ver, '>=5.0.0')) {
+  test.concurrent('should add progress package globally', async () => {
+    const stdout = await execCommand('global',
+      ['add', 'progress', '--global-folder', './global'],
+      'run-add-progress-globally',
+      true);
 
-  const lastLine = stdout[stdout.length - 1];
-  expect(lastLine).toMatch(/^Done/);
-});
+    const lastLine = stdout[stdout.length - 1];
+    expect(lastLine).toMatch(/^Done/);
+  });
+}
 
 test.concurrent('should run custom script', async () => {
   const stdout = await execCommand('run', ['custom-script'], 'run-custom-script');
@@ -176,18 +192,25 @@ test.concurrent('should run --version command', async () => {
 
 test.concurrent('should install if no args', async () => {
   const stdout = await execCommand('', [], 'run-add', true);
-  expectInstallOutput(stdout);
+  expect(stdout[0]).toEqual(`yarn install v${pkg.version}`);
 });
 
 test.concurrent('should install if first arg looks like a flag', async () => {
-  const stdout = await execCommand('--offline', [], 'run-add', true);
-  expectInstallOutput(stdout);
+  const stdout = await execCommand('--json', [], 'run-add', true);
+  expect(stdout[stdout.length - 1]).toEqual('{"type":"success","data":"Saved lockfile."}');
 });
 
 test.concurrent('should interpolate aliases', async () => {
   await expectAnErrorMessage(
     execCommand('i', [], 'run-add', true),
     'Did you mean `yarn install`?',
+  );
+});
+
+test.concurrent('should display correct documentation link for aliases', async () => {
+  await expectAnInfoMessageAfterError(
+    execCommand('i', [], 'run-add', true),
+    'Visit https://yarnpkg.com/en/docs/cli/install for documentation about this command.',
   );
 });
 
@@ -209,4 +232,46 @@ test.concurrent('should run bin command', async () => {
   const stdout = await execCommand('bin', [], '', false);
   expect(stdout[0]).toEqual(path.join(fixturesLoc, 'node_modules', '.bin'));
   expect(stdout.length).toEqual(1);
+});
+
+test.concurrent('should throws missing command for not camelised command', async () => {
+  await expectAnErrorMessage(
+    execCommand('HelP', [], 'run-add', true),
+    'Command \"HelP\" not found',
+  );
+});
+
+test.concurrent('should throws missing command for not alphabetic command', async () => {
+  await expectAnErrorMessage(
+    execCommand('123', [], 'run-add', true),
+    'Command \"123\" not found',
+  );
+});
+
+test.concurrent('should throws missing command for unknown command', async () => {
+  await expectAnErrorMessage(
+    execCommand('unknown', [], 'run-add', true),
+    'Command \"unknown\" not found',
+  );
+});
+
+test.concurrent('should not display documentation link for unknown command', async () => {
+  await expectAnInfoMessageAfterError(
+    execCommand('unknown', [], 'run-add', true),
+    '',
+  );
+});
+
+test.concurrent('should display documentation link for known command', async () => {
+  await expectAnInfoMessageAfterError(
+    execCommand('add', [], 'run-add', true),
+    'Visit https://yarnpkg.com/en/docs/cli/add for documentation about this command.',
+  );
+});
+
+test.concurrent('should throws missing command for constructor command', async () => {
+  await expectAnErrorMessage(
+    execCommand('constructor', [], 'run-add', true),
+    'Command \"constructor\" not found',
+  );
 });

@@ -7,6 +7,8 @@ import Lockfile from '../../src/lockfile/wrapper.js';
 import * as fs from '../../src/util/fs.js';
 import {run as buildRun} from './_helpers.js';
 
+jasmine.DEFAULT_TIMEOUT_INTERVAL = 120000;
+
 const path = require('path');
 
 const fixturesLoc = path.join(__dirname, '..', 'fixtures', 'import');

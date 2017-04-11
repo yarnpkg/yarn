@@ -110,7 +110,7 @@ test('Produces valid destination paths for scoped modules', () => {
     _reference: (({}: any): PackageReference),
   }: any): Manifest);
 
-  const info = new HoistManifest(key, parts, pkg, '', false, false);
+  const info = new HoistManifest(key, parts, pkg, '', true, false);
 
   const tree = new Map([
     ['@scoped/dep', info],

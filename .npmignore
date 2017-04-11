@@ -24,8 +24,10 @@
 /scripts
 /coverage
 /dist
+/dist-debug
 /__tests__
-/.roadrunner.json
 .vs
 *.msi
 *.nupkg
+Dockerfile
+end_to_end_tests

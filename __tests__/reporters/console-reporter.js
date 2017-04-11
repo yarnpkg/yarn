@@ -129,7 +129,7 @@ test('ConsoleReporter.select', async () => {
       name: 'bar',
       value: 'bar',
     }]);
-    expect(res, 'foo');
+    expect(res).toBe('foo');
   })).toMatchSnapshot();
 });
 

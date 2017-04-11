@@ -11,8 +11,12 @@ export default class BitbucketResolver extends HostedGitResolver {
     return `https://${this.hostname}/${parts.user}/${parts.repo}/get/${hash}.tar.gz`;
   }
 
+  static getGitHTTPBaseUrl(parts: ExplodedFragment): string {
+    return `https://${this.hostname}/${parts.user}/${parts.repo}`;
+  }
+
   static getGitHTTPUrl(parts: ExplodedFragment): string {
-    return `https://${this.hostname}/${parts.user}/${parts.repo}.git`;
+    return `${BitbucketResolver.getGitHTTPBaseUrl(parts)}.git`;
   }
 
   static getGitSSHUrl(parts: ExplodedFragment): string {

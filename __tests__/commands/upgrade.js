@@ -5,7 +5,6 @@ import {explodeLockfile, run as buildRun} from './_helpers.js';
 import {run as upgrade} from '../../src/cli/commands/upgrade.js';
 import * as fs from '../../src/util/fs.js';
 import * as reporters from '../../src/reporters/index.js';
-import assert from 'assert';
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 90000;
 
@@ -35,10 +34,10 @@ test.concurrent('works with no arguments', (): Promise<void> => {
     const lockfile = explodeLockfile(await fs.readFile(path.join(config.cwd, 'yarn.lock')));
     const pkg = await fs.readJson(path.join(config.cwd, 'package.json'));
 
-    assert(lockfile.indexOf('left-pad@^1.0.0:') === 0);
+    expect(lockfile.indexOf('left-pad@^1.0.0:')).toEqual(0);
     // the below test passes when it should fail
     // manifest doesn't get updated when ran without args
-    assert.deepEqual(pkg.dependencies, {'left-pad': '^1.0.0'});
+    expect(pkg.dependencies).toEqual({'left-pad': '^1.0.0'});
   });
 });
 
@@ -47,10 +46,10 @@ test.concurrent('works with single argument', (): Promise<void> => {
     const lockfile = explodeLockfile(await fs.readFile(path.join(config.cwd, 'yarn.lock')));
     const pkg = await fs.readJson(path.join(config.cwd, 'package.json'));
 
-    assert(lockfile.indexOf('left-pad@^1.0.0:') >= 0);
-    assert(lockfile.indexOf('max-safe-integer@^1.0.1:') >= 0);
-    assert.equal(pkg.dependencies['left-pad'], '^1.0.0');
-    assert.notEqual(pkg.dependencies['max-safe-integer'], '^1.0.0');
+    expect(lockfile.indexOf('left-pad@^1.0.0:')).toBeGreaterThanOrEqual(0);
+    expect(lockfile.indexOf('max-safe-integer@^1.0.1:')).toBeGreaterThanOrEqual(0);
+    expect(pkg.dependencies['left-pad']).toEqual('^1.0.0');
+    expect(pkg.dependencies['max-safe-integer']).not.toEqual('^1.0.0');
   });
 });
 
@@ -60,12 +59,13 @@ test.concurrent('works with multiple arguments', (): Promise<void> => {
       const lockfile = explodeLockfile(await fs.readFile(path.join(config.cwd, 'yarn.lock')));
       const pkg = await fs.readJson(path.join(config.cwd, 'package.json'));
 
-      assert(lockfile.indexOf('left-pad@^1.1.3:') >= 0);
-      assert(lockfile.indexOf('max-safe-integer@^1.0.1:') >= 0);
-      assert(lockfile.indexOf('is-negative-zero@^1.0.0:') >= 0);
-      assert.notEqual(pkg.dependencies['left-pad'], '^1.0.0');
-      assert.notEqual(pkg.dependencies['max-safe-integer'], '^1.0.0');
-      assert.equal(pkg.dependencies['is-negative-zero'], '^1.0.0');
+      expect(lockfile.indexOf('left-pad@^1.1.3:')).toBeGreaterThanOrEqual(0);
+      expect(lockfile.indexOf('max-safe-integer@^1.0.1:')).toBeGreaterThanOrEqual(0);
+      expect(lockfile.indexOf('is-negative-zero@^1.0.0:')).toBeGreaterThanOrEqual(0);
+
+      expect(pkg.dependencies['left-pad']).not.toEqual('^1.0.0');
+      expect(pkg.dependencies['max-safe-integer']).not.toEqual('^1.0.0');
+      expect(pkg.dependencies['is-negative-zero']).toEqual('^1.0.0');
     },
   );
 });
@@ -75,10 +75,10 @@ test.concurrent('respects dependency type', (): Promise<void> => {
     const lockfile = explodeLockfile(await fs.readFile(path.join(config.cwd, 'yarn.lock')));
     const pkg = await fs.readJson(path.join(config.cwd, 'package.json'));
 
-    assert(lockfile.indexOf('max-safe-integer@^1.0.0:') >= 0);
-    assert(lockfile.indexOf('left-pad@^1.1.3:') >= 0);
-    assert.deepEqual(pkg.dependencies, {'max-safe-integer': '^1.0.0'});
-    assert.deepEqual(pkg.devDependencies, {'left-pad': '^1.1.3'});
+    expect(lockfile.indexOf('max-safe-integer@^1.0.0:')).toBeGreaterThanOrEqual(0);
+    expect(lockfile.indexOf('left-pad@^1.1.3:')).toBeGreaterThanOrEqual(0);
+    expect(pkg.dependencies).toEqual({'max-safe-integer': '^1.0.0'});
+    expect(pkg.devDependencies).toEqual({'left-pad': '^1.1.3'});
   });
 });
 
@@ -88,8 +88,8 @@ test.concurrent('respects --ignore-engines flag', (): Promise<void> => {
       const lockfile = explodeLockfile(await fs.readFile(path.join(config.cwd, 'yarn.lock')));
       const pkg = await fs.readJson(path.join(config.cwd, 'package.json'));
 
-      assert(lockfile.indexOf('hawk@0.10:') >= 0);
-      assert.deepEqual(pkg.dependencies, {hawk: '0.10'});
+      expect(lockfile.indexOf('hawk@0.10:')).toBeGreaterThanOrEqual(0);
+      expect(pkg.dependencies).toEqual({hawk: '0.10'});
     },
   );
 });
@@ -99,8 +99,8 @@ test.concurrent('upgrades from fixed version to latest', (): Promise<void> => {
     const lockfile = explodeLockfile(await fs.readFile(path.join(config.cwd, 'yarn.lock')));
     const pkg = await fs.readJson(path.join(config.cwd, 'package.json'));
 
-    assert(lockfile.indexOf('max-safe-integer@^1.0.1:') === 0);
-    assert.deepEqual(pkg.dependencies, {'max-safe-integer': '^1.0.1'});
+    expect(lockfile.indexOf('max-safe-integer@^1.0.1:')).toEqual(0);
+    expect(pkg.dependencies).toEqual({'max-safe-integer': '^1.0.1'});
   });
 });
 
@@ -112,23 +112,27 @@ test.concurrent('upgrades dependency packages not in registry', (): Promise<void
 
     const lockFileIncludes = (sha) => lockfile.includes(`  resolved "${gitRemote}#${sha}"`);
 
-    assert(
+    expect(
       lockfile.includes(`"yarn-test-git-repo@${gitRemote}#master":`),
+    ).toEqual(true,
       'Lockfile should point to the same yarn-test-git-repo branch.',
     );
 
-    assert(
-      !lockFileIncludes('d2027157d0c7188fc9ed6a6654325d1e3bf4db40'),
+    expect(
+      lockFileIncludes('d2027157d0c7188fc9ed6a6654325d1e3bf4db40'),
+    ).toEqual(false,
       'Lockfile should update yarn-test-git-repo SHA.',
     );
 
-    assert(
+    expect(
       lockfile.includes(`"e2e-test-repo@${gitRemote}#greenkeeper/cross-env-3.1.4":`),
+    ).toEqual(true,
       'Lockfile should point to the same e2e-test-repo branch.',
     );
 
-    assert(
+    expect(
       lockFileIncludes('da5940e1ad2b7451c00edffb6e755bf2411fc705'),
+    ).toEqual(true,
       'Lockfile should keep latest e2e-test-repo SHA.',
     );
   });
@@ -142,23 +146,27 @@ test.concurrent('upgrades dev dependency packages not in registry', (): Promise<
 
     const lockFileIncludes = (sha) => lockfile.includes(`  resolved "${gitRemote}#${sha}"`);
 
-    assert(
+    expect(
       lockfile.includes(`"yarn-test-git-repo@${gitRemote}#master":`),
+    ).toEqual(true,
       'Lockfile should point to the same yarn-test-git-repo branch.',
     );
 
-    assert(
-      !lockFileIncludes('d2027157d0c7188fc9ed6a6654325d1e3bf4db40'),
+    expect(
+      lockFileIncludes('d2027157d0c7188fc9ed6a6654325d1e3bf4db40'),
+    ).toEqual(false,
       'Lockfile should update yarn-test-git-repo SHA.',
     );
 
-    assert(
+    expect(
       lockfile.includes(`"e2e-test-repo@${gitRemote}#greenkeeper/cross-env-3.1.4":`),
+    ).toEqual(true,
       'Lockfile should point to the same e2e-test-repo branch.',
     );
 
-    assert(
+    expect(
       lockFileIncludes('da5940e1ad2b7451c00edffb6e755bf2411fc705'),
+    ).toEqual(true,
       'Lockfile should keep latest e2e-test-repo SHA.',
     );
   });
@@ -172,23 +180,27 @@ test.concurrent('upgrades optional dependency packages not in registry', (): Pro
 
     const lockFileIncludes = (sha) => lockfile.includes(`  resolved "${gitRemote}#${sha}"`);
 
-    assert(
+    expect(
       lockfile.includes(`"yarn-test-git-repo@${gitRemote}#master":`),
+    ).toEqual(true,
       'Lockfile should point to the same yarn-test-git-repo branch.',
     );
 
-    assert(
-      !lockFileIncludes('d2027157d0c7188fc9ed6a6654325d1e3bf4db40'),
+    expect(
+      lockFileIncludes('d2027157d0c7188fc9ed6a6654325d1e3bf4db40'),
+    ).toEqual(false,
       'Lockfile should update yarn-test-git-repo SHA.',
     );
 
-    assert(
+    expect(
       lockfile.includes(`"e2e-test-repo@${gitRemote}#greenkeeper/cross-env-3.1.4":`),
+    ).toEqual(true,
       'Lockfile should point to the same e2e-test-repo branch.',
     );
 
-    assert(
+    expect(
       lockFileIncludes('da5940e1ad2b7451c00edffb6e755bf2411fc705'),
+    ).toEqual(true,
       'Lockfile should keep latest e2e-test-repo SHA.',
     );
   });
@@ -202,23 +214,27 @@ test.concurrent('upgrades peer dependency packages not in registry', (): Promise
 
     const lockFileIncludes = (sha) => lockfile.includes(`  resolved "${gitRemote}#${sha}"`);
 
-    assert(
+    expect(
       lockfile.includes(`"yarn-test-git-repo@${gitRemote}#master":`),
+    ).toEqual(true,
       'Lockfile should point to the same yarn-test-git-repo branch.',
     );
 
-    assert(
-      !lockFileIncludes('d2027157d0c7188fc9ed6a6654325d1e3bf4db40'),
+    expect(
+      lockFileIncludes('d2027157d0c7188fc9ed6a6654325d1e3bf4db40'),
+    ).toEqual(false,
       'Lockfile should update yarn-test-git-repo SHA.',
     );
 
-    assert(
+    expect(
       lockfile.includes(`"e2e-test-repo@${gitRemote}#greenkeeper/cross-env-3.1.4":`),
+    ).toEqual(true,
       'Lockfile should point to the same e2e-test-repo branch.',
     );
 
-    assert(
+    expect(
       lockFileIncludes('da5940e1ad2b7451c00edffb6e755bf2411fc705'),
+    ).toEqual(true,
       'Lockfile should keep latest e2e-test-repo SHA.',
     );
   });
@@ -230,9 +246,13 @@ test.concurrent('warns when peer dependency is not met after upgrade', (): Promi
     fixturesLoc,
     async (args, flags, config, reporter): Promise<void> => {
       await upgrade(config, reporter, flags, args);
+
       const output = reporter.getBuffer();
       const warnings = output.filter((entry) => entry.type === 'warning');
-      assert(warnings.some((warning) => warning.data.toString().toLowerCase().includes('incorrect peer')));
+
+      expect(warnings.some((warning) => {
+        return warning.data.toString().toLowerCase().includes('incorrect peer');
+      })).toEqual(true);
     },
     ['themer'],
     {},
@@ -246,9 +266,13 @@ test.concurrent('doesn\'t warn when peer dependency is still met after upgrade',
     fixturesLoc,
     async (args, flags, config, reporter): Promise<void> => {
       await upgrade(config, reporter, flags, args);
+
       const output = reporter.getBuffer();
       const warnings = output.filter((entry) => entry.type === 'warning');
-      assert(!warnings.some((warning) => warning.data.toString().toLowerCase().includes('peer')));
+
+      expect(warnings.some((warning) => {
+        return warning.data.toString().toLowerCase().includes('peer');
+      })).toEqual(false);
     },
     ['themer'],
     {},
@@ -259,12 +283,12 @@ test.concurrent('doesn\'t warn when peer dependency is still met after upgrade',
 test.concurrent('can prune the offline mirror', (): Promise<void> => {
   return runUpgrade(['dep-a@1.1.0'], {}, 'prune-offline-mirror', async (config): ?Promise<void> => {
     const lockfile = explodeLockfile(await fs.readFile(path.join(config.cwd, 'yarn.lock')));
-    assert(lockfile.indexOf('dep-a@1.1.0:') === 0);
+    expect(lockfile.indexOf('dep-a@1.1.0:')).toEqual(0);
 
     const mirrorPath = 'mirror-for-offline';
-    assert(await fs.exists(path.join(config.cwd, `${mirrorPath}/dep-a-1.1.0.tgz`)));
-    assert(!await fs.exists(path.join(config.cwd, `${mirrorPath}/dep-a-1.0.0.tgz`)));
+    expect(await fs.exists(path.join(config.cwd, `${mirrorPath}/dep-a-1.1.0.tgz`))).toEqual(true);
+    expect(await fs.exists(path.join(config.cwd, `${mirrorPath}/dep-a-1.0.0.tgz`))).toEqual(false);
     // In 1.1.0, dep-a doesn't depend on dep-b anymore, so dep-b should be pruned
-    assert(!await fs.exists(path.join(config.cwd, `${mirrorPath}/dep-b-1.0.0.tgz`)));
+    expect(await fs.exists(path.join(config.cwd, `${mirrorPath}/dep-b-1.0.0.tgz`))).toEqual(false);
   });
 });

@@ -5,9 +5,9 @@
 /.nyc_output
 /coverage
 /dist
+/dist-debug
 /artifacts
 /updates
-/.roadrunner.json
 /resources/winsetup/generated.wxs
 /resources/winsetup/obj
 /resources/winsetup/bin

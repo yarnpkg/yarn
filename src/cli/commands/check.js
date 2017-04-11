@@ -3,7 +3,6 @@
 import type Config from '../../config.js';
 import {MessageError} from '../../errors.js';
 import InstallationIntegrityChecker from '../../integrity-checker.js';
-import lockStringify from '../../lockfile/stringify.js';
 import Lockfile from '../../lockfile/wrapper.js';
 import type {Reporter} from '../../reporters/index.js';
 import * as fs from '../../util/fs.js';
@@ -12,7 +11,7 @@ import {Install} from './install.js';
 const semver = require('semver');
 const path = require('path');
 
-export const requireLockfile = true;
+export const requireLockfile = false;
 export const noArguments = true;
 
 export function setFlags(commander: Object) {
@@ -144,26 +143,23 @@ async function integrityHashCheck(
     reporter.error(reporter.lang(msg, ...vars));
     errCount++;
   }
-  const integrityChecker = new InstallationIntegrityChecker(config);
+  const integrityChecker = new InstallationIntegrityChecker(config, reporter);
 
   const lockfile = await Lockfile.fromDirectory(config.cwd);
   const install = new Install(flags, config, reporter, lockfile);
 
   // get patterns that are installed when running `yarn install`
-  // TODO hydrate takes longer then install command bailout https://github.com/yarnpkg/yarn/issues/2514
-  const {patterns: rawPatterns} = await install.hydrate(true);
-  const patterns = await install.flatten(rawPatterns);
-  const lockSource = lockStringify(lockfile.getLockfile(install.resolver.patterns));
+  const {patterns} = await install.fetchRequestFromCwd();
 
-  const match = await integrityChecker.check(patterns, lockfile, lockSource, flags);
+  const match = await integrityChecker.check(patterns, lockfile.cache, flags);
   for (const pattern of match.missingPatterns) {
     reportError('lockfileNotContainPattern', pattern);
   }
   if (match.integrityFileMissing) {
-    reportError('noIntegrityHashFile');
+    reportError('noIntegrityFile');
   }
-  if (!match.integrityHashMatches) {
-    reportError('integrityHashesDontMatch');
+  if (!match.integrityMatches) {
+    reportError('integrityCheckFailed');
   }
 
   if (errCount > 0) {

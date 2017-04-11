@@ -14,9 +14,8 @@ install:
 
 build_script:
   - ps: if ($env:APPVEYOR_REPO_BRANCH -eq 'master') { node ./scripts/set-dev-version.js }
-  - npm run build
-  - ps: ./scripts/build-dist.ps1
-  - npm run build-win-installer
+  - yarn run build-dist
+  - yarn run build-win-installer
 
 test_script:
   - node --version

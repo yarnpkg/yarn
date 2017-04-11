@@ -27,15 +27,26 @@ test('getGitSSHUrl with no hash', () => {
   expect(gitSSHUrl).toContain('some-user');
 });
 
-test('getGitHTTPUrl should return the correct git gitlab SSH url', () => {
+test('getGitHTTPBaseUrl should return the correct git gitlab HTTP base url', () => {
   const fragment: ExplodedFragment = {
     user: 'foo',
     repo: 'bar',
     hash: '',
   };
 
-  const expected =  'git+ssh://git@gitlab.com/' + fragment.user + '/' + fragment.repo + '.git';
-  expect(GitLabResolver.getGitSSHUrl(fragment)).toBe(expected);
+  const expected =  'https://gitlab.com/' + fragment.user + '/' + fragment.repo;
+  expect(GitLabResolver.getGitHTTPBaseUrl(fragment)).toBe(expected);
+});
+
+test('getGitHTTPUrl should append ".git" to the HTTP base URL', () => {
+  const fragment: ExplodedFragment = {
+    user: 'foo',
+    repo: 'bar',
+    hash: '',
+  };
+
+  const expected =  GitLabResolver.getGitHTTPBaseUrl(fragment) + '.git';
+  expect(GitLabResolver.getGitHTTPUrl(fragment)).toBe(expected);
 });
 
 test('getGitSSHUrl should return URL containing protocol', () => {
@@ -46,5 +57,5 @@ test('getGitSSHUrl should return URL containing protocol', () => {
   });
 
   expect(url.parse(gitSSHUrl).protocol).toEqual('git+ssh:');
-  expect(url.parse(Git.cleanUrl(gitSSHUrl)).protocol).toEqual('ssh:');
+  expect(Git.npmUrlToGitUrl(gitSSHUrl).protocol).toEqual('ssh:');
 });
