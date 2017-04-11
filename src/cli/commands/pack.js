@@ -174,6 +174,10 @@ export function setFlags(commander: Object) {
   commander.option('-f, --filename <filename>', 'filename');
 }
 
+export function hasWrapper(): boolean {
+  return true;
+}
+
 export async function run(
  config: Config,
  reporter: Reporter,

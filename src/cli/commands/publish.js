@@ -22,6 +22,10 @@ export function setFlags(commander: Object) {
   commander.option('--tag [tag]', 'tag');
 }
 
+export function hasWrapper(): boolean {
+  return true;
+}
+
 async function publish(
   config: Config,
   pkg: any,

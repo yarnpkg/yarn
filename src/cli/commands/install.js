@@ -734,6 +734,10 @@ export class Install {
   maybeOutputUpdate: any;
 }
 
+export function hasWrapper(): boolean {
+  return true;
+}
+
 export function setFlags(commander: Object) {
   commander.usage('install [flags]');
   commander.option('-g, --global', 'DEPRECATED');

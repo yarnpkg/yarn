@@ -47,7 +47,7 @@ async function getManifests(config: Config, flags: Object): Promise<Array<Manife
   return manifests;
 }
 
-export const {run, setFlags} = buildSubCommands('licenses', {
+export const {run, setFlags, examples} = buildSubCommands('licenses', {
   async ls(
     config: Config,
     reporter: Reporter,

@@ -103,7 +103,7 @@ function wrapRequiredUser(callback: CLIFunctionWithParts): CLIFunction {
   }, true);
 }
 
-export const {run, setFlags} = buildSubCommands('team', {
+export const {run, setFlags, hasWrapper, examples} = buildSubCommands('team', {
   create: wrapRequiredTeam(async function(
     parts: TeamParts,
     config: Config,

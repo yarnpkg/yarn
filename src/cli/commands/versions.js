@@ -7,6 +7,10 @@ const YARN_VERSION = require('../../../package.json').version;
 
 export function setFlags() {}
 
+export function hasWrapper(): boolean {
+  return true;
+}
+
 export async function run(
  config: Config,
  reporter: Reporter,

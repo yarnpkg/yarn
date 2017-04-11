@@ -83,7 +83,7 @@ export async function mutate(
   }
 }
 
-export const {run, setFlags} = buildSubCommands('owner', {
+export const {run, setFlags, hasWrapper, examples} = buildSubCommands('owner', {
   add(
     config: Config,
     reporter: Reporter,

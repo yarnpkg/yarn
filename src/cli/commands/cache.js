@@ -12,7 +12,7 @@ export function hasWrapper(flags: Object, args: Array<string>): boolean {
   return args[0] !== 'dir';
 }
 
-export const {run, setFlags} = buildSubCommands('cache', {
+export const {run, setFlags, examples} = buildSubCommands('cache', {
   async ls(
     config: Config,
     reporter: Reporter,

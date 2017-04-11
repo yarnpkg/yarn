@@ -12,6 +12,10 @@ export function setFlags(commander: Object) {
   commander.usage('outdated [packages ...]');
 }
 
+export function hasWrapper(): boolean {
+  return true;
+}
+
 export async function run(
   config: Config,
   reporter: Reporter,

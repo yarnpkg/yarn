@@ -6,7 +6,9 @@ import RegistryYarn from '../../resolvers/registries/yarn-resolver.js';
 
 const path = require('path');
 
-export function hasWrapper() {}
+export function hasWrapper(): boolean {
+  return false;
+}
 
 export function setFlags() {}
 
