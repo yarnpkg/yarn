@@ -57,7 +57,9 @@ export default class NpmRegistry extends Registry {
       || this.getOption('always-auth')
       || removePrefix(requestUrl, registry)[0] === '@';
 
-    const headers = {};
+    const headers = {
+      'Accept': 'application/vnd.npm.install-v1+json'
+    };
     if (this.token || (alwaysAuth && isRequestToRegistry(requestUrl, registry))) {
       const authorization = this.getAuth(pathname);
       if (authorization) {
