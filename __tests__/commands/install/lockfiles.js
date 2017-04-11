@@ -288,3 +288,18 @@ test.concurrent('install should rewrite lockfile if patterns can be merged', ():
     expect(lockContent).not.toContain('https://fakepath.wont.download.com/mime-db/-/mime-db-1.0.0.tgz');
   });
 });
+
+test.concurrent('install should fix if lockfile patterns don\'t match resolved version', (): Promise<void> => {
+  const fixture = 'lockfile-fixed';
+
+  return runInstall({}, fixture, async (config, reporter) => {
+    const lockContent = await fs.readFile(
+      path.join(config.cwd, 'yarn.lock'),
+    );
+    expect(lockContent).not.toContain('mime-db-1.24.0.tgz');
+    expect(lockContent).toContain('mime-db-1.23.0.tgz');
+    expect(lockContent).not.toContain('left-pad-1.1.3.tgz');
+    expect(lockContent).toContain('left-pad-1.1.2.tgz');
+
+  });
+});

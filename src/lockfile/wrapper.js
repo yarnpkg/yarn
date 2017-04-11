@@ -122,6 +122,14 @@ export default class Lockfile {
     return undefined;
   }
 
+  removePattern(pattern: string) {
+    const cache = this.cache;
+    if (!cache) {
+      return;
+    }
+    delete cache[pattern];
+  }
+
   getLockfile(patterns: {
     [packagePattern: string]: Manifest
   }): Object {
