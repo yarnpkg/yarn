@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "left-pad": ">=1.0.0 <1.1.3",
+    "mime-db": "1.23.0"
+  }
+}

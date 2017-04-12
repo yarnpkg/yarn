@@ -434,8 +434,24 @@ export default class PackageResolver {
       this.activity.tick(req.pattern);
     }
 
-    if (!this.lockfile.getLocked(req.pattern, true)) {
+    const lockfileEntry = this.lockfile.getLocked(req.pattern);
+    if (!lockfileEntry) {
       this.newPatterns.push(req.pattern);
+    } else {
+      const {range, hasVersion} = PackageRequest.normalizePattern(req.pattern);
+      // lockfileEntry is incorrect, remove it from lockfile cache and consider the pattern as new
+      if (
+        semver.validRange(range) &&
+        semver.valid(lockfileEntry.version) &&
+        !semver.satisfies(lockfileEntry.version, range) &&
+        !PackageRequest.getExoticResolver(range) &&
+        hasVersion
+      ) {
+        this.reporter.warn(this.reporter.lang('incorrectLockfileEntry', req.pattern));
+        this.removePattern(req.pattern);
+        this.newPatterns.push(req.pattern);
+        this.lockfile.removePattern(req.pattern);
+      }
     }
 
     const request = new PackageRequest(req, this);
