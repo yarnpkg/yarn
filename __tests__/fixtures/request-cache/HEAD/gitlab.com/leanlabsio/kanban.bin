@@ -1,14 +1,14 @@
 HTTP/1.1 200 OK
 Server: nginx
-Date: Wed, 12 Apr 2017 17:33:01 GMT
+Date: Wed, 12 Apr 2017 18:12:16 GMT
 Content-Type: text/html; charset=utf-8
 Cache-Control: max-age=0, private, must-revalidate
-Etag: W/"0b60dcb2dad8bb32e1aa9bf71b8a8ffb"
-Set-Cookie: _gitlab_session=d5e33e5a9660632cbffdcd3c375c1209; path=/; secure; HttpOnly
+Etag: W/"425f19b4b2a4e0cf0b3f2291ea483c66"
+Set-Cookie: _gitlab_session=ca755620d36f87d180bb32c062e9fb84; path=/; secure; HttpOnly
 X-Content-Type-Options: nosniff
 X-Frame-Options: DENY
-X-Request-Id: bc956220-b6b4-445b-971a-e7ba3b044a1a
-X-Runtime: 0.193562
+X-Request-Id: 5ce1fa10-8c9d-47bc-8dd0-6a10c839d939
+X-Runtime: 0.337738
 X-Ua-Compatible: IE=edge
 X-Xss-Protection: 1; mode=block
 Strict-Transport-Security: max-age=31536000
