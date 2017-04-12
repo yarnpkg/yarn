@@ -7,12 +7,13 @@ import type Config from './config.js';
 import {MessageError} from './errors.js';
 import map from './util/map.js';
 import {entries} from './util/misc.js';
+import {version as yarnVersion} from './util/yarn-version.js';
 
 const invariant = require('invariant');
 const semver = require('semver');
 
 const VERSIONS = Object.assign({}, process.versions, {
-  yarn: require('../package.json').version,
+  yarn: yarnVersion,
 });
 
 function isValid(items: Array<string>, actual: string): boolean {

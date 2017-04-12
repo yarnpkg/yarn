@@ -21,6 +21,7 @@ import {clean} from './clean.js';
 import * as constants from '../../constants.js';
 import * as fs from '../../util/fs.js';
 import map from '../../util/map.js';
+import {version as YARN_VERSION, installationMethod as YARN_INSTALL_METHOD} from '../../util/yarn-version.js';
 
 const invariant = require('invariant');
 const semver = require('semver');
@@ -28,7 +29,6 @@ const emoji = require('node-emoji');
 const isCI = require('is-ci');
 const path = require('path');
 
-const {version: YARN_VERSION, installationMethod: YARN_INSTALL_METHOD} = require('../../../package.json');
 const ONE_DAY = 1000 * 60 * 60 * 24;
 
 export type InstallCwdRequest = {
