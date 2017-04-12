@@ -59,7 +59,7 @@ export async function run(
 
   // pass application/json Accept to get full metadata for info command
   let result = await config.registries.npm.request(name, {
-    headers: {'Accept': 'application/json'}
+    headers: {'Accept': 'application/json'},
   });
   if (!result) {
     reporter.error(reporter.lang('infoFail'));
