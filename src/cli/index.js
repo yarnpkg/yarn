@@ -65,8 +65,9 @@ commander.option(
   'use a mutex to ensure only one yarn instance is executing',
 );
 commander.option(
-  '--no-emoji',
-  'disable emoji in output',
+  '--emoji',
+  'enable emoji in output',
+  process.platform === 'darwin',
 );
 commander.option(
   '-s, --silent',
@@ -131,7 +132,7 @@ commander.args.shift();
 //
 const Reporter = commander.json ? JSONReporter : ConsoleReporter;
 const reporter = new Reporter({
-  emoji: commander.emoji && process.stdout.isTTY && process.platform === 'darwin',
+  emoji: process.stdout.isTTY && commander.emoji,
   verbose: commander.verbose,
   noProgress: !commander.progress,
   isSilent: commander.silent,
