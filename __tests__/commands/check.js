@@ -147,6 +147,20 @@ async (): Promise<void> => {
   });
 });
 
+test.concurrent('--integrity should fail if --ignore-scripts is changed',
+  async (): Promise<void> => {
+    await runInstall({ignoreScripts: true}, path.join('..', 'check', 'integrity-lock-check'),
+      async (config, reporter): Promise<void> => {
+        let thrown = false;
+        try {
+          await checkCmd.run(config, reporter, {integrity: true, ignoreScripts: false}, []);
+        } catch (e) {
+          thrown = true;
+        }
+        expect(thrown).toEqual(true);
+      });
+  });
+
 test.concurrent('when switching to --check-files install should rebuild integrity file',
 async (): Promise<void> => {
   await runInstall({}, path.join('..', 'check', 'integrity-lock-check'), async (config, reporter): Promise<void> => {
