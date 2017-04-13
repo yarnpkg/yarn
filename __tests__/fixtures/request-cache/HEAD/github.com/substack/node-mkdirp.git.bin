@@ -1,0 +1,11 @@
+HTTP/1.1 301 Moved Permanently
+Server: GitHub.com
+Date: Sun, 25 Dec 2016 02:00:08 GMT
+Content-Type: text/html
+Content-Length: 178
+Location: https://github.com/substack/node-mkdirp
+Vary: Accept-Encoding
+X-Served-By: ea1e1d06ad877450adf08d122b863cf0
+X-GitHub-Request-Id: D569B762:557C:10EC3733:585F2828
+X-Frame-Options: DENY
+
