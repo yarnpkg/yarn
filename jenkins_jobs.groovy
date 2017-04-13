@@ -62,3 +62,22 @@ job('yarn-chocolatey') {
     mailer 'yarn@dan.cx'
   }
 }
+
+job('yarn-homebrew') {
+  description 'Ensures the Homebrew package for Yarn is up-to-date'
+  label 'linuxbrew'
+  scm {
+    github 'yarnpkg/yarn', 'master'
+  }
+  triggers {
+    yarnStableVersionChange delegate
+  }
+  steps {
+    shell './scripts/update-homebrew.sh'
+  }
+  publishers {
+    gitHubIssueNotifier {
+    }
+    mailer 'yarn@dan.cx'
+  }
+}
