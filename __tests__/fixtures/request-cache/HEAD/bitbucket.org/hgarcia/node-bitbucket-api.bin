@@ -1,0 +1,21 @@
+HTTP/1.1 200 OK
+Server: nginx
+Vary: Host, User-Agent, Accept-Language, Cookie, Accept-Encoding
+Cache-Control: max-age=900
+Content-Type: text/html; charset=utf-8
+Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
+Date: Wed, 12 Apr 2017 18:12:24 GMT
+X-Served-By: app-164
+Content-Language: en
+Accept-Ranges: bytes
+ETag: "caf42eeeb2d3385c770e5eb36a0c7e4d"
+X-Static-Version: 44088381797f
+X-Content-Type-Options: nosniff
+X-Render-Time: 0.459865093231
+Connection: keep-alive
+X-Request-Count: 100
+X-Frame-Options: SAMEORIGIN
+X-Version: 44088381797f
+X-Cache-Info: caching
+Content-Length: 67529
+

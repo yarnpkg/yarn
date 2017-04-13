@@ -15,9 +15,8 @@
 .vs
 *.msi
 *.nupkg
-fbkpm_modules
 test/fixtures/**/.fbkpm
 /tmp/
 /__tests__/fixtures/**/_*
 /__tests__/fixtures/request-cache/GET/localhost/.bin
-/__tests__/fixtures/request-cache/
+

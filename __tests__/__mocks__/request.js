@@ -87,6 +87,10 @@ const httpMock = {
       const req = httpModule.request(options, callback);
       let errored = false;
       const bufs = [];
+      // to track situations when CI gets stalled because of many network requests
+      if (options.uri.href.indexOf('localhost') === -1) {
+        console.warn('No request cache for', options.uri.href);
+      }
 
       req.once('socket', function(socket) {
         socket.setMaxListeners(Infinity);

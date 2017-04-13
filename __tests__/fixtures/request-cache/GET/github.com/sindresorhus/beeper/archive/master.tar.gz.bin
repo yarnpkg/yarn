@@ -1,6 +1,6 @@
 HTTP/1.1 302 Found
 Server: GitHub.com
-Date: Tue, 11 Apr 2017 19:51:13 GMT
+Date: Wed, 12 Apr 2017 18:13:41 GMT
 Content-Type: text/html; charset=utf-8
 Transfer-Encoding: chunked
 Status: 302 Found
@@ -8,10 +8,10 @@ Cache-Control: no-cache
 Vary: X-PJAX
 Location: https://codeload.github.com/sindresorhus/beeper/tar.gz/master
 X-UA-Compatible: IE=Edge,chrome=1
-Set-Cookie: logged_in=no; domain=.github.com; path=/; expires=Sat, 11 Apr 2037 19:51:13 -0000; secure; HttpOnly
-Set-Cookie: _gh_sess=eyJzZXNzaW9uX2lkIjoiMDk0M2E0MTcxZTgwOWNkOThiZjAzN2RlY2YyMjE5MTQiLCJzcHlfcmVwbyI6InNpbmRyZXNvcmh1cy9iZWVwZXIiLCJzcHlfcmVwb19hdCI6MTQ5MTk0MDI3M30%3D--19baebcf2f23159d2a1ad5f16947b66a39faea3f; path=/; secure; HttpOnly
-X-Request-Id: 8ba05bf7471607ec3efceebb00d20e76
-X-Runtime: 0.018486
+Set-Cookie: logged_in=no; domain=.github.com; path=/; expires=Sun, 12 Apr 2037 18:13:41 -0000; secure; HttpOnly
+Set-Cookie: _gh_sess=eyJzZXNzaW9uX2lkIjoiY2ExNTE0NWRiYzMyZjQ1YTJiOTM2MmRjZTYxMzdkNjgiLCJzcHlfcmVwbyI6InNpbmRyZXNvcmh1cy9iZWVwZXIiLCJzcHlfcmVwb19hdCI6MTQ5MjAyMDgyMX0%3D--fe7c4774d714c3557a6ca753c79a812a4974ca57; path=/; secure; HttpOnly
+X-Request-Id: 811efdb97e9bc3b1be975a86ccd3285a
+X-Runtime: 0.016817
 Content-Security-Policy: default-src 'none'; base-uri 'self'; block-all-mixed-content; child-src render.githubusercontent.com; connect-src 'self' uploads.github.com status.github.com collector.githubapp.com api.github.com www.google-analytics.com github-cloud.s3.amazonaws.com wss://live.github.com; font-src assets-cdn.github.com; form-action 'self' github.com gist.github.com; frame-ancestors 'none'; img-src 'self' data: assets-cdn.github.com identicons.github.com collector.githubapp.com github-cloud.s3.amazonaws.com *.githubusercontent.com; media-src 'none'; script-src assets-cdn.github.com; style-src 'unsafe-inline' assets-cdn.github.com
 Strict-Transport-Security: max-age=31536000; includeSubdomains; preload
 Public-Key-Pins: max-age=5184000; pin-sha256="WoiWRyIOVNa9ihaBciRSC7XHjliYS9VwUGOIud4PB18="; pin-sha256="RRM1dGqnDFsCJXBTHky16vi1obOlCgFFn/yOhI/y+ho="; pin-sha256="k2v657xBsOVe1PQRwOsHsw3bsGT2VzIqz5K+59sNQws="; pin-sha256="K87oWBWM9UZfyddvDfoxL+8lpNyoUB2ptGtn0fv6G2Q="; pin-sha256="IQBnNBEiFuhj+8x6X8XLgh01V9Ic5/V3IRQLNFFc7v4="; pin-sha256="iie1VXtL7HzAMF+/PVPR9xzT80kQxdZeJ+zduCB3uj0="; pin-sha256="LvRiGEjRqfzurezaWuj8Wie2gyHMrW5Q06LspMnox7A="; includeSubDomains
@@ -19,8 +19,8 @@ X-Content-Type-Options: nosniff
 X-Frame-Options: deny
 X-XSS-Protection: 1; mode=block
 Vary: Accept-Encoding
-X-Served-By: a568c03544f42dddf712bab3bfd562fd
-X-GitHub-Request-Id: 3746:7B67:3ACCD:5934F:58ED33B1
+X-Served-By: 73ab9dfb66867a4ebbe0dc0967441cd8
+X-GitHub-Request-Id: 9364:7B6A:10FF1B8:1961E54:58EE6E55
 
 7f
 <html><body>You are being <a href="https://codeload.github.com/sindresorhus/beeper/tar.gz/master">redirected</a>.</body></html>

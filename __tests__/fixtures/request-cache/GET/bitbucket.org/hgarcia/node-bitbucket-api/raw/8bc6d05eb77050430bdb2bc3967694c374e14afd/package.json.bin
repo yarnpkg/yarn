@@ -1,0 +1,43 @@
+HTTP/1.1 200 OK
+Server: nginx
+Vary: Accept-Language, Cookie
+Cache-Control: max-age=900
+Content-Type: text/plain
+Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
+Date: Wed, 12 Apr 2017 18:12:24 GMT
+X-Served-By: app-164
+Content-Language: en
+Accept-Ranges: bytes
+ETag: "7cc44e5ab5d1eed762ec480632119379"
+X-Static-Version: 44088381797f
+X-Content-Type-Options: nosniff
+X-Render-Time: 0.021852016449
+Connection: keep-alive
+X-Request-Count: 720
+Last-Modified: Mon, 28 Mar 2016 23:57:05 GMT
+X-Version: 44088381797f
+X-Frame-Options: SAMEORIGIN
+X-Cache-Info: caching
+Content-Length: 525
+
+{
+  "author": "Hernan Garcia <hernan@dynamicprogrammer.com> (http://blog.dynamicprogrammer.com)",
+  "name": "bitbucket-api",
+  "description": "A package to access the BitBucket Api.",
+  "version": "0.0.8",
+  "repository": {
+    "url": "https://hgarcia@bitbucket.org/hgarcia/node-bitbucket-api.git"
+  },
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha tests/*.tests.js -t 15000"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "should": ""
+  },
+  "optionalDependencies": {},
+  "engines": {
+    "node": "*"
+  }
+}

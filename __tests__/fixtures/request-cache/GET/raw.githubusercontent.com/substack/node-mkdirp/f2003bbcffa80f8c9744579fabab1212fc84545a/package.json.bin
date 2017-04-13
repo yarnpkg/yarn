@@ -1,0 +1,53 @@
+HTTP/1.1 200 OK
+Content-Security-Policy: default-src 'none'; style-src 'unsafe-inline'
+Strict-Transport-Security: max-age=31536000
+X-Content-Type-Options: nosniff
+X-Frame-Options: deny
+X-XSS-Protection: 1; mode=block
+ETag: "0a1af9609fef0f7a595f2f227d012cb2d1293568"
+Content-Type: text/plain; charset=utf-8
+Cache-Control: max-age=300
+X-Geo-Block-List:
+X-GitHub-Request-Id: 5E5C:25A5:38CB498:3AF94A6:58EE6D99
+Content-Length: 556
+Accept-Ranges: bytes
+Date: Wed, 12 Apr 2017 18:10:34 GMT
+Via: 1.1 varnish
+Connection: keep-alive
+X-Served-By: cache-ams4446-AMS
+X-Cache: HIT
+X-Cache-Hits: 1
+X-Timer: S1492020635.816140,VS0,VE1
+Vary: Authorization,Accept-Encoding
+Access-Control-Allow-Origin: *
+X-Fastly-Request-ID: 62b20c344d8429edb3c0e26b05298855706a2c95
+Expires: Wed, 12 Apr 2017 18:15:34 GMT
+Source-Age: 1
+
+{
+  "name": "mkdirp",
+  "description": "Recursively mkdir, like `mkdir -p`",
+  "version": "0.5.1",
+  "author": "James Halliday <mail@substack.net> (http://substack.net)",
+  "main": "index.js",
+  "keywords": [
+    "mkdir",
+    "directory"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/substack/node-mkdirp.git"
+  },
+  "scripts": {
+    "test": "tap test/*.js"
+  },
+  "dependencies": {
+    "minimist": "0.0.8"
+  },
+  "devDependencies": {
+    "mock-fs": "^3.7.0",
+    "tap": "^5.4.2"
+  },
+  "bin": "bin/cmd.js",
+  "license": "MIT"
+}
