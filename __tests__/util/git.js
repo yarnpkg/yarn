@@ -24,6 +24,12 @@ test('npmUrlToGitUrl', () => {
       hostname: 'github.com',
       repository: 'git://github.com/npm-opam/ocamlfind.git',
     });
+  expect(Git.npmUrlToGitUrl('git+ssh://git@gitlab.mydomain.tld:10202/project-name/my-package.git'))
+    .toEqual({
+      protocol: 'ssh:',
+      hostname: 'gitlab.mydomain.tld',
+      repository: 'ssh://git@gitlab.mydomain.tld:10202/project-name/my-package.git',
+    });
   expect(Git.npmUrlToGitUrl('git+ssh://git@github.com/npm-opam/ocamlfind.git'))
     .toEqual({
       protocol: 'ssh:',
