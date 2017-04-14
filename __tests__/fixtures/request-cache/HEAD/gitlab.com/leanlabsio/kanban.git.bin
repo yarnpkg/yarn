@@ -1,0 +1,8 @@
+HTTP/1.1 200 OK
+Server: nginx
+Date: Tue, 31 Jan 2017 23:49:42 GMT
+Content-Type: text/html; charset=utf-8
+Cache-Control: no-cache, no-store, max-age=0, must-revalidate
+Expires: Fri, 01 Jan 1990 00:00:00 GMT
+Pragma: no-cache
+
