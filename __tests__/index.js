@@ -200,6 +200,11 @@ test.concurrent('should install if first arg looks like a flag', async () => {
   expect(stdout[stdout.length - 1]).toEqual('{"type":"success","data":"Saved lockfile."}');
 });
 
+test.concurrent('should not output JSON progress if given --no-progress option', async () => {
+  const stdout = await execCommand('', ['--json', '--no-progress'], 'run-add', true);
+  expect(stdout.length).toEqual(0);
+});
+
 test.concurrent('should interpolate aliases', async () => {
   await expectAnErrorMessage(
     execCommand('i', [], 'run-add', true),

@@ -70,4 +70,10 @@ test("JSONReporter.progress", async () => {
     tick();
     tick();
   })).toMatchSnapshot();
+
+  expect(await getJSONBuff(async function (r): Promise<void> {
+    r.noProgress = true;
+    const tick = await r.progress(2);
+    tick();
+  })).toMatchSnapshot();
 });

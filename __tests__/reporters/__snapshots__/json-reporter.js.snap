@@ -55,6 +55,13 @@ Object {
 }
 `;
 
+exports[`JSONReporter.progress 2`] = `
+Object {
+  "stderr": "",
+  "stdout": "",
+}
+`;
+
 exports[`JSONReporter.step 1`] = `
 Object {
   "stderr": "",
