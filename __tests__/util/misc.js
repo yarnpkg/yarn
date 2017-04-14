@@ -21,3 +21,8 @@ test('sortAlpha', () => {
     'foo@~6.8.x',
   ]);
 });
+
+test('has2xxResponse', () => {
+  const response = {responseCode: 200};
+  expect(misc.has2xxResponse(response)).toEqual(true);
+});
