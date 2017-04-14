@@ -143,7 +143,7 @@ const config = new Config(reporter);
 const outputWrapper = !commander.json && command.hasWrapper(commander, commander.args);
 
 if (outputWrapper) {
-  reporter.header(commandName, {name: 'Yarn', version});
+  reporter.header(commandName, {name: 'yarn', version});
 }
 
 if (command.noArguments && commander.args.length) {
