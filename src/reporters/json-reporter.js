@@ -155,7 +155,6 @@ export default class JSONReporter extends BaseReporter {
 
       if (current === total) {
         this._dump('progressFinish', {id});
-        this._dump('poop', {id});
       }
     };
   }

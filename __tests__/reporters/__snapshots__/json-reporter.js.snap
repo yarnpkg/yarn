@@ -10,6 +10,13 @@ Object {
 }
 `;
 
+exports[`JSONReporter.activity 2`] = `
+Object {
+  "stderr": "",
+  "stdout": "",
+}
+`;
+
 exports[`JSONReporter.command 1`] = `
 Object {
   "stderr": "",

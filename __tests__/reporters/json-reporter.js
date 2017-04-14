@@ -62,6 +62,14 @@ test("JSONReporter.activity", async () => {
     activity.tick("bar");
     activity.end();
   })).toMatchSnapshot();
+
+  expect(await getJSONBuff(async function (r): Promise<void> {
+    r.noProgress = true;
+    const activity = await r.activity();
+    activity.tick("foo");
+    activity.tick("bar");
+    activity.end();
+  })).toMatchSnapshot();
 });
 
 test("JSONReporter.progress", async () => {
