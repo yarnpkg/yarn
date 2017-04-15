@@ -8,8 +8,6 @@ import Parse from '../../lockfile/parse.js';
 const path = require('path');
 const fs = require('fs');
 
-export function hasWrapper() {}
-
 export function run(
   config: Config,
   reporter: Reporter,
