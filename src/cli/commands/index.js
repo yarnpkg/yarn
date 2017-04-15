@@ -16,6 +16,7 @@ import * as init from './init.js'; export {init};
 import * as install from './install.js'; export {install};
 import * as licenses from './licenses.js'; export {licenses};
 import * as link from './link.js'; export {link};
+import * as lockfileJson from './lockfile-json'; export {lockfileJson};
 import * as login from './login.js'; export {login};
 import * as logout from './logout.js'; export {logout};
 import * as list from './list.js'; export {list};
