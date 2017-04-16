@@ -57,6 +57,7 @@ test("JSONReporter.info", async () => {
 
 test("JSONReporter.activity", async () => {
   expect(await getJSONBuff(async function (r): Promise<void> {
+    r.noProgress = false;
     const activity = await r.activity();
     activity.tick("foo");
     activity.tick("bar");
@@ -74,6 +75,7 @@ test("JSONReporter.activity", async () => {
 
 test("JSONReporter.progress", async () => {
   expect(await getJSONBuff(async function (r): Promise<void> {
+    r.noProgress = false;
     const tick = await r.progress(2);
     tick();
     tick();
