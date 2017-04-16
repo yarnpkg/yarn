@@ -201,14 +201,13 @@ test.concurrent('should install if first arg looks like a flag', async () => {
 });
 
 test.concurrent('should not output JSON activity/progress if given --no-progress option', async () => {
+  const activityInfo = ['activityStart', 'activityTick', 'activityEnd'];
+  const progressInfo = ['progressStart', 'progressTick', 'progressFinish'];
   const stdout = await execCommand('', ['--json', '--no-progress'], 'run-add', true);
   stdout.forEach((line) => {
-    expect(line).not.toContain('activityStart');
-    expect(line).not.toContain('activityTick');
-    expect(line).not.toContain('activityEnd');
-    expect(line).not.toContain('progressStart');
-    expect(line).not.toContain('progressTick');
-    expect(line).not.toContain('progressFinish');
+    activityInfo.concat(progressInfo).forEach((info) => {
+      expect(line).not.toContain(info);
+    });
   });
 });
 
