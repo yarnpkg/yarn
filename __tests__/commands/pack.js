@@ -92,7 +92,7 @@ export async function getFilesFromArchive(source, destination): Promise<Array<st
       .on('error', reject);
   });
   await unzip;
-  const files = await fs.readdir(destination);
+  const files = (await fs.walk(destination)).map(({relative}) => relative);
   return files;
 }
 
