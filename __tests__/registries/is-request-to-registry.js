@@ -20,14 +20,14 @@ test('isRequestToRegistry functional test', () => {
   )).toBe(true);
 
   expect(isRequestToRegistry(
-      'https://foo.bar/foo/bar/baz',
-      'https://foo.bar:443/foo/',
-    )).toBe(true);
+    'https://foo.bar/foo/bar/baz',
+    'https://foo.bar:443/foo/',
+  )).toBe(true);
 
   expect(isRequestToRegistry(
     'http://foo.bar:80/foo/bar/baz',
     'https://foo.bar/foo/',
-  )).toBe(false);
+  )).toBe(true);
 
   expect(isRequestToRegistry(
     'http://foo.bar/blah/whatever/something',
@@ -43,4 +43,9 @@ test('isRequestToRegistry functional test', () => {
     'https://foo.bar:1337/foo/bar/baz',
     'https://foo.bar/foo/',
   )).toBe(false);
+
+  expect(isRequestToRegistry(
+    'http://foo.bar/foo/bar/baz',
+    'https://foo.bar/foo/bar/baz',
+  )).toBe(true);
 });

@@ -10,19 +10,17 @@ export default function isRequestToRegistry(requestUrl: string, registry: string
   const requestPath = requestParsed.path || '';
   const registryPath = registryParsed.path || '';
 
-  return (requestParsed.protocol === registryParsed.protocol) &&
-        (requestParsed.hostname === registryParsed.hostname) &&
+  return (requestParsed.hostname === registryParsed.hostname) &&
         (requestPort === registryPort) &&
         requestPath.startsWith(registryPath);
 }
 
 function getPortOrDefaultPort(port: ?string, protocol: ?string): ?string {
-  const defaultPort = !port;
-  if (defaultPort && protocol === 'https:') {
-    return '443';
+  if (protocol === 'https:' && port === '443') {
+    return null;
   }
-  if (defaultPort && protocol === 'http:') {
-    return '80';
+  if (protocol === 'http:' && port === '80') {
+    return null;
   }
   return port;
 }
