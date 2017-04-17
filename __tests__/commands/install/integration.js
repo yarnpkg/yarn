@@ -14,7 +14,7 @@ import {getPackageVersion, explodeLockfile, runInstall, createLockfile} from '..
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 150000;
 
-let request = require('request');
+const request = require('request');
 const semver = require('semver');
 const path = require('path');
 const stream = require('stream');
@@ -38,7 +38,6 @@ async function mockConstants(base: Config, mocks: Object, cb: (config: Config) =
   jest.setMock('../../../src/constants', Object.assign(automock, mocks));
 
   jest.resetModules();
-  request = require('request');
 
   jest.mock('../../../src/constants');
   await cb(await require('../../../src/config.js').default.create(opts, base.reporter));
