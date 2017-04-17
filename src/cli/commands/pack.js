@@ -76,12 +76,27 @@ export async function pack(config: Config, dir: string): Promise<stream$Duplex> 
 
   // `files` field
   if (onlyFiles) {
+    // Append '**' to directories in the `files` field.
+    // This ensures that their contents get included.
+    const onlyFilesGlobs = await Promise.all(onlyFiles.map(async (filename: string): Promise<string> => {
+      try {
+        const loc = path.join(config.cwd, filename);
+        const stat = await fs.lstat(loc);
+
+        if (stat.isDirectory()) {
+          return path.join(filename, '**');
+        }
+        return filename;
+      } catch (err) {
+        return filename;
+      }
+    }));
     let lines = [
       '*', // ignore all files except those that are explicitly included with a negation filter
       '.*', // files with "." as first character have to be excluded explicitly
     ];
     lines = lines.concat(
-      onlyFiles.map((filename: string): string => `!${filename}`),
+      onlyFilesGlobs.map((filename: string): string => `!${filename}`),
     );
     const regexes = ignoreLinesToRegex(lines, '.');
     filters = filters.concat(regexes);
@@ -115,7 +130,17 @@ export async function pack(config: Config, dir: string): Promise<stream$Duplex> 
   sortFilter(files, filters, keepFiles, possibleKeepFiles, ignoredFiles);
 
   const packer = tar.pack(config.cwd, {
-    ignore: (name) => !keepFiles.has(path.relative(config.cwd, name)),
+    ignore: (name) => {
+      const relative = path.relative(config.cwd, name);
+      // Don't ignore directories, since we need to recurse inside them to check for unignored files.
+      if (fs2.lstatSync(name).isDirectory()) {
+        const isParentOfKeptFile = Array.from(keepFiles).some((name) =>
+          !path.relative(relative, name).startsWith('..'));
+        return !isParentOfKeptFile;
+      }
+      // Otherwise, ignore a file if we're not supposed to keep it.
+      return !keepFiles.has(relative);
+    },
     map: (header) => {
       const suffix = header.name === '.' ? '' : `/${header.name}`;
       header.name = `package${suffix}`;
