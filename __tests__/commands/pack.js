@@ -108,7 +108,7 @@ test.concurrent('pack should work with a minimal example', (): Promise<void> => 
   });
 });
 
-test.concurrent('pack should inlude all files listed in the files array', (): Promise<void> => {
+test.concurrent('pack should include all files listed in the files array', (): Promise<void> => {
   return runPack({}, 'files-include', async (config): Promise<void> => {
     const {cwd} = config;
     const files = await getFilesFromArchive(
