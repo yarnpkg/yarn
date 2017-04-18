@@ -70,7 +70,7 @@ export async function pack(config: Config, dir: string): Promise<stream$Duplex> 
   const pkg = await config.readRootManifest();
   const {bundledDependencies, files: onlyFiles} = pkg;
 
-  // inlude required files
+  // include required files
   let filters: Array<IgnoreFilter> = NEVER_IGNORE.slice();
   // include default filters unless `files` is used
   if (!onlyFiles) {
