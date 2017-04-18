@@ -58,9 +58,11 @@ export default class Git {
    */
   static npmUrlToGitUrl(npmUrl: string): GitUrl {
     // Special case in npm, where ssh:// prefix is stripped to pass scp-like syntax
-    // which works as remote path only if there are no slashes before ':'
-    const match = npmUrl.match(/^git\+ssh:\/\/((?:[^@:\/]+@)?([^@:\/]+):.*)/);
-    if (match) {
+    // which in git works as remote path only if there are no slashes before ':'.
+    const match = npmUrl.match(/^git\+ssh:\/\/((?:[^@:\/]+@)?([^@:\/]+):([^/]*).*)/);
+    // Additionally, if the host part is digits-only, npm falls back to
+    // interpreting it as an SSH URL with a port number.
+    if (match && /[^0-9]/.test(match[3])) {
       return {
         protocol: 'ssh:',
         hostname: match[2],
