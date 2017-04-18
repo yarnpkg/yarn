@@ -10,7 +10,7 @@ import {registries} from '../../registries/index.js';
 import ExoticResolver from './exotic-resolver.js';
 import Git from '../../util/git.js';
 
-const urlParse = require('url').parse;
+import {parse as urlParse} from 'url';
 
 // we purposefully omit https and http as those are only valid if they end in the .git extension
 const GIT_PROTOCOLS = ['git:', 'git+ssh:', 'git+https:', 'ssh:'];

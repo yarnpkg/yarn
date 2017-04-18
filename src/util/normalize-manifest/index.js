@@ -5,7 +5,7 @@ import type Config from '../../config.js';
 import validate from './validate.js';
 import fix from './fix.js';
 
-const path = require('path');
+import path from 'path';
 
 export default async function (
   info: Object,

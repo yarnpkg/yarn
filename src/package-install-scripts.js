@@ -9,8 +9,8 @@ import executeLifecycleScript from './util/execute-lifecycle-script.js';
 import * as fs from './util/fs.js';
 import * as constants from './constants.js';
 
-const invariant = require('invariant');
-const path = require('path');
+import invariant from 'invariant';
+import path from 'path';
 
 const INSTALL_STAGES = ['preinstall', 'install', 'postinstall'];
 

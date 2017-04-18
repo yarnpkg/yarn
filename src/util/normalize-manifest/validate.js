@@ -5,7 +5,7 @@ import {MessageError} from '../../errors.js';
 import {isValidLicense} from './util.js';
 import typos from './typos.js';
 
-const isBuiltinModule = require('is-builtin-module');
+import isBuiltinModule from 'is-builtin-module';
 
 const strings = [
   'name',

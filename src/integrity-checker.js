@@ -10,8 +10,8 @@ import * as fs from './util/fs.js';
 import {sortAlpha, compareSortedArrays} from './util/misc.js';
 
 
-const invariant = require('invariant');
-const path = require('path');
+import invariant from 'invariant';
+import path from 'path';
 
 export type IntegrityCheckResult = {
   integrityFileMissing: boolean,

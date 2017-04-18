@@ -3,7 +3,7 @@
 import type {Reporter} from './reporters/index.js';
 import type Config from './config.js';
 
-const semver = require('semver');
+import semver from 'semver';
 
 // This isn't really a "proper" constraint resolver. We just return the highest semver
 // version in the versions passed that satisfies the input range. This vastly reduces

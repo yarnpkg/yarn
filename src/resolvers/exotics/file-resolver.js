@@ -7,8 +7,8 @@ import ExoticResolver from './exotic-resolver.js';
 import * as util from '../../util/misc.js';
 import * as fs from '../../util/fs.js';
 
-const invariant = require('invariant');
-const path = require('path');
+import invariant from 'invariant';
+import path from 'path';
 
 type Dependencies = {
   [key: string]: string

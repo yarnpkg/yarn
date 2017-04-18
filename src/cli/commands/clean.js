@@ -7,7 +7,7 @@ import {sortFilter, ignoreLinesToRegex} from '../../util/filter.js';
 import {CLEAN_FILENAME} from '../../constants.js';
 import * as fs from '../../util/fs.js';
 
-const path = require('path');
+import path from 'path';
 
 export const requireLockfile = true;
 export const noArguments = true;

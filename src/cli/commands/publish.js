@@ -10,10 +10,10 @@ import * as fs from '../../util/fs.js';
 import {pack} from './pack.js';
 import {getToken} from './login.js';
 
-const invariant = require('invariant');
-const crypto = require('crypto');
-const url = require('url');
-const fs2 = require('fs');
+import invariant from 'invariant';
+import crypto from 'crypto';
+import url from 'url';
+import fs2 from 'fs';
 
 export function setFlags(commander: Object) {
   versionSetFlags(commander);

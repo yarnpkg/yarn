@@ -11,8 +11,8 @@ import BlockingQueue from './util/blocking-queue.js';
 import Lockfile from './lockfile/wrapper.js';
 import map from './util/map.js';
 
-const invariant = require('invariant');
-const semver = require('semver');
+import invariant from 'invariant';
+import semver from 'semver';
 
 export default class PackageResolver {
   constructor(config: Config, lockfile: Lockfile) {

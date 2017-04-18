@@ -10,7 +10,7 @@ import * as versionUtil from '../../util/version.js';
 import * as crypto from '../../util/crypto.js';
 import * as fs from '../../util/fs.js';
 
-const invariant = require('invariant');
+import invariant from 'invariant';
 
 export default class TarballResolver extends ExoticResolver {
   constructor(request: PackageRequest, fragment: string) {

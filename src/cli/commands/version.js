@@ -9,9 +9,9 @@ import {spawn} from '../../util/child.js';
 import * as fs from '../../util/fs.js';
 import map from '../../util/map.js';
 
-const invariant = require('invariant');
-const semver = require('semver');
-const path = require('path');
+import invariant from 'invariant';
+import semver from 'semver';
+import path from 'path';
 
 const NEW_VERSION_FLAG = '--new-version [version]';
 function isValidNewVersion(oldVersion: string, newVersion: string, looseSemver: boolean): boolean {

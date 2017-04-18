@@ -7,7 +7,7 @@ import * as fs from '../../util/fs.js';
 import {getRegistryFolder} from './link.js';
 import {getBinFolder as getGlobalBinFolder} from './global';
 
-const path = require('path');
+import path from 'path';
 
 export async function run(
   config: Config,

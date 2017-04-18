@@ -15,9 +15,9 @@ import {registries, registryNames} from './registries/index.js';
 import {NoopReporter} from './reporters/index.js';
 import map from './util/map.js';
 
-const detectIndent = require('detect-indent');
-const invariant = require('invariant');
-const path = require('path');
+import detectIndent from 'detect-indent';
+import invariant from 'invariant';
+import path from 'path';
 
 export type ConfigOptions = {
   cwd?: ?string,

@@ -8,7 +8,7 @@ import type {Tree, Trees} from '../../reporters/types.js';
 import {Install} from './install.js';
 import Lockfile from '../../lockfile/wrapper.js';
 
-const invariant = require('invariant');
+import invariant from 'invariant';
 
 export const requireLockfile = true;
 

@@ -2,7 +2,7 @@
 
 import JSONReporter from './json-reporter.js';
 
-const {EventEmitter} = require('events');
+import EventEmitter from 'events';
 
 export default class EventReporter extends JSONReporter {
   emit: (type: string, data: mixed) => void;

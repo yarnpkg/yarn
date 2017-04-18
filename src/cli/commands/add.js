@@ -11,7 +11,7 @@ import {buildTree} from './list.js';
 import {wrapLifecycle, Install} from './install.js';
 import {MessageError} from '../../errors.js';
 
-const invariant = require('invariant');
+import invariant from 'invariant';
 
 export class Add extends Install {
   constructor(

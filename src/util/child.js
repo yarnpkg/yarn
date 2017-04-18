@@ -6,7 +6,7 @@ import BlockingQueue from './blocking-queue.js';
 import {MessageError, SpawnError} from '../errors.js';
 import {promisify} from './promise.js';
 
-const child = require('child_process');
+import child from 'child_process';
 
 export const queue = new BlockingQueue('child', constants.CHILD_CONCURRENCY);
 

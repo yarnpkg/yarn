@@ -1,8 +1,9 @@
 /* @flow */
 
 import map from './map.js';
+import debugFactory from 'debug';
 
-const debug = require('debug')('yarn');
+const debug = debugFactory('yarn');
 
 export default class BlockingQueue {
   constructor(alias: string, maxConcurrency?: number = Infinity) {

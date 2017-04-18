@@ -6,7 +6,7 @@ import buildSubCommands from './_build-sub-commands.js';
 import * as fs from '../../util/fs.js';
 import {METADATA_FILENAME} from '../../constants';
 
-const path = require('path');
+import path from 'path';
 
 export function hasWrapper(flags: Object, args: Array<string>): boolean {
   return args[0] !== 'dir';

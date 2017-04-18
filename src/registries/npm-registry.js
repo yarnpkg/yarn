@@ -11,10 +11,10 @@ import Registry from './base-registry.js';
 import {addSuffix, removePrefix} from '../util/misc';
 import isRequestToRegistry from './is-request-to-registry.js';
 
-const userHome = require('../util/user-home-dir').default;
-const path = require('path');
-const url = require('url');
-const ini = require('ini');
+import userHome from '../util/user-home-dir';
+import path from 'path';
+import url from 'url';
+import ini from 'ini';
 
 const DEFAULT_REGISTRY = 'https://registry.npmjs.org/';
 

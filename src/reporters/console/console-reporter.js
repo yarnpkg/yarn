@@ -16,10 +16,10 @@ import {clearLine} from './util.js';
 import {removeSuffix} from '../../util/misc.js';
 import {sortTrees, recurseTree, getFormattedOutput} from './helpers/tree-helper.js';
 
-const {inspect} = require('util');
-const readline = require('readline');
-const chalk = require('chalk');
-const read = require('read');
+import {inspect} from 'util';
+import readline from 'readline';
+import chalk from 'chalk';
+import read from 'read';
 
 type Row = Array<string>;
 

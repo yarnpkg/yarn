@@ -8,7 +8,7 @@ import {Install} from './install.js';
 import Lockfile from '../../lockfile/wrapper.js';
 import buildSubCommands from './_build-sub-commands.js';
 
-const invariant = require('invariant');
+import invariant from 'invariant';
 
 export function hasWrapper(flags: Object, args: Array<string>): boolean {
   return args[0] != 'generate-disclaimer';

@@ -17,8 +17,8 @@ import {defaultFormatter} from './format.js';
 import * as languages from './lang/index.js';
 import isCI from 'is-ci';
 
-const util = require('util');
-const EventEmitter = require('events').EventEmitter;
+import util from 'util';
+import EventEmitter from 'events';
 
 type Language = $Keys<typeof languages>;
 

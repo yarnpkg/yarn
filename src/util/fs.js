@@ -5,10 +5,12 @@ import BlockingQueue from './blocking-queue.js';
 import * as promise from './promise.js';
 import {promisify} from './promise.js';
 import map from './map.js';
+import originalMkdirp from 'mkdirp';
+import originalRimraf from 'rimraf';
 
-const path = require('path');
-const fs = require('fs');
-const os = require('os');
+import path from 'path';
+import fs from 'fs';
+import os from 'os';
 
 export const lockQueue = new BlockingQueue('fs lock');
 
@@ -20,8 +22,8 @@ export const readdir: (path: string, opts: void) => Promise<Array<string>> = pro
 export const rename: (oldPath: string, newPath: string) => Promise<void> = promisify(fs.rename);
 export const access: (path: string, mode?: number) => Promise<void> = promisify(fs.access);
 export const stat: (path: string) => Promise<fs.Stats> = promisify(fs.stat);
-export const unlink: (path: string) => Promise<void> = promisify(require('rimraf'));
-export const mkdirp: (path: string) => Promise<void> = promisify(require('mkdirp'));
+export const unlink: (path: string) => Promise<void> = promisify(originalRimraf);
+export const mkdirp: (path: string) => Promise<void> = promisify(originalMkdirp);
 export const exists: (path: string) => Promise<boolean> = promisify(fs.exists, true);
 export const lstat: (path: string) => Promise<fs.Stats> = promisify(fs.lstat);
 export const chmod: (path: string, mode: number | string) => Promise<void> = promisify(fs.chmod);
@@ -34,8 +36,8 @@ const fsSymlink: (
   path: string,
   type?: 'dir' | 'file' | 'junction'
 ) => Promise<void> = promisify(fs.symlink);
-const invariant = require('invariant');
-const stripBOM = require('strip-bom');
+import invariant from 'invariant';
+import stripBOM from 'strip-bom';
 
 const noop = () => {};
 

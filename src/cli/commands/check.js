@@ -8,8 +8,8 @@ import type {Reporter} from '../../reporters/index.js';
 import * as fs from '../../util/fs.js';
 import {Install} from './install.js';
 
-const semver = require('semver');
-const path = require('path');
+import semver from 'semver';
+import path from 'path';
 
 export const requireLockfile = false;
 export const noArguments = true;
