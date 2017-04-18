@@ -150,6 +150,21 @@ test.concurrent('pack should exclude mandatory files from ignored directories', 
   });
 });
 
+test.concurrent('pack should include mandatory files from files field on package.json', (): Promise<void> => {
+  return runPack({}, 'include-mandatory-files-from-files-field-on-packagejson', async(config): Promise<void> => {
+    const {cwd} = config;
+    const files = await getFilesFromArchive(
+      path.join(cwd, 'include-mandatory-files-from-files-field-on-packagejson-v1.0.0.tgz'),
+      path.join(cwd, 'include-mandatory-files-from-files-field-on-packagejson-v1.0.0'),
+    );
+    expect(files.indexOf('package.json')).toBeGreaterThanOrEqual(0);
+    expect(files.indexOf('node_modules')).toEqual(-1);
+    expect(files.indexOf('dist/a.js')).toBeGreaterThanOrEqual(0);
+    expect(files.indexOf('dist/b.js')).toBeGreaterThanOrEqual(0);
+    expect(files.indexOf('dist/c.js')).toEqual(-1);
+  });
+});
+
 test.concurrent('pack should exclude all other files if files array is not empty',
 (): Promise<void> => {
   return runPack({}, 'files-exclude', async (config): Promise<void> => {

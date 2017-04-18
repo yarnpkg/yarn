@@ -94,6 +94,7 @@ export async function pack(config: Config, dir: string): Promise<stream$Duplex> 
     ];
     lines = lines.concat(
       onlyFiles.map((filename: string): string => `!${filename}`),
+      onlyFiles.map((filename: string): string => `!${filename}/**`),
     );
     const regexes = ignoreLinesToRegex(lines, '.');
     filters = filters.concat(regexes);
