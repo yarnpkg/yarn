@@ -3,7 +3,6 @@
 import http from 'http';
 import {SecurityError, MessageError} from '../errors.js';
 import type {FetchedOverride} from '../types.js';
-import {UnpackStream} from '../util/stream.js';
 import * as constants from '../constants.js';
 import * as crypto from '../util/crypto.js';
 import BaseFetcher from './base-fetcher.js';
@@ -13,6 +12,8 @@ const path = require('path');
 const tarFs = require('tar-fs');
 const url = require('url');
 const fs = require('fs');
+const stream = require('stream');
+const gunzip = require('gunzip-maybe');
 
 export default class TarballFetcher extends BaseFetcher {
   async setupMirrorFromCache(): Promise<?string> {
@@ -70,10 +71,10 @@ export default class TarballFetcher extends BaseFetcher {
     reject: (error: Error) => void,
   ): {
     validateStream: crypto.HashStream,
-    extractorStream: UnpackStream,
+    extractorStream: stream.Transform,
   } {
     const validateStream = new crypto.HashStream();
-    const extractorStream = new UnpackStream();
+    const extractorStream = gunzip();
     const untarStream = tarFs.extract(this.dest, {
       strip: 1,
       dmode: 0o555, // all dirs should be readable
