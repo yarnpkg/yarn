@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "@angular/core": "^2.4.9",
+    "left-pad": "^1.0.0",
+    "rxjs": "^5.0.1",
+    "zone.js": "^0.7.2"
+  }
+}
