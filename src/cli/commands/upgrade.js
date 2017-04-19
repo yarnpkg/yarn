@@ -9,6 +9,7 @@ import PackageRequest from '../../package-request.js';
 export function setFlags(commander: Object) {
   // TODO: support some flags that install command has
   commander.usage('upgrade [flags]');
+  commander.option('-S, --scope <scope>', 'upgrade packages under the specified scope');
 }
 
 export const requireLockfile = true;
@@ -27,16 +28,37 @@ export async function run(
     peerDependencies,
   } = await config.readRootManifest() || {};
   const allDependencies = Object.assign({}, peerDependencies, optionalDependencies, devDependencies, dependencies);
+  let addArgs = [];
 
-  const addArgs = args.map((dependency) => {
-    const remoteSource = allDependencies[dependency];
+  console.log(allDependencies);
 
-    if (remoteSource && PackageRequest.getExoticResolver(remoteSource)) {
-      return remoteSource;
+  if (flags.scope) {
+    const searchPattern = new RegExp(`^${flags.scope}`);
+
+    for (const dependency of Object.keys(allDependencies)) {
+      if (searchPattern.test(dependency)) {
+        const remoteSource = allDependencies[dependency];
+
+        if (remoteSource && PackageRequest.getExoticResolver(remoteSource)) {
+          addArgs.push(remoteSource);
+        }
+
+        addArgs.push(dependency);
+      }
     }
+  } else {
+    addArgs = args.map((dependency) => {
+      const remoteSource = allDependencies[dependency];
 
-    return dependency;
-  });
+      console.log(remoteSource);
+
+      if (remoteSource && PackageRequest.getExoticResolver(remoteSource)) {
+        return remoteSource;
+      }
+
+      return dependency;
+    });
+  }
 
   const addFlags = Object.assign({}, flags, {force: true});
 
