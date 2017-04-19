@@ -115,10 +115,14 @@ test.concurrent('pack should inlude all files listed in the files array', (): Pr
       path.join(cwd, 'files-include-v1.0.0.tgz'),
       path.join(cwd, 'files-include-v1.0.0'),
     );
-    const expected = ['index.js', 'a.js', 'b.js', path.join('dir', 'nested.js')];
-    expected.forEach((filename) => {
-      expect(files.indexOf(filename)).toBeGreaterThanOrEqual(0);
-    });
+    expect(files.sort()).toEqual([
+      'a.js',
+      'b.js',
+      'dir',
+      path.join('dir', 'nested.js'),
+      'index.js',
+      'package.json',
+    ]);
   });
 });
 
