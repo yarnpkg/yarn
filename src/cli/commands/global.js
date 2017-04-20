@@ -179,7 +179,7 @@ const {run, setFlags: _setFlags} = buildSubCommands('global', {
     await updateCwd(config);
 
     const updateBins = await initUpdateBins(config, reporter, flags);
-    if (args.includes('yarn')) {
+    if (args.indexOf('yarn') !== -1) {
       reporter.warn(reporter.lang('packageContainsYarnAsGlobal'));
     }
 
