@@ -9,55 +9,86 @@ const chalk = require('chalk');
 const getDocsLink = (name) => `${constants.YARN_DOCS}${name || ''}`;
 const getDocsInfo = (name) => 'Visit ' + chalk.bold(getDocsLink(name)) + ' for documentation about this command.';
 
-const commands = {};
-
-import * as access from './access.js'; commands['access'] = access;
-import * as add from './add.js'; commands['add'] = add;
-import * as bin from './bin.js'; commands['bin'] = bin;
-import * as cache from './cache.js'; commands['cache'] = cache;
-import * as check from './check.js'; commands['check'] = check;
-import * as clean from './clean.js'; commands['clean'] = clean;
-import * as config from './config.js'; commands['config'] = config;
-import * as generateLockEntry from './generate-lock-entry.js'; commands['generateLockEntry'] = generateLockEntry;
-import * as global from './global.js'; commands['global'] = global;
-import * as help from './help.js'; commands['help'] = help;
-import * as import_ from './import.js'; commands['import'] = import_;
-import * as info from './info.js'; commands['info'] = info;
-import * as init from './init.js'; commands['init'] = init;
-import * as install from './install.js'; commands['install'] = install;
-import * as licenses from './licenses.js'; commands['licenses'] = licenses;
-import * as link from './link.js'; commands['link'] = link;
-import * as login from './login.js'; commands['login'] = login;
-import * as logout from './logout.js'; commands['logout'] = logout;
-import * as list from './list.js'; commands['list'] = list;
-import * as outdated from './outdated.js'; commands['outdated'] = outdated;
-import * as owner from './owner.js'; commands['owner'] = owner;
-import * as pack from './pack.js'; commands['pack'] = pack;
-import * as publish from './publish.js'; commands['publish'] = publish;
-import * as remove from './remove.js'; commands['remove'] = remove;
-import * as run from './run.js'; commands['run'] = run;
-import * as tag from './tag.js'; commands['tag'] = tag;
-import * as team from './team.js'; commands['team'] = team;
-import * as unlink from './unlink.js'; commands['unlink'] = unlink;
-import * as upgrade from './upgrade.js'; commands['upgrade'] = upgrade;
-import * as version from './version.js'; commands['version'] = version;
-import * as versions from './versions.js'; commands['versions'] = versions;
-import * as why from './why.js'; commands['why'] = why;
-import * as upgradeInteractive from './upgrade-interactive.js'; commands['upgradeInteractive'] = upgradeInteractive;
+import * as access from './access.js';
+import * as add from './add.js';
+import * as bin from './bin.js';
+import * as cache from './cache.js';
+import * as check from './check.js';
+import * as clean from './clean.js';
+import * as config from './config.js';
+import * as generateLockEntry from './generate-lock-entry.js';
+import * as global from './global.js';
+import * as help from './help.js';
+import * as import_ from './import.js';
+import * as info from './info.js';
+import * as init from './init.js';
+import * as install from './install.js';
+import * as licenses from './licenses.js';
+import * as link from './link.js';
+import * as login from './login.js';
+import * as logout from './logout.js';
+import * as list from './list.js';
+import * as outdated from './outdated.js';
+import * as owner from './owner.js';
+import * as pack from './pack.js';
+import * as publish from './publish.js';
+import * as remove from './remove.js';
+import * as run from './run.js';
+import * as tag from './tag.js';
+import * as team from './team.js';
+import * as unlink from './unlink.js';
+import * as upgrade from './upgrade.js';
+import * as version from './version.js';
+import * as versions from './versions.js';
+import * as why from './why.js';
+import * as upgradeInteractive from './upgrade-interactive.js';
 
 import buildUseless from './_useless.js';
 
-commands['lockfile'] = buildUseless(
-  "The lockfile command isn't necessary. `yarn install` will produce a lockfile.",
-);
-
-commands['dedupe'] = buildUseless(
-  "The dedupe command isn't necessary. `yarn install` will already dedupe.",
-);
-
-commands['prune'] = buildUseless(
-  "The prune command isn't necessary. `yarn install` will prune extraneous packages.",
-);
+const commands = {
+  access,
+  add,
+  bin,
+  cache,
+  check,
+  clean,
+  config,
+  dedupe: buildUseless(
+    "The dedupe command isn't necessary. `yarn install` will already dedupe.",
+  ),
+  generateLockEntry,
+  global,
+  help,
+  import: import_,
+  info,
+  init,
+  install,
+  licenses,
+  link,
+  lockfile: buildUseless(
+    "The lockfile command isn't necessary. `yarn install` will produce a lockfile.",
+  ),
+  login,
+  logout,
+  list,
+  outdated,
+  owner,
+  pack,
+  prune: buildUseless(
+    "The prune command isn't necessary. `yarn install` will prune extraneous packages.",
+  ),
+  publish,
+  remove,
+  run,
+  tag,
+  team,
+  unlink,
+  upgrade,
+  version,
+  versions,
+  why,
+  upgradeInteractive,
+};
 
 for (const key in commands) {
   commands[key].getDocsInfo = getDocsInfo(key);
@@ -83,6 +114,4 @@ for (const key in unsupportedAliases) {
   };
 }
 
-export default ({
-  ...commands,
-}: { [key: string]: Object });
+export default (commands);
