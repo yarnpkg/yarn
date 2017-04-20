@@ -5,6 +5,7 @@ import type Config from '../../config.js';
 import {Add} from './add.js';
 import Lockfile from '../../lockfile/wrapper.js';
 import PackageRequest from '../../package-request.js';
+import {MessageError} from '../../errors.js';
 
 export function setFlags(commander: Object) {
   // TODO: support some flags that install command has
@@ -30,33 +31,26 @@ export async function run(
   const allDependencies = Object.assign({}, peerDependencies, optionalDependencies, devDependencies, dependencies);
   let addArgs = [];
 
-  console.log(allDependencies);
-
   if (flags.scope) {
-    const searchPattern = new RegExp(`^${flags.scope}`);
+    flags.scope = flags.scope.replace(/\/?$/g, '/');
+    flags.scope = flags.scope.replace(/^@?/g, '@');
 
-    for (const dependency of Object.keys(allDependencies)) {
-      if (searchPattern.test(dependency)) {
-        const remoteSource = allDependencies[dependency];
+    if (/^@\S*\/$/g.test(flags.scope)) {
+      const searchPattern = new RegExp(`^${flags.scope}`);
 
-        if (remoteSource && PackageRequest.getExoticResolver(remoteSource)) {
-          addArgs.push(remoteSource);
-        }
-
-        addArgs.push(dependency);
-      }
+      addArgs = Object.keys(allDependencies)
+        .filter((dependency) => {
+          return searchPattern.test(dependency);
+        })
+        .map((dependency) => {
+          return getDependency(allDependencies, dependency);
+        });
+    } else {
+      throw new MessageError(reporter.lang('scopeNotValid'));
     }
   } else {
     addArgs = args.map((dependency) => {
-      const remoteSource = allDependencies[dependency];
-
-      console.log(remoteSource);
-
-      if (remoteSource && PackageRequest.getExoticResolver(remoteSource)) {
-        return remoteSource;
-      }
-
-      return dependency;
+      return getDependency(allDependencies, dependency);
     });
   }
 
@@ -64,4 +58,14 @@ export async function run(
 
   const install = new Add(addArgs, addFlags, config, reporter, lockfile);
   await install.init();
+}
+
+function getDependency(allDependencies, dependency): string {
+  const remoteSource = allDependencies[dependency];
+
+  if (remoteSource && PackageRequest.getExoticResolver(remoteSource)) {
+    return remoteSource;
+  }
+
+  return dependency;
 }
