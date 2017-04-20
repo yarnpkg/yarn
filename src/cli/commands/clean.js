@@ -129,3 +129,7 @@ export async function run(
 }
 
 export function setFlags() {}
+
+export function hasWrapper(): boolean {
+  return true;
+}
