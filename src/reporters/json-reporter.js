@@ -79,6 +79,10 @@ export default class JSONReporter extends BaseReporter {
   }
 
   activitySet(total: number, workers: number): ReporterSpinnerSet {
+    if (!this.isTTY || this.noProgress) {
+      return super.activitySet(total, workers);
+    }
+
     const id = this._activityId++;
     this._dump('activitySetStart', {id, total, workers});
 
@@ -113,6 +117,13 @@ export default class JSONReporter extends BaseReporter {
   }
 
   _activity(data: Object): ReporterSpinner {
+    if (!this.isTTY || this.noProgress) {
+      return {
+        tick() {},
+        end() {},
+      };
+    }
+
     const id = this._activityId++;
     this._dump('activityStart', {id, ...data});
 
@@ -128,6 +139,12 @@ export default class JSONReporter extends BaseReporter {
   }
 
   progress(total: number): () => void {
+    if (this.noProgress) {
+      return function() {
+        // noop
+      };
+    }
+
     const id = this._progressId++;
     let current = 0;
     this._dump('progressStart', {id, total});
