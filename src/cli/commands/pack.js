@@ -76,27 +76,13 @@ export async function pack(config: Config, dir: string): Promise<stream$Duplex> 
 
   // `files` field
   if (onlyFiles) {
-    // Append '**' to directories in the `files` field.
-    // This ensures that their contents get included.
-    const onlyFilesGlobs = await Promise.all(onlyFiles.map(async (filename: string): Promise<string> => {
-      try {
-        const loc = path.join(config.cwd, filename);
-        const stat = await fs.lstat(loc);
-
-        if (stat.isDirectory()) {
-          return path.join(filename, '**');
-        }
-        return filename;
-      } catch (err) {
-        return filename;
-      }
-    }));
     let lines = [
       '*', // ignore all files except those that are explicitly included with a negation filter
       '.*', // files with "." as first character have to be excluded explicitly
     ];
     lines = lines.concat(
-      onlyFilesGlobs.map((filename: string): string => `!${filename}`),
+      onlyFiles.map((filename: string): string => `!${filename}`),
+      onlyFiles.map((filename: string): string => `!${path.join(filename, '**')}`),
     );
     const regexes = ignoreLinesToRegex(lines, '.');
     filters = filters.concat(regexes);
