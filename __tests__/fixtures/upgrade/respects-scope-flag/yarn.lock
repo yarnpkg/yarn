@@ -2,6 +2,10 @@
 # yarn lockfile v1
 
 
+"@angular-mdl/core@^4.0.0":
+  version "4.0.3"
+  resolved "http://nexus.lan/repository/npm-public/@angular-mdl/core/-/core-4.0.3.tgz#9c52c8da1f8094db4d1b01d7d2faa366f6f35159"
+
 "@angular/core@^2.4.9":
   version "2.4.10"
   resolved "http://nexus.lan/repository/npm-public/@angular/core/-/core-2.4.10.tgz#0b8320a65065965d998645b1f5cd3cf769b441ea"
