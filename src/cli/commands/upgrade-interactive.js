@@ -94,33 +94,37 @@ export async function run(
     new inquirer.Separator(' '),
   ]));
 
-  const answers: Array<Dependency> = await reporter.prompt(
-    'Choose which packages to update.',
-    choices,
-    {
-      name: 'packages',
-      type: 'checkbox',
-      validate: (answer) => !!answer.length || 'You must choose at least one package.',
-    },
-  );
+  try {
+    const answers: Array<Dependency> = await reporter.prompt(
+      'Choose which packages to update.',
+      choices,
+      {
+        name: 'packages',
+        type: 'checkbox',
+        validate: (answer) => !!answer.length || 'You must choose at least one package.',
+      },
+    );
 
-  const getName = ({name}) => name;
-  const isHint = (x) => ({hint}) => hint === x;
+    const getName = ({name}) => name;
+    const isHint = (x) => ({hint}) => hint === x;
 
-  await [null, 'dev', 'optional', 'peer'].reduce(async (promise, hint) => {
-    // Wait for previous promise to resolve
-    await promise;
-    // Reset dependency flags
-    flags.dev = hint === 'dev';
-    flags.peer = hint === 'peer';
-    flags.optional = hint === 'optional';
+    await [null, 'dev', 'optional', 'peer'].reduce(async (promise, hint) => {
+      // Wait for previous promise to resolve
+      await promise;
+      // Reset dependency flags
+      flags.dev = hint === 'dev';
+      flags.peer = hint === 'peer';
+      flags.optional = hint === 'optional';
 
-    const deps = answers.filter(isHint(hint)).map(getName);
-    if (deps.length) {
-      reporter.info(reporter.lang('updateInstalling', getNameFromHint(hint)));
-      const add = new Add(deps, flags, config, reporter, lockfile);
-      return await add.init();
-    }
-    return Promise.resolve();
-  }, Promise.resolve());
+      const deps = answers.filter(isHint(hint)).map(getName);
+      if (deps.length) {
+        reporter.info(reporter.lang('updateInstalling', getNameFromHint(hint)));
+        const add = new Add(deps, flags, config, reporter, lockfile);
+        return await add.init();
+      }
+      return Promise.resolve();
+    }, Promise.resolve());
+  } catch (e) {
+    Promise.reject(e);
+  }
 }

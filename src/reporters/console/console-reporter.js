@@ -397,10 +397,37 @@ export default class ConsoleReporter extends BaseReporter {
       pageSize = process.stdout.rows - 2;
     }
 
+    const rl = readline.createInterface({
+      input: this.stdin,
+      output: this.stdout,
+      terminal: true,
+    });
+
+    // $FlowFixMe: Need to update the type of Inquirer
+    const prompt = inquirer.createPromptModule({
+      input: this.stdin,
+      output: this.stdout,
+    });
+
+    let rejectRef = () => {};
+    const killListener = () => {
+      rejectRef();
+    };
+
+    const handleKillFromInquirer = new Promise((resolve, reject) => {
+      rejectRef = reject;
+    });
+
+    rl.addListener('SIGINT', killListener);
+
     const {name = 'prompt', type = 'input', validate} = options;
-    const answers: InquirerResponses<string, T> = await inquirer.prompt([{
-      name, type, message, choices, pageSize, validate,
-    }]);
+    const answers: InquirerResponses<string, T> = await Promise.race([
+      prompt([{name, type, message, choices, pageSize, validate}]),
+      handleKillFromInquirer,
+    ]);
+
+    rl.removeListener('SIGINT', killListener);
+    rl.close();
 
     return answers[name];
   }
