@@ -147,6 +147,10 @@ export function getParent(key: string, treesByKey: Object) : Object {
   return treesByKey[parentKey];
 }
 
+export function hasWrapper(): boolean {
+  return true;
+}
+
 export function setFlags(commander: Object) {
   commander.option('--depth [depth]', 'Limit the depth of the shown dependencies');
 }

@@ -11,6 +11,10 @@ export function setFlags(commander: Object) {
   commander.usage('upgrade [flags]');
 }
 
+export function hasWrapper(): boolean {
+  return true;
+}
+
 export const requireLockfile = true;
 
 export async function run(

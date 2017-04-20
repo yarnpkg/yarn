@@ -8,5 +8,7 @@ export default function(message: string): { run: Function, useless: boolean } {
     run() {
       throw new MessageError(message);
     },
+    setFlags: () => {},
+    hasWrapper: () => true,
   };
 }

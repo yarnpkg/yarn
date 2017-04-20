@@ -11,6 +11,8 @@ export function hasWrapper(): boolean {
   return false;
 }
 
+export function setFlags() {}
+
 export function run(
   config: Config,
   reporter: Reporter,
@@ -27,10 +29,7 @@ export function run(
       const command = commands[commandName];
 
       if (command) {
-        if (typeof command.setFlags === 'function') {
-          command.setFlags(commander);
-        }
-
+        command.setFlags(commander);
         const examples: Array<string> = (command && command.examples) || [];
         if (examples.length) {
           commander.on('--help', () => {

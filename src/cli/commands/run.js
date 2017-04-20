@@ -22,6 +22,12 @@ function sanitizedArgs(args: Array<string>): Array<string> {
   return newArgs;
 }
 
+export function setFlags() {}
+
+export function hasWrapper(): boolean {
+  return true;
+}
+
 export async function run(
   config: Config,
   reporter: Reporter,

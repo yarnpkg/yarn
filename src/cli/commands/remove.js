@@ -14,6 +14,8 @@ const path = require('path');
 
 export const requireLockfile = true;
 
+export function setFlags() {}
+
 export async function run(
   config: Config,
   reporter: Reporter,

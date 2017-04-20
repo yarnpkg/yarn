@@ -181,6 +181,10 @@ export class Add extends Install {
   }
 }
 
+export function hasWrapper(): boolean {
+  return true;
+}
+
 export function setFlags(commander: Object) {
   commander.usage('add [packages ...] [flags]');
   commander.option('-D, --dev', 'save package to your `devDependencies`');

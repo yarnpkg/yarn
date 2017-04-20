@@ -14,6 +14,10 @@ const path = require('path');
 export const requireLockfile = false;
 export const noArguments = true;
 
+export function hasWrapper(): boolean {
+  return true;
+}
+
 export function setFlags(commander: Object) {
   commander.option('--integrity');
   commander.option('--verify-tree');

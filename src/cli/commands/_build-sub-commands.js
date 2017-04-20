@@ -13,6 +13,7 @@ type SubCommands =  {
 type Return = {
   run: CLIFunction,
   setFlags: (commander: Object) => void,
+  hasWrapper: (commander: Object, Array<string>) => boolean,
   examples: Array<string>,
 };
 
@@ -49,9 +50,13 @@ export default function(rootCommandName: string, subCommands: SubCommands, usage
     return Promise.reject(new MessageError(reporter.lang('invalidCommand', subCommandNames.join(', '))));
   }
 
+  function hasWrapper(): boolean {
+    return true;
+  }
+
   const examples = usage.map((cmd: string): string => {
     return `${rootCommandName} ${cmd}`;
   });
 
-  return {run, setFlags, examples};
+  return {run, setFlags, hasWrapper, examples};
 }

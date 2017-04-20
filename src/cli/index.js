@@ -30,6 +30,8 @@ for (const key in aliases) {
     run(config: Config, reporter: ConsoleReporter | JSONReporter): Promise<void> {
       throw new MessageError(`Did you mean \`yarn ${aliases[key]}\`?`);
     },
+    setFlags: () => {},
+    hasWrapper: () => true,
   };
 }
 
@@ -127,10 +129,7 @@ if (!command) {
   command = commands.run;
 }
 
-if (command && typeof command.setFlags === 'function') {
-  command.setFlags(commander);
-}
-
+command.setFlags(commander);
 commander.parse([
   ...startArgs,
   // we use this for https://github.com/tj/commander.js/issues/346, otherwise
@@ -147,10 +146,7 @@ console.assert(commander.args[0] === 'this-arg-will-get-stripped-later');
 commander.args.shift();
 
 //
-let Reporter = ConsoleReporter;
-if (commander.json) {
-  Reporter = JSONReporter;
-}
+const Reporter = commander.json ? JSONReporter : ConsoleReporter;
 const reporter = new Reporter({
   emoji: commander.emoji && process.stdout.isTTY && process.platform === 'darwin',
   verbose: commander.verbose,
@@ -161,15 +157,8 @@ const reporter = new Reporter({
 reporter.initPeakMemoryCounter();
 
 const config = new Config(reporter);
+const outputWrapper = !commander.json && command.hasWrapper(commander, commander.args);
 
-// print header
-let outputWrapper = true;
-if (typeof command.hasWrapper === 'function') {
-  outputWrapper = command.hasWrapper(commander, commander.args);
-}
-if (commander.json) {
-  outputWrapper = false;
-}
 if (outputWrapper) {
   reporter.header(commandName, pkg);
 }
