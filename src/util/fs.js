@@ -168,21 +168,29 @@ async function buildActionsForCopy(
       srcFiles = await readdir(src);
     }
 
-    if (await exists(dest)) {
-      const destStat = await lstat(dest);
+    let destStat;
+    try {
+      // try accessing the destination
+      destStat = await lstat(dest);
+    } catch (e) {
+      // proceed if destination doesn't exist, otherwise error
+      if (e.code !== 'ENOENT') throw e;
+    }
 
+    // if destination exists
+    if (destStat) {
       const bothSymlinks = srcStat.isSymbolicLink() && destStat.isSymbolicLink();
       const bothFolders = srcStat.isDirectory() && destStat.isDirectory();
       const bothFiles = srcStat.isFile() && destStat.isFile();
 
-      if (srcStat.mode !== destStat.mode) {
+      // EINVAL access errors sometimes happen which shouldn't because node shouldn't be giving
+      // us modes that aren't valid. investigate this, it's generally safe to proceed.
+
+      /* if (srcStat.mode !== destStat.mode) {
         try {
           await access(dest, srcStat.mode);
-        } catch (err) {
-          // EINVAL access errors sometimes happen which shouldn't because node shouldn't be giving
-          // us modes that aren't valid. investigate this, it's generally safe to proceed.
-        }
-      }
+        } catch (err) {}
+      } */
 
       if (bothFiles && srcStat.size === destStat.size && fileDatesEqual(srcStat.mtime, destStat.mtime)) {
         // we can safely assume this is the same file
@@ -210,12 +218,6 @@ async function buildActionsForCopy(
           if (srcFiles.indexOf(file) < 0) {
             const loc = path.join(dest, file);
             possibleExtraneous.add(loc);
-
-            if ((await lstat(loc)).isDirectory()) {
-              for (const file of await readdir(loc)) {
-                possibleExtraneous.add(path.join(loc, file));
-              }
-            }
           }
         }
       }
@@ -231,8 +233,10 @@ async function buildActionsForCopy(
       });
       onDone();
     } else if (srcStat.isDirectory()) {
-      reporter.verbose(reporter.lang('verboseFileFolder', dest));
-      await mkdirp(dest);
+      if (!destStat) {
+        reporter.verbose(reporter.lang('verboseFileFolder', dest));
+        await mkdirp(dest);
+      }
 
       const destParts = dest.split(path.sep);
       while (destParts.length) {
