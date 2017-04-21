@@ -201,7 +201,7 @@ const {run, setFlags: _setFlags} = buildSubCommands('global', {
     flags: Object,
     args: Array<string>,
   ) {
-    console.log(getBinFolder(config, flags));
+    reporter.log(getBinFolder(config, flags));
   },
 
   async ls(

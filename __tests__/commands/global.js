@@ -5,6 +5,7 @@ import {ConsoleReporter} from '../../src/reporters/index.js';
 import {run as buildRun} from './_helpers.js';
 import {run as global} from '../../src/cli/commands/global.js';
 import * as fs from '../../src/util/fs.js';
+import mkdir from '../_temp.js';
 const isCI = require('is-ci');
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 90000;
@@ -34,6 +35,10 @@ function getTempGlobalFolder(): string {
   return path.join(os.tmpdir(), `yarn-global-${Math.random()}`);
 }
 
+async function createTempGlobalFolder(): Promise<string> {
+  return await mkdir('yarn-global');
+}
+
 // this test has global folder side effects, run it only in CI
 if (isCI) {
   test.concurrent('add without flag', (): Promise<void> => {
@@ -60,5 +65,13 @@ test('add with PREFIX enviroment variable', (): Promise<void> => {
     expect(await fs.exists(getGlobalPath(tmpGlobalFolder, 'react-native'))).toEqual(true);
     // restore env
     process.env.PREFIX = envPrefix;
+  });
+});
+
+test.concurrent('bin', () => {
+  const tmpGlobalFolder = getTempGlobalFolder();
+  return runGlobal(['bin'], {prefix: tmpGlobalFolder}, 'add-with-prefix-flag',
+  (config, reporter, install, getStdout) => {
+    expect(getStdout()).toContain(path.join(tmpGlobalFolder, 'bin'));
   });
 });
