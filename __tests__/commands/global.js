@@ -68,10 +68,18 @@ test('add with PREFIX enviroment variable', (): Promise<void> => {
   });
 });
 
-test.concurrent('bin', () => {
+test.concurrent('bin', (): Promise<void> => {
   const tmpGlobalFolder = getTempGlobalFolder();
   return runGlobal(['bin'], {prefix: tmpGlobalFolder}, 'add-with-prefix-flag',
   (config, reporter, install, getStdout) => {
     expect(getStdout()).toContain(path.join(tmpGlobalFolder, 'bin'));
+  });
+});
+
+test.concurrent('add', async (): Promise<void> => {
+  const tmpGlobalFolder = await createTempGlobalFolder();
+  return runGlobal(['add', 'react-native-cli'], {globalFolder: tmpGlobalFolder}, 'add-with-prefix-flag',
+  async (config) => {
+    expect(await fs.exists(path.join(tmpGlobalFolder, 'node_modules', 'react-native-cli'))).toEqual(true);
   });
 });

@@ -122,7 +122,7 @@ export async function run<T, R>(
     const config = await Config.create({
       binLinks: !!flags.binLinks,
       cwd,
-      globalFolder: path.join(cwd, '.yarn-global'),
+      globalFolder: flags.globalFolder || path.join(cwd, '.yarn-global'),
       cacheFolder: flags.cacheFolder || path.join(cwd, '.yarn-cache'),
       linkFolder: flags.linkFolder || path.join(cwd, '.yarn-link'),
       production: flags.production,
