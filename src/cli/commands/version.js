@@ -94,7 +94,9 @@ export async function setVersion(
   invariant(newVersion, 'expected new version');
 
   if (newVersion === pkg.version) {
-    throw new MessageError(reporter.lang('publishSame'));
+    return function(): Promise<void> {
+      return Promise.resolve();
+    };
   }
 
   await runLifecycle('preversion');

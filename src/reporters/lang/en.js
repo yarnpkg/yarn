@@ -219,7 +219,6 @@ const messages = {
   incorrectCredentials: 'Incorrect username or password.',
   clearedCredentials: 'Cleared login credentials.',
 
-  publishSame: 'New version is the same as the current version.',
   publishFail: "Couldn't publish package.",
   publishPrivate: 'Package marked as private, not publishing.',
   published: 'Published.',
