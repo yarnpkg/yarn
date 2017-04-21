@@ -19,7 +19,6 @@ async function execCommand(cmd: string, packageName: string, env = process.env):
   await fs.copy(srcPackageDir, packageDir, new NoopReporter());
 
   return new Promise((resolve, reject) => {
-
     exec(`node "${yarnBin}" ${cmd}`, {cwd:packageDir, env}, (err, stdout) => {
       if (err) {
         reject(err);
@@ -116,4 +115,24 @@ test('should run both prepublish and prepare when installing, but not prepublish
 test('should allow setting environment variables via yarnrc', async () => {
   const stdout = await execCommand('install', 'yarnrc-env');
   expect(stdout).toMatch(/^BAR$/m);
+});
+
+test('should inherit existing environment variables when setting via yarnrc', async () => {
+  const srcPackageDir = path.join(fixturesLoc, 'yarnrc-env');
+  const packageDir = await makeTemp('yarnrc-env-nested');
+
+  await fs.copy(srcPackageDir, packageDir, new NoopReporter());
+
+  const stdout  = await new Promise((resolve, reject) => {
+    exec(`node "${yarnBin}" install`, {cwd:path.join(packageDir, 'nested')}, (err, stdout) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(stdout.toString());
+      }
+    });
+  });
+
+  expect(stdout).toMatch(/^RAB$/m);
+  expect(stdout).toMatch(/^FOO$/m);
 });
