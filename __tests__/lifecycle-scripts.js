@@ -112,3 +112,8 @@ test('should run both prepublish and prepare when installing, but not prepublish
 
   expect(stdout).not.toMatch(/^running the prepublishOnly hook$/m);
 });
+
+test('should allow setting environment variables via yarnrc', async () => {
+  const stdout = await execCommand('install', 'yarnrc-env');
+  expect(stdout).toMatch(/^BAR$/m);
+});
