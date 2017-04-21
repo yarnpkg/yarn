@@ -178,6 +178,10 @@ export default class TarballFetcher extends BaseFetcher {
   }
 
   async _fetch(): Promise<FetchedOverride> {
+    if (url.parse(this.reference).protocol === null) {
+      return await this.fetchFromLocal(this.reference);
+    }
+
     if (await this.getLocalAvailabilityStatus()) {
       return await this.fetchFromLocal();
     } else {
