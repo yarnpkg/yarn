@@ -68,13 +68,16 @@ function addEntry(packer: any, entry: Object, buffer?: ?Buffer): Promise<void> {
 
 export async function pack(config: Config, dir: string): Promise<stream$Duplex> {
   const pkg = await config.readRootManifest();
-  const {bundledDependencies, files: onlyFiles} = pkg;
+  const {bundledDependencies, main, files: onlyFiles} = pkg;
 
   // include required files
   let filters: Array<IgnoreFilter> = NEVER_IGNORE.slice();
   // include default filters unless `files` is used
   if (!onlyFiles) {
     filters = filters.concat(DEFAULT_IGNORE);
+  }
+  if (main) {
+    filters = filters.concat(ignoreLinesToRegex(['!/' + main]));
   }
 
   // include bundledDependencies
