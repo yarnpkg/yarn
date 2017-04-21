@@ -83,3 +83,14 @@ test.concurrent('add', async (): Promise<void> => {
     expect(await fs.exists(path.join(tmpGlobalFolder, 'node_modules', 'react-native-cli'))).toEqual(true);
   });
 });
+
+test.concurrent('remove', async (): Promise<void> => {
+  const tmpGlobalFolder = await createTempGlobalFolder();
+  return runGlobal(['add', 'react-native-cli'], {globalFolder: tmpGlobalFolder}, 'add-with-prefix-flag', () => {})
+  .then(() => {
+    return runGlobal(['remove', 'react-native-cli'], {globalFolder: tmpGlobalFolder}, 'add-with-prefix-flag',
+    async (config) => {
+      expect(await fs.exists(path.join(tmpGlobalFolder, 'node_modules', 'react-native-cli'))).toEqual(false);
+    });
+  });
+});
