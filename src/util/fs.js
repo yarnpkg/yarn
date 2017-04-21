@@ -218,6 +218,12 @@ async function buildActionsForCopy(
           if (srcFiles.indexOf(file) < 0) {
             const loc = path.join(dest, file);
             possibleExtraneous.add(loc);
+
+            if ((await lstat(loc)).isDirectory()) {
+              for (const file of await readdir(loc)) {
+                possibleExtraneous.add(path.join(loc, file));
+              }
+            }
           }
         }
       }
