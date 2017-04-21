@@ -6,6 +6,7 @@ import type {Reporter} from './reporters/index.js';
 import type Config from './config.js';
 import type {HoistManifestTuples} from './package-hoister.js';
 import type {CopyQueueItem} from './util/fs.js';
+import type {InstallArtifacts} from './package-install-scripts.js';
 import PackageHoister from './package-hoister.js';
 import * as constants from './constants.js';
 import * as promise from './util/promise.js';
@@ -43,11 +44,17 @@ export default class PackageLinker {
     this.resolver = resolver;
     this.reporter = config.reporter;
     this.config = config;
+    this.artifacts = {};
   }
 
+  artifacts: InstallArtifacts;
   reporter: Reporter;
   resolver: PackageResolver;
   config: Config;
+
+  setArtifacts(artifacts: InstallArtifacts) {
+    this.artifacts = artifacts;
+  }
 
   async linkSelfDependencies(pkg: Manifest, pkgLoc: string, targetBinLoc: string): Promise<void> {
     targetBinLoc = await fs.realpath(targetBinLoc);
@@ -139,11 +146,17 @@ export default class PackageLinker {
       invariant(ref, 'expected package reference');
       ref.setLocation(dest);
 
-      // get a list of build artifacts contained in this module so we can prevent them from being marked as
-      // extraneous
+      // backwards compatibility: get build artifacts from metadata
       const metadata = await this.config.readPackageMetadata(src);
       for (const file of metadata.artifacts) {
         artifactFiles.push(path.join(dest, file));
+      }
+
+      const integrityArtifacts = this.artifacts[`${pkg.name}@${pkg.version}`];
+      if (integrityArtifacts) {
+        for (const file of integrityArtifacts) {
+          artifactFiles.push(path.join(dest, file));
+        }
       }
 
       const copiedDest = copiedSrcs.get(src);
