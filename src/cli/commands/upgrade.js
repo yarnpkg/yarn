@@ -32,15 +32,18 @@ export async function run(
   let addArgs = [];
 
   if (flags.scope) {
-    flags.scope = flags.scope.replace(/\/?$/g, '/');
-    flags.scope = flags.scope.replace(/^@?/g, '@');
+    if (!flags.scope.startsWith('@')) {
+      flags.scope = '@' + flags.scope;
+    }
 
-    if (/^@\S*\/$/g.test(flags.scope)) {
-      const searchPattern = new RegExp(`^${flags.scope}`);
+    if (!flags.scope.endsWith('/')) {
+      flags.scope += '/';
+    }
 
+    if (/^@[a-zA-Z0-9-][a-zA-Z0-9_.-]*\/$/g.test(flags.scope)) {
       addArgs = Object.keys(allDependencies)
         .filter((dependency) => {
-          return searchPattern.test(dependency);
+          return dependency.startsWith(flags.scope);
         })
         .map((dependency) => {
           return getDependency(allDependencies, dependency);
