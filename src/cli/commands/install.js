@@ -233,6 +233,40 @@ export class Install {
       const json = await this.config.readJson(loc);
       await normalizeManifest(json, this.config.cwd, this.config, true);
 
+      const aggregateManifests = async (root: Manifest, rootCwd: string) => {
+        if (root.workspaces) {
+          for (const workspace of root.workspaces) {
+            let workspaceCwd = path.join(rootCwd, workspace);
+            const workspaceLoc = path.join(workspaceCwd, filename);
+            if (!(await fs.exists(workspaceLoc))) {
+              continue;
+            }
+            const workspaceJson: Manifest = await this.config.readJson(workspaceLoc);
+            await normalizeManifest(workspaceJson, workspaceCwd, this.config, true);
+
+            // merge deps
+            for (const type of ['dependencies', 'devDependencies', 'optionalDependencies']) {
+              if (workspaceJson[type]) {
+                for (const key in workspaceJson[type]) {
+                  if (root[type] && root[type][key] && root[type][key] !== workspaceJson[type][key]) {
+                    this.reporter.warn(
+                      this.reporter.lang('incompatibleDependenciesInWorkspace', key, workspaceCwd, rootCwd),
+                    );
+                    continue;
+                  }
+                  root[type][key] = workspaceJson[type][key];
+                }
+              }
+            }
+            // TODO lifecyclescripts?
+            // TODO workspaces referencing each other?
+            // TODO publish
+            await aggregateManifests(workspaceJson, workspaceCwd)
+          }
+        }
+      };
+      await aggregateManifests(json, this.config.cwd);
+
       Object.assign(this.resolutions, json.resolutions);
       Object.assign(manifest, json);
 

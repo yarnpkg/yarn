@@ -127,6 +127,8 @@ export type Manifest = {
   deprecated?: string,
   files?: Array<string>,
   main?: string,
+
+  workspaces?: Array<string>,
 };
 
 //
