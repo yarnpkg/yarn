@@ -47,3 +47,12 @@ export type QuestionOptions = {
   password?: boolean,
   required?: boolean,
 };
+
+export type InquirerPromptTypes = 'list' | 'rawlist' | 'expand' |
+  'checkbox' | 'confirm' | 'input' | 'password' | 'editor';
+
+export type PromptOptions = {
+  name?: string,
+  type?: InquirerPromptTypes,
+  validate?: (input: string | Array<string>) => (boolean | string),
+};

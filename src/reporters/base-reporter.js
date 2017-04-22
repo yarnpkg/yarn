@@ -10,6 +10,7 @@ import type {
   Package,
   ReporterSpinner,
   QuestionOptions,
+  PromptOptions,
 } from './types.js';
 import type {LanguageKeys} from './lang/en.js';
 import type {Formatter} from './format.js';
@@ -258,5 +259,12 @@ export default class BaseReporter {
   // utility function to disable progress bar
   disableProgress() {
     this.noProgress = true;
+  }
+
+  //
+  prompt<T>(
+    message: string, choices: Array<*>, options?: PromptOptions = {},
+  ): Promise<Array<T>> {
+    return Promise.reject(new Error('Not implemented'));
   }
 }

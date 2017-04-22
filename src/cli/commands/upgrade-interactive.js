@@ -9,8 +9,6 @@ import {Add} from './add.js';
 import {Install} from './install.js';
 import Lockfile from '../../lockfile/wrapper.js';
 
-const tty = require('tty');
-
 export const requireLockfile = true;
 
 export function setFlags(commander: Object) {
@@ -21,25 +19,6 @@ export function setFlags(commander: Object) {
 
 export function hasWrapper(): boolean {
   return true;
-}
-
-type InquirerResponses<K, T> = {[key: K]: Array<T>};
-
-// Prompt user with Inquirer
-async function prompt(choices): Promise<Array<Dependency>> {
-  let pageSize;
-  if (process.stdout instanceof tty.WriteStream) {
-    pageSize = process.stdout.rows - 2;
-  }
-  const answers: InquirerResponses<'packages', Dependency> = await inquirer.prompt([{
-    name: 'packages',
-    type: 'checkbox',
-    message: 'Choose which packages to update.',
-    choices,
-    pageSize,
-    validate: (answer) => !!answer.length || 'You must choose at least one package.',
-  }]);
-  return answers.packages;
 }
 
 export async function run(
@@ -109,31 +88,43 @@ export async function run(
       (ys, y) => ys.concat(Array.isArray(y) ? flatten(y) : y), [],
   );
 
-  const choices = Object.keys(groupedDeps).map((key) => [
+  const choices = flatten(Object.keys(groupedDeps).map((key) => [
     new inquirer.Separator(reporter.format.bold.underline.green(key)),
     groupedDeps[key],
     new inquirer.Separator(' '),
-  ]);
+  ]));
 
-  const answers = await prompt(flatten(choices));
+  try {
+    const answers: Array<Dependency> = await reporter.prompt(
+      'Choose which packages to update.',
+      choices,
+      {
+        name: 'packages',
+        type: 'checkbox',
+        validate: (answer) => !!answer.length || 'You must choose at least one package.',
+      },
+    );
 
-  const getName = ({name}) => name;
-  const isHint = (x) => ({hint}) => hint === x;
+    const getName = ({name}) => name;
+    const isHint = (x) => ({hint}) => hint === x;
 
-  await [null, 'dev', 'optional', 'peer'].reduce(async (promise, hint) => {
-    // Wait for previous promise to resolve
-    await promise;
-    // Reset dependency flags
-    flags.dev = hint === 'dev';
-    flags.peer = hint === 'peer';
-    flags.optional = hint === 'optional';
+    await [null, 'dev', 'optional', 'peer'].reduce(async (promise, hint) => {
+      // Wait for previous promise to resolve
+      await promise;
+      // Reset dependency flags
+      flags.dev = hint === 'dev';
+      flags.peer = hint === 'peer';
+      flags.optional = hint === 'optional';
 
-    const deps = answers.filter(isHint(hint)).map(getName);
-    if (deps.length) {
-      reporter.info(reporter.lang('updateInstalling', getNameFromHint(hint)));
-      const add = new Add(deps, flags, config, reporter, lockfile);
-      return await add.init();
-    }
-    return Promise.resolve();
-  }, Promise.resolve());
+      const deps = answers.filter(isHint(hint)).map(getName);
+      if (deps.length) {
+        reporter.info(reporter.lang('updateInstalling', getNameFromHint(hint)));
+        const add = new Add(deps, flags, config, reporter, lockfile);
+        return await add.init();
+      }
+      return Promise.resolve();
+    }, Promise.resolve());
+  } catch (e) {
+    Promise.reject(e);
+  }
 }

@@ -7,6 +7,7 @@ import type {
   ReporterSpinner,
   ReporterSelectOption,
   QuestionOptions,
+  PromptOptions,
 } from '../types.js';
 import type {FormatKeys} from '../format.js';
 import BaseReporter from '../base-reporter.js';
@@ -15,13 +16,16 @@ import Spinner from './spinner-progress.js';
 import {clearLine} from './util.js';
 import {removeSuffix} from '../../util/misc.js';
 import {sortTrees, recurseTree, getFormattedOutput} from './helpers/tree-helper.js';
+import inquirer from 'inquirer';
 
 const {inspect} = require('util');
 const readline = require('readline');
 const chalk = require('chalk');
 const read = require('read');
+const tty = require('tty');
 
 type Row = Array<string>;
+type InquirerResponses<K, T> = {[key: K]: Array<T>};
 
 export default class ConsoleReporter extends BaseReporter {
   constructor(opts: Object) {
@@ -379,5 +383,52 @@ export default class ConsoleReporter extends BaseReporter {
     return function() {
       bar.tick();
     };
+  }
+
+  async prompt<T>(
+    message: string, choices: Array<*>, options?: PromptOptions = {},
+  ): Promise<Array<T>> {
+    if (!process.stdout.isTTY) {
+      return Promise.reject(new Error("Can't answer a question unless a user TTY"));
+    }
+
+    let pageSize;
+    if (process.stdout instanceof tty.WriteStream) {
+      pageSize = process.stdout.rows - 2;
+    }
+
+    const rl = readline.createInterface({
+      input: this.stdin,
+      output: this.stdout,
+      terminal: true,
+    });
+
+    // $FlowFixMe: Need to update the type of Inquirer
+    const prompt = inquirer.createPromptModule({
+      input: this.stdin,
+      output: this.stdout,
+    });
+
+    let rejectRef = () => {};
+    const killListener = () => {
+      rejectRef();
+    };
+
+    const handleKillFromInquirer = new Promise((resolve, reject) => {
+      rejectRef = reject;
+    });
+
+    rl.addListener('SIGINT', killListener);
+
+    const {name = 'prompt', type = 'input', validate} = options;
+    const answers: InquirerResponses<string, T> = await Promise.race([
+      prompt([{name, type, message, choices, pageSize, validate}]),
+      handleKillFromInquirer,
+    ]);
+
+    rl.removeListener('SIGINT', killListener);
+    rl.close();
+
+    return answers[name];
   }
 }
