@@ -9,8 +9,6 @@ import {Add} from './add.js';
 import {Install} from './install.js';
 import Lockfile from '../../lockfile/wrapper.js';
 
-const tty = require('tty');
-
 export const requireLockfile = true;
 
 export function setFlags(commander: Object) {
@@ -28,7 +26,7 @@ type InquirerResponses<K, T> = {[key: K]: Array<T>};
 // Prompt user with Inquirer
 async function prompt(choices): Promise<Array<Dependency>> {
   let pageSize;
-  if (process.stdout instanceof tty.WriteStream) {
+  if (process.stdout.isTTY) {
     pageSize = process.stdout.rows - 2;
   }
   const answers: InquirerResponses<'packages', Dependency> = await inquirer.prompt([{

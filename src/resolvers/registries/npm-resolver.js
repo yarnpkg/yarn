@@ -11,7 +11,6 @@ import * as fs from '../../util/fs.js';
 import {YARN_REGISTRY} from '../../constants.js';
 
 const inquirer = require('inquirer');
-const tty = require('tty');
 const invariant = require('invariant');
 const path = require('path');
 
@@ -49,7 +48,7 @@ export default class NpmResolver extends RegistryResolver {
       }
       config.reporter.log(config.reporter.lang('couldntFindVersionThatMatchesRange', body.name, range));
       let pageSize;
-      if (process.stdout instanceof tty.WriteStream) {
+      if (process.stdout.isTTY) {
         pageSize = process.stdout.rows - 2;
       }
       const response: {[key: string]: ?string} = await inquirer.prompt([{
