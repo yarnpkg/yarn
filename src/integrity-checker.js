@@ -8,7 +8,7 @@ import * as constants from './constants.js';
 import {registryNames} from './registries/index.js';
 import * as fs from './util/fs.js';
 import {sortAlpha, compareSortedArrays} from './util/misc.js';
-
+import type {InstallArtifacts} from './package-install-scripts.js';
 
 const invariant = require('invariant');
 const path = require('path');
@@ -17,6 +17,7 @@ export type IntegrityCheckResult = {
   integrityFileMissing: boolean,
   integrityMatches?: boolean,
   missingPatterns: Array<string>,
+  artifacts?: ?InstallArtifacts,
 };
 
 type IntegrityHashLocation = {
@@ -33,6 +34,7 @@ type IntegrityFile = {
     [key: string]: string
   },
   files: Array<string>,
+  artifacts: ?InstallArtifacts,
 }
 
 type IntegrityFlags = {
@@ -125,6 +127,7 @@ export default class InstallationIntegrityChecker {
     patterns: Array<string>,
     flags: IntegrityFlags,
     modulesFolder: string,
+    artifacts?: InstallArtifacts,
   ): Promise<IntegrityFile> {
 
     const result: IntegrityFile = {
@@ -133,6 +136,7 @@ export default class InstallationIntegrityChecker {
       topLevelPatters: [],
       lockfileEntries: {},
       files: [],
+      artifacts,
     };
 
     result.topLevelPatters = patterns.sort(sortAlpha);
@@ -247,6 +251,7 @@ export default class InstallationIntegrityChecker {
       integrityFileMissing: false,
       integrityMatches,
       missingPatterns,
+      artifacts: expected ? expected.artifacts : null,
     };
   }
 
@@ -257,11 +262,12 @@ export default class InstallationIntegrityChecker {
     patterns: Array<string>,
     lockfile: {[key: string]: LockManifest},
     flags: IntegrityFlags,
-    usedRegistries?: Set<RegistryNames>): Promise<void> {
+    usedRegistries?: Set<RegistryNames>,
+    artifacts: InstallArtifacts): Promise<void> {
     const loc = await this._getIntegrityHashLocation(usedRegistries);
     invariant(loc.locationPath, 'expected integrity hash location');
     await fs.mkdirp(path.dirname(loc.locationPath));
-    const integrityFile = await this._generateIntegrityFile(lockfile, patterns, flags, loc.locationFolder);
+    const integrityFile = await this._generateIntegrityFile(lockfile, patterns, flags, loc.locationFolder, artifacts);
     await fs.writeFile(loc.locationPath, JSON.stringify(integrityFile, null, 2));
   }
 

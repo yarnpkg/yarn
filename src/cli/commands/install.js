@@ -329,6 +329,12 @@ export class Install {
       return true;
     }
 
+    const {artifacts} = match;
+    if (artifacts) {
+      this.linker.setArtifacts(artifacts);
+      this.scripts.setArtifacts(artifacts);
+    }
+
     return false;
   }
 
@@ -603,7 +609,13 @@ export class Install {
     }
 
     // write integrity hash
-    await this.integrityChecker.save(patterns, lockfileBasedOnResolver, this.flags, this.resolver.usedRegistries);
+    await this.integrityChecker.save(
+      patterns,
+      lockfileBasedOnResolver,
+      this.flags,
+      this.resolver.usedRegistries,
+      this.scripts.getArtifacts(),
+    );
 
     const lockFileHasAllPatterns = patterns.filter((p) => !this.lockfile.getLocked(p)).length === 0;
     const resolverPatternsAreSameAsInLockfile = Object.keys(lockfileBasedOnResolver)
