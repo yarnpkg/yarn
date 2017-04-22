@@ -57,11 +57,12 @@ export default class NpmRegistry extends Registry {
     const registry = this.getRegistry(packageName || pathname);
     const requestUrl = url.resolve(registry, pathname);
     const alwaysAuth = this.getRegistryOrGlobalOption(registry, 'always-auth');
+    const customHostSuffix = this.getRegistryOrGlobalOption(registry, 'custom-host-suffix');
 
     const headers = Object.assign({
       'Accept': 'application/vnd.npm.install-v1+json; q=1.0, application/json; q=0.8, */*',
     }, opts.headers);
-    if (this.token || (alwaysAuth && isRequestToRegistry(requestUrl, registry))) {
+    if (this.token || (alwaysAuth && isRequestToRegistry(requestUrl, registry, customHostSuffix))) {
       const authorization = this.getAuth(packageName || pathname);
       if (authorization) {
         headers.authorization = authorization;

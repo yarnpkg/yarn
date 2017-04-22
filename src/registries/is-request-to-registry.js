@@ -4,7 +4,7 @@ import url from 'url';
 
 const SUFFIX_VISUALSTUDIO = '.pkgs.visualstudio.com';
 
-export default function isRequestToRegistry(requestUrl: string, registry: string): boolean {
+export default function isRequestToRegistry(requestUrl: string, registry: string, customHostSuffix: ? any): boolean {
   const requestParsed = url.parse(requestUrl);
   const registryParsed = url.parse(registry);
   const requestHost = requestParsed.hostname || '';
