@@ -7,10 +7,8 @@ import type Config from './config.js';
 import type {ReporterSetSpinner} from './reporters/types.js';
 import executeLifecycleScript from './util/execute-lifecycle-script.js';
 import * as fs from './util/fs.js';
-import * as constants from './constants.js';
 
 const invariant = require('invariant');
-const path = require('path');
 
 const INSTALL_STAGES = ['preinstall', 'install', 'postinstall'];
 

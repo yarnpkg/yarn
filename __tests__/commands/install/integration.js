@@ -50,8 +50,6 @@ afterEach(request.__resetAuthedRequests);
 
 test.concurrent('properly find and save build artifacts', async () => {
   await runInstall({}, 'artifacts-finds-and-saves', async (config): Promise<void> => {
-    const cacheFolder = path.join(config.cacheFolder, 'npm-dummy-0.0.0');
-
     const integrity = await fs.readJson(path.join(config.cwd, 'node_modules', constants.INTEGRITY_FILENAME));
 
     expect(integrity.artifacts['dummy@0.0.0']).toEqual(
