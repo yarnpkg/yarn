@@ -2,7 +2,7 @@
 
 import type {CLIFunctionReturn} from '../../src/types.js';
 import {ConsoleReporter} from '../../src/reporters/index.js';
-import {run as buildRun} from './_helpers.js';
+import {getTempGlobalFolder, run as buildRun} from './_helpers.js';
 import {run as global} from '../../src/cli/commands/global.js';
 import * as fs from '../../src/util/fs.js';
 const isCI = require('is-ci');
@@ -28,10 +28,6 @@ function getGlobalPath(prefix, name): string {
   } else {
     return path.join(prefix, 'bin', name);
   }
-}
-
-function getTempGlobalFolder(): string {
-  return path.join(os.tmpdir(), `yarn-global-${Math.random()}`);
 }
 
 // this test has global folder side effects, run it only in CI

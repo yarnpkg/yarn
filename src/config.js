@@ -261,6 +261,7 @@ export default class Config {
     this._cacheRootFolder = String(
       opts.cacheFolder ||
       this.getOption('cache-folder') ||
+      process.env.YARN_CACHE_FOLDER ||
       constants.MODULE_CACHE_DIRECTORY,
     );
 

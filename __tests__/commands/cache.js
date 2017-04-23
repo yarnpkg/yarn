@@ -3,8 +3,9 @@
 import * as reporters from '../../src/reporters/index.js';
 import * as fs from '../../src/util/fs.js';
 import {run} from '../../src/cli/commands/cache.js';
-import {run as buildRun, runInstall} from './_helpers.js';
+import {getTempGlobalFolder, run as buildRun, runInstall} from './_helpers.js';
 
+const os = require('os');
 const path = require('path');
 const stream = require('stream');
 
@@ -42,9 +43,22 @@ test('ls with scoped package', async (): Promise<void> => {
   });
 });
 
-test('dir', async (): Promise<void> => {
+test('dir, override YARN_CACHE_FOLDER with config', async (): Promise<void> => {
+  // The test harness sets cache folder config by default
   await runCache(['dir'], {}, '', (config, reporter, stdout) => {
     expect(stdout).toContain(JSON.stringify(config.cacheFolder));
+  });
+});
+
+test('dir defaults to YARN_CACHE_FOLDER env var', async (): Promise<void> => {
+  const envCacheFolder = process.env.YARN_CACHE_FOLDER;
+  const tempFolder = getTempGlobalFolder();
+  process.env.YARN_CACHE_FOLDER = tempFolder;
+  await runCache(['dir'], {noCache: true}, '', (config, reporter, stdout) => {
+
+    expect(stdout).toContain(tempFolder);
+    // restore env
+    process.env.YARN_CACHE_FOLDER = envCacheFolder;
   });
 });
 
