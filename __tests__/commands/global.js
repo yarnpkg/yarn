@@ -105,3 +105,15 @@ test.concurrent('ls', async (): Promise<void> => {
     });
   });
 });
+
+test.concurrent('upgrade', async (): Promise<void> => {
+  const tmpGlobalFolder = await createTempGlobalFolder();
+  return runGlobal(['add', 'react-native-cli@2.0.0'], {globalFolder: tmpGlobalFolder}, 'add-with-prefix-flag', () => {})
+  .then(() => {
+    return runGlobal(['upgrade', 'react-native-cli'], {globalFolder: tmpGlobalFolder}, 'add-with-prefix-flag',
+    (config, reporter, install, getStdout) => {
+      expect(getStdout()).toContain('react-native-cli');
+      expect(getStdout()).not.toContain('react-native-cli@2.0.0');
+    });
+  });
+});
