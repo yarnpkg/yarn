@@ -125,6 +125,7 @@ export async function run<T, R>(
       globalFolder: flags.globalFolder || path.join(cwd, '.yarn-global'),
       cacheFolder: flags.cacheFolder || path.join(cwd, '.yarn-cache'),
       linkFolder: flags.linkFolder || path.join(cwd, '.yarn-link'),
+      prefix: flags.prefix,
       production: flags.production,
     }, reporter);
 
