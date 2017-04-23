@@ -94,3 +94,14 @@ test.concurrent('remove', async (): Promise<void> => {
     });
   });
 });
+
+test.concurrent('ls', async (): Promise<void> => {
+  const tmpGlobalFolder = await createTempGlobalFolder();
+  return runGlobal(['add', 'react-native-cli'], {globalFolder: tmpGlobalFolder}, 'add-with-prefix-flag', () => {})
+  .then(() => {
+    return runGlobal(['ls'], {globalFolder: tmpGlobalFolder}, 'add-with-prefix-flag',
+    (config, reporter, install, getStdout) => {
+      expect(getStdout()).toContain('react-native-cli');
+    });
+  });
+});
