@@ -17,14 +17,16 @@ const runGlobal = buildRun.bind(
   ConsoleReporter,
   fixturesLoc,
   (args, flags, config, reporter, _lockfile, _out, homeFolderLocation): CLIFunctionReturn => {
-    const automock = jest.genMockFromModule('../../src/util/user-home-dir');
-    jest.setMock('../../src/util/user-home-dir', Object.assign(automock, homeFolderLocation));
+    const automock = jest.genMockFromModule('../../src/constants');
+    jest.setMock('../../src/constants', Object.assign(automock, {
+      GLOBAL_MODULE_DIRECTORY: homeFolderLocation,
+    }));
 
     jest.resetModules();
-    jest.mock('../../src/util/user-home-dir');
+    jest.mock('../../src/constants');
 
     const global = require('../../src/cli/commands/global.js').run;
-    jest.unmock('../../src/util/user-home-dir');
+    jest.unmock('../../src/constants');
     return global(config, reporter, flags, args);
   },
 );
