@@ -77,6 +77,9 @@ function getGlobalPrefix(config: Config, flags: Object): string {
   } else if (process.env.PREFIX) {
     return process.env.PREFIX;
   } else if (process.platform === 'win32') {
+    if (process.env.LOCALAPPDATA) {
+      return path.join(process.env.LOCALAPPDATA, 'Yarn', 'bin');
+    }
     // c:\node\node.exe --> prefix=c:\node\
     return path.dirname(process.execPath);
   } else {
