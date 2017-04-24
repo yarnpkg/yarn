@@ -25,6 +25,7 @@ const NPM_REGISTRY = /http[s]:\/\/registry.npmjs.org/g;
 
 const invariant = require('invariant');
 const path = require('path');
+const uuid = require('uuid');
 
 export const noArguments = true;
 
@@ -98,7 +99,7 @@ class ImportResolver extends BaseResolver {
     info._remote = {
       type: 'copy',
       registry: this.registry,
-      hash: null,
+      hash: `${uuid.v4()}-${new Date().getTime()}`,
       reference: loc,
     };
     return info;
