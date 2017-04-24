@@ -99,7 +99,6 @@ export function matchesFilter(filter: IgnoreFilter, basename: string, loc: strin
   }
   return filter.regex.test(loc) ||
          filter.regex.test(`/${loc}`) ||
-         filter.regex.test(`\\${loc}`) ||
          filter.regex.test(basename);
 }
 
@@ -124,7 +123,6 @@ export function ignoreLinesToRegex(lines: Array<string>, base: string = '.'): Ar
 
       // remove trailing slash
       pattern = removeSuffix(pattern, '/');
-      pattern = removeSuffix(pattern, '\\');
 
       const regex: ?RegExp = minimatch.makeRe(pattern, {nocase: true});
 
