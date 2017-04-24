@@ -8,6 +8,7 @@ import {registryNames} from './registries/index.js';
 import * as fs from './util/fs.js';
 import {sortAlpha, compareSortedArrays} from './util/misc.js';
 import type {InstallArtifacts} from './package-install-scripts.js';
+import ProjectResolver from './resolvers/exotics/project-resolver.js';
 
 const invariant = require('invariant');
 const path = require('path');
@@ -27,6 +28,7 @@ export type IntegrityCheckResult = {
   integrityMatches?: boolean,
   integrityError?: IntegrityError,
   missingPatterns: Array<string>,
+  outOfDate: boolean,
 };
 
 type IntegrityHashLocation = {
@@ -233,11 +235,22 @@ export default class InstallationIntegrityChecker {
     flags: IntegrityFlags): Promise<IntegrityCheckResult> {
     // check if patterns exist in lockfile
     const missingPatterns = patterns.filter((p) => !lockfile[p]);
+
+    // check if any project dependencies are out of date
+    let outOfDate = false;
+    for (const key of Object.keys(lockfile)) {
+      if (await ProjectResolver.isOutdated(lockfile[key].resolved, this.config)) {
+        outOfDate = true;
+        break;
+      }
+    }
+
     const loc = await this._getIntegrityHashLocation();
     if (missingPatterns.length || !loc.exists) {
       return {
         integrityFileMissing: !loc.exists,
         missingPatterns,
+        outOfDate,
       };
     }
 
@@ -254,6 +267,7 @@ export default class InstallationIntegrityChecker {
       integrityMatches: integrityMatches === 'OK',
       integrityError: integrityMatches === 'OK' ? undefined : integrityMatches,
       missingPatterns,
+      outOfDate,
     };
   }
 

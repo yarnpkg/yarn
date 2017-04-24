@@ -317,13 +317,13 @@ export class Install {
       return false;
     }
     const match = await this.integrityChecker.check(patterns, lockfileCache, this.flags);
-    if (this.flags.frozenLockfile && match.missingPatterns.length > 0) {
+    if (this.flags.frozenLockfile && (match.missingPatterns.length > 0 || match.outOfDate)) {
       throw new MessageError(this.reporter.lang('frozenLockfileError'));
     }
 
     const haveLockfile = await fs.exists(path.join(this.config.cwd, constants.LOCKFILE_FILENAME));
 
-    if (match.integrityMatches && haveLockfile) {
+    if (match.integrityMatches && haveLockfile && !match.outOfDate) {
       this.reporter.success(this.reporter.lang('upToDate'));
       return true;
     }
