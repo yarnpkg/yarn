@@ -51,7 +51,14 @@ test('dir', async (): Promise<void> => {
 test('clean', async (): Promise<void> => {
   await runInstall({}, 'artifacts-finds-and-saves', async (config): Promise<void> => {
     let files = await fs.readdir(config.cacheFolder);
-    expect(files.length).toEqual(2); // we need to add one .tmp folder
+    // Asserting cache size is 1...
+    // we need to add one for the .tmp folder
+    //
+    // Per #2860, file: protocol installs may add the same package to the cache
+    // multiple times if it is installed with a force flag or has an install script.
+    // We'll add another for a total of 3 because this particular fixture has
+    // an install script.
+    expect(files.length).toEqual(3);
 
     const out = new stream.PassThrough();
     const reporter = new reporters.JSONReporter({stdout: out});
