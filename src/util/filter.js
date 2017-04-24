@@ -98,7 +98,8 @@ export function matchesFilter(filter: IgnoreFilter, basename: string, loc: strin
     loc = path.relative(filter.base, loc);
   }
   return filter.regex.test(loc) ||
-         filter.regex.test(`${path.sep}${loc}`) ||
+         filter.regex.test(`/${loc}`) ||
+         filter.regex.test(`\\${loc}`) ||
          filter.regex.test(basename);
 }
 
@@ -122,7 +123,8 @@ export function ignoreLinesToRegex(lines: Array<string>, base: string = '.'): Ar
       }
 
       // remove trailing slash
-      pattern = removeSuffix(pattern, path.sep);
+      pattern = removeSuffix(pattern, '/');
+      pattern = removeSuffix(pattern, '\\');
 
       const regex: ?RegExp = minimatch.makeRe(pattern, {nocase: true});
 
