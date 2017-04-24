@@ -147,7 +147,15 @@ async function integrityHashCheck(
     reporter.error(reporter.lang(msg, ...vars));
     errCount++;
   }
-  const integrityChecker = new InstallationIntegrityChecker(config, reporter);
+  const reasons = {
+    'EXPECTED_MISSING': 'integrityFailedExpectedMissing',
+    'FILES_MISSING': 'integrityFailedFilesMissing',
+    'LOCKFILE_DONT_MATCH': 'integrityLockfilesDontMatch',
+    'FLAGS_DONT_MATCH': 'integrityFlagsDontMatch',
+    'PATTERNS_DONT_MATCH': 'integrityPatternsDontMatch',
+    'LINKED_MODULES_DONT_MATCH': 'integrityCheckLinkedModulesDontMatch',
+  };
+  const integrityChecker = new InstallationIntegrityChecker(config);
 
   const lockfile = await Lockfile.fromDirectory(config.cwd);
   const install = new Install(flags, config, reporter, lockfile);
@@ -163,6 +171,7 @@ async function integrityHashCheck(
     reportError('noIntegrityFile');
   }
   if (!match.integrityMatches) {
+    reportError(reasons[match.whyIntegrityMatchesFailed]);
     reportError('integrityCheckFailed');
   }
 
