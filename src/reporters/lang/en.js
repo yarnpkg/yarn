@@ -132,6 +132,8 @@ const messages = {
   linkUnregistered: 'Unregistered $0.',
   linkUsing: 'Using linked module for $0.',
 
+  createUnsupportedScope: 'Scoped packages cannot be installed via yarn create for now - read <github issue> to know why.',
+
   commandNotSpecified: 'No command specified.',
   binCommands: 'Commands available from binary scripts: ',
   possibleCommands: 'Project commands',
