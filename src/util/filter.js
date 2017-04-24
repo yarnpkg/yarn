@@ -12,6 +12,7 @@ export type IgnoreFilter = {
   base: string,
   isNegation: boolean,
   regex: RegExp,
+  pattern: string,
 };
 
 export function sortFilter(
@@ -99,7 +100,8 @@ export function matchesFilter(filter: IgnoreFilter, basename: string, loc: strin
   }
   return filter.regex.test(loc) ||
          filter.regex.test(`/${loc}`) ||
-         filter.regex.test(basename);
+         filter.regex.test(basename) ||
+         minimatch(loc, filter.pattern);
 }
 
 export function ignoreLinesToRegex(lines: Array<string>, base: string = '.'): Array<IgnoreFilter> {
@@ -131,6 +133,7 @@ export function ignoreLinesToRegex(lines: Array<string>, base: string = '.'): Ar
           base,
           isNegation,
           regex,
+          pattern,
         };
       } else {
         return null;
