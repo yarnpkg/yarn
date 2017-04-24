@@ -125,13 +125,13 @@ export async function executeLifecycleScript(
   // if available.
   pathParts.unshift(
     path.join(
-      path.dirname(process.execPath), 'node_modules', 'npm', 'bin', 'node-gyp-bin'
-    )
+      path.dirname(process.execPath), 'node_modules', 'npm', 'bin', 'node-gyp-bin',
+    ),
   );
   pathParts.unshift(
     path.join(
-      path.dirname(process.execPath), '..', 'lib', 'node_modules', 'npm', 'bin', 'node-gyp-bin'
-    )
+      path.dirname(process.execPath), '..', 'lib', 'node_modules', 'npm', 'bin', 'node-gyp-bin',
+    ),
   );
 
   // Add global bin folder, as some packages depend on a globally-installed
