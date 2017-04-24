@@ -137,6 +137,8 @@ const messages = {
   possibleCommands: 'Project commands',
   commandQuestion: 'Which command would you like to run?',
   commandFailed: 'Command failed with exit code $0.',
+  packageRequiresNodeGyp: 'This package requires node-gyp, which is not currently installed. Yarn will attempt to automatically install it. If this fails, you can run "yarn global add node-gyp" to manually install it.',
+  nodeGypAutoInstallFailed: 'Failed to auto-install node-gyp. Please run "yarn global add node-gyp" manually. Error: $0',
 
   foundIncompatible: 'Found incompatible module',
   incompatibleEngine: 'The engine $0 is incompatible with this module. Expected version $1.',
