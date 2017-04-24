@@ -88,6 +88,14 @@ export const fileDatesEqual = (a: Date, b: Date) => {
     return aTime === bTime;
   }
 
+  // See https://github.com/nodejs/node/pull/12607
+  // Submillisecond times from stat and utimes are truncated on Windows,
+  // causing a file with mtime 8.0079998 and 8.0081144 to become 8.007 and 8.008
+  // and making it impossible to update these files to their correct timestamps.
+  if (Math.abs(aTime - bTime) <= 1) {
+    return true;
+  }
+
   const aTimeSec = Math.floor(aTime / 1000);
   const bTimeSec = Math.floor(bTime / 1000);
 
