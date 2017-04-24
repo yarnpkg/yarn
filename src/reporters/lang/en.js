@@ -268,6 +268,8 @@ const messages = {
   importResolveFailed: 'Import of $0 failed starting in $1',
   importResolvedRangeMatch: 'Using version $0 of $1 instead of $2 for $3',
   packageContainsYarnAsGlobal: 'Installing Yarn via Yarn will result in you having two separate versions of Yarn installed at the same time, which is not recommended. To update Yarn please follow https://yarnpkg.com/en/docs/install .',
+
+  scopeNotValid: 'The specified scope is not valid.',
 };
 
 export type LanguageKeys = $Keys<typeof messages>;

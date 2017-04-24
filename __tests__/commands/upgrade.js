@@ -292,3 +292,18 @@ test.concurrent('can prune the offline mirror', (): Promise<void> => {
     expect(await fs.exists(path.join(config.cwd, `${mirrorPath}/dep-b-1.0.0.tgz`))).toEqual(false);
   });
 });
+
+test.concurrent('respects --scope flag', (): Promise<void> => {
+  return runUpgrade([], {scope: '@angular'}, 'respects-scope-flag', async (config): ?Promise<void> => {
+    const lockfile = explodeLockfile(await fs.readFile(path.join(config.cwd, 'yarn.lock')));
+    const pkg = await fs.readJson(path.join(config.cwd, 'package.json'));
+
+    expect(lockfile.indexOf('"@angular-mdl/core@4.0.0":')).toBeGreaterThanOrEqual(0);
+    expect(lockfile.indexOf('"@angular/core@2.4.9":')).toEqual(-1);
+    expect(lockfile.indexOf('left-pad@1.0.0:')).toBeGreaterThanOrEqual(0);
+
+    expect(pkg.dependencies['@angular-mdl/core']).toEqual('4.0.0');
+    expect(pkg.dependencies['@angular/core']).not.toEqual('2.4.9');
+    expect(pkg.dependencies['left-pad']).toEqual('1.0.0');
+  });
+});

@@ -1,0 +1,7 @@
+{
+  "dependencies": {
+    "@angular-mdl/core": "4.0.0",
+    "@angular/core": "2.4.9",
+    "left-pad": "1.0.0"
+  }
+}
