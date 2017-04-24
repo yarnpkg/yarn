@@ -16,7 +16,7 @@ export function hasWrapper(flags: Object, args: Array<string>): boolean {
 
 async function getManifests(config: Config, flags: Object): Promise<Array<Manifest>> {
   const lockfile = await Lockfile.fromDirectory(config.cwd);
-  const install = new Install({skipIntegrity: true, ...flags}, config, new NoopReporter(), lockfile);
+  const install = new Install({skipIntegrityCheck: true, ...flags}, config, new NoopReporter(), lockfile);
   await install.hydrate(true, true);
 
   let manifests = install.resolver.getManifests();
