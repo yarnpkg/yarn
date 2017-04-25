@@ -152,7 +152,6 @@ async function integrityHashCheck(
     'FILES_MISSING': 'integrityFailedFilesMissing',
     'LOCKFILE_DONT_MATCH': 'integrityLockfilesDontMatch',
     'FLAGS_DONT_MATCH': 'integrityFlagsDontMatch',
-    'PATTERNS_DONT_MATCH': 'integrityPatternsDontMatch',
     'LINKED_MODULES_DONT_MATCH': 'integrityCheckLinkedModulesDontMatch',
   };
   const integrityChecker = new InstallationIntegrityChecker(config);

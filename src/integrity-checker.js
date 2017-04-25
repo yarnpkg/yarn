@@ -183,9 +183,6 @@ export default class InstallationIntegrityChecker {
     if (!compareSortedArrays(actual.linkedModules, expected.linkedModules)) {
       return Promise.resolve('LINKED_MODULES_DONT_MATCH');
     }
-    if (!compareSortedArrays(actual.topLevelPatters, expected.topLevelPatters)) {
-      return Promise.resolve('PATTERNS_DONT_MATCH');
-    }
     if (!compareSortedArrays(actual.flags, expected.flags)) {
       return Promise.resolve('FLAGS_DONT_MATCH');
     }
