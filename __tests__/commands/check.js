@@ -241,10 +241,11 @@ async (): Promise<void> => {
 });
 
 test.concurrent('--integrity should fail if integrity file have different linkedModules', async (): Promise<void> => {
-  await runInstall({}, path.join('..', 'check', 'integrity-lock-check'), async (config, reporter, install, getStdout): Promise<void> => {
+  await runInstall({}, path.join('..', 'check', 'integrity-lock-check'),
+  async (config, reporter, install, getStdout): Promise<void> => {
     const integrityFilePath = path.join(config.cwd, 'node_modules', '.yarn-integrity');
     const integrityFile = JSON.parse(await fs.readFile(integrityFilePath));
-    integrityFile.linkedModules.push("aLinkedModule");
+    integrityFile.linkedModules.push('aLinkedModule');
     await fs.writeFile(integrityFilePath, JSON.stringify(integrityFile, null, 2));
 
     let thrown = false;
