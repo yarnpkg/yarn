@@ -178,7 +178,7 @@ export default class InstallationIntegrityChecker {
     checkFiles: boolean,
     locationFolder: string): Promise<string> {
     if (!expected) {
-      return Promise.resolve('EXPECTED_MISSING');
+      return Promise.resolve('EXPECTED_IS_NOT_A_JSON');
     }
     if (!compareSortedArrays(actual.linkedModules, expected.linkedModules)) {
       return Promise.resolve('LINKED_MODULES_DONT_MATCH');

@@ -148,7 +148,7 @@ async function integrityHashCheck(
     errCount++;
   }
   const reasons = {
-    'EXPECTED_MISSING': 'integrityFailedExpectedMissing',
+    'EXPECTED_IS_NOT_A_JSON': 'integrityFailedExpectedIsNotAJSON',
     'FILES_MISSING': 'integrityFailedFilesMissing',
     'LOCKFILE_DONT_MATCH': 'integrityLockfilesDontMatch',
     'FLAGS_DONT_MATCH': 'integrityFlagsDontMatch',
@@ -170,7 +170,7 @@ async function integrityHashCheck(
   if (match.integrityFileMissing) {
     reportError('noIntegrityFile');
   }
-  if (!match.integrityMatches) {
+  if (match.integrityMatches === false) {
     reporter.warn(reporter.lang(reasons[match.whyIntegrityMatchesFailed]));
     reportError('integrityCheckFailed');
   }

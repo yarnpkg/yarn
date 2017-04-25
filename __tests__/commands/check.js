@@ -21,7 +21,7 @@ const runCheck = buildRun.bind(
   },
 );
 
-test.concurrent('--verify-tree should report wrong version ', async (): Promise<void> => {
+test.concurrent('--verify-tree should report wrong version', async (): Promise<void> => {
   let thrown = false;
   try {
     await runCheck([], {verifyTree: true}, 'verify-tree-version-mismatch');
@@ -31,7 +31,7 @@ test.concurrent('--verify-tree should report wrong version ', async (): Promise<
   expect(thrown).toEqual(true);
 });
 
-test.concurrent('--verify-tree should report missing dependency ', async (): Promise<void> => {
+test.concurrent('--verify-tree should report missing dependency', async (): Promise<void> => {
   let thrown = false;
   try {
     await runCheck([], {verifyTree: true}, 'verify-tree-not-found');
@@ -77,6 +77,36 @@ test.concurrent('--integrity should ignore comments and whitespaces in yarn.lock
       thrown = true;
     }
     expect(thrown).toEqual(false);
+  });
+});
+
+test.concurrent('--integrity should fail if integrity file is missing', async (): Promise<void> => {
+  await runInstall({}, path.join('..', 'check', 'integrity-lock-check'), async (config, reporter): Promise<void> => {
+    await fs.unlink(path.join(config.cwd, 'node_modules', '.yarn-integrity'));
+
+    let thrown = false;
+    try {
+      await checkCmd.run(config, reporter, {integrity: true}, []);
+    } catch (e) {
+      thrown = true;
+    }
+    expect(thrown).toEqual(true);
+  });
+});
+
+test.concurrent('--integrity should fail if integrity file is not a json', async (): Promise<void> => {
+  await runInstall({}, path.join('..', 'check', 'integrity-lock-check'),
+  async (config, reporter, install, getStdout): Promise<void> => {
+    await fs.writeFile(path.join(config.cwd, 'node_modules', '.yarn-integrity'), 'not a json');
+
+    let thrown = false;
+    try {
+      await checkCmd.run(config, reporter, {integrity: true}, []);
+    } catch (e) {
+      thrown = true;
+    }
+    expect(thrown).toEqual(true);
+    expect(getStdout()).toContain('Integrity check: integrity file is not a json');
   });
 });
 
