@@ -171,7 +171,7 @@ async function integrityHashCheck(
     reportError('noIntegrityFile');
   }
   if (!match.integrityMatches) {
-    reportError(reasons[match.whyIntegrityMatchesFailed]);
+    reporter.warn(reporter.lang(reasons[match.whyIntegrityMatchesFailed]));
     reportError('integrityCheckFailed');
   }
 

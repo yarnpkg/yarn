@@ -291,5 +291,4 @@ export default class InstallationIntegrityChecker {
       await fs.unlink(loc.locationPath);
     }
   }
-
 }
