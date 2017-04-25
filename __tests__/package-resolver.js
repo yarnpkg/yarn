@@ -9,7 +9,7 @@ import makeTemp from './_temp.js';
 import * as fs from '../src/util/fs.js';
 import * as constants from '../src/constants.js';
 
-jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000;
+jasmine.DEFAULT_TIMEOUT_INTERVAL = 100000;
 
 const path = require('path');
 
