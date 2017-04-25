@@ -15,6 +15,11 @@ const fsNode = require('fs');
 const path = require('path');
 const os = require('os');
 
+test.concurrent("does fetch files from the local filesystem", (): Promise<void> => {
+  return runInstall({}, 'install-should-fetch-local-tarballs', async (config): Promise<void> => {
+  });
+});
+
 test.concurrent("doesn't write new lockfile if existing one satisfied", (): Promise<void> => {
   return runInstall({}, 'install-dont-write-lockfile-if-satisfied', async (config): Promise<void> => {
     const lockfile = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
