@@ -17,7 +17,6 @@ export type IntegrityCheckResult = {
   integrityFileMissing: boolean,
   integrityMatches?: boolean,
   missingPatterns: Array<string>,
-  artifacts?: ?InstallArtifacts,
 };
 
 type IntegrityHashLocation = {
@@ -251,8 +250,27 @@ export default class InstallationIntegrityChecker {
       integrityFileMissing: false,
       integrityMatches,
       missingPatterns,
-      artifacts: expected ? expected.artifacts : null,
     };
+  }
+
+  /**
+   * Get artifacts from integrity file if it exists.
+   */
+  async getArtifacts(): Promise<?InstallArtifacts> {
+    const loc = await this._getIntegrityHashLocation();
+    if (!loc.exists) {
+      return null;
+    }
+
+    const expectedRaw = await fs.readFile(loc.locationPath);
+    let expected: ?IntegrityFile;
+    try {
+      expected = JSON.parse(expectedRaw);
+    } catch (e) {
+      // ignore JSON parsing for legacy text integrity files compatibility
+    }
+
+    return expected ? expected.artifacts : null;
   }
 
   /**
