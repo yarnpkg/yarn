@@ -239,6 +239,12 @@ export class Install {
         if (ignoreUnusedPatterns && !isUsed) {
           return;
         }
+        // We only take unused dependencies into consideration to get deterministic hoisting.
+        // Since flat mode doesn't care about hoisting and everything is top level and specified then we can safely
+        // leave these out.
+        if (this.flags.flat && !isUsed) {
+          return;
+        }
         const depMap = json[depType];
         for (const name in depMap) {
           if (excludeNames.indexOf(name) >= 0) {
