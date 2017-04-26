@@ -1,0 +1,7 @@
+{
+  "name": "include-mandatory-files-from-files-field-on-packagejson",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "files": ["dist"]
+}
