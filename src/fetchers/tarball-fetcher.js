@@ -105,7 +105,7 @@ export default class TarballFetcher extends BaseFetcher {
     const tarballMirrorPath = this.getTarballMirrorPath();
     const tarballCachePath = this.getTarballCachePath();
 
-    const tarballPath = override || tarballMirrorPath || tarballCachePath;
+    const tarballPath = path.resolve(this.config.cwd, override || tarballMirrorPath || tarballCachePath);
 
     if (!tarballPath || !await fsUtil.exists(tarballPath)) {
       throw new MessageError(this.config.reporter.lang('tarballNotInNetworkOrCache', this.reference, tarballPath));
@@ -177,6 +177,12 @@ export default class TarballFetcher extends BaseFetcher {
   }
 
   async _fetch(): Promise<FetchedOverride> {
+    const urlParse = url.parse(this.reference);
+
+    if (urlParse.protocol === null && urlParse.pathname.match(/^\.\.?[\/\\]/)) {
+      return await this.fetchFromLocal(this.reference);
+    }
+
     if (await this.getLocalAvailabilityStatus()) {
       return await this.fetchFromLocal();
     } else {
