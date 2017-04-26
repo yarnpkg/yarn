@@ -21,7 +21,7 @@ const runCheck = buildRun.bind(
   },
 );
 
-test.concurrent('--verify-tree should report wrong version ', async (): Promise<void> => {
+test.concurrent('--verify-tree should report wrong version', async (): Promise<void> => {
   let thrown = false;
   try {
     await runCheck([], {verifyTree: true}, 'verify-tree-version-mismatch');
@@ -31,7 +31,7 @@ test.concurrent('--verify-tree should report wrong version ', async (): Promise<
   expect(thrown).toEqual(true);
 });
 
-test.concurrent('--verify-tree should report missing dependency ', async (): Promise<void> => {
+test.concurrent('--verify-tree should report missing dependency', async (): Promise<void> => {
   let thrown = false;
   try {
     await runCheck([], {verifyTree: true}, 'verify-tree-not-found');
@@ -80,6 +80,36 @@ test.concurrent('--integrity should ignore comments and whitespaces in yarn.lock
   });
 });
 
+test.concurrent('--integrity should fail if integrity file is missing', async (): Promise<void> => {
+  await runInstall({}, path.join('..', 'check', 'integrity-lock-check'), async (config, reporter): Promise<void> => {
+    await fs.unlink(path.join(config.cwd, 'node_modules', '.yarn-integrity'));
+
+    let thrown = false;
+    try {
+      await checkCmd.run(config, reporter, {integrity: true}, []);
+    } catch (e) {
+      thrown = true;
+    }
+    expect(thrown).toEqual(true);
+  });
+});
+
+test.concurrent('--integrity should fail if integrity file is not a json', async (): Promise<void> => {
+  await runInstall({}, path.join('..', 'check', 'integrity-lock-check'),
+  async (config, reporter, install, getStdout): Promise<void> => {
+    await fs.writeFile(path.join(config.cwd, 'node_modules', '.yarn-integrity'), 'not a json');
+
+    let thrown = false;
+    try {
+      await checkCmd.run(config, reporter, {integrity: true}, []);
+    } catch (e) {
+      thrown = true;
+    }
+    expect(thrown).toEqual(true);
+    expect(getStdout()).toContain('Integrity check: integrity file is not a json');
+  });
+});
+
 test.concurrent('--integrity should fail if yarn.lock has patterns changed', async (): Promise<void> => {
   await runInstall({}, path.join('..', 'check', 'integrity-lock-check'), async (config, reporter): Promise<void> => {
     let lockfile = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
@@ -97,7 +127,8 @@ test.concurrent('--integrity should fail if yarn.lock has patterns changed', asy
 });
 
 test.concurrent('--integrity should fail if yarn.lock has new pattern', async (): Promise<void> => {
-  await runInstall({}, path.join('..', 'check', 'integrity-lock-check'), async (config, reporter): Promise<void> => {
+  await runInstall({}, path.join('..', 'check', 'integrity-lock-check'),
+  async (config, reporter, install, getStdout): Promise<void> => {
     let lockfile = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
     lockfile += `\nxtend@^4.0.0:
   version "4.0.1"
@@ -111,11 +142,13 @@ test.concurrent('--integrity should fail if yarn.lock has new pattern', async ()
       thrown = true;
     }
     expect(thrown).toEqual(true);
+    expect(getStdout()).toContain('Integrity check: Lock files don\'t match');
   });
 });
 
 test.concurrent('--integrity should fail if yarn.lock has resolved changed', async (): Promise<void> => {
-  await runInstall({}, path.join('..', 'check', 'integrity-lock-check'), async (config, reporter): Promise<void> => {
+  await runInstall({}, path.join('..', 'check', 'integrity-lock-check'),
+  async (config, reporter, install, getStdout): Promise<void> => {
     let lockfile = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
     lockfile = lockfile.replace('https://registry.npmjs.org/left-pad/-/left-pad-1.1.1.tgz',
       'https://registry.yarnpkg.com/left-pad/-/left-pad-1.1.1.tgz');
@@ -128,13 +161,14 @@ test.concurrent('--integrity should fail if yarn.lock has resolved changed', asy
       thrown = true;
     }
     expect(thrown).toEqual(true);
+    expect(getStdout()).toContain('Integrity check: Lock files don\'t match');
   });
 });
 
 test.concurrent('--integrity should fail if files are missing and --check-files is passed',
 async (): Promise<void> => {
   await runInstall({checkFiles: true}, path.join('..', 'check', 'integrity-lock-check'),
-  async (config, reporter): Promise<void> => {
+  async (config, reporter, install, getStdout): Promise<void> => {
     await fs.unlink(path.join(config.cwd, 'node_modules', 'left-pad', 'index.js'));
 
     let thrown = false;
@@ -144,22 +178,23 @@ async (): Promise<void> => {
       thrown = true;
     }
     expect(thrown).toEqual(true);
+    expect(getStdout()).toContain('Integrity check: Files are missing');
   });
 });
 
-test.concurrent('--integrity should fail if --ignore-scripts is changed',
-  async (): Promise<void> => {
-    await runInstall({ignoreScripts: true}, path.join('..', 'check', 'integrity-lock-check'),
-      async (config, reporter): Promise<void> => {
-        let thrown = false;
-        try {
-          await checkCmd.run(config, reporter, {integrity: true, ignoreScripts: false}, []);
-        } catch (e) {
-          thrown = true;
-        }
-        expect(thrown).toEqual(true);
-      });
-  });
+test.concurrent('--integrity should fail if --ignore-scripts is changed', async (): Promise<void> => {
+  await runInstall({ignoreScripts: true}, path.join('..', 'check', 'integrity-lock-check'),
+    async (config, reporter, install, getStdout): Promise<void> => {
+      let thrown = false;
+      try {
+        await checkCmd.run(config, reporter, {integrity: true, ignoreScripts: false}, []);
+      } catch (e) {
+        thrown = true;
+      }
+      expect(thrown).toEqual(true);
+      expect(getStdout()).toContain('Integrity check: Flags don\'t match');
+    });
+});
 
 test.concurrent('when switching to --check-files install should rebuild integrity file',
 async (): Promise<void> => {
@@ -202,5 +237,24 @@ async (): Promise<void> => {
     }
     expect(thrown).toEqual(true);
 
+  });
+});
+
+test.concurrent('--integrity should fail if integrity file have different linkedModules', async (): Promise<void> => {
+  await runInstall({}, path.join('..', 'check', 'integrity-lock-check'),
+  async (config, reporter, install, getStdout): Promise<void> => {
+    const integrityFilePath = path.join(config.cwd, 'node_modules', '.yarn-integrity');
+    const integrityFile = JSON.parse(await fs.readFile(integrityFilePath));
+    integrityFile.linkedModules.push('aLinkedModule');
+    await fs.writeFile(integrityFilePath, JSON.stringify(integrityFile, null, 2));
+
+    let thrown = false;
+    try {
+      await checkCmd.run(config, reporter, {integrity: true}, []);
+    } catch (e) {
+      thrown = true;
+    }
+    expect(thrown).toEqual(true);
+    expect(getStdout()).toContain('Integrity check: Linked modules don\'t match');
   });
 });

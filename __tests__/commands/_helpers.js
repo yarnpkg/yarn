@@ -65,7 +65,7 @@ export async function run<T, R>(
   args: Array<string>,
   flags: Object,
   name: string | { source: string, cwd: string },
-  checkInstalled: ?(config: Config, reporter: R, install: T) => ?Promise<void>,
+  checkInstalled: ?(config: Config, reporter: R, install: T, getStdout: () => string) => ?Promise<void>,
   beforeInstall: ?(cwd: string) => ?Promise<void>,
 ): Promise<void> {
   let out = '';
@@ -131,7 +131,7 @@ export async function run<T, R>(
     const install = await factory(args, flags, config, reporter, lockfile, () => out);
 
     if (checkInstalled) {
-      await checkInstalled(config, reporter, install);
+      await checkInstalled(config, reporter, install, () => out);
     }
   } catch (err) {
     throw new Error(`${err && err.stack} \nConsole output:\n ${out}`);

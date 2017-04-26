@@ -3,6 +3,7 @@
 import type Config from '../../config.js';
 import {MessageError} from '../../errors.js';
 import InstallationIntegrityChecker from '../../integrity-checker.js';
+import {integrityErrors} from '../../integrity-checker.js';
 import Lockfile from '../../lockfile/wrapper.js';
 import type {Reporter} from '../../reporters/index.js';
 import * as fs from '../../util/fs.js';
@@ -147,7 +148,7 @@ async function integrityHashCheck(
     reporter.error(reporter.lang(msg, ...vars));
     errCount++;
   }
-  const integrityChecker = new InstallationIntegrityChecker(config, reporter);
+  const integrityChecker = new InstallationIntegrityChecker(config);
 
   const lockfile = await Lockfile.fromDirectory(config.cwd);
   const install = new Install(flags, config, reporter, lockfile);
@@ -162,7 +163,8 @@ async function integrityHashCheck(
   if (match.integrityFileMissing) {
     reportError('noIntegrityFile');
   }
-  if (!match.integrityMatches) {
+  if (match.integrityMatches === false) {
+    reporter.warn(reporter.lang(integrityErrors[match.integrityError]));
     reportError('integrityCheckFailed');
   }
 

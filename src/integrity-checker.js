@@ -3,7 +3,6 @@
 import type Config from './config.js';
 import type {LockManifest} from './lockfile/wrapper.js';
 import type {RegistryNames} from './registries/index.js';
-import type {Reporter} from './reporters/index.js';
 import * as constants from './constants.js';
 import {registryNames} from './registries/index.js';
 import * as fs from './util/fs.js';
@@ -13,9 +12,20 @@ import type {InstallArtifacts} from './package-install-scripts.js';
 const invariant = require('invariant');
 const path = require('path');
 
+export const integrityErrors = {
+  EXPECTED_IS_NOT_A_JSON: 'integrityFailedExpectedIsNotAJSON',
+  FILES_MISSING: 'integrityFailedFilesMissing',
+  LOCKFILE_DONT_MATCH: 'integrityLockfilesDontMatch',
+  FLAGS_DONT_MATCH: 'integrityFlagsDontMatch',
+  LINKED_MODULES_DONT_MATCH: 'integrityCheckLinkedModulesDontMatch',
+};
+
+type IntegrityError = $Keys<typeof integrityErrors>;
+
 export type IntegrityCheckResult = {
   integrityFileMissing: boolean,
   integrityMatches?: boolean,
+  integrityError?: IntegrityError,
   missingPatterns: Array<string>,
 };
 
@@ -47,15 +57,11 @@ type IntegrityFlags = {
 export default class InstallationIntegrityChecker {
   constructor(
     config: Config,
-    reporter: Reporter,
   ) {
     this.config = config;
-    this.reporter = reporter;
   }
 
   config: Config;
-  reporter: Reporter;
-
 
   /**
    * Get the location of an existing integrity hash. If none exists then return the location where we should
@@ -167,32 +173,58 @@ export default class InstallationIntegrityChecker {
     return result;
   }
 
-  _compareIntegrityFiles(actual: IntegrityFile, expected: IntegrityFile): boolean {
-    if (!compareSortedArrays(actual.linkedModules, expected.linkedModules)) {
-      this.reporter.warn(this.reporter.lang('integrityCheckLinkedModulesDontMatch'));
-      return false;
+  async _getIntegrityFile(locationPath: string): Promise<?IntegrityFile> {
+    const expectedRaw = await fs.readFile(locationPath);
+    try {
+      return JSON.parse(expectedRaw);
+    } catch (e) {
+      // ignore JSON parsing for legacy text integrity files compatibility
     }
-    if (!compareSortedArrays(actual.topLevelPatters, expected.topLevelPatters)) {
-      this.reporter.warn(this.reporter.lang('integrityPatternsDontMatch'));
-      return false;
+    return null;
+  }
+
+  async _compareIntegrityFiles(
+    actual: IntegrityFile,
+    expected: ?IntegrityFile,
+    checkFiles: boolean,
+    locationFolder: string): Promise<'OK' | IntegrityError> {
+    if (!expected) {
+      return 'EXPECTED_IS_NOT_A_JSON';
+    }
+    if (!compareSortedArrays(actual.linkedModules, expected.linkedModules)) {
+      return 'LINKED_MODULES_DONT_MATCH';
     }
     if (!compareSortedArrays(actual.flags, expected.flags)) {
-      this.reporter.warn(this.reporter.lang('integrityFlagsDontMatch'));
-      return false;
+      return 'FLAGS_DONT_MATCH';
     }
     for (const key of Object.keys(actual.lockfileEntries)) {
       if (actual.lockfileEntries[key] !== expected.lockfileEntries[key]) {
-        this.reporter.warn(this.reporter.lang('integrityLockfilesDontMatch'));
-        return false;
+        return 'LOCKFILE_DONT_MATCH';
       }
     }
     for (const key of Object.keys(expected.lockfileEntries)) {
       if (actual.lockfileEntries[key] !== expected.lockfileEntries[key]) {
-        this.reporter.warn(this.reporter.lang('integrityLockfilesDontMatch'));
-        return false;
+        return 'LOCKFILE_DONT_MATCH';
       }
     }
-    return true;
+    if (checkFiles) {
+      if (expected.files.length === 0) {
+        // edge case handling - --check-fies is passed but .yarn-integrity does not contain any files
+        // check and fail if there are file in node_modules after all.
+        const actualFiles = await this._getFilesDeep(locationFolder);
+        if (actualFiles.length > 0) {
+          return 'FILES_MISSING';
+        }
+      } else {
+        // TODO we may want to optimise this check by checking only for package.json files on very large trees
+        for (const file of expected.files) {
+          if (!await fs.exists(path.join(locationFolder, file))) {
+            return 'FILES_MISSING';
+          }
+        }
+      }
+    }
+    return 'OK';
   }
 
   async check(
@@ -214,41 +246,13 @@ export default class InstallationIntegrityChecker {
       patterns,
       Object.assign({}, {checkFiles: false}, flags), // don't generate files when checking, we check the files below
       loc.locationFolder);
-    const expectedRaw = await fs.readFile(loc.locationPath);
-    let expected: ?IntegrityFile;
-    try {
-      expected = JSON.parse(expectedRaw);
-    } catch (e) {
-      // ignore JSON parsing for legacy text integrity files compatibility
-    }
-    let integrityMatches;
-    if (expected) {
-      integrityMatches = this._compareIntegrityFiles(actual, expected);
-      if (flags.checkFiles && expected.files.length === 0) {
-        // edge case handling - --check-fies is passed but .yarn-integrity does not contain any files
-        // check and fail if there are file in node_modules after all.
-        const actualFiles = await this._getFilesDeep(loc.locationFolder);
-        if (actualFiles.length > 0) {
-          this.reporter.warn(this.reporter.lang('integrityFailedFilesMissing'));
-          integrityMatches = false;
-        }
-      } else if (flags.checkFiles && expected.files.length > 0) {
-        // TODO we may want to optimise this check by checking only for package.json files on very large trees
-        for (const file of expected.files) {
-          if (!await fs.exists(path.join(loc.locationFolder, file))) {
-            this.reporter.warn(this.reporter.lang('integrityFailedFilesMissing'));
-            integrityMatches = false;
-            break;
-          }
-        }
-      }
-    } else {
-      integrityMatches = false;
-    }
+    const expected = await this._getIntegrityFile(loc.locationPath);
+    const integrityMatches = await this._compareIntegrityFiles(actual, expected, flags.checkFiles, loc.locationFolder);
 
     return {
       integrityFileMissing: false,
-      integrityMatches,
+      integrityMatches: integrityMatches === 'OK',
+      integrityError: integrityMatches === 'OK' ? undefined : integrityMatches,
       missingPatterns,
     };
   }
@@ -295,5 +299,4 @@ export default class InstallationIntegrityChecker {
       await fs.unlink(loc.locationPath);
     }
   }
-
 }
