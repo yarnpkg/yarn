@@ -12,9 +12,20 @@ import type {InstallArtifacts} from './package-install-scripts.js';
 const invariant = require('invariant');
 const path = require('path');
 
+export const integrityErrors = {
+  EXPECTED_IS_NOT_A_JSON: 'integrityFailedExpectedIsNotAJSON',
+  FILES_MISSING: 'integrityFailedFilesMissing',
+  LOCKFILE_DONT_MATCH: 'integrityLockfilesDontMatch',
+  FLAGS_DONT_MATCH: 'integrityFlagsDontMatch',
+  LINKED_MODULES_DONT_MATCH: 'integrityCheckLinkedModulesDontMatch',
+};
+
+type IntegrityError = $Keys<typeof integrityErrors>;
+
 export type IntegrityCheckResult = {
   integrityFileMissing: boolean,
   integrityMatches?: boolean,
+  integrityError?: IntegrityError,
   missingPatterns: Array<string>,
 };
 
@@ -176,24 +187,24 @@ export default class InstallationIntegrityChecker {
     actual: IntegrityFile,
     expected: ?IntegrityFile,
     checkFiles: boolean,
-    locationFolder: string): Promise<string> {
+    locationFolder: string): Promise<'OK' | IntegrityError> {
     if (!expected) {
-      return Promise.resolve('EXPECTED_IS_NOT_A_JSON');
+      return 'EXPECTED_IS_NOT_A_JSON';
     }
     if (!compareSortedArrays(actual.linkedModules, expected.linkedModules)) {
-      return Promise.resolve('LINKED_MODULES_DONT_MATCH');
+      return 'LINKED_MODULES_DONT_MATCH';
     }
     if (!compareSortedArrays(actual.flags, expected.flags)) {
-      return Promise.resolve('FLAGS_DONT_MATCH');
+      return 'FLAGS_DONT_MATCH';
     }
     for (const key of Object.keys(actual.lockfileEntries)) {
       if (actual.lockfileEntries[key] !== expected.lockfileEntries[key]) {
-        return Promise.resolve('LOCKFILE_DONT_MATCH');
+        return 'LOCKFILE_DONT_MATCH';
       }
     }
     for (const key of Object.keys(expected.lockfileEntries)) {
       if (actual.lockfileEntries[key] !== expected.lockfileEntries[key]) {
-        return Promise.resolve('LOCKFILE_DONT_MATCH');
+        return 'LOCKFILE_DONT_MATCH';
       }
     }
     if (checkFiles) {
@@ -202,18 +213,18 @@ export default class InstallationIntegrityChecker {
         // check and fail if there are file in node_modules after all.
         const actualFiles = await this._getFilesDeep(locationFolder);
         if (actualFiles.length > 0) {
-          return Promise.resolve('FILES_MISSING');
+          return 'FILES_MISSING';
         }
       } else {
         // TODO we may want to optimise this check by checking only for package.json files on very large trees
         for (const file of expected.files) {
           if (!await fs.exists(path.join(locationFolder, file))) {
-            return Promise.resolve('FILES_MISSING');
+            return 'FILES_MISSING';
           }
         }
       }
     }
-    return Promise.resolve('OK');
+    return 'OK';
   }
 
   async check(
@@ -241,7 +252,7 @@ export default class InstallationIntegrityChecker {
     return {
       integrityFileMissing: false,
       integrityMatches: integrityMatches === 'OK',
-      whyIntegrityMatchesFailed: integrityMatches,
+      integrityError: integrityMatches === 'OK' ? undefined : integrityMatches,
       missingPatterns,
     };
   }

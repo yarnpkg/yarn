@@ -3,6 +3,7 @@
 import type Config from '../../config.js';
 import {MessageError} from '../../errors.js';
 import InstallationIntegrityChecker from '../../integrity-checker.js';
+import {integrityErrors} from '../../integrity-checker.js';
 import Lockfile from '../../lockfile/wrapper.js';
 import type {Reporter} from '../../reporters/index.js';
 import * as fs from '../../util/fs.js';
@@ -147,13 +148,6 @@ async function integrityHashCheck(
     reporter.error(reporter.lang(msg, ...vars));
     errCount++;
   }
-  const reasons = {
-    'EXPECTED_IS_NOT_A_JSON': 'integrityFailedExpectedIsNotAJSON',
-    'FILES_MISSING': 'integrityFailedFilesMissing',
-    'LOCKFILE_DONT_MATCH': 'integrityLockfilesDontMatch',
-    'FLAGS_DONT_MATCH': 'integrityFlagsDontMatch',
-    'LINKED_MODULES_DONT_MATCH': 'integrityCheckLinkedModulesDontMatch',
-  };
   const integrityChecker = new InstallationIntegrityChecker(config);
 
   const lockfile = await Lockfile.fromDirectory(config.cwd);
@@ -170,7 +164,7 @@ async function integrityHashCheck(
     reportError('noIntegrityFile');
   }
   if (match.integrityMatches === false) {
-    reporter.warn(reporter.lang(reasons[match.whyIntegrityMatchesFailed]));
+    reporter.warn(reporter.lang(integrityErrors[match.integrityError]));
     reportError('integrityCheckFailed');
   }
 
