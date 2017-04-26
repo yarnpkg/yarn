@@ -205,6 +205,9 @@ const messages = {
   cleanRemovedFiles: 'Removed $0 files',
   cleanSavedSize: 'Saved $0 MB.',
 
+  configFileFound: 'Found configuration file $0.',
+  configPossibleFile: 'Checking for configuration file $0.',
+
   npmUsername: 'npm username',
   npmPassword: 'npm password',
   npmEmail: 'npm email',

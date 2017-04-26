@@ -1,5 +1,6 @@
 /* @flow */
 
+import type Reporter from '../reporters/base-reporter.js';
 import type RequestManager from '../util/request-manager.js';
 import type {RegistryRequestOptions, CheckOutdatedReturn} from './base-registry.js';
 import type Config from '../config.js';
@@ -38,8 +39,8 @@ function getGlobalPrefix(): string {
 }
 
 export default class NpmRegistry extends Registry {
-  constructor(cwd: string, registries: ConfigRegistries, requestManager: RequestManager) {
-    super(cwd, registries, requestManager);
+  constructor(cwd: string, registries: ConfigRegistries, requestManager: RequestManager, reporter: Reporter) {
+    super(cwd, registries, requestManager, reporter);
     this.folder = 'node_modules';
   }
 
@@ -96,7 +97,10 @@ export default class NpmRegistry extends Registry {
     };
   }
 
-  async getPossibleConfigLocations(filename: string): Promise<Array<[boolean, string, string]>> {
+  async getPossibleConfigLocations(
+      filename: string,
+      reporter: Reporter,
+      ): Promise<Array<[boolean, string, string]>> {
     const possibles = [
       [false, path.join(this.cwd, filename)],
       [true, this.config.userconfig || path.join(userHome, filename)],
@@ -111,7 +115,9 @@ export default class NpmRegistry extends Registry {
 
     const actuals = [];
     for (const [isHome, loc] of possibles) {
+      reporter.verbose(reporter.lang('configPossibleFile', loc));
       if (await fs.exists(loc)) {
+        reporter.verbose(reporter.lang('configFileFound', loc));
         actuals.push([
           isHome,
           loc,
@@ -126,7 +132,7 @@ export default class NpmRegistry extends Registry {
     // docs: https://docs.npmjs.com/misc/config
     this.mergeEnv('npm_config_');
 
-    for (const [, loc, file] of await this.getPossibleConfigLocations('.npmrc')) {
+    for (const [, loc, file] of await this.getPossibleConfigLocations('.npmrc', this.reporter)) {
       const config = Registry.normalizeConfig(ini.parse(file));
       for (const key: string in config) {
         config[key] = envReplace(config[key]);
