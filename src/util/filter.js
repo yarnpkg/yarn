@@ -114,7 +114,7 @@ export function ignoreLinesToRegex(lines: Array<string>, base: string = '.'): Ar
       let pattern = line;
       let isNegation = false;
 
-      // hide the fact that it's a negation from minimatch since we'll handle this specifally
+      // hide the fact that it's a negation from minimatch since we'll handle this specifically
       // ourselves
       if (pattern[0] === '!') {
         isNegation = true;
