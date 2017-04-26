@@ -174,7 +174,9 @@ async function buildActionsForCopy(
       destStat = await lstat(dest);
     } catch (e) {
       // proceed if destination doesn't exist, otherwise error
-      if (e.code !== 'ENOENT') throw e;
+      if (e.code !== 'ENOENT') {
+        throw e;
+      }
     }
 
     // if destination exists

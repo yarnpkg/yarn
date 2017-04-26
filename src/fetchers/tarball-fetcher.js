@@ -178,7 +178,7 @@ export default class TarballFetcher extends BaseFetcher {
   }
 
   async _fetch(): Promise<FetchedOverride> {
-    let urlParse = url.parse(this.reference);
+    const urlParse = url.parse(this.reference);
 
     if (urlParse.protocol === null && urlParse.pathname.match(/^\.\.?[\/\\]/)) {
       return await this.fetchFromLocal(this.reference);
