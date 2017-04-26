@@ -33,6 +33,12 @@ async function makeEnv(stage: string, cwd: string, config: Config): {
 } {
   const env = Object.assign({}, process.env);
 
+  // Merge in the `env` object specified in .yarnrc
+  const customEnv = config.getOption('env');
+  if (customEnv && typeof customEnv === 'object') {
+    Object.assign(env, customEnv);
+  }
+
   env.npm_lifecycle_event = stage;
   env.npm_node_execpath = env.NODE || process.execPath;
   env.npm_execpath = env.npm_execpath || process.mainModule.filename;

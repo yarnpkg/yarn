@@ -92,6 +92,15 @@ export default class YarnRegistry extends NpmRegistry {
         await fs.mkdirp(mirrorLoc);
       }
 
+      // merge with any existing environment variables
+      const env = config.env;
+      if (env) {
+        const existingEnv =  this.config.env;
+        if (existingEnv) {
+          this.config.env = Object.assign({}, env, existingEnv);
+        }
+      }
+
       this.config = Object.assign({}, config, this.config);
     }
 
