@@ -523,7 +523,7 @@ export async function copyBulk(
         readStream.pipe(writeStream);
       });
 
-      writeStream.once('finish', function() {
+      writeStream.once('close', function() {
         fs.utimes(data.dest, data.atime, data.mtime, function(err) {
           if (err) {
             reject(err);
