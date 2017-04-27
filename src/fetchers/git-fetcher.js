@@ -96,7 +96,7 @@ export default class GitFetcher extends BaseFetcher {
             });
           } else {
             reject(new SecurityError(
-              this.reporter.lang('fetchBadHash', expectHash, actualHash),
+              this.reporter.lang('fetchBadHash', tarballPath, expectHash, actualHash),
             ));
           }
         })
