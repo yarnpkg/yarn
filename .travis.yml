@@ -52,4 +52,6 @@ before_install:
 os:
   - linux
 
+dist: trusty
+
 script: travis_retry yarn $TEST_TYPE
