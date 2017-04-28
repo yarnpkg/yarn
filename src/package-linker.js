@@ -277,8 +277,12 @@ export default class PackageLinker {
     if (this.config.binLinks) {
       const tickBin = this.reporter.progress(flatTree.length);
       await promise.queue(flatTree, async ([dest, {pkg}]) => {
+        // symlink bin script to package module
         const binLoc = path.join(dest, this.config.getFolder(pkg));
         await this.linkBinDependencies(pkg, binLoc);
+
+        // symlink bin script to root module folder so that these scripts are available in npm run $PATH
+        await this.linkBinDependencies(pkg, this.config.getFolder(pkg));
         tickBin(dest);
       }, 4);
     }
