@@ -500,27 +500,30 @@ if (process.platform === 'win32') {
   const ffi = require('ffi');
   const wchar_t = require('ref-wchar');
 
-  const kernel32 = ffi.Library('kernel32', {
-    'CopyFileW': ['uint32', [wchar_t.string, wchar_t.string, 'uint32']],
-  });
-
-  const longFileNamePrefix = '\\\\?\\';
-
-  copyFile = (reporter: Reporter, data: CopyFileAction) => new Promise((resolve, reject) => {
-    reporter.verbose(reporter.lang('verboseFileCopy', data.src, data.dest));
-
-    kernel32.CopyFileW.async(longFileNamePrefix + data.src, longFileNamePrefix + data.dest, 0, function(err, res) {
-      if (err) {
-        reject(err);
-      }
-
-      if (res === 0) {
-        reject(new Error('CopyFileW failed'));
-      }
-
-      resolve();
+  // Binary modules aren't included in the single-js build so the require() calls might return undefined
+  if (ffi !== undefined && wchar_t !== undefined) {
+    const kernel32 = ffi.Library('kernel32', {
+      'CopyFileW': ['uint32', [wchar_t.string, wchar_t.string, 'uint32']],
     });
-  });
+
+    const longFileNamePrefix = '\\\\?\\';
+
+    copyFile = (reporter: Reporter, data: CopyFileAction) => new Promise((resolve, reject) => {
+      reporter.verbose(reporter.lang('verboseFileCopy', data.src, data.dest));
+
+      kernel32.CopyFileW.async(longFileNamePrefix + data.src, longFileNamePrefix + data.dest, 0, function(err, res) {
+        if (err) {
+          reject(err);
+        }
+
+        if (res === 0) {
+          reject(new Error('CopyFileW failed'));
+        }
+
+        resolve();
+      });
+    });
+  }
 }
 
 export async function copyBulk(
