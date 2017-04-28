@@ -92,7 +92,7 @@ export async function getFilesFromArchive(source, destination): Promise<Array<st
       .on('error', reject);
   });
   await unzip;
-  const files = await fs.readdir(destination);
+  const files = (await fs.walk(destination)).map(({relative}) => relative);
   return files;
 }
 
@@ -115,10 +115,14 @@ test.concurrent('pack should include all files listed in the files array', (): P
       path.join(cwd, 'files-include-v1.0.0.tgz'),
       path.join(cwd, 'files-include-v1.0.0'),
     );
-    const expected = ['index.js', 'a.js', 'b.js'];
-    expected.forEach((filename) => {
-      expect(files.indexOf(filename)).toBeGreaterThanOrEqual(0);
-    });
+    expect(files.sort()).toEqual([
+      'a.js',
+      'b.js',
+      'dir',
+      path.join('dir', 'nested.js'),
+      'index.js',
+      'package.json',
+    ]);
   });
 });
 

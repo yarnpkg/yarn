@@ -9,7 +9,7 @@ import {MessageError} from '../../errors.js';
 
 const zlib = require('zlib');
 const path = require('path');
-const tar = require('tar-stream');
+const tar = require('tar-fs');
 const fs2 = require('fs');
 
 const IGNORE_FILENAMES = [
@@ -54,18 +54,6 @@ const NEVER_IGNORE = ignoreLinesToRegex([
   '!/+(changes|changelog|history)*',
 ]);
 
-function addEntry(packer: any, entry: Object, buffer?: ?Buffer): Promise<void> {
-  return new Promise((resolve, reject) => {
-    packer.entry(entry, buffer, function(err) {
-      if (err) {
-        reject(err);
-      } else {
-        resolve();
-      }
-    });
-  });
-}
-
 export async function pack(config: Config, dir: string): Promise<stream$Duplex> {
   const pkg = await config.readRootManifest();
   const {bundledDependencies, main, files: onlyFiles} = pkg;
@@ -97,6 +85,7 @@ export async function pack(config: Config, dir: string): Promise<stream$Duplex> 
     ];
     lines = lines.concat(
       onlyFiles.map((filename: string): string => `!${filename}`),
+      onlyFiles.map((filename: string): string => `!${path.join(filename, '**')}`),
     );
     const regexes = ignoreLinesToRegex(lines, '.');
     filters = filters.concat(regexes);
@@ -129,46 +118,28 @@ export async function pack(config: Config, dir: string): Promise<stream$Duplex> 
   // apply filters
   sortFilter(files, filters, keepFiles, possibleKeepFiles, ignoredFiles);
 
-  const packer = tar.pack();
-  const compressor = packer.pipe(new zlib.Gzip());
-
-  await addEntry(packer, {
-    name: 'package',
-    type: 'directory',
+  const packer = tar.pack(config.cwd, {
+    ignore: (name) => {
+      const relative = path.relative(config.cwd, name);
+      // Don't ignore directories, since we need to recurse inside them to check for unignored files.
+      if (fs2.lstatSync(name).isDirectory()) {
+        const isParentOfKeptFile = Array.from(keepFiles).some((name) =>
+          !path.relative(relative, name).startsWith('..'));
+        return !isParentOfKeptFile;
+      }
+      // Otherwise, ignore a file if we're not supposed to keep it.
+      return !keepFiles.has(relative);
+    },
+    map: (header) => {
+      const suffix = header.name === '.' ? '' : `/${header.name}`;
+      header.name = `package${suffix}`;
+      delete header.uid;
+      delete header.gid;
+      return header;
+    },
   });
 
-  for (const name of keepFiles) {
-    const loc = path.join(config.cwd, name);
-    const stat = await fs.lstat(loc);
-
-    let type: ?string;
-    let buffer: ?Buffer;
-    let linkname: ?string;
-    if (stat.isDirectory()) {
-      type = 'directory';
-    } else if (stat.isFile()) {
-      buffer = await fs.readFileRaw(loc);
-      type = 'file';
-    } else if (stat.isSymbolicLink()) {
-      type = 'symlink';
-      linkname = await fs.readlink(loc);
-    } else {
-      throw new Error();
-    }
-
-    const entry = {
-      name: `package/${name}`,
-      size: stat.size,
-      mode: stat.mode,
-      mtime: stat.mtime,
-      type,
-      linkname,
-    };
-
-    await addEntry(packer, entry, buffer);
-  }
-
-  packer.finalize();
+  const compressor = packer.pipe(new zlib.Gzip());
 
   return compressor;
 }
