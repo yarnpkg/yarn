@@ -3,7 +3,14 @@
 
 set -ex
 
-version=`curl --fail https://yarnpkg.com/latest-version`
+# See if YARN_VERSION was passed in the environment, otherwise get version
+# number from Yarn site
+if [ -z "$YARN_VERSION" ]; then
+  echo 'Getting Yarn version from https://yarnpkg.com/latest-version'
+  version=`curl --fail https://yarnpkg.com/latest-version`
+else
+  version="$YARN_VERSION"
+fi
 
 # Ensure Linuxbrew is on the PATH
 PATH=$PATH:$HOME/.linuxbrew/bin/

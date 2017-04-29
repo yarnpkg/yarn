@@ -33,6 +33,17 @@ job('yarn-version') {
       branch 'origin', 'master'
       pushOnlyIfSuccess
     }
+    downstreamParameterized {
+      // Other jobs to run when version number is bumped
+      trigger([
+        'yarn-chocolatey',
+        'yarn-homebrew',
+      ]) {
+        parameters {
+          currentBuild()
+        }
+      }
+    }
     gitHubIssueNotifier {
     }
   }
@@ -71,8 +82,8 @@ job('yarn-chocolatey') {
   scm {
     github 'yarnpkg/yarn', 'master'
   }
-  triggers {
-    upstream 'yarn-version'
+  parameters {
+    stringParam 'YARN_VERSION'
   }
   steps {
     powerShell '.\\scripts\\build-chocolatey.ps1 -Publish'
@@ -80,7 +91,6 @@ job('yarn-chocolatey') {
   publishers {
     gitHubIssueNotifier {
     }
-    mailer 'yarn@dan.cx'
   }
 }
 
@@ -90,8 +100,8 @@ job('yarn-homebrew') {
   scm {
     github 'yarnpkg/yarn', 'master'
   }
-  triggers {
-    upstream 'yarn-version'
+  parameters {
+    stringParam 'YARN_VERSION'
   }
   steps {
     shell './scripts/update-homebrew.sh'
@@ -99,6 +109,5 @@ job('yarn-homebrew') {
   publishers {
     gitHubIssueNotifier {
     }
-    mailer 'yarn@dan.cx'
   }
 }
