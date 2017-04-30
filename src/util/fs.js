@@ -6,6 +6,7 @@ import * as promise from './promise.js';
 import {promisify} from './promise.js';
 import map from './map.js';
 
+const fcopy = require('fcopy');
 const path = require('path');
 const fs = require('fs');
 const os = require('os');
@@ -26,8 +27,9 @@ export const exists: (path: string) => Promise<boolean> = promisify(fs.exists, t
 export const lstat: (path: string) => Promise<fs.Stats> = promisify(fs.lstat);
 export const chmod: (path: string, mode: number | string) => Promise<void> = promisify(fs.chmod);
 export const link: (path: string) => Promise<fs.Stats> = promisify(fs.link);
+export const utimes: (path: string, atime: number, mtime: number) => Promise<void> = promisify(fs.utimes);
 
-const CONCURRENT_QUEUE_ITEMS = 4;
+const CONCURRENT_QUEUE_ITEMS = 16;
 
 const fsSymlink: (
   target: string,
@@ -510,37 +512,16 @@ export async function copyBulk(
     }
 
     const cleanup = () => delete currentlyWriting[data.dest];
-    return currentlyWriting[data.dest] = new Promise((resolve, reject) => {
-      const readStream = fs.createReadStream(data.src);
-      const writeStream = fs.createWriteStream(data.dest, {mode: data.mode});
-
+    return currentlyWriting[data.dest] = (async function() : Promise<void> {
       reporter.verbose(reporter.lang('verboseFileCopy', data.src, data.dest));
-
-      readStream.on('error', reject);
-      writeStream.on('error', reject);
-
-      writeStream.on('open', function() {
-        readStream.pipe(writeStream);
-      });
-
-      writeStream.once('close', function() {
-        fs.utimes(data.dest, data.atime, data.mtime, function(err) {
-          if (err) {
-            reject(err);
-          } else {
-            events.onProgress(data.dest);
-            cleanup();
-            resolve();
-          }
-        });
-      });
-    }).then((arg) => {
-      cleanup();
-      return arg;
-    }).catch((arg) => {
-      cleanup();
-      throw arg;
-    });
+      try {
+        await fcopy(data.src, data.dest, {mode: data.mode});
+        await utimes(data.dest, data.atime, data.mtime);
+        events.onProgress(data.dest);
+      } finally {
+        cleanup();
+      }
+    })();
   }, CONCURRENT_QUEUE_ITEMS);
 
   // we need to copy symlinks last as they could reference files we were copying

@@ -1695,6 +1695,12 @@ fb-watchman@^2.0.0:
   dependencies:
     bser "^2.0.0"
 
+fcopy@^0.0.7:
+  version "0.0.7"
+  resolved "https://registry.yarnpkg.com/fcopy/-/fcopy-0.0.7.tgz#bad8c8f1d256f1bae65e4165334bae58b1d190c2"
+  dependencies:
+    nan "^2.6.2"
+
 figures@^1.3.5:
   version "1.7.0"
   resolved "https://registry.yarnpkg.com/figures/-/figures-1.7.0.tgz#cbe1e3affcf1cd44b80cadfed28dc793a9701d2e"
@@ -3280,6 +3286,10 @@ mute-stream@0.0.7, mute-stream@~0.0.4:
 nan@^2.3.0:
   version "2.5.1"
   resolved "https://registry.yarnpkg.com/nan/-/nan-2.5.1.tgz#d5b01691253326a97a2bbee9e61c55d8d60351e2"
+
+nan@^2.6.2:
+  version "2.6.2"
+  resolved "https://registry.yarnpkg.com/nan/-/nan-2.6.2.tgz#e4ff34e6c95fdfb5aecc08de6596f43605a7db45"
 
 natives@^1.1.0:
   version "1.1.0"
