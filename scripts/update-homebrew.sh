@@ -18,6 +18,9 @@ PATH=$PATH:$HOME/.linuxbrew/bin/
 pushd ~/.linuxbrew/Library/Taps/homebrew/homebrew-core
 #git remote set-url origin https://github.com/Daniel15/homebrew-core # for testing
 git remote set-url origin https://github.com/homebrew/homebrew-core
+git reset --hard HEAD
+git clean -fd
+git fetch --prune origin
 # Remove any existing branch (eg. if the previous attempt failed)
 git branch -D yarn-$version || true
 popd
