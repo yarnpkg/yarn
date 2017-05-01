@@ -68,7 +68,7 @@ export const {run, setFlags, examples} = buildSubCommands('licenses', {
           vendorUrl || 'Unknown', vendorName || 'Unknown']);
       }
 
-      reporter.table(['Name', 'Version', 'License', 'URL', 'VendorUrl', 'vendorName'], body);
+      reporter.table(['Name', 'Version', 'License', 'URL', 'VendorUrl', 'VendorName'], body);
     } else {
       const trees = [];
 
