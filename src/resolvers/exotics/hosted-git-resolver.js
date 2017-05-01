@@ -15,7 +15,7 @@ export type ExplodedFragment = {
   hash: string,
 };
 
-export function explodeHostedGitFragment(fragment: string, reporter: Reporter): ExplodedFragment {  
+export function explodeHostedGitFragment(fragment: string, reporter: Reporter): ExplodedFragment {
 
   const preParts = fragment.split('@');
   if (preParts.length > 2) {
@@ -39,7 +39,7 @@ export function explodeHostedGitFragment(fragment: string, reporter: Reporter): 
     throw new MessageError(reporter.lang('invalidHostedGitFragment', fragment));
   }
 
-  const userParts = fragment.split('/');  
+  const userParts = fragment.split('/');
 
   if (userParts.length >= 2) {
 
@@ -140,11 +140,6 @@ export default class HostedGitResolver extends ExoticResolver {
   }
 
   async resolveOverHTTP(url: string): Promise<Manifest> {
-    const shrunk = this.request.getLocked('tarball');
-    if (shrunk) {
-      return shrunk;
-    }
-
     const commit = await this.getRefOverHTTP(url);
     const {config} = this;
 
@@ -201,6 +196,12 @@ export default class HostedGitResolver extends ExoticResolver {
   }
 
   async resolve(): Promise<Manifest> {
+    // If we already have the tarball, just return it without having to make any HTTP requests.
+    const shrunk = this.request.getLocked('tarball');
+    if (shrunk) {
+      return shrunk;
+    }
+
     const httpUrl = this.constructor.getGitHTTPUrl(this.exploded);
     const httpBaseUrl = this.constructor.getGitHTTPBaseUrl(this.exploded);
     const sshUrl = this.constructor.getGitSSHUrl(this.exploded);
