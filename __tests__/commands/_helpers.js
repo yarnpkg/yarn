@@ -10,8 +10,9 @@ import * as fs from '../../src/util/fs.js';
 import {Install} from '../../src/cli/commands/install.js';
 import Config from '../../src/config.js';
 
-const stream = require('stream');
+const os = require('os');
 const path = require('path');
+const stream = require('stream');
 
 const fixturesLoc = path.join(__dirname, '..', 'fixtures', 'install');
 
@@ -49,6 +50,10 @@ export async function getPackageVersion(config: Config, packagePath: string): Pr
   const loc = path.join(config.cwd, `node_modules/${packagePath.replace(/\//g, '/node_modules/')}/package.json`);
   const json = JSON.parse(await fs.readFile(loc));
   return json.version;
+}
+
+export function getTempGlobalFolder(): string {
+  return path.join(os.tmpdir(), `yarn-global-${Math.random()}`);
 }
 
 export async function run<T, R>(
@@ -119,14 +124,18 @@ export async function run<T, R>(
   }
 
   try {
-    const config = await Config.create({
+    const opts = {
       binLinks: !!flags.binLinks,
       cwd,
       globalFolder: path.join(cwd, '.yarn-global'),
       cacheFolder: flags.cacheFolder || path.join(cwd, '.yarn-cache'),
       linkFolder: flags.linkFolder || path.join(cwd, '.yarn-link'),
       production: flags.production,
-    }, reporter);
+    };
+    if (flags.noCache) {
+      delete opts.cacheFolder;
+    }
+    const config = await Config.create(opts, reporter);
 
     const install = await factory(args, flags, config, reporter, lockfile, () => out);
 
