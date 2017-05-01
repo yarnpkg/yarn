@@ -32,12 +32,12 @@ const runUnlink = buildRun.bind(
 test.concurrent('creates folder in linkFolder', async (): Promise<void> => {
   const linkFolder = await mkdir('link-folder');
 
-  await runLink([], { linkFolder }, 'package-with-name', async (config, reporter): Promise<void> => {
+  await runLink([], {linkFolder}, 'package-with-name', async (config, reporter): Promise<void> => {
     const existed = await fs.exists(path.join(linkFolder, 'a-package'));
     expect(existed).toEqual(true);
   });
 
-  await runUnlink([], { linkFolder }, 'package-with-name', async (config, reporter): Promise<void> => {
+  await runUnlink([], {linkFolder}, 'package-with-name', async (config, reporter): Promise<void> => {
     const existed = await fs.exists(path.join(linkFolder, 'a-package'));
     expect(existed).toEqual(false);
   });
@@ -47,10 +47,9 @@ test.concurrent('throws error if package.json does not have name', async (): Pro
   const linkFolder = await mkdir('link-folder');
   const reporter = new ConsoleReporter({});
 
-  try
-  {
-    await runUnlink([], { linkFolder }, 'package-no-name', () => {});
-  } catch(err) {
+  try {
+    await runUnlink([], {linkFolder}, 'package-no-name', () => {});
+  } catch (err) {
     expect(err.message).toContain(reporter.lang('unknownPackageName'));
   }
 });
