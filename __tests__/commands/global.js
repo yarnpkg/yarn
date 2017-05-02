@@ -77,7 +77,7 @@ test.concurrent('bin', (): Promise<void> => {
   const tmpGlobalFolder = getTempGlobalFolder();
   return runGlobal(['bin'], {prefix: tmpGlobalFolder}, 'add-with-prefix-flag',
   (config, reporter, install, getStdout) => {
-    expect(getStdout()).toContain(path.join(tmpGlobalFolder, 'bin'));
+    expect(getStdout()).toContain(tmpGlobalFolder);
   });
 });
 
