@@ -188,7 +188,7 @@ const messages = {
   whyDiskSizeWithout: 'Disk size without dependencies: $0',
   whyDiskSizeUnique: 'Disk size with unique dependencies: $0',
   whyDiskSizeTransitive: 'Disk size with transitive dependencies: $0',
-  whySharedDependencies: 'Amount of shared dependencies: $0',
+  whySharedDependencies: 'Number of shared dependencies: $0',
   whyHoistedTo: `Has been hoisted to $0`,
 
   whyHoistedFromSimple: `This module exists because it's hoisted from $0.`,
