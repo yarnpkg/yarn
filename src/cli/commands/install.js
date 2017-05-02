@@ -1,5 +1,6 @@
 /* @flow */
 
+import type {InstallationMethod} from '../../util/yarn-version.js';
 import type {Reporter} from '../../reporters/index.js';
 import type {ReporterSelectOption} from '../../reporters/types.js';
 import type {Manifest, DependencyRequestPatterns} from '../../types.js';
@@ -21,6 +22,7 @@ import {clean} from './clean.js';
 import * as constants from '../../constants.js';
 import * as fs from '../../util/fs.js';
 import map from '../../util/map.js';
+import {version as YARN_VERSION, getInstallationMethod} from '../../util/yarn-version.js';
 
 const invariant = require('invariant');
 const semver = require('semver');
@@ -28,7 +30,6 @@ const emoji = require('node-emoji');
 const isCI = require('is-ci');
 const path = require('path');
 
-const {version: YARN_VERSION, installationMethod: YARN_INSTALL_METHOD} = require('../../../package.json');
 const ONE_DAY = 1000 * 60 * 60 * 24;
 
 export type InstallCwdRequest = {
@@ -66,41 +67,41 @@ type Flags = {
  * Try and detect the installation method for Yarn and provide a command to update it with.
  */
 
-function getUpdateCommand(): ?string {
-  if (YARN_INSTALL_METHOD === 'tar') {
+function getUpdateCommand(installationMethod: InstallationMethod): ?string {
+  if (installationMethod === 'tar') {
     return `curl -o- -L ${constants.YARN_INSTALLER_SH} | bash`;
   }
 
-  if (YARN_INSTALL_METHOD === 'homebrew') {
+  if (installationMethod === 'homebrew') {
     return 'brew upgrade yarn';
   }
 
-  if (YARN_INSTALL_METHOD === 'deb') {
+  if (installationMethod === 'deb') {
     return 'sudo apt-get update && sudo apt-get install yarn';
   }
 
-  if (YARN_INSTALL_METHOD === 'rpm') {
+  if (installationMethod === 'rpm') {
     return 'sudo yum install yarn';
   }
 
-  if (YARN_INSTALL_METHOD === 'npm') {
+  if (installationMethod === 'npm') {
     return 'npm upgrade --global yarn';
   }
 
-  if (YARN_INSTALL_METHOD === 'chocolatey') {
+  if (installationMethod === 'chocolatey') {
     return 'choco upgrade yarn';
   }
 
-  if (YARN_INSTALL_METHOD === 'apk') {
+  if (installationMethod === 'apk') {
     return 'apk update && apk add -u yarn';
   }
 
   return null;
 }
 
-function getUpdateInstaller(): ?string {
+function getUpdateInstaller(installationMethod: InstallationMethod): ?string {
   // Windows
-  if (YARN_INSTALL_METHOD === 'msi') {
+  if (installationMethod === 'msi') {
     return constants.YARN_INSTALLER_MSI;
   }
 
@@ -460,6 +461,7 @@ export class Install {
     for (const step of steps) {
       const stepResult = await step(++currentStep, steps.length);
       if (stepResult && stepResult.bailout) {
+        this.maybeOutputUpdate();
         return flattenedTopLevelPatterns;
       }
     }
@@ -727,15 +729,16 @@ export class Install {
     });
 
     if (semver.gt(latestVersion, YARN_VERSION)) {
+      const installationMethod = await getInstallationMethod();
       this.maybeOutputUpdate = () => {
         this.reporter.warn(this.reporter.lang('yarnOutdated', latestVersion, YARN_VERSION));
 
-        const command = getUpdateCommand();
+        const command = getUpdateCommand(installationMethod);
         if (command) {
           this.reporter.info(this.reporter.lang('yarnOutdatedCommand'));
           this.reporter.command(command);
         } else {
-          const installer = getUpdateInstaller();
+          const installer = getUpdateInstaller(installationMethod);
           if (installer) {
             this.reporter.info(this.reporter.lang('yarnOutdatedInstaller', installer));
           }
