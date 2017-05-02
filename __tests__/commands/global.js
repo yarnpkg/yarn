@@ -5,6 +5,7 @@ import {ConsoleReporter} from '../../src/reporters/index.js';
 import {run as buildRun} from './_helpers.js';
 import {run as global} from '../../src/cli/commands/global.js';
 import * as fs from '../../src/util/fs.js';
+import mkdir from '../_temp.js';
 const isCI = require('is-ci');
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 90000;
@@ -34,7 +35,16 @@ function getTempGlobalFolder(): string {
   return path.join(os.tmpdir(), `yarn-global-${Math.random()}`);
 }
 
-// this test has global folder side effects, run it only in CI
+async function createTempGlobalFolder(): Promise<string> {
+  return await mkdir('yarn-global');
+}
+
+async function createTempPrefixFolder(): Promise<string> {
+  const prefixFolder = await mkdir('yarn-prefix');
+  return path.join(prefixFolder, 'bin');
+}
+
+// these tests have global folder side or prefix folder effects, run it only in CI
 if (isCI) {
   test.concurrent('add without flag', (): Promise<void> => {
     return runGlobal(['add', 'react-native-cli'], {}, 'add-without-flag', async (config) => {
@@ -42,23 +52,79 @@ if (isCI) {
       expect(await fs.exists(path.join(config.globalFolder, 'node_modules', '.bin', 'react-native'))).toEqual(true);
     });
   });
+
+  test.concurrent('add with prefix flag', (): Promise<void> => {
+    const tmpGlobalFolder = getTempGlobalFolder();
+    return runGlobal(['add', 'react-native-cli'], {prefix: tmpGlobalFolder}, 'add-with-prefix-flag', async (config) => {
+      expect(await fs.exists(getGlobalPath(tmpGlobalFolder, 'react-native'))).toEqual(true);
+    });
+  });
+
+  // don't run this test in `concurrent`, it will affect other tests
+  test('add with PREFIX enviroment variable', (): Promise<void> => {
+    const tmpGlobalFolder = getTempGlobalFolder();
+    const envPrefix = process.env.PREFIX;
+    process.env.PREFIX = tmpGlobalFolder;
+    return runGlobal(['add', 'react-native-cli'], {}, 'add-with-prefix-env', async (config) => {
+      expect(await fs.exists(getGlobalPath(tmpGlobalFolder, 'react-native'))).toEqual(true);
+      // restore env
+      process.env.PREFIX = envPrefix;
+    });
+  });
 }
 
-test.concurrent('add with prefix flag', (): Promise<void> => {
+test.concurrent('bin', (): Promise<void> => {
   const tmpGlobalFolder = getTempGlobalFolder();
-  return runGlobal(['add', 'react-native-cli'], {prefix: tmpGlobalFolder}, 'add-with-prefix-flag', async (config) => {
-    expect(await fs.exists(getGlobalPath(tmpGlobalFolder, 'react-native'))).toEqual(true);
+  return runGlobal(['bin'], {prefix: tmpGlobalFolder}, 'add-with-prefix-flag',
+  (config, reporter, install, getStdout) => {
+    expect(getStdout()).toContain(tmpGlobalFolder);
   });
 });
 
-// don't run this test in `concurrent`, it will affect other tests
-test('add with PREFIX enviroment variable', (): Promise<void> => {
-  const tmpGlobalFolder = getTempGlobalFolder();
-  const envPrefix = process.env.PREFIX;
-  process.env.PREFIX = tmpGlobalFolder;
-  return runGlobal(['add', 'react-native-cli'], {}, 'add-with-prefix-env', async (config) => {
-    expect(await fs.exists(getGlobalPath(tmpGlobalFolder, 'react-native'))).toEqual(true);
-    // restore env
-    process.env.PREFIX = envPrefix;
+test.concurrent('add', async (): Promise<void> => {
+  const tmpGlobalFolder = await createTempGlobalFolder();
+  const tmpPrefixFolder = await createTempPrefixFolder();
+  const flags = {globalFolder: tmpGlobalFolder, prefix: tmpPrefixFolder};
+  return runGlobal(['add', 'react-native-cli'], flags, 'add-with-prefix-flag',
+  async (config) => {
+    expect(await fs.exists(path.join(tmpGlobalFolder, 'node_modules', 'react-native-cli'))).toEqual(true);
+  });
+});
+
+test.concurrent('remove', async (): Promise<void> => {
+  const tmpGlobalFolder = await createTempGlobalFolder();
+  const tmpPrefixFolder = await createTempPrefixFolder();
+  const flags = {globalFolder: tmpGlobalFolder, prefix: tmpPrefixFolder};
+  return runGlobal(['add', 'react-native-cli'], flags, 'add-with-prefix-flag', () => {})
+  .then(() => {
+    return runGlobal(['remove', 'react-native-cli'], flags, 'add-with-prefix-flag', async (config) => {
+      expect(await fs.exists(path.join(tmpGlobalFolder, 'node_modules', 'react-native-cli'))).toEqual(false);
+    });
+  });
+});
+
+test.concurrent('ls', async (): Promise<void> => {
+  const tmpGlobalFolder = await createTempGlobalFolder();
+  const tmpPrefixFolder = await createTempPrefixFolder();
+  const flags = {globalFolder: tmpGlobalFolder, prefix: tmpPrefixFolder};
+  return runGlobal(['add', 'react-native-cli'], flags, 'add-with-prefix-flag', () => {})
+  .then(() => {
+    return runGlobal(['ls'], flags, 'add-with-prefix-flag', (config, reporter, install, getStdout) => {
+      expect(getStdout()).toContain('react-native-cli');
+    });
+  });
+});
+
+test.concurrent('upgrade', async (): Promise<void> => {
+  const tmpGlobalFolder = await createTempGlobalFolder();
+  const tmpPrefixFolder = await createTempPrefixFolder();
+  const flags = {globalFolder: tmpGlobalFolder, prefix: tmpPrefixFolder};
+  return runGlobal(['add', 'react-native-cli@2.0.0'], flags, 'add-with-prefix-flag', () => {})
+  .then(() => {
+    return runGlobal(['upgrade', 'react-native-cli'], flags, 'add-with-prefix-flag',
+    (config, reporter, install, getStdout) => {
+      expect(getStdout()).toContain('react-native-cli');
+      expect(getStdout()).not.toContain('react-native-cli@2.0.0');
+    });
   });
 });

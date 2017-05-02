@@ -201,7 +201,7 @@ const {run, setFlags: _setFlags} = buildSubCommands('global', {
     flags: Object,
     args: Array<string>,
   ) {
-    console.log(getBinFolder(config, flags));
+    reporter.log(getBinFolder(config, flags));
   },
 
   async ls(
@@ -214,7 +214,7 @@ const {run, setFlags: _setFlags} = buildSubCommands('global', {
 
     // install so we get hard file paths
     const lockfile = await Lockfile.fromDirectory(config.cwd);
-    const install = new Install({skipIntegrity: true}, config, new NoopReporter(), lockfile);
+    const install = new Install({skipIntegrityCheck: true}, config, new NoopReporter(), lockfile);
     const patterns = await install.init();
 
     // dump global modules
