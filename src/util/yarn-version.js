@@ -47,4 +47,5 @@ export type InstallationMethod =
   | 'msi'
   | 'chocolatey'
   | 'apk'
+  | 'npm'
   | 'unknown';
