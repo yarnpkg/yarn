@@ -83,7 +83,9 @@ job('yarn-chocolatey') {
     github 'yarnpkg/yarn', 'master'
   }
   parameters {
+    // Passed from yarn-version job
     stringParam 'YARN_VERSION'
+    booleanParam 'YARN_RC'
   }
   steps {
     powerShell '.\\scripts\\build-chocolatey.ps1 -Publish'
@@ -101,7 +103,9 @@ job('yarn-homebrew') {
     github 'yarnpkg/yarn', 'master'
   }
   parameters {
+    // Passed from yarn-version job
     stringParam 'YARN_VERSION'
+    booleanParam 'YARN_RC'
   }
   steps {
     shell './scripts/update-homebrew.sh'
