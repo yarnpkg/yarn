@@ -28,5 +28,5 @@ export async function run(
   }
 
   await runGlobal(config, reporter, {}, [ 'add', `yarn-create-${args[0]}` ]);
-  await spawn(`${getGlobalBinFolder(config, flags)}/yarn-create-${args[0]}`, []);
+  await spawn(`${getGlobalBinFolder(config, flags)}/yarn-create-${args[0]}`, [], { stdio: `inherit` });
 }
