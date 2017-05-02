@@ -7,7 +7,7 @@ import {run as licenses} from '../../src/cli/commands/licenses.js';
 const path = require('path');
 
 const fixturesLoc = path.join(__dirname, '..', 'fixtures', 'licenses');
-const expectedTable = require('../fixtures/licenses/table.json');
+const expectedTable = require('../fixtures/licenses/expected-table.json');
 
 const runLicenses = buildRun.bind(
   null,
