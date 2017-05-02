@@ -122,7 +122,7 @@ export default class YarnRegistry extends NpmRegistry {
       }
 
       // update just the home config
-      this.homeConfig[key] = config[key];
+      this.homeConfig[key] = JSON.parse(config[key]);
     }
 
     await fs.writeFilePreservingEol(this.homeConfigLoc, `${stringify(this.homeConfig)}\n`);
