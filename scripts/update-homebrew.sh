@@ -3,6 +3,11 @@
 
 set -ex
 
+if [ "$YARN_RC" = "true" ]; then
+  echo 'This is an RC release; Homebrew will not be updated.'
+  exit 0
+fi;
+
 # See if YARN_VERSION was passed in the environment, otherwise get version
 # number from Yarn site
 if [ -z "$YARN_VERSION" ]; then

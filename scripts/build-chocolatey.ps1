@@ -7,6 +7,11 @@ param(
 
 $ErrorActionPreference = 'Stop'; # stop on all errors
 
+if ($Env:YARN_RC -eq 'true') {
+  Write-Output 'This is an RC release; Chocolatey will not be updated'
+  Exit
+}
+
 # See if YARN_VERSION was passed in the environment, otherwise get version
 # number from Yarn site
 if ($Env:YARN_VERSION) {
