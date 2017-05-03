@@ -26,6 +26,7 @@ async function getLinkedPath(path): Promise<boolean> {
     return linkPath;
   } else {
     const contents = await fs.readFile(path);
+    console.log('DEBUG: FILE', path, contents);
     return /"\$basedir\/([^"]*)"/.exec(contents)[1];
   }
 }
