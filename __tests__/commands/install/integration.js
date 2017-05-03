@@ -19,6 +19,17 @@ const semver = require('semver');
 const path = require('path');
 const stream = require('stream');
 
+async function getLinkedPath(path): Promise<boolean> {
+  const stat = await fs.lstat(path);
+  if (stat.isSymbolicLink()) {
+    const linkPath = await fs.readlink(path);
+    return linkPath;
+  } else {
+    const contents = await fs.readFile(path);
+    return /"\$basedir\/([^"]*)"/.exec(contents)[1];
+  }
+}
+
 async function mockConstants(base: Config, mocks: Object, cb: (config: Config) => Promise<void>): Promise<void> {
   // We cannot put this function inside _helpers, because we need to change the "request" variable
   // after resetting the modules. Updating this variable is required because some tests check what
@@ -537,11 +548,11 @@ test('install should hoist nested bin scripts', (): Promise<void> => {
     expect(binScripts.findIndex((f) => f.basename === 'eslint')).toBeGreaterThanOrEqual(0);
 
     let idx = binScripts.findIndex((f) => f.basename === 'standard');
-    let linkPath = await fs.readlink(binScripts[idx].absolute);
+    let linkPath = await getLinkedPath(binScripts[idx].absolute);
     expect(linkPath).toEqual('../standard/bin/cmd.js');
 
     idx = binScripts.findIndex((f) => f.basename === 'eslint');
-    linkPath = await fs.readlink(binScripts[idx].absolute);
+    linkPath = await getLinkedPath(binScripts[idx].absolute);
     expect(linkPath).toEqual('../eslint/bin/eslint.js');
   });
 });
@@ -556,7 +567,7 @@ test('install not hoist nested bin scripts if non-transitive dependency already 
   return runInstall({binLinks: true}, 'install-duplicate-bin', async (config) => {
     const binScripts = await fs.walk(path.join(config.cwd, 'node_modules', '.bin'));
     const idx = binScripts.findIndex((f) => f.basename === 'eslint');
-    const linkPath = await fs.readlink(binScripts[idx].absolute);
+    const linkPath = await getLinkedPath(binScripts[idx].absolute);
     expect(linkPath).toEqual('../eslint/bin/eslint.js');
   });
 });
