@@ -19,7 +19,7 @@ const semver = require('semver');
 const path = require('path');
 const stream = require('stream');
 
-async function getLinkedPath(path): Promise<boolean> {
+async function getLinkedPath(path): Promise<string> {
   const stat = await fs.lstat(path);
   if (stat.isSymbolicLink()) {
     const linkPath = await fs.readlink(path);
