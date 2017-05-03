@@ -2,8 +2,6 @@
 
 import url from 'url';
 
-const SUFFIX_VISUALSTUDIO = '.pkgs.visualstudio.com';
-
 export default function isRequestToRegistry(requestUrl: string, registry: string, customHostSuffix: ? any): boolean {
   const requestParsed = url.parse(requestUrl);
   const registryParsed = url.parse(registry);
@@ -15,11 +13,11 @@ export default function isRequestToRegistry(requestUrl: string, registry: string
   const registryPath = registryParsed.path || '';
 
   return (requestHost === registryHost) &&
-        (requestPort === registryPort) && (
-          requestPath.startsWith(registryPath) ||
-          // For pkgs.visualstudio.com, the package path does not prefix with the registry path
-          requestHost.endsWith(SUFFIX_VISUALSTUDIO)
-        );
+    (requestPort === registryPort) &&
+    (requestPath.startsWith(registryPath) ||
+      // For some registries, the package path does not prefix with the registry path
+      (!!customHostSuffix && customHostSuffix.length > 0 && requestHost.endsWith(customHostSuffix))
+    );
 }
 
 function getPortOrDefaultPort(port: ?string, protocol: ?string): ?string {
