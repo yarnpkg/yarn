@@ -526,15 +526,38 @@ test.concurrent(
   },
 );
 
-// disabled to resolve https://github.com/yarnpkg/yarn/pull/1210
-test.skip('install should hoist nested bin scripts', (): Promise<void> => {
+test('install should hoist nested bin scripts', (): Promise<void> => {
   return runInstall({binLinks: true}, 'install-nested-bin', async (config) => {
     const binScripts = await fs.walk(path.join(config.cwd, 'node_modules', '.bin'));
     // need to double the amount as windows makes 2 entries for each dependency
     // so for below, there would be an entry for eslint and eslint.cmd on win32
     const amount = process.platform === 'win32' ? 20 : 10;
     expect(binScripts).toHaveLength(amount);
+    expect(binScripts.findIndex((f) => f.basename === 'standard')).toBeGreaterThanOrEqual(0);
     expect(binScripts.findIndex((f) => f.basename === 'eslint')).toBeGreaterThanOrEqual(0);
+
+    let idx = binScripts.findIndex((f) => f.basename === 'standard');
+    let linkPath = await fs.readlink(binScripts[idx].absolute);
+    expect(linkPath).toEqual('../standard/bin/cmd.js');
+
+    idx = binScripts.findIndex((f) => f.basename === 'eslint');
+    linkPath = await fs.readlink(binScripts[idx].absolute);
+    expect(linkPath).toEqual('../eslint/bin/eslint.js');
+  });
+});
+
+// eslint dependency tree:
+//   eslint@3.7.0
+//   standard
+//   standard -> eslint@3.7.1
+// result should be:
+//   eslint 3.7.0 is linked in /.bin because it takes priority over the transitive 3.7.1
+test('install not hoist nested bin scripts if non-transitive dependency already exists', (): Promise<void> => {
+  return runInstall({binLinks: true}, 'install-duplicate-bin', async (config) => {
+    const binScripts = await fs.walk(path.join(config.cwd, 'node_modules', '.bin'));
+    const idx = binScripts.findIndex((f) => f.basename === 'eslint');
+    const linkPath = await fs.readlink(binScripts[idx].absolute);
+    expect(linkPath).toEqual('../eslint/bin/eslint.js');
   });
 });
 

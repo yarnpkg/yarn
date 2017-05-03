@@ -126,6 +126,7 @@ export default class PackageLinker {
   }
 
   async copyModules(patterns: Array<string>, linkDuplicates: boolean): Promise<void> {
+
     let flatTree = await this.getFlatHoistedTree(patterns);
 
     // sorted tree makes file creation and copying not to interfere with each other
@@ -273,15 +274,43 @@ export default class PackageLinker {
       }
     }
 
-    //
+    // create binary links
     if (this.config.binLinks) {
-      const tickBin = this.reporter.progress(flatTree.length);
+      const linksToCreate = this.determineTopLevelBinLinks(flatTree);
+      const tickBin = this.reporter.progress(flatTree.length + linksToCreate.length);
+
+      // create links in transient dependencies
       await promise.queue(flatTree, async ([dest, {pkg}]) => {
         const binLoc = path.join(dest, this.config.getFolder(pkg));
         await this.linkBinDependencies(pkg, binLoc);
         tickBin(dest);
       }, 4);
+
+      // create links at top level for all dependencies.
+      // non-transient dependencies will overwrite these during this.save() to ensure they take priority.
+      await promise.queue(linksToCreate, async(pkg) => {
+        const binLoc = path.join(this.config.cwd, this.config.getFolder(pkg));
+        await this.linkBinDependencies(pkg, binLoc);
+        tickBin(this.config.cwd);
+      }, 4);
     }
+  }
+
+  determineTopLevelBinLinks(flatTree: HoistManifestTuples): Array<Manifest> {
+    const linksToCreate = new Map();
+
+    flatTree.forEach(([, {pkg}]) => {
+      if (linksToCreate.has(pkg.name)) {
+        const existing = linksToCreate.get(pkg.name);
+        if (existing && semver.gt(pkg.version, existing.version)) {
+          linksToCreate.set(pkg.name, pkg);
+        }
+      } else {
+        linksToCreate.set(pkg.name, pkg);
+      }
+    });
+
+    return Array.from(linksToCreate.values());
   }
 
   resolvePeerModules() {
