@@ -179,8 +179,9 @@ export default class TarballFetcher extends BaseFetcher {
 
   async _fetch(): Promise<FetchedOverride> {
     const urlParse = url.parse(this.reference);
-
-    if (urlParse.protocol ? urlParse.protocol.match(/^[a-z]:[\\\/]/i) : urlParse.pathname.match(/^(?:\.{1,2})?[\\\/]/i)) {
+    const isWindowsFilePathInProtocol = urlParse.protocol && urlParse.protocol.match(/^[a-z]:[\\\/]/i);
+    // if it is a Windows path or a relative file path we assume that tarball is local
+    if (isWindowsFilePathInProtocol || urlParse.pathname.match(/^(?:\.{1,2})?[\\\/]/i)) {
       return await this.fetchFromLocal(this.reference);
     }
 
