@@ -31,7 +31,7 @@ export async function run(
   const packageName = builderName.replace(/^(@[^\/]+\/)?/, '$1yarn-create-');
   const commandName = packageName.replace(/^@[^\/]+\//, '');
 
-  await runGlobal(config, reporter, {}, ['add', `yarn-create-${packageName}`]);
+  await runGlobal(config, reporter, {}, ['add', packageName]);
 
   for (const registry of registryNames) {
     const packagePath = `${config.globalFolder}/${config.registries[registry].folder}/${packageName}`;
