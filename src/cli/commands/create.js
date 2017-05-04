@@ -4,12 +4,11 @@ import {resolve} from 'path';
 
 import type Config from '../../config.js';
 import {MessageError} from '../../errors.js';
-import {registries, registryNames} from '../../registries/index.js';
+import {registryNames} from '../../registries/index.js';
 import type {Reporter} from '../../reporters/index.js';
 import * as child from '../../util/child.js';
 import * as fs from '../../util/fs.js';
-import {run as runGlobal, getBinFolder as getGlobalBinFolder} from './global.js';
-import {run as runRun} from './run.js';
+import {run as runGlobal} from './global.js';
 
 export function setFlags() {}
 
@@ -32,7 +31,7 @@ export async function run(
   const packageName = builderName.replace(/^(@[^\/]+\/)?/, '$1yarn-create-');
   const commandName = packageName.replace(/^@[^\/]+\//, '');
 
-  await runGlobal(config, reporter, {}, [ 'add', `yarn-create-${packageName}` ]);
+  await runGlobal(config, reporter, {}, ['add', `yarn-create-${packageName}`]);
 
   for (const registry of registryNames) {
     const packagePath = `${config.globalFolder}/${config.registries[registry].folder}/${packageName}`;
@@ -57,7 +56,7 @@ export async function run(
       throw new MessageError(reporter.lang('createInvalidBin', packageName));
     }
 
-    await child.spawn(binPath, rest, { stdio: `inherit` });
+    await child.spawn(binPath, rest, {stdio: `inherit`});
     return;
   }
 
