@@ -20,7 +20,7 @@ test('does fetch files from the local filesystem', (): Promise<void> => {
     return Promise.resolve();
   }, async (cwd) => {
     let packageJson = await fs.readFile(`${cwd}/package.json`);
-    packageJson = packageJson.replace(/%%CWD%%/g, cwd.replace(/\\/g, `/`);
+    packageJson = packageJson.replace(/%%CWD%%/g, cwd.replace(/\\/g, `/`));
     await fs.writeFile(`${cwd}/package.json`, packageJson);
   });
 });

@@ -181,8 +181,10 @@ export default class TarballFetcher extends BaseFetcher {
     const urlParse = url.parse(this.reference);
 
     const isFilePath = urlParse.protocol
-      ? urlParse.protocol.match(/^[a-z]:[\\\/]/i)
-      : urlParse.pathname.match(/^(?:\.{1,2})?[\\\/]/);
+      ? urlParse.protocol.match(/^[a-z]:$/i)
+      : urlParse.pathname
+        ? urlParse.pathname.match(/^(?:\.{1,2})?[\\\/]/)
+        : false;
 
     if (isFilePath) {
       return await this.fetchFromLocal(this.reference);
