@@ -29,7 +29,7 @@ test:
         ./scripts/set-dev-version.js
       fi;
     - yarn lint
-    - yarn test-ci -- -- --maxWorkers 3
+    - yarn test-ci -- -- --maxWorkers 1
     - yarn check-lockfile
     - yarn run build-dist
     - yarn run build-deb
