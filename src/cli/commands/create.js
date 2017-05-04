@@ -1,3 +1,5 @@
+// @flow
+
 import {resolve} from 'path';
 
 import type Config from '../../config.js';
