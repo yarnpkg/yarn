@@ -17,7 +17,7 @@ export async function run(
   flags: Object,
   args: Array<string>,
 ): Promise<void> {
-  const [builderName, rest] = args;
+  const [builderName, ... rest] = args;
 
   if (!builderName) {
     throw new MessageError(reporter.lang('invalidPackageName'));
@@ -27,6 +27,6 @@ export async function run(
     throw new MessageError(reporter.lang('createUnsupportedScope'));
   }
 
-  await runGlobal(config, reporter, {}, [ 'add', `yarn-create-${args[0]}` ]);
-  await spawn(`${getGlobalBinFolder(config, flags)}/yarn-create-${args[0]}`, [], { stdio: `inherit` });
+  await runGlobal(config, reporter, {}, [ 'add', `yarn-create-${builderName}` ]);
+  await spawn(`${getGlobalBinFolder(config, flags)}/yarn-create-${builderName}`, rest, { stdio: `inherit` });
 }
