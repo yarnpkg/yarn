@@ -132,7 +132,8 @@ const messages = {
   linkUnregistered: 'Unregistered $0.',
   linkUsing: 'Using linked module for $0.',
 
-  createUnsupportedScope: 'Scoped packages cannot be installed via yarn create for now - read <github issue> to know why.',
+  createInvalidBin: 'Invalid bin entry found in package $0.',
+  createMissingPackage: 'Package not found - this is probably an internal error, and should be reported on Github.',
 
   commandNotSpecified: 'No command specified.',
   binCommands: 'Commands available from binary scripts: ',

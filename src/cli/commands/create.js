@@ -1,7 +1,11 @@
+import {resolve} from 'path';
+
 import type Config from '../../config.js';
 import {MessageError} from '../../errors.js';
+import {registries, registryNames} from '../../registries/index.js';
 import type {Reporter} from '../../reporters/index.js';
-import {spawn} from '../../util/child.js';
+import * as child from '../../util/child.js';
+import * as fs from '../../util/fs.js';
 import {run as runGlobal, getBinFolder as getGlobalBinFolder} from './global.js';
 import {run as runRun} from './run.js';
 
@@ -23,10 +27,37 @@ export async function run(
     throw new MessageError(reporter.lang('invalidPackageName'));
   }
 
-  if (builderName.match(/^@/)) {
-    throw new MessageError(reporter.lang('createUnsupportedScope'));
+  const packageName = builderName.replace(/^(@[^\/]+\/)?/, '$1yarn-create-');
+  const commandName = packageName.replace(/^@[^\/]+\//, '');
+
+  await runGlobal(config, reporter, {}, [ 'add', `yarn-create-${packageName}` ]);
+
+  for (const registry of registryNames) {
+    const packagePath = `${config.globalFolder}/${config.registries[registry].folder}/${packageName}`;
+
+    if (!await fs.exists(packagePath)) {
+      continue;
+    }
+
+    const manifest = await config.tryManifest(packagePath, registry, false);
+
+    if (!manifest || !manifest.bin) {
+      continue;
+    }
+
+    let binPath;
+
+    if (typeof manifest.bin === 'string') {
+      binPath = resolve(packagePath, manifest.bin);
+    } else if (typeof manifest.bin === 'object' && manifest.bin[commandName]) {
+      binPath = resolve(packagePath, manifest.bin[commandName]);
+    } else {
+      throw new MessageError(reporter.lang('createInvalidBin', packageName));
+    }
+
+    await child.spawn(binPath, rest, { stdio: `inherit` });
+    return;
   }
 
-  await runGlobal(config, reporter, {}, [ 'add', `yarn-create-${builderName}` ]);
-  await spawn(`${getGlobalBinFolder(config, flags)}/yarn-create-${builderName}`, rest, { stdio: `inherit` });
+  throw new MessageError(reporter.lang('createMissingPackage'));
 }
