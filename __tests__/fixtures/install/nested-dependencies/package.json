@@ -1,0 +1,13 @@
+{
+  "name": "root0",
+  "version": "1.0.0",
+  "description": "root0",
+  "dependencies": {
+    "dep-log": "1.0.0",
+    "dep-a": "1.0.0",
+    "dep-b": "2.0.0",
+    "dep-d": "1.0.0"
+  },
+  "scripts": {},
+  "license": "MIT"
+}
