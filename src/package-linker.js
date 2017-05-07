@@ -57,6 +57,8 @@ export default class PackageLinker {
   }
 
   async linkSelfDependencies(pkg: Manifest, pkgLoc: string, targetBinLoc: string): Promise<void> {
+    targetBinLoc = path.join(targetBinLoc, '.bin');
+    await fs.mkdirp(targetBinLoc);
     targetBinLoc = await fs.realpath(targetBinLoc);
     pkgLoc = await fs.realpath(pkgLoc);
     for (const [scriptName, scriptCmd] of entries(pkg.bin)) {
@@ -109,13 +111,9 @@ export default class PackageLinker {
       return;
     }
 
-    // ensure our .bin file we're writing these to exists
-    const binLoc = path.join(dir, '.bin');
-    await fs.mkdirp(binLoc);
-
     // write the executables
     for (const {dep, loc} of deps) {
-      await this.linkSelfDependencies(dep, loc, binLoc);
+      await this.linkSelfDependencies(dep, loc, dir);
     }
   }
 
@@ -288,25 +286,22 @@ export default class PackageLinker {
 
       // create links at top level for all dependencies.
       // non-transient dependencies will overwrite these during this.save() to ensure they take priority.
-      await promise.queue(linksToCreate, async(pkg) => {
-        const binLoc = path.join(this.config.cwd, this.config.getFolder(pkg));
-        await this.linkBinDependencies(pkg, binLoc);
-        tickBin(this.config.cwd);
+      await promise.queue(linksToCreate, async ([dest, {pkg}]) => {
+        if (pkg.bin && Object.keys(pkg.bin).length) {
+          const binLoc = path.join(this.config.cwd, this.config.getFolder(pkg));
+          await this.linkSelfDependencies(pkg, dest, binLoc);
+          tickBin(this.config.cwd);
+        }
       }, 4);
     }
   }
 
-  determineTopLevelBinLinks(flatTree: HoistManifestTuples): Array<Manifest> {
+  determineTopLevelBinLinks(flatTree: HoistManifestTuples): HoistManifestTuples {
     const linksToCreate = new Map();
 
-    flatTree.forEach(([, {pkg}]) => {
-      if (linksToCreate.has(pkg.name)) {
-        const existing = linksToCreate.get(pkg.name);
-        if (existing && semver.gt(pkg.version, existing.version)) {
-          linksToCreate.set(pkg.name, pkg);
-        }
-      } else {
-        linksToCreate.set(pkg.name, pkg);
+    flatTree.forEach(([dest, hoistManifest]) => {
+      if (!linksToCreate.has(hoistManifest.pkg.name)) {
+        linksToCreate.set(hoistManifest.pkg.name, [dest, hoistManifest]);
       }
     });
 
@@ -368,9 +363,7 @@ export default class PackageLinker {
 
     // link bins
     if (this.config.binLinks && resolved.bin && Object.keys(resolved.bin).length && !ref.ignore) {
-      const folder = this.config.modulesFolder || path.join(this.config.cwd, this.config.getFolder(resolved));
-      const binLoc = path.join(folder, '.bin');
-      await fs.mkdirp(binLoc);
+      const binLoc = this.config.modulesFolder || path.join(this.config.cwd, this.config.getFolder(resolved));
       await this.linkSelfDependencies(resolved, src, binLoc);
     }
   }
