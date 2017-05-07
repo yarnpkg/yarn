@@ -8,6 +8,7 @@ import * as network from '../util/network.js';
 import {MessageError} from '../errors.js';
 import Config from '../config.js';
 import {getRcArgs} from '../rc.js';
+import {version} from '../util/yarn-version.js';
 
 const commander = require('commander');
 const fs = require('fs');
@@ -17,7 +18,6 @@ const loudRejection = require('loud-rejection');
 const net = require('net');
 const onDeath = require('death');
 const path = require('path');
-const pkg = require('../../package.json');
 
 loudRejection();
 
@@ -29,7 +29,7 @@ const args = process.argv.slice(2, doubleDashIndex === -1 ? process.argv.length 
 const endArgs = doubleDashIndex === -1 ? [] : process.argv.slice(doubleDashIndex + 1, process.argv.length);
 
 // set global options
-commander.version(pkg.version);
+commander.version(version);
 commander.usage('[command] [flags]');
 commander.option('--verbose', 'output verbose messages on internal operations');
 commander.option('--offline', 'trigger an error if any required dependencies are not available in local cache');
@@ -143,7 +143,7 @@ const config = new Config(reporter);
 const outputWrapper = !commander.json && command.hasWrapper(commander, commander.args);
 
 if (outputWrapper) {
-  reporter.header(commandName, pkg);
+  reporter.header(commandName, {name: 'yarn', version});
 }
 
 if (command.noArguments && commander.args.length) {
@@ -259,7 +259,7 @@ function onUnexpectedError(err: Error) {
   const log = [];
   log.push(`Arguments: ${indent(process.argv.join(' '))}`);
   log.push(`PATH: ${indent(process.env.PATH || 'undefined')}`);
-  log.push(`Yarn version: ${indent(pkg.version)}`);
+  log.push(`Yarn version: ${indent(version)}`);
   log.push(`Node version: ${indent(process.versions.node)}`);
   log.push(`Platform: ${indent(process.platform + ' ' + process.arch)}`);
 

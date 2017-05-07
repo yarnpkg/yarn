@@ -8,10 +8,10 @@ import NpmRegistry from './npm-registry.js';
 import stringify from '../lockfile/stringify.js';
 import parse from '../lockfile/parse.js';
 import * as fs from '../util/fs.js';
+import {version} from '../util/yarn-version.js';
 
 const userHome = require('../util/user-home-dir').default;
 const path = require('path');
-const pkg: { version: string } = require('../../package.json');
 
 export const DEFAULTS = {
   'version-tag-prefix': 'v',
@@ -28,7 +28,7 @@ export const DEFAULTS = {
   registry: YARN_REGISTRY,
   'strict-ssl': true,
   'user-agent': [
-    `yarn/${pkg.version}`,
+    `yarn/${version}`,
     'npm/?',
     `node/${process.version}`,
     process.platform,

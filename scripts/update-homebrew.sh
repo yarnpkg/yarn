@@ -27,6 +27,7 @@ git reset --hard HEAD
 git clean -fd
 git fetch --prune origin
 # Remove any existing branch (eg. if the previous attempt failed)
+git checkout master
 git branch -D yarn-$version || true
 popd
 

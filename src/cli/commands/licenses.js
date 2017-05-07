@@ -59,12 +59,16 @@ export const {run, setFlags, examples} = buildSubCommands('licenses', {
     if (flags.json) {
       const body = [];
 
-      for (const {name, version, license, repository, homepage} of manifests) {
+      for (const {name, version, license, repository, homepage, author} of manifests) {
+
         const url = repository ? repository.url : homepage;
-        body.push([name, version, license || 'Unknown', url || 'Unknown']);
+        const vendorUrl = homepage || (author && author.url);
+        const vendorName = (author && author.name);
+        body.push([name, version, license || 'Unknown', url || 'Unknown',
+          vendorUrl || 'Unknown', vendorName || 'Unknown']);
       }
 
-      reporter.table(['Name', 'Version', 'License', 'URL'], body);
+      reporter.table(['Name', 'Version', 'License', 'URL', 'VendorUrl', 'VendorName'], body);
     } else {
       const trees = [];
 

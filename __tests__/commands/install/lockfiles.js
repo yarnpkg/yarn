@@ -15,9 +15,13 @@ const fsNode = require('fs');
 const path = require('path');
 const os = require('os');
 
-test.concurrent('does fetch files from the local filesystem', (): Promise<void> => {
+test('does fetch files from the local filesystem', (): Promise<void> => {
   return runInstall({}, 'install-should-fetch-local-tarballs', (config): Promise<void> => {
     return Promise.resolve();
+  }, async (cwd) => {
+    let packageJson = await fs.readFile(`${cwd}/package.json`);
+    packageJson = packageJson.replace(/%%CWD%%/g, cwd.replace(/\\/g, `/`));
+    await fs.writeFile(`${cwd}/package.json`, packageJson);
   });
 });
 
