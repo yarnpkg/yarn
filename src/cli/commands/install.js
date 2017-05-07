@@ -588,7 +588,8 @@ export class Install {
     for (const dependency in lockfile) {
       const resolved = lockfile[dependency].resolved;
       if (resolved) {
-        requiredTarballs.add(path.basename(resolved.split('#')[0]));
+        const scope = dependency[0] !== '@' ? '' : dependency.split('/')[0] + '-';
+        requiredTarballs.add(scope + path.basename(resolved.split('#')[0]));
       }
     }
 
