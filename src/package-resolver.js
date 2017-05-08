@@ -348,7 +348,6 @@ export default class PackageResolver {
     }
 
     byName.splice(byName.indexOf(pattern), 1);
-    delete this.patterns[pattern];
   }
 
   /**
