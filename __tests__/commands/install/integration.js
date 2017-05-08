@@ -876,6 +876,19 @@ test.concurrent('prunes the offline mirror after pruning is enabled', (): Promis
   });
 });
 
+test.concurrent('scoped packages remain in offline mirror after pruning is enabled', (): Promise<void> => {
+  return runInstall({}, 'prune-offline-mirror-scoped', async (config): Promise<void> => {
+    const mirrorPath = 'mirror-for-offline';
+    // Ensure that scoped packages remain mangled and resolvable
+    expect(
+      await fs.exists(path.join(config.cwd, `${mirrorPath}/@fakescope-fake-dependency-1.0.1.tgz`)))
+      .toEqual(true, 'scoped package exists');
+    expect(
+      await fs.exists(path.join(config.cwd, `${mirrorPath}/fake-dependency-1.0.1.tgz`)))
+      .toEqual(true, 'unscoped package exists');
+  });
+});
+
 test.concurrent('bailout should work with --production flag too', (): Promise<void> => {
   return runInstall({production: true}, 'bailout-prod', async (config, reporter): Promise<void> => {
     // remove file
