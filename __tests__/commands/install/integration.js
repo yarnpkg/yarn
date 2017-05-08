@@ -526,25 +526,6 @@ test.concurrent(
   },
 );
 
-// disabled to resolve https://github.com/yarnpkg/yarn/pull/1210
-test.skip('install should hoist nested bin scripts', (): Promise<void> => {
-  return runInstall({binLinks: true}, 'install-nested-bin', async (config) => {
-    const binScripts = await fs.walk(path.join(config.cwd, 'node_modules', '.bin'));
-    // need to double the amount as windows makes 2 entries for each dependency
-    // so for below, there would be an entry for eslint and eslint.cmd on win32
-    const amount = process.platform === 'win32' ? 20 : 10;
-    expect(binScripts).toHaveLength(amount);
-    expect(binScripts.findIndex((f) => f.basename === 'eslint')).toBeGreaterThanOrEqual(0);
-  });
-});
-
-test.concurrent('install should respect --no-bin-links flag', (): Promise<void> => {
-  return runInstall({binLinks: false}, 'install-nested-bin', async (config) => {
-    const binExists = await fs.exists(path.join(config.cwd, 'node_modules', '.bin'));
-    expect(binExists).toBeFalsy();
-  });
-});
-
 test.concurrent('install should update a dependency to yarn and mirror (PR import scenario 2)', (): Promise<void> => {
   // mime-types@2.0.0 is gets updated to mime-types@2.1.11 via
   // a change in package.json,

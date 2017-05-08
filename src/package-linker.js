@@ -57,6 +57,8 @@ export default class PackageLinker {
   }
 
   async linkSelfDependencies(pkg: Manifest, pkgLoc: string, targetBinLoc: string): Promise<void> {
+    targetBinLoc = path.join(targetBinLoc, '.bin');
+    await fs.mkdirp(targetBinLoc);
     targetBinLoc = await fs.realpath(targetBinLoc);
     pkgLoc = await fs.realpath(pkgLoc);
     for (const [scriptName, scriptCmd] of entries(pkg.bin)) {
@@ -109,13 +111,9 @@ export default class PackageLinker {
       return;
     }
 
-    // ensure our .bin file we're writing these to exists
-    const binLoc = path.join(dir, '.bin');
-    await fs.mkdirp(binLoc);
-
     // write the executables
     for (const {dep, loc} of deps) {
-      await this.linkSelfDependencies(dep, loc, binLoc);
+      await this.linkSelfDependencies(dep, loc, dir);
     }
   }
 
@@ -126,6 +124,7 @@ export default class PackageLinker {
   }
 
   async copyModules(patterns: Array<string>, linkDuplicates: boolean): Promise<void> {
+
     let flatTree = await this.getFlatHoistedTree(patterns);
 
     // sorted tree makes file creation and copying not to interfere with each other
@@ -273,15 +272,40 @@ export default class PackageLinker {
       }
     }
 
-    //
+    // create binary links
     if (this.config.binLinks) {
-      const tickBin = this.reporter.progress(flatTree.length);
+      const linksToCreate = this.determineTopLevelBinLinks(flatTree);
+      const tickBin = this.reporter.progress(flatTree.length + linksToCreate.length);
+
+      // create links in transient dependencies
       await promise.queue(flatTree, async ([dest, {pkg}]) => {
         const binLoc = path.join(dest, this.config.getFolder(pkg));
         await this.linkBinDependencies(pkg, binLoc);
         tickBin(dest);
       }, 4);
+
+      // create links at top level for all dependencies.
+      // non-transient dependencies will overwrite these during this.save() to ensure they take priority.
+      await promise.queue(linksToCreate, async ([dest, {pkg}]) => {
+        if (pkg.bin && Object.keys(pkg.bin).length) {
+          const binLoc = path.join(this.config.cwd, this.config.getFolder(pkg));
+          await this.linkSelfDependencies(pkg, dest, binLoc);
+          tickBin(this.config.cwd);
+        }
+      }, 4);
     }
+  }
+
+  determineTopLevelBinLinks(flatTree: HoistManifestTuples): HoistManifestTuples {
+    const linksToCreate = new Map();
+
+    flatTree.forEach(([dest, hoistManifest]) => {
+      if (!linksToCreate.has(hoistManifest.pkg.name)) {
+        linksToCreate.set(hoistManifest.pkg.name, [dest, hoistManifest]);
+      }
+    });
+
+    return Array.from(linksToCreate.values());
   }
 
   resolvePeerModules() {
@@ -339,9 +363,7 @@ export default class PackageLinker {
 
     // link bins
     if (this.config.binLinks && resolved.bin && Object.keys(resolved.bin).length && !ref.ignore) {
-      const folder = this.config.modulesFolder || path.join(this.config.cwd, this.config.getFolder(resolved));
-      const binLoc = path.join(folder, '.bin');
-      await fs.mkdirp(binLoc);
+      const binLoc = this.config.modulesFolder || path.join(this.config.cwd, this.config.getFolder(resolved));
       await this.linkSelfDependencies(resolved, src, binLoc);
     }
   }
