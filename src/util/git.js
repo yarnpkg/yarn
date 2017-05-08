@@ -31,6 +31,11 @@ const supportsArchiveCache: { [key: string]: boolean } = map({
   'github.com': false, // not support, doubt they will ever support it
 });
 
+// This regex is designed to match output from git of the style:
+//   ebeb6eafceb61dd08441ffe086c77eb472842494  refs/tags/v0.21.0
+// and extract the hash and tag name as capture groups
+const gitRefLineRegex = /^([a-fA-F0-9]+)\s+(?:[^/]+\/){2}(.*)$/;
+
 export default class Git {
   constructor(config: Config, gitUrl: GitUrl, hash: string) {
     this.supportsArchive = false;
@@ -423,7 +428,7 @@ export default class Git {
   }
 
   /**
-   * TODO description
+   * Parse Git ref lines into hash of tag names to SHA hashes
    */
 
   static parseRefs(stdout: string): GitRefs {
@@ -434,14 +439,21 @@ export default class Git {
     const refLines = stdout.split('\n');
 
     for (const line of refLines) {
-      // line example: 64b2c0cee9e829f73c5ad32b8cc8cb6f3bec65bb refs/tags/v4.2.2
-      const [sha, id] = line.split(/\s+/g);
-      let name = id.split('/').slice(2).join('/');
+      const match = gitRefLineRegex.exec(line);
 
-      // TODO: find out why this is necessary. idk it makes it work...
-      name = removeSuffix(name, '^{}');
+      if (match) {
+        const [, sha, tagName] = match;
 
-      refs[name] = sha;
+        // As documented in gitrevisions:
+        //   https://www.kernel.org/pub/software/scm/git/docs/gitrevisions.html#_specifying_revisions
+        // "A suffix ^ followed by an empty brace pair means the object could be a tag,
+        //   and dereference the tag recursively until a non-tag object is found."
+        // In other words, the hash without ^{} is the hash of the tag,
+        //   and the hash with ^{} is the hash of the commit at which the tag was made.
+        const name = removeSuffix(tagName, '^{}');
+
+        refs[name] = sha;
+      }
     }
 
     return refs;
