@@ -89,6 +89,7 @@ export default class Config {
   offline: boolean;
   preferOffline: boolean;
   pruneOfflineMirror: boolean;
+  disableLockfileVersions: boolean;
   ignorePlatform: boolean;
   binLinks: boolean;
 
@@ -265,6 +266,7 @@ export default class Config {
     );
 
     this.pruneOfflineMirror = Boolean(this.getOption('yarn-offline-mirror-pruning'));
+    this.disableLockfileVersions = Boolean(this.getOption('yarn-disable-lockfile-versions'));
 
     //init & create cacheFolder, tempFolder
     this.cacheFolder = path.join(this._cacheRootFolder, 'v' + String(constants.CACHE_VERSION));

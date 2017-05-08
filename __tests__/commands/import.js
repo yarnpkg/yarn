@@ -7,6 +7,11 @@ import Lockfile from '../../src/lockfile/wrapper.js';
 import * as fs from '../../src/util/fs.js';
 import {run as buildRun} from './_helpers.js';
 
+const YARN_VERSION_REGEX = /yarn v\S+/;
+const YARN_VERSION = require('../../package.json').version;
+const NODE_VERSION_REGEX = /node \S+/;
+const NODE_VERSION = process.version;
+
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 120000;
 
 const path = require('path');
@@ -33,7 +38,10 @@ const checkReporter = (reporter) => {
 
 const checkLockfile = async (config, reporter) => {
   const lockfile = await Lockfile.fromDirectory(config.cwd, reporter);
-  const imported = await fs.readFile(path.join(config.cwd, 'yarn.lock.import'));
+  // Since the version changes, we need to account for that
+  let imported = await fs.readFile(path.join(config.cwd, 'yarn.lock.import'));
+  imported = imported.replace(YARN_VERSION_REGEX, `yarn v${YARN_VERSION}`);
+  imported = imported.replace(NODE_VERSION_REGEX, `node ${NODE_VERSION}`);
   expect(lockfile.source).toEqual(imported);
 };
 
