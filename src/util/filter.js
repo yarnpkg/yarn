@@ -126,7 +126,7 @@ export function ignoreLinesToRegex(lines: Array<string>, base: string = '.'): Ar
       // remove trailing slash
       pattern = removeSuffix(pattern, '/');
 
-      const regex: ?RegExp = mm.makeRe(pattern, {nocase: true});
+      const regex: ?RegExp = mm.makeRe(pattern.trim(), {nocase: true});
 
       if (regex) {
         return {
