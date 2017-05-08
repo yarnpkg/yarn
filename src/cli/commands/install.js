@@ -590,7 +590,6 @@ export class Install {
       const basename = path.basename(resolved.split('#')[0]);
       if (resolved) {
         if (dependency[0] === '@' && basename[0] !== '@') {
-          // add the 0.23.0 observed behavior
           requiredTarballs.add(`${dependency.split('/')[0]}-${basename}`);
         }
         requiredTarballs.add(basename);
