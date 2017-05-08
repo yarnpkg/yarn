@@ -84,6 +84,13 @@ export default class TarballFetcher extends BaseFetcher {
 
     extractorStream
       .pipe(untarStream)
+      .on('entry', (entry) => {
+        if (entry.type == 'Directory' || entry.props.mode & 0o100) { // eslint-disable-line no-bitwise
+          entry.props.mode = 0o775;
+        } else {
+          entry.props.mode = 0o664;
+        }
+      })
       .on('error', reject)
       .on('finish', () => {
         const expectHash = this.hash;
