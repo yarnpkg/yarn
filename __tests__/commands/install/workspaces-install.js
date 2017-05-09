@@ -7,7 +7,6 @@ import {runInstall} from '../_helpers.js';
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 150000;
 
 const path = require('path');
-const os = require('os');
 
 test.concurrent("workspaces don't work without a configuration in .yarnrc", (): Promise<void> => {
   return runInstall({}, 'workspaces-install-enabled', async (config): Promise<void> => {
@@ -60,19 +59,14 @@ test.concurrent('check command should work', (): Promise<void> => {
   });
 });
 
-test.concurrent('install should fail if a workspace has a conflicting version of a dependency', (): Promise<void> => {
-  return runInstall({checkFiles: true}, 'workspaces-install-conflict', async (config, reporter): Promise<void> => {
-    // check command + integrity check
+test.concurrent('install should fail if a workspace has a conflicting version of a dependency',
+  async (): Promise<void> => {
     let thrown = false;
     try {
-      await check(config, reporter, {integrity: true, checkFiles: true}, []);
-      await check(config, reporter, {}, []);
+      await runInstall({}, 'workspaces-install-conflict');
     } catch (e) {
       thrown = true;
     }
-    expect(thrown).toBe(false);
+    expect(thrown).toBe(true);
   });
-});
 
-// TODO
-// fail on conflict (later - install conflicts in workspaces' folders)

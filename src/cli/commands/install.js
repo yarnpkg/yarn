@@ -252,11 +252,10 @@ export class Install {
                     projectManifestJson[type][key] &&
                     projectManifestJson[type][key] !== workspaceJson[type][key]
                   ) {
-                    // TODO conflicts should still be installed inside workspaces
-                    this.reporter.warn(
-                      this.reporter.lang('incompatibleDependenciesInWorkspace', key, workspaceCwd, rootCwd),
+                    // TODO conflicts should still be installed inside workspaces' folders
+                    throw new MessageError(
+                      this.reporter.lang('workspacesIncompatibleDependencies', key, workspaceCwd, rootCwd),
                     );
-                    continue;
                   }
                   projectManifestJson[type][key] = workspaceJson[type][key];
                 }
