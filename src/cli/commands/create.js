@@ -28,7 +28,7 @@ export async function run(
     throw new MessageError(reporter.lang('invalidPackageName'));
   }
 
-  const packageName = builderName.replace(/^(@[^\/]+\/)?/, '$1yarn-create-');
+  const packageName = builderName.replace(/^(@[^\/]+\/)?/, '$1create-');
   const commandName = packageName.replace(/^@[^\/]+\//, '');
 
   await runGlobal(config, reporter, {}, ['add', packageName]);
