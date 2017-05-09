@@ -69,6 +69,7 @@ export default class TarballFetcher extends BaseFetcher {
   createExtractor(
     resolve: (fetched: FetchedOverride) => void,
     reject: (error: Error) => void,
+    tarballPath?: string,
   ): {
     validateStream: crypto.HashStream,
     extractorStream: stream.Transform,
@@ -84,7 +85,10 @@ export default class TarballFetcher extends BaseFetcher {
 
     extractorStream
       .pipe(untarStream)
-      .on('error', reject)
+      .on('error', (error) => {
+        error.message = `${error.message}${tarballPath ? ` (${tarballPath})` : ''}`;
+        reject(error);
+      })
       .on('finish', () => {
         const expectHash = this.hash;
         const actualHash = validateStream.getHash();
@@ -113,7 +117,7 @@ export default class TarballFetcher extends BaseFetcher {
     }
 
     return new Promise((resolve, reject) => {
-      const {validateStream, extractorStream} = this.createExtractor(resolve, reject);
+      const {validateStream, extractorStream} = this.createExtractor(resolve, reject, tarballPath);
       const cachedStream = fs.createReadStream(tarballPath);
 
       cachedStream
