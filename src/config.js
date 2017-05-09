@@ -140,6 +140,8 @@ export default class Config {
 
   nonInteractive: boolean;
 
+  workspacesExperimental: boolean;
+
   //
   cwd: string;
 
@@ -264,6 +266,7 @@ export default class Config {
       this.getOption('cache-folder') ||
       constants.MODULE_CACHE_DIRECTORY,
     );
+    this.workspacesExperimental = this.getOption('workspaces-experimental');
 
     this.pruneOfflineMirror = Boolean(this.getOption('yarn-offline-mirror-pruning'));
     this.disableLockfileVersions = Boolean(this.getOption('yarn-disable-lockfile-versions'));

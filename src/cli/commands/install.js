@@ -24,11 +24,11 @@ import * as fs from '../../util/fs.js';
 import map from '../../util/map.js';
 import {version as YARN_VERSION, getInstallationMethod} from '../../util/yarn-version.js';
 
-const invariant = require('invariant');
-const semver = require('semver');
 const emoji = require('node-emoji');
+const invariant = require('invariant');
 const isCI = require('is-ci');
 const path = require('path');
+const semver = require('semver');
 
 const ONE_DAY = 1000 * 60 * 60 * 24;
 
@@ -230,45 +230,40 @@ export class Install {
       }
 
       this.rootManifestRegistries.push(registry);
-      const json = await this.config.readJson(loc);
-      await normalizeManifest(json, this.config.cwd, this.config, true);
+      const projectManifestJson = await this.config.readJson(loc);
+      await normalizeManifest(projectManifestJson, this.config.cwd, this.config, true);
 
-      const aggregateManifests = async (root: Manifest, rootCwd: string) => {
-        if (root.workspaces) {
-          for (const workspace of root.workspaces) {
-            let workspaceCwd = path.join(rootCwd, workspace);
-            const workspaceLoc = path.join(workspaceCwd, filename);
-            if (!(await fs.exists(workspaceLoc))) {
-              continue;
-            }
+      const rootCwd = this.config.cwd;
+      if (projectManifestJson.workspaces && this.config.workspacesExperimental) {
+        for (const workspace of projectManifestJson.workspaces) {
+          for (const workspaceLoc of await fs.glob(path.join(rootCwd, workspace, filename))) {
+            const workspaceCwd = path.dirname(workspaceLoc);
             const workspaceJson: Manifest = await this.config.readJson(workspaceLoc);
             await normalizeManifest(workspaceJson, workspaceCwd, this.config, true);
-
-            // merge deps
             for (const type of ['dependencies', 'devDependencies', 'optionalDependencies']) {
               if (workspaceJson[type]) {
                 for (const key in workspaceJson[type]) {
-                  if (root[type] && root[type][key] && root[type][key] !== workspaceJson[type][key]) {
+                  if (
+                    projectManifestJson[type] &&
+                    projectManifestJson[type][key] &&
+                    projectManifestJson[type][key] !== workspaceJson[type][key]
+                  ) {
+                    // TODO conflicts should remain in a field, be downloaded and linked in the right project
                     this.reporter.warn(
                       this.reporter.lang('incompatibleDependenciesInWorkspace', key, workspaceCwd, rootCwd),
                     );
                     continue;
                   }
-                  root[type][key] = workspaceJson[type][key];
+                  projectManifestJson[type][key] = workspaceJson[type][key];
                 }
               }
             }
-            // TODO lifecyclescripts?
-            // TODO workspaces referencing each other?
-            // TODO publish
-            await aggregateManifests(workspaceJson, workspaceCwd)
           }
         }
-      };
-      await aggregateManifests(json, this.config.cwd);
+      }
 
-      Object.assign(this.resolutions, json.resolutions);
-      Object.assign(manifest, json);
+      Object.assign(this.resolutions, projectManifestJson.resolutions);
+      Object.assign(manifest, projectManifestJson);
 
       const pushDeps = (depType, {hint, optional}, isUsed) => {
         if (ignoreUnusedPatterns && !isUsed) {
@@ -280,7 +275,7 @@ export class Install {
         if (this.flags.flat && !isUsed) {
           return;
         }
-        const depMap = json[depType];
+        const depMap = projectManifestJson[depType];
         for (const name in depMap) {
           if (excludeNames.indexOf(name) >= 0) {
             continue;
