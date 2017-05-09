@@ -96,6 +96,7 @@ const messages = {
   multiplePackagesCantUnpackInSameDestination: 'Pattern $0 is trying to unpack in the same destination $1 as pattern $2. This could result in a non deterministic behavior, skipping.',
   incorrectLockfileEntry: 'Lockfile has incorrect entry for $0. Ingoring it.',
   incompatibleDependenciesInWorkspace: 'Dependency $0 in $1 has different version in a workspace $2, it will be ignored',
+  workspacesRequirePrivateProjects: 'Workspaces can only be enabled for private projects',
 
   yarnOutdated: "Your current version of Yarn is out of date. The latest version is $0 while you're on $1.",
   yarnOutdatedInstaller: 'To upgrade, download the latest installer at $0.',

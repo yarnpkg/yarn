@@ -234,7 +234,11 @@ export class Install {
       await normalizeManifest(projectManifestJson, this.config.cwd, this.config, true);
 
       const rootCwd = this.config.cwd;
+      // if project has workspaces we aggreagate all dependences from workspaces into root
       if (projectManifestJson.workspaces && this.config.workspacesExperimental) {
+        if (!projectManifestJson.private) {
+          throw new MessageError(this.reporter.lang('workspacesRequirePrivateProjects'));
+        }
         for (const workspace of projectManifestJson.workspaces) {
           for (const workspaceLoc of await fs.glob(path.join(rootCwd, workspace, filename))) {
             const workspaceCwd = path.dirname(workspaceLoc);
@@ -248,7 +252,7 @@ export class Install {
                     projectManifestJson[type][key] &&
                     projectManifestJson[type][key] !== workspaceJson[type][key]
                   ) {
-                    // TODO conflicts should remain in a field, be downloaded and linked in the right project
+                    // TODO conflicts should still be installed inside workspaces
                     this.reporter.warn(
                       this.reporter.lang('incompatibleDependenciesInWorkspace', key, workspaceCwd, rootCwd),
                     );
