@@ -40,6 +40,14 @@ describe('satisfiesWithPreleases', () => {
     expect(satisfiesWithPreleases('0.1.0-alpha', '^0.1.0')).toBe(false);
   });
 
+  it('rejects prerelease versions that are too big', () => {
+    expect(satisfiesWithPreleases('2.0.0-alpha', '^1.0.0')).toBe(false);
+    expect(satisfiesWithPreleases('3.0.0-alpha', '^1.0.0')).toBe(false);
+    expect(satisfiesWithPreleases('1.1.0-alpha', '~1.0.0')).toBe(false);
+    expect(satisfiesWithPreleases('1.2.0-alpha', '~1.0.0')).toBe(false);
+    expect(satisfiesWithPreleases('1.0.0-alpha.1', '1.0.0-alpha')).toBe(false);
+  });
+
   it('follows the semver spec when comparing prerelease versions', () => {
     // Example from http://semver.org/#spec-item-11
     expect(satisfiesWithPreleases('1.0.0-alpha.1', '>1.0.0-alpha')).toBe(true);
