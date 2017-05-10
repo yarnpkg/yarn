@@ -41,7 +41,7 @@
     "validate-npm-package-license": "^3.0.1"
   },
   "devDependencies": {
-    "babel-core": "^6.17.0",
+    "babel-core": "^6.24.1",
     "babel-eslint": "^6.1.2",
     "babel-jest": "^19.0.0",
     "babel-loader": "^6.2.5",
