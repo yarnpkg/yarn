@@ -84,8 +84,8 @@
     "yarnpkg": "./bin/yarn.js"
   },
   "scripts": {
-    "test": "npm run lint && npm run test-only",
-    "test-ci": "npm run build && npm run test-only",
+    "test": "yarn lint && yarn test-only",
+    "test-ci": "yarn build && yarn test-only",
     "check-lockfile": "./scripts/check-lockfile.sh",
     "build": "gulp build",
     "watch": "gulp watch",

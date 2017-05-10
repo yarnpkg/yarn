@@ -49,7 +49,7 @@ deployment:
       # Only NPM is handled here - All other release files are handled in a webhook.
       - echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
       - ./scripts/set-installation-method.js "`pwd`/package.json" npm
-      - npm publish --tag rc
+      - yarn publish --tag rc
 
 notify:
   webhooks:

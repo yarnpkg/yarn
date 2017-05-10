@@ -24,7 +24,7 @@ for (let file of files) {
   delete packageJson.scripts;
   delete packageJson.bin;
   JSON.stringify(packageJson, null, 4).to('package.json');
-  exec('npm pack');
+  exec('yarn pack');
   mv(file, '..');
   cd('..');
   rm('-rf', [folder, 'trimmed-package']);
