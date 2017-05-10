@@ -69,37 +69,46 @@ export default class InstallationIntegrityChecker {
    */
 
   async _getIntegrityHashLocation(usedRegistries?: Set<RegistryNames>): Promise<IntegrityHashLocation> {
-    // build up possible folders
-    let registries = registryNames;
-    if (usedRegistries && usedRegistries.size > 0) {
-      registries = usedRegistries;
-    }
-    const possibleFolders = [];
-    if (this.config.modulesFolder) {
-      possibleFolders.push(this.config.modulesFolder);
-    }
+    let locationFolder;
 
-    // ensure we only write to a registry folder that was used
-    for (const name of registries) {
-      const loc = path.join(this.config.cwd, this.config.registries[name].folder);
-      possibleFolders.push(loc);
-    }
-
-    // if we already have an integrity hash in one of these folders then use it's location otherwise use the
-    // first folder
-    let loc;
-    for (const possibleLoc of possibleFolders) {
-      if (await fs.exists(path.join(possibleLoc, constants.INTEGRITY_FILENAME))) {
-        loc = possibleLoc;
-        break;
+    if (this.config.enableMetaFolder) {
+      locationFolder = path.join(this.config.cwd, constants.META_FOLDER);
+    } else {
+      // build up possible folders
+      let registries = registryNames;
+      if (usedRegistries && usedRegistries.size > 0) {
+        registries = usedRegistries;
       }
+      const possibleFolders = [];
+      if (this.config.modulesFolder) {
+        possibleFolders.push(this.config.modulesFolder);
+      }
+
+      // ensure we only write to a registry folder that was used
+      for (const name of registries) {
+        const loc = path.join(this.config.cwd, this.config.registries[name].folder);
+        possibleFolders.push(loc);
+      }
+
+      // if we already have an integrity hash in one of these folders then use it's location otherwise use the
+      // first folder
+      let loc;
+      for (const possibleLoc of possibleFolders) {
+        if (await fs.exists(path.join(possibleLoc, constants.INTEGRITY_FILENAME))) {
+          loc = possibleLoc;
+          break;
+        }
+      }
+      locationFolder = loc || possibleFolders[0];
     }
-    const locationFolder = loc || possibleFolders[0];
+
     const locationPath = path.join(locationFolder, constants.INTEGRITY_FILENAME);
+    const exists = await fs.exists(locationPath);
+
     return {
       locationFolder,
       locationPath,
-      exists: !!loc,
+      exists,
     };
   }
 

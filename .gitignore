@@ -20,3 +20,4 @@ test/fixtures/**/.fbkpm
 /__tests__/fixtures/**/_*
 /__tests__/fixtures/request-cache/GET/localhost/.bin
 .idea
+.yarn-meta

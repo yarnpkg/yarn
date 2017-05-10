@@ -258,3 +258,11 @@ test.concurrent('--integrity should fail if integrity file have different linked
     expect(getStdout()).toContain('Integrity check: Linked modules don\'t match');
   });
 });
+
+test('--integrity should create the integrity file under the meta folder if enabled', async (): Promise<void> => {
+  await runInstall({}, path.join('..', 'check', 'integrity-meta-folder'),
+  async (config, reporter, install, getStdout): Promise<void> => {
+    await checkCmd.run(config, reporter, {integrity: true}, []);
+    expect(await fs.exists(path.join(config.cwd, '.yarn-meta', '.yarn-integrity'))).toEqual(true);
+  });
+});
