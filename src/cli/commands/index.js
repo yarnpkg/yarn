@@ -42,6 +42,7 @@ import * as upgrade from './upgrade.js';
 import * as version from './version.js';
 import * as versions from './versions.js';
 import * as why from './why.js';
+import * as workspace from './workspace.js';
 import * as upgradeInteractive from './upgrade-interactive.js';
 
 import buildUseless from './_useless.js';
@@ -89,6 +90,7 @@ const commands = {
   version,
   versions,
   why,
+  workspace,
   upgradeInteractive,
 };
 

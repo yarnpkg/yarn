@@ -137,6 +137,11 @@ const messages = {
   createInvalidBin: 'Invalid bin entry found in package $0.',
   createMissingPackage: 'Package not found - this is probably an internal error, and should be reported at https://github.com/yarnpkg/yarn/issues.',
 
+  projectRootNotFound: 'Cannot find the root of your project - are you sure you\'re currently in a workspace?',
+  projectMissingWorkspace: 'Missing workspace name.',
+  projectMissingCommand: 'Missing command name.',
+  projectUnknownWorkspace: 'Unknown workspace $0.',
+
   commandNotSpecified: 'No command specified.',
   binCommands: 'Commands available from binary scripts: ',
   possibleCommands: 'Project commands',

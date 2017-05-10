@@ -7,6 +7,7 @@ import type PackageReference from './package-reference.js';
 import {execFromManifest} from './util/execute-lifecycle-script.js';
 import normalizeManifest from './util/normalize-manifest/index.js';
 import {MessageError} from './errors.js';
+import * as filter from './util/filter.js';
 import * as fs from './util/fs.js';
 import * as constants from './constants.js';
 import ConstraintResolver from './package-constraint-resolver.js';
@@ -527,6 +528,58 @@ export default class Config {
     } else {
       return null;
     }
+  }
+
+  async findManifest(dir: string, isRoot: boolean): Promise<?Manifest> {
+    for (const registry of registryNames) {
+      const manifest = await this.tryManifest(dir, registry, isRoot);
+
+      if (manifest) {
+        return manifest;
+      }
+    }
+
+    return null;
+  }
+
+  async findProject(initial: string): Promise<string> {
+    let previous = null;
+    let current = path.normalize(initial);
+
+    do {
+      const manifest = await this.findManifest(current, true);
+
+      if (manifest && manifest.workspaces) {
+        return current;
+      }
+
+      previous = current;
+      current = path.dirname(current);
+    } while (current !== previous);
+
+    return null;
+  }
+
+  async resolveWorkspaces(root: string, patterns: Array<string>) {
+    const compiledPatterns = filter.ignoreLinesToRegex(patterns);
+
+    // We need the ignoreFiles, not the keepFiles, because the patterns are exclusion patterns rather than the opposite
+    const files = filter.sortFilter(await fs.walk(root), compiledPatterns).ignoreFiles;
+
+    const workspaces = {};
+
+    for (let file of files) {
+      const loc = path.dirname(file);
+      const manifest = await this.findManifest(loc);
+
+      if (!manifest || !manifest.name) {
+        continue;
+      }
+
+      workspaces[manifest.name] = { loc, manifest };
+    }
+
+    return workspaces;
   }
 
   /**
