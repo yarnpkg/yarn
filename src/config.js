@@ -30,6 +30,7 @@ export type ConfigOptions = {
   offline?: boolean,
   preferOffline?: boolean,
   pruneOfflineMirror?: boolean,
+  enableMetaFolder?: boolean,
   captureHar?: boolean,
   ignoreScripts?: boolean,
   ignorePlatform?: boolean,
@@ -89,6 +90,7 @@ export default class Config {
   offline: boolean;
   preferOffline: boolean;
   pruneOfflineMirror: boolean;
+  enableMetaFolder: boolean;
   ignorePlatform: boolean;
   binLinks: boolean;
 
@@ -265,6 +267,7 @@ export default class Config {
     );
 
     this.pruneOfflineMirror = Boolean(this.getOption('yarn-offline-mirror-pruning'));
+    this.enableMetaFolder = Boolean(this.getOption('enable-meta-folder'));
 
     //init & create cacheFolder, tempFolder
     this.cacheFolder = path.join(this._cacheRootFolder, 'v' + String(constants.CACHE_VERSION));
