@@ -287,7 +287,9 @@ function onUnexpectedError(err: Error) {
 }
 
 function writeErrorReport(log) : ?string {
-  const errorReportLoc = path.join(config.cwd, 'yarn-error.log');
+  const errorReportLoc = config.enableMetaFolder
+    ? path.join(config.cwd, constants.META_FOLDER, 'yarn-error.log')
+    : path.join(config.cwd, 'yarn-error.log');
 
   try {
     fs.writeFileSync(errorReportLoc, log.join('\n\n') + '\n');
