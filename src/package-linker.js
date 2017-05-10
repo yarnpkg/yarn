@@ -13,10 +13,10 @@ import * as promise from './util/promise.js';
 import {entries} from './util/misc.js';
 import * as fs from './util/fs.js';
 import lockMutex from './util/mutex.js';
+import {satisfiesWithPreleases} from './util/semver.js';
 
 const invariant = require('invariant');
 const cmdShim = promise.promisify(require('cmd-shim'));
-const semver = require('semver');
 const path = require('path');
 
 type DependencyPairs = Array<{
@@ -342,7 +342,7 @@ export default class PackageLinker {
   }
 
   _satisfiesPeerDependency(range: string, version: string): boolean {
-    return range === '*' || semver.satisfies(version, range, this.config.looseSemver);
+    return range === '*' || satisfiesWithPreleases(version, range, this.config.looseSemver);
   }
 
   async init(patterns: Array<string>, linkDuplicates: boolean): Promise<void> {
