@@ -12,7 +12,7 @@ command_exists() {
 }
 
 if command_exists node; then
-  if [[ "$YARN_FORCE_WINPTY" -eq 1 ]]; then
+  if [ "$YARN_FORCE_WINPTY" = 1 ]; then
     winpty node "$basedir/yarn.js" "$@"
   else
     node "$basedir/yarn.js" "$@"
