@@ -41,7 +41,7 @@ matrix:
   include:
     - os: osx
       node_js: "6"
-      env: TEST_TYPE="test-ci -- -- --maxWorkers 1"
+      env: TEST_TYPE="test-ci -- -- --maxWorkers 3"
 
 before_install:
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then ./scripts/bootstrap-env-ubuntu.sh; fi
