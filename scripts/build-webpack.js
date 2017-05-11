@@ -10,6 +10,11 @@ const version = require('../package.json').version;
 const basedir = path.join(__dirname, '../');
 const babelRc = JSON.parse(fs.readFileSync(path.join(basedir, '.babelrc'), 'utf8'));
 
+const externals = {
+  'ffi': 'undefined',
+  'ref-wchar': 'undefined'
+}
+
 //
 // Modern build
 //
@@ -34,6 +39,7 @@ const compiler = webpack({
     filename: `yarn-${version}.js`,
     path: path.join(basedir, 'artifacts'),
   },
+  externals: externals,
   target: 'node',
 });
 
@@ -68,7 +74,8 @@ const compilerLegacy = webpack({
     filename: `yarn-legacy-${version}.js`,
     path: path.join(basedir, 'artifacts'),
   },
-  target: 'node',
+  externals: externals,
+  target: 'node'
 });
 
 compilerLegacy.run((err, stats) => {
