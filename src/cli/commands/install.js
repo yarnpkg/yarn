@@ -24,11 +24,11 @@ import * as fs from '../../util/fs.js';
 import map from '../../util/map.js';
 import {version as YARN_VERSION, getInstallationMethod} from '../../util/yarn-version.js';
 
-const invariant = require('invariant');
-const semver = require('semver');
 const emoji = require('node-emoji');
+const invariant = require('invariant');
 const isCI = require('is-ci');
 const path = require('path');
+const semver = require('semver');
 
 const ONE_DAY = 1000 * 60 * 60 * 24;
 
@@ -230,11 +230,43 @@ export class Install {
       }
 
       this.rootManifestRegistries.push(registry);
-      const json = await this.config.readJson(loc);
-      await normalizeManifest(json, this.config.cwd, this.config, true);
+      const projectManifestJson = await this.config.readJson(loc);
+      await normalizeManifest(projectManifestJson, this.config.cwd, this.config, true);
 
-      Object.assign(this.resolutions, json.resolutions);
-      Object.assign(manifest, json);
+      const rootCwd = this.config.cwd;
+      // if project has workspaces we aggreagate all dependences from workspaces into root
+      if (projectManifestJson.workspaces && this.config.workspacesExperimental) {
+        if (!projectManifestJson.private) {
+          throw new MessageError(this.reporter.lang('workspacesRequirePrivateProjects'));
+        }
+        for (const workspace of projectManifestJson.workspaces) {
+          for (const workspaceLoc of await fs.glob(path.join(rootCwd, workspace, filename))) {
+            const workspaceCwd = path.dirname(workspaceLoc);
+            const workspaceJson: Manifest = await this.config.readJson(workspaceLoc);
+            await normalizeManifest(workspaceJson, workspaceCwd, this.config, true);
+            for (const type of ['dependencies', 'devDependencies', 'optionalDependencies']) {
+              if (workspaceJson[type]) {
+                for (const key in workspaceJson[type]) {
+                  if (
+                    projectManifestJson[type] &&
+                    projectManifestJson[type][key] &&
+                    projectManifestJson[type][key] !== workspaceJson[type][key]
+                  ) {
+                    // TODO conflicts should still be installed inside workspaces' folders
+                    throw new MessageError(
+                      this.reporter.lang('workspacesIncompatibleDependencies', key, workspaceCwd, rootCwd),
+                    );
+                  }
+                  projectManifestJson[type][key] = workspaceJson[type][key];
+                }
+              }
+            }
+          }
+        }
+      }
+
+      Object.assign(this.resolutions, projectManifestJson.resolutions);
+      Object.assign(manifest, projectManifestJson);
 
       const pushDeps = (depType, {hint, optional}, isUsed) => {
         if (ignoreUnusedPatterns && !isUsed) {
@@ -246,7 +278,7 @@ export class Install {
         if (this.flags.flat && !isUsed) {
           return;
         }
-        const depMap = json[depType];
+        const depMap = projectManifestJson[depType];
         for (const name in depMap) {
           if (excludeNames.indexOf(name) >= 0) {
             continue;

@@ -6,9 +6,10 @@ import * as promise from './promise.js';
 import {promisify} from './promise.js';
 import map from './map.js';
 
-const path = require('path');
 const fs = require('fs');
+const globModule = require('glob');
 const os = require('os');
+const path = require('path');
 
 export const lockQueue = new BlockingQueue('fs lock');
 
@@ -26,6 +27,7 @@ export const exists: (path: string) => Promise<boolean> = promisify(fs.exists, t
 export const lstat: (path: string) => Promise<fs.Stats> = promisify(fs.lstat);
 export const chmod: (path: string, mode: number | string) => Promise<void> = promisify(fs.chmod);
 export const link: (path: string) => Promise<fs.Stats> = promisify(fs.link);
+export const glob: (path: string) => Promise<Array<string>> = promisify(globModule);
 
 const CONCURRENT_QUEUE_ITEMS = 4;
 
