@@ -66,7 +66,7 @@ test('isCommitHash', () => {
 });
 
 
-test('secureGitUrl', async function (): Promise<void> {
+test('secureGitUrl', async function(): Promise<void> {
   const reporter = new NoopReporter();
 
   let hasException = false;

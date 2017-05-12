@@ -36,17 +36,17 @@ export async function run(
     return;
   }
 
-  const getNameFromHint = (hint) => hint ? `${hint}Dependencies` : 'dependencies';
+  const getNameFromHint = hint => hint ? `${hint}Dependencies` : 'dependencies';
 
   const maxLengthArr = {name: 0, current: 0, latest: 0};
-  deps.forEach((dep) =>
-    ['name', 'current', 'latest'].forEach((key) => {
+  deps.forEach(dep =>
+    ['name', 'current', 'latest'].forEach(key => {
       maxLengthArr[key] = Math.max(maxLengthArr[key], dep[key].length);
     }),
   );
 
   // Depends on maxLengthArr
-  const addPadding = (dep) => (key) =>
+  const addPadding = dep => key =>
     `${dep[key]}${' '.repeat(maxLengthArr[key] - dep[key].length)}`;
 
   const colorizeName = ({current, wanted}) =>
@@ -63,7 +63,7 @@ export async function run(
     return parts.slice(0, splitIndex).concat(colorized).join('.');
   };
 
-  const makeRow = (dep) => {
+  const makeRow = dep => {
     const padding = addPadding(dep);
     const name = colorizeName(dep)(padding('name'));
     const current = reporter.format.blue(padding('current'));
@@ -84,11 +84,11 @@ export async function run(
     return acc;
   }, {});
 
-  const flatten = (xs) => xs.reduce(
+  const flatten = xs => xs.reduce(
       (ys, y) => ys.concat(Array.isArray(y) ? flatten(y) : y), [],
   );
 
-  const choices = flatten(Object.keys(groupedDeps).map((key) => [
+  const choices = flatten(Object.keys(groupedDeps).map(key => [
     new inquirer.Separator(reporter.format.bold.underline.green(key)),
     groupedDeps[key],
     new inquirer.Separator(' '),
@@ -101,12 +101,12 @@ export async function run(
       {
         name: 'packages',
         type: 'checkbox',
-        validate: (answer) => !!answer.length || 'You must choose at least one package.',
+        validate: answer => !!answer.length || 'You must choose at least one package.',
       },
     );
 
     const getName = ({name}) => name;
-    const isHint = (x) => ({hint}) => hint === x;
+    const isHint = x => ({hint}) => hint === x;
 
     await [null, 'dev', 'optional', 'peer'].reduce(async (promise, hint) => {
       // Wait for previous promise to resolve

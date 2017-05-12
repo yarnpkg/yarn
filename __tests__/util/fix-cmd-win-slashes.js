@@ -47,7 +47,7 @@ const cmdCases = [
 ];
 
 describe('fixCmdWinSlashes', () => {
-  cmdCases.forEach((cmdCase) => {
+  cmdCases.forEach(cmdCase => {
     const name = cmdCase[0];
     const original = cmdCase[1];
     const fixed = cmdCase[2];

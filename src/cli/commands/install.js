@@ -661,9 +661,9 @@ export class Install {
       this.scripts.getArtifacts(),
     );
 
-    const lockFileHasAllPatterns = patterns.filter((p) => !this.lockfile.getLocked(p)).length === 0;
+    const lockFileHasAllPatterns = patterns.filter(p => !this.lockfile.getLocked(p)).length === 0;
     const resolverPatternsAreSameAsInLockfile = Object.keys(lockfileBasedOnResolver)
-      .filter((pattern) => {
+      .filter(pattern => {
         const manifest = this.lockfile.getLocked(pattern);
         return !manifest || manifest.resolved !== lockfileBasedOnResolver[pattern].resolved;
       },

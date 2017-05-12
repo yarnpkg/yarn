@@ -176,7 +176,7 @@ export async function executeLifecycleScript(
     conf.windowsVerbatimArguments = true;
   }
 
-  const stdout = await child.spawn(sh, [shFlag, cmd], {cwd, env, stdio, ...conf}, (data) => {
+  const stdout = await child.spawn(sh, [shFlag, cmd], {cwd, env, stdio, ...conf}, data => {
     if (spinner) {
       const line = data.toString() // turn buffer into string
         .trim() // trim whitespace
@@ -225,7 +225,7 @@ async function _checkForGyp(
 
   // Check every directory in the PATH
   const allChecks = await Promise.all(
-    paths.map((dir) => exists(path.join(dir, 'node-gyp'))),
+    paths.map(dir => exists(path.join(dir, 'node-gyp'))),
   );
   if (allChecks.some(Boolean)) {
     // node-gyp is available somewhere

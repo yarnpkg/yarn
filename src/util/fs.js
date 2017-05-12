@@ -245,9 +245,9 @@ async function buildActionsForCopy(
       onFresh();
       const linkname = await readlink(src);
       actions.push({
-        type: 'symlink',
         dest,
         linkname,
+        type: 'symlink',
       });
       onDone();
     } else if (srcStat.isDirectory()) {
@@ -270,14 +270,14 @@ async function buildActionsForCopy(
       }
       for (const file of srcFiles) {
         queue.push({
-          onFresh,
-          src: path.join(src, file),
           dest: path.join(dest, file),
+          onFresh,
           onDone: () => {
             if (--remaining === 0) {
               onDone();
             }
           },
+          src: path.join(src, file),
         });
       }
     } else if (srcStat.isFile()) {
@@ -501,7 +501,7 @@ export async function copyBulk(
   );
   events.onStart(actions.length);
 
-  const fileActions: Array<CopyFileAction> = (actions.filter((action) => action.type === 'file'): any);
+  const fileActions: Array<CopyFileAction> = (actions.filter(action => action.type === 'file'): any);
 
   const currentlyWriting: { [dest: string]: Promise<void> } = {};
 
@@ -536,17 +536,17 @@ export async function copyBulk(
           }
         });
       });
-    }).then((arg) => {
+    }).then(arg => {
       cleanup();
       return arg;
-    }).catch((arg) => {
+    }).catch(arg => {
       cleanup();
       throw arg;
     });
   }, CONCURRENT_QUEUE_ITEMS);
 
   // we need to copy symlinks last as they could reference files we were copying
-  const symlinkActions: Array<CopySymlinkAction> = (actions.filter((action) => action.type === 'symlink'): any);
+  const symlinkActions: Array<CopySymlinkAction> = (actions.filter(action => action.type === 'symlink'): any);
   await promise.queue(symlinkActions, (data): Promise<void> => {
     const linkname = path.resolve(path.dirname(data.dest), data.linkname);
     reporter.verbose(reporter.lang('verboseFileSymlink', data.dest, linkname));
@@ -580,7 +580,7 @@ export async function hardlinkBulk(
   );
   events.onStart(actions.length);
 
-  const fileActions: Array<LinkFileAction> = (actions.filter((action) => action.type === 'link'): any);
+  const fileActions: Array<LinkFileAction> = (actions.filter(action => action.type === 'link'): any);
 
   await promise.queue(fileActions, async (data): Promise<void> => {
     reporter.verbose(reporter.lang('verboseFileLink', data.src, data.dest));
@@ -591,7 +591,7 @@ export async function hardlinkBulk(
   }, CONCURRENT_QUEUE_ITEMS);
 
   // we need to copy symlinks last as they could reference files we were copying
-  const symlinkActions: Array<CopySymlinkAction> = (actions.filter((action) => action.type === 'symlink'): any);
+  const symlinkActions: Array<CopySymlinkAction> = (actions.filter(action => action.type === 'symlink'): any);
   await promise.queue(symlinkActions, (data): Promise<void> => {
     const linkname = path.resolve(path.dirname(data.dest), data.linkname);
     reporter.verbose(reporter.lang('verboseFileSymlink', data.dest, linkname));
@@ -722,7 +722,7 @@ export async function walk(
 
   let filenames = await readdir(dir);
   if (ignoreBasenames.size) {
-    filenames = filenames.filter((name) => !ignoreBasenames.has(name));
+    filenames = filenames.filter(name => !ignoreBasenames.has(name));
   }
 
   for (const name of filenames) {

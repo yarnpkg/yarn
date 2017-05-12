@@ -159,7 +159,7 @@ export default class NpmRegistry extends Registry {
     // Try extracting registry from the url, then scoped registry, and default registry
     if (packageName.match(/^https?:/)) {
       const availableRegistries = this.getAvailableRegistries();
-      const registry = availableRegistries.find((registry) => packageName.startsWith(registry));
+      const registry = availableRegistries.find(registry => packageName.startsWith(registry));
       if (registry) {
         return addSuffix(registry, '/');
       }

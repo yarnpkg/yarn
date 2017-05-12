@@ -24,7 +24,7 @@ loudRejection();
 const startArgs = process.argv.slice(0, 2);
 
 // ignore all arguments after a --
-const doubleDashIndex = process.argv.findIndex((element) => element === '--');
+const doubleDashIndex = process.argv.findIndex(element => element === '--');
 const args = process.argv.slice(2, doubleDashIndex === -1 ? process.argv.length : doubleDashIndex);
 const endArgs = doubleDashIndex === -1 ? [] : process.argv.slice(doubleDashIndex + 1, process.argv.length);
 
@@ -182,7 +182,7 @@ const run = (): Promise<void> => {
 
 //
 const runEventuallyWithFile = (mutexFilename: ?string, isFirstTime?: boolean): Promise<void> => {
-  return new Promise((ok) => {
+  return new Promise(ok => {
     const lockFilename = mutexFilename || path.join(config.cwd, constants.SINGLE_INSTANCE_FILENAME);
     lockfile.lock(lockFilename, {realpath: false}, (err: mixed, release: () => void) => {
       if (err) {
@@ -204,7 +204,7 @@ const runEventuallyWithFile = (mutexFilename: ?string, isFirstTime?: boolean): P
 
 //
 const runEventuallyWithNetwork = (mutexPort: ?string): Promise<void> => {
-  return new Promise((ok) => {
+  return new Promise(ok => {
     const connectionOptions = {
       port: +mutexPort || constants.SINGLE_INSTANCE_PORT,
     };

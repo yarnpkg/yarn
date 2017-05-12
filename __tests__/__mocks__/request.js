@@ -69,8 +69,8 @@ const httpMock = {
     // expose authorized requests to the tests for assertion
     if (options.headers.authorization) {
       authedRequests.push({
-        url: options.uri.href,
         headers: options.headers,
+        url: options.uri.href,
       });
     }
 

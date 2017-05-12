@@ -6,7 +6,7 @@ const fs = require('fs');
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000;
 
-test('ConcatStream', async function (): Promise<void> {
+test('ConcatStream', async function(): Promise<void> {
   const [
     actual,
     expected,

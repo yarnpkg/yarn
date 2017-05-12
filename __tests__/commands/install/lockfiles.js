@@ -18,7 +18,7 @@ const os = require('os');
 test('does fetch files from the local filesystem', (): Promise<void> => {
   return runInstall({}, 'install-should-fetch-local-tarballs', (config): Promise<void> => {
     return Promise.resolve();
-  }, async (cwd) => {
+  }, async cwd => {
     let packageJson = await fs.readFile(`${cwd}/package.json`);
     packageJson = packageJson.replace(/%%CWD%%/g, cwd.replace(/\\/g, `/`));
     await fs.writeFile(`${cwd}/package.json`, packageJson);
@@ -41,7 +41,7 @@ test.concurrent("writes new lockfile if existing one isn't satisfied", async ():
 
 test.concurrent('writes a lockfile even when there are no dependencies', (): Promise<void> => {
   // https://github.com/yarnpkg/yarn/issues/679
-  return runInstall({}, 'install-without-dependencies', async (config) => {
+  return runInstall({}, 'install-without-dependencies', async config => {
     const lockfileExists = await fs.exists(path.join(config.cwd, 'yarn.lock'));
     const installedDepFiles = await fs.walk(path.join(config.cwd, 'node_modules'));
 
@@ -201,14 +201,14 @@ test.concurrent('install should not continue if integrity check passes', (): Pro
     let reinstall = new Install({}, config, reporter, await Lockfile.fromDirectory(config.cwd));
     await reinstall.init();
 
-    expect(await fs.exists(path.join(config.cwd, 'node_modules', 'yarn.test')));
+    expect(await fs.exists(path.join(config.cwd, 'node_modules', 'yarn.test'))).toBeTruthy();
 
     await fs.unlink(path.join(config.cwd, 'node_modules', 'yarn.test'));
 
     reinstall = new Install({}, config, reporter, await Lockfile.fromDirectory(config.cwd));
     await reinstall.init();
 
-    expect(!await fs.exists(path.join(config.cwd, 'node_modules', 'yarn.test')));
+    expect(!await fs.exists(path.join(config.cwd, 'node_modules', 'yarn.test'))).toBeTruthy();
 
   });
 });
@@ -249,7 +249,7 @@ test.concurrent('install should not rewrite lockfile with no substantial changes
 
 test.concurrent('lockfile should be created when missing even if integrity matches', (): Promise<void> => {
   return runInstall({}, 'lockfile-missing', async (config, reporter) => {
-    expect(await fs.exists(path.join(config.cwd, 'yarn.lock')));
+    expect(await fs.exists(path.join(config.cwd, 'yarn.lock'))).toBeTruthy();
   });
 });
 

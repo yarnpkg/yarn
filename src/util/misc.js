@@ -54,7 +54,7 @@ export function addSuffix(pattern: string, suffix: string): string {
 }
 
 export function hyphenate(str: string): string {
-  return str.replace(/[A-Z]/g, (match) => {
+  return str.replace(/[A-Z]/g, match => {
     return '-' + match.charAt(0).toLowerCase();
   });
 }

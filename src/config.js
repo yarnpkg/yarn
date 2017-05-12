@@ -71,7 +71,7 @@ type RootManifests = {
 
 function sortObject(object: Object): Object {
   const sortedObject = {};
-  Object.keys(object).sort().forEach((item) => {
+  Object.keys(object).sort().forEach(item => {
     sortedObject[item] = object[item];
   });
   return sortedObject;
@@ -211,7 +211,7 @@ export default class Config {
 
       if (dir[0] === '@') { // it's a scope, not a package
         const scopedLinked = await fs.readdir(linkedPath);
-        this.linkedModules.push(...scopedLinked.map((scopedDir) => path.join(dir, scopedDir)));
+        this.linkedModules.push(...scopedLinked.map(scopedDir => path.join(dir, scopedDir)));
       } else {
         this.linkedModules.push(dir);
       }

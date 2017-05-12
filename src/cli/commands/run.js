@@ -111,7 +111,7 @@ export async function run(
     reporter.info(`${reporter.lang('possibleCommands')}`);
     reporter.list('possibleCommands', pkgCommands, cmdHints);
     await reporter.question(reporter.lang('commandQuestion')).then(
-      (answer) => runCommand(answer.split(' ')),
+      answer => runCommand(answer.split(' ')),
       () => reporter.error(reporter.lang('commandNotSpecified')),
     );
     return Promise.resolve();

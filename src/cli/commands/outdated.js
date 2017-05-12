@@ -32,7 +32,7 @@ export async function run(
     deps = deps.filter(({name}) => requested.has(name));
   }
 
-  const getNameFromHint = (hint) => hint ? `${hint}Dependencies` : 'dependencies';
+  const getNameFromHint = hint => hint ? `${hint}Dependencies` : 'dependencies';
   const getColorFromVersion = ({current, wanted, name}) => current === wanted ?
     reporter.format.yellow(name) :
     reporter.format.red(name);

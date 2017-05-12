@@ -58,7 +58,7 @@ async function getPackageSize(tuple: HoistManifestTuple): Promise<number> {
 
   const sizes = await Promise.all(
     files.map(
-      (walkFile) => fs.getFileSizeOnDisk(walkFile.absolute),
+      walkFile => fs.getFileSizeOnDisk(walkFile.absolute),
     ),
   );
 
@@ -97,7 +97,7 @@ function collect(
 
   if (recursive) {
     directDependencies.forEach(
-      (dependency) => collect(hoistManifests, allDependencies, dependency, {recursive: true}),
+      dependency => collect(hoistManifests, allDependencies, dependency, {recursive: true}),
     );
   }
 
@@ -111,7 +111,7 @@ function getSharedDependencies(
   const sharedDependencies = new Set();
   for (const [, info] of hoistManifests) {
     if (!transitiveKeys.has(info.key) && info.pkg.dependencies) {
-      Object.keys(info.pkg.dependencies).forEach((dependency) => {
+      Object.keys(info.pkg.dependencies).forEach(dependency => {
         if (transitiveKeys.has(dependency) && !sharedDependencies.has(dependency)) {
           sharedDependencies.add(dependency);
         }
@@ -258,7 +258,7 @@ export async function run(
   } else if (reasons.length > 1) {
     reporter.info(reporter.lang('whyReasons'));
     reporter.list('reasons', reasons.map(
-      (reason) => reporter.lang(reason.type, reason.value)),
+      reason => reporter.lang(reason.type, reason.value)),
     );
   } else {
     reporter.error(reporter.lang('whyWhoKnows'));

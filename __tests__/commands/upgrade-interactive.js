@@ -17,7 +17,7 @@ const runUpgrade = buildRun.bind(null, ConsoleReporter, fixturesLoc, (args, flag
 
 test.concurrent('throws if lockfile is out of date', (): Promise<void> => {
   const reporter = new reporters.ConsoleReporter({});
-  return new Promise(async (resolve) => {
+  return new Promise(async resolve => {
     try {
       await runUpgrade([], {}, 'lockfile-outdated');
     } catch (err) {

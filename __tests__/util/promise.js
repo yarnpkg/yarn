@@ -2,7 +2,7 @@
 
 import * as promise from '../../src/util/promise.js';
 
-test('promisify', async function (): Promise<void> {
+test('promisify', async function(): Promise<void> {
   expect(await promise.promisify(function(callback) {
     callback(null, 'foo');
   })()).toBe('foo');
@@ -26,7 +26,7 @@ test('promisify', async function (): Promise<void> {
   expect(error && error.message).toEqual('yep');
 });
 
-test('promisifyObject', async function (): Promise<void> {
+test('promisifyObject', async function(): Promise<void> {
   const obj = promise.promisifyObject({
     foo(callback) {
       callback(null, 'foo');
@@ -52,7 +52,7 @@ test('promisifyObject', async function (): Promise<void> {
   expect(error && error.message).toEqual('yep');
 });
 
-test('queue', async function (): Promise<void> {
+test('queue', async function(): Promise<void> {
   let running = 0;
 
   function create(): Promise<void> {

@@ -69,8 +69,8 @@ export default class Git {
     // interpreting it as an SSH URL with a port number.
     if (match && /[^0-9]/.test(match[3])) {
       return {
-        protocol: 'ssh:',
         hostname: match[2],
+        protocol: 'ssh:',
         repository: match[1],
       };
     }
@@ -78,8 +78,8 @@ export default class Git {
     const repository = npmUrl.replace(/^git\+/, '');
     const parsed = url.parse(repository);
     return {
-      protocol: parsed.protocol || 'file:',
       hostname: parsed.hostname || null,
+      protocol: parsed.protocol || 'file:',
       repository,
     };
   }
@@ -126,8 +126,8 @@ export default class Git {
 
   static replaceProtocol(ref: GitUrl, protocol: string): GitUrl {
     return {
-      protocol,
       hostname: ref.hostname,
+      protocol,
       repository: ref.repository.replace(/^(?:git|http):/, protocol),
     };
   }
@@ -332,7 +332,7 @@ export default class Git {
             const decoder = new StringDecoder('utf8');
             let fileContent = '';
 
-            stream.on('data', (buffer) => {
+            stream.on('data', buffer => {
               fileContent += decoder.write(buffer);
             });
             stream.on('end', () => {

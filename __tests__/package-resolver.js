@@ -66,7 +66,7 @@ addTest('react-native'); // /npm
 addTest('ember-cli'); // npm
 addTest('npm:gulp'); // npm
 addTest('@polymer/iron-icon'); // npm scoped package
-addTest('@foo/bar@1.2.3', 'npm', async (cacheFolder) => {
+addTest('@foo/bar@1.2.3', 'npm', async cacheFolder => {
   const folder = path.join(cacheFolder, 'npm-@foo', 'bar');
   await fs.mkdirp(folder);
   await fs.writeFile(path.join(folder, constants.METADATA_FILENAME), '{"remote": {"hash": "cafebabecafebabecafebabecafebabecafebabe"}}');

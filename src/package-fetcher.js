@@ -78,7 +78,7 @@ export default class PackageFetcher {
   async init(): Promise<void> {
     let pkgs = this.resolver.getPackageReferences();
     const pkgsPerDest: Map<string, PackageReference> = new Map();
-    pkgs = pkgs.filter((ref) => {
+    pkgs = pkgs.filter(ref => {
       const dest = this.config.generateHardModulePath(ref);
       const otherPkg = pkgsPerDest.get(dest);
       if (otherPkg) {
@@ -91,7 +91,7 @@ export default class PackageFetcher {
     });
     const tick = this.reporter.progress(pkgs.length);
 
-    await promise.queue(pkgs, async (ref) => {
+    await promise.queue(pkgs, async ref => {
       const res = await this.maybeFetch(ref);
       let newPkg;
 

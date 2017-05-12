@@ -39,7 +39,7 @@ test('RequestManager.request with ca (string)', async () => {
   try {
     server.listen(0);
     const bundle = await fs.readFile(path.join(__dirname, '..', 'fixtures', 'certificates', 'cacerts.pem'));
-    const hasPemPrefix = (block) => block.startsWith('-----BEGIN ');
+    const hasPemPrefix = block => block.startsWith('-----BEGIN ');
     const caCerts = bundle.split(/(-----BEGIN .*\r?\n[^-]+\r?\n--.*)/).filter(hasPemPrefix);
     // the 2nd cert is valid one
     const config = await Config.create({'ca': caCerts[1]});
@@ -61,7 +61,7 @@ test('RequestManager.request with ca (array)', async () => {
   try {
     server.listen(0);
     const bundle = await fs.readFile(path.join(__dirname, '..', 'fixtures', 'certificates', 'cacerts.pem'));
-    const hasPemPrefix = (block) => block.startsWith('-----BEGIN ');
+    const hasPemPrefix = block => block.startsWith('-----BEGIN ');
     const caCerts = bundle.split(/(-----BEGIN .*\r?\n[^-]+\r?\n--.*)/).filter(hasPemPrefix);
     const config = await Config.create({'ca': caCerts});
     const port = server.address().port;
@@ -101,7 +101,7 @@ test('RequestManager.execute timeout error with maxRetryAttempts=1', async () =>
   jest.useRealTimers();
 
   let counter = 0;
-  const server = net.createServer((c) => {
+  const server = net.createServer(c => {
     counter += 1;
     // emulate TCP server that never closes the connection
   });
@@ -124,7 +124,7 @@ test('RequestManager.execute timeout error with default maxRetryAttempts', async
   jest.useRealTimers();
 
   let counter = 0;
-  const server = net.createServer((c) => {
+  const server = net.createServer(c => {
     counter += 1;
     // emulate TCP server that never closes the connection
   });
@@ -144,7 +144,7 @@ test('RequestManager.execute timeout error with default maxRetryAttempts', async
 
 test('RequestManager.execute Request 403 error', async () => {
   const config = await Config.create({}, new Reporter());
-  jest.mock('request', (factory) => (options) => {
+  jest.mock('request', factory => options => {
     options.callback('', {statusCode: 403}, '');
     return {
       on: () => {},
@@ -152,8 +152,8 @@ test('RequestManager.execute Request 403 error', async () => {
   });
   await config.requestManager.execute({
     params: {url: `https://localhost:port/?nocache`, headers: {Connection: 'close'}},
-    resolve: (body) => {},
-    reject: (err) => {
+    resolve: body => {},
+    reject: err => {
       expect(err.message).toBe('https://localhost:port/?nocache: Request "https://localhost:port/?nocache" returned a 403');
     },
   });

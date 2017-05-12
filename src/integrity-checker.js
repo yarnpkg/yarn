@@ -171,7 +171,7 @@ export default class InstallationIntegrityChecker {
       result.linkedModules = linkedModules.sort(sortAlpha);
     }
 
-    Object.keys(lockfile).forEach((key) => {
+    Object.keys(lockfile).forEach(key => {
       result.lockfileEntries[key] = lockfile[key].resolved;
     });
 
@@ -241,7 +241,7 @@ export default class InstallationIntegrityChecker {
     lockfile: {[key: string]: LockManifest},
     flags: IntegrityFlags): Promise<IntegrityCheckResult> {
     // check if patterns exist in lockfile
-    const missingPatterns = patterns.filter((p) => !lockfile[p]);
+    const missingPatterns = patterns.filter(p => !lockfile[p]);
     const loc = await this._getIntegrityHashLocation();
     if (missingPatterns.length || !loc.exists) {
       return {

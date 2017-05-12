@@ -11,7 +11,7 @@ test.concurrent('install should dedupe dependencies avoiding conflicts 0', (): P
   // A@2.0.1 -> B@2.0.0
   // B@1.0.0
   // should result in B@2.0.0 not flattened
-  return runInstall({}, 'install-should-dedupe-avoiding-conflicts-0', async (config) => {
+  return runInstall({}, 'install-should-dedupe-avoiding-conflicts-0', async config => {
     expect(await getPackageVersion(config, 'dep-b')).toEqual('1.0.0');
     expect(await getPackageVersion(config, 'dep-a/dep-b')).toEqual('2.0.0');
   });
@@ -21,7 +21,7 @@ test.concurrent('install should dedupe dependencies avoiding conflicts 0', (): P
 test.concurrent('install should dedupe dependencies avoiding conflicts 1', (): Promise<void> => {
   // A@2.0.1 -> B@2.0.0
   // should result in B@2.0.0 flattened
-  return runInstall({}, 'install-should-dedupe-avoiding-conflicts-1', async (config) => {
+  return runInstall({}, 'install-should-dedupe-avoiding-conflicts-1', async config => {
     expect(await getPackageVersion(config, 'dep-b')).toEqual('2.0.0');
     expect(await getPackageVersion(config, 'dep-a')).toEqual('2.0.1');
   });
@@ -40,7 +40,7 @@ test.concurrent('install should dedupe dependencies avoiding conflicts 2', (): P
   // C@1
   // B@1
 
-  return runInstall({}, 'install-should-dedupe-avoiding-conflicts-2', async (config) => {
+  return runInstall({}, 'install-should-dedupe-avoiding-conflicts-2', async config => {
     expect(await getPackageVersion(config, 'dep-a')).toEqual('2.0.0');
     expect(await getPackageVersion(config, 'dep-a/dep-b')).toEqual('2.0.0');
     expect(await getPackageVersion(config, 'dep-c')).toEqual('1.0.0');
@@ -59,7 +59,7 @@ test.concurrent('install should dedupe dependencies avoiding conflicts 3', (): P
   // B@2 -> C@2
   // C@1
   // D@1
-  return runInstall({}, 'install-should-dedupe-avoiding-conflicts-3', async (config) => {
+  return runInstall({}, 'install-should-dedupe-avoiding-conflicts-3', async config => {
     expect(await getPackageVersion(config, 'dep-a')).toEqual('2.0.0');
     expect(await getPackageVersion(config, 'dep-c')).toEqual('1.0.0');
     expect(await getPackageVersion(config, 'dep-d')).toEqual('1.0.0');
@@ -78,7 +78,7 @@ test.concurrent('install should dedupe dependencies avoiding conflicts 4', (): P
   // D@1 -> C@2
   // C@1
   // B@2
-  return runInstall({}, 'install-should-dedupe-avoiding-conflicts-4', async (config) => {
+  return runInstall({}, 'install-should-dedupe-avoiding-conflicts-4', async config => {
     expect(await getPackageVersion(config, 'dep-a')).toEqual('2.0.0');
     expect(await getPackageVersion(config, 'dep-c')).toEqual('1.0.0');
     expect(await getPackageVersion(config, 'dep-d')).toEqual('1.0.0');
@@ -99,7 +99,7 @@ test.concurrent('install should dedupe dependencies avoiding conflicts 5', (): P
   // D@1 -> A@2
   //     -> B@2
 
-  return runInstall({}, 'install-should-dedupe-avoiding-conflicts-5', async (config) => {
+  return runInstall({}, 'install-should-dedupe-avoiding-conflicts-5', async config => {
     expect(await getPackageVersion(config, 'dep-a')).toEqual('1.0.0');
     expect(await getPackageVersion(config, 'dep-b')).toEqual('1.0.0');
     expect(await getPackageVersion(config, 'dep-c')).toEqual('1.0.0');
@@ -156,7 +156,7 @@ test.concurrent('install should dedupe dependencies avoiding conflicts 7', (): P
   // D@2
   // E@2
 
-  return runInstall({}, 'install-should-dedupe-avoiding-conflicts-7', async (config) => {
+  return runInstall({}, 'install-should-dedupe-avoiding-conflicts-7', async config => {
     expect(await getPackageVersion(config, 'dep-a')).toEqual('1.0.0');
     expect(await getPackageVersion(config, 'dep-b')).toEqual('1.0.0');
     expect(await getPackageVersion(config, 'dep-c')).toEqual('2.0.0');
@@ -178,7 +178,7 @@ if (!process.env.TRAVIS || process.env.TRAVIS_OS_NAME !== 'osx') {
   test.concurrent('install should dedupe dependencies avoiding conflicts 8', (): Promise<void> => {
     // revealed in https://github.com/yarnpkg/yarn/issues/112
     // adapted for https://github.com/yarnpkg/yarn/issues/1158
-    return runInstall({}, 'install-should-dedupe-avoiding-conflicts-8', async (config) => {
+    return runInstall({}, 'install-should-dedupe-avoiding-conflicts-8', async config => {
       expect(await getPackageVersion(config, 'glob')).toEqual('5.0.15');
       expect(await getPackageVersion(config, 'findup-sync/glob')).toEqual('4.3.5');
       expect(await getPackageVersion(config, 'inquirer')).toEqual('0.8.5');
@@ -192,7 +192,7 @@ if (!process.env.TRAVIS || process.env.TRAVIS_OS_NAME !== 'osx') {
 test.concurrent('install should dedupe dependencies avoiding conflicts 9', (): Promise<void> => {
   // revealed in https://github.com/yarnpkg/yarn/issues/112
   // adapted for https://github.com/yarnpkg/yarn/issues/1158
-  return runInstall({}, 'install-should-dedupe-avoiding-conflicts-9', async (config) => {
+  return runInstall({}, 'install-should-dedupe-avoiding-conflicts-9', async config => {
     expect(await getPackageVersion(config, 'glob')).toEqual('5.0.15');
     expect(await getPackageVersion(config, 'findup-sync/glob')).toEqual('4.3.5');
     expect(await getPackageVersion(config, 'inquirer')).toEqual('0.8.5');
@@ -206,7 +206,7 @@ test.concurrent('install should hardlink repeated dependencies', (): Promise<voi
   // A@1
   // B@1 -> A@2
   // C@1 -> A@2 (this is hardlink to B@1->A@2)
-  return runInstall({linkDuplicates: true}, 'hardlink-repeated-dependencies', async (config) => {
+  return runInstall({linkDuplicates: true}, 'hardlink-repeated-dependencies', async config => {
     const b_a = await fs.stat(path.join(
       config.cwd,
       'node_modules/b/node_modules/a/package.json',
@@ -223,7 +223,7 @@ test.concurrent('install should not hardlink repeated dependencies if linkDuplic
   // A@1
   // B@1 -> A@2
   // C@1 -> A@2
-  return runInstall({linkDuplicates: false}, 'hardlink-repeated-dependencies', async (config) => {
+  return runInstall({linkDuplicates: false}, 'hardlink-repeated-dependencies', async config => {
     const b_a = await fs.stat(path.join(
       config.cwd,
       'node_modules/b/node_modules/a/package.json',

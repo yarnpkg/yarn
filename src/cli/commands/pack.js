@@ -119,18 +119,18 @@ export async function pack(config: Config, dir: string): Promise<stream$Duplex> 
   sortFilter(files, filters, keepFiles, possibleKeepFiles, ignoredFiles);
 
   const packer = tar.pack(config.cwd, {
-    ignore: (name) => {
+    ignore: name => {
       const relative = path.relative(config.cwd, name);
       // Don't ignore directories, since we need to recurse inside them to check for unignored files.
       if (fs2.lstatSync(name).isDirectory()) {
-        const isParentOfKeptFile = Array.from(keepFiles).some((name) =>
+        const isParentOfKeptFile = Array.from(keepFiles).some(name =>
           !path.relative(relative, name).startsWith('..'));
         return !isParentOfKeptFile;
       }
       // Otherwise, ignore a file if we're not supposed to keep it.
       return !keepFiles.has(relative);
     },
-    map: (header) => {
+    map: header => {
       const suffix = header.name === '.' ? '' : `/${header.name}`;
       header.name = `package${suffix}`;
       delete header.uid;
@@ -166,7 +166,7 @@ export async function run(
     throw new MessageError(reporter.lang('noVersion'));
   }
 
-  const normaliseScope = (name) => name[0] === '@' ? name.substr(1).replace('/', '-') : name;
+  const normaliseScope = name => name[0] === '@' ? name.substr(1).replace('/', '-') : name;
   const filename = flags.filename || path.join(config.cwd, `${normaliseScope(pkg.name)}-v${pkg.version}.tgz`);
 
   const stream = await pack(config, config.cwd);

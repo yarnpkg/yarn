@@ -100,7 +100,7 @@ test.concurrent('pack should include mandatory files not listed in files array i
       path.join(cwd, 'files-include-mandatory-v1.0.0'),
     );
     const expected = ['package.json', 'index.js', 'readme.md', 'license', 'changelog'];
-    expected.forEach((filename) => {
+    expected.forEach(filename => {
       expect(files.indexOf(filename)).toBeGreaterThanOrEqual(0);
     });
   });
@@ -129,7 +129,7 @@ test.concurrent('pack should exclude all other files if files array is not empty
       path.join(cwd, 'files-exclude-v1.0.0'),
     );
     const excluded = ['c.js'];
-    excluded.forEach((filename) => {
+    excluded.forEach(filename => {
       expect(files.indexOf(filename)).toEqual(-1);
     });
   });

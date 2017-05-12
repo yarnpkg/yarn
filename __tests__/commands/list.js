@@ -31,7 +31,7 @@ const runList = buildRun.bind(null, BufferReporter, fixturesLoc, (args, flags, c
 test.concurrent('throws if lockfile out of date', (): Promise<void> => {
   const reporter = new reporters.ConsoleReporter({});
 
-  return new Promise(async (resolve) => {
+  return new Promise(async resolve => {
     try {
       await runList([], {}, 'lockfile-outdated');
     } catch (err) {

@@ -18,7 +18,7 @@ export default function<T>(
   interceptor: Interceptor<T>,
   prepare?: (reporter: Reporter) => any,
 ): (callback: MockCallback) => Promise<T> {
-  return async function (callback: MockCallback): * {
+  return async function(callback: MockCallback): * {
     const data: MockData = {
       stderr: '',
       stdout: '',
@@ -31,7 +31,7 @@ export default function<T>(
       stream.columns = 1000;
 
       // $FlowFixMe: TODO ditto
-      stream.write = (msg) => {
+      stream.write = msg => {
         stream.emit('data', msg);
         data[key] += msg;
       };

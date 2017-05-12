@@ -7,7 +7,7 @@ import fix from './fix.js';
 
 const path = require('path');
 
-export default async function (
+export default async function(
   info: Object,
   moduleLoc: string,
   config: Config,

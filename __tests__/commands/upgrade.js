@@ -18,7 +18,7 @@ const runUpgrade = buildRun.bind(null, ConsoleReporter, fixturesLoc, (args, flag
 test.concurrent('throws if lockfile is out of date', (): Promise<void> => {
   const reporter = new reporters.ConsoleReporter({});
 
-  return new Promise(async (resolve) => {
+  return new Promise(async resolve => {
     try {
       await runUpgrade([], {}, 'lockfile-outdated');
     } catch (err) {
@@ -110,7 +110,7 @@ test.concurrent('upgrades dependency packages not in registry', (): Promise<void
     const lockfile = explodeLockfile(await fs.readFile(path.join(config.cwd, 'yarn.lock')));
     const gitRemote = 'https://github.com/yarnpkg/e2e-test-repo';
 
-    const lockFileIncludes = (sha) => lockfile.includes(`  resolved "${gitRemote}#${sha}"`);
+    const lockFileIncludes = sha => lockfile.includes(`  resolved "${gitRemote}#${sha}"`);
 
     expect(
       lockfile.includes(`"yarn-test-git-repo@${gitRemote}#master":`),
@@ -144,7 +144,7 @@ test.concurrent('upgrades dev dependency packages not in registry', (): Promise<
     const lockfile = explodeLockfile(await fs.readFile(path.join(config.cwd, 'yarn.lock')));
     const gitRemote = 'https://github.com/yarnpkg/e2e-test-repo';
 
-    const lockFileIncludes = (sha) => lockfile.includes(`  resolved "${gitRemote}#${sha}"`);
+    const lockFileIncludes = sha => lockfile.includes(`  resolved "${gitRemote}#${sha}"`);
 
     expect(
       lockfile.includes(`"yarn-test-git-repo@${gitRemote}#master":`),
@@ -178,7 +178,7 @@ test.concurrent('upgrades optional dependency packages not in registry', (): Pro
     const lockfile = explodeLockfile(await fs.readFile(path.join(config.cwd, 'yarn.lock')));
     const gitRemote = 'https://github.com/yarnpkg/e2e-test-repo';
 
-    const lockFileIncludes = (sha) => lockfile.includes(`  resolved "${gitRemote}#${sha}"`);
+    const lockFileIncludes = sha => lockfile.includes(`  resolved "${gitRemote}#${sha}"`);
 
     expect(
       lockfile.includes(`"yarn-test-git-repo@${gitRemote}#master":`),
@@ -212,7 +212,7 @@ test.concurrent('upgrades peer dependency packages not in registry', (): Promise
     const lockfile = explodeLockfile(await fs.readFile(path.join(config.cwd, 'yarn.lock')));
     const gitRemote = 'https://github.com/yarnpkg/e2e-test-repo';
 
-    const lockFileIncludes = (sha) => lockfile.includes(`  resolved "${gitRemote}#${sha}"`);
+    const lockFileIncludes = sha => lockfile.includes(`  resolved "${gitRemote}#${sha}"`);
 
     expect(
       lockfile.includes(`"yarn-test-git-repo@${gitRemote}#master":`),
@@ -248,9 +248,9 @@ test.concurrent('warns when peer dependency is not met after upgrade', (): Promi
       await upgrade(config, reporter, flags, args);
 
       const output = reporter.getBuffer();
-      const warnings = output.filter((entry) => entry.type === 'warning');
+      const warnings = output.filter(entry => entry.type === 'warning');
 
-      expect(warnings.some((warning) => {
+      expect(warnings.some(warning => {
         return warning.data.toString().toLowerCase().includes('incorrect peer');
       })).toEqual(true);
     },
@@ -268,9 +268,9 @@ test.concurrent('doesn\'t warn when peer dependency is still met after upgrade',
       await upgrade(config, reporter, flags, args);
 
       const output = reporter.getBuffer();
-      const warnings = output.filter((entry) => entry.type === 'warning');
+      const warnings = output.filter(entry => entry.type === 'warning');
 
-      expect(warnings.some((warning) => {
+      expect(warnings.some(warning => {
         return warning.data.toString().toLowerCase().includes('peer');
       })).toEqual(false);
     },

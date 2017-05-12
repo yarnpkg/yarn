@@ -42,7 +42,7 @@ function createTestFixture(testModules: any = {}): any {
   // build Manifests with just enough information to get the PackageHoister to work.
   const lockfile = new Lockfile();
   const packageResolver = new PackageResolver(config, lockfile);
-  Object.keys(testModules).map((uid) => {
+  Object.keys(testModules).map(uid => {
     const packageManifest = createManifestForUid(uid, testModules[uid]);
 
     // load the manifest into the PackageResolver
@@ -75,7 +75,7 @@ beforeEach(function() {
       return {
         compare(received, uid, expectedInstallPath): any {
           let pass: boolean = false;
-          received.forEach((pkg) => {
+          received.forEach(pkg => {
             const [location: string, hoistManifest: HoistManifest] = pkg;
             if (location === expectedInstallPath && hoistManifest.pkg._reference.uid === uid) {
               pass = true;

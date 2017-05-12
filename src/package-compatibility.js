@@ -121,7 +121,7 @@ export default class PackageCompatibility {
     const reporter = this.reporter;
     const human = `${info.name}@${info.version}`;
 
-    const pushError = (msg) => {
+    const pushError = msg => {
       const ref = info._reference;
       invariant(ref, 'expected package reference');
 

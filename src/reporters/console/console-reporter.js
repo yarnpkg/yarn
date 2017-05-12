@@ -329,7 +329,7 @@ export default class ConsoleReporter extends BaseReporter {
       }
     }
 
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       this.info(header);
 
       for (let i = 0; i < questions.length; i++) {
@@ -337,7 +337,7 @@ export default class ConsoleReporter extends BaseReporter {
       }
 
       const ask = () => {
-        rl.question(`${question}: `, (input) => {
+        rl.question(`${question}: `, input => {
           let index = toIndex(input);
 
           if (isNaN(index)) {
