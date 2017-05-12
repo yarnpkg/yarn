@@ -189,7 +189,7 @@ const runEventuallyWithFile = (mutexFilename: ?string, isFirstTime?: boolean): P
           reporter.warn(reporter.lang('waitingInstance'));
         }
         setTimeout(() => {
-          ok(runEventuallyWithFile(mutexFilename, isFirstTime));
+          ok(runEventuallyWithFile(mutexFilename, false));
         }, 200); // do not starve the CPU
       } else {
         onDeath(() => {
