@@ -86,5 +86,32 @@ test('secureGitUrl', async function (): Promise<void> {
   gitURL = await Git.secureGitUrl(Git.npmUrlToGitUrl('git://github.com/yarnpkg/yarn.git'), '', reporter);
   expect(gitURL.repository).toEqual('https://github.com/yarnpkg/yarn.git');
 
-},
-);
+});
+
+test('parseRefs', () => {
+  expect(Git.parseRefs(`64b2c0cee9e829f73c5ad32b8cc8cb6f3bec65bb refs/tags/v4.2.2`))
+    .toMatchObject({
+      'v4.2.2': '64b2c0cee9e829f73c5ad32b8cc8cb6f3bec65bb',
+    });
+
+  expect(Git.parseRefs(`ebeb6eafceb61dd08441ffe086c77eb472842494  refs/tags/v0.21.0
+70e76d174b0c7d001d2cd608a16c94498496e92d  refs/tags/v0.21.0^{}
+de43f4a993d1e08cd930ee22ecb2bac727f53449  refs/tags/v0.21.0-pre`))
+    .toMatchObject({
+      'v0.21.0': '70e76d174b0c7d001d2cd608a16c94498496e92d',
+      'v0.21.0-pre': 'de43f4a993d1e08cd930ee22ecb2bac727f53449',
+    });
+
+  expect(Git.parseRefs(`**********
+This is a custom response header
+  as described in: https://github.com/yarnpkg/yarn/issues/3325
+**********
+
+ebeb6eafceb61dd08441ffe086c77eb472842494  refs/tags/v0.21.0
+70e76d174b0c7d001d2cd608a16c94498496e92d  refs/tags/v0.21.0^{}
+de43f4a993d1e08cd930ee22ecb2bac727f53449  refs/tags/v0.21.0-pre`))
+    .toMatchObject({
+      'v0.21.0': '70e76d174b0c7d001d2cd608a16c94498496e92d',
+      'v0.21.0-pre': 'de43f4a993d1e08cd930ee22ecb2bac727f53449',
+    });
+});
