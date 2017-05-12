@@ -41,7 +41,8 @@ export async function getFilesFromArchive(source, destination): Promise<Array<st
   return files;
 }
 
-test.concurrent('pack should work with a minimal example', (): Promise<void> => {
+test.concurrent('pack should work with a minimal example',
+(): Promise<void> => {
   return runPack([], {}, 'minimal', async (config): Promise<void> => {
     const {cwd} = config;
     const files = await getFilesFromArchive(
@@ -53,7 +54,8 @@ test.concurrent('pack should work with a minimal example', (): Promise<void> => 
   });
 });
 
-test.concurrent('pack should include all files listed in the files array', (): Promise<void> => {
+test.concurrent('pack should include all files listed in the files array',
+(): Promise<void> => {
   return runPack([], {}, 'files-include', async (config): Promise<void> => {
     const {cwd} = config;
     const files = await getFilesFromArchive(
@@ -68,6 +70,24 @@ test.concurrent('pack should include all files listed in the files array', (): P
       'index.js',
       'package.json',
     ]);
+  });
+});
+
+test.concurrent('pack should included globbed files',
+(): Promise<void> => {
+  return runPack([], {}, 'files-glob', async (config): Promise<void> => {
+    const {cwd} = config;
+    const files = await getFilesFromArchive(
+      path.join(cwd, 'files-glob-v1.0.0.tgz'),
+      path.join(cwd, 'files-glob-v1.0.0'),
+    );
+    expect(files.sort()).toEqual([
+      'lib',
+      'lib/a.js',
+      'lib/b.js',
+      'index.js',
+      'package.json',
+    ].sort());
   });
 });
 
@@ -86,7 +106,8 @@ test.concurrent('pack should include mandatory files not listed in files array i
   });
 });
 
-test.concurrent('pack should exclude mandatory files from ignored directories', (): Promise<void> => {
+test.concurrent('pack should exclude mandatory files from ignored directories',
+(): Promise<void> => {
   return runPack([], {}, 'exclude-mandatory-files-from-ignored-directories', async (config): Promise<void> => {
     const {cwd} = config;
     const files = await getFilesFromArchive(
@@ -126,7 +147,7 @@ test.concurrent('pack should exclude all dotflies if not in files and files not 
   });
 });
 
-test.concurrent('pack should exclude all files in dot-directories if not in files and files not empty ',
+test.concurrent('pack should exclude all files in dot-directories if not in files and files not empty',
 (): Promise<void> => {
   return runPack([], {}, 'files-exclude-dotdir', async (config): Promise<void> => {
     const {cwd} = config;
