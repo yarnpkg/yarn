@@ -237,7 +237,7 @@ const messages = {
   infoFail: 'Received invalid response from npm.',
   malformedRegistryResponse: 'Received malformed response from registry for $0. The registry may be down.',
 
-  cantRequestOffline: 'Can\'t make a request in offline mode',
+  cantRequestOffline: 'Can\'t make a request in offline mode ($0)',
   requestManagerNotSetupHAR: 'RequestManager was not setup to capture HAR files',
   requestError: 'Request $0 returned a $1',
   requestFailed: 'Request failed $0',

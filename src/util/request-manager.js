@@ -212,7 +212,9 @@ export default class RequestManager {
 
   request<T>(params: RequestParams<T>): Promise<T> {
     if (this.offlineNoRequests) {
-      return Promise.reject(new MessageError(this.reporter.lang('cantRequestOffline')));
+      return Promise.reject(
+        new MessageError(this.reporter.lang('cantRequestOffline', params.url)),
+      );
     }
 
     const cached = this.cache[params.url];
