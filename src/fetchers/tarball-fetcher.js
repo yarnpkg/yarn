@@ -178,7 +178,7 @@ export default class TarballFetcher extends BaseFetcher {
           .pipe(extractorStream)
           .on('error', reject);
       },
-    });
+    }, this.packageName);
   }
 
   async _fetch(): Promise<FetchedOverride> {
