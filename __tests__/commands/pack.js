@@ -83,8 +83,8 @@ test.concurrent('pack should included globbed files',
     );
     expect(files.sort()).toEqual([
       'lib',
-      'lib/a.js',
-      'lib/b.js',
+      path.join('lib', 'a.js'),
+      path.join('lib', 'b.js'),
       'index.js',
       'package.json',
     ].sort());
