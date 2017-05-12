@@ -180,28 +180,12 @@ export default class NpmRegistry extends Registry {
       return this.token;
     }
 
-    for (let registry of [this.getRegistry(packageName), '', DEFAULT_REGISTRY]) {
-      registry = registry.replace(/^https?:/, '');
+    const registry = this.getRegistry(packageName).replace(/^https?:/, '');
 
-      // Check for bearer token.
-      let auth = this.getScopedOption(registry.replace(/\/?$/, '/'), '_authToken');
-      if (auth) {
-        return `Bearer ${String(auth)}`;
-      }
-
-      // Check for basic auth token.
-      auth = this.getScopedOption(registry, '_auth');
-      if (auth) {
-        return `Basic ${String(auth)}`;
-      }
-
-      // Check for basic username/password auth.
-      const username = this.getScopedOption(registry, 'username');
-      const password = this.getScopedOption(registry, '_password');
-      if (username && password) {
-        const pw = new Buffer(String(password), 'base64').toString();
-        return 'Basic ' + new Buffer(String(username) + ':' + pw).toString('base64');
-      }
+    // Check for bearer token.
+    const auth = this.getScopedOption(registry.replace(/\/?$/, '/'), '_authToken');
+    if (auth) {
+      return `Bearer ${String(auth)}`;
     }
 
     return '';
