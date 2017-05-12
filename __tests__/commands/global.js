@@ -115,6 +115,18 @@ test.concurrent('ls', async (): Promise<void> => {
   });
 });
 
+test.concurrent('list', async (): Promise<void> => {
+  const tmpGlobalFolder = await createTempGlobalFolder();
+  const tmpPrefixFolder = await createTempPrefixFolder();
+  const flags = {globalFolder: tmpGlobalFolder, prefix: tmpPrefixFolder};
+  return runGlobal(['add', 'react-native-cli'], flags, 'add-with-prefix-flag', () => {})
+  .then(() => {
+    return runGlobal(['list'], flags, 'add-with-prefix-flag', (config, reporter, install, getStdout) => {
+      expect(getStdout()).toContain('react-native-cli');
+    });
+  });
+});
+
 test.concurrent('upgrade', async (): Promise<void> => {
   const tmpGlobalFolder = await createTempGlobalFolder();
   const tmpPrefixFolder = await createTempPrefixFolder();

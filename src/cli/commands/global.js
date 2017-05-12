@@ -69,6 +69,8 @@ async function getBins(config: Config): Promise<Set<string>> {
   return paths;
 }
 
+
+
 function getGlobalPrefix(config: Config, flags: Object): string {
   if (flags.prefix) {
     return flags.prefix;
@@ -172,6 +174,21 @@ function ls(manifest: Manifest, reporter: Reporter, saved: boolean) {
   }
 }
 
+async function list(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
+  await updateCwd(config);
+
+  // install so we get hard file paths
+  const lockfile = await Lockfile.fromDirectory(config.cwd);
+  const install = new Install({skipIntegrityCheck: true}, config, new NoopReporter(), lockfile);
+  const patterns = await install.init();
+
+  // dump global modules
+  for (const pattern of patterns) {
+    const manifest = install.resolver.getStrictResolvedPattern(pattern);
+    ls(manifest, reporter, false);
+  }
+}
+
 const {run, setFlags: _setFlags} = buildSubCommands('global', {
   async add(
     config: Config,
@@ -210,18 +227,17 @@ const {run, setFlags: _setFlags} = buildSubCommands('global', {
     flags: Object,
     args: Array<string>,
   ): Promise<void> {
-    await updateCwd(config);
+    reporter.warn(`\`yarn global ls\` is deprecated. Please use \`yarn global list\`.`);
+    await list(config, reporter, flags, args);
+  },
 
-    // install so we get hard file paths
-    const lockfile = await Lockfile.fromDirectory(config.cwd);
-    const install = new Install({skipIntegrityCheck: true}, config, new NoopReporter(), lockfile);
-    const patterns = await install.init();
-
-    // dump global modules
-    for (const pattern of patterns) {
-      const manifest = install.resolver.getStrictResolvedPattern(pattern);
-      ls(manifest, reporter, false);
-    }
+  async list(
+    config: Config,
+    reporter: Reporter,
+    flags: Object,
+    args: Array<string>,
+  ): Promise<void> {
+    await list(config, reporter, flags, args);
   },
 
   async remove(
