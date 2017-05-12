@@ -3,7 +3,7 @@
 import type {WalkFiles} from './fs.js';
 import {removeSuffix} from './misc.js';
 
-const minimatch = require('minimatch');
+const mm = require('micromatch');
 const path = require('path');
 
 const WHITESPACE_RE = /^\s+$/;
@@ -101,7 +101,7 @@ export function matchesFilter(filter: IgnoreFilter, basename: string, loc: strin
   return filter.regex.test(loc) ||
          filter.regex.test(`/${loc}`) ||
          filter.regex.test(basename) ||
-         minimatch(loc, filter.pattern);
+         mm.isMatch(loc, filter.pattern);
 }
 
 export function ignoreLinesToRegex(lines: Array<string>, base: string = '.'): Array<IgnoreFilter> {
@@ -126,7 +126,7 @@ export function ignoreLinesToRegex(lines: Array<string>, base: string = '.'): Ar
       // remove trailing slash
       pattern = removeSuffix(pattern, '/');
 
-      const regex: ?RegExp = minimatch.makeRe(pattern, {nocase: true});
+      const regex: ?RegExp = mm.makeRe(pattern.trim(), {nocase: true});
 
       if (regex) {
         return {

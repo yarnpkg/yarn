@@ -24,7 +24,7 @@
     "is-ci": "^1.0.10",
     "leven": "^2.0.0",
     "loud-rejection": "^1.2.0",
-    "minimatch": "^3.0.3",
+    "micromatch": "^2.3.11",
     "mkdirp": "^0.5.1",
     "node-emoji": "^1.0.4",
     "object-path": "^0.11.2",
