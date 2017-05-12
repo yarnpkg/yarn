@@ -18,7 +18,7 @@ type Dependencies = {
 export default class FileResolver extends ExoticResolver {
   constructor(request: PackageRequest, fragment: string) {
     super(request, fragment);
-    this.loc = util.removePrefix(fragment, 'file:');
+    this.loc = util.removePrefix(fragment, 'file://');
   }
 
   loc: string;
@@ -73,11 +73,14 @@ export default class FileResolver extends ExoticResolver {
     let temp = section;
 
     for (const [k, v] of util.entries(section)) {
-      if (typeof v === 'string' && v.startsWith('file:') && !path.isAbsolute(v)) {
-        if (temp === section) {
-          temp = Object.assign({}, section);
+      if (typeof v === 'string' && v.startsWith('file://')) {
+        let lv = util.removePrefix(v, 'file://');
+        if (!path.isAbsolute(lv)) {
+          if (temp === section) {
+            temp = Object.assign({}, section);
+          }
+          temp[k] = `file://${path.relative(this.config.cwd, path.join(loc, lv))}`;
         }
-        temp[k] = `file:${path.relative(this.config.cwd, path.join(loc, util.removePrefix(v, 'file:')))}`;
       }
     }
 
