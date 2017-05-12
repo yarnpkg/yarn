@@ -17,6 +17,7 @@ import ExoticFile from './exotics/file-resolver.js';
 import ExoticGitLab from './exotics/gitlab-resolver.js';
 import ExoticGist from './exotics/gist-resolver.js';
 import ExoticBitbucket from './exotics/bitbucket-resolver.js';
+import ExoticProject from './exotics/project-resolver.js';
 
 export const exotics = {
   git: ExoticGit,
@@ -26,6 +27,7 @@ export const exotics = {
   gitlab: ExoticGitLab,
   gist: ExoticGist,
   bitbucket: ExoticBitbucket,
+  project: ExoticProject,
 };
 
 //
