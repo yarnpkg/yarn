@@ -9,6 +9,7 @@ import {setVersion, setFlags as versionSetFlags} from './version.js';
 import * as fs from '../../util/fs.js';
 import {pack} from './pack.js';
 import {getToken} from './login.js';
+import {has2xxResponse} from '../../util/misc.js';
 
 const invariant = require('invariant');
 const crypto = require('crypto');
@@ -105,7 +106,7 @@ async function publish(
     body: root,
   });
 
-  if (res != null && res.success) {
+  if (res !== null && has2xxResponse(res)) {
     await config.executeLifecycleScript('publish');
     await config.executeLifecycleScript('postpublish');
   } else {
