@@ -10,6 +10,7 @@ const fs = require('fs');
 const globModule = require('glob');
 const os = require('os');
 const path = require('path');
+const workerFarm = require('worker-farm');
 
 export const lockQueue = new BlockingQueue('fs lock');
 
@@ -505,45 +506,45 @@ export async function copyBulk(
 
   const currentlyWriting: { [dest: string]: Promise<void> } = {};
 
+  const farm = workerFarm(
+    {
+      maxConcurrentWorkers: require('os').cpus().length - 1,
+    },
+    require.resolve('./copy-worker'),
+  );
+  const workerPromise = (message) =>
+    new Promise((resolve, reject) =>
+      farm(message, (error, metadata) => {
+        if (error || !metadata) {
+          reject(error);
+        } else {
+          resolve(metadata);
+        }
+      }),
+    );
+
   await promise.queue(fileActions, async (data): Promise<void> => {
     let writePromise: Promise<void>;
     while (writePromise = currentlyWriting[data.dest]) {
       await writePromise;
     }
+    data.atime = +data.atime;
+    data.mtime = +data.mtime;
 
     const cleanup = () => delete currentlyWriting[data.dest];
-    return currentlyWriting[data.dest] = new Promise((resolve, reject) => {
-      const readStream = fs.createReadStream(data.src);
-      const writeStream = fs.createWriteStream(data.dest, {mode: data.mode});
-
-      reporter.verbose(reporter.lang('verboseFileCopy', data.src, data.dest));
-
-      readStream.on('error', reject);
-      writeStream.on('error', reject);
-
-      writeStream.on('open', function() {
-        readStream.pipe(writeStream);
+    reporter.verbose(reporter.lang('verboseFileCopy', data.src, data.dest));
+    return currentlyWriting[data.dest] = workerPromise(data)
+      .then((arg) => {
+        events.onProgress(data.dest);
+        cleanup();
+        return arg;
+      }).catch((arg) => {
+        cleanup();
+        throw arg;
       });
-
-      writeStream.once('close', function() {
-        fs.utimes(data.dest, data.atime, data.mtime, function(err) {
-          if (err) {
-            reject(err);
-          } else {
-            events.onProgress(data.dest);
-            cleanup();
-            resolve();
-          }
-        });
-      });
-    }).then((arg) => {
-      cleanup();
-      return arg;
-    }).catch((arg) => {
-      cleanup();
-      throw arg;
-    });
   }, CONCURRENT_QUEUE_ITEMS);
+
+  workerFarm.end(farm);
 
   // we need to copy symlinks last as they could reference files we were copying
   const symlinkActions: Array<CopySymlinkAction> = (actions.filter((action) => action.type === 'symlink'): any);
