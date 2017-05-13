@@ -18,6 +18,7 @@ branches:
   only:
   - master
   - /^.*-stable$/
+  - /^greenkeeper/.*$/
 
 cache:
   # Yarn installed with Travis breaks in Node 4, see https://travis-ci.org/yarnpkg/yarn/jobs/215947941
