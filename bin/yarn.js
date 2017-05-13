@@ -30,4 +30,4 @@ var mkdirp = require('mkdirp');
 var constants = require('../lib-legacy/constants');
 mkdirp.sync(constants.MODULE_CACHE_DIRECTORY);
 
-module.exports = require(path);
+module.exports = process.env.YARN_AS_LIB ? require(path).library : require(path).default();
