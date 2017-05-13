@@ -6,8 +6,8 @@ import Config from '../../config.js';
 
 const chalk = require('chalk');
 
-const getDocsLink = (name) => `${constants.YARN_DOCS}${name || ''}`;
-const getDocsInfo = (name) => 'Visit ' + chalk.bold(getDocsLink(name)) + ' for documentation about this command.';
+const getDocsLink = name => `${constants.YARN_DOCS}${name || ''}`;
+const getDocsInfo = name => 'Visit ' + chalk.bold(getDocsLink(name)) + ' for documentation about this command.';
 
 import * as access from './access.js';
 import * as add from './add.js';

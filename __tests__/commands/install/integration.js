@@ -137,7 +137,7 @@ test.concurrent("removes extraneous files that aren't in module or artifacts", a
 });
 
 test.concurrent("production mode with deduped dev dep shouldn't be removed", async () => {
-  await runInstall({production: true}, 'install-prod-deduped-dev-dep', async (config) => {
+  await runInstall({production: true}, 'install-prod-deduped-dev-dep', async config => {
     expect(
       (await fs.readJson(path.join(config.cwd, 'node_modules', 'a', 'package.json'))).version,
     ).toEqual(
@@ -157,7 +157,7 @@ test.concurrent("production mode with deduped dev dep shouldn't be removed", asy
 });
 
 test.concurrent("production mode dep on package in dev deps shouldn't be removed", async () => {
-  await runInstall({production: true}, 'install-prod-deduped-direct-dev-dep', async (config) => {
+  await runInstall({production: true}, 'install-prod-deduped-direct-dev-dep', async config => {
     expect(
       (await fs.readJson(path.join(config.cwd, 'node_modules', 'a', 'package.json'))).version,
     ).toEqual('1.0.0');
@@ -198,7 +198,7 @@ test.concurrent('hoisting should factor ignored dependencies', async () => {
     );
   }
 
-  await runInstall({}, 'install-ignored-retains-hoisting-structure', async (config) => {
+  await runInstall({}, 'install-ignored-retains-hoisting-structure', async config => {
     await checkNormal(config);
 
     expect(
@@ -214,7 +214,7 @@ test.concurrent('hoisting should factor ignored dependencies', async () => {
     );
   });
 
-  await runInstall({production: true}, 'install-ignored-retains-hoisting-structure', async (config) => {
+  await runInstall({production: true}, 'install-ignored-retains-hoisting-structure', async config => {
     await checkNormal(config);
 
     expect(
@@ -228,7 +228,7 @@ test.concurrent('hoisting should factor ignored dependencies', async () => {
 });
 
 test.concurrent('--production flag ignores dev dependencies', () => {
-  return runInstall({production: true}, 'install-production', async (config) => {
+  return runInstall({production: true}, 'install-production', async config => {
     expect(
       await fs.exists(path.join(config.cwd, 'node_modules', 'left-pad')),
     ).toEqual(false);
@@ -240,7 +240,7 @@ test.concurrent('--production flag ignores dev dependencies', () => {
 });
 
 test.concurrent('--production flag does not link dev dependency bin scripts', () => {
-  return runInstall({production: true, binLinks: true}, 'install-production-bin', async (config) => {
+  return runInstall({production: true, binLinks: true}, 'install-production-bin', async config => {
     expect(
       await fs.exists(path.join(config.cwd, 'node_modules', '.bin', 'touch')),
     ).toEqual(false);
@@ -257,7 +257,7 @@ test.concurrent('root install with optional deps', (): Promise<void> => {
 });
 
 test.concurrent('install file: protocol with relative paths', (): Promise<void> => {
-  return runInstall({noLockfile: true}, 'install-file-relative', async (config) => {
+  return runInstall({noLockfile: true}, 'install-file-relative', async config => {
     expect(
       await fs.readFile(path.join(config.cwd, 'node_modules', 'root-a', 'index.js')),
     ).toEqual(
@@ -336,7 +336,7 @@ test.concurrent('install file: local packages with local dependencies', async ()
 });
 
 test.concurrent('install file: protocol', (): Promise<void> => {
-  return runInstall({noLockfile: true}, 'install-file', async (config) => {
+  return runInstall({noLockfile: true}, 'install-file', async config => {
     expect(
       await fs.readFile(path.join(config.cwd, 'node_modules', 'foo', 'index.js')),
     ).toEqual(
@@ -346,7 +346,7 @@ test.concurrent('install file: protocol', (): Promise<void> => {
 });
 
 test.concurrent('install with file: protocol as default', (): Promise<void> => {
-  return runInstall({noLockfile: true}, 'install-file-as-default', async (config) => {
+  return runInstall({noLockfile: true}, 'install-file-as-default', async config => {
     expect(
       await fs.readFile(path.join(config.cwd, 'node_modules', 'foo', 'index.js')),
     ).toEqual(
@@ -356,7 +356,7 @@ test.concurrent('install with file: protocol as default', (): Promise<void> => {
 });
 
 test.concurrent('install everything when flat is enabled', (): Promise<void> => {
-  return runInstall({noLockfile: true, flat: true}, 'install-file', async (config) => {
+  return runInstall({noLockfile: true, flat: true}, 'install-file', async config => {
     expect(
       await fs.readFile(path.join(config.cwd, 'node_modules', 'foo', 'index.js')),
     ).toEqual(
@@ -506,7 +506,7 @@ test.concurrent('install should be idempotent', (): Promise<void> => {
 test.concurrent(
   'install should add missing deps to yarn and mirror (PR import scenario)',
   (): Promise<void> => {
-    return runInstall({}, 'install-import-pr', async (config) => {
+    return runInstall({}, 'install-import-pr', async config => {
       expect(await getPackageVersion(config, 'mime-types')).toEqual('2.0.0');
       expect(semver.satisfies(await getPackageVersion(config, 'mime-db'), '~1.0.1')).toEqual(true);
       expect(await getPackageVersion(config, 'fake-yarn-dependency')).toEqual('1.0.1');
@@ -638,7 +638,7 @@ test.concurrent('offline mirror can be disabled locally', (): Promise<void> => {
 
 // sync test because we need to get all the requests to confirm their validity
 test('install a scoped module from authed private registry', (): Promise<void> => {
-  return runInstall({noLockfile: true}, 'install-from-authed-private-registry', async (config) => {
+  return runInstall({noLockfile: true}, 'install-from-authed-private-registry', async config => {
     const authedRequests = request.__getAuthedRequests();
 
     expect(authedRequests[0].url).toEqual('https://registry.yarnpkg.com/@types%2flodash');
@@ -655,7 +655,7 @@ test('install a scoped module from authed private registry', (): Promise<void> =
 });
 
 test('install a scoped module from authed private registry with a missing trailing slash', (): Promise<void> => {
-  return runInstall({noLockfile: true}, 'install-from-authed-private-registry-no-slash', async (config) => {
+  return runInstall({noLockfile: true}, 'install-from-authed-private-registry-no-slash', async config => {
     const authedRequests = request.__getAuthedRequests();
 
     expect(authedRequests[0].url).toEqual('https://registry.yarnpkg.com/@types%2flodash');
@@ -680,7 +680,7 @@ test.concurrent('install will not overwrite files in symlinked scoped directorie
       (await fs.readJson(path.join(dependencyPath, 'package.json'))).description,
     );
     expect(await fs.exists(path.join(dependencyPath, 'index.js'))).toEqual(false);
-  }, async (cwd) => {
+  }, async cwd => {
     const dirToLink = path.join(cwd, 'dir-to-link');
 
     await fs.mkdirp(path.join(cwd, '.yarn-link', '@fakescope'));
@@ -705,21 +705,21 @@ test.concurrent('install of scoped package with subdependency conflict should pa
 
 test.concurrent('install a module with incompatible optional dependency should skip dependency',
   (): Promise<void> => {
-    return runInstall({}, 'install-should-skip-incompatible-optional-dep', async (config) => {
+    return runInstall({}, 'install-should-skip-incompatible-optional-dep', async config => {
       expect(await fs.exists(path.join(config.cwd, 'node_modules', 'dep-incompatible'))).toEqual(false);
     });
   });
 
 test.concurrent('install a module with incompatible optional dependency should skip transient dependencies',
   (): Promise<void> => {
-    return runInstall({}, 'install-should-skip-incompatible-optional-dep', async (config) => {
+    return runInstall({}, 'install-should-skip-incompatible-optional-dep', async config => {
       expect(await fs.exists(path.join(config.cwd, 'node_modules', 'dep-a'))).toEqual(false);
     });
   });
 
 test.concurrent('install a module with optional dependency should skip incompatible transient dependency',
   (): Promise<void> => {
-    return runInstall({}, 'install-should-skip-incompatible-optional-sub-dep', async (config) => {
+    return runInstall({}, 'install-should-skip-incompatible-optional-sub-dep', async config => {
       expect(await fs.exists(path.join(config.cwd, 'node_modules', 'dep-optional'))).toEqual(true);
       expect(await fs.exists(path.join(config.cwd, 'node_modules', 'dep-incompatible'))).toEqual(false);
     });
@@ -730,7 +730,7 @@ test.concurrent('install a module with optional dependency should skip incompati
 if (process.platform !== 'darwin') {
   test.concurrent('install incompatible optional dependency should still install shared child dependencies',
     (): Promise<void> => {
-      return runInstall({}, 'install-should-not-skip-required-shared-deps', async (config) => {
+      return runInstall({}, 'install-should-not-skip-required-shared-deps', async config => {
         expect(await fs.exists(path.join(config.cwd, 'node_modules', 'deep-extend'))).toEqual(true);
         expect(await fs.exists(path.join(config.cwd, 'node_modules', 'ini'))).toEqual(true);
         expect(await fs.exists(path.join(config.cwd, 'node_modules', 'strip-json-comments'))).toEqual(true);
@@ -740,14 +740,14 @@ if (process.platform !== 'darwin') {
 
 test.concurrent('optional dependency that fails to build should not be installed',
   (): Promise<void> => {
-    return runInstall({}, 'should-not-install-failing-optional-deps', async (config) => {
+    return runInstall({}, 'should-not-install-failing-optional-deps', async config => {
       expect(await fs.exists(path.join(config.cwd, 'node_modules', 'optional-failing'))).toEqual(false);
     });
   });
 
 test.concurrent('failing dependency of optional dependency should not be installed',
   (): Promise<void> => {
-    return runInstall({}, 'should-not-install-failing-deps-of-optional-deps', async (config) => {
+    return runInstall({}, 'should-not-install-failing-deps-of-optional-deps', async config => {
       expect(await fs.exists(path.join(config.cwd, 'node_modules', 'optional-dep'))).toEqual(true);
       expect(await fs.exists(path.join(config.cwd, 'node_modules', 'sub-failing'))).toEqual(false);
     });
@@ -756,7 +756,7 @@ test.concurrent('failing dependency of optional dependency should not be install
 // Covers current behavior, issue opened whether this should be changed https://github.com/yarnpkg/yarn/issues/2274
 test.concurrent('a subdependency of an optional dependency that fails should be installed',
   (): Promise<void> => {
-    return runInstall({}, 'should-install-failing-optional-sub-deps', async (config) => {
+    return runInstall({}, 'should-install-failing-optional-sub-deps', async config => {
       expect(await fs.exists(path.join(config.cwd, 'node_modules', 'optional-failing'))).toEqual(false);
       expect(await fs.exists(path.join(config.cwd, 'node_modules', 'sub-dep'))).toEqual(true);
     });
@@ -778,7 +778,7 @@ test.concurrent('a sub-dependency should be non-optional if any parents mark it 
 test.concurrent('should not loose dependencies when installing with --production',
   (): Promise<void> => {
     // revealed https://github.com/yarnpkg/yarn/issues/2263
-    return runInstall({production: true}, 'prod-should-keep-subdeps', async (config) => {
+    return runInstall({production: true}, 'prod-should-keep-subdeps', async config => {
       // would be hoisted from gulp/vinyl-fs/glob-stream/minimatch/brace-expansion/balanced-match
       expect(await getPackageVersion(config, 'balanced-match')).toEqual('0.4.2');
     });
@@ -787,7 +787,7 @@ test.concurrent('should not loose dependencies when installing with --production
 // https://github.com/yarnpkg/yarn/issues/2470
 test.concurrent('a allows dependency with [] in os cpu requirements',
   (): Promise<void> => {
-    return runInstall({}, 'empty-os', async (config) => {
+    return runInstall({}, 'empty-os', async config => {
       expect(await fs.exists(path.join(config.cwd, 'node_modules', 'feed'))).toEqual(true);
     });
   });

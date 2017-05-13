@@ -171,7 +171,7 @@ export default class RequestManager {
       // and strip out any text in between the certificates
       try {
         const bundle = fs.readFileSync(opts.cafile).toString();
-        const hasPemPrefix = (block) => block.startsWith('-----BEGIN ');
+        const hasPemPrefix = block => block.startsWith('-----BEGIN ');
         // opts.cafile overrides opts.ca, this matches with npm behavior
         this.ca = bundle.split(/(-----BEGIN .*\r?\n[^-]+\r?\n--.*)/).filter(hasPemPrefix);
       } catch (err) {
@@ -231,7 +231,7 @@ export default class RequestManager {
     }, params.headers);
 
     const promise = new Promise((resolve, reject) => {
-      this.queue.push({params, resolve, reject});
+      this.queue.push({params, reject, resolve});
       this.shiftQueue();
     });
 
@@ -333,7 +333,7 @@ export default class RequestManager {
     const {params} = opts;
     const {reporter} = this;
 
-    const buildNext = (fn) => (data) => {
+    const buildNext = fn => data => {
       fn(data);
       this.running--;
       this.shiftQueue();
@@ -348,7 +348,7 @@ export default class RequestManager {
     };
 
     let calledOnError = false;
-    const onError = (err) => {
+    const onError = err => {
       if (calledOnError) {
         return;
       }

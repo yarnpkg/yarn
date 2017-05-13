@@ -78,7 +78,7 @@ test('should only expose non-internal configs', async () => {
   const internalConfigKeys = ['lastUpdateCheck'];
   const nonInternalConfigKeys = ['user_agent'];
   const prefix = 'npm_config_';
-  [...internalConfigKeys, ...nonInternalConfigKeys].forEach((key) => {
+  [...internalConfigKeys, ...nonInternalConfigKeys].forEach(key => {
     delete env[prefix + key];
   });
 
@@ -92,12 +92,12 @@ test('should only expose non-internal configs', async () => {
     configs = JSON.parse(stdout);
   } catch (e) {}
 
-  internalConfigKeys.forEach((key) => {
+  internalConfigKeys.forEach(key => {
     const val = configs[prefix + key];
     expect(val).toBeUndefined();
   });
 
-  nonInternalConfigKeys.forEach((key) => {
+  nonInternalConfigKeys.forEach(key => {
     const val = configs[prefix + key];
     expect(val).toBeDefined();
   });

@@ -161,7 +161,7 @@ export function getReqDepth(inputDepth: string) : number {
 
 export function filterTree(tree: Tree, filters: Array<string>): boolean {
   if (tree.children) {
-    tree.children = tree.children.filter((child) => filterTree(child, filters));
+    tree.children = tree.children.filter(child => filterTree(child, filters));
   }
 
   const notDim = tree.color !== 'dim';
@@ -190,7 +190,7 @@ export async function run(
   let {trees}: {trees: Trees} = await buildTree(install.resolver, install.linker, patterns, opts);
 
   if (args.length) {
-    trees = trees.filter((tree) => filterTree(tree, args));
+    trees = trees.filter(tree => filterTree(tree, args));
   }
 
   reporter.tree('list', trees);

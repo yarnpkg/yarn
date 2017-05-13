@@ -95,7 +95,7 @@ export async function verifyTreeCheck(
         let found = false;
         const relative = path.relative(registry.cwd, subDepPath);
         const locations = path.normalize(relative).split(registry.folder + path.sep).
-          filter((dir) => !!dir);
+          filter(dir => !!dir);
         locations.pop();
         while (locations.length >= 0) {
           let possiblePath;
@@ -195,7 +195,7 @@ export async function run(
   function humaniseLocation(loc: string): Array<string> {
     const relative = path.relative(path.join(config.cwd, 'node_modules'), loc);
     const normalized = path.normalize(relative).split(path.sep);
-    return normalized.filter((p) => p !== 'node_modules').reduce((result, part) => {
+    return normalized.filter(p => p !== 'node_modules').reduce((result, part) => {
       const length = result.length;
       if (length && result[length - 1].startsWith('@') && !result[length - 1].includes(path.sep)) {
         result[length - 1] += path.sep + part;

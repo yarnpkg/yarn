@@ -85,7 +85,7 @@ export default class TarballFetcher extends BaseFetcher {
 
     extractorStream
       .pipe(untarStream)
-      .on('error', (error) => {
+      .on('error', error => {
         error.message = `${error.message}${tarballPath ? ` (${tarballPath})` : ''}`;
         reject(error);
       })
@@ -149,7 +149,7 @@ export default class TarballFetcher extends BaseFetcher {
           extractorStream,
         } = this.createExtractor(resolve, reject);
 
-        const handleRequestError = (res) => {
+        const handleRequestError = res => {
           if (res.statusCode >= 400) {
             // $FlowFixMe
             const statusDescription = http.STATUS_CODES[res.statusCode];

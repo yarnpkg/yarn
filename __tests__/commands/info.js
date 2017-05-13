@@ -52,7 +52,7 @@ test.concurrent('without arguments and in directory containing a valid package f
   return runInfo([], {}, 'local',
     (config, output): ?Promise<void> => {
       const actualKeys = Object.keys(output);
-      expectedKeys.forEach((key) => expect(actualKeys).toContain(key));
+      expectedKeys.forEach(key => expect(actualKeys).toContain(key));
       expect(output.name).toEqual('yarn');
     },
   );
@@ -62,7 +62,7 @@ test.concurrent('with first argument "." and in directory containing a valid pac
   return runInfo(['.'], {}, 'local',
     (config, output): ?Promise<void> => {
       const actualKeys = Object.keys(output);
-      expectedKeys.forEach((key) => expect(actualKeys).toContain(key));
+      expectedKeys.forEach(key => expect(actualKeys).toContain(key));
       expect(output.name).toEqual('yarn');
     },
   );
@@ -72,7 +72,7 @@ test.concurrent('with one argument shows info about the package with specified n
   return runInfo(['yarn'], {}, 'local',
     (config, output): ?Promise<void> => {
       const actualKeys = Object.keys(output);
-      expectedKeys.forEach((key) => expect(actualKeys).toContain(key));
+      expectedKeys.forEach(key => expect(actualKeys).toContain(key));
       expect(output.name).toEqual('yarn');
     },
   );

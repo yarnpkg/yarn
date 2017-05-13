@@ -126,7 +126,7 @@ function normalizePath<T>(path: T): ?string {
 
 function normalizePaths(paths: mixed): ?string[] {
   if (Array.isArray(paths)) {
-    return paths.map((p) => {
+    return paths.map(p => {
       if (typeof p !== 'string') {
         throw new Error(`Expected string in paths, got ${JSON.stringify(paths)}`);
       }

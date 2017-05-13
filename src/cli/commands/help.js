@@ -43,7 +43,7 @@ export function run(
   }
 
   commander.on('--help', () => {
-    const getDocsLink = (name) => `${constants.YARN_DOCS}${name || ''}`;
+    const getDocsLink = name => `${constants.YARN_DOCS}${name || ''}`;
     console.log('  Commands:\n');
     for (const name of Object.keys(commands).sort(sortAlpha)) {
       if (commands[name].useless) {

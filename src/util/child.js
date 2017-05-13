@@ -37,7 +37,7 @@ export function spawn(
 
     let stdout = '';
 
-    proc.on('error', (err) => {
+    proc.on('error', err => {
       if (err.code === 'ENOENT') {
         reject(new MessageError(`Couldn't find the binary ${program}`));
       } else {

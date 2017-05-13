@@ -46,17 +46,17 @@ export async function run(
 
     if (/^@[a-zA-Z0-9-][a-zA-Z0-9_.-]*\/$/g.test(flags.scope)) {
       addArgs = Object.keys(allDependencies)
-        .filter((dependency) => {
+        .filter(dependency => {
           return dependency.startsWith(flags.scope);
         })
-        .map((dependency) => {
+        .map(dependency => {
           return getDependency(allDependencies, dependency);
         });
     } else {
       throw new MessageError(reporter.lang('scopeNotValid'));
     }
   } else {
-    addArgs = args.map((dependency) => {
+    addArgs = args.map(dependency => {
       return getDependency(allDependencies, dependency);
     });
   }

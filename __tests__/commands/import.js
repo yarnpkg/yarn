@@ -27,11 +27,11 @@ const runImport = buildRun.bind(
   },
 );
 
-const reporterType = (reporter, type) => reporter.getBuffer().filter((d) => d.type === type);
+const reporterType = (reporter, type) => reporter.getBuffer().filter(d => d.type === type);
 
-const reporterErrors = (reporter) => reporter.getBuffer().filter((d) => d.error);
+const reporterErrors = reporter => reporter.getBuffer().filter(d => d.error);
 
-const checkReporter = (reporter) => {
+const checkReporter = reporter => {
   expect(reporterErrors(reporter)).toEqual([]);
   expect(reporterType(reporter, 'info')).toEqual([]);
 };

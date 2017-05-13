@@ -231,7 +231,7 @@ class ImportPackageResolver extends PackageResolver {
   }
 
   async findAll(deps: DependencyRequestPatterns): Promise<void> {
-    await Promise.all(deps.map((dep) => this.findOne(dep)));
+    await Promise.all(deps.map(dep => this.findOne(dep)));
     deps = this.next;
     this.next = [];
     if (!deps.length) {

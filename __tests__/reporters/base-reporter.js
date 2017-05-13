@@ -45,12 +45,6 @@ test('BaseReporter.log', () => {
   reporter.close();
 });
 
-test('BaseReporter.info', () => {
-  const reporter = new BaseReporter();
-  reporter.log('');
-  reporter.close();
-});
-
 test('BaseReporter.command', () => {
   const reporter = new BaseReporter();
   reporter.command('');

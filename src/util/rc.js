@@ -31,7 +31,7 @@ export function findRc(name: string, parser: Function): Object {
   }
 
   function fetchConfigs(): Object {
-    return Object.assign({}, ... configPaths.map((path) => {
+    return Object.assign({}, ... configPaths.map(path => {
       try {
         return parser(readFileSync(path).toString(), path);
       } catch (error) {

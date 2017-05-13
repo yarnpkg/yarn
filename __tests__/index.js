@@ -80,7 +80,7 @@ function expectAnErrorMessage(command: Promise<Array<?string>>, error: string) :
   .then(function() {
     throw new Error('the command did not fail');
   })
-  .catch((reason) =>
+  .catch(reason =>
     expect(reason.error.message).toContain(error),
   );
 }
@@ -90,7 +90,7 @@ function expectAnInfoMessageAfterError(command: Promise<Array<?string>>, info: s
   .then(function() {
     throw new Error('the command did not fail');
   })
-  .catch((reason) =>
+  .catch(reason =>
     expect(reason.stdout).toContain(info),
   );
 }
@@ -204,8 +204,8 @@ test.concurrent('should not output JSON activity/progress if given --no-progress
   const activityInfo = ['activityStart', 'activityTick', 'activityEnd'];
   const progressInfo = ['progressStart', 'progressTick', 'progressFinish'];
   const stdout = await execCommand('', ['--json', '--no-progress'], 'run-add', true);
-  stdout.forEach((line) => {
-    activityInfo.concat(progressInfo).forEach((info) => {
+  stdout.forEach(line => {
+    activityInfo.concat(progressInfo).forEach(info => {
       expect(line).not.toContain(info);
     });
   });

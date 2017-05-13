@@ -66,21 +66,21 @@ test('properly handles extra arguments and pre/post scripts', (): Promise<void> 
   });
 });
 
-test.only('properly handle bin scripts', (): Promise<void> => (
-  runRun(['cat-names'], {}, 'bin', (config) => {
+test('properly handle bin scripts', (): Promise<void> => {
+  return runRun(['cat-names'], {}, 'bin', config => {
     const script = path.join(config.cwd, 'node_modules', '.bin', 'cat-names');
     const args = ['cat-names', config, `"${script}" `, config.cwd];
 
     expect(execCommand).toBeCalledWith(...args);
-  }) : Promise<void>
-));
+  });
+});
 
 
-test.only('retains string delimiters if args have spaces', (): Promise<void> => (
-  runRun(['cat-names', '--filter', 'cat names'], {}, 'bin', (config) => {
+test('retains string delimiters if args have spaces', (): Promise<void> => {
+  return runRun(['cat-names', '--filter', 'cat names'], {}, 'bin', config => {
     const script = path.join(config.cwd, 'node_modules', '.bin', 'cat-names');
     const args = ['cat-names', config, `"${script}" --filter "cat names"`, config.cwd];
 
     expect(execCommand).toBeCalledWith(...args);
-  }) : Promise<void>
-));
+  });
+});

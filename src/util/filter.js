@@ -91,7 +91,7 @@ export function sortFilter(
     }
   }
 
-  return {keepFiles, ignoreFiles};
+  return {ignoreFiles, keepFiles};
 }
 
 export function matchesFilter(filter: IgnoreFilter, basename: string, loc: string): boolean {
@@ -132,8 +132,8 @@ export function ignoreLinesToRegex(lines: Array<string>, base: string = '.'): Ar
         return {
           base,
           isNegation,
-          regex,
           pattern,
+          regex,
         };
       } else {
         return null;

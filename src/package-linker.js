@@ -326,7 +326,7 @@ export default class PackageLinker {
     for (const name in peerDeps) {
       const range = peerDeps[name];
       const patterns = this.resolver.patternsByPackage[name] || [];
-      const foundPattern = patterns.find((pattern) => {
+      const foundPattern = patterns.find(pattern => {
         const resolvedPattern = this.resolver.getResolvedPattern(pattern);
         return resolvedPattern ? this._satisfiesPeerDependency(range, resolvedPattern.version) : false;
       });

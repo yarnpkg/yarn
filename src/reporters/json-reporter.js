@@ -97,7 +97,7 @@ export default class JSONReporter extends BaseReporter {
           current = _current;
           header = _header;
         },
-        tick: (msg) => {
+        tick: msg => {
           this._dump('activitySetTick', {id, header, current, worker: i, message: msg});
         },
         end() {},

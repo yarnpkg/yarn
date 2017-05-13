@@ -17,12 +17,12 @@ const LICENSE_RENAMES: { [key: string]: ?string } = {
 };
 
 type Dict<T> = {
-  [key: string]: T;
+  [key: string]: T,
 };
 
 type WarnFunction = (msg: string) => void;
 
-export default async function (
+export default async function(
   info: Dict<mixed>,
   moduleLoc: string,
   reporter: Reporter,

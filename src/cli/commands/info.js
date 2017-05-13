@@ -9,7 +9,7 @@ const semver = require('semver');
 function clean(object: any): any {
   if (Array.isArray(object)) {
     const result = [];
-    object.forEach((item) => {
+    object.forEach(item => {
       item = clean(item);
       if (item) {
         result.push(item);
