@@ -8,9 +8,7 @@ const fs = require('fs');
 
 const version = require('../package.json').version;
 const basedir = path.join(__dirname, '../');
-const babelRc = JSON.parse(
-  fs.readFileSync(path.join(basedir, '.babelrc'), 'utf8'),
-);
+const babelRc = JSON.parse(fs.readFileSync(path.join(basedir, '.babelrc'), 'utf8'));
 
 //
 // Modern build

@@ -28,6 +28,6 @@ const version =
 packageManifest.version = version;
 fs.writeFileSync(
   packageManifestFilename,
-  JSON.stringify(packageManifest, null, 2) + '\n',
+  JSON.stringify(packageManifest, null, 2) + '\n'
 );
 console.log('Updated version number to ' + version);
