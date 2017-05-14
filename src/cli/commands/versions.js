@@ -11,12 +11,7 @@ export function hasWrapper(): boolean {
   return true;
 }
 
-export async function run(
- config: Config,
- reporter: Reporter,
- flags: Object,
- args: Array<string>,
-): Promise<void> {
+export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
   const versions: {[name: string]: string} = {yarn: yarnVersion};
 
   const pkg = await config.maybeReadManifest(config.cwd);

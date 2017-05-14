@@ -75,18 +75,21 @@ if (isCI) {
 
 test.concurrent('bin', (): Promise<void> => {
   const tmpGlobalFolder = getTempGlobalFolder();
-  return runGlobal(['bin'], {prefix: tmpGlobalFolder}, 'add-with-prefix-flag',
-  (config, reporter, install, getStdout) => {
-    expect(getStdout()).toContain(tmpGlobalFolder);
-  });
+  return runGlobal(
+    ['bin'],
+    {prefix: tmpGlobalFolder},
+    'add-with-prefix-flag',
+    (config, reporter, install, getStdout) => {
+      expect(getStdout()).toContain(tmpGlobalFolder);
+    },
+  );
 });
 
 test.concurrent('add', async (): Promise<void> => {
   const tmpGlobalFolder = await createTempGlobalFolder();
   const tmpPrefixFolder = await createTempPrefixFolder();
   const flags = {globalFolder: tmpGlobalFolder, prefix: tmpPrefixFolder};
-  return runGlobal(['add', 'react-native-cli'], flags, 'add-with-prefix-flag',
-  async config => {
+  return runGlobal(['add', 'react-native-cli'], flags, 'add-with-prefix-flag', async config => {
     expect(await fs.exists(path.join(tmpGlobalFolder, 'node_modules', 'react-native-cli'))).toEqual(true);
   });
 });
@@ -95,8 +98,7 @@ test.concurrent('remove', async (): Promise<void> => {
   const tmpGlobalFolder = await createTempGlobalFolder();
   const tmpPrefixFolder = await createTempPrefixFolder();
   const flags = {globalFolder: tmpGlobalFolder, prefix: tmpPrefixFolder};
-  return runGlobal(['add', 'react-native-cli'], flags, 'add-with-prefix-flag', () => {})
-  .then(() => {
+  return runGlobal(['add', 'react-native-cli'], flags, 'add-with-prefix-flag', () => {}).then(() => {
     return runGlobal(['remove', 'react-native-cli'], flags, 'add-with-prefix-flag', async config => {
       expect(await fs.exists(path.join(tmpGlobalFolder, 'node_modules', 'react-native-cli'))).toEqual(false);
     });
@@ -107,8 +109,7 @@ test.concurrent('ls', async (): Promise<void> => {
   const tmpGlobalFolder = await createTempGlobalFolder();
   const tmpPrefixFolder = await createTempPrefixFolder();
   const flags = {globalFolder: tmpGlobalFolder, prefix: tmpPrefixFolder};
-  return runGlobal(['add', 'react-native-cli'], flags, 'add-with-prefix-flag', () => {})
-  .then(() => {
+  return runGlobal(['add', 'react-native-cli'], flags, 'add-with-prefix-flag', () => {}).then(() => {
     return runGlobal(['ls'], flags, 'add-with-prefix-flag', (config, reporter, install, getStdout) => {
       expect(getStdout()).toContain('react-native-cli');
     });
@@ -119,8 +120,7 @@ test.concurrent('list', async (): Promise<void> => {
   const tmpGlobalFolder = await createTempGlobalFolder();
   const tmpPrefixFolder = await createTempPrefixFolder();
   const flags = {globalFolder: tmpGlobalFolder, prefix: tmpPrefixFolder};
-  return runGlobal(['add', 'react-native-cli'], flags, 'add-with-prefix-flag', () => {})
-  .then(() => {
+  return runGlobal(['add', 'react-native-cli'], flags, 'add-with-prefix-flag', () => {}).then(() => {
     return runGlobal(['list'], flags, 'add-with-prefix-flag', (config, reporter, install, getStdout) => {
       expect(getStdout()).toContain('react-native-cli');
     });
@@ -131,12 +131,15 @@ test.concurrent('upgrade', async (): Promise<void> => {
   const tmpGlobalFolder = await createTempGlobalFolder();
   const tmpPrefixFolder = await createTempPrefixFolder();
   const flags = {globalFolder: tmpGlobalFolder, prefix: tmpPrefixFolder};
-  return runGlobal(['add', 'react-native-cli@2.0.0'], flags, 'add-with-prefix-flag', () => {})
-  .then(() => {
-    return runGlobal(['upgrade', 'react-native-cli'], flags, 'add-with-prefix-flag',
-    (config, reporter, install, getStdout) => {
-      expect(getStdout()).toContain('react-native-cli');
-      expect(getStdout()).not.toContain('react-native-cli@2.0.0');
-    });
+  return runGlobal(['add', 'react-native-cli@2.0.0'], flags, 'add-with-prefix-flag', () => {}).then(() => {
+    return runGlobal(
+      ['upgrade', 'react-native-cli'],
+      flags,
+      'add-with-prefix-flag',
+      (config, reporter, install, getStdout) => {
+        expect(getStdout()).toContain('react-native-cli');
+        expect(getStdout()).not.toContain('react-native-cli@2.0.0');
+      },
+    );
   });
 });

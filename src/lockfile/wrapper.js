@@ -25,7 +25,7 @@ export type LockManifest = {
   resolved: string,
   registry: RegistryNames,
   uid: string,
-  permissions: ?{ [key: string]: boolean },
+  permissions: ?{[key: string]: boolean},
   optionalDependencies: ?Dependencies,
   dependencies: ?Dependencies,
 };
@@ -36,7 +36,7 @@ type MinimalLockManifest = {
   resolved: string,
   registry: ?RegistryNames,
   uid: ?string,
-  permissions: ?{ [key: string]: boolean },
+  permissions: ?{[key: string]: boolean},
   optionalDependencies: ?Dependencies,
   dependencies: ?Dependencies,
 };
@@ -83,7 +83,7 @@ export default class Lockfile {
   source: string;
 
   cache: ?{
-    [key: string]: LockManifest
+    [key: string]: LockManifest,
   };
 
   static async fromDirectory(dir: string, reporter?: Reporter): Promise<Lockfile> {
@@ -130,9 +130,7 @@ export default class Lockfile {
     delete cache[pattern];
   }
 
-  getLockfile(patterns: {
-    [packagePattern: string]: Manifest
-  }): Object {
+  getLockfile(patterns: {[packagePattern: string]: Manifest}): Object {
     const lockfile = {};
     const seen: Map<string, Object> = new Map();
 

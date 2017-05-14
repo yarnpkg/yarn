@@ -10,7 +10,7 @@ const lockPromises: Map<any, Promise<*>> = new Map();
  */
 export default (key: any): Promise<Function> => {
   let unlockNext;
-  const willLock = new Promise(resolve => unlockNext = resolve);
+  const willLock = new Promise(resolve => (unlockNext = resolve));
   const lockPromise = lockPromises.get(key) || Promise.resolve();
   const willUnlock = lockPromise.then(() => unlockNext);
   lockPromises.set(key, lockPromise.then(() => willLock));

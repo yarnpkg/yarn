@@ -34,7 +34,7 @@ test('getGitHTTPBaseUrl should return the correct git github HTTP base url', () 
     hash: '',
   };
 
-  const expected =  'https://github.com/' + fragment.user + '/' + fragment.repo;
+  const expected = 'https://github.com/' + fragment.user + '/' + fragment.repo;
   expect(GitHubResolver.getGitHTTPBaseUrl(fragment)).toBe(expected);
 });
 
@@ -45,7 +45,7 @@ test('getGitHTTPUrl should append ".git" to the HTTP base URL', () => {
     hash: '',
   };
 
-  const expected =  GitHubResolver.getGitHTTPBaseUrl(fragment) + '.git';
+  const expected = GitHubResolver.getGitHTTPBaseUrl(fragment) + '.git';
   expect(GitHubResolver.getGitHTTPUrl(fragment)).toBe(expected);
 });
 

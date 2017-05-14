@@ -6,7 +6,7 @@ const {Writable} = require('stream');
 
 export type MockData = {
   stdout: string,
-  stderr: string
+  stderr: string,
 };
 
 type Interceptor<T> = (data: MockData, reporter: Reporter, prepared: any) => T;

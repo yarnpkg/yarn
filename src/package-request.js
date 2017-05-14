@@ -36,7 +36,8 @@ export default class PackageRequest {
     resolver.usedRegistries.add(req.registry);
   }
 
-  static getExoticResolver(pattern: string): ?Function { // TODO make this type more refined
+  static getExoticResolver(pattern: string): ?Function {
+    // TODO make this type more refined
     for (const [, Resolver] of entries(resolvers.exotics)) {
       if (Resolver.isVersion(pattern)) {
         return Resolver;
@@ -138,9 +139,7 @@ export default class PackageRequest {
   }
 
   async normalizeRange(pattern: string): Promise<string> {
-    if (pattern.includes(':') ||
-      pattern.includes('@') ||
-      PackageRequest.getExoticResolver(pattern)) {
+    if (pattern.includes(':') || pattern.includes('@') || PackageRequest.getExoticResolver(pattern)) {
       return Promise.resolve(pattern);
     }
 
@@ -161,7 +160,9 @@ export default class PackageRequest {
    * Explode and normalize a pattern into it's name and range.
    */
 
-  static normalizePattern(pattern: string): {
+  static normalizePattern(
+    pattern: string,
+  ): {
     hasVersion: boolean,
     name: string,
     range: string,
@@ -221,8 +222,7 @@ export default class PackageRequest {
     }
   }
 
-  reportResolvedRangeMatch(info: Manifest, resolved: Manifest) {
-  }
+  reportResolvedRangeMatch(info: Manifest, resolved: Manifest) {}
 
   /**
    * TODO description
@@ -278,25 +278,29 @@ export default class PackageRequest {
     for (const depName in info.dependencies) {
       const depPattern = depName + '@' + info.dependencies[depName];
       deps.push(depPattern);
-      promises.push(this.resolver.find({
-        pattern: depPattern,
-        registry: remote.registry,
-        // dependencies of optional dependencies should themselves be optional
-        optional: this.optional,
-        parentRequest: this,
-      }));
+      promises.push(
+        this.resolver.find({
+          pattern: depPattern,
+          registry: remote.registry,
+          // dependencies of optional dependencies should themselves be optional
+          optional: this.optional,
+          parentRequest: this,
+        }),
+      );
     }
 
     // optional deps
     for (const depName in info.optionalDependencies) {
       const depPattern = depName + '@' + info.optionalDependencies[depName];
       deps.push(depPattern);
-      promises.push(this.resolver.find({
-        pattern: depPattern,
-        registry: remote.registry,
-        optional: true,
-        parentRequest: this,
-      }));
+      promises.push(
+        this.resolver.find({
+          pattern: depPattern,
+          registry: remote.registry,
+          optional: true,
+          parentRequest: this,
+        }),
+      );
     }
 
     await Promise.all(promises);
@@ -360,8 +364,7 @@ export default class PackageRequest {
 
         const normalized = PackageRequest.normalizePattern(pattern);
 
-        if (PackageRequest.getExoticResolver(pattern) ||
-            PackageRequest.getExoticResolver(normalized.range)) {
+        if (PackageRequest.getExoticResolver(pattern) || PackageRequest.getExoticResolver(normalized.range)) {
           latest = wanted = 'exotic';
           url = normalized.range;
         } else {
@@ -370,14 +373,13 @@ export default class PackageRequest {
           ({latest, wanted, url} = await registry.checkOutdated(config, name, normalized.range));
         }
 
-        return ({name, current, wanted, latest, url, hint});
+        return {name, current, wanted, latest, url, hint};
       }),
     );
 
     // Make sure to always output `exotic` versions to be compatible with npm
-    const isDepOld = ({current, latest, wanted}) => latest === 'exotic' || (
-      latest !== 'exotic' && (semver.lt(current, wanted) || semver.lt(current, latest))
-    );
+    const isDepOld = ({current, latest, wanted}) =>
+      latest === 'exotic' || (latest !== 'exotic' && (semver.lt(current, wanted) || semver.lt(current, latest)));
     const orderByName = (depA, depB) => depA.name.localeCompare(depB.name);
 
     return deps.filter(isDepOld).sort(orderByName);

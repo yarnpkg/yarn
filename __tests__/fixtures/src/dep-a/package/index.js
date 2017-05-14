@@ -1,4 +1,3 @@
-
 /**
  * isArray
  */
@@ -28,6 +27,8 @@ const str = Object.prototype.toString;
  * @return {bool}
  */
 
-module.exports = isArray || function (val) {
-  return !! val && '[object Array]' == str.call(val);
-};
+module.exports =
+  isArray ||
+  function(val) {
+    return !!val && '[object Array]' == str.call(val);
+  };

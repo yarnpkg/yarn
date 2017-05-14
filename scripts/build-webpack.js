@@ -8,7 +8,9 @@ const fs = require('fs');
 
 const version = require('../package.json').version;
 const basedir = path.join(__dirname, '../');
-const babelRc = JSON.parse(fs.readFileSync(path.join(basedir, '.babelrc'), 'utf8'));
+const babelRc = JSON.parse(
+  fs.readFileSync(path.join(basedir, '.babelrc'), 'utf8'),
+);
 
 //
 // Modern build
@@ -18,17 +20,19 @@ const compiler = webpack({
   // devtool: 'inline-source-map',
   entry: [path.join(basedir, 'src/cli/index.js')],
   module: {
-    loaders: [{
-      test: /\.js$/,
-      exclude: /node_modules/,
-      loader: 'babel-loader',
-    }],
+    loaders: [
+      {
+        test: /\.js$/,
+        exclude: /node_modules/,
+        loader: 'babel-loader',
+      },
+    ],
   },
   plugins: [
     new webpack.BannerPlugin({
-      banner: "#!/usr/bin/env node",
-      raw: true
-    })
+      banner: '#!/usr/bin/env node',
+      raw: true,
+    }),
   ],
   output: {
     filename: `yarn-${version}.js`,
@@ -51,18 +55,20 @@ const compilerLegacy = webpack({
   // devtool: 'inline-source-map',
   entry: [path.join(basedir, 'src/cli/index.js')],
   module: {
-    loaders: [{
-      test: /\.js$/,
-      exclude: /node_modules/,
-      loader: 'babel-loader',
-      query: babelRc.env['pre-node5'],
-    }]
+    loaders: [
+      {
+        test: /\.js$/,
+        exclude: /node_modules/,
+        loader: 'babel-loader',
+        query: babelRc.env['pre-node5'],
+      },
+    ],
   },
   plugins: [
     new webpack.BannerPlugin({
-      banner: "#!/usr/bin/env node",
-      raw: true
-    })
+      banner: '#!/usr/bin/env node',
+      raw: true,
+    }),
   ],
   output: {
     filename: `yarn-legacy-${version}.js`,

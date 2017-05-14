@@ -21,9 +21,7 @@ export default class ProgressBar {
   delay: number;
   id: ?number;
 
-  static bars = [
-    ['█', '░'],
-  ];
+  static bars = [['█', '░']];
 
   tick() {
     this.curr++;

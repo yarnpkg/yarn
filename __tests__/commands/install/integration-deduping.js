@@ -17,7 +17,6 @@ test.concurrent('install should dedupe dependencies avoiding conflicts 0', (): P
   });
 });
 
-
 test.concurrent('install should dedupe dependencies avoiding conflicts 1', (): Promise<void> => {
   // A@2.0.1 -> B@2.0.0
   // should result in B@2.0.0 flattened
@@ -26,7 +25,6 @@ test.concurrent('install should dedupe dependencies avoiding conflicts 1', (): P
     expect(await getPackageVersion(config, 'dep-a')).toEqual('2.0.1');
   });
 });
-
 
 test.concurrent('install should dedupe dependencies avoiding conflicts 2', (): Promise<void> => {
   // A@2 -> B@2 -> C@2
@@ -109,33 +107,32 @@ test.concurrent('install should dedupe dependencies avoiding conflicts 5', (): P
   });
 });
 
-test.concurrent(
-  'install should dedupe dependencies avoiding conflicts 6 (jest/jest-runtime case)',
-  (): Promise<void> => {
-    // C@1 -> D@1 -> E@1
-    // B@1 -> C@1 -> D@1 -> E@1
-    // D@2
-    // E@2
+test.concurrent('install should dedupe dependencies avoiding conflicts 6 (jest/jest-runtime case)', (): Promise<
+  void,
+> => {
+  // C@1 -> D@1 -> E@1
+  // B@1 -> C@1 -> D@1 -> E@1
+  // D@2
+  // E@2
 
-    // should become
+  // should become
 
-    // C@1 -> D@1
-    //     -> E@1
-    // B@1
-    // D@2
-    // E@2
+  // C@1 -> D@1
+  //     -> E@1
+  // B@1
+  // D@2
+  // E@2
 
-    return runInstall({}, 'install-should-dedupe-avoiding-conflicts-6', async (config): Promise<void> => {
-      expect(await getPackageVersion(config, 'dep-b')).toEqual('1.0.0');
-      expect(await getPackageVersion(config, 'dep-c')).toEqual('1.0.0');
-      expect(await getPackageVersion(config, 'dep-d')).toEqual('2.0.0');
-      expect(await getPackageVersion(config, 'dep-e')).toEqual('2.0.0');
+  return runInstall({}, 'install-should-dedupe-avoiding-conflicts-6', async (config): Promise<void> => {
+    expect(await getPackageVersion(config, 'dep-b')).toEqual('1.0.0');
+    expect(await getPackageVersion(config, 'dep-c')).toEqual('1.0.0');
+    expect(await getPackageVersion(config, 'dep-d')).toEqual('2.0.0');
+    expect(await getPackageVersion(config, 'dep-e')).toEqual('2.0.0');
 
-      expect(await getPackageVersion(config, 'dep-c/dep-d')).toEqual('1.0.0');
-      expect(await getPackageVersion(config, 'dep-c/dep-e')).toEqual('1.0.0');
-    });
-  },
-);
+    expect(await getPackageVersion(config, 'dep-c/dep-d')).toEqual('1.0.0');
+    expect(await getPackageVersion(config, 'dep-c/dep-e')).toEqual('1.0.0');
+  });
+});
 
 test.concurrent('install should dedupe dependencies avoiding conflicts 7', (): Promise<void> => {
   // A@1 -> C@1 -> D@1 -> E@1
@@ -207,14 +204,8 @@ test.concurrent('install should hardlink repeated dependencies', (): Promise<voi
   // B@1 -> A@2
   // C@1 -> A@2 (this is hardlink to B@1->A@2)
   return runInstall({linkDuplicates: true}, 'hardlink-repeated-dependencies', async config => {
-    const b_a = await fs.stat(path.join(
-      config.cwd,
-      'node_modules/b/node_modules/a/package.json',
-    ));
-    const c_a = await fs.stat(path.join(
-      config.cwd,
-      'node_modules/c/node_modules/a/package.json',
-    ));
+    const b_a = await fs.stat(path.join(config.cwd, 'node_modules/b/node_modules/a/package.json'));
+    const c_a = await fs.stat(path.join(config.cwd, 'node_modules/c/node_modules/a/package.json'));
     expect(b_a.ino).toEqual(c_a.ino);
   });
 });
@@ -224,14 +215,8 @@ test.concurrent('install should not hardlink repeated dependencies if linkDuplic
   // B@1 -> A@2
   // C@1 -> A@2
   return runInstall({linkDuplicates: false}, 'hardlink-repeated-dependencies', async config => {
-    const b_a = await fs.stat(path.join(
-      config.cwd,
-      'node_modules/b/node_modules/a/package.json',
-    ));
-    const c_a = await fs.stat(path.join(
-      config.cwd,
-      'node_modules/c/node_modules/a/package.json',
-    ));
+    const b_a = await fs.stat(path.join(config.cwd, 'node_modules/b/node_modules/a/package.json'));
+    const c_a = await fs.stat(path.join(config.cwd, 'node_modules/c/node_modules/a/package.json'));
     expect(b_a.ino).not.toEqual(c_a.ino);
   });
 });

@@ -5,8 +5,11 @@ module.exports = function(context) {
   var LOG_METHODS = ['info', 'log', 'step', 'error', 'warn', 'success'];
 
   function isLiteral(node) {
-    return node.type === 'Literal' ||
-          (node.type === 'BinaryExpression' && (isLiteral(node.left) || isLiteral(node.right)));
+    return (
+      node.type === 'Literal' ||
+      (node.type === 'BinaryExpression' &&
+        (isLiteral(node.left) || isLiteral(node.right)))
+    );
   }
 
   function getCallee(node) {
@@ -15,7 +18,10 @@ module.exports = function(context) {
     }
 
     var callee = node.callee;
-    while (callee.type === 'MemberExpression' && callee.property.type === 'MemberExpression') {
+    while (
+      callee.type === 'MemberExpression' &&
+      callee.property.type === 'MemberExpression'
+    ) {
       callee = callee.property;
     }
     if (callee.type !== 'MemberExpression' || callee.computed) {
@@ -36,10 +42,7 @@ module.exports = function(context) {
       if (callee && LOG_METHODS.indexOf(callee.property.name) >= 1) {
         var arg = node.arguments[node.arguments.length - 1];
         if (isLiteral(arg)) {
-          context.report(
-            arg,
-            MESSAGE
-          );
+          context.report(arg, MESSAGE);
         }
       }
     },
@@ -57,12 +60,9 @@ module.exports = function(context) {
 
       var args = argument.arguments;
       if (args.length && isLiteral(args[0])) {
-        context.report(
-          args[0],
-          MESSAGE
-        );
+        context.report(args[0], MESSAGE);
       }
-    }
+    },
   };
 };
 

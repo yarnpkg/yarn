@@ -7,12 +7,7 @@ import fix from './fix.js';
 
 const path = require('path');
 
-export default async function(
-  info: Object,
-  moduleLoc: string,
-  config: Config,
-  isRoot: boolean,
-): Promise<Manifest> {
+export default (async function(info: Object, moduleLoc: string, config: Config, isRoot: boolean): Promise<Manifest> {
   // create human readable name
   const {name, version} = info;
   let human: ?string;
@@ -44,4 +39,4 @@ export default async function(
   }
 
   return info;
-}
+});

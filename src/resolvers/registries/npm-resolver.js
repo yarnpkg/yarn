@@ -19,8 +19,8 @@ const NPM_REGISTRY = /http[s]:\/\/registry.npmjs.org/g;
 
 type RegistryResponse = {
   name: string,
-  versions: { [key: string]: Manifest },
-  "dist-tags": { [key: string]: string },
+  versions: {[key: string]: Manifest},
+  'dist-tags': {[key: string]: string},
 };
 
 export default class NpmResolver extends RegistryResolver {
@@ -52,13 +52,15 @@ export default class NpmResolver extends RegistryResolver {
       if (process.stdout instanceof tty.WriteStream) {
         pageSize = process.stdout.rows - 2;
       }
-      const response: {[key: string]: ?string} = await inquirer.prompt([{
-        name: 'package',
-        type: 'list',
-        message: config.reporter.lang('chooseVersionFromList', body.name),
-        choices: Object.keys(body.versions).reverse(),
-        pageSize,
-      }]);
+      const response: {[key: string]: ?string} = await inquirer.prompt([
+        {
+          name: 'package',
+          type: 'list',
+          message: config.reporter.lang('chooseVersionFromList', body.name),
+          choices: Object.keys(body.versions).reverse(),
+          pageSize,
+        },
+      ]);
       if (response && response.package) {
         return body.versions[response.package];
       }
@@ -84,7 +86,6 @@ export default class NpmResolver extends RegistryResolver {
   }
 
   async resolveRequestOffline(): Promise<?Manifest> {
-
     const scope = this.config.registries.npm.getScope(this.name);
     // find modules of this name
     const prefix = scope ? this.name.split(/\/|%2f/)[1] : `npm-${this.name}-`;
@@ -134,7 +135,9 @@ export default class NpmResolver extends RegistryResolver {
         continue; // old yarn metadata
       }
 
-      versions[pkg.version] = Object.assign({}, pkg, {_remote: metadata.remote});
+      versions[pkg.version] = Object.assign({}, pkg, {
+        _remote: metadata.remote,
+      });
     }
 
     const satisfied = await this.config.resolveConstraints(Object.keys(versions), this.range);
@@ -142,12 +145,7 @@ export default class NpmResolver extends RegistryResolver {
       return versions[satisfied];
     } else if (!this.config.preferOffline) {
       throw new MessageError(
-        this.reporter.lang(
-          'couldntFindPackageInCache',
-          this.name,
-          this.range,
-          Object.keys(versions).join(', '),
-        ),
+        this.reporter.lang('couldntFindPackageInCache', this.name, this.range, Object.keys(versions).join(', ')),
       );
     } else {
       return null;

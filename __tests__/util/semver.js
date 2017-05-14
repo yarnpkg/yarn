@@ -7,18 +7,13 @@ const semver = require('semver');
 describe('satisfiesWithPreleases', () => {
   it('matches the behavior of node-semver for non-prerelease versions', () => {
     // true
-    expect(satisfiesWithPreleases('2.0.0', '>=1.0.0'))
-      .toBe(semver.satisfies('2.0.0', '>=1.0.0'));
-    expect(satisfiesWithPreleases('0.1.1', '^0.1.0'))
-      .toBe(semver.satisfies('0.1.1', '^0.1.0'));
-    expect(satisfiesWithPreleases('1.0.1', '~1.0.0'))
-      .toBe(semver.satisfies('1.0.1', '~1.0.0'));
+    expect(satisfiesWithPreleases('2.0.0', '>=1.0.0')).toBe(semver.satisfies('2.0.0', '>=1.0.0'));
+    expect(satisfiesWithPreleases('0.1.1', '^0.1.0')).toBe(semver.satisfies('0.1.1', '^0.1.0'));
+    expect(satisfiesWithPreleases('1.0.1', '~1.0.0')).toBe(semver.satisfies('1.0.1', '~1.0.0'));
 
     // false
-    expect(satisfiesWithPreleases('0.2.0', '^0.1.0'))
-      .toBe(semver.satisfies('0.2.0', '^0.1.0'));
-    expect(satisfiesWithPreleases('1.1.0', '~1.0.0'))
-      .toBe(semver.satisfies('1.1.0', '~1.0.0'));
+    expect(satisfiesWithPreleases('0.2.0', '^0.1.0')).toBe(semver.satisfies('0.2.0', '^0.1.0'));
+    expect(satisfiesWithPreleases('1.1.0', '~1.0.0')).toBe(semver.satisfies('1.1.0', '~1.0.0'));
   });
 
   it('matches inexact prerelease versions', () => {

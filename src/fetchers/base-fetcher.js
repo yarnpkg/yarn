@@ -52,12 +52,19 @@ export default class BaseFetcher {
       // load the new normalized manifest
       const pkg = await this.config.readManifest(dest, this.registry);
 
-      await fs.writeFile(path.join(dest, constants.METADATA_FILENAME), JSON.stringify({
-        artifacts: [],
-        remote: this.remote,
-        registry: this.registry,
-        hash,
-      }, null, '  '));
+      await fs.writeFile(
+        path.join(dest, constants.METADATA_FILENAME),
+        JSON.stringify(
+          {
+            artifacts: [],
+            remote: this.remote,
+            registry: this.registry,
+            hash,
+          },
+          null,
+          '  ',
+        ),
+      );
 
       return {
         hash,

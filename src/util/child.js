@@ -19,7 +19,7 @@ type ProcessFn = (
   proc: child_process$ChildProcess,
   update: (chunk: string) => void,
   reject: (err: mixed) => void,
-  done: () => void
+  done: () => void,
 ) => void;
 
 export function spawn(
@@ -28,77 +28,83 @@ export function spawn(
   opts?: child_process$spawnOpts & {process?: ProcessFn} = {},
   onData?: (chunk: Buffer | string) => void,
 ): Promise<string> {
-  return queue.push(opts.cwd || String(++uid), (): Promise<string> => new Promise((resolve, reject) => {
-    const proc = child.spawn(program, args, opts);
+  return queue.push(
+    opts.cwd || String(++uid),
+    (): Promise<string> =>
+      new Promise((resolve, reject) => {
+        const proc = child.spawn(program, args, opts);
 
-    let processingDone = false;
-    let processClosed = false;
-    let err = null;
+        let processingDone = false;
+        let processClosed = false;
+        let err = null;
 
-    let stdout = '';
+        let stdout = '';
 
-    proc.on('error', err => {
-      if (err.code === 'ENOENT') {
-        reject(new MessageError(`Couldn't find the binary ${program}`));
-      } else {
-        reject(err);
-      }
-    });
+        proc.on('error', err => {
+          if (err.code === 'ENOENT') {
+            reject(new MessageError(`Couldn't find the binary ${program}`));
+          } else {
+            reject(err);
+          }
+        });
 
-    function updateStdout(chunk: string) {
-      stdout += chunk;
-      if (onData) {
-        onData(chunk);
-      }
-    }
+        function updateStdout(chunk: string) {
+          stdout += chunk;
+          if (onData) {
+            onData(chunk);
+          }
+        }
 
-    function finish() {
-      if (err) {
-        reject(err);
-      } else {
-        resolve(stdout.trim());
-      }
-    }
+        function finish() {
+          if (err) {
+            reject(err);
+          } else {
+            resolve(stdout.trim());
+          }
+        }
 
-    if (typeof opts.process === 'function') {
-      opts.process(proc, updateStdout, reject, function() {
-        if (processClosed) {
-          finish();
+        if (typeof opts.process === 'function') {
+          opts.process(proc, updateStdout, reject, function() {
+            if (processClosed) {
+              finish();
+            } else {
+              processingDone = true;
+            }
+          });
         } else {
+          if (proc.stderr) {
+            proc.stderr.on('data', updateStdout);
+          }
+
+          if (proc.stdout) {
+            proc.stdout.on('data', updateStdout);
+          }
+
           processingDone = true;
         }
-      });
-    } else {
-      if (proc.stderr) {
-        proc.stderr.on('data', updateStdout);
-      }
 
-      if (proc.stdout) {
-        proc.stdout.on('data', updateStdout);
-      }
+        proc.on('close', (code: number) => {
+          if (code >= 1) {
+            // TODO make this output nicer
+            err = new SpawnError(
+              [
+                'Command failed.',
+                `Exit code: ${code}`,
+                `Command: ${program}`,
+                `Arguments: ${args.join(' ')}`,
+                `Directory: ${opts.cwd || process.cwd()}`,
+                `Output:\n${stdout.trim()}`,
+              ].join('\n'),
+            );
+            err.EXIT_CODE = code;
+          }
 
-      processingDone = true;
-    }
-
-    proc.on('close', (code: number) => {
-      if (code >= 1) {
-        // TODO make this output nicer
-        err = new SpawnError([
-          'Command failed.',
-          `Exit code: ${code}`,
-          `Command: ${program}`,
-          `Arguments: ${args.join(' ')}`,
-          `Directory: ${opts.cwd || process.cwd()}`,
-          `Output:\n${stdout.trim()}`,
-        ].join('\n'));
-        err.EXIT_CODE = code;
-      }
-
-      if (processingDone || err) {
-        finish();
-      } else {
-        processClosed = true;
-      }
-    });
-  }));
+          if (processingDone || err) {
+            finish();
+          } else {
+            processClosed = true;
+          }
+        });
+      }),
+  );
 }

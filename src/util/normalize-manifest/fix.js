@@ -11,7 +11,7 @@ const semver = require('semver');
 const path = require('path');
 const url = require('url');
 
-const LICENSE_RENAMES: { [key: string]: ?string } = {
+const LICENSE_RENAMES: {[key: string]: ?string} = {
   'MIT/X11': 'MIT',
   X11: 'MIT',
 };
@@ -22,7 +22,7 @@ type Dict<T> = {
 
 type WarnFunction = (msg: string) => void;
 
-export default async function(
+export default (async function(
   info: Dict<mixed>,
   moduleLoc: string,
   reporter: Reporter,
@@ -56,7 +56,8 @@ export default async function(
     const authorsFilestats = await fs.stat(authorsFilepath);
     if (authorsFilestats.isFile()) {
       let authors = await fs.readFile(authorsFilepath);
-      authors = authors.split(/\r?\n/g) // split on lines
+      authors = authors
+        .split(/\r?\n/g) // split on lines
         .map((line): string => line.replace(/^\s*#.*$/, '').trim()) // remove comments
         .filter((line): boolean => !!line); // remove empty lines
       info.contributors = authors;
@@ -193,7 +194,7 @@ export default async function(
     const binDir = dirs.bin;
 
     if (!info.bin && binDir && typeof binDir === 'string') {
-      const bin = info.bin = {};
+      const bin = (info.bin = {});
       const fullBinDir = path.join(moduleLoc, binDir);
 
       if (await fs.exists(fullBinDir)) {
@@ -210,8 +211,8 @@ export default async function(
 
     const manDir = dirs.man;
 
-    if  (!info.man && typeof manDir === 'string') {
-      const man = info.man = [];
+    if (!info.man && typeof manDir === 'string') {
+      const man = (info.man = []);
       const fullManDir = path.join(moduleLoc, manDir);
 
       if (await fs.exists(fullManDir)) {
@@ -261,8 +262,9 @@ export default async function(
   // get license file
   const licenseFile = files.find((filename): boolean => {
     const lower = filename.toLowerCase();
-    return lower === 'license' || lower.startsWith('license.') ||
-           lower === 'unlicense' || lower.startsWith('unlicense.');
+    return (
+      lower === 'license' || lower.startsWith('license.') || lower === 'unlicense' || lower.startsWith('unlicense.')
+    );
   });
   if (licenseFile) {
     const licenseFilepath = path.join(moduleLoc, licenseFile);
@@ -288,7 +290,7 @@ export default async function(
         // if there's no license then infer it based on the license file
         info.license = inferredLicense;
       } else {
-          // valid expression to refer to a license in a file
+        // valid expression to refer to a license in a file
         info.license = `SEE LICENSE IN ${licenseFile}`;
       }
     }
@@ -304,4 +306,4 @@ export default async function(
       info.license = inferredLicense;
     }
   }
-}
+});

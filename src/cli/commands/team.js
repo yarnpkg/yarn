@@ -39,12 +39,7 @@ function explodeScopeTeam(arg: string, requireTeam: boolean, reporter: Reporter)
 }
 
 function wrapRequired(callback: CLIFunctionWithParts, requireTeam: boolean): CLIFunction {
-  return async function(
-    config: Config,
-    reporter: Reporter,
-    flags: Object,
-    args: Array<string>,
-  ): CLIFunctionReturn {
+  return async function(config: Config, reporter: Reporter, flags: Object, args: Array<string>): CLIFunctionReturn {
     if (!args.length) {
       return false;
     }
@@ -93,106 +88,120 @@ function wrapRequiredUser(callback: CLIFunctionWithParts): CLIFunction {
     args: Array<string>,
   ): CLIFunctionReturn {
     if (args.length === 2) {
-      return callback({
-        user: args[1],
-        ...parts,
-      }, config, reporter, flags, args);
+      return callback(
+        {
+          user: args[1],
+          ...parts,
+        },
+        config,
+        reporter,
+        flags,
+        args,
+      );
     } else {
       return false;
     }
   }, true);
 }
 
-export const {run, setFlags, hasWrapper, examples} = buildSubCommands('team', {
-  create: wrapRequiredTeam(async function(
-    parts: TeamParts,
-    config: Config,
-    reporter: Reporter,
-    flags: Object,
-    args: Array<string>,
-  ): Promise<boolean> {
-    reporter.step(2, 3, reporter.lang('teamCreating'));
-    reporter.inspect(await config.registries.npm.request(`team/${parts.scope}`, {
-      method: 'PUT',
-      body: {
-        team: parts.team,
-      },
-    }));
-    return true;
-  }),
-
-  destroy: wrapRequiredTeam(async function(
-    parts: TeamParts,
-    config: Config,
-    reporter: Reporter,
-    flags: Object,
-    args: Array<string>,
-  ): Promise<boolean> {
-    reporter.step(2, 3, reporter.lang('teamRemoving'));
-    reporter.inspect(await config.registries.npm.request(`team/${parts.scope}/${parts.team}`, {
-      method: 'DELETE',
-    }));
-    return true;
-  }),
-
-  add: wrapRequiredUser(async function(
-    parts: TeamParts,
-    config: Config,
-    reporter: Reporter,
-    flags: Object,
-    args: Array<string>,
-  ): Promise<boolean> {
-    reporter.step(2, 3, reporter.lang('teamAddingUser'));
-    reporter.inspect(await config.registries.npm.request(`team/${parts.scope}/${parts.team}/user`, {
-      method: 'PUT',
-      body: {
-        user: parts.user,
-      },
-    }));
-    return true;
-  }),
-
-  rm: wrapRequiredUser(async function(
-    parts: TeamParts,
-    config: Config,
-    reporter: Reporter,
-    flags: Object,
-    args: Array<string>,
-  ): Promise<boolean> {
-    reporter.step(2, 3, reporter.lang('teamRemovingUser'));
-    reporter.inspect(await config.registries.npm.request(`team/${parts.scope}/${parts.team}/user`, {
-      method: 'DELETE',
-      body: {
-        user: parts.user,
-      },
-    }));
-    return true;
-  }),
-
-  ls: wrapRequiredTeam(async function(
-    parts: TeamParts,
-    config: Config,
-    reporter: Reporter,
-    flags: Object,
-    args: Array<string>,
-  ): Promise<boolean> {
-    reporter.step(2, 3, reporter.lang('teamListing'));
-    const uriParams = '?format=cli';
-    if (parts.team) {
+export const {run, setFlags, hasWrapper, examples} = buildSubCommands(
+  'team',
+  {
+    create: wrapRequiredTeam(async function(
+      parts: TeamParts,
+      config: Config,
+      reporter: Reporter,
+      flags: Object,
+      args: Array<string>,
+    ): Promise<boolean> {
+      reporter.step(2, 3, reporter.lang('teamCreating'));
       reporter.inspect(
-        await config.registries.npm.request(`team/${parts.scope}/${parts.team}/user${uriParams}`),
+        await config.registries.npm.request(`team/${parts.scope}`, {
+          method: 'PUT',
+          body: {
+            team: parts.team,
+          },
+        }),
       );
-    } else {
+      return true;
+    }),
+
+    destroy: wrapRequiredTeam(async function(
+      parts: TeamParts,
+      config: Config,
+      reporter: Reporter,
+      flags: Object,
+      args: Array<string>,
+    ): Promise<boolean> {
+      reporter.step(2, 3, reporter.lang('teamRemoving'));
       reporter.inspect(
-        await config.registries.npm.request(`org/${parts.scope}/team${uriParams}`),
+        await config.registries.npm.request(`team/${parts.scope}/${parts.team}`, {
+          method: 'DELETE',
+        }),
       );
-    }
-    return true;
-  }, false),
-}, [
-  'create <scope:team>',
-  'destroy <scope:team>',
-  'add <scope:team> <user>',
-  'rm <scope:team> <user>',
-  'ls <scope>|<scope:team>',
-]);
+      return true;
+    }),
+
+    add: wrapRequiredUser(async function(
+      parts: TeamParts,
+      config: Config,
+      reporter: Reporter,
+      flags: Object,
+      args: Array<string>,
+    ): Promise<boolean> {
+      reporter.step(2, 3, reporter.lang('teamAddingUser'));
+      reporter.inspect(
+        await config.registries.npm.request(`team/${parts.scope}/${parts.team}/user`, {
+          method: 'PUT',
+          body: {
+            user: parts.user,
+          },
+        }),
+      );
+      return true;
+    }),
+
+    rm: wrapRequiredUser(async function(
+      parts: TeamParts,
+      config: Config,
+      reporter: Reporter,
+      flags: Object,
+      args: Array<string>,
+    ): Promise<boolean> {
+      reporter.step(2, 3, reporter.lang('teamRemovingUser'));
+      reporter.inspect(
+        await config.registries.npm.request(`team/${parts.scope}/${parts.team}/user`, {
+          method: 'DELETE',
+          body: {
+            user: parts.user,
+          },
+        }),
+      );
+      return true;
+    }),
+
+    ls: wrapRequiredTeam(async function(
+      parts: TeamParts,
+      config: Config,
+      reporter: Reporter,
+      flags: Object,
+      args: Array<string>,
+    ): Promise<boolean> {
+      reporter.step(2, 3, reporter.lang('teamListing'));
+      const uriParams = '?format=cli';
+      if (parts.team) {
+        reporter.inspect(await config.registries.npm.request(`team/${parts.scope}/${parts.team}/user${uriParams}`));
+      } else {
+        reporter.inspect(await config.registries.npm.request(`org/${parts.scope}/team${uriParams}`));
+      }
+      return true;
+    }, false),
+  },
+  [
+    'create <scope:team>',
+    'destroy <scope:team>',
+    'add <scope:team> <user>',
+    'rm <scope:team> <user>',
+    'ls <scope>|<scope:team>',
+  ],
+);

@@ -26,10 +26,14 @@ test('write cache-folder config into .yarnrc file', (): Promise<void> => {
 });
 
 test('cache-folder flag has higher priorities than .yarnrc file', (): Promise<void> => {
-  return runConfig(['set', 'cache-folder', 'set_config_folder_dir'], {'cacheFolder': 'flag_config_folder_dir'},
-    '', config => {
+  return runConfig(
+    ['set', 'cache-folder', 'set_config_folder_dir'],
+    {cacheFolder: 'flag_config_folder_dir'},
+    '',
+    config => {
       expect(config.cacheFolder).toContain('flag_config_folder_dir');
-    });
+    },
+  );
 });
 
 test('set true when option value is undefined', (): Promise<void> => {

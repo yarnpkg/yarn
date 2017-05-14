@@ -69,8 +69,6 @@ async function getBins(config: Config): Promise<Set<string>> {
   return paths;
 }
 
-
-
 function getGlobalPrefix(config: Config, flags: Object): string {
   if (flags.prefix) {
     return flags.prefix;
@@ -110,7 +108,7 @@ async function initUpdateBins(config: Config, reporter: Reporter, flags: Object)
   const beforeBins = await getBins(config);
   const binFolder = getBinFolder(config, flags);
 
-  function throwPermError(err: Error & { [code: string]: string }, dest: string) {
+  function throwPermError(err: Error & {[code: string]: string}, dest: string) {
     if (err.code === 'EACCES') {
       throw new MessageError(reporter.lang('noFilePermission', dest));
     } else {
@@ -190,12 +188,7 @@ async function list(config: Config, reporter: Reporter, flags: Object, args: Arr
 }
 
 const {run, setFlags: _setFlags} = buildSubCommands('global', {
-  async add(
-    config: Config,
-    reporter: Reporter,
-    flags: Object,
-    args: Array<string>,
-  ): Promise<void> {
+  async add(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
     await updateCwd(config);
 
     const updateBins = await initUpdateBins(config, reporter, flags);
@@ -212,40 +205,20 @@ const {run, setFlags: _setFlags} = buildSubCommands('global', {
     await updateBins();
   },
 
-  bin(
-    config: Config,
-    reporter: Reporter,
-    flags: Object,
-    args: Array<string>,
-  ) {
+  bin(config: Config, reporter: Reporter, flags: Object, args: Array<string>) {
     reporter.log(getBinFolder(config, flags));
   },
 
-  async ls(
-    config: Config,
-    reporter: Reporter,
-    flags: Object,
-    args: Array<string>,
-  ): Promise<void> {
+  async ls(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
     reporter.warn(`\`yarn global ls\` is deprecated. Please use \`yarn global list\`.`);
     await list(config, reporter, flags, args);
   },
 
-  async list(
-    config: Config,
-    reporter: Reporter,
-    flags: Object,
-    args: Array<string>,
-  ): Promise<void> {
+  async list(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
     await list(config, reporter, flags, args);
   },
 
-  async remove(
-    config: Config,
-    reporter: Reporter,
-    flags: Object,
-    args: Array<string>,
-  ): Promise<void> {
+  async remove(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
     await updateCwd(config);
 
     const updateBins = await initUpdateBins(config, reporter, flags);
@@ -257,12 +230,7 @@ const {run, setFlags: _setFlags} = buildSubCommands('global', {
     await updateBins();
   },
 
-  async upgrade(
-    config: Config,
-    reporter: Reporter,
-    flags: Object,
-    args: Array<string>,
-  ): Promise<void> {
+  async upgrade(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
     await updateCwd(config);
 
     const updateBins = await initUpdateBins(config, reporter, flags);
@@ -274,12 +242,7 @@ const {run, setFlags: _setFlags} = buildSubCommands('global', {
     await updateBins();
   },
 
-  async upgradeInteractive(
-    config: Config,
-    reporter: Reporter,
-    flags: Object,
-    args: Array<string>,
-  ): Promise<void> {
+  async upgradeInteractive(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
     await updateCwd(config);
 
     const updateBins = await initUpdateBins(config, reporter, flags);

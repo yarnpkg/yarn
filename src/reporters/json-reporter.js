@@ -1,10 +1,6 @@
 /* @flow */
 
-import type {
-  ReporterSpinnerSet,
-  Trees,
-  ReporterSpinner,
-} from './types.js';
+import type {ReporterSpinnerSet, Trees, ReporterSpinner} from './types.js';
 import BaseReporter from './base-reporter.js';
 
 export default class JSONReporter extends BaseReporter {
@@ -98,7 +94,13 @@ export default class JSONReporter extends BaseReporter {
           header = _header;
         },
         tick: msg => {
-          this._dump('activitySetTick', {id, header, current, worker: i, message: msg});
+          this._dump('activitySetTick', {
+            id,
+            header,
+            current,
+            worker: i,
+            message: msg,
+          });
         },
         end() {},
       });

@@ -13,12 +13,7 @@ export function hasWrapper(flags: Object, args: Array<string>): boolean {
 }
 
 export const {run, setFlags, examples} = buildSubCommands('cache', {
-  async ls(
-    config: Config,
-    reporter: Reporter,
-    flags: Object,
-    args: Array<string>,
-  ): Promise<void> {
+  async ls(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
     async function readCacheMetadata(
       parentDir = config.cacheFolder,
       metadataFile = METADATA_FILENAME,
@@ -33,9 +28,9 @@ export const {run, setFlags, examples} = buildSubCommands('cache', {
 
         const loc = path.join(config.cacheFolder, parentDir.replace(config.cacheFolder, ''), folder);
         // Check if this is a scoped package
-        if (!(await fs.exists(path.join(loc, metadataFile)))) {
+        if (!await fs.exists(path.join(loc, metadataFile))) {
           // If so, recurrently read scoped packages metadata
-          packagesMetadata.push(...await readCacheMetadata(loc));
+          packagesMetadata.push(...(await readCacheMetadata(loc)));
         } else {
           const {registry, package: manifest, remote} = await config.readPackageMetadata(loc);
           packagesMetadata.push([manifest.name, manifest.version, registry, (remote && remote.resolved) || '']);
@@ -50,19 +45,11 @@ export const {run, setFlags, examples} = buildSubCommands('cache', {
     reporter.table(['Name', 'Version', 'Registry', 'Resolved'], body);
   },
 
-  dir(
-    config: Config,
-    reporter: Reporter,
-  ) {
+  dir(config: Config, reporter: Reporter) {
     reporter.log(config.cacheFolder);
   },
 
-  async clean(
-    config: Config,
-    reporter: Reporter,
-    flags: Object,
-    args: Array<string>,
-  ): Promise<void> {
+  async clean(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
     if (config.cacheFolder) {
       await fs.unlink(config._cacheRootFolder);
       await fs.mkdirp(config.cacheFolder);

@@ -10,16 +10,24 @@ function leftPad(value) {
   return (value < 10 ? '0' : '') + value;
 }
 
-const packageManifestFilename = __dirname + '/../package.json'
+const packageManifestFilename = __dirname + '/../package.json';
 const packageManifest = require(packageManifestFilename);
 const date = new Date();
 const formattedDate =
-  date.getUTCFullYear() + leftPad(date.getUTCMonth() + 1) + leftPad(date.getUTCDate()) + '.' +
-  leftPad(date.getUTCHours()) + leftPad(date.getUTCMinutes());
+  date.getUTCFullYear() +
+  leftPad(date.getUTCMonth() + 1) +
+  leftPad(date.getUTCDate()) +
+  '.' +
+  leftPad(date.getUTCHours()) +
+  leftPad(date.getUTCMinutes());
 
 // Remove any existing suffix before appending the date
-const version = packageManifest.version.replace(/\-(.+)$/, '') + '-' + formattedDate;
+const version =
+  packageManifest.version.replace(/\-(.+)$/, '') + '-' + formattedDate;
 
 packageManifest.version = version;
-fs.writeFileSync(packageManifestFilename, JSON.stringify(packageManifest, null, 2) + "\n");
+fs.writeFileSync(
+  packageManifestFilename,
+  JSON.stringify(packageManifest, null, 2) + '\n',
+);
 console.log('Updated version number to ' + version);

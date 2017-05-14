@@ -97,7 +97,6 @@ export function extractDescription(readme: mixed): ?string {
   return lines.slice(start, end).join(' ');
 }
 
-
 export function extractRepositoryUrl(repository: mixed): any {
   if (!repository || typeof repository !== 'object') {
     return repository;

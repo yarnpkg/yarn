@@ -13,12 +13,7 @@ export function hasWrapper(): boolean {
 
 export function setFlags() {}
 
-export function run(
-  config: Config,
-  reporter: Reporter,
-  commander: Object,
-  args: Array<string>,
-): Promise<void> {
+export function run(config: Config, reporter: Reporter, commander: Object, args: Array<string>): Promise<void> {
   if (args.length) {
     const commandName = args.shift();
     if (Object.prototype.hasOwnProperty.call(commands, commandName)) {
