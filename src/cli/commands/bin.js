@@ -23,6 +23,6 @@ export function run(
     config.registries[RegistryYarn.registry].folder,
     '.bin',
   );
-  console.log(binFolder);
+  reporter.log(binFolder);
   return Promise.resolve();
 }
