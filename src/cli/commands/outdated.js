@@ -22,7 +22,7 @@ export async function run(
   flags: Object,
   args: Array<string>,
 ): Promise<void> {
-  const lockfile = await Lockfile.fromDirectory(config.cwd);
+  const lockfile = await Lockfile.fromDirectory(config, config.cwd);
   const install = new Install(flags, config, reporter, lockfile);
   let deps = await PackageRequest.getOutdatedPackages(lockfile, install, config, reporter);
 

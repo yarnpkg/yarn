@@ -178,7 +178,7 @@ export async function run(
   args: Array<string>,
 ): Promise<void> {
 
-  const lockfile = await Lockfile.fromDirectory(config.cwd, reporter);
+  const lockfile = await Lockfile.fromDirectory(config, config.cwd, reporter);
   const install = new Install(flags, config, reporter, lockfile);
   const {requests: depRequests, patterns} = await install.fetchRequestFromCwd();
   await install.resolver.init(depRequests, install.flags.flat);

@@ -505,7 +505,7 @@ export default class PackageHoister {
    * Produce a flattened list of module locations and manifests.
    */
 
-  init(): Array<[string, HoistManifest]> {
+  async init(): Array<[string, HoistManifest]> {
     const flatTree = [];
 
     //
@@ -525,13 +525,10 @@ export default class PackageHoister {
       if (this.config.modulesFolder) {
         // remove the first part which will be the folder name and replace it with a
         // hardcoded modules folder
-        parts.shift();
-        const modulesFolder = (this.config.modulesFolder == null) ? '' : this.config.modulesFolder;
-        parts.unshift(modulesFolder);
+        parts.splice(0, 1, this.config.modulesFolder);
       } else {
         // first part will be the registry-specific module folder
-        const cwd = (this.config.cwd == null) ? '' : this.config.cwd;
-        parts.unshift(cwd);
+        parts.splice(0, 0, await this.config.findProject(this.config.cwd) || this.config.cwd);
       }
 
       const loc = path.join(...parts);

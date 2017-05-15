@@ -363,7 +363,8 @@ export default class PackageLinker {
 
     // link bins
     if (this.config.binLinks && resolved.bin && Object.keys(resolved.bin).length && !ref.ignore) {
-      const binLoc = this.config.modulesFolder || path.join(this.config.cwd, this.config.getFolder(resolved));
+      const projectDir = await this.config.findProject(this.config.cwd) || this.config.cwd;
+      const binLoc = this.config.modulesFolder || path.join(projectDir, this.config.getFolder(resolved));
       await this.linkSelfDependencies(resolved, src, binLoc);
     }
   }

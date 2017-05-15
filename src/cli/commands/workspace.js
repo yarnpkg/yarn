@@ -18,10 +18,10 @@ export async function run(
   flags: Object,
   args: Array<string>,
 ): Promise<void> {
-  const projectPath = await config.findProject(process.cwd());
+  const projectPath = await config.findProject(config.cwd);
 
   if (!projectPath) {
-    throw new MessageError(reporter.lang('projectRootNotFound', process.cwd()));
+    throw new MessageError(reporter.lang('projectRootNotFound', config.cwd));
   }
 
   const manifest = await config.findManifest(projectPath);

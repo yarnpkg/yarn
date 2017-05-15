@@ -34,7 +34,7 @@ export async function run(
   let step = 0;
 
   // load manifests
-  const lockfile = await Lockfile.fromDirectory(config.cwd);
+  const lockfile = await Lockfile.fromDirectory(config, config.cwd);
   const rootManifests = await config.getRootManifests();
   const manifests = [];
 

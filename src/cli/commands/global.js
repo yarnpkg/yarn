@@ -178,7 +178,7 @@ async function list(config: Config, reporter: Reporter, flags: Object, args: Arr
   await updateCwd(config);
 
   // install so we get hard file paths
-  const lockfile = await Lockfile.fromDirectory(config.cwd);
+  const lockfile = await Lockfile.fromDirectory(config, config.cwd);
   const install = new Install({skipIntegrityCheck: true}, config, new NoopReporter(), lockfile);
   const patterns = await install.init();
 
@@ -204,7 +204,7 @@ const {run, setFlags: _setFlags} = buildSubCommands('global', {
     }
 
     // install module
-    const lockfile = await Lockfile.fromDirectory(config.cwd);
+    const lockfile = await Lockfile.fromDirectory(config, config.cwd);
     const install = new GlobalAdd(args, flags, config, reporter, lockfile);
     await install.init();
 
