@@ -253,7 +253,7 @@ export default class InstallationIntegrityChecker {
     const actual = await this._generateIntegrityFile(
       lockfile,
       patterns,
-      Object.assign({}, {checkFiles: false}, flags), // don't generate files when checking, we check the files below
+      Object.assign({}, flags, {checkFiles: false}), // don't generate files when checking, we check the files below
       loc.locationFolder);
     const expected = await this._getIntegrityFile(loc.locationPath);
     const integrityMatches = await this._compareIntegrityFiles(actual, expected, flags.checkFiles, loc.locationFolder);
