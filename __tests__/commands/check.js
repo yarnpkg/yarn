@@ -259,7 +259,8 @@ test.concurrent('--integrity should fail if integrity file have different linked
   });
 });
 
-test.concurrent('--integrity should create the integrity file under the meta folder if enabled', async (): Promise<void> => {
+test.concurrent('--integrity should create the integrity file under the meta folder if enabled',
+async (): Promise<void> => {
   await runInstall({}, path.join('..', 'check', 'integrity-meta-folder'),
   async (config, reporter, install, getStdout): Promise<void> => {
     await checkCmd.run(config, reporter, {integrity: true}, []);
@@ -267,15 +268,20 @@ test.concurrent('--integrity should create the integrity file under the meta fol
   });
 });
 
+// https://github.com/yarnpkg/yarn/issues/3276
 test.concurrent('--integrity --check-files should not die on broken symlinks', async (): Promise<void> => {
   await runInstall({checkFiles: true, binLinks: true}, path.join('..', 'check', 'integrity-symlinks'),
-    async (config, reporter, install, getStdout): Promise<void> => {
+    async (config, reporter, install): Promise<void> => {
 
       await fs.unlink(path.join(config.cwd, 'node_modules', 'acorn'));
       let thrown = false;
       try {
-        // reinstall with --check-files tag should reinstall missing files and generate proper integrity
-        const reinstall = new Install({checkFiles: true, binLinks: true}, config, reporter, await Lockfile.fromDirectory(config.cwd));
+        const reinstall = new Install(
+          {checkFiles: true, binLinks: true},
+          config,
+          reporter,
+          await Lockfile.fromDirectory(config.cwd),
+        );
         await reinstall.init();
       } catch (e) {
         thrown = true;
