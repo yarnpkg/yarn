@@ -286,30 +286,30 @@ export default class PackageResolver {
         break;
       }
     }
+
     invariant(
       collapseToReference && collapseToManifest && collapseToPattern,
-      `Couldn't find package manifest for ${human}`,
-    );
+      `Couldn't find package manifest for ${human}`);
 
-for (const pattern of patterns) {
-  // don't touch the pattern we're collapsing to
-  if (pattern === collapseToPattern) {
-    continue;
-  }
+    for (const pattern of patterns) {
+      // don't touch the pattern we're collapsing to
+      if (pattern === collapseToPattern) {
+        continue;
+      }
 
-  // remove this pattern
-  const ref = this.getStrictResolvedPattern(pattern)._reference;
-  invariant(ref, 'expected package reference');
-  const refPatterns = ref.patterns.slice();
-  ref.prune();
+      // remove this pattern
+      const ref = this.getStrictResolvedPattern(pattern)._reference;
+      invariant(ref, 'expected package reference');
+      const refPatterns = ref.patterns.slice();
+      ref.prune();
 
-  // add pattern to the manifest we're collapsing to
-  for (const pattern of refPatterns) {
-    collapseToReference.addPattern(pattern, collapseToManifest);
-  }
-}
+      // add pattern to the manifest we're collapsing to
+      for (const pattern of refPatterns) {
+        collapseToReference.addPattern(pattern, collapseToManifest);
+      }
+    }
 
-return collapseToPattern;
+    return collapseToPattern;
   }
 
   /**

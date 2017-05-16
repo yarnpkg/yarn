@@ -1,6 +1,5 @@
 /* @flow */
 
-import type {Reporter} from './reporters/index.js';
 import type {Manifest} from './types.js';
 import type Config from './config.js';
 import {MessageError} from './errors.js';
@@ -88,29 +87,18 @@ export function testEngine(name: string, range: string, versions: Versions, loos
   return false;
 }
 
-export default class PackageCompatibility {
-  constructor(config: Config, ignoreEngines: boolean) {
-    this.reporter = config.reporter;
-    this.config = config;
-    this.ignoreEngines = ignoreEngines;
-  }
+function isValidArch(archs: Array<string>): boolean {
+  return isValid(archs, process.arch);
+}
 
-  reporter: Reporter;
-  config: Config;
-  ignoreEngines: boolean;
+function isValidPlatform(platforms: Array<string>): boolean {
+  return isValid(platforms, process.platform);
+}
 
-  static isValidArch(archs: Array<string>): boolean {
-    return isValid(archs, process.arch);
-  }
-
-  static isValidPlatform(platforms: Array<string>): boolean {
-    return isValid(platforms, process.platform);
-  }
-
-  check(info: Manifest) {
+export function check(info: Manifest, config: Config, ignoreEngines: boolean) {
     let didIgnore = false;
     let didError = false;
-    const reporter = this.reporter;
+    const reporter = config.reporter;
     const human = `${info.name}@${info.version}`;
 
     const pushError = msg => {
@@ -132,25 +120,25 @@ export default class PackageCompatibility {
       }
     };
 
-    const invalidPlatform =
-      !this.config.ignorePlatform &&
+    const invalidPlatform = !config.ignorePlatform &&
       Array.isArray(info.os) &&
       info.os.length > 0 &&
-      !PackageCompatibility.isValidPlatform(info.os);
+      !isValidPlatform(info.os);
+
     if (invalidPlatform) {
-      pushError(this.reporter.lang('incompatibleOS', process.platform));
+      pushError(reporter.lang('incompatibleOS', process.platform));
     }
 
-    const invalidCpu =
-      !this.config.ignorePlatform &&
+    const invalidCpu = !config.ignorePlatform &&
       Array.isArray(info.cpu) &&
       info.cpu.length > 0 &&
-      !PackageCompatibility.isValidArch(info.cpu);
+      !isValidArch(info.cpu);
+
     if (invalidCpu) {
-      pushError(this.reporter.lang('incompatibleCPU', process.arch));
+      pushError(reporter.lang('incompatibleCPU', process.arch));
     }
 
-    if (!this.ignoreEngines && typeof info.engines === 'object') {
+    if (!ignoreEngines && typeof info.engines === 'object') {
       for (const entry of entries(info.engines)) {
         let name = entry[0];
         const range = entry[1];
@@ -160,11 +148,11 @@ export default class PackageCompatibility {
         }
 
         if (VERSIONS[name]) {
-          if (!testEngine(name, range, VERSIONS, this.config.looseSemver)) {
-            pushError(this.reporter.lang('incompatibleEngine', name, range));
+          if (!testEngine(name, range, VERSIONS, config.looseSemver)) {
+            pushError(reporter.lang('incompatibleEngine', name, range));
           }
         } else if (ignore.indexOf(name) < 0) {
-          this.reporter.warn(`${human}: ${this.reporter.lang('invalidEngine', name)}`);
+          reporter.warn(`${human}: ${reporter.lang('invalidEngine', name)}`);
         }
       }
     }
@@ -174,10 +162,9 @@ export default class PackageCompatibility {
     }
   }
 
-  checkEvery(infos: Array<Manifest>): Promise<void> {
-    for (const info of infos) {
-      this.check(info);
-    }
-    return Promise.resolve();
+
+export default function(infos: Array<Manifest>, config: Config, ignoreEngines: boolean) {
+  for (const info of infos) {
+    check(info, config, ignoreEngines);
   }
 }
