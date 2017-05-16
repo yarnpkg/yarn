@@ -11,7 +11,7 @@ import {MessageError} from '../../errors.js';
 import InstallationIntegrityChecker from '../../integrity-checker.js';
 import Lockfile from '../../lockfile/wrapper.js';
 import lockStringify from '../../lockfile/stringify.js';
-import PackageFetcher from '../../package-fetcher.js';
+import * as fetcher from '../../package-fetcher.js';
 import PackageInstallScripts from '../../package-install-scripts.js';
 import * as compatibility from '../../package-compatibility.js';
 import PackageResolver from '../../package-resolver.js';
@@ -167,7 +167,6 @@ export class Install {
     this.flags = normalizeFlags(config, flags);
 
     this.resolver = new PackageResolver(config, lockfile);
-    this.fetcher = new PackageFetcher(config);
     this.integrityChecker = new InstallationIntegrityChecker(config);
     this.linker = new PackageLinker(config, this.resolver);
     this.scripts = new PackageInstallScripts(config, this.resolver, this.flags.force);
@@ -183,7 +182,6 @@ export class Install {
   resolver: PackageResolver;
   scripts: PackageInstallScripts;
   linker: PackageLinker;
-  fetcher: PackageFetcher;
   rootPatternsToOrigin: {[pattern: string]: string};
   integrityChecker: InstallationIntegrityChecker;
 
@@ -426,7 +424,7 @@ export class Install {
     steps.push(async (curr: number, total: number) => {
       this.markIgnored(ignorePatterns);
       this.reporter.step(curr, total, this.reporter.lang('fetchingPackages'), emoji.get('truck'));
-      const manifests : Array<Manifest> = await this.fetcher.init(this.resolver.getManifests());
+      const manifests : Array<Manifest> = await fetcher.fetch(this.resolver.getManifests(), this.config);
       this.resolver.updateManifests(manifests);
       await compatibility.check(this.resolver.getManifests(), this.config, this.flags.ignoreEngines);
     });
@@ -686,7 +684,7 @@ export class Install {
 
     if (fetch) {
       // fetch packages, should hit cache most of the time
-      const manifests : Array<Manifest> = await this.fetcher.init(this.resolver.getManifests());
+      const manifests : Array<Manifest> = await fetcher.fetch(this.resolver.getManifests(), this.config);
       this.resolver.updateManifests(manifests);
       await compatibility.check(this.resolver.getManifests(), this.config, this.flags.ignoreEngines);
 

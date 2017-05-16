@@ -13,7 +13,7 @@ import GitResolver from '../../resolvers/exotics/git-resolver.js';
 import FileResolver from '../../resolvers/exotics/file-resolver.js';
 import PackageResolver from '../../package-resolver.js';
 import PackageRequest from '../../package-request.js';
-import PackageFetcher from '../../package-fetcher.js';
+import * as fetcher from '../../package-fetcher.js';
 import PackageLinker from '../../package-linker.js';
 import * as compatibility from '../../package-compatibility.js';
 import Lockfile from '../../lockfile/wrapper.js';
@@ -267,7 +267,6 @@ export class Import extends Install {
   constructor(flags: Object, config: Config, reporter: Reporter, lockfile: Lockfile) {
     super(flags, config, reporter, lockfile);
     this.resolver = new ImportPackageResolver(this.config, this.lockfile);
-    this.fetcher = new PackageFetcher(config);
     this.linker = new PackageLinker(config, this.resolver);
   }
 
@@ -278,7 +277,7 @@ export class Import extends Install {
     await verifyTreeCheck(this.config, this.reporter, {}, []);
     const {requests, patterns, manifest} = await this.fetchRequestFromCwd();
     await this.resolver.init(requests, this.flags.flat, manifest.name);
-    const manifests : Array<Manifest> = await this.fetcher.init(this.resolver.getManifests());
+    const manifests : Array<Manifest> = await fetcher.fetch(this.resolver.getManifests(), this.config);
     this.resolver.updateManifests(manifests);
     await compatibility.check(this.resolver.getManifests(), this.config, this.flags.ignoreEngines);
     await this.linker.resolvePeerModules();
