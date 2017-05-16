@@ -28,7 +28,12 @@ export function hasWrapper(): boolean {
   return true;
 }
 
-export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
+export async function run(
+  config: Config,
+  reporter: Reporter,
+  flags: Object,
+  args: Array<string>,
+): Promise<void> {
   // build up a list of possible scripts
   const pkg = await config.readManifest(config.cwd);
   const scripts = map();
@@ -36,7 +41,11 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
   const visitedBinFolders = new Set();
   let pkgCommands = [];
   for (const registry of Object.keys(registries)) {
-    const binFolder = path.join(config.cwd, config.registries[registry].folder, '.bin');
+    const binFolder = path.join(
+      config.cwd,
+      config.registries[registry].folder,
+      '.bin',
+    );
     if (!visitedBinFolders.has(binFolder)) {
       if (await fs.exists(binFolder)) {
         for (const name of await fs.readdir(binFolder)) {
@@ -107,7 +116,10 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
     reporter.list('possibleCommands', pkgCommands, cmdHints);
     await reporter
       .question(reporter.lang('commandQuestion'))
-      .then(answer => runCommand(answer.split(' ')), () => reporter.error(reporter.lang('commandNotSpecified')));
+      .then(
+        answer => runCommand(answer.split(' ')),
+        () => reporter.error(reporter.lang('commandNotSpecified')),
+      );
     return Promise.resolve();
   } else {
     return await runCommand(args);

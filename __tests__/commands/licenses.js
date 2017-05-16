@@ -13,13 +13,22 @@ const runLicenses = buildRun.bind(
   null,
   JSONReporter,
   fixturesLoc,
-  async (args, flags, config, reporter, lockfile, getStdout): Promise<string> => {
+  async (
+    args,
+    flags,
+    config,
+    reporter,
+    lockfile,
+    getStdout,
+  ): Promise<string> => {
     await licenses(config, reporter, flags, args);
     return getStdout();
   },
 );
 
-test('lists all licenses of the dependencies with the --json argument', async (): Promise<void> => {
+test('lists all licenses of the dependencies with the --json argument', async (): Promise<
+  void,
+> => {
   await runLicenses(['ls'], {json: true}, '', (config, reporter, stdout) => {
     expect(stdout).toContain(JSON.stringify(expectedTable));
   });

@@ -52,7 +52,8 @@ function createTestFixture(testModules: any = {}): any {
   const packageHoister = new PackageHoister(config, packageResolver, false);
 
   const atPath = function(...installPaths): string {
-    const rootPath = config.modulesFolder || path.join(config.cwd, 'node_modules');
+    const rootPath =
+      config.modulesFolder || path.join(config.cwd, 'node_modules');
     return path.join(rootPath, ...installPaths);
   };
 
@@ -77,7 +78,10 @@ beforeEach(function() {
           let pass: boolean = false;
           received.forEach(pkg => {
             const [location: string, hoistManifest: HoistManifest] = pkg;
-            if (location === expectedInstallPath && hoistManifest.pkg._reference.uid === uid) {
+            if (
+              location === expectedInstallPath &&
+              hoistManifest.pkg._reference.uid === uid
+            ) {
               pass = true;
             }
           });
@@ -85,12 +89,14 @@ beforeEach(function() {
           if (pass) {
             return {
               pass: true,
-              message: () => `expected ${received} to not contain package UID ${uid} at path ${expectedInstallPath}`,
+              message: () =>
+                `expected ${received} to not contain package UID ${uid} at path ${expectedInstallPath}`,
             };
           } else {
             return {
               pass: false,
-              message: () => `expected ${received} to contain package UID ${uid} at path ${expectedInstallPath}`,
+              message: () =>
+                `expected ${received} to contain package UID ${uid} at path ${expectedInstallPath}`,
             };
           }
         },

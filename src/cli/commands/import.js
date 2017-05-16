@@ -1,14 +1,22 @@
 /* @flow */
 
-import type {Manifest, DependencyRequestPattern, DependencyRequestPatterns} from '../../types.js';
+import type {
+  Manifest,
+  DependencyRequestPattern,
+  DependencyRequestPatterns,
+} from '../../types.js';
 import type {Reporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
 import {Install} from './install.js';
 import {verifyTreeCheck} from './check.js';
 import {MessageError} from '../../errors.js';
 import BaseResolver from '../../resolvers/base-resolver.js';
-import HostedGitResolver, {explodeHostedGitFragment} from '../../resolvers/exotics/hosted-git-resolver.js';
-import GistResolver, {explodeGistFragment} from '../../resolvers/exotics/gist-resolver.js';
+import HostedGitResolver, {
+  explodeHostedGitFragment,
+} from '../../resolvers/exotics/hosted-git-resolver.js';
+import GistResolver, {
+  explodeGistFragment,
+} from '../../resolvers/exotics/gist-resolver.js';
 import GitResolver from '../../resolvers/exotics/git-resolver.js';
 import FileResolver from '../../resolvers/exotics/file-resolver.js';
 import PackageResolver from '../../package-resolver.js';
@@ -32,14 +40,19 @@ export const noArguments = true;
 class ImportResolver extends BaseResolver {
   getCwd(): string {
     if (this.request.parentRequest) {
-      const parent = this.resolver.getStrictResolvedPattern(this.request.parentRequest.pattern);
+      const parent = this.resolver.getStrictResolvedPattern(
+        this.request.parentRequest.pattern,
+      );
       invariant(parent._loc, 'expected package location');
       return path.dirname(parent._loc);
     }
     return this.config.cwd;
   }
 
-  resolveHostedGit(info: Manifest, Resolver: typeof HostedGitResolver): Manifest {
+  resolveHostedGit(
+    info: Manifest,
+    Resolver: typeof HostedGitResolver,
+  ): Manifest {
     const {range} = PackageRequest.normalizePattern(this.pattern);
     const exploded = explodeHostedGitFragment(range, this.reporter);
     const hash = (info: any).gitHead;
@@ -152,26 +165,36 @@ class ImportResolver extends BaseResolver {
     let cwd = this.getCwd();
     while (!path.relative(this.config.cwd, cwd).startsWith('..')) {
       const loc = path.join(cwd, 'node_modules', name);
-      const info = await this.config.getCache(`import-resolver-${loc}`, () => this.resolveLocation(loc));
+      const info = await this.config.getCache(`import-resolver-${loc}`, () =>
+        this.resolveLocation(loc),
+      );
       if (info) {
         return info;
       }
       cwd = path.resolve(cwd, '../..');
     }
-    throw new MessageError(this.reporter.lang('importResolveFailed', name, this.getCwd()));
+    throw new MessageError(
+      this.reporter.lang('importResolveFailed', name, this.getCwd()),
+    );
   }
 }
 
 class ImportPackageRequest extends PackageRequest {
   constructor(req: DependencyRequestPattern, resolver: PackageResolver) {
     super(req, resolver);
-    this.import = this.parentRequest instanceof ImportPackageRequest ? this.parentRequest.import : true;
+    this.import = this.parentRequest instanceof ImportPackageRequest
+      ? this.parentRequest.import
+      : true;
   }
 
   import: boolean;
 
   getRootName(): string {
-    return (this.resolver instanceof ImportPackageResolver && this.resolver.rootName) || 'root';
+    return (
+      (this.resolver instanceof ImportPackageResolver &&
+        this.resolver.rootName) ||
+      'root'
+    );
   }
 
   getParentHumanName(): string {
@@ -195,13 +218,25 @@ class ImportPackageRequest extends PackageRequest {
 
   findVersionInfo(): Promise<Manifest> {
     if (!this.import) {
-      this.reporter.verbose(this.reporter.lang('skippingImport', this.pattern, this.getParentHumanName()));
+      this.reporter.verbose(
+        this.reporter.lang(
+          'skippingImport',
+          this.pattern,
+          this.getParentHumanName(),
+        ),
+      );
       return super.findVersionInfo();
     }
     const resolver = new ImportResolver(this, this.pattern);
     return resolver.resolve().catch(() => {
       this.import = false;
-      this.reporter.warn(this.reporter.lang('importFailed', this.pattern, this.getParentHumanName()));
+      this.reporter.warn(
+        this.reporter.lang(
+          'importFailed',
+          this.pattern,
+          this.getParentHumanName(),
+        ),
+      );
       return super.findVersionInfo();
     });
   }
@@ -251,7 +286,11 @@ class ImportPackageResolver extends PackageResolver {
     }
   }
 
-  async init(deps: DependencyRequestPatterns, isFlat: boolean, rootName?: string): Promise<void> {
+  async init(
+    deps: DependencyRequestPatterns,
+    isFlat: boolean,
+    rootName?: string,
+  ): Promise<void> {
     this.flat = isFlat;
     this.rootName = rootName || this.rootName;
     const activity = (this.activity = this.reporter.activity());
@@ -264,11 +303,20 @@ class ImportPackageResolver extends PackageResolver {
 }
 
 export class Import extends Install {
-  constructor(flags: Object, config: Config, reporter: Reporter, lockfile: Lockfile) {
+  constructor(
+    flags: Object,
+    config: Config,
+    reporter: Reporter,
+    lockfile: Lockfile,
+  ) {
     super(flags, config, reporter, lockfile);
     this.resolver = new ImportPackageResolver(this.config, this.lockfile);
     this.fetcher = new PackageFetcher(config, this.resolver);
-    this.compatibility = new PackageCompatibility(config, this.resolver, this.flags.ignoreEngines);
+    this.compatibility = new PackageCompatibility(
+      config,
+      this.resolver,
+      this.flags.ignoreEngines,
+    );
     this.linker = new PackageLinker(config, this.resolver);
   }
 
@@ -293,7 +341,12 @@ export function hasWrapper(): boolean {
   return true;
 }
 
-export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
+export async function run(
+  config: Config,
+  reporter: Reporter,
+  flags: Object,
+  args: Array<string>,
+): Promise<void> {
   const imp = new Import(flags, config, reporter, new Lockfile({}));
   await imp.init();
 }

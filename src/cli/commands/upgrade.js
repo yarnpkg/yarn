@@ -10,7 +10,10 @@ import {MessageError} from '../../errors.js';
 export function setFlags(commander: Object) {
   // TODO: support some flags that install command has
   commander.usage('upgrade [flags]');
-  commander.option('-S, --scope <scope>', 'upgrade packages under the specified scope');
+  commander.option(
+    '-S, --scope <scope>',
+    'upgrade packages under the specified scope',
+  );
 }
 
 export function hasWrapper(): boolean {
@@ -19,15 +22,28 @@ export function hasWrapper(): boolean {
 
 export const requireLockfile = true;
 
-export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
-  const lockfile = args.length ? await Lockfile.fromDirectory(config.cwd, reporter) : new Lockfile();
+export async function run(
+  config: Config,
+  reporter: Reporter,
+  flags: Object,
+  args: Array<string>,
+): Promise<void> {
+  const lockfile = args.length
+    ? await Lockfile.fromDirectory(config.cwd, reporter)
+    : new Lockfile();
   const {
     dependencies,
     devDependencies,
     optionalDependencies,
     peerDependencies,
   } = (await config.readRootManifest()) || {};
-  const allDependencies = Object.assign({}, peerDependencies, optionalDependencies, devDependencies, dependencies);
+  const allDependencies = Object.assign(
+    {},
+    peerDependencies,
+    optionalDependencies,
+    devDependencies,
+    dependencies,
+  );
   let addArgs = [];
 
   if (flags.scope) {

@@ -263,7 +263,10 @@ export default (async function(
   const licenseFile = files.find((filename): boolean => {
     const lower = filename.toLowerCase();
     return (
-      lower === 'license' || lower.startsWith('license.') || lower === 'unlicense' || lower.startsWith('unlicense.')
+      lower === 'license' ||
+      lower.startsWith('license.') ||
+      lower === 'unlicense' ||
+      lower.startsWith('unlicense.')
     );
   });
   if (licenseFile) {
@@ -277,9 +280,15 @@ export default (async function(
       const license = info.license;
 
       if (typeof license === 'string') {
-        if (inferredLicense && isValidLicense(inferredLicense) && !isValidLicense(license)) {
+        if (
+          inferredLicense &&
+          isValidLicense(inferredLicense) &&
+          !isValidLicense(license)
+        ) {
           // some packages don't specify their license version but we can infer it based on their license file
-          const basicLicense = license.toLowerCase().replace(/(-like|\*)$/g, '');
+          const basicLicense = license
+            .toLowerCase()
+            .replace(/(-like|\*)$/g, '');
           const expandedLicense = inferredLicense.toLowerCase();
           if (expandedLicense.startsWith(basicLicense)) {
             // TODO consider doing something to notify the user

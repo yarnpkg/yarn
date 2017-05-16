@@ -20,7 +20,12 @@ export function hasWrapper(): boolean {
   return true;
 }
 
-export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
+export async function run(
+  config: Config,
+  reporter: Reporter,
+  flags: Object,
+  args: Array<string>,
+): Promise<void> {
   if (!args.length) {
     throw new MessageError(reporter.lang('tooFewArguments', 1));
   }
@@ -52,7 +57,10 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
 
       const possibleManifestLoc = path.join(config.cwd, registry.folder, name);
       if (await fs.exists(possibleManifestLoc)) {
-        manifests.push([possibleManifestLoc, await config.readManifest(possibleManifestLoc, registryName)]);
+        manifests.push([
+          possibleManifestLoc,
+          await config.readManifest(possibleManifestLoc, registryName),
+        ]);
       }
     }
 
@@ -73,7 +81,12 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
 
   // reinstall so we can get the updated lockfile
   reporter.step(++step, totalSteps, reporter.lang('uninstallRegenerate'));
-  const reinstall = new Install({force: true, ...flags}, config, new NoopReporter(), lockfile);
+  const reinstall = new Install(
+    {force: true, ...flags},
+    config,
+    new NoopReporter(),
+    lockfile,
+  );
   await reinstall.init();
 
   //

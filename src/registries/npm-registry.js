@@ -2,7 +2,10 @@
 
 import type Reporter from '../reporters/base-reporter.js';
 import type RequestManager from '../util/request-manager.js';
-import type {RegistryRequestOptions, CheckOutdatedReturn} from './base-registry.js';
+import type {
+  RegistryRequestOptions,
+  CheckOutdatedReturn,
+} from './base-registry.js';
 import type Config from '../config.js';
 import type {ConfigRegistries} from './index.js';
 import * as fs from '../util/fs.js';
@@ -41,7 +44,12 @@ function getGlobalPrefix(): string {
 }
 
 export default class NpmRegistry extends Registry {
-  constructor(cwd: string, registries: ConfigRegistries, requestManager: RequestManager, reporter: Reporter) {
+  constructor(
+    cwd: string,
+    registries: ConfigRegistries,
+    requestManager: RequestManager,
+    reporter: Reporter,
+  ) {
     super(cwd, registries, requestManager, reporter);
     this.folder = 'node_modules';
   }
@@ -53,11 +61,18 @@ export default class NpmRegistry extends Registry {
     return name.replace('/', '%2f');
   }
 
-  request(pathname: string, opts?: RegistryRequestOptions = {}, packageName: ?string): Promise<*> {
+  request(
+    pathname: string,
+    opts?: RegistryRequestOptions = {},
+    packageName: ?string,
+  ): Promise<*> {
     const registry = this.getRegistry(packageName || pathname);
     const requestUrl = url.resolve(registry, pathname);
     const alwaysAuth = this.getRegistryOrGlobalOption(registry, 'always-auth');
-    const customHostSuffix = this.getRegistryOrGlobalOption(registry, 'custom-host-suffix');
+    const customHostSuffix = this.getRegistryOrGlobalOption(
+      registry,
+      'custom-host-suffix',
+    );
 
     const headers = Object.assign(
       {
@@ -65,7 +80,11 @@ export default class NpmRegistry extends Registry {
       },
       opts.headers,
     );
-    if (this.token || (alwaysAuth && isRequestToRegistry(requestUrl, registry, customHostSuffix))) {
+    if (
+      this.token ||
+      (alwaysAuth &&
+        isRequestToRegistry(requestUrl, registry, customHostSuffix))
+    ) {
       const authorization = this.getAuth(packageName || pathname);
       if (authorization) {
         headers.authorization = authorization;
@@ -85,7 +104,11 @@ export default class NpmRegistry extends Registry {
     });
   }
 
-  async checkOutdated(config: Config, name: string, range: string): CheckOutdatedReturn {
+  async checkOutdated(
+    config: Config,
+    name: string,
+    range: string,
+  ): CheckOutdatedReturn {
     const req = await this.request(NpmRegistry.escapeName(name));
     if (!req) {
       throw new Error('couldnt find ' + name);
@@ -96,12 +119,19 @@ export default class NpmRegistry extends Registry {
 
     return {
       latest: req['dist-tags'].latest,
-      wanted: (await NpmResolver.findVersionInRegistryResponse(config, range, req)).version,
+      wanted: (await NpmResolver.findVersionInRegistryResponse(
+        config,
+        range,
+        req,
+      )).version,
       url,
     };
   }
 
-  async getPossibleConfigLocations(filename: string, reporter: Reporter): Promise<Array<[boolean, string, string]>> {
+  async getPossibleConfigLocations(
+    filename: string,
+    reporter: Reporter,
+  ): Promise<Array<[boolean, string, string]>> {
     const possibles = [
       [false, path.join(this.cwd, filename)],
       [true, this.config.userconfig || path.join(userHome, filename)],
@@ -110,7 +140,10 @@ export default class NpmRegistry extends Registry {
 
     const foldersFromRootToCwd = this.cwd.split(path.sep);
     while (foldersFromRootToCwd.length > 1) {
-      possibles.push([false, path.join(foldersFromRootToCwd.join(path.sep), filename)]);
+      possibles.push([
+        false,
+        path.join(foldersFromRootToCwd.join(path.sep), filename),
+      ]);
       foldersFromRootToCwd.pop();
     }
 
@@ -129,7 +162,10 @@ export default class NpmRegistry extends Registry {
     // docs: https://docs.npmjs.com/misc/config
     this.mergeEnv('npm_config_');
 
-    for (const [, loc, file] of await this.getPossibleConfigLocations('.npmrc', this.reporter)) {
+    for (const [, loc, file] of await this.getPossibleConfigLocations(
+      '.npmrc',
+      this.reporter,
+    )) {
       const config = Registry.normalizeConfig(ini.parse(file));
       for (const key: string in config) {
         config[key] = envReplace(config[key]);
@@ -139,7 +175,10 @@ export default class NpmRegistry extends Registry {
       const offlineLoc = config['yarn-offline-mirror'];
       // don't normalize if we already have a mirror path
       if (!this.config['yarn-offline-mirror'] && offlineLoc) {
-        const mirrorLoc = (config['yarn-offline-mirror'] = path.resolve(path.dirname(loc), offlineLoc));
+        const mirrorLoc = (config['yarn-offline-mirror'] = path.resolve(
+          path.dirname(loc),
+          offlineLoc,
+        ));
         await fs.mkdirp(mirrorLoc);
       }
 
@@ -148,14 +187,18 @@ export default class NpmRegistry extends Registry {
   }
 
   getScope(packageName: string): string {
-    return !packageName || packageName[0] !== '@' ? '' : packageName.split(/\/|%2f/)[0];
+    return !packageName || packageName[0] !== '@'
+      ? ''
+      : packageName.split(/\/|%2f/)[0];
   }
 
   getRegistry(packageName: string): string {
     // Try extracting registry from the url, then scoped registry, and default registry
     if (packageName.match(/^https?:/)) {
       const availableRegistries = this.getAvailableRegistries();
-      const registry = availableRegistries.find(registry => packageName.startsWith(registry));
+      const registry = availableRegistries.find(registry =>
+        packageName.startsWith(registry),
+      );
       if (registry) {
         return addSuffix(registry, '/');
       }
@@ -163,7 +206,8 @@ export default class NpmRegistry extends Registry {
 
     for (const scope of [this.getScope(packageName), '']) {
       const registry =
-        this.getScopedOption(scope, 'registry') || this.registries.yarn.getScopedOption(scope, 'registry');
+        this.getScopedOption(scope, 'registry') ||
+        this.registries.yarn.getScopedOption(scope, 'registry');
       if (registry) {
         return addSuffix(String(registry), '/');
       }
@@ -196,7 +240,9 @@ export default class NpmRegistry extends Registry {
     const password = this.getRegistryOrGlobalOption(registry, '_password');
     if (username && password) {
       const pw = new Buffer(String(password), 'base64').toString();
-      return 'Basic ' + new Buffer(String(username) + ':' + pw).toString('base64');
+      return (
+        'Basic ' + new Buffer(String(username) + ':' + pw).toString('base64')
+      );
     }
 
     return '';
@@ -218,7 +264,8 @@ export default class NpmRegistry extends Registry {
     // 3nd attempt, remove the 'registry/?' suffix of the registry URL
     return (
       this.getScopedOption(reg, option) ||
-      (reg.match(pre) && this.getRegistryOption(reg.replace(pre, ''), option)) ||
+      (reg.match(pre) &&
+        this.getRegistryOption(reg.replace(pre, ''), option)) ||
       (reg.match(suf) && this.getRegistryOption(reg.replace(suf, ''), option))
     );
   }

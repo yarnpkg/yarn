@@ -13,7 +13,12 @@ export function hasWrapper(): boolean {
 
 export function setFlags() {}
 
-export function run(config: Config, reporter: Reporter, commander: Object, args: Array<string>): Promise<void> {
+export function run(
+  config: Config,
+  reporter: Reporter,
+  commander: Object,
+  args: Array<string>,
+): Promise<void> {
   if (args.length) {
     const commandName = args.shift();
     if (Object.prototype.hasOwnProperty.call(commands, commandName)) {
@@ -30,7 +35,9 @@ export function run(config: Config, reporter: Reporter, commander: Object, args:
             console.log();
           });
         }
-        commander.on('--help', () => console.log('  ' + command.getDocsInfo + '\n'));
+        commander.on('--help', () =>
+          console.log('  ' + command.getDocsInfo + '\n'),
+        );
         commander.help();
         return Promise.resolve();
       }
@@ -47,8 +54,14 @@ export function run(config: Config, reporter: Reporter, commander: Object, args:
 
       console.log(`    - ${hyphenate(name)}`);
     }
-    console.log('\n  Run `' + chalk.bold('yarn help COMMAND') + '` for more information on specific commands.');
-    console.log('  Visit ' + chalk.bold(getDocsLink()) + ' to learn more about Yarn.\n');
+    console.log(
+      '\n  Run `' +
+        chalk.bold('yarn help COMMAND') +
+        '` for more information on specific commands.',
+    );
+    console.log(
+      '  Visit ' + chalk.bold(getDocsLink()) + ' to learn more about Yarn.\n',
+    );
   });
 
   commander.help();

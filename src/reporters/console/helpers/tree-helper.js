@@ -18,12 +18,20 @@ export function sortTrees(trees: Trees): Trees {
   });
 }
 
-export function recurseTree(tree: Trees, prefix: string, recurseFunc: Function) {
+export function recurseTree(
+  tree: Trees,
+  prefix: string,
+  recurseFunc: Function,
+) {
   const treeLen = tree.length;
   const treeEnd = treeLen - 1;
   for (let i = 0; i < treeLen; i++) {
     const atEnd = i === treeEnd;
-    recurseFunc(tree[i], prefix + getLastIndentChar(atEnd), prefix + getNextIndentChar(atEnd));
+    recurseFunc(
+      tree[i],
+      prefix + getLastIndentChar(atEnd),
+      prefix + getNextIndentChar(atEnd),
+    );
   }
 }
 
@@ -45,6 +53,10 @@ function getSuffix(hint: any, formatter: any): string {
   return hint ? ` (${formatter.grey(hint)})` : '';
 }
 
-function formatColor(color: string, strToFormat: string, formatter: any): string {
+function formatColor(
+  color: string,
+  strToFormat: string,
+  formatter: any,
+): string {
   return color ? formatter[color](strToFormat) : strToFormat;
 }

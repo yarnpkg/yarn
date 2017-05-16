@@ -16,7 +16,12 @@ const path = require('path');
 // regexp which verifies that cache path contains semver + hash
 const cachePathRe = /-\d+\.\d+\.\d+-[\dabcdef]{40}$/;
 
-function addTest(pattern, registry = 'npm', init: ?(cacheFolder: string) => Promise<any>, offline = false) {
+function addTest(
+  pattern,
+  registry = 'npm',
+  init: ?(cacheFolder: string) => Promise<any>,
+  offline = false,
+) {
   // concurrently network requests tend to stall
   test(`${offline ? 'offline ' : ''}resolve ${pattern}`, async () => {
     const lockfile = new Lockfile();
@@ -58,8 +63,12 @@ function addTest(pattern, registry = 'npm', init: ?(cacheFolder: string) => Prom
 // addTest('https://github.com/npm-ml/ocaml.git#npm-4.02.3'); // hash
 addTest('https://git@github.com/stevemao/left-pad.git'); // git url, with username
 addTest('https://bitbucket.org/hgarcia/node-bitbucket-api.git'); // hosted git url
-addTest('https://github.com/yarnpkg/yarn/releases/download/v0.18.1/yarn-v0.18.1.tar.gz'); // tarball
-addTest('https://github.com/yarnpkg/e2e-test-repo.git#greenkeeper/cross-env-3.1.4'); // hash with slashes
+addTest(
+  'https://github.com/yarnpkg/yarn/releases/download/v0.18.1/yarn-v0.18.1.tar.gz',
+); // tarball
+addTest(
+  'https://github.com/yarnpkg/e2e-test-repo.git#greenkeeper/cross-env-3.1.4',
+); // hash with slashes
 addTest('gitlab:leanlabsio/kanban'); // gitlab
 addTest('gist:d59975ac23e26ad4e25b'); // gist url
 addTest('bitbucket:hgarcia/node-bitbucket-api'); // bitbucket url
@@ -79,7 +88,10 @@ addTest(
       path.join(folder, constants.METADATA_FILENAME),
       '{"remote": {"hash": "cafebabecafebabecafebabecafebabecafebabe"}}',
     );
-    await fs.writeFile(path.join(folder, 'package.json'), '{"name": "@foo/bar", "version": "1.2.3"}');
+    await fs.writeFile(
+      path.join(folder, 'package.json'),
+      '{"name": "@foo/bar", "version": "1.2.3"}',
+    );
   },
   true,
 ); // offline npm scoped package

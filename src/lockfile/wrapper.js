@@ -49,7 +49,10 @@ function blankObjectUndefined(obj: ?Object): ?Object {
   return obj && Object.keys(obj).length ? obj : undefined;
 }
 
-export function implodeEntry(pattern: string, obj: Object): MinimalLockManifest {
+export function implodeEntry(
+  pattern: string,
+  obj: Object,
+): MinimalLockManifest {
   const inferredName = getName(pattern);
   return {
     name: inferredName === obj.name ? undefined : obj.name,
@@ -86,7 +89,10 @@ export default class Lockfile {
     [key: string]: LockManifest,
   };
 
-  static async fromDirectory(dir: string, reporter?: Reporter): Promise<Lockfile> {
+  static async fromDirectory(
+    dir: string,
+    reporter?: Reporter,
+  ): Promise<Lockfile> {
     // read the manifest in this directory
     const lockfileLoc = path.join(dir, constants.LOCKFILE_FILENAME);
     let lockfile;
@@ -137,7 +143,9 @@ export default class Lockfile {
     // order by name so that lockfile manifest is assigned to the first dependency with this manifest
     // the others that have the same remote.resolved will just refer to the first
     // ordering allows for consistency in lockfile when it is serialized
-    const sortedPatternsKeys: Array<string> = Object.keys(patterns).sort(sortAlpha);
+    const sortedPatternsKeys: Array<string> = Object.keys(patterns).sort(
+      sortAlpha,
+    );
 
     for (const pattern of sortedPatternsKeys) {
       const pkg = patterns[pattern];

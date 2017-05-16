@@ -41,7 +41,12 @@ export function isValidPackageName(name: string): boolean {
 
 type WarnFunction = (msg: string) => void;
 
-export default function(info: Object, isRoot: boolean, reporter: Reporter, warn: WarnFunction) {
+export default function(
+  info: Object,
+  isRoot: boolean,
+  reporter: Reporter,
+  warn: WarnFunction,
+) {
   if (isRoot) {
     for (const key in typos) {
       if (key in info) {
@@ -97,7 +102,12 @@ export default function(info: Object, isRoot: boolean, reporter: Reporter, warn:
   cleanDependencies(info, isRoot, reporter, warn);
 }
 
-export function cleanDependencies(info: Object, isRoot: boolean, reporter: Reporter, warn: WarnFunction) {
+export function cleanDependencies(
+  info: Object,
+  isRoot: boolean,
+  reporter: Reporter,
+  warn: WarnFunction,
+) {
   // get dependency objects
   const depTypes = [];
   for (const type of dependencyKeys) {
@@ -122,7 +132,16 @@ export function cleanDependencies(info: Object, isRoot: boolean, reporter: Repor
 
         if (version !== version2 && isRoot) {
           // only throw a warning when at the root
-          warn(reporter.lang('manifestDependencyCollision', type, name, version, type2, version2));
+          warn(
+            reporter.lang(
+              'manifestDependencyCollision',
+              type,
+              name,
+              version,
+              type2,
+              version2,
+            ),
+          );
         }
 
         delete deps2[name];

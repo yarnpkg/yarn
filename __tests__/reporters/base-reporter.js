@@ -111,7 +111,12 @@ test('BaseReporter.disableProgress', () => {
 test('BaseReporter.termstrings', () => {
   const reporter = new BaseReporter();
   const expected = '"\u001b[2mjsprim#\u001b[22mjson-schema" not installed';
-  expect(reporter.lang('packageNotInstalled', '\u001b[2mjsprim#\u001b[22mjson-schema')).toEqual(expected);
+  expect(
+    reporter.lang(
+      'packageNotInstalled',
+      '\u001b[2mjsprim#\u001b[22mjson-schema',
+    ),
+  ).toEqual(expected);
 });
 
 test('BaseReporter.prompt', async () => {

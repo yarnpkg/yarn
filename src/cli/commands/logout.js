@@ -9,7 +9,12 @@ export function hasWrapper(): boolean {
   return true;
 }
 
-export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
+export async function run(
+  config: Config,
+  reporter: Reporter,
+  flags: Object,
+  args: Array<string>,
+): Promise<void> {
   await config.registries.yarn.saveHomeConfig({
     username: undefined,
     email: undefined,

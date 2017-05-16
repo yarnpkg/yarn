@@ -21,8 +21,12 @@ test('parse', () => {
   expect(parse('foo "bar"')).toEqual(nullify({foo: 'bar'}));
 
   expect(parse(`foo:\n  bar "bar"`)).toEqual(nullify({foo: {bar: 'bar'}}));
-  expect(parse(`foo:\n  bar:\n  foo "bar"`)).toEqual(nullify({foo: {bar: {}, foo: 'bar'}}));
-  expect(parse(`foo:\n  bar:\n    foo "bar"`)).toEqual(nullify({foo: {bar: {foo: 'bar'}}}));
+  expect(parse(`foo:\n  bar:\n  foo "bar"`)).toEqual(
+    nullify({foo: {bar: {}, foo: 'bar'}}),
+  );
+  expect(parse(`foo:\n  bar:\n    foo "bar"`)).toEqual(
+    nullify({foo: {bar: {foo: 'bar'}}}),
+  );
   expect(parse('foo:\n  bar:\n    yes no\nbar:\n  yes no')).toEqual(
     nullify({
       foo: {

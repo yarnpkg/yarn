@@ -7,10 +7,17 @@ import type {FetcherNames} from './fetchers/index.js';
 import type {Reporter} from './reporters/index.js';
 import type Config from './config.js';
 
-export type CLIFunction = (config: Config, reporter: Reporter, flags: Object, args: Array<string>) => CLIFunctionReturn;
+export type CLIFunction = (
+  config: Config,
+  reporter: Reporter,
+  flags: Object,
+  args: Array<string>,
+) => CLIFunctionReturn;
 
 type _CLIFunctionReturn = boolean;
-export type CLIFunctionReturn = ?_CLIFunctionReturn | Promise<?_CLIFunctionReturn>;
+export type CLIFunctionReturn =
+  | ?_CLIFunctionReturn
+  | Promise<?_CLIFunctionReturn>;
 
 // dependency request pattern data structure that's used to request dependencies from a
 // PackageResolver

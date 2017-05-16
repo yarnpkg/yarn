@@ -17,13 +17,23 @@ const runPack = buildRun.bind(
   null,
   ConsoleReporter,
   fixturesLoc,
-  async (args, flags, config, reporter, lockfile, getStdout): Promise<string> => {
+  async (
+    args,
+    flags,
+    config,
+    reporter,
+    lockfile,
+    getStdout,
+  ): Promise<string> => {
     await pack(config, reporter, flags, args);
     return getStdout();
   },
 );
 
-export async function getFilesFromArchive(source, destination): Promise<Array<string>> {
+export async function getFilesFromArchive(
+  source,
+  destination,
+): Promise<Array<string>> {
   const unzip = new Promise((resolve, reject) => {
     fs2
       .createReadStream(source)
@@ -44,7 +54,9 @@ export async function getFilesFromArchive(source, destination): Promise<Array<st
   return files;
 }
 
-test.concurrent('pack should work with a minimal example', (): Promise<void> => {
+test.concurrent('pack should work with a minimal example', (): Promise<
+  void,
+> => {
   return runPack([], {}, 'minimal', async (config): Promise<void> => {
     const {cwd} = config;
     const files = await getFilesFromArchive(
@@ -56,16 +68,26 @@ test.concurrent('pack should work with a minimal example', (): Promise<void> => 
   });
 });
 
-test.concurrent('pack should include all files listed in the files array', (): Promise<void> => {
-  return runPack([], {}, 'files-include', async (config): Promise<void> => {
-    const {cwd} = config;
-    const files = await getFilesFromArchive(
-      path.join(cwd, 'files-include-v1.0.0.tgz'),
-      path.join(cwd, 'files-include-v1.0.0'),
-    );
-    expect(files.sort()).toEqual(['a.js', 'b.js', 'dir', path.join('dir', 'nested.js'), 'index.js', 'package.json']);
-  });
-});
+test.concurrent(
+  'pack should include all files listed in the files array',
+  (): Promise<void> => {
+    return runPack([], {}, 'files-include', async (config): Promise<void> => {
+      const {cwd} = config;
+      const files = await getFilesFromArchive(
+        path.join(cwd, 'files-include-v1.0.0.tgz'),
+        path.join(cwd, 'files-include-v1.0.0'),
+      );
+      expect(files.sort()).toEqual([
+        'a.js',
+        'b.js',
+        'dir',
+        path.join('dir', 'nested.js'),
+        'index.js',
+        'package.json',
+      ]);
+    });
+  },
+);
 
 test.concurrent('pack should included globbed files', (): Promise<void> => {
   return runPack([], {}, 'files-glob', async (config): Promise<void> => {
@@ -75,74 +97,114 @@ test.concurrent('pack should included globbed files', (): Promise<void> => {
       path.join(cwd, 'files-glob-v1.0.0'),
     );
     expect(files.sort()).toEqual(
-      ['lib', path.join('lib', 'a.js'), path.join('lib', 'b.js'), 'index.js', 'package.json'].sort(),
+      [
+        'lib',
+        path.join('lib', 'a.js'),
+        path.join('lib', 'b.js'),
+        'index.js',
+        'package.json',
+      ].sort(),
     );
   });
 });
 
-test.concurrent('pack should include mandatory files not listed in files array if files not empty', (): Promise<
-  void,
-> => {
-  return runPack([], {}, 'files-include-mandatory', async (config): Promise<void> => {
-    const {cwd} = config;
-    const files = await getFilesFromArchive(
-      path.join(cwd, 'files-include-mandatory-v1.0.0.tgz'),
-      path.join(cwd, 'files-include-mandatory-v1.0.0'),
-    );
-    const expected = ['package.json', 'index.js', 'readme.md', 'license', 'changelog'];
-    expected.forEach(filename => {
-      expect(files.indexOf(filename)).toBeGreaterThanOrEqual(0);
+test.concurrent(
+  'pack should include mandatory files not listed in files array if files not empty',
+  (): Promise<void> => {
+    return runPack([], {}, 'files-include-mandatory', async (config): Promise<
+      void,
+    > => {
+      const {cwd} = config;
+      const files = await getFilesFromArchive(
+        path.join(cwd, 'files-include-mandatory-v1.0.0.tgz'),
+        path.join(cwd, 'files-include-mandatory-v1.0.0'),
+      );
+      const expected = [
+        'package.json',
+        'index.js',
+        'readme.md',
+        'license',
+        'changelog',
+      ];
+      expected.forEach(filename => {
+        expect(files.indexOf(filename)).toBeGreaterThanOrEqual(0);
+      });
     });
-  });
-});
+  },
+);
 
-test.concurrent('pack should exclude mandatory files from ignored directories', (): Promise<void> => {
-  return runPack([], {}, 'exclude-mandatory-files-from-ignored-directories', async (config): Promise<void> => {
-    const {cwd} = config;
-    const files = await getFilesFromArchive(
-      path.join(cwd, 'exclude-mandatory-files-from-ignored-directories-v1.0.0.tgz'),
-      path.join(cwd, 'exclude-mandatory-files-from-ignored-directories-v1.0.0'),
+test.concurrent(
+  'pack should exclude mandatory files from ignored directories',
+  (): Promise<void> => {
+    return runPack(
+      [],
+      {},
+      'exclude-mandatory-files-from-ignored-directories',
+      async (config): Promise<void> => {
+        const {cwd} = config;
+        const files = await getFilesFromArchive(
+          path.join(
+            cwd,
+            'exclude-mandatory-files-from-ignored-directories-v1.0.0.tgz',
+          ),
+          path.join(
+            cwd,
+            'exclude-mandatory-files-from-ignored-directories-v1.0.0',
+          ),
+        );
+        expect(files.indexOf('index.js')).toBeGreaterThanOrEqual(0);
+        expect(files.indexOf('package.json')).toBeGreaterThanOrEqual(0);
+        expect(files.indexOf('node_modules')).toEqual(-1);
+      },
     );
-    expect(files.indexOf('index.js')).toBeGreaterThanOrEqual(0);
-    expect(files.indexOf('package.json')).toBeGreaterThanOrEqual(0);
-    expect(files.indexOf('node_modules')).toEqual(-1);
-  });
-});
+  },
+);
 
-test.concurrent('pack should exclude all other files if files array is not empty', (): Promise<void> => {
-  return runPack([], {}, 'files-exclude', async (config): Promise<void> => {
-    const {cwd} = config;
-    const files = await getFilesFromArchive(
-      path.join(cwd, 'files-exclude-v1.0.0.tgz'),
-      path.join(cwd, 'files-exclude-v1.0.0'),
-    );
-    const excluded = ['c.js'];
-    excluded.forEach(filename => {
-      expect(files.indexOf(filename)).toEqual(-1);
+test.concurrent(
+  'pack should exclude all other files if files array is not empty',
+  (): Promise<void> => {
+    return runPack([], {}, 'files-exclude', async (config): Promise<void> => {
+      const {cwd} = config;
+      const files = await getFilesFromArchive(
+        path.join(cwd, 'files-exclude-v1.0.0.tgz'),
+        path.join(cwd, 'files-exclude-v1.0.0'),
+      );
+      const excluded = ['c.js'];
+      excluded.forEach(filename => {
+        expect(files.indexOf(filename)).toEqual(-1);
+      });
     });
-  });
-});
+  },
+);
 
-test.concurrent('pack should exclude all dotflies if not in files and files not empty', (): Promise<void> => {
-  return runPack([], {}, 'files-exclude-dotfile', async (config): Promise<void> => {
-    const {cwd} = config;
-    const files = await getFilesFromArchive(
-      path.join(cwd, 'files-exclude-dotfile-v1.0.0.tgz'),
-      path.join(cwd, 'files-exclude-dotfile-v1.0.0'),
-    );
-    expect(files.indexOf('.dotfile')).toEqual(-1);
-  });
-});
+test.concurrent(
+  'pack should exclude all dotflies if not in files and files not empty',
+  (): Promise<void> => {
+    return runPack([], {}, 'files-exclude-dotfile', async (config): Promise<
+      void,
+    > => {
+      const {cwd} = config;
+      const files = await getFilesFromArchive(
+        path.join(cwd, 'files-exclude-dotfile-v1.0.0.tgz'),
+        path.join(cwd, 'files-exclude-dotfile-v1.0.0'),
+      );
+      expect(files.indexOf('.dotfile')).toEqual(-1);
+    });
+  },
+);
 
-test.concurrent('pack should exclude all files in dot-directories if not in files and files not empty', (): Promise<
-  void,
-> => {
-  return runPack([], {}, 'files-exclude-dotdir', async (config): Promise<void> => {
-    const {cwd} = config;
-    const files = await getFilesFromArchive(
-      path.join(cwd, 'files-exclude-dotdir-v1.0.0.tgz'),
-      path.join(cwd, 'files-exclude-dotdir-v1.0.0'),
-    );
-    expect(files.indexOf('a.js')).toEqual(-1);
-  });
-});
+test.concurrent(
+  'pack should exclude all files in dot-directories if not in files and files not empty',
+  (): Promise<void> => {
+    return runPack([], {}, 'files-exclude-dotdir', async (config): Promise<
+      void,
+    > => {
+      const {cwd} = config;
+      const files = await getFilesFromArchive(
+        path.join(cwd, 'files-exclude-dotdir-v1.0.0.tgz'),
+        path.join(cwd, 'files-exclude-dotdir-v1.0.0'),
+      );
+      expect(files.indexOf('a.js')).toEqual(-1);
+    });
+  },
+);

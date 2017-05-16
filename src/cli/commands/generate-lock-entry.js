@@ -10,7 +10,12 @@ export function hasWrapper(): boolean {
   return false;
 }
 
-export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
+export async function run(
+  config: Config,
+  reporter: Reporter,
+  flags: Object,
+  args: Array<string>,
+): Promise<void> {
   let manifest;
   if (flags.useManifest) {
     manifest = await config.readJson(flags.useManifest);

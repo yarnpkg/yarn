@@ -1,6 +1,10 @@
 /* @flow */
 
-import type {Manifest, DependencyRequestPatterns, DependencyRequestPattern} from './types.js';
+import type {
+  Manifest,
+  DependencyRequestPatterns,
+  DependencyRequestPattern,
+} from './types.js';
 import type {RegistryNames} from './registries/index.js';
 import type PackageReference from './package-reference.js';
 import type {Reporter} from './reporters/index.js';
@@ -193,7 +197,9 @@ export default class PackageResolver {
    * Get a list of all package names in the depenency graph.
    */
 
-  getAllDependencyNamesByLevelOrder(seedPatterns: Array<string>): Iterable<string> {
+  getAllDependencyNamesByLevelOrder(
+    seedPatterns: Array<string>,
+  ): Iterable<string> {
     const names = new Set();
     for (const {name} of this.getLevelOrderManifests(seedPatterns)) {
       names.add(name);
@@ -328,7 +334,9 @@ export default class PackageResolver {
   addPattern(pattern: string, info: Manifest) {
     this.patterns[pattern] = info;
 
-    const byName = (this.patternsByPackage[info.name] = this.patternsByPackage[info.name] || []);
+    const byName = (this.patternsByPackage[info.name] = this.patternsByPackage[
+      info.name
+    ] || []);
     byName.push(pattern);
   }
 
@@ -447,7 +455,9 @@ export default class PackageResolver {
         !PackageRequest.getExoticResolver(range) &&
         hasVersion
       ) {
-        this.reporter.warn(this.reporter.lang('incorrectLockfileEntry', req.pattern));
+        this.reporter.warn(
+          this.reporter.lang('incorrectLockfileEntry', req.pattern),
+        );
         this.removePattern(req.pattern);
         this.newPatterns.push(req.pattern);
         this.lockfile.removePattern(req.pattern);

@@ -59,7 +59,11 @@ export default class PackageInstallScripts {
   }
 
   async walk(loc: string): Promise<Map<string, number>> {
-    const files = await fs.walk(loc, null, new Set(this.config.registryFolders));
+    const files = await fs.walk(
+      loc,
+      null,
+      new Set(this.config.registryFolders),
+    );
     const mtimes = new Map();
     for (const file of files) {
       mtimes.set(file.relative, file.mtime);
@@ -94,14 +98,24 @@ export default class PackageInstallScripts {
     this.artifacts[`${pkg.name}@${pkg.version}`] = buildArtifacts;
   }
 
-  async install(cmds: Array<[string, string]>, pkg: Manifest, spinner: ReporterSetSpinner): Promise<void> {
+  async install(
+    cmds: Array<[string, string]>,
+    pkg: Manifest,
+    spinner: ReporterSetSpinner,
+  ): Promise<void> {
     const ref = pkg._reference;
     invariant(ref, 'expected reference');
     const loc = this.config.generateHardModulePath(ref);
 
     try {
       for (const [stage, cmd] of cmds) {
-        const {stdout} = await executeLifecycleScript(stage, this.config, loc, cmd, spinner);
+        const {stdout} = await executeLifecycleScript(
+          stage,
+          this.config,
+          loc,
+          cmd,
+          spinner,
+        );
         this.reporter.verbose(stdout);
       }
     } catch (err) {
@@ -112,14 +126,18 @@ export default class PackageInstallScripts {
       if (ref.optional) {
         ref.ignore = true;
         ref.incompatible = true;
-        this.reporter.warn(this.reporter.lang('optionalModuleScriptFail', err.message));
+        this.reporter.warn(
+          this.reporter.lang('optionalModuleScriptFail', err.message),
+        );
         this.reporter.info(this.reporter.lang('optionalModuleFail'));
 
         // Cleanup node_modules
         try {
           await fs.unlink(loc);
         } catch (e) {
-          this.reporter.error(this.reporter.lang('optionalModuleCleanupFail', e.message));
+          this.reporter.error(
+            this.reporter.lang('optionalModuleCleanupFail', e.message),
+          );
         }
       } else {
         throw err;
@@ -153,7 +171,11 @@ export default class PackageInstallScripts {
   }
 
   // detect if there is a circularDependency in the dependency tree
-  detectCircularDependencies(root: Manifest, seenManifests: Set<Manifest>, pkg: Manifest): boolean {
+  detectCircularDependencies(
+    root: Manifest,
+    seenManifests: Set<Manifest>,
+    pkg: Manifest,
+  ): boolean {
     const ref = pkg._reference;
     invariant(ref, 'expected reference');
 
@@ -177,7 +199,10 @@ export default class PackageInstallScripts {
   }
 
   // find the next package to be installed
-  findInstallablePackage(workQueue: Set<Manifest>, installed: Set<Manifest>): ?Manifest {
+  findInstallablePackage(
+    workQueue: Set<Manifest>,
+    installed: Set<Manifest>,
+  ): ?Manifest {
     for (const pkg of workQueue) {
       const ref = pkg._reference;
       invariant(ref, 'expected reference');
@@ -263,7 +288,10 @@ export default class PackageInstallScripts {
     const waitQueue = new Set();
     const workers = [];
 
-    const set = this.reporter.activitySet(installablePkgs, Math.min(this.config.childConcurrency, workQueue.size));
+    const set = this.reporter.activitySet(
+      installablePkgs,
+      Math.min(this.config.childConcurrency, workQueue.size),
+    );
 
     for (const spinner of set.spinners) {
       workers.push(this.worker(spinner, workQueue, installed, waitQueue));
@@ -278,7 +306,10 @@ export default class PackageInstallScripts {
         invariant(ref, 'expected reference');
         const loc = this.config.generateHardModulePath(ref);
         const beforeFiles = beforeFilesMap.get(loc);
-        invariant(beforeFiles, 'files before installation should always be recorded');
+        invariant(
+          beforeFiles,
+          'files before installation should always be recorded',
+        );
         await this.saveBuildArtifacts(loc, pkg, beforeFiles, set.spinners[0]);
       }
     }

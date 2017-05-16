@@ -66,7 +66,9 @@ export default class InstallationIntegrityChecker {
    * write a new one.
    */
 
-  async _getIntegrityHashLocation(usedRegistries?: Set<RegistryNames>): Promise<IntegrityHashLocation> {
+  async _getIntegrityHashLocation(
+    usedRegistries?: Set<RegistryNames>,
+  ): Promise<IntegrityHashLocation> {
     let locationFolder;
 
     if (this.config.enableMetaFolder) {
@@ -84,7 +86,10 @@ export default class InstallationIntegrityChecker {
 
       // ensure we only write to a registry folder that was used
       for (const name of registries) {
-        const loc = path.join(this.config.cwd, this.config.registries[name].folder);
+        const loc = path.join(
+          this.config.cwd,
+          this.config.registries[name].folder,
+        );
         possibleFolders.push(loc);
       }
 
@@ -92,7 +97,9 @@ export default class InstallationIntegrityChecker {
       // first folder
       let loc;
       for (const possibleLoc of possibleFolders) {
-        if (await fs.exists(path.join(possibleLoc, constants.INTEGRITY_FILENAME))) {
+        if (
+          await fs.exists(path.join(possibleLoc, constants.INTEGRITY_FILENAME))
+        ) {
           loc = possibleLoc;
           break;
         }
@@ -100,7 +107,10 @@ export default class InstallationIntegrityChecker {
       locationFolder = loc || possibleFolders[0];
     }
 
-    const locationPath = path.join(locationFolder, constants.INTEGRITY_FILENAME);
+    const locationPath = path.join(
+      locationFolder,
+      constants.INTEGRITY_FILENAME,
+    );
     const exists = await fs.exists(locationPath);
 
     return {
@@ -114,7 +124,11 @@ export default class InstallationIntegrityChecker {
    * returns a list of files recursively in a directory sorted
    */
   async _getFilesDeep(rootDir: string): Promise<Array<string>> {
-    async function getFilePaths(rootDir: string, files: Array<string>, currentDir: string = rootDir): Promise<void> {
+    async function getFilePaths(
+      rootDir: string,
+      files: Array<string>,
+      currentDir: string = rootDir,
+    ): Promise<void> {
       for (const file of await fs.readdir(currentDir)) {
         const entry = path.join(currentDir, file);
         const stat = await fs.stat(entry);
@@ -253,9 +267,15 @@ export default class InstallationIntegrityChecker {
       lockfile,
       patterns,
       Object.assign({}, flags, {checkFiles: false}), // don't generate files when checking, we check the files below
-      loc.locationFolder);
+      loc.locationFolder,
+    );
     const expected = await this._getIntegrityFile(loc.locationPath);
-    const integrityMatches = await this._compareIntegrityFiles(actual, expected, flags.checkFiles, loc.locationFolder);
+    const integrityMatches = await this._compareIntegrityFiles(
+      actual,
+      expected,
+      flags.checkFiles,
+      loc.locationFolder,
+    );
 
     return {
       integrityFileMissing: false,
@@ -298,8 +318,17 @@ export default class InstallationIntegrityChecker {
     const loc = await this._getIntegrityHashLocation(usedRegistries);
     invariant(loc.locationPath, 'expected integrity hash location');
     await fs.mkdirp(path.dirname(loc.locationPath));
-    const integrityFile = await this._generateIntegrityFile(lockfile, patterns, flags, loc.locationFolder, artifacts);
-    await fs.writeFile(loc.locationPath, JSON.stringify(integrityFile, null, 2));
+    const integrityFile = await this._generateIntegrityFile(
+      lockfile,
+      patterns,
+      flags,
+      loc.locationFolder,
+      artifacts,
+    );
+    await fs.writeFile(
+      loc.locationPath,
+      JSON.stringify(integrityFile, null, 2),
+    );
   }
 
   async removeIntegrityFile(): Promise<void> {

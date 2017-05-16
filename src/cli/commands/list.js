@@ -110,7 +110,10 @@ export async function buildTree(
       for (const pattern of resolver.dedupePatterns(ref.dependencies)) {
         const pkg = resolver.getStrictResolvedPattern(pattern);
 
-        if (!hoistedByKey[`${info.key}#${pkg.name}`] && (nextChildDepthIsValid || showAll)) {
+        if (
+          !hoistedByKey[`${info.key}#${pkg.name}`] &&
+          (nextChildDepthIsValid || showAll)
+        ) {
           children.push({
             name: pattern,
             color: 'dim',
@@ -152,7 +155,10 @@ export function hasWrapper(): boolean {
 }
 
 export function setFlags(commander: Object) {
-  commander.option('--depth [depth]', 'Limit the depth of the shown dependencies');
+  commander.option(
+    '--depth [depth]',
+    'Limit the depth of the shown dependencies',
+  );
 }
 
 export function getReqDepth(inputDepth: string): number {
@@ -165,13 +171,19 @@ export function filterTree(tree: Tree, filters: Array<string>): boolean {
   }
 
   const notDim = tree.color !== 'dim';
-  const found = filters.indexOf(tree.name.slice(0, tree.name.lastIndexOf('@'))) > -1;
+  const found =
+    filters.indexOf(tree.name.slice(0, tree.name.lastIndexOf('@'))) > -1;
   const hasChildren = tree.children == null ? false : tree.children.length > 0;
 
   return notDim && (found || hasChildren);
 }
 
-export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
+export async function run(
+  config: Config,
+  reporter: Reporter,
+  flags: Object,
+  args: Array<string>,
+): Promise<void> {
   const lockfile = await Lockfile.fromDirectory(config.cwd, reporter);
   const install = new Install(flags, config, reporter, lockfile);
   const {requests: depRequests, patterns} = await install.fetchRequestFromCwd();
@@ -181,7 +193,12 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
     reqDepth: getReqDepth(flags.depth),
   };
 
-  let {trees}: {trees: Trees} = await buildTree(install.resolver, install.linker, patterns, opts);
+  let {trees}: {trees: Trees} = await buildTree(
+    install.resolver,
+    install.linker,
+    patterns,
+    opts,
+  );
 
   if (args.length) {
     trees = trees.filter(tree => filterTree(tree, args));

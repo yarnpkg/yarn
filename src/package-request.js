@@ -134,12 +134,18 @@ export default class PackageRequest {
     if (Resolver) {
       return Resolver;
     } else {
-      throw new MessageError(this.reporter.lang('unknownRegistryResolver', this.registry));
+      throw new MessageError(
+        this.reporter.lang('unknownRegistryResolver', this.registry),
+      );
     }
   }
 
   async normalizeRange(pattern: string): Promise<string> {
-    if (pattern.includes(':') || pattern.includes('@') || PackageRequest.getExoticResolver(pattern)) {
+    if (
+      pattern.includes(':') ||
+      pattern.includes('@') ||
+      PackageRequest.getExoticResolver(pattern)
+    ) {
       return Promise.resolve(pattern);
     }
 
@@ -203,7 +209,10 @@ export default class PackageRequest {
    * Construct an exotic resolver instance with the input `ExoticResolver` and `range`.
    */
 
-  findExoticVersionInfo(ExoticResolver: Function, range: string): Promise<Manifest> {
+  findExoticVersionInfo(
+    ExoticResolver: Function,
+    range: string,
+  ): Promise<Manifest> {
     const resolver = new ExoticResolver(this, range);
     return resolver.resolve();
   }
@@ -232,7 +241,9 @@ export default class PackageRequest {
     // find version info for this package pattern
     const info: ?Manifest = await this.findVersionInfo();
     if (!info) {
-      throw new MessageError(this.reporter.lang('unknownPackage', this.pattern));
+      throw new MessageError(
+        this.reporter.lang('unknownPackage', this.pattern),
+      );
     }
 
     cleanDependencies(info, false, this.reporter, () => {
@@ -242,7 +253,10 @@ export default class PackageRequest {
     // check if while we were resolving this dep we've already resolved one that satisfies
     // the same range
     const {range, name} = PackageRequest.normalizePattern(this.pattern);
-    const resolved: ?Manifest = this.resolver.getHighestRangeVersionMatch(name, range);
+    const resolved: ?Manifest = this.resolver.getHighestRangeVersionMatch(
+      name,
+      range,
+    );
     if (resolved) {
       this.reportResolvedRangeMatch(info, resolved);
       const ref = resolved._reference;
@@ -324,7 +338,9 @@ export default class PackageRequest {
 
     for (const key of constants.REQUIRED_PACKAGE_KEYS) {
       if (!info[key]) {
-        throw new MessageError(reporter.lang('missingRequiredPackageKey', human, key));
+        throw new MessageError(
+          reporter.lang('missingRequiredPackageKey', human, key),
+        );
       }
     }
   }
@@ -364,13 +380,20 @@ export default class PackageRequest {
 
         const normalized = PackageRequest.normalizePattern(pattern);
 
-        if (PackageRequest.getExoticResolver(pattern) || PackageRequest.getExoticResolver(normalized.range)) {
+        if (
+          PackageRequest.getExoticResolver(pattern) ||
+          PackageRequest.getExoticResolver(normalized.range)
+        ) {
           latest = wanted = 'exotic';
           url = normalized.range;
         } else {
           const registry = config.registries[locked.registry];
 
-          ({latest, wanted, url} = await registry.checkOutdated(config, name, normalized.range));
+          ({latest, wanted, url} = await registry.checkOutdated(
+            config,
+            name,
+            normalized.range,
+          ));
         }
 
         return {name, current, wanted, latest, url, hint};
@@ -379,7 +402,9 @@ export default class PackageRequest {
 
     // Make sure to always output `exotic` versions to be compatible with npm
     const isDepOld = ({current, latest, wanted}) =>
-      latest === 'exotic' || (latest !== 'exotic' && (semver.lt(current, wanted) || semver.lt(current, latest)));
+      latest === 'exotic' ||
+      (latest !== 'exotic' &&
+        (semver.lt(current, wanted) || semver.lt(current, latest)));
     const orderByName = (depA, depB) => depA.name.localeCompare(depB.name);
 
     return deps.filter(isDepOld).sort(orderByName);

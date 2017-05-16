@@ -16,10 +16,20 @@ export function hasWrapper(): boolean {
   return true;
 }
 
-export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
+export async function run(
+  config: Config,
+  reporter: Reporter,
+  flags: Object,
+  args: Array<string>,
+): Promise<void> {
   const lockfile = await Lockfile.fromDirectory(config.cwd);
   const install = new Install(flags, config, reporter, lockfile);
-  let deps = await PackageRequest.getOutdatedPackages(lockfile, install, config, reporter);
+  let deps = await PackageRequest.getOutdatedPackages(
+    lockfile,
+    install,
+    config,
+    reporter,
+  );
 
   if (args.length) {
     const requested = new Set(args);
@@ -27,9 +37,12 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
     deps = deps.filter(({name}) => requested.has(name));
   }
 
-  const getNameFromHint = hint => (hint ? `${hint}Dependencies` : 'dependencies');
+  const getNameFromHint = hint =>
+    hint ? `${hint}Dependencies` : 'dependencies';
   const getColorFromVersion = ({current, wanted, name}) =>
-    current === wanted ? reporter.format.yellow(name) : reporter.format.red(name);
+    current === wanted
+      ? reporter.format.yellow(name)
+      : reporter.format.red(name);
 
   if (deps.length) {
     const body = deps.map((info): Array<string> => {
@@ -43,7 +56,10 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
       ];
     });
 
-    reporter.table(['Package', 'Current', 'Wanted', 'Latest', 'Package Type', 'URL'], body);
+    reporter.table(
+      ['Package', 'Current', 'Wanted', 'Latest', 'Package Type', 'URL'],
+      body,
+    );
   }
 
   return Promise.resolve();

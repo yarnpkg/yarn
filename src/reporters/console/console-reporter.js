@@ -15,7 +15,11 @@ import Progress from './progress-bar.js';
 import Spinner from './spinner-progress.js';
 import {clearLine} from './util.js';
 import {removeSuffix} from '../../util/misc.js';
-import {sortTrees, recurseTree, getFormattedOutput} from './helpers/tree-helper.js';
+import {
+  sortTrees,
+  recurseTree,
+  getFormattedOutput,
+} from './helpers/tree-helper.js';
 import inquirer from 'inquirer';
 
 const {inspect} = require('util');
@@ -68,7 +72,9 @@ export default class ConsoleReporter extends BaseReporter {
     // get column widths
     const cols: Array<number> = [];
     for (let i = 0; i < head.length; i++) {
-      const widths = rows.map((row: Row): number => this.format.stripColor(row[i]).length);
+      const widths = rows.map(
+        (row: Row): number => this.format.stripColor(row[i]).length,
+      );
       cols[i] = Math.max(...widths);
     }
 
@@ -177,7 +183,9 @@ export default class ConsoleReporter extends BaseReporter {
 
   question(question: string, options?: QuestionOptions = {}): Promise<string> {
     if (!process.stdout.isTTY) {
-      return Promise.reject(new Error("Can't answer a question unless a user TTY"));
+      return Promise.reject(
+        new Error("Can't answer a question unless a user TTY"),
+      );
     }
 
     return new Promise((resolve, reject) => {
@@ -210,7 +218,11 @@ export default class ConsoleReporter extends BaseReporter {
   // handles basic tree output to console
   tree(key: string, trees: Trees) {
     //
-    const output = ({name, children, hint, color}, titlePrefix, childrenPrefix) => {
+    const output = (
+      {name, children, hint, color},
+      titlePrefix,
+      childrenPrefix,
+    ) => {
       const formatter = this.format;
       const out = getFormattedOutput({
         prefix: titlePrefix,
@@ -246,7 +258,9 @@ export default class ConsoleReporter extends BaseReporter {
       let prefix: ?string = null;
       let current = 0;
       const updatePrefix = () => {
-        spinner.setPrefix(`${this.format.dim(`[${current === 0 ? '-' : current}/${total}]`)} `);
+        spinner.setPrefix(
+          `${this.format.dim(`[${current === 0 ? '-' : current}/${total}]`)} `,
+        );
       };
       const clear = () => {
         prefix = null;
@@ -312,9 +326,15 @@ export default class ConsoleReporter extends BaseReporter {
     };
   }
 
-  select(header: string, question: string, options: Array<ReporterSelectOption>): Promise<string> {
+  select(
+    header: string,
+    question: string,
+    options: Array<ReporterSelectOption>,
+  ): Promise<string> {
     if (!this.isTTY) {
-      return Promise.reject(new Error("Can't answer a question unless a user TTY"));
+      return Promise.reject(
+        new Error("Can't answer a question unless a user TTY"),
+      );
     }
 
     const rl = readline.createInterface({
@@ -392,9 +412,15 @@ export default class ConsoleReporter extends BaseReporter {
     };
   }
 
-  async prompt<T>(message: string, choices: Array<*>, options?: PromptOptions = {}): Promise<Array<T>> {
+  async prompt<T>(
+    message: string,
+    choices: Array<*>,
+    options?: PromptOptions = {},
+  ): Promise<Array<T>> {
     if (!process.stdout.isTTY) {
-      return Promise.reject(new Error("Can't answer a question unless a user TTY"));
+      return Promise.reject(
+        new Error("Can't answer a question unless a user TTY"),
+      );
     }
 
     let pageSize;

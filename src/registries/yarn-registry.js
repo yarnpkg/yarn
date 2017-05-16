@@ -27,7 +27,13 @@ export const DEFAULTS = {
   'ignore-optional': false,
   registry: YARN_REGISTRY,
   'strict-ssl': true,
-  'user-agent': [`yarn/${version}`, 'npm/?', `node/${process.version}`, process.platform, process.arch].join(' '),
+  'user-agent': [
+    `yarn/${version}`,
+    'npm/?',
+    `node/${process.version}`,
+    process.platform,
+    process.arch,
+  ].join(' '),
 };
 
 const npmMap = {
@@ -38,7 +44,12 @@ const npmMap = {
 };
 
 export default class YarnRegistry extends NpmRegistry {
-  constructor(cwd: string, registries: ConfigRegistries, requestManager: RequestManager, reporter: Reporter) {
+  constructor(
+    cwd: string,
+    registries: ConfigRegistries,
+    requestManager: RequestManager,
+    reporter: Reporter,
+  ) {
     super(cwd, registries, requestManager, reporter);
 
     this.homeConfigLoc = path.join(userHome, '.yarnrc');
@@ -71,7 +82,10 @@ export default class YarnRegistry extends NpmRegistry {
   }
 
   async loadConfig(): Promise<void> {
-    for (const [isHome, loc, file] of await this.getPossibleConfigLocations('.yarnrc', this.reporter)) {
+    for (const [isHome, loc, file] of await this.getPossibleConfigLocations(
+      '.yarnrc',
+      this.reporter,
+    )) {
       const config = parse(file, loc);
 
       if (isHome) {
@@ -83,7 +97,10 @@ export default class YarnRegistry extends NpmRegistry {
 
       // don't normalize if we already have a mirror path
       if (!this.config['yarn-offline-mirror'] && offlineLoc) {
-        const mirrorLoc = (config['yarn-offline-mirror'] = path.resolve(path.dirname(loc), offlineLoc));
+        const mirrorLoc = (config['yarn-offline-mirror'] = path.resolve(
+          path.dirname(loc),
+          offlineLoc,
+        ));
         await fs.mkdirp(mirrorLoc);
       }
 
@@ -119,6 +136,9 @@ export default class YarnRegistry extends NpmRegistry {
       this.homeConfig[key] = config[key];
     }
 
-    await fs.writeFilePreservingEol(this.homeConfigLoc, `${stringify(this.homeConfig)}\n`);
+    await fs.writeFilePreservingEol(
+      this.homeConfigLoc,
+      `${stringify(this.homeConfig)}\n`,
+    );
   }
 }

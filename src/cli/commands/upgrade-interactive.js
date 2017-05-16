@@ -14,24 +14,38 @@ export const requireLockfile = true;
 export function setFlags(commander: Object) {
   commander.usage('upgrade-interactive');
   commander.option('-E, --exact', 'install exact version');
-  commander.option('-T, --tilde', 'install most recent release with the same minor version');
+  commander.option(
+    '-T, --tilde',
+    'install most recent release with the same minor version',
+  );
 }
 
 export function hasWrapper(): boolean {
   return true;
 }
 
-export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
+export async function run(
+  config: Config,
+  reporter: Reporter,
+  flags: Object,
+  args: Array<string>,
+): Promise<void> {
   const lockfile = await Lockfile.fromDirectory(config.cwd);
   const install = new Install(flags, config, reporter, lockfile);
-  const deps = await PackageRequest.getOutdatedPackages(lockfile, install, config, reporter);
+  const deps = await PackageRequest.getOutdatedPackages(
+    lockfile,
+    install,
+    config,
+    reporter,
+  );
 
   if (!deps.length) {
     reporter.success(reporter.lang('allDependenciesUpToDate'));
     return;
   }
 
-  const getNameFromHint = hint => (hint ? `${hint}Dependencies` : 'dependencies');
+  const getNameFromHint = hint =>
+    hint ? `${hint}Dependencies` : 'dependencies';
 
   const maxLengthArr = {name: 0, current: 0, latest: 0};
   deps.forEach(dep =>
@@ -41,9 +55,11 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
   );
 
   // Depends on maxLengthArr
-  const addPadding = dep => key => `${dep[key]}${' '.repeat(maxLengthArr[key] - dep[key].length)}`;
+  const addPadding = dep => key =>
+    `${dep[key]}${' '.repeat(maxLengthArr[key] - dep[key].length)}`;
 
-  const colorizeName = ({current, wanted}) => (current === wanted ? reporter.format.yellow : reporter.format.red);
+  const colorizeName = ({current, wanted}) =>
+    current === wanted ? reporter.format.yellow : reporter.format.red;
 
   const colorizeDiff = (from, to) => {
     const parts = to.split('.');
@@ -77,7 +93,8 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
     return acc;
   }, {});
 
-  const flatten = xs => xs.reduce((ys, y) => ys.concat(Array.isArray(y) ? flatten(y) : y), []);
+  const flatten = xs =>
+    xs.reduce((ys, y) => ys.concat(Array.isArray(y) ? flatten(y) : y), []);
 
   const choices = flatten(
     Object.keys(groupedDeps).map(key => [
@@ -88,10 +105,13 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
   );
 
   try {
-    const answers: Array<Dependency> = await reporter.prompt('Choose which packages to update.', choices, {
+    const answers: Array<
+      Dependency,
+    > = await reporter.prompt('Choose which packages to update.', choices, {
       name: 'packages',
       type: 'checkbox',
-      validate: answer => !!answer.length || 'You must choose at least one package.',
+      validate: answer =>
+        !!answer.length || 'You must choose at least one package.',
     });
 
     const getName = ({name}) => name;

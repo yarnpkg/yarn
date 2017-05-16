@@ -57,7 +57,12 @@ type Versions = {
   [engineName: string]: ?string,
 };
 
-export function testEngine(name: string, range: string, versions: Versions, looseSemver: boolean): boolean {
+export function testEngine(
+  name: string,
+  range: string,
+  versions: Versions,
+  looseSemver: boolean,
+): boolean {
   const actual = versions[name];
   if (!actual) {
     return false;
@@ -77,7 +82,12 @@ export function testEngine(name: string, range: string, versions: Versions, loos
     // eg. ^0.12.0. this is problematic as we enforce engines checks and node is now on version >=1
     // to allow this pattern we transform the node version to fake ones in the minor range 10-13
     const major = semver.major(actual, looseSemver);
-    const fakes = [`0.10.${major}`, `0.11.${major}`, `0.12.${major}`, `0.13.${major}`];
+    const fakes = [
+      `0.10.${major}`,
+      `0.11.${major}`,
+      `0.12.${major}`,
+      `0.13.${major}`,
+    ];
     for (const actualFake of fakes) {
       if (semver.satisfies(actualFake, range, looseSemver)) {
         return true;
@@ -90,7 +100,11 @@ export function testEngine(name: string, range: string, versions: Versions, loos
 }
 
 export default class PackageCompatibility {
-  constructor(config: Config, resolver: PackageResolver, ignoreEngines: boolean) {
+  constructor(
+    config: Config,
+    resolver: PackageResolver,
+    ignoreEngines: boolean,
+  ) {
     this.reporter = config.reporter;
     this.resolver = resolver;
     this.config = config;
@@ -167,7 +181,9 @@ export default class PackageCompatibility {
             pushError(this.reporter.lang('incompatibleEngine', name, range));
           }
         } else if (ignore.indexOf(name) < 0) {
-          this.reporter.warn(`${human}: ${this.reporter.lang('invalidEngine', name)}`);
+          this.reporter.warn(
+            `${human}: ${this.reporter.lang('invalidEngine', name)}`,
+          );
         }
       }
     }

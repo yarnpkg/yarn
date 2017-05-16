@@ -82,7 +82,9 @@ export default class BlockingQueue {
 
       if (this.warnedStuck) {
         this.warnedStuck = false;
-        debug(`${JSON.stringify(this.alias)} blocking queue finally resolved. Nothing to worry about.`);
+        debug(
+          `${JSON.stringify(this.alias)} blocking queue finally resolved. Nothing to worry about.`,
+        );
       }
     }
 

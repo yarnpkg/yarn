@@ -37,11 +37,15 @@ export async function mutate(
   const revoke = await getToken(config, reporter, name);
 
   reporter.step(2, 3, msgs.info);
-  const user = await config.registries.npm.request(`-/user/org.couchdb.user:${username}`);
+  const user = await config.registries.npm.request(
+    `-/user/org.couchdb.user:${username}`,
+  );
   let error = false;
   if (user) {
     // get package
-    const pkg = await config.registries.npm.request(NpmRegistry.escapeName(name));
+    const pkg = await config.registries.npm.request(
+      NpmRegistry.escapeName(name),
+    );
     if (pkg) {
       pkg.maintainers = pkg.maintainers || [];
       error = mutator({name: user.name, email: user.email}, pkg);
@@ -52,14 +56,17 @@ export async function mutate(
 
     // update package
     if (pkg && !error) {
-      const res = await config.registries.npm.request(`${NpmRegistry.escapeName(name)}/-rev/${pkg._rev}`, {
-        method: 'PUT',
-        body: {
-          _id: pkg._id,
-          _rev: pkg._rev,
-          maintainers: pkg.maintainers,
+      const res = await config.registries.npm.request(
+        `${NpmRegistry.escapeName(name)}/-rev/${pkg._rev}`,
+        {
+          method: 'PUT',
+          body: {
+            _id: pkg._id,
+            _rev: pkg._rev,
+            maintainers: pkg.maintainers,
+          },
         },
-      });
+      );
 
       if (res != null && res.success) {
         reporter.success(msgs.success);
@@ -86,7 +93,12 @@ export async function mutate(
 export const {run, setFlags, hasWrapper, examples} = buildSubCommands(
   'owner',
   {
-    add(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<boolean> {
+    add(
+      config: Config,
+      reporter: Reporter,
+      flags: Object,
+      args: Array<string>,
+    ): Promise<boolean> {
       return mutate(
         args,
         config,
@@ -111,7 +123,12 @@ export const {run, setFlags, hasWrapper, examples} = buildSubCommands(
       );
     },
 
-    rm(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<boolean> {
+    rm(
+      config: Config,
+      reporter: Reporter,
+      flags: Object,
+      args: Array<string>,
+    ): Promise<boolean> {
       return mutate(
         args,
         config,
@@ -139,7 +156,12 @@ export const {run, setFlags, hasWrapper, examples} = buildSubCommands(
       );
     },
 
-    async ls(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<boolean> {
+    async ls(
+      config: Config,
+      reporter: Reporter,
+      flags: Object,
+      args: Array<string>,
+    ): Promise<boolean> {
       if (args.length > 1) {
         return false;
       }
@@ -174,5 +196,9 @@ export const {run, setFlags, hasWrapper, examples} = buildSubCommands(
       }
     },
   },
-  ['add <user> [[<@scope>/]<pkg>]', 'rm <user> [[<@scope>/]<pkg>]', 'ls [<@scope>/]<pkg>'],
+  [
+    'add <user> [[<@scope>/]<pkg>]',
+    'rm <user> [[<@scope>/]<pkg>]',
+    'ls [<@scope>/]<pkg>',
+  ],
 );

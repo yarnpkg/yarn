@@ -56,7 +56,11 @@ export default class PackageLinker {
     this.artifacts = artifacts;
   }
 
-  async linkSelfDependencies(pkg: Manifest, pkgLoc: string, targetBinLoc: string): Promise<void> {
+  async linkSelfDependencies(
+    pkg: Manifest,
+    pkgLoc: string,
+    targetBinLoc: string,
+  ): Promise<void> {
     targetBinLoc = path.join(targetBinLoc, '.bin');
     await fs.mkdirp(targetBinLoc);
     targetBinLoc = await fs.realpath(targetBinLoc);
@@ -95,7 +99,11 @@ export default class PackageLinker {
     // link up the `bin` scripts in bundled dependencies
     if (pkg.bundleDependencies) {
       for (const depName of pkg.bundleDependencies) {
-        const loc = path.join(this.config.generateHardModulePath(ref), this.config.getFolder(pkg), depName);
+        const loc = path.join(
+          this.config.generateHardModulePath(ref),
+          this.config.getFolder(pkg),
+          depName,
+        );
 
         const dep = await this.config.readManifest(loc, remote.registry);
 
@@ -122,7 +130,10 @@ export default class PackageLinker {
     return Promise.resolve(hoister.init());
   }
 
-  async copyModules(patterns: Array<string>, linkDuplicates: boolean): Promise<void> {
+  async copyModules(
+    patterns: Array<string>,
+    linkDuplicates: boolean,
+  ): Promise<void> {
     let flatTree = await this.getFlatHoistedTree(patterns);
 
     // sorted tree makes file creation and copying not to interfere with each other
@@ -135,7 +146,8 @@ export default class PackageLinker {
 
     const copyQueue: Map<string, CopyQueueItem> = new Map();
     const hardlinkQueue: Map<string, CopyQueueItem> = new Map();
-    const hardlinksEnabled = linkDuplicates && (await fs.hardlinksWork(this.config.cwd));
+    const hardlinksEnabled =
+      linkDuplicates && (await fs.hardlinksWork(this.config.cwd));
 
     const copiedSrcs: Map<string, string> = new Map();
     for (const [dest, {pkg, loc: src}] of flatTree) {
@@ -225,7 +237,10 @@ export default class PackageLinker {
       possibleExtraneous,
       artifactFiles,
 
-      ignoreBasenames: [constants.METADATA_FILENAME, constants.TARBALL_FILENAME],
+      ignoreBasenames: [
+        constants.METADATA_FILENAME,
+        constants.TARBALL_FILENAME,
+      ],
 
       onStart: (num: number) => {
         tick = this.reporter.progress(num);
@@ -254,7 +269,9 @@ export default class PackageLinker {
 
     // remove all extraneous files that weren't in the tree
     for (const loc of possibleExtraneous) {
-      this.reporter.verbose(this.reporter.lang('verboseFileRemoveExtraneous', loc));
+      this.reporter.verbose(
+        this.reporter.lang('verboseFileRemoveExtraneous', loc),
+      );
       await fs.unlink(loc);
     }
 
@@ -269,7 +286,9 @@ export default class PackageLinker {
     // create binary links
     if (this.config.binLinks) {
       const linksToCreate = this.determineTopLevelBinLinks(flatTree);
-      const tickBin = this.reporter.progress(flatTree.length + linksToCreate.length);
+      const tickBin = this.reporter.progress(
+        flatTree.length + linksToCreate.length,
+      );
 
       // create links in transient dependencies
       await promise.queue(
@@ -288,7 +307,10 @@ export default class PackageLinker {
         linksToCreate,
         async ([dest, {pkg}]) => {
           if (pkg.bin && Object.keys(pkg.bin).length) {
-            const binLoc = path.join(this.config.cwd, this.config.getFolder(pkg));
+            const binLoc = path.join(
+              this.config.cwd,
+              this.config.getFolder(pkg),
+            );
             await this.linkSelfDependencies(pkg, dest, binLoc);
             tickBin(this.config.cwd);
           }
@@ -298,7 +320,9 @@ export default class PackageLinker {
     }
   }
 
-  determineTopLevelBinLinks(flatTree: HoistManifestTuples): HoistManifestTuples {
+  determineTopLevelBinLinks(
+    flatTree: HoistManifestTuples,
+  ): HoistManifestTuples {
     const linksToCreate = new Map();
 
     flatTree.forEach(([dest, hoistManifest]) => {
@@ -330,21 +354,29 @@ export default class PackageLinker {
       const patterns = this.resolver.patternsByPackage[name] || [];
       const foundPattern = patterns.find(pattern => {
         const resolvedPattern = this.resolver.getResolvedPattern(pattern);
-        return resolvedPattern ? this._satisfiesPeerDependency(range, resolvedPattern.version) : false;
+        return resolvedPattern
+          ? this._satisfiesPeerDependency(range, resolvedPattern.version)
+          : false;
       });
 
       if (foundPattern) {
         ref.addDependencies([foundPattern]);
       } else {
         const depError = patterns.length > 0 ? 'incorrectPeer' : 'unmetPeer';
-        const [pkgHuman, depHuman] = [`${pkg.name}@${pkg.version}`, `${name}@${range}`];
+        const [pkgHuman, depHuman] = [
+          `${pkg.name}@${pkg.version}`,
+          `${name}@${range}`,
+        ];
         this.reporter.warn(this.reporter.lang(depError, pkgHuman, depHuman));
       }
     }
   }
 
   _satisfiesPeerDependency(range: string, version: string): boolean {
-    return range === '*' || satisfiesWithPreleases(version, range, this.config.looseSemver);
+    return (
+      range === '*' ||
+      satisfiesWithPreleases(version, range, this.config.looseSemver)
+    );
   }
 
   async init(patterns: Array<string>, linkDuplicates: boolean): Promise<void> {
@@ -364,8 +396,15 @@ export default class PackageLinker {
     const src = this.config.generateHardModulePath(ref);
 
     // link bins
-    if (this.config.binLinks && resolved.bin && Object.keys(resolved.bin).length && !ref.ignore) {
-      const binLoc = this.config.modulesFolder || path.join(this.config.cwd, this.config.getFolder(resolved));
+    if (
+      this.config.binLinks &&
+      resolved.bin &&
+      Object.keys(resolved.bin).length &&
+      !ref.ignore
+    ) {
+      const binLoc =
+        this.config.modulesFolder ||
+        path.join(this.config.cwd, this.config.getFolder(resolved));
       await this.linkSelfDependencies(resolved, src, binLoc);
     }
   }

@@ -10,7 +10,8 @@ export default class RegistryResolver extends BaseResolver {
     this.name = name;
     this.range = range;
 
-    this.registryConfig = request.config.registries[this.constructor.registry].config;
+    this.registryConfig =
+      request.config.registries[this.constructor.registry].config;
   }
 
   name: string;

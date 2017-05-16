@@ -50,7 +50,10 @@ const NEVER_IGNORE = ignoreLinesToRegex([
   '!/+(changes|changelog|history)*',
 ]);
 
-export async function pack(config: Config, dir: string): Promise<stream$Duplex> {
+export async function pack(
+  config: Config,
+  dir: string,
+): Promise<stream$Duplex> {
   const pkg = await config.readRootManifest();
   const {bundledDependencies, main, files: onlyFiles} = pkg;
 
@@ -67,7 +70,10 @@ export async function pack(config: Config, dir: string): Promise<stream$Duplex> 
   // include bundledDependencies
   if (bundledDependencies) {
     const folder = config.getFolder(pkg);
-    filters = ignoreLinesToRegex(bundledDependencies.map((name): string => `!${folder}/${name}`), '.');
+    filters = ignoreLinesToRegex(
+      bundledDependencies.map((name): string => `!${folder}/${name}`),
+      '.',
+    );
   }
 
   // `files` field
@@ -78,7 +84,9 @@ export async function pack(config: Config, dir: string): Promise<stream$Duplex> 
     ];
     lines = lines.concat(
       onlyFiles.map((filename: string): string => `!${filename}`),
-      onlyFiles.map((filename: string): string => `!${path.join(filename, '**')}`),
+      onlyFiles.map(
+        (filename: string): string => `!${path.join(filename, '**')}`,
+      ),
     );
     const regexes = ignoreLinesToRegex(lines, '.');
     filters = filters.concat(regexes);
@@ -116,7 +124,9 @@ export async function pack(config: Config, dir: string): Promise<stream$Duplex> 
       const relative = path.relative(config.cwd, name);
       // Don't ignore directories, since we need to recurse inside them to check for unignored files.
       if (fs2.lstatSync(name).isDirectory()) {
-        const isParentOfKeptFile = Array.from(keepFiles).some(name => !path.relative(relative, name).startsWith('..'));
+        const isParentOfKeptFile = Array.from(keepFiles).some(
+          name => !path.relative(relative, name).startsWith('..'),
+        );
         return !isParentOfKeptFile;
       }
       // Otherwise, ignore a file if we're not supposed to keep it.
@@ -144,7 +154,12 @@ export function hasWrapper(): boolean {
   return true;
 }
 
-export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
+export async function run(
+  config: Config,
+  reporter: Reporter,
+  flags: Object,
+  args: Array<string>,
+): Promise<void> {
   const pkg = await config.readRootManifest();
   if (!pkg.name) {
     throw new MessageError(reporter.lang('noName'));
@@ -153,8 +168,11 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
     throw new MessageError(reporter.lang('noVersion'));
   }
 
-  const normaliseScope = name => (name[0] === '@' ? name.substr(1).replace('/', '-') : name);
-  const filename = flags.filename || path.join(config.cwd, `${normaliseScope(pkg.name)}-v${pkg.version}.tgz`);
+  const normaliseScope = name =>
+    name[0] === '@' ? name.substr(1).replace('/', '-') : name;
+  const filename =
+    flags.filename ||
+    path.join(config.cwd, `${normaliseScope(pkg.name)}-v${pkg.version}.tgz`);
 
   const stream = await pack(config, config.cwd);
 

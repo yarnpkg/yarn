@@ -30,19 +30,23 @@ async function execCommand(
   }
 
   return new Promise((resolve, reject) => {
-    exec(`node "${yarnBin}" ${cmd} ${args.join(' ')}`, {cwd: workingDir, env: process.env}, (error, stdout) => {
-      if (error) {
-        reject({error, stdout});
-      } else {
-        const stdoutLines = stdout
-          .toString()
-          .split('\n')
-          .map((line: ?string) => line && line.trim())
-          .filter((line: ?string) => line);
+    exec(
+      `node "${yarnBin}" ${cmd} ${args.join(' ')}`,
+      {cwd: workingDir, env: process.env},
+      (error, stdout) => {
+        if (error) {
+          reject({error, stdout});
+        } else {
+          const stdoutLines = stdout
+            .toString()
+            .split('\n')
+            .map((line: ?string) => line && line.trim())
+            .filter((line: ?string) => line);
 
-        resolve(stdoutLines);
-      }
-    });
+          resolve(stdoutLines);
+        }
+      },
+    );
   });
 }
 
@@ -70,8 +74,12 @@ function expectRunOutput(stdout) {
 function expectHelpOutput(stdout) {
   expect(stdout[0]).toEqual('Usage: yarn [command] [flags]');
   const lastLines = stdout.slice(stdout.length - 2);
-  expect(lastLines[0]).toEqual('Run `yarn help COMMAND` for more information on specific commands.');
-  expect(lastLines[1]).toEqual('Visit https://yarnpkg.com/en/docs/cli/ to learn more about Yarn.');
+  expect(lastLines[0]).toEqual(
+    'Run `yarn help COMMAND` for more information on specific commands.',
+  );
+  expect(lastLines[1]).toEqual(
+    'Visit https://yarnpkg.com/en/docs/cli/ to learn more about Yarn.',
+  );
 }
 
 function expectHelpOutputAsSubcommand(stdout) {
@@ -81,7 +89,10 @@ function expectHelpOutputAsSubcommand(stdout) {
   );
 }
 
-function expectAnErrorMessage(command: Promise<Array<?string>>, error: string): Promise<void> {
+function expectAnErrorMessage(
+  command: Promise<Array<?string>>,
+  error: string,
+): Promise<void> {
   return command
     .then(function() {
       throw new Error('the command did not fail');
@@ -89,7 +100,10 @@ function expectAnErrorMessage(command: Promise<Array<?string>>, error: string): 
     .catch(reason => expect(reason.error.message).toContain(error));
 }
 
-function expectAnInfoMessageAfterError(command: Promise<Array<?string>>, info: string): Promise<void> {
+function expectAnInfoMessageAfterError(
+  command: Promise<Array<?string>>,
+  info: string,
+): Promise<void> {
   return command
     .then(function() {
       throw new Error('the command did not fail');
@@ -103,17 +117,35 @@ test.concurrent('should add package', async () => {
 });
 
 test.concurrent('should add package with no-lockfile option', async () => {
-  const stdout = await execCommand('add', ['repeating', '--no-lockfile'], 'run-add-option', true);
+  const stdout = await execCommand(
+    'add',
+    ['repeating', '--no-lockfile'],
+    'run-add-option',
+    true,
+  );
   expectAddSuccessfullOutputWithNoLockFile(stdout, 'repeating');
 });
 
-test.concurrent('should add package with no-lockfile option in front', async () => {
-  const stdout = await execCommand('add', ['--no-lockfile', 'split-lines'], 'run-add-option-in-front', true);
-  expectAddSuccessfullOutputWithNoLockFile(stdout, 'split-lines');
-});
+test.concurrent(
+  'should add package with no-lockfile option in front',
+  async () => {
+    const stdout = await execCommand(
+      'add',
+      ['--no-lockfile', 'split-lines'],
+      'run-add-option-in-front',
+      true,
+    );
+    expectAddSuccessfullOutputWithNoLockFile(stdout, 'split-lines');
+  },
+);
 
 test.concurrent('should add lockfile package', async () => {
-  const stdout = await execCommand('add', ['lockfile'], 'run-add-lockfile', true);
+  const stdout = await execCommand(
+    'add',
+    ['lockfile'],
+    'run-add-lockfile',
+    true,
+  );
   expectAddSuccessfullOutput(stdout, 'lockfile');
 });
 
@@ -133,7 +165,11 @@ if (semver.satisfies(ver, '>=5.0.0')) {
 }
 
 test.concurrent('should run custom script', async () => {
-  const stdout = await execCommand('run', ['custom-script'], 'run-custom-script');
+  const stdout = await execCommand(
+    'run',
+    ['custom-script'],
+    'run-custom-script',
+  );
   expectRunOutput(stdout);
 });
 
@@ -183,7 +219,10 @@ test.concurrent('should run -h command with add option', async () => {
 });
 
 test.concurrent('should run version command', async () => {
-  await expectAnErrorMessage(execCommand('version', [], 'run-version'), "Can't answer a question unless a user TTY");
+  await expectAnErrorMessage(
+    execCommand('version', [], 'run-version'),
+    "Can't answer a question unless a user TTY",
+  );
 });
 
 test.concurrent('should run --version command', async () => {
@@ -198,30 +237,46 @@ test.concurrent('should install if no args', async () => {
 
 test.concurrent('should install if first arg looks like a flag', async () => {
   const stdout = await execCommand('--json', [], 'run-add', true);
-  expect(stdout[stdout.length - 1]).toEqual('{"type":"success","data":"Saved lockfile."}');
-});
-
-test.concurrent('should not output JSON activity/progress if given --no-progress option', async () => {
-  const activityInfo = ['activityStart', 'activityTick', 'activityEnd'];
-  const progressInfo = ['progressStart', 'progressTick', 'progressFinish'];
-  const stdout = await execCommand('', ['--json', '--no-progress'], 'run-add', true);
-  stdout.forEach(line => {
-    activityInfo.concat(progressInfo).forEach(info => {
-      expect(line).not.toContain(info);
-    });
-  });
-});
-
-test.concurrent('should interpolate unsupported aliases', async () => {
-  await expectAnErrorMessage(execCommand('i', [], 'run-add', true), 'Did you mean `yarn install`?');
-});
-
-test.concurrent('should display correct documentation link for unsupported aliases', async () => {
-  await expectAnInfoMessageAfterError(
-    execCommand('i', [], 'run-add', true),
-    'Visit https://yarnpkg.com/en/docs/cli/install for documentation about this command.',
+  expect(stdout[stdout.length - 1]).toEqual(
+    '{"type":"success","data":"Saved lockfile."}',
   );
 });
+
+test.concurrent(
+  'should not output JSON activity/progress if given --no-progress option',
+  async () => {
+    const activityInfo = ['activityStart', 'activityTick', 'activityEnd'];
+    const progressInfo = ['progressStart', 'progressTick', 'progressFinish'];
+    const stdout = await execCommand(
+      '',
+      ['--json', '--no-progress'],
+      'run-add',
+      true,
+    );
+    stdout.forEach(line => {
+      activityInfo.concat(progressInfo).forEach(info => {
+        expect(line).not.toContain(info);
+      });
+    });
+  },
+);
+
+test.concurrent('should interpolate unsupported aliases', async () => {
+  await expectAnErrorMessage(
+    execCommand('i', [], 'run-add', true),
+    'Did you mean `yarn install`?',
+  );
+});
+
+test.concurrent(
+  'should display correct documentation link for unsupported aliases',
+  async () => {
+    await expectAnInfoMessageAfterError(
+      execCommand('i', [], 'run-add', true),
+      'Visit https://yarnpkg.com/en/docs/cli/install for documentation about this command.',
+    );
+  },
+);
 
 test.concurrent('should show help and ignore unsupported aliases', async () => {
   const stdout = await execCommand('i', ['--help'], 'run-help');
@@ -230,19 +285,35 @@ test.concurrent('should show help and ignore unsupported aliases', async () => {
   );
 });
 
-test.concurrent('should run help of run command if --help is before --', async () => {
-  const stdout = await execCommand('run', ['custom-script', '--help', '--'], 'run-custom-script-with-arguments');
-  expect(stdout[0]).toEqual('Usage: yarn [command] [flags]');
-  expect(stdout[stdout.length - 1]).toEqual(
-    'Visit https://yarnpkg.com/en/docs/cli/run for documentation about this command.',
-  );
-});
+test.concurrent(
+  'should run help of run command if --help is before --',
+  async () => {
+    const stdout = await execCommand(
+      'run',
+      ['custom-script', '--help', '--'],
+      'run-custom-script-with-arguments',
+    );
+    expect(stdout[0]).toEqual('Usage: yarn [command] [flags]');
+    expect(stdout[stdout.length - 1]).toEqual(
+      'Visit https://yarnpkg.com/en/docs/cli/run for documentation about this command.',
+    );
+  },
+);
 
 if (process.platform !== 'win32') {
-  test.concurrent('should run help of custom-script if --help is after --', async () => {
-    const stdout = await execCommand('run', ['custom-script', '--', '--help'], 'run-custom-script-with-arguments');
-    expect(stdout[stdout.length - 2]).toEqual('A message from custom script with args --help');
-  });
+  test.concurrent(
+    'should run help of custom-script if --help is after --',
+    async () => {
+      const stdout = await execCommand(
+        'run',
+        ['custom-script', '--', '--help'],
+        'run-custom-script-with-arguments',
+      );
+      expect(stdout[stdout.length - 2]).toEqual(
+        'A message from custom script with args --help',
+      );
+    },
+  );
 }
 
 test.concurrent('should run bin command', async () => {
@@ -251,32 +322,65 @@ test.concurrent('should run bin command', async () => {
   expect(stdout.length).toEqual(1);
 });
 
-test.concurrent('should throws missing command for not camelised command', async () => {
-  await expectAnErrorMessage(execCommand('HelP', [], 'run-add', true), 'Command "HelP" not found');
-});
+test.concurrent(
+  'should throws missing command for not camelised command',
+  async () => {
+    await expectAnErrorMessage(
+      execCommand('HelP', [], 'run-add', true),
+      'Command "HelP" not found',
+    );
+  },
+);
 
-test.concurrent('should throws missing command for not alphabetic command', async () => {
-  await expectAnErrorMessage(execCommand('123', [], 'run-add', true), 'Command "123" not found');
-});
+test.concurrent(
+  'should throws missing command for not alphabetic command',
+  async () => {
+    await expectAnErrorMessage(
+      execCommand('123', [], 'run-add', true),
+      'Command "123" not found',
+    );
+  },
+);
 
-test.concurrent('should throws missing command for unknown command', async () => {
-  await expectAnErrorMessage(execCommand('unknown', [], 'run-add', true), 'Command "unknown" not found');
-});
+test.concurrent(
+  'should throws missing command for unknown command',
+  async () => {
+    await expectAnErrorMessage(
+      execCommand('unknown', [], 'run-add', true),
+      'Command "unknown" not found',
+    );
+  },
+);
 
-test.concurrent('should not display documentation link for unknown command', async () => {
-  await expectAnInfoMessageAfterError(execCommand('unknown', [], 'run-add', true), '');
-});
+test.concurrent(
+  'should not display documentation link for unknown command',
+  async () => {
+    await expectAnInfoMessageAfterError(
+      execCommand('unknown', [], 'run-add', true),
+      '',
+    );
+  },
+);
 
-test.concurrent('should display documentation link for known command', async () => {
-  await expectAnInfoMessageAfterError(
-    execCommand('add', [], 'run-add', true),
-    'Visit https://yarnpkg.com/en/docs/cli/add for documentation about this command.',
-  );
-});
+test.concurrent(
+  'should display documentation link for known command',
+  async () => {
+    await expectAnInfoMessageAfterError(
+      execCommand('add', [], 'run-add', true),
+      'Visit https://yarnpkg.com/en/docs/cli/add for documentation about this command.',
+    );
+  },
+);
 
-test.concurrent('should throws missing command for constructor command', async () => {
-  await expectAnErrorMessage(execCommand('constructor', [], 'run-add', true), 'Command "constructor" not found');
-});
+test.concurrent(
+  'should throws missing command for constructor command',
+  async () => {
+    await expectAnErrorMessage(
+      execCommand('constructor', [], 'run-add', true),
+      'Command "constructor" not found',
+    );
+  },
+);
 
 test.concurrent('should show help and ignore constructor command', async () => {
   const stdout = await execCommand('constructor', ['--help'], 'run-help');
@@ -284,31 +388,66 @@ test.concurrent('should show help and ignore constructor command', async () => {
 });
 
 test.concurrent('should run command with hyphens', async () => {
-  const stdout = await execCommand('generate-lock-entry', [], 'run-generate-lock-entry');
-  expect(stdout[0]).toMatch(/# THIS IS AN AUTOGENERATED FILE. DO NOT EDIT THIS FILE DIRECTLY./);
+  const stdout = await execCommand(
+    'generate-lock-entry',
+    [],
+    'run-generate-lock-entry',
+  );
+  expect(stdout[0]).toMatch(
+    /# THIS IS AN AUTOGENERATED FILE. DO NOT EDIT THIS FILE DIRECTLY./,
+  );
   expect(stdout[1]).toMatch(/# yarn lockfile v1/);
 });
 
-test.concurrent('should run camelised command for command with hyphens', async () => {
-  const stdout = await execCommand('generateLockEntry', [], 'run-generate-lock-entry');
-  expect(stdout[0]).toMatch(/# THIS IS AN AUTOGENERATED FILE. DO NOT EDIT THIS FILE DIRECTLY./);
-  expect(stdout[1]).toMatch(/# yarn lockfile v1/);
-});
+test.concurrent(
+  'should run camelised command for command with hyphens',
+  async () => {
+    const stdout = await execCommand(
+      'generateLockEntry',
+      [],
+      'run-generate-lock-entry',
+    );
+    expect(stdout[0]).toMatch(
+      /# THIS IS AN AUTOGENERATED FILE. DO NOT EDIT THIS FILE DIRECTLY./,
+    );
+    expect(stdout[1]).toMatch(/# yarn lockfile v1/);
+  },
+);
 
 test.concurrent('should run help for command with hyphens', async () => {
-  const stdout = await execCommand('generate-lock-entry', ['--help'], 'run-generate-lock-entry');
+  const stdout = await execCommand(
+    'generate-lock-entry',
+    ['--help'],
+    'run-generate-lock-entry',
+  );
   const lastLines = stdout.slice(stdout.length - 4);
   expect(lastLines[0]).toMatch(/yarn generate-lock-entry/);
-  expect(lastLines[1]).toMatch(/yarn generate-lock-entry --use-manifest .\/package.json/);
-  expect(lastLines[2]).toMatch(/yarn generate-lock-entry --resolved local-file.tgz#hash/);
-  expect(lastLines[3]).toMatch(/Visit https:\/\/yarnpkg.com\/en\/docs\/cli\/generate-lock-entry/);
+  expect(lastLines[1]).toMatch(
+    /yarn generate-lock-entry --use-manifest .\/package.json/,
+  );
+  expect(lastLines[2]).toMatch(
+    /yarn generate-lock-entry --resolved local-file.tgz#hash/,
+  );
+  expect(lastLines[3]).toMatch(
+    /Visit https:\/\/yarnpkg.com\/en\/docs\/cli\/generate-lock-entry/,
+  );
 });
 
 test.concurrent('should run help for camelised command', async () => {
-  const stdout = await execCommand('generateLockEntry', ['--help'], 'run-generate-lock-entry');
+  const stdout = await execCommand(
+    'generateLockEntry',
+    ['--help'],
+    'run-generate-lock-entry',
+  );
   const lastLines = stdout.slice(stdout.length - 4);
   expect(lastLines[0]).toMatch(/yarn generate-lock-entry/);
-  expect(lastLines[1]).toMatch(/yarn generate-lock-entry --use-manifest .\/package.json/);
-  expect(lastLines[2]).toMatch(/yarn generate-lock-entry --resolved local-file.tgz#hash/);
-  expect(lastLines[3]).toMatch(/Visit https:\/\/yarnpkg.com\/en\/docs\/cli\/generate-lock-entry/);
+  expect(lastLines[1]).toMatch(
+    /yarn generate-lock-entry --use-manifest .\/package.json/,
+  );
+  expect(lastLines[2]).toMatch(
+    /yarn generate-lock-entry --resolved local-file.tgz#hash/,
+  );
+  expect(lastLines[3]).toMatch(
+    /Visit https:\/\/yarnpkg.com\/en\/docs\/cli\/generate-lock-entry/,
+  );
 });

@@ -12,7 +12,11 @@ const yarnBin = path.join(__dirname, '../bin/yarn.js');
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000;
 
-async function execCommand(cmd: string, packageName: string, env = process.env): Promise<string> {
+async function execCommand(
+  cmd: string,
+  packageName: string,
+  env = process.env,
+): Promise<string> {
   const srcPackageDir = path.join(fixturesLoc, packageName);
   const packageDir = await makeTemp(packageName);
 
@@ -35,24 +39,37 @@ test('should add the global yarnrc arguments to the command line', async () => {
 });
 
 test('should add the command-specific yarnrc arguments to the command line if the command name matches', async () => {
-  const stdout = await execCommand('cache dir', 'yarnrc-cli-command-specific-ok');
+  const stdout = await execCommand(
+    'cache dir',
+    'yarnrc-cli-command-specific-ok',
+  );
   expect(stdout.replace(/\\/g, '/')).toMatch(/^(C:)?\/tmp\/foobar\/v[0-9]+\n$/);
 });
 
 test("should not add the command-specific yarnrc arguments if the command name doesn't match", async () => {
-  const stdout = await execCommand('cache dir', 'yarnrc-cli-command-specific-ko');
-  expect(stdout.replace(/\\/g, '/')).not.toMatch(/^(C:)?\/tmp\/foobar\/v[0-9]+\n$/);
+  const stdout = await execCommand(
+    'cache dir',
+    'yarnrc-cli-command-specific-ko',
+  );
+  expect(stdout.replace(/\\/g, '/')).not.toMatch(
+    /^(C:)?\/tmp\/foobar\/v[0-9]+\n$/,
+  );
 });
 
 test('should allow overriding the yarnrc values from the command line', async () => {
-  const stdout = await execCommand('cache dir --cache-folder /tmp/toto', 'yarnrc-cli');
+  const stdout = await execCommand(
+    'cache dir --cache-folder /tmp/toto',
+    'yarnrc-cli',
+  );
   expect(stdout.replace(/\\/g, '/')).toMatch(/^(C:)?\/tmp\/toto\/v[0-9]+\n$/);
 });
 
 // Test disabled for now, cf rc.js
 test('should resolve the yarnrc values relative to where the file lives', async () => {
   const stdout = await execCommand('cache dir', 'yarnrc-cli-relative');
-  expect(stdout.replace(/\\/g, '/')).toMatch(/^(C:)?(\/[^\/]+)+\/foobar\/hello\/world\/v[0-9]+\n$/);
+  expect(stdout.replace(/\\/g, '/')).toMatch(
+    /^(C:)?(\/[^\/]+)+\/foobar\/hello\/world\/v[0-9]+\n$/,
+  );
 });
 
 test('should expose `npm_config_argv` env variable to lifecycle scripts for back compatibility with npm', async () => {
@@ -81,7 +98,11 @@ test('should only expose non-internal configs', async () => {
     delete env[prefix + key];
   });
 
-  let stdout = await execCommand('install', 'dont-expose-internal-configs-to-env', env);
+  let stdout = await execCommand(
+    'install',
+    'dont-expose-internal-configs-to-env',
+    env,
+  );
   stdout = stdout.substring(stdout.indexOf('##') + 2, stdout.lastIndexOf('##'));
   let configs = {};
   try {
@@ -120,13 +141,17 @@ test('should inherit existing environment variables when setting via yarnrc', as
   await fs.copy(srcPackageDir, packageDir, new NoopReporter());
 
   const stdout = await new Promise((resolve, reject) => {
-    exec(`node "${yarnBin}" install`, {cwd: path.join(packageDir, 'nested')}, (err, stdout) => {
-      if (err) {
-        reject(err);
-      } else {
-        resolve(stdout.toString());
-      }
-    });
+    exec(
+      `node "${yarnBin}" install`,
+      {cwd: path.join(packageDir, 'nested')},
+      (err, stdout) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(stdout.toString());
+        }
+      },
+    );
   });
 
   expect(stdout).toMatch(/^RAB$/m);

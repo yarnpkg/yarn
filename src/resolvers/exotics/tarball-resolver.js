@@ -60,7 +60,11 @@ export default class TarballResolver extends ExoticResolver {
 
     if (await this.config.isValidModuleDest(dest)) {
       // load from local cache
-      ({package: pkgJson, hash, registry} = await this.config.readPackageMetadata(dest));
+      ({
+        package: pkgJson,
+        hash,
+        registry,
+      } = await this.config.readPackageMetadata(dest));
     } else {
       // delete if invalid
       await fs.unlink(dest);

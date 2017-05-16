@@ -23,7 +23,9 @@ export default class PackageConstraintResolver {
       // Usually versions are already ordered and the last one is the latest
       return Promise.resolve(versions[versions.length - 1]);
     } else {
-      return Promise.resolve(semver.maxSatisfying(versions, range, this.config.looseSemver));
+      return Promise.resolve(
+        semver.maxSatisfying(versions, range, this.config.looseSemver),
+      );
     }
   }
 }

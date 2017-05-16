@@ -33,21 +33,32 @@ export default class NpmResolver extends RegistryResolver {
     request: ?PackageRequest,
   ): Promise<Manifest> {
     if (!body['dist-tags']) {
-      throw new MessageError(config.reporter.lang('malformedRegistryResponse', body.name));
+      throw new MessageError(
+        config.reporter.lang('malformedRegistryResponse', body.name),
+      );
     }
 
     if (range in body['dist-tags']) {
       range = body['dist-tags'][range];
     }
 
-    const satisfied = await config.resolveConstraints(Object.keys(body.versions), range);
+    const satisfied = await config.resolveConstraints(
+      Object.keys(body.versions),
+      range,
+    );
     if (satisfied) {
       return body.versions[satisfied];
     } else if (request && !config.nonInteractive) {
       if (request.resolver && request.resolver.activity) {
         request.resolver.activity.end();
       }
-      config.reporter.log(config.reporter.lang('couldntFindVersionThatMatchesRange', body.name, range));
+      config.reporter.log(
+        config.reporter.lang(
+          'couldntFindVersionThatMatchesRange',
+          body.name,
+          range,
+        ),
+      );
       let pageSize;
       if (process.stdout instanceof tty.WriteStream) {
         pageSize = process.stdout.rows - 2;
@@ -65,7 +76,13 @@ export default class NpmResolver extends RegistryResolver {
         return body.versions[response.package];
       }
     }
-    throw new MessageError(config.reporter.lang('couldntFindVersionThatMatchesRange', body.name, range));
+    throw new MessageError(
+      config.reporter.lang(
+        'couldntFindVersionThatMatchesRange',
+        body.name,
+        range,
+      ),
+    );
   }
 
   async resolveRequest(): Promise<?Manifest> {
@@ -76,10 +93,17 @@ export default class NpmResolver extends RegistryResolver {
       }
     }
 
-    const body = await this.config.registries.npm.request(NpmRegistry.escapeName(this.name));
+    const body = await this.config.registries.npm.request(
+      NpmRegistry.escapeName(this.name),
+    );
 
     if (body) {
-      return await NpmResolver.findVersionInRegistryResponse(this.config, this.range, body, this.request);
+      return await NpmResolver.findVersionInRegistryResponse(
+        this.config,
+        this.range,
+        body,
+        this.request,
+      );
     } else {
       return null;
     }
@@ -91,27 +115,33 @@ export default class NpmResolver extends RegistryResolver {
     const prefix = scope ? this.name.split(/\/|%2f/)[1] : `npm-${this.name}-`;
 
     invariant(this.config.cacheFolder, 'expected packages root');
-    const cacheFolder = path.join(this.config.cacheFolder, scope ? 'npm-' + scope : '');
+    const cacheFolder = path.join(
+      this.config.cacheFolder,
+      scope ? 'npm-' + scope : '',
+    );
 
-    const files = await this.config.getCache('cachedPackages', async (): Promise<Array<string>> => {
-      const files = await fs.readdir(cacheFolder);
-      const validFiles = [];
+    const files = await this.config.getCache(
+      'cachedPackages',
+      async (): Promise<Array<string>> => {
+        const files = await fs.readdir(cacheFolder);
+        const validFiles = [];
 
-      for (const name of files) {
-        // no hidden files
-        if (name[0] === '.') {
-          continue;
+        for (const name of files) {
+          // no hidden files
+          if (name[0] === '.') {
+            continue;
+          }
+
+          // ensure valid module cache
+          const dir = path.join(cacheFolder, name);
+          if (await this.config.isValidModuleDest(dir)) {
+            validFiles.push(name);
+          }
         }
 
-        // ensure valid module cache
-        const dir = path.join(cacheFolder, name);
-        if (await this.config.isValidModuleDest(dir)) {
-          validFiles.push(name);
-        }
-      }
-
-      return validFiles;
-    });
+        return validFiles;
+      },
+    );
 
     const versions = map();
 
@@ -140,12 +170,20 @@ export default class NpmResolver extends RegistryResolver {
       });
     }
 
-    const satisfied = await this.config.resolveConstraints(Object.keys(versions), this.range);
+    const satisfied = await this.config.resolveConstraints(
+      Object.keys(versions),
+      this.range,
+    );
     if (satisfied) {
       return versions[satisfied];
     } else if (!this.config.preferOffline) {
       throw new MessageError(
-        this.reporter.lang('couldntFindPackageInCache', this.name, this.range, Object.keys(versions).join(', ')),
+        this.reporter.lang(
+          'couldntFindPackageInCache',
+          this.name,
+          this.range,
+          Object.keys(versions).join(', '),
+        ),
       );
     } else {
       return null;
@@ -169,7 +207,9 @@ export default class NpmResolver extends RegistryResolver {
 
     const info: ?Manifest = await this.resolveRequest();
     if (info == null) {
-      throw new MessageError(this.reporter.lang('packageNotFoundRegistry', this.name, 'npm'));
+      throw new MessageError(
+        this.reporter.lang('packageNotFoundRegistry', this.name, 'npm'),
+      );
     }
 
     const {deprecated, dist} = info;

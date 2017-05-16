@@ -10,7 +10,12 @@ export function hasWrapper(flags: Object, args: Array<string>): boolean {
 }
 
 export const {run, setFlags, examples} = buildSubCommands('config', {
-  async set(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<boolean> {
+  async set(
+    config: Config,
+    reporter: Reporter,
+    flags: Object,
+    args: Array<string>,
+  ): Promise<boolean> {
     if (args.length === 0 || args.length > 2) {
       return false;
     }
@@ -21,7 +26,12 @@ export const {run, setFlags, examples} = buildSubCommands('config', {
     return true;
   },
 
-  get(config: Config, reporter: Reporter, flags: Object, args: Array<string>): boolean {
+  get(
+    config: Config,
+    reporter: Reporter,
+    flags: Object,
+    args: Array<string>,
+  ): boolean {
     if (args.length !== 1) {
       return false;
     }
@@ -30,7 +40,12 @@ export const {run, setFlags, examples} = buildSubCommands('config', {
     return true;
   },
 
-  delete: async function(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<boolean> {
+  delete: async function(
+    config: Config,
+    reporter: Reporter,
+    flags: Object,
+    args: Array<string>,
+  ): Promise<boolean> {
     if (args.length !== 1) {
       return false;
     }
@@ -42,7 +57,12 @@ export const {run, setFlags, examples} = buildSubCommands('config', {
     return true;
   },
 
-  list(config: Config, reporter: Reporter, flags: Object, args: Array<string>): boolean {
+  list(
+    config: Config,
+    reporter: Reporter,
+    flags: Object,
+    args: Array<string>,
+  ): boolean {
     if (args.length) {
       return false;
     }

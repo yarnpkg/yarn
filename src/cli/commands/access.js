@@ -2,7 +2,12 @@
 
 import buildSubCommands from './_build-sub-commands.js';
 
-export const {run, setFlags, hasWrapper, examples} = buildSubCommands(
+export const {
+  run,
+  setFlags,
+  hasWrapper,
+  examples,
+} = buildSubCommands(
   'access',
   {
     public(): Promise<void> {

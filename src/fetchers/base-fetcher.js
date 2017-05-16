@@ -2,7 +2,11 @@
 /* eslint no-unused-vars: 0 */
 
 import type Reporter from '../reporters/base-reporter.js';
-import type {PackageRemote, FetchedMetadata, FetchedOverride} from '../types.js';
+import type {
+  PackageRemote,
+  FetchedMetadata,
+  FetchedOverride,
+} from '../types.js';
 import type {RegistryNames} from '../registries/index.js';
 import type Config from '../config.js';
 import * as constants from '../constants.js';

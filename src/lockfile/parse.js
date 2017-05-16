@@ -24,7 +24,11 @@ const TOKEN_TYPES = {
   comma: 'COMMA',
 };
 
-const VALID_PROP_VALUE_TOKENS = [TOKEN_TYPES.boolean, TOKEN_TYPES.string, TOKEN_TYPES.number];
+const VALID_PROP_VALUE_TOKENS = [
+  TOKEN_TYPES.boolean,
+  TOKEN_TYPES.string,
+  TOKEN_TYPES.number,
+];
 
 function isValidPropValueToken(token): boolean {
   return VALID_PROP_VALUE_TOKENS.indexOf(token.type) >= 0;
@@ -203,7 +207,9 @@ export class Parser {
   }
 
   unexpected(msg: string = 'Unexpected token') {
-    throw new SyntaxError(`${msg} ${this.token.line}:${this.token.col} in ${this.fileLoc}`);
+    throw new SyntaxError(
+      `${msg} ${this.token.line}:${this.token.col} in ${this.fileLoc}`,
+    );
   }
 
   expect(tokType: string) {

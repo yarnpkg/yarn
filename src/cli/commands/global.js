@@ -104,7 +104,11 @@ export function getBinFolder(config: Config, flags: Object): string {
   }
 }
 
-async function initUpdateBins(config: Config, reporter: Reporter, flags: Object): Promise<() => Promise<void>> {
+async function initUpdateBins(
+  config: Config,
+  reporter: Reporter,
+  flags: Object,
+): Promise<() => Promise<void>> {
   const beforeBins = await getBins(config);
   const binFolder = getBinFolder(config, flags);
 
@@ -172,12 +176,22 @@ function ls(manifest: Manifest, reporter: Reporter, saved: boolean) {
   }
 }
 
-async function list(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
+async function list(
+  config: Config,
+  reporter: Reporter,
+  flags: Object,
+  args: Array<string>,
+): Promise<void> {
   await updateCwd(config);
 
   // install so we get hard file paths
   const lockfile = await Lockfile.fromDirectory(config.cwd);
-  const install = new Install({skipIntegrityCheck: true}, config, new NoopReporter(), lockfile);
+  const install = new Install(
+    {skipIntegrityCheck: true},
+    config,
+    new NoopReporter(),
+    lockfile,
+  );
   const patterns = await install.init();
 
   // dump global modules
@@ -188,7 +202,12 @@ async function list(config: Config, reporter: Reporter, flags: Object, args: Arr
 }
 
 const {run, setFlags: _setFlags} = buildSubCommands('global', {
-  async add(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
+  async add(
+    config: Config,
+    reporter: Reporter,
+    flags: Object,
+    args: Array<string>,
+  ): Promise<void> {
     await updateCwd(config);
 
     const updateBins = await initUpdateBins(config, reporter, flags);
@@ -209,16 +228,33 @@ const {run, setFlags: _setFlags} = buildSubCommands('global', {
     reporter.log(getBinFolder(config, flags));
   },
 
-  async ls(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
-    reporter.warn(`\`yarn global ls\` is deprecated. Please use \`yarn global list\`.`);
+  async ls(
+    config: Config,
+    reporter: Reporter,
+    flags: Object,
+    args: Array<string>,
+  ): Promise<void> {
+    reporter.warn(
+      `\`yarn global ls\` is deprecated. Please use \`yarn global list\`.`,
+    );
     await list(config, reporter, flags, args);
   },
 
-  async list(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
+  async list(
+    config: Config,
+    reporter: Reporter,
+    flags: Object,
+    args: Array<string>,
+  ): Promise<void> {
     await list(config, reporter, flags, args);
   },
 
-  async remove(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
+  async remove(
+    config: Config,
+    reporter: Reporter,
+    flags: Object,
+    args: Array<string>,
+  ): Promise<void> {
     await updateCwd(config);
 
     const updateBins = await initUpdateBins(config, reporter, flags);
@@ -230,7 +266,12 @@ const {run, setFlags: _setFlags} = buildSubCommands('global', {
     await updateBins();
   },
 
-  async upgrade(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
+  async upgrade(
+    config: Config,
+    reporter: Reporter,
+    flags: Object,
+    args: Array<string>,
+  ): Promise<void> {
     await updateCwd(config);
 
     const updateBins = await initUpdateBins(config, reporter, flags);
@@ -242,7 +283,12 @@ const {run, setFlags: _setFlags} = buildSubCommands('global', {
     await updateBins();
   },
 
-  async upgradeInteractive(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
+  async upgradeInteractive(
+    config: Config,
+    reporter: Reporter,
+    flags: Object,
+    args: Array<string>,
+  ): Promise<void> {
     await updateCwd(config);
 
     const updateBins = await initUpdateBins(config, reporter, flags);
@@ -259,5 +305,8 @@ export {run};
 
 export function setFlags(commander: Object) {
   _setFlags(commander);
-  commander.option('--prefix <prefix>', 'bin prefix to use to install binaries');
+  commander.option(
+    '--prefix <prefix>',
+    'bin prefix to use to install binaries',
+  );
 }

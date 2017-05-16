@@ -1,7 +1,12 @@
 /* @flow */
-import {explodeHostedGitFragment} from '../../../src/resolvers/exotics/hosted-git-resolver.js';
-import BitBucketResolver from '../../../src/resolvers/exotics/bitbucket-resolver.js';
-import type {ExplodedFragment} from '../../../src/resolvers/exotics/hosted-git-resolver.js';
+import {
+  explodeHostedGitFragment,
+} from '../../../src/resolvers/exotics/hosted-git-resolver.js';
+import BitBucketResolver
+  from '../../../src/resolvers/exotics/bitbucket-resolver.js';
+import type {
+  ExplodedFragment,
+} from '../../../src/resolvers/exotics/hosted-git-resolver.js';
 import Git from '../../../src/util/git.js';
 import * as reporters from '../../../src/reporters/index.js';
 
@@ -26,7 +31,9 @@ test('explodeHostedGitFragment should work for colon separator after host', () =
     hash: '',
   };
 
-  expect(explodeHostedGitFragment(fragmentString, reporter)).toEqual(expectedFragment);
+  expect(explodeHostedGitFragment(fragmentString, reporter)).toEqual(
+    expectedFragment,
+  );
 });
 
 test('explodeHostedGitFragment should work for colon separator after host and with protocol before', () => {
@@ -38,7 +45,9 @@ test('explodeHostedGitFragment should work for colon separator after host and wi
     hash: '',
   };
 
-  expect(explodeHostedGitFragment(fragmentString, reporter)).toEqual(expectedFragment);
+  expect(explodeHostedGitFragment(fragmentString, reporter)).toEqual(
+    expectedFragment,
+  );
 });
 
 test('explodeHostedGitFragment should work for slash separator after host', () => {
@@ -50,7 +59,9 @@ test('explodeHostedGitFragment should work for slash separator after host', () =
     hash: '',
   };
 
-  expect(explodeHostedGitFragment(fragmentString, reporter)).toEqual(expectedFragment);
+  expect(explodeHostedGitFragment(fragmentString, reporter)).toEqual(
+    expectedFragment,
+  );
 });
 
 test('explodeHostedGitFragment should work for package name and colon separator after host', () => {
@@ -62,7 +73,9 @@ test('explodeHostedGitFragment should work for package name and colon separator 
     hash: '',
   };
 
-  expect(explodeHostedGitFragment(fragmentString, reporter)).toEqual(expectedFragment);
+  expect(explodeHostedGitFragment(fragmentString, reporter)).toEqual(
+    expectedFragment,
+  );
 });
 
 test('getTarballUrl should return the correct bitbucket tarball url', () => {
@@ -72,7 +85,14 @@ test('getTarballUrl should return the correct bitbucket tarball url', () => {
     hash: '',
   };
   const hash = 'baz';
-  const expected = _bitBucketBase + fragment.user + '/' + fragment.repo + '/get/' + hash + '.tar.gz';
+  const expected =
+    _bitBucketBase +
+    fragment.user +
+    '/' +
+    fragment.repo +
+    '/get/' +
+    hash +
+    '.tar.gz';
   expect(BitBucketResolver.getTarballUrl(fragment, hash)).toBe(expected);
 });
 
@@ -105,7 +125,12 @@ test('getGitHTTPUrl should return the correct git bitbucket SSH url', () => {
     hash: '',
   };
 
-  const expected = 'git+ssh://git@bitbucket.org/' + fragment.user + '/' + fragment.repo + '.git';
+  const expected =
+    'git+ssh://git@bitbucket.org/' +
+    fragment.user +
+    '/' +
+    fragment.repo +
+    '.git';
   expect(BitBucketResolver.getGitSSHUrl(fragment)).toBe(expected);
 });
 
@@ -119,8 +144,18 @@ test('getHTTPFileUrl should return the correct HTTP file url', () => {
   const commit = 'abc123';
   const filename = 'baz.js';
 
-  const expected = _bitBucketBase + fragment.user + '/' + fragment.repo + '/raw/' + commit + '/' + filename;
-  expect(BitBucketResolver.getHTTPFileUrl(fragment, filename, commit)).toBe(expected);
+  const expected =
+    _bitBucketBase +
+    fragment.user +
+    '/' +
+    fragment.repo +
+    '/raw/' +
+    commit +
+    '/' +
+    filename;
+  expect(BitBucketResolver.getHTTPFileUrl(fragment, filename, commit)).toBe(
+    expected,
+  );
 });
 
 test('getGitSSHUrl should return URL containing protocol', () => {
