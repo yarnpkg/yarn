@@ -169,7 +169,7 @@ export class Install {
     this.resolver = new PackageResolver(config, lockfile);
     this.fetcher = new PackageFetcher(config, this.resolver);
     this.integrityChecker = new InstallationIntegrityChecker(config);
-    this.compatibility = new PackageCompatibility(config, this.resolver, this.flags.ignoreEngines);
+    this.compatibility = new PackageCompatibility(config, this.flags.ignoreEngines);
     this.linker = new PackageLinker(config, this.resolver);
     this.scripts = new PackageInstallScripts(config, this.resolver, this.flags.force);
   }
@@ -429,7 +429,7 @@ export class Install {
       this.markIgnored(ignorePatterns);
       this.reporter.step(curr, total, this.reporter.lang('fetchingPackages'), emoji.get('truck'));
       await this.fetcher.init();
-      await this.compatibility.init();
+      await this.compatibility.checkEvery(this.resolver.getManifests());
     });
 
     steps.push(async (curr: number, total: number) => {
@@ -688,7 +688,7 @@ export class Install {
     if (fetch) {
       // fetch packages, should hit cache most of the time
       await this.fetcher.init();
-      await this.compatibility.init();
+      await this.compatibility.checkEvery(this.resolver.getManifests());
 
       // expand minimal manifests
       for (const manifest of this.resolver.getManifests()) {

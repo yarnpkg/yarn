@@ -268,7 +268,7 @@ export class Import extends Install {
     super(flags, config, reporter, lockfile);
     this.resolver = new ImportPackageResolver(this.config, this.lockfile);
     this.fetcher = new PackageFetcher(config, this.resolver);
-    this.compatibility = new PackageCompatibility(config, this.resolver, this.flags.ignoreEngines);
+    this.compatibility = new PackageCompatibility(config, this.flags.ignoreEngines);
     this.linker = new PackageLinker(config, this.resolver);
   }
 
@@ -280,7 +280,7 @@ export class Import extends Install {
     const {requests, patterns, manifest} = await this.fetchRequestFromCwd();
     await this.resolver.init(requests, this.flags.flat, manifest.name);
     await this.fetcher.init();
-    await this.compatibility.init();
+    await this.compatibility.checkEvery(this.resolver.getManifests());
     await this.linker.resolvePeerModules();
     await this.saveLockfileAndIntegrity(patterns);
     return patterns;

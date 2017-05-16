@@ -1,6 +1,5 @@
 /* @flow */
 
-import type PackageResolver from './package-resolver.js';
 import type {Reporter} from './reporters/index.js';
 import type {Manifest} from './types.js';
 import type Config from './config.js';
@@ -90,14 +89,12 @@ export function testEngine(name: string, range: string, versions: Versions, loos
 }
 
 export default class PackageCompatibility {
-  constructor(config: Config, resolver: PackageResolver, ignoreEngines: boolean) {
+  constructor(config: Config, ignoreEngines: boolean) {
     this.reporter = config.reporter;
-    this.resolver = resolver;
     this.config = config;
     this.ignoreEngines = ignoreEngines;
   }
 
-  resolver: PackageResolver;
   reporter: Reporter;
   config: Config;
   ignoreEngines: boolean;
@@ -177,8 +174,7 @@ export default class PackageCompatibility {
     }
   }
 
-  init(): Promise<void> {
-    const infos = this.resolver.getManifests();
+  checkEvery(infos: Array<Manifest>): Promise<void> {
     for (const info of infos) {
       this.check(info);
     }
