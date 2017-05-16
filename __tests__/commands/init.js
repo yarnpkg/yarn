@@ -20,7 +20,7 @@ const execInit = buildRun.bind(
   [],
 );
 
-test.concurrent('init --yes should create package.json with defaults',  (): Promise<void> => {
+test.concurrent('init --yes should create package.json with defaults', (): Promise<void> => {
   return execInit({yes: true}, 'init-yes', async (config): Promise<void> => {
     const {cwd} = config;
     const manifestFile = await fs.readFile(path.join(cwd, 'package.json'));

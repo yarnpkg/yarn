@@ -181,27 +181,30 @@ export default class ConsoleReporter extends BaseReporter {
     }
 
     return new Promise((resolve, reject) => {
-      read({
-        prompt: `${this.format.dim('question')} ${question}: `,
-        silent: !!options.password,
-        output: this.stdout,
-        input: this.stdin,
-      }, (err, answer) => {
-        if (err) {
-          if (err.message === 'canceled') {
-            process.exit(1);
+      read(
+        {
+          prompt: `${this.format.dim('question')} ${question}: `,
+          silent: !!options.password,
+          output: this.stdout,
+          input: this.stdin,
+        },
+        (err, answer) => {
+          if (err) {
+            if (err.message === 'canceled') {
+              process.exit(1);
+            } else {
+              reject(err);
+            }
           } else {
-            reject(err);
+            if (!answer && options.required) {
+              this.error(this.lang('answerRequired'));
+              resolve(this.question(question, options));
+            } else {
+              resolve(answer);
+            }
           }
-        } else {
-          if (!answer && options.required) {
-            this.error(this.lang('answerRequired'));
-            resolve(this.question(question, options));
-          } else {
-            resolve(answer);
-          }
-        }
-      });
+        },
+      );
     });
   }
   // handles basic tree output to console
@@ -209,7 +212,13 @@ export default class ConsoleReporter extends BaseReporter {
     //
     const output = ({name, children, hint, color}, titlePrefix, childrenPrefix) => {
       const formatter = this.format;
-      const out = getFormattedOutput({prefix: titlePrefix, hint, color, name, formatter});
+      const out = getFormattedOutput({
+        prefix: titlePrefix,
+        hint,
+        color,
+        name,
+        formatter,
+      });
       this.stdout.write(out);
 
       if (children && children.length) {
@@ -237,9 +246,7 @@ export default class ConsoleReporter extends BaseReporter {
       let prefix: ?string = null;
       let current = 0;
       const updatePrefix = () => {
-        spinner.setPrefix(
-          `${this.format.dim(`[${current === 0 ? '-' : current}/${total}]`)} `,
-        );
+        spinner.setPrefix(`${this.format.dim(`[${current === 0 ? '-' : current}/${total}]`)} `);
       };
       const clear = () => {
         prefix = null;
@@ -385,9 +392,7 @@ export default class ConsoleReporter extends BaseReporter {
     };
   }
 
-  async prompt<T>(
-    message: string, choices: Array<*>, options?: PromptOptions = {},
-  ): Promise<Array<T>> {
+  async prompt<T>(message: string, choices: Array<*>, options?: PromptOptions = {}): Promise<Array<T>> {
     if (!process.stdout.isTTY) {
       return Promise.reject(new Error("Can't answer a question unless a user TTY"));
     }

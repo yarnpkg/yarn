@@ -21,7 +21,7 @@ const path = require('path');
 
 type DependencyPairs = Array<{
   dep: Manifest,
-  loc: string
+  loc: string,
 }>;
 
 export async function linkBin(src: string, dest: string): Promise<void> {
@@ -85,18 +85,17 @@ export default class PackageLinker {
     for (const pattern of ref.dependencies) {
       const dep = this.resolver.getStrictResolvedPattern(pattern);
       if (dep.bin && Object.keys(dep.bin).length) {
-        deps.push({dep, loc: this.config.generateHardModulePath(dep._reference)});
+        deps.push({
+          dep,
+          loc: this.config.generateHardModulePath(dep._reference),
+        });
       }
     }
 
     // link up the `bin` scripts in bundled dependencies
     if (pkg.bundleDependencies) {
       for (const depName of pkg.bundleDependencies) {
-        const loc = path.join(
-          this.config.generateHardModulePath(ref),
-          this.config.getFolder(pkg),
-          depName,
-        );
+        const loc = path.join(this.config.generateHardModulePath(ref), this.config.getFolder(pkg), depName);
 
         const dep = await this.config.readManifest(loc, remote.registry);
 
@@ -124,7 +123,6 @@ export default class PackageLinker {
   }
 
   async copyModules(patterns: Array<string>, linkDuplicates: boolean): Promise<void> {
-
     let flatTree = await this.getFlatHoistedTree(patterns);
 
     // sorted tree makes file creation and copying not to interfere with each other
@@ -137,7 +135,7 @@ export default class PackageLinker {
 
     const copyQueue: Map<string, CopyQueueItem> = new Map();
     const hardlinkQueue: Map<string, CopyQueueItem> = new Map();
-    const hardlinksEnabled = linkDuplicates && await fs.hardlinksWork(this.config.cwd);
+    const hardlinksEnabled = linkDuplicates && (await fs.hardlinksWork(this.config.cwd));
 
     const copiedSrcs: Map<string, string> = new Map();
     for (const [dest, {pkg, loc: src}] of flatTree) {
@@ -198,7 +196,8 @@ export default class PackageLinker {
         let filepath;
         for (const file of files) {
           filepath = path.join(loc, file);
-          if (file[0] === '@') { // it's a scope, not a package
+          if (file[0] === '@') {
+            // it's a scope, not a package
             scopedPaths.add(filepath);
             const subfiles = await fs.readdir(filepath);
             for (const subfile of subfiles) {
@@ -226,10 +225,7 @@ export default class PackageLinker {
       possibleExtraneous,
       artifactFiles,
 
-      ignoreBasenames: [
-        constants.METADATA_FILENAME,
-        constants.TARBALL_FILENAME,
-      ],
+      ignoreBasenames: [constants.METADATA_FILENAME, constants.TARBALL_FILENAME],
 
       onStart: (num: number) => {
         tick = this.reporter.progress(num);
@@ -258,9 +254,7 @@ export default class PackageLinker {
 
     // remove all extraneous files that weren't in the tree
     for (const loc of possibleExtraneous) {
-      this.reporter.verbose(
-        this.reporter.lang('verboseFileRemoveExtraneous', loc),
-      );
+      this.reporter.verbose(this.reporter.lang('verboseFileRemoveExtraneous', loc));
       await fs.unlink(loc);
     }
 
@@ -278,21 +272,29 @@ export default class PackageLinker {
       const tickBin = this.reporter.progress(flatTree.length + linksToCreate.length);
 
       // create links in transient dependencies
-      await promise.queue(flatTree, async ([dest, {pkg}]) => {
-        const binLoc = path.join(dest, this.config.getFolder(pkg));
-        await this.linkBinDependencies(pkg, binLoc);
-        tickBin(dest);
-      }, 4);
+      await promise.queue(
+        flatTree,
+        async ([dest, {pkg}]) => {
+          const binLoc = path.join(dest, this.config.getFolder(pkg));
+          await this.linkBinDependencies(pkg, binLoc);
+          tickBin(dest);
+        },
+        4,
+      );
 
       // create links at top level for all dependencies.
       // non-transient dependencies will overwrite these during this.save() to ensure they take priority.
-      await promise.queue(linksToCreate, async ([dest, {pkg}]) => {
-        if (pkg.bin && Object.keys(pkg.bin).length) {
-          const binLoc = path.join(this.config.cwd, this.config.getFolder(pkg));
-          await this.linkSelfDependencies(pkg, dest, binLoc);
-          tickBin(this.config.cwd);
-        }
-      }, 4);
+      await promise.queue(
+        linksToCreate,
+        async ([dest, {pkg}]) => {
+          if (pkg.bin && Object.keys(pkg.bin).length) {
+            const binLoc = path.join(this.config.cwd, this.config.getFolder(pkg));
+            await this.linkSelfDependencies(pkg, dest, binLoc);
+            tickBin(this.config.cwd);
+          }
+        },
+        4,
+      );
     }
   }
 

@@ -14,13 +14,7 @@ import {MessageError} from '../../errors.js';
 const invariant = require('invariant');
 
 export class Add extends Install {
-  constructor(
-    args: Array<string>,
-    flags: Object,
-    config: Config,
-    reporter: Reporter,
-    lockfile: Lockfile,
-  ) {
+  constructor(args: Array<string>, flags: Object, config: Config, reporter: Reporter, lockfile: Lockfile) {
     super(flags, config, reporter, lockfile);
     this.args = args;
     // only one flag is supported, so we can figure out which one was passed to `yarn add`
@@ -29,7 +23,9 @@ export class Add extends Install {
       flags.optional && 'optionalDependencies',
       flags.peer && 'peerDependencies',
       'dependencies',
-    ].filter(Boolean).shift();
+    ]
+      .filter(Boolean)
+      .shift();
   }
 
   args: Array<string>;
@@ -66,19 +62,20 @@ export class Add extends Install {
     } else if (parts.hasVersion && parts.range) {
       // if the user specified a range then use it verbatim
       version = parts.range === 'latest' ? `^${pkg.version}` : parts.range;
-    } else if (tilde) { // --save-tilde
+    } else if (tilde) {
+      // --save-tilde
       version = `~${pkg.version}`;
-    } else if (exact) { // --save-exact
+    } else if (exact) {
+      // --save-exact
       version = pkg.version;
-    } else { // default to save prefix
+    } else {
+      // default to save prefix
       version = `${String(this.config.getOption('save-prefix') || '')}${pkg.version}`;
     }
     return version;
   }
 
-  preparePatterns(
-    patterns: Array<string>,
-  ): Array<string> {
+  preparePatterns(patterns: Array<string>): Array<string> {
     const preparedPatterns = patterns.slice();
     for (const pattern of this.resolver.dedupePatterns(this.args)) {
       const pkg = this.resolver.getResolvedPattern(pattern);
@@ -95,9 +92,7 @@ export class Add extends Install {
     return preparedPatterns;
   }
 
-  bailout(
-    patterns: Array<string>,
-  ): Promise<boolean> {
+  bailout(patterns: Array<string>): Promise<boolean> {
     return Promise.resolve(false);
   }
 
@@ -132,10 +127,7 @@ export class Add extends Install {
     };
     const {trees, count} = await buildTree(this.resolver, this.linker, patterns, opts, true, true);
     this.reporter.success(
-      count === 1 ?
-        this.reporter.lang('savedNewDependency')
-      :
-        this.reporter.lang('savedNewDependencies', count),
+      count === 1 ? this.reporter.lang('savedNewDependency') : this.reporter.lang('savedNewDependencies', count),
     );
     this.reporter.tree('newDependencies', trees);
   }
@@ -194,12 +186,7 @@ export function setFlags(commander: Object) {
   commander.option('-T, --tilde', 'install most recent release with the same minor version');
 }
 
-export async function run(
-  config: Config,
-  reporter: Reporter,
-  flags: Object,
-  args: Array<string>,
-): Promise<void> {
+export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
   if (!args.length) {
     throw new MessageError(reporter.lang('missingAddDependencies'));
   }

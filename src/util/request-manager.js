@@ -48,23 +48,19 @@ type RequestParams<T> = {
   forever?: boolean,
   strictSSL?: boolean,
   headers?: {
-    [name: string]: string
+    [name: string]: string,
   },
-  process?: (
-    req: RequestT,
-    resolve: (body: T) => void,
-    reject: (err: Error) => void
-  ) => void,
+  process?: (req: RequestT, resolve: (body: T) => void, reject: (err: Error) => void) => void,
   callback?: (err: ?Error, res: any, body: any) => void,
   retryAttempts?: number,
   maxRetryAttempts?: number,
-  followRedirect?: boolean
+  followRedirect?: boolean,
 };
 
 type RequestOptions = {
   params: RequestParams<Object>,
   resolve: (body: any) => void,
-  reject: (err: any) => void
+  reject: (err: any) => void,
 };
 
 export default class RequestManager {
@@ -104,7 +100,7 @@ export default class RequestManager {
   timeout: number;
   maxRetryAttempts: number;
   cache: {
-    [key: string]: Promise<any>
+    [key: string]: Promise<any>,
   };
 
   _requestCaptureHar: ?RequestCaptureHar;
@@ -212,9 +208,7 @@ export default class RequestManager {
 
   request<T>(params: RequestParams<T>): Promise<T> {
     if (this.offlineNoRequests) {
-      return Promise.reject(
-        new MessageError(this.reporter.lang('cantRequestOffline', params.url)),
-      );
+      return Promise.reject(new MessageError(this.reporter.lang('cantRequestOffline', params.url)));
     }
 
     const cached = this.cache[params.url];
@@ -226,9 +220,12 @@ export default class RequestManager {
     params.forever = true;
     params.retryAttempts = 0;
     params.strictSSL = this.strictSSL;
-    params.headers = Object.assign({
-      'User-Agent': this.userAgent,
-    }, params.headers);
+    params.headers = Object.assign(
+      {
+        'User-Agent': this.userAgent,
+      },
+      params.headers,
+    );
 
     const promise = new Promise((resolve, reject) => {
       this.queue.push({params, reject, resolve});

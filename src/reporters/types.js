@@ -8,7 +8,7 @@ export type Stdout = stream$Writable | tty$WriteStream;
 export type Stdin = stream$Readable | tty$ReadStream;
 export type Package = {
   name: string,
-  version: string
+  version: string,
 };
 
 export type Tree = {
@@ -16,14 +16,14 @@ export type Tree = {
   children?: Trees,
   hint?: ?string,
   hidden?: boolean,
-  color?: ?string
+  color?: ?string,
 };
 
 export type Trees = Array<Tree>;
 
 export type ReporterSpinner = {
   tick: (name: string) => void,
-  end: () => void
+  end: () => void,
 };
 
 export type ReporterSelectOption = {
@@ -48,11 +48,18 @@ export type QuestionOptions = {
   required?: boolean,
 };
 
-export type InquirerPromptTypes = 'list' | 'rawlist' | 'expand' |
-  'checkbox' | 'confirm' | 'input' | 'password' | 'editor';
+export type InquirerPromptTypes =
+  | 'list'
+  | 'rawlist'
+  | 'expand'
+  | 'checkbox'
+  | 'confirm'
+  | 'input'
+  | 'password'
+  | 'editor';
 
 export type PromptOptions = {
   name?: string,
   type?: InquirerPromptTypes,
-  validate?: (input: string | Array<string>) => (boolean | string),
+  validate?: (input: string | Array<string>) => boolean | string,
 };

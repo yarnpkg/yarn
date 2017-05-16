@@ -56,33 +56,16 @@ commander.option(
   '--modules-folder <path>',
   'rather than installing modules into the node_modules folder relative to the cwd, output them here',
 );
-commander.option(
-  '--cache-folder <path>',
-  'specify a custom folder to store the yarn cache',
-);
-commander.option(
-  '--mutex <type>[:specifier]',
-  'use a mutex to ensure only one yarn instance is executing',
-);
-commander.option(
-  '--emoji',
-  'enable emoji in output',
-  process.platform === 'darwin',
-);
-commander.option(
-  '-s, --silent',
-  'skip Yarn console logs, other types of logs (script output) will be printed',
-);
+commander.option('--cache-folder <path>', 'specify a custom folder to store the yarn cache');
+commander.option('--mutex <type>[:specifier]', 'use a mutex to ensure only one yarn instance is executing');
+commander.option('--emoji', 'enable emoji in output', process.platform === 'darwin');
+commander.option('-s, --silent', 'skip Yarn console logs, other types of logs (script output) will be printed');
 commander.option('--proxy <host>', '');
 commander.option('--https-proxy <host>', '');
-commander.option(
-  '--no-progress',
-  'disable progress bar',
-);
+commander.option('--no-progress', 'disable progress bar');
 commander.option('--network-concurrency <number>', 'maximum number of concurrent network requests', parseInt);
 commander.option('--network-timeout <milliseconds>', 'TCP timeout for network requests', parseInt);
 commander.option('--non-interactive', 'do not show interactive prompts');
-
 
 // get command name
 let commandName: string = args.shift() || 'install';
@@ -287,7 +270,7 @@ function onUnexpectedError(err: Error) {
   }
 }
 
-function writeErrorReport(log) : ?string {
+function writeErrorReport(log): ?string {
   const errorReportLoc = config.enableMetaFolder
     ? path.join(config.cwd, constants.META_FOLDER, 'yarn-error.log')
     : path.join(config.cwd, 'yarn-error.log');
@@ -302,66 +285,69 @@ function writeErrorReport(log) : ?string {
   return errorReportLoc;
 }
 
-config.init({
-  binLinks: commander.binLinks,
-  modulesFolder: commander.modulesFolder,
-  globalFolder: commander.globalFolder,
-  cacheFolder: commander.cacheFolder,
-  preferOffline: commander.preferOffline,
-  captureHar: commander.har,
-  ignorePlatform: commander.ignorePlatform,
-  ignoreEngines: commander.ignoreEngines,
-  ignoreScripts: commander.ignoreScripts,
-  offline: commander.preferOffline || commander.offline,
-  looseSemver: !commander.strictSemver,
-  production: commander.production,
-  httpProxy: commander.proxy,
-  httpsProxy: commander.httpsProxy,
-  networkConcurrency: commander.networkConcurrency,
-  nonInteractive: commander.nonInteractive,
-  commandName: commandName === 'run' ? commander.args[0] : commandName,
-}).then(() => {
-  // option "no-progress" stored in yarn config
-  const noProgressConfig = config.registries.yarn.getOption('no-progress');
+config
+  .init({
+    binLinks: commander.binLinks,
+    modulesFolder: commander.modulesFolder,
+    globalFolder: commander.globalFolder,
+    cacheFolder: commander.cacheFolder,
+    preferOffline: commander.preferOffline,
+    captureHar: commander.har,
+    ignorePlatform: commander.ignorePlatform,
+    ignoreEngines: commander.ignoreEngines,
+    ignoreScripts: commander.ignoreScripts,
+    offline: commander.preferOffline || commander.offline,
+    looseSemver: !commander.strictSemver,
+    production: commander.production,
+    httpProxy: commander.proxy,
+    httpsProxy: commander.httpsProxy,
+    networkConcurrency: commander.networkConcurrency,
+    nonInteractive: commander.nonInteractive,
+    commandName: commandName === 'run' ? commander.args[0] : commandName,
+  })
+  .then(() => {
+    // option "no-progress" stored in yarn config
+    const noProgressConfig = config.registries.yarn.getOption('no-progress');
 
-  if (noProgressConfig) {
-    reporter.disableProgress();
-  }
-
-  const exit = () => {
-    process.exit(0);
-  };
-  // verbose logs outputs process.uptime() with this line we can sync uptime to absolute time on the computer
-  reporter.verbose(`current time: ${new Date().toISOString()}`);
-
-  const mutex: mixed = commander.mutex;
-  if (mutex && typeof mutex === 'string') {
-    const parts = mutex.split(':');
-    const mutexType = parts.shift();
-    const mutexSpecifier = parts.join(':');
-
-    if (mutexType === 'file') {
-      return runEventuallyWithFile(mutexSpecifier, true).then(exit);
-    } else if (mutexType === 'network') {
-      return runEventuallyWithNetwork(mutexSpecifier).then(exit);
-    } else {
-      throw new MessageError(`Unknown single instance type ${mutexType}`);
+    if (noProgressConfig) {
+      reporter.disableProgress();
     }
-  } else {
-    return run().then(exit);
-  }
-}).catch((err: Error) => {
-  reporter.verbose(err.stack);
 
-  if (err instanceof MessageError) {
-    reporter.error(err.message);
-  } else {
-    onUnexpectedError(err);
-  }
+    const exit = () => {
+      process.exit(0);
+    };
+    // verbose logs outputs process.uptime() with this line we can sync uptime to absolute time on the computer
+    reporter.verbose(`current time: ${new Date().toISOString()}`);
 
-  if (commands[commandName]) {
-    reporter.info(commands[commandName].getDocsInfo);
-  }
+    const mutex: mixed = commander.mutex;
+    if (mutex && typeof mutex === 'string') {
+      const parts = mutex.split(':');
+      const mutexType = parts.shift();
+      const mutexSpecifier = parts.join(':');
 
-  process.exit(1);
-});
+      if (mutexType === 'file') {
+        return runEventuallyWithFile(mutexSpecifier, true).then(exit);
+      } else if (mutexType === 'network') {
+        return runEventuallyWithNetwork(mutexSpecifier).then(exit);
+      } else {
+        throw new MessageError(`Unknown single instance type ${mutexType}`);
+      }
+    } else {
+      return run().then(exit);
+    }
+  })
+  .catch((err: Error) => {
+    reporter.verbose(err.stack);
+
+    if (err instanceof MessageError) {
+      reporter.error(err.message);
+    } else {
+      onUnexpectedError(err);
+    }
+
+    if (commands[commandName]) {
+      reporter.info(commands[commandName].getDocsInfo);
+    }
+
+    process.exit(1);
+  });

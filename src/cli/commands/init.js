@@ -19,12 +19,7 @@ export function hasWrapper(): boolean {
   return true;
 }
 
-export async function run(
-  config: Config,
-  reporter: Reporter,
-  flags: Object,
-  args: Array<string>,
-): Promise<void> {
+export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
   const manifests = await config.getRootManifests();
 
   let repository = {};
@@ -38,7 +33,9 @@ export async function run(
     try {
       repository = {
         type: 'git',
-        url: await child.spawn('git', ['config', 'remote.origin.url'], {cwd: config.cwd}),
+        url: await child.spawn('git', ['config', 'remote.origin.url'], {
+          cwd: config.cwd,
+        }),
       };
     } catch (ex) {
       // Ignore - Git repo may not have an origin URL yet (eg. if it only exists locally)
@@ -166,11 +163,7 @@ export async function run(
   await config.saveRootManifests(manifests);
 }
 
-
-export async function getGitConfigInfo(
-  credential: string,
-  spawn = child.spawn,
-): Promise<string> {
+export async function getGitConfigInfo(credential: string, spawn = child.spawn): Promise<string> {
   try {
     // try to get author default based on git config
     return await spawn('git', ['config', credential]);

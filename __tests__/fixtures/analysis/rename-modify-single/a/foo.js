@@ -2,6 +2,4 @@
 // so the similarity is high because we don't really handle
 // small files very well.
 
-function foo() {
-
-}
+function foo() {}

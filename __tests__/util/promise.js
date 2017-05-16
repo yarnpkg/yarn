@@ -3,17 +3,23 @@
 import * as promise from '../../src/util/promise.js';
 
 test('promisify', async function(): Promise<void> {
-  expect(await promise.promisify(function(callback) {
-    callback(null, 'foo');
-  })()).toBe('foo');
+  expect(
+    await promise.promisify(function(callback) {
+      callback(null, 'foo');
+    })(),
+  ).toBe('foo');
 
-  expect(await promise.promisify(function(data, callback) {
-    callback(null, data + 'bar');
-  })('foo')).toBe('foobar');
+  expect(
+    await promise.promisify(function(data, callback) {
+      callback(null, data + 'bar');
+    })('foo'),
+  ).toBe('foobar');
 
-  expect(await promise.promisify(function(callback) {
-    callback(null, 'foo', 'bar');
-  })()).toEqual(['foo', 'bar']);
+  expect(
+    await promise.promisify(function(callback) {
+      callback(null, 'foo', 'bar');
+    })(),
+  ).toEqual(['foo', 'bar']);
 
   let error;
   try {
@@ -59,7 +65,7 @@ test('queue', async function(): Promise<void> {
     running++;
     jest.runAllTimers();
 
-    if (running > 5)  {
+    if (running > 5) {
       return Promise.reject(new Error('Concurrency is broken'));
     }
 

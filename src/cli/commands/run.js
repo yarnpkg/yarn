@@ -28,12 +28,7 @@ export function hasWrapper(): boolean {
   return true;
 }
 
-export async function run(
-  config: Config,
-  reporter: Reporter,
-  flags: Object,
-  args: Array<string>,
-): Promise<void> {
+export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
   // build up a list of possible scripts
   const pkg = await config.readManifest(config.cwd);
   const scripts = map();
@@ -110,10 +105,9 @@ export async function run(
     reporter.info(`${reporter.lang('binCommands') + binCommands.join(', ')}`);
     reporter.info(`${reporter.lang('possibleCommands')}`);
     reporter.list('possibleCommands', pkgCommands, cmdHints);
-    await reporter.question(reporter.lang('commandQuestion')).then(
-      answer => runCommand(answer.split(' ')),
-      () => reporter.error(reporter.lang('commandNotSpecified')),
-    );
+    await reporter
+      .question(reporter.lang('commandQuestion'))
+      .then(answer => runCommand(answer.split(' ')), () => reporter.error(reporter.lang('commandNotSpecified')));
     return Promise.resolve();
   } else {
     return await runCommand(args);

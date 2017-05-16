@@ -53,7 +53,9 @@ module.exports = function(params: Object): Request {
 
 module.exports.Request = Request;
 
-module.exports.__resetAuthedRequests = (): void => { authedRequests = []; };
+module.exports.__resetAuthedRequests = (): void => {
+  authedRequests = [];
+};
 module.exports.__getAuthedRequests = (): Array<Object> => authedRequests;
 
 const httpMock = {

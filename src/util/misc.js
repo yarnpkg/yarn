@@ -19,7 +19,7 @@ export function sortAlpha(a: string, b: string): number {
   return a.length - b.length;
 }
 
-export function entries<T>(obj: ?{ [key: string]: T }): Array<[string, T]> {
+export function entries<T>(obj: ?{[key: string]: T}): Array<[string, T]> {
   const entries = [];
   if (obj) {
     for (const key in obj) {

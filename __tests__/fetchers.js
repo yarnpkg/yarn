@@ -16,12 +16,16 @@ jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000;
 
 test('BaseFetcher.fetch', async () => {
   const dir = await mkdir('base-fetcher');
-  const fetcher = new BaseFetcher(dir, {
-    type: 'base',
-    registry: 'npm',
-    reference: '',
-    hash: null,
-  }, await Config.create());
+  const fetcher = new BaseFetcher(
+    dir,
+    {
+      type: 'base',
+      registry: 'npm',
+      reference: '',
+      hash: null,
+    },
+    (await Config.create()),
+  );
   let error;
 
   try {
@@ -38,12 +42,16 @@ test('CopyFetcher.fetch', async () => {
   await fs.writeFile(path.join(a, 'foo'), 'bar');
 
   const b = await mkdir('copy-fetcher-b');
-  const fetcher = new CopyFetcher(b, {
-    type: 'copy',
-    reference: a,
-    registry: 'npm',
-    hash: null,
-  }, await Config.create());
+  const fetcher = new CopyFetcher(
+    b,
+    {
+      type: 'copy',
+      reference: a,
+      registry: 'npm',
+      hash: null,
+    },
+    (await Config.create()),
+  );
   await fetcher.fetch();
   const content = await fs.readFile(path.join(b, 'package.json'));
   expect(content).toBe('{}');
@@ -53,12 +61,16 @@ test('CopyFetcher.fetch', async () => {
 
 test('GitFetcher.fetch', async () => {
   const dir = await mkdir('git-fetcher');
-  const fetcher = new GitFetcher(dir, {
-    type: 'git',
-    reference: 'https://github.com/sindresorhus/beeper',
-    hash: '8beb0413a8028ca2d52dbb86c75f42069535591b',
-    registry: 'npm',
-  }, await Config.create());
+  const fetcher = new GitFetcher(
+    dir,
+    {
+      type: 'git',
+      reference: 'https://github.com/sindresorhus/beeper',
+      hash: '8beb0413a8028ca2d52dbb86c75f42069535591b',
+      registry: 'npm',
+    },
+    (await Config.create()),
+  );
   await fetcher.fetch();
   const name = (await fs.readJson(path.join(dir, 'package.json'))).name;
   expect(name).toBe('beeper');
@@ -66,12 +78,16 @@ test('GitFetcher.fetch', async () => {
 
 test('TarballFetcher.fetch', async () => {
   const dir = await mkdir('tarball-fetcher');
-  const fetcher = new TarballFetcher(dir, {
-    type: 'tarball',
-    hash: '51f12d36860fc3d2ab747377991746e8ea3faabb',
-    reference: 'https://github.com/sindresorhus/beeper/archive/master.tar.gz',
-    registry: 'npm',
-  }, await Config.create());
+  const fetcher = new TarballFetcher(
+    dir,
+    {
+      type: 'tarball',
+      hash: '51f12d36860fc3d2ab747377991746e8ea3faabb',
+      reference: 'https://github.com/sindresorhus/beeper/archive/master.tar.gz',
+      registry: 'npm',
+    },
+    (await Config.create()),
+  );
 
   await fetcher.fetch();
   const name = (await fs.readJson(path.join(dir, 'package.json'))).name;
@@ -81,12 +97,16 @@ test('TarballFetcher.fetch', async () => {
 test('TarballFetcher.fetch throws on invalid hash', async () => {
   const dir = await mkdir('tarball-fetcher');
   const url = 'https://github.com/sindresorhus/beeper/archive/master.tar.gz';
-  const fetcher = new TarballFetcher(dir, {
-    type: 'tarball',
-    hash: 'foo',
-    reference: url,
-    registry: 'npm',
-  }, await Config.create({}, new Reporter()));
+  const fetcher = new TarballFetcher(
+    dir,
+    {
+      type: 'tarball',
+      hash: 'foo',
+      reference: url,
+      registry: 'npm',
+    },
+    (await Config.create({}, new Reporter())),
+  );
   let error;
   try {
     await fetcher.fetch();
@@ -98,12 +118,16 @@ test('TarballFetcher.fetch throws on invalid hash', async () => {
 
 test('TarballFetcher.fetch supports local ungzipped tarball', async () => {
   const dir = await mkdir('tarball-fetcher');
-  const fetcher = new LocalTarballFetcher(dir, {
-    type: 'tarball',
-    hash: '25c5098052a7bd322c7db80c26852e9209f98d4f',
-    reference: path.join(__dirname, 'fixtures', 'fetchers', 'tarball', 'ungzipped.tar'),
-    registry: 'npm',
-  }, await Config.create());
+  const fetcher = new LocalTarballFetcher(
+    dir,
+    {
+      type: 'tarball',
+      hash: '25c5098052a7bd322c7db80c26852e9209f98d4f',
+      reference: path.join(__dirname, 'fixtures', 'fetchers', 'tarball', 'ungzipped.tar'),
+      registry: 'npm',
+    },
+    (await Config.create()),
+  );
   await fetcher.fetch();
   const name = (await fs.readJson(path.join(dir, 'package.json'))).name;
   expect(name).toBe('beeper');
@@ -116,12 +140,16 @@ test('TarballFetcher.fetch properly stores tarball of package in offline mirror'
   const config = await Config.create();
   config.registries.npm.config['yarn-offline-mirror'] = offlineMirrorDir;
 
-  const fetcher = new TarballFetcher(dir, {
-    type: 'tarball',
-    hash: '6f86cbedd8be4ec987be9aaf33c9684db1b31e7e',
-    reference: 'https://registry.npmjs.org/lodash.isempty/-/lodash.isempty-4.4.0.tgz',
-    registry: 'npm',
-  }, config);
+  const fetcher = new TarballFetcher(
+    dir,
+    {
+      type: 'tarball',
+      hash: '6f86cbedd8be4ec987be9aaf33c9684db1b31e7e',
+      reference: 'https://registry.npmjs.org/lodash.isempty/-/lodash.isempty-4.4.0.tgz',
+      registry: 'npm',
+    },
+    config,
+  );
 
   await fetcher.fetch();
   const exists = await fs.exists(path.join(offlineMirrorDir, 'lodash.isempty-4.4.0.tgz'));
@@ -135,12 +163,16 @@ test('TarballFetcher.fetch properly stores tarball of scoped package in offline 
   const config = await Config.create();
   config.registries.npm.config['yarn-offline-mirror'] = offlineMirrorDir;
 
-  const fetcher = new TarballFetcher(dir, {
-    type: 'tarball',
-    hash: '6f0ab73cdd7b82d8e81e80838b49e9e4c7fbcc44',
-    reference: 'https://registry.npmjs.org/@exponent/configurator/-/configurator-1.0.2.tgz',
-    registry: 'npm',
-  }, config);
+  const fetcher = new TarballFetcher(
+    dir,
+    {
+      type: 'tarball',
+      hash: '6f0ab73cdd7b82d8e81e80838b49e9e4c7fbcc44',
+      reference: 'https://registry.npmjs.org/@exponent/configurator/-/configurator-1.0.2.tgz',
+      registry: 'npm',
+    },
+    config,
+  );
 
   await fetcher.fetch();
   const exists = await fs.exists(path.join(offlineMirrorDir, '@exponent-configurator-1.0.2.tgz'));

@@ -40,7 +40,7 @@ test('run version with no arguments and --new-version flag', (): Promise<void> =
 });
 
 test('run version with no arguments, --new-version flag where version is same as pkg.version', (): Promise<void> => {
-  return runRun([], {newVersion, gitTagVersion}, 'no-args-same-version', async(config, reporter): ?Promise<void> => {
+  return runRun([], {newVersion, gitTagVersion}, 'no-args-same-version', async (config, reporter): ?Promise<void> => {
     const pkg = await fs.readJson(path.join(config.cwd, 'package.json'));
 
     expect(pkg.version).toEqual(newVersion);
@@ -48,7 +48,7 @@ test('run version with no arguments, --new-version flag where version is same as
 });
 
 test('run version and make sure all lifecycle steps are executed', (): Promise<void> => {
-  return runRun([], {newVersion, gitTagVersion}, 'no-args', async(config): ?Promise<void> => {
+  return runRun([], {newVersion, gitTagVersion}, 'no-args', async (config): ?Promise<void> => {
     const pkg = await fs.readJson(path.join(config.cwd, 'package.json'));
 
     const preversionLifecycle = ['preversion', config, pkg.scripts.preversion, config.cwd];
@@ -64,7 +64,7 @@ test('run version and make sure all lifecycle steps are executed', (): Promise<v
 });
 
 test('run version and make sure only the defined lifecycle steps are executed', (): Promise<void> => {
-  return runRun([], {newVersion, gitTagVersion}, 'pre-post', async(config): ?Promise<void> => {
+  return runRun([], {newVersion, gitTagVersion}, 'pre-post', async (config): ?Promise<void> => {
     const pkg = await fs.readJson(path.join(config.cwd, 'package.json'));
 
     const preversionLifecycle = ['preversion', config, pkg.scripts.preversion, config.cwd];

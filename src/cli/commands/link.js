@@ -28,12 +28,7 @@ export function hasWrapper(): boolean {
 
 export function setFlags() {}
 
-export async function run(
-  config: Config,
-  reporter: Reporter,
-  flags: Object,
-  args: Array<string>,
-): Promise<void> {
+export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
   if (args.length) {
     for (const name of args) {
       const src = path.join(config.linkFolder, name);

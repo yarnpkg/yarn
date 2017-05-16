@@ -82,8 +82,9 @@ export default class PackageFetcher {
       const dest = this.config.generateHardModulePath(ref);
       const otherPkg = pkgsPerDest.get(dest);
       if (otherPkg) {
-        this.reporter.warn(this.reporter.lang('multiplePackagesCantUnpackInSameDestination',
-          ref.patterns, dest, otherPkg.patterns));
+        this.reporter.warn(
+          this.reporter.lang('multiplePackagesCantUnpackInSameDestination', ref.patterns, dest, otherPkg.patterns),
+        );
         return false;
       }
       pkgsPerDest.set(dest, ref);
@@ -91,28 +92,32 @@ export default class PackageFetcher {
     });
     const tick = this.reporter.progress(pkgs.length);
 
-    await promise.queue(pkgs, async ref => {
-      const res = await this.maybeFetch(ref);
-      let newPkg;
+    await promise.queue(
+      pkgs,
+      async ref => {
+        const res = await this.maybeFetch(ref);
+        let newPkg;
 
-      if (res) {
-        newPkg = res.package;
+        if (res) {
+          newPkg = res.package;
 
-        // update with new remote
-        // but only if there was a hash previously as the tarball fetcher does not provide a hash.
-        if (ref.remote.hash) {
-          ref.remote.hash = res.hash;
+          // update with new remote
+          // but only if there was a hash previously as the tarball fetcher does not provide a hash.
+          if (ref.remote.hash) {
+            ref.remote.hash = res.hash;
+          }
         }
-      }
 
-      if (newPkg) {
-        // update with fresh manifest
-        await this.resolver.updateManifest(ref, newPkg);
-      }
+        if (newPkg) {
+          // update with fresh manifest
+          await this.resolver.updateManifest(ref, newPkg);
+        }
 
-      if (tick) {
-        tick(ref.name);
-      }
-    }, this.config.networkConcurrency);
+        if (tick) {
+          tick(ref.name);
+        }
+      },
+      this.config.networkConcurrency,
+    );
   }
 }

@@ -1,6 +1,6 @@
 /* @flow */
 
-const shorthands: { [key: string]: string } = {
+const shorthands: {[key: string]: string} = {
   c: 'config',
   i: 'install',
   la: 'list',
@@ -17,7 +17,7 @@ const shorthands: { [key: string]: string } = {
   v: 'version',
 };
 
-const affordances: { [key: string]: string } = {
+const affordances: {[key: string]: string} = {
   'add-user': 'login',
   adduser: 'login',
   author: 'owner',
@@ -36,4 +36,4 @@ const affordances: { [key: string]: string } = {
 export default ({
   ...shorthands,
   ...affordances,
-}: { [key: string]: string });
+}: {[key: string]: string});

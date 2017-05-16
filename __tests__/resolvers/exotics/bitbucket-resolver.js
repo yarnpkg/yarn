@@ -72,7 +72,7 @@ test('getTarballUrl should return the correct bitbucket tarball url', () => {
     hash: '',
   };
   const hash = 'baz';
-  const expected =  _bitBucketBase + fragment.user + '/' + fragment.repo + '/get/' + hash + '.tar.gz';
+  const expected = _bitBucketBase + fragment.user + '/' + fragment.repo + '/get/' + hash + '.tar.gz';
   expect(BitBucketResolver.getTarballUrl(fragment, hash)).toBe(expected);
 });
 
@@ -83,7 +83,7 @@ test('getGitHTTPBaseUrl should return the correct git bitbucket base url', () =>
     hash: '',
   };
 
-  const expected =  _bitBucketBase + fragment.user + '/' + fragment.repo;
+  const expected = _bitBucketBase + fragment.user + '/' + fragment.repo;
   expect(BitBucketResolver.getGitHTTPBaseUrl(fragment)).toBe(expected);
 });
 
@@ -94,7 +94,7 @@ test('getGitHTTPUrl should append ".git" to the HTTP base URL', () => {
     hash: '',
   };
 
-  const expected =  BitBucketResolver.getGitHTTPBaseUrl(fragment) + '.git';
+  const expected = BitBucketResolver.getGitHTTPBaseUrl(fragment) + '.git';
   expect(BitBucketResolver.getGitHTTPUrl(fragment)).toBe(expected);
 });
 
@@ -105,7 +105,7 @@ test('getGitHTTPUrl should return the correct git bitbucket SSH url', () => {
     hash: '',
   };
 
-  const expected =  'git+ssh://git@bitbucket.org/' + fragment.user + '/' + fragment.repo + '.git';
+  const expected = 'git+ssh://git@bitbucket.org/' + fragment.user + '/' + fragment.repo + '.git';
   expect(BitBucketResolver.getGitSSHUrl(fragment)).toBe(expected);
 });
 
@@ -119,7 +119,7 @@ test('getHTTPFileUrl should return the correct HTTP file url', () => {
   const commit = 'abc123';
   const filename = 'baz.js';
 
-  const expected =  _bitBucketBase + fragment.user + '/' + fragment.repo + '/raw/' + commit + '/' + filename;
+  const expected = _bitBucketBase + fragment.user + '/' + fragment.repo + '/raw/' + commit + '/' + filename;
   expect(BitBucketResolver.getHTTPFileUrl(fragment, filename, commit)).toBe(expected);
 });
 
