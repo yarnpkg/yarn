@@ -15,7 +15,7 @@ import PackageResolver from '../../package-resolver.js';
 import PackageRequest from '../../package-request.js';
 import PackageFetcher from '../../package-fetcher.js';
 import PackageLinker from '../../package-linker.js';
-import checkCompatibility from '../../package-compatibility.js';
+import * as compatibility from '../../package-compatibility.js';
 import Lockfile from '../../lockfile/wrapper.js';
 import * as fs from '../../util/fs.js';
 import * as util from '../../util/misc.js';
@@ -280,7 +280,7 @@ export class Import extends Install {
     await this.resolver.init(requests, this.flags.flat, manifest.name);
     const manifests : Array<Manifest> = await this.fetcher.init(this.resolver.getManifests());
     this.resolver.updateManifests(manifests);
-    await checkCompatibility(this.resolver.getManifests(), this.config, this.flags.ignoreEngines);
+    await compatibility.check(this.resolver.getManifests(), this.config, this.flags.ignoreEngines);
     await this.linker.resolvePeerModules();
     await this.saveLockfileAndIntegrity(patterns);
     return patterns;

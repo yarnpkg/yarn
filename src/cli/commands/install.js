@@ -13,7 +13,7 @@ import Lockfile from '../../lockfile/wrapper.js';
 import lockStringify from '../../lockfile/stringify.js';
 import PackageFetcher from '../../package-fetcher.js';
 import PackageInstallScripts from '../../package-install-scripts.js';
-import checkCompatibility from '../../package-compatibility.js';
+import * as compatibility from '../../package-compatibility.js';
 import PackageResolver from '../../package-resolver.js';
 import PackageLinker from '../../package-linker.js';
 import PackageRequest from '../../package-request.js';
@@ -428,7 +428,7 @@ export class Install {
       this.reporter.step(curr, total, this.reporter.lang('fetchingPackages'), emoji.get('truck'));
       const manifests : Array<Manifest> = await this.fetcher.init(this.resolver.getManifests());
       this.resolver.updateManifests(manifests);
-      await checkCompatibility(this.resolver.getManifests(), this.config, this.flags.ignoreEngines);
+      await compatibility.check(this.resolver.getManifests(), this.config, this.flags.ignoreEngines);
     });
 
     steps.push(async (curr: number, total: number) => {
@@ -688,7 +688,7 @@ export class Install {
       // fetch packages, should hit cache most of the time
       const manifests : Array<Manifest> = await this.fetcher.init(this.resolver.getManifests());
       this.resolver.updateManifests(manifests);
-      await checkCompatibility(this.resolver.getManifests(), this.config, this.flags.ignoreEngines);
+      await compatibility.check(this.resolver.getManifests(), this.config, this.flags.ignoreEngines);
 
       // expand minimal manifests
       for (const manifest of this.resolver.getManifests()) {

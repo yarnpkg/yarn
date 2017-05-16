@@ -95,76 +95,75 @@ function isValidPlatform(platforms: Array<string>): boolean {
   return isValid(platforms, process.platform);
 }
 
-export function check(info: Manifest, config: Config, ignoreEngines: boolean) {
-    let didIgnore = false;
-    let didError = false;
-    const reporter = config.reporter;
-    const human = `${info.name}@${info.version}`;
+export function checkOne(info: Manifest, config: Config, ignoreEngines: boolean) {
+  let didIgnore = false;
+  let didError = false;
+  const reporter = config.reporter;
+  const human = `${info.name}@${info.version}`;
 
-    const pushError = msg => {
-      const ref = info._reference;
-      invariant(ref, 'expected package reference');
+  const pushError = msg => {
+    const ref = info._reference;
+    invariant(ref, 'expected package reference');
 
-      if (ref.optional) {
-        ref.ignore = true;
-        ref.incompatible = true;
+    if (ref.optional) {
+      ref.ignore = true;
+      ref.incompatible = true;
 
-        reporter.warn(`${human}: ${msg}`);
-        if (!didIgnore) {
-          reporter.info(reporter.lang('optionalCompatibilityExcluded', human));
-          didIgnore = true;
-        }
-      } else {
-        reporter.error(`${human}: ${msg}`);
-        didError = true;
+      reporter.warn(`${human}: ${msg}`);
+      if (!didIgnore) {
+        reporter.info(reporter.lang('optionalCompatibilityExcluded', human));
+        didIgnore = true;
       }
-    };
-
-    const invalidPlatform = !config.ignorePlatform &&
-      Array.isArray(info.os) &&
-      info.os.length > 0 &&
-      !isValidPlatform(info.os);
-
-    if (invalidPlatform) {
-      pushError(reporter.lang('incompatibleOS', process.platform));
+    } else {
+      reporter.error(`${human}: ${msg}`);
+      didError = true;
     }
+  };
 
-    const invalidCpu = !config.ignorePlatform &&
-      Array.isArray(info.cpu) &&
-      info.cpu.length > 0 &&
-      !isValidArch(info.cpu);
+  const invalidPlatform = !config.ignorePlatform &&
+    Array.isArray(info.os) &&
+    info.os.length > 0 &&
+    !isValidPlatform(info.os);
 
-    if (invalidCpu) {
-      pushError(reporter.lang('incompatibleCPU', process.arch));
-    }
+  if (invalidPlatform) {
+    pushError(reporter.lang('incompatibleOS', process.platform));
+  }
 
-    if (!ignoreEngines && typeof info.engines === 'object') {
-      for (const entry of entries(info.engines)) {
-        let name = entry[0];
-        const range = entry[1];
+  const invalidCpu = !config.ignorePlatform &&
+    Array.isArray(info.cpu) &&
+    info.cpu.length > 0 &&
+    !isValidArch(info.cpu);
 
-        if (aliases[name]) {
-          name = aliases[name];
-        }
+  if (invalidCpu) {
+    pushError(reporter.lang('incompatibleCPU', process.arch));
+  }
 
-        if (VERSIONS[name]) {
-          if (!testEngine(name, range, VERSIONS, config.looseSemver)) {
-            pushError(reporter.lang('incompatibleEngine', name, range));
-          }
-        } else if (ignore.indexOf(name) < 0) {
-          reporter.warn(`${human}: ${reporter.lang('invalidEngine', name)}`);
-        }
+  if (!ignoreEngines && typeof info.engines === 'object') {
+    for (const entry of entries(info.engines)) {
+      let name = entry[0];
+      const range = entry[1];
+
+      if (aliases[name]) {
+        name = aliases[name];
       }
-    }
 
-    if (didError) {
-      throw new MessageError(reporter.lang('foundIncompatible'));
+      if (VERSIONS[name]) {
+        if (!testEngine(name, range, VERSIONS, config.looseSemver)) {
+          pushError(reporter.lang('incompatibleEngine', name, range));
+        }
+      } else if (ignore.indexOf(name) < 0) {
+        reporter.warn(`${human}: ${reporter.lang('invalidEngine', name)}`);
+      }
     }
   }
 
+  if (didError) {
+    throw new MessageError(reporter.lang('foundIncompatible'));
+  }
+}
 
-export default function(infos: Array<Manifest>, config: Config, ignoreEngines: boolean) {
+export function check(infos: Array<Manifest>, config: Config, ignoreEngines: boolean) {
   for (const info of infos) {
-    check(info, config, ignoreEngines);
+    checkOne(info, config, ignoreEngines);
   }
 }
