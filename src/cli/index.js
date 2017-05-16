@@ -318,6 +318,7 @@ config.init({
   httpProxy: commander.proxy,
   httpsProxy: commander.httpsProxy,
   networkConcurrency: commander.networkConcurrency,
+  networkTimeout: commander.networkTimeout,
   nonInteractive: commander.nonInteractive,
   commandName: commandName === 'run' ? commander.args[0] : commandName,
 }).then(() => {
