@@ -1,7 +1,6 @@
 /* @flow */
 
-import type {FetchedMetadata} from './types.js';
-import type PackageResolver from './package-resolver.js';
+import type {FetchedMetadata, Manifest} from './types.js';
 import type {Fetchers} from './fetchers/index.js';
 import type {Reporter} from './reporters/index.js';
 import type PackageReference from './package-reference.js';
@@ -12,13 +11,11 @@ import * as fs from './util/fs.js';
 import * as promise from './util/promise.js';
 
 export default class PackageFetcher {
-  constructor(config: Config, resolver: PackageResolver) {
+  constructor(config: Config) {
     this.reporter = config.reporter;
-    this.resolver = resolver;
     this.config = config;
   }
 
-  resolver: PackageResolver;
   reporter: Reporter;
   config: Config;
 
@@ -75,10 +72,13 @@ export default class PackageFetcher {
     }
   }
 
-  async init(): Promise<void> {
-    let pkgs = this.resolver.getPackageReferences();
+  async init(pkgs: Array<Manifest>): Promise<Array<Manifest>> {
     const pkgsPerDest: Map<string, PackageReference> = new Map();
-    pkgs = pkgs.filter(ref => {
+    pkgs = pkgs.filter(pkg => {
+      const ref = pkg._reference;
+      if (!ref) {
+        return false;
+      }
       const dest = this.config.generateHardModulePath(ref);
       const otherPkg = pkgsPerDest.get(dest);
       if (otherPkg) {
@@ -92,11 +92,14 @@ export default class PackageFetcher {
     });
     const tick = this.reporter.progress(pkgs.length);
 
-    await promise.queue(
-      pkgs,
-      async ref => {
-        const res = await this.maybeFetch(ref);
-        let newPkg;
+    return await promise.queue(pkgs, async pkg => {
+      const ref = pkg._reference;
+      if (!ref) {
+        return pkg;
+      }
+
+      const res = await this.maybeFetch(ref);
+      let newPkg;
 
         if (res) {
           newPkg = res.package;
@@ -108,16 +111,18 @@ export default class PackageFetcher {
           }
         }
 
-        if (newPkg) {
-          // update with fresh manifest
-          await this.resolver.updateManifest(ref, newPkg);
-        }
+      if (tick) {
+        tick(ref.name);
+      }
 
-        if (tick) {
-          tick(ref.name);
-        }
-      },
-      this.config.networkConcurrency,
-    );
+      if (newPkg) {
+        newPkg._reference = ref;
+        newPkg._remote = ref.remote;
+        newPkg.name = pkg.name;
+        return newPkg;
+      }
+
+      return pkg;
+    }, this.config.networkConcurrency);
   }
 }

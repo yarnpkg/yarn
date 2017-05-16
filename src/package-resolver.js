@@ -86,10 +86,6 @@ export default class PackageResolver {
     return this.newPatterns.indexOf(pattern) >= 0;
   }
 
-  /**
-   * TODO description
-   */
-
   updateManifest(ref: PackageReference, newPkg: Manifest): Promise<void> {
     // inherit fields
     const oldPkg = this.patterns[ref.patterns[0]];
@@ -100,6 +96,18 @@ export default class PackageResolver {
     // update patterns
     for (const pattern of ref.patterns) {
       this.patterns[pattern] = newPkg;
+    }
+
+    return Promise.resolve();
+  }
+
+  updateManifests(newPkgs: Array<Manifest>): Promise<void> {
+    for (const newPkg of newPkgs) {
+      if (newPkg._reference) {
+        for (const pattern of newPkg._reference.patterns) {
+          this.patterns[pattern] = newPkg;
+        }
+      }
     }
 
     return Promise.resolve();
@@ -223,23 +231,6 @@ export default class PackageResolver {
   }
 
   /**
-   * Get a flat list of all package references.
-   */
-
-  getPackageReferences(): Array<PackageReference> {
-    const refs = [];
-
-    for (const manifest of this.getManifests()) {
-      const ref = manifest._reference;
-      if (ref) {
-        refs.push(ref);
-      }
-    }
-
-    return refs;
-  }
-
-  /**
    * Get a flat list of all package info.
    */
 
@@ -300,25 +291,25 @@ export default class PackageResolver {
       `Couldn't find package manifest for ${human}`,
     );
 
-    for (const pattern of patterns) {
-      // don't touch the pattern we're collapsing to
-      if (pattern === collapseToPattern) {
-        continue;
-      }
+for (const pattern of patterns) {
+  // don't touch the pattern we're collapsing to
+  if (pattern === collapseToPattern) {
+    continue;
+  }
 
-      // remove this pattern
-      const ref = this.getStrictResolvedPattern(pattern)._reference;
-      invariant(ref, 'expected package reference');
-      const refPatterns = ref.patterns.slice();
-      ref.prune();
+  // remove this pattern
+  const ref = this.getStrictResolvedPattern(pattern)._reference;
+  invariant(ref, 'expected package reference');
+  const refPatterns = ref.patterns.slice();
+  ref.prune();
 
-      // add pattern to the manifest we're collapsing to
-      for (const pattern of refPatterns) {
-        collapseToReference.addPattern(pattern, collapseToManifest);
-      }
-    }
+  // add pattern to the manifest we're collapsing to
+  for (const pattern of refPatterns) {
+    collapseToReference.addPattern(pattern, collapseToManifest);
+  }
+}
 
-    return collapseToPattern;
+return collapseToPattern;
   }
 
   /**

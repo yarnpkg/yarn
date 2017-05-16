@@ -267,7 +267,7 @@ export class Import extends Install {
   constructor(flags: Object, config: Config, reporter: Reporter, lockfile: Lockfile) {
     super(flags, config, reporter, lockfile);
     this.resolver = new ImportPackageResolver(this.config, this.lockfile);
-    this.fetcher = new PackageFetcher(config, this.resolver);
+    this.fetcher = new PackageFetcher(config);
     this.compatibility = new PackageCompatibility(config, this.flags.ignoreEngines);
     this.linker = new PackageLinker(config, this.resolver);
   }
@@ -279,7 +279,8 @@ export class Import extends Install {
     await verifyTreeCheck(this.config, this.reporter, {}, []);
     const {requests, patterns, manifest} = await this.fetchRequestFromCwd();
     await this.resolver.init(requests, this.flags.flat, manifest.name);
-    await this.fetcher.init();
+    const manifests : Array<Manifest> = await this.fetcher.init(this.resolver.getManifests());
+    this.resolver.updateManifests(manifests);
     await this.compatibility.checkEvery(this.resolver.getManifests());
     await this.linker.resolvePeerModules();
     await this.saveLockfileAndIntegrity(patterns);
