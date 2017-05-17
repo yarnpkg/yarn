@@ -2,9 +2,7 @@
 /* eslint max-len: 0 */
 
 import {Reporter} from '../src/reporters/index.js';
-import TarballFetcher, {
-  LocalTarballFetcher,
-} from '../src/fetchers/tarball-fetcher.js';
+import TarballFetcher, {LocalTarballFetcher} from '../src/fetchers/tarball-fetcher.js';
 import BaseFetcher from '../src/fetchers/base-fetcher.js';
 import CopyFetcher from '../src/fetchers/copy-fetcher.js';
 import GitFetcher from '../src/fetchers/git-fetcher.js';
@@ -125,13 +123,7 @@ test('TarballFetcher.fetch supports local ungzipped tarball', async () => {
     {
       type: 'tarball',
       hash: '25c5098052a7bd322c7db80c26852e9209f98d4f',
-      reference: path.join(
-        __dirname,
-        'fixtures',
-        'fetchers',
-        'tarball',
-        'ungzipped.tar',
-      ),
+      reference: path.join(__dirname, 'fixtures', 'fetchers', 'tarball', 'ungzipped.tar'),
       registry: 'npm',
     },
     (await Config.create()),
@@ -160,9 +152,7 @@ test('TarballFetcher.fetch properly stores tarball of package in offline mirror'
   );
 
   await fetcher.fetch();
-  const exists = await fs.exists(
-    path.join(offlineMirrorDir, 'lodash.isempty-4.4.0.tgz'),
-  );
+  const exists = await fs.exists(path.join(offlineMirrorDir, 'lodash.isempty-4.4.0.tgz'));
   expect(exists).toBe(true);
 });
 
@@ -185,8 +175,6 @@ test('TarballFetcher.fetch properly stores tarball of scoped package in offline 
   );
 
   await fetcher.fetch();
-  const exists = await fs.exists(
-    path.join(offlineMirrorDir, '@exponent-configurator-1.0.2.tgz'),
-  );
+  const exists = await fs.exists(path.join(offlineMirrorDir, '@exponent-configurator-1.0.2.tgz'));
   expect(exists).toBe(true);
 });

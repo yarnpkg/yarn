@@ -14,13 +14,7 @@ import {MessageError} from '../../errors.js';
 const invariant = require('invariant');
 
 export class Add extends Install {
-  constructor(
-    args: Array<string>,
-    flags: Object,
-    config: Config,
-    reporter: Reporter,
-    lockfile: Lockfile,
-  ) {
+  constructor(args: Array<string>, flags: Object, config: Config, reporter: Reporter, lockfile: Lockfile) {
     super(flags, config, reporter, lockfile);
     this.args = args;
     // only one flag is supported, so we can figure out which one was passed to `yarn add`
@@ -42,9 +36,7 @@ export class Add extends Install {
    * TODO
    */
 
-  prepareRequests(
-    requests: DependencyRequestPatterns,
-  ): DependencyRequestPatterns {
+  prepareRequests(requests: DependencyRequestPatterns): DependencyRequestPatterns {
     const requestsWithArgs = requests.slice();
 
     for (const pattern of this.args) {
@@ -133,18 +125,9 @@ export class Add extends Install {
     const opts: ListOptions = {
       reqDepth: 0,
     };
-    const {trees, count} = await buildTree(
-      this.resolver,
-      this.linker,
-      patterns,
-      opts,
-      true,
-      true,
-    );
+    const {trees, count} = await buildTree(this.resolver, this.linker, patterns, opts, true, true);
     this.reporter.success(
-      count === 1
-        ? this.reporter.lang('savedNewDependency')
-        : this.reporter.lang('savedNewDependencies', count),
+      count === 1 ? this.reporter.lang('savedNewDependency') : this.reporter.lang('savedNewDependencies', count),
     );
     this.reporter.tree('newDependencies', trees);
   }
@@ -198,23 +181,12 @@ export function setFlags(commander: Object) {
   commander.usage('add [packages ...] [flags]');
   commander.option('-D, --dev', 'save package to your `devDependencies`');
   commander.option('-P, --peer', 'save package to your `peerDependencies`');
-  commander.option(
-    '-O, --optional',
-    'save package to your `optionalDependencies`',
-  );
+  commander.option('-O, --optional', 'save package to your `optionalDependencies`');
   commander.option('-E, --exact', 'install exact version');
-  commander.option(
-    '-T, --tilde',
-    'install most recent release with the same minor version',
-  );
+  commander.option('-T, --tilde', 'install most recent release with the same minor version');
 }
 
-export async function run(
-  config: Config,
-  reporter: Reporter,
-  flags: Object,
-  args: Array<string>,
-): Promise<void> {
+export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
   if (!args.length) {
     throw new MessageError(reporter.lang('missingAddDependencies'));
   }

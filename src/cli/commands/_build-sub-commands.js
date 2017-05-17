@@ -19,25 +19,14 @@ type Return = {
 
 type Usage = Array<string>;
 
-export default function(
-  rootCommandName: string,
-  subCommands: SubCommands,
-  usage?: Usage = [],
-): Return {
+export default function(rootCommandName: string, subCommands: SubCommands, usage?: Usage = []): Return {
   const subCommandNames = Object.keys(subCommands).map(hyphenate);
 
   function setFlags(commander: Object) {
-    commander.usage(
-      `${rootCommandName} [${subCommandNames.join('|')}] [flags]`,
-    );
+    commander.usage(`${rootCommandName} [${subCommandNames.join('|')}] [flags]`);
   }
 
-  async function run(
-    config: Config,
-    reporter: Reporter,
-    flags: Object,
-    args: Array<string>,
-  ): Promise<void> {
+  async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
     const subName: ?string = camelCase(args.shift() || '');
     if (subName && subCommands[subName]) {
       const command: CLIFunction = subCommands[subName];
@@ -53,11 +42,7 @@ export default function(
         reporter.error(`yarn ${rootCommandName} ${msg}`);
       }
     }
-    return Promise.reject(
-      new MessageError(
-        reporter.lang('invalidCommand', subCommandNames.join(', ')),
-      ),
-    );
+    return Promise.reject(new MessageError(reporter.lang('invalidCommand', subCommandNames.join(', '))));
   }
 
   function hasWrapper(): boolean {

@@ -3,11 +3,7 @@
 import LICENSES from './licenses.js';
 
 function clean(str: string): string {
-  return str
-    .replace(/[^A-Za-z\s]/g, ' ')
-    .replace(/[\s]+/g, ' ')
-    .trim()
-    .toLowerCase();
+  return str.replace(/[^A-Za-z\s]/g, ' ').replace(/[\s]+/g, ' ').trim().toLowerCase();
 }
 
 const REGEXES: {[key: string]: Array<RegExp>} = {

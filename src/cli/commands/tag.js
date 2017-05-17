@@ -9,10 +9,7 @@ import NpmRegistry from '../../registries/npm-registry.js';
 import {MessageError} from '../../errors.js';
 import {isValidPackageName} from '../../util/normalize-manifest/validate.js';
 
-export async function getName(
-  args: Array<string>,
-  config: Config,
-): Promise<string> {
+export async function getName(args: Array<string>, config: Config): Promise<string> {
   let name = args.shift();
 
   if (!name) {
@@ -34,19 +31,12 @@ export async function getName(
 export const {run, setFlags, hasWrapper, examples} = buildSubCommands(
   'tag',
   {
-    async add(
-      config: Config,
-      reporter: Reporter,
-      flags: Object,
-      args: Array<string>,
-    ): Promise<boolean> {
+    async add(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<boolean> {
       if (args.length !== 2) {
         return false;
       }
 
-      const {name, range, hasVersion} = PackageRequest.normalizePattern(
-        args.shift(),
-      );
+      const {name, range, hasVersion} = PackageRequest.normalizePattern(args.shift());
       if (!hasVersion) {
         throw new MessageError(reporter.lang('requiredVersionInRange'));
       }
@@ -84,12 +74,7 @@ export const {run, setFlags, hasWrapper, examples} = buildSubCommands(
       }
     },
 
-    async rm(
-      config: Config,
-      reporter: Reporter,
-      flags: Object,
-      args: Array<string>,
-    ): Promise<boolean> {
+    async rm(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<boolean> {
       if (args.length !== 2) {
         return false;
       }
@@ -101,12 +86,9 @@ export const {run, setFlags, hasWrapper, examples} = buildSubCommands(
       const revoke = await getToken(config, reporter, name);
 
       reporter.step(2, 3, reporter.lang('deletingTags'));
-      const result = await config.registries.npm.request(
-        `-/package/${name}/dist-tags/${encodeURI(tag)}`,
-        {
-          method: 'DELETE',
-        },
-      );
+      const result = await config.registries.npm.request(`-/package/${name}/dist-tags/${encodeURI(tag)}`, {
+        method: 'DELETE',
+      });
 
       if (result === false) {
         reporter.error(reporter.lang('deletedTagFail'));
@@ -124,21 +106,14 @@ export const {run, setFlags, hasWrapper, examples} = buildSubCommands(
       }
     },
 
-    async ls(
-      config: Config,
-      reporter: Reporter,
-      flags: Object,
-      args: Array<string>,
-    ): Promise<void> {
+    async ls(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
       const name = await getName(args, config);
 
       reporter.step(1, 3, reporter.lang('loggingIn'));
       const revoke = await getToken(config, reporter, name);
 
       reporter.step(2, 3, reporter.lang('gettingTags'));
-      const tags = await config.registries.npm.request(
-        `-/package/${name}/dist-tags`,
-      );
+      const tags = await config.registries.npm.request(`-/package/${name}/dist-tags`);
 
       if (tags) {
         reporter.info(`Package ${name}`);
@@ -151,9 +126,7 @@ export const {run, setFlags, hasWrapper, examples} = buildSubCommands(
       await revoke();
 
       if (!tags) {
-        throw new MessageError(
-          reporter.lang('packageNotFoundRegistry', name, 'npm'),
-        );
+        throw new MessageError(reporter.lang('packageNotFoundRegistry', name, 'npm'));
       }
     },
   },

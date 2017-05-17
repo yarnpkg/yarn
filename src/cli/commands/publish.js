@@ -18,9 +18,7 @@ const fs2 = require('fs');
 
 export function setFlags(commander: Object) {
   versionSetFlags(commander);
-  commander.usage(
-    'publish [<tarball>|<folder>] [--tag <tag>] [--access <public|restricted>]',
-  );
+  commander.usage('publish [<tarball>|<folder>] [--tag <tag>] [--access <public|restricted>]');
   commander.option('--access [access]', 'access');
   commander.option('--tag [tag]', 'tag');
 }
@@ -29,12 +27,7 @@ export function hasWrapper(): boolean {
   return true;
 }
 
-async function publish(
-  config: Config,
-  pkg: any,
-  flags: Object,
-  dir: string,
-): Promise<void> {
+async function publish(config: Config, pkg: any, flags: Object, dir: string): Promise<void> {
   // validate access argument
   const access = flags.access;
   if (access && access !== 'public' && access !== 'restricted') {
@@ -100,18 +93,13 @@ async function publish(
   pkg.dist.shasum = crypto.createHash('sha1').update(buffer).digest('hex');
 
   const registry = String(config.getOption('registry'));
-  pkg.dist.tarball = url
-    .resolve(registry, tbURI)
-    .replace(/^https:\/\//, 'http://');
+  pkg.dist.tarball = url.resolve(registry, tbURI).replace(/^https:\/\//, 'http://');
 
   // publish package
-  const res = await config.registries.npm.request(
-    NpmRegistry.escapeName(pkg.name),
-    {
-      method: 'PUT',
-      body: root,
-    },
-  );
+  const res = await config.registries.npm.request(NpmRegistry.escapeName(pkg.name), {
+    method: 'PUT',
+    body: root,
+  });
 
   if (res !== null && has2xxResponse(res)) {
     await config.executeLifecycleScript('publish');
@@ -121,12 +109,7 @@ async function publish(
   }
 }
 
-export async function run(
-  config: Config,
-  reporter: Reporter,
-  flags: Object,
-  args: Array<string>,
-): Promise<void> {
+export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
   // validate package fields that are required for publishing
   const pkg = await config.readRootManifest();
   if (pkg.private) {

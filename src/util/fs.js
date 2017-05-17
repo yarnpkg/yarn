@@ -14,57 +14,26 @@ const path = require('path');
 export const lockQueue = new BlockingQueue('fs lock');
 
 export const readFileBuffer = promisify(fs.readFile);
-export const writeFile: (
-  path: string,
-  data: string,
-) => Promise<void> = promisify(fs.writeFile);
-export const readlink: (
-  path: string,
-  opts: void,
-) => Promise<string> = promisify(fs.readlink);
-export const realpath: (
-  path: string,
-  opts: void,
-) => Promise<string> = promisify(fs.realpath);
-export const readdir: (
-  path: string,
-  opts: void,
-) => Promise<Array<string>> = promisify(fs.readdir);
-export const rename: (
-  oldPath: string,
-  newPath: string,
-) => Promise<void> = promisify(fs.rename);
-export const access: (path: string, mode?: number) => Promise<void> = promisify(
-  fs.access,
-);
+export const writeFile: (path: string, data: string) => Promise<void> = promisify(fs.writeFile);
+export const readlink: (path: string, opts: void) => Promise<string> = promisify(fs.readlink);
+export const realpath: (path: string, opts: void) => Promise<string> = promisify(fs.realpath);
+export const readdir: (path: string, opts: void) => Promise<Array<string>> = promisify(fs.readdir);
+export const rename: (oldPath: string, newPath: string) => Promise<void> = promisify(fs.rename);
+export const access: (path: string, mode?: number) => Promise<void> = promisify(fs.access);
 export const stat: (path: string) => Promise<fs.Stats> = promisify(fs.stat);
-export const unlink: (path: string) => Promise<void> = promisify(
-  require('rimraf'),
-);
-export const mkdirp: (path: string) => Promise<void> = promisify(
-  require('mkdirp'),
-);
-export const exists: (path: string) => Promise<boolean> = promisify(
-  fs.exists,
-  true,
-);
+export const unlink: (path: string) => Promise<void> = promisify(require('rimraf'));
+export const mkdirp: (path: string) => Promise<void> = promisify(require('mkdirp'));
+export const exists: (path: string) => Promise<boolean> = promisify(fs.exists, true);
 export const lstat: (path: string) => Promise<fs.Stats> = promisify(fs.lstat);
-export const chmod: (
-  path: string,
-  mode: number | string,
-) => Promise<void> = promisify(fs.chmod);
+export const chmod: (path: string, mode: number | string) => Promise<void> = promisify(fs.chmod);
 export const link: (path: string) => Promise<fs.Stats> = promisify(fs.link);
-export const glob: (path: string) => Promise<Array<string>> = promisify(
-  globModule,
-);
+export const glob: (path: string) => Promise<Array<string>> = promisify(globModule);
 
 const CONCURRENT_QUEUE_ITEMS = 4;
 
-const fsSymlink: (
-  target: string,
-  path: string,
-  type?: 'dir' | 'file' | 'junction',
-) => Promise<void> = promisify(fs.symlink);
+const fsSymlink: (target: string, path: string, type?: 'dir' | 'file' | 'junction') => Promise<void> = promisify(
+  fs.symlink,
+);
 const invariant = require('invariant');
 const stripBOM = require('strip-bom');
 
@@ -220,8 +189,7 @@ async function buildActionsForCopy(
 
     // if destination exists
     if (destStat) {
-      const bothSymlinks =
-        srcStat.isSymbolicLink() && destStat.isSymbolicLink();
+      const bothSymlinks = srcStat.isSymbolicLink() && destStat.isSymbolicLink();
       const bothFolders = srcStat.isDirectory() && destStat.isDirectory();
       const bothFiles = srcStat.isFile() && destStat.isFile();
 
@@ -234,22 +202,10 @@ async function buildActionsForCopy(
         } catch (err) {}
       } */
 
-      if (
-        bothFiles &&
-        srcStat.size === destStat.size &&
-        fileDatesEqual(srcStat.mtime, destStat.mtime)
-      ) {
+      if (bothFiles && srcStat.size === destStat.size && fileDatesEqual(srcStat.mtime, destStat.mtime)) {
         // we can safely assume this is the same file
         onDone();
-        reporter.verbose(
-          reporter.lang(
-            'verboseFileSkip',
-            src,
-            dest,
-            srcStat.size,
-            +srcStat.mtime,
-          ),
-        );
+        reporter.verbose(reporter.lang('verboseFileSkip', src, dest, srcStat.size, +srcStat.mtime));
         return;
       }
 
@@ -258,9 +214,7 @@ async function buildActionsForCopy(
         if (srcReallink === (await readlink(dest))) {
           // if both symlinks are the same then we can continue on
           onDone();
-          reporter.verbose(
-            reporter.lang('verboseFileSkipSymlink', src, dest, srcReallink),
-          );
+          reporter.verbose(reporter.lang('verboseFileSkipSymlink', src, dest, srcReallink));
           return;
         }
       }
@@ -411,8 +365,7 @@ async function buildActionsForHardlink(
     if (destExists) {
       const destStat = await lstat(dest);
 
-      const bothSymlinks =
-        srcStat.isSymbolicLink() && destStat.isSymbolicLink();
+      const bothSymlinks = srcStat.isSymbolicLink() && destStat.isSymbolicLink();
       const bothFolders = srcStat.isDirectory() && destStat.isDirectory();
       const bothFiles = srcStat.isFile() && destStat.isFile();
 
@@ -429,9 +382,7 @@ async function buildActionsForHardlink(
       // correct hardlink
       if (bothFiles && srcStat.ino !== null && srcStat.ino === destStat.ino) {
         onDone();
-        reporter.verbose(
-          reporter.lang('verboseFileSkip', src, dest, srcStat.ino),
-        );
+        reporter.verbose(reporter.lang('verboseFileSkip', src, dest, srcStat.ino));
         return;
       }
 
@@ -440,9 +391,7 @@ async function buildActionsForHardlink(
         if (srcReallink === (await readlink(dest))) {
           // if both symlinks are the same then we can continue on
           onDone();
-          reporter.verbose(
-            reporter.lang('verboseFileSkipSymlink', src, dest, srcReallink),
-          );
+          reporter.verbose(reporter.lang('verboseFileSkipSymlink', src, dest, srcReallink));
           return;
         }
       }
@@ -519,11 +468,7 @@ async function buildActionsForHardlink(
   }
 }
 
-export function copy(
-  src: string,
-  dest: string,
-  reporter: Reporter,
-): Promise<void> {
+export function copy(src: string, dest: string, reporter: Reporter): Promise<void> {
   return copyBulk([{src, dest}], reporter);
 }
 
@@ -546,17 +491,10 @@ export async function copyBulk(
     artifactFiles: (_events && _events.artifactFiles) || [],
   };
 
-  const actions: CopyActions = await buildActionsForCopy(
-    queue,
-    events,
-    events.possibleExtraneous,
-    reporter,
-  );
+  const actions: CopyActions = await buildActionsForCopy(queue, events, events.possibleExtraneous, reporter);
   events.onStart(actions.length);
 
-  const fileActions: Array<CopyFileAction> = (actions.filter(
-    action => action.type === 'file',
-  ): any);
+  const fileActions: Array<CopyFileAction> = (actions.filter(action => action.type === 'file'): any);
 
   const currentlyWriting: {[dest: string]: Promise<void>} = {};
 
@@ -607,9 +545,7 @@ export async function copyBulk(
   );
 
   // we need to copy symlinks last as they could reference files we were copying
-  const symlinkActions: Array<CopySymlinkAction> = (actions.filter(
-    action => action.type === 'symlink',
-  ): any);
+  const symlinkActions: Array<CopySymlinkAction> = (actions.filter(action => action.type === 'symlink'): any);
   await promise.queue(symlinkActions, (data): Promise<void> => {
     const linkname = path.resolve(path.dirname(data.dest), data.linkname);
     reporter.verbose(reporter.lang('verboseFileSymlink', data.dest, linkname));
@@ -635,17 +571,10 @@ export async function hardlinkBulk(
     ignoreBasenames: [],
   };
 
-  const actions: CopyActions = await buildActionsForHardlink(
-    queue,
-    events,
-    events.possibleExtraneous,
-    reporter,
-  );
+  const actions: CopyActions = await buildActionsForHardlink(queue, events, events.possibleExtraneous, reporter);
   events.onStart(actions.length);
 
-  const fileActions: Array<LinkFileAction> = (actions.filter(
-    action => action.type === 'link',
-  ): any);
+  const fileActions: Array<LinkFileAction> = (actions.filter(action => action.type === 'link'): any);
 
   await promise.queue(
     fileActions,
@@ -660,9 +589,7 @@ export async function hardlinkBulk(
   );
 
   // we need to copy symlinks last as they could reference files we were copying
-  const symlinkActions: Array<CopySymlinkAction> = (actions.filter(
-    action => action.type === 'symlink',
-  ): any);
+  const symlinkActions: Array<CopySymlinkAction> = (actions.filter(action => action.type === 'symlink'): any);
   await promise.queue(symlinkActions, (data): Promise<void> => {
     const linkname = path.resolve(path.dirname(data.dest), data.linkname);
     reporter.verbose(reporter.lang('verboseFileSymlink', data.dest, linkname));
@@ -721,10 +648,7 @@ export async function readJsonAndFile(
   }
 }
 
-export async function find(
-  filename: string,
-  dir: string,
-): Promise<string | false> {
+export async function find(filename: string, dir: string): Promise<string | false> {
   const parts = dir.split(path.sep);
 
   while (parts.length) {
@@ -766,10 +690,7 @@ export async function symlink(src: string, dest: string): Promise<void> {
       // use relative paths otherwise which will be retained if the directory is moved
       let relative;
       if (await exists(src)) {
-        relative = path.relative(
-          fs.realpathSync(path.dirname(dest)),
-          fs.realpathSync(src),
-        );
+        relative = path.relative(fs.realpathSync(path.dirname(dest)), fs.realpathSync(src));
       } else {
         relative = path.relative(path.dirname(dest), src);
       }
@@ -856,10 +777,7 @@ async function getEolFromFile(path: string): Promise<string | void> {
   return undefined;
 }
 
-export async function writeFilePreservingEol(
-  path: string,
-  data: string,
-): Promise<void> {
+export async function writeFilePreservingEol(path: string, data: string): Promise<void> {
   const eol = (await getEolFromFile(path)) || os.EOL;
   if (eol !== '\n') {
     data = data.replace(/\n/g, eol);
@@ -885,10 +803,7 @@ export async function hardlinksWork(dir: string): Promise<boolean> {
 
 // not a strict polyfill for Node's fs.mkdtemp
 export async function makeTempDir(prefix?: string): Promise<string> {
-  const dir = path.join(
-    os.tmpdir(),
-    `yarn-${prefix || ''}-${Date.now()}-${Math.random()}`,
-  );
+  const dir = path.join(os.tmpdir(), `yarn-${prefix || ''}-${Date.now()}-${Math.random()}`);
   await unlink(dir);
   await mkdirp(dir);
   return dir;

@@ -212,9 +212,7 @@ export default class Config {
       if (dir[0] === '@') {
         // it's a scope, not a package
         const scopedLinked = await fs.readdir(linkedPath);
-        this.linkedModules.push(
-          ...scopedLinked.map(scopedDir => path.join(dir, scopedDir)),
-        );
+        this.linkedModules.push(...scopedLinked.map(scopedDir => path.join(dir, scopedDir)));
       } else {
         this.linkedModules.push(dir);
       }
@@ -224,12 +222,7 @@ export default class Config {
       const Registry = registries[key];
 
       // instantiate registry
-      const registry = new Registry(
-        this.cwd,
-        this.registries,
-        this.requestManager,
-        this.reporter,
-      );
+      const registry = new Registry(this.cwd, this.registries, this.requestManager, this.reporter);
       await registry.init();
 
       this.registries[key] = registry;
@@ -241,9 +234,7 @@ export default class Config {
     }
 
     this.networkConcurrency =
-      opts.networkConcurrency ||
-      Number(this.getOption('network-concurrency')) ||
-      constants.NETWORK_CONCURRENCY;
+      opts.networkConcurrency || Number(this.getOption('network-concurrency')) || constants.NETWORK_CONCURRENCY;
 
     this.childConcurrency =
       opts.childConcurrency ||
@@ -251,21 +242,14 @@ export default class Config {
       Number(process.env.CHILD_CONCURRENCY) ||
       constants.CHILD_CONCURRENCY;
 
-    this.networkTimeout =
-      opts.networkTimeout ||
-      Number(this.getOption('network-timeout')) ||
-      constants.NETWORK_TIMEOUT;
+    this.networkTimeout = opts.networkTimeout || Number(this.getOption('network-timeout')) || constants.NETWORK_TIMEOUT;
 
     this.requestManager.setOptions({
       userAgent: String(this.getOption('user-agent')),
       httpProxy: String(opts.httpProxy || this.getOption('proxy') || ''),
-      httpsProxy: String(
-        opts.httpsProxy || this.getOption('https-proxy') || '',
-      ),
+      httpsProxy: String(opts.httpsProxy || this.getOption('https-proxy') || ''),
       strictSSL: Boolean(this.getOption('strict-ssl')),
-      ca: Array.prototype
-        .concat(opts.ca || this.getOption('ca') || [])
-        .map(String),
+      ca: Array.prototype.concat(opts.ca || this.getOption('ca') || []).map(String),
       cafile: String(opts.cafile || this.getOption('cafile') || ''),
       cert: String(opts.cert || this.getOption('cert') || ''),
       key: String(opts.key || this.getOption('key') || ''),
@@ -273,27 +257,16 @@ export default class Config {
       networkTimeout: this.networkTimeout,
     });
     this._cacheRootFolder = String(
-      opts.cacheFolder ||
-        this.getOption('cache-folder') ||
-        constants.MODULE_CACHE_DIRECTORY,
+      opts.cacheFolder || this.getOption('cache-folder') || constants.MODULE_CACHE_DIRECTORY,
     );
-    this.workspacesExperimental = Boolean(
-      this.getOption('workspaces-experimental'),
-    );
+    this.workspacesExperimental = Boolean(this.getOption('workspaces-experimental'));
 
-    this.pruneOfflineMirror = Boolean(
-      this.getOption('yarn-offline-mirror-pruning'),
-    );
+    this.pruneOfflineMirror = Boolean(this.getOption('yarn-offline-mirror-pruning'));
     this.enableMetaFolder = Boolean(this.getOption('enable-meta-folder'));
-    this.disableLockfileVersions = Boolean(
-      this.getOption('yarn-disable-lockfile-versions'),
-    );
+    this.disableLockfileVersions = Boolean(this.getOption('yarn-disable-lockfile-versions'));
 
     //init & create cacheFolder, tempFolder
-    this.cacheFolder = path.join(
-      this._cacheRootFolder,
-      'v' + String(constants.CACHE_VERSION),
-    );
+    this.cacheFolder = path.join(this._cacheRootFolder, 'v' + String(constants.CACHE_VERSION));
     this.tempFolder = opts.tempFolder || path.join(this.cacheFolder, '.tmp');
     await fs.mkdirp(this.cacheFolder);
     await fs.mkdirp(this.tempFolder);
@@ -351,10 +324,7 @@ export default class Config {
    * Generate an absolute module path.
    */
 
-  generateHardModulePath(
-    pkg: ?PackageReference,
-    ignoreLocation?: ?boolean,
-  ): string {
+  generateHardModulePath(pkg: ?PackageReference, ignoreLocation?: ?boolean): string {
     invariant(this.cacheFolder, 'No package root');
     invariant(pkg, 'Undefined package');
 
@@ -463,12 +433,8 @@ export default class Config {
    */
 
   readPackageMetadata(dir: string): Promise<PackageMetadata> {
-    return this.getCache(`metadata-${dir}`, async (): Promise<
-      PackageMetadata,
-    > => {
-      const metadata = await this.readJson(
-        path.join(dir, constants.METADATA_FILENAME),
-      );
+    return this.getCache(`metadata-${dir}`, async (): Promise<PackageMetadata> => {
+      const metadata = await this.readJson(path.join(dir, constants.METADATA_FILENAME));
       const pkg = await this.readManifest(dir, metadata.registry);
 
       return {
@@ -486,24 +452,13 @@ export default class Config {
    * throw an error if package.json was not found
    */
 
-  async readManifest(
-    dir: string,
-    priorityRegistry?: RegistryNames,
-    isRoot?: boolean = false,
-  ): Promise<Manifest> {
-    const manifest = await this.maybeReadManifest(
-      dir,
-      priorityRegistry,
-      isRoot,
-    );
+  async readManifest(dir: string, priorityRegistry?: RegistryNames, isRoot?: boolean = false): Promise<Manifest> {
+    const manifest = await this.maybeReadManifest(dir, priorityRegistry, isRoot);
 
     if (manifest) {
       return manifest;
     } else {
-      throw new MessageError(
-        this.reporter.lang('couldntFindPackagejson', dir),
-        'ENOENT',
-      );
+      throw new MessageError(this.reporter.lang('couldntFindPackagejson', dir), 'ENOENT');
     }
   }
 
@@ -512,11 +467,7 @@ export default class Config {
  * 1. mainfest file in cache
  * 2. manifest file in registry
  */
-  maybeReadManifest(
-    dir: string,
-    priorityRegistry?: RegistryNames,
-    isRoot?: boolean = false,
-  ): Promise<?Manifest> {
+  maybeReadManifest(dir: string, priorityRegistry?: RegistryNames, isRoot?: boolean = false): Promise<?Manifest> {
     return this.getCache(`manifest-${dir}`, async (): Promise<?Manifest> => {
       const metadataLoc = path.join(dir, constants.METADATA_FILENAME);
       if (!priorityRegistry && (await fs.exists(metadataLoc))) {
@@ -557,11 +508,7 @@ export default class Config {
    * Try and find package info with the input directory and registry.
    */
 
-  async tryManifest(
-    dir: string,
-    registry: RegistryNames,
-    isRoot: boolean,
-  ): Promise<?Manifest> {
+  async tryManifest(dir: string, registry: RegistryNames, isRoot: boolean): Promise<?Manifest> {
     const {filename} = registries[registry];
     const loc = path.join(dir, filename);
     if (await fs.exists(loc)) {
@@ -630,10 +577,7 @@ export default class Config {
         }
       }
 
-      await fs.writeFilePreservingEol(
-        loc,
-        JSON.stringify(object, null, indent || constants.DEFAULT_INDENT) + '\n',
-      );
+      await fs.writeFilePreservingEol(loc, JSON.stringify(object, null, indent || constants.DEFAULT_INDENT) + '\n');
     }
   }
 
@@ -642,27 +586,19 @@ export default class Config {
    * of a syntax error.
    */
 
-  async readJson(
-    loc: string,
-    factory: (filename: string) => Promise<Object> = fs.readJson,
-  ): Promise<Object> {
+  async readJson(loc: string, factory: (filename: string) => Promise<Object> = fs.readJson): Promise<Object> {
     try {
       return await factory(loc);
     } catch (err) {
       if (err instanceof SyntaxError) {
-        throw new MessageError(
-          this.reporter.lang('jsonError', loc, err.message),
-        );
+        throw new MessageError(this.reporter.lang('jsonError', loc, err.message));
       } else {
         throw err;
       }
     }
   }
 
-  static async create(
-    opts: ConfigOptions = {},
-    reporter: Reporter = new NoopReporter(),
-  ): Promise<Config> {
+  static async create(opts: ConfigOptions = {}, reporter: Reporter = new NoopReporter()): Promise<Config> {
     const config = new Config(reporter);
     await config.init(opts);
     return config;

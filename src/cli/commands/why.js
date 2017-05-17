@@ -3,10 +3,7 @@
 import type {Reporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
 
-import type {
-  HoistManifestTuple,
-  HoistManifestTuples,
-} from '../../package-hoister.js';
+import type {HoistManifestTuple, HoistManifestTuples} from '../../package-hoister.js';
 import {Install} from './install.js';
 import {METADATA_FILENAME, TARBALL_FILENAME} from '../../constants.js';
 import * as fs from '../../util/fs.js';
@@ -54,15 +51,9 @@ async function cleanQuery(config: Config, query: string): Promise<string> {
 async function getPackageSize(tuple: HoistManifestTuple): Promise<number> {
   const [loc] = tuple;
 
-  const files = await fs.walk(
-    loc,
-    null,
-    new Set([METADATA_FILENAME, TARBALL_FILENAME]),
-  );
+  const files = await fs.walk(loc, null, new Set([METADATA_FILENAME, TARBALL_FILENAME]));
 
-  const sizes = await Promise.all(
-    files.map(walkFile => fs.getFileSizeOnDisk(walkFile.absolute)),
-  );
+  const sizes = await Promise.all(files.map(walkFile => fs.getFileSizeOnDisk(walkFile.absolute)));
 
   return sum(sizes);
 }
@@ -97,26 +88,18 @@ function collect(
   }
 
   if (recursive) {
-    directDependencies.forEach(dependency =>
-      collect(hoistManifests, allDependencies, dependency, {recursive: true}),
-    );
+    directDependencies.forEach(dependency => collect(hoistManifests, allDependencies, dependency, {recursive: true}));
   }
 
   return allDependencies;
 }
 
-function getSharedDependencies(
-  hoistManifests: HoistManifestTuples,
-  transitiveKeys: Set<string>,
-): Set<string> {
+function getSharedDependencies(hoistManifests: HoistManifestTuples, transitiveKeys: Set<string>): Set<string> {
   const sharedDependencies = new Set();
   for (const [, info] of hoistManifests) {
     if (!transitiveKeys.has(info.key) && info.pkg.dependencies) {
       Object.keys(info.pkg.dependencies).forEach(dependency => {
-        if (
-          transitiveKeys.has(dependency) &&
-          !sharedDependencies.has(dependency)
-        ) {
+        if (transitiveKeys.has(dependency) && !sharedDependencies.has(dependency)) {
           sharedDependencies.add(dependency);
         }
       });
@@ -131,12 +114,7 @@ export function hasWrapper(): boolean {
   return true;
 }
 
-export async function run(
-  config: Config,
-  reporter: Reporter,
-  flags: Object,
-  args: Array<string>,
-): Promise<void> {
+export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
   if (!args.length) {
     throw new MessageError(reporter.lang('missingWhyDependency'));
   }
@@ -146,12 +124,7 @@ export async function run(
 
   const query = await cleanQuery(config, args[0]);
 
-  reporter.step(
-    1,
-    4,
-    reporter.lang('whyStart', args[0]),
-    emoji.get('thinking_face'),
-  );
+  reporter.step(1, 4, reporter.lang('whyStart', args[0]), emoji.get('thinking_face'));
 
   // init
   reporter.step(2, 4, reporter.lang('whyInitGraph'), emoji.get('truck'));
@@ -192,9 +165,7 @@ export async function run(
       continue;
     }
 
-    const dependent = install.resolver.getResolvedPattern(
-      parentRequest.pattern,
-    );
+    const dependent = install.resolver.getResolvedPattern(parentRequest.pattern);
     if (!dependent) {
       continue;
     }
@@ -203,9 +174,7 @@ export async function run(
 
     let delegator = parentRequest;
     do {
-      chain.push(
-        install.resolver.getStrictResolvedPattern(delegator.pattern).name,
-      );
+      chain.push(install.resolver.getStrictResolvedPattern(delegator.pattern).name);
     } while ((delegator = delegator.parentRequest));
 
     reasons.push({
@@ -240,12 +209,7 @@ export async function run(
   }
 
   // package sizes
-  reporter.step(
-    4,
-    4,
-    reporter.lang('whyCalculating'),
-    emoji.get('aerial_tramway'),
-  );
+  reporter.step(4, 4, reporter.lang('whyCalculating'), emoji.get('aerial_tramway'));
 
   let packageSize = 0;
   let directSizes = [];
@@ -255,20 +219,14 @@ export async function run(
   } catch (e) {}
 
   const dependencies = Array.from(collect(hoisted, new Set(), match));
-  const transitiveDependencies = Array.from(
-    collect(hoisted, new Set(), match, {recursive: true}),
-  );
+  const transitiveDependencies = Array.from(collect(hoisted, new Set(), match, {recursive: true}));
 
   try {
     directSizes = await Promise.all(dependencies.map(getPackageSize));
-    transitiveSizes = await Promise.all(
-      transitiveDependencies.map(getPackageSize),
-    );
+    transitiveSizes = await Promise.all(transitiveDependencies.map(getPackageSize));
   } catch (e) {}
 
-  const transitiveKeys = new Set(
-    transitiveDependencies.map(([, info]) => info.key),
-  );
+  const transitiveKeys = new Set(transitiveDependencies.map(([, info]) => info.key));
   const sharedDependencies = getSharedDependencies(hoisted, transitiveKeys);
 
   //
@@ -281,10 +239,7 @@ export async function run(
     reporter.info(reporter.lang(reasons[0].typeSimple, reasons[0].value));
   } else if (reasons.length > 1) {
     reporter.info(reporter.lang('whyReasons'));
-    reporter.list(
-      'reasons',
-      reasons.map(reason => reporter.lang(reason.type, reason.value)),
-    );
+    reporter.list('reasons', reasons.map(reason => reporter.lang(reason.type, reason.value)));
   } else {
     reporter.error(reporter.lang('whyWhoKnows'));
   }
@@ -294,21 +249,12 @@ export async function run(
     reporter.info(reporter.lang('whyDiskSizeWithout', bytes(packageSize)));
 
     // stats: file size of this dependency including dependencies that aren't shared
-    reporter.info(
-      reporter.lang('whyDiskSizeUnique', bytes(packageSize + sum(directSizes))),
-    );
+    reporter.info(reporter.lang('whyDiskSizeUnique', bytes(packageSize + sum(directSizes))));
 
     // stats: file size of this dependency including dependencies
-    reporter.info(
-      reporter.lang(
-        'whyDiskSizeTransitive',
-        bytes(packageSize + sum(transitiveSizes)),
-      ),
-    );
+    reporter.info(reporter.lang('whyDiskSizeTransitive', bytes(packageSize + sum(transitiveSizes))));
 
     // stats: shared transitive dependencies
-    reporter.info(
-      reporter.lang('whySharedDependencies', sharedDependencies.size),
-    );
+    reporter.info(reporter.lang('whySharedDependencies', sharedDependencies.size));
   }
 }

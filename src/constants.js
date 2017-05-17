@@ -7,12 +7,7 @@ type Env = {
   [key: string]: ?string,
 };
 
-export const DEPENDENCY_TYPES = [
-  'devDependencies',
-  'dependencies',
-  'optionalDependencies',
-  'peerDependencies',
-];
+export const DEPENDENCY_TYPES = ['devDependencies', 'dependencies', 'optionalDependencies', 'peerDependencies'];
 
 export const YARN_REGISTRY = 'https://registry.yarnpkg.com';
 

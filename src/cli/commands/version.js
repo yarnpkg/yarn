@@ -14,13 +14,8 @@ const semver = require('semver');
 const path = require('path');
 
 const NEW_VERSION_FLAG = '--new-version [version]';
-function isValidNewVersion(
-  oldVersion: string,
-  newVersion: string,
-  looseSemver: boolean,
-): boolean {
-  return !!(semver.valid(newVersion, looseSemver) ||
-    semver.inc(oldVersion, newVersion, looseSemver));
+function isValidNewVersion(oldVersion: string, newVersion: string, looseSemver: boolean): boolean {
+  return !!(semver.valid(newVersion, looseSemver) || semver.inc(oldVersion, newVersion, looseSemver));
 }
 
 export function setFlags(commander: Object) {
@@ -47,19 +42,12 @@ export async function setVersion(
   invariant(pkgLoc, 'expected package location');
 
   if (args.length && !newVersion) {
-    throw new MessageError(
-      reporter.lang('invalidVersionArgument', NEW_VERSION_FLAG),
-    );
+    throw new MessageError(reporter.lang('invalidVersionArgument', NEW_VERSION_FLAG));
   }
 
   async function runLifecycle(lifecycle: string): Promise<void> {
     if (scripts[lifecycle]) {
-      return await execCommand(
-        lifecycle,
-        config,
-        scripts[lifecycle],
-        config.cwd,
-      );
+      return await execCommand(lifecycle, config, scripts[lifecycle], config.cwd);
     }
 
     return Promise.resolve();
@@ -79,10 +67,7 @@ export async function setVersion(
   }
 
   // get new version
-  if (
-    newVersion &&
-    !isValidNewVersion(oldVersion, newVersion, config.looseSemver)
-  ) {
+  if (newVersion && !isValidNewVersion(oldVersion, newVersion, config.looseSemver)) {
     throw new MessageError(reporter.lang('invalidVersion'));
   }
 
@@ -104,8 +89,7 @@ export async function setVersion(
     }
   }
   if (newVersion) {
-    newVersion =
-      semver.inc(oldVersion, newVersion, config.looseSemver) || newVersion;
+    newVersion = semver.inc(oldVersion, newVersion, config.looseSemver) || newVersion;
   }
   invariant(newVersion, 'expected new version');
 
@@ -157,9 +141,7 @@ export async function setVersion(
     await runLifecycle('version');
 
     if (isGit) {
-      const message = (flags.message ||
-        String(config.getOption('version-git-message')))
-        .replace(/%s/g, newVersion);
+      const message = (flags.message || String(config.getOption('version-git-message'))).replace(/%s/g, newVersion);
       const sign: boolean = Boolean(config.getOption('version-sign-git-tag'));
       const flag = sign ? '-sm' : '-am';
       const prefix: string = String(config.getOption('version-tag-prefix'));
@@ -178,12 +160,7 @@ export async function setVersion(
   };
 }
 
-export async function run(
-  config: Config,
-  reporter: Reporter,
-  flags: Object,
-  args: Array<string>,
-): Promise<void> {
+export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
   const commit = await setVersion(config, reporter, flags, args, true);
   await commit();
 }

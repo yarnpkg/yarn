@@ -3,16 +3,8 @@ import {fixCmdWinSlashes} from '../../src/util/fix-cmd-win-slashes.js';
 
 const cmdCases = [
   ['fixes just slashed command', 'some/command', 'some\\command'],
-  [
-    'fixes slashed command in double quotes',
-    '"./some/command/more"',
-    '".\\some\\command\\more"',
-  ],
-  [
-    'slashed command in single quotes',
-    "'./some/command/more'",
-    "'.\\some\\command\\more'",
-  ],
+  ['fixes slashed command in double quotes', '"./some/command/more"', '".\\some\\command\\more"'],
+  ['slashed command in single quotes', "'./some/command/more'", "'.\\some\\command\\more'"],
   [
     'fixes slashed command with slashed param',
     './some/command/more slashed/param',

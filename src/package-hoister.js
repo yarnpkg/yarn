@@ -13,14 +13,7 @@ type Parts = Array<string>;
 let historyCounter = 0;
 
 export class HoistManifest {
-  constructor(
-    key: string,
-    parts: Parts,
-    pkg: Manifest,
-    loc: string,
-    isRequired: boolean,
-    isIncompatible: boolean,
-  ) {
+  constructor(key: string, parts: Parts, pkg: Manifest, loc: string, isRequired: boolean, isIncompatible: boolean) {
     this.isRequired = isRequired;
     this.isIncompatible = isIncompatible;
     this.loc = loc;
@@ -161,14 +154,7 @@ export default class PackageHoister {
     const loc: string = this.config.generateHardModulePath(ref);
     const parts = parentParts.concat(pkg.name);
     const key: string = this.implodeKey(parts);
-    const info: HoistManifest = new HoistManifest(
-      key,
-      parts,
-      pkg,
-      loc,
-      isRequired,
-      isIncompatible,
-    );
+    const info: HoistManifest = new HoistManifest(key, parts, pkg, loc, isRequired, isIncompatible);
 
     //
     this.tree.set(key, info);
@@ -207,9 +193,7 @@ export default class PackageHoister {
         const depinfo = this._lookupDependency(info, depPattern);
         if (depinfo && !depinfo.isRequired && !depinfo.isIncompatible) {
           depinfo.isRequired = true;
-          depinfo.addHistory(
-            `Mark as non-ignored because of usage by ${info.key}`,
-          );
+          depinfo.addHistory(`Mark as non-ignored because of usage by ${info.key}`);
           toVisit.push(depinfo);
         }
       }
@@ -268,9 +252,7 @@ export default class PackageHoister {
         if (existing.loc === info.loc) {
           // switch to non ignored if earlier deduped version was ignored (must be compatible)
           if (!existing.isRequired && info.isRequired) {
-            existing.addHistory(
-              `Deduped ${fullKey} to this item, marking as required`,
-            );
+            existing.addHistory(`Deduped ${fullKey} to this item, marking as required`);
             existing.isRequired = true;
           } else {
             existing.addHistory(`Deduped ${fullKey} to this item`);
@@ -391,11 +373,7 @@ export default class PackageHoister {
    * Declare that a module has been hoisted and update our internal references.
    */
 
-  declareRename(
-    info: HoistManifest,
-    oldParts: Array<string>,
-    newParts: Array<string>,
-  ) {
+  declareRename(info: HoistManifest, oldParts: Array<string>, newParts: Array<string>) {
     // go down the tree from our new position reserving our name
     this.taintParents(info, oldParts.slice(0, -1), newParts.length - 1);
   }
@@ -404,11 +382,7 @@ export default class PackageHoister {
    * Crawl upwards through a list of ancestry parts and taint a package name.
    */
 
-  taintParents(
-    info: HoistManifest,
-    processParts: Array<string>,
-    start: number,
-  ) {
+  taintParents(info: HoistManifest, processParts: Array<string>, start: number) {
     for (let i = start; i < processParts.length; i++) {
       const parts = processParts.slice(0, i).concat(info.pkg.name);
       const key = this.implodeKey(parts);
@@ -555,9 +529,7 @@ export default class PackageHoister {
         // remove the first part which will be the folder name and replace it with a
         // hardcoded modules folder
         parts.shift();
-        const modulesFolder = this.config.modulesFolder == null
-          ? ''
-          : this.config.modulesFolder;
+        const modulesFolder = this.config.modulesFolder == null ? '' : this.config.modulesFolder;
         parts.unshift(modulesFolder);
       } else {
         // first part will be the registry-specific module folder

@@ -21,7 +21,7 @@ const config = {
   ignore: ['**/node_modules/**'],
   options: {
     'bracket-spacing': 'false',
-    'print-width': 80,
+    'print-width': 120,
     'single-quote': 'true',
     'trailing-comma': 'all',
     'parser': 'flow'

@@ -7,11 +7,7 @@ const semver = require('semver');
  * prerelease versions so that "2.0.0-rc.0" satisfies the range ">=1.0.0", for example.
  */
 
-export function satisfiesWithPreleases(
-  version: string,
-  range: string,
-  loose?: boolean = false,
-): boolean {
+export function satisfiesWithPreleases(version: string, range: string, loose?: boolean = false): boolean {
   let semverRange;
   try {
     // $FlowFixMe: Add a definition for the Range class
@@ -34,11 +30,7 @@ export function satisfiesWithPreleases(
     // counterparts. As a practical workaround we make upper-bound ranges exclude prereleases and
     // convert "<2.0.0" to "<2.0.0-0", for example.
     comparatorSet = comparatorSet.map(comparator => {
-      if (
-        comparator.operator !== '<' ||
-        !comparator.value ||
-        comparator.semver.prerelease.length
-      ) {
+      if (comparator.operator !== '<' || !comparator.value || comparator.semver.prerelease.length) {
         return comparator;
       }
 

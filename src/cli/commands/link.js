@@ -9,10 +9,7 @@ import {getBinFolder as getGlobalBinFolder} from './global';
 const invariant = require('invariant');
 const path = require('path');
 
-export async function getRegistryFolder(
-  config: Config,
-  name: string,
-): Promise<string> {
+export async function getRegistryFolder(config: Config, name: string): Promise<string> {
   if (config.modulesFolder) {
     return config.modulesFolder;
   }
@@ -31,12 +28,7 @@ export function hasWrapper(): boolean {
 
 export function setFlags() {}
 
-export async function run(
-  config: Config,
-  reporter: Reporter,
-  flags: Object,
-  args: Array<string>,
-): Promise<void> {
+export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
   if (args.length) {
     for (const name of args) {
       const src = path.join(config.linkFolder, name);

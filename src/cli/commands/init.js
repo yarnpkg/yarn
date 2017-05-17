@@ -2,10 +2,7 @@
 
 import type {Reporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
-import {
-  stringifyPerson,
-  extractRepositoryUrl,
-} from '../../util/normalize-manifest/util.js';
+import {stringifyPerson, extractRepositoryUrl} from '../../util/normalize-manifest/util.js';
 import {registryNames} from '../../registries/index.js';
 import * as child from '../../util/child.js';
 import * as fs from '../../util/fs.js';
@@ -22,12 +19,7 @@ export function hasWrapper(): boolean {
   return true;
 }
 
-export async function run(
-  config: Config,
-  reporter: Reporter,
-  flags: Object,
-  args: Array<string>,
-): Promise<void> {
+export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
   const manifests = await config.getRootManifests();
 
   let repository = {};
@@ -171,10 +163,7 @@ export async function run(
   await config.saveRootManifests(manifests);
 }
 
-export async function getGitConfigInfo(
-  credential: string,
-  spawn = child.spawn,
-): Promise<string> {
+export async function getGitConfigInfo(credential: string, spawn = child.spawn): Promise<string> {
   try {
     // try to get author default based on git config
     return await spawn('git', ['config', credential]);

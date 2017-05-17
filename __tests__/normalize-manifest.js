@@ -70,18 +70,14 @@ for (const name of nativeFs.readdirSync(fixturesLoc)) {
 }
 
 test('util.stringifyPerson', () => {
-  expect(util.stringifyPerson({name: 'Sebastian McKenzie'})).toEqual(
-    'Sebastian McKenzie',
-  );
+  expect(util.stringifyPerson({name: 'Sebastian McKenzie'})).toEqual('Sebastian McKenzie');
   expect(
     util.stringifyPerson({
       name: 'Sebastian McKenzie',
       email: 'sebmck@gmail.com',
     }),
   ).toEqual('Sebastian McKenzie <sebmck@gmail.com>');
-  expect(util.stringifyPerson({email: 'sebmck@gmail.com'})).toEqual(
-    '<sebmck@gmail.com>',
-  );
+  expect(util.stringifyPerson({email: 'sebmck@gmail.com'})).toEqual('<sebmck@gmail.com>');
   expect(
     util.stringifyPerson({
       name: 'Sebastian McKenzie',
@@ -103,11 +99,7 @@ test('util.parsePerson', () => {
     name: 'Sebastian McKenzie',
     email: 'sebmck@gmail.com',
   });
-  expect(
-    util.parsePerson(
-      'Sebastian McKenzie <sebmck@gmail.com> (https://sebmck.com)',
-    ),
-  ).toEqual({
+  expect(util.parsePerson('Sebastian McKenzie <sebmck@gmail.com> (https://sebmck.com)')).toEqual({
     name: 'Sebastian McKenzie',
     email: 'sebmck@gmail.com',
     url: 'https://sebmck.com',
@@ -115,27 +107,19 @@ test('util.parsePerson', () => {
 });
 
 test('util.extractDescription', () => {
-  expect(util.extractDescription('# header\n\ndescription here')).toEqual(
-    'description here',
-  );
-  expect(util.extractDescription('# header\ndescription here')).toEqual(
-    'description here',
-  );
-  expect(util.extractDescription('# header\ndescription here\nfoobar')).toEqual(
-    'description here foobar',
-  );
-  expect(
-    util.extractDescription('# header\ndescription here\n\nfoobar'),
-  ).toEqual('description here');
+  expect(util.extractDescription('# header\n\ndescription here')).toEqual('description here');
+  expect(util.extractDescription('# header\ndescription here')).toEqual('description here');
+  expect(util.extractDescription('# header\ndescription here\nfoobar')).toEqual('description here foobar');
+  expect(util.extractDescription('# header\ndescription here\n\nfoobar')).toEqual('description here');
   expect(util.extractDescription('')).toEqual(undefined);
   expect(util.extractDescription(null)).toEqual(undefined);
   expect(util.extractDescription(undefined)).toEqual(undefined);
 });
 
 test('util.extractRepositoryUrl', () => {
-  expect(
-    util.extractRepositoryUrl('https://github.com/yarnpkg/yarn.git'),
-  ).toEqual('https://github.com/yarnpkg/yarn.git');
+  expect(util.extractRepositoryUrl('https://github.com/yarnpkg/yarn.git')).toEqual(
+    'https://github.com/yarnpkg/yarn.git',
+  );
   expect(
     util.extractRepositoryUrl({
       type: 'git',
@@ -173,9 +157,7 @@ function normalizePaths(paths: mixed): ?(string[]) {
   if (Array.isArray(paths)) {
     return paths.map(p => {
       if (typeof p !== 'string') {
-        throw new Error(
-          `Expected string in paths, got ${JSON.stringify(paths)}`,
-        );
+        throw new Error(`Expected string in paths, got ${JSON.stringify(paths)}`);
       }
       return normalize(p);
     });

@@ -3,21 +3,14 @@
 import type {Tree} from '../../src/reporters/types.js';
 import {BufferReporter} from '../../src/reporters/index.js';
 import {run as buildRun} from './_helpers.js';
-import {
-  getParent,
-  getReqDepth,
-  run as list,
-} from '../../src/cli/commands/list.js';
+import {getParent, getReqDepth, run as list} from '../../src/cli/commands/list.js';
 import * as reporters from '../../src/reporters/index.js';
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 90000;
 
 const path = require('path');
 
-function makeTree(
-  name,
-  {children = [], hint = null, color = null, depth = 0}: Object = {},
-): Tree {
+function makeTree(name, {children = [], hint = null, color = null, depth = 0}: Object = {}): Tree {
   return {
     name,
     children,
@@ -28,14 +21,9 @@ function makeTree(
 }
 
 const fixturesLoc = path.join(__dirname, '..', 'fixtures', 'list');
-const runList = buildRun.bind(
-  null,
-  BufferReporter,
-  fixturesLoc,
-  (args, flags, config, reporter): Promise<void> => {
-    return list(config, reporter, flags, args);
-  },
-);
+const runList = buildRun.bind(null, BufferReporter, fixturesLoc, (args, flags, config, reporter): Promise<void> => {
+  return list(config, reporter, flags, args);
+});
 
 test.concurrent('throws if lockfile out of date', (): Promise<void> => {
   const reporter = new reporters.ConsoleReporter({});
@@ -55,9 +43,7 @@ test.concurrent('lists everything with no args', (): Promise<void> => {
   return runList([], {}, 'no-args', (config, reporter): ?Promise<void> => {
     const rprtr = new BufferReporter({});
     const tree = reporter.getBuffer().slice(-1);
-    const children = [
-      {name: 'is-plain-obj@^1.0.0', color: 'dim', shadow: true},
-    ];
+    const children = [{name: 'is-plain-obj@^1.0.0', color: 'dim', shadow: true}];
     const trees = [
       makeTree('left-pad@1.1.3', {color: 'bold'}),
       makeTree('sort-keys@1.1.2', {children, color: 'bold'}),
@@ -71,15 +57,10 @@ test.concurrent('lists everything with no args', (): Promise<void> => {
 });
 
 test.concurrent('respects depth flag', (): Promise<void> => {
-  return runList([], {depth: 1}, 'depth-flag', (config, reporter): ?Promise<
-    void,
-  > => {
+  return runList([], {depth: 1}, 'depth-flag', (config, reporter): ?Promise<void> => {
     const rprtr = new BufferReporter({});
     const tree = reporter.getBuffer().slice(-1);
-    const trees = [
-      makeTree('sort-keys@1.1.2', {color: 'bold'}),
-      makeTree('is-plain-obj@1.1.0'),
-    ];
+    const trees = [makeTree('sort-keys@1.1.2', {color: 'bold'}), makeTree('is-plain-obj@1.1.0')];
 
     rprtr.tree('list', trees);
 
@@ -88,9 +69,7 @@ test.concurrent('respects depth flag', (): Promise<void> => {
 });
 
 test.concurrent('accepts an argument', (): Promise<void> => {
-  return runList(['is-plain-obj'], {}, 'one-arg', (config, reporter): ?Promise<
-    void,
-  > => {
+  return runList(['is-plain-obj'], {}, 'one-arg', (config, reporter): ?Promise<void> => {
     const rprtr = new BufferReporter({});
     const tree = reporter.getBuffer().slice(-1);
     const trees = [makeTree('is-plain-obj@1.1.0')];

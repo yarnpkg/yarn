@@ -48,19 +48,10 @@ export default class FileResolver extends ExoticResolver {
     manifest._uid = manifest.version;
 
     // Normalize relative paths; if anything changes, make a copy of the manifest
-    const dependencies = this.normalizeDependencyPaths(
-      manifest.dependencies,
-      loc,
-    );
-    const optionalDependencies = this.normalizeDependencyPaths(
-      manifest.optionalDependencies,
-      loc,
-    );
+    const dependencies = this.normalizeDependencyPaths(manifest.dependencies, loc);
+    const optionalDependencies = this.normalizeDependencyPaths(manifest.optionalDependencies, loc);
 
-    if (
-      dependencies !== manifest.dependencies ||
-      optionalDependencies !== manifest.optionalDependencies
-    ) {
+    if (dependencies !== manifest.dependencies || optionalDependencies !== manifest.optionalDependencies) {
       const _manifest = Object.assign({}, manifest);
       if (dependencies != null) {
         _manifest.dependencies = dependencies;
@@ -82,17 +73,11 @@ export default class FileResolver extends ExoticResolver {
     let temp = section;
 
     for (const [k, v] of util.entries(section)) {
-      if (
-        typeof v === 'string' &&
-        v.startsWith('file:') &&
-        !path.isAbsolute(v)
-      ) {
+      if (typeof v === 'string' && v.startsWith('file:') && !path.isAbsolute(v)) {
         if (temp === section) {
           temp = Object.assign({}, section);
         }
-        temp[
-          k
-        ] = `file:${path.relative(this.config.cwd, path.join(loc, util.removePrefix(v, 'file:')))}`;
+        temp[k] = `file:${path.relative(this.config.cwd, path.join(loc, util.removePrefix(v, 'file:')))}`;
       }
     }
 

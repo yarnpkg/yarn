@@ -36,11 +36,7 @@ async function getCredentials(
   return {username, email};
 }
 
-export async function getToken(
-  config: Config,
-  reporter: Reporter,
-  name: string = '',
-): Promise<() => Promise<void>> {
+export async function getToken(config: Config, reporter: Reporter, name: string = ''): Promise<() => Promise<void>> {
   const auth = config.registries.npm.getAuth(name);
   if (auth) {
     config.registries.npm.setToken(auth);
@@ -87,14 +83,11 @@ export async function getToken(
   };
 
   //
-  const res = await config.registries.npm.request(
-    `-/user/org.couchdb.user:${encodeURIComponent(username)}`,
-    {
-      method: 'PUT',
-      body: userobj,
-      auth: {username, password, email},
-    },
-  );
+  const res = await config.registries.npm.request(`-/user/org.couchdb.user:${encodeURIComponent(username)}`, {
+    method: 'PUT',
+    body: userobj,
+    auth: {username, password, email},
+  });
 
   if (res && res.ok) {
     reporter.success(reporter.lang('loggedIn'));
@@ -119,11 +112,6 @@ export function hasWrapper(): boolean {
 
 export function setFlags() {}
 
-export async function run(
-  config: Config,
-  reporter: Reporter,
-  flags: Object,
-  args: Array<string>,
-): Promise<void> {
+export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
   await getCredentials(config, reporter);
 }

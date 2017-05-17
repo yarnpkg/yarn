@@ -15,12 +15,7 @@ const urlParse = require('url').parse;
 // we purposefully omit https and http as those are only valid if they end in the .git extension
 const GIT_PROTOCOLS = ['git:', 'git+ssh:', 'git+https:', 'ssh:'];
 
-const GIT_HOSTS = [
-  'github.com',
-  'gitlab.com',
-  'bitbucket.com',
-  'bitbucket.org',
-];
+const GIT_HOSTS = ['github.com', 'gitlab.com', 'bitbucket.com', 'bitbucket.org'];
 
 export default class GitResolver extends ExoticResolver {
   constructor(request: PackageRequest, fragment: string) {
@@ -110,9 +105,7 @@ export default class GitResolver extends ExoticResolver {
         return null;
       }
 
-      const json = await config.readJson(`${url}/${filename}`, () =>
-        JSON.parse(file),
-      );
+      const json = await config.readJson(`${url}/${filename}`, () => JSON.parse(file));
       json._uid = commit;
       json._remote = {
         resolved: `${url}#${commit}`,

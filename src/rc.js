@@ -68,10 +68,7 @@ export function getRcArgs(command: string): Array<string> {
 
   let result = rcArgsCache['*'] || [];
 
-  if (
-    command !== '*' &&
-    Object.prototype.hasOwnProperty.call(rcArgsCache, command)
-  ) {
+  if (command !== '*' && Object.prototype.hasOwnProperty.call(rcArgsCache, command)) {
     result = result.concat(rcArgsCache[command] || []);
   }
 

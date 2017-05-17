@@ -1,9 +1,7 @@
 /* @flow */
 
 import GitLabResolver from '../../../src/resolvers/exotics/gitlab-resolver.js';
-import type {
-  ExplodedFragment,
-} from '../../../src/resolvers/exotics/hosted-git-resolver.js';
+import type {ExplodedFragment} from '../../../src/resolvers/exotics/hosted-git-resolver.js';
 import Git from '../../../src/util/git.js';
 
 const url = require('url');

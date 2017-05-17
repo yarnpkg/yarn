@@ -25,12 +25,7 @@ export type CheckOutdatedReturn = Promise<{
 }>;
 
 export default class BaseRegistry {
-  constructor(
-    cwd: string,
-    registries: ConfigRegistries,
-    requestManager: RequestManager,
-    reporter: Reporter,
-  ) {
+  constructor(cwd: string, registries: ConfigRegistries, requestManager: RequestManager, reporter: Reporter) {
     this.reporter = reporter;
     this.requestManager = requestManager;
     this.registries = registries;
@@ -89,11 +84,7 @@ export default class BaseRegistry {
     return Promise.resolve();
   }
 
-  checkOutdated(
-    config: Config,
-    name: string,
-    range: string,
-  ): CheckOutdatedReturn {
+  checkOutdated(config: Config, name: string, range: string): CheckOutdatedReturn {
     return Promise.reject(new Error('unimplemented'));
   }
 

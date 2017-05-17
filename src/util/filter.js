@@ -30,10 +30,7 @@ export function sortFilter(
 
     // always keep a file if a ! pattern matches it
     for (const filter of filters) {
-      if (
-        filter.isNegation &&
-        matchesFilter(filter, file.basename, file.relative)
-      ) {
+      if (filter.isNegation && matchesFilter(filter, file.basename, file.relative)) {
         keep = true;
         break;
       }
@@ -48,10 +45,7 @@ export function sortFilter(
     // otherwise don't keep it if a pattern matches it
     keep = true;
     for (const filter of filters) {
-      if (
-        !filter.isNegation &&
-        matchesFilter(filter, file.basename, file.relative)
-      ) {
+      if (!filter.isNegation && matchesFilter(filter, file.basename, file.relative)) {
         keep = false;
         break;
       }
@@ -100,11 +94,7 @@ export function sortFilter(
   return {ignoreFiles, keepFiles};
 }
 
-export function matchesFilter(
-  filter: IgnoreFilter,
-  basename: string,
-  loc: string,
-): boolean {
+export function matchesFilter(filter: IgnoreFilter, basename: string, loc: string): boolean {
   if (filter.base && filter.base !== '.') {
     loc = path.relative(filter.base, loc);
   }
@@ -116,21 +106,13 @@ export function matchesFilter(
   );
 }
 
-export function ignoreLinesToRegex(
-  lines: Array<string>,
-  base: string = '.',
-): Array<IgnoreFilter> {
+export function ignoreLinesToRegex(lines: Array<string>, base: string = '.'): Array<IgnoreFilter> {
   return (
     lines
       // create regex
       .map((line): ?IgnoreFilter => {
         // remove empty lines, comments, etc
-        if (
-          line === '' ||
-          line === '!' ||
-          line[0] === '#' ||
-          WHITESPACE_RE.test(line)
-        ) {
+        if (line === '' || line === '!' || line[0] === '#' || WHITESPACE_RE.test(line)) {
           return null;
         }
 

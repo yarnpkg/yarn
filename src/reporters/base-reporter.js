@@ -247,11 +247,7 @@ export default class BaseReporter {
   }
 
   // prompt the user to select an option from an array
-  select(
-    header: string,
-    question: string,
-    options: Array<ReporterSelectOption>,
-  ): Promise<string> {
+  select(header: string, question: string, options: Array<ReporterSelectOption>): Promise<string> {
     return Promise.reject(new Error('Not implemented'));
   }
 
@@ -266,11 +262,7 @@ export default class BaseReporter {
   }
 
   //
-  prompt<T>(
-    message: string,
-    choices: Array<*>,
-    options?: PromptOptions = {},
-  ): Promise<Array<T>> {
+  prompt<T>(message: string, choices: Array<*>, options?: PromptOptions = {}): Promise<Array<T>> {
     return Promise.reject(new Error('Not implemented'));
   }
 }

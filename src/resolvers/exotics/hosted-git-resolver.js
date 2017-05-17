@@ -15,10 +15,7 @@ export type ExplodedFragment = {
   hash: string,
 };
 
-export function explodeHostedGitFragment(
-  fragment: string,
-  reporter: Reporter,
-): ExplodedFragment {
+export function explodeHostedGitFragment(fragment: string, reporter: Reporter): ExplodedFragment {
   const preParts = fragment.split('@');
   if (preParts.length > 2) {
     fragment = preParts[1] + '@' + preParts[2];
@@ -70,10 +67,7 @@ export default class HostedGitResolver extends ExoticResolver {
   constructor(request: PackageRequest, fragment: string) {
     super(request, fragment);
 
-    const exploded = (this.exploded = explodeHostedGitFragment(
-      fragment,
-      this.reporter,
-    ));
+    const exploded = (this.exploded = explodeHostedGitFragment(fragment, this.reporter));
     const {user, repo, hash} = exploded;
     this.user = user;
     this.repo = repo;
@@ -107,11 +101,7 @@ export default class HostedGitResolver extends ExoticResolver {
     throw new Error('Not implemented');
   }
 
-  static getHTTPFileUrl(
-    exploded: ExplodedFragment,
-    filename: string,
-    commit: string,
-  ) {
+  static getHTTPFileUrl(exploded: ExplodedFragment, filename: string, commit: string) {
     exploded;
     filename;
     commit;
@@ -156,11 +146,7 @@ export default class HostedGitResolver extends ExoticResolver {
     const tryRegistry = async (registry): Promise<?Manifest> => {
       const {filename} = registries[registry];
 
-      const href = this.constructor.getHTTPFileUrl(
-        this.exploded,
-        filename,
-        commit,
-      );
+      const href = this.constructor.getHTTPFileUrl(this.exploded, filename, commit);
       const file = await config.requestManager.request({
         url: href,
         queue: this.resolver.fetchingQueue,

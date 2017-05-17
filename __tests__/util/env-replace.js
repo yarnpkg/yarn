@@ -19,10 +19,7 @@ describe('environment variable replacement', () => {
       envReplace('${a} replacement', {b: 'token'});
     } catch (err) {
       thrown = true;
-      expect(err.message).toEqual(
-        'Failed to replace env in config: ${a}',
-        `error message: ${err.message}`,
-      );
+      expect(err.message).toEqual('Failed to replace env in config: ${a}', `error message: ${err.message}`);
     }
     expect(thrown).toEqual(true);
   });

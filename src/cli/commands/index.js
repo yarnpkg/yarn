@@ -7,10 +7,7 @@ import Config from '../../config.js';
 const chalk = require('chalk');
 
 const getDocsLink = name => `${constants.YARN_DOCS}${name || ''}`;
-const getDocsInfo = name =>
-  'Visit ' +
-  chalk.bold(getDocsLink(name)) +
-  ' for documentation about this command.';
+const getDocsInfo = name => 'Visit ' + chalk.bold(getDocsLink(name)) + ' for documentation about this command.';
 
 import * as access from './access.js';
 import * as add from './add.js';
@@ -58,9 +55,7 @@ const commands = {
   clean,
   config,
   create,
-  dedupe: buildUseless(
-    "The dedupe command isn't necessary. `yarn install` will already dedupe.",
-  ),
+  dedupe: buildUseless("The dedupe command isn't necessary. `yarn install` will already dedupe."),
   generateLockEntry,
   global,
   help,
@@ -70,18 +65,14 @@ const commands = {
   install,
   licenses,
   link,
-  lockfile: buildUseless(
-    "The lockfile command isn't necessary. `yarn install` will produce a lockfile.",
-  ),
+  lockfile: buildUseless("The lockfile command isn't necessary. `yarn install` will produce a lockfile."),
   login,
   logout,
   list,
   outdated,
   owner,
   pack,
-  prune: buildUseless(
-    "The prune command isn't necessary. `yarn install` will prune extraneous packages.",
-  ),
+  prune: buildUseless("The prune command isn't necessary. `yarn install` will prune extraneous packages."),
   publish,
   remove,
   run,
@@ -110,13 +101,8 @@ import unsupportedAliases from '../unsupported-aliases.js';
 
 for (const key in unsupportedAliases) {
   commands[key] = {
-    run(
-      config: Config,
-      reporter: ConsoleReporter | JSONReporter,
-    ): Promise<void> {
-      throw new MessageError(
-        `Did you mean \`yarn ${unsupportedAliases[key]}\`?`,
-      );
+    run(config: Config, reporter: ConsoleReporter | JSONReporter): Promise<void> {
+      throw new MessageError(`Did you mean \`yarn ${unsupportedAliases[key]}\`?`);
     },
     setFlags: () => {},
     hasWrapper: () => true,

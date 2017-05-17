@@ -71,9 +71,7 @@ export default class Spinner {
     }
     // build line ensuring we don't wrap to the next line
     let msg = `${this.prefix}${this.chars[this.current]} ${this.text}`;
-    const columns = typeof this.stdout.columns === 'number'
-      ? this.stdout.columns
-      : 100;
+    const columns = typeof this.stdout.columns === 'number' ? this.stdout.columns : 100;
     msg = msg.slice(0, columns);
     writeOnNthLine(this.stdout, this.lineNumber, msg);
     this.current = ++this.current % this.chars.length;

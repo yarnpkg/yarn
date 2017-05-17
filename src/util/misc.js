@@ -67,10 +67,7 @@ export function camelCase(str: string): ?string {
   }
 }
 
-export function compareSortedArrays<T>(
-  array1: Array<T>,
-  array2: Array<T>,
-): boolean {
+export function compareSortedArrays<T>(array1: Array<T>, array2: Array<T>): boolean {
   if (array1.length !== array2.length) {
     return false;
   }

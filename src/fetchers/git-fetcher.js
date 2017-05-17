@@ -24,17 +24,11 @@ export default class GitFetcher extends BaseFetcher {
     const tarballModernMirrorPath = this.getTarballMirrorPath();
     const tarballCachePath = this.getTarballCachePath();
 
-    if (
-      tarballLegacyMirrorPath != null &&
-      (await fsUtil.exists(tarballLegacyMirrorPath))
-    ) {
+    if (tarballLegacyMirrorPath != null && (await fsUtil.exists(tarballLegacyMirrorPath))) {
       return true;
     }
 
-    if (
-      tarballModernMirrorPath != null &&
-      (await fsUtil.exists(tarballModernMirrorPath))
-    ) {
+    if (tarballModernMirrorPath != null && (await fsUtil.exists(tarballModernMirrorPath))) {
       return true;
     }
 
@@ -45,9 +39,7 @@ export default class GitFetcher extends BaseFetcher {
     return false;
   }
 
-  getTarballMirrorPath(
-    {withCommit = true}: {withCommit: boolean} = {},
-  ): ?string {
+  getTarballMirrorPath({withCommit = true}: {withCommit: boolean} = {}): ?string {
     const {pathname} = url.parse(this.reference);
 
     if (pathname == null) {
@@ -56,9 +48,7 @@ export default class GitFetcher extends BaseFetcher {
 
     const hash = this.hash;
 
-    const packageFilename = withCommit && hash
-      ? `${path.basename(pathname)}-${hash}`
-      : `${path.basename(pathname)}`;
+    const packageFilename = withCommit && hash ? `${path.basename(pathname)}-${hash}` : `${path.basename(pathname)}`;
 
     return this.config.getOfflineMirrorPath(packageFilename);
   }
@@ -84,13 +74,7 @@ export default class GitFetcher extends BaseFetcher {
     const tarballPath = override || tarballMirrorPath || tarballCachePath;
 
     if (!tarballPath || !await fsUtil.exists(tarballPath)) {
-      throw new MessageError(
-        this.reporter.lang(
-          'tarballNotInNetworkOrCache',
-          this.reference,
-          tarballPath,
-        ),
-      );
+      throw new MessageError(this.reporter.lang('tarballNotInNetworkOrCache', this.reference, tarballPath));
     }
 
     return new Promise((resolve, reject) => {
@@ -114,19 +98,11 @@ export default class GitFetcher extends BaseFetcher {
               hash: actualHash,
             });
           } else {
-            reject(
-              new SecurityError(
-                this.reporter.lang('fetchBadHash', expectHash, actualHash),
-              ),
-            );
+            reject(new SecurityError(this.reporter.lang('fetchBadHash', expectHash, actualHash)));
           }
         })
         .on('error', function(err) {
-          reject(
-            new MessageError(
-              this.reporter.lang('fetchErrorCorrupt', err.message, tarballPath),
-            ),
-          );
+          reject(new MessageError(this.reporter.lang('fetchErrorCorrupt', err.message, tarballPath)));
         });
     });
   }

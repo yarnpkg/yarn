@@ -27,8 +27,7 @@ const runImport = buildRun.bind(
   },
 );
 
-const reporterType = (reporter, type) =>
-  reporter.getBuffer().filter(d => d.type === type);
+const reporterType = (reporter, type) => reporter.getBuffer().filter(d => d.type === type);
 
 const reporterErrors = reporter => reporter.getBuffer().filter(d => d.error);
 
@@ -83,18 +82,13 @@ test.concurrent('throw on missing dev deps deps', async () => {
 });
 
 test.concurrent('import missing dev deps in production', () => {
-  return runImport(
-    [],
-    {production: true},
-    'missing-dev',
-    async (config, reporter) => {
-      expect(reporterErrors(reporter).length).toEqual(1);
-      expect(reporterType(reporter, 'warning').length).toEqual(1);
-      await checkLockfile(config, reporter);
-      expect(reporterErrors(reporter).length).toEqual(1);
-      expect(reporterType(reporter, 'warning').length).toEqual(1);
-    },
-  );
+  return runImport([], {production: true}, 'missing-dev', async (config, reporter) => {
+    expect(reporterErrors(reporter).length).toEqual(1);
+    expect(reporterType(reporter, 'warning').length).toEqual(1);
+    await checkLockfile(config, reporter);
+    expect(reporterErrors(reporter).length).toEqual(1);
+    expect(reporterType(reporter, 'warning').length).toEqual(1);
+  });
 });
 
 test.concurrent('import missing opt deps', () => {

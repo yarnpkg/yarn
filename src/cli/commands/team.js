@@ -20,11 +20,7 @@ type CLIFunctionWithParts = (
   args: Array<string>,
 ) => CLIFunctionReturn;
 
-function explodeScopeTeam(
-  arg: string,
-  requireTeam: boolean,
-  reporter: Reporter,
-): false | TeamParts {
+function explodeScopeTeam(arg: string, requireTeam: boolean, reporter: Reporter): false | TeamParts {
   const [scope, team, ...parts] = arg.split(':');
 
   if (parts.length) {
@@ -42,16 +38,8 @@ function explodeScopeTeam(
   };
 }
 
-function wrapRequired(
-  callback: CLIFunctionWithParts,
-  requireTeam: boolean,
-): CLIFunction {
-  return async function(
-    config: Config,
-    reporter: Reporter,
-    flags: Object,
-    args: Array<string>,
-  ): CLIFunctionReturn {
+function wrapRequired(callback: CLIFunctionWithParts, requireTeam: boolean): CLIFunction {
+  return async function(config: Config, reporter: Reporter, flags: Object, args: Array<string>): CLIFunctionReturn {
     if (!args.length) {
       return false;
     }
@@ -75,10 +63,7 @@ function wrapRequired(
   };
 }
 
-function wrapRequiredTeam(
-  callback: CLIFunctionWithParts,
-  requireTeam: boolean = true,
-): CLIFunction {
+function wrapRequiredTeam(callback: CLIFunctionWithParts, requireTeam: boolean = true): CLIFunction {
   return wrapRequired(function(
     parts: TeamParts,
     config: Config,
@@ -150,12 +135,9 @@ export const {run, setFlags, hasWrapper, examples} = buildSubCommands(
     ): Promise<boolean> {
       reporter.step(2, 3, reporter.lang('teamRemoving'));
       reporter.inspect(
-        await config.registries.npm.request(
-          `team/${parts.scope}/${parts.team}`,
-          {
-            method: 'DELETE',
-          },
-        ),
+        await config.registries.npm.request(`team/${parts.scope}/${parts.team}`, {
+          method: 'DELETE',
+        }),
       );
       return true;
     }),
@@ -169,15 +151,12 @@ export const {run, setFlags, hasWrapper, examples} = buildSubCommands(
     ): Promise<boolean> {
       reporter.step(2, 3, reporter.lang('teamAddingUser'));
       reporter.inspect(
-        await config.registries.npm.request(
-          `team/${parts.scope}/${parts.team}/user`,
-          {
-            method: 'PUT',
-            body: {
-              user: parts.user,
-            },
+        await config.registries.npm.request(`team/${parts.scope}/${parts.team}/user`, {
+          method: 'PUT',
+          body: {
+            user: parts.user,
           },
-        ),
+        }),
       );
       return true;
     }),
@@ -191,15 +170,12 @@ export const {run, setFlags, hasWrapper, examples} = buildSubCommands(
     ): Promise<boolean> {
       reporter.step(2, 3, reporter.lang('teamRemovingUser'));
       reporter.inspect(
-        await config.registries.npm.request(
-          `team/${parts.scope}/${parts.team}/user`,
-          {
-            method: 'DELETE',
-            body: {
-              user: parts.user,
-            },
+        await config.registries.npm.request(`team/${parts.scope}/${parts.team}/user`, {
+          method: 'DELETE',
+          body: {
+            user: parts.user,
           },
-        ),
+        }),
       );
       return true;
     }),
@@ -214,17 +190,9 @@ export const {run, setFlags, hasWrapper, examples} = buildSubCommands(
       reporter.step(2, 3, reporter.lang('teamListing'));
       const uriParams = '?format=cli';
       if (parts.team) {
-        reporter.inspect(
-          await config.registries.npm.request(
-            `team/${parts.scope}/${parts.team}/user${uriParams}`,
-          ),
-        );
+        reporter.inspect(await config.registries.npm.request(`team/${parts.scope}/${parts.team}/user${uriParams}`));
       } else {
-        reporter.inspect(
-          await config.registries.npm.request(
-            `org/${parts.scope}/team${uriParams}`,
-          ),
-        );
+        reporter.inspect(await config.registries.npm.request(`org/${parts.scope}/team${uriParams}`));
       }
       return true;
     }, false),

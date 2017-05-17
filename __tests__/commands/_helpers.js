@@ -42,19 +42,11 @@ export async function createLockfile(dir: string): Promise<Lockfile> {
 }
 
 export function explodeLockfile(lockfile: string): Array<string> {
-  return lockfile
-    .split('\n')
-    .filter((line): boolean => !!line && line[0] !== '#');
+  return lockfile.split('\n').filter((line): boolean => !!line && line[0] !== '#');
 }
 
-export async function getPackageVersion(
-  config: Config,
-  packagePath: string,
-): Promise<string> {
-  const loc = path.join(
-    config.cwd,
-    `node_modules/${packagePath.replace(/\//g, '/node_modules/')}/package.json`,
-  );
+export async function getPackageVersion(config: Config, packagePath: string): Promise<string> {
+  const loc = path.join(config.cwd, `node_modules/${packagePath.replace(/\//g, '/node_modules/')}/package.json`);
   const json = JSON.parse(await fs.readFile(loc));
   return json.version;
 }
@@ -73,12 +65,7 @@ export async function run<T, R>(
   args: Array<string>,
   flags: Object,
   name: string | {source: string, cwd: string},
-  checkInstalled: ?(
-    config: Config,
-    reporter: R,
-    install: T,
-    getStdout: () => string,
-  ) => ?Promise<void>,
+  checkInstalled: ?(config: Config, reporter: R, install: T, getStdout: () => string) => ?Promise<void>,
   beforeInstall: ?(cwd: string) => ?Promise<void>,
 ): Promise<void> {
   let out = '';
@@ -145,14 +132,7 @@ export async function run<T, R>(
       reporter,
     );
 
-    const install = await factory(
-      args,
-      flags,
-      config,
-      reporter,
-      lockfile,
-      () => out,
-    );
+    const install = await factory(args, flags, config, reporter, lockfile, () => out);
 
     if (checkInstalled) {
       await checkInstalled(config, reporter, install, () => out);

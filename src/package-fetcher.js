@@ -39,9 +39,7 @@ export default class PackageFetcher {
     const remote = ref.remote;
     const Fetcher = fetchers[remote.type];
     if (!Fetcher) {
-      throw new MessageError(
-        this.reporter.lang('unknownFetcherFor', remote.type),
-      );
+      throw new MessageError(this.reporter.lang('unknownFetcherFor', remote.type));
     }
 
     const fetcher = new Fetcher(dest, remote, this.config);
@@ -85,12 +83,7 @@ export default class PackageFetcher {
       const otherPkg = pkgsPerDest.get(dest);
       if (otherPkg) {
         this.reporter.warn(
-          this.reporter.lang(
-            'multiplePackagesCantUnpackInSameDestination',
-            ref.patterns,
-            dest,
-            otherPkg.patterns,
-          ),
+          this.reporter.lang('multiplePackagesCantUnpackInSameDestination', ref.patterns, dest, otherPkg.patterns),
         );
         return false;
       }

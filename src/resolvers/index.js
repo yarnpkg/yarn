@@ -39,16 +39,11 @@ export const hostedGit = {
   bitbucket: ExoticBitbucket,
 };
 
-export function hostedGitFragmentToGitUrl(
-  fragment: string,
-  reporter: Reporter,
-): string {
+export function hostedGitFragmentToGitUrl(fragment: string, reporter: Reporter): string {
   for (const key in hostedGit) {
     const Resolver = hostedGit[key];
     if (Resolver.isVersion(fragment)) {
-      return Resolver.getGitHTTPUrl(
-        explodeHostedGitFragment(fragment, reporter),
-      );
+      return Resolver.getGitHTTPUrl(explodeHostedGitFragment(fragment, reporter));
     }
   }
 

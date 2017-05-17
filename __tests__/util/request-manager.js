@@ -14,12 +14,8 @@ const path = require('path');
 test('RequestManager.request with cafile', async () => {
   let body;
   const options = {
-    key: await fs.readFile(
-      path.join(__dirname, '..', 'fixtures', 'certificates', 'server-key.pem'),
-    ),
-    cert: await fs.readFile(
-      path.join(__dirname, '..', 'fixtures', 'certificates', 'server-cert.pem'),
-    ),
+    key: await fs.readFile(path.join(__dirname, '..', 'fixtures', 'certificates', 'server-key.pem')),
+    cert: await fs.readFile(path.join(__dirname, '..', 'fixtures', 'certificates', 'server-cert.pem')),
   };
   const server = https.createServer(options, (req, res) => {
     res.end('ok');
@@ -27,13 +23,7 @@ test('RequestManager.request with cafile', async () => {
   try {
     server.listen(0);
     const config = await Config.create({
-      cafile: path.join(
-        __dirname,
-        '..',
-        'fixtures',
-        'certificates',
-        'cacerts.pem',
-      ),
+      cafile: path.join(__dirname, '..', 'fixtures', 'certificates', 'cacerts.pem'),
     });
     const port = server.address().port;
     body = await config.requestManager.request({
@@ -49,25 +39,17 @@ test('RequestManager.request with cafile', async () => {
 test('RequestManager.request with ca (string)', async () => {
   let body;
   const options = {
-    key: await fs.readFile(
-      path.join(__dirname, '..', 'fixtures', 'certificates', 'server-key.pem'),
-    ),
-    cert: await fs.readFile(
-      path.join(__dirname, '..', 'fixtures', 'certificates', 'server-cert.pem'),
-    ),
+    key: await fs.readFile(path.join(__dirname, '..', 'fixtures', 'certificates', 'server-key.pem')),
+    cert: await fs.readFile(path.join(__dirname, '..', 'fixtures', 'certificates', 'server-cert.pem')),
   };
   const server = https.createServer(options, (req, res) => {
     res.end('ok');
   });
   try {
     server.listen(0);
-    const bundle = await fs.readFile(
-      path.join(__dirname, '..', 'fixtures', 'certificates', 'cacerts.pem'),
-    );
+    const bundle = await fs.readFile(path.join(__dirname, '..', 'fixtures', 'certificates', 'cacerts.pem'));
     const hasPemPrefix = block => block.startsWith('-----BEGIN ');
-    const caCerts = bundle
-      .split(/(-----BEGIN .*\r?\n[^-]+\r?\n--.*)/)
-      .filter(hasPemPrefix);
+    const caCerts = bundle.split(/(-----BEGIN .*\r?\n[^-]+\r?\n--.*)/).filter(hasPemPrefix);
     // the 2nd cert is valid one
     const config = await Config.create({ca: caCerts[1]});
     const port = server.address().port;
@@ -84,25 +66,17 @@ test('RequestManager.request with ca (string)', async () => {
 test('RequestManager.request with ca (array)', async () => {
   let body;
   const options = {
-    key: await fs.readFile(
-      path.join(__dirname, '..', 'fixtures', 'certificates', 'server-key.pem'),
-    ),
-    cert: await fs.readFile(
-      path.join(__dirname, '..', 'fixtures', 'certificates', 'server-cert.pem'),
-    ),
+    key: await fs.readFile(path.join(__dirname, '..', 'fixtures', 'certificates', 'server-key.pem')),
+    cert: await fs.readFile(path.join(__dirname, '..', 'fixtures', 'certificates', 'server-cert.pem')),
   };
   const server = https.createServer(options, (req, res) => {
     res.end('ok');
   });
   try {
     server.listen(0);
-    const bundle = await fs.readFile(
-      path.join(__dirname, '..', 'fixtures', 'certificates', 'cacerts.pem'),
-    );
+    const bundle = await fs.readFile(path.join(__dirname, '..', 'fixtures', 'certificates', 'cacerts.pem'));
     const hasPemPrefix = block => block.startsWith('-----BEGIN ');
-    const caCerts = bundle
-      .split(/(-----BEGIN .*\r?\n[^-]+\r?\n--.*)/)
-      .filter(hasPemPrefix);
+    const caCerts = bundle.split(/(-----BEGIN .*\r?\n[^-]+\r?\n--.*)/).filter(hasPemPrefix);
     const config = await Config.create({ca: caCerts});
     const port = server.address().port;
     body = await config.requestManager.request({
@@ -118,21 +92,9 @@ test('RequestManager.request with ca (array)', async () => {
 test('RequestManager.request with mutual TLS', async () => {
   let body;
   const options = {
-    key: await fs.readFile(
-      path.join(__dirname, '..', 'fixtures', 'certificates', 'server-key.pem'),
-    ),
-    cert: await fs.readFile(
-      path.join(__dirname, '..', 'fixtures', 'certificates', 'server-cert.pem'),
-    ),
-    ca: await fs.readFile(
-      path.join(
-        __dirname,
-        '..',
-        'fixtures',
-        'certificates',
-        'server-ca-cert.pem',
-      ),
-    ),
+    key: await fs.readFile(path.join(__dirname, '..', 'fixtures', 'certificates', 'server-key.pem')),
+    cert: await fs.readFile(path.join(__dirname, '..', 'fixtures', 'certificates', 'server-cert.pem')),
+    ca: await fs.readFile(path.join(__dirname, '..', 'fixtures', 'certificates', 'server-ca-cert.pem')),
     requestCert: true,
     rejectUnauthorized: true,
   };
@@ -142,31 +104,9 @@ test('RequestManager.request with mutual TLS', async () => {
   try {
     server.listen(0);
     const config = await Config.create({
-      cafile: path.join(
-        __dirname,
-        '..',
-        'fixtures',
-        'certificates',
-        'server-ca-cert.pem',
-      ),
-      key: await fs.readFile(
-        path.join(
-          __dirname,
-          '..',
-          'fixtures',
-          'certificates',
-          'client-key.pem',
-        ),
-      ),
-      cert: await fs.readFile(
-        path.join(
-          __dirname,
-          '..',
-          'fixtures',
-          'certificates',
-          'client-cert.pem',
-        ),
-      ),
+      cafile: path.join(__dirname, '..', 'fixtures', 'certificates', 'server-ca-cert.pem'),
+      key: await fs.readFile(path.join(__dirname, '..', 'fixtures', 'certificates', 'client-key.pem')),
+      cert: await fs.readFile(path.join(__dirname, '..', 'fixtures', 'certificates', 'client-cert.pem')),
     });
     const port = server.address().port;
     body = await config.requestManager.request({
@@ -258,9 +198,7 @@ test('RequestManager.request with offlineNoRequests', async () => {
       headers: {Connection: 'close'},
     });
   } catch (err) {
-    expect(err.message).toBe(
-      'Can\'t make a request in offline mode ("https://localhost:port/?nocache")',
-    );
+    expect(err.message).toBe('Can\'t make a request in offline mode ("https://localhost:port/?nocache")');
   }
 });
 
@@ -269,8 +207,6 @@ test('RequestManager.saveHar no captureHar error message', async () => {
   try {
     config.requestManager.saveHar('testFile');
   } catch (err) {
-    expect(err.message).toBe(
-      'RequestManager was not setup to capture HAR files',
-    );
+    expect(err.message).toBe('RequestManager was not setup to capture HAR files');
   }
 });

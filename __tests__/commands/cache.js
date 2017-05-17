@@ -14,23 +14,14 @@ const runCache = buildRun.bind(
   null,
   reporters.JSONReporter,
   fixturesLoc,
-  async (
-    args,
-    flags,
-    config,
-    reporter,
-    lockfile,
-    getStdout,
-  ): Promise<string> => {
+  async (args, flags, config, reporter, lockfile, getStdout): Promise<string> => {
     await run(config, reporter, flags, args);
     return getStdout();
   },
 );
 
 test('ls', async (): Promise<void> => {
-  await runInstall({}, 'artifacts-finds-and-saves', async (config): Promise<
-    void,
-  > => {
+  await runInstall({}, 'artifacts-finds-and-saves', async (config): Promise<void> => {
     const out = new stream.PassThrough();
     const reporter = new reporters.JSONReporter({stdout: out});
     await run(config, reporter, {}, ['ls']);
@@ -41,18 +32,14 @@ test('ls', async (): Promise<void> => {
 });
 
 test('ls with scoped package', async (): Promise<void> => {
-  await runInstall(
-    {},
-    'install-from-authed-private-registry',
-    async (config): Promise<void> => {
-      const out = new stream.PassThrough();
-      const reporter = new reporters.JSONReporter({stdout: out});
-      await run(config, reporter, {}, ['ls']);
-      const stdout = String(out.read());
-      expect(stdout).toContain('@types/lodash');
-      expect(stdout).toContain('4.14.37');
-    },
-  );
+  await runInstall({}, 'install-from-authed-private-registry', async (config): Promise<void> => {
+    const out = new stream.PassThrough();
+    const reporter = new reporters.JSONReporter({stdout: out});
+    await run(config, reporter, {}, ['ls']);
+    const stdout = String(out.read());
+    expect(stdout).toContain('@types/lodash');
+    expect(stdout).toContain('4.14.37');
+  });
 });
 
 test('dir', async (): Promise<void> => {
@@ -62,9 +49,7 @@ test('dir', async (): Promise<void> => {
 });
 
 test('clean', async (): Promise<void> => {
-  await runInstall({}, 'artifacts-finds-and-saves', async (config): Promise<
-    void,
-  > => {
+  await runInstall({}, 'artifacts-finds-and-saves', async (config): Promise<void> => {
     let files = await fs.readdir(config.cacheFolder);
     // Asserting cache size is 1...
     // we need to add one for the .tmp folder

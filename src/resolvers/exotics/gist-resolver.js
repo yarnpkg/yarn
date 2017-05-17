@@ -8,10 +8,7 @@ import GitResolver from './git-resolver.js';
 import ExoticResolver from './exotic-resolver.js';
 import * as util from '../../util/misc.js';
 
-export function explodeGistFragment(
-  fragment: string,
-  reporter: Reporter,
-): {id: string, hash: string} {
+export function explodeGistFragment(fragment: string, reporter: Reporter): {id: string, hash: string} {
   fragment = util.removePrefix(fragment, 'gist:');
 
   const parts = fragment.split('#');
@@ -41,10 +38,6 @@ export default class GistResolver extends ExoticResolver {
   hash: string;
 
   resolve(): Promise<Manifest> {
-    return this.fork(
-      GitResolver,
-      false,
-      `https://gist.github.com/${this.id}.git#${this.hash}`,
-    );
+    return this.fork(GitResolver, false, `https://gist.github.com/${this.id}.git#${this.hash}`);
   }
 }

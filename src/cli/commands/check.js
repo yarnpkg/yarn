@@ -85,12 +85,7 @@ export async function verifyTreeCheck(
       semver.validRange(dep.version, config.looseSemver) &&
       !semver.satisfies(pkg.version, dep.version, config.looseSemver)
     ) {
-      reportError(
-        'packageWrongVersion',
-        dep.originalKey,
-        dep.version,
-        pkg.version,
-      );
+      reportError('packageWrongVersion', dep.originalKey, dep.version, pkg.version);
       continue;
     }
     const dependencies = pkg.dependencies;
@@ -99,10 +94,7 @@ export async function verifyTreeCheck(
         const subDepPath = path.join(manifestLoc, registry.folder, subdep);
         let found = false;
         const relative = path.relative(registry.cwd, subDepPath);
-        const locations = path
-          .normalize(relative)
-          .split(registry.folder + path.sep)
-          .filter(dir => !!dir);
+        const locations = path.normalize(relative).split(registry.folder + path.sep).filter(dir => !!dir);
         locations.pop();
         while (locations.length >= 0) {
           let possiblePath;
@@ -115,9 +107,7 @@ export async function verifyTreeCheck(
           } else {
             possiblePath = registry.cwd;
           }
-          if (
-            await fs.exists(path.join(possiblePath, registry.folder, subdep))
-          ) {
+          if (await fs.exists(path.join(possiblePath, registry.folder, subdep))) {
             dependenciesToCheckVersion.push({
               name: subdep,
               originalKey: `${dep.originalKey}#${subdep}`,
@@ -184,12 +174,7 @@ async function integrityHashCheck(
   }
 }
 
-export async function run(
-  config: Config,
-  reporter: Reporter,
-  flags: Object,
-  args: Array<string>,
-): Promise<void> {
+export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
   if (flags.verifyTree) {
     await verifyTreeCheck(config, reporter, flags, args);
     return;
@@ -204,21 +189,15 @@ export async function run(
   function humaniseLocation(loc: string): Array<string> {
     const relative = path.relative(path.join(config.cwd, 'node_modules'), loc);
     const normalized = path.normalize(relative).split(path.sep);
-    return normalized
-      .filter(p => p !== 'node_modules')
-      .reduce((result, part) => {
-        const length = result.length;
-        if (
-          length &&
-          result[length - 1].startsWith('@') &&
-          !result[length - 1].includes(path.sep)
-        ) {
-          result[length - 1] += path.sep + part;
-        } else {
-          result.push(part);
-        }
-        return result;
-      }, []);
+    return normalized.filter(p => p !== 'node_modules').reduce((result, part) => {
+      const length = result.length;
+      if (length && result[length - 1].startsWith('@') && !result[length - 1].includes(path.sep)) {
+        result[length - 1] += path.sep + part;
+      } else {
+        result.push(part);
+      }
+      return result;
+    }, []);
   }
 
   let warningCount = 0;
@@ -285,19 +264,10 @@ export async function run(
     const packageJson = await config.readJson(pkgLoc);
     if (pkg.version !== packageJson.version) {
       // node_modules contains wrong version
-      reportError(
-        'packageWrongVersion',
-        human,
-        pkg.version,
-        packageJson.version,
-      );
+      reportError('packageWrongVersion', human, pkg.version, packageJson.version);
     }
 
-    const deps = Object.assign(
-      {},
-      packageJson.dependencies,
-      packageJson.peerDependencies,
-    );
+    const deps = Object.assign({}, packageJson.dependencies, packageJson.peerDependencies);
 
     for (const name in deps) {
       const range = deps[name];

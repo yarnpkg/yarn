@@ -22,10 +22,7 @@ import {clean} from './clean.js';
 import * as constants from '../../constants.js';
 import * as fs from '../../util/fs.js';
 import map from '../../util/map.js';
-import {
-  version as YARN_VERSION,
-  getInstallationMethod,
-} from '../../util/yarn-version.js';
+import {version as YARN_VERSION, getInstallationMethod} from '../../util/yarn-version.js';
 
 const emoji = require('node-emoji');
 const invariant = require('invariant');
@@ -160,12 +157,7 @@ function normalizeFlags(config: Config, rawFlags: Object): Flags {
 }
 
 export class Install {
-  constructor(
-    flags: Object,
-    config: Config,
-    reporter: Reporter,
-    lockfile: Lockfile,
-  ) {
+  constructor(flags: Object, config: Config, reporter: Reporter, lockfile: Lockfile) {
     this.rootManifestRegistries = [];
     this.rootPatternsToOrigin = map();
     this.resolutions = map();
@@ -177,17 +169,9 @@ export class Install {
     this.resolver = new PackageResolver(config, lockfile);
     this.fetcher = new PackageFetcher(config, this.resolver);
     this.integrityChecker = new InstallationIntegrityChecker(config);
-    this.compatibility = new PackageCompatibility(
-      config,
-      this.resolver,
-      this.flags.ignoreEngines,
-    );
+    this.compatibility = new PackageCompatibility(config, this.resolver, this.flags.ignoreEngines);
     this.linker = new PackageLinker(config, this.resolver);
-    this.scripts = new PackageInstallScripts(
-      config,
-      this.resolver,
-      this.flags.force,
-    );
+    this.scripts = new PackageInstallScripts(config, this.resolver, this.flags.force);
   }
 
   flags: Flags;
@@ -242,43 +226,20 @@ export class Install {
 
       this.rootManifestRegistries.push(registry);
       const projectManifestJson = await this.config.readJson(loc);
-      await normalizeManifest(
-        projectManifestJson,
-        this.config.cwd,
-        this.config,
-        true,
-      );
+      await normalizeManifest(projectManifestJson, this.config.cwd, this.config, true);
 
       const rootCwd = this.config.cwd;
       // if project has workspaces we aggreagate all dependences from workspaces into root
-      if (
-        projectManifestJson.workspaces &&
-        this.config.workspacesExperimental
-      ) {
+      if (projectManifestJson.workspaces && this.config.workspacesExperimental) {
         if (!projectManifestJson.private) {
-          throw new MessageError(
-            this.reporter.lang('workspacesRequirePrivateProjects'),
-          );
+          throw new MessageError(this.reporter.lang('workspacesRequirePrivateProjects'));
         }
         for (const workspace of projectManifestJson.workspaces) {
-          for (const workspaceLoc of await fs.glob(
-            path.join(rootCwd, workspace, filename),
-          )) {
+          for (const workspaceLoc of await fs.glob(path.join(rootCwd, workspace, filename))) {
             const workspaceCwd = path.dirname(workspaceLoc);
-            const workspaceJson: Manifest = await this.config.readJson(
-              workspaceLoc,
-            );
-            await normalizeManifest(
-              workspaceJson,
-              workspaceCwd,
-              this.config,
-              true,
-            );
-            for (const type of [
-              'dependencies',
-              'devDependencies',
-              'optionalDependencies',
-            ]) {
+            const workspaceJson: Manifest = await this.config.readJson(workspaceLoc);
+            await normalizeManifest(workspaceJson, workspaceCwd, this.config, true);
+            for (const type of ['dependencies', 'devDependencies', 'optionalDependencies']) {
               if (workspaceJson[type]) {
                 for (const key in workspaceJson[type]) {
                   if (
@@ -288,12 +249,7 @@ export class Install {
                   ) {
                     // TODO conflicts should still be installed inside workspaces' folders
                     throw new MessageError(
-                      this.reporter.lang(
-                        'workspacesIncompatibleDependencies',
-                        key,
-                        workspaceCwd,
-                        rootCwd,
-                      ),
+                      this.reporter.lang('workspacesIncompatibleDependencies', key, workspaceCwd, rootCwd),
                     );
                   }
                   projectManifestJson[type][key] = workspaceJson[type][key];
@@ -344,16 +300,8 @@ export class Install {
       };
 
       pushDeps('dependencies', {hint: null, optional: false}, true);
-      pushDeps(
-        'devDependencies',
-        {hint: 'dev', optional: false},
-        !this.config.production,
-      );
-      pushDeps(
-        'optionalDependencies',
-        {hint: 'optional', optional: true},
-        !this.flags.ignoreOptional,
-      );
+      pushDeps('devDependencies', {hint: 'dev', optional: false}, !this.config.production);
+      pushDeps('optionalDependencies', {hint: 'optional', optional: true}, !this.flags.ignoreOptional);
 
       break;
     }
@@ -376,9 +324,7 @@ export class Install {
    * TODO description
    */
 
-  prepareRequests(
-    requests: DependencyRequestPatterns,
-  ): DependencyRequestPatterns {
+  prepareRequests(requests: DependencyRequestPatterns): DependencyRequestPatterns {
     return requests;
   }
 
@@ -394,18 +340,12 @@ export class Install {
     if (!lockfileCache) {
       return false;
     }
-    const match = await this.integrityChecker.check(
-      patterns,
-      lockfileCache,
-      this.flags,
-    );
+    const match = await this.integrityChecker.check(patterns, lockfileCache, this.flags);
     if (this.flags.frozenLockfile && match.missingPatterns.length > 0) {
       throw new MessageError(this.reporter.lang('frozenLockfileError'));
     }
 
-    const haveLockfile = await fs.exists(
-      path.join(this.config.cwd, constants.LOCKFILE_FILENAME),
-    );
+    const haveLockfile = await fs.exists(path.join(this.config.cwd, constants.LOCKFILE_FILENAME));
 
     if (match.integrityMatches && haveLockfile) {
       this.reporter.success(this.reporter.lang('upToDate'));
@@ -467,14 +407,8 @@ export class Install {
     }
 
     let flattenedTopLevelPatterns: Array<string> = [];
-    const steps: Array<
-      (curr: number, total: number) => Promise<{bailout: boolean} | void>,
-    > = [];
-    const {
-      requests: depRequests,
-      patterns: rawPatterns,
-      ignorePatterns,
-    } = await this.fetchRequestFromCwd();
+    const steps: Array<(curr: number, total: number) => Promise<{bailout: boolean} | void>> = [];
+    const {requests: depRequests, patterns: rawPatterns, ignorePatterns} = await this.fetchRequestFromCwd();
     let topLevelPatterns: Array<string> = [];
 
     const artifacts = await this.integrityChecker.getArtifacts();
@@ -484,16 +418,8 @@ export class Install {
     }
 
     steps.push(async (curr: number, total: number) => {
-      this.reporter.step(
-        curr,
-        total,
-        this.reporter.lang('resolvingPackages'),
-        emoji.get('mag'),
-      );
-      await this.resolver.init(
-        this.prepareRequests(depRequests),
-        this.flags.flat,
-      );
+      this.reporter.step(curr, total, this.reporter.lang('resolvingPackages'), emoji.get('mag'));
+      await this.resolver.init(this.prepareRequests(depRequests), this.flags.flat);
       topLevelPatterns = this.preparePatterns(rawPatterns);
       flattenedTopLevelPatterns = await this.flatten(topLevelPatterns);
       return {bailout: await this.bailout(topLevelPatterns)};
@@ -501,12 +427,7 @@ export class Install {
 
     steps.push(async (curr: number, total: number) => {
       this.markIgnored(ignorePatterns);
-      this.reporter.step(
-        curr,
-        total,
-        this.reporter.lang('fetchingPackages'),
-        emoji.get('truck'),
-      );
+      this.reporter.step(curr, total, this.reporter.lang('fetchingPackages'), emoji.get('truck'));
       await this.fetcher.init();
       await this.compatibility.init();
     });
@@ -514,25 +435,15 @@ export class Install {
     steps.push(async (curr: number, total: number) => {
       // remove integrity hash to make this operation atomic
       await this.integrityChecker.removeIntegrityFile();
-      this.reporter.step(
-        curr,
-        total,
-        this.reporter.lang('linkingDependencies'),
-        emoji.get('link'),
-      );
-      await this.linker.init(
-        flattenedTopLevelPatterns,
-        this.flags.linkDuplicates,
-      );
+      this.reporter.step(curr, total, this.reporter.lang('linkingDependencies'), emoji.get('link'));
+      await this.linker.init(flattenedTopLevelPatterns, this.flags.linkDuplicates);
     });
 
     steps.push(async (curr: number, total: number) => {
       this.reporter.step(
         curr,
         total,
-        this.flags.force
-          ? this.reporter.lang('rebuildingPackages')
-          : this.reporter.lang('buildingFreshPackages'),
+        this.flags.force ? this.reporter.lang('rebuildingPackages') : this.reporter.lang('buildingFreshPackages'),
         emoji.get('page_with_curl'),
       );
 
@@ -559,12 +470,7 @@ export class Install {
 
     if (await this.shouldClean()) {
       steps.push(async (curr: number, total: number) => {
-        this.reporter.step(
-          curr,
-          total,
-          this.reporter.lang('cleaningModules'),
-          emoji.get('recycle'),
-        );
+        this.reporter.step(curr, total, this.reporter.lang('cleaningModules'), emoji.get('recycle'));
         await clean(this.config, this.reporter);
       });
     }
@@ -604,16 +510,12 @@ export class Install {
 
     const flattenedPatterns = [];
 
-    for (const name of this.resolver.getAllDependencyNamesByLevelOrder(
-      patterns,
-    )) {
-      const infos = this.resolver
-        .getAllInfoForPackageName(name)
-        .filter((manifest: Manifest): boolean => {
-          const ref = manifest._reference;
-          invariant(ref, 'expected package reference');
-          return !ref.ignore;
-        });
+    for (const name of this.resolver.getAllDependencyNamesByLevelOrder(patterns)) {
+      const infos = this.resolver.getAllInfoForPackageName(name).filter((manifest: Manifest): boolean => {
+        const ref = manifest._reference;
+        invariant(ref, 'expected package reference');
+        return !ref.ignore;
+      });
 
       if (infos.length === 0) {
         continue;
@@ -631,11 +533,7 @@ export class Install {
         invariant(ref, 'expected reference');
         return {
           // TODO `and is required by {PARENT}`,
-          name: this.reporter.lang(
-            'manualVersionResolutionOption',
-            ref.patterns.join(', '),
-            info.version,
-          ),
+          name: this.reporter.lang('manualVersionResolutionOption', ref.patterns.join(', '), info.version),
 
           value: info.version,
         };
@@ -656,9 +554,7 @@ export class Install {
         this.resolutions[name] = version;
       }
 
-      flattenedPatterns.push(
-        this.resolver.collapseAllVersionsOfPackage(name, version),
-      );
+      flattenedPatterns.push(this.resolver.collapseAllVersionsOfPackage(name, version));
     }
 
     // save resolutions to their appropriate root manifest
@@ -736,9 +632,7 @@ export class Install {
       return;
     }
 
-    const lockfileBasedOnResolver = this.lockfile.getLockfile(
-      this.resolver.patterns,
-    );
+    const lockfileBasedOnResolver = this.lockfile.getLockfile(this.resolver.patterns);
 
     if (this.config.pruneOfflineMirror) {
       await this.pruneOfflineMirror(lockfileBasedOnResolver);
@@ -753,24 +647,15 @@ export class Install {
       this.scripts.getArtifacts(),
     );
 
-    const lockFileHasAllPatterns =
-      patterns.filter(p => !this.lockfile.getLocked(p)).length === 0;
+    const lockFileHasAllPatterns = patterns.filter(p => !this.lockfile.getLocked(p)).length === 0;
     const resolverPatternsAreSameAsInLockfile =
       Object.keys(lockfileBasedOnResolver).filter(pattern => {
         const manifest = this.lockfile.getLocked(pattern);
-        return (
-          !manifest ||
-          manifest.resolved !== lockfileBasedOnResolver[pattern].resolved
-        );
+        return !manifest || manifest.resolved !== lockfileBasedOnResolver[pattern].resolved;
       }).length === 0;
 
     // remove command is followed by install with force, lockfile will be rewritten in any case then
-    if (
-      lockFileHasAllPatterns &&
-      resolverPatternsAreSameAsInLockfile &&
-      patterns.length &&
-      !this.flags.force
-    ) {
+    if (lockFileHasAllPatterns && resolverPatternsAreSameAsInLockfile && patterns.length && !this.flags.force) {
       return;
     }
 
@@ -778,11 +663,7 @@ export class Install {
     const loc = path.join(this.config.cwd, constants.LOCKFILE_FILENAME);
 
     // write lockfile
-    const lockSource = lockStringify(
-      lockfileBasedOnResolver,
-      false,
-      this.config.disableLockfileVersions,
-    );
+    const lockSource = lockStringify(lockfileBasedOnResolver, false, this.config.disableLockfileVersions);
     await fs.writeFilePreservingEol(loc, lockSource);
 
     this._logSuccessSaveLockfile();
@@ -795,16 +676,9 @@ export class Install {
   /**
    * Load the dependency graph of the current install. Only does package resolving and wont write to the cwd.
    */
-  async hydrate(
-    fetch?: boolean,
-    ignoreUnusedPatterns?: boolean,
-  ): Promise<InstallCwdRequest> {
+  async hydrate(fetch?: boolean, ignoreUnusedPatterns?: boolean): Promise<InstallCwdRequest> {
     const request = await this.fetchRequestFromCwd([], ignoreUnusedPatterns);
-    const {
-      requests: depRequests,
-      patterns: rawPatterns,
-      ignorePatterns,
-    } = request;
+    const {requests: depRequests, patterns: rawPatterns, ignorePatterns} = request;
 
     await this.resolver.init(depRequests, this.flags.flat);
     await this.flatten(rawPatterns);
@@ -845,8 +719,7 @@ export class Install {
     }
 
     // only check for updates once a day
-    const lastUpdateCheck =
-      Number(this.config.getOption('lastUpdateCheck')) || 0;
+    const lastUpdateCheck = Number(this.config.getOption('lastUpdateCheck')) || 0;
     if (lastUpdateCheck && Date.now() - lastUpdateCheck < ONE_DAY) {
       return;
     }
@@ -879,9 +752,7 @@ export class Install {
     if (semver.gt(latestVersion, YARN_VERSION)) {
       const installationMethod = await getInstallationMethod();
       this.maybeOutputUpdate = () => {
-        this.reporter.warn(
-          this.reporter.lang('yarnOutdated', latestVersion, YARN_VERSION),
-        );
+        this.reporter.warn(this.reporter.lang('yarnOutdated', latestVersion, YARN_VERSION));
 
         const command = getUpdateCommand(installationMethod);
         if (command) {
@@ -890,9 +761,7 @@ export class Install {
         } else {
           const installer = getUpdateInstaller(installationMethod);
           if (installer) {
-            this.reporter.info(
-              this.reporter.lang('yarnOutdatedInstaller', installer),
-            );
+            this.reporter.info(this.reporter.lang('yarnOutdatedInstaller', installer));
           }
         }
       };
@@ -914,32 +783,15 @@ export function hasWrapper(): boolean {
 export function setFlags(commander: Object) {
   commander.usage('install [flags]');
   commander.option('-g, --global', 'DEPRECATED');
-  commander.option(
-    '-S, --save',
-    'DEPRECATED - save package to your `dependencies`',
-  );
-  commander.option(
-    '-D, --save-dev',
-    'DEPRECATED - save package to your `devDependencies`',
-  );
-  commander.option(
-    '-P, --save-peer',
-    'DEPRECATED - save package to your `peerDependencies`',
-  );
-  commander.option(
-    '-O, --save-optional',
-    'DEPRECATED - save package to your `optionalDependencies`',
-  );
+  commander.option('-S, --save', 'DEPRECATED - save package to your `dependencies`');
+  commander.option('-D, --save-dev', 'DEPRECATED - save package to your `devDependencies`');
+  commander.option('-P, --save-peer', 'DEPRECATED - save package to your `peerDependencies`');
+  commander.option('-O, --save-optional', 'DEPRECATED - save package to your `optionalDependencies`');
   commander.option('-E, --save-exact', 'DEPRECATED');
   commander.option('-T, --save-tilde', 'DEPRECATED');
 }
 
-export async function run(
-  config: Config,
-  reporter: Reporter,
-  flags: Object,
-  args: Array<string>,
-): Promise<void> {
+export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
   let lockfile;
   if (flags.lockfile === false) {
     lockfile = new Lockfile();
@@ -968,12 +820,7 @@ export async function run(
     if (flags.global) {
       command = 'global add';
     }
-    throw new MessageError(
-      reporter.lang(
-        'installCommandRenamed',
-        `yarn ${command} ${exampleArgs.join(' ')}`,
-      ),
-    );
+    throw new MessageError(reporter.lang('installCommandRenamed', `yarn ${command} ${exampleArgs.join(' ')}`));
   }
 
   await wrapLifecycle(config, flags, async () => {
@@ -982,11 +829,7 @@ export async function run(
   });
 }
 
-export async function wrapLifecycle(
-  config: Config,
-  flags: Object,
-  factory: () => Promise<void>,
-): Promise<void> {
+export async function wrapLifecycle(config: Config, flags: Object, factory: () => Promise<void>): Promise<void> {
   await config.executeLifecycleScript('preinstall');
 
   await factory();

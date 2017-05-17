@@ -9,9 +9,7 @@ const path = require('path');
 
 const fixturesLoc = path.join(__dirname, '..', '..', 'fixtures', 'install');
 
-test.concurrent('flat arg is inherited from root manifest', async (): Promise<
-  void,
-> => {
+test.concurrent('flat arg is inherited from root manifest', async (): Promise<void> => {
   const cwd = path.join(fixturesLoc, 'top-level-flat-parameter');
   const reporter = new NoopReporter();
   const config = await Config.create({cwd});

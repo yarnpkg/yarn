@@ -50,11 +50,7 @@ type RequestParams<T> = {
   headers?: {
     [name: string]: string,
   },
-  process?: (
-    req: RequestT,
-    resolve: (body: T) => void,
-    reject: (err: Error) => void,
-  ) => void,
+  process?: (req: RequestT, resolve: (body: T) => void, reject: (err: Error) => void) => void,
   callback?: (err: ?Error, res: any, body: any) => void,
   retryAttempts?: number,
   maxRetryAttempts?: number,
@@ -173,9 +169,7 @@ export default class RequestManager {
         const bundle = fs.readFileSync(opts.cafile).toString();
         const hasPemPrefix = block => block.startsWith('-----BEGIN ');
         // opts.cafile overrides opts.ca, this matches with npm behavior
-        this.ca = bundle
-          .split(/(-----BEGIN .*\r?\n[^-]+\r?\n--.*)/)
-          .filter(hasPemPrefix);
+        this.ca = bundle.split(/(-----BEGIN .*\r?\n[^-]+\r?\n--.*)/).filter(hasPemPrefix);
       } catch (err) {
         this.reporter.error(`Could not open cafile: ${err.message}`);
       }
@@ -200,9 +194,7 @@ export default class RequestManager {
       const request = require('request');
       if (this.captureHar) {
         this._requestCaptureHar = new RequestCaptureHar(request);
-        this._requestModule = this._requestCaptureHar.request.bind(
-          this._requestCaptureHar,
-        );
+        this._requestModule = this._requestCaptureHar.request.bind(this._requestCaptureHar);
       } else {
         this._requestModule = request;
       }
@@ -216,9 +208,7 @@ export default class RequestManager {
 
   request<T>(params: RequestParams<T>): Promise<T> {
     if (this.offlineNoRequests) {
-      return Promise.reject(
-        new MessageError(this.reporter.lang('cantRequestOffline', params.url)),
-      );
+      return Promise.reject(new MessageError(this.reporter.lang('cantRequestOffline', params.url)));
     }
 
     const cached = this.cache[params.url];
@@ -362,10 +352,7 @@ export default class RequestManager {
       calledOnError = true;
 
       const attempts = params.retryAttempts || 0;
-      if (
-        attempts < this.maxRetryAttempts - 1 &&
-        this.isPossibleOfflineError(err)
-      ) {
+      if (attempts < this.maxRetryAttempts - 1 && this.isPossibleOfflineError(err)) {
         params.retryAttempts = attempts + 1;
         if (typeof params.cleanup === 'function') {
           params.cleanup();
@@ -387,13 +374,7 @@ export default class RequestManager {
 
         successHosts[parts.hostname] = true;
 
-        this.reporter.verbose(
-          this.reporter.lang(
-            'verboseRequestFinish',
-            params.url,
-            res.statusCode,
-          ),
-        );
+        this.reporter.verbose(this.reporter.lang('verboseRequestFinish', params.url, res.statusCode));
 
         if (body && typeof body.error === 'string') {
           reject(new Error(body.error));
@@ -401,16 +382,10 @@ export default class RequestManager {
         }
 
         if (res.statusCode === 403) {
-          const errMsg =
-            (body && body.message) ||
-            reporter.lang('requestError', params.url, res.statusCode);
+          const errMsg = (body && body.message) || reporter.lang('requestError', params.url, res.statusCode);
           reject(new Error(errMsg));
         } else {
-          if (
-            res.statusCode === 400 ||
-            res.statusCode === 404 ||
-            res.statusCode === 401
-          ) {
+          if (res.statusCode === 400 || res.statusCode === 404 || res.statusCode === 401) {
             body = false;
           }
           resolve(body);
@@ -448,9 +423,7 @@ export default class RequestManager {
 
     const request = this._getRequestModule();
     const req = request(params);
-    this.reporter.verbose(
-      this.reporter.lang('verboseRequestStart', params.method, params.url),
-    );
+    this.reporter.verbose(this.reporter.lang('verboseRequestStart', params.method, params.url));
 
     req.on('error', onError);
 

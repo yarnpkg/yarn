@@ -64,9 +64,7 @@ export default class Git {
   static npmUrlToGitUrl(npmUrl: string): GitUrl {
     // Special case in npm, where ssh:// prefix is stripped to pass scp-like syntax
     // which in git works as remote path only if there are no slashes before ':'.
-    const match = npmUrl.match(
-      /^git\+ssh:\/\/((?:[^@:\/]+@)?([^@:\/]+):([^/]*).*)/,
-    );
+    const match = npmUrl.match(/^git\+ssh:\/\/((?:[^@:\/]+@)?([^@:\/]+):([^/]*).*)/);
     // Additionally, if the host part is digits-only, npm falls back to
     // interpreting it as an SSH URL with a port number.
     if (match && /[^0-9]/.test(match[3])) {
@@ -101,12 +99,7 @@ export default class Git {
     }
 
     try {
-      await child.spawn('git', [
-        'archive',
-        `--remote=${ref.repository}`,
-        'HEAD',
-        Date.now() + '',
-      ]);
+      await child.spawn('git', ['archive', `--remote=${ref.repository}`, 'HEAD', Date.now() + '']);
       throw new Error();
     } catch (err) {
       const supports = err.message.indexOf('did not match any files') >= 0;
@@ -142,11 +135,7 @@ export default class Git {
   /**
    * Attempt to upgrade insecure protocols to secure protocol
    */
-  static async secureGitUrl(
-    ref: GitUrl,
-    hash: string,
-    reporter: Reporter,
-  ): Promise<GitUrl> {
+  static async secureGitUrl(ref: GitUrl, hash: string, reporter: Reporter): Promise<GitUrl> {
     if (Git.isCommitHash(hash)) {
       // this is cryptographically secure
       return ref;
@@ -157,9 +146,7 @@ export default class Git {
       if (await Git.repoExists(secureUrl)) {
         return secureUrl;
       } else {
-        throw new SecurityError(
-          reporter.lang('refusingDownloadGitWithoutCommit', ref),
-        );
+        throw new SecurityError(reporter.lang('refusingDownloadGitWithoutCommit', ref));
       }
     }
 
@@ -171,9 +158,7 @@ export default class Git {
         if (await Git.repoExists(ref)) {
           return ref;
         } else {
-          throw new SecurityError(
-            reporter.lang('refusingDownloadHTTPWithoutCommit', ref),
-          );
+          throw new SecurityError(reporter.lang('refusingDownloadHTTPWithoutCommit', ref));
         }
       }
     }
@@ -182,9 +167,7 @@ export default class Git {
       if (await Git.repoExists(ref)) {
         return ref;
       } else {
-        throw new SecurityError(
-          reporter.lang('refusingDownloadHTTPSWithoutCommit', ref),
-        );
+        throw new SecurityError(reporter.lang('refusingDownloadHTTPSWithoutCommit', ref));
       }
     }
 
@@ -205,22 +188,18 @@ export default class Git {
 
   async _archiveViaRemoteArchive(dest: string): Promise<string> {
     const hashStream = new crypto.HashStream();
-    await child.spawn(
-      'git',
-      ['archive', `--remote=${this.gitUrl.repository}`, this.ref],
-      {
-        process(proc, resolve, reject, done) {
-          const writeStream = createWriteStream(dest);
-          proc.on('error', reject);
-          writeStream.on('error', reject);
-          writeStream.on('end', done);
-          writeStream.on('open', function() {
-            proc.stdout.pipe(hashStream).pipe(writeStream);
-          });
-          writeStream.once('finish', done);
-        },
+    await child.spawn('git', ['archive', `--remote=${this.gitUrl.repository}`, this.ref], {
+      process(proc, resolve, reject, done) {
+        const writeStream = createWriteStream(dest);
+        proc.on('error', reject);
+        writeStream.on('error', reject);
+        writeStream.on('end', done);
+        writeStream.on('open', function() {
+          proc.stdout.pipe(hashStream).pipe(writeStream);
+        });
+        writeStream.once('finish', done);
       },
-    );
+    });
     return hashStream.getHash();
   }
 
@@ -255,23 +234,19 @@ export default class Git {
   }
 
   async _cloneViaRemoteArchive(dest: string): Promise<void> {
-    await child.spawn(
-      'git',
-      ['archive', `--remote=${this.gitUrl.repository}`, this.ref],
-      {
-        process(proc, update, reject, done) {
-          const extractor = tarFs.extract(dest, {
-            dmode: 0o555, // all dirs should be readable
-            fmode: 0o444, // all files should be readable
-          });
-          extractor.on('error', reject);
-          extractor.on('finish', done);
+    await child.spawn('git', ['archive', `--remote=${this.gitUrl.repository}`, this.ref], {
+      process(proc, update, reject, done) {
+        const extractor = tarFs.extract(dest, {
+          dmode: 0o555, // all dirs should be readable
+          fmode: 0o444, // all files should be readable
+        });
+        extractor.on('error', reject);
+        extractor.on('finish', done);
 
-          proc.stdout.pipe(extractor);
-          proc.on('error', reject);
-        },
+        proc.stdout.pipe(extractor);
+        proc.on('error', reject);
       },
-    );
+    });
   }
 
   async _cloneViaLocalFetched(dest: string): Promise<void> {
@@ -322,9 +297,7 @@ export default class Git {
 
     return (
       (await this.config.resolveConstraints(
-        tags.filter(
-          (tag): boolean => !!semver.valid(tag, this.config.looseSemver),
-        ),
+        tags.filter((tag): boolean => !!semver.valid(tag, this.config.looseSemver)),
         range,
       )) || range
     );
@@ -344,36 +317,32 @@ export default class Git {
 
   async _getFileFromArchive(filename: string): Promise<string | false> {
     try {
-      return await child.spawn(
-        'git',
-        ['archive', `--remote=${this.gitUrl.repository}`, this.ref, filename],
-        {
-          process(proc, update, reject, done) {
-            const parser = tarStream.extract();
+      return await child.spawn('git', ['archive', `--remote=${this.gitUrl.repository}`, this.ref, filename], {
+        process(proc, update, reject, done) {
+          const parser = tarStream.extract();
 
-            parser.on('error', reject);
-            parser.on('finish', done);
+          parser.on('error', reject);
+          parser.on('finish', done);
 
-            parser.on('entry', (header, stream, next) => {
-              const decoder = new StringDecoder('utf8');
-              let fileContent = '';
+          parser.on('entry', (header, stream, next) => {
+            const decoder = new StringDecoder('utf8');
+            let fileContent = '';
 
-              stream.on('data', buffer => {
-                fileContent += decoder.write(buffer);
-              });
-              stream.on('end', () => {
-                // $FlowFixMe: suppressing this error due to bug https://github.com/facebook/flow/pull/3483
-                const remaining: string = decoder.end();
-                update(fileContent + remaining);
-                next();
-              });
-              stream.resume();
+            stream.on('data', buffer => {
+              fileContent += decoder.write(buffer);
             });
+            stream.on('end', () => {
+              // $FlowFixMe: suppressing this error due to bug https://github.com/facebook/flow/pull/3483
+              const remaining: string = decoder.end();
+              update(fileContent + remaining);
+              next();
+            });
+            stream.resume();
+          });
 
-            proc.stdout.pipe(parser);
-          },
+          proc.stdout.pipe(parser);
         },
-      );
+      });
     } catch (err) {
       if (err.message.indexOf('did not match any files') >= 0) {
         return false;
@@ -413,12 +382,7 @@ export default class Git {
   }
 
   async setRefRemote(): Promise<string> {
-    const stdout = await child.spawn('git', [
-      'ls-remote',
-      '--tags',
-      '--heads',
-      this.gitUrl.repository,
-    ]);
+    const stdout = await child.spawn('git', ['ls-remote', '--tags', '--heads', this.gitUrl.repository]);
     const refs = Git.parseRefs(stdout);
     return await this.setRef(refs);
   }
@@ -457,14 +421,7 @@ export default class Git {
       this.ref = ref;
       return (this.hash = commit);
     } else {
-      throw new MessageError(
-        this.reporter.lang(
-          'couldntFindMatch',
-          ref,
-          names.join(','),
-          this.gitUrl.repository,
-        ),
-      );
+      throw new MessageError(this.reporter.lang('couldntFindMatch', ref, names.join(','), this.gitUrl.repository));
     }
   }
 
