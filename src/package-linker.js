@@ -18,7 +18,7 @@ const cmdShim = promise.promisify(require('cmd-shim'));
 const semver = require('semver');
 const path = require('path');
 // Concurrency for creating bin links disabled because of the issue #1961
-const linkBinConcurrency = 1
+const linkBinConcurrency = 1;
 
 type DependencyPairs = Array<{
   dep: Manifest,
