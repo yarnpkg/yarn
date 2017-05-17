@@ -18,6 +18,8 @@ import {satisfiesWithPreleases} from './util/semver.js';
 const invariant = require('invariant');
 const cmdShim = promise.promisify(require('cmd-shim'));
 const path = require('path');
+// Concurrency for creating bin links disabled because of the issue #1961
+const linkBinConcurrency = 1;
 
 type DependencyPairs = Array<{
   dep: Manifest,
@@ -279,7 +281,7 @@ export default class PackageLinker {
           await this.linkBinDependencies(pkg, binLoc);
           tickBin(dest);
         },
-        4,
+        linkBinConcurrency,
       );
 
       // create links at top level for all dependencies.
@@ -293,7 +295,7 @@ export default class PackageLinker {
             tickBin(this.config.cwd);
           }
         },
-        4,
+        linkBinConcurrency,
       );
     }
   }
