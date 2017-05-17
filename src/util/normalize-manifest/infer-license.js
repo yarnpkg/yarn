@@ -3,20 +3,16 @@
 import LICENSES from './licenses.js';
 
 function clean(str: string): string {
-  return str
-    .replace(/[^A-Za-z\s]/g, ' ')
-    .replace(/[\s]+/g, ' ')
-    .trim()
-    .toLowerCase();
+  return str.replace(/[^A-Za-z\s]/g, ' ').replace(/[\s]+/g, ' ').trim().toLowerCase();
 }
 
-const REGEXES: { [key: string]: Array<RegExp> } = {
+const REGEXES: {[key: string]: Array<RegExp>} = {
+  Apache: [/Apache License\b/],
+  BSD: [/BSD\b/],
+  ISC: [/The ISC License/, /ISC\b/],
+  MIT: [/MIT\b/],
   Unlicense: [/http:\/\/unlicense.org\//],
   WTFPL: [/DO WHAT THE FUCK YOU WANT TO PUBLIC LICENSE/, /WTFPL\b/],
-  ISC: [/The ISC License/, /ISC\b/],
-  Apache: [/Apache License\b/],
-  MIT: [/MIT\b/],
-  BSD: [/BSD\b/],
 };
 
 export default function inferLicense(license: string): ?string {

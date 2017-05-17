@@ -6,9 +6,10 @@ import * as promise from './promise.js';
 import {promisify} from './promise.js';
 import map from './map.js';
 
-const path = require('path');
 const fs = require('fs');
+const globModule = require('glob');
 const os = require('os');
+const path = require('path');
 
 export const lockQueue = new BlockingQueue('fs lock');
 
@@ -26,14 +27,13 @@ export const exists: (path: string) => Promise<boolean> = promisify(fs.exists, t
 export const lstat: (path: string) => Promise<fs.Stats> = promisify(fs.lstat);
 export const chmod: (path: string, mode: number | string) => Promise<void> = promisify(fs.chmod);
 export const link: (path: string) => Promise<fs.Stats> = promisify(fs.link);
+export const glob: (path: string) => Promise<Array<string>> = promisify(globModule);
 
 const CONCURRENT_QUEUE_ITEMS = 4;
 
-const fsSymlink: (
-  target: string,
-  path: string,
-  type?: 'dir' | 'file' | 'junction'
-) => Promise<void> = promisify(fs.symlink);
+const fsSymlink: (target: string, path: string, type?: 'dir' | 'file' | 'junction') => Promise<void> = promisify(
+  fs.symlink,
+);
 const invariant = require('invariant');
 const stripBOM = require('strip-bom');
 
@@ -54,7 +54,7 @@ type CopyFileAction = {
   dest: string,
   atime: number,
   mtime: number,
-  mode: number
+  mode: number,
 };
 
 type LinkFileAction = {
@@ -88,6 +88,14 @@ export const fileDatesEqual = (a: Date, b: Date) => {
     return aTime === bTime;
   }
 
+  // See https://github.com/nodejs/node/pull/12607
+  // Submillisecond times from stat and utimes are truncated on Windows,
+  // causing a file with mtime 8.0079998 and 8.0081144 to become 8.007 and 8.008
+  // and making it impossible to update these files to their correct timestamps.
+  if (Math.abs(aTime - bTime) <= 1) {
+    return true;
+  }
+
   const aTimeSec = Math.floor(aTime / 1000);
   const bTimeSec = Math.floor(bTime / 1000);
 
@@ -95,7 +103,7 @@ export const fileDatesEqual = (a: Date, b: Date) => {
   // Some versions of Node on windows zero the milliseconds when utime is used
   // So if any of the time has a milliseconds part of zero we suspect that the
   // bug is present and compare only seconds.
-  if ((aTime - aTimeSec * 1000 === 0) || (bTime - bTimeSec * 1000 === 0)) {
+  if (aTime - aTimeSec * 1000 === 0 || bTime - bTimeSec * 1000 === 0) {
     return aTimeSec === bTimeSec;
   }
 
@@ -168,21 +176,31 @@ async function buildActionsForCopy(
       srcFiles = await readdir(src);
     }
 
-    if (await exists(dest)) {
-      const destStat = await lstat(dest);
+    let destStat;
+    try {
+      // try accessing the destination
+      destStat = await lstat(dest);
+    } catch (e) {
+      // proceed if destination doesn't exist, otherwise error
+      if (e.code !== 'ENOENT') {
+        throw e;
+      }
+    }
 
+    // if destination exists
+    if (destStat) {
       const bothSymlinks = srcStat.isSymbolicLink() && destStat.isSymbolicLink();
       const bothFolders = srcStat.isDirectory() && destStat.isDirectory();
       const bothFiles = srcStat.isFile() && destStat.isFile();
 
-      if (srcStat.mode !== destStat.mode) {
+      // EINVAL access errors sometimes happen which shouldn't because node shouldn't be giving
+      // us modes that aren't valid. investigate this, it's generally safe to proceed.
+
+      /* if (srcStat.mode !== destStat.mode) {
         try {
           await access(dest, srcStat.mode);
-        } catch (err) {
-          // EINVAL access errors sometimes happen which shouldn't because node shouldn't be giving
-          // us modes that aren't valid. investigate this, it's generally safe to proceed.
-        }
-      }
+        } catch (err) {}
+      } */
 
       if (bothFiles && srcStat.size === destStat.size && fileDatesEqual(srcStat.mtime, destStat.mtime)) {
         // we can safely assume this is the same file
@@ -193,7 +211,7 @@ async function buildActionsForCopy(
 
       if (bothSymlinks) {
         const srcReallink = await readlink(src);
-        if (srcReallink === await readlink(dest)) {
+        if (srcReallink === (await readlink(dest))) {
           // if both symlinks are the same then we can continue on
           onDone();
           reporter.verbose(reporter.lang('verboseFileSkipSymlink', src, dest, srcReallink));
@@ -225,14 +243,16 @@ async function buildActionsForCopy(
       onFresh();
       const linkname = await readlink(src);
       actions.push({
-        type: 'symlink',
         dest,
         linkname,
+        type: 'symlink',
       });
       onDone();
     } else if (srcStat.isDirectory()) {
-      reporter.verbose(reporter.lang('verboseFileFolder', dest));
-      await mkdirp(dest);
+      if (!destStat) {
+        reporter.verbose(reporter.lang('verboseFileFolder', dest));
+        await mkdirp(dest);
+      }
 
       const destParts = dest.split(path.sep);
       while (destParts.length) {
@@ -248,14 +268,14 @@ async function buildActionsForCopy(
       }
       for (const file of srcFiles) {
         queue.push({
-          onFresh,
-          src: path.join(src, file),
           dest: path.join(dest, file),
+          onFresh,
           onDone: () => {
             if (--remaining === 0) {
               onDone();
             }
           },
+          src: path.join(src, file),
         });
       }
     } else if (srcStat.isFile()) {
@@ -360,7 +380,7 @@ async function buildActionsForHardlink(
       }
 
       // correct hardlink
-      if (bothFiles && (srcStat.ino !== null) && (srcStat.ino === destStat.ino)) {
+      if (bothFiles && srcStat.ino !== null && srcStat.ino === destStat.ino) {
         onDone();
         reporter.verbose(reporter.lang('verboseFileSkip', src, dest, srcStat.ino));
         return;
@@ -368,7 +388,7 @@ async function buildActionsForHardlink(
 
       if (bothSymlinks) {
         const srcReallink = await readlink(src);
-        if (srcReallink === await readlink(dest)) {
+        if (srcReallink === (await readlink(dest))) {
           // if both symlinks are the same then we can continue on
           onDone();
           reporter.verbose(reporter.lang('verboseFileSkipSymlink', src, dest, srcReallink));
@@ -471,60 +491,61 @@ export async function copyBulk(
     artifactFiles: (_events && _events.artifactFiles) || [],
   };
 
-  const actions: CopyActions = await buildActionsForCopy(
-    queue,
-    events,
-    events.possibleExtraneous,
-    reporter,
-  );
+  const actions: CopyActions = await buildActionsForCopy(queue, events, events.possibleExtraneous, reporter);
   events.onStart(actions.length);
 
-  const fileActions: Array<CopyFileAction> = (actions.filter((action) => action.type === 'file'): any);
+  const fileActions: Array<CopyFileAction> = (actions.filter(action => action.type === 'file'): any);
 
-  const currentlyWriting: { [dest: string]: Promise<void> } = {};
+  const currentlyWriting: {[dest: string]: Promise<void>} = {};
 
-  await promise.queue(fileActions, async (data): Promise<void> => {
-    let writePromise: Promise<void>;
-    while (writePromise = currentlyWriting[data.dest]) {
-      await writePromise;
-    }
+  await promise.queue(
+    fileActions,
+    async (data): Promise<void> => {
+      let writePromise: Promise<void>;
+      while ((writePromise = currentlyWriting[data.dest])) {
+        await writePromise;
+      }
 
-    const cleanup = () => delete currentlyWriting[data.dest];
-    return currentlyWriting[data.dest] = new Promise((resolve, reject) => {
-      const readStream = fs.createReadStream(data.src);
-      const writeStream = fs.createWriteStream(data.dest, {mode: data.mode});
+      const cleanup = () => delete currentlyWriting[data.dest];
+      return (currentlyWriting[data.dest] = new Promise((resolve, reject) => {
+        const readStream = fs.createReadStream(data.src);
+        const writeStream = fs.createWriteStream(data.dest, {mode: data.mode});
 
-      reporter.verbose(reporter.lang('verboseFileCopy', data.src, data.dest));
+        reporter.verbose(reporter.lang('verboseFileCopy', data.src, data.dest));
 
-      readStream.on('error', reject);
-      writeStream.on('error', reject);
+        readStream.on('error', reject);
+        writeStream.on('error', reject);
 
-      writeStream.on('open', function() {
-        readStream.pipe(writeStream);
-      });
-
-      writeStream.once('finish', function() {
-        fs.utimes(data.dest, data.atime, data.mtime, function(err) {
-          if (err) {
-            reject(err);
-          } else {
-            events.onProgress(data.dest);
-            cleanup();
-            resolve();
-          }
+        writeStream.on('open', function() {
+          readStream.pipe(writeStream);
         });
-      });
-    }).then((arg) => {
-      cleanup();
-      return arg;
-    }).catch((arg) => {
-      cleanup();
-      throw arg;
-    });
-  }, CONCURRENT_QUEUE_ITEMS);
+
+        writeStream.once('close', function() {
+          fs.utimes(data.dest, data.atime, data.mtime, function(err) {
+            if (err) {
+              reject(err);
+            } else {
+              events.onProgress(data.dest);
+              cleanup();
+              resolve();
+            }
+          });
+        });
+      })
+        .then(arg => {
+          cleanup();
+          return arg;
+        })
+        .catch(arg => {
+          cleanup();
+          throw arg;
+        }));
+    },
+    CONCURRENT_QUEUE_ITEMS,
+  );
 
   // we need to copy symlinks last as they could reference files we were copying
-  const symlinkActions: Array<CopySymlinkAction> = (actions.filter((action) => action.type === 'symlink'): any);
+  const symlinkActions: Array<CopySymlinkAction> = (actions.filter(action => action.type === 'symlink'): any);
   await promise.queue(symlinkActions, (data): Promise<void> => {
     const linkname = path.resolve(path.dirname(data.dest), data.linkname);
     reporter.verbose(reporter.lang('verboseFileSymlink', data.dest, linkname));
@@ -550,26 +571,25 @@ export async function hardlinkBulk(
     ignoreBasenames: [],
   };
 
-  const actions: CopyActions = await buildActionsForHardlink(
-    queue,
-    events,
-    events.possibleExtraneous,
-    reporter,
-  );
+  const actions: CopyActions = await buildActionsForHardlink(queue, events, events.possibleExtraneous, reporter);
   events.onStart(actions.length);
 
-  const fileActions: Array<LinkFileAction> = (actions.filter((action) => action.type === 'link'): any);
+  const fileActions: Array<LinkFileAction> = (actions.filter(action => action.type === 'link'): any);
 
-  await promise.queue(fileActions, async (data): Promise<void> => {
-    reporter.verbose(reporter.lang('verboseFileLink', data.src, data.dest));
-    if (data.removeDest) {
-      await unlink(data.dest);
-    }
-    await link(data.src, data.dest);
-  }, CONCURRENT_QUEUE_ITEMS);
+  await promise.queue(
+    fileActions,
+    async (data): Promise<void> => {
+      reporter.verbose(reporter.lang('verboseFileLink', data.src, data.dest));
+      if (data.removeDest) {
+        await unlink(data.dest);
+      }
+      await link(data.src, data.dest);
+    },
+    CONCURRENT_QUEUE_ITEMS,
+  );
 
   // we need to copy symlinks last as they could reference files we were copying
-  const symlinkActions: Array<CopySymlinkAction> = (actions.filter((action) => action.type === 'symlink'): any);
+  const symlinkActions: Array<CopySymlinkAction> = (actions.filter(action => action.type === 'symlink'): any);
   await promise.queue(symlinkActions, (data): Promise<void> => {
     const linkname = path.resolve(path.dirname(data.dest), data.linkname);
     reporter.verbose(reporter.lang('verboseFileSymlink', data.dest, linkname));
@@ -610,7 +630,9 @@ export async function readJson(loc: string): Promise<Object> {
   return (await readJsonAndFile(loc)).object;
 }
 
-export async function readJsonAndFile(loc: string): Promise<{
+export async function readJsonAndFile(
+  loc: string,
+): Promise<{
   object: Object,
   content: string,
 }> {
@@ -646,7 +668,7 @@ export async function symlink(src: string, dest: string): Promise<void> {
   try {
     const stats = await lstat(dest);
 
-    if (stats.isSymbolicLink() && await exists(dest)) {
+    if (stats.isSymbolicLink() && (await exists(dest))) {
       const resolved = await realpath(dest);
       if (resolved === src) {
         return;
@@ -700,7 +722,7 @@ export async function walk(
 
   let filenames = await readdir(dir);
   if (ignoreBasenames.size) {
-    filenames = filenames.filter((name) => !ignoreBasenames.has(name));
+    filenames = filenames.filter(name => !ignoreBasenames.has(name));
   }
 
   for (const name of filenames) {
@@ -727,7 +749,7 @@ export async function getFileSizeOnDisk(loc: string): Promise<number> {
   const stat = await lstat(loc);
   const {size, blksize: blockSize} = stat;
 
-  return (Math.ceil(size / blockSize) * blockSize);
+  return Math.ceil(size / blockSize) * blockSize;
 }
 
 export function normalizeOS(body: string): string {
@@ -737,8 +759,8 @@ export function normalizeOS(body: string): string {
 const cr = new Buffer('\r', 'utf8')[0];
 const lf = new Buffer('\n', 'utf8')[0];
 
-async function getEolFromFile(path: string) : Promise<string | void>  {
-  if (!(await exists(path))) {
+async function getEolFromFile(path: string): Promise<string | void> {
+  if (!await exists(path)) {
     return undefined;
   }
 
@@ -755,7 +777,7 @@ async function getEolFromFile(path: string) : Promise<string | void>  {
   return undefined;
 }
 
-export async function writeFilePreservingEol(path: string, data: string) : Promise<void> {
+export async function writeFilePreservingEol(path: string, data: string): Promise<void> {
   const eol = (await getEolFromFile(path)) || os.EOL;
   if (eol !== '\n') {
     data = data.replace(/\n/g, eol);
@@ -781,10 +803,7 @@ export async function hardlinksWork(dir: string): Promise<boolean> {
 
 // not a strict polyfill for Node's fs.mkdtemp
 export async function makeTempDir(prefix?: string): Promise<string> {
-  const dir = path.join(
-    os.tmpdir(),
-    `yarn-${prefix || ''}-${Date.now()}-${Math.random()}`,
-  );
+  const dir = path.join(os.tmpdir(), `yarn-${prefix || ''}-${Date.now()}-${Math.random()}`);
   await unlink(dir);
   await mkdirp(dir);
   return dir;

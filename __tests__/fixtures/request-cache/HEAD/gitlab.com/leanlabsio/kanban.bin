@@ -1,0 +1,16 @@
+HTTP/1.1 200 OK
+Server: nginx
+Date: Wed, 12 Apr 2017 18:12:16 GMT
+Content-Type: text/html; charset=utf-8
+Cache-Control: max-age=0, private, must-revalidate
+Etag: W/"425f19b4b2a4e0cf0b3f2291ea483c66"
+Set-Cookie: _gitlab_session=ca755620d36f87d180bb32c062e9fb84; path=/; secure; HttpOnly
+X-Content-Type-Options: nosniff
+X-Frame-Options: DENY
+X-Request-Id: 5ce1fa10-8c9d-47bc-8dd0-6a10c839d939
+X-Runtime: 0.337738
+X-Ua-Compatible: IE=edge
+X-Xss-Protection: 1; mode=block
+Strict-Transport-Security: max-age=31536000
+Content-Security-Policy: object-src 'none'; script-src 'self' 'unsafe-inline' 'unsafe-eval' piwik.gitlab.com https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/; style-src 'self' 'unsafe-inline'; img-src * data:; frame-src 'self' https://www.google.com/recaptcha/; frame-ancestors 'none'; connect-src 'self' wss://gitlab.com; report-uri https://sentry-infra.gitlap.com/api/3/csp-report/?sentry_key=a664fdde83424b43a991f25fa7c78987
+

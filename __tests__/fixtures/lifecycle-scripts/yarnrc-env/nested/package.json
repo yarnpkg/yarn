@@ -1,0 +1,9 @@
+{
+  "name": "yarn-config-env",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "preinstall" : "node log-command.js"
+  }
+}

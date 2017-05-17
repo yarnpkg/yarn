@@ -57,7 +57,10 @@ Gruntfile.js
 *.md
 `.trim();
 
-export async function clean(config: Config, reporter: Reporter): Promise<{
+export async function clean(
+  config: Config,
+  reporter: Reporter,
+): Promise<{
   removedFiles: number,
   removedSize: number,
 }> {
@@ -80,7 +83,7 @@ export async function clean(config: Config, reporter: Reporter): Promise<{
   }
 
   for (const folder of locs) {
-    if (!(await fs.exists(folder))) {
+    if (!await fs.exists(folder)) {
       continue;
     }
 
@@ -109,12 +112,7 @@ export async function clean(config: Config, reporter: Reporter): Promise<{
   return {removedFiles, removedSize};
 }
 
-export async function run(
-  config: Config,
-  reporter: Reporter,
-  flags: Object,
-  args: Array<string>,
-): Promise<void> {
+export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
   reporter.step(1, 2, reporter.lang('cleanCreatingFile', CLEAN_FILENAME));
 
   const cleanLoc = path.join(config.cwd, CLEAN_FILENAME);
@@ -126,4 +124,10 @@ export async function run(
   const {removedFiles, removedSize} = await clean(config, reporter);
   reporter.info(reporter.lang('cleanRemovedFiles', removedFiles));
   reporter.info(reporter.lang('cleanSavedSize', Number((removedSize / 1024 / 1024).toFixed(2))));
+}
+
+export function setFlags() {}
+
+export function hasWrapper(): boolean {
+  return true;
 }

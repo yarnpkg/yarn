@@ -1,5 +1,6 @@
 /* @flow */
 
+import type {InstallationMethod} from '../../util/yarn-version.js';
 import type {Reporter} from '../../reporters/index.js';
 import type {ReporterSelectOption} from '../../reporters/types.js';
 import type {Manifest, DependencyRequestPatterns} from '../../types.js';
@@ -21,14 +22,14 @@ import {clean} from './clean.js';
 import * as constants from '../../constants.js';
 import * as fs from '../../util/fs.js';
 import map from '../../util/map.js';
+import {version as YARN_VERSION, getInstallationMethod} from '../../util/yarn-version.js';
 
-const invariant = require('invariant');
-const semver = require('semver');
 const emoji = require('node-emoji');
+const invariant = require('invariant');
 const isCI = require('is-ci');
 const path = require('path');
+const semver = require('semver');
 
-const {version: YARN_VERSION, installationMethod: YARN_INSTALL_METHOD} = require('../../../package.json');
 const ONE_DAY = 1000 * 60 * 60 * 24;
 
 export type InstallCwdRequest = {
@@ -66,41 +67,41 @@ type Flags = {
  * Try and detect the installation method for Yarn and provide a command to update it with.
  */
 
-function getUpdateCommand(): ?string {
-  if (YARN_INSTALL_METHOD === 'tar') {
+function getUpdateCommand(installationMethod: InstallationMethod): ?string {
+  if (installationMethod === 'tar') {
     return `curl -o- -L ${constants.YARN_INSTALLER_SH} | bash`;
   }
 
-  if (YARN_INSTALL_METHOD === 'homebrew') {
+  if (installationMethod === 'homebrew') {
     return 'brew upgrade yarn';
   }
 
-  if (YARN_INSTALL_METHOD === 'deb') {
+  if (installationMethod === 'deb') {
     return 'sudo apt-get update && sudo apt-get install yarn';
   }
 
-  if (YARN_INSTALL_METHOD === 'rpm') {
+  if (installationMethod === 'rpm') {
     return 'sudo yum install yarn';
   }
 
-  if (YARN_INSTALL_METHOD === 'npm') {
+  if (installationMethod === 'npm') {
     return 'npm upgrade --global yarn';
   }
 
-  if (YARN_INSTALL_METHOD === 'chocolatey') {
+  if (installationMethod === 'chocolatey') {
     return 'choco upgrade yarn';
   }
 
-  if (YARN_INSTALL_METHOD === 'apk') {
+  if (installationMethod === 'apk') {
     return 'apk update && apk add -u yarn';
   }
 
   return null;
 }
 
-function getUpdateInstaller(): ?string {
+function getUpdateInstaller(installationMethod: InstallationMethod): ?string {
   // Windows
-  if (YARN_INSTALL_METHOD === 'msi') {
+  if (installationMethod === 'msi') {
     return constants.YARN_INSTALLER_MSI;
   }
 
@@ -156,12 +157,7 @@ function normalizeFlags(config: Config, rawFlags: Object): Flags {
 }
 
 export class Install {
-  constructor(
-    flags: Object,
-    config: Config,
-    reporter: Reporter,
-    lockfile: Lockfile,
-  ) {
+  constructor(flags: Object, config: Config, reporter: Reporter, lockfile: Lockfile) {
     this.rootManifestRegistries = [];
     this.rootPatternsToOrigin = map();
     this.resolutions = map();
@@ -172,7 +168,7 @@ export class Install {
 
     this.resolver = new PackageResolver(config, lockfile);
     this.fetcher = new PackageFetcher(config, this.resolver);
-    this.integrityChecker = new InstallationIntegrityChecker(config, this.reporter);
+    this.integrityChecker = new InstallationIntegrityChecker(config);
     this.compatibility = new PackageCompatibility(config, this.resolver, this.flags.ignoreEngines);
     this.linker = new PackageLinker(config, this.resolver);
     this.scripts = new PackageInstallScripts(config, this.resolver, this.flags.force);
@@ -182,7 +178,7 @@ export class Install {
   rootManifestRegistries: Array<RegistryNames>;
   registries: Array<RegistryNames>;
   lockfile: Lockfile;
-  resolutions: { [packageName: string]: string };
+  resolutions: {[packageName: string]: string};
   config: Config;
   reporter: Reporter;
   resolver: PackageResolver;
@@ -190,7 +186,7 @@ export class Install {
   linker: PackageLinker;
   compatibility: PackageCompatibility;
   fetcher: PackageFetcher;
-  rootPatternsToOrigin: { [pattern: string]: string };
+  rootPatternsToOrigin: {[pattern: string]: string};
   integrityChecker: InstallationIntegrityChecker;
 
   /**
@@ -224,22 +220,60 @@ export class Install {
     for (const registry of Object.keys(registries)) {
       const {filename} = registries[registry];
       const loc = path.join(this.config.cwd, filename);
-      if (!(await fs.exists(loc))) {
+      if (!await fs.exists(loc)) {
         continue;
       }
 
       this.rootManifestRegistries.push(registry);
-      const json = await this.config.readJson(loc);
-      await normalizeManifest(json, this.config.cwd, this.config, true);
+      const projectManifestJson = await this.config.readJson(loc);
+      await normalizeManifest(projectManifestJson, this.config.cwd, this.config, true);
 
-      Object.assign(this.resolutions, json.resolutions);
-      Object.assign(manifest, json);
+      const rootCwd = this.config.cwd;
+      // if project has workspaces we aggreagate all dependences from workspaces into root
+      if (projectManifestJson.workspaces && this.config.workspacesExperimental) {
+        if (!projectManifestJson.private) {
+          throw new MessageError(this.reporter.lang('workspacesRequirePrivateProjects'));
+        }
+        for (const workspace of projectManifestJson.workspaces) {
+          for (const workspaceLoc of await fs.glob(path.join(rootCwd, workspace, filename))) {
+            const workspaceCwd = path.dirname(workspaceLoc);
+            const workspaceJson: Manifest = await this.config.readJson(workspaceLoc);
+            await normalizeManifest(workspaceJson, workspaceCwd, this.config, true);
+            for (const type of ['dependencies', 'devDependencies', 'optionalDependencies']) {
+              if (workspaceJson[type]) {
+                for (const key in workspaceJson[type]) {
+                  if (
+                    projectManifestJson[type] &&
+                    projectManifestJson[type][key] &&
+                    projectManifestJson[type][key] !== workspaceJson[type][key]
+                  ) {
+                    // TODO conflicts should still be installed inside workspaces' folders
+                    throw new MessageError(
+                      this.reporter.lang('workspacesIncompatibleDependencies', key, workspaceCwd, rootCwd),
+                    );
+                  }
+                  projectManifestJson[type][key] = workspaceJson[type][key];
+                }
+              }
+            }
+          }
+        }
+      }
+
+      Object.assign(this.resolutions, projectManifestJson.resolutions);
+      Object.assign(manifest, projectManifestJson);
 
       const pushDeps = (depType, {hint, optional}, isUsed) => {
         if (ignoreUnusedPatterns && !isUsed) {
           return;
         }
-        const depMap = json[depType];
+        // We only take unused dependencies into consideration to get deterministic hoisting.
+        // Since flat mode doesn't care about hoisting and everything is top level and specified then we can safely
+        // leave these out.
+        if (this.flags.flat && !isUsed) {
+          return;
+        }
+        const depMap = projectManifestJson[depType];
         for (const name in depMap) {
           if (excludeNames.indexOf(name) >= 0) {
             continue;
@@ -294,15 +328,11 @@ export class Install {
     return requests;
   }
 
-  preparePatterns(
-    patterns: Array<string>,
-  ): Array<string> {
+  preparePatterns(patterns: Array<string>): Array<string> {
     return patterns;
   }
 
-  async bailout(
-    patterns: Array<string>,
-  ): Promise<boolean> {
+  async bailout(patterns: Array<string>): Promise<boolean> {
     if (this.flags.skipIntegrityCheck || this.flags.force) {
       return false;
     }
@@ -376,15 +406,16 @@ export class Install {
       this.reporter.warn(this.reporter.lang('shrinkwrapWarning'));
     }
 
-
     let flattenedTopLevelPatterns: Array<string> = [];
     const steps: Array<(curr: number, total: number) => Promise<{bailout: boolean} | void>> = [];
-    const {
-      requests: depRequests,
-      patterns: rawPatterns,
-      ignorePatterns,
-    } = await this.fetchRequestFromCwd();
+    const {requests: depRequests, patterns: rawPatterns, ignorePatterns} = await this.fetchRequestFromCwd();
     let topLevelPatterns: Array<string> = [];
+
+    const artifacts = await this.integrityChecker.getArtifacts();
+    if (artifacts) {
+      this.linker.setArtifacts(artifacts);
+      this.scripts.setArtifacts(artifacts);
+    }
 
     steps.push(async (curr: number, total: number) => {
       this.reporter.step(curr, total, this.reporter.lang('resolvingPackages'), emoji.get('mag'));
@@ -448,6 +479,7 @@ export class Install {
     for (const step of steps) {
       const stepResult = await step(++currentStep, steps.length);
       if (stepResult && stepResult.bailout) {
+        this.maybeOutputUpdate();
         return flattenedTopLevelPatterns;
       }
     }
@@ -573,8 +605,12 @@ export class Install {
     const requiredTarballs = new Set();
     for (const dependency in lockfile) {
       const resolved = lockfile[dependency].resolved;
+      const basename = path.basename(resolved.split('#')[0]);
       if (resolved) {
-        requiredTarballs.add(path.basename(resolved.split('#')[0]));
+        if (dependency[0] === '@' && basename[0] !== '@') {
+          requiredTarballs.add(`${dependency.split('/')[0]}-${basename}`);
+        }
+        requiredTarballs.add(basename);
       }
     }
 
@@ -603,15 +639,20 @@ export class Install {
     }
 
     // write integrity hash
-    await this.integrityChecker.save(patterns, lockfileBasedOnResolver, this.flags, this.resolver.usedRegistries);
+    await this.integrityChecker.save(
+      patterns,
+      lockfileBasedOnResolver,
+      this.flags,
+      this.resolver.usedRegistries,
+      this.scripts.getArtifacts(),
+    );
 
-    const lockFileHasAllPatterns = patterns.filter((p) => !this.lockfile.getLocked(p)).length === 0;
-    const resolverPatternsAreSameAsInLockfile = Object.keys(lockfileBasedOnResolver)
-      .filter((pattern) => {
+    const lockFileHasAllPatterns = patterns.filter(p => !this.lockfile.getLocked(p)).length === 0;
+    const resolverPatternsAreSameAsInLockfile =
+      Object.keys(lockfileBasedOnResolver).filter(pattern => {
         const manifest = this.lockfile.getLocked(pattern);
         return !manifest || manifest.resolved !== lockfileBasedOnResolver[pattern].resolved;
-      },
-    ).length === 0;
+      }).length === 0;
 
     // remove command is followed by install with force, lockfile will be rewritten in any case then
     if (lockFileHasAllPatterns && resolverPatternsAreSameAsInLockfile && patterns.length && !this.flags.force) {
@@ -622,7 +663,7 @@ export class Install {
     const loc = path.join(this.config.cwd, constants.LOCKFILE_FILENAME);
 
     // write lockfile
-    const lockSource = lockStringify(lockfileBasedOnResolver);
+    const lockSource = lockStringify(lockfileBasedOnResolver, false, this.config.disableLockfileVersions);
     await fs.writeFilePreservingEol(loc, lockSource);
 
     this._logSuccessSaveLockfile();
@@ -709,15 +750,16 @@ export class Install {
     });
 
     if (semver.gt(latestVersion, YARN_VERSION)) {
+      const installationMethod = await getInstallationMethod();
       this.maybeOutputUpdate = () => {
         this.reporter.warn(this.reporter.lang('yarnOutdated', latestVersion, YARN_VERSION));
 
-        const command = getUpdateCommand();
+        const command = getUpdateCommand(installationMethod);
         if (command) {
           this.reporter.info(this.reporter.lang('yarnOutdatedCommand'));
           this.reporter.command(command);
         } else {
-          const installer = getUpdateInstaller();
+          const installer = getUpdateInstaller(installationMethod);
           if (installer) {
             this.reporter.info(this.reporter.lang('yarnOutdatedInstaller', installer));
           }
@@ -734,6 +776,10 @@ export class Install {
   maybeOutputUpdate: any;
 }
 
+export function hasWrapper(): boolean {
+  return true;
+}
+
 export function setFlags(commander: Object) {
   commander.usage('install [flags]');
   commander.option('-g, --global', 'DEPRECATED');
@@ -745,12 +791,7 @@ export function setFlags(commander: Object) {
   commander.option('-T, --save-tilde', 'DEPRECATED');
 }
 
-export async function run(
-  config: Config,
-  reporter: Reporter,
-  flags: Object,
-  args: Array<string>,
-): Promise<void> {
+export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
   let lockfile;
   if (flags.lockfile === false) {
     lockfile = new Lockfile();

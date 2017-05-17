@@ -18,7 +18,7 @@ const url = require('url');
 import {createWriteStream} from 'fs';
 
 type GitRefs = {
-  [name: string]: string
+  [name: string]: string,
 };
 
 type GitUrl = {
@@ -27,9 +27,14 @@ type GitUrl = {
   repository: string, // git-specific "URL"
 };
 
-const supportsArchiveCache: { [key: string]: boolean } = map({
+const supportsArchiveCache: {[key: string]: boolean} = map({
   'github.com': false, // not support, doubt they will ever support it
 });
+
+// This regex is designed to match output from git of the style:
+//   ebeb6eafceb61dd08441ffe086c77eb472842494  refs/tags/v0.21.0
+// and extract the hash and tag name as capture groups
+const gitRefLineRegex = /^([a-fA-F0-9]+)\s+(?:[^/]+\/){2}(.*)$/;
 
 export default class Git {
   constructor(config: Config, gitUrl: GitUrl, hash: string) {
@@ -58,12 +63,14 @@ export default class Git {
    */
   static npmUrlToGitUrl(npmUrl: string): GitUrl {
     // Special case in npm, where ssh:// prefix is stripped to pass scp-like syntax
-    // which works as remote path only if there are no slashes before ':'
-    const match = npmUrl.match(/^git\+ssh:\/\/((?:[^@:\/]+@)?([^@:\/]+):.*)/);
-    if (match) {
+    // which in git works as remote path only if there are no slashes before ':'.
+    const match = npmUrl.match(/^git\+ssh:\/\/((?:[^@:\/]+@)?([^@:\/]+):([^/]*).*)/);
+    // Additionally, if the host part is digits-only, npm falls back to
+    // interpreting it as an SSH URL with a port number.
+    if (match && /[^0-9]/.test(match[3])) {
       return {
-        protocol: 'ssh:',
         hostname: match[2],
+        protocol: 'ssh:',
         repository: match[1],
       };
     }
@@ -71,8 +78,8 @@ export default class Git {
     const repository = npmUrl.replace(/^git\+/, '');
     const parsed = url.parse(repository);
     return {
-      protocol: parsed.protocol || 'file:',
       hostname: parsed.hostname || null,
+      protocol: parsed.protocol || 'file:',
       repository,
     };
   }
@@ -96,7 +103,7 @@ export default class Git {
       throw new Error();
     } catch (err) {
       const supports = err.message.indexOf('did not match any files') >= 0;
-      return supportsArchiveCache[hostname] = supports;
+      return (supportsArchiveCache[hostname] = supports);
     }
   }
 
@@ -119,8 +126,8 @@ export default class Git {
 
   static replaceProtocol(ref: GitUrl, protocol: string): GitUrl {
     return {
-      protocol,
       hostname: ref.hostname,
+      protocol,
       repository: ref.repository.replace(/^(?:git|http):/, protocol),
     };
   }
@@ -139,9 +146,7 @@ export default class Git {
       if (await Git.repoExists(secureUrl)) {
         return secureUrl;
       } else {
-        throw new SecurityError(
-          reporter.lang('refusingDownloadGitWithoutCommit', ref),
-        );
+        throw new SecurityError(reporter.lang('refusingDownloadGitWithoutCommit', ref));
       }
     }
 
@@ -153,9 +158,7 @@ export default class Git {
         if (await Git.repoExists(ref)) {
           return ref;
         } else {
-          throw new SecurityError(
-            reporter.lang('refusingDownloadHTTPWithoutCommit', ref),
-          );
+          throw new SecurityError(reporter.lang('refusingDownloadHTTPWithoutCommit', ref));
         }
       }
     }
@@ -164,9 +167,7 @@ export default class Git {
       if (await Git.repoExists(ref)) {
         return ref;
       } else {
-        throw new SecurityError(
-          reporter.lang('refusingDownloadHTTPSWithoutCommit', ref),
-        );
+        throw new SecurityError(reporter.lang('refusingDownloadHTTPSWithoutCommit', ref));
       }
     }
 
@@ -294,10 +295,12 @@ export default class Git {
       return 'master';
     }
 
-    return await this.config.resolveConstraints(
-      tags.filter((tag): boolean => !!semver.valid(tag, this.config.looseSemver)),
-      range,
-    ) || range;
+    return (
+      (await this.config.resolveConstraints(
+        tags.filter((tag): boolean => !!semver.valid(tag, this.config.looseSemver)),
+        range,
+      )) || range
+    );
   }
 
   /**
@@ -325,7 +328,7 @@ export default class Git {
             const decoder = new StringDecoder('utf8');
             let fileContent = '';
 
-            stream.on('data', (buffer) => {
+            stream.on('data', buffer => {
               fileContent += decoder.write(buffer);
             });
             stream.on('end', () => {
@@ -353,7 +356,9 @@ export default class Git {
     invariant(this.fetched, 'Repo not fetched');
 
     try {
-      return await child.spawn('git', ['show', `${this.hash}:${filename}`], {cwd: this.cwd});
+      return await child.spawn('git', ['show', `${this.hash}:${filename}`], {
+        cwd: this.cwd,
+      });
     } catch (err) {
       // file doesn't exist
       return false;
@@ -407,21 +412,21 @@ export default class Git {
         // in fact, `git archive` can't be used, and we haven't fetched the project yet. Do it now.
         await this.fetch();
       }
-      return this.ref = this.hash = hash;
+      return (this.ref = this.hash = hash);
     }
 
     const ref = await this.findResolution(hash, names);
     const commit = refs[ref];
     if (commit) {
       this.ref = ref;
-      return this.hash = commit;
+      return (this.hash = commit);
     } else {
       throw new MessageError(this.reporter.lang('couldntFindMatch', ref, names.join(','), this.gitUrl.repository));
     }
   }
 
   /**
-   * TODO description
+   * Parse Git ref lines into hash of tag names to SHA hashes
    */
 
   static parseRefs(stdout: string): GitRefs {
@@ -432,14 +437,21 @@ export default class Git {
     const refLines = stdout.split('\n');
 
     for (const line of refLines) {
-      // line example: 64b2c0cee9e829f73c5ad32b8cc8cb6f3bec65bb refs/tags/v4.2.2
-      const [sha, id] = line.split(/\s+/g);
-      let name = id.split('/').slice(2).join('/');
+      const match = gitRefLineRegex.exec(line);
 
-      // TODO: find out why this is necessary. idk it makes it work...
-      name = removeSuffix(name, '^{}');
+      if (match) {
+        const [, sha, tagName] = match;
 
-      refs[name] = sha;
+        // As documented in gitrevisions:
+        //   https://www.kernel.org/pub/software/scm/git/docs/gitrevisions.html#_specifying_revisions
+        // "A suffix ^ followed by an empty brace pair means the object could be a tag,
+        //   and dereference the tag recursively until a non-tag object is found."
+        // In other words, the hash without ^{} is the hash of the tag,
+        //   and the hash with ^{} is the hash of the commit at which the tag was made.
+        const name = removeSuffix(tagName, '^{}');
+
+        refs[name] = sha;
+      }
     }
 
     return refs;

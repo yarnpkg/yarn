@@ -14,12 +14,13 @@ const path = require('path');
 
 export const requireLockfile = true;
 
-export async function run(
-  config: Config,
-  reporter: Reporter,
-  flags: Object,
-  args: Array<string>,
-): Promise<void> {
+export function setFlags() {}
+
+export function hasWrapper(): boolean {
+  return true;
+}
+
+export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
   if (!args.length) {
     throw new MessageError(reporter.lang('tooFewArguments', 1));
   }
@@ -51,10 +52,7 @@ export async function run(
 
       const possibleManifestLoc = path.join(config.cwd, registry.folder, name);
       if (await fs.exists(possibleManifestLoc)) {
-        manifests.push([
-          possibleManifestLoc,
-          await config.readManifest(possibleManifestLoc, registryName),
-        ]);
+        manifests.push([possibleManifestLoc, await config.readManifest(possibleManifestLoc, registryName)]);
       }
     }
 

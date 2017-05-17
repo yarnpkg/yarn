@@ -53,7 +53,9 @@ module.exports = function(params: Object): Request {
 
 module.exports.Request = Request;
 
-module.exports.__resetAuthedRequests = (): void => { authedRequests = []; };
+module.exports.__resetAuthedRequests = (): void => {
+  authedRequests = [];
+};
 module.exports.__getAuthedRequests = (): Array<Object> => authedRequests;
 
 const httpMock = {
@@ -69,8 +71,8 @@ const httpMock = {
     // expose authorized requests to the tests for assertion
     if (options.headers.authorization) {
       authedRequests.push({
-        url: options.uri.href,
         headers: options.headers,
+        url: options.uri.href,
       });
     }
 
@@ -87,6 +89,10 @@ const httpMock = {
       const req = httpModule.request(options, callback);
       let errored = false;
       const bufs = [];
+      // to track situations when CI gets stalled because of many network requests
+      if (options.uri.href.indexOf('localhost') === -1) {
+        console.warn('No request cache for', options.uri.href);
+      }
 
       req.once('socket', function(socket) {
         socket.setMaxListeners(Infinity);

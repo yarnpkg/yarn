@@ -22,12 +22,13 @@ export async function getRegistryFolder(config: Config, name: string): Promise<s
   return path.join(config.cwd, registryFolder);
 }
 
-export async function run(
-  config: Config,
-  reporter: Reporter,
-  flags: Object,
-  args: Array<string>,
-): Promise<void> {
+export function hasWrapper(): boolean {
+  return true;
+}
+
+export function setFlags() {}
+
+export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
   if (args.length) {
     for (const name of args) {
       const src = path.join(config.linkFolder, name);
@@ -39,7 +40,7 @@ export async function run(
         await fs.unlink(dest);
         await fs.mkdirp(path.dirname(dest));
         await fs.symlink(src, dest);
-        reporter.success(reporter.lang('linkRegistered', name));
+        reporter.success(reporter.lang('linkUsing', name));
       } else {
         throw new MessageError(reporter.lang('linkMissing', name));
       }
@@ -76,7 +77,7 @@ export async function run(
       }
 
       reporter.success(reporter.lang('linkRegistered', name));
-      reporter.info(reporter.lang('linkInstallMessage', name));
+      reporter.info(reporter.lang('linkRegisteredMessage', name));
     }
   }
 }

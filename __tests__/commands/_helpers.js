@@ -64,8 +64,8 @@ export async function run<T, R>(
   ) => Promise<T> | T,
   args: Array<string>,
   flags: Object,
-  name: string | { source: string, cwd: string },
-  checkInstalled: ?(config: Config, reporter: R, install: T) => ?Promise<void>,
+  name: string | {source: string, cwd: string},
+  checkInstalled: ?(config: Config, reporter: R, install: T, getStdout: () => string) => ?Promise<void>,
   beforeInstall: ?(cwd: string) => ?Promise<void>,
 ): Promise<void> {
   let out = '';
@@ -119,19 +119,23 @@ export async function run<T, R>(
   }
 
   try {
-    const config = await Config.create({
-      binLinks: !!flags.binLinks,
-      cwd,
-      globalFolder: path.join(cwd, '.yarn-global'),
-      cacheFolder: flags.cacheFolder || path.join(cwd, '.yarn-cache'),
-      linkFolder: path.join(cwd, '.yarn-link'),
-      production: flags.production,
-    }, reporter);
+    const config = await Config.create(
+      {
+        binLinks: !!flags.binLinks,
+        cwd,
+        globalFolder: flags.globalFolder || path.join(cwd, '.yarn-global'),
+        cacheFolder: flags.cacheFolder || path.join(cwd, '.yarn-cache'),
+        linkFolder: flags.linkFolder || path.join(cwd, '.yarn-link'),
+        prefix: flags.prefix,
+        production: flags.production,
+      },
+      reporter,
+    );
 
     const install = await factory(args, flags, config, reporter, lockfile, () => out);
 
     if (checkInstalled) {
-      await checkInstalled(config, reporter, install);
+      await checkInstalled(config, reporter, install, () => out);
     }
   } catch (err) {
     throw new Error(`${err && err.stack} \nConsole output:\n ${out}`);

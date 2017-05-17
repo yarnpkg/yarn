@@ -6,8 +6,8 @@ set -ex
 # potentially be useful for debugging purposes, but it's more bloated than the
 # regular distribution.
 
-npm run build
-npm pack
+yarn build
+yarn pack
 rm -rf dist-debug
 mkdir dist-debug
 mkdir -p artifacts
@@ -18,7 +18,7 @@ umask 0022 # Ensure permissions are correct (0755 for dirs, 0644 for files)
 tar -xzf pack.tgz --strip 1
 rm -rf pack.tgz
 # Change this to "yarn install --production" once #1115 is fixed
-npm install --production
+yarn install --production
 ../scripts/set-installation-method.js $(readlink -f package.json) tar
 cd ..
 

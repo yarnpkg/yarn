@@ -6,19 +6,14 @@ import RegistryYarn from '../../resolvers/registries/yarn-resolver.js';
 
 const path = require('path');
 
-export function hasWrapper() {}
+export function hasWrapper(): boolean {
+  return false;
+}
 
-export function run(
- config: Config,
- reporter: Reporter,
- flags: Object,
- args: Array<string>,
-): Promise<void> {
-  const binFolder = path.join(
-    config.cwd,
-    config.registries[RegistryYarn.registry].folder,
-    '.bin',
-  );
+export function setFlags() {}
+
+export function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
+  const binFolder = path.join(config.cwd, config.registries[RegistryYarn.registry].folder, '.bin');
   console.log(binFolder);
   return Promise.resolve();
 }

@@ -2,16 +2,14 @@
 
 import {ConsoleReporter, JSONReporter} from '../reporters/index.js';
 import {registries, registryNames} from '../registries/index.js';
-import * as _commands from './commands/index.js';
+import commands from './commands/index.js';
 import * as constants from '../constants.js';
 import * as network from '../util/network.js';
 import {MessageError} from '../errors.js';
-import aliases from './aliases.js';
 import Config from '../config.js';
 import {getRcArgs} from '../rc.js';
-import {camelCase} from '../util/misc.js';
+import {version} from '../util/yarn-version.js';
 
-const chalk = require('chalk');
 const commander = require('commander');
 const fs = require('fs');
 const invariant = require('invariant');
@@ -20,28 +18,18 @@ const loudRejection = require('loud-rejection');
 const net = require('net');
 const onDeath = require('death');
 const path = require('path');
-const pkg = require('../../package.json');
 
 loudRejection();
-
-const commands = {..._commands};
-for (const key in aliases) {
-  commands[key] = {
-    run(config: Config, reporter: ConsoleReporter | JSONReporter): Promise<void> {
-      throw new MessageError(`Did you mean \`yarn ${aliases[key]}\`?`);
-    },
-  };
-}
 
 const startArgs = process.argv.slice(0, 2);
 
 // ignore all arguments after a --
-const doubleDashIndex = process.argv.findIndex((element) => element === '--');
+const doubleDashIndex = process.argv.findIndex(element => element === '--');
 const args = process.argv.slice(2, doubleDashIndex === -1 ? process.argv.length : doubleDashIndex);
 const endArgs = doubleDashIndex === -1 ? [] : process.argv.slice(doubleDashIndex + 1, process.argv.length);
 
 // set global options
-commander.version(pkg.version);
+commander.version(version);
 commander.usage('[command] [flags]');
 commander.option('--verbose', 'output verbose messages on internal operations');
 commander.option('--offline', 'trigger an error if any required dependencies are not available in local cache');
@@ -63,39 +51,21 @@ commander.option('--no-lockfile', "don't read or generate a lockfile");
 commander.option('--pure-lockfile', "don't generate a lockfile");
 commander.option('--frozen-lockfile', "don't generate a lockfile and fail if an update is needed");
 commander.option('--link-duplicates', 'create hardlinks to the repeated modules in node_modules');
-commander.option('--global-folder <path>', '');
+commander.option('--global-folder <path>', 'specify a custom folder to store global packages');
 commander.option(
   '--modules-folder <path>',
   'rather than installing modules into the node_modules folder relative to the cwd, output them here',
 );
-commander.option(
-  '--cache-folder <path>',
-  'specify a custom folder to store the yarn cache',
-);
-commander.option(
-  '--mutex <type>[:specifier]',
-  'use a mutex to ensure only one yarn instance is executing',
-);
-commander.option(
-  '--no-emoji',
-  'disable emoji in output',
-);
-commander.option(
-  '-s, --silent',
-  'skip Yarn console logs, other types of logs (script output) will be printed',
-);
+commander.option('--cache-folder <path>', 'specify a custom folder to store the yarn cache');
+commander.option('--mutex <type>[:specifier]', 'use a mutex to ensure only one yarn instance is executing');
+commander.option('--emoji', 'enable emoji in output', process.platform === 'darwin');
+commander.option('-s, --silent', 'skip Yarn console logs, other types of logs (script output) will be printed');
 commander.option('--proxy <host>', '');
 commander.option('--https-proxy <host>', '');
-commander.option(
-  '--no-progress',
-  'disable progress bar',
-);
+commander.option('--no-progress', 'disable progress bar');
 commander.option('--network-concurrency <number>', 'maximum number of concurrent network requests', parseInt);
 commander.option('--network-timeout <milliseconds>', 'TCP timeout for network requests', parseInt);
 commander.option('--non-interactive', 'do not show interactive prompts');
-
-const getDocsLink = (name) => `${constants.YARN_DOCS}${name || ''}`;
-const getDocsInfo = (name) => 'Visit ' + chalk.bold(getDocsLink(name)) + ' for documentation about this command.';
 
 // get command name
 let commandName: string = args.shift() || 'install';
@@ -116,9 +86,8 @@ if (commandName[0] === '-') {
 }
 
 let command;
-const camelised = camelCase(commandName);
-if (camelised && Object.prototype.hasOwnProperty.call(commands, camelised)) {
-  command = commands[camelised];
+if (Object.prototype.hasOwnProperty.call(commands, commandName)) {
+  command = commands[commandName];
 }
 
 // if command is not recognized, then set default to `run`
@@ -127,10 +96,7 @@ if (!command) {
   command = commands.run;
 }
 
-if (command && typeof command.setFlags === 'function') {
-  command.setFlags(commander);
-}
-
+command.setFlags(commander);
 commander.parse([
   ...startArgs,
   // we use this for https://github.com/tj/commander.js/issues/346, otherwise
@@ -147,12 +113,9 @@ console.assert(commander.args[0] === 'this-arg-will-get-stripped-later');
 commander.args.shift();
 
 //
-let Reporter = ConsoleReporter;
-if (commander.json) {
-  Reporter = JSONReporter;
-}
+const Reporter = commander.json ? JSONReporter : ConsoleReporter;
 const reporter = new Reporter({
-  emoji: commander.emoji && process.stdout.isTTY && process.platform === 'darwin',
+  emoji: process.stdout.isTTY && commander.emoji,
   verbose: commander.verbose,
   noProgress: !commander.progress,
   isSilent: commander.silent,
@@ -161,22 +124,15 @@ const reporter = new Reporter({
 reporter.initPeakMemoryCounter();
 
 const config = new Config(reporter);
+const outputWrapper = !commander.json && command.hasWrapper(commander, commander.args);
 
-// print header
-let outputWrapper = true;
-if (typeof command.hasWrapper === 'function') {
-  outputWrapper = command.hasWrapper(commander, commander.args);
-}
-if (commander.json) {
-  outputWrapper = false;
-}
 if (outputWrapper) {
-  reporter.header(commandName, pkg);
+  reporter.header(commandName, {name: 'yarn', version});
 }
 
 if (command.noArguments && commander.args.length) {
   reporter.error(reporter.lang('noArguments'));
-  reporter.info(getDocsInfo(commandName));
+  reporter.info(command.getDocsInfo);
   process.exit(1);
 }
 
@@ -209,7 +165,7 @@ const run = (): Promise<void> => {
 
 //
 const runEventuallyWithFile = (mutexFilename: ?string, isFirstTime?: boolean): Promise<void> => {
-  return new Promise((ok) => {
+  return new Promise(ok => {
     const lockFilename = mutexFilename || path.join(config.cwd, constants.SINGLE_INSTANCE_FILENAME);
     lockfile.lock(lockFilename, {realpath: false}, (err: mixed, release: () => void) => {
       if (err) {
@@ -217,7 +173,7 @@ const runEventuallyWithFile = (mutexFilename: ?string, isFirstTime?: boolean): P
           reporter.warn(reporter.lang('waitingInstance'));
         }
         setTimeout(() => {
-          ok(runEventuallyWithFile(mutexFilename, isFirstTime));
+          ok(runEventuallyWithFile(mutexFilename, false));
         }, 200); // do not starve the CPU
       } else {
         onDeath(() => {
@@ -231,7 +187,7 @@ const runEventuallyWithFile = (mutexFilename: ?string, isFirstTime?: boolean): P
 
 //
 const runEventuallyWithNetwork = (mutexPort: ?string): Promise<void> => {
-  return new Promise((ok) => {
+  return new Promise(ok => {
     const connectionOptions = {
       port: +mutexPort || constants.SINGLE_INSTANCE_PORT,
     };
@@ -287,7 +243,7 @@ function onUnexpectedError(err: Error) {
   const log = [];
   log.push(`Arguments: ${indent(process.argv.join(' '))}`);
   log.push(`PATH: ${indent(process.env.PATH || 'undefined')}`);
-  log.push(`Yarn version: ${indent(pkg.version)}`);
+  log.push(`Yarn version: ${indent(version)}`);
   log.push(`Node version: ${indent(process.versions.node)}`);
   log.push(`Platform: ${indent(process.platform + ' ' + process.arch)}`);
 
@@ -314,8 +270,10 @@ function onUnexpectedError(err: Error) {
   }
 }
 
-function writeErrorReport(log) : ?string {
-  const errorReportLoc = path.join(config.cwd, 'yarn-error.log');
+function writeErrorReport(log): ?string {
+  const errorReportLoc = config.enableMetaFolder
+    ? path.join(config.cwd, constants.META_FOLDER, 'yarn-error.log')
+    : path.join(config.cwd, 'yarn-error.log');
 
   try {
     fs.writeFileSync(errorReportLoc, log.join('\n\n') + '\n');
@@ -327,70 +285,70 @@ function writeErrorReport(log) : ?string {
   return errorReportLoc;
 }
 
-//
-config.init({
-  binLinks: commander.binLinks,
-  modulesFolder: commander.modulesFolder,
-  globalFolder: commander.globalFolder,
-  cacheFolder: commander.cacheFolder,
-  preferOffline: commander.preferOffline,
-  captureHar: commander.har,
-  ignorePlatform: commander.ignorePlatform,
-  ignoreEngines: commander.ignoreEngines,
-  ignoreScripts: commander.ignoreScripts,
-  offline: commander.preferOffline || commander.offline,
-  looseSemver: !commander.strictSemver,
-  production: commander.production,
-  httpProxy: commander.proxy,
-  httpsProxy: commander.httpsProxy,
-  networkConcurrency: commander.networkConcurrency,
-  nonInteractive: commander.nonInteractive,
-  commandName: commandName === 'run' ? commander.args[0] : commandName,
-}).then(() => {
+config
+  .init({
+    binLinks: commander.binLinks,
+    modulesFolder: commander.modulesFolder,
+    globalFolder: commander.globalFolder,
+    cacheFolder: commander.cacheFolder,
+    preferOffline: commander.preferOffline,
+    captureHar: commander.har,
+    ignorePlatform: commander.ignorePlatform,
+    ignoreEngines: commander.ignoreEngines,
+    ignoreScripts: commander.ignoreScripts,
+    offline: commander.preferOffline || commander.offline,
+    looseSemver: !commander.strictSemver,
+    production: commander.production,
+    httpProxy: commander.proxy,
+    httpsProxy: commander.httpsProxy,
+    networkConcurrency: commander.networkConcurrency,
+    networkTimeout: commander.networkTimeout,
+    nonInteractive: commander.nonInteractive,
+    commandName: commandName === 'run' ? commander.args[0] : commandName,
+  })
+  .then(() => {
+    // option "no-progress" stored in yarn config
+    const noProgressConfig = config.registries.yarn.getOption('no-progress');
 
-  // option "no-progress" stored in yarn config
-  const noProgressConfig = config.registries.yarn.getOption('no-progress');
-
-  if (noProgressConfig) {
-    reporter.disableProgress();
-  }
-
-  const exit = () => {
-    process.exit(0);
-  };
-  // verbose logs outputs process.uptime() with this line we can sync uptime to absolute time on the computer
-  reporter.verbose(`current time: ${new Date().toISOString()}`);
-
-  const mutex: mixed = commander.mutex;
-  if (mutex && typeof mutex === 'string') {
-    const parts = mutex.split(':');
-    const mutexType = parts.shift();
-    const mutexSpecifier = parts.join(':');
-
-    if (mutexType === 'file') {
-      return runEventuallyWithFile(mutexSpecifier, true).then(exit);
-    } else if (mutexType === 'network') {
-      return runEventuallyWithNetwork(mutexSpecifier).then(exit);
-    } else {
-      throw new MessageError(`Unknown single instance type ${mutexType}`);
+    if (noProgressConfig) {
+      reporter.disableProgress();
     }
-  } else {
-    return run().then(exit);
-  }
-}).catch((err: Error) => {
-  reporter.verbose(err.stack);
 
-  if (err instanceof MessageError) {
-    reporter.error(err.message);
-  } else {
-    onUnexpectedError(err);
-  }
+    const exit = () => {
+      process.exit(0);
+    };
+    // verbose logs outputs process.uptime() with this line we can sync uptime to absolute time on the computer
+    reporter.verbose(`current time: ${new Date().toISOString()}`);
 
-  if (aliases[commandName]) {
-    reporter.info(getDocsInfo(aliases[commandName]));
-  } else if (commands[commandName]) {
-    reporter.info(getDocsInfo(commandName));
-  }
+    const mutex: mixed = commander.mutex;
+    if (mutex && typeof mutex === 'string') {
+      const parts = mutex.split(':');
+      const mutexType = parts.shift();
+      const mutexSpecifier = parts.join(':');
 
-  process.exit(1);
-});
+      if (mutexType === 'file') {
+        return runEventuallyWithFile(mutexSpecifier, true).then(exit);
+      } else if (mutexType === 'network') {
+        return runEventuallyWithNetwork(mutexSpecifier).then(exit);
+      } else {
+        throw new MessageError(`Unknown single instance type ${mutexType}`);
+      }
+    } else {
+      return run().then(exit);
+    }
+  })
+  .catch((err: Error) => {
+    reporter.verbose(err.stack);
+
+    if (err instanceof MessageError) {
+      reporter.error(err.message);
+    } else {
+      onUnexpectedError(err);
+    }
+
+    if (commands[commandName]) {
+      reporter.info(commands[commandName].getDocsInfo);
+    }
+
+    process.exit(1);
+  });

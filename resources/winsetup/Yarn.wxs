@@ -39,7 +39,7 @@
 				<Environment
 					Id="BinPath"
 					Name="PATH"
-					Value="[LocalAppDataFolder]Yarn\.bin"
+					Value="[LocalAppDataFolder]Yarn\bin"
 					Permanent="no"
 					Part="last"
 					Action="set"

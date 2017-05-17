@@ -10,14 +10,6 @@ export {CopyFetcher as copy};
 export {GitFetcher as git};
 export {TarballFetcher as tarball};
 
-export type Fetchers =
-  | BaseFetcher
-  | CopyFetcher
-  | GitFetcher
-  | TarballFetcher;
+export type Fetchers = BaseFetcher | CopyFetcher | GitFetcher | TarballFetcher;
 
-export type FetcherNames =
-  | 'base'
-  | 'copy'
-  | 'git'
-  | 'tarball';
+export type FetcherNames = 'base' | 'copy' | 'git' | 'tarball';

@@ -1,0 +1,9 @@
+{
+  "name": "my-project",
+  "dependencies": {
+    "left-pad": "1.1.3"
+  },
+  "workspaces": [
+    "workspace-child"
+  ]
+}

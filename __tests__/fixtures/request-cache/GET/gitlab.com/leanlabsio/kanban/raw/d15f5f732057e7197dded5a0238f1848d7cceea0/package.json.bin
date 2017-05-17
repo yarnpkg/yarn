@@ -1,0 +1,56 @@
+HTTP/1.1 200 OK
+Server: nginx
+Date: Wed, 12 Apr 2017 18:12:17 GMT
+Content-Type: text/plain; charset=utf-8
+Content-Length: 1181
+Cache-Control: max-age=3600, public
+Content-Disposition: inline
+Etag: "78309fbf8af4479c47eca65b0c5e3f51"
+X-Content-Type-Options: nosniff
+X-Frame-Options: DENY
+X-Request-Id: 761f390c-89dd-45e4-acf5-65aa8e4f6c6b
+X-Runtime: 0.079100
+X-Ua-Compatible: IE=edge
+X-Xss-Protection: 1; mode=block
+Strict-Transport-Security: max-age=31536000
+Content-Security-Policy: object-src 'none'; script-src 'self' 'unsafe-inline' 'unsafe-eval' piwik.gitlab.com https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/; style-src 'self' 'unsafe-inline'; img-src * data:; frame-src 'self' https://www.google.com/recaptcha/; frame-ancestors 'none'; connect-src 'self' wss://gitlab.com; report-uri https://sentry-infra.gitlap.com/api/3/csp-report/?sentry_key=a664fdde83424b43a991f25fa7c78987
+
+{
+  "name": "kanban",
+  "version": "0.0.1",
+  "repository": "gitlab.com/leanlabsio/kanban",
+  "scripts": {
+      "install": "npm install",
+      "build": "grunt build",
+      "watch": "grunt watch"
+  },
+  "devDependencies": {
+    "grunt": "~0.4.1",
+    "grunt-cli": "~0.1.13",
+    "grunt-contrib-copy": "^0.5.0",
+    "grunt-contrib-concat": "~0.5.0",
+    "grunt-contrib-watch": "~0.5.3",
+    "grunt-contrib-uglify": "~0.7.0",
+    "grunt-sass": "1.0.0",
+    "grunt-contrib-connect": "~0.8.0",
+    "grunt-connect-proxy": "~0.1.11"
+  },
+  "dependencies": {
+    "angular": "=1.5.6",
+    "angular-lodash": "https://github.com/EMSSConsulting/angular-lodash.git#68a726c",
+    "foundation-sites": "5.5.2",
+    "angular-foundation": "https://github.com/pineconellc/angular-foundation.git#8f3f260",
+    "angular-loading-bar": "=0.5.2",
+    "angular-storage": "=0.0.6",
+    "angular-ui-router": "=0.3.0",
+    "angularjs-datepicker": "=0.2.15",
+    "font-awesome": "=4.6.3",
+    "markdown-it": "=5.0.2",
+    "markdown-it-emoji": "=1.1.0",
+    "ng-sortable": "=1.3.6",
+    "sass-flex-mixin": "=1.0.3",
+    "lodash": "=4.13.1",
+    "twemoji": "=2.1.0",
+    "angular-file-upload": "=2.3.4"
+  }
+}

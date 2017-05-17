@@ -2,6 +2,10 @@
 
 const _camelCase = require('camelcase');
 
+export function has2xxResponse(res: Object): boolean {
+  return res.responseCode >= 200 && res.responseCode < 300;
+}
+
 export function sortAlpha(a: string, b: string): number {
   // sort alphabetically in a deterministic way
   const shortLen = Math.min(a.length, b.length);
@@ -15,7 +19,7 @@ export function sortAlpha(a: string, b: string): number {
   return a.length - b.length;
 }
 
-export function entries<T>(obj: ?{ [key: string]: T }): Array<[string, T]> {
+export function entries<T>(obj: ?{[key: string]: T}): Array<[string, T]> {
   const entries = [];
   if (obj) {
     for (const key in obj) {
@@ -50,7 +54,7 @@ export function addSuffix(pattern: string, suffix: string): string {
 }
 
 export function hyphenate(str: string): string {
-  return str.replace(/[A-Z]/g, (match) => {
+  return str.replace(/[A-Z]/g, match => {
     return '-' + match.charAt(0).toLowerCase();
   });
 }

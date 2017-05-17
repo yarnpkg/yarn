@@ -1,0 +1,6 @@
+{
+  "name": "workspace-1",
+  "dependencies": {
+    "left-pad": "1.1.1"
+  }
+}

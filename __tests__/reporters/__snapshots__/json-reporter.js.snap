@@ -10,6 +10,13 @@ Object {
 }
 `;
 
+exports[`JSONReporter.activity 2`] = `
+Object {
+  "stderr": "",
+  "stdout": "",
+}
+`;
+
 exports[`JSONReporter.command 1`] = `
 Object {
   "stderr": "",
@@ -52,6 +59,13 @@ Object {
 {\\"type\\":\\"progressTick\\",\\"data\\":{\\"id\\":0,\\"current\\":1}}
 {\\"type\\":\\"progressTick\\",\\"data\\":{\\"id\\":0,\\"current\\":2}}
 {\\"type\\":\\"progressFinish\\",\\"data\\":{\\"id\\":0}}",
+}
+`;
+
+exports[`JSONReporter.progress 2`] = `
+Object {
+  "stderr": "",
+  "stdout": "",
 }
 `;
 

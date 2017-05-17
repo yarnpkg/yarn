@@ -31,12 +31,12 @@ export default class BlockingQueue {
     [key: string]: Array<{
       factory: () => Promise<any>,
       resolve: (val: any) => void,
-      reject: Function
-    }>
+      reject: Function,
+    }>,
   };
 
   running: {
-    [key: string]: boolean
+    [key: string]: boolean,
   };
 
   stillActive() {
@@ -52,7 +52,7 @@ export default class BlockingQueue {
       this.warnedStuck = true;
       debug(
         `The ${JSON.stringify(this.alias)} blocking queue may be stuck. 5 seconds ` +
-        `without any activity with 1 worker: ${Object.keys(this.running)[0]}`,
+          `without any activity with 1 worker: ${Object.keys(this.running)[0]}`,
       );
     }
   }
@@ -66,7 +66,7 @@ export default class BlockingQueue {
 
     return new Promise((resolve, reject) => {
       // we're already running so push ourselves to the queue
-      const queue = this.queue[key] = this.queue[key] || [];
+      const queue = (this.queue[key] = this.queue[key] || []);
       queue.push({factory, resolve, reject});
 
       if (!this.running[key]) {
@@ -82,9 +82,7 @@ export default class BlockingQueue {
 
       if (this.warnedStuck) {
         this.warnedStuck = false;
-        debug(
-          `${JSON.stringify(this.alias)} blocking queue finally resolved. Nothing to worry about.`,
-        );
+        debug(`${JSON.stringify(this.alias)} blocking queue finally resolved. Nothing to worry about.`);
       }
     }
 
@@ -107,14 +105,16 @@ export default class BlockingQueue {
       this.running[key] = true;
       this.runningCount++;
 
-      factory().then(function(val): null {
-        resolve(val);
-        next();
-        return null;
-      }).catch(function(err) {
-        reject(err);
-        next();
-      });
+      factory()
+        .then(function(val): null {
+          resolve(val);
+          next();
+          return null;
+        })
+        .catch(function(err) {
+          reject(err);
+          next();
+        });
     };
 
     this.maybePushConcurrencyQueue(run);

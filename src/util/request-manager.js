@@ -48,23 +48,19 @@ type RequestParams<T> = {
   forever?: boolean,
   strictSSL?: boolean,
   headers?: {
-    [name: string]: string
+    [name: string]: string,
   },
-  process?: (
-    req: RequestT,
-    resolve: (body: T) => void,
-    reject: (err: Error) => void
-  ) => void,
+  process?: (req: RequestT, resolve: (body: T) => void, reject: (err: Error) => void) => void,
   callback?: (err: ?Error, res: any, body: any) => void,
   retryAttempts?: number,
   maxRetryAttempts?: number,
-  followRedirect?: boolean
+  followRedirect?: boolean,
 };
 
 type RequestOptions = {
   params: RequestParams<Object>,
   resolve: (body: any) => void,
-  reject: (err: any) => void
+  reject: (err: any) => void,
 };
 
 export default class RequestManager {
@@ -104,7 +100,7 @@ export default class RequestManager {
   timeout: number;
   maxRetryAttempts: number;
   cache: {
-    [key: string]: Promise<any>
+    [key: string]: Promise<any>,
   };
 
   _requestCaptureHar: ?RequestCaptureHar;
@@ -171,7 +167,7 @@ export default class RequestManager {
       // and strip out any text in between the certificates
       try {
         const bundle = fs.readFileSync(opts.cafile).toString();
-        const hasPemPrefix = (block) => block.startsWith('-----BEGIN ');
+        const hasPemPrefix = block => block.startsWith('-----BEGIN ');
         // opts.cafile overrides opts.ca, this matches with npm behavior
         this.ca = bundle.split(/(-----BEGIN .*\r?\n[^-]+\r?\n--.*)/).filter(hasPemPrefix);
       } catch (err) {
@@ -212,7 +208,7 @@ export default class RequestManager {
 
   request<T>(params: RequestParams<T>): Promise<T> {
     if (this.offlineNoRequests) {
-      return Promise.reject(new MessageError(this.reporter.lang('cantRequestOffline')));
+      return Promise.reject(new MessageError(this.reporter.lang('cantRequestOffline', params.url)));
     }
 
     const cached = this.cache[params.url];
@@ -224,12 +220,15 @@ export default class RequestManager {
     params.forever = true;
     params.retryAttempts = 0;
     params.strictSSL = this.strictSSL;
-    params.headers = Object.assign({
-      'User-Agent': this.userAgent,
-    }, params.headers);
+    params.headers = Object.assign(
+      {
+        'User-Agent': this.userAgent,
+      },
+      params.headers,
+    );
 
     const promise = new Promise((resolve, reject) => {
-      this.queue.push({params, resolve, reject});
+      this.queue.push({params, reject, resolve});
       this.shiftQueue();
     });
 
@@ -331,7 +330,7 @@ export default class RequestManager {
     const {params} = opts;
     const {reporter} = this;
 
-    const buildNext = (fn) => (data) => {
+    const buildNext = fn => data => {
       fn(data);
       this.running--;
       this.shiftQueue();
@@ -346,7 +345,7 @@ export default class RequestManager {
     };
 
     let calledOnError = false;
-    const onError = (err) => {
+    const onError = err => {
       if (calledOnError) {
         return;
       }

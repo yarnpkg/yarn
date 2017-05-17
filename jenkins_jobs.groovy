@@ -1,18 +1,50 @@
 // Jenkins build jobs for Yarn
 // https://build.dan.cx/view/Yarn/
 
-/**
- * Trigger that fires when a new stable Yarn version is released
- * This could probably be smarter in the future (eg. handle it using a webhook
- * rather than polling the version number)
- */
-def yarnStableVersionChange = {
-  triggerContext -> triggerContext.with {
-    urlTrigger {
-      cron 'H/15 * * * *'
-      url('https://yarnpkg.com/latest-version') {
-        inspection 'change'
+job('yarn-version') {
+  description 'Updates the version number on the Yarn website'
+  label 'linux'
+  authenticationToken "${YARN_VERSION_KEY}"
+  scm {
+    git {
+      branch 'master'
+      remote {
+        github 'yarnpkg/website', 'ssh'
       }
+      extensions {
+        // Required so we can commit to master
+        // http://stackoverflow.com/a/29786580/210370
+        localBranch 'master'
+      }
+    }
+  }
+  parameters {
+    stringParam 'YARN_VERSION'
+    booleanParam 'YARN_RC'
+  }
+  steps {
+    shell '''
+      ./scripts/set-version.sh
+      git commit -m "Automated upgrade to Yarn $YARN_VERSION" _config.yml
+    '''
+  }
+  publishers {
+    git {
+      branch 'origin', 'master'
+      pushOnlyIfSuccess
+    }
+    downstreamParameterized {
+      // Other jobs to run when version number is bumped
+      trigger([
+        'yarn-chocolatey',
+        'yarn-homebrew',
+      ]) {
+        parameters {
+          currentBuild()
+        }
+      }
+    }
+    gitHubIssueNotifier {
     }
   }
 }
@@ -50,8 +82,10 @@ job('yarn-chocolatey') {
   scm {
     github 'yarnpkg/yarn', 'master'
   }
-  triggers {
-    yarnStableVersionChange delegate
+  parameters {
+    // Passed from yarn-version job
+    stringParam 'YARN_VERSION'
+    booleanParam 'YARN_RC'
   }
   steps {
     powerShell '.\\scripts\\build-chocolatey.ps1 -Publish'
@@ -59,6 +93,25 @@ job('yarn-chocolatey') {
   publishers {
     gitHubIssueNotifier {
     }
-    mailer 'yarn@dan.cx'
+  }
+}
+
+job('yarn-homebrew') {
+  description 'Ensures the Homebrew package for Yarn is up-to-date'
+  label 'linuxbrew'
+  scm {
+    github 'yarnpkg/yarn', 'master'
+  }
+  parameters {
+    // Passed from yarn-version job
+    stringParam 'YARN_VERSION'
+    booleanParam 'YARN_RC'
+  }
+  steps {
+    shell './scripts/update-homebrew.sh'
+  }
+  publishers {
+    gitHubIssueNotifier {
+    }
   }
 }

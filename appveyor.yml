@@ -19,7 +19,7 @@ build_script:
 
 test_script:
   - node --version
-  - npm run test-only -- --maxWorkers 3
+  - yarn test-only -- --maxWorkers 3
 
 artifacts:
   - path: artifacts/*.msi

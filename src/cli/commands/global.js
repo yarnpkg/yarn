@@ -77,6 +77,9 @@ function getGlobalPrefix(config: Config, flags: Object): string {
   } else if (process.env.PREFIX) {
     return process.env.PREFIX;
   } else if (process.platform === 'win32') {
+    if (process.env.LOCALAPPDATA) {
+      return path.join(process.env.LOCALAPPDATA, 'Yarn', 'bin');
+    }
     // c:\node\node.exe --> prefix=c:\node\
     return path.dirname(process.execPath);
   } else {
@@ -105,7 +108,7 @@ async function initUpdateBins(config: Config, reporter: Reporter, flags: Object)
   const beforeBins = await getBins(config);
   const binFolder = getBinFolder(config, flags);
 
-  function throwPermError(err: Error & { [code: string]: string }, dest: string) {
+  function throwPermError(err: Error & {[code: string]: string}, dest: string) {
     if (err.code === 'EACCES') {
       throw new MessageError(reporter.lang('noFilePermission', dest));
     } else {
@@ -169,17 +172,27 @@ function ls(manifest: Manifest, reporter: Reporter, saved: boolean) {
   }
 }
 
+async function list(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
+  await updateCwd(config);
+
+  // install so we get hard file paths
+  const lockfile = await Lockfile.fromDirectory(config.cwd);
+  const install = new Install({skipIntegrityCheck: true}, config, new NoopReporter(), lockfile);
+  const patterns = await install.init();
+
+  // dump global modules
+  for (const pattern of patterns) {
+    const manifest = install.resolver.getStrictResolvedPattern(pattern);
+    ls(manifest, reporter, false);
+  }
+}
+
 const {run, setFlags: _setFlags} = buildSubCommands('global', {
-  async add(
-    config: Config,
-    reporter: Reporter,
-    flags: Object,
-    args: Array<string>,
-  ): Promise<void> {
+  async add(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
     await updateCwd(config);
 
     const updateBins = await initUpdateBins(config, reporter, flags);
-    if (args.includes('yarn')) {
+    if (args.indexOf('yarn') !== -1) {
       reporter.warn(reporter.lang('packageContainsYarnAsGlobal'));
     }
 
@@ -192,41 +205,20 @@ const {run, setFlags: _setFlags} = buildSubCommands('global', {
     await updateBins();
   },
 
-  bin(
-    config: Config,
-    reporter: Reporter,
-    flags: Object,
-    args: Array<string>,
-  ) {
-    console.log(getBinFolder(config, flags));
+  bin(config: Config, reporter: Reporter, flags: Object, args: Array<string>) {
+    reporter.log(getBinFolder(config, flags));
   },
 
-  async ls(
-    config: Config,
-    reporter: Reporter,
-    flags: Object,
-    args: Array<string>,
-  ): Promise<void> {
-    await updateCwd(config);
-
-    // install so we get hard file paths
-    const lockfile = await Lockfile.fromDirectory(config.cwd);
-    const install = new Install({skipIntegrity: true}, config, new NoopReporter(), lockfile);
-    const patterns = await install.init();
-
-    // dump global modules
-    for (const pattern of patterns) {
-      const manifest = install.resolver.getStrictResolvedPattern(pattern);
-      ls(manifest, reporter, false);
-    }
+  async ls(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
+    reporter.warn(`\`yarn global ls\` is deprecated. Please use \`yarn global list\`.`);
+    await list(config, reporter, flags, args);
   },
 
-  async remove(
-    config: Config,
-    reporter: Reporter,
-    flags: Object,
-    args: Array<string>,
-  ): Promise<void> {
+  async list(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
+    await list(config, reporter, flags, args);
+  },
+
+  async remove(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
     await updateCwd(config);
 
     const updateBins = await initUpdateBins(config, reporter, flags);
@@ -238,12 +230,7 @@ const {run, setFlags: _setFlags} = buildSubCommands('global', {
     await updateBins();
   },
 
-  async upgrade(
-    config: Config,
-    reporter: Reporter,
-    flags: Object,
-    args: Array<string>,
-  ): Promise<void> {
+  async upgrade(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
     await updateCwd(config);
 
     const updateBins = await initUpdateBins(config, reporter, flags);
@@ -255,12 +242,7 @@ const {run, setFlags: _setFlags} = buildSubCommands('global', {
     await updateBins();
   },
 
-  async upgradeInteractive(
-    config: Config,
-    reporter: Reporter,
-    flags: Object,
-    args: Array<string>,
-  ): Promise<void> {
+  async upgradeInteractive(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
     await updateCwd(config);
 
     const updateBins = await initUpdateBins(config, reporter, flags);

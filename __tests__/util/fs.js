@@ -39,7 +39,8 @@ describe('fileDatesEqual', () => {
     });
 
     test('Different dates differ', () => {
-      expect(fileDatesEqual(new Date(1491393798834), new Date(1491393798835))).toBeFalsy();
+      expect(fileDatesEqual(new Date(1491393798834), new Date(1491393798835))).toBeTruthy();
+      expect(fileDatesEqual(new Date(1491393798834), new Date(1491393798836))).toBeFalsy();
       expect(fileDatesEqual(new Date(1491393700834), new Date(1491393798834))).toBeFalsy();
     });
 

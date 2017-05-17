@@ -9,7 +9,7 @@ const semver = require('semver');
 function clean(object: any): any {
   if (Array.isArray(object)) {
     const result = [];
-    object.forEach((item) => {
+    object.forEach(item => {
       item = clean(item);
       if (item) {
         result.push(item);
@@ -36,12 +36,13 @@ function clean(object: any): any {
   }
 }
 
-export async function run(
- config: Config,
- reporter: Reporter,
- flags: Object,
- args: Array<string>,
-): Promise<void> {
+export function setFlags() {}
+
+export function hasWrapper(): boolean {
+  return true;
+}
+
+export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
   if (args.length > 2) {
     reporter.error(reporter.lang('tooManyArguments', 2));
     return;
@@ -57,7 +58,10 @@ export async function run(
   const packageInput = NpmRegistry.escapeName(packageName);
   const {name, version} = parsePackageName(packageInput);
 
-  let result = await config.registries.npm.request(name);
+  // pass application/json Accept to get full metadata for info command
+  let result = await config.registries.npm.request(name, {
+    headers: {Accept: 'application/json'},
+  });
   if (!result) {
     reporter.error(reporter.lang('infoFail'));
     return;

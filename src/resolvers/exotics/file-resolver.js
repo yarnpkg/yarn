@@ -9,9 +9,10 @@ import * as fs from '../../util/fs.js';
 
 const invariant = require('invariant');
 const path = require('path');
+const uuid = require('uuid');
 
 type Dependencies = {
-  [key: string]: string
+  [key: string]: string,
 };
 
 export default class FileResolver extends ExoticResolver {
@@ -29,7 +30,7 @@ export default class FileResolver extends ExoticResolver {
     if (!path.isAbsolute(loc)) {
       loc = path.join(this.config.cwd, loc);
     }
-    if (!(await fs.exists(loc))) {
+    if (!await fs.exists(loc)) {
       throw new MessageError(this.reporter.lang('doesntExist', loc));
     }
 
@@ -40,7 +41,7 @@ export default class FileResolver extends ExoticResolver {
     manifest._remote = {
       type: 'copy',
       registry,
-      hash: null,
+      hash: `${uuid.v4()}-${new Date().getTime()}`,
       reference: loc,
     };
 
@@ -49,7 +50,7 @@ export default class FileResolver extends ExoticResolver {
     // Normalize relative paths; if anything changes, make a copy of the manifest
     const dependencies = this.normalizeDependencyPaths(manifest.dependencies, loc);
     const optionalDependencies = this.normalizeDependencyPaths(manifest.optionalDependencies, loc);
-    
+
     if (dependencies !== manifest.dependencies || optionalDependencies !== manifest.optionalDependencies) {
       const _manifest = Object.assign({}, manifest);
       if (dependencies != null) {

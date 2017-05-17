@@ -1,0 +1,6 @@
+{
+  "devDependencies": {},
+  "dependencies": {
+    "is-plain-obj": "^1.1.0"
+  }
+}

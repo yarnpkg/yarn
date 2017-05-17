@@ -3,13 +3,14 @@
 
 import type {
   ReporterSpinnerSet,
-    ReporterSelectOption,
-    Trees,
-    Stdout,
-    Stdin,
-    Package,
-    ReporterSpinner,
-    QuestionOptions,
+  ReporterSelectOption,
+  Trees,
+  Stdout,
+  Stdin,
+  Package,
+  ReporterSpinner,
+  QuestionOptions,
+  PromptOptions,
 } from './types.js';
 import type {LanguageKeys} from './lang/en.js';
 import type {Formatter} from './format.js';
@@ -19,13 +20,17 @@ import isCI from 'is-ci';
 import BaseReporter from './base-reporter.js';
 
 export default class NoopReporter extends BaseReporter {
-  lang(key: LanguageKeys, ...args: Array<mixed>): string { return 'do nothing'; }
+  lang(key: LanguageKeys, ...args: Array<mixed>): string {
+    return 'do nothing';
+  }
   verbose(msg: string) {}
   verboseInspect(val: any) {}
   initPeakMemoryCounter() {}
   checkPeakMemory() {}
   close() {}
-  getTotalTime(): number { return 0; }
+  getTotalTime(): number {
+    return 0;
+  }
   list(key: string, items: Array<string>, hints?: Object) {}
   tree(key: string, obj: Trees) {}
   step(current: number, total: number, message: string, emoji?: string) {}
@@ -78,5 +83,9 @@ export default class NoopReporter extends BaseReporter {
 
   disableProgress() {
     this.noProgress = true;
+  }
+
+  prompt<T>(message: string, choices: Array<*>, options?: PromptOptions = {}): Promise<Array<T>> {
+    return Promise.reject(new Error('Not implemented'));
   }
 }

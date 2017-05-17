@@ -6,13 +6,14 @@ import type {CLIFunction} from '../../types.js';
 import {MessageError} from '../../errors.js';
 import {camelCase, hyphenate} from '../../util/misc.js';
 
-type SubCommands =  {
+type SubCommands = {
   [commandName: string]: CLIFunction,
 };
 
 type Return = {
   run: CLIFunction,
   setFlags: (commander: Object) => void,
+  hasWrapper: (commander: Object, Array<string>) => boolean,
   examples: Array<string>,
 };
 
@@ -25,12 +26,7 @@ export default function(rootCommandName: string, subCommands: SubCommands, usage
     commander.usage(`${rootCommandName} [${subCommandNames.join('|')}] [flags]`);
   }
 
-  async function run(
-    config: Config,
-    reporter: Reporter,
-    flags: Object,
-    args: Array<string>,
-  ): Promise<void> {
+  async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
     const subName: ?string = camelCase(args.shift() || '');
     if (subName && subCommands[subName]) {
       const command: CLIFunction = subCommands[subName];
@@ -49,9 +45,13 @@ export default function(rootCommandName: string, subCommands: SubCommands, usage
     return Promise.reject(new MessageError(reporter.lang('invalidCommand', subCommandNames.join(', '))));
   }
 
+  function hasWrapper(): boolean {
+    return true;
+  }
+
   const examples = usage.map((cmd: string): string => {
     return `${rootCommandName} ${cmd}`;
   });
 
-  return {run, setFlags, examples};
+  return {run, setFlags, hasWrapper, examples};
 }

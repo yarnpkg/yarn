@@ -65,12 +65,17 @@ export default class TarballResolver extends ExoticResolver {
       // delete if invalid
       await fs.unlink(dest);
 
-      const fetcher = new TarballFetcher(dest, {
-        type: 'tarball',
-        reference: url,
-        registry,
-        hash,
-      }, this.config, false);
+      const fetcher = new TarballFetcher(
+        dest,
+        {
+          type: 'tarball',
+          reference: url,
+          registry,
+          hash,
+        },
+        this.config,
+        false,
+      );
 
       // fetch file and get it's hash
       const fetched: FetchedMetadata = await fetcher.fetch();

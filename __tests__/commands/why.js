@@ -26,7 +26,6 @@ async function runWhy(
     if (checkSteps) {
       await checkSteps(config, reporter);
     }
-
   } catch (err) {
     throw new Error(`${err && err.stack}`);
   }
@@ -75,32 +74,30 @@ test.concurrent('throws error if module does not exist', (): Promise<void> => {
   });
 });
 
-test.concurrent('should determine that the module installed because it is in dependencies',
-(): Promise<void> => {
+test.concurrent('should determine that the module installed because it is in dependencies', (): Promise<void> => {
   return runWhy({}, ['mime-types'], 'basic', (config, reporter) => {
     const report = reporter.getBuffer();
     expect(report[report.length - 1].data).toEqual(reporter.lang('whySpecifiedSimple', 'dependencies'));
   });
 });
 
-test.concurrent('should determine that the module installed because it is in devDependencies',
-(): Promise<void> => {
+test.concurrent('should determine that the module installed because it is in devDependencies', (): Promise<void> => {
   return runWhy({}, ['left-pad'], 'basic', (config, reporter) => {
     const report = reporter.getBuffer();
     expect(report[report.length - 1].data).toEqual(reporter.lang('whySpecifiedSimple', 'devDependencies'));
   });
 });
 
-test.concurrent('should determine that the module installed because mime-types depend on it',
-(): Promise<void> => {
+test.concurrent('should determine that the module installed because mime-types depend on it', (): Promise<void> => {
   return runWhy({}, ['mime-db'], 'basic', (config, reporter) => {
     const report = reporter.getBuffer();
     expect(report[report.length - 1].data).toEqual(reporter.lang('whyDependedOnSimple', 'mime-types'));
   });
 });
 
-test.concurrent('should determine that the module installed because it is hoisted from glob depend on it',
-(): Promise<void> => {
+test.concurrent('should determine that the module installed because it is hoisted from glob depend on it', (): Promise<
+  void,
+> => {
   return runWhy({}, ['glob#minimatch'], 'basic', (config, reporter) => {
     const report = reporter.getBuffer();
     expect(report[report.length - 2].data).toEqual(reporter.lang('whyHoistedTo', 'glob#minimatch'));

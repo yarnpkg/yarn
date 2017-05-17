@@ -38,12 +38,12 @@ export default class PackageResolver {
   // activity monitor
   activity: ?{
     tick: (name: string) => void,
-    end: () => void
+    end: () => void,
   };
 
   // patterns we've already resolved or are in the process of resolving
   fetchingPatterns: {
-    [key: string]: true
+    [key: string]: true,
   };
 
   // new patterns that didn't exist in the lockfile
@@ -61,7 +61,7 @@ export default class PackageResolver {
 
   // list of patterns associated with a package
   patternsByPackage: {
-    [packageName: string]: Array<string>
+    [packageName: string]: Array<string>,
   };
 
   // lockfile instance which we can use to retrieve version info
@@ -69,7 +69,7 @@ export default class PackageResolver {
 
   // a map of dependency patterns to packages
   patterns: {
-    [packagePattern: string]: Manifest
+    [packagePattern: string]: Manifest,
   };
 
   // reporter instance, abstracts out display logic
@@ -328,7 +328,7 @@ export default class PackageResolver {
   addPattern(pattern: string, info: Manifest) {
     this.patterns[pattern] = info;
 
-    const byName = this.patternsByPackage[info.name] = this.patternsByPackage[info.name] || [];
+    const byName = (this.patternsByPackage[info.name] = this.patternsByPackage[info.name] || []);
     byName.push(pattern);
   }
 
@@ -434,8 +434,24 @@ export default class PackageResolver {
       this.activity.tick(req.pattern);
     }
 
-    if (!this.lockfile.getLocked(req.pattern, true)) {
+    const lockfileEntry = this.lockfile.getLocked(req.pattern);
+    if (!lockfileEntry) {
       this.newPatterns.push(req.pattern);
+    } else {
+      const {range, hasVersion} = PackageRequest.normalizePattern(req.pattern);
+      // lockfileEntry is incorrect, remove it from lockfile cache and consider the pattern as new
+      if (
+        semver.validRange(range) &&
+        semver.valid(lockfileEntry.version) &&
+        !semver.satisfies(lockfileEntry.version, range) &&
+        !PackageRequest.getExoticResolver(range) &&
+        hasVersion
+      ) {
+        this.reporter.warn(this.reporter.lang('incorrectLockfileEntry', req.pattern));
+        this.removePattern(req.pattern);
+        this.newPatterns.push(req.pattern);
+        this.lockfile.removePattern(req.pattern);
+      }
     }
 
     const request = new PackageRequest(req, this);
@@ -450,7 +466,7 @@ export default class PackageResolver {
     this.flat = isFlat;
 
     //
-    const activity = this.activity = this.reporter.activity();
+    const activity = (this.activity = this.reporter.activity());
 
     //
     this.seedPatterns = deps.map((dep): string => dep.pattern);

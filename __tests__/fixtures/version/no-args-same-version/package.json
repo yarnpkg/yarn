@@ -1,0 +1,9 @@
+{
+  "version": "2.0.0",
+  "license": "BSD-2-Clause",
+  "scripts": {
+    "preversion": "echo preversion",
+    "version": "echo version",
+    "postversion": "echo postversion"
+  }
+}

@@ -2,12 +2,9 @@
 argv0=$(echo "$0" | sed -e 's,\\,/,g')
 basedir=$(dirname "$(readlink "$0" || echo "$argv0")")
 
-use_winpty=0
-
 case "$(uname -s)" in
   Linux) basedir=$(dirname "$(readlink -f "$0" || echo "$argv0")");;
   *CYGWIN*) basedir=`cygpath -w "$basedir"`;;
-  MSYS*|MINGW*) use_winpty=1;;
 esac
 
 command_exists() {
@@ -15,7 +12,7 @@ command_exists() {
 }
 
 if command_exists node; then
-  if [ $use_winpty -eq 1 ]; then
+  if [ "$YARN_FORCE_WINPTY" = 1 ]; then
     winpty node "$basedir/yarn.js" "$@"
   else
     node "$basedir/yarn.js" "$@"

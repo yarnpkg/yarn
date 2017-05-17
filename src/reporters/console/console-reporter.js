@@ -7,6 +7,7 @@ import type {
   ReporterSpinner,
   ReporterSelectOption,
   QuestionOptions,
+  PromptOptions,
 } from '../types.js';
 import type {FormatKeys} from '../format.js';
 import BaseReporter from '../base-reporter.js';
@@ -15,13 +16,16 @@ import Spinner from './spinner-progress.js';
 import {clearLine} from './util.js';
 import {removeSuffix} from '../../util/misc.js';
 import {sortTrees, recurseTree, getFormattedOutput} from './helpers/tree-helper.js';
+import inquirer from 'inquirer';
 
 const {inspect} = require('util');
 const readline = require('readline');
 const chalk = require('chalk');
 const read = require('read');
+const tty = require('tty');
 
 type Row = Array<string>;
+type InquirerResponses<K, T> = {[key: K]: Array<T>};
 
 export default class ConsoleReporter extends BaseReporter {
   constructor(opts: Object) {
@@ -177,27 +181,30 @@ export default class ConsoleReporter extends BaseReporter {
     }
 
     return new Promise((resolve, reject) => {
-      read({
-        prompt: `${this.format.dim('question')} ${question}: `,
-        silent: !!options.password,
-        output: this.stdout,
-        input: this.stdin,
-      }, (err, answer) => {
-        if (err) {
-          if (err.message === 'canceled') {
-            process.exit(1);
+      read(
+        {
+          prompt: `${this.format.dim('question')} ${question}: `,
+          silent: !!options.password,
+          output: this.stdout,
+          input: this.stdin,
+        },
+        (err, answer) => {
+          if (err) {
+            if (err.message === 'canceled') {
+              process.exit(1);
+            } else {
+              reject(err);
+            }
           } else {
-            reject(err);
+            if (!answer && options.required) {
+              this.error(this.lang('answerRequired'));
+              resolve(this.question(question, options));
+            } else {
+              resolve(answer);
+            }
           }
-        } else {
-          if (!answer && options.required) {
-            this.error(this.lang('answerRequired'));
-            resolve(this.question(question, options));
-          } else {
-            resolve(answer);
-          }
-        }
-      });
+        },
+      );
     });
   }
   // handles basic tree output to console
@@ -205,7 +212,13 @@ export default class ConsoleReporter extends BaseReporter {
     //
     const output = ({name, children, hint, color}, titlePrefix, childrenPrefix) => {
       const formatter = this.format;
-      const out = getFormattedOutput({prefix: titlePrefix, hint, color, name, formatter});
+      const out = getFormattedOutput({
+        prefix: titlePrefix,
+        hint,
+        color,
+        name,
+        formatter,
+      });
       this.stdout.write(out);
 
       if (children && children.length) {
@@ -233,9 +246,7 @@ export default class ConsoleReporter extends BaseReporter {
       let prefix: ?string = null;
       let current = 0;
       const updatePrefix = () => {
-        spinner.setPrefix(
-          `${this.format.dim(`[${current === 0 ? '-' : current}/${total}]`)} `,
-        );
+        spinner.setPrefix(`${this.format.dim(`[${current === 0 ? '-' : current}/${total}]`)} `);
       };
       const clear = () => {
         prefix = null;
@@ -325,7 +336,7 @@ export default class ConsoleReporter extends BaseReporter {
       }
     }
 
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       this.info(header);
 
       for (let i = 0; i < questions.length; i++) {
@@ -333,7 +344,7 @@ export default class ConsoleReporter extends BaseReporter {
       }
 
       const ask = () => {
-        rl.question(`${question}: `, (input) => {
+        rl.question(`${question}: `, input => {
           let index = toIndex(input);
 
           if (isNaN(index)) {
@@ -379,5 +390,50 @@ export default class ConsoleReporter extends BaseReporter {
     return function() {
       bar.tick();
     };
+  }
+
+  async prompt<T>(message: string, choices: Array<*>, options?: PromptOptions = {}): Promise<Array<T>> {
+    if (!process.stdout.isTTY) {
+      return Promise.reject(new Error("Can't answer a question unless a user TTY"));
+    }
+
+    let pageSize;
+    if (process.stdout instanceof tty.WriteStream) {
+      pageSize = process.stdout.rows - 2;
+    }
+
+    const rl = readline.createInterface({
+      input: this.stdin,
+      output: this.stdout,
+      terminal: true,
+    });
+
+    // $FlowFixMe: Need to update the type of Inquirer
+    const prompt = inquirer.createPromptModule({
+      input: this.stdin,
+      output: this.stdout,
+    });
+
+    let rejectRef = () => {};
+    const killListener = () => {
+      rejectRef();
+    };
+
+    const handleKillFromInquirer = new Promise((resolve, reject) => {
+      rejectRef = reject;
+    });
+
+    rl.addListener('SIGINT', killListener);
+
+    const {name = 'prompt', type = 'input', validate} = options;
+    const answers: InquirerResponses<string, T> = await Promise.race([
+      prompt([{name, type, message, choices, pageSize, validate}]),
+      handleKillFromInquirer,
+    ]);
+
+    rl.removeListener('SIGINT', killListener);
+    rl.close();
+
+    return answers[name];
   }
 }

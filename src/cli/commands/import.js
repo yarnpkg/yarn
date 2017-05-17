@@ -25,6 +25,7 @@ const NPM_REGISTRY = /http[s]:\/\/registry.npmjs.org/g;
 
 const invariant = require('invariant');
 const path = require('path');
+const uuid = require('uuid');
 
 export const noArguments = true;
 
@@ -98,7 +99,7 @@ class ImportResolver extends BaseResolver {
     info._remote = {
       type: 'copy',
       registry: this.registry,
-      hash: null,
+      hash: `${uuid.v4()}-${new Date().getTime()}`,
       reference: loc,
     };
     return info;
@@ -170,7 +171,7 @@ class ImportPackageRequest extends PackageRequest {
   import: boolean;
 
   getRootName(): string {
-    return this.resolver instanceof ImportPackageResolver && this.resolver.rootName || 'root';
+    return (this.resolver instanceof ImportPackageResolver && this.resolver.rootName) || 'root';
   }
 
   getParentHumanName(): string {
@@ -230,7 +231,7 @@ class ImportPackageResolver extends PackageResolver {
   }
 
   async findAll(deps: DependencyRequestPatterns): Promise<void> {
-    await Promise.all(deps.map((dep) => this.findOne(dep)));
+    await Promise.all(deps.map(dep => this.findOne(dep)));
     deps = this.next;
     this.next = [];
     if (!deps.length) {
@@ -253,7 +254,7 @@ class ImportPackageResolver extends PackageResolver {
   async init(deps: DependencyRequestPatterns, isFlat: boolean, rootName?: string): Promise<void> {
     this.flat = isFlat;
     this.rootName = rootName || this.rootName;
-    const activity = this.activity = this.reporter.activity();
+    const activity = (this.activity = this.reporter.activity());
     this.seedPatterns = deps.map((dep): string => dep.pattern);
     await this.findAll(deps);
     this.resetOptional();
@@ -263,12 +264,7 @@ class ImportPackageResolver extends PackageResolver {
 }
 
 export class Import extends Install {
-  constructor(
-    flags: Object,
-    config: Config,
-    reporter: Reporter,
-    lockfile: Lockfile,
-  ) {
+  constructor(flags: Object, config: Config, reporter: Reporter, lockfile: Lockfile) {
     super(flags, config, reporter, lockfile);
     this.resolver = new ImportPackageResolver(this.config, this.lockfile);
     this.fetcher = new PackageFetcher(config, this.resolver);
@@ -291,12 +287,13 @@ export class Import extends Install {
   }
 }
 
-export async function run(
-  config: Config,
-  reporter: Reporter,
-  flags: Object,
-  args: Array<string>,
-): Promise<void> {
+export function setFlags() {}
+
+export function hasWrapper(): boolean {
+  return true;
+}
+
+export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
   const imp = new Import(flags, config, reporter, new Lockfile({}));
   await imp.init();
 }

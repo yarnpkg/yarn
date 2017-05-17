@@ -1,5 +1,6 @@
 /* @flow */
 
+import type Reporter from '../reporters/base-reporter.js';
 import type RequestManager from '../util/request-manager.js';
 import type {ConfigRegistries} from './index.js';
 import {YARN_REGISTRY} from '../constants.js';
@@ -7,10 +8,10 @@ import NpmRegistry from './npm-registry.js';
 import stringify from '../lockfile/stringify.js';
 import parse from '../lockfile/parse.js';
 import * as fs from '../util/fs.js';
+import {version} from '../util/yarn-version.js';
 
 const userHome = require('../util/user-home-dir').default;
 const path = require('path');
-const pkg: { version: string } = require('../../package.json');
 
 export const DEFAULTS = {
   'version-tag-prefix': 'v',
@@ -26,13 +27,7 @@ export const DEFAULTS = {
   'ignore-optional': false,
   registry: YARN_REGISTRY,
   'strict-ssl': true,
-  'user-agent': [
-    `yarn/${pkg.version}`,
-    'npm/?',
-    `node/${process.version}`,
-    process.platform,
-    process.arch,
-  ].join(' '),
+  'user-agent': [`yarn/${version}`, 'npm/?', `node/${process.version}`, process.platform, process.arch].join(' '),
 };
 
 const npmMap = {
@@ -43,8 +38,8 @@ const npmMap = {
 };
 
 export default class YarnRegistry extends NpmRegistry {
-  constructor(cwd: string, registries: ConfigRegistries, requestManager: RequestManager) {
-    super(cwd, registries, requestManager);
+  constructor(cwd: string, registries: ConfigRegistries, requestManager: RequestManager, reporter: Reporter) {
+    super(cwd, registries, requestManager, reporter);
 
     this.homeConfigLoc = path.join(userHome, '.yarnrc');
     this.homeConfig = {};
@@ -76,7 +71,7 @@ export default class YarnRegistry extends NpmRegistry {
   }
 
   async loadConfig(): Promise<void> {
-    for (const [isHome, loc, file] of await this.getPossibleConfigLocations('.yarnrc')) {
+    for (const [isHome, loc, file] of await this.getPossibleConfigLocations('.yarnrc', this.reporter)) {
       const config = parse(file, loc);
 
       if (isHome) {
@@ -88,8 +83,17 @@ export default class YarnRegistry extends NpmRegistry {
 
       // don't normalize if we already have a mirror path
       if (!this.config['yarn-offline-mirror'] && offlineLoc) {
-        const mirrorLoc = config['yarn-offline-mirror'] = path.resolve(path.dirname(loc), offlineLoc);
+        const mirrorLoc = (config['yarn-offline-mirror'] = path.resolve(path.dirname(loc), offlineLoc));
         await fs.mkdirp(mirrorLoc);
+      }
+
+      // merge with any existing environment variables
+      const env = config.env;
+      if (env) {
+        const existingEnv = this.config.env;
+        if (existingEnv) {
+          this.config.env = Object.assign({}, env, existingEnv);
+        }
       }
 
       this.config = Object.assign({}, config, this.config);

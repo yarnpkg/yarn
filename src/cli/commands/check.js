@@ -3,6 +3,7 @@
 import type Config from '../../config.js';
 import {MessageError} from '../../errors.js';
 import InstallationIntegrityChecker from '../../integrity-checker.js';
+import {integrityErrors} from '../../integrity-checker.js';
 import Lockfile from '../../lockfile/wrapper.js';
 import type {Reporter} from '../../reporters/index.js';
 import * as fs from '../../util/fs.js';
@@ -13,6 +14,10 @@ const path = require('path');
 
 export const requireLockfile = false;
 export const noArguments = true;
+
+export function hasWrapper(): boolean {
+  return true;
+}
 
 export function setFlags(commander: Object) {
   commander.option('--integrity');
@@ -79,7 +84,7 @@ export async function verifyTreeCheck(
     if (
       semver.validRange(dep.version, config.looseSemver) &&
       !semver.satisfies(pkg.version, dep.version, config.looseSemver)
-      ) {
+    ) {
       reportError('packageWrongVersion', dep.originalKey, dep.version, pkg.version);
       continue;
     }
@@ -89,8 +94,7 @@ export async function verifyTreeCheck(
         const subDepPath = path.join(manifestLoc, registry.folder, subdep);
         let found = false;
         const relative = path.relative(registry.cwd, subDepPath);
-        const locations = path.normalize(relative).split(registry.folder + path.sep).
-          filter((dir) => !!dir);
+        const locations = path.normalize(relative).split(registry.folder + path.sep).filter(dir => !!dir);
         locations.pop();
         while (locations.length >= 0) {
           let possiblePath;
@@ -143,7 +147,7 @@ async function integrityHashCheck(
     reporter.error(reporter.lang(msg, ...vars));
     errCount++;
   }
-  const integrityChecker = new InstallationIntegrityChecker(config, reporter);
+  const integrityChecker = new InstallationIntegrityChecker(config);
 
   const lockfile = await Lockfile.fromDirectory(config.cwd);
   const install = new Install(flags, config, reporter, lockfile);
@@ -158,7 +162,8 @@ async function integrityHashCheck(
   if (match.integrityFileMissing) {
     reportError('noIntegrityFile');
   }
-  if (!match.integrityMatches) {
+  if (match.integrityMatches === false) {
+    reporter.warn(reporter.lang(integrityErrors[match.integrityError]));
     reportError('integrityCheckFailed');
   }
 
@@ -169,12 +174,7 @@ async function integrityHashCheck(
   }
 }
 
-export async function run(
-  config: Config,
-  reporter: Reporter,
-  flags: Object,
-  args: Array<string>,
-): Promise<void> {
+export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
   if (flags.verifyTree) {
     await verifyTreeCheck(config, reporter, flags, args);
     return;
@@ -189,7 +189,7 @@ export async function run(
   function humaniseLocation(loc: string): Array<string> {
     const relative = path.relative(path.join(config.cwd, 'node_modules'), loc);
     const normalized = path.normalize(relative).split(path.sep);
-    return normalized.filter((p) => p !== 'node_modules').reduce((result, part) => {
+    return normalized.filter(p => p !== 'node_modules').reduce((result, part) => {
       const length = result.length;
       if (length && result[length - 1].startsWith('@') && !result[length - 1].includes(path.sep)) {
         result[length - 1] += path.sep + part;
@@ -252,7 +252,7 @@ export async function run(
     }
 
     const pkgLoc = path.join(loc, 'package.json');
-    if (!(await fs.exists(loc)) || !(await fs.exists(pkgLoc))) {
+    if (!await fs.exists(loc) || !await fs.exists(pkgLoc)) {
       if (pkg._reference.optional) {
         reporter.warn(reporter.lang('optionalDepNotInstalled', human));
       } else {
@@ -321,9 +321,11 @@ export async function run(
         }
 
         const packageJson = await config.readJson(loc);
-        if (packageJson.version === depPkg.version ||
-           (semver.satisfies(packageJson.version, range, config.looseSemver) &&
-           semver.gt(packageJson.version, depPkg.version, config.looseSemver))) {
+        if (
+          packageJson.version === depPkg.version ||
+          (semver.satisfies(packageJson.version, range, config.looseSemver) &&
+            semver.gt(packageJson.version, depPkg.version, config.looseSemver))
+        ) {
           reporter.warn(
             reporter.lang(
               'couldBeDeduped',

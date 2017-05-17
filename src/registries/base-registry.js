@@ -1,5 +1,6 @@
 /* @flow */
 
+import type Reporter from '../reporters/base-reporter.js';
 import type RequestManager, {RequestMethods} from '../util/request-manager.js';
 import type Config from '../config.js';
 import type {ConfigRegistries} from './index.js';
@@ -12,18 +13,20 @@ export type RegistryRequestOptions = {
   method?: RequestMethods,
   auth?: Object,
   body?: mixed,
-  buffer?: bool,
-  process?: Function
+  buffer?: boolean,
+  headers?: Object,
+  process?: Function,
 };
 
 export type CheckOutdatedReturn = Promise<{
   wanted: string,
   latest: string,
-  url: string
+  url: string,
 }>;
 
 export default class BaseRegistry {
-  constructor(cwd: string, registries: ConfigRegistries, requestManager: RequestManager) {
+  constructor(cwd: string, registries: ConfigRegistries, requestManager: RequestManager, reporter: Reporter) {
+    this.reporter = reporter;
     this.requestManager = requestManager;
     this.registries = registries;
     this.config = {};
@@ -36,6 +39,8 @@ export default class BaseRegistry {
   // the filename to use for package metadata
   static filename: string;
 
+  //
+  reporter: Reporter;
   //
   registries: ConfigRegistries;
 

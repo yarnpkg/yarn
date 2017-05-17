@@ -17,12 +17,19 @@ test('RequestManager.request with cafile', async () => {
     key: await fs.readFile(path.join(__dirname, '..', 'fixtures', 'certificates', 'server-key.pem')),
     cert: await fs.readFile(path.join(__dirname, '..', 'fixtures', 'certificates', 'server-cert.pem')),
   };
-  const server = https.createServer(options, (req, res) => { res.end('ok'); });
+  const server = https.createServer(options, (req, res) => {
+    res.end('ok');
+  });
   try {
     server.listen(0);
-    const config = await Config.create({'cafile': path.join(__dirname, '..', 'fixtures', 'certificates', 'cacerts.pem')});
+    const config = await Config.create({
+      cafile: path.join(__dirname, '..', 'fixtures', 'certificates', 'cacerts.pem'),
+    });
     const port = server.address().port;
-    body = await config.requestManager.request({url: `https://localhost:${port}/?nocache`, headers: {Connection: 'close'}});
+    body = await config.requestManager.request({
+      url: `https://localhost:${port}/?nocache`,
+      headers: {Connection: 'close'},
+    });
   } finally {
     server.close();
   }
@@ -35,16 +42,21 @@ test('RequestManager.request with ca (string)', async () => {
     key: await fs.readFile(path.join(__dirname, '..', 'fixtures', 'certificates', 'server-key.pem')),
     cert: await fs.readFile(path.join(__dirname, '..', 'fixtures', 'certificates', 'server-cert.pem')),
   };
-  const server = https.createServer(options, (req, res) => { res.end('ok'); });
+  const server = https.createServer(options, (req, res) => {
+    res.end('ok');
+  });
   try {
     server.listen(0);
     const bundle = await fs.readFile(path.join(__dirname, '..', 'fixtures', 'certificates', 'cacerts.pem'));
-    const hasPemPrefix = (block) => block.startsWith('-----BEGIN ');
+    const hasPemPrefix = block => block.startsWith('-----BEGIN ');
     const caCerts = bundle.split(/(-----BEGIN .*\r?\n[^-]+\r?\n--.*)/).filter(hasPemPrefix);
     // the 2nd cert is valid one
-    const config = await Config.create({'ca': caCerts[1]});
+    const config = await Config.create({ca: caCerts[1]});
     const port = server.address().port;
-    body = await config.requestManager.request({url: `https://localhost:${port}/?nocache`, headers: {Connection: 'close'}});
+    body = await config.requestManager.request({
+      url: `https://localhost:${port}/?nocache`,
+      headers: {Connection: 'close'},
+    });
   } finally {
     server.close();
   }
@@ -57,15 +69,20 @@ test('RequestManager.request with ca (array)', async () => {
     key: await fs.readFile(path.join(__dirname, '..', 'fixtures', 'certificates', 'server-key.pem')),
     cert: await fs.readFile(path.join(__dirname, '..', 'fixtures', 'certificates', 'server-cert.pem')),
   };
-  const server = https.createServer(options, (req, res) => { res.end('ok'); });
+  const server = https.createServer(options, (req, res) => {
+    res.end('ok');
+  });
   try {
     server.listen(0);
     const bundle = await fs.readFile(path.join(__dirname, '..', 'fixtures', 'certificates', 'cacerts.pem'));
-    const hasPemPrefix = (block) => block.startsWith('-----BEGIN ');
+    const hasPemPrefix = block => block.startsWith('-----BEGIN ');
     const caCerts = bundle.split(/(-----BEGIN .*\r?\n[^-]+\r?\n--.*)/).filter(hasPemPrefix);
-    const config = await Config.create({'ca': caCerts});
+    const config = await Config.create({ca: caCerts});
     const port = server.address().port;
-    body = await config.requestManager.request({url: `https://localhost:${port}/?nocache`, headers: {Connection: 'close'}});
+    body = await config.requestManager.request({
+      url: `https://localhost:${port}/?nocache`,
+      headers: {Connection: 'close'},
+    });
   } finally {
     server.close();
   }
@@ -81,16 +98,21 @@ test('RequestManager.request with mutual TLS', async () => {
     requestCert: true,
     rejectUnauthorized: true,
   };
-  const server = https.createServer(options, (req, res) => { res.end('ok'); });
+  const server = https.createServer(options, (req, res) => {
+    res.end('ok');
+  });
   try {
     server.listen(0);
     const config = await Config.create({
-      'cafile': path.join(__dirname, '..', 'fixtures', 'certificates', 'server-ca-cert.pem'),
-      'key': await fs.readFile(path.join(__dirname, '..', 'fixtures', 'certificates', 'client-key.pem')),
-      'cert': await fs.readFile(path.join(__dirname, '..', 'fixtures', 'certificates', 'client-cert.pem')),
+      cafile: path.join(__dirname, '..', 'fixtures', 'certificates', 'server-ca-cert.pem'),
+      key: await fs.readFile(path.join(__dirname, '..', 'fixtures', 'certificates', 'client-key.pem')),
+      cert: await fs.readFile(path.join(__dirname, '..', 'fixtures', 'certificates', 'client-cert.pem')),
     });
     const port = server.address().port;
-    body = await config.requestManager.request({url: `https://localhost:${port}/?nocache`, headers: {Connection: 'close'}});
+    body = await config.requestManager.request({
+      url: `https://localhost:${port}/?nocache`,
+      headers: {Connection: 'close'},
+    });
   } finally {
     server.close();
   }
@@ -101,7 +123,7 @@ test('RequestManager.execute timeout error with maxRetryAttempts=1', async () =>
   jest.useRealTimers();
 
   let counter = 0;
-  const server = net.createServer((c) => {
+  const server = net.createServer(c => {
     counter += 1;
     // emulate TCP server that never closes the connection
   });
@@ -111,7 +133,9 @@ test('RequestManager.execute timeout error with maxRetryAttempts=1', async () =>
     const config = await Config.create({networkTimeout: 50});
     config.requestManager.setOptions({maxRetryAttempts: 1});
     const port = server.address().port;
-    await config.requestManager.request({url: `http://localhost:${port}/?nocache`});
+    await config.requestManager.request({
+      url: `http://localhost:${port}/?nocache`,
+    });
   } catch (err) {
     expect(err.message).toContain('TIMEDOUT');
     expect(counter).toEqual(1);
@@ -124,7 +148,7 @@ test('RequestManager.execute timeout error with default maxRetryAttempts', async
   jest.useRealTimers();
 
   let counter = 0;
-  const server = net.createServer((c) => {
+  const server = net.createServer(c => {
     counter += 1;
     // emulate TCP server that never closes the connection
   });
@@ -133,7 +157,9 @@ test('RequestManager.execute timeout error with default maxRetryAttempts', async
     server.listen(0);
     const config = await Config.create({networkTimeout: 50});
     const port = server.address().port;
-    await config.requestManager.request({url: `http://localhost:${port}/?nocache`});
+    await config.requestManager.request({
+      url: `http://localhost:${port}/?nocache`,
+    });
   } catch (err) {
     expect(err.message).toContain('TIMEDOUT');
     expect(counter).toEqual(5);
@@ -144,17 +170,22 @@ test('RequestManager.execute timeout error with default maxRetryAttempts', async
 
 test('RequestManager.execute Request 403 error', async () => {
   const config = await Config.create({}, new Reporter());
-  jest.mock('request', (factory) => (options) => {
+  jest.mock('request', factory => options => {
     options.callback('', {statusCode: 403}, '');
     return {
       on: () => {},
     };
   });
   await config.requestManager.execute({
-    params: {url: `https://localhost:port/?nocache`, headers: {Connection: 'close'}},
-    resolve: (body) => {},
-    reject: (err) => {
-      expect(err.message).toBe('https://localhost:port/?nocache: Request "https://localhost:port/?nocache" returned a 403');
+    params: {
+      url: `https://localhost:port/?nocache`,
+      headers: {Connection: 'close'},
+    },
+    resolve: body => {},
+    reject: err => {
+      expect(err.message).toBe(
+        'https://localhost:port/?nocache: Request "https://localhost:port/?nocache" returned a 403',
+      );
     },
   });
 });
@@ -162,9 +193,12 @@ test('RequestManager.execute Request 403 error', async () => {
 test('RequestManager.request with offlineNoRequests', async () => {
   const config = await Config.create({offline: true}, new Reporter());
   try {
-    await config.requestManager.request({url: `https://localhost:port/?nocache`, headers: {Connection: 'close'}});
+    await config.requestManager.request({
+      url: `https://localhost:port/?nocache`,
+      headers: {Connection: 'close'},
+    });
   } catch (err) {
-    expect(err.message).toBe('Can\'t make a request in offline mode');
+    expect(err.message).toBe('Can\'t make a request in offline mode ("https://localhost:port/?nocache")');
   }
 });
 

@@ -1,0 +1,6 @@
+{
+  "name": "workspace-1",
+  "dependencies": {
+    "isarray": "2.0.1"
+  }
+}

@@ -1,10 +1,6 @@
 /* @flow */
 
-import type {
-  ReporterSpinnerSet,
-  Trees,
-  ReporterSpinner,
-} from './types.js';
+import type {ReporterSpinnerSet, Trees, ReporterSpinner} from './types.js';
 import BaseReporter from './base-reporter.js';
 
 export default class JSONReporter extends BaseReporter {
@@ -79,6 +75,10 @@ export default class JSONReporter extends BaseReporter {
   }
 
   activitySet(total: number, workers: number): ReporterSpinnerSet {
+    if (!this.isTTY || this.noProgress) {
+      return super.activitySet(total, workers);
+    }
+
     const id = this._activityId++;
     this._dump('activitySetStart', {id, total, workers});
 
@@ -93,8 +93,14 @@ export default class JSONReporter extends BaseReporter {
           current = _current;
           header = _header;
         },
-        tick: (msg) => {
-          this._dump('activitySetTick', {id, header, current, worker: i, message: msg});
+        tick: msg => {
+          this._dump('activitySetTick', {
+            id,
+            header,
+            current,
+            worker: i,
+            message: msg,
+          });
         },
         end() {},
       });
@@ -113,6 +119,13 @@ export default class JSONReporter extends BaseReporter {
   }
 
   _activity(data: Object): ReporterSpinner {
+    if (!this.isTTY || this.noProgress) {
+      return {
+        tick() {},
+        end() {},
+      };
+    }
+
     const id = this._activityId++;
     this._dump('activityStart', {id, ...data});
 
@@ -128,6 +141,12 @@ export default class JSONReporter extends BaseReporter {
   }
 
   progress(total: number): () => void {
+    if (this.noProgress) {
+      return function() {
+        // noop
+      };
+    }
+
     const id = this._progressId++;
     let current = 0;
     this._dump('progressStart', {id, total});

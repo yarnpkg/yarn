@@ -19,8 +19,7 @@ async function execCommand(cmd: string, packageName: string, env = process.env):
   await fs.copy(srcPackageDir, packageDir, new NoopReporter());
 
   return new Promise((resolve, reject) => {
-
-    exec(`node "${yarnBin}" ${cmd}`, {cwd:packageDir, env}, (err, stdout) => {
+    exec(`node "${yarnBin}" ${cmd}`, {cwd: packageDir, env}, (err, stdout) => {
       if (err) {
         reject(err);
       } else {
@@ -40,7 +39,7 @@ test('should add the command-specific yarnrc arguments to the command line if th
   expect(stdout.replace(/\\/g, '/')).toMatch(/^(C:)?\/tmp\/foobar\/v[0-9]+\n$/);
 });
 
-test('should not add the command-specific yarnrc arguments if the command name doesn\'t match', async () => {
+test("should not add the command-specific yarnrc arguments if the command name doesn't match", async () => {
   const stdout = await execCommand('cache dir', 'yarnrc-cli-command-specific-ko');
   expect(stdout.replace(/\\/g, '/')).not.toMatch(/^(C:)?\/tmp\/foobar\/v[0-9]+\n$/);
 });
@@ -56,8 +55,7 @@ test('should resolve the yarnrc values relative to where the file lives', async 
   expect(stdout.replace(/\\/g, '/')).toMatch(/^(C:)?(\/[^\/]+)+\/foobar\/hello\/world\/v[0-9]+\n$/);
 });
 
-test('should expose `npm_config_argv` environment variable to lifecycle scripts for back compatibility with npm (#684)',
-async () => {
+test('should expose `npm_config_argv` env variable to lifecycle scripts for back compatibility with npm', async () => {
   const env = Object.assign({}, process.env);
   delete env.npm_config_argv;
 
@@ -79,26 +77,23 @@ test('should only expose non-internal configs', async () => {
   const internalConfigKeys = ['lastUpdateCheck'];
   const nonInternalConfigKeys = ['user_agent'];
   const prefix = 'npm_config_';
-  [...internalConfigKeys, ...nonInternalConfigKeys].forEach((key) => {
+  [...internalConfigKeys, ...nonInternalConfigKeys].forEach(key => {
     delete env[prefix + key];
   });
 
   let stdout = await execCommand('install', 'dont-expose-internal-configs-to-env', env);
-  stdout = stdout.substring(
-    stdout.indexOf('##') + 2,
-    stdout.lastIndexOf('##'),
-  );
+  stdout = stdout.substring(stdout.indexOf('##') + 2, stdout.lastIndexOf('##'));
   let configs = {};
   try {
     configs = JSON.parse(stdout);
   } catch (e) {}
 
-  internalConfigKeys.forEach((key) => {
+  internalConfigKeys.forEach(key => {
     const val = configs[prefix + key];
     expect(val).toBeUndefined();
   });
 
-  nonInternalConfigKeys.forEach((key) => {
+  nonInternalConfigKeys.forEach(key => {
     const val = configs[prefix + key];
     expect(val).toBeDefined();
   });
@@ -111,4 +106,29 @@ test('should run both prepublish and prepare when installing, but not prepublish
   expect(stdout).toMatch(/^running the prepare hook$/m);
 
   expect(stdout).not.toMatch(/^running the prepublishOnly hook$/m);
+});
+
+test('should allow setting environment variables via yarnrc', async () => {
+  const stdout = await execCommand('install', 'yarnrc-env');
+  expect(stdout).toMatch(/^BAR$/m);
+});
+
+test('should inherit existing environment variables when setting via yarnrc', async () => {
+  const srcPackageDir = path.join(fixturesLoc, 'yarnrc-env');
+  const packageDir = await makeTemp('yarnrc-env-nested');
+
+  await fs.copy(srcPackageDir, packageDir, new NoopReporter());
+
+  const stdout = await new Promise((resolve, reject) => {
+    exec(`node "${yarnBin}" install`, {cwd: path.join(packageDir, 'nested')}, (err, stdout) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(stdout.toString());
+      }
+    });
+  });
+
+  expect(stdout).toMatch(/^RAB$/m);
+  expect(stdout).toMatch(/^FOO$/m);
 });

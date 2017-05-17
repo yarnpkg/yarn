@@ -6,7 +6,7 @@ const {Writable} = require('stream');
 
 export type MockData = {
   stdout: string,
-  stderr: string
+  stderr: string,
 };
 
 type Interceptor<T> = (data: MockData, reporter: Reporter, prepared: any) => T;
@@ -18,7 +18,7 @@ export default function<T>(
   interceptor: Interceptor<T>,
   prepare?: (reporter: Reporter) => any,
 ): (callback: MockCallback) => Promise<T> {
-  return async function (callback: MockCallback): * {
+  return async function(callback: MockCallback): * {
     const data: MockData = {
       stderr: '',
       stdout: '',
@@ -31,7 +31,7 @@ export default function<T>(
       stream.columns = 1000;
 
       // $FlowFixMe: TODO ditto
-      stream.write = (msg) => {
+      stream.write = msg => {
         stream.emit('data', msg);
         data[key] += msg;
       };

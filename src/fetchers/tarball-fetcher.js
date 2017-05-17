@@ -3,7 +3,6 @@
 import http from 'http';
 import {SecurityError, MessageError} from '../errors.js';
 import type {FetchedOverride} from '../types.js';
-import {UnpackStream} from '../util/stream.js';
 import * as constants from '../constants.js';
 import * as crypto from '../util/crypto.js';
 import BaseFetcher from './base-fetcher.js';
@@ -13,6 +12,8 @@ const path = require('path');
 const tarFs = require('tar-fs');
 const url = require('url');
 const fs = require('fs');
+const stream = require('stream');
+const gunzip = require('gunzip-maybe');
 
 export default class TarballFetcher extends BaseFetcher {
   async setupMirrorFromCache(): Promise<?string> {
@@ -23,17 +24,17 @@ export default class TarballFetcher extends BaseFetcher {
       return;
     }
 
-    if (!await fsUtil.exists(tarballMirrorPath) && await fsUtil.exists(tarballCachePath)) {
+    if (!await fsUtil.exists(tarballMirrorPath) && (await fsUtil.exists(tarballCachePath))) {
       // The tarball doesn't exists in the offline cache but does in the cache; we import it to the mirror
       await fsUtil.copy(tarballCachePath, tarballMirrorPath, this.reporter);
     }
   }
 
-  async getLocalAvailabilityStatus(): Promise<bool> {
+  async getLocalAvailabilityStatus(): Promise<boolean> {
     const tarballMirrorPath = this.getTarballMirrorPath();
     const tarballCachePath = this.getTarballCachePath();
 
-    if (tarballMirrorPath != null && await fsUtil.exists(tarballMirrorPath)) {
+    if (tarballMirrorPath != null && (await fsUtil.exists(tarballMirrorPath))) {
       return true;
     }
 
@@ -68,12 +69,13 @@ export default class TarballFetcher extends BaseFetcher {
   createExtractor(
     resolve: (fetched: FetchedOverride) => void,
     reject: (error: Error) => void,
+    tarballPath?: string,
   ): {
     validateStream: crypto.HashStream,
-    extractorStream: UnpackStream,
+    extractorStream: stream.Transform,
   } {
     const validateStream = new crypto.HashStream();
-    const extractorStream = new UnpackStream();
+    const extractorStream = gunzip();
     const untarStream = tarFs.extract(this.dest, {
       strip: 1,
       dmode: 0o555, // all dirs should be readable
@@ -83,7 +85,10 @@ export default class TarballFetcher extends BaseFetcher {
 
     extractorStream
       .pipe(untarStream)
-      .on('error', reject)
+      .on('error', error => {
+        error.message = `${error.message}${tarballPath ? ` (${tarballPath})` : ''}`;
+        reject(error);
+      })
       .on('finish', () => {
         const expectHash = this.hash;
         const actualHash = validateStream.getHash();
@@ -92,9 +97,11 @@ export default class TarballFetcher extends BaseFetcher {
             hash: actualHash,
           });
         } else {
-          reject(new SecurityError(
-            this.config.reporter.lang('fetchBadHash', expectHash, actualHash),
-          ));
+          reject(
+            new SecurityError(
+              this.config.reporter.lang('fetchBadHashWithPath', this.remote.reference, expectHash, actualHash),
+            ),
+          );
         }
       });
 
@@ -105,78 +112,78 @@ export default class TarballFetcher extends BaseFetcher {
     const tarballMirrorPath = this.getTarballMirrorPath();
     const tarballCachePath = this.getTarballCachePath();
 
-    const tarballPath = override || tarballMirrorPath || tarballCachePath;
+    const tarballPath = path.resolve(this.config.cwd, override || tarballMirrorPath || tarballCachePath);
 
     if (!tarballPath || !await fsUtil.exists(tarballPath)) {
       throw new MessageError(this.config.reporter.lang('tarballNotInNetworkOrCache', this.reference, tarballPath));
     }
 
     return new Promise((resolve, reject) => {
-      const {validateStream, extractorStream} = this.createExtractor(resolve, reject);
+      const {validateStream, extractorStream} = this.createExtractor(resolve, reject, tarballPath);
       const cachedStream = fs.createReadStream(tarballPath);
 
-      cachedStream
-        .pipe(validateStream)
-        .pipe(extractorStream)
-        .on('error', function(err) {
-          reject(new MessageError(this.config.reporter.lang('fetchErrorCorrupt', err.message, tarballPath)));
-        });
+      cachedStream.pipe(validateStream).pipe(extractorStream).on('error', function(err) {
+        reject(new MessageError(this.config.reporter.lang('fetchErrorCorrupt', err.message, tarballPath)));
+      });
     });
   }
 
   fetchFromExternal(): Promise<FetchedOverride> {
     const registry = this.config.registries[this.registry];
 
-    return registry.request(this.reference, {
-      headers: {
-        'Accept-Encoding': 'gzip',
-        'Accept': 'application/octet-stream',
-      },
-      buffer: true,
-      process: (req, resolve, reject) => {
-        const {reporter} = this.config;
-        // should we save this to the offline cache?
-        const tarballMirrorPath = this.getTarballMirrorPath();
-        const tarballCachePath = this.getTarballCachePath();
+    return registry.request(
+      this.reference,
+      {
+        headers: {
+          'Accept-Encoding': 'gzip',
+          Accept: 'application/octet-stream',
+        },
+        buffer: true,
+        process: (req, resolve, reject) => {
+          const {reporter} = this.config;
+          // should we save this to the offline cache?
+          const tarballMirrorPath = this.getTarballMirrorPath();
+          const tarballCachePath = this.getTarballCachePath();
 
-        const {
-          validateStream,
-          extractorStream,
-        } = this.createExtractor(resolve, reject);
+          const {validateStream, extractorStream} = this.createExtractor(resolve, reject);
 
-        const handleRequestError = (res) => {
-          if (res.statusCode >= 400) {
-            // $FlowFixMe
-            const statusDescription = http.STATUS_CODES[res.statusCode];
-            reject(new Error(
-              reporter.lang('requestFailed', `${res.statusCode} ${statusDescription}`),
-            ));
+          const handleRequestError = res => {
+            if (res.statusCode >= 400) {
+              // $FlowFixMe
+              const statusDescription = http.STATUS_CODES[res.statusCode];
+              reject(new Error(reporter.lang('requestFailed', `${res.statusCode} ${statusDescription}`)));
+            }
+          };
+
+          req.on('response', handleRequestError);
+          req.pipe(validateStream);
+
+          if (tarballMirrorPath) {
+            validateStream.pipe(fs.createWriteStream(tarballMirrorPath)).on('error', reject);
           }
-        };
 
-        req.on('response', handleRequestError);
-        req.pipe(validateStream);
+          if (tarballCachePath) {
+            validateStream.pipe(fs.createWriteStream(tarballCachePath)).on('error', reject);
+          }
 
-        if (tarballMirrorPath) {
-          validateStream
-            .pipe(fs.createWriteStream(tarballMirrorPath))
-            .on('error', reject);
-        }
-
-        if (tarballCachePath) {
-          validateStream
-            .pipe(fs.createWriteStream(tarballCachePath))
-            .on('error', reject);
-        }
-
-        validateStream
-          .pipe(extractorStream)
-          .on('error', reject);
+          validateStream.pipe(extractorStream).on('error', reject);
+        },
       },
-    });
+      this.packageName,
+    );
   }
 
   async _fetch(): Promise<FetchedOverride> {
+    const urlParse = url.parse(this.reference);
+
+    const isFilePath = urlParse.protocol
+      ? urlParse.protocol.match(/^[a-z]:$/i)
+      : urlParse.pathname ? urlParse.pathname.match(/^(?:\.{1,2})?[\\\/]/) : false;
+
+    if (isFilePath) {
+      return await this.fetchFromLocal(this.reference);
+    }
+
     if (await this.getLocalAvailabilityStatus()) {
       return await this.fetchFromLocal();
     } else {

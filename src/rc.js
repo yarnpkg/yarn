@@ -5,31 +5,28 @@ import parse from './lockfile/parse.js';
 import * as rcUtil from './util/rc.js';
 
 // Keys that will get resolved relative to the path of the rc file they belong to
-const PATH_KEYS = [
-  'cache-folder',
-  'global-folder',
-  'modules-folder',
-];
+const PATH_KEYS = ['cache-folder', 'global-folder', 'modules-folder'];
 
 let rcConfCache;
 let rcArgsCache;
 
-const buildRcConf = () => rcUtil.findRc('yarn', (fileText, filePath) => {
-  const values = parse(fileText, 'yarnrc');
-  const keys = Object.keys(values);
+const buildRcConf = () =>
+  rcUtil.findRc('yarn', (fileText, filePath) => {
+    const values = parse(fileText, 'yarnrc');
+    const keys = Object.keys(values);
 
-  for (const key of keys) {
-    for (const pathKey of PATH_KEYS) {
-      if (key.replace(/^(--)?([^.]+\.)*/, '') === pathKey) {
-        values[key] = resolve(dirname(filePath), values[key]);
+    for (const key of keys) {
+      for (const pathKey of PATH_KEYS) {
+        if (key.replace(/^(--)?([^.]+\.)*/, '') === pathKey) {
+          values[key] = resolve(dirname(filePath), values[key]);
+        }
       }
     }
-  }
 
-  return values;
-});
+    return values;
+  });
 
-export function getRcConf(): { [string]: Array<string> } {
+export function getRcConf(): {[string]: Array<string>} {
   if (!rcConfCache) {
     rcConfCache = buildRcConf();
   }
@@ -37,31 +34,32 @@ export function getRcConf(): { [string]: Array<string> } {
   return rcConfCache;
 }
 
-const buildRcArgs = () => Object.keys(getRcConf()).reduce((argLists, key) => {
-  const miniparse = key.match(/^--(?:([^.]+)\.)?(.*)$/);
+const buildRcArgs = () =>
+  Object.keys(getRcConf()).reduce((argLists, key) => {
+    const miniparse = key.match(/^--(?:([^.]+)\.)?(.*)$/);
 
-  if (!miniparse) {
+    if (!miniparse) {
+      return argLists;
+    }
+
+    const namespace = miniparse[1] || '*';
+    const arg = miniparse[2];
+    const value = getRcConf()[key];
+
+    if (!argLists[namespace]) {
+      argLists[namespace] = [];
+    }
+
+    if (typeof value === 'string') {
+      argLists[namespace] = argLists[namespace].concat([`--${arg}`, value]);
+    } else if (value === true) {
+      argLists[namespace] = argLists[namespace].concat([`--${arg}`]);
+    } else if (value === false) {
+      argLists[namespace] = argLists[namespace].concat([`--no-${arg}`]);
+    }
+
     return argLists;
-  }
-
-  const namespace = miniparse[1] || '*';
-  const arg = miniparse[2];
-  const value = getRcConf()[key];
-
-  if (!argLists[namespace]) {
-    argLists[namespace] = [];
-  }
-
-  if (typeof value === 'string') {
-    argLists[namespace] = argLists[namespace].concat([`--${arg}`, value]);
-  } else if (value === true) {
-    argLists[namespace] = argLists[namespace].concat([`--${arg}`]);
-  } else if (value === false) {
-    argLists[namespace] = argLists[namespace].concat([`--no-${arg}`]);
-  }
-
-  return argLists;
-}, {});
+  }, {});
 
 export function getRcArgs(command: string): Array<string> {
   if (!rcArgsCache) {

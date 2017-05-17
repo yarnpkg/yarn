@@ -7,12 +7,7 @@ import type {FetcherNames} from './fetchers/index.js';
 import type {Reporter} from './reporters/index.js';
 import type Config from './config.js';
 
-export type CLIFunction = (
-  config: Config,
-  reporter: Reporter,
-  flags: Object,
-  args: Array<string>,
-) => CLIFunctionReturn;
+export type CLIFunction = (config: Config, reporter: Reporter, flags: Object, args: Array<string>) => CLIFunctionReturn;
 
 type _CLIFunctionReturn = boolean;
 export type CLIFunctionReturn = ?_CLIFunctionReturn | Promise<?_CLIFunctionReturn>;
@@ -32,7 +27,7 @@ export type DependencyRequestPatterns = Array<DependencyRequestPattern>;
 export type PersonObject = {
   email?: string,
   name?: string,
-  url?: string
+  url?: string,
 };
 
 // package remote that's used to store how to fetch a package
@@ -42,11 +37,12 @@ export type PackageRemote = {
   reference: string,
   resolved?: ?string,
   hash: ?string,
+  packageName?: string,
 };
 
 // `dependencies` field in package info
 type Dependencies = {
-  [key: string]: string
+  [key: string]: string,
 };
 
 // package.json
@@ -57,6 +53,12 @@ export type Manifest = {
   name: string,
   version: string,
 
+  author?: {
+    name?: string,
+    email?: string,
+    url?: string,
+  },
+
   homepage?: string,
   flat?: boolean,
   license?: string,
@@ -66,12 +68,12 @@ export type Manifest = {
   readmeFilename?: string,
 
   repository?: {
-    type: "git",
-    url: string
+    type: 'git',
+    url: string,
   },
 
   bugs?: {
-    url: string
+    url: string,
   },
 
   // the package reference that we pass around as a minimal way to refer to it
@@ -85,26 +87,26 @@ export type Manifest = {
 
   dist?: {
     tarball: string,
-    shasum: string
+    shasum: string,
   },
 
   directories?: {
     man: string,
-    bin: string
+    bin: string,
   },
 
   man?: Array<string>,
 
   bin?: {
-    [name: string]: string
+    [name: string]: string,
   },
 
   scripts?: {
-    [name: string]: string
+    [name: string]: string,
   },
 
   engines?: {
-    [engineName: string]: string
+    [engineName: string]: string,
   },
 
   os?: Array<string>,
@@ -120,6 +122,9 @@ export type Manifest = {
 
   deprecated?: string,
   files?: Array<string>,
+  main?: string,
+
+  workspaces?: Array<string>,
 };
 
 //
@@ -140,5 +145,5 @@ export type Dependency = {
   wanted: string,
   latest: string,
   url: string,
-  hint: ?string
+  hint: ?string,
 };

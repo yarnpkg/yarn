@@ -1,0 +1,7 @@
+{
+  "license": "MIT",
+  "dependencies": {
+    "fake-dependency": "./fake-dependency-1.0.1.tgz",
+    "@fakescope/fake-dependency": "%%CWD%%/fakescope-fake-dependency-1.0.1.tgz"
+  }
+}

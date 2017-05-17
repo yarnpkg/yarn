@@ -3,7 +3,7 @@
 import type {WalkFiles} from './fs.js';
 import {removeSuffix} from './misc.js';
 
-const minimatch = require('minimatch');
+const mm = require('micromatch');
 const path = require('path');
 
 const WHITESPACE_RE = /^\s+$/;
@@ -12,6 +12,7 @@ export type IgnoreFilter = {
   base: string,
   isNegation: boolean,
   regex: RegExp,
+  pattern: string,
 };
 
 export function sortFilter(
@@ -90,52 +91,57 @@ export function sortFilter(
     }
   }
 
-  return {keepFiles, ignoreFiles};
+  return {ignoreFiles, keepFiles};
 }
 
 export function matchesFilter(filter: IgnoreFilter, basename: string, loc: string): boolean {
   if (filter.base && filter.base !== '.') {
     loc = path.relative(filter.base, loc);
   }
-  return filter.regex.test(loc) ||
-         filter.regex.test(`/${loc}`) ||
-         filter.regex.test(basename);
+  return (
+    filter.regex.test(loc) ||
+    filter.regex.test(`/${loc}`) ||
+    filter.regex.test(basename) ||
+    mm.isMatch(loc, filter.pattern)
+  );
 }
 
 export function ignoreLinesToRegex(lines: Array<string>, base: string = '.'): Array<IgnoreFilter> {
-  return lines
-    // create regex
-    .map((line): ?IgnoreFilter => {
-      // remove empty lines, comments, etc
-      if (line === '' || line === '!' || line[0] === '#' || WHITESPACE_RE.test(line)) {
-        return null;
-      }
+  return (
+    lines
+      // create regex
+      .map((line): ?IgnoreFilter => {
+        // remove empty lines, comments, etc
+        if (line === '' || line === '!' || line[0] === '#' || WHITESPACE_RE.test(line)) {
+          return null;
+        }
 
-      let pattern = line;
-      let isNegation = false;
+        let pattern = line;
+        let isNegation = false;
 
-      // hide the fact that it's a negation from minimatch since we'll handle this specifally
-      // ourselves
-      if (pattern[0] === '!') {
-        isNegation = true;
-        pattern = pattern.slice(1);
-      }
+        // hide the fact that it's a negation from minimatch since we'll handle this specifically
+        // ourselves
+        if (pattern[0] === '!') {
+          isNegation = true;
+          pattern = pattern.slice(1);
+        }
 
-      // remove trailing slash
-      pattern = removeSuffix(pattern, '/');
+        // remove trailing slash
+        pattern = removeSuffix(pattern, '/');
 
-      const regex: ?RegExp = minimatch.makeRe(pattern, {nocase: true});
+        const regex: ?RegExp = mm.makeRe(pattern.trim(), {nocase: true});
 
-      if (regex) {
-        return {
-          base,
-          isNegation,
-          regex,
-        };
-      } else {
-        return null;
-      }
-    })
-
-    .filter(Boolean);
+        if (regex) {
+          return {
+            base,
+            isNegation,
+            pattern,
+            regex,
+          };
+        } else {
+          return null;
+        }
+      })
+      .filter(Boolean)
+  );
 }
