@@ -21,12 +21,7 @@ export function hasWrapper(): boolean {
   return true;
 }
 
-export async function run(
-  config: Config,
-  reporter: Reporter,
-  flags: Object,
-  args: Array<string>,
-): Promise<void> {
+export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
   const lockfile = await Lockfile.fromDirectory(config.cwd);
   const install = new Install(flags, config, reporter, lockfile);
   const deps = await PackageRequest.getOutdatedPackages(lockfile, install, config, reporter);
@@ -36,7 +31,7 @@ export async function run(
     return;
   }
 
-  const getNameFromHint = hint => hint ? `${hint}Dependencies` : 'dependencies';
+  const getNameFromHint = hint => (hint ? `${hint}Dependencies` : 'dependencies');
 
   const maxLengthArr = {name: 0, current: 0, latest: 0};
   deps.forEach(dep =>
@@ -46,11 +41,9 @@ export async function run(
   );
 
   // Depends on maxLengthArr
-  const addPadding = dep => key =>
-    `${dep[key]}${' '.repeat(maxLengthArr[key] - dep[key].length)}`;
+  const addPadding = dep => key => `${dep[key]}${' '.repeat(maxLengthArr[key] - dep[key].length)}`;
 
-  const colorizeName = ({current, wanted}) =>
-    (current === wanted) ? reporter.format.yellow : reporter.format.red;
+  const colorizeName = ({current, wanted}) => (current === wanted ? reporter.format.yellow : reporter.format.red);
 
   const colorizeDiff = (from, to) => {
     const parts = to.split('.');
@@ -84,26 +77,22 @@ export async function run(
     return acc;
   }, {});
 
-  const flatten = xs => xs.reduce(
-      (ys, y) => ys.concat(Array.isArray(y) ? flatten(y) : y), [],
+  const flatten = xs => xs.reduce((ys, y) => ys.concat(Array.isArray(y) ? flatten(y) : y), []);
+
+  const choices = flatten(
+    Object.keys(groupedDeps).map(key => [
+      new inquirer.Separator(reporter.format.bold.underline.green(key)),
+      groupedDeps[key],
+      new inquirer.Separator(' '),
+    ]),
   );
 
-  const choices = flatten(Object.keys(groupedDeps).map(key => [
-    new inquirer.Separator(reporter.format.bold.underline.green(key)),
-    groupedDeps[key],
-    new inquirer.Separator(' '),
-  ]));
-
   try {
-    const answers: Array<Dependency> = await reporter.prompt(
-      'Choose which packages to update.',
-      choices,
-      {
-        name: 'packages',
-        type: 'checkbox',
-        validate: answer => !!answer.length || 'You must choose at least one package.',
-      },
-    );
+    const answers: Array<Dependency> = await reporter.prompt('Choose which packages to update.', choices, {
+      name: 'packages',
+      type: 'checkbox',
+      validate: answer => !!answer.length || 'You must choose at least one package.',
+    });
 
     const getName = ({name}) => name;
     const isHint = x => ({hint}) => hint === x;

@@ -5,8 +5,10 @@ const path = require('path');
 const fs = require('fs');
 
 const LICENSES_DIRNAME = path.join(__dirname, 'licenses');
-const LICENSES_REGEX_FILENAME =
-  path.join(__dirname, '../src/util/normalize-manifest/licenses.js');
+const LICENSES_REGEX_FILENAME = path.join(
+  __dirname,
+  '../src/util/normalize-manifest/licenses.js',
+);
 
 function clean(str) {
   return str
@@ -29,10 +31,12 @@ const rawRegexs = fs.readdirSync(LICENSES_DIRNAME).reduce((acc, name) => {
   return acc;
 }, {});
 
-const inner = Object.keys(rawRegexs).map(name => {
-  const escaped = JSON.stringify(rawRegexs[name]).slice(1, -1);
-  return `  '${name}': new RegExp('${escaped}', 'g'),`;
-}).join('\n');
+const inner = Object.keys(rawRegexs)
+  .map(name => {
+    const escaped = JSON.stringify(rawRegexs[name]).slice(1, -1);
+    return `  '${name}': new RegExp('${escaped}', 'g'),`;
+  })
+  .join('\n');
 
 const outer = `\
 /* @flow */

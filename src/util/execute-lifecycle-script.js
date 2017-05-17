@@ -8,10 +8,7 @@ import * as child from './child.js';
 import {exists} from './fs.js';
 import {registries} from '../resolvers/index.js';
 import {fixCmdWinSlashes} from './fix-cmd-win-slashes.js';
-import {
-  run as globalRun,
-  getBinFolder as getGlobalBinFolder,
-} from '../cli/commands/global.js';
+import {run as globalRun, getBinFolder as getGlobalBinFolder} from '../cli/commands/global.js';
 
 const path = require('path');
 
@@ -28,8 +25,12 @@ const IGNORE_MANIFEST_KEYS = ['readme'];
 // See https://github.com/yarnpkg/yarn/issues/2286.
 const IGNORE_CONFIG_KEYS = ['lastUpdateCheck'];
 
-async function makeEnv(stage: string, cwd: string, config: Config): {
-  [key: string]: string
+async function makeEnv(
+  stage: string,
+  cwd: string,
+  config: Config,
+): {
+  [key: string]: string,
 } {
   const env = Object.assign({}, process.env);
 
@@ -51,7 +52,11 @@ async function makeEnv(stage: string, cwd: string, config: Config): {
 
   // Note: npm_config_argv environment variable contains output of nopt - command-line
   // parser used by npm. Since we use other parser, we just roughly emulate it's output. (See: #684)
-  env.npm_config_argv = JSON.stringify({remain:[], cooked: [config.commandName], original: [config.commandName]});
+  env.npm_config_argv = JSON.stringify({
+    remain: [],
+    cooked: [config.commandName],
+    original: [config.commandName],
+  });
 
   // add npm_package_*
   const manifest = await config.maybeReadManifest(cwd);
@@ -65,9 +70,7 @@ async function makeEnv(stage: string, cwd: string, config: Config): {
 
       if (typeof val === 'object') {
         for (const subKey in val) {
-          const completeKey = [key, subKey]
-            .filter((part: ?string): boolean => !!part)
-            .join('_');
+          const completeKey = [key, subKey].filter((part: ?string): boolean => !!part).join('_');
           queue.push([completeKey, val[subKey]]);
         }
       } else if (IGNORE_MANIFEST_KEYS.indexOf(key) < 0) {
@@ -129,15 +132,9 @@ export async function executeLifecycleScript(
 
   // Include node-gyp version that was bundled with the current Node.js version,
   // if available.
+  pathParts.unshift(path.join(path.dirname(process.execPath), 'node_modules', 'npm', 'bin', 'node-gyp-bin'));
   pathParts.unshift(
-    path.join(
-      path.dirname(process.execPath), 'node_modules', 'npm', 'bin', 'node-gyp-bin',
-    ),
-  );
-  pathParts.unshift(
-    path.join(
-      path.dirname(process.execPath), '..', 'lib', 'node_modules', 'npm', 'bin', 'node-gyp-bin',
-    ),
+    path.join(path.dirname(process.execPath), '..', 'lib', 'node_modules', 'npm', 'bin', 'node-gyp-bin'),
   );
 
   // Add global bin folder, as some packages depend on a globally-installed
@@ -178,7 +175,8 @@ export async function executeLifecycleScript(
 
   const stdout = await child.spawn(sh, [shFlag, cmd], {cwd, env, stdio, ...conf}, data => {
     if (spinner) {
-      const line = data.toString() // turn buffer into string
+      const line = data
+        .toString() // turn buffer into string
         .trim() // trim whitespace
         .split('\n') // split into lines
         .pop() // use only the last line
@@ -201,11 +199,7 @@ let checkGypPromise: ?Promise<void> = null;
  * their package.json dependencies. They assume that node-gyp is available
  * globally. We need to detect this case and show an error message.
  */
-function checkForGypIfNeeded(
-  config: Config,
-  cmd: string,
-  paths: Array<string>,
-): Promise<void> {
+function checkForGypIfNeeded(config: Config, cmd: string, paths: Array<string>): Promise<void> {
   if (cmd.substr(0, cmd.indexOf(' ')) !== 'node-gyp') {
     return Promise.resolve();
   }
@@ -217,16 +211,11 @@ function checkForGypIfNeeded(
   return checkGypPromise;
 }
 
-async function _checkForGyp(
-  config: Config,
-  paths: Array<string>,
-): Promise<void> {
+async function _checkForGyp(config: Config, paths: Array<string>): Promise<void> {
   const {reporter} = config;
 
   // Check every directory in the PATH
-  const allChecks = await Promise.all(
-    paths.map(dir => exists(path.join(dir, 'node-gyp'))),
-  );
+  const allChecks = await Promise.all(paths.map(dir => exists(path.join(dir, 'node-gyp'))));
   if (allChecks.some(Boolean)) {
     // node-gyp is available somewhere
     return;
@@ -235,12 +224,7 @@ async function _checkForGyp(
   reporter.info(reporter.lang('packageRequiresNodeGyp'));
 
   try {
-    await globalRun(
-      config,
-      reporter,
-      {},
-      ['add', 'node-gyp'],
-    );
+    await globalRun(config, reporter, {}, ['add', 'node-gyp']);
   } catch (e) {
     throw new MessageError(reporter.lang('nodeGypAutoInstallFailed', e.message));
   }

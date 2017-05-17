@@ -6,7 +6,7 @@ import type {CLIFunction} from '../../types.js';
 import {MessageError} from '../../errors.js';
 import {camelCase, hyphenate} from '../../util/misc.js';
 
-type SubCommands =  {
+type SubCommands = {
   [commandName: string]: CLIFunction,
 };
 
@@ -26,12 +26,7 @@ export default function(rootCommandName: string, subCommands: SubCommands, usage
     commander.usage(`${rootCommandName} [${subCommandNames.join('|')}] [flags]`);
   }
 
-  async function run(
-    config: Config,
-    reporter: Reporter,
-    flags: Object,
-    args: Array<string>,
-  ): Promise<void> {
+  async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
     const subName: ?string = camelCase(args.shift() || '');
     if (subName && subCommands[subName]) {
       const command: CLIFunction = subCommands[subName];

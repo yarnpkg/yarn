@@ -34,7 +34,7 @@ test('getGitHTTPBaseUrl should return the correct git gitlab HTTP base url', () 
     hash: '',
   };
 
-  const expected =  'https://gitlab.com/' + fragment.user + '/' + fragment.repo;
+  const expected = 'https://gitlab.com/' + fragment.user + '/' + fragment.repo;
   expect(GitLabResolver.getGitHTTPBaseUrl(fragment)).toBe(expected);
 });
 
@@ -45,7 +45,7 @@ test('getGitHTTPUrl should append ".git" to the HTTP base URL', () => {
     hash: '',
   };
 
-  const expected =  GitLabResolver.getGitHTTPBaseUrl(fragment) + '.git';
+  const expected = GitLabResolver.getGitHTTPBaseUrl(fragment) + '.git';
   expect(GitLabResolver.getGitHTTPUrl(fragment)).toBe(expected);
 });
 

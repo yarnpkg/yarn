@@ -12,7 +12,7 @@ const path = require('path');
 const uuid = require('uuid');
 
 type Dependencies = {
-  [key: string]: string
+  [key: string]: string,
 };
 
 export default class FileResolver extends ExoticResolver {
@@ -30,7 +30,7 @@ export default class FileResolver extends ExoticResolver {
     if (!path.isAbsolute(loc)) {
       loc = path.join(this.config.cwd, loc);
     }
-    if (!(await fs.exists(loc))) {
+    if (!await fs.exists(loc)) {
       throw new MessageError(this.reporter.lang('doesntExist', loc));
     }
 

@@ -9,10 +9,7 @@ import fs from 'fs';
 import path from 'path';
 
 // This will be bundled directly in the .js file for production builds
-const {
-  version,
-  installationMethod: originalInstallationMethod,
-} = require('../../package.json');
+const {version, installationMethod: originalInstallationMethod} = require('../../package.json');
 export {version};
 
 export async function getInstallationMethod(): Promise<InstallationMethod> {
@@ -27,7 +24,8 @@ export async function getInstallationMethod(): Promise<InstallationMethod> {
   // command to upgrade).
   try {
     const manifestPath = path.join(__dirname, '..', 'package.json');
-    if (fs.existsSync(manifestPath)) { // non-async version is deprecated
+    if (fs.existsSync(manifestPath)) {
+      // non-async version is deprecated
       const manifest = await readJson(manifestPath);
       if (manifest.installationMethod) {
         installationMethod = manifest.installationMethod;
@@ -39,13 +37,4 @@ export async function getInstallationMethod(): Promise<InstallationMethod> {
   return installationMethod;
 }
 
-export type InstallationMethod =
-  | 'tar'
-  | 'homebrew'
-  | 'deb'
-  | 'rpm'
-  | 'msi'
-  | 'chocolatey'
-  | 'apk'
-  | 'npm'
-  | 'unknown';
+export type InstallationMethod = 'tar' | 'homebrew' | 'deb' | 'rpm' | 'msi' | 'chocolatey' | 'apk' | 'npm' | 'unknown';

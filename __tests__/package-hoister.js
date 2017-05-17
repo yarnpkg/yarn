@@ -112,9 +112,7 @@ test('Produces valid destination paths for scoped modules', () => {
 
   const info = new HoistManifest(key, parts, pkg, '', true, false);
 
-  const tree = new Map([
-    ['@scoped/dep', info],
-  ]);
+  const tree = new Map([['@scoped/dep', info]]);
 
   const fixture = createTestFixture();
   fixture.packageHoister.tree = tree;
@@ -138,7 +136,6 @@ test('hoists dependencies of dependencies up to root level when no version confl
   expect(result).toContainPackage('a@1.0.0', atPath('a'));
   expect(result).toContainPackage('b@1.0.0', atPath('b'));
 });
-
 
 test('leaves dependencies of dependencies at leaf level when version conflict exists', () => {
   const {atPath, packageHoister} = createTestFixture({

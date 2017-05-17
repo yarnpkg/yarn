@@ -87,7 +87,7 @@ export function* tokenise(input: string): Iterator<Token> {
         val += currentChar;
 
         if (i > 0 && currentChar === '"') {
-          const isEscaped = input[i - 1] === "\\" && input[i - 2] !== "\\";
+          const isEscaped = input[i - 1] === '\\' && input[i - 2] !== '\\';
           if (!isEscaped) {
             break;
           }
@@ -126,7 +126,7 @@ export function* tokenise(input: string): Iterator<Token> {
       yield buildToken(TOKEN_TYPES.comma);
       chop++;
     } else if (/^[a-zA-Z\/-]/g.test(input)) {
-      let name = "";
+      let name = '';
       for (let i = 0; i < input.length; i++) {
         const char = input[i];
         if (char === ':' || char === ' ' || char === '\n' || char === ',') {
@@ -179,7 +179,7 @@ export class Parser {
       if (version > LOCKFILE_VERSION) {
         throw new MessageError(
           `Can't install from a lockfile of version ${version} as you're on an old yarn version that only supports ` +
-          `versions up to ${LOCKFILE_VERSION}. Run \`$ yarn self-update\` to upgrade to the latest version.`,
+            `versions up to ${LOCKFILE_VERSION}. Run \`$ yarn self-update\` to upgrade to the latest version.`,
         );
       }
     }
@@ -198,7 +198,7 @@ export class Parser {
       this.onComment(value);
       return this.next();
     } else {
-      return this.token = value;
+      return (this.token = value);
     }
   }
 
@@ -281,7 +281,8 @@ export class Parser {
 
         const valToken = this.token;
 
-        if (valToken.type === TOKEN_TYPES.colon) { // object
+        if (valToken.type === TOKEN_TYPES.colon) {
+          // object
           this.next();
 
           // parse object
@@ -294,7 +295,8 @@ export class Parser {
           if (indent && this.token.type !== TOKEN_TYPES.indent) {
             break;
           }
-        } else if (isValidPropValueToken(valToken)) { // plain value
+        } else if (isValidPropValueToken(valToken)) {
+          // plain value
           for (const key of keys) {
             obj[key] = valToken.value;
           }

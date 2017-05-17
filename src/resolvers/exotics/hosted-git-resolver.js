@@ -16,7 +16,6 @@ export type ExplodedFragment = {
 };
 
 export function explodeHostedGitFragment(fragment: string, reporter: Reporter): ExplodedFragment {
-
   const preParts = fragment.split('@');
   if (preParts.length > 2) {
     fragment = preParts[1] + '@' + preParts[2];
@@ -24,13 +23,16 @@ export function explodeHostedGitFragment(fragment: string, reporter: Reporter): 
 
   const parts = fragment.split(':');
 
-  if (parts.length == 3) { // protocol + host + folder
+  if (parts.length == 3) {
+    // protocol + host + folder
     parts[1] = parts[1].indexOf('//') >= 0 ? parts[1].substr(2) : parts[1];
     fragment = parts[1] + '/' + parts[2];
   } else if (parts.length == 2) {
-    if (parts[0].indexOf('@') == -1) { // protocol + host
+    if (parts[0].indexOf('@') == -1) {
+      // protocol + host
       fragment = parts[1];
-    } else { // host + folder
+    } else {
+      // host + folder
       fragment = parts[0] + '/' + parts[1];
     }
   } else if (parts.length == 1) {
@@ -42,7 +44,6 @@ export function explodeHostedGitFragment(fragment: string, reporter: Reporter): 
   const userParts = fragment.split('/');
 
   if (userParts.length >= 2) {
-
     if (userParts[0].indexOf('@') >= 0) {
       userParts.shift();
     }
@@ -59,7 +60,6 @@ export function explodeHostedGitFragment(fragment: string, reporter: Reporter): 
     }
   }
 
-
   throw new MessageError(reporter.lang('invalidHostedGitFragment', fragment));
 }
 
@@ -67,7 +67,7 @@ export default class HostedGitResolver extends ExoticResolver {
   constructor(request: PackageRequest, fragment: string) {
     super(request, fragment);
 
-    const exploded = this.exploded = explodeHostedGitFragment(fragment, this.reporter);
+    const exploded = (this.exploded = explodeHostedGitFragment(fragment, this.reporter));
     const {user, repo, hash} = exploded;
     this.user = user;
     this.repo = repo;
@@ -187,12 +187,14 @@ export default class HostedGitResolver extends ExoticResolver {
   }
 
   async hasHTTPCapability(url: string): Promise<boolean> {
-    return (await this.config.requestManager.request({
-      url,
-      method: 'HEAD',
-      queue: this.resolver.fetchingQueue,
-      followRedirect: false,
-    })) !== false;
+    return (
+      (await this.config.requestManager.request({
+        url,
+        method: 'HEAD',
+        queue: this.resolver.fetchingQueue,
+        followRedirect: false,
+      })) !== false
+    );
   }
 
   async resolve(): Promise<Manifest> {

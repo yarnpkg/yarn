@@ -19,11 +19,7 @@ export class HashStream extends stream.Transform {
   _hash: crypto$Hash;
   _updated: boolean;
 
-  _transform(
-    chunk: Buffer | string,
-    encoding: string,
-    callback: (error: ?Error, data?: Buffer | string) => void,
-  ) {
+  _transform(chunk: Buffer | string, encoding: string, callback: (error: ?Error, data?: Buffer | string) => void) {
     this._updated = true;
     this._hash.update(chunk);
     callback(null, chunk);

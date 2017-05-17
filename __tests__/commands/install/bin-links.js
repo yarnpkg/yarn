@@ -31,10 +31,8 @@ test('install should hoist nested bin scripts', (): Promise<void> => {
     const amount = process.platform === 'win32' ? 20 : 10;
     expect(binScripts).toHaveLength(amount);
 
-    expect(await linkAt(config, 'node_modules', '.bin', 'standard'))
-      .toEqual('../standard/bin/cmd.js');
-    expect(await linkAt(config, 'node_modules', '.bin', 'eslint'))
-      .toEqual('../eslint/bin/eslint.js');
+    expect(await linkAt(config, 'node_modules', '.bin', 'standard')).toEqual('../standard/bin/cmd.js');
+    expect(await linkAt(config, 'node_modules', '.bin', 'eslint')).toEqual('../eslint/bin/eslint.js');
   });
 });
 
@@ -47,10 +45,10 @@ test('install should hoist nested bin scripts', (): Promise<void> => {
 //   eslint 3.7.1 is linked in standard/node_modules/.bin
 test('direct dependency bin takes priority over transitive bin', (): Promise<void> => {
   return runInstall({binLinks: true}, 'install-duplicate-bin', async config => {
-    expect(await linkAt(config, 'node_modules', '.bin', 'eslint'))
-      .toEqual('../eslint/bin/eslint.js');
-    expect(await linkAt(config, 'node_modules', 'standard', 'node_modules', '.bin', 'eslint'))
-      .toEqual('../eslint/bin/eslint.js');
+    expect(await linkAt(config, 'node_modules', '.bin', 'eslint')).toEqual('../eslint/bin/eslint.js');
+    expect(await linkAt(config, 'node_modules', 'standard', 'node_modules', '.bin', 'eslint')).toEqual(
+      '../eslint/bin/eslint.js',
+    );
   });
 });
 
@@ -61,16 +59,15 @@ test.concurrent('install should respect --no-bin-links flag', (): Promise<void> 
   });
 });
 
-
 // Scenario: Transitive dependency having version that is overridden by newer version as the direct dependency.
 // Behavior: eslint@3.12.2 is symlinked in node_modeules/.bin
 //           and eslint@3.10.1 is symlinked to node_modules/sample-dep-eslint-3.10.1/node_modules/.bin
 test('newer transitive dep is overridden by newer direct dep', (): Promise<void> => {
   return runInstall({binLinks: true}, 'install-bin-links-newer', async config => {
-    expect(await linkAt(config, 'node_modules', '.bin', 'eslint'))
-      .toEqual('../eslint/bin/eslint.js');
-    expect(await linkAt(config, 'node_modules', 'sample-dep-eslint-3.10.1', 'node_modules', '.bin', 'eslint'))
-      .toEqual('../eslint/bin/eslint.js');
+    expect(await linkAt(config, 'node_modules', '.bin', 'eslint')).toEqual('../eslint/bin/eslint.js');
+    expect(await linkAt(config, 'node_modules', 'sample-dep-eslint-3.10.1', 'node_modules', '.bin', 'eslint')).toEqual(
+      '../eslint/bin/eslint.js',
+    );
   });
 });
 
@@ -79,10 +76,10 @@ test('newer transitive dep is overridden by newer direct dep', (): Promise<void>
 //           and eslint@3.12.2 is symlinked to node_modules/sample-dep-eslint-3.12.2/node_modules/.bin
 test('newer transitive dep is overridden by older direct dep', (): Promise<void> => {
   return runInstall({binLinks: true}, 'install-bin-links-older', async config => {
-    expect(await linkAt(config, 'node_modules', '.bin', 'eslint'))
-      .toEqual('../eslint/bin/eslint.js');
-    expect(await linkAt(config, 'node_modules', 'sample-dep-eslint-3.12.2', 'node_modules', '.bin', 'eslint'))
-      .toEqual('../eslint/bin/eslint.js');
+    expect(await linkAt(config, 'node_modules', '.bin', 'eslint')).toEqual('../eslint/bin/eslint.js');
+    expect(await linkAt(config, 'node_modules', 'sample-dep-eslint-3.12.2', 'node_modules', '.bin', 'eslint')).toEqual(
+      '../eslint/bin/eslint.js',
+    );
   });
 });
 
@@ -93,10 +90,10 @@ test('newer transitive dep is overridden by older direct dep', (): Promise<void>
 //           Why would it matter if the direct dependency is a dev one or not when linking the transient dep?
 test.skip('transitive dep is overridden by dev dep', (): Promise<void> => {
   return runInstall({binLinks: true}, 'install-bin-links-dev', async config => {
-    expect(await linkAt(config, 'node_modules', '.bin', 'eslint'))
-      .toEqual('../eslint/bin/eslint.js');
-    expect(await linkAt(config, 'node_modules', 'sample-dep-eslint-3.10.1', 'node_modules', '.bin', 'eslint'))
-      .not.toBeDefined();
+    expect(await linkAt(config, 'node_modules', '.bin', 'eslint')).toEqual('../eslint/bin/eslint.js');
+    expect(
+      await linkAt(config, 'node_modules', 'sample-dep-eslint-3.10.1', 'node_modules', '.bin', 'eslint'),
+    ).not.toBeDefined();
   });
 });
 
@@ -107,10 +104,10 @@ test.skip('transitive dep is overridden by dev dep', (): Promise<void> => {
 //           and transitive deps of first dependency is installed at top level.
 test('first transient dep is installed when same level and reference count', (): Promise<void> => {
   return runInstall({binLinks: true}, 'install-bin-links-conflicting', async config => {
-    expect(await linkAt(config, 'node_modules', '.bin', 'eslint'))
-      .toEqual('../eslint/bin/eslint.js');
-    expect(await linkAt(config, 'node_modules', 'sample-dep-eslint-3.12.2', 'node_modules', '.bin', 'eslint'))
-      .toEqual('../eslint/bin/eslint.js');
+    expect(await linkAt(config, 'node_modules', '.bin', 'eslint')).toEqual('../eslint/bin/eslint.js');
+    expect(await linkAt(config, 'node_modules', 'sample-dep-eslint-3.12.2', 'node_modules', '.bin', 'eslint')).toEqual(
+      '../eslint/bin/eslint.js',
+    );
   });
 });
 
@@ -120,9 +117,9 @@ test('first transient dep is installed when same level and reference count', ():
 //           Whether the dependencies are devDependencies or not does not seem to matter to NPM.
 test('first dep is installed when same level and reference count and one is a dev dep', (): Promise<void> => {
   return runInstall({binLinks: true}, 'install-bin-links-conflicting-dev', async config => {
-    expect(await linkAt(config, 'node_modules', '.bin', 'eslint'))
-      .toEqual('../eslint/bin/eslint.js');
-    expect(await linkAt(config, 'node_modules', 'sample-dep-eslint-3.12.2', 'node_modules', '.bin', 'eslint'))
-      .toEqual('../eslint/bin/eslint.js');
+    expect(await linkAt(config, 'node_modules', '.bin', 'eslint')).toEqual('../eslint/bin/eslint.js');
+    expect(await linkAt(config, 'node_modules', 'sample-dep-eslint-3.12.2', 'node_modules', '.bin', 'eslint')).toEqual(
+      '../eslint/bin/eslint.js',
+    );
   });
 });

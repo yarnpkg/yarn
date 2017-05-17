@@ -57,7 +57,7 @@ type PackageMetadata = {
   registry: RegistryNames,
   hash: string,
   remote: ?PackageRemote,
-  package: Manifest
+  package: Manifest,
 };
 
 type RootManifests = {
@@ -66,7 +66,7 @@ type RootManifests = {
     indent: ?string,
     object: Object,
     exists: boolean,
-  }
+  },
 };
 
 function sortObject(object: Object): Object {
@@ -153,7 +153,7 @@ export default class Config {
 
   //
   cache: {
-    [key: string]: ?Promise<any>
+    [key: string]: ?Promise<any>,
   };
 
   //
@@ -170,10 +170,10 @@ export default class Config {
       return cached;
     }
 
-    return this.cache[key] = factory().catch((err: mixed) => {
+    return (this.cache[key] = factory().catch((err: mixed) => {
       this.cache[key] = null;
       throw err;
-    });
+    }));
   }
 
   /**
@@ -209,7 +209,8 @@ export default class Config {
     for (const dir of linkedModules) {
       const linkedPath = path.join(this.linkFolder, dir);
 
-      if (dir[0] === '@') { // it's a scope, not a package
+      if (dir[0] === '@') {
+        // it's a scope, not a package
         const scopedLinked = await fs.readdir(linkedPath);
         this.linkedModules.push(...scopedLinked.map(scopedDir => path.join(dir, scopedDir)));
       } else {
@@ -232,24 +233,16 @@ export default class Config {
       }
     }
 
-    this.networkConcurrency = (
-      opts.networkConcurrency ||
-      Number(this.getOption('network-concurrency')) ||
-      constants.NETWORK_CONCURRENCY
-    );
+    this.networkConcurrency =
+      opts.networkConcurrency || Number(this.getOption('network-concurrency')) || constants.NETWORK_CONCURRENCY;
 
-    this.childConcurrency = (
+    this.childConcurrency =
       opts.childConcurrency ||
       Number(this.getOption('child-concurrency')) ||
       Number(process.env.CHILD_CONCURRENCY) ||
-      constants.CHILD_CONCURRENCY
-    );
+      constants.CHILD_CONCURRENCY;
 
-    this.networkTimeout = (
-      opts.networkTimeout ||
-      Number(this.getOption('network-timeout')) ||
-      constants.NETWORK_TIMEOUT
-    );
+    this.networkTimeout = opts.networkTimeout || Number(this.getOption('network-timeout')) || constants.NETWORK_TIMEOUT;
 
     this.requestManager.setOptions({
       userAgent: String(this.getOption('user-agent')),
@@ -264,9 +257,7 @@ export default class Config {
       networkTimeout: this.networkTimeout,
     });
     this._cacheRootFolder = String(
-      opts.cacheFolder ||
-      this.getOption('cache-folder') ||
-      constants.MODULE_CACHE_DIRECTORY,
+      opts.cacheFolder || this.getOption('cache-folder') || constants.MODULE_CACHE_DIRECTORY,
     );
     this.workspacesExperimental = Boolean(this.getOption('workspaces-experimental'));
 
@@ -282,10 +273,12 @@ export default class Config {
 
     if (opts.production === 'false') {
       this.production = false;
-    } else if (this.getOption('production') ||
-        process.env.NODE_ENV === 'production' &&
+    } else if (
+      this.getOption('production') ||
+      (process.env.NODE_ENV === 'production' &&
         process.env.NPM_CONFIG_PRODUCTION !== 'false' &&
-        process.env.YARN_PRODUCTION !== 'false') {
+        process.env.YARN_PRODUCTION !== 'false')
+    ) {
       this.production = true;
     } else {
       this.production = !!opts.production;
@@ -347,9 +340,8 @@ export default class Config {
 
     const {hash} = pkg.remote;
 
-    if (pkg.version && (pkg.version !== pkg.uid)) {
+    if (pkg.version && pkg.version !== pkg.uid) {
       uid = `${pkg.version}-${uid}`;
-
     } else if (hash) {
       uid += `-${hash}`;
     }
@@ -425,11 +417,11 @@ export default class Config {
    */
 
   async isValidModuleDest(dest: string): Promise<boolean> {
-    if (!(await fs.exists(dest))) {
+    if (!await fs.exists(dest)) {
       return false;
     }
 
-    if (!(await fs.exists(path.join(dest, constants.METADATA_FILENAME)))) {
+    if (!await fs.exists(path.join(dest, constants.METADATA_FILENAME))) {
       return false;
     }
 
@@ -470,7 +462,7 @@ export default class Config {
     }
   }
 
- /**
+  /**
  * try get the manifest file by looking
  * 1. mainfest file in cache
  * 2. manifest file in registry
@@ -478,7 +470,7 @@ export default class Config {
   maybeReadManifest(dir: string, priorityRegistry?: RegistryNames, isRoot?: boolean = false): Promise<?Manifest> {
     return this.getCache(`manifest-${dir}`, async (): Promise<?Manifest> => {
       const metadataLoc = path.join(dir, constants.METADATA_FILENAME);
-      if (!priorityRegistry && await fs.exists(metadataLoc)) {
+      if (!priorityRegistry && (await fs.exists(metadataLoc))) {
         ({registry: priorityRegistry} = await this.readJson(metadataLoc));
       }
 

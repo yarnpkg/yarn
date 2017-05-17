@@ -171,7 +171,7 @@ class ImportPackageRequest extends PackageRequest {
   import: boolean;
 
   getRootName(): string {
-    return this.resolver instanceof ImportPackageResolver && this.resolver.rootName || 'root';
+    return (this.resolver instanceof ImportPackageResolver && this.resolver.rootName) || 'root';
   }
 
   getParentHumanName(): string {
@@ -254,7 +254,7 @@ class ImportPackageResolver extends PackageResolver {
   async init(deps: DependencyRequestPatterns, isFlat: boolean, rootName?: string): Promise<void> {
     this.flat = isFlat;
     this.rootName = rootName || this.rootName;
-    const activity = this.activity = this.reporter.activity();
+    const activity = (this.activity = this.reporter.activity());
     this.seedPatterns = deps.map((dep): string => dep.pattern);
     await this.findAll(deps);
     this.resetOptional();
@@ -264,12 +264,7 @@ class ImportPackageResolver extends PackageResolver {
 }
 
 export class Import extends Install {
-  constructor(
-    flags: Object,
-    config: Config,
-    reporter: Reporter,
-    lockfile: Lockfile,
-  ) {
+  constructor(flags: Object, config: Config, reporter: Reporter, lockfile: Lockfile) {
     super(flags, config, reporter, lockfile);
     this.resolver = new ImportPackageResolver(this.config, this.lockfile);
     this.fetcher = new PackageFetcher(config, this.resolver);
@@ -298,12 +293,7 @@ export function hasWrapper(): boolean {
   return true;
 }
 
-export async function run(
-  config: Config,
-  reporter: Reporter,
-  flags: Object,
-  args: Array<string>,
-): Promise<void> {
+export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
   const imp = new Import(flags, config, reporter, new Lockfile({}));
   await imp.init();
 }

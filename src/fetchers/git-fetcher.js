@@ -16,17 +16,19 @@ const fs = require('fs');
 const invariant = require('invariant');
 
 export default class GitFetcher extends BaseFetcher {
-  async getLocalAvailabilityStatus(): Promise<bool> {
+  async getLocalAvailabilityStatus(): Promise<boolean> {
     // Some mirrors might still have files named "./reponame" instead of "./reponame-commit"
-    const tarballLegacyMirrorPath = this.getTarballMirrorPath({withCommit: false});
+    const tarballLegacyMirrorPath = this.getTarballMirrorPath({
+      withCommit: false,
+    });
     const tarballModernMirrorPath = this.getTarballMirrorPath();
     const tarballCachePath = this.getTarballCachePath();
 
-    if (tarballLegacyMirrorPath != null && await fsUtil.exists(tarballLegacyMirrorPath)) {
+    if (tarballLegacyMirrorPath != null && (await fsUtil.exists(tarballLegacyMirrorPath))) {
       return true;
     }
 
-    if (tarballModernMirrorPath != null && await fsUtil.exists(tarballModernMirrorPath)) {
+    if (tarballModernMirrorPath != null && (await fsUtil.exists(tarballModernMirrorPath))) {
       return true;
     }
 
@@ -46,9 +48,7 @@ export default class GitFetcher extends BaseFetcher {
 
     const hash = this.hash;
 
-    const packageFilename = withCommit && hash
-      ? `${path.basename(pathname)}-${hash}`
-      : `${path.basename(pathname)}`;
+    const packageFilename = withCommit && hash ? `${path.basename(pathname)}-${hash}` : `${path.basename(pathname)}`;
 
     return this.config.getOfflineMirrorPath(packageFilename);
   }
@@ -58,13 +58,16 @@ export default class GitFetcher extends BaseFetcher {
   }
 
   async fetchFromLocal(override: ?string): Promise<FetchedOverride> {
-    const tarballLegacyMirrorPath = this.getTarballMirrorPath({withCommit: false});
+    const tarballLegacyMirrorPath = this.getTarballMirrorPath({
+      withCommit: false,
+    });
     const tarballModernMirrorPath = this.getTarballMirrorPath();
     const tarballCachePath = this.getTarballCachePath();
 
-    const tarballMirrorPath =
-      tarballModernMirrorPath && !await fsUtil.exists(tarballModernMirrorPath) &&
-      tarballLegacyMirrorPath && await fsUtil.exists(tarballLegacyMirrorPath)
+    const tarballMirrorPath = tarballModernMirrorPath &&
+      !await fsUtil.exists(tarballModernMirrorPath) &&
+      tarballLegacyMirrorPath &&
+      (await fsUtil.exists(tarballLegacyMirrorPath))
       ? tarballLegacyMirrorPath
       : tarballModernMirrorPath;
 
@@ -95,9 +98,7 @@ export default class GitFetcher extends BaseFetcher {
               hash: actualHash,
             });
           } else {
-            reject(new SecurityError(
-              this.reporter.lang('fetchBadHash', expectHash, actualHash),
-            ));
+            reject(new SecurityError(this.reporter.lang('fetchBadHash', expectHash, actualHash)));
           }
         })
         .on('error', function(err) {

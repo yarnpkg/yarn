@@ -34,9 +34,9 @@ export function promisify(fn: Function, firstData?: boolean): () => Promise<any>
 }
 
 export function promisifyObject(obj: {
-  [key: string]: Function
+  [key: string]: Function,
 }): {
-  [key: string]: () => Promise<any>
+  [key: string]: () => Promise<any>,
 } {
   const promisedObj = {};
   for (const key in obj) {

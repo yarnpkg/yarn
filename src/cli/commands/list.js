@@ -44,7 +44,7 @@ export async function buildTree(
   ignoreHoisted?: boolean,
 ): Promise<{
   count: number,
-  trees: Trees
+  trees: Trees,
 }> {
   const treesByKey = {};
   const trees = [];
@@ -61,7 +61,7 @@ export async function buildTree(
     const hint = null;
     const parent = getParent(info.key, treesByKey);
     const children = [];
-    let depth =  0;
+    let depth = 0;
     let color = 'bold';
     invariant(ref, 'expected reference');
 
@@ -91,7 +91,7 @@ export async function buildTree(
 
     const topLevel = opts.reqDepth === 0 && !parent;
     const showAll = opts.reqDepth === -1;
-    const nextDepthIsValid = (depth + 1 <= Number(opts.reqDepth));
+    const nextDepthIsValid = depth + 1 <= Number(opts.reqDepth);
 
     if (topLevel || nextDepthIsValid || showAll) {
       treesByKey[info.key] = {
@@ -104,7 +104,7 @@ export async function buildTree(
     }
 
     // add in dummy children for hoisted dependencies
-    const nextChildDepthIsValid = (depth + 1 < Number(opts.reqDepth));
+    const nextChildDepthIsValid = depth + 1 < Number(opts.reqDepth);
     invariant(ref, 'expected reference');
     if ((!ignoreHoisted && nextDepthIsValid) || showAll) {
       for (const pattern of resolver.dedupePatterns(ref.dependencies)) {
@@ -142,7 +142,7 @@ export async function buildTree(
   return {trees, count: buildCount(trees)};
 }
 
-export function getParent(key: string, treesByKey: Object) : Object {
+export function getParent(key: string, treesByKey: Object): Object {
   const parentKey = key.split('#').slice(0, -1).join('#');
   return treesByKey[parentKey];
 }
@@ -155,8 +155,8 @@ export function setFlags(commander: Object) {
   commander.option('--depth [depth]', 'Limit the depth of the shown dependencies');
 }
 
-export function getReqDepth(inputDepth: string) : number {
-  return inputDepth && /^\d+$/.test(inputDepth) ?  Number(inputDepth) : -1;
+export function getReqDepth(inputDepth: string): number {
+  return inputDepth && /^\d+$/.test(inputDepth) ? Number(inputDepth) : -1;
 }
 
 export function filterTree(tree: Tree, filters: Array<string>): boolean {
@@ -171,13 +171,7 @@ export function filterTree(tree: Tree, filters: Array<string>): boolean {
   return notDim && (found || hasChildren);
 }
 
-export async function run(
-  config: Config,
-  reporter: Reporter,
-  flags: Object,
-  args: Array<string>,
-): Promise<void> {
-
+export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
   const lockfile = await Lockfile.fromDirectory(config.cwd, reporter);
   const install = new Install(flags, config, reporter, lockfile);
   const {requests: depRequests, patterns} = await install.fetchRequestFromCwd();

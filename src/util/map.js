@@ -7,7 +7,7 @@ export default function nullify<T>(obj?: Return<T> = {}): Return<T> {
     for (const item of obj) {
       nullify(item);
     }
-  } else if (obj !== null && typeof obj === 'object' || typeof obj === 'function') {
+  } else if ((obj !== null && typeof obj === 'object') || typeof obj === 'function') {
     Object.setPrototypeOf(obj, null);
 
     // for..in can only be applied to 'object', not 'function'

@@ -59,14 +59,14 @@ test.concurrent('check command should work', (): Promise<void> => {
   });
 });
 
-test.concurrent('install should fail if a workspace has a conflicting version of a dependency',
-  async (): Promise<void> => {
-    let thrown = false;
-    try {
-      await runInstall({}, 'workspaces-install-conflict');
-    } catch (e) {
-      thrown = true;
-    }
-    expect(thrown).toBe(true);
-  });
-
+test.concurrent('install should fail if a workspace has a conflicting version of a dependency', async (): Promise<
+  void,
+> => {
+  let thrown = false;
+  try {
+    await runInstall({}, 'workspaces-install-conflict');
+  } catch (e) {
+    thrown = true;
+  }
+  expect(thrown).toBe(true);
+});

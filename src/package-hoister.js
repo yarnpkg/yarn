@@ -227,7 +227,11 @@ export default class PackageHoister {
    * Find the highest position we can hoist this module to.
    */
 
-  getNewParts(key: string, info: HoistManifest, parts: Parts): {
+  getNewParts(
+    key: string,
+    info: HoistManifest,
+    parts: Parts,
+  ): {
     parts: Parts,
     duplicate: boolean,
   } {
@@ -369,11 +373,7 @@ export default class PackageHoister {
    * Declare that a module has been hoisted and update our internal references.
    */
 
-  declareRename(
-    info: HoistManifest,
-    oldParts: Array<string>,
-    newParts: Array<string>,
-  ) {
+  declareRename(info: HoistManifest, oldParts: Array<string>, newParts: Array<string>) {
     // go down the tree from our new position reserving our name
     this.taintParents(info, oldParts.slice(0, -1), newParts.length - 1);
   }
@@ -440,8 +440,11 @@ export default class PackageHoister {
       const ref = pkg._reference;
       invariant(ref, 'expected reference');
 
-      const versions = occurences[pkg.name] = occurences[pkg.name] || {};
-      const version = versions[pkg.version] = versions[pkg.version] || {occurences: new Set(), pattern};
+      const versions = (occurences[pkg.name] = occurences[pkg.name] || {});
+      const version = (versions[pkg.version] = versions[pkg.version] || {
+        occurences: new Set(),
+        pattern,
+      });
       version.occurences.add(ancestry[ancestry.length - 1]);
 
       for (const depPattern of ref.dependencies) {
@@ -526,11 +529,11 @@ export default class PackageHoister {
         // remove the first part which will be the folder name and replace it with a
         // hardcoded modules folder
         parts.shift();
-        const modulesFolder = (this.config.modulesFolder == null) ? '' : this.config.modulesFolder;
+        const modulesFolder = this.config.modulesFolder == null ? '' : this.config.modulesFolder;
         parts.unshift(modulesFolder);
       } else {
         // first part will be the registry-specific module folder
-        const cwd = (this.config.cwd == null) ? '' : this.config.cwd;
+        const cwd = this.config.cwd == null ? '' : this.config.cwd;
         parts.unshift(cwd);
       }
 

@@ -27,13 +27,7 @@ export const DEFAULTS = {
   'ignore-optional': false,
   registry: YARN_REGISTRY,
   'strict-ssl': true,
-  'user-agent': [
-    `yarn/${version}`,
-    'npm/?',
-    `node/${process.version}`,
-    process.platform,
-    process.arch,
-  ].join(' '),
+  'user-agent': [`yarn/${version}`, 'npm/?', `node/${process.version}`, process.platform, process.arch].join(' '),
 };
 
 const npmMap = {
@@ -89,14 +83,14 @@ export default class YarnRegistry extends NpmRegistry {
 
       // don't normalize if we already have a mirror path
       if (!this.config['yarn-offline-mirror'] && offlineLoc) {
-        const mirrorLoc = config['yarn-offline-mirror'] = path.resolve(path.dirname(loc), offlineLoc);
+        const mirrorLoc = (config['yarn-offline-mirror'] = path.resolve(path.dirname(loc), offlineLoc));
         await fs.mkdirp(mirrorLoc);
       }
 
       // merge with any existing environment variables
       const env = config.env;
       if (env) {
-        const existingEnv =  this.config.env;
+        const existingEnv = this.config.env;
         if (existingEnv) {
           this.config.env = Object.assign({}, env, existingEnv);
         }

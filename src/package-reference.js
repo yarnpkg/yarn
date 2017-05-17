@@ -9,11 +9,7 @@ import type {RegistryNames} from './registries/index.js';
 import {entries} from './util/misc.js';
 
 export default class PackageReference {
-  constructor(
-    request: PackageRequest,
-    info: Manifest,
-    remote: PackageRemote,
-  ) {
+  constructor(request: PackageRequest, info: Manifest, remote: PackageRemote) {
     this.resolver = request.resolver;
     this.lockfile = request.lockfile;
     this.requests = [];
@@ -53,7 +49,7 @@ export default class PackageReference {
   fresh: boolean;
   dependencies: Array<string>;
   patterns: Array<string>;
-  permissions: { [key: string]: boolean };
+  permissions: {[key: string]: boolean};
   remote: PackageRemote;
   registry: RegistryNames;
   location: ?string;
@@ -64,7 +60,7 @@ export default class PackageReference {
   }
 
   setLocation(loc: string): string {
-    return this.location = loc;
+    return (this.location = loc);
   }
 
   addRequest(request: PackageRequest) {

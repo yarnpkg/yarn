@@ -1,1 +1,1 @@
-foobar
+foobar;

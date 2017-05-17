@@ -33,18 +33,18 @@ export function getFormattedOutput(fmt: FormattedOutput): string {
   return `${fmt.prefix}─ ${item}${suffix}\n`;
 }
 
-function getNextIndentChar(end: boolean) : string {
-  return end ? '   ' :  '│  ';
+function getNextIndentChar(end: boolean): string {
+  return end ? '   ' : '│  ';
 }
 
-function getLastIndentChar(end: boolean) : string {
+function getLastIndentChar(end: boolean): string {
   return end ? '└' : '├';
 }
 
-function getSuffix(hint: any, formatter: any) : string {
+function getSuffix(hint: any, formatter: any): string {
   return hint ? ` (${formatter.grey(hint)})` : '';
 }
 
-function formatColor(color: string, strToFormat: string, formatter: any) : string {
+function formatColor(color: string, strToFormat: string, formatter: any): string {
   return color ? formatter[color](strToFormat) : strToFormat;
 }

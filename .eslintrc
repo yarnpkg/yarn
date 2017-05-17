@@ -6,7 +6,8 @@
   "plugins": [
     "flowtype",
     "no-async-without-await",
-    "yarn-internal"
+    "yarn-internal",
+    "prettify"
   ],
   "rules": {
     "yarn-internal/warn-language": 2,
@@ -32,5 +33,6 @@
     ],
     "no-async-without-await/no-async-without-await": 2,
     "sort-keys": "off",
+    "prettify/prettier": [2, "fb"]
   }
 }

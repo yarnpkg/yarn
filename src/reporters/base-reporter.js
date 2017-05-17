@@ -41,8 +41,8 @@ export function stringifyLangArgs(args: Array<any>): Array<string> {
     } else {
       try {
         const str = JSON.stringify(val) || val + '';
-	// should match all "u001b" that follow an odd number of backslashes and convert them to ESC
-	// we do this because the JSON.stringify process has escaped these characters
+        // should match all "u001b" that follow an odd number of backslashes and convert them to ESC
+        // we do this because the JSON.stringify process has escaped these characters
         return str.replace(/((?:^|[^\\])(?:\\{2})*)\\u001[bB]/g, '$1\u001b');
       } catch (e) {
         return util.inspect(val);
@@ -262,9 +262,7 @@ export default class BaseReporter {
   }
 
   //
-  prompt<T>(
-    message: string, choices: Array<*>, options?: PromptOptions = {},
-  ): Promise<Array<T>> {
+  prompt<T>(message: string, choices: Array<*>, options?: PromptOptions = {}): Promise<Array<T>> {
     return Promise.reject(new Error('Not implemented'));
   }
 }

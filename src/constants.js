@@ -4,15 +4,10 @@ const path = require('path');
 const userHome = require('./util/user-home-dir').default;
 
 type Env = {
-  [key: string]: ? string
+  [key: string]: ?string,
 };
 
-export const DEPENDENCY_TYPES = [
-  'devDependencies',
-  'dependencies',
-  'optionalDependencies',
-  'peerDependencies',
-];
+export const DEPENDENCY_TYPES = ['devDependencies', 'dependencies', 'optionalDependencies', 'peerDependencies'];
 
 export const YARN_REGISTRY = 'https://registry.yarnpkg.com';
 

@@ -29,11 +29,11 @@ export function hasWrapper(): boolean {
 }
 
 export async function setVersion(
- config: Config,
- reporter: Reporter,
- flags: Object,
- args: Array<string>,
- required: boolean,
+  config: Config,
+  reporter: Reporter,
+  flags: Object,
+  args: Array<string>,
+  required: boolean,
 ): Promise<() => Promise<void>> {
   const pkg = await config.readRootManifest();
   const pkgLoc = pkg._loc;
@@ -160,12 +160,7 @@ export async function setVersion(
   };
 }
 
-export async function run(
- config: Config,
- reporter: Reporter,
- flags: Object,
- args: Array<string>,
-): Promise<void> {
+export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
   const commit = await setVersion(config, reporter, flags, args, true);
   await commit();
 }
