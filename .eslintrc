@@ -6,33 +6,16 @@
   "plugins": [
     "flowtype",
     "no-async-without-await",
-    "yarn-internal",
-    "prettify"
+    "yarn-internal"
   ],
   "rules": {
     "yarn-internal/warn-language": 2,
-    "max-len": [
-      2,
-      120
-    ],
+    "max-len": [2, 120],
     "prefer-arrow-callback": 0,
-    "flowtype/require-valid-file-annotation": [
-      2,
-      "always"
-    ],
-    "flowtype/space-after-type-colon": [
-      2,
-      "always"
-    ],
-    "flowtype/require-return-type": [
-      2,
-      "always",
-      {
-        "excludeArrowFunctions": true
-      }
-    ],
+    "flowtype/require-valid-file-annotation": [2, "always"],
+    "flowtype/space-after-type-colon": [2, "always"],
+    "flowtype/require-return-type": [2, "always", {"excludeArrowFunctions": true}],
     "no-async-without-await/no-async-without-await": 2,
-    "sort-keys": "off",
-    "prettify/prettier": [2, "fb"]
+    "sort-keys": "off"
   }
 }

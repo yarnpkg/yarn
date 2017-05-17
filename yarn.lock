@@ -1587,12 +1587,6 @@ eslint-plugin-no-async-without-await@^1.0.0:
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/eslint-plugin-no-async-without-await/-/eslint-plugin-no-async-without-await-1.2.0.tgz#c2e64daea07cb23355fc618a16f891a3b74eda50"
 
-eslint-plugin-prettify@^2.0.2:
-  version "2.0.2"
-  resolved "https://registry.yarnpkg.com/eslint-plugin-prettify/-/eslint-plugin-prettify-2.0.2.tgz#24818bdc34a620d555832fc23310b6c6e9e2ce02"
-  dependencies:
-    fast-diff "^1.1.1"
-
 eslint-plugin-react@^6.7.1:
   version "6.10.3"
   resolved "https://registry.yarnpkg.com/eslint-plugin-react/-/eslint-plugin-react-6.10.3.tgz#c5435beb06774e12c7db2f6abaddcbf900cd3f78"
@@ -1761,10 +1755,6 @@ fancy-log@^1.1.0:
   dependencies:
     chalk "^1.1.1"
     time-stamp "^1.0.0"
-
-fast-diff@^1.1.1:
-  version "1.1.1"
-  resolved "https://registry.yarnpkg.com/fast-diff/-/fast-diff-1.1.1.tgz#0aea0e4e605b6a2189f0e936d4b7fbaf1b7cfd9b"
 
 fast-levenshtein@~2.0.4:
   version "2.0.6"
