@@ -255,7 +255,6 @@ class ImportPackageResolver extends PackageResolver {
     this.flat = isFlat;
     this.rootName = rootName || this.rootName;
     const activity = (this.activity = this.reporter.activity());
-    this.seedPatterns = deps.map((dep): string => dep.pattern);
     await this.findAll(deps);
     this.resetOptional();
     activity.end();
