@@ -17,6 +17,8 @@ const invariant = require('invariant');
 const cmdShim = promise.promisify(require('cmd-shim'));
 const semver = require('semver');
 const path = require('path');
+// Concurrency for creating bin links disabled because of the issue #1961
+const linkBinConcurrency = 1
 
 type DependencyPairs = Array<{
   dep: Manifest,
@@ -267,7 +269,7 @@ export default class PackageLinker {
         const binLoc = path.join(dest, this.config.getFolder(pkg));
         await this.linkBinDependencies(pkg, binLoc);
         tickBin(dest);
-      }, 1);
+      }, linkBinConcurrency);
     }
   }
 
