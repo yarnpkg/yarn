@@ -528,7 +528,7 @@ export default class PackageHoister {
         parts.splice(0, 1, this.config.modulesFolder);
       } else {
         // first part will be the registry-specific module folder
-        parts.splice(0, 0, await this.config.findProject(this.config.cwd) || this.config.cwd);
+        parts.splice(0, 0, this.config.worktreeFolder || this.config.cwd);
       }
 
       const loc = path.join(...parts);

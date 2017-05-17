@@ -69,12 +69,10 @@ export default class InstallationIntegrityChecker {
    */
 
   async _getIntegrityHashLocation(usedRegistries?: Set<RegistryNames>): Promise<IntegrityHashLocation> {
-    const projectDir = await this.config.findProject(this.config.cwd) || this.config.cwd;
-
     let locationFolder;
 
     if (this.config.enableMetaFolder) {
-      locationFolder = path.join(projectDir, constants.META_FOLDER);
+      locationFolder = path.join(this.config.worktreeFolder || this.config.cwd, constants.META_FOLDER);
     } else {
       // build up possible folders
       let registries = registryNames;
@@ -88,7 +86,7 @@ export default class InstallationIntegrityChecker {
 
       // ensure we only write to a registry folder that was used
       for (const name of registries) {
-        const loc = path.join(projectDir, this.config.registries[name].folder);
+        const loc = path.join(this.config.worktreeFolder || this.config.cwd, this.config.registries[name].folder);
         possibleFolders.push(loc);
       }
 

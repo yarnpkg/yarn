@@ -88,10 +88,8 @@ export default class Lockfile {
   };
 
   static async fromDirectory(config: Config, dir: string, reporter?: Reporter): Promise<Lockfile> {
-    const sourceDir = await config.findProject(dir) || dir;
-
     // read the manifest in this directory
-    const lockfileLoc = path.join(sourceDir, constants.LOCKFILE_FILENAME);
+    const lockfileLoc = path.join(config.worktreeFolder || config.cwd, constants.LOCKFILE_FILENAME);
 
     let lockfile;
     let rawLockfile = '';

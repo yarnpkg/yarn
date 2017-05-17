@@ -18,31 +18,30 @@ export async function run(
   flags: Object,
   args: Array<string>,
 ): Promise<void> {
-  const projectPath = await config.findProject(config.cwd);
-
-  if (!projectPath) {
-    throw new MessageError(reporter.lang('projectRootNotFound', config.cwd));
+  if (!config.worktreeFolder) {
+    throw new MessageError(reporter.lang('worktreeRootNotFound', config.cwd));
   }
 
-  const manifest = await config.findManifest(projectPath);
-  const workspaces = await config.resolveWorkspaces(projectPath, manifest.workspaces);
+  const manifest = await config.findManifest(config.worktreeFolder);
+  const workspaces = await config.resolveWorkspaces(config.worktreeFolder, manifest.workspaces);
 
   if (args.length < 1) {
-    throw new MessageError(reporter.lang('projectMissingWorkspace'));
+    throw new MessageError(reporter.lang('worktreeMissingWorkspace'));
   }
 
   if (args.length < 2) {
-    throw new MessageError(reporter.lang('projectMissingCommand'));
+    throw new MessageError(reporter.lang('worktreeMissingCommand'));
   }
 
   const [workspaceName, ... rest] = args;
 
   if (!Object.prototype.hasOwnProperty.call(workspaces, workspaceName)) {
-    throw new MessageError(reporter.lang('projectUnknownWorkspace', workspaceName));
+    throw new MessageError(reporter.lang('worktreeUnknownWorkspace', workspaceName));
   }
 
   try {
     await child.spawn(process.argv[0], [process.argv[1], ... rest], { stdio: 'inherit' });
   } catch (err) {
+    throw err;
   }
 }

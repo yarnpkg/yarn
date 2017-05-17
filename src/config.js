@@ -147,6 +147,7 @@ export default class Config {
 
   //
   cwd: string;
+  worktreeFolder: string;
 
   //
   registries: ConfigRegistries;
@@ -199,6 +200,8 @@ export default class Config {
 
   async init(opts: ConfigOptions = {}): Promise<void> {
     this._init(opts);
+
+    this.worktreeFolder = await this.findWorktree(this.cwd);
 
     await fs.mkdirp(this.globalFolder);
     await fs.mkdirp(this.linkFolder);
@@ -542,7 +545,7 @@ export default class Config {
     return null;
   }
 
-  async findProject(initial: string): Promise<string> {
+  async findWorktree(initial: string): Promise<string> {
     let previous = null;
     let current = path.normalize(initial);
 
