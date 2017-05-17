@@ -40,7 +40,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
         await fs.unlink(dest);
         await fs.mkdirp(path.dirname(dest));
         await fs.symlink(src, dest);
-        reporter.success(reporter.lang('linkRegistered', name));
+        reporter.success(reporter.lang('linkUsing', name));
       } else {
         throw new MessageError(reporter.lang('linkMissing', name));
       }
@@ -77,7 +77,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
       }
 
       reporter.success(reporter.lang('linkRegistered', name));
-      reporter.info(reporter.lang('linkInstallMessage', name));
+      reporter.info(reporter.lang('linkRegisteredMessage', name));
     }
   }
 }
