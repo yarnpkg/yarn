@@ -218,6 +218,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
     }
   }
 
+  const bundledDeps = {};
   // check if any of the node_modules are out of sync
   const res = await install.linker.getFlatHoistedTree(patterns);
   for (const [loc, {originalKey, pkg, ignore}] of res) {
@@ -268,6 +269,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
     }
 
     const deps = Object.assign({}, packageJson.dependencies, packageJson.peerDependencies);
+    bundledDeps[packageJson.name] = packageJson.bundledDependencies || [];
 
     for (const name in deps) {
       const range = deps[name];
@@ -321,10 +323,14 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
         }
 
         const packageJson = await config.readJson(loc);
-        if (
-          packageJson.version === depPkg.version ||
-          (semver.satisfies(packageJson.version, range, config.looseSemver) &&
-            semver.gt(packageJson.version, depPkg.version, config.looseSemver))
+        const packagePath = originalKey.split('#');
+        const rootDep = packagePath[0];
+        const packageName = packagePath[1] || packageJson.name;
+
+        const bundledDep = bundledDeps[rootDep] && bundledDeps[rootDep].includes(packageName);
+        if (!bundledDep && (packageJson.version === depPkg.version ||
+        (semver.satisfies(packageJson.version, range, config.looseSemver) &&
+          semver.gt(packageJson.version, depPkg.version, config.looseSemver)))
         ) {
           reporter.warn(
             reporter.lang(
