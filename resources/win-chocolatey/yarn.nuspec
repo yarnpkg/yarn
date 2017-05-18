@@ -31,7 +31,7 @@ utilization.
 		<projectSourceUrl>https://github.com/yarnpkg/yarn</projectSourceUrl>
 		<licenseUrl>https://github.com/yarnpkg/yarn/raw/master/LICENSE</licenseUrl>
 		<requireLicenseAcceptance>false</requireLicenseAcceptance>
-		<iconUrl>https://cdn.rawgit.com/yarnpkg/assets/master/yarn-kitten-circle.png</iconUrl>
+		<iconUrl>https://cdn.rawgit.com/yarnpkg/assets/b28fd5a09430a7b7701dbebe1765fe166c389cc6/yarn-kitten-circle.png</iconUrl>
 		<docsUrl>https://yarnpkg.com/en/docs/</docsUrl>
 		<bugTrackerUrl>https://github.com/yarnpkg/yarn/issues</bugTrackerUrl>
 		<releaseNotes>https://github.com/yarnpkg/yarn/releases/tag/v$version$</releaseNotes>
