@@ -564,7 +564,7 @@ export default class Config {
 
     const workspaces = {};
 
-    for (let file of files) {
+    for (const file of files) {
       const loc = path.join(root, path.dirname(file));
       const manifest = await this.findManifest(loc, false);
 

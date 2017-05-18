@@ -508,7 +508,7 @@ export default class PackageHoister {
    * Produce a flattened list of module locations and manifests.
    */
 
-  async init(): Promise<HoistManifestTuples> {
+  init(): HoistManifestTuples {
     const flatTree = [];
 
     //
