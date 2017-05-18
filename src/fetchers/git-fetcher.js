@@ -88,9 +88,13 @@ export default class GitFetcher extends BaseFetcher {
         .pipe(hashStream)
         .pipe(untarStream)
         .on('finish', () => {
+
           const expectHash = this.hash;
           const actualHash = hashStream.getHash();
-          if (!expectHash || expectHash === actualHash) {
+
+          // This condition is disabled because "expectHash" actually is the commit hash
+          // This is a design issue that we'll need to fix (https://github.com/yarnpkg/yarn/pull/3449)
+          if (true || !expectHash || expectHash === actualHash) {
             resolve({
               hash: actualHash,
             });
@@ -99,6 +103,7 @@ export default class GitFetcher extends BaseFetcher {
               this.reporter.lang('fetchBadHash', expectHash, actualHash),
             ));
           }
+
         })
         .on('error', function(err) {
           reject(new MessageError(this.reporter.lang('fetchErrorCorrupt', err.message, tarballPath)));
