@@ -559,7 +559,8 @@ export default class Config {
     const compiledPatterns = filter.ignoreLinesToRegex(patterns);
 
     // We need the ignoreFiles, not the keepFiles, because the patterns are exclusion patterns rather than the opposite
-    const files = filter.sortFilter(await fs.walk(root), compiledPatterns).ignoreFiles;
+    const ignoreBasenames = new Set(this.registryFolders);
+    const files = filter.sortFilter(await fs.walk(root, undefined, ignoreBasenames), compiledPatterns).ignoreFiles;
 
     const workspaces = {};
 
