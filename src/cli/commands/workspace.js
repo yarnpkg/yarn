@@ -40,7 +40,7 @@ export async function run(
   }
 
   try {
-    await child.spawn(process.argv[0], [process.argv[1], ... rest], { stdio: 'inherit' });
+    await child.spawn(process.argv[0], [process.argv[1], ... rest], {stdio: 'inherit'});
   } catch (err) {
     throw err;
   }

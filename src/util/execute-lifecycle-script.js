@@ -28,7 +28,7 @@ const IGNORE_MANIFEST_KEYS = ['readme'];
 // See https://github.com/yarnpkg/yarn/issues/2286.
 const IGNORE_CONFIG_KEYS = ['lastUpdateCheck'];
 
-async function makeEnv(stage: string, cwd: string, config: Config): {
+export async function makeEnv(stage: string, cwd: string, config: Config): {
   [key: string]: string
 } {
   const env = Object.assign({}, process.env);
