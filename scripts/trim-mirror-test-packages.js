@@ -15,7 +15,9 @@ cd('common-mirror-2');
 for (let file of files) {
   echo('repacking', file);
   exec(`tar -xvzf ${file}`, {silent: true});
-  let folder = ls('').filter((name) => name.indexOf('.tgz') === -1 && name !== 'trimmed-package')[0];
+  let folder = ls('').filter(
+    name => name.indexOf('.tgz') === -1 && name !== 'trimmed-package',
+  )[0];
   mkdir('trimmed-package');
   cp(`${folder}/package.json`, 'trimmed-package/package.json');
   cd('trimmed-package');

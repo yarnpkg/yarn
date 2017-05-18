@@ -7,8 +7,13 @@ const YARN_VERSION = require('../../package.json').version;
 const NODE_VERSION = process.version;
 
 function shouldWrapKey(str: string): boolean {
-  return str.indexOf('true') === 0 || str.indexOf('false') === 0 ||
-         /[:\s\n\\",\[\]]/g.test(str) || /^[0-9]/g.test(str) || !/^[a-zA-Z]/g.test(str);
+  return (
+    str.indexOf('true') === 0 ||
+    str.indexOf('false') === 0 ||
+    /[:\s\n\\",\[\]]/g.test(str) ||
+    /^[0-9]/g.test(str) ||
+    !/^[a-zA-Z]/g.test(str)
+  );
 }
 
 function maybeWrap(str: string | boolean | number): string {
@@ -19,7 +24,7 @@ function maybeWrap(str: string | boolean | number): string {
   }
 }
 
-const priorities: { [key: string]: ?number } = {
+const priorities: {[key: string]: ?number} = {
   name: 1,
   version: 2,
   uid: 3,
@@ -41,7 +46,7 @@ type Options = {
   topLevel?: boolean,
 };
 
-function _stringify(obj: { [key: string]: mixed }, options: Options): string {
+function _stringify(obj: {[key: string]: mixed}, options: Options): string {
   if (typeof obj !== 'object') {
     throw new TypeError();
   }
@@ -82,10 +87,7 @@ function _stringify(obj: { [key: string]: mixed }, options: Options): string {
     if (typeof val === 'string' || typeof val === 'boolean' || typeof val === 'number') {
       lines.push(`${keyLine} ${maybeWrap(val)}`);
     } else if (typeof val === 'object') {
-      lines.push(
-        `${keyLine}:\n${_stringify(val, {indent: indent + '  '})}` +
-        (options.topLevel ? '\n' : ''),
-      );
+      lines.push(`${keyLine}:\n${_stringify(val, {indent: indent + '  '})}` + (options.topLevel ? '\n' : ''));
     } else {
       throw new TypeError();
     }

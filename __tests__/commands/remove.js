@@ -12,14 +12,12 @@ jasmine.DEFAULT_TIMEOUT_INTERVAL = 90000;
 const path = require('path');
 
 const fixturesLoc = path.join(__dirname, '..', 'fixtures', 'remove');
-const runRemove = buildRun.bind(
-  null,
-  ConsoleReporter,
-  fixturesLoc,
-  async (args, flags, config, reporter): Promise<void> => {
-    await remove(config, reporter, flags, args);
-    await check(config, reporter, {verifyTree: true}, []);
-  });
+const runRemove = buildRun.bind(null, ConsoleReporter, fixturesLoc, async (args, flags, config, reporter): Promise<
+  void,
+> => {
+  await remove(config, reporter, flags, args);
+  await check(config, reporter, {verifyTree: true}, []);
+});
 
 test.concurrent('throws error with no arguments', (): Promise<void> => {
   const reporter = new reporters.ConsoleReporter({});
@@ -53,11 +51,7 @@ test.concurrent('removes package installed from npm registry', (): Promise<void>
   return runRemove(['dep-a'], {}, 'npm-registry', async (config): Promise<void> => {
     expect(await fs.exists(path.join(config.cwd, 'node_modules/dep-a'))).toEqual(false);
 
-    expect(
-      JSON.parse(await fs.readFile(path.join(config.cwd, 'package.json'))).dependencies,
-    ).toEqual(
-      {},
-    );
+    expect(JSON.parse(await fs.readFile(path.join(config.cwd, 'package.json'))).dependencies).toEqual({});
 
     const lockFileContent = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
     const lockFileLines = explodeLockfile(lockFileContent);
@@ -72,11 +66,7 @@ test.concurrent('removes multiple installed packages', (): Promise<void> => {
     expect(await fs.exists(path.join(config.cwd, 'node_modules/dep-a'))).toEqual(false);
     expect(await fs.exists(path.join(config.cwd, 'node_modules/max-safe-integer'))).toEqual(false);
 
-    expect(
-      JSON.parse(await fs.readFile(path.join(config.cwd, 'package.json'))).dependencies,
-    ).toEqual(
-      {},
-    );
+    expect(JSON.parse(await fs.readFile(path.join(config.cwd, 'package.json'))).dependencies).toEqual({});
 
     const lockFileContent = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
     const lockFileLines = explodeLockfile(lockFileContent);
@@ -88,11 +78,7 @@ test.concurrent('removes the whole scope when all scoped packages are removed', 
   return runRemove(['@dengorbachev/foo', '@dengorbachev/bar'], {}, 'scoped-package', async (config): Promise<void> => {
     expect(await fs.exists(path.join(config.cwd, 'node_modules/@dengorbachev'))).toEqual(false);
 
-    expect(
-      JSON.parse(await fs.readFile(path.join(config.cwd, 'package.json'))).dependencies,
-    ).toEqual(
-      {},
-    );
+    expect(JSON.parse(await fs.readFile(path.join(config.cwd, 'package.json'))).dependencies).toEqual({});
 
     const lockFileContent = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
     const lockFileLines = explodeLockfile(lockFileContent);
@@ -104,9 +90,7 @@ test.concurrent('removes a single scoped package', (): Promise<void> => {
   return runRemove(['@dengorbachev/foo'], {}, 'scoped-package', async (config): Promise<void> => {
     expect(await fs.exists(path.join(config.cwd, 'node_modules/@dengorbachev/foo'))).toEqual(false);
 
-    expect(
-      JSON.parse(await fs.readFile(path.join(config.cwd, 'package.json'))).dependencies,
-    ).toEqual({
+    expect(JSON.parse(await fs.readFile(path.join(config.cwd, 'package.json'))).dependencies).toEqual({
       '@dengorbachev/bar': '^1.0.0',
     });
 
@@ -125,14 +109,11 @@ test('removes subdependencies', (): Promise<void> => {
   // C@1
 
   return runRemove(['dep-a'], {}, 'subdependencies', async (config, reporter) => {
-
     expect(await fs.exists(path.join(config.cwd, 'node_modules/dep-a'))).toEqual(false);
     expect(await fs.exists(path.join(config.cwd, 'node_modules/dep-b'))).toEqual(false);
     expect(await fs.exists(path.join(config.cwd, 'node_modules/dep-c'))).toEqual(true);
 
-    expect(
-      JSON.parse(await fs.readFile(path.join(config.cwd, 'package.json'))).dependencies,
-    ).toEqual({
+    expect(JSON.parse(await fs.readFile(path.join(config.cwd, 'package.json'))).dependencies).toEqual({
       'dep-c': '^1.0.0',
     });
 

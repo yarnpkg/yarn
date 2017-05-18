@@ -7,13 +7,13 @@ export function fixCmdWinSlashes(cmd: string): string {
       quotes.push({from: index, to: index + _.length});
       return _;
     };
-    const regEx = new RegExp(quoteSymbol + '.*' + quoteSymbol);    
+    const regEx = new RegExp(quoteSymbol + '.*' + quoteSymbol);
     cmd.replace(regEx, addQuote);
     return quotes;
   }
-  const quotes = findQuotes('"').concat(findQuotes('\''));
+  const quotes = findQuotes('"').concat(findQuotes("'"));
 
-  function isInsideQuotes(index: number): boolean {    
+  function isInsideQuotes(index: number): boolean {
     return quotes.reduce((result, quote) => {
       return result || (quote.from <= index && index <= quote.to);
     }, false);

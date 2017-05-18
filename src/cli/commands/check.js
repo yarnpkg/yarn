@@ -84,7 +84,7 @@ export async function verifyTreeCheck(
     if (
       semver.validRange(dep.version, config.looseSemver) &&
       !semver.satisfies(pkg.version, dep.version, config.looseSemver)
-      ) {
+    ) {
       reportError('packageWrongVersion', dep.originalKey, dep.version, pkg.version);
       continue;
     }
@@ -94,8 +94,7 @@ export async function verifyTreeCheck(
         const subDepPath = path.join(manifestLoc, registry.folder, subdep);
         let found = false;
         const relative = path.relative(registry.cwd, subDepPath);
-        const locations = path.normalize(relative).split(registry.folder + path.sep).
-          filter(dir => !!dir);
+        const locations = path.normalize(relative).split(registry.folder + path.sep).filter(dir => !!dir);
         locations.pop();
         while (locations.length >= 0) {
           let possiblePath;
@@ -175,12 +174,7 @@ async function integrityHashCheck(
   }
 }
 
-export async function run(
-  config: Config,
-  reporter: Reporter,
-  flags: Object,
-  args: Array<string>,
-): Promise<void> {
+export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
   if (flags.verifyTree) {
     await verifyTreeCheck(config, reporter, flags, args);
     return;
@@ -258,7 +252,7 @@ export async function run(
     }
 
     const pkgLoc = path.join(loc, 'package.json');
-    if (!(await fs.exists(loc)) || !(await fs.exists(pkgLoc))) {
+    if (!await fs.exists(loc) || !await fs.exists(pkgLoc)) {
       if (pkg._reference.optional) {
         reporter.warn(reporter.lang('optionalDepNotInstalled', human));
       } else {
@@ -327,9 +321,11 @@ export async function run(
         }
 
         const packageJson = await config.readJson(loc);
-        if (packageJson.version === depPkg.version ||
-           (semver.satisfies(packageJson.version, range, config.looseSemver) &&
-           semver.gt(packageJson.version, depPkg.version, config.looseSemver))) {
+        if (
+          packageJson.version === depPkg.version ||
+          (semver.satisfies(packageJson.version, range, config.looseSemver) &&
+            semver.gt(packageJson.version, depPkg.version, config.looseSemver))
+        ) {
           reporter.warn(
             reporter.lang(
               'couldBeDeduped',

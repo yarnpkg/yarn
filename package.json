@@ -71,6 +71,7 @@
     "gulp-watch": "^4.3.5",
     "jest": "^19.0.2",
     "mock-stdin": "^0.3.0",
+    "prettier": "^1.3.1",
     "temp": "^0.8.3",
     "webpack": "^2.1.0-beta.25",
     "yargs": "^6.3.0"
@@ -84,19 +85,21 @@
     "yarnpkg": "./bin/yarn.js"
   },
   "scripts": {
-    "test": "yarn lint && yarn test-only",
-    "test-ci": "yarn build && yarn test-only",
-    "check-lockfile": "./scripts/check-lockfile.sh",
     "build": "gulp build",
-    "watch": "gulp watch",
-    "test-only": "jest --coverage --verbose",
-    "lint": "eslint . && flow check",
-    "release-branch": "./scripts/release-branch.sh",
     "build-bundle": "node ./scripts/build-webpack.js",
+    "build-chocolatey": "powershell ./scripts/build-chocolatey.ps1",
     "build-deb": "./scripts/build-deb.sh",
     "build-dist": "bash ./scripts/build-dist.sh",
-    "build-chocolatey": "powershell ./scripts/build-chocolatey.ps1",
-    "build-win-installer": "scripts\\build-windows-installer.bat"
+    "build-win-installer": "scripts\\build-windows-installer.bat",
+    "check-lockfile": "./scripts/check-lockfile.sh",
+    "lint": "yarn run prettier && eslint . && flow check",
+    "lint-prettier": "node scripts/prettier.js lint",
+    "prettier": "node scripts/prettier.js write",
+    "release-branch": "./scripts/release-branch.sh",
+    "test": "yarn lint && yarn test-only",
+    "test-ci": "yarn build && yarn test-only",
+    "test-only": "jest --coverage --verbose",
+    "watch": "gulp watch"
   },
   "jest": {
     "collectCoverageFrom": [

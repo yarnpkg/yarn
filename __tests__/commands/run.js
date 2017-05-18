@@ -75,7 +75,6 @@ test('properly handle bin scripts', (): Promise<void> => {
   });
 });
 
-
 test('retains string delimiters if args have spaces', (): Promise<void> => {
   return runRun(['cat-names', '--filter', 'cat names'], {}, 'bin', config => {
     const script = path.join(config.cwd, 'node_modules', '.bin', 'cat-names');

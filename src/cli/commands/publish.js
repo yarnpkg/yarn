@@ -27,12 +27,7 @@ export function hasWrapper(): boolean {
   return true;
 }
 
-async function publish(
-  config: Config,
-  pkg: any,
-  flags: Object,
-  dir: string,
-): Promise<void> {
+async function publish(config: Config, pkg: any, flags: Object, dir: string): Promise<void> {
   // validate access argument
   const access = flags.access;
   if (access && access !== 'public' && access !== 'restricted') {
@@ -86,7 +81,7 @@ async function publish(
     readme: pkg.readme || '',
     _attachments: {
       [tbName]: {
-        'content_type': 'application/octet-stream',
+        content_type: 'application/octet-stream',
         data: buffer.toString('base64'),
         length: buffer.length,
       },
@@ -114,12 +109,7 @@ async function publish(
   }
 }
 
-export async function run(
- config: Config,
- reporter: Reporter,
- flags: Object,
- args: Array<string>,
-): Promise<void> {
+export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
   // validate package fields that are required for publishing
   const pkg = await config.readRootManifest();
   if (pkg.private) {
@@ -134,7 +124,7 @@ export async function run(
   if (args.length > 1) {
     throw new MessageError(reporter.lang('tooManyArguments', 1));
   }
-  if (!(await fs.exists(dir))) {
+  if (!await fs.exists(dir)) {
     throw new MessageError(reporter.lang('unknownFolderOrTarball'));
   }
 

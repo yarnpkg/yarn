@@ -10,10 +10,7 @@ jasmine.DEFAULT_TIMEOUT_INTERVAL = 90000;
 
 const path = require('path');
 
-function makeTree(
-  name,
-  {children = [], hint = null, color = null, depth = 0}: Object = {},
-): Tree {
+function makeTree(name, {children = [], hint = null, color = null, depth = 0}: Object = {}): Tree {
   return {
     name,
     children,
@@ -63,10 +60,7 @@ test.concurrent('respects depth flag', (): Promise<void> => {
   return runList([], {depth: 1}, 'depth-flag', (config, reporter): ?Promise<void> => {
     const rprtr = new BufferReporter({});
     const tree = reporter.getBuffer().slice(-1);
-    const trees = [
-      makeTree('sort-keys@1.1.2', {color: 'bold'}),
-      makeTree('is-plain-obj@1.1.0'),
-    ];
+    const trees = [makeTree('sort-keys@1.1.2', {color: 'bold'}), makeTree('is-plain-obj@1.1.0')];
 
     rprtr.tree('list', trees);
 
@@ -78,9 +72,7 @@ test.concurrent('accepts an argument', (): Promise<void> => {
   return runList(['is-plain-obj'], {}, 'one-arg', (config, reporter): ?Promise<void> => {
     const rprtr = new BufferReporter({});
     const tree = reporter.getBuffer().slice(-1);
-    const trees = [
-      makeTree('is-plain-obj@1.1.0'),
-    ];
+    const trees = [makeTree('is-plain-obj@1.1.0')];
 
     rprtr.tree('list', trees);
 
@@ -104,7 +96,7 @@ test('getParent should extract a parent object from a hash, if the parent key ex
 
 test('getParent should return undefined if the key does not exist in hash', () => {
   const mockTreesByKey = {};
-  mockTreesByKey['parentPkg'] = { };
+  mockTreesByKey['parentPkg'] = {};
 
   const res = getParent('parentPkg#childPkg', mockTreesByKey);
   expect(res.name).not.toBeDefined();

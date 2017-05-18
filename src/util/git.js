@@ -18,7 +18,7 @@ const url = require('url');
 import {createWriteStream} from 'fs';
 
 type GitRefs = {
-  [name: string]: string
+  [name: string]: string,
 };
 
 type GitUrl = {
@@ -27,7 +27,7 @@ type GitUrl = {
   repository: string, // git-specific "URL"
 };
 
-const supportsArchiveCache: { [key: string]: boolean } = map({
+const supportsArchiveCache: {[key: string]: boolean} = map({
   'github.com': false, // not support, doubt they will ever support it
 });
 
@@ -103,7 +103,7 @@ export default class Git {
       throw new Error();
     } catch (err) {
       const supports = err.message.indexOf('did not match any files') >= 0;
-      return supportsArchiveCache[hostname] = supports;
+      return (supportsArchiveCache[hostname] = supports);
     }
   }
 
@@ -146,9 +146,7 @@ export default class Git {
       if (await Git.repoExists(secureUrl)) {
         return secureUrl;
       } else {
-        throw new SecurityError(
-          reporter.lang('refusingDownloadGitWithoutCommit', ref),
-        );
+        throw new SecurityError(reporter.lang('refusingDownloadGitWithoutCommit', ref));
       }
     }
 
@@ -160,9 +158,7 @@ export default class Git {
         if (await Git.repoExists(ref)) {
           return ref;
         } else {
-          throw new SecurityError(
-            reporter.lang('refusingDownloadHTTPWithoutCommit', ref),
-          );
+          throw new SecurityError(reporter.lang('refusingDownloadHTTPWithoutCommit', ref));
         }
       }
     }
@@ -171,9 +167,7 @@ export default class Git {
       if (await Git.repoExists(ref)) {
         return ref;
       } else {
-        throw new SecurityError(
-          reporter.lang('refusingDownloadHTTPSWithoutCommit', ref),
-        );
+        throw new SecurityError(reporter.lang('refusingDownloadHTTPSWithoutCommit', ref));
       }
     }
 
@@ -301,10 +295,12 @@ export default class Git {
       return 'master';
     }
 
-    return await this.config.resolveConstraints(
-      tags.filter((tag): boolean => !!semver.valid(tag, this.config.looseSemver)),
-      range,
-    ) || range;
+    return (
+      (await this.config.resolveConstraints(
+        tags.filter((tag): boolean => !!semver.valid(tag, this.config.looseSemver)),
+        range,
+      )) || range
+    );
   }
 
   /**
@@ -360,7 +356,9 @@ export default class Git {
     invariant(this.fetched, 'Repo not fetched');
 
     try {
-      return await child.spawn('git', ['show', `${this.hash}:${filename}`], {cwd: this.cwd});
+      return await child.spawn('git', ['show', `${this.hash}:${filename}`], {
+        cwd: this.cwd,
+      });
     } catch (err) {
       // file doesn't exist
       return false;
@@ -414,14 +412,14 @@ export default class Git {
         // in fact, `git archive` can't be used, and we haven't fetched the project yet. Do it now.
         await this.fetch();
       }
-      return this.ref = this.hash = hash;
+      return (this.ref = this.hash = hash);
     }
 
     const ref = await this.findResolution(hash, names);
     const commit = refs[ref];
     if (commit) {
       this.ref = ref;
-      return this.hash = commit;
+      return (this.hash = commit);
     } else {
       throw new MessageError(this.reporter.lang('couldntFindMatch', ref, names.join(','), this.gitUrl.repository));
     }

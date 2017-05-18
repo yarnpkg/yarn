@@ -7,10 +7,7 @@ import typos from './typos.js';
 
 const isBuiltinModule = require('is-builtin-module');
 
-const strings = [
-  'name',
-  'version',
-];
+const strings = ['name', 'version'];
 
 const dependencyKeys = [
   // npm registry will include optionalDependencies in dependencies and we'll want to dedupe them from the
@@ -125,9 +122,7 @@ export function cleanDependencies(info: Object, isRoot: boolean, reporter: Repor
 
         if (version !== version2 && isRoot) {
           // only throw a warning when at the root
-          warn(
-            reporter.lang('manifestDependencyCollision', type, name, version, type2, version2),
-          );
+          warn(reporter.lang('manifestDependencyCollision', type, name, version, type2, version2));
         }
 
         delete deps2[name];

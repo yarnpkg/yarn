@@ -13,11 +13,7 @@ export class ConcatStream extends stream.Transform {
   _data: ?Array<Buffer>;
   _done: (buf: Buffer) => void;
 
-  _transform(
-    chunk: Buffer | string,
-    encoding: string,
-    callback: (error: ?Error, data?: Buffer | string) => void,
-  ) {
+  _transform(chunk: Buffer | string, encoding: string, callback: (error: ?Error, data?: Buffer | string) => void) {
     invariant(chunk instanceof Buffer, 'Chunk must be a buffer');
     invariant(this._data != null, 'Missing data array');
     this._data.push(chunk);

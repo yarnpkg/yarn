@@ -57,10 +57,7 @@ const commands = {
   clean,
   config,
   create,
-  dedupe: buildUseless(
-    "The dedupe command isn't necessary. `yarn install` will already dedupe.",
-  ),
-  exec,
+  dedupe: buildUseless("The dedupe command isn't necessary. `yarn install` will already dedupe."),
   generateLockEntry,
   global,
   help,
@@ -70,18 +67,14 @@ const commands = {
   install,
   licenses,
   link,
-  lockfile: buildUseless(
-    "The lockfile command isn't necessary. `yarn install` will produce a lockfile.",
-  ),
+  lockfile: buildUseless("The lockfile command isn't necessary. `yarn install` will produce a lockfile."),
   login,
   logout,
   list,
   outdated,
   owner,
   pack,
-  prune: buildUseless(
-    "The prune command isn't necessary. `yarn install` will prune extraneous packages.",
-  ),
+  prune: buildUseless("The prune command isn't necessary. `yarn install` will prune extraneous packages."),
   publish,
   remove,
   run,
@@ -120,4 +113,4 @@ for (const key in unsupportedAliases) {
   };
 }
 
-export default (commands);
+export default commands;

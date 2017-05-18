@@ -1,5 +1,5 @@
 /* @flow */
- /* eslint max-len: 0 */
+/* eslint max-len: 0 */
 
 const messages = {
   upToDate: 'Already up-to-date.',
@@ -129,10 +129,13 @@ const messages = {
   binLinkCollision: "There's already a linked binary called $0 in your global Yarn bin. Could not link this package's $0 bin entry.",
   linkCollision: "There's already a module called $0 registered.",
   linkMissing: 'No registered module found called $0.',
-  linkInstallMessage: 'You can now run `yarn link $0` in the projects where you want to use this module and it will be used instead.',
   linkRegistered: 'Registered $0.',
+  linkRegisteredMessage: 'You can now run `yarn link $0` in the projects where you want to use this module and it will be used instead.',
   linkUnregistered: 'Unregistered $0.',
+  linkUnregisteredMessage: 'You can now run `yarn unlink $0` in the projects where you no longer want to use this module.',
   linkUsing: 'Using linked module for $0.',
+  linkDisusing: 'Removed linked module $0.',
+  linkDisusingMessage: 'You will need to run `yarn` to re-install the package that was linked.',
 
   createInvalidBin: 'Invalid bin entry found in package $0.',
   createMissingPackage: 'Package not found - this is probably an internal error, and should be reported at https://github.com/yarnpkg/yarn/issues.',
@@ -242,13 +245,13 @@ const messages = {
   infoFail: 'Received invalid response from npm.',
   malformedRegistryResponse: 'Received malformed response from registry for $0. The registry may be down.',
 
-  cantRequestOffline: 'Can\'t make a request in offline mode ($0)',
+  cantRequestOffline: "Can't make a request in offline mode ($0)",
   requestManagerNotSetupHAR: 'RequestManager was not setup to capture HAR files',
   requestError: 'Request $0 returned a $1',
   requestFailed: 'Request failed $0',
   tarballNotInNetworkOrCache: '$0: Tarball is not in network and can not be located in cache ($1)',
-  fetchBadHash: 'Hashes don\'t match. Expected $1 but got $2',
-  fetchBadHashWithPath: 'Hashes don\'t match when extracting file $0. Expected $1 but got $2',
+  fetchBadHash: "Hashes don't match. Expected $1 but got $2",
+  fetchBadHashWithPath: "Hashes don't match when extracting file $0. Expected $1 but got $2",
   fetchErrorCorrupt: '$0. Mirror tarball appears to be corrupt. You can resolve this by running:\n\n  rm -rf $1\n  yarn install',
   errorDecompressingTarball: '$0. Error decompressing $1, it appears to be corrupt.',
   updateInstalling: 'Installing $0...',
@@ -267,16 +270,16 @@ const messages = {
   couldBeDeduped: '$0 could be deduped from $1 to $2',
   lockfileNotContainPattern: 'Lockfile does not contain pattern: $0',
   integrityCheckFailed: 'Integrity check failed',
-  noIntegrityFile: 'Couldn\'t find an integrity file',
+  noIntegrityFile: "Couldn't find an integrity file",
   integrityFailedExpectedIsNotAJSON: 'Integrity check: integrity file is not a json',
-  integrityCheckLinkedModulesDontMatch: 'Integrity check: Linked modules don\'t match',
-  integrityFlagsDontMatch: 'Integrity check: Flags don\'t match',
-  integrityLockfilesDontMatch: 'Integrity check: Lock files don\'t match',
+  integrityCheckLinkedModulesDontMatch: "Integrity check: Linked modules don't match",
+  integrityFlagsDontMatch: "Integrity check: Flags don't match",
+  integrityLockfilesDontMatch: "Integrity check: Lock files don't match",
   integrityFailedFilesMissing: 'Integrity check: Files are missing',
   packageNotInstalled: '$0 not installed',
   optionalDepNotInstalled: 'Optional dependency $0 not installed',
   packageWrongVersion: '$0 is wrong version: expected $1, got $2',
-  packageDontSatisfy: '$0 doesn\'t satisfy found match of $1',
+  packageDontSatisfy: "$0 doesn't satisfy found match of $1",
 
   lockfileExists: 'Lockfile already exists, not importing.',
   skippingImport: 'Skipping import of $0 for $1',

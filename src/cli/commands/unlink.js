@@ -15,18 +15,14 @@ export function hasWrapper(): boolean {
   return true;
 }
 
-export async function run(
-  config: Config,
-  reporter: Reporter,
-  flags: Object,
-  args: Array<string>,
-): Promise<void> {
+export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
   if (args.length) {
     for (const name of args) {
       const linkLoc = path.join(config.linkFolder, name);
       if (await fs.exists(linkLoc)) {
         await fs.unlink(path.join(await getRegistryFolder(config, name), name));
-        reporter.success(reporter.lang('linkUnregistered', name));
+        reporter.success(reporter.lang('linkDisusing', name));
+        reporter.info(reporter.lang('linkDisusingMessage', name));
       } else {
         throw new MessageError(reporter.lang('linkMissing', name));
       }
@@ -56,6 +52,7 @@ export async function run(
       await fs.unlink(linkLoc);
 
       reporter.success(reporter.lang('linkUnregistered', name));
+      reporter.info(reporter.lang('linkUnregisteredMessage', name));
     } else {
       throw new MessageError(reporter.lang('linkMissing', name));
     }

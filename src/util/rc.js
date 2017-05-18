@@ -10,15 +10,15 @@ const home = isWin ? process.env.USERPROFILE : process.env.HOME;
 export function findRc(name: string, parser: Function): Object {
   let configPaths = [];
 
-  function addConfigPath(... segments) {
-    configPaths.push(join(... segments));
+  function addConfigPath(...segments) {
+    configPaths.push(join(...segments));
   }
 
-  function addRecursiveConfigPath(... segments) {
+  function addRecursiveConfigPath(...segments) {
     const queue = [];
 
     let oldPath;
-    let path = join(... segments);
+    let path = join(...segments);
 
     do {
       queue.unshift(path);
@@ -31,13 +31,16 @@ export function findRc(name: string, parser: Function): Object {
   }
 
   function fetchConfigs(): Object {
-    return Object.assign({}, ... configPaths.map(path => {
-      try {
-        return parser(readFileSync(path).toString(), path);
-      } catch (error) {
-        return {};
-      }
-    }));
+    return Object.assign(
+      {},
+      ...configPaths.map(path => {
+        try {
+          return parser(readFileSync(path).toString(), path);
+        } catch (error) {
+          return {};
+        }
+      }),
+    );
   }
 
   if (!isWin) {

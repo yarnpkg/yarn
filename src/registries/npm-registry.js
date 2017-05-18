@@ -59,9 +59,12 @@ export default class NpmRegistry extends Registry {
     const alwaysAuth = this.getRegistryOrGlobalOption(registry, 'always-auth');
     const customHostSuffix = this.getRegistryOrGlobalOption(registry, 'custom-host-suffix');
 
-    const headers = Object.assign({
-      'Accept': 'application/vnd.npm.install-v1+json; q=1.0, application/json; q=0.8, */*',
-    }, opts.headers);
+    const headers = Object.assign(
+      {
+        Accept: 'application/vnd.npm.install-v1+json; q=1.0, application/json; q=0.8, */*',
+      },
+      opts.headers,
+    );
     if (this.token || (alwaysAuth && isRequestToRegistry(requestUrl, registry, customHostSuffix))) {
       const authorization = this.getAuth(packageName || pathname);
       if (authorization) {
@@ -98,10 +101,7 @@ export default class NpmRegistry extends Registry {
     };
   }
 
-  async getPossibleConfigLocations(
-      filename: string,
-      reporter: Reporter,
-      ): Promise<Array<[boolean, string, string]>> {
+  async getPossibleConfigLocations(filename: string, reporter: Reporter): Promise<Array<[boolean, string, string]>> {
     const possibles = [
       [false, path.join(this.cwd, filename)],
       [true, this.config.userconfig || path.join(userHome, filename)],
@@ -119,11 +119,7 @@ export default class NpmRegistry extends Registry {
       reporter.verbose(reporter.lang('configPossibleFile', loc));
       if (await fs.exists(loc)) {
         reporter.verbose(reporter.lang('configFileFound', loc));
-        actuals.push([
-          isHome,
-          loc,
-          await fs.readFile(loc),
-        ]);
+        actuals.push([isHome, loc, await fs.readFile(loc)]);
       }
     }
     return actuals;
@@ -143,7 +139,7 @@ export default class NpmRegistry extends Registry {
       const offlineLoc = config['yarn-offline-mirror'];
       // don't normalize if we already have a mirror path
       if (!this.config['yarn-offline-mirror'] && offlineLoc) {
-        const mirrorLoc = config['yarn-offline-mirror'] = path.resolve(path.dirname(loc), offlineLoc);
+        const mirrorLoc = (config['yarn-offline-mirror'] = path.resolve(path.dirname(loc), offlineLoc));
         await fs.mkdirp(mirrorLoc);
       }
 
@@ -166,8 +162,8 @@ export default class NpmRegistry extends Registry {
     }
 
     for (const scope of [this.getScope(packageName), '']) {
-      const registry = this.getScopedOption(scope, 'registry')
-                    || this.registries.yarn.getScopedOption(scope, 'registry');
+      const registry =
+        this.getScopedOption(scope, 'registry') || this.registries.yarn.getScopedOption(scope, 'registry');
       if (registry) {
         return addSuffix(String(registry), '/');
       }
@@ -220,9 +216,11 @@ export default class NpmRegistry extends Registry {
     // 1st attempt, try to get option for the given registry URL
     // 2nd attempt, remove the 'https?:' prefix of the registry URL
     // 3nd attempt, remove the 'registry/?' suffix of the registry URL
-    return this.getScopedOption(reg, option)
-      || reg.match(pre) && this.getRegistryOption(reg.replace(pre, ''), option)
-      || reg.match(suf) && this.getRegistryOption(reg.replace(suf, ''), option);
+    return (
+      this.getScopedOption(reg, option) ||
+      (reg.match(pre) && this.getRegistryOption(reg.replace(pre, ''), option)) ||
+      (reg.match(suf) && this.getRegistryOption(reg.replace(suf, ''), option))
+    );
   }
 
   getRegistryOrGlobalOption(registry: string, option: string): mixed {

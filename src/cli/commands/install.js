@@ -157,12 +157,7 @@ function normalizeFlags(config: Config, rawFlags: Object): Flags {
 }
 
 export class Install {
-  constructor(
-    flags: Object,
-    config: Config,
-    reporter: Reporter,
-    lockfile: Lockfile,
-  ) {
+  constructor(flags: Object, config: Config, reporter: Reporter, lockfile: Lockfile) {
     this.rootManifestRegistries = [];
     this.rootPatternsToOrigin = map();
     this.resolutions = map();
@@ -183,7 +178,7 @@ export class Install {
   rootManifestRegistries: Array<RegistryNames>;
   registries: Array<RegistryNames>;
   lockfile: Lockfile;
-  resolutions: { [packageName: string]: string };
+  resolutions: {[packageName: string]: string};
   config: Config;
   reporter: Reporter;
   resolver: PackageResolver;
@@ -191,7 +186,7 @@ export class Install {
   linker: PackageLinker;
   compatibility: PackageCompatibility;
   fetcher: PackageFetcher;
-  rootPatternsToOrigin: { [pattern: string]: string };
+  rootPatternsToOrigin: {[pattern: string]: string};
   integrityChecker: InstallationIntegrityChecker;
 
   /**
@@ -225,7 +220,7 @@ export class Install {
     for (const registry of Object.keys(registries)) {
       const {filename} = registries[registry];
       const loc = path.join(this.config.cwd, filename);
-      if (!(await fs.exists(loc))) {
+      if (!await fs.exists(loc)) {
         continue;
       }
 
@@ -333,15 +328,11 @@ export class Install {
     return requests;
   }
 
-  preparePatterns(
-    patterns: Array<string>,
-  ): Array<string> {
+  preparePatterns(patterns: Array<string>): Array<string> {
     return patterns;
   }
 
-  async bailout(
-    patterns: Array<string>,
-  ): Promise<boolean> {
+  async bailout(patterns: Array<string>): Promise<boolean> {
     if (this.flags.skipIntegrityCheck || this.flags.force) {
       return false;
     }
@@ -415,14 +406,9 @@ export class Install {
       this.reporter.warn(this.reporter.lang('shrinkwrapWarning'));
     }
 
-
     let flattenedTopLevelPatterns: Array<string> = [];
     const steps: Array<(curr: number, total: number) => Promise<{bailout: boolean} | void>> = [];
-    const {
-      requests: depRequests,
-      patterns: rawPatterns,
-      ignorePatterns,
-    } = await this.fetchRequestFromCwd();
+    const {requests: depRequests, patterns: rawPatterns, ignorePatterns} = await this.fetchRequestFromCwd();
     let topLevelPatterns: Array<string> = [];
 
     const artifacts = await this.integrityChecker.getArtifacts();
@@ -662,12 +648,11 @@ export class Install {
     );
 
     const lockFileHasAllPatterns = patterns.filter(p => !this.lockfile.getLocked(p)).length === 0;
-    const resolverPatternsAreSameAsInLockfile = Object.keys(lockfileBasedOnResolver)
-      .filter(pattern => {
+    const resolverPatternsAreSameAsInLockfile =
+      Object.keys(lockfileBasedOnResolver).filter(pattern => {
         const manifest = this.lockfile.getLocked(pattern);
         return !manifest || manifest.resolved !== lockfileBasedOnResolver[pattern].resolved;
-      },
-    ).length === 0;
+      }).length === 0;
 
     // remove command is followed by install with force, lockfile will be rewritten in any case then
     if (lockFileHasAllPatterns && resolverPatternsAreSameAsInLockfile && patterns.length && !this.flags.force) {
@@ -806,12 +791,7 @@ export function setFlags(commander: Object) {
   commander.option('-T, --save-tilde', 'DEPRECATED');
 }
 
-export async function run(
-  config: Config,
-  reporter: Reporter,
-  flags: Object,
-  args: Array<string>,
-): Promise<void> {
+export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
   let lockfile;
   if (flags.lockfile === false) {
     lockfile = new Lockfile();

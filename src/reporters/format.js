@@ -45,5 +45,5 @@ export type Formatter = {
   white: FormatFunction,
   gray: FormatFunction,
   grey: FormatFunction,
-  stripColor: FormatFunction
+  stripColor: FormatFunction,
 };

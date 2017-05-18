@@ -19,7 +19,7 @@ const path = require('path');
 
 async function cleanQuery(config: Config, query: string): Promise<string> {
   // if a location was passed then turn it into a hash query
-  if (path.isAbsolute(query) && await fs.exists(query)) {
+  if (path.isAbsolute(query) && (await fs.exists(query))) {
     // absolute path
     query = path.relative(config.cwd, query);
   }
@@ -51,20 +51,12 @@ async function cleanQuery(config: Config, query: string): Promise<string> {
 async function getPackageSize(tuple: HoistManifestTuple): Promise<number> {
   const [loc] = tuple;
 
-  const files = await fs.walk(loc, null, new Set([
-    METADATA_FILENAME,
-    TARBALL_FILENAME,
-  ]));
+  const files = await fs.walk(loc, null, new Set([METADATA_FILENAME, TARBALL_FILENAME]));
 
-  const sizes = await Promise.all(
-    files.map(
-      walkFile => fs.getFileSizeOnDisk(walkFile.absolute),
-    ),
-  );
+  const sizes = await Promise.all(files.map(walkFile => fs.getFileSizeOnDisk(walkFile.absolute)));
 
   return sum(sizes);
 }
-
 
 function sum(array: Array<number>): number {
   return array.length ? array.reduce((a, b) => a + b, 0) : 0;
@@ -74,7 +66,7 @@ function collect(
   hoistManifests: HoistManifestTuples,
   allDependencies: Set<any>,
   dependency: HoistManifestTuple,
-  {recursive}: { recursive?: boolean } = {recursive: false},
+  {recursive}: {recursive?: boolean} = {recursive: false},
 ): Set<any> {
   const [, depInfo] = dependency;
   const deps = depInfo.pkg.dependencies;
@@ -96,18 +88,13 @@ function collect(
   }
 
   if (recursive) {
-    directDependencies.forEach(
-      dependency => collect(hoistManifests, allDependencies, dependency, {recursive: true}),
-    );
+    directDependencies.forEach(dependency => collect(hoistManifests, allDependencies, dependency, {recursive: true}));
   }
 
   return allDependencies;
 }
 
-function getSharedDependencies(
-  hoistManifests: HoistManifestTuples,
-  transitiveKeys: Set<string>,
-): Set<string> {
+function getSharedDependencies(hoistManifests: HoistManifestTuples, transitiveKeys: Set<string>): Set<string> {
   const sharedDependencies = new Set();
   for (const [, info] of hoistManifests) {
     if (!transitiveKeys.has(info.key) && info.pkg.dependencies) {
@@ -127,12 +114,7 @@ export function hasWrapper(): boolean {
   return true;
 }
 
-export async function run(
-  config: Config,
-  reporter: Reporter,
-  flags: Object,
-  args: Array<string>,
-): Promise<void> {
+export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
   if (!args.length) {
     throw new MessageError(reporter.lang('missingWhyDependency'));
   }
@@ -193,7 +175,7 @@ export async function run(
     let delegator = parentRequest;
     do {
       chain.push(install.resolver.getStrictResolvedPattern(delegator.pattern).name);
-    } while (delegator = delegator.parentRequest);
+    } while ((delegator = delegator.parentRequest));
 
     reasons.push({
       type: 'whyDependedOn',
@@ -257,9 +239,7 @@ export async function run(
     reporter.info(reporter.lang(reasons[0].typeSimple, reasons[0].value));
   } else if (reasons.length > 1) {
     reporter.info(reporter.lang('whyReasons'));
-    reporter.list('reasons', reasons.map(
-      reason => reporter.lang(reason.type, reason.value)),
-    );
+    reporter.list('reasons', reasons.map(reason => reporter.lang(reason.type, reason.value)));
   } else {
     reporter.error(reporter.lang('whyWhoKnows'));
   }

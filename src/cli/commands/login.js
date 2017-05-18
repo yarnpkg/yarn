@@ -4,7 +4,10 @@ import type {Reporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
 import {MessageError} from '../../errors.js';
 
-async function getCredentials(config: Config, reporter: Reporter): Promise<?{
+async function getCredentials(
+  config: Config,
+  reporter: Reporter,
+): Promise<?{
   username: string,
   email: string,
 }> {
@@ -33,9 +36,7 @@ async function getCredentials(config: Config, reporter: Reporter): Promise<?{
   return {username, email};
 }
 
-export async function getToken(config: Config, reporter: Reporter, name: string = ''): Promise<
-  () => Promise<void>
-> {
+export async function getToken(config: Config, reporter: Reporter, name: string = ''): Promise<() => Promise<void>> {
   const auth = config.registries.npm.getAuth(name);
   if (auth) {
     config.registries.npm.setToken(auth);
@@ -65,7 +66,10 @@ export async function getToken(config: Config, reporter: Reporter, name: string 
   }
 
   const {username, email} = creds;
-  const password = await reporter.question(reporter.lang('npmPassword'), {password: true, required: true});
+  const password = await reporter.question(reporter.lang('npmPassword'), {
+    password: true,
+    required: true,
+  });
 
   //
   const userobj = {
@@ -108,11 +112,6 @@ export function hasWrapper(): boolean {
 
 export function setFlags() {}
 
-export async function run(
- config: Config,
- reporter: Reporter,
- flags: Object,
- args: Array<string>,
-): Promise<void> {
+export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
   await getCredentials(config, reporter);
 }

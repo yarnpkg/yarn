@@ -12,17 +12,8 @@ export function hasWrapper(): boolean {
 
 export function setFlags() {}
 
-export function run(
- config: Config,
- reporter: Reporter,
- flags: Object,
- args: Array<string>,
-): Promise<void> {
-  const binFolder = path.join(
-    config.cwd,
-    config.registries[RegistryYarn.registry].folder,
-    '.bin',
-  );
+export function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
+  const binFolder = path.join(config.cwd, config.registries[RegistryYarn.registry].folder, '.bin');
   console.log(binFolder);
   return Promise.resolve();
 }

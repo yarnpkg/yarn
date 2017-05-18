@@ -9,7 +9,7 @@ import * as util from '../src/util/normalize-manifest/util.js';
 import * as fs from '../src/util/fs.js';
 
 const nativeFs = require('fs');
-const path     = require('path');
+const path = require('path');
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000;
 
@@ -23,7 +23,7 @@ for (const name of nativeFs.readdirSync(fixturesLoc)) {
   const loc = path.join(fixturesLoc, name);
 
   test(name, async () => {
-    const actualWarnings   = [];
+    const actualWarnings = [];
     const expectedWarnings = await fs.readJson(path.join(loc, 'warnings.json'));
 
     const reporter = new NoopReporter();
@@ -35,7 +35,7 @@ for (const name of nativeFs.readdirSync(fixturesLoc)) {
 
     const config = await Config.create({cwd: loc}, reporter);
 
-    let actual   = await fs.readJson(path.join(loc, 'actual.json'));
+    let actual = await fs.readJson(path.join(loc, 'actual.json'));
     const expected = await fs.readJson(path.join(loc, 'expected.json'));
 
     let isRoot = actual._root;
@@ -71,17 +71,39 @@ for (const name of nativeFs.readdirSync(fixturesLoc)) {
 
 test('util.stringifyPerson', () => {
   expect(util.stringifyPerson({name: 'Sebastian McKenzie'})).toEqual('Sebastian McKenzie');
-  expect(util.stringifyPerson({name: 'Sebastian McKenzie', email: 'sebmck@gmail.com'})).toEqual('Sebastian McKenzie <sebmck@gmail.com>');
+  expect(
+    util.stringifyPerson({
+      name: 'Sebastian McKenzie',
+      email: 'sebmck@gmail.com',
+    }),
+  ).toEqual('Sebastian McKenzie <sebmck@gmail.com>');
   expect(util.stringifyPerson({email: 'sebmck@gmail.com'})).toEqual('<sebmck@gmail.com>');
-  expect(util.stringifyPerson({name: 'Sebastian McKenzie', email: 'sebmck@gmail.com', url: 'https://sebmck.com'})).toEqual('Sebastian McKenzie <sebmck@gmail.com> (https://sebmck.com)');
+  expect(
+    util.stringifyPerson({
+      name: 'Sebastian McKenzie',
+      email: 'sebmck@gmail.com',
+      url: 'https://sebmck.com',
+    }),
+  ).toEqual('Sebastian McKenzie <sebmck@gmail.com> (https://sebmck.com)');
 });
 
 test('util.parsePerson', () => {
   expect(util.parsePerson({})).toEqual({});
-  expect(util.parsePerson('Sebastian McKenzie')).toEqual({name: 'Sebastian McKenzie'});
-  expect(util.parsePerson(' <sebmck@gmail.com>')).toEqual({email: 'sebmck@gmail.com'});
-  expect(util.parsePerson('Sebastian McKenzie <sebmck@gmail.com>')).toEqual({name: 'Sebastian McKenzie', email: 'sebmck@gmail.com'});
-  expect(util.parsePerson('Sebastian McKenzie <sebmck@gmail.com> (https://sebmck.com)')).toEqual({name: 'Sebastian McKenzie', email: 'sebmck@gmail.com', url: 'https://sebmck.com'});
+  expect(util.parsePerson('Sebastian McKenzie')).toEqual({
+    name: 'Sebastian McKenzie',
+  });
+  expect(util.parsePerson(' <sebmck@gmail.com>')).toEqual({
+    email: 'sebmck@gmail.com',
+  });
+  expect(util.parsePerson('Sebastian McKenzie <sebmck@gmail.com>')).toEqual({
+    name: 'Sebastian McKenzie',
+    email: 'sebmck@gmail.com',
+  });
+  expect(util.parsePerson('Sebastian McKenzie <sebmck@gmail.com> (https://sebmck.com)')).toEqual({
+    name: 'Sebastian McKenzie',
+    email: 'sebmck@gmail.com',
+    url: 'https://sebmck.com',
+  });
 });
 
 test('util.extractDescription', () => {
@@ -95,8 +117,15 @@ test('util.extractDescription', () => {
 });
 
 test('util.extractRepositoryUrl', () => {
-  expect(util.extractRepositoryUrl('https://github.com/yarnpkg/yarn.git')).toEqual('https://github.com/yarnpkg/yarn.git');
-  expect(util.extractRepositoryUrl({type: 'git', url: 'https://github.com/yarnpkg/yarn.git'})).toEqual('https://github.com/yarnpkg/yarn.git');
+  expect(util.extractRepositoryUrl('https://github.com/yarnpkg/yarn.git')).toEqual(
+    'https://github.com/yarnpkg/yarn.git',
+  );
+  expect(
+    util.extractRepositoryUrl({
+      type: 'git',
+      url: 'https://github.com/yarnpkg/yarn.git',
+    }),
+  ).toEqual('https://github.com/yarnpkg/yarn.git');
 });
 
 // fill out expected and normalize paths
@@ -124,7 +153,7 @@ function normalizePath<T>(path: T): ?string {
   }
 }
 
-function normalizePaths(paths: mixed): ?string[] {
+function normalizePaths(paths: mixed): ?(string[]) {
   if (Array.isArray(paths)) {
     return paths.map(p => {
       if (typeof p !== 'string') {
@@ -137,7 +166,7 @@ function normalizePaths(paths: mixed): ?string[] {
   }
 }
 
-function normalizePathDict(paths: mixed): ?{ [key: string]: mixed } {
+function normalizePathDict(paths: mixed): ?{[key: string]: mixed} {
   const out = {};
 
   if (!paths || typeof paths !== 'object') {

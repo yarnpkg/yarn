@@ -33,31 +33,29 @@ type IntegrityHashLocation = {
   locationFolder: string,
   locationPath: string,
   exists: boolean,
-}
+};
 
 type IntegrityFile = {
   flags: Array<string>,
   linkedModules: Array<string>,
   topLevelPatters: Array<string>,
   lockfileEntries: {
-    [key: string]: string
+    [key: string]: string,
   },
   files: Array<string>,
   artifacts: ?InstallArtifacts,
-}
+};
 
 type IntegrityFlags = {
   flat: boolean,
   checkFiles: boolean,
-}
+};
 
 /**
  *
  */
 export default class InstallationIntegrityChecker {
-  constructor(
-    config: Config,
-  ) {
+  constructor(config: Config) {
     this.config = config;
   }
 
@@ -143,7 +141,6 @@ export default class InstallationIntegrityChecker {
     modulesFolder: string,
     artifacts?: InstallArtifacts,
   ): Promise<IntegrityFile> {
-
     const result: IntegrityFile = {
       flags: [],
       linkedModules: [],
@@ -196,7 +193,8 @@ export default class InstallationIntegrityChecker {
     actual: IntegrityFile,
     expected: ?IntegrityFile,
     checkFiles: boolean,
-    locationFolder: string): Promise<'OK' | IntegrityError> {
+    locationFolder: string,
+  ): Promise<'OK' | IntegrityError> {
     if (!expected) {
       return 'EXPECTED_IS_NOT_A_JSON';
     }
@@ -239,7 +237,8 @@ export default class InstallationIntegrityChecker {
   async check(
     patterns: Array<string>,
     lockfile: {[key: string]: LockManifest},
-    flags: IntegrityFlags): Promise<IntegrityCheckResult> {
+    flags: IntegrityFlags,
+  ): Promise<IntegrityCheckResult> {
     // check if patterns exist in lockfile
     const missingPatterns = patterns.filter(p => !lockfile[p]);
     const loc = await this._getIntegrityHashLocation();
@@ -253,8 +252,9 @@ export default class InstallationIntegrityChecker {
     const actual = await this._generateIntegrityFile(
       lockfile,
       patterns,
-      Object.assign({}, {checkFiles: false}, flags), // don't generate files when checking, we check the files below
-      loc.locationFolder);
+      Object.assign({}, flags, {checkFiles: false}), // don't generate files when checking, we check the files below
+      loc.locationFolder,
+    );
     const expected = await this._getIntegrityFile(loc.locationPath);
     const integrityMatches = await this._compareIntegrityFiles(actual, expected, flags.checkFiles, loc.locationFolder);
 
@@ -294,7 +294,8 @@ export default class InstallationIntegrityChecker {
     lockfile: {[key: string]: LockManifest},
     flags: IntegrityFlags,
     usedRegistries?: Set<RegistryNames>,
-    artifacts: InstallArtifacts): Promise<void> {
+    artifacts: InstallArtifacts,
+  ): Promise<void> {
     const loc = await this._getIntegrityHashLocation(usedRegistries);
     invariant(loc.locationPath, 'expected integrity hash location');
     await fs.mkdirp(path.dirname(loc.locationPath));

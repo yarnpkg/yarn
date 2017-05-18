@@ -7,14 +7,9 @@ const fs = require('fs');
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000;
 
 test('ConcatStream', async function(): Promise<void> {
-  const [
-    actual,
-    expected,
-  ] = await Promise.all([
+  const [actual, expected] = await Promise.all([
     new Promise((resolve, reject) => {
-      fs.createReadStream(__filename)
-        .pipe(new ConcatStream(resolve))
-        .on('error', reject);
+      fs.createReadStream(__filename).pipe(new ConcatStream(resolve)).on('error', reject);
     }),
     new Promise((resolve, reject) => {
       fs.readFile(__filename, (err, data) => {

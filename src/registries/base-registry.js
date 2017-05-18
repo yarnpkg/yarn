@@ -13,15 +13,15 @@ export type RegistryRequestOptions = {
   method?: RequestMethods,
   auth?: Object,
   body?: mixed,
-  buffer?: bool,
+  buffer?: boolean,
   headers?: Object,
-  process?: Function
+  process?: Function,
 };
 
 export type CheckOutdatedReturn = Promise<{
   wanted: string,
   latest: string,
-  url: string
+  url: string,
 }>;
 
 export default class BaseRegistry {
@@ -40,7 +40,7 @@ export default class BaseRegistry {
   static filename: string;
 
   //
-  reporter: Reporter
+  reporter: Reporter;
   //
   registries: ConfigRegistries;
 

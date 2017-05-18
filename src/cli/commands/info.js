@@ -42,12 +42,7 @@ export function hasWrapper(): boolean {
   return true;
 }
 
-export async function run(
- config: Config,
- reporter: Reporter,
- flags: Object,
- args: Array<string>,
-): Promise<void> {
+export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
   if (args.length > 2) {
     reporter.error(reporter.lang('tooManyArguments', 2));
     return;
@@ -65,7 +60,7 @@ export async function run(
 
   // pass application/json Accept to get full metadata for info command
   let result = await config.registries.npm.request(name, {
-    headers: {'Accept': 'application/json'},
+    headers: {Accept: 'application/json'},
   });
   if (!result) {
     reporter.error(reporter.lang('infoFail'));
