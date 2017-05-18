@@ -125,6 +125,8 @@ export type Manifest = {
   main?: string,
 
   workspaces?: Array<string>,
+
+  fresh?: boolean
 };
 
 //

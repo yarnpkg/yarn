@@ -227,7 +227,7 @@ class ImportPackageResolver extends PackageResolver {
       this.activity.tick(req.pattern);
     }
     const request = new ImportPackageRequest(req, this);
-    await request.find();
+    await request.find(false);
   }
 
   async findAll(deps: DependencyRequestPatterns): Promise<void> {

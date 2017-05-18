@@ -108,6 +108,7 @@ export async function fetch(pkgs: Array<Manifest>, config: Config): Promise<Arra
       newPkg._reference = ref;
       newPkg._remote = ref.remote;
       newPkg.name = pkg.name;
+      newPkg.fresh = pkg.fresh;
       return newPkg;
     }
 
