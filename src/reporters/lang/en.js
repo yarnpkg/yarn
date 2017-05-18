@@ -145,6 +145,8 @@ const messages = {
   worktreeMissingCommand: 'Missing command name.',
   worktreeUnknownWorkspace: 'Unknown workspace $0.',
 
+  execMissingCommand: 'Missing command name.',
+
   commandNotSpecified: 'No command specified.',
   binCommands: 'Commands available from binary scripts: ',
   possibleCommands: 'Project commands',

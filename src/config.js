@@ -147,7 +147,7 @@ export default class Config {
 
   //
   cwd: string;
-  worktreeFolder: string;
+  worktreeFolder: ?string;
 
   //
   registries: ConfigRegistries;
@@ -537,7 +537,7 @@ export default class Config {
     return null;
   }
 
-  async findWorktree(initial: string): Promise<string> {
+  async findWorktree(initial: string): Promise<?string> {
     let previous = null;
     let current = path.normalize(initial);
 
@@ -555,7 +555,7 @@ export default class Config {
     return null;
   }
 
-  async resolveWorkspaces(root: string, patterns: Array<string>) {
+  async resolveWorkspaces(root: string, patterns: Array<string>): Promise<{ [string]: { loc: string, manifest: Manifest } }> {
     const compiledPatterns = filter.ignoreLinesToRegex(patterns);
 
     // We need the ignoreFiles, not the keepFiles, because the patterns are exclusion patterns rather than the opposite
@@ -566,7 +566,7 @@ export default class Config {
 
     for (let file of files) {
       const loc = path.join(root, path.dirname(file));
-      const manifest = await this.findManifest(loc);
+      const manifest = await this.findManifest(loc, false);
 
       if (!manifest || !manifest.name) {
         continue;

@@ -4,7 +4,8 @@ import type Config from '../../config.js';
 import {MessageError} from '../../errors.js';
 import type {Reporter} from '../../reporters/index.js';
 import * as child from '../../util/child.js';
-import * as filter from '../../util/filter.js';
+
+const invariant = require('invariant');
 
 export function setFlags() {}
 
@@ -18,12 +19,16 @@ export async function run(
   flags: Object,
   args: Array<string>,
 ): Promise<void> {
-  if (!config.worktreeFolder) {
+  const {worktreeFolder} = config;
+
+  if (!worktreeFolder) {
     throw new MessageError(reporter.lang('worktreeRootNotFound', config.cwd));
   }
 
-  const manifest = await config.findManifest(config.worktreeFolder);
-  const workspaces = await config.resolveWorkspaces(config.worktreeFolder, manifest.workspaces);
+  const manifest = await config.findManifest(worktreeFolder, false);
+  invariant(manifest && manifest.workspaces);
+
+  const workspaces = await config.resolveWorkspaces(worktreeFolder, manifest.workspaces);
 
   if (args.length < 1) {
     throw new MessageError(reporter.lang('worktreeMissingWorkspace'));

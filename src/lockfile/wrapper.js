@@ -1,7 +1,7 @@
 /* @flow */
 
 import type {Reporter} from '../reporters/index.js';
-import type {Config} from '../config.js';
+import Config from '../config.js';
 import type {Manifest} from '../types.js';
 import type {RegistryNames} from '../registries/index.js';
 import {sortAlpha} from '../util/misc.js';

@@ -58,6 +58,7 @@ const commands = {
   config,
   create,
   dedupe: buildUseless("The dedupe command isn't necessary. `yarn install` will already dedupe."),
+  exec,
   generateLockEntry,
   global,
   help,
