@@ -51,8 +51,12 @@ export const {run, setFlags, examples} = buildSubCommands('cache', {
 
   async clean(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
     if (config.cacheFolder) {
+      const activity = reporter.activity();
+
       await fs.unlink(config._cacheRootFolder);
       await fs.mkdirp(config.cacheFolder);
+
+      activity.end();
       reporter.success(reporter.lang('clearedCache'));
     }
   },
