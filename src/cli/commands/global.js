@@ -4,6 +4,7 @@ import type {Reporter} from '../../reporters/index.js';
 import type {Manifest} from '../../types.js';
 import type Config from '../../config.js';
 import {MessageError} from '../../errors.js';
+import {OSX_GLOBAL_PREFIX_DIRECTORY} from '../../constants.js';
 import {registries} from '../../registries/index.js';
 import NoopReporter from '../../reporters/base-reporter.js';
 import buildSubCommands from './_build-sub-commands.js';
@@ -76,6 +77,8 @@ function getGlobalPrefix(config: Config, flags: Object): string {
     return String(config.getOption('prefix'));
   } else if (process.env.PREFIX) {
     return process.env.PREFIX;
+  } else if (process.platform === 'darwin') {
+    return OSX_GLOBAL_PREFIX_DIRECTORY;
   } else if (process.platform === 'win32') {
     if (process.env.LOCALAPPDATA) {
       return path.join(process.env.LOCALAPPDATA, 'Yarn', 'bin');
