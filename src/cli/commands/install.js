@@ -234,26 +234,26 @@ export class Install {
         if (!projectManifestJson.private) {
           throw new MessageError(this.reporter.lang('workspacesRequirePrivateProjects'));
         }
-        for (const workspace of projectManifestJson.workspaces) {
-          for (const workspaceLoc of await fs.glob(path.join(rootCwd, workspace, filename))) {
-            const workspaceCwd = path.dirname(workspaceLoc);
-            const workspaceJson: Manifest = await this.config.readJson(workspaceLoc);
-            await normalizeManifest(workspaceJson, workspaceCwd, this.config, true);
-            for (const type of ['dependencies', 'devDependencies', 'optionalDependencies']) {
-              if (workspaceJson[type]) {
-                for (const key in workspaceJson[type]) {
-                  if (
-                    projectManifestJson[type] &&
-                    projectManifestJson[type][key] &&
-                    projectManifestJson[type][key] !== workspaceJson[type][key]
-                  ) {
-                    // TODO conflicts should still be installed inside workspaces' folders
-                    throw new MessageError(
-                      this.reporter.lang('workspacesIncompatibleDependencies', key, workspaceCwd, rootCwd),
-                    );
-                  }
-                  projectManifestJson[type][key] = workspaceJson[type][key];
+        const workspaces = await this.config.resolveWorkspaces(path.dirname(loc), projectManifestJson.workspaces);
+        const workspaceEntries = Object.keys(workspaces).map(name => workspaces[name]);
+        for (const { loc: workspaceLoc, manifest: workspaceManifest } of workspaceEntries) {
+          for (const type of ['dependencies', 'devDependencies', 'optionalDependencies']) {
+            if (workspaceManifest[type]) {
+              for (const key of Object.keys(workspaceManifest[type])) {
+                if (
+                  projectManifestJson[type] &&
+                  projectManifestJson[type][key] &&
+                  projectManifestJson[type][key] !== workspaceManifest[type][key]
+                ) {
+                  // TODO conflicts should still be installed inside workspaces' folders
+                  throw new MessageError(
+                    this.reporter.lang('workspacesIncompatibleDependencies', key, workspaceCwd, rootCwd),
+                  );
                 }
+                if (!projectManifestJson[type]) {
+                  projectManifestJson[type] = {};
+                }
+                projectManifestJson[type][key] = workspaceManifest[type][key];
               }
             }
           }

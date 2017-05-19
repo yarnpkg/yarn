@@ -26,7 +26,7 @@ export async function run(
   }
 
   const manifest = await config.findManifest(worktreeFolder, false);
-  invariant(manifest && manifest.workspaces);
+  invariant(manifest && manifest.workspaces, 'We must find a manifest with a "workspaces" property');
 
   const workspaces = await config.resolveWorkspaces(worktreeFolder, manifest.workspaces);
 

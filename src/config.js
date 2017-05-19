@@ -556,19 +556,30 @@ export default class Config {
   }
 
   async resolveWorkspaces(root: string, patterns: Array<string>): Promise<{ [string]: { loc: string, manifest: Manifest } }> {
-    const compiledPatterns = filter.ignoreLinesToRegex(patterns);
-
-    // We need the ignoreFiles, not the keepFiles, because the patterns are exclusion patterns rather than the opposite
-    const ignoreBasenames = new Set(this.registryFolders);
-    const files = filter.sortFilter(await fs.walk(root, undefined, ignoreBasenames), compiledPatterns).ignoreFiles;
-
     const workspaces = {};
 
-    for (const file of files) {
+    const registryFilenames = registryNames.map(registryName => this.registries[registryName].constructor.filename);
+    const trailingPattern = `/+(${registryFilenames.join(`|`)})`;
+
+    const files = await Promise.all(patterns.map(async (pattern) => {
+      return await fs.glob(pattern.replace(/\/?$/, trailingPattern), { cwd: root, ignore: this.registryFolders });
+    }));
+
+    for (const file of new Set(... files)) {
       const loc = path.join(root, path.dirname(file));
       const manifest = await this.findManifest(loc, false);
 
-      if (!manifest || !manifest.name) {
+      if (!manifest) {
+        continue;
+      }
+
+      if (!manifest.name) {
+        // TODO raise a warning?
+        continue;
+      }
+
+      if (Object.prototype.hasOwnProperty.call(workspaces, manifest.name)) {
+        // TODO raise a warning?
         continue;
       }
 
