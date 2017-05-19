@@ -236,7 +236,7 @@ export class Install {
         }
         const workspaces = await this.config.resolveWorkspaces(path.dirname(loc), projectManifestJson.workspaces);
         const workspaceEntries = Object.keys(workspaces).map(name => workspaces[name]);
-        for (const { loc: workspaceLoc, manifest: workspaceManifest } of workspaceEntries) {
+        for (const {loc: workspaceLoc, manifest: workspaceManifest} of workspaceEntries) {
           for (const type of ['dependencies', 'devDependencies', 'optionalDependencies']) {
             if (workspaceManifest[type]) {
               for (const key of Object.keys(workspaceManifest[type])) {
@@ -247,7 +247,7 @@ export class Install {
                 ) {
                   // TODO conflicts should still be installed inside workspaces' folders
                   throw new MessageError(
-                    this.reporter.lang('workspacesIncompatibleDependencies', key, workspaceCwd, rootCwd),
+                    this.reporter.lang('workspacesIncompatibleDependencies', key, workspaceLoc, rootCwd),
                   );
                 }
                 if (!projectManifestJson[type]) {

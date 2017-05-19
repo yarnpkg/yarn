@@ -7,7 +7,6 @@ import type PackageReference from './package-reference.js';
 import {execFromManifest} from './util/execute-lifecycle-script.js';
 import normalizeManifest from './util/normalize-manifest/index.js';
 import {MessageError} from './errors.js';
-import * as filter from './util/filter.js';
 import * as fs from './util/fs.js';
 import * as constants from './constants.js';
 import ConstraintResolver from './package-constraint-resolver.js';
@@ -555,17 +554,22 @@ export default class Config {
     return null;
   }
 
-  async resolveWorkspaces(root: string, patterns: Array<string>): Promise<{ [string]: { loc: string, manifest: Manifest } }> {
+  async resolveWorkspaces(
+    root: string,
+    patterns: Array<string>,
+  ): Promise<{[string]: {loc: string, manifest: Manifest}}> {
     const workspaces = {};
 
     const registryFilenames = registryNames.map(registryName => this.registries[registryName].constructor.filename);
     const trailingPattern = `/+(${registryFilenames.join(`|`)})`;
 
-    const files = await Promise.all(patterns.map(async (pattern) => {
-      return await fs.glob(pattern.replace(/\/?$/, trailingPattern), { cwd: root, ignore: this.registryFolders });
-    }));
+    const files = await Promise.all(
+      patterns.map(async pattern => {
+        return await fs.glob(pattern.replace(/\/?$/, trailingPattern), {cwd: root, ignore: this.registryFolders});
+      }),
+    );
 
-    for (const file of new Set(... files)) {
+    for (const file of new Set(...files)) {
       const loc = path.join(root, path.dirname(file));
       const manifest = await this.findManifest(loc, false);
 
@@ -583,7 +587,7 @@ export default class Config {
         continue;
       }
 
-      workspaces[manifest.name] = { loc, manifest };
+      workspaces[manifest.name] = {loc, manifest};
     }
 
     return workspaces;

@@ -12,18 +12,13 @@ export function hasWrapper(): boolean {
   return true;
 }
 
-export async function run(
-  config: Config,
-  reporter: Reporter,
-  flags: Object,
-  args: Array<string>,
-): Promise<void> {
+export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
   const env = await makeEnv(`exec`, config.cwd, config);
 
   if (args.length < 1) {
     throw new MessageError(reporter.lang('execMissingCommand'));
   }
 
-  const [execName, ... rest] = args;
-  await child.spawn(execName, rest, { stdio: 'inherit', env });
+  const [execName, ...rest] = args;
+  await child.spawn(execName, rest, {stdio: 'inherit', env});
 }

@@ -13,12 +13,7 @@ export function hasWrapper(): boolean {
   return true;
 }
 
-export async function run(
-  config: Config,
-  reporter: Reporter,
-  flags: Object,
-  args: Array<string>,
-): Promise<void> {
+export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
   const {worktreeFolder} = config;
 
   if (!worktreeFolder) {
@@ -38,14 +33,14 @@ export async function run(
     throw new MessageError(reporter.lang('worktreeMissingCommand'));
   }
 
-  const [workspaceName, ... rest] = args;
+  const [workspaceName, ...rest] = args;
 
   if (!Object.prototype.hasOwnProperty.call(workspaces, workspaceName)) {
     throw new MessageError(reporter.lang('worktreeUnknownWorkspace', workspaceName));
   }
 
   try {
-    await child.spawn(process.argv[0], [process.argv[1], ... rest], {stdio: 'inherit'});
+    await child.spawn(process.argv[0], [process.argv[1], ...rest], {stdio: 'inherit'});
   } catch (err) {
     throw err;
   }

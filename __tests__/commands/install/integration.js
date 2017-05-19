@@ -696,7 +696,12 @@ test.concurrent('should skip integrity check and do install when --skip-integrit
     // reinstall will be successful but it won't reinstall anything
     expect(await fs.exists(path.join(config.cwd, 'node_modules', 'sub-dep'))).toEqual(false);
 
-    reinstall = new Install({skipIntegrityCheck: true}, config, reporter, (await Lockfile.fromDirectory(config, config.cwd)));
+    reinstall = new Install(
+      {skipIntegrityCheck: true},
+      config,
+      reporter,
+      (await Lockfile.fromDirectory(config, config.cwd)),
+    );
     await reinstall.init();
 
     // reinstall will reinstall deps
@@ -751,7 +756,12 @@ test.concurrent('bailout should work with --production flag too', (): Promise<vo
     // remove file
     await fs.unlink(path.join(config.cwd, 'node_modules', 'left-pad', 'index.js'));
     // run install again
-    const reinstall = new Install({production: true}, config, reporter, (await Lockfile.fromDirectory(config, config.cwd)));
+    const reinstall = new Install(
+      {production: true},
+      config,
+      reporter,
+      (await Lockfile.fromDirectory(config, config.cwd)),
+    );
     await reinstall.init();
     // don't expect file being recreated because install should have bailed out
     expect(await fs.exists(path.join(config.cwd, 'node_modules', 'left-pad', 'index.js'))).toBe(false);

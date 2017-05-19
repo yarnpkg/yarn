@@ -140,7 +140,7 @@ const messages = {
   createInvalidBin: 'Invalid bin entry found in package $0.',
   createMissingPackage: 'Package not found - this is probably an internal error, and should be reported at https://github.com/yarnpkg/yarn/issues.',
 
-  worktreeRootNotFound: 'Cannot find the root of your worktree - are you sure you\'re currently in a workspace?',
+  worktreeRootNotFound: "Cannot find the root of your worktree - are you sure you're currently in a workspace?",
   worktreeMissingWorkspace: 'Missing workspace name.',
   worktreeMissingCommand: 'Missing command name.',
   worktreeUnknownWorkspace: 'Unknown workspace $0.',
