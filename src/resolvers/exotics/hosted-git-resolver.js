@@ -136,7 +136,7 @@ export default class HostedGitResolver extends ExoticResolver {
     }
 
     const refs = Git.parseRefs(out);
-    return await client.setRef(refs);
+    return client.setRef(refs);
   }
 
   async resolveOverHTTP(url: string): Promise<Manifest> {
@@ -212,7 +212,7 @@ export default class HostedGitResolver extends ExoticResolver {
     // archive and tarball unarchiving. The HTTP API is only available for public repos
     // though.
     if (await this.hasHTTPCapability(httpBaseUrl)) {
-      return await this.resolveOverHTTP(httpUrl);
+      return this.resolveOverHTTP(httpUrl);
     }
 
     // If the url is accessible over git archive then we should immediately delegate to
@@ -225,10 +225,10 @@ export default class HostedGitResolver extends ExoticResolver {
     if (await Git.hasArchiveCapability(sshGitUrl)) {
       const archiveClient = new Git(this.config, sshGitUrl, this.hash);
       const commit = await archiveClient.init();
-      return await this.fork(GitResolver, true, `${sshUrl}#${commit}`);
+      return this.fork(GitResolver, true, `${sshUrl}#${commit}`);
     }
 
     // fallback to the plain git resolver
-    return await this.fork(GitResolver, true, sshUrl);
+    return this.fork(GitResolver, true, sshUrl);
   }
 }

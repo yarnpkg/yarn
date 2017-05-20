@@ -381,13 +381,13 @@ export default class Git {
       await this.fetch();
     }
 
-    return await this.setRefRemote();
+    return this.setRefRemote();
   }
 
   async setRefRemote(): Promise<string> {
     const stdout = await child.spawn('git', ['ls-remote', '--tags', '--heads', this.gitUrl.repository]);
     const refs = Git.parseRefs(stdout);
-    return await this.setRef(refs);
+    return this.setRef(refs);
   }
 
   /**

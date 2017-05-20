@@ -16,6 +16,7 @@
     "flowtype/space-after-type-colon": [2, "always"],
     "flowtype/require-return-type": [2, "always", {"excludeArrowFunctions": true}],
     "no-async-without-await/no-async-without-await": 2,
+    "no-return-await": "error",
     "sort-keys": "off"
   }
 }

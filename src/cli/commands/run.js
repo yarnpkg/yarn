@@ -110,6 +110,6 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
       .then(answer => runCommand(answer.split(' ')), () => reporter.error(reporter.lang('commandNotSpecified')));
     return Promise.resolve();
   } else {
-    return await runCommand(args);
+    return runCommand(args);
   }
 }

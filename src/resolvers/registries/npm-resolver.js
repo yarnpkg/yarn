@@ -79,7 +79,7 @@ export default class NpmResolver extends RegistryResolver {
     const body = await this.config.registries.npm.request(NpmRegistry.escapeName(this.name));
 
     if (body) {
-      return await NpmResolver.findVersionInRegistryResponse(this.config, this.range, body, this.request);
+      return NpmResolver.findVersionInRegistryResponse(this.config, this.range, body, this.request);
     } else {
       return null;
     }
