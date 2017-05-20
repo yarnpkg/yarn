@@ -236,6 +236,8 @@ const messages = {
   publishPrivate: 'Package marked as private, not publishing.',
   published: 'Published.',
   publishing: 'Publishing',
+  publishFileNotFound: 'File not found: ',
+
 
   infoFail: 'Received invalid response from npm.',
   malformedRegistryResponse: 'Received malformed response from registry for $0. The registry may be down.',
