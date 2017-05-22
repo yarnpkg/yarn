@@ -15,7 +15,7 @@ test('adds any new package to the current workspace, but install from the worktr
     expect(await fs.exists(`${config.cwd}/node_modules/left-pad`)).toEqual(false);
     expect(await fs.exists(`${config.cwd}/packages/package-a/node_modules/left-pad`)).toEqual(false);
 
-    await add(await makeConfigFromDirectory(`${config.cwd}/packages/package-a`), reporter, {}, ['left-pad']);
+    await add(await makeConfigFromDirectory(`${config.cwd}/packages/package-a`, reporter), reporter, {}, ['left-pad']);
 
     expect(await fs.exists(`${config.cwd}/node_modules/left-pad`)).toEqual(true);
     expect(await fs.exists(`${config.cwd}/packages/package-a/node_modules/left-pad`)).toEqual(false);
@@ -23,7 +23,7 @@ test('adds any new package to the current workspace, but install from the worktr
     expect(await fs.exists(`${config.cwd}/yarn.lock`)).toEqual(true);
     expect(await fs.exists(`${config.cwd}/packages/package-a/yarn.lock`)).toEqual(false);
 
-    await add(await makeConfigFromDirectory(`${config.cwd}/packages/package-b`), reporter, {}, ['right-pad']);
+    await add(await makeConfigFromDirectory(`${config.cwd}/packages/package-b`, reporter), reporter, {}, ['right-pad']);
 
     expect(await fs.exists(`${config.cwd}/node_modules/right-pad`)).toEqual(true);
     expect(await fs.exists(`${config.cwd}/packages/package-b/node_modules/right-pad`)).toEqual(false);
