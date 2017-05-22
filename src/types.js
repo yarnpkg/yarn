@@ -126,7 +126,10 @@ export type Manifest = {
 
   workspaces?: Array<string>,
 
-  fresh?: boolean
+  // This flag is true when we add a new package with `yarn add <mypackage>`.
+  // We need to preserve the flag because we print a list of new packages in
+  // the end of the add command
+  fresh?: boolean,
 };
 
 //
