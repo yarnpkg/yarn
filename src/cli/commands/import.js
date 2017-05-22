@@ -235,6 +235,9 @@ class ImportPackageResolver extends PackageResolver {
     deps = this.next;
     this.next = [];
     if (!deps.length) {
+      // all required package versions have been discovered, so now packages that
+      // resolved to existing versions can be resolved to their best available version
+      this.resolvePackagesWithExistingVersions();
       return;
     }
     await this.findAll(deps);
