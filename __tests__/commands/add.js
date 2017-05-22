@@ -368,7 +368,7 @@ test.concurrent('upgrade scenario', (): Promise<void> => {
     expect(mirror[0].relative).toEqual('left-pad-0.0.9.tgz');
 
     //
-    const add = new Add(['left-pad@1.1.0'], {}, config, reporter, (await Lockfile.fromDirectory(config, config.cwd)));
+    const add = new Add(['left-pad@1.1.0'], {}, config, reporter, (await Lockfile.fromDirectory(config.cwd)));
     await add.init();
 
     expect(await getPackageVersion(config, 'left-pad')).toEqual('1.1.0');
@@ -455,7 +455,7 @@ test.concurrent('downgrade scenario', (): Promise<void> => {
     expect(mirror).toHaveLength(1);
     expect(mirror[0].relative).toEqual('left-pad-1.1.0.tgz');
 
-    const add = new Add(['left-pad@0.0.9'], {}, config, reporter, (await Lockfile.fromDirectory(config, config.cwd)));
+    const add = new Add(['left-pad@0.0.9'], {}, config, reporter, (await Lockfile.fromDirectory(config.cwd)));
     await add.init();
 
     expect(await getPackageVersion(config, 'left-pad')).toEqual('0.0.9');
@@ -529,7 +529,7 @@ test.concurrent('add should put a git dependency to mirror', (): Promise<void> =
       await fs.unlink(path.join(config.cwd, 'node_modules'));
 
       //
-      const install = new Install({}, config, reporter, (await Lockfile.fromDirectory(config, config.cwd)));
+      const install = new Install({}, config, reporter, (await Lockfile.fromDirectory(config.cwd)));
       await install.init();
 
       expect(semver.satisfies(await getPackageVersion(config, 'mime-db'), '1.24.0')).toEqual(true);
@@ -563,7 +563,7 @@ test.concurrent('add should generate correct integrity file', (): Promise<void> 
     expect(allCorrect).toBe(true);
 
     // add to an existing package.json caused incorrect integrity https://github.com/yarnpkg/yarn/issues/1733
-    const add = new Add(['left-pad@1.1.3'], {}, config, reporter, (await Lockfile.fromDirectory(config, config.cwd)));
+    const add = new Add(['left-pad@1.1.3'], {}, config, reporter, (await Lockfile.fromDirectory(config.cwd)));
     await add.init();
     try {
       await check(config, reporter, {integrity: true}, []);

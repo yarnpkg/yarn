@@ -1,7 +1,6 @@
 /* @flow */
 
 import type {Reporter} from '../reporters/index.js';
-import Config from '../config.js';
 import type {Manifest} from '../types.js';
 import type {RegistryNames} from '../registries/index.js';
 import {sortAlpha} from '../util/misc.js';
@@ -87,9 +86,9 @@ export default class Lockfile {
     [key: string]: LockManifest,
   };
 
-  static async fromDirectory(config: Config, dir: string, reporter?: Reporter): Promise<Lockfile> {
+  static async fromDirectory(dir: string, reporter?: Reporter): Promise<Lockfile> {
     // read the manifest in this directory
-    const lockfileLoc = path.join(config.worktreeFolder || config.cwd, constants.LOCKFILE_FILENAME);
+    const lockfileLoc = path.join(dir, constants.LOCKFILE_FILENAME);
 
     let lockfile;
     let rawLockfile = '';

@@ -149,7 +149,7 @@ async function integrityHashCheck(
   }
   const integrityChecker = new InstallationIntegrityChecker(config);
 
-  const lockfile = await Lockfile.fromDirectory(config, config.cwd);
+  const lockfile = await Lockfile.fromDirectory(config.cwd);
   const install = new Install(flags, config, reporter, lockfile);
 
   // get patterns that are installed when running `yarn install`
@@ -183,7 +183,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
     return;
   }
 
-  const lockfile = await Lockfile.fromDirectory(config, config.cwd);
+  const lockfile = await Lockfile.fromDirectory(config.cwd);
   const install = new Install(flags, config, reporter, lockfile);
 
   function humaniseLocation(loc: string): Array<string> {

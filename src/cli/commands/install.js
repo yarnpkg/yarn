@@ -796,7 +796,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
   if (flags.lockfile === false) {
     lockfile = new Lockfile();
   } else {
-    lockfile = await Lockfile.fromDirectory(config, config.cwd, reporter);
+    lockfile = await Lockfile.fromDirectory(config.worktreeFolder || config.cwd, reporter);
   }
 
   if (args.length) {
