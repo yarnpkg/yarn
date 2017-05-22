@@ -20,11 +20,6 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
     throw new MessageError(reporter.lang('worktreeRootNotFound', config.cwd));
   }
 
-  const manifest = await config.findManifest(worktreeFolder, false);
-  invariant(manifest && manifest.workspaces, 'We must find a manifest with a "workspaces" property');
-
-  const workspaces = await config.resolveWorkspaces(worktreeFolder, manifest.workspaces);
-
   if (args.length < 1) {
     throw new MessageError(reporter.lang('worktreeMissingWorkspace'));
   }
@@ -32,6 +27,11 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
   if (args.length < 2) {
     throw new MessageError(reporter.lang('worktreeMissingCommand'));
   }
+
+  const manifest = await config.findManifest(worktreeFolder, false);
+  invariant(manifest && manifest.workspaces, 'We must find a manifest with a "workspaces" property');
+
+  const workspaces = await config.resolveWorkspaces(worktreeFolder, manifest.workspaces);
 
   const [workspaceName, ...rest] = args;
 
