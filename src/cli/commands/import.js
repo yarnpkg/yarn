@@ -276,7 +276,7 @@ export class Import extends Install {
     await verifyTreeCheck(this.config, this.reporter, {}, []);
     const {requests, patterns, manifest} = await this.fetchRequestFromCwd();
     await this.resolver.init(requests, this.flags.flat, manifest.name);
-    const manifests : Array<Manifest> = await fetcher.fetch(this.resolver.getManifests(), this.config);
+    const manifests: Array<Manifest> = await fetcher.fetch(this.resolver.getManifests(), this.config);
     this.resolver.updateManifests(manifests);
     await compatibility.check(this.resolver.getManifests(), this.config, this.flags.ignoreEngines);
     await this.linker.resolvePeerModules();

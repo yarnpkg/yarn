@@ -81,37 +81,41 @@ export async function fetch(pkgs: Array<Manifest>, config: Config): Promise<Arra
   });
   const tick = config.reporter.progress(pkgs.length);
 
-  return await promise.queue(pkgs, async pkg => {
-    const ref = pkg._reference;
-    if (!ref) {
-      return pkg;
-    }
-
-    const res = await maybeFetchOne(ref, config);
-    let newPkg;
-
-    if (res) {
-      newPkg = res.package;
-
-      // update with new remote
-      // but only if there was a hash previously as the tarball fetcher does not provide a hash.
-      if (ref.remote.hash) {
-        ref.remote.hash = res.hash;
+  return await promise.queue(
+    pkgs,
+    async pkg => {
+      const ref = pkg._reference;
+      if (!ref) {
+        return pkg;
       }
-    }
 
-    if (tick) {
-      tick(ref.name);
-    }
+      const res = await maybeFetchOne(ref, config);
+      let newPkg;
 
-    if (newPkg) {
-      newPkg._reference = ref;
-      newPkg._remote = ref.remote;
-      newPkg.name = pkg.name;
-      newPkg.fresh = pkg.fresh;
-      return newPkg;
-    }
+      if (res) {
+        newPkg = res.package;
 
-    return pkg;
-  }, config.networkConcurrency);
+        // update with new remote
+        // but only if there was a hash previously as the tarball fetcher does not provide a hash.
+        if (ref.remote.hash) {
+          ref.remote.hash = res.hash;
+        }
+      }
+
+      if (tick) {
+        tick(ref.name);
+      }
+
+      if (newPkg) {
+        newPkg._reference = ref;
+        newPkg._remote = ref.remote;
+        newPkg.name = pkg.name;
+        newPkg.fresh = pkg.fresh;
+        return newPkg;
+      }
+
+      return pkg;
+    },
+    config.networkConcurrency,
+  );
 }

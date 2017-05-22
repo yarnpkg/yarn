@@ -27,7 +27,7 @@ test('Produce valid remote type for a git private dep', async () => {
   const {request, reporter} = await prepareRequest(
     'private-dep@github:yarnpkg/private-dep#1.0.0',
     '1.0.0',
-    'git+ssh://git@github.com/yarnpkg/private-dep.git#d6c57894210c52be02da7859dbb5205feb85d8b0'
+    'git+ssh://git@github.com/yarnpkg/private-dep.git#d6c57894210c52be02da7859dbb5205feb85d8b0',
   );
 
   expect(request.getLocked('git')._remote.type).toBe('git');
@@ -40,7 +40,7 @@ test('Produce valid remote type for a git public dep', async () => {
   const {request, reporter} = await prepareRequest(
     'public-dep@yarnpkg/public-dep#1fde368',
     '1.0.0',
-    'https://codeload.github.com/yarnpkg/public-dep/tar.gz/1fde368'
+    'https://codeload.github.com/yarnpkg/public-dep/tar.gz/1fde368',
   );
 
   expect(request.getLocked('git')._remote.type).toBe('git');

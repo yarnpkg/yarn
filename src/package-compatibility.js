@@ -120,19 +120,14 @@ export function checkOne(info: Manifest, config: Config, ignoreEngines: boolean)
     }
   };
 
-  const invalidPlatform = !config.ignorePlatform &&
-    Array.isArray(info.os) &&
-    info.os.length > 0 &&
-    !isValidPlatform(info.os);
+  const invalidPlatform =
+    !config.ignorePlatform && Array.isArray(info.os) && info.os.length > 0 && !isValidPlatform(info.os);
 
   if (invalidPlatform) {
     pushError(reporter.lang('incompatibleOS', process.platform));
   }
 
-  const invalidCpu = !config.ignorePlatform &&
-    Array.isArray(info.cpu) &&
-    info.cpu.length > 0 &&
-    !isValidArch(info.cpu);
+  const invalidCpu = !config.ignorePlatform && Array.isArray(info.cpu) && info.cpu.length > 0 && !isValidArch(info.cpu);
 
   if (invalidCpu) {
     pushError(reporter.lang('incompatibleCPU', process.arch));

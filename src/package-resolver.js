@@ -281,7 +281,8 @@ export default class PackageResolver {
 
     invariant(
       collapseToReference && collapseToManifest && collapseToPattern,
-      `Couldn't find package manifest for ${human}`);
+      `Couldn't find package manifest for ${human}`,
+    );
 
     for (const pattern of patterns) {
       // don't touch the pattern we're collapsing to

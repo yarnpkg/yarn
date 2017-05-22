@@ -424,7 +424,7 @@ export class Install {
     steps.push(async (curr: number, total: number) => {
       this.markIgnored(ignorePatterns);
       this.reporter.step(curr, total, this.reporter.lang('fetchingPackages'), emoji.get('truck'));
-      const manifests : Array<Manifest> = await fetcher.fetch(this.resolver.getManifests(), this.config);
+      const manifests: Array<Manifest> = await fetcher.fetch(this.resolver.getManifests(), this.config);
       this.resolver.updateManifests(manifests);
       await compatibility.check(this.resolver.getManifests(), this.config, this.flags.ignoreEngines);
     });
@@ -684,7 +684,7 @@ export class Install {
 
     if (fetch) {
       // fetch packages, should hit cache most of the time
-      const manifests : Array<Manifest> = await fetcher.fetch(this.resolver.getManifests(), this.config);
+      const manifests: Array<Manifest> = await fetcher.fetch(this.resolver.getManifests(), this.config);
       this.resolver.updateManifests(manifests);
       await compatibility.check(this.resolver.getManifests(), this.config, this.flags.ignoreEngines);
 

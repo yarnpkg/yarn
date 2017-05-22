@@ -314,11 +314,13 @@ test.concurrent('--integrity --check-files should not die on broken symlinks', a
   );
 });
 
-test.concurrent('should ignore bundled dependencies',
-async (): Promise<void> => {
-  await runInstall({}, path.join('..', 'check', 'bundled-dep-check'),
-  async (config, reporter, install, getStdout): Promise<void> => {
-    await checkCmd.run(config, reporter, {}, []);
-    expect(getStdout().indexOf('warning')).toEqual(-1);
-  });
+test.concurrent('should ignore bundled dependencies', async (): Promise<void> => {
+  await runInstall(
+    {},
+    path.join('..', 'check', 'bundled-dep-check'),
+    async (config, reporter, install, getStdout): Promise<void> => {
+      await checkCmd.run(config, reporter, {}, []);
+      expect(getStdout().indexOf('warning')).toEqual(-1);
+    },
+  );
 });
