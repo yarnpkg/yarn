@@ -286,6 +286,10 @@ export default class Config {
     } else {
       this.production = !!opts.production;
     }
+
+    if (this.worktreeFolder && !this.workspacesExperimental) {
+      throw new MessageError(this.reporter.lang('worktreeExperimentalDisabled'));
+    }
   }
 
   _init(opts: ConfigOptions) {

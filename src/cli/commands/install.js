@@ -230,7 +230,7 @@ export class Install {
 
       const rootCwd = this.config.cwd;
       // if project has workspaces we aggreagate all dependences from workspaces into root
-      if (projectManifestJson.workspaces && this.config.workspacesExperimental) {
+      if (projectManifestJson.workspaces) {
         if (!projectManifestJson.private) {
           throw new MessageError(this.reporter.lang('workspacesRequirePrivateProjects'));
         }
