@@ -86,7 +86,9 @@ export default class NpmRegistry extends Registry {
   }
 
   async checkOutdated(config: Config, name: string, range: string): CheckOutdatedReturn {
-    const req = await this.request(NpmRegistry.escapeName(name));
+    const req = await this.request(NpmRegistry.escapeName(name), {
+      headers: {Accept: 'application/json'},
+    });
     if (!req) {
       throw new Error('couldnt find ' + name);
     }
