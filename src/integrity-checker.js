@@ -246,7 +246,7 @@ export default class InstallationIntegrityChecker {
     lockfile: {[key: string]: LockManifest},
     flags: IntegrityFlags): Promise<IntegrityCheckResult> {
     // check if patterns exist in lockfile
-    const missingPatterns = patterns.filter(p => !lockfile[p]);
+    const missingPatterns = patterns.filter((p) => !lockfile[p]);
 
     const loc = await this._getIntegrityHashLocation();
     if (missingPatterns.length || !loc.exists) {
