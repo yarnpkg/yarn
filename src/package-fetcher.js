@@ -18,7 +18,8 @@ async function fetchCache(dest: string, fetcher: Fetchers, config: Config): Prom
     dest,
     cached: true,
   };
-} 
+}
+
 async function fetchOne(ref: PackageReference, config: Config): Promise<FetchedMetadata> {
   const dest = config.generateHardModulePath(ref);
 
@@ -37,7 +38,7 @@ async function fetchOne(ref: PackageReference, config: Config): Promise<FetchedM
   await fs.unlink(dest);
 
   try {
-    return await fetcher.fetch();
+    return fetcher.fetch();
   } catch (err) {
     try {
       await fs.unlink(dest);
