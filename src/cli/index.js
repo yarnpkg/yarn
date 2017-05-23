@@ -155,11 +155,12 @@ if (command.requireLockfile && !fs.existsSync(path.join(config.cwd, constants.LO
 //
 const run = (): Promise<void> => {
   invariant(command, 'missing command');
-  return command.run(config, reporter, commander, commander.args).then(() => {
+  return command.run(config, reporter, commander, commander.args).then(exitCode => {
     reporter.close();
     if (outputWrapper) {
       reporter.footer(false);
     }
+    return exitCode;
   });
 };
 
@@ -314,8 +315,8 @@ config
       reporter.disableProgress();
     }
 
-    const exit = () => {
-      process.exit(0);
+    const exit = exitCode => {
+      process.exit(exitCode || 0);
     };
     // verbose logs outputs process.uptime() with this line we can sync uptime to absolute time on the computer
     reporter.verbose(`current time: ${new Date().toISOString()}`);
