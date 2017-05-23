@@ -758,3 +758,14 @@ test.concurrent('bailout should work with --production flag too', (): Promise<vo
     expect(await fs.exists(path.join(config.cwd, 'node_modules', 'left-pad', 'index.js'))).toBe(false);
   });
 });
+
+test.concurrent('package version resolve should be deterministic', (): Promise<void> => {
+  // Scenario:
+  // graceful-fs will install two versions, from @4.1.10 and @^4.1.11. The pattern @^4.1.2 would sometimes resolve
+  // to 4.1.10, if @^4.1.11 hadn't been processed before. Otherwise it would resolve to the result of @^4.1.11.
+  // Run an independent install and check, and see they have different results for @^4.1.2 - won't always see
+  // the bug, but its the best we can do without creating mock registry with controlled timing of responses.
+  return runInstall({}, 'install-deterministic-versions', async (config, reporter) => {
+    await check(config, reporter, {integrity: true}, []);
+  });
+});
