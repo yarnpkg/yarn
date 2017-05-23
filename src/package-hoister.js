@@ -127,7 +127,10 @@ export default class PackageHoister {
    * Seed the hoister with a specific pattern.
    */
 
-  _seed(pattern: string, {isDirectRequire, parent}: {isDirectRequire: boolean, parent?: HoistManifest}): ?HoistManifest {
+  _seed(
+    pattern: string,
+    {isDirectRequire, parent}: {isDirectRequire: boolean, parent?: HoistManifest},
+  ): ?HoistManifest {
     //
     const pkg = this.resolver.getStrictResolvedPattern(pattern);
     const ref = pkg._reference;
