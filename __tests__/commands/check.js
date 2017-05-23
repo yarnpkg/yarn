@@ -10,6 +10,8 @@ import * as fs from '../../src/util/fs.js';
 
 const path = require('path');
 
+jasmine.DEFAULT_TIMEOUT_INTERVAL = 150000;
+
 const fixturesLoc = path.join(__dirname, '..', 'fixtures', 'check');
 
 const runCheck = buildRun.bind(
@@ -286,6 +288,20 @@ test.concurrent('--integrity should create the integrity file under the meta fol
     async (config, reporter, install, getStdout): Promise<void> => {
       await checkCmd.run(config, reporter, {integrity: true}, []);
       expect(await fs.exists(path.join(config.cwd, '.yarn-meta', '.yarn-integrity'))).toEqual(true);
+    },
+  );
+});
+
+test.concurrent('--check-files should register the right entries even when using the meta folder', async (): Promise<
+  void,
+> => {
+  await runInstall(
+    {checkFiles: true},
+    path.join('..', 'check', 'integrity-meta-folder'),
+    async (config, reporter, install, getStdout): Promise<void> => {
+      const integrityFilePath = path.join(config.cwd, '.yarn-meta', '.yarn-integrity');
+      const integrityFile = JSON.parse(await fs.readFile(integrityFilePath));
+      expect(integrityFile.files.length).toBeGreaterThan(0);
     },
   );
 });

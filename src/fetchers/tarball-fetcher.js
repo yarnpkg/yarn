@@ -122,7 +122,7 @@ export default class TarballFetcher extends BaseFetcher {
       const {validateStream, extractorStream} = this.createExtractor(resolve, reject, tarballPath);
       const cachedStream = fs.createReadStream(tarballPath);
 
-      cachedStream.pipe(validateStream).pipe(extractorStream).on('error', function(err) {
+      cachedStream.pipe(validateStream).pipe(extractorStream).on('error', err => {
         reject(new MessageError(this.config.reporter.lang('fetchErrorCorrupt', err.message, tarballPath)));
       });
     });
