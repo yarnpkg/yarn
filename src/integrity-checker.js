@@ -61,6 +61,36 @@ export default class InstallationIntegrityChecker {
 
   config: Config;
 
+  async _getModuleLocation(usedRegistries?: Set<RegistryNames>): Promise<string> {
+    // build up possible folders
+    let registries = registryNames;
+    if (usedRegistries && usedRegistries.size > 0) {
+      registries = usedRegistries;
+    }
+    const possibleFolders = [];
+    if (this.config.modulesFolder) {
+      possibleFolders.push(this.config.modulesFolder);
+    }
+
+    // ensure we only write to a registry folder that was used
+    for (const name of registries) {
+      const loc = path.join(this.config.cwd, this.config.registries[name].folder);
+      possibleFolders.push(loc);
+    }
+
+    // if we already have an integrity hash in one of these folders then use it's location otherwise use the
+    // first folder
+    let loc;
+    for (const possibleLoc of possibleFolders) {
+      if (await fs.exists(path.join(possibleLoc, constants.INTEGRITY_FILENAME))) {
+        loc = possibleLoc;
+        break;
+      }
+    }
+
+    return loc || possibleFolders[0];
+  }
+
   /**
    * Get the location of an existing integrity hash. If none exists then return the location where we should
    * write a new one.
@@ -72,32 +102,7 @@ export default class InstallationIntegrityChecker {
     if (this.config.enableMetaFolder) {
       locationFolder = path.join(this.config.cwd, constants.META_FOLDER);
     } else {
-      // build up possible folders
-      let registries = registryNames;
-      if (usedRegistries && usedRegistries.size > 0) {
-        registries = usedRegistries;
-      }
-      const possibleFolders = [];
-      if (this.config.modulesFolder) {
-        possibleFolders.push(this.config.modulesFolder);
-      }
-
-      // ensure we only write to a registry folder that was used
-      for (const name of registries) {
-        const loc = path.join(this.config.cwd, this.config.registries[name].folder);
-        possibleFolders.push(loc);
-      }
-
-      // if we already have an integrity hash in one of these folders then use it's location otherwise use the
-      // first folder
-      let loc;
-      for (const possibleLoc of possibleFolders) {
-        if (await fs.exists(path.join(possibleLoc, constants.INTEGRITY_FILENAME))) {
-          loc = possibleLoc;
-          break;
-        }
-      }
-      locationFolder = loc || possibleFolders[0];
+      locationFolder = await this._getModuleLocation(usedRegistries);
     }
 
     const locationPath = path.join(locationFolder, constants.INTEGRITY_FILENAME);
@@ -241,6 +246,7 @@ export default class InstallationIntegrityChecker {
   ): Promise<IntegrityCheckResult> {
     // check if patterns exist in lockfile
     const missingPatterns = patterns.filter(p => !lockfile[p]);
+
     const loc = await this._getIntegrityHashLocation();
     if (missingPatterns.length || !loc.exists) {
       return {
@@ -253,7 +259,7 @@ export default class InstallationIntegrityChecker {
       lockfile,
       patterns,
       Object.assign({}, flags, {checkFiles: false}), // don't generate files when checking, we check the files below
-      loc.locationFolder,
+      await this._getModuleLocation(),
     );
     const expected = await this._getIntegrityFile(loc.locationPath);
     const integrityMatches = await this._compareIntegrityFiles(actual, expected, flags.checkFiles, loc.locationFolder);
@@ -296,10 +302,13 @@ export default class InstallationIntegrityChecker {
     usedRegistries?: Set<RegistryNames>,
     artifacts: InstallArtifacts,
   ): Promise<void> {
+    const moduleFolder = await this._getModuleLocation(usedRegistries);
+    const integrityFile = await this._generateIntegrityFile(lockfile, patterns, flags, moduleFolder, artifacts);
+
     const loc = await this._getIntegrityHashLocation(usedRegistries);
     invariant(loc.locationPath, 'expected integrity hash location');
+
     await fs.mkdirp(path.dirname(loc.locationPath));
-    const integrityFile = await this._generateIntegrityFile(lockfile, patterns, flags, loc.locationFolder, artifacts);
     await fs.writeFile(loc.locationPath, JSON.stringify(integrityFile, null, 2));
   }
 
