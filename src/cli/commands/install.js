@@ -660,7 +660,7 @@ export class Install {
     }
 
     // build lockfile location
-    const loc = path.join(this.config.worktreeFolder || this.config.cwd, constants.LOCKFILE_FILENAME);
+    const loc = path.join(this.config.lockfileFolder, constants.LOCKFILE_FILENAME);
 
     // write lockfile
     const lockSource = lockStringify(lockfileBasedOnResolver, false, this.config.disableLockfileVersions);
@@ -796,7 +796,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
   if (flags.lockfile === false) {
     lockfile = new Lockfile();
   } else {
-    lockfile = await Lockfile.fromDirectory(config.worktreeFolder || config.cwd, reporter);
+    lockfile = await Lockfile.fromDirectory(config.lockfileFolder, reporter);
   }
 
   if (args.length) {

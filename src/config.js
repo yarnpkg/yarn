@@ -147,6 +147,7 @@ export default class Config {
   //
   cwd: string;
   worktreeFolder: ?string;
+  lockfileFolder: string;
 
   //
   registries: ConfigRegistries;
@@ -201,6 +202,7 @@ export default class Config {
     this._init(opts);
 
     this.worktreeFolder = await this.findWorktree(this.cwd);
+    this.lockfileFolder = this.worktreeFolder || this.cwd;
 
     await fs.mkdirp(this.globalFolder);
     await fs.mkdirp(this.linkFolder);
