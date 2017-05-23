@@ -1,6 +1,9 @@
 /* @flow */
 
 import {getPackageVersion, runInstall} from '../_helpers.js';
+import * as fs from '../../../src/util/fs.js';
+
+const path = require('path');
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 120000;
 
@@ -13,3 +16,13 @@ test.concurrent('install hoister should prioritise popular transitive dependenci
     expect(await getPackageVersion(config, 'a/b')).toEqual('0.0.0');
   });
 });
+
+test.concurrent(
+  'install hoister should not install prioritised popular transitive devDependencies in --prod mode',
+  (): Promise<void> => {
+    return runInstall({production: true}, 'install-prod-prioritized-popular-transitive-dev-dep', async config => {
+      expect(await fs.exists(path.join(config.cwd, 'node_modules', 'a'))).toEqual(false);
+      expect(await fs.exists(path.join(config.cwd, 'node_modules', 'b'))).toEqual(false);
+    });
+  },
+);
