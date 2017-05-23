@@ -14,34 +14,39 @@ const fs = require('fs');
 
 const babelRc = JSON.parse(fs.readFileSync(path.join(__dirname, '.babelrc'), 'utf8'));
 
-function build(lib, opts) {
-  return gulp.src('src/**/*')
-    .pipe(plumber({
-      errorHandler(err) {
-        gutil.log(err.stack);
-      },
-    }))
-    .pipe(newer(lib))
-    .pipe(gulpif(argv.sourcemaps, sourcemaps.init()))
-    .pipe(babel(opts))
-    .pipe(gulpif(argv.sourcemaps, sourcemaps.write('.')))
-    .pipe(gulp.dest(lib));
-}
+const build = (lib, opts) =>
+  gulp.src('src/**/*')
+      .pipe(plumber({
+        errorHandler(err) {
+          gutil.log(err.stack);
+        },
+      }))
+      .pipe(newer(lib))
+      .pipe(gulpif(argv.sourcemaps, sourcemaps.init()))
+      .pipe(babel(opts))
+      .pipe(gulpif(argv.sourcemaps, sourcemaps.write('.')))
+      .pipe(gulp.dest(lib));
 
 gulp.task('default', ['build']);
 
 gulp.task('build', ['build-modern', 'build-legacy']);
 
-gulp.task('build-modern', () => {
-  return build('lib', babelRc.env.node5);
-});
+gulp.task('build-modern', () =>
+  build('lib', babelRc.env.node5)
+);
 
-gulp.task('build-legacy', () => {
-  return build('lib-legacy', babelRc.env['pre-node5']);
-});
+gulp.task('build-legacy', () =>
+  build('lib-legacy', babelRc.env['pre-node5'])
+);
 
 gulp.task('watch', ['build'], () => {
   watch('src/**/*', () => {
     gulp.start('build');
+  });
+});
+
+gulp.task('watch-modern', ['build-modern'], () => {
+  watch('src/**/*', () => {
+    gulp.start('build-modern');
   });
 });
