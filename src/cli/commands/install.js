@@ -614,10 +614,11 @@ export class Install {
       }
     }
 
-    const mirrorTarballs = await fs.walk(mirror);
-    for (const tarball of mirrorTarballs) {
-      if (!requiredTarballs.has(tarball.basename)) {
-        await fs.unlink(tarball.absolute);
+    const mirrorFiles = await fs.walk(mirror);
+    for (const file of mirrorFiles) {
+      const isTarball = path.extname(file.basename) === '.tgz';
+      if (isTarball && !requiredTarballs.has(file.basename)) {
+        await fs.unlink(file.absolute);
       }
     }
   }
