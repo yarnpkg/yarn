@@ -35,8 +35,8 @@ function getTempGlobalFolder(): string {
   return path.join(os.tmpdir(), `yarn-global-${Math.random()}`);
 }
 
-async function createTempGlobalFolder(): Promise<string> {
-  return await mkdir('yarn-global');
+function createTempGlobalFolder(): Promise<string> {
+  return mkdir('yarn-global');
 }
 
 async function createTempPrefixFolder(): Promise<string> {

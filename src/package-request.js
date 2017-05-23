@@ -215,12 +215,12 @@ export default class PackageRequest {
    * the registry.
    */
 
-  async findVersionInfo(): Promise<Manifest> {
+  findVersionInfo(): Promise<Manifest> {
     const exoticResolver = PackageRequest.getExoticResolver(this.pattern);
     if (exoticResolver) {
-      return await this.findExoticVersionInfo(exoticResolver, this.pattern);
+      return this.findExoticVersionInfo(exoticResolver, this.pattern);
     } else {
-      return await this.findVersionOnRegistry(this.pattern);
+      return this.findVersionOnRegistry(this.pattern);
     }
   }
 

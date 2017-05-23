@@ -586,9 +586,9 @@ export default class Config {
    * of a syntax error.
    */
 
-  async readJson(loc: string, factory: (filename: string) => Promise<Object> = fs.readJson): Promise<Object> {
+  readJson(loc: string, factory: (filename: string) => Promise<Object> = fs.readJson): Promise<Object> {
     try {
-      return await factory(loc);
+      return factory(loc);
     } catch (err) {
       if (err instanceof SyntaxError) {
         throw new MessageError(this.reporter.lang('jsonError', loc, err.message));
