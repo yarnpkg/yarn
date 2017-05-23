@@ -718,7 +718,7 @@ test.concurrent('should install if symlink source does not exist', async (): Pro
   await runInstall({}, 'relative-symlinks-work', () => {});
 });
 
-test.concurrent('prunes the offline mirror after pruning is enabled', (): Promise<void> => {
+test.concurrent('prunes the offline mirror tarballs after pruning is enabled', (): Promise<void> => {
   return runInstall({}, 'prune-offline-mirror', async (config): Promise<void> => {
     const mirrorPath = 'mirror-for-offline';
     // Scenario:
@@ -728,6 +728,7 @@ test.concurrent('prunes the offline mirror after pruning is enabled', (): Promis
     // so the next install should remove dep-a-1.0.0.tgz and dep-b-1.0.0.tgz.
     expect(await fs.exists(path.join(config.cwd, `${mirrorPath}/dep-a-1.0.0.tgz`))).toEqual(false);
     expect(await fs.exists(path.join(config.cwd, `${mirrorPath}/dep-b-1.0.0.tgz`))).toEqual(false);
+    expect(await fs.exists(path.join(config.cwd, `${mirrorPath}/dummy.txt`))).toEqual(true);
   });
 });
 
