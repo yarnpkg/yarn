@@ -62,7 +62,7 @@ async function maybeFetchOne(ref: PackageReference, config: Config): Promise<?Fe
   }
 }
 
-export async function fetch(pkgs: Array<Manifest>, config: Config): Promise<Array<Manifest>> {
+export function fetch(pkgs: Array<Manifest>, config: Config): Promise<Array<Manifest>> {
   const pkgsPerDest: Map<string, PackageReference> = new Map();
   pkgs = pkgs.filter(pkg => {
     const ref = pkg._reference;
@@ -82,7 +82,7 @@ export async function fetch(pkgs: Array<Manifest>, config: Config): Promise<Arra
   });
   const tick = config.reporter.progress(pkgs.length);
 
-  return await promise.queue(
+  return promise.queue(
     pkgs,
     async pkg => {
       const ref = pkg._reference;
