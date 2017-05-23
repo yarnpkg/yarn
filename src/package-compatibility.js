@@ -1,7 +1,5 @@
 /* @flow */
 
-import type PackageResolver from './package-resolver.js';
-import type {Reporter} from './reporters/index.js';
 import type {Manifest} from './types.js';
 import type Config from './config.js';
 import {MessageError} from './errors.js';
@@ -89,99 +87,78 @@ export function testEngine(name: string, range: string, versions: Versions, loos
   return false;
 }
 
-export default class PackageCompatibility {
-  constructor(config: Config, resolver: PackageResolver, ignoreEngines: boolean) {
-    this.reporter = config.reporter;
-    this.resolver = resolver;
-    this.config = config;
-    this.ignoreEngines = ignoreEngines;
-  }
+function isValidArch(archs: Array<string>): boolean {
+  return isValid(archs, process.arch);
+}
 
-  resolver: PackageResolver;
-  reporter: Reporter;
-  config: Config;
-  ignoreEngines: boolean;
+function isValidPlatform(platforms: Array<string>): boolean {
+  return isValid(platforms, process.platform);
+}
 
-  static isValidArch(archs: Array<string>): boolean {
-    return isValid(archs, process.arch);
-  }
+export function checkOne(info: Manifest, config: Config, ignoreEngines: boolean) {
+  let didIgnore = false;
+  let didError = false;
+  const reporter = config.reporter;
+  const human = `${info.name}@${info.version}`;
 
-  static isValidPlatform(platforms: Array<string>): boolean {
-    return isValid(platforms, process.platform);
-  }
+  const pushError = msg => {
+    const ref = info._reference;
+    invariant(ref, 'expected package reference');
 
-  check(info: Manifest) {
-    let didIgnore = false;
-    let didError = false;
-    const reporter = this.reporter;
-    const human = `${info.name}@${info.version}`;
+    if (ref.optional) {
+      ref.ignore = true;
+      ref.incompatible = true;
 
-    const pushError = msg => {
-      const ref = info._reference;
-      invariant(ref, 'expected package reference');
-
-      if (ref.optional) {
-        ref.ignore = true;
-        ref.incompatible = true;
-
-        reporter.warn(`${human}: ${msg}`);
-        if (!didIgnore) {
-          reporter.info(reporter.lang('optionalCompatibilityExcluded', human));
-          didIgnore = true;
-        }
-      } else {
-        reporter.error(`${human}: ${msg}`);
-        didError = true;
+      reporter.warn(`${human}: ${msg}`);
+      if (!didIgnore) {
+        reporter.info(reporter.lang('optionalCompatibilityExcluded', human));
+        didIgnore = true;
       }
-    };
-
-    const invalidPlatform =
-      !this.config.ignorePlatform &&
-      Array.isArray(info.os) &&
-      info.os.length > 0 &&
-      !PackageCompatibility.isValidPlatform(info.os);
-    if (invalidPlatform) {
-      pushError(this.reporter.lang('incompatibleOS', process.platform));
+    } else {
+      reporter.error(`${human}: ${msg}`);
+      didError = true;
     }
+  };
 
-    const invalidCpu =
-      !this.config.ignorePlatform &&
-      Array.isArray(info.cpu) &&
-      info.cpu.length > 0 &&
-      !PackageCompatibility.isValidArch(info.cpu);
-    if (invalidCpu) {
-      pushError(this.reporter.lang('incompatibleCPU', process.arch));
-    }
+  const invalidPlatform =
+    !config.ignorePlatform && Array.isArray(info.os) && info.os.length > 0 && !isValidPlatform(info.os);
 
-    if (!this.ignoreEngines && typeof info.engines === 'object') {
-      for (const entry of entries(info.engines)) {
-        let name = entry[0];
-        const range = entry[1];
+  if (invalidPlatform) {
+    pushError(reporter.lang('incompatibleOS', process.platform));
+  }
 
-        if (aliases[name]) {
-          name = aliases[name];
+  const invalidCpu = !config.ignorePlatform && Array.isArray(info.cpu) && info.cpu.length > 0 && !isValidArch(info.cpu);
+
+  if (invalidCpu) {
+    pushError(reporter.lang('incompatibleCPU', process.arch));
+  }
+
+  if (!ignoreEngines && typeof info.engines === 'object') {
+    for (const entry of entries(info.engines)) {
+      let name = entry[0];
+      const range = entry[1];
+
+      if (aliases[name]) {
+        name = aliases[name];
+      }
+
+      if (VERSIONS[name]) {
+        if (!testEngine(name, range, VERSIONS, config.looseSemver)) {
+          pushError(reporter.lang('incompatibleEngine', name, range));
         }
-
-        if (VERSIONS[name]) {
-          if (!testEngine(name, range, VERSIONS, this.config.looseSemver)) {
-            pushError(this.reporter.lang('incompatibleEngine', name, range));
-          }
-        } else if (ignore.indexOf(name) < 0) {
-          this.reporter.warn(`${human}: ${this.reporter.lang('invalidEngine', name)}`);
-        }
+      } else if (ignore.indexOf(name) < 0) {
+        reporter.warn(`${human}: ${reporter.lang('invalidEngine', name)}`);
       }
     }
-
-    if (didError) {
-      throw new MessageError(reporter.lang('foundIncompatible'));
-    }
   }
 
-  init(): Promise<void> {
-    const infos = this.resolver.getManifests();
-    for (const info of infos) {
-      this.check(info);
-    }
-    return Promise.resolve();
+  if (didError) {
+    throw new MessageError(reporter.lang('foundIncompatible'));
+  }
+}
+
+export function check(infos: Array<Manifest>, config: Config, ignoreEngines: boolean) {
+  for (const info of infos) {
+    checkOne(info, config, ignoreEngines);
   }
 }

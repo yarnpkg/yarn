@@ -92,7 +92,7 @@
     "build-dist": "bash ./scripts/build-dist.sh",
     "build-win-installer": "scripts\\build-windows-installer.bat",
     "check-lockfile": "./scripts/check-lockfile.sh",
-    "lint": "yarn run prettier && eslint . && flow check",
+    "lint": "yarn run lint-prettier && eslint . && flow check",
     "lint-prettier": "node scripts/prettier.js lint",
     "prettier": "node scripts/prettier.js write",
     "release-branch": "./scripts/release-branch.sh",

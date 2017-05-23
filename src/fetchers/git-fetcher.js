@@ -91,7 +91,6 @@ export default class GitFetcher extends BaseFetcher {
         .pipe(hashStream)
         .pipe(untarStream)
         .on('finish', () => {
-
           const expectHash = this.hash;
           const actualHash = hashStream.getHash();
 
@@ -104,7 +103,6 @@ export default class GitFetcher extends BaseFetcher {
           } else {
             reject(new SecurityError(this.reporter.lang('fetchBadHash', expectHash, actualHash)));
           }
-
         })
         .on('error', function(err) {
           reject(new MessageError(this.reporter.lang('fetchErrorCorrupt', err.message, tarballPath)));

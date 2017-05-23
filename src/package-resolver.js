@@ -19,7 +19,6 @@ export default class PackageResolver {
     this.patternsByPackage = map();
     this.fetchingPatterns = map();
     this.fetchingQueue = new BlockingQueue('resolver fetching');
-    this.newPatterns = [];
     this.patterns = map();
     this.usedRegistries = new Set();
     this.flat = false;
@@ -47,15 +46,8 @@ export default class PackageResolver {
     [key: string]: true,
   };
 
-  // new patterns that didn't exist in the lockfile
-  newPatterns: Array<string>;
-
   // TODO
   fetchingQueue: BlockingQueue;
-
-  // these are patterns that the package resolver was seeded with. these are required in
-  // order to resolve top level peerDependencies
-  seedPatterns: Array<string>;
 
   // manages and throttles json api http requests
   requestManager: RequestManager;
@@ -88,12 +80,8 @@ export default class PackageResolver {
    */
 
   isNewPattern(pattern: string): boolean {
-    return this.newPatterns.indexOf(pattern) >= 0;
+    return !!this.patterns[pattern].fresh;
   }
-
-  /**
-   * TODO description
-   */
 
   updateManifest(ref: PackageReference, newPkg: Manifest): Promise<void> {
     // inherit fields
@@ -101,10 +89,23 @@ export default class PackageResolver {
     newPkg._reference = ref;
     newPkg._remote = ref.remote;
     newPkg.name = oldPkg.name;
+    newPkg.fresh = oldPkg.fresh;
 
     // update patterns
     for (const pattern of ref.patterns) {
       this.patterns[pattern] = newPkg;
+    }
+
+    return Promise.resolve();
+  }
+
+  updateManifests(newPkgs: Array<Manifest>): Promise<void> {
+    for (const newPkg of newPkgs) {
+      if (newPkg._reference) {
+        for (const pattern of newPkg._reference.patterns) {
+          this.patterns[pattern] = newPkg;
+        }
+      }
     }
 
     return Promise.resolve();
@@ -228,23 +229,6 @@ export default class PackageResolver {
   }
 
   /**
-   * Get a flat list of all package references.
-   */
-
-  getPackageReferences(): Array<PackageReference> {
-    const refs = [];
-
-    for (const manifest of this.getManifests()) {
-      const ref = manifest._reference;
-      if (ref) {
-        refs.push(ref);
-      }
-    }
-
-    return refs;
-  }
-
-  /**
    * Get a flat list of all package info.
    */
 
@@ -274,7 +258,6 @@ export default class PackageResolver {
     const ref = pkg._reference;
     invariant(ref, 'expected package reference');
     ref.patterns = [newPattern];
-    this.newPatterns.splice(this.newPatterns.indexOf(pattern), 1, newPattern);
     this.addPattern(newPattern, pkg);
     this.removePattern(pattern);
   }
@@ -300,6 +283,7 @@ export default class PackageResolver {
         break;
       }
     }
+
     invariant(
       collapseToReference && collapseToManifest && collapseToPattern,
       `Couldn't find package manifest for ${human}`,
@@ -440,9 +424,8 @@ export default class PackageResolver {
     }
 
     const lockfileEntry = this.lockfile.getLocked(req.pattern);
-    if (!lockfileEntry) {
-      this.newPatterns.push(req.pattern);
-    } else {
+    let fresh = false;
+    if (lockfileEntry) {
       const {range, hasVersion} = PackageRequest.normalizePattern(req.pattern);
       // lockfileEntry is incorrect, remove it from lockfile cache and consider the pattern as new
       if (
@@ -454,13 +437,15 @@ export default class PackageResolver {
       ) {
         this.reporter.warn(this.reporter.lang('incorrectLockfileEntry', req.pattern));
         this.removePattern(req.pattern);
-        this.newPatterns.push(req.pattern);
         this.lockfile.removePattern(req.pattern);
+        fresh = true;
       }
+    } else {
+      fresh = true;
     }
 
     const request = new PackageRequest(req, this);
-    await request.find();
+    await request.find(fresh);
   }
 
   /**
@@ -469,14 +454,7 @@ export default class PackageResolver {
 
   async init(deps: DependencyRequestPatterns, isFlat: boolean): Promise<void> {
     this.flat = isFlat;
-
-    //
     const activity = (this.activity = this.reporter.activity());
-
-    //
-    this.seedPatterns = deps.map((dep): string => dep.pattern);
-
-    //
     await Promise.all(deps.map((req): Promise<void> => this.find(req)));
 
     // all required package versions have been discovered, so now packages that

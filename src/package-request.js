@@ -249,14 +249,15 @@ export default class PackageRequest {
   /**
    * TODO description
    */
-
-  async find(): Promise<void> {
+  async find(fresh: boolean): Promise<void> {
     // find version info for this package pattern
     const info: ?Manifest = await this.findVersionInfo();
+
     if (!info) {
       throw new MessageError(this.reporter.lang('unknownPackage', this.pattern));
     }
 
+    info.fresh = fresh;
     cleanDependencies(info, false, this.reporter, () => {
       // swallow warnings
     });

@@ -328,9 +328,11 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
         const packageName = packagePath[1] || packageJson.name;
 
         const bundledDep = bundledDeps[rootDep] && bundledDeps[rootDep].includes(packageName);
-        if (!bundledDep && (packageJson.version === depPkg.version ||
-        (semver.satisfies(packageJson.version, range, config.looseSemver) &&
-          semver.gt(packageJson.version, depPkg.version, config.looseSemver)))
+        if (
+          !bundledDep &&
+          (packageJson.version === depPkg.version ||
+            (semver.satisfies(packageJson.version, range, config.looseSemver) &&
+              semver.gt(packageJson.version, depPkg.version, config.looseSemver)))
         ) {
           reporter.warn(
             reporter.lang(
