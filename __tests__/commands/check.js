@@ -10,6 +10,8 @@ import * as fs from '../../src/util/fs.js';
 
 const path = require('path');
 
+jasmine.DEFAULT_TIMEOUT_INTERVAL = 150000;
+
 const fixturesLoc = path.join(__dirname, '..', 'fixtures', 'check');
 
 const runCheck = buildRun.bind(
