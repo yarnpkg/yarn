@@ -226,30 +226,30 @@ export class Install {
 
       const rootCwd = this.config.cwd;
       // if project has workspaces we aggreagate all dependences from workspaces into root
-      if (projectManifestJson.workspaces && this.config.workspacesExperimental) {
+      if (projectManifestJson.workspaces) {
         if (!projectManifestJson.private) {
           throw new MessageError(this.reporter.lang('workspacesRequirePrivateProjects'));
         }
-        for (const workspace of projectManifestJson.workspaces) {
-          for (const workspaceLoc of await fs.glob(path.join(rootCwd, workspace, filename))) {
-            const workspaceCwd = path.dirname(workspaceLoc);
-            const workspaceJson: Manifest = await this.config.readJson(workspaceLoc);
-            await normalizeManifest(workspaceJson, workspaceCwd, this.config, true);
-            for (const type of ['dependencies', 'devDependencies', 'optionalDependencies']) {
-              if (workspaceJson[type]) {
-                for (const key in workspaceJson[type]) {
-                  if (
-                    projectManifestJson[type] &&
-                    projectManifestJson[type][key] &&
-                    projectManifestJson[type][key] !== workspaceJson[type][key]
-                  ) {
-                    // TODO conflicts should still be installed inside workspaces' folders
-                    throw new MessageError(
-                      this.reporter.lang('workspacesIncompatibleDependencies', key, workspaceCwd, rootCwd),
-                    );
-                  }
-                  projectManifestJson[type][key] = workspaceJson[type][key];
+        const workspaces = await this.config.resolveWorkspaces(path.dirname(loc), projectManifestJson.workspaces);
+        const workspaceEntries = Object.keys(workspaces).map(name => workspaces[name]);
+        for (const {loc: workspaceLoc, manifest: workspaceManifest} of workspaceEntries) {
+          for (const type of ['dependencies', 'devDependencies', 'optionalDependencies']) {
+            if (workspaceManifest[type]) {
+              for (const key of Object.keys(workspaceManifest[type])) {
+                if (
+                  projectManifestJson[type] &&
+                  projectManifestJson[type][key] &&
+                  projectManifestJson[type][key] !== workspaceManifest[type][key]
+                ) {
+                  // TODO conflicts should still be installed inside workspaces' folders
+                  throw new MessageError(
+                    this.reporter.lang('workspacesIncompatibleDependencies', key, workspaceLoc, rootCwd),
+                  );
                 }
+                if (!projectManifestJson[type]) {
+                  projectManifestJson[type] = {};
+                }
+                projectManifestJson[type][key] = workspaceManifest[type][key];
               }
             }
           }
@@ -658,7 +658,7 @@ export class Install {
     }
 
     // build lockfile location
-    const loc = path.join(this.config.cwd, constants.LOCKFILE_FILENAME);
+    const loc = path.join(this.config.lockfileFolder, constants.LOCKFILE_FILENAME);
 
     // write lockfile
     const lockSource = lockStringify(lockfileBasedOnResolver, false, this.config.disableLockfileVersions);
@@ -795,7 +795,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
   if (flags.lockfile === false) {
     lockfile = new Lockfile();
   } else {
-    lockfile = await Lockfile.fromDirectory(config.cwd, reporter);
+    lockfile = await Lockfile.fromDirectory(config.lockfileFolder, reporter);
   }
 
   if (args.length) {

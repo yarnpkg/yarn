@@ -2,8 +2,15 @@
 
 import {ConsoleReporter} from '../../src/reporters/index.js';
 import * as reporters from '../../src/reporters/index.js';
-import {getPackageVersion, createLockfile, explodeLockfile, run as buildRun, runInstall} from './_helpers.js';
-import {Add} from '../../src/cli/commands/add.js';
+import {
+  getPackageVersion,
+  createLockfile,
+  explodeLockfile,
+  run as buildRun,
+  runInstall,
+  makeConfigFromDirectory,
+} from './_helpers.js';
+import {Add, run as add} from '../../src/cli/commands/add.js';
 import * as constants from '../../src/constants.js';
 import {parse} from '../../src/lockfile/wrapper.js';
 import {Install} from '../../src/cli/commands/install.js';
@@ -18,6 +25,7 @@ import inquirer from 'inquirer';
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 150000;
 
 const path = require('path');
+const stream = require('stream');
 
 const fixturesLoc = path.join(__dirname, '..', 'fixtures', 'add');
 
@@ -33,6 +41,32 @@ const runAdd = buildRun.bind(
     return add;
   },
 );
+
+test.concurrent('adds any new package to the current workspace, but install from the worktree', async () => {
+  await runInstall({}, 'simple-worktree', async (config): Promise<void> => {
+    const inOut = new stream.PassThrough();
+    const reporter = new reporters.JSONReporter({stdout: inOut});
+
+    expect(await fs.exists(`${config.cwd}/node_modules/left-pad`)).toEqual(false);
+    expect(await fs.exists(`${config.cwd}/packages/package-a/node_modules/left-pad`)).toEqual(false);
+
+    await add(await makeConfigFromDirectory(`${config.cwd}/packages/package-a`, reporter), reporter, {}, ['left-pad']);
+
+    expect(await fs.exists(`${config.cwd}/node_modules/left-pad`)).toEqual(true);
+    expect(await fs.exists(`${config.cwd}/packages/package-a/node_modules/left-pad`)).toEqual(false);
+
+    expect(await fs.exists(`${config.cwd}/yarn.lock`)).toEqual(true);
+    expect(await fs.exists(`${config.cwd}/packages/package-a/yarn.lock`)).toEqual(false);
+
+    await add(await makeConfigFromDirectory(`${config.cwd}/packages/package-b`, reporter), reporter, {}, ['right-pad']);
+
+    expect(await fs.exists(`${config.cwd}/node_modules/right-pad`)).toEqual(true);
+    expect(await fs.exists(`${config.cwd}/packages/package-b/node_modules/right-pad`)).toEqual(false);
+
+    expect(await fs.exists(`${config.cwd}/yarn.lock`)).toEqual(true);
+    expect(await fs.exists(`${config.cwd}/packages/package-b/yarn.lock`)).toEqual(false);
+  });
+});
 
 test.concurrent('install with arg', (): Promise<void> => {
   return runAdd(['is-online'], {}, 'install-with-arg');

@@ -100,7 +100,7 @@ export default class InstallationIntegrityChecker {
     let locationFolder;
 
     if (this.config.enableMetaFolder) {
-      locationFolder = path.join(this.config.cwd, constants.META_FOLDER);
+      locationFolder = path.join(this.config.lockfileFolder, constants.META_FOLDER);
     } else {
       locationFolder = await this._getModuleLocation(usedRegistries);
     }

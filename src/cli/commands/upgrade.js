@@ -20,7 +20,7 @@ export function hasWrapper(): boolean {
 export const requireLockfile = true;
 
 export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
-  const lockfile = args.length ? await Lockfile.fromDirectory(config.cwd, reporter) : new Lockfile();
+  const lockfile = args.length ? await Lockfile.fromDirectory(config.lockfileFolder, reporter) : new Lockfile();
   const {
     dependencies,
     devDependencies,

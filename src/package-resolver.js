@@ -73,7 +73,7 @@ export default class PackageResolver {
 
   // list of packages need to be resolved later (they found a matching version in the
   // resolver, but better matches can still arrive later in the resolve process)
-  delayedResolveQueue: Array<{ req: PackageRequest, info: Manifest }>;
+  delayedResolveQueue: Array<{req: PackageRequest, info: Manifest}>;
 
   /**
    * TODO description

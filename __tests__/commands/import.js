@@ -37,7 +37,7 @@ const checkReporter = reporter => {
 };
 
 const checkLockfile = async (config, reporter) => {
-  const lockfile = await Lockfile.fromDirectory(config.cwd, reporter);
+  const lockfile = await Lockfile.fromDirectory(config.lockfileFolder, reporter);
   // Since the version changes, we need to account for that
   let imported = await fs.readFile(path.join(config.cwd, 'yarn.lock.import'));
   imported = imported.replace(YARN_VERSION_REGEX, `yarn v${YARN_VERSION}`);

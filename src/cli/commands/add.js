@@ -191,7 +191,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
     throw new MessageError(reporter.lang('missingAddDependencies'));
   }
 
-  const lockfile = await Lockfile.fromDirectory(config.cwd, reporter);
+  const lockfile = await Lockfile.fromDirectory(config.lockfileFolder, reporter);
 
   await wrapLifecycle(config, flags, async () => {
     const install = new Add(args, flags, config, reporter, lockfile);

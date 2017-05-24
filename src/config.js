@@ -146,6 +146,8 @@ export default class Config {
 
   //
   cwd: string;
+  worktreeFolder: ?string;
+  lockfileFolder: string;
 
   //
   registries: ConfigRegistries;
@@ -198,6 +200,9 @@ export default class Config {
 
   async init(opts: ConfigOptions = {}): Promise<void> {
     this._init(opts);
+
+    this.worktreeFolder = await this.findWorktree(this.cwd);
+    this.lockfileFolder = this.worktreeFolder || this.cwd;
 
     await fs.mkdirp(this.globalFolder);
     await fs.mkdirp(this.linkFolder);
@@ -282,6 +287,10 @@ export default class Config {
       this.production = true;
     } else {
       this.production = !!opts.production;
+    }
+
+    if (this.worktreeFolder && !this.workspacesExperimental) {
+      throw new MessageError(this.reporter.lang('worktreeExperimentalDisabled'));
     }
   }
 
@@ -519,6 +528,75 @@ export default class Config {
     } else {
       return null;
     }
+  }
+
+  async findManifest(dir: string, isRoot: boolean): Promise<?Manifest> {
+    for (const registry of registryNames) {
+      const manifest = await this.tryManifest(dir, registry, isRoot);
+
+      if (manifest) {
+        return manifest;
+      }
+    }
+
+    return null;
+  }
+
+  async findWorktree(initial: string): Promise<?string> {
+    let previous = null;
+    let current = path.normalize(initial);
+
+    do {
+      const manifest = await this.findManifest(current, true);
+
+      if (manifest && manifest.workspaces) {
+        return current;
+      }
+
+      previous = current;
+      current = path.dirname(current);
+    } while (current !== previous);
+
+    return null;
+  }
+
+  async resolveWorkspaces(
+    root: string,
+    patterns: Array<string>,
+  ): Promise<{[string]: {loc: string, manifest: Manifest}}> {
+    const workspaces = {};
+
+    const registryFilenames = registryNames.map(registryName => this.registries[registryName].constructor.filename);
+    const trailingPattern = `/+(${registryFilenames.join(`|`)})`;
+
+    const files = await Promise.all(
+      patterns.map(pattern => {
+        return fs.glob(pattern.replace(/\/?$/, trailingPattern), {cwd: root, ignore: this.registryFolders});
+      }),
+    );
+
+    for (const file of new Set([].concat(...files))) {
+      const loc = path.join(root, path.dirname(file));
+      const manifest = await this.findManifest(loc, false);
+
+      if (!manifest) {
+        continue;
+      }
+
+      if (!manifest.name) {
+        // TODO raise a warning?
+        continue;
+      }
+
+      if (Object.prototype.hasOwnProperty.call(workspaces, manifest.name)) {
+        // TODO raise a warning?
+        continue;
+      }
+
+      workspaces[manifest.name] = {loc, manifest};
+    }
+
+    return workspaces;
   }
 
   /**

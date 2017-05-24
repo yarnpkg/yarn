@@ -128,7 +128,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
 
   // init
   reporter.step(2, 4, reporter.lang('whyInitGraph'), emoji.get('truck'));
-  const lockfile = await Lockfile.fromDirectory(config.cwd, reporter);
+  const lockfile = await Lockfile.fromDirectory(config.lockfileFolder, reporter);
   const install = new Install(flags, config, reporter, lockfile);
   const {requests: depRequests, patterns} = await install.fetchRequestFromCwd();
   await install.resolver.init(depRequests, install.flags.flat);

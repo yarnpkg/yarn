@@ -8,11 +8,14 @@ jasmine.DEFAULT_TIMEOUT_INTERVAL = 150000;
 
 const path = require('path');
 
-test.concurrent("workspaces don't work without a configuration in .yarnrc", (): Promise<void> => {
-  return runInstall({}, 'workspaces-install-enabled', async (config): Promise<void> => {
-    const lockfile = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
-    expect(lockfile.indexOf('isarray')).toBe(-1);
-  });
+test.concurrent("workspaces don't work without a configuration in .yarnrc", async (): Promise<void> => {
+  let thrown = false;
+  try {
+    await runInstall({}, 'workspaces-install-enabled');
+  } catch (e) {
+    thrown = true;
+  }
+  expect(thrown).toBe(true);
 });
 
 test.concurrent("workspaces don't work on non private projects", async (): Promise<void> => {
