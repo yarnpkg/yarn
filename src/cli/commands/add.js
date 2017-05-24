@@ -161,6 +161,36 @@ export class Add extends Install {
 
       // depType is calculated when `yarn upgrade` command is used
       const target = depType || this.flagToOrigin;
+      const parts = PackageRequest.normalizePattern(pattern);
+      let version;
+      if (parts.hasVersion && parts.range) {
+        // if the user specified a range then use it verbatim
+        version = pkg.version;
+      } else if (PackageRequest.getExoticResolver(pattern)) {
+        // wasn't a name/range tuple so this is just a raw exotic pattern
+        version = pattern;
+      } else if (tilde) { // --save-tilde
+        version = `~${pkg.version}`;
+      } else if (exact) { // --save-exact
+        version = pkg.version;
+      } else { // default to save prefix
+        version = `${String(this.config.getOption('save-prefix'))}${pkg.version}`;
+      }
+
+      // build up list of objects to put ourselves into from the cli args
+      const targetKeys: Array<string> = [];
+      if (dev) {
+        targetKeys.push('devDependencies');
+      }
+      if (peer) {
+        targetKeys.push('peerDependencies');
+      }
+      if (optional) {
+        targetKeys.push('optionalDependencies');
+      }
+      if (!targetKeys.length) {
+        targetKeys.push('dependencies');
+      }
 
       // add it to manifest
       const {object} = manifests[ref.registry];
