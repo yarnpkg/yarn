@@ -1,3 +1,4 @@
 {
-  "name": "package-b"
+  "name": "package-b",
+  "license": "MIT"
 }
