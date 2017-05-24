@@ -16,7 +16,7 @@ export function hasWrapper(): boolean {
   return true;
 }
 
-export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
+export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<number> {
   const lockfile = await Lockfile.fromDirectory(config.cwd);
   const install = new Install(flags, config, reporter, lockfile);
   let deps = await PackageRequest.getOutdatedPackages(lockfile, install, config, reporter);
@@ -44,7 +44,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
     });
 
     reporter.table(['Package', 'Current', 'Wanted', 'Latest', 'Package Type', 'URL'], body);
+    return 1;
   }
-
-  return Promise.resolve();
+  return 0;
 }
