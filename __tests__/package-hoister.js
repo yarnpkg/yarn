@@ -31,6 +31,7 @@ function createManifestForUid(uid, dependencies): Manifest {
 function createTestFixture(testModules: any = {}): any {
   const config = (({
     cwd: CWD,
+    lockfileFolder: CWD,
     getFolder(): string {
       return 'node_modules';
     },
