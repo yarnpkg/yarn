@@ -2,7 +2,14 @@
 
 import {ConsoleReporter} from '../../src/reporters/index.js';
 import * as reporters from '../../src/reporters/index.js';
-import {getPackageVersion, createLockfile, explodeLockfile, run as buildRun, runInstall, makeConfigFromDirectory} from './_helpers.js';
+import {
+  getPackageVersion,
+  createLockfile,
+  explodeLockfile,
+  run as buildRun,
+  runInstall,
+  makeConfigFromDirectory,
+} from './_helpers.js';
 import {Add, run as add} from '../../src/cli/commands/add.js';
 import * as constants from '../../src/constants.js';
 import {parse} from '../../src/lockfile/wrapper.js';

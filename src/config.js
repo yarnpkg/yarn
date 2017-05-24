@@ -570,8 +570,8 @@ export default class Config {
     const trailingPattern = `/+(${registryFilenames.join(`|`)})`;
 
     const files = await Promise.all(
-      patterns.map(async pattern => {
-        return await fs.glob(pattern.replace(/\/?$/, trailingPattern), {cwd: root, ignore: this.registryFolders});
+      patterns.map(pattern => {
+        return fs.glob(pattern.replace(/\/?$/, trailingPattern), {cwd: root, ignore: this.registryFolders});
       }),
     );
 

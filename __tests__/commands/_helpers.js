@@ -51,8 +51,8 @@ export async function getPackageVersion(config: Config, packagePath: string): Pr
   return json.version;
 }
 
-export async function makeConfigFromDirectory(cwd: string, reporter: Reporter, flags: Object = {}): Promise<Config> {
-  return await Config.create(
+export function makeConfigFromDirectory(cwd: string, reporter: Reporter, flags: Object = {}): Promise<Config> {
+  return Config.create(
     {
       binLinks: !!flags.binLinks,
       cwd,
