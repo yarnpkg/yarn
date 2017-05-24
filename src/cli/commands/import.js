@@ -13,9 +13,9 @@ import GitResolver from '../../resolvers/exotics/git-resolver.js';
 import FileResolver from '../../resolvers/exotics/file-resolver.js';
 import PackageResolver from '../../package-resolver.js';
 import PackageRequest from '../../package-request.js';
-import PackageFetcher from '../../package-fetcher.js';
+import * as fetcher from '../../package-fetcher.js';
 import PackageLinker from '../../package-linker.js';
-import PackageCompatibility from '../../package-compatibility.js';
+import * as compatibility from '../../package-compatibility.js';
 import Lockfile from '../../lockfile/wrapper.js';
 import * as fs from '../../util/fs.js';
 import * as util from '../../util/misc.js';
@@ -227,7 +227,7 @@ class ImportPackageResolver extends PackageResolver {
       this.activity.tick(req.pattern);
     }
     const request = new ImportPackageRequest(req, this);
-    await request.find();
+    await request.find(false);
   }
 
   async findAll(deps: DependencyRequestPatterns): Promise<void> {
@@ -235,6 +235,9 @@ class ImportPackageResolver extends PackageResolver {
     deps = this.next;
     this.next = [];
     if (!deps.length) {
+      // all required package versions have been discovered, so now packages that
+      // resolved to existing versions can be resolved to their best available version
+      this.resolvePackagesWithExistingVersions();
       return;
     }
     await this.findAll(deps);
@@ -255,7 +258,6 @@ class ImportPackageResolver extends PackageResolver {
     this.flat = isFlat;
     this.rootName = rootName || this.rootName;
     const activity = (this.activity = this.reporter.activity());
-    this.seedPatterns = deps.map((dep): string => dep.pattern);
     await this.findAll(deps);
     this.resetOptional();
     activity.end();
@@ -267,8 +269,6 @@ export class Import extends Install {
   constructor(flags: Object, config: Config, reporter: Reporter, lockfile: Lockfile) {
     super(flags, config, reporter, lockfile);
     this.resolver = new ImportPackageResolver(this.config, this.lockfile);
-    this.fetcher = new PackageFetcher(config, this.resolver);
-    this.compatibility = new PackageCompatibility(config, this.resolver, this.flags.ignoreEngines);
     this.linker = new PackageLinker(config, this.resolver);
   }
 
@@ -279,8 +279,9 @@ export class Import extends Install {
     await verifyTreeCheck(this.config, this.reporter, {}, []);
     const {requests, patterns, manifest} = await this.fetchRequestFromCwd();
     await this.resolver.init(requests, this.flags.flat, manifest.name);
-    await this.fetcher.init();
-    await this.compatibility.init();
+    const manifests: Array<Manifest> = await fetcher.fetch(this.resolver.getManifests(), this.config);
+    this.resolver.updateManifests(manifests);
+    await compatibility.check(this.resolver.getManifests(), this.config, this.flags.ignoreEngines);
     await this.linker.resolvePeerModules();
     await this.saveLockfileAndIntegrity(patterns);
     return patterns;

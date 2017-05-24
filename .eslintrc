@@ -5,17 +5,17 @@
   },
   "plugins": [
     "flowtype",
-    "no-async-without-await",
     "yarn-internal"
   ],
   "rules": {
-    "yarn-internal/warn-language": 2,
-    "max-len": [2, 120],
-    "prefer-arrow-callback": 0,
-    "flowtype/require-valid-file-annotation": [2, "always"],
-    "flowtype/space-after-type-colon": [2, "always"],
-    "flowtype/require-return-type": [2, "always", {"excludeArrowFunctions": true}],
-    "no-async-without-await/no-async-without-await": 2,
+    "yarn-internal/warn-language": "error",
+    "max-len": ["error", 120],
+    "prefer-arrow-callback": "off",
+    "flowtype/require-valid-file-annotation": ["error", "always"],
+    "flowtype/space-after-type-colon": ["error", "always"],
+    "flowtype/require-return-type": ["error", "always", {"excludeArrowFunctions": true}],
+    "require-await": "error",
+    "no-return-await": "error",
     "sort-keys": "off"
   }
 }

@@ -45,9 +45,9 @@ export async function setVersion(
     throw new MessageError(reporter.lang('invalidVersionArgument', NEW_VERSION_FLAG));
   }
 
-  async function runLifecycle(lifecycle: string): Promise<void> {
+  function runLifecycle(lifecycle: string): Promise<void> {
     if (scripts[lifecycle]) {
-      return await execCommand(lifecycle, config, scripts[lifecycle], config.cwd);
+      return execCommand(lifecycle, config, scripts[lifecycle], config.cwd);
     }
 
     return Promise.resolve();

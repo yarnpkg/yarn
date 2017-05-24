@@ -108,24 +108,37 @@ export function cleanDependencies(info: Object, isRoot: boolean, reporter: Repor
     depTypes.push([type, deps]);
   }
 
-  // ensure that dependencies don't have ones that can collide
+  // aggregate all non-trivial deps (not '' or '*')
+  const nonTrivialDeps: Map<string, {type: string, version: string}> = new Map();
   for (const [type, deps] of depTypes) {
-    for (const name in deps) {
+    for (const name of Object.keys(deps)) {
       const version = deps[name];
+      if (!nonTrivialDeps.has(name) && version && version !== '*') {
+        nonTrivialDeps.set(name, {type, version});
+      }
+    }
+  }
 
-      // check collisions
-      for (const [type2, deps2] of depTypes) {
-        const version2 = deps2[name];
-        if (deps === deps2 || !version2 || version2 === '*') {
-          continue;
-        }
+  // overwrite first dep of package with non-trivial version, remove the rest
+  const setDeps: Set<string> = new Set();
+  for (const [type, deps] of depTypes) {
+    for (const name of Object.keys(deps)) {
+      let version = deps[name];
 
-        if (version !== version2 && isRoot) {
+      const dep = nonTrivialDeps.get(name);
+      if (dep) {
+        if (version && version !== '*' && version !== dep.version && isRoot) {
           // only throw a warning when at the root
-          warn(reporter.lang('manifestDependencyCollision', type, name, version, type2, version2));
+          warn(reporter.lang('manifestDependencyCollision', dep.type, name, dep.version, type, version));
         }
+        version = dep.version;
+      }
 
-        delete deps2[name];
+      if (setDeps.has(name)) {
+        delete deps[name];
+      } else {
+        deps[name] = version;
+        setDeps.add(name);
       }
     }
   }

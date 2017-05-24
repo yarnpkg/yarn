@@ -1,0 +1,9 @@
+{
+  "name": "bundled-dep-check",
+  "description": "A package with bundled dependencies",
+  "version": "2.0.1",
+  "dependencies": {
+    "nyc": "file:./nyc-10.3.2.tgz"
+  },
+  "license": "MIT"
+}

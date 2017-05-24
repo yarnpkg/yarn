@@ -83,7 +83,7 @@ test('changes the cache directory when bumping the cache version', async () => {
     const resolver = new PackageResolver(config, lockfile);
     await resolver.init([{pattern: 'is-array', registry: 'npm'}]);
 
-    const ref = resolver.getPackageReferences()[0];
+    const ref = resolver.getManifests()[0]._reference;
     const cachePath = config.generateHardModulePath(ref, true);
 
     await fs.writeFile(path.join(cachePath, 'yarn.test'), 'YARN TEST');
@@ -718,7 +718,7 @@ test.concurrent('should install if symlink source does not exist', async (): Pro
   await runInstall({}, 'relative-symlinks-work', () => {});
 });
 
-test.concurrent('prunes the offline mirror after pruning is enabled', (): Promise<void> => {
+test.concurrent('prunes the offline mirror tarballs after pruning is enabled', (): Promise<void> => {
   return runInstall({}, 'prune-offline-mirror', async (config): Promise<void> => {
     const mirrorPath = 'mirror-for-offline';
     // Scenario:
@@ -728,6 +728,7 @@ test.concurrent('prunes the offline mirror after pruning is enabled', (): Promis
     // so the next install should remove dep-a-1.0.0.tgz and dep-b-1.0.0.tgz.
     expect(await fs.exists(path.join(config.cwd, `${mirrorPath}/dep-a-1.0.0.tgz`))).toEqual(false);
     expect(await fs.exists(path.join(config.cwd, `${mirrorPath}/dep-b-1.0.0.tgz`))).toEqual(false);
+    expect(await fs.exists(path.join(config.cwd, `${mirrorPath}/dummy.txt`))).toEqual(true);
   });
 });
 
@@ -755,5 +756,16 @@ test.concurrent('bailout should work with --production flag too', (): Promise<vo
     await reinstall.init();
     // don't expect file being recreated because install should have bailed out
     expect(await fs.exists(path.join(config.cwd, 'node_modules', 'left-pad', 'index.js'))).toBe(false);
+  });
+});
+
+test.concurrent('package version resolve should be deterministic', (): Promise<void> => {
+  // Scenario:
+  // graceful-fs will install two versions, from @4.1.10 and @^4.1.11. The pattern @^4.1.2 would sometimes resolve
+  // to 4.1.10, if @^4.1.11 hadn't been processed before. Otherwise it would resolve to the result of @^4.1.11.
+  // Run an independent install and check, and see they have different results for @^4.1.2 - won't always see
+  // the bug, but its the best we can do without creating mock registry with controlled timing of responses.
+  return runInstall({}, 'install-deterministic-versions', async (config, reporter) => {
+    await check(config, reporter, {integrity: true}, []);
   });
 });

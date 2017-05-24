@@ -109,7 +109,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
       if (deps.length) {
         reporter.info(reporter.lang('updateInstalling', getNameFromHint(hint)));
         const add = new Add(deps, flags, config, reporter, lockfile);
-        return await add.init();
+        return add.init();
       }
       return Promise.resolve();
     }, Promise.resolve());

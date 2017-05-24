@@ -62,6 +62,9 @@ export default class Git {
    * git "URLs" also allow an alternative scp-like syntax, so they're not standard URLs.
    */
   static npmUrlToGitUrl(npmUrl: string): GitUrl {
+    // Expand shortened format first if needed
+    npmUrl = npmUrl.replace(/^github:/, 'git+ssh://git@github.com/');
+
     // Special case in npm, where ssh:// prefix is stripped to pass scp-like syntax
     // which in git works as remote path only if there are no slashes before ':'.
     const match = npmUrl.match(/^git\+ssh:\/\/((?:[^@:\/]+@)?([^@:\/]+):([^/]*).*)/);
@@ -378,13 +381,13 @@ export default class Git {
       await this.fetch();
     }
 
-    return await this.setRefRemote();
+    return this.setRefRemote();
   }
 
   async setRefRemote(): Promise<string> {
     const stdout = await child.spawn('git', ['ls-remote', '--tags', '--heads', this.gitUrl.repository]);
     const refs = Git.parseRefs(stdout);
-    return await this.setRef(refs);
+    return this.setRef(refs);
   }
 
   /**

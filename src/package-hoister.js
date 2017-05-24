@@ -90,7 +90,7 @@ export default class PackageHoister {
     this.prepass(patterns);
 
     for (const pattern of this.resolver.dedupePatterns(patterns)) {
-      this._seed(pattern);
+      this._seed(pattern, {isDirectRequire: true});
     }
 
     while (true) {
@@ -109,8 +109,8 @@ export default class PackageHoister {
 
       //
       const infos = [];
-      for (const [pattern, parents] of queue) {
-        const info = this._seed(pattern, parents);
+      for (const [pattern, parent] of queue) {
+        const info = this._seed(pattern, {isDirectRequire: false, parent});
         if (info) {
           infos.push(info);
         }
@@ -127,7 +127,10 @@ export default class PackageHoister {
    * Seed the hoister with a specific pattern.
    */
 
-  _seed(pattern: string, parent?: HoistManifest): ?HoistManifest {
+  _seed(
+    pattern: string,
+    {isDirectRequire, parent}: {isDirectRequire: boolean, parent?: HoistManifest},
+  ): ?HoistManifest {
     //
     const pkg = this.resolver.getStrictResolvedPattern(pattern);
     const ref = pkg._reference;
@@ -136,7 +139,7 @@ export default class PackageHoister {
     //
     let parentParts: Parts = [];
     const isIncompatible = ref.incompatible;
-    let isRequired = !parent && !ref.ignore && !isIncompatible;
+    let isRequired = isDirectRequire && !ref.ignore && !isIncompatible;
 
     if (parent) {
       if (!this.tree.get(parent.key)) {
@@ -144,7 +147,7 @@ export default class PackageHoister {
       }
       // non ignored dependencies inherit parent's ignored status
       // parent may transition from ignored to non ignored when hoisted if it is used in another non ignored branch
-      if (!isRequired && !isIncompatible && parent.isRequired) {
+      if (!isDirectRequire && !isIncompatible && parent.isRequired) {
         isRequired = true;
       }
       parentParts = parent.parts;
@@ -499,7 +502,7 @@ export default class PackageHoister {
 
       // only hoist this module if it occured more than once
       if (mostOccurenceCount > 1) {
-        this._seed(mostOccurencePattern);
+        this._seed(mostOccurencePattern, {isDirectRequire: false});
       }
     }
   }
