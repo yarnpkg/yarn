@@ -1,0 +1,39 @@
+{
+    "presets": [
+
+        {
+            "plugins": [
+                "transform-runtime",
+                "transform-object-rest-spread"
+            ]
+        },
+
+        [ "env", {
+            "targets": {
+                "node": "current"
+            },
+            "include": [
+                "transform-es2015-classes"
+            ]
+        } ],
+
+        {
+            "plugins": [
+                "transform-inline-imports-commonjs",
+                "transform-class-properties"
+            ]
+        }
+
+    ],
+
+    "plugins": [
+
+        [ "module-resolver", {
+            "cwd": "packagejson",
+            "alias": {
+                "miniyarn": "./sources"
+            }
+        } ]
+
+    ]
+}

@@ -1,0 +1,6 @@
+#!/usr/bin/env node
+
+require('babel-register');
+
+require(__dirname + '/sources/mfast');
+require(__dirname + '/sources/index');
