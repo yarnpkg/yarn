@@ -71,7 +71,7 @@ test.concurrent("throws an error if existing lockfile isn't satisfied with --fro
   expect(thrown).toEqual(true);
 });
 
-test.concurrent('throws an error if existing lockfile has version mismatch with --frozen-lockfile', async (): Promise<
+test.concurrent('throws an error if lockfile is changed by install with --frozen-lockfile', async (): Promise<
   void,
 > => {
   const reporter = new reporters.ConsoleReporter({});
