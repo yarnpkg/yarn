@@ -1,7 +1,7 @@
-import Fs         from 'fs';
+import Fs from 'fs';
 import gracefulFs from 'graceful-fs';
 
-import { cli }    from 'miniyarn/cli';
+import {cli} from 'miniyarn/cli';
 
 // Prevents various crashes triggered because of the high number of I/O operations
 gracefulFs.gracefulify(Fs);

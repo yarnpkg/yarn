@@ -1,57 +1,50 @@
-import Immutable             from 'immutable';
-import normalizeUrl          from 'normalize-url';
-import Url                   from 'url';
+import Immutable from 'immutable';
+import normalizeUrl from 'normalize-url';
+import Url from 'url';
 
-import { PackageLocator }    from 'miniyarn/models/PackageLocator';
-import { PackageResolution } from 'miniyarn/models/PackageResolution';
-import { BaseResolver }      from 'miniyarn/resolvers/BaseResolver';
+import {PackageLocator} from 'miniyarn/models/PackageLocator';
+import {PackageResolution} from 'miniyarn/models/PackageResolution';
+import {BaseResolver} from 'miniyarn/resolvers/BaseResolver';
 
 export class HttpResolver extends BaseResolver {
+  supports(packageRange, {env}) {
+    if (!packageRange.reference) return false;
 
-    supports(packageRange, { env }) {
+    let parse = Url.parse(packageRange.reference);
 
-        if (!packageRange.reference)
-            return false;
+    if (![`http:`, `https:`].includes(parse.protocol)) return false;
 
-        let parse = Url.parse(packageRange.reference);
+    if (!parse.host || !parse.path) return false;
 
-        if (![ `http:`, `https:` ].includes(parse.protocol))
-            return false;
+    if (parse.path.endsWith(`.git`)) return false;
 
-        if (!parse.host || !parse.path)
-            return false;
+    return true;
+  }
 
-        if (parse.path.endsWith(`.git`))
-            return false;
+  isSatisfied(packageRange, availableLocator, {env}) {
+    return this.normalize(packageRange.reference) === availableLocator.reference;
+  }
 
-        return true;
+  async getCandidates(packageRange, {env}) {
+    return new Immutable.Set([this.normalize(packageRange.reference)]);
+  }
 
-    }
+  async resolve(packageRange, {fetcher, env}) {
+    let {packageInfo} = await fetcher.fetch(
+      new PackageLocator({name: packageRange.name, reference: packageRange.reference}),
+      {env},
+    );
 
-    isSatisfied(packageRange, availableLocator, { env }) {
+    return {
+      packageResolution: new PackageResolution({
+        name: packageRange.name,
+        reference: packageRange.reference,
+        dependencies: packageInfo.dependencies,
+      }),
+    };
+  }
 
-        return this.normalize(packageRange.reference) === availableLocator.reference;
-
-    }
-
-    async getCandidates(packageRange, { env }) {
-
-        return new Immutable.Set([ this.normalize(packageRange.reference) ]);
-
-    }
-
-    async resolve(packageRange, { fetcher, env }) {
-
-        let { packageInfo } = await fetcher.fetch(new PackageLocator({ name: packageRange.name, reference: packageRange.reference }), { env });
-
-        return { packageResolution: new PackageResolution({ name: packageRange.name, reference: packageRange.reference, dependencies: packageInfo.dependencies }) };
-
-    }
-
-    normalize(packageReference) {
-
-        return normalizeUrl(packageReference);
-
-    }
-
+  normalize(packageReference) {
+    return normalizeUrl(packageReference);
+  }
 }

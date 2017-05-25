@@ -1,48 +1,36 @@
-import Immutable          from 'immutable';
+import Immutable from 'immutable';
 
-import { PackageLocator } from 'miniyarn/models/PackageLocator';
+import {PackageLocator} from 'miniyarn/models/PackageLocator';
 
-function makeDependency([ name, reference ]) {
-
-    if (reference instanceof PackageNode) {
-        return [ name, reference ];
-    } else if (typeof reference === `object`) {
-        return [ name, new PackageNode(reference) ];
-    }
-
+function makeDependency([name, reference]) {
+  if (reference instanceof PackageNode) {
+    return [name, reference];
+  } else if (typeof reference === `object`) {
+    return [name, new PackageNode(reference)];
+  }
 }
 
-export class PackageNode extends Immutable.Record({
-
+export class PackageNode
+  extends Immutable.Record({
     name: undefined,
 
     reference: undefined,
 
     dependencies: new Immutable.Map(),
+  }) {
+  constructor(data) {
+    data = Immutable.isImmutable(data) ? data.toObject() : {...data};
 
-}) {
+    if (data.dependencies !== null) data.dependencies = new Immutable.Map(data.dependencies).mapEntries(makeDependency);
 
-    constructor(data) {
+    super(data);
+  }
 
-        data = Immutable.isImmutable(data) ? data.toObject() : { ... data };
+  get locator() {
+    return new PackageLocator({
+      name: this.name,
 
-        if (data.dependencies !== null)
-            data.dependencies = new Immutable.Map(data.dependencies).mapEntries(makeDependency);
-
-        super(data);
-
-    }
-
-    get locator() {
-
-        return new PackageLocator({
-
-            name: this.name,
-
-            reference: this.reference,
-
-        });
-
-    }
-
+      reference: this.reference,
+    });
+  }
 }

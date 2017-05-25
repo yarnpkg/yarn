@@ -1,237 +1,185 @@
-import { UsageError }   from '@manaflair/concierge';
-import detectIndent     from 'detect-indent';
-import Immutable        from 'immutable';
-import Path             from 'path';
-import shellEscape      from 'shell-escape';
+import {UsageError} from '@manaflair/concierge';
+import detectIndent from 'detect-indent';
+import Immutable from 'immutable';
+import Path from 'path';
+import shellEscape from 'shell-escape';
 
-import { PackageInfo }  from 'miniyarn/models/PackageInfo';
-import { PackageRange } from 'miniyarn/models/PackageRange';
-import { YarnLock }     from 'miniyarn/models/YarnLock';
+import {PackageInfo} from 'miniyarn/models/PackageInfo';
+import {PackageRange} from 'miniyarn/models/PackageRange';
+import {YarnLock} from 'miniyarn/models/YarnLock';
 import * as cryptoUtils from 'miniyarn/utils/crypto';
-import * as execUtils   from 'miniyarn/utils/exec';
-import * as fsUtils     from 'miniyarn/utils/fs';
-import { env }          from 'miniyarn/yarn/env';
+import * as execUtils from 'miniyarn/utils/exec';
+import * as fsUtils from 'miniyarn/utils/fs';
+import {env} from 'miniyarn/yarn/env';
 
 export async function resolveRcValues(path) {
+  let values = {};
 
-    let values = {};
+  let previous = null;
+  let current = Path.normalize(path);
 
-    let previous = null;
-    let current = Path.normalize(path);
+  do {
+    let filePath = `${current}/.yarnrc`;
 
-    do {
+    try {
+      if (await fsUtils.exists(filePath)) {
+        values = Object.assign(await fsUtils.readJson(filePath), values);
+      }
+    } catch (error) {
+      // Ignore any parsing error
+    }
 
-        let filePath = `${current}/.yarnrc`;
+    previous = current;
+    current = Path.dirname(current);
+  } while (current !== previous);
 
-        try {
-
-            if (await fsUtils.exists(filePath)) {
-                values = Object.assign(await fsUtils.readJson(filePath), values);
-            }
-
-        } catch (error) {
-
-            // Ignore any parsing error
-
-        }
-
-        previous = current;
-        current = Path.dirname(current);
-
-    } while (current !== previous);
-
-    return values;
-
+  return values;
 }
 
-export async function findPackagePath(path, { packageFile = `package.json` } = {}) {
+export async function findPackagePath(path, {packageFile = `package.json`} = {}) {
+  let entries = await fsUtils.readDirectory(path);
 
-    let entries = await fsUtils.readDirectory(path);
+  if (entries.includes(packageFile)) return path;
 
-    if (entries.includes(packageFile))
-        return path;
+  let parentDirectory = Path.dirname(path);
 
-    let parentDirectory = Path.dirname(path);
+  if (parentDirectory === path) return null;
 
-    if (parentDirectory === path)
-        return null;
-
-    return await findPackagePath(parentDirectory);
-
+  return await findPackagePath(parentDirectory);
 }
 
 export async function openPackage(path) {
+  let packagePath = await findPackagePath(path);
 
-    let packagePath = await findPackagePath(path);
+  if (!packagePath) throw new UsageError(`This command can only be run from within a Yarn project`);
 
-    if (!packagePath)
-        throw new UsageError(`This command can only be run from within a Yarn project`);
+  let packageInfo = new PackageInfo((await fsUtils.readJson(`${packagePath}/package.json`))).merge({reference: null});
+  let yarnLock = (await fsUtils.exists(`${packagePath}/yarn.json`))
+    ? new YarnLock((await fsUtils.readJson(`${packagePath}/yarn.json`)))
+    : null;
 
-    let packageInfo = new PackageInfo(await fsUtils.readJson(`${packagePath}/package.json`)).merge({ reference: null });
-    let yarnLock = await fsUtils.exists(`${packagePath}/yarn.json`) ? new YarnLock(await fsUtils.readJson(`${packagePath}/yarn.json`)) : null;
-
-    return { packagePath, packageInfo, yarnLock };
-
+  return {packagePath, packageInfo, yarnLock};
 }
 
 export async function openEnvironment(path, args) {
+  let finalEnv = env;
+  let values = await resolveRcValues(path);
 
-    let finalEnv = env;
-    let values = await resolveRcValues(path);
+  for (let [key, value] of Object.entries(values)) {
+    let envKey = key.replace(/([A-Z])(?=[a-z]|$)/g, (_0, _1) => `_${_1}`).toUpperCase();
+    finalEnv = finalEnv.has(envKey) ? finalEnv.set(envKey, value) : finalEnv;
+  }
 
-    for (let [ key, value ] of Object.entries(values)) {
-        let envKey = key.replace(/([A-Z])(?=[a-z]|$)/g, (_0, _1) => `_${_1}`).toUpperCase();
-        finalEnv = finalEnv.has(envKey) ? finalEnv.set(envKey, value) : finalEnv;
-    }
-
-    return finalEnv;
-
+  return finalEnv;
 }
 
 export function parseIdentifier(identifier) {
+  let regex = /^((?:@([a-z0-9][a-z0-9_.-]*)\/)?([a-z0-9][a-z0-9_.-]*))(?:@(.+))?$/i;
+  let match = identifier.match(regex);
 
-    let regex = /^((?:@([a-z0-9][a-z0-9_.-]*)\/)?([a-z0-9][a-z0-9_.-]*))(?:@(.+))?$/i;
-    let match = identifier.match(regex);
+  if (!match) return null;
 
-    if (!match)
-        return null;
-
-    return { name: match[1], scope: match[2], localName: match[3], reference: match[4] };
-
+  return {name: match[1], scope: match[2], localName: match[3], reference: match[4]};
 }
 
 export function parseRangeIdentifiers(identifiers) {
+  let invalidPackageIdentifiers = [];
+  let packageRanges = [];
 
-    let invalidPackageIdentifiers = [];
-    let packageRanges = [];
+  for (let identifier of identifiers) {
+    let match = parseIdentifier(identifier);
 
-    for (let identifier of identifiers) {
-
-        let match = parseIdentifier(identifier);
-
-        if (match) {
-            packageRanges.push(new PackageRange({ name: match.name, reference: match.reference }));
-        } else {
-            invalidPackageIdentifiers.push(identifier);
-        }
-
+    if (match) {
+      packageRanges.push(new PackageRange({name: match.name, reference: match.reference}));
+    } else {
+      invalidPackageIdentifiers.push(identifier);
     }
+  }
 
-    if (invalidPackageIdentifiers.length > 0)
-        throw new UsageError(`Invalid package identifier(s): ${invalidPackageIdentifiers.map(identifier => `"${identifier}"`).join(`, `)}`);
+  if (invalidPackageIdentifiers.length > 0)
+    throw new UsageError(
+      `Invalid package identifier(s): ${invalidPackageIdentifiers.map(identifier => `"${identifier}"`).join(`, `)}`,
+    );
 
-    return packageRanges;
-
+  return packageRanges;
 }
 
 export function getLocatorIdentifier(packageLocator) {
+  let {name = `<unnamed>`, reference = `<unversioned>`} = packageLocator;
 
-    let { name = `<unnamed>`, reference = `<unversioned>` } = packageLocator;
-
-    return `${name}@${reference}`;
-
+  return `${name}@${reference}`;
 }
 
 export function getRangeIdentifier(packageRange) {
+  let {name = `<unnamed>`, reference = `<unversioned>`} = packageRange;
 
-    let { name = `<unnamed>`, reference = `<unversioned>` } = packageRange;
-
-    return `${name}@${reference}`;
-
+  return `${name}@${reference}`;
 }
 
 export function getLocatorSlugIdentifier(packageLocator) {
+  if (!packageLocator.reference) return null;
 
-    if (!packageLocator.reference)
-        return null;
+  let slug = packageLocator.reference.replace(/[^a-zA-Z0-9._-]+/, `-`).replace(/-+/g, `-`).replace(/^-+|-+$/g, ``);
 
-    let slug = packageLocator.reference
-        .replace(/[^a-zA-Z0-9._-]+/, `-`)
-        .replace(/-+/g, `-`)
-        .replace(/^-+|-+$/g, ``);
+  let hash = cryptoUtils.sha256([packageLocator.reference].join(` `)).slice(0, 16);
 
-    let hash = cryptoUtils.sha256([
-        packageLocator.reference,
-    ].join(` `)).slice(0, 16);
-
-    return [ slug, hash ].join(`-`);
-
+  return [slug, hash].join(`-`);
 }
 
-export async function runPackageLifecycle(packageInfo, packagePath, lifecycle, { args = [], stdio } = {}) {
+export async function runPackageLifecycle(packageInfo, packagePath, lifecycle, {args = [], stdio} = {}) {
+  if (!packageInfo.scripts.has(lifecycle)) return;
 
-    if (!packageInfo.scripts.has(lifecycle))
-        return;
+  let cwd = packagePath;
 
-    let cwd = packagePath;
+  let env = Object.assign({}, process.env, {
+    PATH: `${packagePath}/node_modules/.bin${Path.delimiter}${process.env.PATH}`,
+  });
 
-    let env = Object.assign({}, process.env, {
-        PATH: `${packagePath}/node_modules/.bin${Path.delimiter}${process.env.PATH}`
-    });
+  let command = [packageInfo.scripts.get(lifecycle), shellEscape(args)].join(` `);
 
-    let command = [ packageInfo.scripts.get(lifecycle), shellEscape(args) ].join(` `);
-
-    await execUtils.spawnCommand(command, { cwd, env, stdio });
-
+  await execUtils.spawnCommand(command, {cwd, env, stdio});
 }
 
 export async function updateYarnJson(packagePath, callback) {
-
-    return await updateMetaFile(`${packagePath}/yarn.json`, async (yarnJson) => {
-        await callback(yarnJson);
-    });
-
+  return await updateMetaFile(`${packagePath}/yarn.json`, async yarnJson => {
+    await callback(yarnJson);
+  });
 }
 
 export async function updatePackageJson(packagePath, callback) {
+  return await updateMetaFile(`${packagePath}/package.json`, async packageJson => {
+    await callback(packageJson);
 
-    return await updateMetaFile(`${packagePath}/package.json`, async (packageJson) => {
+    for (let target of [`dependencies`, `devDependencies`, `peerDependencies`, `optionalDependencies`]) {
+      if (!Object.prototype.hasOwnProperty.call(packageJson, target)) continue;
 
-        await callback(packageJson);
+      let keys = Reflect.ownKeys(packageJson[target]).sort((a, b) => {
+        return a.localeCompare(b);
+      });
 
-        for (let target of [ `dependencies`, `devDependencies`, `peerDependencies`, `optionalDependencies` ]) {
-
-            if (!Object.prototype.hasOwnProperty.call(packageJson, target))
-                continue;
-
-            let keys = Reflect.ownKeys(packageJson[target]).sort((a, b) => {
-                return a.localeCompare(b);
-            });
-
-            packageJson[target] = keys.reduce((sorted, key) => {
-                return Object.assign(sorted, { [key]: packageJson[target][key] });
-            }, {});
-
-        }
-
-    });
-
+      packageJson[target] = keys.reduce((sorted, key) => {
+        return Object.assign(sorted, {[key]: packageJson[target][key]});
+      }, {});
+    }
+  });
 }
 
 export async function updateMetaFile(filename, callback) {
+  let metaFile = {};
+  let indent = `    `;
 
-    let metaFile = {};
-    let indent = `    `;
+  if (await fsUtils.exists(filename)) {
+    let content = await fsUtils.readFile(filename, `utf8`);
 
-    if (await fsUtils.exists(filename)) {
+    metaFile = JSON.parse(content);
+    indent = detectIndent(content).indent || `    `;
+  }
 
-        let content = await fsUtils.readFile(filename, `utf8`);
+  await callback(metaFile);
 
-        metaFile = JSON.parse(content);
-        indent = detectIndent(content).indent || `    `;
-
-    }
-
-    await callback(metaFile);
-
-    return await fsUtils.writeFile(filename,
-        JSON.stringify(metaFile, null, indent) + `\n`,
-    );
-
+  return await fsUtils.writeFile(filename, JSON.stringify(metaFile, null, indent) + `\n`);
 }
 
 export async function writeAtomicFile(path) {
-
-    await fsUtils.writeFile(path, `"(❛ᴗ❛)"`);
-
+  await fsUtils.writeFile(path, `"(❛ᴗ❛)"`);
 }

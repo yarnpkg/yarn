@@ -1,22 +1,20 @@
-import Immutable          from 'immutable';
+import Immutable from 'immutable';
 
-import { PackageLocator } from 'miniyarn/models/PackageLocator';
-import { PackageRange }   from 'miniyarn/models/PackageRange';
+import {PackageLocator} from 'miniyarn/models/PackageLocator';
+import {PackageRange} from 'miniyarn/models/PackageRange';
 
-function makeDependency([ name, reference ]) {
-
-    if (reference instanceof PackageRange) {
-        return [ name, reference ];
-    } else if (typeof reference === `object`) {
-        return [ name, new PackageRange(reference) ];
-    } else {
-        return [ name, new PackageRange({ name, reference }) ];
-    }
-
+function makeDependency([name, reference]) {
+  if (reference instanceof PackageRange) {
+    return [name, reference];
+  } else if (typeof reference === `object`) {
+    return [name, new PackageRange(reference)];
+  } else {
+    return [name, new PackageRange({name, reference})];
+  }
 }
 
-export class PackageInfo extends Immutable.Record({
-
+export class PackageInfo
+  extends Immutable.Record({
     name: undefined,
 
     reference: undefined,
@@ -45,62 +43,43 @@ export class PackageInfo extends Immutable.Record({
     files: undefined,
 
     directories: undefined,
+  }) {
+  constructor(data) {
+    data = Immutable.isImmutable(data) ? data.toObject() : {...data};
 
-}) {
+    if (data.dependencies !== null) data.dependencies = new Immutable.Map(data.dependencies).mapEntries(makeDependency);
 
-    constructor(data) {
+    if (data.devDependencies !== null)
+      data.devDependencies = new Immutable.Map(data.devDependencies).mapEntries(makeDependency);
 
-        data = Immutable.isImmutable(data) ? data.toObject() : { ... data };
+    if (data.peerDependencies !== null)
+      data.peerDependencies = new Immutable.Map(data.peerDependencies).mapEntries(makeDependency);
 
-        if (data.dependencies !== null)
-            data.dependencies = new Immutable.Map(data.dependencies).mapEntries(makeDependency);
+    if (data.bundledDependencies !== null) data.bundledDependencies = new Immutable.Set(data.bundledDependencies);
 
-        if (data.devDependencies !== null)
-            data.devDependencies = new Immutable.Map(data.devDependencies).mapEntries(makeDependency);
+    if (data.versions !== null) data.versions = new Immutable.Set(data.versions);
 
-        if (data.peerDependencies !== null)
-            data.peerDependencies = new Immutable.Map(data.peerDependencies).mapEntries(makeDependency);
+    if (data.keywords !== null) data.keywords = new Immutable.Set(data.keywords);
 
-        if (data.bundledDependencies !== null)
-            data.bundledDependencies = new Immutable.Set(data.bundledDependencies);
+    if (data.contributors !== null) data.contributors = new Immutable.Set(data.contributors);
 
-        if (data.versions !== null)
-            data.versions = new Immutable.Set(data.versions);
+    if (typeof data.bin === `string`) data.bin = new Immutable.Map([[data.name, data.bin]]);
+    else if (data.bin !== null) data.bin = new Immutable.Map(data.bin);
 
-        if (data.keywords !== null)
-            data.keywords = new Immutable.Set(data.keywords);
+    if (data.scripts !== null) data.scripts = new Immutable.Map(data.scripts);
 
-        if (data.contributors !== null)
-            data.contributors = new Immutable.Set(data.contributors);
+    if (data.files !== null) data.files = new Immutable.Set(data.files);
 
-        if (typeof data.bin === `string`)
-            data.bin = new Immutable.Map([ [ data.name, data.bin ] ]);
-        else if (data.bin !== null)
-            data.bin = new Immutable.Map(data.bin);
+    if (data.directories !== null) data.directories = new Immutable.Map(data.directories);
 
-        if (data.scripts !== null)
-            data.scripts = new Immutable.Map(data.scripts);
+    super(data);
+  }
 
-        if (data.files !== null)
-            data.files = new Immutable.Set(data.files);
+  get locator() {
+    return new PackageLocator({
+      name: this.name,
 
-        if (data.directories !== null)
-            data.directories = new Immutable.Map(data.directories);
-
-        super(data);
-
-    }
-
-    get locator() {
-
-        return new PackageLocator({
-
-            name: this.name,
-
-            reference: this.reference,
-
-        });
-
-    }
-
+      reference: this.reference,
+    });
+  }
 }

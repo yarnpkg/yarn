@@ -1,22 +1,16 @@
 export class BaseFetcher {
+  supports(packageLocator, {env}) {
+    // Return true if the resolver does support the package
 
-    supports(packageLocator, { env }) {
+    throw new Error(`Unimplemented supports strategy`);
+  }
 
-        // Return true if the resolver does support the package
+  async fetch(packageLocator, {env}) {
+    // Fetch all data for a specified locator, then return an object { packageInfo, handler }
+    //
+    // - packageInfo is the full packageInfo referenced by the specified locator
+    // - handler is a fsUtils.Handler instance that contains the path to something on the filesystem.
 
-        throw new Error(`Unimplemented supports strategy`);
-
-    }
-
-    async fetch(packageLocator, { env }) {
-
-        // Fetch all data for a specified locator, then return an object { packageInfo, handler }
-        //
-        // - packageInfo is the full packageInfo referenced by the specified locator
-        // - handler is a fsUtils.Handler instance that contains the path to something on the filesystem.
-
-        throw new Error(`Unimplemented fetch strategy`);
-
-    }
-
+    throw new Error(`Unimplemented fetch strategy`);
+  }
 }

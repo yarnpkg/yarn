@@ -1,65 +1,52 @@
-import invariant         from 'invariant';
-import Url               from 'url';
+import invariant from 'invariant';
+import Url from 'url';
 
-import { BaseFetcher }   from 'miniyarn/fetchers/BaseFetcher';
-import { PackageInfo }   from 'miniyarn/models/PackageInfo';
+import {BaseFetcher} from 'miniyarn/fetchers/BaseFetcher';
+import {PackageInfo} from 'miniyarn/models/PackageInfo';
 import * as archiveUtils from 'miniyarn/utils/archive';
-import * as fsUtils      from 'miniyarn/utils/fs';
-import * as httpUtils    from 'miniyarn/utils/http';
-import * as miscUtils    from 'miniyarn/utils/misc';
-import * as yarnUtils    from 'miniyarn/utils/yarn';
+import * as fsUtils from 'miniyarn/utils/fs';
+import * as httpUtils from 'miniyarn/utils/http';
+import * as miscUtils from 'miniyarn/utils/misc';
+import * as yarnUtils from 'miniyarn/utils/yarn';
 
 export class HttpFetcher extends BaseFetcher {
+  constructor({pathPattern = null} = {}) {
+    super();
 
-    constructor({ pathPattern = null } = {}) {
+    this.pathPattern = pathPattern;
+  }
 
-        super();
+  supports(packageLocator, {env}) {
+    if (!packageLocator.reference) return false;
 
-        this.pathPattern = pathPattern;
+    let parse = Url.parse(packageLocator.reference);
 
-    }
+    if (![`http:`, `https:`].includes(parse.protocol)) return false;
 
-    supports(packageLocator, { env }) {
+    if (!parse.host || !parse.path) return false;
 
-        if (!packageLocator.reference)
-            return false;
+    if (parse.path.endsWith(`.git`)) return false;
 
-        let parse = Url.parse(packageLocator.reference);
+    if (this.pathPattern && !miscUtils.filePatternMatch(parse.path, this.pathPattern)) return false;
 
-        if (![ `http:`, `https:` ].includes(parse.protocol))
-            return false;
+    return true;
+  }
 
-        if (!parse.host || !parse.path)
-            return false;
+  async fetch(packageLocator, {env}) {
+    invariant(packageLocator.name, `This package locator should have a name`);
+    invariant(packageLocator.reference, `This package locator should have a reference`);
 
-        if (parse.path.endsWith(`.git`))
-            return false;
+    let archivePath = await fsUtils.createTemporaryFile();
+    let archiveHandler = new fsUtils.Handler(archivePath, {temporary: true});
 
-        if (this.pathPattern && !miscUtils.filePatternMatch(parse.path, this.pathPattern))
-            return false;
+    let outputStream = await fsUtils.createFileWriter(archivePath);
 
-        return true;
+    let httpResponse = await httpUtils.get(packageLocator.reference);
+    httpResponse.pipe(outputStream);
+    httpResponse.resume();
 
-    }
+    await outputStream.promise;
 
-    async fetch(packageLocator, { env }) {
-
-        invariant(packageLocator.name, `This package locator should have a name`);
-        invariant(packageLocator.reference, `This package locator should have a reference`);
-
-        let archivePath = await fsUtils.createTemporaryFile();
-        let archiveHandler = new fsUtils.Handler(archivePath, { temporary: true });
-
-        let outputStream = await fsUtils.createFileWriter(archivePath);
-
-        let httpResponse = await httpUtils.get(packageLocator.reference);
-        httpResponse.pipe(outputStream);
-        httpResponse.resume();
-
-        await outputStream.promise;
-
-        return { packageInfo: new PackageInfo(packageLocator), handler: archiveHandler };
-
-    }
-
+    return {packageInfo: new PackageInfo(packageLocator), handler: archiveHandler};
+  }
 }

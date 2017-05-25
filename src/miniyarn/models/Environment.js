@@ -1,7 +1,7 @@
 import Immutable from 'immutable';
 
-export class Environment extends new Immutable.Record({
-
+export class Environment
+  extends (new Immutable.Record({
     // The registry used
 
     REGISTRY_URL: `https://registry.yarnpkg.com`,
@@ -30,5 +30,4 @@ export class Environment extends new Immutable.Record({
     // The filename of the file that contains the resolved package info. Always included by final fetchers
 
     INFO_FILENAME: `.yarn-info.json`,
-
-}) {}
+  })) {}

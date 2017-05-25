@@ -1,39 +1,29 @@
-import { BaseFetcher } from 'miniyarn/fetchers/BaseFetcher';
+import {BaseFetcher} from 'miniyarn/fetchers/BaseFetcher';
 
 export class BaseMultiFetcher extends BaseFetcher {
+  fetchers = [];
 
-    fetchers = [];
+  add(fetcher) {
+    this.fetchers.push(fetcher);
 
-    add(fetcher) {
+    return this;
+  }
 
-        this.fetchers.push(fetcher);
+  supports(packageLocator, {env}) {
+    return this.fetchers.some(fetcher => {
+      return fetcher.supports(packageLocator, {env});
+    });
+  }
 
-        return this;
+  async fetch(packageLocator, {env}) {
+    let candidateFetchers = this.fetchers.filter(fetcher => {
+      return fetcher.supports(packageLocator, {env});
+    });
 
-    }
+    if (candidateFetchers.length === 0) throw new Error(`No fetcher offered to handle this package`);
 
-    supports(packageLocator, { env }) {
+    if (candidateFetchers.length > 1) throw new Error(`Multiple fetchers offered to fetch a same package`);
 
-        return this.fetchers.some(fetcher => {
-            return fetcher.supports(packageLocator, { env });
-        });
-
-    }
-
-    async fetch(packageLocator, { env }) {
-
-        let candidateFetchers = this.fetchers.filter(fetcher => {
-            return fetcher.supports(packageLocator, { env });
-        });
-
-        if (candidateFetchers.length === 0)
-            throw new Error(`No fetcher offered to handle this package`);
-
-        if (candidateFetchers.length > 1)
-            throw new Error(`Multiple fetchers offered to fetch a same package`);
-
-        return candidateFetchers[0].fetch(packageLocator, { env });
-
-    }
-
+    return candidateFetchers[0].fetch(packageLocator, {env});
+  }
 }

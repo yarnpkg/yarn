@@ -1,187 +1,152 @@
-import makeDeferred     from 'deferred';
-import EventEmitter     from 'eventemitter3';
-import gunzipMaybe      from 'gunzip-maybe';
-import { PassThrough }  from 'stream';
-import tar              from 'tar-stream';
+import makeDeferred from 'deferred';
+import EventEmitter from 'eventemitter3';
+import gunzipMaybe from 'gunzip-maybe';
+import {PassThrough} from 'stream';
+import tar from 'tar-stream';
 
-import * as miscUtils   from 'miniyarn/utils/misc';
-import * as pathUtils   from 'miniyarn/utils/path';
+import * as miscUtils from 'miniyarn/utils/misc';
+import * as pathUtils from 'miniyarn/utils/path';
 import * as streamUtils from 'miniyarn/utils/stream';
 
 export function createTarballWriter() {
+  let packer = tar.pack();
+  let entryQueue = Promise.resolve();
 
-    let packer = tar.pack();
-    let entryQueue = Promise.resolve();
+  return {
+    promise: new Promise((resolve, reject) => {
+      packer.on(`error`, error => {
+        reject(error);
+      });
 
-    return {
+      packer.on(`close`, () => {
+        resolve();
+      });
+    }),
 
-        promise: new Promise((resolve, reject) => {
+    entry(header, source) {
+      entryQueue = Promise.all([streamUtils.readStream(source), entryQueue]).then(([body]) => {
+        packer.entry(header, body);
+      });
+    },
 
-            packer.on(`error`, error => {
-                reject(error);
-            });
+    finalize() {
+      entryQueue.then(() => {
+        packer.finalize();
+      });
+    },
 
-            packer.on(`close`, () => {
-                resolve();
-            });
-
-        }),
-
-        entry(header, source) {
-
-            entryQueue = Promise.all([ streamUtils.readStream(source), entryQueue ]).then(([ body ]) => {
-                packer.entry(header, body);
-            });
-
-        },
-
-        finalize() {
-
-            entryQueue.then(() => {
-                packer.finalize();
-            });
-
-        },
-
-        pipe(destination, options) {
-
-            packer.pipe(destination, options);
-
-        }
-
-    };
-
+    pipe(destination, options) {
+      packer.pipe(destination, options);
+    },
+  };
 }
 
 export function createFileExtractor(path) {
+  let deferred = makeDeferred();
 
-    let deferred = makeDeferred();
+  return {
+    promise: deferred.promise,
 
-    return {
+    entry(header, entry) {
+      if (header.name !== path) return Promise.resolve();
 
-        promise: deferred.promise,
-
-        entry(header, entry) {
-
-            if (header.name !== path)
-                return Promise.resolve();
-
-            streamUtils.readStream(entry).then(body => {
-                deferred.resolve(body);
-            }, error => {
-                deferred.reject(error);
-            });
-
+      streamUtils.readStream(entry).then(
+        body => {
+          deferred.resolve(body);
         },
+        error => {
+          deferred.reject(error);
+        },
+      );
+    },
 
-        finalize() {
-
-            deferred.reject(new Error(`File not found (${path})`));
-
-        }
-
-    };
-
+    finalize() {
+      deferred.reject(new Error(`File not found (${path})`));
+    },
+  };
 }
 
-export function createArchiveUnpacker({ virtualPath = null } = {}) {
+export function createArchiveUnpacker({virtualPath = null} = {}) {
+  if (virtualPath) {
+    if (!pathUtils.isAbsolute(virtualPath)) {
+      throw new Error(`The virtual path has to be an absolute path`);
+    } else {
+      virtualPath = pathUtils.resolve(virtualPath);
+    }
+  }
+
+  let stream = new PassThrough();
+
+  let ungzipper = gunzipMaybe();
+  stream.pipe(ungzipper);
+
+  let unpacker = tar.extract();
+  ungzipper.pipe(unpacker);
+
+  let emitter = new EventEmitter();
+
+  unpacker.on(`entry`, (header, entry, next) => {
+    let path = pathUtils.resolve(`/`, header.name);
+    let {mode, type} = header;
 
     if (virtualPath) {
-        if (!pathUtils.isAbsolute(virtualPath)) {
-            throw new Error(`The virtual path has to be an absolute path`);
-        } else {
-            virtualPath = pathUtils.resolve(virtualPath);
-        }
+      let relative = pathUtils.relative(virtualPath, path);
+
+      if (!pathUtils.isForward(relative)) return;
+
+      path = pathUtils.resolve(`/`, relative);
     }
 
-    let stream = new PassThrough();
+    if (path === `/`) return;
 
-    let ungzipper = gunzipMaybe();
-    stream.pipe(ungzipper);
+    emitter.emit(
+      `entry`,
+      {
+        name: pathUtils.relative(`/`, path),
+        mode,
+        type,
+      },
+      entry,
+    );
 
-    let unpacker = tar.extract();
-    ungzipper.pipe(unpacker);
-
-    let emitter = new EventEmitter();
-
-    unpacker.on(`entry`, (header, entry, next) => {
-
-        let path = pathUtils.resolve(`/`, header.name);
-        let { mode, type } = header;
-
-        if (virtualPath) {
-
-            let relative = pathUtils.relative(virtualPath, path);
-
-            if (!pathUtils.isForward(relative))
-                return;
-
-            path = pathUtils.resolve(`/`, relative);
-
-        }
-
-        if (path === `/`)
-            return;
-
-        emitter.emit(`entry`, {
-            name: pathUtils.relative(`/`, path),
-            mode, type,
-        }, entry);
-
-        entry.on(`end`, () => {
-            next();
-        });
-
-        entry.resume();
-
+    entry.on(`end`, () => {
+      next();
     });
 
-    unpacker.on(`finish`, () => {
+    entry.resume();
+  });
 
-        emitter.emit(`finish`);
+  unpacker.on(`finish`, () => {
+    emitter.emit(`finish`);
+  });
 
-    });
+  return Object.assign(stream, {
+    promise: new Promise((resolve, reject) => {
+      ungzipper.on(`error`, error => {
+        reject(error);
+      });
 
-    return Object.assign(stream, {
+      unpacker.on(`error`, error => {
+        reject(error);
+      });
 
-        promise: new Promise((resolve, reject) => {
+      unpacker.on(`finish`, () => {
+        resolve();
+      });
+    }),
 
-            ungzipper.on(`error`, error => {
-                reject(error);
-            });
+    pipe: function(destination, {end = true, filter = []} = {}) {
+      emitter.on(`entry`, (header, entry) => {
+        if (!miscUtils.filePatternMatch(header.name, filter)) return;
 
-            unpacker.on(`error`, error => {
-                reject(error);
-            });
+        destination.entry(header, entry);
+      });
 
-            unpacker.on(`finish`, () => {
-                resolve();
-            });
+      emitter.on(`finish`, () => {
+        if (!end) return;
 
-        }),
-
-        pipe: function (destination, { end = true, filter = [] } = {}) {
-
-            emitter.on(`entry`, (header, entry) => {
-
-                if (!miscUtils.filePatternMatch(header.name, filter))
-                    return;
-
-                destination.entry(header, entry);
-
-            });
-
-            emitter.on(`finish`, () => {
-
-                if (!end)
-                    return;
-
-                destination.finalize();
-
-            });
-
-        }
-
-    });
-
+        destination.finalize();
+      });
+    },
+  });
 }

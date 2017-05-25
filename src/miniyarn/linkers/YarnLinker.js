@@ -1,88 +1,100 @@
-import Immutable       from 'immutable';
-import invariant       from 'invariant';
-import Path            from 'path';
+import Immutable from 'immutable';
+import invariant from 'invariant';
+import Path from 'path';
 
-import { BaseLinker }  from 'miniyarn/linkers/BaseLinker';
-import { PackageInfo } from 'miniyarn/models/PackageInfo';
-import * as fsUtils    from 'miniyarn/utils/fs';
-import * as yarnUtils  from 'miniyarn/utils/yarn';
+import {BaseLinker} from 'miniyarn/linkers/BaseLinker';
+import {PackageInfo} from 'miniyarn/models/PackageInfo';
+import * as fsUtils from 'miniyarn/utils/fs';
+import * as yarnUtils from 'miniyarn/utils/yarn';
 
 export class YarnLinker extends BaseLinker {
+  supports(packageLocator) {
+    return packageLocator.reference != null;
+  }
 
-    supports(packageLocator) {
+  async link(packageNode, parentPath, {linker, env, limit, tick, packageInfos, handlers}) {
+    invariant(packageNode.name, `This package node should have a name`);
+    invariant(packageNode.reference, `This package node should have a reference`);
 
-        return packageLocator.reference != null;
+    let packageInfo = packageInfos.get(packageNode.locator);
+    let handler = handlers.get(packageNode.locator);
 
-    }
+    let nodeModulesPath = `${parentPath}/node_modules`;
 
-    async link(packageNode, parentPath, { linker, env, limit, tick, packageInfos, handlers }) {
+    let sourcePath = handler.get();
+    let packagePath = `${nodeModulesPath}/${packageNode.name}`;
 
-        invariant(packageNode.name, `This package node should have a name`);
-        invariant(packageNode.reference, `This package node should have a reference`);
+    // We tries to be smart, and to avoid installing packages that have already been installed. We need to check for the existence of the atomic file, because the install might have been aborted, and the folder might be corrupted
+    let needsUpdate =
+      !await fsUtils.exists(`${packagePath}/${env.ATOMIC_FILENAME}`) ||
+      (await fsUtils.readJson(`${packagePath}/${env.INFO_FILENAME}`)).reference !== packageNode.reference;
+    let hasBuildScripts = [`preinstall`, `install`, `postinstall`].some(scriptName =>
+      packageInfo.getIn([`scripts`, scriptName]),
+    );
 
-        let packageInfo = packageInfos.get(packageNode.locator);
-        let handler = handlers.get(packageNode.locator);
+    needsUpdate &&
+      (await limit(async () => {
+        // We remove the atomic file before any other so that if the next rimraf is aborted, the process will resume at the next install
+        await fsUtils.rm(`${packagePath}/${env.ATOMIC_FILENAME}`);
+        await fsUtils.rm(`${packagePath}`);
 
-        let nodeModulesPath = `${parentPath}/node_modules`;
+        // We make sure not to copy the atomic file accidentally (in case the install fails before lifecycle hooks run), and we don't need the archive either
+        await fsUtils.cp(sourcePath, packagePath, {filter: [`!/${env.ATOMIC_FILENAME}`, `!/${env.ARCHIVE_FILENAME}`]});
 
-        let sourcePath = handler.get();
-        let packagePath = `${nodeModulesPath}/${packageNode.name}`;
+        // Install the package symlinks into the binary directory
+        for (let [name, file] of packageInfo.bin.entries())
+          await fsUtils.ensureSymlink(Path.resolve(`${packagePath}/`, file), `${nodeModulesPath}/.bin/${name}`);
 
-        // We tries to be smart, and to avoid installing packages that have already been installed. We need to check for the existence of the atomic file, because the install might have been aborted, and the folder might be corrupted
-        let needsUpdate = !await fsUtils.exists(`${packagePath}/${env.ATOMIC_FILENAME}`) || (await fsUtils.readJson(`${packagePath}/${env.INFO_FILENAME}`)).reference !== packageNode.reference;
-        let hasBuildScripts = [ `preinstall`, `install`, `postinstall` ].some(scriptName => packageInfo.getIn([ `scripts`, scriptName ]));
+        // Iterate over the bundled dependencies of the current package, and add them to its binary directory
+        for (let packageName of packageInfo.bundledDependencies) {
+          for (let [name, file] of new PackageInfo(
+            (await fsUtils.readJson(`${packagePath}/node_modules/${packageName}/package.json`)),
+          ).bin.entries()) {
+            await fsUtils.ensureSymlink(
+              Path.resolve(`${packagePath}/node_modules/${packageName}/`, file),
+              `${packagePath}/node_modules/.bin/${name}`,
+            );
+          }
+        }
+      }));
 
-        needsUpdate && await limit(async () => {
+    tick();
 
-            // We remove the atomic file before any other so that if the next rimraf is aborted, the process will resume at the next install
-            await fsUtils.rm(`${packagePath}/${env.ATOMIC_FILENAME}`);
-            await fsUtils.rm(`${packagePath}`);
+    let {buildTicks, build} = await this.linkDependencies(packageNode, packagePath, {
+      limit,
+      linker,
+      env,
+      tick,
+      packageInfos,
+      handlers,
+    });
 
-            // We make sure not to copy the atomic file accidentally (in case the install fails before lifecycle hooks run), and we don't need the archive either
-            await fsUtils.cp(sourcePath, packagePath, { filter: [ `!/${env.ATOMIC_FILENAME}`, `!/${env.ARCHIVE_FILENAME}` ] });
+    if (hasBuildScripts && (needsUpdate || buildTicks > 0))
+      return {
+        buildTicks: buildTicks + 1,
+        build: async ({env, tick}) =>
+          new Immutable.List().concat(
+            await build({env, tick}),
+            await this.build(packageInfo, packagePath, {env, tick}),
+          ),
+      };
 
-            // Install the package symlinks into the binary directory
-            for (let [ name, file ] of packageInfo.bin.entries())
-                await fsUtils.ensureSymlink(Path.resolve(`${packagePath}/`, file), `${nodeModulesPath}/.bin/${name}`);
+    await this.finalize(packagePath, {env});
 
-            // Iterate over the bundled dependencies of the current package, and add them to its binary directory
-            for (let packageName of packageInfo.bundledDependencies) {
-                for (let [ name, file ] of new PackageInfo(await fsUtils.readJson(`${packagePath}/node_modules/${packageName}/package.json`)).bin.entries()) {
-                    await fsUtils.ensureSymlink(Path.resolve(`${packagePath}/node_modules/${packageName}/`, file), `${packagePath}/node_modules/.bin/${name}`);
-                }
-            }
+    return {buildTicks, build};
+  }
 
-        });
+  async build(packageInfo, packagePath, {env, tick}) {
+    await yarnUtils.runPackageLifecycle(packageInfo, packagePath, `preinstall`);
+    await yarnUtils.runPackageLifecycle(packageInfo, packagePath, `install`);
+    await yarnUtils.runPackageLifecycle(packageInfo, packagePath, `postinstall`);
 
-        tick();
+    await this.finalize(packagePath, {env});
 
-        let { buildTicks, build } = await this.linkDependencies(packageNode, packagePath, { limit, linker, env, tick, packageInfos, handlers });
+    tick();
+  }
 
-        if (hasBuildScripts && (needsUpdate || buildTicks > 0))
-            return { buildTicks: buildTicks + 1, build: async ({ env, tick }) => new Immutable.List().concat(await build({ env, tick }), await this.build(packageInfo, packagePath, { env, tick })) };
-
-        await this.finalize(packagePath, { env });
-
-        return { buildTicks, build };
-
-    }
-
-    async build(packageInfo, packagePath, { env, tick }) {
-
-        await yarnUtils.runPackageLifecycle(packageInfo, packagePath, `preinstall`);
-        await yarnUtils.runPackageLifecycle(packageInfo, packagePath, `install`);
-        await yarnUtils.runPackageLifecycle(packageInfo, packagePath, `postinstall`);
-
-        await this.finalize(packagePath, { env });
-
-        tick();
-
-    }
-
-    async finalize(packagePath, { env }) {
-
-        await yarnUtils.writeAtomicFile(`${packagePath}/${env.ATOMIC_FILENAME}`);
-
-    }
-
+  async finalize(packagePath, {env}) {
+    await yarnUtils.writeAtomicFile(`${packagePath}/${env.ATOMIC_FILENAME}`);
+  }
 }
