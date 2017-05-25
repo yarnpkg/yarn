@@ -94,7 +94,7 @@ const messages = {
   frozenLockfileError: 'Your lockfile needs to be updated, but yarn was run with `--frozen-lockfile`.',
   fileWriteError: 'Could not write file $0: $1',
   multiplePackagesCantUnpackInSameDestination: 'Pattern $0 is trying to unpack in the same destination $1 as pattern $2. This could result in a non deterministic behavior, skipping.',
-  incorrectLockfileEntry: 'Lockfile has incorrect entry for $0. Ingoring it.',
+  incorrectLockfileEntry: 'Lockfile has incorrect entry for $0. Ignoring it.',
   workspacesIncompatibleDependencies: 'Dependency $0 has different versions in $1 and $2',
   workspacesRequirePrivateProjects: 'Workspaces can only be enabled for private projects',
 
