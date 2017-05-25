@@ -3,11 +3,13 @@
 import type Reporter from '../reporters/base-reporter.js';
 import type RequestManager, {RequestMethods} from '../util/request-manager.js';
 import type Config from '../config.js';
-import type {ConfigRegistries} from './index.js';
+import type {ConfigRegistries, RegistryNames} from './index.js';
+import {registries} from './index.js';
 import {removePrefix} from '../util/misc.js';
 
 const objectPath = require('object-path');
 const path = require('path');
+const invariant = require('invariant');
 
 export type RegistryRequestOptions = {
   method?: RequestMethods,
@@ -30,9 +32,8 @@ export default class BaseRegistry {
     this.requestManager = requestManager;
     this.registries = registries;
     this.config = {};
-    this.folder = '';
+    this._folder = '';
     this.token = '';
-    this.loc = '';
     this.cwd = cwd;
   }
 
@@ -56,11 +57,20 @@ export default class BaseRegistry {
   //
   config: Object;
 
-  // absolute folder name to insert modules
-  loc: string;
+  // Name of the folder where modules will be placed in,
+  // for example 'node_modules'.
+  _folder: string;
 
-  // relative folder name to put these modules
-  folder: string;
+  /* eslint-disable consistent-return */
+  get name(): RegistryNames {
+    for (const name of Object.keys(registries)) {
+      if (registries[name] === this.constructor) {
+        return name;
+      }
+    }
+    invariant(false, `registry ${this.constructor.name} not found`);
+  }
+  /* eslint-enable consistent-return */
 
   setToken(token: string) {
     this.token = token;
@@ -99,10 +109,24 @@ export default class BaseRegistry {
     });
   }
 
+  /**
+   * Folder name where the modules will be placed.
+   * Relative to current working directory.
+   */
+  get folder(): string {
+    return this._folder;
+  }
+
+  /**
+   * Absolute folder path to place the modules in.
+   */
+  get loc(): string {
+    return this.folder.length ? path.join(this.cwd, this.folder) : '';
+  }
+
   async init(): Promise<void> {
     this.mergeEnv('yarn_');
     await this.loadConfig();
-    this.loc = path.join(this.cwd, this.folder);
   }
 
   static normalizeConfig(config: Object): Object {

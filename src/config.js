@@ -11,6 +11,7 @@ import {MessageError} from './errors.js';
 import * as fs from './util/fs.js';
 import * as constants from './constants.js';
 import ConstraintResolver from './package-constraint-resolver.js';
+import ModuleStorage from './util/module-storage.js';
 import RequestManager from './util/request-manager.js';
 import {registries, registryNames} from './registries/index.js';
 import {NoopReporter} from './reporters/index.js';
@@ -31,6 +32,7 @@ export type ConfigOptions = {
   globalFolder?: ?string,
   linkFolder?: ?string,
   offline?: boolean,
+  atomic?: boolean,
   preferOffline?: boolean,
   pruneOfflineMirror?: boolean,
   enableMetaFolder?: boolean,
@@ -87,6 +89,7 @@ export default class Config {
   constructor(reporter: Reporter) {
     this.constraintResolver = new ConstraintResolver(this, reporter);
     this.requestManager = new RequestManager(reporter);
+    this.moduleStorage = new ModuleStorage(this, reporter);
     this.reporter = reporter;
     this._init({});
   }
@@ -104,9 +107,6 @@ export default class Config {
 
   //
   linkedModules: Array<string>;
-
-  //
-  rootModuleFolders: Array<string>;
 
   //
   linkFolder: string;
@@ -142,6 +142,9 @@ export default class Config {
   //
   reporter: Reporter;
 
+  //
+  moduleStorage: ModuleStorage;
+
   // Whether we should ignore executing lifecycle scripts
   ignoreScripts: boolean;
 
@@ -153,6 +156,8 @@ export default class Config {
 
   workspacesEnabled: boolean;
 
+  atomic: boolean;
+
   //
   cwd: string;
   workspaceRootFolder: ?string;
@@ -160,7 +165,6 @@ export default class Config {
 
   //
   registries: ConfigRegistries;
-  registryFolders: Array<string>;
 
   //
   cache: {
@@ -169,6 +173,24 @@ export default class Config {
 
   //
   commandName: string;
+
+  get registryFolders(): Array<string> {
+    return Object.keys(this.registries)
+      .map((name: any) => this.registries[(name: RegistryNames)])
+      .map(registry => registry.folder);
+  }
+
+  get rootModuleFolders(): Array<string> {
+    const rmfs = new Set();
+    for (const registryFolder of this.registryFolders) {
+      const rmf = path.join(this.cwd, registryFolder);
+      rmfs.add(rmf);
+    }
+    if (this.modulesFolder) {
+      rmfs.add(this.modulesFolder);
+    }
+    return Array.from(rmfs);
+  }
 
   /**
    * Execute a promise produced by factory if it doesn't exist in our cache with
@@ -210,7 +232,7 @@ export default class Config {
   }
 
   /**
-   * Initialise config. Fetch registry options, find package roots.
+   * Initialise config, fetch registry options.
    */
 
   async init(opts: ConfigOptions = {}): Promise<void> {
@@ -238,20 +260,7 @@ export default class Config {
       }
     }
 
-    for (const key of Object.keys(registries)) {
-      const Registry = registries[key];
-
-      // instantiate registry
-      const registry = new Registry(this.cwd, this.registries, this.requestManager, this.reporter);
-      await registry.init();
-
-      this.registries[key] = registry;
-      this.registryFolders.push(registry.folder);
-      const rootModuleFolder = path.join(this.cwd, registry.folder);
-      if (this.rootModuleFolders.indexOf(rootModuleFolder) < 0) {
-        this.rootModuleFolders.push(rootModuleFolder);
-      }
-    }
+    await this._initRegistry();
 
     this.networkConcurrency =
       opts.networkConcurrency || Number(this.getOption('network-concurrency')) || constants.NETWORK_CONCURRENCY;
@@ -310,9 +319,23 @@ export default class Config {
     }
   }
 
+  async _initRegistry(): Promise<void> {
+    const consistentStorage = await this.moduleStorage.ensureConsistency();
+    if (!consistentStorage) {
+      this.reporter.error('stale temporary module folders found, please try again');
+      await this.moduleStorage.purge();
+      process.exit(1);
+    }
+
+    for (const key of Object.keys(registries)) {
+      const Registry = registries[key];
+      const registry = new Registry(this.cwd, this.registries, this.requestManager, this.reporter);
+      await registry.init();
+      this.registries[key] = registry;
+    }
+  }
+
   _init(opts: ConfigOptions) {
-    this.rootModuleFolders = [];
-    this.registryFolders = [];
     this.linkedModules = [];
 
     this.registries = map();
@@ -328,6 +351,7 @@ export default class Config {
     this.globalFolder = opts.globalFolder || constants.GLOBAL_MODULE_DIRECTORY;
     this.linkFolder = opts.linkFolder || constants.LINK_REGISTRY_DIRECTORY;
     this.offline = !!opts.offline;
+    this.atomic = !!opts.atomic;
     this.binLinks = !!opts.binLinks;
 
     this.ignorePlatform = !!opts.ignorePlatform;
@@ -342,10 +366,6 @@ export default class Config {
       offline: !!opts.offline && !opts.preferOffline,
       captureHar: !!opts.captureHar,
     });
-
-    if (this.modulesFolder) {
-      this.rootModuleFolders.push(this.modulesFolder);
-    }
   }
 
   /**

@@ -58,6 +58,7 @@ type Flags = {
   frozenLockfile: boolean,
   skipIntegrityCheck: boolean,
   checkFiles: boolean,
+  atomic: boolean,
 
   // add
   peer: boolean,
@@ -128,6 +129,7 @@ function normalizeFlags(config: Config, rawFlags: Object): Flags {
     frozenLockfile: !!rawFlags.frozenLockfile,
     linkDuplicates: !!rawFlags.linkDuplicates,
     checkFiles: !!rawFlags.checkFiles,
+    atomic: !!rawFlags.atomic,
 
     // add
     peer: !!rawFlags.peer,
@@ -210,11 +212,13 @@ export class Install {
     for (const pattern of excludePatterns) {
       // can't extract a package name from this
       if (getExoticResolver(pattern)) {
+        this.reporter.warn(`cannot determine packages covered by exclusion pattern "${pattern}", skipping.`);
         continue;
       }
 
       // extract the name
       const parts = PackageRequest.normalizePattern(pattern);
+      this.reporter.verbose(`excluding package ${parts.name}`);
       excludeNames.push(parts.name);
     }
 

@@ -12,7 +12,6 @@ import envReplace from '../util/env-replace.js';
 import Registry from './base-registry.js';
 import {addSuffix} from '../util/misc';
 import {getPosixPath, resolveWithHome} from '../util/path';
-import isRequestToRegistry from './is-request-to-registry.js';
 
 const userHome = require('../util/user-home-dir').default;
 const path = require('path');
@@ -63,7 +62,7 @@ function normalizePath(val: mixed): ?string {
 export default class NpmRegistry extends Registry {
   constructor(cwd: string, registries: ConfigRegistries, requestManager: RequestManager, reporter: Reporter) {
     super(cwd, registries, requestManager, reporter);
-    this.folder = 'node_modules';
+    this._folder = 'node_modules';
   }
 
   static filename = 'package.json';
