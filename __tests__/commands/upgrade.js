@@ -102,6 +102,43 @@ test.concurrent('upgrades from fixed version to latest', (): Promise<void> => {
   });
 });
 
+test.concurrent('upgrades to latest matching package.json semver when no package name passed', (): Promise<void> => {
+  return runUpgrade([], {}, 'range-to-latest', async (config): ?Promise<void> => {
+    const lockfile = explodeLockfile(await fs.readFile(path.join(config.cwd, 'yarn.lock')));
+    const pkg = await fs.readJson(path.join(config.cwd, 'package.json'));
+    const lockEntryIndex = lockfile.indexOf('left-pad@<=1.1.1:');
+
+    expect(lockEntryIndex).toEqual(0);
+    expect(lockfile[lockEntryIndex + 1]).toContain('1.1.1');
+    expect(pkg.dependencies).toEqual({'left-pad': '<=1.1.1'});
+  });
+});
+
+test.concurrent('upgrades to latest matching semver when package name passed with version', (): Promise<void> => {
+  return runUpgrade(['left-pad@~1.1.2'], {}, 'range-to-latest', async (config): ?Promise<void> => {
+    const lockfile = explodeLockfile(await fs.readFile(path.join(config.cwd, 'yarn.lock')));
+    const pkg = await fs.readJson(path.join(config.cwd, 'package.json'));
+    const lockEntryIndex = lockfile.indexOf('left-pad@~1.1.2:');
+
+    expect(lockEntryIndex).toEqual(0);
+    expect(lockfile[lockEntryIndex + 1]).toContain('1.1.3');
+    expect(pkg.dependencies).toEqual({'left-pad': '~1.1.2'});
+  });
+});
+
+test.concurrent('upgrades to latest ignoring package.json semver when package name passed', (): Promise<void> => {
+  return runUpgrade(['left-pad'], {}, 'range-to-latest', async (config): ?Promise<void> => {
+    const lockfile = explodeLockfile(await fs.readFile(path.join(config.cwd, 'yarn.lock')));
+    const pkg = await fs.readJson(path.join(config.cwd, 'package.json'));
+    const lockEntryIndex = lockfile.indexOf('left-pad@^1.1.3:');
+
+    expect(lockEntryIndex).toEqual(0);
+    expect(lockfile.indexOf('left-pad@<=1.1.1:')).toEqual(-1);
+    expect(lockfile[lockEntryIndex + 1]).toContain('1.1.3');
+    expect(pkg.dependencies).toEqual({'left-pad': '^1.1.3'});
+  });
+});
+
 test.concurrent('upgrades dependency packages not in registry', (): Promise<void> => {
   const packages = ['yarn-test-git-repo', 'e2e-test-repo'];
   return runUpgrade(packages, {}, 'package-not-in-registry', async (config): ?Promise<void> => {
