@@ -38,8 +38,16 @@ const checkReporter = reporter => {
 
 const checkLockfile = async (config, reporter) => {
   const lockfile = await Lockfile.fromDirectory(config.lockfileFolder, reporter);
-  // Since the version changes, we need to account for that
+
+  const imported = await fs.readFile(path.join(config.cwd, 'yarn.lock.import'));
+  expect(lockfile.source).toEqual(imported);
+};
+
+const checkLockfileWithVersions = async (config, reporter) => {
+  const lockfile = await Lockfile.fromDirectory(config.lockfileFolder, reporter);
+
   let imported = await fs.readFile(path.join(config.cwd, 'yarn.lock.import'));
+  // Since the version changes, we need to account for that
   imported = imported.replace(YARN_VERSION_REGEX, `yarn v${YARN_VERSION}`);
   imported = imported.replace(NODE_VERSION_REGEX, `node ${NODE_VERSION}`);
   expect(lockfile.source).toEqual(imported);
@@ -79,6 +87,12 @@ test.concurrent('throw on missing dev deps deps', async () => {
     thrown = true;
   }
   expect(thrown).toBeTruthy();
+});
+
+test.concurrent('including Yarn and Node version in yarn.lock', () => {
+  return runImport([], {production: true}, 'versions-yarn-lock', async (config, reporter) => {
+    await checkLockfileWithVersions(config, reporter);
+  });
 });
 
 test.concurrent('import missing dev deps in production', () => {

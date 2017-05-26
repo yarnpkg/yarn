@@ -661,7 +661,7 @@ export class Install {
     const loc = path.join(this.config.lockfileFolder, constants.LOCKFILE_FILENAME);
 
     // write lockfile
-    const lockSource = lockStringify(lockfileBasedOnResolver, false, this.config.disableLockfileVersions);
+    const lockSource = lockStringify(lockfileBasedOnResolver, false, this.config.enableLockfileVersions);
     await fs.writeFilePreservingEol(loc, lockSource);
 
     this._logSuccessSaveLockfile();
