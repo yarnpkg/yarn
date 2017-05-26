@@ -6,7 +6,7 @@ import * as reporters from '../../../src/reporters/index.js';
 import {Install} from '../../../src/cli/commands/install.js';
 import Lockfile from '../../../src/lockfile/wrapper.js';
 import * as fs from '../../../src/util/fs.js';
-import {getPackageVersion, runInstall} from '../_helpers.js';
+import {getPackageVersion, isPackagePresent, runInstall} from '../_helpers.js';
 import {promisify} from '../../../src/util/promise';
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 150000;
@@ -152,7 +152,7 @@ test.concurrent('install have a clean node_modules after lockfile update (branch
     await reinstall.init();
 
     expect(await getPackageVersion(config, 'dep-a')).toEqual('1.2.0');
-    expect(await fs.exists(path.join(config.cwd, 'node_modules/dep-b'))).toEqual(false);
+    expect(await isPackagePresent(config, 'dep-b')).toEqual(false);
   });
 });
 
