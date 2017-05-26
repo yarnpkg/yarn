@@ -4,14 +4,13 @@ import {SecurityError, MessageError} from '../errors.js';
 import type {FetchedOverride} from '../types.js';
 import BaseFetcher from './base-fetcher.js';
 import Git from '../util/git.js';
-import * as fsUtil from '../util/fs.js';
+import * as fs from '../util/fs.js';
 import * as constants from '../constants.js';
 import * as crypto from '../util/crypto.js';
 
 const tarFs = require('tar-fs');
 const url = require('url');
 const path = require('path');
-const fs = require('fs');
 
 const invariant = require('invariant');
 
@@ -24,15 +23,15 @@ export default class GitFetcher extends BaseFetcher {
     const tarballModernMirrorPath = this.getTarballMirrorPath();
     const tarballCachePath = this.getTarballCachePath();
 
-    if (tarballLegacyMirrorPath != null && (await fsUtil.exists(tarballLegacyMirrorPath))) {
+    if (tarballLegacyMirrorPath != null && (await fs.exists(tarballLegacyMirrorPath))) {
       return true;
     }
 
-    if (tarballModernMirrorPath != null && (await fsUtil.exists(tarballModernMirrorPath))) {
+    if (tarballModernMirrorPath != null && (await fs.exists(tarballModernMirrorPath))) {
       return true;
     }
 
-    if (await fsUtil.exists(tarballCachePath)) {
+    if (await fs.exists(tarballCachePath)) {
       return true;
     }
 
@@ -65,20 +64,20 @@ export default class GitFetcher extends BaseFetcher {
     const tarballCachePath = this.getTarballCachePath();
 
     const tarballMirrorPath = tarballModernMirrorPath &&
-      !await fsUtil.exists(tarballModernMirrorPath) &&
+      !await fs.exists(tarballModernMirrorPath) &&
       tarballLegacyMirrorPath &&
-      (await fsUtil.exists(tarballLegacyMirrorPath))
+      (await fs.exists(tarballLegacyMirrorPath))
       ? tarballLegacyMirrorPath
       : tarballModernMirrorPath;
 
     const tarballPath = override || tarballMirrorPath || tarballCachePath;
 
-    if (!tarballPath || !await fsUtil.exists(tarballPath)) {
+    if (!tarballPath || !await fs.exists(tarballPath)) {
       throw new MessageError(this.reporter.lang('tarballNotInNetworkOrCache', this.reference, tarballPath));
     }
 
     return new Promise((resolve, reject) => {
-      const untarStream = tarFs.extract(this.dest, {
+      const untarStream = tarFs.extract(fs.expandPath(this.dest), {
         dmode: 0o555, // all dirs should be readable
         fmode: 0o444, // all files should be readable
         chown: false, // don't chown. just leave as it is

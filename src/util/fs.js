@@ -6,6 +6,7 @@ import * as promise from './promise.js';
 import {promisify} from './promise.js';
 import map from './map.js';
 
+const userHome = require('./user-home-dir').default;
 const fs = require('fs');
 const globModule = require('glob');
 const os = require('os');
@@ -13,27 +14,39 @@ const path = require('path');
 
 export const lockQueue = new BlockingQueue('fs lock');
 
-export const readFileBuffer = promisify(fs.readFile);
-export const writeFile: (path: string, data: string) => Promise<void> = promisify(fs.writeFile);
-export const readlink: (path: string, opts: void) => Promise<string> = promisify(fs.readlink);
-export const realpath: (path: string, opts: void) => Promise<string> = promisify(fs.realpath);
-export const readdir: (path: string, opts: void) => Promise<Array<string>> = promisify(fs.readdir);
-export const rename: (oldPath: string, newPath: string) => Promise<void> = promisify(fs.rename);
-export const access: (path: string, mode?: number) => Promise<void> = promisify(fs.access);
-export const stat: (path: string) => Promise<fs.Stats> = promisify(fs.stat);
-export const unlink: (path: string) => Promise<void> = promisify(require('rimraf'));
-export const mkdirp: (path: string) => Promise<void> = promisify(require('mkdirp'));
-export const exists: (path: string) => Promise<boolean> = promisify(fs.exists, true);
-export const lstat: (path: string) => Promise<fs.Stats> = promisify(fs.lstat);
-export const chmod: (path: string, mode: number | string) => Promise<void> = promisify(fs.chmod);
-export const link: (path: string) => Promise<fs.Stats> = promisify(fs.link);
-export const glob: (path: string) => Promise<Array<string>> = promisify(globModule);
+export const createWriteStream = (path: string, options?: Object): fs.WriteStream =>
+  fs.createWriteStream(expandPath(path), options);
+export const createReadStream = (path: string, options?: Object): fs.ReadStream =>
+  fs.createReadStream(expandPath(path), options);
+export const writeFileSync = (path: string, data: Buffer | string, options?: Object | string): void =>
+  fs.writeFileSync(expandPath(path), data, options);
+export const readFileSync = (path: string, options?: Object | string): any =>
+  fs.readFileSync(expandPath(path), options);
+export const existsSync = (path: string): boolean => fs.existsSync(expandPath(path));
+export const lstatSync = (path: string): fs.Stats => fs.lstatSync(expandPath(path));
+
+export const readFileBuffer: (path: string) => Promise<Buffer> = promisify(fs.readFile);
+export const writeFile: (path: string, data: string) => Promise<void> = promisify(expandPathArg(fs.writeFile));
+export const readlink: (path: string, opts: void) => Promise<string> = promisify(expandPathArg(fs.readlink));
+export const realpath: (path: string, opts: void) => Promise<string> = promisify(expandPathArg(fs.realpath));
+export const readdir: (path: string, opts: void) => Promise<Array<string>> = promisify(expandPathArg(fs.readdir));
+export const rename: (oldPath: string, newPath: string) => Promise<void> = promisify(expandPathArgs(fs.rename));
+export const access: (path: string, mode?: number) => Promise<void> = promisify(expandPathArg(fs.access));
+export const stat: (path: string) => Promise<fs.Stats> = promisify(expandPathArg(fs.stat));
+export const unlink: (path: string) => Promise<void> = promisify(expandPathArg(require('rimraf')));
+export const mkdirp: (path: string) => Promise<void> = promisify(expandPathArg(require('mkdirp')));
+export const exists: (path: string) => Promise<boolean> = promisify(expandPathArg(fs.exists), true);
+export const lstat: (path: string) => Promise<fs.Stats> = promisify(expandPathArg(fs.lstat));
+export const chmod: (path: string, mode: number | string) => Promise<void> = promisify(expandPathArg(fs.chmod));
+export const link: (path: string) => Promise<fs.Stats> = promisify(expandPathArg(fs.link));
+export const glob: (path: string) => Promise<Array<string>> = promisify(expandPathArg(globModule));
 
 const CONCURRENT_QUEUE_ITEMS = 4;
 
 const fsSymlink: (target: string, path: string, type?: 'dir' | 'file' | 'junction') => Promise<void> = promisify(
-  fs.symlink,
+  expandPathArgs(fs.symlink),
 );
+
 const invariant = require('invariant');
 const stripBOM = require('strip-bom');
 
@@ -508,8 +521,8 @@ export async function copyBulk(
 
       const cleanup = () => delete currentlyWriting[data.dest];
       return (currentlyWriting[data.dest] = new Promise((resolve, reject) => {
-        const readStream = fs.createReadStream(data.src);
-        const writeStream = fs.createWriteStream(data.dest, {mode: data.mode});
+        const readStream = createReadStream(data.src);
+        const writeStream = createWriteStream(data.dest, {mode: data.mode});
 
         reporter.verbose(reporter.lang('verboseFileCopy', data.src, data.dest));
 
@@ -599,7 +612,7 @@ export async function hardlinkBulk(
 
 function _readFile(loc: string, encoding: string): Promise<any> {
   return new Promise((resolve, reject) => {
-    fs.readFile(loc, encoding, function(err, content) {
+    fs.readFile(expandPath(loc), encoding, function(err, content) {
       if (err) {
         reject(err);
       } else {
@@ -690,7 +703,7 @@ export async function symlink(src: string, dest: string): Promise<void> {
       // use relative paths otherwise which will be retained if the directory is moved
       let relative;
       if (await exists(src)) {
-        relative = path.relative(fs.realpathSync(path.dirname(dest)), fs.realpathSync(src));
+        relative = path.relative(fs.realpathSync(path.dirname(expandPath(dest))), fs.realpathSync(expandPath(src)));
       } else {
         relative = path.relative(path.dirname(dest), src);
       }
@@ -782,7 +795,7 @@ export async function writeFilePreservingEol(path: string, data: string): Promis
   if (eol !== '\n') {
     data = data.replace(/\n/g, eol);
   }
-  await promisify(fs.writeFile)(path, data);
+  await writeFile(path, data);
 }
 
 export async function hardlinksWork(dir: string): Promise<boolean> {
@@ -807,4 +820,24 @@ export async function makeTempDir(prefix?: string): Promise<string> {
   await unlink(dir);
   await mkdirp(dir);
   return dir;
+}
+
+export function expandPath(path: string): string {
+  if (process.platform !== 'win32') {
+    path = path.replace(/^\s*~(?=$|\/|\\)/, userHome);
+  }
+
+  return path;
+}
+
+function expandPathArg(method: Function): any {
+  return function(path: string, ...args): any {
+    return method.apply(this, [expandPath(path), ...args]);
+  };
+}
+
+function expandPathArgs(method: Function): any {
+  return function(path1: string, path2: string, ...args): any {
+    return method.apply(this, [expandPath(path1), expandPath(path2), ...args]);
+  };
 }
