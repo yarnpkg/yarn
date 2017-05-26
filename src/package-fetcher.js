@@ -32,6 +32,13 @@ export async function fetch(pkgs: Array<Manifest>, config: Config): Promise<Arra
         manifest.peerDependencies = packageInfo.peerDependencies.toJS();
         manifest.bundledDependencies = packageInfo.bundledDependencies.toJS();
 
+        await fsUtils.writeFile(`${dest}/.yarn-metadata.json`, JSON.stringify({
+            artifacts: [],
+            remote: {},
+            registry: null,
+            hash: null,
+        }));
+
         return manifest;
       });
     }),
