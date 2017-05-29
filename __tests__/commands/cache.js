@@ -70,3 +70,23 @@ test('clean', async (): Promise<void> => {
     expect(files.length).toEqual(0);
   });
 });
+
+test('clean with package name', async (): Promise<void> => {
+  await runInstall({}, 'artifacts-finds-and-saves', async (config): Promise<void> => {
+    let files = await fs.readdir(config.cacheFolder);
+    expect(files.length).toEqual(3);
+
+    const out = new stream.PassThrough();
+    const reporter = new reporters.JSONReporter({stdout: out});
+
+    await run(config, reporter, {}, ['clean', 'unknownname']);
+    expect(await fs.exists(config.cacheFolder)).toBeTruthy();
+    files = await fs.readdir(config.cacheFolder);
+    expect(files.length).toEqual(3); // Nothing deleted
+
+    await run(config, reporter, {}, ['clean', 'dummy']);
+    expect(await fs.exists(config.cacheFolder)).toBeTruthy();
+    files = await fs.readdir(config.cacheFolder);
+    expect(files.length).toEqual(1); // Only .tmp folder left
+  });
+});
