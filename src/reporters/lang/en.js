@@ -19,6 +19,8 @@ const messages = {
   waitingInstance: 'Waiting for the other yarn instance to finish',
   offlineRetrying: 'There appears to be trouble with your network connection. Retrying...',
   clearedCache: 'Cleared cache.',
+  couldntClearPackageFromCache: "Couldn't clear package $0 from cache",
+  clearedPackageFromCache: 'Cleared package $0 from cache',
   packWroteTarball: 'Wrote tarball to $0.',
 
   manifestPotentialTypo: 'Potential typo $0, did you mean $1?',
