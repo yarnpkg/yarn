@@ -91,7 +91,7 @@ export default class Config {
   preferOffline: boolean;
   pruneOfflineMirror: boolean;
   enableMetaFolder: boolean;
-  disableLockfileVersions: boolean;
+  enableLockfileVersions: boolean;
   ignorePlatform: boolean;
   binLinks: boolean;
 
@@ -268,7 +268,7 @@ export default class Config {
 
     this.pruneOfflineMirror = Boolean(this.getOption('yarn-offline-mirror-pruning'));
     this.enableMetaFolder = Boolean(this.getOption('enable-meta-folder'));
-    this.disableLockfileVersions = Boolean(this.getOption('yarn-disable-lockfile-versions'));
+    this.enableLockfileVersions = Boolean(this.getOption('yarn-enable-lockfile-versions'));
 
     //init & create cacheFolder, tempFolder
     this.cacheFolder = path.join(this._cacheRootFolder, 'v' + String(constants.CACHE_VERSION));
