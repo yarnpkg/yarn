@@ -4,6 +4,7 @@ import type {Reporter} from '../reporters/index.js';
 import {MessageError} from '../errors.js';
 import BlockingQueue from './blocking-queue.js';
 import * as constants from '../constants.js';
+import * as fs from '../util/fs.js';
 import * as network from './network.js';
 import map from '../util/map.js';
 
@@ -13,7 +14,6 @@ import type RequestT from 'request';
 const RequestCaptureHar = require('request-capture-har');
 const invariant = require('invariant');
 const url = require('url');
-const fs = require('fs');
 
 const successHosts = map();
 const controlOffline = network.isOffline();

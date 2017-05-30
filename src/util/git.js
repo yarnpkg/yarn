@@ -4,6 +4,7 @@ import type Config from '../config.js';
 import type {Reporter} from '../reporters/index.js';
 import {MessageError, SecurityError} from '../errors.js';
 import {removeSuffix} from './misc.js';
+import {expandPath} from './path.js';
 import * as crypto from './crypto.js';
 import * as child from './child.js';
 import * as fs from './fs.js';
@@ -45,7 +46,7 @@ export default class Git {
     this.hash = hash;
     this.ref = hash;
     this.gitUrl = gitUrl;
-    this.cwd = this.config.getTemp(crypto.hash(this.gitUrl.repository));
+    this.cwd = expandPath(this.config.getTemp(crypto.hash(this.gitUrl.repository)));
   }
 
   supportsArchive: boolean;
@@ -239,7 +240,7 @@ export default class Git {
   async _cloneViaRemoteArchive(dest: string): Promise<void> {
     await child.spawn('git', ['archive', `--remote=${this.gitUrl.repository}`, this.ref], {
       process(proc, update, reject, done) {
-        const extractor = tarFs.extract(dest, {
+        const extractor = tarFs.extract(expandPath(dest), {
           dmode: 0o555, // all dirs should be readable
           fmode: 0o444, // all files should be readable
         });
@@ -256,7 +257,7 @@ export default class Git {
     await child.spawn('git', ['archive', this.hash], {
       cwd: this.cwd,
       process(proc, resolve, reject, done) {
-        const extractor = tarFs.extract(dest, {
+        const extractor = tarFs.extract(expandPath(dest), {
           dmode: 0o555, // all dirs should be readable
           fmode: 0o444, // all files should be readable
         });

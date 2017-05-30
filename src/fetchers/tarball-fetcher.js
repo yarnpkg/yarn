@@ -2,16 +2,16 @@
 
 import http from 'http';
 import {SecurityError, MessageError} from '../errors.js';
+import {expandPath} from '../util/path.js';
 import type {FetchedOverride} from '../types.js';
 import * as constants from '../constants.js';
 import * as crypto from '../util/crypto.js';
+import * as fs from '../util/fs.js';
 import BaseFetcher from './base-fetcher.js';
-import * as fsUtil from '../util/fs.js';
 
 const path = require('path');
 const tarFs = require('tar-fs');
 const url = require('url');
-const fs = require('fs');
 const stream = require('stream');
 const gunzip = require('gunzip-maybe');
 
@@ -24,9 +24,9 @@ export default class TarballFetcher extends BaseFetcher {
       return;
     }
 
-    if (!await fsUtil.exists(tarballMirrorPath) && (await fsUtil.exists(tarballCachePath))) {
+    if (!await fs.exists(tarballMirrorPath) && (await fs.exists(tarballCachePath))) {
       // The tarball doesn't exists in the offline cache but does in the cache; we import it to the mirror
-      await fsUtil.copy(tarballCachePath, tarballMirrorPath, this.reporter);
+      await fs.copy(tarballCachePath, tarballMirrorPath, this.reporter);
     }
   }
 
@@ -34,11 +34,11 @@ export default class TarballFetcher extends BaseFetcher {
     const tarballMirrorPath = this.getTarballMirrorPath();
     const tarballCachePath = this.getTarballCachePath();
 
-    if (tarballMirrorPath != null && (await fsUtil.exists(tarballMirrorPath))) {
+    if (tarballMirrorPath != null && (await fs.exists(tarballMirrorPath))) {
       return true;
     }
 
-    if (await fsUtil.exists(tarballCachePath)) {
+    if (await fs.exists(tarballCachePath)) {
       return true;
     }
 
@@ -76,7 +76,7 @@ export default class TarballFetcher extends BaseFetcher {
   } {
     const validateStream = new crypto.HashStream();
     const extractorStream = gunzip();
-    const untarStream = tarFs.extract(this.dest, {
+    const untarStream = tarFs.extract(expandPath(this.dest), {
       strip: 1,
       dmode: 0o555, // all dirs should be readable
       fmode: 0o444, // all files should be readable
@@ -114,7 +114,7 @@ export default class TarballFetcher extends BaseFetcher {
 
     const tarballPath = path.resolve(this.config.cwd, override || tarballMirrorPath || tarballCachePath);
 
-    if (!tarballPath || !await fsUtil.exists(tarballPath)) {
+    if (!tarballPath || !await fs.exists(tarballPath)) {
       throw new MessageError(this.config.reporter.lang('tarballNotInNetworkOrCache', this.reference, tarballPath));
     }
 

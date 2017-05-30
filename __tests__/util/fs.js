@@ -25,6 +25,7 @@ describe('fileDatesEqual', () => {
       expect(fileDatesEqual(new Date(1491393798000), new Date(1491393798835))).toBeFalsy();
     });
   });
+
   describe('win32', () => {
     beforeAll(() => {
       process.platform = 'win32';

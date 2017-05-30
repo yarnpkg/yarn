@@ -14,7 +14,6 @@ import {has2xxResponse} from '../../util/misc.js';
 const invariant = require('invariant');
 const crypto = require('crypto');
 const url = require('url');
-const fs2 = require('fs');
 
 export function setFlags(commander: Object) {
   versionSetFlags(commander);
@@ -40,7 +39,7 @@ async function publish(config: Config, pkg: any, flags: Object, dir: string): Pr
   if (stat.isDirectory()) {
     stream = await pack(config, dir);
   } else if (stat.isFile()) {
-    stream = fs2.createReadStream(dir);
+    stream = fs.createReadStream(dir);
   } else {
     throw new Error("Don't know how to handle this file type");
   }

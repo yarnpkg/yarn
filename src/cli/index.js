@@ -4,6 +4,7 @@ import {ConsoleReporter, JSONReporter} from '../reporters/index.js';
 import {registries, registryNames} from '../registries/index.js';
 import commands from './commands/index.js';
 import * as constants from '../constants.js';
+import * as fs from '../util/fs.js';
 import * as network from '../util/network.js';
 import {MessageError} from '../errors.js';
 import Config from '../config.js';
@@ -11,7 +12,6 @@ import {getRcArgs} from '../rc.js';
 import {version} from '../util/yarn-version.js';
 
 const commander = require('commander');
-const fs = require('fs');
 const invariant = require('invariant');
 const lockfile = require('proper-lockfile');
 const loudRejection = require('loud-rejection');

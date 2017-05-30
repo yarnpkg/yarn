@@ -4,13 +4,13 @@ import type {Reporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
 import type {IgnoreFilter} from '../../util/filter.js';
 import * as fs from '../../util/fs.js';
+import {expandPath} from '../../util/path.js';
 import {sortFilter, ignoreLinesToRegex} from '../../util/filter.js';
 import {MessageError} from '../../errors.js';
 
 const zlib = require('zlib');
 const path = require('path');
-const tar = require('tar-fs');
-const fs2 = require('fs');
+const tarFs = require('tar-fs');
 
 const IGNORE_FILENAMES = ['.yarnignore', '.npmignore', '.gitignore'];
 
@@ -111,11 +111,11 @@ export async function pack(config: Config, dir: string): Promise<stream$Duplex> 
   // apply filters
   sortFilter(files, filters, keepFiles, possibleKeepFiles, ignoredFiles);
 
-  const packer = tar.pack(config.cwd, {
+  const packer = tarFs.pack(expandPath(config.cwd), {
     ignore: name => {
       const relative = path.relative(config.cwd, name);
       // Don't ignore directories, since we need to recurse inside them to check for unignored files.
-      if (fs2.lstatSync(name).isDirectory()) {
+      if (fs.lstatSync(name).isDirectory()) {
         const isParentOfKeptFile = Array.from(keepFiles).some(name => !path.relative(relative, name).startsWith('..'));
         return !isParentOfKeptFile;
       }
@@ -159,7 +159,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
   const stream = await pack(config, config.cwd);
 
   await new Promise((resolve, reject) => {
-    stream.pipe(fs2.createWriteStream(filename));
+    stream.pipe(fs.createWriteStream(filename));
     stream.on('error', reject);
     stream.on('close', resolve);
   });
