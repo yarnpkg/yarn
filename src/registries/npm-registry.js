@@ -55,7 +55,10 @@ export default class NpmRegistry extends Registry {
 
   request(pathname: string, opts?: RegistryRequestOptions = {}, packageName: ?string): Promise<*> {
     const registry = this.getRegistry(packageName || pathname);
-    const requestUrl = url.resolve(registry, pathname);
+    const requestBaseUrl = url.resolve(registry, pathname); // does not work...
+    const requestUrl = requestBaseUrl.replace('https://registry.yarnpkg.com/', registry);
+    // console.log('PATCH npm-registry.request(' + pathname + '..)  => requestUrl:' + requestUrl + ' instead of ' + requestBaseUrl);
+    
     const alwaysAuth = this.getRegistryOrGlobalOption(registry, 'always-auth');
     const customHostSuffix = this.getRegistryOrGlobalOption(registry, 'custom-host-suffix');
 
