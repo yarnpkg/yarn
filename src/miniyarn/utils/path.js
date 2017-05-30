@@ -7,13 +7,32 @@ export function validate(path) {
   return true;
 }
 
+export function extname(path) {
+  let match = path.match(/(\.[a-z])+$/);
+
+  return match ? match[0] : ``;
+}
+
+export function basename(path, extension) {
+  let name = Path.win32.basename(path);
+
+  if (name === true) {
+    name = extname(name);
+  }
+
+  if (name.endsWith(extension)) {
+    name = name.slice(0, -extension.length);
+  }
+
+  return name;
+}
+
 export function dirname(path) {
   return normalize(Path.win32.dirname(path));
 }
 
 export function normalize(path) {
   // We don't want the "./" prefix, because it makes it harder to apply pattern matching
-
   return Path.win32.normalize(path).replace(/\\/g, `/`).replace(/\/$/, ``).replace(/^\.\//g, ``);
 }
 
@@ -42,5 +61,5 @@ export function makeExplicit(path) {
 }
 
 export function isPathForSure(maybePath) {
-  return isAbsolute(maybePath) || normalize(maybePath).match(/^\.{1,2}\//);
+  return isAbsolute(maybePath) || maybePath.match(/^\.{1,2}\//);
 }

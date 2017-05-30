@@ -85,13 +85,21 @@ export async function createTemporaryFolder() {
   });
 }
 
+export async function createTemporaryPath(subPath = `temp`) {
+  if (!pathUtils.isForward(subPath)) throw new Error(`A temporary subpath must be a forward path`);
+
+  let folderPath = await createTemporaryFolder();
+  let temporaryPath = pathUtils.resolve(folderPath, subPath);
+
+  return temporaryPath;
+}
+
 export async function createTemporaryFile(filePath) {
   if (filePath) {
-    if (!pathUtils.isForward(filePath)) throw new Error(`A temporary file path must be a forward path`);
+    let filePath = await createTemporaryPath(filePath);
+    await writeFile(filePath, ``);
 
-    let folderPath = await createTemporaryFolder();
-
-    return pathUtils.resolve(folderPath, filePath);
+    return filePath;
   } else {
     return await new Promise((resolve, reject) => {
       tmp.file((error, path) => {
@@ -164,6 +172,18 @@ export async function rm(path) {
         reject(err);
       } else {
         resolve();
+      }
+    });
+  });
+}
+
+export async function lstat(path) {
+  return await new Promise((resolve, reject) => {
+    Fs.lstat(path, (error, stat) => {
+      if (error) {
+        reject(error);
+      } else {
+        resolve(stat);
       }
     });
   });
@@ -348,6 +368,10 @@ export async function writeFile(path, body) {
   });
 }
 
+export async function writeJson(path, body) {
+  await writeFile(path, parseUtils.stringifyJson(body));
+}
+
 export async function readFile(path, encoding = null) {
   return await new Promise((resolve, reject) => {
     Fs.readFile(path, encoding, (err, body) => {
@@ -389,13 +413,14 @@ export class Handler {
     return this.path;
   }
 
-  async steal() {
-    if (this.temporary) return this.path;
-
-    let destination = (await isDirectory(this.path)) ? await createTemporaryFolder() : await createTemporaryFile();
-
-    await cp(this.path, destination);
-
-    return destination;
+  async steal(target = null, { temporary = null } = {}) {
+    if (this.temporary) {
+      if (!target) return this.path;
+      await mv(this.path, target);
+    } else {
+      if (!target) target = await createTemporaryPath(pathUtils.basename(this.path));
+      await cp(this.path, target);
+    }
+    return target;
   }
 }

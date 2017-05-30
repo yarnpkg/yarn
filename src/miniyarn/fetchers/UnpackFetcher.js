@@ -8,7 +8,7 @@ export class UnpackFetcher extends BaseMultiFetcher {
       await fsUtils.extract(destination, archiveHandler.get());
 
       // "Steal" the tarball to put it into the folder (we will need it to populate the offline mirror later)
-      await fsUtils.mv(await archiveHandler.steal(), `${destination}/${env.ARCHIVE_FILENAME}`);
+      await archiveHandler.steal(`${destination}/${env.ARCHIVE_FILENAME}`);
 
       return {packageInfo, handler: new fsUtils.Handler(destination, {temporary: true})};
     });

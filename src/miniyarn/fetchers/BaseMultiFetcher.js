@@ -1,4 +1,5 @@
 import {BaseFetcher} from 'miniyarn/fetchers/BaseFetcher';
+import * as yarnUtils from 'miniyarn/utils/yarn';
 
 export class BaseMultiFetcher extends BaseFetcher {
   fetchers = [];
@@ -20,9 +21,7 @@ export class BaseMultiFetcher extends BaseFetcher {
       return fetcher.supports(packageLocator, {env});
     });
 
-    if (candidateFetchers.length === 0) throw new Error(`No fetcher offered to handle this package`);
-
-    if (candidateFetchers.length > 1) throw new Error(`Multiple fetchers offered to fetch a same package`);
+    if (candidateFetchers.length === 0) throw new Error(`No fetcher offered to handle this package (${yarnUtils.getLocatorIdentifier(packageLocator)})`);
 
     return candidateFetchers[0].fetch(packageLocator, {env});
   }

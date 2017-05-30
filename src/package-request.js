@@ -295,6 +295,7 @@ export default class PackageRequest {
 
     // normal deps
     for (const depName in info.dependencies) {
+try{
       const depPattern = depName + '@' + info.dependencies[depName];
       deps.push(depPattern);
       promises.push(
@@ -306,7 +307,11 @@ export default class PackageRequest {
           parentRequest: this,
         }),
       );
-    }
+} catch (error) {
+    console.log(depName, info.dependencies[depName], error);
+    throw error;
+}
+}
 
     // optional deps
     for (const depName in info.optionalDependencies) {

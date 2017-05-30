@@ -3,3 +3,7 @@ export function parseJson(string) {
 
   return JSON.parse(string);
 }
+
+export function stringifyJson(string) {
+  return JSON.stringify(string);
+}

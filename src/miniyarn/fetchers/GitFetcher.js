@@ -42,20 +42,9 @@ export class GitFetcher extends BaseFetcher {
     if (tagBranchCommit) await execUtils.execFile(`git`, [`checkout`, `-b`, tagBranchCommit], {cwd: clonePath});
     await fsUtils.rm(`${clonePath}/.git`);
 
-    // Remove some internal files, just in case they have been accidentally committed (?!)
-    await fsUtils.rm(`${clonePath}/${env.ARCHIVE_FILENAME}`);
-    await fsUtils.rm(`${clonePath}/${env.ATOMIC_FILENAME}`);
-    await fsUtils.rm(`${clonePath}/${env.INFO_FILENAME}`);
-
-    // Extract the package.json file info, and save them in our normalized file format
-    let packageInfo = new PackageInfo(JSON.parse(await fsUtils.readFile(`${clonePath}/package.json`, `utf8`))).merge(
-      packageLocator,
-    );
-    await fsUtils.writeFile(`${clonePath}/${env.INFO_FILENAME}`, JSON.stringify(packageInfo.toJSON()));
-
     // Pack everything into a single archive, and forward it
     await fsUtils.packToFile(archivePath, clonePath);
 
-    return {packageInfo, handler: archiveHandler};
+    return {packageInfo: new PackageInfo(packageLocator), handler: archiveHandler};
   }
 }

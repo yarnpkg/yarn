@@ -18,6 +18,10 @@ export class Environment
 
     MIRROR_PATH: undefined,
 
+    // The path that file dependencies should be resolved against
+
+    RELATIVE_DEPENDENCIES_PATH: undefined,
+
     // The filename of the marker used to flag a folder as having been correctly installed
     // If this file is missing, the cache will assume that the installation in this directory has somehow failed, erase it, and retry
 

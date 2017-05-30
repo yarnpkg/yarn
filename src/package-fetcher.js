@@ -1,3 +1,5 @@
+import promiseLimit from 'promise-limit';
+
 import {Environment} from 'miniyarn/models/Environment';
 import {PackageLocator} from 'miniyarn/models/PackageLocator';
 import {Manifest} from 'miniyarn/models/Manifest';
@@ -9,21 +11,31 @@ export async function fetch(pkgs: Array<Manifest>, config: Config): Promise<Arra
 
   let env = new Environment({
     CACHE_PATH: `/tmp/yarn+miniyarn/cache`,
-    MIRROR_PATH: `/tmp/yarn+miniyarn/mirror`,
+    MIRROR_PATH: config.getOfflineMirrorPath(`.`),
+    RELATIVE_DEPENDENCIES_PATH: config.cwd,
   });
 
+  let limit = promiseLimit(5);
+
   return await Promise.all(
-    pkgs.map(manifest => {
+    pkgs.map(manifest => limit(() => {
       let dest = config.generateHardModulePath(manifest._reference);
 
+      let name = manifest.name;
+      let reference = manifest._reference.remote.reference;
+
+      // If it looks like a file path "foo.tgz", remove the ambiguity ("./foo.tgz")
+      if (reference && reference.match(/^[^:]*?\.tgz$/))
+        reference = reference.replace(/^(?!\.{0,2}\/)/, `./`);
+
       let locator = new PackageLocator({
-        name: manifest.name,
-        reference: manifest._reference.remote.reference,
+        name: name,
+        reference: reference,
       });
 
       return fetcher.fetch(locator, {fetcher, env}).then(async ({packageInfo, handler}) => {
         await fsUtils.rm(dest);
-        await fsUtils.mv(await handler.steal(), dest);
+        await handler.steal(dest);
 
         tick(manifest.name);
 
@@ -32,15 +44,15 @@ export async function fetch(pkgs: Array<Manifest>, config: Config): Promise<Arra
         manifest.peerDependencies = packageInfo.peerDependencies.toJS();
         manifest.bundledDependencies = packageInfo.bundledDependencies.toJS();
 
-        await fsUtils.writeFile(`${dest}/.yarn-metadata.json`, JSON.stringify({
+        await fsUtils.writeJson(`${dest}/.yarn-metadata.json`, {
             artifacts: [],
             remote: {},
             registry: null,
             hash: null,
-        }));
+        });
 
         return manifest;
       });
-    }),
+    })),
   );
 }
