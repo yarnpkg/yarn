@@ -4,7 +4,7 @@ import type {Reporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
 import type {IgnoreFilter} from '../../util/filter.js';
 import * as fs from '../../util/fs.js';
-import {sortFilter, ignoreLinesToRegex} from '../../util/filter.js';
+import {sortFilter, ignoreLinesToRegex, filterOverridenGitignores} from '../../util/filter.js';
 import {MessageError} from '../../errors.js';
 
 const zlib = require('zlib');
@@ -84,18 +84,16 @@ export async function pack(config: Config, dir: string): Promise<stream$Duplex> 
     filters = filters.concat(regexes);
   }
 
-  //
   const files = await fs.walk(config.cwd, null, new Set(FOLDERS_IGNORE));
+  const dotIgnoreFiles = filterOverridenGitignores(files);
 
   // create ignores
-  for (const file of files) {
-    if (IGNORE_FILENAMES.indexOf(path.basename(file.relative)) >= 0) {
-      const raw = await fs.readFile(file.absolute);
-      const lines = raw.split('\n');
+  for (const file of dotIgnoreFiles) {
+    const raw = await fs.readFile(file.absolute);
+    const lines = raw.split('\n');
 
-      const regexes = ignoreLinesToRegex(lines, path.dirname(file.relative));
-      filters = filters.concat(regexes);
-    }
+    const regexes = ignoreLinesToRegex(lines, path.dirname(file.relative));
+    filters = filters.concat(regexes);
   }
 
   // files to definitely keep, takes precedence over ignore filter
