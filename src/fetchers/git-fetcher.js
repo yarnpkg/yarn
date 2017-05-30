@@ -1,6 +1,7 @@
 /* @flow */
 
 import {SecurityError, MessageError} from '../errors.js';
+import {expandPath} from '../util/path.js';
 import type {FetchedOverride} from '../types.js';
 import BaseFetcher from './base-fetcher.js';
 import Git from '../util/git.js';
@@ -77,7 +78,7 @@ export default class GitFetcher extends BaseFetcher {
     }
 
     return new Promise((resolve, reject) => {
-      const untarStream = tarFs.extract(fs.expandPath(this.dest), {
+      const untarStream = tarFs.extract(expandPath(this.dest), {
         dmode: 0o555, // all dirs should be readable
         fmode: 0o444, // all files should be readable
         chown: false, // don't chown. just leave as it is

@@ -4,6 +4,7 @@ import type {Reporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
 import type {IgnoreFilter} from '../../util/filter.js';
 import * as fs from '../../util/fs.js';
+import {expandPath} from '../../util/path.js';
 import {sortFilter, ignoreLinesToRegex} from '../../util/filter.js';
 import {MessageError} from '../../errors.js';
 
@@ -110,7 +111,7 @@ export async function pack(config: Config, dir: string): Promise<stream$Duplex> 
   // apply filters
   sortFilter(files, filters, keepFiles, possibleKeepFiles, ignoredFiles);
 
-  const packer = tarFs.pack(fs.expandPath(config.cwd), {
+  const packer = tarFs.pack(expandPath(config.cwd), {
     ignore: name => {
       const relative = path.relative(config.cwd, name);
       // Don't ignore directories, since we need to recurse inside them to check for unignored files.

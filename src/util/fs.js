@@ -11,6 +11,7 @@ const fs = require('fs');
 const globModule = require('glob');
 const os = require('os');
 const path = require('path');
+const expandPath = require('./path').expandPath;
 
 export const lockQueue = new BlockingQueue('fs lock');
 
@@ -820,14 +821,6 @@ export async function makeTempDir(prefix?: string): Promise<string> {
   await unlink(dir);
   await mkdirp(dir);
   return dir;
-}
-
-export function expandPath(path: string): string {
-  if (process.platform !== 'win32') {
-    path = path.replace(/^\s*~(?=$|\/|\\)/, userHome);
-  }
-
-  return path;
 }
 
 function expandPathArg(method: Function): any {

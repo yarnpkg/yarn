@@ -2,6 +2,7 @@
 
 import http from 'http';
 import {SecurityError, MessageError} from '../errors.js';
+import {expandPath} from '../util/path.js';
 import type {FetchedOverride} from '../types.js';
 import * as constants from '../constants.js';
 import * as crypto from '../util/crypto.js';
@@ -75,7 +76,7 @@ export default class TarballFetcher extends BaseFetcher {
   } {
     const validateStream = new crypto.HashStream();
     const extractorStream = gunzip();
-    const untarStream = tarFs.extract(fs.expandPath(this.dest), {
+    const untarStream = tarFs.extract(expandPath(this.dest), {
       strip: 1,
       dmode: 0o555, // all dirs should be readable
       fmode: 0o444, // all files should be readable
