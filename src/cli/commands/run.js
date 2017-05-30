@@ -75,6 +75,8 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
     }
 
     if (cmds.length) {
+      // propagate YARN_SILENT env variable to executed commands
+      process.env.YARN_SILENT = '1';
       for (const [stage, cmd] of cmds) {
         // only tack on trailing arguments for default script, ignore for pre and post - #1595
         const defaultScriptCmd = `${cmd} ${sanitizedArgs(args).join(' ')}`;
