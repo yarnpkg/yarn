@@ -2,6 +2,7 @@
 
 import type {Manifest} from '../../types.js';
 import type PackageRequest from '../../package-request.js';
+import type {RegistryNames} from '../../registries/index.js';
 import {MessageError} from '../../errors.js';
 import ExoticResolver from './exotic-resolver.js';
 import * as util from '../../util/misc.js';
@@ -29,6 +30,19 @@ export default class FileResolver extends ExoticResolver {
     let loc = this.loc;
     if (!path.isAbsolute(loc)) {
       loc = path.join(this.config.cwd, loc);
+    }
+
+    if (this.config.linkFileDependencies) {
+      const registry: RegistryNames = 'npm';
+      const manifest: Manifest = {_uid: '', name: '', version: '0.0.0', _registry: registry};
+      manifest._remote = {
+        type: 'link',
+        registry,
+        hash: null,
+        reference: loc,
+      };
+      manifest._uid = manifest.version;
+      return manifest;
     }
     if (!await fs.exists(loc)) {
       throw new MessageError(this.reporter.lang('doesntExist', loc));
