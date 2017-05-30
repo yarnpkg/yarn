@@ -692,7 +692,11 @@ export class Install {
       for (const manifest of this.resolver.getManifests()) {
         const ref = manifest._reference;
         invariant(ref, 'expected reference');
-
+        const {type} = ref.remote;
+        // link specifier won't ever hit cache
+        if (type === 'link') {
+          continue;
+        }
         const loc = this.config.generateHardModulePath(ref);
         const newPkg = await this.config.readManifest(loc);
         await this.resolver.updateManifest(ref, newPkg);

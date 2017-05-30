@@ -1,0 +1,7 @@
+{
+  "dependencies": {
+    "test-absolute": "link:/tmp/bar",
+    "test-relative": "link:bar",
+    "test-missing": "link:baz"
+  }
+}
