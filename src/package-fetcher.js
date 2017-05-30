@@ -1,122 +1,46 @@
-/* @flow */
+import {Environment} from 'miniyarn/models/Environment';
+import {PackageLocator} from 'miniyarn/models/PackageLocator';
+import {Manifest} from 'miniyarn/models/Manifest';
+import * as fsUtils from 'miniyarn/utils/fs';
+import {fetcher} from 'miniyarn/yarn/fetcher';
 
-import type {FetchedMetadata, Manifest} from './types.js';
-import type {Fetchers} from './fetchers/index.js';
-import type PackageReference from './package-reference.js';
-import type Config from './config.js';
-import {MessageError} from './errors.js';
-import * as fetchers from './fetchers/index.js';
-import * as fs from './util/fs.js';
-import * as promise from './util/promise.js';
+export async function fetch(pkgs: Array<Manifest>, config: Config): Promise<Array<Manifest>> {
+  let tick = config.reporter.progress(pkgs.length);
 
-async function fetchCache(dest: string, fetcher: Fetchers, config: Config): Promise<FetchedMetadata> {
-  const {hash, package: pkg} = await config.readPackageMetadata(dest);
-  await fetcher.setupMirrorFromCache();
-  return {
-    package: pkg,
-    hash,
-    dest,
-    cached: true,
-  };
-}
-
-async function fetchOne(ref: PackageReference, config: Config): Promise<FetchedMetadata> {
-  const dest = config.generateHardModulePath(ref);
-
-  const remote = ref.remote;
-  const Fetcher = fetchers[remote.type];
-  if (!Fetcher) {
-    throw new MessageError(config.reporter.lang('unknownFetcherFor', remote.type));
-  }
-
-  const fetcher = new Fetcher(dest, remote, config);
-  if (await config.isValidModuleDest(dest)) {
-    return fetchCache(dest, fetcher, config);
-  }
-
-  // remove as the module may be invalid
-  await fs.unlink(dest);
-
-  try {
-    return fetcher.fetch();
-  } catch (err) {
-    try {
-      await fs.unlink(dest);
-    } catch (err2) {
-      // what do?
-    }
-    throw err;
-  }
-}
-
-async function maybeFetchOne(ref: PackageReference, config: Config): Promise<?FetchedMetadata> {
-  try {
-    return await fetchOne(ref, config);
-  } catch (err) {
-    if (ref.optional) {
-      config.reporter.error(err.message);
-      return null;
-    } else {
-      throw err;
-    }
-  }
-}
-
-export function fetch(pkgs: Array<Manifest>, config: Config): Promise<Array<Manifest>> {
-  const pkgsPerDest: Map<string, PackageReference> = new Map();
-  pkgs = pkgs.filter(pkg => {
-    const ref = pkg._reference;
-    if (!ref) {
-      return false;
-    }
-    const dest = config.generateHardModulePath(ref);
-    const otherPkg = pkgsPerDest.get(dest);
-    if (otherPkg) {
-      config.reporter.warn(
-        config.reporter.lang('multiplePackagesCantUnpackInSameDestination', ref.patterns, dest, otherPkg.patterns),
-      );
-      return false;
-    }
-    pkgsPerDest.set(dest, ref);
-    return true;
+  let env = new Environment({
+    CACHE_PATH: `/tmp/yarn+miniyarn/cache`,
+    MIRROR_PATH: `/tmp/yarn+miniyarn/mirror`,
   });
-  const tick = config.reporter.progress(pkgs.length);
 
-  return promise.queue(
-    pkgs,
-    async pkg => {
-      const ref = pkg._reference;
-      if (!ref) {
-        return pkg;
-      }
+  return await Promise.all(
+    pkgs.map(manifest => {
+      let dest = config.generateHardModulePath(manifest._reference);
 
-      const res = await maybeFetchOne(ref, config);
-      let newPkg;
+      let locator = new PackageLocator({
+        name: manifest.name,
+        reference: manifest._reference.remote.reference,
+      });
 
-      if (res) {
-        newPkg = res.package;
+      return fetcher.fetch(locator, {fetcher, env}).then(async ({packageInfo, handler}) => {
+        await fsUtils.rm(dest);
+        await fsUtils.mv(await handler.steal(), dest);
 
-        // update with new remote
-        // but only if there was a hash previously as the tarball fetcher does not provide a hash.
-        if (ref.remote.hash) {
-          ref.remote.hash = res.hash;
-        }
-      }
+        tick(manifest.name);
 
-      if (tick) {
-        tick(ref.name);
-      }
+        manifest.dependencies = packageInfo.dependencies.toJS();
+        manifest.devDependencies = packageInfo.devDependencies.toJS();
+        manifest.peerDependencies = packageInfo.peerDependencies.toJS();
+        manifest.bundledDependencies = packageInfo.bundledDependencies.toJS();
 
-      if (newPkg) {
-        newPkg._reference = ref;
-        newPkg._remote = ref.remote;
-        newPkg.name = pkg.name;
-        newPkg.fresh = pkg.fresh;
-        return newPkg;
-      }
+        await fsUtils.writeFile(`${dest}/.yarn-metadata.json`, JSON.stringify({
+            artifacts: [],
+            remote: {},
+            registry: null,
+            hash: null,
+        }));
 
-      return pkg;
-    },
-    config.networkConcurrency,
+        return manifest;
+      });
+    }),
   );
 }

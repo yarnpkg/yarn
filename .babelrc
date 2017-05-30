@@ -4,6 +4,8 @@
     "pre-node5": {
       "presets": ["es2015-node4"],
       "plugins": [
+        ["transform-class-properties"],
+        ["transform-es2015-classes"],
         ["transform-inline-imports-commonjs"],
         ["transform-runtime", { "polyfill": true, "regenerator": false }]
       ]
@@ -17,7 +19,10 @@
   },
   "presets": ["node5", "stage-0"],
   "plugins": [
-    ["transform-inline-imports-commonjs"],
-    ["transform-runtime", { "polyfill": false, "regenerator": true }]
+    ["transform-class-properties"],
+    ["transform-es2015-classes"],
+    ["transform-inline-imports-commonjs"] ,
+    ["transform-runtime", { "polyfill": false, "regenerator": true }],
+    ["module-resolver", { "cwd": "packagejson", "alias": {"miniyarn": "./src/miniyarn"}}]
   ]
 }

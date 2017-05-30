@@ -155,13 +155,23 @@ if (command.requireLockfile && !fs.existsSync(path.join(config.cwd, constants.LO
 //
 const run = (): Promise<void> => {
   invariant(command, 'missing command');
-  return command.run(config, reporter, commander, commander.args).then(exitCode => {
-    reporter.close();
-    if (outputWrapper) {
-      reporter.footer(false);
-    }
-    return exitCode;
-  });
+  return command.run(config, reporter, commander, commander.args).then(
+    exitCode => {
+      reporter.close();
+      if (outputWrapper) {
+        reporter.footer(false);
+      }
+      return exitCode;
+    },
+    error => {
+      reporter.error(error.stack || error.message || error);
+      reporter.close();
+      if (outputWrapper) {
+        reporter.footer(false);
+      }
+      return 1;
+    },
+  );
 };
 
 //
