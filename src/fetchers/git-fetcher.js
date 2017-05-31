@@ -16,6 +16,20 @@ const fs = require('fs');
 const invariant = require('invariant');
 
 export default class GitFetcher extends BaseFetcher {
+  async setupMirrorFromCache(): Promise<?string> {
+    const tarballMirrorPath = this.getTarballMirrorPath();
+    const tarballCachePath = this.getTarballCachePath();
+
+    if (tarballMirrorPath == null) {
+      return;
+    }
+
+    if (!await fsUtil.exists(tarballMirrorPath) && (await fsUtil.exists(tarballCachePath))) {
+      // The tarball doesn't exists in the offline cache but does in the cache; we import it to the mirror
+      await fsUtil.copy(tarballCachePath, tarballMirrorPath, this.reporter);
+    }
+  }
+
   async getLocalAvailabilityStatus(): Promise<boolean> {
     // Some mirrors might still have files named "./reponame" instead of "./reponame-commit"
     const tarballLegacyMirrorPath = this.getTarballMirrorPath({
