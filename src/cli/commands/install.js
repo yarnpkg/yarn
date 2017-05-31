@@ -191,7 +191,7 @@ export class Install {
 
   async fetchRequestFromCwd(
     excludePatterns?: Array<string> = [],
-    ignoreUnusedPatterns?: boolean = false,
+    ignoreUnusedPatterns?: boolean = true,
   ): Promise<InstallCwdRequest> {
     const patterns = [];
     const deps = [];
