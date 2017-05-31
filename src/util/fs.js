@@ -521,7 +521,7 @@ export async function copyBulk(
 
       const cleanup = () => delete currentlyWriting[data.dest];
       reporter.verbose(reporter.lang('verboseFileCopy', data.src, data.dest));
-      return (currentlyWriting[data.dest] = readFile(data.src)
+      return (currentlyWriting[data.dest] = readFileBuffer(data.src)
         .then(d => {
           return writeFile(data.dest, d, {mode: data.mode});
         })
