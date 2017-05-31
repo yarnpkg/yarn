@@ -123,3 +123,13 @@ test('first dep is installed when same level and reference count and one is a de
     );
   });
 });
+
+// fixes https://github.com/yarnpkg/yarn/issues/3535
+// quite a heavy test, did not find a way to isolate
+test('Only top level (after hoisting) bin links should be linked', (): Promise<void> => {
+  return runInstall({binLinks: true}, 'install-bin-links-eslint', async config => {
+    expect(await linkAt(config, 'node_modules', '.bin', 'eslint')).toEqual('../eslint/bin/eslint.js');
+  });
+});
+
+

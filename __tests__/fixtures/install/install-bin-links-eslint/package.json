@@ -1,0 +1,10 @@
+{
+  "name": "eslint-8547",
+  "version": "0.1.0",
+  "private": true,
+  "devDependencies": {
+    "eslint": "^3.19.0",
+    "eslint-plugin-react": "^6.9.0",
+    "react-scripts": "0.9.5"
+  }
+}
