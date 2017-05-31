@@ -254,9 +254,8 @@ class ImportPackageResolver extends PackageResolver {
     }
   }
 
-  async init(deps: DependencyRequestPatterns, isFlat: boolean, rootName?: string): Promise<void> {
+  async init(deps: DependencyRequestPatterns, isFlat: boolean): Promise<void> {
     this.flat = isFlat;
-    this.rootName = rootName || this.rootName;
     const activity = (this.activity = this.reporter.activity());
     await this.findAll(deps);
     this.resetOptional();
@@ -278,7 +277,10 @@ export class Import extends Install {
     }
     await verifyTreeCheck(this.config, this.reporter, {}, []);
     const {requests, patterns, manifest} = await this.fetchRequestFromCwd();
-    await this.resolver.init(requests, this.flags.flat, manifest.name);
+    if (manifest.name && this.resolver instanceof ImportPackageResolver) {
+      this.resolver.rootName = manifest.name;
+    }
+    await this.resolver.init(requests, this.flags.flat);
     const manifests: Array<Manifest> = await fetcher.fetch(this.resolver.getManifests(), this.config);
     this.resolver.updateManifests(manifests);
     await compatibility.check(this.resolver.getManifests(), this.config, this.flags.ignoreEngines);

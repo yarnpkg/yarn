@@ -14,6 +14,7 @@ import {entries} from './util/misc.js';
 import * as fs from './util/fs.js';
 import lockMutex from './util/mutex.js';
 import {satisfiesWithPreleases} from './util/semver.js';
+import WorkspaceLayout from './workspace-layout.js';
 
 const invariant = require('invariant');
 const cmdShim = promise.promisify(require('cmd-shim'));
@@ -124,7 +125,11 @@ export default class PackageLinker {
     return Promise.resolve(hoister.init());
   }
 
-  async copyModules(patterns: Array<string>, linkDuplicates: boolean): Promise<void> {
+  async copyModules(
+    patterns: Array<string>,
+    linkDuplicates: boolean,
+    workspaceLayout?: WorkspaceLayout,
+  ): Promise<void> {
     let flatTree = await this.getFlatHoistedTree(patterns);
 
     // sorted tree makes file creation and copying not to interfere with each other
@@ -140,21 +145,46 @@ export default class PackageLinker {
     const hardlinksEnabled = linkDuplicates && (await fs.hardlinksWork(this.config.cwd));
 
     const copiedSrcs: Map<string, string> = new Map();
-    for (const [dest, {pkg, loc}] of flatTree) {
+    const symlinkPaths: Map<string, string> = new Map();
+    for (const [folder, {pkg, loc}] of flatTree) {
       const remote = pkg._remote || {type: ''};
       const ref = pkg._reference;
-      const src = remote.type === 'link' ? remote.reference : loc;
+      let dest = folder;
       invariant(ref, 'expected package reference');
-      ref.setLocation(dest);
 
-      // backwards compatibility: get build artifacts from metadata
-      // does not apply to linked dependencies
-      if (remote.type !== 'link') {
+      let src = loc;
+      let type = '';
+      if (remote.type === 'link') {
+        // replace package source from incorrect cache location (workspaces and link: are not cached)
+        // with a symlink source
+        src = remote.reference;
+        type = 'symlink';
+      } else if (workspaceLayout && remote.type === 'workspace') {
+        src = remote.reference;
+        type = 'symlink';
+        if (dest.indexOf(workspaceLayout.virtualManifestName) !== -1) {
+          // we don't need to install virtual manifest
+          continue;
+        }
+        // to get real path for non hoisted dependencies
+        symlinkPaths.set(dest, src);
+      } else {
+        // backwards compatibility: get build artifacts from metadata
+        // does not apply to symlinked dependencies
         const metadata = await this.config.readPackageMetadata(src);
         for (const file of metadata.artifacts) {
           artifactFiles.push(path.join(dest, file));
         }
       }
+
+      // fs copy can't copy through a symlink, so we replace those with real paths to workpsaces
+      for (const [symlink, realpath] of symlinkPaths.entries()) {
+        if (dest !== symlink && dest.indexOf(symlink) === 0) {
+          dest = dest.replace(symlink, realpath);
+        }
+      }
+
+      ref.setLocation(dest);
 
       const integrityArtifacts = this.artifacts[`${pkg.name}@${pkg.version}`];
       if (integrityArtifacts) {
@@ -171,7 +201,7 @@ export default class PackageLinker {
         copyQueue.set(dest, {
           src,
           dest,
-          type: remote.type,
+          type,
           onFresh() {
             if (ref) {
               ref.setFresh(true);
@@ -355,8 +385,8 @@ export default class PackageLinker {
     return range === '*' || satisfiesWithPreleases(version, range, this.config.looseSemver);
   }
 
-  async init(patterns: Array<string>, linkDuplicates: boolean): Promise<void> {
+  async init(patterns: Array<string>, linkDuplicates: boolean, workspaceLayout?: WorkspaceLayout): Promise<void> {
     this.resolvePeerModules();
-    await this.copyModules(patterns, linkDuplicates);
+    await this.copyModules(patterns, linkDuplicates, workspaceLayout);
   }
 }

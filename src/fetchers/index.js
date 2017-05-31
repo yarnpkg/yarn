@@ -12,4 +12,4 @@ export {TarballFetcher as tarball};
 
 export type Fetchers = BaseFetcher | CopyFetcher | GitFetcher | TarballFetcher;
 
-export type FetcherNames = 'base' | 'copy' | 'git' | 'link' | 'tarball';
+export type FetcherNames = 'base' | 'copy' | 'git' | 'link' | 'tarball' | 'workspace';

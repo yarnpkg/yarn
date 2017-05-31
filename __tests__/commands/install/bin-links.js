@@ -117,5 +117,3 @@ test('Only top level (after hoisting) bin links should be linked', (): Promise<v
     expect(await linkAt(config, 'node_modules', '.bin', 'eslint')).toEqual('../eslint/bin/eslint.js');
   });
 });
-
-

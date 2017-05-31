@@ -165,7 +165,7 @@ async function buildActionsForCopy(
     const onDone = data.onDone || noop;
     files.add(dest);
 
-    if (type === 'link') {
+    if (type === 'symlink') {
       await mkdirp(path.dirname(dest));
       onFresh();
       actions.push({
