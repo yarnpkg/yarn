@@ -274,8 +274,8 @@ export default class PackageLinker {
 
     // create binary links
     if (this.config.binLinks) {
-      const linksToCreate = this.determineTopLevelBinLinks(flatTree);
-      const tickBin = this.reporter.progress(flatTree.length + linksToCreate.length);
+      const topLevelDependencies = this.determineTopLevelBinLinks(flatTree);
+      const tickBin = this.reporter.progress(flatTree.length + topLevelDependencies.length);
 
       // create links in transient dependencies
       await promise.queue(flatTree, async ([dest, {pkg}]) => {
@@ -286,13 +286,13 @@ export default class PackageLinker {
 
       // create links at top level for all dependencies.
       // non-transient dependencies will overwrite these during this.save() to ensure they take priority.
-      await promise.queue(linksToCreate, async ([dest, {pkg}]) => {
-        if (pkg.bin && Object.keys(pkg.bin).length) {
-          const binLoc = path.join(this.config.cwd, this.config.getFolder(pkg));
-          await this.linkSelfDependencies(pkg, dest, binLoc);
-          tickBin(this.config.cwd);
-        }
-      }, 4);
+      await promise.queue(topLevelDependencies, async ([dest, {pkg}]) => {
+          if (pkg.bin && Object.keys(pkg.bin).length) {
+            const binLoc = path.join(this.config.cwd, this.config.getFolder(pkg));
+            await this.linkSelfDependencies(pkg, dest, binLoc);
+            tickBin(this.config.cwd);
+          }
+        }, 4);
     }
   }
 
@@ -348,28 +348,5 @@ export default class PackageLinker {
   async init(patterns: Array<string>, linkDuplicates: boolean): Promise<void> {
     this.resolvePeerModules();
     await this.copyModules(patterns, linkDuplicates);
-    await this.saveAll(patterns);
-  }
-
-  async save(pattern: string): Promise<void> {
-    const resolved = this.resolver.getResolvedPattern(pattern);
-    invariant(resolved, `Couldn't find resolved name/version for ${pattern}`);
-
-    const ref = resolved._reference;
-    invariant(ref, 'Missing reference');
-
-    //
-    const src = this.config.generateHardModulePath(ref);
-
-    // link bins
-    if (this.config.binLinks && resolved.bin && Object.keys(resolved.bin).length && !ref.ignore) {
-      const binLoc = this.config.modulesFolder || path.join(this.config.cwd, this.config.getFolder(resolved));
-      await this.linkSelfDependencies(resolved, src, binLoc);
-    }
-  }
-
-  async saveAll(deps: Array<string>): Promise<void> {
-    deps = this.resolver.dedupePatterns(deps);
-    await promise.queue(deps, (dep): Promise<void> => this.save(dep));
   }
 }
