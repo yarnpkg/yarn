@@ -76,6 +76,32 @@ test('GitFetcher.fetch', async () => {
   expect(name).toBe('beeper');
 });
 
+test('GitFetcher.fetch with prepare script', async () => {
+  const dir = await mkdir('git-fetcher-with-prepare');
+  const fetcher = new GitFetcher(
+    dir,
+    {
+      type: 'git',
+      reference: 'https://github.com/Volune/test-js-git-repo',
+      hash: '96e838bcc908ed424666b4b04efe802fd4c8bccd',
+      registry: 'npm',
+    },
+    (await Config.create()),
+  );
+  await fetcher.fetch();
+  const name = (await fs.readJson(path.join(dir, 'package.json'))).name;
+  expect(name).toBe('test-js-git-repo');
+  const dependencyName = (await fs.readJson(path.join(dir, 'dependency-package.json'))).name;
+  expect(dependencyName).toBe('beeper');
+  // The file "prepare.js" is not in "files" list
+  expect(await fs.exists(path.join(dir, 'prepare.js'))).toBe(false);
+  // Check executed lifecycle scripts
+  expect(await fs.exists(path.join(dir, 'generated', 'preinstall'))).toBe(true);
+  expect(await fs.exists(path.join(dir, 'generated', 'install'))).toBe(true);
+  expect(await fs.exists(path.join(dir, 'generated', 'postinstall'))).toBe(true);
+  expect(await fs.exists(path.join(dir, 'generated', 'prepublish'))).toBe(false);
+});
+
 test('TarballFetcher.fetch', async () => {
   const dir = await mkdir('tarball-fetcher');
   const fetcher = new TarballFetcher(
