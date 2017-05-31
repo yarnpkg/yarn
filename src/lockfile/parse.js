@@ -314,9 +314,97 @@ export class Parser {
   }
 }
 
-export default function(str: string, fileLoc: string = 'lockfile'): Object {
-  str = stripBOM(str);
+const MERGE_CONFLICT_START = '<<<<<<<';
+const MERGE_CONFLICT_SEP = '=======';
+const MERGE_CONFLICT_END = '>>>>>>>';
+
+/**
+ * Extract the two versions of the lockfile from a merge conflict.
+ */
+
+export function extractConflictVariants(str: string): Array<string> {
+  const variants: Array<Array<string>> = [[], []];
+  const lines = str.split(/\n/g);
+
+  while (lines.length) {
+    const line = lines.shift();
+    if (line.startsWith(MERGE_CONFLICT_START)) {
+      // get the first variant
+      while (lines.length) {
+        const line = lines.shift();
+        if (line === MERGE_CONFLICT_SEP) {
+          break;
+        } else {
+          variants[0].push(line);
+        }
+      }
+
+      // get the second variant
+      while (lines.length) {
+        const line = lines.shift();
+        if (line.startsWith(MERGE_CONFLICT_END)) {
+          break;
+        } else {
+          variants[1].push(line);
+        }
+      }
+    } else {
+      variants[0].push(line);
+      variants[1].push(line);
+    }
+  }
+
+  return variants.map(lines => lines.join('\n'));
+}
+
+/**
+ * Check if a lockfile has merge conflicts.
+ */
+
+export function hasMergeConflicts(str: string): boolean {
+  return str.includes(MERGE_CONFLICT_START);
+}
+
+/**
+ * Parse the lockfile.
+ */
+
+function parse(str: string, fileLoc: string): Object {
   const parser = new Parser(str, fileLoc);
   parser.next();
   return parser.parse();
+}
+
+type ParseResult = {
+  type: 'merge' | 'none' | 'conflict',
+  object: Object,
+};
+
+/**
+ * Parse and merge the two variants in a conflicted lockfile.
+ */
+
+function parseWithConflict(str: string, fileLoc: string): ParseResult {
+  const variants = extractConflictVariants(str);
+
+  try {
+    const obj = Object.assign({}, parse(variants[0], fileLoc), parse(variants[1], fileLoc));
+    return {type: 'merge', object: obj};
+  } catch (err) {
+    if (err instanceof SyntaxError) {
+      return {type: 'conflict', object: {}};
+    } else {
+      throw err;
+    }
+  }
+}
+
+export default function(str: string, fileLoc: string = 'lockfile'): ParseResult {
+  str = stripBOM(str);
+
+  if (hasMergeConflicts(str)) {
+    return parseWithConflict(str, fileLoc);
+  } else {
+    return {type: 'none', object: parse(str, fileLoc)};
+  }
 }

@@ -35,7 +35,7 @@ export async function createLockfile(dir: string): Promise<Lockfile> {
 
   if (await fs.exists(lockfileLoc)) {
     const rawLockfile = await fs.readFile(lockfileLoc);
-    lockfile = parse(rawLockfile);
+    lockfile = parse(rawLockfile).object;
   }
 
   return new Lockfile(lockfile);
