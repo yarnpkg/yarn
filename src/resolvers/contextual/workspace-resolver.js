@@ -1,25 +1,15 @@
 /* @flow */
 
-import type Config from '../../config.js';
 import type {Manifest} from '../../types.js';
 import PackageRequest from '../../package-request.js';
 import BaseResolver from '../base-resolver.js';
 import WorkspaceLayout from '../../workspace-layout.js';
 
 const invariant = require('invariant');
-const semver = require('semver');
 
 export default class WorkspaceResolver extends BaseResolver {
-  static isWorkspace(pattern: string, config: Config, workspaceLayout: ?WorkspaceLayout): boolean {
-    if (!workspaceLayout) {
-      return false;
-    }
-    const {name, range} = PackageRequest.normalizePattern(pattern);
-    const workspace = workspaceLayout.getWorkspaceManifest(name);
-    if (!workspace) {
-      return false;
-    }
-    return semver.satisfies(workspace.manifest.version, range, config.looseSemver);
+  static isWorkspace(pattern: string, workspaceLayout: ?WorkspaceLayout): boolean {
+    return !!workspaceLayout && !!workspaceLayout.getManifestByPattern(pattern);
   }
 
   constructor(request: PackageRequest, fragment: string, workspaceLayout: WorkspaceLayout) {
@@ -30,14 +20,8 @@ export default class WorkspaceResolver extends BaseResolver {
   workspaceLayout: WorkspaceLayout;
 
   resolve(): Promise<Manifest> {
-    const {name, range} = PackageRequest.normalizePattern(this.request.pattern);
-    const workspace = this.workspaceLayout.getWorkspaceManifest(name);
+    const workspace = this.workspaceLayout.getManifestByPattern(this.request.pattern);
     invariant(workspace, 'expected workspace');
-    invariant(
-      semver.satisfies(workspace.manifest.version, range, this.config.looseSemver),
-      'expected workspace to match',
-    );
-
     const {manifest, loc} = workspace;
     const registry = manifest._registry;
     invariant(registry, 'expected reference');

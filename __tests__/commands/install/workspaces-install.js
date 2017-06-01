@@ -191,8 +191,7 @@ test.concurrent('install should not install dev dependencies of workspaces in pr
   });
 });
 
-// TODO need tests for check, check --integrity, check --verify-tree
-test.skip('check command should work', (): Promise<void> => {
+test.concurrent('check command should work', (): Promise<void> => {
   return runInstall({checkFiles: true}, 'workspaces-install-basic', async (config, reporter): Promise<void> => {
     // check command + integrity check
     let thrown = false;
@@ -205,3 +204,5 @@ test.skip('check command should work', (): Promise<void> => {
     expect(thrown).toBe(false);
   });
 });
+
+// TODO need more thorough tests for all kinds of checks: integrity, verify-tree

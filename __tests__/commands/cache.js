@@ -54,7 +54,11 @@ test('clean', async (): Promise<void> => {
     // Asserting cache size is 1...
     // we need to add one for the .tmp folder
     //
-    expect(files.length).toEqual(2);
+    // Per #2860, file: protocol installs may add the same package to the cache
+    // multiple times if it is installed with a force flag or has an install script.
+    // We'll add another for a total of 3 because this particular fixture has
+    // an install script.
+    expect(files.length).toEqual(3);
 
     const out = new stream.PassThrough();
     const reporter = new reporters.JSONReporter({stdout: out});
@@ -70,7 +74,7 @@ test('clean', async (): Promise<void> => {
 test('clean with package name', async (): Promise<void> => {
   await runInstall({}, 'artifacts-finds-and-saves', async (config): Promise<void> => {
     let files = await fs.readdir(config.cacheFolder);
-    expect(files.length).toEqual(2);
+    expect(files.length).toEqual(3);
 
     const out = new stream.PassThrough();
     const reporter = new reporters.JSONReporter({stdout: out});
@@ -78,7 +82,7 @@ test('clean with package name', async (): Promise<void> => {
     await run(config, reporter, {}, ['clean', 'unknownname']);
     expect(await fs.exists(config.cacheFolder)).toBeTruthy();
     files = await fs.readdir(config.cacheFolder);
-    expect(files.length).toEqual(2); // Nothing deleted
+    expect(files.length).toEqual(3); // Nothing deleted
 
     await run(config, reporter, {}, ['clean', 'dummy']);
     expect(await fs.exists(config.cacheFolder)).toBeTruthy();

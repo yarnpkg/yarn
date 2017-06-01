@@ -222,7 +222,7 @@ export default class PackageRequest {
     const exoticResolver = PackageRequest.getExoticResolver(this.pattern);
     if (exoticResolver) {
       return this.findExoticVersionInfo(exoticResolver, this.pattern);
-    } else if (WorkspaceResolver.isWorkspace(this.pattern, this.config, this.resolver.workspaceLayout)) {
+    } else if (WorkspaceResolver.isWorkspace(this.pattern, this.resolver.workspaceLayout)) {
       invariant(this.resolver.workspaceLayout, 'expected workspaceLayout');
       const resolver = new WorkspaceResolver(this, this.pattern, this.resolver.workspaceLayout);
       return resolver.resolve();

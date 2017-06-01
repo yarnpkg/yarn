@@ -22,9 +22,8 @@ export const runInstall = run.bind(
   async (args, flags, config, reporter, lockfile): Promise<Install> => {
     const install = new Install(flags, config, reporter, lockfile);
     await install.init();
-    // TODO temporary while fixing workspaces
-    // await check(config, reporter, {}, []);
-    // await check(config, reporter, {verifyTree: true}, []);
+    await check(config, reporter, {}, []);
+    await check(config, reporter, {verifyTree: true}, []);
     return install;
   },
   [],
