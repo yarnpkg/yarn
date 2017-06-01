@@ -61,6 +61,24 @@ test.concurrent('properly find and save build artifacts', async () => {
   });
 });
 
+test('creates the file in the mirror when fetching a git repository', async () => {
+  await runInstall({}, 'install-git', async (config, reporter): Promise<void> => {
+    console.log('aaaaa');
+    const lockfile = await Lockfile.fromDirectory(config.cwd);
+
+    expect(await fs.glob('example-yarn-package.git-*', {cwd: `${config.cwd}/offline-mirror`})).toHaveLength(1);
+
+    await fs.unlink(path.join(config.cwd, 'offline-mirror'));
+    await fs.unlink(path.join(config.cwd, 'node_modules'));
+
+    console.log('bbbbb');
+    const firstReinstall = new Install({}, config, reporter, lockfile);
+    await firstReinstall.init();
+
+    expect(await fs.glob('example-yarn-package.git-*', {cwd: `${config.cwd}/offline-mirror`})).toHaveLength(1);
+  });
+});
+
 test('changes the cache path when bumping the cache version', async () => {
   await runInstall({}, 'install-github', async (config): Promise<void> => {
     const inOut = new stream.PassThrough();
