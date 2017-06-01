@@ -26,7 +26,7 @@ export const {run, setFlags, examples} = buildSubCommands('config', {
       return false;
     }
 
-    reporter.log(String(config.getOption(args[0])));
+    reporter.log(String(config.getOption(args[0], false)));
     return true;
   },
 

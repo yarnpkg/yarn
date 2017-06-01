@@ -118,7 +118,7 @@ const reporter = new Reporter({
   emoji: process.stdout.isTTY && commander.emoji,
   verbose: commander.verbose,
   noProgress: !commander.progress,
-  isSilent: commander.silent,
+  isSilent: process.env.YARN_SILENT === '1' || commander.silent,
 });
 
 reporter.initPeakMemoryCounter();

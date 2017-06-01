@@ -109,6 +109,22 @@ test.concurrent('install with --optional flag', (): Promise<void> => {
   });
 });
 
+test.concurrent('install with link: specifier', (): Promise<void> => {
+  return runAdd(['link:../left-pad'], {dev: true}, 'add-with-flag', async config => {
+    const lockfile = explodeLockfile(await fs.readFile(path.join(config.cwd, 'yarn.lock')));
+    const pkg = await fs.readJson(path.join(config.cwd, 'package.json'));
+
+    const expectPath = path.join(config.cwd, 'node_modules', 'left-pad');
+
+    const stat = await fs.lstat(expectPath);
+    expect(stat.isSymbolicLink()).toEqual(true);
+
+    expect(lockfile.indexOf('left-pad@1.1.0:')).toEqual(-1);
+    expect(pkg.devDependencies).toEqual({'left-pad': 'link:../left-pad'});
+    expect(pkg.dependencies).toEqual({});
+  });
+});
+
 test.concurrent('install with arg that has binaries', (): Promise<void> => {
   return runAdd(['react-native-cli'], {}, 'install-with-arg-and-bin');
 });

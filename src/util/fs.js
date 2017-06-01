@@ -42,6 +42,7 @@ const noop = () => {};
 export type CopyQueueItem = {
   src: string,
   dest: string,
+  type?: string,
   onFresh?: ?() => void,
   onDone?: ?() => void,
 };
@@ -159,10 +160,22 @@ async function buildActionsForCopy(
 
   //
   async function build(data): Promise<void> {
-    const {src, dest} = data;
+    const {src, dest, type} = data;
     const onFresh = data.onFresh || noop;
     const onDone = data.onDone || noop;
     files.add(dest);
+
+    if (type === 'link') {
+      await mkdirp(path.dirname(dest));
+      onFresh();
+      actions.push({
+        type: 'symlink',
+        dest,
+        linkname: src,
+      });
+      onDone();
+      return;
+    }
 
     if (events.ignoreBasenames.indexOf(path.basename(src)) >= 0) {
       // ignored file
@@ -507,39 +520,32 @@ export async function copyBulk(
       }
 
       const cleanup = () => delete currentlyWriting[data.dest];
-      return (currentlyWriting[data.dest] = new Promise((resolve, reject) => {
-        const readStream = fs.createReadStream(data.src);
-        const writeStream = fs.createWriteStream(data.dest, {mode: data.mode});
-
-        reporter.verbose(reporter.lang('verboseFileCopy', data.src, data.dest));
-
-        readStream.on('error', reject);
-        writeStream.on('error', reject);
-
-        writeStream.on('open', function() {
-          readStream.pipe(writeStream);
-        });
-
-        writeStream.once('close', function() {
-          fs.utimes(data.dest, data.atime, data.mtime, function(err) {
-            if (err) {
-              reject(err);
-            } else {
-              events.onProgress(data.dest);
-              cleanup();
-              resolve();
-            }
-          });
-        });
-      })
-        .then(arg => {
-          cleanup();
-          return arg;
+      reporter.verbose(reporter.lang('verboseFileCopy', data.src, data.dest));
+      return (currentlyWriting[data.dest] = readFileBuffer(data.src)
+        .then(d => {
+          return writeFile(data.dest, d, {mode: data.mode});
         })
-        .catch(arg => {
-          cleanup();
-          throw arg;
-        }));
+        .then(() => {
+          return new Promise((resolve, reject) => {
+            fs.utimes(data.dest, data.atime, data.mtime, err => {
+              if (err) {
+                reject(err);
+              } else {
+                resolve();
+              }
+            });
+          });
+        })
+        .then(
+          () => {
+            events.onProgress(data.dest);
+            cleanup();
+          },
+          err => {
+            cleanup();
+            throw err;
+          },
+        ));
     },
     CONCURRENT_QUEUE_ITEMS,
   );

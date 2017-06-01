@@ -19,6 +19,8 @@ const messages = {
   waitingInstance: 'Waiting for the other yarn instance to finish',
   offlineRetrying: 'There appears to be trouble with your network connection. Retrying...',
   clearedCache: 'Cleared cache.',
+  couldntClearPackageFromCache: "Couldn't clear package $0 from cache",
+  clearedPackageFromCache: 'Cleared package $0 from cache',
   packWroteTarball: 'Wrote tarball to $0.',
 
   manifestPotentialTypo: 'Potential typo $0, did you mean $1?',
@@ -94,7 +96,7 @@ const messages = {
   frozenLockfileError: 'Your lockfile needs to be updated, but yarn was run with `--frozen-lockfile`.',
   fileWriteError: 'Could not write file $0: $1',
   multiplePackagesCantUnpackInSameDestination: 'Pattern $0 is trying to unpack in the same destination $1 as pattern $2. This could result in a non deterministic behavior, skipping.',
-  incorrectLockfileEntry: 'Lockfile has incorrect entry for $0. Ingoring it.',
+  incorrectLockfileEntry: 'Lockfile has incorrect entry for $0. Ignoring it.',
   workspacesIncompatibleDependencies: 'Dependency $0 has different versions in $1 and $2',
   workspacesRequirePrivateProjects: 'Workspaces can only be enabled for private projects',
 

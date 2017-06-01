@@ -49,21 +49,33 @@ export async function verifyTreeCheck(
   const dependenciesToCheckVersion: PackageToVerify[] = [];
   if (rootManifest.dependencies) {
     for (const name in rootManifest.dependencies) {
+      const version = rootManifest.dependencies[name];
+      // skip linked dependencies
+      const isLinkedDepencency = /^link:/i.test(version) || (/^file:/i.test(version) && config.linkFileDependencies);
+      if (isLinkedDepencency) {
+        continue;
+      }
       dependenciesToCheckVersion.push({
         name,
         originalKey: name,
         parentCwd: registry.cwd,
-        version: rootManifest.dependencies[name],
+        version,
       });
     }
   }
   if (rootManifest.devDependencies && !config.production) {
     for (const name in rootManifest.devDependencies) {
+      const version = rootManifest.devDependencies[name];
+      // skip linked dependencies
+      const isLinkedDepencency = /^link:/i.test(version) || (/^file:/i.test(version) && config.linkFileDependencies);
+      if (isLinkedDepencency) {
+        continue;
+      }
       dependenciesToCheckVersion.push({
         name,
         originalKey: name,
         parentCwd: registry.cwd,
-        version: rootManifest.devDependencies[name],
+        version,
       });
     }
   }
@@ -250,6 +262,13 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
       }
 
       human = humanParts.join('');
+    }
+
+    // skip unnecessary checks for linked dependencies
+    const remoteType = pkg._reference.remote.type;
+    const isLinkedDepencency = remoteType === 'link' || (remoteType === 'file' && config.linkFileDependencies);
+    if (isLinkedDepencency) {
+      continue;
     }
 
     const pkgLoc = path.join(loc, 'package.json');

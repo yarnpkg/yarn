@@ -140,15 +140,20 @@ export default class PackageLinker {
     const hardlinksEnabled = linkDuplicates && (await fs.hardlinksWork(this.config.cwd));
 
     const copiedSrcs: Map<string, string> = new Map();
-    for (const [dest, {pkg, loc: src}] of flatTree) {
+    for (const [dest, {pkg, loc}] of flatTree) {
+      const remote = pkg._remote || {type: ''};
       const ref = pkg._reference;
+      const src = remote.type === 'link' ? remote.reference : loc;
       invariant(ref, 'expected package reference');
       ref.setLocation(dest);
 
       // backwards compatibility: get build artifacts from metadata
-      const metadata = await this.config.readPackageMetadata(src);
-      for (const file of metadata.artifacts) {
-        artifactFiles.push(path.join(dest, file));
+      // does not apply to linked dependencies
+      if (remote.type !== 'link') {
+        const metadata = await this.config.readPackageMetadata(src);
+        for (const file of metadata.artifacts) {
+          artifactFiles.push(path.join(dest, file));
+        }
       }
 
       const integrityArtifacts = this.artifacts[`${pkg.name}@${pkg.version}`];
@@ -166,6 +171,7 @@ export default class PackageLinker {
         copyQueue.set(dest, {
           src,
           dest,
+          type: remote.type,
           onFresh() {
             if (ref) {
               ref.setFresh(true);
@@ -270,8 +276,8 @@ export default class PackageLinker {
 
     // create binary links
     if (this.config.binLinks) {
-      const linksToCreate = this.determineTopLevelBinLinks(flatTree);
-      const tickBin = this.reporter.progress(flatTree.length + linksToCreate.length);
+      const topLevelDependencies = this.determineTopLevelBinLinks(flatTree);
+      const tickBin = this.reporter.progress(flatTree.length + topLevelDependencies.length);
 
       // create links in transient dependencies
       await promise.queue(
@@ -287,7 +293,7 @@ export default class PackageLinker {
       // create links at top level for all dependencies.
       // non-transient dependencies will overwrite these during this.save() to ensure they take priority.
       await promise.queue(
-        linksToCreate,
+        topLevelDependencies,
         async ([dest, {pkg}]) => {
           if (pkg.bin && Object.keys(pkg.bin).length) {
             const binLoc = path.join(this.config.cwd, this.config.getFolder(pkg));
@@ -352,29 +358,5 @@ export default class PackageLinker {
   async init(patterns: Array<string>, linkDuplicates: boolean): Promise<void> {
     this.resolvePeerModules();
     await this.copyModules(patterns, linkDuplicates);
-    await this.saveAll(patterns);
-  }
-
-  async save(pattern: string): Promise<void> {
-    const resolved = this.resolver.getResolvedPattern(pattern);
-    invariant(resolved, `Couldn't find resolved name/version for ${pattern}`);
-
-    const ref = resolved._reference;
-    invariant(ref, 'Missing reference');
-
-    //
-    const src = this.config.generateHardModulePath(ref);
-
-    // link bins
-    if (this.config.binLinks && resolved.bin && Object.keys(resolved.bin).length && !ref.ignore) {
-      const binLoc =
-        this.config.modulesFolder || path.join(this.config.lockfileFolder, this.config.getFolder(resolved));
-      await this.linkSelfDependencies(resolved, src, binLoc);
-    }
-  }
-
-  async saveAll(deps: Array<string>): Promise<void> {
-    deps = this.resolver.dedupePatterns(deps);
-    await promise.queue(deps, (dep): Promise<void> => this.save(dep));
   }
 }

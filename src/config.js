@@ -5,6 +5,7 @@ import type {Reporter} from './reporters/index.js';
 import type {Manifest, PackageRemote} from './types.js';
 import type PackageReference from './package-reference.js';
 import {execFromManifest} from './util/execute-lifecycle-script.js';
+import {expandPath} from './util/path.js';
 import normalizeManifest from './util/normalize-manifest/index.js';
 import {MessageError} from './errors.js';
 import * as fs from './util/fs.js';
@@ -31,6 +32,7 @@ export type ConfigOptions = {
   preferOffline?: boolean,
   pruneOfflineMirror?: boolean,
   enableMetaFolder?: boolean,
+  linkFileDependencies?: boolean,
   captureHar?: boolean,
   ignoreScripts?: boolean,
   ignorePlatform?: boolean,
@@ -91,7 +93,8 @@ export default class Config {
   preferOffline: boolean;
   pruneOfflineMirror: boolean;
   enableMetaFolder: boolean;
-  disableLockfileVersions: boolean;
+  enableLockfileVersions: boolean;
+  linkFileDependencies: boolean;
   ignorePlatform: boolean;
   binLinks: boolean;
 
@@ -182,8 +185,14 @@ export default class Config {
    * Get a config option from our yarn config.
    */
 
-  getOption(key: string): mixed {
-    return this.registries.yarn.getOption(key);
+  getOption(key: string, expand: boolean = true): mixed {
+    const value = this.registries.yarn.getOption(key);
+
+    if (expand && (typeof value === 'string')) {
+      return expandPath(value);
+    }
+
+    return value;
   }
 
   /**
@@ -268,7 +277,8 @@ export default class Config {
 
     this.pruneOfflineMirror = Boolean(this.getOption('yarn-offline-mirror-pruning'));
     this.enableMetaFolder = Boolean(this.getOption('enable-meta-folder'));
-    this.disableLockfileVersions = Boolean(this.getOption('yarn-disable-lockfile-versions'));
+    this.enableLockfileVersions = Boolean(this.getOption('yarn-enable-lockfile-versions'));
+    this.linkFileDependencies = Boolean(this.getOption('yarn-link-file-dependencies'));
 
     //init & create cacheFolder, tempFolder
     this.cacheFolder = path.join(this._cacheRootFolder, 'v' + String(constants.CACHE_VERSION));
