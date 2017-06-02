@@ -23,12 +23,14 @@ import * as constants from '../../constants.js';
 import * as fs from '../../util/fs.js';
 import map from '../../util/map.js';
 import {version as YARN_VERSION, getInstallationMethod} from '../../util/yarn-version.js';
+import WorkspaceLayout from '../../workspace-layout.js';
 
 const emoji = require('node-emoji');
 const invariant = require('invariant');
 const isCI = require('is-ci');
 const path = require('path');
 const semver = require('semver');
+const uuid = require('uuid');
 
 const ONE_DAY = 1000 * 60 * 60 * 24;
 
@@ -38,6 +40,7 @@ export type InstallCwdRequest = {
   ignorePatterns: Array<string>,
   usedPatterns: Array<string>,
   manifest: Object,
+  workspaceLayout?: WorkspaceLayout,
 };
 
 type Flags = {
@@ -194,11 +197,12 @@ export class Install {
     ignoreUnusedPatterns?: boolean = false,
   ): Promise<InstallCwdRequest> {
     const patterns = [];
-    const deps = [];
+    const deps: DependencyRequestPatterns = [];
     const manifest = {};
 
     const ignorePatterns = [];
     const usedPatterns = [];
+    let workspaceLayout;
 
     // exclude package names that are in install args
     const excludeNames = [];
@@ -224,42 +228,10 @@ export class Install {
       const projectManifestJson = await this.config.readJson(loc);
       await normalizeManifest(projectManifestJson, this.config.cwd, this.config, true);
 
-      const rootCwd = this.config.cwd;
-      // if project has workspaces we aggreagate all dependences from workspaces into root
-      if (projectManifestJson.workspaces) {
-        if (!projectManifestJson.private) {
-          throw new MessageError(this.reporter.lang('workspacesRequirePrivateProjects'));
-        }
-        const workspaces = await this.config.resolveWorkspaces(path.dirname(loc), projectManifestJson.workspaces);
-        const workspaceEntries = Object.keys(workspaces).map(name => workspaces[name]);
-        for (const {loc: workspaceLoc, manifest: workspaceManifest} of workspaceEntries) {
-          for (const type of ['dependencies', 'devDependencies', 'optionalDependencies']) {
-            if (workspaceManifest[type]) {
-              for (const key of Object.keys(workspaceManifest[type])) {
-                if (
-                  projectManifestJson[type] &&
-                  projectManifestJson[type][key] &&
-                  projectManifestJson[type][key] !== workspaceManifest[type][key]
-                ) {
-                  // TODO conflicts should still be installed inside workspaces' folders
-                  throw new MessageError(
-                    this.reporter.lang('workspacesIncompatibleDependencies', key, workspaceLoc, rootCwd),
-                  );
-                }
-                if (!projectManifestJson[type]) {
-                  projectManifestJson[type] = {};
-                }
-                projectManifestJson[type][key] = workspaceManifest[type][key];
-              }
-            }
-          }
-        }
-      }
-
       Object.assign(this.resolutions, projectManifestJson.resolutions);
       Object.assign(manifest, projectManifestJson);
 
-      const pushDeps = (depType, {hint, optional}, isUsed) => {
+      const pushDeps = (depType, manifest: Object, {hint, optional}, isUsed) => {
         if (ignoreUnusedPatterns && !isUsed) {
           return;
         }
@@ -269,7 +241,7 @@ export class Install {
         if (this.flags.flat && !isUsed) {
           return;
         }
-        const depMap = projectManifestJson[depType];
+        const depMap = manifest[depType];
         for (const name in depMap) {
           if (excludeNames.indexOf(name) >= 0) {
             continue;
@@ -295,9 +267,38 @@ export class Install {
         }
       };
 
-      pushDeps('dependencies', {hint: null, optional: false}, true);
-      pushDeps('devDependencies', {hint: 'dev', optional: false}, !this.config.production);
-      pushDeps('optionalDependencies', {hint: 'optional', optional: true}, !this.flags.ignoreOptional);
+      pushDeps('dependencies', projectManifestJson, {hint: null, optional: false}, true);
+      pushDeps('devDependencies', projectManifestJson, {hint: 'dev', optional: false}, !this.config.production);
+      pushDeps(
+        'optionalDependencies',
+        projectManifestJson,
+        {hint: 'optional', optional: true},
+        !this.flags.ignoreOptional,
+      );
+
+      if (this.config.workspacesEnabled) {
+        const workspaces = await this.config.resolveWorkspaces(path.dirname(loc), projectManifestJson);
+        workspaceLayout = new WorkspaceLayout(workspaces, this.config);
+        // add virtual manifest that depends on all workspaces, this way package hoisters and resolvers will work fine
+        const virtualDependencyManifest: Manifest = {
+          _uid: '',
+          name: `workspace-aggregator-${uuid.v4()}`,
+          version: '1.0.0',
+          _registry: 'npm',
+          _loc: '.',
+          dependencies: {},
+        };
+        workspaceLayout.virtualManifestName = virtualDependencyManifest.name;
+        virtualDependencyManifest.dependencies = {};
+        for (const workspaceName of Object.keys(workspaces)) {
+          virtualDependencyManifest.dependencies[workspaceName] = workspaces[workspaceName].manifest.version;
+        }
+        const virtualDep = {};
+        virtualDep[virtualDependencyManifest.name] = virtualDependencyManifest.version;
+        workspaces[virtualDependencyManifest.name] = {loc: '', manifest: virtualDependencyManifest};
+
+        pushDeps('workspaces', {workspaces: virtualDep}, {hint: 'workspaces', optional: false}, true);
+      }
 
       break;
     }
@@ -313,6 +314,7 @@ export class Install {
       manifest,
       usedPatterns,
       ignorePatterns,
+      workspaceLayout,
     };
   }
 
@@ -328,7 +330,7 @@ export class Install {
     return patterns;
   }
 
-  async bailout(patterns: Array<string>): Promise<boolean> {
+  async bailout(patterns: Array<string>, workspaceLayout: ?WorkspaceLayout): Promise<boolean> {
     if (this.flags.skipIntegrityCheck || this.flags.force) {
       return false;
     }
@@ -336,7 +338,7 @@ export class Install {
     if (!lockfileCache) {
       return false;
     }
-    const match = await this.integrityChecker.check(patterns, lockfileCache, this.flags);
+    const match = await this.integrityChecker.check(patterns, lockfileCache, this.flags, workspaceLayout);
     if (this.flags.frozenLockfile && match.missingPatterns.length > 0) {
       throw new MessageError(this.reporter.lang('frozenLockfileError'));
     }
@@ -404,7 +406,12 @@ export class Install {
 
     let flattenedTopLevelPatterns: Array<string> = [];
     const steps: Array<(curr: number, total: number) => Promise<{bailout: boolean} | void>> = [];
-    const {requests: depRequests, patterns: rawPatterns, ignorePatterns} = await this.fetchRequestFromCwd();
+    const {
+      requests: depRequests,
+      patterns: rawPatterns,
+      ignorePatterns,
+      workspaceLayout,
+    } = await this.fetchRequestFromCwd();
     let topLevelPatterns: Array<string> = [];
 
     const artifacts = await this.integrityChecker.getArtifacts();
@@ -415,10 +422,10 @@ export class Install {
 
     steps.push(async (curr: number, total: number) => {
       this.reporter.step(curr, total, this.reporter.lang('resolvingPackages'), emoji.get('mag'));
-      await this.resolver.init(this.prepareRequests(depRequests), this.flags.flat);
+      await this.resolver.init(this.prepareRequests(depRequests), this.flags.flat, workspaceLayout);
       topLevelPatterns = this.preparePatterns(rawPatterns);
       flattenedTopLevelPatterns = await this.flatten(topLevelPatterns);
-      return {bailout: await this.bailout(topLevelPatterns)};
+      return {bailout: await this.bailout(topLevelPatterns, workspaceLayout)};
     });
 
     steps.push(async (curr: number, total: number) => {
@@ -433,7 +440,7 @@ export class Install {
       // remove integrity hash to make this operation atomic
       await this.integrityChecker.removeIntegrityFile();
       this.reporter.step(curr, total, this.reporter.lang('linkingDependencies'), emoji.get('link'));
-      await this.linker.init(flattenedTopLevelPatterns, this.flags.linkDuplicates);
+      await this.linker.init(flattenedTopLevelPatterns, this.flags.linkDuplicates, workspaceLayout);
     });
 
     steps.push(async (curr: number, total: number) => {
@@ -482,7 +489,7 @@ export class Install {
     }
 
     // fin!
-    await this.saveLockfileAndIntegrity(topLevelPatterns);
+    await this.saveLockfileAndIntegrity(topLevelPatterns, workspaceLayout);
     this.maybeOutputUpdate();
     this.config.requestManager.clearCache();
     return flattenedTopLevelPatterns;
@@ -624,13 +631,23 @@ export class Install {
    * Save updated integrity and lockfiles.
    */
 
-  async saveLockfileAndIntegrity(patterns: Array<string>): Promise<void> {
+  async saveLockfileAndIntegrity(patterns: Array<string>, workspaceLayout: ?WorkspaceLayout): Promise<void> {
     // --no-lockfile or --pure-lockfile flag
     if (this.flags.lockfile === false || this.flags.pureLockfile) {
       return;
     }
 
-    const lockfileBasedOnResolver = this.lockfile.getLockfile(this.resolver.patterns);
+    const resolvedPatterns: {[packagePattern: string]: Manifest} = {};
+    Object.keys(this.resolver.patterns).forEach(pattern => {
+      if (!workspaceLayout || !workspaceLayout.getManifestByPattern(pattern)) {
+        resolvedPatterns[pattern] = this.resolver.patterns[pattern];
+      }
+    });
+
+    // TODO this code is duplicated in a few places, need a common way to filter out workspace patterns from lockfile
+    patterns = patterns.filter(p => !workspaceLayout || !workspaceLayout.getManifestByPattern(p));
+
+    const lockfileBasedOnResolver = this.lockfile.getLockfile(resolvedPatterns);
 
     if (this.config.pruneOfflineMirror) {
       await this.pruneOfflineMirror(lockfileBasedOnResolver);
@@ -674,33 +691,38 @@ export class Install {
   /**
    * Load the dependency graph of the current install. Only does package resolving and wont write to the cwd.
    */
-  async hydrate(fetch?: boolean, ignoreUnusedPatterns?: boolean): Promise<InstallCwdRequest> {
+  async hydrate(ignoreUnusedPatterns?: boolean): Promise<InstallCwdRequest> {
     const request = await this.fetchRequestFromCwd([], ignoreUnusedPatterns);
-    const {requests: depRequests, patterns: rawPatterns, ignorePatterns} = request;
+    const {requests: depRequests, patterns: rawPatterns, ignorePatterns, workspaceLayout} = request;
 
-    await this.resolver.init(depRequests, this.flags.flat);
+    await this.resolver.init(depRequests, this.flags.flat, workspaceLayout);
     await this.flatten(rawPatterns);
     this.markIgnored(ignorePatterns);
 
-    if (fetch) {
-      // fetch packages, should hit cache most of the time
-      const manifests: Array<Manifest> = await fetcher.fetch(this.resolver.getManifests(), this.config);
-      this.resolver.updateManifests(manifests);
-      await compatibility.check(this.resolver.getManifests(), this.config, this.flags.ignoreEngines);
+    // fetch packages, should hit cache most of the time
+    const manifests: Array<Manifest> = await fetcher.fetch(this.resolver.getManifests(), this.config);
+    this.resolver.updateManifests(manifests);
+    await compatibility.check(this.resolver.getManifests(), this.config, this.flags.ignoreEngines);
 
-      // expand minimal manifests
-      for (const manifest of this.resolver.getManifests()) {
-        const ref = manifest._reference;
-        invariant(ref, 'expected reference');
-        const {type} = ref.remote;
-        // link specifier won't ever hit cache
-        if (type === 'link') {
+    // expand minimal manifests
+    for (const manifest of this.resolver.getManifests()) {
+      const ref = manifest._reference;
+      invariant(ref, 'expected reference');
+      const {type} = ref.remote;
+      // link specifier won't ever hit cache
+      let loc = '';
+      if (type === 'link') {
+        continue;
+      } else if (type === 'workspace') {
+        if (!ref.remote.reference) {
           continue;
         }
-        const loc = this.config.generateHardModulePath(ref);
-        const newPkg = await this.config.readManifest(loc);
-        await this.resolver.updateManifest(ref, newPkg);
+        loc = ref.remote.reference;
+      } else {
+        loc = this.config.generateHardModulePath(ref);
       }
+      const newPkg = await this.config.readManifest(loc);
+      await this.resolver.updateManifest(ref, newPkg);
     }
 
     return request;

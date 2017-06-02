@@ -13,6 +13,7 @@ import {MessageError} from './errors.js';
 import {entries} from './util/misc.js';
 import * as constants from './constants.js';
 import * as versionUtil from './util/version.js';
+import WorkspaceResolver from './resolvers/contextual/workspace-resolver.js';
 import * as resolvers from './resolvers/index.js';
 import * as fs from './util/fs.js';
 
@@ -221,6 +222,10 @@ export default class PackageRequest {
     const exoticResolver = PackageRequest.getExoticResolver(this.pattern);
     if (exoticResolver) {
       return this.findExoticVersionInfo(exoticResolver, this.pattern);
+    } else if (WorkspaceResolver.isWorkspace(this.pattern, this.resolver.workspaceLayout)) {
+      invariant(this.resolver.workspaceLayout, 'expected workspaceLayout');
+      const resolver = new WorkspaceResolver(this, this.pattern, this.resolver.workspaceLayout);
+      return resolver.resolve();
     } else {
       return this.findVersionOnRegistry(this.pattern);
     }
@@ -320,6 +325,21 @@ export default class PackageRequest {
           parentRequest: this,
         }),
       );
+    }
+    if (remote.type === 'workspace' && !this.config.production) {
+      // workspaces support dev dependencies
+      for (const depName in info.devDependencies) {
+        const depPattern = depName + '@' + info.devDependencies[depName];
+        deps.push(depPattern);
+        promises.push(
+          this.resolver.find({
+            pattern: depPattern,
+            registry: remote.registry,
+            optional: false,
+            parentRequest: this,
+          }),
+        );
+      }
     }
 
     await Promise.all(promises);

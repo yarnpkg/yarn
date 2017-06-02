@@ -10,6 +10,7 @@ import RequestManager from './util/request-manager.js';
 import BlockingQueue from './util/blocking-queue.js';
 import Lockfile from './lockfile/wrapper.js';
 import map from './util/map.js';
+import WorkspaceLayout from './workspace-layout.js';
 
 const invariant = require('invariant');
 const semver = require('semver');
@@ -31,6 +32,8 @@ export default class PackageResolver {
 
   // whether the dependency graph will be flattened
   flat: boolean;
+
+  workspaceLayout: ?WorkspaceLayout;
 
   // list of registries that have been used in this resolution
   usedRegistries: Set<RegistryNames>;
@@ -452,8 +455,9 @@ export default class PackageResolver {
    * TODO description
    */
 
-  async init(deps: DependencyRequestPatterns, isFlat: boolean): Promise<void> {
+  async init(deps: DependencyRequestPatterns, isFlat: boolean, workspaceLayout?: WorkspaceLayout): Promise<void> {
     this.flat = isFlat;
+    this.workspaceLayout = workspaceLayout;
     const activity = (this.activity = this.reporter.activity());
     await Promise.all(deps.map((req): Promise<void> => this.find(req)));
 

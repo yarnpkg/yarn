@@ -2,7 +2,7 @@
 
 import type {RegistryNames, ConfigRegistries} from './registries/index.js';
 import type {Reporter} from './reporters/index.js';
-import type {Manifest, PackageRemote} from './types.js';
+import type {Manifest, PackageRemote, WorkspacesManifestMap} from './types.js';
 import type PackageReference from './package-reference.js';
 import {execFromManifest} from './util/execute-lifecycle-script.js';
 import {expandPath} from './util/path.js';
@@ -145,11 +145,11 @@ export default class Config {
 
   nonInteractive: boolean;
 
-  workspacesExperimental: boolean;
+  workspacesEnabled: boolean;
 
   //
   cwd: string;
-  worktreeFolder: ?string;
+  workspaceRootFolder: ?string;
   lockfileFolder: string;
 
   //
@@ -188,7 +188,7 @@ export default class Config {
   getOption(key: string, expand: boolean = true): mixed {
     const value = this.registries.yarn.getOption(key);
 
-    if (expand && (typeof value === 'string')) {
+    if (expand && typeof value === 'string') {
       return expandPath(value);
     }
 
@@ -210,8 +210,8 @@ export default class Config {
   async init(opts: ConfigOptions = {}): Promise<void> {
     this._init(opts);
 
-    this.worktreeFolder = await this.findWorktree(this.cwd);
-    this.lockfileFolder = this.worktreeFolder || this.cwd;
+    this.workspaceRootFolder = await this.findWorkspaceRoot(this.cwd);
+    this.lockfileFolder = this.workspaceRootFolder || this.cwd;
 
     await fs.mkdirp(this.globalFolder);
     await fs.mkdirp(this.linkFolder);
@@ -273,7 +273,7 @@ export default class Config {
     this._cacheRootFolder = String(
       opts.cacheFolder || this.getOption('cache-folder') || constants.MODULE_CACHE_DIRECTORY,
     );
-    this.workspacesExperimental = Boolean(this.getOption('workspaces-experimental'));
+    this.workspacesEnabled = Boolean(this.getOption('workspaces-experimental'));
 
     this.pruneOfflineMirror = Boolean(this.getOption('yarn-offline-mirror-pruning'));
     this.enableMetaFolder = Boolean(this.getOption('enable-meta-folder'));
@@ -299,8 +299,8 @@ export default class Config {
       this.production = !!opts.production;
     }
 
-    if (this.worktreeFolder && !this.workspacesExperimental) {
-      throw new MessageError(this.reporter.lang('worktreeExperimentalDisabled'));
+    if (this.workspaceRootFolder && !this.workspacesEnabled) {
+      throw new MessageError(this.reporter.lang('workspaceExperimentalDisabled'));
     }
   }
 
@@ -552,7 +552,7 @@ export default class Config {
     return null;
   }
 
-  async findWorktree(initial: string): Promise<?string> {
+  async findWorkspaceRoot(initial: string): Promise<?string> {
     let previous = null;
     let current = path.normalize(initial);
 
@@ -570,11 +570,15 @@ export default class Config {
     return null;
   }
 
-  async resolveWorkspaces(
-    root: string,
-    patterns: Array<string>,
-  ): Promise<{[string]: {loc: string, manifest: Manifest}}> {
+  async resolveWorkspaces(root: string, rootManifest: Manifest): Promise<WorkspacesManifestMap> {
     const workspaces = {};
+    const patterns = rootManifest.workspaces || [];
+    if (!this.workspacesEnabled) {
+      return workspaces;
+    }
+    if (!rootManifest.private && patterns.length > 0) {
+      throw new MessageError(this.reporter.lang('workspacesRequirePrivateProjects'));
+    }
 
     const registryFilenames = registryNames.map(registryName => this.registries[registryName].constructor.filename);
     const trailingPattern = `/+(${registryFilenames.join(`|`)})`;
@@ -594,13 +598,16 @@ export default class Config {
       }
 
       if (!manifest.name) {
-        // TODO raise a warning?
+        this.reporter.warn(this.reporter.lang('workspaceNameMandatory', loc));
+        continue;
+      }
+      if (!manifest.version) {
+        this.reporter.warn(this.reporter.lang('workspaceVersionMandatory', loc));
         continue;
       }
 
       if (Object.prototype.hasOwnProperty.call(workspaces, manifest.name)) {
-        // TODO raise a warning?
-        continue;
+        throw new MessageError(this.reporter.lang('workspaceNameDuplicate', manifest.name));
       }
 
       workspaces[manifest.name] = {loc, manifest};

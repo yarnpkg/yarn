@@ -97,8 +97,6 @@ const messages = {
   fileWriteError: 'Could not write file $0: $1',
   multiplePackagesCantUnpackInSameDestination: 'Pattern $0 is trying to unpack in the same destination $1 as pattern $2. This could result in a non deterministic behavior, skipping.',
   incorrectLockfileEntry: 'Lockfile has incorrect entry for $0. Ignoring it.',
-  workspacesIncompatibleDependencies: 'Dependency $0 has different versions in $1 and $2',
-  workspacesRequirePrivateProjects: 'Workspaces can only be enabled for private projects',
 
   yarnOutdated: "Your current version of Yarn is out of date. The latest version is $0 while you're on $1.",
   yarnOutdatedInstaller: 'To upgrade, download the latest installer at $0.',
@@ -142,11 +140,15 @@ const messages = {
   createInvalidBin: 'Invalid bin entry found in package $0.',
   createMissingPackage: 'Package not found - this is probably an internal error, and should be reported at https://github.com/yarnpkg/yarn/issues.',
 
-  worktreeExperimentalDisabled: 'The worktree feature is currently experimental and needs to be manually enabled - please add "workspaces-experimental true" to your .yarnrc file.',
-  worktreeRootNotFound: "Cannot find the root of your worktree - are you sure you're currently in a workspace?",
-  worktreeMissingWorkspace: 'Missing workspace name.',
-  worktreeMissingCommand: 'Missing command name.',
-  worktreeUnknownWorkspace: 'Unknown workspace $0.',
+  workspacesRequirePrivateProjects: 'Workspaces can only be enabled in private projects',
+  workspaceExperimentalDisabled: 'The workspace feature is currently experimental and needs to be manually enabled - please add "workspaces-experimental true" to your .yarnrc file.',
+  workspaceRootNotFound: "Cannot find the root of your workspace - are you sure you're currently in a workspace?",
+  workspaceMissingWorkspace: 'Missing workspace name.',
+  workspaceMissingCommand: 'Missing command name.',
+  workspaceUnknownWorkspace: 'Unknown workspace $0.',
+  workspaceVersionMandatory: 'Missing version in workspace at $0, ignoring.',
+  workspaceNameMandatory: 'Missing name in workspace at $0, ignoring.',
+  workspaceNameDuplicate: 'There are more than one workspace with name $0',
 
   execMissingCommand: 'Missing command name.',
 

@@ -8,6 +8,7 @@ import {registryNames} from './registries/index.js';
 import * as fs from './util/fs.js';
 import {sortAlpha, compareSortedArrays} from './util/misc.js';
 import type {InstallArtifacts} from './package-install-scripts.js';
+import WorkspaceLayout from './workspace-layout.js';
 
 const invariant = require('invariant');
 const path = require('path');
@@ -243,9 +244,12 @@ export default class InstallationIntegrityChecker {
     patterns: Array<string>,
     lockfile: {[key: string]: LockManifest},
     flags: IntegrityFlags,
+    workspaceLayout: ?WorkspaceLayout,
   ): Promise<IntegrityCheckResult> {
     // check if patterns exist in lockfile
-    const missingPatterns = patterns.filter(p => !lockfile[p]);
+    const missingPatterns = patterns.filter(
+      p => !lockfile[p] && (!workspaceLayout || !workspaceLayout.getManifestByPattern(p)),
+    );
 
     const loc = await this._getIntegrityHashLocation();
     if (missingPatterns.length || !loc.exists) {
