@@ -451,6 +451,7 @@ export default class PackageResolver {
     this.flat = isFlat;
     const activity = (this.activity = this.reporter.activity());
     await Promise.all(deps.map((req): Promise<void> => this.find(req)));
+    await Promise.all(deps.map((req): Promise<void> => this.find(req)));
 
     activity.end();
     this.activity = null;

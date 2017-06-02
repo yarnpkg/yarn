@@ -1,0 +1,15 @@
+{
+  "name": "yarn0test",
+  "version": "1.0.0",
+  "description": "yarn test",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "webpack": "1.14.0",
+    "webpack-parallel-uglify-plugin": "0.2.0"
+  },
+  "author": "h",
+  "license": "MIT"
+}
