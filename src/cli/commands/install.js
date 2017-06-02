@@ -337,7 +337,7 @@ export class Install {
       return false;
     }
     const match = await this.integrityChecker.check(patterns, lockfileCache, this.flags);
-    if (this.flags.frozenLockfile && match.missingPatterns.length > 0) {
+    if (this.flags.frozenLockfile && (match.missingPatterns.length > 0 || match.integrityError)) {
       throw new MessageError(this.reporter.lang('frozenLockfileError'));
     }
 

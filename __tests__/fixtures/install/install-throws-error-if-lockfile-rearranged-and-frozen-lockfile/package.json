@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "minimatch": "^3.0.3"
+  }
+}

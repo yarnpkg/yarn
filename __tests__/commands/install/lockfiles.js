@@ -71,6 +71,25 @@ test.concurrent("throws an error if existing lockfile isn't satisfied with --fro
   expect(thrown).toEqual(true);
 });
 
+test.concurrent('throws an error if lockfile is changed by install with --frozen-lockfile', async (): Promise<
+  void,
+> => {
+  const reporter = new reporters.ConsoleReporter({});
+
+  let thrown = false;
+  try {
+    await runInstall(
+      {frozenLockfile: true},
+      'install-throws-error-if-lockfile-rearranged-and-frozen-lockfile',
+      () => {}
+    );
+  } catch (err) {
+    thrown = true;
+    expect(err.message).toContain(reporter.lang('frozenLockfileError'));
+  }
+  expect(thrown).toEqual(true);
+});
+
 test.concurrent('install transitive optional dependency from lockfile', (): Promise<void> => {
   return runInstall({}, 'install-optional-dep-from-lockfile', (config, reporter, install) => {
     expect(install && install.resolver && install.resolver.patterns['fsevents@^1.0.0']).toBeTruthy();
