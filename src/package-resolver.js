@@ -311,6 +311,9 @@ export default class PackageResolver {
 
   addPattern(pattern: string, info: Manifest) {
     this.patterns[pattern] = info;
+    if(info.name === 'uglify-js') {
+      console.log("ADD PATTERN", pattern, info.version)
+    }
 
     const byName = (this.patternsByPackage[info.name] = this.patternsByPackage[info.name] || []);
     byName.push(pattern);
@@ -390,6 +393,9 @@ export default class PackageResolver {
 
       return info;
     });
+    if(name === 'uglify-js') {
+      console.log(versionNumbers)
+    }
 
     const maxValidRange = semver.maxSatisfying(versionNumbers, range);
     if (!maxValidRange) {
@@ -443,6 +449,21 @@ export default class PackageResolver {
     await request.find(fresh);
   }
 
+  // for a given package name see if less manifests can satisfy most resolutions
+  optimizeResolutions(name: string, patterns: Array<string>) {
+    const manifests: Set<Manifest> = new Set();
+    // TODO map version to pattern
+    patterns.forEach(p => {
+      manifests.add(this.patterns[p]);
+    });
+    const availableVersions: Array<string> = [...manifests].map(m => m.version);
+    // TODO only non exotic ones
+    const requiredRanges = patterns.map(p => PackageRequest.normalizePattern(p).range);
+
+    // TODO match availableVersions to ranges so that we get  
+
+  }
+
   /**
    * TODO description
    */
@@ -451,7 +472,11 @@ export default class PackageResolver {
     this.flat = isFlat;
     const activity = (this.activity = this.reporter.activity());
     await Promise.all(deps.map((req): Promise<void> => this.find(req)));
-    await Promise.all(deps.map((req): Promise<void> => this.find(req)));
+
+    Object.keys(this.patternsByPackage).forEach((name) => {
+      this.optimizeResolutions(name, this.patternsByPackage[name]);
+    });
+    // TODO clean orphan patterns - the ones that are not needed after optimization
 
     activity.end();
     this.activity = null;
