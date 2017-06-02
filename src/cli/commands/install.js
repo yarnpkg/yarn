@@ -276,29 +276,27 @@ export class Install {
         !this.flags.ignoreOptional,
       );
 
-      if (this.config.workspacesEnabled) {
-        const workspaces = await this.config.resolveWorkspaces(path.dirname(loc), projectManifestJson);
-        workspaceLayout = new WorkspaceLayout(workspaces, this.config);
-        // add virtual manifest that depends on all workspaces, this way package hoisters and resolvers will work fine
-        const virtualDependencyManifest: Manifest = {
-          _uid: '',
-          name: `workspace-aggregator-${uuid.v4()}`,
-          version: '1.0.0',
-          _registry: 'npm',
-          _loc: '.',
-          dependencies: {},
-        };
-        workspaceLayout.virtualManifestName = virtualDependencyManifest.name;
-        workspaces[virtualDependencyManifest.name] = {loc: '', manifest: virtualDependencyManifest};
-        virtualDependencyManifest.dependencies = {};
-        for (const workspaceName of Object.keys(workspaces)) {
-          virtualDependencyManifest.dependencies[workspaceName] = workspaces[workspaceName].manifest.version;
-        }
-        const virtualDep = {};
-        virtualDep[virtualDependencyManifest.name] = virtualDependencyManifest.version;
-
-        pushDeps('workspaces', {workspaces: virtualDep}, {hint: 'workspaces', optional: false}, true);
+      const workspaces = await this.config.resolveWorkspaces(path.dirname(loc), projectManifestJson);
+      workspaceLayout = new WorkspaceLayout(workspaces, this.config);
+      // add virtual manifest that depends on all workspaces, this way package hoisters and resolvers will work fine
+      const virtualDependencyManifest: Manifest = {
+        _uid: '',
+        name: `workspace-aggregator-${uuid.v4()}`,
+        version: '1.0.0',
+        _registry: 'npm',
+        _loc: '.',
+        dependencies: {},
+      };
+      workspaceLayout.virtualManifestName = virtualDependencyManifest.name;
+      virtualDependencyManifest.dependencies = {};
+      for (const workspaceName of Object.keys(workspaces)) {
+        virtualDependencyManifest.dependencies[workspaceName] = workspaces[workspaceName].manifest.version;
       }
+      const virtualDep = {};
+      virtualDep[virtualDependencyManifest.name] = virtualDependencyManifest.version;
+      workspaces[virtualDependencyManifest.name] = {loc: '', manifest: virtualDependencyManifest};
+
+      pushDeps('workspaces', {workspaces: virtualDep}, {hint: 'workspaces', optional: false}, true);
 
       break;
     }

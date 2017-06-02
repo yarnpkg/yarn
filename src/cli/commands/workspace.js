@@ -14,9 +14,9 @@ export function hasWrapper(): boolean {
 }
 
 export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
-  const {workspaceFolder} = config;
+  const {workspaceRootFolder} = config;
 
-  if (!workspaceFolder) {
+  if (!workspaceRootFolder) {
     throw new MessageError(reporter.lang('workspaceRootNotFound', config.cwd));
   }
 
@@ -28,10 +28,10 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
     throw new MessageError(reporter.lang('workspaceMissingCommand'));
   }
 
-  const manifest = await config.findManifest(workspaceFolder, false);
+  const manifest = await config.findManifest(workspaceRootFolder, false);
   invariant(manifest && manifest.workspaces, 'We must find a manifest with a "workspaces" property');
 
-  const workspaces = await config.resolveWorkspaces(workspaceFolder, manifest);
+  const workspaces = await config.resolveWorkspaces(workspaceRootFolder, manifest);
 
   const [workspaceName, ...rest] = args;
 

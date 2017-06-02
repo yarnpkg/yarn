@@ -149,7 +149,7 @@ export default class Config {
 
   //
   cwd: string;
-  workspaceFolder: ?string;
+  workspaceRootFolder: ?string;
   lockfileFolder: string;
 
   //
@@ -210,8 +210,8 @@ export default class Config {
   async init(opts: ConfigOptions = {}): Promise<void> {
     this._init(opts);
 
-    this.workspaceFolder = await this.findWorkspaceRoot(this.cwd);
-    this.lockfileFolder = this.workspaceFolder || this.cwd;
+    this.workspaceRootFolder = await this.findWorkspaceRoot(this.cwd);
+    this.lockfileFolder = this.workspaceRootFolder || this.cwd;
 
     await fs.mkdirp(this.globalFolder);
     await fs.mkdirp(this.linkFolder);
@@ -299,7 +299,7 @@ export default class Config {
       this.production = !!opts.production;
     }
 
-    if (this.workspaceFolder && !this.workspacesEnabled) {
+    if (this.workspaceRootFolder && !this.workspacesEnabled) {
       throw new MessageError(this.reporter.lang('workspaceExperimentalDisabled'));
     }
   }
