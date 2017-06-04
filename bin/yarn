@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 argv0=$(echo "$0" | sed -e 's,\\,/,g')
 basedir=$(dirname "$(readlink "$0" || echo "$argv0")")
 
