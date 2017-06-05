@@ -65,7 +65,11 @@ export default class NpmRegistry extends Registry {
       },
       opts.headers,
     );
-    if (this.token || (alwaysAuth && isRequestToRegistry(requestUrl, registry, customHostSuffix))) {
+
+    const useAuth =
+      (opts.method !== 'GET' && opts.method !== 'HEAD' && this.token) ||
+      (alwaysAuth && isRequestToRegistry(requestUrl, registry, customHostSuffix));
+    if (useAuth) {
       const authorization = this.getAuth(packageName || pathname);
       if (authorization) {
         headers.authorization = authorization;
