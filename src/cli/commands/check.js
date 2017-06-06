@@ -347,7 +347,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
         const rootDep = packagePath[0];
         const packageName = packagePath[1] || packageJson.name;
 
-        const bundledDep = bundledDeps[rootDep] && bundledDeps[rootDep].includes(packageName);
+        const bundledDep = bundledDeps[rootDep] && bundledDeps[rootDep].indexOf(packageName) !== -1;
         if (
           !bundledDep &&
           (packageJson.version === depPkg.version ||
