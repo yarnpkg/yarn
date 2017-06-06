@@ -1,0 +1,45 @@
+{
+  "_args": [
+    [
+      {
+        "raw": "file-dep-a@file:deps/a",
+        "scope": null,
+        "escapedName": "file-dep-a",
+        "name": "file-dep-a",
+        "rawSpec": "file:deps/a",
+        "spec": "/Users/xdissent/src/yarn/__tests__/fixtures/import/file/deps/a",
+        "type": "directory"
+      },
+      "/Users/xdissent/src/yarn/__tests__/fixtures/import/file"
+    ]
+  ],
+  "_from": "deps/a",
+  "_id": "file-dep-a@1.0.0",
+  "_inCache": true,
+  "_location": "/file-dep-a",
+  "_phantomChildren": {},
+  "_requested": {
+    "raw": "file-dep-a@file:deps/a",
+    "scope": null,
+    "escapedName": "file-dep-a",
+    "name": "file-dep-a",
+    "rawSpec": "file:deps/a",
+    "spec": "/Users/xdissent/src/yarn/__tests__/fixtures/import/file/deps/a",
+    "type": "directory"
+  },
+  "_requiredBy": [
+    "/"
+  ],
+  "_resolved": "file:deps/a",
+  "_shasum": "01823175b62216e0e62201520ffaafce3db04dc7",
+  "_shrinkwrap": null,
+  "_spec": "file-dep-a@file:deps/a",
+  "_where": "/Users/xdissent/src/yarn/__tests__/fixtures/import/file",
+  "dependencies": {},
+  "devDependencies": {},
+  "license": "MIT",
+  "name": "file-dep-a",
+  "optionalDependencies": {},
+  "readme": "ERROR: No README data found!",
+  "version": "1.0.0"
+}
