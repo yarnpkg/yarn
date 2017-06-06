@@ -10,6 +10,7 @@ import NpmResolver from '../resolvers/registries/npm-resolver.js';
 import envReplace from '../util/env-replace.js';
 import Registry from './base-registry.js';
 import {addSuffix} from '../util/misc';
+import {getPosixPath} from '../util/path';
 import isRequestToRegistry from './is-request-to-registry.js';
 
 const userHome = require('../util/user-home-dir').default;
@@ -110,7 +111,7 @@ export default class NpmRegistry extends Registry {
       [false, path.join(getGlobalPrefix(), filename)],
     ];
 
-    const foldersFromRootToCwd = this.cwd.split(path.sep);
+    const foldersFromRootToCwd = getPosixPath(this.cwd).split('/');
     while (foldersFromRootToCwd.length > 1) {
       possibles.push([false, path.join(foldersFromRootToCwd.join(path.sep), filename)]);
       foldersFromRootToCwd.pop();
