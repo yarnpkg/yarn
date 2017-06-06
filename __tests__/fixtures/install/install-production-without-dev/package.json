@@ -1,0 +1,9 @@
+{
+  "dependencies": {
+    "trim-right": "^1.0.1"
+  },
+  "devDependencies": {
+    "stylelint": "^7.9.0",
+    "stylelint-order": "^0.3.0"
+  }
+}

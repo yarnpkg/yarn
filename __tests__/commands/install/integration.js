@@ -263,6 +263,22 @@ test.concurrent('--production flag ignores dev dependencies', () => {
   });
 });
 
+test.concurrent('--production flag ignores nested dev dependencies', () => {
+  return runInstall({production: true}, 'install-production-without-dev', async (config) => {
+    expect(
+      await fs.exists(path.join(config.cwd, 'node_modules', 'stylelint')),
+    ).toEqual(false);
+
+    expect(
+      await fs.exists(path.join(config.cwd, 'node_modules', 'stylelint-order')),
+    ).toEqual(false);
+
+    expect(
+      await fs.exists(path.join(config.cwd, 'node_modules', 'trim-right')),
+    ).toEqual(true);
+  });
+});
+
 test.concurrent('--production flag does not link dev dependency bin scripts', () => {
   return runInstall({production: true, binLinks: true}, 'install-production-bin', async config => {
     expect(await fs.exists(path.join(config.cwd, 'node_modules', '.bin', 'touch'))).toEqual(false);
