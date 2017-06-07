@@ -711,6 +711,7 @@ export type WalkFiles = Array<{
   absolute: string,
   basename: string,
   mtime: number,
+  stat: fs.Stat,
 }>;
 
 export async function walk(
@@ -735,6 +736,7 @@ export async function walk(
       basename: name,
       absolute: loc,
       mtime: +stat.mtime,
+      stat,
     });
 
     if (stat.isDirectory()) {

@@ -24,9 +24,17 @@ export async function fetch(pkgs: Array<Manifest>, config: Config): Promise<Arra
       let name = manifest.name;
       let reference = manifest._reference.remote.reference;
 
-      // If it looks like a file path "foo.tgz", remove the ambiguity ("./foo.tgz")
-      if (reference && reference.match(/^[^:]*?\.tgz$/))
-        reference = reference.replace(/^(?!\.{0,2}\/)/, `./`);
+      // The following hacks should be applied by the resolvers rather than the fetchers.
+      // Some code has already been written, but we haven't got around merging it yet - hopefully it will come in good time.
+
+      if (reference) // Transform old github archive urls to use the new endpoint
+        reference = reference.replace(/^https:\/\/github\.com\/([^\/]+\/[^\/]+)\/tarball\/([^\/]+)$/, 'https://github.com/$1/archive/$2.tar.gz');
+
+      if (reference) // Same thing for codeload urls
+        reference = reference.replace(/^https:\/\/codeload\.github\.com\/([^\/]+\/[^\/]+)\/tar\.gz\/([^\/]+)$/, 'https://github.com/$1/archive/$2.tar.gz');
+
+      if (reference) // If it looks like a file path "foo.tgz", remove the ambiguity ("./foo.tgz")
+        reference = reference.replace(/^(?!\.{0,2}\/)([^:]*\.tgz)$/, './$1');
 
       let locator = new PackageLocator({
         name: name,

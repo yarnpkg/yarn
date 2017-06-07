@@ -406,7 +406,7 @@ test.concurrent('install should add missing deps to yarn and mirror (PR import s
     expect(semver.satisfies(await getPackageVersion(config, 'mime-db'), '~1.0.1')).toEqual(true);
     expect(await getPackageVersion(config, 'fake-yarn-dependency')).toEqual('1.0.1');
 
-    const mirror = await fs.walk(path.join(config.cwd, 'mirror-for-offline'));
+    const mirror = (await fs.walk(path.join(config.cwd, 'mirror-for-offline'))).filter(entry => entry.stat.isFile());
     expect(mirror).toHaveLength(3);
     expect(mirror[0].relative).toEqual('fake-yarn-dependency-1.0.1.tgz');
     expect(mirror[1].relative.indexOf('mime-db-1.0.')).toEqual(0);
@@ -450,11 +450,11 @@ test.concurrent('install should update a dependency to yarn and mirror (PR impor
       /resolved "https:\/\/registry\.yarnpkg\.com\/mime-types\/-\/mime-types-2\.1\.11\.tgz#[a-f0-9]+"/,
     );
 
-    const mirror = await fs.walk(path.join(config.cwd, 'mirror-for-offline'));
+    const mirror = (await fs.walk(path.join(config.cwd, 'mirror-for-offline'))).filter(entry => entry.stat.isFile());
     expect(mirror).toHaveLength(4);
 
     const newFilesInMirror = mirror.filter((elem): boolean => {
-      return elem.relative !== 'mime-db-1.0.3.tgz' && elem.relative !== 'mime-types-2.0.0.tgz';
+        return elem.basename !== 'mime-db-a314a8fb3df563fc.tgz' && elem.basename !== 'mime-types-14251f0fe4bcee21.tgz';
     });
 
     expect(newFilesInMirror).toHaveLength(2);

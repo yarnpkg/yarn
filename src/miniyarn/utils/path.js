@@ -8,7 +8,7 @@ export function validate(path) {
 }
 
 export function extname(path) {
-  let match = path.match(/(\.[a-z])+$/);
+  let match = path.match(/(\.[a-z]+)$/);
 
   return match ? match[0] : ``;
 }
