@@ -119,9 +119,9 @@ export function getRangeIdentifier(packageRange) {
 export function getLocatorSlugIdentifier(packageLocator) {
   if (!packageLocator.reference) return null;
 
-  let slug = packageLocator.reference.replace(/[^a-zA-Z0-9._-]+/, `-`).replace(/-+/g, `-`).replace(/^-+|-+$/g, ``);
+  let slug = packageLocator.reference.replace(/[^a-zA-Z0-9._-]+/g, `-`).replace(/-+/g, `-`).replace(/^-+|-+$/g, ``);
 
-  let hash = cryptoUtils.sha256([packageLocator.reference].join(` `)).slice(0, 16);
+  let hash = cryptoUtils.sha256(packageLocator.reference).slice(0, 16);
 
   return [slug, hash].join(`-`);
 }
