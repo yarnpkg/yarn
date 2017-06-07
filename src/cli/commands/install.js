@@ -662,13 +662,11 @@ export class Install {
       this.scripts.getArtifacts(),
     );
 
-    const lockFileHasAllPatterns = patterns.filter(p => !this.lockfile.getLocked(p)).length === 0;
-    const resolverPatternsAreSameAsInLockfile =
-      Object.keys(lockfileBasedOnResolver).filter(pattern => {
-        const manifest = this.lockfile.getLocked(pattern);
-        return !manifest || manifest.resolved !== lockfileBasedOnResolver[pattern].resolved;
-      }).length === 0;
-
+    const lockFileHasAllPatterns = patterns.every(p => this.lockfile.getLocked(p));
+    const resolverPatternsAreSameAsInLockfile = Object.keys(lockfileBasedOnResolver).every(pattern => {
+      const manifest = this.lockfile.getLocked(pattern);
+      return manifest && manifest.resolved === lockfileBasedOnResolver[pattern].resolved;
+    });
     // remove command is followed by install with force, lockfile will be rewritten in any case then
     if (lockFileHasAllPatterns && resolverPatternsAreSameAsInLockfile && patterns.length && !this.flags.force) {
       return;
