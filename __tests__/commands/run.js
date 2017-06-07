@@ -75,11 +75,13 @@ test('properly handle bin scripts', (): Promise<void> => {
   });
 });
 
-test('properly handle shell commands', (): Promise<void> => {
-  return runRun(['env'], {}, 'no-args', config => {
-    const args = ['env', config, 'printenv ', config.cwd];
+test('properly handle env command', (): Promise<void> => {
+  return runRun(['env'], {}, 'no-args', (config, reporter): ?Promise<void> => {
+    const rprtr = new reporters.BufferReporter({stdout: null, stdin: null});
 
-    expect(execCommand).toBeCalledWith(...args);
+    rprtr.info(`${JSON.stringify(process.env, null, 2)}`);
+
+    expect(reporter.getBuffer()).toEqual(rprtr.getBuffer());
   });
 });
 
