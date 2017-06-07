@@ -9,6 +9,10 @@ import * as fs from '../../util/fs.js';
 
 const path = require('path');
 
+type Dependencies = {
+  [key: string]: string,
+};
+
 export default class LinkResolver extends ExoticResolver {
   constructor(request: PackageRequest, fragment: string) {
     super(request, fragment);
