@@ -47,6 +47,9 @@ export async function fetch(pkgs: Array<Manifest>, config: Config): Promise<Arra
 
         tick(manifest.name);
 
+        manifest.bin = packageInfo.bin.toJS();
+        manifest.scripts = packageInfo.scripts.toJS();
+
         manifest.dependencies = packageInfo.dependencies.map(({ reference }) => reference).toJS();
         manifest.devDependencies = packageInfo.devDependencies.map(({ reference }) => reference).toJS();
         manifest.peerDependencies = packageInfo.peerDependencies.map(({ reference }) => reference).toJS();
