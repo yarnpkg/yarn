@@ -39,10 +39,10 @@ export async function fetch(pkgs: Array<Manifest>, config: Config): Promise<Arra
 
         tick(manifest.name);
 
-        manifest.dependencies = packageInfo.dependencies.toJS();
-        manifest.devDependencies = packageInfo.devDependencies.toJS();
-        manifest.peerDependencies = packageInfo.peerDependencies.toJS();
-        manifest.bundledDependencies = packageInfo.bundledDependencies.toJS();
+        manifest.dependencies = packageInfo.dependencies.map(({ reference }) => reference).toJS();
+        manifest.devDependencies = packageInfo.devDependencies.map(({ reference }) => reference).toJS();
+        manifest.peerDependencies = packageInfo.peerDependencies.map(({ reference }) => reference).toJS();
+        manifest.bundledDependencies = packageInfo.bundledDependencies.map(({ reference }) => reference).toJS();
 
         await fsUtils.writeJson(`${dest}/.yarn-metadata.json`, {
             artifacts: [],
