@@ -28,7 +28,7 @@ import {YarnFetcher} from 'miniyarn/fetchers/YarnFetcher';
 export let fetcher = new BaseMultiFetcher()
 
   .add(new MirrorFetcher.Save()
-     .add(new LegacyMirrorFetcher.Save()
+//   .add(new LegacyMirrorFetcher.Save()
 
       .add(new CacheFetcher()
         .add(new UnpackFetcher()
@@ -51,7 +51,7 @@ export let fetcher = new BaseMultiFetcher()
         ),
       ),
 
-    ),
+//  ),
   )
 
   .add(new MirrorFetcher.Save()
