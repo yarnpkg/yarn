@@ -53,6 +53,8 @@ export type Manifest = {
   name: string,
   version: string,
 
+  private?: boolean,
+
   author?: {
     name?: string,
     email?: string,
@@ -151,4 +153,8 @@ export type Dependency = {
   latest: string,
   url: string,
   hint: ?string,
+};
+
+export type WorkspacesManifestMap = {
+  [string]: {loc: string, manifest: Manifest},
 };

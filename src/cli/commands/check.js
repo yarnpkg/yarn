@@ -49,21 +49,33 @@ export async function verifyTreeCheck(
   const dependenciesToCheckVersion: PackageToVerify[] = [];
   if (rootManifest.dependencies) {
     for (const name in rootManifest.dependencies) {
+      const version = rootManifest.dependencies[name];
+      // skip linked dependencies
+      const isLinkedDepencency = /^link:/i.test(version) || (/^file:/i.test(version) && config.linkFileDependencies);
+      if (isLinkedDepencency) {
+        continue;
+      }
       dependenciesToCheckVersion.push({
         name,
         originalKey: name,
         parentCwd: registry.cwd,
-        version: rootManifest.dependencies[name],
+        version,
       });
     }
   }
   if (rootManifest.devDependencies && !config.production) {
     for (const name in rootManifest.devDependencies) {
+      const version = rootManifest.devDependencies[name];
+      // skip linked dependencies
+      const isLinkedDepencency = /^link:/i.test(version) || (/^file:/i.test(version) && config.linkFileDependencies);
+      if (isLinkedDepencency) {
+        continue;
+      }
       dependenciesToCheckVersion.push({
         name,
         originalKey: name,
         parentCwd: registry.cwd,
-        version: rootManifest.devDependencies[name],
+        version,
       });
     }
   }
@@ -153,9 +165,9 @@ async function integrityHashCheck(
   const install = new Install(flags, config, reporter, lockfile);
 
   // get patterns that are installed when running `yarn install`
-  const {patterns} = await install.fetchRequestFromCwd();
+  const {patterns, workspaceLayout} = await install.fetchRequestFromCwd();
 
-  const match = await integrityChecker.check(patterns, lockfile.cache, flags);
+  const match = await integrityChecker.check(patterns, lockfile.cache, flags, workspaceLayout);
   for (const pattern of match.missingPatterns) {
     reportError('lockfileNotContainPattern', pattern);
   }
@@ -208,12 +220,12 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
   }
 
   // get patterns that are installed when running `yarn install`
-  const {patterns: rawPatterns} = await install.hydrate(true);
+  const {patterns: rawPatterns, workspaceLayout} = await install.hydrate();
   const patterns = await install.flatten(rawPatterns);
 
   // check if patterns exist in lockfile
   for (const pattern of patterns) {
-    if (!lockfile.getLocked(pattern)) {
+    if (!lockfile.getLocked(pattern) && (!workspaceLayout || !workspaceLayout.getManifestByPattern(pattern))) {
       reportError('lockfileNotContainPattern', pattern);
     }
   }
@@ -250,6 +262,14 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
       }
 
       human = humanParts.join('');
+    }
+
+    // skip unnecessary checks for linked dependencies
+    const remoteType = pkg._reference.remote.type;
+    const isLinkedDepencency =
+      remoteType === 'link' || remoteType === 'workspace' || (remoteType === 'file' && config.linkFileDependencies);
+    if (isLinkedDepencency) {
+      continue;
     }
 
     const pkgLoc = path.join(loc, 'package.json');

@@ -2,8 +2,15 @@
 
 import {ConsoleReporter} from '../../src/reporters/index.js';
 import * as reporters from '../../src/reporters/index.js';
-import {getPackageVersion, createLockfile, explodeLockfile, run as buildRun, runInstall} from './_helpers.js';
-import {Add} from '../../src/cli/commands/add.js';
+import {
+  getPackageVersion,
+  createLockfile,
+  explodeLockfile,
+  run as buildRun,
+  runInstall,
+  makeConfigFromDirectory,
+} from './_helpers.js';
+import {Add, run as add} from '../../src/cli/commands/add.js';
 import * as constants from '../../src/constants.js';
 import {parse} from '../../src/lockfile/wrapper.js';
 import {Install} from '../../src/cli/commands/install.js';
@@ -18,6 +25,7 @@ import inquirer from 'inquirer';
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 150000;
 
 const path = require('path');
+const stream = require('stream');
 
 const fixturesLoc = path.join(__dirname, '..', 'fixtures', 'add');
 
@@ -33,6 +41,32 @@ const runAdd = buildRun.bind(
     return add;
   },
 );
+
+test.concurrent('adds any new package to the current workspace, but install from the workspace', async () => {
+  await runInstall({}, 'simple-worktree', async (config): Promise<void> => {
+    const inOut = new stream.PassThrough();
+    const reporter = new reporters.JSONReporter({stdout: inOut});
+
+    expect(await fs.exists(`${config.cwd}/node_modules/left-pad`)).toEqual(false);
+    expect(await fs.exists(`${config.cwd}/packages/package-a/node_modules/left-pad`)).toEqual(false);
+
+    await add(await makeConfigFromDirectory(`${config.cwd}/packages/package-a`, reporter), reporter, {}, ['left-pad']);
+
+    expect(await fs.exists(`${config.cwd}/node_modules/left-pad`)).toEqual(true);
+    expect(await fs.exists(`${config.cwd}/packages/package-a/node_modules/left-pad`)).toEqual(false);
+
+    expect(await fs.exists(`${config.cwd}/yarn.lock`)).toEqual(true);
+    expect(await fs.exists(`${config.cwd}/packages/package-a/yarn.lock`)).toEqual(false);
+
+    await add(await makeConfigFromDirectory(`${config.cwd}/packages/package-b`, reporter), reporter, {}, ['right-pad']);
+
+    expect(await fs.exists(`${config.cwd}/node_modules/right-pad`)).toEqual(true);
+    expect(await fs.exists(`${config.cwd}/packages/package-b/node_modules/right-pad`)).toEqual(false);
+
+    expect(await fs.exists(`${config.cwd}/yarn.lock`)).toEqual(true);
+    expect(await fs.exists(`${config.cwd}/packages/package-b/yarn.lock`)).toEqual(false);
+  });
+});
 
 test.concurrent('install with arg', (): Promise<void> => {
   return runAdd(['is-online'], {}, 'install-with-arg');
@@ -71,6 +105,22 @@ test.concurrent('install with --optional flag', (): Promise<void> => {
 
     expect(lockfile.indexOf('left-pad@1.1.0:')).toEqual(0);
     expect(pkg.optionalDependencies).toEqual({'left-pad': '1.1.0'});
+    expect(pkg.dependencies).toEqual({});
+  });
+});
+
+test.concurrent('install with link: specifier', (): Promise<void> => {
+  return runAdd(['link:../left-pad'], {dev: true}, 'add-with-flag', async config => {
+    const lockfile = explodeLockfile(await fs.readFile(path.join(config.cwd, 'yarn.lock')));
+    const pkg = await fs.readJson(path.join(config.cwd, 'package.json'));
+
+    const expectPath = path.join(config.cwd, 'node_modules', 'left-pad');
+
+    const stat = await fs.lstat(expectPath);
+    expect(stat.isSymbolicLink()).toEqual(true);
+
+    expect(lockfile.indexOf('left-pad@1.1.0:')).toEqual(-1);
+    expect(pkg.devDependencies).toEqual({'left-pad': 'link:../left-pad'});
     expect(pkg.dependencies).toEqual({});
   });
 });

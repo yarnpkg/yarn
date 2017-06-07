@@ -52,7 +52,7 @@ test('direct dependency bin takes priority over transitive bin', (): Promise<voi
   });
 });
 
-test.concurrent('install should respect --no-bin-links flag', (): Promise<void> => {
+test('install should respect --no-bin-links flag', (): Promise<void> => {
   return runInstall({binLinks: false}, 'install-nested-bin', async config => {
     const binExists = await fs.exists(path.join(config.cwd, 'node_modules', '.bin'));
     expect(binExists).toBeFalsy();
@@ -83,20 +83,6 @@ test('newer transitive dep is overridden by older direct dep', (): Promise<void>
   });
 });
 
-// Scenario: Transitive dependency having version that is overridden by newer version as the dev dependency.
-// Behavior: eslint@3.12.2 is symlinked in node_modeules/.bin
-//           and eslint@3.10.1 dependency for sample-dep-eslint-3.10.1 module is not linked.
-// SKIPPED because this seems like an NPM bug more than intentional design.
-//           Why would it matter if the direct dependency is a dev one or not when linking the transient dep?
-test.skip('transitive dep is overridden by dev dep', (): Promise<void> => {
-  return runInstall({binLinks: true}, 'install-bin-links-dev', async config => {
-    expect(await linkAt(config, 'node_modules', '.bin', 'eslint')).toEqual('../eslint/bin/eslint.js');
-    expect(
-      await linkAt(config, 'node_modules', 'sample-dep-eslint-3.10.1', 'node_modules', '.bin', 'eslint'),
-    ).not.toBeDefined();
-  });
-});
-
 // Scenario: Transitive dependency having version that is conflicting with another transitive dependency version.
 // Behavior: eslint@3.10.1 is symlinked in node_modeules/.bin
 //           and eslint@3.12.2 is symlinked to node_modules/sample-dep-eslint-3.12.2/node_modules/.bin.
@@ -121,5 +107,13 @@ test('first dep is installed when same level and reference count and one is a de
     expect(await linkAt(config, 'node_modules', 'sample-dep-eslint-3.12.2', 'node_modules', '.bin', 'eslint')).toEqual(
       '../eslint/bin/eslint.js',
     );
+  });
+});
+
+// fixes https://github.com/yarnpkg/yarn/issues/3535
+// quite a heavy test, did not find a way to isolate
+test('Only top level (after hoisting) bin links should be linked', (): Promise<void> => {
+  return runInstall({binLinks: true}, 'install-bin-links-eslint', async config => {
+    expect(await linkAt(config, 'node_modules', '.bin', 'eslint')).toEqual('../eslint/bin/eslint.js');
   });
 });

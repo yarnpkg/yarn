@@ -61,6 +61,69 @@ test.concurrent('properly find and save build artifacts', async () => {
   });
 });
 
+test('creates the file in the mirror when fetching a git repository', async () => {
+  await runInstall({}, 'install-git', async (config, reporter): Promise<void> => {
+    const lockfile = await Lockfile.fromDirectory(config.cwd);
+
+    expect(await fs.glob('example-yarn-package.git-*', {cwd: `${config.cwd}/offline-mirror`})).toHaveLength(1);
+
+    await fs.unlink(path.join(config.cwd, 'offline-mirror'));
+    await fs.unlink(path.join(config.cwd, 'node_modules'));
+
+    const firstReinstall = new Install({}, config, reporter, lockfile);
+    await firstReinstall.init();
+
+    expect(await fs.glob('example-yarn-package.git-*', {cwd: `${config.cwd}/offline-mirror`})).toHaveLength(1);
+  });
+});
+
+test.concurrent('creates a symlink to a directory when using the link: protocol', async () => {
+  await runInstall({}, 'install-link', async (config): Promise<void> => {
+    const expectPath = path.join(config.cwd, 'node_modules', 'test-absolute');
+
+    const stat = await fs.lstat(expectPath);
+    expect(stat.isSymbolicLink()).toEqual(true);
+
+    const target = await fs.readlink(expectPath);
+    expect(path.resolve(config.cwd, target)).toMatch(/[\\\/]bar$/);
+  });
+});
+
+test.concurrent('creates a symlink to a non-existing directory when using the link: protocol', async () => {
+  await runInstall({}, 'install-link', async (config): Promise<void> => {
+    const expectPath = path.join(config.cwd, 'node_modules', 'test-missing');
+
+    const stat = await fs.lstat(expectPath);
+    expect(stat.isSymbolicLink()).toEqual(true);
+
+    const target = await fs.readlink(expectPath);
+    if (process.platform !== 'win32') {
+      expect(target).toEqual('../baz');
+    } else {
+      expect(target).toMatch(/[\\\/]baz[\\\/]$/);
+    }
+  });
+});
+
+test.concurrent(
+  'resolves the symlinks relative to the package path when using the link: protocol; not the node_modules',
+  async () => {
+    await runInstall({}, 'install-link', async (config): Promise<void> => {
+      const expectPath = path.join(config.cwd, 'node_modules', 'test-relative');
+
+      const stat = await fs.lstat(expectPath);
+      expect(stat.isSymbolicLink()).toEqual(true);
+
+      const target = await fs.readlink(expectPath);
+      if (process.platform !== 'win32') {
+        expect(target).toEqual('../bar');
+      } else {
+        expect(target).toMatch(/[\\\/]bar[\\\/]$/);
+      }
+    });
+  },
+);
+
 test('changes the cache path when bumping the cache version', async () => {
   await runInstall({}, 'install-github', async (config): Promise<void> => {
     const inOut = new stream.PassThrough();
@@ -256,6 +319,23 @@ test.concurrent('install file: local packages with local dependencies', async ()
   await runInstall({}, 'install-file-local-dependency', async (config, reporter) => {
     const reinstall = new Install({}, config, reporter, (await Lockfile.fromDirectory(config.cwd)));
     await reinstall.init();
+
+    expect(await fs.readFile(path.join(config.cwd, 'node_modules', 'a', 'index.js'))).toEqual('foo;\n');
+
+    expect(await fs.readFile(path.join(config.cwd, 'node_modules', 'b', 'index.js'))).toEqual('bar;\n');
+  });
+});
+
+test.concurrent('install file: link file dependencies', async (): Promise<void> => {
+  await runInstall({}, 'install-file-link-dependencies', async (config, reporter) => {
+    const statA = await fs.lstat(path.join(config.cwd, 'node_modules', 'a'));
+    expect(statA.isSymbolicLink()).toEqual(true);
+
+    const statB = await fs.lstat(path.join(config.cwd, 'node_modules', 'b'));
+    expect(statB.isSymbolicLink()).toEqual(true);
+
+    const statC = await fs.lstat(path.join(config.cwd, 'node_modules', 'c'));
+    expect(statC.isSymbolicLink()).toEqual(true);
 
     expect(await fs.readFile(path.join(config.cwd, 'node_modules', 'a', 'index.js'))).toEqual('foo;\n');
 

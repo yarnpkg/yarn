@@ -9,12 +9,12 @@ var semver = require('semver');
 var ver = process.versions.node;
 ver = ver.split('-')[0]; // explode and truncate tag from version #511
 
-var path = null;
+var dirPath = null;
 
 if (semver.satisfies(ver, '>=5.0.0')) {
-  path = '../lib/cli/index.js';
+  dirPath = '../lib';
 } else if (semver.satisfies(ver, '>=4.0.0')) {
-  path = '../lib-legacy/cli/index.js';
+  dirPath = '../lib-legacy';
 } else {
   console.log(require('chalk').red('Node version ' + ver + ' is not supported, please use Node.js 4.0 or higher.'));
   process.exit(1);
@@ -27,7 +27,7 @@ if (semver.satisfies(ver, '>=5.7.0')) {
 
 // ensure cache directory exists
 var mkdirp = require('mkdirp');
-var constants = require('../lib-legacy/constants');
+var constants = require(dirPath + '/constants');
 mkdirp.sync(constants.MODULE_CACHE_DIRECTORY);
 
-module.exports = require(path);
+module.exports = require(dirPath + '/cli');

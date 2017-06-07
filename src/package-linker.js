@@ -14,6 +14,7 @@ import {entries} from './util/misc.js';
 import * as fs from './util/fs.js';
 import lockMutex from './util/mutex.js';
 import {satisfiesWithPreleases} from './util/semver.js';
+import WorkspaceLayout from './workspace-layout.js';
 
 const invariant = require('invariant');
 const cmdShim = promise.promisify(require('cmd-shim'));
@@ -124,7 +125,11 @@ export default class PackageLinker {
     return Promise.resolve(hoister.init());
   }
 
-  async copyModules(patterns: Array<string>, linkDuplicates: boolean): Promise<void> {
+  async copyModules(
+    patterns: Array<string>,
+    linkDuplicates: boolean,
+    workspaceLayout?: WorkspaceLayout,
+  ): Promise<void> {
     let flatTree = await this.getFlatHoistedTree(patterns);
 
     // sorted tree makes file creation and copying not to interfere with each other
@@ -140,16 +145,46 @@ export default class PackageLinker {
     const hardlinksEnabled = linkDuplicates && (await fs.hardlinksWork(this.config.cwd));
 
     const copiedSrcs: Map<string, string> = new Map();
-    for (const [dest, {pkg, loc: src}] of flatTree) {
+    const symlinkPaths: Map<string, string> = new Map();
+    for (const [folder, {pkg, loc}] of flatTree) {
+      const remote = pkg._remote || {type: ''};
       const ref = pkg._reference;
+      let dest = folder;
       invariant(ref, 'expected package reference');
-      ref.setLocation(dest);
 
-      // backwards compatibility: get build artifacts from metadata
-      const metadata = await this.config.readPackageMetadata(src);
-      for (const file of metadata.artifacts) {
-        artifactFiles.push(path.join(dest, file));
+      let src = loc;
+      let type = '';
+      if (remote.type === 'link') {
+        // replace package source from incorrect cache location (workspaces and link: are not cached)
+        // with a symlink source
+        src = remote.reference;
+        type = 'symlink';
+      } else if (workspaceLayout && remote.type === 'workspace') {
+        src = remote.reference;
+        type = 'symlink';
+        if (dest.indexOf(workspaceLayout.virtualManifestName) !== -1) {
+          // we don't need to install virtual manifest
+          continue;
+        }
+        // to get real path for non hoisted dependencies
+        symlinkPaths.set(dest, src);
+      } else {
+        // backwards compatibility: get build artifacts from metadata
+        // does not apply to symlinked dependencies
+        const metadata = await this.config.readPackageMetadata(src);
+        for (const file of metadata.artifacts) {
+          artifactFiles.push(path.join(dest, file));
+        }
       }
+
+      // fs copy can't copy through a symlink, so we replace those with real paths to workpsaces
+      for (const [symlink, realpath] of symlinkPaths.entries()) {
+        if (dest !== symlink && dest.indexOf(symlink) === 0) {
+          dest = dest.replace(symlink, realpath);
+        }
+      }
+
+      ref.setLocation(dest);
 
       const integrityArtifacts = this.artifacts[`${pkg.name}@${pkg.version}`];
       if (integrityArtifacts) {
@@ -166,6 +201,7 @@ export default class PackageLinker {
         copyQueue.set(dest, {
           src,
           dest,
+          type,
           onFresh() {
             if (ref) {
               ref.setFresh(true);
@@ -270,8 +306,8 @@ export default class PackageLinker {
 
     // create binary links
     if (this.config.binLinks) {
-      const linksToCreate = this.determineTopLevelBinLinks(flatTree);
-      const tickBin = this.reporter.progress(flatTree.length + linksToCreate.length);
+      const topLevelDependencies = this.determineTopLevelBinLinks(flatTree);
+      const tickBin = this.reporter.progress(flatTree.length + topLevelDependencies.length);
 
       // create links in transient dependencies
       await promise.queue(
@@ -287,7 +323,7 @@ export default class PackageLinker {
       // create links at top level for all dependencies.
       // non-transient dependencies will overwrite these during this.save() to ensure they take priority.
       await promise.queue(
-        linksToCreate,
+        topLevelDependencies,
         async ([dest, {pkg}]) => {
           if (pkg.bin && Object.keys(pkg.bin).length) {
             const binLoc = path.join(this.config.cwd, this.config.getFolder(pkg));
@@ -349,31 +385,8 @@ export default class PackageLinker {
     return range === '*' || satisfiesWithPreleases(version, range, this.config.looseSemver);
   }
 
-  async init(patterns: Array<string>, linkDuplicates: boolean): Promise<void> {
+  async init(patterns: Array<string>, linkDuplicates: boolean, workspaceLayout?: WorkspaceLayout): Promise<void> {
     this.resolvePeerModules();
-    await this.copyModules(patterns, linkDuplicates);
-    await this.saveAll(patterns);
-  }
-
-  async save(pattern: string): Promise<void> {
-    const resolved = this.resolver.getResolvedPattern(pattern);
-    invariant(resolved, `Couldn't find resolved name/version for ${pattern}`);
-
-    const ref = resolved._reference;
-    invariant(ref, 'Missing reference');
-
-    //
-    const src = this.config.generateHardModulePath(ref);
-
-    // link bins
-    if (this.config.binLinks && resolved.bin && Object.keys(resolved.bin).length && !ref.ignore) {
-      const binLoc = this.config.modulesFolder || path.join(this.config.cwd, this.config.getFolder(resolved));
-      await this.linkSelfDependencies(resolved, src, binLoc);
-    }
-  }
-
-  async saveAll(deps: Array<string>): Promise<void> {
-    deps = this.resolver.dedupePatterns(deps);
-    await promise.queue(deps, (dep): Promise<void> => this.save(dep));
+    await this.copyModules(patterns, linkDuplicates, workspaceLayout);
   }
 }

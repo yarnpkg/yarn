@@ -51,6 +51,21 @@ export async function getPackageVersion(config: Config, packagePath: string): Pr
   return json.version;
 }
 
+export function makeConfigFromDirectory(cwd: string, reporter: Reporter, flags: Object = {}): Promise<Config> {
+  return Config.create(
+    {
+      binLinks: !!flags.binLinks,
+      cwd,
+      globalFolder: flags.globalFolder || path.join(cwd, '.yarn-global'),
+      cacheFolder: flags.cacheFolder || path.join(cwd, '.yarn-cache'),
+      linkFolder: flags.linkFolder || path.join(cwd, '.yarn-link'),
+      prefix: flags.prefix,
+      production: flags.production,
+    },
+    reporter,
+  );
+}
+
 export async function run<T, R>(
   Reporter: Class<Reporter & R>,
   fixturesLoc: string,
@@ -119,19 +134,7 @@ export async function run<T, R>(
   }
 
   try {
-    const config = await Config.create(
-      {
-        binLinks: !!flags.binLinks,
-        cwd,
-        globalFolder: flags.globalFolder || path.join(cwd, '.yarn-global'),
-        cacheFolder: flags.cacheFolder || path.join(cwd, '.yarn-cache'),
-        linkFolder: flags.linkFolder || path.join(cwd, '.yarn-link'),
-        prefix: flags.prefix,
-        production: flags.production,
-      },
-      reporter,
-    );
-
+    const config = await makeConfigFromDirectory(cwd, reporter, flags);
     const install = await factory(args, flags, config, reporter, lockfile, () => out);
 
     if (checkInstalled) {

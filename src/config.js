@@ -2,9 +2,10 @@
 
 import type {RegistryNames, ConfigRegistries} from './registries/index.js';
 import type {Reporter} from './reporters/index.js';
-import type {Manifest, PackageRemote} from './types.js';
+import type {Manifest, PackageRemote, WorkspacesManifestMap} from './types.js';
 import type PackageReference from './package-reference.js';
 import {execFromManifest} from './util/execute-lifecycle-script.js';
+import {expandPath} from './util/path.js';
 import normalizeManifest from './util/normalize-manifest/index.js';
 import {MessageError} from './errors.js';
 import * as fs from './util/fs.js';
@@ -31,6 +32,7 @@ export type ConfigOptions = {
   preferOffline?: boolean,
   pruneOfflineMirror?: boolean,
   enableMetaFolder?: boolean,
+  linkFileDependencies?: boolean,
   captureHar?: boolean,
   ignoreScripts?: boolean,
   ignorePlatform?: boolean,
@@ -91,7 +93,8 @@ export default class Config {
   preferOffline: boolean;
   pruneOfflineMirror: boolean;
   enableMetaFolder: boolean;
-  disableLockfileVersions: boolean;
+  enableLockfileVersions: boolean;
+  linkFileDependencies: boolean;
   ignorePlatform: boolean;
   binLinks: boolean;
 
@@ -142,10 +145,12 @@ export default class Config {
 
   nonInteractive: boolean;
 
-  workspacesExperimental: boolean;
+  workspacesEnabled: boolean;
 
   //
   cwd: string;
+  workspaceRootFolder: ?string;
+  lockfileFolder: string;
 
   //
   registries: ConfigRegistries;
@@ -180,8 +185,14 @@ export default class Config {
    * Get a config option from our yarn config.
    */
 
-  getOption(key: string): mixed {
-    return this.registries.yarn.getOption(key);
+  getOption(key: string, expand: boolean = true): mixed {
+    const value = this.registries.yarn.getOption(key);
+
+    if (expand && typeof value === 'string') {
+      return expandPath(value);
+    }
+
+    return value;
   }
 
   /**
@@ -198,6 +209,9 @@ export default class Config {
 
   async init(opts: ConfigOptions = {}): Promise<void> {
     this._init(opts);
+
+    this.workspaceRootFolder = await this.findWorkspaceRoot(this.cwd);
+    this.lockfileFolder = this.workspaceRootFolder || this.cwd;
 
     await fs.mkdirp(this.globalFolder);
     await fs.mkdirp(this.linkFolder);
@@ -259,11 +273,12 @@ export default class Config {
     this._cacheRootFolder = String(
       opts.cacheFolder || this.getOption('cache-folder') || constants.MODULE_CACHE_DIRECTORY,
     );
-    this.workspacesExperimental = Boolean(this.getOption('workspaces-experimental'));
+    this.workspacesEnabled = Boolean(this.getOption('workspaces-experimental'));
 
     this.pruneOfflineMirror = Boolean(this.getOption('yarn-offline-mirror-pruning'));
     this.enableMetaFolder = Boolean(this.getOption('enable-meta-folder'));
-    this.disableLockfileVersions = Boolean(this.getOption('yarn-disable-lockfile-versions'));
+    this.enableLockfileVersions = Boolean(this.getOption('yarn-enable-lockfile-versions'));
+    this.linkFileDependencies = Boolean(this.getOption('yarn-link-file-dependencies'));
 
     //init & create cacheFolder, tempFolder
     this.cacheFolder = path.join(this._cacheRootFolder, 'v' + String(constants.CACHE_VERSION));
@@ -282,6 +297,10 @@ export default class Config {
       this.production = true;
     } else {
       this.production = !!opts.production;
+    }
+
+    if (this.workspaceRootFolder && !this.workspacesEnabled) {
+      throw new MessageError(this.reporter.lang('workspaceExperimentalDisabled'));
     }
   }
 
@@ -519,6 +538,82 @@ export default class Config {
     } else {
       return null;
     }
+  }
+
+  async findManifest(dir: string, isRoot: boolean): Promise<?Manifest> {
+    for (const registry of registryNames) {
+      const manifest = await this.tryManifest(dir, registry, isRoot);
+
+      if (manifest) {
+        return manifest;
+      }
+    }
+
+    return null;
+  }
+
+  async findWorkspaceRoot(initial: string): Promise<?string> {
+    let previous = null;
+    let current = path.normalize(initial);
+
+    do {
+      const manifest = await this.findManifest(current, true);
+
+      if (manifest && manifest.workspaces) {
+        return current;
+      }
+
+      previous = current;
+      current = path.dirname(current);
+    } while (current !== previous);
+
+    return null;
+  }
+
+  async resolveWorkspaces(root: string, rootManifest: Manifest): Promise<WorkspacesManifestMap> {
+    const workspaces = {};
+    const patterns = rootManifest.workspaces || [];
+    if (!this.workspacesEnabled) {
+      return workspaces;
+    }
+    if (!rootManifest.private && patterns.length > 0) {
+      throw new MessageError(this.reporter.lang('workspacesRequirePrivateProjects'));
+    }
+
+    const registryFilenames = registryNames.map(registryName => this.registries[registryName].constructor.filename);
+    const trailingPattern = `/+(${registryFilenames.join(`|`)})`;
+
+    const files = await Promise.all(
+      patterns.map(pattern => {
+        return fs.glob(pattern.replace(/\/?$/, trailingPattern), {cwd: root, ignore: this.registryFolders});
+      }),
+    );
+
+    for (const file of new Set([].concat(...files))) {
+      const loc = path.join(root, path.dirname(file));
+      const manifest = await this.findManifest(loc, false);
+
+      if (!manifest) {
+        continue;
+      }
+
+      if (!manifest.name) {
+        this.reporter.warn(this.reporter.lang('workspaceNameMandatory', loc));
+        continue;
+      }
+      if (!manifest.version) {
+        this.reporter.warn(this.reporter.lang('workspaceVersionMandatory', loc));
+        continue;
+      }
+
+      if (Object.prototype.hasOwnProperty.call(workspaces, manifest.name)) {
+        throw new MessageError(this.reporter.lang('workspaceNameDuplicate', manifest.name));
+      }
+
+      workspaces[manifest.name] = {loc, manifest};
+    }
+
+    return workspaces;
   }
 
   /**
