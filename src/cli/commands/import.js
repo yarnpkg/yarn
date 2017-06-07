@@ -280,7 +280,7 @@ export class Import extends Install {
     if (manifest.name && this.resolver instanceof ImportPackageResolver) {
       this.resolver.rootName = manifest.name;
     }
-    await this.resolver.init(requests, this.flags.flat);
+    await this.resolver.init(requests, this.flags.flat, this.flags.frozenLockfile);
     const manifests: Array<Manifest> = await fetcher.fetch(this.resolver.getManifests(), this.config);
     this.resolver.updateManifests(manifests);
     await compatibility.check(this.resolver.getManifests(), this.config, this.flags.ignoreEngines);

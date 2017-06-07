@@ -33,6 +33,8 @@ export default class PackageResolver {
   // whether the dependency graph will be flattened
   flat: boolean;
 
+  frozen: boolean;
+
   workspaceLayout: ?WorkspaceLayout;
 
   // list of registries that have been used in this resolution
@@ -448,15 +450,21 @@ export default class PackageResolver {
     }
 
     const request = new PackageRequest(req, this);
-    await request.find(fresh);
+    await request.find(fresh, this.frozen);
   }
 
   /**
    * TODO description
    */
 
-  async init(deps: DependencyRequestPatterns, isFlat: boolean, workspaceLayout?: WorkspaceLayout): Promise<void> {
+  async init(
+    deps: DependencyRequestPatterns,
+    isFlat: boolean,
+    isFrozen: boolean,
+    workspaceLayout?: WorkspaceLayout,
+  ): Promise<void> {
     this.flat = isFlat;
+    this.frozen = isFrozen;
     this.workspaceLayout = workspaceLayout;
     const activity = (this.activity = this.reporter.activity());
     await Promise.all(deps.map((req): Promise<void> => this.find(req)));

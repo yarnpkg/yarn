@@ -53,8 +53,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
       throw new MessageError(reporter.lang('scopeNotValid'));
     }
   } else if (flags.latest && args.length === 0) {
-    addArgs = Object.keys(allDependencies)
-      .map(dependency => getDependency(allDependencies, dependency));
+    addArgs = Object.keys(allDependencies).map(dependency => getDependency(allDependencies, dependency));
   } else {
     addArgs = args.map(dependency => {
       return getDependency(allDependencies, dependency);
