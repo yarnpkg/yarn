@@ -75,6 +75,14 @@ test('properly handle bin scripts', (): Promise<void> => {
   });
 });
 
+test('properly handle shell commands', (): Promise<void> => {
+  return runRun(['env'], {}, 'no-args', config => {
+    const args = ['env', config, 'printenv ', config.cwd];
+
+    expect(execCommand).toBeCalledWith(...args);
+  });
+});
+
 test('retains string delimiters if args have spaces', (): Promise<void> => {
   return runRun(['cat-names', '--filter', 'cat names'], {}, 'bin', config => {
     const script = path.join(config.cwd, 'node_modules', '.bin', 'cat-names');

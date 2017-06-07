@@ -11,6 +11,10 @@ import map from '../../util/map.js';
 const leven = require('leven');
 const path = require('path');
 
+const shellCommands = {
+  env: 'printenv',
+};
+
 function sanitizedArgs(args: Array<string>): Array<string> {
   const newArgs = [];
   for (let arg of args) {
@@ -58,7 +62,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
       cmdHints[cmd] = pkgScripts[cmd] || '';
     }
 
-    Object.assign(scripts, pkg.scripts);
+    Object.assign(scripts, pkg.scripts, shellCommands);
   }
 
   async function runCommand(args): Promise<void> {
