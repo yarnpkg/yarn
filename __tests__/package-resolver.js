@@ -42,7 +42,7 @@ function addTest(pattern, registry = 'npm', init: ?(cacheFolder: string) => Prom
     }
 
     const resolver = new PackageResolver(config, lockfile);
-    await resolver.init([{pattern, registry}]);
+    await resolver.init([{pattern, registry}], {});
 
     const ref = resolver.getManifests()[0]._reference;
     const cachePath = config.generateHardModulePath(ref, true);

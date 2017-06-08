@@ -131,7 +131,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
   const lockfile = await Lockfile.fromDirectory(config.lockfileFolder, reporter);
   const install = new Install(flags, config, reporter, lockfile);
   const {requests: depRequests, patterns} = await install.fetchRequestFromCwd();
-  await install.resolver.init(depRequests, install.flags.flat);
+  await install.resolver.init(depRequests, {isFlat: install.flags.flat, isFrozen: install.flags.frozenLockfile});
   const hoisted = await install.linker.getFlatHoistedTree(patterns);
 
   // finding

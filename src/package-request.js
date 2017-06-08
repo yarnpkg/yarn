@@ -254,7 +254,7 @@ export default class PackageRequest {
   /**
    * TODO description
    */
-  async find(fresh: boolean): Promise<void> {
+  async find({fresh, frozen}: {fresh: boolean, frozen?: boolean}): Promise<void> {
     // find version info for this package pattern
     const info: ?Manifest = await this.findVersionInfo();
 
@@ -270,7 +270,9 @@ export default class PackageRequest {
     // check if while we were resolving this dep we've already resolved one that satisfies
     // the same range
     const {range, name} = PackageRequest.normalizePattern(this.pattern);
-    const resolved: ?Manifest = this.resolver.getHighestRangeVersionMatch(name, range);
+    const resolved: ?Manifest = frozen
+      ? this.resolver.getExactVersionMatch(name, range)
+      : this.resolver.getHighestRangeVersionMatch(name, range);
     if (resolved) {
       this.resolver.reportPackageWithExistingVersion(this, info);
       return;
