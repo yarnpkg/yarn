@@ -67,6 +67,10 @@ export default class YarnRegistry extends NpmRegistry {
       val = DEFAULTS[key];
     }
 
+    if (typeof val === 'string') {
+      val = val.replace(/^\~/, userHome);
+    }
+
     return val;
   }
 

@@ -5,6 +5,7 @@ import * as reporters from '../../src/reporters/index.js';
 import * as configCmd from '../../src/cli/commands/config.js';
 import {run as buildRun} from './_helpers.js';
 import * as fs from '../../src/util/fs.js';
+import userHome from '../../src/util/user-home-dir';
 
 const path = require('path');
 
@@ -57,5 +58,11 @@ test('set value "false" to an option', (): Promise<void> => {
 test('set value "true" to an option', (): Promise<void> => {
   return runConfig(['set', 'strict-ssl', 'true'], {}, '', config => {
     expect(config.registries.yarn.homeConfig['strict-ssl']).toBe(true);
+  });
+});
+
+test('can interpolate ~ into user\'s local home path', (): Promise<void> => {
+  return runConfig(['set', 'cafile', '~/foo'], {}, '', config => {
+    expect(config.registries.yarn.getOption('cafile')).toBe(`${userHome}/foo`);
   });
 });
