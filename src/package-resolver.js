@@ -15,11 +15,11 @@ import WorkspaceLayout from './workspace-layout.js';
 const invariant = require('invariant');
 const semver = require('semver');
 
-export type ResolverOptions = {
+export type ResolverOptions = {|
   isFlat?: boolean,
   isFrozen?: boolean,
   workspaceLayout?: WorkspaceLayout,
-};
+|};
 
 export default class PackageResolver {
   constructor(config: Config, lockfile: Lockfile) {
