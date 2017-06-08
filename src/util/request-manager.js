@@ -427,7 +427,7 @@ export default class RequestManager {
 
     req.on('error', onError);
 
-    // make sure request is re-evaluating proxy based on redirect uri
+    // make sure request is re-evaluating proxy based on redirect uri (#2683)
     req.on('redirect', () => {
       delete req.proxy;
     });
