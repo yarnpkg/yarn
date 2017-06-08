@@ -227,7 +227,7 @@ class ImportPackageResolver extends PackageResolver {
       this.activity.tick(req.pattern);
     }
     const request = new ImportPackageRequest(req, this);
-    await request.find(false);
+    await request.find({fresh: false});
   }
 
   async findAll(deps: DependencyRequestPatterns): Promise<void> {
@@ -254,7 +254,10 @@ class ImportPackageResolver extends PackageResolver {
     }
   }
 
-  async init(deps: DependencyRequestPatterns, isFlat: boolean): Promise<void> {
+  async init(
+    deps: DependencyRequestPatterns,
+    {isFlat, isFrozen}: {isFlat: boolean, isFrozen?: boolean},
+  ): Promise<void> {
     this.flat = isFlat;
     const activity = (this.activity = this.reporter.activity());
     await this.findAll(deps);
@@ -280,7 +283,7 @@ export class Import extends Install {
     if (manifest.name && this.resolver instanceof ImportPackageResolver) {
       this.resolver.rootName = manifest.name;
     }
-    await this.resolver.init(requests, this.flags.flat, this.flags.frozenLockfile);
+    await this.resolver.init(requests, {isFlat: this.flags.flat, isFrozen: this.flags.frozenLockfile});
     const manifests: Array<Manifest> = await fetcher.fetch(this.resolver.getManifests(), this.config);
     this.resolver.updateManifests(manifests);
     await compatibility.check(this.resolver.getManifests(), this.config, this.flags.ignoreEngines);

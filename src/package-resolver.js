@@ -450,7 +450,7 @@ export default class PackageResolver {
     }
 
     const request = new PackageRequest(req, this);
-    await request.find(fresh, this.frozen);
+    await request.find({fresh, frozen: this.frozen});
   }
 
   /**
@@ -459,12 +459,11 @@ export default class PackageResolver {
 
   async init(
     deps: DependencyRequestPatterns,
-    isFlat: boolean,
-    isFrozen: boolean,
+    {isFlat, isFrozen}: {isFlat: boolean, isFrozen?: boolean},
     workspaceLayout?: WorkspaceLayout,
   ): Promise<void> {
     this.flat = isFlat;
-    this.frozen = isFrozen;
+    this.frozen = Boolean(isFrozen);
     this.workspaceLayout = workspaceLayout;
     const activity = (this.activity = this.reporter.activity());
     await Promise.all(deps.map((req): Promise<void> => this.find(req)));

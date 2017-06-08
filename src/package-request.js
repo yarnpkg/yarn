@@ -254,7 +254,7 @@ export default class PackageRequest {
   /**
    * TODO description
    */
-  async find(fresh: boolean, frozen: ?boolean): Promise<void> {
+  async find({fresh, frozen}: {fresh: boolean, frozen?: boolean}): Promise<void> {
     // find version info for this package pattern
     const info: ?Manifest = await this.findVersionInfo();
 
