@@ -75,6 +75,16 @@ test('properly handle bin scripts', (): Promise<void> => {
   });
 });
 
+test('properly handle env command', (): Promise<void> => {
+  return runRun(['env'], {}, 'no-args', (config, reporter): ?Promise<void> => {
+    const rprtr = new reporters.BufferReporter({stdout: null, stdin: null});
+
+    rprtr.info(`${JSON.stringify(process.env, null, 2)}`);
+
+    expect(reporter.getBuffer()).toEqual(rprtr.getBuffer());
+  });
+});
+
 test('retains string delimiters if args have spaces', (): Promise<void> => {
   return runRun(['cat-names', '--filter', 'cat names'], {}, 'bin', config => {
     const script = path.join(config.cwd, 'node_modules', '.bin', 'cat-names');

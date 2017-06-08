@@ -83,6 +83,8 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
         const cmdWithArgs = stage === action ? defaultScriptCmd : cmd;
         await execCommand(stage, config, cmdWithArgs, config.cwd);
       }
+    } else if (action === 'env') {
+      reporter.info(`${JSON.stringify(process.env, null, 2)}`);
     } else {
       let suggestion;
 
