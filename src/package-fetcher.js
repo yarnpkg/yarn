@@ -10,7 +10,7 @@ export async function fetch(pkgs: Array<Manifest>, config: Config): Promise<Arra
   let tick = config.reporter.progress(pkgs.length);
 
   let env = new Environment({
-    CACHE_PATH: `/tmp/yarn+miniyarn/cache`,
+    CACHE_PATH: config.cachePath,
     MIRROR_PATH: config.getOfflineMirrorPath(`.`),
     RELATIVE_DEPENDENCIES_PATH: config.cwd,
   });
