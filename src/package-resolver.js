@@ -15,6 +15,12 @@ import WorkspaceLayout from './workspace-layout.js';
 const invariant = require('invariant');
 const semver = require('semver');
 
+export type ResolverOptions = {
+  isFlat?: boolean,
+  isFrozen?: boolean,
+  workspaceLayout?: WorkspaceLayout,
+};
+
 export default class PackageResolver {
   constructor(config: Config, lockfile: Lockfile) {
     this.patternsByPackage = map();
@@ -459,10 +465,9 @@ export default class PackageResolver {
 
   async init(
     deps: DependencyRequestPatterns,
-    {isFlat, isFrozen}: {isFlat: boolean, isFrozen?: boolean},
-    workspaceLayout?: WorkspaceLayout,
+    {isFlat, isFrozen, workspaceLayout}: ResolverOptions = {isFlat: false, isFrozen: false, workspaceLayout: undefined},
   ): Promise<void> {
-    this.flat = isFlat;
+    this.flat = Boolean(isFlat);
     this.frozen = Boolean(isFrozen);
     this.workspaceLayout = workspaceLayout;
     const activity = (this.activity = this.reporter.activity());

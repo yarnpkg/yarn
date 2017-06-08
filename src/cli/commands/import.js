@@ -1,5 +1,6 @@
 /* @flow */
 
+import type {ResolverOptions} from '../../package-resolver.js';
 import type {Manifest, DependencyRequestPattern, DependencyRequestPatterns} from '../../types.js';
 import type {Reporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
@@ -256,9 +257,9 @@ class ImportPackageResolver extends PackageResolver {
 
   async init(
     deps: DependencyRequestPatterns,
-    {isFlat, isFrozen}: {isFlat: boolean, isFrozen?: boolean},
+    {isFlat, isFrozen, workspaceLayout}: ResolverOptions = {isFlat: false, isFrozen: false, workspaceLayout: undefined},
   ): Promise<void> {
-    this.flat = isFlat;
+    this.flat = Boolean(isFlat);
     const activity = (this.activity = this.reporter.activity());
     await this.findAll(deps);
     this.resetOptional();

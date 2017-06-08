@@ -423,14 +423,11 @@ export class Install {
 
     steps.push(async (curr: number, total: number) => {
       this.reporter.step(curr, total, this.reporter.lang('resolvingPackages'), emoji.get('mag'));
-      await this.resolver.init(
-        this.prepareRequests(depRequests),
-        {
-          isFlat: this.flags.flat,
-          isFrozen: this.flags.frozenLockfile,
-        },
+      await this.resolver.init(this.prepareRequests(depRequests), {
+        isFlat: this.flags.flat,
+        isFrozen: this.flags.frozenLockfile,
         workspaceLayout,
-      );
+      });
       topLevelPatterns = this.preparePatterns(rawPatterns);
       flattenedTopLevelPatterns = await this.flatten(topLevelPatterns);
       return {bailout: await this.bailout(topLevelPatterns, workspaceLayout)};
@@ -701,11 +698,11 @@ export class Install {
     const request = await this.fetchRequestFromCwd([], ignoreUnusedPatterns);
     const {requests: depRequests, patterns: rawPatterns, ignorePatterns, workspaceLayout} = request;
 
-    await this.resolver.init(
-      depRequests,
-      {isFlat: this.flags.flat, isFrozen: this.flags.frozenLockfile},
+    await this.resolver.init(depRequests, {
+      isFlat: this.flags.flat,
+      isFrozen: this.flags.frozenLockfile,
       workspaceLayout,
-    );
+    });
     await this.flatten(rawPatterns);
     this.markIgnored(ignorePatterns);
 
