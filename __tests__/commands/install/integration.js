@@ -144,7 +144,7 @@ test('changes the cache directory when bumping the cache version', async () => {
     const lockfile = await Lockfile.fromDirectory(config.cwd);
 
     const resolver = new PackageResolver(config, lockfile);
-    await resolver.init([{pattern: 'is-array', registry: 'npm'}], {});
+    await resolver.init([{pattern: 'is-array', registry: 'npm'}]);
 
     const ref = resolver.getManifests()[0]._reference;
     const cachePath = config.generateHardModulePath(ref, true);
