@@ -77,7 +77,9 @@ export function parseIdentifier(identifier) {
   let regex = /^((?:@([a-z0-9][a-z0-9_.-]*)\/)?([a-z0-9][a-z0-9_.-]*))(?:@(.+))?$/i;
   let match = identifier.match(regex);
 
-  if (!match) return null;
+  if (!match) {
+    return null;
+  }
 
   return {name: match[1], scope: match[2], localName: match[3], reference: match[4]};
 }
@@ -96,10 +98,11 @@ export function parseRangeIdentifiers(identifiers) {
     }
   }
 
-  if (invalidPackageIdentifiers.length > 0)
+  if (invalidPackageIdentifiers.length > 0) {
     throw new UsageError(
       `Invalid package identifier(s): ${invalidPackageIdentifiers.map(identifier => `"${identifier}"`).join(`, `)}`,
     );
+  }
 
   return packageRanges;
 }
@@ -117,9 +120,17 @@ export function getRangeIdentifier(packageRange) {
 }
 
 export function getLocatorSlugIdentifier(packageLocator) {
-  if (!packageLocator.reference) return null;
+  if (!packageLocator.reference) {
+    return null;
+  }
+
+  let {scope, name} = parseIdentifier(packageLocator.name);
 
   let slug = packageLocator.name.replace(/[^a-zA-Z0-9._-]+/g, `-`).replace(/-+/g, `-`).replace(/^-+|-+$/g, ``);
+
+  if (scope) {
+    slug = `@${slug}`;
+  }
 
   let hash = cryptoUtils.sha256(packageLocator.reference).slice(0, 16);
 

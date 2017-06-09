@@ -8,7 +8,9 @@ import * as miscUtils from 'miniyarn/utils/misc';
 
 export class GitFetcher extends BaseFetcher {
   supports(packageLocator, {env}) {
-    if (!packageLocator.name || !packageLocator.reference) return false;
+    if (!packageLocator.name || !packageLocator.reference) {
+      return false;
+    }
 
     return miscUtils.isGitReference(packageLocator.reference);
   }

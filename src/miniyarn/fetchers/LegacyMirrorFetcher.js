@@ -4,11 +4,15 @@ import {makeStubFetcher} from 'miniyarn/fetchers/makeStubFetcher';
 import {PackageInfo} from 'miniyarn/models/PackageInfo';
 import * as fsUtils from 'miniyarn/utils/fs';
 import * as pathUtils from 'miniyarn/utils/path';
+import * as yarnUtils from 'miniyarn/utils/yarn';
 
 class BaseLegacyMirrorFetcher extends BaseMultiFetcher {
   getLegacyMirrorPaths(packageLocator, { env }) {
-    return [
-      `${env.MIRROR_PATH}/${pathUtils.basename(packageLocator.reference)}`
+    let {scope} = yarnUtils.parseIdentifier(packageLocator.name);
+
+    return [ scope && !pathUtils.basename(packageLocator.reference).match(/^@/)
+      ? `${env.MIRROR_PATH}/@${scope}-${pathUtils.basename(packageLocator.reference)}`
+      : `${env.MIRROR_PATH}/${pathUtils.basename(packageLocator.reference)}`
     ];
   }
 
@@ -17,11 +21,39 @@ class BaseLegacyMirrorFetcher extends BaseMultiFetcher {
   }
 
   async getActiveMirrorPath(packageLocator, {env}) {
-    for (let mirrorPath of this.getLegacyMirrorPaths(packageLocator, {env}))
-      if (await fsUtils.exists(mirrorPath))
+    for (let mirrorPath of this.getLegacyMirrorPaths(packageLocator, {env})) {
+      if (await fsUtils.exists(mirrorPath)) {
         return mirrorPath;
+      }
+    }
 
     return this.getPrimaryMirrorPath(packageLocator, {env});
+  }
+}
+
+class Delete extends BaseLegacyMirrorFetcher {
+  async fetch(packageLocator, {env}) {
+    if (!env.MIRROR_PATH) {
+      return super.fetch(packageLocator, {env});
+    }
+
+    if (!packageLocator.name || !packageLocator.reference) {
+      return super.fetch(packageLocator, {env});
+    }
+
+    return super.fetch(packageLocator, {env}).then(async ({packageInfo, handler}) => {
+      return this.deleteFromMirror(packageInfo, handler, {env});
+    });
+  }
+
+  async deleteFromMirror(packageInfo, handler, {env}) {
+    let mirrorPath = this.getPrimaryMirrorPath(packageInfo.locator, {env});
+
+    if (await fsUtils.exists(mirrorPath) && pathUtils.normalize(mirrorPath) !== pathUtils.normalize(handler.get())) {
+      await fsUtils.rm(mirrorPath);
+    }
+
+    return {packageInfo, handler};
   }
 }
 
@@ -78,11 +110,24 @@ class Load extends BaseLegacyMirrorFetcher {
       return null;
     }
 
-    return new ArchiveFetcher({virtualPath: `/package`}).add(makeStubFetcher({
+    // In the legacy mirror, the archives were not standardized accross fetchers, so the package.json file was not always located at the same place, depending on the fetcher.
+    // In order to solve this, we try to locate the closest package.json file, and use it as the "virtual path" of the archive.
+
+    let listing = await fsUtils.readArchiveListing(mirrorPath);
+    let packageJsonEntries = listing.filter(listing => pathUtils.basename(listing) === `package.json`);
+
+    if (packageJsonEntries.length === 0) {
+      throw new Error(`An offline archive has been found, but no package.json file can be located inside`);
+    }
+
+    let rootPackageJson = packageJsonEntries.sort((a, b) => pathUtils.getDepth(a) - pathUtils.getDepth(b))[0];
+    let virtualPath = pathUtils.dirname(rootPackageJson);
+
+    return new ArchiveFetcher({virtualPath}).add(makeStubFetcher({
       packageInfo: new PackageInfo(packageLocator),
       handler: new fsUtils.Handler(mirrorPath),
     })).fetch(packageLocator, {env});
   }
 }
 
-export let LegacyMirrorFetcher = {Save, Load};
+export let LegacyMirrorFetcher = {Save, Delete, Load};

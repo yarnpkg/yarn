@@ -9,6 +9,7 @@ import tar from 'tar-stream';
 import tmp from 'tmp';
 import {createGzip} from 'zlib';
 
+import * as archiveUtils from 'miniyarn/utils/archive';
 import * as miscUtils from 'miniyarn/utils/misc';
 import * as pathUtils from 'miniyarn/utils/path';
 import * as parseUtils from 'miniyarn/utils/parse';
@@ -352,6 +353,20 @@ export async function packToFile(target, directoryPath, {...options} = {}) {
       resolve();
     });
   });
+}
+
+export async function readArchiveListing(archivePath, {virtualPath = null} = {}) {
+  let listing = [];
+
+  let unpackStream = archiveUtils.createArchiveUnpacker(archivePath);
+  unpackStream.pipe({ entry(header) { listing.push(pathUtils.resolve(`/`, header.name)); }, finalize() {} });
+
+  let archiveStream = Fs.createReadStream(archivePath);
+  archiveStream.pipe(unpackStream);
+
+  await unpackStream.promise;
+
+  return listing;
 }
 
 export async function writeFile(path, body) {

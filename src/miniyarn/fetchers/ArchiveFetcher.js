@@ -20,6 +20,7 @@ export class ArchiveFetcher extends BaseMultiFetcher {
   }
 
   async normalize(packageLocator, archiveHandler, {env}) {
+
     let normalizedArchivePath = await fsUtils.createTemporaryFile();
     let normalizedArchiveHandler = new fsUtils.Handler(normalizedArchivePath, {temporary: true});
 
@@ -30,14 +31,13 @@ export class ArchiveFetcher extends BaseMultiFetcher {
     normalizedArchiveWriter.pipe(normalizedOutputStream);
 
     let archiveUnpacker = archiveUtils.createArchiveUnpacker({virtualPath: this.virtualPath});
-    archiveUnpacker.pipe(normalizedArchiveWriter, {
-      end: false,
-      filter: [`!/${env.INFO_FILENAME}`, `!/${env.ARCHIVE_FILENAME}`, `!/${env.ATOMIC_FILENAME}`],
-    });
+    archiveUnpacker.pipe(normalizedArchiveWriter, {end: false, filter: [`!/${env.INFO_FILENAME}`, `!/${env.ARCHIVE_FILENAME}`, `!/${env.ATOMIC_FILENAME}`]});
     archiveUnpacker.pipe(packageInfoExtractor);
 
     let archiveReader = fsUtils.createFileReader(archiveHandler.get());
     archiveReader.pipe(archiveUnpacker);
+
+    await packageInfoExtractor.promise;
 
     // We now wait until we get the package.json file info, and merge it with our own data
     let packageInfo = new PackageInfo(parseUtils.parseJson(await packageInfoExtractor.promise)).merge(packageLocator);

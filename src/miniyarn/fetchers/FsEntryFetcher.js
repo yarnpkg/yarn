@@ -40,6 +40,10 @@ export class FsEntryFetcher extends BaseFetcher {
       }
     }
 
+    if (!await fsUtils.exists(reference)) {
+      throw new Error(`Filesystem entry not found ("${packageLocator.reference}")`);
+    }
+
     if (this.expectedType !== null && (await fsUtils.lstat(reference)).type !== this.expectedType) {
       throw new Error(`Invalid fs entry type ("${packageLocator.reference}")`);
     }

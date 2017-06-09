@@ -63,3 +63,13 @@ export function makeExplicit(path) {
 export function isPathForSure(maybePath) {
   return isAbsolute(maybePath) || maybePath.match(/^\.{1,2}\//);
 }
+
+export function getDepth(path) {
+  let depth = normalize(path).match(/\//g).length;
+
+  if (isAbsolute(path)) {
+    depth -= 1;
+  }
+
+  return depth;
+}

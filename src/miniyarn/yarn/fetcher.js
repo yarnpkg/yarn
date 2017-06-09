@@ -7,6 +7,7 @@ import {DirectoryFetcher} from 'miniyarn/fetchers/DirectoryFetcher';
 import {FsEntryFetcher} from 'miniyarn/fetchers/FsEntryFetcher';
 import {GitFetcher} from 'miniyarn/fetchers/GitFetcher';
 import {HttpFetcher} from 'miniyarn/fetchers/HttpFetcher';
+import {LastChanceFetcher} from 'miniyarn/fetchers/LastChanceFetcher';
 import {LegacyMirrorFetcher} from 'miniyarn/fetchers/LegacyMirrorFetcher';
 import {MirrorFetcher} from 'miniyarn/fetchers/MirrorFetcher';
 import {UnpackFetcher} from 'miniyarn/fetchers/UnpackFetcher';
@@ -40,7 +41,7 @@ export let fetcher = new BaseMultiFetcher()
                 .add(new GitFetcher())
               )
 
-              .add(new ArchiveFetcher({virtualPath: `/package`})
+              .add(new ArchiveFetcher({virtualPath: 1})
                 .add(new HttpFetcher({pathPattern: `*+(.tar.gz|.tgz)`}))
                 .add(new YarnFetcher()),
               )
@@ -62,7 +63,7 @@ export let fetcher = new BaseMultiFetcher()
         .add(new MirrorFetcher.Load()
           .add(new LegacyMirrorFetcher.Load()
 
-            .add(new ArchiveFetcher({virtualPath: `/package`})
+            .add(new ArchiveFetcher({virtualPath: 1})
               .add(new FsEntryFetcher({pathPattern: `*+(.tar.gz|.tgz)`, type: S_IFREG})),
             )
 
@@ -76,6 +77,24 @@ export let fetcher = new BaseMultiFetcher()
 
   .add(new DirectoryFetcher()
     .add(new FsEntryFetcher({type: S_IFDIR}))
+  )
+
+  .add(new MirrorFetcher.Save()
+    .add(new LegacyMirrorFetcher.Save()
+
+      .add(new UnpackFetcher()
+
+        .add(new MirrorFetcher.Load()
+          .add(new LegacyMirrorFetcher.Load()
+
+            .add(new LastChanceFetcher())
+
+          )
+        )
+
+      )
+
+    )
   )
 
 ;

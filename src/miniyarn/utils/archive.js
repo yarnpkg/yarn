@@ -48,7 +48,9 @@ export function createFileExtractor(path) {
     promise: deferred.promise,
 
     entry(header, entry) {
-      if (header.name !== path) return Promise.resolve();
+      if (header.name !== path) {
+        return Promise.resolve();
+      }
 
       streamUtils.readStream(entry).then(
         body => {
@@ -67,7 +69,7 @@ export function createFileExtractor(path) {
 }
 
 export function createArchiveUnpacker({virtualPath = null} = {}) {
-  if (virtualPath) {
+  if (virtualPath && typeof virtualPath !== `number`) {
     if (!pathUtils.isAbsolute(virtualPath)) {
       throw new Error(`The virtual path has to be an absolute path`);
     } else {
@@ -87,17 +89,36 @@ export function createArchiveUnpacker({virtualPath = null} = {}) {
 
   unpacker.on(`entry`, (header, entry, next) => {
     let path = pathUtils.resolve(`/`, header.name);
-    let {mode, type} = header;
+    let {mode, type, linkname} = header;
 
-    if (virtualPath) {
+    if (typeof virtualPath === `string`) {
       let relative = pathUtils.relative(virtualPath, path);
 
-      if (!pathUtils.isForward(relative)) return;
+      if (!pathUtils.isForward(relative)) {
+        return next();
+      }
 
       path = pathUtils.resolve(`/`, relative);
+    } else if (typeof virtualPath === `number`) {
+      // Remove the leading '/'
+      path = path.substr(1);
+
+      for (let t = 0; t < virtualPath; ++t) {
+        let index = path.indexOf('/');
+
+        if (index === -1) {
+          return next();
+        }
+
+        path = path.substr(index + 1);
+      }
+
+      path = `/${path}`;
     }
 
-    if (path === `/`) return;
+    if (path === `/`) {
+      return next();
+    }
 
     emitter.emit(
       `entry`,
@@ -105,6 +126,7 @@ export function createArchiveUnpacker({virtualPath = null} = {}) {
         name: pathUtils.relative(`/`, path),
         mode,
         type,
+        linkname,
       },
       entry,
     );
@@ -137,13 +159,17 @@ export function createArchiveUnpacker({virtualPath = null} = {}) {
 
     pipe: function(destination, {end = true, filter = []} = {}) {
       emitter.on(`entry`, (header, entry) => {
-        if (!miscUtils.filePatternMatch(header.name, filter)) return;
+        if (!miscUtils.filePatternMatch(header.name, filter)) {
+          return;
+        }
 
         destination.entry(header, entry);
       });
 
       emitter.on(`finish`, () => {
-        if (!end) return;
+        if (!end) {
+          return;
+        }
 
         destination.finalize();
       });
