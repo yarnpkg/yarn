@@ -48,6 +48,7 @@ async function mockConstants(base: Config, mocks: Object, cb: (config: Config) =
 beforeEach(request.__resetAuthedRequests);
 afterEach(request.__resetAuthedRequests);
 
+//*
 test.concurrent('properly find and save build artifacts', async () => {
   await runInstall({}, 'artifacts-finds-and-saves', async (config): Promise<void> => {
     const integrity = await fs.readJson(path.join(config.cwd, 'node_modules', constants.INTEGRITY_FILENAME));
@@ -489,7 +490,7 @@ test.concurrent('offline mirror can be enabled from parent dir', (): Promise<voi
     expect(lockfile['mime-types@2.1.14'].resolved).toEqual(
       'https://registry.yarnpkg.com/mime-types/-/mime-types-2.1.14.tgz#f7ef7d97583fcaf3b7d282b6f8b5679dab1e94ee',
     );
-    expect(await fs.exists(path.join(config.cwd, '../offline-mirror/mime-types-2.1.14.tgz'))).toBe(true);
+    expect(await fs.glob('mime-types/mime-types-*.tgz', {cwd: path.join(config.cwd, '../offline-mirror')})).toHaveLength(1);
   });
 });
 
@@ -504,7 +505,7 @@ test.concurrent('offline mirror can be enabled from parent dir, with merging of 
     expect(lockfile['mime-types@2.1.14'].resolved).toEqual(
       'https://registry.yarnpkg.com/mime-types/-/mime-types-2.1.14.tgz#f7ef7d97583fcaf3b7d282b6f8b5679dab1e94ee',
     );
-    expect(await fs.exists(path.join(config.cwd, '../offline-mirror/mime-types-2.1.14.tgz'))).toBe(true);
+    expect(await fs.glob('mime-types/mime-types-*.tgz', {cwd: path.join(config.cwd, '../offline-mirror')})).toHaveLength(1);
   });
 });
 
@@ -769,3 +770,4 @@ test.concurrent('package version resolve should be deterministic', (): Promise<v
     await check(config, reporter, {integrity: true}, []);
   });
 });
+//*/
