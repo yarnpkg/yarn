@@ -414,7 +414,7 @@ export default class PackageRequest {
           ({latest, wanted, url} = await registry.checkOutdated(config, name, normalized.range));
         }
 
-        return {name, current, wanted, latest, url, hint};
+        return {name, current, wanted, latest, url, hint, range: normalized.range};
       }),
     );
 

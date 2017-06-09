@@ -153,6 +153,7 @@ export type Dependency = {
   latest: string,
   url: string,
   hint: ?string,
+  range: string,
 };
 
 export type WorkspacesManifestMap = {
