@@ -408,10 +408,11 @@ test.concurrent('install should add missing deps to yarn and mirror (PR import s
     expect(await getPackageVersion(config, 'fake-yarn-dependency')).toEqual('1.0.1');
 
     const mirror = (await fs.walk(path.join(config.cwd, 'mirror-for-offline'))).filter(entry => entry.stat.isFile());
-    expect(mirror).toHaveLength(3);
-    expect(mirror[0].relative).toEqual('fake-yarn-dependency-1.0.1.tgz');
-    expect(mirror[1].relative.indexOf('mime-db-1.0.')).toEqual(0);
-    expect(mirror[2].relative).toEqual('mime-types-2.0.0.tgz');
+    expect(mirror).toHaveLength(4);
+    expect(mirror[0].relative.indexOf('fake-yarn-dependency/fake-yarn-dependency-')).not.toEqual(-1);
+    expect(mirror[1].relative.indexOf('fake-yarn-dependency-1.0.1.tgz')).not.toEqual(-1); // legacy mirror archive
+    expect(mirror[2].relative.indexOf('mime-db-')).not.toEqual(-1);
+    expect(mirror[3].relative.indexOf('mime-types-')).not.toEqual(-1);
 
     const lockFileContent = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
     const lockFileLines = explodeLockfile(lockFileContent);

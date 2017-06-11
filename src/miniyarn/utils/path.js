@@ -33,7 +33,7 @@ export function dirname(path) {
 
 export function normalize(path) {
   // We don't want the "./" prefix, because it makes it harder to apply pattern matching
-  return Path.win32.normalize(path).replace(/\\/g, `/`).replace(/\/$/, ``).replace(/^\.\//g, ``);
+  return Path.win32.normalize(path).replace(/\\/g, `/`).replace(/(.)\/$/, `$1`).replace(/^\.\/(.)/g, `$1`);
 }
 
 export function isAbsolute(path) {
