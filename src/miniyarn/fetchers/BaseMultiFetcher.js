@@ -10,19 +10,21 @@ export class BaseMultiFetcher extends BaseFetcher {
     return this;
   }
 
-  supports(packageLocator, {env}) {
+  supports(packageLocator, {env, ... rest}) {
     return this.fetchers.some(fetcher => {
-      return fetcher.supports(packageLocator, {env});
+      return fetcher.supports(packageLocator, {env, ... rest});
     });
   }
 
-  async fetch(packageLocator, {env}) {
+  async fetch(packageLocator, {env, ... rest}) {
     let candidateFetchers = this.fetchers.filter(fetcher => {
-      return fetcher.supports(packageLocator, {env});
+      return fetcher.supports(packageLocator, {env, ... rest});
     });
 
-    if (candidateFetchers.length === 0) throw new Error(`No fetcher offered to handle this package (${yarnUtils.getLocatorIdentifier(packageLocator)})`);
+    if (candidateFetchers.length === 0) {
+      throw new Error(`No fetcher offered to handle this package (${yarnUtils.getLocatorIdentifier(packageLocator)})`);
+    }
 
-    return candidateFetchers[0].fetch(packageLocator, {env});
+    return candidateFetchers[0].fetch(packageLocator, {env, ... rest});
   }
 }

@@ -13,13 +13,13 @@ export class ArchiveFetcher extends BaseMultiFetcher {
     this.virtualPath = virtualPath;
   }
 
-  async fetch(packageLocator: any, {env}) {
-    return await super.fetch(packageLocator, {env}).then(async ({handler}) => {
-      return await this.normalize(packageLocator, handler, {env});
+  async fetch(packageLocator: any, {env, ... rest}) {
+    return await super.fetch(packageLocator, {env, ... rest}).then(async ({handler}) => {
+      return await this.normalize(packageLocator, handler, {env, ... rest});
     });
   }
 
-  async normalize(packageLocator, archiveHandler, {env}) {
+  async normalize(packageLocator, archiveHandler, {env, ... rest}) {
 
     let normalizedArchivePath = await fsUtils.createTemporaryFile();
     let normalizedArchiveHandler = new fsUtils.Handler(normalizedArchivePath, {temporary: true});

@@ -7,7 +7,7 @@ import * as pathUtils from 'miniyarn/utils/path';
 import * as yarnUtils from 'miniyarn/utils/yarn';
 
 class BaseLegacyMirrorFetcher extends BaseMultiFetcher {
-  getLegacyMirrorPaths(packageLocator, { env }) {
+  getLegacyMirrorPaths(packageLocator, {env, ... rest}) {
     let {scope} = yarnUtils.parseIdentifier(packageLocator.name);
 
     return [ scope && !pathUtils.basename(packageLocator.reference).match(/^@/)
@@ -16,38 +16,38 @@ class BaseLegacyMirrorFetcher extends BaseMultiFetcher {
     ];
   }
 
-  getPrimaryMirrorPath(packageLocator, {env}) {
-    return this.getLegacyMirrorPaths(packageLocator, {env})[0];
+  getPrimaryMirrorPath(packageLocator, {env, ... rest}) {
+    return this.getLegacyMirrorPaths(packageLocator, {env, ... rest})[0];
   }
 
-  async getActiveMirrorPath(packageLocator, {env}) {
-    for (let mirrorPath of this.getLegacyMirrorPaths(packageLocator, {env})) {
+  async getActiveMirrorPath(packageLocator, {env, ... rest}) {
+    for (let mirrorPath of this.getLegacyMirrorPaths(packageLocator, {env, ... rest})) {
       if (await fsUtils.exists(mirrorPath)) {
         return mirrorPath;
       }
     }
 
-    return this.getPrimaryMirrorPath(packageLocator, {env});
+    return this.getPrimaryMirrorPath(packageLocator, {env, ... rest});
   }
 }
 
 class Delete extends BaseLegacyMirrorFetcher {
-  async fetch(packageLocator, {env}) {
+  async fetch(packageLocator, {env, ... rest}) {
     if (!env.MIRROR_PATH) {
-      return super.fetch(packageLocator, {env});
+      return super.fetch(packageLocator, {env, ... rest});
     }
 
     if (!packageLocator.name || !packageLocator.reference) {
-      return super.fetch(packageLocator, {env});
+      return super.fetch(packageLocator, {env, ... rest});
     }
 
-    return super.fetch(packageLocator, {env}).then(async ({packageInfo, handler}) => {
-      return this.deleteFromMirror(packageInfo, handler, {env});
+    return super.fetch(packageLocator, {env, ... rest}).then(async ({packageInfo, handler}) => {
+      return this.deleteFromMirror(packageInfo, handler, {env, ... rest});
     });
   }
 
-  async deleteFromMirror(packageInfo, handler, {env}) {
-    let mirrorPath = this.getPrimaryMirrorPath(packageInfo.locator, {env});
+  async deleteFromMirror(packageInfo, handler, {env, ... rest}) {
+    let mirrorPath = this.getPrimaryMirrorPath(packageInfo.locator, {env, ... rest});
 
     if (await fsUtils.exists(mirrorPath) && pathUtils.normalize(mirrorPath) !== pathUtils.normalize(handler.get())) {
       await fsUtils.rm(mirrorPath);
@@ -58,22 +58,22 @@ class Delete extends BaseLegacyMirrorFetcher {
 }
 
 class Save extends BaseLegacyMirrorFetcher {
-  async fetch(packageLocator, {env}) {
+  async fetch(packageLocator, {env, ... rest}) {
     if (!env.MIRROR_PATH) {
-      return super.fetch(packageLocator, {env});
+      return super.fetch(packageLocator, {env, ... rest});
     }
 
     if (!packageLocator.name || !packageLocator.reference) {
-      return super.fetch(packageLocator, {env});
+      return super.fetch(packageLocator, {env, ... rest});
     }
 
-    return super.fetch(packageLocator, {env}).then(async ({packageInfo, handler}) => {
-      return this.saveToMirror(packageInfo, handler, {env});
+    return super.fetch(packageLocator, {env, ... rest}).then(async ({packageInfo, handler}) => {
+      return this.saveToMirror(packageInfo, handler, {env, ... rest});
     });
   }
 
-  async saveToMirror(packageInfo, handler, {env}) {
-    let mirrorPath = this.getPrimaryMirrorPath(packageInfo.locator, {env});
+  async saveToMirror(packageInfo, handler, {env, ... rest}) {
+    let mirrorPath = this.getPrimaryMirrorPath(packageInfo.locator, {env, ... rest});
 
     await fsUtils.packToFile(mirrorPath, handler.get(), {
       filter: [`!/${env.ARCHIVE_FILENAME}`],
@@ -85,26 +85,26 @@ class Save extends BaseLegacyMirrorFetcher {
 }
 
 class Load extends BaseLegacyMirrorFetcher {
-  async fetch(packageLocator, {env}) {
+  async fetch(packageLocator, {env, ... rest}) {
     if (!env.MIRROR_PATH) {
-      return super.fetch(packageLocator, {env});
+      return super.fetch(packageLocator, {env, ... rest});
     }
 
     if (!packageLocator.name || !packageLocator.reference) {
-      return super.fetch(packageLocator, {env});
+      return super.fetch(packageLocator, {env, ... rest});
     }
 
-    let fromMirror = await this.fetchFromMirror(packageLocator, {env});
+    let fromMirror = await this.fetchFromMirror(packageLocator, {env, ... rest});
 
     if (fromMirror) {
       return fromMirror;
     }
 
-    return super.fetch(packageLocator, {env});
+    return super.fetch(packageLocator, {env, ... rest});
   }
 
-  async fetchFromMirror(packageLocator, {env}) {
-    let mirrorPath = await this.getActiveMirrorPath(packageLocator, {env});
+  async fetchFromMirror(packageLocator, {env, ... rest}) {
+    let mirrorPath = await this.getActiveMirrorPath(packageLocator, {env, ... rest});
 
     if (!await fsUtils.exists(mirrorPath)) {
       return null;
@@ -126,7 +126,7 @@ class Load extends BaseLegacyMirrorFetcher {
     return new ArchiveFetcher({virtualPath}).add(makeStubFetcher({
       packageInfo: new PackageInfo(packageLocator),
       handler: new fsUtils.Handler(mirrorPath),
-    })).fetch(packageLocator, {env});
+    })).fetch(packageLocator, {env, ... rest});
   }
 }
 

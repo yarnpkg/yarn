@@ -8,17 +8,17 @@ export function makeTransformFetcher(Fetcher, {supports, transformReference}) {
       this.fetcher = new Fetcher(options);
     }
 
-    supports(packageLocator, {env}) {
-      return supports(packageLocator, {env});
+    supports(packageLocator, {env, ... rest}) {
+      return supports(packageLocator, {env, ... rest});
     }
 
-    async fetch(packageLocator, {fetcher, env}) {
-      let transformedLocator = packageLocator.merge({reference: transformReference(packageLocator, {env})});
+    async fetch(packageLocator, {env, ... rest}) {
+      let transformedLocator = packageLocator.merge({reference: transformReference(packageLocator, {env, ... rest})});
 
-      if (!this.fetcher.supports(transformedLocator, {env}))
+      if (!this.fetcher.supports(transformedLocator, {env, ... rest}))
         throw new Error(`The transformed locator isn't supported by the target fetcher`);
 
-      return await this.fetcher.fetch(transformedLocator, {fetcher, env});
+      return await this.fetcher.fetch(transformedLocator, {env, ... rest});
     }
   };
 }

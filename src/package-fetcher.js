@@ -36,12 +36,14 @@ export async function fetch(pkgs: Array<Manifest>, config: Config): Promise<Arra
       if (reference) // If it looks like a file path "foo.tgz", remove the ambiguity ("./foo.tgz")
         reference = reference.replace(/^(?!\.{0,2}\/)([^:]*\.tgz)$/, './$1');
 
+      let registry = config.registries.npm;
+
       let locator = new PackageLocator({
         name: name,
         reference: reference,
       });
 
-      return fetcher.fetch(locator, {fetcher, env}).then(async ({packageInfo, handler}) => {
+      return fetcher.fetch(locator, {fetcher, env, registry}).then(async ({packageInfo, handler}) => {
         await fsUtils.rm(dest);
         await handler.steal(dest);
 

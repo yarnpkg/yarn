@@ -27,7 +27,7 @@ export class FsEntryFetcher extends BaseFetcher {
     return true;
   }
 
-  async fetch(packageLocator, {env}) {
+  async fetch(packageLocator, {env, ... rest}) {
     let reference = packageLocator.reference;
 
     if (!pathUtils.isAbsolute(reference)) {

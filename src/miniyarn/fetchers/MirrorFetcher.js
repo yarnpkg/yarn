@@ -8,28 +8,28 @@ import * as pathUtils from 'miniyarn/utils/path';
 import * as yarnUtils from 'miniyarn/utils/yarn';
 
 class BaseMirrorFetcher extends BaseMultiFetcher {
-  getMirrorPath(packageLocator, {env}) {
+  getMirrorPath(packageLocator, {env, ... rest}) {
     return `${env.MIRROR_PATH}/${packageLocator.name}/${yarnUtils.getLocatorSlugIdentifier(packageLocator)}${pathUtils.extname(env.ARCHIVE_FILENAME)}`;
   }
 }
 
 class Save extends BaseMirrorFetcher {
-  async fetch(packageLocator, {env}) {
+  async fetch(packageLocator, {env, ... rest}) {
     if (!env.MIRROR_PATH) {
-      return super.fetch(packageLocator, {env});
+      return super.fetch(packageLocator, {env, ... rest});
     }
 
     if (!packageLocator.name || !packageLocator.reference) {
-      return super.fetch(packageLocator, {env});
+      return super.fetch(packageLocator, {env, ... rest});
     }
 
-    return super.fetch(packageLocator, {env}).then(async ({packageInfo, handler}) => {
-      return this.saveToMirror(packageInfo, handler, {env});
+    return super.fetch(packageLocator, {env, ... rest}).then(async ({packageInfo, handler}) => {
+      return this.saveToMirror(packageInfo, handler, {env, ... rest});
     });
   }
 
-  async saveToMirror(packageInfo, handler, {env}) {
-    let mirrorPath = this.getMirrorPath(packageInfo.locator, {env});
+  async saveToMirror(packageInfo, handler, {env, ... rest}) {
+    let mirrorPath = this.getMirrorPath(packageInfo.locator, {env, ... rest});
 
     if (!await fsUtils.exists(mirrorPath)) {
       await fsUtils.cp(`${handler.get()}/${env.ARCHIVE_FILENAME}`, mirrorPath);
@@ -40,26 +40,26 @@ class Save extends BaseMirrorFetcher {
 }
 
 class Load extends BaseMirrorFetcher {
-  async fetch(packageLocator, {env}) {
+  async fetch(packageLocator, {env, ... rest}) {
     if (!env.MIRROR_PATH) {
-      return super.fetch(packageLocator, {env});
+      return super.fetch(packageLocator, {env, ... rest});
     }
 
     if (!packageLocator.name || !packageLocator.reference) {
-      return super.fetch(packageLocator, {env});
+      return super.fetch(packageLocator, {env, ... rest});
     }
 
-    let fromMirror = await this.fetchFromMirror(packageLocator, {env});
+    let fromMirror = await this.fetchFromMirror(packageLocator, {env, ... rest});
 
     if (fromMirror) {
       return fromMirror;
     }
 
-    return super.fetch(packageLocator, {env});
+    return super.fetch(packageLocator, {env, ... rest});
   }
 
-  async fetchFromMirror(packageLocator, {env}) {
-    let mirrorPath = this.getMirrorPath(packageLocator, {env});
+  async fetchFromMirror(packageLocator, {env, ... rest}) {
+    let mirrorPath = this.getMirrorPath(packageLocator, {env, ... rest});
 
     if (!await fsUtils.exists(mirrorPath)) {
       return null;

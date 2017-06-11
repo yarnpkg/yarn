@@ -7,7 +7,7 @@ import * as fsUtils from 'miniyarn/utils/fs';
 import * as miscUtils from 'miniyarn/utils/misc';
 
 export class GitFetcher extends BaseFetcher {
-  supports(packageLocator, {env}) {
+  supports(packageLocator, {env, ... rest}) {
     if (!packageLocator.name || !packageLocator.reference) {
       return false;
     }
@@ -15,19 +15,19 @@ export class GitFetcher extends BaseFetcher {
     return miscUtils.isGitReference(packageLocator.reference);
   }
 
-  async fetch(packageLocator, {env}) {
+  async fetch(packageLocator, {env, ... rest}) {
     try {
-      return await this.fetchViaArchive(packageLocator, {env});
+      return await this.fetchViaArchive(packageLocator, {env, ... rest});
     } catch (error) {
-      return await this.fetchViaClone(packageLocator, {env});
+      return await this.fetchViaClone(packageLocator, {env, ... rest});
     }
   }
 
-  async fetchViaArchive(packageLocator, {env}) {
+  async fetchViaArchive(packageLocator, {env, ... rest}) {
     throw new Error(`Unsupported`);
   }
 
-  async fetchViaClone(packageLocator, {env}) {
+  async fetchViaClone(packageLocator, {env, ... rest}) {
     invariant(packageLocator.name, `This package locator should have a name`);
     invariant(packageLocator.reference, `This package locator should have a reference`);
 

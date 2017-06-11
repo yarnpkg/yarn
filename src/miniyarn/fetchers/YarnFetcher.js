@@ -7,13 +7,15 @@ import {makeTransformFetcher} from 'miniyarn/fetchers/makeTransformFetcher';
 import * as yarnUtils from 'miniyarn/utils/yarn';
 
 export let YarnFetcher = makeTransformFetcher(HttpFetcher, {
-  supports(packageLocator, {env}) {
-    if (!packageLocator.reference) return false;
+  supports(packageLocator, {env, ... rest}) {
+    if (!packageLocator.reference) {
+      return false;
+    }
 
     return semver.validRange(packageLocator.reference);
   },
 
-  transformReference(packageLocator, {env}) {
+  transformReference(packageLocator, {env, ... rest}) {
     let {scope, localName} = yarnUtils.parseIdentifier(packageLocator.name);
 
     if (scope) {

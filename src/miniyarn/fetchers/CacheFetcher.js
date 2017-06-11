@@ -4,44 +4,44 @@ import * as fsUtils from 'miniyarn/utils/fs';
 import * as yarnUtils from 'miniyarn/utils/yarn';
 
 export class CacheFetcher extends BaseMultiFetcher {
-  async fetch(packageLocator, {env}) {
+  async fetch(packageLocator, {env, ... rest}) {
     if (!env.CACHE_PATH) {
-      return super.fetch(packageLocator, {env});
+      return super.fetch(packageLocator, {env, ... rest});
     }
 
     if (!packageLocator.name || !packageLocator.reference) {
-      return super.fetch(packageLocator, {env});
+      return super.fetch(packageLocator, {env, ... rest});
     }
 
-    let fromCache = await this.fetchFromCache(packageLocator, {env});
+    let fromCache = await this.fetchFromCache(packageLocator, {env, ... rest});
 
     if (fromCache) {
       return fromCache;
     }
 
-    return super.fetch(packageLocator, {env}).then(({packageInfo, handler}) => {
-      return this.saveToCache(packageInfo, handler, {env});
+    return super.fetch(packageLocator, {env, ... rest}).then(({packageInfo, handler}) => {
+      return this.saveToCache(packageInfo, handler, {env, ... rest});
     });
   }
 
-  async fetchFromCache(packageLocator, {env}) {
-    let cacheAtomicPath = this.getCacheAtomicPath(packageLocator, {env});
+  async fetchFromCache(packageLocator, {env, ... rest}) {
+    let cacheAtomicPath = this.getCacheAtomicPath(packageLocator, {env, ... rest});
 
     if (!await fsUtils.exists(cacheAtomicPath)) {
       return null;
     }
 
-    let cachePath = this.getCachePath(packageLocator, {env});
-    let cacheInfoPath = this.getCacheInfoPath(packageLocator, {env});
+    let cachePath = this.getCachePath(packageLocator, {env, ... rest});
+    let cacheInfoPath = this.getCacheInfoPath(packageLocator, {env, ... rest});
 
     let packageInfo = new PackageInfo((await fsUtils.readJson(cacheInfoPath))).merge(packageLocator);
 
     return {packageInfo, handler: new fsUtils.Handler(cachePath)};
   }
 
-  async saveToCache(packageInfo, packageHandler, {env, force = false}) {
-    let cachePath = this.getCachePath(packageInfo.locator, {env});
-    let cacheAtomicPath = this.getCacheAtomicPath(packageInfo.locator, {env});
+  async saveToCache(packageInfo, packageHandler, {env, force = false, ... rest}) {
+    let cachePath = this.getCachePath(packageInfo.locator, {env, force, ... rest});
+    let cacheAtomicPath = this.getCacheAtomicPath(packageInfo.locator, {env, force, ... rest});
 
     if ((await fsUtils.exists(cacheAtomicPath)) && !force) {
       throw new Error(`Cannot override a cache entry without using the force option`);
@@ -59,15 +59,15 @@ export class CacheFetcher extends BaseMultiFetcher {
     return {packageInfo, handler: new fsUtils.Handler(cachePath)};
   }
 
-  getCachePath(packageLocator, {env}) {
+  getCachePath(packageLocator, {env, ... rest}) {
     return `${env.CACHE_PATH}/${packageLocator.name}/${yarnUtils.getLocatorSlugIdentifier(packageLocator)}`;
   }
 
-  getCacheAtomicPath(packageLocator, {env}) {
-    return `${this.getCachePath(packageLocator, {env})}/${env.ATOMIC_FILENAME}`;
+  getCacheAtomicPath(packageLocator, {env, ... rest}) {
+    return `${this.getCachePath(packageLocator, {env, ... rest})}/${env.ATOMIC_FILENAME}`;
   }
 
-  getCacheInfoPath(packageLocator, {env}) {
-    return `${this.getCachePath(packageLocator, {env})}/${env.INFO_FILENAME}`;
+  getCacheInfoPath(packageLocator, {env, ... rest}) {
+    return `${this.getCachePath(packageLocator, {env, ... rest})}/${env.INFO_FILENAME}`;
   }
 }

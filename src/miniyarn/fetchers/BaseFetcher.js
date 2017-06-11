@@ -1,11 +1,11 @@
 export class BaseFetcher {
-  supports(packageLocator, {env}) {
+  supports(packageLocator, {env, ... rest}) {
     // Return true if the resolver does support the package
 
     throw new Error(`Unimplemented supports strategy`);
   }
 
-  async fetch(packageLocator, {env}) {
+  async fetch(packageLocator, {env, ... rest}) {
     // Fetch all data for a specified locator, then return an object { packageInfo, handler }
     //
     // - packageInfo is the full packageInfo referenced by the specified locator

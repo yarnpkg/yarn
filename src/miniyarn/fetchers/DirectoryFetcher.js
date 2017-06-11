@@ -3,13 +3,13 @@ import {PackageInfo} from 'miniyarn/models/PackageInfo';
 import * as fsUtils from 'miniyarn/utils/fs';
 
 export class DirectoryFetcher extends BaseMultiFetcher {
-  async fetch(packageLocator, {env}) {
-    return super.fetch(packageLocator, {env}).then(({packageInfo, handler}) => {
-      return this.prepare(packageLocator, handler, {env});
+  async fetch(packageLocator, {env, ... rest}) {
+    return super.fetch(packageLocator, {env, ... rest}).then(({packageInfo, handler}) => {
+      return this.prepare(packageLocator, handler, {env, ... rest});
     });
   }
 
-  async prepare(packageLocator, handler, {env}) {
+  async prepare(packageLocator, handler, {env, ... rest}) {
     let normalizedDirectoryPath = await handler.steal();
     let normalizedDirectoryHandler = new fsUtils.Handler(normalizedDirectoryPath, {temporary: true});
 

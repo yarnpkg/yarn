@@ -16,7 +16,7 @@ export class HttpFetcher extends BaseFetcher {
     this.pathPattern = pathPattern;
   }
 
-  supports(packageLocator, {env}) {
+  supports(packageLocator, {env, ... rest}) {
     if (!packageLocator.reference) {
       return false;
     }
@@ -42,7 +42,7 @@ export class HttpFetcher extends BaseFetcher {
     return true;
   }
 
-  async fetch(packageLocator, {env}) {
+  async fetch(packageLocator, {env, registry, ... rest}) {
     invariant(packageLocator.name, `This package locator should have a name`);
     invariant(packageLocator.reference, `This package locator should have a reference`);
 
@@ -50,9 +50,12 @@ export class HttpFetcher extends BaseFetcher {
     let archiveHandler = new fsUtils.Handler(archivePath, {temporary: true});
 
     let outputStream = await fsUtils.createFileWriter(archivePath);
-    let httpResponse = await httpUtils.get(packageLocator.reference);
-    httpResponse.pipe(outputStream);
-    httpResponse.resume();
+
+    await registry.request(packageLocator.reference, { process: (req, resolve, reject) => {
+      req.pipe(outputStream);
+      req.on(`error`, reject);
+      req.on(`end`, resolve);
+    } });
 
     await outputStream.promise;
 

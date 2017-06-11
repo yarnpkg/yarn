@@ -2,8 +2,8 @@ import {BaseMultiFetcher} from 'miniyarn/fetchers/BaseMultiFetcher';
 import * as fsUtils from 'miniyarn/utils/fs';
 
 export class UnpackFetcher extends BaseMultiFetcher {
-  async fetch(packageLocator, {env}) {
-    return super.fetch(packageLocator, {env}).then(async ({packageInfo, handler: archiveHandler}) => {
+  async fetch(packageLocator, {env, ... rest}) {
+    return super.fetch(packageLocator, {env, ... rest}).then(async ({packageInfo, handler: archiveHandler}) => {
       let destination = await fsUtils.createTemporaryFolder();
       await fsUtils.extract(destination, archiveHandler.get());
 
