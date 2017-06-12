@@ -109,6 +109,7 @@ export default class PackageRequest {
     const {range, name} = await this.normalize(pattern);
 
     const exoticResolver = PackageRequest.getExoticResolver(range);
+
     if (exoticResolver) {
       let data = await this.findExoticVersionInfo(exoticResolver, range);
 
@@ -220,6 +221,7 @@ export default class PackageRequest {
 
   findVersionInfo(): Promise<Manifest> {
     const exoticResolver = PackageRequest.getExoticResolver(this.pattern);
+
     if (exoticResolver) {
       return this.findExoticVersionInfo(exoticResolver, this.pattern);
     } else if (WorkspaceResolver.isWorkspace(this.pattern, this.resolver.workspaceLayout)) {
@@ -256,11 +258,7 @@ export default class PackageRequest {
    */
   async find({fresh, frozen}: {fresh: boolean, frozen?: boolean}): Promise<void> {
     // find version info for this package pattern
-    const info: ?Manifest = await this.findVersionInfo();
-
-    if (!info) {
-      throw new MessageError(this.reporter.lang('unknownPackage', this.pattern));
-    }
+    const info: Manifest = await this.findVersionInfo();
 
     info.fresh = fresh;
     cleanDependencies(info, false, this.reporter, () => {

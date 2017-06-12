@@ -45,7 +45,10 @@ async function fetchOne(ref: PackageReference, config: Config): Promise<FetchedM
   await fs.unlink(dest);
 
   try {
-    return fetcher.fetch();
+    return await fetcher.fetch({
+      name: ref.name,
+      version: ref.version,
+    });
   } catch (err) {
     try {
       await fs.unlink(dest);
