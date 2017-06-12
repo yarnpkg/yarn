@@ -23,9 +23,14 @@ import {YarnFetcher} from 'miniyarn/fetchers/YarnFetcher';
 // CacheFetcher         | Returns the directory from the cache if possible
 // UnpackFetcher        | Takes a tarball & extract it
 // FsEntryFetcher       | Loosely validate a FS path, then return it
+// LastChanceFetcher    | Tells that it accepts everything, but will throw if actually used to fetch something
 
+// This fetcher should only ever be used to get metadata from the cache (such as a package path), never to actually fetch a package
 // prettier-ignore
+export let cache = new CacheFetcher();
 
+// This is the fetcher you must use when you wish to fetch a package data from various sources
+// prettier-ignore
 export let fetcher = new BaseMultiFetcher()
 
   .add(new MirrorFetcher.Save()
@@ -56,7 +61,7 @@ export let fetcher = new BaseMultiFetcher()
   )
 
   .add(new MirrorFetcher.Save()
-    .add(new LegacyMirrorFetcher.Save()
+//  .add(new LegacyMirrorFetcher.Save()
 
       .add(new UnpackFetcher()
 
@@ -72,7 +77,7 @@ export let fetcher = new BaseMultiFetcher()
 
       )
 
-    )
+//  )
   )
 
   .add(new DirectoryFetcher()
@@ -80,7 +85,7 @@ export let fetcher = new BaseMultiFetcher()
   )
 
   .add(new MirrorFetcher.Save()
-    .add(new LegacyMirrorFetcher.Save()
+//  .add(new LegacyMirrorFetcher.Save()
 
       .add(new UnpackFetcher()
 
@@ -94,7 +99,7 @@ export let fetcher = new BaseMultiFetcher()
 
       )
 
-    )
+//  )
   )
 
 ;

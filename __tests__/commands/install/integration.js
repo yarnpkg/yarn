@@ -1,9 +1,11 @@
 /* @flow */
 
+import {cache} from 'miniyarn/yarn/fetcher';
 import type Config from '../../../src/config';
+import {getEnvFromConfig, getLocatorFromPkgRef} from '../../../src/package-fetcher.js';
 import PackageResolver from '../../../src/package-resolver.js';
-import {run as cache} from '../../../src/cli/commands/cache.js';
-import {run as check} from '../../../src/cli/commands/check.js';
+import {run as runCache} from '../../../src/cli/commands/cache.js';
+import {run as runCheck} from '../../../src/cli/commands/check.js';
 import * as constants from '../../../src/constants.js';
 import * as reporters from '../../../src/reporters/index.js';
 import {parse} from '../../../src/lockfile/wrapper.js';
@@ -67,11 +69,11 @@ test('changes the cache path when bumping the cache version', async () => {
     const inOut = new stream.PassThrough();
     const reporter = new reporters.JSONReporter({stdout: inOut});
 
-    await cache(config, reporter, {}, ['dir']);
+    await runCache(config, reporter, {}, ['dir']);
     expect((JSON.parse(String(inOut.read())): any).data).toMatch(/[\\\/]v1[\\\/]?$/);
 
     await mockConstants(config, {CACHE_VERSION: 42}, async (config): Promise<void> => {
-      await cache(config, reporter, {}, ['dir']);
+      await runCache(config, reporter, {}, ['dir']);
       expect((JSON.parse(String(inOut.read())): any).data).toMatch(/[\\\/]v42[\\\/]?$/);
     });
   });
@@ -84,8 +86,10 @@ test('changes the cache directory when bumping the cache version', async () => {
     const resolver = new PackageResolver(config, lockfile);
     await resolver.init([{pattern: 'is-array', registry: 'npm'}]);
 
-    const ref = resolver.getManifests()[0]._reference;
-    const cachePath = config.generateHardModulePath(ref, true);
+    const env = getEnvFromConfig(config);
+    const packageLocator = getLocatorFromPkgRef(resolver.getManifests()[0]._reference);
+
+    const cachePath = cache.getCachePath(packageLocator, {env});
 
     await fs.writeFile(path.join(cachePath, 'yarn.test'), 'YARN TEST');
     await fs.unlink(path.join(config.cwd, 'node_modules'));
@@ -325,7 +329,7 @@ test.concurrent('install from github', (): Promise<void> => {
 test.concurrent('check and install should verify integrity in the same way when flat', (): Promise<void> => {
   return runInstall({flat: true}, 'install-should-dedupe-avoiding-conflicts-1', async (config, reporter) => {
     // Will raise if check doesn't flatten the patterns
-    await check(config, reporter, {flat: true, integrity: true}, []);
+    await runCheck(config, reporter, {flat: true, integrity: true}, []);
   });
 });
 
@@ -342,7 +346,7 @@ test.concurrent('check should verify that top level dependencies are installed c
 
     let allCorrect = false;
     try {
-      await check(config, reporter, {}, []);
+      await runCheck(config, reporter, {}, []);
     } catch (err) {
       allCorrect = true;
     }
@@ -583,7 +587,7 @@ test.concurrent('install of scoped package with subdependency conflict should pa
   return runInstall({}, 'install-scoped-package-with-subdependency-conflict', async (config, reporter) => {
     let allCorrect = true;
     try {
-      await check(config, reporter, {integrity: false}, []);
+      await runCheck(config, reporter, {integrity: false}, []);
     } catch (err) {
       allCorrect = false;
     }
@@ -768,7 +772,7 @@ test.concurrent('package version resolve should be deterministic', (): Promise<v
   // Run an independent install and check, and see they have different results for @^4.1.2 - won't always see
   // the bug, but its the best we can do without creating mock registry with controlled timing of responses.
   return runInstall({}, 'install-deterministic-versions', async (config, reporter) => {
-    await check(config, reporter, {integrity: true}, []);
+    await runCheck(config, reporter, {integrity: true}, []);
   });
 });
 //*/
