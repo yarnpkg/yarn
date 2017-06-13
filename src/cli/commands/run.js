@@ -73,7 +73,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
       process.env.YARN_SILENT = '1';
       for (const [stage, cmd] of cmds) {
         // only tack on trailing arguments for default script, ignore for pre and post - #1595
-        const defaultScriptCmd = `${cmd}${joinArgs(args)}`;
+        const defaultScriptCmd = cmd + joinArgs(args);
         const cmdWithArgs = stage === action ? defaultScriptCmd : cmd;
         await execCommand(stage, config, cmdWithArgs, config.cwd);
       }
