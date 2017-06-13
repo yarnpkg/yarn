@@ -1,5 +1,8 @@
 /* @flow */
 
+import {PackageLocator} from 'miniyarn/models/PackageLocator';
+import {mirror} from 'miniyarn/yarn/fetcher';
+import {getEnvFromConfig} from '../../src/package-fetcher.js';
 import {ConsoleReporter} from '../../src/reporters/index.js';
 import * as reporters from '../../src/reporters/index.js';
 import {
@@ -138,9 +141,13 @@ test.concurrent('add should ignore cache', (): Promise<void> => {
       'left-pad': '1.1.0',
     });
 
-    const mirror = await fs.walk(path.join(config.cwd, 'mirror-for-offline'));
-    expect(mirror).toHaveLength(1);
-    expect(mirror[0].relative).toEqual('left-pad-1.1.0.tgz');
+    const env = getEnvFromConfig(config);
+    const mirrorEntries = await mirror.getMirrorEntries({env});
+
+    expect(mirrorEntries.includes(new PackageLocator({
+      name: `left-pad`,
+      reference: `https://registry.yarnpkg.com/left-pad/-/left-pad-1.1.0.tgz`,
+    }))).toEqual(true);
 
     const lockFileWritten = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
     const lockFileLines = explodeLockfile(lockFileWritten);
@@ -206,10 +213,13 @@ test.concurrent('install --initMirror should add init mirror deps from package.j
     expect(await getPackageVersion(config, 'mime-types')).toEqual('2.0.0');
     expect(semver.satisfies(await getPackageVersion(config, 'mime-db'), '~1.0.1')).toEqual(true);
 
-    const mirror = await fs.walk(path.join(config.cwd, mirrorPath));
-    expect(mirror).toHaveLength(2);
-    expect(mirror[0].relative.indexOf('mime-db-1.0.')).toEqual(0);
-    expect(mirror[1].relative).toEqual('mime-types-2.0.0.tgz');
+    const env = getEnvFromConfig(config);
+    const mirrorEntries = await mirror.getMirrorEntries({env});
+
+    expect(mirrorEntries.includes(new PackageLocator({
+      name: `mime-types`,
+      reference: `https://registry.yarnpkg.com/mime-types/-/mime-types-2.0.0.tgz`,
+    }))).toEqual(true);
 
     const lockFileContent = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
     const lockFileLines = explodeLockfile(lockFileContent);
@@ -250,9 +260,13 @@ test.concurrent('add with new dependency should be deterministic', (): Promise<v
       expect(lockFileLines.indexOf('mime-db@1.23.0:')).toBeGreaterThanOrEqual(0);
       expect(lockFileLines.indexOf('mime-types@2.0.0:')).toBeGreaterThanOrEqual(0);
 
-      const mirror = await fs.walk(path.join(config.cwd, mirrorPath));
-      expect(mirror).toHaveLength(3);
-      expect(mirror[1].relative).toEqual('mime-db-1.23.0.tgz');
+      const env = getEnvFromConfig(config);
+      const mirrorEntries = await mirror.getMirrorEntries({env});
+
+      expect(mirrorEntries.includes(new PackageLocator({
+        name: `mime-db`,
+        reference: `https://registry.yarnpkg.com/mime-db/-/mime-db-1.23.0.tgz`,
+      }))).toEqual(true);
     });
   });
 });
@@ -286,9 +300,13 @@ test.concurrent('add with new dependency should be deterministic 2', (): Promise
       // see why we don't cleanup lockfile https://github.com/yarnpkg/yarn/issues/79
       expect(lockFileLines).toHaveLength(11);
 
-      const mirror = await fs.walk(path.join(config.cwd, mirrorPath));
-      expect(mirror).toHaveLength(3);
-      expect(mirror[1].relative).toEqual('mime-db-1.0.3.tgz');
+      const env = getEnvFromConfig(config);
+      const mirrorEntries = await mirror.getMirrorEntries({env});
+
+      expect(mirrorEntries.includes(new PackageLocator({
+        name: `mime-db`,
+        reference: `https://registry.yarnpkg.com/mime-db/-/mime-db-1.0.3.tgz`,
+      }))).toEqual(true);
     });
   });
 });
@@ -296,20 +314,20 @@ test.concurrent('add with new dependency should be deterministic 2', (): Promise
 test.concurrent('add with offline mirror', (): Promise<void> => {
   const mirrorPath = 'mirror-for-offline';
   return runAdd(['is-array@^1.0.1'], {}, 'install-with-save-offline-mirror', async config => {
-    const allFiles = await fs.walk(config.cwd);
-
-    expect(
-      allFiles.findIndex((file): boolean => {
-        return file.relative === path.join(mirrorPath, 'is-array-1.0.1.tgz');
-      }),
-    ).toBeGreaterThanOrEqual(0);
-
     const rawLockfile = await fs.readFile(path.join(config.cwd, constants.LOCKFILE_FILENAME));
     const lockfile = parse(rawLockfile);
 
     expect(lockfile['is-array@^1.0.1']['resolved']).toEqual(
       'https://registry.yarnpkg.com/is-array/-/is-array-1.0.1.tgz#e9850cc2cc860c3bc0977e84ccf0dd464584279a',
     );
+
+    const env = getEnvFromConfig(config);
+    const mirrorEntries = await mirror.getMirrorEntries({env});
+
+    expect(mirrorEntries.includes(new PackageLocator({
+      name: `is-array`,
+      reference: `https://registry.yarnpkg.com/is-array/-/is-array-1.0.1.tgz`,
+    }))).toEqual(true);
   });
 });
 
@@ -397,9 +415,13 @@ test.concurrent('upgrade scenario', (): Promise<void> => {
       /resolved "https:\/\/registry\.yarnpkg\.com\/left-pad\/-\/left-pad-0\.0\.9\.tgz#[a-f0-9]+"/,
     );
 
-    const mirror = await fs.walk(path.join(config.cwd, mirrorPath));
-    expect(mirror).toHaveLength(1);
-    expect(mirror[0].relative).toEqual('left-pad-0.0.9.tgz');
+    const env = getEnvFromConfig(config);
+    const mirrorEntries = await mirror.getMirrorEntries({env});
+
+    expect(mirrorEntries.includes(new PackageLocator({
+      name: `left-pad`,
+      reference: `https://registry.yarnpkg.com/left-pad/-/left-pad-0.0.9.tgz`
+    }))).toEqual(true);
 
     //
     const add = new Add(['left-pad@1.1.0'], {}, config, reporter, (await Lockfile.fromDirectory(config.cwd)));
@@ -419,9 +441,12 @@ test.concurrent('upgrade scenario', (): Promise<void> => {
       /resolved "https:\/\/registry\.yarnpkg\.com\/left-pad\/-\/left-pad-1.1.0.tgz#[a-f0-9]+"/,
     );
 
-    const mirror2 = await fs.walk(path.join(config.cwd, mirrorPath));
-    expect(mirror2).toHaveLength(2);
-    expect(mirror2[1].relative).toBe('left-pad-1.1.0.tgz');
+    const mirrorEntries2 = await mirror.getMirrorEntries({env});
+
+    expect(mirrorEntries2.includes(new PackageLocator({
+      name: `left-pad`,
+      reference: `https://registry.yarnpkg.com/left-pad/-/left-pad-1.1.0.tgz`
+    }))).toEqual(true);
   });
 });
 
@@ -453,14 +478,10 @@ test.concurrent('upgrade scenario 2 (with sub dependencies)', (): Promise<void> 
         /resolved "https:\/\/registry\.yarnpkg\.com\/mime-types\/-\/mime-types-2\.1\.11\.tgz#[a-f0-9]+"/,
       );
 
-      const mirror = await fs.walk(path.join(config.cwd, mirrorPath));
-      expect(mirror).toHaveLength(4);
+      const env = getEnvFromConfig(config);
+      const mirrorEntries = await mirror.getMirrorEntries({env});
 
-      const newFilesInMirror = mirror.filter((elem): boolean => {
-        return elem.relative !== 'mime-db-1.0.3.tgz' && elem.relative !== 'mime-types-2.0.0.tgz';
-      });
-
-      expect(newFilesInMirror).toHaveLength(2);
+      expect(mirrorEntries.size).toEqual(2);
     });
   });
 });
@@ -485,9 +506,13 @@ test.concurrent('downgrade scenario', (): Promise<void> => {
       /resolved "https:\/\/registry\.yarnpkg\.com\/left-pad\/-\/left-pad-1\.1\.0\.tgz#[a-f0-9]+"/,
     );
 
-    const mirror = await fs.walk(path.join(config.cwd, mirrorPath));
-    expect(mirror).toHaveLength(1);
-    expect(mirror[0].relative).toEqual('left-pad-1.1.0.tgz');
+    const env = getEnvFromConfig(config);
+    const mirrorEntries = await mirror.getMirrorEntries({env});
+
+    expect(mirrorEntries.includes(new PackageLocator({
+      name: `left-pad`,
+      reference: `https://registry.yarnpkg.com/left-pad/-/left-pad-1.1.0.tgz`,
+    }))).toEqual(true);
 
     const add = new Add(['left-pad@0.0.9'], {}, config, reporter, (await Lockfile.fromDirectory(config.cwd)));
     await add.init();
@@ -506,32 +531,42 @@ test.concurrent('downgrade scenario', (): Promise<void> => {
       /resolved "https:\/\/registry\.yarnpkg\.com\/left-pad\/-\/left-pad-0\.0\.9\.tgz#[a-f0-9]+"/,
     );
 
-    const mirror2 = await fs.walk(path.join(config.cwd, mirrorPath));
-    expect(mirror2).toHaveLength(2);
-    expect(mirror2[0].relative).toEqual('left-pad-0.0.9.tgz');
+    const mirrorEntries2 = await mirror.getMirrorEntries({env});
+
+    expect(mirrorEntries2.includes(new PackageLocator({
+      name: `left-pad`,
+      reference: `https://registry.yarnpkg.com/left-pad/-/left-pad-0.0.9.tgz`,
+    }))).toEqual(true);
   });
 });
 
 // https://github.com/yarnpkg/yarn/issues/318
 test.concurrent('modules resolved multiple times should save to mirror correctly', (): Promise<void> => {
   // the package.json in this fixture has 4 transitive dependants on module which that should resolve to
+  //
   // which@^1.0.5, which@^1.1.1, which@^1.2.8, which@^1.2.9:
-  //   version "1.2.11"
-  //   resolved which-1.2.11.tgz#c8b2eeea6b8c1659fa7c1dd4fdaabe9533dc5e8b
+  //   version "1.2.14"
+  //   resolved which-1.2.14.tgz#somehash
+  //
+  // however, it's possible that `which` gets bumped and the version must be changed to something else :(
   return runAdd([], {}, 'no-mirror-remote-when-duplicates', async (config): Promise<void> => {
     const mirrorPath = 'mirror-for-offline';
 
     // check that which module was downloaded to mirror
-    const mirror = await fs.walk(path.join(config.cwd, mirrorPath));
-    const whichModule = mirror.find((elem): any => elem.relative.match(/which-1\.2\..*\.tgz/));
-    expect(whichModule).toBeDefined();
+    const env = getEnvFromConfig(config);
+    const mirrorEntries = await mirror.getMirrorEntries({env});
+
+    expect(mirrorEntries.includes(new PackageLocator({
+      name: `which`,
+      reference: `https://registry.yarnpkg.com/which/-/which-1.2.14.tgz`,
+    }))).toEqual(true);
 
     const lockFileWritten = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
     const lockFileLines = explodeLockfile(lockFileWritten);
 
     // which dependency must be resolved to file in local mirror
     const whichResolved = lockFileLines.find((elem): any =>
-      elem.match(/resolved "https:\/\/registry\.yarnpkg\.com\/which\/-\/which-1\.2\..*\.tgz#[^"]+"/),
+      elem.match(/resolved "https:\/\/registry\.yarnpkg\.com\/which\/-\/which-1\.2\.14\.tgz#[^"]+"/),
     );
 
     expect(whichResolved).toBeDefined();
@@ -548,9 +583,13 @@ test.concurrent('add should put a git dependency to mirror', (): Promise<void> =
     async (config, reporter): Promise<void> => {
       expect(semver.satisfies(await getPackageVersion(config, 'mime-db'), '1.24.0')).toEqual(true);
 
-      const mirror = await fs.walk(path.join(config.cwd, mirrorPath));
-      expect(mirror).toHaveLength(1);
-      expect(mirror[0].relative).toMatch(/mime-db\.git.*/);
+      const env = getEnvFromConfig(config);
+      const mirrorEntries = await mirror.getMirrorEntries({env});
+
+      expect(mirrorEntries.includes(new PackageLocator({
+        name: `mime-db`,
+        reference: `https://github.com/jshttp/mime-db.git#9dd00b34556a8cdd6f3385f09d4989298c4b86e1`,
+      }))).toEqual(true);
 
       const lockFileWritten = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
       const lockFileLines = explodeLockfile(lockFileWritten);

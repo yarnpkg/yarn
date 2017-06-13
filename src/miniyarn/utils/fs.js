@@ -114,32 +114,38 @@ export async function createTemporaryFile(filePath) {
   }
 }
 
-export async function walk(path, {filter} = {}) {
+export async function walk(path, {filter, relative = false} = {}) {
   return await new Promise((resolve, reject) => {
     let paths = [];
 
     let walker = klaw(path, {
       filter: itemPath => {
-        if (!filter) return true;
+        if (!filter) {
+          return true;
+        }
 
-        if (Fse.statSync(path).isDirectory()) return true;
-        s;
+        if (Fse.statSync(path).isDirectory()) {
+          return true;
+        }
+
         let relativePath = pathUtils.relative(path, itemPath);
 
-        if (miscUtils.filePatternMatch(relativePath, filter)) return true;
+        if (miscUtils.filePatternMatch(relativePath, filter)) {
+          return true;
+        }
 
         return false;
       },
     });
 
     walker.on(`data`, ({path: itemPath}) => {
-      if (!filter) return void paths.push(itemPath);
-
       let relativePath = pathUtils.relative(path, itemPath);
 
-      if (miscUtils.filePatternMatch(relativePath, filter)) return void paths.push(itemPath);
-
-      return; // This item has been accepted only because it's a directory; it doesn't match the filter
+      if (!filter || miscUtils.filePatternMatch(relativePath, filter)) {
+        paths.push(relative ? relativePath : itemPath);
+      } else {
+        // This item has been accepted only because it's a directory; it doesn't match the filter
+      }
     });
 
     walker.on(`end`, () => {
@@ -161,11 +167,17 @@ export async function mkdirp(path) {
 }
 
 export async function rm(path) {
-  if (path === ``) throw new Error(`Cannot rm an empty path`);
+  if (path === ``) {
+    throw new Error(`Cannot rm an empty path`);
+  }
 
-  if (path === `/`) throw new Error(`Cannot rm your whole / directory - something's very wrong`);
+  if (path === `/`) {
+    throw new Error(`Cannot rm your whole / directory - something's very wrong`);
+  }
 
-  if (!await exists(path)) return;
+  if (!await exists(path)) {
+    return;
+  }
 
   return await new Promise((resolve, reject) => {
     Fse.remove(path, err => {

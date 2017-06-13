@@ -16,10 +16,14 @@ export function getEnvFromConfig(config: Config) {
 
 export function getLocatorFromPkgRef(pkg: PackageReference) {
   let name = pkg.name;
-  let reference = pkg.remote.reference;
+  let reference = pkg.remote.type === `git` ? pkg.remote.resolved : pkg.remote.reference;
 
   // The following hacks should be applied by the resolvers rather than the fetchers.
   // Some code has already been written, but we haven't got around merging it yet - hopefully it will come in good time.
+
+  if (!reference && pkg.version) {
+    reference = `https://registry.yarnpkg.com/${name}/-/${name}-${pkg.version}.tgz`;
+  }
 
   if (reference) { // Transform old github archive urls to use the new endpoint
     reference = reference.replace(/^https:\/\/github\.com\/([^\/]+\/[^\/]+)\/tarball\/([^\/]+)$/, 'https://github.com/$1/archive/$2.tar.gz');
@@ -45,6 +49,9 @@ export async function fetch(pkgs: Array<Manifest>, config: Config): Promise<Arra
 
   return await Promise.all(
     pkgs.map(manifest => limit(() => {
+      // Otherwise, it breaks the 'install with latest tag and --offline flag' test because it's undefined... why?
+      manifest._reference.registry = `npm`;
+
       let dest = config.generateHardModulePath(manifest._reference);
       let packageLocator = getLocatorFromPkgRef(manifest._reference);
 
@@ -67,7 +74,7 @@ export async function fetch(pkgs: Array<Manifest>, config: Config): Promise<Arra
         await fsUtils.writeJson(`${dest}/.yarn-metadata.json`, {
             artifacts: [],
             remote: {},
-            registry: null,
+            registry: `npm`,
             hash: null,
         });
 

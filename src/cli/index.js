@@ -1,5 +1,69 @@
 /* @flow */
 
+import semver from 'semver';
+
+import {ArchiveFetcher} from 'miniyarn/fetchers/ArchiveFetcher';
+import {LegacyMirrorFetcher} from 'miniyarn/fetchers/LegacyMirrorFetcher';
+import {MirrorFetcher} from 'miniyarn/fetchers/MirrorFetcher';
+import {FsEntryFetcher} from 'miniyarn/fetchers/FsEntryFetcher';
+import {Environment} from 'miniyarn/models/Environment';
+import {PackageLocator} from 'miniyarn/models/PackageLocator';
+import {UnpackFetcher} from 'miniyarn/fetchers/UnpackFetcher';
+import {LastChanceFetcher} from 'miniyarn/fetchers/LastChanceFetcher';
+import * as yarnUtils from 'miniyarn/utils/yarn';
+
+let fetcher =
+  new LegacyMirrorFetcher.Delete()
+    .add(new MirrorFetcher.Save()
+      .add(new UnpackFetcher()
+        .add(new LegacyMirrorFetcher.Load()
+          .add(new LastChanceFetcher()))));
+
+async function run() {
+
+    for (let tarballPath of process.argv.slice(2)) {
+
+        if (!tarballPath.match(/([0-9]+\.){3}tgz$/)) {
+
+            console.log(`Skipping ${tarballPath}`);
+
+        } else try {
+
+            let [ , identifier, version ] = tarballPath.match(/\/([^\/]*?)-([0-9]+(?:\.[0-9]+)+)\.tgz$/);
+            let { name, localName } = yarnUtils.parseIdentifier(identifier.replace(/^(@[^-]+)-/, `$1/`));
+
+            let mirrorPath = require('path').dirname(tarballPath);
+            let env = new Environment({ MIRROR_PATH: mirrorPath });
+
+            let packageJson = JSON.parse(require('fs').readFileSync(require('path').dirname(mirrorPath) + '/package.json').toString());
+            let reference = Object.assign({}, packageJson.dependencies, packageJson.devDependencies, packageJson.peerDependencies)[name];
+
+            if (semver.validRange(reference) || !reference)
+                reference = version;
+
+            if (semver.valid(reference))
+                reference = `https://registry.yarnpkg.com/${name}/-/${localName}-${reference}.tgz`;
+
+            let result = await fetcher.fetch(new PackageLocator({
+                name, reference
+            }), { env });
+
+            console.log(`Processed ${tarballPath} (as ${name}@${reference})`);
+
+        } catch (error) {
+
+            console.log(`Errored ${tarballPath}`);
+            console.log(`  ${error.message}`);
+
+        }
+
+    }
+
+}
+
+run();
+
+/*
 import {ConsoleReporter, JSONReporter} from '../reporters/index.js';
 import {registries, registryNames} from '../registries/index.js';
 import commands from './commands/index.js';
@@ -363,3 +427,4 @@ config
 
     process.exit(1);
   });
+*/

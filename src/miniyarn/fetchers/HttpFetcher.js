@@ -46,6 +46,10 @@ export class HttpFetcher extends BaseFetcher {
     invariant(packageLocator.name, `This package locator should have a name`);
     invariant(packageLocator.reference, `This package locator should have a reference`);
 
+    if (!env.NETWORK_ENABLED) {
+      throw new Error(`Fetching this package requires network capabilities (${yarnUtils.getLocatorIdentifier(packageLocator)})`);
+    }
+
     let archivePath = await fsUtils.createTemporaryFile();
     let archiveHandler = new fsUtils.Handler(archivePath, {temporary: true});
 

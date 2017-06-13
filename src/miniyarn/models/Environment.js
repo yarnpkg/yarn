@@ -2,6 +2,10 @@ import Immutable from 'immutable';
 
 export class Environment
   extends (new Immutable.Record({
+    // True if Yarn is allowed to use the network
+
+    NETWORK_ENABLED: true,
+
     // The registry used
 
     REGISTRY_URL: `https://registry.yarnpkg.com`,

@@ -29,6 +29,10 @@ import {YarnFetcher} from 'miniyarn/fetchers/YarnFetcher';
 // prettier-ignore
 export let cache = new CacheFetcher();
 
+// This fetcher should only ever be used to get metadata fromn the mirror (such as a package path, or the list of available packages), never to actually fetch a package
+// prettier-ignore
+export let mirror = new MirrorFetcher.Load();
+
 // This is the fetcher you must use when you wish to fetch a package data from various sources
 // prettier-ignore
 export let fetcher = new BaseMultiFetcher()

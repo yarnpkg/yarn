@@ -36,6 +36,22 @@ export function filePatternMatch(path, patterns, {matchBase = true, dot = true} 
   return stringPatternMatch(Path.resolve(`/`, path), patterns, {matchBase, dot});
 }
 
+export async function tryWithFallbacks(... fns) {
+  let run = async (index, firstError = null) => {
+    if (index >= fns.length) {
+      throw firstError || new Error(`Failed to execute "tryWithFallbacks": Must be called with at least one alternative.`);
+    }
+
+    try {
+      return await fns[index]();
+    } catch (error) {
+      return await run(index + 1, firstError || error);
+    }
+  };
+
+  return await run(0);
+}
+
 export function debugEvents(obj) {
   let emit = obj.emit;
 
