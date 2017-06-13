@@ -10,6 +10,7 @@ import {registries} from '../resolvers/index.js';
 import {fixCmdWinSlashes} from './fix-cmd-win-slashes.js';
 import {run as globalRun, getBinFolder as getGlobalBinFolder} from '../cli/commands/global.js';
 
+const invariant = require('invariant');
 const path = require('path');
 
 export type LifecycleReturn = Promise<{
@@ -175,14 +176,14 @@ export async function executeLifecycleScript(
 
   let updateProgress;
   if (spinner) {
-    const ticker = spinner.tick.bind(spinner);
     updateProgress = data => {
       const dataStr = data
         .toString() // turn buffer into string
         .trim(); // trim whitespace
 
+      invariant(spinner && spinner.tick, 'We should have spinner and its ticker here');
       if (dataStr) {
-        ticker(
+        spinner.tick(
           dataStr
             // Only get the last line
             .substr(dataStr.lastIndexOf('\n') + 1)
