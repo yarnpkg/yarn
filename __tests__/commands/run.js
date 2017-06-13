@@ -47,7 +47,7 @@ test('runs script containing spaces', (): Promise<void> => {
   return runRun(['build'], {}, 'spaces', async (config): ?Promise<void> => {
     const pkg = await fs.readJson(path.join(config.cwd, 'package.json'));
     // The command get's called with a space appended
-    const args = ['build', config, pkg.scripts.build + ' ', config.cwd];
+    const args = ['build', config, pkg.scripts.build, config.cwd];
 
     expect(execCommand).toBeCalledWith(...args);
   });
@@ -58,7 +58,7 @@ test('properly handles extra arguments and pre/post scripts', (): Promise<void> 
     const pkg = await fs.readJson(path.join(config.cwd, 'package.json'));
     const poststart = ['poststart', config, pkg.scripts.poststart, config.cwd];
     const prestart = ['prestart', config, pkg.scripts.prestart, config.cwd];
-    const start = ['start', config, pkg.scripts.start + ' --hello', config.cwd];
+    const start = ['start', config, pkg.scripts.start + ' "--hello"', config.cwd];
 
     expect(execCommand.mock.calls[0]).toEqual(prestart);
     expect(execCommand.mock.calls[1]).toEqual(start);
@@ -69,7 +69,7 @@ test('properly handles extra arguments and pre/post scripts', (): Promise<void> 
 test('properly handle bin scripts', (): Promise<void> => {
   return runRun(['cat-names'], {}, 'bin', config => {
     const script = path.join(config.cwd, 'node_modules', '.bin', 'cat-names');
-    const args = ['cat-names', config, `"${script}" `, config.cwd];
+    const args = ['cat-names', config, `"${script}"`, config.cwd];
 
     expect(execCommand).toBeCalledWith(...args);
   });
@@ -88,7 +88,16 @@ test('properly handle env command', (): Promise<void> => {
 test('retains string delimiters if args have spaces', (): Promise<void> => {
   return runRun(['cat-names', '--filter', 'cat names'], {}, 'bin', config => {
     const script = path.join(config.cwd, 'node_modules', '.bin', 'cat-names');
-    const args = ['cat-names', config, `"${script}" --filter "cat names"`, config.cwd];
+    const args = ['cat-names', config, `"${script}" "--filter" "cat names"`, config.cwd];
+
+    expect(execCommand).toBeCalledWith(...args);
+  });
+});
+
+test('retains quotes if args have spaces and quotes', (): Promise<void> => {
+  return runRun(['cat-names', '--filter', '"cat names"'], {}, 'bin', config => {
+    const script = path.join(config.cwd, 'node_modules', '.bin', 'cat-names');
+    const args = ['cat-names', config, `"${script}" "--filter" "\\"cat names\\""`, config.cwd];
 
     expect(execCommand).toBeCalledWith(...args);
   });
