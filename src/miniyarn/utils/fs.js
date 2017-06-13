@@ -103,7 +103,7 @@ export async function createTemporaryFile(filePath) {
     return filePath;
   } else {
     return await new Promise((resolve, reject) => {
-      tmp.file((error, path) => {
+      tmp.file({discardDescriptor: true}, (error, path) => {
         if (error) {
           reject(error);
         } else {

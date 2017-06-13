@@ -25,6 +25,10 @@ export function getLocatorFromPkgRef(pkg: PackageReference) {
     reference = `https://registry.yarnpkg.com/${name}/-/${name}-${pkg.version}.tgz`;
   }
 
+  if (reference) { // In case the ".git" suffix has been omitted
+    reference = reference.replace(/^https:\/\/github\.com\/([^\/]+\/[^\/]+?)(?:\.git)?#/, 'https://github.com/$1.git#');
+  }
+
   if (reference) { // Transform old github archive urls to use the new endpoint
     reference = reference.replace(/^https:\/\/github\.com\/([^\/]+\/[^\/]+)\/tarball\/([^\/]+)$/, 'https://github.com/$1/archive/$2.tar.gz');
   }
