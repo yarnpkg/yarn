@@ -90,7 +90,7 @@ export default class Git {
     };
   }
 
-  static git(args: Array<string>, opts?: child_process$spawnOpts = {}): Promise<string> {
+  static spawn(args: Array<string>, opts?: child_process$spawnOpts = {}): Promise<string> {
     return child.spawn('git', args, {...opts, env});
   }
 
@@ -109,7 +109,7 @@ export default class Git {
     }
 
     try {
-      await Git.git(['archive', `--remote=${ref.repository}`, 'HEAD', Date.now() + '']);
+      await Git.spawn(['archive', `--remote=${ref.repository}`, 'HEAD', Date.now() + '']);
       throw new Error();
     } catch (err) {
       const supports = err.message.indexOf('did not match any files') >= 0;
@@ -127,7 +127,7 @@ export default class Git {
 
   static async repoExists(ref: GitUrl): Promise<boolean> {
     try {
-      await Git.git(['ls-remote', '-t', ref.repository]);
+      await Git.spawn(['ls-remote', '-t', ref.repository]);
       return true;
     } catch (err) {
       return false;
@@ -198,7 +198,7 @@ export default class Git {
 
   async _archiveViaRemoteArchive(dest: string): Promise<string> {
     const hashStream = new crypto.HashStream();
-    await Git.git(['archive', `--remote=${this.gitUrl.repository}`, this.ref], {
+    await Git.spawn(['archive', `--remote=${this.gitUrl.repository}`, this.ref], {
       process(proc, resolve, reject, done) {
         const writeStream = createWriteStream(dest);
         proc.on('error', reject);
@@ -215,7 +215,7 @@ export default class Git {
 
   async _archiveViaLocalFetched(dest: string): Promise<string> {
     const hashStream = new crypto.HashStream();
-    await Git.git(['archive', this.hash], {
+    await Git.spawn(['archive', this.hash], {
       cwd: this.cwd,
       process(proc, resolve, reject, done) {
         const writeStream = createWriteStream(dest);
@@ -244,7 +244,7 @@ export default class Git {
   }
 
   async _cloneViaRemoteArchive(dest: string): Promise<void> {
-    await Git.git(['archive', `--remote=${this.gitUrl.repository}`, this.ref], {
+    await Git.spawn(['archive', `--remote=${this.gitUrl.repository}`, this.ref], {
       process(proc, update, reject, done) {
         const extractor = tarFs.extract(dest, {
           dmode: 0o555, // all dirs should be readable
@@ -260,7 +260,7 @@ export default class Git {
   }
 
   async _cloneViaLocalFetched(dest: string): Promise<void> {
-    await Git.git(['archive', this.hash], {
+    await Git.spawn(['archive', this.hash], {
       cwd: this.cwd,
       process(proc, resolve, reject, done) {
         const extractor = tarFs.extract(dest, {
@@ -285,9 +285,9 @@ export default class Git {
 
     return fs.lockQueue.push(gitUrl.repository, async () => {
       if (await fs.exists(cwd)) {
-        await Git.git(['pull'], {cwd});
+        await Git.spawn(['pull'], {cwd});
       } else {
-        await Git.git(['clone', gitUrl.repository, cwd]);
+        await Git.spawn(['clone', gitUrl.repository, cwd]);
       }
 
       this.fetched = true;
@@ -327,7 +327,7 @@ export default class Git {
 
   async _getFileFromArchive(filename: string): Promise<string | false> {
     try {
-      return await Git.git(['archive', `--remote=${this.gitUrl.repository}`, this.ref, filename], {
+      return await Git.spawn(['archive', `--remote=${this.gitUrl.repository}`, this.ref, filename], {
         process(proc, update, reject, done) {
           const parser = tarStream.extract();
 
@@ -366,7 +366,7 @@ export default class Git {
     invariant(this.fetched, 'Repo not fetched');
 
     try {
-      return await Git.git(['show', `${this.hash}:${filename}`], {
+      return await Git.spawn(['show', `${this.hash}:${filename}`], {
         cwd: this.cwd,
       });
     } catch (err) {
@@ -392,7 +392,7 @@ export default class Git {
   }
 
   async setRefRemote(): Promise<string> {
-    const stdout = await Git.git(['ls-remote', '--tags', '--heads', this.gitUrl.repository]);
+    const stdout = await Git.spawn(['ls-remote', '--tags', '--heads', this.gitUrl.repository]);
     const refs = Git.parseRefs(stdout);
     return this.setRef(refs);
   }
