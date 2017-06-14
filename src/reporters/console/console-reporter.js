@@ -27,6 +27,11 @@ const tty = require('tty');
 type Row = Array<string>;
 type InquirerResponses<K, T> = {[key: K]: Array<T>};
 
+// fixes bold on windows
+if (process.platform === 'win32' && process.env.TERM && !/^xterm/i.test(process.env.TERM)) {
+  chalk.styles.bold.close += '\u001b[m';
+}
+
 export default class ConsoleReporter extends BaseReporter {
   constructor(opts: Object) {
     super(opts);

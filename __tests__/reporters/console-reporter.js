@@ -13,6 +13,7 @@ const stream = require('stream');
 require('chalk').enabled = true;
 require('chalk').supportsColor = true;
 require('chalk').styles.blue.open = '\u001b[34m';
+require('chalk').styles.bold.close = '\u001b[22m';
 
 test('ConsoleReporter.step', async () => {
   expect(
