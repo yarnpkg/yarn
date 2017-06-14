@@ -10,6 +10,7 @@ import {registries} from '../resolvers/index.js';
 import {fixCmdWinSlashes} from './fix-cmd-win-slashes.js';
 import {run as globalRun, getBinFolder as getGlobalBinFolder} from '../cli/commands/global.js';
 
+const invariant = require('invariant');
 const path = require('path');
 
 export type LifecycleReturn = Promise<{
@@ -173,20 +174,26 @@ export async function executeLifecycleScript(
     conf.windowsVerbatimArguments = true;
   }
 
-  const stdout = await child.spawn(sh, [shFlag, cmd], {cwd, env, stdio, ...conf}, data => {
-    if (spinner) {
-      const line = data
+  let updateProgress;
+  if (spinner) {
+    updateProgress = data => {
+      const dataStr = data
         .toString() // turn buffer into string
-        .trim() // trim whitespace
-        .split('\n') // split into lines
-        .pop() // use only the last line
-        .replace(/\t/g, ' '); // change tabs to spaces as they can interfere with the console
+        .trim(); // trim whitespace
 
-      if (line) {
-        spinner.tick(line);
+      invariant(spinner && spinner.tick, 'We should have spinner and its ticker here');
+      if (dataStr) {
+        spinner.tick(
+          dataStr
+            // Only get the last line
+            .substr(dataStr.lastIndexOf('\n') + 1)
+            // change tabs to spaces as they can interfere with the console
+            .replace(/\t/g, ' '),
+        );
       }
-    }
-  });
+    };
+  }
+  const stdout = await child.spawn(sh, [shFlag, cmd], {cwd, env, stdio, ...conf}, updateProgress);
 
   return {cwd, command: cmd, stdout};
 }
