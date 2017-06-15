@@ -144,7 +144,7 @@ export function setFlags(commander: Object) {
   commander.option('-f, --filename <filename>', 'filename');
 }
 
-export function hasWrapper(): boolean {
+export function hasWrapper(commander: Object, args: Array<string>): boolean {
   return true;
 }
 

@@ -50,7 +50,7 @@ function createTestFixture(testModules: any = {}): any {
     packageResolver.addPattern(uid, packageManifest);
   });
 
-  const packageHoister = new PackageHoister(config, packageResolver, false);
+  const packageHoister = new PackageHoister(config, packageResolver);
 
   const atPath = function(...installPaths): string {
     const rootPath = config.modulesFolder || path.join(config.cwd, 'node_modules');
@@ -70,35 +70,30 @@ function createTestFixture(testModules: any = {}): any {
   };
 }
 
-beforeEach(function() {
-  jasmine.addMatchers({
-    toContainPackage(): any {
-      return {
-        compare(received, uid, expectedInstallPath): any {
-          let pass: boolean = false;
-          received.forEach(pkg => {
-            const [location: string, hoistManifest: HoistManifest] = pkg;
-            if (location === expectedInstallPath && hoistManifest.pkg._reference.uid === uid) {
-              pass = true;
-            }
-          });
-
-          if (pass) {
-            return {
-              pass: true,
-              message: () => `expected ${received} to not contain package UID ${uid} at path ${expectedInstallPath}`,
-            };
-          } else {
-            return {
-              pass: false,
-              message: () => `expected ${received} to contain package UID ${uid} at path ${expectedInstallPath}`,
-            };
-          }
-        },
-      };
-    },
+const toContainPackage = function(received: any, ...expected: any): JestMatcherResult {
+  const [uid, expectedInstallPath] = expected;
+  let pass: boolean = false;
+  received.forEach(pkg => {
+    const [location: string, hoistManifest: HoistManifest] = pkg;
+    if (location === expectedInstallPath && hoistManifest.pkg._reference.uid === uid) {
+      pass = true;
+    }
   });
-});
+
+  if (pass) {
+    return {
+      pass: true,
+      message: () => `expected ${received} to not contain package UID ${uid} at path ${expectedInstallPath}`,
+    };
+  } else {
+    return {
+      pass: false,
+      message: () => `expected ${received} to contain package UID ${uid} at path ${expectedInstallPath}`,
+    };
+  }
+};
+
+expect.extend({toContainPackage});
 
 test('Produces valid destination paths for scoped modules', () => {
   const expected = path.join(CWD, 'node_modules', '@scoped', 'dep');

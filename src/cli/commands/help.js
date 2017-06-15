@@ -7,11 +7,11 @@ import type Config from '../../config.js';
 import {sortAlpha, hyphenate} from '../../util/misc.js';
 const chalk = require('chalk');
 
-export function hasWrapper(): boolean {
+export function hasWrapper(flags: Object, args: Array<string>): boolean {
   return false;
 }
 
-export function setFlags() {}
+export function setFlags(commander: Object) {}
 
 export function run(config: Config, reporter: Reporter, commander: Object, args: Array<string>): Promise<void> {
   if (args.length) {

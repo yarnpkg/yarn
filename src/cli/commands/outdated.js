@@ -12,7 +12,7 @@ export function setFlags(commander: Object) {
   commander.usage('outdated [packages ...]');
 }
 
-export function hasWrapper(): boolean {
+export function hasWrapper(commander: Object, args: Array<string>): boolean {
   return true;
 }
 

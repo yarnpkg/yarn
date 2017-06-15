@@ -15,7 +15,7 @@ const path = require('path');
 export const requireLockfile = false;
 export const noArguments = true;
 
-export function hasWrapper(): boolean {
+export function hasWrapper(commander: Object): boolean {
   return true;
 }
 

@@ -10,9 +10,9 @@ import * as child from '../../util/child.js';
 import * as fs from '../../util/fs.js';
 import {run as runGlobal} from './global.js';
 
-export function setFlags() {}
+export function setFlags(commander: Object) {}
 
-export function hasWrapper(): boolean {
+export function hasWrapper(commander: Object, args: Array<string>): boolean {
   return true;
 }
 

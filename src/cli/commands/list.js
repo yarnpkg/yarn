@@ -147,7 +147,7 @@ export function getParent(key: string, treesByKey: Object): Object {
   return treesByKey[parentKey];
 }
 
-export function hasWrapper(): boolean {
+export function hasWrapper(commander: Object, args: Array<string>): boolean {
   return true;
 }
 
