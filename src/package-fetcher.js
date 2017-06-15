@@ -114,7 +114,7 @@ export function fetch(pkgs: Array<Manifest>, config: Config): Promise<Array<Mani
       }
 
       if (tick) {
-        tick(ref.name);
+        tick();
       }
 
       if (newPkg) {

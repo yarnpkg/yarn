@@ -150,7 +150,6 @@ export default class TarballFetcher extends BaseFetcher {
 
           const handleRequestError = res => {
             if (res.statusCode >= 400) {
-              // $FlowFixMe
               const statusDescription = http.STATUS_CODES[res.statusCode];
               reject(new Error(reporter.lang('requestFailed', `${res.statusCode} ${statusDescription}`)));
             }

@@ -59,7 +59,7 @@
     "eslint-plugin-flowtype": "^2.32.1",
     "eslint-plugin-react": "^6.7.1",
     "eslint-plugin-yarn-internal": "file:scripts/eslint-rules",
-    "flow-bin": "^0.43.0",
+    "flow-bin": "^0.48.0",
     "gulp": "^3.9.0",
     "gulp-babel": "^6.0.0",
     "gulp-if": "^2.0.1",

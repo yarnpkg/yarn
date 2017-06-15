@@ -32,32 +32,6 @@ test('promisify', async function(): Promise<void> {
   expect(error && error.message).toEqual('yep');
 });
 
-test('promisifyObject', async function(): Promise<void> {
-  const obj = promise.promisifyObject({
-    foo(callback) {
-      callback(null, 'foo');
-    },
-
-    bar(data, callback) {
-      callback(null, data + 'bar');
-    },
-
-    foobar(callback) {
-      callback(new Error('yep'));
-    },
-  });
-
-  expect(await obj.foo()).toBe('foo');
-  expect(await obj.bar('foo')).toBe('foobar');
-  let error;
-  try {
-    await obj.foobar();
-  } catch (e) {
-    error = e;
-  }
-  expect(error && error.message).toEqual('yep');
-});
-
 test('queue', async function(): Promise<void> {
   let running = 0;
 

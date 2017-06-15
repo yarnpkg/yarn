@@ -274,7 +274,7 @@ export default class PackageLinker {
 
       onProgress(src: string) {
         if (tick) {
-          tick(src);
+          tick();
         }
       },
     });
@@ -288,7 +288,7 @@ export default class PackageLinker {
 
       onProgress(src: string) {
         if (tick) {
-          tick(src);
+          tick();
         }
       },
     });
@@ -318,7 +318,7 @@ export default class PackageLinker {
         async ([dest, {pkg}]) => {
           const binLoc = path.join(dest, this.config.getFolder(pkg));
           await this.linkBinDependencies(pkg, binLoc);
-          tickBin(dest);
+          tickBin();
         },
         linkBinConcurrency,
       );
@@ -331,7 +331,7 @@ export default class PackageLinker {
           if (pkg.bin && Object.keys(pkg.bin).length) {
             const binLoc = path.join(this.config.cwd, this.config.getFolder(pkg));
             await this.linkSelfDependencies(pkg, dest, binLoc);
-            tickBin(this.config.cwd);
+            tickBin();
           }
         },
         linkBinConcurrency,

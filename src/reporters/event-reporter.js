@@ -19,5 +19,4 @@ export default class EventReporter extends JSONReporter {
   }
 }
 
-// $FlowFixMe: need to "inherit" from it
 Object.assign(EventReporter.prototype, EventEmitter.prototype);

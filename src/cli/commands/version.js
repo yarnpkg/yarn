@@ -24,7 +24,7 @@ export function setFlags(commander: Object) {
   commander.option('--no-git-tag-version', 'no git tag version');
 }
 
-export function hasWrapper(): boolean {
+export function hasWrapper(commander: Object, args: Array<string>): boolean {
   return true;
 }
 

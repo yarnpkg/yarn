@@ -14,7 +14,7 @@ const path = require('path');
 export const lockQueue = new BlockingQueue('fs lock');
 
 export const readFileBuffer = promisify(fs.readFile);
-export const writeFile: (path: string, data: string) => Promise<void> = promisify(fs.writeFile);
+export const writeFile: (path: string, data: string, options?: Object) => Promise<void> = promisify(fs.writeFile);
 export const readlink: (path: string, opts: void) => Promise<string> = promisify(fs.readlink);
 export const realpath: (path: string, opts: void) => Promise<string> = promisify(fs.realpath);
 export const readdir: (path: string, opts: void) => Promise<Array<string>> = promisify(fs.readdir);
@@ -26,8 +26,8 @@ export const mkdirp: (path: string) => Promise<void> = promisify(require('mkdirp
 export const exists: (path: string) => Promise<boolean> = promisify(fs.exists, true);
 export const lstat: (path: string) => Promise<fs.Stats> = promisify(fs.lstat);
 export const chmod: (path: string, mode: number | string) => Promise<void> = promisify(fs.chmod);
-export const link: (path: string) => Promise<fs.Stats> = promisify(fs.link);
-export const glob: (path: string) => Promise<Array<string>> = promisify(globModule);
+export const link: (src: string, dst: string) => Promise<fs.Stats> = promisify(fs.link);
+export const glob: (path: string, options?: Object) => Promise<Array<string>> = promisify(globModule);
 
 const CONCURRENT_QUEUE_ITEMS = 4;
 

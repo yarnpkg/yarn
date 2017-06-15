@@ -173,7 +173,7 @@ export class Add extends Install {
   }
 }
 
-export function hasWrapper(): boolean {
+export function hasWrapper(commander: Object): boolean {
   return true;
 }
 

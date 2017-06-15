@@ -249,7 +249,7 @@ export class Install {
           }
 
           let pattern = name;
-          if (!this.lockfile.getLocked(pattern, true)) {
+          if (!this.lockfile.getLocked(pattern)) {
             // when we use --save we save the dependency to the lockfile with just the name rather than the
             // version combo
             pattern += '@' + depMap[name];
@@ -808,7 +808,7 @@ export class Install {
   maybeOutputUpdate: any;
 }
 
-export function hasWrapper(): boolean {
+export function hasWrapper(commander: Object, args: Array<string>): boolean {
   return true;
 }
 

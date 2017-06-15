@@ -14,7 +14,7 @@ export function setFlags(commander: Object) {
   commander.option('--latest', 'upgrade packages to the latest version, ignoring version ranges in package.json');
 }
 
-export function hasWrapper(): boolean {
+export function hasWrapper(commander: Object, args: Array<string>): boolean {
   return true;
 }
 
