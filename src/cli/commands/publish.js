@@ -3,7 +3,6 @@
 import type {Reporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
 import NpmRegistry from '../../registries/npm-registry.js';
-import {ConcatStream} from '../../util/stream.js';
 import {MessageError} from '../../errors.js';
 import {setVersion, setFlags as versionSetFlags} from './version.js';
 import * as fs from '../../util/fs.js';
@@ -44,9 +43,10 @@ async function publish(config: Config, pkg: any, flags: Object, dir: string): Pr
   } else {
     throw new Error("Don't know how to handle this file type");
   }
-  invariant(stream, 'expected stream');
   const buffer = await new Promise((resolve, reject) => {
-    stream.pipe(new ConcatStream(resolve)).on('error', reject);
+    const data = [];
+    invariant(stream, 'expected stream');
+    stream.on('data', data.push.bind(data)).on('end', () => resolve(Buffer.concat(data))).on('error', reject);
   });
 
   // copy normalized package and remove internal keys as they may be sensitive or yarn specific
