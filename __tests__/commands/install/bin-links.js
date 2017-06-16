@@ -14,7 +14,7 @@ async function linkAt(config, ...relativePath): Promise<string> {
     const linkPath = await fs.readlink(joinedPath);
     return linkPath;
   } catch (err) {
-    if (err.code === 'EINVAL') {
+    if (err.code === 'EINVAL' || err.code === 'UNKNOWN') {
       // Means this is not a link
       const contents = await fs.readFile(joinedPath);
       return /node" +"\$basedir\/([^"]*\.js)"/.exec(contents)[1];
