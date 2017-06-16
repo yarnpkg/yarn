@@ -66,6 +66,7 @@ commander.option('--no-progress', 'disable progress bar');
 commander.option('--network-concurrency <number>', 'maximum number of concurrent network requests', parseInt);
 commander.option('--network-timeout <milliseconds>', 'TCP timeout for network requests', parseInt);
 commander.option('--non-interactive', 'do not show interactive prompts');
+commander.option('--scripts-prepend-node-path [bool]', 'prepend the node executable dir to the PATH in scripts');
 
 // get command name
 let commandName: string = args.shift() || 'install';
@@ -305,6 +306,8 @@ config
     networkConcurrency: commander.networkConcurrency,
     networkTimeout: commander.networkTimeout,
     nonInteractive: commander.nonInteractive,
+    scriptsPrependNodePath: commander.scriptsPrependNodePath,
+
     commandName: commandName === 'run' ? commander.args[0] : commandName,
   })
   .then(() => {
