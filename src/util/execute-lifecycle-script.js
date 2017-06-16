@@ -141,7 +141,7 @@ export async function executeLifecycleScript(
   // Add global bin folder if it is not present already, as some packages depend
   // on a globally-installed version of node-gyp.
   const globalBin = getGlobalBinFolder(config, {});
-  if (!pathParts.includes(globalBin)) {
+  if (pathParts.indexOf(globalBin) === -1) {
     pathParts.unshift(globalBin);
   }
 
