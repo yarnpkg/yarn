@@ -144,7 +144,7 @@ export default class PackageRequest {
   }
 
   async normalizeRange(pattern: string): Promise<string> {
-    if (pattern.includes(':') || pattern.includes('@') || PackageRequest.getExoticResolver(pattern)) {
+    if (pattern.indexOf(':') >= 0 || pattern.indexOf('@') >= 0 || PackageRequest.getExoticResolver(pattern)) {
       return Promise.resolve(pattern);
     }
 
