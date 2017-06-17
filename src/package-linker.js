@@ -179,7 +179,7 @@ export default class PackageLinker {
 
       // fs copy can't copy through a symlink, so we replace those with real paths to workpsaces
       for (const [symlink, realpath] of symlinkPaths.entries()) {
-        if (dest !== symlink && dest.indexOf(symlink) === 0) {
+        if (dest.indexOf(symlink + path.sep) === 0) {
           dest = dest.replace(symlink, realpath);
         }
       }
