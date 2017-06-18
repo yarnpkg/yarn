@@ -50,7 +50,7 @@ export default class FileResolver extends ExoticResolver {
 
     const manifest: Manifest = await (async () => {
       try {
-        return await await this.config.readManifest(loc, this.registry);
+        return await this.config.readManifest(loc, this.registry);
       } catch (e) {
         if (e.code === 'ENOENT') {
           return {
