@@ -173,7 +173,7 @@ test.concurrent('install should write and read integrity file based on lockfile 
     }
     expect(allCorrect).toBe(true);
     // install should bail out with integrity check
-    await fs.unlink(path.join(config.cwd, 'node_modules', 'mime-types', 'package.json'));
+    await fs.unlink(path.join(config.cwd, 'node_modules', 'mime-types'));
     const reinstall = new Install({}, config, reporter, (await Lockfile.fromDirectory(config.cwd)));
     await reinstall.init();
 
