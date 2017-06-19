@@ -1,0 +1,11 @@
+{
+  "name": "my-project",
+  "private": true,
+  "dependencies": {
+    "jest": "^1.0.0",
+    "jest-cli": "^1.0.0"
+  },
+  "workspaces": [
+    "packages/*"
+  ]
+}
