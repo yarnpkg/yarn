@@ -6,6 +6,7 @@ const messages = {
   folderInSync: 'Folder in sync.',
   nothingToInstall: 'Nothing to install.',
   resolvingPackages: 'Resolving packages',
+  checkingManifest: 'Validating package.json',
   fetchingPackages: 'Fetching packages',
   linkingDependencies: 'Linking dependencies',
   rebuildingPackages: 'Rebuilding all packages',
