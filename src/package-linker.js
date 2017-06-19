@@ -180,9 +180,9 @@ export default class PackageLinker {
       for (const [symlink, realpath] of symlinkPaths.entries()) {
         if (dest.indexOf(symlink + path.sep) === 0) {
           // after hoisting we end up with this structure
-          // root / node_modules / workspace-package (symlink) / node_modules / package-a
+          // root/node_modules/workspace-package(symlink)/node_modules/package-a
           // fs.copy operations can't copy files through a symlink, so all the paths under workspace-package
-          // need to be replaced with a real path, except for the root / node_modules / workspace-package itself
+          // need to be replaced with a real path, except for the symlink root/node_modules/workspace-package 
           dest = dest.replace(symlink, realpath);
         }
       }
