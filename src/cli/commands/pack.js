@@ -12,8 +12,6 @@ const path = require('path');
 const tar = require('tar-fs');
 const fs2 = require('fs');
 
-const IGNORE_FILENAMES = ['.yarnignore', '.npmignore', '.gitignore'];
-
 const FOLDERS_IGNORE = [
   // never allow version control folders
   '.git',
