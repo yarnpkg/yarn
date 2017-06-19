@@ -8,6 +8,8 @@ import type {CLIFunctionReturn} from '../../src/types.js';
 import mkdir from './../_temp.js';
 import * as fs from '../../src/util/fs.js';
 
+jasmine.DEFAULT_TIMEOUT_INTERVAL = 150000;
+
 const path = require('path');
 
 const fixturesLoc = path.join(__dirname, '..', 'fixtures', 'link');
@@ -25,7 +27,7 @@ const runUnlink = buildRun.bind(
   ConsoleReporter,
   fixturesLoc,
   (args, flags, config, reporter): CLIFunctionReturn => {
-    return unlink(config, reporter, flags, args);
+    return link(config, reporter, flags, args).then(unlink.bind(null, config, reporter, flags, args));
   },
 );
 

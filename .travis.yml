@@ -28,7 +28,7 @@ env:
     - TEST_TYPE="build-dist"
     - TEST_TYPE="check-lockfile"
     - TEST_TYPE="lint"
-    - TEST_TYPE="test-ci -- -- --maxWorkers 3"
+    - TEST_TYPE="test-ci"
 
 matrix:
   exclude:
@@ -41,15 +41,21 @@ matrix:
   include:
     - os: osx
       node_js: "6"
-      env: TEST_TYPE="test-ci -- -- --maxWorkers 3"
+      env: TEST_TYPE="test-ci"
 
 before_install:
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then ./scripts/bootstrap-env-ubuntu.sh; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install yarn; fi
-  - node --version
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+      RAMDISK_SIZE=300;
+      RAMDISK_SECTORS=$(( $RAMDISK_SIZE * 1024 * 1024 / 512 ));
+      RAMDISK=$(hdiutil attach -nomount ram://$RAMDISK_SECTORS);
+      newfs_hfs -v yarn_ramfs $RAMDISK;
+      export TMPDIR="/tmp/ramfs";
+      mkdir -p $TMPDIR;
+      mount -t hfs -o nobrowse $RAMDISK $TMPDIR;
+    fi
 
 os:
   - linux
 
-script: travis_retry yarn $TEST_TYPE
+script: yarn $TEST_TYPE

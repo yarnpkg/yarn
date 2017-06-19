@@ -120,37 +120,54 @@ test('RequestManager.request with mutual TLS', async () => {
 });
 
 test('RequestManager.execute timeout error with maxRetryAttempts=1', async () => {
-  jest.useRealTimers();
+  jest.useFakeTimers();
 
+  const LIMIT = 1;
   let counter = 0;
   const server = net.createServer(c => {
     counter += 1;
-    // emulate TCP server that never closes the connection
+
+    // Trigger our offline retry queue which has a fixed 3 sec delay
+    if (counter < LIMIT) {
+      c.on('close', jest.runOnlyPendingTimers.bind(jest));
+    }
+
+    // emulate TCP server that never closes the connection by not
+    // doing anything
   });
 
   try {
     server.listen(0);
     const config = await Config.create({networkTimeout: 50});
-    config.requestManager.setOptions({maxRetryAttempts: 1});
+    config.requestManager.setOptions({maxRetryAttempts: LIMIT});
     const port = server.address().port;
     await config.requestManager.request({
       url: `http://localhost:${port}/?nocache`,
     });
   } catch (err) {
     expect(err.message).toContain('TIMEDOUT');
-    expect(counter).toEqual(1);
+    expect(counter).toEqual(LIMIT);
   } finally {
-    server.close();
+    await server.close();
+    jest.useRealTimers();
   }
 });
 
 test('RequestManager.execute timeout error with default maxRetryAttempts', async () => {
-  jest.useRealTimers();
+  jest.useFakeTimers();
 
+  const LIMIT = 5;
   let counter = 0;
   const server = net.createServer(c => {
     counter += 1;
-    // emulate TCP server that never closes the connection
+
+    // Trigger our offline retry queue which has a fixed 3 sec delay
+    if (counter < LIMIT) {
+      c.on('close', jest.runOnlyPendingTimers.bind(jest));
+    }
+
+    // emulate TCP server that never closes the connection by not
+    // doing anything
   });
 
   try {
@@ -162,9 +179,10 @@ test('RequestManager.execute timeout error with default maxRetryAttempts', async
     });
   } catch (err) {
     expect(err.message).toContain('TIMEDOUT');
-    expect(counter).toEqual(5);
+    expect(counter).toEqual(LIMIT);
   } finally {
-    server.close();
+    await server.close();
+    jest.useRealTimers();
   }
 });
 

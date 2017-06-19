@@ -155,6 +155,7 @@ test('ConsoleReporter.select', async () => {
 });
 
 test('ConsoleReporter.progress', async () => {
+  jest.useFakeTimers();
   expect(
     await getConsoleBuff(r => {
       r.noProgress = false; // we need this to override is-ci when running tests on ci
