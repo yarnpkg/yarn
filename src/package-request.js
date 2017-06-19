@@ -293,6 +293,7 @@ export default class PackageRequest {
     const ref = new PackageReference(this, info, remote);
     ref.addPattern(this.pattern, info);
     ref.addOptional(this.optional);
+    ref.setFresh(fresh);
     info._reference = ref;
     info._remote = remote;
 
