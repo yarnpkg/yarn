@@ -7,57 +7,65 @@
  */
 'use strict';
 
-const path = require('path');
-const chalk = require('chalk');
-const glob = require('glob');
-const runCommand = require('./_runCommand');
+const { format } = require('prettier');
+const { readFileSync, writeFileSync } = require('fs');
+const { red, dim, reset } = require('chalk');
+const { sync } = require('glob');
 
 const shouldWrite = process.argv[2] === 'write';
-const isWindows = process.platform === 'win32';
-const prettier = isWindows ? 'prettier.cmd' : 'prettier';
-const prettierCmd = path.resolve(__dirname, '../node_modules/.bin/' + prettier);
 
-const config = {
-  ignore: [
-    '**/node_modules/**',
-    '__tests__/fixtures/**'
-  ],
-  options: {
-    'bracket-spacing': 'false',
-    'print-width': 120,
-    'single-quote': 'true',
-    'trailing-comma': 'all',
-    'parser': 'flow'
-  },
-  patterns: ['__tests__/**/', 'src/**/'],
+const defaultOptions = {
+  bracketSpacing: false,
+  singleQuote: true,
+  trailingComma: 'all',
+  printWidth: 120,
+  parser: 'flow'
 };
 
-const patterns = config.patterns;
-const options = config.options;
-const ignore = config.ignore;
-
-const globPattern = patterns.length > 1
-  ? `{${patterns.join(',')}}*.js`
-  : `${patterns.join(',')}*.js`;
-const files = glob.sync(globPattern, {ignore});
-
-const args = Object.keys(options)
-  .map(key => `--${key}=${options[key]}`)
-  .concat(`--${shouldWrite ? 'write' : 'l'}`, files);
-
-try {
-  runCommand(prettierCmd, args, path.resolve(__dirname, '..'));
-} catch (e) {
-  console.log(e);
-  if (!shouldWrite) {
-    console.log(
-      chalk.red(
-        `  This project uses prettier to format all JavaScript code.\n`
-      ) +
-        chalk.dim(`    Please run `) +
-        chalk.reset('yarn prettier') +
-        chalk.dim(` and add changes to files listed above to your commit.`) +
-        `\n`
-    );
+const configs = [
+  {
+    ignore: ['**/node_modules/**', '__tests__/fixtures/**'],
+    patterns: ['__tests__/**/*.js', 'src/**/*.js'],
   }
-}
+];
+
+configs.forEach(({ patterns, options = {}, ignore }) => {
+  if (patterns.length > 1) {
+    patterns = `{${patterns.join(',')}}`;
+  } else {
+    patterns = patterns.join(',');
+  }
+
+  options = Object.assign({}, defaultOptions, options);
+
+  const files = sync(patterns, { ignore });
+
+  files.forEach(file => {
+    const source = readFileSync(file, 'utf-8');
+    const output = format(source, options);
+
+    // The `prettier.check` method does not work correctly
+    if (output !== source) {
+      if (shouldWrite) {
+        try {
+          writeFileSync(file, output, 'utf-8');
+        } catch (error) {
+          console.log(red(`Unable to write file: ${file}`), error);
+          process.exit(2);
+        }
+      } else {
+        console.log(
+          '\n' +
+          red(
+            `  This project uses prettier to format all JavaScript code.\n`
+          ) +
+          dim(`    Please run `) +
+          reset('yarn prettier') +
+          dim(` and add changes to files listed above to your commit.`) +
+          `\n`
+        );
+        process.exit(1);
+      }
+    }
+  });
+});

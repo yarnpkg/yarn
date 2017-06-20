@@ -191,6 +191,14 @@ test.concurrent('install should not install dev dependencies of workspaces in pr
   });
 });
 
+// https://github.com/yarnpkg/yarn/issues/3598
+test.concurrent('install should work correctly for workspaces that have similar names', (): Promise<void> => {
+  return runInstall({production: true}, 'workspaces-install-names-issue', async (config): Promise<void> => {
+    expect(await fs.exists(path.join(config.cwd, 'packages', 'jest', 'package.json'))).toBe(true);
+    expect(await fs.exists(path.join(config.cwd, 'packages', 'jest-cli', 'package.json'))).toBe(true);
+  });
+});
+
 test.concurrent('check command should work', (): Promise<void> => {
   return runInstall({checkFiles: true}, 'workspaces-install-basic', async (config, reporter): Promise<void> => {
     // check command + integrity check
