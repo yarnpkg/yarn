@@ -471,7 +471,7 @@ test.concurrent('install should be idempotent', (): Promise<void> => {
     async (config, reporter) => {
       expect(await getPackageVersion(config, 'dep-a')).toEqual('1.0.0');
     },
-    null
+    null,
   );
 
   return runInstall({}, 'install-should-be-idempotent', async (config, reporter) => {
