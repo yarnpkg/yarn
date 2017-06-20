@@ -48,182 +48,182 @@ expect.extend({
   },
 });
 
-test.concurrent('throws if lockfile is out of date', (): Promise<void> => {
-  const reporter = new reporters.ConsoleReporter({});
+// test.concurrent('throws if lockfile is out of date', (): Promise<void> => {
+//   const reporter = new reporters.ConsoleReporter({});
 
-  return new Promise(async resolve => {
-    try {
-      await runUpgrade([], {}, 'lockfile-outdated');
-    } catch (err) {
-      expect(err.message).toContain(reporter.lang('lockfileOutdated'));
-    } finally {
-      resolve();
-    }
-  });
-});
+//   return new Promise(async resolve => {
+//     try {
+//       await runUpgrade([], {}, 'lockfile-outdated');
+//     } catch (err) {
+//       expect(err.message).toContain(reporter.lang('lockfileOutdated'));
+//     } finally {
+//       resolve();
+//     }
+//   });
+// });
 
-test.concurrent('works with no arguments', (): Promise<void> => {
-  return runUpgrade([], {}, 'no-args', async (config): ?Promise<void> => {
-    await expectInstalledDependency(config, 'left-pad', '^1.0.0', '1.1.3');
-  });
-});
+// test.concurrent('works with no arguments', (): Promise<void> => {
+//   return runUpgrade([], {}, 'no-args', async (config): ?Promise<void> => {
+//     await expectInstalledDependency(config, 'left-pad', '^1.0.0', '1.1.3');
+//   });
+// });
 
-test.concurrent('works with single argument', (): Promise<void> => {
-  return runUpgrade(['max-safe-integer'], {}, 'single-package', async (config): ?Promise<void> => {
-    await expectInstalledDependency(config, 'left-pad', '^1.0.0', '1.0.0');
-    await expectInstalledDependency(config, 'max-safe-integer', '^1.0.0', '1.0.1');
-  });
-});
+// test.concurrent('works with single argument', (): Promise<void> => {
+//   return runUpgrade(['max-safe-integer'], {}, 'single-package', async (config): ?Promise<void> => {
+//     await expectInstalledDependency(config, 'left-pad', '^1.0.0', '1.0.0');
+//     await expectInstalledDependency(config, 'max-safe-integer', '^1.0.0', '1.0.1');
+//   });
+// });
 
-test.concurrent('works with multiple arguments', (): Promise<void> => {
-  return runUpgrade(['left-pad', 'max-safe-integer'], {}, 'multiple-packages', async (config): ?Promise<void> => {
+// test.concurrent('works with multiple arguments', (): Promise<void> => {
+//   return runUpgrade(['left-pad', 'max-safe-integer'], {}, 'multiple-packages', async (config): ?Promise<void> => {
 
-    await expectInstalledDependency(config, 'left-pad', '^1.0.0', '1.1.3');
-    await expectInstalledDependency(config, 'max-safe-integer', '^1.0.0', '1.0.1');
-    await expectInstalledDependency(config, 'is-negative-zero', '^1.0.0', '1.0.0');
-  });
-});
+//     await expectInstalledDependency(config, 'left-pad', '^1.0.0', '1.1.3');
+//     await expectInstalledDependency(config, 'max-safe-integer', '^1.0.0', '1.0.1');
+//     await expectInstalledDependency(config, 'is-negative-zero', '^1.0.0', '1.0.0');
+//   });
+// });
 
-test.concurrent('respects dependency type', (): Promise<void> => {
-  return runUpgrade(['left-pad@^1.1.3'], {}, 'respects-dependency-type', async (config): ?Promise<void> => {
-    await expectInstalledDevDependency(config, 'left-pad', '^1.1.3', '1.1.3');
-    await expectInstalledDependency(config, 'max-safe-integer', '^1.0.0', '1.0.0');
-  });
-});
+// test.concurrent('respects dependency type', (): Promise<void> => {
+//   return runUpgrade(['left-pad@^1.1.3'], {}, 'respects-dependency-type', async (config): ?Promise<void> => {
+//     await expectInstalledDevDependency(config, 'left-pad', '^1.1.3', '1.1.3');
+//     await expectInstalledDependency(config, 'max-safe-integer', '^1.0.0', '1.0.0');
+//   });
+// });
 
-test.concurrent('respects --ignore-engines flag', (): Promise<void> => {
-  return runUpgrade(['hawk@0.10'], {ignoreEngines: true}, 'respects-ignore-engines-flag', async (config): ?Promise<
-    void,
-  > => {
-    await expectInstalledDependency(config, 'hawk', '0.10', '0.10.2');
-  });
-});
+// test.concurrent('respects --ignore-engines flag', (): Promise<void> => {
+//   return runUpgrade(['hawk@0.10'], {ignoreEngines: true}, 'respects-ignore-engines-flag', async (config): ?Promise<
+//     void,
+//   > => {
+//     await expectInstalledDependency(config, 'hawk', '0.10', '0.10.2');
+//   });
+// });
 
-test.concurrent('upgrades from fixed version to latest', (): Promise<void> => {
-  return runUpgrade(['max-safe-integer'], {latest: true}, 'fixed-to-latest', async (config): ?Promise<void> => {
-    await expectInstalledDependency(config, 'max-safe-integer', '1.0.1', '1.0.1');
-  });
-});
+// test.concurrent('upgrades from fixed version to latest', (): Promise<void> => {
+//   return runUpgrade(['max-safe-integer'], {latest: true}, 'fixed-to-latest', async (config): ?Promise<void> => {
+//     await expectInstalledDependency(config, 'max-safe-integer', '1.0.1', '1.0.1');
+//   });
+// });
 
-test.concurrent('upgrades to latest matching package.json semver when no package name passed', (): Promise<void> => {
-  return runUpgrade([], {}, 'range-to-latest', async (config): ?Promise<void> => {
-    await expectInstalledDependency(config, 'left-pad', '<=1.1.1', '1.1.1');
-  });
-});
+// test.concurrent('upgrades to latest matching package.json semver when no package name passed', (): Promise<void> => {
+//   return runUpgrade([], {}, 'range-to-latest', async (config): ?Promise<void> => {
+//     await expectInstalledDependency(config, 'left-pad', '<=1.1.1', '1.1.1');
+//   });
+// });
 
-test.concurrent('--latest upgrades to latest ignoring package.json when no package name passed', (): Promise<void> => {
-  return runUpgrade([], {latest: true}, 'range-to-latest', async (config): ?Promise<void> => {
-    await expectInstalledDependency(config, 'left-pad', '<=1.1.3', '1.1.3');
-  });
-});
+// test.concurrent('--latest upgrades to latest ignoring package.json when no package name passed', (): Promise<void> => {
+//   return runUpgrade([], {latest: true}, 'range-to-latest', async (config): ?Promise<void> => {
+//     await expectInstalledDependency(config, 'left-pad', '<=1.1.3', '1.1.3');
+//   });
+// });
 
-test.concurrent('upgrades to latest matching semver when package name passed with version', (): Promise<void> => {
-  return runUpgrade(['left-pad@~1.1.2'], {}, 'range-to-latest', async (config): ?Promise<void> => {
-    await expectInstalledDependency(config, 'left-pad', '~1.1.2', '1.1.3');
-  });
-});
+// test.concurrent('upgrades to latest matching semver when package name passed with version', (): Promise<void> => {
+//   return runUpgrade(['left-pad@~1.1.2'], {}, 'range-to-latest', async (config): ?Promise<void> => {
+//     await expectInstalledDependency(config, 'left-pad', '~1.1.2', '1.1.3');
+//   });
+// });
 
-test.concurrent('--latest upgrades to passed in version when package name passed with version', (): Promise<void> => {
-  return runUpgrade(['left-pad@1.1.2'], {latest: true}, 'range-to-latest', async (config): ?Promise<void> => {
-    await expectInstalledDependency(config, 'left-pad', '1.1.2', '1.1.2');
-  });
-});
+// test.concurrent('--latest upgrades to passed in version when package name passed with version', (): Promise<void> => {
+//   return runUpgrade(['left-pad@1.1.2'], {latest: true}, 'range-to-latest', async (config): ?Promise<void> => {
+//     await expectInstalledDependency(config, 'left-pad', '1.1.2', '1.1.2');
+//   });
+// });
 
-test.concurrent('upgrades to latest matching package.json semver when package name passed', (): Promise<void> => {
-  return runUpgrade(['left-pad'], {}, 'range-to-latest', async (config): ?Promise<void> => {
-    await expectInstalledDependency(config, 'left-pad', '<=1.1.1', '1.1.1');
-  });
-});
+// test.concurrent('upgrades to latest matching package.json semver when package name passed', (): Promise<void> => {
+//   return runUpgrade(['left-pad'], {}, 'range-to-latest', async (config): ?Promise<void> => {
+//     await expectInstalledDependency(config, 'left-pad', '<=1.1.1', '1.1.1');
+//   });
+// });
 
-test.concurrent('upgrades dependency packages not in registry', (): Promise<void> => {
-  const packages = ['yarn-test-git-repo', 'e2e-test-repo'];
-  return runUpgrade(packages, {}, 'package-not-in-registry', async (config): ?Promise<void> => {
-    const lockfile = explodeLockfile(await fs.readFile(path.join(config.cwd, 'yarn.lock')));
-    const gitRemote = 'https://github.com/yarnpkg/e2e-test-repo';
+// test.concurrent('upgrades dependency packages not in registry', (): Promise<void> => {
+//   const packages = ['yarn-test-git-repo', 'e2e-test-repo'];
+//   return runUpgrade(packages, {}, 'package-not-in-registry', async (config): ?Promise<void> => {
+//     const lockfile = explodeLockfile(await fs.readFile(path.join(config.cwd, 'yarn.lock')));
+//     const gitRemote = 'https://github.com/yarnpkg/e2e-test-repo';
 
-    const lockFileIncludes = sha => lockfile.includes(`  resolved "${gitRemote}#${sha}"`);
+//     const lockFileIncludes = sha => lockfile.includes(`  resolved "${gitRemote}#${sha}"`);
 
-    expect(lockfile.includes(`"yarn-test-git-repo@${gitRemote}#master":`)).toEqual(
-      true,
-      'Lockfile should point to the same yarn-test-git-repo branch.',
-    );
+//     expect(lockfile.includes(`"yarn-test-git-repo@${gitRemote}#master":`)).toEqual(
+//       true,
+//       'Lockfile should point to the same yarn-test-git-repo branch.',
+//     );
 
-    expect(lockFileIncludes('d2027157d0c7188fc9ed6a6654325d1e3bf4db40')).toEqual(
-      false,
-      'Lockfile should update yarn-test-git-repo SHA.',
-    );
+//     expect(lockFileIncludes('d2027157d0c7188fc9ed6a6654325d1e3bf4db40')).toEqual(
+//       false,
+//       'Lockfile should update yarn-test-git-repo SHA.',
+//     );
 
-    expect(lockfile.includes(`"e2e-test-repo@${gitRemote}#greenkeeper/cross-env-3.1.4":`)).toEqual(
-      true,
-      'Lockfile should point to the same e2e-test-repo branch.',
-    );
+//     expect(lockfile.includes(`"e2e-test-repo@${gitRemote}#greenkeeper/cross-env-3.1.4":`)).toEqual(
+//       true,
+//       'Lockfile should point to the same e2e-test-repo branch.',
+//     );
 
-    expect(lockFileIncludes('da5940e1ad2b7451c00edffb6e755bf2411fc705')).toEqual(
-      true,
-      'Lockfile should keep latest e2e-test-repo SHA.',
-    );
-  });
-});
+//     expect(lockFileIncludes('da5940e1ad2b7451c00edffb6e755bf2411fc705')).toEqual(
+//       true,
+//       'Lockfile should keep latest e2e-test-repo SHA.',
+//     );
+//   });
+// });
 
-test.concurrent('upgrades dev dependency packages not in registry', (): Promise<void> => {
-  const packages = ['yarn-test-git-repo', 'e2e-test-repo'];
-  return runUpgrade(packages, {}, 'package-not-in-registry-dev', async (config): ?Promise<void> => {
-    const lockfile = explodeLockfile(await fs.readFile(path.join(config.cwd, 'yarn.lock')));
-    const gitRemote = 'https://github.com/yarnpkg/e2e-test-repo';
+// test.concurrent('upgrades dev dependency packages not in registry', (): Promise<void> => {
+//   const packages = ['yarn-test-git-repo', 'e2e-test-repo'];
+//   return runUpgrade(packages, {}, 'package-not-in-registry-dev', async (config): ?Promise<void> => {
+//     const lockfile = explodeLockfile(await fs.readFile(path.join(config.cwd, 'yarn.lock')));
+//     const gitRemote = 'https://github.com/yarnpkg/e2e-test-repo';
 
-    const lockFileIncludes = sha => lockfile.includes(`  resolved "${gitRemote}#${sha}"`);
+//     const lockFileIncludes = sha => lockfile.includes(`  resolved "${gitRemote}#${sha}"`);
 
-    expect(lockfile.includes(`"yarn-test-git-repo@${gitRemote}#master":`)).toEqual(
-      true,
-      'Lockfile should point to the same yarn-test-git-repo branch.',
-    );
+//     expect(lockfile.includes(`"yarn-test-git-repo@${gitRemote}#master":`)).toEqual(
+//       true,
+//       'Lockfile should point to the same yarn-test-git-repo branch.',
+//     );
 
-    expect(lockFileIncludes('d2027157d0c7188fc9ed6a6654325d1e3bf4db40')).toEqual(
-      false,
-      'Lockfile should update yarn-test-git-repo SHA.',
-    );
+//     expect(lockFileIncludes('d2027157d0c7188fc9ed6a6654325d1e3bf4db40')).toEqual(
+//       false,
+//       'Lockfile should update yarn-test-git-repo SHA.',
+//     );
 
-    expect(lockfile.includes(`"e2e-test-repo@${gitRemote}#greenkeeper/cross-env-3.1.4":`)).toEqual(
-      true,
-      'Lockfile should point to the same e2e-test-repo branch.',
-    );
+//     expect(lockfile.includes(`"e2e-test-repo@${gitRemote}#greenkeeper/cross-env-3.1.4":`)).toEqual(
+//       true,
+//       'Lockfile should point to the same e2e-test-repo branch.',
+//     );
 
-    expect(lockFileIncludes('da5940e1ad2b7451c00edffb6e755bf2411fc705')).toEqual(
-      true,
-      'Lockfile should keep latest e2e-test-repo SHA.',
-    );
-  });
-});
+//     expect(lockFileIncludes('da5940e1ad2b7451c00edffb6e755bf2411fc705')).toEqual(
+//       true,
+//       'Lockfile should keep latest e2e-test-repo SHA.',
+//     );
+//   });
+// });
 
-test.concurrent('upgrades optional dependency packages not in registry', (): Promise<void> => {
-  const packages = ['yarn-test-git-repo', 'e2e-test-repo'];
-  return runUpgrade(packages, {}, 'package-not-in-registry-optional', async (config): ?Promise<void> => {
-    const lockfile = explodeLockfile(await fs.readFile(path.join(config.cwd, 'yarn.lock')));
-    const gitRemote = 'https://github.com/yarnpkg/e2e-test-repo';
+// test.concurrent('upgrades optional dependency packages not in registry', (): Promise<void> => {
+//   const packages = ['yarn-test-git-repo', 'e2e-test-repo'];
+//   return runUpgrade(packages, {}, 'package-not-in-registry-optional', async (config): ?Promise<void> => {
+//     const lockfile = explodeLockfile(await fs.readFile(path.join(config.cwd, 'yarn.lock')));
+//     const gitRemote = 'https://github.com/yarnpkg/e2e-test-repo';
 
-    const lockFileIncludes = sha => lockfile.includes(`  resolved "${gitRemote}#${sha}"`);
+//     const lockFileIncludes = sha => lockfile.includes(`  resolved "${gitRemote}#${sha}"`);
 
-    expect(lockfile.includes(`"yarn-test-git-repo@${gitRemote}#master":`)).toEqual(
-      true,
-      'Lockfile should point to the same yarn-test-git-repo branch.',
-    );
+//     expect(lockfile.includes(`"yarn-test-git-repo@${gitRemote}#master":`)).toEqual(
+//       true,
+//       'Lockfile should point to the same yarn-test-git-repo branch.',
+//     );
 
-    expect(lockFileIncludes('d2027157d0c7188fc9ed6a6654325d1e3bf4db40')).toEqual(
-      false,
-      'Lockfile should update yarn-test-git-repo SHA.',
-    );
+//     expect(lockFileIncludes('d2027157d0c7188fc9ed6a6654325d1e3bf4db40')).toEqual(
+//       false,
+//       'Lockfile should update yarn-test-git-repo SHA.',
+//     );
 
-    expect(lockfile.includes(`"e2e-test-repo@${gitRemote}#greenkeeper/cross-env-3.1.4":`)).toEqual(
-      true,
-      'Lockfile should point to the same e2e-test-repo branch.',
-    );
+//     expect(lockfile.includes(`"e2e-test-repo@${gitRemote}#greenkeeper/cross-env-3.1.4":`)).toEqual(
+//       true,
+//       'Lockfile should point to the same e2e-test-repo branch.',
+//     );
 
-    expect(lockFileIncludes('da5940e1ad2b7451c00edffb6e755bf2411fc705')).toEqual(
-      true,
-      'Lockfile should keep latest e2e-test-repo SHA.',
-    );
-  });
-});
+//     expect(lockFileIncludes('da5940e1ad2b7451c00edffb6e755bf2411fc705')).toEqual(
+//       true,
+//       'Lockfile should keep latest e2e-test-repo SHA.',
+//     );
+//   });
+// });
 
 // test.concurrent('upgrades peer dependency packages not in registry', (): Promise<void> => {
 //   const packages = ['yarn-test-git-repo', 'e2e-test-repo'];
@@ -311,17 +311,17 @@ test.concurrent('upgrades optional dependency packages not in registry', (): Pro
 //   });
 // });
 
-// test.concurrent('respects --scope flag', (): Promise<void> => {
-//   return runUpgrade([], {scope: '@angular', latest: true}, 'respects-scope-flag', async (config): ?Promise<void> => {
-//     const lockfile = explodeLockfile(await fs.readFile(path.join(config.cwd, 'yarn.lock')));
-//     const pkg = await fs.readJson(path.join(config.cwd, 'package.json'));
+test.only.concurrent('respects --scope flag', (): Promise<void> => {
+  return runUpgrade([], {scope: '@angular', latest: true}, 'respects-scope-flag', async (config): ?Promise<void> => {
+    const lockfile = explodeLockfile(await fs.readFile(path.join(config.cwd, 'yarn.lock')));
+    const pkg = await fs.readJson(path.join(config.cwd, 'package.json'));
 
-//     expect(lockfile.indexOf('"@angular-mdl/core@4.0.0":')).toBeGreaterThanOrEqual(0);
-//     expect(lockfile.indexOf('"@angular/core@2.4.9":')).toEqual(-1);
-//     expect(lockfile.indexOf('left-pad@1.0.0:')).toBeGreaterThanOrEqual(0);
+    expect(lockfile.indexOf('"@angular-mdl/core@4.0.0":')).toBeGreaterThanOrEqual(0);
+    expect(lockfile.indexOf('"@angular/core@2.4.9":')).toEqual(-1);
+    expect(lockfile.indexOf('left-pad@1.0.0:')).toBeGreaterThanOrEqual(0);
 
-//     expect(pkg.dependencies['@angular-mdl/core']).toEqual('4.0.0');
-//     expect(pkg.dependencies['@angular/core']).not.toEqual('2.4.9');
-//     expect(pkg.dependencies['left-pad']).toEqual('1.0.0');
-//   });
-// });
+    expect(pkg.dependencies['@angular-mdl/core']).toEqual('4.0.0');
+    expect(pkg.dependencies['@angular/core']).not.toEqual('2.4.9');
+    expect(pkg.dependencies['left-pad']).toEqual('1.0.0');
+  });
+});
