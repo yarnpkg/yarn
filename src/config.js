@@ -39,6 +39,7 @@ export type ConfigOptions = {
   ignoreEngines?: boolean,
   cafile?: ?string,
   production?: boolean,
+  disablePrepublish?: boolean,
   binLinks?: boolean,
   networkConcurrency?: number,
   childConcurrency?: number,
@@ -143,6 +144,8 @@ export default class Config {
   ignoreScripts: boolean;
 
   production: boolean;
+
+  disablePrepublish: boolean;
 
   nonInteractive: boolean;
 
@@ -327,6 +330,8 @@ export default class Config {
 
     this.ignorePlatform = !!opts.ignorePlatform;
     this.ignoreScripts = !!opts.ignoreScripts;
+
+    this.disablePrepublish = !!opts.disablePrepublish;
 
     this.nonInteractive = !!opts.nonInteractive;
 

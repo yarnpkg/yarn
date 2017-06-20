@@ -48,7 +48,10 @@ const NEVER_IGNORE = ignoreLinesToRegex([
   '!/+(changes|changelog|history)*',
 ]);
 
-export async function pack(config: Config, dir: string): Promise<stream$Duplex> {
+export async function packTarball(
+  config: Config,
+  {mapHeader}: {mapHeader?: Object => Object} = {},
+): Promise<stream$Duplex> {
   const pkg = await config.readRootManifest();
   const {bundledDependencies, main, files: onlyFiles} = pkg;
 
@@ -123,10 +126,15 @@ export async function pack(config: Config, dir: string): Promise<stream$Duplex> 
       header.name = `package${suffix}`;
       delete header.uid;
       delete header.gid;
-      return header;
+      return mapHeader ? mapHeader(header) : header;
     },
   });
 
+  return packer;
+}
+
+export async function pack(config: Config, dir: string): Promise<stream$Duplex> {
+  const packer = await packTarball(config);
   const compressor = packer.pipe(new zlib.Gzip());
 
   return compressor;

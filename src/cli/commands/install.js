@@ -823,6 +823,13 @@ export function setFlags(commander: Object) {
   commander.option('-T, --save-tilde', 'DEPRECATED');
 }
 
+export async function install(config: Config, reporter: Reporter, flags: Object, lockfile: Lockfile): Promise<void> {
+  await wrapLifecycle(config, flags, async () => {
+    const install = new Install(flags, config, reporter, lockfile);
+    await install.init();
+  });
+}
+
 export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
   let lockfile;
   if (flags.lockfile === false) {
@@ -855,10 +862,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
     throw new MessageError(reporter.lang('installCommandRenamed', `yarn ${command} ${exampleArgs.join(' ')}`));
   }
 
-  await wrapLifecycle(config, flags, async () => {
-    const install = new Install(flags, config, reporter, lockfile);
-    await install.init();
-  });
+  await install(config, reporter, flags, lockfile);
 }
 
 export async function wrapLifecycle(config: Config, flags: Object, factory: () => Promise<void>): Promise<void> {
@@ -871,7 +875,9 @@ export async function wrapLifecycle(config: Config, flags: Object, factory: () =
   await config.executeLifecycleScript('postinstall');
 
   if (!config.production) {
-    await config.executeLifecycleScript('prepublish');
+    if (!config.disablePrepublish) {
+      await config.executeLifecycleScript('prepublish');
+    }
     await config.executeLifecycleScript('prepare');
   }
 }
