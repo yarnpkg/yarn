@@ -342,7 +342,6 @@ export default class Git {
               fileContent += decoder.write(buffer);
             });
             stream.on('end', () => {
-              // $FlowFixMe: suppressing this error due to bug https://github.com/facebook/flow/pull/3483
               const remaining: string = decoder.end();
               update(fileContent + remaining);
               next();

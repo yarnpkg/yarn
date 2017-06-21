@@ -22,7 +22,7 @@ export function setFlags(commander: Object) {
   commander.option('--tag [tag]', 'tag');
 }
 
-export function hasWrapper(): boolean {
+export function hasWrapper(commander: Object, args: Array<string>): boolean {
   return true;
 }
 

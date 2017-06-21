@@ -74,7 +74,6 @@ export default class TarballResolver extends ExoticResolver {
           hash,
         },
         this.config,
-        false,
       );
 
       // fetch file and get it's hash

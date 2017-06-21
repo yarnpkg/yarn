@@ -17,7 +17,7 @@ export function setFlags(commander: Object) {
   commander.option('-T, --tilde', 'install most recent release with the same minor version');
 }
 
-export function hasWrapper(): boolean {
+export function hasWrapper(commander: Object, args: Array<string>): boolean {
   return true;
 }
 
