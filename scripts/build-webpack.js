@@ -23,6 +23,7 @@ const compiler = webpack({
         test: /\.js$/,
         exclude: /node_modules/,
         loader: 'babel-loader',
+        query: babelRc.env['node6'],
       },
     ],
   },

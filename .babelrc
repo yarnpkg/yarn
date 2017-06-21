@@ -39,7 +39,8 @@
         ["transform-flow-strip-types"],
         ["transform-object-rest-spread"],
         ["transform-class-properties"],
-        ["transform-inline-imports-commonjs"]
+        ["transform-inline-imports-commonjs"],
+        ["transform-runtime", { "polyfill": false, "regenerator": true }]
       ]
     }
   }
