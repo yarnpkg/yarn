@@ -1,0 +1,8 @@
+{
+  "name": "a",
+  "version": "2.0.0",
+  "dependencies": {
+    "b": "file:../b-1",
+    "c": "file:../c-2"
+  }
+}

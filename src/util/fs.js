@@ -450,6 +450,8 @@ async function buildActionsForHardlink(
 
       // push all files to queue
       invariant(srcFiles, 'src files not initialised');
+      // hardlinking is per package, not going into sub packages
+      srcFiles = srcFiles.filter(f => f !== 'node_modules');
       let remaining = srcFiles.length;
       if (!remaining) {
         onDone();
