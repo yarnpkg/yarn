@@ -12,7 +12,7 @@
         ["transform-object-rest-spread"],
         ["transform-class-properties"],
         ["transform-inline-imports-commonjs"],
-        ["transform-runtime", { "polyfill": true, "regenerator": false }]
+        ["transform-runtime", { "polyfill": true, "regenerator": true }]
       ]
     },
     "node6": {
@@ -32,7 +32,7 @@
     "test": {
       "presets": [["env", {
         "targets": {
-          "node": 4
+          "node": "current"
         }
       }]],
       "plugins": [
