@@ -4,6 +4,7 @@
     "pre-node5": {
       "presets": ["es2015-node4"],
       "plugins": [
+        ["transform-flow-strip-types"],
         ["transform-inline-imports-commonjs"],
         ["transform-runtime", { "polyfill": true, "regenerator": false }]
       ]
@@ -17,6 +18,7 @@
   },
   "presets": ["node5", "stage-0"],
   "plugins": [
+    ["transform-flow-strip-types"],
     ["transform-inline-imports-commonjs"],
     ["transform-runtime", { "polyfill": false, "regenerator": true }]
   ]
