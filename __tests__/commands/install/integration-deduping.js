@@ -220,3 +220,21 @@ test.concurrent('install should not hardlink repeated dependencies if linkDuplic
     expect(b_a.ino).not.toEqual(c_a.ino);
   });
 });
+
+test.concurrent('install should not copy node_modules when hardlinking', (): Promise<void> => {
+  // https://github.com/yarnpkg/yarn/issues/2734
+  // A@1 -> B@1 -> C@1
+  //     -> C@2
+  // B@2
+  // C@2
+  // D@1 -> B@1 (hardlink) -> C@1 (hardlink)
+  //     -> C@2
+  return runInstall({linkDuplicates: true}, 'hardlink-collision', async config => {
+    let a_1 = await fs.stat(path.join(config.cwd, 'node_modules/a/node_modules/b/package.json'));
+    let d_1 = await fs.stat(path.join(config.cwd, 'node_modules/d/node_modules/b/package.json'));
+    expect(a_1.ino).toEqual(d_1.ino);
+    a_1 = await fs.stat(path.join(config.cwd, 'node_modules/a/node_modules/b/node_modules/c/package.json'));
+    d_1 = await fs.stat(path.join(config.cwd, 'node_modules/d/node_modules/b/node_modules/c/package.json'));
+    expect(a_1.ino).toEqual(d_1.ino);
+  });
+});
