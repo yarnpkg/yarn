@@ -79,7 +79,11 @@ export async function makeEnv(
         if (cleanVal.indexOf('\n') >= 0) {
           cleanVal = JSON.stringify(cleanVal);
         }
-        env[`npm_package_${key}`] = cleanVal;
+
+        //replacing invalid chars with underscore
+        const cleanKey = key.replace(/[^a-zA-Z0-9_]/g, '_');
+
+        env[`npm_package_${cleanKey}`] = cleanVal;
       }
     }
   }
