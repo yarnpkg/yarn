@@ -78,3 +78,9 @@ export function compareSortedArrays<T>(array1: Array<T>, array2: Array<T>): bool
   }
   return true;
 }
+
+export function sleep(ms: number): Promise<void> {
+  return new Promise(resolve => {
+    setTimeout(resolve, ms);
+  });
+}
