@@ -40,7 +40,7 @@
         ["transform-object-rest-spread"],
         ["transform-class-properties"],
         ["transform-inline-imports-commonjs"],
-        ["transform-runtime", { "polyfill": false, "regenerator": true }]
+        ["transform-runtime", { "polyfill": true, "regenerator": true }]
       ]
     }
   }
