@@ -32,7 +32,7 @@
     "test": {
       "presets": [["env", {
         "targets": {
-          "node": "current"
+          "node": 4
         }
       }]],
       "plugins": [
