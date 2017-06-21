@@ -1,19 +1,46 @@
 {
   "only": "*.js",
   "env": {
-    "pre-node5": {
-      "presets": ["es2015-node4"],
+    "node4": {
+      "presets": [["env", {
+        "targets": {
+          "node": 4
+        }
+      }]],
       "plugins": [
         ["transform-flow-strip-types"],
+        ["transform-object-rest-spread"],
+        ["transform-class-properties"],
         ["transform-inline-imports-commonjs"],
         ["transform-runtime", { "polyfill": true, "regenerator": false }]
       ]
+    },
+    "node6": {
+      "presets": [["env", {
+        "targets": {
+          "node": 6
+        }
+      }]],
+      "plugins": [
+        ["transform-flow-strip-types"],
+        ["transform-object-rest-spread"],
+        ["transform-class-properties"],
+        ["transform-inline-imports-commonjs"],
+        ["transform-runtime", { "polyfill": false, "regenerator": true }]
+      ]
+    },
+    "test": {
+      "presets": [["env", {
+        "targets": {
+          "node": "current"
+        }
+      }]],
+      "plugins": [
+        ["transform-flow-strip-types"],
+        ["transform-object-rest-spread"],
+        ["transform-class-properties"],
+        ["transform-inline-imports-commonjs"]
+      ]
     }
-  },
-  "presets": ["node5", "stage-0"],
-  "plugins": [
-    ["transform-flow-strip-types"],
-    ["transform-inline-imports-commonjs"],
-    ["transform-runtime", { "polyfill": false, "regenerator": true }]
-  ]
+  }
 }
