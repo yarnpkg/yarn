@@ -75,11 +75,12 @@ export async function makeEnv(
           queue.push([completeKey, val[subKey]]);
         }
       } else if (IGNORE_MANIFEST_KEYS.indexOf(key) < 0) {
+        const normalizedKey = key.replace(/-/g, '_');
         let cleanVal = String(val);
         if (cleanVal.indexOf('\n') >= 0) {
           cleanVal = JSON.stringify(cleanVal);
         }
-        env[`npm_package_${key}`] = cleanVal;
+        env[`npm_package_${normalizedKey}`] = cleanVal;
       }
     }
   }
