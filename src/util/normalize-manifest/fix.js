@@ -32,7 +32,7 @@ export default (async function(
   const files = await fs.readdir(moduleLoc);
 
   // clean info.version
-  if (typeof info.version === 'string' && !semver.valid(info.version)) {
+  if (typeof info.version === 'string') {
     info.version = semver.clean(info.version, looseSemver) || info.version;
   }
 
