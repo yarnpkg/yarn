@@ -326,6 +326,12 @@ test.concurrent('install file: local packages with local dependencies', async ()
   });
 });
 
+test.concurrent('install file: install without manifest of dependency', async (): Promise<void> => {
+  await runInstall({}, 'install-file-without-manifest', async (config, reporter) => {
+    expect(await fs.readFile(path.join(config.cwd, 'node_modules', 'foo', 'index.js'))).toEqual('bar\n');
+  });
+});
+
 test.concurrent('install file: link file dependencies', async (): Promise<void> => {
   await runInstall({}, 'install-file-link-dependencies', async (config, reporter) => {
     const statA = await fs.lstat(path.join(config.cwd, 'node_modules', 'a'));

@@ -60,6 +60,8 @@ addTest('https://git@github.com/stevemao/left-pad.git'); // git url, with userna
 addTest('https://bitbucket.org/hgarcia/node-bitbucket-api.git'); // hosted git url
 addTest('https://github.com/yarnpkg/yarn/releases/download/v0.18.1/yarn-v0.18.1.tar.gz'); // tarball
 addTest('https://github.com/yarnpkg/e2e-test-repo.git#greenkeeper/cross-env-3.1.4'); // hash with slashes
+addTest('https://github.com/bestander/chrome-app-livereload.git'); // no package.json
+addTest('livereload@https://github.com/bestander/chrome-app-livereload.git'); // no package.json, named
 addTest('gitlab:leanlabsio/kanban'); // gitlab
 addTest('gist:d59975ac23e26ad4e25b'); // gist url
 addTest('bitbucket:hgarcia/node-bitbucket-api'); // bitbucket url

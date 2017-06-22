@@ -477,14 +477,16 @@ export default class Config {
    * throw an error if package.json was not found
    */
 
-  async readManifest(dir: string, priorityRegistry?: RegistryNames, isRoot?: boolean = false): Promise<Manifest> {
-    const manifest = await this.maybeReadManifest(dir, priorityRegistry, isRoot);
+  readManifest(dir: string, priorityRegistry?: RegistryNames, isRoot?: boolean = false): Promise<Manifest> {
+    return this.getCache(`manifest-${dir}`, async (): Promise<Manifest> => {
+      const manifest = await this.maybeReadManifest(dir, priorityRegistry, isRoot);
 
-    if (manifest) {
-      return manifest;
-    } else {
-      throw new MessageError(this.reporter.lang('couldntFindPackagejson', dir), 'ENOENT');
-    }
+      if (manifest) {
+        return manifest;
+      } else {
+        throw new MessageError(this.reporter.lang('couldntFindPackagejson', dir), 'ENOENT');
+      }
+    });
   }
 
   /**
@@ -492,33 +494,40 @@ export default class Config {
  * 1. mainfest file in cache
  * 2. manifest file in registry
  */
-  maybeReadManifest(dir: string, priorityRegistry?: RegistryNames, isRoot?: boolean = false): Promise<?Manifest> {
-    return this.getCache(`manifest-${dir}`, async (): Promise<?Manifest> => {
-      const metadataLoc = path.join(dir, constants.METADATA_FILENAME);
-      if (!priorityRegistry && (await fs.exists(metadataLoc))) {
-        ({registry: priorityRegistry} = await this.readJson(metadataLoc));
+  async maybeReadManifest(dir: string, priorityRegistry?: RegistryNames, isRoot?: boolean = false): Promise<?Manifest> {
+    const metadataLoc = path.join(dir, constants.METADATA_FILENAME);
+
+    if (await fs.exists(metadataLoc)) {
+      const metadata = await this.readJson(metadataLoc);
+
+      if (!priorityRegistry) {
+        priorityRegistry = metadata.priorityRegistry;
       }
 
-      if (priorityRegistry) {
-        const file = await this.tryManifest(dir, priorityRegistry, isRoot);
-        if (file) {
-          return file;
-        }
+      if (typeof metadata.manifest !== 'undefined') {
+        return metadata.manifest;
+      }
+    }
+
+    if (priorityRegistry) {
+      const file = await this.tryManifest(dir, priorityRegistry, isRoot);
+      if (file) {
+        return file;
+      }
+    }
+
+    for (const registry of Object.keys(registries)) {
+      if (priorityRegistry === registry) {
+        continue;
       }
 
-      for (const registry of Object.keys(registries)) {
-        if (priorityRegistry === registry) {
-          continue;
-        }
-
-        const file = await this.tryManifest(dir, registry, isRoot);
-        if (file) {
-          return file;
-        }
+      const file = await this.tryManifest(dir, registry, isRoot);
+      if (file) {
+        return file;
       }
+    }
 
-      return null;
-    });
+    return null;
   }
 
   /**

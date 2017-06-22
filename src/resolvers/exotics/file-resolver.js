@@ -48,7 +48,23 @@ export default class FileResolver extends ExoticResolver {
       throw new MessageError(this.reporter.lang('doesntExist', loc));
     }
 
-    const manifest = await this.config.readManifest(loc, this.registry);
+    const manifest: Manifest = await (async () => {
+      try {
+        return await this.config.readManifest(loc, this.registry);
+      } catch (e) {
+        if (e.code === 'ENOENT') {
+          return {
+            // This is just the default, it can be overridden with key of dependencies
+            name: path.dirname(loc),
+            version: '0.0.0',
+            _uid: '0.0.0',
+            _registry: 'npm',
+          };
+        }
+
+        throw e;
+      }
+    })();
     const registry = manifest._registry;
     invariant(registry, 'expected registry');
 
