@@ -471,7 +471,10 @@ export default class PackageResolver {
     this.frozen = Boolean(isFrozen);
     this.workspaceLayout = workspaceLayout;
     const activity = (this.activity = this.reporter.activity());
-    await Promise.all(deps.map((req): Promise<void> => this.find(req)));
+
+    for (const req of deps) {
+      await this.find(req);
+    }
 
     // all required package versions have been discovered, so now packages that
     // resolved to existing versions can be resolved to their best available version
