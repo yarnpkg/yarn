@@ -13,8 +13,8 @@ export const requireLockfile = true;
 
 export function setFlags(commander: Object) {
   commander.usage('upgrade-interactive');
-  commander.option('-E, --exact', 'install exact version');
-  commander.option('-T, --tilde', 'install most recent release with the same minor version');
+  commander.option('-E, --exact', 'upgrade to most recent release with exact version');
+  commander.option('-T, --tilde', 'upgrade to most recent release with patch version');
 }
 
 export function hasWrapper(commander: Object, args: Array<string>): boolean {
