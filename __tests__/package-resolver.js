@@ -62,6 +62,8 @@ addTest('https://github.com/yarnpkg/yarn/releases/download/v0.18.1/yarn-v0.18.1.
 addTest('https://github.com/yarnpkg/e2e-test-repo.git#greenkeeper/cross-env-3.1.4'); // hash with slashes
 addTest('https://github.com/bestander/chrome-app-livereload.git'); // no package.json
 addTest('livereload@https://github.com/bestander/chrome-app-livereload.git'); // no package.json, named
+addTest('bestander/chrome-app-livereload'); // no package.json, github
+addTest('livereload@https://github.com/bestander/chrome-app-livereload/archive/0.0.5.tar.gz'); // no package.json, targz
 addTest('gitlab:leanlabsio/kanban'); // gitlab
 addTest('gist:d59975ac23e26ad4e25b'); // gist url
 addTest('bitbucket:hgarcia/node-bitbucket-api'); // bitbucket url
