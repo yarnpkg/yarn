@@ -106,11 +106,11 @@ export async function getToken(config: Config, reporter: Reporter, name: string 
   }
 }
 
-export function hasWrapper(): boolean {
+export function hasWrapper(commander: Object, args: Array<string>): boolean {
   return true;
 }
 
-export function setFlags() {}
+export function setFlags(commander: Object) {}
 
 export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
   await getCredentials(config, reporter);

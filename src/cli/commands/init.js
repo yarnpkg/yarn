@@ -15,7 +15,7 @@ export function setFlags(commander: Object) {
   commander.option('-y, --yes', 'use default options');
 }
 
-export function hasWrapper(): boolean {
+export function hasWrapper(commander: Object, args: Array<string>): boolean {
   return true;
 }
 

@@ -108,9 +108,9 @@ function getSharedDependencies(hoistManifests: HoistManifestTuples, transitiveKe
   return sharedDependencies;
 }
 
-export function setFlags() {}
+export function setFlags(commander: Object) {}
 
-export function hasWrapper(): boolean {
+export function hasWrapper(commander: Object, args: Array<string>): boolean {
   return true;
 }
 

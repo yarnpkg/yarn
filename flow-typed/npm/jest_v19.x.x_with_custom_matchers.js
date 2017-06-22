@@ -1,3 +1,6 @@
+// flow-typed signature: 07da7976dee381abd05d21b890d521b9
+// flow-typed version: fcaf13fb04/jest_v19.x.x/flow_>=v0.33.x
+
 type JestMockFn = {
   (...args: Array<any>): any,
   /**
@@ -74,7 +77,7 @@ type JestCallsType = {
 type JestClockType = {
   install(): void,
   mockDate(date: Date): void,
-  tick(): void,
+  tick(milliseconds?:number): void,
   uninstall(): void,
 }
 
@@ -187,6 +190,11 @@ type JestExpectType = {
    */
   toHaveBeenCalledWith(...args: Array<any>): void,
   /**
+   * If you have a mock function, you can use .toHaveBeenLastCalledWith to test what
+   * arguments it was last called with.
+   */
+  toHaveBeenLastCalledWith(...args: Array<any>): void,
+  /**
    * Check that an object has a .length property and it is set to a certain
    * numeric value.
    */
@@ -222,10 +230,12 @@ type JestExpectType = {
    * matching the most recent snapshot when it is called.
    */
   toThrowErrorMatchingSnapshot(): void,
-  /**
-   * Custom function; need to be backported when updating this file
+
+  /*
+   * Custom matcher defined in yarn
    */
-  toContainPackage(packageName: string, path: string): void;
+
+  toContainPackage(uid: string, expectedInstallPath: string): void
 }
 
 type JestObjectType = {
@@ -248,6 +258,11 @@ type JestObjectType = {
    * An un-hoisted version of enableAutomock
    */
   autoMockOn(): JestObjectType,
+  /**
+   * Clears the mock.calls and mock.instances properties of all mocks.
+   * Equivalent to calling .mockClear() on every mocked function.
+   */
+  clearAllMocks(): JestObjectType,
   /**
    * Resets the state of all mocks. Equivalent to calling .mockReset() on every
    * mocked function.
@@ -290,7 +305,7 @@ type JestObjectType = {
    * The third argument can be used to create virtual mocks -- mocks of modules
    * that don't exist anywhere in the system.
    */
-  mock(moduleName: string, moduleFactory?: any): JestObjectType,
+  mock(moduleName: string, moduleFactory?: any, options?: Object): JestObjectType,
   /**
    * Resets the module registry - the cache of all required modules. This is
    * useful to isolate modules where local state might conflict between tests.
@@ -343,6 +358,11 @@ type JestObjectType = {
    * Instructs Jest to use the real versions of the standard timer functions.
    */
   useRealTimers(): JestObjectType,
+  /**
+   * Creates a mock function similar to jest.fn but also tracks calls to
+   * object[methodName].
+   */
+  spyOn(object: Object, methodName: string): JestMockFn,
 }
 
 type JestSpyType = {
@@ -409,12 +429,16 @@ declare var expect: {
   (value: any): JestExpectType,
   /** Add additional Jasmine matchers to Jest's roster */
   extend(matchers: {[name:string]: JestMatcher}): void,
+  /** Add a module that formats application-specific data structures. */
+  addSnapshotSerializer(serializer: (input: Object) => string): void,
   assertions(expectedAssertions: number): void,
   any(value: mixed): JestAsymmetricEqualityType,
   anything(): void,
   arrayContaining(value: Array<mixed>): void,
   objectContaining(value: Object): void,
-  stringMatching(value: string): void,
+  /** Matches any received string that contains the exact expected string. */
+  stringContaining(value: string): void,
+  stringMatching(value: string | RegExp): void,
 };
 
 // TODO handle return type
@@ -435,7 +459,7 @@ declare var jasmine: {
   arrayContaining(value: Array<mixed>): void,
   clock(): JestClockType,
   createSpy(name: string): JestSpyType,
+  createSpyObj(baseName: string, methodNames: Array<string>): {[methodName: string]: JestSpyType},
   objectContaining(value: Object): void,
   stringMatching(value: string): void,
-  addMatchers(matcher: Object): void,
 }

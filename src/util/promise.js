@@ -6,7 +6,7 @@ export function wait(delay: number): Promise<void> {
   });
 }
 
-export function promisify(fn: Function, firstData?: boolean): () => Promise<any> {
+export function promisify(fn: Function, firstData?: boolean): (...args: Array<any>) => Promise<any> {
   return function(...args): Promise<any> {
     return new Promise(function(resolve, reject) {
       args.push(function(err, ...result) {
@@ -31,18 +31,6 @@ export function promisify(fn: Function, firstData?: boolean): () => Promise<any>
       fn.apply(null, args);
     });
   };
-}
-
-export function promisifyObject(obj: {
-  [key: string]: Function,
-}): {
-  [key: string]: () => Promise<any>,
-} {
-  const promisedObj = {};
-  for (const key in obj) {
-    promisedObj[key] = promisify(obj[key]);
-  }
-  return promisedObj;
 }
 
 export function queue<T, U>(

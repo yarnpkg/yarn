@@ -478,7 +478,6 @@ test.concurrent('install should be idempotent', (): Promise<void> => {
       expect(await getPackageVersion(config, 'dep-a')).toEqual('1.0.0');
     },
     null,
-    false,
   );
 
   return runInstall({}, 'install-should-be-idempotent', async (config, reporter) => {
@@ -821,15 +820,10 @@ test.concurrent('prunes the offline mirror tarballs after pruning is enabled', (
 test.concurrent('scoped packages remain in offline mirror after pruning is enabled', (): Promise<void> => {
   return runInstall({}, 'prune-offline-mirror-scoped', async (config): Promise<void> => {
     const mirrorPath = 'mirror-for-offline';
-    // Ensure that scoped packages remain mangled and resolvable
-    expect(await fs.exists(path.join(config.cwd, `${mirrorPath}/@fakescope-fake-dependency-1.0.1.tgz`))).toEqual(
-      true,
-      'scoped package exists',
-    );
-    expect(await fs.exists(path.join(config.cwd, `${mirrorPath}/fake-dependency-1.0.1.tgz`))).toEqual(
-      true,
-      'unscoped package exists',
-    );
+    // scoped package exists
+    expect(await fs.exists(path.join(config.cwd, `${mirrorPath}/@fakescope-fake-dependency-1.0.1.tgz`))).toEqual(true);
+    // unscoped package exists
+    expect(await fs.exists(path.join(config.cwd, `${mirrorPath}/fake-dependency-1.0.1.tgz`))).toEqual(true);
   });
 });
 
