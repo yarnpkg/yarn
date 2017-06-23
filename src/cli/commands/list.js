@@ -7,6 +7,7 @@ import type PackageLinker from '../../package-linker.js';
 import type {Tree, Trees} from '../../reporters/types.js';
 import {Install} from './install.js';
 import Lockfile from '../../lockfile/wrapper.js';
+import minimatch from 'minimatch';
 
 const invariant = require('invariant');
 
@@ -165,8 +166,15 @@ export function filterTree(tree: Tree, filters: Array<string>): boolean {
   }
 
   const notDim = tree.color !== 'dim';
-  const found = filters.indexOf(tree.name.slice(0, tree.name.lastIndexOf('@'))) > -1;
   const hasChildren = tree.children == null ? false : tree.children.length > 0;
+  const name = tree.name.slice(0, tree.name.lastIndexOf('@'));
+  let found = false;
+
+  filters.forEach((filter) => {
+    if (minimatch(name, filter)) {
+      found = true;
+    }
+  });
 
   return notDim && (found || hasChildren);
 }
