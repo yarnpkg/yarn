@@ -107,7 +107,7 @@ export default class FileResolver extends ExoticResolver {
         if (temp === section) {
           temp = Object.assign({}, section);
         }
-        temp[k] = `file:./${path.relative(this.config.cwd, path.join(loc, util.removePrefix(v, 'file:')))}`;
+        temp[k] = `file:${path.relative(this.config.cwd, path.join(loc, util.removePrefix(v, 'file:')))}`;
       }
     }
 

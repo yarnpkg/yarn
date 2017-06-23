@@ -1,8 +1,8 @@
 {
   "dependencies": {
-    "a": "file:./a"
+    "a": "file:a"
   },
   "devDependencies": {
-    "b": "file:./b"
+    "b": "file:b"
   }
 }
