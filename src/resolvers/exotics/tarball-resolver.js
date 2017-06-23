@@ -51,7 +51,7 @@ export default class TarballResolver extends ExoticResolver {
       return shrunk;
     }
 
-    const url = this.url; //removePrefix(this.url, 'file:');
+    const url = this.url;
     let {hash, registry} = this;
     let pkgJson;
 
@@ -70,7 +70,7 @@ export default class TarballResolver extends ExoticResolver {
         {
           type: 'tarball',
           reference: url,
-          registry, // TODO here?
+          registry,
           hash,
         },
         this.config,
