@@ -10,13 +10,17 @@ import {runInstall} from '../_helpers.js';
 
 async function linkAt(config, ...relativePath): Promise<string> {
   const joinedPath = path.join(config.cwd, ...relativePath);
-  const stat = await fs.lstat(joinedPath);
-  if (stat.isSymbolicLink()) {
+  try {
     const linkPath = await fs.readlink(joinedPath);
     return linkPath;
-  } else {
-    const contents = await fs.readFile(joinedPath);
-    return /node" +"\$basedir\/([^"]*\.js)"/.exec(contents)[1];
+  } catch (err) {
+    if (err.code === 'EINVAL' || err.code === 'UNKNOWN') {
+      // Means this is not a link
+      const contents = await fs.readFile(joinedPath);
+      return /node" +"\$basedir\/([^"]*\.js)"/.exec(contents)[1];
+    } else {
+      throw err;
+    }
   }
 }
 
