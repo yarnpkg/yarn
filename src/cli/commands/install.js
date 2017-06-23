@@ -412,6 +412,7 @@ export class Install {
       patterns: rawPatterns,
       ignorePatterns,
       workspaceLayout,
+      manifest,
     } = await this.fetchRequestFromCwd();
     let topLevelPatterns: Array<string> = [];
 
@@ -419,6 +420,13 @@ export class Install {
     if (artifacts) {
       this.linker.setArtifacts(artifacts);
       this.scripts.setArtifacts(artifacts);
+    }
+
+    if (!this.flags.ignoreEngines && typeof manifest.engines === 'object') {
+      steps.push(async (curr: number, total: number) => {
+        this.reporter.step(curr, total, this.reporter.lang('checkingManifest'), emoji.get('mag'));
+        await compatibility.checkOne({_reference: {}, ...manifest}, this.config, this.flags.ignoreEngines);
+      });
     }
 
     steps.push(async (curr: number, total: number) => {
