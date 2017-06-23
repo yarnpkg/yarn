@@ -43,14 +43,14 @@ export function run(config: Config, reporter: Reporter, commander: Object, args:
     const getDocsLink = name => `${constants.YARN_DOCS}${name || ''}`;
     console.log('  Commands:\n');
     for (const name of Object.keys(commands).sort(sortAlpha)) {
-      if (commands[name].useless || !!unsupportedAliases[name] || Object.values(aliases).includes(name)) {
+      if (commands[name].useless || unsupportedAliases[name] || Object.values(aliases).includes(name)) {
         continue;
       }
-      if(!!aliases[name]) {
+      if (aliases[name]) {
         console.log(`    - ${hyphenate(name)}  alias: ${aliases[name]}`);
-      }
-      else 
+      } else {
         console.log(`    - ${hyphenate(name)}`);
+      }
     }
     console.log('\n  Run `' + chalk.bold('yarn help COMMAND') + '` for more information on specific commands.');
     console.log('  Visit ' + chalk.bold(getDocsLink()) + ' to learn more about Yarn.\n');
