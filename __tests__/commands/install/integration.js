@@ -850,7 +850,7 @@ test.concurrent('package version resolve should be deterministic', (): Promise<v
   });
 });
 
-test('transitive file: dependencies should work', (): Promise<void> => {
+test.concurrent('transitive file: dependencies should work', (): Promise<void> => {
   return runInstall({}, 'transitive-file', async (config, reporter) => {
     expect(await fs.exists(path.join(config.cwd, 'node_modules', 'b'))).toBe(true);
   });
