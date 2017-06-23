@@ -43,7 +43,11 @@ export function run(config: Config, reporter: Reporter, commander: Object, args:
     const getDocsLink = name => `${constants.YARN_DOCS}${name || ''}`;
     console.log('  Commands:\n');
     for (const name of Object.keys(commands).sort(sortAlpha)) {
-      if (commands[name].useless || unsupportedAliases[name] || Object.keys(aliases).map(key => aliases[key]).indexOf(name) > -1) {
+      if (
+        commands[name].useless ||
+        unsupportedAliases[name] ||
+        Object.keys(aliases).map(key => aliases[key]).indexOf(name) > -1
+      ) {
         continue;
       }
       if (aliases[name]) {
