@@ -422,10 +422,12 @@ export class Install {
       this.scripts.setArtifacts(artifacts);
     }
 
-    steps.push(async (curr: number, total: number) => {
-      this.reporter.step(curr, total, this.reporter.lang('fetchingPackages'), emoji.get('mag'));
-      await compatibility.checkOne(Object.assign({}, manifest, {_reference: {}}), this.config, false);
-    });
+    if (!this.flags.ignoreEngines && typeof manifest.engines === 'object') {
+      steps.push(async (curr: number, total: number) => {
+        this.reporter.step(curr, total, this.reporter.lang('checkingManifest'), emoji.get('mag'));
+        await compatibility.checkOne({_reference: {}, ...manifest}, this.config, this.flags.ignoreEngines);
+      });
+    }
 
     steps.push(async (curr: number, total: number) => {
       this.reporter.step(curr, total, this.reporter.lang('resolvingPackages'), emoji.get('mag'));
