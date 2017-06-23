@@ -637,11 +637,6 @@ export class Install {
    */
 
   async saveLockfileAndIntegrity(patterns: Array<string>, workspaceLayout: ?WorkspaceLayout): Promise<void> {
-    // --no-lockfile or --pure-lockfile flag
-    if (this.flags.lockfile === false || this.flags.pureLockfile) {
-      return;
-    }
-
     const resolvedPatterns: {[packagePattern: string]: Manifest} = {};
     Object.keys(this.resolver.patterns).forEach(pattern => {
       if (!workspaceLayout || !workspaceLayout.getManifestByPattern(pattern)) {
@@ -666,6 +661,11 @@ export class Install {
       this.resolver.usedRegistries,
       this.scripts.getArtifacts(),
     );
+
+    // --no-lockfile or --pure-lockfile flag
+    if (this.flags.lockfile === false || this.flags.pureLockfile) {
+      return;
+    }
 
     const lockFileHasAllPatterns = patterns.every(p => this.lockfile.getLocked(p));
     const resolverPatternsAreSameAsInLockfile = Object.keys(lockfileBasedOnResolver).every(pattern => {
