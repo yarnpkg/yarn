@@ -58,6 +58,7 @@ export const MODULE_CACHE_DIRECTORY = getCacheDirectory();
 export const CONFIG_DIRECTORY = getDirectory('config');
 export const LINK_REGISTRY_DIRECTORY = path.join(CONFIG_DIRECTORY, 'link');
 export const GLOBAL_MODULE_DIRECTORY = path.join(CONFIG_DIRECTORY, 'global');
+export const OSX_GLOBAL_PREFIX_DIRECTORY = '/usr/local';
 
 export const META_FOLDER = '.yarn-meta';
 export const INTEGRITY_FILENAME = '.yarn-integrity';
