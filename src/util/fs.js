@@ -163,6 +163,7 @@ async function buildActionsForCopy(
     const {src, dest, type} = data;
     const onFresh = data.onFresh || noop;
     const onDone = data.onDone || noop;
+    invariant(!files.has(dest), `The same file ${dest} can't be copied twice in one bulk copy`);
     files.add(dest);
 
     if (type === 'symlink') {
