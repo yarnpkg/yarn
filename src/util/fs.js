@@ -360,6 +360,11 @@ async function buildActionsForHardlink(
     const {src, dest} = data;
     const onFresh = data.onFresh || noop;
     const onDone = data.onDone || noop;
+    if (files.has(dest)) {
+      // don't hardlink a file twice
+      onDone();
+      return;
+    }
     files.add(dest);
 
     if (events.ignoreBasenames.indexOf(path.basename(src)) >= 0) {
@@ -450,7 +455,6 @@ async function buildActionsForHardlink(
 
       // push all files to queue
       invariant(srcFiles, 'src files not initialised');
-      srcFiles = srcFiles.filter(f => f !== 'node_modules');
       let remaining = srcFiles.length;
       if (!remaining) {
         onDone();
