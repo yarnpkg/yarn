@@ -14,6 +14,7 @@ const url = require('url');
 const fs = require('fs');
 const stream = require('stream');
 const gunzip = require('gunzip-maybe');
+import {removePrefix} from '../util/misc.js';
 
 export default class TarballFetcher extends BaseFetcher {
   async setupMirrorFromCache(): Promise<?string> {
@@ -174,13 +175,16 @@ export default class TarballFetcher extends BaseFetcher {
   }
 
   async _fetch(): Promise<FetchedOverride> {
+    const isFilePath = this.reference.startsWith('file:');
+    this.reference = removePrefix(this.reference, 'file:');
     const urlParse = url.parse(this.reference);
 
-    const isFilePath = urlParse.protocol
+    // legacy support for local paths in yarn.lock entries
+    const isRelativePath = urlParse.protocol
       ? urlParse.protocol.match(/^[a-z]:$/i)
       : urlParse.pathname ? urlParse.pathname.match(/^(?:\.{1,2})?[\\\/]/) : false;
 
-    if (isFilePath) {
+    if (isFilePath || isRelativePath) {
       return this.fetchFromLocal(this.reference);
     }
 
