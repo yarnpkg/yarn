@@ -255,7 +255,9 @@ test.concurrent('install should consider different hoisting with --link-duplicat
     d_1 = await fs.stat(path.join(config.cwd, 'node_modules/d/node_modules/c/package.json'));
     expect(a_1.ino).toEqual(d_1.ino);
     // this is redundant but we are ok with it
-    expect(await fs.exists(path.join(config.cwd, 'node_modules/d/node_modules/b/node_modules/c/package.json'))).toBe(true);
+    expect(await fs.exists(path.join(config.cwd, 'node_modules/d/node_modules/b/node_modules/c/package.json'))).toBe(
+      true,
+    );
   });
 });
 
@@ -292,8 +294,12 @@ test.concurrent('install should not hardlink full package structure', (): Promis
     a_1 = await fs.stat(path.join(config.cwd, 'node_modules/a/node_modules/b/node_modules/c/package.json'));
     d_1 = await fs.stat(path.join(config.cwd, 'node_modules/d/node_modules/b/node_modules/c/package.json'));
     expect(a_1.ino).toEqual(d_1.ino);
-    a_1 = await fs.stat(path.join(config.cwd, 'node_modules/a/node_modules/b/node_modules/c/node_modules/left-pad/package.json'));
-    d_1 = await fs.stat(path.join(config.cwd, 'node_modules/d/node_modules/b/node_modules/c/node_modules/left-pad/package.json'));
+    a_1 = await fs.stat(
+      path.join(config.cwd, 'node_modules/a/node_modules/b/node_modules/c/node_modules/left-pad/package.json'),
+    );
+    d_1 = await fs.stat(
+      path.join(config.cwd, 'node_modules/d/node_modules/b/node_modules/c/node_modules/left-pad/package.json'),
+    );
     expect(a_1.ino).toEqual(d_1.ino);
   });
 });
