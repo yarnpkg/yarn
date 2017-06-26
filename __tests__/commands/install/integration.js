@@ -124,6 +124,25 @@ test.concurrent(
   },
 );
 
+test.concurrent(
+  'resolves the symlinks of other symlinked packages relative to the package using the link: protocol',
+  async () => {
+    await runInstall({}, 'install-link-nested', async (config): Promise<void> => {
+      const expectPath = path.join(config.cwd, 'node_modules', 'b');
+
+      const stat = await fs.lstat(expectPath);
+      expect(stat.isSymbolicLink()).toEqual(true);
+
+      const target = await fs.readlink(expectPath);
+      if (process.platform !== 'win32') {
+        expect(target).toEqual('../a/b');
+      } else {
+        expect(target).toMatch(/[\\\/]b[\\\/]$/);
+      }
+    });
+  },
+);
+
 test('changes the cache path when bumping the cache version', async () => {
   await runInstall({}, 'install-github', async (config): Promise<void> => {
     const inOut = new stream.PassThrough();
