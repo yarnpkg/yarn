@@ -361,6 +361,15 @@ async function buildActionsForHardlink(
     const {src, dest} = data;
     const onFresh = data.onFresh || noop;
     const onDone = data.onDone || noop;
+    if (files.has(dest)) {
+      // Fixes issue https://github.com/yarnpkg/yarn/issues/2734
+      // When bulk hardlinking we have A -> B structure that we want to hardlink to A1 -> B1,
+      // package-linker passes that modules A1 and B1 need to be hardlinked,
+      // the recursive linking algorithm of A1 ends up scheduling files in B1 to be linked twice which will case
+      // an exception.
+      onDone();
+      return;
+    }
     files.add(dest);
 
     if (events.ignoreBasenames.indexOf(path.basename(src)) >= 0) {

@@ -220,3 +220,86 @@ test.concurrent('install should not hardlink repeated dependencies if linkDuplic
     expect(b_a.ino).not.toEqual(c_a.ino);
   });
 });
+
+test.concurrent('install should not crash when hardlinking deep structures', (): Promise<void> => {
+  // https://github.com/yarnpkg/yarn/issues/2734
+  // A@1 -> B@1 -> C@1
+  //     -> C@2
+  // B@2
+  // C@3
+  // D@1 -> B@1 (hardlink) -> C@1 (hardlink)
+  //     -> C@2
+  return runInstall({linkDuplicates: true}, 'hardlink-collision', async config => {
+    let a_1 = await fs.stat(path.join(config.cwd, 'node_modules/a/node_modules/b/package.json'));
+    let d_1 = await fs.stat(path.join(config.cwd, 'node_modules/d/node_modules/b/package.json'));
+    expect(a_1.ino).toEqual(d_1.ino);
+    a_1 = await fs.stat(path.join(config.cwd, 'node_modules/a/node_modules/b/node_modules/c/package.json'));
+    d_1 = await fs.stat(path.join(config.cwd, 'node_modules/d/node_modules/b/node_modules/c/package.json'));
+    expect(a_1.ino).toEqual(d_1.ino);
+  });
+});
+
+test.concurrent('install should consider different hoisting with --link-duplicate', (): Promise<void> => {
+  // https://github.com/yarnpkg/yarn/issues/2734
+  // A@1 -> B@1 -> C@1
+  //     -> C@2
+  // B@2
+  // C@3
+  // D@1 -> B@1 (hardlink) -> *C@1* (redundant)
+  //     -> C@1 (hardlink)
+  return runInstall({linkDuplicates: true}, 'hardlink-collision-2', async config => {
+    let a_1 = await fs.stat(path.join(config.cwd, 'node_modules/a/node_modules/b/package.json'));
+    let d_1 = await fs.stat(path.join(config.cwd, 'node_modules/d/node_modules/b/package.json'));
+    expect(a_1.ino).toEqual(d_1.ino);
+    a_1 = await fs.stat(path.join(config.cwd, 'node_modules/a/node_modules/b/node_modules/c/package.json'));
+    d_1 = await fs.stat(path.join(config.cwd, 'node_modules/d/node_modules/c/package.json'));
+    expect(a_1.ino).toEqual(d_1.ino);
+    // this is redundant but we are ok with it
+    expect(await fs.exists(path.join(config.cwd, 'node_modules/d/node_modules/b/node_modules/c/package.json'))).toBe(
+      true,
+    );
+  });
+});
+
+test.concurrent('install should consider different hoisting with --link-duplicate 2', (): Promise<void> => {
+  // https://github.com/yarnpkg/yarn/issues/2734
+  // A@1 -> B@1
+  //     -> C@1
+  // B@2
+  // C@3
+  // D@1 -> B@1 (hardlink) -> C@1 (hardlink)
+  //     -> C@2
+  return runInstall({linkDuplicates: true}, 'hardlink-collision-3', async config => {
+    let a_1 = await fs.stat(path.join(config.cwd, 'node_modules/a/node_modules/b/package.json'));
+    let d_1 = await fs.stat(path.join(config.cwd, 'node_modules/d/node_modules/b/package.json'));
+    expect(a_1.ino).toEqual(d_1.ino);
+    a_1 = await fs.stat(path.join(config.cwd, 'node_modules/a/node_modules/c/package.json'));
+    d_1 = await fs.stat(path.join(config.cwd, 'node_modules/d/node_modules/b/node_modules/c/package.json'));
+    expect(a_1.ino).toEqual(d_1.ino);
+  });
+});
+
+test.concurrent('install should not hardlink full package structure', (): Promise<void> => {
+  // https://github.com/yarnpkg/yarn/issues/2734
+  // A@1 -> B@1 -> C@1 -> (bundle leftpad)
+  //     -> C@2
+  // B@2
+  // C@3
+  // D@1 -> B@1 (hardlink) -> C@1 (hardlink) -> (bundle leftpad) (hardlink)
+  //     -> C@2
+  return runInstall({linkDuplicates: true}, 'hardlink-collision-with-bundled', async config => {
+    let a_1 = await fs.stat(path.join(config.cwd, 'node_modules/a/node_modules/b/package.json'));
+    let d_1 = await fs.stat(path.join(config.cwd, 'node_modules/d/node_modules/b/package.json'));
+    expect(a_1.ino).toEqual(d_1.ino);
+    a_1 = await fs.stat(path.join(config.cwd, 'node_modules/a/node_modules/b/node_modules/c/package.json'));
+    d_1 = await fs.stat(path.join(config.cwd, 'node_modules/d/node_modules/b/node_modules/c/package.json'));
+    expect(a_1.ino).toEqual(d_1.ino);
+    a_1 = await fs.stat(
+      path.join(config.cwd, 'node_modules/a/node_modules/b/node_modules/c/node_modules/left-pad/package.json'),
+    );
+    d_1 = await fs.stat(
+      path.join(config.cwd, 'node_modules/d/node_modules/b/node_modules/c/node_modules/left-pad/package.json'),
+    );
+    expect(a_1.ino).toEqual(d_1.ino);
+  });
+});
