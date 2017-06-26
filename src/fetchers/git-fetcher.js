@@ -161,6 +161,7 @@ export default class GitFetcher extends BaseFetcher {
     const [prepareConfig, prepareLockFile] = await Promise.all([
       Config.create(
         {
+          binLinks: true,
           cwd: prepareDirectory,
           disablePrepublish: true,
         },
