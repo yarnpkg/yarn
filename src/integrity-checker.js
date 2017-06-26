@@ -39,7 +39,7 @@ type IntegrityHashLocation = {
 type IntegrityFile = {
   flags: Array<string>,
   linkedModules: Array<string>,
-  topLevelPatters: Array<string>,
+  topLevelPatterns: Array<string>,
   lockfileEntries: {
     [key: string]: string,
   },
@@ -150,13 +150,13 @@ export default class InstallationIntegrityChecker {
     const result: IntegrityFile = {
       flags: [],
       linkedModules: [],
-      topLevelPatters: [],
+      topLevelPatterns: [],
       lockfileEntries: {},
       files: [],
       artifacts,
     };
 
-    result.topLevelPatters = patterns.sort(sortAlpha);
+    result.topLevelPatterns = patterns.sort(sortAlpha);
 
     if (flags.flat) {
       result.flags.push('flat');
