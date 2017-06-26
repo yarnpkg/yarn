@@ -33,7 +33,6 @@ export default class PackageResolver {
     this.reporter = config.reporter;
     this.lockfile = lockfile;
     this.config = config;
-    this.delayedResolveQueue = [];
   }
 
   // whether the dependency graph will be flattened
@@ -81,10 +80,6 @@ export default class PackageResolver {
 
   // environment specific config methods and options
   config: Config;
-
-  // list of packages need to be resolved later (they found a matching version in the
-  // resolver, but better matches can still arrive later in the resolve process)
-  delayedResolveQueue: Array<{req: PackageRequest, info: Manifest}>;
 
   /**
    * TODO description
@@ -327,6 +322,9 @@ export default class PackageResolver {
 
   addPattern(pattern: string, info: Manifest) {
     this.patterns[pattern] = info;
+    if(info.name === 'uglify-js') {
+      console.log("ADD PATTERN", pattern, info.version)
+    }
 
     const byName = (this.patternsByPackage[info.name] = this.patternsByPackage[info.name] || []);
     byName.push(pattern);
@@ -406,6 +404,9 @@ export default class PackageResolver {
 
       return info;
     });
+    if(name === 'uglify-js') {
+      console.log(versionNumbers)
+    }
 
     const maxValidRange = semver.maxSatisfying(versionNumbers, range);
     if (!maxValidRange) {
@@ -459,6 +460,21 @@ export default class PackageResolver {
     await request.find({fresh, frozen: this.frozen});
   }
 
+  // for a given package name see if less manifests can satisfy most resolutions
+  optimizeResolutions(name: string, patterns: Array<string>) {
+    const manifests: Set<Manifest> = new Set();
+    // TODO map version to pattern
+    patterns.forEach(p => {
+      manifests.add(this.patterns[p]);
+    });
+    const availableVersions: Array<string> = [...manifests].map(m => m.version);
+    // TODO only non exotic ones
+    const requiredRanges = patterns.map(p => PackageRequest.normalizePattern(p).range);
+
+    // TODO match availableVersions to ranges so that we get  
+
+  }
+
   /**
    * TODO description
    */
@@ -476,32 +492,12 @@ export default class PackageResolver {
       await this.find(req);
     }
 
-    // all required package versions have been discovered, so now packages that
-    // resolved to existing versions can be resolved to their best available version
-    this.resolvePackagesWithExistingVersions();
+    Object.keys(this.patternsByPackage).forEach((name) => {
+      this.optimizeResolutions(name, this.patternsByPackage[name]);
+    });
+    // TODO clean orphan patterns - the ones that are not needed after optimization
 
     activity.end();
     this.activity = null;
-  }
-
-  /**
-    * Called by the package requester for packages that this resolver already had
-    * a matching version for. Delay the resolve, because better matches can still be
-    * discovered.
-    */
-
-  reportPackageWithExistingVersion(req: PackageRequest, info: Manifest) {
-    this.delayedResolveQueue.push({req, info});
-  }
-
-  /**
-    * Executes the resolve to existing versions for packages after the find process,
-    * when all versions that are going to be used have been discovered.
-    */
-
-  resolvePackagesWithExistingVersions() {
-    for (const {req, info} of this.delayedResolveQueue) {
-      req.resolveToExistingVersion(info);
-    }
   }
 }

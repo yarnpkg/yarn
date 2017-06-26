@@ -309,3 +309,29 @@ test.concurrent("install should fix if lockfile patterns don't match resolved ve
     expect(lockContent).toContain('left-pad-1.1.2.tgz');
   });
 });
+
+// issue https://github.com/yarnpkg/yarn/issues/3023
+test.concurrent("install should downgrade a subdependency version if it is available", (): Promise<void> => {
+  // uglify-js@^2.6.2:
+  // version "2.8.18"
+  // resolved "http://r.cnpmjs.org/uglify-js/download/uglify-js-2.8.18.tgz#925d14bae48ab62d1883b41afe6e2261662adb8e"
+  //
+  // uglify-js@~2.7.3:
+  // version "2.7.5"
+  // resolved "http://r.cnpmjs.org/uglify-js/download/uglify-js-2.7.5.tgz#4612c0c7baaee2ba7c487de4904ae122079f2ca8"
+
+  // could be optimized to
+
+  // uglify-js@~2.7.3, uglify-js@^2.6.2::
+  // version "2.7.5"
+  // resolved "http://r.cnpmjs.org/uglify-js/download/uglify-js-2.7.5.tgz#4612c0c7baaee2ba7c487de4904ae122079f2ca8"
+
+  const fixture = 'lockfile-optimization';
+
+  return runInstall({}, fixture, async (config, reporter) => {
+    // no unhoisted unglify-js
+    expect(await fs.exists(path.join(config.cwd, 'node_modules', 'uglify-js'))).toBe(true);
+    expect(await fs.exists(path.join(config.cwd, 'node_modules', 'uglify-js'))).toBe(false);
+    expect(await fs.exists(path.join(config.cwd, 'node_modules', 'uglify-js'))).toBe(false);
+  });
+});
