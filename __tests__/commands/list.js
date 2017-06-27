@@ -84,9 +84,7 @@ test.concurrent('matches exactly without glob', (): Promise<void> => {
   return runList(['gulp'], {}, 'glob-arg', (config, reporter): ?Promise<void> => {
     const rprtr = new BufferReporter({});
     const tree = reporter.getBuffer().slice(-1);
-    const trees = [
-      makeTree('gulp@3.9.1', {color: 'bold'}),
-    ];
+    const trees = [makeTree('gulp@3.9.1', {color: 'bold'})];
 
     rprtr.tree('list', trees);
 
@@ -98,10 +96,7 @@ test.concurrent('expands a glob', (): Promise<void> => {
   return runList(['gulp*'], {}, 'glob-arg', (config, reporter): ?Promise<void> => {
     const rprtr = new BufferReporter({});
     const tree = reporter.getBuffer().slice(-1);
-    const trees = [
-      makeTree('gulp@3.9.1', {color: 'bold'}),
-      makeTree('gulp-babel@6.1.2', {color: 'bold'}),
-    ];
+    const trees = [makeTree('gulp@3.9.1', {color: 'bold'}), makeTree('gulp-babel@6.1.2', {color: 'bold'})];
 
     rprtr.tree('list', trees);
 
