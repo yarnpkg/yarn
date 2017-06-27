@@ -61,6 +61,15 @@ test.concurrent('properly find and save build artifacts', async () => {
   });
 });
 
+test('reading a lockfile should not optimize it', async () => {
+  await runInstall({}, 'lockfile-optimization', async (config, reporter): Promise<void> => {
+    const was = await fs.readFile(`${__dirname}/../../fixtures/install/lockfile-optimization/yarn.lock`);
+    const is = await fs.readFile(`${config.cwd}/yarn.lock`);
+
+    expect(is).toEqual(was);
+  });
+});
+
 test('creates the file in the mirror when fetching a git repository', async () => {
   await runInstall({}, 'install-git', async (config, reporter): Promise<void> => {
     const lockfile = await Lockfile.fromDirectory(config.cwd);

@@ -243,7 +243,8 @@ export default class PackageRequest {
   resolveToExistingVersion(info: Manifest) {
     // get final resolved version
     const {range, name} = PackageRequest.normalizePattern(this.pattern);
-    const resolved: ?Manifest = this.resolver.getHighestRangeVersionMatch(name, range);
+    const solvedRange = semver.validRange(range) ? info.version : range;
+    const resolved: ?Manifest = this.resolver.getHighestRangeVersionMatch(name, solvedRange);
     invariant(resolved, 'should have a resolved reference');
 
     this.reportResolvedRangeMatch(info, resolved);
@@ -268,9 +269,10 @@ export default class PackageRequest {
     // check if while we were resolving this dep we've already resolved one that satisfies
     // the same range
     const {range, name} = PackageRequest.normalizePattern(this.pattern);
-    const resolved: ?Manifest = frozen
-      ? this.resolver.getExactVersionMatch(name, range)
-      : this.resolver.getHighestRangeVersionMatch(name, range);
+    const solvedRange = semver.validRange(range) ? info.version : range;
+    const resolved: ?Manifest = !info.fresh || frozen
+      ? this.resolver.getExactVersionMatch(name, solvedRange)
+      : this.resolver.getHighestRangeVersionMatch(name, solvedRange);
     if (resolved) {
       this.resolver.reportPackageWithExistingVersion(this, info);
       return;
