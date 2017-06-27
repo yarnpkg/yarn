@@ -41,6 +41,11 @@ test('getExoticResolver returns Git Resolver for git+https://... pattern', () =>
   expect(getExoticResolver(pattern)).toEqual(GitResolver);
 });
 
+test('getExoticResolver returns Git Resolver for git+file:///... pattern', () => {
+  const pattern = 'git+file:///path/repo#master';
+  expect(getExoticResolver(pattern)).toEqual(GitResolver);
+});
+
 test('getExoticResolver returns Git Resolver for git://... pattern', () => {
   const pattern = 'git://user@hostname/path/repo#master';
   expect(getExoticResolver(pattern)).toEqual(GitResolver);
