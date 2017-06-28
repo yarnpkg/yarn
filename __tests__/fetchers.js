@@ -83,7 +83,7 @@ test('GitFetcher.fetch with prepare script', async () => {
     {
       type: 'git',
       reference: 'https://github.com/Volune/test-js-git-repo',
-      hash: '96e838bcc908ed424666b4b04efe802fd4c8bccd',
+      hash: '0e56593e326069ed4bcec8126bb48a1891215c57',
       registry: 'npm',
     },
     (await Config.create()),
@@ -95,6 +95,8 @@ test('GitFetcher.fetch with prepare script', async () => {
   expect(dependencyName).toBe('beeper');
   // The file "prepare.js" is not in "files" list
   expect(await fs.exists(path.join(dir, 'prepare.js'))).toBe(false);
+  // Check the dependency with a bin script was correctly executed
+  expect(await fs.exists(path.join(dir, 'testscript.output.txt'))).toBe(true);
   // Check executed lifecycle scripts
   expect(await fs.exists(path.join(dir, 'generated', 'preinstall'))).toBe(true);
   expect(await fs.exists(path.join(dir, 'generated', 'install'))).toBe(true);
