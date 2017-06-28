@@ -4,7 +4,7 @@ import type {Reporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
 import {Add} from './add.js';
 import Lockfile from '../../lockfile/wrapper.js';
-import PackageRequest from '../../package-request.js';
+import {getExoticResolver} from '../../resolvers/index.js';
 import {MessageError} from '../../errors.js';
 
 export function setFlags(commander: Object) {
@@ -69,7 +69,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
 function getDependency(allDependencies, dependency): string {
   const remoteSource = allDependencies[dependency];
 
-  if (remoteSource && PackageRequest.getExoticResolver(remoteSource)) {
+  if (remoteSource && getExoticResolver(remoteSource)) {
     return remoteSource;
   }
 

@@ -7,6 +7,7 @@ import type Config from '../../config.js';
 import type {ListOptions} from './list.js';
 import Lockfile from '../../lockfile/wrapper.js';
 import PackageRequest from '../../package-request.js';
+import {getExoticResolver} from '../../resolvers/index.js';
 import {buildTree} from './list.js';
 import {wrapLifecycle, Install} from './install.js';
 import {MessageError} from '../../errors.js';
@@ -56,7 +57,7 @@ export class Add extends Install {
     const {exact, tilde} = this.flags;
     const parts = PackageRequest.normalizePattern(pattern);
     let version;
-    if (PackageRequest.getExoticResolver(pattern)) {
+    if (getExoticResolver(pattern)) {
       // wasn't a name/range tuple so this is just a raw exotic pattern
       version = pattern;
     } else if (parts.hasVersion && parts.range) {

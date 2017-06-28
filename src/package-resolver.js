@@ -4,6 +4,7 @@ import type {Manifest, DependencyRequestPatterns, DependencyRequestPattern} from
 import type {RegistryNames} from './registries/index.js';
 import type PackageReference from './package-reference.js';
 import type {Reporter} from './reporters/index.js';
+import {getExoticResolver} from './resolvers/index.js';
 import type Config from './config.js';
 import PackageRequest from './package-request.js';
 import RequestManager from './util/request-manager.js';
@@ -443,7 +444,7 @@ export default class PackageResolver {
         semver.validRange(range) &&
         semver.valid(lockfileEntry.version) &&
         !semver.satisfies(lockfileEntry.version, range) &&
-        !PackageRequest.getExoticResolver(range) &&
+        !getExoticResolver(range) &&
         hasVersion
       ) {
         this.reporter.warn(this.reporter.lang('incorrectLockfileEntry', req.pattern));

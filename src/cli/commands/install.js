@@ -18,6 +18,7 @@ import PackageResolver from '../../package-resolver.js';
 import PackageLinker from '../../package-linker.js';
 import PackageRequest from '../../package-request.js';
 import {registries} from '../../registries/index.js';
+import {getExoticResolver} from '../../resolvers/index.js';
 import {clean} from './clean.js';
 import * as constants from '../../constants.js';
 import * as fs from '../../util/fs.js';
@@ -209,7 +210,7 @@ export class Install {
     const excludeNames = [];
     for (const pattern of excludePatterns) {
       // can't extract a package name from this
-      if (PackageRequest.getExoticResolver(pattern)) {
+      if (getExoticResolver(pattern)) {
         continue;
       }
 

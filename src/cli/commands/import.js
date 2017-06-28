@@ -7,6 +7,7 @@ import type Config from '../../config.js';
 import {Install} from './install.js';
 import {verifyTreeCheck} from './check.js';
 import {MessageError} from '../../errors.js';
+import {getExoticResolver} from '../../resolvers/index.js';
 import BaseResolver from '../../resolvers/base-resolver.js';
 import HostedGitResolver, {explodeHostedGitFragment} from '../../resolvers/exotics/hosted-git-resolver.js';
 import GistResolver, {explodeGistFragment} from '../../resolvers/exotics/gist-resolver.js';
@@ -40,7 +41,7 @@ class ImportResolver extends BaseResolver {
     return this.config.cwd;
   }
 
-  resolveHostedGit(info: Manifest, Resolver: typeof HostedGitResolver): Manifest {
+  resolveHostedGit(info: Manifest, Resolver: Class<HostedGitResolver>): Manifest {
     const {range} = PackageRequest.normalizePattern(this.pattern);
     const exploded = explodeHostedGitFragment(range, this.reporter);
     const hash = (info: any).gitHead;
@@ -127,7 +128,7 @@ class ImportResolver extends BaseResolver {
 
   resolveImport(info: Manifest): Manifest {
     const {range} = PackageRequest.normalizePattern(this.pattern);
-    const Resolver = PackageRequest.getExoticResolver(range);
+    const Resolver = getExoticResolver(range);
     if (Resolver && Resolver.prototype instanceof HostedGitResolver) {
       return this.resolveHostedGit(info, Resolver);
     } else if (Resolver && Resolver === GistResolver) {
