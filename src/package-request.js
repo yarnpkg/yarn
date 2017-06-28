@@ -345,10 +345,7 @@ export default class PackageRequest {
       }
     }
 
-    for (const promise of promises) {
-      await promise;
-    }
-
+    await Promise.all(promises);
     ref.addDependencies(deps);
 
     // Now that we have all dependencies, it's safe to propagate optional
