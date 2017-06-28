@@ -7,9 +7,9 @@ import type PackageLinker from '../../package-linker.js';
 import type {Tree, Trees} from '../../reporters/types.js';
 import {Install} from './install.js';
 import Lockfile from '../../lockfile/wrapper.js';
-import mm from 'micromatch';
 
 const invariant = require('invariant');
+const micromatch = require('micromatch');
 
 export const requireLockfile = true;
 
@@ -168,7 +168,7 @@ export function filterTree(tree: Tree, filters: Array<string>): boolean {
   const notDim = tree.color !== 'dim';
   const hasChildren = tree.children == null ? false : tree.children.length > 0;
   const name = tree.name.slice(0, tree.name.lastIndexOf('@'));
-  const found = mm.any(name, filters);
+  const found = micromatch.any(name, filters);
 
   return notDim && (found || hasChildren);
 }
