@@ -9,6 +9,7 @@ import {Install} from './install.js';
 import Lockfile from '../../lockfile/wrapper.js';
 
 const invariant = require('invariant');
+const micromatch = require('micromatch');
 
 export const requireLockfile = true;
 
@@ -165,8 +166,9 @@ export function filterTree(tree: Tree, filters: Array<string>): boolean {
   }
 
   const notDim = tree.color !== 'dim';
-  const found = filters.indexOf(tree.name.slice(0, tree.name.lastIndexOf('@'))) > -1;
   const hasChildren = tree.children == null ? false : tree.children.length > 0;
+  const name = tree.name.slice(0, tree.name.lastIndexOf('@'));
+  const found = micromatch.any(name, filters);
 
   return notDim && (found || hasChildren);
 }
