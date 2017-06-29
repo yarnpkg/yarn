@@ -26,8 +26,9 @@ const runUnlink = buildRun.bind(
   null,
   ConsoleReporter,
   fixturesLoc,
-  (args, flags, config, reporter): CLIFunctionReturn => {
-    return link(config, reporter, flags, args).then(unlink.bind(null, config, reporter, flags, args));
+  async (args, flags, config, reporter): CLIFunctionReturn => {
+    await link(config, reporter, flags, args);
+    return unlink(config, reporter, flags, args);
   },
 );
 
