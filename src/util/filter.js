@@ -149,14 +149,14 @@ export function ignoreLinesToRegex(lines: Array<string>, base: string = '.'): Ar
 export function filterOverridenGitignores(files: WalkFiles): WalkFiles {
   const IGNORE_FILENAMES = ['.yarnignore', '.npmignore', '.gitignore'];
   const GITIGNORE_NAME = IGNORE_FILENAMES[2];
-  return files.filter(file => IGNORE_FILENAMES.includes(file.basename)).reduce((acc: WalkFiles, file) => {
+  return files.filter(file => IGNORE_FILENAMES.indexOf(file.basename) > -1).reduce((acc: WalkFiles, file) => {
     if (file.basename !== GITIGNORE_NAME) {
       return [...acc, file];
     } else {
       //don't include .gitignore if .npmignore or .yarnignore are present
       const dir = path.dirname(file.absolute);
       const higherPriorityIgnoreFilePaths = [`${dir}/${IGNORE_FILENAMES[0]}`, `${dir}/${IGNORE_FILENAMES[1]}`];
-      const hasHigherPriorityFiles = files.find(file => higherPriorityIgnoreFilePaths.includes(file.absolute));
+      const hasHigherPriorityFiles = files.find(file => higherPriorityIgnoreFilePaths.indexOf(file.absolute) > -1);
       if (!hasHigherPriorityFiles) {
         return [...acc, file];
       }

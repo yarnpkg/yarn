@@ -266,7 +266,7 @@ test.concurrent('warns when peer dependency is not met after upgrade', (): Promi
 
       expect(
         warnings.some(warning => {
-          return warning.data.toString().toLowerCase().includes('incorrect peer');
+          return warning.data.toString().toLowerCase().indexOf('incorrect peer') > -1;
         }),
       ).toEqual(true);
     },
@@ -288,7 +288,7 @@ test.concurrent("doesn't warn when peer dependency is still met after upgrade", 
 
       expect(
         warnings.some(warning => {
-          return warning.data.toString().toLowerCase().includes('peer');
+          return warning.data.toString().toLowerCase().indexOf('peer') > -1;
         }),
       ).toEqual(false);
     },
