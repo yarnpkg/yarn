@@ -19,6 +19,7 @@ import map from './util/map.js';
 const detectIndent = require('detect-indent');
 const invariant = require('invariant');
 const path = require('path');
+const micromatch = require('micromatch');
 
 export type ConfigOptions = {
   cwd?: ?string,
@@ -573,9 +574,13 @@ export default class Config {
 
     do {
       const manifest = await this.findManifest(current, true);
-
       if (manifest && manifest.workspaces) {
-        return current;
+        const relativePath = path.relative(current, initial);
+        if (relativePath === '' || micromatch([relativePath], manifest.workspaces).length > 0) {
+          return current;
+        } else {
+          return null;
+        }
       }
 
       previous = current;
