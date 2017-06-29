@@ -33,6 +33,7 @@ test('promisify', async function(): Promise<void> {
 });
 
 test('queue', async function(): Promise<void> {
+  jest.useFakeTimers();
   let running = 0;
 
   function create(): Promise<void> {
@@ -53,4 +54,6 @@ test('queue', async function(): Promise<void> {
   });
 
   await promise.queue(Array(10), create, 5);
+
+  jest.useRealTimers();
 });

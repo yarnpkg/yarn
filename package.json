@@ -98,14 +98,13 @@
     "release-branch": "./scripts/release-branch.sh",
     "test": "yarn lint && yarn test-only",
     "test-ci": "yarn build && yarn test-only",
-    "test-only": "jest --coverage --verbose",
+    "test-only": "node --max_old_space_size=4096 ./node_modules/.bin/jest --coverage --verbose",
     "watch": "gulp watch"
   },
   "jest": {
     "collectCoverageFrom": [
       "src/**/*.js"
     ],
-    "timers": "fake",
     "testEnvironment": "node",
     "modulePathIgnorePatterns": [
       "__tests__/fixtures/"
