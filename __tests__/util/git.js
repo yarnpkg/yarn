@@ -1,6 +1,9 @@
 /* @flow */
 
+jest.mock('../../src/util/child.js');
+
 import Git from '../../src/util/git.js';
+import {spawn} from '../../src/util/child.js';
 import {NoopReporter} from '../../src/reporters/index.js';
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 90000;
@@ -76,6 +79,10 @@ test('secureGitUrl', async function(): Promise<void> {
   const reporter = new NoopReporter();
 
   let hasException = false;
+  (Git: any).repoExists = jest.fn();
+  Git.repoExists.mockImplementation(() => Promise.resolve(true)).mockImplementationOnce(() => {
+    throw new Error('Non-existent repo!');
+  });
   try {
     await Git.secureGitUrl(Git.npmUrlToGitUrl('http://fake-fake-fake-fake.com/123.git'), '', reporter);
   } catch (e) {
@@ -119,5 +126,18 @@ de43f4a993d1e08cd930ee22ecb2bac727f53449  refs/tags/v0.21.0-pre`),
   ).toMatchObject({
     'v0.21.0': '70e76d174b0c7d001d2cd608a16c94498496e92d',
     'v0.21.0-pre': 'de43f4a993d1e08cd930ee22ecb2bac727f53449',
+  });
+});
+
+test('spawn', () => {
+  const spawnMock = (spawn: any).mock;
+
+  Git.spawn(['status']);
+
+  expect(spawnMock.calls[0][2].env).toMatchObject({
+    ...process.env,
+    GIT_ASKPASS: '',
+    GIT_TERMINAL_PROMPT: 0,
+    GIT_SSH_COMMAND: 'ssh -oBatchMode=yes',
   });
 });
