@@ -30,19 +30,29 @@ async function execCommand(
   }
 
   return new Promise((resolve, reject) => {
-    exec(`node "${yarnBin}" ${cmd} ${args.join(' ')}`, {cwd: workingDir, env: process.env}, (error, stdout) => {
-      if (error) {
-        reject({error, stdout});
-      } else {
-        const stdoutLines = stdout
-          .toString()
-          .split('\n')
-          .map((line: ?string) => line && line.trim())
-          .filter((line: ?string) => line);
+    exec(
+      `node "${yarnBin}" ${cmd} ${args.join(' ')}`,
+      {
+        cwd: workingDir,
+        env: {
+          ...process.env,
+          YARN_SILENT: 0,
+        },
+      },
+      (error, stdout) => {
+        if (error) {
+          reject({error, stdout});
+        } else {
+          const stdoutLines = stdout
+            .toString()
+            .split('\n')
+            .map((line: ?string) => line && line.trim())
+            .filter((line: ?string) => line);
 
-        resolve(stdoutLines);
-      }
-    });
+          resolve(stdoutLines);
+        }
+      },
+    );
   });
 }
 
