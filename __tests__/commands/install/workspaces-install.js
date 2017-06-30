@@ -53,12 +53,12 @@ test.concurrent("workspaces warn and get ignored if they don't have a name and a
       const warnings = reporter.getBuffer();
       expect(
         warnings.some(warning => {
-          return warning.data.toString().toLowerCase().includes('missing version in workspace');
+          return warning.data.toString().toLowerCase().indexOf('missing version in workspace') > -1;
         }),
       ).toEqual(true);
       expect(
         warnings.some(warning => {
-          return warning.data.toString().toLowerCase().includes('missing name in workspace');
+          return warning.data.toString().toLowerCase().indexOf('missing name in workspace') > -1;
         }),
       ).toEqual(true);
     },

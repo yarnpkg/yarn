@@ -741,13 +741,13 @@ test.concurrent("doesn't warn when peer dependency is met during add", (): Promi
 
       expect(
         warnings.some(warning => {
-          return warning.data.toString().toLowerCase().includes('unmet peer');
+          return warning.data.toString().toLowerCase().indexOf('unmet peer') > -1;
         }),
       ).toEqual(false);
 
       expect(
         warnings.some(warning => {
-          return warning.data.toString().toLowerCase().includes('incorrect peer');
+          return warning.data.toString().toLowerCase().indexOf('incorrect peer') > -1;
         }),
       ).toEqual(false);
     },
@@ -770,7 +770,7 @@ test.concurrent('warns when peer dependency is not met during add', (): Promise<
 
       expect(
         warnings.some(warning => {
-          return warning.data.toString().toLowerCase().includes('unmet peer');
+          return warning.data.toString().toLowerCase().indexOf('unmet peer') > -1;
         }),
       ).toEqual(true);
     },
@@ -793,7 +793,7 @@ test.concurrent('warns when peer dependency is incorrect during add', (): Promis
 
       expect(
         warnings.some(warning => {
-          return warning.data.toString().toLowerCase().includes('incorrect peer');
+          return warning.data.toString().toLowerCase().indexOf('incorrect peer') > -1;
         }),
       ).toEqual(true);
     },
