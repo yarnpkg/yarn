@@ -95,10 +95,11 @@
     "lint": "yarn run lint-prettier && eslint . && flow check",
     "lint-prettier": "node scripts/prettier.js lint",
     "prettier": "node scripts/prettier.js write",
+    "jest": "YARN_SILENT=0 node ./node_modules/.bin/jest",
     "release-branch": "./scripts/release-branch.sh",
     "test": "yarn lint && yarn test-only",
     "test-ci": "yarn build && yarn test-only",
-    "test-only": "node --max_old_space_size=4096 ./node_modules/.bin/jest --coverage --verbose",
+    "test-only": "node --max_old_space_size=4096 YARN_SILENT=0 ./node_modules/.bin/jest --coverage --verbose",
     "watch": "gulp watch"
   },
   "jest": {
