@@ -28,8 +28,9 @@ test:
       if [ "$CIRCLE_BRANCH" == 'master' ]; then
         ./scripts/set-dev-version.js
       fi;
+    - alias yarn="node ./bin/yarn.js"
     - yarn lint
-    - yarn test-ci -- -- --maxWorkers 3
+    - yarn test-ci
     - yarn check-lockfile
     - yarn run build-dist
     - yarn run build-deb
