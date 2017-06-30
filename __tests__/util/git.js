@@ -1,7 +1,7 @@
 /* @flow */
 
 jest.mock('../../src/util/child.js', () => {
-  const realChild = (require: any).requireActual('./child.js');
+  const realChild = (require: any).requireActual('../../src/util/child.js');
 
   realChild.spawn = jest.fn(() => Promise.resolve(''));
 
