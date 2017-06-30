@@ -21,7 +21,6 @@ dependencies:
 
     - yarn install
     - yarn build
-    - alias yarn="node ./bin/yarn.js"
 
 test:
   override:
@@ -30,11 +29,11 @@ test:
       if [ "$CIRCLE_BRANCH" == 'master' ]; then
         ./scripts/set-dev-version.js
       fi;
-    - yarn lint
-    - yarn test-only
-    - yarn check-lockfile
-    - yarn run build-dist
-    - yarn run build-deb
+    - node ./bin/yarn.js lint
+    - node ./bin/yarn.js test-only
+    - node ./bin/yarn.js check-lockfile
+    - node ./bin/yarn.js run build-dist
+    - node ./bin/yarn.js run build-deb
     # Test that the standalone .js build works as expected
     - ./artifacts/yarn-`./dist/bin/yarn --version`.js --version
     - ./artifacts/yarn-legacy-`./dist/bin/yarn --version`.js --version
