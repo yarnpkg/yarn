@@ -20,6 +20,8 @@ dependencies:
     - ./scripts/bootstrap-env-ubuntu.sh
 
     - yarn install
+    - yarn build
+    - alias yarn="node ./bin/yarn.js"
 
 test:
   override:
@@ -28,9 +30,8 @@ test:
       if [ "$CIRCLE_BRANCH" == 'master' ]; then
         ./scripts/set-dev-version.js
       fi;
-    - alias yarn="node ./bin/yarn.js"
     - yarn lint
-    - yarn test-ci
+    - yarn test-only
     - yarn check-lockfile
     - yarn run build-dist
     - yarn run build-deb
