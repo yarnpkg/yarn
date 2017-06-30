@@ -5,6 +5,8 @@ import * as constants from '../../constants.js';
 import type {Reporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
 import {sortAlpha, hyphenate} from '../../util/misc.js';
+import unsupportedAliases from '../unsupported-aliases.js';
+import aliases from '../aliases';
 const chalk = require('chalk');
 
 export function hasWrapper(flags: Object, args: Array<string>): boolean {
@@ -41,11 +43,18 @@ export function run(config: Config, reporter: Reporter, commander: Object, args:
     const getDocsLink = name => `${constants.YARN_DOCS}${name || ''}`;
     console.log('  Commands:\n');
     for (const name of Object.keys(commands).sort(sortAlpha)) {
-      if (commands[name].useless) {
+      if (
+        commands[name].useless ||
+        unsupportedAliases[name] ||
+        Object.keys(aliases).map(key => aliases[key]).indexOf(name) > -1
+      ) {
         continue;
       }
-
-      console.log(`    - ${hyphenate(name)}`);
+      if (aliases[name]) {
+        console.log(`    - ${hyphenate(name)} / ${aliases[name]}`);
+      } else {
+        console.log(`    - ${hyphenate(name)}`);
+      }
     }
     console.log('\n  Run `' + chalk.bold('yarn help COMMAND') + '` for more information on specific commands.');
     console.log('  Visit ' + chalk.bold(getDocsLink()) + ' to learn more about Yarn.\n');
