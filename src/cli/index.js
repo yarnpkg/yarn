@@ -58,7 +58,7 @@ commander.option(
 );
 commander.option('--cache-folder <path>', 'specify a custom folder to store the yarn cache');
 commander.option('--mutex <type>[:specifier]', 'use a mutex to ensure only one yarn instance is executing');
-commander.option('--emoji', 'enable emoji in output', process.platform === 'darwin');
+commander.option('--emoji [bool]', 'enable emoji in output', process.platform === 'darwin');
 commander.option('-s, --silent', 'skip Yarn console logs, other types of logs (script output) will be printed');
 commander.option('--proxy <host>', '');
 commander.option('--https-proxy <host>', '');
