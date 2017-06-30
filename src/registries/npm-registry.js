@@ -58,7 +58,6 @@ export default class NpmRegistry extends Registry {
     const registry = this.getRegistry(packageName || pathname);
     const requestUrl = url.resolve(registry, pathname);
     const alwaysAuth = this.getRegistryOrGlobalOption(registry, 'always-auth');
-    const customHostSuffix = this.getRegistryOrGlobalOption(registry, 'custom-host-suffix');
 
     const headers = Object.assign(
       {
@@ -66,7 +65,8 @@ export default class NpmRegistry extends Registry {
       },
       opts.headers,
     );
-    if (this.token || (alwaysAuth && isRequestToRegistry(requestUrl, registry, customHostSuffix))) {
+
+    if (alwaysAuth || (packageName || pathname)[0] === `@`) {
       const authorization = this.getAuth(packageName || pathname);
       if (authorization) {
         headers.authorization = authorization;
@@ -180,26 +180,33 @@ export default class NpmRegistry extends Registry {
       return this.token;
     }
 
-    const registry = this.getRegistry(packageName);
+    const baseRegistry = this.getRegistry(packageName);
+    const registries = [baseRegistry];
 
-    // Check for bearer token.
-    const authToken = this.getRegistryOrGlobalOption(registry, '_authToken');
-    if (authToken) {
-      return `Bearer ${String(authToken)}`;
+    if (baseRegistry === `https://registry.yarnpkg.com/`) {
+      registries.push(`https://registry.npmjs.org/`);
     }
 
-    // Check for basic auth token.
-    const auth = this.getRegistryOrGlobalOption(registry, '_auth');
-    if (auth) {
-      return `Basic ${String(auth)}`;
-    }
+    for (const registry of registries) {
+      // Check for bearer token.
+      const authToken = this.getRegistryOrGlobalOption(registry, '_authToken');
+      if (authToken) {
+        return `Bearer ${String(authToken)}`;
+      }
 
-    // Check for basic username/password auth.
-    const username = this.getRegistryOrGlobalOption(registry, 'username');
-    const password = this.getRegistryOrGlobalOption(registry, '_password');
-    if (username && password) {
-      const pw = new Buffer(String(password), 'base64').toString();
-      return 'Basic ' + new Buffer(String(username) + ':' + pw).toString('base64');
+      // Check for basic auth token.
+      const auth = this.getRegistryOrGlobalOption(registry, '_auth');
+      if (auth) {
+        return `Basic ${String(auth)}`;
+      }
+
+      // Check for basic username/password auth.
+      const username = this.getRegistryOrGlobalOption(registry, 'username');
+      const password = this.getRegistryOrGlobalOption(registry, '_password');
+      if (username && password) {
+        const pw = new Buffer(String(password), 'base64').toString();
+        return 'Basic ' + new Buffer(String(username) + ':' + pw).toString('base64');
+      }
     }
 
     return '';
