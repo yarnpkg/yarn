@@ -224,10 +224,11 @@ export default class PackageResolver {
    */
 
   getAllInfoForPackageName(name: string): Array<Manifest> {
+    const patterns = this.patternsByPackage[name] || [];
     const infos = [];
     const seen = new Set();
 
-    for (const pattern of this.patternsByPackage[name]) {
+    for (const pattern of patterns) {
       const info = this.patterns[pattern];
       if (seen.has(info)) {
         continue;
