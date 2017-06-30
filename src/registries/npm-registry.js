@@ -66,7 +66,10 @@ export default class NpmRegistry extends Registry {
       opts.headers,
     );
 
-    if (alwaysAuth || (packageName || pathname)[0] === `@`) {
+    const packageIdent = packageName || pathname;
+    const isScoppedPackage = packageIdent.match(/^@|\/@/);
+
+    if (alwaysAuth || isScoppedPackage) {
       const authorization = this.getAuth(packageName || pathname);
       if (authorization) {
         headers.authorization = authorization;
