@@ -2,16 +2,32 @@
   "only": "*.js",
   "env": {
     "node4": {
-      "presets": ["es2015-node4"],
       "plugins": [
+        ["transform-flow-strip-types"],
+        ["transform-object-rest-spread"],
+        ["transform-class-properties"],
         ["transform-inline-imports-commonjs"]
-      ]
+      ],
+      "presets": [["env", {
+        "targets": {
+          "node": 4
+        },
+        "useBuiltIns": true
+      }]]
     },
     "test": {
-      "presets": ["es2015-node4"],
       "plugins": [
+        ["transform-flow-strip-types"],
+        ["transform-object-rest-spread"],
+        ["transform-class-properties"],
         ["transform-inline-imports-commonjs"]
-      ]
+      ],
+      "presets": [["env", {
+        "targets": {
+          "node": 4
+        },
+        "useBuiltIns": true
+      }]]
     }
   },
   "presets": ["node5", "stage-0"],
