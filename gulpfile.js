@@ -36,7 +36,7 @@ gulp.task('build-modern', () =>
 );
 
 gulp.task('build-legacy', () =>
-  build('lib-legacy', babelRc.env['pre-node5'])
+  build('lib-legacy', babelRc.env.node4)
 );
 
 gulp.task('watch', ['build'], () => {

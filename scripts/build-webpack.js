@@ -58,7 +58,7 @@ const compilerLegacy = webpack({
         test: /\.js$/,
         exclude: /node_modules/,
         loader: 'babel-loader',
-        query: babelRc.env['pre-node5'],
+        query: babelRc.env.node4,
       },
     ],
   },
