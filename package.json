@@ -53,7 +53,6 @@
     "babel-preset-es2015-node4": "^2.1.0",
     "babel-preset-node5": "^10.2.0",
     "babel-preset-stage-0": "^6.0.0",
-    "babylon": "^6.5.0",
     "eslint": "^3.19.0",
     "eslint-config-fb-strict": "^20.0.1",
     "eslint-plugin-babel": "^3.3.0",
