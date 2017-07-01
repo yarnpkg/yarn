@@ -49,7 +49,6 @@
     "babel-loader": "^6.2.5",
     "babel-plugin-array-includes": "^2.0.3",
     "babel-plugin-transform-inline-imports-commonjs": "^1.0.0",
-    "babel-plugin-transform-runtime": "^6.4.3",
     "babel-preset-es2015-node4": "^2.1.0",
     "babel-preset-node5": "^10.2.0",
     "babel-preset-stage-0": "^6.0.0",
