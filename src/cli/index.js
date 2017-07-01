@@ -29,7 +29,7 @@ const args = process.argv.slice(2, doubleDashIndex === -1 ? process.argv.length 
 const endArgs = doubleDashIndex === -1 ? [] : process.argv.slice(doubleDashIndex + 1, process.argv.length);
 
 // set global options
-commander.version(version);
+commander.version(version, '--version');
 commander.usage('[command] [flags]');
 commander.option('--verbose', 'output verbose messages on internal operations');
 commander.option('--offline', 'trigger an error if any required dependencies are not available in local cache');

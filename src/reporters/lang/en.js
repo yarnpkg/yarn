@@ -182,6 +182,8 @@ const messages = {
   foundWarnings: 'Found $0 warnings.',
   foundErrors: 'Found $0 errors.',
 
+  notSavedLockfileNoDependencies: 'Lockfile not saved, no dependencies.',
+
   savedLockfile: 'Saved lockfile.',
   noRequiredLockfile: 'No lockfile in this directory. Run `yarn install` to generate one.',
   noLockfileFound: 'No lockfile found.',

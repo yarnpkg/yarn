@@ -503,7 +503,12 @@ export class Install {
     }
 
     // fin!
-    await this.saveLockfileAndIntegrity(topLevelPatterns, workspaceLayout);
+    // The second condition is to make sure lockfile can be updated when running `remove` command.
+    if (topLevelPatterns.length || (await fs.exists(path.join(this.config.cwd, constants.LOCKFILE_FILENAME)))) {
+      await this.saveLockfileAndIntegrity(topLevelPatterns, workspaceLayout);
+    } else {
+      this.reporter.info(this.reporter.lang('notSavedLockfileNoDependencies'));
+    }
     this.maybeOutputUpdate();
     this.config.requestManager.clearCache();
     return flattenedTopLevelPatterns;
