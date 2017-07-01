@@ -155,6 +155,9 @@ export async function executeLifecycleScript(
     pathParts.unshift(path.join(config.linkFolder, binFolder));
     pathParts.unshift(path.join(cwd, binFolder));
   }
+  if (config.modulesFolder) {
+    pathParts.unshift(path.join(config.cwd, config.modulesFolder, '.bin'));
+  }
 
   await checkForGypIfNeeded(config, cmd, pathParts);
 
