@@ -16,6 +16,7 @@
     "flowtype/require-return-type": ["error", "always", {"excludeArrowFunctions": true}],
     "require-await": "error",
     "no-return-await": "error",
-    "sort-keys": "off"
+    "sort-keys": "off",
+    "space-before-function-paren": "off"
   }
 }
