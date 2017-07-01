@@ -4,7 +4,6 @@
     "node4": {
       "presets": ["es2015-node4"],
       "plugins": [
-        ["array-includes"],
         ["transform-inline-imports-commonjs"]
       ]
     },
