@@ -316,7 +316,7 @@ export default class PackageLinker {
       await promise.queue(
         flatTree,
         async ([dest, {pkg}]) => {
-          const binLoc = path.join(dest, this.config.getFolder(pkg));
+          const binLoc = this.config.modulesFolder || path.join(dest, this.config.getFolder(pkg));
           await this.linkBinDependencies(pkg, binLoc);
           tickBin();
         },
@@ -329,7 +329,7 @@ export default class PackageLinker {
         topLevelDependencies,
         async ([dest, {pkg}]) => {
           if (pkg.bin && Object.keys(pkg.bin).length) {
-            const binLoc = path.join(this.config.cwd, this.config.getFolder(pkg));
+            const binLoc = this.config.modulesFolder || path.join(this.config.cwd, this.config.getFolder(pkg));
             await this.linkSelfDependencies(pkg, dest, binLoc);
             tickBin();
           }
