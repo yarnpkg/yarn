@@ -23,12 +23,8 @@ export const requireLockfile = true;
 export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
   const useLockfile = args.length || flags.latest;
   const lockfile = useLockfile ? await Lockfile.fromDirectory(config.lockfileFolder, reporter) : new Lockfile();
-  const {
-    dependencies,
-    devDependencies,
-    optionalDependencies,
-    peerDependencies,
-  } = (await config.readRootManifest()) || {};
+  const {dependencies, devDependencies, optionalDependencies, peerDependencies} =
+    (await config.readRootManifest()) || {};
   const allDependencies = Object.assign({}, peerDependencies, optionalDependencies, devDependencies, dependencies);
   let addArgs = [];
 

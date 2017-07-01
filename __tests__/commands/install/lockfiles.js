@@ -119,7 +119,7 @@ test.concurrent('install have a clean node_modules after lockfile update (branch
     await fs.copy(path.join(config.cwd, 'yarn.lock.after'), path.join(config.cwd, 'yarn.lock'), reporter);
     await fs.copy(path.join(config.cwd, 'package.json.after'), path.join(config.cwd, 'package.json'), reporter);
 
-    const reinstall = new Install({}, config, reporter, (await Lockfile.fromDirectory(config.cwd)));
+    const reinstall = new Install({}, config, reporter, await Lockfile.fromDirectory(config.cwd));
     await reinstall.init();
 
     expect(await getPackageVersion(config, 'dep-a')).toEqual('1.2.0');
@@ -148,7 +148,7 @@ test.concurrent('install have a clean node_modules after lockfile update (branch
     await fs.copy(path.join(config.cwd, 'yarn.lock.after'), path.join(config.cwd, 'yarn.lock'), reporter);
     await fs.copy(path.join(config.cwd, 'package.json.after'), path.join(config.cwd, 'package.json'), reporter);
 
-    const reinstall = new Install({}, config, reporter, (await Lockfile.fromDirectory(config.cwd)));
+    const reinstall = new Install({}, config, reporter, await Lockfile.fromDirectory(config.cwd));
     await reinstall.init();
 
     expect(await getPackageVersion(config, 'dep-a')).toEqual('1.2.0');
@@ -172,7 +172,7 @@ test.concurrent('install should write and read integrity file based on lockfile 
     expect(allCorrect).toBe(true);
     // install should bail out with integrity check
     await fs.unlink(path.join(config.cwd, 'node_modules', 'mime-types'));
-    const reinstall = new Install({}, config, reporter, (await Lockfile.fromDirectory(config.cwd)));
+    const reinstall = new Install({}, config, reporter, await Lockfile.fromDirectory(config.cwd));
     await reinstall.init();
 
     // integrity check should keep passing
@@ -200,14 +200,14 @@ test.concurrent('install should not continue if integrity check passes', (): Pro
     await fs.writeFile(path.join(config.cwd, 'node_modules', 'yarn.test'), 'YARN TEST');
 
     // install should bail out with integrity check and not remove extraneous file
-    let reinstall = new Install({}, config, reporter, (await Lockfile.fromDirectory(config.cwd)));
+    let reinstall = new Install({}, config, reporter, await Lockfile.fromDirectory(config.cwd));
     await reinstall.init();
 
     expect(await fs.exists(path.join(config.cwd, 'node_modules', 'yarn.test'))).toBeTruthy();
 
     await fs.unlink(path.join(config.cwd, 'node_modules', 'yarn.test'));
 
-    reinstall = new Install({}, config, reporter, (await Lockfile.fromDirectory(config.cwd)));
+    reinstall = new Install({}, config, reporter, await Lockfile.fromDirectory(config.cwd));
     await reinstall.init();
 
     expect(!await fs.exists(path.join(config.cwd, 'node_modules', 'yarn.test'))).toBeTruthy();
@@ -228,13 +228,13 @@ test.concurrent('install should not rewrite lockfile with no substantial changes
 
     await fs.unlink(path.join(config.cwd, 'node_modules', constants.INTEGRITY_FILENAME));
 
-    let reinstall = new Install({}, config, reporter, (await Lockfile.fromDirectory(config.cwd)));
+    let reinstall = new Install({}, config, reporter, await Lockfile.fromDirectory(config.cwd));
     await reinstall.init();
     let newLockContent = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
     expect(newLockContent).toEqual(lockContent);
 
     // force should rewrite lockfile
-    reinstall = new Install({force: true}, config, reporter, (await Lockfile.fromDirectory(config.cwd)));
+    reinstall = new Install({force: true}, config, reporter, await Lockfile.fromDirectory(config.cwd));
     await reinstall.init();
     newLockContent = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
     expect(newLockContent).not.toEqual(lockContent);
