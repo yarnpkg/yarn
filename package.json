@@ -56,7 +56,6 @@
     "babylon": "^6.5.0",
     "eslint": "^4.1.1",
     "eslint-config-fb-strict": "^20.0.3",
-    "eslint-plugin-babel": "^3.3.0",
     "eslint-plugin-flowtype": "^2.34.1",
     "eslint-plugin-react": "^7.1.0",
     "eslint-plugin-yarn-internal": "file:scripts/eslint-rules",
