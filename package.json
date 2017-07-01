@@ -43,7 +43,6 @@
   },
   "devDependencies": {
     "babel-core": "^6.24.1",
-    "babel-eslint": "^6.1.2",
     "babel-jest": "^19.0.0",
     "babel-loader": "^6.2.5",
     "babel-plugin-array-includes": "^2.0.3",
