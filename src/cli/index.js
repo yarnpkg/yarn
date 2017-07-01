@@ -1,5 +1,6 @@
 /* @flow */
 
+import 'babel-polyfill';
 import {ConsoleReporter, JSONReporter} from '../reporters/index.js';
 import {registries, registryNames} from '../registries/index.js';
 import commands from './commands/index.js';
