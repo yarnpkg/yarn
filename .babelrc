@@ -15,6 +15,20 @@
         "useBuiltIns": true
       }]]
     },
+    "node6": {
+      "plugins": [
+        ["transform-flow-strip-types"],
+        ["transform-object-rest-spread"],
+        ["transform-class-properties"],
+        ["transform-inline-imports-commonjs"]
+      ],
+      "presets": [["env", {
+        "targets": {
+          "node": 6
+        },
+        "useBuiltIns": true
+      }]]
+    },
     "test": {
       "plugins": [
         ["transform-flow-strip-types"],
@@ -29,9 +43,5 @@
         "useBuiltIns": true
       }]]
     }
-  },
-  "presets": ["node5", "stage-0"],
-  "plugins": [
-    ["transform-inline-imports-commonjs"]
-  ]
+  }
 }
