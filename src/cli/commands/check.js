@@ -39,11 +39,12 @@ export async function verifyTreeCheck(
   const registryName = 'yarn';
   const registry = config.registries[registryName];
   const rootManifest = await config.readManifest(registry.cwd, registryName);
+  const modulesFolder = config.modulesFolder || path.join(registry.cwd, registry.folder);
 
   type PackageToVerify = {
     name: string,
     originalKey: string,
-    parentCwd: string,
+    modulePath: Array<string>,
     version: string,
   };
   const dependenciesToCheckVersion: PackageToVerify[] = [];
@@ -58,7 +59,7 @@ export async function verifyTreeCheck(
       dependenciesToCheckVersion.push({
         name,
         originalKey: name,
-        parentCwd: registry.cwd,
+        modulePath: [modulesFolder],
         version,
       });
     }
@@ -74,7 +75,7 @@ export async function verifyTreeCheck(
       dependenciesToCheckVersion.push({
         name,
         originalKey: name,
-        parentCwd: registry.cwd,
+        modulePath: [modulesFolder],
         version,
       });
     }
@@ -83,7 +84,7 @@ export async function verifyTreeCheck(
   const locationsVisited: Set<string> = new Set();
   while (dependenciesToCheckVersion.length) {
     const dep = dependenciesToCheckVersion.shift();
-    const manifestLoc = path.join(dep.parentCwd, registry.folder, dep.name);
+    const manifestLoc = path.join(...dep.modulePath, dep.name);
     if (locationsVisited.has(manifestLoc + `@${dep.version}`)) {
       continue;
     }
@@ -105,37 +106,22 @@ export async function verifyTreeCheck(
     }
     const dependencies = pkg.dependencies;
     if (dependencies) {
+      const deepestSearchPath = dep.modulePath.concat(path.join(dep.name, registry.folder));
       for (const subdep in dependencies) {
-        const subDepPath = path.join(manifestLoc, registry.folder, subdep);
+        const searchPath = deepestSearchPath.slice(0);
         let found = false;
-        const relative = path.relative(registry.cwd, subDepPath);
-        const locations = path.normalize(relative).split(registry.folder + path.sep).filter(dir => !!dir);
-        locations.pop();
-        while (locations.length >= 0) {
-          let possiblePath;
-          if (locations.length > 0) {
-            possiblePath = path.join(
-              registry.cwd,
-              registry.folder,
-              locations.join(path.sep + registry.folder + path.sep),
-            );
-          } else {
-            possiblePath = registry.cwd;
-          }
-          if (await fs.exists(path.join(possiblePath, registry.folder, subdep))) {
+        while (searchPath.length > 0) {
+          if (await fs.exists(path.join(...searchPath, subdep))) {
             dependenciesToCheckVersion.push({
               name: subdep,
               originalKey: `${dep.originalKey}#${subdep}`,
-              parentCwd: possiblePath,
+              modulePath: searchPath,
               version: dependencies[subdep],
             });
             found = true;
             break;
           }
-          if (!locations.length) {
-            break;
-          }
-          locations.pop();
+          searchPath.pop();
         }
         if (!found) {
           reportError('packageNotInstalled', `${dep.originalKey}#${subdep}`);
@@ -200,9 +186,10 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
 
   const lockfile = await Lockfile.fromDirectory(config.cwd);
   const install = new Install(flags, config, reporter, lockfile);
+  const rootModulesFolder = config.modulesFolder || path.join(config.cwd, 'node_modules');
 
   function humaniseLocation(loc: string): Array<string> {
-    const relative = path.relative(path.join(config.cwd, 'node_modules'), loc);
+    const relative = path.relative(rootModulesFolder, loc);
     const normalized = path.normalize(relative).split(path.sep);
     return normalized.filter(p => p !== 'node_modules').reduce((result, part) => {
       const length = result.length;
@@ -311,7 +298,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
           const myParts = parts.slice(0, i).concat(name);
 
           // build package.json location for this position
-          const myDepPkgLoc = path.join(config.cwd, 'node_modules', myParts.join(`${path.sep}node_modules${path.sep}`));
+          const myDepPkgLoc = path.join(rootModulesFolder, myParts.join(`${path.sep}node_modules${path.sep}`));
 
           possibles.push(myDepPkgLoc);
         }
