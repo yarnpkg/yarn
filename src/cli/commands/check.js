@@ -1,5 +1,6 @@
 /* @flow */
 
+import type {Dependencies} from '../../types.js';
 import type Config from '../../config.js';
 import {MessageError} from '../../errors.js';
 import InstallationIntegrityChecker from '../../integrity-checker.js';
@@ -39,94 +40,90 @@ export async function verifyTreeCheck(
   const registryName = 'yarn';
   const registry = config.registries[registryName];
   const rootManifest = await config.readManifest(registry.cwd, registryName);
-  const modulesFolder = config.modulesFolder || path.join(registry.cwd, registry.folder);
+  const rootModulesFolder = config.modulesFolder || path.join(registry.cwd, registry.folder);
 
   type PackageToVerify = {
     name: string,
-    originalKey: string,
-    modulePath: Array<string>,
+    key: string,
+    searchPath: Array<string>,
     version: string,
   };
   const dependenciesToCheckVersion: PackageToVerify[] = [];
-  if (rootManifest.dependencies) {
-    for (const name in rootManifest.dependencies) {
-      const version = rootManifest.dependencies[name];
-      // skip linked dependencies
-      const isLinkedDepencency = /^link:/i.test(version) || (/^file:/i.test(version) && config.linkFileDependencies);
-      if (isLinkedDepencency) {
-        continue;
+
+  function pushDependencies(dependencies: ?Dependencies) {
+    if (dependencies) {
+      for (const name in dependencies) {
+        const version = dependencies[name];
+        // skip linked dependencies
+        const isLinkedDepencency = /^link:/i.test(version) || (/^file:/i.test(version) && config.linkFileDependencies);
+        if (!isLinkedDepencency) {
+          dependenciesToCheckVersion.push({
+            name,
+            key: name,
+            searchPath: [rootModulesFolder],
+            version,
+          });
+        }
       }
-      dependenciesToCheckVersion.push({
-        name,
-        originalKey: name,
-        modulePath: [modulesFolder],
-        version,
-      });
     }
   }
-  if (rootManifest.devDependencies && !config.production) {
-    for (const name in rootManifest.devDependencies) {
-      const version = rootManifest.devDependencies[name];
-      // skip linked dependencies
-      const isLinkedDepencency = /^link:/i.test(version) || (/^file:/i.test(version) && config.linkFileDependencies);
-      if (isLinkedDepencency) {
-        continue;
-      }
-      dependenciesToCheckVersion.push({
-        name,
-        originalKey: name,
-        modulePath: [modulesFolder],
-        version,
-      });
-    }
+  pushDependencies(rootManifest.dependencies);
+  if (!config.production) {
+    pushDependencies(rootManifest.devDependencies);
   }
 
-  const locationsVisited: Set<string> = new Set();
+  const missing = false;
+  const anyVersion = true;
+  const pkgVersions: Map<string, string | boolean> = new Map();
   while (dependenciesToCheckVersion.length) {
     const dep = dependenciesToCheckVersion.shift();
-    const manifestLoc = path.join(...dep.modulePath, dep.name);
-    if (locationsVisited.has(manifestLoc + `@${dep.version}`)) {
-      continue;
-    }
-    locationsVisited.add(manifestLoc + `@${dep.version}`);
-    if (!await fs.exists(manifestLoc)) {
-      reportError('packageNotInstalled', `${dep.originalKey}`);
-      continue;
-    }
-    if (!await fs.exists(path.join(manifestLoc, 'package.json'))) {
-      continue;
-    }
-    const pkg = await config.readManifest(manifestLoc, registryName);
-    if (
-      semver.validRange(dep.version, config.looseSemver) &&
-      !semver.satisfies(pkg.version, dep.version, config.looseSemver)
-    ) {
-      reportError('packageWrongVersion', dep.originalKey, dep.version, pkg.version);
-      continue;
-    }
-    const dependencies = pkg.dependencies;
-    if (dependencies) {
-      const deepestSearchPath = dep.modulePath.concat(path.join(dep.name, registry.folder));
-      for (const subdep in dependencies) {
-        const searchPath = deepestSearchPath.slice(0);
-        let found = false;
-        while (searchPath.length > 0) {
-          if (await fs.exists(path.join(...searchPath, subdep))) {
-            dependenciesToCheckVersion.push({
-              name: subdep,
-              originalKey: `${dep.originalKey}#${subdep}`,
-              modulePath: searchPath,
-              version: dependencies[subdep],
-            });
-            found = true;
-            break;
-          }
-          searchPath.pop();
+    const searchPath = dep.searchPath;
+    let version: string | boolean = false;
+    let dependencies: ?Dependencies;
+
+    while (searchPath.length) {
+      const manifestLoc = path.join(...searchPath, dep.name);
+
+      if (pkgVersions.has(manifestLoc)) {
+        version = pkgVersions.get(manifestLoc) || missing;
+        if (version !== missing) { // found
+          break;
         }
-        if (!found) {
-          reportError('packageNotInstalled', `${dep.originalKey}#${subdep}`);
+      } else {
+        if (!await fs.exists(manifestLoc)) {
+          pkgVersions.set(manifestLoc, missing);
+        } else if (!await fs.exists(path.join(manifestLoc, 'package.json'))) {
+          pkgVersions.set(manifestLoc, anyVersion);
+        } else {
+          ({version, dependencies} = await config.readManifest(manifestLoc, registryName));
+          pkgVersions.set(manifestLoc, version);
+          break;
         }
       }
+      searchPath.pop();
+    }
+
+    if (version !== missing) {
+      if (typeof version !== 'string' || // --> version === anyVersion
+          (!semver.validRange(dep.version, config.looseSemver) ||
+          semver.satisfies(version, dep.version, config.looseSemver))) {
+        if (dependencies) {
+          const newSearchPath = searchPath.concat([path.join(dep.name, registry.folder)]);
+
+          for (const subDep in dependencies) {
+            dependenciesToCheckVersion.push({
+              name: subDep,
+              key: `${dep.key}#${subDep}`,
+              searchPath: newSearchPath.slice(0),
+              version: dependencies[subDep],
+            });
+          }
+        }
+      } else {
+        reportError('packageWrongVersion', dep.key, dep.version, version);
+      }
+    } else {
+      reportError('packageNotInstalled', dep.key);
     }
   }
 
