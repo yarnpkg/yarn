@@ -75,10 +75,9 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
 
   const addFlags = Object.assign({}, flags, {force: true});
   const addArgs = deps.map(dep => dep.latestPattern);
-  console.log(addArgs);
+  delete addFlags.latest;
   const add = new Add(addArgs, addFlags, config, reporter, lockfile);
   await add.init();
-  console.log('DONE');
 }
 
 export async function getOutdated(
@@ -124,7 +123,7 @@ export async function getOutdated(
   let deps = (await PackageRequest.getOutdatedPackages(lockfile, install, config, reporter, patterns)).filter(
     dep => dep.current != dep[outdatedFieldName],
   );
-  console.log('OUTDATED', deps);
+
   if (flags.scope) {
     if (!flags.scope.startsWith('@')) {
       flags.scope = '@' + flags.scope;
