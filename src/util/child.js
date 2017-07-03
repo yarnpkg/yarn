@@ -15,6 +15,14 @@ let uid = 0;
 
 export const exec = promisify(child.exec);
 
+const spawnedProcesses = {};
+
+export function forwardSignalToSpawnedProcesses(signal: string) {
+  for (const key of Object.keys(spawnedProcesses)) {
+    spawnedProcesses[key].kill(signal);
+  }
+}
+
 type ProcessFn = (
   proc: child_process$ChildProcess,
   update: (chunk: string) => void,
@@ -28,11 +36,13 @@ export function spawn(
   opts?: child_process$spawnOpts & {process?: ProcessFn} = {},
   onData?: (chunk: Buffer | string) => void,
 ): Promise<string> {
+  const key = opts.cwd || String(++uid);
   return queue.push(
-    opts.cwd || String(++uid),
+    key,
     (): Promise<string> =>
       new Promise((resolve, reject) => {
         const proc = child.spawn(program, args, opts);
+        spawnedProcesses[key] = proc;
 
         let processingDone = false;
         let processClosed = false;
@@ -56,6 +66,7 @@ export function spawn(
         }
 
         function finish() {
+          delete spawnedProcesses[key];
           if (err) {
             reject(err);
           } else {
