@@ -3,10 +3,10 @@
   "env": {
     "node4": {
       "plugins": [
-        ["transform-flow-strip-types"],
-        ["transform-object-rest-spread"],
-        ["transform-class-properties"],
-        ["transform-inline-imports-commonjs"]
+        "transform-flow-strip-types",
+        "transform-object-rest-spread",
+        "transform-class-properties",
+        "transform-inline-imports-commonjs"
       ],
       "presets": [["env", {
         "targets": {
@@ -17,10 +17,10 @@
     },
     "node6": {
       "plugins": [
-        ["transform-flow-strip-types"],
-        ["transform-object-rest-spread"],
-        ["transform-class-properties"],
-        ["transform-inline-imports-commonjs"]
+        "transform-flow-strip-types",
+        "transform-object-rest-spread",
+        "transform-class-properties",
+        "transform-inline-imports-commonjs"
       ],
       "presets": [["env", {
         "targets": {
@@ -31,10 +31,10 @@
     },
     "test": {
       "plugins": [
-        ["transform-flow-strip-types"],
-        ["transform-object-rest-spread"],
-        ["transform-class-properties"],
-        ["transform-inline-imports-commonjs"]
+        "transform-flow-strip-types",
+        "transform-object-rest-spread",
+        "transform-class-properties",
+        "transform-inline-imports-commonjs"
       ],
       "presets": [["env", {
         "targets": {
