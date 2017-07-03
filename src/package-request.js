@@ -257,9 +257,10 @@ export default class PackageRequest {
     // the same range
     const {range, name} = PackageRequest.normalizePattern(this.pattern);
     const solvedRange = semver.validRange(range) ? info.version : range;
-    const resolved: ?Manifest = !info.fresh || frozen
-      ? this.resolver.getExactVersionMatch(name, solvedRange)
-      : this.resolver.getHighestRangeVersionMatch(name, solvedRange);
+    const resolved: ?Manifest =
+      !info.fresh || frozen
+        ? this.resolver.getExactVersionMatch(name, solvedRange)
+        : this.resolver.getHighestRangeVersionMatch(name, solvedRange);
     if (resolved) {
       this.resolver.reportPackageWithExistingVersion(this, info);
       return;

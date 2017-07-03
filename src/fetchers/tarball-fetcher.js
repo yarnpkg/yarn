@@ -61,9 +61,10 @@ export default class TarballFetcher extends BaseFetcher {
     // handle scoped packages
     const pathParts = pathname.replace(/^\//, '').split(/\//g);
 
-    const packageFilename = pathParts.length >= 2 && pathParts[0][0] === '@'
-      ? `${pathParts[0]}-${pathParts[pathParts.length - 1]}` // scopped
-      : `${pathParts[pathParts.length - 1]}`;
+    const packageFilename =
+      pathParts.length >= 2 && pathParts[0][0] === '@'
+        ? `${pathParts[0]}-${pathParts[pathParts.length - 1]}` // scopped
+        : `${pathParts[pathParts.length - 1]}`;
 
     return this.config.getOfflineMirrorPath(packageFilename);
   }
