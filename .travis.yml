@@ -1,4 +1,10 @@
 ---
+# Without sudo, Travis CI uses AUFS which causes issues with our
+# tests when we write stuff and try to read it back right after to
+# verfify our expectations.
+# See https://docs.travis-ci.com/user/ci-environment/#Virtualization-environments
+sudo: required
+
 git:
   depth: 10
 language: node_js
@@ -7,28 +13,22 @@ node_js:
   - "6"
   - "4"
 
-sudo: required # Until Yarn repo is added to apt-source-whitelist
-
-addons:
-  apt:
-    packages:
-      - git
+cache:
+  yarn: true
+  directories:
+    - node_modules
 
 branches:
   only:
   - master
   - /^.*-stable$/
 
-cache:
-  # Yarn installed with Travis breaks in Node 4, see https://travis-ci.org/yarnpkg/yarn/jobs/215947941
-  yarn: false
-
 env:
   matrix:
     - TEST_TYPE="build-dist"
     - TEST_TYPE="check-lockfile"
     - TEST_TYPE="lint"
-    - TEST_TYPE="test-ci"
+    - TEST_TYPE="test-only"
 
 matrix:
   exclude:
@@ -41,10 +41,9 @@ matrix:
   include:
     - os: osx
       node_js: "6"
-      env: TEST_TYPE="test-ci"
+      env: TEST_TYPE="test-only"
 
 before_install:
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then ./scripts/bootstrap-env-ubuntu.sh; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
       RAMDISK_SIZE=300;
       RAMDISK_SECTORS=$(( $RAMDISK_SIZE * 1024 * 1024 / 512 ));
@@ -54,6 +53,8 @@ before_install:
       mkdir -p $TMPDIR;
       mount -t hfs -o nobrowse $RAMDISK $TMPDIR;
     fi
+  - yarn && yarn build
+  - alias yarn="node ./bin/yarn.js"
 
 os:
   - linux
