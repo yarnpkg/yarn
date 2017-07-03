@@ -892,3 +892,15 @@ test.skip('unbound transitive dependencies should not conflict with top level de
     );
   });
 });
+
+test.concurrent('top level patterns should match after install', (): Promise<void> => {
+  return runInstall({}, 'top-level-pattern-check', async (config, reporter) => {
+    let integrityError = false;
+    try {
+      await check(config, reporter, {integrity: true}, []);
+    } catch (err) {
+      integrityError = true;
+    }
+    expect(integrityError).toBe(false);
+  });
+});

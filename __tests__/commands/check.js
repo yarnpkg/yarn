@@ -340,3 +340,13 @@ test.concurrent('should ignore bundled dependencies', async (): Promise<void> =>
     },
   );
 });
+
+test.concurrent('--integrity should throw an error if top level patterns do not match', async (): Promise<void> => {
+  let integrityError = false;
+  try {
+    await runCheck([], {integrity: true}, 'integrity-top-level-patters');
+  } catch (err) {
+    integrityError = true;
+  }
+  expect(integrityError).toEqual(true);
+});
