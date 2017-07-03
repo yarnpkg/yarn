@@ -883,3 +883,12 @@ test.concurrent('transitive file: dependencies should work', (): Promise<void> =
     expect(await fs.exists(path.join(config.cwd, 'node_modules', 'b'))).toBe(true);
   });
 });
+
+// Unskip once https://github.com/yarnpkg/yarn/issues/3778 is resolved
+test.skip('unbound transitive dependencies should not conflict with top level dependency', async () => {
+  await runInstall({flat: true}, 'install-conflicts', async config => {
+    expect((await fs.readJson(path.join(config.cwd, 'node_modules', 'left-pad', 'package.json'))).version).toEqual(
+      '1.0.0',
+    );
+  });
+});
