@@ -826,7 +826,6 @@ test.concurrent('should only refer to root to satisfy peer dependency', (): Prom
   );
 });
 
-
 test.concurrent('should retain build artifacts after add', (): Promise<void> => {
   return buildRun(
     reporters.BufferReporter,
