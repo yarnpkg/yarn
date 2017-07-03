@@ -2,6 +2,7 @@
 
 import {readFileSync} from 'fs';
 import {basename, dirname, join} from 'path';
+import {CONFIG_DIRECTORY} from '../constants.js';
 
 const etc = '/etc';
 const isWin = process.platform === 'win32';
@@ -49,6 +50,7 @@ export function findRc(name: string, parser: Function): Object {
   }
 
   if (home) {
+    addConfigPath(CONFIG_DIRECTORY, `${name}rc`);
     addConfigPath(home, '.config', name, 'config');
     addConfigPath(home, '.config', name);
     addConfigPath(home, `.${name}`, 'config');
