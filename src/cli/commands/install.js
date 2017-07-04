@@ -32,6 +32,7 @@ const isCI = require('is-ci');
 const path = require('path');
 const semver = require('semver');
 const uuid = require('uuid');
+const deleteKey = require('key-del');
 
 const ONE_DAY = 1000 * 60 * 60 * 24;
 
@@ -227,7 +228,9 @@ export class Install {
       }
 
       this.rootManifestRegistries.push(registry);
-      const projectManifestJson = await this.config.readJson(loc);
+      const projectRawManifestJson = await this.config.readJson(loc);
+      const projectManifestJson = deleteKey(projectRawManifestJson, ['//']);
+
       await normalizeManifest(projectManifestJson, this.config.cwd, this.config, true);
 
       Object.assign(this.resolutions, projectManifestJson.resolutions);
