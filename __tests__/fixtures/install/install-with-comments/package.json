@@ -1,0 +1,10 @@
+{
+  "dependencies": {
+    "//": [
+      "This is a",
+      "multiline",
+      "comment"
+    ],
+    "foo": "file:bar"
+  }
+}
