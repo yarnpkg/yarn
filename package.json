@@ -22,6 +22,7 @@
     "invariant": "^2.2.0",
     "is-builtin-module": "^1.0.0",
     "is-ci": "^1.0.10",
+    "key-del": "^1.2.4",
     "leven": "^2.0.0",
     "loud-rejection": "^1.2.0",
     "micromatch": "^2.3.11",
