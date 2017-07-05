@@ -12,6 +12,11 @@ fail_with_log() {
   exit $exitcode
 }
 
+check_config() {
+  XDG_CONFIG_HOME=~/config_path yarn config get $1 > config_output
+  echo $2 | diff config_output - || fail_with_log
+}
+
 cd /tmp
 mkdir yarntest
 cd yarntest
@@ -23,3 +28,12 @@ yarn --version || fail_with_log
 rm -rf ~/.cache/yarn
 
 yarn add react || fail_with_log
+
+# Ensure that we follow the xdg spec
+mkdir ~/config_path
+echo "foo bar" > ~/config_path
+check_config foo bar
+
+# Ensure that compatibility with the old config format is maintained
+echo "bar baz" >> ~/.yarnrc
+check_config bar baz
