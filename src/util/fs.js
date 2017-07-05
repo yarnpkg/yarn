@@ -163,7 +163,11 @@ async function buildActionsForCopy(
     const {src, dest, type} = data;
     const onFresh = data.onFresh || noop;
     const onDone = data.onDone || noop;
-    invariant(!files.has(dest), `The same file ${dest} can't be copied twice in one bulk copy`);
+    if (files.has(dest)) {
+      // TODO https://github.com/yarnpkg/yarn/issues/3751
+      // related to bundled dependencies handling
+      reporter.warn(`The same file ${dest} can't be copied twice in one bulk copy`);
+    }
     files.add(dest);
 
     if (type === 'symlink') {

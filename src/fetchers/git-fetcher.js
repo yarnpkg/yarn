@@ -85,9 +85,10 @@ export default class GitFetcher extends BaseFetcher {
     const tarballModernMirrorPath = this.getTarballMirrorPath();
     const tarballCachePath = this.getTarballCachePath();
 
-    const tarballMirrorPath = tarballModernMirrorPath && (await fsUtil.exists(tarballModernMirrorPath))
-      ? tarballModernMirrorPath
-      : tarballLegacyMirrorPath && (await fsUtil.exists(tarballLegacyMirrorPath)) ? tarballLegacyMirrorPath : null;
+    const tarballMirrorPath =
+      tarballModernMirrorPath && (await fsUtil.exists(tarballModernMirrorPath))
+        ? tarballModernMirrorPath
+        : tarballLegacyMirrorPath && (await fsUtil.exists(tarballLegacyMirrorPath)) ? tarballLegacyMirrorPath : null;
 
     const tarballPath = override || tarballMirrorPath || tarballCachePath;
 

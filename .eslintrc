@@ -5,7 +5,8 @@
   },
   "plugins": [
     "flowtype",
-    "yarn-internal"
+    "yarn-internal",
+    "prettier"
   ],
   "rules": {
     "yarn-internal/warn-language": "error",
@@ -16,6 +17,13 @@
     "flowtype/require-return-type": ["error", "always", {"excludeArrowFunctions": true}],
     "require-await": "error",
     "no-return-await": "error",
-    "sort-keys": "off"
+    "sort-keys": "off",
+    "prettier/prettier": ["error", {
+      "singleQuote": true,
+      "trailingComma": "all",
+      "bracketSpacing": false,
+      "printWidth": 120,
+      "parser": "flow"
+    }]
   }
 }
