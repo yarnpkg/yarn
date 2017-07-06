@@ -66,11 +66,15 @@ export class Add extends Install {
       // if the user specified a range then use it verbatim
       version = range;
     } else {
-      const prefix = tilde
-        ? '~' // --save-tilde
-        : exact
-          ? '' // --save-exact
-          : String(this.config.getOption('save-prefix')) || '^';
+      let prefix;
+      if (tilde) {
+        prefix = '~';
+      } else if (exact) {
+        prefix = '';
+      } else {
+        prefix = String(this.config.getOption('save-prefix')) || '^';
+      }
+      
       version = `${prefix}${pkg.version}`;
     }
     return version;
