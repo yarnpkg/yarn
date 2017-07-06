@@ -14,7 +14,6 @@ const inquirer = require('inquirer');
 const tty = require('tty');
 const invariant = require('invariant');
 const path = require('path');
-const isCI = require('is-ci');
 
 const NPM_REGISTRY = /http[s]:\/\/registry.npmjs.org/g;
 
@@ -44,7 +43,7 @@ export default class NpmResolver extends RegistryResolver {
     const satisfied = await config.resolveConstraints(Object.keys(body.versions), range);
     if (satisfied) {
       return body.versions[satisfied];
-    } else if (!isCI && request && !config.nonInteractive) {
+    } else if (request && !config.nonInteractive) {
       if (request.resolver && request.resolver.activity) {
         request.resolver.activity.end();
       }
