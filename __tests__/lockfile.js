@@ -194,7 +194,7 @@ test('Lockfile.getLockfile (sorting)', () => {
   expect(actual).toEqual(expected);
 });
 
-test('parse merge conflicts', () => {
+test('parse single merge conflict', () => {
   const file = `
 a:
   no "yes"
@@ -219,6 +219,41 @@ d:
   expect(object.d.yes).toEqual('no');
 });
 
+test('parse multiple merge conflicts', () => {
+  const file = `
+a:
+  no "yes"
+
+<<<<<<< HEAD
+b:
+  foo "bar"
+=======
+c:
+  bar "foo"
+>>>>>>> branch-a
+
+d:
+  yes "no"
+
+<<<<<<< HEAD
+e:
+  foo "bar"
+=======
+f:
+  bar "foo"
+>>>>>>> branch-b
+`;
+
+  const {type, object} = parse(file);
+  expect(type).toEqual('merge');
+  expect(object.a.no).toEqual('yes');
+  expect(object.b.foo).toEqual('bar');
+  expect(object.c.bar).toEqual('foo');
+  expect(object.d.yes).toEqual('no');
+  expect(object.e.foo).toEqual('bar');
+  expect(object.f.bar).toEqual('foo');
+});
+
 test('parse merge conflict fail', () => {
   const file = `
 <<<<<<< HEAD
@@ -233,4 +268,25 @@ c:
   const {type, object} = parse(file);
   expect(type).toEqual('conflict');
   expect(Object.keys(object).length).toEqual(0);
+});
+
+test('discards common ancestors in merge conflicts', () => {
+  const file = `
+<<<<<<< HEAD
+b:
+  foo "bar"
+||||||| common ancestor
+d:
+  yes "no"
+=======
+c:
+  bar "foo"
+>>>>>>> branch-a
+`;
+
+  const {type, object} = parse(file);
+  expect(type).toEqual('merge');
+  expect(object.b.foo).toEqual('bar');
+  expect(object.c.bar).toEqual('foo');
+  expect(object.d).toBe(undefined);
 });

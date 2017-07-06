@@ -314,9 +314,10 @@ export class Parser {
   }
 }
 
-const MERGE_CONFLICT_START = '<<<<<<<';
-const MERGE_CONFLICT_SEP = '=======';
+const MERGE_CONFLICT_ANCESTOR = '|||||||';
 const MERGE_CONFLICT_END = '>>>>>>>';
+const MERGE_CONFLICT_SEP = '=======';
+const MERGE_CONFLICT_START = '<<<<<<<';
 
 /**
  * Extract the two versions of the lockfile from a merge conflict.
@@ -325,6 +326,7 @@ const MERGE_CONFLICT_END = '>>>>>>>';
 export function extractConflictVariants(str: string): Array<string> {
   const variants: Array<Array<string>> = [[], []];
   const lines = str.split(/\n/g);
+  let skip = false;
 
   while (lines.length) {
     const line = lines.shift();
@@ -333,7 +335,11 @@ export function extractConflictVariants(str: string): Array<string> {
       while (lines.length) {
         const line = lines.shift();
         if (line === MERGE_CONFLICT_SEP) {
+          skip = false;
           break;
+        } else if (skip || line.startsWith(MERGE_CONFLICT_ANCESTOR)) {
+          skip = true;
+          continue;
         } else {
           variants[0].push(line);
         }
