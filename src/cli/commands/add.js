@@ -74,7 +74,7 @@ export class Add extends Install {
       } else {
         prefix = String(this.config.getOption('save-prefix')) || '^';
       }
-      
+
       version = `${prefix}${pkg.version}`;
     }
     return version;
