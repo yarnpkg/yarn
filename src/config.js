@@ -335,7 +335,8 @@ export default class Config {
 
     this.disablePrepublish = !!opts.disablePrepublish;
 
-    this.nonInteractive = opts.nonInteractive != null ? !!opts.nonInteractive : isCi || !process.stdout.isTTY;
+    // $FlowFixMe$
+    this.nonInteractive = !!opts.nonInteractive || isCi || !process.stdout.isTTY;
 
     this.requestManager.setOptions({
       offline: !!opts.offline && !opts.preferOffline,
