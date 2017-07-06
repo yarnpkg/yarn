@@ -5,6 +5,7 @@ import type RequestManager from '../util/request-manager.js';
 import type {RegistryRequestOptions, CheckOutdatedReturn} from './base-registry.js';
 import type Config from '../config.js';
 import type {ConfigRegistries} from './index.js';
+import {YARN_REGISTRY} from '../constants.js';
 import * as fs from '../util/fs.js';
 import NpmResolver from '../resolvers/registries/npm-resolver.js';
 import envReplace from '../util/env-replace.js';
@@ -215,8 +216,9 @@ export default class NpmRegistry extends Registry {
     const baseRegistry = this.getRegistry(packageName);
     const registries = [baseRegistry];
 
-    if (baseRegistry === `https://registry.yarnpkg.com/`) {
-      registries.push(`https://registry.npmjs.org/`);
+    // If sending a request to the Yarn registry, we must also send it the auth token for the npm registry
+    if (baseRegistry === YARN_REGISTRY) {
+      registries.push(DEFAULT_REGISTRY);
     }
 
     for (const registry of registries) {
