@@ -152,6 +152,31 @@ test.concurrent(
   },
 );
 
+test.concurrent('replace the symlink when it changes, when using the link: protocol', async () => {
+  await runInstall({}, 'install-link', async (config, reporter): Promise<void> => {
+    const lockfile = await Lockfile.fromDirectory(config.cwd);
+
+    const pkgJson = await fs.readJson(`${config.cwd}/package.json`);
+    pkgJson.dependencies['test-missing'] = 'link:barbaz';
+    await fs.writeFile(`${config.cwd}/package.json`, JSON.stringify(pkgJson));
+
+    const reInstall = new Install({}, config, reporter, lockfile);
+    await reInstall.init();
+
+    const expectPath = path.join(config.cwd, 'node_modules', 'test-missing');
+
+    const stat = await fs.lstat(expectPath);
+    expect(stat.isSymbolicLink()).toEqual(true);
+
+    const target = await fs.readlink(expectPath);
+    if (process.platform !== 'win32') {
+      expect(target).toEqual('../barbaz');
+    } else {
+      expect(target).toMatch(/[\\\/]barbaz[\\\/]$/);
+    }
+  });
+});
+
 test('changes the cache path when bumping the cache version', async () => {
   await runInstall({}, 'install-github', async (config): Promise<void> => {
     const inOut = new stream.PassThrough();

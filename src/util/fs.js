@@ -257,6 +257,11 @@ async function buildActionsForCopy(
       }
     }
 
+    if (destStat && destStat.isSymbolicLink()) {
+      await unlink(dest);
+      destStat = null;
+    }
+
     if (srcStat.isSymbolicLink()) {
       onFresh();
       const linkname = await readlink(src);
