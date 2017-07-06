@@ -28,7 +28,6 @@ import WorkspaceLayout from '../../workspace-layout.js';
 
 const emoji = require('node-emoji');
 const invariant = require('invariant');
-const isCI = require('is-ci');
 const path = require('path');
 const semver = require('semver');
 const uuid = require('uuid');
@@ -763,7 +762,7 @@ export class Install {
    */
 
   checkUpdate() {
-    if (!process.stdout.isTTY || isCI) {
+    if (this.config.nonInteractive) {
       // don't show upgrade dialog on CI or non-TTY terminals
       return;
     }

@@ -20,6 +20,7 @@ const detectIndent = require('detect-indent');
 const invariant = require('invariant');
 const path = require('path');
 const micromatch = require('micromatch');
+const isCi = require('is-ci');
 
 export type ConfigOptions = {
   cwd?: ?string,
@@ -334,7 +335,8 @@ export default class Config {
 
     this.disablePrepublish = !!opts.disablePrepublish;
 
-    this.nonInteractive = !!opts.nonInteractive;
+    // $FlowFixMe$
+    this.nonInteractive = !!opts.nonInteractive || isCi || !process.stdout.isTTY;
 
     this.requestManager.setOptions({
       offline: !!opts.offline && !opts.preferOffline,
