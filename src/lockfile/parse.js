@@ -8,6 +8,18 @@ import map from '../util/map.js';
 const invariant = require('invariant');
 const stripBOM = require('strip-bom');
 
+type Token = {
+  line: number,
+  col: number,
+  type: string,
+  value: boolean | number | string | void,
+};
+
+type ParseResult = {
+  type: 'merge' | 'none' | 'conflict',
+  object: Object,
+};
+
 const VERSION_REGEX = /^yarn lockfile v(\d+)$/;
 
 const TOKEN_TYPES = {
@@ -29,13 +41,6 @@ const VALID_PROP_VALUE_TOKENS = [TOKEN_TYPES.boolean, TOKEN_TYPES.string, TOKEN_
 function isValidPropValueToken(token): boolean {
   return VALID_PROP_VALUE_TOKENS.indexOf(token.type) >= 0;
 }
-
-type Token = {
-  line: number,
-  col: number,
-  type: string,
-  value: boolean | number | string | void,
-};
 
 export function* tokenise(input: string): Iterator<Token> {
   let lastNewline = false;
@@ -322,9 +327,8 @@ const MERGE_CONFLICT_START = '<<<<<<<';
 /**
  * Extract the two versions of the lockfile from a merge conflict.
  */
-
-export function extractConflictVariants(str: string): Array<string> {
-  const variants: Array<Array<string>> = [[], []];
+function extractConflictVariants(str: string): [string, string] {
+  const variants = [[], []];
   const lines = str.split(/\n/g);
   let skip = false;
 
@@ -360,42 +364,32 @@ export function extractConflictVariants(str: string): Array<string> {
     }
   }
 
-  return variants.map(lines => lines.join('\n'));
+  return [variants[0].join('\n'), variants[1].join('\n')];
 }
 
 /**
  * Check if a lockfile has merge conflicts.
  */
-
-export function hasMergeConflicts(str: string): boolean {
+function hasMergeConflicts(str: string): boolean {
   return str.includes(MERGE_CONFLICT_START);
 }
 
 /**
  * Parse the lockfile.
  */
-
 function parse(str: string, fileLoc: string): Object {
   const parser = new Parser(str, fileLoc);
   parser.next();
   return parser.parse();
 }
 
-type ParseResult = {
-  type: 'merge' | 'none' | 'conflict',
-  object: Object,
-};
-
 /**
  * Parse and merge the two variants in a conflicted lockfile.
  */
-
 function parseWithConflict(str: string, fileLoc: string): ParseResult {
   const variants = extractConflictVariants(str);
-
   try {
-    const obj = Object.assign({}, parse(variants[0], fileLoc), parse(variants[1], fileLoc));
-    return {type: 'merge', object: obj};
+    return {type: 'merge', object: Object.assign({}, parse(variants[0], fileLoc), parse(variants[1], fileLoc))};
   } catch (err) {
     if (err instanceof SyntaxError) {
       return {type: 'conflict', object: {}};
@@ -407,10 +401,5 @@ function parseWithConflict(str: string, fileLoc: string): ParseResult {
 
 export default function(str: string, fileLoc: string = 'lockfile'): ParseResult {
   str = stripBOM(str);
-
-  if (hasMergeConflicts(str)) {
-    return parseWithConflict(str, fileLoc);
-  } else {
-    return {type: 'none', object: parse(str, fileLoc)};
-  }
+  return hasMergeConflicts(str) ? parseWithConflict(str, fileLoc) : {type: 'none', object: parse(str, fileLoc)};
 }
