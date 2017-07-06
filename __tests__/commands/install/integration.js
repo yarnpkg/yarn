@@ -471,6 +471,12 @@ test.concurrent('install should run install scripts in the order of dependencies
   });
 });
 
+test.concurrent('install with comments in manifest', (): Promise<void> => {
+  return runInstall({noLockfile: true}, 'install-with-comments', async config => {
+    expect(await fs.readFile(path.join(config.cwd, 'node_modules', 'foo', 'index.js'))).toEqual('foobar;\n');
+  });
+});
+
 test.concurrent('run install scripts in the order when one dependency does not have install script', (): Promise<
   void,
 > => {
