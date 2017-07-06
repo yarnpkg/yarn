@@ -285,7 +285,7 @@ export default class PackageLinker {
 
     for (const loc of possibleExtraneous) {
       let packageName = path.basename(loc);
-      let scopeName = path.basename(path.dirname(loc));
+      const scopeName = path.basename(path.dirname(loc));
 
       if (scopeName[0] === `@`) {
         packageName = `${scopeName}/${packageName}`;
