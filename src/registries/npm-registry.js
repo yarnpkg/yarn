@@ -87,7 +87,8 @@ export default class NpmRegistry extends Registry {
     const packageIdent = packageName || pathname;
     const isScoppedPackage = packageIdent.match(/^@|\/@/);
 
-    if (alwaysAuth || isScoppedPackage) {
+    // this.token must be checked to account for publish requests on non-scopped packages
+    if (this.token || alwaysAuth || isScoppedPackage) {
       const authorization = this.getAuth(packageName || pathname);
       if (authorization) {
         headers.authorization = authorization;
