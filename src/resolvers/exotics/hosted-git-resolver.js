@@ -8,6 +8,7 @@ import {registries} from '../../registries/index.js';
 import GitResolver from './git-resolver.js';
 import ExoticResolver from './exotic-resolver.js';
 import Git from '../../util/git.js';
+import guessName from '../../util/guess-name.js';
 
 export type ExplodedFragment = {
   user: string,
@@ -183,7 +184,18 @@ export default class HostedGitResolver extends ExoticResolver {
       }
     }
 
-    throw new MessageError(this.reporter.lang('couldntFindManifestIn', url));
+    return {
+      name: guessName(url),
+      version: '0.0.0',
+      _uid: commit,
+      _remote: {
+        hash: commit,
+        resolved: url,
+        type: 'tarball',
+        reference: url,
+        registry: 'npm',
+      },
+    };
   }
 
   async hasHTTPCapability(url: string): Promise<boolean> {

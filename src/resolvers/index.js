@@ -1,5 +1,7 @@
 /* @flow */
 
+import BaseResolver from './base-resolver.js';
+
 import RegistryNpm from './registries/npm-resolver.js';
 import RegistryYarn from './registries/yarn-resolver.js';
 
@@ -19,16 +21,25 @@ import ExoticGitLab from './exotics/gitlab-resolver.js';
 import ExoticGist from './exotics/gist-resolver.js';
 import ExoticBitbucket from './exotics/bitbucket-resolver.js';
 
-export const exotics = {
-  git: ExoticGit,
-  tarball: ExoticTarball,
-  github: ExoticGitHub,
-  file: ExoticFile,
-  link: ExoticLink,
-  gitlab: ExoticGitLab,
-  gist: ExoticGist,
-  bitbucket: ExoticBitbucket,
-};
+const exotics: Set<Class<$Subtype<BaseResolver>>> = new Set([
+  ExoticGit,
+  ExoticTarball,
+  ExoticGitHub,
+  ExoticFile,
+  ExoticLink,
+  ExoticGitLab,
+  ExoticGist,
+  ExoticBitbucket,
+]);
+
+export function getExoticResolver(pattern: string): ?Class<$Subtype<BaseResolver>> {
+  for (const Resolver of exotics) {
+    if (Resolver.isVersion(pattern)) {
+      return Resolver;
+    }
+  }
+  return null;
+}
 
 //
 
@@ -59,8 +70,10 @@ import ExoticRegistryResolver from './exotics/registry-resolver.js';
 for (const key in registries) {
   const RegistryResolver = registries[key];
 
-  exotics[key] = class extends ExoticRegistryResolver {
-    static protocol = key;
-    static factory = RegistryResolver;
-  };
+  exotics.add(
+    class extends ExoticRegistryResolver {
+      static protocol = key;
+      static factory = RegistryResolver;
+    },
+  );
 }

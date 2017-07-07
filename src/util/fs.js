@@ -14,7 +14,7 @@ const path = require('path');
 export const lockQueue = new BlockingQueue('fs lock');
 
 export const readFileBuffer = promisify(fs.readFile);
-export const writeFile: (path: string, data: string) => Promise<void> = promisify(fs.writeFile);
+export const writeFile: (path: string, data: string, options?: Object) => Promise<void> = promisify(fs.writeFile);
 export const readlink: (path: string, opts: void) => Promise<string> = promisify(fs.readlink);
 export const realpath: (path: string, opts: void) => Promise<string> = promisify(fs.realpath);
 export const readdir: (path: string, opts: void) => Promise<Array<string>> = promisify(fs.readdir);
@@ -26,8 +26,8 @@ export const mkdirp: (path: string) => Promise<void> = promisify(require('mkdirp
 export const exists: (path: string) => Promise<boolean> = promisify(fs.exists, true);
 export const lstat: (path: string) => Promise<fs.Stats> = promisify(fs.lstat);
 export const chmod: (path: string, mode: number | string) => Promise<void> = promisify(fs.chmod);
-export const link: (path: string) => Promise<fs.Stats> = promisify(fs.link);
-export const glob: (path: string) => Promise<Array<string>> = promisify(globModule);
+export const link: (src: string, dst: string) => Promise<fs.Stats> = promisify(fs.link);
+export const glob: (path: string, options?: Object) => Promise<Array<string>> = promisify(globModule);
 
 const CONCURRENT_QUEUE_ITEMS = 4;
 
@@ -163,6 +163,11 @@ async function buildActionsForCopy(
     const {src, dest, type} = data;
     const onFresh = data.onFresh || noop;
     const onDone = data.onDone || noop;
+    if (files.has(dest)) {
+      // TODO https://github.com/yarnpkg/yarn/issues/3751
+      // related to bundled dependencies handling
+      reporter.warn(`The same file ${dest} can't be copied twice in one bulk copy`);
+    }
     files.add(dest);
 
     if (type === 'symlink') {
@@ -250,6 +255,11 @@ async function buildActionsForCopy(
           }
         }
       }
+    }
+
+    if (destStat && destStat.isSymbolicLink()) {
+      await unlink(dest);
+      destStat = null;
     }
 
     if (srcStat.isSymbolicLink()) {
@@ -360,6 +370,15 @@ async function buildActionsForHardlink(
     const {src, dest} = data;
     const onFresh = data.onFresh || noop;
     const onDone = data.onDone || noop;
+    if (files.has(dest)) {
+      // Fixes issue https://github.com/yarnpkg/yarn/issues/2734
+      // When bulk hardlinking we have A -> B structure that we want to hardlink to A1 -> B1,
+      // package-linker passes that modules A1 and B1 need to be hardlinked,
+      // the recursive linking algorithm of A1 ends up scheduling files in B1 to be linked twice which will case
+      // an exception.
+      onDone();
+      return;
+    }
     files.add(dest);
 
     if (events.ignoreBasenames.indexOf(path.basename(src)) >= 0) {

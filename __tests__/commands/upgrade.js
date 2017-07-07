@@ -38,9 +38,8 @@ expect.extend({
     const versionIndex = patternIndex + 1;
     const actualVersion = lockfile[versionIndex];
     const pass = patternIndex >= 0 && actualVersion === `  version "${expectedVersion}"`;
-    const failReason = patternIndex < 0
-      ? `${pattern.toString()} is not in the lockfile`
-      : `actual installed ${actualVersion}`;
+    const failReason =
+      patternIndex < 0 ? `${pattern.toString()} is not in the lockfile` : `actual installed ${actualVersion}`;
 
     return {
       message: () => `expected lockfile to contain ${pattern} at version ${expectedVersion}, but ${failReason}.`,
@@ -141,27 +140,12 @@ test.concurrent('upgrades dependency packages not in registry', (): Promise<void
     const lockfile = explodeLockfile(await fs.readFile(path.join(config.cwd, 'yarn.lock')));
     const gitRemote = 'https://github.com/yarnpkg/e2e-test-repo';
 
-    const lockFileIncludes = sha => lockfile.includes(`  resolved "${gitRemote}#${sha}"`);
+    const lockFileIncludes = sha => lockfile.indexOf(`  resolved "${gitRemote}#${sha}"`) > -1;
 
-    expect(lockfile.includes(`"yarn-test-git-repo@${gitRemote}#master":`)).toEqual(
-      true,
-      'Lockfile should point to the same yarn-test-git-repo branch.',
-    );
-
-    expect(lockFileIncludes('d2027157d0c7188fc9ed6a6654325d1e3bf4db40')).toEqual(
-      false,
-      'Lockfile should update yarn-test-git-repo SHA.',
-    );
-
-    expect(lockfile.includes(`"e2e-test-repo@${gitRemote}#greenkeeper/cross-env-3.1.4":`)).toEqual(
-      true,
-      'Lockfile should point to the same e2e-test-repo branch.',
-    );
-
-    expect(lockFileIncludes('da5940e1ad2b7451c00edffb6e755bf2411fc705')).toEqual(
-      true,
-      'Lockfile should keep latest e2e-test-repo SHA.',
-    );
+    expect(lockfile.indexOf(`"yarn-test-git-repo@${gitRemote}#master":`)).toBeGreaterThan(-1);
+    expect(lockFileIncludes('d2027157d0c7188fc9ed6a6654325d1e3bf4db40')).toEqual(false);
+    expect(lockfile.indexOf(`"e2e-test-repo@${gitRemote}#greenkeeper/cross-env-3.1.4":`)).toBeGreaterThan(-1);
+    expect(lockFileIncludes('da5940e1ad2b7451c00edffb6e755bf2411fc705')).toEqual(true);
   });
 });
 
@@ -171,27 +155,12 @@ test.concurrent('upgrades dev dependency packages not in registry', (): Promise<
     const lockfile = explodeLockfile(await fs.readFile(path.join(config.cwd, 'yarn.lock')));
     const gitRemote = 'https://github.com/yarnpkg/e2e-test-repo';
 
-    const lockFileIncludes = sha => lockfile.includes(`  resolved "${gitRemote}#${sha}"`);
+    const lockFileIncludes = sha => lockfile.indexOf(`  resolved "${gitRemote}#${sha}"`) > -1;
 
-    expect(lockfile.includes(`"yarn-test-git-repo@${gitRemote}#master":`)).toEqual(
-      true,
-      'Lockfile should point to the same yarn-test-git-repo branch.',
-    );
-
-    expect(lockFileIncludes('d2027157d0c7188fc9ed6a6654325d1e3bf4db40')).toEqual(
-      false,
-      'Lockfile should update yarn-test-git-repo SHA.',
-    );
-
-    expect(lockfile.includes(`"e2e-test-repo@${gitRemote}#greenkeeper/cross-env-3.1.4":`)).toEqual(
-      true,
-      'Lockfile should point to the same e2e-test-repo branch.',
-    );
-
-    expect(lockFileIncludes('da5940e1ad2b7451c00edffb6e755bf2411fc705')).toEqual(
-      true,
-      'Lockfile should keep latest e2e-test-repo SHA.',
-    );
+    expect(lockfile.indexOf(`"yarn-test-git-repo@${gitRemote}#master":`)).toBeGreaterThan(-1);
+    expect(lockFileIncludes('d2027157d0c7188fc9ed6a6654325d1e3bf4db40')).toEqual(false);
+    expect(lockfile.indexOf(`"e2e-test-repo@${gitRemote}#greenkeeper/cross-env-3.1.4":`)).toBeGreaterThan(-1);
+    expect(lockFileIncludes('da5940e1ad2b7451c00edffb6e755bf2411fc705')).toEqual(true);
   });
 });
 
@@ -201,27 +170,12 @@ test.concurrent('upgrades optional dependency packages not in registry', (): Pro
     const lockfile = explodeLockfile(await fs.readFile(path.join(config.cwd, 'yarn.lock')));
     const gitRemote = 'https://github.com/yarnpkg/e2e-test-repo';
 
-    const lockFileIncludes = sha => lockfile.includes(`  resolved "${gitRemote}#${sha}"`);
+    const lockFileIncludes = sha => lockfile.indexOf(`  resolved "${gitRemote}#${sha}"`) > -1;
 
-    expect(lockfile.includes(`"yarn-test-git-repo@${gitRemote}#master":`)).toEqual(
-      true,
-      'Lockfile should point to the same yarn-test-git-repo branch.',
-    );
-
-    expect(lockFileIncludes('d2027157d0c7188fc9ed6a6654325d1e3bf4db40')).toEqual(
-      false,
-      'Lockfile should update yarn-test-git-repo SHA.',
-    );
-
-    expect(lockfile.includes(`"e2e-test-repo@${gitRemote}#greenkeeper/cross-env-3.1.4":`)).toEqual(
-      true,
-      'Lockfile should point to the same e2e-test-repo branch.',
-    );
-
-    expect(lockFileIncludes('da5940e1ad2b7451c00edffb6e755bf2411fc705')).toEqual(
-      true,
-      'Lockfile should keep latest e2e-test-repo SHA.',
-    );
+    expect(lockfile.indexOf(`"yarn-test-git-repo@${gitRemote}#master":`)).toBeGreaterThan(-1);
+    expect(lockFileIncludes('d2027157d0c7188fc9ed6a6654325d1e3bf4db40')).toEqual(false);
+    expect(lockfile.indexOf(`"e2e-test-repo@${gitRemote}#greenkeeper/cross-env-3.1.4":`)).toBeGreaterThan(-1);
+    expect(lockFileIncludes('da5940e1ad2b7451c00edffb6e755bf2411fc705')).toEqual(true);
   });
 });
 
@@ -237,7 +191,7 @@ test.concurrent('warns when peer dependency is not met after upgrade', (): Promi
 
       expect(
         warnings.some(warning => {
-          return warning.data.toString().toLowerCase().includes('incorrect peer');
+          return warning.data.toString().toLowerCase().indexOf('incorrect peer') > -1;
         }),
       ).toEqual(true);
     },
@@ -259,7 +213,7 @@ test.concurrent("doesn't warn when peer dependency is still met after upgrade", 
 
       expect(
         warnings.some(warning => {
-          return warning.data.toString().toLowerCase().includes('peer');
+          return warning.data.toString().toLowerCase().indexOf('peer') > -1;
         }),
       ).toEqual(false);
     },

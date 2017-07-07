@@ -34,32 +34,34 @@ declare module 'semver' {
     prerelease: Array<string | number>,
     build: Array<string>,
     version: string,
+
+    constructor(range: string, loose?: boolean): SemVer | string
   }
 
   // Functions
-  declare function clean(v: string): string | null;
-  declare function valid(v: string): string | null;
-  declare function inc(v: string, release: string): string | null;
-  declare function major(v: string): number;
-  declare function minor(v: string): number;
-  declare function patch(v: string): number;
+  declare function clean(v: string, loose?: boolean): string | null;
+  declare function valid(v: string, loose?: boolean): string | null;
+  declare function inc(v: string, release: string, loose?: boolean): string | null;
+  declare function major(v: string, loose?: boolean): number;
+  declare function minor(v: string, loose?: boolean): number;
+  declare function patch(v: string, loose?: boolean): number;
 
   // Comparison
-  declare function gt(v1: string, v2: string): boolean;
-  declare function gte(v1: string, v2: string): boolean;
-  declare function lt(v1: string, v2: string): boolean;
-  declare function lte(v1: string, v2: string): boolean;
-  declare function eq(v1: string, v2: string): boolean;
-  declare function neq(v1: string, v2: string): boolean;
+  declare function gt(v1: string, v2: string, loose?: boolean): boolean;
+  declare function gte(v1: string, v2: string, loose?: boolean): boolean;
+  declare function lt(v1: string, v2: string, loose?: boolean): boolean;
+  declare function lte(v1: string, v2: string, loose?: boolean): boolean;
+  declare function eq(v1: string, v2: string, loose?: boolean): boolean;
+  declare function neq(v1: string, v2: string, loose?: boolean): boolean;
   declare function cmp(v1: string, comparator: Comparator, v2: string): boolean;
   declare function compare(v1: string, v2: string): -1 | 0 | 1;
   declare function rcompare(v1: string, v2: string): -1 | 0 | 1;
   declare function diff(v1: string, v2: string): ?Release;
 
   // Ranges
-  declare function validRange(r: string): string | null;
-  declare function satisfies(version: string, range: string): boolean;
-  declare function maxSatisfying(versions: Array<string>, range: string): string | null;
+  declare function validRange(r: string, loose?: boolean): string | null;
+  declare function satisfies(version: string, range: string, loose?: boolean): boolean;
+  declare function maxSatisfying(versions: Array<string>, range: string, loose?: boolean): string | null;
   declare function gtr(version: string, range: string): boolean;
   declare function ltr(version: string, range: string): boolean;
   declare function outside(version: string, range: string, hilo: '>' | '<'): boolean;

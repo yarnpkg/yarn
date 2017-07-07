@@ -30,19 +30,29 @@ async function execCommand(
   }
 
   return new Promise((resolve, reject) => {
-    exec(`node "${yarnBin}" ${cmd} ${args.join(' ')}`, {cwd: workingDir, env: process.env}, (error, stdout) => {
-      if (error) {
-        reject({error, stdout});
-      } else {
-        const stdoutLines = stdout
-          .toString()
-          .split('\n')
-          .map((line: ?string) => line && line.trim())
-          .filter((line: ?string) => line);
+    exec(
+      `node "${yarnBin}" ${cmd} ${args.join(' ')}`,
+      {
+        cwd: workingDir,
+        env: {
+          ...process.env,
+          YARN_SILENT: 0,
+        },
+      },
+      (error, stdout) => {
+        if (error) {
+          reject({error, stdout});
+        } else {
+          const stdoutLines = stdout
+            .toString()
+            .split('\n')
+            .map((line: ?string) => line && line.trim())
+            .filter((line: ?string) => line);
 
-        resolve(stdoutLines);
-      }
-    });
+          resolve(stdoutLines);
+        }
+      },
+    );
   });
 }
 
@@ -198,7 +208,7 @@ test.concurrent('should install if no args', async () => {
 
 test.concurrent('should install if first arg looks like a flag', async () => {
   const stdout = await execCommand('--json', [], 'run-add', true);
-  expect(stdout[stdout.length - 1]).toEqual('{"type":"success","data":"Saved lockfile."}');
+  expect(stdout[stdout.length - 1]).toEqual('{"type":"info","data":"Lockfile not saved, no dependencies."}');
 });
 
 test.concurrent('should not output JSON activity/progress if given --no-progress option', async () => {

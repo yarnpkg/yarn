@@ -9,9 +9,9 @@ import {getBinFolder as getGlobalBinFolder} from './global';
 
 const path = require('path');
 
-export function setFlags() {}
+export function setFlags(commander: Object) {}
 
-export function hasWrapper(): boolean {
+export function hasWrapper(commander: Object, args: Array<string>): boolean {
   return true;
 }
 

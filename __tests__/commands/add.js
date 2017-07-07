@@ -65,6 +65,15 @@ test.concurrent('adds any new package to the current workspace, but install from
 
     expect(await fs.exists(`${config.cwd}/yarn.lock`)).toEqual(true);
     expect(await fs.exists(`${config.cwd}/packages/package-b/yarn.lock`)).toEqual(false);
+
+    await add(await makeConfigFromDirectory(`${config.cwd}/non-packages/package-c`, reporter), reporter, {}, [
+      'isarray',
+    ]);
+
+    expect(await fs.exists(`${config.cwd}/node_modules/isarray`)).toEqual(false);
+    expect(await fs.exists(`${config.cwd}/non-packages/package-c/node_modules/isarray`)).toEqual(true);
+
+    expect(await fs.exists(`${config.cwd}/non-packages/package-c/yarn.lock`)).toEqual(true);
   });
 });
 
@@ -418,7 +427,7 @@ test.concurrent('upgrade scenario', (): Promise<void> => {
     expect(mirror[0].relative).toEqual('left-pad-0.0.9.tgz');
 
     //
-    const add = new Add(['left-pad@1.1.0'], {}, config, reporter, (await Lockfile.fromDirectory(config.cwd)));
+    const add = new Add(['left-pad@1.1.0'], {}, config, reporter, await Lockfile.fromDirectory(config.cwd));
     await add.init();
 
     expect(await getPackageVersion(config, 'left-pad')).toEqual('1.1.0');
@@ -505,7 +514,7 @@ test.concurrent('downgrade scenario', (): Promise<void> => {
     expect(mirror).toHaveLength(1);
     expect(mirror[0].relative).toEqual('left-pad-1.1.0.tgz');
 
-    const add = new Add(['left-pad@0.0.9'], {}, config, reporter, (await Lockfile.fromDirectory(config.cwd)));
+    const add = new Add(['left-pad@0.0.9'], {}, config, reporter, await Lockfile.fromDirectory(config.cwd));
     await add.init();
 
     expect(await getPackageVersion(config, 'left-pad')).toEqual('0.0.9');
@@ -579,7 +588,7 @@ test.concurrent('add should put a git dependency to mirror', (): Promise<void> =
       await fs.unlink(path.join(config.cwd, 'node_modules'));
 
       //
-      const install = new Install({}, config, reporter, (await Lockfile.fromDirectory(config.cwd)));
+      const install = new Install({}, config, reporter, await Lockfile.fromDirectory(config.cwd));
       await install.init();
 
       expect(semver.satisfies(await getPackageVersion(config, 'mime-db'), '1.24.0')).toEqual(true);
@@ -613,7 +622,7 @@ test.concurrent('add should generate correct integrity file', (): Promise<void> 
     expect(allCorrect).toBe(true);
 
     // add to an existing package.json caused incorrect integrity https://github.com/yarnpkg/yarn/issues/1733
-    const add = new Add(['left-pad@1.1.3'], {}, config, reporter, (await Lockfile.fromDirectory(config.cwd)));
+    const add = new Add(['left-pad@1.1.3'], {}, config, reporter, await Lockfile.fromDirectory(config.cwd));
     await add.init();
     try {
       await check(config, reporter, {integrity: true}, []);
@@ -732,13 +741,13 @@ test.concurrent("doesn't warn when peer dependency is met during add", (): Promi
 
       expect(
         warnings.some(warning => {
-          return warning.data.toString().toLowerCase().includes('unmet peer');
+          return warning.data.toString().toLowerCase().indexOf('unmet peer') > -1;
         }),
       ).toEqual(false);
 
       expect(
         warnings.some(warning => {
-          return warning.data.toString().toLowerCase().includes('incorrect peer');
+          return warning.data.toString().toLowerCase().indexOf('incorrect peer') > -1;
         }),
       ).toEqual(false);
     },
@@ -761,7 +770,7 @@ test.concurrent('warns when peer dependency is not met during add', (): Promise<
 
       expect(
         warnings.some(warning => {
-          return warning.data.toString().toLowerCase().includes('unmet peer');
+          return warning.data.toString().toLowerCase().indexOf('unmet peer') > -1;
         }),
       ).toEqual(true);
     },
@@ -784,7 +793,7 @@ test.concurrent('warns when peer dependency is incorrect during add', (): Promis
 
       expect(
         warnings.some(warning => {
-          return warning.data.toString().toLowerCase().includes('incorrect peer');
+          return warning.data.toString().toLowerCase().indexOf('incorrect peer') > -1;
         }),
       ).toEqual(true);
     },
@@ -818,4 +827,16 @@ test.concurrent('should retain build artifacts after add', (): Promise<void> => 
     {},
     'retain-build-artifacts-after-add',
   );
+});
+
+test.concurrent('installing with --pure-lockfile and then adding should keep build artifacts', (): Promise<void> => {
+  const fixture = 'integrity-pure-lockfile';
+
+  return runInstall({pureLockfile: true}, path.join('..', 'add', fixture), async (config, reporter): Promise<void> => {
+    expect(await fs.exists(path.join(config.cwd, 'node_modules', '.yarn-integrity'))).toBe(true);
+    expect(await fs.exists(path.join(config.cwd, 'node_modules', 'package-a', 'temp.txt'))).toBe(true);
+    const add = new Add(['left-pad@1.1.0'], {}, config, reporter, await Lockfile.fromDirectory(config.cwd));
+    await add.init();
+    expect(await fs.exists(path.join(config.cwd, 'node_modules', 'package-a', 'temp.txt'))).toBe(true);
+  });
 });

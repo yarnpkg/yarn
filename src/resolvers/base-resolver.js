@@ -18,6 +18,7 @@ export default class BaseResolver {
     this.config = request.config;
   }
 
+  static +isVersion: string => boolean;
   resolver: PackageResolver;
   reporter: Reporter;
   fragment: string;
@@ -26,13 +27,13 @@ export default class BaseResolver {
   config: Config;
   registry: RegistryNames;
 
-  fork(Resolver: Function, resolveArg: any, ...args: Array<string>): Promise<Manifest> {
+  fork(Resolver: Class<BaseResolver>, resolveArg: any, ...args: Array<string>): Promise<Manifest> {
     const resolver = new Resolver(this.request, ...args);
     resolver.registry = this.registry;
     return resolver.resolve(resolveArg);
   }
 
-  resolve(): Promise<Manifest> {
+  resolve(resolveArg?: any): Promise<Manifest> {
     throw new Error('Not implemented');
   }
 }

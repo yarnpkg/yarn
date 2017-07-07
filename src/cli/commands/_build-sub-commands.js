@@ -45,7 +45,7 @@ export default function(rootCommandName: string, subCommands: SubCommands, usage
     return Promise.reject(new MessageError(reporter.lang('invalidCommand', subCommandNames.join(', '))));
   }
 
-  function hasWrapper(): boolean {
+  function hasWrapper(commander: Object, args: Array<string>): boolean {
     return true;
   }
 

@@ -14,6 +14,7 @@ const url = require('url');
 const fs = require('fs');
 const stream = require('stream');
 const gunzip = require('gunzip-maybe');
+import {removePrefix} from '../util/misc.js';
 
 export default class TarballFetcher extends BaseFetcher {
   async setupMirrorFromCache(): Promise<?string> {
@@ -60,9 +61,10 @@ export default class TarballFetcher extends BaseFetcher {
     // handle scoped packages
     const pathParts = pathname.replace(/^\//, '').split(/\//g);
 
-    const packageFilename = pathParts.length >= 2 && pathParts[0][0] === '@'
-      ? `${pathParts[0]}-${pathParts[pathParts.length - 1]}` // scopped
-      : `${pathParts[pathParts.length - 1]}`;
+    const packageFilename =
+      pathParts.length >= 2 && pathParts[0][0] === '@'
+        ? `${pathParts[0]}-${pathParts[pathParts.length - 1]}` // scopped
+        : `${pathParts[pathParts.length - 1]}`;
 
     return this.config.getOfflineMirrorPath(packageFilename);
   }
@@ -150,7 +152,6 @@ export default class TarballFetcher extends BaseFetcher {
 
           const handleRequestError = res => {
             if (res.statusCode >= 400) {
-              // $FlowFixMe
               const statusDescription = http.STATUS_CODES[res.statusCode];
               reject(new Error(reporter.lang('requestFailed', `${res.statusCode} ${statusDescription}`)));
             }
@@ -175,13 +176,16 @@ export default class TarballFetcher extends BaseFetcher {
   }
 
   async _fetch(): Promise<FetchedOverride> {
+    const isFilePath = this.reference.startsWith('file:');
+    this.reference = removePrefix(this.reference, 'file:');
     const urlParse = url.parse(this.reference);
 
-    const isFilePath = urlParse.protocol
+    // legacy support for local paths in yarn.lock entries
+    const isRelativePath = urlParse.protocol
       ? urlParse.protocol.match(/^[a-z]:$/i)
       : urlParse.pathname ? urlParse.pathname.match(/^(?:\.{1,2})?[\\\/]/) : false;
 
-    if (isFilePath) {
+    if (isFilePath || isRelativePath) {
       return this.fetchFromLocal(this.reference);
     }
 

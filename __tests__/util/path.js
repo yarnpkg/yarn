@@ -4,9 +4,17 @@ jest.mock('../../src/util/user-home-dir.js', () => ({
   default: '/home/foo',
 }));
 
-import {expandPath} from '../../src/util/path.js';
+jest.mock('path', () => {
+  const path = jest.genMockFromModule('fs');
+  path.resolve = function(): string {
+    return 'RESOLVED ' + JSON.stringify(Array.prototype.slice.call(arguments));
+  };
+  return path;
+});
 
-describe('fileDatesEqual', () => {
+import {expandPath, resolveWithHome} from '../../src/util/path.js';
+
+describe('expandPath', () => {
   const realPlatform = process.platform;
 
   describe('!win32', () => {
@@ -41,5 +49,44 @@ describe('fileDatesEqual', () => {
       expect(expandPath('./~/bar/baz')).toEqual('./~/bar/baz');
       expect(expandPath('~/~/bar/baz')).toEqual('~/~/bar/baz');
     });
+  });
+});
+
+describe('resolveWithHome', () => {
+  const realPlatform = process.platform;
+
+  describe('!win32', () => {
+    beforeAll(() => {
+      process.platform = 'notWin32';
+    });
+
+    afterAll(() => {
+      process.platform = realPlatform;
+    });
+
+    test('Paths with home are resolved', () => {
+      expect(resolveWithHome('~/bar/baz/q')).toEqual('RESOLVED ["/home/foo","bar/baz/q"]');
+    });
+  });
+
+  describe('win32', () => {
+    beforeAll(() => {
+      process.platform = 'win32';
+    });
+
+    afterAll(() => {
+      process.platform = realPlatform;
+    });
+
+    test('Paths with home are resolved', () => {
+      console.log(process.platform);
+      expect(resolveWithHome('~/bar/baz/q')).toEqual('RESOLVED ["/home/foo","bar/baz/q"]');
+      expect(resolveWithHome('~\\bar\\baz\\q')).toEqual('RESOLVED ["/home/foo","bar\\\\baz\\\\q"]');
+    });
+  });
+
+  test('Paths without home are resolved', () => {
+    expect(resolveWithHome('bar/baz/q')).toEqual('RESOLVED ["bar/baz/q"]');
+    expect(resolveWithHome('/bar/baz/q')).toEqual('RESOLVED ["/bar/baz/q"]');
   });
 });

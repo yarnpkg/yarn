@@ -10,7 +10,7 @@ import NpmResolver from '../resolvers/registries/npm-resolver.js';
 import envReplace from '../util/env-replace.js';
 import Registry from './base-registry.js';
 import {addSuffix} from '../util/misc';
-import {getPosixPath} from '../util/path';
+import {getPosixPath, resolveWithHome} from '../util/path';
 import isRequestToRegistry from './is-request-to-registry.js';
 
 const userHome = require('../util/user-home-dir').default;
@@ -39,6 +39,24 @@ function getGlobalPrefix(): string {
 
     return prefix;
   }
+}
+
+const PATH_CONFIG_OPTIONS = ['cache', 'cafile', 'prefix', 'userconfig'];
+
+function isPathConfigOption(key: string): boolean {
+  return PATH_CONFIG_OPTIONS.indexOf(key) >= 0;
+}
+
+function normalizePath(val: mixed): ?string {
+  if (val === undefined) {
+    return undefined;
+  }
+
+  if (typeof val !== 'string') {
+    val = '' + (val: any);
+  }
+
+  return resolveWithHome(val);
 }
 
 export default class NpmRegistry extends Registry {
@@ -128,15 +146,25 @@ export default class NpmRegistry extends Registry {
     return actuals;
   }
 
+  static normalizeConfig(config: Object): Object {
+    config = Registry.normalizeConfig(config);
+
+    for (const key: string in config) {
+      config[key] = envReplace(config[key]);
+      if (isPathConfigOption(key)) {
+        config[key] = normalizePath(config[key]);
+      }
+    }
+
+    return config;
+  }
+
   async loadConfig(): Promise<void> {
     // docs: https://docs.npmjs.com/misc/config
     this.mergeEnv('npm_config_');
 
     for (const [, loc, file] of await this.getPossibleConfigLocations('.npmrc', this.reporter)) {
-      const config = Registry.normalizeConfig(ini.parse(file));
-      for (const key: string in config) {
-        config[key] = envReplace(config[key]);
-      }
+      const config = NpmRegistry.normalizeConfig(ini.parse(file));
 
       // normalize offline mirror path relative to the current npmrc
       const offlineLoc = config['yarn-offline-mirror'];

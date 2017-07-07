@@ -6,7 +6,7 @@ import {MessageError} from '../../errors.js';
 import {implodeEntry} from '../../lockfile/wrapper.js';
 import stringify from '../../lockfile/stringify.js';
 
-export function hasWrapper(): boolean {
+export function hasWrapper(commander: Object, args: Array<string>): boolean {
   return false;
 }
 

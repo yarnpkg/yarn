@@ -80,6 +80,30 @@ test.concurrent('accepts an argument', (): Promise<void> => {
   });
 });
 
+test.concurrent('matches exactly without glob', (): Promise<void> => {
+  return runList(['gulp'], {}, 'glob-arg', (config, reporter): ?Promise<void> => {
+    const rprtr = new BufferReporter({});
+    const tree = reporter.getBuffer().slice(-1);
+    const trees = [makeTree('gulp@3.9.1', {color: 'bold'})];
+
+    rprtr.tree('list', trees);
+
+    expect(tree).toEqual(rprtr.getBuffer());
+  });
+});
+
+test.concurrent('expands a glob', (): Promise<void> => {
+  return runList(['gulp*'], {}, 'glob-arg', (config, reporter): ?Promise<void> => {
+    const rprtr = new BufferReporter({});
+    const tree = reporter.getBuffer().slice(-1);
+    const trees = [makeTree('gulp@3.9.1', {color: 'bold'}), makeTree('gulp-babel@6.1.2', {color: 'bold'})];
+
+    rprtr.tree('list', trees);
+
+    expect(tree).toEqual(rprtr.getBuffer());
+  });
+});
+
 test('getParent should extract a parent object from a hash, if the parent key exists', () => {
   const mockTreesByKey = {};
 

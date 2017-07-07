@@ -45,7 +45,10 @@ async function fetchOne(ref: PackageReference, config: Config): Promise<FetchedM
   await fs.unlink(dest);
 
   try {
-    return fetcher.fetch();
+    return await fetcher.fetch({
+      name: ref.name,
+      version: ref.version,
+    });
   } catch (err) {
     try {
       await fs.unlink(dest);
@@ -111,7 +114,7 @@ export function fetch(pkgs: Array<Manifest>, config: Config): Promise<Array<Mani
       }
 
       if (tick) {
-        tick(ref.name);
+        tick();
       }
 
       if (newPkg) {

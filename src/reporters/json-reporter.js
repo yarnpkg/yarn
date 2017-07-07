@@ -42,7 +42,7 @@ export default class JSONReporter extends BaseReporter {
     this._dump('inspect', value);
   }
 
-  footer() {
+  footer(showPeakMemory: boolean) {
     this._dump('finished', this.getTotalTime());
   }
 

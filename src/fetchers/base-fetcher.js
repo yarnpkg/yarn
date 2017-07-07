@@ -5,6 +5,7 @@ import type Reporter from '../reporters/base-reporter.js';
 import type {PackageRemote, FetchedMetadata, FetchedOverride} from '../types.js';
 import type {RegistryNames} from '../registries/index.js';
 import type Config from '../config.js';
+import normalizeManifest from '../util/normalize-manifest/index.js';
 import * as constants from '../constants.js';
 import * as fs from '../util/fs.js';
 
@@ -41,7 +42,7 @@ export default class BaseFetcher {
     return Promise.reject(new Error('Not implemented'));
   }
 
-  fetch(): Promise<FetchedMetadata> {
+  fetch(defaultManifest: ?Object): Promise<FetchedMetadata> {
     const {dest} = this;
     return fs.lockQueue.push(dest, async (): Promise<FetchedMetadata> => {
       await fs.mkdirp(dest);
@@ -49,13 +50,24 @@ export default class BaseFetcher {
       // fetch package and get the hash
       const {hash} = await this._fetch();
 
-      // load the new normalized manifest
-      const pkg = await this.config.readManifest(dest, this.registry);
+      const pkg = await (async () => {
+        // load the new normalized manifest
+        try {
+          return await this.config.readManifest(dest, this.registry);
+        } catch (e) {
+          if (e.code === 'ENOENT' && defaultManifest) {
+            return normalizeManifest(defaultManifest, dest, this.config, false);
+          } else {
+            throw e;
+          }
+        }
+      })();
 
       await fs.writeFile(
         path.join(dest, constants.METADATA_FILENAME),
         JSON.stringify(
           {
+            manifest: pkg,
             artifacts: [],
             remote: this.remote,
             registry: this.registry,

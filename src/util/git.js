@@ -32,7 +32,12 @@ const supportsArchiveCache: {[key: string]: boolean} = map({
 });
 
 // Suppress any password prompts since we run these in the background
-const env = {GIT_ASKPASS: '', GIT_TERMINAL_PROMPT: 0, GIT_SSH_COMMAND: 'ssh -oBatchMode=yes'};
+const env = {
+  ...process.env,
+  GIT_ASKPASS: '',
+  GIT_TERMINAL_PROMPT: 0,
+  GIT_SSH_COMMAND: 'ssh -oBatchMode=yes',
+};
 
 // This regex is designed to match output from git of the style:
 //   ebeb6eafceb61dd08441ffe086c77eb472842494  refs/tags/v0.21.0
@@ -342,7 +347,6 @@ export default class Git {
               fileContent += decoder.write(buffer);
             });
             stream.on('end', () => {
-              // $FlowFixMe: suppressing this error due to bug https://github.com/facebook/flow/pull/3483
               const remaining: string = decoder.end();
               update(fileContent + remaining);
               next();

@@ -220,7 +220,7 @@ test.concurrent('when switching to --check-files install should rebuild integrit
     await fs.unlink(path.join(config.cwd, 'node_modules', 'left-pad', 'index.js'));
 
     // reinstall should skip because current installation does not track files
-    let reinstall = new Install({}, config, reporter, (await Lockfile.fromDirectory(config.cwd)));
+    let reinstall = new Install({}, config, reporter, await Lockfile.fromDirectory(config.cwd));
     await reinstall.init();
     expect(await fs.exists(path.join(config.cwd, 'node_modules', 'left-pad', 'index.js'))).toEqual(false);
     // integrity check won't notice missing file
@@ -233,7 +233,7 @@ test.concurrent('when switching to --check-files install should rebuild integrit
     expect(thrown).toEqual(false);
 
     // reinstall with --check-files tag should reinstall missing files and generate proper integrity
-    reinstall = new Install({checkFiles: true}, config, reporter, (await Lockfile.fromDirectory(config.cwd)));
+    reinstall = new Install({checkFiles: true}, config, reporter, await Lockfile.fromDirectory(config.cwd));
     await reinstall.init();
     // all correct
     thrown = false;
@@ -319,7 +319,7 @@ test.concurrent('--integrity --check-files should not die on broken symlinks', a
           {checkFiles: true, binLinks: true},
           config,
           reporter,
-          (await Lockfile.fromDirectory(config.cwd)),
+          await Lockfile.fromDirectory(config.cwd),
         );
         await reinstall.init();
       } catch (e) {
@@ -339,4 +339,14 @@ test.concurrent('should ignore bundled dependencies', async (): Promise<void> =>
       expect(getStdout().indexOf('warning')).toEqual(-1);
     },
   );
+});
+
+test.concurrent('--integrity should throw an error if top level patterns do not match', async (): Promise<void> => {
+  let integrityError = false;
+  try {
+    await runCheck([], {integrity: true}, 'integrity-top-level-patters');
+  } catch (err) {
+    integrityError = true;
+  }
+  expect(integrityError).toEqual(true);
 });

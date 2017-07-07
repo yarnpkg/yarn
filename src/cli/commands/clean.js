@@ -126,8 +126,8 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
   reporter.info(reporter.lang('cleanSavedSize', Number((removedSize / 1024 / 1024).toFixed(2))));
 }
 
-export function setFlags() {}
+export function setFlags(commander: Object) {}
 
-export function hasWrapper(): boolean {
+export function hasWrapper(commander: Object): boolean {
   return true;
 }

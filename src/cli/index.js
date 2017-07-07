@@ -9,6 +9,7 @@ import {MessageError} from '../errors.js';
 import Config from '../config.js';
 import {getRcArgs} from '../rc.js';
 import {version} from '../util/yarn-version.js';
+import handleSignals from '../util/signal-handler.js';
 
 const commander = require('commander');
 const fs = require('fs');
@@ -20,6 +21,7 @@ const onDeath = require('death');
 const path = require('path');
 
 loudRejection();
+handleSignals();
 
 const startArgs = process.argv.slice(0, 2);
 
@@ -29,7 +31,7 @@ const args = process.argv.slice(2, doubleDashIndex === -1 ? process.argv.length 
 const endArgs = doubleDashIndex === -1 ? [] : process.argv.slice(doubleDashIndex + 1, process.argv.length);
 
 // set global options
-commander.version(version);
+commander.version(version, '--version');
 commander.usage('[command] [flags]');
 commander.option('--verbose', 'output verbose messages on internal operations');
 commander.option('--offline', 'trigger an error if any required dependencies are not available in local cache');
@@ -58,7 +60,7 @@ commander.option(
 );
 commander.option('--cache-folder <path>', 'specify a custom folder to store the yarn cache');
 commander.option('--mutex <type>[:specifier]', 'use a mutex to ensure only one yarn instance is executing');
-commander.option('--emoji', 'enable emoji in output', process.platform === 'darwin');
+commander.option('--emoji [bool]', 'enable emoji in output', process.platform === 'darwin');
 commander.option('-s, --silent', 'skip Yarn console logs, other types of logs (script output) will be printed');
 commander.option('--proxy <host>', '');
 commander.option('--https-proxy <host>', '');

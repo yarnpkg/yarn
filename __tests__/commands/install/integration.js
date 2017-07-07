@@ -61,6 +61,15 @@ test.concurrent('properly find and save build artifacts', async () => {
   });
 });
 
+test('reading a lockfile should not optimize it', async () => {
+  await runInstall({}, 'lockfile-optimization', async (config, reporter): Promise<void> => {
+    const was = await fs.readFile(`${__dirname}/../../fixtures/install/lockfile-optimization/yarn.lock`);
+    const is = await fs.readFile(`${config.cwd}/yarn.lock`);
+
+    expect(is).toEqual(was);
+  });
+});
+
 test('creates the file in the mirror when fetching a git repository', async () => {
   await runInstall({}, 'install-git', async (config, reporter): Promise<void> => {
     const lockfile = await Lockfile.fromDirectory(config.cwd);
@@ -123,6 +132,50 @@ test.concurrent(
     });
   },
 );
+
+test.concurrent(
+  'resolves the symlinks of other symlinked packages relative to the package using the link: protocol',
+  async () => {
+    await runInstall({}, 'install-link-nested', async (config): Promise<void> => {
+      const expectPath = path.join(config.cwd, 'node_modules', 'b');
+
+      const stat = await fs.lstat(expectPath);
+      expect(stat.isSymbolicLink()).toEqual(true);
+
+      const target = await fs.readlink(expectPath);
+      if (process.platform !== 'win32') {
+        expect(target).toEqual('../a/b');
+      } else {
+        expect(target).toMatch(/[\\\/]b[\\\/]$/);
+      }
+    });
+  },
+);
+
+test.concurrent('replace the symlink when it changes, when using the link: protocol', async () => {
+  await runInstall({}, 'install-link', async (config, reporter): Promise<void> => {
+    const lockfile = await Lockfile.fromDirectory(config.cwd);
+
+    const pkgJson = await fs.readJson(`${config.cwd}/package.json`);
+    pkgJson.dependencies['test-missing'] = 'link:barbaz';
+    await fs.writeFile(`${config.cwd}/package.json`, JSON.stringify(pkgJson));
+
+    const reInstall = new Install({}, config, reporter, lockfile);
+    await reInstall.init();
+
+    const expectPath = path.join(config.cwd, 'node_modules', 'test-missing');
+
+    const stat = await fs.lstat(expectPath);
+    expect(stat.isSymbolicLink()).toEqual(true);
+
+    const target = await fs.readlink(expectPath);
+    if (process.platform !== 'win32') {
+      expect(target).toEqual('../barbaz');
+    } else {
+      expect(target).toMatch(/[\\\/]barbaz[\\\/]$/);
+    }
+  });
+});
 
 test('changes the cache path when bumping the cache version', async () => {
   await runInstall({}, 'install-github', async (config): Promise<void> => {
@@ -291,7 +344,7 @@ test.concurrent('install file: protocol without force retains installed package'
 
     await fs.writeFile(path.join(config.cwd, 'comp', 'index.js'), 'bar\n');
 
-    const reinstall = new Install({}, config, reporter, (await Lockfile.fromDirectory(config.cwd)));
+    const reinstall = new Install({}, config, reporter, await Lockfile.fromDirectory(config.cwd));
     await reinstall.init();
 
     expect(await fs.readFile(path.join(config.cwd, 'node_modules', 'comp', 'index.js'))).not.toEqual('bar\n');
@@ -308,7 +361,7 @@ test.concurrent('install file: protocol with force re-installs local package', a
 
     await fs.writeFile(path.join(config.cwd, 'comp', 'index.js'), 'bar\n');
 
-    const reinstall = new Install({force: true}, config, reporter, (await Lockfile.fromDirectory(config.cwd)));
+    const reinstall = new Install({force: true}, config, reporter, await Lockfile.fromDirectory(config.cwd));
     await reinstall.init();
 
     expect(await fs.readFile(path.join(config.cwd, 'node_modules', 'comp', 'index.js'))).toEqual('bar\n');
@@ -317,12 +370,18 @@ test.concurrent('install file: protocol with force re-installs local package', a
 
 test.concurrent('install file: local packages with local dependencies', async (): Promise<void> => {
   await runInstall({}, 'install-file-local-dependency', async (config, reporter) => {
-    const reinstall = new Install({}, config, reporter, (await Lockfile.fromDirectory(config.cwd)));
+    const reinstall = new Install({}, config, reporter, await Lockfile.fromDirectory(config.cwd));
     await reinstall.init();
 
     expect(await fs.readFile(path.join(config.cwd, 'node_modules', 'a', 'index.js'))).toEqual('foo;\n');
 
     expect(await fs.readFile(path.join(config.cwd, 'node_modules', 'b', 'index.js'))).toEqual('bar;\n');
+  });
+});
+
+test.concurrent('install file: install without manifest of dependency', async (): Promise<void> => {
+  await runInstall({}, 'install-file-without-manifest', async (config, reporter) => {
+    expect(await fs.readFile(path.join(config.cwd, 'node_modules', 'foo', 'index.js'))).toEqual('bar\n');
   });
 });
 
@@ -437,6 +496,12 @@ test.concurrent('install should run install scripts in the order of dependencies
   });
 });
 
+test.concurrent('install with comments in manifest', (): Promise<void> => {
+  return runInstall({noLockfile: true}, 'install-with-comments', async config => {
+    expect(await fs.readFile(path.join(config.cwd, 'node_modules', 'foo', 'index.js'))).toEqual('foobar;\n');
+  });
+});
+
 test.concurrent('run install scripts in the order when one dependency does not have install script', (): Promise<
   void,
 > => {
@@ -472,7 +537,6 @@ test.concurrent('install should be idempotent', (): Promise<void> => {
       expect(await getPackageVersion(config, 'dep-a')).toEqual('1.0.0');
     },
     null,
-    false,
   );
 
   return runInstall({}, 'install-should-be-idempotent', async (config, reporter) => {
@@ -512,7 +576,7 @@ test.concurrent('install should update a dependency to yarn and mirror (PR impor
 
     await fs.copy(path.join(config.cwd, 'package.json.after'), path.join(config.cwd, 'package.json'), reporter);
 
-    const reinstall = new Install({}, config, reporter, (await Lockfile.fromDirectory(config.cwd)));
+    const reinstall = new Install({}, config, reporter, await Lockfile.fromDirectory(config.cwd));
     await reinstall.init();
 
     expect(semver.satisfies(await getPackageVersion(config, 'mime-db'), '~1.23.0')).toEqual(true);
@@ -770,13 +834,13 @@ test.concurrent('should skip integrity check and do install when --skip-integrit
     `;
     await fs.writeFile(path.join(config.cwd, 'yarn.lock'), lockContent);
 
-    let reinstall = new Install({}, config, reporter, (await Lockfile.fromDirectory(config.cwd)));
+    let reinstall = new Install({}, config, reporter, await Lockfile.fromDirectory(config.cwd));
     await reinstall.init();
 
     // reinstall will be successful but it won't reinstall anything
     expect(await fs.exists(path.join(config.cwd, 'node_modules', 'sub-dep'))).toEqual(false);
 
-    reinstall = new Install({skipIntegrityCheck: true}, config, reporter, (await Lockfile.fromDirectory(config.cwd)));
+    reinstall = new Install({skipIntegrityCheck: true}, config, reporter, await Lockfile.fromDirectory(config.cwd));
     await reinstall.init();
 
     // reinstall will reinstall deps
@@ -785,7 +849,7 @@ test.concurrent('should skip integrity check and do install when --skip-integrit
     let newLockContent = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
     expect(lockContent).toEqual(newLockContent);
 
-    reinstall = new Install({force: true}, config, reporter, (await Lockfile.fromDirectory(config.cwd)));
+    reinstall = new Install({force: true}, config, reporter, await Lockfile.fromDirectory(config.cwd));
     await reinstall.init();
 
     // force rewrites lockfile
@@ -815,15 +879,10 @@ test.concurrent('prunes the offline mirror tarballs after pruning is enabled', (
 test.concurrent('scoped packages remain in offline mirror after pruning is enabled', (): Promise<void> => {
   return runInstall({}, 'prune-offline-mirror-scoped', async (config): Promise<void> => {
     const mirrorPath = 'mirror-for-offline';
-    // Ensure that scoped packages remain mangled and resolvable
-    expect(await fs.exists(path.join(config.cwd, `${mirrorPath}/@fakescope-fake-dependency-1.0.1.tgz`))).toEqual(
-      true,
-      'scoped package exists',
-    );
-    expect(await fs.exists(path.join(config.cwd, `${mirrorPath}/fake-dependency-1.0.1.tgz`))).toEqual(
-      true,
-      'unscoped package exists',
-    );
+    // scoped package exists
+    expect(await fs.exists(path.join(config.cwd, `${mirrorPath}/@fakescope-fake-dependency-1.0.1.tgz`))).toEqual(true);
+    // unscoped package exists
+    expect(await fs.exists(path.join(config.cwd, `${mirrorPath}/fake-dependency-1.0.1.tgz`))).toEqual(true);
   });
 });
 
@@ -832,7 +891,7 @@ test.concurrent('bailout should work with --production flag too', (): Promise<vo
     // remove file
     await fs.unlink(path.join(config.cwd, 'node_modules', 'left-pad', 'index.js'));
     // run install again
-    const reinstall = new Install({production: true}, config, reporter, (await Lockfile.fromDirectory(config.cwd)));
+    const reinstall = new Install({production: true}, config, reporter, await Lockfile.fromDirectory(config.cwd));
     await reinstall.init();
     // don't expect file being recreated because install should have bailed out
     expect(await fs.exists(path.join(config.cwd, 'node_modules', 'left-pad', 'index.js'))).toBe(false);
@@ -847,5 +906,32 @@ test.concurrent('package version resolve should be deterministic', (): Promise<v
   // the bug, but its the best we can do without creating mock registry with controlled timing of responses.
   return runInstall({}, 'install-deterministic-versions', async (config, reporter) => {
     await check(config, reporter, {integrity: true}, []);
+  });
+});
+
+test.concurrent('transitive file: dependencies should work', (): Promise<void> => {
+  return runInstall({}, 'transitive-file', async (config, reporter) => {
+    expect(await fs.exists(path.join(config.cwd, 'node_modules', 'b'))).toBe(true);
+  });
+});
+
+// Unskip once https://github.com/yarnpkg/yarn/issues/3778 is resolved
+test.skip('unbound transitive dependencies should not conflict with top level dependency', async () => {
+  await runInstall({flat: true}, 'install-conflicts', async config => {
+    expect((await fs.readJson(path.join(config.cwd, 'node_modules', 'left-pad', 'package.json'))).version).toEqual(
+      '1.0.0',
+    );
+  });
+});
+
+test.concurrent('top level patterns should match after install', (): Promise<void> => {
+  return runInstall({}, 'top-level-pattern-check', async (config, reporter) => {
+    let integrityError = false;
+    try {
+      await check(config, reporter, {integrity: true}, []);
+    } catch (err) {
+      integrityError = true;
+    }
+    expect(integrityError).toBe(false);
   });
 });

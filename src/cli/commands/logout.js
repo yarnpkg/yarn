@@ -3,9 +3,9 @@
 import type {Reporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
 
-export function setFlags() {}
+export function setFlags(commander: Object) {}
 
-export function hasWrapper(): boolean {
+export function hasWrapper(commander: Object, args: Array<string>): boolean {
   return true;
 }
 

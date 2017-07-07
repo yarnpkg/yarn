@@ -10,11 +10,10 @@ import Lockfile from './lockfile/wrapper.js';
 import PackageReference from './package-reference.js';
 import {registries as registryResolvers} from './resolvers/index.js';
 import {MessageError} from './errors.js';
-import {entries} from './util/misc.js';
 import * as constants from './constants.js';
 import * as versionUtil from './util/version.js';
 import WorkspaceResolver from './resolvers/contextual/workspace-resolver.js';
-import * as resolvers from './resolvers/index.js';
+import {getExoticResolver} from './resolvers/index.js';
 import * as fs from './util/fs.js';
 
 const path = require('path');
@@ -36,16 +35,6 @@ export default class PackageRequest {
     this.foundInfo = null;
 
     resolver.usedRegistries.add(req.registry);
-  }
-
-  static getExoticResolver(pattern: string): ?Function {
-    // TODO make this type more refined
-    for (const [, Resolver] of entries(resolvers.exotics)) {
-      if (Resolver.isVersion(pattern)) {
-        return Resolver;
-      }
-    }
-    return null;
   }
 
   parentRequest: ?PackageRequest;
@@ -108,7 +97,7 @@ export default class PackageRequest {
   async findVersionOnRegistry(pattern: string): Promise<Manifest> {
     const {range, name} = await this.normalize(pattern);
 
-    const exoticResolver = PackageRequest.getExoticResolver(range);
+    const exoticResolver = getExoticResolver(range);
     if (exoticResolver) {
       let data = await this.findExoticVersionInfo(exoticResolver, range);
 
@@ -144,7 +133,7 @@ export default class PackageRequest {
   }
 
   async normalizeRange(pattern: string): Promise<string> {
-    if (pattern.includes(':') || pattern.includes('@') || PackageRequest.getExoticResolver(pattern)) {
+    if (pattern.indexOf(':') > -1 || pattern.indexOf('@') > -1 || getExoticResolver(pattern)) {
       return Promise.resolve(pattern);
     }
 
@@ -219,7 +208,7 @@ export default class PackageRequest {
    */
 
   findVersionInfo(): Promise<Manifest> {
-    const exoticResolver = PackageRequest.getExoticResolver(this.pattern);
+    const exoticResolver = getExoticResolver(this.pattern);
     if (exoticResolver) {
       return this.findExoticVersionInfo(exoticResolver, this.pattern);
     } else if (WorkspaceResolver.isWorkspace(this.pattern, this.resolver.workspaceLayout)) {
@@ -241,7 +230,8 @@ export default class PackageRequest {
   resolveToExistingVersion(info: Manifest) {
     // get final resolved version
     const {range, name} = PackageRequest.normalizePattern(this.pattern);
-    const resolved: ?Manifest = this.resolver.getHighestRangeVersionMatch(name, range);
+    const solvedRange = semver.validRange(range) ? info.version : range;
+    const resolved: ?Manifest = this.resolver.getHighestRangeVersionMatch(name, solvedRange);
     invariant(resolved, 'should have a resolved reference');
 
     this.reportResolvedRangeMatch(info, resolved);
@@ -256,11 +246,7 @@ export default class PackageRequest {
    */
   async find({fresh, frozen}: {fresh: boolean, frozen?: boolean}): Promise<void> {
     // find version info for this package pattern
-    const info: ?Manifest = await this.findVersionInfo();
-
-    if (!info) {
-      throw new MessageError(this.reporter.lang('unknownPackage', this.pattern));
-    }
+    const info: Manifest = await this.findVersionInfo();
 
     info.fresh = fresh;
     cleanDependencies(info, false, this.reporter, () => {
@@ -270,9 +256,11 @@ export default class PackageRequest {
     // check if while we were resolving this dep we've already resolved one that satisfies
     // the same range
     const {range, name} = PackageRequest.normalizePattern(this.pattern);
-    const resolved: ?Manifest = frozen
-      ? this.resolver.getExactVersionMatch(name, range)
-      : this.resolver.getHighestRangeVersionMatch(name, range);
+    const solvedRange = semver.validRange(range) ? info.version : range;
+    const resolved: ?Manifest =
+      !info.fresh || frozen
+        ? this.resolver.getExactVersionMatch(name, solvedRange)
+        : this.resolver.getHighestRangeVersionMatch(name, solvedRange);
     if (resolved) {
       this.resolver.reportPackageWithExistingVersion(this, info);
       return;
@@ -345,7 +333,10 @@ export default class PackageRequest {
       }
     }
 
-    await Promise.all(promises);
+    for (const promise of promises) {
+      await promise;
+    }
+
     ref.addDependencies(deps);
 
     // Now that we have all dependencies, it's safe to propagate optional
@@ -416,7 +407,7 @@ export default class PackageRequest {
 
         const normalized = PackageRequest.normalizePattern(pattern);
 
-        if (PackageRequest.getExoticResolver(pattern) || PackageRequest.getExoticResolver(normalized.range)) {
+        if (getExoticResolver(pattern) || getExoticResolver(normalized.range)) {
           latest = wanted = 'exotic';
           url = normalized.range;
         } else {

@@ -19,13 +19,23 @@ async function execCommand(cmd: string, packageName: string, env = process.env):
   await fs.copy(srcPackageDir, packageDir, new NoopReporter());
 
   return new Promise((resolve, reject) => {
-    exec(`node "${yarnBin}" ${cmd}`, {cwd: packageDir, env}, (err, stdout) => {
-      if (err) {
-        reject(err);
-      } else {
-        resolve(stdout.toString());
-      }
-    });
+    exec(
+      `node "${yarnBin}" ${cmd}`,
+      {
+        cwd: packageDir,
+        env: {
+          ...env,
+          YARN_SILENT: 0,
+        },
+      },
+      (err, stdout) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(stdout.toString());
+        }
+      },
+    );
   });
 }
 

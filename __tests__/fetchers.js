@@ -24,7 +24,7 @@ test('BaseFetcher.fetch', async () => {
       reference: '',
       hash: null,
     },
-    (await Config.create()),
+    await Config.create(),
   );
   let error;
 
@@ -50,7 +50,7 @@ test('CopyFetcher.fetch', async () => {
       registry: 'npm',
       hash: null,
     },
-    (await Config.create()),
+    await Config.create(),
   );
   await fetcher.fetch();
   const content = await fs.readFile(path.join(b, 'package.json'));
@@ -69,11 +69,39 @@ test('GitFetcher.fetch', async () => {
       hash: '8beb0413a8028ca2d52dbb86c75f42069535591b',
       registry: 'npm',
     },
-    (await Config.create()),
+    await Config.create(),
   );
   await fetcher.fetch();
   const name = (await fs.readJson(path.join(dir, 'package.json'))).name;
   expect(name).toBe('beeper');
+});
+
+test('GitFetcher.fetch with prepare script', async () => {
+  const dir = await mkdir('git-fetcher-with-prepare');
+  const fetcher = new GitFetcher(
+    dir,
+    {
+      type: 'git',
+      reference: 'https://github.com/Volune/test-js-git-repo',
+      hash: '0e56593e326069ed4bcec8126bb48a1891215c57',
+      registry: 'npm',
+    },
+    await Config.create(),
+  );
+  await fetcher.fetch();
+  const name = (await fs.readJson(path.join(dir, 'package.json'))).name;
+  expect(name).toBe('test-js-git-repo');
+  const dependencyName = (await fs.readJson(path.join(dir, 'dependency-package.json'))).name;
+  expect(dependencyName).toBe('beeper');
+  // The file "prepare.js" is not in "files" list
+  expect(await fs.exists(path.join(dir, 'prepare.js'))).toBe(false);
+  // Check the dependency with a bin script was correctly executed
+  expect(await fs.exists(path.join(dir, 'testscript.output.txt'))).toBe(true);
+  // Check executed lifecycle scripts
+  expect(await fs.exists(path.join(dir, 'generated', 'preinstall'))).toBe(true);
+  expect(await fs.exists(path.join(dir, 'generated', 'install'))).toBe(true);
+  expect(await fs.exists(path.join(dir, 'generated', 'postinstall'))).toBe(true);
+  expect(await fs.exists(path.join(dir, 'generated', 'prepublish'))).toBe(false);
 });
 
 test('TarballFetcher.fetch', async () => {
@@ -86,7 +114,7 @@ test('TarballFetcher.fetch', async () => {
       reference: 'https://github.com/sindresorhus/beeper/archive/master.tar.gz',
       registry: 'npm',
     },
-    (await Config.create()),
+    await Config.create(),
   );
 
   await fetcher.fetch();
@@ -105,7 +133,7 @@ test('TarballFetcher.fetch throws on invalid hash', async () => {
       reference: url,
       registry: 'npm',
     },
-    (await Config.create({}, new Reporter())),
+    await Config.create({}, new Reporter()),
   );
   let error;
   try {
@@ -126,7 +154,7 @@ test('TarballFetcher.fetch supports local ungzipped tarball', async () => {
       reference: path.join(__dirname, 'fixtures', 'fetchers', 'tarball', 'ungzipped.tar'),
       registry: 'npm',
     },
-    (await Config.create()),
+    await Config.create(),
   );
   await fetcher.fetch();
   const name = (await fs.readJson(path.join(dir, 'package.json'))).name;

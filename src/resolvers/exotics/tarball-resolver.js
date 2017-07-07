@@ -5,7 +5,7 @@ import type PackageRequest from '../../package-request.js';
 import TarballFetcher from '../../fetchers/tarball-fetcher.js';
 import ExoticResolver from './exotic-resolver.js';
 import Git from './git-resolver.js';
-import {removePrefix} from '../../util/misc.js';
+import guessName from '../../util/guess-name.js';
 import * as versionUtil from '../../util/version.js';
 import * as crypto from '../../util/crypto.js';
 import * as fs from '../../util/fs.js';
@@ -51,7 +51,7 @@ export default class TarballResolver extends ExoticResolver {
       return shrunk;
     }
 
-    const url = removePrefix(this.url, 'file:');
+    const url = this.url;
     let {hash, registry} = this;
     let pkgJson;
 
@@ -74,11 +74,14 @@ export default class TarballResolver extends ExoticResolver {
           hash,
         },
         this.config,
-        false,
       );
 
       // fetch file and get it's hash
-      const fetched: FetchedMetadata = await fetcher.fetch();
+      const fetched: FetchedMetadata = await fetcher.fetch({
+        name: guessName(url),
+        version: '0.0.0',
+        _registry: 'npm',
+      });
       pkgJson = fetched.package;
       hash = fetched.hash;
 
