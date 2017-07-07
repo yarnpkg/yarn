@@ -12,7 +12,6 @@ import envReplace from '../util/env-replace.js';
 import Registry from './base-registry.js';
 import {addSuffix} from '../util/misc';
 import {getPosixPath, resolveWithHome} from '../util/path';
-import isRequestToRegistry from './is-request-to-registry.js';
 
 const userHome = require('../util/user-home-dir').default;
 const path = require('path');
