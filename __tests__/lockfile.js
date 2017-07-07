@@ -213,10 +213,12 @@ d:
 
   const {type, object} = parse(file);
   expect(type).toEqual('merge');
-  expect(object.a.no).toEqual('yes');
-  expect(object.b.foo).toEqual('bar');
-  expect(object.c.bar).toEqual('foo');
-  expect(object.d.yes).toEqual('no');
+  expect(object).toEqual({
+    a: {no: 'yes'},
+    b: {foo: 'bar'},
+    c: {bar: 'foo'},
+    d: {yes: 'no'},
+  });
 });
 
 test('parse multiple merge conflicts', () => {
@@ -246,12 +248,14 @@ f:
 
   const {type, object} = parse(file);
   expect(type).toEqual('merge');
-  expect(object.a.no).toEqual('yes');
-  expect(object.b.foo).toEqual('bar');
-  expect(object.c.bar).toEqual('foo');
-  expect(object.d.yes).toEqual('no');
-  expect(object.e.foo).toEqual('bar');
-  expect(object.f.bar).toEqual('foo');
+  expect(object).toEqual({
+    a: {no: 'yes'},
+    b: {foo: 'bar'},
+    c: {bar: 'foo'},
+    d: {yes: 'no'},
+    e: {foo: 'bar'},
+    f: {bar: 'foo'},
+  });
 });
 
 test('parse merge conflict fail', () => {
@@ -286,7 +290,9 @@ c:
 
   const {type, object} = parse(file);
   expect(type).toEqual('merge');
-  expect(object.b.foo).toEqual('bar');
-  expect(object.c.bar).toEqual('foo');
+  expect(object).toEqual({
+    b: {foo: 'bar'},
+    c: {bar: 'foo'},
+  });
   expect(object.d).toBe(undefined);
 });

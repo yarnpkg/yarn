@@ -337,25 +337,25 @@ function extractConflictVariants(str: string): [string, string] {
     if (line.startsWith(MERGE_CONFLICT_START)) {
       // get the first variant
       while (lines.length) {
-        const line = lines.shift();
-        if (line === MERGE_CONFLICT_SEP) {
+        const conflictLine = lines.shift();
+        if (conflictLine === MERGE_CONFLICT_SEP) {
           skip = false;
           break;
-        } else if (skip || line.startsWith(MERGE_CONFLICT_ANCESTOR)) {
+        } else if (skip || conflictLine.startsWith(MERGE_CONFLICT_ANCESTOR)) {
           skip = true;
           continue;
         } else {
-          variants[0].push(line);
+          variants[0].push(conflictLine);
         }
       }
 
       // get the second variant
       while (lines.length) {
-        const line = lines.shift();
-        if (line.startsWith(MERGE_CONFLICT_END)) {
+        const conflictLine = lines.shift();
+        if (conflictLine.startsWith(MERGE_CONFLICT_END)) {
           break;
         } else {
-          variants[1].push(line);
+          variants[1].push(conflictLine);
         }
       }
     } else {
@@ -371,7 +371,7 @@ function extractConflictVariants(str: string): [string, string] {
  * Check if a lockfile has merge conflicts.
  */
 function hasMergeConflicts(str: string): boolean {
-  return str.includes(MERGE_CONFLICT_START);
+  return str.includes(MERGE_CONFLICT_START) && str.includes(MERGE_CONFLICT_SEP) && str.includes(MERGE_CONFLICT_END);
 }
 
 /**
