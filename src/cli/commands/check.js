@@ -288,6 +288,8 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
 
     if (await fs.exists(pkgLoc)) {
       const packageJson = await config.readJson(pkgLoc);
+      packageJson.version = semver.clean(packageJson.version);
+
       if (pkg.version !== packageJson.version) {
         // node_modules contains wrong version
         reportError('packageWrongVersion', human, pkg.version, packageJson.version);
