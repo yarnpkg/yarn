@@ -63,6 +63,7 @@
     "eslint-plugin-prettier": "^2.1.2",
     "eslint-plugin-react": "^6.7.1",
     "eslint-plugin-yarn-internal": "file:scripts/eslint-rules",
+    "execa": "^0.7.0",
     "flow-bin": "^0.48.0",
     "gulp": "^3.9.0",
     "gulp-babel": "^6.0.0",

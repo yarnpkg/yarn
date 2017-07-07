@@ -144,6 +144,8 @@ export default class HostedGitResolver extends ExoticResolver {
     const commit = await this.getRefOverHTTP(url);
     const {config} = this;
 
+    const tarballUrl = this.constructor.getTarballUrl(this.exploded, commit);
+
     const tryRegistry = async (registry): Promise<?Manifest> => {
       const {filename} = registries[registry];
 
@@ -156,7 +158,6 @@ export default class HostedGitResolver extends ExoticResolver {
         return null;
       }
 
-      const tarballUrl = this.constructor.getTarballUrl(this.exploded, commit);
       const json = await config.readJson(href, () => JSON.parse(file));
       json._uid = commit;
       json._remote = {
@@ -189,11 +190,11 @@ export default class HostedGitResolver extends ExoticResolver {
       version: '0.0.0',
       _uid: commit,
       _remote: {
-        hash: commit,
-        resolved: url,
+        resolved: tarballUrl,
         type: 'tarball',
-        reference: url,
+        reference: tarballUrl,
         registry: 'npm',
+        hash: undefined,
       },
     };
   }
