@@ -28,11 +28,15 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
   }
 
   const getNameFromHint = hint => (hint ? `${hint}Dependencies` : 'dependencies');
+  const isOutdatedPackage = ({current, wanted, name}) =>
+    current === wanted ? 0 : 1;
   const getColorFromVersion = ({current, wanted, name}) =>
     current === wanted ? reporter.format.yellow(name) : reporter.format.red(name);
 
+  let outdatedPackageCount = 0
   if (deps.length) {
     const body = deps.map((info): Array<string> => {
+      outdatedPackageCount += isOutdatedPackage(info)
       return [
         getColorFromVersion(info),
         info.current,
@@ -44,7 +48,9 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
     });
 
     reporter.table(['Package', 'Current', 'Wanted', 'Latest', 'Package Type', 'URL'], body);
-    return 1;
+    if (outdatedPackageCount >= 1) {
+      return 1;
+    }
   }
   return 0;
 }
