@@ -7,6 +7,7 @@ import type Config from './config.js';
 import type {HoistManifestTuples} from './package-hoister.js';
 import type {CopyQueueItem} from './util/fs.js';
 import type {InstallArtifacts} from './package-install-scripts.js';
+import type {RegistryNames} from './registries/index.js';
 import PackageHoister from './package-hoister.js';
 import * as constants from './constants.js';
 import * as promise from './util/promise.js';
@@ -137,6 +138,57 @@ export default class PackageLinker {
       return dep1[0].localeCompare(dep2[0]);
     });
 
+    // Actually copy the modules,
+    // possibly atomically via a module storage override.
+    let overriddenRegistries = [];
+    try {
+      overriddenRegistries = await this._maybeOverrideModuleStorage(flatTree);
+      await this._copyFlatTree(flatTree, linkDuplicates, workspaceLayout);
+    } finally {
+      this._maybeRestoreModuleStorage(overriddenRegistries);
+    }
+
+    if (this.config.binLinks) {
+      await this._createBinaryLinks(flatTree);
+    }
+  }
+
+  async _maybeOverrideModuleStorage(flatTree: HoistManifestTuples): Promise<Array<RegistryNames>> {
+    if (!this.config.atomic) {
+      return [];
+    }
+
+    const registryNameSet: Set<RegistryNames> = new Set();
+    for (const [, {pkg}] of flatTree) {
+      if (pkg._registry) {
+        registryNameSet.add(pkg._registry);
+      }
+    }
+    const registryNames = Array.from(registryNameSet);
+
+    const registries = registryNames.map(name => this.config.registries[name]);
+    for (const registry of registries) {
+      await this.config.moduleStorage.override(registry);
+    }
+
+    return registryNames;
+  }
+
+  async _maybeRestoreModuleStorage(overriddenRegistries: Array<RegistryNames>): Promise<void> {
+    if (!this.config.atomic || !overriddenRegistries.length) {
+      return;
+    }
+    const registries = overriddenRegistries.map(name => this.config.registries[name]);
+    for (const registry of registries) {
+      await this.config.moduleStorage.removeOverride(registry);
+    }
+  }
+
+  async _copyFlatTree(
+    flatTree: HoistManifestTuples,
+    linkDuplicates: boolean,
+    workspaceLayout?: WorkspaceLayout,
+  ): Promise<void> {
     // list of artifacts in modules to remove from extraneous removal
     const artifactFiles = [];
 
@@ -347,37 +399,36 @@ export default class PackageLinker {
         await fs.unlink(scopedPath);
       }
     }
+  }
 
-    // create binary links
-    if (this.config.binLinks) {
-      const topLevelDependencies = this.determineTopLevelBinLinks(flatTree);
-      const tickBin = this.reporter.progress(flatTree.length + topLevelDependencies.length);
+  async _createBinaryLinks(flatTree: HoistManifestTuples): Promise<void> {
+    const topLevelDependencies = this.determineTopLevelBinLinks(flatTree);
+    const tickBin = this.reporter.progress(flatTree.length + topLevelDependencies.length);
 
-      // create links in transient dependencies
-      await promise.queue(
-        flatTree,
-        async ([dest, {pkg}]) => {
-          const binLoc = path.join(dest, this.config.getFolder(pkg));
-          await this.linkBinDependencies(pkg, binLoc);
+    // create links in transient dependencies
+    await promise.queue(
+      flatTree,
+      async ([dest, {pkg}]) => {
+        const binLoc = path.join(dest, this.config.getFolder(pkg));
+        await this.linkBinDependencies(pkg, binLoc);
+        tickBin();
+      },
+      linkBinConcurrency,
+    );
+
+    // create links at top level for all dependencies.
+    // non-transient dependencies will overwrite these during this.save() to ensure they take priority.
+    await promise.queue(
+      topLevelDependencies,
+      async ([dest, {pkg}]) => {
+        if (pkg.bin && Object.keys(pkg.bin).length) {
+          const binLoc = path.join(this.config.cwd, this.config.getFolder(pkg));
+          await this.linkSelfDependencies(pkg, dest, binLoc);
           tickBin();
-        },
-        linkBinConcurrency,
-      );
-
-      // create links at top level for all dependencies.
-      // non-transient dependencies will overwrite these during this.save() to ensure they take priority.
-      await promise.queue(
-        topLevelDependencies,
-        async ([dest, {pkg}]) => {
-          if (pkg.bin && Object.keys(pkg.bin).length) {
-            const binLoc = path.join(this.config.cwd, this.config.getFolder(pkg));
-            await this.linkSelfDependencies(pkg, dest, binLoc);
-            tickBin();
-          }
-        },
-        linkBinConcurrency,
-      );
-    }
+        }
+      },
+      linkBinConcurrency,
+    );
   }
 
   determineTopLevelBinLinks(flatTree: HoistManifestTuples): HoistManifestTuples {

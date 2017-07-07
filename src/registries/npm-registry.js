@@ -62,7 +62,7 @@ function normalizePath(val: mixed): ?string {
 export default class NpmRegistry extends Registry {
   constructor(cwd: string, registries: ConfigRegistries, requestManager: RequestManager, reporter: Reporter) {
     super(cwd, registries, requestManager, reporter);
-    this.folder = 'node_modules';
+    this._folder = 'node_modules';
   }
 
   static filename = 'package.json';

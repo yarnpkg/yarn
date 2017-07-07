@@ -35,6 +35,7 @@ commander.version(version, '--version');
 commander.usage('[command] [flags]');
 commander.option('--verbose', 'output verbose messages on internal operations');
 commander.option('--offline', 'trigger an error if any required dependencies are not available in local cache');
+commander.option('--atomic', 'perform any changes to node_modules atomically (in a temporary directory first)');
 commander.option('--prefer-offline', 'use network only if dependencies are not available in local cache');
 commander.option('--strict-semver');
 commander.option('--json', '');
@@ -301,6 +302,7 @@ config
     ignoreEngines: commander.ignoreEngines,
     ignoreScripts: commander.ignoreScripts,
     offline: commander.preferOffline || commander.offline,
+    atomic: commander.atomic,
     looseSemver: !commander.strictSemver,
     production: commander.production,
     httpProxy: commander.proxy,
