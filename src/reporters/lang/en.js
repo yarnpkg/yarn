@@ -287,6 +287,7 @@ const messages = {
   errorDecompressingTarball: '$0. Error decompressing $1, it appears to be corrupt.',
   updateInstalling: 'Installing $0...',
   hostedGitResolveError: 'Error connecting to repository. Please, check the url.',
+  retryOnInternalServerError: 'There appears to be trouble with our server. Retrying...',
 
   unknownFetcherFor: 'Unknown fetcher for $0',
 
