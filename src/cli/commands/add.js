@@ -12,7 +12,8 @@ import {buildTree} from './list.js';
 import {wrapLifecycle, Install} from './install.js';
 import {MessageError} from '../../errors.js';
 
-const invariant = require('invariant');
+import invariant from 'invariant';
+import semver from 'semver';
 
 export class Add extends Install {
   constructor(args: Array<string>, flags: Object, config: Config, reporter: Reporter, lockfile: Lockfile) {
@@ -55,23 +56,26 @@ export class Add extends Install {
    */
   getPatternVersion(pattern: string, pkg: Manifest): string {
     const {exact, tilde} = this.flags;
-    const parts = PackageRequest.normalizePattern(pattern);
+    const {hasVersion, range} = PackageRequest.normalizePattern(pattern);
     let version;
+
     if (getExoticResolver(pattern)) {
       // wasn't a name/range tuple so this is just a raw exotic pattern
       version = pattern;
-    } else if (parts.hasVersion && parts.range) {
+    } else if (hasVersion && range && (semver.satisfies(pkg.version, range) || getExoticResolver(range))) {
       // if the user specified a range then use it verbatim
-      version = parts.range === 'latest' ? `^${pkg.version}` : parts.range;
-    } else if (tilde) {
-      // --save-tilde
-      version = `~${pkg.version}`;
-    } else if (exact) {
-      // --save-exact
-      version = pkg.version;
+      version = range;
     } else {
-      // default to save prefix
-      version = `${String(this.config.getOption('save-prefix') || '')}${pkg.version}`;
+      let prefix;
+      if (tilde) {
+        prefix = '~';
+      } else if (exact) {
+        prefix = '';
+      } else {
+        prefix = String(this.config.getOption('save-prefix')) || '^';
+      }
+
+      version = `${prefix}${pkg.version}`;
     }
     return version;
   }

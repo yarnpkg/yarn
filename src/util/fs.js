@@ -163,11 +163,14 @@ async function buildActionsForCopy(
     const {src, dest, type} = data;
     const onFresh = data.onFresh || noop;
     const onDone = data.onDone || noop;
-    invariant(
-      !files.has(dest.toLowerCase()),
-      `The case-insensitive file ${dest} shouldn't be copied twice in one bulk copy`,
-    );
-    files.add(dest.toLowerCase());
+
+    // TODO https://github.com/yarnpkg/yarn/issues/3751
+    // related to bundled dependencies handling
+    if (files.has(dest.toLowerCase())) {
+      reporter.warn(`The case-insensitive file ${dest} shouldn't be copied twice in one bulk copy`);
+    } else {
+      files.add(dest.toLowerCase());
+    }
 
     if (type === 'symlink') {
       await mkdirp(path.dirname(dest));
@@ -254,6 +257,11 @@ async function buildActionsForCopy(
           }
         }
       }
+    }
+
+    if (destStat && destStat.isSymbolicLink()) {
+      await unlink(dest);
+      destStat = null;
     }
 
     if (srcStat.isSymbolicLink()) {

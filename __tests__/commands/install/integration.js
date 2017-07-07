@@ -165,6 +165,31 @@ test.concurrent(
   },
 );
 
+test.concurrent('replace the symlink when it changes, when using the link: protocol', async () => {
+  await runInstall({}, 'install-link', async (config, reporter): Promise<void> => {
+    const lockfile = await Lockfile.fromDirectory(config.cwd);
+
+    const pkgJson = await fs.readJson(`${config.cwd}/package.json`);
+    pkgJson.dependencies['test-missing'] = 'link:barbaz';
+    await fs.writeFile(`${config.cwd}/package.json`, JSON.stringify(pkgJson));
+
+    const reInstall = new Install({}, config, reporter, lockfile);
+    await reInstall.init();
+
+    const expectPath = path.join(config.cwd, 'node_modules', 'test-missing');
+
+    const stat = await fs.lstat(expectPath);
+    expect(stat.isSymbolicLink()).toEqual(true);
+
+    const target = await fs.readlink(expectPath);
+    if (process.platform !== 'win32') {
+      expect(target).toEqual('../barbaz');
+    } else {
+      expect(target).toMatch(/[\\\/]barbaz[\\\/]$/);
+    }
+  });
+});
+
 test('changes the cache path when bumping the cache version', async () => {
   await runInstall({}, 'install-github', async (config): Promise<void> => {
     const inOut = new stream.PassThrough();
@@ -481,6 +506,12 @@ test.concurrent('install should run install scripts in the order of dependencies
     expect(await fs.exists(path.join(config.cwd, 'node_modules/dep-a/dep-a-built'))).toBe(true);
     expect(await fs.exists(path.join(config.cwd, 'node_modules/dep-b/dep-b-built'))).toBe(true);
     expect(await fs.exists(path.join(config.cwd, 'node_modules/dep-c/dep-c-built'))).toBe(true);
+  });
+});
+
+test.concurrent('install with comments in manifest', (): Promise<void> => {
+  return runInstall({noLockfile: true}, 'install-with-comments', async config => {
+    expect(await fs.readFile(path.join(config.cwd, 'node_modules', 'foo', 'index.js'))).toEqual('foobar;\n');
   });
 });
 
@@ -903,5 +934,17 @@ test.skip('unbound transitive dependencies should not conflict with top level de
     expect((await fs.readJson(path.join(config.cwd, 'node_modules', 'left-pad', 'package.json'))).version).toEqual(
       '1.0.0',
     );
+  });
+});
+
+test.concurrent('top level patterns should match after install', (): Promise<void> => {
+  return runInstall({}, 'top-level-pattern-check', async (config, reporter) => {
+    let integrityError = false;
+    try {
+      await check(config, reporter, {integrity: true}, []);
+    } catch (err) {
+      integrityError = true;
+    }
+    expect(integrityError).toBe(false);
   });
 });

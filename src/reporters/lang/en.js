@@ -305,6 +305,7 @@ const messages = {
   integrityFlagsDontMatch: "Integrity check: Flags don't match",
   integrityLockfilesDontMatch: "Integrity check: Lock files don't match",
   integrityFailedFilesMissing: 'Integrity check: Files are missing',
+  integrityPatternsDontMatch: "Integrity check: Top level patterns don't match",
   packageNotInstalled: '$0 not installed',
   optionalDepNotInstalled: 'Optional dependency $0 not installed',
   packageWrongVersion: '$0 is wrong version: expected $1, got $2',

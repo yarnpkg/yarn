@@ -94,6 +94,7 @@
     "build-win-installer": "scripts\\build-windows-installer.bat",
     "check-lockfile": "./scripts/check-lockfile.sh",
     "lint": "eslint . && flow check",
+    "prettier": "eslint --fix",
     "release-branch": "./scripts/release-branch.sh",
     "test": "yarn lint && yarn test-only",
     "test-ci": "yarn build && yarn test-only",

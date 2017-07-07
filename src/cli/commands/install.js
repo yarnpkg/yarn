@@ -28,7 +28,6 @@ import WorkspaceLayout from '../../workspace-layout.js';
 
 const emoji = require('node-emoji');
 const invariant = require('invariant');
-const isCI = require('is-ci');
 const path = require('path');
 const semver = require('semver');
 const uuid = require('uuid');
@@ -228,6 +227,13 @@ export class Install {
 
       this.rootManifestRegistries.push(registry);
       const projectManifestJson = await this.config.readJson(loc);
+
+      ['dependencies', 'devDependencies', 'optionalDependencies', 'peerDependencies'].forEach(dependencyKey => {
+        if (projectManifestJson[dependencyKey]) {
+          delete projectManifestJson[dependencyKey]['//'];
+        }
+      });
+
       await normalizeManifest(projectManifestJson, this.config.cwd, this.config, true);
 
       Object.assign(this.resolutions, projectManifestJson.resolutions);
@@ -682,12 +688,21 @@ export class Install {
     }
 
     const lockFileHasAllPatterns = patterns.every(p => this.lockfile.getLocked(p));
+    const lockfilePatternsMatch = Object.keys(this.lockfile.cache || {}).every(p => {
+      return lockfileBasedOnResolver[p];
+    });
     const resolverPatternsAreSameAsInLockfile = Object.keys(lockfileBasedOnResolver).every(pattern => {
       const manifest = this.lockfile.getLocked(pattern);
       return manifest && manifest.resolved === lockfileBasedOnResolver[pattern].resolved;
     });
     // remove command is followed by install with force, lockfile will be rewritten in any case then
-    if (lockFileHasAllPatterns && resolverPatternsAreSameAsInLockfile && patterns.length && !this.flags.force) {
+    if (
+      lockFileHasAllPatterns &&
+      lockfilePatternsMatch &&
+      resolverPatternsAreSameAsInLockfile &&
+      patterns.length &&
+      !this.flags.force
+    ) {
       return;
     }
 
@@ -754,7 +769,7 @@ export class Install {
    */
 
   checkUpdate() {
-    if (!process.stdout.isTTY || isCI) {
+    if (this.config.nonInteractive) {
       // don't show upgrade dialog on CI or non-TTY terminals
       return;
     }
