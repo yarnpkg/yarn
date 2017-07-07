@@ -642,7 +642,7 @@ test.concurrent('offline mirror can be enabled from parent dir', (): Promise<voi
   };
   return runInstall({}, fixture, async (config, reporter) => {
     const rawLockfile = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
-    const lockfile = parse(rawLockfile);
+    const {object: lockfile} = parse(rawLockfile);
     expect(lockfile['mime-types@2.1.14'].resolved).toEqual(
       'https://registry.yarnpkg.com/mime-types/-/mime-types-2.1.14.tgz#f7ef7d97583fcaf3b7d282b6f8b5679dab1e94ee',
     );
@@ -657,7 +657,7 @@ test.concurrent('offline mirror can be enabled from parent dir, with merging of 
   };
   return runInstall({}, fixture, async (config, reporter) => {
     const rawLockfile = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
-    const lockfile = parse(rawLockfile);
+    const {object: lockfile} = parse(rawLockfile);
     expect(lockfile['mime-types@2.1.14'].resolved).toEqual(
       'https://registry.yarnpkg.com/mime-types/-/mime-types-2.1.14.tgz#f7ef7d97583fcaf3b7d282b6f8b5679dab1e94ee',
     );
@@ -672,7 +672,7 @@ test.concurrent('offline mirror can be disabled locally', (): Promise<void> => {
   };
   return runInstall({}, fixture, async (config, reporter) => {
     const rawLockfile = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
-    const lockfile = parse(rawLockfile);
+    const {object: lockfile} = parse(rawLockfile);
     expect(lockfile['mime-types@2.1.14'].resolved).toEqual(
       'https://registry.yarnpkg.com/mime-types/-/mime-types-2.1.14.tgz#f7ef7d97583fcaf3b7d282b6f8b5679dab1e94ee',
     );

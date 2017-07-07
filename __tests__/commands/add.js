@@ -330,7 +330,7 @@ test.concurrent('add with offline mirror', (): Promise<void> => {
     ).toBeGreaterThanOrEqual(0);
 
     const rawLockfile = await fs.readFile(path.join(config.cwd, constants.LOCKFILE_FILENAME));
-    const lockfile = parse(rawLockfile);
+    const {object: lockfile} = parse(rawLockfile);
 
     expect(lockfile['is-array@^1.0.1']['resolved']).toEqual(
       'https://registry.yarnpkg.com/is-array/-/is-array-1.0.1.tgz#e9850cc2cc860c3bc0977e84ccf0dd464584279a',
@@ -393,7 +393,7 @@ test.concurrent('install with --save and without offline mirror', (): Promise<vo
     ).toEqual(-1);
 
     const rawLockfile = await fs.readFile(path.join(config.cwd, constants.LOCKFILE_FILENAME));
-    const lockfile = parse(rawLockfile);
+    const {object: lockfile} = parse(rawLockfile);
 
     expect(lockfile['is-array@^1.0.1']['resolved']).toMatch(
       /https:\/\/registry\.yarnpkg\.com\/is-array\/-\/is-array-1\.0\.1\.tgz#[a-f0-9]+/,

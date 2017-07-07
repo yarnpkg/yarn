@@ -95,7 +95,17 @@ export default class Lockfile {
 
     if (await fs.exists(lockfileLoc)) {
       rawLockfile = await fs.readFile(lockfileLoc);
-      lockfile = parse(rawLockfile, lockfileLoc);
+      const lockResult = parse(rawLockfile, lockfileLoc);
+
+      if (reporter) {
+        if (lockResult.type === 'merge') {
+          reporter.info(reporter.lang('lockfileMerged'));
+        } else if (lockResult.type === 'conflict') {
+          reporter.warn(reporter.lang('lockfileConflict'));
+        }
+      }
+
+      lockfile = lockResult.object;
     } else {
       if (reporter) {
         reporter.info(reporter.lang('noLockfileFound'));

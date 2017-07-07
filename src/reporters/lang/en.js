@@ -83,6 +83,9 @@ const messages = {
   shrinkwrapWarning:
     'npm-shrinkwrap.json found. This will not be updated or respected. See https://yarnpkg.com/en/docs/migrating-from-npm for more information.',
   lockfileOutdated: 'Outdated lockfile. Please run `yarn install` and try again.',
+  lockfileMerged: 'Merge conflict detected in yarn.lock and successfully merged.',
+  lockfileConflict:
+    'A merge conflict was found in yarn.lock but it could not be successfully merged, regenerating yarn.lock from scratch.',
   ignoredScripts: 'Ignored scripts due to flag.',
   missingAddDependencies: 'Missing list of packages to add to your project.',
   yesWarning:
