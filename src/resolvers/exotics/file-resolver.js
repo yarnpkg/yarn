@@ -103,7 +103,7 @@ export default class FileResolver extends ExoticResolver {
     let temp = section;
 
     for (const [k, v] of util.entries(section)) {
-      if (typeof v === 'string' && v.startsWith('file:') && !path.isAbsolute(v)) {
+      if (typeof v === 'string' && v.startsWith('file:') && !path.isAbsolute(v.substring(5))) {
         if (temp === section) {
           temp = Object.assign({}, section);
         }
