@@ -251,10 +251,51 @@ export default class PackageLinker {
       }
     }
 
-    // linked modules
-    for (const loc of possibleExtraneous) {
-      const stat = await fs.lstat(loc);
+    // If an Extraneous is an entry created via "yarn link", we prevent it from being overwritten.
+    // Unfortunately, the only way we can know if they have been created this way is to check if they
+    // are symlinks - problem is that it then conflicts with the newly introduced "link:" protocol,
+    // which also creates symlinks :( a somewhat weak fix is to check if the symlink target is registered
+    // inside the linkFolder, in which case we assume it has been created via "yarn link". Otherwise, we
+    // assume it's a link:-managed dependency, and overwrite it as usual.
+    const linkTargets = new Map();
+
+    for (const entry of await fs.readdir(this.config.linkFolder)) {
+      const entryPath = path.join(this.config.linkFolder, entry);
+      const stat = await fs.lstat(entryPath);
+
       if (stat.isSymbolicLink()) {
+        const packageName = entry;
+        linkTargets.set(packageName, await fs.readlink(entryPath));
+      } else if (stat.isDirectory() && entry[0] === '@') {
+        // if the entry is directory beginning with '@', then we're dealing with a package scope, which
+        // means we must iterate inside to retrieve the package names it contains
+        const scopeName = entry;
+
+        for (const entry2 of await fs.readdir(entryPath)) {
+          const entryPath2 = path.join(entryPath, entry2);
+          const stat2 = await fs.lstat(entryPath2);
+
+          if (stat2.isSymbolicLink()) {
+            const packageName = `${scopeName}/${entry2}`;
+            linkTargets.set(packageName, await fs.readlink(entryPath2));
+          }
+        }
+      }
+    }
+
+    for (const loc of possibleExtraneous) {
+      let packageName = path.basename(loc);
+      const scopeName = path.basename(path.dirname(loc));
+
+      if (scopeName[0] === `@`) {
+        packageName = `${scopeName}/${packageName}`;
+      }
+
+      if (
+        (await fs.lstat(loc)).isSymbolicLink() &&
+        linkTargets.has(packageName) &&
+        linkTargets.get(packageName) === (await fs.readlink(loc))
+      ) {
         possibleExtraneous.delete(loc);
         copyQueue.delete(loc);
       }

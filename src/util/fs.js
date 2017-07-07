@@ -151,7 +151,7 @@ async function buildActionsForCopy(
   }
 
   for (const loc of possibleExtraneous) {
-    if (files.has(loc)) {
+    if (files.has(loc.toLowerCase())) {
       possibleExtraneous.delete(loc);
     }
   }
@@ -163,8 +163,14 @@ async function buildActionsForCopy(
     const {src, dest, type} = data;
     const onFresh = data.onFresh || noop;
     const onDone = data.onDone || noop;
-    invariant(!files.has(dest), `The same file ${dest} can't be copied twice in one bulk copy`);
-    files.add(dest);
+
+    // TODO https://github.com/yarnpkg/yarn/issues/3751
+    // related to bundled dependencies handling
+    if (files.has(dest.toLowerCase())) {
+      reporter.warn(`The case-insensitive file ${dest} shouldn't be copied twice in one bulk copy`);
+    } else {
+      files.add(dest.toLowerCase());
+    }
 
     if (type === 'symlink') {
       await mkdirp(path.dirname(dest));
@@ -253,6 +259,11 @@ async function buildActionsForCopy(
       }
     }
 
+    if (destStat && destStat.isSymbolicLink()) {
+      await unlink(dest);
+      destStat = null;
+    }
+
     if (srcStat.isSymbolicLink()) {
       onFresh();
       const linkname = await readlink(src);
@@ -270,7 +281,7 @@ async function buildActionsForCopy(
 
       const destParts = dest.split(path.sep);
       while (destParts.length) {
-        files.add(destParts.join(path.sep));
+        files.add(destParts.join(path.sep).toLowerCase());
         destParts.pop();
       }
 
@@ -349,7 +360,7 @@ async function buildActionsForHardlink(
   }
 
   for (const loc of possibleExtraneous) {
-    if (files.has(loc)) {
+    if (files.has(loc.toLowerCase())) {
       possibleExtraneous.delete(loc);
     }
   }
@@ -361,7 +372,7 @@ async function buildActionsForHardlink(
     const {src, dest} = data;
     const onFresh = data.onFresh || noop;
     const onDone = data.onDone || noop;
-    if (files.has(dest)) {
+    if (files.has(dest.toLowerCase())) {
       // Fixes issue https://github.com/yarnpkg/yarn/issues/2734
       // When bulk hardlinking we have A -> B structure that we want to hardlink to A1 -> B1,
       // package-linker passes that modules A1 and B1 need to be hardlinked,
@@ -370,7 +381,7 @@ async function buildActionsForHardlink(
       onDone();
       return;
     }
-    files.add(dest);
+    files.add(dest.toLowerCase());
 
     if (events.ignoreBasenames.indexOf(path.basename(src)) >= 0) {
       // ignored file
@@ -454,7 +465,7 @@ async function buildActionsForHardlink(
 
       const destParts = dest.split(path.sep);
       while (destParts.length) {
-        files.add(destParts.join(path.sep));
+        files.add(destParts.join(path.sep).toLowerCase());
         destParts.pop();
       }
 
@@ -532,7 +543,11 @@ export async function copyBulk(
       const cleanup = () => delete currentlyWriting[data.dest];
       reporter.verbose(reporter.lang('verboseFileCopy', data.src, data.dest));
       return (currentlyWriting[data.dest] = readFileBuffer(data.src)
-        .then(d => {
+        .then(async d => {
+          // we need to do this because of case-insensitive filesystems, which wouldn't properly
+          // change the file name in case of a file being renamed
+          await unlink(data.dest);
+
           return writeFile(data.dest, d, {mode: data.mode});
         })
         .then(() => {

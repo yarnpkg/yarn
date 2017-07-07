@@ -9,6 +9,7 @@ import {MessageError} from '../errors.js';
 import Config from '../config.js';
 import {getRcArgs} from '../rc.js';
 import {version} from '../util/yarn-version.js';
+import handleSignals from '../util/signal-handler.js';
 
 const commander = require('commander');
 const fs = require('fs');
@@ -20,6 +21,7 @@ const onDeath = require('death');
 const path = require('path');
 
 loudRejection();
+handleSignals();
 
 const startArgs = process.argv.slice(0, 2);
 

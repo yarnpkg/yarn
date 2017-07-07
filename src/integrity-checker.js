@@ -19,6 +19,7 @@ export const integrityErrors = {
   LOCKFILE_DONT_MATCH: 'integrityLockfilesDontMatch',
   FLAGS_DONT_MATCH: 'integrityFlagsDontMatch',
   LINKED_MODULES_DONT_MATCH: 'integrityCheckLinkedModulesDontMatch',
+  PATTERNS_DONT_MATCH: 'integrityPatternsDontMatch',
 };
 
 type IntegrityError = $Keys<typeof integrityErrors>;
@@ -200,6 +201,7 @@ export default class InstallationIntegrityChecker {
     expected: ?IntegrityFile,
     checkFiles: boolean,
     locationFolder: string,
+    workspaceLayout: ?WorkspaceLayout,
   ): Promise<'OK' | IntegrityError> {
     if (!expected) {
       return 'EXPECTED_IS_NOT_A_JSON';
@@ -209,6 +211,12 @@ export default class InstallationIntegrityChecker {
     }
     if (!compareSortedArrays(actual.flags, expected.flags)) {
       return 'FLAGS_DONT_MATCH';
+    }
+    const actualPatterns = actual.topLevelPatterns.filter(p => {
+      return !workspaceLayout || !workspaceLayout.getManifestByPattern(p);
+    });
+    if (!compareSortedArrays(actualPatterns, expected.topLevelPatterns || [])) {
+      return 'PATTERNS_DONT_MATCH';
     }
     for (const key of Object.keys(actual.lockfileEntries)) {
       if (actual.lockfileEntries[key] !== expected.lockfileEntries[key]) {
@@ -266,7 +274,13 @@ export default class InstallationIntegrityChecker {
       await this._getModuleLocation(),
     );
     const expected = await this._getIntegrityFile(loc.locationPath);
-    const integrityMatches = await this._compareIntegrityFiles(actual, expected, flags.checkFiles, loc.locationFolder);
+    const integrityMatches = await this._compareIntegrityFiles(
+      actual,
+      expected,
+      flags.checkFiles,
+      loc.locationFolder,
+      workspaceLayout,
+    );
 
     return {
       integrityFileMissing: false,
