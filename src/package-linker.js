@@ -409,16 +409,17 @@ export default class PackageLinker {
 
     for (const name in peerDeps) {
       const range = peerDeps[name];
-      const patterns = this.resolver.patternsByPackage[name] || [];
-      const foundPattern = patterns.find(pattern => {
-        const resolvedPattern = this.resolver.getResolvedPattern(pattern);
-        return resolvedPattern ? this._satisfiesPeerDependency(range, resolvedPattern.version) : false;
+      const pkgs = this.resolver.getAllInfoForPackageName(name);
+      const found = pkgs.find(pkg => {
+        const {root, version} = pkg._reference || {};
+        return root && this._satisfiesPeerDependency(range, version);
       });
+      const foundPattern = found && found._reference && found._reference.patterns;
 
       if (foundPattern) {
-        ref.addDependencies([foundPattern]);
+        ref.addDependencies(foundPattern);
       } else {
-        const depError = patterns.length > 0 ? 'incorrectPeer' : 'unmetPeer';
+        const depError = pkgs.length > 0 ? 'incorrectPeer' : 'unmetPeer';
         const [pkgHuman, depHuman] = [`${pkg.name}@${pkg.version}`, `${name}@${range}`];
         this.reporter.warn(this.reporter.lang(depError, pkgHuman, depHuman));
       }

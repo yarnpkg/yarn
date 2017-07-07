@@ -803,6 +803,29 @@ test.concurrent('warns when peer dependency is incorrect during add', (): Promis
   );
 });
 
+test.concurrent('should only refer to root to satisfy peer dependency', (): Promise<void> => {
+  return buildRun(
+    reporters.BufferReporter,
+    fixturesLoc,
+    async (args, flags, config, reporter, lockfile): Promise<void> => {
+      const add = new Add(args, flags, config, reporter, lockfile);
+      await add.init();
+
+      const output = reporter.getBuffer();
+      const warnings = output.filter(entry => entry.type === 'warning');
+
+      expect(
+        warnings.some(warning => {
+          return warning.data.toString().toLowerCase().indexOf('incorrect peer') > -1;
+        }),
+      ).toEqual(true);
+    },
+    ['file:c'],
+    {},
+    'add-with-multiple-versions-of-peer-dependency',
+  );
+});
+
 test.concurrent('should retain build artifacts after add', (): Promise<void> => {
   return buildRun(
     reporters.BufferReporter,
