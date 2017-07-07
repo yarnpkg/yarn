@@ -116,6 +116,24 @@ test.concurrent('--latest upgrades to latest ignoring package.json when no packa
   });
 });
 
+test.concurrent('sets new version range to caret when --caret and --latest are passed', (): Promise<void> => {
+  return runUpgrade([], {latest: true, caret: true}, 'range-to-latest', async (config): ?Promise<void> => {
+    await expectInstalledDependency(config, 'left-pad', '^1.1.3', '1.1.3');
+  });
+});
+
+test.concurrent('sets new version range to tilde when --tilde and --latest are passed', (): Promise<void> => {
+  return runUpgrade([], {latest: true, tilde: true}, 'range-to-latest', async (config): ?Promise<void> => {
+    await expectInstalledDependency(config, 'left-pad', '~1.1.3', '1.1.3');
+  });
+});
+
+test.concurrent('sets new version range to exact when --exact and --latest are passed', (): Promise<void> => {
+  return runUpgrade([], {latest: true, exact: true}, 'range-to-latest', async (config): ?Promise<void> => {
+    await expectInstalledDependency(config, 'left-pad', '1.1.3', '1.1.3');
+  });
+});
+
 test.concurrent('upgrades to latest matching semver when package name passed with version', (): Promise<void> => {
   return runUpgrade(['left-pad@~1.1.2'], {}, 'range-to-latest', async (config): ?Promise<void> => {
     await expectInstalledDependency(config, 'left-pad', '~1.1.2', '1.1.3');
