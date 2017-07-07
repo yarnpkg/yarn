@@ -369,14 +369,11 @@ export default class PackageLinker {
     for (const name in peerDeps) {
       const range = peerDeps[name];
       const pkgs = this.resolver.getAllInfoForPackageName(name);
-      let foundPattern;
-      pkgs.find(pkg => {
-        const {root, version, patterns} = pkg._reference || {};
-        if (root && this._satisfiesPeerDependency(range, version)) {
-          foundPattern = patterns;
-        }
-        return foundPattern;
+      const found = pkgs.find(pkg => {
+        const {root, version} = pkg._reference || {};
+        return root && this._satisfiesPeerDependency(range, version);
       });
+      const foundPattern = found && found._reference && found._reference.patterns;
 
       if (foundPattern) {
         ref.addDependencies(foundPattern);
