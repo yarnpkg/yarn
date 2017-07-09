@@ -48,7 +48,7 @@ deployment:
     commands:
       # Only NPM is handled here - All other release files are handled in a webhook.
       - echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
-      - ./scripts/set-installation-method.js "`pwd`/package.json" npm
+      - ./scripts/update-dist-manifest.js "`pwd`/package.json" npm
       # https://github.com/yarnpkg/yarn/issues/610, need to make yarn publish noninteractive
       - npm publish --tag rc
 

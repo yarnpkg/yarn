@@ -35,5 +35,5 @@ cp bin/{yarn,yarnpkg,*.cmd} dist/bin/
 cp node_modules/v8-compile-cache/v8-compile-cache.js dist/lib/v8-compile-cache.js
 
 version=`exec $dist_yarn --version`
-./scripts/set-installation-method.js $(readlink -f dist/package.json) tar
+./scripts/update-dist-manifest.js $(readlink -f dist/package.json) tar
 tar -cvzf artifacts/yarn-v$version.tar.gz dist/*
