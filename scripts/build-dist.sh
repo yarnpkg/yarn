@@ -27,6 +27,7 @@ eval $system_yarn run build-bundle
 chmod +x artifacts/*.js
 
 cp package.json dist/
+cp README.md dist/
 cp LICENSE dist/
 cp artifacts/yarn-legacy-*.js dist/lib/yarn-cli.js
 cp bin/yarn-bundle-entry.js dist/bin/yarn.js
