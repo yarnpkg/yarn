@@ -325,3 +325,21 @@ test.concurrent('respects --scope flag', (): Promise<void> => {
     expect(pkg.dependencies['left-pad']).toEqual('1.0.0');
   });
 });
+
+test.concurrent('--latest works if there is an install script on a hoisted dependency', (): Promise<void> => {
+  return buildRun(
+    reporters.BufferReporter,
+    fixturesLoc,
+    async (args, flags, config, reporter): Promise<void> => {
+      await upgrade(config, reporter, flags, args);
+
+      const output = reporter.getBuffer();
+      const errors = output.filter(entry => entry.type === 'error');
+
+      expect(errors.length).toEqual(0);
+    },
+    [],
+    {latest: true},
+    'latest-with-install-script',
+  );
+});
