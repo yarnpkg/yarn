@@ -381,7 +381,12 @@ export default class PackageRequest {
     config: Config,
     reporter: Reporter,
   ): Promise<Array<Dependency>> {
-    const {requests: depReqPatterns} = await install.fetchRequestFromCwd();
+    const {requests: reqPatterns, workspaceLayout} = await install.fetchRequestFromCwd();
+
+    // Filter out workspace patterns if necessary
+    const depReqPatterns = workspaceLayout
+      ? reqPatterns.filter(p => !workspaceLayout.getManifestByPattern(p.pattern))
+      : reqPatterns;
 
     const deps = await Promise.all(
       depReqPatterns.map(async ({pattern, hint}): Promise<Dependency> => {

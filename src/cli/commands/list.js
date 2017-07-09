@@ -49,7 +49,14 @@ export async function buildTree(
 }> {
   const treesByKey = {};
   const trees = [];
-  const hoisted = await linker.getFlatHoistedTree(patterns);
+  const flatTree = await linker.getFlatHoistedTree(patterns);
+
+  // If using workspaces, filter out the virtual manifest
+  const {workspaceLayout} = resolver;
+  const hoisted =
+    workspaceLayout && workspaceLayout.virtualManifestName
+      ? flatTree.filter(([key]) => key.indexOf(workspaceLayout.virtualManifestName) === -1)
+      : flatTree;
 
   const hoistedByKey = {};
   for (const [key, info] of hoisted) {
@@ -176,8 +183,12 @@ export function filterTree(tree: Tree, filters: Array<string>): boolean {
 export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
   const lockfile = await Lockfile.fromDirectory(config.lockfileFolder, reporter);
   const install = new Install(flags, config, reporter, lockfile);
-  const {requests: depRequests, patterns} = await install.fetchRequestFromCwd();
-  await install.resolver.init(depRequests, {isFlat: install.flags.flat, isFrozen: install.flags.frozenLockfile});
+  const {requests: depRequests, patterns, workspaceLayout} = await install.fetchRequestFromCwd();
+  await install.resolver.init(depRequests, {
+    isFlat: install.flags.flat,
+    isFrozen: install.flags.frozenLockfile,
+    workspaceLayout,
+  });
 
   const opts: ListOptions = {
     reqDepth: getReqDepth(flags.depth),
