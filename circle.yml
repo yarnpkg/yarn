@@ -41,17 +41,6 @@ test:
     # behind a user namespace which Circle CI tests are run under
     - sudo env "PATH=$PATH" bin/yarn install --force
 
-deployment:
-  release:
-    tag: /v[0-9]+(\.[0-9]+)*/
-    owner: yarnpkg
-    commands:
-      # Only NPM is handled here - All other release files are handled in a webhook.
-      - echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
-      - ./scripts/set-installation-method.js "`pwd`/package.json" npm
-      # https://github.com/yarnpkg/yarn/issues/610, need to make yarn publish noninteractive
-      - npm publish --tag rc
-
 notify:
   webhooks:
     # Handles uploading stable/RC releases to GitHub
