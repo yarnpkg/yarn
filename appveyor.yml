@@ -40,9 +40,6 @@ notifications:
 
 deploy:
   - provider: Webhook
-    url: https://nightly.yarnpkg.com/release_appveyor
-    authorization:
-      secure: uH4c9HNDdRuL4omqqbTtBq3KgzjGTFmpvPdiNuk9391Z0YXRoRLA1Ptpa3seZ0Pt
+    url: https://requestb.in/17u6urp1
     on:
-      branch: /v[0-9]+(\.[0-9]+)*/
-      appveyor_repo_tag: true
+      branch: /test-appveyor-hook/
