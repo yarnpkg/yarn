@@ -5,8 +5,7 @@ environment:
 
 branches:
   only:
-  - master
-  - /v[0-9]+(\.[0-9]+)*/
+  - test-appveyor-hook
 
 install:
   - ps: Install-Product node $env:node_version
