@@ -5,6 +5,7 @@
   "devDependencies": {
     "eslint": "^3.19.0",
     "eslint-plugin-react": "^6.9.0",
-    "react-scripts": "0.9.5"
+    "react-scripts": "0.9.5",
+    "uglify-js": "3.0.14"
   }
 }
