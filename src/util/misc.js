@@ -2,10 +2,6 @@
 
 const _camelCase = require('camelcase');
 
-export function has2xxResponse(res: Object): boolean {
-  return res.responseCode >= 200 && res.responseCode < 300;
-}
-
 export function sortAlpha(a: string, b: string): number {
   // sort alphabetically in a deterministic way
   const shortLen = Math.min(a.length, b.length);
