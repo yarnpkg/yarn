@@ -6,6 +6,7 @@ jasmine.DEFAULT_TIMEOUT_INTERVAL = 150000;
 
 const request = require('request');
 const path = require('path');
+const exec = require('child_process').exec;
 import {runInstall} from '../_helpers.js';
 
 async function linkAt(config, ...relativePath): Promise<string> {
@@ -18,6 +19,36 @@ async function linkAt(config, ...relativePath): Promise<string> {
     const contents = await fs.readFile(joinedPath);
     return /node" +"\$basedir\/([^"]*\.js)"/.exec(contents)[1];
   }
+}
+
+function execCommand(cwd: string, binPath: Array<string>, args: Array<string>): Promise<Array<?string>> {
+  const cmd = path.join(...binPath);
+
+  return new Promise((resolve, reject) => {
+    exec(
+      `${cmd} ${args.join(' ')}`,
+      {
+        cwd,
+        env: {
+          ...process.env,
+          YARN_SILENT: 0,
+        },
+      },
+      (error, stdout) => {
+        if (error) {
+          reject({error, stdout});
+        } else {
+          const stdoutLines = stdout
+            .toString()
+            .split('\n')
+            .map((line: ?string) => line && line.trim())
+            .filter((line: ?string) => line);
+
+          resolve(stdoutLines);
+        }
+      },
+    );
+  });
 }
 
 beforeEach(request.__resetAuthedRequests);
@@ -49,6 +80,8 @@ test('direct dependency bin takes priority over transitive bin', (): Promise<voi
     expect(await linkAt(config, 'node_modules', 'standard', 'node_modules', '.bin', 'eslint')).toEqual(
       '../eslint/bin/eslint.js',
     );
+    const stdout = await execCommand(config.cwd, ['node_modules', '.bin', 'eslint'], ['--version']);
+    expect(stdout[0]).toEqual('v3.7.0');
   });
 });
 
@@ -68,6 +101,8 @@ test('newer transitive dep is overridden by newer direct dep', (): Promise<void>
     expect(await linkAt(config, 'node_modules', 'sample-dep-eslint-3.10.1', 'node_modules', '.bin', 'eslint')).toEqual(
       '../eslint/bin/eslint.js',
     );
+    const stdout = await execCommand(config.cwd, ['node_modules', '.bin', 'eslint'], ['--version']);
+    expect(stdout[0]).toEqual('v3.12.2');
   });
 });
 
@@ -80,6 +115,8 @@ test('newer transitive dep is overridden by older direct dep', (): Promise<void>
     expect(await linkAt(config, 'node_modules', 'sample-dep-eslint-3.12.2', 'node_modules', '.bin', 'eslint')).toEqual(
       '../eslint/bin/eslint.js',
     );
+    const stdout = await execCommand(config.cwd, ['node_modules', '.bin', 'eslint'], ['--version']);
+    expect(stdout[0]).toEqual('v3.10.1');
   });
 });
 
@@ -94,6 +131,8 @@ test('first transient dep is installed when same level and reference count', ():
     expect(await linkAt(config, 'node_modules', 'sample-dep-eslint-3.12.2', 'node_modules', '.bin', 'eslint')).toEqual(
       '../eslint/bin/eslint.js',
     );
+    const stdout = await execCommand(config.cwd, ['node_modules', '.bin', 'eslint'], ['--version']);
+    expect(stdout[0]).toEqual('v3.10.1');
   });
 });
 
@@ -107,6 +146,8 @@ test('first dep is installed when same level and reference count and one is a de
     expect(await linkAt(config, 'node_modules', 'sample-dep-eslint-3.12.2', 'node_modules', '.bin', 'eslint')).toEqual(
       '../eslint/bin/eslint.js',
     );
+    const stdout = await execCommand(config.cwd, ['node_modules', '.bin', 'eslint'], ['--version']);
+    expect(stdout[0]).toEqual('v3.10.1');
   });
 });
 
@@ -115,5 +156,7 @@ test('first dep is installed when same level and reference count and one is a de
 test('Only top level (after hoisting) bin links should be linked', (): Promise<void> => {
   return runInstall({binLinks: true}, 'install-bin-links-eslint', async config => {
     expect(await linkAt(config, 'node_modules', '.bin', 'eslint')).toEqual('../eslint/bin/eslint.js');
+    const stdout = await execCommand(config.cwd, ['node_modules', '.bin', 'uglifyjs'], ['--version']);
+    expect(stdout[0]).toEqual('uglify-js 3.0.14');
   });
 });
