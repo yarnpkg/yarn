@@ -365,7 +365,6 @@ export default class PackageLinker {
       );
 
       // create links at top level for all dependencies.
-      // non-transient dependencies will overwrite these during this.save() to ensure they take priority.
       await promise.queue(
         topLevelDependencies,
         async ([dest, pkg]) => {
