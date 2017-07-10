@@ -13,12 +13,21 @@ type Parts = Array<string>;
 let historyCounter = 0;
 
 export class HoistManifest {
-  constructor(key: string, parts: Parts, pkg: Manifest, loc: string, isRequired: boolean, isIncompatible: boolean) {
+  constructor(
+    key: string,
+    parts: Parts,
+    pkg: Manifest,
+    loc: string,
+    isDirectRequire: boolean,
+    isRequired: boolean,
+    isIncompatible: boolean,
+  ) {
+    this.isDirectRequire = isDirectRequire;
     this.isRequired = isRequired;
     this.isIncompatible = isIncompatible;
+
     this.loc = loc;
     this.pkg = pkg;
-
     this.key = key;
     this.parts = parts;
     this.originalKey = key;
@@ -30,6 +39,7 @@ export class HoistManifest {
 
   isRequired: boolean;
   isIncompatible: boolean;
+  isDirectRequire: boolean;
   pkg: Manifest;
   loc: string;
   parts: Parts;
@@ -107,18 +117,11 @@ export default class PackageHoister {
         return sortAlpha(aPattern, bPattern);
       });
 
-      //
-      const infos = [];
       for (const [pattern, parent] of queue) {
         const info = this._seed(pattern, {isDirectRequire: false, parent});
         if (info) {
-          infos.push(info);
+          this.hoist(info);
         }
-      }
-
-      //
-      for (const info of infos) {
-        this.hoist(info);
       }
     }
   }
@@ -157,8 +160,7 @@ export default class PackageHoister {
     const loc: string = this.config.generateHardModulePath(ref);
     const parts = parentParts.concat(pkg.name);
     const key: string = this.implodeKey(parts);
-    const info: HoistManifest = new HoistManifest(key, parts, pkg, loc, isRequired, isIncompatible);
-
+    const info: HoistManifest = new HoistManifest(key, parts, pkg, loc, isDirectRequire, isRequired, isIncompatible);
     //
     this.tree.set(key, info);
     this.taintKey(key, info);
@@ -460,10 +462,6 @@ export default class PackageHoister {
     for (const pattern of patterns) {
       const pkg = this.resolver.getStrictResolvedPattern(pattern);
       rootPackageNames.add(pkg.name);
-    }
-
-    // seed occurences
-    for (const pattern of patterns) {
       add(pattern, []);
     }
 

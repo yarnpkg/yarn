@@ -365,10 +365,9 @@ export default class PackageLinker {
       );
 
       // create links at top level for all dependencies.
-      // non-transient dependencies will overwrite these during this.save() to ensure they take priority.
       await promise.queue(
         topLevelDependencies,
-        async ([dest, {pkg}]) => {
+        async ([dest, pkg]) => {
           if (pkg.bin && Object.keys(pkg.bin).length) {
             const binLoc = path.join(this.config.cwd, this.config.getFolder(pkg));
             await this.linkSelfDependencies(pkg, dest, binLoc);
@@ -380,15 +379,15 @@ export default class PackageLinker {
     }
   }
 
-  determineTopLevelBinLinks(flatTree: HoistManifestTuples): HoistManifestTuples {
+  determineTopLevelBinLinks(flatTree: HoistManifestTuples): Array<[string, Manifest]> {
     const linksToCreate = new Map();
+    for (const [dest, {pkg, isDirectRequire}] of flatTree) {
+      const {name} = pkg;
 
-    flatTree.forEach(([dest, hoistManifest]) => {
-      if (!linksToCreate.has(hoistManifest.pkg.name)) {
-        linksToCreate.set(hoistManifest.pkg.name, [dest, hoistManifest]);
+      if (!linksToCreate.has(name) || isDirectRequire) {
+        linksToCreate.set(name, [dest, pkg]);
       }
-    });
-
+    }
     return Array.from(linksToCreate.values());
   }
 
