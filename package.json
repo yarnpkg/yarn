@@ -26,7 +26,7 @@
     "loud-rejection": "^1.2.0",
     "micromatch": "^2.3.11",
     "mkdirp": "^0.5.1",
-    "node-emoji": "^1.0.4",
+    "node-emoji": "^1.6.1",
     "object-path": "^0.11.2",
     "proper-lockfile": "^2.0.0",
     "read": "^1.0.7",
