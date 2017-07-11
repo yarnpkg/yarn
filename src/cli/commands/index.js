@@ -101,17 +101,4 @@ for (const key in aliases) {
   commands[key].getDocsInfo = getDocsInfo(key);
 }
 
-import unsupportedAliases from '../unsupported-aliases.js';
-
-for (const key in unsupportedAliases) {
-  commands[key] = {
-    run(config: Config, reporter: ConsoleReporter | JSONReporter): Promise<void> {
-      throw new MessageError(`Did you mean \`yarn ${unsupportedAliases[key]}\`?`);
-    },
-    setFlags: () => {},
-    hasWrapper: () => true,
-    getDocsInfo: getDocsInfo(unsupportedAliases[key]),
-  };
-}
-
 export default commands;
