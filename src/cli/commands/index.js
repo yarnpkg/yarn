@@ -1,8 +1,5 @@
 /* @flow */
-import {ConsoleReporter, JSONReporter} from '../../reporters/index.js';
 import * as constants from '../../constants.js';
-import {MessageError} from '../../errors.js';
-import Config from '../../config.js';
 
 const chalk = require('chalk');
 

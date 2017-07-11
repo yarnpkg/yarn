@@ -222,24 +222,6 @@ test.concurrent('should not output JSON activity/progress if given --no-progress
   });
 });
 
-test.concurrent('should interpolate unsupported aliases', async () => {
-  await expectAnErrorMessage(execCommand('i', [], 'run-add', true), 'Did you mean `yarn install`?');
-});
-
-test.concurrent('should display correct documentation link for unsupported aliases', async () => {
-  await expectAnInfoMessageAfterError(
-    execCommand('i', [], 'run-add', true),
-    'Visit https://yarnpkg.com/en/docs/cli/install for documentation about this command.',
-  );
-});
-
-test.concurrent('should show help and ignore unsupported aliases', async () => {
-  const stdout = await execCommand('i', ['--help'], 'run-help');
-  expect(stdout[stdout.length - 1]).toEqual(
-    'Visit https://yarnpkg.com/en/docs/cli/install for documentation about this command.',
-  );
-});
-
 test.concurrent('should run help of run command if --help is before --', async () => {
   const stdout = await execCommand('run', ['custom-script', '--help', '--'], 'run-custom-script-with-arguments');
   expect(stdout[0]).toEqual('Usage: yarn [command] [flags]');
