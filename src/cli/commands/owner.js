@@ -83,6 +83,41 @@ export async function mutate(
   }
 }
 
+async function list(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<boolean> {
+  if (args.length > 1) {
+    return false;
+  }
+
+  const name = await getName(args, config);
+
+  reporter.step(1, 3, reporter.lang('loggingIn'));
+  const revoke = await getToken(config, reporter, name);
+
+  reporter.step(2, 3, reporter.lang('ownerGetting', name));
+  const pkg = await config.registries.npm.request(name);
+  if (pkg) {
+    const owners = pkg.maintainers;
+    if (!owners || !owners.length) {
+      reporter.warn(reporter.lang('ownerNone'));
+    } else {
+      for (const owner of owners) {
+        reporter.info(`${owner.name} <${owner.email}>`);
+      }
+    }
+  } else {
+    reporter.error(reporter.lang('ownerGettingFailed'));
+  }
+
+  reporter.step(3, 3, reporter.lang('revokingToken'));
+  await revoke();
+
+  if (pkg) {
+    return true;
+  } else {
+    throw new Error();
+  }
+}
+
 export const {run, setFlags, hasWrapper, examples} = buildSubCommands(
   'owner',
   {
@@ -139,39 +174,13 @@ export const {run, setFlags, hasWrapper, examples} = buildSubCommands(
       );
     },
 
-    async ls(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<boolean> {
-      if (args.length > 1) {
-        return false;
-      }
+    ls(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<boolean> {
+      reporter.warn(`\`yarn owner ls\` is deprecated. Please use \`yarn owner list\`.`);
+      return list(config, reporter, flags, args);
+    },
 
-      const name = await getName(args, config);
-
-      reporter.step(1, 3, reporter.lang('loggingIn'));
-      const revoke = await getToken(config, reporter, name);
-
-      reporter.step(2, 3, reporter.lang('ownerGetting', name));
-      const pkg = await config.registries.npm.request(name);
-      if (pkg) {
-        const owners = pkg.maintainers;
-        if (!owners || !owners.length) {
-          reporter.warn(reporter.lang('ownerNone'));
-        } else {
-          for (const owner of owners) {
-            reporter.info(`${owner.name} <${owner.email}>`);
-          }
-        }
-      } else {
-        reporter.error(reporter.lang('ownerGettingFailed'));
-      }
-
-      reporter.step(3, 3, reporter.lang('revokingToken'));
-      await revoke();
-
-      if (pkg) {
-        return true;
-      } else {
-        throw new Error();
-      }
+    list(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<boolean> {
+      return list(config, reporter, flags, args);
     },
   },
   ['add <user> [[<@scope>/]<pkg>]', 'rm <user> [[<@scope>/]<pkg>]', 'ls [<@scope>/]<pkg>'],
