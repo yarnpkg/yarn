@@ -167,11 +167,6 @@ test.concurrent('should run help command with -h', async () => {
   expectHelpOutput(stdout);
 });
 
-test.concurrent('should show version of yarn with -v', async () => {
-  const stdout = await execCommand('-v', [], 'run-help');
-  expect(stdout[0]).toEqual(pkg.version);
-});
-
 test.concurrent('should run add command with help option', async () => {
   const stdout = await execCommand('add', ['--help'], 'run-help');
   expectHelpOutputAsSubcommand(stdout);
@@ -195,6 +190,11 @@ test.concurrent('should run --help command with add option', async () => {
 test.concurrent('should run -h command with add option', async () => {
   const stdout = await execCommand('-h', ['add'], 'run-help');
   expectHelpOutputAsSubcommand(stdout);
+});
+
+test.concurrent('should show version of yarn with -v', async () => {
+  const stdout = await execCommand('-v', [], 'run-version');
+  expect(stdout[0]).toEqual(pkg.version);
 });
 
 test.concurrent('should run version command', async () => {
