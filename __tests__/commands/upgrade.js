@@ -116,6 +116,30 @@ test.concurrent('--latest upgrades to latest ignoring package.json when no packa
   });
 });
 
+test.concurrent('--latest preserves "<=" semver range', (): Promise<void> => {
+  return runUpgrade([], {latest: true}, 'range-to-latest', async (config): ?Promise<void> => {
+    await expectInstalledDependency(config, 'left-pad', '<=1.1.3', '1.1.3');
+  });
+});
+
+test.concurrent('--latest preserves "^" semver range', (): Promise<void> => {
+  return runUpgrade([], {latest: true}, 'caret-range-to-latest', async (config): ?Promise<void> => {
+    await expectInstalledDependency(config, 'left-pad', '^1.1.3', '1.1.3');
+  });
+});
+
+test.concurrent('--latest preserves "~" semver range', (): Promise<void> => {
+  return runUpgrade([], {latest: true}, 'tilde-range-to-latest', async (config): ?Promise<void> => {
+    await expectInstalledDependency(config, 'left-pad', '~1.1.3', '1.1.3');
+  });
+});
+
+test.concurrent('--latest defaults to "^" semver range if existing range is complex', (): Promise<void> => {
+  return runUpgrade([], {latest: true}, 'complex-range-to-latest', async (config): ?Promise<void> => {
+    await expectInstalledDependency(config, 'left-pad', '^1.1.3', '1.1.3');
+  });
+});
+
 test.concurrent('sets new version range to caret when --caret and --latest are passed', (): Promise<void> => {
   return runUpgrade([], {latest: true, caret: true}, 'range-to-latest', async (config): ?Promise<void> => {
     await expectInstalledDependency(config, 'left-pad', '^1.1.3', '1.1.3');
