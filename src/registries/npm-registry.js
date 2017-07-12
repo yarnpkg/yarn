@@ -5,13 +5,13 @@ import type RequestManager from '../util/request-manager.js';
 import type {RegistryRequestOptions, CheckOutdatedReturn} from './base-registry.js';
 import type Config from '../config.js';
 import type {ConfigRegistries} from './index.js';
+import {YARN_REGISTRY} from '../constants.js';
 import * as fs from '../util/fs.js';
 import NpmResolver from '../resolvers/registries/npm-resolver.js';
 import envReplace from '../util/env-replace.js';
 import Registry from './base-registry.js';
 import {addSuffix} from '../util/misc';
 import {getPosixPath, resolveWithHome} from '../util/path';
-import isRequestToRegistry from './is-request-to-registry.js';
 
 const userHome = require('../util/user-home-dir').default;
 const path = require('path');
@@ -76,7 +76,6 @@ export default class NpmRegistry extends Registry {
     const registry = this.getRegistry(packageName || pathname);
     const requestUrl = url.resolve(registry, pathname);
     const alwaysAuth = this.getRegistryOrGlobalOption(registry, 'always-auth');
-    const customHostSuffix = this.getRegistryOrGlobalOption(registry, 'custom-host-suffix');
 
     const headers = Object.assign(
       {
@@ -84,7 +83,12 @@ export default class NpmRegistry extends Registry {
       },
       opts.headers,
     );
-    if (this.token || (alwaysAuth && isRequestToRegistry(requestUrl, registry, customHostSuffix))) {
+
+    const packageIdent = packageName || pathname;
+    const isScoppedPackage = packageIdent.match(/^@|\/@/);
+
+    // this.token must be checked to account for publish requests on non-scopped packages
+    if (this.token || alwaysAuth || isScoppedPackage) {
       const authorization = this.getAuth(packageName || pathname);
       if (authorization) {
         headers.authorization = authorization;
@@ -208,26 +212,34 @@ export default class NpmRegistry extends Registry {
       return this.token;
     }
 
-    const registry = this.getRegistry(packageName);
+    const baseRegistry = this.getRegistry(packageName);
+    const registries = [baseRegistry];
 
-    // Check for bearer token.
-    const authToken = this.getRegistryOrGlobalOption(registry, '_authToken');
-    if (authToken) {
-      return `Bearer ${String(authToken)}`;
+    // If sending a request to the Yarn registry, we must also send it the auth token for the npm registry
+    if (baseRegistry === YARN_REGISTRY) {
+      registries.push(DEFAULT_REGISTRY);
     }
 
-    // Check for basic auth token.
-    const auth = this.getRegistryOrGlobalOption(registry, '_auth');
-    if (auth) {
-      return `Basic ${String(auth)}`;
-    }
+    for (const registry of registries) {
+      // Check for bearer token.
+      const authToken = this.getRegistryOrGlobalOption(registry, '_authToken');
+      if (authToken) {
+        return `Bearer ${String(authToken)}`;
+      }
 
-    // Check for basic username/password auth.
-    const username = this.getRegistryOrGlobalOption(registry, 'username');
-    const password = this.getRegistryOrGlobalOption(registry, '_password');
-    if (username && password) {
-      const pw = new Buffer(String(password), 'base64').toString();
-      return 'Basic ' + new Buffer(String(username) + ':' + pw).toString('base64');
+      // Check for basic auth token.
+      const auth = this.getRegistryOrGlobalOption(registry, '_auth');
+      if (auth) {
+        return `Basic ${String(auth)}`;
+      }
+
+      // Check for basic username/password auth.
+      const username = this.getRegistryOrGlobalOption(registry, 'username');
+      const password = this.getRegistryOrGlobalOption(registry, '_password');
+      if (username && password) {
+        const pw = new Buffer(String(password), 'base64').toString();
+        return 'Basic ' + new Buffer(String(username) + ':' + pw).toString('base64');
+      }
     }
 
     return '';

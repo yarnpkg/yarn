@@ -139,6 +139,11 @@ export default class PackageInstallScripts {
       return false;
     }
 
+    // Don't run lifecycle scripts for hoisted packages
+    if (!ref.location) {
+      return false;
+    }
+
     // we haven't actually written this module out
     if (ref.ignore) {
       return false;

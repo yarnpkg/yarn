@@ -42,16 +42,18 @@ const expectedKeys = [
   'bugs',
   'license',
   'scripts',
-  'dependencies',
-  'devDependencies',
   'dist',
   'directories',
 ];
+
+// yarn now ships as built, single JS files so it has no dependencies
+const unexpectedKeys = ['dependencies', 'devDependencies'];
 
 test.concurrent('without arguments and in directory containing a valid package file', (): Promise<void> => {
   return runInfo([], {}, 'local', (config, output): ?Promise<void> => {
     const actualKeys = Object.keys(output);
     expectedKeys.forEach(key => expect(actualKeys).toContain(key));
+    unexpectedKeys.forEach(key => expect(actualKeys).not.toContain(key));
     expect(output.name).toEqual('yarn');
   });
 });
@@ -60,6 +62,7 @@ test.concurrent('with first argument "." and in directory containing a valid pac
   return runInfo(['.'], {}, 'local', (config, output): ?Promise<void> => {
     const actualKeys = Object.keys(output);
     expectedKeys.forEach(key => expect(actualKeys).toContain(key));
+    unexpectedKeys.forEach(key => expect(actualKeys).not.toContain(key));
     expect(output.name).toEqual('yarn');
   });
 });
@@ -68,6 +71,7 @@ test.concurrent('with one argument shows info about the package with specified n
   return runInfo(['yarn'], {}, 'local', (config, output): ?Promise<void> => {
     const actualKeys = Object.keys(output);
     expectedKeys.forEach(key => expect(actualKeys).toContain(key));
+    unexpectedKeys.forEach(key => expect(actualKeys).not.toContain(key));
     expect(output.name).toEqual('yarn');
   });
 });

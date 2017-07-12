@@ -33,10 +33,10 @@ const supportsArchiveCache: {[key: string]: boolean} = map({
 
 // Suppress any password prompts since we run these in the background
 const env = {
-  ...process.env,
   GIT_ASKPASS: '',
   GIT_TERMINAL_PROMPT: 0,
   GIT_SSH_COMMAND: 'ssh -oBatchMode=yes',
+  ...process.env,
 };
 
 // This regex is designed to match output from git of the style:

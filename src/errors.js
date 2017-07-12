@@ -14,3 +14,12 @@ export class SecurityError extends MessageError {}
 export class SpawnError extends MessageError {
   EXIT_CODE: number;
 }
+
+export class ResponseError extends Error {
+  constructor(msg: string, responseCode: number) {
+    super(msg);
+    this.responseCode = responseCode;
+  }
+
+  responseCode: number;
+}

@@ -48,6 +48,19 @@ async function mockConstants(base: Config, mocks: Object, cb: (config: Config) =
 beforeEach(request.__resetAuthedRequests);
 afterEach(request.__resetAuthedRequests);
 
+test.concurrent('installing a package with a renamed file should not delete it', async () => {
+  await runInstall({}, 'case-sensitivity', async (config, reporter): Promise<void> => {
+    const pkgJson = await fs.readJson(`${config.cwd}/package.json`);
+    pkgJson.dependencies['pkg'] = 'file:./pkg-b';
+    await fs.writeFile(`${config.cwd}/package.json`, JSON.stringify(pkgJson));
+
+    const reInstall = new Install({}, config, reporter, await Lockfile.fromDirectory(config.cwd));
+    await reInstall.init();
+
+    expect(await fs.exists(`${config.cwd}/node_modules/pkg/state.js`)).toEqual(true);
+  });
+});
+
 test.concurrent('properly find and save build artifacts', async () => {
   await runInstall({}, 'artifacts-finds-and-saves', async (config): Promise<void> => {
     const integrity = await fs.readJson(path.join(config.cwd, 'node_modules', constants.INTEGRITY_FILENAME));
@@ -629,7 +642,7 @@ test.concurrent('offline mirror can be enabled from parent dir', (): Promise<voi
   };
   return runInstall({}, fixture, async (config, reporter) => {
     const rawLockfile = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
-    const lockfile = parse(rawLockfile);
+    const {object: lockfile} = parse(rawLockfile);
     expect(lockfile['mime-types@2.1.14'].resolved).toEqual(
       'https://registry.yarnpkg.com/mime-types/-/mime-types-2.1.14.tgz#f7ef7d97583fcaf3b7d282b6f8b5679dab1e94ee',
     );
@@ -644,7 +657,7 @@ test.concurrent('offline mirror can be enabled from parent dir, with merging of 
   };
   return runInstall({}, fixture, async (config, reporter) => {
     const rawLockfile = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
-    const lockfile = parse(rawLockfile);
+    const {object: lockfile} = parse(rawLockfile);
     expect(lockfile['mime-types@2.1.14'].resolved).toEqual(
       'https://registry.yarnpkg.com/mime-types/-/mime-types-2.1.14.tgz#f7ef7d97583fcaf3b7d282b6f8b5679dab1e94ee',
     );
@@ -659,7 +672,7 @@ test.concurrent('offline mirror can be disabled locally', (): Promise<void> => {
   };
   return runInstall({}, fixture, async (config, reporter) => {
     const rawLockfile = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
-    const lockfile = parse(rawLockfile);
+    const {object: lockfile} = parse(rawLockfile);
     expect(lockfile['mime-types@2.1.14'].resolved).toEqual(
       'https://registry.yarnpkg.com/mime-types/-/mime-types-2.1.14.tgz#f7ef7d97583fcaf3b7d282b6f8b5679dab1e94ee',
     );

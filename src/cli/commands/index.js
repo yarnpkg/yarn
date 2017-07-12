@@ -1,8 +1,5 @@
 /* @flow */
-import {ConsoleReporter, JSONReporter} from '../../reporters/index.js';
 import * as constants from '../../constants.js';
-import {MessageError} from '../../errors.js';
-import Config from '../../config.js';
 
 const chalk = require('chalk');
 
@@ -99,19 +96,6 @@ import aliases from '../aliases.js';
 for (const key in aliases) {
   commands[key] = commands[aliases[key]];
   commands[key].getDocsInfo = getDocsInfo(key);
-}
-
-import unsupportedAliases from '../unsupported-aliases.js';
-
-for (const key in unsupportedAliases) {
-  commands[key] = {
-    run(config: Config, reporter: ConsoleReporter | JSONReporter): Promise<void> {
-      throw new MessageError(`Did you mean \`yarn ${unsupportedAliases[key]}\`?`);
-    },
-    setFlags: () => {},
-    hasWrapper: () => true,
-    getDocsInfo: getDocsInfo(unsupportedAliases[key]),
-  };
 }
 
 export default commands;

@@ -46,11 +46,10 @@ deployment:
     tag: /v[0-9]+(\.[0-9]+)*/
     owner: yarnpkg
     commands:
-      # Only NPM is handled here - All other release files are handled in a webhook.
-      - echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
-      - ./scripts/set-installation-method.js "`pwd`/package.json" npm
-      # https://github.com/yarnpkg/yarn/issues/610, need to make yarn publish noninteractive
-      - npm publish --tag rc
+      # Deployment is handled by a webhook. However, CircleCI requires this
+      # dummy "deployment" section in order to build the tag.
+      # https://circleci.com/docs/1.0/configuration/#tags
+      - echo "Releasing $CIRCLE_TAG..."
 
 notify:
   webhooks:

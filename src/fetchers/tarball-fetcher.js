@@ -1,12 +1,13 @@
 /* @flow */
 
 import http from 'http';
-import {SecurityError, MessageError} from '../errors.js';
+import {SecurityError, MessageError, ResponseError} from '../errors.js';
 import type {FetchedOverride} from '../types.js';
 import * as constants from '../constants.js';
 import * as crypto from '../util/crypto.js';
 import BaseFetcher from './base-fetcher.js';
 import * as fsUtil from '../util/fs.js';
+import {sleep} from '../util/misc.js';
 
 const path = require('path');
 const tarFs = require('tar-fs');
@@ -131,48 +132,66 @@ export default class TarballFetcher extends BaseFetcher {
     });
   }
 
-  fetchFromExternal(): Promise<FetchedOverride> {
+  async fetchFromExternal(): Promise<FetchedOverride> {
     const registry = this.config.registries[this.registry];
 
-    return registry.request(
-      this.reference,
-      {
-        headers: {
-          'Accept-Encoding': 'gzip',
-          Accept: 'application/octet-stream',
-        },
-        buffer: true,
-        process: (req, resolve, reject) => {
-          const {reporter} = this.config;
-          // should we save this to the offline cache?
-          const tarballMirrorPath = this.getTarballMirrorPath();
-          const tarballCachePath = this.getTarballCachePath();
+    let retriesRemaining = 2;
+    do {
+      try {
+        return await registry.request(
+          this.reference,
+          {
+            headers: {
+              'Accept-Encoding': 'gzip',
+              Accept: 'application/octet-stream',
+            },
+            buffer: true,
+            process: (req, resolve, reject) => {
+              // should we save this to the offline cache?
+              const {reporter} = this.config;
+              const tarballMirrorPath = this.getTarballMirrorPath();
+              const tarballCachePath = this.getTarballCachePath();
 
-          const {validateStream, extractorStream} = this.createExtractor(resolve, reject);
+              const {validateStream, extractorStream} = this.createExtractor(resolve, reject);
 
-          const handleRequestError = res => {
-            if (res.statusCode >= 400) {
-              const statusDescription = http.STATUS_CODES[res.statusCode];
-              reject(new Error(reporter.lang('requestFailed', `${res.statusCode} ${statusDescription}`)));
-            }
-          };
+              req.on('response', res => {
+                if (res.statusCode >= 400) {
+                  const statusDescription = http.STATUS_CODES[res.statusCode];
+                  reject(
+                    new ResponseError(
+                      reporter.lang('requestFailed', `${res.statusCode} ${statusDescription}`),
+                      res.statusCode,
+                    ),
+                  );
+                }
+              });
+              req.pipe(validateStream);
 
-          req.on('response', handleRequestError);
-          req.pipe(validateStream);
+              if (tarballMirrorPath) {
+                validateStream.pipe(fs.createWriteStream(tarballMirrorPath)).on('error', reject);
+              }
 
-          if (tarballMirrorPath) {
-            validateStream.pipe(fs.createWriteStream(tarballMirrorPath)).on('error', reject);
-          }
+              if (tarballCachePath) {
+                validateStream.pipe(fs.createWriteStream(tarballCachePath)).on('error', reject);
+              }
 
-          if (tarballCachePath) {
-            validateStream.pipe(fs.createWriteStream(tarballCachePath)).on('error', reject);
-          }
-
-          validateStream.pipe(extractorStream).on('error', reject);
-        },
-      },
-      this.packageName,
-    );
+              validateStream.pipe(extractorStream).on('error', reject);
+            },
+          },
+          this.packageName,
+        );
+      } catch (err) {
+        if (err instanceof ResponseError && err.responseCode >= 500 && retriesRemaining > 1) {
+          retriesRemaining--;
+          this.reporter.warn(this.reporter.lang('retryOnInternalServerError'));
+          await sleep(3000);
+        } else {
+          throw err;
+        }
+      }
+    } while (retriesRemaining > 0);
+    // Unreachable code, this is just to make Flow happy
+    throw new Error('Ran out of retries!');
   }
 
   async _fetch(): Promise<FetchedOverride> {

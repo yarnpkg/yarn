@@ -382,7 +382,12 @@ export default class PackageRequest {
     reporter: Reporter,
     filterByPatterns: ?Array<string>,
   ): Promise<Array<Dependency>> {
-    let {requests: depReqPatterns} = await install.fetchRequestFromCwd();
+    const {requests: reqPatterns, workspaceLayout} = await install.fetchRequestFromCwd();
+
+    // Filter out workspace patterns if necessary
+    let depReqPatterns = workspaceLayout
+      ? reqPatterns.filter(p => !workspaceLayout.getManifestByPattern(p.pattern))
+      : reqPatterns;
 
     // filter the list down to just the packages requested.
     // prevents us from having to query the metadata for all packages.

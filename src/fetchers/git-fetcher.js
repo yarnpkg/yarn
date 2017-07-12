@@ -127,6 +127,18 @@ export default class GitFetcher extends BaseFetcher {
     });
   }
 
+  async hasPrepareScript(git: Git): Promise<boolean> {
+    const manifestFile = await git.getFile('package.json');
+
+    if (manifestFile) {
+      const scripts = JSON.parse(manifestFile).scripts;
+      const hasPrepareScript = Boolean(scripts && scripts.prepare);
+      return hasPrepareScript;
+    }
+
+    return false;
+  }
+
   async fetchFromExternal(): Promise<FetchedOverride> {
     const hash = this.hash;
     invariant(hash, 'Commit hash required');
@@ -135,14 +147,7 @@ export default class GitFetcher extends BaseFetcher {
     const git = new Git(this.config, gitUrl, hash);
     await git.init();
 
-    const manifestFile = await git.getFile('package.json');
-    if (!manifestFile) {
-      throw new MessageError(this.reporter.lang('couldntFindPackagejson', gitUrl));
-    }
-    const scripts = JSON.parse(manifestFile).scripts;
-    const hasPrepareScript = Boolean(scripts && scripts.prepare);
-
-    if (hasPrepareScript) {
+    if (await this.hasPrepareScript(git)) {
       await this.fetchFromInstallAndPack(git);
     } else {
       await this.fetchFromGitArchive(git);

@@ -330,7 +330,7 @@ test.concurrent('add with offline mirror', (): Promise<void> => {
     ).toBeGreaterThanOrEqual(0);
 
     const rawLockfile = await fs.readFile(path.join(config.cwd, constants.LOCKFILE_FILENAME));
-    const lockfile = parse(rawLockfile);
+    const {object: lockfile} = parse(rawLockfile);
 
     expect(lockfile['is-array@^1.0.1']['resolved']).toEqual(
       'https://registry.yarnpkg.com/is-array/-/is-array-1.0.1.tgz#e9850cc2cc860c3bc0977e84ccf0dd464584279a',
@@ -393,7 +393,7 @@ test.concurrent('install with --save and without offline mirror', (): Promise<vo
     ).toEqual(-1);
 
     const rawLockfile = await fs.readFile(path.join(config.cwd, constants.LOCKFILE_FILENAME));
-    const lockfile = parse(rawLockfile);
+    const {object: lockfile} = parse(rawLockfile);
 
     expect(lockfile['is-array@^1.0.1']['resolved']).toMatch(
       /https:\/\/registry\.yarnpkg\.com\/is-array\/-\/is-array-1\.0\.1\.tgz#[a-f0-9]+/,
@@ -800,6 +800,29 @@ test.concurrent('warns when peer dependency is incorrect during add', (): Promis
     ['react@0.14.8', 'react-dom@15.4.2'],
     {},
     'add-with-peer-dependency-incorrect',
+  );
+});
+
+test.concurrent('should only refer to root to satisfy peer dependency', (): Promise<void> => {
+  return buildRun(
+    reporters.BufferReporter,
+    fixturesLoc,
+    async (args, flags, config, reporter, lockfile): Promise<void> => {
+      const add = new Add(args, flags, config, reporter, lockfile);
+      await add.init();
+
+      const output = reporter.getBuffer();
+      const warnings = output.filter(entry => entry.type === 'warning');
+
+      expect(
+        warnings.some(warning => {
+          return warning.data.toString().toLowerCase().indexOf('incorrect peer') > -1;
+        }),
+      ).toEqual(true);
+    },
+    ['file:c'],
+    {},
+    'add-with-multiple-versions-of-peer-dependency',
   );
 });
 

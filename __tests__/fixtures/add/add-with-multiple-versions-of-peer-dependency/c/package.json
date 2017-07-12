@@ -1,0 +1,7 @@
+{
+  "name": "c",
+  "version": "1.0.0",
+  "peerDependencies": {
+    "b": "file:b-2.0.0"
+  }
+}

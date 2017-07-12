@@ -365,10 +365,9 @@ export default class PackageLinker {
       );
 
       // create links at top level for all dependencies.
-      // non-transient dependencies will overwrite these during this.save() to ensure they take priority.
       await promise.queue(
         topLevelDependencies,
-        async ([dest, {pkg}]) => {
+        async ([dest, pkg]) => {
           if (pkg.bin && Object.keys(pkg.bin).length) {
             const binLoc = path.join(this.config.cwd, this.config.getFolder(pkg));
             await this.linkSelfDependencies(pkg, dest, binLoc);
@@ -380,15 +379,15 @@ export default class PackageLinker {
     }
   }
 
-  determineTopLevelBinLinks(flatTree: HoistManifestTuples): HoistManifestTuples {
+  determineTopLevelBinLinks(flatTree: HoistManifestTuples): Array<[string, Manifest]> {
     const linksToCreate = new Map();
+    for (const [dest, {pkg, isDirectRequire}] of flatTree) {
+      const {name} = pkg;
 
-    flatTree.forEach(([dest, hoistManifest]) => {
-      if (!linksToCreate.has(hoistManifest.pkg.name)) {
-        linksToCreate.set(hoistManifest.pkg.name, [dest, hoistManifest]);
+      if (!linksToCreate.has(name) || isDirectRequire) {
+        linksToCreate.set(name, [dest, pkg]);
       }
-    });
-
+    }
     return Array.from(linksToCreate.values());
   }
 
@@ -409,16 +408,17 @@ export default class PackageLinker {
 
     for (const name in peerDeps) {
       const range = peerDeps[name];
-      const patterns = this.resolver.patternsByPackage[name] || [];
-      const foundPattern = patterns.find(pattern => {
-        const resolvedPattern = this.resolver.getResolvedPattern(pattern);
-        return resolvedPattern ? this._satisfiesPeerDependency(range, resolvedPattern.version) : false;
+      const pkgs = this.resolver.getAllInfoForPackageName(name);
+      const found = pkgs.find(pkg => {
+        const {root, version} = pkg._reference || {};
+        return root && this._satisfiesPeerDependency(range, version);
       });
+      const foundPattern = found && found._reference && found._reference.patterns;
 
       if (foundPattern) {
-        ref.addDependencies([foundPattern]);
+        ref.addDependencies(foundPattern);
       } else {
-        const depError = patterns.length > 0 ? 'incorrectPeer' : 'unmetPeer';
+        const depError = pkgs.length > 0 ? 'incorrectPeer' : 'unmetPeer';
         const [pkgHuman, depHuman] = [`${pkg.name}@${pkg.version}`, `${name}@${range}`];
         this.reporter.warn(this.reporter.lang(depError, pkgHuman, depHuman));
       }
