@@ -8,36 +8,16 @@ import Lockfile from '../../lockfile/wrapper.js';
 import PackageRequest from '../../package-request.js';
 import {Install} from './install.js';
 
+// used to detect whether a semver range is simple enough to preserve when doing a --latest upgrade.
+// when not matched, the upgraded version range will default to `^` the same as the `add` command would.
 const basicSemverOperatorRegex = new RegExp('^(\\^|~|>|<=|>=)?[^ |&,]+$');
+
+// used to detect if a passed parameter is a scope or a package name.
 const validScopeRegex = /^@[a-zA-Z0-9-][a-zA-Z0-9_.-]*\/$/g;
 
-export function setFlags(commander: Object) {
-  // TODO: support some flags that install command has
-  commander.usage('upgrade [flags]');
-  commander.option('-S, --scope <scope>', 'upgrade packages under the specified scope');
-  commander.option('--latest', 'list the latest version of packages, ignoring version ranges in package.json');
-  commander.option('-E, --exact', 'install exact version. Only used when --latest is specified.');
-  commander.option(
-    '-T, --tilde',
-    'install most recent release with the same minor version. Only used when --latest is specified.',
-  );
-  commander.option(
-    '-C, --caret',
-    'install most recent release with the same major version. Only used when --latest is specified.',
-  );
-}
-
-export function hasWrapper(commander: Object, args: Array<string>): boolean {
-  return true;
-}
-
-export const requireLockfile = true;
-
-export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
-  const lockfile = await Lockfile.fromDirectory(config.lockfileFolder);
-  const deps = await getOutdated(config, reporter, flags, lockfile, args);
-
-  // if specific versions were requested for packages, override what getOutdated reported as the latest to install
+// If specific versions were requested for packages, override what getOutdated reported as the latest to install
+// Also add ones that are missing, since the requested packages may not have been outdated at all.
+function setUserRequestedPackageVersions(deps: Array<Dependency>, args: Array<string>) {
   args.forEach(requestedPattern => {
     const normalized = PackageRequest.normalizePattern(requestedPattern);
     const newPattern = `${normalized.name}@${normalized.range}`;
@@ -63,6 +43,38 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
       });
     }
   });
+}
+
+export function setFlags(commander: Object) {
+  commander.usage('upgrade [flags]');
+  commander.option('-S, --scope <scope>', 'upgrade packages under the specified scope');
+  commander.option('--latest', 'list the latest version of packages, ignoring version ranges in package.json');
+  commander.option('-E, --exact', 'install exact version. Only used when --latest is specified.');
+  commander.option(
+    '-T, --tilde',
+    'install most recent release with the same minor version. Only used when --latest is specified.',
+  );
+  commander.option(
+    '-C, --caret',
+    'install most recent release with the same major version. Only used when --latest is specified.',
+  );
+}
+
+export function hasWrapper(commander: Object, args: Array<string>): boolean {
+  return true;
+}
+
+export const requireLockfile = true;
+
+export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
+  const lockfile = await Lockfile.fromDirectory(config.lockfileFolder);
+  const deps = await getOutdated(config, reporter, flags, lockfile, args);
+  const addFlags = Object.assign({}, flags, {force: true});
+
+  // do not pass the --latest flag to add, otherwise it may ignore the version ranges we already determined.
+  delete addFlags.latest;
+
+  setUserRequestedPackageVersions(deps, args);
 
   if (!deps.length) {
     reporter.success(reporter.lang('allDependenciesUpToDate'));
@@ -73,9 +85,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
   // instead of the latest for the range.
   deps.forEach(dep => lockfile.removePattern(dep.latestPattern));
 
-  const addFlags = Object.assign({}, flags, {force: true});
   const addArgs = deps.map(dep => dep.latestPattern);
-  delete addFlags.latest;
   const add = new Add(addArgs, addFlags, config, reporter, lockfile);
   await add.init();
 }
@@ -120,23 +130,30 @@ export async function getOutdated(
     return `${dep.name}@${rangeOperator}${toVersion}`;
   };
 
-  let deps = (await PackageRequest.getOutdatedPackages(lockfile, install, config, reporter, patterns)).filter(
-    dep => dep.current != dep[outdatedFieldName],
-  );
+  // ensure scope is of the form `@scope/`
+  const normalizeScope = function() {
+    if (flags.scope) {
+      if (!flags.scope.startsWith('@')) {
+        flags.scope = '@' + flags.scope;
+      }
 
-  if (flags.scope) {
-    if (!flags.scope.startsWith('@')) {
-      flags.scope = '@' + flags.scope;
+      if (!flags.scope.endsWith('/')) {
+        flags.scope += '/';
+      }
     }
+  };
 
-    if (!flags.scope.endsWith('/')) {
-      flags.scope += '/';
-    }
+  const versionFilter = function(dep: Dependency): boolean {
+    return dep.current !== dep[outdatedFieldName];
+  };
 
+  const scopeFilter = function(dep: Dependency): boolean {
     if (validScopeRegex.test(flags.scope)) {
-      deps = deps.filter(dep => dep.name.startsWith(flags.scope));
+      return dep.name.startsWith(flags.scope);
     }
-  }
+
+    return true;
+  };
 
   if (!flags.latest) {
     // these flags only have an affect when --latest is used
@@ -145,6 +162,11 @@ export async function getOutdated(
     flags.caret = false;
   }
 
+  normalizeScope();
+
+  const deps = (await PackageRequest.getOutdatedPackages(lockfile, install, config, reporter, patterns))
+    .filter(versionFilter)
+    .filter(scopeFilter);
   deps.forEach(dep => (dep.latestPattern = buildPatternToUpgradeTo(dep, flags)));
 
   return deps;
