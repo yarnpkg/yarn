@@ -16,10 +16,12 @@ type Dependencies = {
   [key: string]: string,
 };
 
+const FILE_PROTOCOL_PREFIX = 'file:';
+
 export default class FileResolver extends ExoticResolver {
   constructor(request: PackageRequest, fragment: string) {
     super(request, fragment);
-    this.loc = util.removePrefix(fragment, 'file:');
+    this.loc = util.removePrefix(fragment, FILE_PROTOCOL_PREFIX);
   }
 
   loc: string;
@@ -103,11 +105,18 @@ export default class FileResolver extends ExoticResolver {
     let temp = section;
 
     for (const [k, v] of util.entries(section)) {
-      if (typeof v === 'string' && v.startsWith('file:') && !path.isAbsolute(v.substring(5))) {
+      if (
+        typeof v === 'string' &&
+        v.startsWith(FILE_PROTOCOL_PREFIX) &&
+        !path.isAbsolute(v.substring(FILE_PROTOCOL_PREFIX.length))
+      ) {
         if (temp === section) {
           temp = Object.assign({}, section);
         }
-        temp[k] = `file:${path.relative(this.config.cwd, path.join(loc, util.removePrefix(v, 'file:')))}`;
+        temp[k] = `${FILE_PROTOCOL_PREFIX}${path.relative(
+          this.config.cwd,
+          path.join(loc, util.removePrefix(v, FILE_PROTOCOL_PREFIX)),
+        )}`;
       }
     }
 
