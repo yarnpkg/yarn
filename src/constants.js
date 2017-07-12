@@ -59,6 +59,9 @@ export const CONFIG_DIRECTORY = getDirectory('config');
 export const LINK_REGISTRY_DIRECTORY = path.join(CONFIG_DIRECTORY, 'link');
 export const GLOBAL_MODULE_DIRECTORY = path.join(CONFIG_DIRECTORY, 'global');
 
+export const POSIX_GLOBAL_PREFIX = '/usr/local';
+export const FALLBACK_GLOBAL_PREFIX = path.join(userHome, '.yarn');
+
 export const META_FOLDER = '.yarn-meta';
 export const INTEGRITY_FILENAME = '.yarn-integrity';
 export const LOCKFILE_FILENAME = 'yarn.lock';

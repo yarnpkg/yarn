@@ -63,7 +63,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
       // If there is a `bin` defined in the package.json,
       // link each bin to the global bin
       if (manifest.bin) {
-        const globalBinFolder = getGlobalBinFolder(config, flags);
+        const globalBinFolder = await getGlobalBinFolder(config, flags);
         for (const binName in manifest.bin) {
           const binSrc = manifest.bin[binName];
           const binSrcLoc = path.join(linkLoc, binSrc);

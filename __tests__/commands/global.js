@@ -24,11 +24,7 @@ const runGlobal = buildRun.bind(
 );
 
 function getGlobalPath(prefix, name): string {
-  if (process.platform === 'win32') {
-    return path.join(prefix, name);
-  } else {
-    return path.join(prefix, 'bin', name);
-  }
+  return path.join(prefix, 'bin', name);
 }
 
 function getTempGlobalFolder(): string {
