@@ -22,18 +22,16 @@ export default class WorkspaceFetcher {
   }
 
   async fetch(defaultManifest: ?Object): Promise<FetchedMetadata> {
-    const pkg = await (async () => {
-      // load the manifest from the workspace directory or return the default
-      try {
-        return await this.config.readManifest(this.workspaceDir, this.registry);
-      } catch (e) {
-        if (e.code === 'ENOENT' && defaultManifest) {
-          return defaultManifest;
-        } else {
-          throw e;
-        }
+    let pkg = defaultManifest;
+    // load the manifest from the workspace directory or return the default
+    try {
+      pkg = await this.config.readManifest(this.workspaceDir, this.registry);
+    } catch (e) {
+      if (e.code !== 'ENOENT' || !defaultManifest) {
+        throw e;
       }
-    })();
+    }
+
     return Promise.resolve({
       resolved: null,
       hash: '',
