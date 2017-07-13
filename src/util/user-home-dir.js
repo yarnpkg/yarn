@@ -4,7 +4,7 @@ import ROOT_USER from './root-user.js';
 
 const path = require('path');
 
-const isNotFakeRoot = typeof process.env.FAKEROOTKEY === 'undefined';
+const isNotFakeRoot = Boolean(process.env.FAKEROOTKEY);
 
 const userHomeDir =
   process.platform === 'linux' && ROOT_USER && isNotFakeRoot
