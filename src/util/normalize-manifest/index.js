@@ -27,8 +27,12 @@ export default (async function(info: Object, moduleLoc: string, config: Config, 
     }
     config.reporter.warn(msg);
   }
-
   await fix(info, moduleLoc, config.reporter, warn, config.looseSemver);
+
+  if (config.cwd === config.globalFolder) {
+    return info;
+  }
+
   try {
     validate(info, isRoot, config.reporter, warn);
   } catch (err) {
