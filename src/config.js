@@ -191,7 +191,7 @@ export default class Config {
    * Get a config option from our yarn config.
    */
 
-  getOption(key: string, expand: boolean = true): mixed {
+  getOption(key: string, expand: boolean = false): mixed {
     const value = this.registries.yarn.getOption(key);
 
     if (expand && typeof value === 'string') {

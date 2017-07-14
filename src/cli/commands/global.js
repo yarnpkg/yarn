@@ -72,8 +72,8 @@ async function getBins(config: Config): Promise<Set<string>> {
 function getGlobalPrefix(config: Config, flags: Object): string {
   if (flags.prefix) {
     return flags.prefix;
-  } else if (config.getOption('prefix')) {
-    return String(config.getOption('prefix'));
+  } else if (config.getOption('prefix', true)) {
+    return String(config.getOption('prefix', true));
   } else if (process.env.PREFIX) {
     return process.env.PREFIX;
   } else if (process.platform === 'win32') {
