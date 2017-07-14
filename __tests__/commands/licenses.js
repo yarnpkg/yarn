@@ -20,7 +20,7 @@ const runLicenses = buildRun.bind(
 );
 
 test('lists all licenses of the dependencies with the --json argument', async (): Promise<void> => {
-  await runLicenses(['ls'], {json: true}, '', (config, reporter, stdout) => {
+  await runLicenses(['list'], {json: true}, '', (config, reporter, stdout) => {
     expect(stdout).toContain(JSON.stringify(expectedTable));
   });
 });

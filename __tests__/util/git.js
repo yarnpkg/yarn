@@ -144,9 +144,9 @@ test('spawn', () => {
   Git.spawn(['status']);
 
   expect(spawnMock.calls[0][2].env).toMatchObject({
-    ...process.env,
     GIT_ASKPASS: '',
     GIT_TERMINAL_PROMPT: 0,
     GIT_SSH_COMMAND: 'ssh -oBatchMode=yes',
+    ...process.env,
   });
 });

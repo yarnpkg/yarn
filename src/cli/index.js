@@ -33,7 +33,7 @@ const endArgs = doubleDashIndex === -1 ? [] : process.argv.slice(doubleDashIndex
 // set global options
 commander.version(version, '--version');
 commander.usage('[command] [flags]');
-commander.option('--verbose', 'output verbose messages on internal operations');
+commander.option('-v, --verbose', 'output verbose messages on internal operations');
 commander.option('--offline', 'trigger an error if any required dependencies are not available in local cache');
 commander.option('--prefer-offline', 'use network only if dependencies are not available in local cache');
 commander.option('--strict-semver');
@@ -72,6 +72,12 @@ commander.option('--scripts-prepend-node-path [bool]', 'prepend the node executa
 
 // get command name
 let commandName: string = args.shift() || 'install';
+
+// if -v is the first command, then always exit after returning the version
+if (commandName === '-v') {
+  console.log(version.trim());
+  process.exit(0);
+}
 
 if (commandName === '--help' || commandName === '-h') {
   commandName = 'help';

@@ -28,6 +28,30 @@ export async function getName(args: Array<string>, config: Config): Promise<stri
   }
 }
 
+async function list(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
+  const name = await getName(args, config);
+
+  reporter.step(1, 3, reporter.lang('loggingIn'));
+  const revoke = await getToken(config, reporter, name);
+
+  reporter.step(2, 3, reporter.lang('gettingTags'));
+  const tags = await config.registries.npm.request(`-/package/${name}/dist-tags`);
+
+  if (tags) {
+    reporter.info(`Package ${name}`);
+    for (const name in tags) {
+      reporter.info(`${name}: ${tags[name]}`);
+    }
+  }
+
+  reporter.step(3, 3, reporter.lang('revokingToken'));
+  await revoke();
+
+  if (!tags) {
+    throw new MessageError(reporter.lang('packageNotFoundRegistry', name, 'npm'));
+  }
+}
+
 export const {run, setFlags, hasWrapper, examples} = buildSubCommands(
   'tag',
   {
@@ -107,27 +131,12 @@ export const {run, setFlags, hasWrapper, examples} = buildSubCommands(
     },
 
     async ls(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
-      const name = await getName(args, config);
+      reporter.warn(`\`yarn tag ls\` is deprecated. Please use \`yarn tag list\`.`);
+      await list(config, reporter, flags, args);
+    },
 
-      reporter.step(1, 3, reporter.lang('loggingIn'));
-      const revoke = await getToken(config, reporter, name);
-
-      reporter.step(2, 3, reporter.lang('gettingTags'));
-      const tags = await config.registries.npm.request(`-/package/${name}/dist-tags`);
-
-      if (tags) {
-        reporter.info(`Package ${name}`);
-        for (const name in tags) {
-          reporter.info(`${name}: ${tags[name]}`);
-        }
-      }
-
-      reporter.step(3, 3, reporter.lang('revokingToken'));
-      await revoke();
-
-      if (!tags) {
-        throw new MessageError(reporter.lang('packageNotFoundRegistry', name, 'npm'));
-      }
+    async list(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
+      await list(config, reporter, flags, args);
     },
   },
   ['add <pkg>@<version> [<tag>]', 'rm <pkg> <tag>', 'ls [<pkg>]'],
