@@ -213,4 +213,16 @@ test.concurrent('check command should work', (): Promise<void> => {
   });
 });
 
+test.concurrent('install should link binaries at root and in workspace dependents', (): Promise<void> => {
+  return runInstall({binLinks: true}, 'workspaces-install-link-bin', async (config): Promise<void> => {
+    // node_modules/.bin/workspace-1 - link
+    expect(await fs.exists(path.join(config.cwd, 'node_modules', '.bin', 'workspace-1'))).toBe(true);
+
+    // packages/workspace-2/node_modules/.bin/workspace-1 - link
+    expect(
+      await fs.exists(path.join(config.cwd, 'packages', 'workspace-2', 'node_modules', '.bin', 'workspace-1')),
+    ).toBe(true);
+  });
+});
+
 // TODO need more thorough tests for all kinds of checks: integrity, verify-tree
