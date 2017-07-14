@@ -192,6 +192,11 @@ test.concurrent('should run -h command with add option', async () => {
   expectHelpOutputAsSubcommand(stdout);
 });
 
+test.concurrent('should show version of yarn with -v', async () => {
+  const stdout = await execCommand('-v', [], 'run-version');
+  expect(stdout[0]).toEqual(pkg.version);
+});
+
 test.concurrent('should run version command', async () => {
   await expectAnErrorMessage(execCommand('version', [], 'run-version'), "Can't answer a question unless a user TTY");
 });
