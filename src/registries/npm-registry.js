@@ -192,7 +192,7 @@ export default class NpmRegistry extends Registry {
       const availableRegistries = this.getAvailableRegistries();
       const registry = availableRegistries.find(registry => packageName.startsWith(registry));
       if (registry) {
-        return addSuffix(registry, '/');
+        return String(registry);
       }
     }
 
@@ -200,7 +200,7 @@ export default class NpmRegistry extends Registry {
       const registry =
         this.getScopedOption(scope, 'registry') || this.registries.yarn.getScopedOption(scope, 'registry');
       if (registry) {
-        return addSuffix(String(registry), '/');
+        return String(registry);
       }
     }
 
