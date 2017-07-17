@@ -111,6 +111,10 @@ export async function getOutdated(
   // Attempt to preserve the range operator from the package.json specified semver range.
   // If an explicit operator was specified using --exact, --tilde, --caret, then that will take precedence.
   const buildPatternToUpgradeTo = (dep, flags) => {
+    if (dep.latest === 'exotic') {
+      return dep.url;
+    }
+
     const toLatest = flags.latest;
     const toVersion = toLatest ? dep.latest : dep.range;
     let rangeOperator = '';
