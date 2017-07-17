@@ -145,7 +145,14 @@ export default class PackageRequest {
   }
 
   async normalize(pattern: string): any {
-    const {name, range, hasVersion} = PackageRequest.normalizePattern(pattern);
+    let {name, range, hasVersion} = PackageRequest.normalizePattern(pattern);
+
+    // Check if package is linked globally if specified
+    const linkPath = path.join(this.config.linkFolder, name);
+    if (this.resolver.flags.link && await fs.exists(linkPath)) {
+      range = 'link:' + linkPath;
+    }
+
     const newRange = await this.normalizeRange(range);
     return {name, range: newRange, hasVersion};
   }

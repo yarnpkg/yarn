@@ -170,7 +170,7 @@ export class Install {
     this.config = config;
     this.flags = normalizeFlags(config, flags);
 
-    this.resolver = new PackageResolver(config, lockfile);
+    this.resolver = new PackageResolver(config, flags, lockfile);
     this.integrityChecker = new InstallationIntegrityChecker(config);
     this.linker = new PackageLinker(config, this.resolver);
     this.scripts = new PackageInstallScripts(config, this.resolver, this.flags.force);
@@ -850,6 +850,7 @@ export function setFlags(commander: Object) {
   commander.option('-O, --save-optional', 'DEPRECATED - save package to your `optionalDependencies`');
   commander.option('-E, --save-exact', 'DEPRECATED');
   commander.option('-T, --save-tilde', 'DEPRECATED');
+  commander.option('--link', 'link local dependencies');
 }
 
 export async function install(config: Config, reporter: Reporter, flags: Object, lockfile: Lockfile): Promise<void> {

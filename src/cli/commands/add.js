@@ -189,6 +189,7 @@ export function setFlags(commander: Object) {
   commander.option('-O, --optional', 'save package to your `optionalDependencies`');
   commander.option('-E, --exact', 'install exact version');
   commander.option('-T, --tilde', 'install most recent release with the same minor version');
+  commander.option('--link', 'link local dependencies');
 }
 
 export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {

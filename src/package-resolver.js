@@ -23,7 +23,7 @@ export type ResolverOptions = {|
 |};
 
 export default class PackageResolver {
-  constructor(config: Config, lockfile: Lockfile) {
+  constructor(config: Config, flags: Object, lockfile: Lockfile) {
     this.patternsByPackage = map();
     this.fetchingPatterns = map();
     this.fetchingQueue = new BlockingQueue('resolver fetching');
@@ -34,6 +34,7 @@ export default class PackageResolver {
     this.reporter = config.reporter;
     this.lockfile = lockfile;
     this.config = config;
+    this.flags = flags;
     this.delayedResolveQueue = [];
   }
 

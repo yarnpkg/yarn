@@ -5,6 +5,7 @@ import type Config from '../../config.js';
 import {MessageError} from '../../errors.js';
 import * as fs from '../../util/fs.js';
 import {getBinFolder as getGlobalBinFolder} from './global';
+import {getPackageFilters} from './pack';
 
 const invariant = require('invariant');
 const path = require('path');
@@ -26,7 +27,9 @@ export function hasWrapper(commander: Object, args: Array<string>): boolean {
   return true;
 }
 
-export function setFlags(commander: Object) {}
+export function setFlags(commander: Object) {
+  commander.option('--deep', 'create a link for each file inside the current directory instead of the directory itself');
+}
 
 export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
   if (args.length) {
@@ -56,28 +59,49 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
     const linkLoc = path.join(config.linkFolder, name);
     if (await fs.exists(linkLoc)) {
       reporter.warn(reporter.lang('linkCollision', name));
+      await fs.unlink(path.join(config.cwd, linkLoc));
+    }
+
+    if (flags.deep) {
+      await linkDeep(config, linkLoc);
     } else {
       await fs.mkdirp(path.dirname(linkLoc));
       await fs.symlink(config.cwd, linkLoc);
+    }
 
-      // If there is a `bin` defined in the package.json,
-      // link each bin to the global bin
-      if (manifest.bin) {
-        const globalBinFolder = getGlobalBinFolder(config, flags);
-        for (const binName in manifest.bin) {
-          const binSrc = manifest.bin[binName];
-          const binSrcLoc = path.join(linkLoc, binSrc);
-          const binDestLoc = path.join(globalBinFolder, binName);
-          if (await fs.exists(binDestLoc)) {
-            reporter.warn(reporter.lang('binLinkCollision', binName));
-          } else {
-            await fs.symlink(binSrcLoc, binDestLoc);
-          }
+    // If there is a `bin` defined in the package.json,
+    // link each bin to the global bin
+    if (manifest.bin) {
+      const globalBinFolder = getGlobalBinFolder(config, flags);
+      for (const binName in manifest.bin) {
+        const binSrc = manifest.bin[binName];
+        const binSrcLoc = path.join(linkLoc, binSrc);
+        const binDestLoc = path.join(globalBinFolder, binName);
+        if (await fs.exists(binDestLoc)) {
+          reporter.warn(reporter.lang('binLinkCollision', binName));
+        } else {
+          await fs.symlink(binSrcLoc, binDestLoc);
         }
       }
-
-      reporter.success(reporter.lang('linkRegistered', name));
-      reporter.info(reporter.lang('linkRegisteredMessage', name));
     }
+
+    reporter.success(reporter.lang('linkRegistered', name));
+    reporter.info(reporter.lang('linkRegisteredMessage', name));
+  }
+}
+
+async function linkDeep(config, linkLoc) {
+  await fs.mkdirp(linkLoc);
+
+  const {keepFiles} = await getPackageFilters(config);
+  for (let name of await fs.readdir(config.cwd)) {
+    const relative = path.relative(config.cwd, name);
+    if (!keepFiles.has(relative)) {
+      continue;
+    }
+
+    const src = path.join(config.cwd, name);
+    const dest = path.join(linkLoc, name);
+    await fs.symlink(src, dest);
   }
 }
