@@ -124,7 +124,7 @@ export default class InstallationIntegrityChecker {
     async function getFilePaths(rootDir: string, files: Array<string>, currentDir: string = rootDir): Promise<void> {
       for (const file of await fs.readdir(currentDir)) {
         const entry = path.join(currentDir, file);
-        const stat = await fs.stat(entry);
+        const stat = await fs.lstat(entry);
         if (stat.isDirectory()) {
           await getFilePaths(rootDir, files, entry);
         } else {

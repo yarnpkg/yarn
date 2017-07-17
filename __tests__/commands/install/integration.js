@@ -48,6 +48,16 @@ async function mockConstants(base: Config, mocks: Object, cb: (config: Config) =
 beforeEach(request.__resetAuthedRequests);
 afterEach(request.__resetAuthedRequests);
 
+test.concurrent('packages installed through the link protocol should validate all peer dependencies', async () => {
+  await runInstall({checkFiles: true}, 'check-files-should-not-cross-symlinks', async (config): Promise<void> => {
+    expect(
+      JSON.parse(await fs.readFile(`${config.cwd}/node_modules/.yarn-integrity`)).files.map(file => {
+        return file.replace(/\\/g, '/');
+      }),
+    ).toEqual(['some-missing-pkg', 'some-other-pkg', 'some-pkg/package.json']);
+  });
+});
+
 test.concurrent('installing a package with a renamed file should not delete it', async () => {
   await runInstall({}, 'case-sensitivity', async (config, reporter): Promise<void> => {
     const pkgJson = await fs.readJson(`${config.cwd}/package.json`);
