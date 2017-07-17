@@ -26,7 +26,7 @@ function setUserRequestedPackageVersions(deps: Array<Dependency>, args: Array<st
     deps.forEach(dep => {
       if (normalized.hasVersion && dep.name === normalized.name) {
         found = true;
-        dep.latestPattern = newPattern;
+        dep.upgradeTo = newPattern;
       }
     });
 
@@ -39,7 +39,7 @@ function setUserRequestedPackageVersions(deps: Array<Dependency>, args: Array<st
         hint: '',
         range: '',
         current: '',
-        latestPattern: newPattern,
+        upgradeTo: newPattern,
       });
     }
   });
@@ -69,10 +69,9 @@ export const requireLockfile = true;
 export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
   const lockfile = await Lockfile.fromDirectory(config.lockfileFolder);
   const deps = await getOutdated(config, reporter, flags, lockfile, args);
-  const addFlags = Object.assign({}, flags, {force: true});
 
   // do not pass the --latest flag to add, otherwise it may ignore the version ranges we already determined.
-  delete addFlags.latest;
+  const addFlags = Object.assign({}, flags, {force: true, latest: false});
 
   setUserRequestedPackageVersions(deps, args);
 
@@ -83,9 +82,9 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
 
   // remove deps being upgraded from the lockfile, or else Add will use the already-installed version
   // instead of the latest for the range.
-  deps.forEach(dep => lockfile.removePattern(dep.latestPattern));
+  deps.forEach(dep => lockfile.removePattern(dep.upgradeTo));
 
-  const addArgs = deps.map(dep => dep.latestPattern);
+  const addArgs = deps.map(dep => dep.upgradeTo);
   const add = new Add(addArgs, addFlags, config, reporter, lockfile);
   await add.init();
 }
@@ -171,7 +170,7 @@ export async function getOutdated(
   const deps = (await PackageRequest.getOutdatedPackages(lockfile, install, config, reporter, patterns))
     .filter(versionFilter)
     .filter(scopeFilter);
-  deps.forEach(dep => (dep.latestPattern = buildPatternToUpgradeTo(dep, flags)));
+  deps.forEach(dep => (dep.upgradeTo = buildPatternToUpgradeTo(dep, flags)));
 
   return deps;
 }

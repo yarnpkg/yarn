@@ -6,12 +6,23 @@ import type Config from '../../config.js';
 import inquirer from 'inquirer';
 import Lockfile from '../../lockfile/wrapper.js';
 import {Add} from './add.js';
-import {getOutdated, setFlags as setUpgradeFlags} from './upgrade.js';
+import {getOutdated} from './upgrade.js';
 
 export const requireLockfile = true;
 
 export function setFlags(commander: Object) {
-  setUpgradeFlags(commander);
+  commander.usage('upgrade-interactive [flags]');
+  commander.option('-S, --scope <scope>', 'upgrade packages under the specified scope');
+  commander.option('--latest', 'list the latest version of packages, ignoring version ranges in package.json');
+  commander.option('-E, --exact', 'install exact version. Only used when --latest is specified.');
+  commander.option(
+    '-T, --tilde',
+    'install most recent release with the same minor version. Only used when --latest is specified.',
+  );
+  commander.option(
+    '-C, --caret',
+    'install most recent release with the same major version. Only used when --latest is specified.',
+  );
 }
 
 export function hasWrapper(commander: Object, args: Array<string>): boolean {
@@ -81,7 +92,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
   };
 
   const groupedDeps = deps.reduce((acc, dep) => {
-    const {hint, name, latestPattern} = dep;
+    const {hint, name, upgradeTo} = dep;
     const version = dep[outdatedFieldName];
     const key = getNameFromHint(hint);
     const xs = acc[key] || [];
@@ -89,7 +100,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
       name: makeRow(dep),
       value: dep,
       short: `${name}@${version}`,
-      latestPattern,
+      upgradeTo,
     });
     return acc;
   }, {});
@@ -116,7 +127,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
       validate: answer => !!answer.length || 'You must choose at least one package.',
     });
 
-    const getPattern = ({latestPattern}) => latestPattern;
+    const getPattern = ({upgradeTo}) => upgradeTo;
     const isHint = x => ({hint}) => hint === x;
 
     await [null, 'dev', 'optional', 'peer'].reduce(async (promise, hint) => {
