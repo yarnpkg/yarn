@@ -26,7 +26,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
 
   await runGlobal(config, reporter, {}, ['add', packageName]);
 
-  const binFolder = getBinFolder(config, {});
+  const binFolder = await getBinFolder(config, {});
   const command = path.resolve(binFolder, path.basename(commandName));
 
   await child.spawn(command, [...rest], {stdio: `inherit`, shell: true});
