@@ -38,7 +38,6 @@ job('yarn-version') {
       trigger([
         'yarn-chocolatey',
         'yarn-homebrew',
-        'yarn-npm',
       ]) {
         parameters {
           currentBuild()
@@ -110,26 +109,6 @@ job('yarn-homebrew') {
   }
   steps {
     shell './scripts/update-homebrew.sh'
-  }
-  publishers {
-    gitHubIssueNotifier {
-    }
-  }
-}
-
-job('yarn-npm') {
-  description 'Ensures the npm package for Yarn is up-to-date'
-  label 'linux'
-  scm {
-    github 'yarnpkg/yarn', 'master'
-  }
-  parameters {
-    // Passed from yarn-version job
-    stringParam 'YARN_VERSION'
-    booleanParam 'YARN_RC'
-  }
-  steps {
-    shell './scripts/update-npm.sh'
   }
   publishers {
     gitHubIssueNotifier {
