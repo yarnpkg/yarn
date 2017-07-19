@@ -725,7 +725,9 @@ export async function symlink(src: string, dest: string): Promise<void> {
       } else {
         relative = path.relative(path.dirname(dest), src);
       }
-      await fsSymlink(relative, dest);
+      // When path.relative returns an empty string for the current directory, we should instead use
+      // '.', which is a valid fs.symlink target.
+      await fsSymlink(relative || '.', dest);
     }
   } catch (err) {
     if (err.code === 'EEXIST') {
