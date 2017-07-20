@@ -127,10 +127,11 @@ test.concurrent('upgrade', async (): Promise<void> => {
   const tmpGlobalFolder = await createTempGlobalFolder();
   const tmpPrefixFolder = await createTempPrefixFolder();
   const flags = {globalFolder: tmpGlobalFolder, prefix: tmpPrefixFolder};
+  const upgradeFlags = {globalFolder: tmpGlobalFolder, prefix: tmpPrefixFolder, latest: true};
   return runGlobal(['add', 'react-native-cli@2.0.0'], flags, 'add-with-prefix-flag', () => {}).then(() => {
     return runGlobal(
       ['upgrade', 'react-native-cli'],
-      flags,
+      upgradeFlags,
       'add-with-prefix-flag',
       (config, reporter, install, getStdout) => {
         expect(getStdout()).toContain('react-native-cli');

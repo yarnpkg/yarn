@@ -1,5 +1,5 @@
 {
   "dependencies": {
-    "left-pad": "1.1.1"
+    "left-pad": "^1.1.1"
   }
 }

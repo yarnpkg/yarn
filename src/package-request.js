@@ -380,13 +380,23 @@ export default class PackageRequest {
     install: Install,
     config: Config,
     reporter: Reporter,
+    filterByPatterns: ?Array<string>,
   ): Promise<Array<Dependency>> {
     const {requests: reqPatterns, workspaceLayout} = await install.fetchRequestFromCwd();
 
     // Filter out workspace patterns if necessary
-    const depReqPatterns = workspaceLayout
+    let depReqPatterns = workspaceLayout
       ? reqPatterns.filter(p => !workspaceLayout.getManifestByPattern(p.pattern))
       : reqPatterns;
+
+    // filter the list down to just the packages requested.
+    // prevents us from having to query the metadata for all packages.
+    if (filterByPatterns && filterByPatterns.length) {
+      const filterByNames = filterByPatterns.map(pattern => PackageRequest.normalizePattern(pattern).name);
+      depReqPatterns = depReqPatterns.filter(
+        dep => filterByNames.indexOf(PackageRequest.normalizePattern(dep.pattern).name) >= 0,
+      );
+    }
 
     const deps = await Promise.all(
       depReqPatterns.map(async ({pattern, hint}): Promise<Dependency> => {
@@ -411,7 +421,7 @@ export default class PackageRequest {
           ({latest, wanted, url} = await registry.checkOutdated(config, name, normalized.range));
         }
 
-        return {name, current, wanted, latest, url, hint};
+        return {name, current, wanted, latest, url, hint, range: normalized.range, upgradeTo: ''};
       }),
     );
 
