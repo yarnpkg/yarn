@@ -127,15 +127,18 @@ export default class NpmRegistry extends Registry {
   }
 
   async getPossibleConfigLocations(filename: string, reporter: Reporter): Promise<Array<[boolean, string, string]>> {
+    // npmrc --> ./.npmrc, ~/.npmrc, ${prefix}/etc/npmrc
+    const localfile = '.' + filename;
     const possibles = [
-      [false, path.join(this.cwd, filename)],
-      [true, this.config.userconfig || path.join(userHome, filename)],
-      [false, path.join(getGlobalPrefix(), filename)],
+      [false, path.join(this.cwd, localfile)],
+      [true, this.config.userconfig || path.join(userHome, localfile)],
+      [false, path.join(getGlobalPrefix(), 'etc', filename)],
     ];
 
+    // npmrc --> ../.npmrc, ../../.npmrc, etc.
     const foldersFromRootToCwd = getPosixPath(this.cwd).split('/');
     while (foldersFromRootToCwd.length > 1) {
-      possibles.push([false, path.join(foldersFromRootToCwd.join(path.sep), filename)]);
+      possibles.push([false, path.join(foldersFromRootToCwd.join(path.sep), localfile)]);
       foldersFromRootToCwd.pop();
     }
 
@@ -167,7 +170,7 @@ export default class NpmRegistry extends Registry {
     // docs: https://docs.npmjs.com/misc/config
     this.mergeEnv('npm_config_');
 
-    for (const [, loc, file] of await this.getPossibleConfigLocations('.npmrc', this.reporter)) {
+    for (const [, loc, file] of await this.getPossibleConfigLocations('npmrc', this.reporter)) {
       const config = NpmRegistry.normalizeConfig(ini.parse(file));
 
       // normalize offline mirror path relative to the current npmrc
