@@ -48,6 +48,18 @@ async function mockConstants(base: Config, mocks: Object, cb: (config: Config) =
 beforeEach(request.__resetAuthedRequests);
 afterEach(request.__resetAuthedRequests);
 
+test.concurrent('install optional subdependencies by default', async () => {
+  await runInstall({}, 'install-optional-dependencies', async (config): Promise<void> => {
+    expect(await fs.exists(`${config.cwd}/node_modules/dep-b`)).toEqual(true);
+  });
+});
+
+test.concurrent('installing with --ignore-optional should not install optional subdependencies', async () => {
+  await runInstall({ignoreOptional: true}, 'install-optional-dependencies', async (config): Promise<void> => {
+    expect(await fs.exists(`${config.cwd}/node_modules/dep-b`)).toEqual(false);
+  });
+});
+
 test.concurrent('packages installed through the link protocol should validate all peer dependencies', async () => {
   await runInstall({checkFiles: true}, 'check-files-should-not-cross-symlinks', async (config): Promise<void> => {
     expect(

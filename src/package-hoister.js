@@ -145,8 +145,11 @@ export default class PackageHoister {
 
     //
     let parentParts: Parts = [];
+
     const isIncompatible = ref.incompatible;
-    let isRequired = isDirectRequire && !ref.ignore && !isIncompatible && (!ref.optional || !this.ignoreOptional);
+    const isMarkedAsOptional = ref.optional && this.ignoreOptional;
+
+    let isRequired = isDirectRequire && !ref.ignore && !isIncompatible && !isMarkedAsOptional;
 
     if (parent) {
       if (!this.tree.get(parent.key)) {
@@ -154,7 +157,7 @@ export default class PackageHoister {
       }
       // non ignored dependencies inherit parent's ignored status
       // parent may transition from ignored to non ignored when hoisted if it is used in another non ignored branch
-      if (!isDirectRequire && !isIncompatible && parent.isRequired && (!ref.optional || !this.ignoreOptional)) {
+      if (!isDirectRequire && !isIncompatible && parent.isRequired && !isMarkedAsOptional) {
         isRequired = true;
       }
       parentParts = parent.parts;
@@ -200,12 +203,10 @@ export default class PackageHoister {
 
       for (const depPattern of ref.dependencies) {
         const depinfo = this._lookupDependency(info, depPattern);
-        if (
-          depinfo &&
-          !depinfo.isRequired &&
-          !depinfo.isIncompatible &&
-          (!depinfo.pkg._reference || !depinfo.pkg._reference.optional || !this.ignoreOptional)
-        ) {
+
+        const isMarkedAsOptional = depinfo.pkg._reference ? depinfo.pkg._reference && this.ignoreOptional : true;
+
+        if (depinfo && !depinfo.isRequired && !depinfo.isIncompatible && !isMarkedAsOptional) {
           depinfo.isRequired = true;
           depinfo.addHistory(`Mark as non-ignored because of usage by ${info.key}`);
           toVisit.push(depinfo);
