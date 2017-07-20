@@ -196,10 +196,9 @@ export default class ConsoleReporter extends BaseReporter {
         (err, answer) => {
           if (err) {
             if (err.message === 'canceled') {
-              process.exit(1);
-            } else {
-              reject(err);
+              process.exitCode = 1;
             }
+            reject(err);
           } else {
             if (!answer && options.required) {
               this.error(this.lang('answerRequired'));

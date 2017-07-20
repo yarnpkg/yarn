@@ -35,6 +35,8 @@ const compiler = webpack({
   output: {
     filename: `yarn-${version}.js`,
     path: path.join(basedir, 'artifacts'),
+    library: 'yarn-cli',
+    libraryTarget: 'commonjs2',
   },
   target: 'node',
 });
@@ -71,6 +73,8 @@ const compilerLegacy = webpack({
   output: {
     filename: `yarn-legacy-${version}.js`,
     path: path.join(basedir, 'artifacts'),
+    library: 'yarn-cli',
+    libraryTarget: 'commonjs2',
   },
   target: 'node',
 });
