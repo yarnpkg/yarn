@@ -12,6 +12,7 @@ import envReplace from '../util/env-replace.js';
 import Registry from './base-registry.js';
 import {addSuffix} from '../util/misc';
 import {getPosixPath, resolveWithHome} from '../util/path';
+import isRequestToRegistry from './is-request-to-registry.js';
 
 const userHome = require('../util/user-home-dir').default;
 const path = require('path');
@@ -72,10 +73,22 @@ export default class NpmRegistry extends Registry {
     return name.replace('/', '%2f');
   }
 
+  getRequestUrl(registry: string, pathname: string): string {
+    const isPathnameUrl = pathname.match(/^https?:/);
+
+    if (isPathnameUrl) {
+      return pathname;
+    } else {
+      return url.resolve(registry, pathname);
+    }
+  }
+
   request(pathname: string, opts?: RegistryRequestOptions = {}, packageName: ?string): Promise<*> {
     const registry = this.getRegistry(packageName || pathname);
-    const requestUrl = url.resolve(registry, pathname);
+    const requestUrl = this.getRequestUrl(registry, pathname);
+
     const alwaysAuth = this.getRegistryOrGlobalOption(registry, 'always-auth');
+    const customHostSuffix = this.getRegistryOrGlobalOption(registry, 'custom-host-suffix');
 
     const headers = Object.assign(
       {
@@ -87,8 +100,10 @@ export default class NpmRegistry extends Registry {
     const packageIdent = packageName || pathname;
     const isScoppedPackage = packageIdent.match(/^@|\/@/);
 
+    const isToRegistry = isRequestToRegistry(requestUrl, registry, customHostSuffix);
+
     // this.token must be checked to account for publish requests on non-scopped packages
-    if (this.token || alwaysAuth || isScoppedPackage) {
+    if (this.token || (isToRegistry && (alwaysAuth || isScoppedPackage))) {
       const authorization = this.getAuth(packageName || pathname);
       if (authorization) {
         headers.authorization = authorization;

@@ -39,3 +39,122 @@ describe('normalizeConfig', () => {
     expect(normalized).toEqual(rooted);
   });
 });
+
+describe('request', () => {
+  function createMocks(): Object {
+    const mockRequestManager = {
+      request: jest.fn(),
+    };
+    const mockRegistries = {
+      npm: jest.fn(),
+      yarn: {
+        getScopedOption: jest.fn(),
+      },
+    };
+    const mockReporter = jest.fn();
+
+    return {
+      mockRequestManager,
+      mockRegistries,
+      mockReporter,
+    };
+  }
+
+  test('should call requestManager.request with pathname url', () => {
+    const testCwd = '.';
+    const {mockRequestManager, mockRegistries, mockReporter} = createMocks();
+    const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter);
+
+    const pathname = 'http://github.com/yarnpkg/yarn.tgz';
+
+    npmRegistry.request(pathname);
+
+    const requestParams = mockRequestManager.request.mock.calls[0][0];
+
+    expect(requestParams.url).toBe(pathname);
+  });
+
+  test('should not add authorization header if pathname not to registry', () => {
+    const testCwd = '.';
+    const {mockRequestManager, mockRegistries, mockReporter} = createMocks();
+    const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter);
+
+    const pathname = 'http://github.com/yarnpkg/yarn.tgz';
+
+    npmRegistry.request(pathname);
+
+    const requestParams = mockRequestManager.request.mock.calls[0][0];
+
+    expect(requestParams.headers.authorization).toBe(undefined);
+  });
+
+  test('should not add authorization header if pathname is to registry and always-auth is false', () => {
+    const testCwd = '.';
+    const {mockRequestManager, mockRegistries, mockReporter} = createMocks();
+    const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter);
+
+    const pathname = 'https://registry.npmjs.org/yarnpkg/yarn.tgz';
+
+    npmRegistry.config = {
+      'always-auth': false,
+      _authToken: 'testAuthToken',
+    };
+    npmRegistry.request(pathname);
+
+    const requestParams = mockRequestManager.request.mock.calls[0][0];
+
+    expect(requestParams.headers.authorization).toBe(undefined);
+  });
+
+  test('should not add authorization header if pathname is to registry and not scopped package', () => {
+    const testCwd = '.';
+    const {mockRequestManager, mockRegistries, mockReporter} = createMocks();
+    const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter);
+
+    const pathname = 'https://registry.npmjs.org/yarnpkg/yarn.tgz';
+
+    npmRegistry.config = {
+      _authToken: 'testAuthToken',
+    };
+    npmRegistry.request(pathname);
+
+    const requestParams = mockRequestManager.request.mock.calls[0][0];
+
+    expect(requestParams.headers.authorization).toBe(undefined);
+  });
+
+  test('should add authorization header if pathname is to registry and always-auth is true', () => {
+    const testCwd = '.';
+    const {mockRequestManager, mockRegistries, mockReporter} = createMocks();
+    const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter);
+
+    const pathname = 'https://registry.npmjs.org/yarnpkg/yarn.tgz';
+
+    npmRegistry.config = {
+      'always-auth': true,
+      _authToken: 'testAuthToken',
+    };
+    npmRegistry.request(pathname);
+
+    const requestParams = mockRequestManager.request.mock.calls[0][0];
+
+    expect(requestParams.headers.authorization).toBe('Bearer testAuthToken');
+  });
+
+  test('should add authorization header if pathname is to registry and is scopped package', () => {
+    const testCwd = '.';
+    const {mockRequestManager, mockRegistries, mockReporter} = createMocks();
+    const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter);
+
+    const pathname = 'https://registry.npmjs.org/@testScope/yarn.tgz';
+
+    npmRegistry.config = {
+      _authToken: 'testAuthToken',
+    };
+    npmRegistry.request(pathname);
+
+    const requestParams = mockRequestManager.request.mock.calls[0][0];
+
+    expect(requestParams.headers.authorization).toBe('Bearer testAuthToken');
+  });
+});
