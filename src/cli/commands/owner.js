@@ -118,7 +118,7 @@ async function list(config: Config, reporter: Reporter, flags: Object, args: Arr
   }
 }
 
-async function remove(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<boolean> {
+function remove(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<boolean> {
   return mutate(
     args,
     config,
