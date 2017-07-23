@@ -94,8 +94,20 @@ export function spawn(
           processingDone = true;
         }
 
-        proc.on('close', (code: number) => {
-          if (code >= 1) {
+        proc.on('close', (code: number, signal: string) => {
+          if (signal) {
+            err = new SpawnError(
+              [
+                'Command failed.',
+                `Exit signal: ${signal}`,
+                `Command: ${program}`,
+                `Arguments: ${args.join(' ')}`,
+                `Directory: ${opts.cwd || process.cwd()}`,
+                `Output:\n${stdout.trim()}`,
+              ].join('\n'),
+            );
+            err.EXIT_SIGNAL = signal;
+          } else if (code >= 1) {
             // TODO make this output nicer
             err = new SpawnError(
               [

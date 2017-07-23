@@ -254,7 +254,11 @@ export async function execCommand(stage: string, config: Config, cmd: string, cw
     return Promise.resolve();
   } catch (err) {
     if (err instanceof SpawnError) {
-      throw new MessageError(reporter.lang('commandFailed', err.EXIT_CODE));
+      if (err.EXIT_SIGNAL) {
+        throw new MessageError(reporter.lang('commandFailedWithSignal', err.EXIT_SIGNAL));
+      } else {
+        throw new MessageError(reporter.lang('commandFailedWithCode', err.EXIT_CODE));
+      }
     } else {
       throw err;
     }

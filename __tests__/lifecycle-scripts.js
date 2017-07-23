@@ -142,3 +142,23 @@ test('should inherit existing environment variables when setting via yarnrc', as
   expect(stdout).toMatch(/^RAB$/m);
   expect(stdout).toMatch(/^FOO$/m);
 });
+
+test('should not show any error messages when script ends successfully', async () => {
+  const stdout = await execCommand('test', 'script-success');
+
+  expect(stdout).toMatch(/Done in /);
+});
+
+test('should show correct error message when the script ends with an exit code', async () => {
+  await execCommand('test', 'script-fail').catch(error => {
+    expect(error.message).toMatch(/Command failed with exit code /);
+    expect(error.code).not.toBe(0);
+  });
+});
+
+test('should show correct error message when the script ends an exit signal', async () => {
+  await execCommand('test', 'script-segfault').catch(error => {
+    expect(error.message).toMatch(/Command failed with signal /);
+    expect(error.code).not.toBe(0);
+  });
+});

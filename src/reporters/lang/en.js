@@ -175,7 +175,8 @@ const messages = {
   binCommands: 'Commands available from binary scripts: ',
   possibleCommands: 'Project commands',
   commandQuestion: 'Which command would you like to run?',
-  commandFailed: 'Command failed with exit code $0.',
+  commandFailedWithCode: 'Command failed with exit code $0.',
+  commandFailedWithSignal: 'Command failed with signal $0.',
   packageRequiresNodeGyp:
     'This package requires node-gyp, which is not currently installed. Yarn will attempt to automatically install it. If this fails, you can run "yarn global add node-gyp" to manually install it.',
   nodeGypAutoInstallFailed:
