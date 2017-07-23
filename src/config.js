@@ -604,10 +604,14 @@ export default class Config {
 
     const registryFilenames = registryNames.map(registryName => this.registries[registryName].constructor.filename);
     const trailingPattern = `/+(${registryFilenames.join(`|`)})`;
+    const ignorePatterns = this.registryFolders.map(folder => `/${folder}/*/+(${registryFilenames.join(`|`)})`);
 
     const files = await Promise.all(
       patterns.map(pattern => {
-        return fs.glob(pattern.replace(/\/?$/, trailingPattern), {cwd: root, ignore: this.registryFolders});
+        return fs.glob(pattern.replace(/\/?$/, trailingPattern), {
+          cwd: root,
+          ignore: ignorePatterns.map(ignorePattern => pattern.replace(/\/?$/, ignorePattern)),
+        });
       }),
     );
 
