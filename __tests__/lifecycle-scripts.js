@@ -158,7 +158,7 @@ test('should show correct error message when the script ends with an exit code',
 
 test('should show correct error message when the script ends an exit signal', async () => {
   await execCommand('test', 'script-segfault').catch(error => {
-    expect(error.message).toMatch(/Command failed with signal /);
+    expect(error.message).toMatch(/Command failed with signal "SIGSEGV"/);
     expect(error.code).not.toBe(0);
   });
 });

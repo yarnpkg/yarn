@@ -1,9 +1,5 @@
 {
   "scripts": {
-    "compile": "gcc segfault.c -g -o segfault",
-    "pretest": "yarn run compile",
-    "test": "./segfault",
-    "pretest-alt": "yarn run compile",
-    "test-alt": "./segfault && true"
+    "test": "node app.js"
   }
 }
