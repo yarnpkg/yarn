@@ -12,7 +12,6 @@ import envReplace from '../util/env-replace.js';
 import Registry from './base-registry.js';
 import {addSuffix} from '../util/misc';
 import {getPosixPath, resolveWithHome} from '../util/path';
-import isRequestToRegistry from './is-request-to-registry.js';
 
 const userHome = require('../util/user-home-dir').default;
 const path = require('path');
@@ -22,6 +21,9 @@ const ini = require('ini');
 const DEFAULT_REGISTRY = 'https://registry.npmjs.org/';
 const REGEX_REGISTRY_PREFIX = /^https?:/;
 const REGEX_REGISTRY_SUFFIX = /registry\/?$/;
+
+const DEFAULT_HTTP_PORT = 80;
+const DEFAULT_HTTPS_PORT = 443;
 
 function getGlobalPrefix(): string {
   if (process.env.PREFIX) {
@@ -74,13 +76,43 @@ export default class NpmRegistry extends Registry {
   }
 
   getRequestUrl(registry: string, pathname: string): string {
-    const isPathnameUrl = pathname.match(/^https?:/);
+    const isUrl = /^https?:/.test(pathname);
 
-    if (isPathnameUrl) {
+    if (isUrl) {
       return pathname;
     } else {
       return url.resolve(registry, pathname);
     }
+  }
+
+  getPortOrDefaultPort(port: ?string, protocol: ?string): ?string {
+    if (protocol === 'https:' && port === DEFAULT_HTTPS_PORT.toString()) {
+      return null;
+    }
+    if (protocol === 'http:' && port === DEFAULT_HTTP_PORT.toString()) {
+      return null;
+    }
+    return port;
+  }
+
+  isRequestToRegistry(requestUrl: string, registry: string): boolean {
+    const requestParsed = url.parse(requestUrl);
+    const registryParsed = url.parse(registry);
+    const requestHost = requestParsed.hostname || '';
+    const registryHost = registryParsed.hostname || '';
+    const requestPort = this.getPortOrDefaultPort(requestParsed.port, requestParsed.protocol);
+    const registryPort = this.getPortOrDefaultPort(registryParsed.port, registryParsed.protocol);
+    const requestPath = requestParsed.path || '';
+    const registryPath = registryParsed.path || '';
+    const customHostSuffix = this.getRegistryOrGlobalOption(registry, 'custom-host-suffix');
+
+    return (
+      requestHost === registryHost &&
+      requestPort === registryPort &&
+      (requestPath.startsWith(registryPath) ||
+        // For some registries, the package path does not prefix with the registry path
+        (typeof customHostSuffix === 'string' && customHostSuffix.length > 0 && requestHost.endsWith(customHostSuffix)))
+    );
   }
 
   request(pathname: string, opts?: RegistryRequestOptions = {}, packageName: ?string): Promise<*> {
@@ -88,7 +120,6 @@ export default class NpmRegistry extends Registry {
     const requestUrl = this.getRequestUrl(registry, pathname);
 
     const alwaysAuth = this.getRegistryOrGlobalOption(registry, 'always-auth');
-    const customHostSuffix = this.getRegistryOrGlobalOption(registry, 'custom-host-suffix');
 
     const headers = Object.assign(
       {
@@ -100,7 +131,7 @@ export default class NpmRegistry extends Registry {
     const packageIdent = packageName || pathname;
     const isScoppedPackage = packageIdent.match(/^@|\/@/);
 
-    const isToRegistry = isRequestToRegistry(requestUrl, registry, customHostSuffix);
+    const isToRegistry = this.isRequestToRegistry(requestUrl, registry);
 
     // this.token must be checked to account for publish requests on non-scopped packages
     if (this.token || (isToRegistry && (alwaysAuth || isScoppedPackage))) {

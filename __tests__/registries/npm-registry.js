@@ -40,38 +40,38 @@ describe('normalizeConfig', () => {
   });
 });
 
+function createMocks(): Object {
+  const mockRequestManager = {
+    request: jest.fn(),
+  };
+  const mockRegistries = {
+    npm: jest.fn(),
+    yarn: {
+      getScopedOption: jest.fn(),
+    },
+  };
+  const mockReporter = jest.fn();
+
+  return {
+    mockRequestManager,
+    mockRegistries,
+    mockReporter,
+  };
+}
+
 describe('request', () => {
-  function createMocks(): Object {
-    const mockRequestManager = {
-      request: jest.fn(),
-    };
-    const mockRegistries = {
-      npm: jest.fn(),
-      yarn: {
-        getScopedOption: jest.fn(),
-      },
-    };
-    const mockReporter = jest.fn();
-
-    return {
-      mockRequestManager,
-      mockRegistries,
-      mockReporter,
-    };
-  }
-
-  test('should call requestManager.request with pathname url', () => {
+  test('should call requestManager.request with url', () => {
     const testCwd = '.';
     const {mockRequestManager, mockRegistries, mockReporter} = createMocks();
     const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter);
 
-    const pathname = 'http://github.com/yarnpkg/yarn.tgz';
+    const url = 'https://github.com/yarnpkg/yarn.tgz';
 
-    npmRegistry.request(pathname);
+    npmRegistry.request(url);
 
     const requestParams = mockRequestManager.request.mock.calls[0][0];
 
-    expect(requestParams.url).toBe(pathname);
+    expect(requestParams.url).toBe(url);
   });
 
   test('should not add authorization header if pathname not to registry', () => {
@@ -79,13 +79,31 @@ describe('request', () => {
     const {mockRequestManager, mockRegistries, mockReporter} = createMocks();
     const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter);
 
-    const pathname = 'http://github.com/yarnpkg/yarn.tgz';
+    const url = 'https://github.com/yarnpkg/yarn.tgz';
 
-    npmRegistry.request(pathname);
+    npmRegistry.request(url);
 
     const requestParams = mockRequestManager.request.mock.calls[0][0];
 
-    expect(requestParams.headers.authorization).toBe(undefined);
+    expect(requestParams.headers.authorization).toBeUndefined();
+  });
+
+  test('should not add authorization header if pathname not to registry and always-auth is true', () => {
+    const testCwd = '.';
+    const {mockRequestManager, mockRegistries, mockReporter} = createMocks();
+    const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter);
+
+    const url = 'https://github.com/yarnpkg/yarn.tgz';
+
+    npmRegistry.config = {
+      'always-auth': true,
+      _authToken: 'testAuthToken',
+    };
+    npmRegistry.request(url);
+
+    const requestParams = mockRequestManager.request.mock.calls[0][0];
+
+    expect(requestParams.headers.authorization).toBeUndefined();
   });
 
   test('should not add authorization header if pathname is to registry and always-auth is false', () => {
@@ -93,17 +111,17 @@ describe('request', () => {
     const {mockRequestManager, mockRegistries, mockReporter} = createMocks();
     const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter);
 
-    const pathname = 'https://registry.npmjs.org/yarnpkg/yarn.tgz';
+    const url = 'https://registry.npmjs.org/yarnpkg/yarn.tgz';
 
     npmRegistry.config = {
       'always-auth': false,
       _authToken: 'testAuthToken',
     };
-    npmRegistry.request(pathname);
+    npmRegistry.request(url);
 
     const requestParams = mockRequestManager.request.mock.calls[0][0];
 
-    expect(requestParams.headers.authorization).toBe(undefined);
+    expect(requestParams.headers.authorization).toBeUndefined();
   });
 
   test('should not add authorization header if pathname is to registry and not scopped package', () => {
@@ -111,16 +129,16 @@ describe('request', () => {
     const {mockRequestManager, mockRegistries, mockReporter} = createMocks();
     const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter);
 
-    const pathname = 'https://registry.npmjs.org/yarnpkg/yarn.tgz';
+    const url = 'https://registry.npmjs.org/yarnpkg/yarn.tgz';
 
     npmRegistry.config = {
       _authToken: 'testAuthToken',
     };
-    npmRegistry.request(pathname);
+    npmRegistry.request(url);
 
     const requestParams = mockRequestManager.request.mock.calls[0][0];
 
-    expect(requestParams.headers.authorization).toBe(undefined);
+    expect(requestParams.headers.authorization).toBeUndefined();
   });
 
   test('should add authorization header if pathname is to registry and always-auth is true', () => {
@@ -128,13 +146,13 @@ describe('request', () => {
     const {mockRequestManager, mockRegistries, mockReporter} = createMocks();
     const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter);
 
-    const pathname = 'https://registry.npmjs.org/yarnpkg/yarn.tgz';
+    const url = 'https://registry.npmjs.org/yarnpkg/yarn.tgz';
 
     npmRegistry.config = {
       'always-auth': true,
       _authToken: 'testAuthToken',
     };
-    npmRegistry.request(pathname);
+    npmRegistry.request(url);
 
     const requestParams = mockRequestManager.request.mock.calls[0][0];
 
@@ -146,15 +164,68 @@ describe('request', () => {
     const {mockRequestManager, mockRegistries, mockReporter} = createMocks();
     const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter);
 
-    const pathname = 'https://registry.npmjs.org/@testScope/yarn.tgz';
+    const url = 'https://registry.npmjs.org/@testScope/yarn.tgz';
 
     npmRegistry.config = {
       _authToken: 'testAuthToken',
     };
-    npmRegistry.request(pathname);
+    npmRegistry.request(url);
 
     const requestParams = mockRequestManager.request.mock.calls[0][0];
 
     expect(requestParams.headers.authorization).toBe('Bearer testAuthToken');
+  });
+});
+
+describe('isRequestToRegistry functional test', () => {
+  test('request to registry url matching', () => {
+    const testCwd = '.';
+    const {mockRequestManager, mockRegistries, mockReporter} = createMocks();
+    const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter);
+
+    expect(npmRegistry.isRequestToRegistry('http://foo.bar:80/foo/bar/baz', 'http://foo.bar/foo/')).toBe(true);
+
+    expect(npmRegistry.isRequestToRegistry('http://foo.bar/foo/bar/baz', 'http://foo.bar/foo/')).toBe(true);
+
+    expect(
+      npmRegistry.isRequestToRegistry(
+        'http://foo.bar/foo/00000000-1111-4444-8888-000000000000/baz',
+        'http://foo.bar/foo/',
+      ),
+    ).toBe(true);
+
+    expect(npmRegistry.isRequestToRegistry('https://foo.bar:443/foo/bar/baz', 'https://foo.bar/foo/')).toBe(true);
+
+    expect(npmRegistry.isRequestToRegistry('https://foo.bar/foo/bar/baz', 'https://foo.bar:443/foo/')).toBe(true);
+
+    expect(npmRegistry.isRequestToRegistry('https://foo.bar/foo/bar/baz', 'https://foo.bar:443/foo/')).toBe(true);
+
+    expect(npmRegistry.isRequestToRegistry('http://foo.bar:80/foo/bar/baz', 'https://foo.bar/foo/')).toBe(true);
+
+    expect(npmRegistry.isRequestToRegistry('https://wrong.thing/foo/bar/baz', 'https://foo.bar/foo/')).toBe(false);
+
+    expect(npmRegistry.isRequestToRegistry('https://foo.bar:1337/foo/bar/baz', 'https://foo.bar/foo/')).toBe(false);
+  });
+
+  test('isRequestToRegistry with custom host prefix', () => {
+    const testCwd = '.';
+    const {mockRequestManager, mockRegistries, mockReporter} = createMocks();
+    const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter);
+
+    npmRegistry.config = {
+      'custom-host-suffix': 'some.host.org',
+    };
+
+    expect(npmRegistry.isRequestToRegistry('http://pkgs.host.com:80/foo/bar/baz', 'http://pkgs.host.com/bar/baz')).toBe(
+      false,
+    );
+
+    npmRegistry.config = {
+      'custom-host-suffix': 'pkgs.host.com',
+    };
+
+    expect(npmRegistry.isRequestToRegistry('http://pkgs.host.com:80/foo/bar/baz', 'http://pkgs.host.com/bar/baz')).toBe(
+      true,
+    );
   });
 });
