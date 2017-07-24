@@ -77,6 +77,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
       key: 'repository',
       question: 'repository url',
       default: extractRepositoryUrl(repository),
+      isShorthand: /^[a-zA-Z0-9-_]*\/[a-zA-Z0-9-_]+$/
     },
     {
       key: 'author',
@@ -136,6 +137,9 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
         }
       } else {
         answer = (await reporter.question(question)) || def;
+        if (entry.isShorthand && entry.isShorthand.exec(answer)) {
+          answer = 'git+https://github.com/' + answer;
+        }
       }
     }
 
