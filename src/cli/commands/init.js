@@ -77,7 +77,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
       key: 'repository',
       question: 'repository url',
       default: extractRepositoryUrl(repository),
-      isShorthand: /^[a-zA-Z0-9-_]*\/[a-zA-Z0-9-_]+$/
+      isShorthand: /^[a-zA-Z0-9-_]*\/[a-zA-Z0-9-_]+$/,
     },
     {
       key: 'author',
