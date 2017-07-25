@@ -4,6 +4,7 @@ import type {Reporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
 import {stringifyPerson, extractRepositoryUrl} from '../../util/normalize-manifest/util.js';
 import {registryNames} from '../../registries/index.js';
+import GitHubResolver from '../../resolvers/exotics/github-resolver.js';
 import * as child from '../../util/child.js';
 import * as fs from '../../util/fs.js';
 import * as validate from '../../util/normalize-manifest/validate.js';
@@ -77,7 +78,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
       key: 'repository',
       question: 'repository url',
       default: extractRepositoryUrl(repository),
-      isShorthand: /^[a-zA-Z0-9-_]*\/[a-zA-Z0-9-_]+$/,
+      isShorthand: GitHubResolver.isVersion,
     },
     {
       key: 'author',
@@ -137,7 +138,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
         }
       } else {
         answer = (await reporter.question(question)) || def;
-        if (entry.isShorthand && entry.isShorthand.exec(answer)) {
+        if (entry.isShorthand && entry.isShorthand(answer)) {
           answer = 'https://github.com/' + answer;
         }
       }
