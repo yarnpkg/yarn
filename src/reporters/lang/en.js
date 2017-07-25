@@ -104,7 +104,7 @@ const messages = {
   noFilePermission: "We don't have permissions to touch the file $0.",
   allDependenciesUpToDate: 'All of your dependencies are up to date.',
   legendColorsForUpgradeInteractive:
-    'Color legend : \n $0    : Patch Update Backward-compatible bug fixes \n $1 : Minor Update backward-compatibles features',
+    'Color legend : \n $0    : Patch Update backward-compatible bug fixes \n $1 : Minor Update backward-compatible features',
   frozenLockfileError: 'Your lockfile needs to be updated, but yarn was run with `--frozen-lockfile`.',
   fileWriteError: 'Could not write file $0: $1',
   multiplePackagesCantUnpackInSameDestination:
