@@ -78,7 +78,6 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
       key: 'repository',
       question: 'repository url',
       default: extractRepositoryUrl(repository),
-      isShorthand: GitHubResolver.isVersion,
     },
     {
       key: 'author',
@@ -138,15 +137,16 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
         }
       } else {
         answer = (await reporter.question(question)) || def;
-        if (entry.isShorthand && entry.isShorthand(answer)) {
-          answer = 'https://github.com/' + answer;
-        }
       }
     }
 
     if (answer) {
       objectPath.set(pkg, manifestKey, answer);
     }
+  }
+
+  if (pkg.repository && GitHubResolver.isVersion(pkg.repository)) {
+    pkg.repository = `https://github.com/${pkg.repository}`;
   }
 
   // save answers
