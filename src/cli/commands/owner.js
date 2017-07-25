@@ -118,6 +118,34 @@ async function list(config: Config, reporter: Reporter, flags: Object, args: Arr
   }
 }
 
+function remove(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<boolean> {
+  return mutate(
+    args,
+    config,
+    reporter,
+    (username: string, name: string): Messages => ({
+      info: reporter.lang('ownerRemoving', username, name),
+      success: reporter.lang('ownerRemoved'),
+      error: reporter.lang('ownerRemoveError'),
+    }),
+    (user: Object, pkg: Object): boolean => {
+      let found = false;
+
+      pkg.maintainers = pkg.maintainers.filter((o): boolean => {
+        const match = o.name === user.name;
+        found = found || match;
+        return !match;
+      });
+
+      if (!found) {
+        reporter.error(reporter.lang('userNotAnOwner', user.name));
+      }
+
+      return found;
+    },
+  );
+}
+
 export const {run, setFlags, hasWrapper, examples} = buildSubCommands(
   'owner',
   {
@@ -147,31 +175,12 @@ export const {run, setFlags, hasWrapper, examples} = buildSubCommands(
     },
 
     rm(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<boolean> {
-      return mutate(
-        args,
-        config,
-        reporter,
-        (username: string, name: string): Messages => ({
-          info: reporter.lang('ownerRemoving', username, name),
-          success: reporter.lang('ownerRemoved'),
-          error: reporter.lang('ownerRemoveError'),
-        }),
-        (user: Object, pkg: Object): boolean => {
-          let found = false;
+      reporter.warn(`\`yarn owner rm\` is deprecated. Please use \`yarn owner remove\`.`);
+      return remove(config, reporter, flags, args);
+    },
 
-          pkg.maintainers = pkg.maintainers.filter((o): boolean => {
-            const match = o.name === user.name;
-            found = found || match;
-            return !match;
-          });
-
-          if (!found) {
-            reporter.error(reporter.lang('userNotAnOwner', user.name));
-          }
-
-          return found;
-        },
-      );
+    remove(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<boolean> {
+      return remove(config, reporter, flags, args);
     },
 
     ls(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<boolean> {
@@ -183,5 +192,5 @@ export const {run, setFlags, hasWrapper, examples} = buildSubCommands(
       return list(config, reporter, flags, args);
     },
   },
-  ['add <user> [[<@scope>/]<pkg>]', 'rm <user> [[<@scope>/]<pkg>]', 'ls [<@scope>/]<pkg>'],
+  ['add <user> [[<@scope>/]<pkg>]', 'remove <user> [[<@scope>/]<pkg>]', 'ls [<@scope>/]<pkg>'],
 );

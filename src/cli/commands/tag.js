@@ -52,6 +52,38 @@ async function list(config: Config, reporter: Reporter, flags: Object, args: Arr
   }
 }
 
+async function remove(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<boolean> {
+  if (args.length !== 2) {
+    return false;
+  }
+
+  const name = await getName(args, config);
+  const tag = args.shift();
+
+  reporter.step(1, 3, reporter.lang('loggingIn'));
+  const revoke = await getToken(config, reporter, name);
+
+  reporter.step(2, 3, reporter.lang('deletingTags'));
+  const result = await config.registries.npm.request(`-/package/${name}/dist-tags/${encodeURI(tag)}`, {
+    method: 'DELETE',
+  });
+
+  if (result === false) {
+    reporter.error(reporter.lang('deletedTagFail'));
+  } else {
+    reporter.success(reporter.lang('deletedTag'));
+  }
+
+  reporter.step(3, 3, reporter.lang('revokingToken'));
+  await revoke();
+
+  if (result === false) {
+    throw new Error();
+  } else {
+    return true;
+  }
+}
+
 export const {run, setFlags, hasWrapper, examples} = buildSubCommands(
   'tag',
   {
@@ -98,36 +130,13 @@ export const {run, setFlags, hasWrapper, examples} = buildSubCommands(
       }
     },
 
-    async rm(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<boolean> {
-      if (args.length !== 2) {
-        return false;
-      }
+    async rm(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
+      reporter.warn(`\`yarn tag rm\` is deprecated. Please use \`yarn tag remove\`.`);
+      await remove(config, reporter, flags, args);
+    },
 
-      const name = await getName(args, config);
-      const tag = args.shift();
-
-      reporter.step(1, 3, reporter.lang('loggingIn'));
-      const revoke = await getToken(config, reporter, name);
-
-      reporter.step(2, 3, reporter.lang('deletingTags'));
-      const result = await config.registries.npm.request(`-/package/${name}/dist-tags/${encodeURI(tag)}`, {
-        method: 'DELETE',
-      });
-
-      if (result === false) {
-        reporter.error(reporter.lang('deletedTagFail'));
-      } else {
-        reporter.success(reporter.lang('deletedTag'));
-      }
-
-      reporter.step(3, 3, reporter.lang('revokingToken'));
-      await revoke();
-
-      if (result === false) {
-        throw new Error();
-      } else {
-        return true;
-      }
+    async remove(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
+      await remove(config, reporter, flags, args);
     },
 
     async ls(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
@@ -139,5 +148,5 @@ export const {run, setFlags, hasWrapper, examples} = buildSubCommands(
       await list(config, reporter, flags, args);
     },
   },
-  ['add <pkg>@<version> [<tag>]', 'rm <pkg> <tag>', 'ls [<pkg>]'],
+  ['add <pkg>@<version> [<tag>]', 'remove <pkg> <tag>', 'ls [<pkg>]'],
 );
