@@ -194,6 +194,7 @@ const messages = {
 
   unmetPeer: '$0 has unmet peer dependency $1.',
   incorrectPeer: '$0 has incorrect peer dependency $1.',
+  missingBundledDependency: '$0 is missing a bundled dependency $1. This should be reported to the package maintainer.',
 
   savedNewDependency: 'Saved 1 new dependency.',
   savedNewDependencies: 'Saved $0 new dependencies.',
