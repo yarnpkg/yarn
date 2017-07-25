@@ -114,7 +114,7 @@ describe('request', () => {
     const url = 'https://registry.npmjs.org/yarnpkg/yarn.tgz';
 
     npmRegistry.config = {
-      'always-auth': false,
+      // Default is: 'always-auth': false,
       _authToken: 'testAuthToken',
     };
     npmRegistry.request(url);
@@ -183,28 +183,28 @@ describe('isRequestToRegistry functional test', () => {
     const {mockRequestManager, mockRegistries, mockReporter} = createMocks();
     const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter);
 
-    expect(npmRegistry.isRequestToRegistry('http://foo.bar:80/foo/bar/baz', 'http://foo.bar/foo/')).toBe(true);
+    const validRegistryUrls = [
+      ['http://foo.bar:80/foo/bar/baz', 'http://foo.bar/foo/'],
+      ['http://foo.bar:80/foo/bar/baz', 'https://foo.bar/foo/'],
+      ['http://foo.bar/foo/bar/baz', 'http://foo.bar/foo/'],
+      ['http://foo.bar/foo/00000000-1111-4444-8888-000000000000/baz', 'http://foo.bar/foo/'],
+      ['https://foo.bar:443/foo/bar/baz', 'https://foo.bar/foo/'],
+      ['http://foo.bar/foo/bar/baz', 'https://foo.bar:443/foo/'],
+      ['https://foo.bar/foo/bar/baz', 'https://foo.bar:443/foo/'],
+      ['HTTP://xn--xample-hva.com:80/foo/bar/baz', 'http://êxample.com/foo/bar/baz'],
+    ];
 
-    expect(npmRegistry.isRequestToRegistry('http://foo.bar/foo/bar/baz', 'http://foo.bar/foo/')).toBe(true);
+    const invalidRegistryUrls = [
+      ['https://wrong.thing/foo/bar/baz', 'https://foo.bar/foo/'],
+      ['https://foo.bar:1337/foo/bar/baz', 'https://foo.bar/foo/'],
+    ];
 
-    expect(
-      npmRegistry.isRequestToRegistry(
-        'http://foo.bar/foo/00000000-1111-4444-8888-000000000000/baz',
-        'http://foo.bar/foo/',
-      ),
-    ).toBe(true);
-
-    expect(npmRegistry.isRequestToRegistry('https://foo.bar:443/foo/bar/baz', 'https://foo.bar/foo/')).toBe(true);
-
-    expect(npmRegistry.isRequestToRegistry('https://foo.bar/foo/bar/baz', 'https://foo.bar:443/foo/')).toBe(true);
-
-    expect(npmRegistry.isRequestToRegistry('https://foo.bar/foo/bar/baz', 'https://foo.bar:443/foo/')).toBe(true);
-
-    expect(npmRegistry.isRequestToRegistry('http://foo.bar:80/foo/bar/baz', 'https://foo.bar/foo/')).toBe(true);
-
-    expect(npmRegistry.isRequestToRegistry('https://wrong.thing/foo/bar/baz', 'https://foo.bar/foo/')).toBe(false);
-
-    expect(npmRegistry.isRequestToRegistry('https://foo.bar:1337/foo/bar/baz', 'https://foo.bar/foo/')).toBe(false);
+    validRegistryUrls.forEach(([requestUrl, registryUrl]) =>
+      expect(npmRegistry.isRequestToRegistry(requestUrl, registryUrl)).toBe(true),
+    );
+    invalidRegistryUrls.forEach(([requestUrl, registryUrl]) =>
+      expect(npmRegistry.isRequestToRegistry(requestUrl, registryUrl)).toBe(false),
+    );
   });
 
   test('isRequestToRegistry with custom host prefix', () => {

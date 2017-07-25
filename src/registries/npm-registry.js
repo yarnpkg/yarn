@@ -13,6 +13,7 @@ import Registry from './base-registry.js';
 import {addSuffix} from '../util/misc';
 import {getPosixPath, resolveWithHome} from '../util/path';
 
+const normalizeUrl = require('normalize-url');
 const userHome = require('../util/user-home-dir').default;
 const path = require('path');
 const url = require('url');
@@ -21,9 +22,6 @@ const ini = require('ini');
 const DEFAULT_REGISTRY = 'https://registry.npmjs.org/';
 const REGEX_REGISTRY_PREFIX = /^https?:/;
 const REGEX_REGISTRY_SUFFIX = /registry\/?$/;
-
-const DEFAULT_HTTP_PORT = 80;
-const DEFAULT_HTTPS_PORT = 443;
 
 function getGlobalPrefix(): string {
   if (process.env.PREFIX) {
@@ -85,33 +83,22 @@ export default class NpmRegistry extends Registry {
     }
   }
 
-  getPortOrDefaultPort(port: ?string, protocol: ?string): ?string {
-    if (protocol === 'https:' && port === DEFAULT_HTTPS_PORT.toString()) {
-      return null;
-    }
-    if (protocol === 'http:' && port === DEFAULT_HTTP_PORT.toString()) {
-      return null;
-    }
-    return port;
-  }
-
-  isRequestToRegistry(requestUrl: string, registry: string): boolean {
-    const requestParsed = url.parse(requestUrl);
-    const registryParsed = url.parse(registry);
-    const requestHost = requestParsed.hostname || '';
-    const registryHost = registryParsed.hostname || '';
-    const requestPort = this.getPortOrDefaultPort(requestParsed.port, requestParsed.protocol);
-    const registryPort = this.getPortOrDefaultPort(registryParsed.port, registryParsed.protocol);
+  isRequestToRegistry(requestUrl: string, registryUrl: string): boolean {
+    const normalizedRequestUrl = normalizeUrl(requestUrl);
+    const normalizedRegistryUrl = normalizeUrl(registryUrl);
+    const requestParsed = url.parse(normalizedRequestUrl);
+    const registryParsed = url.parse(normalizedRegistryUrl);
+    const requestHost = requestParsed.host || '';
+    const registryHost = registryParsed.host || '';
     const requestPath = requestParsed.path || '';
     const registryPath = registryParsed.path || '';
-    const customHostSuffix = this.getRegistryOrGlobalOption(registry, 'custom-host-suffix');
+    const customHostSuffix = this.getRegistryOrGlobalOption(registryUrl, 'custom-host-suffix');
 
     return (
       requestHost === registryHost &&
-      requestPort === registryPort &&
       (requestPath.startsWith(registryPath) ||
         // For some registries, the package path does not prefix with the registry path
-        (typeof customHostSuffix === 'string' && customHostSuffix.length > 0 && requestHost.endsWith(customHostSuffix)))
+        (typeof customHostSuffix === 'string' && requestHost.endsWith(customHostSuffix)))
     );
   }
 
