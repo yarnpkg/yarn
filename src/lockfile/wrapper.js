@@ -22,7 +22,7 @@ type Dependencies = {
 export type LockManifest = {
   name: string,
   version: string,
-  resolved: string,
+  resolved: ?string,
   registry: RegistryNames,
   uid: string,
   permissions: ?{[key: string]: boolean},
@@ -33,12 +33,16 @@ export type LockManifest = {
 type MinimalLockManifest = {
   name: ?string,
   version: string,
-  resolved: string,
+  resolved: ?string,
   registry: ?RegistryNames,
   uid: ?string,
   permissions: ?{[key: string]: boolean},
   optionalDependencies: ?Dependencies,
   dependencies: ?Dependencies,
+};
+
+export type LockfileObject = {
+  [key: string]: LockManifest,
 };
 
 function getName(pattern: string): string {
@@ -141,7 +145,7 @@ export default class Lockfile {
     delete cache[pattern];
   }
 
-  getLockfile(patterns: {[packagePattern: string]: Manifest}): Object {
+  getLockfile(patterns: {[packagePattern: string]: Manifest}): LockfileObject {
     const lockfile = {};
     const seen: Map<string, Object> = new Map();
 

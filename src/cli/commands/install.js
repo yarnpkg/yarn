@@ -6,6 +6,7 @@ import type {ReporterSelectOption} from '../../reporters/types.js';
 import type {Manifest, DependencyRequestPatterns} from '../../types.js';
 import type Config from '../../config.js';
 import type {RegistryNames} from '../../registries/index.js';
+import type {LockfileObject} from '../../lockfile/wrapper.js';
 import normalizeManifest from '../../util/normalize-manifest/index.js';
 import {MessageError} from '../../errors.js';
 import InstallationIntegrityChecker from '../../integrity-checker.js';
@@ -625,7 +626,7 @@ export class Install {
    * Remove offline tarballs that are no longer required
    */
 
-  async pruneOfflineMirror(lockfile: Object): Promise<void> {
+  async pruneOfflineMirror(lockfile: LockfileObject): Promise<void> {
     const mirror = this.config.getOfflineMirrorPath();
     if (!mirror) {
       return;

@@ -176,7 +176,7 @@ export default class InstallationIntegrityChecker {
     }
 
     Object.keys(lockfile).forEach(key => {
-      result.lockfileEntries[key] = lockfile[key].resolved;
+      result.lockfileEntries[key] = lockfile[key].resolved || '';
     });
 
     if (flags.checkFiles) {
