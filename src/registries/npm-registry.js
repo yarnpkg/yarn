@@ -13,6 +13,7 @@ import Registry from './base-registry.js';
 import {addSuffix} from '../util/misc';
 import {getPosixPath, resolveWithHome} from '../util/path';
 
+const normalizeUrl = require('normalize-url');
 const userHome = require('../util/user-home-dir').default;
 const path = require('path');
 const url = require('url');
@@ -72,9 +73,39 @@ export default class NpmRegistry extends Registry {
     return name.replace('/', '%2f');
   }
 
+  getRequestUrl(registry: string, pathname: string): string {
+    const isUrl = /^https?:/.test(pathname);
+
+    if (isUrl) {
+      return pathname;
+    } else {
+      return url.resolve(registry, pathname);
+    }
+  }
+
+  isRequestToRegistry(requestUrl: string, registryUrl: string): boolean {
+    const normalizedRequestUrl = normalizeUrl(requestUrl);
+    const normalizedRegistryUrl = normalizeUrl(registryUrl);
+    const requestParsed = url.parse(normalizedRequestUrl);
+    const registryParsed = url.parse(normalizedRegistryUrl);
+    const requestHost = requestParsed.host || '';
+    const registryHost = registryParsed.host || '';
+    const requestPath = requestParsed.path || '';
+    const registryPath = registryParsed.path || '';
+    const customHostSuffix = this.getRegistryOrGlobalOption(registryUrl, 'custom-host-suffix');
+
+    return (
+      requestHost === registryHost &&
+      (requestPath.startsWith(registryPath) ||
+        // For some registries, the package path does not prefix with the registry path
+        (typeof customHostSuffix === 'string' && requestHost.endsWith(customHostSuffix)))
+    );
+  }
+
   request(pathname: string, opts?: RegistryRequestOptions = {}, packageName: ?string): Promise<*> {
     const registry = this.getRegistry(packageName || pathname);
-    const requestUrl = url.resolve(registry, pathname);
+    const requestUrl = this.getRequestUrl(registry, pathname);
+
     const alwaysAuth = this.getRegistryOrGlobalOption(registry, 'always-auth');
 
     const headers = Object.assign(
@@ -87,8 +118,10 @@ export default class NpmRegistry extends Registry {
     const packageIdent = packageName || pathname;
     const isScoppedPackage = packageIdent.match(/^@|\/@/);
 
+    const isToRegistry = this.isRequestToRegistry(requestUrl, registry);
+
     // this.token must be checked to account for publish requests on non-scopped packages
-    if (this.token || alwaysAuth || isScoppedPackage) {
+    if (this.token || (isToRegistry && (alwaysAuth || isScoppedPackage))) {
       const authorization = this.getAuth(packageName || pathname);
       if (authorization) {
         headers.authorization = authorization;
