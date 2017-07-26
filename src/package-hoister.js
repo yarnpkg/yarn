@@ -204,9 +204,12 @@ export default class PackageHoister {
       for (const depPattern of ref.dependencies) {
         const depinfo = this._lookupDependency(info, depPattern);
 
-        const isMarkedAsOptional = depinfo.pkg._reference ? depinfo.pkg._reference && this.ignoreOptional : true;
+        if (!depinfo) {
+          continue;
+        }
 
-        if (depinfo && !depinfo.isRequired && !depinfo.isIncompatible && !isMarkedAsOptional) {
+        const isMarkedAsOptional = !depinfo.pkg._reference || this.ignoreOptional;
+        if (!depinfo.isRequired && !depinfo.isIncompatible && !isMarkedAsOptional) {
           depinfo.isRequired = true;
           depinfo.addHistory(`Mark as non-ignored because of usage by ${info.key}`);
           toVisit.push(depinfo);
