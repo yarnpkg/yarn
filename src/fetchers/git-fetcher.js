@@ -67,36 +67,21 @@ export default class GitFetcher extends BaseFetcher {
   }
 
   async fetchFromLocal(override: ?string): Promise<FetchedOverride> {
-    let cachedStream;
-    const triedPaths = [];
-    for (const tarballPath of this.getLocalPaths(override)) {
-      if (tarballPath) {
-        try {
-          cachedStream = await new Promise((resolve, reject) => {
-            const stream = fs.createReadStream(tarballPath);
-            stream.on('error', reject).on('readable', resolve.bind(this, stream));
-          });
-          break;
-        } catch (err) {
-          // Try the next one
-          triedPaths.push(tarballPath);
-        }
-      }
-    }
+    const {stream, triedPaths} = await fsUtil.readFirstAvailableStream(this.getLocalPaths(override));
 
     return new Promise((resolve, reject) => {
-      if (!cachedStream) {
+      if (!stream) {
         reject(new MessageError(this.reporter.lang('tarballNotInNetworkOrCache', this.reference, triedPaths)));
         return;
       }
-      invariant(cachedStream, 'cachedStream should be available at this point');
+      invariant(stream, 'cachedStream should be available at this point');
       // $FlowFixMe - This is available https://nodejs.org/api/fs.html#fs_readstream_path
-      const tarballPath = cachedStream.path;
+      const tarballPath = stream.path;
 
       const untarStream = this._createUntarStream(this.dest);
 
       const hashStream = new crypto.HashStream();
-      cachedStream
+      stream
         .pipe(hashStream)
         .pipe(untarStream)
         .on('finish', () => {
