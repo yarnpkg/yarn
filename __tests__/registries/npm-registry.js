@@ -271,6 +271,7 @@ describe('getScope functional test', () => {
     test('in pathname', () => {
       const pathnames = [
         ['http://foo.bar:80/foo/bar/baz', ''],
+        ['http://foo.bar:80/@scopedNoPkg', ''],
         ['http://foo.bar:80/@scope/bar/baz', '@scope'],
         ['http://foo.bar:80/@scope%2fbar/baz', '@scope'],
         ['http://foo.bar:80/invalid@scope%2fbar/baz', ''],

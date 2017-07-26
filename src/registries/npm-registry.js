@@ -50,7 +50,7 @@ function isPathConfigOption(key: string): boolean {
 
 function isScopedPackage(packageIdent: string): boolean {
   // scoped package names will begin with '@', scoped path names will contain '/@'
-  return !!packageIdent.match(/^@|\/@/);
+  return /^@|\/@/.test(packageIdent);
 }
 
 function normalizePath(val: mixed): ?string {
@@ -222,13 +222,9 @@ export default class NpmRegistry extends Registry {
   }
 
   getScope(packageIdent: string): string {
-    // Matches '@scope' in a packageName or pathname, otherwise returns ''
-    if (packageIdent && isScopedPackage(packageIdent)) {
-      const matched = packageIdent.match(/(^@|(?!\/)@).+?((?=%2f)|(?=\/))/);
-      return (matched && matched[0]) || '';
-    }
-
-    return '';
+    // Matches strings beginning with @ or contain /@ up until the next forward slash
+    const match = packageIdent.replace('%2f', '/').match(/(^@|\/@)(.+?)(?=\/)/);
+    return (match && '@' + match[2]) || '';
   }
 
   getRegistry(packageIdent: string): string {
