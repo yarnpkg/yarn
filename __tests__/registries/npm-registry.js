@@ -176,7 +176,7 @@ describe('request', () => {
     expect(requestParams.headers.authorization).toBe('Bearer testAuthToken');
   });
 
-  test('should add authorization header with correct token for scoped package', () => {
+  test('should add authorization header with token for a configured scope if pathname is to registry and is scoped package', () => {
     const testCwd = '.';
     const {mockRequestManager, mockRegistries, mockReporter} = createMocks();
     const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter);
