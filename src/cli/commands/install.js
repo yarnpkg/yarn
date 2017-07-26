@@ -278,12 +278,7 @@ export class Install {
 
       pushDeps('dependencies', projectManifestJson, {hint: null, optional: false}, true);
       pushDeps('devDependencies', projectManifestJson, {hint: 'dev', optional: false}, !this.config.production);
-      pushDeps(
-        'optionalDependencies',
-        projectManifestJson,
-        {hint: 'optional', optional: true},
-        !this.flags.ignoreOptional,
-      );
+      pushDeps('optionalDependencies', projectManifestJson, {hint: 'optional', optional: true}, true);
 
       if (this.config.workspacesEnabled) {
         const workspaces = await this.config.resolveWorkspaces(path.dirname(loc), projectManifestJson);
@@ -461,7 +456,10 @@ export class Install {
       // remove integrity hash to make this operation atomic
       await this.integrityChecker.removeIntegrityFile();
       this.reporter.step(curr, total, this.reporter.lang('linkingDependencies'), emoji.get('link'));
-      await this.linker.init(flattenedTopLevelPatterns, this.flags.linkDuplicates, workspaceLayout);
+      await this.linker.init(flattenedTopLevelPatterns, workspaceLayout, {
+        linkDuplicates: this.flags.linkDuplicates,
+        ignoreOptional: this.flags.ignoreOptional,
+      });
     });
 
     steps.push(async (curr: number, total: number) => {
