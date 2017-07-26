@@ -24,6 +24,11 @@ const messages = {
   clearedPackageFromCache: 'Cleared package $0 from cache',
   packWroteTarball: 'Wrote tarball to $0.',
 
+  helpExamples: '  Examples:\n$0\n',
+  helpCommands: '  Commands:\n$0\n',
+  helpCommandsMore: '  Run `$0` for more information on specific commands.',
+  helpLearnMore: '  Visit $0 to learn more about Yarn.\n',
+
   manifestPotentialTypo: 'Potential typo $0, did you mean $1?',
   manifestBuiltinModule: '$0 is also the name of a node core module',
   manifestNameDot: "Name can't start with a dot",
