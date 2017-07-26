@@ -175,6 +175,24 @@ describe('request', () => {
 
     expect(requestParams.headers.authorization).toBe('Bearer testAuthToken');
   });
+
+  test('should add authorization header with correct token for scoped package', () => {
+    const testCwd = '.';
+    const {mockRequestManager, mockRegistries, mockReporter} = createMocks();
+    const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter);
+
+    const url = 'https://some.other.registry/@testScope/yarn.tgz';
+
+    npmRegistry.config = {
+      '//some.other.registry/:_authToken': 'testScopedAuthToken',
+      '@testScope:registry': '//some.other.registry/',
+    };
+    npmRegistry.request(url);
+
+    const requestParams = mockRequestManager.request.mock.calls[0][0];
+
+    expect(requestParams.headers.authorization).toBe('Bearer testScopedAuthToken');
+  });
 });
 
 describe('isRequestToRegistry functional test', () => {
@@ -227,5 +245,40 @@ describe('isRequestToRegistry functional test', () => {
     expect(npmRegistry.isRequestToRegistry('http://pkgs.host.com:80/foo/bar/baz', 'http://pkgs.host.com/bar/baz')).toBe(
       true,
     );
+  });
+});
+
+describe('getScope functional test', () => {
+  describe('matches scope correctly', () => {
+    const testCwd = '.';
+    const {mockRequestManager, mockRegistries, mockReporter} = createMocks();
+    const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter);
+
+    test('in package names', () => {
+      const packageNames = [
+        ['normal', ''],
+        ['normal-package', ''],
+        ['@scopedNoPkg', ''],
+        ['@scoped/pkg', '@scoped'],
+        ['invalid@scope/pkg', ''],
+      ];
+
+      packageNames.forEach(([packageName, scope]) => {
+        expect(npmRegistry.getScope(packageName)).toEqual(scope);
+      });
+    });
+
+    test('in pathname', () => {
+      const pathnames = [
+        ['http://foo.bar:80/foo/bar/baz', ''],
+        ['http://foo.bar:80/@scope/bar/baz', '@scope'],
+        ['http://foo.bar:80/@scope%2fbar/baz', '@scope'],
+        ['http://foo.bar:80/invalid@scope%2fbar/baz', ''],
+      ];
+
+      pathnames.forEach(([pathname, scope]) => {
+        expect(npmRegistry.getScope(pathname)).toEqual(scope);
+      });
+    });
   });
 });
