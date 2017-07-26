@@ -493,10 +493,10 @@ export default class Config {
   }
 
   /**
- * try get the manifest file by looking
- * 1. manifest file in cache
- * 2. manifest file in registry
- */
+   * try get the manifest file by looking
+   * 1. manifest file in cache
+   * 2. manifest file in registry
+   */
   async maybeReadManifest(dir: string, priorityRegistry?: RegistryNames, isRoot?: boolean = false): Promise<?Manifest> {
     const metadataLoc = path.join(dir, constants.METADATA_FILENAME);
 
