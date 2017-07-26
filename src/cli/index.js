@@ -367,6 +367,6 @@ export default function main({
         reporter.info(commands[commandName].getDocsInfo);
       }
 
-      process.exit(1);
+      process.exit(1); // eslint-disable-line no-process-exit
     });
 }
