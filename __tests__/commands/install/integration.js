@@ -1,6 +1,6 @@
 /* @flow */
 
-import type Config from '../../../src/config';
+import Config from '../../../src/config';
 import PackageResolver from '../../../src/package-resolver.js';
 import {run as add} from '../../../src/cli/commands/add.js';
 import {run as cache} from '../../../src/cli/commands/cache.js';
@@ -58,6 +58,22 @@ test.concurrent('install optional subdependencies by default', async () => {
 test.concurrent('installing with --ignore-optional should not install optional subdependencies', async () => {
   await runInstall({ignoreOptional: true}, 'install-optional-dependencies', async (config): Promise<void> => {
     expect(await fs.exists(`${config.cwd}/node_modules/dep-b`)).toEqual(false);
+  });
+});
+
+test.concurrent('running install inside a workspace should run the install from the root of the workspace', async () => {
+  await runInstall({}, 'install-workspaces', async (config, reporter): Promise<void> => {
+    const pkgJson = await fs.readJson(`${config.cwd}/workspace/package.json`);
+    pkgJson.dependencies['b'] = 'file:../b';
+    await fs.writeFile(`${config.cwd}/workspace/package.json`, JSON.stringify(pkgJson));
+
+    const workspaceConfig = await Config.create({cwd: `${config.cwd}/workspace`}, reporter);
+
+    const reInstall = new Install({}, workspaceConfig, reporter, await Lockfile.fromDirectory(config.cwd));
+    await reInstall.init();
+
+    expect((await fs.readFile(`${config.cwd}/yarn.lock`)).indexOf(`"b@file:b"`)).not.toEqual(-1);
+    expect((await fs.readFile(`${config.cwd}/yarn.lock`)).indexOf(`"a@file:./a"`)).not.toEqual(-1);
   });
 });
 
