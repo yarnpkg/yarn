@@ -306,4 +306,11 @@ export default (async function(
       info.license = inferredLicense;
     }
   }
+
+  for (const hint of ['dependencies', 'devDependencies', 'optionalDependencies', 'peerDependencies']) {
+    if (info[hint]) {
+      delete info[hint]['//'];
+    }
+  }
+
 });

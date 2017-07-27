@@ -221,21 +221,15 @@ export class Install {
 
     for (const registry of Object.keys(registries)) {
       const {filename} = registries[registry];
-      const loc = path.join(this.config.cwd, filename);
+      const loc = path.join(this.config.lockfileFolder, filename);
       if (!await fs.exists(loc)) {
         continue;
       }
 
       this.rootManifestRegistries.push(registry);
+
       const projectManifestJson = await this.config.readJson(loc);
-
-      ['dependencies', 'devDependencies', 'optionalDependencies', 'peerDependencies'].forEach(dependencyKey => {
-        if (projectManifestJson[dependencyKey]) {
-          delete projectManifestJson[dependencyKey]['//'];
-        }
-      });
-
-      await normalizeManifest(projectManifestJson, this.config.cwd, this.config, true);
+      await normalizeManifest(projectManifestJson, this.config.lockfileFolder, this.config, true);
 
       Object.assign(this.resolutions, projectManifestJson.resolutions);
       Object.assign(manifest, projectManifestJson);
@@ -352,7 +346,7 @@ export class Install {
       throw new MessageError(this.reporter.lang('frozenLockfileError'));
     }
 
-    const haveLockfile = await fs.exists(path.join(this.config.cwd, constants.LOCKFILE_FILENAME));
+    const haveLockfile = await fs.exists(path.join(this.config.lockfileFolder, constants.LOCKFILE_FILENAME));
 
     if (match.integrityMatches && haveLockfile) {
       this.reporter.success(this.reporter.lang('upToDate'));
@@ -381,7 +375,7 @@ export class Install {
 
     for (const registryName of this.rootManifestRegistries) {
       const {folder} = this.config.registries[registryName];
-      await fs.mkdirp(path.join(this.config.cwd, folder));
+      await fs.mkdirp(path.join(this.config.lockfileFolder, folder));
     }
   }
 
@@ -409,7 +403,7 @@ export class Install {
     this.checkUpdate();
 
     // warn if we have a shrinkwrap
-    if (await fs.exists(path.join(this.config.cwd, 'npm-shrinkwrap.json'))) {
+    if (await fs.exists(path.join(this.config.lockfileFolder, 'npm-shrinkwrap.json'))) {
       this.reporter.warn(this.reporter.lang('shrinkwrapWarning'));
     }
 
@@ -511,7 +505,7 @@ export class Install {
 
     // fin!
     // The second condition is to make sure lockfile can be updated when running `remove` command.
-    if (topLevelPatterns.length || (await fs.exists(path.join(this.config.cwd, constants.LOCKFILE_FILENAME)))) {
+    if (topLevelPatterns.length || (await fs.exists(path.join(this.config.lockfileFolder, constants.LOCKFILE_FILENAME)))) {
       await this.saveLockfileAndIntegrity(topLevelPatterns, workspaceLayout);
     } else {
       this.reporter.info(this.reporter.lang('notSavedLockfileNoDependencies'));
@@ -526,7 +520,7 @@ export class Install {
    */
 
   shouldClean(): Promise<boolean> {
-    return fs.exists(path.join(this.config.cwd, constants.CLEAN_FILENAME));
+    return fs.exists(path.join(this.config.lockfileFolder, constants.CLEAN_FILENAME));
   }
 
   /**

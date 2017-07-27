@@ -292,7 +292,7 @@ export default class Git {
       if (await fs.exists(cwd)) {
         await Git.spawn(['pull'], {cwd});
       } else {
-        await Git.spawn(['clone', gitUrl.repository, cwd]);
+        await Git.spawn(['clone', gitUrl.repository, cwd], {cwd: this.config.cwd});
       }
 
       this.fetched = true;
