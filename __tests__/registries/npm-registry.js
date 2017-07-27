@@ -176,7 +176,7 @@ describe('request', () => {
     expect(requestParams.headers.authorization).toBe('Bearer testAuthToken');
   });
 
-  test('should add authorization header with token for scope if pathname is to registry and is scoped package', () => {
+  test('should add authorization header with token for custom registries with a scoped package', () => {
     const testCwd = '.';
     const {mockRequestManager, mockRegistries, mockReporter} = createMocks();
     const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter);
@@ -258,7 +258,7 @@ describe('getScope functional test', () => {
       const packageNames = [
         ['normal', ''],
         ['normal-package', ''],
-        ['@scopedNoPkg', ''],
+        ['@scopedNoPkg', '@scopedNoPkg'],
         ['@scoped/pkg', '@scoped'],
         ['invalid@scope/pkg', ''],
       ];
@@ -271,7 +271,7 @@ describe('getScope functional test', () => {
     test('in pathname', () => {
       const pathnames = [
         ['http://foo.bar:80/foo/bar/baz', ''],
-        ['http://foo.bar:80/@scopedNoPkg', ''],
+        ['http://foo.bar:80/@scopedNoPkg', '@scopedNoPkg'],
         ['http://foo.bar:80/@scope/bar/baz', '@scope'],
         ['http://foo.bar:80/@scope%2fbar/baz', '@scope'],
         ['http://foo.bar:80/invalid@scope%2fbar/baz', ''],

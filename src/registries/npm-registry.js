@@ -222,9 +222,15 @@ export default class NpmRegistry extends Registry {
   }
 
   getScope(packageIdent: string): string {
-    // Matches strings beginning with @ or contain /@ up until the next forward slash
-    const match = packageIdent.replace('%2f', '/').match(/(^@|\/@)(.+?)(?=\/)/);
-    return (match && '@' + match[2]) || '';
+    // removing escaped / from package names in full paths
+    packageIdent = packageIdent.replace('%2f', '/');
+
+    // Matches the first path segment that starts with an `@`. The RegEx is constructed as follows:
+    // `(?:^|\/)` Match either the start of the string or a `/` but don't capture
+    // `(@[^?\/]+)` Match a string starting with an `@` and not having any `/` or `?` in it and capture
+    // `(?:[?\/]|$)/)` Match a path delimiter, a query string delimiter or the end of the string but don't capture
+    const match = packageIdent.replace('%2f', '/').match(/(?:^|\/)(@[^?\/]+)(?:[?\/]|$)/);
+    return (match && match[1]) || '';
   }
 
   getRegistry(packageIdent: string): string {
