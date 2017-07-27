@@ -312,5 +312,4 @@ export default (async function(
       delete info[hint]['//'];
     }
   }
-
 });
