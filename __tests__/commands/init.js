@@ -1,6 +1,6 @@
 /* @flow */
 
-import {ConsoleReporter} from '../../src/reporters/index.js';
+import {ConsoleReporter, TestReporter} from '../../src/reporters/index.js';
 import {run as buildRun} from './_helpers.js';
 import {getGitConfigInfo, run as runInit} from '../../src/cli/commands/init.js';
 import * as fs from '../../src/util/fs.js';
@@ -15,6 +15,9 @@ const execInit = buildRun.bind(
   ConsoleReporter,
   fixturesLoc,
   (args, flags, config, reporter, lockfile): Promise<void> => {
+    if (flags.hasOwnProperty('questionMap')) {
+      reporter = new TestReporter(flags.questionMap);
+    }
     return runInit(config, reporter, flags, args);
   },
   [],
@@ -30,6 +33,29 @@ test.concurrent('init --yes should create package.json with defaults', (): Promi
     expect(manifest.main).toEqual('index.js');
     expect(manifest.version).toEqual(String(config.getOption('init-version')));
     expect(manifest.license).toEqual(String(config.getOption('init-license')));
+  });
+});
+
+test.concurrent('init using Github shorthand should resolve to full repository URL', (): Promise<void> => {
+  const inputMap = {
+    name: '',
+    version: '',
+    description: '',
+    'entry point': '',
+    'repository url': 'user/repo',
+    author: '',
+    license: '',
+  };
+  return execInit({questionMap: inputMap}, 'init-github', async (config): Promise<void> => {
+    const {cwd} = config;
+    const manifestFile = await fs.readFile(path.join(cwd, 'package.json'));
+    const manifest = JSON.parse(manifestFile);
+
+    expect(manifest.name).toEqual(path.basename(cwd));
+    expect(manifest.main).toEqual('index.js');
+    expect(manifest.version).toEqual(String(config.getOption('init-version')));
+    expect(manifest.license).toEqual(String(config.getOption('init-license')));
+    expect(manifest.repository).toEqual('https://github.com/user/repo');
   });
 });
 
