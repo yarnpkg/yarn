@@ -7,7 +7,7 @@ import * as constants from '../constants.js';
 import * as crypto from '../util/crypto.js';
 import BaseFetcher from './base-fetcher.js';
 import * as fsUtil from '../util/fs.js';
-import {sleep} from '../util/misc.js';
+import {removePrefix, sleep} from '../util/misc.js';
 
 const path = require('path');
 const tarFs = require('tar-fs');
@@ -15,7 +15,7 @@ const url = require('url');
 const fs = require('fs');
 const stream = require('stream');
 const gunzip = require('gunzip-maybe');
-import {removePrefix} from '../util/misc.js';
+const invariant = require('invariant');
 
 export default class TarballFetcher extends BaseFetcher {
   async setupMirrorFromCache(): Promise<?string> {
@@ -31,21 +31,6 @@ export default class TarballFetcher extends BaseFetcher {
       await fsUtil.mkdirp(path.dirname(tarballMirrorPath));
       await fsUtil.copy(tarballCachePath, tarballMirrorPath, this.reporter);
     }
-  }
-
-  async getLocalAvailabilityStatus(): Promise<boolean> {
-    const tarballMirrorPath = this.getTarballMirrorPath();
-    const tarballCachePath = this.getTarballCachePath();
-
-    if (tarballMirrorPath != null && (await fsUtil.exists(tarballMirrorPath))) {
-      return true;
-    }
-
-    if (await fsUtil.exists(tarballCachePath)) {
-      return true;
-    }
-
-    return false;
   }
 
   getTarballCachePath(): string {
@@ -112,21 +97,28 @@ export default class TarballFetcher extends BaseFetcher {
     return {validateStream, extractorStream};
   }
 
-  async fetchFromLocal(override: ?string): Promise<FetchedOverride> {
-    const tarballMirrorPath = this.getTarballMirrorPath();
-    const tarballCachePath = this.getTarballCachePath();
-
-    const tarballPath = path.resolve(this.config.cwd, override || tarballMirrorPath || tarballCachePath);
-
-    if (!tarballPath || !await fsUtil.exists(tarballPath)) {
-      throw new MessageError(this.config.reporter.lang('tarballNotInNetworkOrCache', this.reference, tarballPath));
+  *getLocalPaths(override: ?string): Generator<?string, void, void> {
+    if (override) {
+      yield path.resolve(this.config.cwd, override);
     }
+    yield this.getTarballMirrorPath();
+    yield this.getTarballCachePath();
+  }
+
+  async fetchFromLocal(override: ?string): Promise<FetchedOverride> {
+    const {stream, triedPaths} = await fsUtil.readFirstAvailableStream(this.getLocalPaths(override));
 
     return new Promise((resolve, reject) => {
+      if (!stream) {
+        reject(new MessageError(this.reporter.lang('tarballNotInNetworkOrCache', this.reference, triedPaths)));
+        return;
+      }
+      invariant(stream, 'stream should be available at this point');
+      // $FlowFixMe - This is available https://nodejs.org/api/fs.html#fs_readstream_path
+      const tarballPath = stream.path;
       const {validateStream, extractorStream} = this.createExtractor(resolve, reject, tarballPath);
-      const cachedStream = fs.createReadStream(tarballPath);
 
-      cachedStream.pipe(validateStream).pipe(extractorStream).on('error', err => {
+      stream.pipe(validateStream).pipe(extractorStream).on('error', err => {
         reject(new MessageError(this.config.reporter.lang('fetchErrorCorrupt', err.message, tarballPath)));
       });
     });
@@ -194,7 +186,7 @@ export default class TarballFetcher extends BaseFetcher {
     throw new Error('Ran out of retries!');
   }
 
-  async _fetch(): Promise<FetchedOverride> {
+  _fetch(): Promise<FetchedOverride> {
     const isFilePath = this.reference.startsWith('file:');
     this.reference = removePrefix(this.reference, 'file:');
     const urlParse = url.parse(this.reference);
@@ -208,11 +200,7 @@ export default class TarballFetcher extends BaseFetcher {
       return this.fetchFromLocal(this.reference);
     }
 
-    if (await this.getLocalAvailabilityStatus()) {
-      return this.fetchFromLocal();
-    } else {
-      return this.fetchFromExternal();
-    }
+    return this.fetchFromLocal().catch(err => this.fetchFromExternal());
   }
 }
 
