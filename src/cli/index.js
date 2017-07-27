@@ -367,6 +367,7 @@ export default function main({
         reporter.info(commands[commandName].getDocsInfo);
       }
 
-      process.exit(1);
+      reporter.close();
+      process.exitCode = 1;
     });
 }
