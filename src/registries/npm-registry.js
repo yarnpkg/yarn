@@ -23,6 +23,12 @@ const DEFAULT_REGISTRY = 'https://registry.npmjs.org/';
 const REGEX_REGISTRY_PREFIX = /^https?:/;
 const REGEX_REGISTRY_SUFFIX = /registry\/?$/;
 
+// All scoped package names are of the format `@scope%2fpkg` from the use of NpmRegistry.escapeName
+// `(?:^|\/)` Match either the start of the string or a `/` but don't capture
+// `[^\/?]*?` Match any character that is not '/' or '?' and capture, up until the first occurance of:
+// `%2f` Match '%2f' the escaped forward slash and don't capture
+const SCOPED_PKG_REGEXP = /(?:^|\/)(@[^\/?]*?)(?=%2f)/;
+
 function getGlobalPrefix(): string {
   if (process.env.PREFIX) {
     return process.env.PREFIX;
@@ -48,11 +54,6 @@ function isPathConfigOption(key: string): boolean {
   return PATH_CONFIG_OPTIONS.indexOf(key) >= 0;
 }
 
-function isScopedPackage(packageIdent: string): boolean {
-  // scoped package names will begin with '@', scoped path names will contain '/@'
-  return /^@|\/@/.test(packageIdent);
-}
-
 function normalizePath(val: mixed): ?string {
   if (val === undefined) {
     return undefined;
@@ -76,6 +77,10 @@ export default class NpmRegistry extends Registry {
   static escapeName(name: string): string {
     // scoped packages contain slashes and the npm registry expects them to be escaped
     return name.replace('/', '%2f');
+  }
+
+  isScopedPackage(packageIdent: string): boolean {
+    return SCOPED_PKG_REGEXP.test(packageIdent);
   }
 
   getRequestUrl(registry: string, pathname: string): string {
@@ -108,7 +113,8 @@ export default class NpmRegistry extends Registry {
   }
 
   request(pathname: string, opts?: RegistryRequestOptions = {}, packageName: ?string): Promise<*> {
-    const packageIdent = packageName || pathname;
+    // packageName needs to be escaped when if it is passed
+    const packageIdent = (packageName && NpmRegistry.escapeName(packageName)) || pathname;
     const registry = this.getRegistry(packageIdent);
     const requestUrl = this.getRequestUrl(registry, pathname);
 
@@ -124,7 +130,7 @@ export default class NpmRegistry extends Registry {
     const isToRegistry = this.isRequestToRegistry(requestUrl, registry);
 
     // this.token must be checked to account for publish requests on non-scopped packages
-    if (this.token || (isToRegistry && (alwaysAuth || isScopedPackage(packageIdent)))) {
+    if (this.token || (isToRegistry && (alwaysAuth || this.isScopedPackage(packageIdent)))) {
       const authorization = this.getAuth(packageIdent);
       if (authorization) {
         headers.authorization = authorization;
@@ -222,14 +228,7 @@ export default class NpmRegistry extends Registry {
   }
 
   getScope(packageIdent: string): string {
-    // removing escaped / from scoped package names added by NpmRegistry.escapeName to assist following regex
-    packageIdent = packageIdent.replace('%2f', '/');
-
-    // Matches the first path segment that starts with an `@`. The RegEx is constructed as follows:
-    // `(?:^|\/)` Match either the start of the string or a `/` but don't capture
-    // `(@[^?\/]+)` Match a string starting with an `@` and not having any `/` or `?` in it and capture
-    // `(?:[?\/]|$)/)` Match a path delimiter, a query string delimiter or the end of the string but don't capture
-    const match = packageIdent.replace('%2f', '/').match(/(?:^|\/)(@[^?\/]+)(?:[?\/]|$)/);
+    const match = packageIdent.match(SCOPED_PKG_REGEXP);
     return (match && match[1]) || '';
   }
 

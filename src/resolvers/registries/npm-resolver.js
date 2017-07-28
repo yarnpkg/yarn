@@ -86,7 +86,7 @@ export default class NpmResolver extends RegistryResolver {
   }
 
   async resolveRequestOffline(): Promise<?Manifest> {
-    const scope = this.config.registries.npm.getScope(this.name);
+    const scope = this.config.registries.npm.getScope(NpmRegistry.escapeName(this.name));
     // find modules of this name
     const prefix = scope ? this.name.split(/\/|%2f/)[1] : `npm-${this.name}-`;
 

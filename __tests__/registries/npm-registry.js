@@ -164,7 +164,7 @@ describe('request', () => {
     const {mockRequestManager, mockRegistries, mockReporter} = createMocks();
     const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter);
 
-    const url = 'https://registry.npmjs.org/@testScope/yarn.tgz';
+    const url = 'https://registry.npmjs.org/@testScope%2fyarn.tgz';
 
     npmRegistry.config = {
       _authToken: 'testAuthToken',
@@ -181,7 +181,7 @@ describe('request', () => {
     const {mockRequestManager, mockRegistries, mockReporter} = createMocks();
     const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter);
 
-    const url = 'https://some.other.registry/@testScope/yarn.tgz';
+    const url = 'https://some.other.registry/@testScope%2fyarn.tgz';
 
     npmRegistry.config = {
       '//some.other.registry/:_authToken': 'testScopedAuthToken',
@@ -248,38 +248,47 @@ describe('isRequestToRegistry functional test', () => {
   });
 });
 
+const packageIdents = [
+  ['normal', ''],
+  ['@scopedNoPkg', ''],
+  ['@scoped/notescaped', ''],
+  ['not@scope/pkg', ''],
+  ['@scope?query=true', ''],
+  ['@scope%2fpkg', '@scope'],
+  ['@scope%2fpkg%2fext', '@scope'],
+  ['@scope%2fpkg?query=true', '@scope'],
+  ['@scope%2fpkg%2f1.2.3', '@scope'],
+  ['http://foo.bar:80/normal', ''],
+  ['http://foo.bar:80/@scopedNoPkg', ''],
+  ['http://foo.bar:80/@scoped/notescaped', ''],
+  ['http://foo.bar:80/not@scope/pkg', ''],
+  ['http://foo.bar:80/@scope?query=true', ''],
+  ['http://foo.bar:80/@scope%2fpkg', '@scope'],
+  ['http://foo.bar:80/@scope%2fpkg%2fext', '@scope'],
+  ['http://foo.bar:80/@scope%2fpkg?query=true', '@scope'],
+  ['http://foo.bar:80/@scope%2fpkg%2f1.2.3', '@scope'],
+];
+
+describe('isScopedPackage functional test', () => {
+  test('identifies scope correctly', () => {
+    const testCwd = '.';
+    const {mockRequestManager, mockRegistries, mockReporter} = createMocks();
+    const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter);
+
+    packageIdents.forEach(([pathname, scope]) => {
+      expect(npmRegistry.isScopedPackage(pathname)).toEqual(!!scope.length);
+    });
+  });
+});
+
 describe('getScope functional test', () => {
   describe('matches scope correctly', () => {
     const testCwd = '.';
     const {mockRequestManager, mockRegistries, mockReporter} = createMocks();
     const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter);
 
-    test('in package names', () => {
-      const packageNames = [
-        ['normal', ''],
-        ['normal-package', ''],
-        ['@scopedNoPkg', '@scopedNoPkg'],
-        ['@scoped/pkg', '@scoped'],
-        ['invalid@scope/pkg', ''],
-      ];
-
-      packageNames.forEach(([packageName, scope]) => {
-        expect(npmRegistry.getScope(packageName)).toEqual(scope);
-      });
-    });
-
-    test('in pathname', () => {
-      const pathnames = [
-        ['http://foo.bar:80/foo/bar/baz', ''],
-        ['http://foo.bar:80/@scopedNoPkg', '@scopedNoPkg'],
-        ['http://foo.bar:80/@scope/bar/baz', '@scope'],
-        ['http://foo.bar:80/@scope%2fbar/baz', '@scope'],
-        ['http://foo.bar:80/invalid@scope%2fbar/baz', ''],
-      ];
-
-      pathnames.forEach(([pathname, scope]) => {
-        expect(npmRegistry.getScope(pathname)).toEqual(scope);
-      });
+    packageIdents.forEach(([pathname, scope]) => {
+      expect(npmRegistry.getScope(pathname)).toEqual(scope);
     });
   });
 });
