@@ -9,9 +9,6 @@ export default class TestReporter extends BaseReporter {
   }
 
   question(question: string, options?: QuestionOptions = {}): Promise<string> {
-    if (!process.stdout.isTTY) {
-      return Promise.reject(new Error("Can't answer a question unless a user TTY"));
-    }
     const parsedQuestion = question.replace(/ \((.*?)\)/g, '');
     if (parsedQuestion in this._questionMap) {
       return new Promise((resolve, reject) => {
