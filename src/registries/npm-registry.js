@@ -23,11 +23,12 @@ const DEFAULT_REGISTRY = 'https://registry.npmjs.org/';
 const REGEX_REGISTRY_PREFIX = /^https?:/;
 const REGEX_REGISTRY_SUFFIX = /registry\/?$/;
 
+export const SCOPE_SEPARATOR = '%2f';
 // All scoped package names are of the format `@scope%2fpkg` from the use of NpmRegistry.escapeName
 // `(?:^|\/)` Match either the start of the string or a `/` but don't capture
-// `[^\/?]*?` Match any character that is not '/' or '?' and capture, up until the first occurance of:
-// `%2f` Match '%2f' the escaped forward slash and don't capture
-const SCOPED_PKG_REGEXP = /(?:^|\/)(@[^\/?]*?)(?=%2f)/;
+// `[^\/?]+` Match any character that is not '/' or '?' and capture, up until the first occurance of:
+// `%2f` Match SCOPE_SEPARATOR, the escaped '/', and don't capture
+const SCOPED_PKG_REGEXP = /(?:^|\/)(@[^\/?]+)(?=%2f)/;
 
 function getGlobalPrefix(): string {
   if (process.env.PREFIX) {
@@ -76,7 +77,7 @@ export default class NpmRegistry extends Registry {
 
   static escapeName(name: string): string {
     // scoped packages contain slashes and the npm registry expects them to be escaped
-    return name.replace('/', '%2f');
+    return name.replace('/', SCOPE_SEPARATOR);
   }
 
   isScopedPackage(packageIdent: string): boolean {
