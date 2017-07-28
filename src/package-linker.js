@@ -99,17 +99,18 @@ export default class PackageLinker {
     if (pkg.bundleDependencies) {
       for (const depName of pkg.bundleDependencies) {
         const loc = path.join(this.config.generateHardModulePath(ref), this.config.getFolder(pkg), depName);
-        if (await fs.exists(loc)) {
-          try {
-            const dep = await this.config.readManifest(loc, remote.registry);
+        try {
+          const dep = await this.config.readManifest(loc, remote.registry);
 
-            if (dep.bin && Object.keys(dep.bin).length) {
-              deps.push({dep, loc});
-            }
-          } catch (ex) {
-            // intentionally ignoring error.
-            // bundledDependency either does not exist or does not contain a package.json
+          if (dep.bin && Object.keys(dep.bin).length) {
+            deps.push({dep, loc});
           }
+        } catch (ex) {
+          if (ex.code !== 'ENOENT') {
+            throw ex;
+          }
+          // intentionally ignoring ENOENT error.
+          // bundledDependency either does not exist or does not contain a package.json
         }
       }
     }
