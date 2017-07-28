@@ -44,18 +44,24 @@ function explodeScopeTeam(arg: string, requireTeam: boolean, reporter: Reporter)
 }
 
 function warnDeprecation(reporter: Reporter, deprecationWarning: DeprecationWarning) {
-  reporter.warn(`\`yarn team ${deprecationWarning.deprecatedCommand}\` is deprecated.
-  Please use \`yarn team ${deprecationWarning.currentComand}\`.`);
+  const command = 'yarn team';
+  reporter.warn(
+    reporter.lang(
+      'yarnDeprecatedCommand',
+      `${command} ${deprecationWarning.deprecatedCommand}`,
+      `${command} ${deprecationWarning.currentComand}`,
+    ),
+  );
 }
 
 function wrapRequired(
   callback: CLIFunctionWithParts,
   requireTeam: boolean,
-  subCommandDeprecated?: DeprecationWarning,
+  deprecationInfo?: DeprecationWarning,
 ): CLIFunction {
   return async function(config: Config, reporter: Reporter, flags: Object, args: Array<string>): CLIFunctionReturn {
-    if (subCommandDeprecated) {
-      warnDeprecation(reporter, subCommandDeprecated);
+    if (deprecationInfo) {
+      warnDeprecation(reporter, deprecationInfo);
     }
 
     if (!args.length) {
