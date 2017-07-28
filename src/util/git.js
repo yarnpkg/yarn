@@ -267,7 +267,7 @@ export default class Git implements GitRefResolvingInterface {
       if (await fs.exists(cwd)) {
         await spawnGit(['pull'], {cwd});
       } else {
-        await spawnGit(['clone', gitUrl.repository, cwd], {cwd: this.config.cwd});
+        await spawnGit(['clone', gitUrl.repository, cwd]);
       }
 
       this.fetched = true;

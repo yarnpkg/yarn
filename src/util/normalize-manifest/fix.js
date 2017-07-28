@@ -1,5 +1,6 @@
 /* @flow */
 
+import {DEPENDENCY_TYPES} from '../../constants';
 import type {Reporter} from '../../reporters/index.js';
 import {isValidLicense} from './util.js';
 import {normalizePerson, extractDescription} from './util.js';
@@ -307,9 +308,9 @@ export default (async function(
     }
   }
 
-  for (const hint of ['dependencies', 'devDependencies', 'optionalDependencies', 'peerDependencies']) {
-    if (info[hint]) {
-      delete info[hint]['//'];
+  for (const dependencyType of DEPENDENCY_TYPES) {
+    if (info[dependencyType]) {
+      delete info[dependencyType]['//'];
     }
   }
 });

@@ -1,5 +1,6 @@
 /* @flow */
 
+import {DEPENDENCY_TYPES} from '../../constants.js';
 import {FILE_PROTOCOL_PREFIX} from '../../resolvers/exotics/file-resolver.js';
 import {LINK_PROTOCOL_PREFIX} from '../../resolvers/exotics/link-resolver.js';
 
@@ -13,13 +14,13 @@ export default function(info: Object, moduleLoc: string, lockfileFolder: string)
     return;
   }
 
-  for (const hint of ['dependencies', 'devDependencies', 'optionalDependencies', 'peerDependencies']) {
-    if (!info[hint]) {
+  for (const dependencyType of DEPENDENCY_TYPES) {
+    if (!info[dependencyType]) {
       continue;
     }
 
-    for (const name of Object.keys(info[hint])) {
-      let value = info[hint][name];
+    for (const name of Object.keys(info[dependencyType])) {
+      let value = info[dependencyType][name];
 
       if (path.isAbsolute(value)) {
         value = FILE_PROTOCOL_PREFIX + value;
@@ -47,7 +48,7 @@ export default function(info: Object, moduleLoc: string, lockfileFolder: string)
           relativeTarget = relativeTarget.replace(/^(?!\.{0,2}\/)/, `./`);
         }
 
-        info[hint][name] = prefix + relativeTarget;
+        info[dependencyType][name] = prefix + relativeTarget.replace(/\\/g, '/');
       }
     }
   }
