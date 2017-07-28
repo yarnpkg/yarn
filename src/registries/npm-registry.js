@@ -222,7 +222,7 @@ export default class NpmRegistry extends Registry {
   }
 
   getScope(packageIdent: string): string {
-    // removing escaped / from package names in full paths
+    // removing escaped / from scoped package names added by NpmRegistry.escapeName to assist following regex
     packageIdent = packageIdent.replace('%2f', '/');
 
     // Matches the first path segment that starts with an `@`. The RegEx is constructed as follows:
