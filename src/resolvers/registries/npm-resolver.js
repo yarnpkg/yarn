@@ -91,10 +91,10 @@ export default class NpmResolver extends RegistryResolver {
     const scope = this.config.registries.npm.getScope(escapedName);
 
     // find modules of this name
-    const prefix = scope ? escapedName.substr(scope.length + SCOPE_SEPARATOR.length) : `npm-${this.name}-`;
+    const prefix = scope ? escapedName.split(SCOPE_SEPARATOR)[1] : `${NPM_REGISTRY_ID}-${this.name}-`;
 
     invariant(this.config.cacheFolder, 'expected packages root');
-    const cacheFolder = path.join(this.config.cacheFolder, scope ? 'npm-' + scope : '');
+    const cacheFolder = path.join(this.config.cacheFolder, scope ? `${NPM_REGISTRY_ID}-${scope}` : '');
 
     const files = await this.config.getCache('cachedPackages', async (): Promise<Array<string>> => {
       const files = await fs.readdir(cacheFolder);
