@@ -885,7 +885,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
     }
     let command = 'add';
     if (flags.global) {
-      command = 'global add';
+      command = 'global';
     }
     throw new MessageError(reporter.lang('installCommandRenamed', `yarn ${command} ${exampleArgs.join(' ')}`));
   }
