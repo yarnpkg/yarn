@@ -136,8 +136,7 @@ export default class HostedGitResolver extends ExoticResolver {
       throw new Error(this.reporter.lang('hostedGitResolveError'));
     }
 
-    const refs = Git.parseRefs(out);
-    return client.setRef(refs);
+    return client.setRefHosted(out);
   }
 
   async resolveOverHTTP(url: string): Promise<Manifest> {
