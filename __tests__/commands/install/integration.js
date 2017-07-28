@@ -8,10 +8,10 @@ import {run as check} from '../../../src/cli/commands/check.js';
 import * as constants from '../../../src/constants.js';
 import * as reporters from '../../../src/reporters/index.js';
 import {parse} from '../../../src/lockfile/wrapper.js';
-import {Install} from '../../../src/cli/commands/install.js';
+import {Install, run as install} from '../../../src/cli/commands/install.js';
 import Lockfile from '../../../src/lockfile/wrapper.js';
 import * as fs from '../../../src/util/fs.js';
-import {getPackageVersion, explodeLockfile, runInstall, createLockfile} from '../_helpers.js';
+import {getPackageVersion, explodeLockfile, runInstall, createLockfile, run as buildRun} from '../_helpers.js';
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 150000;
 
@@ -991,4 +991,30 @@ test.concurrent('top level patterns should match after install', (): Promise<voi
     }
     expect(integrityError).toBe(false);
   });
+});
+
+test.concurrent('warns for missing bundledDependencies', (): Promise<void> => {
+  const fixturesLoc = path.join(__dirname, '..', '..', 'fixtures', 'install');
+
+  return buildRun(
+    reporters.BufferReporter,
+    fixturesLoc,
+    async (args, flags, config, reporter): Promise<void> => {
+      await install(config, reporter, flags, args);
+
+      const output = reporter.getBuffer();
+      const warnings = output.filter(entry => entry.type === 'warning');
+
+      expect(
+        warnings.some(warning => {
+          return (
+            warning.data.toString().indexOf(reporter.lang('missingBundledDependency', 'tap@0.3.1', 'tap-consumer')) > -1
+          );
+        }),
+      ).toEqual(true);
+    },
+    [],
+    {},
+    'missing-bundled-dep',
+  );
 });
