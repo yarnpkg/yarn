@@ -5,7 +5,7 @@ import type Config from '../../config.js';
 import type PackageRequest from '../../package-request.js';
 import {MessageError} from '../../errors.js';
 import RegistryResolver from './registry-resolver.js';
-import {NpmRegistry, SCOPE_SEPARATOR} from '../../registries/npm-registry.js';
+import NpmRegistry, {SCOPE_SEPARATOR} from '../../registries/npm-registry.js';
 import map from '../../util/map.js';
 import * as fs from '../../util/fs.js';
 import {YARN_REGISTRY} from '../../constants.js';
