@@ -12,10 +12,6 @@ const invariant = require('invariant');
 const path = require('path');
 const uuid = require('uuid');
 
-type Dependencies = {
-  [key: string]: string,
-};
-
 export const FILE_PROTOCOL_PREFIX = 'file:';
 
 export default class FileResolver extends ExoticResolver {

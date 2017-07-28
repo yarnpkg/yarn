@@ -9,10 +9,6 @@ import * as fs from '../../util/fs.js';
 
 const path = require('path');
 
-type Dependencies = {
-  [key: string]: string,
-};
-
 export const LINK_PROTOCOL_PREFIX = 'link:';
 
 export default class LinkResolver extends ExoticResolver {

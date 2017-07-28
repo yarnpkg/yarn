@@ -1,9 +1,11 @@
+/* @flow */
+
 import {FILE_PROTOCOL_PREFIX} from '../../resolvers/exotics/file-resolver.js';
 import {LINK_PROTOCOL_PREFIX} from '../../resolvers/exotics/link-resolver.js';
 
 const path = require('path');
 
-export default function(info: Object, moduleLoc: string, lockfileFolder: string): void {
+export default function(info: Object, moduleLoc: string, lockfileFolder: string) {
   // It won't work if we don't yet know what's the folder we'll use as root. It's not a
   // big deal tho, because it only happens when trying to figure out the root, and we
   // don't need to know the dependencies / devDependencies at this time.
