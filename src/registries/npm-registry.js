@@ -12,12 +12,11 @@ import envReplace from '../util/env-replace.js';
 import Registry from './base-registry.js';
 import {addSuffix} from '../util/misc';
 import {getPosixPath, resolveWithHome} from '../util/path';
-
-const normalizeUrl = require('normalize-url');
-const {default: userHome, home} = require('../util/user-home-dir');
-const path = require('path');
-const url = require('url');
-const ini = require('ini');
+import normalizeUrl from 'normalize-url';
+import {default as userHome, home} from '../util/user-home-dir';
+import path from 'path';
+import url from 'url';
+import ini from 'ini';
 
 const DEFAULT_REGISTRY = 'https://registry.npmjs.org/';
 const REGEX_REGISTRY_PREFIX = /^https?:/;

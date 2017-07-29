@@ -6,6 +6,6 @@ const path = require('path');
 
 export const home = require('os').homedir();
 
-const userHomeDir = process.platform === 'linux' && ROOT_USER ? path.resolve('/usr/local/share') : home;
+const userHomeDir = ROOT_USER ? path.resolve('/usr/local/share') : home;
 
 export default userHomeDir;
