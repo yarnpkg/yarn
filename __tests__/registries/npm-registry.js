@@ -50,12 +50,17 @@ function createMocks(): Object {
       getScopedOption: jest.fn(),
     },
   };
-  const mockReporter = jest.fn();
+  const mockLog = [];
+  const mockReporter = {
+    lang: (...args) => mockLog.push(...args),
+    verbose: jest.fn(),
+  };
 
   return {
     mockRequestManager,
     mockRegistries,
     mockReporter,
+    mockLog,
   };
 }
 
@@ -290,5 +295,18 @@ describe('getScope functional test', () => {
     packageIdents.forEach(([pathname, scope]) => {
       expect(npmRegistry.getScope(pathname)).toEqual(scope);
     });
+  });
+});
+
+describe('getPossibleConfigLocations', () => {
+  describe('searches recursively to home directory', async () => {
+    const testCwd = './project/subdirectory';
+    const {mockRequestManager, mockRegistries, mockReporter, mockLog} = createMocks();
+    const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter);
+    await npmRegistry.getPossibleConfigLocations('npmrc', mockReporter);
+
+    expect(mockLog.indexOf('project/subdirectory/.npmrc')).toBeGreaterThan(-1);
+    expect(mockLog.indexOf('project/.npmrc')).toBeGreaterThan(-1);
+    expect(mockLog.indexOf(`${homeDir}/.npmrc`)).toBeGreaterThan(-1);
   });
 });
