@@ -309,7 +309,7 @@ export default (async function(
   }
 
   for (const dependencyType of DEPENDENCY_TYPES) {
-    if (info[dependencyType]) {
+    if (info[dependencyType] && typeof info[dependencyType] === 'object') {
       delete info[dependencyType]['//'];
     }
   }
