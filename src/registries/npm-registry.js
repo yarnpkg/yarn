@@ -14,7 +14,7 @@ import {addSuffix} from '../util/misc';
 import {getPosixPath, resolveWithHome} from '../util/path';
 
 const normalizeUrl = require('normalize-url');
-const {default: userHome, rootHome} = require('../util/user-home-dir');
+const {default: userHome, home} = require('../util/user-home-dir');
 const path = require('path');
 const url = require('url');
 const ini = require('ini');
@@ -180,8 +180,8 @@ export default class NpmRegistry extends Registry {
 
     // When home directory for global install is different from where $HOME/npmrc is stored,
     // E.g. /usr/local/share vs /root on linux machines, check the additional location
-    if (rootHome !== userHome) {
-      possibles.push([true, path.join(rootHome, localfile)]);
+    if (home !== userHome) {
+      possibles.push([true, path.join(home, localfile)]);
     }
 
     // npmrc --> ../.npmrc, ../../.npmrc, etc.
