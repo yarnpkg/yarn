@@ -30,7 +30,7 @@ test.concurrent('init --yes should create package.json with defaults', (): Promi
       // Name is derived from directory name which is dynamic so check
       // that separately and then remove from snapshot
       expect(manifest.name).toEqual(path.basename(cwd));
-      expect({...manifest, name: 'yarn-test'}).toMatchSnapshot();
+      expect({...manifest, name: 'init-yes'}).toMatchSnapshot('init-yes');
     },
   );
 });
@@ -70,7 +70,7 @@ test.concurrent('init using Github shorthand should resolve to full repository U
     async (config): Promise<void> => {
       const manifestFile = await fs.readFile(path.join(config.cwd, 'package.json'));
 
-      expect(JSON.parse(manifestFile)).toMatchSnapshot();
+      expect(JSON.parse(manifestFile)).toMatchSnapshot('init-github');
     },
   );
 });
