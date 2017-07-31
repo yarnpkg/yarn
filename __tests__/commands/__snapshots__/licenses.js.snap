@@ -3,19 +3,13 @@
 exports[`lists all licenses of the dependencies with the --json argument 1`] = `
 "{\\"type\\":\\"warning\\",\\"data\\":\\"package.json: No license field\\"}
 {\\"type\\":\\"warning\\",\\"data\\":\\"No license field\\"}
-{\\"type\\":\\"progressStart\\",\\"data\\":{\\"id\\":0,\\"total\\":1}}
-{\\"type\\":\\"progressTick\\",\\"data\\":{\\"id\\":0,\\"current\\":1}}
-{\\"type\\":\\"progressFinish\\",\\"data\\":{\\"id\\":0}}
-{\\"type\\":\\"table\\",\\"data\\":{\\"head\\":[\\"Name\\",\\"Version\\",\\"License\\",\\"URL\\",\\"VendorUrl\\",\\"VendorName\\"],\\"body\\":[[\\"is-plain-obj\\",\\"1.1.0\\",\\"MIT\\",\\"https://github.com/sindresorhus/is-plain-obj.git\\",\\"sindresorhus.com\\",\\"Sindre Sorhus\\"]]}}
+{\\"type\\":\\"tree\\",\\"data\\":{\\"type\\":\\"licenses\\",\\"trees\\":[{\\"name\\":\\"is-plain-obj@1.1.0\\",\\"children\\":[{\\"name\\":\\"License: MIT\\"},{\\"name\\":\\"URL: https://github.com/sindresorhus/is-plain-obj.git\\"}]}]}}
 "
 `;
 
 exports[`should genereate disclaimer on demand 1`] = `
 "{\\"type\\":\\"warning\\",\\"data\\":\\"package.json: No license field\\"}
 {\\"type\\":\\"warning\\",\\"data\\":\\"No license field\\"}
-{\\"type\\":\\"progressStart\\",\\"data\\":{\\"id\\":0,\\"total\\":1}}
-{\\"type\\":\\"progressTick\\",\\"data\\":{\\"id\\":0,\\"current\\":1}}
-{\\"type\\":\\"progressFinish\\",\\"data\\":{\\"id\\":0}}
 {\\"type\\":\\"warning\\",\\"data\\":\\"package.json: No license field\\"}
 {\\"type\\":\\"log\\",\\"data\\":\\"THE FOLLOWING SETS FORTH ATTRIBUTION NOTICES FOR THIRD PARTY SOFTWARE THAT MAY BE CONTAINED IN PORTIONS OF THE  PRODUCT.\\\\n\\"}
 {\\"type\\":\\"log\\",\\"data\\":\\"-----\\\\n\\"}

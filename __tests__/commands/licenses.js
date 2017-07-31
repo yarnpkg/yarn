@@ -13,19 +13,20 @@ const runLicenses = buildRun.bind(
   JSONReporter,
   fixturesLoc,
   async (args, flags, config, reporter, lockfile, getStdout): Promise<string> => {
+    reporter.disableProgress();
     await licenses(config, reporter, flags, args);
     return getStdout();
   },
 );
 
 test('lists all licenses of the dependencies with the --json argument', async (): Promise<void> => {
-  await runLicenses(['list'], {json: true}, '', (config, reporter, stdout) => {
+  await runLicenses(['list'], {}, '', (config, reporter, stdout) => {
     expect(stdout).toMatchSnapshot();
   });
 });
 
 test('should genereate disclaimer on demand', async (): Promise<void> => {
-  await runLicenses(['generate-disclaimer'], {json: true}, '', (config, reporter, stdout) => {
+  await runLicenses(['generate-disclaimer'], {}, '', (config, reporter, stdout) => {
     expect(stdout).toMatchSnapshot();
   });
 });
