@@ -7,7 +7,6 @@ import {run as licenses} from '../../src/cli/commands/licenses.js';
 const path = require('path');
 
 const fixturesLoc = path.join(__dirname, '..', 'fixtures', 'licenses');
-const expectedTable = require('../fixtures/licenses/expected-table.json');
 
 const runLicenses = buildRun.bind(
   null,
@@ -21,6 +20,12 @@ const runLicenses = buildRun.bind(
 
 test('lists all licenses of the dependencies with the --json argument', async (): Promise<void> => {
   await runLicenses(['list'], {json: true}, '', (config, reporter, stdout) => {
-    expect(stdout).toContain(JSON.stringify(expectedTable));
+    expect(stdout).toMatchSnapshot();
+  });
+});
+
+test('should genereate disclaimer on demand', async (): Promise<void> => {
+  await runLicenses(['generate-disclaimer'], {json: true}, '', (config, reporter, stdout) => {
+    expect(stdout).toMatchSnapshot();
   });
 });

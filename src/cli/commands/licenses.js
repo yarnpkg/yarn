@@ -8,6 +8,8 @@ import {Install} from './install.js';
 import Lockfile from '../../lockfile/wrapper.js';
 import buildSubCommands from './_build-sub-commands.js';
 
+const invariant = require('invariant');
+
 export function hasWrapper(flags: Object, args: Array<string>): boolean {
   return args[0] != 'generate-disclaimer';
 }
@@ -98,5 +100,65 @@ export const {run, setFlags, examples} = buildSubCommands('licenses', {
 
   async list(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
     await list(config, reporter, flags, args);
+  },
+
+  async generateDisclaimer(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
+    /* eslint-disable yarn-internal/warn-language */
+    const manifests: Array<Manifest> = await getManifests(config, flags);
+    const manifest = await config.readRootManifest();
+
+    // Create a map of license text to manifest so that packages with exactly
+    // the same license text are grouped together.
+    const manifestsByLicense: Map<string, Map<string, Manifest>> = new Map();
+    for (const manifest of manifests) {
+      const {licenseText} = manifest;
+      if (!licenseText) {
+        continue;
+      }
+
+      if (!manifestsByLicense.has(licenseText)) {
+        manifestsByLicense.set(licenseText, new Map());
+      }
+
+      const byLicense = manifestsByLicense.get(licenseText);
+      invariant(byLicense, 'expected value');
+      byLicense.set(manifest.name, manifest);
+    }
+
+    reporter.log(
+      'THE FOLLOWING SETS FORTH ATTRIBUTION NOTICES FOR THIRD PARTY SOFTWARE THAT MAY BE CONTAINED ' +
+        `IN PORTIONS OF THE ${String(manifest.name).toUpperCase().replace(/-/g, ' ')} PRODUCT.` +
+        '\n',
+    );
+
+    for (const [licenseText, manifests] of manifestsByLicense) {
+      reporter.log('-----\n');
+
+      const names = [];
+      const urls = [];
+      for (const [name, {repository}] of manifests) {
+        names.push(name);
+        if (repository && repository.url) {
+          urls.push(manifests.size === 1 ? repository.url : `${repository.url} (${name})`);
+        }
+      }
+
+      const heading = [];
+      heading.push(`The following software may be included in this product: ${names.join(', ')}.`);
+      if (urls.length > 0) {
+        heading.push(`A copy of the source code may be downloaded from ${urls.join(', ')}.`);
+      }
+      heading.push('This software contains the following license and notice below:');
+
+      reporter.log(heading.join(' ') + '\n');
+
+      if (licenseText) {
+        reporter.log(licenseText.trim());
+      } else {
+        // what do we do here? base it on `license`?
+      }
+
+      reporter.log('');
+    }
   },
 });
