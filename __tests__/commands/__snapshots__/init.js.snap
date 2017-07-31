@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`init --yes should create package.json with defaults 1`] = `
+exports[`init-github 1`] = `
 Object {
   "license": "MIT",
   "main": "index.js",
@@ -10,11 +10,11 @@ Object {
 }
 `;
 
-exports[`init --yes should create package.json with defaults 2`] = `
+exports[`init-yes 1`] = `
 Object {
   "license": "MIT",
   "main": "index.js",
-  "name": "yarn-test",
+  "name": "init-yes",
   "version": "1.0.0",
 }
 `;
