@@ -47,7 +47,7 @@ function warnDeprecation(reporter: Reporter, deprecationWarning: DeprecationWarn
   const command = 'yarn team';
   reporter.warn(
     reporter.lang(
-      'yarnDeprecatedCommand',
+      'deprecatedCommand',
       `${command} ${deprecationWarning.deprecatedCommand}`,
       `${command} ${deprecationWarning.currentComand}`,
     ),

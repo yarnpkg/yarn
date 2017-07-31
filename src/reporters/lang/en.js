@@ -327,7 +327,7 @@ const messages = {
 
   scopeNotValid: 'The specified scope is not valid.',
 
-  yarnDeprecatedCommand: '`yarn $0 $1` is deprecated.\n Please use `yarn $0 $2`.',
+  deprecatedCommand: '$0 is deprecated. Please use $1.',
 };
 
 export type LanguageKeys = $Keys<typeof messages>;
