@@ -1,7 +1,9 @@
 /* @flow */
 
-import NpmRegistry from '../../src/registries/npm-registry.js';
 import {resolve} from 'path';
+
+import NpmRegistry from '../../src/registries/npm-registry.js';
+import {BufferReporter} from '../../src/reporters/index.js';
 import homeDir from '../../src/util/user-home-dir.js';
 
 describe('normalizeConfig', () => {
@@ -50,17 +52,10 @@ function createMocks(): Object {
       getScopedOption: jest.fn(),
     },
   };
-  const mockLog = [];
-  const mockReporter = {
-    lang: (...args) => mockLog.push(...args),
-    verbose: jest.fn(),
-  };
 
   return {
     mockRequestManager,
     mockRegistries,
-    mockReporter,
-    mockLog,
   };
 }
 
@@ -301,12 +296,18 @@ describe('getScope functional test', () => {
 describe('getPossibleConfigLocations', () => {
   test('searches recursively to home directory', async () => {
     const testCwd = './project/subdirectory';
-    const {mockRequestManager, mockRegistries, mockReporter, mockLog} = createMocks();
-    const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter);
-    await npmRegistry.getPossibleConfigLocations('npmrc', mockReporter);
+    const {mockRequestManager, mockRegistries} = createMocks();
+    const reporter = new BufferReporter({verbose: true});
+    const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, reporter);
+    await npmRegistry.getPossibleConfigLocations('npmrc', reporter);
 
-    expect(mockLog.indexOf('project/subdirectory/.npmrc')).toBeGreaterThan(-1);
-    expect(mockLog.indexOf('project/.npmrc')).toBeGreaterThan(-1);
-    expect(mockLog.indexOf(`${homeDir}/.npmrc`)).toBeGreaterThan(-1);
+    const logs = reporter.getBuffer().map(logItem => logItem.data);
+    expect(logs).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining('project/subdirectory/.npmrc'),
+        expect.stringContaining('project/.npmrc'),
+        expect.stringContaining(`${homeDir}/.npmrc`),
+      ]),
+    );
   });
 });
