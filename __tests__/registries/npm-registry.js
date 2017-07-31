@@ -299,7 +299,7 @@ describe('getScope functional test', () => {
 });
 
 describe('getPossibleConfigLocations', () => {
-  describe('searches recursively to home directory', async () => {
+  test('searches recursively to home directory', async () => {
     const testCwd = './project/subdirectory';
     const {mockRequestManager, mockRegistries, mockReporter, mockLog} = createMocks();
     const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter);
