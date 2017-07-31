@@ -304,9 +304,9 @@ describe('getPossibleConfigLocations', () => {
     const logs = reporter.getBuffer().map(logItem => logItem.data);
     expect(logs).toEqual(
       expect.arrayContaining([
-        expect.stringContaining(pathJoin('project', 'subdirectory', '.npmrc')),
-        expect.stringContaining(pathJoin('project', '.npmrc')),
-        expect.stringContaining(pathJoin(homeDir, '.npmrc')),
+        expect.stringContaining(JSON.stringify(pathJoin('project', 'subdirectory', '.npmrc'))),
+        expect.stringContaining(JSON.stringify(pathJoin('project', '.npmrc'))),
+        expect.stringContaining(JSON.stringify(pathJoin(homeDir, '.npmrc'))),
       ]),
     );
   });
