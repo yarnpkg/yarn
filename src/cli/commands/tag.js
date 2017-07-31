@@ -148,5 +148,5 @@ export const {run, setFlags, hasWrapper, examples} = buildSubCommands(
       await list(config, reporter, flags, args);
     },
   },
-  ['add <pkg>@<version> [<tag>]', 'remove <pkg> <tag>', 'ls [<pkg>]'],
+  ['add <pkg>@<version> [<tag>]', 'remove <pkg> <tag>', 'list [<pkg>]'],
 );
