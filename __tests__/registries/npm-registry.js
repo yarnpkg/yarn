@@ -1,6 +1,6 @@
 /* @flow */
 
-import {resolve} from 'path';
+import {resolve, join as pathJoin} from 'path';
 
 import NpmRegistry from '../../src/registries/npm-registry.js';
 import {BufferReporter} from '../../src/reporters/index.js';
@@ -304,9 +304,9 @@ describe('getPossibleConfigLocations', () => {
     const logs = reporter.getBuffer().map(logItem => logItem.data);
     expect(logs).toEqual(
       expect.arrayContaining([
-        expect.stringContaining('project/subdirectory/.npmrc'),
-        expect.stringContaining('project/.npmrc'),
-        expect.stringContaining(`${homeDir}/.npmrc`),
+        expect.stringContaining(pathJoin('project', 'subdirectory', '.npmrc')),
+        expect.stringContaining(pathJoin('project', '.npmrc')),
+        expect.stringContaining(pathJoin(homeDir, '.npmrc')),
       ]),
     );
   });
