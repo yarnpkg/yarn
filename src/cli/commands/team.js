@@ -38,8 +38,16 @@ function explodeScopeTeam(arg: string, requireTeam: boolean, reporter: Reporter)
   };
 }
 
-function wrapRequired(callback: CLIFunctionWithParts, requireTeam: boolean): CLIFunction {
+function warnDeprecation(reporter: Reporter) {
+  reporter.warn(`\`yarn team rm\` is deprecated. Please use \`yarn team remove\`.`);
+}
+
+function wrapRequired(callback: CLIFunctionWithParts, requireTeam: boolean, isDeprecated?: boolean): CLIFunction {
   return async function(config: Config, reporter: Reporter, flags: Object, args: Array<string>): CLIFunctionReturn {
+    if (isDeprecated) {
+      warnDeprecation(reporter);
+    }
+
     if (!args.length) {
       return false;
     }
@@ -79,29 +87,46 @@ function wrapRequiredTeam(callback: CLIFunctionWithParts, requireTeam: boolean =
   }, requireTeam);
 }
 
-function wrapRequiredUser(callback: CLIFunctionWithParts): CLIFunction {
-  return wrapRequired(function(
-    parts: TeamParts,
-    config: Config,
-    reporter: Reporter,
-    flags: Object,
-    args: Array<string>,
-  ): CLIFunctionReturn {
-    if (args.length === 2) {
-      return callback(
-        {
-          user: args[1],
-          ...parts,
-        },
-        config,
-        reporter,
-        flags,
-        args,
-      );
-    } else {
-      return false;
-    }
-  }, true);
+function wrapRequiredUser(callback: CLIFunctionWithParts, subCommandDeprecated?: boolean): CLIFunction {
+  return wrapRequired(
+    function(
+      parts: TeamParts,
+      config: Config,
+      reporter: Reporter,
+      flags: Object,
+      args: Array<string>,
+    ): CLIFunctionReturn {
+      if (args.length === 2) {
+        return callback(
+          {
+            user: args[1],
+            ...parts,
+          },
+          config,
+          reporter,
+          flags,
+          args,
+        );
+      } else {
+        return false;
+      }
+    },
+    true,
+    subCommandDeprecated,
+  );
+}
+
+async function removeTeamUser(parts: TeamParts, config: Config, reporter: Reporter): Promise<boolean> {
+  reporter.step(2, 3, reporter.lang('teamRemovingUser'));
+  reporter.inspect(
+    await config.registries.npm.request(`team/${parts.scope}/${parts.team}/user`, {
+      method: 'DELETE',
+      body: {
+        user: parts.user,
+      },
+    }),
+  );
+  return true;
 }
 
 export const {run, setFlags, hasWrapper, examples} = buildSubCommands(
@@ -161,23 +186,24 @@ export const {run, setFlags, hasWrapper, examples} = buildSubCommands(
       return true;
     }),
 
-    rm: wrapRequiredUser(async function(
+    rm: wrapRequiredUser(function(
       parts: TeamParts,
       config: Config,
       reporter: Reporter,
       flags: Object,
       args: Array<string>,
-    ): Promise<boolean> {
-      reporter.step(2, 3, reporter.lang('teamRemovingUser'));
-      reporter.inspect(
-        await config.registries.npm.request(`team/${parts.scope}/${parts.team}/user`, {
-          method: 'DELETE',
-          body: {
-            user: parts.user,
-          },
-        }),
-      );
-      return true;
+    ) {
+      removeTeamUser(parts, config, reporter);
+    }, true),
+
+    remove: wrapRequiredUser(function(
+      parts: TeamParts,
+      config: Config,
+      reporter: Reporter,
+      flags: Object,
+      args: Array<string>,
+    ) {
+      removeTeamUser(parts, config, reporter);
     }),
 
     ls: wrapRequiredTeam(async function(
@@ -201,7 +227,7 @@ export const {run, setFlags, hasWrapper, examples} = buildSubCommands(
     'create <scope:team>',
     'destroy <scope:team>',
     'add <scope:team> <user>',
-    'rm <scope:team> <user>',
+    'remove <scope:team> <user>',
     'ls <scope>|<scope:team>',
   ],
 );

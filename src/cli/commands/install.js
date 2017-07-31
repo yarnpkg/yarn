@@ -6,6 +6,7 @@ import type {ReporterSelectOption} from '../../reporters/types.js';
 import type {Manifest, DependencyRequestPatterns} from '../../types.js';
 import type Config from '../../config.js';
 import type {RegistryNames} from '../../registries/index.js';
+import type {LockfileObject} from '../../lockfile/wrapper.js';
 import normalizeManifest from '../../util/normalize-manifest/index.js';
 import {MessageError} from '../../errors.js';
 import InstallationIntegrityChecker from '../../integrity-checker.js';
@@ -89,7 +90,7 @@ function getUpdateCommand(installationMethod: InstallationMethod): ?string {
   }
 
   if (installationMethod === 'npm') {
-    return 'npm upgrade --global yarn';
+    return 'npm update --global yarn';
   }
 
   if (installationMethod === 'chocolatey') {
@@ -277,12 +278,7 @@ export class Install {
 
       pushDeps('dependencies', projectManifestJson, {hint: null, optional: false}, true);
       pushDeps('devDependencies', projectManifestJson, {hint: 'dev', optional: false}, !this.config.production);
-      pushDeps(
-        'optionalDependencies',
-        projectManifestJson,
-        {hint: 'optional', optional: true},
-        !this.flags.ignoreOptional,
-      );
+      pushDeps('optionalDependencies', projectManifestJson, {hint: 'optional', optional: true}, true);
 
       if (this.config.workspacesEnabled) {
         const workspaces = await this.config.resolveWorkspaces(path.dirname(loc), projectManifestJson);
@@ -460,7 +456,10 @@ export class Install {
       // remove integrity hash to make this operation atomic
       await this.integrityChecker.removeIntegrityFile();
       this.reporter.step(curr, total, this.reporter.lang('linkingDependencies'), emoji.get('link'));
-      await this.linker.init(flattenedTopLevelPatterns, this.flags.linkDuplicates, workspaceLayout);
+      await this.linker.init(flattenedTopLevelPatterns, workspaceLayout, {
+        linkDuplicates: this.flags.linkDuplicates,
+        ignoreOptional: this.flags.ignoreOptional,
+      });
     });
 
     steps.push(async (curr: number, total: number) => {
@@ -625,7 +624,7 @@ export class Install {
    * Remove offline tarballs that are no longer required
    */
 
-  async pruneOfflineMirror(lockfile: Object): Promise<void> {
+  async pruneOfflineMirror(lockfile: LockfileObject): Promise<void> {
     const mirror = this.config.getOfflineMirrorPath();
     if (!mirror) {
       return;
@@ -634,8 +633,8 @@ export class Install {
     const requiredTarballs = new Set();
     for (const dependency in lockfile) {
       const resolved = lockfile[dependency].resolved;
-      const basename = path.basename(resolved.split('#')[0]);
       if (resolved) {
+        const basename = path.basename(resolved.split('#')[0]);
         if (dependency[0] === '@' && basename[0] !== '@') {
           requiredTarballs.add(`${dependency.split('/')[0]}-${basename}`);
         }
@@ -861,6 +860,7 @@ export async function install(config: Config, reporter: Reporter, flags: Object,
 
 export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
   let lockfile;
+  let error = 'installCommandRenamed';
   if (flags.lockfile === false) {
     lockfile = new Lockfile();
   } else {
@@ -869,6 +869,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
 
   if (args.length) {
     const exampleArgs = args.slice();
+
     if (flags.saveDev) {
       exampleArgs.push('--dev');
     }
@@ -886,9 +887,10 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
     }
     let command = 'add';
     if (flags.global) {
-      command = 'global add';
+      error = 'globalFlagRemoved';
+      command = 'global';
     }
-    throw new MessageError(reporter.lang('installCommandRenamed', `yarn ${command} ${exampleArgs.join(' ')}`));
+    throw new MessageError(reporter.lang(error, `yarn ${command} ${exampleArgs.join(' ')}`));
   }
 
   await install(config, reporter, flags, lockfile);

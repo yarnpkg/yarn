@@ -12,15 +12,22 @@ import envReplace from '../util/env-replace.js';
 import Registry from './base-registry.js';
 import {addSuffix} from '../util/misc';
 import {getPosixPath, resolveWithHome} from '../util/path';
-
-const userHome = require('../util/user-home-dir').default;
-const path = require('path');
-const url = require('url');
-const ini = require('ini');
+import normalizeUrl from 'normalize-url';
+import {default as userHome, home} from '../util/user-home-dir';
+import path from 'path';
+import url from 'url';
+import ini from 'ini';
 
 const DEFAULT_REGISTRY = 'https://registry.npmjs.org/';
 const REGEX_REGISTRY_PREFIX = /^https?:/;
 const REGEX_REGISTRY_SUFFIX = /registry\/?$/;
+
+export const SCOPE_SEPARATOR = '%2f';
+// All scoped package names are of the format `@scope%2fpkg` from the use of NpmRegistry.escapeName
+// `(?:^|\/)` Match either the start of the string or a `/` but don't capture
+// `[^\/?]+?` Match any character that is not '/' or '?' and capture, up until the first occurance of:
+// `%2f` Match SCOPE_SEPARATOR, the escaped '/', and don't capture
+const SCOPED_PKG_REGEXP = /(?:^|\/)(@[^\/?]+?)(?=%2f)/;
 
 function getGlobalPrefix(): string {
   if (process.env.PREFIX) {
@@ -69,12 +76,48 @@ export default class NpmRegistry extends Registry {
 
   static escapeName(name: string): string {
     // scoped packages contain slashes and the npm registry expects them to be escaped
-    return name.replace('/', '%2f');
+    return name.replace('/', SCOPE_SEPARATOR);
+  }
+
+  isScopedPackage(packageIdent: string): boolean {
+    return SCOPED_PKG_REGEXP.test(packageIdent);
+  }
+
+  getRequestUrl(registry: string, pathname: string): string {
+    const isUrl = /^https?:/.test(pathname);
+
+    if (isUrl) {
+      return pathname;
+    } else {
+      return url.resolve(registry, pathname);
+    }
+  }
+
+  isRequestToRegistry(requestUrl: string, registryUrl: string): boolean {
+    const normalizedRequestUrl = normalizeUrl(requestUrl);
+    const normalizedRegistryUrl = normalizeUrl(registryUrl);
+    const requestParsed = url.parse(normalizedRequestUrl);
+    const registryParsed = url.parse(normalizedRegistryUrl);
+    const requestHost = requestParsed.host || '';
+    const registryHost = registryParsed.host || '';
+    const requestPath = requestParsed.path || '';
+    const registryPath = registryParsed.path || '';
+    const customHostSuffix = this.getRegistryOrGlobalOption(registryUrl, 'custom-host-suffix');
+
+    return (
+      requestHost === registryHost &&
+      (requestPath.startsWith(registryPath) ||
+        // For some registries, the package path does not prefix with the registry path
+        (typeof customHostSuffix === 'string' && requestHost.endsWith(customHostSuffix)))
+    );
   }
 
   request(pathname: string, opts?: RegistryRequestOptions = {}, packageName: ?string): Promise<*> {
-    const registry = this.getRegistry(packageName || pathname);
-    const requestUrl = url.resolve(registry, pathname);
+    // packageName needs to be escaped when if it is passed
+    const packageIdent = (packageName && NpmRegistry.escapeName(packageName)) || pathname;
+    const registry = this.getRegistry(packageIdent);
+    const requestUrl = this.getRequestUrl(registry, pathname);
+
     const alwaysAuth = this.getRegistryOrGlobalOption(registry, 'always-auth');
 
     const headers = Object.assign(
@@ -84,12 +127,11 @@ export default class NpmRegistry extends Registry {
       opts.headers,
     );
 
-    const packageIdent = packageName || pathname;
-    const isScoppedPackage = packageIdent.match(/^@|\/@/);
+    const isToRegistry = this.isRequestToRegistry(requestUrl, registry);
 
     // this.token must be checked to account for publish requests on non-scopped packages
-    if (this.token || alwaysAuth || isScoppedPackage) {
-      const authorization = this.getAuth(packageName || pathname);
+    if (this.token || (isToRegistry && (alwaysAuth || this.isScopedPackage(packageIdent)))) {
+      const authorization = this.getAuth(packageIdent);
       if (authorization) {
         headers.authorization = authorization;
       }
@@ -134,6 +176,12 @@ export default class NpmRegistry extends Registry {
       [true, this.config.userconfig || path.join(userHome, localfile)],
       [false, path.join(getGlobalPrefix(), 'etc', filename)],
     ];
+
+    // When home directory for global install is different from where $HOME/npmrc is stored,
+    // E.g. /usr/local/share vs /root on linux machines, check the additional location
+    if (home !== userHome) {
+      possibles.push([true, path.join(home, localfile)]);
+    }
 
     // npmrc --> ../.npmrc, ../../.npmrc, etc.
     const foldersFromRootToCwd = getPosixPath(this.cwd).split('/');
@@ -185,21 +233,22 @@ export default class NpmRegistry extends Registry {
     }
   }
 
-  getScope(packageName: string): string {
-    return !packageName || packageName[0] !== '@' ? '' : packageName.split(/\/|%2f/)[0];
+  getScope(packageIdent: string): string {
+    const match = packageIdent.match(SCOPED_PKG_REGEXP);
+    return (match && match[1]) || '';
   }
 
-  getRegistry(packageName: string): string {
+  getRegistry(packageIdent: string): string {
     // Try extracting registry from the url, then scoped registry, and default registry
-    if (packageName.match(/^https?:/)) {
+    if (packageIdent.match(/^https?:/)) {
       const availableRegistries = this.getAvailableRegistries();
-      const registry = availableRegistries.find(registry => packageName.startsWith(registry));
+      const registry = availableRegistries.find(registry => packageIdent.startsWith(registry));
       if (registry) {
         return String(registry);
       }
     }
 
-    for (const scope of [this.getScope(packageName), '']) {
+    for (const scope of [this.getScope(packageIdent), '']) {
       const registry =
         this.getScopedOption(scope, 'registry') || this.registries.yarn.getScopedOption(scope, 'registry');
       if (registry) {
@@ -210,12 +259,12 @@ export default class NpmRegistry extends Registry {
     return DEFAULT_REGISTRY;
   }
 
-  getAuth(packageName: string): string {
+  getAuth(packageIdent: string): string {
     if (this.token) {
       return this.token;
     }
 
-    const baseRegistry = this.getRegistry(packageName);
+    const baseRegistry = this.getRegistry(packageIdent);
     const registries = [baseRegistry];
 
     // If sending a request to the Yarn registry, we must also send it the auth token for the npm registry
