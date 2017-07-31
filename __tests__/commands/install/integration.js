@@ -2,15 +2,16 @@
 
 import type Config from '../../../src/config';
 import PackageResolver from '../../../src/package-resolver.js';
+import {run as add} from '../../../src/cli/commands/add.js';
 import {run as cache} from '../../../src/cli/commands/cache.js';
 import {run as check} from '../../../src/cli/commands/check.js';
 import * as constants from '../../../src/constants.js';
 import * as reporters from '../../../src/reporters/index.js';
 import {parse} from '../../../src/lockfile/wrapper.js';
-import {Install} from '../../../src/cli/commands/install.js';
+import {Install, run as install} from '../../../src/cli/commands/install.js';
 import Lockfile from '../../../src/lockfile/wrapper.js';
 import * as fs from '../../../src/util/fs.js';
-import {getPackageVersion, explodeLockfile, runInstall, createLockfile} from '../_helpers.js';
+import {getPackageVersion, explodeLockfile, runInstall, createLockfile, run as buildRun} from '../_helpers.js';
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 150000;
 
@@ -47,6 +48,18 @@ async function mockConstants(base: Config, mocks: Object, cb: (config: Config) =
 
 beforeEach(request.__resetAuthedRequests);
 afterEach(request.__resetAuthedRequests);
+
+test.concurrent('install optional subdependencies by default', async () => {
+  await runInstall({}, 'install-optional-dependencies', async (config): Promise<void> => {
+    expect(await fs.exists(`${config.cwd}/node_modules/dep-b`)).toEqual(true);
+  });
+});
+
+test.concurrent('installing with --ignore-optional should not install optional subdependencies', async () => {
+  await runInstall({ignoreOptional: true}, 'install-optional-dependencies', async (config): Promise<void> => {
+    expect(await fs.exists(`${config.cwd}/node_modules/dep-b`)).toEqual(false);
+  });
+});
 
 test.concurrent('packages installed through the link protocol should validate all peer dependencies', async () => {
   await runInstall({checkFiles: true}, 'check-files-should-not-cross-symlinks', async (config): Promise<void> => {
@@ -434,6 +447,27 @@ test.concurrent('install file: protocol', (): Promise<void> => {
 test.concurrent('install with file: protocol as default', (): Promise<void> => {
   return runInstall({noLockfile: true}, 'install-file-as-default', async config => {
     expect(await fs.readFile(path.join(config.cwd, 'node_modules', 'foo', 'index.js'))).toEqual('foobar;\n');
+  });
+});
+
+// When local packages are installed, dependencies with different forms of the same relative path
+// should be deduped e.g. 'file:b' and 'file:./b'
+test.concurrent('install file: dedupe dependencies 1', (): Promise<void> => {
+  return runInstall({}, 'install-file-dedupe-dependencies-1', async config => {
+    // Check that b is not added as a sub-dependency of a
+    expect(await fs.exists(path.join(config.cwd, 'node_modules', 'a', 'node_modules'))).toEqual(false);
+  });
+});
+
+// When local packages are installed, dependencies with relative and absolute paths should be
+// deduped e.g. 'file:b' and 'file:/absolute/path/to/b'
+test.concurrent('install file: dedupe dependencies 2', (): Promise<void> => {
+  return runInstall({}, 'install-file-dedupe-dependencies-2', async (config, reporter) => {
+    // Add b as a dependency, using an absolute path
+    await add(config, reporter, {}, [`b@file:${path.resolve(config.cwd, 'b')}`]);
+
+    // Check that b is not added as a sub-dependency of a
+    expect(await fs.exists(path.join(config.cwd, 'node_modules', 'a', 'node_modules'))).toEqual(false);
   });
 });
 
@@ -957,4 +991,30 @@ test.concurrent('top level patterns should match after install', (): Promise<voi
     }
     expect(integrityError).toBe(false);
   });
+});
+
+test.concurrent('warns for missing bundledDependencies', (): Promise<void> => {
+  const fixturesLoc = path.join(__dirname, '..', '..', 'fixtures', 'install');
+
+  return buildRun(
+    reporters.BufferReporter,
+    fixturesLoc,
+    async (args, flags, config, reporter): Promise<void> => {
+      await install(config, reporter, flags, args);
+
+      const output = reporter.getBuffer();
+      const warnings = output.filter(entry => entry.type === 'warning');
+
+      expect(
+        warnings.some(warning => {
+          return (
+            warning.data.toString().indexOf(reporter.lang('missingBundledDependency', 'tap@0.3.1', 'tap-consumer')) > -1
+          );
+        }),
+      ).toEqual(true);
+    },
+    [],
+    {},
+    'missing-bundled-dep',
+  );
 });
