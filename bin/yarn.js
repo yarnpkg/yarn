@@ -17,7 +17,9 @@ if (semver.satisfies(ver, '>=5.0.0')) {
   dirPath = '../lib-legacy';
 } else {
   console.log(require('chalk').red('Node version ' + ver + ' is not supported, please use Node.js 4.0 or higher.'));
-  process.exit(1);
+  // We need to skip the rest and terminate here since the Node version is not supported.
+  // `console.log` calls are sync so we don't have a risk of exiting early before stdout flushes
+  process.exit(1); // eslint-disable-line no-process-exit
 }
 
 // load v8-compile-cache

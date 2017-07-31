@@ -16,6 +16,7 @@
     "flowtype/space-after-type-colon": ["error", "always"],
     "flowtype/require-return-type": ["error", "always", {"excludeArrowFunctions": true}],
     "require-await": "error",
+    "no-process-exit": "error",
     "no-return-await": "error",
     "sort-keys": "off",
     "prettier/prettier": ["error", {

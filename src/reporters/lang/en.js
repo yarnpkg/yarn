@@ -17,6 +17,7 @@ const messages = {
   answer: 'Answer?',
   usage: 'Usage',
   installCommandRenamed: '`install` has been replaced with `add` to add new dependencies. Run $0 instead.',
+  globalFlagRemoved: '`--global` has been deprecated. Please run $0 instead.',
   waitingInstance: 'Waiting for the other yarn instance to finish',
   offlineRetrying: 'There appears to be trouble with your network connection. Retrying...',
   clearedCache: 'Cleared cache.',
@@ -199,6 +200,7 @@ const messages = {
 
   unmetPeer: '$0 has unmet peer dependency $1.',
   incorrectPeer: '$0 has incorrect peer dependency $1.',
+  missingBundledDependency: '$0 is missing a bundled dependency $1. This should be reported to the package maintainer.',
 
   savedNewDependency: 'Saved 1 new dependency.',
   savedNewDependencies: 'Saved $0 new dependencies.',
