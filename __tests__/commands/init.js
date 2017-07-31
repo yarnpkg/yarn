@@ -1,6 +1,7 @@
 /* @flow */
 
-import {ConsoleReporter, TestReporter} from '../../src/reporters/index.js';
+import type {QuestionOptions} from '../../src/reporters/types.js';
+import {ConsoleReporter} from '../../src/reporters/index.js';
 import {run as buildRun} from './_helpers.js';
 import {getGitConfigInfo, run as runInit} from '../../src/cli/commands/init.js';
 import * as fs from '../../src/util/fs.js';
@@ -10,53 +11,68 @@ const path = require('path');
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000;
 
 const fixturesLoc = path.join(__dirname, '..', 'fixtures', 'init');
-const execInit = buildRun.bind(
-  null,
-  ConsoleReporter,
-  fixturesLoc,
-  (args, flags, config, reporter, lockfile): Promise<void> => {
-    if (flags.hasOwnProperty('questionMap')) {
-      reporter = new TestReporter(flags.questionMap);
-    }
-    return runInit(config, reporter, flags, args);
-  },
-  [],
-);
 
 test.concurrent('init --yes should create package.json with defaults', (): Promise<void> => {
-  return execInit({yes: true}, 'init-yes', async (config): Promise<void> => {
-    const {cwd} = config;
-    const manifestFile = await fs.readFile(path.join(cwd, 'package.json'));
-    const manifest = JSON.parse(manifestFile);
+  return buildRun(
+    ConsoleReporter,
+    fixturesLoc,
+    (args, flags, config, reporter, lockfile): Promise<void> => {
+      return runInit(config, reporter, flags, args);
+    },
+    [],
+    {yes: true},
+    'init-yes',
+    async (config): Promise<void> => {
+      const {cwd} = config;
+      const manifestFile = await fs.readFile(path.join(cwd, 'package.json'));
+      const manifest = JSON.parse(manifestFile);
 
-    expect(manifest.name).toEqual(path.basename(cwd));
-    expect(manifest.main).toEqual('index.js');
-    expect(manifest.version).toEqual(String(config.getOption('init-version')));
-    expect(manifest.license).toEqual(String(config.getOption('init-license')));
-  });
+      // Name is derived from directory name which is dynamic so check
+      // that separately and then remove from snapshot
+      expect(manifest.name).toEqual(path.basename(cwd));
+      expect({...manifest, name: 'yarn-test'}).toMatchSnapshot();
+    },
+  );
 });
 
 test.concurrent('init using Github shorthand should resolve to full repository URL', (): Promise<void> => {
-  const inputMap = {
-    name: '',
+  const questionMap = Object.freeze({
+    name: 'hi-github',
     version: '',
     description: '',
     'entry point': '',
     'repository url': 'user/repo',
     author: '',
     license: '',
-  };
-  return execInit({questionMap: inputMap}, 'init-github', async (config): Promise<void> => {
-    const {cwd} = config;
-    const manifestFile = await fs.readFile(path.join(cwd, 'package.json'));
-    const manifest = JSON.parse(manifestFile);
-
-    expect(manifest.name).toEqual(path.basename(cwd));
-    expect(manifest.main).toEqual('index.js');
-    expect(manifest.version).toEqual(String(config.getOption('init-version')));
-    expect(manifest.license).toEqual(String(config.getOption('init-license')));
-    expect(manifest.repository).toEqual('https://github.com/user/repo');
   });
+  class TestReporter extends ConsoleReporter {
+    question(question: string, options?: QuestionOptions = {}): Promise<string> {
+      return new Promise((resolve, reject) => {
+        const parsedQuestion = question.replace(/ \((.*?)\)/g, '');
+        if (parsedQuestion in questionMap) {
+          resolve(questionMap[parsedQuestion]);
+        } else {
+          reject(new Error(`Question not found in question-answer map ${parsedQuestion}`));
+        }
+      });
+    }
+  }
+
+  return buildRun(
+    TestReporter,
+    fixturesLoc,
+    (args, flags, config, reporter, lockfile): Promise<void> => {
+      return runInit(config, reporter, flags, args);
+    },
+    [],
+    {},
+    'init-github',
+    async (config): Promise<void> => {
+      const manifestFile = await fs.readFile(path.join(config.cwd, 'package.json'));
+
+      expect(JSON.parse(manifestFile)).toMatchSnapshot();
+    },
+  );
 });
 
 test.concurrent('getGitConfigInfo should not return the git config val', async (): Promise<void> => {

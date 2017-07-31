@@ -6,4 +6,3 @@ export {default as EventReporter} from './event-reporter.js';
 export {default as JSONReporter} from './json-reporter.js';
 export {default as NoopReporter} from './noop-reporter.js';
 export {default as Reporter} from './base-reporter.js';
-export {default as TestReporter} from './test-reporter.js';
