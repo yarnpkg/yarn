@@ -144,16 +144,16 @@ export async function setVersion(
       const flag = sign ? '-sm' : '-am';
       const prefix: string = String(config.getOption('version-tag-prefix'));
 
-      const gitRoot = (await spawnGit(['rev-parse', '--show-toplevel'])).trim();
+      const gitRoot = (await spawnGit(['rev-parse', '--show-toplevel'], {cwd: config.cwd})).trim();
 
       // add manifest
-      await spawnGit(['add', path.relative(gitRoot, pkgLoc)]);
+      await spawnGit(['add', path.relative(gitRoot, pkgLoc)], {cwd: gitRoot});
 
       // create git commit
-      await spawnGit(['commit', '-m', message]);
+      await spawnGit(['commit', '-m', message], {cwd: gitRoot});
 
       // create git tag
-      await spawnGit(['tag', `${prefix}${newVersion}`, flag, message]);
+      await spawnGit(['tag', `${prefix}${newVersion}`, flag, message], {cwd: gitRoot});
     }
 
     await runLifecycle('postversion');
