@@ -4,7 +4,8 @@ exports[`init --yes should create package.json with defaults 1`] = `
 Object {
   "license": "MIT",
   "main": "index.js",
-  "name": "yarn-test",
+  "name": "hi-github",
+  "repository": "https://github.com/user/repo",
   "version": "1.0.0",
 }
 `;
@@ -13,8 +14,7 @@ exports[`init --yes should create package.json with defaults 2`] = `
 Object {
   "license": "MIT",
   "main": "index.js",
-  "name": "hi-github",
-  "repository": "https://github.com/user/repo",
+  "name": "yarn-test",
   "version": "1.0.0",
 }
 `;
