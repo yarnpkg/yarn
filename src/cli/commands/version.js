@@ -118,7 +118,7 @@ export async function setVersion(
   // check if committing the new version to git is overriden
   if (!flags.gitTagVersion || !config.getOption('version-git-tag')) {
     // Don't tag the version in Git
-    return Promise.resolve.bind(Promise);
+    return () => Promise.resolve();
   }
 
   return async function(): Promise<void> {
