@@ -860,6 +860,7 @@ export async function install(config: Config, reporter: Reporter, flags: Object,
 
 export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
   let lockfile;
+  let error = 'installCommandRenamed';
   if (flags.lockfile === false) {
     lockfile = new Lockfile();
   } else {
@@ -868,6 +869,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
 
   if (args.length) {
     const exampleArgs = args.slice();
+
     if (flags.saveDev) {
       exampleArgs.push('--dev');
     }
@@ -885,9 +887,10 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
     }
     let command = 'add';
     if (flags.global) {
-      command = 'global add';
+      error = 'globalFlagRemoved';
+      command = 'global';
     }
-    throw new MessageError(reporter.lang('installCommandRenamed', `yarn ${command} ${exampleArgs.join(' ')}`));
+    throw new MessageError(reporter.lang(error, `yarn ${command} ${exampleArgs.join(' ')}`));
   }
 
   await install(config, reporter, flags, lockfile);

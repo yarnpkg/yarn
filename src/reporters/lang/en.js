@@ -17,6 +17,7 @@ const messages = {
   answer: 'Answer?',
   usage: 'Usage',
   installCommandRenamed: '`install` has been replaced with `add` to add new dependencies. Run $0 instead.',
+  globalFlagRemoved: '`--global` has been deprecated. Please run $0 instead.',
   waitingInstance: 'Waiting for the other yarn instance to finish',
   offlineRetrying: 'There appears to be trouble with your network connection. Retrying...',
   clearedCache: 'Cleared cache.',
