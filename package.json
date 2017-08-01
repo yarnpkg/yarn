@@ -56,6 +56,7 @@
     "babel-preset-node5": "^10.2.0",
     "babel-preset-stage-0": "^6.0.0",
     "babylon": "^6.5.0",
+    "cross-env": "^5.0.2",
     "eslint": "^4.3.0",
     "eslint-config-fb-strict": "^20.1.0-delta.3",
     "eslint-plugin-babel": "^4.0.0",
@@ -103,7 +104,7 @@
     "release-branch": "./scripts/release-branch.sh",
     "test": "yarn lint && yarn test-only",
     "test-ci": "yarn build && yarn test-only",
-    "test-only": "node --max_old_space_size=4096 ./node_modules/.bin/jest --coverage --verbose",
+    "test-only": "cross-env NODE_OPTIONS=--max_old_space_size=4096 node_modules/.bin/jest  --coverage --verbose",
     "watch": "gulp watch"
   },
   "jest": {
