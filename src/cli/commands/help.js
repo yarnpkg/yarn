@@ -14,14 +14,6 @@ export function hasWrapper(flags: Object, args: Array<string>): boolean {
 
 export function setFlags(commander: Object) {}
 
-function rawText(str: string): {inspect(): string} {
-  return {
-    inspect(): string {
-      return str;
-    },
-  };
-}
-
 export function run(config: Config, reporter: Reporter, commander: Object, args: Array<string>): Promise<void> {
   if (args.length) {
     const commandName = args.shift();
@@ -32,7 +24,7 @@ export function run(config: Config, reporter: Reporter, commander: Object, args:
         const examples: Array<string> = ((command && command.examples) || []).map(example => `    $ yarn ${example}`);
         if (examples.length) {
           commander.on('--help', () => {
-            reporter.log(reporter.lang('helpExamples', rawText(examples.join('\n'))));
+            reporter.log(reporter.lang('helpExamples', reporter.rawText(examples.join('\n'))));
           });
         }
         // eslint-disable-next-line yarn-internal/warn-language
@@ -55,9 +47,9 @@ export function run(config: Config, reporter: Reporter, commander: Object, args:
         commandsText.push(`    - ${hyphenate(name)}`);
       }
     }
-    reporter.log(reporter.lang('helpCommands', rawText(commandsText.join('\n'))));
-    reporter.log(reporter.lang('helpCommandsMore', rawText(chalk.bold('yarn help COMMAND'))));
-    reporter.log(reporter.lang('helpLearnMore', rawText(chalk.bold(constants.YARN_DOCS))));
+    reporter.log(reporter.lang('helpCommands', reporter.rawText(commandsText.join('\n'))));
+    reporter.log(reporter.lang('helpCommandsMore', reporter.rawText(chalk.bold('yarn help COMMAND'))));
+    reporter.log(reporter.lang('helpLearnMore', reporter.rawText(chalk.bold(constants.YARN_DOCS))));
   });
 
   commander.help();
