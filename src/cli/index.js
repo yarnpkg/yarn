@@ -300,6 +300,11 @@ export default function main({
     return errorReportLoc;
   }
 
+  const exit = exitCode => {
+    process.exitCode = exitCode || 0;
+    return reporter.close();
+  };
+
   config
     .init({
       binLinks: commander.binLinks,
@@ -331,9 +336,6 @@ export default function main({
         reporter.disableProgress();
       }
 
-      const exit = exitCode => {
-        process.exitCode = exitCode || 0;
-      };
       // verbose logs outputs process.uptime() with this line we can sync uptime to absolute time on the computer
       reporter.verbose(`current time: ${new Date().toISOString()}`);
 
@@ -367,7 +369,6 @@ export default function main({
         reporter.info(commands[commandName].getDocsInfo);
       }
 
-      reporter.close();
-      process.exitCode = 1;
+      return exit(1);
     });
 }
