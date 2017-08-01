@@ -5,6 +5,7 @@
   "license": "MIT",
   "scripts": {
     "prepublish" : "node log-command.js",
-    "pretest" : "node log-command.js"
+    "pretest" : "node log-command.js",
+    "test": "node log-command.js"
   }
 }

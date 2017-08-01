@@ -1,0 +1,7 @@
+{
+  "name": "lol",
+  "version": "1.0.0",
+  "main": "lol.js",
+  "license": "MIT",
+  "bin": "./prelol.js"
+}
