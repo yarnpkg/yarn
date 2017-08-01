@@ -17,19 +17,19 @@ case "$(uname -s)" in
     ;;
 esac
 
-version=`node -e "console.log(JSON.parse(fs.readFileSync('package.json')).version)"`
+version=`node -e "var fs=require('fs');console.log(JSON.parse(fs.readFileSync('package.json')).version)"`
 
 rm -rf artifacts dist
 mkdir artifacts
-mkdir dist{,/bin,/lib}
+mkdir dist{,/bin,/lib,/lib-legacy}
 
 # Workaround for https://github.com/yarnpkg/yarn/issues/2591
 eval $system_yarn run build
 eval $system_yarn run build-bundle
 chmod +x artifacts/*.js
 # Verify that it works as expected
-[[ "$version" == $(node artifacts/yarn-legacy-$version.js --version) ]] || exit 1
 [[ "$version" == "$(node artifacts/yarn-$version.js --version)" ]] || exit 1
+[[ "$version" == "$(node artifacts/yarn-legacy-$version.js --version)" ]] || exit 1
 
 cp package.json dist/
 cp README.md dist/
