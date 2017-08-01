@@ -23,7 +23,7 @@ if (dirPath) {
   var fs = require('fs');
   // We don't have/need this on legacy builds and dev builds
   fs.existsSync(v8CompileCachePath) && require(dirPath + 'v8-compile-cache');
-  
+
   // Just requiring this package will trigger a yarn run since the
   // `require.main === module` check inside `cli/index.js` will always
   // be truthy when built with webpack :(
