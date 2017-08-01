@@ -74,8 +74,9 @@ test.concurrent(
       const reInstall = new Install({}, workspaceConfig, reporter, await Lockfile.fromDirectory(config.cwd));
       await reInstall.init();
 
-      expect((await fs.readFile(`${config.cwd}/yarn.lock`)).indexOf(`"b@file:b"`)).not.toEqual(-1);
-      expect((await fs.readFile(`${config.cwd}/yarn.lock`)).indexOf(`"a@file:./a"`)).not.toEqual(-1);
+      const lockfileContent = await fs.readFile(`${config.cwd}/yarn.lock`);
+      expect(lockfileContent).indexOf(`"b@file:b"`)).not.toEqual(-1);
+      expect(lockfileContent).indexOf(`"a@file:./a"`)).not.toEqual(-1);
     });
   },
 );
