@@ -19,9 +19,16 @@ if (majorVer >= 5) {
 }
 
 if (dirPath) {
-  require(dirPath + 'v8-compile-cache');
+  var v8CompileCachePath = dirPath + 'v8-compile-cache';
+  var fs = require('fs');
+  // We don't have/need this on legacy builds and dev builds
+  fs.existsSync(v8CompileCachePath) && require(dirPath + 'v8-compile-cache');
+  
   // Just requiring this package will trigger a yarn run since the
   // `require.main === module` check inside `cli/index.js` will always
   // be truthy when built with webpack :(
-  require(dirPath + 'yarn');
+  var cli = require(dirPath + 'cli');
+  if (!cli.webpackPolyfill) {
+    cli.default();
+  }
 }

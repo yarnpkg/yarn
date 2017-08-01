@@ -34,8 +34,8 @@ chmod +x artifacts/*.js
 cp package.json dist/
 cp README.md dist/
 cp LICENSE dist/
-cp artifacts/yarn-legacy-$version.js dist/lib/yarn-legacy.js
-cp artifacts/yarn-$version.js dist/lib/yarn.js
+cp artifacts/yarn-legacy-$version.js dist/lib-legacy/cli.js
+cp artifacts/yarn-$version.js dist/lib/cli.js
 cp bin/{yarn.js,yarn,yarnpkg,*.cmd} dist/bin/
 chmod +x dist/bin/*
 
