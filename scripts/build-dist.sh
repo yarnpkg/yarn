@@ -21,7 +21,7 @@ version=`node -e "var fs=require('fs');console.log(JSON.parse(fs.readFileSync('p
 
 rm -rf artifacts dist
 mkdir artifacts
-mkdir dist{,/bin,/lib,/lib-legacy}
+mkdir dist{,/bin,/lib}
 
 # Workaround for https://github.com/yarnpkg/yarn/issues/2591
 eval $system_yarn run build
@@ -34,8 +34,9 @@ chmod +x artifacts/*.js
 cp package.json dist/
 cp README.md dist/
 cp LICENSE dist/
-cp artifacts/yarn-legacy-$version.js dist/lib-legacy/cli.js
-cp artifacts/yarn-$version.js dist/lib/cli.js
+# Only use the legacy version for NPM builds so we are compatible
+# with any Node >= 4 and still small in terms of size.
+cp artifacts/yarn-legacy-$version.js dist/lib/cli.js
 cp bin/{yarn.js,yarn,yarnpkg,*.cmd} dist/bin/
 chmod +x dist/bin/*
 
