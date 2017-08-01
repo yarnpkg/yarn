@@ -331,6 +331,8 @@ const messages = {
     'Installing Yarn via Yarn will result in you having two separate versions of Yarn installed at the same time, which is not recommended. To update Yarn please follow https://yarnpkg.com/en/docs/install .',
 
   scopeNotValid: 'The specified scope is not valid.',
+
+  deprecatedCommand: '$0 is deprecated. Please use $1.',
 };
 
 export type LanguageKeys = $Keys<typeof messages>;

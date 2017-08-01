@@ -192,5 +192,5 @@ export const {run, setFlags, hasWrapper, examples} = buildSubCommands(
       return list(config, reporter, flags, args);
     },
   },
-  ['add <user> [[<@scope>/]<pkg>]', 'remove <user> [[<@scope>/]<pkg>]', 'ls [<@scope>/]<pkg>'],
+  ['add <user> [[<@scope>/]<pkg>]', 'remove <user> [[<@scope>/]<pkg>]', 'list [<@scope>/]<pkg>'],
 );

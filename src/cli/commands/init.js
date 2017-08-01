@@ -4,6 +4,7 @@ import type {Reporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
 import {stringifyPerson, extractRepositoryUrl} from '../../util/normalize-manifest/util.js';
 import {registryNames} from '../../registries/index.js';
+import GitHubResolver from '../../resolvers/exotics/github-resolver.js';
 import * as child from '../../util/child.js';
 import * as fs from '../../util/fs.js';
 import * as validate from '../../util/normalize-manifest/validate.js';
@@ -142,6 +143,10 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
     if (answer) {
       objectPath.set(pkg, manifestKey, answer);
     }
+  }
+
+  if (pkg.repository && GitHubResolver.isVersion(pkg.repository)) {
+    pkg.repository = `https://github.com/${pkg.repository}`;
   }
 
   // save answers

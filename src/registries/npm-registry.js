@@ -12,12 +12,11 @@ import envReplace from '../util/env-replace.js';
 import Registry from './base-registry.js';
 import {addSuffix} from '../util/misc';
 import {getPosixPath, resolveWithHome} from '../util/path';
-
-const normalizeUrl = require('normalize-url');
-const userHome = require('../util/user-home-dir').default;
-const path = require('path');
-const url = require('url');
-const ini = require('ini');
+import normalizeUrl from 'normalize-url';
+import {default as userHome, home} from '../util/user-home-dir';
+import path from 'path';
+import url from 'url';
+import ini from 'ini';
 
 const DEFAULT_REGISTRY = 'https://registry.npmjs.org/';
 const REGEX_REGISTRY_PREFIX = /^https?:/;
@@ -177,6 +176,12 @@ export default class NpmRegistry extends Registry {
       [true, this.config.userconfig || path.join(userHome, localfile)],
       [false, path.join(getGlobalPrefix(), 'etc', filename)],
     ];
+
+    // When home directory for global install is different from where $HOME/npmrc is stored,
+    // E.g. /usr/local/share vs /root on linux machines, check the additional location
+    if (home !== userHome) {
+      possibles.push([true, path.join(home, localfile)]);
+    }
 
     // npmrc --> ../.npmrc, ../../.npmrc, etc.
     const foldersFromRootToCwd = getPosixPath(this.cwd).split('/');
