@@ -102,6 +102,19 @@ export default class BaseReporter {
     });
   }
 
+  /**
+   * `stringifyLangArgs` run `JSON.stringify` on strings too causing
+   * them to appear quoted. This marks them as "raw" and prevents
+   * the quiating and escaping
+   */
+  rawText(str: string): {inspect(): string} {
+    return {
+      inspect(): string {
+        return str;
+      },
+    };
+  }
+
   verbose(msg: string) {
     if (this.isVerbose) {
       this._verbose(msg);

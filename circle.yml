@@ -29,13 +29,11 @@ test:
         ./scripts/set-dev-version.js
       fi;
     - yarn lint
+    # Limit maxWorkers to 3 to avoid OOM on CircleCI
     - yarn test-ci -- -- --maxWorkers 3
     - yarn check-lockfile
     - yarn run build-dist
     - yarn run build-deb
-    # Test that the standalone .js build works as expected
-    - ./artifacts/yarn-`./dist/bin/yarn --version`.js --version
-    - ./artifacts/yarn-legacy-`./dist/bin/yarn --version`.js --version
 
     # Test that installing as root works and that it also works
     # behind a user namespace which Circle CI tests are run under

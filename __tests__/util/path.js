@@ -79,7 +79,6 @@ describe('resolveWithHome', () => {
     });
 
     test('Paths with home are resolved', () => {
-      console.log(process.platform);
       expect(resolveWithHome('~/bar/baz/q')).toEqual('RESOLVED ["/home/foo","bar/baz/q"]');
       expect(resolveWithHome('~\\bar\\baz\\q')).toEqual('RESOLVED ["/home/foo","bar\\\\baz\\\\q"]');
     });

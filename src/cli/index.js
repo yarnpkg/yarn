@@ -20,7 +20,7 @@ const net = require('net');
 const onDeath = require('death');
 const path = require('path');
 
-export default function main({
+export function main({
   startArgs,
   args,
   endArgs,
@@ -370,4 +370,22 @@ export default function main({
       reporter.close();
       process.exitCode = 1;
     });
+}
+
+export default function start() {
+  // ignore all arguments after a --
+  const doubleDashIndex = process.argv.findIndex(element => element === '--');
+  const startArgs = process.argv.slice(0, 2);
+  const args = process.argv.slice(2, doubleDashIndex === -1 ? process.argv.length : doubleDashIndex);
+  const endArgs = doubleDashIndex === -1 ? [] : process.argv.slice(doubleDashIndex + 1, process.argv.length);
+
+  main({startArgs, args, endArgs});
+}
+
+// When this module is compiled via Webpack, its child
+// count will be 0 since it is a single-file bundle.
+export const autoRun = module.children.length === 0;
+
+if (require.main === module) {
+  start();
 }

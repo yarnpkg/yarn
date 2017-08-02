@@ -16,7 +16,7 @@ const babelRc = JSON.parse(fs.readFileSync(path.join(basedir, '.babelrc'), 'utf8
 
 const compiler = webpack({
   // devtool: 'inline-source-map',
-  entry: [path.join(basedir, 'src/cli/index.js')],
+  entry: path.join(basedir, 'src/cli/index.js'),
   module: {
     loaders: [
       {
@@ -35,7 +35,6 @@ const compiler = webpack({
   output: {
     filename: `yarn-${version}.js`,
     path: path.join(basedir, 'artifacts'),
-    library: 'yarn-cli',
     libraryTarget: 'commonjs2',
   },
   target: 'node',
@@ -53,7 +52,7 @@ compiler.run((err, stats) => {
 
 const compilerLegacy = webpack({
   // devtool: 'inline-source-map',
-  entry: [path.join(basedir, 'src/cli/index.js')],
+  entry: path.join(basedir, 'src/cli/index.js'),
   module: {
     loaders: [
       {
@@ -73,7 +72,6 @@ const compilerLegacy = webpack({
   output: {
     filename: `yarn-legacy-${version}.js`,
     path: path.join(basedir, 'artifacts'),
-    library: 'yarn-cli',
     libraryTarget: 'commonjs2',
   },
   target: 'node',
