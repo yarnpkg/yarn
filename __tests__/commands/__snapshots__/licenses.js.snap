@@ -1,0 +1,15 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`lists all licenses of the dependencies with the --json argument 1`] = `
+"{\\"type\\":\\"warning\\",\\"data\\":\\"package.json: No license field\\"}
+{\\"type\\":\\"warning\\",\\"data\\":\\"No license field\\"}
+{\\"type\\":\\"tree\\",\\"data\\":{\\"type\\":\\"licenses\\",\\"trees\\":[{\\"name\\":\\"is-plain-obj@1.1.0\\",\\"children\\":[{\\"name\\":\\"License: MIT\\"},{\\"name\\":\\"URL: https://github.com/sindresorhus/is-plain-obj.git\\"}]}]}}
+"
+`;
+
+exports[`should genereate disclaimer on demand 1`] = `
+"{\\"type\\":\\"warning\\",\\"data\\":\\"package.json: No license field\\"}
+{\\"type\\":\\"warning\\",\\"data\\":\\"No license field\\"}
+{\\"type\\":\\"warning\\",\\"data\\":\\"package.json: No license field\\"}
+"
+`;

@@ -1,7 +1,9 @@
 /* @flow */
 
+import {resolve, join as pathJoin} from 'path';
+
 import NpmRegistry from '../../src/registries/npm-registry.js';
-import {resolve} from 'path';
+import {BufferReporter} from '../../src/reporters/index.js';
 import homeDir from '../../src/util/user-home-dir.js';
 
 describe('normalizeConfig', () => {
@@ -50,12 +52,10 @@ function createMocks(): Object {
       getScopedOption: jest.fn(),
     },
   };
-  const mockReporter = jest.fn();
 
   return {
     mockRequestManager,
     mockRegistries,
-    mockReporter,
   };
 }
 
@@ -164,7 +164,7 @@ describe('request', () => {
     const {mockRequestManager, mockRegistries, mockReporter} = createMocks();
     const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter);
 
-    const url = 'https://registry.npmjs.org/@testScope/yarn.tgz';
+    const url = 'https://registry.npmjs.org/@testScope%2fyarn.tgz';
 
     npmRegistry.config = {
       _authToken: 'testAuthToken',
@@ -174,6 +174,24 @@ describe('request', () => {
     const requestParams = mockRequestManager.request.mock.calls[0][0];
 
     expect(requestParams.headers.authorization).toBe('Bearer testAuthToken');
+  });
+
+  test('should add authorization header with token for custom registries with a scoped package', () => {
+    const testCwd = '.';
+    const {mockRequestManager, mockRegistries, mockReporter} = createMocks();
+    const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter);
+
+    const url = 'https://some.other.registry/@testScope%2fyarn.tgz';
+
+    npmRegistry.config = {
+      '//some.other.registry/:_authToken': 'testScopedAuthToken',
+      '@testScope:registry': '//some.other.registry/',
+    };
+    npmRegistry.request(url);
+
+    const requestParams = mockRequestManager.request.mock.calls[0][0];
+
+    expect(requestParams.headers.authorization).toBe('Bearer testScopedAuthToken');
   });
 });
 
@@ -226,6 +244,70 @@ describe('isRequestToRegistry functional test', () => {
 
     expect(npmRegistry.isRequestToRegistry('http://pkgs.host.com:80/foo/bar/baz', 'http://pkgs.host.com/bar/baz')).toBe(
       true,
+    );
+  });
+});
+
+const packageIdents = [
+  ['normal', ''],
+  ['@scopedNoPkg', ''],
+  ['@scoped/notescaped', ''],
+  ['not@scope/pkg', ''],
+  ['@scope?query=true', ''],
+  ['@scope%2fpkg', '@scope'],
+  ['@scope%2fpkg%2fext', '@scope'],
+  ['@scope%2fpkg?query=true', '@scope'],
+  ['@scope%2fpkg%2f1.2.3', '@scope'],
+  ['http://foo.bar:80/normal', ''],
+  ['http://foo.bar:80/@scopedNoPkg', ''],
+  ['http://foo.bar:80/@scoped/notescaped', ''],
+  ['http://foo.bar:80/not@scope/pkg', ''],
+  ['http://foo.bar:80/@scope?query=true', ''],
+  ['http://foo.bar:80/@scope%2fpkg', '@scope'],
+  ['http://foo.bar:80/@scope%2fpkg%2fext', '@scope'],
+  ['http://foo.bar:80/@scope%2fpkg?query=true', '@scope'],
+  ['http://foo.bar:80/@scope%2fpkg%2f1.2.3', '@scope'],
+];
+
+describe('isScopedPackage functional test', () => {
+  test('identifies scope correctly', () => {
+    const testCwd = '.';
+    const {mockRequestManager, mockRegistries, mockReporter} = createMocks();
+    const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter);
+
+    packageIdents.forEach(([pathname, scope]) => {
+      expect(npmRegistry.isScopedPackage(pathname)).toEqual(!!scope.length);
+    });
+  });
+});
+
+describe('getScope functional test', () => {
+  describe('matches scope correctly', () => {
+    const testCwd = '.';
+    const {mockRequestManager, mockRegistries, mockReporter} = createMocks();
+    const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter);
+
+    packageIdents.forEach(([pathname, scope]) => {
+      expect(npmRegistry.getScope(pathname)).toEqual(scope);
+    });
+  });
+});
+
+describe('getPossibleConfigLocations', () => {
+  test('searches recursively to home directory', async () => {
+    const testCwd = './project/subdirectory';
+    const {mockRequestManager, mockRegistries} = createMocks();
+    const reporter = new BufferReporter({verbose: true});
+    const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, reporter);
+    await npmRegistry.getPossibleConfigLocations('npmrc', reporter);
+
+    const logs = reporter.getBuffer().map(logItem => logItem.data);
+    expect(logs).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining(JSON.stringify(pathJoin('project', 'subdirectory', '.npmrc'))),
+        expect.stringContaining(JSON.stringify(pathJoin('project', '.npmrc'))),
+        expect.stringContaining(JSON.stringify(pathJoin(homeDir, '.npmrc'))),
+      ]),
     );
   });
 });

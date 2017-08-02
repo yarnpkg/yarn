@@ -66,7 +66,6 @@ test.concurrent('throws error if module does not exist', (): Promise<void> => {
     try {
       await runWhy({}, ['one'], 'basic');
     } catch (err) {
-      console.log(err);
       expect(err.message).toContain(reporter.lang('whyUnknownMatch'));
     } finally {
       resolve();

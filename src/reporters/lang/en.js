@@ -17,12 +17,18 @@ const messages = {
   answer: 'Answer?',
   usage: 'Usage',
   installCommandRenamed: '`install` has been replaced with `add` to add new dependencies. Run $0 instead.',
+  globalFlagRemoved: '`--global` has been deprecated. Please run $0 instead.',
   waitingInstance: 'Waiting for the other yarn instance to finish',
   offlineRetrying: 'There appears to be trouble with your network connection. Retrying...',
   clearedCache: 'Cleared cache.',
   couldntClearPackageFromCache: "Couldn't clear package $0 from cache",
   clearedPackageFromCache: 'Cleared package $0 from cache',
   packWroteTarball: 'Wrote tarball to $0.',
+
+  helpExamples: '  Examples:\n$0\n',
+  helpCommands: '  Commands:\n$0\n',
+  helpCommandsMore: '  Run `$0` for more information on specific commands.',
+  helpLearnMore: '  Visit $0 to learn more about Yarn.\n',
 
   manifestPotentialTypo: 'Potential typo $0, did you mean $1?',
   manifestBuiltinModule: '$0 is also the name of a node core module',
@@ -194,6 +200,7 @@ const messages = {
 
   unmetPeer: '$0 has unmet peer dependency $1.',
   incorrectPeer: '$0 has incorrect peer dependency $1.',
+  missingBundledDependency: '$0 is missing a bundled dependency $1. This should be reported to the package maintainer.',
 
   savedNewDependency: 'Saved 1 new dependency.',
   savedNewDependencies: 'Saved $0 new dependencies.',
@@ -324,6 +331,8 @@ const messages = {
     'Installing Yarn via Yarn will result in you having two separate versions of Yarn installed at the same time, which is not recommended. To update Yarn please follow https://yarnpkg.com/en/docs/install .',
 
   scopeNotValid: 'The specified scope is not valid.',
+
+  deprecatedCommand: '$0 is deprecated. Please use $1.',
 };
 
 export type LanguageKeys = $Keys<typeof messages>;

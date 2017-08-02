@@ -99,11 +99,18 @@ export default class PackageLinker {
     if (pkg.bundleDependencies) {
       for (const depName of pkg.bundleDependencies) {
         const loc = path.join(this.config.generateHardModulePath(ref), this.config.getFolder(pkg), depName);
+        try {
+          const dep = await this.config.readManifest(loc, remote.registry);
 
-        const dep = await this.config.readManifest(loc, remote.registry);
-
-        if (dep.bin && Object.keys(dep.bin).length) {
-          deps.push({dep, loc});
+          if (dep.bin && Object.keys(dep.bin).length) {
+            deps.push({dep, loc});
+          }
+        } catch (ex) {
+          if (ex.code !== 'ENOENT') {
+            throw ex;
+          }
+          // intentionally ignoring ENOENT error.
+          // bundledDependency either does not exist or does not contain a package.json
         }
       }
     }
@@ -380,6 +387,10 @@ export default class PackageLinker {
         linkBinConcurrency,
       );
     }
+
+    for (const [, {pkg}] of flatTree) {
+      await this._warnForMissingBundledDependencies(pkg);
+    }
   }
 
   determineTopLevelBinLinks(flatTree: HoistManifestTuples): Array<[string, Manifest]> {
@@ -430,6 +441,20 @@ export default class PackageLinker {
 
   _satisfiesPeerDependency(range: string, version: string): boolean {
     return range === '*' || satisfiesWithPreleases(version, range, this.config.looseSemver);
+  }
+
+  async _warnForMissingBundledDependencies(pkg: Manifest): Promise<void> {
+    const ref = pkg._reference;
+
+    if (pkg.bundleDependencies) {
+      for (const depName of pkg.bundleDependencies) {
+        const loc = path.join(this.config.generateHardModulePath(ref), this.config.getFolder(pkg), depName);
+        if (!await fs.exists(loc)) {
+          const pkgHuman = `${pkg.name}@${pkg.version}`;
+          this.reporter.warn(this.reporter.lang('missingBundledDependency', pkgHuman, depName));
+        }
+      }
+    }
   }
 
   async init(

@@ -103,6 +103,15 @@ export const {run, setFlags, examples} = buildSubCommands('licenses', {
   },
 
   async generateDisclaimer(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
+    /* eslint-disable no-console */
+
+    // `reporter.log` dumps a bunch of ANSI escapes to clear the current line and
+    // is for abstracting the console output so it can be consumed by other tools
+    // (JSON output being the primary one). This command is only for text consumption
+    // and you should just be dumping it to a TXT file. Using a reporter here has the
+    // potential to mess up the output since it might print ansi escapes.
+    // @kittens - https://git.io/v7uts
+
     const manifests: Array<Manifest> = await getManifests(config, flags);
     const manifest = await config.readRootManifest();
 
