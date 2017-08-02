@@ -17,7 +17,7 @@ case "$(uname -s)" in
     ;;
 esac
 
-version=`node -e "var fs=require('fs');console.log(JSON.parse(fs.readFileSync('package.json')).version)"`
+version=`node -p -e "require('./package.json').version"`
 
 rm -rf artifacts dist
 mkdir artifacts
