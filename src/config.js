@@ -602,13 +602,19 @@ export default class Config {
       throw new MessageError(this.reporter.lang('workspacesRequirePrivateProjects'));
     }
 
-    const registryFilenames = registryNames.map(registryName => this.registries[registryName].constructor.filename);
-    const trailingPattern = `/+(${registryFilenames.join(`|`)})`;
+    const registryFilenames = registryNames
+      .map(registryName => this.registries[registryName].constructor.filename)
+      .join('|');
+    const trailingPattern = `/+(${registryFilenames})`;
+    const ignorePatterns = this.registryFolders.map(folder => `/${folder}/*/+(${registryFilenames})`);
 
     const files = await Promise.all(
-      patterns.map(pattern => {
-        return fs.glob(pattern.replace(/\/?$/, trailingPattern), {cwd: root, ignore: this.registryFolders});
-      }),
+      patterns.map(pattern =>
+        fs.glob(pattern.replace(/\/?$/, trailingPattern), {
+          cwd: root,
+          ignore: ignorePatterns.map(ignorePattern => pattern.replace(/\/?$/, ignorePattern)),
+        }),
+      ),
     );
 
     for (const file of new Set([].concat(...files))) {
