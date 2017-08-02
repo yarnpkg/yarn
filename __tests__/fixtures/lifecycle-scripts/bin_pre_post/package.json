@@ -4,6 +4,6 @@
   "main": "index.js",
   "license": "MIT",
   "scripts": {
-    "lol" : "node log-command.js"
+    "lol" : "echo '##lol##'"
   }
 }

@@ -4,7 +4,7 @@
   "main": "index.js",
   "license": "MIT",
   "scripts": {
-    "prelol" : "node log-command.js",
-    "postlol" : "node log-command.js"
+    "prelol" : "echo '##prelol##'",
+    "postlol" : "echo '##postlol##'"
   }
 }
