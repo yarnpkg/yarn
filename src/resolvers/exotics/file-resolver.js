@@ -12,11 +12,7 @@ const invariant = require('invariant');
 const path = require('path');
 const uuid = require('uuid');
 
-type Dependencies = {
-  [key: string]: string,
-};
-
-const FILE_PROTOCOL_PREFIX = 'file:';
+export const FILE_PROTOCOL_PREFIX = 'file:';
 
 export default class FileResolver extends ExoticResolver {
   constructor(request: PackageRequest, fragment: string) {
@@ -31,7 +27,7 @@ export default class FileResolver extends ExoticResolver {
   async resolve(): Promise<Manifest> {
     let loc = this.loc;
     if (!path.isAbsolute(loc)) {
-      loc = path.join(this.config.cwd, loc);
+      loc = path.resolve(this.config.lockfileFolder, loc);
     }
 
     if (this.config.linkFileDependencies) {
@@ -79,47 +75,6 @@ export default class FileResolver extends ExoticResolver {
 
     manifest._uid = manifest.version;
 
-    // Normalize relative paths; if anything changes, make a copy of the manifest
-    const dependencies = this.normalizeDependencyPaths(manifest.dependencies, loc);
-    const optionalDependencies = this.normalizeDependencyPaths(manifest.optionalDependencies, loc);
-
-    if (dependencies !== manifest.dependencies || optionalDependencies !== manifest.optionalDependencies) {
-      const _manifest = Object.assign({}, manifest);
-      if (dependencies != null) {
-        _manifest.dependencies = dependencies;
-      }
-      if (optionalDependencies != null) {
-        _manifest.optionalDependencies = optionalDependencies;
-      }
-      return _manifest;
-    } else {
-      return manifest;
-    }
-  }
-
-  normalizeDependencyPaths(section: ?Dependencies, loc: string): ?Dependencies {
-    if (section == null) {
-      return section;
-    }
-
-    let temp = section;
-
-    for (const [k, v] of util.entries(section)) {
-      if (
-        typeof v === 'string' &&
-        v.startsWith(FILE_PROTOCOL_PREFIX) &&
-        !path.isAbsolute(v.substring(FILE_PROTOCOL_PREFIX.length))
-      ) {
-        if (temp === section) {
-          temp = Object.assign({}, section);
-        }
-        temp[k] = `${FILE_PROTOCOL_PREFIX}${path.relative(
-          this.config.cwd,
-          path.join(loc, util.removePrefix(v, FILE_PROTOCOL_PREFIX)),
-        )}`;
-      }
-    }
-
-    return temp;
+    return manifest;
   }
 }

@@ -9,14 +9,12 @@ import * as fs from '../../util/fs.js';
 
 const path = require('path');
 
-type Dependencies = {
-  [key: string]: string,
-};
+export const LINK_PROTOCOL_PREFIX = 'link:';
 
 export default class LinkResolver extends ExoticResolver {
   constructor(request: PackageRequest, fragment: string) {
     super(request, fragment);
-    this.loc = util.removePrefix(fragment, 'link:');
+    this.loc = util.removePrefix(fragment, LINK_PROTOCOL_PREFIX);
   }
 
   loc: string;
@@ -26,7 +24,7 @@ export default class LinkResolver extends ExoticResolver {
   async resolve(): Promise<Manifest> {
     let loc = this.loc;
     if (!path.isAbsolute(loc)) {
-      loc = path.join(this.config.cwd, loc);
+      loc = path.resolve(this.config.lockfileFolder, loc);
     }
 
     const name = path.basename(loc);
@@ -45,40 +43,6 @@ export default class LinkResolver extends ExoticResolver {
 
     manifest._uid = manifest.version;
 
-    // Normalize relative paths; if anything changes, make a copy of the manifest
-    const dependencies = this.normalizeDependencyPaths(manifest.dependencies, loc);
-    const optionalDependencies = this.normalizeDependencyPaths(manifest.optionalDependencies, loc);
-
-    if (dependencies !== manifest.dependencies || optionalDependencies !== manifest.optionalDependencies) {
-      const _manifest = Object.assign({}, manifest);
-      if (dependencies != null) {
-        _manifest.dependencies = dependencies;
-      }
-      if (optionalDependencies != null) {
-        _manifest.optionalDependencies = optionalDependencies;
-      }
-      return _manifest;
-    } else {
-      return manifest;
-    }
-  }
-
-  normalizeDependencyPaths(section: ?Dependencies, loc: string): ?Dependencies {
-    if (section == null) {
-      return section;
-    }
-
-    let temp = section;
-
-    for (const [k, v] of util.entries(section)) {
-      if (typeof v === 'string' && v.startsWith('link:') && !path.isAbsolute(v)) {
-        if (temp === section) {
-          temp = Object.assign({}, section);
-        }
-        temp[k] = `link:${path.relative(this.config.cwd, path.join(loc, util.removePrefix(v, 'link:')))}`;
-      }
-    }
-
-    return temp;
+    return manifest;
   }
 }
