@@ -44,10 +44,13 @@ test.concurrent('should add the global yarnrc arguments to the command line', as
   expect(stdout.replace(/\\/g, '/')).toMatch(/^(C:)?\/tmp\/foobar\/v[0-9]+\n$/);
 });
 
-test.concurrent('should add the command-specific yarnrc arguments to the command line if the command name matches', async () => {
-  const stdout = await execCommand('cache dir', 'yarnrc-cli-command-specific-ok');
-  expect(stdout.replace(/\\/g, '/')).toMatch(/^(C:)?\/tmp\/foobar\/v[0-9]+\n$/);
-});
+test.concurrent(
+  'should add the command-specific yarnrc arguments to the command line if the command name matches',
+  async () => {
+    const stdout = await execCommand('cache dir', 'yarnrc-cli-command-specific-ok');
+    expect(stdout.replace(/\\/g, '/')).toMatch(/^(C:)?\/tmp\/foobar\/v[0-9]+\n$/);
+  },
+);
 
 test.concurrent("should not add the command-specific yarnrc arguments if the command name doesn't match", async () => {
   const stdout = await execCommand('cache dir', 'yarnrc-cli-command-specific-ko');
@@ -65,22 +68,25 @@ test.concurrent('should resolve the yarnrc values relative to where the file liv
   expect(stdout.replace(/\\/g, '/')).toMatch(/^(C:)?(\/[^\/]+)+\/foobar\/hello\/world\/v[0-9]+\n$/);
 });
 
-test.concurrent('should expose `npm_config_argv` env variable to lifecycle scripts for back compatibility with npm', async () => {
-  const env = Object.assign({}, process.env);
-  delete env.npm_config_argv;
+test.concurrent(
+  'should expose `npm_config_argv` env variable to lifecycle scripts for back compatibility with npm',
+  async () => {
+    const env = Object.assign({}, process.env);
+    delete env.npm_config_argv;
 
-  const stdouts = await Promise.all([
-    execCommand('install', 'npm_config_argv_env_vars', env),
-    execCommand('', 'npm_config_argv_env_vars', env),
-    execCommand('run test', 'npm_config_argv_env_vars', env),
-    execCommand('test', 'npm_config_argv_env_vars', env),
-  ]);
+    const stdouts = await Promise.all([
+      execCommand('install', 'npm_config_argv_env_vars', env),
+      execCommand('', 'npm_config_argv_env_vars', env),
+      execCommand('run test', 'npm_config_argv_env_vars', env),
+      execCommand('test', 'npm_config_argv_env_vars', env),
+    ]);
 
-  expect(stdouts[0]).toContain('##install##');
-  expect(stdouts[1]).toContain('##install##');
-  expect(stdouts[2]).toContain('##test##');
-  expect(stdouts[3]).toContain('##test##');
-});
+    expect(stdouts[0]).toContain('##install##');
+    expect(stdouts[1]).toContain('##install##');
+    expect(stdouts[2]).toContain('##test##');
+    expect(stdouts[3]).toContain('##test##');
+  },
+);
 
 test.concurrent('should not run pre/post hooks for .bin executables', async () => {
   const stdout = await execCommand('run lol', 'script_only_pre_post');
