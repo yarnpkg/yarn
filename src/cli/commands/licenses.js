@@ -103,7 +103,15 @@ export const {run, setFlags, examples} = buildSubCommands('licenses', {
   },
 
   async generateDisclaimer(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
-    /* eslint-disable yarn-internal/warn-language */
+    /* eslint-disable no-console */
+
+    // `reporter.log` dumps a bunch of ANSI escapes to clear the current line and
+    // is for abstracting the console output so it can be consumed by other tools
+    // (JSON output being the primary one). This command is only for text consumption
+    // and you should just be dumping it to a TXT file. Using a reporter here has the
+    // potential to mess up the output since it might print ansi escapes.
+    // @kittens - https://git.io/v7uts
+
     const manifests: Array<Manifest> = await getManifests(config, flags);
     const manifest = await config.readRootManifest();
 
@@ -125,14 +133,15 @@ export const {run, setFlags, examples} = buildSubCommands('licenses', {
       byLicense.set(manifest.name, manifest);
     }
 
-    reporter.log(
+    console.log(
       'THE FOLLOWING SETS FORTH ATTRIBUTION NOTICES FOR THIRD PARTY SOFTWARE THAT MAY BE CONTAINED ' +
-        `IN PORTIONS OF THE ${String(manifest.name).toUpperCase().replace(/-/g, ' ')} PRODUCT.` +
-        '\n',
+        `IN PORTIONS OF THE ${String(manifest.name).toUpperCase().replace(/-/g, ' ')} PRODUCT.`,
     );
+    console.log();
 
     for (const [licenseText, manifests] of manifestsByLicense) {
-      reporter.log('-----\n');
+      console.log('-----');
+      console.log();
 
       const names = [];
       const urls = [];
@@ -150,15 +159,16 @@ export const {run, setFlags, examples} = buildSubCommands('licenses', {
       }
       heading.push('This software contains the following license and notice below:');
 
-      reporter.log(heading.join(' ') + '\n');
+      console.log(heading.join(' '));
+      console.log();
 
       if (licenseText) {
-        reporter.log(licenseText.trim());
+        console.log(licenseText.trim());
       } else {
         // what do we do here? base it on `license`?
       }
 
-      reporter.log('');
+      console.log();
     }
   },
 });
