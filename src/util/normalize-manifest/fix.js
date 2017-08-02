@@ -1,5 +1,6 @@
 /* @flow */
 
+import {DEPENDENCY_TYPES} from '../../constants';
 import type {Reporter} from '../../reporters/index.js';
 import {isValidLicense} from './util.js';
 import {normalizePerson, extractDescription} from './util.js';
@@ -304,6 +305,12 @@ export default (async function(
     const inferredLicense = inferLicense(info.readme);
     if (inferredLicense) {
       info.license = inferredLicense;
+    }
+  }
+
+  for (const dependencyType of DEPENDENCY_TYPES) {
+    if (info[dependencyType] && typeof info[dependencyType] === 'object') {
+      delete info[dependencyType]['//'];
     }
   }
 });

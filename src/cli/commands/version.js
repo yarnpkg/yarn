@@ -5,7 +5,7 @@ import type Config from '../../config.js';
 import {registryNames} from '../../registries/index.js';
 import {execCommand} from '../../util/execute-lifecycle-script.js';
 import {MessageError} from '../../errors.js';
-import {spawn} from '../../util/child.js';
+import {spawn as spawnGit} from '../../util/git/git-spawn.js';
 import * as fs from '../../util/fs.js';
 import map from '../../util/map.js';
 
@@ -118,9 +118,7 @@ export async function setVersion(
   // check if committing the new version to git is overriden
   if (!flags.gitTagVersion || !config.getOption('version-git-tag')) {
     // Don't tag the version in Git
-    return function(): Promise<void> {
-      return Promise.resolve();
-    };
+    return () => Promise.resolve();
   }
 
   return async function(): Promise<void> {
@@ -146,14 +144,16 @@ export async function setVersion(
       const flag = sign ? '-sm' : '-am';
       const prefix: string = String(config.getOption('version-tag-prefix'));
 
+      const gitRoot = (await spawnGit(['rev-parse', '--show-toplevel'], {cwd: config.cwd})).trim();
+
       // add manifest
-      await spawn('git', ['add', pkgLoc]);
+      await spawnGit(['add', path.relative(gitRoot, pkgLoc)], {cwd: gitRoot});
 
       // create git commit
-      await spawn('git', ['commit', '-m', message]);
+      await spawnGit(['commit', '-m', message], {cwd: gitRoot});
 
       // create git tag
-      await spawn('git', ['tag', `${prefix}${newVersion}`, flag, message]);
+      await spawnGit(['tag', `${prefix}${newVersion}`, flag, message], {cwd: gitRoot});
     }
 
     await runLifecycle('postversion');

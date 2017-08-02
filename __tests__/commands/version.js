@@ -1,7 +1,7 @@
 /* @flow */
 
 jest.mock('../../src/util/execute-lifecycle-script');
-jest.mock('../../src/util/child');
+jest.mock('../../src/util/git/git-spawn');
 
 import {run as buildRun} from './_helpers.js';
 import {BufferReporter} from '../../src/reporters/index.js';
@@ -12,6 +12,9 @@ import * as reporters from '../../src/reporters/index.js';
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 90000;
 
 const execCommand: $FlowFixMe = require('../../src/util/execute-lifecycle-script').execCommand;
+const spawn: $FlowFixMe = require('../../src/util/git/git-spawn').spawn;
+
+spawn.mockReturnValue(Promise.resolve(''));
 
 const path = require('path');
 

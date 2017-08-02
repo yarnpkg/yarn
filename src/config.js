@@ -270,14 +270,14 @@ export default class Config {
       httpsProxy: String(opts.httpsProxy || this.getOption('https-proxy') || ''),
       strictSSL: Boolean(this.getOption('strict-ssl')),
       ca: Array.prototype.concat(opts.ca || this.getOption('ca') || []).map(String),
-      cafile: String(opts.cafile || this.getOption('cafile') || ''),
+      cafile: String(opts.cafile || this.getOption('cafile', true) || ''),
       cert: String(opts.cert || this.getOption('cert') || ''),
       key: String(opts.key || this.getOption('key') || ''),
       networkConcurrency: this.networkConcurrency,
       networkTimeout: this.networkTimeout,
     });
     this._cacheRootFolder = String(
-      opts.cacheFolder || this.getOption('cache-folder') || constants.MODULE_CACHE_DIRECTORY,
+      opts.cacheFolder || this.getOption('cache-folder', true) || constants.MODULE_CACHE_DIRECTORY,
     );
     this.workspacesEnabled = Boolean(this.getOption('workspaces-experimental'));
 
@@ -493,10 +493,10 @@ export default class Config {
   }
 
   /**
- * try get the manifest file by looking
- * 1. manifest file in cache
- * 2. manifest file in registry
- */
+   * try get the manifest file by looking
+   * 1. manifest file in cache
+   * 2. manifest file in registry
+   */
   async maybeReadManifest(dir: string, priorityRegistry?: RegistryNames, isRoot?: boolean = false): Promise<?Manifest> {
     const metadataLoc = path.join(dir, constants.METADATA_FILENAME);
 

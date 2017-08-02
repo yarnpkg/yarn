@@ -1,5 +1,7 @@
 /* @flow */
 
+import type {ReadStream} from 'fs';
+
 import type Reporter from '../reporters/base-reporter.js';
 import BlockingQueue from './blocking-queue.js';
 import * as promise from './promise.js';
@@ -840,4 +842,32 @@ export async function makeTempDir(prefix?: string): Promise<string> {
   await unlink(dir);
   await mkdirp(dir);
   return dir;
+}
+
+export async function readFirstAvailableStream(
+  paths: Iterable<?string>,
+): Promise<{stream: ?ReadStream, triedPaths: Array<string>}> {
+  let stream: ?ReadStream;
+  const triedPaths = [];
+  for (const tarballPath of paths) {
+    if (tarballPath) {
+      try {
+        // We need the weird `await new Promise()` construct for `createReadStream` because
+        // it always returns a ReadStream object but immediately triggers an `error` event
+        // on it if it fails to open the file, instead of throwing an exception. If this event
+        // is not handled, it crashes node. A saner way to handle this with multiple tries is
+        // the following construct.
+        stream = await new Promise((resolve, reject) => {
+          const maybeStream = fs.createReadStream(tarballPath);
+          maybeStream.on('error', reject).on('readable', resolve.bind(this, maybeStream));
+        });
+        break;
+      } catch (err) {
+        // Try the next one
+        triedPaths.push(tarballPath);
+      }
+    }
+  }
+
+  return {stream, triedPaths};
 }

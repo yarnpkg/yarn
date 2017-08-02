@@ -375,7 +375,7 @@ export default class PackageResolver {
    * TODO description
    */
 
-  getExactVersionMatch(name: string, version: string): ?Manifest {
+  getExactVersionMatch(name: string, version: string, manifest: ?Manifest): ?Manifest {
     const patterns = this.patternsByPackage[name];
     if (!patterns) {
       return null;
@@ -388,6 +388,10 @@ export default class PackageResolver {
       }
     }
 
+    if (manifest && getExoticResolver(version)) {
+      return this.exoticRangeMatch(patterns.map(this.getStrictResolvedPattern.bind(this)), manifest);
+    }
+
     return null;
   }
 
@@ -395,7 +399,7 @@ export default class PackageResolver {
    * Get the manifest of the highest known version that satisfies a package range
    */
 
-  getHighestRangeVersionMatch(name: string, range: string): ?Manifest {
+  getHighestRangeVersionMatch(name: string, range: string, manifest: ?Manifest): ?Manifest {
     const patterns = this.patternsByPackage[name];
     if (!patterns) {
       return null;
@@ -410,14 +414,36 @@ export default class PackageResolver {
     });
 
     const maxValidRange = semver.maxSatisfying(versionNumbers, range);
+
     if (!maxValidRange) {
-      return null;
+      return manifest && getExoticResolver(range) ? this.exoticRangeMatch(resolvedPatterns, manifest) : null;
     }
 
     const indexOfmaxValidRange = versionNumbers.indexOf(maxValidRange);
     const maxValidRangeManifest = resolvedPatterns[indexOfmaxValidRange];
 
     return maxValidRangeManifest;
+  }
+
+  /**
+   * Get the manifest of the package that matches an exotic range
+   */
+
+  exoticRangeMatch(resolvedPkgs: Array<Manifest>, manifest: Manifest): ?Manifest {
+    const remote = manifest._remote;
+    if (!(remote && remote.reference && remote.type === 'copy')) {
+      return null;
+    }
+
+    const matchedPkg = resolvedPkgs.find(
+      ({_remote: pkgRemote}) => pkgRemote && pkgRemote.reference === remote.reference && pkgRemote.type === 'copy',
+    );
+
+    if (matchedPkg) {
+      manifest._remote = matchedPkg._remote;
+    }
+
+    return matchedPkg;
   }
 
   /**
