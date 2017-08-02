@@ -1,0 +1,6 @@
+// These settings enable flow language feature integration in the vscode IDE, using the version of flow
+// loaded based on package.json
+{
+  "flow.useNPMPackagedFlow": true,
+  "javascript.validate.enable": false
+}
