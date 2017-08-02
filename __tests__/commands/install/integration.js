@@ -491,6 +491,19 @@ test.concurrent('install file: dedupe dependencies 2', (): Promise<void> => {
   });
 });
 
+// When local packages are installed from a repo with a lockfile, the multiple packages
+// unpacking in the same location warning should not occur
+test.concurrent('install file: dedupe dependencies 3', (): Promise<void> => {
+  return runInstall({}, 'install-file-dedupe-dependencies-3', (config, reporter, install, getStdout) => {
+    const stdout = getStdout();
+    // Need to check if message is logged, but don't need to check for any specific parameters
+    // so splitting on undefined and testing if all message parts are in stdout
+    const messageParts = reporter.lang('multiplePackagesCantUnpackInSameDestination').split('undefined');
+    const warningMessage = messageParts.every(part => stdout.includes(part));
+    expect(warningMessage).toBe(false);
+  });
+});
+
 test.concurrent('install everything when flat is enabled', (): Promise<void> => {
   return runInstall({noLockfile: true, flat: true}, 'install-file', async config => {
     expect(await fs.readFile(path.join(config.cwd, 'node_modules', 'foo', 'index.js'))).toEqual('foobar;\n');
