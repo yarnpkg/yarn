@@ -14,8 +14,8 @@ const fs = require('fs');
 
 const babelRc = JSON.parse(fs.readFileSync(path.join(__dirname, '.babelrc'), 'utf8'));
 
-var ver = process.versions.node;
-var majorVer = parseInt(ver.split('.')[0], 10);
+const ver = process.versions.node;
+const majorVer = parseInt(ver.split('.')[0], 10);
 
 const build = (lib, opts) =>
   gulp.src('src/**/*')
