@@ -225,4 +225,11 @@ test.concurrent('install should link binaries at root and in workspace dependent
   });
 });
 
+test.concurrent('install should ignore node_modules in workspaces when used with **/*', (): Promise<void> => {
+  return runInstall({}, 'workspaces-install-already-exists', async (config): Promise<void> => {
+    expect(await fs.exists(path.join(config.cwd, 'node_modules', 'a'))).toBe(true);
+    expect(await fs.exists(path.join(config.cwd, 'node_modules', 'b'))).toBe(true);
+  });
+});
+
 // TODO need more thorough tests for all kinds of checks: integrity, verify-tree
