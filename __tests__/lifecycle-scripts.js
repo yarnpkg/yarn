@@ -83,7 +83,6 @@ test('should expose `npm_config_argv` env variable to lifecycle scripts for back
 });
 
 test('should not run pre/post hooks for .bin executables', async () => {
-  await execCommand('install', 'script_only_pre_post');
   const stdout = await execCommand('run lol', 'script_only_pre_post');
   expect(stdout).toContain('lol');
   expect(stdout).not.toContain('##prelol##');
@@ -91,7 +90,6 @@ test('should not run pre/post hooks for .bin executables', async () => {
 });
 
 test('should not run pre/post hooks if they are .bin executables and not scripts', async () => {
-  await execCommand('install', 'script_only_pre_post');
   const stdout = await execCommand('run lol', 'bin_pre_post');
   expect(stdout).toContain('lol');
   expect(stdout).not.toContain('##prelol##');
