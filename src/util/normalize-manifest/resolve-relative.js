@@ -3,6 +3,7 @@
 import {DEPENDENCY_TYPES} from '../../constants.js';
 import {FILE_PROTOCOL_PREFIX} from '../../resolvers/exotics/file-resolver.js';
 import {LINK_PROTOCOL_PREFIX} from '../../resolvers/exotics/link-resolver.js';
+import invariant from 'invariant';
 
 const path = require('path');
 
@@ -15,42 +16,43 @@ export default function(info: Object, moduleLoc: string, lockfileFolder: string)
   }
 
   for (const dependencyType of DEPENDENCY_TYPES) {
-    if (!info[dependencyType]) {
+    const dependencies = info[dependencyType];
+    if (!dependencies) {
       continue;
     }
 
-    for (const name of Object.keys(info[dependencyType])) {
-      let value = info[dependencyType][name];
+    for (const name of Object.keys(dependencies)) {
+      let value = dependencies[name];
 
       if (path.isAbsolute(value)) {
         value = FILE_PROTOCOL_PREFIX + value;
       }
 
       let prefix;
-
-      if (value.indexOf(FILE_PROTOCOL_PREFIX) === 0) {
+      if (value.startsWith(FILE_PROTOCOL_PREFIX)) {
         prefix = FILE_PROTOCOL_PREFIX;
-      } else if (value.indexOf(LINK_PROTOCOL_PREFIX) === 0) {
+      } else if (value.startsWith(LINK_PROTOCOL_PREFIX)) {
         prefix = LINK_PROTOCOL_PREFIX;
+      } else {
+        continue;
+      }
+      invariant(prefix, 'prefix is definitely defined here');
+
+      const unprefixed = value.substr(prefix.length);
+      const hasPathPrefix = /^\.(\/|$)/.test(unprefixed);
+
+      const absoluteTarget = path.resolve(lockfileFolder, moduleLoc, unprefixed);
+      let relativeTarget = path.relative(lockfileFolder, absoluteTarget) || '.';
+
+      if (hasPathPrefix) {
+        // TODO: This logic should be removed during the next major bump
+        // If the original value was using the "./" prefix, then we output a similar path.
+        // We need to do this because otherwise it would cause problems with already existing
+        // lockfile, which would see some of their entries being unrecognized.
+        relativeTarget = relativeTarget.replace(/^(?!\.{0,2}\/)/, `./`);
       }
 
-      if (prefix) {
-        const unprefixed = value.substr(prefix.length);
-        const hasPrefix = /^\.(\/|$)/.test(unprefixed);
-
-        const absoluteTarget = path.resolve(lockfileFolder, moduleLoc, unprefixed);
-        let relativeTarget = path.relative(lockfileFolder, absoluteTarget) || '.';
-
-        if (hasPrefix) {
-          // TODO: This logic should be removed during the next major bump
-          // If the original value was using the "./" prefix, then we output a similar path.
-          // We need to do this because otherwise it would cause problems with already existing
-          // lockfile, which would see some of their entries being unrecognized.
-          relativeTarget = relativeTarget.replace(/^(?!\.{0,2}\/)/, `./`);
-        }
-
-        info[dependencyType][name] = prefix + relativeTarget.replace(/\\/g, '/');
-      }
+      dependencies[name] = prefix + relativeTarget.replace(/\\/g, '/');
     }
   }
 }
