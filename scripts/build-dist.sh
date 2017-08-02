@@ -18,6 +18,7 @@ case "$(uname -s)" in
 esac
 
 version=`node -p -e "require('./package.json').version"`
+node_version=`node -p -e "process.versions.node.split('.')[0]"`
 
 rm -rf artifacts dist
 mkdir artifacts
@@ -28,7 +29,9 @@ eval $system_yarn run build
 eval $system_yarn run build-bundle
 chmod +x artifacts/*.js
 # Verify that it works as expected
-[[ "$version" == "$(node artifacts/yarn-$version.js --version)" ]] || exit 1
+if (( node_version > 4 )); then
+  [[ "$version" == "$(node artifacts/yarn-$version.js --version)" ]] || exit 1
+fi
 [[ "$version" == "$(node artifacts/yarn-legacy-$version.js --version)" ]] || exit 1
 
 cp package.json dist/
