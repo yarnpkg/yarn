@@ -259,13 +259,15 @@ export default class PackageHoister {
     const stack = []; // stack of removed parts
     const name = parts.pop();
 
-    //
+    const peerDependencies = Object.keys(info.pkg.peerDependencies || {});
+
     for (let i = parts.length - 1; i >= 0; i--) {
       const checkParts = parts.slice(0, i).concat(name);
       const checkKey = this.implodeKey(checkParts);
       info.addHistory(`Looked at ${checkKey} for a match`);
 
       const existing = this.tree.get(checkKey);
+
       if (existing) {
         if (existing.loc === info.loc) {
           // switch to non ignored if earlier deduped version was ignored (must be compatible)
@@ -293,6 +295,21 @@ export default class PackageHoister {
 
     // remove redundant parts that wont collide
     while (parts.length) {
+      // we must not hoist a package higher than its peer dependencies
+      for (const peerDependency of peerDependencies) {
+        const checkParts = parts.concat(peerDependency);
+        const checkKey = this.implodeKey(checkParts);
+        info.addHistory(`Looked at ${checkKey} for a peer dependency match`);
+
+        const existing = this.tree.get(checkKey);
+
+        if (existing) {
+          info.addHistory(`Found a peer dependency requirement at ${checkKey}`);
+          stepUp = true;
+          break;
+        }
+      }
+
       const checkParts = parts.concat(name);
       const checkKey = this.implodeKey(checkParts);
 
