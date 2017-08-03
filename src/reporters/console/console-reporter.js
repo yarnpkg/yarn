@@ -395,8 +395,13 @@ export default class ConsoleReporter extends BaseReporter {
       };
     }
 
-    const bar = (this._progressBar = new Progress(count, this.stderr, () => {
-      this._progressBar = null;
+    // Clear any potentiall old progress bars
+    this.stopProgress();
+
+    const bar = (this._progressBar = new Progress(count, this.stderr, (progress: Progress) => {
+      if (progress === this._progressBar) {
+        this._progressBar = null;
+      }
     }));
 
     bar.render();

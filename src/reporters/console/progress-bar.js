@@ -52,7 +52,7 @@ export default class ProgressBar {
     this.cancelTick();
     clearLine(this.stdout);
     if (this._callback) {
-      this._callback();
+      this._callback(this);
     }
   }
 
