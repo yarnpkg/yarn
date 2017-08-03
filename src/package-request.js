@@ -138,9 +138,8 @@ export default class PackageRequest {
     }
 
     if (!semver.validRange(pattern)) {
-      const localPackagePath = path.join(this.config.cwd, pattern);
       try {
-        if ((await fs.stat(localPackagePath)).isDirectory()) {
+        if ((await fs.stat(path.join(this.config.cwd, pattern))).isDirectory()) {
           return Promise.resolve(`file:${pattern}`);
         }
       } catch (err) {
