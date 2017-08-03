@@ -471,6 +471,7 @@ test.concurrent('install with file: protocol as default', (): Promise<void> => {
 });
 
 test.concurrent("don't install with file: protocol as default if target is a file", (): Promise<void> => {
+  // $FlowFixMe
   return expect(runInstall({lockfile: false}, 'install-file-as-default-no-file')).rejects.toBeDefined();
 });
 
