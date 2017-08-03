@@ -65,6 +65,15 @@ test.concurrent('adds any new package to the current workspace, but install from
 
     expect(await fs.exists(`${config.cwd}/yarn.lock`)).toEqual(true);
     expect(await fs.exists(`${config.cwd}/packages/package-b/yarn.lock`)).toEqual(false);
+
+    await add(await makeConfigFromDirectory(`${config.cwd}/non-packages/package-c`, reporter), reporter, {}, [
+      'isarray',
+    ]);
+
+    expect(await fs.exists(`${config.cwd}/node_modules/isarray`)).toEqual(false);
+    expect(await fs.exists(`${config.cwd}/non-packages/package-c/node_modules/isarray`)).toEqual(true);
+
+    expect(await fs.exists(`${config.cwd}/non-packages/package-c/yarn.lock`)).toEqual(true);
   });
 });
 
@@ -189,6 +198,16 @@ test.concurrent('add --save-exact should not make all package.json strict', (): 
       'left-pad': '1.1.0',
       'mime-types': '^2.0.0',
     });
+  });
+});
+
+test.concurrent('add save-prefix should not expand ~ to home dir', (): Promise<void> => {
+  return runAdd(['left-pad'], {}, 'install-no-home-expand', async config => {
+    const lockfile = explodeLockfile(await fs.readFile(path.join(config.cwd, 'yarn.lock')));
+    expect(lockfile[0]).toMatch(/^left-pad@~\d+\.\d+\.\d+:$/);
+    expect(JSON.parse(await fs.readFile(path.join(config.cwd, 'package.json'))).dependencies['left-pad']).toMatch(
+      /^~\d+\.\d+\.\d+$/,
+    );
   });
 });
 
@@ -321,7 +340,7 @@ test.concurrent('add with offline mirror', (): Promise<void> => {
     ).toBeGreaterThanOrEqual(0);
 
     const rawLockfile = await fs.readFile(path.join(config.cwd, constants.LOCKFILE_FILENAME));
-    const lockfile = parse(rawLockfile);
+    const {object: lockfile} = parse(rawLockfile);
 
     expect(lockfile['is-array@^1.0.1']['resolved']).toEqual(
       'https://registry.yarnpkg.com/is-array/-/is-array-1.0.1.tgz#e9850cc2cc860c3bc0977e84ccf0dd464584279a',
@@ -384,7 +403,7 @@ test.concurrent('install with --save and without offline mirror', (): Promise<vo
     ).toEqual(-1);
 
     const rawLockfile = await fs.readFile(path.join(config.cwd, constants.LOCKFILE_FILENAME));
-    const lockfile = parse(rawLockfile);
+    const {object: lockfile} = parse(rawLockfile);
 
     expect(lockfile['is-array@^1.0.1']['resolved']).toMatch(
       /https:\/\/registry\.yarnpkg\.com\/is-array\/-\/is-array-1\.0\.1\.tgz#[a-f0-9]+/,
@@ -418,7 +437,7 @@ test.concurrent('upgrade scenario', (): Promise<void> => {
     expect(mirror[0].relative).toEqual('left-pad-0.0.9.tgz');
 
     //
-    const add = new Add(['left-pad@1.1.0'], {}, config, reporter, (await Lockfile.fromDirectory(config.cwd)));
+    const add = new Add(['left-pad@1.1.0'], {}, config, reporter, await Lockfile.fromDirectory(config.cwd));
     await add.init();
 
     expect(await getPackageVersion(config, 'left-pad')).toEqual('1.1.0');
@@ -505,7 +524,7 @@ test.concurrent('downgrade scenario', (): Promise<void> => {
     expect(mirror).toHaveLength(1);
     expect(mirror[0].relative).toEqual('left-pad-1.1.0.tgz');
 
-    const add = new Add(['left-pad@0.0.9'], {}, config, reporter, (await Lockfile.fromDirectory(config.cwd)));
+    const add = new Add(['left-pad@0.0.9'], {}, config, reporter, await Lockfile.fromDirectory(config.cwd));
     await add.init();
 
     expect(await getPackageVersion(config, 'left-pad')).toEqual('0.0.9');
@@ -579,7 +598,7 @@ test.concurrent('add should put a git dependency to mirror', (): Promise<void> =
       await fs.unlink(path.join(config.cwd, 'node_modules'));
 
       //
-      const install = new Install({}, config, reporter, (await Lockfile.fromDirectory(config.cwd)));
+      const install = new Install({}, config, reporter, await Lockfile.fromDirectory(config.cwd));
       await install.init();
 
       expect(semver.satisfies(await getPackageVersion(config, 'mime-db'), '1.24.0')).toEqual(true);
@@ -613,7 +632,7 @@ test.concurrent('add should generate correct integrity file', (): Promise<void> 
     expect(allCorrect).toBe(true);
 
     // add to an existing package.json caused incorrect integrity https://github.com/yarnpkg/yarn/issues/1733
-    const add = new Add(['left-pad@1.1.3'], {}, config, reporter, (await Lockfile.fromDirectory(config.cwd)));
+    const add = new Add(['left-pad@1.1.3'], {}, config, reporter, await Lockfile.fromDirectory(config.cwd));
     await add.init();
     try {
       await check(config, reporter, {integrity: true}, []);
@@ -732,13 +751,13 @@ test.concurrent("doesn't warn when peer dependency is met during add", (): Promi
 
       expect(
         warnings.some(warning => {
-          return warning.data.toString().toLowerCase().includes('unmet peer');
+          return warning.data.toString().toLowerCase().indexOf('unmet peer') > -1;
         }),
       ).toEqual(false);
 
       expect(
         warnings.some(warning => {
-          return warning.data.toString().toLowerCase().includes('incorrect peer');
+          return warning.data.toString().toLowerCase().indexOf('incorrect peer') > -1;
         }),
       ).toEqual(false);
     },
@@ -761,7 +780,7 @@ test.concurrent('warns when peer dependency is not met during add', (): Promise<
 
       expect(
         warnings.some(warning => {
-          return warning.data.toString().toLowerCase().includes('unmet peer');
+          return warning.data.toString().toLowerCase().indexOf('unmet peer') > -1;
         }),
       ).toEqual(true);
     },
@@ -784,13 +803,36 @@ test.concurrent('warns when peer dependency is incorrect during add', (): Promis
 
       expect(
         warnings.some(warning => {
-          return warning.data.toString().toLowerCase().includes('incorrect peer');
+          return warning.data.toString().toLowerCase().indexOf('incorrect peer') > -1;
         }),
       ).toEqual(true);
     },
     ['react@0.14.8', 'react-dom@15.4.2'],
     {},
     'add-with-peer-dependency-incorrect',
+  );
+});
+
+test.concurrent('should only refer to root to satisfy peer dependency', (): Promise<void> => {
+  return buildRun(
+    reporters.BufferReporter,
+    fixturesLoc,
+    async (args, flags, config, reporter, lockfile): Promise<void> => {
+      const add = new Add(args, flags, config, reporter, lockfile);
+      await add.init();
+
+      const output = reporter.getBuffer();
+      const warnings = output.filter(entry => entry.type === 'warning');
+
+      expect(
+        warnings.some(warning => {
+          return warning.data.toString().toLowerCase().indexOf('incorrect peer') > -1;
+        }),
+      ).toEqual(true);
+    },
+    ['file:c'],
+    {},
+    'add-with-multiple-versions-of-peer-dependency',
   );
 });
 
@@ -826,7 +868,7 @@ test.concurrent('installing with --pure-lockfile and then adding should keep bui
   return runInstall({pureLockfile: true}, path.join('..', 'add', fixture), async (config, reporter): Promise<void> => {
     expect(await fs.exists(path.join(config.cwd, 'node_modules', '.yarn-integrity'))).toBe(true);
     expect(await fs.exists(path.join(config.cwd, 'node_modules', 'package-a', 'temp.txt'))).toBe(true);
-    const add = new Add(['left-pad@1.1.0'], {}, config, reporter, (await Lockfile.fromDirectory(config.cwd)));
+    const add = new Add(['left-pad@1.1.0'], {}, config, reporter, await Lockfile.fromDirectory(config.cwd));
     await add.init();
     expect(await fs.exists(path.join(config.cwd, 'node_modules', 'package-a', 'temp.txt'))).toBe(true);
   });

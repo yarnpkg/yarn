@@ -12,7 +12,7 @@ let rcArgsCache;
 
 const buildRcConf = () =>
   rcUtil.findRc('yarn', (fileText, filePath) => {
-    const values = parse(fileText, 'yarnrc');
+    const {object: values} = parse(fileText, 'yarnrc');
     const keys = Object.keys(values);
 
     for (const key of keys) {

@@ -2,16 +2,6 @@
 # yarn lockfile v1
 
 
-dep-a@1.0.0:
-  version "1.0.0"
-  resolved dep-a-1.0.0.tgz#d170a960654001b74bdee4747e71f744ecf0a24f
-  dependencies:
-    dep-b "1.0.0"
-
-dep-a@1.1.0:
-  version "1.1.0"
-  resolved dep-a-1.1.0.tgz#a347d002113da949bd89b6b71195ec3bca09db7a
-
-dep-b@1.0.0:
-  version "1.0.0"
-  resolved dep-b-1.0.0.tgz#fa3fab4e36d8eb93ac74790748a30547e9cb0f3f
+left-pad@1.1.1:
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/left-pad/-/left-pad-1.1.1.tgz#ca566bbdd84b90cc5969ac1726fda51f9d936a3c"

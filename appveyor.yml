@@ -19,7 +19,7 @@ build_script:
 
 test_script:
   - node --version
-  - yarn test-only -- --maxWorkers 3
+  - node ./node_modules/jest/bin/jest.js --coverage --verbose
 
 artifacts:
   - path: artifacts/*.msi

@@ -1,0 +1,15 @@
+{
+  "name": "test-lifecycle-script",
+  "version": "1.0.2",
+  "description": "Empty repo for testing",
+  "main": "index.js",
+  "repository": "https://github.com/aracarie/test-lifecycle-script",
+  "author": "Jack Aldridge",
+  "license": "MIT",
+  "dependencies": {
+    "left-pad": "^1.1.3"
+  },
+  "scripts": {
+      "install": "node install.js"
+  }
+}

@@ -20,11 +20,11 @@ const runCache = buildRun.bind(
   },
 );
 
-test('ls', async (): Promise<void> => {
+test('list', async (): Promise<void> => {
   await runInstall({}, 'artifacts-finds-and-saves', async (config): Promise<void> => {
     const out = new stream.PassThrough();
     const reporter = new reporters.JSONReporter({stdout: out});
-    await run(config, reporter, {}, ['ls']);
+    await run(config, reporter, {}, ['list']);
     const stdout = String(out.read());
     expect(stdout).toContain('dummy');
     expect(stdout).toContain('0.0.0');
@@ -35,7 +35,7 @@ test('ls with scoped package', async (): Promise<void> => {
   await runInstall({}, 'install-from-authed-private-registry', async (config): Promise<void> => {
     const out = new stream.PassThrough();
     const reporter = new reporters.JSONReporter({stdout: out});
-    await run(config, reporter, {}, ['ls']);
+    await run(config, reporter, {}, ['list']);
     const stdout = String(out.read());
     expect(stdout).toContain('@types/lodash');
     expect(stdout).toContain('4.14.37');

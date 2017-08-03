@@ -19,6 +19,8 @@ import map from './util/map.js';
 const detectIndent = require('detect-indent');
 const invariant = require('invariant');
 const path = require('path');
+const micromatch = require('micromatch');
+const isCi = require('is-ci');
 
 export type ConfigOptions = {
   cwd?: ?string,
@@ -189,7 +191,7 @@ export default class Config {
    * Get a config option from our yarn config.
    */
 
-  getOption(key: string, expand: boolean = true): mixed {
+  getOption(key: string, expand: boolean = false): mixed {
     const value = this.registries.yarn.getOption(key);
 
     if (expand && typeof value === 'string') {
@@ -268,14 +270,14 @@ export default class Config {
       httpsProxy: String(opts.httpsProxy || this.getOption('https-proxy') || ''),
       strictSSL: Boolean(this.getOption('strict-ssl')),
       ca: Array.prototype.concat(opts.ca || this.getOption('ca') || []).map(String),
-      cafile: String(opts.cafile || this.getOption('cafile') || ''),
+      cafile: String(opts.cafile || this.getOption('cafile', true) || ''),
       cert: String(opts.cert || this.getOption('cert') || ''),
       key: String(opts.key || this.getOption('key') || ''),
       networkConcurrency: this.networkConcurrency,
       networkTimeout: this.networkTimeout,
     });
     this._cacheRootFolder = String(
-      opts.cacheFolder || this.getOption('cache-folder') || constants.MODULE_CACHE_DIRECTORY,
+      opts.cacheFolder || this.getOption('cache-folder', true) || constants.MODULE_CACHE_DIRECTORY,
     );
     this.workspacesEnabled = Boolean(this.getOption('workspaces-experimental'));
 
@@ -333,7 +335,8 @@ export default class Config {
 
     this.disablePrepublish = !!opts.disablePrepublish;
 
-    this.nonInteractive = !!opts.nonInteractive;
+    // $FlowFixMe$
+    this.nonInteractive = !!opts.nonInteractive || isCi || !process.stdout.isTTY;
 
     this.requestManager.setOptions({
       offline: !!opts.offline && !opts.preferOffline,
@@ -490,10 +493,10 @@ export default class Config {
   }
 
   /**
- * try get the manifest file by looking
- * 1. manifest file in cache
- * 2. manifest file in registry
- */
+   * try get the manifest file by looking
+   * 1. manifest file in cache
+   * 2. manifest file in registry
+   */
   async maybeReadManifest(dir: string, priorityRegistry?: RegistryNames, isRoot?: boolean = false): Promise<?Manifest> {
     const metadataLoc = path.join(dir, constants.METADATA_FILENAME);
 
@@ -573,9 +576,13 @@ export default class Config {
 
     do {
       const manifest = await this.findManifest(current, true);
-
       if (manifest && manifest.workspaces) {
-        return current;
+        const relativePath = path.relative(current, initial);
+        if (relativePath === '' || micromatch([relativePath], manifest.workspaces).length > 0) {
+          return current;
+        } else {
+          return null;
+        }
       }
 
       previous = current;
@@ -595,13 +602,19 @@ export default class Config {
       throw new MessageError(this.reporter.lang('workspacesRequirePrivateProjects'));
     }
 
-    const registryFilenames = registryNames.map(registryName => this.registries[registryName].constructor.filename);
-    const trailingPattern = `/+(${registryFilenames.join(`|`)})`;
+    const registryFilenames = registryNames
+      .map(registryName => this.registries[registryName].constructor.filename)
+      .join('|');
+    const trailingPattern = `/+(${registryFilenames})`;
+    const ignorePatterns = this.registryFolders.map(folder => `/${folder}/*/+(${registryFilenames})`);
 
     const files = await Promise.all(
-      patterns.map(pattern => {
-        return fs.glob(pattern.replace(/\/?$/, trailingPattern), {cwd: root, ignore: this.registryFolders});
-      }),
+      patterns.map(pattern =>
+        fs.glob(pattern.replace(/\/?$/, trailingPattern), {
+          cwd: root,
+          ignore: ignorePatterns.map(ignorePattern => pattern.replace(/\/?$/, ignorePattern)),
+        }),
+      ),
     );
 
     for (const file of new Set([].concat(...files))) {

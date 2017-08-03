@@ -1,0 +1,5 @@
+{
+  "name": "workspace-1",
+  "version": "1.0.0",
+  "bin": "./bin.js"
+}

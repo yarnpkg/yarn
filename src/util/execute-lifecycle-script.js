@@ -144,7 +144,7 @@ export async function executeLifecycleScript(
 
   // Add global bin folder if it is not present already, as some packages depend
   // on a globally-installed version of node-gyp.
-  const globalBin = getGlobalBinFolder(config, {});
+  const globalBin = await getGlobalBinFolder(config, {});
   if (pathParts.indexOf(globalBin) === -1) {
     pathParts.unshift(globalBin);
   }
@@ -166,23 +166,9 @@ export async function executeLifecycleScript(
   env[constants.ENV_PATH_KEY] = pathParts.join(path.delimiter);
 
   // get shell
-  const conf = {windowsVerbatimArguments: false};
-  let sh = 'sh';
-  let shFlag = '-c';
   if (process.platform === 'win32') {
-    // cmd or command.com
-    sh = process.env.comspec || 'cmd';
-
-    // d - Ignore registry AutoRun commands
-    // s - Strip " quote characters from command.
-    // c - Run Command and then terminate
-    shFlag = '/d /s /c';
-
     // handle windows run scripts starting with a relative path
     cmd = fixCmdWinSlashes(cmd);
-
-    // handle quotes properly in windows environments - https://github.com/nodejs/node/issues/5060
-    conf.windowsVerbatimArguments = true;
   }
 
   let updateProgress;
@@ -204,7 +190,7 @@ export async function executeLifecycleScript(
       }
     };
   }
-  const stdout = await child.spawn(sh, [shFlag, cmd], {cwd, env, stdio, ...conf}, updateProgress);
+  const stdout = await child.spawn(cmd, [], {shell: true, cwd, env, stdio}, updateProgress);
 
   return {cwd, command: cmd, stdout};
 }
@@ -268,7 +254,11 @@ export async function execCommand(stage: string, config: Config, cmd: string, cw
     return Promise.resolve();
   } catch (err) {
     if (err instanceof SpawnError) {
-      throw new MessageError(reporter.lang('commandFailed', err.EXIT_CODE));
+      throw new MessageError(
+        err.EXIT_SIGNAL
+          ? reporter.lang('commandFailedWithSignal', err.EXIT_SIGNAL)
+          : reporter.lang('commandFailedWithCode', err.EXIT_CODE),
+      );
     } else {
       throw err;
     }

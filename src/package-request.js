@@ -133,7 +133,7 @@ export default class PackageRequest {
   }
 
   async normalizeRange(pattern: string): Promise<string> {
-    if (pattern.includes(':') || pattern.includes('@') || getExoticResolver(pattern)) {
+    if (pattern.indexOf(':') > -1 || pattern.indexOf('@') > -1 || getExoticResolver(pattern)) {
       return Promise.resolve(pattern);
     }
 
@@ -238,7 +238,7 @@ export default class PackageRequest {
     // get final resolved version
     const {range, name} = PackageRequest.normalizePattern(this.pattern);
     const solvedRange = semver.validRange(range) ? info.version : range;
-    const resolved: ?Manifest = this.resolver.getHighestRangeVersionMatch(name, solvedRange);
+    const resolved: ?Manifest = this.resolver.getHighestRangeVersionMatch(name, solvedRange, info);
     invariant(resolved, 'should have a resolved reference');
 
     this.reportResolvedRangeMatch(info, resolved);
@@ -264,9 +264,10 @@ export default class PackageRequest {
     // the same range
     const {range, name} = PackageRequest.normalizePattern(this.pattern);
     const solvedRange = semver.validRange(range) ? info.version : range;
-    const resolved: ?Manifest = !info.fresh || frozen
-      ? this.resolver.getExactVersionMatch(name, solvedRange)
-      : this.resolver.getHighestRangeVersionMatch(name, solvedRange);
+    const resolved: ?Manifest =
+      !info.fresh || frozen
+        ? this.resolver.getExactVersionMatch(name, solvedRange, info)
+        : this.resolver.getHighestRangeVersionMatch(name, solvedRange, info);
     if (resolved) {
       this.resolver.reportPackageWithExistingVersion(this, info);
       return;
@@ -386,8 +387,23 @@ export default class PackageRequest {
     install: Install,
     config: Config,
     reporter: Reporter,
+    filterByPatterns: ?Array<string>,
   ): Promise<Array<Dependency>> {
-    const {requests: depReqPatterns} = await install.fetchRequestFromCwd();
+    const {requests: reqPatterns, workspaceLayout} = await install.fetchRequestFromCwd();
+
+    // Filter out workspace patterns if necessary
+    let depReqPatterns = workspaceLayout
+      ? reqPatterns.filter(p => !workspaceLayout.getManifestByPattern(p.pattern))
+      : reqPatterns;
+
+    // filter the list down to just the packages requested.
+    // prevents us from having to query the metadata for all packages.
+    if (filterByPatterns && filterByPatterns.length) {
+      const filterByNames = filterByPatterns.map(pattern => PackageRequest.normalizePattern(pattern).name);
+      depReqPatterns = depReqPatterns.filter(
+        dep => filterByNames.indexOf(PackageRequest.normalizePattern(dep.pattern).name) >= 0,
+      );
+    }
 
     const deps = await Promise.all(
       depReqPatterns.map(async ({pattern, hint}): Promise<Dependency> => {
@@ -412,7 +428,7 @@ export default class PackageRequest {
           ({latest, wanted, url} = await registry.checkOutdated(config, name, normalized.range));
         }
 
-        return {name, current, wanted, latest, url, hint};
+        return {name, current, wanted, latest, url, hint, range: normalized.range, upgradeTo: ''};
       }),
     );
 

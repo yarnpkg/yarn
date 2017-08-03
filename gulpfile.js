@@ -14,6 +14,9 @@ const fs = require('fs');
 
 const babelRc = JSON.parse(fs.readFileSync(path.join(__dirname, '.babelrc'), 'utf8'));
 
+const ver = process.versions.node;
+const majorVer = parseInt(ver.split('.')[0], 10);
+
 const build = (lib, opts) =>
   gulp.src('src/**/*')
       .pipe(plumber({
@@ -29,24 +32,12 @@ const build = (lib, opts) =>
 
 gulp.task('default', ['build']);
 
-gulp.task('build', ['build-modern', 'build-legacy']);
-
-gulp.task('build-modern', () =>
-  build('lib', babelRc.env.node5)
-);
-
-gulp.task('build-legacy', () =>
-  build('lib-legacy', babelRc.env['pre-node5'])
+gulp.task('build', () =>
+  build('lib', babelRc.env[majorVer >= 5 ? 'node5' : 'pre-node5'])
 );
 
 gulp.task('watch', ['build'], () => {
   watch('src/**/*', () => {
     gulp.start('build');
-  });
-});
-
-gulp.task('watch-modern', ['build-modern'], () => {
-  watch('src/**/*', () => {
-    gulp.start('build-modern');
   });
 });

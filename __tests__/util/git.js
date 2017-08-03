@@ -1,6 +1,21 @@
 /* @flow */
 
+jest.mock('../../src/util/git/git-spawn.js', () => ({
+  spawn: jest.fn(([command]) => {
+    switch (command) {
+      case 'ls-remote':
+        return `ref: refs/heads/master  HEAD
+7a053e2ca07d19b2e2eebeeb0c27edaacfd67904        HEAD`;
+      case 'rev-list':
+        return Promise.resolve('7a053e2ca07d19b2e2eebeeb0c27edaacfd67904 Fix ...');
+    }
+    return Promise.resolve('');
+  }),
+}));
+
+import Config from '../../src/config.js';
 import Git from '../../src/util/git.js';
+import {spawn as spawnGit} from '../../src/util/git/git-spawn.js';
 import {NoopReporter} from '../../src/reporters/index.js';
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 90000;
@@ -63,17 +78,14 @@ test('npmUrlToGitUrl', () => {
   });
 });
 
-test('isCommitHash', () => {
-  expect(Git.isCommitHash('ca82a6dff817ec66f44312307202690a93763949')).toBeTruthy();
-  expect(Git.isCommitHash('abc12')).toBeTruthy();
-  expect(Git.isCommitHash('')).toBeFalsy();
-  expect(Git.isCommitHash('abc12_')).toBeFalsy();
-  expect(Git.isCommitHash('gccda')).toBeFalsy();
-  expect(Git.isCommitHash('abC12')).toBeFalsy();
-});
-
 test('secureGitUrl', async function(): Promise<void> {
   const reporter = new NoopReporter();
+
+  const originalRepoExists = Git.repoExists;
+  (Git: any).repoExists = jest.fn();
+  Git.repoExists.mockImplementation(() => Promise.resolve(true)).mockImplementationOnce(() => {
+    throw new Error('Non-existent repo!');
+  });
 
   let hasException = false;
   try {
@@ -81,6 +93,7 @@ test('secureGitUrl', async function(): Promise<void> {
   } catch (e) {
     hasException = true;
   }
+  (Git: any).repoExists = originalRepoExists;
   expect(hasException).toEqual(true);
 
   let gitURL = await Git.secureGitUrl(Git.npmUrlToGitUrl('http://github.com/yarnpkg/yarn.git'), '', reporter);
@@ -93,31 +106,43 @@ test('secureGitUrl', async function(): Promise<void> {
   expect(gitURL.repository).toEqual('https://github.com/yarnpkg/yarn.git');
 });
 
-test('parseRefs', () => {
-  expect(Git.parseRefs(`64b2c0cee9e829f73c5ad32b8cc8cb6f3bec65bb refs/tags/v4.2.2`)).toMatchObject({
-    'v4.2.2': '64b2c0cee9e829f73c5ad32b8cc8cb6f3bec65bb',
+test('resolveDefaultBranch', async () => {
+  const spawnGitMock = (spawnGit: any).mock;
+  const config = await Config.create();
+  const git = new Git(
+    config,
+    {
+      protocol: '',
+      hostname: undefined,
+      repository: '',
+    },
+    '',
+  );
+  expect(await git.resolveDefaultBranch()).toEqual({
+    sha: '7a053e2ca07d19b2e2eebeeb0c27edaacfd67904',
+    ref: 'refs/heads/master',
   });
+  const lastCall = spawnGitMock.calls[spawnGitMock.calls.length - 1];
+  expect(lastCall[0]).toContain('ls-remote');
+});
 
-  expect(
-    Git.parseRefs(`ebeb6eafceb61dd08441ffe086c77eb472842494  refs/tags/v0.21.0
-70e76d174b0c7d001d2cd608a16c94498496e92d  refs/tags/v0.21.0^{}
-de43f4a993d1e08cd930ee22ecb2bac727f53449  refs/tags/v0.21.0-pre`),
-  ).toMatchObject({
-    'v0.21.0': '70e76d174b0c7d001d2cd608a16c94498496e92d',
-    'v0.21.0-pre': 'de43f4a993d1e08cd930ee22ecb2bac727f53449',
+test('resolveCommit', async () => {
+  const spawnGitMock = (spawnGit: any).mock;
+  const config = await Config.create();
+  const git = new Git(
+    config,
+    {
+      protocol: '',
+      hostname: undefined,
+      repository: '',
+    },
+    '',
+  );
+  expect(await git.resolveCommit('7a053e2')).toEqual({
+    sha: '7a053e2ca07d19b2e2eebeeb0c27edaacfd67904',
+    ref: undefined,
   });
-
-  expect(
-    Git.parseRefs(`**********
-This is a custom response header
-  as described in: https://github.com/yarnpkg/yarn/issues/3325
-**********
-
-ebeb6eafceb61dd08441ffe086c77eb472842494  refs/tags/v0.21.0
-70e76d174b0c7d001d2cd608a16c94498496e92d  refs/tags/v0.21.0^{}
-de43f4a993d1e08cd930ee22ecb2bac727f53449  refs/tags/v0.21.0-pre`),
-  ).toMatchObject({
-    'v0.21.0': '70e76d174b0c7d001d2cd608a16c94498496e92d',
-    'v0.21.0-pre': 'de43f4a993d1e08cd930ee22ecb2bac727f53449',
-  });
+  const lastCall = spawnGitMock.calls[spawnGitMock.calls.length - 1];
+  expect(lastCall[0]).toContain('rev-list');
+  expect(lastCall[0]).toContain('7a053e2');
 });

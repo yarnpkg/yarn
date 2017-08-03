@@ -1,0 +1,20 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`init-github 1`] = `
+Object {
+  "license": "MIT",
+  "main": "index.js",
+  "name": "hi-github",
+  "repository": "https://github.com/user/repo",
+  "version": "1.0.0",
+}
+`;
+
+exports[`init-yes 1`] = `
+Object {
+  "license": "MIT",
+  "main": "index.js",
+  "name": "init-yes",
+  "version": "1.0.0",
+}
+`;

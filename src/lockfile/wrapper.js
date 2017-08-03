@@ -1,7 +1,7 @@
 /* @flow */
 
 import type {Reporter} from '../reporters/index.js';
-import type {Manifest} from '../types.js';
+import type {Manifest, PackageRemote} from '../types.js';
 import type {RegistryNames} from '../registries/index.js';
 import {sortAlpha} from '../util/misc.js';
 import PackageRequest from '../package-request.js';
@@ -22,7 +22,7 @@ type Dependencies = {
 export type LockManifest = {
   name: string,
   version: string,
-  resolved: string,
+  resolved: ?string,
   registry: RegistryNames,
   uid: string,
   permissions: ?{[key: string]: boolean},
@@ -33,12 +33,16 @@ export type LockManifest = {
 type MinimalLockManifest = {
   name: ?string,
   version: string,
-  resolved: string,
+  resolved: ?string,
   registry: ?RegistryNames,
   uid: ?string,
   permissions: ?{[key: string]: boolean},
   optionalDependencies: ?Dependencies,
   dependencies: ?Dependencies,
+};
+
+export type LockfileObject = {
+  [key: string]: LockManifest,
 };
 
 function getName(pattern: string): string {
@@ -47,6 +51,10 @@ function getName(pattern: string): string {
 
 function blankObjectUndefined(obj: ?Object): ?Object {
   return obj && Object.keys(obj).length ? obj : undefined;
+}
+
+function keyForRemote(remote: PackageRemote): ?string {
+  return remote.resolved || (remote.reference && remote.hash ? `${remote.reference}#${remote.hash}` : null);
 }
 
 export function implodeEntry(pattern: string, obj: Object): MinimalLockManifest {
@@ -95,7 +103,17 @@ export default class Lockfile {
 
     if (await fs.exists(lockfileLoc)) {
       rawLockfile = await fs.readFile(lockfileLoc);
-      lockfile = parse(rawLockfile, lockfileLoc);
+      const lockResult = parse(rawLockfile, lockfileLoc);
+
+      if (reporter) {
+        if (lockResult.type === 'merge') {
+          reporter.info(reporter.lang('lockfileMerged'));
+        } else if (lockResult.type === 'conflict') {
+          reporter.warn(reporter.lang('lockfileConflict'));
+        }
+      }
+
+      lockfile = lockResult.object;
     } else {
       if (reporter) {
         reporter.info(reporter.lang('noLockfileFound'));
@@ -131,12 +149,12 @@ export default class Lockfile {
     delete cache[pattern];
   }
 
-  getLockfile(patterns: {[packagePattern: string]: Manifest}): Object {
+  getLockfile(patterns: {[packagePattern: string]: Manifest}): LockfileObject {
     const lockfile = {};
     const seen: Map<string, Object> = new Map();
 
     // order by name so that lockfile manifest is assigned to the first dependency with this manifest
-    // the others that have the same remote.resolved will just refer to the first
+    // the others that have the same remoteKey will just refer to the first
     // ordering allows for consistency in lockfile when it is serialized
     const sortedPatternsKeys: Array<string> = Object.keys(patterns).sort(sortAlpha);
 
@@ -146,7 +164,8 @@ export default class Lockfile {
       invariant(ref, 'Package is missing a reference');
       invariant(remote, 'Package is missing a remote');
 
-      const seenPattern = remote.resolved && seen.get(remote.resolved);
+      const remoteKey = keyForRemote(remote);
+      const seenPattern = remoteKey && seen.get(remoteKey);
       if (seenPattern) {
         // no point in duplicating it
         lockfile[pattern] = seenPattern;
@@ -172,8 +191,8 @@ export default class Lockfile {
       });
       lockfile[pattern] = obj;
 
-      if (remote.resolved) {
-        seen.set(remote.resolved, obj);
+      if (remoteKey) {
+        seen.set(remoteKey, obj);
       }
     }
 

@@ -12,6 +12,11 @@ type TeamParts = {
   user: string,
 };
 
+type DeprecationWarning = {
+  deprecatedCommand: string,
+  currentComand: string,
+};
+
 type CLIFunctionWithParts = (
   parts: TeamParts,
   config: Config,
@@ -38,8 +43,27 @@ function explodeScopeTeam(arg: string, requireTeam: boolean, reporter: Reporter)
   };
 }
 
-function wrapRequired(callback: CLIFunctionWithParts, requireTeam: boolean): CLIFunction {
+function warnDeprecation(reporter: Reporter, deprecationWarning: DeprecationWarning) {
+  const command = 'yarn team';
+  reporter.warn(
+    reporter.lang(
+      'deprecatedCommand',
+      `${command} ${deprecationWarning.deprecatedCommand}`,
+      `${command} ${deprecationWarning.currentComand}`,
+    ),
+  );
+}
+
+function wrapRequired(
+  callback: CLIFunctionWithParts,
+  requireTeam: boolean,
+  deprecationInfo?: DeprecationWarning,
+): CLIFunction {
   return async function(config: Config, reporter: Reporter, flags: Object, args: Array<string>): CLIFunctionReturn {
+    if (deprecationInfo) {
+      warnDeprecation(reporter, deprecationInfo);
+    }
+
     if (!args.length) {
       return false;
     }
@@ -63,45 +87,81 @@ function wrapRequired(callback: CLIFunctionWithParts, requireTeam: boolean): CLI
   };
 }
 
-function wrapRequiredTeam(callback: CLIFunctionWithParts, requireTeam: boolean = true): CLIFunction {
-  return wrapRequired(function(
-    parts: TeamParts,
-    config: Config,
-    reporter: Reporter,
-    flags: Object,
-    args: Array<string>,
-  ): CLIFunctionReturn {
-    if (args.length === 1) {
-      return callback(parts, config, reporter, flags, args);
-    } else {
-      return false;
-    }
-  }, requireTeam);
+function wrapRequiredTeam(
+  callback: CLIFunctionWithParts,
+  requireTeam: boolean = true,
+  subCommandDeprecated?: DeprecationWarning,
+): CLIFunction {
+  return wrapRequired(
+    function(
+      parts: TeamParts,
+      config: Config,
+      reporter: Reporter,
+      flags: Object,
+      args: Array<string>,
+    ): CLIFunctionReturn {
+      if (args.length === 1) {
+        return callback(parts, config, reporter, flags, args);
+      } else {
+        return false;
+      }
+    },
+    requireTeam,
+    subCommandDeprecated,
+  );
 }
 
-function wrapRequiredUser(callback: CLIFunctionWithParts): CLIFunction {
-  return wrapRequired(function(
-    parts: TeamParts,
-    config: Config,
-    reporter: Reporter,
-    flags: Object,
-    args: Array<string>,
-  ): CLIFunctionReturn {
-    if (args.length === 2) {
-      return callback(
-        {
-          user: args[1],
-          ...parts,
-        },
-        config,
-        reporter,
-        flags,
-        args,
-      );
-    } else {
-      return false;
-    }
-  }, true);
+function wrapRequiredUser(callback: CLIFunctionWithParts, subCommandDeprecated?: DeprecationWarning): CLIFunction {
+  return wrapRequired(
+    function(
+      parts: TeamParts,
+      config: Config,
+      reporter: Reporter,
+      flags: Object,
+      args: Array<string>,
+    ): CLIFunctionReturn {
+      if (args.length === 2) {
+        return callback(
+          {
+            user: args[1],
+            ...parts,
+          },
+          config,
+          reporter,
+          flags,
+          args,
+        );
+      } else {
+        return false;
+      }
+    },
+    true,
+    subCommandDeprecated,
+  );
+}
+
+async function removeTeamUser(parts: TeamParts, config: Config, reporter: Reporter): Promise<boolean> {
+  reporter.step(2, 3, reporter.lang('teamRemovingUser'));
+  reporter.inspect(
+    await config.registries.npm.request(`team/${parts.scope}/${parts.team}/user`, {
+      method: 'DELETE',
+      body: {
+        user: parts.user,
+      },
+    }),
+  );
+  return true;
+}
+
+async function list(parts: TeamParts, config: Config, reporter: Reporter): Promise<boolean> {
+  reporter.step(2, 3, reporter.lang('teamListing'));
+  const uriParams = '?format=cli';
+  if (parts.team) {
+    reporter.inspect(await config.registries.npm.request(`team/${parts.scope}/${parts.team}/user${uriParams}`));
+  } else {
+    reporter.inspect(await config.registries.npm.request(`org/${parts.scope}/team${uriParams}`));
+  }
+  return true;
 }
 
 export const {run, setFlags, hasWrapper, examples} = buildSubCommands(
@@ -161,47 +221,52 @@ export const {run, setFlags, hasWrapper, examples} = buildSubCommands(
       return true;
     }),
 
-    rm: wrapRequiredUser(async function(
+    rm: wrapRequiredUser(
+      function(parts: TeamParts, config: Config, reporter: Reporter, flags: Object, args: Array<string>) {
+        removeTeamUser(parts, config, reporter);
+      },
+      {
+        deprecatedCommand: 'rm',
+        currentComand: 'remove',
+      },
+    ),
+
+    remove: wrapRequiredUser(function(
       parts: TeamParts,
       config: Config,
       reporter: Reporter,
       flags: Object,
       args: Array<string>,
-    ): Promise<boolean> {
-      reporter.step(2, 3, reporter.lang('teamRemovingUser'));
-      reporter.inspect(
-        await config.registries.npm.request(`team/${parts.scope}/${parts.team}/user`, {
-          method: 'DELETE',
-          body: {
-            user: parts.user,
-          },
-        }),
-      );
-      return true;
+    ) {
+      removeTeamUser(parts, config, reporter);
     }),
 
-    ls: wrapRequiredTeam(async function(
+    ls: wrapRequiredTeam(
+      function(parts: TeamParts, config: Config, reporter: Reporter, flags: Object, args: Array<string>) {
+        list(parts, config, reporter);
+      },
+      false,
+      {
+        deprecatedCommand: 'ls',
+        currentComand: 'list',
+      },
+    ),
+
+    list: wrapRequiredTeam(function(
       parts: TeamParts,
       config: Config,
       reporter: Reporter,
       flags: Object,
       args: Array<string>,
-    ): Promise<boolean> {
-      reporter.step(2, 3, reporter.lang('teamListing'));
-      const uriParams = '?format=cli';
-      if (parts.team) {
-        reporter.inspect(await config.registries.npm.request(`team/${parts.scope}/${parts.team}/user${uriParams}`));
-      } else {
-        reporter.inspect(await config.registries.npm.request(`org/${parts.scope}/team${uriParams}`));
-      }
-      return true;
+    ) {
+      list(parts, config, reporter);
     }, false),
   },
   [
     'create <scope:team>',
     'destroy <scope:team>',
     'add <scope:team> <user>',
-    'rm <scope:team> <user>',
-    'ls <scope>|<scope:team>',
+    'remove <scope:team> <user>',
+    'list <scope>|<scope:team>',
   ],
 );

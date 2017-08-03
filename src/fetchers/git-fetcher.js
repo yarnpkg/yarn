@@ -37,29 +37,6 @@ export default class GitFetcher extends BaseFetcher {
     }
   }
 
-  async getLocalAvailabilityStatus(): Promise<boolean> {
-    // Some mirrors might still have files named "./reponame" instead of "./reponame-commit"
-    const tarballLegacyMirrorPath = this.getTarballMirrorPath({
-      withCommit: false,
-    });
-    const tarballModernMirrorPath = this.getTarballMirrorPath();
-    const tarballCachePath = this.getTarballCachePath();
-
-    if (tarballLegacyMirrorPath != null && (await fsUtil.exists(tarballLegacyMirrorPath))) {
-      return true;
-    }
-
-    if (tarballModernMirrorPath != null && (await fsUtil.exists(tarballModernMirrorPath))) {
-      return true;
-    }
-
-    if (await fsUtil.exists(tarballCachePath)) {
-      return true;
-    }
-
-    return false;
-  }
-
   getTarballMirrorPath({withCommit = true}: {withCommit: boolean} = {}): ?string {
     const {pathname} = url.parse(this.reference);
 
@@ -78,30 +55,33 @@ export default class GitFetcher extends BaseFetcher {
     return path.join(this.dest, constants.TARBALL_FILENAME);
   }
 
-  async fetchFromLocal(override: ?string): Promise<FetchedOverride> {
-    const tarballLegacyMirrorPath = this.getTarballMirrorPath({
+  *getLocalPaths(override: ?string): Generator<?string, void, void> {
+    if (override) {
+      yield path.resolve(this.config.cwd, override);
+    }
+    yield this.getTarballMirrorPath();
+    yield this.getTarballMirrorPath({
       withCommit: false,
     });
-    const tarballModernMirrorPath = this.getTarballMirrorPath();
-    const tarballCachePath = this.getTarballCachePath();
+    yield this.getTarballCachePath();
+  }
 
-    const tarballMirrorPath = tarballModernMirrorPath && (await fsUtil.exists(tarballModernMirrorPath))
-      ? tarballModernMirrorPath
-      : tarballLegacyMirrorPath && (await fsUtil.exists(tarballLegacyMirrorPath)) ? tarballLegacyMirrorPath : null;
-
-    const tarballPath = override || tarballMirrorPath || tarballCachePath;
-
-    if (!tarballPath || !await fsUtil.exists(tarballPath)) {
-      throw new MessageError(this.reporter.lang('tarballNotInNetworkOrCache', this.reference, tarballPath));
-    }
+  async fetchFromLocal(override: ?string): Promise<FetchedOverride> {
+    const {stream, triedPaths} = await fsUtil.readFirstAvailableStream(this.getLocalPaths(override));
 
     return new Promise((resolve, reject) => {
+      if (!stream) {
+        reject(new MessageError(this.reporter.lang('tarballNotInNetworkOrCache', this.reference, triedPaths)));
+        return;
+      }
+      invariant(stream, 'cachedStream should be available at this point');
+      // $FlowFixMe - This is available https://nodejs.org/api/fs.html#fs_readstream_path
+      const tarballPath = stream.path;
+
       const untarStream = this._createUntarStream(this.dest);
 
       const hashStream = new crypto.HashStream();
-
-      const cachedStream = fs.createReadStream(tarballPath);
-      cachedStream
+      stream
         .pipe(hashStream)
         .pipe(untarStream)
         .on('finish', () => {
@@ -117,13 +97,25 @@ export default class GitFetcher extends BaseFetcher {
               hash: expectHash,
             });
           } else {
-            reject(new SecurityError(this.reporter.lang('fetchBadHash', expectHash, actualHash)));
+            reject(new SecurityError(this.reporter.lang('fetchBadHashWithPath', tarballPath, expectHash, actualHash)));
           }
         })
         .on('error', function(err) {
           reject(new MessageError(this.reporter.lang('fetchErrorCorrupt', err.message, tarballPath)));
         });
     });
+  }
+
+  async hasPrepareScript(git: Git): Promise<boolean> {
+    const manifestFile = await git.getFile('package.json');
+
+    if (manifestFile) {
+      const scripts = JSON.parse(manifestFile).scripts;
+      const hasPrepareScript = Boolean(scripts && scripts.prepare);
+      return hasPrepareScript;
+    }
+
+    return false;
   }
 
   async fetchFromExternal(): Promise<FetchedOverride> {
@@ -134,14 +126,7 @@ export default class GitFetcher extends BaseFetcher {
     const git = new Git(this.config, gitUrl, hash);
     await git.init();
 
-    const manifestFile = await git.getFile('package.json');
-    if (!manifestFile) {
-      throw new MessageError(this.reporter.lang('couldntFindPackagejson', gitUrl));
-    }
-    const scripts = JSON.parse(manifestFile).scripts;
-    const hasPrepareScript = Boolean(scripts && scripts.prepare);
-
-    if (hasPrepareScript) {
+    if (await this.hasPrepareScript(git)) {
       await this.fetchFromInstallAndPack(git);
     } else {
       await this.fetchFromGitArchive(git);
@@ -260,11 +245,7 @@ export default class GitFetcher extends BaseFetcher {
     }
   }
 
-  async _fetch(): Promise<FetchedOverride> {
-    if (await this.getLocalAvailabilityStatus()) {
-      return this.fetchFromLocal();
-    } else {
-      return this.fetchFromExternal();
-    }
+  _fetch(): Promise<FetchedOverride> {
+    return this.fetchFromLocal().catch(err => this.fetchFromExternal());
   }
 }

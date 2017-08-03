@@ -13,12 +13,21 @@ type Parts = Array<string>;
 let historyCounter = 0;
 
 export class HoistManifest {
-  constructor(key: string, parts: Parts, pkg: Manifest, loc: string, isRequired: boolean, isIncompatible: boolean) {
+  constructor(
+    key: string,
+    parts: Parts,
+    pkg: Manifest,
+    loc: string,
+    isDirectRequire: boolean,
+    isRequired: boolean,
+    isIncompatible: boolean,
+  ) {
+    this.isDirectRequire = isDirectRequire;
     this.isRequired = isRequired;
     this.isIncompatible = isIncompatible;
+
     this.loc = loc;
     this.pkg = pkg;
-
     this.key = key;
     this.parts = parts;
     this.originalKey = key;
@@ -30,6 +39,7 @@ export class HoistManifest {
 
   isRequired: boolean;
   isIncompatible: boolean;
+  isDirectRequire: boolean;
   pkg: Manifest;
   loc: string;
   parts: Parts;
@@ -44,9 +54,11 @@ export class HoistManifest {
 }
 
 export default class PackageHoister {
-  constructor(config: Config, resolver: PackageResolver) {
+  constructor(config: Config, resolver: PackageResolver, {ignoreOptional}: {ignoreOptional: ?boolean} = {}) {
     this.resolver = resolver;
     this.config = config;
+
+    this.ignoreOptional = ignoreOptional;
 
     this.taintedKeys = new Map();
     this.levelQueue = [];
@@ -55,6 +67,8 @@ export default class PackageHoister {
 
   resolver: PackageResolver;
   config: Config;
+
+  ignoreOptional: ?boolean;
 
   levelQueue: Array<[string, HoistManifest]>;
   tree: Map<string, HoistManifest>;
@@ -107,18 +121,11 @@ export default class PackageHoister {
         return sortAlpha(aPattern, bPattern);
       });
 
-      //
-      const infos = [];
       for (const [pattern, parent] of queue) {
         const info = this._seed(pattern, {isDirectRequire: false, parent});
         if (info) {
-          infos.push(info);
+          this.hoist(info);
         }
-      }
-
-      //
-      for (const info of infos) {
-        this.hoist(info);
       }
     }
   }
@@ -138,8 +145,11 @@ export default class PackageHoister {
 
     //
     let parentParts: Parts = [];
+
     const isIncompatible = ref.incompatible;
-    let isRequired = isDirectRequire && !ref.ignore && !isIncompatible;
+    const isMarkedAsOptional = ref.optional && this.ignoreOptional;
+
+    let isRequired = isDirectRequire && !ref.ignore && !isIncompatible && !isMarkedAsOptional;
 
     if (parent) {
       if (!this.tree.get(parent.key)) {
@@ -147,7 +157,7 @@ export default class PackageHoister {
       }
       // non ignored dependencies inherit parent's ignored status
       // parent may transition from ignored to non ignored when hoisted if it is used in another non ignored branch
-      if (!isDirectRequire && !isIncompatible && parent.isRequired) {
+      if (!isDirectRequire && !isIncompatible && parent.isRequired && !isMarkedAsOptional) {
         isRequired = true;
       }
       parentParts = parent.parts;
@@ -157,8 +167,7 @@ export default class PackageHoister {
     const loc: string = this.config.generateHardModulePath(ref);
     const parts = parentParts.concat(pkg.name);
     const key: string = this.implodeKey(parts);
-    const info: HoistManifest = new HoistManifest(key, parts, pkg, loc, isRequired, isIncompatible);
-
+    const info: HoistManifest = new HoistManifest(key, parts, pkg, loc, isDirectRequire, isRequired, isIncompatible);
     //
     this.tree.set(key, info);
     this.taintKey(key, info);
@@ -194,7 +203,13 @@ export default class PackageHoister {
 
       for (const depPattern of ref.dependencies) {
         const depinfo = this._lookupDependency(info, depPattern);
-        if (depinfo && !depinfo.isRequired && !depinfo.isIncompatible) {
+
+        if (!depinfo) {
+          continue;
+        }
+
+        const isMarkedAsOptional = !depinfo.pkg._reference || this.ignoreOptional;
+        if (!depinfo.isRequired && !depinfo.isIncompatible && !isMarkedAsOptional) {
           depinfo.isRequired = true;
           depinfo.addHistory(`Mark as non-ignored because of usage by ${info.key}`);
           toVisit.push(depinfo);
@@ -460,10 +475,6 @@ export default class PackageHoister {
     for (const pattern of patterns) {
       const pkg = this.resolver.getStrictResolvedPattern(pattern);
       rootPackageNames.add(pkg.name);
-    }
-
-    // seed occurences
-    for (const pattern of patterns) {
       add(pattern, []);
     }
 
@@ -546,7 +557,6 @@ export default class PackageHoister {
     for (const [loc, info] of flatTree) {
       const ref = info.pkg._reference;
       invariant(ref, 'expected reference');
-
       if (!info.isRequired) {
         info.addHistory('Deleted as this module was ignored');
       } else {

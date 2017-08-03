@@ -24,7 +24,7 @@ test('BaseFetcher.fetch', async () => {
       reference: '',
       hash: null,
     },
-    (await Config.create()),
+    await Config.create(),
   );
   let error;
 
@@ -50,7 +50,7 @@ test('CopyFetcher.fetch', async () => {
       registry: 'npm',
       hash: null,
     },
-    (await Config.create()),
+    await Config.create(),
   );
   await fetcher.fetch();
   const content = await fs.readFile(path.join(b, 'package.json'));
@@ -69,7 +69,7 @@ test('GitFetcher.fetch', async () => {
       hash: '8beb0413a8028ca2d52dbb86c75f42069535591b',
       registry: 'npm',
     },
-    (await Config.create()),
+    await Config.create(),
   );
   await fetcher.fetch();
   const name = (await fs.readJson(path.join(dir, 'package.json'))).name;
@@ -86,7 +86,7 @@ test('GitFetcher.fetch with prepare script', async () => {
       hash: '0e56593e326069ed4bcec8126bb48a1891215c57',
       registry: 'npm',
     },
-    (await Config.create()),
+    await Config.create(),
   );
   await fetcher.fetch();
   const name = (await fs.readJson(path.join(dir, 'package.json'))).name;
@@ -114,7 +114,7 @@ test('TarballFetcher.fetch', async () => {
       reference: 'https://github.com/sindresorhus/beeper/archive/master.tar.gz',
       registry: 'npm',
     },
-    (await Config.create()),
+    await Config.create(),
   );
 
   await fetcher.fetch();
@@ -133,7 +133,7 @@ test('TarballFetcher.fetch throws on invalid hash', async () => {
       reference: url,
       registry: 'npm',
     },
-    (await Config.create({}, new Reporter())),
+    await Config.create({}, new Reporter()),
   );
   let error;
   try {
@@ -154,7 +154,7 @@ test('TarballFetcher.fetch supports local ungzipped tarball', async () => {
       reference: path.join(__dirname, 'fixtures', 'fetchers', 'tarball', 'ungzipped.tar'),
       registry: 'npm',
     },
-    (await Config.create()),
+    await Config.create(),
   );
   await fetcher.fetch();
   const name = (await fs.readJson(path.join(dir, 'package.json'))).name;

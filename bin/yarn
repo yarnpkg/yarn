@@ -15,7 +15,7 @@ if command_exists node; then
   if [ "$YARN_FORCE_WINPTY" = 1 ]; then
     winpty node "$basedir/yarn.js" "$@"
   else
-    node "$basedir/yarn.js" "$@"
+    exec node "$basedir/yarn.js" "$@"
   fi
   ret=$?
 # Debian and Ubuntu use "nodejs" as the name of the binary, not "node", so we
@@ -23,7 +23,7 @@ if command_exists node; then
 # https://lists.debian.org/debian-devel-announce/2012/07/msg00002.html
 # https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=614907
 elif command_exists nodejs; then
-  nodejs "$basedir/yarn.js" "$@"
+  exec nodejs "$basedir/yarn.js" "$@"
   ret=$?
 else
   echo 'Yarn requires Node.js 4.0 or higher to be installed.'

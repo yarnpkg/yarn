@@ -53,12 +53,12 @@ test.concurrent("workspaces warn and get ignored if they don't have a name and a
       const warnings = reporter.getBuffer();
       expect(
         warnings.some(warning => {
-          return warning.data.toString().toLowerCase().includes('missing version in workspace');
+          return warning.data.toString().toLowerCase().indexOf('missing version in workspace') > -1;
         }),
       ).toEqual(true);
       expect(
         warnings.some(warning => {
-          return warning.data.toString().toLowerCase().includes('missing name in workspace');
+          return warning.data.toString().toLowerCase().indexOf('missing name in workspace') > -1;
         }),
       ).toEqual(true);
     },
@@ -210,6 +210,25 @@ test.concurrent('check command should work', (): Promise<void> => {
       thrown = true;
     }
     expect(thrown).toBe(false);
+  });
+});
+
+test.concurrent('install should link binaries at root and in workspace dependents', (): Promise<void> => {
+  return runInstall({binLinks: true}, 'workspaces-install-link-bin', async (config): Promise<void> => {
+    // node_modules/.bin/workspace-1 - link
+    expect(await fs.exists(path.join(config.cwd, 'node_modules', '.bin', 'workspace-1'))).toBe(true);
+
+    // packages/workspace-2/node_modules/.bin/workspace-1 - link
+    expect(
+      await fs.exists(path.join(config.cwd, 'packages', 'workspace-2', 'node_modules', '.bin', 'workspace-1')),
+    ).toBe(true);
+  });
+});
+
+test.concurrent('install should ignore node_modules in workspaces when used with **/*', (): Promise<void> => {
+  return runInstall({}, 'workspaces-install-already-exists', async (config): Promise<void> => {
+    expect(await fs.exists(path.join(config.cwd, 'node_modules', 'a'))).toBe(true);
+    expect(await fs.exists(path.join(config.cwd, 'node_modules', 'b'))).toBe(true);
   });
 });
 

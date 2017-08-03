@@ -49,6 +49,7 @@ const ignore = [
   'npm', // we'll never satisfy this for obvious reasons
   'teleport', // a module bundler used by some modules
   'rhino', // once a target for older modules
+  'cordovaDependencies', // http://bit.ly/2tkUePg
 ];
 
 type Versions = {
@@ -109,7 +110,7 @@ export function checkOne(info: Manifest, config: Config, ignoreEngines: boolean)
       ref.ignore = true;
       ref.incompatible = true;
 
-      reporter.warn(`${human}: ${msg}`);
+      reporter.info(`${human}: ${msg}`);
       if (!didIgnore) {
         reporter.info(reporter.lang('optionalCompatibilityExcluded', human));
         didIgnore = true;
