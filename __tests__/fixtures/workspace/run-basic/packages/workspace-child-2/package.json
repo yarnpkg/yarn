@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "scripts": {
     "prescript": "echo workspace-2 prescript",
-    "script": "echo workspace-2 prescript",
-    "postscript": "echo workspace-2 prescript"
+    "script": "echo workspace-2 script",
+    "postscript": "echo workspace-2 postscript"
   }
 }
