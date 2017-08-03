@@ -470,6 +470,12 @@ test.concurrent('install with file: protocol as default', (): Promise<void> => {
   });
 });
 
+test.concurrent("don't install with file: protocol as default if target is a file", (): Promise<void> => {
+  return runInstall({noLockfile: true}, 'install-file-as-default-no-file', async config => {
+    expect(await fs.readFile(path.join(config.cwd, 'node_modules', 'foo', 'package.json'))).toMatchSnapshot();
+  });
+});
+
 // When local packages are installed, dependencies with different forms of the same relative path
 // should be deduped e.g. 'file:b' and 'file:./b'
 test.concurrent('install file: dedupe dependencies 1', (): Promise<void> => {

@@ -1,5 +1,5 @@
 {
   "dependencies": {
-    "foo": "./bar"
+    "foo": "1"
   }
 }

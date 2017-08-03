@@ -132,13 +132,20 @@ export default class PackageRequest {
     }
   }
 
-  async normalizeRange(pattern: string): Promise<string> {
+  async normalizeRange(name: string, pattern: string): Promise<string> {
     if (pattern.indexOf(':') > -1 || pattern.indexOf('@') > -1 || getExoticResolver(pattern)) {
       return Promise.resolve(pattern);
     }
 
-    if (await fs.exists(path.join(this.config.cwd, pattern))) {
-      return Promise.resolve(`file:${pattern}`);
+    if (/^(?:.{1,2}|~)?[\/\\]/.test(pattern)) {
+      const localPackagePath = path.join(this.config.cwd, pattern);
+      try {
+        if ((await fs.stat(localPackagePath)).isDirectory()) {
+          return Promise.resolve(`file:${pattern}`);
+        }
+      } catch (err) {
+        // pass
+      }
     }
 
     return Promise.resolve(pattern);
@@ -146,7 +153,7 @@ export default class PackageRequest {
 
   async normalize(pattern: string): any {
     const {name, range, hasVersion} = PackageRequest.normalizePattern(pattern);
-    const newRange = await this.normalizeRange(range);
+    const newRange = await this.normalizeRange(name, range);
     return {name, range: newRange, hasVersion};
   }
 
