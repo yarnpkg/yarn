@@ -59,6 +59,9 @@ export const CONFIG_DIRECTORY = getDirectory('config');
 export const LINK_REGISTRY_DIRECTORY = path.join(CONFIG_DIRECTORY, 'link');
 export const GLOBAL_MODULE_DIRECTORY = path.join(CONFIG_DIRECTORY, 'global');
 
+export const NODE_BIN_PATH = process.execPath;
+export const YARN_BIN_PATH = require.resolve('../bin/yarn.js');
+
 export const POSIX_GLOBAL_PREFIX = '/usr/local';
 export const FALLBACK_GLOBAL_PREFIX = path.join(userHome, '.yarn');
 
