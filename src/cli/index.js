@@ -170,7 +170,6 @@ export function main({
   const run = (): Promise<void> => {
     invariant(command, 'missing command');
     return command.run(config, reporter, commander, commander.args).then(exitCode => {
-      reporter.close();
       if (outputWrapper) {
         reporter.footer(false);
       }
