@@ -2,6 +2,7 @@
 
 const path = require('path');
 const userHome = require('./util/user-home-dir').default;
+const isWebpackBundle = require('is-webpack-bundle');
 
 type Env = {
   [key: string]: ?string,
@@ -60,7 +61,15 @@ export const LINK_REGISTRY_DIRECTORY = path.join(CONFIG_DIRECTORY, 'link');
 export const GLOBAL_MODULE_DIRECTORY = path.join(CONFIG_DIRECTORY, 'global');
 
 export const NODE_BIN_PATH = process.execPath;
-export const YARN_BIN_PATH = require.resolve('../bin/yarn.js');
+export const YARN_BIN_PATH = getYarnBinPath();
+
+function getYarnBinPath(): string {
+  if (isWebpackBundle) {
+    return __filename;
+  } else {
+    return path.join(__dirname, '..', 'bin', 'yarn.js');
+  }
+}
 
 export const POSIX_GLOBAL_PREFIX = '/usr/local';
 export const FALLBACK_GLOBAL_PREFIX = path.join(userHome, '.yarn');
