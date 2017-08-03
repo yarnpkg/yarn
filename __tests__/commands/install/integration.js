@@ -472,7 +472,17 @@ test.concurrent('install with file: protocol as default', (): Promise<void> => {
 
 test.concurrent("don't install with file: protocol as default if target is a file", (): Promise<void> => {
   return runInstall({noLockfile: true}, 'install-file-as-default-no-file', async config => {
-    expect(await fs.readFile(path.join(config.cwd, 'node_modules', 'foo', 'package.json'))).toMatchSnapshot();
+    expect(await fs.readFile(path.join(config.cwd, 'node_modules', 'foo', 'package.json'))).toMatchSnapshot(
+      'install-file-as-default-no-file',
+    );
+  });
+});
+
+test.concurrent("don't install with file: protocol as default if target is valid semver", (): Promise<void> => {
+  return runInstall({noLockfile: true}, 'install-file-as-default-no-semver', async config => {
+    expect(await fs.readFile(path.join(config.cwd, 'node_modules', 'foo', 'package.json'))).toMatchSnapshot(
+      'install-file-as-default-no-semver',
+    );
   });
 });
 
