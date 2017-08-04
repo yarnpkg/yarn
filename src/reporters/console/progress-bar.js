@@ -4,7 +4,7 @@ import type {Stdout} from '../types.js';
 import {clearLine, toStartOfLine} from './util.js';
 
 export default class ProgressBar {
-  constructor(total: number, stdout: Stdout = process.stderr, callback: ?Function) {
+  constructor(total: number, stdout: Stdout = process.stderr, callback: ?(progressBar: ProgressBar) => void) {
     this.stdout = stdout;
     this.total = total;
     this.chars = ProgressBar.bars[0];
