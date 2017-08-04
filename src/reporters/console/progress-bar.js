@@ -39,7 +39,7 @@ export default class ProgressBar {
   }
 
   cancelTick() {
-    if (!this.id) {
+    if (this.id) {
       clearTimeout(this.id);
       this.id = null;
     }
@@ -79,8 +79,5 @@ export default class ProgressBar {
     this.stdout.write(bar);
 
     // progress complete
-    if (this.curr >= this.total) {
-      this.stop();
-    }
   }
 }
