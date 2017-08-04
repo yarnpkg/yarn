@@ -125,7 +125,8 @@ export default class PackageHoister {
       let sortedQueue = [];
       const availableSet = new Set();
 
-      for (let hasChanged = true; queue.length > 0 && hasChanged;) {
+      let hasChanged = true;\
+      while (queue.length > 0 && hasChanged) {
         hasChanged = false;
 
         for (let t = 0; t < queue.length; ++t) {
