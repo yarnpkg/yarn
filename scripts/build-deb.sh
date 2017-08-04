@@ -13,7 +13,7 @@ ensureAvailable lintian
 ensureAvailable rpmbuild
 
 PACKAGE_TMPDIR=tmp/debian_pkg
-VERSION=`dist/bin/yarn --version`
+VERSION=`./artifacts/yarn-legacy-* --version`
 OUTPUT_DIR=artifacts
 TARBALL_NAME=$OUTPUT_DIR/yarn-v$VERSION.tar.gz
 DEB_PACKAGE_NAME=yarn_$VERSION'_all.deb'
