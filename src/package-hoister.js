@@ -125,7 +125,7 @@ export default class PackageHoister {
       let sortedQueue = [];
       const availableSet = new Set();
 
-      let hasChanged = true;\
+      let hasChanged = true;
       while (queue.length > 0 && hasChanged) {
         hasChanged = false;
 
@@ -137,7 +137,6 @@ export default class PackageHoister {
           const areDependenciesFulfilled = peerDependencies.every(peerDependency => availableSet.has(peerDependency));
 
           if (areDependenciesFulfilled) {
-
             // Move the package inside our sorted queue
             sortedQueue.push(queue[t]);
             queue.splice(t--, 1);
@@ -147,14 +146,13 @@ export default class PackageHoister {
 
             // Schedule a next pass, in case other packages had peer dependencies on this one
             hasChanged = true;
-
           }
         }
       }
 
-      // We might end up with some packages left in the queue, that have not been sorted.
-      // We reach this codepath if two packages have a cyclic dependency, or if the peer dependency is provided by a parent package.
-      // In these case, nothing we can do, so we just add all of these packages to the end of the sorted queue.
+      // We might end up with some packages left in the queue, that have not been sorted. We reach this codepath if two
+      // packages have a cyclic dependency, or if the peer dependency is provided by a parent package. In these case,
+      // nothing we can do, so we just add all of these packages to the end of the sorted queue.
       sortedQueue = sortedQueue.concat(queue);
 
       for (const [pattern, parent] of sortedQueue) {

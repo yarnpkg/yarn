@@ -51,7 +51,7 @@ afterEach(request.__resetAuthedRequests);
 
 test.concurrent('install should not hoist packages above their peer dependencies', async () => {
   await runInstall({}, 'install-should-not-hoist-through-peer-deps', async (config): Promise<void> => {
-      expect(await fs.exists(`${config.cwd}/node_modules/a/node_modules/c`)).toEqual(true);
+    expect(await fs.exists(`${config.cwd}/node_modules/a/node_modules/c`)).toEqual(true);
   });
 });
 
