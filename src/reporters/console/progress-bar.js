@@ -21,7 +21,7 @@ export default class ProgressBar {
   chars: [string, string];
   delay: number;
   id: ?number;
-  _callback: ?Function;
+  _callback: ?(progressBar: ProgressBar) => void;
 
   static bars = [['█', '░']];
 
