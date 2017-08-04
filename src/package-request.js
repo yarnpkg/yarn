@@ -134,20 +134,20 @@ export default class PackageRequest {
 
   async normalizeRange(name: string, pattern: string): Promise<string> {
     if (pattern.indexOf(':') > -1 || pattern.indexOf('@') > -1 || getExoticResolver(pattern)) {
-      return Promise.resolve(pattern);
+      return pattern;
     }
 
     if (!semver.validRange(pattern)) {
       try {
         if ((await fs.stat(path.join(this.config.cwd, pattern))).isDirectory()) {
-          return Promise.resolve(`file:${pattern}`);
+          return `file:${pattern}`;
         }
       } catch (err) {
         // pass
       }
     }
 
-    return Promise.resolve(pattern);
+    return pattern;
   }
 
   async normalize(pattern: string): any {
