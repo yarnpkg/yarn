@@ -77,7 +77,5 @@ export default class ProgressBar {
 
     toStartOfLine(this.stdout);
     this.stdout.write(bar);
-
-    // progress complete
   }
 }
