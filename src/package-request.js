@@ -132,7 +132,7 @@ export default class PackageRequest {
     }
   }
 
-  async normalizeRange(name: string, pattern: string): Promise<string> {
+  async normalizeRange(pattern: string): Promise<string> {
     if (pattern.indexOf(':') > -1 || pattern.indexOf('@') > -1 || getExoticResolver(pattern)) {
       return pattern;
     }
@@ -152,7 +152,7 @@ export default class PackageRequest {
 
   async normalize(pattern: string): any {
     const {name, range, hasVersion} = PackageRequest.normalizePattern(pattern);
-    const newRange = await this.normalizeRange(name, range);
+    const newRange = await this.normalizeRange(range);
     return {name, range: newRange, hasVersion};
   }
 
