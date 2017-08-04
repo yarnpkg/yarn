@@ -9,11 +9,15 @@
  */
 
 const fs = require('fs');
-
 const packageManifestFilename = process.argv[2];
 const packageManifest = require(packageManifestFilename);
 
 packageManifest.installationMethod = process.argv[3];
+
+if (!packageManifest.installationMethod) {
+  throw new Error('You need to specify an installation method.');
+}
+
 delete packageManifest.dependencies;
 delete packageManifest.devDependencies;
 delete packageManifest.scripts;

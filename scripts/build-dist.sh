@@ -8,11 +8,9 @@ umask 0022 # Ensure permissions are correct (0755 for dirs, 0644 for files)
 # Workaround for https://github.com/yarnpkg/yarn/issues/2591
 case "$(uname -s)" in
   *CYGWIN*|MSYS*|MINGW*)
-    dist_yarn=dist/bin/yarn.cmd
     system_yarn=yarn.cmd
     ;;
   *)
-    dist_yarn=dist/bin/yarn
     system_yarn=yarn
     ;;
 esac
@@ -49,5 +47,8 @@ cp node_modules/v8-compile-cache/v8-compile-cache.js dist/lib/v8-compile-cache.j
 # Verify that it works as expected
 [[ "$version" == "$(./dist/bin/yarn --version)" ]] || exit 1;
 
-./scripts/update-dist-manifest.js $(readlink -f dist/package.json) tar
-tar -cvzf artifacts/yarn-v$version.tar.gz dist/*
+./scripts/update-dist-manifest.js $(node -p -e "require('fs').realpathSync('dist/package.json')") tar
+dist_dir="yarn-v$version"
+mv dist $dist_dir
+tar -cvzf artifacts/yarn-v$version.tar.gz $dist_dir/*
+rm -rf $dist_dir
