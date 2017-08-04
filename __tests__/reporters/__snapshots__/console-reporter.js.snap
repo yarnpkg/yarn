@@ -136,7 +136,7 @@ exports[`ProgressBar 1`] = `"[2K[1G[1G░░ 0/2"`;
 
 exports[`ProgressBar 2`] = `"[2K[1G[1G░░ 0/2[1G█░ 1/2"`;
 
-exports[`ProgressBar 3`] = `"[2K[1G[1G░░ 0/2[1G█░ 1/2[2K[1G[1G██ 2/2"`;
+exports[`ProgressBar 3`] = `"[2K[1G[1G░░ 0/2[1G█░ 1/2[1G██ 2/2"`;
 
 exports[`Spinner 1`] = `"[1G⠁ [0K"`;
 

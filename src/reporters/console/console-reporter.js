@@ -42,6 +42,7 @@ export default class ConsoleReporter extends BaseReporter {
   }
 
   _lastCategorySize: number;
+  _progressBar: ?Progress;
 
   _prependEmoji(msg: string, emoji: ?string): string {
     if (this.emoji && emoji && this.isTTY) {
@@ -61,6 +62,11 @@ export default class ConsoleReporter extends BaseReporter {
 
   _verboseInspect(obj: any) {
     this.inspect(obj);
+  }
+
+  close() {
+    this.stopProgress();
+    super.close();
   }
 
   table(head: Array<string>, body: Array<Row>) {
@@ -136,6 +142,8 @@ export default class ConsoleReporter extends BaseReporter {
   }
 
   footer(showPeakMemory?: boolean) {
+    this.stopProgress();
+
     const totalTime = (this.getTotalTime() / 1000).toFixed(2);
     let msg = `Done in ${totalTime}s.`;
     if (showPeakMemory) {
@@ -387,13 +395,26 @@ export default class ConsoleReporter extends BaseReporter {
       };
     }
 
-    const bar = new Progress(count, this.stderr);
+    // Clear any potentiall old progress bars
+    this.stopProgress();
+
+    const bar = (this._progressBar = new Progress(count, this.stderr, (progress: Progress) => {
+      if (progress === this._progressBar) {
+        this._progressBar = null;
+      }
+    }));
 
     bar.render();
 
     return function() {
       bar.tick();
     };
+  }
+
+  stopProgress() {
+    if (this._progressBar) {
+      this._progressBar.stop();
+    }
   }
 
   async prompt<T>(message: string, choices: Array<*>, options?: PromptOptions = {}): Promise<Array<T>> {
