@@ -17,13 +17,10 @@ test.concurrent('install with simple exact resolutions should override all versi
 
 test.concurrent('install with subtree exact resolutions should override subtree versions', (): Promise<void> => {
   return runInstall({}, {source: 'resolutions', cwd: 'subtree-exact'}, async config => {
-    expect(await getPackageVersion(config, 'a')).toEqual('1.0.0');
-    expect(await getPackageVersion(config, 'b')).toEqual('1.0.0');
-    expect(await getPackageVersion(config, 'd1')).toEqual('3.0.0');
-    expect(await getPackageVersion(config, 'b/d1')).toEqual('2.0.0');
+    expect(await getPackageVersion(config, 'left-pad')).toEqual('1.0.0');
     expect(await getPackageVersion(config, 'd2')).toEqual('1.0.0');
-    expect(await isPackagePresent(config, 'a/d1')).toEqual(false);
-    expect(await isPackagePresent(config, 'a/d2')).toEqual(false);
-    expect(await isPackagePresent(config, 'b/d2')).toEqual(false);
+    expect(await getPackageVersion(config, 'd2/left-pad')).toEqual('1.1.1');
+    expect(await getPackageVersion(config, 'c')).toEqual('1.0.0');
+    expect(await getPackageVersion(config, 'c/left-pad')).toEqual('1.1.2');
   });
 });

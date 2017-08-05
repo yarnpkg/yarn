@@ -2,6 +2,6 @@
   "name": "c",
   "version": "1.0.0",
   "dependencies": {
-    "a": "file:../a-2"
+    "left-pad": "~1.1.1"
   }
 }

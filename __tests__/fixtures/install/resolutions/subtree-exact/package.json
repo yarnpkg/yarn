@@ -2,10 +2,12 @@
   "name": "project",
   "version": "1.0.0",
   "dependencies": {
-    "a": "file:../a-1",
-    "b": "file:../b-1"
+    "left-pad": "1.0.0",
+    "c": "file:../c-1",
+    "d2": "file:../d2-1"
   },
   "resolutions": {
-    "a/d1": "file:../d1-3"
+    "d2/left-pad": "1.1.1",
+    "c/**/left-pad": "1.1.2"
   }
 }

@@ -178,7 +178,7 @@ export default class NpmResolver extends RegistryResolver {
     const {deprecated, dist} = info;
     if (typeof deprecated === 'string') {
       let human = `${info.name}@${info.version}`;
-      const parentNames = this.request.getParentNames();
+      const parentNames = this.request.parentNames;
       if (parentNames.length) {
         human = parentNames.concat(human).join(' > ');
       }
