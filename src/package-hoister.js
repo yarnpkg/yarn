@@ -121,7 +121,41 @@ export default class PackageHoister {
         return sortAlpha(aPattern, bPattern);
       });
 
-      for (const [pattern, parent] of queue) {
+      // sort the queue again to hoist packages without peer dependencies first
+      let sortedQueue = [];
+      const availableSet = new Set();
+
+      let hasChanged = true;
+      while (queue.length > 0 && hasChanged) {
+        hasChanged = false;
+
+        for (let t = 0; t < queue.length; ++t) {
+          const pattern = queue[t][0];
+          const pkg = this.resolver.getStrictResolvedPattern(pattern);
+
+          const peerDependencies = Object.keys(pkg.peerDependencies || {});
+          const areDependenciesFulfilled = peerDependencies.every(peerDependency => availableSet.has(peerDependency));
+
+          if (areDependenciesFulfilled) {
+            // Move the package inside our sorted queue
+            sortedQueue.push(queue[t]);
+            queue.splice(t--, 1);
+
+            // Add it to our set, so that we know it is available
+            availableSet.add(pattern);
+
+            // Schedule a next pass, in case other packages had peer dependencies on this one
+            hasChanged = true;
+          }
+        }
+      }
+
+      // We might end up with some packages left in the queue, that have not been sorted. We reach this codepath if two
+      // packages have a cyclic dependency, or if the peer dependency is provided by a parent package. In these case,
+      // nothing we can do, so we just add all of these packages to the end of the sorted queue.
+      sortedQueue = sortedQueue.concat(queue);
+
+      for (const [pattern, parent] of sortedQueue) {
         const info = this._seed(pattern, {isDirectRequire: false, parent});
         if (info) {
           this.hoist(info);
@@ -259,13 +293,13 @@ export default class PackageHoister {
     const stack = []; // stack of removed parts
     const name = parts.pop();
 
-    //
     for (let i = parts.length - 1; i >= 0; i--) {
       const checkParts = parts.slice(0, i).concat(name);
       const checkKey = this.implodeKey(checkParts);
       info.addHistory(`Looked at ${checkKey} for a match`);
 
       const existing = this.tree.get(checkKey);
+
       if (existing) {
         if (existing.loc === info.loc) {
           // switch to non ignored if earlier deduped version was ignored (must be compatible)
@@ -291,8 +325,24 @@ export default class PackageHoister {
       }
     }
 
+    const peerDependencies = Object.keys(info.pkg.peerDependencies || {});
+
     // remove redundant parts that wont collide
-    while (parts.length) {
+    hoistLoop: while (parts.length) {
+      // we must not hoist a package higher than its peer dependencies
+      for (const peerDependency of peerDependencies) {
+        const checkParts = parts.concat(peerDependency);
+        const checkKey = this.implodeKey(checkParts);
+        info.addHistory(`Looked at ${checkKey} for a peer dependency match`);
+
+        const existing = this.tree.get(checkKey);
+
+        if (existing) {
+          info.addHistory(`Found a peer dependency requirement at ${checkKey}`);
+          break hoistLoop;
+        }
+      }
+
       const checkParts = parts.concat(name);
       const checkKey = this.implodeKey(checkParts);
 

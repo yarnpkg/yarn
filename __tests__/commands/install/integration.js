@@ -49,6 +49,12 @@ async function mockConstants(base: Config, mocks: Object, cb: (config: Config) =
 beforeEach(request.__resetAuthedRequests);
 afterEach(request.__resetAuthedRequests);
 
+test.concurrent('install should not hoist packages above their peer dependencies', async () => {
+  await runInstall({}, 'install-should-not-hoist-through-peer-deps', async (config): Promise<void> => {
+    expect(await fs.exists(`${config.cwd}/node_modules/a/node_modules/c`)).toEqual(true);
+  });
+});
+
 test.concurrent('install optional subdependencies by default', async () => {
   await runInstall({}, 'install-optional-dependencies', async (config): Promise<void> => {
     expect(await fs.exists(`${config.cwd}/node_modules/dep-b`)).toEqual(true);
