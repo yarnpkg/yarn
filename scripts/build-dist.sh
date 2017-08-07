@@ -48,7 +48,16 @@ cp node_modules/v8-compile-cache/v8-compile-cache.js dist/lib/v8-compile-cache.j
 [[ "$version" == "$(./dist/bin/yarn --version)" ]] || exit 1;
 
 ./scripts/update-dist-manifest.js $(node -p -e "require('fs').realpathSync('dist/package.json')") tar
-dist_dir="yarn-v$version"
-mv dist $dist_dir
-tar -cvzf artifacts/yarn-v$version.tar.gz $dist_dir/*
-rm -rf $dist_dir
+
+case "$(tar --version)" in
+  gnutar*)
+    tar -cvzf artifacts/yarn-v$version.tar.gz --transform="s/^dist/yarn-v$version/" dist/*
+    ;;
+  bsdtar*)
+    tar -cvzf artifacts/yarn-v$version.tar.gz -s "/^dist/yarn-v$version/" dist/*
+    ;;
+  *)
+    echo "Can't determine tar type (BSD/GNU)!"
+    exit 1
+    ;;
+esac
