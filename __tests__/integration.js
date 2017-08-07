@@ -23,6 +23,8 @@ function addTest(pattern) {
     await fs.writeFile(path.join(cwd, 'package.json'), JSON.stringify({name: 'test'}));
 
     await execa(command, ['add', pattern].concat(args), options);
+
+    await fs.unlink(cwd);
   });
 }
 
