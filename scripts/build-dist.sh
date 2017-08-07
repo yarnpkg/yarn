@@ -50,7 +50,7 @@ cp node_modules/v8-compile-cache/v8-compile-cache.js dist/lib/v8-compile-cache.j
 ./scripts/update-dist-manifest.js $(node -p -e "require('fs').realpathSync('dist/package.json')") tar
 
 case "$(tar --version)" in
-  *GNU tar*)
+  *GNU*)
     tar -cvzf artifacts/yarn-v$version.tar.gz --transform="s/^dist/yarn-v$version/" dist/*
     ;;
   bsdtar*)
