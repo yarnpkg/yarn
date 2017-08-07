@@ -9,27 +9,18 @@ jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000;
 
 const path = require('path');
 
-function addTest(pattern, init: ?(cacheFolder: string) => Promise<any>, offline = false) {
+function addTest(pattern) {
   // concurrently network requests tend to stall
   test(`yarn add ${pattern}`, async () => {
-    const loc = await makeTemp();
-    const cacheFolder = path.join(loc, 'cache');
+    const cwd = await makeTemp();
+    const cacheFolder = path.join(cwd, 'cache');
 
     const command = path.resolve(__dirname, '../bin/yarn');
     const args = ['--cache-folder', cacheFolder, '--verbose'];
 
-    const options = {cwd: loc};
+    const options = {cwd};
 
-    if (offline) {
-      args.push('--offline');
-    }
-
-    if (init) {
-      await fs.mkdirp(cacheFolder);
-      await init(cacheFolder);
-    }
-
-    await fs.writeFile(path.join(loc, 'package.json'), JSON.stringify({name: 'test'}));
+    await fs.writeFile(path.join(cwd, 'package.json'), JSON.stringify({name: 'test'}));
 
     await execa(command, ['add', pattern].concat(args), options);
   });
@@ -56,3 +47,24 @@ addTest('https://git@github.com/stevemao/left-pad.git'); // git url, with userna
 addTest('https://github.com/yarnpkg/yarn/releases/download/v0.18.1/yarn-v0.18.1.tar.gz'); // tarball
 addTest('https://github.com/bestander/chrome-app-livereload.git'); // no package.json
 addTest('bestander/chrome-app-livereload'); // no package.json, github, tarball
+
+const MIN_PORT_NUM = 1024;
+const MAX_PORT_NUM = 65535;
+const PORT_RANGE = MAX_PORT_NUM - MIN_PORT_NUM;
+
+const getRandomPort = () => Math.floor(Math.random() * PORT_RANGE) + MIN_PORT_NUM;
+
+test('--mutex network', async () => {
+  const cwd = await makeTemp();
+  const cacheFolder = path.join(cwd, '.cache');
+
+  const command = path.resolve(__dirname, '../bin/yarn');
+  const args = ['--cache-folder', cacheFolder, '--verbose', '--mutex', `network:${getRandomPort()}`];
+
+  const options = {cwd};
+
+  await Promise.all([
+    execa(command, ['add', 'left-pad'].concat(args), options),
+    execa(command, ['add', 'foo'].concat(args), options),
+  ]);
+});
