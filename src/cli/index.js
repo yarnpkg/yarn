@@ -356,8 +356,15 @@ export function main({
       const mutex: mixed = commander.mutex;
       if (mutex && typeof mutex === 'string') {
         const separatorLoc = mutex.indexOf(':');
-        const mutexType = mutex.substring(0, separatorLoc);
-        const mutexSpecifier = mutex.substring(separatorLoc + 1);
+        let mutexType;
+        let mutexSpecifier;
+        if (separatorLoc === -1) {
+          mutexType = mutex;
+          mutexSpecifier = undefined;
+        } else {
+          mutexType = mutex.substring(0, separatorLoc);
+          mutexSpecifier = mutex.substring(separatorLoc + 1);
+        }
 
         if (mutexType === 'file') {
           return runEventuallyWithFile(mutexSpecifier, true).then(exit);
