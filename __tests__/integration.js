@@ -5,7 +5,7 @@ import execa from 'execa';
 import makeTemp from './_temp.js';
 import * as fs from '../src/util/fs.js';
 
-jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000;
+jasmine.DEFAULT_TIMEOUT_INTERVAL = 90000;
 
 const path = require('path');
 
