@@ -236,13 +236,13 @@ export function main({
       });
 
       const onServerEnd = async () => {
-        clients.forEach(client => {
+        for (const client of clients) {
           try {
             client.destroy();
           } catch (err) {
             // pass
           }
-        });
+        }
 
         await server.close();
         server.unref();
