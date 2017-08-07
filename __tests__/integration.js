@@ -9,7 +9,7 @@ jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000;
 
 const path = require('path');
 
-function addTest(pattern, init: ?(cacheFolder: string) => Promise<any>, offline = false) {
+function addTest(pattern) {
   // concurrently network requests tend to stall
   test(`yarn add ${pattern}`, async () => {
     const cwd = await makeTemp();
