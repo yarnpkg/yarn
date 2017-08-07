@@ -179,7 +179,7 @@ export function main({
 
   //
   const runEventuallyWithFile = (mutexFilename: ?string, isFirstTime?: boolean): Promise<void> => {
-    return new Promise(ok => {
+    return new Promise(resolve => {
       const lockFilename = mutexFilename || path.join(config.cwd, constants.SINGLE_INSTANCE_FILENAME);
       lockfile.lock(lockFilename, {realpath: false}, (err: mixed, release: () => void) => {
         if (err) {
@@ -187,13 +187,13 @@ export function main({
             reporter.warn(reporter.lang('waitingInstance'));
           }
           setTimeout(() => {
-            ok(runEventuallyWithFile(mutexFilename, false));
+            resolve(runEventuallyWithFile(mutexFilename, false));
           }, 200); // do not starve the CPU
         } else {
           onDeath(() => {
             process.exitCode = 1;
           });
-          ok(run().then(release));
+          resolve(run().then(release));
         }
       });
     });
@@ -201,11 +201,12 @@ export function main({
 
   //
   const runEventuallyWithNetwork = (mutexPort: ?string): Promise<void> => {
-    return new Promise(ok => {
+    return new Promise(resolve => {
       const connectionOptions = {
         port: +mutexPort || constants.SINGLE_INSTANCE_PORT,
       };
 
+      const clients = new Set();
       const server = net.createServer();
 
       server.on('error', () => {
@@ -222,21 +223,29 @@ export function main({
             // the `close` event gets always called after the `error` event
             if (!hadError) {
               process.nextTick(() => {
-                ok(runEventuallyWithNetwork(mutexPort));
+                resolve(runEventuallyWithNetwork(mutexPort));
               });
             }
           })
           .on('error', () => {
             // No server to listen to ? Let's retry to become the next server then.
             process.nextTick(() => {
-              ok(runEventuallyWithNetwork(mutexPort));
+              resolve(runEventuallyWithNetwork(mutexPort));
             });
           });
       });
 
-      const onServerEnd = (): Promise<void> => {
-        server.close();
-        return Promise.resolve();
+      const onServerEnd = async () => {
+        clients.forEach(client => {
+          try {
+            client.destroy();
+          } catch (err) {
+            // pass
+          }
+        });
+
+        await server.close();
+        server.unref();
       };
 
       // open the server and continue only if succeed.
@@ -244,7 +253,13 @@ export function main({
         // ensure the server gets closed properly on SIGNALS.
         onDeath(onServerEnd);
 
-        ok(run().then(onServerEnd));
+        resolve(run().then(onServerEnd));
+      });
+
+      server.on('connection', function(socket) {
+        clients.add(socket);
+
+        socket.on('close', () => clients.delete(socket));
       });
     });
   };
@@ -340,9 +355,9 @@ export function main({
 
       const mutex: mixed = commander.mutex;
       if (mutex && typeof mutex === 'string') {
-        const parts = mutex.split(':');
-        const mutexType = parts.shift();
-        const mutexSpecifier = parts.join(':');
+        const separatorLoc = mutex.indexOf(':');
+        const mutexType = mutex.substring(0, separatorLoc);
+        const mutexSpecifier = mutex.substring(separatorLoc + 1);
 
         if (mutexType === 'file') {
           return runEventuallyWithFile(mutexSpecifier, true).then(exit);
