@@ -63,6 +63,7 @@ export const GLOBAL_MODULE_DIRECTORY = path.join(CONFIG_DIRECTORY, 'global');
 export const NODE_BIN_PATH = process.execPath;
 export const YARN_BIN_PATH = getYarnBinPath();
 
+// Webpack needs to be configured with node.__dirname/__filename = false
 function getYarnBinPath(): string {
   if (isWebpackBundle) {
     return __filename;
