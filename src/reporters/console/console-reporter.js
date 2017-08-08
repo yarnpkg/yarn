@@ -37,12 +37,14 @@ export default class ConsoleReporter extends BaseReporter {
     super(opts);
 
     this._lastCategorySize = 0;
+    this._spinners = [];
     this.format = (chalk: any);
     this.isSilent = !!opts.isSilent;
   }
 
   _lastCategorySize: number;
   _progressBar: ?Progress;
+  _spinners: Array<Spinner>;
 
   _prependEmoji(msg: string, emoji: ?string): string {
     if (this.emoji && emoji && this.isTTY) {
@@ -65,6 +67,10 @@ export default class ConsoleReporter extends BaseReporter {
   }
 
   close() {
+    for (const spinner of this._spinners) {
+      spinner.stop();
+    }
+    this._spinners = [];
     this.stopProgress();
     super.close();
   }
@@ -253,6 +259,7 @@ export default class ConsoleReporter extends BaseReporter {
 
     for (let i = 0; i < workers; i++) {
       const spinner = new Spinner(this.stderr, i);
+      this._spinners.push(spinner);
       spinner.start();
 
       let prefix: ?string = null;
@@ -285,7 +292,7 @@ export default class ConsoleReporter extends BaseReporter {
           spinner.setText(msg);
         },
 
-        end() {
+        stop() {
           spinner.stop();
         },
       });
@@ -295,7 +302,7 @@ export default class ConsoleReporter extends BaseReporter {
       spinners,
       end: () => {
         for (const spinner of spinners) {
-          spinner.end();
+          spinner.stop();
         }
         readline.moveCursor(this.stdout, 0, -workers + 1);
       },
@@ -312,6 +319,8 @@ export default class ConsoleReporter extends BaseReporter {
 
     const spinner = new Spinner(this.stderr);
     spinner.start();
+
+    this._spinners.push(spinner);
 
     return {
       tick(name: string) {
