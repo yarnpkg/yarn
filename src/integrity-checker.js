@@ -2,9 +2,7 @@
 
 import type Config from './config.js';
 import type {LockManifest} from './lockfile/wrapper.js';
-import type {RegistryNames} from './registries/index.js';
 import * as constants from './constants.js';
-import {registryNames} from './registries/index.js';
 import * as fs from './util/fs.js';
 import {sortAlpha, compareSortedArrays} from './util/misc.js';
 import type {InstallArtifacts} from './package-install-scripts.js';
@@ -20,6 +18,7 @@ export const integrityErrors = {
   FLAGS_DONT_MATCH: 'integrityFlagsDontMatch',
   LINKED_MODULES_DONT_MATCH: 'integrityCheckLinkedModulesDontMatch',
   PATTERNS_DONT_MATCH: 'integrityPatternsDontMatch',
+  MODULES_FOLDERS_MISSING: 'integrityModulesFoldersMissing',
 };
 
 type IntegrityError = $Keys<typeof integrityErrors>;
@@ -39,6 +38,7 @@ type IntegrityHashLocation = {
 
 type IntegrityFile = {
   flags: Array<string>,
+  modulesFolders: Array<string>,
   linkedModules: Array<string>,
   topLevelPatterns: Array<string>,
   lockfileEntries: {
@@ -63,51 +63,42 @@ export default class InstallationIntegrityChecker {
 
   config: Config;
 
-  async _getModuleLocation(usedRegistries?: Set<RegistryNames>): Promise<string> {
-    // build up possible folders
-    let registries = registryNames;
-    if (usedRegistries && usedRegistries.size > 0) {
-      registries = usedRegistries;
-    }
-    const possibleFolders = [];
+  /**
+   * Get the common ancestor of every node_modules - it might be a node_modules directory itself, but isn't required to.
+   */
+
+  _getModulesRootFolder(): string {
     if (this.config.modulesFolder) {
-      possibleFolders.push(this.config.modulesFolder);
+      return this.config.modulesFolder;
+    } else if (this.config.workspaceRootFolder) {
+      return this.config.workspaceRootFolder;
+    } else {
+      return path.join(this.config.lockfileFolder, 'node_modules');
     }
-
-    // ensure we only write to a registry folder that was used
-    for (const name of registries) {
-      const loc = path.join(this.config.cwd, this.config.registries[name].folder);
-      possibleFolders.push(loc);
-    }
-
-    // if we already have an integrity hash in one of these folders then use it's location otherwise use the
-    // first folder
-    let loc;
-    for (const possibleLoc of possibleFolders) {
-      if (await fs.exists(path.join(possibleLoc, constants.INTEGRITY_FILENAME))) {
-        loc = possibleLoc;
-        break;
-      }
-    }
-
-    return loc || possibleFolders[0];
   }
 
   /**
-   * Get the location of an existing integrity hash. If none exists then return the location where we should
-   * write a new one.
+   * Get the directory in which the yarn-integrity file should be written.
    */
 
-  async _getIntegrityHashLocation(usedRegistries?: Set<RegistryNames>): Promise<IntegrityHashLocation> {
-    let locationFolder;
-
-    if (this.config.enableMetaFolder) {
-      locationFolder = path.join(this.config.lockfileFolder, constants.META_FOLDER);
+  _getIntegrityFileFolder(): string {
+    if (this.config.modulesFolder) {
+      return this.config.modulesFolder;
+    } else if (this.config.enableMetaFolder) {
+      return path.join(this.config.lockfileFolder, constants.META_FOLDER);
     } else {
-      locationFolder = await this._getModuleLocation(usedRegistries);
+      return path.join(this.config.lockfileFolder, 'node_modules');
     }
+  }
 
+  /**
+   * Get the full path of the yarn-integrity file.
+   */
+
+  async _getIntegrityFileLocation(): Promise<IntegrityHashLocation> {
+    const locationFolder = this._getIntegrityFileFolder();
     const locationPath = path.join(locationFolder, constants.INTEGRITY_FILENAME);
+
     const exists = await fs.exists(locationPath);
 
     return {
@@ -118,23 +109,59 @@ export default class InstallationIntegrityChecker {
   }
 
   /**
-   * returns a list of files recursively in a directory sorted
+   * Get the list of the directories that contain our modules (there might be multiple such folders b/c of workspaces).
    */
-  async _getFilesDeep(rootDir: string): Promise<Array<string>> {
-    async function getFilePaths(rootDir: string, files: Array<string>, currentDir: string = rootDir): Promise<void> {
-      for (const file of await fs.readdir(currentDir)) {
-        const entry = path.join(currentDir, file);
-        const stat = await fs.lstat(entry);
-        if (stat.isDirectory()) {
-          await getFilePaths(rootDir, files, entry);
-        } else {
-          files.push(path.relative(rootDir, entry));
+
+  _getModulesFolders({workspaceLayout}: {workspaceLayout: ?WorkspaceLayout} = {}): Array<string> {
+    const locations = [];
+
+    if (this.config.modulesFolder) {
+      locations.push(this.config.modulesFolder);
+    } else {
+      locations.push(path.join(this.config.lockfileFolder, 'node_modules'));
+    }
+
+    if (workspaceLayout) {
+      for (const workspaceName of Object.keys(workspaceLayout.workspaces)) {
+        const loc = workspaceLayout.workspaces[workspaceName].loc;
+
+        if (loc) {
+          locations.push(path.join(loc, 'node_modules'));
         }
       }
     }
-    const result = [];
-    await getFilePaths(rootDir, result);
-    return result;
+
+    return locations;
+  }
+
+  /**
+   * Get a list of the files that are located inside our module folders.
+   */
+  async _getIntegrityListing({workspaceLayout}: {workspaceLayout: ?WorkspaceLayout} = {}): Promise<Array<string>> {
+    const files = [];
+
+    const recurse = async dir => {
+      if (!await fs.exists(dir)) {
+        return;
+      }
+
+      for (const file of await fs.readdir(dir)) {
+        const entry = path.join(dir, file);
+        const stat = await fs.lstat(entry);
+
+        if (stat.isDirectory()) {
+          await recurse(entry);
+        } else {
+          files.push(entry);
+        }
+      }
+    };
+
+    for (const modulesFolder of this._getModulesFolders({workspaceLayout})) {
+      await recurse(modulesFolder);
+    }
+
+    return files;
   }
 
   /**
@@ -145,10 +172,11 @@ export default class InstallationIntegrityChecker {
     lockfile: {[key: string]: LockManifest},
     patterns: Array<string>,
     flags: IntegrityFlags,
-    modulesFolder: string,
+    workspaceLayout: ?WorkspaceLayout,
     artifacts?: InstallArtifacts,
   ): Promise<IntegrityFile> {
     const result: IntegrityFile = {
+      modulesFolders: [],
       flags: [],
       linkedModules: [],
       topLevelPatterns: [],
@@ -158,6 +186,10 @@ export default class InstallationIntegrityChecker {
     };
 
     result.topLevelPatterns = patterns.sort(sortAlpha);
+
+    if (flags.checkFiles) {
+      result.flags.push('checkFiles');
+    }
 
     if (flags.flat) {
       result.flags.push('flat');
@@ -171,16 +203,29 @@ export default class InstallationIntegrityChecker {
     }
 
     const linkedModules = this.config.linkedModules;
+
     if (linkedModules.length) {
       result.linkedModules = linkedModules.sort(sortAlpha);
     }
 
-    Object.keys(lockfile).forEach(key => {
+    for (const key of Object.keys(lockfile)) {
       result.lockfileEntries[key] = lockfile[key].resolved || '';
-    });
+    }
+
+    for (const modulesFolder of this._getModulesFolders({workspaceLayout})) {
+      if (await fs.exists(modulesFolder)) {
+        result.modulesFolders.push(path.relative(this.config.lockfileFolder, modulesFolder));
+      }
+    }
 
     if (flags.checkFiles) {
-      result.files = await this._getFilesDeep(modulesFolder);
+      const modulesRoot = this._getModulesRootFolder();
+
+      result.files = (await this._getIntegrityListing({workspaceLayout}))
+        .map(entry => {
+          return path.relative(modulesRoot, entry);
+        })
+        .sort(sortAlpha);
     }
 
     return result;
@@ -196,52 +241,68 @@ export default class InstallationIntegrityChecker {
     return null;
   }
 
-  async _compareIntegrityFiles(
+  _compareIntegrityFiles(
     actual: IntegrityFile,
     expected: ?IntegrityFile,
     checkFiles: boolean,
-    locationFolder: string,
     workspaceLayout: ?WorkspaceLayout,
-  ): Promise<'OK' | IntegrityError> {
+  ): 'OK' | IntegrityError {
     if (!expected) {
       return 'EXPECTED_IS_NOT_A_JSON';
     }
+
     if (!compareSortedArrays(actual.linkedModules, expected.linkedModules)) {
       return 'LINKED_MODULES_DONT_MATCH';
     }
-    if (!compareSortedArrays(actual.flags, expected.flags)) {
+
+    let relevantExpectedFlags = expected.flags.slice();
+
+    // If we run "yarn" after "yarn --check-files", we shouldn't fail the less strict validation
+    if (actual.flags.indexOf('checkFiles') === -1) {
+      relevantExpectedFlags = relevantExpectedFlags.filter(flag => flag !== 'checkFiles');
+    }
+
+    if (!compareSortedArrays(actual.flags, relevantExpectedFlags)) {
       return 'FLAGS_DONT_MATCH';
     }
+
     const actualPatterns = actual.topLevelPatterns.filter(p => {
       return !workspaceLayout || !workspaceLayout.getManifestByPattern(p);
     });
+
     if (!compareSortedArrays(actualPatterns, expected.topLevelPatterns || [])) {
       return 'PATTERNS_DONT_MATCH';
     }
+
     for (const key of Object.keys(actual.lockfileEntries)) {
       if (actual.lockfileEntries[key] !== expected.lockfileEntries[key]) {
         return 'LOCKFILE_DONT_MATCH';
       }
     }
+
     for (const key of Object.keys(expected.lockfileEntries)) {
       if (actual.lockfileEntries[key] !== expected.lockfileEntries[key]) {
         return 'LOCKFILE_DONT_MATCH';
       }
     }
+
     if (checkFiles) {
-      if (expected.files.length === 0) {
-        // edge case handling - --check-fies is passed but .yarn-integrity does not contain any files
-        // check and fail if there are file in node_modules after all.
-        const actualFiles = await this._getFilesDeep(locationFolder);
-        if (actualFiles.length > 0) {
-          return 'FILES_MISSING';
+      // Early bailout if we expect more files than what we have
+      if (expected.files.length > actual.files.length) {
+        return 'FILES_MISSING';
+      }
+
+      // Since we know the "files" entry is sorted alphabetically, we can optimize the thing
+      // Instead of storing the files in a Set, we can just iterate both arrays at once. O(n)!
+      for (let u = 0, v = 0; u < expected.files.length; ++u) {
+        // Skip over files that have been added
+        while (v < actual.files.length && actual.files[v] !== expected.files[u]) {
+          v += 1;
         }
-      } else {
-        // TODO we may want to optimise this check by checking only for package.json files on very large trees
-        for (const file of expected.files) {
-          if (!await fs.exists(path.join(locationFolder, file))) {
-            return 'FILES_MISSING';
-          }
+
+        // If we've reached the end of the actual array, the file is missing
+        if (v === actual.files.length) {
+          return 'FILES_MISSING';
         }
       }
     }
@@ -259,7 +320,7 @@ export default class InstallationIntegrityChecker {
       p => !lockfile[p] && (!workspaceLayout || !workspaceLayout.getManifestByPattern(p)),
     );
 
-    const loc = await this._getIntegrityHashLocation();
+    const loc = await this._getIntegrityFileLocation();
     if (missingPatterns.length || !loc.exists) {
       return {
         integrityFileMissing: !loc.exists,
@@ -267,20 +328,25 @@ export default class InstallationIntegrityChecker {
       };
     }
 
-    const actual = await this._generateIntegrityFile(
-      lockfile,
-      patterns,
-      Object.assign({}, flags, {checkFiles: false}), // don't generate files when checking, we check the files below
-      await this._getModuleLocation(),
-    );
+    const actual = await this._generateIntegrityFile(lockfile, patterns, flags, workspaceLayout);
+
     const expected = await this._getIntegrityFile(loc.locationPath);
-    const integrityMatches = await this._compareIntegrityFiles(
-      actual,
-      expected,
-      flags.checkFiles,
-      loc.locationFolder,
-      workspaceLayout,
-    );
+    let integrityMatches = this._compareIntegrityFiles(actual, expected, flags.checkFiles, workspaceLayout);
+    console.log(actual, expected, integrityMatches);
+
+    if (integrityMatches === 'OK') {
+      invariant(expected, "The integrity shouldn't pass without integrity file");
+      for (const modulesFolder of expected.modulesFolders) {
+        console.log(
+          modulesFolder,
+          this.config.lockfileFolder,
+          await fs.exists(path.join(this.config.lockfileFolder, modulesFolder)),
+        );
+        if (!await fs.exists(path.join(this.config.lockfileFolder, modulesFolder))) {
+          integrityMatches = 'MODULES_FOLDERS_MISSING';
+        }
+      }
+    }
 
     return {
       integrityFileMissing: false,
@@ -294,7 +360,7 @@ export default class InstallationIntegrityChecker {
    * Get artifacts from integrity file if it exists.
    */
   async getArtifacts(): Promise<?InstallArtifacts> {
-    const loc = await this._getIntegrityHashLocation();
+    const loc = await this._getIntegrityFileLocation();
     if (!loc.exists) {
       return null;
     }
@@ -317,13 +383,12 @@ export default class InstallationIntegrityChecker {
     patterns: Array<string>,
     lockfile: {[key: string]: LockManifest},
     flags: IntegrityFlags,
-    usedRegistries?: Set<RegistryNames>,
+    workspaceLayout: ?WorkspaceLayout,
     artifacts: InstallArtifacts,
   ): Promise<void> {
-    const moduleFolder = await this._getModuleLocation(usedRegistries);
-    const integrityFile = await this._generateIntegrityFile(lockfile, patterns, flags, moduleFolder, artifacts);
+    const integrityFile = await this._generateIntegrityFile(lockfile, patterns, flags, workspaceLayout, artifacts);
 
-    const loc = await this._getIntegrityHashLocation(usedRegistries);
+    const loc = await this._getIntegrityFileLocation();
     invariant(loc.locationPath, 'expected integrity hash location');
 
     await fs.mkdirp(path.dirname(loc.locationPath));
@@ -331,7 +396,7 @@ export default class InstallationIntegrityChecker {
   }
 
   async removeIntegrityFile(): Promise<void> {
-    const loc = await this._getIntegrityHashLocation();
+    const loc = await this._getIntegrityFileLocation();
     if (loc.exists) {
       await fs.unlink(loc.locationPath);
     }
