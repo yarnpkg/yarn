@@ -3,7 +3,7 @@
 
 set -ex
 
-version=`./artifacts/yarn-legacy-* --version`
+version=`./dist/bin/yarn --version`
 tarball="./artifacts/yarn-v$version.tar.gz"
 
 # Ensure Yarn tarball was built
