@@ -2,7 +2,7 @@
 
 import type {Reporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
-import Lockfile from '../../lockfile/wrapper.js';
+import Lockfile from '../../lockfile';
 import {registries} from '../../registries/index.js';
 import {Install} from './install.js';
 import {MessageError} from '../../errors.js';

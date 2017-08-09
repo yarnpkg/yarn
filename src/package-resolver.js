@@ -9,7 +9,7 @@ import type Config from './config.js';
 import PackageRequest from './package-request.js';
 import RequestManager from './util/request-manager.js';
 import BlockingQueue from './util/blocking-queue.js';
-import Lockfile from './lockfile/wrapper.js';
+import Lockfile from './lockfile';
 import map from './util/map.js';
 import WorkspaceLayout from './workspace-layout.js';
 import ResolutionMap from './resolution-map.js';

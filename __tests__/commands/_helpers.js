@@ -1,9 +1,9 @@
 /* @flow */
 
-import Lockfile from '../../src/lockfile/wrapper.js';
+import Lockfile from '../../src/lockfile';
 import {ConsoleReporter} from '../../src/reporters/index.js';
 import {Reporter} from '../../src/reporters/index.js';
-import {parse} from '../../src/lockfile/wrapper.js';
+import {parse} from '../../src/lockfile';
 import * as constants from '../../src/constants.js';
 import {run as check} from '../../src/cli/commands/check.js';
 import * as fs from '../../src/util/fs.js';

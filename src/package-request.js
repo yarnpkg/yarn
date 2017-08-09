@@ -6,7 +6,7 @@ import type {Reporter} from './reporters/index.js';
 import type Config from './config.js';
 import type {Install} from './cli/commands/install';
 import {cleanDependencies} from './util/normalize-manifest/validate.js';
-import Lockfile from './lockfile/wrapper.js';
+import Lockfile from './lockfile';
 import PackageReference from './package-reference.js';
 import {registries as registryResolvers} from './resolvers/index.js';
 import {MessageError} from './errors.js';
@@ -15,6 +15,7 @@ import * as versionUtil from './util/version.js';
 import WorkspaceResolver from './resolvers/contextual/workspace-resolver.js';
 import {getExoticResolver} from './resolvers/index.js';
 import * as fs from './util/fs.js';
+import {normalizePattern} from './util/normalize-pattern.js';
 
 const path = require('path');
 const invariant = require('invariant');
@@ -144,7 +145,7 @@ export default class PackageRequest {
   }
 
   /**
-   * Explode and normalize a pattern into it's name and range.
+   * Explode and normalize a pattern into its name and range.
    */
 
   static normalizePattern(
@@ -154,36 +155,7 @@ export default class PackageRequest {
     name: string,
     range: string,
   } {
-    let hasVersion = false;
-    let range = 'latest';
-    let name = pattern;
-
-    // if we're a scope then remove the @ and add it back later
-    let isScoped = false;
-    if (name[0] === '@') {
-      isScoped = true;
-      name = name.slice(1);
-    }
-
-    // take first part as the name
-    const parts = name.split('@');
-    if (parts.length > 1) {
-      name = parts.shift();
-      range = parts.join('@');
-
-      if (range) {
-        hasVersion = true;
-      } else {
-        range = '*';
-      }
-    }
-
-    // add back @ scope suffix
-    if (isScoped) {
-      name = `@${name}`;
-    }
-
-    return {name, range, hasVersion};
+    return normalizePattern(pattern);
   }
 
   /**

@@ -1,7 +1,7 @@
 /* @flow */
 /* eslint quotes: 0 */
 
-import Lockfile from '../src/lockfile/wrapper.js';
+import Lockfile from '../src/lockfile';
 import stringify from '../src/lockfile/stringify.js';
 import parse from '../src/lockfile/parse.js';
 import nullify from '../src/util/map.js';

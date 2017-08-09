@@ -4,7 +4,7 @@ import type {Dependency} from '../../types.js';
 import type {Reporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
 import {Add} from './add.js';
-import Lockfile from '../../lockfile/wrapper.js';
+import Lockfile from '../../lockfile';
 import PackageRequest from '../../package-request.js';
 import {Install} from './install.js';
 

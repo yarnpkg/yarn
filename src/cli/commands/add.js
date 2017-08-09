@@ -5,7 +5,7 @@ import type {InstallCwdRequest} from './install.js';
 import type {DependencyRequestPatterns, Manifest} from '../../types.js';
 import type Config from '../../config.js';
 import type {ListOptions} from './list.js';
-import Lockfile from '../../lockfile/wrapper.js';
+import Lockfile from '../../lockfile';
 import PackageRequest from '../../package-request.js';
 import WorkspaceLayout from '../../workspace-layout.js';
 import {getExoticResolver} from '../../resolvers/index.js';

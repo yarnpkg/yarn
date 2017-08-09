@@ -1,0 +1,7 @@
+{
+  "name": "yarn-lockfile",
+  "version": "1.0.0",
+  "description": "The parser/stringifier for yarn lockfiles.",
+  "main": "index.js",
+  "license": "BSD-2-Clause"
+}

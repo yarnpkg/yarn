@@ -18,7 +18,7 @@ import PackageRequest from '../../package-request.js';
 import * as fetcher from '../../package-fetcher.js';
 import PackageLinker from '../../package-linker.js';
 import * as compatibility from '../../package-compatibility.js';
-import Lockfile from '../../lockfile/wrapper.js';
+import Lockfile from '../../lockfile';
 import * as fs from '../../util/fs.js';
 import * as util from '../../util/misc.js';
 import {YARN_REGISTRY, LOCKFILE_FILENAME} from '../../constants.js';

@@ -4,10 +4,10 @@ import type {Reporter} from '../reporters/index.js';
 import type {Manifest, PackageRemote} from '../types.js';
 import type {RegistryNames} from '../registries/index.js';
 import {sortAlpha} from '../util/misc.js';
-import PackageRequest from '../package-request.js';
+import {normalizePattern} from '../util/normalize-pattern.js';
 import parse from './parse.js';
-import * as constants from '../constants.js';
-import * as fs from '../util/fs.js';
+import {LOCKFILE_FILENAME} from '../constants.js';
+import {exists, readFile} from '../util/fs.js';
 
 const invariant = require('invariant');
 const path = require('path');
@@ -46,7 +46,7 @@ export type LockfileObject = {
 };
 
 function getName(pattern: string): string {
-  return PackageRequest.normalizePattern(pattern).name;
+  return normalizePattern(pattern).name;
 }
 
 function blankObjectUndefined(obj: ?Object): ?Object {
@@ -96,13 +96,13 @@ export default class Lockfile {
 
   static async fromDirectory(dir: string, reporter?: Reporter): Promise<Lockfile> {
     // read the manifest in this directory
-    const lockfileLoc = path.join(dir, constants.LOCKFILE_FILENAME);
+    const lockfileLoc = path.join(dir, LOCKFILE_FILENAME);
 
     let lockfile;
     let rawLockfile = '';
 
-    if (await fs.exists(lockfileLoc)) {
-      rawLockfile = await fs.readFile(lockfileLoc);
+    if (await exists(lockfileLoc)) {
+      rawLockfile = await readFile(lockfileLoc);
       const lockResult = parse(rawLockfile, lockfileLoc);
 
       if (reporter) {
