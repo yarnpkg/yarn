@@ -185,7 +185,21 @@ export default class InstallationIntegrityChecker {
       artifacts,
     };
 
-    result.topLevelPatterns = patterns.sort(sortAlpha);
+    result.topLevelPatterns = patterns.sort(sortAlpha).filter(p => {
+      return !workspaceLayout || !workspaceLayout.getManifestByPattern(p);
+    });
+
+    // If using workspaces, we also need to add the workspaces patterns to the top-level, so that we'll know if a
+    // dependency is added or removed into one of them. We must take care not to read the aggregator.
+    if (workspaceLayout) {
+      for (const name of Object.keys(workspaceLayout.workspaces)) {
+        if (workspaceLayout.workspaces[name].loc) {
+          result.topLevelPatterns = result.topLevelPatterns.concat(
+            workspaceLayout.workspaces[name].manifest._reference.patterns,
+          );
+        }
+      }
+    }
 
     if (flags.checkFiles) {
       result.flags.push('checkFiles');
@@ -222,9 +236,7 @@ export default class InstallationIntegrityChecker {
       const modulesRoot = this._getModulesRootFolder();
 
       result.files = (await this._getIntegrityListing({workspaceLayout}))
-        .map(entry => {
-          return path.relative(modulesRoot, entry);
-        })
+        .map(entry => path.relative(modulesRoot, entry))
         .sort(sortAlpha);
     }
 
@@ -266,11 +278,7 @@ export default class InstallationIntegrityChecker {
       return 'FLAGS_DONT_MATCH';
     }
 
-    const actualPatterns = actual.topLevelPatterns.filter(p => {
-      return !workspaceLayout || !workspaceLayout.getManifestByPattern(p);
-    });
-
-    if (!compareSortedArrays(actualPatterns, expected.topLevelPatterns || [])) {
+    if (!compareSortedArrays(actual.topLevelPatterns, expected.topLevelPatterns || [])) {
       return 'PATTERNS_DONT_MATCH';
     }
 
@@ -292,16 +300,19 @@ export default class InstallationIntegrityChecker {
         return 'FILES_MISSING';
       }
 
-      // Since we know the "files" entry is sorted alphabetically, we can optimize the thing
+      // Since we know the "files" entry is sorted (alphabetically), we can optimize the thing
       // Instead of storing the files in a Set, we can just iterate both arrays at once. O(n)!
       for (let u = 0, v = 0; u < expected.files.length; ++u) {
-        // Skip over files that have been added
-        while (v < actual.files.length && actual.files[v] !== expected.files[u]) {
+        // Number of iterations after which there won't be enough entries remaining for the arrays to match
+        const max = actual.files.length - expected.files.length;
+
+        // Skip over files that have been added (not present in 'expected')
+        while (v < max && actual.files[v] !== expected.files[u]) {
           v += 1;
         }
 
         // If we've reached the end of the actual array, the file is missing
-        if (v === actual.files.length) {
+        if (v === max) {
           return 'FILES_MISSING';
         }
       }
@@ -332,16 +343,10 @@ export default class InstallationIntegrityChecker {
 
     const expected = await this._getIntegrityFile(loc.locationPath);
     let integrityMatches = this._compareIntegrityFiles(actual, expected, flags.checkFiles, workspaceLayout);
-    console.log(actual, expected, integrityMatches);
 
     if (integrityMatches === 'OK') {
       invariant(expected, "The integrity shouldn't pass without integrity file");
       for (const modulesFolder of expected.modulesFolders) {
-        console.log(
-          modulesFolder,
-          this.config.lockfileFolder,
-          await fs.exists(path.join(this.config.lockfileFolder, modulesFolder)),
-        );
         if (!await fs.exists(path.join(this.config.lockfileFolder, modulesFolder))) {
           integrityMatches = 'MODULES_FOLDERS_MISSING';
         }
