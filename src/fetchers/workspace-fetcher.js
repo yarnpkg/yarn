@@ -1,6 +1,6 @@
 /* @flow */
 
-import type {PackageRemote, FetchedMetadata} from '../types.js';
+import type {PackageRemote, FetchedMetadata, Manifest} from '../types.js';
 import type Config from '../config.js';
 import type {RegistryNames} from '../registries/index.js';
 
@@ -21,7 +21,7 @@ export default class WorkspaceFetcher {
     return Promise.resolve();
   }
 
-  async fetch(defaultManifest: ?Object): Promise<FetchedMetadata> {
+  async fetch(defaultManifest: ?Manifest): Promise<FetchedMetadata> {
     let pkg = defaultManifest;
     // load the manifest from the workspace directory or return the default
     try {
@@ -39,8 +39,7 @@ export default class WorkspaceFetcher {
       dest: this.dest,
       package: {
         ...pkg,
-        _uid: '',
-        version: '0.0.0',
+        _uid: (pkg && pkg.version) || '',
       },
     });
   }
