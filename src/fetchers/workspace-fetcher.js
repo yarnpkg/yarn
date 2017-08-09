@@ -9,7 +9,7 @@ export default class WorkspaceFetcher {
     this.config = config;
     this.dest = dest;
     this.registry = remote.registry;
-    this.workspaceDir = remote.reference;
+    this.workspaceDir = remote.reference || '.';
   }
 
   config: Config;
@@ -21,27 +21,18 @@ export default class WorkspaceFetcher {
     return Promise.resolve();
   }
 
-  async fetch(defaultManifest: ?Object): Promise<FetchedMetadata> {
-    let pkg = defaultManifest;
-    // load the manifest from the workspace directory or return the default
-    try {
-      pkg = await this.config.readManifest(this.workspaceDir, this.registry);
-    } catch (e) {
-      if (e.code !== 'ENOENT' || !defaultManifest) {
-        throw e;
-      }
-    }
+  async fetch(): Promise<FetchedMetadata> {
+    const pkg = await this.config.readManifest(this.workspaceDir, this.registry);
 
-    return Promise.resolve({
+    return {
       resolved: null,
       hash: '',
       cached: false,
       dest: this.dest,
       package: {
         ...pkg,
-        _uid: '',
-        version: '0.0.0',
+        _uid: pkg.version,
       },
-    });
+    };
   }
 }
