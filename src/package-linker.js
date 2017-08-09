@@ -132,13 +132,10 @@ export default class PackageLinker {
     }
   }
 
-  getFlatHoistedTree(
-    patterns: Array<string>,
-    {ignoreOptional}: {ignoreOptional: ?boolean} = {},
-  ): Promise<HoistManifestTuples> {
+  getFlatHoistedTree(patterns: Array<string>, {ignoreOptional}: {ignoreOptional: ?boolean} = {}): HoistManifestTuples {
     const hoister = new PackageHoister(this.config, this.resolver, {ignoreOptional});
     hoister.seed(patterns);
-    return Promise.resolve(hoister.init());
+    return hoister.init();
   }
 
   async copyModules(
@@ -146,8 +143,7 @@ export default class PackageLinker {
     workspaceLayout?: WorkspaceLayout,
     {linkDuplicates, ignoreOptional}: {linkDuplicates: ?boolean, ignoreOptional: ?boolean} = {},
   ): Promise<void> {
-    let flatTree = await this.getFlatHoistedTree(patterns, {ignoreOptional});
-
+    let flatTree = this.getFlatHoistedTree(patterns, {ignoreOptional});
     // sorted tree makes file creation and copying not to interfere with each other
     flatTree = flatTree.sort(function(dep1, dep2): number {
       return dep1[0].localeCompare(dep2[0]);
@@ -366,7 +362,7 @@ export default class PackageLinker {
 
     // create binary links
     if (this.config.binLinks) {
-      const topLevelDependencies = this.determineTopLevelBinLinks(flatTree);
+      const topLevelDependencies = this.determineTopLevelBinLinks(flatTree, workspaceLayout);
       const tickBin = this.reporter.progress(flatTree.length + topLevelDependencies.length);
 
       // create links in transient dependencies
@@ -399,15 +395,22 @@ export default class PackageLinker {
     }
   }
 
-  determineTopLevelBinLinks(flatTree: HoistManifestTuples): Array<[string, Manifest]> {
+  determineTopLevelBinLinks(
+    flatTree: HoistManifestTuples,
+    workspaceLayout?: WorkspaceLayout,
+  ): Array<[string, Manifest]> {
     const linksToCreate = new Map();
     for (const [dest, {pkg, isDirectRequire}] of flatTree) {
       const {name} = pkg;
 
-      if (!linksToCreate.has(name) || isDirectRequire) {
+      if (
+        !(workspaceLayout && name === workspaceLayout.virtualManifestName) &&
+        (!linksToCreate.has(name) || isDirectRequire)
+      ) {
         linksToCreate.set(name, [dest, pkg]);
       }
     }
+
     return Array.from(linksToCreate.values());
   }
 
