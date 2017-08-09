@@ -87,7 +87,13 @@ export default class PackageLinker {
     // link up `bin scripts` in `dependencies`
     for (const pattern of ref.dependencies) {
       const dep = this.resolver.getStrictResolvedPattern(pattern);
-      if (dep.bin && Object.keys(dep.bin).length) {
+      if (
+        // Missing location means not installed inside node_modules
+        dep._reference &&
+        dep._reference.location &&
+        dep.bin &&
+        Object.keys(dep.bin).length
+      ) {
         deps.push({
           dep,
           loc: this.config.generateHardModulePath(dep._reference),
