@@ -369,10 +369,8 @@ export default class PackageLinker {
       await promise.queue(
         flatTree,
         async ([dest, {pkg}]) => {
-          if (pkg.name === workspaceLayout.virtualManifestName) {
-            const binLoc = path.join(dest, this.config.getFolder(pkg));
-            await this.linkBinDependencies(pkg, binLoc);
-          }
+          const binLoc = path.join(dest, this.config.getFolder(pkg));
+          await this.linkBinDependencies(pkg, binLoc);
           tickBin();
         },
         linkBinConcurrency,
