@@ -140,7 +140,6 @@ export default class PackageResolver {
       seen.add(info);
       deduped.push(pattern);
     }
-
     return deduped;
   }
 

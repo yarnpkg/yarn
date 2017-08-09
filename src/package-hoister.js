@@ -411,14 +411,13 @@ export default class PackageHoister {
    */
 
   hoist(info: HoistManifest) {
-    const {key, parts: rawParts} = info;
+    const {key: oldKey, parts: rawParts} = info;
 
     // remove this item from the `tree` map so we can ignore it
-    this.tree.delete(key);
+    this.tree.delete(oldKey);
 
-    const {parts, duplicate} = this.getNewParts(key, info, rawParts.slice());
+    const {parts, duplicate} = this.getNewParts(oldKey, info, rawParts.slice());
     const newKey = this.implodeKey(parts);
-    const oldKey = key;
     if (duplicate) {
       info.addHistory(`Satisfied from above by ${newKey}`);
       this.declareRename(info, rawParts, parts);
@@ -428,7 +427,7 @@ export default class PackageHoister {
     // update to the new key
     if (oldKey === newKey) {
       info.addHistory("Didn't hoist - conflicts above");
-      this.setKey(info, oldKey, parts);
+      this.setKey(info, oldKey, rawParts);
       return;
     }
 
@@ -513,7 +512,10 @@ export default class PackageHoister {
         occurences: new Set(),
         pattern,
       });
-      version.occurences.add(ancestry[ancestry.length - 1]);
+
+      if (ancestry.length) {
+        version.occurences.add(ancestry[ancestry.length - 1]);
+      }
 
       for (const depPattern of ref.dependencies) {
         add(depPattern, ancestry.concat(pkg));
