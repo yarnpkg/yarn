@@ -64,7 +64,7 @@ export default class InstallationIntegrityChecker {
   config: Config;
 
   /**
-   * Get the common ancestor of every node_modules - it might be a node_modules directory itself, but isn't required to.
+   * Get the common ancestor of every node_modules - it may be a node_modules directory itself, but isn't required to.
    */
 
   _getModulesRootFolder(): string {
@@ -131,7 +131,7 @@ export default class InstallationIntegrityChecker {
       }
     }
 
-    return locations;
+    return locations.sort(sortAlpha);
   }
 
   /**
@@ -141,10 +141,6 @@ export default class InstallationIntegrityChecker {
     const files = [];
 
     const recurse = async dir => {
-      if (!await fs.exists(dir)) {
-        return;
-      }
-
       for (const file of await fs.readdir(dir)) {
         const entry = path.join(dir, file);
         const stat = await fs.lstat(entry);
@@ -158,7 +154,9 @@ export default class InstallationIntegrityChecker {
     };
 
     for (const modulesFolder of this._getModulesFolders({workspaceLayout})) {
-      await recurse(modulesFolder);
+      if (await fs.exists(modulesFolder)) {
+        await recurse(modulesFolder);
+      }
     }
 
     return files;
@@ -185,21 +183,39 @@ export default class InstallationIntegrityChecker {
       artifacts,
     };
 
-    result.topLevelPatterns = patterns.sort(sortAlpha).filter(p => {
-      return !workspaceLayout || !workspaceLayout.getManifestByPattern(p);
-    });
+    result.topLevelPatterns = patterns;
 
     // If using workspaces, we also need to add the workspaces patterns to the top-level, so that we'll know if a
-    // dependency is added or removed into one of them. We must take care not to read the aggregator.
+    // dependency is added or removed into one of them. We must take care not to read the aggregator (if !loc).
+    //
+    // Also note that we can't use of workspaceLayout.workspaces[].manifest._reference.patterns, because when
+    // doing a "yarn check", the _reference property hasn't yet been properly initialized.
+
     if (workspaceLayout) {
+      result.topLevelPatterns = result.topLevelPatterns.filter(p => {
+        return !workspaceLayout.getManifestByPattern(p);
+      });
+
       for (const name of Object.keys(workspaceLayout.workspaces)) {
-        if (workspaceLayout.workspaces[name].loc) {
-          result.topLevelPatterns = result.topLevelPatterns.concat(
-            workspaceLayout.workspaces[name].manifest._reference.patterns,
-          );
+        if (!workspaceLayout.workspaces[name].loc) {
+          continue;
+        }
+
+        const manifest = workspaceLayout.workspaces[name].manifest;
+
+        for (const dependencyType of constants.DEPENDENCY_TYPES) {
+          if (!manifest[dependencyType]) {
+            continue;
+          }
+
+          for (const dep of Object.keys(manifest[dependencyType])) {
+            result.topLevelPatterns.push(`${dep}@${manifest[dependencyType][dep]}`);
+          }
         }
       }
     }
+
+    result.topLevelPatterns.sort(sortAlpha);
 
     if (flags.checkFiles) {
       result.flags.push('checkFiles');
