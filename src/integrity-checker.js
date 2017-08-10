@@ -300,18 +300,18 @@ export default class InstallationIntegrityChecker {
         return 'FILES_MISSING';
       }
 
-      // Since we know the "files" entry is sorted (alphabetically), we can optimize the thing
+      // Since we know the "files" array is sorted (alphabetically), we can optimize the thing
       // Instead of storing the files in a Set, we can just iterate both arrays at once. O(n)!
       for (let u = 0, v = 0; u < expected.files.length; ++u) {
-        // Number of iterations after which there won't be enough entries remaining for the arrays to match
-        const max = actual.files.length - expected.files.length;
+        // Index that, if reached, means that we won't have enough food to match the remaining expected entries anyway
+        const max = v + (actual.files.length - v) - (expected.files.length - u) + 1;
 
-        // Skip over files that have been added (not present in 'expected')
+        // Skip over files that have been added (ie not present in 'expected')
         while (v < max && actual.files[v] !== expected.files[u]) {
           v += 1;
         }
 
-        // If we've reached the end of the actual array, the file is missing
+        // If we've reached the index defined above, the file is either missing or we can early exit
         if (v === max) {
           return 'FILES_MISSING';
         }
