@@ -87,7 +87,13 @@ export default class PackageLinker {
     // link up `bin scripts` in `dependencies`
     for (const pattern of ref.dependencies) {
       const dep = this.resolver.getStrictResolvedPattern(pattern);
-      if (dep.bin && Object.keys(dep.bin).length) {
+      if (
+        // Missing location means not installed inside node_modules
+        dep._reference &&
+        dep._reference.location &&
+        dep.bin &&
+        Object.keys(dep.bin).length
+      ) {
         deps.push({
           dep,
           loc: this.config.generateHardModulePath(dep._reference),
@@ -126,13 +132,10 @@ export default class PackageLinker {
     }
   }
 
-  getFlatHoistedTree(
-    patterns: Array<string>,
-    {ignoreOptional}: {ignoreOptional: ?boolean} = {},
-  ): Promise<HoistManifestTuples> {
+  getFlatHoistedTree(patterns: Array<string>, {ignoreOptional}: {ignoreOptional: ?boolean} = {}): HoistManifestTuples {
     const hoister = new PackageHoister(this.config, this.resolver, {ignoreOptional});
     hoister.seed(patterns);
-    return Promise.resolve(hoister.init());
+    return hoister.init();
   }
 
   async copyModules(
@@ -140,8 +143,7 @@ export default class PackageLinker {
     workspaceLayout?: WorkspaceLayout,
     {linkDuplicates, ignoreOptional}: {linkDuplicates: ?boolean, ignoreOptional: ?boolean} = {},
   ): Promise<void> {
-    let flatTree = await this.getFlatHoistedTree(patterns, {ignoreOptional});
-
+    let flatTree = this.getFlatHoistedTree(patterns, {ignoreOptional});
     // sorted tree makes file creation and copying not to interfere with each other
     flatTree = flatTree.sort(function(dep1, dep2): number {
       return dep1[0].localeCompare(dep2[0]);
@@ -402,6 +404,7 @@ export default class PackageLinker {
         linksToCreate.set(name, [dest, pkg]);
       }
     }
+
     return Array.from(linksToCreate.values());
   }
 
