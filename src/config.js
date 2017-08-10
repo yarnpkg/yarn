@@ -276,9 +276,27 @@ export default class Config {
       networkConcurrency: this.networkConcurrency,
       networkTimeout: this.networkTimeout,
     });
-    this._cacheRootFolder = String(
-      opts.cacheFolder || this.getOption('cache-folder', true) || constants.MODULE_CACHE_DIRECTORY,
-    );
+
+    let cacheRootFolder = opts.cacheFolder || this.getOption('cache-folder', true);
+
+    for (let t = 0; t < constants.PREFERRED_MODULE_CACHE_DIRECTORIES.length && !cacheRootFolder; ++t) {
+      const tentativeCacheFolder = constants.PREFERRED_MODULE_CACHE_DIRECTORIES[t];
+
+      try {
+        await fs.mkdirp(tentativeCacheFolder);
+        await fs.writeFile(path.join(tentativeCacheFolder, constants.WTEST_FILENAME), `testing write access`);
+        cacheRootFolder = tentativeCacheFolder;
+      } catch (error) {
+        this.reporter.warn(this.reporter.lang('cacheFolderSkipped', tentativeCacheFolder));
+      }
+    }
+
+    if (!cacheRootFolder) {
+      throw new MessageError(this.reporter.lang('cacheFolderMissing'));
+    } else {
+      this._cacheRootFolder = String(cacheRootFolder);
+    }
+
     this.workspacesEnabled = Boolean(this.getOption('workspaces-experimental'));
 
     this.pruneOfflineMirror = Boolean(this.getOption('yarn-offline-mirror-pruning'));

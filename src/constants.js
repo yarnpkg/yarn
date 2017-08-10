@@ -46,15 +46,21 @@ function getDirectory(category: string): string {
   return path.join(userHome, `.${category}`, 'yarn');
 }
 
-function getCacheDirectory(): string {
-  if (process.platform === 'darwin') {
-    return path.join(userHome, 'Library', 'Caches', 'Yarn');
+function getPreferredCacheDirectories(): Array<string> {
+  const preferredCacheDirectories = [getDirectory('cache')];
+
+  if (process.platform !== 'win32') {
+    preferredCacheDirectories.unshift('/tmp/.yarn-cache');
   }
 
-  return getDirectory('cache');
+  if (process.platform === 'darwin') {
+    preferredCacheDirectories.unshift(path.join(userHome, 'Library', 'Caches', 'Yarn'));
+  }
+
+  return preferredCacheDirectories;
 }
 
-export const MODULE_CACHE_DIRECTORY = getCacheDirectory();
+export const PREFERRED_MODULE_CACHE_DIRECTORIES = getPreferredCacheDirectories();
 export const CONFIG_DIRECTORY = getDirectory('config');
 export const LINK_REGISTRY_DIRECTORY = path.join(CONFIG_DIRECTORY, 'link');
 export const GLOBAL_MODULE_DIRECTORY = path.join(CONFIG_DIRECTORY, 'global');
@@ -70,6 +76,7 @@ export const LOCKFILE_FILENAME = 'yarn.lock';
 export const METADATA_FILENAME = '.yarn-metadata.json';
 export const TARBALL_FILENAME = '.yarn-tarball.tgz';
 export const CLEAN_FILENAME = '.yarnclean';
+export const WTEST_FILENAME = 'yarn-wtest';
 
 export const DEFAULT_INDENT = '  ';
 export const SINGLE_INSTANCE_PORT = 31997;
