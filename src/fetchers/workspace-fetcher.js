@@ -9,7 +9,7 @@ export default class WorkspaceFetcher {
     this.config = config;
     this.dest = dest;
     this.registry = remote.registry;
-    this.workspaceDir = remote.reference || '.';
+    this.workspaceDir = remote.reference;
   }
 
   config: Config;

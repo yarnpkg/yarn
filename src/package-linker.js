@@ -362,7 +362,7 @@ export default class PackageLinker {
 
     // create binary links
     if (this.config.binLinks) {
-      const topLevelDependencies = this.determineTopLevelBinLinks(flatTree, workspaceLayout);
+      const topLevelDependencies = this.determineTopLevelBinLinks(flatTree);
       const tickBin = this.reporter.progress(flatTree.length + topLevelDependencies.length);
 
       // create links in transient dependencies
@@ -395,18 +395,12 @@ export default class PackageLinker {
     }
   }
 
-  determineTopLevelBinLinks(
-    flatTree: HoistManifestTuples,
-    workspaceLayout?: WorkspaceLayout,
-  ): Array<[string, Manifest]> {
+  determineTopLevelBinLinks(flatTree: HoistManifestTuples): Array<[string, Manifest]> {
     const linksToCreate = new Map();
     for (const [dest, {pkg, isDirectRequire}] of flatTree) {
       const {name} = pkg;
 
-      if (
-        !(workspaceLayout && name === workspaceLayout.virtualManifestName) &&
-        (!linksToCreate.has(name) || isDirectRequire)
-      ) {
+      if (!linksToCreate.has(name) || isDirectRequire) {
         linksToCreate.set(name, [dest, pkg]);
       }
     }

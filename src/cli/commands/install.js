@@ -275,7 +275,8 @@ export class Install {
       pushDeps('optionalDependencies', projectManifestJson, {hint: 'optional', optional: true}, true);
 
       if (this.config.workspacesEnabled) {
-        const workspaces = await this.config.resolveWorkspaces(path.dirname(loc), projectManifestJson);
+        const workspacesRoot = path.dirname(loc);
+        const workspaces = await this.config.resolveWorkspaces(workspacesRoot, projectManifestJson);
         workspaceLayout = new WorkspaceLayout(workspaces, this.config);
         // add virtual manifest that depends on all workspaces, this way package hoisters and resolvers will work fine
         const virtualDependencyManifest: Manifest = {
@@ -283,7 +284,7 @@ export class Install {
           name: `workspace-aggregator-${uuid.v4()}`,
           version: '1.0.0',
           _registry: 'npm',
-          _loc: '.',
+          _loc: workspacesRoot,
           dependencies: {},
         };
         workspaceLayout.virtualManifestName = virtualDependencyManifest.name;
@@ -293,7 +294,7 @@ export class Install {
         }
         const virtualDep = {};
         virtualDep[virtualDependencyManifest.name] = virtualDependencyManifest.version;
-        workspaces[virtualDependencyManifest.name] = {loc: '', manifest: virtualDependencyManifest};
+        workspaces[virtualDependencyManifest.name] = {loc: workspacesRoot, manifest: virtualDependencyManifest};
 
         pushDeps('workspaces', {workspaces: virtualDep}, {hint: 'workspaces', optional: false}, true);
       }
