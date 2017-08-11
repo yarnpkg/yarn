@@ -193,6 +193,7 @@ export default class InstallationIntegrityChecker {
 
     if (workspaceLayout) {
       result.topLevelPatterns = result.topLevelPatterns.filter(p => {
+        // $FlowFixMe
         return !workspaceLayout.getManifestByPattern(p);
       });
 
@@ -203,13 +204,17 @@ export default class InstallationIntegrityChecker {
 
         const manifest = workspaceLayout.workspaces[name].manifest;
 
-        for (const dependencyType of constants.DEPENDENCY_TYPES) {
-          if (!manifest[dependencyType]) {
-            continue;
-          }
+        if (manifest) {
+          for (const dependencyType of constants.DEPENDENCY_TYPES) {
+            const dependencies = manifest[dependencyType];
 
-          for (const dep of Object.keys(manifest[dependencyType])) {
-            result.topLevelPatterns.push(`${dep}@${manifest[dependencyType][dep]}`);
+            if (!dependencies) {
+              continue;
+            }
+
+            for (const dep of Object.keys(dependencies)) {
+              result.topLevelPatterns.push(`${dep}@${dependencies[dep]}`);
+            }
           }
         }
       }
