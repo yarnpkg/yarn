@@ -83,7 +83,5 @@ test('cache folder fallback', async () => {
 
   const options = {cwd};
 
-  await Promise.all([
-    execa(command, ['cache', 'dir'].concat(args), options),
-  ]);
+  await Promise.all([execa(command, ['cache', 'dir'].concat(args), options)]);
 });
