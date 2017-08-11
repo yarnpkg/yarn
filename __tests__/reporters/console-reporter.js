@@ -254,18 +254,10 @@ test('close', async () => {
       tick();
       jest.runAllTimers();
       tick();
-    }),
-  ).toMatchSnapshot();
 
-  expect(
-    await getConsoleBuff(r => {
       const activity = r.activity();
       activity.tick('foo');
-    }),
-  ).toMatchSnapshot();
 
-  expect(
-    await getConsoleBuff(r => {
       r.close();
       // .close() should stop all timers and activities
       jest.runAllTimers();
