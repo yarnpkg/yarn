@@ -1,6 +1,7 @@
 /* @flow */
 
 import type {
+  ReporterSetSpinner,
   ReporterSpinnerSet,
   Package,
   Trees,
@@ -37,12 +38,14 @@ export default class ConsoleReporter extends BaseReporter {
     super(opts);
 
     this._lastCategorySize = 0;
+    this._spinners = new Set();
     this.format = (chalk: any);
     this.isSilent = !!opts.isSilent;
   }
 
   _lastCategorySize: number;
   _progressBar: ?Progress;
+  _spinners: Set<Spinner>;
 
   _prependEmoji(msg: string, emoji: ?string): string {
     if (this.emoji && emoji && this.isTTY) {
@@ -65,6 +68,10 @@ export default class ConsoleReporter extends BaseReporter {
   }
 
   close() {
+    for (const spinner of this._spinners) {
+      spinner.stop();
+    }
+    this._spinners.clear();
     this.stopProgress();
     super.close();
   }
@@ -245,7 +252,8 @@ export default class ConsoleReporter extends BaseReporter {
       return super.activitySet(total, workers);
     }
 
-    const spinners = [];
+    const spinners: Array<ReporterSetSpinner> = [];
+    const reporterSpinners = this._spinners;
 
     for (let i = 1; i < workers; i++) {
       this.log('');
@@ -253,6 +261,7 @@ export default class ConsoleReporter extends BaseReporter {
 
     for (let i = 0; i < workers; i++) {
       const spinner = new Spinner(this.stderr, i);
+      reporterSpinners.add(spinner);
       spinner.start();
 
       let prefix: ?string = null;
@@ -287,6 +296,7 @@ export default class ConsoleReporter extends BaseReporter {
 
         end() {
           spinner.stop();
+          reporterSpinners.delete(spinner);
         },
       });
     }
@@ -309,9 +319,12 @@ export default class ConsoleReporter extends BaseReporter {
         end() {},
       };
     }
+    const reporterSpinners = this._spinners;
 
     const spinner = new Spinner(this.stderr);
     spinner.start();
+
+    reporterSpinners.add(spinner);
 
     return {
       tick(name: string) {
@@ -320,6 +333,7 @@ export default class ConsoleReporter extends BaseReporter {
 
       end() {
         spinner.stop();
+        reporterSpinners.delete(spinner);
       },
     };
   }
