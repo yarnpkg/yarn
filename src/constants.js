@@ -52,14 +52,11 @@ function getPreferredCacheDirectories(): Array<string> {
 
   if (process.platform === 'darwin') {
     preferredCacheDirectories.push(path.join(userHome, 'Library', 'Caches', 'Yarn'));
+  } else {
+    preferredCacheDirectories.push(getDirectory('cache'));
   }
 
-  preferredCacheDirectories.push(getDirectory('cache'));
-
-  if (process.platform !== 'win32') {
-    preferredCacheDirectories.push(path.join(os.tmpdir(), '.yarn-cache'));
-    preferredCacheDirectories.push('/tmp/.yarn-cache');
-  }
+  preferredCacheDirectories.push(path.join(os.tmpdir(), '.yarn-cache'));
 
   return preferredCacheDirectories;
 }
