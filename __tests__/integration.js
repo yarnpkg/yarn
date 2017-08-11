@@ -70,3 +70,20 @@ test('--mutex network', async () => {
     execa(command, ['add', 'foo'].concat(args), options),
   ]);
 });
+
+test('cache folder fallback', async () => {
+  const cwd = await makeTemp();
+  const cacheFolder = path.join(cwd, '.cache');
+
+  await fs.mkdirp(cacheFolder);
+  await fs.chmod(cacheFolder, 0o000);
+
+  const command = path.resolve(__dirname, '../bin/yarn');
+  const args = ['--preferred-cache-folder', cacheFolder];
+
+  const options = {cwd};
+
+  await Promise.all([
+    execa(command, ['cache', 'dir'].concat(args), options),
+  ]);
+});
