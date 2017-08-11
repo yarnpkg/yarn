@@ -110,6 +110,11 @@ export function main({
     command = commands.run;
   }
 
+  // we using "yarn <script> -abc" or "yarn run <script> -abc", we want -abc to be script options, not yarn options
+  if (command === commands.run) {
+    args.unshift('--');
+  }
+
   command.setFlags(commander);
   commander.parse([
     ...startArgs,
