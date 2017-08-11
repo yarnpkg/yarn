@@ -38,13 +38,7 @@ function execCommand(cwd: string, binPath: Array<string>, args: Array<string>): 
         if (error) {
           reject({error, stdout});
         } else {
-          const stdoutLines = stdout
-            .toString()
-            .split('\n')
-            .map((line: ?string) => line && line.trim())
-            .filter((line: ?string) => line);
-
-          resolve(stdoutLines);
+          resolve(stdout.toString().split('\n').map(line => line.trim()).filter(line => line));
         }
       },
     );

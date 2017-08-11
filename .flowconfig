@@ -12,7 +12,7 @@
 [libs]
 
 [lints]
-all=warn
+untyped-type-import=warn
 
 [options]
 suppress_comment= \\(.\\|\n\\)*\\$FlowFixMe
