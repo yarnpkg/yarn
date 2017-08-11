@@ -1,5 +1,6 @@
 /* @flow */
 
+const os = require('os');
 const path = require('path');
 const userHome = require('./util/user-home-dir').default;
 
@@ -47,14 +48,17 @@ function getDirectory(category: string): string {
 }
 
 function getPreferredCacheDirectories(): Array<string> {
-  const preferredCacheDirectories = [getDirectory('cache')];
-
-  if (process.platform !== 'win32') {
-    preferredCacheDirectories.unshift('/tmp/.yarn-cache');
-  }
+  const preferredCacheDirectories = [];
 
   if (process.platform === 'darwin') {
-    preferredCacheDirectories.unshift(path.join(userHome, 'Library', 'Caches', 'Yarn'));
+    preferredCacheDirectories.push(path.join(userHome, 'Library', 'Caches', 'Yarn'));
+  }
+
+  preferredCacheDirectories.push(getDirectory('cache'));
+
+  if (process.platform !== 'win32') {
+    preferredCacheDirectories.push(path.join(os.tmpdir(), '.yarn-cache'));
+    preferredCacheDirectories.push('/tmp/.yarn-cache');
   }
 
   return preferredCacheDirectories;
@@ -76,7 +80,7 @@ export const LOCKFILE_FILENAME = 'yarn.lock';
 export const METADATA_FILENAME = '.yarn-metadata.json';
 export const TARBALL_FILENAME = '.yarn-tarball.tgz';
 export const CLEAN_FILENAME = '.yarnclean';
-export const WTEST_FILENAME = 'yarn-wtest';
+export const ACCESS_FILENAME = '.yarn-access';
 
 export const DEFAULT_INDENT = '  ';
 export const SINGLE_INSTANCE_PORT = 31997;

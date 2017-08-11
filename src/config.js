@@ -279,15 +279,29 @@ export default class Config {
 
     let cacheRootFolder = opts.cacheFolder || this.getOption('cache-folder', true);
 
-    for (let t = 0; t < constants.PREFERRED_MODULE_CACHE_DIRECTORIES.length && !cacheRootFolder; ++t) {
-      const tentativeCacheFolder = constants.PREFERRED_MODULE_CACHE_DIRECTORIES[t];
+    if (!cacheRootFolder) {
+      let preferredCacheFolders = constants.PREFERRED_MODULE_CACHE_DIRECTORIES;
+      const preferredCacheFolder = opts.preferredCacheFolder || this.getOption('preferred-cache-folder', true);
 
-      try {
-        await fs.mkdirp(tentativeCacheFolder);
-        await fs.writeFile(path.join(tentativeCacheFolder, constants.WTEST_FILENAME), `testing write access`);
-        cacheRootFolder = tentativeCacheFolder;
-      } catch (error) {
-        this.reporter.warn(this.reporter.lang('cacheFolderSkipped', tentativeCacheFolder));
+      if (preferredCacheFolder) {
+        preferredCacheFolders = [preferredCacheFolder].concat(preferredCacheFolders);
+      }
+
+      for (let t = 0; t < preferredCacheFolders.length && !cacheRootFolder; ++t) {
+        const tentativeCacheFolder = preferredCacheFolders[t];
+
+        try {
+          await fs.mkdirp(tentativeCacheFolder);
+          // eslint-disable-next-line
+          await fs.access(tentativeCacheFolder, fs.constants.R_OK | fs.constants.W_OK | fs.constants.X_OK);
+          cacheRootFolder = tentativeCacheFolder;
+        } catch (error) {
+          this.reporter.warn(this.reporter.lang('cacheFolderSkipped', tentativeCacheFolder));
+        }
+
+        if (cacheRootFolder && t > 0) {
+          this.reporter.warn(this.reporter.lang('cacheFolderSelected', cacheRootFolder));
+        }
       }
     }
 

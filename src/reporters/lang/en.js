@@ -184,6 +184,7 @@ const messages = {
   cacheFolderSkipped: 'Skipping preferred cache folder $0 because it is not writable.',
   cacheFolderMissing:
     "Yarn hasn't been able to find a cache folder. Please use an explicit --cache-folder option to tell it what location to use, or make one of the preferred locations writable.",
+  cacheFolderSelected: 'Selected the next writable cache folder in the list, will be $0.',
 
   execMissingCommand: 'Missing command name.',
 
