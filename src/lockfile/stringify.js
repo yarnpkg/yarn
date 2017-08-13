@@ -24,7 +24,7 @@ function maybeWrap(str: string | boolean | number): string {
   }
 }
 
-const priorities: {[key: string]: ?number} = {
+const priorities: {[key: string]: number} = {
   name: 1,
   version: 2,
   uid: 3,
