@@ -17,7 +17,7 @@ export type Resolution = {
   globPattern: string,
 };
 
-export type ResolutionMap = {
+export type ResolutionInternalMap = {
   [packageName: string]: Array<Resolution>,
 };
 
@@ -25,14 +25,14 @@ export type ResolutionEntry = {
   [packageName: string]: string,
 };
 
-export default class Resolutions {
+export default class ResolutionMap {
   constructor(config: Config) {
     this.resolutionsByPackage = map();
     this.config = config;
     this.reporter = config.reporter;
   }
 
-  resolutionsByPackage: ResolutionMap;
+  resolutionsByPackage: ResolutionInternalMap;
   config: Config;
   reporter: Reporter;
 

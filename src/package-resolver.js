@@ -12,7 +12,7 @@ import BlockingQueue from './util/blocking-queue.js';
 import Lockfile from './lockfile/wrapper.js';
 import map from './util/map.js';
 import WorkspaceLayout from './workspace-layout.js';
-import Resolutions from './resolutions';
+import ResolutionMap from './resolution-map.js';
 
 const invariant = require('invariant');
 const semver = require('semver');
@@ -24,12 +24,12 @@ export type ResolverOptions = {|
 |};
 
 export default class PackageResolver {
-  constructor(config: Config, lockfile: Lockfile, resolutions: ?Resolutions) {
+  constructor(config: Config, lockfile: Lockfile, resolutionMap: ResolutionMap = new ResolutionMap(config)) {
     this.patternsByPackage = map();
     this.fetchingPatterns = map();
     this.fetchingQueue = new BlockingQueue('resolver fetching');
     this.patterns = map();
-    this.resolutions = resolutions || new Resolutions(config);
+    this.resolutionMap = resolutionMap;
     this.usedRegistries = new Set();
     this.flat = false;
 
@@ -46,7 +46,7 @@ export default class PackageResolver {
 
   workspaceLayout: ?WorkspaceLayout;
 
-  resolutions: Resolutions;
+  resolutionMap: ResolutionMap;
 
   // list of registries that have been used in this resolution
   usedRegistries: Set<RegistryNames>;
@@ -561,7 +561,7 @@ export default class PackageResolver {
       return req;
     }
 
-    const resolution = this.resolutions.find(pattern, parentNames);
+    const resolution = this.resolutionMap.find(pattern, parentNames);
 
     if (resolution) {
       const resolutionManifest = this.getStrictResolvedPattern(resolution);

@@ -26,7 +26,7 @@ import * as fs from '../../util/fs.js';
 import map from '../../util/map.js';
 import {version as YARN_VERSION, getInstallationMethod} from '../../util/yarn-version.js';
 import WorkspaceLayout from '../../workspace-layout.js';
-import Resolutions from '../../resolutions.js';
+import ResolutionMap from '../../resolution-map.js';
 
 const emoji = require('node-emoji');
 const invariant = require('invariant');
@@ -171,8 +171,8 @@ export class Install {
     this.config = config;
     this.flags = normalizeFlags(config, flags);
     this.resolutions = map(); // Legacy resolutions field used for flat install mode
-    this._resolutions = new Resolutions(config); // Selective resolutions for nested dependencies
-    this.resolver = new PackageResolver(config, lockfile, this._resolutions);
+    this.resolutionMap = new ResolutionMap(config); // Selective resolutions for nested dependencies
+    this.resolver = new PackageResolver(config, lockfile, this.resolutionMap);
     this.integrityChecker = new InstallationIntegrityChecker(config);
     this.linker = new PackageLinker(config, this.resolver);
     this.scripts = new PackageInstallScripts(config, this.resolver, this.flags.force);
@@ -190,7 +190,7 @@ export class Install {
   linker: PackageLinker;
   rootPatternsToOrigin: {[pattern: string]: string};
   integrityChecker: InstallationIntegrityChecker;
-  _resolutions: Resolutions;
+  resolutionMap: ResolutionMap;
 
   /**
    * Create a list of dependency requests from the current directories manifests.
@@ -237,9 +237,9 @@ export class Install {
       Object.assign(this.resolutions, projectManifestJson.resolutions);
       Object.assign(manifest, projectManifestJson);
 
-      this._resolutions.init(this.resolutions);
-      for (const packageName of Object.keys(this._resolutions.resolutionsByPackage)) {
-        for (const {pattern} of this._resolutions.resolutionsByPackage[packageName]) {
+      this.resolutionMap.init(this.resolutions);
+      for (const packageName of Object.keys(this.resolutionMap.resolutionsByPackage)) {
+        for (const {pattern} of this.resolutionMap.resolutionsByPackage[packageName]) {
           resolutionDeps = [...resolutionDeps, {registry, pattern, optional: false, hint: 'resolution'}];
         }
       }
