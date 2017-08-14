@@ -352,7 +352,7 @@ export class Install {
     if (!patterns.length && !match.integrityFileMissing) {
       this.reporter.success(this.reporter.lang('nothingToInstall'));
       await this.createEmptyManifestFolders();
-      await this.saveLockfileAndIntegrity(patterns);
+      await this.saveLockfileAndIntegrity(patterns, workspaceLayout);
       return true;
     }
 
@@ -675,7 +675,7 @@ export class Install {
       patterns,
       lockfileBasedOnResolver,
       this.flags,
-      this.resolver.usedRegistries,
+      workspaceLayout,
       this.scripts.getArtifacts(),
     );
 
