@@ -73,7 +73,7 @@ export default class InstallationIntegrityChecker {
     } else if (this.config.workspaceRootFolder) {
       return this.config.workspaceRootFolder;
     } else {
-      return path.join(this.config.lockfileFolder, 'node_modules');
+      return path.join(this.config.lockfileFolder, constants.NODE_MODULES_FOLDER);
     }
   }
 
@@ -87,7 +87,7 @@ export default class InstallationIntegrityChecker {
     } else if (this.config.enableMetaFolder) {
       return path.join(this.config.lockfileFolder, constants.META_FOLDER);
     } else {
-      return path.join(this.config.lockfileFolder, 'node_modules');
+      return path.join(this.config.lockfileFolder, constants.NODE_MODULES_FOLDER);
     }
   }
 
@@ -118,7 +118,7 @@ export default class InstallationIntegrityChecker {
     if (this.config.modulesFolder) {
       locations.push(this.config.modulesFolder);
     } else {
-      locations.push(path.join(this.config.lockfileFolder, 'node_modules'));
+      locations.push(path.join(this.config.lockfileFolder, constants.NODE_MODULES_FOLDER));
     }
 
     if (workspaceLayout) {
@@ -126,7 +126,7 @@ export default class InstallationIntegrityChecker {
         const loc = workspaceLayout.workspaces[workspaceName].loc;
 
         if (loc) {
-          locations.push(path.join(loc, 'node_modules'));
+          locations.push(path.join(loc, constants.NODE_MODULES_FOLDER));
         }
       }
     }
