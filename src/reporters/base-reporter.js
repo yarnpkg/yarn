@@ -195,7 +195,7 @@ export default class BaseReporter {
   success(message: string) {}
 
   // a simple log message
-  log(message: string) {}
+  log(message: string, {force = false}: {force?: boolean} = {}) {}
 
   // a shell command has been executed
   command(command: string) {}

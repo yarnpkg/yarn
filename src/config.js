@@ -288,7 +288,7 @@ export default class Config {
       }
 
       for (let t = 0; t < preferredCacheFolders.length && !cacheRootFolder; ++t) {
-        const tentativeCacheFolder = preferredCacheFolders[t];
+        const tentativeCacheFolder = String(preferredCacheFolders[t]);
 
         try {
           await fs.mkdirp(tentativeCacheFolder);

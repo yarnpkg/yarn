@@ -4,6 +4,8 @@
 import execa from 'execa';
 import makeTemp from './_temp.js';
 import * as fs from '../src/util/fs.js';
+import * as misc from '../src/util/misc.js';
+import * as constants from '../src/constants.js';
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 90000;
 
@@ -76,12 +78,37 @@ test('cache folder fallback', async () => {
   const cacheFolder = path.join(cwd, '.cache');
 
   await fs.mkdirp(cacheFolder);
-  await fs.chmod(cacheFolder, 0o000);
 
   const command = path.resolve(__dirname, '../bin/yarn');
   const args = ['--preferred-cache-folder', cacheFolder];
 
   const options = {cwd};
 
-  await Promise.all([execa(command, ['cache', 'dir'].concat(args), options)]);
+  {
+    const {stderr, stdout} = execa(command, ['cache', 'dir'].concat(args), options);
+
+    const stdoutPromise = misc.consumeStream(stdout);
+    const stderrPromise = misc.consumeStream(stderr);
+
+    const [stdoutOutput, stderrOutput] = await Promise.all([stdoutPromise, stderrPromise]);
+
+    expect(stdoutOutput.toString().trim()).toEqual(path.join(cacheFolder, `v${constants.CACHE_VERSION}`));
+    expect(stderrOutput.toString()).not.toMatch(/Skipping preferred cache folder/);
+  }
+
+  await fs.chmod(cacheFolder, 0o000);
+
+  {
+    const {stderr, stdout} = execa(command, ['cache', 'dir'].concat(args), options);
+
+    const stdoutPromise = misc.consumeStream(stdout);
+    const stderrPromise = misc.consumeStream(stderr);
+
+    const [stdoutOutput, stderrOutput] = await Promise.all([stdoutPromise, stderrPromise]);
+
+    expect(stdoutOutput.toString().trim()).toEqual(
+      path.join(constants.PREFERRED_MODULE_CACHE_DIRECTORIES[0], `v${constants.CACHE_VERSION}`),
+    );
+    expect(stderrOutput.toString()).toMatch(/Skipping preferred cache folder/);
+  }
 });
