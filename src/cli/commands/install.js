@@ -26,6 +26,7 @@ import * as fs from '../../util/fs.js';
 import map from '../../util/map.js';
 import {version as YARN_VERSION, getInstallationMethod} from '../../util/yarn-version.js';
 import WorkspaceLayout from '../../workspace-layout.js';
+import ResolutionMap from '../../resolution-map.js';
 
 const emoji = require('node-emoji');
 const invariant = require('invariant');
@@ -165,13 +166,13 @@ export class Install {
   constructor(flags: Object, config: Config, reporter: Reporter, lockfile: Lockfile) {
     this.rootManifestRegistries = [];
     this.rootPatternsToOrigin = map();
-    this.resolutions = map();
     this.lockfile = lockfile;
     this.reporter = reporter;
     this.config = config;
     this.flags = normalizeFlags(config, flags);
-
-    this.resolver = new PackageResolver(config, lockfile);
+    this.resolutions = map(); // Legacy resolutions field used for flat install mode
+    this.resolutionMap = new ResolutionMap(config); // Selective resolutions for nested dependencies
+    this.resolver = new PackageResolver(config, lockfile, this.resolutionMap);
     this.integrityChecker = new InstallationIntegrityChecker(config);
     this.linker = new PackageLinker(config, this.resolver);
     this.scripts = new PackageInstallScripts(config, this.resolver, this.flags.force);
@@ -189,6 +190,7 @@ export class Install {
   linker: PackageLinker;
   rootPatternsToOrigin: {[pattern: string]: string};
   integrityChecker: InstallationIntegrityChecker;
+  resolutionMap: ResolutionMap;
 
   /**
    * Create a list of dependency requests from the current directories manifests.
@@ -200,6 +202,7 @@ export class Install {
   ): Promise<InstallCwdRequest> {
     const patterns = [];
     const deps: DependencyRequestPatterns = [];
+    let resolutionDeps: DependencyRequestPatterns = [];
     const manifest = {};
 
     const ignorePatterns = [];
@@ -233,6 +236,13 @@ export class Install {
 
       Object.assign(this.resolutions, projectManifestJson.resolutions);
       Object.assign(manifest, projectManifestJson);
+
+      this.resolutionMap.init(this.resolutions);
+      for (const packageName of Object.keys(this.resolutionMap.resolutionsByPackage)) {
+        for (const {pattern} of this.resolutionMap.resolutionsByPackage[packageName]) {
+          resolutionDeps = [...resolutionDeps, {registry, pattern, optional: false, hint: 'resolution'}];
+        }
+      }
 
       const pushDeps = (depType, manifest: Object, {hint, optional}, isUsed) => {
         if (ignoreUnusedPatterns && !isUsed) {
@@ -308,7 +318,7 @@ export class Install {
     }
 
     return {
-      requests: deps,
+      requests: [...resolutionDeps, ...deps],
       patterns,
       manifest,
       usedPatterns,
