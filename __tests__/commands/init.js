@@ -35,6 +35,29 @@ test.concurrent('init --yes should create package.json with defaults', (): Promi
   );
 });
 
+test.concurrent('init --yes --private should create package.json with defaults and private true', (): Promise<void> => {
+  return buildRun(
+    ConsoleReporter,
+    fixturesLoc,
+    (args, flags, config, reporter, lockfile): Promise<void> => {
+      return runInit(config, reporter, flags, args);
+    },
+    [],
+    {yes: true, private: true},
+    'init-yes-private',
+    async (config): Promise<void> => {
+      const {cwd} = config;
+      const manifestFile = await fs.readFile(path.join(cwd, 'package.json'));
+      const manifest = JSON.parse(manifestFile);
+
+      // Name is derived from directory name which is dynamic so check
+      // that separately and then remove from snapshot
+      expect(manifest.name).toEqual(path.basename(cwd));
+      expect({...manifest, name: 'init-yes-private', private: true}).toMatchSnapshot('init-yes-private');
+    },
+  );
+});
+
 test.concurrent('init using Github shorthand should resolve to full repository URL', (): Promise<void> => {
   const questionMap = Object.freeze({
     name: 'hi-github',
@@ -44,6 +67,7 @@ test.concurrent('init using Github shorthand should resolve to full repository U
     'repository url': 'user/repo',
     author: '',
     license: '',
+    private: 'false',
   });
   class TestReporter extends ConsoleReporter {
     question(question: string, options?: QuestionOptions = {}): Promise<string> {

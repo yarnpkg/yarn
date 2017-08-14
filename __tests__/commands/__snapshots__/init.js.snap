@@ -5,6 +5,7 @@ Object {
   "license": "MIT",
   "main": "index.js",
   "name": "hi-github",
+  "private": false,
   "repository": "https://github.com/user/repo",
   "version": "1.0.0",
 }
@@ -15,6 +16,16 @@ Object {
   "license": "MIT",
   "main": "index.js",
   "name": "init-yes",
+  "version": "1.0.0",
+}
+`;
+
+exports[`init-yes-private 1`] = `
+Object {
+  "license": "MIT",
+  "main": "index.js",
+  "name": "init-yes-private",
+  "private": true,
   "version": "1.0.0",
 }
 `;
