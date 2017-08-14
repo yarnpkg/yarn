@@ -17,19 +17,19 @@
 
 ---
 
-**Fast:** Yarn caches every package it downloads so it never needs to download the same package again. It also parallelizes operations to maximize resource utilization so install times are faster than ever.
+**Fast:** Yarn caches every downloaded package, so it never needs to download the same package again. It also structures operations in a parallel format to maximize resource utilization, meaning install times become even faster.
 
-**Reliable:** Using a detailed, concise lockfile format and a deterministic algorithm for installs, Yarn is able to guarantee that an install that worked on one system will work exactly the same way on any other system.
+**Reliable:** Using a detailed, concise, lockfile format and a deterministic algorithm for installments, Yarn is able to guarantee that any install that works on one system will work exactly the same on another system.
 
 **Secure:** Yarn uses checksums to verify the integrity of every installed package before its code is executed.
 
 ## Features
 
-* **Offline Mode.** If you've installed a package before, you can install it again without any internet connection.
-* **Deterministic.** The same dependencies will be installed in the same exact way on any machine, regardless of install order.
-* **Network Performance.** Yarn efficiently queues up requests and avoids request waterfalls in order to maximize network utilization.
-* **Network Resilience.** A single request failing won't cause an install to fail. Requests are retried upon failure.
-* **Flat Mode.** Yarn resolves mismatched versions of dependencies to a single version to avoid creating duplicates.
+* **Offline Mode.** If you've installed a package before, then you can install it again without an internet connection.
+* **Deterministic.** The same dependencies will be installed in the same exact way on any machine, regardless of installation order.
+* **Network Performance.** Yarn efficiently queues requests and simultaneously avoids request waterfalls in order to maximize network utilization.
+* **Network Resilience.** A single request that fails will not cause the entire installation to fail. Requests are automatically re-tried upon failure.
+* **Flat Mode.** Yarn resolves mismatched versions of dependencies and uniformly switches to a single version to avoid duplicates.
 * **More emojis.** 🐈
 
 ## Installing Yarn
