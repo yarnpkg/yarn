@@ -291,10 +291,18 @@ export default class Config {
         const tentativeCacheFolder = String(preferredCacheFolders[t]);
 
         try {
+
           await fs.mkdirp(tentativeCacheFolder);
-          // eslint-disable-next-line
-          await fs.access(tentativeCacheFolder, fs.constants.R_OK | fs.constants.W_OK | fs.constants.X_OK);
+
+          const testFile = path.join(tentativeCacheFolder, 'testfile');
+
+          // fs.access is not enough, because the cache folder could actually be a file.
+          await fs.writeFile(testFile, 'content');
+          await fs.readFile(testFile);
+          await fs.unlink(testFile);
+
           cacheRootFolder = tentativeCacheFolder;
+
         } catch (error) {
           this.reporter.warn(this.reporter.lang('cacheFolderSkipped', tentativeCacheFolder));
         }

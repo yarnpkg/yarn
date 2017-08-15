@@ -77,38 +77,30 @@ test('cache folder fallback', async () => {
   const cwd = await makeTemp();
   const cacheFolder = path.join(cwd, '.cache');
 
-  await fs.mkdirp(cacheFolder);
-
   const command = path.resolve(__dirname, '../bin/yarn');
   const args = ['--preferred-cache-folder', cacheFolder];
 
   const options = {cwd};
 
-  {
+  function runCacheDir(): Promise<Array<Buffer>> {
     const {stderr, stdout} = execa(command, ['cache', 'dir'].concat(args), options);
 
     const stdoutPromise = misc.consumeStream(stdout);
     const stderrPromise = misc.consumeStream(stderr);
 
-    const [stdoutOutput, stderrOutput] = await Promise.all([stdoutPromise, stderrPromise]);
-
-    expect(stdoutOutput.toString().trim()).toEqual(path.join(cacheFolder, `v${constants.CACHE_VERSION}`));
-    expect(stderrOutput.toString()).not.toMatch(/Skipping preferred cache folder/);
+    return Promise.all([stdoutPromise, stderrPromise]);
   }
 
-  await fs.chmod(cacheFolder, 0o000);
+  const [stdoutOutput, stderrOutput] = await runCacheDir();
 
-  {
-    const {stderr, stdout} = execa(command, ['cache', 'dir'].concat(args), options);
+  expect(stdoutOutput.toString().trim()).toEqual(path.join(cacheFolder, `v${constants.CACHE_VERSION}`));
+  expect(stderrOutput.toString()).not.toMatch(/Skipping preferred cache folder/);
 
-    const stdoutPromise = misc.consumeStream(stdout);
-    const stderrPromise = misc.consumeStream(stderr);
+  await fs.unlink(cacheFolder);
+  await fs.writeFile(cacheFolder, `not a directory`);
 
-    const [stdoutOutput, stderrOutput] = await Promise.all([stdoutPromise, stderrPromise]);
+  const [stdoutOutput2, stderrOutput2] = await runCacheDir();
 
-    expect(stdoutOutput.toString().trim()).toEqual(
-      path.join(constants.PREFERRED_MODULE_CACHE_DIRECTORIES[0], `v${constants.CACHE_VERSION}`),
-    );
-    expect(stderrOutput.toString()).toMatch(/Skipping preferred cache folder/);
-  }
+  expect(stdoutOutput2.toString().trim()).toEqual(path.join(constants.PREFERRED_MODULE_CACHE_DIRECTORIES[0], `v${constants.CACHE_VERSION}`));
+  expect(stderrOutput2.toString()).toMatch(/Skipping preferred cache folder/);
 });

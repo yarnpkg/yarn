@@ -195,6 +195,7 @@ export default class BaseReporter {
   success(message: string) {}
 
   // a simple log message
+  // TODO: rethink the {force} parameter. In the meantime, please don't use it (cf comments in #4143).
   log(message: string, {force = false}: {force?: boolean} = {}) {}
 
   // a shell command has been executed
