@@ -63,7 +63,8 @@ const messages = {
 
   couldntFindPackagejson: "Couldn't find a package.json file in $0",
   couldntFindMatch: "Couldn't find match for $0 in $1 for $2.",
-  couldntFindPackageInCache: "Couldn't find any versions for $0 that matches $1 in our cache. Possible versions: $2",
+  couldntFindPackageInCache:
+    "Couldn't find any versions for $0 that matches $1 in our cache (possible versions are $2). This is usually caused by a missing entry in the lockfile, running Yarn without the --offline flag may help fix this issue.",
   couldntFindVersionThatMatchesRange: "Couldn't find any versions for $0 that matches $1",
   chooseVersionFromList: 'Please choose a version of $0 from this list:',
   moduleNotInManifest: "This module isn't specified in a manifest.",
