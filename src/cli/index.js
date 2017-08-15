@@ -64,6 +64,7 @@ export function main({
   commander.option('--mutex <type>[:specifier]', 'use a mutex to ensure only one yarn instance is executing');
   commander.option('--emoji [bool]', 'enable emoji in output', process.platform === 'darwin');
   commander.option('-s, --silent', 'skip Yarn console logs, other types of logs (script output) will be printed');
+  commander.option('--cwd <cwd>', 'working directory to use', process.cwd());
   commander.option('--proxy <host>', '');
   commander.option('--https-proxy <host>', '');
   commander.option('--no-progress', 'disable progress bar');
@@ -339,6 +340,7 @@ export function main({
       networkTimeout: commander.networkTimeout,
       nonInteractive: commander.nonInteractive,
       scriptsPrependNodePath: commander.scriptsPrependNodePath,
+      cwd: commander.cwd,
 
       commandName: commandName === 'run' ? commander.args[0] : commandName,
     })
