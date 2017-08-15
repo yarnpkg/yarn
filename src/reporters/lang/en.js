@@ -117,6 +117,8 @@ const messages = {
   multiplePackagesCantUnpackInSameDestination:
     'Pattern $0 is trying to unpack in the same destination $1 as pattern $2. This could result in a non deterministic behavior, skipping.',
   incorrectLockfileEntry: 'Lockfile has incorrect entry for $0. Ignoring it.',
+  cwdInYarnrcWarning:
+    'There was a --cwd flag in a .yarnrc file relative to this cwd. .yarnrc files relative to the --cwd have been ignored.',
 
   invalidResolutionName: 'Resolution field $0 does not end with a valid package name and will be ignored',
   invalidResolutionVersion: 'Resolution field $0 has an invalid version entry and may be ignored',

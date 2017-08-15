@@ -5,17 +5,15 @@ import parse from './lockfile/parse.js';
 import * as rcUtil from './util/rc.js';
 
 // Keys that will get resolved relative to the path of the rc file they belong to
-const PATH_KEYS = ['cache-folder', 'global-folder', 'modules-folder'];
+const PATH_KEYS = ['cache-folder', 'global-folder', 'modules-folder', 'cwd'];
 
-let rcConfCache;
-let rcArgsCache;
-
-const buildRcConf = () =>
-  rcUtil.findRc('yarn', (fileText, filePath) => {
+// given a cwd, load all .yarnrc files relative to it
+function getRcConfigForCwd(cwd: string): {[key: string]: string} {
+  return rcUtil.findRc('yarn', cwd, (fileText, filePath) => {
     const {object: values} = parse(fileText, 'yarnrc');
-    const keys = Object.keys(values);
 
-    for (const key of keys) {
+    // some keys reference directories so keep their relativity
+    for (const key in values) {
       for (const pathKey of PATH_KEYS) {
         if (key.replace(/^(--)?([^.]+\.)*/, '') === pathKey) {
           values[key] = resolve(dirname(filePath), values[key]);
@@ -25,57 +23,76 @@ const buildRcConf = () =>
 
     return values;
   });
-
-export function getRcConf(): {[string]: Array<string>} {
-  if (!rcConfCache) {
-    rcConfCache = buildRcConf();
-  }
-
-  return rcConfCache;
 }
 
-const buildRcArgs = () =>
-  Object.keys(getRcConf()).reduce((argLists, key) => {
-    const miniparse = key.match(/^--(?:([^.]+)\.)?(.*)$/);
+// get the built of arguments of a .yarnrc chain of the passed cwd
+function buildRcArgs(cwd: string): Map<string, Array<string>> {
+  const config = getRcConfigForCwd(cwd);
 
-    if (!miniparse) {
-      return argLists;
+  const argsForCommands: Map<string, Array<string>> = new Map();
+
+  for (const key in config) {
+    // args can be prefixed with the command name they're meant for, eg.
+    // `--install.check-files true`
+    const keyMatch = key.match(/^--(?:([^.]+)\.)?(.*)$/);
+    if (!keyMatch) {
+      continue;
     }
 
-    const namespace = miniparse[1] || '*';
-    const arg = miniparse[2];
-    const value = getRcConf()[key];
+    const commandName = keyMatch[1] || '*';
+    const arg = keyMatch[2];
+    const value = config[key];
 
-    if (!argLists[namespace]) {
-      argLists[namespace] = [];
-    }
+    // create args for this command name if we didn't previously have them
+    const args = argsForCommands.get(commandName) || [];
+    argsForCommands.set(commandName, args);
 
+    // turn config value into appropriate cli flag
     if (typeof value === 'string') {
-      argLists[namespace] = argLists[namespace].concat([`--${arg}`, value]);
+      args.push(`--${arg}`, value);
     } else if (value === true) {
-      argLists[namespace] = argLists[namespace].concat([`--${arg}`]);
+      args.push(`--${arg}`);
     } else if (value === false) {
-      argLists[namespace] = argLists[namespace].concat([`--no-${arg}`]);
+      args.push(`--no-${arg}`);
     }
-
-    return argLists;
-  }, {});
-
-export function getRcArgs(command: string): Array<string> {
-  if (!rcArgsCache) {
-    rcArgsCache = buildRcArgs();
   }
 
-  let result = rcArgsCache['*'] || [];
-
-  if (command !== '*' && Object.prototype.hasOwnProperty.call(rcArgsCache, command)) {
-    result = result.concat(rcArgsCache[command] || []);
-  }
-
-  return result;
+  return argsForCommands;
 }
 
-export function clearRcCache() {
-  rcConfCache = null;
-  rcArgsCache = null;
+// extract the value of a --cwd arg if present
+function extractCwdArg(args: Array<string>): ?string {
+  for (let i = args.length - 1; i >= 0; i--) {
+    const arg = args[i];
+    if (arg === '--cwd') {
+      return args[i + 1];
+    }
+  }
+  return null;
+}
+
+// get a list of arguments from .yarnrc that apply to this commandName
+export function getRcArgs(commandName: string, args: Array<string>, previousCwds?: Array<string> = []): Array<string> {
+  // for the cwd, use the --cwd arg if it was passed or else use process.cwd()
+  const origCwd = extractCwdArg(args) || process.cwd();
+
+  // get a map of command names and their arguments
+  const argMap = buildRcArgs(origCwd);
+
+  // concat wildcard arguments and arguments meant for this specific command
+  const newArgs = [].concat(argMap.get('*') || [], argMap.get(commandName) || []);
+
+  // check if the .yarnrc args specified a cwd
+  const newCwd = extractCwdArg(newArgs);
+  if (newCwd && newCwd !== origCwd) {
+    // ensure that we don't enter into a loop
+    if (previousCwds.includes(newCwd)) {
+      throw new Error(`Recursive .yarnrc files specifying --cwd flags. Bailing out.`);
+    }
+
+    //  if we have a new cwd then let's refetch the .yarnrc args relative to it
+    return getRcArgs(commandName, newArgs, previousCwds.concat(origCwd));
+  }
+
+  return newArgs;
 }

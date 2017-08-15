@@ -115,7 +115,7 @@ export function main({
     // we use this for https://github.com/tj/commander.js/issues/346, otherwise
     // it will strip some args that match with any options
     'this-arg-will-get-stripped-later',
-    ...getRcArgs(commandName),
+    ...getRcArgs(commandName, args),
     ...args,
   ]);
   commander.args = commander.args.concat(endArgs);
