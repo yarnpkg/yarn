@@ -359,6 +359,12 @@ export class Install {
       return true;
     }
 
+    if (match.integrityFileMissing && haveLockfile) {
+      // Integrity file missing, force script installations
+      this.scripts.setForce(true);
+      return false;
+    }
+
     if (!patterns.length && !match.integrityFileMissing) {
       this.reporter.success(this.reporter.lang('nothingToInstall'));
       await this.createEmptyManifestFolders();
