@@ -167,6 +167,8 @@ const messages = {
   createMissingPackage:
     'Package not found - this is probably an internal error, and should be reported at https://github.com/yarnpkg/yarn/issues.',
 
+  workspacesPreferDevDependencies:
+    "You're trying to add a regular dependency to a workspace root, which is probably a mistake (do you want to run this command inside a workspace?). If this dependency really should be in your workspace root, use the --dev flag to add it to your devDependencies.",
   workspacesRequirePrivateProjects: 'Workspaces can only be enabled in private projects',
   workspaceExperimentalDisabled:
     'The workspace feature is currently experimental and needs to be manually enabled - please add "workspaces-experimental true" to your .yarnrc file.',

@@ -42,6 +42,18 @@ const runAdd = buildRun.bind(
   },
 );
 
+test.concurrent('add without --dev should fail on the workspace root', async () => {
+  await runInstall({}, 'simple-worktree', async (config, reporter): Promise<void> => {
+    await expect(add(config, reporter, {}, ['left-pad'])).rejects.toBeDefined();
+  });
+});
+
+test.concurrent("add with --dev shouldn't fail on the workspace root", async () => {
+  await runInstall({}, 'simple-worktree', async (config, reporter): Promise<void> => {
+    await expect(add(config, reporter, {dev: true}, ['left-pad']));
+  });
+});
+
 test.concurrent('adds any new package to the current workspace, but install from the workspace', async () => {
   await runInstall({}, 'simple-worktree', async (config): Promise<void> => {
     const inOut = new stream.PassThrough();

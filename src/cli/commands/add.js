@@ -106,6 +106,12 @@ export class Add extends Install {
    */
 
   async init(): Promise<Array<string>> {
+    if (this.config.workspaceRootFolder && this.config.cwd === this.config.workspaceRootFolder) {
+      if (this.flagToOrigin === 'dependencies') {
+        throw new MessageError(this.reporter.lang('workspacesPreferDevDependencies'));
+      }
+    }
+
     this.addedPatterns = [];
     const patterns = await Install.prototype.init.call(this);
     await this.maybeOutputSaveTree(patterns);
