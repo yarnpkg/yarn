@@ -197,19 +197,19 @@ test.concurrent('install should write and read integrity file based on lockfile 
 
 test.concurrent('install should retain artifacts when missing integrity file', (): Promise<void> => {
   return runInstall({}, 'install-should-retain-artifacts-when-missing-integrity', async (config, reporter) => {
-      const expectedArtifacts = ['foo.txt'];
-      const integrityLoc = path.join(config.cwd, 'node_modules', constants.INTEGRITY_FILENAME);
+    const expectedArtifacts = ['foo.txt'];
+    const integrityLoc = path.join(config.cwd, 'node_modules', constants.INTEGRITY_FILENAME);
 
-      const beforeIntegrity = await fs.readJson(integrityLoc);
-      expect(beforeIntegrity.artifacts['a@0.0.0']).toEqual(expectedArtifacts);
+    const beforeIntegrity = await fs.readJson(integrityLoc);
+    expect(beforeIntegrity.artifacts['a@0.0.0']).toEqual(expectedArtifacts);
 
-      await fs.unlink(integrityLoc);
+    await fs.unlink(integrityLoc);
 
-      let reinstall = new Install({}, config, reporter, await Lockfile.fromDirectory(config.cwd));
-      await reinstall.init();
+    const reinstall = new Install({}, config, reporter, await Lockfile.fromDirectory(config.cwd));
+    await reinstall.init();
 
-      const afterIntegrity = await fs.readJson(integrityLoc);
-      expect(afterIntegrity.artifacts['a@0.0.0']).toEqual(expectedArtifacts);
+    const afterIntegrity = await fs.readJson(integrityLoc);
+    expect(afterIntegrity.artifacts['a@0.0.0']).toEqual(expectedArtifacts);
   });
 });
 
