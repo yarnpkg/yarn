@@ -86,7 +86,7 @@ export default class ResolutionMap {
     const {pattern, range} = resolutions.find(({globPattern}) => minimatch(modulePath, globPattern)) || {};
 
     if (pattern) {
-      if (semver.validRange(range) && semver.valid(reqRange) && !semver.satisfies(range, reqRange)) {
+      if (semver.validRange(reqRange) && semver.valid(range) && !semver.satisfies(range, reqRange)) {
         this.reporter.warn(this.reporter.lang('incompatibleResolutionVersion', pattern, reqPattern));
       }
     }
