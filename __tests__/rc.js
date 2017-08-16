@@ -7,7 +7,7 @@ const fixturesLoc = path.join(__dirname, 'fixtures', 'rc');
 
 test('resolve .yarnrc args and use --cwd if present', () => {
   const args = getRcArgs('install', ['--cwd', path.join(fixturesLoc, 'empty')]);
-  expect(args.includes('--foo')).toBe(true);
+  expect(args.indexOf('--foo') !== -1).toBe(true);
 });
 
 test('resolve .yarnrc args and use process.cwd() if no --cwd present', () => {
@@ -16,7 +16,7 @@ test('resolve .yarnrc args and use process.cwd() if no --cwd present', () => {
 
   try {
     const args = getRcArgs('install', []);
-    expect(args.includes('--foo')).toBe(true);
+    expect(args.indexOf('--foo') !== -1).toBe(true);
   } finally {
     process.chdir(cwd);
   }
@@ -24,7 +24,7 @@ test('resolve .yarnrc args and use process.cwd() if no --cwd present', () => {
 
 test('resolve .yarnrc args and handle --cwd arg inside .yarnrc', () => {
   const args = getRcArgs('install', ['--cwd', path.join(fixturesLoc, 'inside')]);
-  expect(args.includes('--foo')).toBe(true);
+  expect(args.indexOf('--foo') !== -1).toBe(true);
 });
 
 test('resolve .yarnrc args and bail out of recursive --cwd args inside of .yarnrc', () => {
@@ -35,6 +35,6 @@ test('resolve .yarnrc args and bail out of recursive --cwd args inside of .yarnr
 
 test('resolve .yarnrc args and adds command name prefixed arguments', () => {
   const args = getRcArgs('add', ['--cwd', path.join(fixturesLoc, 'prefixed')]);
-  expect(args.includes('--foo')).toBe(true);
-  expect(args.includes('--bar')).toBe(false);
+  expect(args.indexOf('--foo') !== -1).toBe(true);
+  expect(args.indexOf('--bar') !== -1).toBe(false);
 });

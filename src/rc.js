@@ -62,9 +62,11 @@ function buildRcArgs(cwd: string): Map<string, Array<string>> {
 
 // extract the value of a --cwd arg if present
 function extractCwdArg(args: Array<string>): ?string {
-  for (let i = args.length - 1; i >= 0; i--) {
+  for (let i = 0, I = args.length; i < I; ++i) {
     const arg = args[i];
-    if (arg === '--cwd') {
+    if (arg === '--') {
+      return null;
+    } else if (arg === '--cwd') {
       return args[i + 1];
     }
   }
@@ -86,7 +88,7 @@ export function getRcArgs(commandName: string, args: Array<string>, previousCwds
   const newCwd = extractCwdArg(newArgs);
   if (newCwd && newCwd !== origCwd) {
     // ensure that we don't enter into a loop
-    if (previousCwds.includes(newCwd)) {
+    if (previousCwds.indexOf(newCwd) !== -1) {
       throw new Error(`Recursive .yarnrc files specifying --cwd flags. Bailing out.`);
     }
 
