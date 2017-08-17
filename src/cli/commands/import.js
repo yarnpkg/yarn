@@ -177,7 +177,7 @@ class ImportPackageRequest extends PackageRequest {
   }
 
   getParentHumanName(): string {
-    return [this.getRootName()].concat(this.getParentNames()).join(' > ');
+    return [this.getRootName()].concat(this.parentNames).join(' > ');
   }
 
   reportResolvedRangeMatch(info: Manifest, resolved: Manifest) {

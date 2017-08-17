@@ -13,6 +13,15 @@ const globModule = require('glob');
 const os = require('os');
 const path = require('path');
 
+export const constants =
+  typeof fs.constants !== 'undefined'
+    ? fs.constants
+    : {
+        R_OK: fs.R_OK,
+        W_OK: fs.W_OK,
+        X_OK: fs.X_OK,
+      };
+
 export const lockQueue = new BlockingQueue('fs lock');
 
 export const readFileBuffer = promisify(fs.readFile);

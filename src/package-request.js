@@ -25,6 +25,7 @@ type ResolverRegistryNames = $Keys<typeof registryResolvers>;
 export default class PackageRequest {
   constructor(req: DependencyRequestPattern, resolver: PackageResolver) {
     this.parentRequest = req.parentRequest;
+    this.parentNames = [];
     this.lockfile = resolver.lockfile;
     this.registry = req.registry;
     this.reporter = resolver.reporter;
@@ -38,6 +39,7 @@ export default class PackageRequest {
   }
 
   parentRequest: ?PackageRequest;
+  parentNames: Array<string>;
   lockfile: Lockfile;
   reporter: Reporter;
   resolver: PackageResolver;
@@ -46,20 +48,6 @@ export default class PackageRequest {
   registry: ResolverRegistryNames;
   optional: boolean;
   foundInfo: ?Manifest;
-
-  getParentNames(): Array<string> {
-    const chain = [];
-
-    let request = this.parentRequest;
-    while (request) {
-      const info = this.resolver.getStrictResolvedPattern(request.pattern);
-      chain.unshift(info.name);
-
-      request = request.parentRequest;
-    }
-
-    return chain;
-  }
 
   getLocked(remoteType: string): ?Object {
     // always prioritise root lockfile
@@ -110,7 +98,6 @@ export default class PackageRequest {
       //   "foo": "http://foo.com/bar.tar.gz"
       // then we use the foo name
       data.name = name;
-
       return data;
     }
 
@@ -267,6 +254,7 @@ export default class PackageRequest {
       !info.fresh || frozen
         ? this.resolver.getExactVersionMatch(name, solvedRange, info)
         : this.resolver.getHighestRangeVersionMatch(name, solvedRange, info);
+
     if (resolved) {
       this.resolver.reportPackageWithExistingVersion(this, info);
       return;
@@ -290,11 +278,10 @@ export default class PackageRequest {
     ref.setFresh(fresh);
     info._reference = ref;
     info._remote = remote;
-
     // start installation of dependencies
     const promises = [];
     const deps = [];
-
+    const parentNames = [...this.parentNames, name];
     // normal deps
     for (const depName in info.dependencies) {
       const depPattern = depName + '@' + info.dependencies[depName];
@@ -306,6 +293,7 @@ export default class PackageRequest {
           // dependencies of optional dependencies should themselves be optional
           optional: this.optional,
           parentRequest: this,
+          parentNames,
         }),
       );
     }
@@ -320,6 +308,7 @@ export default class PackageRequest {
           registry: remote.registry,
           optional: true,
           parentRequest: this,
+          parentNames,
         }),
       );
     }
@@ -334,6 +323,7 @@ export default class PackageRequest {
             registry: remote.registry,
             optional: false,
             parentRequest: this,
+            parentNames,
           }),
         );
       }

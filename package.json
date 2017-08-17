@@ -76,6 +76,7 @@
     "gulp-util": "^3.0.7",
     "gulp-watch": "^4.3.5",
     "jest": "20.0.4",
+    "minimatch": "^3.0.4",
     "mock-stdin": "^0.3.0",
     "prettier": "^1.5.2",
     "temp": "^0.8.3",

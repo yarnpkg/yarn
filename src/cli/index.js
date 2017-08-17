@@ -60,10 +60,12 @@ export function main({
     '--modules-folder <path>',
     'rather than installing modules into the node_modules folder relative to the cwd, output them here',
   );
-  commander.option('--cache-folder <path>', 'specify a custom folder to store the yarn cache');
+  commander.option('--preferred-cache-folder <path>', 'specify a custom folder to store the yarn cache if possible');
+  commander.option('--cache-folder <path>', 'specify a custom folder that must be used to store the yarn cache');
   commander.option('--mutex <type>[:specifier]', 'use a mutex to ensure only one yarn instance is executing');
   commander.option('--emoji [bool]', 'enable emoji in output', process.platform === 'darwin');
   commander.option('-s, --silent', 'skip Yarn console logs, other types of logs (script output) will be printed');
+  commander.option('--cwd <cwd>', 'working directory to use', process.cwd());
   commander.option('--proxy <host>', '');
   commander.option('--https-proxy <host>', '');
   commander.option('--no-progress', 'disable progress bar');
@@ -114,7 +116,7 @@ export function main({
     // we use this for https://github.com/tj/commander.js/issues/346, otherwise
     // it will strip some args that match with any options
     'this-arg-will-get-stripped-later',
-    ...getRcArgs(commandName),
+    ...getRcArgs(commandName, args),
     ...args,
   ]);
   commander.args = commander.args.concat(endArgs);
@@ -324,6 +326,7 @@ export function main({
       binLinks: commander.binLinks,
       modulesFolder: commander.modulesFolder,
       globalFolder: commander.globalFolder,
+      preferredCacheFolder: commander.preferredCacheFolder,
       cacheFolder: commander.cacheFolder,
       preferOffline: commander.preferOffline,
       captureHar: commander.har,
@@ -339,6 +342,7 @@ export function main({
       networkTimeout: commander.networkTimeout,
       nonInteractive: commander.nonInteractive,
       scriptsPrependNodePath: commander.scriptsPrependNodePath,
+      cwd: commander.cwd,
 
       commandName: commandName === 'run' ? commander.args[0] : commandName,
     })
