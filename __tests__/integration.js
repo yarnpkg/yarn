@@ -73,6 +73,58 @@ test('--mutex network', async () => {
   ]);
 });
 
+// Windows doesn't have the "echo" utility
+// Since this feature isn't platform-specific, running them on OSX and Linux only should be fine
+if (process.platform !== 'win32') {
+  test('yarn run <script> --opt', async () => {
+    const cwd = await makeTemp();
+
+    await fs.writeFile(
+      path.join(cwd, 'package.json'),
+      JSON.stringify({
+        scripts: {echo: 'echo'},
+      }),
+    );
+
+    const command = path.resolve(__dirname, '../bin/yarn');
+    const options = {cwd, env: {YARN_SILENT: 1}};
+
+    const {stderr: stderr, stdout: stdout} = execa(command, ['run', 'echo', '--opt'], options);
+
+    const stdoutPromise = misc.consumeStream(stdout);
+    const stderrPromise = misc.consumeStream(stderr);
+
+    const [stdoutOutput, stderrOutput] = await Promise.all([stdoutPromise, stderrPromise]);
+
+    expect(stdoutOutput.toString().trim()).toEqual('--opt');
+    expect(stderrOutput.toString()).not.toMatch(/Using -- to pass arguments to your scripts isn't required anymore/);
+  });
+
+  test('yarn run <script> -- --opt', async () => {
+    const cwd = await makeTemp();
+
+    await fs.writeFile(
+      path.join(cwd, 'package.json'),
+      JSON.stringify({
+        scripts: {echo: 'echo'},
+      }),
+    );
+
+    const command = path.resolve(__dirname, '../bin/yarn');
+    const options = {cwd, env: {YARN_SILENT: 1}};
+
+    const {stderr: stderr, stdout: stdout} = execa(command, ['run', 'echo', '--', '--opt'], options);
+
+    const stdoutPromise = misc.consumeStream(stdout);
+    const stderrPromise = misc.consumeStream(stderr);
+
+    const [stdoutOutput, stderrOutput] = await Promise.all([stdoutPromise, stderrPromise]);
+
+    expect(stdoutOutput.toString().trim()).toEqual('--opt');
+    expect(stderrOutput.toString()).toMatch(/Using -- to pass arguments to your scripts isn't required anymore/);
+  });
+}
+
 test('cache folder fallback', async () => {
   const cwd = await makeTemp();
   const cacheFolder = path.join(cwd, '.cache');

@@ -188,7 +188,8 @@ const messages = {
 
   execMissingCommand: 'Missing command name.',
 
-  dashDashDeprecation: "Using -- to pass arguments to your scripts isn't required anymore. Doing this may cause issues in future versions.",
+  dashDashDeprecation:
+    "Using -- to pass arguments to your scripts isn't required anymore. Doing this may cause issues in future versions.",
   commandNotSpecified: 'No command specified.',
   binCommands: 'Commands available from binary scripts: ',
   possibleCommands: 'Project commands',
