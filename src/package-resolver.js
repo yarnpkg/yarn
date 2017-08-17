@@ -568,6 +568,7 @@ export default class PackageResolver {
       invariant(resolutionManifest._reference, 'resolutions should have a resolved reference');
 
       resolutionManifest._reference.patterns.push(pattern);
+      this.addPattern(pattern, resolutionManifest);
       this.lockfile.removePattern(pattern);
 
       return null;
