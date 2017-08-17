@@ -1,46 +1,17 @@
 /* @flow */
 
 import {readFileSync} from 'fs';
-import {basename, dirname, join} from 'path';
+import * as path from 'path';
 
 const etc = '/etc';
 const isWin = process.platform === 'win32';
 const home = isWin ? process.env.USERPROFILE : process.env.HOME;
 
-export function findRc(name: string, parser: Function): Object {
-  let configPaths = [];
+function getRcPaths(name: string, cwd: string): Array<string> {
+  const configPaths = [];
 
   function addConfigPath(...segments) {
-    configPaths.push(join(...segments));
-  }
-
-  function addRecursiveConfigPath(...segments) {
-    const queue = [];
-
-    let oldPath;
-    let path = join(...segments);
-
-    do {
-      queue.unshift(path);
-
-      oldPath = path;
-      path = join(dirname(dirname(path)), basename(path));
-    } while (path !== oldPath);
-
-    configPaths = configPaths.concat(queue);
-  }
-
-  function fetchConfigs(): Object {
-    return Object.assign(
-      {},
-      ...configPaths.map(path => {
-        try {
-          return parser(readFileSync(path).toString(), path);
-        } catch (error) {
-          return {};
-        }
-      }),
-    );
+    configPaths.push(path.join(...segments));
   }
 
   if (!isWin) {
@@ -55,7 +26,19 @@ export function findRc(name: string, parser: Function): Object {
     addConfigPath(home, `.${name}rc`);
   }
 
-  addRecursiveConfigPath(process.cwd(), `.${name}rc`);
+  // add .yarnrc locations relative to the cwd
+  while (true) {
+    configPaths.unshift(path.join(cwd, `.${name}rc`));
+
+    const upperCwd = path.dirname(cwd);
+    if (upperCwd === cwd) {
+      // we've reached the root
+      break;
+    } else {
+      // continue since there's still more directories to search
+      cwd = upperCwd;
+    }
+  }
 
   const envVariable = `${name}_config`.toUpperCase();
 
@@ -63,5 +46,22 @@ export function findRc(name: string, parser: Function): Object {
     addConfigPath(process.env[envVariable]);
   }
 
-  return fetchConfigs();
+  return configPaths;
+}
+
+function parseRcPaths(paths: Array<string>, parser: Function): Object {
+  return Object.assign(
+    {},
+    ...paths.map(path => {
+      try {
+        return parser(readFileSync(path).toString(), path);
+      } catch (error) {
+        return {};
+      }
+    }),
+  );
+}
+
+export function findRc(name: string, cwd: string, parser: Function): Object {
+  return parseRcPaths(getRcPaths(name, cwd), parser);
 }
