@@ -181,6 +181,11 @@ const messages = {
   workspaceNameMandatory: 'Missing name in workspace at $0, ignoring.',
   workspaceNameDuplicate: 'There are more than one workspace with name $0',
 
+  cacheFolderSkipped: 'Skipping preferred cache folder $0 because it is not writable.',
+  cacheFolderMissing:
+    "Yarn hasn't been able to find a cache folder it can use. Please use the explicit --cache-folder option to tell it what location to use, or make one of the preferred locations writable.",
+  cacheFolderSelected: 'Selected the next writable cache folder in the list, will be $0.',
+
   execMissingCommand: 'Missing command name.',
 
   commandNotSpecified: 'No command specified.',
