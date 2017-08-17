@@ -55,7 +55,7 @@ export const {run, setFlags, examples} = buildSubCommands('cache', {
   },
 
   dir(config: Config, reporter: Reporter) {
-    reporter.log(config.cacheFolder);
+    reporter.log(config.cacheFolder, {force: true});
   },
 
   async clean(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {

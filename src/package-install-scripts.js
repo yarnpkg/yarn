@@ -34,6 +34,10 @@ export default class PackageInstallScripts {
   force: boolean;
   artifacts: InstallArtifacts;
 
+  setForce(force: boolean) {
+    this.force = force;
+  }
+
   setArtifacts(artifacts: InstallArtifacts) {
     this.artifacts = artifacts;
   }

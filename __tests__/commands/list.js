@@ -1,5 +1,5 @@
 /* @flow */
-
+import path from 'path';
 import type {Tree} from '../../src/reporters/types.js';
 import {BufferReporter} from '../../src/reporters/index.js';
 import {run as buildRun} from './_helpers.js';
@@ -7,8 +7,6 @@ import {getParent, getReqDepth, run as list} from '../../src/cli/commands/list.j
 import * as reporters from '../../src/reporters/index.js';
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 90000;
-
-const path = require('path');
 
 function makeTree(name, {children = [], hint = null, color = null, depth = 0}: Object = {}): Tree {
   return {
@@ -52,6 +50,17 @@ test.concurrent('lists everything with no args', (): Promise<void> => {
 
     rprtr.tree('list', trees);
 
+    expect(tree).toEqual(rprtr.getBuffer());
+  });
+});
+
+test.concurrent('should not throw when list is called with resolutions field', (): Promise<void> => {
+  return runList([], {}, {source: '', cwd: 'resolutions'}, (config, reporter): ?Promise<void> => {
+    const rprtr = new BufferReporter({});
+    const tree = reporter.getBuffer().slice(-1);
+    const children = [{name: 'left-pad@^1.1.3', color: 'dim', shadow: true}];
+    const trees = [makeTree('depA@1.0.0', {children, color: 'bold'}), makeTree('left-pad@1.0.0')];
+    rprtr.tree('list', trees);
     expect(tree).toEqual(rprtr.getBuffer());
   });
 });

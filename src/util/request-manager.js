@@ -8,7 +8,6 @@ import * as network from './network.js';
 import map from '../util/map.js';
 
 import typeof * as RequestModuleT from 'request';
-import type RequestT from 'request';
 
 const RequestCaptureHar = require('request-capture-har');
 const invariant = require('invariant');
@@ -50,7 +49,7 @@ type RequestParams<T> = {
   headers?: {
     [name: string]: string,
   },
-  process?: (req: RequestT, resolve: (body: T) => void, reject: (err: Error) => void) => void,
+  process?: (req: Object, resolve: (body: T) => void, reject: (err: Error) => void) => void,
   callback?: (err: ?Error, res: any, body: any) => void,
   retryAttempts?: number,
   maxRetryAttempts?: number,

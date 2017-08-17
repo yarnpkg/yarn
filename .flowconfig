@@ -11,9 +11,13 @@
 
 [libs]
 
+[lints]
+untyped-type-import=warn
+
 [options]
 suppress_comment= \\(.\\|\n\\)*\\$FlowFixMe
 unsafe.enable_getters_and_setters=true
+include_warnings=true
 
 [version]
-^0.49.1
+^0.52.0

@@ -49,6 +49,12 @@ async function mockConstants(base: Config, mocks: Object, cb: (config: Config) =
 beforeEach(request.__resetAuthedRequests);
 afterEach(request.__resetAuthedRequests);
 
+test.concurrent('install should not hoist packages above their peer dependencies', async () => {
+  await runInstall({}, 'install-should-not-hoist-through-peer-deps', async (config): Promise<void> => {
+    expect(await fs.exists(`${config.cwd}/node_modules/a/node_modules/c`)).toEqual(true);
+  });
+});
+
 test.concurrent('install optional subdependencies by default', async () => {
   await runInstall({}, 'install-optional-dependencies', async (config): Promise<void> => {
     expect(await fs.exists(`${config.cwd}/node_modules/dep-b`)).toEqual(true);
@@ -385,7 +391,7 @@ test.concurrent('root install with optional deps', (): Promise<void> => {
 });
 
 test.concurrent('install file: protocol with relative paths', (): Promise<void> => {
-  return runInstall({noLockfile: true}, 'install-file-relative', async config => {
+  return runInstall({}, 'install-file-relative', async config => {
     expect(await fs.readFile(path.join(config.cwd, 'node_modules', 'root-a', 'index.js'))).toEqual('foobar;\n');
   });
 });
@@ -459,14 +465,27 @@ test.concurrent('install file: link file dependencies', async (): Promise<void> 
 });
 
 test.concurrent('install file: protocol', (): Promise<void> => {
-  return runInstall({noLockfile: true}, 'install-file', async config => {
+  return runInstall({lockfile: false}, 'install-file', async config => {
     expect(await fs.readFile(path.join(config.cwd, 'node_modules', 'foo', 'index.js'))).toEqual('foobar;\n');
   });
 });
 
 test.concurrent('install with file: protocol as default', (): Promise<void> => {
-  return runInstall({noLockfile: true}, 'install-file-as-default', async config => {
+  return runInstall({}, 'install-file-as-default', async config => {
     expect(await fs.readFile(path.join(config.cwd, 'node_modules', 'foo', 'index.js'))).toEqual('foobar;\n');
+  });
+});
+
+test.concurrent("don't install with file: protocol as default if target is a file", (): Promise<void> => {
+  // $FlowFixMe
+  return expect(runInstall({lockfile: false}, 'install-file-as-default-no-file')).rejects.toBeDefined();
+});
+
+test.concurrent("don't install with file: protocol as default if target is valid semver", (): Promise<void> => {
+  return runInstall({}, 'install-file-as-default-no-semver', async config => {
+    expect(await fs.readFile(path.join(config.cwd, 'node_modules', 'foo', 'package.json'))).toMatchSnapshot(
+      'install-file-as-default-no-semver',
+    );
   });
 });
 
@@ -491,8 +510,21 @@ test.concurrent('install file: dedupe dependencies 2', (): Promise<void> => {
   });
 });
 
+// When local packages are installed from a repo with a lockfile, the multiple packages
+// unpacking in the same location warning should not occur
+test.concurrent('install file: dedupe dependencies 3', (): Promise<void> => {
+  return runInstall({}, 'install-file-dedupe-dependencies-3', (config, reporter, install, getStdout) => {
+    const stdout = getStdout();
+    // Need to check if message is logged, but don't need to check for any specific parameters
+    // so splitting on undefined and testing if all message parts are in stdout
+    const messageParts = reporter.lang('multiplePackagesCantUnpackInSameDestination').split('undefined');
+    const warningMessage = messageParts.every(part => stdout.includes(part));
+    expect(warningMessage).toBe(false);
+  });
+});
+
 test.concurrent('install everything when flat is enabled', (): Promise<void> => {
-  return runInstall({noLockfile: true, flat: true}, 'install-file', async config => {
+  return runInstall({lockfile: false, flat: true}, 'install-file', async config => {
     expect(await fs.readFile(path.join(config.cwd, 'node_modules', 'foo', 'index.js'))).toEqual('foobar;\n');
   });
 });
@@ -574,7 +606,7 @@ test.concurrent('install should run install scripts in the order of dependencies
 });
 
 test.concurrent('install with comments in manifest', (): Promise<void> => {
-  return runInstall({noLockfile: true}, 'install-with-comments', async config => {
+  return runInstall({lockfile: false}, 'install-with-comments', async config => {
     expect(await fs.readFile(path.join(config.cwd, 'node_modules', 'foo', 'index.js'))).toEqual('foobar;\n');
   });
 });
@@ -746,7 +778,7 @@ test.concurrent('offline mirror can be disabled locally', (): Promise<void> => {
 
 // sync test because we need to get all the requests to confirm their validity
 test('install a scoped module from authed private registry', (): Promise<void> => {
-  return runInstall({noLockfile: true}, 'install-from-authed-private-registry', async config => {
+  return runInstall({}, 'install-from-authed-private-registry', async config => {
     const authedRequests = request.__getAuthedRequests();
 
     expect(authedRequests[0].url).toEqual('https://registry.yarnpkg.com/@types%2flodash');
@@ -761,7 +793,7 @@ test('install a scoped module from authed private registry', (): Promise<void> =
 });
 
 test('install a scoped module from authed private registry with a missing trailing slash', (): Promise<void> => {
-  return runInstall({noLockfile: true}, 'install-from-authed-private-registry-no-slash', async config => {
+  return runInstall({}, 'install-from-authed-private-registry-no-slash', async config => {
     const authedRequests = request.__getAuthedRequests();
 
     expect(authedRequests[0].url).toEqual('https://registry.yarnpkg.com/@types%2flodash');

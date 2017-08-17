@@ -244,3 +244,23 @@ test('Spinner', () => {
   spinner.stop();
   expect(data).toMatchSnapshot();
 });
+
+test('close', async () => {
+  jest.useFakeTimers();
+  expect(
+    await getConsoleBuff(r => {
+      r.noProgress = false; // we need this to override is-ci when running tests on ci
+      const tick = r.progress(2);
+      tick();
+      jest.runAllTimers();
+      tick();
+
+      const activity = r.activity();
+      activity.tick('foo');
+
+      r.close();
+      // .close() should stop all timers and activities
+      jest.runAllTimers();
+    }),
+  ).toMatchSnapshot();
+});

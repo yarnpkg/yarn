@@ -60,10 +60,12 @@ export function main({
     '--modules-folder <path>',
     'rather than installing modules into the node_modules folder relative to the cwd, output them here',
   );
-  commander.option('--cache-folder <path>', 'specify a custom folder to store the yarn cache');
+  commander.option('--preferred-cache-folder <path>', 'specify a custom folder to store the yarn cache if possible');
+  commander.option('--cache-folder <path>', 'specify a custom folder that must be used to store the yarn cache');
   commander.option('--mutex <type>[:specifier]', 'use a mutex to ensure only one yarn instance is executing');
   commander.option('--emoji [bool]', 'enable emoji in output', process.platform === 'darwin');
   commander.option('-s, --silent', 'skip Yarn console logs, other types of logs (script output) will be printed');
+  commander.option('--cwd <cwd>', 'working directory to use', process.cwd());
   commander.option('--proxy <host>', '');
   commander.option('--https-proxy <host>', '');
   commander.option('--no-progress', 'disable progress bar');
@@ -114,7 +116,7 @@ export function main({
     // we use this for https://github.com/tj/commander.js/issues/346, otherwise
     // it will strip some args that match with any options
     'this-arg-will-get-stripped-later',
-    ...getRcArgs(commandName),
+    ...getRcArgs(commandName, args),
     ...args,
   ]);
   commander.args = commander.args.concat(endArgs);
@@ -170,7 +172,6 @@ export function main({
   const run = (): Promise<void> => {
     invariant(command, 'missing command');
     return command.run(config, reporter, commander, commander.args).then(exitCode => {
-      reporter.close();
       if (outputWrapper) {
         reporter.footer(false);
       }
@@ -180,7 +181,7 @@ export function main({
 
   //
   const runEventuallyWithFile = (mutexFilename: ?string, isFirstTime?: boolean): Promise<void> => {
-    return new Promise(ok => {
+    return new Promise(resolve => {
       const lockFilename = mutexFilename || path.join(config.cwd, constants.SINGLE_INSTANCE_FILENAME);
       lockfile.lock(lockFilename, {realpath: false}, (err: mixed, release: () => void) => {
         if (err) {
@@ -188,13 +189,13 @@ export function main({
             reporter.warn(reporter.lang('waitingInstance'));
           }
           setTimeout(() => {
-            ok(runEventuallyWithFile(mutexFilename, false));
+            resolve(runEventuallyWithFile(mutexFilename, false));
           }, 200); // do not starve the CPU
         } else {
           onDeath(() => {
             process.exitCode = 1;
           });
-          ok(run().then(release));
+          resolve(run().then(release));
         }
       });
     });
@@ -202,11 +203,12 @@ export function main({
 
   //
   const runEventuallyWithNetwork = (mutexPort: ?string): Promise<void> => {
-    return new Promise(ok => {
+    return new Promise(resolve => {
       const connectionOptions = {
         port: +mutexPort || constants.SINGLE_INSTANCE_PORT,
       };
 
+      const clients = new Set();
       const server = net.createServer();
 
       server.on('error', () => {
@@ -223,21 +225,29 @@ export function main({
             // the `close` event gets always called after the `error` event
             if (!hadError) {
               process.nextTick(() => {
-                ok(runEventuallyWithNetwork(mutexPort));
+                resolve(runEventuallyWithNetwork(mutexPort));
               });
             }
           })
           .on('error', () => {
             // No server to listen to ? Let's retry to become the next server then.
             process.nextTick(() => {
-              ok(runEventuallyWithNetwork(mutexPort));
+              resolve(runEventuallyWithNetwork(mutexPort));
             });
           });
       });
 
-      const onServerEnd = (): Promise<void> => {
-        server.close();
-        return Promise.resolve();
+      const onServerEnd = async () => {
+        for (const client of clients) {
+          try {
+            client.destroy();
+          } catch (err) {
+            // pass
+          }
+        }
+
+        await server.close();
+        server.unref();
       };
 
       // open the server and continue only if succeed.
@@ -245,7 +255,13 @@ export function main({
         // ensure the server gets closed properly on SIGNALS.
         onDeath(onServerEnd);
 
-        ok(run().then(onServerEnd));
+        resolve(run().then(onServerEnd));
+      });
+
+      server.on('connection', function(socket) {
+        clients.add(socket);
+
+        socket.on('close', () => clients.delete(socket));
       });
     });
   };
@@ -310,6 +326,7 @@ export function main({
       binLinks: commander.binLinks,
       modulesFolder: commander.modulesFolder,
       globalFolder: commander.globalFolder,
+      preferredCacheFolder: commander.preferredCacheFolder,
       cacheFolder: commander.cacheFolder,
       preferOffline: commander.preferOffline,
       captureHar: commander.har,
@@ -325,6 +342,7 @@ export function main({
       networkTimeout: commander.networkTimeout,
       nonInteractive: commander.nonInteractive,
       scriptsPrependNodePath: commander.scriptsPrependNodePath,
+      cwd: commander.cwd,
 
       commandName: commandName === 'run' ? commander.args[0] : commandName,
     })
@@ -341,9 +359,16 @@ export function main({
 
       const mutex: mixed = commander.mutex;
       if (mutex && typeof mutex === 'string') {
-        const parts = mutex.split(':');
-        const mutexType = parts.shift();
-        const mutexSpecifier = parts.join(':');
+        const separatorLoc = mutex.indexOf(':');
+        let mutexType;
+        let mutexSpecifier;
+        if (separatorLoc === -1) {
+          mutexType = mutex;
+          mutexSpecifier = undefined;
+        } else {
+          mutexType = mutex.substring(0, separatorLoc);
+          mutexSpecifier = mutex.substring(separatorLoc + 1);
+        }
 
         if (mutexType === 'file') {
           return runEventuallyWithFile(mutexSpecifier, true).then(exit);
