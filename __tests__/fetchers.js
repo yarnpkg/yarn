@@ -76,6 +76,25 @@ test('GitFetcher.fetch', async () => {
   expect(name).toBe('beeper');
 });
 
+test('GitFetcher.getTarballMirrorPath without slashes in the repo path', async () => {
+  const dir = await mkdir('git-fetcher');
+  const config = await Config.create();
+  config.registries.yarn.config['yarn-offline-mirror'] = 'test';
+
+  const fetcher = new GitFetcher(
+    dir,
+    {
+      type: 'git',
+      reference: 'ssh://git@github.com:example-without-slash-repo.git',
+      hash: '8beb0413a8028ca2d52dbb86c75f42069535591b',
+      registry: 'npm',
+    },
+    config,
+  );
+  const cachePath = fetcher.getTarballMirrorPath();
+  expect(cachePath).toBe(path.join('test', 'example-without-slash-repo.git-8beb0413a8028ca2d52dbb86c75f42069535591b'));
+});
+
 test('GitFetcher.fetch with prepare script', async () => {
   const dir = await mkdir('git-fetcher-with-prepare');
   const fetcher = new GitFetcher(
