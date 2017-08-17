@@ -83,10 +83,12 @@ export function explodeEntry(pattern: string, obj: Object): LockManifest {
 }
 
 export default class Lockfile {
-  constructor(cache?: ?Object, source?: string, parseResult?: ParseResultType) {
+  constructor(
+    {cache, source, parseResultType}: {cache?: ?Object, source?: string, parseResultType?: ParseResultType} = {},
+  ) {
     this.source = source || '';
     this.cache = cache;
-    this.parseResult = parseResult;
+    this.parseResultType = parseResultType;
   }
 
   // source string if the `cache` was parsed
@@ -96,7 +98,7 @@ export default class Lockfile {
     [key: string]: LockManifest,
   };
 
-  parseResult: ?ParseResultType;
+  parseResultType: ?ParseResultType;
 
   static async fromDirectory(dir: string, reporter?: Reporter): Promise<Lockfile> {
     // read the manifest in this directory
@@ -125,7 +127,7 @@ export default class Lockfile {
       }
     }
 
-    return new Lockfile(lockfile, rawLockfile, parseResult && parseResult.type);
+    return new Lockfile({cache: lockfile, source: rawLockfile, parseResultType: parseResult && parseResult.type});
   }
 
   getLocked(pattern: string): ?LockManifest {

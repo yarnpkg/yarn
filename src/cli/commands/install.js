@@ -347,7 +347,7 @@ export class Install {
     if (!lockfileCache) {
       return false;
     }
-    const lockfileClean = this.lockfile.parseResult === 'success';
+    const lockfileClean = this.lockfile.parseResultType === 'success';
     const match = await this.integrityChecker.check(patterns, lockfileCache, this.flags, workspaceLayout);
     if (this.flags.frozenLockfile && (!lockfileClean || match.missingPatterns.length > 0)) {
       throw new MessageError(this.reporter.lang('frozenLockfileError'));
@@ -713,7 +713,7 @@ export class Install {
     // remove command is followed by install with force, lockfile will be rewritten in any case then
     if (
       !this.flags.force &&
-      this.lockfile.parseResult === 'success' &&
+      this.lockfile.parseResultType === 'success' &&
       lockFileHasAllPatterns &&
       lockfilePatternsMatch &&
       resolverPatternsAreSameAsInLockfile &&
