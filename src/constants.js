@@ -55,7 +55,9 @@ function getCacheDirectory(): string {
 }
 
 export const MODULE_CACHE_DIRECTORY = getCacheDirectory();
-export const CONFIG_DIRECTORY = getDirectory('config');
+export const CONFIG_DIRECTORY = process.env.XDG_CONFIG_HOME
+  ? path.join(process.env.XDG_CONFIG_HOME, 'yarn')
+  : getDirectory('config');
 export const LINK_REGISTRY_DIRECTORY = path.join(CONFIG_DIRECTORY, 'link');
 export const GLOBAL_MODULE_DIRECTORY = path.join(CONFIG_DIRECTORY, 'global');
 
