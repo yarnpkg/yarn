@@ -1,4 +1,6 @@
 /* @flow */
+jest.mock('../../src/constants');
+
 import path from 'path';
 import type {Tree} from '../../src/reporters/types.js';
 import {BufferReporter} from '../../src/reporters/index.js';
@@ -72,9 +74,9 @@ describe('list', () => {
       const rprtr = new BufferReporter({});
       const tree = reporter.getBuffer().slice(-1);
       const trees = [makeTree('is-plain-obj@1.1.0')];
-    
+
       rprtr.tree('list', trees);
-    
+
       expect(tree).toEqual(rprtr.getBuffer());
     });
   });
@@ -85,9 +87,9 @@ describe('list', () => {
       const tree = reporter.getBuffer().slice(-1);
       const children = [{name: 'left-pad@^1.1.3', color: 'dim', shadow: true}];
       const trees = [makeTree('depA@1.0.0', {children, color: 'bold'}), makeTree('left-pad@1.0.0')];
-    
+
       rprtr.tree('list', trees);
-    
+
       expect(tree).toEqual(rprtr.getBuffer());
     });
   });
@@ -97,9 +99,9 @@ describe('list', () => {
       const rprtr = new BufferReporter({});
       const tree = reporter.getBuffer().slice(-1);
       const trees = [makeTree('sort-keys@1.1.2', {color: 'bold'}), makeTree('is-plain-obj@1.1.0')];
-    
+
       rprtr.tree('list', trees);
-    
+
       expect(tree).toEqual(rprtr.getBuffer());
     });
   });
@@ -129,30 +131,17 @@ describe('list', () => {
   });
 
   test('lists all dependencies when not production', (): Promise<void> => {
-    const nodeEnv = process.env.NODE_ENV;
-    process.env.NODE_ENV = 'development';
     return runList([], {}, 'dev-deps-prod', (config, reporter): ?Promise<void> => {
-      const rprtr = new BufferReporter({});
-      const tree = reporter.getBuffer().slice(-1);
-
-      // # of devDeps + dependencies should equal 2
-      expect(tree[0].data.trees.length).toEqual(2);
       expect(reporter.getBuffer()).toMatchSnapshot();
-      process.env.NODE_ENV = nodeEnv;
     });
   });
 
   test('does not list devDependencies when production', (): Promise<void> => {
-    const nodeEnv = process.env.NODE_ENV;
-    process.env.NODE_ENV = 'production';
-    return runList([], {}, 'dev-deps-prod', (config, reporter): ?Promise<void> => {
-      const rprtr = new BufferReporter({});
-      const tree = reporter.getBuffer().slice(-1);
+    const isProduction: $FlowFixMe = require('../../src/constants').isProduction;
+    isProduction.mockReturnValue(true);
 
-      // # of dependencies should equal 1
-      expect(tree[0].data.trees.length).toEqual(1);
+    return runList([], {}, 'dev-deps-prod', (config, reporter): ?Promise<void> => {
       expect(reporter.getBuffer()).toMatchSnapshot();
-      process.env.NODE_ENV = nodeEnv;
     });
   });
 

@@ -85,7 +85,7 @@ export const SINGLE_INSTANCE_FILENAME = '.yarn-single-instance';
 
 export const ENV_PATH_KEY = getPathKey(process.platform, process.env);
 
-export function isProduction(env = process.env): boolean {
+export function isProduction(env: Object = process.env): boolean {
   return env.NODE_ENV === 'production';
 }
 
