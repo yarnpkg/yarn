@@ -848,6 +848,37 @@ test.concurrent('should only refer to root to satisfy peer dependency', (): Prom
   );
 });
 
+test.concurrent('should retain build artifacts after add when missing integrity file', (): Promise<void> => {
+  return buildRun(
+    reporters.BufferReporter,
+    fixturesLoc,
+    async (args, flags, config, reporter): Promise<void> => {
+      const lockfile = await createLockfile(config.cwd);
+
+      const addA = new Add(args, flags, config, reporter, lockfile);
+      await addA.init();
+
+      const expectedArtifacts = ['foo.txt'];
+      const integrityLoc = path.join(config.cwd, 'node_modules', constants.INTEGRITY_FILENAME);
+
+      const beforeIntegrity = await fs.readJson(integrityLoc);
+      expect(beforeIntegrity.artifacts['a@0.0.0']).toEqual(expectedArtifacts);
+
+      await fs.unlink(integrityLoc);
+
+      const lockfileAfterPreviousAdd = await Lockfile.fromDirectory(config.cwd);
+      const addB = new Add(['file:b'], flags, config, reporter, lockfileAfterPreviousAdd);
+      await addB.init();
+
+      const afterIntegrity = await fs.readJson(integrityLoc);
+      expect(afterIntegrity.artifacts['a@0.0.0']).toEqual(expectedArtifacts);
+    },
+    ['file:a'],
+    {},
+    'retain-build-artifacts-missing-integrity',
+  );
+});
+
 test.concurrent('should retain build artifacts after add', (): Promise<void> => {
   return buildRun(
     reporters.BufferReporter,
