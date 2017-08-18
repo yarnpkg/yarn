@@ -8,7 +8,7 @@ import {sortAlpha} from '../util/misc.js';
 import {normalizePattern} from '../util/normalize-pattern.js';
 import parse from './parse.js';
 import {LOCKFILE_FILENAME} from '../constants.js';
-import {exists, readFile} from '../util/fs.js';
+import fs from '../util/fs.js';
 
 const invariant = require('invariant');
 const path = require('path');
@@ -108,8 +108,8 @@ export default class Lockfile {
     let rawLockfile = '';
     let parseResult;
 
-    if (await exists(lockfileLoc)) {
-      rawLockfile = await readFile(lockfileLoc);
+    if (await fs.exists(lockfileLoc)) {
+      rawLockfile = await fs.readFile(lockfileLoc);
       parseResult = parse(rawLockfile, lockfileLoc);
 
       if (reporter) {
