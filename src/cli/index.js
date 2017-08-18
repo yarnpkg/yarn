@@ -7,7 +7,8 @@ import * as constants from '../constants.js';
 import * as network from '../util/network.js';
 import {MessageError} from '../errors.js';
 import Config from '../config.js';
-import {getRcArgs} from '../rc.js';
+import {getRcConfigForCwd, getRcArgs} from '../rc.js';
+import {spawnp, forkp} from '../util/child.js';
 import {version} from '../util/yarn-version.js';
 import handleSignals from '../util/signal-handler.js';
 
@@ -398,15 +399,33 @@ export function main({
     });
 }
 
-export default function start() {
-  // ignore all arguments after a --
-  const doubleDashIndex = process.argv.findIndex(element => element === '--');
-  const startArgs = process.argv.slice(0, 2);
-  const args = process.argv.slice(2, doubleDashIndex === -1 ? process.argv.length : doubleDashIndex);
-  const endArgs = doubleDashIndex === -1 ? [] : process.argv.slice(doubleDashIndex + 1, process.argv.length);
+export default (async function start(): Promise<void> {
+  const rc = getRcConfigForCwd(process.cwd());
+  const yarnPath = rc['yarn-path'];
 
-  main({startArgs, args, endArgs});
-}
+  if (yarnPath && process.env.YARN_IGNORE_PATH !== '1') {
+    const argv = process.argv.slice(2);
+    const opts = {stdio: 'inherit', env: Object.assign({}, process.env, {YARN_IGNORE_PATH: 1})};
+
+    try {
+      await spawnp(yarnPath, argv, opts);
+    } catch (firstError) {
+      try {
+        await forkp(yarnPath, argv, opts);
+      } catch (error) {
+        throw firstError;
+      }
+    }
+  } else {
+    // ignore all arguments after a --
+    const doubleDashIndex = process.argv.findIndex(element => element === '--');
+    const startArgs = process.argv.slice(0, 2);
+    const args = process.argv.slice(2, doubleDashIndex === -1 ? process.argv.length : doubleDashIndex);
+    const endArgs = doubleDashIndex === -1 ? [] : process.argv.slice(doubleDashIndex + 1, process.argv.length);
+
+    main({startArgs, args, endArgs});
+  }
+});
 
 // When this module is compiled via Webpack, its child
 // count will be 0 since it is a single-file bundle.

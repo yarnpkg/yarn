@@ -15,6 +15,34 @@ let uid = 0;
 
 export const exec = promisify(child.exec);
 
+export function forkp(program: string, args: Array<string>, opts?: Object): Promise<number> {
+  return new Promise((resolve, reject) => {
+    const proc = child.fork(program, args, opts);
+
+    proc.on('error', error => {
+      reject(error);
+    });
+
+    proc.on('close', exitCode => {
+      resolve(exitCode);
+    });
+  });
+}
+
+export function spawnp(program: string, args: Array<string>, opts?: Object): Promise<number> {
+  return new Promise((resolve, reject) => {
+    const proc = child.spawn(program, args, opts);
+
+    proc.on('error', error => {
+      reject(error);
+    });
+
+    proc.on('close', exitCode => {
+      resolve(exitCode);
+    });
+  });
+}
+
 const spawnedProcesses = {};
 
 export function forwardSignalToSpawnedProcesses(signal: string) {
