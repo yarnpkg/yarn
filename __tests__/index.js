@@ -41,7 +41,7 @@ async function execCommand(
       },
       (error, stdout) => {
         if (error) {
-          reject({error, stdout});
+          reject(Object.assign((new Error(error.message): any), {stdout}));
         } else {
           const stdoutLines = stdout
             .toString()
@@ -91,20 +91,20 @@ function expectHelpOutputAsSubcommand(stdout) {
   );
 }
 
-function expectAnErrorMessage(command: Promise<Array<?string>>, error: string): Promise<void> {
+function expectAnErrorMessage(command: Promise<Array<?string>>, expectedMessage: string): Promise<void> {
   return command
     .then(function() {
       throw new Error('the command did not fail');
     })
-    .catch(reason => expect(reason.error.message).toContain(error));
+    .catch(error => expect(error.message).toContain(expectedMessage));
 }
 
-function expectAnInfoMessageAfterError(command: Promise<Array<?string>>, info: string): Promise<void> {
+function expectAnInfoMessageAfterError(command: Promise<Array<?string>>, expectedInfo: string): Promise<void> {
   return command
     .then(function() {
       throw new Error('the command did not fail');
     })
-    .catch(reason => expect(reason.stdout).toContain(info));
+    .catch(error => expect(error.stdout).toContain(expectedInfo));
 }
 
 test.concurrent('should add package', async () => {
