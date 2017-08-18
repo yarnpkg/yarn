@@ -41,7 +41,7 @@ async function execCommand(
       },
       (error, stdout) => {
         if (error) {
-          reject(Object.assign(new Error(error.message), {stdout}));
+          reject(Object.assign((new Error(error.message): any), {stdout}));
         } else {
           const stdoutLines = stdout
             .toString()
