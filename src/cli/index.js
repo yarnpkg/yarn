@@ -114,7 +114,7 @@ export function main({
   // we using "yarn <script> -abc" or "yarn run <script> -abc", we want -abc to be script options, not yarn options
   if (command === commands.run) {
     if (endArgs.length === 0) {
-      endArgs = ['--', ...args.splice(1, args.length)];
+      endArgs = ['--', ...args.splice(1)];
     } else {
       warnAboutRunDashDash = true;
     }
@@ -418,7 +418,7 @@ export default function start() {
   const doubleDashIndex = process.argv.findIndex(element => element === '--');
   const startArgs = process.argv.slice(0, 2);
   const args = process.argv.slice(2, doubleDashIndex === -1 ? process.argv.length : doubleDashIndex);
-  const endArgs = doubleDashIndex === -1 ? [] : process.argv.slice(doubleDashIndex, process.argv.length);
+  const endArgs = doubleDashIndex === -1 ? [] : process.argv.slice(doubleDashIndex);
 
   main({startArgs, args, endArgs});
 }
