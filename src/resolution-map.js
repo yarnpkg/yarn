@@ -4,7 +4,7 @@ import minimatch from 'minimatch';
 import map from './util/map';
 import type Config from './config';
 import type {Reporter} from './reporters';
-import PackageRequest from './package-request';
+import {normalizePattern} from './util/normalize-pattern.js';
 import {getExoticResolver} from './resolvers';
 
 const DIRECTORY_SEPARATOR = '/';
@@ -75,7 +75,7 @@ export default class ResolutionMap {
   }
 
   find(reqPattern: string, parentNames: Array<string>): ?string {
-    const {name, range: reqRange} = PackageRequest.normalizePattern(reqPattern);
+    const {name, range: reqRange} = normalizePattern(reqPattern);
     const resolutions = this.resolutionsByPackage[name];
 
     if (!resolutions) {

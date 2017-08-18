@@ -6,7 +6,7 @@ import type {DependencyRequestPatterns, Manifest} from '../../types.js';
 import type Config from '../../config.js';
 import type {ListOptions} from './list.js';
 import Lockfile from '../../lockfile';
-import PackageRequest from '../../package-request.js';
+import {normalizePattern} from '../../util/normalize-pattern.js';
 import WorkspaceLayout from '../../workspace-layout.js';
 import {getExoticResolver} from '../../resolvers/index.js';
 import {buildTree} from './list.js';
@@ -60,7 +60,7 @@ export class Add extends Install {
    */
   getPatternVersion(pattern: string, pkg: Manifest): string {
     const {exact, tilde} = this.flags;
-    const {hasVersion, range} = PackageRequest.normalizePattern(pattern);
+    const {hasVersion, range} = normalizePattern(pattern);
     let version;
 
     if (getExoticResolver(pattern)) {
