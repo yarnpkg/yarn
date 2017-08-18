@@ -399,7 +399,7 @@ export function main({
     });
 }
 
-export default (async function start(): Promise<void> {
+async function start(): Promise<void> {
   const rc = getRcConfigForCwd(process.cwd());
   const yarnPath = rc['yarn-path'];
 
@@ -425,7 +425,7 @@ export default (async function start(): Promise<void> {
 
     main({startArgs, args, endArgs});
   }
-});
+}
 
 // When this module is compiled via Webpack, its child
 // count will be 0 since it is a single-file bundle.
@@ -434,3 +434,5 @@ export const autoRun = module.children.length === 0;
 if (require.main === module) {
   start();
 }
+
+export default start;
