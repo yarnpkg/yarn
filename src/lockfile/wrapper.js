@@ -3,6 +3,7 @@
 import type {Reporter} from '../reporters/index.js';
 import type {Manifest, PackageRemote} from '../types.js';
 import type {RegistryNames} from '../registries/index.js';
+import type {ParseResultType} from './parse.js';
 import {sortAlpha} from '../util/misc.js';
 import PackageRequest from '../package-request.js';
 import parse from './parse.js';
@@ -82,9 +83,12 @@ export function explodeEntry(pattern: string, obj: Object): LockManifest {
 }
 
 export default class Lockfile {
-  constructor(cache?: ?Object, source?: string) {
+  constructor(
+    {cache, source, parseResultType}: {cache?: ?Object, source?: string, parseResultType?: ParseResultType} = {},
+  ) {
     this.source = source || '';
     this.cache = cache;
+    this.parseResultType = parseResultType;
   }
 
   // source string if the `cache` was parsed
@@ -94,33 +98,36 @@ export default class Lockfile {
     [key: string]: LockManifest,
   };
 
+  parseResultType: ?ParseResultType;
+
   static async fromDirectory(dir: string, reporter?: Reporter): Promise<Lockfile> {
     // read the manifest in this directory
     const lockfileLoc = path.join(dir, constants.LOCKFILE_FILENAME);
 
     let lockfile;
     let rawLockfile = '';
+    let parseResult;
 
     if (await fs.exists(lockfileLoc)) {
       rawLockfile = await fs.readFile(lockfileLoc);
-      const lockResult = parse(rawLockfile, lockfileLoc);
+      parseResult = parse(rawLockfile, lockfileLoc);
 
       if (reporter) {
-        if (lockResult.type === 'merge') {
+        if (parseResult.type === 'merge') {
           reporter.info(reporter.lang('lockfileMerged'));
-        } else if (lockResult.type === 'conflict') {
+        } else if (parseResult.type === 'conflict') {
           reporter.warn(reporter.lang('lockfileConflict'));
         }
       }
 
-      lockfile = lockResult.object;
+      lockfile = parseResult.object;
     } else {
       if (reporter) {
         reporter.info(reporter.lang('noLockfileFound'));
       }
     }
 
-    return new Lockfile(lockfile, rawLockfile);
+    return new Lockfile({cache: lockfile, source: rawLockfile, parseResultType: parseResult && parseResult.type});
   }
 
   getLocked(pattern: string): ?LockManifest {

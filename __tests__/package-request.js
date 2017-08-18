@@ -8,7 +8,7 @@ import Config from '../src/config.js';
 
 async function prepareRequest(pattern, version, resolved): Object {
   const privateDepCache = {[pattern]: {version, resolved}};
-  const lockfile = new Lockfile(privateDepCache);
+  const lockfile = new Lockfile({cache: privateDepCache});
   const reporter = new reporters.NoopReporter({});
   const depRequestPattern = {
     pattern,

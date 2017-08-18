@@ -38,7 +38,7 @@ export async function createLockfile(dir: string): Promise<Lockfile> {
     lockfile = parse(rawLockfile).object;
   }
 
-  return new Lockfile(lockfile);
+  return new Lockfile({cache: lockfile, parseResultType: 'success'});
 }
 
 export function explodeLockfile(lockfile: string): Array<string> {

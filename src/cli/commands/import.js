@@ -302,6 +302,6 @@ export function hasWrapper(commander: Object, args: Array<string>): boolean {
 }
 
 export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
-  const imp = new Import(flags, config, reporter, new Lockfile({}));
+  const imp = new Import(flags, config, reporter, new Lockfile({cache: {}}));
   await imp.init();
 }
