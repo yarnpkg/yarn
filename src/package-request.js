@@ -347,9 +347,7 @@ export default class PackageRequest {
     // prevents us from having to query the metadata for all packages.
     if (filterByPatterns && filterByPatterns.length) {
       const filterByNames = filterByPatterns.map(pattern => normalizePattern(pattern).name);
-      depReqPatterns = depReqPatterns.filter(
-        dep => filterByNames.indexOf(normalizePattern(dep.pattern).name) >= 0,
-      );
+      depReqPatterns = depReqPatterns.filter(dep => filterByNames.indexOf(normalizePattern(dep.pattern).name) >= 0);
     }
 
     const deps = await Promise.all(
