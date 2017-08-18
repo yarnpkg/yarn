@@ -2,7 +2,6 @@
 
 import type Config from './config.js';
 import type {LockManifest} from './lockfile';
-import type {RegistryNames} from './registries/index.js';
 import * as constants from './constants.js';
 import * as fs from './util/fs.js';
 import {sortAlpha, compareSortedArrays} from './util/misc.js';
