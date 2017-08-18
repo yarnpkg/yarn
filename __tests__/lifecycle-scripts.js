@@ -137,6 +137,13 @@ test.concurrent('should run both prepublish and prepare when installing, but not
   expect(stdout).not.toMatch(/^running the prepublishOnly hook$/m);
 });
 
+test.concurrent('should run both prepack and postpack', async () => {
+  const stdout = await execCommand('pack', 'lifecycle-scripts');
+
+  expect(stdout).toMatch(/^running the prepack hook$/m);
+  expect(stdout).toMatch(/^running the postpack hook$/m);
+});
+
 test.concurrent('should allow setting environment variables via yarnrc', async () => {
   const stdout = await execCommand('install', 'yarnrc-env');
   expect(stdout).toMatch(/^BAR$/m);

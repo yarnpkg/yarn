@@ -298,7 +298,6 @@ export default class Config {
           // fs.access is not enough, because the cache folder could actually be a file.
           await fs.writeFile(testFile, 'content');
           await fs.readFile(testFile);
-          await fs.unlink(testFile);
 
           cacheRootFolder = tentativeCacheFolder;
         } catch (error) {
