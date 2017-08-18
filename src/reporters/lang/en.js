@@ -188,8 +188,7 @@ const messages = {
 
   execMissingCommand: 'Missing command name.',
 
-  dashDashDeprecation:
-    "Using -- to pass arguments to your scripts isn't required anymore. Doing this may cause issues in future versions.",
+  dashDashDeprecation: `From Yarn 1.0 onwards, scripts don't require "--" for options to be forwarded. In a future version, any explicit "--" will be forwarded as-is to the scripts.`,
   commandNotSpecified: 'No command specified.',
   binCommands: 'Commands available from binary scripts: ',
   possibleCommands: 'Project commands',

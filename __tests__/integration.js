@@ -97,7 +97,9 @@ if (process.platform !== 'win32') {
     const [stdoutOutput, stderrOutput] = await Promise.all([stdoutPromise, stderrPromise]);
 
     expect(stdoutOutput.toString().trim()).toEqual('--opt');
-    expect(stderrOutput.toString()).not.toMatch(/Using -- to pass arguments to your scripts isn't required anymore/);
+    expect(stderrOutput.toString()).not.toMatch(
+      /From Yarn 1\.0 onwards, scripts don't require "--" for options to be forwarded/,
+    );
   });
 
   test('yarn run <script> -- --opt', async () => {
@@ -121,7 +123,9 @@ if (process.platform !== 'win32') {
     const [stdoutOutput, stderrOutput] = await Promise.all([stdoutPromise, stderrPromise]);
 
     expect(stdoutOutput.toString().trim()).toEqual('--opt');
-    expect(stderrOutput.toString()).toMatch(/Using -- to pass arguments to your scripts isn't required anymore/);
+    expect(stderrOutput.toString()).toMatch(
+      /From Yarn 1\.0 onwards, scripts don't require "--" for options to be forwarded/,
+    );
   });
 }
 
