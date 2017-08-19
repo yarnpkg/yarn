@@ -6,22 +6,22 @@ import type {ReporterSelectOption} from '../../reporters/types.js';
 import type {Manifest, DependencyRequestPatterns} from '../../types.js';
 import type Config from '../../config.js';
 import type {RegistryNames} from '../../registries/index.js';
-import type {LockfileObject} from '../../lockfile/wrapper.js';
+import type {LockfileObject} from '../../lockfile';
 import normalizeManifest from '../../util/normalize-manifest/index.js';
 import {MessageError} from '../../errors.js';
 import InstallationIntegrityChecker from '../../integrity-checker.js';
-import Lockfile from '../../lockfile/wrapper.js';
-import lockStringify from '../../lockfile/stringify.js';
+import Lockfile from '../../lockfile';
+import {stringify as lockStringify} from '../../lockfile';
 import * as fetcher from '../../package-fetcher.js';
 import PackageInstallScripts from '../../package-install-scripts.js';
 import * as compatibility from '../../package-compatibility.js';
 import PackageResolver from '../../package-resolver.js';
 import PackageLinker from '../../package-linker.js';
-import PackageRequest from '../../package-request.js';
 import {registries} from '../../registries/index.js';
 import {getExoticResolver} from '../../resolvers/index.js';
 import {clean} from './clean.js';
 import * as constants from '../../constants.js';
+import {normalizePattern} from '../../util/normalize-pattern.js';
 import * as fs from '../../util/fs.js';
 import map from '../../util/map.js';
 import {version as YARN_VERSION, getInstallationMethod} from '../../util/yarn-version.js';
@@ -218,7 +218,7 @@ export class Install {
       }
 
       // extract the name
-      const parts = PackageRequest.normalizePattern(pattern);
+      const parts = normalizePattern(pattern);
       excludeNames.push(parts.name);
     }
 

@@ -4,7 +4,7 @@ import type {Dependency} from '../../types.js';
 import type {Reporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
 import inquirer from 'inquirer';
-import Lockfile from '../../lockfile/wrapper.js';
+import Lockfile from '../../lockfile';
 import {Add} from './add.js';
 import {getOutdated} from './upgrade.js';
 

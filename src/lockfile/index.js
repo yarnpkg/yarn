@@ -5,9 +5,9 @@ import type {Manifest, PackageRemote} from '../types.js';
 import type {RegistryNames} from '../registries/index.js';
 import type {ParseResultType} from './parse.js';
 import {sortAlpha} from '../util/misc.js';
-import PackageRequest from '../package-request.js';
+import {normalizePattern} from '../util/normalize-pattern.js';
 import parse from './parse.js';
-import * as constants from '../constants.js';
+import {LOCKFILE_FILENAME} from '../constants.js';
 import * as fs from '../util/fs.js';
 
 const invariant = require('invariant');
@@ -47,7 +47,7 @@ export type LockfileObject = {
 };
 
 function getName(pattern: string): string {
-  return PackageRequest.normalizePattern(pattern).name;
+  return normalizePattern(pattern).name;
 }
 
 function blankObjectUndefined(obj: ?Object): ?Object {
@@ -102,7 +102,7 @@ export default class Lockfile {
 
   static async fromDirectory(dir: string, reporter?: Reporter): Promise<Lockfile> {
     // read the manifest in this directory
-    const lockfileLoc = path.join(dir, constants.LOCKFILE_FILENAME);
+    const lockfileLoc = path.join(dir, LOCKFILE_FILENAME);
 
     let lockfile;
     let rawLockfile = '';

@@ -7,9 +7,10 @@ import type {Reporter} from './reporters/index.js';
 import {getExoticResolver} from './resolvers/index.js';
 import type Config from './config.js';
 import PackageRequest from './package-request.js';
+import {normalizePattern} from './util/normalize-pattern.js';
 import RequestManager from './util/request-manager.js';
 import BlockingQueue from './util/blocking-queue.js';
-import Lockfile from './lockfile/wrapper.js';
+import Lockfile from './lockfile';
 import map from './util/map.js';
 import WorkspaceLayout from './workspace-layout.js';
 import ResolutionMap from './resolution-map.js';
@@ -492,7 +493,7 @@ export default class PackageResolver {
     let fresh = false;
 
     if (lockfileEntry) {
-      const {range, hasVersion} = PackageRequest.normalizePattern(req.pattern);
+      const {range, hasVersion} = normalizePattern(req.pattern);
 
       if (this.isLockfileEntryOutdated(lockfileEntry.version, range, hasVersion)) {
         this.reporter.warn(this.reporter.lang('incorrectLockfileEntry', req.pattern));

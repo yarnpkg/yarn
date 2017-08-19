@@ -16,7 +16,10 @@ const babelRc = JSON.parse(fs.readFileSync(path.join(basedir, '.babelrc'), 'utf8
 
 const compiler = webpack({
   // devtool: 'inline-source-map',
-  entry: path.join(basedir, 'src/cli/index.js'),
+  entry: {
+    [`artifacts/yarn-${version}.js`]: path.join(basedir, 'src/cli/index.js'),
+    'packages/lockfile/index.js': path.join(basedir, 'src/lockfile/index.js'),
+  },
   module: {
     loaders: [
       {
@@ -33,8 +36,8 @@ const compiler = webpack({
     }),
   ],
   output: {
-    filename: `yarn-${version}.js`,
-    path: path.join(basedir, 'artifacts'),
+    filename: `[name]`,
+    path: basedir,
     libraryTarget: 'commonjs2',
   },
   target: 'node',

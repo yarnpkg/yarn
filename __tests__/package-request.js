@@ -3,7 +3,7 @@
 import PackageRequest from '../src/package-request.js';
 import * as reporters from '../src/reporters/index.js';
 import PackageResolver from '../src/package-resolver.js';
-import Lockfile from '../src/lockfile/wrapper.js';
+import Lockfile from '../src/lockfile';
 import Config from '../src/config.js';
 
 async function prepareRequest(pattern, version, resolved): Object {

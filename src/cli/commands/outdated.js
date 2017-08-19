@@ -3,7 +3,7 @@
 import type {Reporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
 import PackageRequest from '../../package-request.js';
-import Lockfile from '../../lockfile/wrapper.js';
+import Lockfile from '../../lockfile';
 import {Install} from './install.js';
 
 export const requireLockfile = true;

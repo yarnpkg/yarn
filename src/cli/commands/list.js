@@ -6,7 +6,8 @@ import type PackageResolver from '../../package-resolver.js';
 import type PackageLinker from '../../package-linker.js';
 import type {Tree, Trees} from '../../reporters/types.js';
 import {Install} from './install.js';
-import Lockfile from '../../lockfile/wrapper.js';
+
+import Lockfile from '../../lockfile';
 import {isProduction} from '../../constants';
 
 const invariant = require('invariant');
