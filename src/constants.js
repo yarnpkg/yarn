@@ -105,3 +105,17 @@ export function getPathKey(platform: string, env: Env): string {
 
   return pathKey;
 }
+
+export const VERSION_COLOR_SCHEME: {[key: string]: VersionColor} = {
+  major: 'red',
+  premajor: 'red',
+  minor: 'yellow',
+  preminor: 'yellow',
+  patch: 'green',
+  prepatch: 'green',
+  prerelease: 'red',
+  unchanged: 'white',
+  unknown: 'red',
+};
+
+export type VersionColor = 'red' | 'yellow' | 'green' | 'white';

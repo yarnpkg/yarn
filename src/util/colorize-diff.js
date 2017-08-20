@@ -1,6 +1,6 @@
 /* @flow */
 
-import type {Reporter} from '../../reporters/index.js';
+import type {Reporter} from '../reporters/index.js';
 
 export default function(from: string, to: string, reporter: Reporter): string {
   const parts = to.split('.');

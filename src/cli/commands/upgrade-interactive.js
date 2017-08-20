@@ -7,8 +7,8 @@ import inquirer from 'inquirer';
 import Lockfile from '../../lockfile';
 import {Add} from './add.js';
 import {getOutdated} from './upgrade.js';
-import colorKeyFromVersions from './_color-key-for-versions.js';
-import colorizeDiff from './_colorize-diff.js';
+import colorForVersions from '../../util/color-for-versions';
+import colorizeDiff from '../../util/colorize-diff.js';
 
 export const requireLockfile = true;
 
@@ -59,7 +59,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
   const headerPadding = (header, key) =>
     `${reporter.format.bold.underline(header)}${' '.repeat(maxLengthArr[key] - header.length)}`;
 
-  const colorizeName = (from, to) => reporter.format[colorKeyFromVersions(from, to)];
+  const colorizeName = (from, to) => reporter.format[colorForVersions(from, to)];
 
   const getNameFromHint = hint => (hint ? `${hint}Dependencies` : 'dependencies');
 
