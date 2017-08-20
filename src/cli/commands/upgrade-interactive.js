@@ -7,6 +7,8 @@ import inquirer from 'inquirer';
 import Lockfile from '../../lockfile';
 import {Add} from './add.js';
 import {getOutdated} from './upgrade.js';
+import colorForVersions from '../../util/color-for-versions';
+import colorizeDiff from '../../util/colorize-diff.js';
 
 export const requireLockfile = true;
 
@@ -57,26 +59,15 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
   const headerPadding = (header, key) =>
     `${reporter.format.bold.underline(header)}${' '.repeat(maxLengthArr[key] - header.length)}`;
 
-  const colorizeName = ({current, wanted}) => (current === wanted ? reporter.format.yellow : reporter.format.red);
+  const colorizeName = (from, to) => reporter.format[colorForVersions(from, to)];
 
   const getNameFromHint = hint => (hint ? `${hint}Dependencies` : 'dependencies');
 
-  const colorizeDiff = (from, to) => {
-    const parts = to.split('.');
-    const fromParts = from.split('.');
-
-    const index = parts.findIndex((part, i) => part !== fromParts[i]);
-    const splitIndex = index >= 0 ? index : parts.length;
-
-    const colorized = reporter.format.green(parts.slice(splitIndex).join('.'));
-    return parts.slice(0, splitIndex).concat(colorized).join('.');
-  };
-
   const makeRow = dep => {
     const padding = addPadding(dep);
-    const name = colorizeName(dep)(padding('name'));
+    const name = colorizeName(dep.current, dep[outdatedFieldName])(padding('name'));
     const current = reporter.format.blue(padding('current'));
-    const latest = colorizeDiff(dep.current, padding(outdatedFieldName));
+    const latest = colorizeDiff(dep.current, padding(outdatedFieldName), reporter);
     const url = reporter.format.cyan(dep.url);
     const range = reporter.format.blue(flags.latest ? 'latest' : padding('range'));
     return `${name}  ${range}  ${current}  ❯  ${latest}  ${url}`;
@@ -119,7 +110,8 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
   try {
     const red = reporter.format.red('<red>');
     const yellow = reporter.format.yellow('<yellow>');
-    reporter.info(reporter.lang('legendColorsForUpgradeInteractive', red, yellow));
+    const green = reporter.format.green('<green>');
+    reporter.info(reporter.lang('legendColorsForUpgradeInteractive', red, yellow, green));
 
     const answers: Array<Dependency> = await reporter.prompt('Choose which packages to update.', choices, {
       name: 'packages',
