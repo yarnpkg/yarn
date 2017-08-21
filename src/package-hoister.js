@@ -492,7 +492,7 @@ export default class PackageHoister {
         pkg: Manifest,
         ancestry: Array<Manifest>,
         pattern: string,
-      }[]
+      }[],
     } = {};
 
     const occurences: {
@@ -511,7 +511,7 @@ export default class PackageHoister {
         occurences: new Set(),
         pattern,
       });
-      
+
       if (ancestry.length) {
         version.occurences.add(ancestry[ancestry.length - 1]);
       }
@@ -522,7 +522,7 @@ export default class PackageHoister {
       const pkg = this.resolver.getStrictResolvedPattern(pattern);
       if (ancestry.indexOf(pkg) >= 0) {
         // prevent recursive dependencies
-        return;
+        return pkg;
       }
 
       if (visited[pattern]) {
@@ -531,9 +531,9 @@ export default class PackageHoister {
         visited[pattern].forEach(visitPkg => {
           visitAdd(pkg, ancestry, pattern);
         });
-        return;
+        return pkg;
       }
-      
+
       const ref = pkg._reference;
       invariant(ref, 'expected reference');
 
@@ -544,10 +544,10 @@ export default class PackageHoister {
       for (const depPattern of ref.dependencies) {
         const depAncestry = ancestry.concat(pkg);
         const depPkg = add(depPattern, depAncestry);
-        visited[pattern].push({ pkg: depPkg, ancestry: depAncestry, pattern: depPattern });
+        visited[pattern].push({pkg: depPkg, ancestry: depAncestry, pattern: depPattern});
       }
 
-      visited[pattern].push({ pkg: pkg, ancestry: ancestry, pattern: pattern });
+      visited[pattern].push({pkg, ancestry, pattern});
 
       return pkg;
     };
