@@ -487,6 +487,14 @@ export default class PackageHoister {
   prepass(patterns: Array<string>) {
     patterns = this.resolver.dedupePatterns(patterns).sort();
 
+    const visited: {
+      [pattern: string]: {
+        pkg: Manifest,
+        ancestry: Array<Manifest>,
+        pattern: string,
+      }[]
+    } = {};
+
     const occurences: {
       [packageName: string]: {
         [version: string]: {
@@ -496,30 +504,52 @@ export default class PackageHoister {
       },
     } = {};
 
+    // visitor to be used inside add() to mark occurences of packages
+    const visitAdd = (pkg: Manifest, ancestry: Array<Manifest>, pattern: string) => {
+      const versions = (occurences[pkg.name] = occurences[pkg.name] || {});
+      const version = (versions[pkg.version] = versions[pkg.version] || {
+        occurences: new Set(),
+        pattern,
+      });
+      
+      if (ancestry.length) {
+        version.occurences.add(ancestry[ancestry.length - 1]);
+      }
+    };
+
     // add an occuring package to the above data structure
-    const add = (pattern: string, ancestry: Array<Manifest>) => {
+    const add = (pattern: string, ancestry: Array<Manifest>): Manifest => {
       const pkg = this.resolver.getStrictResolvedPattern(pattern);
       if (ancestry.indexOf(pkg) >= 0) {
         // prevent recursive dependencies
         return;
       }
 
+      if (visited[pattern]) {
+        // if a package has been visited before, simply increment occurrences of packages
+        // like last time this package was visited
+        visited[pattern].forEach(visitPkg => {
+          visitAdd(pkg, ancestry, pattern);
+        });
+        return;
+      }
+      
       const ref = pkg._reference;
       invariant(ref, 'expected reference');
 
-      const versions = (occurences[pkg.name] = occurences[pkg.name] || {});
-      const version = (versions[pkg.version] = versions[pkg.version] || {
-        occurences: new Set(),
-        pattern,
-      });
+      visited[pattern] = visited[pattern] || [];
 
-      if (ancestry.length) {
-        version.occurences.add(ancestry[ancestry.length - 1]);
-      }
+      visitAdd(pkg, ancestry, pattern);
 
       for (const depPattern of ref.dependencies) {
-        add(depPattern, ancestry.concat(pkg));
+        const depAncestry = ancestry.concat(pkg);
+        const depPkg = add(depPattern, depAncestry);
+        visited[pattern].push({ pkg: depPkg, ancestry: depAncestry, pattern: depPattern });
       }
+
+      visited[pattern].push({ pkg: pkg, ancestry: ancestry, pattern: pattern });
+
+      return pkg;
     };
 
     // get a list of root package names since we can't hoist other dependencies to these spots!
