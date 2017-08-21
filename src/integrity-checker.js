@@ -53,6 +53,15 @@ type IntegrityFlags = {
   checkFiles: boolean,
 };
 
+const INTEGRITY_FILE_DEFAULTS = () => ({
+  modulesFolders: [],
+  flags: [],
+  linkedModules: [],
+  topLevelPatterns: [],
+  lockfileEntries: {},
+  files: [],
+});
+
 /**
  *
  */
@@ -174,12 +183,7 @@ export default class InstallationIntegrityChecker {
     artifacts?: InstallArtifacts,
   ): Promise<IntegrityFile> {
     const result: IntegrityFile = {
-      modulesFolders: [],
-      flags: [],
-      linkedModules: [],
-      topLevelPatterns: [],
-      lockfileEntries: {},
-      files: [],
+      ...INTEGRITY_FILE_DEFAULTS(),
       artifacts,
     };
 
@@ -267,7 +271,10 @@ export default class InstallationIntegrityChecker {
   async _getIntegrityFile(locationPath: string): Promise<?IntegrityFile> {
     const expectedRaw = await fs.readFile(locationPath);
     try {
-      return JSON.parse(expectedRaw);
+      return {
+        ...INTEGRITY_FILE_DEFAULTS(),
+        ...JSON.parse(expectedRaw),
+      };
     } catch (e) {
       // ignore JSON parsing for legacy text integrity files compatibility
     }
