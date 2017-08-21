@@ -111,7 +111,7 @@ export function main({
   }
 
   let warnAboutRunDashDash = false;
-  // we using "yarn <script> -abc" or "yarn run <script> -abc", we want -abc to be script options, not yarn options
+  // we are using "yarn <script> -abc" or "yarn run <script> -abc", we want -abc to be script options, not yarn options
   if (command === commands.run) {
     if (endArgs.length === 0) {
       endArgs = ['--', ...args.splice(1)];
