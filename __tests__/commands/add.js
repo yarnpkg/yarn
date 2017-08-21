@@ -4,6 +4,7 @@ import {ConsoleReporter} from '../../src/reporters/index.js';
 import * as reporters from '../../src/reporters/index.js';
 import {
   getPackageVersion,
+  getPackageManifest,
   createLockfile,
   explodeLockfile,
   run as buildRun,
@@ -103,6 +104,29 @@ test.concurrent('adds any new package to the current workspace, but install from
     expect(await fs.exists(`${config.cwd}/non-packages/package-c/node_modules/isarray`)).toEqual(true);
 
     expect(await fs.exists(`${config.cwd}/non-packages/package-c/yarn.lock`)).toEqual(true);
+  });
+});
+
+test.concurrent('reuses version from packages in same workspace', async () => {
+  await runInstall({}, 'workspaces-install-version-from-sibling-workspace', async (config): Promise<void> => {
+    const inOut = new stream.PassThrough();
+    const reporter = new reporters.JSONReporter({stdout: inOut});
+
+    // Ensure nothing exists in the workspaces
+    expect(await fs.exists(`${config.cwd}/node_modules/right-pad`)).toEqual(true);
+    expect(await fs.exists(`${config.cwd}/packages/package-a/node_modules/right-pad`)).toEqual(false);
+    expect(await fs.exists(`${config.cwd}/packages/package-b/node_modules/right-pad`)).toEqual(false);
+
+    //  Checking directly from JSON since there is no workspace-level node_modules in this case
+    const versionInPkgA = (await getPackageManifest(config, 'package-a')).dependencies['right-pad'];
+
+    const pkgBConfig = await makeConfigFromDirectory(`${config.cwd}/packages/package-b`, reporter);
+    await add(pkgBConfig, reporter, {}, ['right-pad']);
+    const versionInPkgB = (await getPackageManifest(config, 'package-b')).dependencies['right-pad'];
+
+    // Making sure it didn't get installed locally
+    expect(await fs.exists(`${config.cwd}/packages/package-b/node_modules/right-pad`)).toEqual(false);
+    expect(versionInPkgB).toEqual(versionInPkgA);
   });
 });
 
