@@ -532,7 +532,7 @@ export default class PackageHoister {
           visitAdd(visitPkg.pkg, visitPkg.ancestry, visitPkg.pattern);
         });
 
-        visitAdd(pkg, ancestry, pattern, patterns);
+        visitAdd(pkg, ancestry, pattern);
 
         return;
       }
@@ -542,7 +542,7 @@ export default class PackageHoister {
 
       visited[pattern] = visited[pattern] || [];
 
-      visitAdd(pkg, ancestry, pattern, patterns);
+      visitAdd(pkg, ancestry, pattern);
 
       for (const depPattern of ref.dependencies) {
         const depAncestry = ancestry.concat(pkg);
