@@ -1,0 +1,8 @@
+{
+  "name": "baz",
+  "version": "1.0.0",
+  "dependencies": {
+    "hello": "file:../hello",
+    "world": "file:../world"
+  }
+}

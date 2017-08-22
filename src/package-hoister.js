@@ -518,20 +518,23 @@ export default class PackageHoister {
     };
 
     // add an occuring package to the above data structure
-    const add = (pattern: string, ancestry: Array<Manifest>): Manifest => {
+    const add = (pattern: string, ancestry: Array<Manifest>, ancestryPatterns: Array<string>) => {
       const pkg = this.resolver.getStrictResolvedPattern(pattern);
       if (ancestry.indexOf(pkg) >= 0) {
         // prevent recursive dependencies
-        return pkg;
+        return;
       }
 
       if (visited[pattern]) {
         // if a package has been visited before, simply increment occurrences of packages
         // like last time this package was visited
         visited[pattern].forEach(visitPkg => {
-          visitAdd(pkg, ancestry, pattern);
+          visitAdd(visitPkg.pkg, visitPkg.ancestry, visitPkg.pattern);
         });
-        return pkg;
+
+        visitAdd(pkg, ancestry, pattern, patterns);
+
+        return;
       }
 
       const ref = pkg._reference;
@@ -539,17 +542,19 @@ export default class PackageHoister {
 
       visited[pattern] = visited[pattern] || [];
 
-      visitAdd(pkg, ancestry, pattern);
+      visitAdd(pkg, ancestry, pattern, patterns);
 
       for (const depPattern of ref.dependencies) {
         const depAncestry = ancestry.concat(pkg);
-        const depPkg = add(depPattern, depAncestry);
-        visited[pattern].push({pkg: depPkg, ancestry: depAncestry, pattern: depPattern});
+        const depAncestryPatterns = ancestryPatterns.concat(depPattern);
+        add(depPattern, depAncestry, depAncestryPatterns);
       }
 
       visited[pattern].push({pkg, ancestry, pattern});
 
-      return pkg;
+      ancestryPatterns.forEach(ancestryPattern => {
+        visited[ancestryPattern].push({pkg, ancestry, pattern});
+      });
     };
 
     // get a list of root package names since we can't hoist other dependencies to these spots!
@@ -557,7 +562,7 @@ export default class PackageHoister {
     for (const pattern of patterns) {
       const pkg = this.resolver.getStrictResolvedPattern(pattern);
       rootPackageNames.add(pkg.name);
-      add(pattern, []);
+      add(pattern, [], []);
     }
 
     for (const packageName of Object.keys(occurences).sort()) {
