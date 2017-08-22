@@ -4,15 +4,15 @@ parse and/or write `yarn.lock` files
 ## Usage Example
 
 ```js
-const fs = require('fs')
-const lockfile = require('yarn-lockfile')
+const fs = require('fs');
+const lockfile = require('@yarnpkg/lockfile');
 
-let file = fs.readFileSync('yarn.lock', 'utf8')
-let json = lockfile.parse(file)
+let file = fs.readFileSync('yarn.lock', 'utf8');
+let json = lockfile.parse(file);
 
-console.log(json)
+console.log(json);
 
-let fileAgain = lockfile.stringify(json)
+let fileAgain = lockfile.stringify(json);
 
-console.log(fileAgain)
+console.log(fileAgain);
 ```
