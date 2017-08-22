@@ -3,7 +3,7 @@
 import {run as buildRun, runInstall} from './_helpers.js';
 import * as checkCmd from '../../src/cli/commands/check.js';
 import {Install} from '../../src/cli/commands/install.js';
-import Lockfile from '../../src/lockfile/wrapper.js';
+import Lockfile from '../../src/lockfile';
 import * as reporters from '../../src/reporters/index.js';
 import type {CLIFunctionReturn} from '../../src/types.js';
 import * as fs from '../../src/util/fs.js';

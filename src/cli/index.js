@@ -111,6 +111,16 @@ export function main({
     command = commands.run;
   }
 
+  let warnAboutRunDashDash = false;
+  // we are using "yarn <script> -abc" or "yarn run <script> -abc", we want -abc to be script options, not yarn options
+  if (command === commands.run) {
+    if (endArgs.length === 0) {
+      endArgs = ['--', ...args.splice(1)];
+    } else {
+      warnAboutRunDashDash = true;
+    }
+  }
+
   command.setFlags(commander);
   commander.parse([
     ...startArgs,
@@ -120,7 +130,7 @@ export function main({
     ...getRcArgs(commandName, args),
     ...args,
   ]);
-  commander.args = commander.args.concat(endArgs);
+  commander.args = commander.args.concat(endArgs.slice(1));
 
   // we strip cmd
   console.assert(commander.args.length >= 1);
@@ -172,6 +182,11 @@ export function main({
   //
   const run = (): Promise<void> => {
     invariant(command, 'missing command');
+
+    if (warnAboutRunDashDash) {
+      reporter.warn(reporter.lang('dashDashDeprecation'));
+    }
+
     return command.run(config, reporter, commander, commander.args).then(exitCode => {
       if (outputWrapper) {
         reporter.footer(false);
@@ -421,7 +436,7 @@ async function start(): Promise<void> {
     const doubleDashIndex = process.argv.findIndex(element => element === '--');
     const startArgs = process.argv.slice(0, 2);
     const args = process.argv.slice(2, doubleDashIndex === -1 ? process.argv.length : doubleDashIndex);
-    const endArgs = doubleDashIndex === -1 ? [] : process.argv.slice(doubleDashIndex + 1, process.argv.length);
+    const endArgs = doubleDashIndex === -1 ? [] : process.argv.slice(doubleDashIndex);
 
     main({startArgs, args, endArgs});
   }

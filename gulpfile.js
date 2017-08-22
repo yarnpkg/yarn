@@ -18,7 +18,7 @@ const ver = process.versions.node;
 const majorVer = parseInt(ver.split('.')[0], 10);
 
 const build = (lib, opts) =>
-  gulp.src('src/**/*')
+  gulp.src('src/**/*.js')
       .pipe(plumber({
         errorHandler(err) {
           gutil.log(err.stack);

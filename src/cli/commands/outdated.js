@@ -3,8 +3,10 @@
 import type {Reporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
 import PackageRequest from '../../package-request.js';
-import Lockfile from '../../lockfile/wrapper.js';
+import Lockfile from '../../lockfile';
 import {Install} from './install.js';
+import colorForVersions from '../../util/color-for-versions';
+import colorizeDiff from '../../util/colorize-diff.js';
 
 export const requireLockfile = true;
 
@@ -28,15 +30,14 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
   }
 
   const getNameFromHint = hint => (hint ? `${hint}Dependencies` : 'dependencies');
-  const getColorFromVersion = ({current, wanted, name}) =>
-    current === wanted ? reporter.format.yellow(name) : reporter.format.red(name);
+  const colorizeName = ({current, wanted, name}) => reporter.format[colorForVersions(current, wanted)](name);
 
   if (deps.length) {
     const body = deps.map((info): Array<string> => {
       return [
-        getColorFromVersion(info),
+        colorizeName(info),
         info.current,
-        reporter.format.green(info.wanted),
+        colorizeDiff(info.current, info.wanted, reporter),
         reporter.format.magenta(info.latest),
         getNameFromHint(info.hint),
         reporter.format.cyan(info.url),

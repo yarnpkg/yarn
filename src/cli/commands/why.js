@@ -7,7 +7,7 @@ import type {HoistManifestTuple, HoistManifestTuples} from '../../package-hoiste
 import {Install} from './install.js';
 import {METADATA_FILENAME, TARBALL_FILENAME} from '../../constants.js';
 import * as fs from '../../util/fs.js';
-import Lockfile from '../../lockfile/wrapper.js';
+import Lockfile from '../../lockfile';
 import {MessageError} from '../../errors.js';
 
 export const requireLockfile = true;

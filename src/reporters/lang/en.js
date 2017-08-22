@@ -111,7 +111,7 @@ const messages = {
   noFilePermission: "We don't have permissions to touch the file $0.",
   allDependenciesUpToDate: 'All of your dependencies are up to date.',
   legendColorsForUpgradeInteractive:
-    'Color legend : \n $0    : Patch Update backward-compatible bug fixes \n $1 : Minor Update backward-compatible features',
+    'Color legend : \n $0    : Major Update backward-incompatible updates \n $1 : Minor Update backward-compatible features \n $2  : Patch Update backward-compatible bug fixes',
   frozenLockfileError: 'Your lockfile needs to be updated, but yarn was run with `--frozen-lockfile`.',
   fileWriteError: 'Could not write file $0: $1',
   multiplePackagesCantUnpackInSameDestination:
@@ -188,6 +188,7 @@ const messages = {
 
   execMissingCommand: 'Missing command name.',
 
+  dashDashDeprecation: `From Yarn 1.0 onwards, scripts don't require "--" for options to be forwarded. In a future version, any explicit "--" will be forwarded as-is to the scripts.`,
   commandNotSpecified: 'No command specified.',
   binCommands: 'Commands available from binary scripts: ',
   possibleCommands: 'Project commands',

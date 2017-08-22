@@ -1,7 +1,7 @@
 /* @flow */
 
 import {dirname, resolve} from 'path';
-import parse from './lockfile/parse.js';
+import {parse} from './lockfile';
 import * as rcUtil from './util/rc.js';
 
 // Keys that will get resolved relative to the path of the rc file they belong to
