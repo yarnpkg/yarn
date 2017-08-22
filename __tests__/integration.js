@@ -97,7 +97,7 @@ test('yarnrc binary path (executable)', async () => {
 
   if (process.platform === 'win32') {
     await fs.writeFile(`${cwd}/.yarnrc`, 'yarn-path "./override.cmd"\n');
-    await fs.writeFile(`${cwd}/override.cmd`, 'echo override called\n');
+    await fs.writeFile(`${cwd}/override.cmd`, '@echo override called\n');
   } else {
     await fs.writeFile(`${cwd}/.yarnrc`, 'yarn-path "./override"\n');
     await fs.writeFile(`${cwd}/override`, '#!/usr/bin/env sh\necho override called\n');
