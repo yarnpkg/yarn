@@ -24,7 +24,7 @@
       "trailingComma": "all",
       "bracketSpacing": false,
       "printWidth": 120,
-      "parser": "babylon"
+      "parser": "flow"
     }]
   },
   "overrides": [
