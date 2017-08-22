@@ -487,13 +487,14 @@ export default class PackageHoister {
   prepass(patterns: Array<string>) {
     patterns = this.resolver.dedupePatterns(patterns).sort();
 
-    const visited: {
-      [pattern: string]: {
+    const visited: Map<
+      string,
+      Array<{
         pkg: Manifest,
         ancestry: Array<Manifest>,
         pattern: string,
-      }[],
-    } = {};
+      }>,
+    > = new Map();
 
     const occurences: {
       [packageName: string]: {
@@ -525,10 +526,12 @@ export default class PackageHoister {
         return;
       }
 
-      if (visited[pattern]) {
+      let visitedPattern = visited.get(pattern);
+
+      if (visitedPattern) {
         // if a package has been visited before, simply increment occurrences of packages
         // like last time this package was visited
-        visited[pattern].forEach(visitPkg => {
+        visitedPattern.forEach(visitPkg => {
           visitAdd(visitPkg.pkg, visitPkg.ancestry, visitPkg.pattern);
         });
 
@@ -540,8 +543,6 @@ export default class PackageHoister {
       const ref = pkg._reference;
       invariant(ref, 'expected reference');
 
-      visited[pattern] = visited[pattern] || [];
-
       visitAdd(pkg, ancestry, pattern);
 
       for (const depPattern of ref.dependencies) {
@@ -550,10 +551,15 @@ export default class PackageHoister {
         add(depPattern, depAncestry, depAncestryPatterns);
       }
 
-      visited[pattern].push({pkg, ancestry, pattern});
+      visitedPattern = visited.get(pattern) || [];
+      visited.set(pattern, visitedPattern);
+      visitedPattern.push({pkg, ancestry, pattern});
 
       ancestryPatterns.forEach(ancestryPattern => {
-        visited[ancestryPattern].push({pkg, ancestry, pattern});
+        const visitedAncestryPattern = visited.get(ancestryPattern);
+        if (visitedAncestryPattern) {
+          visitedAncestryPattern.push({pkg, ancestry, pattern});
+        }
       });
     };
 
