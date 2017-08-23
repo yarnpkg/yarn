@@ -90,11 +90,15 @@ async function getGlobalPrefix(config: Config, flags: Object): Promise<string> {
   } else {
     prefix = POSIX_GLOBAL_PREFIX;
   }
+
+  const binFolder = path.join(prefix, 'bin');
   try {
-    await fs.access(path.join(prefix, 'bin'), (nativeFs.constants || nativeFs).W_OK);
+    await fs.access(binFolder, (nativeFs.constants || nativeFs).W_OK);
   } catch (err) {
     if (err.code === 'EACCES') {
       prefix = FALLBACK_GLOBAL_PREFIX;
+    } else if (err.code === 'ENOENT') {
+      await fs.mkdirp(binFolder);
     } else {
       throw err;
     }
@@ -113,13 +117,19 @@ async function initUpdateBins(config: Config, reporter: Reporter, flags: Object)
 
   function throwPermError(err: Error & {[code: string]: string}, dest: string) {
     if (err.code === 'EACCES') {
-      throw new MessageError(reporter.lang('noFilePermission', dest));
+      throw new MessageError(reporter.lang('noPermission', dest));
     } else {
       throw err;
     }
   }
 
   return async function(): Promise<void> {
+    try {
+      await fs.mkdirp(binFolder);
+    } catch (err) {
+      throwPermError(err, binFolder);
+    }
+
     const afterBins = await getBins(config);
 
     // remove old bins

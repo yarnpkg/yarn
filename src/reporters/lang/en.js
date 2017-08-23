@@ -108,7 +108,7 @@ const messages = {
   bugReport: 'If you think this is a bug, please open a bug report with the information provided in $0.',
   unexpectedError: 'An unexpected error occurred: $0.',
   jsonError: 'Error parsing JSON at $0, $1.',
-  noFilePermission: "We don't have permissions to touch the file $0.",
+  noPermission: 'Cannot create $0 due to insufficient permissions.',
   allDependenciesUpToDate: 'All of your dependencies are up to date.',
   legendColorsForUpgradeInteractive:
     'Color legend : \n $0    : Major Update backward-incompatible updates \n $1 : Minor Update backward-compatible features \n $2  : Patch Update backward-compatible bug fixes',
