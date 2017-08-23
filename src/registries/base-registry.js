@@ -25,7 +25,7 @@ export type CheckOutdatedReturn = Promise<{
 }>;
 
 export default class BaseRegistry {
-  constructor(cwd: string, registries: ConfigRegistries, requestManager: RequestManager, reporter: Reporter) {
+  constructor(cwd: string, registries: ConfigRegistries, requestManager: RequestManager, reporter: Reporter, config: Config) {
     this.reporter = reporter;
     this.requestManager = requestManager;
     this.registries = registries;
@@ -34,6 +34,10 @@ export default class BaseRegistry {
     this.token = '';
     this.loc = '';
     this.cwd = cwd;
+
+    if (config && config.registry) {
+      this.registry = config.registry
+    }
   }
 
   // the filename to use for package metadata
@@ -145,6 +149,12 @@ export default class BaseRegistry {
 
       // set it via a path
       objectPath.set(this.config, key, val);
+    }
+
+    // the YARN_REGISTRY environment variable supersedes
+    // the --registry command flag
+    if (this.registry && (this.config && this.config.registry === undefined)) {
+      objectPath.set(this.config, 'registry', this.registry);
     }
   }
 }

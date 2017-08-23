@@ -67,8 +67,8 @@ function normalizePath(val: mixed): ?string {
 }
 
 export default class NpmRegistry extends Registry {
-  constructor(cwd: string, registries: ConfigRegistries, requestManager: RequestManager, reporter: Reporter) {
-    super(cwd, registries, requestManager, reporter);
+  constructor(cwd: string, registries: ConfigRegistries, requestManager: RequestManager, reporter: Reporter, config: Config) {
+    super(cwd, registries, requestManager, reporter, config);
     this.folder = 'node_modules';
   }
 

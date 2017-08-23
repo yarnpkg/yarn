@@ -37,8 +37,8 @@ const npmMap = {
 };
 
 export default class YarnRegistry extends NpmRegistry {
-  constructor(cwd: string, registries: ConfigRegistries, requestManager: RequestManager, reporter: Reporter) {
-    super(cwd, registries, requestManager, reporter);
+  constructor(cwd: string, registries: ConfigRegistries, requestManager: RequestManager, reporter: Reporter, config: Config) {
+    super(cwd, registries, requestManager, reporter, config);
 
     this.homeConfigLoc = path.join(userHome, '.yarnrc');
     this.homeConfig = {};
