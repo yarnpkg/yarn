@@ -1,0 +1,7 @@
+{
+  "name": "foo",
+  "version": "0.0.0",
+  "dependencies": {
+    "baz": "file:../baz-1"
+  }
+}

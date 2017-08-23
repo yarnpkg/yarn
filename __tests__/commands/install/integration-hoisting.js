@@ -14,6 +14,35 @@ test.concurrent('install hoister should prioritise popular transitive dependenci
   });
 });
 
+test.concurrent('install hoister should prioritise popular deep dependencies', (): Promise<void> => {
+  // Arrange (fixture):
+  //   /foo
+  //     /baz-1
+  //       /hello
+  //         /foobar-1
+  //       /world
+  //   /bar
+  //     /baz-1
+  //       /hello
+  //         /foobar-1
+  //       /world
+  //   /alice
+  //     /bob
+  //       /foobar-2
+  //     /baz-2
+  //       /hello
+  //         /foobar-1
+  //       /world
+  // Act: install
+  // Assert: package version picked are foobar-2 and baz-1
+  return runInstall({}, 'install-should-prioritise-popular-deep', async config => {
+    expect(await getPackageVersion(config, 'bob/foobar')).toEqual('2.0.0');
+    expect(await getPackageVersion(config, 'foobar')).toEqual('1.0.0');
+    expect(await getPackageVersion(config, 'baz')).toEqual('1.0.0');
+    expect(await getPackageVersion(config, 'alice/baz')).toEqual('2.0.0');
+  });
+});
+
 test.concurrent(
   'install hoister should not install prioritised popular transitive devDependencies in --prod mode',
   (): Promise<void> => {
