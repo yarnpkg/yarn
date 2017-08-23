@@ -5,10 +5,10 @@ import {parse} from './lockfile';
 import * as rcUtil from './util/rc.js';
 
 // Keys that will get resolved relative to the path of the rc file they belong to
-const PATH_KEYS = ['cache-folder', 'global-folder', 'modules-folder', 'cwd'];
+const PATH_KEYS = ['yarn-path', 'cache-folder', 'global-folder', 'modules-folder', 'cwd'];
 
 // given a cwd, load all .yarnrc files relative to it
-function getRcConfigForCwd(cwd: string): {[key: string]: string} {
+export function getRcConfigForCwd(cwd: string): {[key: string]: string} {
   return rcUtil.findRc('yarn', cwd, (fileText, filePath) => {
     const {object: values} = parse(fileText, 'yarnrc');
 
