@@ -330,6 +330,17 @@ test.concurrent('--integrity --check-files should not die on broken symlinks', a
   );
 });
 
+test.concurrent('--integrity should not die on missing fields in integrity file', async (): Promise<void> => {
+  let integrityError = false;
+  try {
+    await runCheck([], {integrity: true}, 'missing-fields');
+  } catch (err) {
+    console.log(err);
+    integrityError = true;
+  }
+  expect(integrityError).toEqual(false);
+});
+
 test.concurrent('should ignore bundled dependencies', async (): Promise<void> => {
   await runInstall(
     {},
