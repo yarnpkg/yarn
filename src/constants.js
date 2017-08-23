@@ -67,6 +67,7 @@ export const LINK_REGISTRY_DIRECTORY = path.join(CONFIG_DIRECTORY, 'link');
 export const GLOBAL_MODULE_DIRECTORY = path.join(CONFIG_DIRECTORY, 'global');
 
 export const NODE_MODULES_FOLDER = 'node_modules';
+export const NODE_PACKAGE_JSON = 'package.json';
 
 export const POSIX_GLOBAL_PREFIX = '/usr/local';
 export const FALLBACK_GLOBAL_PREFIX = path.join(userHome, '.yarn');

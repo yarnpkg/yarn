@@ -21,7 +21,24 @@ const net = require('net');
 const onDeath = require('death');
 const path = require('path');
 
-export function main({
+function findActiveDirectory(base) {
+    let prev, dir = base;
+
+    do {
+
+      if (fs.existsSync(path.join(dir, constants.NODE_PACKAGE_JSON))) {
+        return dir;
+      }
+
+      prev = dir;
+      dir = path.dirname(dir);
+
+    } while (dir !== prev);
+
+    return base;
+}
+
+export async function main({
   startArgs,
   args,
   endArgs,
@@ -337,8 +354,12 @@ export function main({
     return reporter.close();
   };
 
+  const cwd = findActiveDirectory(commander.cwd);
+
   config
     .init({
+      cwd,
+
       binLinks: commander.binLinks,
       modulesFolder: commander.modulesFolder,
       globalFolder: commander.globalFolder,
@@ -358,7 +379,6 @@ export function main({
       networkTimeout: commander.networkTimeout,
       nonInteractive: commander.nonInteractive,
       scriptsPrependNodePath: commander.scriptsPrependNodePath,
-      cwd: commander.cwd,
 
       commandName: commandName === 'run' ? commander.args[0] : commandName,
     })
@@ -438,7 +458,7 @@ async function start(): Promise<void> {
     const args = process.argv.slice(2, doubleDashIndex === -1 ? process.argv.length : doubleDashIndex);
     const endArgs = doubleDashIndex === -1 ? [] : process.argv.slice(doubleDashIndex);
 
-    main({startArgs, args, endArgs});
+    await main({startArgs, args, endArgs});
   }
 }
 
