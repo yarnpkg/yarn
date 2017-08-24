@@ -25,7 +25,13 @@ export type CheckOutdatedReturn = Promise<{
 }>;
 
 export default class BaseRegistry {
-  constructor(cwd: string, registries: ConfigRegistries, requestManager: RequestManager, reporter: Reporter, config: Config) {
+  constructor(
+    cwd: string,
+    registries: ConfigRegistries,
+    requestManager: RequestManager,
+    reporter: Reporter,
+    config: Config,
+  ) {
     this.reporter = reporter;
     this.requestManager = requestManager;
     this.registries = registries;
@@ -36,7 +42,7 @@ export default class BaseRegistry {
     this.cwd = cwd;
 
     if (config && config.registry) {
-      this.registry = config.registry
+      this.registry = config.registry;
     }
   }
 
