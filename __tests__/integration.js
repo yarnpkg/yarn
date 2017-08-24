@@ -167,19 +167,12 @@ test('cache folder fallback', async () => {
   const cwd = await makeTemp();
   const cacheFolder = path.join(cwd, '.cache');
 
-  const command = path.resolve(__dirname, '../bin/yarn');
   const args = ['--preferred-cache-folder', cacheFolder];
-
   const options = {cwd};
 
-  function runCacheDir(): Promise<Array<Buffer>> {
-    const {stderr, stdout} = execa(command, ['cache', 'dir'].concat(args), options);
-
-    const stdoutPromise = misc.consumeStream(stdout);
-    const stderrPromise = misc.consumeStream(stderr);
-
-    return Promise.all([stdoutPromise, stderrPromise]);
-  }
+  const runCacheDir = () => {
+    return runYarn(['cache', 'dir'].concat(args), options);
+  };
 
   const [stdoutOutput, stderrOutput] = await runCacheDir();
 
@@ -199,15 +192,9 @@ test('cache folder fallback', async () => {
 
 test('yarn create', async () => {
   const cwd = await makeTemp();
-  const command = path.resolve(__dirname, '../bin/yarn');
   const options = {cwd, env: {YARN_SILENT: 1}};
 
-  const {stderr: stderr, stdout: stdout} = execa(command, ['create', 'html'], options);
-
-  const stdoutPromise = misc.consumeStream(stdout);
-  const stderrPromise = misc.consumeStream(stderr);
-
-  const [stdoutOutput, _] = await Promise.all([stdoutPromise, stderrPromise]);
+  const [stdoutOutput, _] = await runYarn(['create', 'html'], options);
 
   expect(stdoutOutput.toString()).toMatch(/<!doctype html>/);
 });

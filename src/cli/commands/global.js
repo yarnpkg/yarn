@@ -17,8 +17,6 @@ import {linkBin} from '../../package-linker.js';
 import {POSIX_GLOBAL_PREFIX, FALLBACK_GLOBAL_PREFIX} from '../../constants.js';
 import * as fs from '../../util/fs.js';
 
-const nativeFs = require('fs');
-
 class GlobalAdd extends Add {
   maybeOutputSaveTree(): Promise<void> {
     for (const pattern of this.addedPatterns) {
@@ -93,7 +91,8 @@ async function getGlobalPrefix(config: Config, flags: Object): Promise<string> {
 
   const binFolder = path.join(prefix, 'bin');
   try {
-    await fs.access(binFolder, (nativeFs.constants || nativeFs).W_OK);
+    // eslint-disable-next-line no-bitwise
+    await fs.access(binFolder, fs.constants.W_OK | fs.constants.X_OK);
   } catch (err) {
     if (err.code === 'EACCES') {
       prefix = FALLBACK_GLOBAL_PREFIX;
