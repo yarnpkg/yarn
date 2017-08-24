@@ -457,7 +457,7 @@ async function start(): Promise<void> {
     const args = process.argv.slice(2, doubleDashIndex === -1 ? process.argv.length : doubleDashIndex);
     const endArgs = doubleDashIndex === -1 ? [] : process.argv.slice(doubleDashIndex);
 
-    await main({startArgs, args, endArgs});
+    main({startArgs, args, endArgs});
   }
 }
 
