@@ -21,6 +21,22 @@ const net = require('net');
 const onDeath = require('death');
 const path = require('path');
 
+function findProjectRoot(base: string): string {
+  let prev = null;
+  let dir = base;
+
+  do {
+    if (fs.existsSync(path.join(dir, constants.NODE_PACKAGE_JSON))) {
+      return dir;
+    }
+
+    prev = dir;
+    dir = path.dirname(dir);
+  } while (dir !== prev);
+
+  return base;
+}
+
 export function main({
   startArgs,
   args,
@@ -338,8 +354,12 @@ export function main({
     return reporter.close();
   };
 
+  const cwd = findProjectRoot(commander.cwd);
+
   config
     .init({
+      cwd,
+
       binLinks: commander.binLinks,
       modulesFolder: commander.modulesFolder,
       linkFolder: commander.linkFolder,
@@ -360,7 +380,6 @@ export function main({
       networkTimeout: commander.networkTimeout,
       nonInteractive: commander.nonInteractive,
       scriptsPrependNodePath: commander.scriptsPrependNodePath,
-      cwd: commander.cwd,
 
       commandName: commandName === 'run' ? commander.args[0] : commandName,
     })

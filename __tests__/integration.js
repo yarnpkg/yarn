@@ -82,6 +82,22 @@ test('--mutex network', async () => {
   ]);
 });
 
+test('--cwd option', async () => {
+  const cwd = await makeTemp();
+  const cacheFolder = path.join(cwd, '.cache');
+
+  const subdir = path.join(cwd, 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i');
+  await fs.mkdirp(subdir);
+
+  const packageJsonPath = path.join(cwd, 'package.json');
+  await fs.writeFile(packageJsonPath, JSON.stringify({}));
+
+  await runYarn(['add', 'left-pad'], {cwd: subdir});
+
+  const packageJson = JSON.parse(await fs.readFile(packageJsonPath));
+  expect(packageJson.dependencies['left-pad']).toBeDefined();
+});
+
 test('yarnrc binary path (js)', async () => {
   const cwd = await makeTemp();
 

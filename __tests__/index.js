@@ -243,8 +243,8 @@ if (process.platform !== 'win32') {
 }
 
 test.concurrent('should run bin command', async () => {
-  const stdout = await execCommand('bin', [], '', false);
-  expect(stdout[0]).toEqual(path.join(fixturesLoc, 'node_modules', '.bin'));
+  const stdout = await execCommand('bin', [], '', true);
+  expect(stdout[0]).toMatch(/[\\\/]node_modules[\\\/]\.bin\n?$/);
   expect(stdout.length).toEqual(1);
 });
 
