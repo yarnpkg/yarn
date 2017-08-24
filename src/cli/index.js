@@ -21,7 +21,7 @@ const net = require('net');
 const onDeath = require('death');
 const path = require('path');
 
-function findActiveDirectory(base): string {
+function findProjectRoot(base: string): string {
   let prev = null;
   let dir = base;
 
@@ -353,7 +353,7 @@ export function main({
     return reporter.close();
   };
 
-  const cwd = findActiveDirectory(commander.cwd);
+  const cwd = findProjectRoot(commander.cwd);
 
   config
     .init({

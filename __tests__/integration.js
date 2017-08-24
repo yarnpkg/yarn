@@ -86,7 +86,7 @@ test('--cwd option', async () => {
   const cwd = await makeTemp();
   const cacheFolder = path.join(cwd, '.cache');
 
-  const subdir = path.join(cwd, 'a/b/c/d/e/f/g/h/i');
+  const subdir = path.join(cwd, 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i');
   await fs.mkdirp(subdir);
 
   const packageJsonPath = path.join(cwd, 'package.json');
