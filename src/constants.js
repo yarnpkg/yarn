@@ -3,6 +3,7 @@
 const os = require('os');
 const path = require('path');
 const userHome = require('./util/user-home-dir').default;
+const isWebpackBundle = require('is-webpack-bundle');
 
 type Env = {
   [key: string]: ?string,
@@ -65,6 +66,18 @@ export const PREFERRED_MODULE_CACHE_DIRECTORIES = getPreferredCacheDirectories()
 export const CONFIG_DIRECTORY = getDirectory('config');
 export const LINK_REGISTRY_DIRECTORY = path.join(CONFIG_DIRECTORY, 'link');
 export const GLOBAL_MODULE_DIRECTORY = path.join(CONFIG_DIRECTORY, 'global');
+
+export const NODE_BIN_PATH = process.execPath;
+export const YARN_BIN_PATH = getYarnBinPath();
+
+// Webpack needs to be configured with node.__dirname/__filename = false
+function getYarnBinPath(): string {
+  if (isWebpackBundle) {
+    return __filename;
+  } else {
+    return path.join(__dirname, '..', 'bin', 'yarn.js');
+  }
+}
 
 export const NODE_MODULES_FOLDER = 'node_modules';
 export const NODE_PACKAGE_JSON = 'package.json';
