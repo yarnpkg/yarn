@@ -379,7 +379,7 @@ export default class Config {
 
     this.disablePrepublish = !!opts.disablePrepublish;
 
-    this.registry = opts.registry;
+    this.registry = opts.registry || '';
 
     // $FlowFixMe$
     this.nonInteractive = !!opts.nonInteractive || isCi || !process.stdout.isTTY;

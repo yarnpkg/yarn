@@ -3,6 +3,7 @@
 import type Reporter from '../reporters/base-reporter.js';
 import type RequestManager from '../util/request-manager.js';
 import type {ConfigRegistries} from './index.js';
+import type Config from '../config.js';
 import {YARN_REGISTRY} from '../constants.js';
 import NpmRegistry from './npm-registry.js';
 import {stringify, parse} from '../lockfile';

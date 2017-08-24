@@ -5,6 +5,7 @@ import {resolve, join as pathJoin} from 'path';
 import NpmRegistry from '../../src/registries/npm-registry.js';
 import {BufferReporter} from '../../src/reporters/index.js';
 import homeDir from '../../src/util/user-home-dir.js';
+import Config from '../../src/config.js';
 
 describe('normalizeConfig', () => {
   beforeAll(() => {
@@ -60,10 +61,11 @@ function createMocks(): Object {
 }
 
 describe('request', () => {
-  test('should call requestManager.request with url', () => {
+  test('should call requestManager.request with url', async () => {
     const testCwd = '.';
     const {mockRequestManager, mockRegistries, mockReporter} = createMocks();
-    const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter);
+    const config = await Config.create();
+    const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter, config);
 
     const url = 'https://github.com/yarnpkg/yarn.tgz';
 
@@ -74,10 +76,11 @@ describe('request', () => {
     expect(requestParams.url).toBe(url);
   });
 
-  test('should not add authorization header if pathname not to registry', () => {
+  test('should not add authorization header if pathname not to registry', async () => {
     const testCwd = '.';
     const {mockRequestManager, mockRegistries, mockReporter} = createMocks();
-    const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter);
+    const config = await Config.create();
+    const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter, config);
 
     const url = 'https://github.com/yarnpkg/yarn.tgz';
 
@@ -88,10 +91,11 @@ describe('request', () => {
     expect(requestParams.headers.authorization).toBeUndefined();
   });
 
-  test('should not add authorization header if pathname not to registry and always-auth is true', () => {
+  test('should not add authorization header if pathname not to registry and always-auth is true', async () => {
     const testCwd = '.';
     const {mockRequestManager, mockRegistries, mockReporter} = createMocks();
-    const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter);
+    const config = await Config.create();
+    const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter, config);
 
     const url = 'https://github.com/yarnpkg/yarn.tgz';
 
@@ -106,10 +110,11 @@ describe('request', () => {
     expect(requestParams.headers.authorization).toBeUndefined();
   });
 
-  test('should not add authorization header if pathname is to registry and always-auth is false', () => {
+  test('should not add authorization header if pathname is to registry and always-auth is false', async () => {
     const testCwd = '.';
     const {mockRequestManager, mockRegistries, mockReporter} = createMocks();
-    const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter);
+    const config = await Config.create();
+    const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter, config);
 
     const url = 'https://registry.npmjs.org/yarnpkg/yarn.tgz';
 
@@ -124,10 +129,11 @@ describe('request', () => {
     expect(requestParams.headers.authorization).toBeUndefined();
   });
 
-  test('should not add authorization header if pathname is to registry and not scopped package', () => {
+  test('should not add authorization header if pathname is to registry and not scopped package', async () => {
     const testCwd = '.';
     const {mockRequestManager, mockRegistries, mockReporter} = createMocks();
-    const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter);
+    const config = await Config.create();
+    const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter, config);
 
     const url = 'https://registry.npmjs.org/yarnpkg/yarn.tgz';
 
@@ -141,10 +147,11 @@ describe('request', () => {
     expect(requestParams.headers.authorization).toBeUndefined();
   });
 
-  test('should add authorization header if pathname is to registry and always-auth is true', () => {
+  test('should add authorization header if pathname is to registry and always-auth is true', async () => {
     const testCwd = '.';
     const {mockRequestManager, mockRegistries, mockReporter} = createMocks();
-    const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter);
+    const config = await Config.create();
+    const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter, config);
 
     const url = 'https://registry.npmjs.org/yarnpkg/yarn.tgz';
 
@@ -159,10 +166,11 @@ describe('request', () => {
     expect(requestParams.headers.authorization).toBe('Bearer testAuthToken');
   });
 
-  test('should add authorization header if pathname is to registry and is scopped package', () => {
+  test('should add authorization header if pathname is to registry and is scopped package', async () => {
     const testCwd = '.';
     const {mockRequestManager, mockRegistries, mockReporter} = createMocks();
-    const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter);
+    const config = await Config.create();
+    const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter, config);
 
     const url = 'https://registry.npmjs.org/@testScope%2fyarn.tgz';
 
@@ -176,10 +184,11 @@ describe('request', () => {
     expect(requestParams.headers.authorization).toBe('Bearer testAuthToken');
   });
 
-  test('should add authorization header with token for custom registries with a scoped package', () => {
+  test('should add authorization header with token for custom registries with a scoped package', async () => {
     const testCwd = '.';
     const {mockRequestManager, mockRegistries, mockReporter} = createMocks();
-    const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter);
+    const config = await Config.create();
+    const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter, config);
 
     const url = 'https://some.other.registry/@testScope%2fyarn.tgz';
 
@@ -196,10 +205,11 @@ describe('request', () => {
 });
 
 describe('isRequestToRegistry functional test', () => {
-  test('request to registry url matching', () => {
+  test('request to registry url matching', async () => {
     const testCwd = '.';
     const {mockRequestManager, mockRegistries, mockReporter} = createMocks();
-    const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter);
+    const config = await Config.create();
+    const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter, config);
 
     const validRegistryUrls = [
       ['http://foo.bar:80/foo/bar/baz', 'http://foo.bar/foo/'],
@@ -225,10 +235,11 @@ describe('isRequestToRegistry functional test', () => {
     );
   });
 
-  test('isRequestToRegistry with custom host prefix', () => {
+  test('isRequestToRegistry with custom host prefix', async () => {
     const testCwd = '.';
     const {mockRequestManager, mockRegistries, mockReporter} = createMocks();
-    const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter);
+    const config = await Config.create();
+    const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter, config);
 
     npmRegistry.config = {
       'custom-host-suffix': 'some.host.org',
@@ -270,10 +281,11 @@ const packageIdents = [
 ];
 
 describe('isScopedPackage functional test', () => {
-  test('identifies scope correctly', () => {
+  test('identifies scope correctly', async () => {
     const testCwd = '.';
     const {mockRequestManager, mockRegistries, mockReporter} = createMocks();
-    const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter);
+    const config = await Config.create();
+    const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter, config);
 
     packageIdents.forEach(([pathname, scope]) => {
       expect(npmRegistry.isScopedPackage(pathname)).toEqual(!!scope.length);
@@ -282,10 +294,11 @@ describe('isScopedPackage functional test', () => {
 });
 
 describe('getScope functional test', () => {
-  describe('matches scope correctly', () => {
+  describe('matches scope correctly', async () => {
     const testCwd = '.';
     const {mockRequestManager, mockRegistries, mockReporter} = createMocks();
-    const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter);
+    const config = await Config.create();
+    const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter, config);
 
     packageIdents.forEach(([pathname, scope]) => {
       expect(npmRegistry.getScope(pathname)).toEqual(scope);
@@ -298,7 +311,8 @@ describe('getPossibleConfigLocations', () => {
     const testCwd = './project/subdirectory';
     const {mockRequestManager, mockRegistries} = createMocks();
     const reporter = new BufferReporter({verbose: true});
-    const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, reporter);
+    const config = await Config.create();
+    const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, reporter, config);
     await npmRegistry.getPossibleConfigLocations('npmrc', reporter);
 
     const logs = reporter.getBuffer().map(logItem => logItem.data);

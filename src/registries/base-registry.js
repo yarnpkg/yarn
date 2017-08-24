@@ -63,6 +63,9 @@ export default class BaseRegistry {
   //
   cwd: string;
 
+  // an override for registry
+  registry: string;
+
   //
   config: Object;
 
