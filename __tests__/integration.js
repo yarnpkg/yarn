@@ -196,3 +196,18 @@ test('cache folder fallback', async () => {
   );
   expect(stderrOutput2.toString()).toMatch(/Skipping preferred cache folder/);
 });
+
+test('yarn create', async () => {
+  const cwd = await makeTemp();
+  const command = path.resolve(__dirname, '../bin/yarn');
+  const options = {cwd, env: {YARN_SILENT: 1}};
+
+  const {stderr: stderr, stdout: stdout} = execa(command, ['create', 'index', '.'], options);
+
+  const stdoutPromise = misc.consumeStream(stdout);
+  const stderrPromise = misc.consumeStream(stderr);
+
+  const [stdoutOutput, _] = await Promise.all([stdoutPromise, stderrPromise]);
+
+  expect(stdoutOutput.toString()).toMatch(/\[created index\]/);
+});
