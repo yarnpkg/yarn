@@ -7,7 +7,7 @@ import {MessageError} from '../../errors.js';
 import {registries} from '../../registries/index.js';
 import NoopReporter from '../../reporters/base-reporter.js';
 import buildSubCommands from './_build-sub-commands.js';
-import Lockfile from '../../lockfile/wrapper.js';
+import Lockfile from '../../lockfile';
 import {Install} from './install.js';
 import {Add} from './add.js';
 import {run as runRemove} from './remove.js';

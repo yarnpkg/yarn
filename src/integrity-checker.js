@@ -1,7 +1,7 @@
 /* @flow */
 
 import type Config from './config.js';
-import type {LockManifest} from './lockfile/wrapper.js';
+import type {LockManifest} from './lockfile';
 import * as constants from './constants.js';
 import * as fs from './util/fs.js';
 import {sortAlpha, compareSortedArrays} from './util/misc.js';
@@ -52,6 +52,15 @@ type IntegrityFlags = {
   flat: boolean,
   checkFiles: boolean,
 };
+
+const INTEGRITY_FILE_DEFAULTS = () => ({
+  modulesFolders: [],
+  flags: [],
+  linkedModules: [],
+  topLevelPatterns: [],
+  lockfileEntries: {},
+  files: [],
+});
 
 /**
  *
@@ -174,12 +183,7 @@ export default class InstallationIntegrityChecker {
     artifacts?: InstallArtifacts,
   ): Promise<IntegrityFile> {
     const result: IntegrityFile = {
-      modulesFolders: [],
-      flags: [],
-      linkedModules: [],
-      topLevelPatterns: [],
-      lockfileEntries: {},
-      files: [],
+      ...INTEGRITY_FILE_DEFAULTS(),
       artifacts,
     };
 
@@ -267,7 +271,10 @@ export default class InstallationIntegrityChecker {
   async _getIntegrityFile(locationPath: string): Promise<?IntegrityFile> {
     const expectedRaw = await fs.readFile(locationPath);
     try {
-      return JSON.parse(expectedRaw);
+      return {
+        ...INTEGRITY_FILE_DEFAULTS(),
+        ...JSON.parse(expectedRaw),
+      };
     } catch (e) {
       // ignore JSON parsing for legacy text integrity files compatibility
     }

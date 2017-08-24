@@ -98,6 +98,10 @@ export const SINGLE_INSTANCE_FILENAME = '.yarn-single-instance';
 
 export const ENV_PATH_KEY = getPathKey(process.platform, process.env);
 
+export function isProduction(env: Object = process.env): boolean {
+  return env.NODE_ENV === 'production';
+}
+
 export function getPathKey(platform: string, env: Env): string {
   let pathKey = 'PATH';
 
@@ -114,3 +118,17 @@ export function getPathKey(platform: string, env: Env): string {
 
   return pathKey;
 }
+
+export const VERSION_COLOR_SCHEME: {[key: string]: VersionColor} = {
+  major: 'red',
+  premajor: 'red',
+  minor: 'yellow',
+  preminor: 'yellow',
+  patch: 'green',
+  prepatch: 'green',
+  prerelease: 'red',
+  unchanged: 'white',
+  unknown: 'red',
+};
+
+export type VersionColor = 'red' | 'yellow' | 'green' | 'white';

@@ -487,6 +487,15 @@ export default class PackageHoister {
   prepass(patterns: Array<string>) {
     patterns = this.resolver.dedupePatterns(patterns).sort();
 
+    const visited: Map<
+      string,
+      Array<{
+        pkg: Manifest,
+        ancestry: Array<Manifest>,
+        pattern: string,
+      }>,
+    > = new Map();
+
     const occurences: {
       [packageName: string]: {
         [version: string]: {
@@ -496,17 +505,8 @@ export default class PackageHoister {
       },
     } = {};
 
-    // add an occuring package to the above data structure
-    const add = (pattern: string, ancestry: Array<Manifest>) => {
-      const pkg = this.resolver.getStrictResolvedPattern(pattern);
-      if (ancestry.indexOf(pkg) >= 0) {
-        // prevent recursive dependencies
-        return;
-      }
-
-      const ref = pkg._reference;
-      invariant(ref, 'expected reference');
-
+    // visitor to be used inside add() to mark occurences of packages
+    const visitAdd = (pkg: Manifest, ancestry: Array<Manifest>, pattern: string) => {
       const versions = (occurences[pkg.name] = occurences[pkg.name] || {});
       const version = (versions[pkg.version] = versions[pkg.version] || {
         occurences: new Set(),
@@ -516,10 +516,51 @@ export default class PackageHoister {
       if (ancestry.length) {
         version.occurences.add(ancestry[ancestry.length - 1]);
       }
+    };
+
+    // add an occuring package to the above data structure
+    const add = (pattern: string, ancestry: Array<Manifest>, ancestryPatterns: Array<string>) => {
+      const pkg = this.resolver.getStrictResolvedPattern(pattern);
+      if (ancestry.indexOf(pkg) >= 0) {
+        // prevent recursive dependencies
+        return;
+      }
+
+      let visitedPattern = visited.get(pattern);
+
+      if (visitedPattern) {
+        // if a package has been visited before, simply increment occurrences of packages
+        // like last time this package was visited
+        visitedPattern.forEach(visitPkg => {
+          visitAdd(visitPkg.pkg, visitPkg.ancestry, visitPkg.pattern);
+        });
+
+        visitAdd(pkg, ancestry, pattern);
+
+        return;
+      }
+
+      const ref = pkg._reference;
+      invariant(ref, 'expected reference');
+
+      visitAdd(pkg, ancestry, pattern);
 
       for (const depPattern of ref.dependencies) {
-        add(depPattern, ancestry.concat(pkg));
+        const depAncestry = ancestry.concat(pkg);
+        const depAncestryPatterns = ancestryPatterns.concat(depPattern);
+        add(depPattern, depAncestry, depAncestryPatterns);
       }
+
+      visitedPattern = visited.get(pattern) || [];
+      visited.set(pattern, visitedPattern);
+      visitedPattern.push({pkg, ancestry, pattern});
+
+      ancestryPatterns.forEach(ancestryPattern => {
+        const visitedAncestryPattern = visited.get(ancestryPattern);
+        if (visitedAncestryPattern) {
+          visitedAncestryPattern.push({pkg, ancestry, pattern});
+        }
+      });
     };
 
     // get a list of root package names since we can't hoist other dependencies to these spots!
@@ -527,7 +568,7 @@ export default class PackageHoister {
     for (const pattern of patterns) {
       const pkg = this.resolver.getStrictResolvedPattern(pattern);
       rootPackageNames.add(pkg.name);
-      add(pattern, []);
+      add(pattern, [], []);
     }
 
     for (const packageName of Object.keys(occurences).sort()) {

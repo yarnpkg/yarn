@@ -6,7 +6,9 @@ import type PackageResolver from '../../package-resolver.js';
 import type PackageLinker from '../../package-linker.js';
 import type {Tree, Trees} from '../../reporters/types.js';
 import {Install} from './install.js';
-import Lockfile from '../../lockfile/wrapper.js';
+
+import Lockfile from '../../lockfile';
+import {isProduction} from '../../constants';
 
 const invariant = require('invariant');
 const micromatch = require('micromatch');
@@ -180,21 +182,34 @@ export function filterTree(tree: Tree, filters: Array<string>): boolean {
   return notDim && (found || hasChildren);
 }
 
+export function getDevDeps(manifest: Object): Set<string> {
+  return new Set(Object.keys(manifest.devDependencies).map(key => `${key}@${manifest.devDependencies[key]}`));
+}
+
 export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
   const lockfile = await Lockfile.fromDirectory(config.lockfileFolder, reporter);
   const install = new Install(flags, config, reporter, lockfile);
-  const {requests: depRequests, patterns, workspaceLayout} = await install.fetchRequestFromCwd();
+
+  const {requests: depRequests, patterns, manifest, workspaceLayout} = await install.fetchRequestFromCwd();
   await install.resolver.init(depRequests, {
     isFlat: install.flags.flat,
     isFrozen: install.flags.frozenLockfile,
     workspaceLayout,
   });
 
+  let activePatterns = [];
+  if (isProduction()) {
+    const devDeps = getDevDeps(manifest);
+    activePatterns = patterns.filter(pattern => !devDeps.has(pattern));
+  } else {
+    activePatterns = patterns;
+  }
+
   const opts: ListOptions = {
     reqDepth: getReqDepth(flags.depth),
   };
 
-  let {trees}: {trees: Trees} = await buildTree(install.resolver, install.linker, patterns, opts);
+  let {trees}: {trees: Trees} = await buildTree(install.resolver, install.linker, activePatterns, opts);
 
   if (args.length) {
     trees = trees.filter(tree => filterTree(tree, args));

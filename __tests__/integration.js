@@ -58,6 +58,15 @@ const PORT_RANGE = MAX_PORT_NUM - MIN_PORT_NUM;
 
 const getRandomPort = () => Math.floor(Math.random() * PORT_RANGE) + MIN_PORT_NUM;
 
+function runYarn(args: Array<string> = [], options: Object = {}): Promise<Array<Buffer>> {
+  const {stderr, stdout} = execa(path.resolve(__dirname, '../bin/yarn'), args, options);
+
+  const stdoutPromise = misc.consumeStream(stdout);
+  const stderrPromise = misc.consumeStream(stderr);
+
+  return Promise.all([stdoutPromise, stderrPromise]);
+}
+
 test('--mutex network', async () => {
   const cwd = await makeTemp();
   const cacheFolder = path.join(cwd, '.cache');
@@ -72,6 +81,87 @@ test('--mutex network', async () => {
     execa(command, ['add', 'foo'].concat(args), options),
   ]);
 });
+
+test('yarnrc binary path (js)', async () => {
+  const cwd = await makeTemp();
+
+  await fs.writeFile(`${cwd}/.yarnrc`, 'yarn-path "./override.js"\n');
+  await fs.writeFile(`${cwd}/override.js`, 'console.log("override called")\n');
+
+  const [stdoutOutput] = await runYarn([], {cwd});
+  expect(stdoutOutput.toString().trim()).toEqual('override called');
+});
+
+test('yarnrc binary path (executable)', async () => {
+  const cwd = await makeTemp();
+
+  if (process.platform === 'win32') {
+    await fs.writeFile(`${cwd}/.yarnrc`, 'yarn-path "./override.cmd"\n');
+    await fs.writeFile(`${cwd}/override.cmd`, '@echo override called\n');
+  } else {
+    await fs.writeFile(`${cwd}/.yarnrc`, 'yarn-path "./override"\n');
+    await fs.writeFile(`${cwd}/override`, '#!/usr/bin/env sh\necho override called\n');
+    await fs.chmod(`${cwd}/override`, 0o755);
+  }
+
+  const [stdoutOutput] = await runYarn([], {cwd});
+  expect(stdoutOutput.toString().trim()).toEqual('override called');
+});
+
+// Windows could run these tests, but we currently suffer from an escaping issue that breaks them (#4135)
+if (process.platform !== 'win32') {
+  test('yarn run <script> --opt', async () => {
+    const cwd = await makeTemp();
+
+    await fs.writeFile(
+      path.join(cwd, 'package.json'),
+      JSON.stringify({
+        scripts: {echo: `echo`},
+      }),
+    );
+
+    const command = path.resolve(__dirname, '../bin/yarn');
+    const options = {cwd, env: {YARN_SILENT: 1}};
+
+    const {stderr: stderr, stdout: stdout} = execa(command, ['run', 'echo', '--opt'], options);
+
+    const stdoutPromise = misc.consumeStream(stdout);
+    const stderrPromise = misc.consumeStream(stderr);
+
+    const [stdoutOutput, stderrOutput] = await Promise.all([stdoutPromise, stderrPromise]);
+
+    expect(stdoutOutput.toString().trim()).toEqual('--opt');
+    expect(stderrOutput.toString()).not.toMatch(
+      /From Yarn 1\.0 onwards, scripts don't require "--" for options to be forwarded/,
+    );
+  });
+
+  test('yarn run <script> -- --opt', async () => {
+    const cwd = await makeTemp();
+
+    await fs.writeFile(
+      path.join(cwd, 'package.json'),
+      JSON.stringify({
+        scripts: {echo: `echo`},
+      }),
+    );
+
+    const command = path.resolve(__dirname, '../bin/yarn');
+    const options = {cwd, env: {YARN_SILENT: 1}};
+
+    const {stderr: stderr, stdout: stdout} = execa(command, ['run', 'echo', '--', '--opt'], options);
+
+    const stdoutPromise = misc.consumeStream(stdout);
+    const stderrPromise = misc.consumeStream(stderr);
+
+    const [stdoutOutput, stderrOutput] = await Promise.all([stdoutPromise, stderrPromise]);
+
+    expect(stdoutOutput.toString().trim()).toEqual('--opt');
+    expect(stderrOutput.toString()).toMatch(
+      /From Yarn 1\.0 onwards, scripts don't require "--" for options to be forwarded/,
+    );
+  });
+}
 
 test('cache folder fallback', async () => {
   const cwd = await makeTemp();
