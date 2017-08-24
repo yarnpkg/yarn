@@ -21,9 +21,9 @@ const net = require('net');
 const onDeath = require('death');
 const path = require('path');
 
-function findActiveDirectory(base) {
-  let prev,
-    dir = base;
+function findActiveDirectory(base): string {
+  let prev = null;
+  let dir = base;
 
   do {
     if (fs.existsSync(path.join(dir, constants.NODE_PACKAGE_JSON))) {
@@ -37,7 +37,7 @@ function findActiveDirectory(base) {
   return base;
 }
 
-export async function main({
+export function main({
   startArgs,
   args,
   endArgs,
