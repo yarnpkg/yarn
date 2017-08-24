@@ -101,7 +101,6 @@ test.concurrent('init using Github shorthand should resolve to full repository U
   );
 });
 
-
 test.concurrent('init and give private empty', (): Promise<void> => {
   const questionMap = Object.freeze({
     name: 'private-empty',
@@ -137,7 +136,6 @@ test.concurrent('init and give private empty', (): Promise<void> => {
     'init-github',
     async (config): Promise<void> => {
       const manifestFile = await fs.readFile(path.join(config.cwd, 'package.json'));
-
       expect(JSON.parse(manifestFile)).toMatchSnapshot('init-private-empty');
     },
   );
