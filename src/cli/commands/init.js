@@ -95,6 +95,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
       key: 'private',
       question: 'private',
       default: '',
+      inputFormatter: yn,
     },
   ];
 
@@ -132,7 +133,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
     let answer;
     let validAnswer = false;
 
-    if (yes || (privateFlag && manifestKey === 'private')) {
+    if (yes) {
       answer = def;
     } else {
       // loop until a valid answer is provided, if validation is on entry
@@ -152,8 +153,8 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
     }
 
     if (answer) {
-      if (manifestKey === 'private') {
-        answer = yn(answer);
+      if (entry.inputFormatter) {
+        answer = entry.inputFormatter(answer);
       }
       objectPath.set(pkg, manifestKey, answer);
     }

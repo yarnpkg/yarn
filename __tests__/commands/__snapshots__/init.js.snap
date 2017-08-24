@@ -11,6 +11,15 @@ Object {
 }
 `;
 
+exports[`init-private-empty 1`] = `
+Object {
+  "license": "MIT",
+  "main": "index.js",
+  "name": "private-empty",
+  "version": "1.0.0",
+}
+`;
+
 exports[`init-yes 1`] = `
 Object {
   "license": "MIT",
