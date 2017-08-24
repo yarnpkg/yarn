@@ -30,7 +30,32 @@ test.concurrent('init --yes should create package.json with defaults', (): Promi
       // Name is derived from directory name which is dynamic so check
       // that separately and then remove from snapshot
       expect(manifest.name).toEqual(path.basename(cwd));
+      expect(manifest.private).toEqual(undefined);
       expect({...manifest, name: 'init-yes'}).toMatchSnapshot('init-yes');
+    },
+  );
+});
+
+test.concurrent('init --yes --private should create package.json with defaults and private true', (): Promise<void> => {
+  return buildRun(
+    ConsoleReporter,
+    fixturesLoc,
+    (args, flags, config, reporter, lockfile): Promise<void> => {
+      return runInit(config, reporter, flags, args);
+    },
+    [],
+    {yes: true, private: true},
+    'init-yes-private',
+    async (config): Promise<void> => {
+      const {cwd} = config;
+      const manifestFile = await fs.readFile(path.join(cwd, 'package.json'));
+      const manifest = JSON.parse(manifestFile);
+
+      // Name is derived from directory name which is dynamic so check
+      // that separately and then remove from snapshot
+      expect(manifest.name).toEqual(path.basename(cwd));
+      expect(manifest.private).toEqual(true);
+      expect({...manifest, name: 'init-yes-private'}).toMatchSnapshot('init-yes-private');
     },
   );
 });
@@ -44,6 +69,7 @@ test.concurrent('init using Github shorthand should resolve to full repository U
     'repository url': 'user/repo',
     author: '',
     license: '',
+    private: 'false',
   });
   class TestReporter extends ConsoleReporter {
     question(question: string, options?: QuestionOptions = {}): Promise<string> {
@@ -71,6 +97,46 @@ test.concurrent('init using Github shorthand should resolve to full repository U
       const manifestFile = await fs.readFile(path.join(config.cwd, 'package.json'));
 
       expect(JSON.parse(manifestFile)).toMatchSnapshot('init-github');
+    },
+  );
+});
+
+test.concurrent('init and give private empty', (): Promise<void> => {
+  const questionMap = Object.freeze({
+    name: 'private-empty',
+    version: '',
+    description: '',
+    'entry point': '',
+    'repository url': '',
+    author: '',
+    license: '',
+    private: '',
+  });
+  class TestReporter extends ConsoleReporter {
+    question(question: string, options?: QuestionOptions = {}): Promise<string> {
+      return new Promise((resolve, reject) => {
+        const parsedQuestion = question.replace(/ \((.*?)\)/g, '');
+        if (parsedQuestion in questionMap) {
+          resolve(questionMap[parsedQuestion]);
+        } else {
+          reject(new Error(`Question not found in question-answer map ${parsedQuestion}`));
+        }
+      });
+    }
+  }
+
+  return buildRun(
+    TestReporter,
+    fixturesLoc,
+    (args, flags, config, reporter, lockfile): Promise<void> => {
+      return runInit(config, reporter, flags, args);
+    },
+    [],
+    {},
+    'init-github',
+    async (config): Promise<void> => {
+      const manifestFile = await fs.readFile(path.join(config.cwd, 'package.json'));
+      expect(JSON.parse(manifestFile)).toMatchSnapshot('init-private-empty');
     },
   );
 });
