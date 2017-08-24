@@ -98,7 +98,7 @@ async function getGlobalPrefix(config: Config, flags: Object): Promise<string> {
     if (err.code === 'EACCES') {
       prefix = FALLBACK_GLOBAL_PREFIX;
     } else if (err.code === 'ENOENT') {
-      await fs.mkdirp(binFolder);
+      // ignore - that just means we don't have the folder, yet
     } else {
       throw err;
     }
