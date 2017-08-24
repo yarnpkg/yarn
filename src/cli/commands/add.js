@@ -5,14 +5,18 @@ import type {InstallCwdRequest} from './install.js';
 import type {DependencyRequestPatterns, Manifest} from '../../types.js';
 import type Config from '../../config.js';
 import type {ListOptions} from './list.js';
-import Lockfile from '../../lockfile/wrapper.js';
-import PackageRequest from '../../package-request.js';
+import Lockfile from '../../lockfile';
+import {normalizePattern} from '../../util/normalize-pattern.js';
+import WorkspaceLayout from '../../workspace-layout.js';
 import {getExoticResolver} from '../../resolvers/index.js';
 import {buildTree} from './list.js';
 import {wrapLifecycle, Install} from './install.js';
 import {MessageError} from '../../errors.js';
+import * as constants from '../../constants.js';
+import * as fs from '../../util/fs.js';
 
 import invariant from 'invariant';
+import path from 'path';
 import semver from 'semver';
 
 export class Add extends Install {
@@ -56,7 +60,7 @@ export class Add extends Install {
    */
   getPatternVersion(pattern: string, pkg: Manifest): string {
     const {exact, tilde} = this.flags;
-    const {hasVersion, range} = PackageRequest.normalizePattern(pattern);
+    const {hasVersion, range} = normalizePattern(pattern);
     let version;
 
     if (getExoticResolver(pattern)) {
@@ -97,8 +101,18 @@ export class Add extends Install {
     return preparedPatterns;
   }
 
-  bailout(patterns: Array<string>): Promise<boolean> {
-    return Promise.resolve(false);
+  async bailout(patterns: Array<string>, workspaceLayout: ?WorkspaceLayout): Promise<boolean> {
+    const lockfileCache = this.lockfile.cache;
+    if (!lockfileCache) {
+      return false;
+    }
+    const match = await this.integrityChecker.check(patterns, lockfileCache, this.flags, workspaceLayout);
+    const haveLockfile = await fs.exists(path.join(this.config.lockfileFolder, constants.LOCKFILE_FILENAME));
+    if (match.integrityFileMissing && haveLockfile) {
+      // Integrity file missing, force script installations
+      this.scripts.setForce(true);
+    }
+    return false;
   }
 
   /**
@@ -106,6 +120,12 @@ export class Add extends Install {
    */
 
   async init(): Promise<Array<string>> {
+    if (this.config.workspaceRootFolder && this.config.cwd === this.config.workspaceRootFolder) {
+      if (this.flagToOrigin === 'dependencies') {
+        throw new MessageError(this.reporter.lang('workspacesPreferDevDependencies'));
+      }
+    }
+
     this.addedPatterns = [];
     const patterns = await Install.prototype.init.call(this);
     await this.maybeOutputSaveTree(patterns);

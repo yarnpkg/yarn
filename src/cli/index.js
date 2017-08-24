@@ -7,7 +7,8 @@ import * as constants from '../constants.js';
 import * as network from '../util/network.js';
 import {MessageError} from '../errors.js';
 import Config from '../config.js';
-import {getRcArgs} from '../rc.js';
+import {getRcConfigForCwd, getRcArgs} from '../rc.js';
+import {spawnp, forkp} from '../util/child.js';
 import {version} from '../util/yarn-version.js';
 import handleSignals from '../util/signal-handler.js';
 
@@ -55,15 +56,18 @@ export function main({
   commander.option('--pure-lockfile', "don't generate a lockfile");
   commander.option('--frozen-lockfile', "don't generate a lockfile and fail if an update is needed");
   commander.option('--link-duplicates', 'create hardlinks to the repeated modules in node_modules');
+  commander.option('--link-folder <path>', 'specify a custom folder to store global links');
   commander.option('--global-folder <path>', 'specify a custom folder to store global packages');
   commander.option(
     '--modules-folder <path>',
     'rather than installing modules into the node_modules folder relative to the cwd, output them here',
   );
-  commander.option('--cache-folder <path>', 'specify a custom folder to store the yarn cache');
+  commander.option('--preferred-cache-folder <path>', 'specify a custom folder to store the yarn cache if possible');
+  commander.option('--cache-folder <path>', 'specify a custom folder that must be used to store the yarn cache');
   commander.option('--mutex <type>[:specifier]', 'use a mutex to ensure only one yarn instance is executing');
   commander.option('--emoji [bool]', 'enable emoji in output', process.platform === 'darwin');
   commander.option('-s, --silent', 'skip Yarn console logs, other types of logs (script output) will be printed');
+  commander.option('--cwd <cwd>', 'working directory to use', process.cwd());
   commander.option('--proxy <host>', '');
   commander.option('--https-proxy <host>', '');
   commander.option('--no-progress', 'disable progress bar');
@@ -108,16 +112,26 @@ export function main({
     command = commands.run;
   }
 
+  let warnAboutRunDashDash = false;
+  // we are using "yarn <script> -abc" or "yarn run <script> -abc", we want -abc to be script options, not yarn options
+  if (command === commands.run) {
+    if (endArgs.length === 0) {
+      endArgs = ['--', ...args.splice(1)];
+    } else {
+      warnAboutRunDashDash = true;
+    }
+  }
+
   command.setFlags(commander);
   commander.parse([
     ...startArgs,
     // we use this for https://github.com/tj/commander.js/issues/346, otherwise
     // it will strip some args that match with any options
     'this-arg-will-get-stripped-later',
-    ...getRcArgs(commandName),
+    ...getRcArgs(commandName, args),
     ...args,
   ]);
-  commander.args = commander.args.concat(endArgs);
+  commander.args = commander.args.concat(endArgs.slice(1));
 
   // we strip cmd
   console.assert(commander.args.length >= 1);
@@ -169,6 +183,11 @@ export function main({
   //
   const run = (): Promise<void> => {
     invariant(command, 'missing command');
+
+    if (warnAboutRunDashDash) {
+      reporter.warn(reporter.lang('dashDashDeprecation'));
+    }
+
     return command.run(config, reporter, commander, commander.args).then(exitCode => {
       if (outputWrapper) {
         reporter.footer(false);
@@ -323,7 +342,9 @@ export function main({
     .init({
       binLinks: commander.binLinks,
       modulesFolder: commander.modulesFolder,
+      linkFolder: commander.linkFolder,
       globalFolder: commander.globalFolder,
+      preferredCacheFolder: commander.preferredCacheFolder,
       cacheFolder: commander.cacheFolder,
       preferOffline: commander.preferOffline,
       captureHar: commander.har,
@@ -339,6 +360,7 @@ export function main({
       networkTimeout: commander.networkTimeout,
       nonInteractive: commander.nonInteractive,
       scriptsPrependNodePath: commander.scriptsPrependNodePath,
+      cwd: commander.cwd,
 
       commandName: commandName === 'run' ? commander.args[0] : commandName,
     })
@@ -394,14 +416,32 @@ export function main({
     });
 }
 
-export default function start() {
-  // ignore all arguments after a --
-  const doubleDashIndex = process.argv.findIndex(element => element === '--');
-  const startArgs = process.argv.slice(0, 2);
-  const args = process.argv.slice(2, doubleDashIndex === -1 ? process.argv.length : doubleDashIndex);
-  const endArgs = doubleDashIndex === -1 ? [] : process.argv.slice(doubleDashIndex + 1, process.argv.length);
+async function start(): Promise<void> {
+  const rc = getRcConfigForCwd(process.cwd());
+  const yarnPath = rc['yarn-path'];
 
-  main({startArgs, args, endArgs});
+  if (yarnPath && process.env.YARN_IGNORE_PATH !== '1') {
+    const argv = process.argv.slice(2);
+    const opts = {stdio: 'inherit', env: Object.assign({}, process.env, {YARN_IGNORE_PATH: 1})};
+
+    try {
+      await spawnp(yarnPath, argv, opts);
+    } catch (firstError) {
+      try {
+        await forkp(yarnPath, argv, opts);
+      } catch (error) {
+        throw firstError;
+      }
+    }
+  } else {
+    // ignore all arguments after a --
+    const doubleDashIndex = process.argv.findIndex(element => element === '--');
+    const startArgs = process.argv.slice(0, 2);
+    const args = process.argv.slice(2, doubleDashIndex === -1 ? process.argv.length : doubleDashIndex);
+    const endArgs = doubleDashIndex === -1 ? [] : process.argv.slice(doubleDashIndex);
+
+    main({startArgs, args, endArgs});
+  }
 }
 
 // When this module is compiled via Webpack, its child
@@ -411,3 +451,5 @@ export const autoRun = module.children.length === 0;
 if (require.main === module) {
   start();
 }
+
+export default start;

@@ -1,9 +1,9 @@
 /* @flow */
 
-import Lockfile from '../../src/lockfile/wrapper.js';
+import Lockfile from '../../src/lockfile';
 import {ConsoleReporter} from '../../src/reporters/index.js';
 import {Reporter} from '../../src/reporters/index.js';
-import {parse} from '../../src/lockfile/wrapper.js';
+import {parse} from '../../src/lockfile';
 import * as constants from '../../src/constants.js';
 import {run as check} from '../../src/cli/commands/check.js';
 import * as fs from '../../src/util/fs.js';
@@ -38,7 +38,7 @@ export async function createLockfile(dir: string): Promise<Lockfile> {
     lockfile = parse(rawLockfile).object;
   }
 
-  return new Lockfile(lockfile);
+  return new Lockfile({cache: lockfile, parseResultType: 'success'});
 }
 
 export function explodeLockfile(lockfile: string): Array<string> {
@@ -46,9 +46,23 @@ export function explodeLockfile(lockfile: string): Array<string> {
 }
 
 export async function getPackageVersion(config: Config, packagePath: string): Promise<string> {
-  const loc = path.join(config.cwd, `node_modules/${packagePath.replace(/\//g, '/node_modules/')}/package.json`);
-  const json = JSON.parse(await fs.readFile(loc));
-  return json.version;
+  return (await getPackageManifest(config, packagePath)).version;
+}
+
+export function getPackageManifest(config: Config, packagePath: string): Promise<any> {
+  return fs.readJson(getPackageManifestPath(config, packagePath));
+}
+
+export function getPackageManifestPath(config: Config, packagePath: string): string {
+  return path.join(getPackagePath(config, packagePath), 'package.json');
+}
+
+export function isPackagePresent(config: Config, packagePath: string): Promise<boolean> {
+  return fs.exists(getPackagePath(config, packagePath));
+}
+
+export function getPackagePath(config: Config, packagePath: string): string {
+  return path.join(config.cwd, `node_modules/${packagePath.replace(/\//g, '/node_modules/')}`);
 }
 
 export function makeConfigFromDirectory(cwd: string, reporter: Reporter, flags: Object = {}): Promise<Config> {

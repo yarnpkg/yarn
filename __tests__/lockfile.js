@@ -1,7 +1,7 @@
 /* @flow */
 /* eslint quotes: 0 */
 
-import Lockfile from '../src/lockfile/wrapper.js';
+import Lockfile from '../src/lockfile';
 import stringify from '../src/lockfile/stringify.js';
 import parse from '../src/lockfile/parse.js';
 import nullify from '../src/util/map.js';
@@ -46,16 +46,20 @@ test('Lockfile.fromDirectory', () => {});
 
 test('Lockfile.getLocked', () => {
   const lockfile = new Lockfile({
-    foo: 'bar',
-    bar: {},
+    cache: {
+      foo: 'bar',
+      bar: {},
+    },
   });
   expect(!!lockfile.getLocked('foo')).toBeTruthy();
 });
 
 test('Lockfile.getLocked pointer', () => {
   const lockfile = new Lockfile({
-    foo: 'bar',
-    bar: {},
+    cache: {
+      foo: 'bar',
+      bar: {},
+    },
   });
   expect(!!lockfile.getLocked('foo')).toBeTruthy();
 });
@@ -66,8 +70,10 @@ test('Lockfile.getLocked no cache', () => {
 
 test('Lockfile.getLocked defaults', () => {
   const pattern = new Lockfile({
-    foobar: {
-      version: '0.0.0',
+    cache: {
+      foobar: {
+        version: '0.0.0',
+      },
     },
   }).getLocked('foobar');
   expect(pattern.registry).toBe('npm');
@@ -76,7 +82,7 @@ test('Lockfile.getLocked defaults', () => {
 });
 
 test('Lockfile.getLocked unknown', () => {
-  new Lockfile({}).getLocked('foobar');
+  new Lockfile({cache: {}}).getLocked('foobar');
 });
 
 test('Lockfile.getLockfile', () => {

@@ -12,9 +12,9 @@ import {
 } from './_helpers.js';
 import {Add, run as add} from '../../src/cli/commands/add.js';
 import * as constants from '../../src/constants.js';
-import {parse} from '../../src/lockfile/wrapper.js';
+import {parse} from '../../src/lockfile';
 import {Install} from '../../src/cli/commands/install.js';
-import Lockfile from '../../src/lockfile/wrapper.js';
+import Lockfile from '../../src/lockfile';
 import {run as check} from '../../src/cli/commands/check.js';
 import * as fs from '../../src/util/fs.js';
 import semver from 'semver';
@@ -41,6 +41,18 @@ const runAdd = buildRun.bind(
     return add;
   },
 );
+
+test.concurrent('add without --dev should fail on the workspace root', async () => {
+  await runInstall({}, 'simple-worktree', async (config, reporter): Promise<void> => {
+    await expect(add(config, reporter, {}, ['left-pad'])).rejects.toBeDefined();
+  });
+});
+
+test.concurrent("add with --dev shouldn't fail on the workspace root", async () => {
+  await runInstall({}, 'simple-worktree', async (config, reporter): Promise<void> => {
+    await expect(add(config, reporter, {dev: true}, ['left-pad']));
+  });
+});
 
 test.concurrent('adds any new package to the current workspace, but install from the workspace', async () => {
   await runInstall({}, 'simple-worktree', async (config): Promise<void> => {
@@ -833,6 +845,37 @@ test.concurrent('should only refer to root to satisfy peer dependency', (): Prom
     ['file:c'],
     {},
     'add-with-multiple-versions-of-peer-dependency',
+  );
+});
+
+test.concurrent('should retain build artifacts after add when missing integrity file', (): Promise<void> => {
+  return buildRun(
+    reporters.BufferReporter,
+    fixturesLoc,
+    async (args, flags, config, reporter): Promise<void> => {
+      const lockfile = await createLockfile(config.cwd);
+
+      const addA = new Add(args, flags, config, reporter, lockfile);
+      await addA.init();
+
+      const expectedArtifacts = ['foo.txt'];
+      const integrityLoc = path.join(config.cwd, 'node_modules', constants.INTEGRITY_FILENAME);
+
+      const beforeIntegrity = await fs.readJson(integrityLoc);
+      expect(beforeIntegrity.artifacts['a@0.0.0']).toEqual(expectedArtifacts);
+
+      await fs.unlink(integrityLoc);
+
+      const lockfileAfterPreviousAdd = await Lockfile.fromDirectory(config.cwd);
+      const addB = new Add(['file:b'], flags, config, reporter, lockfileAfterPreviousAdd);
+      await addB.init();
+
+      const afterIntegrity = await fs.readJson(integrityLoc);
+      expect(afterIntegrity.artifacts['a@0.0.0']).toEqual(expectedArtifacts);
+    },
+    ['file:a'],
+    {},
+    'retain-build-artifacts-missing-integrity',
   );
 });
 

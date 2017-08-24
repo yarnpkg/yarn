@@ -5,8 +5,7 @@ import type RequestManager from '../util/request-manager.js';
 import type {ConfigRegistries} from './index.js';
 import {YARN_REGISTRY} from '../constants.js';
 import NpmRegistry from './npm-registry.js';
-import stringify from '../lockfile/stringify.js';
-import parse from '../lockfile/parse.js';
+import {stringify, parse} from '../lockfile';
 import * as fs from '../util/fs.js';
 import {version} from '../util/yarn-version.js';
 

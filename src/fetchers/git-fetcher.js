@@ -8,7 +8,7 @@ import * as fsUtil from '../util/fs.js';
 import * as constants from '../constants.js';
 import * as crypto from '../util/crypto.js';
 import {install} from '../cli/commands/install.js';
-import Lockfile from '../lockfile/wrapper.js';
+import Lockfile from '../lockfile';
 import Config from '../config.js';
 import {packTarball} from '../cli/commands/pack.js';
 
@@ -46,7 +46,11 @@ export default class GitFetcher extends BaseFetcher {
 
     const hash = this.hash;
 
-    const packageFilename = withCommit && hash ? `${path.basename(pathname)}-${hash}` : `${path.basename(pathname)}`;
+    let packageFilename = withCommit && hash ? `${path.basename(pathname)}-${hash}` : `${path.basename(pathname)}`;
+
+    if (packageFilename.startsWith(':')) {
+      packageFilename = packageFilename.substr(1);
+    }
 
     return this.config.getOfflineMirrorPath(packageFilename);
   }

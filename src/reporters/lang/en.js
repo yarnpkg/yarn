@@ -63,7 +63,8 @@ const messages = {
 
   couldntFindPackagejson: "Couldn't find a package.json file in $0",
   couldntFindMatch: "Couldn't find match for $0 in $1 for $2.",
-  couldntFindPackageInCache: "Couldn't find any versions for $0 that matches $1 in our cache. Possible versions: $2",
+  couldntFindPackageInCache:
+    "Couldn't find any versions for $0 that matches $1 in our cache (possible versions are $2). This is usually caused by a missing entry in the lockfile, running Yarn without the --offline flag may help fix this issue.",
   couldntFindVersionThatMatchesRange: "Couldn't find any versions for $0 that matches $1",
   chooseVersionFromList: 'Please choose a version of $0 from this list:',
   moduleNotInManifest: "This module isn't specified in a manifest.",
@@ -110,12 +111,16 @@ const messages = {
   noFilePermission: "We don't have permissions to touch the file $0.",
   allDependenciesUpToDate: 'All of your dependencies are up to date.',
   legendColorsForUpgradeInteractive:
-    'Color legend : \n $0    : Patch Update backward-compatible bug fixes \n $1 : Minor Update backward-compatible features',
+    'Color legend : \n $0    : Major Update backward-incompatible updates \n $1 : Minor Update backward-compatible features \n $2  : Patch Update backward-compatible bug fixes',
   frozenLockfileError: 'Your lockfile needs to be updated, but yarn was run with `--frozen-lockfile`.',
   fileWriteError: 'Could not write file $0: $1',
   multiplePackagesCantUnpackInSameDestination:
     'Pattern $0 is trying to unpack in the same destination $1 as pattern $2. This could result in a non deterministic behavior, skipping.',
   incorrectLockfileEntry: 'Lockfile has incorrect entry for $0. Ignoring it.',
+
+  invalidResolutionName: 'Resolution field $0 does not end with a valid package name and will be ignored',
+  invalidResolutionVersion: 'Resolution field $0 has an invalid version entry and may be ignored',
+  incompatibleResolutionVersion: 'Resolution field $0 is incompatible with requested version $1',
 
   yarnOutdated: "Your current version of Yarn is out of date. The latest version is $0 while you're on $1.",
   yarnOutdatedInstaller: 'To upgrade, download the latest installer at $0.',
@@ -163,6 +168,8 @@ const messages = {
   createMissingPackage:
     'Package not found - this is probably an internal error, and should be reported at https://github.com/yarnpkg/yarn/issues.',
 
+  workspacesPreferDevDependencies:
+    "You're trying to add a regular dependency to a workspace root, which is probably a mistake (do you want to run this command inside a workspace?). If this dependency really should be in your workspace root, use the --dev flag to add it to your devDependencies.",
   workspacesRequirePrivateProjects: 'Workspaces can only be enabled in private projects',
   workspaceExperimentalDisabled:
     'The workspace feature is currently experimental and needs to be manually enabled - please add "workspaces-experimental true" to your .yarnrc file.',
@@ -174,8 +181,14 @@ const messages = {
   workspaceNameMandatory: 'Missing name in workspace at $0, ignoring.',
   workspaceNameDuplicate: 'There are more than one workspace with name $0',
 
+  cacheFolderSkipped: 'Skipping preferred cache folder $0 because it is not writable.',
+  cacheFolderMissing:
+    "Yarn hasn't been able to find a cache folder it can use. Please use the explicit --cache-folder option to tell it what location to use, or make one of the preferred locations writable.",
+  cacheFolderSelected: 'Selected the next writable cache folder in the list, will be $0.',
+
   execMissingCommand: 'Missing command name.',
 
+  dashDashDeprecation: `From Yarn 1.0 onwards, scripts don't require "--" for options to be forwarded. In a future version, any explicit "--" will be forwarded as-is to the scripts.`,
   commandNotSpecified: 'No command specified.',
   binCommands: 'Commands available from binary scripts: ',
   possibleCommands: 'Project commands',
@@ -318,6 +331,7 @@ const messages = {
   integrityLockfilesDontMatch: "Integrity check: Lock files don't match",
   integrityFailedFilesMissing: 'Integrity check: Files are missing',
   integrityPatternsDontMatch: "Integrity check: Top level patterns don't match",
+  integrityModulesFoldersMissing: 'Integrity check: Some module folders are missing',
   packageNotInstalled: '$0 not installed',
   optionalDepNotInstalled: 'Optional dependency $0 not installed',
   packageWrongVersion: '$0 is wrong version: expected $1, got $2',

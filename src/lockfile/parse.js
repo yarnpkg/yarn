@@ -15,8 +15,10 @@ type Token = {
   value: boolean | number | string | void,
 };
 
-type ParseResult = {
-  type: 'merge' | 'none' | 'conflict',
+export type ParseResultType = 'merge' | 'success' | 'conflict';
+
+export type ParseResult = {
+  type: ParseResultType,
   object: Object,
 };
 
@@ -42,7 +44,7 @@ function isValidPropValueToken(token): boolean {
   return VALID_PROP_VALUE_TOKENS.indexOf(token.type) >= 0;
 }
 
-export function* tokenise(input: string): Iterator<Token> {
+function* tokenise(input: string): Iterator<Token> {
   let lastNewline = false;
   let line = 1;
   let col = 0;
@@ -160,7 +162,7 @@ export function* tokenise(input: string): Iterator<Token> {
   yield buildToken(TOKEN_TYPES.eof);
 }
 
-export class Parser {
+class Parser {
   constructor(input: string, fileLoc: string = 'lockfile') {
     this.comments = [];
     this.tokens = tokenise(input);
@@ -401,5 +403,5 @@ function parseWithConflict(str: string, fileLoc: string): ParseResult {
 
 export default function(str: string, fileLoc: string = 'lockfile'): ParseResult {
   str = stripBOM(str);
-  return hasMergeConflicts(str) ? parseWithConflict(str, fileLoc) : {type: 'none', object: parse(str, fileLoc)};
+  return hasMergeConflicts(str) ? parseWithConflict(str, fileLoc) : {type: 'success', object: parse(str, fileLoc)};
 }

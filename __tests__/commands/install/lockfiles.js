@@ -4,9 +4,9 @@ import {run as check} from '../../../src/cli/commands/check.js';
 import * as constants from '../../../src/constants.js';
 import * as reporters from '../../../src/reporters/index.js';
 import {Install} from '../../../src/cli/commands/install.js';
-import Lockfile from '../../../src/lockfile/wrapper.js';
+import Lockfile from '../../../src/lockfile';
 import * as fs from '../../../src/util/fs.js';
-import {getPackageVersion, runInstall} from '../_helpers.js';
+import {getPackageVersion, isPackagePresent, runInstall} from '../_helpers.js';
 import {promisify} from '../../../src/util/promise';
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 150000;
@@ -152,7 +152,7 @@ test.concurrent('install have a clean node_modules after lockfile update (branch
     await reinstall.init();
 
     expect(await getPackageVersion(config, 'dep-a')).toEqual('1.2.0');
-    expect(await fs.exists(path.join(config.cwd, 'node_modules/dep-b'))).toEqual(false);
+    expect(await isPackagePresent(config, 'dep-b')).toEqual(false);
   });
 });
 
@@ -192,6 +192,24 @@ test.concurrent('install should write and read integrity file based on lockfile 
       allCorrect = true;
     }
     expect(allCorrect).toBe(true);
+  });
+});
+
+test.concurrent('install should retain artifacts when missing integrity file', (): Promise<void> => {
+  return runInstall({}, 'install-should-retain-artifacts-when-missing-integrity', async (config, reporter) => {
+    const expectedArtifacts = ['foo.txt'];
+    const integrityLoc = path.join(config.cwd, 'node_modules', constants.INTEGRITY_FILENAME);
+
+    const beforeIntegrity = await fs.readJson(integrityLoc);
+    expect(beforeIntegrity.artifacts['a@0.0.0']).toEqual(expectedArtifacts);
+
+    await fs.unlink(integrityLoc);
+
+    const reinstall = new Install({}, config, reporter, await Lockfile.fromDirectory(config.cwd));
+    await reinstall.init();
+
+    const afterIntegrity = await fs.readJson(integrityLoc);
+    expect(afterIntegrity.artifacts['a@0.0.0']).toEqual(expectedArtifacts);
   });
 });
 

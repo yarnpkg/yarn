@@ -160,13 +160,13 @@ export default class ConsoleReporter extends BaseReporter {
     this.log(this._prependEmoji(msg, '✨'));
   }
 
-  log(msg: string) {
+  log(msg: string, {force = false}: {force?: boolean} = {}) {
     this._lastCategorySize = 0;
-    this._log(msg);
+    this._log(msg, {force});
   }
 
-  _log(msg: string) {
-    if (this.isSilent) {
+  _log(msg: string, {force = false}: {force?: boolean} = {}) {
+    if (this.isSilent && !force) {
       return;
     }
     clearLine(this.stdout);

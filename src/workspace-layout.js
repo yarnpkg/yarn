@@ -1,7 +1,7 @@
 /* @flow */
 
 import type Config from './config.js';
-import PackageRequest from './package-request.js';
+import {normalizePattern} from './util/normalize-pattern.js';
 import type {WorkspacesManifestMap, Manifest} from './types.js';
 
 const semver = require('semver');
@@ -21,7 +21,7 @@ export default class WorkspaceLayout {
   }
 
   getManifestByPattern(pattern: string): ?{loc: string, manifest: Manifest} {
-    const {name, range} = PackageRequest.normalizePattern(pattern);
+    const {name, range} = normalizePattern(pattern);
     const workspace = this.getWorkspaceManifest(name);
     if (!workspace || !semver.satisfies(workspace.manifest.version, range, this.config.looseSemver)) {
       return null;

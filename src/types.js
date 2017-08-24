@@ -19,6 +19,7 @@ export type DependencyRequestPattern = {
   registry: RegistryNames,
   optional: boolean,
   hint?: ?string,
+  parentNames?: Array<string>,
   parentRequest?: ?PackageRequest,
 };
 export type DependencyRequestPatterns = Array<DependencyRequestPattern>;
