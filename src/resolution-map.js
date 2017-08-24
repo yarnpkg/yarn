@@ -5,6 +5,7 @@ import map from './util/map';
 import type Config from './config';
 import type {Reporter} from './reporters';
 import {normalizePattern} from './util/normalize-pattern.js';
+import parsePackagePath from './util/parse-package-path';
 import {getExoticResolver} from './resolvers';
 
 const DIRECTORY_SEPARATOR = '/';
@@ -48,7 +49,7 @@ export default class ResolutionMap {
   }
 
   parsePatternInfo(globPattern: string, range: string): ?Object {
-    const directories = globPattern.split(DIRECTORY_SEPARATOR);
+    const directories = parsePackagePath(globPattern);
     const name = directories.pop();
 
     if (!name) {
