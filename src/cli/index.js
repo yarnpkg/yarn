@@ -22,20 +22,19 @@ const onDeath = require('death');
 const path = require('path');
 
 function findActiveDirectory(base) {
-    let prev, dir = base;
+  let prev,
+    dir = base;
 
-    do {
+  do {
+    if (fs.existsSync(path.join(dir, constants.NODE_PACKAGE_JSON))) {
+      return dir;
+    }
 
-      if (fs.existsSync(path.join(dir, constants.NODE_PACKAGE_JSON))) {
-        return dir;
-      }
+    prev = dir;
+    dir = path.dirname(dir);
+  } while (dir !== prev);
 
-      prev = dir;
-      dir = path.dirname(dir);
-
-    } while (dir !== prev);
-
-    return base;
+  return base;
 }
 
 export async function main({
