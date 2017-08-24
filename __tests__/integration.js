@@ -202,12 +202,12 @@ test('yarn create', async () => {
   const command = path.resolve(__dirname, '../bin/yarn');
   const options = {cwd, env: {YARN_SILENT: 1}};
 
-  const {stderr: stderr, stdout: stdout} = execa(command, ['create', 'index', '.'], options);
+  const {stderr: stderr, stdout: stdout} = execa(command, ['create', 'html'], options);
 
   const stdoutPromise = misc.consumeStream(stdout);
   const stderrPromise = misc.consumeStream(stderr);
 
   const [stdoutOutput, _] = await Promise.all([stdoutPromise, stderrPromise]);
 
-  expect(stdoutOutput.toString()).toMatch(/\[created index\]/);
+  expect(stdoutOutput.toString()).toMatch(/<!doctype html>/);
 });
