@@ -17,8 +17,6 @@ import {linkBin} from '../../package-linker.js';
 import {POSIX_GLOBAL_PREFIX, FALLBACK_GLOBAL_PREFIX} from '../../constants.js';
 import * as fs from '../../util/fs.js';
 
-const nativeFs = require('fs');
-
 class GlobalAdd extends Add {
   maybeOutputSaveTree(): Promise<void> {
     for (const pattern of this.addedPatterns) {
@@ -90,11 +88,16 @@ async function getGlobalPrefix(config: Config, flags: Object): Promise<string> {
   } else {
     prefix = POSIX_GLOBAL_PREFIX;
   }
+
+  const binFolder = path.join(prefix, 'bin');
   try {
-    await fs.access(path.join(prefix, 'bin'), (nativeFs.constants || nativeFs).W_OK);
+    // eslint-disable-next-line no-bitwise
+    await fs.access(binFolder, fs.constants.W_OK | fs.constants.X_OK);
   } catch (err) {
     if (err.code === 'EACCES') {
       prefix = FALLBACK_GLOBAL_PREFIX;
+    } else if (err.code === 'ENOENT') {
+      // ignore - that just means we don't have the folder, yet
     } else {
       throw err;
     }
@@ -113,13 +116,19 @@ async function initUpdateBins(config: Config, reporter: Reporter, flags: Object)
 
   function throwPermError(err: Error & {[code: string]: string}, dest: string) {
     if (err.code === 'EACCES') {
-      throw new MessageError(reporter.lang('noFilePermission', dest));
+      throw new MessageError(reporter.lang('noPermission', dest));
     } else {
       throw err;
     }
   }
 
   return async function(): Promise<void> {
+    try {
+      await fs.mkdirp(binFolder);
+    } catch (err) {
+      throwPermError(err, binFolder);
+    }
+
     const afterBins = await getBins(config);
 
     // remove old bins

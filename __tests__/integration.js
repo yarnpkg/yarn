@@ -183,19 +183,12 @@ test('cache folder fallback', async () => {
   const cwd = await makeTemp();
   const cacheFolder = path.join(cwd, '.cache');
 
-  const command = path.resolve(__dirname, '../bin/yarn');
   const args = ['--preferred-cache-folder', cacheFolder];
-
   const options = {cwd};
 
-  function runCacheDir(): Promise<Array<Buffer>> {
-    const {stderr, stdout} = execa(command, ['cache', 'dir'].concat(args), options);
-
-    const stdoutPromise = misc.consumeStream(stdout);
-    const stderrPromise = misc.consumeStream(stderr);
-
-    return Promise.all([stdoutPromise, stderrPromise]);
-  }
+  const runCacheDir = () => {
+    return runYarn(['cache', 'dir'].concat(args), options);
+  };
 
   const [stdoutOutput, stderrOutput] = await runCacheDir();
 
@@ -211,4 +204,13 @@ test('cache folder fallback', async () => {
     path.join(constants.PREFERRED_MODULE_CACHE_DIRECTORIES[0], `v${constants.CACHE_VERSION}`),
   );
   expect(stderrOutput2.toString()).toMatch(/Skipping preferred cache folder/);
+});
+
+test('yarn create', async () => {
+  const cwd = await makeTemp();
+  const options = {cwd, env: {YARN_SILENT: 1}};
+
+  const [stdoutOutput, _] = await runYarn(['create', 'html'], options);
+
+  expect(stdoutOutput.toString()).toMatch(/<!doctype html>/);
 });

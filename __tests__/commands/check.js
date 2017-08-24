@@ -335,7 +335,6 @@ test.concurrent('--integrity should not die on missing fields in integrity file'
   try {
     await runCheck([], {integrity: true}, 'missing-fields');
   } catch (err) {
-    console.log(err);
     integrityError = true;
   }
   expect(integrityError).toEqual(false);
