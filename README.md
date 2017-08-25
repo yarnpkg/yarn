@@ -17,7 +17,7 @@
 
 ---
 
-**Fast:** Yarn caches every downloaded package, so it never needs to download the same package again. It also structures operations in a parallel format to maximize resource utilization, meaning install times become even faster.
+**Fast:** Yarn caches every package it has downloaded, so it never needs to download the same package again. It also does almost everything concurrently to maximize resource utilization. This means even faster installs.
 
 **Reliable:** Using a detailed, concise, lockfile format and a deterministic algorithm for installments, Yarn is able to guarantee that any install that works on one system will work exactly the same on another system.
 
@@ -27,9 +27,9 @@
 
 * **Offline Mode.** If you've installed a package before, then you can install it again without an internet connection.
 * **Deterministic.** The same dependencies will be installed in the same exact way on any machine, regardless of installation order.
-* **Network Performance.** Yarn efficiently queues requests and simultaneously avoids request waterfalls in order to maximize network utilization.
-* **Network Resilience.** A single request that fails will not cause the entire installation to fail. Requests are automatically re-tried upon failure.
-* **Flat Mode.** Yarn resolves mismatched versions of dependencies and uniformly switches to a single version to avoid duplicates.
+* **Network Performance.** Yarn efficiently queues requests and avoids request waterfalls in order to maximize network utilization.
+* **Network Resilience.** A single request that fails will not cause the entire installation to fail. Requests are automatically retried upon failure.
+* **Flat Mode.** Yarn resolves mismatched versions of dependencies to a single version to avoid creating duplicates.
 * **More emojis.** 🐈
 
 ## Installing Yarn
