@@ -171,8 +171,8 @@ const messages = {
   workspacesPreferDevDependencies:
     "You're trying to add a regular dependency to a workspace root, which is probably a mistake (do you want to run this command inside a workspace?). If this dependency really should be in your workspace root, use the --dev flag to add it to your devDependencies.",
   workspacesRequirePrivateProjects: 'Workspaces can only be enabled in private projects',
-  workspaceExperimentalDisabled:
-    'The workspace feature is currently experimental and needs to be manually enabled - please add "workspaces-experimental true" to your .yarnrc file.',
+  workspacesDisabled:
+    'Your project root defines workspaces but the feature is disabled in your Yarn config. Please check "workspaces-experimental" in your .yarnrc file.',
   workspaceRootNotFound: "Cannot find the root of your workspace - are you sure you're currently in a workspace?",
   workspaceMissingWorkspace: 'Missing workspace name.',
   workspaceMissingCommand: 'Missing command name.',
