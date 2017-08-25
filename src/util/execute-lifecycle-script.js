@@ -35,6 +35,9 @@ export async function makeEnv(
 } {
   const env = {
     NODE: process.execPath,
+    // This lets `process.env.NODE` to override our `process.execPath`.
+    // This is a bit confusing but it is how `npm` was designed so we
+    // try to be compatible with that.
     ...process.env,
   };
 
@@ -42,10 +45,6 @@ export async function makeEnv(
   const customEnv = config.getOption('env');
   if (customEnv && typeof customEnv === 'object') {
     Object.assign(env, customEnv);
-  }
-
-  if (!env.NODE) {
-    env.NODE = process.execPath;
   }
 
   env.npm_lifecycle_event = stage;
