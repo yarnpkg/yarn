@@ -348,6 +348,8 @@ const messages = {
   scopeNotValid: 'The specified scope is not valid.',
 
   deprecatedCommand: '$0 is deprecated. Please use $1.',
+  implicitFileDeprecated:
+    'Using the "file:" protocol implicitly is deprecated. Please either the protocol or prepend the path $0 with "./".',
 };
 
 export type LanguageKeys = $Keys<typeof messages>;

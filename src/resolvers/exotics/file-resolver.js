@@ -1,5 +1,10 @@
 /* @flow */
 
+import path from 'path';
+
+import invariant from 'invariant';
+import uuid from 'uuid';
+
 import type {Manifest} from '../../types.js';
 import type PackageRequest from '../../package-request.js';
 import type {RegistryNames} from '../../registries/index.js';
@@ -7,10 +12,6 @@ import {MessageError} from '../../errors.js';
 import ExoticResolver from './exotic-resolver.js';
 import * as util from '../../util/misc.js';
 import * as fs from '../../util/fs.js';
-
-const invariant = require('invariant');
-const path = require('path');
-const uuid = require('uuid');
 
 export const FILE_PROTOCOL_PREFIX = 'file:';
 
@@ -23,6 +24,11 @@ export default class FileResolver extends ExoticResolver {
   loc: string;
 
   static protocol = 'file';
+  static prefixMatcher = /^.{1,2}\//;
+
+  static isVersion(pattern: string): boolean {
+    return super.isVersion.call(this, pattern) || this.prefixMatcher.test(pattern) || path.isAbsolute(pattern);
+  }
 
   async resolve(): Promise<Manifest> {
     let loc = this.loc;
