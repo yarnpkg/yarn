@@ -282,6 +282,7 @@ export default class PackageLinker {
       }
     }
 
+    // TODO: Consolidate this logic with `this.config.linkedModules` logic
     for (const entry of linkedModules) {
       const entryPath = path.join(this.config.linkFolder, entry);
       const stat = await fs.lstat(entryPath);
