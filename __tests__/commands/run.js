@@ -85,17 +85,27 @@ test('properly handle env command', (): Promise<void> => {
   return runRun(['env'], {}, 'no-args', (config, reporter): ?Promise<void> => {
     // $FlowFixMe
     const result = JSON.parse(reporter.getBuffer()[0].data);
-    result.PATH = result.PATH ? result.PATH.split(path.delimiter) : [];
 
     const env = {};
+    let pathVarName = 'PATH';
     for (const key of Object.keys(process.env)) {
       // Filter out yarn-added `npm_` variables since we run tests through yarn already
-      if (!key.startsWith('npm_')) {
-        env[key] = process.env[key];
+      if (key.startsWith('npm_')) {
+        continue;
       }
+      // We need this below for Windows which has case-insensitive env vars
+      // If we used `process.env` directly, node takes care of this for us,
+      // but since we use a subset of it, we need to get the "real" path key
+      // name for Jest's case-sensitive object comparison below.
+      if (key.toUpperCase() === 'PATH') {
+        pathVarName = key;
+      }
+      env[key] = process.env[key];
     }
 
-    env.PATH = env.PATH ? expect.arrayContaining(env.PATH.split(path.delimiter)) : [];
+    result[pathVarName] = result[pathVarName] ? result[pathVarName].split(path.delimiter) : [];
+    // $FlowFixMe
+    env[pathVarName] = env[pathVarName] ? expect.arrayContaining(env[pathVarName].split(path.delimiter)) : [];
 
     expect(result).toMatchObject(env);
     expect(result).toHaveProperty('npm_lifecycle_event');
