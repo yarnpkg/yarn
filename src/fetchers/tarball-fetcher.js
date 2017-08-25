@@ -78,7 +78,7 @@ export default class TarballFetcher extends BaseFetcher {
         error.message = `${error.message}${tarballPath ? ` (${tarballPath})` : ''}`;
         reject(error);
       })
-      .on('finish', async () => {
+      .on('finish', () => {
         const expectHash = this.hash;
         const actualHash = validateStream.getHash();
 
@@ -87,17 +87,6 @@ export default class TarballFetcher extends BaseFetcher {
             hash: actualHash,
           });
         } else {
-          const tarballMirrorPath = this.getTarballMirrorPath();
-          const tarballCachePath = this.getTarballCachePath();
-
-          if (await fsUtil.exists(tarballMirrorPath)) {
-            fsUtil.unlink(tarballMirrorPath);
-          }
-
-          if (await fsUtil.exists(tarballCachePath)) {
-            fsUtil.unlink(tarballCachePath);
-          }
-
           reject(
             new SecurityError(
               this.config.reporter.lang(
@@ -196,6 +185,17 @@ export default class TarballFetcher extends BaseFetcher {
           this.reporter.warn(this.reporter.lang('retryOnInternalServerError'));
           await sleep(3000);
         } else {
+          const tarballMirrorPath = this.getTarballMirrorPath();
+          const tarballCachePath = this.getTarballCachePath();
+
+          if (await fsUtil.exists(tarballMirrorPath)) {
+            fsUtil.unlink(tarballMirrorPath);
+          }
+
+          if (await fsUtil.exists(tarballCachePath)) {
+            fsUtil.unlink(tarballCachePath);
+          }
+
           throw err;
         }
       }
