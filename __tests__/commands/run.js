@@ -1,6 +1,14 @@
 /* @flow */
 
-jest.mock('../../src/util/execute-lifecycle-script');
+jest.mock('../../src/util/execute-lifecycle-script', () => {
+  return {
+    // $FlowFixMe
+    ...require.requireActual('../../src/util/execute-lifecycle-script'),
+    execCommand: jest.fn(),
+  };
+});
+
+import path from 'path';
 
 import {run as buildRun} from './_helpers.js';
 import {BufferReporter} from '../../src/reporters/index.js';
@@ -10,9 +18,7 @@ import * as reporters from '../../src/reporters/index.js';
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 90000;
 
-const execCommand: $FlowFixMe = require('../../src/util/execute-lifecycle-script').execCommand;
-
-const path = require('path');
+const {execCommand}: $FlowFixMe = require('../../src/util/execute-lifecycle-script');
 
 beforeEach(() => execCommand.mockClear());
 
@@ -77,11 +83,34 @@ test('properly handle bin scripts', (): Promise<void> => {
 
 test('properly handle env command', (): Promise<void> => {
   return runRun(['env'], {}, 'no-args', (config, reporter): ?Promise<void> => {
-    const rprtr = new reporters.BufferReporter({stdout: null, stdin: null});
+    // $FlowFixMe
+    const result = JSON.parse(reporter.getBuffer()[0].data);
 
-    rprtr.info(`${JSON.stringify(process.env, null, 2)}`);
+    const env = {};
+    let pathVarName = 'PATH';
+    for (const key of Object.keys(process.env)) {
+      // Filter out yarn-added `npm_` variables since we run tests through yarn already
+      if (key.startsWith('npm_')) {
+        continue;
+      }
+      // We need this below for Windows which has case-insensitive env vars
+      // If we used `process.env` directly, node takes care of this for us,
+      // but since we use a subset of it, we need to get the "real" path key
+      // name for Jest's case-sensitive object comparison below.
+      if (key.toUpperCase() === 'PATH') {
+        pathVarName = key;
+      }
+      env[key] = process.env[key];
+    }
 
-    expect(reporter.getBuffer()).toEqual(rprtr.getBuffer());
+    result[pathVarName] = result[pathVarName] ? result[pathVarName].split(path.delimiter) : [];
+    // $FlowFixMe
+    env[pathVarName] = env[pathVarName] ? expect.arrayContaining(env[pathVarName].split(path.delimiter)) : [];
+
+    expect(result).toMatchObject(env);
+    expect(result).toHaveProperty('npm_lifecycle_event');
+    expect(result).toHaveProperty('npm_execpath');
+    expect(result).toHaveProperty('npm_node_execpath');
   });
 });
 

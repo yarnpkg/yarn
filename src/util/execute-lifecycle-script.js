@@ -33,7 +33,13 @@ export async function makeEnv(
 ): {
   [key: string]: string,
 } {
-  const env = Object.assign({}, process.env);
+  const env = {
+    NODE: process.execPath,
+    // This lets `process.env.NODE` to override our `process.execPath`.
+    // This is a bit confusing but it is how `npm` was designed so we
+    // try to be compatible with that.
+    ...process.env,
+  };
 
   // Merge in the `env` object specified in .yarnrc
   const customEnv = config.getOption('env');
@@ -42,7 +48,7 @@ export async function makeEnv(
   }
 
   env.npm_lifecycle_event = stage;
-  env.npm_node_execpath = env.NODE || process.execPath;
+  env.npm_node_execpath = env.NODE;
   env.npm_execpath = env.npm_execpath || process.mainModule.filename;
 
   // Set the env to production for npm compat if production mode.
@@ -117,23 +123,9 @@ export async function makeEnv(
     env[envKey] = val;
   }
 
-  return env;
-}
-
-export async function executeLifecycleScript(
-  stage: string,
-  config: Config,
-  cwd: string,
-  cmd: string,
-  spinner?: ReporterSpinner,
-): LifecycleReturn {
-  // if we don't have a spinner then pipe everything to the terminal
-  const stdio = spinner ? undefined : 'inherit';
-
-  const env = await makeEnv(stage, cwd, config);
-
   // split up the path
-  const pathParts = (env[constants.ENV_PATH_KEY] || '').split(path.delimiter);
+  const envPath = env[constants.ENV_PATH_KEY];
+  const pathParts = envPath ? envPath.split(path.delimiter) : [];
 
   // Include node-gyp version that was bundled with the current Node.js version,
   // if available.
@@ -156,14 +148,29 @@ export async function executeLifecycleScript(
     pathParts.unshift(path.join(cwd, binFolder));
   }
 
-  await checkForGypIfNeeded(config, cmd, pathParts);
-
   if (config.scriptsPrependNodePath) {
     pathParts.unshift(path.join(path.dirname(process.execPath)));
   }
 
   // join path back together
   env[constants.ENV_PATH_KEY] = pathParts.join(path.delimiter);
+
+  return env;
+}
+
+export async function executeLifecycleScript(
+  stage: string,
+  config: Config,
+  cwd: string,
+  cmd: string,
+  spinner?: ReporterSpinner,
+): LifecycleReturn {
+  // if we don't have a spinner then pipe everything to the terminal
+  const stdio = spinner ? undefined : 'inherit';
+
+  const env = await makeEnv(stage, cwd, config);
+
+  await checkForGypIfNeeded(config, cmd, env[constants.ENV_PATH_KEY].split(path.delimiter));
 
   // get shell
   if (process.platform === 'win32') {
