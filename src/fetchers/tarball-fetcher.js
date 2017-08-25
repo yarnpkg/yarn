@@ -78,25 +78,26 @@ export default class TarballFetcher extends BaseFetcher {
         error.message = `${error.message}${tarballPath ? ` (${tarballPath})` : ''}`;
         reject(error);
       })
-      .on('finish', () => {
+      .on('finish', async () => {
         const expectHash = this.hash;
         const actualHash = validateStream.getHash();
+
         if (!expectHash || expectHash === actualHash) {
-          const tarballMirrorPath = this.getTarballMirrorPath();
-          const tarballCachePath = this.getTarballCachePath();
-
-          if (tarballMirrorPath) {
-            validateStream.pipe(fs.createWriteStream(tarballMirrorPath)).on('error', reject);
-          }
-
-          if (tarballCachePath) {
-            validateStream.pipe(fs.createWriteStream(tarballCachePath)).on('error', reject);
-          }
-
           resolve({
             hash: actualHash,
           });
         } else {
+          const tarballMirrorPath = this.getTarballMirrorPath();
+          const tarballCachePath = this.getTarballCachePath();
+
+          if (await fsUtil.exists(tarballMirrorPath)) {
+            fsUtil.unlink(tarballMirrorPath);
+          }
+
+          if (await fsUtil.exists(tarballCachePath)) {
+            fsUtil.unlink(tarballCachePath);
+          }
+
           reject(
             new SecurityError(
               this.config.reporter.lang(
@@ -158,6 +159,9 @@ export default class TarballFetcher extends BaseFetcher {
             process: (req, resolve, reject) => {
               // should we save this to the offline cache?
               const {reporter} = this.config;
+              const tarballMirrorPath = this.getTarballMirrorPath();
+              const tarballCachePath = this.getTarballCachePath();
+
               const {validateStream, extractorStream} = this.createExtractor(resolve, reject);
 
               req.on('response', res => {
@@ -172,6 +176,14 @@ export default class TarballFetcher extends BaseFetcher {
                 }
               });
               req.pipe(validateStream);
+
+              if (tarballMirrorPath) {
+                validateStream.pipe(fs.createWriteStream(tarballMirrorPath)).on('error', reject);
+              }
+
+              if (tarballCachePath) {
+                validateStream.pipe(fs.createWriteStream(tarballCachePath)).on('error', reject);
+              }
 
               validateStream.pipe(extractorStream).on('error', reject);
             },
