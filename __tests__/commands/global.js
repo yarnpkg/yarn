@@ -69,6 +69,15 @@ if (isCI) {
   });
 }
 
+test.concurrent("shouldn't expose unwanted binaries", async (): Promise<void> => {
+  const tmpGlobalFolder = await createTempGlobalFolder();
+  const tmpPrefixFolder = await createTempPrefixFolder();
+  const flags = {globalFolder: tmpGlobalFolder, prefix: tmpPrefixFolder};
+  return runGlobal(['add', 'fs-kit'], flags, 'add-with-prefix-flag', async config => {
+    expect(await fs.exists(path.join(tmpPrefixFolder, 'bin', 'touch'))).toEqual(false);
+  });
+});
+
 test.concurrent('bin', (): Promise<void> => {
   const tmpGlobalFolder = getTempGlobalFolder();
   return runGlobal(

@@ -20,6 +20,12 @@ import * as fs from '../../util/fs.js';
 const nativeFs = require('fs');
 
 class GlobalAdd extends Add {
+  constructor(...args) {
+    super(...args);
+
+    this.linker.setTopLevelBinLinking(false);
+  }
+
   maybeOutputSaveTree(): Promise<void> {
     for (const pattern of this.addedPatterns) {
       const manifest = this.resolver.getStrictResolvedPattern(pattern);
