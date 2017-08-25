@@ -188,11 +188,11 @@ export default class TarballFetcher extends BaseFetcher {
           const tarballMirrorPath = this.getTarballMirrorPath();
           const tarballCachePath = this.getTarballCachePath();
 
-          if (await fsUtil.exists(tarballMirrorPath)) {
+          if (tarballMirrorPath && (await fsUtil.exists(tarballMirrorPath))) {
             fsUtil.unlink(tarballMirrorPath);
           }
 
-          if (await fsUtil.exists(tarballCachePath)) {
+          if (tarballCachePath && (await fsUtil.exists(tarballCachePath))) {
             fsUtil.unlink(tarballCachePath);
           }
 
