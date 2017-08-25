@@ -84,7 +84,6 @@ test('--mutex network', async () => {
 
 test('--cwd option', async () => {
   const cwd = await makeTemp();
-  const cacheFolder = path.join(cwd, '.cache');
 
   const subdir = path.join(cwd, 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i');
   await fs.mkdirp(subdir);
