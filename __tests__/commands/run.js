@@ -85,7 +85,7 @@ test('properly handle env command', (): Promise<void> => {
   return runRun(['env'], {}, 'no-args', (config, reporter): ?Promise<void> => {
     // $FlowFixMe
     const result = JSON.parse(reporter.getBuffer()[0].data);
-    result.PATH = result.PATH.split(path.delimiter);
+    result.PATH = result.PATH ? result.PATH.split(path.delimiter) : [];
 
     const env = {};
     for (const key of Object.keys(process.env)) {
