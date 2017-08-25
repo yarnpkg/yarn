@@ -1,27 +1,14 @@
 /* @flow */
 
-const PACKAGE_SEP = '/';
-
 /**
  * Parse input strings like `package-1/package-2` to an array of packages
  */
 export default function parsePackagePath(input: string): string[] {
-  const packages = [];
+  return input.match(/(@[^\/]+\/)?([^/]+)/g) || [];
+}
 
-  let prevScoped = false;
-  for (const pkg of input.split(PACKAGE_SEP)) {
-    if (prevScoped) {
-      // If package is scoped, then we should concat it's name to the prev part
-      packages[packages.length - 1] += PACKAGE_SEP + pkg;
-      prevScoped = false;
-    } else {
-      packages.push(pkg);
-    }
+const WRONG_PATTERNS = /\/$|\/{2,}|\*+$/;
 
-    if (pkg.indexOf('@') !== -1) {
-      prevScoped = true;
-    }
-  }
-
-  return packages;
+export function isValidPackagePath(input: string): boolean {
+  return !WRONG_PATTERNS.test(input);
 }

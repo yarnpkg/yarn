@@ -65,11 +65,3 @@ test.concurrent('install with resolutions should correctly install toplevel scop
     expect(await getPackageVersion(config, '@scoped/b')).toEqual('2.0.0');
   });
 });
-
-test.skip('install with resolutions should correctly install nested scoped packages', (): Promise<void> => {
-  return runInstall({}, {source: 'resolutions', cwd: 'scoped-nested'}, async config => {
-    expect(await getPackageVersion(config, '@scoped/a')).toEqual('1.0.0');
-    expect(await getPackageVersion(config, '@scoped/b')).toEqual('1.0.0');
-    expect(await getPackageVersion(config, '@scoped/a/@scoped/b')).toEqual('2.0.0');
-  });
-});
