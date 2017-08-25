@@ -23,6 +23,11 @@ export default class FileResolver extends ExoticResolver {
   loc: string;
 
   static protocol = 'file';
+  static prefixMatcher = /^.{,2}\//;
+
+  static isVersion(pattern: string): boolean {
+    return super.isVersion.call(this, pattern) || this.prefixMatcher.test(pattern);
+  }
 
   async resolve(): Promise<Manifest> {
     let loc = this.loc;
