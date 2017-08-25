@@ -1,6 +1,14 @@
 /* @flow */
 
-jest.mock('../../src/util/execute-lifecycle-script');
+jest.mock('../../src/util/execute-lifecycle-script', () => {
+  return {
+    // $FlowFixMe
+    ...require.requireActual('../../src/util/execute-lifecycle-script'),
+    execCommand: jest.fn(),
+  };
+});
+
+import path from 'path';
 
 import {run as buildRun} from './_helpers.js';
 import {BufferReporter} from '../../src/reporters/index.js';
@@ -10,9 +18,7 @@ import * as reporters from '../../src/reporters/index.js';
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 90000;
 
-const execCommand: $FlowFixMe = require('../../src/util/execute-lifecycle-script').execCommand;
-
-const path = require('path');
+const {execCommand}: $FlowFixMe = require('../../src/util/execute-lifecycle-script');
 
 beforeEach(() => execCommand.mockClear());
 
@@ -77,11 +83,24 @@ test('properly handle bin scripts', (): Promise<void> => {
 
 test('properly handle env command', (): Promise<void> => {
   return runRun(['env'], {}, 'no-args', (config, reporter): ?Promise<void> => {
-    const rprtr = new reporters.BufferReporter({stdout: null, stdin: null});
+    // $FlowFixMe
+    const result = JSON.parse(reporter.getBuffer()[0].data);
+    result.PATH = result.PATH.split(path.delimiter);
 
-    rprtr.info(`${JSON.stringify(process.env, null, 2)}`);
+    const env = {};
+    for (const key of Object.keys(process.env)) {
+      // Filter out yarn-added `npm_` variables since we run tests through yarn already
+      if (!key.startsWith('npm_')) {
+        env[key] = process.env[key];
+      }
+    }
 
-    expect(reporter.getBuffer()).toEqual(rprtr.getBuffer());
+    env.PATH = env.PATH ? expect.arrayContaining(env.PATH.split(path.delimiter)) : [];
+
+    expect(result).toMatchObject(env);
+    expect(result).toHaveProperty('npm_lifecycle_event');
+    expect(result).toHaveProperty('npm_execpath');
+    expect(result).toHaveProperty('npm_node_execpath');
   });
 });
 
