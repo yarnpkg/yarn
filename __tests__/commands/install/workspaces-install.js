@@ -10,7 +10,7 @@ jasmine.DEFAULT_TIMEOUT_INTERVAL = 150000;
 
 const path = require('path');
 
-test.concurrent("workspaces don't work without a configuration in .yarnrc", async (): Promise<void> => {
+test.concurrent("workspaces don't work with disabled configuration in .yarnrc", async (): Promise<void> => {
   let error = '';
   const reporter = new reporters.ConsoleReporter({});
   try {
@@ -18,7 +18,7 @@ test.concurrent("workspaces don't work without a configuration in .yarnrc", asyn
   } catch (e) {
     error = e.message;
   }
-  expect(error).toContain(reporter.lang('workspaceExperimentalDisabled'));
+  expect(error).toContain(reporter.lang('workspacesDisabled'));
 });
 
 test.concurrent("workspaces don't work on non private projects", async (): Promise<void> => {

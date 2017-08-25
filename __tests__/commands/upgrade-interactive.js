@@ -10,7 +10,6 @@ jasmine.DEFAULT_TIMEOUT_INTERVAL = 90000;
 const path = require('path');
 
 const fixturesLoc = path.join(__dirname, '..', 'fixtures', 'upgrade-interactive');
-// I would have named it `runUpgradeInteractive`, but that was causing linting to fail.
 const runUpgrade = buildRun.bind(null, ConsoleReporter, fixturesLoc, (args, flags, config, reporter): Promise<void> => {
   return upgradeInteractive(config, reporter, flags, args);
 });
@@ -25,5 +24,12 @@ test.concurrent('throws if lockfile is out of date', (): Promise<void> => {
     } finally {
       resolve();
     }
+  });
+});
+
+test.concurrent('exits with success if no upgrades', (): Promise<void> => {
+  const reporter = new reporters.ConsoleReporter({});
+  return runUpgrade([], {}, 'up-to-date', (config, rep, install, output): ?Promise<void> => {
+    expect(output()).toContain(reporter.lang('allDependenciesUpToDate'));
   });
 });
