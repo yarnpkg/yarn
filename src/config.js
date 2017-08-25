@@ -219,12 +219,18 @@ export default class Config {
     this.workspaceRootFolder = await this.findWorkspaceRoot(this.cwd);
     this.lockfileFolder = this.workspaceRootFolder || this.cwd;
 
-    await fs.mkdirp(this.globalFolder);
-    await fs.mkdirp(this.linkFolder);
-
     this.linkedModules = [];
 
-    const linkedModules = await fs.readdir(this.linkFolder);
+    let linkedModules;
+    try {
+      linkedModules = await fs.readdir(this.linkFolder);
+    } catch (err) {
+      if (err.code === 'ENOENT') {
+        linkedModules = [];
+      } else {
+        throw err;
+      }
+    }
 
     for (const dir of linkedModules) {
       const linkedPath = path.join(this.linkFolder, dir);

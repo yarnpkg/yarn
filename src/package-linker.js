@@ -271,7 +271,18 @@ export default class PackageLinker {
     // assume it's a link:-managed dependency, and overwrite it as usual.
     const linkTargets = new Map();
 
-    for (const entry of await fs.readdir(this.config.linkFolder)) {
+    let linkedModules;
+    try {
+      linkedModules = await fs.readdir(this.config.linkFolder);
+    } catch (err) {
+      if (err.code === 'ENOENT') {
+        linkedModules = [];
+      } else {
+        throw err;
+      }
+    }
+
+    for (const entry of linkedModules) {
       const entryPath = path.join(this.config.linkFolder, entry);
       const stat = await fs.lstat(entryPath);
 

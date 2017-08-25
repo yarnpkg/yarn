@@ -38,6 +38,8 @@ export function hasWrapper(flags: Object, args: Array<string>): boolean {
 }
 
 async function updateCwd(config: Config): Promise<void> {
+  await fs.mkdirp(config.globalFolder);
+
   await config.init({
     cwd: config.globalFolder,
     binLinks: true,
