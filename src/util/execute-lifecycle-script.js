@@ -124,7 +124,8 @@ export async function makeEnv(
   }
 
   // split up the path
-  const pathParts = (env[constants.ENV_PATH_KEY] || '').split(path.delimiter);
+  const envPath = env[constants.ENV_PATH_KEY];
+  const pathParts = envPath ? envPath.split(path.delimiter) : [];
 
   // Include node-gyp version that was bundled with the current Node.js version,
   // if available.
