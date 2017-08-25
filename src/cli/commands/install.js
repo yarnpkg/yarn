@@ -284,7 +284,7 @@ export class Install {
       pushDeps('devDependencies', projectManifestJson, {hint: 'dev', optional: false}, !this.config.production);
       pushDeps('optionalDependencies', projectManifestJson, {hint: 'optional', optional: true}, true);
 
-      if (this.config.workspacesEnabled) {
+      if (this.config.workspaceRootFolder) {
         const workspacesRoot = path.dirname(loc);
         const workspaces = await this.config.resolveWorkspaces(workspacesRoot, projectManifestJson);
         workspaceLayout = new WorkspaceLayout(workspaces, this.config);

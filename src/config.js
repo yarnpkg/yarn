@@ -321,8 +321,7 @@ export default class Config {
     } else {
       this._cacheRootFolder = String(cacheRootFolder);
     }
-
-    this.workspacesEnabled = Boolean(this.getOption('workspaces-experimental'));
+    this.workspacesEnabled = this.getOption('workspaces-experimental') !== false;
 
     this.pruneOfflineMirror = Boolean(this.getOption('yarn-offline-mirror-pruning'));
     this.enableMetaFolder = Boolean(this.getOption('enable-meta-folder'));
@@ -349,7 +348,7 @@ export default class Config {
     }
 
     if (this.workspaceRootFolder && !this.workspacesEnabled) {
-      throw new MessageError(this.reporter.lang('workspaceExperimentalDisabled'));
+      throw new MessageError(this.reporter.lang('workspacesDisabled'));
     }
   }
 

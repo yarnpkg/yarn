@@ -44,6 +44,11 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
     [outdatedFieldName]: 'to'.length,
   };
 
+  if (deps.length === 0) {
+    reporter.success(reporter.lang('allDependenciesUpToDate'));
+    return;
+  }
+
   if (flags.latest) {
     maxLengthArr.range = 'latest'.length;
   }

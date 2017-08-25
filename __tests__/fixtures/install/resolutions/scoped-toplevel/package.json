@@ -1,0 +1,11 @@
+{
+  "name": "project",
+  "version": "1.0.0",
+  "dependencies": {
+    "@scoped/a": "file:../scoped-a1",
+    "@scoped/b": "file:../scoped-b2"
+  },
+  "resolutions": {
+    "@scoped/b": "file:../scoped-b2"
+  }
+}

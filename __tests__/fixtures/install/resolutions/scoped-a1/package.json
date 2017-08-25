@@ -1,0 +1,7 @@
+{
+  "name": "@scoped/a",
+  "version": "1.0.0",
+  "dependencies": {
+    "@scoped/b": "file:../scoped-b1"
+  }
+}
