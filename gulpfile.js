@@ -33,7 +33,7 @@ const build = (lib, opts) =>
 gulp.task('default', ['build']);
 
 gulp.task('build', () =>
-  build('lib', babelRc.env[majorVer >= 5 ? 'node5' : 'pre-node5'])
+  build('lib', majorVer >= 5 ? babelRc : babelRc.env['pre-node5'])
 );
 
 gulp.task('watch', ['build'], () => {
