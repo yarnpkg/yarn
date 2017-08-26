@@ -1,0 +1,99 @@
+version: 2
+
+defaults: &defaults
+  working_directory: ~/project/yarn
+  docker:
+    - image: yarnpkg/dev:latest
+
+jobs:
+  install:
+    <<: *defaults
+    steps:
+      - checkout
+      - restore_cache:
+          key: yarn-{{ .Branch }}-{{ checksum "yarn.lock" }}
+      - run:
+          name: Install Dependencies
+          command: yarn install
+      - save_cache:
+          key: yarn-{{ .Branch }}-{{ checksum "yarn.lock" }}
+          paths:
+            - .cache/yarn
+      - persist_to_workspace:
+          root: ~/project
+          paths:
+            - yarn
+  test:
+    <<: *defaults
+    steps:
+      - checkout
+      - attach_workspace:
+          at: ~/project
+      - run:
+          name: Tests
+          command: |
+            node -v
+            if [ "$CIRCLE_BRANCH" == 'master' ]; then
+              ./scripts/set-dev-version.js
+            fi;
+            yarn lint
+            yarn test-ci -- -- --maxWorkers 3
+            yarn check-lockfile
+  build:
+    <<: *defaults
+    steps:
+      - checkout
+      - attach_workspace:
+          at: ~/project
+      - run:
+          name: Build distribution
+          command: |
+            node -v
+            if [ "$CIRCLE_BRANCH" == 'master' ]; then
+              ./scripts/set-dev-version.js
+            fi;
+            yarn build-dist
+            node ./scripts/build-webpack.js
+            ./scripts/build-deb.sh
+      - store_artifacts:
+          path: artifacts/
+          destination: yarnpkg
+  deploy:
+    <<: *defaults
+    steps:
+      - checkout
+      - attach_workspace:
+          at: ~/project
+      - run:
+          name: Deploy
+          command: |
+            if [ "${CIRCLE_PROJECT_USERNAME}" == "yarnpkg" ]; then
+              if git log -1 --pretty=%B | grep "^v[0-9]\+\.[0-9]\+\.[0-9]\+$"; then
+                echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
+                ./scripts/set-installation-method.js "`pwd`/package.json" npm
+                npm publish --tag rc
+              fi
+            fi
+
+notify:
+  webhooks:
+    # Handles uploading stable/RC releases to GitHub
+    - url: https://nightly.yarnpkg.com/release_circleci
+    # Handles archiving all builds onto the nightly build site
+    - url: https://nightly.yarnpkg.com/archive_circleci
+
+workflows:
+  version: 2
+  install-test-build-and-deploy:
+    jobs:
+      - install
+      - test:
+          requires:
+            - install
+      - build:
+          requires:
+            - install
+      - deploy:
+          requires:
+            - test
+            - build
