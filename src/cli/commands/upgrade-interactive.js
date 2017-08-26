@@ -37,6 +37,11 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
 
   const deps = await getOutdated(config, reporter, flags, lockfile, args);
 
+  if (deps.length === 0) {
+    reporter.success(reporter.lang('allDependenciesUpToDate'));
+    return;
+  }
+
   const maxLengthArr = {
     name: 'name'.length,
     current: 'from'.length,
