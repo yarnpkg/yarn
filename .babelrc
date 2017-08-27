@@ -27,13 +27,17 @@
           "targets": {
             "node": 4
           },
-          "loose": true
+          "loose": true,
+          "exclude": [
+            "transform-regenerator"
+          ]
         }],
         "flow",
         "stage-0"
       ],
       "plugins": [
-        ["transform-es2015-modules-commonjs"]
+        ["transform-inline-imports-commonjs"],
+        ["transform-runtime", { "polyfill": true, "regenerator": false }]
       ]
     }
   },
