@@ -108,7 +108,7 @@ test.concurrent('upgrades from fixed version to latest with workspaces', (): Pro
   return runUpgrade(['max-safe-integer'], {latest: true}, 'fixed-to-latest-workspaces', async (config): ?Promise<
     void,
   > => {
-    await expectInstalledDependency(config, 'max-safe-integer', '1.0.1', '1.0.1');
+    await expectInstalledDevDependency(config, 'max-safe-integer', '1.0.1', '1.0.1');
   });
 });
 
