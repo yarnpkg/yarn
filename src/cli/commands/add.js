@@ -30,10 +30,14 @@ export class Add extends Install {
       flags.dev && 'devDependencies',
       flags.optional && 'optionalDependencies',
       flags.peer && 'peerDependencies',
-      !flags.existing && 'dependencies',
+      'dependencies',
     ]
       .filter(Boolean)
       .shift();
+
+    if (flags.existing) {
+      this.flagToOrigin = '';
+    }
   }
 
   args: Array<string>;
