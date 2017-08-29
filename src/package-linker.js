@@ -61,7 +61,7 @@ export default class PackageLinker {
     this.artifacts = artifacts;
   }
 
-  setTopLevelBinLinking(topLevelBinLinking) {
+  setTopLevelBinLinking(topLevelBinLinking: boolean) {
     this.topLevelBinLinking = topLevelBinLinking;
   }
 
