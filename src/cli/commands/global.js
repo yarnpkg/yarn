@@ -21,7 +21,7 @@ const nativeFs = require('fs');
 
 class GlobalAdd extends Add {
   constructor(args: Array<string>, flags: Object, config: Config, reporter: Reporter, lockfile: Lockfile) {
-    super(flags, config, reporter, lockfile);
+    super(args, flags, config, reporter, lockfile);
 
     this.linker.setTopLevelBinLinking(false);
   }
