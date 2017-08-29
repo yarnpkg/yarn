@@ -37,6 +37,7 @@ jobs:
               ./scripts/set-dev-version.js
             fi;
             yarn lint
+            # Limit maxWorkers to 3 to avoid OOM on CircleCI
             yarn test-ci -- -- --maxWorkers 3
             yarn check-lockfile
   build:
@@ -67,6 +68,7 @@ jobs:
       - run:
           name: Deploy
           command: |
+            # Only NPM is handled here - All other release files are handled in a webhook.
             if [ "${CIRCLE_PROJECT_USERNAME}" == "yarnpkg" ]; then
               if git log -1 --pretty=%B | grep "^v[0-9]\+\.[0-9]\+\.[0-9]\+$"; then
                 echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
