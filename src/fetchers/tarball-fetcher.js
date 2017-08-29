@@ -81,6 +81,7 @@ export default class TarballFetcher extends BaseFetcher {
       .on('finish', () => {
         const expectHash = this.hash;
         const actualHash = validateStream.getHash();
+
         if (!expectHash || expectHash === actualHash) {
           resolve({
             hash: actualHash,
@@ -88,7 +89,13 @@ export default class TarballFetcher extends BaseFetcher {
         } else {
           reject(
             new SecurityError(
-              this.config.reporter.lang('fetchBadHashWithPath', this.remote.reference, expectHash, actualHash),
+              this.config.reporter.lang(
+                'fetchBadHashWithPath',
+                this.packageName,
+                this.remote.reference,
+                expectHash,
+                actualHash,
+              ),
             ),
           );
         }
@@ -178,6 +185,17 @@ export default class TarballFetcher extends BaseFetcher {
           this.reporter.warn(this.reporter.lang('retryOnInternalServerError'));
           await sleep(3000);
         } else {
+          const tarballMirrorPath = this.getTarballMirrorPath();
+          const tarballCachePath = this.getTarballCachePath();
+
+          if (tarballMirrorPath && (await fsUtil.exists(tarballMirrorPath))) {
+            await fsUtil.unlink(tarballMirrorPath);
+          }
+
+          if (tarballCachePath && (await fsUtil.exists(tarballCachePath))) {
+            await fsUtil.unlink(tarballCachePath);
+          }
+
           throw err;
         }
       }
