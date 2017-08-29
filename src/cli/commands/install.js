@@ -19,7 +19,7 @@ import PackageResolver from '../../package-resolver.js';
 import PackageLinker from '../../package-linker.js';
 import {registries} from '../../registries/index.js';
 import {getExoticResolver} from '../../resolvers/index.js';
-import {clean} from './clean.js';
+import {clean} from './autoclean.js';
 import * as constants from '../../constants.js';
 import {normalizePattern} from '../../util/normalize-pattern.js';
 import * as fs from '../../util/fs.js';

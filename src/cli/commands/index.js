@@ -8,10 +8,10 @@ const getDocsInfo = name => 'Visit ' + chalk.bold(getDocsLink(name)) + ' for doc
 
 import * as access from './access.js';
 import * as add from './add.js';
+import * as autoclean from './autoclean.js';
 import * as bin from './bin.js';
 import * as cache from './cache.js';
 import * as check from './check.js';
-import * as clean from './clean.js';
 import * as config from './config.js';
 import * as create from './create.js';
 import * as exec from './exec.js';
@@ -48,10 +48,10 @@ import buildUseless from './_useless.js';
 const commands = {
   access,
   add,
+  autoclean,
   bin,
   cache,
   check,
-  clean,
   config,
   create,
   dedupe: buildUseless("The dedupe command isn't necessary. `yarn install` will already dedupe."),
