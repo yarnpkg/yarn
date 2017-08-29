@@ -48,15 +48,21 @@ export default class PackageLinker {
     this.reporter = config.reporter;
     this.config = config;
     this.artifacts = {};
+    this.topLevelBinLinking = true;
   }
 
   artifacts: InstallArtifacts;
   reporter: Reporter;
   resolver: PackageResolver;
   config: Config;
+  topLevelBinLinking: boolean;
 
   setArtifacts(artifacts: InstallArtifacts) {
     this.artifacts = artifacts;
+  }
+
+  setTopLevelBinLinking(topLevelBinLinking: boolean) {
+    this.topLevelBinLinking = topLevelBinLinking;
   }
 
   async linkSelfDependencies(pkg: Manifest, pkgLoc: string, targetBinLoc: string): Promise<void> {
@@ -412,7 +418,7 @@ export default class PackageLinker {
     for (const [dest, {pkg, isDirectRequire}] of flatTree) {
       const {name} = pkg;
 
-      if (!linksToCreate.has(name) || isDirectRequire) {
+      if (isDirectRequire || (this.topLevelBinLinking && !linksToCreate.has(name))) {
         linksToCreate.set(name, [dest, pkg]);
       }
     }
