@@ -152,6 +152,7 @@ export default class BaseReporter {
     this.peakMemoryInterval = setInterval(() => {
       this.checkPeakMemory();
     }, 1000);
+    this.peakMemoryInterval.unref();
   }
 
   checkPeakMemory() {
