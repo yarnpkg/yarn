@@ -134,7 +134,9 @@ export default class PackageLinker {
 
     // write the executables
     for (const {dep, loc} of deps) {
-      await this.linkSelfDependencies(dep, loc, dir);
+      if (dep._reference && dep._reference.location) {
+        await this.linkSelfDependencies(dep, loc, dir);
+      }
     }
   }
 
@@ -387,9 +389,11 @@ export default class PackageLinker {
       await promise.queue(
         flatTree,
         async ([dest, {pkg}]) => {
-          const binLoc = path.join(dest, this.config.getFolder(pkg));
-          await this.linkBinDependencies(pkg, binLoc);
-          tickBin();
+          if (pkg._reference && pkg._reference.location) {
+            const binLoc = path.join(dest, this.config.getFolder(pkg));
+            await this.linkBinDependencies(pkg, binLoc);
+            tickBin();
+          }
         },
         linkBinConcurrency,
       );
@@ -398,7 +402,7 @@ export default class PackageLinker {
       await promise.queue(
         topLevelDependencies,
         async ([dest, pkg]) => {
-          if (pkg.bin && Object.keys(pkg.bin).length) {
+          if (pkg._reference && pkg._reference.location && pkg.bin && Object.keys(pkg.bin).length) {
             const binLoc = path.join(this.config.cwd, this.config.getFolder(pkg));
             await this.linkSelfDependencies(pkg, dest, binLoc);
             tickBin();
