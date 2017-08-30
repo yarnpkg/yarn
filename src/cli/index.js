@@ -17,6 +17,7 @@ const fs = require('fs');
 const invariant = require('invariant');
 const lockfile = require('proper-lockfile');
 const loudRejection = require('loud-rejection');
+const http = require('http');
 const net = require('net');
 const onDeath = require('death');
 const path = require('path');
@@ -234,8 +235,106 @@ export function main({
     });
   };
 
-  //
   const runEventuallyWithNetwork = (mutexPort: ?string): Promise<void> => {
+    return new Promise((resolve, reject) => {
+      const connectionOptions = {
+        port: +mutexPort || constants.SINGLE_INSTANCE_PORT,
+      };
+
+      function startServer() {
+        const clients = new Set();
+        const server = http.createServer(manager);
+
+        // The server must not prevent us from exiting
+        server.unref();
+
+        // No socket must timeout
+        server.timeout = 0;
+
+        // If we fail to setup the server, we ask the existing one for its name
+        server.on('error', () => {
+          reportServerName();
+        });
+
+        // If we succeed, keep track of all the connected sockets to delete them later
+        server.on('connection', socket => {
+          clients.add(socket);
+          socket.on('close', () => {
+            clients.delete(socket);
+          });
+        });
+
+        server.listen(connectionOptions, () => {
+          // Don't forget to kill the sockets if we're being killed via signals
+          onDeath(killSockets);
+
+          // Also kill the sockets if we finish, whether it's a success or a failure
+          run().then(
+            res => {
+              killSockets();
+              resolve(res);
+            },
+            err => {
+              killSockets();
+              reject(err);
+            },
+          );
+        });
+
+        function manager(request, response) {
+          response.writeHead(200);
+          response.write(config.cwd);
+          response.end();
+        }
+
+        function killSockets() {
+          for (const socket of clients) {
+            try {
+              socket.destroy();
+            } catch (err) {
+              // best effort
+            }
+          }
+        }
+      }
+
+      function reportServerName() {
+        const request = http.get(connectionOptions, response => {
+          const buffers = [];
+
+          response.on('error', () => {
+            startServer();
+          });
+
+          response.on('data', buffer => {
+            buffers.push(buffer);
+          });
+
+          response.on('end', () => {
+            reporter.warn(reporter.lang('waitingNamedInstance', Buffer.concat(buffers).toString()));
+            waitForTheNetwork();
+          });
+        });
+
+        request.on('error', () => {
+          startServer();
+        });
+      }
+
+      function waitForTheNetwork() {
+        const socket = net.createConnection(connectionOptions);
+
+        socket.on('close', () => {
+          startServer();
+        });
+      }
+
+      startServer();
+    });
+  };
+
+  //
+  const runEventuallyWithNetworkLegacy = (mutexPort: ?string): Promise<void> => {
     return new Promise(resolve => {
       const connectionOptions = {
         port: +mutexPort || constants.SINGLE_INSTANCE_PORT,
