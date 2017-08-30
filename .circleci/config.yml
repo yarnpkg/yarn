@@ -40,7 +40,7 @@ jobs:
             # Limit maxWorkers to 3 to avoid OOM on CircleCI
             yarn test-ci -- -- --maxWorkers 3
             yarn check-lockfile
-  build:
+  build_and_deploy:
     <<: *defaults
     steps:
       - checkout
@@ -54,26 +54,18 @@ jobs:
               ./scripts/set-dev-version.js
             fi;
             yarn build-dist
-            node ./scripts/build-webpack.js
             ./scripts/build-deb.sh
       - store_artifacts:
           path: artifacts/
           destination: yarnpkg
-  deploy:
-    <<: *defaults
-    steps:
-      - checkout
-      - attach_workspace:
-          at: ~/project
       - run:
           name: Deploy
           command: |
             # Only NPM is handled here - All other release files are handled in a webhook.
             if [ "${CIRCLE_PROJECT_USERNAME}" == "yarnpkg" ]; then
-              if git log -1 --pretty=%B | grep "^v[0-9]\+\.[0-9]\+\.[0-9]\+$"; then
+              if git describe --tags --abbrev=0 `git rev-parse HEAD` | grep "^v[0-9]\+\.[0-9]\+\.[0-9]\+$"; then
                 echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
-                ./scripts/set-installation-method.js "`pwd`/package.json" npm
-                npm publish --tag rc
+                ./scripts/update-npm.sh
               fi
             fi
 
@@ -92,10 +84,6 @@ workflows:
       - test:
           requires:
             - install
-      - build:
-          requires:
-            - install
-      - deploy:
+      - build_and_deploy:
           requires:
             - test
-            - build
