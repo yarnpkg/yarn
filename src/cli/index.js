@@ -164,6 +164,11 @@ export function main({
     isSilent: process.env.YARN_SILENT === '1' || commander.silent,
   });
 
+  const exit = exitCode => {
+    process.exitCode = exitCode || 0;
+    reporter.close();
+  };
+
   reporter.initPeakMemoryCounter();
 
   const config = new Config(reporter);
@@ -409,11 +414,6 @@ export function main({
     }
 
     return errorReportLoc;
-  }
-
-  function exit(exitCode) {
-    process.exitCode = exitCode || 0;
-    reporter.close();
   }
 
   const cwd = findProjectRoot(commander.cwd);
