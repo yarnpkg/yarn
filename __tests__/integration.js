@@ -58,11 +58,13 @@ const PORT_RANGE = MAX_PORT_NUM - MIN_PORT_NUM;
 
 const getRandomPort = () => Math.floor(Math.random() * PORT_RANGE) + MIN_PORT_NUM;
 
-function runYarn(args: Array<string> = [], options: Object = {}): Promise<Array<Buffer>> {
-  const {stderr, stdout} = execa(path.resolve(__dirname, '../bin/yarn'), args, options);
+async function runYarn(args: Array<string> = [], options: Object = {}): Promise<Array<Buffer>> {
+  const process = execa(path.resolve(__dirname, '../bin/yarn'), args, options);
 
-  const stdoutPromise = misc.consumeStream(stdout);
-  const stderrPromise = misc.consumeStream(stderr);
+  const stdoutPromise = misc.consumeStream(process.stdout);
+  const stderrPromise = misc.consumeStream(process.stderr);
+
+  await process;
 
   return Promise.all([stdoutPromise, stderrPromise]);
 }
@@ -80,6 +82,29 @@ test('--mutex network', async () => {
     execa(command, ['add', 'left-pad'].concat(args), options),
     execa(command, ['add', 'foo'].concat(args), options),
   ]);
+});
+
+test('--mutex network 2', async () => {
+  const cwd = await makeTemp();
+  await fs.writeFile(path.join(cwd, '.yarnrc'), '--mutex network\n');
+
+  const promises = [];
+
+  for (let t = 0; t < 100; ++t) {
+    const subCwd = path.join(cwd, String(t));
+
+    await fs.mkdirp(subCwd);
+    await fs.writeFile(
+      path.join(subCwd, 'package.json'),
+      JSON.stringify({
+        scripts: {test: 'node -e "setTimeout(function(){}, process.argv[1])"'},
+      }),
+    );
+
+    promises.push(runYarn(['run', 'test', '100'], {cwd: subCwd}));
+  }
+
+  await Promise.all(promises);
 });
 
 test('--cwd option', async () => {

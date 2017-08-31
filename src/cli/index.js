@@ -288,6 +288,12 @@ export function main({
         }
 
         function killSockets() {
+          try {
+            server.close();
+          } catch (err) {
+            // best effort
+          }
+
           for (const socket of clients) {
             try {
               socket.destroy();
@@ -295,6 +301,23 @@ export function main({
               // best effort
             }
           }
+
+          // If the process hasn't exited in the next 5s, it has stalled and we abort
+          const timeout = setTimeout(() => {
+            console.error('Process stalled');
+            if (process._getActiveHandles) {
+              console.error('Active handles:');
+              for (const handle of process._getActiveHandles()) {
+                console.error(`  - ${handle.constructor.name}`);
+              }
+            }
+            // eslint-disable-next-line no-process-exit
+            process.exit(1);
+          }, 5000);
+
+          // This timeout must not prevent us from exiting
+          // $FlowFixMe: Node's setTimeout returns a Timeout, not a Number
+          timeout.unref();
         }
       }
 
@@ -324,77 +347,16 @@ export function main({
       function waitForTheNetwork() {
         const socket = net.createConnection(connectionOptions);
 
+        socket.on('error', () => {
+          // catch & ignore, the retry is handled in 'close'
+        });
+
         socket.on('close', () => {
           startServer();
         });
       }
 
       startServer();
-    });
-  };
-
-  //
-  const runEventuallyWithNetworkLegacy = (mutexPort: ?string): Promise<void> => {
-    return new Promise(resolve => {
-      const connectionOptions = {
-        port: +mutexPort || constants.SINGLE_INSTANCE_PORT,
-      };
-
-      const clients = new Set();
-      const server = net.createServer();
-
-      server.on('error', () => {
-        // another Yarn instance exists, let's connect to it to know when it dies.
-        reporter.warn(reporter.lang('waitingInstance'));
-        const socket = net.createConnection(connectionOptions);
-
-        socket
-          .on('connect', () => {
-            // Allow the program to exit if this is the only active server in the event system.
-            socket.unref();
-          })
-          .on('close', (hadError?: boolean) => {
-            // the `close` event gets always called after the `error` event
-            if (!hadError) {
-              process.nextTick(() => {
-                resolve(runEventuallyWithNetwork(mutexPort));
-              });
-            }
-          })
-          .on('error', () => {
-            // No server to listen to ? Let's retry to become the next server then.
-            process.nextTick(() => {
-              resolve(runEventuallyWithNetwork(mutexPort));
-            });
-          });
-      });
-
-      const onServerEnd = async () => {
-        for (const client of clients) {
-          try {
-            client.destroy();
-          } catch (err) {
-            // pass
-          }
-        }
-
-        await server.close();
-        server.unref();
-      };
-
-      // open the server and continue only if succeed.
-      server.listen(connectionOptions, () => {
-        // ensure the server gets closed properly on SIGNALS.
-        onDeath(onServerEnd);
-
-        resolve(run().then(onServerEnd));
-      });
-
-      server.on('connection', function(socket) {
-        clients.add(socket);
-
-        socket.on('close', () => clients.delete(socket));
-      });
     });
   };
 
