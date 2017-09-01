@@ -307,6 +307,7 @@ export function main({
             console.error('Process stalled');
             if (process._getActiveHandles) {
               console.error('Active handles:');
+              // $FlowFixMe: getActiveHandles is undocumented, but it exists
               for (const handle of process._getActiveHandles()) {
                 console.error(`  - ${handle.constructor.name}`);
               }
