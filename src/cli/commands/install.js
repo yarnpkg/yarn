@@ -176,6 +176,7 @@ export class Install {
     this.integrityChecker = new InstallationIntegrityChecker(config);
     this.linker = new PackageLinker(config, this.resolver);
     this.scripts = new PackageInstallScripts(config, this.resolver, this.flags.force);
+    this.ignoreWorkspaces = false;
   }
 
   flags: Flags;
@@ -191,6 +192,7 @@ export class Install {
   rootPatternsToOrigin: {[pattern: string]: string};
   integrityChecker: InstallationIntegrityChecker;
   resolutionMap: ResolutionMap;
+  ignoreWorkspaces: Boolean;
 
   /**
    * Create a list of dependency requests from the current directories manifests.
@@ -325,6 +327,13 @@ export class Install {
       ignorePatterns,
       workspaceLayout,
     };
+  }
+
+  /**
+   * Sets the value of `ignoreWorkSpaces` for install commands that should skip workspaces
+   */
+  setIgnoreWorkspaces(ignoreWorkspaces: Boolean) {
+    this.ignoreWorkspaces = ignoreWorkspaces;
   }
 
   /**
