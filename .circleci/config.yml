@@ -68,7 +68,7 @@ jobs:
       - checkout
       - attach_workspace:
           at: ~/project
-     - run:
+      - run:
           name: Deploy
           command: |
             # Only NPM is handled here - All other release files are handled in a webhook.
