@@ -90,7 +90,7 @@ test('--mutex network 2', async () => {
 
   const promises = [];
 
-  for (let t = 0; t < 100; ++t) {
+  for (let t = 0; t < 40; ++t) {
     const subCwd = path.join(cwd, String(t));
 
     await fs.mkdirp(subCwd);
