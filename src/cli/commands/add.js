@@ -23,6 +23,10 @@ export class Add extends Install {
   constructor(args: Array<string>, flags: Object, config: Config, reporter: Reporter, lockfile: Lockfile) {
     super(flags, config, reporter, lockfile);
     this.args = args;
+
+    if (this.config.workspaceRootFolder && this.config.cwd === this.config.workspaceRootFolder) {
+      this.setIgnoreWorkspaces(true);
+    }
     // only one flag is supported, so we can figure out which one was passed to `yarn add`
     this.flagToOrigin = [
       flags.dev && 'devDependencies',
@@ -32,6 +36,10 @@ export class Add extends Install {
     ]
       .filter(Boolean)
       .shift();
+
+    if (flags.existing) {
+      this.flagToOrigin = '';
+    }
   }
 
   args: Array<string>;
@@ -120,7 +128,7 @@ export class Add extends Install {
    */
 
   async init(): Promise<Array<string>> {
-    if (this.config.workspaceRootFolder && this.config.cwd === this.config.workspaceRootFolder) {
+    if (this.ignoreWorkspaces) {
       if (this.flagToOrigin === 'dependencies') {
         throw new MessageError(this.reporter.lang('workspacesPreferDevDependencies'));
       }
