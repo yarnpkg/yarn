@@ -164,6 +164,11 @@ export function main({
     isSilent: process.env.YARN_SILENT === '1' || commander.silent,
   });
 
+  const exit = exitCode => {
+    process.exitCode = exitCode || 0;
+    reporter.close();
+  };
+
   reporter.initPeakMemoryCounter();
 
   const config = new Config(reporter);
@@ -176,7 +181,7 @@ export function main({
   if (command.noArguments && commander.args.length) {
     reporter.error(reporter.lang('noArguments'));
     reporter.info(command.getDocsInfo);
-    process.exitCode = 1;
+    exit(1);
     return;
   }
 
@@ -193,7 +198,7 @@ export function main({
   //
   if (command.requireLockfile && !fs.existsSync(path.join(config.cwd, constants.LOCKFILE_FILENAME))) {
     reporter.error(reporter.lang('noRequiredLockfile'));
-    process.exitCode = 1;
+    exit(1);
     return;
   }
 
@@ -410,11 +415,6 @@ export function main({
 
     return errorReportLoc;
   }
-
-  const exit = exitCode => {
-    process.exitCode = exitCode || 0;
-    return reporter.close();
-  };
 
   const cwd = findProjectRoot(commander.cwd);
 
