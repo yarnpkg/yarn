@@ -52,7 +52,7 @@ addTest('https://github.com/yarnpkg/yarn/releases/download/v0.18.1/yarn-v0.18.1.
 addTest('https://github.com/bestander/chrome-app-livereload.git'); // no package.json
 addTest('bestander/chrome-app-livereload'); // no package.json, github, tarball
 
-const MIN_PORT_NUM = 1024;
+const MIN_PORT_NUM = 56000;
 const MAX_PORT_NUM = 65535;
 const PORT_RANGE = MAX_PORT_NUM - MIN_PORT_NUM;
 
@@ -67,7 +67,7 @@ async function runYarn(args: Array<string> = [], options: Object = {}): Promise<
 test('--mutex network', async () => {
   const cwd = await makeTemp();
 
-  const port = 56000 + Math.floor(Math.random() * 100);
+  const port = getRandomPort();
   await fs.writeFile(path.join(cwd, '.yarnrc'), `--mutex "network:${port}"\n`);
 
   const promises = [];
