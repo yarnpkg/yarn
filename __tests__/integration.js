@@ -59,34 +59,16 @@ const PORT_RANGE = MAX_PORT_NUM - MIN_PORT_NUM;
 const getRandomPort = () => Math.floor(Math.random() * PORT_RANGE) + MIN_PORT_NUM;
 
 async function runYarn(args: Array<string> = [], options: Object = {}): Promise<Array<Buffer>> {
-  const process = execa(path.resolve(__dirname, '../bin/yarn'), args, options);
+  const {stdout, stderr} = await execa(path.resolve(__dirname, '../bin/yarn'), args, options);
 
-  const stdoutPromise = misc.consumeStream(process.stdout);
-  const stderrPromise = misc.consumeStream(process.stderr);
-
-  await process;
-
-  return Promise.all([stdoutPromise, stderrPromise]);
+  return [stdout, stderr];
 }
 
 test('--mutex network', async () => {
   const cwd = await makeTemp();
-  const cacheFolder = path.join(cwd, '.cache');
 
-  const command = path.resolve(__dirname, '../bin/yarn');
-  const args = ['--cache-folder', cacheFolder, '--verbose', '--mutex', `network:${getRandomPort()}`];
-
-  const options = {cwd};
-
-  await Promise.all([
-    execa(command, ['add', 'left-pad'].concat(args), options),
-    execa(command, ['add', 'foo'].concat(args), options),
-  ]);
-});
-
-test('--mutex network 2', async () => {
-  const cwd = await makeTemp();
-  await fs.writeFile(path.join(cwd, '.yarnrc'), '--mutex network\n');
+  const port = 56000 + Math.floor(Math.random() * 100);
+  await fs.writeFile(path.join(cwd, '.yarnrc'), `--mutex "network:${port}"\n`);
 
   const promises = [];
 

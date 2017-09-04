@@ -248,7 +248,7 @@ export function main({
         // The server must not prevent us from exiting
         server.unref();
 
-        // No socket must timeout
+        // No socket must timeout, so that they aren't closed before we exit
         server.timeout = 0;
 
         // If we fail to setup the server, we ask the existing one for its name
@@ -256,7 +256,7 @@ export function main({
           reportServerName();
         });
 
-        // If we succeed, keep track of all the connected sockets to delete them later
+        // If we succeed, keep track of all the connected sockets to close them later
         server.on('connection', socket => {
           clients.add(socket);
           socket.on('close', () => {
@@ -283,8 +283,7 @@ export function main({
 
         function manager(request, response) {
           response.writeHead(200);
-          response.write(config.cwd);
-          response.end();
+          response.end(JSON.stringify({cwd: config.cwd, pid: process.pid}));
         }
 
         function killSockets() {
@@ -326,17 +325,18 @@ export function main({
         const request = http.get(connectionOptions, response => {
           const buffers = [];
 
-          response.on('error', () => {
-            startServer();
-          });
-
           response.on('data', buffer => {
             buffers.push(buffer);
           });
 
           response.on('end', () => {
-            reporter.warn(reporter.lang('waitingNamedInstance', Buffer.concat(buffers).toString()));
+            const {cwd, pid} = JSON.parse(Buffer.concat(buffers).toString());
+            reporter.warn(reporter.lang('waitingNamedInstance', pid, cwd));
             waitForTheNetwork();
+          });
+
+          response.on('error', () => {
+            startServer();
           });
         });
 
