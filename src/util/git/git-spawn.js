@@ -4,10 +4,7 @@ import path from 'path';
 
 import * as child from '../child.js';
 
-const BATCH_MODE_ARGS = {
-  ssh: '-oBatchMode=yes',
-  plink: '-batch',
-};
+const BATCH_MODE_ARGS = new Map([['ssh', '-oBatchMode=yes'], ['plink', '-batch']]);
 
 // Suppress any password prompts since we run these in the background
 const env = {
@@ -18,7 +15,7 @@ const env = {
 
 const sshCommand = env.GIT_SSH || 'ssh';
 const sshExecutable = path.basename(sshCommand, '.exe');
-const sshBatchArgs = BATCH_MODE_ARGS[sshExecutable];
+const sshBatchArgs = BATCH_MODE_ARGS.get(sshExecutable);
 
 if (!env.GIT_SSH_COMMAND && sshBatchArgs) {
   env.GIT_SSH_COMMAND = `${sshCommand} ${sshBatchArgs}`;
