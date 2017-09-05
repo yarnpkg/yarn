@@ -18,7 +18,7 @@ const sshExecutable = path.basename(sshCommand.toLowerCase(), '.exe');
 const sshBatchArgs = BATCH_MODE_ARGS.get(sshExecutable);
 
 if (!env.GIT_SSH_COMMAND && sshBatchArgs) {
-  env.GIT_SSH_COMMAND = `${sshCommand} ${sshBatchArgs}`;
+  env.GIT_SSH_COMMAND = `"${sshCommand}" ${sshBatchArgs}`;
 }
 
 export const spawn = (args: Array<string>, opts?: child_process$spawnOpts = {}): Promise<string> => {

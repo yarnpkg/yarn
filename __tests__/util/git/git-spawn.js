@@ -33,7 +33,7 @@ describe('spawn', () => {
     expect(gitCall[2].env).toMatchObject({
       GIT_ASKPASS: '',
       GIT_TERMINAL_PROMPT: 0,
-      GIT_SSH_COMMAND: 'ssh -oBatchMode=yes',
+      GIT_SSH_COMMAND: '"ssh" -oBatchMode=yes',
       ...process.env,
     });
   });
@@ -52,7 +52,7 @@ describe('spawn', () => {
     expect(gitCall[2].env).toMatchObject({
       GIT_ASKPASS: '',
       GIT_TERMINAL_PROMPT: 0,
-      GIT_SSH_COMMAND: `${plinkPath} -batch`,
+      GIT_SSH_COMMAND: `"${plinkPath}" -batch`,
       ...process.env,
     });
   });
