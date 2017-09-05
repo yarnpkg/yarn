@@ -10,13 +10,23 @@ const version = require('../package.json').version;
 const basedir = path.join(__dirname, '../');
 const babelRc = JSON.parse(fs.readFileSync(path.join(basedir, '.babelrc'), 'utf8'));
 
+// Use the real node __dirname and __filename in order to get Yarn's source
+// files on the user's system. See constants.js
+const nodeOptions = {
+  __filename: false,
+  __dirname: false,
+};
+
 //
 // Modern build
 //
 
 const compiler = webpack({
   // devtool: 'inline-source-map',
-  entry: path.join(basedir, 'src/cli/index.js'),
+  entry: {
+    [`artifacts/yarn-${version}.js`]: path.join(basedir, 'src/cli/index.js'),
+    'packages/lockfile/index.js': path.join(basedir, 'src/lockfile/index.js'),
+  },
   module: {
     loaders: [
       {
@@ -33,11 +43,12 @@ const compiler = webpack({
     }),
   ],
   output: {
-    filename: `yarn-${version}.js`,
-    path: path.join(basedir, 'artifacts'),
+    filename: `[name]`,
+    path: basedir,
     libraryTarget: 'commonjs2',
   },
   target: 'node',
+  node: nodeOptions,
 });
 
 compiler.run((err, stats) => {
@@ -75,6 +86,7 @@ const compilerLegacy = webpack({
     libraryTarget: 'commonjs2',
   },
   target: 'node',
+  node: nodeOptions,
 });
 
 compilerLegacy.run((err, stats) => {

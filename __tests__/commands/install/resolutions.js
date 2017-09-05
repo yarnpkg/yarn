@@ -51,3 +51,17 @@ test.concurrent('should warn when resolution entries are incorrrect or incompati
   expect(error).toContain('Resolution field "wrongversion" has an invalid version entry and may be ignored');
   expect(error).toContain('Resolution field "invalidname/" does not end with a valid package name and will be ignored');
 });
+
+test.concurrent('install with resolutions should correctly install simple scoped packages', (): Promise<void> => {
+  return runInstall({}, {source: 'resolutions', cwd: 'scoped-simple'}, async config => {
+    expect(await getPackageVersion(config, '@scoped/a')).toEqual('1.0.0');
+    expect(await getPackageVersion(config, '@scoped/b')).toEqual('2.0.0');
+  });
+});
+
+test.concurrent('install with resolutions should correctly install toplevel scoped packages', (): Promise<void> => {
+  return runInstall({}, {source: 'resolutions', cwd: 'scoped-toplevel'}, async config => {
+    expect(await getPackageVersion(config, '@scoped/a')).toEqual('1.0.0');
+    expect(await getPackageVersion(config, '@scoped/b')).toEqual('2.0.0');
+  });
+});

@@ -4,8 +4,9 @@ import type {Dependency} from '../../types.js';
 import type {Reporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
 import {Add} from './add.js';
-import Lockfile from '../../lockfile/wrapper.js';
+import Lockfile from '../../lockfile';
 import PackageRequest from '../../package-request.js';
+import {normalizePattern} from '../../util/normalize-pattern.js';
 import {Install} from './install.js';
 
 // used to detect whether a semver range is simple enough to preserve when doing a --latest upgrade.
@@ -19,7 +20,7 @@ const validScopeRegex = /^@[a-zA-Z0-9-][a-zA-Z0-9_.-]*\/$/g;
 // Also add ones that are missing, since the requested packages may not have been outdated at all.
 function setUserRequestedPackageVersions(deps: Array<Dependency>, args: Array<string>) {
   args.forEach(requestedPattern => {
-    const normalized = PackageRequest.normalizePattern(requestedPattern);
+    const normalized = normalizePattern(requestedPattern);
     const newPattern = `${normalized.name}@${normalized.range}`;
     let found = false;
 
@@ -71,7 +72,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
   const deps = await getOutdated(config, reporter, flags, lockfile, args);
 
   // do not pass the --latest flag to add, otherwise it may ignore the version ranges we already determined.
-  const addFlags = Object.assign({}, flags, {force: true, latest: false});
+  const addFlags = Object.assign({}, flags, {force: true, latest: false, existing: true});
 
   setUserRequestedPackageVersions(deps, args);
 

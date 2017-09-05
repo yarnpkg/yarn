@@ -52,44 +52,149 @@ addTest('https://github.com/yarnpkg/yarn/releases/download/v0.18.1/yarn-v0.18.1.
 addTest('https://github.com/bestander/chrome-app-livereload.git'); // no package.json
 addTest('bestander/chrome-app-livereload'); // no package.json, github, tarball
 
-const MIN_PORT_NUM = 1024;
+const MIN_PORT_NUM = 56000;
 const MAX_PORT_NUM = 65535;
 const PORT_RANGE = MAX_PORT_NUM - MIN_PORT_NUM;
 
 const getRandomPort = () => Math.floor(Math.random() * PORT_RANGE) + MIN_PORT_NUM;
 
+async function runYarn(args: Array<string> = [], options: Object = {}): Promise<Array<Buffer>> {
+  const {stdout, stderr} = await execa(path.resolve(__dirname, '../bin/yarn'), args, options);
+
+  return [stdout, stderr];
+}
+
 test('--mutex network', async () => {
   const cwd = await makeTemp();
-  const cacheFolder = path.join(cwd, '.cache');
 
-  const command = path.resolve(__dirname, '../bin/yarn');
-  const args = ['--cache-folder', cacheFolder, '--verbose', '--mutex', `network:${getRandomPort()}`];
+  const port = getRandomPort();
+  await fs.writeFile(path.join(cwd, '.yarnrc'), `--mutex "network:${port}"\n`);
 
-  const options = {cwd};
+  const promises = [];
 
-  await Promise.all([
-    execa(command, ['add', 'left-pad'].concat(args), options),
-    execa(command, ['add', 'foo'].concat(args), options),
-  ]);
+  for (let t = 0; t < 40; ++t) {
+    const subCwd = path.join(cwd, String(t));
+
+    await fs.mkdirp(subCwd);
+    await fs.writeFile(
+      path.join(subCwd, 'package.json'),
+      JSON.stringify({
+        scripts: {test: 'node -e "setTimeout(function(){}, process.argv[1])"'},
+      }),
+    );
+
+    promises.push(runYarn(['run', 'test', '100'], {cwd: subCwd}));
+  }
+
+  await Promise.all(promises);
 });
+
+test('--cwd option', async () => {
+  const cwd = await makeTemp();
+
+  const subdir = path.join(cwd, 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i');
+  await fs.mkdirp(subdir);
+
+  const packageJsonPath = path.join(cwd, 'package.json');
+  await fs.writeFile(packageJsonPath, JSON.stringify({}));
+
+  await runYarn(['add', 'left-pad'], {cwd: subdir});
+
+  const packageJson = JSON.parse(await fs.readFile(packageJsonPath));
+  expect(packageJson.dependencies['left-pad']).toBeDefined();
+});
+
+test('yarnrc binary path (js)', async () => {
+  const cwd = await makeTemp();
+
+  await fs.writeFile(`${cwd}/.yarnrc`, 'yarn-path "./override.js"\n');
+  await fs.writeFile(`${cwd}/override.js`, 'console.log("override called")\n');
+
+  const [stdoutOutput] = await runYarn([], {cwd});
+  expect(stdoutOutput.toString().trim()).toEqual('override called');
+});
+
+test('yarnrc binary path (executable)', async () => {
+  const cwd = await makeTemp();
+
+  if (process.platform === 'win32') {
+    await fs.writeFile(`${cwd}/.yarnrc`, 'yarn-path "./override.cmd"\n');
+    await fs.writeFile(`${cwd}/override.cmd`, '@echo override called\n');
+  } else {
+    await fs.writeFile(`${cwd}/.yarnrc`, 'yarn-path "./override"\n');
+    await fs.writeFile(`${cwd}/override`, '#!/usr/bin/env sh\necho override called\n');
+    await fs.chmod(`${cwd}/override`, 0o755);
+  }
+
+  const [stdoutOutput] = await runYarn([], {cwd});
+  expect(stdoutOutput.toString().trim()).toEqual('override called');
+});
+
+// Windows could run these tests, but we currently suffer from an escaping issue that breaks them (#4135)
+if (process.platform !== 'win32') {
+  test('yarn run <script> --opt', async () => {
+    const cwd = await makeTemp();
+
+    await fs.writeFile(
+      path.join(cwd, 'package.json'),
+      JSON.stringify({
+        scripts: {echo: `echo`},
+      }),
+    );
+
+    const command = path.resolve(__dirname, '../bin/yarn');
+    const options = {cwd, env: {YARN_SILENT: 1}};
+
+    const {stderr: stderr, stdout: stdout} = execa(command, ['run', 'echo', '--opt'], options);
+
+    const stdoutPromise = misc.consumeStream(stdout);
+    const stderrPromise = misc.consumeStream(stderr);
+
+    const [stdoutOutput, stderrOutput] = await Promise.all([stdoutPromise, stderrPromise]);
+
+    expect(stdoutOutput.toString().trim()).toEqual('--opt');
+    expect(stderrOutput.toString()).not.toMatch(
+      /From Yarn 1\.0 onwards, scripts don't require "--" for options to be forwarded/,
+    );
+  });
+
+  test('yarn run <script> -- --opt', async () => {
+    const cwd = await makeTemp();
+
+    await fs.writeFile(
+      path.join(cwd, 'package.json'),
+      JSON.stringify({
+        scripts: {echo: `echo`},
+      }),
+    );
+
+    const command = path.resolve(__dirname, '../bin/yarn');
+    const options = {cwd, env: {YARN_SILENT: 1}};
+
+    const {stderr: stderr, stdout: stdout} = execa(command, ['run', 'echo', '--', '--opt'], options);
+
+    const stdoutPromise = misc.consumeStream(stdout);
+    const stderrPromise = misc.consumeStream(stderr);
+
+    const [stdoutOutput, stderrOutput] = await Promise.all([stdoutPromise, stderrPromise]);
+
+    expect(stdoutOutput.toString().trim()).toEqual('--opt');
+    expect(stderrOutput.toString()).toMatch(
+      /From Yarn 1\.0 onwards, scripts don't require "--" for options to be forwarded/,
+    );
+  });
+}
 
 test('cache folder fallback', async () => {
   const cwd = await makeTemp();
   const cacheFolder = path.join(cwd, '.cache');
 
-  const command = path.resolve(__dirname, '../bin/yarn');
   const args = ['--preferred-cache-folder', cacheFolder];
-
   const options = {cwd};
 
-  function runCacheDir(): Promise<Array<Buffer>> {
-    const {stderr, stdout} = execa(command, ['cache', 'dir'].concat(args), options);
-
-    const stdoutPromise = misc.consumeStream(stdout);
-    const stderrPromise = misc.consumeStream(stderr);
-
-    return Promise.all([stdoutPromise, stderrPromise]);
-  }
+  const runCacheDir = () => {
+    return runYarn(['cache', 'dir'].concat(args), options);
+  };
 
   const [stdoutOutput, stderrOutput] = await runCacheDir();
 
@@ -105,4 +210,13 @@ test('cache folder fallback', async () => {
     path.join(constants.PREFERRED_MODULE_CACHE_DIRECTORIES[0], `v${constants.CACHE_VERSION}`),
   );
   expect(stderrOutput2.toString()).toMatch(/Skipping preferred cache folder/);
+});
+
+test('yarn create', async () => {
+  const cwd = await makeTemp();
+  const options = {cwd, env: {YARN_SILENT: 1}};
+
+  const [stdoutOutput, _] = await runYarn(['create', 'html'], options);
+
+  expect(stdoutOutput.toString()).toMatch(/<!doctype html>/);
 });

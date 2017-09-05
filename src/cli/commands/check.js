@@ -4,7 +4,7 @@ import type Config from '../../config.js';
 import {MessageError} from '../../errors.js';
 import InstallationIntegrityChecker from '../../integrity-checker.js';
 import {integrityErrors} from '../../integrity-checker.js';
-import Lockfile from '../../lockfile/wrapper.js';
+import Lockfile from '../../lockfile';
 import type {Reporter} from '../../reporters/index.js';
 import * as fs from '../../util/fs.js';
 import {Install} from './install.js';

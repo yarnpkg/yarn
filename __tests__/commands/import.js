@@ -3,7 +3,7 @@
 import type {CLIFunctionReturn} from '../../src/types.js';
 import * as reporters from '../../src/reporters/index.js';
 import * as importCmd from '../../src/cli/commands/import.js';
-import Lockfile from '../../src/lockfile/wrapper.js';
+import Lockfile from '../../src/lockfile';
 import * as fs from '../../src/util/fs.js';
 import {run as buildRun} from './_helpers.js';
 

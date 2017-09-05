@@ -5,8 +5,14 @@ import type PackageResolver from './package-resolver.js';
 import type {Reporter} from './reporters/index.js';
 import type Config from './config.js';
 import type {Install} from './cli/commands/install';
+
+import path from 'path';
+
+import invariant from 'invariant';
+import semver from 'semver';
+
 import {cleanDependencies} from './util/normalize-manifest/validate.js';
-import Lockfile from './lockfile/wrapper.js';
+import Lockfile from './lockfile';
 import PackageReference from './package-reference.js';
 import {registries as registryResolvers} from './resolvers/index.js';
 import {MessageError} from './errors.js';
@@ -15,10 +21,7 @@ import * as versionUtil from './util/version.js';
 import WorkspaceResolver from './resolvers/contextual/workspace-resolver.js';
 import {getExoticResolver} from './resolvers/index.js';
 import * as fs from './util/fs.js';
-
-const path = require('path');
-const invariant = require('invariant');
-const semver = require('semver');
+import {normalizePattern} from './util/normalize-pattern.js';
 
 type ResolverRegistryNames = $Keys<typeof registryResolvers>;
 
@@ -126,7 +129,8 @@ export default class PackageRequest {
 
     if (!semver.validRange(pattern)) {
       try {
-        if ((await fs.stat(path.join(this.config.cwd, pattern))).isDirectory()) {
+        if (await fs.exists(path.join(this.config.cwd, pattern, constants.NODE_PACKAGE_JSON))) {
+          this.reporter.warn(this.reporter.lang('implicitFileDeprecated', pattern));
           return `file:${pattern}`;
         }
       } catch (err) {
@@ -138,52 +142,9 @@ export default class PackageRequest {
   }
 
   async normalize(pattern: string): any {
-    const {name, range, hasVersion} = PackageRequest.normalizePattern(pattern);
+    const {name, range, hasVersion} = normalizePattern(pattern);
     const newRange = await this.normalizeRange(range);
     return {name, range: newRange, hasVersion};
-  }
-
-  /**
-   * Explode and normalize a pattern into it's name and range.
-   */
-
-  static normalizePattern(
-    pattern: string,
-  ): {
-    hasVersion: boolean,
-    name: string,
-    range: string,
-  } {
-    let hasVersion = false;
-    let range = 'latest';
-    let name = pattern;
-
-    // if we're a scope then remove the @ and add it back later
-    let isScoped = false;
-    if (name[0] === '@') {
-      isScoped = true;
-      name = name.slice(1);
-    }
-
-    // take first part as the name
-    const parts = name.split('@');
-    if (parts.length > 1) {
-      name = parts.shift();
-      range = parts.join('@');
-
-      if (range) {
-        hasVersion = true;
-      } else {
-        range = '*';
-      }
-    }
-
-    // add back @ scope suffix
-    if (isScoped) {
-      name = `@${name}`;
-    }
-
-    return {name, range, hasVersion};
   }
 
   /**
@@ -222,7 +183,7 @@ export default class PackageRequest {
    */
   resolveToExistingVersion(info: Manifest) {
     // get final resolved version
-    const {range, name} = PackageRequest.normalizePattern(this.pattern);
+    const {range, name} = normalizePattern(this.pattern);
     const solvedRange = semver.validRange(range) ? info.version : range;
     const resolved: ?Manifest = this.resolver.getHighestRangeVersionMatch(name, solvedRange, info);
     invariant(resolved, 'should have a resolved reference');
@@ -248,7 +209,7 @@ export default class PackageRequest {
 
     // check if while we were resolving this dep we've already resolved one that satisfies
     // the same range
-    const {range, name} = PackageRequest.normalizePattern(this.pattern);
+    const {range, name} = normalizePattern(this.pattern);
     const solvedRange = semver.validRange(range) ? info.version : range;
     const resolved: ?Manifest =
       !info.fresh || frozen
@@ -388,10 +349,8 @@ export default class PackageRequest {
     // filter the list down to just the packages requested.
     // prevents us from having to query the metadata for all packages.
     if (filterByPatterns && filterByPatterns.length) {
-      const filterByNames = filterByPatterns.map(pattern => PackageRequest.normalizePattern(pattern).name);
-      depReqPatterns = depReqPatterns.filter(
-        dep => filterByNames.indexOf(PackageRequest.normalizePattern(dep.pattern).name) >= 0,
-      );
+      const filterByNames = filterByPatterns.map(pattern => normalizePattern(pattern).name);
+      depReqPatterns = depReqPatterns.filter(dep => filterByNames.indexOf(normalizePattern(dep.pattern).name) >= 0);
     }
 
     const deps = await Promise.all(
@@ -406,7 +365,7 @@ export default class PackageRequest {
         let wanted = '';
         let url = '';
 
-        const normalized = PackageRequest.normalizePattern(pattern);
+        const normalized = normalizePattern(pattern);
 
         if (getExoticResolver(pattern) || getExoticResolver(normalized.range)) {
           latest = wanted = 'exotic';

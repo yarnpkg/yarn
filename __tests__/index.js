@@ -206,6 +206,19 @@ test.concurrent('should run --version command', async () => {
   expect(stdout[0]).toEqual(pkg.version);
 });
 
+test.concurrent('should exit cleanly when running invalid commands', async () => {
+  try {
+    await execCommand('import', ['foobar'], 'run-version');
+  } catch (err) {
+    // not important - we really only want to check that the command terminates
+  }
+  try {
+    await execCommand('remove', ['foobar'], 'run-version');
+  } catch (err) {
+    // not important - we really only want to check that the command terminates
+  }
+});
+
 test.concurrent('should install if no args', async () => {
   const stdout = await execCommand('', [], 'run-add', true);
   expect(stdout[0]).toEqual(`yarn install v${pkg.version}`);
@@ -243,8 +256,8 @@ if (process.platform !== 'win32') {
 }
 
 test.concurrent('should run bin command', async () => {
-  const stdout = await execCommand('bin', [], '', false);
-  expect(stdout[0]).toEqual(path.join(fixturesLoc, 'node_modules', '.bin'));
+  const stdout = await execCommand('bin', [], '', true);
+  expect(stdout[0]).toMatch(/[\\\/]node_modules[\\\/]\.bin\n?$/);
   expect(stdout.length).toEqual(1);
 });
 

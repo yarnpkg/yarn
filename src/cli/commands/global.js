@@ -7,7 +7,7 @@ import {MessageError} from '../../errors.js';
 import {registries} from '../../registries/index.js';
 import NoopReporter from '../../reporters/base-reporter.js';
 import buildSubCommands from './_build-sub-commands.js';
-import Lockfile from '../../lockfile/wrapper.js';
+import Lockfile from '../../lockfile';
 import {Install} from './install.js';
 import {Add} from './add.js';
 import {run as runRemove} from './remove.js';
@@ -17,9 +17,13 @@ import {linkBin} from '../../package-linker.js';
 import {POSIX_GLOBAL_PREFIX, FALLBACK_GLOBAL_PREFIX} from '../../constants.js';
 import * as fs from '../../util/fs.js';
 
-const nativeFs = require('fs');
-
 class GlobalAdd extends Add {
+  constructor(args: Array<string>, flags: Object, config: Config, reporter: Reporter, lockfile: Lockfile) {
+    super(args, flags, config, reporter, lockfile);
+
+    this.linker.setTopLevelBinLinking(false);
+  }
+
   maybeOutputSaveTree(): Promise<void> {
     for (const pattern of this.addedPatterns) {
       const manifest = this.resolver.getStrictResolvedPattern(pattern);
@@ -40,6 +44,8 @@ export function hasWrapper(flags: Object, args: Array<string>): boolean {
 }
 
 async function updateCwd(config: Config): Promise<void> {
+  await fs.mkdirp(config.globalFolder);
+
   await config.init({
     cwd: config.globalFolder,
     binLinks: true,
@@ -90,11 +96,16 @@ async function getGlobalPrefix(config: Config, flags: Object): Promise<string> {
   } else {
     prefix = POSIX_GLOBAL_PREFIX;
   }
+
+  const binFolder = path.join(prefix, 'bin');
   try {
-    await fs.access(path.join(prefix, 'bin'), (nativeFs.constants || nativeFs).W_OK);
+    // eslint-disable-next-line no-bitwise
+    await fs.access(binFolder, fs.constants.W_OK | fs.constants.X_OK);
   } catch (err) {
     if (err.code === 'EACCES') {
       prefix = FALLBACK_GLOBAL_PREFIX;
+    } else if (err.code === 'ENOENT') {
+      // ignore - that just means we don't have the folder, yet
     } else {
       throw err;
     }
@@ -113,13 +124,19 @@ async function initUpdateBins(config: Config, reporter: Reporter, flags: Object)
 
   function throwPermError(err: Error & {[code: string]: string}, dest: string) {
     if (err.code === 'EACCES') {
-      throw new MessageError(reporter.lang('noFilePermission', dest));
+      throw new MessageError(reporter.lang('noPermission', dest));
     } else {
       throw err;
     }
   }
 
   return async function(): Promise<void> {
+    try {
+      await fs.mkdirp(binFolder);
+    } catch (err) {
+      throwPermError(err, binFolder);
+    }
+
     const afterBins = await getBins(config);
 
     // remove old bins

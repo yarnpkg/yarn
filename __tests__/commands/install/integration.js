@@ -7,9 +7,9 @@ import {run as cache} from '../../../src/cli/commands/cache.js';
 import {run as check} from '../../../src/cli/commands/check.js';
 import * as constants from '../../../src/constants.js';
 import * as reporters from '../../../src/reporters/index.js';
-import {parse} from '../../../src/lockfile/wrapper.js';
+import {parse} from '../../../src/lockfile';
 import {Install, run as install} from '../../../src/cli/commands/install.js';
-import Lockfile from '../../../src/lockfile/wrapper.js';
+import Lockfile from '../../../src/lockfile';
 import * as fs from '../../../src/util/fs.js';
 import {getPackageVersion, explodeLockfile, runInstall, createLockfile, run as buildRun} from '../_helpers.js';
 
@@ -442,13 +442,13 @@ test.concurrent('install file: local packages with local dependencies', async ()
 });
 
 test.concurrent('install file: install without manifest of dependency', async (): Promise<void> => {
-  await runInstall({}, 'install-file-without-manifest', async (config, reporter) => {
+  await runInstall({}, 'install-file-without-manifest', async config => {
     expect(await fs.readFile(path.join(config.cwd, 'node_modules', 'foo', 'index.js'))).toEqual('bar\n');
   });
 });
 
 test.concurrent('install file: link file dependencies', async (): Promise<void> => {
-  await runInstall({}, 'install-file-link-dependencies', async (config, reporter) => {
+  await runInstall({}, 'install-file-link-dependencies', async config => {
     const statA = await fs.lstat(path.join(config.cwd, 'node_modules', 'a'));
     expect(statA.isSymbolicLink()).toEqual(true);
 
@@ -471,14 +471,23 @@ test.concurrent('install file: protocol', (): Promise<void> => {
 });
 
 test.concurrent('install with file: protocol as default', (): Promise<void> => {
-  return runInstall({}, 'install-file-as-default', async config => {
+  return runInstall({}, 'install-file-as-default', async (config, reporter, install, getOutput) => {
     expect(await fs.readFile(path.join(config.cwd, 'node_modules', 'foo', 'index.js'))).toEqual('foobar;\n');
+
+    expect(getOutput()).toContain(reporter.lang('implicitFileDeprecated', 'bar'));
   });
 });
 
 test.concurrent("don't install with file: protocol as default if target is a file", (): Promise<void> => {
   // $FlowFixMe
   return expect(runInstall({lockfile: false}, 'install-file-as-default-no-file')).rejects.toBeDefined();
+});
+
+test.concurrent("don't install with file: protocol as default if target does not have package.json", (): Promise<
+  void,
+> => {
+  // $FlowFixMe
+  return expect(runInstall({lockfile: false}, 'install-file-as-default-no-package')).rejects.toBeDefined();
 });
 
 test.concurrent("don't install with file: protocol as default if target is valid semver", (): Promise<void> => {

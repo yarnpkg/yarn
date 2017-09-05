@@ -7,7 +7,8 @@ import * as constants from '../constants.js';
 import * as network from '../util/network.js';
 import {MessageError} from '../errors.js';
 import Config from '../config.js';
-import {getRcArgs} from '../rc.js';
+import {getRcConfigForCwd, getRcArgs} from '../rc.js';
+import {spawnp, forkp} from '../util/child.js';
 import {version} from '../util/yarn-version.js';
 import handleSignals from '../util/signal-handler.js';
 
@@ -16,9 +17,26 @@ const fs = require('fs');
 const invariant = require('invariant');
 const lockfile = require('proper-lockfile');
 const loudRejection = require('loud-rejection');
+const http = require('http');
 const net = require('net');
 const onDeath = require('death');
 const path = require('path');
+
+function findProjectRoot(base: string): string {
+  let prev = null;
+  let dir = base;
+
+  do {
+    if (fs.existsSync(path.join(dir, constants.NODE_PACKAGE_JSON))) {
+      return dir;
+    }
+
+    prev = dir;
+    dir = path.dirname(dir);
+  } while (dir !== prev);
+
+  return base;
+}
 
 export function main({
   startArgs,
@@ -55,6 +73,7 @@ export function main({
   commander.option('--pure-lockfile', "don't generate a lockfile");
   commander.option('--frozen-lockfile', "don't generate a lockfile and fail if an update is needed");
   commander.option('--link-duplicates', 'create hardlinks to the repeated modules in node_modules');
+  commander.option('--link-folder <path>', 'specify a custom folder to store global links');
   commander.option('--global-folder <path>', 'specify a custom folder to store global packages');
   commander.option(
     '--modules-folder <path>',
@@ -110,6 +129,16 @@ export function main({
     command = commands.run;
   }
 
+  let warnAboutRunDashDash = false;
+  // we are using "yarn <script> -abc" or "yarn run <script> -abc", we want -abc to be script options, not yarn options
+  if (command === commands.run) {
+    if (endArgs.length === 0) {
+      endArgs = ['--', ...args.splice(1)];
+    } else {
+      warnAboutRunDashDash = true;
+    }
+  }
+
   command.setFlags(commander);
   commander.parse([
     ...startArgs,
@@ -119,7 +148,7 @@ export function main({
     ...getRcArgs(commandName, args),
     ...args,
   ]);
-  commander.args = commander.args.concat(endArgs);
+  commander.args = commander.args.concat(endArgs.slice(1));
 
   // we strip cmd
   console.assert(commander.args.length >= 1);
@@ -135,6 +164,11 @@ export function main({
     isSilent: process.env.YARN_SILENT === '1' || commander.silent,
   });
 
+  const exit = exitCode => {
+    process.exitCode = exitCode || 0;
+    reporter.close();
+  };
+
   reporter.initPeakMemoryCounter();
 
   const config = new Config(reporter);
@@ -147,7 +181,7 @@ export function main({
   if (command.noArguments && commander.args.length) {
     reporter.error(reporter.lang('noArguments'));
     reporter.info(command.getDocsInfo);
-    process.exitCode = 1;
+    exit(1);
     return;
   }
 
@@ -164,13 +198,18 @@ export function main({
   //
   if (command.requireLockfile && !fs.existsSync(path.join(config.cwd, constants.LOCKFILE_FILENAME))) {
     reporter.error(reporter.lang('noRequiredLockfile'));
-    process.exitCode = 1;
+    exit(1);
     return;
   }
 
   //
   const run = (): Promise<void> => {
     invariant(command, 'missing command');
+
+    if (warnAboutRunDashDash) {
+      reporter.warn(reporter.lang('dashDashDeprecation'));
+    }
+
     return command.run(config, reporter, commander, commander.args).then(exitCode => {
       if (outputWrapper) {
         reporter.footer(false);
@@ -201,68 +240,129 @@ export function main({
     });
   };
 
-  //
   const runEventuallyWithNetwork = (mutexPort: ?string): Promise<void> => {
-    return new Promise(resolve => {
+    return new Promise((resolve, reject) => {
       const connectionOptions = {
         port: +mutexPort || constants.SINGLE_INSTANCE_PORT,
       };
 
-      const clients = new Set();
-      const server = net.createServer();
+      function startServer() {
+        const clients = new Set();
+        const server = http.createServer(manager);
 
-      server.on('error', () => {
-        // another Yarn instance exists, let's connect to it to know when it dies.
-        reporter.warn(reporter.lang('waitingInstance'));
-        const socket = net.createConnection(connectionOptions);
+        // The server must not prevent us from exiting
+        server.unref();
 
-        socket
-          .on('connect', () => {
-            // Allow the program to exit if this is the only active server in the event system.
-            socket.unref();
-          })
-          .on('close', (hadError?: boolean) => {
-            // the `close` event gets always called after the `error` event
-            if (!hadError) {
-              process.nextTick(() => {
-                resolve(runEventuallyWithNetwork(mutexPort));
-              });
-            }
-          })
-          .on('error', () => {
-            // No server to listen to ? Let's retry to become the next server then.
-            process.nextTick(() => {
-              resolve(runEventuallyWithNetwork(mutexPort));
-            });
+        // No socket must timeout, so that they aren't closed before we exit
+        server.timeout = 0;
+
+        // If we fail to setup the server, we ask the existing one for its name
+        server.on('error', () => {
+          reportServerName();
+        });
+
+        // If we succeed, keep track of all the connected sockets to close them later
+        server.on('connection', socket => {
+          clients.add(socket);
+          socket.on('close', () => {
+            clients.delete(socket);
           });
-      });
+        });
 
-      const onServerEnd = async () => {
-        for (const client of clients) {
-          try {
-            client.destroy();
-          } catch (err) {
-            // pass
-          }
+        server.listen(connectionOptions, () => {
+          // Don't forget to kill the sockets if we're being killed via signals
+          onDeath(killSockets);
+
+          // Also kill the sockets if we finish, whether it's a success or a failure
+          run().then(
+            res => {
+              killSockets();
+              resolve(res);
+            },
+            err => {
+              killSockets();
+              reject(err);
+            },
+          );
+        });
+
+        function manager(request, response) {
+          response.writeHead(200);
+          response.end(JSON.stringify({cwd: config.cwd, pid: process.pid}));
         }
 
-        await server.close();
-        server.unref();
-      };
+        function killSockets() {
+          try {
+            server.close();
+          } catch (err) {
+            // best effort
+          }
 
-      // open the server and continue only if succeed.
-      server.listen(connectionOptions, () => {
-        // ensure the server gets closed properly on SIGNALS.
-        onDeath(onServerEnd);
+          for (const socket of clients) {
+            try {
+              socket.destroy();
+            } catch (err) {
+              // best effort
+            }
+          }
 
-        resolve(run().then(onServerEnd));
-      });
+          // If the process hasn't exited in the next 5s, it has stalled and we abort
+          const timeout = setTimeout(() => {
+            console.error('Process stalled');
+            if (process._getActiveHandles) {
+              console.error('Active handles:');
+              // $FlowFixMe: getActiveHandles is undocumented, but it exists
+              for (const handle of process._getActiveHandles()) {
+                console.error(`  - ${handle.constructor.name}`);
+              }
+            }
+            // eslint-disable-next-line no-process-exit
+            process.exit(1);
+          }, 5000);
 
-      server.on('connection', function(socket) {
-        clients.add(socket);
+          // This timeout must not prevent us from exiting
+          // $FlowFixMe: Node's setTimeout returns a Timeout, not a Number
+          timeout.unref();
+        }
+      }
 
-        socket.on('close', () => clients.delete(socket));
-      });
+      function reportServerName() {
+        const request = http.get(connectionOptions, response => {
+          const buffers = [];
+
+          response.on('data', buffer => {
+            buffers.push(buffer);
+          });
+
+          response.on('end', () => {
+            const {cwd, pid} = JSON.parse(Buffer.concat(buffers).toString());
+            reporter.warn(reporter.lang('waitingNamedInstance', pid, cwd));
+            waitForTheNetwork();
+          });
+
+          response.on('error', () => {
+            startServer();
+          });
+        });
+
+        request.on('error', () => {
+          startServer();
+        });
+      }
+
+      function waitForTheNetwork() {
+        const socket = net.createConnection(connectionOptions);
+
+        socket.on('error', () => {
+          // catch & ignore, the retry is handled in 'close'
+        });
+
+        socket.on('close', () => {
+          startServer();
+        });
+      }
+
+      startServer();
     });
   };
 
@@ -316,15 +416,15 @@ export function main({
     return errorReportLoc;
   }
 
-  const exit = exitCode => {
-    process.exitCode = exitCode || 0;
-    return reporter.close();
-  };
+  const cwd = findProjectRoot(commander.cwd);
 
   config
     .init({
+      cwd,
+
       binLinks: commander.binLinks,
       modulesFolder: commander.modulesFolder,
+      linkFolder: commander.linkFolder,
       globalFolder: commander.globalFolder,
       preferredCacheFolder: commander.preferredCacheFolder,
       cacheFolder: commander.cacheFolder,
@@ -342,7 +442,6 @@ export function main({
       networkTimeout: commander.networkTimeout,
       nonInteractive: commander.nonInteractive,
       scriptsPrependNodePath: commander.scriptsPrependNodePath,
-      cwd: commander.cwd,
 
       commandName: commandName === 'run' ? commander.args[0] : commandName,
     })
@@ -398,14 +497,32 @@ export function main({
     });
 }
 
-export default function start() {
-  // ignore all arguments after a --
-  const doubleDashIndex = process.argv.findIndex(element => element === '--');
-  const startArgs = process.argv.slice(0, 2);
-  const args = process.argv.slice(2, doubleDashIndex === -1 ? process.argv.length : doubleDashIndex);
-  const endArgs = doubleDashIndex === -1 ? [] : process.argv.slice(doubleDashIndex + 1, process.argv.length);
+async function start(): Promise<void> {
+  const rc = getRcConfigForCwd(process.cwd());
+  const yarnPath = rc['yarn-path'];
 
-  main({startArgs, args, endArgs});
+  if (yarnPath && process.env.YARN_IGNORE_PATH !== '1') {
+    const argv = process.argv.slice(2);
+    const opts = {stdio: 'inherit', env: Object.assign({}, process.env, {YARN_IGNORE_PATH: 1})};
+
+    try {
+      await spawnp(yarnPath, argv, opts);
+    } catch (firstError) {
+      try {
+        await forkp(yarnPath, argv, opts);
+      } catch (error) {
+        throw firstError;
+      }
+    }
+  } else {
+    // ignore all arguments after a --
+    const doubleDashIndex = process.argv.findIndex(element => element === '--');
+    const startArgs = process.argv.slice(0, 2);
+    const args = process.argv.slice(2, doubleDashIndex === -1 ? process.argv.length : doubleDashIndex);
+    const endArgs = doubleDashIndex === -1 ? [] : process.argv.slice(doubleDashIndex);
+
+    main({startArgs, args, endArgs});
+  }
 }
 
 // When this module is compiled via Webpack, its child
@@ -415,3 +532,5 @@ export const autoRun = module.children.length === 0;
 if (require.main === module) {
   start();
 }
+
+export default start;

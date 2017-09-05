@@ -5,7 +5,7 @@ import type Config from '../../config.js';
 import type {Manifest} from '../../types.js';
 import NoopReporter from '../../reporters/base-reporter.js';
 import {Install} from './install.js';
-import Lockfile from '../../lockfile/wrapper.js';
+import Lockfile from '../../lockfile';
 import buildSubCommands from './_build-sub-commands.js';
 
 const invariant = require('invariant');

@@ -5,8 +5,8 @@ import type {InstallCwdRequest} from './install.js';
 import type {DependencyRequestPatterns, Manifest} from '../../types.js';
 import type Config from '../../config.js';
 import type {ListOptions} from './list.js';
-import Lockfile from '../../lockfile/wrapper.js';
-import PackageRequest from '../../package-request.js';
+import Lockfile from '../../lockfile';
+import {normalizePattern} from '../../util/normalize-pattern.js';
 import WorkspaceLayout from '../../workspace-layout.js';
 import {getExoticResolver} from '../../resolvers/index.js';
 import {buildTree} from './list.js';
@@ -23,6 +23,10 @@ export class Add extends Install {
   constructor(args: Array<string>, flags: Object, config: Config, reporter: Reporter, lockfile: Lockfile) {
     super(flags, config, reporter, lockfile);
     this.args = args;
+
+    if (this.config.workspaceRootFolder && this.config.cwd === this.config.workspaceRootFolder) {
+      this.setIgnoreWorkspaces(true);
+    }
     // only one flag is supported, so we can figure out which one was passed to `yarn add`
     this.flagToOrigin = [
       flags.dev && 'devDependencies',
@@ -32,6 +36,10 @@ export class Add extends Install {
     ]
       .filter(Boolean)
       .shift();
+
+    if (flags.existing) {
+      this.flagToOrigin = '';
+    }
   }
 
   args: Array<string>;
@@ -60,7 +68,7 @@ export class Add extends Install {
    */
   getPatternVersion(pattern: string, pkg: Manifest): string {
     const {exact, tilde} = this.flags;
-    const {hasVersion, range} = PackageRequest.normalizePattern(pattern);
+    const {hasVersion, range} = normalizePattern(pattern);
     let version;
 
     if (getExoticResolver(pattern)) {
@@ -120,7 +128,7 @@ export class Add extends Install {
    */
 
   async init(): Promise<Array<string>> {
-    if (this.config.workspaceRootFolder && this.config.cwd === this.config.workspaceRootFolder) {
+    if (this.ignoreWorkspaces) {
       if (this.flagToOrigin === 'dependencies') {
         throw new MessageError(this.reporter.lang('workspacesPreferDevDependencies'));
       }

@@ -26,6 +26,7 @@
     "invariant": "^2.2.0",
     "is-builtin-module": "^1.0.0",
     "is-ci": "^1.0.10",
+    "is-webpack-bundle": "^1.0.0",
     "leven": "^2.0.0",
     "loud-rejection": "^1.2.0",
     "micromatch": "^2.3.11",
@@ -44,7 +45,8 @@
     "tar-stream": "^1.5.2",
     "uuid": "^3.0.1",
     "v8-compile-cache": "^1.1.0",
-    "validate-npm-package-license": "^3.0.1"
+    "validate-npm-package-license": "^3.0.1",
+    "yn": "^2.0.0"
   },
   "devDependencies": {
     "babel-core": "^6.24.1",

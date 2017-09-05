@@ -3,8 +3,7 @@
 import type {Reporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
 import {MessageError} from '../../errors.js';
-import {implodeEntry} from '../../lockfile/wrapper.js';
-import stringify from '../../lockfile/stringify.js';
+import {implodeEntry, stringify} from '../../lockfile';
 
 export function hasWrapper(commander: Object, args: Array<string>): boolean {
   return false;

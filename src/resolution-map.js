@@ -4,7 +4,8 @@ import minimatch from 'minimatch';
 import map from './util/map';
 import type Config from './config';
 import type {Reporter} from './reporters';
-import PackageRequest from './package-request';
+import {normalizePattern} from './util/normalize-pattern.js';
+import parsePackagePath, {isValidPackagePath} from './util/parse-package-path';
 import {getExoticResolver} from './resolvers';
 
 const DIRECTORY_SEPARATOR = '/';
@@ -48,13 +49,13 @@ export default class ResolutionMap {
   }
 
   parsePatternInfo(globPattern: string, range: string): ?Object {
-    const directories = globPattern.split(DIRECTORY_SEPARATOR);
-    const name = directories.pop();
-
-    if (!name) {
+    if (!isValidPackagePath(globPattern)) {
       this.reporter.warn(this.reporter.lang('invalidResolutionName', globPattern));
       return null;
     }
+
+    const directories = parsePackagePath(globPattern);
+    const name = directories.pop();
 
     if (!semver.validRange(range) && !getExoticResolver(range)) {
       this.reporter.warn(this.reporter.lang('invalidResolutionVersion', range));
@@ -75,7 +76,7 @@ export default class ResolutionMap {
   }
 
   find(reqPattern: string, parentNames: Array<string>): ?string {
-    const {name, range: reqRange} = PackageRequest.normalizePattern(reqPattern);
+    const {name, range: reqRange} = normalizePattern(reqPattern);
     const resolutions = this.resolutionsByPackage[name];
 
     if (!resolutions) {

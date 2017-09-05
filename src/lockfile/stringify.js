@@ -3,7 +3,7 @@
 import {sortAlpha} from '../util/misc.js';
 import {LOCKFILE_VERSION} from '../constants.js';
 
-const YARN_VERSION = require('../../package.json').version;
+import {version as YARN_VERSION} from '../../package.json';
 const NODE_VERSION = process.version;
 
 function shouldWrapKey(str: string): boolean {

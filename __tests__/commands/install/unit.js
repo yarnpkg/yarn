@@ -2,7 +2,7 @@
 
 import {NoopReporter} from '../../../src/reporters/index.js';
 import {Install} from '../../../src/cli/commands/install.js';
-import Lockfile from '../../../src/lockfile/wrapper.js';
+import Lockfile from '../../../src/lockfile';
 import Config from '../../../src/config.js';
 
 const path = require('path');

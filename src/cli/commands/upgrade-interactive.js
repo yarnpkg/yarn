@@ -4,9 +4,11 @@ import type {Dependency} from '../../types.js';
 import type {Reporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
 import inquirer from 'inquirer';
-import Lockfile from '../../lockfile/wrapper.js';
+import Lockfile from '../../lockfile';
 import {Add} from './add.js';
 import {getOutdated} from './upgrade.js';
+import colorForVersions from '../../util/color-for-versions';
+import colorizeDiff from '../../util/colorize-diff.js';
 
 export const requireLockfile = true;
 
@@ -35,19 +37,27 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
 
   const deps = await getOutdated(config, reporter, flags, lockfile, args);
 
+  if (deps.length === 0) {
+    reporter.success(reporter.lang('allDependenciesUpToDate'));
+    return;
+  }
+
   const maxLengthArr = {
     name: 'name'.length,
     current: 'from'.length,
-    range: 'range'.length,
+    range: 'latest'.length,
     [outdatedFieldName]: 'to'.length,
   };
 
-  if (flags.latest) {
-    maxLengthArr.range = 'latest'.length;
+  const keysWithDynamicLength = ['name', 'current', outdatedFieldName];
+
+  if (!flags.latest) {
+    maxLengthArr.range = 'range'.length;
+    keysWithDynamicLength.push('range');
   }
 
   deps.forEach(dep =>
-    ['name', 'current', 'range', outdatedFieldName].forEach(key => {
+    keysWithDynamicLength.forEach(key => {
       maxLengthArr[key] = Math.max(maxLengthArr[key], dep[key].length);
     }),
   );
@@ -57,26 +67,15 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
   const headerPadding = (header, key) =>
     `${reporter.format.bold.underline(header)}${' '.repeat(maxLengthArr[key] - header.length)}`;
 
-  const colorizeName = ({current, wanted}) => (current === wanted ? reporter.format.yellow : reporter.format.red);
+  const colorizeName = (from, to) => reporter.format[colorForVersions(from, to)];
 
   const getNameFromHint = hint => (hint ? `${hint}Dependencies` : 'dependencies');
 
-  const colorizeDiff = (from, to) => {
-    const parts = to.split('.');
-    const fromParts = from.split('.');
-
-    const index = parts.findIndex((part, i) => part !== fromParts[i]);
-    const splitIndex = index >= 0 ? index : parts.length;
-
-    const colorized = reporter.format.green(parts.slice(splitIndex).join('.'));
-    return parts.slice(0, splitIndex).concat(colorized).join('.');
-  };
-
   const makeRow = dep => {
     const padding = addPadding(dep);
-    const name = colorizeName(dep)(padding('name'));
+    const name = colorizeName(dep.current, dep[outdatedFieldName])(padding('name'));
     const current = reporter.format.blue(padding('current'));
-    const latest = colorizeDiff(dep.current, padding(outdatedFieldName));
+    const latest = colorizeDiff(dep.current, padding(outdatedFieldName), reporter);
     const url = reporter.format.cyan(dep.url);
     const range = reporter.format.blue(flags.latest ? 'latest' : padding('range'));
     return `${name}  ${range}  ${current}  ❯  ${latest}  ${url}`;
@@ -119,7 +118,8 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
   try {
     const red = reporter.format.red('<red>');
     const yellow = reporter.format.yellow('<yellow>');
-    reporter.info(reporter.lang('legendColorsForUpgradeInteractive', red, yellow));
+    const green = reporter.format.green('<green>');
+    reporter.info(reporter.lang('legendColorsForUpgradeInteractive', red, yellow, green));
 
     const answers: Array<Dependency> = await reporter.prompt('Choose which packages to update.', choices, {
       name: 'packages',
@@ -137,9 +137,11 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
       flags.dev = hint === 'dev';
       flags.peer = hint === 'peer';
       flags.optional = hint === 'optional';
-
       const deps = answers.filter(isHint(hint)).map(getPattern);
       if (deps.length) {
+        for (const pattern of deps) {
+          lockfile.removePattern(pattern);
+        }
         reporter.info(reporter.lang('updateInstalling', getNameFromHint(hint)));
         const add = new Add(deps, flags, config, reporter, lockfile);
         return add.init();

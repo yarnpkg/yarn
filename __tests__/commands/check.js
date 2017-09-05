@@ -3,7 +3,7 @@
 import {run as buildRun, runInstall} from './_helpers.js';
 import * as checkCmd from '../../src/cli/commands/check.js';
 import {Install} from '../../src/cli/commands/install.js';
-import Lockfile from '../../src/lockfile/wrapper.js';
+import Lockfile from '../../src/lockfile';
 import * as reporters from '../../src/reporters/index.js';
 import type {CLIFunctionReturn} from '../../src/types.js';
 import * as fs from '../../src/util/fs.js';
@@ -328,6 +328,16 @@ test.concurrent('--integrity --check-files should not die on broken symlinks', a
       expect(thrown).toEqual(false);
     },
   );
+});
+
+test.concurrent('--integrity should not die on missing fields in integrity file', async (): Promise<void> => {
+  let integrityError = false;
+  try {
+    await runCheck([], {integrity: true}, 'missing-fields');
+  } catch (err) {
+    integrityError = true;
+  }
+  expect(integrityError).toEqual(false);
 });
 
 test.concurrent('should ignore bundled dependencies', async (): Promise<void> => {

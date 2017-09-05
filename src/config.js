@@ -219,12 +219,18 @@ export default class Config {
     this.workspaceRootFolder = await this.findWorkspaceRoot(this.cwd);
     this.lockfileFolder = this.workspaceRootFolder || this.cwd;
 
-    await fs.mkdirp(this.globalFolder);
-    await fs.mkdirp(this.linkFolder);
-
     this.linkedModules = [];
 
-    const linkedModules = await fs.readdir(this.linkFolder);
+    let linkedModules;
+    try {
+      linkedModules = await fs.readdir(this.linkFolder);
+    } catch (err) {
+      if (err.code === 'ENOENT') {
+        linkedModules = [];
+      } else {
+        throw err;
+      }
+    }
 
     for (const dir of linkedModules) {
       const linkedPath = path.join(this.linkFolder, dir);
@@ -315,8 +321,7 @@ export default class Config {
     } else {
       this._cacheRootFolder = String(cacheRootFolder);
     }
-
-    this.workspacesEnabled = Boolean(this.getOption('workspaces-experimental'));
+    this.workspacesEnabled = this.getOption('workspaces-experimental') !== false;
 
     this.pruneOfflineMirror = Boolean(this.getOption('yarn-offline-mirror-pruning'));
     this.enableMetaFolder = Boolean(this.getOption('enable-meta-folder'));
@@ -343,7 +348,7 @@ export default class Config {
     }
 
     if (this.workspaceRootFolder && !this.workspacesEnabled) {
-      throw new MessageError(this.reporter.lang('workspaceExperimentalDisabled'));
+      throw new MessageError(this.reporter.lang('workspacesDisabled'));
     }
   }
 

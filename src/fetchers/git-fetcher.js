@@ -8,7 +8,7 @@ import * as fsUtil from '../util/fs.js';
 import * as constants from '../constants.js';
 import * as crypto from '../util/crypto.js';
 import {install} from '../cli/commands/install.js';
-import Lockfile from '../lockfile/wrapper.js';
+import Lockfile from '../lockfile';
 import Config from '../config.js';
 import {packTarball} from '../cli/commands/pack.js';
 
@@ -101,7 +101,17 @@ export default class GitFetcher extends BaseFetcher {
               hash: expectHash,
             });
           } else {
-            reject(new SecurityError(this.reporter.lang('fetchBadHashWithPath', tarballPath, expectHash, actualHash)));
+            reject(
+              new SecurityError(
+                this.config.reporter.lang(
+                  'fetchBadHashWithPath',
+                  this.packageName,
+                  this.remote.reference,
+                  expectHash,
+                  actualHash,
+                ),
+              ),
+            );
           }
         })
         .on('error', function(err) {

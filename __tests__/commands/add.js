@@ -12,9 +12,9 @@ import {
 } from './_helpers.js';
 import {Add, run as add} from '../../src/cli/commands/add.js';
 import * as constants from '../../src/constants.js';
-import {parse} from '../../src/lockfile/wrapper.js';
+import {parse} from '../../src/lockfile';
 import {Install} from '../../src/cli/commands/install.js';
-import Lockfile from '../../src/lockfile/wrapper.js';
+import Lockfile from '../../src/lockfile';
 import {run as check} from '../../src/cli/commands/check.js';
 import * as fs from '../../src/util/fs.js';
 import semver from 'semver';
