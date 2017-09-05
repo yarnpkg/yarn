@@ -9,9 +9,18 @@ export class MessageError extends Error {
   code: ?string;
 }
 
+export class ProcessSpawnError extends MessageError {
+  constructor(msg: string, code?: string, process?: string) {
+    super(msg, code);
+    this.process = process;
+  }
+
+  process: ?string;
+}
+
 export class SecurityError extends MessageError {}
 
-export class SpawnError extends MessageError {
+export class ProcessTermError extends MessageError {
   EXIT_CODE: ?number;
   EXIT_SIGNAL: ?string;
 }
