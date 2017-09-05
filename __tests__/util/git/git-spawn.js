@@ -1,5 +1,7 @@
 /* @flow */
 
+import path from 'path';
+
 jest.mock('../../../src/util/child.js', () => {
   const realChild = (require: any).requireActual('../../../src/util/child.js');
 
@@ -39,7 +41,8 @@ describe('spawn', () => {
   test('spawn with plink', () => {
     process.env.GIT_SSH_COMMAND = '';
     // Test for case-sensitivity too (should be insensitive)
-    process.env.GIT_SSH = 'C:\\pLink.EXE';
+    const plinkPath = path.join('C:', 'pLink.EXE');
+    process.env.GIT_SSH = plinkPath;
 
     const gitCall = runGit(['status']);
     delete process.env.GIT_SSH_COMMAND;
@@ -49,7 +52,7 @@ describe('spawn', () => {
     expect(gitCall[2].env).toMatchObject({
       GIT_ASKPASS: '',
       GIT_TERMINAL_PROMPT: 0,
-      GIT_SSH_COMMAND: 'C:\\pLink.EXE -batch',
+      GIT_SSH_COMMAND: `${plinkPath} -batch`,
       ...process.env,
     });
   });
