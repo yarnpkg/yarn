@@ -1,8 +1,5 @@
 /* @flow */
-import {ConsoleReporter, JSONReporter} from '../../reporters/index.js';
 import * as constants from '../../constants.js';
-import {MessageError} from '../../errors.js';
-import Config from '../../config.js';
 
 const chalk = require('chalk');
 
@@ -11,10 +8,10 @@ const getDocsInfo = name => 'Visit ' + chalk.bold(getDocsLink(name)) + ' for doc
 
 import * as access from './access.js';
 import * as add from './add.js';
+import * as autoclean from './autoclean.js';
 import * as bin from './bin.js';
 import * as cache from './cache.js';
 import * as check from './check.js';
-import * as clean from './clean.js';
 import * as config from './config.js';
 import * as create from './create.js';
 import * as exec from './exec.js';
@@ -51,10 +48,10 @@ import buildUseless from './_useless.js';
 const commands = {
   access,
   add,
+  autoclean,
   bin,
   cache,
   check,
-  clean,
   config,
   create,
   dedupe: buildUseless("The dedupe command isn't necessary. `yarn install` will already dedupe."),
@@ -99,19 +96,6 @@ import aliases from '../aliases.js';
 for (const key in aliases) {
   commands[key] = commands[aliases[key]];
   commands[key].getDocsInfo = getDocsInfo(key);
-}
-
-import unsupportedAliases from '../unsupported-aliases.js';
-
-for (const key in unsupportedAliases) {
-  commands[key] = {
-    run(config: Config, reporter: ConsoleReporter | JSONReporter): Promise<void> {
-      throw new MessageError(`Did you mean \`yarn ${unsupportedAliases[key]}\`?`);
-    },
-    setFlags: () => {},
-    hasWrapper: () => true,
-    getDocsInfo: getDocsInfo(unsupportedAliases[key]),
-  };
 }
 
 export default commands;

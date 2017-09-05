@@ -5,8 +5,7 @@ import type RequestManager from '../util/request-manager.js';
 import type {ConfigRegistries} from './index.js';
 import {YARN_REGISTRY} from '../constants.js';
 import NpmRegistry from './npm-registry.js';
-import stringify from '../lockfile/stringify.js';
-import parse from '../lockfile/parse.js';
+import {stringify, parse} from '../lockfile';
 import * as fs from '../util/fs.js';
 import {version} from '../util/yarn-version.js';
 
@@ -71,8 +70,8 @@ export default class YarnRegistry extends NpmRegistry {
   }
 
   async loadConfig(): Promise<void> {
-    for (const [isHome, loc, file] of await this.getPossibleConfigLocations('.yarnrc', this.reporter)) {
-      const config = parse(file, loc);
+    for (const [isHome, loc, file] of await this.getPossibleConfigLocations('yarnrc', this.reporter)) {
+      const {object: config} = parse(file, loc);
 
       if (isHome) {
         this.homeConfig = config;

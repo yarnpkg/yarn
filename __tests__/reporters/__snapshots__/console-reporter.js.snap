@@ -136,7 +136,7 @@ exports[`ProgressBar 1`] = `"[2K[1G[1G░░ 0/2"`;
 
 exports[`ProgressBar 2`] = `"[2K[1G[1G░░ 0/2[1G█░ 1/2"`;
 
-exports[`ProgressBar 3`] = `"[2K[1G[1G░░ 0/2[1G█░ 1/2[2K[1G[1G██ 2/2"`;
+exports[`ProgressBar 3`] = `"[2K[1G[1G░░ 0/2[1G█░ 1/2[1G██ 2/2"`;
 
 exports[`Spinner 1`] = `"[1G⠁ [0K"`;
 
@@ -145,3 +145,10 @@ exports[`Spinner 2`] = `"[1G⠁ [0K[1G⠂ foo[0K"`;
 exports[`Spinner 3`] = `"[1G⠁ [0K[1G⠂ foo[0K[1G⠄ bar[0K"`;
 
 exports[`Spinner 4`] = `"[1G⠁ [0K[1G⠂ foo[0K[1G⠄ bar[0K[2K[1G"`;
+
+exports[`close 1`] = `
+Object {
+  "stderr": "[2K[1G[1G░░ 0/2[1G█░ 1/2[1G⠁ [0K[2K[1G[2K[1G",
+  "stdout": "",
+}
+`;

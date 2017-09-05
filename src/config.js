@@ -20,6 +20,7 @@ const detectIndent = require('detect-indent');
 const invariant = require('invariant');
 const path = require('path');
 const micromatch = require('micromatch');
+const isCi = require('is-ci');
 
 export type ConfigOptions = {
   cwd?: ?string,
@@ -190,7 +191,7 @@ export default class Config {
    * Get a config option from our yarn config.
    */
 
-  getOption(key: string, expand: boolean = true): mixed {
+  getOption(key: string, expand: boolean = false): mixed {
     const value = this.registries.yarn.getOption(key);
 
     if (expand && typeof value === 'string') {
@@ -218,12 +219,18 @@ export default class Config {
     this.workspaceRootFolder = await this.findWorkspaceRoot(this.cwd);
     this.lockfileFolder = this.workspaceRootFolder || this.cwd;
 
-    await fs.mkdirp(this.globalFolder);
-    await fs.mkdirp(this.linkFolder);
-
     this.linkedModules = [];
 
-    const linkedModules = await fs.readdir(this.linkFolder);
+    let linkedModules;
+    try {
+      linkedModules = await fs.readdir(this.linkFolder);
+    } catch (err) {
+      if (err.code === 'ENOENT') {
+        linkedModules = [];
+      } else {
+        throw err;
+      }
+    }
 
     for (const dir of linkedModules) {
       const linkedPath = path.join(this.linkFolder, dir);
@@ -269,16 +276,52 @@ export default class Config {
       httpsProxy: String(opts.httpsProxy || this.getOption('https-proxy') || ''),
       strictSSL: Boolean(this.getOption('strict-ssl')),
       ca: Array.prototype.concat(opts.ca || this.getOption('ca') || []).map(String),
-      cafile: String(opts.cafile || this.getOption('cafile') || ''),
+      cafile: String(opts.cafile || this.getOption('cafile', true) || ''),
       cert: String(opts.cert || this.getOption('cert') || ''),
       key: String(opts.key || this.getOption('key') || ''),
       networkConcurrency: this.networkConcurrency,
       networkTimeout: this.networkTimeout,
     });
-    this._cacheRootFolder = String(
-      opts.cacheFolder || this.getOption('cache-folder') || constants.MODULE_CACHE_DIRECTORY,
-    );
-    this.workspacesEnabled = Boolean(this.getOption('workspaces-experimental'));
+
+    let cacheRootFolder = opts.cacheFolder || this.getOption('cache-folder', true);
+
+    if (!cacheRootFolder) {
+      let preferredCacheFolders = constants.PREFERRED_MODULE_CACHE_DIRECTORIES;
+      const preferredCacheFolder = opts.preferredCacheFolder || this.getOption('preferred-cache-folder', true);
+
+      if (preferredCacheFolder) {
+        preferredCacheFolders = [preferredCacheFolder].concat(preferredCacheFolders);
+      }
+
+      for (let t = 0; t < preferredCacheFolders.length && !cacheRootFolder; ++t) {
+        const tentativeCacheFolder = String(preferredCacheFolders[t]);
+
+        try {
+          await fs.mkdirp(tentativeCacheFolder);
+
+          const testFile = path.join(tentativeCacheFolder, 'testfile');
+
+          // fs.access is not enough, because the cache folder could actually be a file.
+          await fs.writeFile(testFile, 'content');
+          await fs.readFile(testFile);
+
+          cacheRootFolder = tentativeCacheFolder;
+        } catch (error) {
+          this.reporter.warn(this.reporter.lang('cacheFolderSkipped', tentativeCacheFolder));
+        }
+
+        if (cacheRootFolder && t > 0) {
+          this.reporter.warn(this.reporter.lang('cacheFolderSelected', cacheRootFolder));
+        }
+      }
+    }
+
+    if (!cacheRootFolder) {
+      throw new MessageError(this.reporter.lang('cacheFolderMissing'));
+    } else {
+      this._cacheRootFolder = String(cacheRootFolder);
+    }
+    this.workspacesEnabled = this.getOption('workspaces-experimental') !== false;
 
     this.pruneOfflineMirror = Boolean(this.getOption('yarn-offline-mirror-pruning'));
     this.enableMetaFolder = Boolean(this.getOption('enable-meta-folder'));
@@ -305,7 +348,7 @@ export default class Config {
     }
 
     if (this.workspaceRootFolder && !this.workspacesEnabled) {
-      throw new MessageError(this.reporter.lang('workspaceExperimentalDisabled'));
+      throw new MessageError(this.reporter.lang('workspacesDisabled'));
     }
   }
 
@@ -334,7 +377,8 @@ export default class Config {
 
     this.disablePrepublish = !!opts.disablePrepublish;
 
-    this.nonInteractive = !!opts.nonInteractive;
+    // $FlowFixMe$
+    this.nonInteractive = !!opts.nonInteractive || isCi || !process.stdout.isTTY;
 
     this.requestManager.setOptions({
       offline: !!opts.offline && !opts.preferOffline,
@@ -491,10 +535,10 @@ export default class Config {
   }
 
   /**
- * try get the manifest file by looking
- * 1. manifest file in cache
- * 2. manifest file in registry
- */
+   * try get the manifest file by looking
+   * 1. manifest file in cache
+   * 2. manifest file in registry
+   */
   async maybeReadManifest(dir: string, priorityRegistry?: RegistryNames, isRoot?: boolean = false): Promise<?Manifest> {
     const metadataLoc = path.join(dir, constants.METADATA_FILENAME);
 
@@ -600,13 +644,19 @@ export default class Config {
       throw new MessageError(this.reporter.lang('workspacesRequirePrivateProjects'));
     }
 
-    const registryFilenames = registryNames.map(registryName => this.registries[registryName].constructor.filename);
-    const trailingPattern = `/+(${registryFilenames.join(`|`)})`;
+    const registryFilenames = registryNames
+      .map(registryName => this.registries[registryName].constructor.filename)
+      .join('|');
+    const trailingPattern = `/+(${registryFilenames})`;
+    const ignorePatterns = this.registryFolders.map(folder => `/${folder}/*/+(${registryFilenames})`);
 
     const files = await Promise.all(
-      patterns.map(pattern => {
-        return fs.glob(pattern.replace(/\/?$/, trailingPattern), {cwd: root, ignore: this.registryFolders});
-      }),
+      patterns.map(pattern =>
+        fs.glob(pattern.replace(/\/?$/, trailingPattern), {
+          cwd: root,
+          ignore: ignorePatterns.map(ignorePattern => pattern.replace(/\/?$/, ignorePattern)),
+        }),
+      ),
     );
 
     for (const file of new Set([].concat(...files))) {

@@ -1,0 +1,70 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`list does not list devDependencies when production 1`] = `
+Array [
+  Object {
+    "data": "package.json: No license field",
+    "error": true,
+    "type": "warning",
+  },
+  Object {
+    "data": "No license field",
+    "error": true,
+    "type": "warning",
+  },
+  Object {
+    "data": Object {
+      "trees": Array [
+        Object {
+          "children": Array [],
+          "color": "bold",
+          "depth": 0,
+          "hint": null,
+          "name": "a@1.0.2",
+        },
+      ],
+      "type": "list",
+    },
+    "error": false,
+    "type": "tree",
+  },
+]
+`;
+
+exports[`list lists all dependencies when not production 1`] = `
+Array [
+  Object {
+    "data": "package.json: No license field",
+    "error": true,
+    "type": "warning",
+  },
+  Object {
+    "data": "No license field",
+    "error": true,
+    "type": "warning",
+  },
+  Object {
+    "data": Object {
+      "trees": Array [
+        Object {
+          "children": Array [],
+          "color": "bold",
+          "depth": 0,
+          "hint": null,
+          "name": "a@1.0.2",
+        },
+        Object {
+          "children": Array [],
+          "color": "bold",
+          "depth": 0,
+          "hint": null,
+          "name": "b@1.0.0",
+        },
+      ],
+      "type": "list",
+    },
+    "error": false,
+    "type": "tree",
+  },
+]
+`;

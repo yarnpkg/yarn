@@ -10,7 +10,7 @@ jasmine.DEFAULT_TIMEOUT_INTERVAL = 150000;
 
 const path = require('path');
 
-test.concurrent("workspaces don't work without a configuration in .yarnrc", async (): Promise<void> => {
+test.concurrent("workspaces don't work with disabled configuration in .yarnrc", async (): Promise<void> => {
   let error = '';
   const reporter = new reporters.ConsoleReporter({});
   try {
@@ -18,7 +18,7 @@ test.concurrent("workspaces don't work without a configuration in .yarnrc", asyn
   } catch (e) {
     error = e.message;
   }
-  expect(error).toContain(reporter.lang('workspaceExperimentalDisabled'));
+  expect(error).toContain(reporter.lang('workspacesDisabled'));
 });
 
 test.concurrent("workspaces don't work on non private projects", async (): Promise<void> => {
@@ -132,6 +132,16 @@ test.concurrent(
   },
 );
 
+test.concurrent('install should not link a workspace if the version is not compatible', (): Promise<void> => {
+  return runInstall({binLinks: true}, 'workspaces-install-link-invalid', async (config): Promise<void> => {
+    // node_modules/left-pad - from npm
+    const packageFile = await fs.readFile(path.join(config.cwd, 'node_modules', 'left-pad', 'package.json'));
+    const readme = await fs.readFile(path.join(config.cwd, 'node_modules', 'left-pad', 'README.md'));
+    expect(JSON.parse(packageFile).version).not.toBe('1.1.2');
+    expect(readme.split('\n')[0]).not.toEqual('WORKSPACES ROCK!');
+  });
+});
+
 test.concurrent('install should prioritize non workspace dependency at root over the workspace symlink', (): Promise<
   void,
 > => {
@@ -210,6 +220,25 @@ test.concurrent('check command should work', (): Promise<void> => {
       thrown = true;
     }
     expect(thrown).toBe(false);
+  });
+});
+
+test.concurrent('install should link binaries at root and in workspace dependents', (): Promise<void> => {
+  return runInstall({binLinks: true}, 'workspaces-install-link-bin', async (config): Promise<void> => {
+    // node_modules/.bin/workspace-1 - link
+    expect(await fs.exists(path.join(config.cwd, 'node_modules', '.bin', 'workspace-1'))).toBe(true);
+
+    // packages/workspace-2/node_modules/.bin/workspace-1 - link
+    expect(
+      await fs.exists(path.join(config.cwd, 'packages', 'workspace-2', 'node_modules', '.bin', 'workspace-1')),
+    ).toBe(true);
+  });
+});
+
+test.concurrent('install should ignore node_modules in workspaces when used with **/*', (): Promise<void> => {
+  return runInstall({}, 'workspaces-install-already-exists', async (config): Promise<void> => {
+    expect(await fs.exists(path.join(config.cwd, 'node_modules', 'a'))).toBe(true);
+    expect(await fs.exists(path.join(config.cwd, 'node_modules', 'b'))).toBe(true);
   });
 });
 

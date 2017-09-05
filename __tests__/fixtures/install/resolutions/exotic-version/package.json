@@ -1,0 +1,10 @@
+{
+  "name": "project",
+  "version": "1.0.0",
+  "dependencies": {
+    "c": "file:../c-1"
+  },
+  "resolutions": {
+    "left-pad": "https://github.com/stevemao/left-pad.git#1.1.1"
+  }
+}

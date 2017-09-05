@@ -2,7 +2,7 @@
 
 import PackageHoister, {HoistManifest} from '../src/package-hoister.js';
 import PackageResolver from '../src/package-resolver.js';
-import Lockfile from '../src/lockfile/wrapper.js';
+import Lockfile from '../src/lockfile';
 import type PackageReference from '../src/package-reference.js';
 import type Config from '../src/config.js';
 import type {Manifest} from '../src/types.js';
@@ -106,7 +106,7 @@ test('Produces valid destination paths for scoped modules', () => {
     _reference: (({}: any): PackageReference),
   }: any): Manifest);
 
-  const info = new HoistManifest(key, parts, pkg, '', true, false);
+  const info = new HoistManifest(key, parts, pkg, '', true, true, false);
 
   const tree = new Map([['@scoped/dep', info]]);
 

@@ -18,7 +18,8 @@ import PackageRequest from '../../package-request.js';
 import * as fetcher from '../../package-fetcher.js';
 import PackageLinker from '../../package-linker.js';
 import * as compatibility from '../../package-compatibility.js';
-import Lockfile from '../../lockfile/wrapper.js';
+import Lockfile from '../../lockfile';
+import {normalizePattern} from '../../util/normalize-pattern.js';
 import * as fs from '../../util/fs.js';
 import * as util from '../../util/misc.js';
 import {YARN_REGISTRY, LOCKFILE_FILENAME} from '../../constants.js';
@@ -42,7 +43,7 @@ class ImportResolver extends BaseResolver {
   }
 
   resolveHostedGit(info: Manifest, Resolver: Class<HostedGitResolver>): Manifest {
-    const {range} = PackageRequest.normalizePattern(this.pattern);
+    const {range} = normalizePattern(this.pattern);
     const exploded = explodeHostedGitFragment(range, this.reporter);
     const hash = (info: any).gitHead;
     invariant(hash, 'expected package gitHead');
@@ -59,7 +60,7 @@ class ImportResolver extends BaseResolver {
   }
 
   resolveGist(info: Manifest, Resolver: typeof GistResolver): Manifest {
-    const {range} = PackageRequest.normalizePattern(this.pattern);
+    const {range} = normalizePattern(this.pattern);
     const {id} = explodeGistFragment(range, this.reporter);
     const hash = (info: any).gitHead;
     invariant(hash, 'expected package gitHead');
@@ -92,7 +93,7 @@ class ImportResolver extends BaseResolver {
   }
 
   resolveFile(info: Manifest, Resolver: typeof FileResolver): Manifest {
-    const {range} = PackageRequest.normalizePattern(this.pattern);
+    const {range} = normalizePattern(this.pattern);
     let loc = util.removePrefix(range, 'file:');
     if (!path.isAbsolute(loc)) {
       loc = path.join(this.config.cwd, loc);
@@ -127,7 +128,7 @@ class ImportResolver extends BaseResolver {
   }
 
   resolveImport(info: Manifest): Manifest {
-    const {range} = PackageRequest.normalizePattern(this.pattern);
+    const {range} = normalizePattern(this.pattern);
     const Resolver = getExoticResolver(range);
     if (Resolver && Resolver.prototype instanceof HostedGitResolver) {
       return this.resolveHostedGit(info, Resolver);
@@ -150,7 +151,7 @@ class ImportResolver extends BaseResolver {
   }
 
   async resolve(): Promise<Manifest> {
-    const {name} = PackageRequest.normalizePattern(this.pattern);
+    const {name} = normalizePattern(this.pattern);
     let cwd = this.getCwd();
     while (!path.relative(this.config.cwd, cwd).startsWith('..')) {
       const loc = path.join(cwd, 'node_modules', name);
@@ -177,7 +178,7 @@ class ImportPackageRequest extends PackageRequest {
   }
 
   getParentHumanName(): string {
-    return [this.getRootName()].concat(this.getParentNames()).join(' > ');
+    return [this.getRootName()].concat(this.parentNames).join(' > ');
   }
 
   reportResolvedRangeMatch(info: Manifest, resolved: Manifest) {
@@ -302,6 +303,6 @@ export function hasWrapper(commander: Object, args: Array<string>): boolean {
 }
 
 export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
-  const imp = new Import(flags, config, reporter, new Lockfile({}));
+  const imp = new Import(flags, config, reporter, new Lockfile({cache: {}}));
   await imp.init();
 }

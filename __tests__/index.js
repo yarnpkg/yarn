@@ -41,7 +41,7 @@ async function execCommand(
       },
       (error, stdout) => {
         if (error) {
-          reject({error, stdout});
+          reject(Object.assign((new Error(error.message): any), {stdout}));
         } else {
           const stdoutLines = stdout
             .toString()
@@ -91,20 +91,20 @@ function expectHelpOutputAsSubcommand(stdout) {
   );
 }
 
-function expectAnErrorMessage(command: Promise<Array<?string>>, error: string): Promise<void> {
+function expectAnErrorMessage(command: Promise<Array<?string>>, expectedMessage: string): Promise<void> {
   return command
     .then(function() {
       throw new Error('the command did not fail');
     })
-    .catch(reason => expect(reason.error.message).toContain(error));
+    .catch(error => expect(error.message).toContain(expectedMessage));
 }
 
-function expectAnInfoMessageAfterError(command: Promise<Array<?string>>, info: string): Promise<void> {
+function expectAnInfoMessageAfterError(command: Promise<Array<?string>>, expectedInfo: string): Promise<void> {
   return command
     .then(function() {
       throw new Error('the command did not fail');
     })
-    .catch(reason => expect(reason.stdout).toContain(info));
+    .catch(error => expect(error.stdout).toContain(expectedInfo));
 }
 
 test.concurrent('should add package', async () => {
@@ -192,6 +192,11 @@ test.concurrent('should run -h command with add option', async () => {
   expectHelpOutputAsSubcommand(stdout);
 });
 
+test.concurrent('should show version of yarn with -v', async () => {
+  const stdout = await execCommand('-v', [], 'run-version');
+  expect(stdout[0]).toEqual(pkg.version);
+});
+
 test.concurrent('should run version command', async () => {
   await expectAnErrorMessage(execCommand('version', [], 'run-version'), "Can't answer a question unless a user TTY");
 });
@@ -199,6 +204,19 @@ test.concurrent('should run version command', async () => {
 test.concurrent('should run --version command', async () => {
   const stdout = await execCommand('--version', [], 'run-version');
   expect(stdout[0]).toEqual(pkg.version);
+});
+
+test.concurrent('should exit cleanly when running invalid commands', async () => {
+  try {
+    await execCommand('import', ['foobar'], 'run-version');
+  } catch (err) {
+    // not important - we really only want to check that the command terminates
+  }
+  try {
+    await execCommand('remove', ['foobar'], 'run-version');
+  } catch (err) {
+    // not important - we really only want to check that the command terminates
+  }
 });
 
 test.concurrent('should install if no args', async () => {
@@ -222,24 +240,6 @@ test.concurrent('should not output JSON activity/progress if given --no-progress
   });
 });
 
-test.concurrent('should interpolate unsupported aliases', async () => {
-  await expectAnErrorMessage(execCommand('i', [], 'run-add', true), 'Did you mean `yarn install`?');
-});
-
-test.concurrent('should display correct documentation link for unsupported aliases', async () => {
-  await expectAnInfoMessageAfterError(
-    execCommand('i', [], 'run-add', true),
-    'Visit https://yarnpkg.com/en/docs/cli/install for documentation about this command.',
-  );
-});
-
-test.concurrent('should show help and ignore unsupported aliases', async () => {
-  const stdout = await execCommand('i', ['--help'], 'run-help');
-  expect(stdout[stdout.length - 1]).toEqual(
-    'Visit https://yarnpkg.com/en/docs/cli/install for documentation about this command.',
-  );
-});
-
 test.concurrent('should run help of run command if --help is before --', async () => {
   const stdout = await execCommand('run', ['custom-script', '--help', '--'], 'run-custom-script-with-arguments');
   expect(stdout[0]).toEqual('Usage: yarn [command] [flags]');
@@ -256,8 +256,8 @@ if (process.platform !== 'win32') {
 }
 
 test.concurrent('should run bin command', async () => {
-  const stdout = await execCommand('bin', [], '', false);
-  expect(stdout[0]).toEqual(path.join(fixturesLoc, 'node_modules', '.bin'));
+  const stdout = await execCommand('bin', [], '', true);
+  expect(stdout[0]).toMatch(/[\\\/]node_modules[\\\/]\.bin\n?$/);
   expect(stdout.length).toEqual(1);
 });
 

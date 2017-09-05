@@ -1,0 +1,11 @@
+{
+  "name": "project",
+  "version": "1.0.0",
+  "dependencies": {
+    "a": "file:../a-1",
+    "b": "file:../b-1"
+  },
+  "resolutions": {
+    "**/d1": "file:../d1-2"
+  }
+}

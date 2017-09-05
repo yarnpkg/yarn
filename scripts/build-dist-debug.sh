@@ -19,7 +19,7 @@ tar -xzf pack.tgz --strip 1
 rm -rf pack.tgz
 # Change this to "yarn install --production" once #1115 is fixed
 yarn install --production
-../scripts/set-installation-method.js $(readlink -f package.json) tar
+../scripts/update-dist-manifest.js $(readlink -f package.json) tar
 cd ..
 
 tar -cvzf artifacts/yarn-v`dist-debug/bin/yarn --version`.tar.gz dist-debug/*

@@ -5,7 +5,7 @@ import type Config from '../../config.js';
 import {MessageError} from '../../errors.js';
 import InstallationIntegrityChecker from '../../integrity-checker.js';
 import {integrityErrors} from '../../integrity-checker.js';
-import Lockfile from '../../lockfile/wrapper.js';
+import Lockfile from '../../lockfile';
 import type {Reporter} from '../../reporters/index.js';
 import * as fs from '../../util/fs.js';
 import {Install} from './install.js';
@@ -86,7 +86,8 @@ export async function verifyTreeCheck(
 
       if (pkgVersions.has(manifestLoc)) {
         version = pkgVersions.get(manifestLoc) || missing;
-        if (version !== missing) { // found
+        if (version !== missing) {
+          // found
           break;
         }
       } else {
@@ -104,9 +105,11 @@ export async function verifyTreeCheck(
     }
 
     if (version !== missing) {
-      if (typeof version !== 'string' || // --> version === anyVersion
-          (!semver.validRange(dep.version, config.looseSemver) ||
-          semver.satisfies(version, dep.version, config.looseSemver))) {
+      if (
+        typeof version !== 'string' || // --> version === anyVersion
+        (!semver.validRange(dep.version, config.looseSemver) ||
+          semver.satisfies(version, dep.version, config.looseSemver))
+      ) {
         if (dependencies) {
           const newSearchPath = searchPath.concat([path.join(dep.name, registry.folder)]);
 
@@ -272,6 +275,8 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
 
     if (await fs.exists(pkgLoc)) {
       const packageJson = await config.readJson(pkgLoc);
+      packageJson.version = semver.clean(packageJson.version);
+
       if (pkg.version !== packageJson.version) {
         // node_modules contains wrong version
         reportError('packageWrongVersion', human, pkg.version, packageJson.version);

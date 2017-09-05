@@ -49,7 +49,7 @@
     <!-- Delete .tar.gz from dist path, leaving only the files -->
     <Delete Files="$(YarnDistPath)\*.tar.gz" />
 
-    <Exec Command="node $(YarnDistPath)\..\scripts\set-installation-method.js $([System.IO.Path]::GetFullPath($(YarnDistPath)))\package.json msi" />
+    <Exec Command="node $(YarnDistPath)\..\scripts\update-dist-manifest.js $([System.IO.Path]::GetFullPath($(YarnDistPath)))\package.json msi" />
 
     <!-- Get Yarn version -->
     <Exec Command="node $(YarnDistPath)\bin\yarn.js --version" ConsoleToMSBuild="true">

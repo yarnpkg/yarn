@@ -1,6 +1,6 @@
 /* @flow */
 
-import type Lockfile from './lockfile/wrapper.js';
+import type Lockfile from './lockfile';
 import type Config from './config.js';
 import type {PackageRemote, Manifest} from './types.js';
 import type PackageRequest from './package-request.js';

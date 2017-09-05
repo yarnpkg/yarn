@@ -7,16 +7,23 @@ import {MessageError} from '../../errors.js';
 import {registries} from '../../registries/index.js';
 import NoopReporter from '../../reporters/base-reporter.js';
 import buildSubCommands from './_build-sub-commands.js';
-import Lockfile from '../../lockfile/wrapper.js';
+import Lockfile from '../../lockfile';
 import {Install} from './install.js';
 import {Add} from './add.js';
 import {run as runRemove} from './remove.js';
 import {run as runUpgrade} from './upgrade.js';
 import {run as runUpgradeInteractive} from './upgrade-interactive.js';
 import {linkBin} from '../../package-linker.js';
+import {POSIX_GLOBAL_PREFIX, FALLBACK_GLOBAL_PREFIX} from '../../constants.js';
 import * as fs from '../../util/fs.js';
 
 class GlobalAdd extends Add {
+  constructor(args: Array<string>, flags: Object, config: Config, reporter: Reporter, lockfile: Lockfile) {
+    super(args, flags, config, reporter, lockfile);
+
+    this.linker.setTopLevelBinLinking(false);
+  }
+
   maybeOutputSaveTree(): Promise<void> {
     for (const pattern of this.addedPatterns) {
       const manifest = this.resolver.getStrictResolvedPattern(pattern);
@@ -37,6 +44,8 @@ export function hasWrapper(flags: Object, args: Array<string>): boolean {
 }
 
 async function updateCwd(config: Config): Promise<void> {
+  await fs.mkdirp(config.globalFolder);
+
   await config.init({
     cwd: config.globalFolder,
     binLinks: true,
@@ -69,54 +78,65 @@ async function getBins(config: Config): Promise<Set<string>> {
   return paths;
 }
 
-function getGlobalPrefix(config: Config, flags: Object): string {
+async function getGlobalPrefix(config: Config, flags: Object): Promise<string> {
   if (flags.prefix) {
     return flags.prefix;
-  } else if (config.getOption('prefix')) {
-    return String(config.getOption('prefix'));
+  } else if (config.getOption('prefix', true)) {
+    return String(config.getOption('prefix', true));
   } else if (process.env.PREFIX) {
     return process.env.PREFIX;
-  } else if (process.platform === 'win32') {
-    if (process.env.LOCALAPPDATA) {
-      return path.join(process.env.LOCALAPPDATA, 'Yarn', 'bin');
-    }
-    // c:\node\node.exe --> prefix=c:\node\
-    return path.dirname(process.execPath);
-  } else {
-    // /usr/local/bin/node --> prefix=/usr/local
-    let prefix = path.dirname(path.dirname(process.execPath));
-
-    // destdir only is respected on Unix
-    if (process.env.DESTDIR) {
-      prefix = path.join(process.env.DESTDIR, prefix);
-    }
-
-    return prefix;
   }
+
+  let prefix = FALLBACK_GLOBAL_PREFIX;
+  if (process.platform === 'win32') {
+    // %LOCALAPPDATA%\Yarn --> C:\Users\Alice\AppData\Local\Yarn
+    if (process.env.LOCALAPPDATA) {
+      prefix = path.join(process.env.LOCALAPPDATA, 'Yarn');
+    }
+  } else {
+    prefix = POSIX_GLOBAL_PREFIX;
+  }
+
+  const binFolder = path.join(prefix, 'bin');
+  try {
+    // eslint-disable-next-line no-bitwise
+    await fs.access(binFolder, fs.constants.W_OK | fs.constants.X_OK);
+  } catch (err) {
+    if (err.code === 'EACCES') {
+      prefix = FALLBACK_GLOBAL_PREFIX;
+    } else if (err.code === 'ENOENT') {
+      // ignore - that just means we don't have the folder, yet
+    } else {
+      throw err;
+    }
+  }
+  return prefix;
 }
 
-export function getBinFolder(config: Config, flags: Object): string {
-  const prefix = getGlobalPrefix(config, flags);
-  if (process.platform === 'win32') {
-    return prefix;
-  } else {
-    return path.resolve(prefix, 'bin');
-  }
+export async function getBinFolder(config: Config, flags: Object): Promise<string> {
+  const prefix = await getGlobalPrefix(config, flags);
+  return path.resolve(prefix, 'bin');
 }
 
 async function initUpdateBins(config: Config, reporter: Reporter, flags: Object): Promise<() => Promise<void>> {
   const beforeBins = await getBins(config);
-  const binFolder = getBinFolder(config, flags);
+  const binFolder = await getBinFolder(config, flags);
 
   function throwPermError(err: Error & {[code: string]: string}, dest: string) {
     if (err.code === 'EACCES') {
-      throw new MessageError(reporter.lang('noFilePermission', dest));
+      throw new MessageError(reporter.lang('noPermission', dest));
     } else {
       throw err;
     }
   }
 
   return async function(): Promise<void> {
+    try {
+      await fs.mkdirp(binFolder);
+    } catch (err) {
+      throwPermError(err, binFolder);
+    }
+
     const afterBins = await getBins(config);
 
     // remove old bins
@@ -205,8 +225,8 @@ const {run, setFlags: _setFlags} = buildSubCommands('global', {
     await updateBins();
   },
 
-  bin(config: Config, reporter: Reporter, flags: Object, args: Array<string>) {
-    reporter.log(getBinFolder(config, flags));
+  async bin(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
+    reporter.log(await getBinFolder(config, flags));
   },
 
   async ls(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {

@@ -1,0 +1,9 @@
+{
+  "name": "my-project",
+  "private": true,
+  "bin": {"file": "file.js"},
+  "dependencies": {},
+  "workspaces": [
+    "packages/*"
+  ]
+}

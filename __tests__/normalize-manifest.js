@@ -15,6 +15,51 @@ jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000;
 
 const fixturesLoc = path.join(__dirname, 'fixtures', 'normalize-manifest');
 
+async function _compareManifests(loc, options = {}): Promise<void> {
+  const actualWarnings = [];
+  const expectedWarnings = options.expectedWarnings || (await fs.readJson(path.join(loc, 'warnings.json')));
+  const reporter = new NoopReporter();
+
+  // $FlowFixMe: Investigate
+  reporter.warn = function(msg) {
+    actualWarnings.push(msg);
+  };
+
+  const config = await Config.create({cwd: loc, globalFolder: options.globalFolder}, reporter);
+
+  let actual = await fs.readJson(path.join(loc, 'actual.json'));
+  const expected = await fs.readJson(path.join(loc, 'expected.json'));
+
+  let isRoot = actual._root;
+  if (isRoot == null) {
+    isRoot = true;
+  } else {
+    delete actual._root;
+  }
+
+  const error = expected._error;
+  if (error) {
+    delete expected._error;
+  }
+
+  try {
+    actual = await normalizeManifest(actual, loc, config, isRoot);
+  } catch (err) {
+    if (error && err.message === error) {
+      return;
+    } else {
+      throw err;
+    }
+  }
+
+  if (error) {
+    throw new Error(`Expected to throw error: ${error}`);
+  }
+
+  expect(map(actual)).toEqual(expand(expected));
+  expect(actualWarnings).toEqual(expectedWarnings);
+}
+
 for (const name of nativeFs.readdirSync(fixturesLoc)) {
   if (name[0] === '.') {
     continue;
@@ -22,52 +67,18 @@ for (const name of nativeFs.readdirSync(fixturesLoc)) {
 
   const loc = path.join(fixturesLoc, name);
 
-  test(name, async () => {
-    const actualWarnings = [];
-    const expectedWarnings = await fs.readJson(path.join(loc, 'warnings.json'));
-
-    const reporter = new NoopReporter();
-
-    // $FlowFixMe: Investigate
-    reporter.warn = function(msg) {
-      actualWarnings.push(msg);
-    };
-
-    const config = await Config.create({cwd: loc}, reporter);
-
-    let actual = await fs.readJson(path.join(loc, 'actual.json'));
-    const expected = await fs.readJson(path.join(loc, 'expected.json'));
-
-    let isRoot = actual._root;
-    if (isRoot == null) {
-      isRoot = true;
-    } else {
-      delete actual._root;
-    }
-
-    const error = expected._error;
-    if (error) {
-      delete expected._error;
-    }
-
-    try {
-      actual = await normalizeManifest(actual, loc, config, isRoot);
-    } catch (err) {
-      if (error && err.message === error) {
-        return;
-      } else {
-        throw err;
-      }
-    }
-
-    if (error) {
-      throw new Error(`Expected to throw error: ${error}`);
-    }
-
-    expect(map(actual)).toEqual(expand(expected));
-    expect(actualWarnings).toEqual(expectedWarnings);
-  });
+  test(name, _compareManifests.bind(null, loc));
 }
+
+const globalfixturesLoc = path.join(__dirname, 'fixtures', 'normalize-manifest', 'name');
+
+test(
+  'license warnings should not be thrown with global commands',
+  _compareManifests.bind(null, globalfixturesLoc, {
+    expectedWarnings: [],
+    globalFolder: globalfixturesLoc,
+  }),
+);
 
 test('util.stringifyPerson', () => {
   expect(util.stringifyPerson({name: 'Sebastian McKenzie'})).toEqual('Sebastian McKenzie');

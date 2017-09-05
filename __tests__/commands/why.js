@@ -59,6 +59,10 @@ test.concurrent('throws error with too many arguments', (): Promise<void> => {
   });
 });
 
+test.concurrent("doesn't throw when using it inside a workspace", (): Promise<void> => {
+  return runWhy({}, ['mime-types'], 'workspace');
+});
+
 test.concurrent('throws error if module does not exist', (): Promise<void> => {
   const reporter = new reporters.ConsoleReporter({});
 
@@ -66,7 +70,6 @@ test.concurrent('throws error if module does not exist', (): Promise<void> => {
     try {
       await runWhy({}, ['one'], 'basic');
     } catch (err) {
-      console.log(err);
       expect(err.message).toContain(reporter.lang('whyUnknownMatch'));
     } finally {
       resolve();

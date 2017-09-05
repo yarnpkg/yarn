@@ -1,0 +1,10 @@
+{
+  "name": "script_only_pre_post",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "prelol" : "echo '##prelol##'",
+    "postlol" : "echo '##postlol##'"
+  }
+}

@@ -39,50 +39,69 @@ async function execCommand(cmd: string, packageName: string, env = process.env):
   });
 }
 
-test('should add the global yarnrc arguments to the command line', async () => {
+test.concurrent('should add the global yarnrc arguments to the command line', async () => {
   const stdout = await execCommand('cache dir', 'yarnrc-cli');
   expect(stdout.replace(/\\/g, '/')).toMatch(/^(C:)?\/tmp\/foobar\/v[0-9]+\n$/);
 });
 
-test('should add the command-specific yarnrc arguments to the command line if the command name matches', async () => {
-  const stdout = await execCommand('cache dir', 'yarnrc-cli-command-specific-ok');
-  expect(stdout.replace(/\\/g, '/')).toMatch(/^(C:)?\/tmp\/foobar\/v[0-9]+\n$/);
-});
+test.concurrent(
+  'should add the command-specific yarnrc arguments to the command line if the command name matches',
+  async () => {
+    const stdout = await execCommand('cache dir', 'yarnrc-cli-command-specific-ok');
+    expect(stdout.replace(/\\/g, '/')).toMatch(/^(C:)?\/tmp\/foobar\/v[0-9]+\n$/);
+  },
+);
 
-test("should not add the command-specific yarnrc arguments if the command name doesn't match", async () => {
+test.concurrent("should not add the command-specific yarnrc arguments if the command name doesn't match", async () => {
   const stdout = await execCommand('cache dir', 'yarnrc-cli-command-specific-ko');
   expect(stdout.replace(/\\/g, '/')).not.toMatch(/^(C:)?\/tmp\/foobar\/v[0-9]+\n$/);
 });
 
-test('should allow overriding the yarnrc values from the command line', async () => {
+test.concurrent('should allow overriding the yarnrc values from the command line', async () => {
   const stdout = await execCommand('cache dir --cache-folder /tmp/toto', 'yarnrc-cli');
   expect(stdout.replace(/\\/g, '/')).toMatch(/^(C:)?\/tmp\/toto\/v[0-9]+\n$/);
 });
 
 // Test disabled for now, cf rc.js
-test('should resolve the yarnrc values relative to where the file lives', async () => {
+test.concurrent('should resolve the yarnrc values relative to where the file lives', async () => {
   const stdout = await execCommand('cache dir', 'yarnrc-cli-relative');
   expect(stdout.replace(/\\/g, '/')).toMatch(/^(C:)?(\/[^\/]+)+\/foobar\/hello\/world\/v[0-9]+\n$/);
 });
 
-test('should expose `npm_config_argv` env variable to lifecycle scripts for back compatibility with npm', async () => {
-  const env = Object.assign({}, process.env);
-  delete env.npm_config_argv;
+test.concurrent(
+  'should expose `npm_config_argv` env variable to lifecycle scripts for back compatibility with npm',
+  async () => {
+    const env = Object.assign({}, process.env);
+    delete env.npm_config_argv;
 
-  let stdout = await execCommand('install', 'npm_config_argv_env_vars', env);
-  expect(stdout).toContain('##install##');
+    const stdouts = await Promise.all([
+      execCommand('install', 'npm_config_argv_env_vars', env),
+      execCommand('', 'npm_config_argv_env_vars', env),
+      execCommand('run test', 'npm_config_argv_env_vars', env),
+      execCommand('test', 'npm_config_argv_env_vars', env),
+    ]);
 
-  stdout = await execCommand('', 'npm_config_argv_env_vars', env);
-  expect(stdout).toContain('##install##');
+    expect(stdouts[0]).toContain('##install##');
+    expect(stdouts[1]).toContain('##install##');
+    expect(stdouts[2]).toContain('##test##');
+    expect(stdouts[3]).toContain('##test##');
+  },
+);
 
-  stdout = await execCommand('run test', 'npm_config_argv_env_vars', env);
-  expect(stdout).toContain('##test##');
-
-  stdout = await execCommand('test', 'npm_config_argv_env_vars', env);
-  expect(stdout).toContain('##test##');
+test.concurrent('should not run pre/post hooks for .bin executables', async () => {
+  const stdout = await execCommand('run lol', 'script_only_pre_post');
+  expect(stdout).toContain('lol');
+  expect(stdout).not.toContain('##prelol##');
+  expect(stdout).not.toContain('##postlol##');
 });
 
-test('should only expose non-internal configs', async () => {
+test.concurrent('should not run pre/post hooks if they are .bin executables and not scripts', async () => {
+  const stdout = await execCommand('run lol', 'bin_pre_post');
+  expect(stdout).toContain('lol');
+  expect(stdout).not.toContain('##prelol##');
+});
+
+test.concurrent('should only expose non-internal configs', async () => {
   const env = Object.assign({}, process.env);
   const internalConfigKeys = ['lastUpdateCheck'];
   const nonInternalConfigKeys = ['user_agent'];
@@ -109,7 +128,7 @@ test('should only expose non-internal configs', async () => {
   });
 });
 
-test('should run both prepublish and prepare when installing, but not prepublishOnly', async () => {
+test.concurrent('should run both prepublish and prepare when installing, but not prepublishOnly', async () => {
   const stdout = await execCommand('install', 'lifecycle-scripts');
 
   expect(stdout).toMatch(/^running the prepublish hook$/m);
@@ -118,12 +137,19 @@ test('should run both prepublish and prepare when installing, but not prepublish
   expect(stdout).not.toMatch(/^running the prepublishOnly hook$/m);
 });
 
-test('should allow setting environment variables via yarnrc', async () => {
+test.concurrent('should run both prepack and postpack', async () => {
+  const stdout = await execCommand('pack', 'lifecycle-scripts');
+
+  expect(stdout).toMatch(/^running the prepack hook$/m);
+  expect(stdout).toMatch(/^running the postpack hook$/m);
+});
+
+test.concurrent('should allow setting environment variables via yarnrc', async () => {
   const stdout = await execCommand('install', 'yarnrc-env');
   expect(stdout).toMatch(/^BAR$/m);
 });
 
-test('should inherit existing environment variables when setting via yarnrc', async () => {
+test.concurrent('should inherit existing environment variables when setting via yarnrc', async () => {
   const srcPackageDir = path.join(fixturesLoc, 'yarnrc-env');
   const packageDir = await makeTemp('yarnrc-env-nested');
 
@@ -142,3 +168,17 @@ test('should inherit existing environment variables when setting via yarnrc', as
   expect(stdout).toMatch(/^RAB$/m);
   expect(stdout).toMatch(/^FOO$/m);
 });
+
+test('should not show any error messages when script ends successfully', async () => {
+  await expect(execCommand('test', 'script-success')).resolves.toBeDefined();
+});
+
+test('should throw error when the script ends with an exit code', async () => {
+  await expect(execCommand('test', 'script-fail')).rejects.toBeDefined();
+});
+
+if (process.platform === 'darwin') {
+  test('should throw error when the script ends with an exit signal', async () => {
+    await expect(execCommand('test', 'script-segfault')).rejects.toBeDefined();
+  });
+}

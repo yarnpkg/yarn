@@ -6,29 +6,30 @@ import type {ReporterSelectOption} from '../../reporters/types.js';
 import type {Manifest, DependencyRequestPatterns} from '../../types.js';
 import type Config from '../../config.js';
 import type {RegistryNames} from '../../registries/index.js';
+import type {LockfileObject} from '../../lockfile';
 import normalizeManifest from '../../util/normalize-manifest/index.js';
 import {MessageError} from '../../errors.js';
 import InstallationIntegrityChecker from '../../integrity-checker.js';
-import Lockfile from '../../lockfile/wrapper.js';
-import lockStringify from '../../lockfile/stringify.js';
+import Lockfile from '../../lockfile';
+import {stringify as lockStringify} from '../../lockfile';
 import * as fetcher from '../../package-fetcher.js';
 import PackageInstallScripts from '../../package-install-scripts.js';
 import * as compatibility from '../../package-compatibility.js';
 import PackageResolver from '../../package-resolver.js';
 import PackageLinker from '../../package-linker.js';
-import PackageRequest from '../../package-request.js';
 import {registries} from '../../registries/index.js';
 import {getExoticResolver} from '../../resolvers/index.js';
-import {clean} from './clean.js';
+import {clean} from './autoclean.js';
 import * as constants from '../../constants.js';
+import {normalizePattern} from '../../util/normalize-pattern.js';
 import * as fs from '../../util/fs.js';
 import map from '../../util/map.js';
 import {version as YARN_VERSION, getInstallationMethod} from '../../util/yarn-version.js';
 import WorkspaceLayout from '../../workspace-layout.js';
+import ResolutionMap from '../../resolution-map.js';
 
 const emoji = require('node-emoji');
 const invariant = require('invariant');
-const isCI = require('is-ci');
 const path = require('path');
 const semver = require('semver');
 const uuid = require('uuid');
@@ -90,7 +91,7 @@ function getUpdateCommand(installationMethod: InstallationMethod): ?string {
   }
 
   if (installationMethod === 'npm') {
-    return 'npm upgrade --global yarn';
+    return 'npm update --global yarn';
   }
 
   if (installationMethod === 'chocolatey') {
@@ -165,16 +166,17 @@ export class Install {
   constructor(flags: Object, config: Config, reporter: Reporter, lockfile: Lockfile) {
     this.rootManifestRegistries = [];
     this.rootPatternsToOrigin = map();
-    this.resolutions = map();
     this.lockfile = lockfile;
     this.reporter = reporter;
     this.config = config;
     this.flags = normalizeFlags(config, flags);
-
-    this.resolver = new PackageResolver(config, lockfile);
+    this.resolutions = map(); // Legacy resolutions field used for flat install mode
+    this.resolutionMap = new ResolutionMap(config); // Selective resolutions for nested dependencies
+    this.resolver = new PackageResolver(config, lockfile, this.resolutionMap);
     this.integrityChecker = new InstallationIntegrityChecker(config);
     this.linker = new PackageLinker(config, this.resolver);
     this.scripts = new PackageInstallScripts(config, this.resolver, this.flags.force);
+    this.ignoreWorkspaces = false;
   }
 
   flags: Flags;
@@ -189,6 +191,8 @@ export class Install {
   linker: PackageLinker;
   rootPatternsToOrigin: {[pattern: string]: string};
   integrityChecker: InstallationIntegrityChecker;
+  resolutionMap: ResolutionMap;
+  ignoreWorkspaces: boolean;
 
   /**
    * Create a list of dependency requests from the current directories manifests.
@@ -200,6 +204,7 @@ export class Install {
   ): Promise<InstallCwdRequest> {
     const patterns = [];
     const deps: DependencyRequestPatterns = [];
+    let resolutionDeps: DependencyRequestPatterns = [];
     const manifest = {};
 
     const ignorePatterns = [];
@@ -215,23 +220,31 @@ export class Install {
       }
 
       // extract the name
-      const parts = PackageRequest.normalizePattern(pattern);
+      const parts = normalizePattern(pattern);
       excludeNames.push(parts.name);
     }
 
     for (const registry of Object.keys(registries)) {
       const {filename} = registries[registry];
-      const loc = path.join(this.config.cwd, filename);
+      const loc = path.join(this.config.lockfileFolder, filename);
       if (!await fs.exists(loc)) {
         continue;
       }
 
       this.rootManifestRegistries.push(registry);
+
       const projectManifestJson = await this.config.readJson(loc);
-      await normalizeManifest(projectManifestJson, this.config.cwd, this.config, true);
+      await normalizeManifest(projectManifestJson, this.config.lockfileFolder, this.config, true);
 
       Object.assign(this.resolutions, projectManifestJson.resolutions);
       Object.assign(manifest, projectManifestJson);
+
+      this.resolutionMap.init(this.resolutions);
+      for (const packageName of Object.keys(this.resolutionMap.resolutionsByPackage)) {
+        for (const {pattern} of this.resolutionMap.resolutionsByPackage[packageName]) {
+          resolutionDeps = [...resolutionDeps, {registry, pattern, optional: false, hint: 'resolution'}];
+        }
+      }
 
       const pushDeps = (depType, manifest: Object, {hint, optional}, isUsed) => {
         if (ignoreUnusedPatterns && !isUsed) {
@@ -271,15 +284,11 @@ export class Install {
 
       pushDeps('dependencies', projectManifestJson, {hint: null, optional: false}, true);
       pushDeps('devDependencies', projectManifestJson, {hint: 'dev', optional: false}, !this.config.production);
-      pushDeps(
-        'optionalDependencies',
-        projectManifestJson,
-        {hint: 'optional', optional: true},
-        !this.flags.ignoreOptional,
-      );
+      pushDeps('optionalDependencies', projectManifestJson, {hint: 'optional', optional: true}, true);
 
-      if (this.config.workspacesEnabled) {
-        const workspaces = await this.config.resolveWorkspaces(path.dirname(loc), projectManifestJson);
+      if (this.config.workspaceRootFolder && !this.ignoreWorkspaces) {
+        const workspacesRoot = path.dirname(loc);
+        const workspaces = await this.config.resolveWorkspaces(workspacesRoot, projectManifestJson);
         workspaceLayout = new WorkspaceLayout(workspaces, this.config);
         // add virtual manifest that depends on all workspaces, this way package hoisters and resolvers will work fine
         const virtualDependencyManifest: Manifest = {
@@ -287,7 +296,7 @@ export class Install {
           name: `workspace-aggregator-${uuid.v4()}`,
           version: '1.0.0',
           _registry: 'npm',
-          _loc: '.',
+          _loc: workspacesRoot,
           dependencies: {},
         };
         workspaceLayout.virtualManifestName = virtualDependencyManifest.name;
@@ -297,7 +306,7 @@ export class Install {
         }
         const virtualDep = {};
         virtualDep[virtualDependencyManifest.name] = virtualDependencyManifest.version;
-        workspaces[virtualDependencyManifest.name] = {loc: '', manifest: virtualDependencyManifest};
+        workspaces[virtualDependencyManifest.name] = {loc: workspacesRoot, manifest: virtualDependencyManifest};
 
         pushDeps('workspaces', {workspaces: virtualDep}, {hint: 'workspaces', optional: false}, true);
       }
@@ -311,13 +320,20 @@ export class Install {
     }
 
     return {
-      requests: deps,
+      requests: [...resolutionDeps, ...deps],
       patterns,
       manifest,
       usedPatterns,
       ignorePatterns,
       workspaceLayout,
     };
+  }
+
+  /**
+   * Sets the value of `ignoreWorkspaces` for install commands that should skip workspaces
+   */
+  setIgnoreWorkspaces(ignoreWorkspaces: boolean) {
+    this.ignoreWorkspaces = ignoreWorkspaces;
   }
 
   /**
@@ -340,22 +356,29 @@ export class Install {
     if (!lockfileCache) {
       return false;
     }
+    const lockfileClean = this.lockfile.parseResultType === 'success';
     const match = await this.integrityChecker.check(patterns, lockfileCache, this.flags, workspaceLayout);
-    if (this.flags.frozenLockfile && match.missingPatterns.length > 0) {
+    if (this.flags.frozenLockfile && (!lockfileClean || match.missingPatterns.length > 0)) {
       throw new MessageError(this.reporter.lang('frozenLockfileError'));
     }
 
-    const haveLockfile = await fs.exists(path.join(this.config.cwd, constants.LOCKFILE_FILENAME));
+    const haveLockfile = await fs.exists(path.join(this.config.lockfileFolder, constants.LOCKFILE_FILENAME));
 
-    if (match.integrityMatches && haveLockfile) {
+    if (match.integrityMatches && haveLockfile && lockfileClean) {
       this.reporter.success(this.reporter.lang('upToDate'));
       return true;
+    }
+
+    if (match.integrityFileMissing && haveLockfile) {
+      // Integrity file missing, force script installations
+      this.scripts.setForce(true);
+      return false;
     }
 
     if (!patterns.length && !match.integrityFileMissing) {
       this.reporter.success(this.reporter.lang('nothingToInstall'));
       await this.createEmptyManifestFolders();
-      await this.saveLockfileAndIntegrity(patterns);
+      await this.saveLockfileAndIntegrity(patterns, workspaceLayout);
       return true;
     }
 
@@ -374,7 +397,7 @@ export class Install {
 
     for (const registryName of this.rootManifestRegistries) {
       const {folder} = this.config.registries[registryName];
-      await fs.mkdirp(path.join(this.config.cwd, folder));
+      await fs.mkdirp(path.join(this.config.lockfileFolder, folder));
     }
   }
 
@@ -402,7 +425,7 @@ export class Install {
     this.checkUpdate();
 
     // warn if we have a shrinkwrap
-    if (await fs.exists(path.join(this.config.cwd, 'npm-shrinkwrap.json'))) {
+    if (await fs.exists(path.join(this.config.lockfileFolder, 'npm-shrinkwrap.json'))) {
       this.reporter.warn(this.reporter.lang('shrinkwrapWarning'));
     }
 
@@ -454,7 +477,10 @@ export class Install {
       // remove integrity hash to make this operation atomic
       await this.integrityChecker.removeIntegrityFile();
       this.reporter.step(curr, total, this.reporter.lang('linkingDependencies'), emoji.get('link'));
-      await this.linker.init(flattenedTopLevelPatterns, this.flags.linkDuplicates, workspaceLayout);
+      await this.linker.init(flattenedTopLevelPatterns, workspaceLayout, {
+        linkDuplicates: this.flags.linkDuplicates,
+        ignoreOptional: this.flags.ignoreOptional,
+      });
     });
 
     steps.push(async (curr: number, total: number) => {
@@ -504,7 +530,10 @@ export class Install {
 
     // fin!
     // The second condition is to make sure lockfile can be updated when running `remove` command.
-    if (topLevelPatterns.length || (await fs.exists(path.join(this.config.cwd, constants.LOCKFILE_FILENAME)))) {
+    if (
+      topLevelPatterns.length ||
+      (await fs.exists(path.join(this.config.lockfileFolder, constants.LOCKFILE_FILENAME)))
+    ) {
       await this.saveLockfileAndIntegrity(topLevelPatterns, workspaceLayout);
     } else {
       this.reporter.info(this.reporter.lang('notSavedLockfileNoDependencies'));
@@ -519,7 +548,7 @@ export class Install {
    */
 
   shouldClean(): Promise<boolean> {
-    return fs.exists(path.join(this.config.cwd, constants.CLEAN_FILENAME));
+    return fs.exists(path.join(this.config.lockfileFolder, constants.CLEAN_FILENAME));
   }
 
   /**
@@ -619,7 +648,7 @@ export class Install {
    * Remove offline tarballs that are no longer required
    */
 
-  async pruneOfflineMirror(lockfile: Object): Promise<void> {
+  async pruneOfflineMirror(lockfile: LockfileObject): Promise<void> {
     const mirror = this.config.getOfflineMirrorPath();
     if (!mirror) {
       return;
@@ -628,8 +657,8 @@ export class Install {
     const requiredTarballs = new Set();
     for (const dependency in lockfile) {
       const resolved = lockfile[dependency].resolved;
-      const basename = path.basename(resolved.split('#')[0]);
       if (resolved) {
+        const basename = path.basename(resolved.split('#')[0]);
         if (dependency[0] === '@' && basename[0] !== '@') {
           requiredTarballs.add(`${dependency.split('/')[0]}-${basename}`);
         }
@@ -672,7 +701,7 @@ export class Install {
       patterns,
       lockfileBasedOnResolver,
       this.flags,
-      this.resolver.usedRegistries,
+      workspaceLayout,
       this.scripts.getArtifacts(),
     );
 
@@ -682,12 +711,23 @@ export class Install {
     }
 
     const lockFileHasAllPatterns = patterns.every(p => this.lockfile.getLocked(p));
+    const lockfilePatternsMatch = Object.keys(this.lockfile.cache || {}).every(p => {
+      return lockfileBasedOnResolver[p];
+    });
     const resolverPatternsAreSameAsInLockfile = Object.keys(lockfileBasedOnResolver).every(pattern => {
       const manifest = this.lockfile.getLocked(pattern);
       return manifest && manifest.resolved === lockfileBasedOnResolver[pattern].resolved;
     });
+
     // remove command is followed by install with force, lockfile will be rewritten in any case then
-    if (lockFileHasAllPatterns && resolverPatternsAreSameAsInLockfile && patterns.length && !this.flags.force) {
+    if (
+      !this.flags.force &&
+      this.lockfile.parseResultType === 'success' &&
+      lockFileHasAllPatterns &&
+      lockfilePatternsMatch &&
+      resolverPatternsAreSameAsInLockfile &&
+      patterns.length
+    ) {
       return;
     }
 
@@ -754,7 +794,7 @@ export class Install {
    */
 
   checkUpdate() {
-    if (!process.stdout.isTTY || isCI) {
+    if (this.config.nonInteractive) {
       // don't show upgrade dialog on CI or non-TTY terminals
       return;
     }
@@ -846,6 +886,7 @@ export async function install(config: Config, reporter: Reporter, flags: Object,
 
 export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
   let lockfile;
+  let error = 'installCommandRenamed';
   if (flags.lockfile === false) {
     lockfile = new Lockfile();
   } else {
@@ -854,6 +895,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
 
   if (args.length) {
     const exampleArgs = args.slice();
+
     if (flags.saveDev) {
       exampleArgs.push('--dev');
     }
@@ -871,9 +913,10 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
     }
     let command = 'add';
     if (flags.global) {
-      command = 'global add';
+      error = 'globalFlagRemoved';
+      command = 'global';
     }
-    throw new MessageError(reporter.lang('installCommandRenamed', `yarn ${command} ${exampleArgs.join(' ')}`));
+    throw new MessageError(reporter.lang(error, `yarn ${command} ${exampleArgs.join(' ')}`));
   }
 
   await install(config, reporter, flags, lockfile);

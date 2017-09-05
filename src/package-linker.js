@@ -48,15 +48,21 @@ export default class PackageLinker {
     this.reporter = config.reporter;
     this.config = config;
     this.artifacts = {};
+    this.topLevelBinLinking = true;
   }
 
   artifacts: InstallArtifacts;
   reporter: Reporter;
   resolver: PackageResolver;
   config: Config;
+  topLevelBinLinking: boolean;
 
   setArtifacts(artifacts: InstallArtifacts) {
     this.artifacts = artifacts;
+  }
+
+  setTopLevelBinLinking(topLevelBinLinking: boolean) {
+    this.topLevelBinLinking = topLevelBinLinking;
   }
 
   async linkSelfDependencies(pkg: Manifest, pkgLoc: string, targetBinLoc: string): Promise<void> {
@@ -87,7 +93,13 @@ export default class PackageLinker {
     // link up `bin scripts` in `dependencies`
     for (const pattern of ref.dependencies) {
       const dep = this.resolver.getStrictResolvedPattern(pattern);
-      if (dep.bin && Object.keys(dep.bin).length) {
+      if (
+        // Missing location means not installed inside node_modules
+        dep._reference &&
+        dep._reference.location &&
+        dep.bin &&
+        Object.keys(dep.bin).length
+      ) {
         deps.push({
           dep,
           loc: this.config.generateHardModulePath(dep._reference),
@@ -99,11 +111,18 @@ export default class PackageLinker {
     if (pkg.bundleDependencies) {
       for (const depName of pkg.bundleDependencies) {
         const loc = path.join(this.config.generateHardModulePath(ref), this.config.getFolder(pkg), depName);
+        try {
+          const dep = await this.config.readManifest(loc, remote.registry);
 
-        const dep = await this.config.readManifest(loc, remote.registry);
-
-        if (dep.bin && Object.keys(dep.bin).length) {
-          deps.push({dep, loc});
+          if (dep.bin && Object.keys(dep.bin).length) {
+            deps.push({dep, loc});
+          }
+        } catch (ex) {
+          if (ex.code !== 'ENOENT') {
+            throw ex;
+          }
+          // intentionally ignoring ENOENT error.
+          // bundledDependency either does not exist or does not contain a package.json
         }
       }
     }
@@ -115,23 +134,24 @@ export default class PackageLinker {
 
     // write the executables
     for (const {dep, loc} of deps) {
-      await this.linkSelfDependencies(dep, loc, dir);
+      if (dep._reference && dep._reference.location) {
+        await this.linkSelfDependencies(dep, loc, dir);
+      }
     }
   }
 
-  getFlatHoistedTree(patterns: Array<string>): Promise<HoistManifestTuples> {
-    const hoister = new PackageHoister(this.config, this.resolver);
+  getFlatHoistedTree(patterns: Array<string>, {ignoreOptional}: {ignoreOptional: ?boolean} = {}): HoistManifestTuples {
+    const hoister = new PackageHoister(this.config, this.resolver, {ignoreOptional});
     hoister.seed(patterns);
-    return Promise.resolve(hoister.init());
+    return hoister.init();
   }
 
   async copyModules(
     patterns: Array<string>,
-    linkDuplicates: boolean,
     workspaceLayout?: WorkspaceLayout,
+    {linkDuplicates, ignoreOptional}: {linkDuplicates: ?boolean, ignoreOptional: ?boolean} = {},
   ): Promise<void> {
-    let flatTree = await this.getFlatHoistedTree(patterns);
-
+    let flatTree = this.getFlatHoistedTree(patterns, {ignoreOptional});
     // sorted tree makes file creation and copying not to interfere with each other
     flatTree = flatTree.sort(function(dep1, dep2): number {
       return dep1[0].localeCompare(dep2[0]);
@@ -251,10 +271,63 @@ export default class PackageLinker {
       }
     }
 
-    // linked modules
-    for (const loc of possibleExtraneous) {
-      const stat = await fs.lstat(loc);
+    // If an Extraneous is an entry created via "yarn link", we prevent it from being overwritten.
+    // Unfortunately, the only way we can know if they have been created this way is to check if they
+    // are symlinks - problem is that it then conflicts with the newly introduced "link:" protocol,
+    // which also creates symlinks :( a somewhat weak fix is to check if the symlink target is registered
+    // inside the linkFolder, in which case we assume it has been created via "yarn link". Otherwise, we
+    // assume it's a link:-managed dependency, and overwrite it as usual.
+    const linkTargets = new Map();
+
+    let linkedModules;
+    try {
+      linkedModules = await fs.readdir(this.config.linkFolder);
+    } catch (err) {
+      if (err.code === 'ENOENT') {
+        linkedModules = [];
+      } else {
+        throw err;
+      }
+    }
+
+    // TODO: Consolidate this logic with `this.config.linkedModules` logic
+    for (const entry of linkedModules) {
+      const entryPath = path.join(this.config.linkFolder, entry);
+      const stat = await fs.lstat(entryPath);
+
       if (stat.isSymbolicLink()) {
+        const packageName = entry;
+        linkTargets.set(packageName, await fs.readlink(entryPath));
+      } else if (stat.isDirectory() && entry[0] === '@') {
+        // if the entry is directory beginning with '@', then we're dealing with a package scope, which
+        // means we must iterate inside to retrieve the package names it contains
+        const scopeName = entry;
+
+        for (const entry2 of await fs.readdir(entryPath)) {
+          const entryPath2 = path.join(entryPath, entry2);
+          const stat2 = await fs.lstat(entryPath2);
+
+          if (stat2.isSymbolicLink()) {
+            const packageName = `${scopeName}/${entry2}`;
+            linkTargets.set(packageName, await fs.readlink(entryPath2));
+          }
+        }
+      }
+    }
+
+    for (const loc of possibleExtraneous) {
+      let packageName = path.basename(loc);
+      const scopeName = path.basename(path.dirname(loc));
+
+      if (scopeName[0] === `@`) {
+        packageName = `${scopeName}/${packageName}`;
+      }
+
+      if (
+        (await fs.lstat(loc)).isSymbolicLink() &&
+        linkTargets.has(packageName) &&
+        linkTargets.get(packageName) === (await fs.readlink(loc))
+      ) {
         possibleExtraneous.delete(loc);
         copyQueue.delete(loc);
       }
@@ -316,19 +389,20 @@ export default class PackageLinker {
       await promise.queue(
         flatTree,
         async ([dest, {pkg}]) => {
-          const binLoc = this.config.modulesFolder || path.join(dest, this.config.getFolder(pkg));
-          await this.linkBinDependencies(pkg, binLoc);
-          tickBin();
+          if (pkg._reference && pkg._reference.location) {
+            const binLoc = this.config.modulesFolder || path.join(dest, this.config.getFolder(pkg));
+            await this.linkBinDependencies(pkg, binLoc);
+            tickBin();
+          }
         },
         linkBinConcurrency,
       );
 
       // create links at top level for all dependencies.
-      // non-transient dependencies will overwrite these during this.save() to ensure they take priority.
       await promise.queue(
         topLevelDependencies,
-        async ([dest, {pkg}]) => {
-          if (pkg.bin && Object.keys(pkg.bin).length) {
+        async ([dest, pkg]) => {
+          if (pkg._reference && pkg._reference.location && pkg.bin && Object.keys(pkg.bin).length) {
             const binLoc = this.config.modulesFolder || path.join(this.config.cwd, this.config.getFolder(pkg));
             await this.linkSelfDependencies(pkg, dest, binLoc);
             tickBin();
@@ -337,16 +411,21 @@ export default class PackageLinker {
         linkBinConcurrency,
       );
     }
+
+    for (const [, {pkg}] of flatTree) {
+      await this._warnForMissingBundledDependencies(pkg);
+    }
   }
 
-  determineTopLevelBinLinks(flatTree: HoistManifestTuples): HoistManifestTuples {
+  determineTopLevelBinLinks(flatTree: HoistManifestTuples): Array<[string, Manifest]> {
     const linksToCreate = new Map();
+    for (const [dest, {pkg, isDirectRequire}] of flatTree) {
+      const {name} = pkg;
 
-    flatTree.forEach(([dest, hoistManifest]) => {
-      if (!linksToCreate.has(hoistManifest.pkg.name)) {
-        linksToCreate.set(hoistManifest.pkg.name, [dest, hoistManifest]);
+      if (isDirectRequire || (this.topLevelBinLinking && !linksToCreate.has(name))) {
+        linksToCreate.set(name, [dest, pkg]);
       }
-    });
+    }
 
     return Array.from(linksToCreate.values());
   }
@@ -368,16 +447,17 @@ export default class PackageLinker {
 
     for (const name in peerDeps) {
       const range = peerDeps[name];
-      const patterns = this.resolver.patternsByPackage[name] || [];
-      const foundPattern = patterns.find(pattern => {
-        const resolvedPattern = this.resolver.getResolvedPattern(pattern);
-        return resolvedPattern ? this._satisfiesPeerDependency(range, resolvedPattern.version) : false;
+      const pkgs = this.resolver.getAllInfoForPackageName(name);
+      const found = pkgs.find(pkg => {
+        const {root, version} = pkg._reference || {};
+        return root && this._satisfiesPeerDependency(range, version);
       });
+      const foundPattern = found && found._reference && found._reference.patterns;
 
       if (foundPattern) {
-        ref.addDependencies([foundPattern]);
+        ref.addDependencies(foundPattern);
       } else {
-        const depError = patterns.length > 0 ? 'incorrectPeer' : 'unmetPeer';
+        const depError = pkgs.length > 0 ? 'incorrectPeer' : 'unmetPeer';
         const [pkgHuman, depHuman] = [`${pkg.name}@${pkg.version}`, `${name}@${range}`];
         this.reporter.warn(this.reporter.lang(depError, pkgHuman, depHuman));
       }
@@ -388,8 +468,26 @@ export default class PackageLinker {
     return range === '*' || satisfiesWithPreleases(version, range, this.config.looseSemver);
   }
 
-  async init(patterns: Array<string>, linkDuplicates: boolean, workspaceLayout?: WorkspaceLayout): Promise<void> {
+  async _warnForMissingBundledDependencies(pkg: Manifest): Promise<void> {
+    const ref = pkg._reference;
+
+    if (pkg.bundleDependencies) {
+      for (const depName of pkg.bundleDependencies) {
+        const loc = path.join(this.config.generateHardModulePath(ref), this.config.getFolder(pkg), depName);
+        if (!await fs.exists(loc)) {
+          const pkgHuman = `${pkg.name}@${pkg.version}`;
+          this.reporter.warn(this.reporter.lang('missingBundledDependency', pkgHuman, depName));
+        }
+      }
+    }
+  }
+
+  async init(
+    patterns: Array<string>,
+    workspaceLayout?: WorkspaceLayout,
+    {linkDuplicates, ignoreOptional}: {linkDuplicates: ?boolean, ignoreOptional: ?boolean} = {},
+  ): Promise<void> {
     this.resolvePeerModules();
-    await this.copyModules(patterns, linkDuplicates, workspaceLayout);
+    await this.copyModules(patterns, workspaceLayout, {linkDuplicates, ignoreOptional});
   }
 }

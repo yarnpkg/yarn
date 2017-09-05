@@ -1,5 +1,7 @@
 /* @flow */
 
+import type {ReadStream} from 'fs';
+
 import type Reporter from '../reporters/base-reporter.js';
 import BlockingQueue from './blocking-queue.js';
 import * as promise from './promise.js';
@@ -10,6 +12,15 @@ const fs = require('fs');
 const globModule = require('glob');
 const os = require('os');
 const path = require('path');
+
+export const constants =
+  typeof fs.constants !== 'undefined'
+    ? fs.constants
+    : {
+        R_OK: fs.R_OK,
+        W_OK: fs.W_OK,
+        X_OK: fs.X_OK,
+      };
 
 export const lockQueue = new BlockingQueue('fs lock');
 
@@ -151,7 +162,7 @@ async function buildActionsForCopy(
   }
 
   for (const loc of possibleExtraneous) {
-    if (files.has(loc)) {
+    if (files.has(loc.toLowerCase())) {
       possibleExtraneous.delete(loc);
     }
   }
@@ -163,8 +174,14 @@ async function buildActionsForCopy(
     const {src, dest, type} = data;
     const onFresh = data.onFresh || noop;
     const onDone = data.onDone || noop;
-    invariant(!files.has(dest), `The same file ${dest} can't be copied twice in one bulk copy`);
-    files.add(dest);
+
+    // TODO https://github.com/yarnpkg/yarn/issues/3751
+    // related to bundled dependencies handling
+    if (files.has(dest.toLowerCase())) {
+      reporter.warn(`The case-insensitive file ${dest} shouldn't be copied twice in one bulk copy`);
+    } else {
+      files.add(dest.toLowerCase());
+    }
 
     if (type === 'symlink') {
       await mkdirp(path.dirname(dest));
@@ -253,6 +270,11 @@ async function buildActionsForCopy(
       }
     }
 
+    if (destStat && destStat.isSymbolicLink()) {
+      await unlink(dest);
+      destStat = null;
+    }
+
     if (srcStat.isSymbolicLink()) {
       onFresh();
       const linkname = await readlink(src);
@@ -270,7 +292,7 @@ async function buildActionsForCopy(
 
       const destParts = dest.split(path.sep);
       while (destParts.length) {
-        files.add(destParts.join(path.sep));
+        files.add(destParts.join(path.sep).toLowerCase());
         destParts.pop();
       }
 
@@ -349,7 +371,7 @@ async function buildActionsForHardlink(
   }
 
   for (const loc of possibleExtraneous) {
-    if (files.has(loc)) {
+    if (files.has(loc.toLowerCase())) {
       possibleExtraneous.delete(loc);
     }
   }
@@ -361,7 +383,7 @@ async function buildActionsForHardlink(
     const {src, dest} = data;
     const onFresh = data.onFresh || noop;
     const onDone = data.onDone || noop;
-    if (files.has(dest)) {
+    if (files.has(dest.toLowerCase())) {
       // Fixes issue https://github.com/yarnpkg/yarn/issues/2734
       // When bulk hardlinking we have A -> B structure that we want to hardlink to A1 -> B1,
       // package-linker passes that modules A1 and B1 need to be hardlinked,
@@ -370,7 +392,7 @@ async function buildActionsForHardlink(
       onDone();
       return;
     }
-    files.add(dest);
+    files.add(dest.toLowerCase());
 
     if (events.ignoreBasenames.indexOf(path.basename(src)) >= 0) {
       // ignored file
@@ -454,7 +476,7 @@ async function buildActionsForHardlink(
 
       const destParts = dest.split(path.sep);
       while (destParts.length) {
-        files.add(destParts.join(path.sep));
+        files.add(destParts.join(path.sep).toLowerCase());
         destParts.pop();
       }
 
@@ -532,7 +554,11 @@ export async function copyBulk(
       const cleanup = () => delete currentlyWriting[data.dest];
       reporter.verbose(reporter.lang('verboseFileCopy', data.src, data.dest));
       return (currentlyWriting[data.dest] = readFileBuffer(data.src)
-        .then(d => {
+        .then(async d => {
+          // we need to do this because of case-insensitive filesystems, which wouldn't properly
+          // change the file name in case of a file being renamed
+          await unlink(data.dest);
+
           return writeFile(data.dest, d, {mode: data.mode});
         })
         .then(() => {
@@ -710,7 +736,9 @@ export async function symlink(src: string, dest: string): Promise<void> {
       } else {
         relative = path.relative(path.dirname(dest), src);
       }
-      await fsSymlink(relative, dest);
+      // When path.relative returns an empty string for the current directory, we should instead use
+      // '.', which is a valid fs.symlink target.
+      await fsSymlink(relative || '.', dest);
     }
   } catch (err) {
     if (err.code === 'EEXIST') {
@@ -823,4 +851,32 @@ export async function makeTempDir(prefix?: string): Promise<string> {
   await unlink(dir);
   await mkdirp(dir);
   return dir;
+}
+
+export async function readFirstAvailableStream(
+  paths: Iterable<?string>,
+): Promise<{stream: ?ReadStream, triedPaths: Array<string>}> {
+  let stream: ?ReadStream;
+  const triedPaths = [];
+  for (const tarballPath of paths) {
+    if (tarballPath) {
+      try {
+        // We need the weird `await new Promise()` construct for `createReadStream` because
+        // it always returns a ReadStream object but immediately triggers an `error` event
+        // on it if it fails to open the file, instead of throwing an exception. If this event
+        // is not handled, it crashes node. A saner way to handle this with multiple tries is
+        // the following construct.
+        stream = await new Promise((resolve, reject) => {
+          const maybeStream = fs.createReadStream(tarballPath);
+          maybeStream.on('error', reject).on('readable', resolve.bind(this, maybeStream));
+        });
+        break;
+      } catch (err) {
+        // Try the next one
+        triedPaths.push(tarballPath);
+      }
+    }
+  }
+
+  return {stream, triedPaths};
 }

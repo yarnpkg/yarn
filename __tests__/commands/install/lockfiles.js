@@ -4,9 +4,9 @@ import {run as check} from '../../../src/cli/commands/check.js';
 import * as constants from '../../../src/constants.js';
 import * as reporters from '../../../src/reporters/index.js';
 import {Install} from '../../../src/cli/commands/install.js';
-import Lockfile from '../../../src/lockfile/wrapper.js';
+import Lockfile from '../../../src/lockfile';
 import * as fs from '../../../src/util/fs.js';
-import {getPackageVersion, runInstall} from '../_helpers.js';
+import {getPackageVersion, isPackagePresent, runInstall} from '../_helpers.js';
 import {promisify} from '../../../src/util/promise';
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 150000;
@@ -119,7 +119,7 @@ test.concurrent('install have a clean node_modules after lockfile update (branch
     await fs.copy(path.join(config.cwd, 'yarn.lock.after'), path.join(config.cwd, 'yarn.lock'), reporter);
     await fs.copy(path.join(config.cwd, 'package.json.after'), path.join(config.cwd, 'package.json'), reporter);
 
-    const reinstall = new Install({}, config, reporter, (await Lockfile.fromDirectory(config.cwd)));
+    const reinstall = new Install({}, config, reporter, await Lockfile.fromDirectory(config.cwd));
     await reinstall.init();
 
     expect(await getPackageVersion(config, 'dep-a')).toEqual('1.2.0');
@@ -148,11 +148,11 @@ test.concurrent('install have a clean node_modules after lockfile update (branch
     await fs.copy(path.join(config.cwd, 'yarn.lock.after'), path.join(config.cwd, 'yarn.lock'), reporter);
     await fs.copy(path.join(config.cwd, 'package.json.after'), path.join(config.cwd, 'package.json'), reporter);
 
-    const reinstall = new Install({}, config, reporter, (await Lockfile.fromDirectory(config.cwd)));
+    const reinstall = new Install({}, config, reporter, await Lockfile.fromDirectory(config.cwd));
     await reinstall.init();
 
     expect(await getPackageVersion(config, 'dep-a')).toEqual('1.2.0');
-    expect(await fs.exists(path.join(config.cwd, 'node_modules/dep-b'))).toEqual(false);
+    expect(await isPackagePresent(config, 'dep-b')).toEqual(false);
   });
 });
 
@@ -172,7 +172,7 @@ test.concurrent('install should write and read integrity file based on lockfile 
     expect(allCorrect).toBe(true);
     // install should bail out with integrity check
     await fs.unlink(path.join(config.cwd, 'node_modules', 'mime-types'));
-    const reinstall = new Install({}, config, reporter, (await Lockfile.fromDirectory(config.cwd)));
+    const reinstall = new Install({}, config, reporter, await Lockfile.fromDirectory(config.cwd));
     await reinstall.init();
 
     // integrity check should keep passing
@@ -195,19 +195,37 @@ test.concurrent('install should write and read integrity file based on lockfile 
   });
 });
 
+test.concurrent('install should retain artifacts when missing integrity file', (): Promise<void> => {
+  return runInstall({}, 'install-should-retain-artifacts-when-missing-integrity', async (config, reporter) => {
+    const expectedArtifacts = ['foo.txt'];
+    const integrityLoc = path.join(config.cwd, 'node_modules', constants.INTEGRITY_FILENAME);
+
+    const beforeIntegrity = await fs.readJson(integrityLoc);
+    expect(beforeIntegrity.artifacts['a@0.0.0']).toEqual(expectedArtifacts);
+
+    await fs.unlink(integrityLoc);
+
+    const reinstall = new Install({}, config, reporter, await Lockfile.fromDirectory(config.cwd));
+    await reinstall.init();
+
+    const afterIntegrity = await fs.readJson(integrityLoc);
+    expect(afterIntegrity.artifacts['a@0.0.0']).toEqual(expectedArtifacts);
+  });
+});
+
 test.concurrent('install should not continue if integrity check passes', (): Promise<void> => {
   return runInstall({}, 'lockfile-stability', async (config, reporter) => {
     await fs.writeFile(path.join(config.cwd, 'node_modules', 'yarn.test'), 'YARN TEST');
 
     // install should bail out with integrity check and not remove extraneous file
-    let reinstall = new Install({}, config, reporter, (await Lockfile.fromDirectory(config.cwd)));
+    let reinstall = new Install({}, config, reporter, await Lockfile.fromDirectory(config.cwd));
     await reinstall.init();
 
     expect(await fs.exists(path.join(config.cwd, 'node_modules', 'yarn.test'))).toBeTruthy();
 
     await fs.unlink(path.join(config.cwd, 'node_modules', 'yarn.test'));
 
-    reinstall = new Install({}, config, reporter, (await Lockfile.fromDirectory(config.cwd)));
+    reinstall = new Install({}, config, reporter, await Lockfile.fromDirectory(config.cwd));
     await reinstall.init();
 
     expect(!await fs.exists(path.join(config.cwd, 'node_modules', 'yarn.test'))).toBeTruthy();
@@ -228,13 +246,13 @@ test.concurrent('install should not rewrite lockfile with no substantial changes
 
     await fs.unlink(path.join(config.cwd, 'node_modules', constants.INTEGRITY_FILENAME));
 
-    let reinstall = new Install({}, config, reporter, (await Lockfile.fromDirectory(config.cwd)));
+    let reinstall = new Install({}, config, reporter, await Lockfile.fromDirectory(config.cwd));
     await reinstall.init();
     let newLockContent = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
     expect(newLockContent).toEqual(lockContent);
 
     // force should rewrite lockfile
-    reinstall = new Install({force: true}, config, reporter, (await Lockfile.fromDirectory(config.cwd)));
+    reinstall = new Install({force: true}, config, reporter, await Lockfile.fromDirectory(config.cwd));
     await reinstall.init();
     newLockContent = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
     expect(newLockContent).not.toEqual(lockContent);

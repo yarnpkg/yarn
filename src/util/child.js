@@ -3,7 +3,7 @@
 
 import * as constants from '../constants.js';
 import BlockingQueue from './blocking-queue.js';
-import {MessageError, SpawnError} from '../errors.js';
+import {ProcessSpawnError, ProcessTermError} from '../errors.js';
 import {promisify} from './promise.js';
 
 const child = require('child_process');
@@ -14,6 +14,42 @@ export const queue = new BlockingQueue('child', constants.CHILD_CONCURRENCY);
 let uid = 0;
 
 export const exec = promisify(child.exec);
+
+export function forkp(program: string, args: Array<string>, opts?: Object): Promise<number> {
+  return new Promise((resolve, reject) => {
+    const proc = child.fork(program, args, opts);
+
+    proc.on('error', error => {
+      reject(error);
+    });
+
+    proc.on('close', exitCode => {
+      resolve(exitCode);
+    });
+  });
+}
+
+export function spawnp(program: string, args: Array<string>, opts?: Object): Promise<number> {
+  return new Promise((resolve, reject) => {
+    const proc = child.spawn(program, args, opts);
+
+    proc.on('error', error => {
+      reject(error);
+    });
+
+    proc.on('close', exitCode => {
+      resolve(exitCode);
+    });
+  });
+}
+
+const spawnedProcesses = {};
+
+export function forwardSignalToSpawnedProcesses(signal: string) {
+  for (const key of Object.keys(spawnedProcesses)) {
+    spawnedProcesses[key].kill(signal);
+  }
+}
 
 type ProcessFn = (
   proc: child_process$ChildProcess,
@@ -28,11 +64,13 @@ export function spawn(
   opts?: child_process$spawnOpts & {process?: ProcessFn} = {},
   onData?: (chunk: Buffer | string) => void,
 ): Promise<string> {
+  const key = opts.cwd || String(++uid);
   return queue.push(
-    opts.cwd || String(++uid),
+    key,
     (): Promise<string> =>
       new Promise((resolve, reject) => {
         const proc = child.spawn(program, args, opts);
+        spawnedProcesses[key] = proc;
 
         let processingDone = false;
         let processClosed = false;
@@ -42,7 +80,7 @@ export function spawn(
 
         proc.on('error', err => {
           if (err.code === 'ENOENT') {
-            reject(new MessageError(`Couldn't find the binary ${program}`));
+            reject(new ProcessSpawnError(`Couldn't find the binary ${program}`, err.code, program));
           } else {
             reject(err);
           }
@@ -56,6 +94,7 @@ export function spawn(
         }
 
         function finish() {
+          delete spawnedProcesses[key];
           if (err) {
             reject(err);
           } else {
@@ -83,19 +122,19 @@ export function spawn(
           processingDone = true;
         }
 
-        proc.on('close', (code: number) => {
-          if (code >= 1) {
-            // TODO make this output nicer
-            err = new SpawnError(
+        proc.on('close', (code: number, signal: string) => {
+          if (signal || code >= 1) {
+            err = new ProcessTermError(
               [
                 'Command failed.',
-                `Exit code: ${code}`,
+                signal ? `Exit signal: ${signal}` : `Exit code: ${code}`,
                 `Command: ${program}`,
                 `Arguments: ${args.join(' ')}`,
                 `Directory: ${opts.cwd || process.cwd()}`,
                 `Output:\n${stdout.trim()}`,
               ].join('\n'),
             );
+            err.EXIT_SIGNAL = signal;
             err.EXIT_CODE = code;
           }
 

@@ -1,0 +1,7 @@
+{
+    "name": "dep-a",
+    "version": "1.0.0",
+    "optionalDependencies": {
+        "dep-b": "file:../dep-b"
+    }
+}

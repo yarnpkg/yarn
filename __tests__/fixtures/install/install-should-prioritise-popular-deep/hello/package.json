@@ -1,0 +1,7 @@
+{
+  "name": "hello",
+  "version": "2.0.0",
+  "dependencies": {
+    "foobar": "file:../foobar-1"
+  }
+}

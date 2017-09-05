@@ -1,16 +1,17 @@
 /* @flow */
 
-import type Config from '../../../src/config';
+import Config from '../../../src/config';
 import PackageResolver from '../../../src/package-resolver.js';
+import {run as add} from '../../../src/cli/commands/add.js';
 import {run as cache} from '../../../src/cli/commands/cache.js';
 import {run as check} from '../../../src/cli/commands/check.js';
 import * as constants from '../../../src/constants.js';
 import * as reporters from '../../../src/reporters/index.js';
-import {parse} from '../../../src/lockfile/wrapper.js';
-import {Install} from '../../../src/cli/commands/install.js';
-import Lockfile from '../../../src/lockfile/wrapper.js';
+import {parse} from '../../../src/lockfile';
+import {Install, run as install} from '../../../src/cli/commands/install.js';
+import Lockfile from '../../../src/lockfile';
 import * as fs from '../../../src/util/fs.js';
-import {getPackageVersion, explodeLockfile, runInstall, createLockfile} from '../_helpers.js';
+import {getPackageVersion, explodeLockfile, runInstall, createLockfile, run as buildRun} from '../_helpers.js';
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 150000;
 
@@ -47,6 +48,67 @@ async function mockConstants(base: Config, mocks: Object, cb: (config: Config) =
 
 beforeEach(request.__resetAuthedRequests);
 afterEach(request.__resetAuthedRequests);
+
+test.concurrent('install should not hoist packages above their peer dependencies', async () => {
+  await runInstall({}, 'install-should-not-hoist-through-peer-deps', async (config): Promise<void> => {
+    expect(await fs.exists(`${config.cwd}/node_modules/a/node_modules/c`)).toEqual(true);
+  });
+});
+
+test.concurrent('install optional subdependencies by default', async () => {
+  await runInstall({}, 'install-optional-dependencies', async (config): Promise<void> => {
+    expect(await fs.exists(`${config.cwd}/node_modules/dep-b`)).toEqual(true);
+  });
+});
+
+test.concurrent('installing with --ignore-optional should not install optional subdependencies', async () => {
+  await runInstall({ignoreOptional: true}, 'install-optional-dependencies', async (config): Promise<void> => {
+    expect(await fs.exists(`${config.cwd}/node_modules/dep-b`)).toEqual(false);
+  });
+});
+
+test.concurrent(
+  'running install inside a workspace should run the install from the root of the workspace',
+  async () => {
+    await runInstall({}, 'install-workspaces', async (config, reporter): Promise<void> => {
+      const pkgJson = await fs.readJson(`${config.cwd}/workspace/package.json`);
+      pkgJson.dependencies['b'] = 'file:../b';
+      await fs.writeFile(`${config.cwd}/workspace/package.json`, JSON.stringify(pkgJson));
+
+      const workspaceConfig = await Config.create({cwd: `${config.cwd}/workspace`}, reporter);
+
+      const reInstall = new Install({}, workspaceConfig, reporter, await Lockfile.fromDirectory(config.cwd));
+      await reInstall.init();
+
+      const lockfileContent = await fs.readFile(`${config.cwd}/yarn.lock`);
+      expect(lockfileContent).toEqual(expect.stringContaining(`"b@file:b"`));
+      expect(lockfileContent).toEqual(expect.stringContaining(`"a@file:./a"`));
+    });
+  },
+);
+
+test.concurrent('packages installed through the link protocol should validate all peer dependencies', async () => {
+  await runInstall({checkFiles: true}, 'check-files-should-not-cross-symlinks', async (config): Promise<void> => {
+    expect(
+      JSON.parse(await fs.readFile(`${config.cwd}/node_modules/.yarn-integrity`)).files.map(file => {
+        return file.replace(/\\/g, '/');
+      }),
+    ).toEqual(['some-missing-pkg', 'some-other-pkg', 'some-pkg/package.json']);
+  });
+});
+
+test.concurrent('installing a package with a renamed file should not delete it', async () => {
+  await runInstall({}, 'case-sensitivity', async (config, reporter): Promise<void> => {
+    const pkgJson = await fs.readJson(`${config.cwd}/package.json`);
+    pkgJson.dependencies['pkg'] = 'file:./pkg-b';
+    await fs.writeFile(`${config.cwd}/package.json`, JSON.stringify(pkgJson));
+
+    const reInstall = new Install({}, config, reporter, await Lockfile.fromDirectory(config.cwd));
+    await reInstall.init();
+
+    expect(await fs.exists(`${config.cwd}/node_modules/pkg/state.js`)).toEqual(true);
+  });
+});
 
 test.concurrent('properly find and save build artifacts', async () => {
   await runInstall({}, 'artifacts-finds-and-saves', async (config): Promise<void> => {
@@ -151,6 +213,31 @@ test.concurrent(
     });
   },
 );
+
+test.concurrent('replace the symlink when it changes, when using the link: protocol', async () => {
+  await runInstall({}, 'install-link', async (config, reporter): Promise<void> => {
+    const lockfile = await Lockfile.fromDirectory(config.cwd);
+
+    const pkgJson = await fs.readJson(`${config.cwd}/package.json`);
+    pkgJson.dependencies['test-missing'] = 'link:barbaz';
+    await fs.writeFile(`${config.cwd}/package.json`, JSON.stringify(pkgJson));
+
+    const reInstall = new Install({}, config, reporter, lockfile);
+    await reInstall.init();
+
+    const expectPath = path.join(config.cwd, 'node_modules', 'test-missing');
+
+    const stat = await fs.lstat(expectPath);
+    expect(stat.isSymbolicLink()).toEqual(true);
+
+    const target = await fs.readlink(expectPath);
+    if (process.platform !== 'win32') {
+      expect(target).toEqual('../barbaz');
+    } else {
+      expect(target).toMatch(/[\\\/]barbaz[\\\/]$/);
+    }
+  });
+});
 
 test('changes the cache path when bumping the cache version', async () => {
   await runInstall({}, 'install-github', async (config): Promise<void> => {
@@ -304,7 +391,7 @@ test.concurrent('root install with optional deps', (): Promise<void> => {
 });
 
 test.concurrent('install file: protocol with relative paths', (): Promise<void> => {
-  return runInstall({noLockfile: true}, 'install-file-relative', async config => {
+  return runInstall({}, 'install-file-relative', async config => {
     expect(await fs.readFile(path.join(config.cwd, 'node_modules', 'root-a', 'index.js'))).toEqual('foobar;\n');
   });
 });
@@ -319,7 +406,7 @@ test.concurrent('install file: protocol without force retains installed package'
 
     await fs.writeFile(path.join(config.cwd, 'comp', 'index.js'), 'bar\n');
 
-    const reinstall = new Install({}, config, reporter, (await Lockfile.fromDirectory(config.cwd)));
+    const reinstall = new Install({}, config, reporter, await Lockfile.fromDirectory(config.cwd));
     await reinstall.init();
 
     expect(await fs.readFile(path.join(config.cwd, 'node_modules', 'comp', 'index.js'))).not.toEqual('bar\n');
@@ -336,7 +423,7 @@ test.concurrent('install file: protocol with force re-installs local package', a
 
     await fs.writeFile(path.join(config.cwd, 'comp', 'index.js'), 'bar\n');
 
-    const reinstall = new Install({force: true}, config, reporter, (await Lockfile.fromDirectory(config.cwd)));
+    const reinstall = new Install({force: true}, config, reporter, await Lockfile.fromDirectory(config.cwd));
     await reinstall.init();
 
     expect(await fs.readFile(path.join(config.cwd, 'node_modules', 'comp', 'index.js'))).toEqual('bar\n');
@@ -345,7 +432,7 @@ test.concurrent('install file: protocol with force re-installs local package', a
 
 test.concurrent('install file: local packages with local dependencies', async (): Promise<void> => {
   await runInstall({}, 'install-file-local-dependency', async (config, reporter) => {
-    const reinstall = new Install({}, config, reporter, (await Lockfile.fromDirectory(config.cwd)));
+    const reinstall = new Install({}, config, reporter, await Lockfile.fromDirectory(config.cwd));
     await reinstall.init();
 
     expect(await fs.readFile(path.join(config.cwd, 'node_modules', 'a', 'index.js'))).toEqual('foo;\n');
@@ -355,13 +442,13 @@ test.concurrent('install file: local packages with local dependencies', async ()
 });
 
 test.concurrent('install file: install without manifest of dependency', async (): Promise<void> => {
-  await runInstall({}, 'install-file-without-manifest', async (config, reporter) => {
+  await runInstall({}, 'install-file-without-manifest', async config => {
     expect(await fs.readFile(path.join(config.cwd, 'node_modules', 'foo', 'index.js'))).toEqual('bar\n');
   });
 });
 
 test.concurrent('install file: link file dependencies', async (): Promise<void> => {
-  await runInstall({}, 'install-file-link-dependencies', async (config, reporter) => {
+  await runInstall({}, 'install-file-link-dependencies', async config => {
     const statA = await fs.lstat(path.join(config.cwd, 'node_modules', 'a'));
     expect(statA.isSymbolicLink()).toEqual(true);
 
@@ -378,19 +465,75 @@ test.concurrent('install file: link file dependencies', async (): Promise<void> 
 });
 
 test.concurrent('install file: protocol', (): Promise<void> => {
-  return runInstall({noLockfile: true}, 'install-file', async config => {
+  return runInstall({lockfile: false}, 'install-file', async config => {
     expect(await fs.readFile(path.join(config.cwd, 'node_modules', 'foo', 'index.js'))).toEqual('foobar;\n');
   });
 });
 
 test.concurrent('install with file: protocol as default', (): Promise<void> => {
-  return runInstall({noLockfile: true}, 'install-file-as-default', async config => {
+  return runInstall({}, 'install-file-as-default', async (config, reporter, install, getOutput) => {
     expect(await fs.readFile(path.join(config.cwd, 'node_modules', 'foo', 'index.js'))).toEqual('foobar;\n');
+
+    expect(getOutput()).toContain(reporter.lang('implicitFileDeprecated', 'bar'));
+  });
+});
+
+test.concurrent("don't install with file: protocol as default if target is a file", (): Promise<void> => {
+  // $FlowFixMe
+  return expect(runInstall({lockfile: false}, 'install-file-as-default-no-file')).rejects.toBeDefined();
+});
+
+test.concurrent("don't install with file: protocol as default if target does not have package.json", (): Promise<
+  void,
+> => {
+  // $FlowFixMe
+  return expect(runInstall({lockfile: false}, 'install-file-as-default-no-package')).rejects.toBeDefined();
+});
+
+test.concurrent("don't install with file: protocol as default if target is valid semver", (): Promise<void> => {
+  return runInstall({}, 'install-file-as-default-no-semver', async config => {
+    expect(await fs.readFile(path.join(config.cwd, 'node_modules', 'foo', 'package.json'))).toMatchSnapshot(
+      'install-file-as-default-no-semver',
+    );
+  });
+});
+
+// When local packages are installed, dependencies with different forms of the same relative path
+// should be deduped e.g. 'file:b' and 'file:./b'
+test.concurrent('install file: dedupe dependencies 1', (): Promise<void> => {
+  return runInstall({}, 'install-file-dedupe-dependencies-1', async config => {
+    // Check that b is not added as a sub-dependency of a
+    expect(await fs.exists(path.join(config.cwd, 'node_modules', 'a', 'node_modules'))).toEqual(false);
+  });
+});
+
+// When local packages are installed, dependencies with relative and absolute paths should be
+// deduped e.g. 'file:b' and 'file:/absolute/path/to/b'
+test.concurrent('install file: dedupe dependencies 2', (): Promise<void> => {
+  return runInstall({}, 'install-file-dedupe-dependencies-2', async (config, reporter) => {
+    // Add b as a dependency, using an absolute path
+    await add(config, reporter, {}, [`b@file:${path.resolve(config.cwd, 'b')}`]);
+
+    // Check that b is not added as a sub-dependency of a
+    expect(await fs.exists(path.join(config.cwd, 'node_modules', 'a', 'node_modules'))).toEqual(false);
+  });
+});
+
+// When local packages are installed from a repo with a lockfile, the multiple packages
+// unpacking in the same location warning should not occur
+test.concurrent('install file: dedupe dependencies 3', (): Promise<void> => {
+  return runInstall({}, 'install-file-dedupe-dependencies-3', (config, reporter, install, getStdout) => {
+    const stdout = getStdout();
+    // Need to check if message is logged, but don't need to check for any specific parameters
+    // so splitting on undefined and testing if all message parts are in stdout
+    const messageParts = reporter.lang('multiplePackagesCantUnpackInSameDestination').split('undefined');
+    const warningMessage = messageParts.every(part => stdout.includes(part));
+    expect(warningMessage).toBe(false);
   });
 });
 
 test.concurrent('install everything when flat is enabled', (): Promise<void> => {
-  return runInstall({noLockfile: true, flat: true}, 'install-file', async config => {
+  return runInstall({lockfile: false, flat: true}, 'install-file', async config => {
     expect(await fs.readFile(path.join(config.cwd, 'node_modules', 'foo', 'index.js'))).toEqual('foobar;\n');
   });
 });
@@ -471,6 +614,12 @@ test.concurrent('install should run install scripts in the order of dependencies
   });
 });
 
+test.concurrent('install with comments in manifest', (): Promise<void> => {
+  return runInstall({lockfile: false}, 'install-with-comments', async config => {
+    expect(await fs.readFile(path.join(config.cwd, 'node_modules', 'foo', 'index.js'))).toEqual('foobar;\n');
+  });
+});
+
 test.concurrent('run install scripts in the order when one dependency does not have install script', (): Promise<
   void,
 > => {
@@ -545,7 +694,7 @@ test.concurrent('install should update a dependency to yarn and mirror (PR impor
 
     await fs.copy(path.join(config.cwd, 'package.json.after'), path.join(config.cwd, 'package.json'), reporter);
 
-    const reinstall = new Install({}, config, reporter, (await Lockfile.fromDirectory(config.cwd)));
+    const reinstall = new Install({}, config, reporter, await Lockfile.fromDirectory(config.cwd));
     await reinstall.init();
 
     expect(semver.satisfies(await getPackageVersion(config, 'mime-db'), '~1.23.0')).toEqual(true);
@@ -598,7 +747,7 @@ test.concurrent('offline mirror can be enabled from parent dir', (): Promise<voi
   };
   return runInstall({}, fixture, async (config, reporter) => {
     const rawLockfile = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
-    const lockfile = parse(rawLockfile);
+    const {object: lockfile} = parse(rawLockfile);
     expect(lockfile['mime-types@2.1.14'].resolved).toEqual(
       'https://registry.yarnpkg.com/mime-types/-/mime-types-2.1.14.tgz#f7ef7d97583fcaf3b7d282b6f8b5679dab1e94ee',
     );
@@ -613,7 +762,7 @@ test.concurrent('offline mirror can be enabled from parent dir, with merging of 
   };
   return runInstall({}, fixture, async (config, reporter) => {
     const rawLockfile = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
-    const lockfile = parse(rawLockfile);
+    const {object: lockfile} = parse(rawLockfile);
     expect(lockfile['mime-types@2.1.14'].resolved).toEqual(
       'https://registry.yarnpkg.com/mime-types/-/mime-types-2.1.14.tgz#f7ef7d97583fcaf3b7d282b6f8b5679dab1e94ee',
     );
@@ -628,7 +777,7 @@ test.concurrent('offline mirror can be disabled locally', (): Promise<void> => {
   };
   return runInstall({}, fixture, async (config, reporter) => {
     const rawLockfile = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
-    const lockfile = parse(rawLockfile);
+    const {object: lockfile} = parse(rawLockfile);
     expect(lockfile['mime-types@2.1.14'].resolved).toEqual(
       'https://registry.yarnpkg.com/mime-types/-/mime-types-2.1.14.tgz#f7ef7d97583fcaf3b7d282b6f8b5679dab1e94ee',
     );
@@ -638,7 +787,7 @@ test.concurrent('offline mirror can be disabled locally', (): Promise<void> => {
 
 // sync test because we need to get all the requests to confirm their validity
 test('install a scoped module from authed private registry', (): Promise<void> => {
-  return runInstall({noLockfile: true}, 'install-from-authed-private-registry', async config => {
+  return runInstall({}, 'install-from-authed-private-registry', async config => {
     const authedRequests = request.__getAuthedRequests();
 
     expect(authedRequests[0].url).toEqual('https://registry.yarnpkg.com/@types%2flodash');
@@ -653,7 +802,7 @@ test('install a scoped module from authed private registry', (): Promise<void> =
 });
 
 test('install a scoped module from authed private registry with a missing trailing slash', (): Promise<void> => {
-  return runInstall({noLockfile: true}, 'install-from-authed-private-registry-no-slash', async config => {
+  return runInstall({}, 'install-from-authed-private-registry-no-slash', async config => {
     const authedRequests = request.__getAuthedRequests();
 
     expect(authedRequests[0].url).toEqual('https://registry.yarnpkg.com/@types%2flodash');
@@ -803,13 +952,13 @@ test.concurrent('should skip integrity check and do install when --skip-integrit
     `;
     await fs.writeFile(path.join(config.cwd, 'yarn.lock'), lockContent);
 
-    let reinstall = new Install({}, config, reporter, (await Lockfile.fromDirectory(config.cwd)));
+    let reinstall = new Install({}, config, reporter, await Lockfile.fromDirectory(config.cwd));
     await reinstall.init();
 
     // reinstall will be successful but it won't reinstall anything
     expect(await fs.exists(path.join(config.cwd, 'node_modules', 'sub-dep'))).toEqual(false);
 
-    reinstall = new Install({skipIntegrityCheck: true}, config, reporter, (await Lockfile.fromDirectory(config.cwd)));
+    reinstall = new Install({skipIntegrityCheck: true}, config, reporter, await Lockfile.fromDirectory(config.cwd));
     await reinstall.init();
 
     // reinstall will reinstall deps
@@ -818,7 +967,7 @@ test.concurrent('should skip integrity check and do install when --skip-integrit
     let newLockContent = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
     expect(lockContent).toEqual(newLockContent);
 
-    reinstall = new Install({force: true}, config, reporter, (await Lockfile.fromDirectory(config.cwd)));
+    reinstall = new Install({force: true}, config, reporter, await Lockfile.fromDirectory(config.cwd));
     await reinstall.init();
 
     // force rewrites lockfile
@@ -860,7 +1009,7 @@ test.concurrent('bailout should work with --production flag too', (): Promise<vo
     // remove file
     await fs.unlink(path.join(config.cwd, 'node_modules', 'left-pad', 'index.js'));
     // run install again
-    const reinstall = new Install({production: true}, config, reporter, (await Lockfile.fromDirectory(config.cwd)));
+    const reinstall = new Install({production: true}, config, reporter, await Lockfile.fromDirectory(config.cwd));
     await reinstall.init();
     // don't expect file being recreated because install should have bailed out
     expect(await fs.exists(path.join(config.cwd, 'node_modules', 'left-pad', 'index.js'))).toBe(false);
@@ -882,4 +1031,51 @@ test.concurrent('transitive file: dependencies should work', (): Promise<void> =
   return runInstall({}, 'transitive-file', async (config, reporter) => {
     expect(await fs.exists(path.join(config.cwd, 'node_modules', 'b'))).toBe(true);
   });
+});
+
+// Unskip once https://github.com/yarnpkg/yarn/issues/3778 is resolved
+test.skip('unbound transitive dependencies should not conflict with top level dependency', async () => {
+  await runInstall({flat: true}, 'install-conflicts', async config => {
+    expect((await fs.readJson(path.join(config.cwd, 'node_modules', 'left-pad', 'package.json'))).version).toEqual(
+      '1.0.0',
+    );
+  });
+});
+
+test.concurrent('top level patterns should match after install', (): Promise<void> => {
+  return runInstall({}, 'top-level-pattern-check', async (config, reporter) => {
+    let integrityError = false;
+    try {
+      await check(config, reporter, {integrity: true}, []);
+    } catch (err) {
+      integrityError = true;
+    }
+    expect(integrityError).toBe(false);
+  });
+});
+
+test.concurrent('warns for missing bundledDependencies', (): Promise<void> => {
+  const fixturesLoc = path.join(__dirname, '..', '..', 'fixtures', 'install');
+
+  return buildRun(
+    reporters.BufferReporter,
+    fixturesLoc,
+    async (args, flags, config, reporter): Promise<void> => {
+      await install(config, reporter, flags, args);
+
+      const output = reporter.getBuffer();
+      const warnings = output.filter(entry => entry.type === 'warning');
+
+      expect(
+        warnings.some(warning => {
+          return (
+            warning.data.toString().indexOf(reporter.lang('missingBundledDependency', 'tap@0.3.1', 'tap-consumer')) > -1
+          );
+        }),
+      ).toEqual(true);
+    },
+    [],
+    {},
+    'missing-bundled-dep',
+  );
 });

@@ -5,7 +5,7 @@ import type Config from '../../config.js';
 import type {Manifest} from '../../types.js';
 import NoopReporter from '../../reporters/base-reporter.js';
 import {Install} from './install.js';
-import Lockfile from '../../lockfile/wrapper.js';
+import Lockfile from '../../lockfile';
 import buildSubCommands from './_build-sub-commands.js';
 
 const invariant = require('invariant');
@@ -47,53 +47,71 @@ async function getManifests(config: Config, flags: Object): Promise<Array<Manife
   return manifests;
 }
 
+async function list(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
+  const manifests: Array<Manifest> = await getManifests(config, flags);
+
+  if (flags.json) {
+    const body = [];
+
+    for (const {name, version, license, repository, homepage, author} of manifests) {
+      const url = repository ? repository.url : homepage;
+      const vendorUrl = homepage || (author && author.url);
+      const vendorName = author && author.name;
+      body.push([
+        name,
+        version,
+        license || 'Unknown',
+        url || 'Unknown',
+        vendorUrl || 'Unknown',
+        vendorName || 'Unknown',
+      ]);
+    }
+
+    reporter.table(['Name', 'Version', 'License', 'URL', 'VendorUrl', 'VendorName'], body);
+  } else {
+    const trees = [];
+
+    for (const {name, version, license, repository, homepage} of manifests) {
+      const children = [];
+      children.push({
+        name: `${reporter.format.bold('License:')} ${license || reporter.format.red('UNKNOWN')}`,
+      });
+
+      const url = repository ? repository.url : homepage;
+      if (url) {
+        children.push({name: `${reporter.format.bold('URL:')} ${url}`});
+      }
+
+      trees.push({
+        name: `${name}@${version}`,
+        children,
+      });
+    }
+
+    reporter.tree('licenses', trees);
+  }
+}
+
 export const {run, setFlags, examples} = buildSubCommands('licenses', {
   async ls(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
-    const manifests: Array<Manifest> = await getManifests(config, flags);
+    reporter.warn(`\`yarn licenses ls\` is deprecated. Please use \`yarn licenses list\`.`);
+    await list(config, reporter, flags, args);
+  },
 
-    if (flags.json) {
-      const body = [];
-
-      for (const {name, version, license, repository, homepage, author} of manifests) {
-        const url = repository ? repository.url : homepage;
-        const vendorUrl = homepage || (author && author.url);
-        const vendorName = author && author.name;
-        body.push([
-          name,
-          version,
-          license || 'Unknown',
-          url || 'Unknown',
-          vendorUrl || 'Unknown',
-          vendorName || 'Unknown',
-        ]);
-      }
-
-      reporter.table(['Name', 'Version', 'License', 'URL', 'VendorUrl', 'VendorName'], body);
-    } else {
-      const trees = [];
-
-      for (const {name, version, license, repository, homepage} of manifests) {
-        const children = [];
-        children.push({
-          name: `${reporter.format.bold('License:')} ${license || reporter.format.red('UNKNOWN')}`,
-        });
-
-        const url = repository ? repository.url : homepage;
-        if (url) {
-          children.push({name: `${reporter.format.bold('URL:')} ${url}`});
-        }
-
-        trees.push({
-          name: `${name}@${version}`,
-          children,
-        });
-      }
-
-      reporter.tree('licenses', trees);
-    }
+  async list(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
+    await list(config, reporter, flags, args);
   },
 
   async generateDisclaimer(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
+    /* eslint-disable no-console */
+
+    // `reporter.log` dumps a bunch of ANSI escapes to clear the current line and
+    // is for abstracting the console output so it can be consumed by other tools
+    // (JSON output being the primary one). This command is only for text consumption
+    // and you should just be dumping it to a TXT file. Using a reporter here has the
+    // potential to mess up the output since it might print ansi escapes.
+    // @kittens - https://git.io/v7uts
+
     const manifests: Array<Manifest> = await getManifests(config, flags);
     const manifest = await config.readRootManifest();
 
