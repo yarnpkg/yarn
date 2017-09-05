@@ -130,8 +130,12 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
   reporter.step(2, 4, reporter.lang('whyInitGraph'), emoji.get('truck'));
   const lockfile = await Lockfile.fromDirectory(config.lockfileFolder, reporter);
   const install = new Install(flags, config, reporter, lockfile);
-  const {requests: depRequests, patterns} = await install.fetchRequestFromCwd();
-  await install.resolver.init(depRequests, {isFlat: install.flags.flat, isFrozen: install.flags.frozenLockfile});
+  const {requests: depRequests, patterns, workspaceLayout} = await install.fetchRequestFromCwd();
+  await install.resolver.init(depRequests, {
+    isFlat: install.flags.flat,
+    isFrozen: install.flags.frozenLockfile,
+    workspaceLayout,
+  });
   const hoisted = await install.linker.getFlatHoistedTree(patterns);
 
   // finding
