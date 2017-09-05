@@ -24,7 +24,9 @@ describe('spawn', () => {
   });
 
   test('spawn with default', () => {
+    process.env.GIT_SSH_COMMAND = '';
     const gitCall = runGit(['status']);
+    delete process.env.GIT_SSH_COMMAND;
 
     expect(gitCall[2].env).toMatchObject({
       GIT_ASKPASS: '',
@@ -35,10 +37,12 @@ describe('spawn', () => {
   });
 
   test('spawn with plink', () => {
+    process.env.GIT_SSH_COMMAND = '';
     // Test for case-sensitivity too (should be insensitive)
     process.env.GIT_SSH = 'C:\\pLink.EXE';
 
     const gitCall = runGit(['status']);
+    delete process.env.GIT_SSH_COMMAND;
 
     delete process.env.GIT_SSH;
 
@@ -51,18 +55,20 @@ describe('spawn', () => {
   });
 
   test('spawn with custom GIT_SSH', () => {
+    process.env.GIT_SSH_COMMAND = '';
     process.env.GIT_SSH = 'custom-ssh.sh';
     const gitCall = runGit(['status']);
 
     delete process.env.GIT_SSH;
+    delete process.env.GIT_SSH_COMMAND;
 
     const calledEnv = gitCall[2].env;
     expect(calledEnv).toMatchObject({
       GIT_ASKPASS: '',
       GIT_TERMINAL_PROMPT: 0,
+      GIT_SSH_COMMAND: '',
       ...process.env,
     });
-    expect(calledEnv).not.toHaveProperty('GIT_SSH_COMMAND');
   });
 
   test('spawn with custom GIT_SSH_COMMAND', () => {
