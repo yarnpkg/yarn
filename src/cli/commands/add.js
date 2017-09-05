@@ -36,8 +36,8 @@ export class Add extends Install {
     if (this.config.workspaceRootFolder && this.config.cwd === this.config.workspaceRootFolder) {
       this.setIgnoreWorkspaces(true);
       // flagsToOrgin defaults to being a hard `dependency` when no flags are passed (see above),
-      // so it would incorrectly throw a warning when upgrading existing devDependencies in workspaces
-      // To allow for a successful upgrade, override flagsToOrigin in such case
+      // so it incorrectly throws a warning when upgrading existing devDependencies in workspace root
+      // To allow for a successful upgrade, override flagsToOrigin when `existing` flag is passed by `upgrade` command
       if (flags.existing) {
         this.flagToOrigin = '';
       }
