@@ -67,8 +67,8 @@ export default class TarballFetcher extends BaseFetcher {
     const extractorStream = gunzip();
     const untarStream = tarFs.extract(this.dest, {
       strip: 1,
-      dmode: 0o555, // all dirs should be readable
-      fmode: 0o444, // all files should be readable
+      dmode: 0o755, // all dirs should be readable
+      fmode: 0o644, // all files should be readable
       chown: false, // don't chown. just leave as it is
     });
 

@@ -1,0 +1,9 @@
+{
+  "name": "workspace-1",
+  "version": "1.0.0",
+  "scripts": {
+    "prescript": "echo workspace-1 prescript",
+    "script": "echo workspace-1 script",
+    "postscript": "echo workspace-1 postscript"
+  }
+}
