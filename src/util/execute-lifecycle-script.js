@@ -2,7 +2,7 @@
 
 import type {ReporterSpinner} from '../reporters/types.js';
 import type Config from '../config.js';
-import {MessageError, SpawnError} from '../errors.js';
+import {MessageError, ProcessTermError} from '../errors.js';
 import * as constants from '../constants.js';
 import * as child from './child.js';
 import {exists} from './fs.js';
@@ -260,7 +260,7 @@ export async function execCommand(stage: string, config: Config, cmd: string, cw
     await executeLifecycleScript(stage, config, cwd, cmd);
     return Promise.resolve();
   } catch (err) {
-    if (err instanceof SpawnError) {
+    if (err instanceof ProcessTermError) {
       throw new MessageError(
         err.EXIT_SIGNAL
           ? reporter.lang('commandFailedWithSignal', err.EXIT_SIGNAL)

@@ -3,7 +3,7 @@
 import type Config from '../config.js';
 import type {Reporter} from '../reporters/index.js';
 import type {ResolvedSha, GitRefResolvingInterface, GitRefs} from './git/git-ref-resolver.js';
-import {MessageError, SecurityError} from '../errors.js';
+import {MessageError, SecurityError, ProcessSpawnError} from '../errors.js';
 import {spawn as spawnGit} from './git/git-spawn.js';
 import {resolveVersion, isCommitSha, parseRefs} from './git/git-ref-resolver.js';
 import * as crypto from './crypto.js';
@@ -26,6 +26,12 @@ type GitUrl = {
 const supportsArchiveCache: {[key: string]: boolean} = map({
   'github.com': false, // not support, doubt they will ever support it
 });
+
+const handleSpawnError = err => {
+  if (err instanceof ProcessSpawnError) {
+    throw err;
+  }
+};
 
 export default class Git implements GitRefResolvingInterface {
   constructor(config: Config, gitUrl: GitUrl, hash: string) {
@@ -96,6 +102,7 @@ export default class Git implements GitRefResolvingInterface {
       await spawnGit(['archive', `--remote=${ref.repository}`, 'HEAD', Date.now() + '']);
       throw new Error();
     } catch (err) {
+      handleSpawnError(err);
       const supports = err.message.indexOf('did not match any files') >= 0;
       return (supportsArchiveCache[hostname] = supports);
     }
@@ -110,6 +117,7 @@ export default class Git implements GitRefResolvingInterface {
       await spawnGit(['ls-remote', '-t', ref.repository]);
       return true;
     } catch (err) {
+      handleSpawnError(err);
       return false;
     }
   }
@@ -330,6 +338,7 @@ export default class Git implements GitRefResolvingInterface {
         cwd: this.cwd,
       });
     } catch (err) {
+      handleSpawnError(err);
       // file doesn't exist
       return false;
     }
@@ -377,6 +386,7 @@ export default class Git implements GitRefResolvingInterface {
       const [sha] = lines[1].split(/\s+/);
       return {sha, ref};
     } catch (err) {
+      handleSpawnError(err);
       // older versions of git don't support "--symref"
       const stdout = await spawnGit(['ls-remote', this.gitUrl.repository, 'HEAD']);
       const [sha] = stdout.split(/\s+/);
@@ -397,6 +407,7 @@ export default class Git implements GitRefResolvingInterface {
       const [sha] = stdout.split(/\s+/);
       return {sha, ref: undefined};
     } catch (err) {
+      handleSpawnError(err);
       // assuming commit not found, let's try something else
       return null;
     }
