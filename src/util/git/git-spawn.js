@@ -14,7 +14,7 @@ const env = {
 };
 
 const sshCommand = env.GIT_SSH || 'ssh';
-const sshExecutable = path.basename(sshCommand, '.exe');
+const sshExecutable = path.basename(sshCommand.toLowerCase(), '.exe');
 const sshBatchArgs = BATCH_MODE_ARGS.get(sshExecutable);
 
 if (!env.GIT_SSH_COMMAND && sshBatchArgs) {

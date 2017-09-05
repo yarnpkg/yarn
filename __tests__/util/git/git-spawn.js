@@ -35,7 +35,8 @@ describe('spawn', () => {
   });
 
   test('spawn with plink', () => {
-    process.env.GIT_SSH = 'C:\\plink.exe';
+    // Test for case-sensitivity too (should be insensitive)
+    process.env.GIT_SSH = 'C:\\pLink.EXE';
 
     const gitCall = runGit(['status']);
 
@@ -44,7 +45,7 @@ describe('spawn', () => {
     expect(gitCall[2].env).toMatchObject({
       GIT_ASKPASS: '',
       GIT_TERMINAL_PROMPT: 0,
-      GIT_SSH_COMMAND: 'C:\\plink.exe -batch',
+      GIT_SSH_COMMAND: 'C:\\pLink.EXE -batch',
       ...process.env,
     });
   });
