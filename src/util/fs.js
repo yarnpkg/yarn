@@ -894,7 +894,7 @@ export async function readFirstAvailableStream(
 
 export async function getFirstSuitableFolder(
   paths: Iterable<string>,
-  mode = constants.R_OK | constants.X_OK, // eslint-disable-line no-bitwise
+  mode: number = constants.R_OK | constants.X_OK, // eslint-disable-line no-bitwise
 ): Promise<FolderQueryResult> {
   const result: FolderQueryResult = {
     skipped: [],
