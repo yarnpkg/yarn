@@ -87,11 +87,7 @@ async function getGlobalPrefix(config: Config, flags: Object): Promise<string> {
     return process.env.PREFIX;
   }
 
-  const potentialPrefixFolders = [
-    FALLBACK_GLOBAL_PREFIX,
-    // This is the last resort
-    path.dirname(process.execPath),
-  ];
+  const potentialPrefixFolders = [FALLBACK_GLOBAL_PREFIX];
   if (process.platform === 'win32') {
     // %LOCALAPPDATA%\Yarn --> C:\Users\Alice\AppData\Local\Yarn
     if (process.env.LOCALAPPDATA) {
