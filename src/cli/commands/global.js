@@ -102,7 +102,7 @@ async function getGlobalPrefix(config: Config, flags: Object): Promise<string> {
     // eslint-disable-next-line no-bitwise
     await fs.access(binFolder, fs.constants.W_OK | fs.constants.X_OK);
   } catch (err) {
-    if (err.code === 'EACCES') {
+    if (err.code === 'EACCES' || err.code === 'EROFS') {
       prefix = FALLBACK_GLOBAL_PREFIX;
     } else if (err.code === 'ENOENT') {
       // ignore - that just means we don't have the folder, yet
