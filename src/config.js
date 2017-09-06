@@ -294,8 +294,8 @@ export default class Config {
       }
 
       const cacheFolderQuery = await fs.getFirstWriteableFolder(preferredCacheFolders);
-      for (const failedFolder of cacheFolderQuery.skipped) {
-        this.reporter.warn(this.reporter.lang('cacheFolderSkipped', failedFolder));
+      for (const skippedEntry of cacheFolderQuery.skipped) {
+        this.reporter.warn(this.reporter.lang('cacheFolderSkipped', skippedEntry.folder));
       }
 
       cacheRootFolder = cacheFolderQuery.folder;
