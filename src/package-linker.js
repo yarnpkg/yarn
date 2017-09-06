@@ -166,6 +166,7 @@ export default class PackageLinker {
 
     const copiedSrcs: Map<string, string> = new Map();
     const symlinkPaths: Map<string, string> = new Map();
+    const linkTypeDepsLocations: Array<string> = [];
     for (const [folder, {pkg, loc}] of flatTree) {
       const remote = pkg._remote || {type: ''};
       const ref = pkg._reference;
@@ -179,6 +180,8 @@ export default class PackageLinker {
         // with a symlink source
         src = remote.reference;
         type = 'symlink';
+        // store the dest location for later usage
+        linkTypeDepsLocations.push(dest);
       } else if (workspaceLayout && remote.type === 'workspace') {
         src = remote.reference;
         type = 'symlink';
@@ -390,6 +393,13 @@ export default class PackageLinker {
         flatTree,
         async ([dest, {pkg}]) => {
           if (pkg._reference && pkg._reference.location) {
+            if (
+              this._isChildOfLinkedDep(linkTypeDepsLocations, pkg._reference.location) ||
+              this._isChildOfLinkedDep(linkTypeDepsLocations, dest)
+            ) {
+              tickBin();
+              return;
+            }
             const binLoc = path.join(dest, this.config.getFolder(pkg));
             await this.linkBinDependencies(pkg, binLoc);
             tickBin();
@@ -403,6 +413,13 @@ export default class PackageLinker {
         topLevelDependencies,
         async ([dest, pkg]) => {
           if (pkg._reference && pkg._reference.location && pkg.bin && Object.keys(pkg.bin).length) {
+            if (
+              this._isChildOfLinkedDep(linkTypeDepsLocations, pkg._reference.location) ||
+              this._isChildOfLinkedDep(linkTypeDepsLocations, dest)
+            ) {
+              tickBin();
+              return;
+            }
             const binLoc = path.join(this.config.cwd, this.config.getFolder(pkg));
             await this.linkSelfDependencies(pkg, dest, binLoc);
             tickBin();
@@ -481,6 +498,16 @@ export default class PackageLinker {
 
   _satisfiesPeerDependency(range: string, version: string): boolean {
     return range === '*' || satisfiesWithPreleases(version, range, this.config.looseSemver);
+  }
+
+  _isChildOfLinkedDep(linkedDepLocations: Array<string>, location: string): boolean {
+    let isWithinLink = false;
+    linkedDepLocations.forEach(loc => {
+      if (path.join(location, 'node_modules').startsWith(loc)) {
+        isWithinLink = true;
+      }
+    });
+    return isWithinLink;
   }
 
   async _warnForMissingBundledDependencies(pkg: Manifest): Promise<void> {
