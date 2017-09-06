@@ -892,7 +892,10 @@ export async function readFirstAvailableStream(
   return {stream, triedPaths};
 }
 
-export async function getFirstWriteableFolder(paths: Iterable<string>): Promise<FolderQueryResult> {
+export async function getFirstSuitableFolder(
+  paths: Iterable<string>,
+  mode = constants.R_OK | constants.X_OK, // eslint-disable-line no-bitwise
+): Promise<FolderQueryResult> {
   const result: FolderQueryResult = {
     skipped: [],
     folder: null,
@@ -901,10 +904,7 @@ export async function getFirstWriteableFolder(paths: Iterable<string>): Promise<
   for (const folder of paths) {
     try {
       await mkdirp(folder);
-      const testFile = path.join(folder, `.yarn-write-test-${process.pid}`);
-      await writeFile(testFile, '');
-      await readFile(testFile);
-      await unlinkFile(testFile);
+      await access(folder, mode);
 
       result.folder = folder;
 

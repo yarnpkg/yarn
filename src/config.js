@@ -293,7 +293,10 @@ export default class Config {
         preferredCacheFolders = [String(preferredCacheFolder)].concat(preferredCacheFolders);
       }
 
-      const cacheFolderQuery = await fs.getFirstWriteableFolder(preferredCacheFolders);
+      const cacheFolderQuery = await fs.getFirstSuitableFolder(
+        preferredCacheFolders,
+        fs.constants.W_OK | fs.constants.X_OK | fs.constants.R_OK, // eslint-disable-line no-bitwise
+      );
       for (const skippedEntry of cacheFolderQuery.skipped) {
         this.reporter.warn(this.reporter.lang('cacheFolderSkipped', skippedEntry.folder));
       }
