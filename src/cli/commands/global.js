@@ -103,7 +103,7 @@ async function getGlobalPrefix(config: Config, flags: Object): Promise<string> {
 
   if (!prefix) {
     throw new MessageError(
-      config.reporter.lang('noGlobalFolder', prefixFolderQueryResult.skipped.map(item => item.folder)),
+      config.reporter.lang('noGlobalFolder', prefixFolderQueryResult.skipped.map(item => item.folder).join(', ')),
     );
   }
 
