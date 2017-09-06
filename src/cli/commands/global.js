@@ -102,9 +102,14 @@ async function getGlobalPrefix(config: Config, flags: Object, mode): Promise<str
   const prefix = prefixFolderQueryResult.folder && path.dirname(prefixFolderQueryResult.folder);
 
   if (!prefix) {
-    throw new MessageError(
-      config.reporter.lang('noGlobalFolder', prefixFolderQueryResult.skipped.map(item => item.folder).join(', ')),
+    config.reporter.warn(
+      config.reporter.lang(
+        'noGlobalFolder',
+        prefixFolderQueryResult.skipped.map(item => path.dirname(item.folder)).join(', '),
+      ),
     );
+
+    return FALLBACK_GLOBAL_PREFIX;
   }
 
   return prefix;
