@@ -110,6 +110,7 @@ const messages = {
   unexpectedError: 'An unexpected error occurred: $0.',
   jsonError: 'Error parsing JSON at $0, $1.',
   noPermission: 'Cannot create $0 due to insufficient permissions.',
+  noGlobalFolder: 'Cannot find a suitable global folder. Tried these: $0',
   allDependenciesUpToDate: 'All of your dependencies are up to date.',
   legendColorsForUpgradeInteractive:
     'Color legend : \n $0    : Major Update backward-incompatible updates \n $1 : Minor Update backward-compatible features \n $2  : Patch Update backward-compatible bug fixes',
