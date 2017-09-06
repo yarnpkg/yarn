@@ -78,7 +78,7 @@ async function getBins(config: Config): Promise<Set<string>> {
   return paths;
 }
 
-async function getGlobalPrefix(config: Config, flags: Object, mode): Promise<string> {
+async function getGlobalPrefix(config: Config, flags: Object): Promise<string> {
   if (flags.prefix) {
     return flags.prefix;
   } else if (config.getOption('prefix', true)) {
@@ -98,7 +98,7 @@ async function getGlobalPrefix(config: Config, flags: Object, mode): Promise<str
   }
 
   const binFolders = potentialPrefixFolders.map(prefix => path.join(prefix, 'bin'));
-  const prefixFolderQueryResult = await fs.getFirstSuitableFolder(binFolders, mode);
+  const prefixFolderQueryResult = await fs.getFirstSuitableFolder(binFolders);
   const prefix = prefixFolderQueryResult.folder && path.dirname(prefixFolderQueryResult.folder);
 
   if (!prefix) {
