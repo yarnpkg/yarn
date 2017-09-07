@@ -1,17 +1,17 @@
 /* @flow */
 
 import type {ReadStream} from 'fs';
-
 import type Reporter from '../reporters/base-reporter.js';
+
+import fs from 'fs';
+import globModule from 'glob';
+import os from 'os';
+import path from 'path';
+
 import BlockingQueue from './blocking-queue.js';
 import * as promise from './promise.js';
 import {promisify} from './promise.js';
 import map from './map.js';
-
-const fs = require('fs');
-const globModule = require('glob');
-const os = require('os');
-const path = require('path');
 
 export const constants =
   typeof fs.constants !== 'undefined'
@@ -90,6 +90,16 @@ type CopyOptions = {
   possibleExtraneous: Set<string>,
   ignoreBasenames: Array<string>,
   artifactFiles: Array<string>,
+};
+
+type FailedFolderQuery = {
+  error: Error,
+  folder: string,
+};
+
+type FolderQueryResult = {
+  skipped: Array<FailedFolderQuery>,
+  folder: ?string,
 };
 
 export const fileDatesEqual = (a: Date, b: Date) => {
@@ -879,4 +889,31 @@ export async function readFirstAvailableStream(
   }
 
   return {stream, triedPaths};
+}
+
+export async function getFirstSuitableFolder(
+  paths: Iterable<string>,
+  mode: number = constants.W_OK | constants.X_OK, // eslint-disable-line no-bitwise
+): Promise<FolderQueryResult> {
+  const result: FolderQueryResult = {
+    skipped: [],
+    folder: null,
+  };
+
+  for (const folder of paths) {
+    try {
+      await mkdirp(folder);
+      await access(folder, mode);
+
+      result.folder = folder;
+
+      return result;
+    } catch (error) {
+      result.skipped.push({
+        error,
+        folder,
+      });
+    }
+  }
+  return result;
 }

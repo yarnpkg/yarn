@@ -29,6 +29,7 @@ export const SCOPE_SEPARATOR = '%2f';
 // `%2f` Match SCOPE_SEPARATOR, the escaped '/', and don't capture
 const SCOPED_PKG_REGEXP = /(?:^|\/)(@[^\/?]+?)(?=%2f)/;
 
+// TODO: Use the method from src/cli/commands/global.js for this instead
 function getGlobalPrefix(): string {
   if (process.env.PREFIX) {
     return process.env.PREFIX;
