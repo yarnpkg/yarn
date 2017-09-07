@@ -65,9 +65,11 @@ export async function makeEnv(
     original: [config.commandName],
   });
 
-  // add npm_package_*
   const manifest = await config.maybeReadManifest(cwd);
   if (manifest) {
+    env.npm_lifecycle_script = manifest.scripts && manifest.scripts[stage];
+
+    // add npm_package_*
     const queue = [['', manifest]];
     while (queue.length) {
       const [key, val] = queue.pop();
