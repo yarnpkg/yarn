@@ -24,7 +24,7 @@ export default class FileResolver extends ExoticResolver {
   loc: string;
 
   static protocol = 'file';
-  static prefixMatcher = /^.{1,2}\//;
+  static prefixMatcher = /^\.{1,2}\//;
 
   static isVersion(pattern: string): boolean {
     return super.isVersion.call(this, pattern) || this.prefixMatcher.test(pattern) || path.isAbsolute(pattern);
