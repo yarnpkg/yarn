@@ -27,7 +27,7 @@ export const SCOPE_SEPARATOR = '%2f';
 // `(?:^|\/)` Match either the start of the string or a `/` but don't capture
 // `[^\/?]+?` Match any character that is not '/' or '?' and capture, up until the first occurance of:
 // `%2f` Match SCOPE_SEPARATOR, the escaped '/', and don't capture
-const SCOPED_PKG_REGEXP = /(?:^|\/)(@[^\/?]+?)(?=%2f)/;
+const SCOPED_PKG_REGEXP = /(?:^|\/)(@[^\/?]+?)(?=%2f|\/)/;
 
 // TODO: Use the method from src/cli/commands/global.js for this instead
 function getGlobalPrefix(): string {
