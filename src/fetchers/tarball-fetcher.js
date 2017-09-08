@@ -142,7 +142,7 @@ export default class TarballFetcher extends BaseFetcher {
           {
             headers: {
               'Accept-Encoding': 'gzip',
-              Accept: 'application/octet-stream',
+              Accept: 'application/octet-stream, application/x-tar',
             },
             buffer: true,
             process: (req, resolve, reject) => {
