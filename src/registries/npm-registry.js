@@ -19,7 +19,7 @@ import url from 'url';
 import ini from 'ini';
 
 const DEFAULT_REGISTRY = 'https://registry.npmjs.org/';
-const REGEX_REGISTRY_PREFIX = /^https?:/;
+const REGEX_REGISTRY_PREFIX = /^(https?:)?\/\//;
 const REGEX_REGISTRY_SUFFIX = /registry\/?$/;
 
 export const SCOPE_SEPARATOR = '%2f';
@@ -85,7 +85,7 @@ export default class NpmRegistry extends Registry {
   }
 
   getRequestUrl(registry: string, pathname: string): string {
-    const isUrl = /^https?:/.test(pathname);
+    const isUrl = REGEX_REGISTRY_PREFIX.test(pathname);
 
     if (isUrl) {
       return pathname;
@@ -241,7 +241,7 @@ export default class NpmRegistry extends Registry {
 
   getRegistry(packageIdent: string): string {
     // Try extracting registry from the url, then scoped registry, and default registry
-    if (packageIdent.match(/^https?:/)) {
+    if (packageIdent.match(REGEX_REGISTRY_PREFIX)) {
       const availableRegistries = this.getAvailableRegistries();
       const registry = availableRegistries.find(registry => packageIdent.startsWith(registry));
       if (registry) {
@@ -314,8 +314,8 @@ export default class NpmRegistry extends Registry {
     // 3nd attempt, remove the 'registry/?' suffix of the registry URL
     return (
       this.getScopedOption(reg, option) ||
-      (reg.match(pre) && this.getRegistryOption(reg.replace(pre, ''), option)) ||
-      (reg.match(suf) && this.getRegistryOption(reg.replace(suf, ''), option))
+      (pre.test(reg) && !reg.startsWith('//') && this.getRegistryOption(reg.replace(pre, '//'), option)) ||
+      (suf.test(reg) && this.getRegistryOption(reg.replace(suf, ''), option))
     );
   }
 
