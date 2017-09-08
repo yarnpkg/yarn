@@ -240,8 +240,8 @@ test.concurrent('should not output JSON activity/progress if given --no-progress
   });
 });
 
-test.concurrent('should run help of run command if --help is before --', async () => {
-  const stdout = await execCommand('run', ['custom-script', '--help', '--'], 'run-custom-script-with-arguments');
+test.concurrent('should run help of run command if --help is before script', async () => {
+  const stdout = await execCommand('run', ['--help', 'custom-script'], 'run-custom-script-with-arguments');
   expect(stdout[0]).toEqual('Usage: yarn [command] [flags]');
   expect(stdout[stdout.length - 1]).toEqual(
     'Visit https://yarnpkg.com/en/docs/cli/run for documentation about this command.',
@@ -249,8 +249,8 @@ test.concurrent('should run help of run command if --help is before --', async (
 });
 
 if (process.platform !== 'win32') {
-  test.concurrent('should run help of custom-script if --help is after --', async () => {
-    const stdout = await execCommand('run', ['custom-script', '--', '--help'], 'run-custom-script-with-arguments');
+  test.concurrent('should run help of custom-script if --help is after script', async () => {
+    const stdout = await execCommand('run', ['custom-script', '--help'], 'run-custom-script-with-arguments');
     expect(stdout[stdout.length - 2]).toEqual('A message from custom script with args --help');
   });
 }
@@ -286,11 +286,6 @@ test.concurrent('should display documentation link for known command', async () 
 
 test.concurrent('should throws missing command for constructor command', async () => {
   await expectAnErrorMessage(execCommand('constructor', [], 'run-add', true), 'Command "constructor" not found');
-});
-
-test.concurrent('should show help and ignore constructor command', async () => {
-  const stdout = await execCommand('constructor', ['--help'], 'run-help');
-  expectHelpOutput(stdout);
 });
 
 test.concurrent('should run command with hyphens', async () => {
