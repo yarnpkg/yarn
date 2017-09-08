@@ -90,7 +90,7 @@ export default class NpmRegistry extends Registry {
     if (isUrl) {
       return pathname;
     } else {
-      return url.resolve(registry, pathname);
+      return url.resolve(addSuffix(registry, '/'), pathname);
     }
   }
 

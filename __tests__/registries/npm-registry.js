@@ -284,6 +284,27 @@ describe('isScopedPackage functional test', () => {
   });
 });
 
+describe('getRequestUrl functional test', () => {
+  test('returns pathname when it is a full URL', () => {
+    const testCwd = '.';
+    const {mockRequestManager, mockRegistries, mockReporter} = createMocks();
+    const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter);
+    const fullURL = 'HTTP://xn--xample-hva.com:80/foo/bar/baz';
+
+    expect(npmRegistry.getRequestUrl('https://my.registry.co', fullURL)).toEqual(fullURL);
+  });
+
+  test('correctly handles registries lacking a trailing slash', () => {
+    const testCwd = '.';
+    const {mockRequestManager, mockRegistries, mockReporter} = createMocks();
+    const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter);
+    const registry = 'https://my.registry.co/registry';
+    const pathname = 'foo/bar/baz';
+
+    expect(npmRegistry.getRequestUrl(registry, pathname)).toEqual('https://my.registry.co/registry/foo/bar/baz');
+  });
+});
+
 describe('getScope functional test', () => {
   describe('matches scope correctly', () => {
     const testCwd = '.';
