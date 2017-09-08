@@ -107,7 +107,7 @@ export function main({
     commandName = 'help';
   }
 
-  if (args.indexOf('--help') >= 0 || args.indexOf('-h') >= 0) {
+  if (Object.prototype.hasOwnProperty.call(commands, commandName) && (args[0] === '--help' || args[0] === '-h')) {
     args.unshift(commandName);
     commandName = 'help';
   }
