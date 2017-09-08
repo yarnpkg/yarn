@@ -19,7 +19,7 @@ import url from 'url';
 import ini from 'ini';
 
 const DEFAULT_REGISTRY = 'https://registry.npmjs.org/';
-const REGEX_REGISTRY_PREFIX = /^(https?:)?\/\//;
+const REGEX_REGISTRY_PREFIX = /^(https?:)?\/\//i;
 const REGEX_REGISTRY_SUFFIX = /registry\/?$/;
 
 export const SCOPE_SEPARATOR = '%2f';
