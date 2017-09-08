@@ -85,12 +85,12 @@ export default class NpmRegistry extends Registry {
   }
 
   getRequestUrl(registry: string, pathname: string): string {
-    const isUrl = /^https?:/.test(pathname);
+    const isUrl = /^https?:/i.test(pathname);
 
     if (isUrl) {
       return pathname;
     } else {
-      return url.resolve(registry, pathname);
+      return url.resolve(addSuffix(registry, '/'), pathname);
     }
   }
 
