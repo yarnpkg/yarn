@@ -2,7 +2,19 @@
   "only": "*.js",
   "env": {
     "pre-node5": {
-      "presets": ["es2015-node4"],
+      "presets": [
+        ["env", {
+          "targets": {
+            "node": 4
+          },
+          "loose": true,
+          "exclude": [
+            "transform-regenerator"
+          ]
+        }],
+        "flow",
+        "stage-0"
+      ],
       "plugins": [
         ["array-includes"],
         ["transform-inline-imports-commonjs"],
@@ -10,13 +22,35 @@
       ]
     },
     "test": {
-      "presets": ["es2015-node4"],
+      "presets": [
+        ["env", {
+          "targets": {
+            "node": 4
+          },
+          "loose": true,
+          "exclude": [
+            "transform-regenerator"
+          ]
+        }],
+        "flow",
+        "stage-0"
+      ],
       "plugins": [
-        ["transform-inline-imports-commonjs"]
+        ["transform-inline-imports-commonjs"],
+        ["transform-runtime", { "polyfill": true, "regenerator": false }]
       ]
     }
   },
-  "presets": ["node5", "stage-0"],
+  "presets": [
+      ["env", {
+        "targets": {
+          "node": "current"
+        },
+        "loose": true
+      }],
+      "flow",
+      "stage-0"
+  ],
   "plugins": [
     ["transform-inline-imports-commonjs"],
     ["transform-runtime", { "polyfill": false, "regenerator": true }]

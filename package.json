@@ -7,7 +7,7 @@
   "description": "📦🐈 Fast, reliable, and secure dependency management.",
   "dependencies": {
     "babel-eslint": "^7.2.3",
-    "babel-runtime": "^6.0.0",
+    "babel-runtime": "^6.26.0",
     "bytes": "^2.4.0",
     "camelcase": "^4.0.0",
     "chalk": "^1.1.1",
@@ -49,14 +49,14 @@
     "yn": "^2.0.0"
   },
   "devDependencies": {
-    "babel-core": "^6.24.1",
-    "babel-loader": "^6.2.5",
+    "babel-core": "^6.26.0",
+    "babel-loader": "^7.1.2",
     "babel-plugin-array-includes": "^2.0.3",
     "babel-plugin-transform-inline-imports-commonjs": "^1.0.0",
     "babel-plugin-transform-runtime": "^6.4.3",
-    "babel-preset-es2015-node4": "^2.1.0",
-    "babel-preset-node5": "^10.2.0",
-    "babel-preset-stage-0": "^6.0.0",
+    "babel-preset-env": "^1.6.0",
+    "babel-preset-flow": "^6.23.0",
+    "babel-preset-stage-0": "^6.24.1",
     "babylon": "^6.5.0",
     "eslint": "^4.3.0",
     "eslint-config-fb-strict": "^20.1.0-delta.3",
@@ -82,7 +82,7 @@
     "mock-stdin": "^0.3.0",
     "prettier": "^1.5.2",
     "temp": "^0.8.3",
-    "webpack": "^2.1.0-beta.25",
+    "webpack": "^2.7.0",
     "yargs": "^6.3.0"
   },
   "engines": {
