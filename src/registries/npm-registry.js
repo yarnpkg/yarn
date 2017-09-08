@@ -19,6 +19,7 @@ import url from 'url';
 import ini from 'ini';
 
 const DEFAULT_REGISTRY = 'https://registry.npmjs.org/';
+const REGEX_REGISTRY_HTTP_PROTOCOL = /^https?:/i;
 const REGEX_REGISTRY_PREFIX = /^(https?:)?\/\//i;
 const REGEX_REGISTRY_SUFFIX = /registry\/?$/;
 
@@ -303,7 +304,7 @@ export default class NpmRegistry extends Registry {
   }
 
   getRegistryOption(registry: string, option: string): mixed {
-    const pre = REGEX_REGISTRY_PREFIX;
+    const pre = REGEX_REGISTRY_HTTP_PROTOCOL;
     const suf = REGEX_REGISTRY_SUFFIX;
 
     // When registry is used config scope, the trailing '/' is required
@@ -314,7 +315,7 @@ export default class NpmRegistry extends Registry {
     // 3nd attempt, remove the 'registry/?' suffix of the registry URL
     return (
       this.getScopedOption(reg, option) ||
-      (pre.test(reg) && !reg.startsWith('//') && this.getRegistryOption(reg.replace(pre, '//'), option)) ||
+      (pre.test(reg) && this.getRegistryOption(reg.replace(pre, ''), option)) ||
       (suf.test(reg) && this.getRegistryOption(reg.replace(suf, ''), option))
     );
   }
