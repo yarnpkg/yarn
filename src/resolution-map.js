@@ -4,6 +4,7 @@ import minimatch from 'minimatch';
 import map from './util/map';
 import type Config from './config';
 import type {Reporter} from './reporters';
+import type {DependencyRequestPattern} from './types';
 import {normalizePattern} from './util/normalize-pattern.js';
 import parsePackagePath, {isValidPackagePath} from './util/parse-package-path';
 import {getExoticResolver} from './resolvers';
@@ -37,7 +38,7 @@ export default class ResolutionMap {
   resolutionsByPackage: ResolutionInternalMap;
   config: Config;
   reporter: Reporter;
-  delayQueue: Set;
+  delayQueue: Set<DependencyRequestPattern>;
 
   init(resolutions: ?ResolutionEntry = {}) {
     for (const globPattern in resolutions) {
@@ -50,7 +51,7 @@ export default class ResolutionMap {
     }
   }
 
-  addToDelayQueue(req) {
+  addToDelayQueue(req: DependencyRequestPattern) {
     this.delayQueue.add(req);
   }
 
