@@ -31,6 +31,8 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
     email: config.getOption('init-author-email'),
     url: config.getOption('init-author-url'),
   };
+  const _defaultPrivateFlag = String(config.getOption('init-private'));
+  const defaultPrivateFlag = _defaultPrivateFlag === 'undefined' ? '' : _defaultPrivateFlag;
   if (await fs.exists(path.join(config.cwd, '.git'))) {
     // get git origin of the cwd
     try {
@@ -94,7 +96,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
     {
       key: 'private',
       question: 'private',
-      default: '',
+      default: defaultPrivateFlag,
       inputFormatter: yn,
     },
   ];
@@ -123,11 +125,11 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
     }
 
     if (manifestKey === 'private' && privateFlag) {
-      def = true;
+      def = 'true';
     }
 
     if (def) {
-      question += ` (${def.toString()})`;
+      question += ` (${def})`;
     }
 
     let answer;
