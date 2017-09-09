@@ -19,9 +19,9 @@
   "presets": [
     ["env", {
       "targets": {
-        "node": "current"
+        "node": 6
       },
-      "loose": true
+      "modules": false
     }],
     "flow",
     "stage-0"
