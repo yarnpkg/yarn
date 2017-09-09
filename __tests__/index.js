@@ -30,14 +30,15 @@ async function execCommand(
   }
 
   return new Promise((resolve, reject) => {
+    const cleanedEnv = {...process.env};
+    cleanedEnv['YARN_SILENT'] = 0;
+    delete cleanedEnv['FORCE_COLOR'];
+
     exec(
       `node "${yarnBin}" ${cmd} ${args.join(' ')}`,
       {
         cwd: workingDir,
-        env: {
-          ...process.env,
-          YARN_SILENT: 0,
-        },
+        env: cleanedEnv,
       },
       (error, stdout) => {
         if (error) {
