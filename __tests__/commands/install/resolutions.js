@@ -73,7 +73,7 @@ test.concurrent('install with nested resolutions', (): Promise<void> => {
   });
 });
 
-test.concurrent('install with resolutions using flat mode', (): Promise<void> => {
+test.concurrent('install with nested resolutions using flat mode', (): Promise<void> => {
   return runInstall({flat: true}, 'install-nested-resolutions', async config => {
     expect(await getPackageVersion(config, 'strip-ansi')).toEqual('2.0.1');
     expect(await getPackageVersion(config, 'ansi-regex')).toEqual('1.1.1');

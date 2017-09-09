@@ -31,11 +31,13 @@ export default class ResolutionMap {
     this.resolutionsByPackage = map();
     this.config = config;
     this.reporter = config.reporter;
+    this.delayQueue = new Set();
   }
 
   resolutionsByPackage: ResolutionInternalMap;
   config: Config;
   reporter: Reporter;
+  delayQueue: Set;
 
   init(resolutions: ?ResolutionEntry = {}) {
     for (const globPattern in resolutions) {
@@ -46,6 +48,10 @@ export default class ResolutionMap {
         this.resolutionsByPackage[info.name] = [...resolution, info];
       }
     }
+  }
+
+  addToDelayQueue(req) {
+    this.delayQueue.add(req);
   }
 
   parsePatternInfo(globPattern: string, range: string): ?Object {

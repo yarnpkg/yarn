@@ -530,6 +530,10 @@ export default class PackageResolver {
     // resolved to existing versions can be resolved to their best available version
     this.resolvePackagesWithExistingVersions();
 
+    for (const req of this.resolutionMap.delayQueue) {
+      this.resolveToResolution(req);
+    }
+
     activity.end();
     this.activity = null;
   }
@@ -572,9 +576,11 @@ export default class PackageResolver {
         resolutionManifest._reference.patterns.push(pattern);
         this.addPattern(pattern, resolutionManifest);
         this.lockfile.removePattern(pattern);
-
-        return null;
+      } else {
+        this.resolutionMap.addToDelayQueue(req);
       }
+
+      return null;
     }
 
     return req;
