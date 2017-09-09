@@ -19,9 +19,10 @@
   "presets": [
     ["env", {
       "targets": {
-        "node": 6
+        "node": "6.11"
       },
-      "modules": false
+      "modules": false,
+      "loose": true
     }],
     "flow",
     "stage-0"
