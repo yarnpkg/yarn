@@ -562,7 +562,7 @@ export default class PackageResolver {
   resolveToResolution(req: DependencyRequestPattern): ?DependencyRequestPattern {
     const {parentNames, pattern} = req;
 
-    if (!parentNames) {
+    if (!parentNames || this.flat) {
       return req;
     }
 
