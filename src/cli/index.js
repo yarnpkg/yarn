@@ -113,8 +113,9 @@ export function main({
     args = [];
   }
 
-  const isHelp = arg => arg === '--help' || arg === '-h';
   let isKnownCommand = Object.prototype.hasOwnProperty.call(commands, commandName);
+
+  const isHelp = arg => arg === '--help' || arg === '-h';
   const helpInPre = preCommandArgs.findIndex(isHelp);
   const helpInArgs = args.findIndex(isHelp);
   const setHelpMode = () => {
@@ -128,7 +129,7 @@ export function main({
   if (helpInPre > -1) {
     preCommandArgs.splice(helpInPre);
     setHelpMode();
-  } else if (isKnownCommand && helpInArgs > -1) {
+  } else if (isKnownCommand && helpInArgs === 0) {
     args.splice(helpInArgs);
     setHelpMode();
   }

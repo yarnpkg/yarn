@@ -248,12 +248,10 @@ test.concurrent('should run help of run command if --help is before script', asy
   );
 });
 
-if (process.platform !== 'win32') {
-  test.concurrent('should run help of custom-script if --help is after script', async () => {
-    const stdout = await execCommand('run', ['custom-script', '--help'], 'run-custom-script-with-arguments');
-    expect(stdout[stdout.length - 2]).toEqual('A message from custom script with args --help');
-  });
-}
+test.concurrent('should run help of custom-script if --help is after script', async () => {
+  const stdout = await execCommand('run', ['custom-script', '--help'], 'run-custom-script-with-arguments');
+  expect(stdout[stdout.length - 2]).toEqual('A message from custom script with args --help');
+});
 
 test.concurrent('should run bin command', async () => {
   const stdout = await execCommand('bin', [], '', true);
