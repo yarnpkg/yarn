@@ -705,8 +705,8 @@ export class Install {
       this.scripts.getArtifacts(),
     );
 
-    // --no-lockfile or --pure-lockfile flag
-    if (this.flags.lockfile === false || this.flags.pureLockfile) {
+    // --no-lockfile or --pure-lockfile or --frozen-lockfile flag
+    if (this.flags.lockfile === false || this.flags.pureLockfile || this.flags.frozenLockfile) {
       return;
     }
 
