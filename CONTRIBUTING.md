@@ -10,30 +10,36 @@ please read the [code of conduct](CODE_OF_CONDUCT.md).
 1. Run the following commands:
 
 ```sh
-$ git clone YOUR_YARN_REPO_URL
-$ cd yarn
-$ yarn
-$ yarn run build
+git clone YOUR_YARN_REPO_URL
+cd yarn
+yarn
+yarn run build
 ```
 
 ## Building
 
 ```sh
-$ yarn run build
+yarn run build
 ```
 
 ```sh
-$ yarn run watch
+yarn run watch
+```
+
+## Using the local builds
+
+```sh
+alias yarn="node /path/to/yarn/lib/cli/index.js"
 ```
 
 ## Testing
 
 ```sh
-$ yarn run test
+yarn run test
 ```
 
 ```sh
-$ yarn run lint
+yarn run lint
 ```
 
 ## Pull Requests
