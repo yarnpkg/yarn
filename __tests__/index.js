@@ -123,7 +123,6 @@ test.concurrent('should add package with frozzen-lockfile option', async () => {
   expectAddSuccessfullOutputWithNoLockFile(stdout, 'repeating');
 });
 
-
 test.concurrent('should add package with no-lockfile option in front', async () => {
   const stdout = await execCommand('add', ['--no-lockfile', 'split-lines'], 'run-add-option-in-front', true);
   expectAddSuccessfullOutputWithNoLockFile(stdout, 'split-lines');
