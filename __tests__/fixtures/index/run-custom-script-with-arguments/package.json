@@ -3,6 +3,6 @@
   "version": "1.0.0",
   "license": "UNLICENSED",
   "scripts": {
-    "custom-script": "node -p -e \"`A message from custom script with args ${process.argv[process.argv.length - 1]}`\" -- "
+    "custom-script": "node -p -e \"'A message from custom script with args ' + process.argv[process.argv.length - 1]\" -- "
   }
 }
