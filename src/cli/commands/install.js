@@ -283,7 +283,11 @@ export class Install {
       };
 
       pushDeps('dependencies', projectManifestJson, {hint: null, optional: false}, true);
-      pushDeps('devDependencies', projectManifestJson, {hint: 'dev', optional: false}, !this.config.production);
+
+      if (!this.config.production) {
+        pushDeps('devDependencies', projectManifestJson, {hint: 'dev', optional: false}, !this.config.production);
+      }
+
       pushDeps('optionalDependencies', projectManifestJson, {hint: 'optional', optional: true}, true);
 
       if (this.config.workspaceRootFolder && !this.ignoreWorkspaces) {
