@@ -84,7 +84,7 @@ const commands = {
   versions,
   why,
   workspace,
-  upgradeInteractive,
+  'upgrade-interactive': upgradeInteractive,
 };
 
 for (const key in commands) {
