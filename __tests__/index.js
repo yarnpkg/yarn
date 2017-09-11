@@ -66,6 +66,7 @@ function expectAddSuccessfullOutput(stdout, pkg) {
 
 function expectAddSuccessfullOutputWithNoLockFile(stdout, pkg) {
   const lastLines = stdout.slice(stdout.length - 4);
+  expect(lastLines[0]).not.toEqual('success Saved lockfile.');
   expect(lastLines[1]).toEqual('success Saved 1 new dependency.');
   expect(lastLines[2]).toContain(pkg);
   expect(lastLines[3]).toContain('Done');
@@ -114,6 +115,11 @@ test.concurrent('should add package', async () => {
 
 test.concurrent('should add package with no-lockfile option', async () => {
   const stdout = await execCommand('add', ['repeating', '--no-lockfile'], 'run-add-option', true);
+  expectAddSuccessfullOutputWithNoLockFile(stdout, 'repeating');
+});
+
+test.concurrent('should add package with frozzen-lockfile option', async () => {
+  const stdout = await execCommand('add', ['repeating', '--frozen-lockfile'], 'run-add-option', true);
   expectAddSuccessfullOutputWithNoLockFile(stdout, 'repeating');
 });
 
