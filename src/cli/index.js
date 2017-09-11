@@ -72,6 +72,7 @@ export function main({
   commander.option('--json', '');
   commander.option('--ignore-scripts', "don't run lifecycle scripts");
   commander.option('--har', 'save HAR output of network traffic');
+  commander.option('--show-network-usage', 'prints network usage out after install');
   commander.option('--ignore-platform', 'ignore platform checks');
   commander.option('--ignore-engines', 'ignore engines check');
   commander.option('--ignore-optional', 'ignore optional dependencies');
@@ -254,7 +255,10 @@ export function main({
 
     return command.run(config, reporter, commander, commander.args).then(exitCode => {
       if (shouldWrapOutput) {
-        reporter.footer(false);
+        reporter.footer({
+          showPeakMemory: false,
+          showNetworkUsage: commander.showNetworkUsage,
+        });
       }
       return exitCode;
     });
@@ -476,6 +480,7 @@ export function main({
       cacheFolder: commander.cacheFolder,
       preferOffline: commander.preferOffline,
       captureHar: commander.har,
+      showNetworkUsage: commander.showNetworkUsage,
       ignorePlatform: commander.ignorePlatform,
       ignoreEngines: commander.ignoreEngines,
       ignoreScripts: commander.ignoreScripts,

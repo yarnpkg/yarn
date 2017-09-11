@@ -8,7 +8,7 @@ const getBuff = build(BufferReporter, (data, reporter: any): Array<Object> => re
 test('BufferReporter.finished', async () => {
   expect(
     await getBuff(r => {
-      r.footer(false);
+      r.footer({showPeakMemory: false, showNetworkUsage: false});
     }),
   ).toMatchSnapshot();
 });

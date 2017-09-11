@@ -59,7 +59,7 @@ test('BaseReporter.header', () => {
 
 test('BaseReporter.footer', () => {
   const reporter = new BaseReporter();
-  reporter.footer(false);
+  reporter.footer({showPeakMemory: false, showNetworkUsage: false});
   reporter.close();
 });
 
@@ -123,5 +123,15 @@ test('BaseReporter.prompt', async () => {
     error = e;
   }
   expect(error).not.toBeUndefined();
+  reporter.close();
+});
+
+test('BaseReporter.getTotalNetworkUsage', () => {
+  const reporter = new BaseReporter();
+  const buffer1 = Buffer.alloc(10000);
+
+  reporter.logNetworkUsage(buffer1.length);
+  expect(reporter.getTotalNetworkUsage()).toEqual('9.77KB');
+
   reporter.close();
 });

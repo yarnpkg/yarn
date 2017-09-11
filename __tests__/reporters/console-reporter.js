@@ -36,13 +36,13 @@ test('ConsoleReporter.header', async () => {
 test('ConsoleReporter.footer', async () => {
   expect(
     await getConsoleBuff(r => {
-      r.footer(false);
+      r.footer({showPeakMemory: false, showNetworkUsage: false});
     }),
   ).toMatchSnapshot();
 
   expect(
     await getConsoleBuff(r => {
-      r.footer(true);
+      r.footer({showPeakMemory: true, showNetworkUsage: false});
     }),
   ).toMatchSnapshot();
 });

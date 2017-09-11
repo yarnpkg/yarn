@@ -63,3 +63,8 @@ export type PromptOptions = {
   type?: InquirerPromptTypes,
   validate?: (input: string | Array<string>) => boolean | string,
 };
+
+export type FooterOptions = {
+  showPeakMemory: boolean,
+  showNetworkUsage: boolean,
+};

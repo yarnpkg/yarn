@@ -79,6 +79,7 @@ export default class RequestManager {
     this._requestModule = null;
     this.offlineQueue = [];
     this.captureHar = false;
+    this.showNetworkUsage = false;
     this.httpsProxy = '';
     this.ca = null;
     this.httpProxy = '';
@@ -94,6 +95,7 @@ export default class RequestManager {
 
   offlineNoRequests: boolean;
   captureHar: boolean;
+  showNetworkUsage: boolean;
   userAgent: string;
   reporter: Reporter;
   running: number;
@@ -119,6 +121,7 @@ export default class RequestManager {
     userAgent?: string,
     offline?: boolean,
     captureHar?: boolean,
+    showNetworkUsage?: boolean,
     httpProxy?: string | boolean,
     httpsProxy?: string | boolean,
     strictSSL?: boolean,
@@ -140,6 +143,10 @@ export default class RequestManager {
 
     if (opts.captureHar != null) {
       this.captureHar = opts.captureHar;
+    }
+
+    if (opts.showNetworkUsage != null) {
+      this.showNetworkUsage = opts.showNetworkUsage;
     }
 
     if (opts.httpProxy != null) {
@@ -447,13 +454,19 @@ export default class RequestManager {
 
     req.on('error', onError);
 
-    const queue = params.queue;
-    if (queue) {
-      req.on('data', queue.stillActive.bind(queue));
+    // only bind to request event emitter if --show-netowrk-usage is passed via cmd line
+    if (this.showNetworkUsage) {
+      req.on('data', data => this.handleRequestData(data));
     }
 
     if (params.process) {
       params.process(req, resolve, reject);
+    }
+  }
+
+  handleRequestData(data: Buffer) {
+    if (data && data.length > 0) {
+      this.reporter.logNetworkUsage(data.length);
     }
   }
 
