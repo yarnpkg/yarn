@@ -65,3 +65,17 @@ test.concurrent('install with resolutions should correctly install toplevel scop
     expect(await getPackageVersion(config, '@scoped/b')).toEqual('2.0.0');
   });
 });
+
+test.concurrent('install with nested resolutions', (): Promise<void> => {
+  return runInstall({}, 'install-nested-resolutions', async config => {
+    expect(await getPackageVersion(config, 'strip-ansi')).toEqual('2.0.1');
+    expect(await getPackageVersion(config, 'ansi-regex')).toEqual('1.1.1');
+  });
+});
+
+test.concurrent('install with nested resolutions using flat mode', (): Promise<void> => {
+  return runInstall({flat: true}, 'install-nested-resolutions', async config => {
+    expect(await getPackageVersion(config, 'strip-ansi')).toEqual('2.0.1');
+    expect(await getPackageVersion(config, 'ansi-regex')).toEqual('1.1.1');
+  });
+});
