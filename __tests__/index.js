@@ -256,7 +256,7 @@ test.concurrent('should run help of run command if --help is before script', asy
 
 test.concurrent('should run help of custom-script if --help is after script', async () => {
   const stdout = await execCommand('run', ['--silent', 'custom-script', '--help'], 'run-custom-script-with-arguments');
-  expect(JSON.parse(stdout)).toContain('--help');
+  expect(JSON.parse(stdout.join('\n'))).toContain('--help');
 });
 
 test.concurrent('should run bin command', async () => {
