@@ -33,7 +33,7 @@ async function execCommand(
 
   return new Promise((resolve, reject) => {
     exec(
-      `node "${yarnBin}" ${cmd} --cache-folder="${cacheDir}" ${args.join(' ')}`,
+      `node "${yarnBin}" --cache-folder="${cacheDir}" ${cmd} ${args.join(' ')}`,
       {
         cwd: workingDir,
         env: {
