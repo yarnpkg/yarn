@@ -1,1 +1,1 @@
-console.log(`A message from custom script with args ${process.argv[process.argv.length - 1]}`);
+console.log(JSON.stringify(process.argv));
