@@ -101,7 +101,14 @@ export function main({
   }
 
   // get command name
-  const firstNonFlagIndex = args.findIndex(arg => !arg.startsWith('-'));
+  const firstNonFlagIndex = args.findIndex((arg, idx, arr) => {
+    const isOption = arg.startsWith('-');
+    const prev = idx > 0 && arr[idx - 1];
+    const prevOption = prev && prev.startsWith('-') && commander.optionFor(prev);
+    const boundToPrevOption = prevOption && prevOption.required;
+
+    return !isOption && !boundToPrevOption;
+  });
   let preCommandArgs;
   let commandName = '';
   if (firstNonFlagIndex > -1) {
@@ -114,7 +121,6 @@ export function main({
   }
 
   let isKnownCommand = Object.prototype.hasOwnProperty.call(commands, commandName);
-
   const isHelp = arg => arg === '--help' || arg === '-h';
   const helpInPre = preCommandArgs.findIndex(isHelp);
   const helpInArgs = args.findIndex(isHelp);
