@@ -27,7 +27,10 @@ export const SCOPE_SEPARATOR = '%2f';
 // All scoped package names are of the format `@scope%2fpkg` from the use of NpmRegistry.escapeName
 // `(?:^|\/)` Match either the start of the string or a `/` but don't capture
 // `[^\/?]+?` Match any character that is not '/' or '?' and capture, up until the first occurance of:
-// `%2f` Match SCOPE_SEPARATOR, the escaped '/', and don't capture
+// `(?=%2f|\/)` Match SCOPE_SEPARATOR, the escaped '/', or a raw `/` and don't capture
+// The reason for matching a plain `/` is NPM registry being inconsistent about escaping `/` in
+// scoped package names: when you're fetching a tarball, it is not escaped, when you want info
+// about the package, it is escaped.
 const SCOPED_PKG_REGEXP = /(?:^|\/)(@[^\/?]+?)(?=%2f|\/)/;
 
 // TODO: Use the method from src/cli/commands/global.js for this instead
