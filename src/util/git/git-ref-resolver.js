@@ -64,7 +64,7 @@ const tryVersionAsTagName = ({version, refs}: ResolveVersionOptions): ?ResolvedS
   tryRef(refs, `${REF_TAG_PREFIX}${version}`);
 
 const tryVersionAsPullRequestNo = ({version, refs}: ResolveVersionOptions): ?ResolvedSha =>
-    tryRef(refs, `${REF_PR_PREFIX}${version}`);
+  tryRef(refs, `${REF_PR_PREFIX}${version}`);
 
 const tryVersionAsBranchName = ({version, refs}: ResolveVersionOptions): ?ResolvedSha =>
   tryRef(refs, `${REF_BRANCH_PREFIX}${version}`);
