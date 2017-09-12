@@ -126,7 +126,7 @@ export default class ConsoleReporter extends BaseReporter {
       });
     }
 
-    this.log('' + value, {force: true});
+    this.log(String(value), {force: true});
   }
 
   list(key: string, items: Array<string>, hints?: Object) {
