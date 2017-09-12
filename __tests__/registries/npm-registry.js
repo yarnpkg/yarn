@@ -245,6 +245,9 @@ describe('isRequestToRegistry functional test', () => {
     expect(npmRegistry.isRequestToRegistry('http://pkgs.host.com:80/foo/bar/baz', 'http://pkgs.host.com/bar/baz')).toBe(
       true,
     );
+    expect(npmRegistry.isRequestToRegistry('http://pkgs.host.com:80/foo/bar/baz', '//pkgs.host.com/bar/baz')).toBe(
+      true,
+    );
   });
 });
 

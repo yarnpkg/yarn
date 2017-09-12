@@ -51,9 +51,9 @@ export function main({
   handleSignals();
 
   // set global options
-  commander.version(version, '--version');
+  commander.version(version, '-v, --version');
   commander.usage('[command] [flags]');
-  commander.option('-v, --verbose', 'output verbose messages on internal operations');
+  commander.option('--verbose', 'output verbose messages on internal operations');
   commander.option('--offline', 'trigger an error if any required dependencies are not available in local cache');
   commander.option('--prefer-offline', 'use network only if dependencies are not available in local cache');
   commander.option('--strict-semver');
@@ -93,38 +93,63 @@ export function main({
   commander.option('--non-interactive', 'do not show interactive prompts');
   commander.option('--scripts-prepend-node-path [bool]', 'prepend the node executable dir to the PATH in scripts');
 
-  // get command name
-  let commandName: string = args.shift() || 'install';
-
   // if -v is the first command, then always exit after returning the version
-  if (commandName === '-v') {
+  if (args[0] === '-v') {
     console.log(version.trim());
     process.exitCode = 0;
     return;
   }
 
-  if (commandName === '--help' || commandName === '-h') {
-    commandName = 'help';
+  // get command name
+  const firstNonFlagIndex = args.findIndex((arg, idx, arr) => {
+    const isOption = arg.startsWith('-');
+    const prev = idx > 0 && arr[idx - 1];
+    const prevOption = prev && prev.startsWith('-') && commander.optionFor(prev);
+    const boundToPrevOption = prevOption && prevOption.required;
+
+    return !isOption && !boundToPrevOption;
+  });
+  let preCommandArgs;
+  let commandName = '';
+  if (firstNonFlagIndex > -1) {
+    preCommandArgs = args.slice(0, firstNonFlagIndex);
+    commandName = args[firstNonFlagIndex];
+    args = args.slice(firstNonFlagIndex + 1);
+  } else {
+    preCommandArgs = args;
+    args = [];
   }
 
-  if (args.indexOf('--help') >= 0 || args.indexOf('-h') >= 0) {
-    args.unshift(commandName);
+  let isKnownCommand = Object.prototype.hasOwnProperty.call(commands, commandName);
+  const isHelp = arg => arg === '--help' || arg === '-h';
+  const helpInPre = preCommandArgs.findIndex(isHelp);
+  const helpInArgs = args.findIndex(isHelp);
+  const setHelpMode = () => {
+    if (isKnownCommand) {
+      args.unshift(commandName);
+    }
     commandName = 'help';
-  }
+    isKnownCommand = true;
+  };
 
-  // if no args or command name looks like a flag then set default to `install`
-  if (commandName[0] === '-') {
-    args.unshift(commandName);
-    commandName = 'install';
+  if (helpInPre > -1) {
+    preCommandArgs.splice(helpInPre);
+    setHelpMode();
+  } else if (isKnownCommand && helpInArgs === 0) {
+    args.splice(helpInArgs);
+    setHelpMode();
   }
 
   let command;
-  if (Object.prototype.hasOwnProperty.call(commands, commandName)) {
-    command = commands[commandName];
+  if (!commandName) {
+    commandName = 'install';
+    isKnownCommand = true;
   }
 
-  // if command is not recognized, then set default to `run`
-  if (!command) {
+  if (isKnownCommand) {
+    command = commands[commandName];
+  } else {
+    // if command is not recognized, then set default to `run`
     args.unshift(commandName);
     command = commands.run;
   }
@@ -138,6 +163,8 @@ export function main({
       warnAboutRunDashDash = true;
     }
   }
+
+  args = [...preCommandArgs, ...args];
 
   command.setFlags(commander);
   commander.parse([
@@ -489,8 +516,8 @@ export function main({
         onUnexpectedError(err);
       }
 
-      if (commands[commandName]) {
-        reporter.info(commands[commandName].getDocsInfo);
+      if (command.getDocsInfo) {
+        reporter.info(command.getDocsInfo);
       }
 
       return exit(1);
