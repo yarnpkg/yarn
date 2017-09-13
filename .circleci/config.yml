@@ -26,14 +26,6 @@ jobs:
           key: v1-yarn-{{ .Branch }}-{{ checksum "yarn.lock" }}
           paths:
             - .cache/yarn
-      - save_cache:
-          key: v1-yarn-{{ .Branch }}-
-          paths:
-            - .cache/yarn
-      - save_cache:
-          key: v1-yarn-
-          paths:
-            - .cache/yarn
       - persist_to_workspace:
           root: ~/project
           paths:
