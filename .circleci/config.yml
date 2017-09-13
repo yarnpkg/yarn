@@ -15,12 +15,23 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          key: yarn-{{ .Branch }}-{{ checksum "yarn.lock" }}
+          keys:
+            - v1-yarn-{{ .Branch }}-{{ checksum "yarn.lock" }}
+            - v1-yarn-{{ .Branch }}-
+            - v1-yarn-
       - run:
           name: Install Dependencies
           command: yarn install
       - save_cache:
-          key: yarn-{{ .Branch }}-{{ checksum "yarn.lock" }}
+          key: v1-yarn-{{ .Branch }}-{{ checksum "yarn.lock" }}
+          paths:
+            - .cache/yarn
+      - save_cache:
+          key: v1-yarn-{{ .Branch }}-
+          paths:
+            - .cache/yarn
+      - save_cache:
+          key: v1-yarn-
           paths:
             - .cache/yarn
       - persist_to_workspace:
