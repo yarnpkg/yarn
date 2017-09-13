@@ -29,9 +29,11 @@ async function execCommand(
     await fs.copy(srcDir, workingDir, new NoopReporter());
   }
 
+  const cacheDir = path.join(workingDir, '.yarn-cache');
+
   return new Promise((resolve, reject) => {
     exec(
-      `node "${yarnBin}" ${cmd} ${args.join(' ')}`,
+      `node "${yarnBin}" --cache-folder="${cacheDir}" ${cmd} ${args.join(' ')}`,
       {
         cwd: workingDir,
         env: {
