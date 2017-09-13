@@ -41,7 +41,6 @@ jobs:
   test:
     <<: *defaults
     steps:
-      - checkout
       - attach_workspace:
           at: ~/project
       - run:
@@ -58,7 +57,6 @@ jobs:
   build:
     <<: *defaults
     steps:
-      - checkout
       - attach_workspace:
           at: ~/project
       - run:
@@ -80,7 +78,6 @@ jobs:
   deploy:
     <<: *defaults
     steps:
-      - checkout
       - attach_workspace:
           at: ~/project
       - run:
