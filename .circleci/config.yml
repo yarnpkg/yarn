@@ -5,6 +5,10 @@ defaults: &defaults
   docker:
     - image: yarnpkg/dev:latest
 
+default_filters: &default_filters
+  tags:
+    only: '/^v[0-9]\+\.[0-9]\+\.[0-9]\+$/'
+
 jobs:
   install:
     <<: *defaults
@@ -73,10 +77,8 @@ jobs:
           command: |
             # Only NPM is handled here - All other release files are handled in a webhook.
             if [ "${CIRCLE_PROJECT_USERNAME}" == "yarnpkg" ]; then
-              if git describe --tags --abbrev=0 `git rev-parse HEAD` | grep "^v[0-9]\+\.[0-9]\+\.[0-9]\+$"; then
-                echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
-                ./scripts/update-npm.sh
-              fi
+              echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
+              ./scripts/update-npm.sh
             fi
 
 notify:
@@ -90,14 +92,21 @@ workflows:
   version: 2
   install-test-build-and-deploy:
     jobs:
-      - install
+      - install:
+          filters: *default_filters
       - test:
+          filters: *default_filters
           requires:
             - install
       - build:
+          filters: *default_filters
           requires:
             - install
       - deploy:
+          filters:
+            <<: *default_filters
+            branches:
+              ignore: '/.*/'
           requires:
             - test
             - build
