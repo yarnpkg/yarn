@@ -9,6 +9,8 @@ test('isRootUser', () => {
 });
 
 test('isFakeRoot', () => {
+  const hasFakerootPreviously = 'FAKEROOTKEY' in process.env;
+  const oldValue = process.env.FAKEROOTKEY;
   delete process.env.FAKEROOTKEY;
 
   expect(isFakeRoot()).toBe(false);
@@ -16,5 +18,7 @@ test('isFakeRoot', () => {
   process.env.FAKEROOTKEY = '15574641';
   expect(isFakeRoot()).toBe(true);
 
-  delete process.env.FAKEROOTKEY;
+  if (hasFakerootPreviously) {
+    process.env.FAKEROOTKEY = oldValue;
+  }
 });
