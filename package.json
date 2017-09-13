@@ -16,6 +16,7 @@
     "death": "^1.0.0",
     "debug": "^2.2.0",
     "detect-indent": "^5.0.0",
+    "dnscache": "^1.0.1",
     "eslint-plugin-jest": "^20.0.3",
     "eslint-plugin-jsx-a11y": "^6.0.2",
     "eslint-plugin-relay": "0.0.8",
