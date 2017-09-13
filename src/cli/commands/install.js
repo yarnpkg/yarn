@@ -19,7 +19,7 @@ import PackageResolver from '../../package-resolver.js';
 import PackageLinker from '../../package-linker.js';
 import {registries} from '../../registries/index.js';
 import {getExoticResolver} from '../../resolvers/index.js';
-import {clean} from './clean.js';
+import {clean} from './autoclean.js';
 import * as constants from '../../constants.js';
 import {normalizePattern} from '../../util/normalize-pattern.js';
 import * as fs from '../../util/fs.js';
@@ -176,6 +176,7 @@ export class Install {
     this.integrityChecker = new InstallationIntegrityChecker(config);
     this.linker = new PackageLinker(config, this.resolver);
     this.scripts = new PackageInstallScripts(config, this.resolver, this.flags.force);
+    this.ignoreWorkspaces = false;
   }
 
   flags: Flags;
@@ -191,6 +192,7 @@ export class Install {
   rootPatternsToOrigin: {[pattern: string]: string};
   integrityChecker: InstallationIntegrityChecker;
   resolutionMap: ResolutionMap;
+  ignoreWorkspaces: boolean;
 
   /**
    * Create a list of dependency requests from the current directories manifests.
@@ -284,7 +286,7 @@ export class Install {
       pushDeps('devDependencies', projectManifestJson, {hint: 'dev', optional: false}, !this.config.production);
       pushDeps('optionalDependencies', projectManifestJson, {hint: 'optional', optional: true}, true);
 
-      if (this.config.workspaceRootFolder) {
+      if (this.config.workspaceRootFolder && !this.ignoreWorkspaces) {
         const workspacesRoot = path.dirname(loc);
         const workspaces = await this.config.resolveWorkspaces(workspacesRoot, projectManifestJson);
         workspaceLayout = new WorkspaceLayout(workspaces, this.config);
@@ -325,6 +327,13 @@ export class Install {
       ignorePatterns,
       workspaceLayout,
     };
+  }
+
+  /**
+   * Sets the value of `ignoreWorkspaces` for install commands that should skip workspaces
+   */
+  setIgnoreWorkspaces(ignoreWorkspaces: boolean) {
+    this.ignoreWorkspaces = ignoreWorkspaces;
   }
 
   /**
@@ -696,8 +705,8 @@ export class Install {
       this.scripts.getArtifacts(),
     );
 
-    // --no-lockfile or --pure-lockfile flag
-    if (this.flags.lockfile === false || this.flags.pureLockfile) {
+    // --no-lockfile or --pure-lockfile or --frozen-lockfile flag
+    if (this.flags.lockfile === false || this.flags.pureLockfile || this.flags.frozenLockfile) {
       return;
     }
 

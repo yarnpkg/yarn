@@ -37,24 +37,27 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
 
   const deps = await getOutdated(config, reporter, flags, lockfile, args);
 
-  const maxLengthArr = {
-    name: 'name'.length,
-    current: 'from'.length,
-    range: 'range'.length,
-    [outdatedFieldName]: 'to'.length,
-  };
-
   if (deps.length === 0) {
     reporter.success(reporter.lang('allDependenciesUpToDate'));
     return;
   }
 
-  if (flags.latest) {
-    maxLengthArr.range = 'latest'.length;
+  const maxLengthArr = {
+    name: 'name'.length,
+    current: 'from'.length,
+    range: 'latest'.length,
+    [outdatedFieldName]: 'to'.length,
+  };
+
+  const keysWithDynamicLength = ['name', 'current', outdatedFieldName];
+
+  if (!flags.latest) {
+    maxLengthArr.range = 'range'.length;
+    keysWithDynamicLength.push('range');
   }
 
   deps.forEach(dep =>
-    ['name', 'current', 'range', outdatedFieldName].forEach(key => {
+    keysWithDynamicLength.forEach(key => {
       maxLengthArr[key] = Math.max(maxLengthArr[key], dep[key].length);
     }),
   );
@@ -134,9 +137,11 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
       flags.dev = hint === 'dev';
       flags.peer = hint === 'peer';
       flags.optional = hint === 'optional';
-
       const deps = answers.filter(isHint(hint)).map(getPattern);
       if (deps.length) {
+        for (const pattern of deps) {
+          lockfile.removePattern(pattern);
+        }
         reporter.info(reporter.lang('updateInstalling', getNameFromHint(hint)));
         const add = new Add(deps, flags, config, reporter, lockfile);
         return add.init();

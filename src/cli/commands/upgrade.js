@@ -49,7 +49,7 @@ function setUserRequestedPackageVersions(deps: Array<Dependency>, args: Array<st
 export function setFlags(commander: Object) {
   commander.usage('upgrade [flags]');
   commander.option('-S, --scope <scope>', 'upgrade packages under the specified scope');
-  commander.option('--latest', 'list the latest version of packages, ignoring version ranges in package.json');
+  commander.option('-L, --latest', 'list the latest version of packages, ignoring version ranges in package.json');
   commander.option('-E, --exact', 'install exact version. Only used when --latest is specified.');
   commander.option(
     '-T, --tilde',
@@ -72,7 +72,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
   const deps = await getOutdated(config, reporter, flags, lockfile, args);
 
   // do not pass the --latest flag to add, otherwise it may ignore the version ranges we already determined.
-  const addFlags = Object.assign({}, flags, {force: true, latest: false});
+  const addFlags = Object.assign({}, flags, {force: true, latest: false, existing: true});
 
   setUserRequestedPackageVersions(deps, args);
 

@@ -52,34 +52,41 @@ addTest('https://github.com/yarnpkg/yarn/releases/download/v0.18.1/yarn-v0.18.1.
 addTest('https://github.com/bestander/chrome-app-livereload.git'); // no package.json
 addTest('bestander/chrome-app-livereload'); // no package.json, github, tarball
 
-const MIN_PORT_NUM = 1024;
+const MIN_PORT_NUM = 56000;
 const MAX_PORT_NUM = 65535;
 const PORT_RANGE = MAX_PORT_NUM - MIN_PORT_NUM;
 
 const getRandomPort = () => Math.floor(Math.random() * PORT_RANGE) + MIN_PORT_NUM;
 
-function runYarn(args: Array<string> = [], options: Object = {}): Promise<Array<Buffer>> {
-  const {stderr, stdout} = execa(path.resolve(__dirname, '../bin/yarn'), args, options);
+async function runYarn(args: Array<string> = [], options: Object = {}): Promise<Array<Buffer>> {
+  const {stdout, stderr} = await execa(path.resolve(__dirname, '../bin/yarn'), args, options);
 
-  const stdoutPromise = misc.consumeStream(stdout);
-  const stderrPromise = misc.consumeStream(stderr);
-
-  return Promise.all([stdoutPromise, stderrPromise]);
+  return [stdout, stderr];
 }
 
 test('--mutex network', async () => {
   const cwd = await makeTemp();
-  const cacheFolder = path.join(cwd, '.cache');
 
-  const command = path.resolve(__dirname, '../bin/yarn');
-  const args = ['--cache-folder', cacheFolder, '--verbose', '--mutex', `network:${getRandomPort()}`];
+  const port = getRandomPort();
+  await fs.writeFile(path.join(cwd, '.yarnrc'), `--mutex "network:${port}"\n`);
 
-  const options = {cwd};
+  const promises = [];
 
-  await Promise.all([
-    execa(command, ['add', 'left-pad'].concat(args), options),
-    execa(command, ['add', 'foo'].concat(args), options),
-  ]);
+  for (let t = 0; t < 40; ++t) {
+    const subCwd = path.join(cwd, String(t));
+
+    await fs.mkdirp(subCwd);
+    await fs.writeFile(
+      path.join(subCwd, 'package.json'),
+      JSON.stringify({
+        scripts: {test: 'node -e "setTimeout(function(){}, process.argv[1])"'},
+      }),
+    );
+
+    promises.push(runYarn(['run', 'test', '100'], {cwd: subCwd}));
+  }
+
+  await Promise.all(promises);
 });
 
 test('--cwd option', async () => {

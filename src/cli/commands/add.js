@@ -32,6 +32,16 @@ export class Add extends Install {
     ]
       .filter(Boolean)
       .shift();
+
+    if (this.config.workspaceRootFolder && this.config.cwd === this.config.workspaceRootFolder) {
+      this.setIgnoreWorkspaces(true);
+      // flagsToOrgin defaults to being a hard `dependency` when no flags are passed (see above),
+      // so it incorrectly throws a warning when upgrading existing devDependencies in workspace root
+      // To allow for a successful upgrade, override flagsToOrigin when `existing` flag is passed by `upgrade` command
+      if (flags.existing) {
+        this.flagToOrigin = '';
+      }
+    }
   }
 
   args: Array<string>;
@@ -120,7 +130,7 @@ export class Add extends Install {
    */
 
   async init(): Promise<Array<string>> {
-    if (this.config.workspaceRootFolder && this.config.cwd === this.config.workspaceRootFolder) {
+    if (this.ignoreWorkspaces) {
       if (this.flagToOrigin === 'dependencies') {
         throw new MessageError(this.reporter.lang('workspacesPreferDevDependencies'));
       }

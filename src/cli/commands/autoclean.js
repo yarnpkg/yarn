@@ -112,21 +112,47 @@ export async function clean(
   return {removedFiles, removedSize};
 }
 
-export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
-  reporter.step(1, 2, reporter.lang('cleanCreatingFile', CLEAN_FILENAME));
+async function runInit(cwd: string, reporter: Reporter): Promise<void> {
+  reporter.step(1, 1, reporter.lang('cleanCreatingFile', CLEAN_FILENAME));
+  const cleanLoc = path.join(cwd, CLEAN_FILENAME);
+  await fs.writeFile(cleanLoc, `${DEFAULT_FILTER}\n`, {flag: 'wx'});
+  reporter.info(reporter.lang('cleanCreatedFile', CLEAN_FILENAME));
+}
 
-  const cleanLoc = path.join(config.cwd, CLEAN_FILENAME);
-  if (!await fs.exists(cleanLoc)) {
-    await fs.writeFile(cleanLoc, `${DEFAULT_FILTER}\n`, {flag: 'wx'});
-  }
-
-  reporter.step(2, 2, reporter.lang('cleaning'));
+async function runAutoClean(config: Config, reporter: Reporter): Promise<void> {
+  reporter.step(1, 1, reporter.lang('cleaning'));
   const {removedFiles, removedSize} = await clean(config, reporter);
   reporter.info(reporter.lang('cleanRemovedFiles', removedFiles));
   reporter.info(reporter.lang('cleanSavedSize', Number((removedSize / 1024 / 1024).toFixed(2))));
 }
 
-export function setFlags(commander: Object) {}
+async function checkForCleanFile(cwd: string): Promise<boolean> {
+  const cleanLoc = path.join(cwd, CLEAN_FILENAME);
+  const exists = await fs.exists(cleanLoc);
+  return exists;
+}
+
+export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
+  const cleanFileExists = await checkForCleanFile(config.cwd);
+
+  if (flags.init && cleanFileExists) {
+    reporter.info(reporter.lang('cleanAlreadyExists', CLEAN_FILENAME));
+  } else if (flags.init) {
+    await runInit(config.cwd, reporter);
+  } else if (flags.force && cleanFileExists) {
+    await runAutoClean(config, reporter);
+  } else if (cleanFileExists) {
+    reporter.info(reporter.lang('cleanRequiresForce', CLEAN_FILENAME));
+  } else {
+    reporter.info(reporter.lang('cleanDoesNotExist', CLEAN_FILENAME));
+  }
+}
+
+export function setFlags(commander: Object) {
+  commander.usage('autoclean [flags]');
+  commander.option('-I, --init', `Create "${CLEAN_FILENAME}" file with the default entries.`);
+  commander.option('-F, --force', `Run autoclean using the existing "${CLEAN_FILENAME}" file.`);
+}
 
 export function hasWrapper(commander: Object): boolean {
   return true;

@@ -9,6 +9,7 @@ import GitFetcher from '../src/fetchers/git-fetcher.js';
 import Config from '../src/config.js';
 import mkdir from './_temp.js';
 import * as fs from '../src/util/fs.js';
+import {readdirSync} from 'fs';
 
 const path = require('path');
 
@@ -143,6 +144,11 @@ test('TarballFetcher.fetch', async () => {
 
 test('TarballFetcher.fetch throws on invalid hash', async () => {
   const dir = await mkdir('tarball-fetcher');
+  const offlineMirrorDir = await mkdir('offline-mirror');
+
+  const config = await Config.create({}, new Reporter());
+  config.registries.npm.config['yarn-offline-mirror'] = offlineMirrorDir;
+
   const url = 'https://github.com/sindresorhus/beeper/archive/master.tar.gz';
   const fetcher = new TarballFetcher(
     dir,
@@ -152,7 +158,7 @@ test('TarballFetcher.fetch throws on invalid hash', async () => {
       reference: url,
       registry: 'npm',
     },
-    await Config.create({}, new Reporter()),
+    config,
   );
   let error;
   try {
@@ -160,7 +166,9 @@ test('TarballFetcher.fetch throws on invalid hash', async () => {
   } catch (e) {
     error = e;
   }
+
   expect(error && error.message).toMatchSnapshot();
+  expect(readdirSync(path.join(offlineMirrorDir))).toEqual([]);
 });
 
 test('TarballFetcher.fetch supports local ungzipped tarball', async () => {
