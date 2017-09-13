@@ -93,8 +93,8 @@ export default class TarballFetcher extends BaseFetcher {
                 'fetchBadHashWithPath',
                 this.packageName,
                 this.remote.reference,
-                expectHash,
                 actualHash,
+                expectHash,
               ),
             ),
           );
@@ -142,7 +142,6 @@ export default class TarballFetcher extends BaseFetcher {
           {
             headers: {
               'Accept-Encoding': 'gzip',
-              Accept: 'application/octet-stream',
             },
             buffer: true,
             process: (req, resolve, reject) => {

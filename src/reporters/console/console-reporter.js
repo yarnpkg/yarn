@@ -126,7 +126,7 @@ export default class ConsoleReporter extends BaseReporter {
       });
     }
 
-    this.log('' + value);
+    this.log(String(value), {force: true});
   }
 
   list(key: string, items: Array<string>, hints?: Object) {
@@ -453,24 +453,9 @@ export default class ConsoleReporter extends BaseReporter {
       output: this.stdout,
     });
 
-    let rejectRef = () => {};
-    const killListener = () => {
-      rejectRef();
-    };
-
-    const handleKillFromInquirer = new Promise((resolve, reject) => {
-      rejectRef = reject;
-    });
-
-    rl.addListener('SIGINT', killListener);
-
     const {name = 'prompt', type = 'input', validate} = options;
-    const answers: InquirerResponses<string, T> = await Promise.race([
-      prompt([{name, type, message, choices, pageSize, validate}]),
-      handleKillFromInquirer,
-    ]);
+    const answers: InquirerResponses<string, T> = await prompt([{name, type, message, choices, pageSize, validate}]);
 
-    rl.removeListener('SIGINT', killListener);
     rl.close();
 
     return answers[name];
