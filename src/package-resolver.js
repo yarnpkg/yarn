@@ -475,7 +475,7 @@ export default class PackageResolver {
       return;
     }
 
-    const fetchKey = `${req.registry}:${req.pattern}:${req.optional}`;
+    const fetchKey = `${req.registry}:${req.pattern}:${String(req.optional)}`;
 
     if (this.fetchingPatterns.has(fetchKey)) {
       return;
