@@ -1,14 +1,14 @@
 /* @flow */
 /* eslint max-len: 0 */
 
-import {Reporter} from '../src/reporters/index.js';
-import TarballFetcher, {LocalTarballFetcher} from '../src/fetchers/tarball-fetcher.js';
-import BaseFetcher from '../src/fetchers/base-fetcher.js';
-import CopyFetcher from '../src/fetchers/copy-fetcher.js';
-import GitFetcher from '../src/fetchers/git-fetcher.js';
-import Config from '../src/config.js';
+import {Reporter} from 'reporters/index.js';
+import TarballFetcher, {LocalTarballFetcher} from 'fetchers/tarball-fetcher.js';
+import BaseFetcher from 'fetchers/base-fetcher.js';
+import CopyFetcher from 'fetchers/copy-fetcher.js';
+import GitFetcher from 'fetchers/git-fetcher.js';
+import Config from 'config.js';
 import mkdir from './_temp.js';
-import * as fs from '../src/util/fs.js';
+import * as fs from 'util/fs.js';
 import {readdirSync} from 'fs';
 
 const path = require('path');

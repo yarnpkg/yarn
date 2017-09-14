@@ -1,8 +1,8 @@
 /* @flow */
 
-import Config from '../../../src/config.js';
-import type {ResolvedSha, GitRefResolvingInterface, GitRefs} from '../../../src/util/git/git-ref-resolver.js';
-import {resolveVersion, isCommitSha, parseRefs} from '../../../src/util/git/git-ref-resolver.js';
+import Config from 'config.js';
+import type {ResolvedSha, GitRefResolvingInterface, GitRefs} from 'util/git/git-ref-resolver.js';
+import {resolveVersion, isCommitSha, parseRefs} from 'util/git/git-ref-resolver.js';
 
 class GitMock implements GitRefResolvingInterface {
   resolveDefaultBranch(): Promise<ResolvedSha> {

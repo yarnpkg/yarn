@@ -1,9 +1,9 @@
 /* @flow */
 
-jest.mock('../../src/util/execute-lifecycle-script', () => {
+jest.mock('util/execute-lifecycle-script', () => {
   return {
     // $FlowFixMe
-    ...require.requireActual('../../src/util/execute-lifecycle-script'),
+    ...require.requireActual('util/execute-lifecycle-script'),
     execCommand: jest.fn(),
   };
 });
@@ -11,14 +11,14 @@ jest.mock('../../src/util/execute-lifecycle-script', () => {
 import path from 'path';
 
 import {run as buildRun} from './_helpers.js';
-import {BufferReporter} from '../../src/reporters/index.js';
-import {run} from '../../src/cli/commands/run.js';
-import * as fs from '../../src/util/fs.js';
-import * as reporters from '../../src/reporters/index.js';
+import {BufferReporter} from 'reporters/index.js';
+import {run} from 'cli/commands/run.js';
+import * as fs from 'util/fs.js';
+import * as reporters from 'reporters/index.js';
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 90000;
 
-const {execCommand}: $FlowFixMe = require('../../src/util/execute-lifecycle-script');
+const {execCommand}: $FlowFixMe = require('util/execute-lifecycle-script');
 
 beforeEach(() => execCommand.mockClear());
 

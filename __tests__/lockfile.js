@@ -1,10 +1,10 @@
 /* @flow */
 /* eslint quotes: 0 */
 
-import Lockfile from '../src/lockfile';
-import stringify from '../src/lockfile/stringify.js';
-import parse from '../src/lockfile/parse.js';
-import nullify from '../src/util/map.js';
+import Lockfile from 'lockfile';
+import stringify from 'lockfile/stringify.js';
+import parse from 'lockfile/parse.js';
+import nullify from 'util/map.js';
 
 const objs = [{foo: 'bar'}, {foo: {}}, {foo: 'foo', bar: 'bar'}, {foo: 5}];
 

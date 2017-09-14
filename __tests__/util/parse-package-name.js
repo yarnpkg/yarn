@@ -1,6 +1,6 @@
 /* @flow */
 
-import parsePackageName from '../../src/util/parse-package-name.js';
+import parsePackageName from 'util/parse-package-name.js';
 
 test('parsePackageName', () => {
   expect(parsePackageName('foo@1.2.3')).toEqual({

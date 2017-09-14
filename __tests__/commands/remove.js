@@ -1,11 +1,11 @@
 /* @flow */
 
-import {ConsoleReporter} from '../../src/reporters/index.js';
+import {ConsoleReporter} from 'reporters/index.js';
 import {run as buildRun, explodeLockfile} from './_helpers.js';
-import {run as check} from '../../src/cli/commands/check.js';
-import {run as remove} from '../../src/cli/commands/remove.js';
-import * as fs from '../../src/util/fs.js';
-import * as reporters from '../../src/reporters/index.js';
+import {run as check} from 'cli/commands/check.js';
+import {run as remove} from 'cli/commands/remove.js';
+import * as fs from 'util/fs.js';
+import * as reporters from 'reporters/index.js';
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 90000;
 

@@ -1,10 +1,10 @@
 /* @flow */
 
-import PackageRequest from '../src/package-request.js';
-import * as reporters from '../src/reporters/index.js';
-import PackageResolver from '../src/package-resolver.js';
-import Lockfile from '../src/lockfile';
-import Config from '../src/config.js';
+import PackageRequest from 'package-request.js';
+import * as reporters from 'reporters/index.js';
+import PackageResolver from 'package-resolver.js';
+import Lockfile from 'lockfile';
+import Config from 'config.js';
 
 async function prepareRequest(pattern, version, resolved): Object {
   const privateDepCache = {[pattern]: {version, resolved}};

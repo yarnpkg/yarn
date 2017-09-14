@@ -1,8 +1,8 @@
 /* @flow */
 
 import {run as buildRun} from './_helpers.js';
-import {run as outdated} from '../../src/cli/commands/outdated.js';
-import {ConsoleReporter, JSONReporter} from '../../src/reporters/index.js';
+import {run as outdated} from 'cli/commands/outdated.js';
+import {ConsoleReporter, JSONReporter} from 'reporters/index.js';
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 90000;
 

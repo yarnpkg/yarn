@@ -1,6 +1,6 @@
 /* @flow */
 
-import {testEngine} from '../src/package-compatibility.js';
+import {testEngine} from 'package-compatibility.js';
 
 test('node semver semantics', () => {
   expect(testEngine('node', '^5.0.0', {node: '5.1.0'}, true)).toEqual(true);

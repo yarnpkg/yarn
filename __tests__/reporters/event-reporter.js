@@ -1,6 +1,6 @@
 /* @flow */
 
-import EventReporter from '../../src/reporters/event-reporter.js';
+import EventReporter from 'reporters/event-reporter.js';
 import build from './_mock.js';
 
 type Events = Array<Object>;

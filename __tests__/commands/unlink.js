@@ -1,12 +1,12 @@
 /* @flow */
 
 import {run as buildRun} from './_helpers.js';
-import {run as link} from '../../src/cli/commands/link.js';
-import {run as unlink} from '../../src/cli/commands/unlink.js';
-import {ConsoleReporter} from '../../src/reporters/index.js';
-import type {CLIFunctionReturn} from '../../src/types.js';
+import {run as link} from 'cli/commands/link.js';
+import {run as unlink} from 'cli/commands/unlink.js';
+import {ConsoleReporter} from 'reporters/index.js';
+import type {CLIFunctionReturn} from 'types.js';
 import mkdir from './../_temp.js';
-import * as fs from '../../src/util/fs.js';
+import * as fs from 'util/fs.js';
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 150000;
 

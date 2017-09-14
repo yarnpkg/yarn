@@ -1,6 +1,6 @@
 /* @flow */
 
-import {getRcArgs} from '../src/rc.js';
+import {getRcArgs} from 'rc.js';
 import * as path from 'path';
 
 const fixturesLoc = path.join(__dirname, 'fixtures', 'rc');

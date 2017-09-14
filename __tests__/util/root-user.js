@@ -1,6 +1,6 @@
 /* @flow */
 
-import {isRootUser, isFakeRoot} from '../../src/util/root-user.js';
+import {isRootUser, isFakeRoot} from 'util/root-user.js';
 
 test('isRootUser', () => {
   expect(isRootUser(null)).toBe(false);

@@ -1,10 +1,10 @@
 /* @flow */
 
-import type {CLIFunctionReturn} from '../../src/types.js';
-import {ConsoleReporter} from '../../src/reporters/index.js';
+import type {CLIFunctionReturn} from 'types.js';
+import {ConsoleReporter} from 'reporters/index.js';
 import {run as buildRun} from './_helpers.js';
-import {run as global} from '../../src/cli/commands/global.js';
-import * as fs from '../../src/util/fs.js';
+import {run as global} from 'cli/commands/global.js';
+import * as fs from 'util/fs.js';
 import mkdir from '../_temp.js';
 const isCI = require('is-ci');
 

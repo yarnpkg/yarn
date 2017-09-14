@@ -1,10 +1,10 @@
 /* @flow */
 
-import type {QuestionOptions} from '../../src/reporters/types.js';
-import {ConsoleReporter} from '../../src/reporters/index.js';
+import type {QuestionOptions} from 'reporters/types.js';
+import {ConsoleReporter} from 'reporters/index.js';
 import {run as buildRun} from './_helpers.js';
-import {getGitConfigInfo, run as runInit} from '../../src/cli/commands/init.js';
-import * as fs from '../../src/util/fs.js';
+import {getGitConfigInfo, run as runInit} from 'cli/commands/init.js';
+import * as fs from 'util/fs.js';
 
 const path = require('path');
 

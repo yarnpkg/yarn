@@ -118,6 +118,10 @@
     "modulePathIgnorePatterns": [
       "__tests__/fixtures/"
     ],
+    "moduleDirectories": [
+      "node_modules",
+      "src"
+    ],
     "testPathIgnorePatterns": [
       "__tests__/(fixtures|__mocks__)/",
       "updates/",

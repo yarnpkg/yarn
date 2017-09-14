@@ -3,9 +3,9 @@
 
 import execa from 'execa';
 import makeTemp from './_temp.js';
-import * as fs from '../src/util/fs.js';
-import * as misc from '../src/util/misc.js';
-import * as constants from '../src/constants.js';
+import * as fs from 'util/fs.js';
+import * as misc from 'util/misc.js';
+import * as constants from 'constants.js';
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 90000;
 

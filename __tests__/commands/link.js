@@ -1,11 +1,11 @@
 /* @flow */
 
 import {run as buildRun} from './_helpers.js';
-import {run as link} from '../../src/cli/commands/link.js';
-import {ConsoleReporter} from '../../src/reporters/index.js';
-import type {CLIFunctionReturn} from '../../src/types.js';
+import {run as link} from 'cli/commands/link.js';
+import {ConsoleReporter} from 'reporters/index.js';
+import type {CLIFunctionReturn} from 'types.js';
 import mkdir from './../_temp.js';
-import * as fs from '../../src/util/fs.js';
+import * as fs from 'util/fs.js';
 
 const path = require('path');
 

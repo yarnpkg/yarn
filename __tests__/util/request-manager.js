@@ -1,9 +1,9 @@
 /* @flow */
 /* eslint max-len: 0 */
 
-import {Reporter} from '../../src/reporters/index.js';
-import Config from '../../src/config.js';
-import * as fs from '../../src/util/fs.js';
+import {Reporter} from 'reporters/index.js';
+import Config from 'config.js';
+import * as fs from 'util/fs.js';
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000;
 

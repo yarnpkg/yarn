@@ -2,9 +2,9 @@
 
 import {resolve, join as pathJoin} from 'path';
 
-import NpmRegistry from '../../src/registries/npm-registry.js';
-import {BufferReporter} from '../../src/reporters/index.js';
-import homeDir from '../../src/util/user-home-dir.js';
+import NpmRegistry from 'registries/npm-registry.js';
+import {BufferReporter} from 'reporters/index.js';
+import homeDir from 'util/user-home-dir.js';
 
 describe('normalizeConfig', () => {
   beforeAll(() => {

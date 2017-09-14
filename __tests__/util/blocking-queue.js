@@ -1,6 +1,6 @@
 /* @flow */
 
-import BlockingQueue from '../../src/util/blocking-queue.js';
+import BlockingQueue from 'util/blocking-queue.js';
 
 test('max concurrency', async function(): Promise<void> {
   jest.useFakeTimers();

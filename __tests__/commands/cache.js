@@ -1,8 +1,8 @@
 /* @flow */
 
-import * as reporters from '../../src/reporters/index.js';
-import * as fs from '../../src/util/fs.js';
-import {run} from '../../src/cli/commands/cache.js';
+import * as reporters from 'reporters/index.js';
+import * as fs from 'util/fs.js';
+import {run} from 'cli/commands/cache.js';
 import {run as buildRun, runInstall} from './_helpers.js';
 
 const path = require('path');

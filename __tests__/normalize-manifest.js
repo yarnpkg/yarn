@@ -1,12 +1,12 @@
 /* @flow */
 /* eslint max-len: 0 */
 
-import normalizeManifest from '../src/util/normalize-manifest/index.js';
-import NoopReporter from '../src/reporters/base-reporter.js';
-import Config from '../src/config.js';
-import map from '../src/util/map.js';
-import * as util from '../src/util/normalize-manifest/util.js';
-import * as fs from '../src/util/fs.js';
+import normalizeManifest from 'util/normalize-manifest/index.js';
+import NoopReporter from 'reporters/base-reporter.js';
+import Config from 'config.js';
+import map from 'util/map.js';
+import * as util from 'util/normalize-manifest/util.js';
+import * as fs from 'util/fs.js';
 
 const nativeFs = require('fs');
 const path = require('path');

@@ -1,11 +1,11 @@
 /* @flow */
 
-import * as fs from '../../src/util/fs.js';
+import * as fs from 'util/fs.js';
 import {run} from './_helpers.js';
-import {run as autoclean} from '../../src/cli/commands/autoclean.js';
-import {ConsoleReporter} from '../../src/reporters/index.js';
-import {CLEAN_FILENAME} from '../../src/constants.js';
-import Config from '../../src/config.js';
+import {run as autoclean} from 'cli/commands/autoclean.js';
+import {ConsoleReporter} from 'reporters/index.js';
+import {CLEAN_FILENAME} from 'constants.js';
+import Config from 'config.js';
 import path from 'path';
 
 const fixturesLoc = path.join(__dirname, '..', 'fixtures', 'autoclean');

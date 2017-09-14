@@ -1,9 +1,9 @@
 /* @flow */
 
-import {BufferReporter} from '../../src/reporters/index.js';
-import {run as why} from '../../src/cli/commands/why.js';
-import * as reporters from '../../src/reporters/index.js';
-import Config from '../../src/config.js';
+import {BufferReporter} from 'reporters/index.js';
+import {run as why} from 'cli/commands/why.js';
+import * as reporters from 'reporters/index.js';
+import Config from 'config.js';
 import path from 'path';
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 90000;

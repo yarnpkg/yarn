@@ -1,5 +1,5 @@
 /* @flow */
-import envReplace from '../../src/util/env-replace';
+import envReplace from 'util/env-replace';
 
 describe('environment variable replacement', () => {
   it('will replace a token that exists in the environment', () => {

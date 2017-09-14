@@ -1,7 +1,7 @@
 /* @flow */
 
-import {ConsoleReporter} from '../../src/reporters/index.js';
-import * as reporters from '../../src/reporters/index.js';
+import {ConsoleReporter} from 'reporters/index.js';
+import * as reporters from 'reporters/index.js';
 import {
   getPackageVersion,
   createLockfile,
@@ -10,15 +10,15 @@ import {
   runInstall,
   makeConfigFromDirectory,
 } from './_helpers.js';
-import {Add, run as add} from '../../src/cli/commands/add.js';
-import * as constants from '../../src/constants.js';
-import {parse} from '../../src/lockfile';
-import {Install} from '../../src/cli/commands/install.js';
-import Lockfile from '../../src/lockfile';
-import {run as check} from '../../src/cli/commands/check.js';
-import * as fs from '../../src/util/fs.js';
+import {Add, run as add} from 'cli/commands/add.js';
+import * as constants from 'constants.js';
+import {parse} from 'lockfile';
+import {Install} from 'cli/commands/install.js';
+import Lockfile from 'lockfile';
+import {run as check} from 'cli/commands/check.js';
+import * as fs from 'util/fs.js';
 import semver from 'semver';
-import {promisify} from '../../src/util/promise';
+import {promisify} from 'util/promise';
 import fsNode from 'fs';
 import inquirer from 'inquirer';
 

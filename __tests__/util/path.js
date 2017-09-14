@@ -1,6 +1,6 @@
 /* @flow */
 
-jest.mock('../../src/util/user-home-dir.js', () => ({
+jest.mock('util/user-home-dir.js', () => ({
   default: '/home/foo',
 }));
 
@@ -12,7 +12,7 @@ jest.mock('path', () => {
   return path;
 });
 
-import {expandPath, resolveWithHome} from '../../src/util/path.js';
+import {expandPath, resolveWithHome} from 'util/path.js';
 
 describe('expandPath', () => {
   const realPlatform = process.platform;

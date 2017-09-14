@@ -1,7 +1,7 @@
 /* @flow */
-import * as fs from '../../src/util/fs.js';
-import {run as pack} from '../../src/cli/commands/pack.js';
-import {ConsoleReporter} from '../../src/reporters/index.js';
+import * as fs from 'util/fs.js';
+import {run as pack} from 'cli/commands/pack.js';
+import {ConsoleReporter} from 'reporters/index.js';
 import {run as buildRun} from './_helpers.js';
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000;

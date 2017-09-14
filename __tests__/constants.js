@@ -1,6 +1,6 @@
 /* @flow */
 
-import {getPathKey, isProduction} from '../src/constants.js';
+import {getPathKey, isProduction} from 'constants.js';
 
 test('getPathKey', () => {
   expect(getPathKey('win32', {PATH: 'foobar'})).toBe('PATH');

@@ -1,7 +1,7 @@
 /* @flow */
 
-import colorizeDiff from '../../src/util/colorize-diff';
-import {Reporter} from '../../src/reporters';
+import colorizeDiff from 'util/colorize-diff';
+import {Reporter} from 'reporters';
 
 let from;
 let to;

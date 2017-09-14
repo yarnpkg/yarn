@@ -1,5 +1,5 @@
 /* @flow */
-import {spawn, forwardSignalToSpawnedProcesses} from '../../src/util/child.js';
+import {spawn, forwardSignalToSpawnedProcesses} from 'util/child.js';
 
 let mockSpawnedChildren = [];
 

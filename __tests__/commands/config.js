@@ -1,10 +1,10 @@
 /* @flow */
 
-import type {CLIFunctionReturn} from '../../src/types.js';
-import * as reporters from '../../src/reporters/index.js';
-import * as configCmd from '../../src/cli/commands/config.js';
+import type {CLIFunctionReturn} from 'types.js';
+import * as reporters from 'reporters/index.js';
+import * as configCmd from 'cli/commands/config.js';
 import {run as buildRun} from './_helpers.js';
-import * as fs from '../../src/util/fs.js';
+import * as fs from 'util/fs.js';
 
 const path = require('path');
 
