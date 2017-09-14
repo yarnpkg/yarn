@@ -630,6 +630,12 @@ test.concurrent('install with comments in manifest', (): Promise<void> => {
   });
 });
 
+test.concurrent('install with null versions in manifest', (): Promise<void> => {
+  return runInstall({}, 'install-with-null-version', async config => {
+    expect(await fs.exists(path.join(config.cwd, 'node_modules', 'left-pad'))).toEqual(true);
+  });
+});
+
 test.concurrent('run install scripts in the order when one dependency does not have install script', (): Promise<
   void,
 > => {
