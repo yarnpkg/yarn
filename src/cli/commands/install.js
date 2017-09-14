@@ -358,7 +358,7 @@ export class Install {
     }
     const lockfileClean = this.lockfile.parseResultType === 'success';
     const match = await this.integrityChecker.check(patterns, lockfileCache, this.flags, workspaceLayout);
-    if (this.flags.frozenLockfile && (!lockfileClean || match.missingPatterns.length > 0)) {
+    if (this.flags.frozenLockfile && (!lockfileClean || match.missingPatterns.length > 0 || match.integrityError)) {
       throw new MessageError(this.reporter.lang('frozenLockfileError'));
     }
 
