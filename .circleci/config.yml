@@ -42,10 +42,17 @@ jobs:
             if [ "$CIRCLE_BRANCH" == 'master' ]; then
               ./scripts/set-dev-version.js
             fi;
-            yarn lint
             # Limit maxWorkers to 3 to avoid OOM on CircleCI
             yarn test-ci -- -- --maxWorkers 3
             yarn check-lockfile
+  lint:
+    <<: *defaults
+    steps:
+      - attach_workspace:
+          at: ~/project
+      - run:
+          name: Lint
+          command: yarn lint
   build:
     <<: *defaults
     steps:
@@ -98,6 +105,10 @@ workflows:
           filters: *default_filters
           requires:
             - install
+      - lint:
+          filters: *default_filters
+          requires:
+            - install
       - build:
           filters: *default_filters
           requires:
@@ -109,4 +120,5 @@ workflows:
               ignore: '/.*/'
           requires:
             - test
+            - lint
             - build
