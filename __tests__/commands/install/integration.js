@@ -64,6 +64,9 @@ test.concurrent('install optional subdependencies by default', async () => {
 test.concurrent('installing with --ignore-optional should not install optional subdependencies', async () => {
   await runInstall({ignoreOptional: true}, 'install-optional-dependencies', async (config): Promise<void> => {
     expect(await fs.exists(`${config.cwd}/node_modules/dep-b`)).toEqual(false);
+    expect(await fs.exists(`${config.cwd}/node_modules/dep-c`)).toEqual(true);
+    expect(await fs.exists(`${config.cwd}/node_modules/dep-d`)).toEqual(true);
+    expect(await fs.exists(`${config.cwd}/node_modules/dep-e`)).toEqual(true);
   });
 });
 
