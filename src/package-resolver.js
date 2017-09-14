@@ -476,12 +476,10 @@ export default class PackageResolver {
     }
 
     const fetchKey = `${req.registry}:${req.pattern}:${String(req.optional)}`;
-
     if (this.fetchingPatterns.has(fetchKey)) {
       return;
-    } else {
-      this.fetchingPatterns.add(fetchKey);
     }
+    this.fetchingPatterns.add(fetchKey);
 
     if (this.activity) {
       this.activity.tick(req.pattern);
