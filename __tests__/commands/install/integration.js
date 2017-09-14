@@ -486,11 +486,18 @@ test.concurrent("don't install with file: protocol as default if target is a fil
   return expect(runInstall({lockfile: false}, 'install-file-as-default-no-file')).rejects.toBeDefined();
 });
 
-test.concurrent("don't install with file: protocol as default if target does not have package.json", (): Promise<
+test.concurrent("don't install with implicit file: protocol if target does not have package.json", (): Promise<
   void,
 > => {
   // $FlowFixMe
   return expect(runInstall({lockfile: false}, 'install-file-as-default-no-package')).rejects.toBeDefined();
+});
+
+test.concurrent('install with explicit file: protocol if target does not have package.json', (): Promise<void> => {
+  return runInstall({}, 'install-file-no-package', async config => {
+    expect(await fs.exists(path.join(config.cwd, 'node_modules', 'foo', 'bar.js'))).toEqual(true);
+    expect(await fs.exists(path.join(config.cwd, 'node_modules', 'bar', 'bar.js'))).toEqual(true);
+  });
 });
 
 test.concurrent("don't install with file: protocol as default if target is valid semver", (): Promise<void> => {
