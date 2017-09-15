@@ -223,6 +223,17 @@ test.concurrent('add save-prefix should not expand ~ to home dir', (): Promise<v
   });
 });
 
+test.concurrent('add save-exact should make all package.json strict', (): Promise<void> => {
+  return runAdd(['left-pad'], {}, 'install-strict-all', async config => {
+    const lockfile = explodeLockfile(await fs.readFile(path.join(config.cwd, 'yarn.lock')));
+
+    expect(lockfile[0]).toMatch(/^left-pad@\d+\.\d+\.\d+:$/);
+    expect(JSON.parse(await fs.readFile(path.join(config.cwd, 'package.json'))).dependencies['left-pad']).toMatch(
+      /^\d+\.\d+\.\d+$/,
+    );
+  });
+});
+
 test.concurrent('add with new dependency should be deterministic 3', (): Promise<void> => {
   return runAdd([], {}, 'install-should-cleanup-when-package-json-changed-3', async (config, reporter) => {
     // expecting yarn check after installation not to fail
