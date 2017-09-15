@@ -4,6 +4,7 @@
 <PROJECT_ROOT>/lib-legacy/.*
 <PROJECT_ROOT>/lib/.*
 <PROJECT_ROOT>/node_modules/babel.*
+<PROJECT_ROOT>/node_modules/graphql.*
 <PROJECT_ROOT>/node_modules/y18n/test/.*
 <PROJECT_ROOT>/updates/.*
 
