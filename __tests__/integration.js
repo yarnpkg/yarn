@@ -21,10 +21,13 @@ function addTest(pattern, {strict} = {strict: false}) {
 
     const options = {cwd};
 
-    await fs.writeFile(path.join(cwd, 'package.json'), JSON.stringify({
-      name: 'test',
-      license: 'MIT',
-    }));
+    await fs.writeFile(
+      path.join(cwd, 'package.json'),
+      JSON.stringify({
+        name: 'test',
+        license: 'MIT',
+      }),
+    );
 
     const result = await execa(command, ['add', pattern].concat(args), options);
     if (strict) {
@@ -46,7 +49,7 @@ function addTest(pattern, {strict} = {strict: false}) {
 //       path.join(folder, constants.METADATA_FILENAME),
 //       '{"remote": {"hash": "cafebabecafebabecafebabecafebabecafebabe"}}',
 //     );
-//     await fs.writeFile(path.join(folder, 'package.json'), '{"name": "@foo/bar", "version": "1.2.3"}');
+//     await fs.writeFile(path.join(foldresolve gitlab:leanlabsio/kanbaner, 'package.json'), '{"name": "@foo/bar", "version": "1.2.3"}');
 //   },
 //   true,
 // ); // offline npm scoped package

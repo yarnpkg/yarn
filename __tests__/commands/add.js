@@ -861,7 +861,6 @@ test.concurrent('should refer to deeper dependencies to satisfy peer dependency'
   );
 });
 
-
 test.concurrent('should retain build artifacts after add when missing integrity file', (): Promise<void> => {
   return buildRun(
     reporters.BufferReporter,
