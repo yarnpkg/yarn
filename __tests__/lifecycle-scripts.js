@@ -83,7 +83,9 @@ test.concurrent(
 
     expect(stdouts[0]).toContain('##install##');
     expect(stdouts[1]).toContain('##install##');
+    expect(stdouts[2]).toContain('##run##');
     expect(stdouts[2]).toContain('##test##');
+    expect(stdouts[3]).toContain('##run##');
     expect(stdouts[3]).toContain('##test##');
   },
 );
