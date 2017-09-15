@@ -140,19 +140,17 @@ export function main({
     setHelpMode();
   }
 
-  let command;
   if (!commandName) {
     commandName = 'install';
     isKnownCommand = true;
   }
 
-  if (isKnownCommand) {
-    command = commands[commandName];
-  } else {
+  if (!isKnownCommand) {
     // if command is not recognized, then set default to `run`
     args.unshift(commandName);
-    command = commands.run;
+    commandName = 'run';
   }
+  const command = commands[commandName];
 
   let warnAboutRunDashDash = false;
   // we are using "yarn <script> -abc" or "yarn run <script> -abc", we want -abc to be script options, not yarn options
@@ -448,6 +446,7 @@ export function main({
   config
     .init({
       cwd,
+      commandName,
 
       binLinks: commander.binLinks,
       modulesFolder: commander.modulesFolder,
@@ -469,8 +468,6 @@ export function main({
       networkTimeout: commander.networkTimeout,
       nonInteractive: commander.nonInteractive,
       scriptsPrependNodePath: commander.scriptsPrependNodePath,
-
-      commandName: commandName === 'run' ? commander.args[0] : commandName,
     })
     .then(() => {
       // option "no-progress" stored in yarn config
