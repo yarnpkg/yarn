@@ -443,7 +443,7 @@ export default class PackageLinker {
         const range = peerDeps[peerDepName];
         const peerPkgs = this.resolver.getAllInfoForPackageName(peerDepName);
 
-        let incorrectPeer = false;
+        let peerError = 'unmetPeer';
         let resolvedLevelDistance = Infinity;
         let resolvedPeerPkgPattern;
         for (const peerPkg of peerPkgs) {
@@ -465,7 +465,7 @@ export default class PackageLinker {
                 ),
               );
             } else {
-              incorrectPeer = true;
+              peerError = 'incorrectPeer';
             }
           }
         }
@@ -473,8 +473,7 @@ export default class PackageLinker {
         if (resolvedPeerPkgPattern) {
           ref.addDependencies(resolvedPeerPkgPattern);
         } else {
-          const depError = incorrectPeer ? 'incorrectPeer' : 'unmetPeer';
-          this.reporter.warn(this.reporter.lang(depError, `${pkg.name}@${pkg.version}`, `${peerDepName}@${range}`));
+          this.reporter.warn(this.reporter.lang(peerError, `${pkg.name}@${pkg.version}`, `${peerDepName}@${range}`));
         }
       }
     }
