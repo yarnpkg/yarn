@@ -432,34 +432,50 @@ export default class PackageLinker {
 
   resolvePeerModules() {
     for (const pkg of this.resolver.getManifests()) {
-      this._resolvePeerModules(pkg);
-    }
-  }
+      const peerDeps = pkg.peerDependencies;
+      if (!peerDeps) {
+        continue;
+      }
+      const ref = pkg._reference;
+      invariant(ref, 'Package reference is missing');
 
-  _resolvePeerModules(pkg: Manifest) {
-    const peerDeps = pkg.peerDependencies;
-    if (!peerDeps) {
-      return;
-    }
+      for (const peerDepName in peerDeps) {
+        const range = peerDeps[peerDepName];
+        const peerPkgs = this.resolver.getAllInfoForPackageName(peerDepName);
 
-    const ref = pkg._reference;
-    invariant(ref, 'Package reference is missing');
+        let incorrectPeer = false;
+        let resolvedLevelDistance = Infinity;
+        let resolvedPeerPkgPattern;
+        for (const peerPkg of peerPkgs) {
+          const peerPkgRef = peerPkg._reference;
+          if (!(peerPkgRef && peerPkgRef.patterns)) {
+            continue;
+          }
+          const levelDistance = ref.level - peerPkgRef.level;
+          if (levelDistance >= 0 && levelDistance < resolvedLevelDistance) {
+            if (this._satisfiesPeerDependency(range, peerPkgRef.version)) {
+              resolvedLevelDistance = levelDistance;
+              resolvedPeerPkgPattern = peerPkgRef.patterns;
+              this.reporter.verbose(
+                this.reporter.lang(
+                  'selectedPeer',
+                  `${pkg.name}@${pkg.version}`,
+                  `${peerDepName}@${range}`,
+                  peerPkgRef.level,
+                ),
+              );
+            } else {
+              incorrectPeer = true;
+            }
+          }
+        }
 
-    for (const name in peerDeps) {
-      const range = peerDeps[name];
-      const pkgs = this.resolver.getAllInfoForPackageName(name);
-      const found = pkgs.find(pkg => {
-        const {level, version} = pkg._reference || {};
-        return level <= ref.level && this._satisfiesPeerDependency(range, version);
-      });
-      const foundPattern = found && found._reference && found._reference.patterns;
-
-      if (foundPattern) {
-        ref.addDependencies(foundPattern);
-      } else {
-        const depError = pkgs.length > 0 ? 'incorrectPeer' : 'unmetPeer';
-        const [pkgHuman, depHuman] = [`${pkg.name}@${pkg.version}`, `${name}@${range}`];
-        this.reporter.warn(this.reporter.lang(depError, pkgHuman, depHuman));
+        if (resolvedPeerPkgPattern) {
+          ref.addDependencies(resolvedPeerPkgPattern);
+        } else {
+          const depError = incorrectPeer ? 'incorrectPeer' : 'unmetPeer';
+          this.reporter.warn(this.reporter.lang(depError, `${pkg.name}@${pkg.version}`, `${peerDepName}@${range}`));
+        }
       }
     }
   }
