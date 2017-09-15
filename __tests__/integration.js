@@ -11,9 +11,8 @@ jasmine.DEFAULT_TIMEOUT_INTERVAL = 90000;
 
 const path = require('path');
 
-function addTest(pattern) {
-  // concurrently network requests tend to stall
-  test(`yarn add ${pattern}`, async () => {
+function addTest(pattern, {strict} = {strict: false}) {
+  test.concurrent(`yarn add ${pattern}`, async () => {
     const cwd = await makeTemp();
     const cacheFolder = path.join(cwd, 'cache');
 
@@ -22,9 +21,15 @@ function addTest(pattern) {
 
     const options = {cwd};
 
-    await fs.writeFile(path.join(cwd, 'package.json'), JSON.stringify({name: 'test'}));
+    await fs.writeFile(path.join(cwd, 'package.json'), JSON.stringify({
+      name: 'test',
+      license: 'MIT',
+    }));
 
-    await execa(command, ['add', pattern].concat(args), options);
+    const result = await execa(command, ['add', pattern].concat(args), options);
+    if (strict) {
+      expect(result.stderr).not.toMatch(/^warning /gm);
+    }
 
     await fs.unlink(cwd);
   });
@@ -51,6 +56,7 @@ addTest('https://git@github.com/stevemao/left-pad.git'); // git url, with userna
 addTest('https://github.com/yarnpkg/yarn/releases/download/v0.18.1/yarn-v0.18.1.tar.gz'); // tarball
 addTest('https://github.com/bestander/chrome-app-livereload.git'); // no package.json
 addTest('bestander/chrome-app-livereload'); // no package.json, github, tarball
+addTest('react-scripts', {strict: true}); // many peer dependencies, there shouldn't be any peerDep warnings
 
 const MIN_PORT_NUM = 56000;
 const MAX_PORT_NUM = 65535;
