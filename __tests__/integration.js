@@ -7,24 +7,32 @@ import * as fs from '../src/util/fs.js';
 import * as misc from '../src/util/misc.js';
 import * as constants from '../src/constants.js';
 
-jasmine.DEFAULT_TIMEOUT_INTERVAL = 90000;
+jasmine.DEFAULT_TIMEOUT_INTERVAL = 120000;
 
 const path = require('path');
 
-function addTest(pattern) {
-  // concurrently network requests tend to stall
-  test(`yarn add ${pattern}`, async () => {
+function addTest(pattern, {strict} = {strict: false}) {
+  test.concurrent(`yarn add ${pattern}`, async () => {
     const cwd = await makeTemp();
     const cacheFolder = path.join(cwd, 'cache');
 
     const command = path.resolve(__dirname, '../bin/yarn');
-    const args = ['--cache-folder', cacheFolder, '--verbose'];
+    const args = ['--cache-folder', cacheFolder];
 
     const options = {cwd};
 
-    await fs.writeFile(path.join(cwd, 'package.json'), JSON.stringify({name: 'test'}));
+    await fs.writeFile(
+      path.join(cwd, 'package.json'),
+      JSON.stringify({
+        name: 'test',
+        license: 'MIT',
+      }),
+    );
 
-    await execa(command, ['add', pattern].concat(args), options);
+    const result = await execa(command, ['add', pattern].concat(args), options);
+    if (strict) {
+      expect(result.stderr).not.toMatch(/^warning /gm);
+    }
 
     await fs.unlink(cwd);
   });
@@ -41,7 +49,7 @@ function addTest(pattern) {
 //       path.join(folder, constants.METADATA_FILENAME),
 //       '{"remote": {"hash": "cafebabecafebabecafebabecafebabecafebabe"}}',
 //     );
-//     await fs.writeFile(path.join(folder, 'package.json'), '{"name": "@foo/bar", "version": "1.2.3"}');
+//     await fs.writeFile(path.join(foldresolve gitlab:leanlabsio/kanbaner, 'package.json'), '{"name": "@foo/bar", "version": "1.2.3"}');
 //   },
 //   true,
 // ); // offline npm scoped package
@@ -51,6 +59,10 @@ addTest('https://git@github.com/stevemao/left-pad.git'); // git url, with userna
 addTest('https://github.com/yarnpkg/yarn/releases/download/v0.18.1/yarn-v0.18.1.tar.gz'); // tarball
 addTest('https://github.com/bestander/chrome-app-livereload.git'); // no package.json
 addTest('bestander/chrome-app-livereload'); // no package.json, github, tarball
+// Only run `react-scripts` test on Node 6+
+if (parseInt(process.versions.node.split('.')[0], 10) >= 6) {
+  addTest('react-scripts@1.0.13', {strict: true}); // many peer dependencies, there shouldn't be any peerDep warnings
+}
 
 const MIN_PORT_NUM = 56000;
 const MAX_PORT_NUM = 65535;

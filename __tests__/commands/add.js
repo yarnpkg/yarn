@@ -825,7 +825,7 @@ test.concurrent('warns when peer dependency is incorrect during add', (): Promis
   );
 });
 
-test.concurrent('should only refer to root to satisfy peer dependency', (): Promise<void> => {
+test.concurrent('should only refer to higher levels to satisfy peer dependency', (): Promise<void> => {
   return buildRun(
     reporters.BufferReporter,
     fixturesLoc,
@@ -834,17 +834,30 @@ test.concurrent('should only refer to root to satisfy peer dependency', (): Prom
       await add.init();
 
       const output = reporter.getBuffer();
-      const warnings = output.filter(entry => entry.type === 'warning');
-
-      expect(
-        warnings.some(warning => {
-          return warning.data.toString().toLowerCase().indexOf('incorrect peer') > -1;
-        }),
-      ).toEqual(true);
+      const warnings = output.filter(entry => entry.type === 'warning').map(entry => entry.data);
+      expect(warnings).toEqual(expect.arrayContaining([expect.stringContaining('incorrect peer')]));
     },
     ['file:c'],
     {},
     'add-with-multiple-versions-of-peer-dependency',
+  );
+});
+
+test.concurrent('should refer to deeper dependencies to satisfy peer dependency', (): Promise<void> => {
+  return buildRun(
+    reporters.BufferReporter,
+    fixturesLoc,
+    async (args, flags, config, reporter, lockfile): Promise<void> => {
+      const add = new Add(args, flags, config, reporter, lockfile);
+      await add.init();
+
+      const output = reporter.getBuffer();
+      const warnings = output.filter(entry => entry.type === 'warning').map(entry => entry.data);
+      expect(warnings).not.toEqual(expect.arrayContaining([expect.stringContaining('peer')]));
+    },
+    [],
+    {},
+    'add-with-deep-peer-dependencies',
   );
 });
 
