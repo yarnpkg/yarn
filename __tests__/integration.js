@@ -17,7 +17,7 @@ function addTest(pattern, {strict} = {strict: false}) {
     const cacheFolder = path.join(cwd, 'cache');
 
     const command = path.resolve(__dirname, '../bin/yarn');
-    const args = ['--cache-folder', cacheFolder, '--verbose'];
+    const args = ['--cache-folder', cacheFolder];
 
     const options = {cwd};
 
@@ -59,7 +59,10 @@ addTest('https://git@github.com/stevemao/left-pad.git'); // git url, with userna
 addTest('https://github.com/yarnpkg/yarn/releases/download/v0.18.1/yarn-v0.18.1.tar.gz'); // tarball
 addTest('https://github.com/bestander/chrome-app-livereload.git'); // no package.json
 addTest('bestander/chrome-app-livereload'); // no package.json, github, tarball
-addTest('react-scripts@1.0.13', {strict: true}); // many peer dependencies, there shouldn't be any peerDep warnings
+// Only run `react-scripts` test on Node 6+
+if (parseInt(process.versions.node.split('.')[0], 10) >= 6) {
+  addTest('react-scripts@1.0.13', {strict: true}); // many peer dependencies, there shouldn't be any peerDep warnings
+}
 
 const MIN_PORT_NUM = 56000;
 const MAX_PORT_NUM = 65535;
