@@ -7,7 +7,7 @@ import * as fs from '../src/util/fs.js';
 import * as misc from '../src/util/misc.js';
 import * as constants from '../src/constants.js';
 
-jasmine.DEFAULT_TIMEOUT_INTERVAL = 90000;
+jasmine.DEFAULT_TIMEOUT_INTERVAL = 120000;
 
 const path = require('path');
 
