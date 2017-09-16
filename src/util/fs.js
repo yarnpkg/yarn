@@ -592,7 +592,7 @@ export async function copyBulk(
     async (data: CopyFileAction): Promise<void> => {
       const writePromise = currentlyWriting.get(data.dest);
       if (writePromise) {
-        await writePromise;
+        return writePromise;
       }
 
       reporter.verbose(reporter.lang('verboseFileCopy', data.src, data.dest));
