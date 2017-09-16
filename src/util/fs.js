@@ -40,8 +40,31 @@ export const chmod: (path: string, mode: number | string) => Promise<void> = pro
 export const link: (src: string, dst: string) => Promise<fs.Stats> = promisify(fs.link);
 export const glob: (path: string, options?: Object) => Promise<Array<string>> = promisify(globModule);
 
-const CONCURRENT_QUEUE_ITEMS = 4;
+const CONCURRENT_QUEUE_ITEMS = fs.copyFile ? 16 : 4;
 
+const open: (path: string, flags: string | number, mode: number) => Promise<number> = promisify(fs.open);
+const close: (fd: number) => Promise<void> = promisify(fs.close);
+const write: (
+  fd: number,
+  buffer: Buffer,
+  offset: ?number,
+  length: ?number,
+  position: ?number,
+) => Promise<void> = promisify(fs.write);
+const futimes: (fd: number, atime: number, mtime: number) => Promise<void> = promisify(fs.futimes);
+const copyFile: (src: string, dest: string, flags: number, data: CopyFileAction) => Promise<void> = fs.copyFile
+  ? // Don't use `promisify` to avoid passing  the last, argument `data`, to the native method
+    (src, dest, flags, data) =>
+      new Promise((resolve, reject) => fs.copyFile(src, dest, flags, err => (err ? reject(err) : resolve(err))))
+  : async (src, dest, flags, data) => {
+      const fd = await open(dest, 'w', data.mode);
+      try {
+        await write(fd, await readFileBuffer(src));
+        await futimes(fd, data.atime, data.mtime);
+      } finally {
+        await close(fd);
+      }
+    };
 const fsSymlink: (target: string, path: string, type?: 'dir' | 'file' | 'junction') => Promise<void> = promisify(
   fs.symlink,
 );
@@ -61,7 +84,6 @@ export type CopyQueueItem = {
 type CopyQueue = Array<CopyQueueItem>;
 
 type CopyFileAction = {
-  type: 'file',
   src: string,
   dest: string,
   atime: number,
@@ -70,19 +92,21 @@ type CopyFileAction = {
 };
 
 type LinkFileAction = {
-  type: 'link',
   src: string,
   dest: string,
   removeDest: boolean,
 };
 
 type CopySymlinkAction = {
-  type: 'symlink',
   dest: string,
   linkname: string,
 };
 
-type CopyActions = Array<CopyFileAction | CopySymlinkAction | LinkFileAction>;
+type CopyActions = {
+  file: Array<CopyFileAction>,
+  symlink: Array<CopySymlinkAction>,
+  link: Array<LinkFileAction>,
+};
 
 type CopyOptions = {
   onProgress: (dest: string) => void,
@@ -154,7 +178,11 @@ async function buildActionsForCopy(
   events.onStart(queue.length);
 
   // start building actions
-  const actions: CopyActions = [];
+  const actions: CopyActions = {
+    file: [],
+    symlink: [],
+    link: [],
+  };
 
   // custom concurrency logic as we're always executing stacks of CONCURRENT_QUEUE_ITEMS queue items
   // at a time due to the requirement to push items onto the queue
@@ -180,7 +208,7 @@ async function buildActionsForCopy(
   return actions;
 
   //
-  async function build(data): Promise<void> {
+  async function build(data: CopyQueueItem): Promise<void> {
     const {src, dest, type} = data;
     const onFresh = data.onFresh || noop;
     const onDone = data.onDone || noop;
@@ -196,8 +224,7 @@ async function buildActionsForCopy(
     if (type === 'symlink') {
       await mkdirp(path.dirname(dest));
       onFresh();
-      actions.push({
-        type: 'symlink',
+      actions.symlink.push({
         dest,
         linkname: src,
       });
@@ -288,10 +315,9 @@ async function buildActionsForCopy(
     if (srcStat.isSymbolicLink()) {
       onFresh();
       const linkname = await readlink(src);
-      actions.push({
+      actions.symlink.push({
         dest,
         linkname,
-        type: 'symlink',
       });
       onDone();
     } else if (srcStat.isDirectory()) {
@@ -326,8 +352,7 @@ async function buildActionsForCopy(
       }
     } else if (srcStat.isFile()) {
       onFresh();
-      actions.push({
-        type: 'file',
+      actions.file.push({
         src,
         dest,
         atime: srcStat.atime,
@@ -352,18 +377,20 @@ async function buildActionsForHardlink(
 
   // initialise events
   for (const item of queue) {
-    const onDone = item.onDone;
+    const onDone = item.onDone || noop;
     item.onDone = () => {
       events.onProgress(item.dest);
-      if (onDone) {
-        onDone();
-      }
+      onDone();
     };
   }
   events.onStart(queue.length);
 
   // start building actions
-  const actions: CopyActions = [];
+  const actions: CopyActions = {
+    file: [],
+    symlink: [],
+    link: [],
+  };
 
   // custom concurrency logic as we're always executing stacks of CONCURRENT_QUEUE_ITEMS queue items
   // at a time due to the requirement to push items onto the queue
@@ -389,7 +416,7 @@ async function buildActionsForHardlink(
   return actions;
 
   //
-  async function build(data): Promise<void> {
+  async function build(data: CopyQueueItem): Promise<void> {
     const {src, dest} = data;
     const onFresh = data.onFresh || noop;
     const onDone = data.onDone || noop;
@@ -474,8 +501,7 @@ async function buildActionsForHardlink(
     if (srcStat.isSymbolicLink()) {
       onFresh();
       const linkname = await readlink(src);
-      actions.push({
-        type: 'symlink',
+      actions.symlink.push({
         dest,
         linkname,
       });
@@ -510,8 +536,7 @@ async function buildActionsForHardlink(
       }
     } else if (srcStat.isFile()) {
       onFresh();
-      actions.push({
-        type: 'link',
+      actions.link.push({
         src,
         dest,
         removeDest: destExists,
@@ -526,6 +551,15 @@ async function buildActionsForHardlink(
 export function copy(src: string, dest: string, reporter: Reporter): Promise<void> {
   return copyBulk([{src, dest}], reporter);
 }
+
+const copyFileWithAttributes = async function(data: CopyFileAction, cleanup: Function): Promise<void> {
+  try {
+    await unlink(data.dest);
+    await copyFile(data.src, data.dest, 0, data);
+  } finally {
+    cleanup();
+  }
+};
 
 export async function copyBulk(
   queue: CopyQueue,
@@ -547,57 +581,31 @@ export async function copyBulk(
   };
 
   const actions: CopyActions = await buildActionsForCopy(queue, events, events.possibleExtraneous, reporter);
-  events.onStart(actions.length);
+  events.onStart(actions.file.length + actions.symlink.length + actions.link.length);
 
-  const fileActions: Array<CopyFileAction> = (actions.filter(action => action.type === 'file'): any);
+  const fileActions: Array<CopyFileAction> = actions.file;
 
-  const currentlyWriting: {[dest: string]: Promise<void>} = {};
+  const currentlyWriting: Map<string, Promise<void>> = new Map();
 
   await promise.queue(
     fileActions,
-    async (data): Promise<void> => {
-      let writePromise: Promise<void>;
-      while ((writePromise = currentlyWriting[data.dest])) {
+    async (data: CopyFileAction): Promise<void> => {
+      const writePromise = currentlyWriting.get(data.dest);
+      if (writePromise) {
         await writePromise;
       }
 
-      const cleanup = () => delete currentlyWriting[data.dest];
       reporter.verbose(reporter.lang('verboseFileCopy', data.src, data.dest));
-      return (currentlyWriting[data.dest] = readFileBuffer(data.src)
-        .then(async d => {
-          // we need to do this because of case-insensitive filesystems, which wouldn't properly
-          // change the file name in case of a file being renamed
-          await unlink(data.dest);
-
-          return writeFile(data.dest, d, {mode: data.mode});
-        })
-        .then(() => {
-          return new Promise((resolve, reject) => {
-            fs.utimes(data.dest, data.atime, data.mtime, err => {
-              if (err) {
-                reject(err);
-              } else {
-                resolve();
-              }
-            });
-          });
-        })
-        .then(
-          () => {
-            events.onProgress(data.dest);
-            cleanup();
-          },
-          err => {
-            cleanup();
-            throw err;
-          },
-        ));
+      const copier = copyFileWithAttributes(data, () => currentlyWriting.delete(data.dest));
+      currentlyWriting.set(data.dest, copier);
+      events.onProgress(data.dest);
+      return copier;
     },
     CONCURRENT_QUEUE_ITEMS,
   );
 
   // we need to copy symlinks last as they could reference files we were copying
-  const symlinkActions: Array<CopySymlinkAction> = (actions.filter(action => action.type === 'symlink'): any);
+  const symlinkActions: Array<CopySymlinkAction> = actions.symlink;
   await promise.queue(symlinkActions, (data): Promise<void> => {
     const linkname = path.resolve(path.dirname(data.dest), data.linkname);
     reporter.verbose(reporter.lang('verboseFileSymlink', data.dest, linkname));
@@ -624,9 +632,9 @@ export async function hardlinkBulk(
   };
 
   const actions: CopyActions = await buildActionsForHardlink(queue, events, events.possibleExtraneous, reporter);
-  events.onStart(actions.length);
+  events.onStart(actions.file.length + actions.symlink.length + actions.link.length);
 
-  const fileActions: Array<LinkFileAction> = (actions.filter(action => action.type === 'link'): any);
+  const fileActions: Array<LinkFileAction> = actions.link;
 
   await promise.queue(
     fileActions,
@@ -641,7 +649,7 @@ export async function hardlinkBulk(
   );
 
   // we need to copy symlinks last as they could reference files we were copying
-  const symlinkActions: Array<CopySymlinkAction> = (actions.filter(action => action.type === 'symlink'): any);
+  const symlinkActions: Array<CopySymlinkAction> = actions.symlink;
   await promise.queue(symlinkActions, (data): Promise<void> => {
     const linkname = path.resolve(path.dirname(data.dest), data.linkname);
     reporter.verbose(reporter.lang('verboseFileSymlink', data.dest, linkname));
@@ -836,7 +844,7 @@ export async function writeFilePreservingEol(path: string, data: string): Promis
   if (eol !== '\n') {
     data = data.replace(/\n/g, eol);
   }
-  await promisify(fs.writeFile)(path, data);
+  await writeFile(path, data);
 }
 
 export async function hardlinksWork(dir: string): Promise<boolean> {
