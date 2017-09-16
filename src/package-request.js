@@ -30,7 +30,7 @@ const micromatch = require('micromatch');
 export default class PackageRequest {
   constructor(req: DependencyRequestPattern, resolver: PackageResolver) {
     this.parentRequest = req.parentRequest;
-    this.parentNames = [];
+    this.parentNames = req.parentNames || [];
     this.lockfile = resolver.lockfile;
     this.registry = req.registry;
     this.reporter = resolver.reporter;
