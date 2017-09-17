@@ -86,6 +86,9 @@ export function spawn(
           }
         });
 
+        // Workaround for stream handling bug in Node.js <= 6.2.1 on Linux. See #4282
+        proc.stdout.on('readable', () => {});
+
         function updateStdout(chunk: string) {
           stdout += chunk;
           if (onData) {
