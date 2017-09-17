@@ -57,6 +57,8 @@ const copyFile: (src: string, dest: string, flags: number, data: CopyFileAction)
     (src, dest, flags, data) =>
       new Promise((resolve, reject) => fs.copyFile(src, dest, flags, err => (err ? reject(err) : resolve(err))))
   : async (src, dest, flags, data) => {
+      // Use open -> write -> futimes -> close sequence to avoid opening the file twice:
+      // one with writeFile and one with utimes
       const fd = await open(dest, 'w', data.mode);
       try {
         await write(fd, await readFileBuffer(src));
@@ -552,7 +554,15 @@ export function copy(src: string, dest: string, reporter: Reporter): Promise<voi
   return copyBulk([{src, dest}], reporter);
 }
 
-const copyFileWithAttributes = async function(data: CopyFileAction, cleanup: Function): Promise<void> {
+/**
+ * Unlinks the destination to force a recreation. This is needed on case-insensitive file systems
+ * to force the correct naming when the filename has changed only in charater-casing. (Jest -> jest).
+ * It also calls a cleanup function once it is done.
+ *
+ * `data` contains target file attributes like mode, atime and mtime. Built-in copyFile copies these
+ * automatically but our polyfill needs the do this manually, thus needs the info.
+ */
+const safeCopyFile = async function(data: CopyFileAction, cleanup: Function): Promise<void> {
   try {
     await unlink(data.dest);
     await copyFile(data.src, data.dest, 0, data);
@@ -589,14 +599,14 @@ export async function copyBulk(
 
   await promise.queue(
     fileActions,
-    async (data: CopyFileAction): Promise<void> => {
+    (data: CopyFileAction): Promise<void> => {
       const writePromise = currentlyWriting.get(data.dest);
       if (writePromise) {
         return writePromise;
       }
 
       reporter.verbose(reporter.lang('verboseFileCopy', data.src, data.dest));
-      const copier = copyFileWithAttributes(data, () => currentlyWriting.delete(data.dest));
+      const copier = safeCopyFile(data, () => currentlyWriting.delete(data.dest));
       currentlyWriting.set(data.dest, copier);
       events.onProgress(data.dest);
       return copier;
