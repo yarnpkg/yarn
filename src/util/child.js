@@ -87,8 +87,19 @@ export function spawn(
         });
 
         // Workaround for stream handling bug in Node.js <= 6.2.1 on Linux. See #4282
-        if (proc.stdout) proc.stdout.on('readable', () => {});
-        if (proc.stderr) proc.stderr.on('readable', () => {});
+        let dummyListener = () => {};
+        if (proc.stdout) { 
+          proc.stdout.on('readable', dummyListener);
+          proc.stdout.once('close', () => {
+            proc.stdout.removeListener('readable', dummyListener);
+          } );
+        }
+        if (proc.stderr) {
+          proc.stderr.on('readable', dummyListener);
+          proc.stderr.once('close', () => {
+            proc.stderr.removeListener('readable', dummyListener);
+          } );
+        }
 
         function updateStdout(chunk: string) {
           stdout += chunk;
