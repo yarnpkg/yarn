@@ -61,7 +61,8 @@ const copyFile: (src: string, dest: string, flags: number, data: CopyFileAction)
       // one with writeFile and one with utimes
       const fd = await open(dest, 'w', data.mode);
       try {
-        await write(fd, await readFileBuffer(src));
+        const buffer = await readFileBuffer(src);
+        await write(fd, buffer, 0, buffer.length);
         await futimes(fd, data.atime, data.mtime);
       } finally {
         await close(fd);
