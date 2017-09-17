@@ -40,7 +40,10 @@ export const chmod: (path: string, mode: number | string) => Promise<void> = pro
 export const link: (src: string, dst: string) => Promise<fs.Stats> = promisify(fs.link);
 export const glob: (path: string, options?: Object) => Promise<Array<string>> = promisify(globModule);
 
-const CONCURRENT_QUEUE_ITEMS = fs.copyFile ? 16 : 4;
+// fs.copyFile uses the native file copying instructions on the system, performing much better
+// than any JS-based solution and consumes fewer resources. Repeated testing to fine tune the
+// concurrency level revealed 128 as the sweet spot on a quad-core, 16 CPU Intel system with SSD.
+const CONCURRENT_QUEUE_ITEMS = fs.copyFile ? 128 : 4;
 
 const open: (path: string, flags: string | number, mode: number) => Promise<number> = promisify(fs.open);
 const close: (fd: number) => Promise<void> = promisify(fs.close);
