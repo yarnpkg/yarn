@@ -11,7 +11,7 @@ const stream = require('stream');
 
 // ensures consistency across environments
 require('chalk').enabled = true;
-require('chalk').supportsColor = true;
+require('chalk').supportsColor.level = 2;
 
 test('ConsoleReporter.step', async () => {
   expect(
