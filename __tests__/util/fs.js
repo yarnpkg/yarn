@@ -1,6 +1,6 @@
 /* @flow */
 
-import {fileDatesEqual} from '../../src/util/fs.js';
+import {fileDatesEqual} from 'util/fs.js';
 
 describe('fileDatesEqual', () => {
   const realPlatform = process.platform;

@@ -2,7 +2,7 @@
 /* eslint quotes: 0 */
 
 import type {MockData} from './_mock.js';
-import JSONReporter from '../../src/reporters/json-reporter.js';
+import JSONReporter from 'reporters/json-reporter.js';
 import build from './_mock.js';
 
 const getJSONBuff = build(JSONReporter, (data): MockData => data);

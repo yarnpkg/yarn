@@ -1,6 +1,6 @@
 /* @flow */
 
-import * as misc from '../../src/util/misc.js';
+import * as misc from 'util/misc.js';
 
 test('sortAlpha', () => {
   expect(

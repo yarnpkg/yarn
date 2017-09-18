@@ -1,11 +1,11 @@
 /* @flow */
 
-import PackageHoister, {HoistManifest} from '../src/package-hoister.js';
-import PackageResolver from '../src/package-resolver.js';
-import Lockfile from '../src/lockfile';
-import type PackageReference from '../src/package-reference.js';
-import type Config from '../src/config.js';
-import type {Manifest} from '../src/types.js';
+import PackageHoister, {HoistManifest} from 'package-hoister.js';
+import PackageResolver from 'package-resolver.js';
+import Lockfile from 'lockfile';
+import type PackageReference from 'package-reference.js';
+import type Config from 'config.js';
+import type {Manifest} from 'types.js';
 
 const path = require('path');
 

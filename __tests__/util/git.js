@@ -1,6 +1,6 @@
 /* @flow */
 
-jest.mock('../../src/util/git/git-spawn.js', () => ({
+jest.mock('util/git/git-spawn.js', () => ({
   spawn: jest.fn(([command]) => {
     switch (command) {
       case 'ls-remote':
@@ -13,10 +13,10 @@ jest.mock('../../src/util/git/git-spawn.js', () => ({
   }),
 }));
 
-import Config from '../../src/config.js';
-import Git from '../../src/util/git.js';
-import {spawn as spawnGit} from '../../src/util/git/git-spawn.js';
-import {NoopReporter} from '../../src/reporters/index.js';
+import Config from 'config.js';
+import Git from 'util/git.js';
+import {spawn as spawnGit} from 'util/git/git-spawn.js';
+import {NoopReporter} from 'reporters/index.js';
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 90000;
 

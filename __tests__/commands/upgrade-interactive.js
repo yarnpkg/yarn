@@ -1,9 +1,9 @@
 /* @flow */
 
-import {ConsoleReporter} from '../../src/reporters/index.js';
+import {ConsoleReporter} from 'reporters/index.js';
 import {run as buildRun} from './_helpers.js';
-import {run as upgradeInteractive} from '../../src/cli/commands/upgrade-interactive.js';
-import * as reporters from '../../src/reporters/index.js';
+import {run as upgradeInteractive} from 'cli/commands/upgrade-interactive.js';
+import * as reporters from 'reporters/index.js';
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 90000;
 

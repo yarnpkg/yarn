@@ -1,12 +1,12 @@
 /* @flow */
 
 import {run as buildRun, runInstall} from './_helpers.js';
-import * as checkCmd from '../../src/cli/commands/check.js';
-import {Install} from '../../src/cli/commands/install.js';
-import Lockfile from '../../src/lockfile';
-import * as reporters from '../../src/reporters/index.js';
-import type {CLIFunctionReturn} from '../../src/types.js';
-import * as fs from '../../src/util/fs.js';
+import * as checkCmd from 'cli/commands/check.js';
+import {Install} from 'cli/commands/install.js';
+import Lockfile from 'lockfile';
+import * as reporters from 'reporters/index.js';
+import type {CLIFunctionReturn} from 'types.js';
+import * as fs from 'util/fs.js';
 
 const path = require('path');
 

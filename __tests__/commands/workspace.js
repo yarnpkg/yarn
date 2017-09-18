@@ -1,18 +1,18 @@
 /* @flow */
 
-jest.mock('../../src/util/child');
+jest.mock('util/child');
 
-import {BufferReporter} from '../../src/reporters/index.js';
-import {run as workspace} from '../../src/cli/commands/workspace.js';
-import * as reporters from '../../src/reporters/index.js';
-import Config from '../../src/config.js';
+import {BufferReporter} from 'reporters/index.js';
+import {run as workspace} from 'cli/commands/workspace.js';
+import * as reporters from 'reporters/index.js';
+import Config from 'config.js';
 import path from 'path';
-import {NODE_BIN_PATH, YARN_BIN_PATH} from '../../src/constants';
+import {NODE_BIN_PATH, YARN_BIN_PATH} from 'constants';
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 90000;
 
 const fixturesLoc = path.join(__dirname, '..', 'fixtures', 'workspace');
-const spawn: $FlowFixMe = require('../../src/util/child').spawn;
+const spawn: $FlowFixMe = require('util/child').spawn;
 
 beforeEach(() => spawn.mockClear());
 

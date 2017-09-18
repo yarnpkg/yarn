@@ -1,13 +1,13 @@
 /* @flow */
 
-import {run as check} from '../../../src/cli/commands/check.js';
-import * as constants from '../../../src/constants.js';
-import * as reporters from '../../../src/reporters/index.js';
-import {Install} from '../../../src/cli/commands/install.js';
-import Lockfile from '../../../src/lockfile';
-import * as fs from '../../../src/util/fs.js';
+import {run as check} from 'cli/commands/check.js';
+import * as constants from 'constants.js';
+import * as reporters from 'reporters/index.js';
+import {Install} from 'cli/commands/install.js';
+import Lockfile from 'lockfile';
+import * as fs from 'util/fs.js';
 import {getPackageVersion, isPackagePresent, runInstall} from '../_helpers.js';
-import {promisify} from '../../../src/util/promise';
+import {promisify} from 'util/promise';
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 150000;
 

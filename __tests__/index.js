@@ -1,8 +1,8 @@
 /* @flow */
 
-import NoopReporter from '../src/reporters/base-reporter.js';
+import NoopReporter from 'reporters/base-reporter.js';
 import makeTemp from './_temp';
-import * as fs from '../src/util/fs.js';
+import * as fs from 'util/fs.js';
 const pkg = require('../package.json');
 
 const path = require('path');

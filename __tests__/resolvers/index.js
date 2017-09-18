@@ -1,14 +1,14 @@
 /* @flow */
 
-import {getExoticResolver} from '../../src/resolvers/index.js';
+import {getExoticResolver} from 'resolvers/index.js';
 // exotic resolvers
-import GitResolver from '../../src/resolvers/exotics/git-resolver.js';
-import GistResolver from '../../src/resolvers/exotics/gist-resolver.js';
-import RegistryResolver from '../../src/resolvers/exotics/registry-resolver.js';
-import TarballResolver from '../../src/resolvers/exotics/tarball-resolver.js';
+import GitResolver from 'resolvers/exotics/git-resolver.js';
+import GistResolver from 'resolvers/exotics/gist-resolver.js';
+import RegistryResolver from 'resolvers/exotics/registry-resolver.js';
+import TarballResolver from 'resolvers/exotics/tarball-resolver.js';
 // registry resolvers
-import NpmRegistryResolver from '../../src/resolvers/registries/npm-resolver.js';
-import YarnRegistryResolver from '../../src/resolvers/registries/yarn-resolver.js';
+import NpmRegistryResolver from 'resolvers/registries/npm-resolver.js';
+import YarnRegistryResolver from 'resolvers/registries/yarn-resolver.js';
 
 test('getExoticResolver does not return a Resolver for 0.0.0 pattern', () => {
   const pattern = '0.0.0';

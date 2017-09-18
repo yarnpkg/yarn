@@ -2,8 +2,8 @@
 
 import path from 'path';
 
-jest.mock('../../../src/util/child.js', () => {
-  const realChild = (require: any).requireActual('../../../src/util/child.js');
+jest.mock('util/child.js', () => {
+  const realChild = (require: any).requireActual('util/child.js');
 
   realChild.spawn = jest.fn(() => Promise.resolve(''));
 
@@ -11,8 +11,8 @@ jest.mock('../../../src/util/child.js', () => {
 });
 
 function runGit(args, opts): any {
-  const {spawn} = require('../../../src/util/child.js');
-  const {spawn: spawnGit} = require('../../../src/util/git/git-spawn.js');
+  const {spawn} = require('util/child.js');
+  const {spawn: spawnGit} = require('util/git/git-spawn.js');
   const spawnMock = (spawn: any).mock;
 
   spawnGit(args, opts);

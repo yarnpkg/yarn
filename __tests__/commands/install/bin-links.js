@@ -1,6 +1,6 @@
 /* @flow */
 
-import * as fs from '../../../src/util/fs.js';
+import * as fs from 'util/fs.js';
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 150000;
 

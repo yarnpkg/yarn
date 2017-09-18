@@ -1,7 +1,7 @@
 /* @flow */
 /* eslint yarn-internal/warn-language: 0 */
 
-import BaseReporter from '../../src/reporters/base-reporter.js';
+import BaseReporter from 'reporters/base-reporter.js';
 
 test('BaseReporter.getTotalTime', () => {
   const reporter = new BaseReporter();

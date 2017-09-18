@@ -1,7 +1,7 @@
 /* @flow */
 
 import {getPackageVersion, getPackageManifestPath, runInstall} from '../_helpers.js';
-import * as fs from '../../../src/util/fs.js';
+import * as fs from 'util/fs.js';
 
 const path = require('path');
 

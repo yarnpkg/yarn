@@ -1,12 +1,12 @@
 /* @flow */
-jest.mock('../../src/constants');
+jest.mock('constants');
 
 import path from 'path';
-import type {Tree} from '../../src/reporters/types.js';
-import {BufferReporter} from '../../src/reporters/index.js';
+import type {Tree} from 'reporters/types.js';
+import {BufferReporter} from 'reporters/index.js';
 import {run as buildRun} from './_helpers.js';
-import {getParent, getReqDepth, run as list} from '../../src/cli/commands/list.js';
-import * as reporters from '../../src/reporters/index.js';
+import {getParent, getReqDepth, run as list} from 'cli/commands/list.js';
+import * as reporters from 'reporters/index.js';
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 90000;
 
@@ -137,7 +137,7 @@ describe('list', () => {
   });
 
   test('does not list devDependencies when production', (): Promise<void> => {
-    const isProduction: $FlowFixMe = require('../../src/constants').isProduction;
+    const isProduction: $FlowFixMe = require('constants').isProduction;
     isProduction.mockReturnValue(true);
 
     return runList([], {}, 'dev-deps-prod', (config, reporter): ?Promise<void> => {

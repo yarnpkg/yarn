@@ -1,6 +1,6 @@
 /* @flow */
 
-import BufferReporter from '../../src/reporters/buffer-reporter.js';
+import BufferReporter from 'reporters/buffer-reporter.js';
 import build from './_mock.js';
 
 const getBuff = build(BufferReporter, (data, reporter: any): Array<Object> => reporter.getBuffer());

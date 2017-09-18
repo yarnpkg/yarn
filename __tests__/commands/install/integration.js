@@ -1,16 +1,16 @@
 /* @flow */
 
-import Config from '../../../src/config';
-import PackageResolver from '../../../src/package-resolver.js';
-import {run as add} from '../../../src/cli/commands/add.js';
-import {run as cache} from '../../../src/cli/commands/cache.js';
-import {run as check} from '../../../src/cli/commands/check.js';
-import * as constants from '../../../src/constants.js';
-import * as reporters from '../../../src/reporters/index.js';
-import {parse} from '../../../src/lockfile';
-import {Install, run as install} from '../../../src/cli/commands/install.js';
-import Lockfile from '../../../src/lockfile';
-import * as fs from '../../../src/util/fs.js';
+import Config from 'config';
+import PackageResolver from 'package-resolver.js';
+import {run as add} from 'cli/commands/add.js';
+import {run as cache} from 'cli/commands/cache.js';
+import {run as check} from 'cli/commands/check.js';
+import * as constants from 'constants.js';
+import * as reporters from 'reporters/index.js';
+import {parse} from 'lockfile';
+import {Install, run as install} from 'cli/commands/install.js';
+import Lockfile from 'lockfile';
+import * as fs from 'util/fs.js';
 import {getPackageVersion, explodeLockfile, runInstall, createLockfile, run as buildRun} from '../_helpers.js';
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 150000;
@@ -35,15 +35,15 @@ async function mockConstants(base: Config, mocks: Object, cb: (config: Config) =
   opts.production = base.production;
   opts.cacheFolder = base._cacheRootFolder;
 
-  const automock = jest.genMockFromModule('../../../src/constants');
-  jest.setMock('../../../src/constants', Object.assign(automock, mocks));
+  const automock = jest.genMockFromModule('constants');
+  jest.setMock('constants', Object.assign(automock, mocks));
 
   jest.resetModules();
   request = require('request');
 
-  jest.mock('../../../src/constants');
-  await cb(await require('../../../src/config.js').default.create(opts, base.reporter));
-  jest.unmock('../../../src/constants');
+  jest.mock('constants');
+  await cb(await require('config.js').default.create(opts, base.reporter));
+  jest.unmock('constants');
 }
 
 beforeEach(request.__resetAuthedRequests);

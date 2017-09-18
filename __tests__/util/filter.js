@@ -1,6 +1,6 @@
 /* @flow */
 
-import {ignoreLinesToRegex, filterOverridenGitignores} from '../../src/util/filter.js';
+import {ignoreLinesToRegex, filterOverridenGitignores} from 'util/filter.js';
 
 test('ignoreLinesToRegex', () => {
   expect(

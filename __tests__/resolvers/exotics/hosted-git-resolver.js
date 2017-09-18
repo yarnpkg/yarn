@@ -1,8 +1,8 @@
 /* @flow */
 
-import {explodeHostedGitFragment} from '../../../src/resolvers/exotics/hosted-git-resolver.js';
-import type {ExplodedFragment} from '../../../src/resolvers/exotics/hosted-git-resolver.js';
-import * as reporters from '../../../src/reporters/index.js';
+import {explodeHostedGitFragment} from 'resolvers/exotics/hosted-git-resolver.js';
+import type {ExplodedFragment} from 'resolvers/exotics/hosted-git-resolver.js';
+import * as reporters from 'reporters/index.js';
 const reporter = new reporters.NoopReporter({});
 
 test('explodeHostedGitFragment should allow for hashes as part of the branch name', () => {

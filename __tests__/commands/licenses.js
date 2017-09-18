@@ -1,8 +1,8 @@
 /* @flow */
 
-import {JSONReporter} from '../../src/reporters/index.js';
+import {JSONReporter} from 'reporters/index.js';
 import {run as buildRun} from './_helpers.js';
-import {run as licenses} from '../../src/cli/commands/licenses.js';
+import {run as licenses} from 'cli/commands/licenses.js';
 
 const path = require('path');
 

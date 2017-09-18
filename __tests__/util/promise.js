@@ -1,6 +1,6 @@
 /* @flow */
 
-import * as promise from '../../src/util/promise.js';
+import * as promise from 'util/promise.js';
 
 test('promisify', async function(): Promise<void> {
   expect(

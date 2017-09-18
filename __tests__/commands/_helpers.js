@@ -1,15 +1,15 @@
 /* @flow */
 
-import Lockfile from '../../src/lockfile';
-import {ConsoleReporter} from '../../src/reporters/index.js';
-import {Reporter} from '../../src/reporters/index.js';
-import {parse} from '../../src/lockfile';
-import * as constants from '../../src/constants.js';
-import {run as check} from '../../src/cli/commands/check.js';
-import * as fs from '../../src/util/fs.js';
-import {Install} from '../../src/cli/commands/install.js';
-import Config from '../../src/config.js';
-import parsePackagePath from '../../src/util/parse-package-path.js';
+import Lockfile from 'lockfile';
+import {ConsoleReporter} from 'reporters/index.js';
+import {Reporter} from 'reporters/index.js';
+import {parse} from 'lockfile';
+import * as constants from 'constants.js';
+import {run as check} from 'cli/commands/check.js';
+import * as fs from 'util/fs.js';
+import {Install} from 'cli/commands/install.js';
+import Config from 'config.js';
+import parsePackagePath from 'util/parse-package-path.js';
 
 const stream = require('stream');
 const path = require('path');

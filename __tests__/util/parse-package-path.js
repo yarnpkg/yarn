@@ -1,6 +1,6 @@
 /* @flow */
 
-import parsePackagePath, {isValidPackagePath} from '../../src/util/parse-package-path.js';
+import parsePackagePath, {isValidPackagePath} from 'util/parse-package-path.js';
 
 test('parsePackagePath', () => {
   expect(parsePackagePath('foo/bar/baz')).toEqual(['foo', 'bar', 'baz']);

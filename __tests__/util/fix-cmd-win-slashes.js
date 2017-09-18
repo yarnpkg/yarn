@@ -1,5 +1,5 @@
 /* @flow */
-import {fixCmdWinSlashes} from '../../src/util/fix-cmd-win-slashes.js';
+import {fixCmdWinSlashes} from 'util/fix-cmd-win-slashes.js';
 
 const cmdCases = [
   ['fixes just slashed command', 'some/command', 'some\\command'],

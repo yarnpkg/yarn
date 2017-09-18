@@ -1,13 +1,13 @@
 /* @flow */
 /* eslint max-len: 0 */
 
-import * as reporters from '../src/reporters/index.js';
-import PackageResolver from '../src/package-resolver.js';
-import Lockfile from '../src/lockfile';
-import Config from '../src/config.js';
+import * as reporters from 'reporters/index.js';
+import PackageResolver from 'package-resolver.js';
+import Lockfile from 'lockfile';
+import Config from 'config.js';
 import makeTemp from './_temp.js';
-import * as fs from '../src/util/fs.js';
-import * as constants from '../src/constants.js';
+import * as fs from 'util/fs.js';
+import * as constants from 'constants.js';
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000;
 

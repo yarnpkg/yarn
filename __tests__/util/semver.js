@@ -1,6 +1,6 @@
 /* @flow */
 
-import {satisfiesWithPreleases} from '../../src/util/semver.js';
+import {satisfiesWithPreleases} from 'util/semver.js';
 
 const semver = require('semver');
 

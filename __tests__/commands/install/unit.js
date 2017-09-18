@@ -1,9 +1,9 @@
 /* @flow */
 
-import {NoopReporter} from '../../../src/reporters/index.js';
-import {Install} from '../../../src/cli/commands/install.js';
-import Lockfile from '../../../src/lockfile';
-import Config from '../../../src/config.js';
+import {NoopReporter} from 'reporters/index.js';
+import {Install} from 'cli/commands/install.js';
+import Lockfile from 'lockfile';
+import Config from 'config.js';
 
 const path = require('path');
 

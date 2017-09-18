@@ -1,6 +1,6 @@
 /* @flow */
 
-import handleSignals from '../../src/util/signal-handler.js';
+import handleSignals from 'util/signal-handler.js';
 
 (process: any).on = jest.fn();
 (process: any).exit = jest.fn();

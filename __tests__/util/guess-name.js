@@ -1,6 +1,6 @@
 /* @flow */
 
-import guessName from '../../src/util/guess-name';
+import guessName from 'util/guess-name';
 
 const examples = [
   'http://github.com/foo-bar/awesome-name',
