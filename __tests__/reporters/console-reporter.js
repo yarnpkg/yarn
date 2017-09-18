@@ -12,6 +12,8 @@ const stream = require('stream');
 // ensures consistency across environments
 require('chalk').enabled = true;
 require('chalk').supportsColor.level = 2;
+require('chalk').blue._styles[0].open = '\u001b[34m';
+require('chalk').bold._styles[0].close = '\u001b[22m';
 
 test('ConsoleReporter.step', async () => {
   expect(
