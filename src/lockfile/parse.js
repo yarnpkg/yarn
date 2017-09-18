@@ -159,7 +159,7 @@ function* tokenise(input: string): Iterator<Token> {
     }
 
     col += chop;
-    lastNewline = input[0] === '\n' || input[1] === '\n';
+    lastNewline = input[0] === '\n' || (input[0] === '\r' && input[1] === '\n');
     input = input.slice(chop);
   }
 
@@ -335,7 +335,7 @@ const MERGE_CONFLICT_START = '<<<<<<<';
  */
 function extractConflictVariants(str: string): [string, string] {
   const variants = [[], []];
-  const lines = str.split(/\n/g);
+  const lines = str.split(/\r?\n/g);
   let skip = false;
 
   while (lines.length) {

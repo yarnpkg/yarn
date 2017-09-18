@@ -165,7 +165,7 @@ export function main({
   }
 
   args = [...preCommandArgs, ...args];
-
+  console.log(getRcArgs(commandName, args));
   command.setFlags(commander);
   commander.parse([
     ...startArgs,
