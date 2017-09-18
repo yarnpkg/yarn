@@ -1,12 +1,13 @@
 /* @flow */
 /* eslint quotes: 0 */
 
+import util from 'util';
+import invariant from 'invariant';
+import stripBOM from 'strip-bom';
+
 import {LOCKFILE_VERSION} from '../constants.js';
 import {MessageError} from '../errors.js';
 import map from '../util/map.js';
-
-const invariant = require('invariant');
-const stripBOM = require('strip-bom');
 
 type Token = {
   line: number,
@@ -317,7 +318,7 @@ class Parser {
           this.unexpected('Invalid value type');
         }
       } else {
-        this.unexpected(`Unknown token: ${require('inspect').inspect(propToken)}`);
+        this.unexpected(`Unknown token: ${util.inspect(propToken)}`);
       }
     }
 
