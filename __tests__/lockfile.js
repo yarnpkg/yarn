@@ -23,7 +23,20 @@ test('parse', () => {
   expect(parse(`foo:\n  bar "bar"`).object).toEqual(nullify({foo: {bar: 'bar'}}));
   expect(parse(`foo:\n  bar:\n  foo "bar"`).object).toEqual(nullify({foo: {bar: {}, foo: 'bar'}}));
   expect(parse(`foo:\n  bar:\n    foo "bar"`).object).toEqual(nullify({foo: {bar: {foo: 'bar'}}}));
+  expect(parse(`foo:\r\n  bar:\r\n    foo "bar"`).object).toEqual(nullify({foo: {bar: {foo: 'bar'}}}));
   expect(parse('foo:\n  bar:\n    yes no\nbar:\n  yes no').object).toEqual(
+    nullify({
+      foo: {
+        bar: {
+          yes: 'no',
+        },
+      },
+      bar: {
+        yes: 'no',
+      },
+    }),
+  );
+  expect(parse('foo:\r\n  bar:\r\n    yes no\r\nbar:\r\n  yes no').object).toEqual(
     nullify({
       foo: {
         bar: {

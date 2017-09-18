@@ -80,7 +80,7 @@ export function getRcArgs(commandName: string, args: Array<string>, previousCwds
   const argMap = buildRcArgs(origCwd);
 
   // concat wildcard arguments and arguments meant for this specific command
-  const newArgs = [].concat(argMap.get('*') || [], argMap.get(commandName) || []);
+  const newArgs = [...(argMap.get('*') || []), ...(argMap.get(commandName) || [])];
 
   // check if the .yarnrc args specified a cwd
   const newCwd = extractCwdArg(newArgs);
