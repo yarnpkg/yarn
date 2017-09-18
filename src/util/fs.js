@@ -566,7 +566,7 @@ export function copy(src: string, dest: string, reporter: Reporter): Promise<voi
  * `data` contains target file attributes like mode, atime and mtime. Built-in copyFile copies these
  * automatically but our polyfill needs the do this manually, thus needs the info.
  */
-const safeCopyFile = async function(data: CopyFileAction, cleanup: Function): Promise<void> {
+const safeCopyFile = async function(data: CopyFileAction, cleanup: () => void): Promise<void> {
   try {
     await unlink(data.dest);
     await copyFile(data.src, data.dest, 0, data);
