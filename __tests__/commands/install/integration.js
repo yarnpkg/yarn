@@ -64,6 +64,9 @@ test.concurrent('install optional subdependencies by default', async () => {
 test.concurrent('installing with --ignore-optional should not install optional subdependencies', async () => {
   await runInstall({ignoreOptional: true}, 'install-optional-dependencies', async (config): Promise<void> => {
     expect(await fs.exists(`${config.cwd}/node_modules/dep-b`)).toEqual(false);
+    expect(await fs.exists(`${config.cwd}/node_modules/dep-c`)).toEqual(true);
+    expect(await fs.exists(`${config.cwd}/node_modules/dep-d`)).toEqual(true);
+    expect(await fs.exists(`${config.cwd}/node_modules/dep-e`)).toEqual(true);
   });
 });
 
@@ -483,11 +486,18 @@ test.concurrent("don't install with file: protocol as default if target is a fil
   return expect(runInstall({lockfile: false}, 'install-file-as-default-no-file')).rejects.toBeDefined();
 });
 
-test.concurrent("don't install with file: protocol as default if target does not have package.json", (): Promise<
+test.concurrent("don't install with implicit file: protocol if target does not have package.json", (): Promise<
   void,
 > => {
   // $FlowFixMe
   return expect(runInstall({lockfile: false}, 'install-file-as-default-no-package')).rejects.toBeDefined();
+});
+
+test.concurrent('install with explicit file: protocol if target does not have package.json', (): Promise<void> => {
+  return runInstall({}, 'install-file-no-package', async config => {
+    expect(await fs.exists(path.join(config.cwd, 'node_modules', 'foo', 'bar.js'))).toEqual(true);
+    expect(await fs.exists(path.join(config.cwd, 'node_modules', 'bar', 'bar.js'))).toEqual(true);
+  });
 });
 
 test.concurrent("don't install with file: protocol as default if target is valid semver", (): Promise<void> => {
@@ -617,6 +627,12 @@ test.concurrent('install should run install scripts in the order of dependencies
 test.concurrent('install with comments in manifest', (): Promise<void> => {
   return runInstall({lockfile: false}, 'install-with-comments', async config => {
     expect(await fs.readFile(path.join(config.cwd, 'node_modules', 'foo', 'index.js'))).toEqual('foobar;\n');
+  });
+});
+
+test.concurrent('install with null versions in manifest', (): Promise<void> => {
+  return runInstall({}, 'install-with-null-version', async config => {
+    expect(await fs.exists(path.join(config.cwd, 'node_modules', 'left-pad'))).toEqual(true);
   });
 });
 

@@ -27,7 +27,7 @@ export type ResolverOptions = {|
 export default class PackageResolver {
   constructor(config: Config, lockfile: Lockfile, resolutionMap: ResolutionMap = new ResolutionMap(config)) {
     this.patternsByPackage = map();
-    this.fetchingPatterns = map();
+    this.fetchingPatterns = new Set();
     this.fetchingQueue = new BlockingQueue('resolver fetching');
     this.patterns = map();
     this.resolutionMap = resolutionMap;
@@ -59,9 +59,7 @@ export default class PackageResolver {
   };
 
   // patterns we've already resolved or are in the process of resolving
-  fetchingPatterns: {
-    [key: string]: true,
-  };
+  fetchingPatterns: Set<string>;
 
   // TODO
   fetchingQueue: BlockingQueue;
@@ -477,13 +475,11 @@ export default class PackageResolver {
       return;
     }
 
-    const fetchKey = `${req.registry}:${req.pattern}`;
-
-    if (this.fetchingPatterns[fetchKey]) {
+    const fetchKey = `${req.registry}:${req.pattern}:${String(req.optional)}`;
+    if (this.fetchingPatterns.has(fetchKey)) {
       return;
-    } else {
-      this.fetchingPatterns[fetchKey] = true;
     }
+    this.fetchingPatterns.add(fetchKey);
 
     if (this.activity) {
       this.activity.tick(req.pattern);
@@ -579,7 +575,6 @@ export default class PackageResolver {
       } else {
         this.resolutionMap.addToDelayQueue(req);
       }
-
       return null;
     }
 

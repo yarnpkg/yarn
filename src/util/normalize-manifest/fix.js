@@ -309,8 +309,12 @@ export default (async function(
   }
 
   for (const dependencyType of DEPENDENCY_TYPES) {
-    if (info[dependencyType] && typeof info[dependencyType] === 'object') {
-      delete info[dependencyType]['//'];
+    const dependencyList = info[dependencyType];
+    if (dependencyList && typeof dependencyList === 'object') {
+      delete dependencyList['//'];
+      for (const name in dependencyList) {
+        dependencyList[name] = dependencyList[name] || '';
+      }
     }
   }
 });

@@ -134,7 +134,7 @@ export default class ConsoleReporter extends BaseReporter {
 
     if (hints) {
       for (const item of items) {
-        this._log(`${' '.repeat(gutterWidth)}- ${item}`);
+        this._log(`${' '.repeat(gutterWidth)}- ${this.format.bold(item)}`);
         this._log(`  ${' '.repeat(gutterWidth)} ${hints[item]}`);
       }
     } else {

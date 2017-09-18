@@ -10,6 +10,7 @@ git:
 language: node_js
 
 node_js:
+  - "8"
   - "6"
   - "4"
 
@@ -38,9 +39,19 @@ matrix:
       node_js: "4"
     - env: TEST_TYPE="lint"
       node_js: "4"
+    - env: TEST_TYPE="build-dist"
+      node_js: "6"
+    - env: TEST_TYPE="check-lockfile"
+      node_js: "6"
+    - env: TEST_TYPE="lint"
+      node_js: "6"
+
   include:
     - os: osx
       node_js: "6"
+      env: TEST_TYPE="test-only"
+    - os: osx
+      node_js: "8"
       env: TEST_TYPE="test-only"
 
 before_install:
