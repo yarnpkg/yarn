@@ -19,14 +19,15 @@ async function execCommand(cmd: string, packageName: string, env = process.env):
   await fs.copy(srcPackageDir, packageDir, new NoopReporter());
 
   return new Promise((resolve, reject) => {
+    const cleanedEnv = {...env};
+    cleanedEnv['YARN_SILENT'] = 0;
+    delete cleanedEnv['FORCE_COLOR'];
+
     exec(
       `node "${yarnBin}" ${cmd}`,
       {
         cwd: packageDir,
-        env: {
-          ...env,
-          YARN_SILENT: 0,
-        },
+        env: cleanedEnv,
       },
       (err, stdout) => {
         if (err) {
