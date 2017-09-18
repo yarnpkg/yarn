@@ -32,14 +32,15 @@ async function execCommand(
   const cacheDir = path.join(workingDir, '.yarn-cache');
 
   return new Promise((resolve, reject) => {
+    const cleanedEnv = {...process.env};
+    cleanedEnv['YARN_SILENT'] = 0;
+    delete cleanedEnv['FORCE_COLOR'];
+
     exec(
       `node "${yarnBin}" --cache-folder="${cacheDir}" ${cmd} ${args.join(' ')}`,
       {
         cwd: workingDir,
-        env: {
-          ...process.env,
-          YARN_SILENT: 0,
-        },
+        env: cleanedEnv,
       },
       (error, stdout) => {
         if (error) {

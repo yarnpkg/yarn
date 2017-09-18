@@ -71,6 +71,11 @@ const PORT_RANGE = MAX_PORT_NUM - MIN_PORT_NUM;
 const getRandomPort = () => Math.floor(Math.random() * PORT_RANGE) + MIN_PORT_NUM;
 
 async function runYarn(args: Array<string> = [], options: Object = {}): Promise<Array<Buffer>> {
+  if (!options['env']) {
+    options['env'] = {...process.env};
+    options['extendEnv'] = false;
+  }
+  delete options['env']['FORCE_COLOR'];
   const {stdout, stderr} = await execa(path.resolve(__dirname, '../bin/yarn'), args, options);
 
   return [stdout, stderr];
