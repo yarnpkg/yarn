@@ -242,7 +242,9 @@ d:
 
 test('parse single merge conflict with CRLF', () => {
   const file =
-    'a:\r\n  no "yes"\r\n\r\n<<<<<<< HEAD\r\nb:\r\n  foo "bar"\r\n=======\r\nc:\r\n  bar "foo"\r\n>>>>>>> branch-a\r\n\r\nd:\r\n  yes "no"\r\n';
+    'a:\r\n  no "yes"\r\n\r\n<<<<<<< HEAD\r\nb:\r\n  foo "bar"' +
+    '\r\n=======\r\nc:\r\n  bar "foo"\r\n>>>>>>> branch-a' +
+    '\r\n\r\nd:\r\n  yes "no"\r\n';
 
   const {type, object} = parse(file);
   expect(type).toEqual('merge');
