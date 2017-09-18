@@ -82,10 +82,10 @@ test.concurrent(
       execCommand('test', 'npm_config_argv_env_vars', env),
     ]);
 
-    expect(stdouts[0]).toContain('##install##');
-    expect(stdouts[1]).toContain('##install##');
-    expect(stdouts[2]).toContain('##test##');
-    expect(stdouts[3]).toContain('##test##');
+    expect(stdouts[0]).toContain('"install"');
+    expect(stdouts[1]).toContain('"install"');
+    expect(stdouts[2]).toContain('"run","test"');
+    expect(stdouts[3]).toContain('"run","test"');
   },
 );
 
