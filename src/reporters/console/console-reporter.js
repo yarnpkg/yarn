@@ -30,7 +30,7 @@ type InquirerResponses<K, T> = {[key: K]: Array<T>};
 
 // fixes bold on windows
 if (process.platform === 'win32' && process.env.TERM && !/^xterm/i.test(process.env.TERM)) {
-  chalk.bold.close += '\u001b[m';
+  chalk.bold._styles[0].open += '\u001b[m';
 }
 
 export default class ConsoleReporter extends BaseReporter {
