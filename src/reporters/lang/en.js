@@ -361,6 +361,8 @@ const messages = {
   deprecatedCommand: '$0 is deprecated. Please use $1.',
   implicitFileDeprecated:
     'Using the "file:" protocol implicitly is deprecated. Please either the protocol or prepend the path $0 with "./".',
+  unsupportedNodeVersion:
+    'You are using Node $0 which is not supported and may encounter bugs or unexpected behavior. Yarn supports the following semver range: $1',
 };
 
 export type LanguageKeys = $Keys<typeof messages>;
