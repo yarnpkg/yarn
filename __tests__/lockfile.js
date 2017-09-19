@@ -23,7 +23,20 @@ test('parse', () => {
   expect(parse(`foo:\n  bar "bar"`).object).toEqual(nullify({foo: {bar: 'bar'}}));
   expect(parse(`foo:\n  bar:\n  foo "bar"`).object).toEqual(nullify({foo: {bar: {}, foo: 'bar'}}));
   expect(parse(`foo:\n  bar:\n    foo "bar"`).object).toEqual(nullify({foo: {bar: {foo: 'bar'}}}));
+  expect(parse(`foo:\r\n  bar:\r\n    foo "bar"`).object).toEqual(nullify({foo: {bar: {foo: 'bar'}}}));
   expect(parse('foo:\n  bar:\n    yes no\nbar:\n  yes no').object).toEqual(
+    nullify({
+      foo: {
+        bar: {
+          yes: 'no',
+        },
+      },
+      bar: {
+        yes: 'no',
+      },
+    }),
+  );
+  expect(parse('foo:\r\n  bar:\r\n    yes no\r\nbar:\r\n  yes no').object).toEqual(
     nullify({
       foo: {
         bar: {
@@ -216,6 +229,22 @@ c:
 d:
   yes "no"
 `;
+
+  const {type, object} = parse(file);
+  expect(type).toEqual('merge');
+  expect(object).toEqual({
+    a: {no: 'yes'},
+    b: {foo: 'bar'},
+    c: {bar: 'foo'},
+    d: {yes: 'no'},
+  });
+});
+
+test('parse single merge conflict with CRLF', () => {
+  const file =
+    'a:\r\n  no "yes"\r\n\r\n<<<<<<< HEAD\r\nb:\r\n  foo "bar"' +
+    '\r\n=======\r\nc:\r\n  bar "foo"\r\n>>>>>>> branch-a' +
+    '\r\n\r\nd:\r\n  yes "no"\r\n';
 
   const {type, object} = parse(file);
   expect(type).toEqual('merge');
