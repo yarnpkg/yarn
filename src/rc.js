@@ -1,6 +1,9 @@
 /* @flow */
 
 import {dirname, resolve} from 'path';
+
+import commander from 'commander';
+
 import {parse} from './lockfile';
 import * as rcUtil from './util/rc.js';
 
@@ -46,12 +49,14 @@ function buildRcArgs(cwd: string): Map<string, Array<string>> {
     argsForCommands.set(commandName, args);
 
     // turn config value into appropriate cli flag
-    if (typeof value === 'string') {
+    const option = commander.optionFor(`--${arg}`);
+
+    // If commander doesn't recognize the option or it takes a value after it
+    if (!option || option.optional || option.required) {
       args.push(`--${arg}`, value);
     } else if (value === true) {
+      // we can't force remove an arg from cli
       args.push(`--${arg}`);
-    } else if (value === false) {
-      args.push(`--no-${arg}`);
     }
   }
 
@@ -80,7 +85,7 @@ export function getRcArgs(commandName: string, args: Array<string>, previousCwds
   const argMap = buildRcArgs(origCwd);
 
   // concat wildcard arguments and arguments meant for this specific command
-  const newArgs = [].concat(argMap.get('*') || [], argMap.get(commandName) || []);
+  const newArgs = [...(argMap.get('*') || []), ...(argMap.get(commandName) || [])];
 
   // check if the .yarnrc args specified a cwd
   const newCwd = extractCwdArg(newArgs);

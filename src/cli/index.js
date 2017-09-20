@@ -38,6 +38,8 @@ function findProjectRoot(base: string): string {
   return base;
 }
 
+const boolify = val => val.toString().toLowerCase() !== 'false' && val !== '0';
+
 export function main({
   startArgs,
   args,
@@ -68,7 +70,7 @@ export function main({
   commander.option('--check-files', 'install will verify file tree of packages for consistency');
   commander.option('--no-bin-links', "don't generate bin links when setting up packages");
   commander.option('--flat', 'only allow one version of a package');
-  commander.option('--prod, --production [prod]', '');
+  commander.option('--prod, --production [prod]', '', boolify);
   commander.option('--no-lockfile', "don't read or generate a lockfile");
   commander.option('--pure-lockfile', "don't generate a lockfile");
   commander.option('--frozen-lockfile', "don't generate a lockfile and fail if an update is needed");
@@ -82,7 +84,7 @@ export function main({
   commander.option('--preferred-cache-folder <path>', 'specify a custom folder to store the yarn cache if possible');
   commander.option('--cache-folder <path>', 'specify a custom folder that must be used to store the yarn cache');
   commander.option('--mutex <type>[:specifier]', 'use a mutex to ensure only one yarn instance is executing');
-  commander.option('--emoji [bool]', 'enable emoji in output', process.platform === 'darwin');
+  commander.option('--emoji [bool]', 'enable emoji in output', boolify, process.platform === 'darwin');
   commander.option('-s, --silent', 'skip Yarn console logs, other types of logs (script output) will be printed');
   commander.option('--cwd <cwd>', 'working directory to use', process.cwd());
   commander.option('--proxy <host>', '');
@@ -91,7 +93,11 @@ export function main({
   commander.option('--network-concurrency <number>', 'maximum number of concurrent network requests', parseInt);
   commander.option('--network-timeout <milliseconds>', 'TCP timeout for network requests', parseInt);
   commander.option('--non-interactive', 'do not show interactive prompts');
-  commander.option('--scripts-prepend-node-path [bool]', 'prepend the node executable dir to the PATH in scripts');
+  commander.option(
+    '--scripts-prepend-node-path [bool]',
+    'prepend the node executable dir to the PATH in scripts',
+    boolify,
+  );
 
   // if -v is the first command, then always exit after returning the version
   if (args[0] === '-v') {
@@ -105,7 +111,7 @@ export function main({
     const isOption = arg.startsWith('-');
     const prev = idx > 0 && arr[idx - 1];
     const prevOption = prev && prev.startsWith('-') && commander.optionFor(prev);
-    const boundToPrevOption = prevOption && prevOption.required;
+    const boundToPrevOption = prevOption && (prevOption.optional || prevOption.required);
 
     return !isOption && !boundToPrevOption;
   });
@@ -140,19 +146,17 @@ export function main({
     setHelpMode();
   }
 
-  let command;
   if (!commandName) {
     commandName = 'install';
     isKnownCommand = true;
   }
 
-  if (isKnownCommand) {
-    command = commands[commandName];
-  } else {
+  if (!isKnownCommand) {
     // if command is not recognized, then set default to `run`
     args.unshift(commandName);
-    command = commands.run;
+    commandName = 'run';
   }
+  const command = commands[commandName];
 
   let warnAboutRunDashDash = false;
   // we are using "yarn <script> -abc" or "yarn run <script> -abc", we want -abc to be script options, not yarn options
@@ -448,6 +452,7 @@ export function main({
   config
     .init({
       cwd,
+      commandName,
 
       binLinks: commander.binLinks,
       modulesFolder: commander.modulesFolder,
@@ -469,8 +474,6 @@ export function main({
       networkTimeout: commander.networkTimeout,
       nonInteractive: commander.nonInteractive,
       scriptsPrependNodePath: commander.scriptsPrependNodePath,
-
-      commandName: commandName === 'run' ? commander.args[0] : commandName,
     })
     .then(() => {
       // option "no-progress" stored in yarn config
