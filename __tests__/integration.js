@@ -121,6 +121,23 @@ test('--cwd option', async () => {
   expect(packageJson.dependencies['left-pad']).toBeDefined();
 });
 
+test('yarnrc arguments', async () => {
+  const cwd = await makeTemp();
+
+  await fs.writeFile(
+    `${cwd}/.yarnrc`,
+    ['--emoji false', '--json true', '--add.exact true', '--no-progress true', '--cache-folder "./yarn-cache"'].join(
+      '\n',
+    ),
+  );
+  await fs.writeFile(`${cwd}/package.json`, JSON.stringify({name: 'test', license: 'ISC', version: '1.0.0'}));
+
+  const [stdoutOutput] = await runYarn(['add', 'left-pad'], {cwd});
+  expect(stdoutOutput).toMatchSnapshot('yarnrc-args');
+  expect(JSON.parse(await fs.readFile(`${cwd}/package.json`)).dependencies['left-pad']).toMatch(/^\d+\./);
+  expect((await fs.stat(`${cwd}/yarn-cache`)).isDirectory()).toBe(true);
+});
+
 test('yarnrc binary path (js)', async () => {
   const cwd = await makeTemp();
 
