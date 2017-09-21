@@ -1,7 +1,6 @@
 ---
-# Without sudo, Travis CI uses AUFS which causes issues with our
-# tests when we write stuff and try to read it back right after to
-# verfify our expectations.
+# Without sudo, Travis CI uses AUFS which is too slow for our I/O heavy tests.
+# With AUFS, we get lots of timeouts and increased build times.
 # See https://docs.travis-ci.com/user/ci-environment/#Virtualization-environments
 sudo: required
 
