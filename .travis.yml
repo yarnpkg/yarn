@@ -1,9 +1,5 @@
 ---
-# Without sudo, Travis CI uses AUFS which causes issues with our
-# tests when we write stuff and try to read it back right after to
-# verfify our expectations.
-# See https://docs.travis-ci.com/user/ci-environment/#Virtualization-environments
-sudo: required
+sudo: false
 
 git:
   depth: 10
