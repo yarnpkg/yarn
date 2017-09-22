@@ -30,7 +30,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
   }
 
   const getNameFromHint = hint => (hint ? `${hint}Dependencies` : 'dependencies');
-  const colorizeName = ({current, wanted, name}) => reporter.format[colorForVersions(current, wanted)](name);
+  const colorizeName = ({current, latest, name}) => reporter.format[colorForVersions(current, latest)](name);
 
   if (deps.length) {
     const body = deps.map((info): Array<string> => {

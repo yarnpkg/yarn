@@ -22,6 +22,13 @@ const runOutdated = buildRun.bind(
           write() {},
         }),
       });
+
+      // mock all formatters so we can assert on all of them
+      const mockFormat = {};
+      Object.keys(this.format).forEach(key => {
+        mockFormat[key] = jest.fn(this.format[key]);
+      });
+      this.format = mockFormat;
     }
   },
   fixturesLoc,
@@ -56,6 +63,7 @@ test.concurrent('works with no arguments', (): Promise<void> => {
     const json: Object = JSON.parse(out);
 
     expect(json.data.body.length).toBe(1);
+    expect(reporter.format.green).toHaveBeenCalledWith('left-pad');
   });
 });
 
@@ -65,6 +73,7 @@ test.concurrent('works with single argument', (): Promise<void> => {
 
     expect(json.data.body.length).toBe(1);
     expect(json.data.body[0][0]).toBe('max-safe-integer');
+    expect(reporter.format.green).toHaveBeenCalledWith('max-safe-integer');
   });
 });
 
@@ -77,6 +86,8 @@ test.concurrent('works with multiple arguments', (): Promise<void> => {
     expect(json.data.body.length).toBe(2);
     expect(json.data.body[0][0]).toBe('left-pad');
     expect(json.data.body[1][0]).toBe('max-safe-integer');
+    expect(reporter.format.yellow).toHaveBeenCalledWith('left-pad');
+    expect(reporter.format.green).toHaveBeenCalledWith('max-safe-integer');
   });
 });
 
@@ -95,7 +106,9 @@ test.concurrent('works with exotic resolvers', (): Promise<void> => {
 
     expect(json.data.body.length).toBe(2);
     expect(json.data.body[0]).toEqual(first);
+    expect(reporter.format.red).toHaveBeenCalledWith('max-safe-integer');
     expect(json.data.body[1]).toEqual(second);
+    expect(reporter.format.red).toHaveBeenCalledWith('yarn');
   });
 });
 
@@ -112,6 +125,7 @@ test.concurrent('shows when wanted > current and current > latest', (): Promise<
     expect(json.data.body.length).toBe(1);
     expect(json.data.body[0][0]).toBe('webpack');
     expect(semver.lt(json.data.body[0][1], json.data.body[0][2])).toBe(true);
+    expect(reporter.format.yellow).toHaveBeenCalledWith('webpack');
   });
 });
 
@@ -124,9 +138,12 @@ test.concurrent('displays correct dependency types', (): Promise<void> => {
     expect(json.data.body.length).toBe(3);
     expect(body[0][0]).toBe('is-online');
     expect(body[0][4]).toBe('optionalDependencies');
+    expect(reporter.format.red).toHaveBeenCalledWith('is-online');
     expect(body[1][0]).toBe('left-pad');
     expect(body[1][4]).toBe('dependencies');
+    expect(reporter.format.yellow).toHaveBeenCalledWith('left-pad');
     expect(body[2][0]).toBe('max-safe-integer');
     expect(body[2][4]).toBe('devDependencies');
+    expect(reporter.format.green).toHaveBeenCalledWith('max-safe-integer');
   });
 });
