@@ -22,6 +22,7 @@ import inquirer from 'inquirer';
 const {inspect} = require('util');
 const readline = require('readline');
 const chalk = require('chalk');
+const stripAnsi = require('strip-ansi');
 const read = require('read');
 const tty = require('tty');
 
@@ -40,6 +41,7 @@ export default class ConsoleReporter extends BaseReporter {
     this._lastCategorySize = 0;
     this._spinners = new Set();
     this.format = (chalk: any);
+    this.format.stripColor = stripAnsi;
     this.isSilent = !!opts.isSilent;
   }
 
