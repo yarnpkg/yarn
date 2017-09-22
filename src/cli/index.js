@@ -1,5 +1,17 @@
 /* @flow */
 
+import http from 'http';
+import net from 'net';
+import path from 'path';
+
+import commander from 'commander';
+import fs from 'fs';
+import invariant from 'invariant';
+import lockfile from 'proper-lockfile';
+import loudRejection from 'loud-rejection';
+import onDeath from 'death';
+import semver from 'semver';
+
 import {ConsoleReporter, JSONReporter} from '../reporters/index.js';
 import {registries, registryNames} from '../registries/index.js';
 import commands from './commands/index.js';
@@ -11,16 +23,6 @@ import {getRcConfigForCwd, getRcArgs} from '../rc.js';
 import {spawnp, forkp} from '../util/child.js';
 import {version} from '../util/yarn-version.js';
 import handleSignals from '../util/signal-handler.js';
-
-const commander = require('commander');
-const fs = require('fs');
-const invariant = require('invariant');
-const lockfile = require('proper-lockfile');
-const loudRejection = require('loud-rejection');
-const http = require('http');
-const net = require('net');
-const onDeath = require('death');
-const path = require('path');
 
 function findProjectRoot(base: string): string {
   let prev = null;
@@ -98,6 +100,7 @@ export function main({
     'prepend the node executable dir to the PATH in scripts',
     boolify,
   );
+  commander.option('--no-node-version-check', 'do not warn when using a potentially unsupported Node version');
 
   // if -v is the first command, then always exit after returning the version
   if (args[0] === '-v') {
@@ -207,6 +210,10 @@ export function main({
 
   if (outputWrapper) {
     reporter.header(commandName, {name: 'yarn', version});
+  }
+
+  if (commander.nodeVersionCheck && !semver.satisfies(process.versions.node, constants.SUPPORTED_NODE_VERSIONS)) {
+    reporter.warn(reporter.lang('unsupportedNodeVersion', process.versions.node, constants.SUPPORTED_NODE_VERSIONS));
   }
 
   if (command.noArguments && commander.args.length) {
