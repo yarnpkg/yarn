@@ -4,6 +4,7 @@ import type Config from '../../config.js';
 import {MessageError} from '../../errors.js';
 import type {Reporter} from '../../reporters/index.js';
 import * as child from '../../util/child.js';
+import {NODE_BIN_PATH, YARN_BIN_PATH} from '../../constants';
 
 const invariant = require('invariant');
 
@@ -39,8 +40,13 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
     throw new MessageError(reporter.lang('workspaceUnknownWorkspace', workspaceName));
   }
 
+  const workspace = workspaces[workspaceName];
+
   try {
-    await child.spawn(process.argv[0], [process.argv[1], ...rest], {stdio: 'inherit'});
+    await child.spawn(NODE_BIN_PATH, [YARN_BIN_PATH, ...rest], {
+      stdio: 'inherit',
+      cwd: workspace.loc,
+    });
   } catch (err) {
     throw err;
   }

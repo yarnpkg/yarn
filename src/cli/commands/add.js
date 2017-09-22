@@ -32,6 +32,16 @@ export class Add extends Install {
     ]
       .filter(Boolean)
       .shift();
+
+    if (this.config.workspaceRootFolder && this.config.cwd === this.config.workspaceRootFolder) {
+      this.setIgnoreWorkspaces(true);
+      // flagsToOrgin defaults to being a hard `dependency` when no flags are passed (see above),
+      // so it incorrectly throws a warning when upgrading existing devDependencies in workspace root
+      // To allow for a successful upgrade, override flagsToOrigin when `existing` flag is passed by `upgrade` command
+      if (flags.existing) {
+        this.flagToOrigin = '';
+      }
+    }
   }
 
   args: Array<string>;
@@ -59,7 +69,9 @@ export class Add extends Install {
    * returns version for a pattern based on Manifest
    */
   getPatternVersion(pattern: string, pkg: Manifest): string {
-    const {exact, tilde} = this.flags;
+    const tilde = this.flags.tilde;
+    const configPrefix = String(this.config.getOption('save-prefix'));
+    const exact = this.flags.exact || Boolean(this.config.getOption('save-exact')) || configPrefix === '';
     const {hasVersion, range} = normalizePattern(pattern);
     let version;
 
@@ -76,7 +88,7 @@ export class Add extends Install {
       } else if (exact) {
         prefix = '';
       } else {
-        prefix = String(this.config.getOption('save-prefix')) || '^';
+        prefix = configPrefix || '^';
       }
 
       version = `${prefix}${pkg.version}`;
@@ -120,7 +132,7 @@ export class Add extends Install {
    */
 
   async init(): Promise<Array<string>> {
-    if (this.config.workspaceRootFolder && this.config.cwd === this.config.workspaceRootFolder) {
+    if (this.ignoreWorkspaces) {
       if (this.flagToOrigin === 'dependencies') {
         throw new MessageError(this.reporter.lang('workspacesPreferDevDependencies'));
       }

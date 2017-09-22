@@ -225,12 +225,18 @@ export default class Config {
     this.workspaceRootFolder = await this.findWorkspaceRoot(this.cwd);
     this.lockfileFolder = this.workspaceRootFolder || this.cwd;
 
-    await fs.mkdirp(this.globalFolder);
-    await fs.mkdirp(this.linkFolder);
-
     this.linkedModules = [];
 
-    const linkedModules = await fs.readdir(this.linkFolder);
+    let linkedModules;
+    try {
+      linkedModules = await fs.readdir(this.linkFolder);
+    } catch (err) {
+      if (err.code === 'ENOENT') {
+        linkedModules = [];
+      } else {
+        throw err;
+      }
+    }
 
     for (const dir of linkedModules) {
       const linkedPath = path.join(this.linkFolder, dir);
@@ -291,29 +297,20 @@ export default class Config {
       const preferredCacheFolder = opts.preferredCacheFolder || this.getOption('preferred-cache-folder', true);
 
       if (preferredCacheFolder) {
-        preferredCacheFolders = [preferredCacheFolder].concat(preferredCacheFolders);
+        preferredCacheFolders = [String(preferredCacheFolder)].concat(preferredCacheFolders);
       }
 
-      for (let t = 0; t < preferredCacheFolders.length && !cacheRootFolder; ++t) {
-        const tentativeCacheFolder = String(preferredCacheFolders[t]);
+      const cacheFolderQuery = await fs.getFirstSuitableFolder(
+        preferredCacheFolders,
+        fs.constants.W_OK | fs.constants.X_OK | fs.constants.R_OK, // eslint-disable-line no-bitwise
+      );
+      for (const skippedEntry of cacheFolderQuery.skipped) {
+        this.reporter.warn(this.reporter.lang('cacheFolderSkipped', skippedEntry.folder));
+      }
 
-        try {
-          await fs.mkdirp(tentativeCacheFolder);
-
-          const testFile = path.join(tentativeCacheFolder, 'testfile');
-
-          // fs.access is not enough, because the cache folder could actually be a file.
-          await fs.writeFile(testFile, 'content');
-          await fs.readFile(testFile);
-
-          cacheRootFolder = tentativeCacheFolder;
-        } catch (error) {
-          this.reporter.warn(this.reporter.lang('cacheFolderSkipped', tentativeCacheFolder));
-        }
-
-        if (cacheRootFolder && t > 0) {
-          this.reporter.warn(this.reporter.lang('cacheFolderSelected', cacheRootFolder));
-        }
+      cacheRootFolder = cacheFolderQuery.folder;
+      if (cacheRootFolder && cacheFolderQuery.skipped.length > 0) {
+        this.reporter.warn(this.reporter.lang('cacheFolderSelected', cacheRootFolder));
       }
     }
 
@@ -322,8 +319,7 @@ export default class Config {
     } else {
       this._cacheRootFolder = String(cacheRootFolder);
     }
-
-    this.workspacesEnabled = Boolean(this.getOption('workspaces-experimental'));
+    this.workspacesEnabled = this.getOption('workspaces-experimental') !== false;
 
     this.pruneOfflineMirror = Boolean(this.getOption('yarn-offline-mirror-pruning'));
     this.enableMetaFolder = Boolean(this.getOption('enable-meta-folder'));
@@ -350,7 +346,7 @@ export default class Config {
     }
 
     if (this.workspaceRootFolder && !this.workspacesEnabled) {
-      throw new MessageError(this.reporter.lang('workspaceExperimentalDisabled'));
+      throw new MessageError(this.reporter.lang('workspacesDisabled'));
     }
   }
 

@@ -48,15 +48,21 @@ export default class PackageLinker {
     this.reporter = config.reporter;
     this.config = config;
     this.artifacts = {};
+    this.topLevelBinLinking = true;
   }
 
   artifacts: InstallArtifacts;
   reporter: Reporter;
   resolver: PackageResolver;
   config: Config;
+  topLevelBinLinking: boolean;
 
   setArtifacts(artifacts: InstallArtifacts) {
     this.artifacts = artifacts;
+  }
+
+  setTopLevelBinLinking(topLevelBinLinking: boolean) {
+    this.topLevelBinLinking = topLevelBinLinking;
   }
 
   async linkSelfDependencies(pkg: Manifest, pkgLoc: string, targetBinLoc: string): Promise<void> {
@@ -128,7 +134,9 @@ export default class PackageLinker {
 
     // write the executables
     for (const {dep, loc} of deps) {
-      await this.linkSelfDependencies(dep, loc, dir);
+      if (dep._reference && dep._reference.location) {
+        await this.linkSelfDependencies(dep, loc, dir);
+      }
     }
   }
 
@@ -271,7 +279,19 @@ export default class PackageLinker {
     // assume it's a link:-managed dependency, and overwrite it as usual.
     const linkTargets = new Map();
 
-    for (const entry of await fs.readdir(this.config.linkFolder)) {
+    let linkedModules;
+    try {
+      linkedModules = await fs.readdir(this.config.linkFolder);
+    } catch (err) {
+      if (err.code === 'ENOENT') {
+        linkedModules = [];
+      } else {
+        throw err;
+      }
+    }
+
+    // TODO: Consolidate this logic with `this.config.linkedModules` logic
+    for (const entry of linkedModules) {
       const entryPath = path.join(this.config.linkFolder, entry);
       const stat = await fs.lstat(entryPath);
 
@@ -369,9 +389,11 @@ export default class PackageLinker {
       await promise.queue(
         flatTree,
         async ([dest, {pkg}]) => {
-          const binLoc = path.join(dest, this.config.getFolder(pkg));
-          await this.linkBinDependencies(pkg, binLoc);
-          tickBin();
+          if (pkg._reference && pkg._reference.location) {
+            const binLoc = path.join(dest, this.config.getFolder(pkg));
+            await this.linkBinDependencies(pkg, binLoc);
+            tickBin();
+          }
         },
         linkBinConcurrency,
       );
@@ -380,7 +402,7 @@ export default class PackageLinker {
       await promise.queue(
         topLevelDependencies,
         async ([dest, pkg]) => {
-          if (pkg.bin && Object.keys(pkg.bin).length) {
+          if (pkg._reference && pkg._reference.location && pkg.bin && Object.keys(pkg.bin).length) {
             const binLoc = path.join(this.config.cwd, this.config.getFolder(pkg));
             await this.linkSelfDependencies(pkg, dest, binLoc);
             tickBin();
@@ -400,7 +422,7 @@ export default class PackageLinker {
     for (const [dest, {pkg, isDirectRequire}] of flatTree) {
       const {name} = pkg;
 
-      if (!linksToCreate.has(name) || isDirectRequire) {
+      if (isDirectRequire || (this.topLevelBinLinking && !linksToCreate.has(name))) {
         linksToCreate.set(name, [dest, pkg]);
       }
     }
@@ -410,34 +432,49 @@ export default class PackageLinker {
 
   resolvePeerModules() {
     for (const pkg of this.resolver.getManifests()) {
-      this._resolvePeerModules(pkg);
-    }
-  }
+      const peerDeps = pkg.peerDependencies;
+      if (!peerDeps) {
+        continue;
+      }
+      const ref = pkg._reference;
+      invariant(ref, 'Package reference is missing');
 
-  _resolvePeerModules(pkg: Manifest) {
-    const peerDeps = pkg.peerDependencies;
-    if (!peerDeps) {
-      return;
-    }
+      for (const peerDepName in peerDeps) {
+        const range = peerDeps[peerDepName];
+        const peerPkgs = this.resolver.getAllInfoForPackageName(peerDepName);
 
-    const ref = pkg._reference;
-    invariant(ref, 'Package reference is missing');
+        let peerError = 'unmetPeer';
+        let resolvedLevelDistance = Infinity;
+        let resolvedPeerPkgPattern;
+        for (const peerPkg of peerPkgs) {
+          const peerPkgRef = peerPkg._reference;
+          if (!(peerPkgRef && peerPkgRef.patterns)) {
+            continue;
+          }
+          const levelDistance = ref.level - peerPkgRef.level;
+          if (levelDistance >= 0 && levelDistance < resolvedLevelDistance) {
+            if (this._satisfiesPeerDependency(range, peerPkgRef.version)) {
+              resolvedLevelDistance = levelDistance;
+              resolvedPeerPkgPattern = peerPkgRef.patterns;
+              this.reporter.verbose(
+                this.reporter.lang(
+                  'selectedPeer',
+                  `${pkg.name}@${pkg.version}`,
+                  `${peerDepName}@${range}`,
+                  peerPkgRef.level,
+                ),
+              );
+            } else {
+              peerError = 'incorrectPeer';
+            }
+          }
+        }
 
-    for (const name in peerDeps) {
-      const range = peerDeps[name];
-      const pkgs = this.resolver.getAllInfoForPackageName(name);
-      const found = pkgs.find(pkg => {
-        const {root, version} = pkg._reference || {};
-        return root && this._satisfiesPeerDependency(range, version);
-      });
-      const foundPattern = found && found._reference && found._reference.patterns;
-
-      if (foundPattern) {
-        ref.addDependencies(foundPattern);
-      } else {
-        const depError = pkgs.length > 0 ? 'incorrectPeer' : 'unmetPeer';
-        const [pkgHuman, depHuman] = [`${pkg.name}@${pkg.version}`, `${name}@${range}`];
-        this.reporter.warn(this.reporter.lang(depError, pkgHuman, depHuman));
+        if (resolvedPeerPkgPattern) {
+          ref.addDependencies(resolvedPeerPkgPattern);
+        } else {
+          this.reporter.warn(this.reporter.lang(peerError, `${pkg.name}@${pkg.version}`, `${peerDepName}@${range}`));
+        }
       }
     }
   }

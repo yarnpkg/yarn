@@ -27,6 +27,7 @@ test('resolveVersion', async () => {
   refs.set('refs/tags/v1.1.0', '37d5ed001dc4402d5446911c4e1cb589449e7d8d');
   refs.set('refs/tags/v2.2.0', 'e88209b9513544a22fc3f8660e3d829281dc2c9f');
   refs.set('refs/tags/both', 'f0dbab0a4345a64f544af37e24fc8187176936a4');
+  refs.set('refs/pull/100/head', '6e97e0159f10c275f227d0f067d99f2a97331cef');
   const emptyRefs: GitRefs = new Map();
   const git = new GitMock();
 
@@ -68,6 +69,10 @@ test('resolveVersion', async () => {
   expect(await resolve('v1.1.0')).toEqual({
     sha: '37d5ed001dc4402d5446911c4e1cb589449e7d8d',
     ref: 'refs/tags/v1.1.0',
+  });
+  expect(await resolve('100/head')).toEqual({
+    sha: '6e97e0159f10c275f227d0f067d99f2a97331cef',
+    ref: 'refs/pull/100/head',
   });
   // not-existing sha
   expect(await resolve('0123456')).toEqual(null);

@@ -7,24 +7,32 @@ import * as fs from '../src/util/fs.js';
 import * as misc from '../src/util/misc.js';
 import * as constants from '../src/constants.js';
 
-jasmine.DEFAULT_TIMEOUT_INTERVAL = 90000;
+jasmine.DEFAULT_TIMEOUT_INTERVAL = 120000;
 
 const path = require('path');
 
-function addTest(pattern) {
-  // concurrently network requests tend to stall
-  test(`yarn add ${pattern}`, async () => {
+function addTest(pattern, {strict} = {strict: false}) {
+  test.concurrent(`yarn add ${pattern}`, async () => {
     const cwd = await makeTemp();
     const cacheFolder = path.join(cwd, 'cache');
 
     const command = path.resolve(__dirname, '../bin/yarn');
-    const args = ['--cache-folder', cacheFolder, '--verbose'];
+    const args = ['--cache-folder', cacheFolder];
 
     const options = {cwd};
 
-    await fs.writeFile(path.join(cwd, 'package.json'), JSON.stringify({name: 'test'}));
+    await fs.writeFile(
+      path.join(cwd, 'package.json'),
+      JSON.stringify({
+        name: 'test',
+        license: 'MIT',
+      }),
+    );
 
-    await execa(command, ['add', pattern].concat(args), options);
+    const result = await execa(command, ['add', pattern].concat(args), options);
+    if (strict) {
+      expect(result.stderr).not.toMatch(/^warning /gm);
+    }
 
     await fs.unlink(cwd);
   });
@@ -41,7 +49,7 @@ function addTest(pattern) {
 //       path.join(folder, constants.METADATA_FILENAME),
 //       '{"remote": {"hash": "cafebabecafebabecafebabecafebabecafebabe"}}',
 //     );
-//     await fs.writeFile(path.join(folder, 'package.json'), '{"name": "@foo/bar", "version": "1.2.3"}');
+//     await fs.writeFile(path.join(foldresolve gitlab:leanlabsio/kanbaner, 'package.json'), '{"name": "@foo/bar", "version": "1.2.3"}');
 //   },
 //   true,
 // ); // offline npm scoped package
@@ -51,35 +59,83 @@ addTest('https://git@github.com/stevemao/left-pad.git'); // git url, with userna
 addTest('https://github.com/yarnpkg/yarn/releases/download/v0.18.1/yarn-v0.18.1.tar.gz'); // tarball
 addTest('https://github.com/bestander/chrome-app-livereload.git'); // no package.json
 addTest('bestander/chrome-app-livereload'); // no package.json, github, tarball
+// Only run `react-scripts` test on Node 6+
+if (parseInt(process.versions.node.split('.')[0], 10) >= 6) {
+  addTest('react-scripts@1.0.13', {strict: true}); // many peer dependencies, there shouldn't be any peerDep warnings
+}
 
-const MIN_PORT_NUM = 1024;
+const MIN_PORT_NUM = 56000;
 const MAX_PORT_NUM = 65535;
 const PORT_RANGE = MAX_PORT_NUM - MIN_PORT_NUM;
 
 const getRandomPort = () => Math.floor(Math.random() * PORT_RANGE) + MIN_PORT_NUM;
 
-function runYarn(args: Array<string> = [], options: Object = {}): Promise<Array<Buffer>> {
-  const {stderr, stdout} = execa(path.resolve(__dirname, '../bin/yarn'), args, options);
+async function runYarn(args: Array<string> = [], options: Object = {}): Promise<Array<Buffer>> {
+  if (!options['env']) {
+    options['env'] = {...process.env};
+    options['extendEnv'] = false;
+  }
+  delete options['env']['FORCE_COLOR'];
+  const {stdout, stderr} = await execa(path.resolve(__dirname, '../bin/yarn'), args, options);
 
-  const stdoutPromise = misc.consumeStream(stdout);
-  const stderrPromise = misc.consumeStream(stderr);
-
-  return Promise.all([stdoutPromise, stderrPromise]);
+  return [stdout, stderr];
 }
 
 test('--mutex network', async () => {
   const cwd = await makeTemp();
-  const cacheFolder = path.join(cwd, '.cache');
 
-  const command = path.resolve(__dirname, '../bin/yarn');
-  const args = ['--cache-folder', cacheFolder, '--verbose', '--mutex', `network:${getRandomPort()}`];
+  const port = getRandomPort();
+  await fs.writeFile(path.join(cwd, '.yarnrc'), `--mutex "network:${port}"\n`);
 
-  const options = {cwd};
+  const promises = [];
 
-  await Promise.all([
-    execa(command, ['add', 'left-pad'].concat(args), options),
-    execa(command, ['add', 'foo'].concat(args), options),
-  ]);
+  for (let t = 0; t < 40; ++t) {
+    const subCwd = path.join(cwd, String(t));
+
+    await fs.mkdirp(subCwd);
+    await fs.writeFile(
+      path.join(subCwd, 'package.json'),
+      JSON.stringify({
+        scripts: {test: 'node -e "setTimeout(function(){}, process.argv[1])"'},
+      }),
+    );
+
+    promises.push(runYarn(['run', 'test', '100'], {cwd: subCwd}));
+  }
+
+  await Promise.all(promises);
+});
+
+test('--cwd option', async () => {
+  const cwd = await makeTemp();
+
+  const subdir = path.join(cwd, 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i');
+  await fs.mkdirp(subdir);
+
+  const packageJsonPath = path.join(cwd, 'package.json');
+  await fs.writeFile(packageJsonPath, JSON.stringify({}));
+
+  await runYarn(['add', 'left-pad'], {cwd: subdir});
+
+  const packageJson = JSON.parse(await fs.readFile(packageJsonPath));
+  expect(packageJson.dependencies['left-pad']).toBeDefined();
+});
+
+test('yarnrc arguments', async () => {
+  const cwd = await makeTemp();
+
+  await fs.writeFile(
+    `${cwd}/.yarnrc`,
+    ['--emoji false', '--json true', '--add.exact true', '--no-progress true', '--cache-folder "./yarn-cache"'].join(
+      '\n',
+    ),
+  );
+  await fs.writeFile(`${cwd}/package.json`, JSON.stringify({name: 'test', license: 'ISC', version: '1.0.0'}));
+
+  const [stdoutOutput] = await runYarn(['add', 'left-pad'], {cwd});
+  expect(stdoutOutput).toMatchSnapshot('yarnrc-args');
+  expect(JSON.parse(await fs.readFile(`${cwd}/package.json`)).dependencies['left-pad']).toMatch(/^\d+\./);
+  expect((await fs.stat(`${cwd}/yarn-cache`)).isDirectory()).toBe(true);
 });
 
 test('yarnrc binary path (js)', async () => {
@@ -167,19 +223,12 @@ test('cache folder fallback', async () => {
   const cwd = await makeTemp();
   const cacheFolder = path.join(cwd, '.cache');
 
-  const command = path.resolve(__dirname, '../bin/yarn');
   const args = ['--preferred-cache-folder', cacheFolder];
-
   const options = {cwd};
 
-  function runCacheDir(): Promise<Array<Buffer>> {
-    const {stderr, stdout} = execa(command, ['cache', 'dir'].concat(args), options);
-
-    const stdoutPromise = misc.consumeStream(stdout);
-    const stderrPromise = misc.consumeStream(stderr);
-
-    return Promise.all([stdoutPromise, stderrPromise]);
-  }
+  const runCacheDir = () => {
+    return runYarn(['cache', 'dir'].concat(args), options);
+  };
 
   const [stdoutOutput, stderrOutput] = await runCacheDir();
 
@@ -195,4 +244,13 @@ test('cache folder fallback', async () => {
     path.join(constants.PREFERRED_MODULE_CACHE_DIRECTORIES[0], `v${constants.CACHE_VERSION}`),
   );
   expect(stderrOutput2.toString()).toMatch(/Skipping preferred cache folder/);
+});
+
+test('yarn create', async () => {
+  const cwd = await makeTemp();
+  const options = {cwd, env: {YARN_SILENT: 1}};
+
+  const [stdoutOutput, _] = await runYarn(['create', 'html'], options);
+
+  expect(stdoutOutput.toString()).toMatch(/<!doctype html>/);
 });

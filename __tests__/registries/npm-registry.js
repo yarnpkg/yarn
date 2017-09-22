@@ -256,13 +256,16 @@ describe('isRequestToRegistry functional test', () => {
     expect(npmRegistry.isRequestToRegistry('http://pkgs.host.com:80/foo/bar/baz', 'http://pkgs.host.com/bar/baz')).toBe(
       true,
     );
+    expect(npmRegistry.isRequestToRegistry('http://pkgs.host.com:80/foo/bar/baz', '//pkgs.host.com/bar/baz')).toBe(
+      true,
+    );
   });
 });
 
 const packageIdents = [
   ['normal', ''],
   ['@scopedNoPkg', ''],
-  ['@scoped/notescaped', ''],
+  ['@scoped/notescaped', '@scoped'],
   ['not@scope/pkg', ''],
   ['@scope?query=true', ''],
   ['@scope%2fpkg', '@scope'],
@@ -271,13 +274,15 @@ const packageIdents = [
   ['@scope%2fpkg%2f1.2.3', '@scope'],
   ['http://foo.bar:80/normal', ''],
   ['http://foo.bar:80/@scopedNoPkg', ''],
-  ['http://foo.bar:80/@scoped/notescaped', ''],
+  ['http://foo.bar:80/@scoped/notescaped', '@scoped'],
+  ['http://foo.bar:80/@scoped/notescaped/download/@scoped/notescaped-1.0.0.tgz', '@scoped'],
   ['http://foo.bar:80/not@scope/pkg', ''],
   ['http://foo.bar:80/@scope?query=true', ''],
   ['http://foo.bar:80/@scope%2fpkg', '@scope'],
   ['http://foo.bar:80/@scope%2fpkg%2fext', '@scope'],
   ['http://foo.bar:80/@scope%2fpkg?query=true', '@scope'],
   ['http://foo.bar:80/@scope%2fpkg%2f1.2.3', '@scope'],
+  ['http://foo.bar:80/@scope%2fpkg/download/@scope%2fpkg-1.0.0.tgz', '@scope'],
 ];
 
 describe('isScopedPackage functional test', () => {
@@ -290,6 +295,27 @@ describe('isScopedPackage functional test', () => {
     packageIdents.forEach(([pathname, scope]) => {
       expect(npmRegistry.isScopedPackage(pathname)).toEqual(!!scope.length);
     });
+  });
+});
+
+describe('getRequestUrl functional test', () => {
+  test('returns pathname when it is a full URL', () => {
+    const testCwd = '.';
+    const {mockRequestManager, mockRegistries, mockReporter} = createMocks();
+    const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter);
+    const fullURL = 'HTTP://xn--xample-hva.com:80/foo/bar/baz';
+
+    expect(npmRegistry.getRequestUrl('https://my.registry.co', fullURL)).toEqual(fullURL);
+  });
+
+  test('correctly handles registries lacking a trailing slash', () => {
+    const testCwd = '.';
+    const {mockRequestManager, mockRegistries, mockReporter} = createMocks();
+    const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter);
+    const registry = 'https://my.registry.co/registry';
+    const pathname = 'foo/bar/baz';
+
+    expect(npmRegistry.getRequestUrl(registry, pathname)).toEqual('https://my.registry.co/registry/foo/bar/baz');
   });
 });
 

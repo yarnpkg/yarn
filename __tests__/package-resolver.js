@@ -17,8 +17,7 @@ const path = require('path');
 const cachePathRe = /-\d+\.\d+\.\d+-[\dabcdef]{40}$/;
 
 function addTest(pattern, registry = 'npm', init: ?(cacheFolder: string) => Promise<any>, offline = false) {
-  // concurrently network requests tend to stall
-  test(`${offline ? 'offline ' : ''}resolve ${pattern}`, async () => {
+  test.concurrent(`${offline ? 'offline ' : ''}resolve ${pattern}`, async () => {
     const lockfile = new Lockfile();
     const reporter = new reporters.NoopReporter({});
 

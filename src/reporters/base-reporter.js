@@ -152,6 +152,8 @@ export default class BaseReporter {
     this.peakMemoryInterval = setInterval(() => {
       this.checkPeakMemory();
     }, 1000);
+    // $FlowFixMe: Node's setInterval returns a Timeout, not a Number
+    this.peakMemoryInterval.unref();
   }
 
   checkPeakMemory() {

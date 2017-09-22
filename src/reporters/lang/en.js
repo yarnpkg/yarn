@@ -18,7 +18,8 @@ const messages = {
   usage: 'Usage',
   installCommandRenamed: '`install` has been replaced with `add` to add new dependencies. Run $0 instead.',
   globalFlagRemoved: '`--global` has been deprecated. Please run $0 instead.',
-  waitingInstance: 'Waiting for the other yarn instance to finish',
+  waitingInstance: 'Waiting for the other yarn instance to finish (pid $0, inside $1)',
+  waitingNamedInstance: 'Waiting for the other yarn instance to finish ($0)',
   offlineRetrying: 'There appears to be trouble with your network connection. Retrying...',
   clearedCache: 'Cleared cache.',
   couldntClearPackageFromCache: "Couldn't clear package $0 from cache",
@@ -108,7 +109,8 @@ const messages = {
   bugReport: 'If you think this is a bug, please open a bug report with the information provided in $0.',
   unexpectedError: 'An unexpected error occurred: $0.',
   jsonError: 'Error parsing JSON at $0, $1.',
-  noFilePermission: "We don't have permissions to touch the file $0.",
+  noPermission: 'Cannot create $0 due to insufficient permissions.',
+  noGlobalFolder: 'Cannot find a suitable global folder. Tried these: $0',
   allDependenciesUpToDate: 'All of your dependencies are up to date.',
   legendColorsForUpgradeInteractive:
     'Color legend : \n $0    : Major Update backward-incompatible updates \n $1 : Minor Update backward-compatible features \n $2  : Patch Update backward-compatible bug fixes',
@@ -149,6 +151,13 @@ const messages = {
 
   cleaning: 'Cleaning modules',
   cleanCreatingFile: 'Creating $0',
+  cleanCreatedFile:
+    'Created $0. Please review the contents of this file then run "yarn autoclean --force" to perform a clean.',
+  cleanAlreadyExists: '$0 already exists. To revert to the default file, delete $0 then rerun this command.',
+  cleanRequiresForce:
+    'This command required the "--force" flag to perform the clean. This is a destructive operation. Files specified in $0 will be deleted.',
+  cleanDoesNotExist:
+    '$0 does not exist. Autoclean will delete files specified by $0. Run "autoclean --init" to create $0 with the default entries.',
 
   binLinkCollision:
     "There's already a linked binary called $0 in your global Yarn bin. Could not link this package's $0 bin entry.",
@@ -171,8 +180,8 @@ const messages = {
   workspacesPreferDevDependencies:
     "You're trying to add a regular dependency to a workspace root, which is probably a mistake (do you want to run this command inside a workspace?). If this dependency really should be in your workspace root, use the --dev flag to add it to your devDependencies.",
   workspacesRequirePrivateProjects: 'Workspaces can only be enabled in private projects',
-  workspaceExperimentalDisabled:
-    'The workspace feature is currently experimental and needs to be manually enabled - please add "workspaces-experimental true" to your .yarnrc file.',
+  workspacesDisabled:
+    'Your project root defines workspaces but the feature is disabled in your Yarn config. Please check "workspaces-experimental" in your .yarnrc file.',
   workspaceRootNotFound: "Cannot find the root of your workspace - are you sure you're currently in a workspace?",
   workspaceMissingWorkspace: 'Missing workspace name.',
   workspaceMissingCommand: 'Missing command name.',
@@ -214,6 +223,7 @@ const messages = {
 
   unmetPeer: '$0 has unmet peer dependency $1.',
   incorrectPeer: '$0 has incorrect peer dependency $1.',
+  selectedPeer: 'Selecting $1 at level $2 as the peer dependency of $0.',
   missingBundledDependency: '$0 is missing a bundled dependency $1. This should be reported to the package maintainer.',
 
   savedNewDependency: 'Saved 1 new dependency.',
@@ -302,7 +312,8 @@ const messages = {
   requestError: 'Request $0 returned a $1',
   requestFailed: 'Request failed $0',
   tarballNotInNetworkOrCache: '$0: Tarball is not in network and can not be located in cache ($1)',
-  fetchBadHashWithPath: "Hashes don't match when extracting file $0. Expected $1 but got $2",
+  fetchBadHashWithPath:
+    'Fetch succeeded for $0. However, extracting $1 resulted in hash $2, which did not match the requested hash $3.',
   fetchErrorCorrupt:
     '$0. Mirror tarball appears to be corrupt. You can resolve this by running:\n\n  rm -rf $1\n  yarn install',
   errorDecompressingTarball: '$0. Error decompressing $1, it appears to be corrupt.',
@@ -348,6 +359,10 @@ const messages = {
   scopeNotValid: 'The specified scope is not valid.',
 
   deprecatedCommand: '$0 is deprecated. Please use $1.',
+  implicitFileDeprecated:
+    'Using the "file:" protocol implicitly is deprecated. Please either the protocol or prepend the path $0 with "./".',
+  unsupportedNodeVersion:
+    'You are using Node $0 which is not supported and may encounter bugs or unexpected behavior. Yarn supports the following semver range: $1',
 };
 
 export type LanguageKeys = $Keys<typeof messages>;

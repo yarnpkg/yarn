@@ -5,6 +5,12 @@ import type PackageResolver from './package-resolver.js';
 import type {Reporter} from './reporters/index.js';
 import type Config from './config.js';
 import type {Install} from './cli/commands/install';
+
+import path from 'path';
+
+import invariant from 'invariant';
+import semver from 'semver';
+
 import {cleanDependencies} from './util/normalize-manifest/validate.js';
 import Lockfile from './lockfile';
 import PackageReference from './package-reference.js';
@@ -16,10 +22,6 @@ import WorkspaceResolver from './resolvers/contextual/workspace-resolver.js';
 import {getExoticResolver} from './resolvers/index.js';
 import * as fs from './util/fs.js';
 import {normalizePattern} from './util/normalize-pattern.js';
-
-const path = require('path');
-const invariant = require('invariant');
-const semver = require('semver');
 
 type ResolverRegistryNames = $Keys<typeof registryResolvers>;
 
@@ -127,7 +129,8 @@ export default class PackageRequest {
 
     if (!semver.validRange(pattern)) {
       try {
-        if ((await fs.stat(path.join(this.config.cwd, pattern))).isDirectory()) {
+        if (await fs.exists(path.join(this.config.cwd, pattern, constants.NODE_PACKAGE_JSON))) {
+          this.reporter.warn(this.reporter.lang('implicitFileDeprecated', pattern));
           return `file:${pattern}`;
         }
       } catch (err) {
@@ -190,6 +193,7 @@ export default class PackageRequest {
     invariant(ref, 'Resolved package info has no package reference');
     ref.addRequest(this);
     ref.addPattern(this.pattern, resolved);
+    ref.addOptional(this.optional);
   }
 
   /**

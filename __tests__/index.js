@@ -29,15 +29,18 @@ async function execCommand(
     await fs.copy(srcDir, workingDir, new NoopReporter());
   }
 
+  const cacheDir = path.join(workingDir, '.yarn-cache');
+
   return new Promise((resolve, reject) => {
+    const cleanedEnv = {...process.env};
+    cleanedEnv['YARN_SILENT'] = 0;
+    delete cleanedEnv['FORCE_COLOR'];
+
     exec(
-      `node "${yarnBin}" ${cmd} ${args.join(' ')}`,
+      `node "${yarnBin}" --cache-folder="${cacheDir}" ${cmd} ${args.join(' ')}`,
       {
         cwd: workingDir,
-        env: {
-          ...process.env,
-          YARN_SILENT: 0,
-        },
+        env: cleanedEnv,
       },
       (error, stdout) => {
         if (error) {
@@ -66,6 +69,7 @@ function expectAddSuccessfullOutput(stdout, pkg) {
 
 function expectAddSuccessfullOutputWithNoLockFile(stdout, pkg) {
   const lastLines = stdout.slice(stdout.length - 4);
+  expect(lastLines[0]).not.toEqual('success Saved lockfile.');
   expect(lastLines[1]).toEqual('success Saved 1 new dependency.');
   expect(lastLines[2]).toContain(pkg);
   expect(lastLines[3]).toContain('Done');
@@ -114,6 +118,11 @@ test.concurrent('should add package', async () => {
 
 test.concurrent('should add package with no-lockfile option', async () => {
   const stdout = await execCommand('add', ['repeating', '--no-lockfile'], 'run-add-option', true);
+  expectAddSuccessfullOutputWithNoLockFile(stdout, 'repeating');
+});
+
+test.concurrent('should add package with frozzen-lockfile option', async () => {
+  const stdout = await execCommand('add', ['repeating', '--frozen-lockfile'], 'run-add-option', true);
   expectAddSuccessfullOutputWithNoLockFile(stdout, 'repeating');
 });
 
@@ -206,6 +215,19 @@ test.concurrent('should run --version command', async () => {
   expect(stdout[0]).toEqual(pkg.version);
 });
 
+test.concurrent('should exit cleanly when running invalid commands', async () => {
+  try {
+    await execCommand('import', ['foobar'], 'run-version');
+  } catch (err) {
+    // not important - we really only want to check that the command terminates
+  }
+  try {
+    await execCommand('remove', ['foobar'], 'run-version');
+  } catch (err) {
+    // not important - we really only want to check that the command terminates
+  }
+});
+
 test.concurrent('should install if no args', async () => {
   const stdout = await execCommand('', [], 'run-add', true);
   expect(stdout[0]).toEqual(`yarn install v${pkg.version}`);
@@ -227,24 +249,22 @@ test.concurrent('should not output JSON activity/progress if given --no-progress
   });
 });
 
-test.concurrent('should run help of run command if --help is before --', async () => {
-  const stdout = await execCommand('run', ['custom-script', '--help', '--'], 'run-custom-script-with-arguments');
+test.concurrent('should run help of run command if --help is before script', async () => {
+  const stdout = await execCommand('run', ['--help', 'custom-script'], 'run-custom-script-with-arguments');
   expect(stdout[0]).toEqual('Usage: yarn [command] [flags]');
   expect(stdout[stdout.length - 1]).toEqual(
     'Visit https://yarnpkg.com/en/docs/cli/run for documentation about this command.',
   );
 });
 
-if (process.platform !== 'win32') {
-  test.concurrent('should run help of custom-script if --help is after --', async () => {
-    const stdout = await execCommand('run', ['custom-script', '--', '--help'], 'run-custom-script-with-arguments');
-    expect(stdout[stdout.length - 2]).toEqual('A message from custom script with args --help');
-  });
-}
+test.concurrent('should run help of custom-script if --help is after script', async () => {
+  const stdout = await execCommand('run', ['--silent', 'custom-script', '--help'], 'run-custom-script-with-arguments');
+  expect(JSON.parse(stdout.join('\n'))).toContain('--help');
+});
 
 test.concurrent('should run bin command', async () => {
-  const stdout = await execCommand('bin', [], '', false);
-  expect(stdout[0]).toEqual(path.join(fixturesLoc, 'node_modules', '.bin'));
+  const stdout = await execCommand('bin', [], '', true);
+  expect(stdout[0]).toMatch(/[\\\/]node_modules[\\\/]\.bin\n?$/);
   expect(stdout.length).toEqual(1);
 });
 
@@ -273,11 +293,6 @@ test.concurrent('should display documentation link for known command', async () 
 
 test.concurrent('should throws missing command for constructor command', async () => {
   await expectAnErrorMessage(execCommand('constructor', [], 'run-add', true), 'Command "constructor" not found');
-});
-
-test.concurrent('should show help and ignore constructor command', async () => {
-  const stdout = await execCommand('constructor', ['--help'], 'run-help');
-  expectHelpOutput(stdout);
 });
 
 test.concurrent('should run command with hyphens', async () => {

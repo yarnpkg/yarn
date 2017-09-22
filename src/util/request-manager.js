@@ -1,5 +1,11 @@
 /* @flow */
 
+import fs from 'fs';
+import url from 'url';
+import dnscache from 'dnscache';
+import invariant from 'invariant';
+import RequestCaptureHar from 'request-capture-har';
+
 import type {Reporter} from '../reporters/index.js';
 import {MessageError} from '../errors.js';
 import BlockingQueue from './blocking-queue.js';
@@ -9,11 +15,14 @@ import map from '../util/map.js';
 
 import typeof * as RequestModuleT from 'request';
 
-const RequestCaptureHar = require('request-capture-har');
-const invariant = require('invariant');
-const url = require('url');
-const fs = require('fs');
-
+// Initialize DNS cache so we don't look up the same
+// domains like registry.yarnpkg.com over and over again
+// for each request.
+dnscache({
+  enable: true,
+  ttl: 300,
+  cachesize: 10,
+});
 const successHosts = map();
 const controlOffline = network.isOffline();
 

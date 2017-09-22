@@ -17,9 +17,13 @@ import {linkBin} from '../../package-linker.js';
 import {POSIX_GLOBAL_PREFIX, FALLBACK_GLOBAL_PREFIX} from '../../constants.js';
 import * as fs from '../../util/fs.js';
 
-const nativeFs = require('fs');
-
 class GlobalAdd extends Add {
+  constructor(args: Array<string>, flags: Object, config: Config, reporter: Reporter, lockfile: Lockfile) {
+    super(args, flags, config, reporter, lockfile);
+
+    this.linker.setTopLevelBinLinking(false);
+  }
+
   maybeOutputSaveTree(): Promise<void> {
     for (const pattern of this.addedPatterns) {
       const manifest = this.resolver.getStrictResolvedPattern(pattern);
@@ -40,6 +44,8 @@ export function hasWrapper(flags: Object, args: Array<string>): boolean {
 }
 
 async function updateCwd(config: Config): Promise<void> {
+  await fs.mkdirp(config.globalFolder);
+
   await config.init({
     cwd: config.globalFolder,
     binLinks: true,
@@ -81,24 +87,31 @@ async function getGlobalPrefix(config: Config, flags: Object): Promise<string> {
     return process.env.PREFIX;
   }
 
-  let prefix = FALLBACK_GLOBAL_PREFIX;
+  const potentialPrefixFolders = [FALLBACK_GLOBAL_PREFIX];
   if (process.platform === 'win32') {
     // %LOCALAPPDATA%\Yarn --> C:\Users\Alice\AppData\Local\Yarn
     if (process.env.LOCALAPPDATA) {
-      prefix = path.join(process.env.LOCALAPPDATA, 'Yarn');
+      potentialPrefixFolders.unshift(path.join(process.env.LOCALAPPDATA, 'Yarn'));
     }
   } else {
-    prefix = POSIX_GLOBAL_PREFIX;
+    potentialPrefixFolders.unshift(POSIX_GLOBAL_PREFIX);
   }
-  try {
-    await fs.access(path.join(prefix, 'bin'), (nativeFs.constants || nativeFs).W_OK);
-  } catch (err) {
-    if (err.code === 'EACCES') {
-      prefix = FALLBACK_GLOBAL_PREFIX;
-    } else {
-      throw err;
-    }
+
+  const binFolders = potentialPrefixFolders.map(prefix => path.join(prefix, 'bin'));
+  const prefixFolderQueryResult = await fs.getFirstSuitableFolder(binFolders);
+  const prefix = prefixFolderQueryResult.folder && path.dirname(prefixFolderQueryResult.folder);
+
+  if (!prefix) {
+    config.reporter.warn(
+      config.reporter.lang(
+        'noGlobalFolder',
+        prefixFolderQueryResult.skipped.map(item => path.dirname(item.folder)).join(', '),
+      ),
+    );
+
+    return FALLBACK_GLOBAL_PREFIX;
   }
+
   return prefix;
 }
 
@@ -113,13 +126,19 @@ async function initUpdateBins(config: Config, reporter: Reporter, flags: Object)
 
   function throwPermError(err: Error & {[code: string]: string}, dest: string) {
     if (err.code === 'EACCES') {
-      throw new MessageError(reporter.lang('noFilePermission', dest));
+      throw new MessageError(reporter.lang('noPermission', dest));
     } else {
       throw err;
     }
   }
 
   return async function(): Promise<void> {
+    try {
+      await fs.mkdirp(binFolder);
+    } catch (err) {
+      throwPermError(err, binFolder);
+    }
+
     const afterBins = await getBins(config);
 
     // remove old bins

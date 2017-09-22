@@ -9,6 +9,7 @@ import {run as check} from '../../src/cli/commands/check.js';
 import * as fs from '../../src/util/fs.js';
 import {Install} from '../../src/cli/commands/install.js';
 import Config from '../../src/config.js';
+import parsePackagePath from '../../src/util/parse-package-path.js';
 
 const stream = require('stream');
 const path = require('path');
@@ -62,7 +63,7 @@ export function isPackagePresent(config: Config, packagePath: string): Promise<b
 }
 
 export function getPackagePath(config: Config, packagePath: string): string {
-  return path.join(config.cwd, `node_modules/${packagePath.replace(/\//g, '/node_modules/')}`);
+  return path.join(config.cwd, `node_modules/${parsePackagePath(packagePath).join('/node_modules/')}`);
 }
 
 export function makeConfigFromDirectory(cwd: string, reporter: Reporter, flags: Object = {}): Promise<Config> {

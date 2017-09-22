@@ -27,7 +27,7 @@ export type ResolverOptions = {|
 export default class PackageResolver {
   constructor(config: Config, lockfile: Lockfile, resolutionMap: ResolutionMap = new ResolutionMap(config)) {
     this.patternsByPackage = map();
-    this.fetchingPatterns = map();
+    this.fetchingPatterns = new Set();
     this.fetchingQueue = new BlockingQueue('resolver fetching');
     this.patterns = map();
     this.resolutionMap = resolutionMap;
@@ -59,9 +59,7 @@ export default class PackageResolver {
   };
 
   // patterns we've already resolved or are in the process of resolving
-  fetchingPatterns: {
-    [key: string]: true,
-  };
+  fetchingPatterns: Set<string>;
 
   // TODO
   fetchingQueue: BlockingQueue;
@@ -477,13 +475,11 @@ export default class PackageResolver {
       return;
     }
 
-    const fetchKey = `${req.registry}:${req.pattern}`;
-
-    if (this.fetchingPatterns[fetchKey]) {
+    const fetchKey = `${req.registry}:${req.pattern}:${String(req.optional)}`;
+    if (this.fetchingPatterns.has(fetchKey)) {
       return;
-    } else {
-      this.fetchingPatterns[fetchKey] = true;
     }
+    this.fetchingPatterns.add(fetchKey);
 
     if (this.activity) {
       this.activity.tick(req.pattern);
@@ -530,6 +526,10 @@ export default class PackageResolver {
     // resolved to existing versions can be resolved to their best available version
     this.resolvePackagesWithExistingVersions();
 
+    for (const req of this.resolutionMap.delayQueue) {
+      this.resolveToResolution(req);
+    }
+
     activity.end();
     this.activity = null;
   }
@@ -558,20 +558,23 @@ export default class PackageResolver {
   resolveToResolution(req: DependencyRequestPattern): ?DependencyRequestPattern {
     const {parentNames, pattern} = req;
 
-    if (!parentNames) {
+    if (!parentNames || this.flat) {
       return req;
     }
 
     const resolution = this.resolutionMap.find(pattern, parentNames);
 
     if (resolution) {
-      const resolutionManifest = this.getStrictResolvedPattern(resolution);
-      invariant(resolutionManifest._reference, 'resolutions should have a resolved reference');
+      const resolutionManifest = this.getResolvedPattern(resolution);
 
-      resolutionManifest._reference.patterns.push(pattern);
-      this.addPattern(pattern, resolutionManifest);
-      this.lockfile.removePattern(pattern);
-
+      if (resolutionManifest) {
+        invariant(resolutionManifest._reference, 'resolutions should have a resolved reference');
+        resolutionManifest._reference.patterns.push(pattern);
+        this.addPattern(pattern, resolutionManifest);
+        this.lockfile.removePattern(pattern);
+      } else {
+        this.resolutionMap.addToDelayQueue(req);
+      }
       return null;
     }
 

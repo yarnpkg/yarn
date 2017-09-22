@@ -4,7 +4,9 @@ import minimatch from 'minimatch';
 import map from './util/map';
 import type Config from './config';
 import type {Reporter} from './reporters';
+import type {DependencyRequestPattern} from './types';
 import {normalizePattern} from './util/normalize-pattern.js';
+import parsePackagePath, {isValidPackagePath} from './util/parse-package-path';
 import {getExoticResolver} from './resolvers';
 
 const DIRECTORY_SEPARATOR = '/';
@@ -30,11 +32,13 @@ export default class ResolutionMap {
     this.resolutionsByPackage = map();
     this.config = config;
     this.reporter = config.reporter;
+    this.delayQueue = new Set();
   }
 
   resolutionsByPackage: ResolutionInternalMap;
   config: Config;
   reporter: Reporter;
+  delayQueue: Set<DependencyRequestPattern>;
 
   init(resolutions: ?ResolutionEntry = {}) {
     for (const globPattern in resolutions) {
@@ -47,14 +51,18 @@ export default class ResolutionMap {
     }
   }
 
-  parsePatternInfo(globPattern: string, range: string): ?Object {
-    const directories = globPattern.split(DIRECTORY_SEPARATOR);
-    const name = directories.pop();
+  addToDelayQueue(req: DependencyRequestPattern) {
+    this.delayQueue.add(req);
+  }
 
-    if (!name) {
+  parsePatternInfo(globPattern: string, range: string): ?Object {
+    if (!isValidPackagePath(globPattern)) {
       this.reporter.warn(this.reporter.lang('invalidResolutionName', globPattern));
       return null;
     }
+
+    const directories = parsePackagePath(globPattern);
+    const name = directories.pop();
 
     if (!semver.validRange(range) && !getExoticResolver(range)) {
       this.reporter.warn(this.reporter.lang('invalidResolutionVersion', range));
