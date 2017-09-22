@@ -228,6 +228,14 @@ export default class PackageResolver {
 
   getAllInfoForPackageName(name: string): Array<Manifest> {
     const patterns = this.patternsByPackage[name] || [];
+    return this.getAllInfoForPatterns(patterns);
+  }
+
+  /**
+   * Retrieve all the package info stored for a list of patterns.
+   */
+
+  getAllInfoForPatterns(patterns: string[]): Array<Manifest> {
     const infos = [];
     const seen = new Set();
 
@@ -284,6 +292,13 @@ export default class PackageResolver {
 
   collapseAllVersionsOfPackage(name: string, version: string): string {
     const patterns = this.dedupePatterns(this.patternsByPackage[name]);
+    return this.collapsePackageVersions(name, version, patterns);
+  }
+
+  /**
+   * Make all given patterns resolve to version.
+   */
+  collapsePackageVersions(name: string, version: string, patterns: string[]): string {
     const human = `${name}@${version}`;
 
     // get manifest that matches the version we're collapsing too
@@ -530,8 +545,35 @@ export default class PackageResolver {
       this.resolveToResolution(req);
     }
 
+    for (const dep of deps) {
+      const name = normalizePattern(dep.pattern).name;
+      this.optimizeResolutions(name);
+    }
+
     activity.end();
     this.activity = null;
+  }
+
+  // for a given package, see if a single manifest can satisfy all ranges
+  optimizeResolutions(name: string) {
+    const patterns: Array<string> = this.dedupePatterns(this.patternsByPackage[name] || []);
+
+    // don't optimize things that already have a lockfile entry:
+    // https://github.com/yarnpkg/yarn/issues/79
+    const collapsablePatterns = patterns.filter(pattern => {
+      const remote = this.patterns[pattern]._remote;
+      return !this.lockfile.getLocked(pattern) && (!remote || remote.type !== 'workspace');
+    });
+    if (collapsablePatterns.length < 2) {
+      return;
+    }
+
+    const availableVersions = this.getAllInfoForPatterns(collapsablePatterns).map(manifest => manifest.version);
+    const combinedRange = collapsablePatterns.map(pattern => normalizePattern(pattern).range).join(' ');
+    const singleVersion = semver.maxSatisfying(availableVersions, combinedRange);
+    if (singleVersion) {
+      this.collapsePackageVersions(name, singleVersion, collapsablePatterns);
+    }
   }
 
   /**
