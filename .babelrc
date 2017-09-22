@@ -5,7 +5,7 @@
       "presets": [
         ["env", {
           "targets": {
-            "node": "6"
+            "node": "4"
           },
           "modules": false,
           "loose": true
@@ -23,7 +23,7 @@
      "presets": [
        ["env", {
          "targets": {
-           "node": "4"
+           "node": "6"
          },
          "modules": false,
          "loose": true
@@ -39,7 +39,7 @@
   "presets": [
     ["env", {
       "targets": {
-        "node": "4"
+        "node": "6"
       },
       "modules": false,
       "loose": true
