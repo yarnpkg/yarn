@@ -194,12 +194,11 @@ export default class Config {
    */
 
   getOption(key: string, expand: boolean = false): mixed {
-    const value = this.registries.yarn.getOption(key);
-
     if (key === 'registry' && this.registry) {
       return this.registry;
     }
 
+    const value = this.registries.yarn.getOption(key);
     if (expand && typeof value === 'string') {
       return expandPath(value);
     }
