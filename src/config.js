@@ -170,7 +170,6 @@ export default class Config {
 
   //
   commandName: string;
-  registry: string;
 
   /**
    * Execute a promise produced by factory if it doesn't exist in our cache with
@@ -194,10 +193,6 @@ export default class Config {
    */
 
   getOption(key: string, expand: boolean = false): mixed {
-    if (key === 'registry' && this.registry) {
-      return this.registry;
-    }
-
     const value = this.registries.yarn.getOption(key);
     if (expand && typeof value === 'string') {
       return expandPath(value);
@@ -253,8 +248,10 @@ export default class Config {
       const Registry = registries[key];
 
       // instantiate registry
-      const registry = new Registry(this.cwd, this.registries, this.requestManager, this.reporter, this);
-      await registry.init();
+      const registry = new Registry(this.cwd, this.registries, this.requestManager, this.reporter);
+      await registry.init({
+        registry: opts.registry,
+      });
 
       this.registries[key] = registry;
       this.registryFolders.push(registry.folder);
@@ -279,7 +276,6 @@ export default class Config {
       userAgent: String(this.getOption('user-agent')),
       httpProxy: String(opts.httpProxy || this.getOption('proxy') || ''),
       httpsProxy: String(opts.httpsProxy || this.getOption('https-proxy') || ''),
-      registry: String(opts.registry || this.getOption('registry') || ''),
       strictSSL: Boolean(this.getOption('strict-ssl')),
       ca: Array.prototype.concat(opts.ca || this.getOption('ca') || []).map(String),
       cafile: String(opts.cafile || this.getOption('cafile', true) || ''),
@@ -373,8 +369,6 @@ export default class Config {
     this.ignoreScripts = !!opts.ignoreScripts;
 
     this.disablePrepublish = !!opts.disablePrepublish;
-
-    this.registry = opts.registry || '';
 
     // $FlowFixMe$
     this.nonInteractive = !!opts.nonInteractive || isCi || !process.stdout.isTTY;

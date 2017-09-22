@@ -3,7 +3,6 @@
 import type Reporter from '../reporters/base-reporter.js';
 import type RequestManager from '../util/request-manager.js';
 import type {ConfigRegistries} from './index.js';
-import type Config from '../config.js';
 import {YARN_REGISTRY} from '../constants.js';
 import NpmRegistry from './npm-registry.js';
 import {stringify, parse} from '../lockfile';
@@ -38,14 +37,8 @@ const npmMap = {
 };
 
 export default class YarnRegistry extends NpmRegistry {
-  constructor(
-    cwd: string,
-    registries: ConfigRegistries,
-    requestManager: RequestManager,
-    reporter: Reporter,
-    config: Config,
-  ) {
-    super(cwd, registries, requestManager, reporter, config);
+  constructor(cwd: string, registries: ConfigRegistries, requestManager: RequestManager, reporter: Reporter) {
+    super(cwd, registries, requestManager, reporter);
 
     this.homeConfigLoc = path.join(userHome, '.yarnrc');
     this.homeConfig = {};
