@@ -91,7 +91,7 @@ function getUpdateCommand(installationMethod: InstallationMethod): ?string {
   }
 
   if (installationMethod === 'npm') {
-    return 'npm update --global yarn';
+    return 'npm install --global yarn';
   }
 
   if (installationMethod === 'chocolatey') {
