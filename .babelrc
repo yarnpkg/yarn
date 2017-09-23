@@ -23,7 +23,7 @@
      "presets": [
        ["env", {
          "targets": {
-           "node": "current"
+           "node": "4"
          },
          "modules": false,
          "loose": true
