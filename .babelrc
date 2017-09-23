@@ -8,7 +8,10 @@
             "node": "4"
           },
           "modules": false,
-          "loose": true
+          "loose": true,
+          "exclude": [
+            "transform-regenerator"
+          ]
         }],
         "flow",
         "stage-0"
