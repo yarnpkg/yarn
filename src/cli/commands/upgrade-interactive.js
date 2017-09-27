@@ -4,17 +4,27 @@ import type {Dependency} from '../../types.js';
 import type {Reporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
 import inquirer from 'inquirer';
-import PackageRequest from '../../package-request.js';
+import Lockfile from '../../lockfile';
 import {Add} from './add.js';
-import {Install} from './install.js';
-import Lockfile from '../../lockfile/wrapper.js';
+import {getOutdated} from './upgrade.js';
+import colorForVersions from '../../util/color-for-versions';
+import colorizeDiff from '../../util/colorize-diff.js';
 
 export const requireLockfile = true;
 
 export function setFlags(commander: Object) {
-  commander.usage('upgrade-interactive');
-  commander.option('-E, --exact', 'upgrade to most recent release with exact version');
-  commander.option('-T, --tilde', 'upgrade to most recent release with patch version');
+  commander.usage('upgrade-interactive [flags]');
+  commander.option('-S, --scope <scope>', 'upgrade packages under the specified scope');
+  commander.option('--latest', 'list the latest version of packages, ignoring version ranges in package.json');
+  commander.option('-E, --exact', 'install exact version. Only used when --latest is specified.');
+  commander.option(
+    '-T, --tilde',
+    'install most recent release with the same minor version. Only used when --latest is specified.',
+  );
+  commander.option(
+    '-C, --caret',
+    'install most recent release with the same major version. Only used when --latest is specified.',
+  );
 }
 
 export function hasWrapper(commander: Object, args: Array<string>): boolean {
@@ -22,57 +32,74 @@ export function hasWrapper(commander: Object, args: Array<string>): boolean {
 }
 
 export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
+  const outdatedFieldName = flags.latest ? 'latest' : 'wanted';
   const lockfile = await Lockfile.fromDirectory(config.lockfileFolder);
-  const install = new Install(flags, config, reporter, lockfile);
-  const deps = await PackageRequest.getOutdatedPackages(lockfile, install, config, reporter);
 
-  if (!deps.length) {
+  const deps = await getOutdated(config, reporter, flags, lockfile, args);
+
+  if (deps.length === 0) {
     reporter.success(reporter.lang('allDependenciesUpToDate'));
     return;
   }
 
-  const getNameFromHint = hint => (hint ? `${hint}Dependencies` : 'dependencies');
+  const maxLengthArr = {
+    name: 'name'.length,
+    current: 'from'.length,
+    range: 'latest'.length,
+    [outdatedFieldName]: 'to'.length,
+  };
 
-  const maxLengthArr = {name: 0, current: 0, latest: 0};
+  const keysWithDynamicLength = ['name', 'current', outdatedFieldName];
+
+  if (!flags.latest) {
+    maxLengthArr.range = 'range'.length;
+    keysWithDynamicLength.push('range');
+  }
+
   deps.forEach(dep =>
-    ['name', 'current', 'latest'].forEach(key => {
+    keysWithDynamicLength.forEach(key => {
       maxLengthArr[key] = Math.max(maxLengthArr[key], dep[key].length);
     }),
   );
 
   // Depends on maxLengthArr
   const addPadding = dep => key => `${dep[key]}${' '.repeat(maxLengthArr[key] - dep[key].length)}`;
+  const headerPadding = (header, key) =>
+    `${reporter.format.bold.underline(header)}${' '.repeat(maxLengthArr[key] - header.length)}`;
 
-  const colorizeName = ({current, wanted}) => (current === wanted ? reporter.format.yellow : reporter.format.red);
+  const colorizeName = (from, to) => reporter.format[colorForVersions(from, to)];
 
-  const colorizeDiff = (from, to) => {
-    const parts = to.split('.');
-    const fromParts = from.split('.');
-
-    const index = parts.findIndex((part, i) => part !== fromParts[i]);
-    const splitIndex = index >= 0 ? index : parts.length;
-
-    const colorized = reporter.format.green(parts.slice(splitIndex).join('.'));
-    return parts.slice(0, splitIndex).concat(colorized).join('.');
-  };
+  const getNameFromHint = hint => (hint ? `${hint}Dependencies` : 'dependencies');
 
   const makeRow = dep => {
     const padding = addPadding(dep);
-    const name = colorizeName(dep)(padding('name'));
+    const name = colorizeName(dep.current, dep[outdatedFieldName])(padding('name'));
     const current = reporter.format.blue(padding('current'));
-    const latest = colorizeDiff(dep.current, padding('latest'));
+    const latest = colorizeDiff(dep.current, padding(outdatedFieldName), reporter);
     const url = reporter.format.cyan(dep.url);
-    return `${name}  ${current}  ❯  ${latest}  ${url}`;
+    const range = reporter.format.blue(flags.latest ? 'latest' : padding('range'));
+    return `${name}  ${range}  ${current}  ❯  ${latest}  ${url}`;
+  };
+
+  const makeHeaderRow = () => {
+    const name = headerPadding('name', 'name');
+    const range = headerPadding('range', 'range');
+    const from = headerPadding('from', 'current');
+    const to = headerPadding('to', outdatedFieldName);
+    const url = reporter.format.bold.underline('url');
+    return `  ${name}  ${range}  ${from}     ${to}  ${url}`;
   };
 
   const groupedDeps = deps.reduce((acc, dep) => {
-    const {hint, name, latest} = dep;
+    const {hint, name, upgradeTo} = dep;
+    const version = dep[outdatedFieldName];
     const key = getNameFromHint(hint);
     const xs = acc[key] || [];
     acc[key] = xs.concat({
       name: makeRow(dep),
       value: dep,
-      short: `${name}@${latest}`,
+      short: `${name}@${version}`,
+      upgradeTo,
     });
     return acc;
   }, {});
@@ -82,6 +109,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
   const choices = flatten(
     Object.keys(groupedDeps).map(key => [
       new inquirer.Separator(reporter.format.bold.underline.green(key)),
+      new inquirer.Separator(makeHeaderRow()),
       groupedDeps[key],
       new inquirer.Separator(' '),
     ]),
@@ -90,7 +118,8 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
   try {
     const red = reporter.format.red('<red>');
     const yellow = reporter.format.yellow('<yellow>');
-    reporter.info(reporter.lang('legendColorsForUpgradeInteractive', red, yellow));
+    const green = reporter.format.green('<green>');
+    reporter.info(reporter.lang('legendColorsForUpgradeInteractive', red, yellow, green));
 
     const answers: Array<Dependency> = await reporter.prompt('Choose which packages to update.', choices, {
       name: 'packages',
@@ -98,7 +127,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
       validate: answer => !!answer.length || 'You must choose at least one package.',
     });
 
-    const getName = ({name}) => name;
+    const getPattern = ({upgradeTo}) => upgradeTo;
     const isHint = x => ({hint}) => hint === x;
 
     await [null, 'dev', 'optional', 'peer'].reduce(async (promise, hint) => {
@@ -108,9 +137,11 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
       flags.dev = hint === 'dev';
       flags.peer = hint === 'peer';
       flags.optional = hint === 'optional';
-
-      const deps = answers.filter(isHint(hint)).map(getName);
+      const deps = answers.filter(isHint(hint)).map(getPattern);
       if (deps.length) {
+        for (const pattern of deps) {
+          lockfile.removePattern(pattern);
+        }
         reporter.info(reporter.lang('updateInstalling', getNameFromHint(hint)));
         const add = new Add(deps, flags, config, reporter, lockfile);
         return add.init();

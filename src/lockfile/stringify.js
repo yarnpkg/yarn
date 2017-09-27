@@ -3,7 +3,7 @@
 import {sortAlpha} from '../util/misc.js';
 import {LOCKFILE_VERSION} from '../constants.js';
 
-const YARN_VERSION = require('../../package.json').version;
+import {version as YARN_VERSION} from '../../package.json';
 const NODE_VERSION = process.version;
 
 function shouldWrapKey(str: string): boolean {
@@ -24,7 +24,7 @@ function maybeWrap(str: string | boolean | number): string {
   }
 }
 
-const priorities: {[key: string]: ?number} = {
+const priorities: {[key: string]: number} = {
   name: 1,
   version: 2,
   uid: 3,

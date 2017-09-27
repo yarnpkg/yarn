@@ -9,6 +9,7 @@ import GitFetcher from '../src/fetchers/git-fetcher.js';
 import Config from '../src/config.js';
 import mkdir from './_temp.js';
 import * as fs from '../src/util/fs.js';
+import {readdirSync} from 'fs';
 
 const path = require('path');
 
@@ -76,6 +77,25 @@ test('GitFetcher.fetch', async () => {
   expect(name).toBe('beeper');
 });
 
+test('GitFetcher.getTarballMirrorPath without slashes in the repo path', async () => {
+  const dir = await mkdir('git-fetcher');
+  const config = await Config.create();
+  config.registries.yarn.config['yarn-offline-mirror'] = 'test';
+
+  const fetcher = new GitFetcher(
+    dir,
+    {
+      type: 'git',
+      reference: 'ssh://git@github.com:example-without-slash-repo.git',
+      hash: '8beb0413a8028ca2d52dbb86c75f42069535591b',
+      registry: 'npm',
+    },
+    config,
+  );
+  const cachePath = fetcher.getTarballMirrorPath();
+  expect(cachePath).toBe(path.join('test', 'example-without-slash-repo.git-8beb0413a8028ca2d52dbb86c75f42069535591b'));
+});
+
 test('GitFetcher.fetch with prepare script', async () => {
   const dir = await mkdir('git-fetcher-with-prepare');
   const fetcher = new GitFetcher(
@@ -124,6 +144,11 @@ test('TarballFetcher.fetch', async () => {
 
 test('TarballFetcher.fetch throws on invalid hash', async () => {
   const dir = await mkdir('tarball-fetcher');
+  const offlineMirrorDir = await mkdir('offline-mirror');
+
+  const config = await Config.create({}, new Reporter());
+  config.registries.npm.config['yarn-offline-mirror'] = offlineMirrorDir;
+
   const url = 'https://github.com/sindresorhus/beeper/archive/master.tar.gz';
   const fetcher = new TarballFetcher(
     dir,
@@ -133,7 +158,7 @@ test('TarballFetcher.fetch throws on invalid hash', async () => {
       reference: url,
       registry: 'npm',
     },
-    await Config.create({}, new Reporter()),
+    config,
   );
   let error;
   try {
@@ -141,7 +166,9 @@ test('TarballFetcher.fetch throws on invalid hash', async () => {
   } catch (e) {
     error = e;
   }
+
   expect(error && error.message).toMatchSnapshot();
+  expect(readdirSync(path.join(offlineMirrorDir))).toEqual([]);
 });
 
 test('TarballFetcher.fetch supports local ungzipped tarball', async () => {

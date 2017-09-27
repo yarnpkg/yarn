@@ -5,7 +5,7 @@ import type Config from '../../config.js';
 import type PackageRequest from '../../package-request.js';
 import {MessageError} from '../../errors.js';
 import RegistryResolver from './registry-resolver.js';
-import NpmRegistry from '../../registries/npm-registry.js';
+import NpmRegistry, {SCOPE_SEPARATOR} from '../../registries/npm-registry.js';
 import map from '../../util/map.js';
 import * as fs from '../../util/fs.js';
 import {YARN_REGISTRY} from '../../constants.js';
@@ -16,6 +16,7 @@ const invariant = require('invariant');
 const path = require('path');
 
 const NPM_REGISTRY = /http[s]:\/\/registry.npmjs.org/g;
+const NPM_REGISTRY_ID = 'npm';
 
 type RegistryResponse = {
   name: string,
@@ -24,7 +25,7 @@ type RegistryResponse = {
 };
 
 export default class NpmResolver extends RegistryResolver {
-  static registry = 'npm';
+  static registry = NPM_REGISTRY_ID;
 
   static async findVersionInRegistryResponse(
     config: Config,
@@ -86,12 +87,14 @@ export default class NpmResolver extends RegistryResolver {
   }
 
   async resolveRequestOffline(): Promise<?Manifest> {
-    const scope = this.config.registries.npm.getScope(this.name);
+    const escapedName = NpmRegistry.escapeName(this.name);
+    const scope = this.config.registries.npm.getScope(escapedName);
+
     // find modules of this name
-    const prefix = scope ? this.name.split(/\/|%2f/)[1] : `npm-${this.name}-`;
+    const prefix = scope ? escapedName.split(SCOPE_SEPARATOR)[1] : `${NPM_REGISTRY_ID}-${this.name}-`;
 
     invariant(this.config.cacheFolder, 'expected packages root');
-    const cacheFolder = path.join(this.config.cacheFolder, scope ? 'npm-' + scope : '');
+    const cacheFolder = path.join(this.config.cacheFolder, scope ? `${NPM_REGISTRY_ID}-${scope}` : '');
 
     const files = await this.config.getCache('cachedPackages', async (): Promise<Array<string>> => {
       const files = await fs.readdir(cacheFolder);
@@ -124,7 +127,7 @@ export default class NpmResolver extends RegistryResolver {
       const dir = path.join(cacheFolder, name);
 
       // read manifest and validate correct name
-      const pkg = await this.config.readManifest(dir, 'npm');
+      const pkg = await this.config.readManifest(dir, NPM_REGISTRY_ID);
       if (pkg.name !== this.name) {
         continue;
       }
@@ -169,13 +172,13 @@ export default class NpmResolver extends RegistryResolver {
 
     const info: ?Manifest = await this.resolveRequest();
     if (info == null) {
-      throw new MessageError(this.reporter.lang('packageNotFoundRegistry', this.name, 'npm'));
+      throw new MessageError(this.reporter.lang('packageNotFoundRegistry', this.name, NPM_REGISTRY_ID));
     }
 
     const {deprecated, dist} = info;
     if (typeof deprecated === 'string') {
       let human = `${info.name}@${info.version}`;
-      const parentNames = this.request.getParentNames();
+      const parentNames = this.request.parentNames;
       if (parentNames.length) {
         human = parentNames.concat(human).join(' > ');
       }
@@ -188,7 +191,7 @@ export default class NpmResolver extends RegistryResolver {
         type: 'tarball',
         reference: this.cleanRegistry(dist.tarball),
         hash: dist.shasum,
-        registry: 'npm',
+        registry: NPM_REGISTRY_ID,
         packageName: info.name,
       };
     }

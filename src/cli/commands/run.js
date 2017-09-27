@@ -2,7 +2,7 @@
 
 import type {Reporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
-import {execCommand} from '../../util/execute-lifecycle-script.js';
+import {execCommand, makeEnv} from '../../util/execute-lifecycle-script.js';
 import {MessageError} from '../../errors.js';
 import {registries} from '../../resolvers/index.js';
 import * as fs from '../../util/fs.js';
@@ -52,20 +52,29 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
       cmdHints[cmd] = pkgScripts[cmd] || '';
     }
 
-    Object.assign(scripts, pkg.scripts);
+    Object.assign(scripts, pkgScripts);
   }
 
   async function runCommand(args): Promise<void> {
     const action = args.shift();
-    const actions = [`pre${action}`, action, `post${action}`];
 
     // build up list of commands
     const cmds = [];
-    for (const action of actions) {
-      const cmd = scripts[action];
-      if (cmd) {
-        cmds.push([action, cmd]);
+
+    if (pkgScripts && action in pkgScripts) {
+      const preAction = `pre${action}`;
+      if (preAction in pkgScripts) {
+        cmds.push([preAction, pkgScripts[preAction]]);
       }
+
+      cmds.push([action, scripts[action]]);
+
+      const postAction = `post${action}`;
+      if (postAction in pkgScripts) {
+        cmds.push([postAction, pkgScripts[postAction]]);
+      }
+    } else if (scripts[action]) {
+      cmds.push([action, scripts[action]]);
     }
 
     if (cmds.length) {
@@ -78,7 +87,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
         await execCommand(stage, config, cmdWithArgs, config.cwd);
       }
     } else if (action === 'env') {
-      reporter.info(`${JSON.stringify(process.env, null, 2)}`);
+      reporter.log(JSON.stringify(await makeEnv('env', config.cwd, config), null, 2), {force: true});
     } else {
       let suggestion;
 

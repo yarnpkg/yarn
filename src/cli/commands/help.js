@@ -5,7 +5,6 @@ import * as constants from '../../constants.js';
 import type {Reporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
 import {sortAlpha, hyphenate} from '../../util/misc.js';
-import unsupportedAliases from '../unsupported-aliases.js';
 import aliases from '../aliases';
 const chalk = require('chalk');
 
@@ -22,17 +21,14 @@ export function run(config: Config, reporter: Reporter, commander: Object, args:
       const command = commands[commandName];
       if (command) {
         command.setFlags(commander);
-        const examples: Array<string> = (command && command.examples) || [];
+        const examples: Array<string> = ((command && command.examples) || []).map(example => `    $ yarn ${example}`);
         if (examples.length) {
           commander.on('--help', () => {
-            console.log('  Examples:\n');
-            for (const example of examples) {
-              console.log(`    $ yarn ${example}`);
-            }
-            console.log();
+            reporter.log(reporter.lang('helpExamples', reporter.rawText(examples.join('\n'))));
           });
         }
-        commander.on('--help', () => console.log('  ' + command.getDocsInfo + '\n'));
+        // eslint-disable-next-line yarn-internal/warn-language
+        commander.on('--help', () => reporter.log('  ' + command.getDocsInfo + '\n'));
         commander.help();
         return Promise.resolve();
       }
@@ -40,24 +36,20 @@ export function run(config: Config, reporter: Reporter, commander: Object, args:
   }
 
   commander.on('--help', () => {
-    const getDocsLink = name => `${constants.YARN_DOCS}${name || ''}`;
-    console.log('  Commands:\n');
+    const commandsText = [];
     for (const name of Object.keys(commands).sort(sortAlpha)) {
-      if (
-        commands[name].useless ||
-        unsupportedAliases[name] ||
-        Object.keys(aliases).map(key => aliases[key]).indexOf(name) > -1
-      ) {
+      if (commands[name].useless || Object.keys(aliases).map(key => aliases[key]).indexOf(name) > -1) {
         continue;
       }
       if (aliases[name]) {
-        console.log(`    - ${hyphenate(name)} / ${aliases[name]}`);
+        commandsText.push(`    - ${hyphenate(name)} / ${aliases[name]}`);
       } else {
-        console.log(`    - ${hyphenate(name)}`);
+        commandsText.push(`    - ${hyphenate(name)}`);
       }
     }
-    console.log('\n  Run `' + chalk.bold('yarn help COMMAND') + '` for more information on specific commands.');
-    console.log('  Visit ' + chalk.bold(getDocsLink()) + ' to learn more about Yarn.\n');
+    reporter.log(reporter.lang('helpCommands', reporter.rawText(commandsText.join('\n'))));
+    reporter.log(reporter.lang('helpCommandsMore', reporter.rawText(chalk.bold('yarn help COMMAND'))));
+    reporter.log(reporter.lang('helpLearnMore', reporter.rawText(chalk.bold(constants.YARN_DOCS))));
   });
 
   commander.help();

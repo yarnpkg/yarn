@@ -1,0 +1,12 @@
+{
+  "name": "project",
+  "version": "1.0.0",
+  "dependencies": {
+    "c": "file:../c-1"
+  },
+  "resolutions": {
+    "c/**/left-pad": "1.0.0",
+    "invalidname/": "1.0.0",
+    "**/left-pad": "wrongversion"
+  }
+}

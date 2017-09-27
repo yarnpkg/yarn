@@ -3,7 +3,7 @@
 
 import * as reporters from '../src/reporters/index.js';
 import PackageResolver from '../src/package-resolver.js';
-import Lockfile from '../src/lockfile/wrapper.js';
+import Lockfile from '../src/lockfile';
 import Config from '../src/config.js';
 import makeTemp from './_temp.js';
 import * as fs from '../src/util/fs.js';
@@ -17,8 +17,7 @@ const path = require('path');
 const cachePathRe = /-\d+\.\d+\.\d+-[\dabcdef]{40}$/;
 
 function addTest(pattern, registry = 'npm', init: ?(cacheFolder: string) => Promise<any>, offline = false) {
-  // concurrently network requests tend to stall
-  test(`${offline ? 'offline ' : ''}resolve ${pattern}`, async () => {
+  test.concurrent(`${offline ? 'offline ' : ''}resolve ${pattern}`, async () => {
     const lockfile = new Lockfile();
     const reporter = new reporters.NoopReporter({});
 

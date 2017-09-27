@@ -7,11 +7,13 @@ import type {Reporter} from './reporters/index.js';
 import {getExoticResolver} from './resolvers/index.js';
 import type Config from './config.js';
 import PackageRequest from './package-request.js';
+import {normalizePattern} from './util/normalize-pattern.js';
 import RequestManager from './util/request-manager.js';
 import BlockingQueue from './util/blocking-queue.js';
-import Lockfile from './lockfile/wrapper.js';
+import Lockfile from './lockfile';
 import map from './util/map.js';
 import WorkspaceLayout from './workspace-layout.js';
+import ResolutionMap from './resolution-map.js';
 
 const invariant = require('invariant');
 const semver = require('semver');
@@ -23,11 +25,12 @@ export type ResolverOptions = {|
 |};
 
 export default class PackageResolver {
-  constructor(config: Config, lockfile: Lockfile) {
+  constructor(config: Config, lockfile: Lockfile, resolutionMap: ResolutionMap = new ResolutionMap(config)) {
     this.patternsByPackage = map();
-    this.fetchingPatterns = map();
+    this.fetchingPatterns = new Set();
     this.fetchingQueue = new BlockingQueue('resolver fetching');
     this.patterns = map();
+    this.resolutionMap = resolutionMap;
     this.usedRegistries = new Set();
     this.flat = false;
 
@@ -44,6 +47,8 @@ export default class PackageResolver {
 
   workspaceLayout: ?WorkspaceLayout;
 
+  resolutionMap: ResolutionMap;
+
   // list of registries that have been used in this resolution
   usedRegistries: Set<RegistryNames>;
 
@@ -54,9 +59,7 @@ export default class PackageResolver {
   };
 
   // patterns we've already resolved or are in the process of resolving
-  fetchingPatterns: {
-    [key: string]: true,
-  };
+  fetchingPatterns: Set<string>;
 
   // TODO
   fetchingQueue: BlockingQueue;
@@ -224,10 +227,19 @@ export default class PackageResolver {
    */
 
   getAllInfoForPackageName(name: string): Array<Manifest> {
+    const patterns = this.patternsByPackage[name] || [];
+    return this.getAllInfoForPatterns(patterns);
+  }
+
+  /**
+   * Retrieve all the package info stored for a list of patterns.
+   */
+
+  getAllInfoForPatterns(patterns: string[]): Array<Manifest> {
     const infos = [];
     const seen = new Set();
 
-    for (const pattern of this.patternsByPackage[name]) {
+    for (const pattern of patterns) {
       const info = this.patterns[pattern];
       if (seen.has(info)) {
         continue;
@@ -280,6 +292,13 @@ export default class PackageResolver {
 
   collapseAllVersionsOfPackage(name: string, version: string): string {
     const patterns = this.dedupePatterns(this.patternsByPackage[name]);
+    return this.collapsePackageVersions(name, version, patterns);
+  }
+
+  /**
+   * Make all given patterns resolve to version.
+   */
+  collapsePackageVersions(name: string, version: string, patterns: string[]): string {
     const human = `${name}@${version}`;
 
     // get manifest that matches the version we're collapsing too
@@ -374,7 +393,7 @@ export default class PackageResolver {
    * TODO description
    */
 
-  getExactVersionMatch(name: string, version: string): ?Manifest {
+  getExactVersionMatch(name: string, version: string, manifest: ?Manifest): ?Manifest {
     const patterns = this.patternsByPackage[name];
     if (!patterns) {
       return null;
@@ -387,6 +406,10 @@ export default class PackageResolver {
       }
     }
 
+    if (manifest && getExoticResolver(version)) {
+      return this.exoticRangeMatch(patterns.map(this.getStrictResolvedPattern.bind(this)), manifest);
+    }
+
     return null;
   }
 
@@ -394,8 +417,9 @@ export default class PackageResolver {
    * Get the manifest of the highest known version that satisfies a package range
    */
 
-  getHighestRangeVersionMatch(name: string, range: string): ?Manifest {
+  getHighestRangeVersionMatch(name: string, range: string, manifest: ?Manifest): ?Manifest {
     const patterns = this.patternsByPackage[name];
+
     if (!patterns) {
       return null;
     }
@@ -409,8 +433,9 @@ export default class PackageResolver {
     });
 
     const maxValidRange = semver.maxSatisfying(versionNumbers, range);
+
     if (!maxValidRange) {
-      return null;
+      return manifest && getExoticResolver(range) ? this.exoticRangeMatch(resolvedPatterns, manifest) : null;
     }
 
     const indexOfmaxValidRange = versionNumbers.indexOf(maxValidRange);
@@ -420,16 +445,56 @@ export default class PackageResolver {
   }
 
   /**
+   * Get the manifest of the package that matches an exotic range
+   */
+
+  exoticRangeMatch(resolvedPkgs: Array<Manifest>, manifest: Manifest): ?Manifest {
+    const remote = manifest._remote;
+    if (!(remote && remote.reference && remote.type === 'copy')) {
+      return null;
+    }
+
+    const matchedPkg = resolvedPkgs.find(
+      ({_remote: pkgRemote}) => pkgRemote && pkgRemote.reference === remote.reference && pkgRemote.type === 'copy',
+    );
+
+    if (matchedPkg) {
+      manifest._remote = matchedPkg._remote;
+    }
+
+    return matchedPkg;
+  }
+
+  /**
+   * Determine if LockfileEntry is incorrect, remove it from lockfile cache and consider the pattern as new
+   */
+  isLockfileEntryOutdated(version: string, range: string, hasVersion: boolean): boolean {
+    return !!(
+      semver.validRange(range) &&
+      semver.valid(version) &&
+      !getExoticResolver(range) &&
+      hasVersion &&
+      !semver.satisfies(version, range)
+    );
+  }
+
+  /**
    * TODO description
    */
 
-  async find(req: DependencyRequestPattern): Promise<void> {
-    const fetchKey = `${req.registry}:${req.pattern}`;
-    if (this.fetchingPatterns[fetchKey]) {
+  async find(initialReq: DependencyRequestPattern): Promise<void> {
+    const req = this.resolveToResolution(initialReq);
+
+    // we've already resolved it with a resolution
+    if (!req) {
       return;
-    } else {
-      this.fetchingPatterns[fetchKey] = true;
     }
+
+    const fetchKey = `${req.registry}:${req.pattern}:${String(req.optional)}`;
+    if (this.fetchingPatterns.has(fetchKey)) {
+      return;
+    }
+    this.fetchingPatterns.add(fetchKey);
 
     if (this.activity) {
       this.activity.tick(req.pattern);
@@ -437,16 +502,11 @@ export default class PackageResolver {
 
     const lockfileEntry = this.lockfile.getLocked(req.pattern);
     let fresh = false;
+
     if (lockfileEntry) {
-      const {range, hasVersion} = PackageRequest.normalizePattern(req.pattern);
-      // lockfileEntry is incorrect, remove it from lockfile cache and consider the pattern as new
-      if (
-        semver.validRange(range) &&
-        semver.valid(lockfileEntry.version) &&
-        !semver.satisfies(lockfileEntry.version, range) &&
-        !getExoticResolver(range) &&
-        hasVersion
-      ) {
+      const {range, hasVersion} = normalizePattern(req.pattern);
+
+      if (this.isLockfileEntryOutdated(lockfileEntry.version, range, hasVersion)) {
         this.reporter.warn(this.reporter.lang('incorrectLockfileEntry', req.pattern));
         this.removePattern(req.pattern);
         this.lockfile.removePattern(req.pattern);
@@ -481,8 +541,39 @@ export default class PackageResolver {
     // resolved to existing versions can be resolved to their best available version
     this.resolvePackagesWithExistingVersions();
 
+    for (const req of this.resolutionMap.delayQueue) {
+      this.resolveToResolution(req);
+    }
+
+    for (const dep of deps) {
+      const name = normalizePattern(dep.pattern).name;
+      this.optimizeResolutions(name);
+    }
+
     activity.end();
     this.activity = null;
+  }
+
+  // for a given package, see if a single manifest can satisfy all ranges
+  optimizeResolutions(name: string) {
+    const patterns: Array<string> = this.dedupePatterns(this.patternsByPackage[name] || []);
+
+    // don't optimize things that already have a lockfile entry:
+    // https://github.com/yarnpkg/yarn/issues/79
+    const collapsablePatterns = patterns.filter(pattern => {
+      const remote = this.patterns[pattern]._remote;
+      return !this.lockfile.getLocked(pattern) && (!remote || remote.type !== 'workspace');
+    });
+    if (collapsablePatterns.length < 2) {
+      return;
+    }
+
+    const availableVersions = this.getAllInfoForPatterns(collapsablePatterns).map(manifest => manifest.version);
+    const combinedRange = collapsablePatterns.map(pattern => normalizePattern(pattern).range).join(' ');
+    const singleVersion = semver.maxSatisfying(availableVersions, combinedRange);
+    if (singleVersion) {
+      this.collapsePackageVersions(name, singleVersion, collapsablePatterns);
+    }
   }
 
   /**
@@ -504,5 +595,31 @@ export default class PackageResolver {
     for (const {req, info} of this.delayedResolveQueue) {
       req.resolveToExistingVersion(info);
     }
+  }
+
+  resolveToResolution(req: DependencyRequestPattern): ?DependencyRequestPattern {
+    const {parentNames, pattern} = req;
+
+    if (!parentNames || this.flat) {
+      return req;
+    }
+
+    const resolution = this.resolutionMap.find(pattern, parentNames);
+
+    if (resolution) {
+      const resolutionManifest = this.getResolvedPattern(resolution);
+
+      if (resolutionManifest) {
+        invariant(resolutionManifest._reference, 'resolutions should have a resolved reference');
+        resolutionManifest._reference.patterns.push(pattern);
+        this.addPattern(pattern, resolutionManifest);
+        this.lockfile.removePattern(pattern);
+      } else {
+        this.resolutionMap.addToDelayQueue(req);
+      }
+      return null;
+    }
+
+    return req;
   }
 }

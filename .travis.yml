@@ -1,7 +1,6 @@
 ---
-# Without sudo, Travis CI uses AUFS which causes issues with our
-# tests when we write stuff and try to read it back right after to
-# verfify our expectations.
+# Without sudo, Travis CI uses AUFS which is too slow for our I/O heavy tests.
+# With AUFS, we get lots of timeouts and increased build times.
 # See https://docs.travis-ci.com/user/ci-environment/#Virtualization-environments
 sudo: required
 
@@ -10,6 +9,7 @@ git:
 language: node_js
 
 node_js:
+  - "8"
   - "6"
   - "4"
 
@@ -38,14 +38,24 @@ matrix:
       node_js: "4"
     - env: TEST_TYPE="lint"
       node_js: "4"
+    - env: TEST_TYPE="build-dist"
+      node_js: "6"
+    - env: TEST_TYPE="check-lockfile"
+      node_js: "6"
+    - env: TEST_TYPE="lint"
+      node_js: "6"
+
   include:
     - os: osx
       node_js: "6"
       env: TEST_TYPE="test-only"
+    - os: osx
+      node_js: "8"
+      env: TEST_TYPE="test-only"
 
 before_install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-      RAMDISK_SIZE=300;
+      RAMDISK_SIZE=330;
       RAMDISK_SECTORS=$(( $RAMDISK_SIZE * 1024 * 1024 / 512 ));
       RAMDISK=$(hdiutil attach -nomount ram://$RAMDISK_SECTORS);
       newfs_hfs -v yarn_ramfs $RAMDISK;

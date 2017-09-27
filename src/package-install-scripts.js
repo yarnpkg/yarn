@@ -34,6 +34,10 @@ export default class PackageInstallScripts {
   force: boolean;
   artifacts: InstallArtifacts;
 
+  setForce(force: boolean) {
+    this.force = force;
+  }
+
   setArtifacts(artifacts: InstallArtifacts) {
     this.artifacts = artifacts;
   }
@@ -136,6 +140,11 @@ export default class PackageInstallScripts {
     invariant(ref, 'Missing package reference');
     if (!ref.fresh && !this.force) {
       // this package hasn't been touched
+      return false;
+    }
+
+    // Don't run lifecycle scripts for hoisted packages
+    if (!ref.location) {
       return false;
     }
 

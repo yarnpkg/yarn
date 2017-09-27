@@ -8,7 +8,6 @@ import {setVersion, setFlags as versionSetFlags} from './version.js';
 import * as fs from '../../util/fs.js';
 import {pack} from './pack.js';
 import {getToken} from './login.js';
-import {has2xxResponse} from '../../util/misc.js';
 
 const invariant = require('invariant');
 const crypto = require('crypto');
@@ -101,7 +100,7 @@ async function publish(config: Config, pkg: any, flags: Object, dir: string): Pr
     body: root,
   });
 
-  if (res !== null && has2xxResponse(res)) {
+  if (res) {
     await config.executeLifecycleScript('publish');
     await config.executeLifecycleScript('postpublish');
   } else {

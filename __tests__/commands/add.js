@@ -12,9 +12,9 @@ import {
 } from './_helpers.js';
 import {Add, run as add} from '../../src/cli/commands/add.js';
 import * as constants from '../../src/constants.js';
-import {parse} from '../../src/lockfile/wrapper.js';
+import {parse} from '../../src/lockfile';
 import {Install} from '../../src/cli/commands/install.js';
-import Lockfile from '../../src/lockfile/wrapper.js';
+import Lockfile from '../../src/lockfile';
 import {run as check} from '../../src/cli/commands/check.js';
 import * as fs from '../../src/util/fs.js';
 import semver from 'semver';
@@ -41,6 +41,18 @@ const runAdd = buildRun.bind(
     return add;
   },
 );
+
+test.concurrent('add without --dev should fail on the workspace root', async () => {
+  await runInstall({}, 'simple-worktree', async (config, reporter): Promise<void> => {
+    await expect(add(config, reporter, {}, ['left-pad'])).rejects.toBeDefined();
+  });
+});
+
+test.concurrent("add with --dev shouldn't fail on the workspace root", async () => {
+  await runInstall({}, 'simple-worktree', async (config, reporter): Promise<void> => {
+    await expect(add(config, reporter, {dev: true}, ['left-pad']));
+  });
+});
 
 test.concurrent('adds any new package to the current workspace, but install from the workspace', async () => {
   await runInstall({}, 'simple-worktree', async (config): Promise<void> => {
@@ -201,6 +213,27 @@ test.concurrent('add --save-exact should not make all package.json strict', (): 
   });
 });
 
+test.concurrent('add save-prefix should not expand ~ to home dir', (): Promise<void> => {
+  return runAdd(['left-pad'], {}, 'install-no-home-expand', async config => {
+    const lockfile = explodeLockfile(await fs.readFile(path.join(config.cwd, 'yarn.lock')));
+    expect(lockfile[0]).toMatch(/^left-pad@~\d+\.\d+\.\d+:$/);
+    expect(JSON.parse(await fs.readFile(path.join(config.cwd, 'package.json'))).dependencies['left-pad']).toMatch(
+      /^~\d+\.\d+\.\d+$/,
+    );
+  });
+});
+
+test.concurrent('add save-exact should make all package.json strict', (): Promise<void> => {
+  return runAdd(['left-pad'], {}, 'install-strict-all', async config => {
+    const lockfile = explodeLockfile(await fs.readFile(path.join(config.cwd, 'yarn.lock')));
+
+    expect(lockfile[0]).toMatch(/^left-pad@\d+\.\d+\.\d+:$/);
+    expect(JSON.parse(await fs.readFile(path.join(config.cwd, 'package.json'))).dependencies['left-pad']).toMatch(
+      /^\d+\.\d+\.\d+$/,
+    );
+  });
+});
+
 test.concurrent('add with new dependency should be deterministic 3', (): Promise<void> => {
   return runAdd([], {}, 'install-should-cleanup-when-package-json-changed-3', async (config, reporter) => {
     // expecting yarn check after installation not to fail
@@ -330,7 +363,7 @@ test.concurrent('add with offline mirror', (): Promise<void> => {
     ).toBeGreaterThanOrEqual(0);
 
     const rawLockfile = await fs.readFile(path.join(config.cwd, constants.LOCKFILE_FILENAME));
-    const lockfile = parse(rawLockfile);
+    const {object: lockfile} = parse(rawLockfile);
 
     expect(lockfile['is-array@^1.0.1']['resolved']).toEqual(
       'https://registry.yarnpkg.com/is-array/-/is-array-1.0.1.tgz#e9850cc2cc860c3bc0977e84ccf0dd464584279a',
@@ -393,7 +426,7 @@ test.concurrent('install with --save and without offline mirror', (): Promise<vo
     ).toEqual(-1);
 
     const rawLockfile = await fs.readFile(path.join(config.cwd, constants.LOCKFILE_FILENAME));
-    const lockfile = parse(rawLockfile);
+    const {object: lockfile} = parse(rawLockfile);
 
     expect(lockfile['is-array@^1.0.1']['resolved']).toMatch(
       /https:\/\/registry\.yarnpkg\.com\/is-array\/-\/is-array-1\.0\.1\.tgz#[a-f0-9]+/,
@@ -800,6 +833,73 @@ test.concurrent('warns when peer dependency is incorrect during add', (): Promis
     ['react@0.14.8', 'react-dom@15.4.2'],
     {},
     'add-with-peer-dependency-incorrect',
+  );
+});
+
+test.concurrent('should only refer to higher levels to satisfy peer dependency', (): Promise<void> => {
+  return buildRun(
+    reporters.BufferReporter,
+    fixturesLoc,
+    async (args, flags, config, reporter, lockfile): Promise<void> => {
+      const add = new Add(args, flags, config, reporter, lockfile);
+      await add.init();
+
+      const output = reporter.getBuffer();
+      const warnings = output.filter(entry => entry.type === 'warning').map(entry => entry.data);
+      expect(warnings).toEqual(expect.arrayContaining([expect.stringContaining('incorrect peer')]));
+    },
+    ['file:c'],
+    {},
+    'add-with-multiple-versions-of-peer-dependency',
+  );
+});
+
+test.concurrent('should refer to deeper dependencies to satisfy peer dependency', (): Promise<void> => {
+  return buildRun(
+    reporters.BufferReporter,
+    fixturesLoc,
+    async (args, flags, config, reporter, lockfile): Promise<void> => {
+      const add = new Add(args, flags, config, reporter, lockfile);
+      await add.init();
+
+      const output = reporter.getBuffer();
+      const warnings = output.filter(entry => entry.type === 'warning').map(entry => entry.data);
+      expect(warnings).not.toEqual(expect.arrayContaining([expect.stringContaining('peer')]));
+    },
+    [],
+    {},
+    'add-with-deep-peer-dependencies',
+  );
+});
+
+test.concurrent('should retain build artifacts after add when missing integrity file', (): Promise<void> => {
+  return buildRun(
+    reporters.BufferReporter,
+    fixturesLoc,
+    async (args, flags, config, reporter): Promise<void> => {
+      const lockfile = await createLockfile(config.cwd);
+
+      const addA = new Add(args, flags, config, reporter, lockfile);
+      await addA.init();
+
+      const expectedArtifacts = ['foo.txt'];
+      const integrityLoc = path.join(config.cwd, 'node_modules', constants.INTEGRITY_FILENAME);
+
+      const beforeIntegrity = await fs.readJson(integrityLoc);
+      expect(beforeIntegrity.artifacts['a@0.0.0']).toEqual(expectedArtifacts);
+
+      await fs.unlink(integrityLoc);
+
+      const lockfileAfterPreviousAdd = await Lockfile.fromDirectory(config.cwd);
+      const addB = new Add(['file:b'], flags, config, reporter, lockfileAfterPreviousAdd);
+      await addB.init();
+
+      const afterIntegrity = await fs.readJson(integrityLoc);
+      expect(afterIntegrity.artifacts['a@0.0.0']).toEqual(expectedArtifacts);
+    },
+    ['file:a'],
+    {},
+    'retain-build-artifacts-missing-integrity',
   );
 });
 

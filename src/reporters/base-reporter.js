@@ -102,6 +102,19 @@ export default class BaseReporter {
     });
   }
 
+  /**
+   * `stringifyLangArgs` run `JSON.stringify` on strings too causing
+   * them to appear quoted. This marks them as "raw" and prevents
+   * the quiating and escaping
+   */
+  rawText(str: string): {inspect(): string} {
+    return {
+      inspect(): string {
+        return str;
+      },
+    };
+  }
+
   verbose(msg: string) {
     if (this.isVerbose) {
       this._verbose(msg);
@@ -139,6 +152,8 @@ export default class BaseReporter {
     this.peakMemoryInterval = setInterval(() => {
       this.checkPeakMemory();
     }, 1000);
+    // $FlowFixMe: Node's setInterval returns a Timeout, not a Number
+    this.peakMemoryInterval.unref();
   }
 
   checkPeakMemory() {
@@ -182,7 +197,8 @@ export default class BaseReporter {
   success(message: string) {}
 
   // a simple log message
-  log(message: string) {}
+  // TODO: rethink the {force} parameter. In the meantime, please don't use it (cf comments in #4143).
+  log(message: string, {force = false}: {force?: boolean} = {}) {}
 
   // a shell command has been executed
   command(command: string) {}

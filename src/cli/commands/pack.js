@@ -160,6 +160,8 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
   const normaliseScope = name => (name[0] === '@' ? name.substr(1).replace('/', '-') : name);
   const filename = flags.filename || path.join(config.cwd, `${normaliseScope(pkg.name)}-v${pkg.version}.tgz`);
 
+  await config.executeLifecycleScript('prepack');
+
   const stream = await pack(config, config.cwd);
 
   await new Promise((resolve, reject) => {
@@ -167,6 +169,8 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
     stream.on('error', reject);
     stream.on('close', resolve);
   });
+
+  await config.executeLifecycleScript('postpack');
 
   reporter.success(reporter.lang('packWroteTarball', filename));
 }

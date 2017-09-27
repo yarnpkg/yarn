@@ -1,0 +1,9 @@
+{
+  "dependencies": {
+    "foo": "file:bar"
+  },
+  "resolutions": {
+    "strip-ansi": "2.0.1",
+    "ansi-regex": "1.1.1"
+  }
+}

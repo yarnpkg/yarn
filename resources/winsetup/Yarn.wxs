@@ -13,6 +13,11 @@
 		</Property>
 		<Condition Message="Yarn requires Node.js 4.0 or higher to be installed">NODEVERSION</Condition>-->
 
+		<!-- If Yarn is already installed, default to the current installation directory -->
+		<Property Id="INSTALLDIR">
+			<RegistrySearch Id="YarnExistingInstallPath" Root="HKLM" Type="raw" Key="SOFTWARE\Yarn" Name="InstallDir" />
+		</Property>
+
 		<Feature Id="MainFeature" Title="Yarn" Level="1">
 			<ComponentGroupRef Id="YarnFiles" />
 			<ComponentRef Id="YarnRegistryAndPath" />

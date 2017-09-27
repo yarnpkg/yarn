@@ -1,6 +1,6 @@
 /* @flow */
 
-import type Lockfile from './lockfile/wrapper.js';
+import type Lockfile from './lockfile';
 import type Config from './config.js';
 import type {PackageRemote, Manifest} from './types.js';
 import type PackageRequest from './package-request.js';
@@ -27,7 +27,7 @@ export default class PackageReference {
     this.permissions = {};
     this.patterns = [];
     this.optional = null;
-    this.root = false;
+    this.level = Infinity;
     this.ignore = false;
     this.incompatible = false;
     this.fresh = false;
@@ -39,7 +39,7 @@ export default class PackageReference {
   lockfile: Lockfile;
   config: Config;
 
-  root: boolean;
+  level: number;
   name: string;
   version: string;
   uid: string;
@@ -66,9 +66,13 @@ export default class PackageReference {
   addRequest(request: PackageRequest) {
     this.requests.push(request);
 
-    if (!request.parentRequest) {
-      this.root = true;
+    let requestLevel = -1;
+    let currentRequest = request;
+    while (currentRequest && requestLevel < this.level) {
+      requestLevel += 1;
+      currentRequest = currentRequest.parentRequest;
     }
+    this.level = requestLevel;
   }
 
   prune() {

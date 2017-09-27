@@ -1,6 +1,7 @@
 /* @flow */
 
 import type {
+  ReporterSetSpinner,
   ReporterSpinnerSet,
   Package,
   Trees,
@@ -21,6 +22,7 @@ import inquirer from 'inquirer';
 const {inspect} = require('util');
 const readline = require('readline');
 const chalk = require('chalk');
+const stripAnsi = require('strip-ansi');
 const read = require('read');
 const tty = require('tty');
 
@@ -29,7 +31,7 @@ type InquirerResponses<K, T> = {[key: K]: Array<T>};
 
 // fixes bold on windows
 if (process.platform === 'win32' && process.env.TERM && !/^xterm/i.test(process.env.TERM)) {
-  chalk.styles.bold.close += '\u001b[m';
+  chalk.bold._styles[0].close += '\u001b[m';
 }
 
 export default class ConsoleReporter extends BaseReporter {
@@ -37,11 +39,15 @@ export default class ConsoleReporter extends BaseReporter {
     super(opts);
 
     this._lastCategorySize = 0;
+    this._spinners = new Set();
     this.format = (chalk: any);
+    this.format.stripColor = stripAnsi;
     this.isSilent = !!opts.isSilent;
   }
 
   _lastCategorySize: number;
+  _progressBar: ?Progress;
+  _spinners: Set<Spinner>;
 
   _prependEmoji(msg: string, emoji: ?string): string {
     if (this.emoji && emoji && this.isTTY) {
@@ -61,6 +67,15 @@ export default class ConsoleReporter extends BaseReporter {
 
   _verboseInspect(obj: any) {
     this.inspect(obj);
+  }
+
+  close() {
+    for (const spinner of this._spinners) {
+      spinner.stop();
+    }
+    this._spinners.clear();
+    this.stopProgress();
+    super.close();
   }
 
   table(head: Array<string>, body: Array<Row>) {
@@ -113,7 +128,7 @@ export default class ConsoleReporter extends BaseReporter {
       });
     }
 
-    this.log('' + value);
+    this.log(String(value), {force: true});
   }
 
   list(key: string, items: Array<string>, hints?: Object) {
@@ -121,7 +136,7 @@ export default class ConsoleReporter extends BaseReporter {
 
     if (hints) {
       for (const item of items) {
-        this._log(`${' '.repeat(gutterWidth)}- ${item}`);
+        this._log(`${' '.repeat(gutterWidth)}- ${this.format.bold(item)}`);
         this._log(`  ${' '.repeat(gutterWidth)} ${hints[item]}`);
       }
     } else {
@@ -136,6 +151,8 @@ export default class ConsoleReporter extends BaseReporter {
   }
 
   footer(showPeakMemory?: boolean) {
+    this.stopProgress();
+
     const totalTime = (this.getTotalTime() / 1000).toFixed(2);
     let msg = `Done in ${totalTime}s.`;
     if (showPeakMemory) {
@@ -145,13 +162,13 @@ export default class ConsoleReporter extends BaseReporter {
     this.log(this._prependEmoji(msg, '✨'));
   }
 
-  log(msg: string) {
+  log(msg: string, {force = false}: {force?: boolean} = {}) {
     this._lastCategorySize = 0;
-    this._log(msg);
+    this._log(msg, {force});
   }
 
-  _log(msg: string) {
-    if (this.isSilent) {
+  _log(msg: string, {force = false}: {force?: boolean} = {}) {
+    if (this.isSilent && !force) {
       return;
     }
     clearLine(this.stdout);
@@ -196,10 +213,9 @@ export default class ConsoleReporter extends BaseReporter {
         (err, answer) => {
           if (err) {
             if (err.message === 'canceled') {
-              process.exit(1);
-            } else {
-              reject(err);
+              process.exitCode = 1;
             }
+            reject(err);
           } else {
             if (!answer && options.required) {
               this.error(this.lang('answerRequired'));
@@ -238,7 +254,8 @@ export default class ConsoleReporter extends BaseReporter {
       return super.activitySet(total, workers);
     }
 
-    const spinners = [];
+    const spinners: Array<ReporterSetSpinner> = [];
+    const reporterSpinners = this._spinners;
 
     for (let i = 1; i < workers; i++) {
       this.log('');
@@ -246,6 +263,7 @@ export default class ConsoleReporter extends BaseReporter {
 
     for (let i = 0; i < workers; i++) {
       const spinner = new Spinner(this.stderr, i);
+      reporterSpinners.add(spinner);
       spinner.start();
 
       let prefix: ?string = null;
@@ -280,6 +298,7 @@ export default class ConsoleReporter extends BaseReporter {
 
         end() {
           spinner.stop();
+          reporterSpinners.delete(spinner);
         },
       });
     }
@@ -302,9 +321,12 @@ export default class ConsoleReporter extends BaseReporter {
         end() {},
       };
     }
+    const reporterSpinners = this._spinners;
 
     const spinner = new Spinner(this.stderr);
     spinner.start();
+
+    reporterSpinners.add(spinner);
 
     return {
       tick(name: string) {
@@ -313,6 +335,7 @@ export default class ConsoleReporter extends BaseReporter {
 
       end() {
         spinner.stop();
+        reporterSpinners.delete(spinner);
       },
     };
   }
@@ -388,13 +411,26 @@ export default class ConsoleReporter extends BaseReporter {
       };
     }
 
-    const bar = new Progress(count, this.stderr);
+    // Clear any potentiall old progress bars
+    this.stopProgress();
+
+    const bar = (this._progressBar = new Progress(count, this.stderr, (progress: Progress) => {
+      if (progress === this._progressBar) {
+        this._progressBar = null;
+      }
+    }));
 
     bar.render();
 
     return function() {
       bar.tick();
     };
+  }
+
+  stopProgress() {
+    if (this._progressBar) {
+      this._progressBar.stop();
+    }
   }
 
   async prompt<T>(message: string, choices: Array<*>, options?: PromptOptions = {}): Promise<Array<T>> {
@@ -419,24 +455,9 @@ export default class ConsoleReporter extends BaseReporter {
       output: this.stdout,
     });
 
-    let rejectRef = () => {};
-    const killListener = () => {
-      rejectRef();
-    };
-
-    const handleKillFromInquirer = new Promise((resolve, reject) => {
-      rejectRef = reject;
-    });
-
-    rl.addListener('SIGINT', killListener);
-
     const {name = 'prompt', type = 'input', validate} = options;
-    const answers: InquirerResponses<string, T> = await Promise.race([
-      prompt([{name, type, message, choices, pageSize, validate}]),
-      handleKillFromInquirer,
-    ]);
+    const answers: InquirerResponses<string, T> = await prompt([{name, type, message, choices, pageSize, validate}]);
 
-    rl.removeListener('SIGINT', killListener);
     rl.close();
 
     return answers[name];

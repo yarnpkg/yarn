@@ -2,7 +2,7 @@
 
 import type {ReporterSpinner} from '../reporters/types.js';
 import type Config from '../config.js';
-import {MessageError, SpawnError} from '../errors.js';
+import {MessageError, ProcessTermError} from '../errors.js';
 import * as constants from '../constants.js';
 import * as child from './child.js';
 import {exists} from './fs.js';
@@ -33,7 +33,13 @@ export async function makeEnv(
 ): {
   [key: string]: string,
 } {
-  const env = Object.assign({}, process.env);
+  const env = {
+    NODE: process.execPath,
+    // This lets `process.env.NODE` to override our `process.execPath`.
+    // This is a bit confusing but it is how `npm` was designed so we
+    // try to be compatible with that.
+    ...process.env,
+  };
 
   // Merge in the `env` object specified in .yarnrc
   const customEnv = config.getOption('env');
@@ -42,7 +48,7 @@ export async function makeEnv(
   }
 
   env.npm_lifecycle_event = stage;
-  env.npm_node_execpath = env.NODE || process.execPath;
+  env.npm_node_execpath = env.NODE;
   env.npm_execpath = env.npm_execpath || process.mainModule.filename;
 
   // Set the env to production for npm compat if production mode.
@@ -55,13 +61,17 @@ export async function makeEnv(
   // parser used by npm. Since we use other parser, we just roughly emulate it's output. (See: #684)
   env.npm_config_argv = JSON.stringify({
     remain: [],
-    cooked: [config.commandName],
-    original: [config.commandName],
+    cooked: config.commandName === 'run' ? [config.commandName, stage] : [config.commandName],
+    original: process.argv.slice(2),
   });
 
-  // add npm_package_*
   const manifest = await config.maybeReadManifest(cwd);
   if (manifest) {
+    if (manifest.scripts && Object.prototype.hasOwnProperty.call(manifest.scripts, stage)) {
+      env.npm_lifecycle_script = manifest.scripts[stage];
+    }
+
+    // add npm_package_*
     const queue = [['', manifest]];
     while (queue.length) {
       const [key, val] = queue.pop();
@@ -117,6 +127,38 @@ export async function makeEnv(
     env[envKey] = val;
   }
 
+  // split up the path
+  const envPath = env[constants.ENV_PATH_KEY];
+  const pathParts = envPath ? envPath.split(path.delimiter) : [];
+
+  // Include node-gyp version that was bundled with the current Node.js version,
+  // if available.
+  pathParts.unshift(path.join(path.dirname(process.execPath), 'node_modules', 'npm', 'bin', 'node-gyp-bin'));
+  pathParts.unshift(
+    path.join(path.dirname(process.execPath), '..', 'lib', 'node_modules', 'npm', 'bin', 'node-gyp-bin'),
+  );
+
+  // Add global bin folder if it is not present already, as some packages depend
+  // on a globally-installed version of node-gyp.
+  const globalBin = await getGlobalBinFolder(config, {});
+  if (pathParts.indexOf(globalBin) === -1) {
+    pathParts.unshift(globalBin);
+  }
+
+  // add .bin folders to PATH
+  for (const registry of Object.keys(registries)) {
+    const binFolder = path.join(config.registries[registry].folder, '.bin');
+    pathParts.unshift(path.join(config.linkFolder, binFolder));
+    pathParts.unshift(path.join(cwd, binFolder));
+  }
+
+  if (config.scriptsPrependNodePath) {
+    pathParts.unshift(path.join(path.dirname(process.execPath)));
+  }
+
+  // join path back together
+  env[constants.ENV_PATH_KEY] = pathParts.join(path.delimiter);
+
   return env;
 }
 
@@ -132,57 +174,12 @@ export async function executeLifecycleScript(
 
   const env = await makeEnv(stage, cwd, config);
 
-  // split up the path
-  const pathParts = (env[constants.ENV_PATH_KEY] || '').split(path.delimiter);
-
-  // Include node-gyp version that was bundled with the current Node.js version,
-  // if available.
-  pathParts.unshift(path.join(path.dirname(process.execPath), 'node_modules', 'npm', 'bin', 'node-gyp-bin'));
-  pathParts.unshift(
-    path.join(path.dirname(process.execPath), '..', 'lib', 'node_modules', 'npm', 'bin', 'node-gyp-bin'),
-  );
-
-  // Add global bin folder if it is not present already, as some packages depend
-  // on a globally-installed version of node-gyp.
-  const globalBin = getGlobalBinFolder(config, {});
-  if (pathParts.indexOf(globalBin) === -1) {
-    pathParts.unshift(globalBin);
-  }
-
-  // add .bin folders to PATH
-  for (const registry of Object.keys(registries)) {
-    const binFolder = path.join(config.registries[registry].folder, '.bin');
-    pathParts.unshift(path.join(config.linkFolder, binFolder));
-    pathParts.unshift(path.join(cwd, binFolder));
-  }
-
-  await checkForGypIfNeeded(config, cmd, pathParts);
-
-  if (config.scriptsPrependNodePath) {
-    pathParts.unshift(path.join(path.dirname(process.execPath)));
-  }
-
-  // join path back together
-  env[constants.ENV_PATH_KEY] = pathParts.join(path.delimiter);
+  await checkForGypIfNeeded(config, cmd, env[constants.ENV_PATH_KEY].split(path.delimiter));
 
   // get shell
-  const conf = {windowsVerbatimArguments: false};
-  let sh = 'sh';
-  let shFlag = '-c';
   if (process.platform === 'win32') {
-    // cmd or command.com
-    sh = process.env.comspec || 'cmd';
-
-    // d - Ignore registry AutoRun commands
-    // s - Strip " quote characters from command.
-    // c - Run Command and then terminate
-    shFlag = '/d /s /c';
-
     // handle windows run scripts starting with a relative path
     cmd = fixCmdWinSlashes(cmd);
-
-    // handle quotes properly in windows environments - https://github.com/nodejs/node/issues/5060
-    conf.windowsVerbatimArguments = true;
   }
 
   let updateProgress;
@@ -204,7 +201,7 @@ export async function executeLifecycleScript(
       }
     };
   }
-  const stdout = await child.spawn(sh, [shFlag, cmd], {cwd, env, stdio, ...conf}, updateProgress);
+  const stdout = await child.spawn(cmd, [], {shell: true, cwd, env, stdio}, updateProgress);
 
   return {cwd, command: cmd, stdout};
 }
@@ -267,8 +264,12 @@ export async function execCommand(stage: string, config: Config, cmd: string, cw
     await executeLifecycleScript(stage, config, cwd, cmd);
     return Promise.resolve();
   } catch (err) {
-    if (err instanceof SpawnError) {
-      throw new MessageError(reporter.lang('commandFailed', err.EXIT_CODE));
+    if (err instanceof ProcessTermError) {
+      throw new MessageError(
+        err.EXIT_SIGNAL
+          ? reporter.lang('commandFailedWithSignal', err.EXIT_SIGNAL)
+          : reporter.lang('commandFailedWithCode', err.EXIT_CODE),
+      );
     } else {
       throw err;
     }

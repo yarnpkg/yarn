@@ -2,8 +2,22 @@
 
 const _camelCase = require('camelcase');
 
-export function has2xxResponse(res: Object): boolean {
-  return res.responseCode >= 200 && res.responseCode < 300;
+export function consumeStream(stream: Object): Promise<Buffer> {
+  return new Promise((resolve, reject) => {
+    const buffers = [];
+
+    stream.on(`data`, buffer => {
+      buffers.push(buffer);
+    });
+
+    stream.on(`end`, () => {
+      resolve(Buffer.concat(buffers));
+    });
+
+    stream.on(`error`, error => {
+      reject(error);
+    });
+  });
 }
 
 export function sortAlpha(a: string, b: string): number {
@@ -77,4 +91,10 @@ export function compareSortedArrays<T>(array1: Array<T>, array2: Array<T>): bool
     }
   }
   return true;
+}
+
+export function sleep(ms: number): Promise<void> {
+  return new Promise(resolve => {
+    setTimeout(resolve, ms);
+  });
 }

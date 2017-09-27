@@ -1,0 +1,9 @@
+{
+  "name": "yarn-test",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "dependencies": {
+    "left-pad": "^1.1.3"
+  }
+}

@@ -13,12 +13,21 @@ type Parts = Array<string>;
 let historyCounter = 0;
 
 export class HoistManifest {
-  constructor(key: string, parts: Parts, pkg: Manifest, loc: string, isRequired: boolean, isIncompatible: boolean) {
+  constructor(
+    key: string,
+    parts: Parts,
+    pkg: Manifest,
+    loc: string,
+    isDirectRequire: boolean,
+    isRequired: boolean,
+    isIncompatible: boolean,
+  ) {
+    this.isDirectRequire = isDirectRequire;
     this.isRequired = isRequired;
     this.isIncompatible = isIncompatible;
+
     this.loc = loc;
     this.pkg = pkg;
-
     this.key = key;
     this.parts = parts;
     this.originalKey = key;
@@ -30,6 +39,7 @@ export class HoistManifest {
 
   isRequired: boolean;
   isIncompatible: boolean;
+  isDirectRequire: boolean;
   pkg: Manifest;
   loc: string;
   parts: Parts;
@@ -44,9 +54,11 @@ export class HoistManifest {
 }
 
 export default class PackageHoister {
-  constructor(config: Config, resolver: PackageResolver) {
+  constructor(config: Config, resolver: PackageResolver, {ignoreOptional}: {ignoreOptional: ?boolean} = {}) {
     this.resolver = resolver;
     this.config = config;
+
+    this.ignoreOptional = ignoreOptional;
 
     this.taintedKeys = new Map();
     this.levelQueue = [];
@@ -55,6 +67,8 @@ export default class PackageHoister {
 
   resolver: PackageResolver;
   config: Config;
+
+  ignoreOptional: ?boolean;
 
   levelQueue: Array<[string, HoistManifest]>;
   tree: Map<string, HoistManifest>;
@@ -107,18 +121,45 @@ export default class PackageHoister {
         return sortAlpha(aPattern, bPattern);
       });
 
-      //
-      const infos = [];
-      for (const [pattern, parent] of queue) {
-        const info = this._seed(pattern, {isDirectRequire: false, parent});
-        if (info) {
-          infos.push(info);
+      // sort the queue again to hoist packages without peer dependencies first
+      let sortedQueue = [];
+      const availableSet = new Set();
+
+      let hasChanged = true;
+      while (queue.length > 0 && hasChanged) {
+        hasChanged = false;
+
+        for (let t = 0; t < queue.length; ++t) {
+          const pattern = queue[t][0];
+          const pkg = this.resolver.getStrictResolvedPattern(pattern);
+
+          const peerDependencies = Object.keys(pkg.peerDependencies || {});
+          const areDependenciesFulfilled = peerDependencies.every(peerDependency => availableSet.has(peerDependency));
+
+          if (areDependenciesFulfilled) {
+            // Move the package inside our sorted queue
+            sortedQueue.push(queue[t]);
+            queue.splice(t--, 1);
+
+            // Add it to our set, so that we know it is available
+            availableSet.add(pattern);
+
+            // Schedule a next pass, in case other packages had peer dependencies on this one
+            hasChanged = true;
+          }
         }
       }
 
-      //
-      for (const info of infos) {
-        this.hoist(info);
+      // We might end up with some packages left in the queue, that have not been sorted. We reach this codepath if two
+      // packages have a cyclic dependency, or if the peer dependency is provided by a parent package. In these case,
+      // nothing we can do, so we just add all of these packages to the end of the sorted queue.
+      sortedQueue = sortedQueue.concat(queue);
+
+      for (const [pattern, parent] of sortedQueue) {
+        const info = this._seed(pattern, {isDirectRequire: false, parent});
+        if (info) {
+          this.hoist(info);
+        }
       }
     }
   }
@@ -138,8 +179,11 @@ export default class PackageHoister {
 
     //
     let parentParts: Parts = [];
+
     const isIncompatible = ref.incompatible;
-    let isRequired = isDirectRequire && !ref.ignore && !isIncompatible;
+    const isMarkedAsOptional = ref.optional && this.ignoreOptional;
+
+    let isRequired = isDirectRequire && !ref.ignore && !isIncompatible && !isMarkedAsOptional;
 
     if (parent) {
       if (!this.tree.get(parent.key)) {
@@ -147,7 +191,7 @@ export default class PackageHoister {
       }
       // non ignored dependencies inherit parent's ignored status
       // parent may transition from ignored to non ignored when hoisted if it is used in another non ignored branch
-      if (!isDirectRequire && !isIncompatible && parent.isRequired) {
+      if (!isDirectRequire && !isIncompatible && parent.isRequired && !isMarkedAsOptional) {
         isRequired = true;
       }
       parentParts = parent.parts;
@@ -157,8 +201,7 @@ export default class PackageHoister {
     const loc: string = this.config.generateHardModulePath(ref);
     const parts = parentParts.concat(pkg.name);
     const key: string = this.implodeKey(parts);
-    const info: HoistManifest = new HoistManifest(key, parts, pkg, loc, isRequired, isIncompatible);
-
+    const info: HoistManifest = new HoistManifest(key, parts, pkg, loc, isDirectRequire, isRequired, isIncompatible);
     //
     this.tree.set(key, info);
     this.taintKey(key, info);
@@ -194,7 +237,13 @@ export default class PackageHoister {
 
       for (const depPattern of ref.dependencies) {
         const depinfo = this._lookupDependency(info, depPattern);
-        if (depinfo && !depinfo.isRequired && !depinfo.isIncompatible) {
+
+        if (!depinfo) {
+          continue;
+        }
+
+        const isMarkedAsOptional = depinfo.pkg._reference && depinfo.pkg._reference.optional && this.ignoreOptional;
+        if (!depinfo.isRequired && !depinfo.isIncompatible && !isMarkedAsOptional) {
           depinfo.isRequired = true;
           depinfo.addHistory(`Mark as non-ignored because of usage by ${info.key}`);
           toVisit.push(depinfo);
@@ -244,13 +293,13 @@ export default class PackageHoister {
     const stack = []; // stack of removed parts
     const name = parts.pop();
 
-    //
     for (let i = parts.length - 1; i >= 0; i--) {
       const checkParts = parts.slice(0, i).concat(name);
       const checkKey = this.implodeKey(checkParts);
       info.addHistory(`Looked at ${checkKey} for a match`);
 
       const existing = this.tree.get(checkKey);
+
       if (existing) {
         if (existing.loc === info.loc) {
           // switch to non ignored if earlier deduped version was ignored (must be compatible)
@@ -276,8 +325,24 @@ export default class PackageHoister {
       }
     }
 
+    const peerDependencies = Object.keys(info.pkg.peerDependencies || {});
+
     // remove redundant parts that wont collide
-    while (parts.length) {
+    hoistLoop: while (parts.length) {
+      // we must not hoist a package higher than its peer dependencies
+      for (const peerDependency of peerDependencies) {
+        const checkParts = parts.concat(peerDependency);
+        const checkKey = this.implodeKey(checkParts);
+        info.addHistory(`Looked at ${checkKey} for a peer dependency match`);
+
+        const existing = this.tree.get(checkKey);
+
+        if (existing) {
+          info.addHistory(`Found a peer dependency requirement at ${checkKey}`);
+          break hoistLoop;
+        }
+      }
+
       const checkParts = parts.concat(name);
       const checkKey = this.implodeKey(checkParts);
 
@@ -346,14 +411,13 @@ export default class PackageHoister {
    */
 
   hoist(info: HoistManifest) {
-    const {key, parts: rawParts} = info;
+    const {key: oldKey, parts: rawParts} = info;
 
     // remove this item from the `tree` map so we can ignore it
-    this.tree.delete(key);
+    this.tree.delete(oldKey);
 
-    const {parts, duplicate} = this.getNewParts(key, info, rawParts.slice());
+    const {parts, duplicate} = this.getNewParts(oldKey, info, rawParts.slice());
     const newKey = this.implodeKey(parts);
-    const oldKey = key;
     if (duplicate) {
       info.addHistory(`Satisfied from above by ${newKey}`);
       this.declareRename(info, rawParts, parts);
@@ -363,7 +427,7 @@ export default class PackageHoister {
     // update to the new key
     if (oldKey === newKey) {
       info.addHistory("Didn't hoist - conflicts above");
-      this.setKey(info, oldKey, parts);
+      this.setKey(info, oldKey, rawParts);
       return;
     }
 
@@ -423,6 +487,15 @@ export default class PackageHoister {
   prepass(patterns: Array<string>) {
     patterns = this.resolver.dedupePatterns(patterns).sort();
 
+    const visited: Map<
+      string,
+      Array<{
+        pkg: Manifest,
+        ancestry: Array<Manifest>,
+        pattern: string,
+      }>,
+    > = new Map();
+
     const occurences: {
       [packageName: string]: {
         [version: string]: {
@@ -432,27 +505,62 @@ export default class PackageHoister {
       },
     } = {};
 
+    // visitor to be used inside add() to mark occurences of packages
+    const visitAdd = (pkg: Manifest, ancestry: Array<Manifest>, pattern: string) => {
+      const versions = (occurences[pkg.name] = occurences[pkg.name] || {});
+      const version = (versions[pkg.version] = versions[pkg.version] || {
+        occurences: new Set(),
+        pattern,
+      });
+
+      if (ancestry.length) {
+        version.occurences.add(ancestry[ancestry.length - 1]);
+      }
+    };
+
     // add an occuring package to the above data structure
-    const add = (pattern: string, ancestry: Array<Manifest>) => {
+    const add = (pattern: string, ancestry: Array<Manifest>, ancestryPatterns: Array<string>) => {
       const pkg = this.resolver.getStrictResolvedPattern(pattern);
       if (ancestry.indexOf(pkg) >= 0) {
         // prevent recursive dependencies
         return;
       }
 
+      let visitedPattern = visited.get(pattern);
+
+      if (visitedPattern) {
+        // if a package has been visited before, simply increment occurrences of packages
+        // like last time this package was visited
+        visitedPattern.forEach(visitPkg => {
+          visitAdd(visitPkg.pkg, visitPkg.ancestry, visitPkg.pattern);
+        });
+
+        visitAdd(pkg, ancestry, pattern);
+
+        return;
+      }
+
       const ref = pkg._reference;
       invariant(ref, 'expected reference');
 
-      const versions = (occurences[pkg.name] = occurences[pkg.name] || {});
-      const version = (versions[pkg.version] = versions[pkg.version] || {
-        occurences: new Set(),
-        pattern,
-      });
-      version.occurences.add(ancestry[ancestry.length - 1]);
+      visitAdd(pkg, ancestry, pattern);
 
       for (const depPattern of ref.dependencies) {
-        add(depPattern, ancestry.concat(pkg));
+        const depAncestry = ancestry.concat(pkg);
+        const depAncestryPatterns = ancestryPatterns.concat(depPattern);
+        add(depPattern, depAncestry, depAncestryPatterns);
       }
+
+      visitedPattern = visited.get(pattern) || [];
+      visited.set(pattern, visitedPattern);
+      visitedPattern.push({pkg, ancestry, pattern});
+
+      ancestryPatterns.forEach(ancestryPattern => {
+        const visitedAncestryPattern = visited.get(ancestryPattern);
+        if (visitedAncestryPattern) {
+          visitedAncestryPattern.push({pkg, ancestry, pattern});
+        }
+      });
     };
 
     // get a list of root package names since we can't hoist other dependencies to these spots!
@@ -460,11 +568,7 @@ export default class PackageHoister {
     for (const pattern of patterns) {
       const pkg = this.resolver.getStrictResolvedPattern(pattern);
       rootPackageNames.add(pkg.name);
-    }
-
-    // seed occurences
-    for (const pattern of patterns) {
-      add(pattern, []);
+      add(pattern, [], []);
     }
 
     for (const packageName of Object.keys(occurences).sort()) {
@@ -546,7 +650,6 @@ export default class PackageHoister {
     for (const [loc, info] of flatTree) {
       const ref = info.pkg._reference;
       invariant(ref, 'expected reference');
-
       if (!info.isRequired) {
         info.addHistory('Deleted as this module was ignored');
       } else {

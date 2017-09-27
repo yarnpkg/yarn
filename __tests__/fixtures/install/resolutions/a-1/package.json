@@ -1,0 +1,7 @@
+{
+  "name": "a",
+  "version": "1.0.0",
+  "dependencies": {
+    "d1": "file:../d1-1"
+  }
+}

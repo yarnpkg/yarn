@@ -4,15 +4,18 @@ import type {Reporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
 import {stringifyPerson, extractRepositoryUrl} from '../../util/normalize-manifest/util.js';
 import {registryNames} from '../../registries/index.js';
+import GitHubResolver from '../../resolvers/exotics/github-resolver.js';
 import * as child from '../../util/child.js';
 import * as fs from '../../util/fs.js';
 import * as validate from '../../util/normalize-manifest/validate.js';
 
 const objectPath = require('object-path');
 const path = require('path');
+const yn = require('yn');
 
 export function setFlags(commander: Object) {
   commander.option('-y, --yes', 'use default options');
+  commander.option('-p, --private', 'use default options and private true');
 }
 
 export function hasWrapper(commander: Object, args: Array<string>): boolean {
@@ -88,12 +91,18 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
       question: 'license',
       default: String(config.getOption('init-license')),
     },
+    {
+      key: 'private',
+      question: 'private',
+      default: '',
+      inputFormatter: yn,
+    },
   ];
 
   // get answers
   const pkg = {};
   for (const entry of keys) {
-    const {yes} = flags;
+    const {yes, private: privateFlag} = flags;
     const {key: manifestKey} = entry;
     let {question, default: def} = entry;
 
@@ -113,8 +122,12 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
       def = val;
     }
 
+    if (manifestKey === 'private' && privateFlag) {
+      def = true;
+    }
+
     if (def) {
-      question += ` (${def})`;
+      question += ` (${def.toString()})`;
     }
 
     let answer;
@@ -140,8 +153,15 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
     }
 
     if (answer) {
+      if (entry.inputFormatter) {
+        answer = entry.inputFormatter(answer);
+      }
       objectPath.set(pkg, manifestKey, answer);
     }
+  }
+
+  if (pkg.repository && GitHubResolver.isVersion(pkg.repository)) {
+    pkg.repository = `https://github.com/${pkg.repository}`;
   }
 
   // save answers

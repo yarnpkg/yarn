@@ -1,0 +1,10 @@
+{
+    "name": "dep-a",
+    "version": "1.0.0",
+    "dependencies": {
+        "dep-c": "file:../dep-c"
+    },
+    "optionalDependencies": {
+        "dep-b": "file:../dep-b"
+    }
+}

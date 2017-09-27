@@ -4,12 +4,13 @@ import type {Stdout} from '../types.js';
 import {clearLine, toStartOfLine} from './util.js';
 
 export default class ProgressBar {
-  constructor(total: number, stdout: Stdout = process.stderr) {
+  constructor(total: number, stdout: Stdout = process.stderr, callback: ?(progressBar: ProgressBar) => void) {
     this.stdout = stdout;
     this.total = total;
     this.chars = ProgressBar.bars[0];
     this.delay = 60;
     this.curr = 0;
+    this._callback = callback;
     clearLine(stdout);
   }
 
@@ -20,28 +21,44 @@ export default class ProgressBar {
   chars: [string, string];
   delay: number;
   id: ?number;
+  _callback: ?(progressBar: ProgressBar) => void;
 
-  static bars = [['█', '░']];
+  static bars = [['#', '-']];
 
   tick() {
+    if (this.curr >= this.total) {
+      return;
+    }
+
     this.curr++;
 
     // schedule render
     if (!this.id) {
       this.id = setTimeout((): void => this.render(), this.delay);
     }
+  }
 
-    // progress complete
-    if (this.curr >= this.total) {
+  cancelTick() {
+    if (this.id) {
       clearTimeout(this.id);
-      clearLine(this.stdout);
+      this.id = null;
+    }
+  }
+
+  stop() {
+    // "stop" by setting current to end so `tick` becomes noop
+    this.curr = this.total;
+
+    this.cancelTick();
+    clearLine(this.stdout);
+    if (this._callback) {
+      this._callback(this);
     }
   }
 
   render() {
     // clear throttle
-    clearTimeout(this.id);
-    this.id = null;
+    this.cancelTick();
 
     let ratio = this.curr / this.total;
     ratio = Math.min(Math.max(ratio, 0), 1);
@@ -51,12 +68,12 @@ export default class ProgressBar {
 
     // calculate size of actual bar
     // $FlowFixMe: investigate process.stderr.columns flow error
-    const availableSpace = Math.max(0, this.stdout.columns - bar.length - 1);
+    const availableSpace = Math.max(0, this.stdout.columns - bar.length - 3);
     const width = Math.min(this.total, availableSpace);
     const completeLength = Math.round(width * ratio);
     const complete = this.chars[0].repeat(completeLength);
     const incomplete = this.chars[1].repeat(width - completeLength);
-    bar = `${complete}${incomplete}${bar}`;
+    bar = `[${complete}${incomplete}]${bar}`;
 
     toStartOfLine(this.stdout);
     this.stdout.write(bar);

@@ -24,11 +24,7 @@ const runGlobal = buildRun.bind(
 );
 
 function getGlobalPath(prefix, name): string {
-  if (process.platform === 'win32') {
-    return path.join(prefix, name);
-  } else {
-    return path.join(prefix, 'bin', name);
-  }
+  return path.join(prefix, 'bin', name);
 }
 
 function getTempGlobalFolder(): string {
@@ -72,6 +68,15 @@ if (isCI) {
     });
   });
 }
+
+test.concurrent("shouldn't expose unwanted binaries", async (): Promise<void> => {
+  const tmpGlobalFolder = await createTempGlobalFolder();
+  const tmpPrefixFolder = await createTempPrefixFolder();
+  const flags = {globalFolder: tmpGlobalFolder, prefix: tmpPrefixFolder};
+  return runGlobal(['add', 'fs-kit'], flags, 'add-with-prefix-flag', async config => {
+    expect(await fs.exists(path.join(tmpPrefixFolder, 'bin', 'touch'))).toEqual(false);
+  });
+});
 
 test.concurrent('bin', (): Promise<void> => {
   const tmpGlobalFolder = getTempGlobalFolder();
@@ -131,10 +136,11 @@ test.concurrent('upgrade', async (): Promise<void> => {
   const tmpGlobalFolder = await createTempGlobalFolder();
   const tmpPrefixFolder = await createTempPrefixFolder();
   const flags = {globalFolder: tmpGlobalFolder, prefix: tmpPrefixFolder};
+  const upgradeFlags = {globalFolder: tmpGlobalFolder, prefix: tmpPrefixFolder, latest: true};
   return runGlobal(['add', 'react-native-cli@2.0.0'], flags, 'add-with-prefix-flag', () => {}).then(() => {
     return runGlobal(
       ['upgrade', 'react-native-cli'],
-      flags,
+      upgradeFlags,
       'add-with-prefix-flag',
       (config, reporter, install, getStdout) => {
         expect(getStdout()).toContain('react-native-cli');

@@ -21,14 +21,18 @@ fi
 PATH=$PATH:$HOME/.linuxbrew/bin/
 # Ensure homebrew-core is pointing to Homebrew rather than Linuxbrew
 pushd ~/.linuxbrew/Library/Taps/homebrew/homebrew-core
+git checkout master
+git clean -fd
+# Remove any existing branch (eg. if the previous attempt failed)
+git branch -D yarn-$version || true
+
 #git remote set-url origin https://github.com/Daniel15/homebrew-core # for testing
 git remote set-url origin https://github.com/homebrew/homebrew-core
-git reset --hard HEAD
-git clean -fd
 git fetch --prune origin
-# Remove any existing branch (eg. if the previous attempt failed)
-git checkout master
-git branch -D yarn-$version || true
+# Use `git reset` instead of pull since we don't want a merge etc., we just want
+# local master to exactly reflect origin/master
+git reset --hard origin/master
+git clean -fd
 popd
 
 # Grab latest Yarn release so we can hash it

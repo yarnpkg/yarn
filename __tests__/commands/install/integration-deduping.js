@@ -1,6 +1,6 @@
 /* @flow */
 
-import {getPackageVersion, runInstall} from '../_helpers.js';
+import {getPackageVersion, getPackageManifestPath, runInstall} from '../_helpers.js';
 import * as fs from '../../../src/util/fs.js';
 
 const path = require('path');
@@ -204,8 +204,8 @@ test.concurrent('install should hardlink repeated dependencies', (): Promise<voi
   // B@1 -> A@2
   // C@1 -> A@2 (this is hardlink to B@1->A@2)
   return runInstall({linkDuplicates: true}, 'hardlink-repeated-dependencies', async config => {
-    const b_a = await fs.stat(path.join(config.cwd, 'node_modules/b/node_modules/a/package.json'));
-    const c_a = await fs.stat(path.join(config.cwd, 'node_modules/c/node_modules/a/package.json'));
+    const b_a = await fs.stat(getPackageManifestPath(config, 'b/a'));
+    const c_a = await fs.stat(getPackageManifestPath(config, 'c/a'));
     expect(b_a.ino).toEqual(c_a.ino);
   });
 });
@@ -215,8 +215,8 @@ test.concurrent('install should not hardlink repeated dependencies if linkDuplic
   // B@1 -> A@2
   // C@1 -> A@2
   return runInstall({linkDuplicates: false}, 'hardlink-repeated-dependencies', async config => {
-    const b_a = await fs.stat(path.join(config.cwd, 'node_modules/b/node_modules/a/package.json'));
-    const c_a = await fs.stat(path.join(config.cwd, 'node_modules/c/node_modules/a/package.json'));
+    const b_a = await fs.stat(getPackageManifestPath(config, 'b/a'));
+    const c_a = await fs.stat(getPackageManifestPath(config, 'c/a'));
     expect(b_a.ino).not.toEqual(c_a.ino);
   });
 });

@@ -83,6 +83,69 @@ export async function mutate(
   }
 }
 
+async function list(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<boolean> {
+  if (args.length > 1) {
+    return false;
+  }
+
+  const name = await getName(args, config);
+
+  reporter.step(1, 3, reporter.lang('loggingIn'));
+  const revoke = await getToken(config, reporter, name);
+
+  reporter.step(2, 3, reporter.lang('ownerGetting', name));
+  const pkg = await config.registries.npm.request(name);
+  if (pkg) {
+    const owners = pkg.maintainers;
+    if (!owners || !owners.length) {
+      reporter.warn(reporter.lang('ownerNone'));
+    } else {
+      for (const owner of owners) {
+        reporter.info(`${owner.name} <${owner.email}>`);
+      }
+    }
+  } else {
+    reporter.error(reporter.lang('ownerGettingFailed'));
+  }
+
+  reporter.step(3, 3, reporter.lang('revokingToken'));
+  await revoke();
+
+  if (pkg) {
+    return true;
+  } else {
+    throw new Error();
+  }
+}
+
+function remove(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<boolean> {
+  return mutate(
+    args,
+    config,
+    reporter,
+    (username: string, name: string): Messages => ({
+      info: reporter.lang('ownerRemoving', username, name),
+      success: reporter.lang('ownerRemoved'),
+      error: reporter.lang('ownerRemoveError'),
+    }),
+    (user: Object, pkg: Object): boolean => {
+      let found = false;
+
+      pkg.maintainers = pkg.maintainers.filter((o): boolean => {
+        const match = o.name === user.name;
+        found = found || match;
+        return !match;
+      });
+
+      if (!found) {
+        reporter.error(reporter.lang('userNotAnOwner', user.name));
+      }
+
+      return found;
+    },
+  );
+}
+
 export const {run, setFlags, hasWrapper, examples} = buildSubCommands(
   'owner',
   {
@@ -112,67 +175,22 @@ export const {run, setFlags, hasWrapper, examples} = buildSubCommands(
     },
 
     rm(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<boolean> {
-      return mutate(
-        args,
-        config,
-        reporter,
-        (username: string, name: string): Messages => ({
-          info: reporter.lang('ownerRemoving', username, name),
-          success: reporter.lang('ownerRemoved'),
-          error: reporter.lang('ownerRemoveError'),
-        }),
-        (user: Object, pkg: Object): boolean => {
-          let found = false;
-
-          pkg.maintainers = pkg.maintainers.filter((o): boolean => {
-            const match = o.name === user.name;
-            found = found || match;
-            return !match;
-          });
-
-          if (!found) {
-            reporter.error(reporter.lang('userNotAnOwner', user.name));
-          }
-
-          return found;
-        },
-      );
+      reporter.warn(`\`yarn owner rm\` is deprecated. Please use \`yarn owner remove\`.`);
+      return remove(config, reporter, flags, args);
     },
 
-    async ls(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<boolean> {
-      if (args.length > 1) {
-        return false;
-      }
+    remove(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<boolean> {
+      return remove(config, reporter, flags, args);
+    },
 
-      const name = await getName(args, config);
+    ls(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<boolean> {
+      reporter.warn(`\`yarn owner ls\` is deprecated. Please use \`yarn owner list\`.`);
+      return list(config, reporter, flags, args);
+    },
 
-      reporter.step(1, 3, reporter.lang('loggingIn'));
-      const revoke = await getToken(config, reporter, name);
-
-      reporter.step(2, 3, reporter.lang('ownerGetting', name));
-      const pkg = await config.registries.npm.request(name);
-      if (pkg) {
-        const owners = pkg.maintainers;
-        if (!owners || !owners.length) {
-          reporter.warn(reporter.lang('ownerNone'));
-        } else {
-          for (const owner of owners) {
-            reporter.info(`${owner.name} <${owner.email}>`);
-          }
-        }
-      } else {
-        reporter.error(reporter.lang('ownerGettingFailed'));
-      }
-
-      reporter.step(3, 3, reporter.lang('revokingToken'));
-      await revoke();
-
-      if (pkg) {
-        return true;
-      } else {
-        throw new Error();
-      }
+    list(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<boolean> {
+      return list(config, reporter, flags, args);
     },
   },
-  ['add <user> [[<@scope>/]<pkg>]', 'rm <user> [[<@scope>/]<pkg>]', 'ls [<@scope>/]<pkg>'],
+  ['add <user> [[<@scope>/]<pkg>]', 'remove <user> [[<@scope>/]<pkg>]', 'list [<@scope>/]<pkg>'],
 );

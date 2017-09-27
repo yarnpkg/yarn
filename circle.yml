@@ -7,7 +7,7 @@ general:
 
 machine:
   node:
-    version: 6
+    version: 8
 
 dependencies:
   cache_directories:
@@ -29,13 +29,11 @@ test:
         ./scripts/set-dev-version.js
       fi;
     - yarn lint
+    # Limit maxWorkers to 3 to avoid OOM on CircleCI
     - yarn test-ci -- -- --maxWorkers 3
     - yarn check-lockfile
     - yarn run build-dist
     - yarn run build-deb
-    # Test that the standalone .js build works as expected
-    - ./artifacts/yarn-`./dist/bin/yarn --version`.js --version
-    - ./artifacts/yarn-legacy-`./dist/bin/yarn --version`.js --version
 
     # Test that installing as root works and that it also works
     # behind a user namespace which Circle CI tests are run under
@@ -47,10 +45,9 @@ deployment:
     owner: yarnpkg
     commands:
       # Only NPM is handled here - All other release files are handled in a webhook.
+      - echo "Releasing $CIRCLE_TAG..."
       - echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
-      - ./scripts/set-installation-method.js "`pwd`/package.json" npm
-      # https://github.com/yarnpkg/yarn/issues/610, need to make yarn publish noninteractive
-      - npm publish --tag rc
+      - ./scripts/update-npm.sh
 
 notify:
   webhooks:

@@ -12,8 +12,10 @@ const stream = require('stream');
 // ensures consistency across environments
 require('chalk').enabled = true;
 require('chalk').supportsColor = true;
-require('chalk').styles.blue.open = '\u001b[34m';
-require('chalk').styles.bold.close = '\u001b[22m';
+// $FlowFixMe - flow-typed doesn't have definitions for Chalk 2.x.x
+require('chalk').level = 2;
+require('chalk').blue._styles[0].open = '\u001b[34m';
+require('chalk').bold._styles[0].close = '\u001b[22m';
 
 test('ConsoleReporter.step', async () => {
   expect(
@@ -243,4 +245,24 @@ test('Spinner', () => {
 
   spinner.stop();
   expect(data).toMatchSnapshot();
+});
+
+test('close', async () => {
+  jest.useFakeTimers();
+  expect(
+    await getConsoleBuff(r => {
+      r.noProgress = false; // we need this to override is-ci when running tests on ci
+      const tick = r.progress(2);
+      tick();
+      jest.runAllTimers();
+      tick();
+
+      const activity = r.activity();
+      activity.tick('foo');
+
+      r.close();
+      // .close() should stop all timers and activities
+      jest.runAllTimers();
+    }),
+  ).toMatchSnapshot();
 });

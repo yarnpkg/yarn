@@ -1,0 +1,9 @@
+{
+  "name": "bin_pre_post",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "lol" : "echo '##lol##'"
+  }
+}

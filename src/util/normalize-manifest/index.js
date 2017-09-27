@@ -2,6 +2,7 @@
 
 import type {Manifest} from '../../types.js';
 import type Config from '../../config.js';
+import resolveRelative from './resolve-relative.js';
 import validate from './validate.js';
 import fix from './fix.js';
 
@@ -29,6 +30,12 @@ export default (async function(info: Object, moduleLoc: string, config: Config, 
   }
 
   await fix(info, moduleLoc, config.reporter, warn, config.looseSemver);
+  resolveRelative(info, moduleLoc, config.lockfileFolder);
+
+  if (config.cwd === config.globalFolder) {
+    return info;
+  }
+
   try {
     validate(info, isRoot, config.reporter, warn);
   } catch (err) {
