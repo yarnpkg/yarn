@@ -1057,6 +1057,12 @@ test('unbound transitive dependencies should not conflict with top level depende
   });
 });
 
+test('manifest optimization respects versions with alternation', async () => {
+  await runInstall({flat: true}, 'optimize-version-with-alternation', async config => {
+    expect(await getPackageVersion(config, 'lodash')).toEqual('2.4.2');
+  });
+});
+
 test.concurrent('top level patterns should match after install', (): Promise<void> => {
   return runInstall({}, 'top-level-pattern-check', async (config, reporter) => {
     let integrityError = false;
