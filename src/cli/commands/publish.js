@@ -33,6 +33,11 @@ async function publish(config: Config, pkg: any, flags: Object, dir: string): Pr
     throw new MessageError(config.reporter.lang('invalidAccess'));
   }
 
+  // TODO this might modify package.json, do we need to reload it?
+  await config.executeLifecycleScript('prepublish');
+  await config.executeLifecycleScript('prepare');
+  await config.executeLifecycleScript('prepublishOnly');
+
   // get tarball stream
   const stat = await fs.lstat(dir);
   let stream;
@@ -60,11 +65,6 @@ async function publish(config: Config, pkg: any, flags: Object, dir: string): Pr
   const tag = flags.tag || 'latest';
   const tbName = `${pkg.name}-${pkg.version}.tgz`;
   const tbURI = `${pkg.name}/-/${tbName}`;
-
-  // TODO this might modify package.json, do we need to reload it?
-  await config.executeLifecycleScript('prepublish');
-  await config.executeLifecycleScript('prepublishOnly');
-  await config.executeLifecycleScript('prepare');
 
   // create body
   const root = {
