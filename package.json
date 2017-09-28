@@ -79,6 +79,7 @@
     "gulp-sourcemaps": "^2.2.0",
     "gulp-util": "^3.0.7",
     "gulp-watch": "^4.3.5",
+    "imports-loader": "^0.7.1",
     "jest": "20.0.4",
     "minimatch": "^3.0.4",
     "mock-stdin": "^0.3.0",
