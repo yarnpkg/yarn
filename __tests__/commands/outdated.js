@@ -28,6 +28,7 @@ const runOutdated = buildRun.bind(
       Object.keys(this.format).forEach(key => {
         mockFormat[key] = jest.fn(this.format[key]);
       });
+      // $FlowFixMe
       this.format = mockFormat;
     }
   },
