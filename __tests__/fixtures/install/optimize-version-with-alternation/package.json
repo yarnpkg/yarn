@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "b": "file:b",
+    "lodash": "2.4.2"
+  }
+}

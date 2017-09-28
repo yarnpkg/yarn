@@ -91,7 +91,7 @@ function getUpdateCommand(installationMethod: InstallationMethod): ?string {
   }
 
   if (installationMethod === 'npm') {
-    return 'npm update --global yarn';
+    return 'npm install --global yarn';
   }
 
   if (installationMethod === 'chocolatey') {
@@ -914,7 +914,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
     let command = 'add';
     if (flags.global) {
       error = 'globalFlagRemoved';
-      command = 'global';
+      command = 'global add';
     }
     throw new MessageError(reporter.lang(error, `yarn ${command} ${exampleArgs.join(' ')}`));
   }

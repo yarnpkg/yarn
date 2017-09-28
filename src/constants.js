@@ -11,6 +11,8 @@ type Env = {
 
 export const DEPENDENCY_TYPES = ['devDependencies', 'dependencies', 'optionalDependencies', 'peerDependencies'];
 
+export const SUPPORTED_NODE_VERSIONS = '^4.8.0 || ^5.7.0 || ^6.2.2 || ^8.0.0';
+
 export const YARN_REGISTRY = 'https://registry.yarnpkg.com';
 
 export const YARN_DOCS = 'https://yarnpkg.com/en/docs/cli/';

@@ -1,12 +1,13 @@
 /* @flow */
 /* eslint quotes: 0 */
 
+import util from 'util';
+import invariant from 'invariant';
+import stripBOM from 'strip-bom';
+
 import {LOCKFILE_VERSION} from '../constants.js';
 import {MessageError} from '../errors.js';
 import map from '../util/map.js';
-
-const invariant = require('invariant');
-const stripBOM = require('strip-bom');
 
 type Token = {
   line: number,
@@ -56,8 +57,12 @@ function* tokenise(input: string): Iterator<Token> {
   while (input.length) {
     let chop = 0;
 
-    if (input[0] === '\n') {
+    if (input[0] === '\n' || input[0] === '\r') {
       chop++;
+      // If this is a \r\n line, ignore both chars but only add one new line
+      if (input[1] === '\n') {
+        chop++;
+      }
       line++;
       col = 0;
       yield buildToken(TOKEN_TYPES.newline);
@@ -136,7 +141,7 @@ function* tokenise(input: string): Iterator<Token> {
       let name = '';
       for (let i = 0; i < input.length; i++) {
         const char = input[i];
-        if (char === ':' || char === ' ' || char === '\n' || char === ',') {
+        if (char === ':' || char === ' ' || char === '\n' || char === '\r' || char === ',') {
           break;
         } else {
           name += char;
@@ -155,7 +160,7 @@ function* tokenise(input: string): Iterator<Token> {
     }
 
     col += chop;
-    lastNewline = input[0] === '\n';
+    lastNewline = input[0] === '\n' || (input[0] === '\r' && input[1] === '\n');
     input = input.slice(chop);
   }
 
@@ -313,7 +318,7 @@ class Parser {
           this.unexpected('Invalid value type');
         }
       } else {
-        this.unexpected('Unknown token');
+        this.unexpected(`Unknown token: ${util.inspect(propToken)}`);
       }
     }
 
@@ -331,7 +336,7 @@ const MERGE_CONFLICT_START = '<<<<<<<';
  */
 function extractConflictVariants(str: string): [string, string] {
   const variants = [[], []];
-  const lines = str.split(/\n/g);
+  const lines = str.split(/\r?\n/g);
   let skip = false;
 
   while (lines.length) {

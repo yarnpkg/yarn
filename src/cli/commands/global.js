@@ -40,7 +40,7 @@ class GlobalAdd extends Add {
 const path = require('path');
 
 export function hasWrapper(flags: Object, args: Array<string>): boolean {
-  return args[0] !== 'bin';
+  return args[0] !== 'bin' && args[0] !== 'dir';
 }
 
 async function updateCwd(config: Config): Promise<void> {
@@ -228,7 +228,12 @@ const {run, setFlags: _setFlags} = buildSubCommands('global', {
   },
 
   async bin(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
-    reporter.log(await getBinFolder(config, flags));
+    reporter.log(await getBinFolder(config, flags), {force: true});
+  },
+
+  dir(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
+    reporter.log(config.globalFolder, {force: true});
+    return Promise.resolve();
   },
 
   async ls(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {

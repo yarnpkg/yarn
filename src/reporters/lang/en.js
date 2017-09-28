@@ -223,6 +223,7 @@ const messages = {
 
   unmetPeer: '$0 has unmet peer dependency $1.',
   incorrectPeer: '$0 has incorrect peer dependency $1.',
+  selectedPeer: 'Selecting $1 at level $2 as the peer dependency of $0.',
   missingBundledDependency: '$0 is missing a bundled dependency $1. This should be reported to the package maintainer.',
 
   savedNewDependency: 'Saved 1 new dependency.',
@@ -360,6 +361,8 @@ const messages = {
   deprecatedCommand: '$0 is deprecated. Please use $1.',
   implicitFileDeprecated:
     'Using the "file:" protocol implicitly is deprecated. Please either the protocol or prepend the path $0 with "./".',
+  unsupportedNodeVersion:
+    'You are using Node $0 which is not supported and may encounter bugs or unexpected behavior. Yarn supports the following semver range: $1',
 };
 
 export type LanguageKeys = $Keys<typeof messages>;

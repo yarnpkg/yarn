@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "foo": "file:bar",
+    "bar": "./bar"
+  }
+}
