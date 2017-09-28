@@ -15,6 +15,7 @@ export const integrityErrors = {
   EXPECTED_IS_NOT_A_JSON: 'integrityFailedExpectedIsNotAJSON',
   FILES_MISSING: 'integrityFailedFilesMissing',
   LOCKFILE_DONT_MATCH: 'integrityLockfilesDontMatch',
+  LINKED_DEP_FOUND: 'integrityLinkedDepFound',
   FLAGS_DONT_MATCH: 'integrityFlagsDontMatch',
   LINKED_MODULES_DONT_MATCH: 'integrityCheckLinkedModulesDontMatch',
   PATTERNS_DONT_MATCH: 'integrityPatternsDontMatch',
@@ -289,6 +290,13 @@ export default class InstallationIntegrityChecker {
   ): 'OK' | IntegrityError {
     if (!expected) {
       return 'EXPECTED_IS_NOT_A_JSON';
+    }
+
+    // If we have top level dependencies that are link: types, let's
+    // always fail the integrity check, so that we can refresh the manifest
+    // from the linked dependency
+    if (actual.topLevelPatterns.some(p => p.indexOf('@link:') !== -1)) {
+      return 'LINKED_DEP_FOUND';
     }
 
     if (!compareSortedArrays(actual.linkedModules, expected.linkedModules)) {
