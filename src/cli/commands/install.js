@@ -225,6 +225,20 @@ export class Install {
       excludeNames.push(parts.name);
     }
 
+    const stripExcluded = (manifest: Manifest) => {
+      for (const exclude of excludeNames) {
+        if (manifest.dependencies && manifest.dependencies[exclude]) {
+          delete manifest.dependencies[exclude];
+        }
+        if (manifest.devDependencies && manifest.devDependencies[exclude]) {
+          delete manifest.devDependencies[exclude];
+        }
+        if (manifest.optionalDependencies && manifest.optionalDependencies[exclude]) {
+          delete manifest.optionalDependencies[exclude];
+        }
+      }
+    };
+
     for (const registry of Object.keys(registries)) {
       const {filename} = registries[registry];
       const loc = path.join(this.config.cwd, filename);
@@ -300,30 +314,29 @@ export class Install {
 
         const workspaces = await this.config.resolveWorkspaces(workspacesRoot, workspaceManifestJson);
         workspaceLayout = new WorkspaceLayout(workspaces, this.config);
+
         // add virtual manifest that depends on all workspaces, this way package hoisters and resolvers will work fine
+        const workspaceDependencies = {...workspaceManifestJson.dependencies};
+        for (const workspaceName of Object.keys(workspaces)) {
+          workspaceDependencies[workspaceName] = workspaces[workspaceName].manifest.version;
+        }
         const virtualDependencyManifest: Manifest = {
           _uid: '',
           name: `workspace-aggregator-${uuid.v4()}`,
           version: '1.0.0',
           _registry: 'npm',
           _loc: workspacesRoot,
+          dependencies: workspaceDependencies,
+          devDependencies: {...workspaceManifestJson.devDependencies},
+          optionalDependencies: {...workspaceManifestJson.optionalDependencies},
         };
         workspaceLayout.virtualManifestName = virtualDependencyManifest.name;
-        if (!cwdIsRoot) {
-          // we're operating outside the root, so preserve any dependencies from
-          // the root manifest
-          virtualDependencyManifest.dependencies = {...workspaceManifestJson.dependencies};
-          virtualDependencyManifest.devDependencies = {...workspaceManifestJson.devDependencies};
-          virtualDependencyManifest.optionalDependencies = {...workspaceManifestJson.optionalDependencies};
-        } else {
-          virtualDependencyManifest.dependencies = {};
-        }
-        for (const workspaceName of Object.keys(workspaces)) {
-          virtualDependencyManifest.dependencies[workspaceName] = workspaces[workspaceName].manifest.version;
-        }
         const virtualDep = {};
         virtualDep[virtualDependencyManifest.name] = virtualDependencyManifest.version;
         workspaces[virtualDependencyManifest.name] = {loc: workspacesRoot, manifest: virtualDependencyManifest};
+
+        // ensure dependencies that should be excluded are stripped from the correct manifest
+        stripExcluded(cwdIsRoot ? virtualDependencyManifest : workspaces[projectManifestJson.name].manifest);
 
         pushDeps('workspaces', {workspaces: virtualDep}, {hint: 'workspaces', optional: false}, true);
       }
