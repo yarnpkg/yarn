@@ -22,11 +22,7 @@ jobs:
     <<: *defaults
     steps:
       - checkout
-      - restore_cache:
-          keys:
-            - v1-yarn-{{ .Branch }}-{{ checksum "yarn.lock" }}
-            - v1-yarn-{{ .Branch }}-
-            - v1-yarn-
+      - *restore_node_modules
       - run:
           name: Install Dependencies
           command: yarn install
