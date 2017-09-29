@@ -253,8 +253,10 @@ export default class PackageLinker {
     await this._readRegistryFolders(this.config.lockfileFolder, possibleExtraneous, scopedPaths);
 
     // look for extraneous packages in workspaces too
-    if (this.config.lockfileFolder !== this.config.cwd) {
-      await this._readRegistryFolders(this.config.cwd, possibleExtraneous, scopedPaths);
+    if (workspaceLayout) {
+      for (const workspaceName of Object.keys(workspaceLayout.workspaces)) {
+        await this._readRegistryFolders(workspaceLayout.workspaces[workspaceName].loc, possibleExtraneous, scopedPaths);
+      }
     }
 
     // If an Extraneous is an entry created via "yarn link", we prevent it from being overwritten.
