@@ -210,7 +210,7 @@ export class Install {
     let workspaceLayout;
 
     // non-workspaces are always root, otherwise check for workspace root
-    const cwdIsRoot = !this.config.workspacesEnabled || this.config.lockfileFolder === this.config.cwd;
+    const cwdIsRoot = !this.config.workspaceRootFolder || this.config.lockfileFolder === this.config.cwd;
 
     // exclude package names that are in install args
     const excludeNames = [];
@@ -301,7 +301,7 @@ export class Install {
       pushDeps('devDependencies', projectManifestJson, {hint: 'dev', optional: false}, !this.config.production);
       pushDeps('optionalDependencies', projectManifestJson, {hint: 'optional', optional: true}, true);
 
-      if (this.config.workspacesEnabled) {
+      if (this.config.workspaceRootFolder) {
         const workspaceLoc = cwdIsRoot ? loc : path.join(this.config.lockfileFolder, filename);
         const workspacesRoot = path.dirname(workspaceLoc);
 
