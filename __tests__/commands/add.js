@@ -54,6 +54,24 @@ test.concurrent("add with --dev shouldn't fail on the workspace root", async () 
   });
 });
 
+test.concurrent('adding to the workspace root should preserve workspace packages in lockfile', async () => {
+  await runInstall({}, 'workspaces-install-basic', async (config, reporter): Promise<void> => {
+    await add(config, reporter, {dev: true}, ['max-safe-integer@1.0.0']);
+
+    expect(await fs.exists(`${config.cwd}/yarn.lock`)).toEqual(true);
+
+    const pkg = await fs.readJson(path.join(config.cwd, 'package.json'));
+    expect(pkg.devDependencies).toEqual({'max-safe-integer': '1.0.0'});
+    expect(pkg.dependencies).toEqual({'left-pad': '1.1.3'});
+
+    const lockfile = explodeLockfile(await fs.readFile(path.join(config.cwd, 'yarn.lock')));
+    expect(lockfile).toHaveLength(15);
+    expect(lockfile.indexOf('isarray@2.0.1:')).toEqual(0);
+    expect(lockfile.indexOf('left-pad@1.1.3:')).toEqual(3);
+    expect(lockfile.indexOf('max-safe-integer@1.0.0:')).toEqual(6);
+  });
+});
+
 test.concurrent('adds any new package to the current workspace, but install from the workspace', async () => {
   await runInstall({}, 'simple-worktree', async (config): Promise<void> => {
     const inOut = new stream.PassThrough();
