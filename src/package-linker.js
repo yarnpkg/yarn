@@ -246,29 +246,15 @@ export default class PackageLinker {
 
     // keep track of all scoped paths to remove empty scopes after copy
     const scopedPaths = new Set();
+    // keep track of possible extraneous files to remove after copy
+    const possibleExtraneous: Set<string> = new Set();
 
     // register root & scoped packages as being possibly extraneous
-    const possibleExtraneous: Set<string> = new Set();
-    for (const folder of this.config.registryFolders) {
-      const loc = path.join(this.config.cwd, folder);
+    await this._readRegistryFolders(this.config.lockfileFolder, possibleExtraneous, scopedPaths);
 
-      if (await fs.exists(loc)) {
-        const files = await fs.readdir(loc);
-        let filepath;
-        for (const file of files) {
-          filepath = path.join(loc, file);
-          if (file[0] === '@') {
-            // it's a scope, not a package
-            scopedPaths.add(filepath);
-            const subfiles = await fs.readdir(filepath);
-            for (const subfile of subfiles) {
-              possibleExtraneous.add(path.join(filepath, subfile));
-            }
-          } else {
-            possibleExtraneous.add(filepath);
-          }
-        }
-      }
+    // look for extraneous packages in workspaces too
+    if (this.config.lockfileFolder !== this.config.cwd) {
+      await this._readRegistryFolders(this.config.cwd, possibleExtraneous, scopedPaths);
     }
 
     // If an Extraneous is an entry created via "yarn link", we prevent it from being overwritten.
@@ -492,6 +478,34 @@ export default class PackageLinker {
         if (!await fs.exists(loc)) {
           const pkgHuman = `${pkg.name}@${pkg.version}`;
           this.reporter.warn(this.reporter.lang('missingBundledDependency', pkgHuman, depName));
+        }
+      }
+    }
+  }
+
+  async _readRegistryFolders(
+    rootDir: string,
+    possibleExtraneous: Set<string>,
+    scopedPaths: Set<string>,
+  ): Promise<void> {
+    for (const folder of this.config.registryFolders) {
+      const loc = path.join(rootDir, folder);
+
+      if (await fs.exists(loc)) {
+        const files = await fs.readdir(loc);
+        let filepath;
+        for (const file of files) {
+          filepath = path.join(loc, file);
+          if (file[0] === '@') {
+            // it's a scope, not a package
+            scopedPaths.add(filepath);
+            const subfiles = await fs.readdir(filepath);
+            for (const subfile of subfiles) {
+              possibleExtraneous.add(path.join(filepath, subfile));
+            }
+          } else {
+            possibleExtraneous.add(filepath);
+          }
         }
       }
     }
