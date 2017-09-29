@@ -1,12 +1,30 @@
 /* @flow */
 /* global child_process$spawnOpts */
 
+import type {Readable, Writable} from 'stream';
+
+import child from 'child_process';
+
+import semver from 'semver';
+
 import * as constants from '../constants.js';
 import BlockingQueue from './blocking-queue.js';
 import {ProcessSpawnError, ProcessTermError} from '../errors.js';
 import {promisify} from './promise.js';
 
-const child = require('child_process');
+const noop = (_1: mixed, _2: mixed) => {};
+
+// Workaround for stream handling bug in Node.js <= 6.2.1 on Linux. See #4282
+const fixFaultyNode6Stream = semver.satisfies(process.versions.node, '<= 6.2.1')
+  ? (stream: Readable | Writable, checkProcClosed: () => boolean) => {
+      stream.on('readable', noop);
+      stream.once('close', () => {
+        if (!checkProcClosed()) {
+          stream.removeListener('readable', noop);
+        }
+      });
+    }
+  : null;
 
 export const queue = new BlockingQueue('child', constants.CHILD_CONCURRENCY);
 
@@ -86,6 +104,16 @@ export function spawn(
           }
         });
 
+        if (fixFaultyNode6Stream) {
+          const isProcClosed = () => processClosed;
+          if (proc.stdout) {
+            fixFaultyNode6Stream(proc.stdout, isProcClosed);
+          }
+          if (proc.stderr) {
+            fixFaultyNode6Stream(proc.stderr, isProcClosed);
+          }
+        }
+
         function updateStdout(chunk: string) {
           stdout += chunk;
           if (onData) {
@@ -140,9 +168,9 @@ export function spawn(
 
           if (processingDone || err) {
             finish();
-          } else {
-            processClosed = true;
           }
+
+          processClosed = true;
         });
       }),
   );
