@@ -130,3 +130,22 @@ test.concurrent('displays correct dependency types', (): Promise<void> => {
     expect(body[2][4]).toBe('devDependencies');
   });
 });
+
+test.concurrent('works with workspace packages', async (): Promise<void> => {
+  // when invoked at root, only shows root outdated packages
+  await runOutdated([], {}, 'workspaces', (config, reporter, out): ?Promise<void> => {
+    const json: Object = JSON.parse(out);
+
+    expect(json.data.body).toHaveLength(1);
+    expect(json.data.body[0][0]).toBe('left-pad');
+  });
+
+  // when invoked in child, only shows child outdated packages
+  const childFixture = {source: 'workspaces', cwd: 'workspace-child'};
+  return runOutdated([], {}, childFixture, (config, reporter, out): ?Promise<void> => {
+    const json: Object = JSON.parse(out);
+
+    expect(json.data.body).toHaveLength(1);
+    expect(json.data.body[0][0]).toBe('max-safe-integer');
+  });
+});

@@ -19,7 +19,7 @@ export function hasWrapper(commander: Object, args: Array<string>): boolean {
 }
 
 export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<number> {
-  const lockfile = await Lockfile.fromDirectory(config.cwd);
+  const lockfile = await Lockfile.fromDirectory(config.lockfileFolder);
   const install = new Install(flags, config, reporter, lockfile);
   let deps = await PackageRequest.getOutdatedPackages(lockfile, install, config, reporter);
 
