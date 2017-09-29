@@ -211,6 +211,9 @@ export class Install {
     const usedPatterns = [];
     let workspaceLayout;
 
+    // non-workspaces are always root, otherwise check for workspace root
+    const cwdIsRoot = !this.config.workspaceRootFolder || this.config.lockfileFolder === this.config.cwd;
+
     // exclude package names that are in install args
     const excludeNames = [];
     for (const pattern of excludePatterns) {
@@ -224,9 +227,23 @@ export class Install {
       excludeNames.push(parts.name);
     }
 
+    const stripExcluded = (manifest: Manifest) => {
+      for (const exclude of excludeNames) {
+        if (manifest.dependencies && manifest.dependencies[exclude]) {
+          delete manifest.dependencies[exclude];
+        }
+        if (manifest.devDependencies && manifest.devDependencies[exclude]) {
+          delete manifest.devDependencies[exclude];
+        }
+        if (manifest.optionalDependencies && manifest.optionalDependencies[exclude]) {
+          delete manifest.optionalDependencies[exclude];
+        }
+      }
+    };
+
     for (const registry of Object.keys(registries)) {
       const {filename} = registries[registry];
-      const loc = path.join(this.config.lockfileFolder, filename);
+      const loc = path.join(this.config.cwd, filename);
       if (!await fs.exists(loc)) {
         continue;
       }
@@ -234,7 +251,7 @@ export class Install {
       this.rootManifestRegistries.push(registry);
 
       const projectManifestJson = await this.config.readJson(loc);
-      await normalizeManifest(projectManifestJson, this.config.lockfileFolder, this.config, true);
+      await normalizeManifest(projectManifestJson, this.config.cwd, this.config, cwdIsRoot);
 
       Object.assign(this.resolutions, projectManifestJson.resolutions);
       Object.assign(manifest, projectManifestJson);
@@ -287,26 +304,41 @@ export class Install {
       pushDeps('optionalDependencies', projectManifestJson, {hint: 'optional', optional: true}, true);
 
       if (this.config.workspaceRootFolder) {
-        const workspacesRoot = path.dirname(loc);
-        const workspaces = await this.config.resolveWorkspaces(workspacesRoot, projectManifestJson);
+        const workspaceLoc = cwdIsRoot ? loc : path.join(this.config.lockfileFolder, filename);
+        const workspacesRoot = path.dirname(workspaceLoc);
+
+        let workspaceManifestJson = projectManifestJson;
+        if (!cwdIsRoot) {
+          // the manifest we read before was a child workspace, so get the root
+          workspaceManifestJson = await this.config.readJson(workspaceLoc);
+          await normalizeManifest(workspaceManifestJson, workspacesRoot, this.config, true);
+        }
+
+        const workspaces = await this.config.resolveWorkspaces(workspacesRoot, workspaceManifestJson);
         workspaceLayout = new WorkspaceLayout(workspaces, this.config);
+
         // add virtual manifest that depends on all workspaces, this way package hoisters and resolvers will work fine
+        const workspaceDependencies = {...workspaceManifestJson.dependencies};
+        for (const workspaceName of Object.keys(workspaces)) {
+          workspaceDependencies[workspaceName] = workspaces[workspaceName].manifest.version;
+        }
         const virtualDependencyManifest: Manifest = {
           _uid: '',
           name: `workspace-aggregator-${uuid.v4()}`,
           version: '1.0.0',
           _registry: 'npm',
           _loc: workspacesRoot,
-          dependencies: {},
+          dependencies: workspaceDependencies,
+          devDependencies: {...workspaceManifestJson.devDependencies},
+          optionalDependencies: {...workspaceManifestJson.optionalDependencies},
         };
         workspaceLayout.virtualManifestName = virtualDependencyManifest.name;
-        virtualDependencyManifest.dependencies = {};
-        for (const workspaceName of Object.keys(workspaces)) {
-          virtualDependencyManifest.dependencies[workspaceName] = workspaces[workspaceName].manifest.version;
-        }
         const virtualDep = {};
         virtualDep[virtualDependencyManifest.name] = virtualDependencyManifest.version;
         workspaces[virtualDependencyManifest.name] = {loc: workspacesRoot, manifest: virtualDependencyManifest};
+
+        // ensure dependencies that should be excluded are stripped from the correct manifest
+        stripExcluded(cwdIsRoot ? virtualDependencyManifest : workspaces[projectManifestJson.name].manifest);
 
         pushDeps('workspaces', {workspaces: virtualDep}, {hint: 'workspaces', optional: false}, true);
       }
