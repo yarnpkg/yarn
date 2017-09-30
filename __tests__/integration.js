@@ -6,6 +6,7 @@ import makeTemp from './_temp.js';
 import * as fs from '../src/util/fs.js';
 import * as misc from '../src/util/misc.js';
 import * as constants from '../src/constants.js';
+import {explodeLockfile} from './commands/_helpers.js';
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 120000;
 
@@ -151,6 +152,54 @@ test('--mutex network', async () => {
   }
 
   await Promise.all(promises);
+});
+
+describe('--registry option', () => {
+  test('--registry option with npm registry', async () => {
+    const cwd = await makeTemp();
+
+    const registry = 'https://registry.npmjs.org';
+    const packageJsonPath = path.join(cwd, 'package.json');
+    await fs.writeFile(packageJsonPath, JSON.stringify({}));
+
+    await runYarn(['add', 'left-pad', '--registry', registry], {cwd});
+
+    const packageJson = JSON.parse(await fs.readFile(packageJsonPath));
+    const lockfile = explodeLockfile(await fs.readFile(path.join(cwd, 'yarn.lock')));
+
+    expect(packageJson.dependencies['left-pad']).toBeDefined();
+    expect(lockfile).toHaveLength(3);
+    expect(lockfile[2]).toContain(registry);
+  });
+
+  test('--registry option with yarn registry', async () => {
+    const cwd = await makeTemp();
+
+    const registry = 'https://registry.yarnpkg.com';
+    const packageJsonPath = path.join(cwd, 'package.json');
+    await fs.writeFile(packageJsonPath, JSON.stringify({}));
+
+    await runYarn(['add', 'is-array', '--registry', registry], {cwd});
+
+    const packageJson = JSON.parse(await fs.readFile(packageJsonPath));
+    const lockfile = explodeLockfile(await fs.readFile(path.join(cwd, 'yarn.lock')));
+
+    expect(packageJson.dependencies['is-array']).toBeDefined();
+    expect(lockfile).toHaveLength(3);
+    expect(lockfile[2]).toContain(registry);
+  });
+
+  test('--registry option with non-exiting registry and show an error', async () => {
+    const cwd = await makeTemp();
+    const registry = 'https://example-registry-doesnt-exist.com';
+
+    try {
+      await runYarn(['add', 'is-array', '--registry', registry], {cwd});
+    } catch (err) {
+      const stdoutOutput = err.message;
+      expect(stdoutOutput.toString()).toMatch(/getaddrinfo ENOTFOUND example-registry-doesnt-exist\.com/g);
+    }
+  });
 });
 
 test('--cwd option', async () => {
