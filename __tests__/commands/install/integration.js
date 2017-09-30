@@ -1049,12 +1049,17 @@ test.concurrent('transitive file: dependencies should work', (): Promise<void> =
   });
 });
 
-// Unskip once https://github.com/yarnpkg/yarn/issues/3778 is resolved
-test.skip('unbound transitive dependencies should not conflict with top level dependency', async () => {
+test('unbound transitive dependencies should not conflict with top level dependency', async () => {
   await runInstall({flat: true}, 'install-conflicts', async config => {
     expect((await fs.readJson(path.join(config.cwd, 'node_modules', 'left-pad', 'package.json'))).version).toEqual(
       '1.0.0',
     );
+  });
+});
+
+test('manifest optimization respects versions with alternation', async () => {
+  await runInstall({flat: true}, 'optimize-version-with-alternation', async config => {
+    expect(await getPackageVersion(config, 'lodash')).toEqual('2.4.2');
   });
 });
 

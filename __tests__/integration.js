@@ -75,11 +75,58 @@ async function runYarn(args: Array<string> = [], options: Object = {}): Promise<
     options['env'] = {...process.env};
     options['extendEnv'] = false;
   }
-  delete options['env']['FORCE_COLOR'];
+  options['env']['FORCE_COLOR'] = 0;
   const {stdout, stderr} = await execa(path.resolve(__dirname, '../bin/yarn'), args, options);
 
   return [stdout, stderr];
 }
+
+describe('production', () => {
+  test('it should be true when NODE_ENV=production', async () => {
+    const cwd = await makeTemp();
+    const options = {cwd, env: {YARN_SILENT: 1, NODE_ENV: 'production'}};
+
+    const [stdoutOutput, _] = await runYarn(['config', 'current'], options);
+
+    expect(JSON.parse(stdoutOutput.toString())).toHaveProperty('production', true);
+  });
+
+  test('it should default to false', async () => {
+    const cwd = await makeTemp();
+    const options = {cwd, env: {YARN_SILENT: 1, NODE_ENV: ''}};
+
+    const [stdoutOutput, _] = await runYarn(['config', 'current'], options);
+
+    expect(JSON.parse(stdoutOutput.toString())).toHaveProperty('production', false);
+  });
+
+  test('it should prefer CLI over NODE_ENV', async () => {
+    const cwd = await makeTemp();
+    const options = {cwd, env: {YARN_SILENT: 1, NODE_ENV: 'production'}};
+
+    const [stdoutOutput, _] = await runYarn(['--prod', 'false', 'config', 'current'], options);
+
+    expect(JSON.parse(stdoutOutput.toString())).toHaveProperty('production', false);
+  });
+
+  test('it should prefer YARN_PRODUCTION over NODE_ENV', async () => {
+    const cwd = await makeTemp();
+    const options = {cwd, env: {YARN_SILENT: 1, YARN_PRODUCTION: 'false', NODE_ENV: 'production'}};
+
+    const [stdoutOutput, _] = await runYarn(['config', 'current'], options);
+
+    expect(JSON.parse(stdoutOutput.toString())).toHaveProperty('production', false);
+  });
+
+  test('it should prefer CLI over YARN_PRODUCTION', async () => {
+    const cwd = await makeTemp();
+    const options = {cwd, env: {YARN_SILENT: 1, YARN_PRODUCTION: 'false', NODE_ENV: 'production'}};
+
+    const [stdoutOutput, _] = await runYarn(['--prod', '1', 'config', 'current'], options);
+
+    expect(JSON.parse(stdoutOutput.toString())).toHaveProperty('production', true);
+  });
+});
 
 test('--mutex network', async () => {
   const cwd = await makeTemp();
