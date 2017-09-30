@@ -133,3 +133,15 @@ test.concurrent('can prune the offline mirror', (): Promise<void> => {
     expect(await fs.exists(path.join(config.cwd, `${mirrorPath}/dep-c-1.0.0.tgz`))).toEqual(true);
   });
 });
+
+test.concurrent('removes package installed without a manifest', (): Promise<void> => {
+  return runRemove(['dep-a'], {}, 'without-manifest', async (config): Promise<void> => {
+    expect(await fs.exists(path.join(config.cwd, 'node_modules/dep-a'))).toEqual(false);
+
+    expect(JSON.parse(await fs.readFile(path.join(config.cwd, 'package.json'))).dependencies).toEqual({});
+
+    const lockFileContent = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
+    const lockFileLines = explodeLockfile(lockFileContent);
+    expect(lockFileLines).toHaveLength(0);
+  });
+});
