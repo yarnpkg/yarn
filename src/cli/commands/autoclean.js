@@ -53,7 +53,6 @@ Gruntfile.js
 *.yml
 
 # misc
-*.gz
 *.md
 `.trim();
 
