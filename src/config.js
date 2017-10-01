@@ -5,7 +5,7 @@ import type {Reporter} from './reporters/index.js';
 import type {Manifest, PackageRemote, WorkspacesManifestMap} from './types.js';
 import type PackageReference from './package-reference.js';
 import {execFromManifest} from './util/execute-lifecycle-script.js';
-import {expandPath} from './util/path.js';
+import {resolveWithHome} from './util/path.js';
 import normalizeManifest from './util/normalize-manifest/index.js';
 import {MessageError} from './errors.js';
 import * as fs from './util/fs.js';
@@ -191,11 +191,11 @@ export default class Config {
    * Get a config option from our yarn config.
    */
 
-  getOption(key: string, expand: boolean = false): mixed {
+  getOption(key: string, resolve: boolean = false): mixed {
     const value = this.registries.yarn.getOption(key);
 
-    if (expand && typeof value === 'string') {
-      return expandPath(value);
+    if (resolve && typeof value === 'string') {
+      return resolveWithHome(value);
     }
 
     return value;
