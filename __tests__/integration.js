@@ -60,7 +60,8 @@ addTest('https://github.com/yarnpkg/yarn/releases/download/v0.18.1/yarn-v0.18.1.
 addTest('https://github.com/bestander/chrome-app-livereload.git'); // no package.json
 addTest('bestander/chrome-app-livereload'); // no package.json, github, tarball
 // Only run `react-scripts` test on Node 6+
-if (parseInt(process.versions.node.split('.')[0], 10) >= 6) {
+const nodeMajorVersion = parseInt(process.versions.node.split('.')[0], 10);
+if (nodeMajorVersion === 6 || nodeMajorVersion >= 8) {
   addTest('react-scripts@1.0.13', {strict: true}); // many peer dependencies, there shouldn't be any peerDep warnings
 }
 
