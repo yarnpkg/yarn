@@ -36,6 +36,7 @@
     "normalize-url": "^1.9.1",
     "object-path": "^0.11.2",
     "proper-lockfile": "^2.0.0",
+    "puka": "^1.0.0",
     "read": "^1.0.7",
     "request": "^2.81.0",
     "request-capture-har": "^1.2.2",

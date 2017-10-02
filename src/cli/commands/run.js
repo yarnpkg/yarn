@@ -10,11 +10,7 @@ import map from '../../util/map.js';
 
 const leven = require('leven');
 const path = require('path');
-
-// Copied from https://github.com/npm/npm/blob/63f153c743f9354376bfb9dad42bd028a320fd1f/lib/run-script.js#L175
-function joinArgs(args: Array<string>): string {
-  return args.reduce((joinedArgs, arg) => joinedArgs + ' "' + arg.replace(/"/g, '\\"') + '"', '');
-}
+const {quoteForShell, sh, unquoted} = require('puka');
 
 export function setFlags(commander: Object) {}
 
@@ -35,7 +31,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
       if (await fs.exists(binFolder)) {
         for (const name of await fs.readdir(binFolder)) {
           binCommands.push(name);
-          scripts[name] = `"${path.join(binFolder, name)}"`;
+          scripts[name] = quoteForShell(path.join(binFolder, name));
         }
       }
       visitedBinFolders.add(binFolder);
@@ -82,8 +78,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
       process.env.YARN_SILENT = '1';
       for (const [stage, cmd] of cmds) {
         // only tack on trailing arguments for default script, ignore for pre and post - #1595
-        const defaultScriptCmd = cmd + joinArgs(args);
-        const cmdWithArgs = stage === action ? defaultScriptCmd : cmd;
+        const cmdWithArgs = stage === action ? sh`${unquoted(cmd)} ${args}` : cmd;
         await execCommand(stage, config, cmdWithArgs, config.cwd);
       }
     } else if (action === 'env') {
