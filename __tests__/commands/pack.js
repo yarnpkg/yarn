@@ -147,7 +147,8 @@ test.concurrent('pack should exclude all files in dot-directories if not in file
   });
 });
 
-test.concurrent('pack should include bundled dependencies', (): Promise<void> => {
+// Broken: https://github.com/yarnpkg/yarn/issues/2636
+test.skip('pack should include bundled dependencies', (): Promise<void> => {
   return runPack([], {}, 'bundled-dependencies', async (config): Promise<void> => {
     const {cwd} = config;
     const files = await getFilesFromArchive(
