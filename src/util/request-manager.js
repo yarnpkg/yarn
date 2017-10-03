@@ -416,7 +416,6 @@ export default class RequestManager {
       proxy = this.httpsProxy;
     }
     if (proxy && typeof proxy === 'string') {
-      console.log('PROXY', proxy);
       params.proxy = String(proxy);
     }
 

@@ -271,12 +271,12 @@ export default class Config {
     this.networkTimeout = opts.networkTimeout || Number(this.getOption('network-timeout')) || constants.NETWORK_TIMEOUT;
 
     let httpProxy = opts.httpProxy || this.getOption('proxy');
-    if(httpProxy === 'null') {
+    if (httpProxy === 'null') {
       httpProxy = false;
     }
 
     let httpsProxy = opts.httpsProxy || this.getOption('https-proxy');
-    if(httpsProxy === 'null') {
+    if (httpsProxy === 'null') {
       httpsProxy = false;
     }
 
