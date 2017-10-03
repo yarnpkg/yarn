@@ -270,8 +270,16 @@ export default class Config {
 
     this.networkTimeout = opts.networkTimeout || Number(this.getOption('network-timeout')) || constants.NETWORK_TIMEOUT;
 
-    const httpProxy = opts.httpProxy || this.getOption('proxy');
-    const httpsProxy = opts.httpsProxy || this.getOption('https-proxy');
+    let httpProxy = opts.httpProxy || this.getOption('proxy');
+    if(httpProxy === 'null') {
+      httpProxy = false;
+    }
+
+    let httpsProxy = opts.httpsProxy || this.getOption('https-proxy');
+    if(httpsProxy === 'null') {
+      httpsProxy = false;
+    }
+
     this.requestManager.setOptions({
       userAgent: String(this.getOption('user-agent')),
       httpProxy: httpProxy === false ? false : String(httpProxy || ''),
