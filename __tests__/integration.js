@@ -2,9 +2,9 @@
 /* eslint max-len: 0 */
 
 import execa from 'execa';
+import {sh} from 'puka';
 import makeTemp from './_temp.js';
 import * as fs from '../src/util/fs.js';
-import * as misc from '../src/util/misc.js';
 import * as constants from '../src/constants.js';
 import {explodeLockfile} from './commands/_helpers.js';
 
@@ -77,7 +77,7 @@ async function runYarn(args: Array<string> = [], options: Object = {}): Promise<
     options['extendEnv'] = false;
   }
   options['env']['FORCE_COLOR'] = 0;
-  const {stdout, stderr} = await execa(path.resolve(__dirname, '../bin/yarn'), args, options);
+  const {stdout, stderr} = await execa.shell(sh`${path.resolve(__dirname, '../bin/yarn')} ${args}`, options);
 
   return [stdout, stderr];
 }
@@ -260,9 +260,8 @@ test('yarnrc binary path (executable)', async () => {
   expect(stdoutOutput.toString().trim()).toEqual('override called');
 });
 
-// Windows could run these tests, but we currently suffer from an escaping issue that breaks them (#4135)
-if (process.platform !== 'win32') {
-  test('yarn run <script> --opt', async () => {
+for (const withDoubleDash of [false, true]) {
+  test(`yarn run <script> ${withDoubleDash ? '-- ' : ''}--opt`, async () => {
     const cwd = await makeTemp();
 
     await fs.writeFile(
@@ -272,48 +271,37 @@ if (process.platform !== 'win32') {
       }),
     );
 
-    const command = path.resolve(__dirname, '../bin/yarn');
     const options = {cwd, env: {YARN_SILENT: 1}};
 
-    const {stderr: stderr, stdout: stdout} = execa(command, ['run', 'echo', '--opt'], options);
-
-    const stdoutPromise = misc.consumeStream(stdout);
-    const stderrPromise = misc.consumeStream(stderr);
-
-    const [stdoutOutput, stderrOutput] = await Promise.all([stdoutPromise, stderrPromise]);
-
-    expect(stdoutOutput.toString().trim()).toEqual('--opt');
-    expect(stderrOutput.toString()).not.toMatch(
-      /From Yarn 1\.0 onwards, scripts don't require "--" for options to be forwarded/,
-    );
-  });
-
-  test('yarn run <script> -- --opt', async () => {
-    const cwd = await makeTemp();
-
-    await fs.writeFile(
-      path.join(cwd, 'package.json'),
-      JSON.stringify({
-        scripts: {echo: `echo`},
-      }),
+    const [stdoutOutput, stderrOutput] = await runYarn(
+      ['run', 'echo', ...(withDoubleDash ? ['--'] : []), '--opt'],
+      options,
     );
 
-    const command = path.resolve(__dirname, '../bin/yarn');
-    const options = {cwd, env: {YARN_SILENT: 1}};
-
-    const {stderr: stderr, stdout: stdout} = execa(command, ['run', 'echo', '--', '--opt'], options);
-
-    const stdoutPromise = misc.consumeStream(stdout);
-    const stderrPromise = misc.consumeStream(stderr);
-
-    const [stdoutOutput, stderrOutput] = await Promise.all([stdoutPromise, stderrPromise]);
-
     expect(stdoutOutput.toString().trim()).toEqual('--opt');
-    expect(stderrOutput.toString()).toMatch(
+    (exp => (withDoubleDash ? exp : exp.not))(expect(stderrOutput.toString())).toMatch(
       /From Yarn 1\.0 onwards, scripts don't require "--" for options to be forwarded/,
     );
   });
 }
+
+test('yarn run <script> <strings that need escaping>', async () => {
+  const cwd = await makeTemp();
+
+  await fs.writeFile(
+    path.join(cwd, 'package.json'),
+    JSON.stringify({
+      scripts: {stringify: `node -p "JSON.stringify(process.argv.slice(1))"`},
+    }),
+  );
+
+  const options = {cwd, env: {YARN_SILENT: 1}};
+
+  const trickyStrings = ['$PWD', '%CD%', '^', '!', '\\', '>', '<', '|', '&', "'", '"', '`', '  '];
+  const [stdout] = await runYarn(['stringify', ...trickyStrings], options);
+
+  expect(stdout.toString().trim()).toEqual(JSON.stringify(trickyStrings));
+});
 
 test('cache folder fallback', async () => {
   const cwd = await makeTemp();

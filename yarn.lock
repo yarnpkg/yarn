@@ -3895,6 +3895,10 @@ public-encrypt@^4.0.0:
     parse-asn1 "^5.0.0"
     randombytes "^2.0.1"
 
+puka@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/puka/-/puka-1.0.0.tgz#1dd92f9f81f6c53390a17529b7aebaa96604ad97"
+
 pump@^1.0.0:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/pump/-/pump-1.0.2.tgz#3b3ee6512f94f0e575538c17995f9f16990a5d51"
