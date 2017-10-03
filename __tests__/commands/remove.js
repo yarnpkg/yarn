@@ -1,7 +1,7 @@
 /* @flow */
 
 import {ConsoleReporter} from '../../src/reporters/index.js';
-import {run as buildRun, explodeLockfile} from './_helpers.js';
+import {explodeLockfile, makeConfigFromDirectory, run as buildRun, runInstall} from './_helpers.js';
 import {run as check} from '../../src/cli/commands/check.js';
 import {run as remove} from '../../src/cli/commands/remove.js';
 import * as fs from '../../src/util/fs.js';
@@ -131,5 +131,30 @@ test.concurrent('can prune the offline mirror', (): Promise<void> => {
     // dep-a depends on dep-b, so dep-b should also be pruned
     expect(await fs.exists(path.join(config.cwd, `${mirrorPath}/dep-b-1.0.0.tgz`))).toEqual(false);
     expect(await fs.exists(path.join(config.cwd, `${mirrorPath}/dep-c-1.0.0.tgz`))).toEqual(true);
+  });
+});
+
+test.concurrent('removes from workspace packages', async () => {
+  await runInstall({}, 'workspaces-install-basic', async (config): Promise<void> => {
+    const reporter = new ConsoleReporter({});
+
+    expect(await fs.exists(`${config.cwd}/node_modules/isarray`)).toEqual(true);
+    expect(await fs.exists(`${config.cwd}/workspace-child/node_modules/isarray`)).toEqual(false);
+
+    const childConfig = await makeConfigFromDirectory(`${config.cwd}/workspace-child`, reporter);
+    await remove(childConfig, reporter, {}, ['isarray']);
+    await check(childConfig, reporter, {verifyTree: true}, []);
+
+    expect(JSON.parse(await fs.readFile(path.join(config.cwd, 'workspace-child/package.json'))).dependencies).toEqual(
+      {},
+    );
+
+    expect(await fs.exists(`${config.cwd}/node_modules/isarray`)).toEqual(false);
+    expect(await fs.exists(`${config.cwd}/workspace-child/node_modules/isarray`)).toEqual(false);
+
+    const lockFileContent = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
+    const lockFileLines = explodeLockfile(lockFileContent);
+    expect(lockFileLines).toHaveLength(9);
+    expect(lockFileLines[0]).toEqual('left-pad@1.1.3:');
   });
 });
