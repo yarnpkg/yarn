@@ -56,6 +56,7 @@ export type ConfigOptions = {
   httpsProxy?: ?string,
 
   commandName?: ?string,
+  registry?: ?string,
 };
 
 type PackageMetadata = {
@@ -193,7 +194,6 @@ export default class Config {
 
   getOption(key: string, expand: boolean = false): mixed {
     const value = this.registries.yarn.getOption(key);
-
     if (expand && typeof value === 'string') {
       return expandPath(value);
     }
@@ -249,7 +249,9 @@ export default class Config {
 
       // instantiate registry
       const registry = new Registry(this.cwd, this.registries, this.requestManager, this.reporter);
-      await registry.init();
+      await registry.init({
+        registry: opts.registry,
+      });
 
       this.registries[key] = registry;
       this.registryFolders.push(registry.folder);
