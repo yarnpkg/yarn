@@ -545,9 +545,11 @@ export default class PackageResolver {
       this.resolveToResolution(req);
     }
 
-    for (const dep of deps) {
-      const name = normalizePattern(dep.pattern).name;
-      this.optimizeResolutions(name);
+    if (isFlat) {
+      for (const dep of deps) {
+        const name = normalizePattern(dep.pattern).name;
+        this.optimizeResolutions(name);
+      }
     }
 
     activity.end();
