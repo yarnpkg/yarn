@@ -7,6 +7,7 @@ import * as fs from '../../util/fs.js';
 import {METADATA_FILENAME} from '../../constants';
 
 const path = require('path');
+const micromatch = require('micromatch');
 
 export function hasWrapper(flags: Object, args: Array<string>): boolean {
   return args[0] !== 'dir';
@@ -32,6 +33,9 @@ async function list(config: Config, reporter: Reporter, flags: Object, args: Arr
         packagesMetadata.push(...(await readCacheMetadata(loc)));
       } else {
         const {registry, package: manifest, remote} = await config.readPackageMetadata(loc);
+        if (flags.pattern && !micromatch.contains(manifest.name, flags.pattern)) {
+          continue;
+        }
         packagesMetadata.push([manifest.name, manifest.version, registry, (remote && remote.resolved) || '']);
       }
     }
@@ -44,7 +48,7 @@ async function list(config: Config, reporter: Reporter, flags: Object, args: Arr
   reporter.table(['Name', 'Version', 'Registry', 'Resolved'], body);
 }
 
-export const {run, setFlags, examples} = buildSubCommands('cache', {
+const {run, setFlags: _setFlags, examples} = buildSubCommands('cache', {
   async ls(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
     reporter.warn(`\`yarn cache ls\` is deprecated. Please use \`yarn cache list\`.`);
     await list(config, reporter, flags, args);
@@ -116,3 +120,10 @@ export const {run, setFlags, examples} = buildSubCommands('cache', {
     }
   },
 });
+
+export {run, examples};
+
+export function setFlags(commander: Object) {
+  _setFlags(commander);
+  commander.option('--pattern [pattern]', 'filter cached packages by pattern');
+}
