@@ -56,6 +56,7 @@ export type ConfigOptions = {
   httpsProxy?: ?string,
 
   commandName?: ?string,
+  registry?: ?string,
 };
 
 type PackageMetadata = {
@@ -193,7 +194,6 @@ export default class Config {
 
   getOption(key: string, expand: boolean = false): mixed {
     const value = this.registries.yarn.getOption(key);
-
     if (expand && typeof value === 'string') {
       return expandPath(value);
     }
@@ -249,7 +249,9 @@ export default class Config {
 
       // instantiate registry
       const registry = new Registry(this.cwd, this.registries, this.requestManager, this.reporter);
-      await registry.init();
+      await registry.init({
+        registry: opts.registry,
+      });
 
       this.registries[key] = registry;
       this.registryFolders.push(registry.folder);
@@ -325,17 +327,14 @@ export default class Config {
     await fs.mkdirp(this.cacheFolder);
     await fs.mkdirp(this.tempFolder);
 
-    if (opts.production === 'false') {
-      this.production = false;
-    } else if (
-      this.getOption('production') ||
-      (process.env.NODE_ENV === 'production' &&
-        process.env.NPM_CONFIG_PRODUCTION !== 'false' &&
-        process.env.YARN_PRODUCTION !== 'false')
-    ) {
-      this.production = true;
+    if (opts.production !== undefined) {
+      this.production = Boolean(opts.production);
     } else {
-      this.production = !!opts.production;
+      this.production =
+        Boolean(this.getOption('production')) ||
+        (process.env.NODE_ENV === 'production' &&
+          process.env.NPM_CONFIG_PRODUCTION !== 'false' &&
+          process.env.YARN_PRODUCTION !== 'false');
     }
 
     if (this.workspaceRootFolder && !this.workspacesEnabled) {

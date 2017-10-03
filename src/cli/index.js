@@ -91,6 +91,7 @@ export function main({
   commander.option('--cwd <cwd>', 'working directory to use', process.cwd());
   commander.option('--proxy <host>', '');
   commander.option('--https-proxy <host>', '');
+  commander.option('--registry <url>', 'override configuration registry');
   commander.option('--no-progress', 'disable progress bar');
   commander.option('--network-concurrency <number>', 'maximum number of concurrent network requests', parseInt);
   commander.option('--network-timeout <milliseconds>', 'TCP timeout for network requests', parseInt);
@@ -477,6 +478,7 @@ export function main({
       production: commander.production,
       httpProxy: commander.proxy,
       httpsProxy: commander.httpsProxy,
+      registry: commander.registry,
       networkConcurrency: commander.networkConcurrency,
       networkTimeout: commander.networkTimeout,
       nonInteractive: commander.nonInteractive,
