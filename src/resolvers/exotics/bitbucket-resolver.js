@@ -51,7 +51,7 @@ export default class BitbucketResolver extends HostedGitResolver {
         method: 'HEAD',
         queue: this.resolver.fetchingQueue,
         followRedirect: false,
-        rejectStatusCode: 302
+        rejectStatusCode: 302,
       });
       return result !== false;
     } catch (e) {

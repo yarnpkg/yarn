@@ -63,7 +63,7 @@ type RequestParams<T> = {
   retryAttempts?: number,
   maxRetryAttempts?: number,
   followRedirect?: boolean,
-  rejectStatusCode?: number|Array<number>
+  rejectStatusCode?: number | Array<number>
 };
 
 type RequestOptions = {
