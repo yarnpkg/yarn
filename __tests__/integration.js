@@ -11,13 +11,13 @@ jasmine.DEFAULT_TIMEOUT_INTERVAL = 120000;
 
 const path = require('path');
 
-function addTest(pattern, {strict} = {strict: false}) {
+function addTest(pattern, {strict} = {strict: false}, yarnArgs: Array<string> = []) {
   test.concurrent(`yarn add ${pattern}`, async () => {
     const cwd = await makeTemp();
     const cacheFolder = path.join(cwd, 'cache');
 
     const command = path.resolve(__dirname, '../bin/yarn');
-    const args = ['--cache-folder', cacheFolder];
+    const args = ['--cache-folder', cacheFolder, ...yarnArgs];
 
     const options = {cwd};
 
@@ -59,11 +59,11 @@ addTest('https://git@github.com/stevemao/left-pad.git'); // git url, with userna
 addTest('https://github.com/yarnpkg/yarn/releases/download/v0.18.1/yarn-v0.18.1.tar.gz'); // tarball
 addTest('https://github.com/bestander/chrome-app-livereload.git'); // no package.json
 addTest('bestander/chrome-app-livereload'); // no package.json, github, tarball
-// Only run `react-scripts` test on Node 6+
-const nodeMajorVersion = parseInt(process.versions.node.split('.')[0], 10);
-if (nodeMajorVersion === 6 || nodeMajorVersion >= 8) {
-  addTest('react-scripts@1.0.13', {strict: true}); // many peer dependencies, there shouldn't be any peerDep warnings
-}
+// many peer dependencies, there shouldn't be any peerDep warnings
+addTest('react-scripts@1.0.13', {
+  strict: true,
+  args: ['--no-node-version-check'],
+});
 
 const MIN_PORT_NUM = 56000;
 const MAX_PORT_NUM = 65535;
