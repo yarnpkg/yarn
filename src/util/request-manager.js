@@ -396,7 +396,7 @@ export default class RequestManager {
           const errMsg = (body && body.message) || reporter.lang('requestError', params.url, res.statusCode);
           reject(new Error(errMsg));
         } else {
-          if ([400, 401, 404].concat(params.rejectStatusCode || []).includes(res.statusCode)) {
+          if (~[400, 401, 404].concat(params.rejectStatusCode || []).indexOf(res.statusCode)) {
             body = false;
           }
           resolve(body);
