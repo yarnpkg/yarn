@@ -53,10 +53,10 @@ function getGlobalPrefix(): string {
   }
 }
 
-const PATH_CONFIG_OPTIONS = ['cache', 'cafile', 'prefix', 'userconfig'];
+const PATH_CONFIG_OPTIONS = new Set(['cache', 'cafile', 'prefix', 'userconfig']);
 
 function isPathConfigOption(key: string): boolean {
-  return PATH_CONFIG_OPTIONS.indexOf(key) >= 0;
+  return PATH_CONFIG_OPTIONS.has(key);
 }
 
 function normalizePath(val: mixed): ?string {
@@ -65,7 +65,7 @@ function normalizePath(val: mixed): ?string {
   }
 
   if (typeof val !== 'string') {
-    val = '' + (val: any);
+    val = String(val);
   }
 
   return resolveWithHome(val);
