@@ -51,6 +51,7 @@ export function setFlags(commander: Object) {
   commander.option('-S, --scope <scope>', 'upgrade packages under the specified scope');
   commander.option('-L, --latest', 'list the latest version of packages, ignoring version ranges in package.json');
   commander.option('-E, --exact', 'install exact version. Only used when --latest is specified.');
+  commander.option('-P, --pattern [pattern]', 'upgrade packages that match pattern');
   commander.option(
     '-T, --tilde',
     'install most recent release with the same minor version. Only used when --latest is specified.',
@@ -168,7 +169,7 @@ export async function getOutdated(
 
   normalizeScope();
 
-  const deps = (await PackageRequest.getOutdatedPackages(lockfile, install, config, reporter, patterns))
+  const deps = (await PackageRequest.getOutdatedPackages(lockfile, install, config, reporter, patterns, flags))
     .filter(versionFilter)
     .filter(scopeFilter);
   deps.forEach(dep => (dep.upgradeTo = buildPatternToUpgradeTo(dep, flags)));

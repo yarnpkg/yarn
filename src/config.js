@@ -5,7 +5,7 @@ import type {Reporter} from './reporters/index.js';
 import type {Manifest, PackageRemote, WorkspacesManifestMap} from './types.js';
 import type PackageReference from './package-reference.js';
 import {execFromManifest} from './util/execute-lifecycle-script.js';
-import {expandPath} from './util/path.js';
+import {resolveWithHome} from './util/path.js';
 import normalizeManifest from './util/normalize-manifest/index.js';
 import {MessageError} from './errors.js';
 import * as fs from './util/fs.js';
@@ -192,10 +192,11 @@ export default class Config {
    * Get a config option from our yarn config.
    */
 
-  getOption(key: string, expand: boolean = false): mixed {
+  getOption(key: string, resolve: boolean = false): mixed {
     const value = this.registries.yarn.getOption(key);
-    if (expand && typeof value === 'string') {
-      return expandPath(value);
+
+    if (resolve && typeof value === 'string') {
+      return resolveWithHome(value);
     }
 
     return value;
@@ -272,10 +273,12 @@ export default class Config {
 
     this.networkTimeout = opts.networkTimeout || Number(this.getOption('network-timeout')) || constants.NETWORK_TIMEOUT;
 
+    const httpProxy = opts.httpProxy || this.getOption('proxy');
+    const httpsProxy = opts.httpsProxy || this.getOption('https-proxy');
     this.requestManager.setOptions({
       userAgent: String(this.getOption('user-agent')),
-      httpProxy: String(opts.httpProxy || this.getOption('proxy') || ''),
-      httpsProxy: String(opts.httpsProxy || this.getOption('https-proxy') || ''),
+      httpProxy: httpProxy === false ? false : String(httpProxy || ''),
+      httpsProxy: httpsProxy === false ? false : String(httpsProxy || ''),
       strictSSL: Boolean(this.getOption('strict-ssl')),
       ca: Array.prototype.concat(opts.ca || this.getOption('ca') || []).map(String),
       cafile: String(opts.cafile || this.getOption('cafile', true) || ''),
