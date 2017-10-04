@@ -339,6 +339,7 @@ export default class PackageRequest {
     config: Config,
     reporter: Reporter,
     filterByPatterns: ?Array<string>,
+    returnAllPackages: ?boolean,
   ): Promise<Array<Dependency>> {
     const {requests: reqPatterns, workspaceLayout} = await install.fetchRequestFromCwd();
 
@@ -386,6 +387,6 @@ export default class PackageRequest {
       latest === 'exotic' || (latest !== 'exotic' && (semver.lt(current, wanted) || semver.lt(current, latest)));
     const orderByName = (depA, depB) => depA.name.localeCompare(depB.name);
 
-    return deps.filter(isDepOld).sort(orderByName);
+    return returnAllPackages ? deps.sort(orderByName) : deps.filter(isDepOld).sort(orderByName);
   }
 }
