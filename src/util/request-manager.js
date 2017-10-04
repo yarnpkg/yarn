@@ -310,7 +310,7 @@ export default class RequestManager {
 
   queueForOffline(opts: RequestOptions) {
     if (!this.offlineQueue.length) {
-      this.reporter.warn(this.reporter.lang('offlineRetrying'));
+      this.reporter.info(this.reporter.lang('offlineRetrying'));
       this.initOfflineRetry();
     }
 
