@@ -81,6 +81,18 @@ describe('list', () => {
     });
   });
 
+  test.concurrent('accepts a pattern', (): Promise<void> => {
+    return runList([], {pattern: 'is-plain-obj'}, 'one-arg', (config, reporter): ?Promise<void> => {
+      const rprtr = new BufferReporter({});
+      const tree = reporter.getBuffer().slice(-1);
+      const trees = [makeTree('is-plain-obj@1.1.0')];
+
+      rprtr.tree('list', trees);
+
+      expect(tree).toEqual(rprtr.getBuffer());
+    });
+  });
+
   test.concurrent('should not throw when list is called with resolutions field', (): Promise<void> => {
     return runList([], {}, {source: '', cwd: 'resolutions'}, (config, reporter): ?Promise<void> => {
       const rprtr = new BufferReporter({});
@@ -106,11 +118,16 @@ describe('list', () => {
     });
   });
 
-  test.concurrent('matches exactly without glob', (): Promise<void> => {
+  test.concurrent('matches exactly without glob in argument', (): Promise<void> => {
     return runList(['gulp'], {}, 'glob-arg', (config, reporter): ?Promise<void> => {
       const rprtr = new BufferReporter({});
       const tree = reporter.getBuffer().slice(-1);
       const trees = [makeTree('gulp@3.9.1', {color: 'bold'})];
+
+      const messageParts = reporter.lang('deprecatedListArgs').split('undefined');
+      const output = reporter.getBuffer();
+      const hasWarningMessage = output.some(messages => messageParts.indexOf(String(messages.data)) > -1);
+      expect(hasWarningMessage).toBe(true);
 
       rprtr.tree('list', trees);
 
@@ -118,8 +135,20 @@ describe('list', () => {
     });
   });
 
-  test.concurrent('expands a glob', (): Promise<void> => {
+  test.concurrent('expands a glob in argument', (): Promise<void> => {
     return runList(['gulp*'], {}, 'glob-arg', (config, reporter): ?Promise<void> => {
+      const rprtr = new BufferReporter({});
+      const tree = reporter.getBuffer().slice(-1);
+      const trees = [makeTree('gulp@3.9.1', {color: 'bold'}), makeTree('gulp-babel@6.1.2', {color: 'bold'})];
+
+      rprtr.tree('list', trees);
+
+      expect(tree).toEqual(rprtr.getBuffer());
+    });
+  });
+
+  test.concurrent('expands a glob in pattern', (): Promise<void> => {
+    return runList([], {pattern: 'gulp*'}, 'glob-arg', (config, reporter): ?Promise<void> => {
       const rprtr = new BufferReporter({});
       const tree = reporter.getBuffer().slice(-1);
       const trees = [makeTree('gulp@3.9.1', {color: 'bold'}), makeTree('gulp-babel@6.1.2', {color: 'bold'})];
