@@ -18,7 +18,7 @@ export function expandPath(path: string): string {
 
 export function resolveWithHome(path: string): string {
   const homePattern = process.platform === 'win32' ? /^~(\/|\\)/ : /^~\//;
-  if (homePattern.test(path)) {
+  if (path.match(homePattern)) {
     return resolve(userHome, path.substr(2));
   }
 
