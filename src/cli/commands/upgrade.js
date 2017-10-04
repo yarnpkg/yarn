@@ -72,7 +72,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
   const deps = await getOutdated(config, reporter, flags, lockfile, args);
 
   // do not pass the --latest flag to add, otherwise it may ignore the version ranges we already determined.
-  const addFlags = Object.assign({}, flags, {force: true, latest: false, existing: true});
+  const addFlags = Object.assign({}, flags, {force: true, latest: false, ignoreWorkspaceRootCheck: true});
 
   setUserRequestedPackageVersions(deps, args);
 
