@@ -78,9 +78,9 @@ export default class RequestManager {
     this._requestModule = null;
     this.offlineQueue = [];
     this.captureHar = false;
-    this.httpsProxy = null;
+    this.httpsProxy = '';
     this.ca = null;
-    this.httpProxy = null;
+    this.httpProxy = '';
     this.strictSSL = true;
     this.userAgent = '';
     this.reporter = reporter;
@@ -96,8 +96,8 @@ export default class RequestManager {
   userAgent: string;
   reporter: Reporter;
   running: number;
-  httpsProxy: ?string | ?boolean;
-  httpProxy: ?string | ?boolean;
+  httpsProxy: string | boolean;
+  httpProxy: string | boolean;
   strictSSL: boolean;
   ca: ?Array<string>;
   cert: ?string;
@@ -142,17 +142,13 @@ export default class RequestManager {
     }
 
     if (opts.httpProxy != null) {
-      this.httpProxy = opts.httpProxy;
+      this.httpProxy = opts.httpProxy || '';
     }
 
-    if (opts.httpsProxy != null) {
-      // fallback to httpProxy if httpsProxy is undefined (not specified).
-      // setting httpsProxy to `false` will not use a proxy for HTTPS. Requested by #4546
-      if (this.httpsProxy === undefined) {
-        this.httpsProxy = opts.httpProxy;
-      } else {
-        this.httpsProxy = opts.httpsProxy;
-      }
+    if (opts.httpsProxy === '') {
+      this.httpsProxy = opts.httpProxy || '';
+    } else {
+      this.httpsProxy = opts.httpsProxy || '';
     }
 
     if (opts.strictSSL !== null && typeof opts.strictSSL !== 'undefined') {
@@ -415,7 +411,7 @@ export default class RequestManager {
     if (params.url.startsWith('https:')) {
       proxy = this.httpsProxy;
     }
-    if (proxy && typeof proxy === 'string') {
+    if (proxy) {
       params.proxy = String(proxy);
     }
 
