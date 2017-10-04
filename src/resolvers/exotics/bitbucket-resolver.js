@@ -45,17 +45,14 @@ export default class BitbucketResolver extends HostedGitResolver {
   }
 
   async hasHTTPCapability(url: string): Promise<boolean> {
-    try {
-      const result = await this.config.requestManager.request({
+    return (
+      (await this.config.requestManager.request({
         url,
         method: 'HEAD',
         queue: this.resolver.fetchingQueue,
         followRedirect: false,
         rejectStatusCode: 302,
-      });
-      return result !== false;
-    } catch (e) {
-      return false;
-    }
+      })) !== false
+    );
   }
 }
