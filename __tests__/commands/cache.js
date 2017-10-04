@@ -42,6 +42,72 @@ test('ls with scoped package', async (): Promise<void> => {
   });
 });
 
+test('ls with filter that matches cache', async (): Promise<void> => {
+  await runInstall({}, 'artifacts-finds-and-saves', async (config): Promise<void> => {
+    const out = new stream.PassThrough();
+    const reporter = new reporters.JSONReporter({stdout: out});
+    await run(config, reporter, {pattern: 'dummy'}, ['list']);
+    const stdout = String(out.read());
+    expect(stdout).toContain('dummy');
+    expect(stdout).toContain('0.0.0');
+  });
+});
+
+test('ls with filter that matches cache with wildcard', async (): Promise<void> => {
+  await runInstall({}, 'artifacts-finds-and-saves', async (config): Promise<void> => {
+    const out = new stream.PassThrough();
+    const reporter = new reporters.JSONReporter({stdout: out});
+    await run(config, reporter, {pattern: 'dum*'}, ['list']);
+    const stdout = String(out.read());
+    expect(stdout).toContain('dummy');
+    expect(stdout).toContain('0.0.0');
+  });
+});
+
+test('ls with multiple patterns, one matching', async (): Promise<void> => {
+  await runInstall({}, 'artifacts-finds-and-saves', async (config): Promise<void> => {
+    const out = new stream.PassThrough();
+    const reporter = new reporters.JSONReporter({stdout: out});
+    await run(config, reporter, {pattern: 'dum|dummy'}, ['list']);
+    const stdout = String(out.read());
+    expect(stdout).toContain('dummy');
+    expect(stdout).toContain('0.0.0');
+  });
+});
+
+test('ls with pattern that only partially matches', async (): Promise<void> => {
+  await runInstall({}, 'artifacts-finds-and-saves', async (config): Promise<void> => {
+    const out = new stream.PassThrough();
+    const reporter = new reporters.JSONReporter({stdout: out});
+    await run(config, reporter, {pattern: 'dum'}, ['list']);
+    const stdout = String(out.read());
+    expect(stdout).toContain('dummy');
+    expect(stdout).toContain('0.0.0');
+  });
+});
+
+test('ls with filter that does not match', async (): Promise<void> => {
+  await runInstall({}, 'artifacts-finds-and-saves', async (config): Promise<void> => {
+    const out = new stream.PassThrough();
+    const reporter = new reporters.JSONReporter({stdout: out});
+    await run(config, reporter, {pattern: 'noMatch'}, ['list']);
+    const stdout = String(out.read());
+    expect(stdout).not.toContain('dummy');
+    expect(stdout).not.toContain('0.0.0');
+  });
+});
+
+test('ls filter by pattern with scoped package', async (): Promise<void> => {
+  await runInstall({}, 'install-from-authed-private-registry', async (config): Promise<void> => {
+    const out = new stream.PassThrough();
+    const reporter = new reporters.JSONReporter({stdout: out});
+    await run(config, reporter, {pattern: '@types/*'}, ['list']);
+    const stdout = String(out.read());
+    expect(stdout).toContain('@types/lodash');
+    expect(stdout).toContain('4.14.37');
+  });
+});
+
 test('dir', async (): Promise<void> => {
   await runCache(['dir'], {}, '', (config, reporter, stdout) => {
     expect(stdout).toContain(JSON.stringify(config.cacheFolder));

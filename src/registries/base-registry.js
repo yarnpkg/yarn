@@ -99,9 +99,10 @@ export default class BaseRegistry {
     });
   }
 
-  async init(): Promise<void> {
+  async init(overrides: Object = {}): Promise<void> {
     this.mergeEnv('yarn_');
     await this.loadConfig();
+    Object.assign(this.config, overrides);
     this.loc = path.join(this.cwd, this.folder);
   }
 

@@ -52,7 +52,10 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
 
       const possibleManifestLoc = path.join(config.cwd, registry.folder, name);
       if (await fs.exists(possibleManifestLoc)) {
-        manifests.push([possibleManifestLoc, await config.readManifest(possibleManifestLoc, registryName)]);
+        const manifest = await config.maybeReadManifest(possibleManifestLoc, registryName);
+        if (manifest) {
+          manifests.push([possibleManifestLoc, manifest]);
+        }
       }
     }
 
