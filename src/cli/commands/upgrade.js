@@ -110,7 +110,7 @@ function scopeFilter(flags: Object, dep: Dependency): boolean {
 
 // Remove deps being upgraded from the lockfile, or else Add will use the already-installed version
 // instead of the latest for the range.
-// We do this recursively so that when Yarn installs the potentially updated transient deps,
+// We do this recursively so that when Yarn installs the potentially updated transitive deps,
 // it may upgrade them too instead of just using the "locked" version from the lockfile.
 function cleanLockfile(lockfile: Lockfile, deps: Array<Dependency>) {
   function cleanDepFromLockfile(pattern: string) {

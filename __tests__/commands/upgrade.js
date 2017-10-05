@@ -31,7 +31,7 @@ const expectInstalledDevDependency = async (config, name, range, expectedVersion
   await _expectDependency('devDependencies', config, name, range, expectedVersion);
 };
 
-const expectInstalledTransientDependency = async (config, name, range, expectedVersion) => {
+const expectInstalledTransitiveDependency = async (config, name, range, expectedVersion) => {
   const lockfile = explodeLockfile(await fs.readFile(path.join(config.cwd, 'yarn.lock')));
   expect(lockfile).toContainPackage(`${name}@${range}:`, expectedVersion);
 };
@@ -73,22 +73,22 @@ test.concurrent('works with no arguments', (): Promise<void> => {
   });
 });
 
-test.concurrent('upgrades transient deps when no arguments', (): Promise<void> => {
+test.concurrent('upgrades transitive deps when no arguments', (): Promise<void> => {
   return runUpgrade([], {}, 'with-subdep', async (config): ?Promise<void> => {
     await expectInstalledDependency(config, 'strip-ansi', '^2.0.1', '2.0.1');
-    await expectInstalledTransientDependency(config, 'ansi-regex', '^1.0.0', '1.1.1');
+    await expectInstalledTransitiveDependency(config, 'ansi-regex', '^1.0.0', '1.1.1');
     await expectInstalledDependency(config, 'array-union', '^1.0.1', '1.0.2');
-    await expectInstalledTransientDependency(config, 'array-uniq', '^1.0.1', '1.0.3');
+    await expectInstalledTransitiveDependency(config, 'array-uniq', '^1.0.1', '1.0.3');
   });
 });
 
-test.concurrent('does not upgrade transient deps when specific package upgraded', (): Promise<void> => {
+test.concurrent('does not upgrade transitive deps when specific package upgraded', (): Promise<void> => {
   return runUpgrade(['strip-ansi'], {}, 'with-subdep', async (config): ?Promise<void> => {
     await expectInstalledDependency(config, 'strip-ansi', '^2.0.1', '2.0.1');
     // *** Not working yet; ansi-regex is not upgraded because lockfile entry exists ***
-    await expectInstalledTransientDependency(config, 'ansi-regex', '^1.0.0', '1.1.1');
+    await expectInstalledTransitiveDependency(config, 'ansi-regex', '^1.0.0', '1.1.1');
     await expectInstalledDependency(config, 'array-union', '^1.0.1', '1.0.1');
-    await expectInstalledTransientDependency(config, 'array-uniq', '^1.0.1', '1.0.1');
+    await expectInstalledTransitiveDependency(config, 'array-uniq', '^1.0.1', '1.0.1');
   });
 });
 
