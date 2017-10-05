@@ -19,8 +19,8 @@ async function prepareRequest(pattern: string, version: string, resolved: string
   };
   if (parentRequest) {
     depRequestPattern.parentRequest = parentRequest;
-    depRequestPattern.parentNames = parentRequest.parentNames.slice(0);
-    depRequestPattern.parentNames.push(parentRequest.pattern);
+    depRequestPattern.parentNames = [...parentRequest.parentNames, parentRequest.pattern];
+
     const lock = parentRequest.getLocked();
     privateDepCache[parentRequest.pattern] = {version: lock.version, resolved: lock._remote.resolved};
   }
