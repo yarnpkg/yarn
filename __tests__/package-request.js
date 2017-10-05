@@ -6,16 +6,25 @@ import PackageResolver from '../src/package-resolver.js';
 import Lockfile from '../src/lockfile';
 import Config from '../src/config.js';
 
-async function prepareRequest(pattern, version, resolved): Object {
+async function prepareRequest(pattern: string, version: string, resolved: string, parentRequest?: Object): Object {
   const privateDepCache = {[pattern]: {version, resolved}};
-  const lockfile = new Lockfile({cache: privateDepCache});
   const reporter = new reporters.NoopReporter({});
   const depRequestPattern = {
     pattern,
     registry: 'npm',
     hint: null,
     optional: false,
+    parentNames: [],
+    parentRequest,
   };
+  if (parentRequest) {
+    depRequestPattern.parentRequest = parentRequest;
+    depRequestPattern.parentNames = parentRequest.parentNames.slice(0);
+    depRequestPattern.parentNames.push(parentRequest.pattern);
+    const lock = parentRequest.getLocked();
+    privateDepCache[parentRequest.pattern] = {version: lock.version, resolved: lock._remote.resolved};
+  }
+  const lockfile = new Lockfile({cache: privateDepCache});
   const config = await Config.create({}, reporter);
   const resolver = new PackageResolver(config, lockfile);
   const request = new PackageRequest(depRequestPattern, resolver);
@@ -34,6 +43,25 @@ test('Produce valid remote type for a git private dep', async () => {
   expect(request.getLocked('tarball')._remote.type).toBe('git');
 
   await reporter.close();
+});
+
+test('Check parentNames flowing in the request', async () => {
+  const {request: parentRequest, reporter: parentReporter} = await prepareRequest(
+    'parent@1.0.0',
+    '1.0.0',
+    'git+ssh://git@github.com/yarnpkg/parent.git',
+  );
+  expect(parentRequest).not.toBeNull();
+  const {request: childRequest, reporter: childReporter} = await prepareRequest(
+    'child@1.0.0',
+    '1.0.0',
+    'git+ssh://git@github.com/yarnpkg/child.git',
+    parentRequest,
+  );
+
+  expect(childRequest.parentNames).toContain(parentRequest.pattern);
+  await parentReporter.close();
+  await childReporter.close();
 });
 
 test('Produce valid remote type for a git public dep', async () => {
