@@ -7,20 +7,6 @@ export default class BitbucketResolver extends HostedGitResolver {
   static hostname = 'bitbucket.org';
   static protocol = 'bitbucket';
 
-  static isVersion(pattern: string): boolean {
-    // bitbucket proto
-    if (pattern.startsWith('bitbucket:')) {
-      return true;
-    }
-
-    // bitbucket shorthand
-    if (/^[^:@%/\s.-][^:@%/\s]*[/][^:@\s/%]+(?:#.*)?$/.test(pattern)) {
-      return true;
-    }
-
-    return false;
-  }
-
   static getTarballUrl(parts: ExplodedFragment, hash: string): string {
     return `https://${this.hostname}/${parts.user}/${parts.repo}/get/${hash}.tar.gz`;
   }
@@ -45,14 +31,16 @@ export default class BitbucketResolver extends HostedGitResolver {
   }
 
   async hasHTTPCapability(url: string): Promise<boolean> {
-    return (
-      (await this.config.requestManager.request({
-        url,
-        method: 'HEAD',
-        queue: this.resolver.fetchingQueue,
-        followRedirect: false,
-        rejectStatusCode: 302,
-      })) !== false
-    );
+    // We don't follow redirects and reject a 302 since this means BitBucket
+    // won't allow us to use the HTTP protocol for `git` access.
+    // Most probably a private repo and this 302 is to a login page.
+    const bitbucketHTTPSupport = await this.config.requestManager.request({
+      url,
+      method: 'HEAD',
+      queue: this.resolver.fetchingQueue,
+      followRedirect: false,
+      rejectStatusCode: 302,
+    });
+    return bitbucketHTTPSupport !== false;
   }
 }

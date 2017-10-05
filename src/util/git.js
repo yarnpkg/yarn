@@ -60,8 +60,9 @@ export default class Git implements GitRefResolvingInterface {
    */
   static npmUrlToGitUrl(npmUrl: string): GitUrl {
     // Expand shortened format first if needed
-    npmUrl = npmUrl.replace(/^github:/, 'git+ssh://git@github.com/');
-    npmUrl = npmUrl.replace(/^bitbucket:/, 'git+ssh://git@bitbucket.org/');
+    npmUrl = npmUrl
+      .replace(/^github:/, 'git+ssh://git@github.com/')
+      .replace(/^bitbucket:/, 'git+ssh://git@bitbucket.org/');
 
     // Special case in npm, where ssh:// prefix is stripped to pass scp-like syntax
     // which in git works as remote path only if there are no slashes before ':'.
