@@ -31,6 +31,10 @@ const runOutdated = buildRun.bind(
       // $FlowFixMe
       this.format = mockFormat;
     }
+
+    info(msg: string) {
+      // Overwrite to not interfere with the table output
+    }
   },
   fixturesLoc,
   async (args, flags, config, reporter, lockfile, getStdout): Promise<string> => {
