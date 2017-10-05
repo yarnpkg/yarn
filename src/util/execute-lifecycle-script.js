@@ -156,6 +156,15 @@ export async function makeEnv(
     pathParts.unshift(path.join(path.dirname(process.execPath)));
   }
 
+  // add .bin folders of parent node_modules to PATH
+  const parentFolders = cwd.split(/[\\/]node_modules[\\/]/);
+  let targetFolder = path.resolve(parentFolders.shift());
+  parentFolders.forEach(parentFolder => {
+    pathParts.unshift(path.join(targetFolder, 'node_modules', '.bin'));
+    targetFolder = path.join(targetFolder, 'node_modules', parentFolder);
+  });
+  pathParts.unshift(path.join(targetFolder, 'node_modules', '.bin'));
+
   // join path back together
   env[constants.ENV_PATH_KEY] = pathParts.join(path.delimiter);
 
