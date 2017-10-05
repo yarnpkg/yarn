@@ -137,6 +137,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
       flags.dev = hint === 'dev';
       flags.peer = hint === 'peer';
       flags.optional = hint === 'optional';
+      flags.ignoreWorkspaceRootCheck = true;
       const deps = answers.filter(isHint(hint)).map(getPattern);
       if (deps.length) {
         for (const pattern of deps) {

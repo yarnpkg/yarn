@@ -244,30 +244,38 @@ export default class PackageLinker {
       }
     }
 
-    // keep track of all scoped paths to remove empty scopes after copy
-    const scopedPaths = new Set();
-
-    // register root & scoped packages as being possibly extraneous
     const possibleExtraneous: Set<string> = new Set();
-    for (const folder of this.config.registryFolders) {
-      const loc = path.join(this.config.cwd, folder);
+    const scopedPaths: Set<string> = new Set();
 
-      if (await fs.exists(loc)) {
-        const files = await fs.readdir(loc);
-        let filepath;
-        for (const file of files) {
-          filepath = path.join(loc, file);
-          if (file[0] === '@') {
+    const findExtraneousFiles = async basePath => {
+      for (const folder of this.config.registryFolders) {
+        const loc = path.join(basePath, folder);
+
+        if (await fs.exists(loc)) {
+          const files = await fs.readdir(loc);
+
+          for (const file of files) {
+            const filepath = path.join(loc, file);
+
             // it's a scope, not a package
-            scopedPaths.add(filepath);
-            const subfiles = await fs.readdir(filepath);
-            for (const subfile of subfiles) {
-              possibleExtraneous.add(path.join(filepath, subfile));
+            if (file[0] === '@') {
+              scopedPaths.add(filepath);
+
+              for (const subfile of await fs.readdir(filepath)) {
+                possibleExtraneous.add(path.join(filepath, subfile));
+              }
+            } else {
+              possibleExtraneous.add(filepath);
             }
-          } else {
-            possibleExtraneous.add(filepath);
           }
         }
+      }
+    };
+
+    await findExtraneousFiles(this.config.lockfileFolder);
+    if (workspaceLayout) {
+      for (const workspaceName of Object.keys(workspaceLayout.workspaces)) {
+        await findExtraneousFiles(workspaceLayout.workspaces[workspaceName].loc);
       }
     }
 
