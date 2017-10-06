@@ -197,6 +197,25 @@ describe('--registry option', () => {
       expect(stdoutOutput.toString()).toMatch(/getaddrinfo ENOTFOUND example-registry-doesnt-exist\.com/g);
     }
   });
+
+  test('registry option from yarnrc', async () => {
+    const cwd = await makeTemp();
+
+    const registry = 'https://registry.npmjs.org';
+    await fs.writeFile(`${cwd}/.yarnrc`, 'registry "' + registry + '"\n');
+
+    const packageJsonPath = path.join(cwd, 'package.json');
+    await fs.writeFile(packageJsonPath, JSON.stringify({}));
+
+    await runYarn(['add', 'left-pad'], {cwd});
+
+    const packageJson = JSON.parse(await fs.readFile(packageJsonPath));
+    const lockfile = explodeLockfile(await fs.readFile(path.join(cwd, 'yarn.lock')));
+
+    expect(packageJson.dependencies['left-pad']).toBeDefined();
+    expect(lockfile).toHaveLength(3);
+    expect(lockfile[2]).toContain(registry);
+  });
 });
 
 test('--cwd option', async () => {

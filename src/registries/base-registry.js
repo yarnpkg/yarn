@@ -102,7 +102,14 @@ export default class BaseRegistry {
   async init(overrides: Object = {}): Promise<void> {
     this.mergeEnv('yarn_');
     await this.loadConfig();
-    Object.assign(this.config, overrides);
+
+    for (const override of Object.keys(overrides)) {
+      const val = overrides[override];
+
+      if (val !== undefined) {
+        this.config[override] = val;
+      }
+    }
     this.loc = path.join(this.cwd, this.folder);
   }
 
