@@ -21,6 +21,8 @@ export type DependencyRequestPattern = {
   hint?: ?string,
   parentNames?: Array<string>,
   parentRequest?: ?PackageRequest,
+  workspaceName?: string,
+  workspaceLoc?: string,
 };
 export type DependencyRequestPatterns = Array<DependencyRequestPattern>;
 
@@ -156,6 +158,8 @@ export type Dependency = {
   hint: ?string,
   range: string,
   upgradeTo: string,
+  workspaceName: string,
+  workspaceLoc: string,
 };
 
 export type WorkspacesManifestMap = {

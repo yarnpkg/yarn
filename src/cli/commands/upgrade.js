@@ -41,6 +41,8 @@ function setUserRequestedPackageVersions(deps: Array<Dependency>, args: Array<st
         range: '',
         current: '',
         upgradeTo: newPattern,
+        workspaceName: '',
+        workspaceLoc: '',
       });
     }
   });
@@ -73,7 +75,12 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
   const deps = await getOutdated(config, reporter, flags, lockfile, args);
 
   // do not pass the --latest flag to add, otherwise it may ignore the version ranges we already determined.
-  const addFlags = Object.assign({}, flags, {force: true, latest: false, ignoreWorkspaceRootCheck: true});
+  const addFlags = Object.assign({}, flags, {
+    force: true,
+    latest: false,
+    ignoreWorkspaceRootCheck: true,
+    workspaceRootIsCwd: config.cwd === config.lockfileFolder,
+  });
 
   setUserRequestedPackageVersions(deps, args);
 

@@ -68,6 +68,12 @@ type Flags = {
   exact: boolean,
   tilde: boolean,
   ignoreWorkspaceRootCheck: boolean,
+
+  // outdated, update-interactive
+  includeWorkspaceDeps: boolean,
+
+  // remove, upgrade
+  workspaceRootIsCwd: boolean,
 };
 
 /**
@@ -139,6 +145,12 @@ function normalizeFlags(config: Config, rawFlags: Object): Flags {
     exact: !!rawFlags.exact,
     tilde: !!rawFlags.tilde,
     ignoreWorkspaceRootCheck: !!rawFlags.ignoreWorkspaceRootCheck,
+
+    // outdated, update-interactive
+    includeWorkspaceDeps: !!rawFlags.includeWorkspaceDeps,
+
+    // remove, update
+    workspaceRootIsCwd: rawFlags.workspaceRootIsCwd !== false,
   };
 
   if (config.getOption('ignore-scripts')) {
@@ -211,8 +223,12 @@ export class Install {
     const usedPatterns = [];
     let workspaceLayout;
 
+    // some commands should always run in the context of the entire workspace
+    const cwd =
+      this.flags.includeWorkspaceDeps || this.flags.workspaceRootIsCwd ? this.config.lockfileFolder : this.config.cwd;
+
     // non-workspaces are always root, otherwise check for workspace root
-    const cwdIsRoot = !this.config.workspaceRootFolder || this.config.lockfileFolder === this.config.cwd;
+    const cwdIsRoot = !this.config.workspaceRootFolder || this.config.lockfileFolder === cwd;
 
     // exclude package names that are in install args
     const excludeNames = [];
@@ -243,7 +259,7 @@ export class Install {
 
     for (const registry of Object.keys(registries)) {
       const {filename} = registries[registry];
-      const loc = path.join(this.config.cwd, filename);
+      const loc = path.join(cwd, filename);
       if (!await fs.exists(loc)) {
         continue;
       }
@@ -251,7 +267,7 @@ export class Install {
       this.rootManifestRegistries.push(registry);
 
       const projectManifestJson = await this.config.readJson(loc);
-      await normalizeManifest(projectManifestJson, this.config.cwd, this.config, cwdIsRoot);
+      await normalizeManifest(projectManifestJson, cwd, this.config, cwdIsRoot);
 
       Object.assign(this.resolutions, projectManifestJson.resolutions);
       Object.assign(manifest, projectManifestJson);
@@ -295,7 +311,7 @@ export class Install {
 
           this.rootPatternsToOrigin[pattern] = depType;
           patterns.push(pattern);
-          deps.push({pattern, registry, hint, optional});
+          deps.push({pattern, registry, hint, optional, workspaceName: manifest.name, workspaceLoc: manifest._loc});
         }
       };
 
@@ -320,7 +336,15 @@ export class Install {
         // add virtual manifest that depends on all workspaces, this way package hoisters and resolvers will work fine
         const workspaceDependencies = {...workspaceManifestJson.dependencies};
         for (const workspaceName of Object.keys(workspaces)) {
-          workspaceDependencies[workspaceName] = workspaces[workspaceName].manifest.version;
+          const workspaceManifest = workspaces[workspaceName].manifest;
+          workspaceDependencies[workspaceName] = workspaceManifest.version;
+
+          // include dependencies from all workspaces
+          if (this.flags.includeWorkspaceDeps) {
+            pushDeps('dependencies', workspaceManifest, {hint: null, optional: false}, true);
+            pushDeps('devDependencies', workspaceManifest, {hint: 'dev', optional: false}, !this.config.production);
+            pushDeps('optionalDependencies', workspaceManifest, {hint: 'optional', optional: true}, true);
+          }
         }
         const virtualDependencyManifest: Manifest = {
           _uid: '',
