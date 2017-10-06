@@ -60,7 +60,9 @@ export default class Git implements GitRefResolvingInterface {
    */
   static npmUrlToGitUrl(npmUrl: string): GitUrl {
     // Expand shortened format first if needed
-    npmUrl = npmUrl.replace(/^github:/, 'git+ssh://git@github.com/');
+    npmUrl = npmUrl
+      .replace(/^github:/, 'git+ssh://git@github.com/')
+      .replace(/^bitbucket:/, 'git+ssh://git@bitbucket.org/');
 
     // Special case in npm, where ssh:// prefix is stripped to pass scp-like syntax
     // which in git works as remote path only if there are no slashes before ':'.
@@ -364,7 +366,7 @@ export default class Git implements GitRefResolvingInterface {
   }
 
   async setRefRemote(): Promise<string> {
-    const stdout = await spawnGit(['ls-remote', '--tags', '--heads', this.gitUrl.repository]);
+    const stdout = await spawnGit(['ls-remote', '--tags', '--heads', this.gitUrl.repository.split('#')[0]]);
     const refs = parseRefs(stdout);
     return this.setRef(refs);
   }
