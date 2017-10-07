@@ -401,7 +401,7 @@ export default class Git implements GitRefResolvingInterface {
   }
 
   async setRefRemote(): Promise<string> {
-    const stdout = await spawnGit(['ls-remote', '--tags', '--heads', this.gitUrl.repository);
+    const stdout = await spawnGit(['ls-remote', '--tags', '--heads', this.gitUrl.repository]);
     const refs = parseRefs(stdout);
     return this.setRef(refs);
   }
