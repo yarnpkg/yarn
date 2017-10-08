@@ -6,9 +6,10 @@ import type Config from '../../config.js';
 import inquirer from 'inquirer';
 import Lockfile from '../../lockfile';
 import {Add} from './add.js';
-import {getOutdated} from './upgrade.js';
+import {getOutdated, cleanLockfile} from './upgrade.js';
 import colorForVersions from '../../util/color-for-versions';
 import colorizeDiff from '../../util/colorize-diff.js';
+import {Install} from './install.js';
 
 export const requireLockfile = true;
 
@@ -138,13 +139,15 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
       flags.peer = hint === 'peer';
       flags.optional = hint === 'optional';
       flags.ignoreWorkspaceRootCheck = true;
-      const deps = answers.filter(isHint(hint)).map(getPattern);
+      const deps = answers.filter(isHint(hint));
+      const addArgs = deps.map(getPattern);
       if (deps.length) {
-        for (const pattern of deps) {
-          lockfile.removePattern(pattern);
-        }
+        const install = new Install(flags, config, reporter, lockfile);
+        const {requests: packagePatterns} = await install.fetchRequestFromCwd();
+
+        cleanLockfile(lockfile, deps, packagePatterns, reporter);
         reporter.info(reporter.lang('updateInstalling', getNameFromHint(hint)));
-        const add = new Add(deps, flags, config, reporter, lockfile);
+        const add = new Add(addArgs, flags, config, reporter, lockfile);
         return add.init();
       }
       return Promise.resolve();
