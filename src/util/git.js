@@ -105,12 +105,12 @@ export default class Git implements GitRefResolvingInterface {
       parsed.path.startsWith(SCP_PATH_PREFIX) &&
       parsed.port === null
     ) {
+      const auth = parsed.auth ? parsed.auth + '@' : '';
+      const pathname = parsed.path.slice(SCP_PATH_PREFIX.length);
       return {
         hostname: parsed.hostname,
         protocol: parsed.protocol,
-        repository: `${parsed.auth ? parsed.auth + '@' : ''}${parsed.hostname}:${parsed.path.slice(
-          SCP_PATH_PREFIX.length,
-        )}`,
+        repository: `${auth}${parsed.hostname}:${pathname}`,
       };
     }
 
