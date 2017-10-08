@@ -59,12 +59,12 @@ test('npmUrlToGitUrl', () => {
   expect(Git.npmUrlToGitUrl('github:npm-opam/ocamlfind.git#v1.2.3')).toEqual({
     protocol: 'ssh:',
     hostname: 'github.com',
-    repository: 'ssh://git@github.com/npm-opam/ocamlfind.git#v1.2.3',
+    repository: 'ssh://git@github.com/npm-opam/ocamlfind.git',
   });
   expect(Git.npmUrlToGitUrl('github:npm-opam/ocamlfind#v1.2.3')).toEqual({
     protocol: 'ssh:',
     hostname: 'github.com',
-    repository: 'ssh://git@github.com/npm-opam/ocamlfind#v1.2.3',
+    repository: 'ssh://git@github.com/npm-opam/ocamlfind',
   });
   expect(Git.npmUrlToGitUrl('github:npm-opam/ocamlfind.git')).toEqual({
     protocol: 'ssh:',
