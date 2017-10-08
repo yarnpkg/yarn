@@ -63,6 +63,7 @@ type RequestParams<T> = {
   retryAttempts?: number,
   maxRetryAttempts?: number,
   followRedirect?: boolean,
+  rejectStatusCode?: number | Array<number>,
 };
 
 type RequestOptions = {
@@ -395,7 +396,7 @@ export default class RequestManager {
           const errMsg = (body && body.message) || reporter.lang('requestError', params.url, res.statusCode);
           reject(new Error(errMsg));
         } else {
-          if (res.statusCode === 400 || res.statusCode === 404 || res.statusCode === 401) {
+          if ([400, 401, 404].concat(params.rejectStatusCode || []).indexOf(res.statusCode) !== -1) {
             body = false;
           }
           resolve(body);

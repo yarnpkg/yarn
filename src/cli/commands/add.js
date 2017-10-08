@@ -32,16 +32,6 @@ export class Add extends Install {
     ]
       .filter(Boolean)
       .shift();
-
-    if (this.config.workspaceRootFolder && this.config.cwd === this.config.workspaceRootFolder) {
-      this.setIgnoreWorkspaces(true);
-      // flagsToOrgin defaults to being a hard `dependency` when no flags are passed (see above),
-      // so it incorrectly throws a warning when upgrading existing devDependencies in workspace root
-      // To allow for a successful upgrade, override flagsToOrigin when `existing` flag is passed by `upgrade` command
-      if (flags.existing) {
-        this.flagToOrigin = '';
-      }
-    }
   }
 
   args: Array<string>;
@@ -132,10 +122,11 @@ export class Add extends Install {
    */
 
   async init(): Promise<Array<string>> {
-    if (this.ignoreWorkspaces) {
-      if (this.flagToOrigin === 'dependencies') {
-        throw new MessageError(this.reporter.lang('workspacesPreferDevDependencies'));
-      }
+    const isWorkspaceRoot = this.config.workspaceRootFolder && this.config.cwd === this.config.workspaceRootFolder;
+
+    // running "yarn add something" in a workspace root is often a mistake
+    if (isWorkspaceRoot && !this.flags.ignoreWorkspaceRootCheck) {
+      throw new MessageError(this.reporter.lang('workspacesAddRootCheck'));
     }
 
     this.addedPatterns = [];
@@ -216,6 +207,7 @@ export function hasWrapper(commander: Object): boolean {
 
 export function setFlags(commander: Object) {
   commander.usage('add [packages ...] [flags]');
+  commander.option('-W, --ignore-workspace-root-check', 'required to run yarn add inside a workspace root');
   commander.option('-D, --dev', 'save package to your `devDependencies`');
   commander.option('-P, --peer', 'save package to your `peerDependencies`');
   commander.option('-O, --optional', 'save package to your `optionalDependencies`');

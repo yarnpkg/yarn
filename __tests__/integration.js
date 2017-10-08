@@ -12,13 +12,13 @@ jasmine.DEFAULT_TIMEOUT_INTERVAL = 120000;
 
 const path = require('path');
 
-function addTest(pattern, {strict} = {strict: false}) {
+function addTest(pattern, {strict} = {strict: false}, yarnArgs: Array<string> = []) {
   test.concurrent(`yarn add ${pattern}`, async () => {
     const cwd = await makeTemp();
     const cacheFolder = path.join(cwd, 'cache');
 
     const command = path.resolve(__dirname, '../bin/yarn');
-    const args = ['--cache-folder', cacheFolder];
+    const args = ['--cache-folder', cacheFolder, ...yarnArgs];
 
     const options = {cwd};
 
@@ -60,10 +60,7 @@ addTest('https://git@github.com/stevemao/left-pad.git'); // git url, with userna
 addTest('https://github.com/yarnpkg/yarn/releases/download/v0.18.1/yarn-v0.18.1.tar.gz'); // tarball
 addTest('https://github.com/bestander/chrome-app-livereload.git'); // no package.json
 addTest('bestander/chrome-app-livereload'); // no package.json, github, tarball
-// Only run `react-scripts` test on Node 6+
-if (parseInt(process.versions.node.split('.')[0], 10) >= 6) {
-  addTest('react-scripts@1.0.13', {strict: true}); // many peer dependencies, there shouldn't be any peerDep warnings
-}
+addTest('react-scripts@1.0.13', {strict: true}, ['--no-node-version-check', '--ignore-engines']); // many peer dependencies, there shouldn't be any peerDep warnings
 
 const MIN_PORT_NUM = 56000;
 const MAX_PORT_NUM = 65535;
@@ -199,6 +196,25 @@ describe('--registry option', () => {
       const stdoutOutput = err.message;
       expect(stdoutOutput.toString()).toMatch(/getaddrinfo ENOTFOUND example-registry-doesnt-exist\.com/g);
     }
+  });
+
+  test('registry option from yarnrc', async () => {
+    const cwd = await makeTemp();
+
+    const registry = 'https://registry.npmjs.org';
+    await fs.writeFile(`${cwd}/.yarnrc`, 'registry "' + registry + '"\n');
+
+    const packageJsonPath = path.join(cwd, 'package.json');
+    await fs.writeFile(packageJsonPath, JSON.stringify({}));
+
+    await runYarn(['add', 'left-pad'], {cwd});
+
+    const packageJson = JSON.parse(await fs.readFile(packageJsonPath));
+    const lockfile = explodeLockfile(await fs.readFile(path.join(cwd, 'yarn.lock')));
+
+    expect(packageJson.dependencies['left-pad']).toBeDefined();
+    expect(lockfile).toHaveLength(3);
+    expect(lockfile[2]).toContain(registry);
   });
 });
 
