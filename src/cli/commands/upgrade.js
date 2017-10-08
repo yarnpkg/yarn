@@ -3,6 +3,7 @@
 import type {Dependency} from '../../types.js';
 import type {Reporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
+import type {DependencyRequestPatterns} from '../../types.js';
 import {Add} from './add.js';
 import Lockfile from '../../lockfile';
 import PackageRequest from '../../package-request.js';
@@ -23,6 +24,7 @@ function setUserRequestedPackageVersions(
   args: Array<string>,
   latest: boolean,
   packagePatterns,
+  reporter: Reporter,
 ) {
   args.forEach(requestedPattern => {
     let found = false;
@@ -47,6 +49,7 @@ function setUserRequestedPackageVersions(
       if (normalized.hasVersion && dep.name === normalized.name) {
         found = true;
         dep.upgradeTo = newPattern;
+        reporter.verbose(reporter.lang('verboseUpgradeBecauseRequested', requestedPattern, newPattern));
       }
     });
 
@@ -63,6 +66,7 @@ function setUserRequestedPackageVersions(
         current: '',
         upgradeTo: newPattern,
       });
+      reporter.verbose(reporter.lang('verboseUpgradeBecauseRequested', requestedPattern, newPattern));
     }
   });
 }
@@ -112,21 +116,29 @@ function scopeFilter(flags: Object, dep: Dependency): boolean {
 // instead of the latest for the range.
 // We do this recursively so that when Yarn installs the potentially updated transitive deps,
 // it may upgrade them too instead of just using the "locked" version from the lockfile.
-function cleanLockfile(lockfile: Lockfile, deps: Array<Dependency>) {
-  function cleanDepFromLockfile(pattern: string) {
+// Transitive dependencies that are also a direct dependency are skipped.
+export function cleanLockfile(
+  lockfile: Lockfile,
+  deps: Array<Dependency>,
+  packagePatterns: DependencyRequestPatterns,
+  reporter: Reporter,
+) {
+  function cleanDepFromLockfile(pattern: string, depth: number) {
     const lockManifest = lockfile.getLocked(pattern);
-    if (!lockManifest) {
+    if (!lockManifest || (depth > 1 && packagePatterns.some(packagePattern => packagePattern.pattern === pattern))) {
+      reporter.verbose(reporter.lang('verboseUpgradeNotUnlocking', pattern));
       return;
     }
 
     const dependencies = Object.assign({}, lockManifest.dependencies || {}, lockManifest.optionalDependencies || {});
     const depPatterns = Object.keys(dependencies).map(key => `${key}@${dependencies[key]}`);
+    reporter.verbose(reporter.lang('verboseUpgradeUnlocking', pattern));
     lockfile.removePattern(pattern);
-    depPatterns.forEach(pattern => cleanDepFromLockfile(pattern));
+    depPatterns.forEach(pattern => cleanDepFromLockfile(pattern, depth + 1));
   }
 
   const patterns = deps.map(dep => dep.upgradeTo);
-  patterns.forEach(pattern => cleanDepFromLockfile(pattern));
+  patterns.forEach(pattern => cleanDepFromLockfile(pattern, 1));
 }
 
 export function setFlags(commander: Object) {
@@ -154,14 +166,15 @@ export const requireLockfile = true;
 export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
   let addArgs = [];
   const upgradeAll = args.length === 0;
-  const addFlags = Object.assign({}, flags, {force: true, existing: true});
+  const addFlags = Object.assign({}, flags, {force: true, existing: true, ignoreWorkspaceRootCheck: true});
   const lockfile = await Lockfile.fromDirectory(config.lockfileFolder, reporter);
   const deps = await getOutdated(config, reporter, flags, lockfile, args);
   const install = new Install(flags, config, reporter, lockfile);
   const {requests: packagePatterns} = await install.fetchRequestFromCwd();
 
-  setUserRequestedPackageVersions(deps, args, flags.latest, packagePatterns);
-  cleanLockfile(lockfile, deps);
+  setUserRequestedPackageVersions(deps, args, flags.latest, packagePatterns, reporter);
+
+  cleanLockfile(lockfile, deps, packagePatterns, reporter);
   addArgs = deps.map(dep => dep.upgradeTo);
 
   if (flags.scope && validScopeRegex.test(flags.scope)) {
@@ -220,7 +233,10 @@ export async function getOutdated(
   ))
     .filter(versionFilter)
     .filter(scopeFilter.bind(this, flags));
-  deps.forEach(dep => (dep.upgradeTo = buildPatternToUpgradeTo(dep, flags)));
+  deps.forEach(dep => {
+    dep.upgradeTo = buildPatternToUpgradeTo(dep, flags);
+    reporter.verbose(reporter.lang('verboseUpgradeBecauseOutdated', dep.name, dep.upgradeTo));
+  });
 
   return deps;
 }

@@ -82,10 +82,17 @@ test.concurrent('upgrades transitive deps when no arguments', (): Promise<void> 
   });
 });
 
+test.concurrent('does not upgrade transitive deps that are also a direct dependency', (): Promise<void> => {
+  return runUpgrade(['strip-ansi'], {}, 'with-subdep-also-direct', async (config): ?Promise<void> => {
+    await expectInstalledDependency(config, 'strip-ansi', '^2.0.1', '2.0.1');
+    await expectInstalledTransitiveDependency(config, 'ansi-regex', '^1.0.0', '1.0.0');
+    await expectInstalledDependency(config, 'ansi-regex', '^1.0.0', '1.0.0');
+  });
+});
+
 test.concurrent('does not upgrade transitive deps when specific package upgraded', (): Promise<void> => {
   return runUpgrade(['strip-ansi'], {}, 'with-subdep', async (config): ?Promise<void> => {
     await expectInstalledDependency(config, 'strip-ansi', '^2.0.1', '2.0.1');
-    // *** Not working yet; ansi-regex is not upgraded because lockfile entry exists ***
     await expectInstalledTransitiveDependency(config, 'ansi-regex', '^1.0.0', '1.1.1');
     await expectInstalledDependency(config, 'array-union', '^1.0.1', '1.0.1');
     await expectInstalledTransitiveDependency(config, 'array-uniq', '^1.0.1', '1.0.1');
