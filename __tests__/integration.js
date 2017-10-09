@@ -281,16 +281,16 @@ describe('yarnrc path', () => {
     const cwd = await makeTemp();
 
     await fs.writeFile(`${cwd}/.yarnrc`, 'yarn-path "./override.js"\n');
-    await fs.writeFile(`${cwd}/override.js`, 'process.exit(1);');
+    await fs.writeFile(`${cwd}/override.js`, 'process.exit(123);');
 
     let error = false;
     try {
       await runYarn([], {cwd});
     } catch (err) {
-      error = true;
+      error = err.code;
     }
 
-    expect(error).toEqual(true);
+    expect(error).toEqual(123);
   });
 });
 
