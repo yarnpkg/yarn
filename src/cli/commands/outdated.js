@@ -47,7 +47,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
     const red = reporter.format.red('<red>');
     const yellow = reporter.format.yellow('<yellow>');
     const green = reporter.format.green('<green>');
-    reporter.info(reporter.lang('legendColorsForOutdated', red, yellow, green));
+    reporter.info(reporter.lang('legendColorsForVersionUpdates', red, yellow, green));
 
     reporter.table(['Package', 'Current', 'Wanted', 'Latest', 'Package Type', 'URL'], body);
     return 1;
