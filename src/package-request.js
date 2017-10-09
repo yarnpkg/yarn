@@ -362,7 +362,7 @@ export default class PackageRequest {
     }
 
     const deps = await Promise.all(
-      depReqPatterns.map(async ({pattern, hint}): Promise<Dependency> => {
+      depReqPatterns.map(async ({pattern, hint, workspaceName, workspaceLoc}): Promise<Dependency> => {
         const locked = lockfile.getLocked(pattern);
         if (!locked) {
           throw new MessageError(reporter.lang('lockfileOutdated'));
@@ -384,7 +384,18 @@ export default class PackageRequest {
           ({latest, wanted, url} = await registry.checkOutdated(config, name, normalized.range));
         }
 
-        return {name, current, wanted, latest, url, hint, range: normalized.range, upgradeTo: ''};
+        return {
+          name,
+          current,
+          wanted,
+          latest,
+          url,
+          hint,
+          range: normalized.range,
+          upgradeTo: '',
+          workspaceName: workspaceName || '',
+          workspaceLoc: workspaceLoc || '',
+        };
       }),
     );
 
