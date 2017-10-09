@@ -544,15 +544,18 @@ async function start(): Promise<void> {
   if (yarnPath && process.env.YARN_IGNORE_PATH !== '1') {
     const argv = process.argv.slice(2);
     const opts = {stdio: 'inherit', env: Object.assign({}, process.env, {YARN_IGNORE_PATH: 1})};
+    let exitCode = 0;
 
     try {
-      await spawnp(yarnPath, argv, opts);
+      exitCode = await spawnp(yarnPath, argv, opts);
     } catch (firstError) {
       try {
-        await forkp(yarnPath, argv, opts);
+        exitCode = await forkp(yarnPath, argv, opts);
       } catch (error) {
         throw firstError;
       }
+
+      process.exitCode = exitCode;
     }
   } else {
     // ignore all arguments after a --
