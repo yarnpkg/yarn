@@ -554,9 +554,9 @@ async function start(): Promise<void> {
       } catch (error) {
         throw firstError;
       }
-
-      process.exitCode = exitCode;
     }
+
+    process.exitCode = exitCode;
   } else {
     // ignore all arguments after a --
     const doubleDashIndex = process.argv.findIndex(element => element === '--');
