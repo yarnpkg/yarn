@@ -130,7 +130,6 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
   // save current version so we can restore it in case of an abort
   const oldVersion = await getVersion(config);
 
-  // sorry if this try/catch breaks your stack trace :'(
   try {
     return await _run(config, reporter, flags, args, pkg, dir);
   } catch(e) {
@@ -144,7 +143,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
       // this was a last ditch effort to restore the version. ignore errors here
     }
 
-    throw new Error(e);
+    throw e;
   }
 }
 async function _run(config: Config, reporter: Reporter, flags: Object, args: Array<string>, pkg:any, dir:string): Promise<void> {
