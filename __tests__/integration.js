@@ -292,6 +292,29 @@ describe('yarnrc path', () => {
 
     expect(error).toEqual(123);
   });
+
+  test('sh file exit code', async () => {
+    const cwd = await makeTemp();
+
+    if (process.platform !== 'win32') {
+      await fs.writeFile(`${cwd}/.yarnrc`, 'yarn-path "./override.sh"\n');
+      await fs.writeFile(`${cwd}/override.sh`, '#!/usr/bin/env sh\n\nexit 123\n');
+
+      await fs.chmod(`${cwd}/override.sh`, 0o755);
+    } else {
+      await fs.writeFile(`${cwd}/.yarnrc`, 'yarn-path "./override.cmd"\r\n');
+      await fs.writeFile(`${cwd}/override.cmd`, 'exit /b 123\r\n');
+    }
+
+    let error = false;
+    try {
+      await runYarn([], {cwd});
+    } catch (err) {
+      error = err.code;
+    }
+
+    expect(error).toEqual(123);
+  });
 });
 
 for (const withDoubleDash of [false, true]) {
