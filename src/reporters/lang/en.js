@@ -112,7 +112,7 @@ const messages = {
   noPermission: 'Cannot create $0 due to insufficient permissions.',
   noGlobalFolder: 'Cannot find a suitable global folder. Tried these: $0',
   allDependenciesUpToDate: 'All of your dependencies are up to date.',
-  legendColorsForUpgradeInteractive:
+  legendColorsForVersionUpdates:
     'Color legend : \n $0    : Major Update backward-incompatible updates \n $1 : Minor Update backward-compatible features \n $2  : Patch Update backward-compatible bug fixes',
   frozenLockfileError: 'Your lockfile needs to be updated, but yarn was run with `--frozen-lockfile`.',
   fileWriteError: 'Could not write file $0: $1',
