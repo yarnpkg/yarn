@@ -13,6 +13,7 @@ const messages = {
   buildingFreshPackages: 'Building fresh packages',
   cleaningModules: 'Cleaning modules',
   bumpingVersion: 'Bumping version',
+  restoringVersion: 'Restoring version',
   savingHar: 'Saving HAR file: $0',
   answer: 'Answer?',
   usage: 'Usage',

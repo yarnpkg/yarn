@@ -4,7 +4,7 @@ import type {Reporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
 import NpmRegistry from '../../registries/npm-registry.js';
 import {MessageError} from '../../errors.js';
-import {setVersion, setFlags as versionSetFlags} from './version.js';
+import {getVersion, setVersion, setFlags as versionSetFlags} from './version.js';
 import * as fs from '../../util/fs.js';
 import {pack} from './pack.js';
 import {getToken} from './login.js';
@@ -127,6 +127,27 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
     throw new MessageError(reporter.lang('unknownFolderOrTarball'));
   }
 
+  // save current version so we can restore it in case of an abort
+  const oldVersion = await getVersion(config);
+
+  // sorry if this try/catch breaks your stack trace :'(
+  try {
+    return await _run(config, reporter, flags, args, pkg, dir);
+  } catch(e) {
+    try {
+      // try to restore the version
+      // note that if it crashed on setting the version, the original
+      // version probably wasn't changed in the first place
+      reporter.step(1, 0, reporter.lang('restoringVersion'));
+      await setVersion(config, reporter, {newVersion: oldVersion}, [], false);
+    } catch (_) {
+      // this was a last ditch effort to restore the version. ignore errors here
+    }
+
+    throw new Error(e);
+  }
+}
+async function _run(config: Config, reporter: Reporter, flags: Object, args: Array<string>, pkg:any, dir:string): Promise<void> {
   //
   reporter.step(1, 4, reporter.lang('bumpingVersion'));
   const commitVersion = await setVersion(config, reporter, flags, args, false);

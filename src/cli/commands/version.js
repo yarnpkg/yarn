@@ -28,6 +28,14 @@ export function hasWrapper(commander: Object, args: Array<string>): boolean {
   return true;
 }
 
+export async function getVersion(
+  config: Config,
+): Promise<string> {
+  const pkg = await config.readRootManifest();
+
+  return pkg.version || '0.0.0';
+}
+
 export async function setVersion(
   config: Config,
   reporter: Reporter,
