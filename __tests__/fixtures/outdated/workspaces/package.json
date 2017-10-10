@@ -1,0 +1,11 @@
+{
+  "name": "my-project",
+  "private": true,
+  "devDependencies": {
+    "left-pad": "1.0.0"
+  },
+  "workspaces": [
+    "child-a",
+    "child-b"
+  ]
+}

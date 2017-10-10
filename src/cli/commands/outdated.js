@@ -19,8 +19,8 @@ export function hasWrapper(commander: Object, args: Array<string>): boolean {
 }
 
 export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<number> {
-  const lockfile = await Lockfile.fromDirectory(config.cwd);
-  const install = new Install(flags, config, reporter, lockfile);
+  const lockfile = await Lockfile.fromDirectory(config.lockfileFolder);
+  const install = new Install({...flags, includeWorkspaceDeps: true}, config, reporter, lockfile);
   let deps = await PackageRequest.getOutdatedPackages(lockfile, install, config, reporter);
 
   if (args.length) {
@@ -33,15 +33,21 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
   const colorizeName = ({current, latest, name}) => reporter.format[colorForVersions(current, latest)](name);
 
   if (deps.length) {
+    const usesWorkspaces = !!config.workspaceRootFolder;
     const body = deps.map((info): Array<string> => {
-      return [
+      const row = [
         colorizeName(info),
         info.current,
         colorizeDiff(info.current, info.wanted, reporter),
         reporter.format.magenta(info.latest),
+        info.workspaceName || '',
         getNameFromHint(info.hint),
         reporter.format.cyan(info.url),
       ];
+      if (!usesWorkspaces) {
+        row.splice(4, 1);
+      }
+      return row;
     });
 
     const red = reporter.format.red('<red>');
@@ -49,7 +55,13 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
     const green = reporter.format.green('<green>');
     reporter.info(reporter.lang('legendColorsForVersionUpdates', red, yellow, green));
 
-    reporter.table(['Package', 'Current', 'Wanted', 'Latest', 'Package Type', 'URL'], body);
+    const header = ['Package', 'Current', 'Wanted', 'Latest', 'Workspace', 'Package Type', 'URL'];
+    
+    if (!usesWorkspaces) {
+      header.splice(4, 1);
+    }
+    reporter.table(header, body);
+
     return 1;
   }
   return 0;

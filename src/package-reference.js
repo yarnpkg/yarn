@@ -66,13 +66,7 @@ export default class PackageReference {
   addRequest(request: PackageRequest) {
     this.requests.push(request);
 
-    let requestLevel = -1;
-    let currentRequest = request;
-    while (currentRequest && requestLevel < this.level) {
-      requestLevel += 1;
-      currentRequest = currentRequest.parentRequest;
-    }
-    this.level = requestLevel;
+    this.level = Math.min(this.level, request.parentNames.length);
   }
 
   prune() {

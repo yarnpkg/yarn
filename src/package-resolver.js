@@ -545,9 +545,11 @@ export default class PackageResolver {
       this.resolveToResolution(req);
     }
 
-    for (const dep of deps) {
-      const name = normalizePattern(dep.pattern).name;
-      this.optimizeResolutions(name);
+    if (isFlat) {
+      for (const dep of deps) {
+        const name = normalizePattern(dep.pattern).name;
+        this.optimizeResolutions(name);
+      }
     }
 
     activity.end();
@@ -568,11 +570,19 @@ export default class PackageResolver {
       return;
     }
 
+    // reverse sort, so we'll find the maximum satisfying version first
     const availableVersions = this.getAllInfoForPatterns(collapsablePatterns).map(manifest => manifest.version);
-    const combinedRange = collapsablePatterns.map(pattern => normalizePattern(pattern).range).join(' ');
-    const singleVersion = semver.maxSatisfying(availableVersions, combinedRange);
-    if (singleVersion) {
-      this.collapsePackageVersions(name, singleVersion, collapsablePatterns);
+    availableVersions.sort(semver.rcompare);
+
+    const ranges = collapsablePatterns.map(pattern => normalizePattern(pattern).range);
+
+    // find the most recent version that satisfies all patterns (if one exists), and
+    // collapse to that version.
+    for (const version of availableVersions) {
+      if (ranges.every(range => semver.satisfies(version, range))) {
+        this.collapsePackageVersions(name, version, collapsablePatterns);
+        return;
+      }
     }
   }
 

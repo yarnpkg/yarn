@@ -45,6 +45,10 @@ export default class BlockingQueue {
     }
 
     this.stuckTimer = setTimeout(this.stuckTick, 5000);
+
+    // We need to check the existense of unref because of https://github.com/facebook/jest/issues/4559
+    // $FlowFixMe: Node's setInterval returns a Timeout, not a Number
+    this.stuckTimer.unref && this.stuckTimer.unref();
   }
 
   stuckTick() {
@@ -79,6 +83,7 @@ export default class BlockingQueue {
     if (this.running[key]) {
       delete this.running[key];
       this.runningCount--;
+      clearTimeout(this.stuckTimer);
 
       if (this.warnedStuck) {
         this.warnedStuck = false;
