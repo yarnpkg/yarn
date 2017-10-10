@@ -361,3 +361,46 @@ test.concurrent('--latest works if there is an install script on a hoisted depen
     'latest-with-install-script',
   );
 });
+
+test.concurrent('upgrade to workspace root preserves child dependencies', (): Promise<void> => {
+  return runUpgrade(['max-safe-integer@1.0.1'], {latest: true}, 'workspaces', async (config): ?Promise<void> => {
+    const lockfile = explodeLockfile(await fs.readFile(path.join(config.cwd, 'yarn.lock')));
+
+    // child workspace deps
+    expect(lockfile.indexOf('left-pad@1.0.0:')).toBeGreaterThanOrEqual(0);
+    expect(lockfile.indexOf('right-pad@1.0.0:')).toBeGreaterThanOrEqual(0);
+    // root dep
+    expect(lockfile.indexOf('max-safe-integer@1.0.0:')).toBe(-1);
+    expect(lockfile.indexOf('max-safe-integer@1.0.1:')).toBeGreaterThanOrEqual(0);
+
+    const rootPkg = await fs.readJson(path.join(config.cwd, 'package.json'));
+    expect(rootPkg.devDependencies['max-safe-integer']).toEqual('1.0.1');
+
+    const childAPkg = await fs.readJson(path.join(config.cwd, 'child-a/package.json'));
+    const childBPkg = await fs.readJson(path.join(config.cwd, 'child-b/package.json'));
+    expect(childAPkg.dependencies['left-pad']).toEqual('1.0.0');
+    expect(childBPkg.dependencies['right-pad']).toEqual('1.0.0');
+  });
+});
+
+test.concurrent('upgrade to workspace child preserves root dependencies', (): Promise<void> => {
+  const fixture = {source: 'workspaces', cwd: 'child-a'};
+  return runUpgrade(['left-pad@1.1.0'], {latest: true}, fixture, async (config): ?Promise<void> => {
+    const lockfile = explodeLockfile(await fs.readFile(path.join(config.lockfileFolder, 'yarn.lock')));
+
+    // untouched deps
+    expect(lockfile.indexOf('right-pad@1.0.0:')).toBeGreaterThanOrEqual(0);
+    expect(lockfile.indexOf('max-safe-integer@1.0.0:')).toBeGreaterThanOrEqual(0);
+    // upgraded child workspace
+    expect(lockfile.indexOf('left-pad@1.0.0:')).toBe(-1);
+    expect(lockfile.indexOf('left-pad@1.1.0:')).toBeGreaterThanOrEqual(0);
+
+    const childAPkg = await fs.readJson(path.join(config.cwd, 'package.json'));
+    expect(childAPkg.dependencies['left-pad']).toEqual('1.1.0');
+
+    const rootPkg = await fs.readJson(path.join(config.lockfileFolder, 'package.json'));
+    const childBPkg = await fs.readJson(path.join(config.lockfileFolder, 'child-b/package.json'));
+    expect(rootPkg.devDependencies['max-safe-integer']).toEqual('1.0.0');
+    expect(childBPkg.dependencies['right-pad']).toEqual('1.0.0');
+  });
+});

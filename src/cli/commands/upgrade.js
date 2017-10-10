@@ -65,6 +65,8 @@ function setUserRequestedPackageVersions(
         range: '',
         current: '',
         upgradeTo: newPattern,
+        workspaceName: '',
+        workspaceLoc: '',
       });
       reporter.verbose(reporter.lang('verboseUpgradeBecauseRequested', requestedPattern, newPattern));
     }
@@ -166,14 +168,17 @@ export const requireLockfile = true;
 export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
   let addArgs = [];
   const upgradeAll = args.length === 0;
-  const addFlags = Object.assign({}, flags, {force: true, existing: true, ignoreWorkspaceRootCheck: true});
+  const addFlags = Object.assign({}, flags, {
+    force: true,
+    ignoreWorkspaceRootCheck: true,
+    workspaceRootIsCwd: config.cwd === config.lockfileFolder,
+  });
   const lockfile = await Lockfile.fromDirectory(config.lockfileFolder, reporter);
   const deps = await getOutdated(config, reporter, flags, lockfile, args);
   const install = new Install(flags, config, reporter, lockfile);
   const {requests: packagePatterns} = await install.fetchRequestFromCwd();
 
   setUserRequestedPackageVersions(deps, args, flags.latest, packagePatterns, reporter);
-
   cleanLockfile(lockfile, deps, packagePatterns, reporter);
   addArgs = deps.map(dep => dep.upgradeTo);
 

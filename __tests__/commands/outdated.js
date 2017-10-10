@@ -130,3 +130,30 @@ test.concurrent('displays correct dependency types', (): Promise<void> => {
     expect(body[2][4]).toBe('devDependencies');
   });
 });
+
+test.concurrent('shows dependencies from entire workspace', async (): Promise<void> => {
+  await runOutdated([], {}, 'workspaces', (config, reporter, out): ?Promise<void> => {
+    const json: Object = JSON.parse(out);
+
+    expect(json.data.body).toHaveLength(4);
+    expect(json.data.body[0][0]).toBe('left-pad');
+    expect(json.data.body[0][1]).toBe('1.0.0');
+    expect(json.data.body[1][0]).toBe('left-pad');
+    expect(json.data.body[1][1]).toBe('1.0.1');
+    expect(json.data.body[2][0]).toBe('max-safe-integer');
+    expect(json.data.body[3][0]).toBe('right-pad');
+  });
+
+  const childFixture = {source: 'workspaces', cwd: 'child-a'};
+  return runOutdated([], {}, childFixture, (config, reporter, out): ?Promise<void> => {
+    const json: Object = JSON.parse(out);
+
+    expect(json.data.body).toHaveLength(4);
+    expect(json.data.body[0][0]).toBe('left-pad');
+    expect(json.data.body[0][1]).toBe('1.0.0');
+    expect(json.data.body[1][0]).toBe('left-pad');
+    expect(json.data.body[1][1]).toBe('1.0.1');
+    expect(json.data.body[2][0]).toBe('max-safe-integer');
+    expect(json.data.body[3][0]).toBe('right-pad');
+  });
+});
