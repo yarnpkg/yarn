@@ -1100,3 +1100,17 @@ test.concurrent('warns for missing bundledDependencies', (): Promise<void> => {
     'missing-bundled-dep',
   );
 });
+
+test.concurrent('install should not install peer deps by default', async () => {
+  await runInstall({}, 'peer-deps-opt', async (config): Promise<void> => {
+    expect(await fs.exists(`${config.cwd}/node_modules/commander`)).toEqual(true);
+    expect(await fs.exists(`${config.cwd}/node_modules/qs`)).toEqual(false);
+  });
+});
+
+test.concurrent('install should install peer deps when flag is present', async () => {
+  await runInstall({peer: true}, 'peer-deps-opt', async (config): Promise<void> => {
+    expect(await fs.exists(`${config.cwd}/node_modules/commander`)).toEqual(true);
+    expect(await fs.exists(`${config.cwd}/node_modules/qs`)).toEqual(true);
+  });
+});

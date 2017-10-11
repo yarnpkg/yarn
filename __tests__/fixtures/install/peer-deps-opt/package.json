@@ -1,0 +1,11 @@
+{
+  "name": "peer-opt",
+  "version": "1.0.0",
+  "license": "MIT",
+  "dependencies": {
+    "commander": "^2.9.0"
+  },
+  "peerDependencies": {
+    "qs": "6.3.0"
+  }
+}
