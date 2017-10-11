@@ -372,3 +372,20 @@ test('yarn create', async () => {
 
   expect(stdoutOutput.toString()).toMatch(/<!doctype html>/);
 });
+
+test('yarn init -y', async () => {
+  const cwd = await makeTemp();
+  const innerDir = path.join(cwd, 'inner');
+  const initialManifestFile = JSON.stringify({name: 'test', license: 'ISC', version: '1.0.0'});
+
+  await fs.writeFile(`${cwd}/package.json`, initialManifestFile);
+  await fs.mkdirp(innerDir);
+
+  const options = {cwd: innerDir};
+  await runYarn(['init', '-y'], options);
+
+  expect(await fs.exists(path.join(innerDir, 'package.json'))).toEqual(true);
+
+  const manifestFile = await fs.readFile(path.join(cwd, 'package.json'));
+  expect(manifestFile).toEqual(initialManifestFile);
+});

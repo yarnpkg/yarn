@@ -451,7 +451,7 @@ export function main({
     return errorReportLoc;
   }
 
-  const cwd = findProjectRoot(commander.cwd);
+  const cwd = command.shouldRunInCurrentCwd ? commander.cwd : findProjectRoot(commander.cwd);
 
   config
     .init({
