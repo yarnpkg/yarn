@@ -55,6 +55,16 @@ test.concurrent('install should not hoist packages above their peer dependencies
   });
 });
 
+test.concurrent('install should resolve peer dependencies from same subtrees', async () => {
+  await runInstall({}, 'peer-dep-same-subtree', async (config): Promise<void> => {
+    expect(JSON.parse(await fs.readFile(`${config.cwd}/node_modules/d/node_modules/a/package.json`)).version).toEqual(
+      '1.0.0',
+    );
+    expect(JSON.parse(await fs.readFile(`${config.cwd}/node_modules//a/package.json`)).version).toEqual('1.1.0');
+    expect(await fs.exists(`${config.cwd}/node_modules/c/node_modules/a`)).toEqual(false);
+  });
+});
+
 test.concurrent('install optional subdependencies by default', async () => {
   await runInstall({}, 'install-optional-dependencies', async (config): Promise<void> => {
     expect(await fs.exists(`${config.cwd}/node_modules/dep-b`)).toEqual(true);

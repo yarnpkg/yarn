@@ -446,6 +446,21 @@ export default class PackageLinker {
       }
       const ref = pkg._reference;
       invariant(ref, 'Package reference is missing');
+      // TODO: We are taking the "shortest" ref tree but there may be multiple ref trees with the same length
+      const refTree = ref.requests.map(req => req.parentNames).sort((arr1, arr2) => arr1.length - arr2.length)[0];
+
+      const getLevelDistance = pkgRef => {
+        let minDistance = Infinity;
+        for (const req of pkgRef.requests) {
+          const distance = refTree.length - req.parentNames.length;
+
+          if (distance >= 0 && distance < minDistance && req.parentNames.every((name, idx) => name === refTree[idx])) {
+            minDistance = distance;
+          }
+        }
+
+        return minDistance;
+      };
 
       for (const peerDepName in peerDeps) {
         const range = peerDeps[peerDepName];
@@ -459,8 +474,8 @@ export default class PackageLinker {
           if (!(peerPkgRef && peerPkgRef.patterns)) {
             continue;
           }
-          const levelDistance = ref.level - peerPkgRef.level;
-          if (levelDistance >= 0 && levelDistance < resolvedLevelDistance) {
+          const levelDistance = getLevelDistance(peerPkgRef);
+          if (isFinite(levelDistance) && levelDistance < resolvedLevelDistance) {
             if (this._satisfiesPeerDependency(range, peerPkgRef.version)) {
               resolvedLevelDistance = levelDistance;
               resolvedPeerPkgPattern = peerPkgRef.patterns;
@@ -468,7 +483,7 @@ export default class PackageLinker {
                 this.reporter.lang(
                   'selectedPeer',
                   `${pkg.name}@${pkg.version}`,
-                  `${peerDepName}@${range}`,
+                  `${peerDepName}@${peerPkgRef.version}`,
                   peerPkgRef.level,
                 ),
               );
