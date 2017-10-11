@@ -31,6 +31,11 @@ const expectInstalledDevDependency = async (config, name, range, expectedVersion
   await _expectDependency('devDependencies', config, name, range, expectedVersion);
 };
 
+const expectInstalledTransitiveDependency = async (config, name, range, expectedVersion) => {
+  const lockfile = explodeLockfile(await fs.readFile(path.join(config.cwd, 'yarn.lock')));
+  expect(lockfile).toContainPackage(`${name}@${range}:`, expectedVersion);
+};
+
 expect.extend({
   toContainPackage(lockfile, ...args): Object {
     const [pattern, expectedVersion] = args;
@@ -65,6 +70,32 @@ test.concurrent('throws if lockfile is out of date', (): Promise<void> => {
 test.concurrent('works with no arguments', (): Promise<void> => {
   return runUpgrade([], {}, 'no-args', async (config): ?Promise<void> => {
     await expectInstalledDependency(config, 'left-pad', '^1.0.0', '1.1.3');
+  });
+});
+
+test.concurrent('upgrades transitive deps when no arguments', (): Promise<void> => {
+  return runUpgrade([], {}, 'with-subdep', async (config): ?Promise<void> => {
+    await expectInstalledDependency(config, 'strip-ansi', '^2.0.1', '2.0.1');
+    await expectInstalledTransitiveDependency(config, 'ansi-regex', '^1.0.0', '1.1.1');
+    await expectInstalledDependency(config, 'array-union', '^1.0.1', '1.0.2');
+    await expectInstalledTransitiveDependency(config, 'array-uniq', '^1.0.1', '1.0.3');
+  });
+});
+
+test.concurrent('does not upgrade transitive deps that are also a direct dependency', (): Promise<void> => {
+  return runUpgrade(['strip-ansi'], {}, 'with-subdep-also-direct', async (config): ?Promise<void> => {
+    await expectInstalledDependency(config, 'strip-ansi', '^2.0.1', '2.0.1');
+    await expectInstalledTransitiveDependency(config, 'ansi-regex', '^1.0.0', '1.0.0');
+    await expectInstalledDependency(config, 'ansi-regex', '^1.0.0', '1.0.0');
+  });
+});
+
+test.concurrent('does not upgrade transitive deps when specific package upgraded', (): Promise<void> => {
+  return runUpgrade(['strip-ansi'], {}, 'with-subdep', async (config): ?Promise<void> => {
+    await expectInstalledDependency(config, 'strip-ansi', '^2.0.1', '2.0.1');
+    await expectInstalledTransitiveDependency(config, 'ansi-regex', '^1.0.0', '1.1.1');
+    await expectInstalledDependency(config, 'array-union', '^1.0.1', '1.0.1');
+    await expectInstalledTransitiveDependency(config, 'array-uniq', '^1.0.1', '1.0.1');
   });
 });
 

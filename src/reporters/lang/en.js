@@ -364,6 +364,11 @@ const messages = {
     'Using the "file:" protocol implicitly is deprecated. Please either the protocol or prepend the path $0 with "./".',
   unsupportedNodeVersion:
     'You are using Node $0 which is not supported and may encounter bugs or unexpected behavior. Yarn supports the following semver range: $1',
+
+  verboseUpgradeBecauseRequested: 'Considering upgrade of $0 to $1 because it was directly requested.',
+  verboseUpgradeBecauseOutdated: 'Considering upgrade of $0 to $1 because a newer version exists in the registry.',
+  verboseUpgradeNotUnlocking: 'Not unlocking $0 in the lockfile because it is a new or direct dependency.',
+  verboseUpgradeUnlocking: 'Unlocking $0 in the lockfile.',
 };
 
 export type LanguageKeys = $Keys<typeof messages>;

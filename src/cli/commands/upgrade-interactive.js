@@ -6,9 +6,10 @@ import type Config from '../../config.js';
 import inquirer from 'inquirer';
 import Lockfile from '../../lockfile';
 import {Add} from './add.js';
-import {getOutdated} from './upgrade.js';
+import {getOutdated, cleanLockfile} from './upgrade.js';
 import colorForVersions from '../../util/color-for-versions';
 import colorizeDiff from '../../util/colorize-diff.js';
+import {Install} from './install.js';
 
 const path = require('path');
 
@@ -159,6 +160,8 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
       flags.workspaceRootIsCwd = false;
       const deps = answers.filter(isHint(hint));
       if (deps.length) {
+        const install = new Install(flags, config, reporter, lockfile);
+        const {requests: packagePatterns} = await install.fetchRequestFromCwd();
         const depsByWorkspace = deps.reduce((acc, dep) => {
           const {workspaceLoc} = dep;
           const xs = acc[workspaceLoc] || [];
@@ -167,9 +170,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
         }, {});
         for (const loc of Object.keys(depsByWorkspace)) {
           const patterns = depsByWorkspace[loc].map(getPattern);
-          for (const pattern of patterns) {
-            lockfile.removePattern(pattern);
-          }
+          cleanLockfile(lockfile, deps, packagePatterns, reporter);
           reporter.info(reporter.lang('updateInstalling', getNameFromHint(hint)));
           config.cwd = path.resolve(path.dirname(loc));
           const add = new Add(patterns, flags, config, reporter, lockfile);
