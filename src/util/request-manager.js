@@ -63,6 +63,7 @@ type RequestParams<T> = {
   retryAttempts?: number,
   maxRetryAttempts?: number,
   followRedirect?: boolean,
+  rejectStatusCode?: number | Array<number>,
 };
 
 type RequestOptions = {
@@ -78,9 +79,9 @@ export default class RequestManager {
     this._requestModule = null;
     this.offlineQueue = [];
     this.captureHar = false;
-    this.httpsProxy = null;
+    this.httpsProxy = '';
     this.ca = null;
-    this.httpProxy = null;
+    this.httpProxy = '';
     this.strictSSL = true;
     this.userAgent = '';
     this.reporter = reporter;
@@ -96,8 +97,8 @@ export default class RequestManager {
   userAgent: string;
   reporter: Reporter;
   running: number;
-  httpsProxy: ?string;
-  httpProxy: ?string;
+  httpsProxy: string | boolean;
+  httpProxy: string | boolean;
   strictSSL: boolean;
   ca: ?Array<string>;
   cert: ?string;
@@ -118,8 +119,8 @@ export default class RequestManager {
     userAgent?: string,
     offline?: boolean,
     captureHar?: boolean,
-    httpProxy?: string,
-    httpsProxy?: string,
+    httpProxy?: string | boolean,
+    httpsProxy?: string | boolean,
     strictSSL?: boolean,
     ca?: Array<string>,
     cafile?: string,
@@ -142,11 +143,13 @@ export default class RequestManager {
     }
 
     if (opts.httpProxy != null) {
-      this.httpProxy = opts.httpProxy;
+      this.httpProxy = opts.httpProxy || '';
     }
 
-    if (opts.httpsProxy != null) {
-      this.httpsProxy = opts.httpsProxy;
+    if (opts.httpsProxy === '') {
+      this.httpsProxy = opts.httpProxy || '';
+    } else {
+      this.httpsProxy = opts.httpsProxy || '';
     }
 
     if (opts.strictSSL !== null && typeof opts.strictSSL !== 'undefined') {
@@ -308,7 +311,7 @@ export default class RequestManager {
 
   queueForOffline(opts: RequestOptions) {
     if (!this.offlineQueue.length) {
-      this.reporter.warn(this.reporter.lang('offlineRetrying'));
+      this.reporter.info(this.reporter.lang('offlineRetrying'));
       this.initOfflineRetry();
     }
 
@@ -393,7 +396,7 @@ export default class RequestManager {
           const errMsg = (body && body.message) || reporter.lang('requestError', params.url, res.statusCode);
           reject(new Error(errMsg));
         } else {
-          if (res.statusCode === 400 || res.statusCode === 404 || res.statusCode === 401) {
+          if ([400, 401, 404].concat(params.rejectStatusCode || []).indexOf(res.statusCode) !== -1) {
             body = false;
           }
           resolve(body);
@@ -407,10 +410,10 @@ export default class RequestManager {
 
     let proxy = this.httpProxy;
     if (params.url.startsWith('https:')) {
-      proxy = this.httpsProxy || proxy;
+      proxy = this.httpsProxy;
     }
     if (proxy) {
-      params.proxy = proxy;
+      params.proxy = String(proxy);
     }
 
     if (this.ca != null) {

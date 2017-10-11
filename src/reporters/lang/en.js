@@ -112,7 +112,7 @@ const messages = {
   noPermission: 'Cannot create $0 due to insufficient permissions.',
   noGlobalFolder: 'Cannot find a suitable global folder. Tried these: $0',
   allDependenciesUpToDate: 'All of your dependencies are up to date.',
-  legendColorsForUpgradeInteractive:
+  legendColorsForVersionUpdates:
     'Color legend : \n $0    : Major Update backward-incompatible updates \n $1 : Minor Update backward-compatible features \n $2  : Patch Update backward-compatible bug fixes',
   frozenLockfileError: 'Your lockfile needs to be updated, but yarn was run with `--frozen-lockfile`.',
   fileWriteError: 'Could not write file $0: $1',
@@ -177,8 +177,8 @@ const messages = {
   createMissingPackage:
     'Package not found - this is probably an internal error, and should be reported at https://github.com/yarnpkg/yarn/issues.',
 
-  workspacesPreferDevDependencies:
-    "You're trying to add a regular dependency to a workspace root, which is probably a mistake (do you want to run this command inside a workspace?). If this dependency really should be in your workspace root, use the --dev flag to add it to your devDependencies.",
+  workspacesAddRootCheck:
+    'Running this command will add the dependency to the workspace root rather than workspace itself, which might not be what you want - if you really meant it, make it explicit by running this command again with the -W flag (or --ignore-workspace-root-check).',
   workspacesRequirePrivateProjects: 'Workspaces can only be enabled in private projects',
   workspacesDisabled:
     'Your project root defines workspaces but the feature is disabled in your Yarn config. Please check "workspaces-experimental" in your .yarnrc file.',
@@ -359,6 +359,7 @@ const messages = {
   scopeNotValid: 'The specified scope is not valid.',
 
   deprecatedCommand: '$0 is deprecated. Please use $1.',
+  deprecatedListArgs: 'Filtering by arguments is deprecated. Please use the pattern option instead.',
   implicitFileDeprecated:
     'Using the "file:" protocol implicitly is deprecated. Please either the protocol or prepend the path $0 with "./".',
   unsupportedNodeVersion:

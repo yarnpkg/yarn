@@ -91,6 +91,7 @@ export function main({
   commander.option('--cwd <cwd>', 'working directory to use', process.cwd());
   commander.option('--proxy <host>', '');
   commander.option('--https-proxy <host>', '');
+  commander.option('--registry <url>', 'override configuration registry');
   commander.option('--no-progress', 'disable progress bar');
   commander.option('--network-concurrency <number>', 'maximum number of concurrent network requests', parseInt);
   commander.option('--network-timeout <milliseconds>', 'TCP timeout for network requests', parseInt);
@@ -231,13 +232,6 @@ export function main({
   //
   if (!commander.offline && network.isOffline()) {
     reporter.warn(reporter.lang('networkWarning'));
-  }
-
-  //
-  if (command.requireLockfile && !fs.existsSync(path.join(config.cwd, constants.LOCKFILE_FILENAME))) {
-    reporter.error(reporter.lang('noRequiredLockfile'));
-    exit(1);
-    return;
   }
 
   //
@@ -424,7 +418,10 @@ export function main({
     }
 
     // lockfile
-    const lockLoc = path.join(config.cwd, constants.LOCKFILE_FILENAME);
+    const lockLoc = path.join(
+      config.lockfileFolder || config.cwd, // lockfileFolder might not be set at this point
+      constants.LOCKFILE_FILENAME,
+    );
     const lockfile = fs.existsSync(lockLoc) ? fs.readFileSync(lockLoc, 'utf8') : 'No lockfile';
     log.push(`Lockfile: ${indent(lockfile)}`);
 
@@ -477,12 +474,18 @@ export function main({
       production: commander.production,
       httpProxy: commander.proxy,
       httpsProxy: commander.httpsProxy,
+      registry: commander.registry,
       networkConcurrency: commander.networkConcurrency,
       networkTimeout: commander.networkTimeout,
       nonInteractive: commander.nonInteractive,
       scriptsPrependNodePath: commander.scriptsPrependNodePath,
     })
     .then(() => {
+      // lockfile check must happen after config.init sets lockfileFolder
+      if (command.requireLockfile && !fs.existsSync(path.join(config.lockfileFolder, constants.LOCKFILE_FILENAME))) {
+        throw new MessageError(reporter.lang('noRequiredLockfile'));
+      }
+
       // option "no-progress" stored in yarn config
       const noProgressConfig = config.registries.yarn.getOption('no-progress');
 
@@ -541,16 +544,19 @@ async function start(): Promise<void> {
   if (yarnPath && process.env.YARN_IGNORE_PATH !== '1') {
     const argv = process.argv.slice(2);
     const opts = {stdio: 'inherit', env: Object.assign({}, process.env, {YARN_IGNORE_PATH: 1})};
+    let exitCode = 0;
 
     try {
-      await spawnp(yarnPath, argv, opts);
+      exitCode = await spawnp(yarnPath, argv, opts);
     } catch (firstError) {
       try {
-        await forkp(yarnPath, argv, opts);
+        exitCode = await forkp(yarnPath, argv, opts);
       } catch (error) {
         throw firstError;
       }
     }
+
+    process.exitCode = exitCode;
   } else {
     // ignore all arguments after a --
     const doubleDashIndex = process.argv.findIndex(element => element === '--');

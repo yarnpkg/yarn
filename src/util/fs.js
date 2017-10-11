@@ -603,10 +603,10 @@ export async function copyBulk(
 
   await promise.queue(
     fileActions,
-    (data: CopyFileAction): Promise<void> => {
-      const writePromise = currentlyWriting.get(data.dest);
-      if (writePromise) {
-        return writePromise;
+    async (data: CopyFileAction): Promise<void> => {
+      let writePromise;
+      while ((writePromise = currentlyWriting.get(data.dest))) {
+        await writePromise;
       }
 
       reporter.verbose(reporter.lang('verboseFileCopy', data.src, data.dest));

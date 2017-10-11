@@ -5,6 +5,8 @@ please read the [code of conduct](CODE_OF_CONDUCT.md).
 
 ## Setup
 
+You need at least the latest version of Node 6 to work on Yarn.
+
 1. Install yarn on your system: https://yarnpkg.com/en/docs/install
 1. Fork the repo: https://github.com/yarnpkg/yarn
 1. Run the following commands:

@@ -41,6 +41,8 @@ function setUserRequestedPackageVersions(deps: Array<Dependency>, args: Array<st
         range: '',
         current: '',
         upgradeTo: newPattern,
+        workspaceName: '',
+        workspaceLoc: '',
       });
     }
   });
@@ -51,6 +53,7 @@ export function setFlags(commander: Object) {
   commander.option('-S, --scope <scope>', 'upgrade packages under the specified scope');
   commander.option('-L, --latest', 'list the latest version of packages, ignoring version ranges in package.json');
   commander.option('-E, --exact', 'install exact version. Only used when --latest is specified.');
+  commander.option('-P, --pattern [pattern]', 'upgrade packages that match pattern');
   commander.option(
     '-T, --tilde',
     'install most recent release with the same minor version. Only used when --latest is specified.',
@@ -72,7 +75,12 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
   const deps = await getOutdated(config, reporter, flags, lockfile, args);
 
   // do not pass the --latest flag to add, otherwise it may ignore the version ranges we already determined.
-  const addFlags = Object.assign({}, flags, {force: true, latest: false, existing: true});
+  const addFlags = Object.assign({}, flags, {
+    force: true,
+    latest: false,
+    ignoreWorkspaceRootCheck: true,
+    workspaceRootIsCwd: config.cwd === config.lockfileFolder,
+  });
 
   setUserRequestedPackageVersions(deps, args);
 
@@ -168,7 +176,7 @@ export async function getOutdated(
 
   normalizeScope();
 
-  const deps = (await PackageRequest.getOutdatedPackages(lockfile, install, config, reporter, patterns))
+  const deps = (await PackageRequest.getOutdatedPackages(lockfile, install, config, reporter, patterns, flags))
     .filter(versionFilter)
     .filter(scopeFilter);
   deps.forEach(dep => (dep.upgradeTo = buildPatternToUpgradeTo(dep, flags)));

@@ -1,0 +1,14 @@
+{
+  "name": "bundled-dependencies",
+  "version": "1.0.0",
+  "license": "MIT",
+  "files": [
+    "index.js"
+  ],
+  "dependencies": {
+    "a": "file:a"
+  },
+  "bundledDependencies": [
+    "a"
+  ]
+}
