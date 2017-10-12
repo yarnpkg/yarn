@@ -19,7 +19,7 @@ import * as constants from '../constants.js';
 import * as network from '../util/network.js';
 import {MessageError} from '../errors.js';
 import Config from '../config.js';
-import {getRcConfigForCwd, getRcArgs} from '../rc.js';
+import {prepareEnv, getRcConfigForCwd, getRcArgs} from '../rc.js';
 import {spawnp, forkp} from '../util/child.js';
 import {version} from '../util/yarn-version.js';
 import handleSignals from '../util/signal-handler.js';
@@ -537,6 +537,7 @@ export function main({
 }
 
 async function start(): Promise<void> {
+  prepareEnv();
   const rc = getRcConfigForCwd(process.cwd());
   const yarnPath = rc['yarn-path'];
 

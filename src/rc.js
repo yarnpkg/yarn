@@ -10,6 +10,14 @@ import * as rcUtil from './util/rc.js';
 // Keys that will get resolved relative to the path of the rc file they belong to
 const PATH_KEYS = new Set(['yarn-path', 'cache-folder', 'global-folder', 'modules-folder', 'cwd']);
 
+// prepares environment variables for processing rc
+export function prepareEnv() {
+  // Allow ${HOME} in, e.g., .npmrc to work even on Windows.
+  if (rcUtil.home && !process.env.HOME) {
+    process.env.HOME = rcUtil.home;
+  }
+}
+
 // given a cwd, load all .yarnrc files relative to it
 export function getRcConfigForCwd(cwd: string): {[key: string]: string} {
   return rcUtil.findRc('yarn', cwd, (fileText, filePath) => {
