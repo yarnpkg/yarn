@@ -62,7 +62,6 @@ export function main({
   commander.option('--prefer-offline', 'use network only if dependencies are not available in local cache');
   commander.option('--strict-semver');
   commander.option('--json', '');
-  commander.option('--ignore-scripts', "don't run lifecycle scripts");
   commander.option('--har', 'save HAR output of network traffic');
   commander.option('--ignore-platform', 'ignore platform checks');
   commander.option('--ignore-engines', 'ignore engines check');
