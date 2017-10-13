@@ -1,0 +1,13 @@
+{
+  "name": "install-peer-deps",
+  "version": "3.0.0",
+  "dependencies": {
+    "pkg": "file:pkg"
+  },
+  "devDependencies": {
+    "devpkg": "file:devpkg"
+  },
+  "peerDependencies": {
+    "peerpkg": "file:peerpkg"
+  }
+}

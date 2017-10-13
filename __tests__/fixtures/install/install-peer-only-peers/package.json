@@ -1,0 +1,7 @@
+{
+  "name": "install-peer-only-peers",
+  "version": "3.0.0",
+  "peerDependencies": {
+    "peerpkg": "file:peerpkg"
+  }
+}
