@@ -5,7 +5,7 @@ import * as path from 'path';
 
 const etc = '/etc';
 const isWin = process.platform === 'win32';
-export const home = isWin ? process.env.USERPROFILE : process.env.HOME;
+const home = isWin ? process.env.USERPROFILE : process.env.HOME;
 
 function getRcPaths(name: string, cwd: string): Array<string> {
   const configPaths = [];
