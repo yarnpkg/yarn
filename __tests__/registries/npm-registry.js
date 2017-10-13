@@ -45,10 +45,12 @@ describe('normalizeConfig', () => {
     const realHome = process.env.HOME;
     delete process.env.HOME;
 
-    const normalized = NpmRegistry.normalizeConfig({cafile: '${HOME}/foo'})['cafile'];
-    expect(normalized).toEqual(resolve(home, 'foo'));
-
-    process.env.HOME = realHome;
+    try {
+      const normalized = NpmRegistry.normalizeConfig({cafile: '${HOME}/foo'})['cafile'];
+      expect(normalized).toEqual(resolve(home, 'foo'));
+    } finally {
+      process.env.HOME = realHome;
+    }
   });
 });
 
