@@ -25,7 +25,7 @@ test('lists all licenses of the dependencies with the --json argument', async ()
   });
 });
 
-test('should genereate disclaimer on demand', async (): Promise<void> => {
+test('should generate disclaimer on demand', async (): Promise<void> => {
   await runLicenses(['generate-disclaimer'], {}, '', (config, reporter, stdout) => {
     expect(stdout).toMatchSnapshot();
   });
