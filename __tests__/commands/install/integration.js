@@ -388,6 +388,11 @@ test.concurrent('root install with optional deps', (): Promise<void> => {
 test.concurrent('install file: protocol with relative paths', (): Promise<void> => {
   return runInstall({}, 'install-file-relative', async config => {
     expect(await fs.readFile(path.join(config.cwd, 'node_modules', 'root-a', 'index.js'))).toEqual('foobar;\n');
+
+    const lockFileContent = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
+    const lockFileLines = explodeLockfile(lockFileContent);
+    expect(lockFileLines[5]).toMatch('"file:../root-a"');
+    expect(lockFileLines[9]).toMatch('"file:../../root-b"');
   });
 });
 
