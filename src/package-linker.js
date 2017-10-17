@@ -244,30 +244,38 @@ export default class PackageLinker {
       }
     }
 
-    // keep track of all scoped paths to remove empty scopes after copy
-    const scopedPaths = new Set();
-
-    // register root & scoped packages as being possibly extraneous
     const possibleExtraneous: Set<string> = new Set();
-    for (const folder of this.config.registryFolders) {
-      const loc = path.join(this.config.cwd, folder);
+    const scopedPaths: Set<string> = new Set();
 
-      if (await fs.exists(loc)) {
-        const files = await fs.readdir(loc);
-        let filepath;
-        for (const file of files) {
-          filepath = path.join(loc, file);
-          if (file[0] === '@') {
+    const findExtraneousFiles = async basePath => {
+      for (const folder of this.config.registryFolders) {
+        const loc = path.join(basePath, folder);
+
+        if (await fs.exists(loc)) {
+          const files = await fs.readdir(loc);
+
+          for (const file of files) {
+            const filepath = path.join(loc, file);
+
             // it's a scope, not a package
-            scopedPaths.add(filepath);
-            const subfiles = await fs.readdir(filepath);
-            for (const subfile of subfiles) {
-              possibleExtraneous.add(path.join(filepath, subfile));
+            if (file[0] === '@') {
+              scopedPaths.add(filepath);
+
+              for (const subfile of await fs.readdir(filepath)) {
+                possibleExtraneous.add(path.join(filepath, subfile));
+              }
+            } else {
+              possibleExtraneous.add(filepath);
             }
-          } else {
-            possibleExtraneous.add(filepath);
           }
         }
+      }
+    };
+
+    await findExtraneousFiles(this.config.lockfileFolder);
+    if (workspaceLayout) {
+      for (const workspaceName of Object.keys(workspaceLayout.workspaces)) {
+        await findExtraneousFiles(workspaceLayout.workspaces[workspaceName].loc);
       }
     }
 
@@ -438,6 +446,21 @@ export default class PackageLinker {
       }
       const ref = pkg._reference;
       invariant(ref, 'Package reference is missing');
+      // TODO: We are taking the "shortest" ref tree but there may be multiple ref trees with the same length
+      const refTree = ref.requests.map(req => req.parentNames).sort((arr1, arr2) => arr1.length - arr2.length)[0];
+
+      const getLevelDistance = pkgRef => {
+        let minDistance = Infinity;
+        for (const req of pkgRef.requests) {
+          const distance = refTree.length - req.parentNames.length;
+
+          if (distance >= 0 && distance < minDistance && req.parentNames.every((name, idx) => name === refTree[idx])) {
+            minDistance = distance;
+          }
+        }
+
+        return minDistance;
+      };
 
       for (const peerDepName in peerDeps) {
         const range = peerDeps[peerDepName];
@@ -451,8 +474,8 @@ export default class PackageLinker {
           if (!(peerPkgRef && peerPkgRef.patterns)) {
             continue;
           }
-          const levelDistance = ref.level - peerPkgRef.level;
-          if (levelDistance >= 0 && levelDistance < resolvedLevelDistance) {
+          const levelDistance = getLevelDistance(peerPkgRef);
+          if (isFinite(levelDistance) && levelDistance < resolvedLevelDistance) {
             if (this._satisfiesPeerDependency(range, peerPkgRef.version)) {
               resolvedLevelDistance = levelDistance;
               resolvedPeerPkgPattern = peerPkgRef.patterns;
@@ -460,7 +483,7 @@ export default class PackageLinker {
                 this.reporter.lang(
                   'selectedPeer',
                   `${pkg.name}@${pkg.version}`,
-                  `${peerDepName}@${range}`,
+                  `${peerDepName}@${peerPkgRef.version}`,
                   peerPkgRef.level,
                 ),
               );

@@ -30,7 +30,7 @@ const micromatch = require('micromatch');
 export default class PackageRequest {
   constructor(req: DependencyRequestPattern, resolver: PackageResolver) {
     this.parentRequest = req.parentRequest;
-    this.parentNames = [];
+    this.parentNames = req.parentNames || [];
     this.lockfile = resolver.lockfile;
     this.registry = req.registry;
     this.reporter = resolver.reporter;
@@ -342,6 +342,7 @@ export default class PackageRequest {
     reporter: Reporter,
     filterByPatterns: ?Array<string>,
     flags: ?Object,
+    returnAllPackages: ?boolean,
   ): Promise<Array<Dependency>> {
     const {requests: reqPatterns, workspaceLayout} = await install.fetchRequestFromCwd();
 
@@ -362,7 +363,7 @@ export default class PackageRequest {
     }
 
     const deps = await Promise.all(
-      depReqPatterns.map(async ({pattern, hint}): Promise<Dependency> => {
+      depReqPatterns.map(async ({pattern, hint, workspaceName, workspaceLoc}): Promise<Dependency> => {
         const locked = lockfile.getLocked(pattern);
         if (!locked) {
           throw new MessageError(reporter.lang('lockfileOutdated'));
@@ -384,7 +385,18 @@ export default class PackageRequest {
           ({latest, wanted, url} = await registry.checkOutdated(config, name, normalized.range));
         }
 
-        return {name, current, wanted, latest, url, hint, range: normalized.range, upgradeTo: ''};
+        return {
+          name,
+          current,
+          wanted,
+          latest,
+          url,
+          hint,
+          range: normalized.range,
+          upgradeTo: '',
+          workspaceName: workspaceName || '',
+          workspaceLoc: workspaceLoc || '',
+        };
       }),
     );
 
@@ -393,6 +405,6 @@ export default class PackageRequest {
       latest === 'exotic' || (latest !== 'exotic' && (semver.lt(current, wanted) || semver.lt(current, latest)));
     const orderByName = (depA, depB) => depA.name.localeCompare(depB.name);
 
-    return deps.filter(isDepOld).sort(orderByName);
+    return returnAllPackages ? deps.sort(orderByName) : deps.filter(isDepOld).sort(orderByName);
   }
 }

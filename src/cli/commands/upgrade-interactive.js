@@ -6,9 +6,12 @@ import type Config from '../../config.js';
 import inquirer from 'inquirer';
 import Lockfile from '../../lockfile';
 import {Add} from './add.js';
-import {getOutdated} from './upgrade.js';
+import {getOutdated, cleanLockfile} from './upgrade.js';
 import colorForVersions from '../../util/color-for-versions';
 import colorizeDiff from '../../util/colorize-diff.js';
+import {Install} from './install.js';
+
+const path = require('path');
 
 export const requireLockfile = true;
 
@@ -35,18 +38,21 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
   const outdatedFieldName = flags.latest ? 'latest' : 'wanted';
   const lockfile = await Lockfile.fromDirectory(config.lockfileFolder);
 
-  const deps = await getOutdated(config, reporter, flags, lockfile, args);
+  const deps = await getOutdated(config, reporter, {...flags, includeWorkspaceDeps: true}, lockfile, args);
 
   if (deps.length === 0) {
     reporter.success(reporter.lang('allDependenciesUpToDate'));
     return;
   }
 
+  const usesWorkspaces = !!config.workspaceRootFolder;
+
   const maxLengthArr = {
     name: 'name'.length,
     current: 'from'.length,
     range: 'latest'.length,
     [outdatedFieldName]: 'to'.length,
+    workspaceName: 'workspace'.length,
   };
 
   const keysWithDynamicLength = ['name', 'current', outdatedFieldName];
@@ -54,6 +60,10 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
   if (!flags.latest) {
     maxLengthArr.range = 'range'.length;
     keysWithDynamicLength.push('range');
+  }
+
+  if (usesWorkspaces) {
+    keysWithDynamicLength.push('workspaceName');
   }
 
   deps.forEach(dep =>
@@ -78,7 +88,12 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
     const latest = colorizeDiff(dep.current, padding(outdatedFieldName), reporter);
     const url = reporter.format.cyan(dep.url);
     const range = reporter.format.blue(flags.latest ? 'latest' : padding('range'));
-    return `${name}  ${range}  ${current}  ❯  ${latest}  ${url}`;
+    if (usesWorkspaces) {
+      const workspace = padding('workspaceName');
+      return `${name}  ${range}  ${current}  ❯  ${latest}  ${workspace}  ${url}`;
+    } else {
+      return `${name}  ${range}  ${current}  ❯  ${latest}  ${url}`;
+    }
   };
 
   const makeHeaderRow = () => {
@@ -87,7 +102,12 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
     const from = headerPadding('from', 'current');
     const to = headerPadding('to', outdatedFieldName);
     const url = reporter.format.bold.underline('url');
-    return `  ${name}  ${range}  ${from}     ${to}  ${url}`;
+    if (usesWorkspaces) {
+      const workspace = headerPadding('workspace', 'workspaceName');
+      return `  ${name}  ${range}  ${from}     ${to}  ${workspace}  ${url}`;
+    } else {
+      return `  ${name}  ${range}  ${from}     ${to}  ${url}`;
+    }
   };
 
   const groupedDeps = deps.reduce((acc, dep) => {
@@ -119,7 +139,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
     const red = reporter.format.red('<red>');
     const yellow = reporter.format.yellow('<yellow>');
     const green = reporter.format.green('<green>');
-    reporter.info(reporter.lang('legendColorsForUpgradeInteractive', red, yellow, green));
+    reporter.info(reporter.lang('legendColorsForVersionUpdates', red, yellow, green));
 
     const answers: Array<Dependency> = await reporter.prompt('Choose which packages to update.', choices, {
       name: 'packages',
@@ -130,24 +150,34 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
     const getPattern = ({upgradeTo}) => upgradeTo;
     const isHint = x => ({hint}) => hint === x;
 
-    await [null, 'dev', 'optional', 'peer'].reduce(async (promise, hint) => {
-      // Wait for previous promise to resolve
-      await promise;
+    for (const hint of [null, 'dev', 'optional', 'peer']) {
       // Reset dependency flags
       flags.dev = hint === 'dev';
       flags.peer = hint === 'peer';
       flags.optional = hint === 'optional';
-      const deps = answers.filter(isHint(hint)).map(getPattern);
+      flags.ignoreWorkspaceRootCheck = true;
+      flags.includeWorkspaceDeps = false;
+      flags.workspaceRootIsCwd = false;
+      const deps = answers.filter(isHint(hint));
       if (deps.length) {
-        for (const pattern of deps) {
-          lockfile.removePattern(pattern);
+        const install = new Install(flags, config, reporter, lockfile);
+        const {requests: packagePatterns} = await install.fetchRequestFromCwd();
+        const depsByWorkspace = deps.reduce((acc, dep) => {
+          const {workspaceLoc} = dep;
+          const xs = acc[workspaceLoc] || [];
+          acc[workspaceLoc] = xs.concat(dep);
+          return acc;
+        }, {});
+        for (const loc of Object.keys(depsByWorkspace)) {
+          const patterns = depsByWorkspace[loc].map(getPattern);
+          cleanLockfile(lockfile, deps, packagePatterns, reporter);
+          reporter.info(reporter.lang('updateInstalling', getNameFromHint(hint)));
+          config.cwd = path.resolve(path.dirname(loc));
+          const add = new Add(patterns, flags, config, reporter, lockfile);
+          await add.init();
         }
-        reporter.info(reporter.lang('updateInstalling', getNameFromHint(hint)));
-        const add = new Add(deps, flags, config, reporter, lockfile);
-        return add.init();
       }
-      return Promise.resolve();
-    }, Promise.resolve());
+    }
   } catch (e) {
     Promise.reject(e);
   }
