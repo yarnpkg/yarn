@@ -1,0 +1,12 @@
+{
+  "name": "my-project",
+  "private": true,
+  "bin": {"file": "file.js"},
+  "dependencies": {},
+  "devDependencies": {
+    "touch": "^1.0.0"
+  },
+  "workspaces": [
+    "packages/*"
+  ]
+}
