@@ -15,6 +15,7 @@ import {BufferReporter} from '../../src/reporters/index.js';
 import {run} from '../../src/cli/commands/run.js';
 import * as fs from '../../src/util/fs.js';
 import * as reporters from '../../src/reporters/index.js';
+import { ENV_PATH_KEY } from '../../src/constants.js';
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 90000;
 
@@ -87,23 +88,10 @@ test('properly add parent node_module/.bin paths to environment', (): Promise<vo
     // $FlowFixMe
     const result = JSON.parse(reporter.getBuffer()[0].data);
     const env = {};
-    let pathVarName = 'PATH';
-    for (const key of Object.keys(process.env)) {
-      // We need this below for Windows which has case-insensitive env vars
-      // If we used `process.env` directly, node takes care of this for us,
-      // but since we use a subset of it, we need to get the "real" path key
-      // name for Jest's case-sensitive object comparison below.
-      if (key.toUpperCase() === 'PATH') {
-        pathVarName = key;
-      }
-      env[key] = process.env[key];
-      break;
-    }
-
-    result[pathVarName] = result[pathVarName] ? result[pathVarName].split(path.delimiter) : [];
+    result[ENV_PATH_KEY] = result[ENV_PATH_KEY] ? result[ENV_PATH_KEY].split(path.delimiter) : [];
 
     const comp = path.join(config.cwd.slice(0, config.cwd.indexOf(parentPath)), 'node_modules', '.bin');
-    expect(result[pathVarName]).toEqual(expect.arrayContaining([comp]));
+    expect(result[ENV_PATH_KEY]).toEqual(expect.arrayContaining([comp]));
   });
 });
 
