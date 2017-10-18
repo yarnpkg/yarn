@@ -83,10 +83,10 @@ export const {run, setFlags, examples} = buildSubCommands('config', {
     }
 
     reporter.info(reporter.lang('configYarn'));
-    reporter.inspect(JSON.stringify(config.registries.yarn.config, null, 2));
+    reporter.log(JSON.stringify(config.registries.yarn.config, null, 2), {force: true});
 
     reporter.info(reporter.lang('configNpm'));
-    reporter.inspect(JSON.stringify(config.registries.npm.config, null, 2));
+    reporter.log(JSON.stringify(config.registries.npm.config, null, 2), {force: true});
 
     return true;
   },
