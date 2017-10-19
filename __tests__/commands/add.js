@@ -957,3 +957,32 @@ test.concurrent('installing with --pure-lockfile and then adding should keep bui
     expect(await fs.exists(path.join(config.cwd, 'node_modules', 'package-a', 'temp.txt'))).toBe(true);
   });
 });
+
+test.concurrent('preserves unaffected bin links after adding to workspace package', async () => {
+  await runInstall({binLinks: true}, 'workspaces-install-bin', async (config): Promise<void> => {
+    const reporter = new ConsoleReporter({});
+
+    expect(await fs.exists(`${config.cwd}/node_modules/.bin/rimraf`)).toEqual(true);
+    expect(await fs.exists(`${config.cwd}/node_modules/.bin/touch`)).toEqual(true);
+    expect(await fs.exists(`${config.cwd}/node_modules/.bin/workspace-1`)).toEqual(true);
+    expect(await fs.exists(`${config.cwd}/packages/workspace-2/node_modules/.bin/rimraf`)).toEqual(true);
+    expect(await fs.exists(`${config.cwd}/packages/workspace-2/node_modules/.bin/workspace-1`)).toEqual(true);
+
+    // add package
+    const childConfig = await makeConfigFromDirectory(`${config.cwd}/packages/workspace-1`, reporter, {binLinks: true});
+    await add(childConfig, reporter, {}, ['max-safe-integer@1.0.0']);
+
+    expect(
+      JSON.parse(await fs.readFile(path.join(config.cwd, 'packages/workspace-1/package.json'))).dependencies,
+    ).toEqual({
+      'max-safe-integer': '1.0.0',
+    });
+
+    // bin links should be preserved
+    expect(await fs.exists(`${config.cwd}/node_modules/.bin/rimraf`)).toEqual(true);
+    expect(await fs.exists(`${config.cwd}/node_modules/.bin/touch`)).toEqual(true);
+    expect(await fs.exists(`${config.cwd}/node_modules/.bin/workspace-1`)).toEqual(true);
+    expect(await fs.exists(`${config.cwd}/packages/workspace-2/node_modules/.bin/rimraf`)).toEqual(true);
+    expect(await fs.exists(`${config.cwd}/packages/workspace-2/node_modules/.bin/workspace-1`)).toEqual(true);
+  });
+});
