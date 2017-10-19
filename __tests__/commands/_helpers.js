@@ -74,6 +74,7 @@ export function makeConfigFromDirectory(cwd: string, reporter: Reporter, flags: 
       globalFolder: flags.globalFolder || path.join(cwd, '.yarn-global'),
       cacheFolder: flags.cacheFolder || path.join(cwd, '.yarn-cache'),
       linkFolder: flags.linkFolder || path.join(cwd, '.yarn-link'),
+      modulesFolder: flags.modulesFolder,
       prefix: flags.prefix,
       production: flags.production,
     },
@@ -141,7 +142,14 @@ export async function run<T, R>(
   await fs.mkdirp(path.join(cwd, '.yarn-global'));
   await fs.mkdirp(path.join(cwd, '.yarn-link'));
   await fs.mkdirp(path.join(cwd, '.yarn-cache'));
-  await fs.mkdirp(path.join(cwd, 'node_modules'));
+
+  let modulesFolder;
+  if (flags.modulesFolder) {
+    modulesFolder = flags.modulesFolder = path.join(cwd, flags.modulesFolder);
+  } else {
+    modulesFolder = path.join(cwd, 'node_modules');
+  }
+  await fs.mkdirp(modulesFolder);
 
   // make sure the cache folder been created in temp folder
   if (flags.cacheFolder) {

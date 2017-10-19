@@ -44,7 +44,7 @@ export type PackageRemote = {
 };
 
 // `dependencies` field in package info
-type Dependencies = {
+export type Dependencies = {
   [key: string]: string,
 };
 

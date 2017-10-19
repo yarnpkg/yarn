@@ -398,7 +398,7 @@ export default class PackageLinker {
         flatTree,
         async ([dest, {pkg}]) => {
           if (pkg._reference && pkg._reference.location) {
-            const binLoc = path.join(dest, this.config.getFolder(pkg));
+            const binLoc = this.config.modulesFolder || path.join(dest, this.config.getFolder(pkg));
             await this.linkBinDependencies(pkg, binLoc);
             tickBin();
           }
@@ -411,7 +411,7 @@ export default class PackageLinker {
         topLevelDependencies,
         async ([dest, pkg]) => {
           if (pkg._reference && pkg._reference.location && pkg.bin && Object.keys(pkg.bin).length) {
-            const binLoc = path.join(this.config.cwd, this.config.getFolder(pkg));
+            const binLoc = this.config.modulesFolder || path.join(this.config.cwd, this.config.getFolder(pkg));
             await this.linkSelfDependencies(pkg, dest, binLoc);
             tickBin();
           }

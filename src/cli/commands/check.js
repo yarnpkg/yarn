@@ -1,5 +1,6 @@
 /* @flow */
 
+import type {Dependencies} from '../../types.js';
 import type Config from '../../config.js';
 import {MessageError} from '../../errors.js';
 import InstallationIntegrityChecker from '../../integrity-checker.js';
@@ -39,108 +40,93 @@ export async function verifyTreeCheck(
   const registryName = 'yarn';
   const registry = config.registries[registryName];
   const rootManifest = await config.readManifest(registry.cwd, registryName);
+  const rootModulesFolder = config.modulesFolder || path.join(registry.cwd, registry.folder);
 
   type PackageToVerify = {
     name: string,
-    originalKey: string,
-    parentCwd: string,
+    key: string,
+    searchPath: Array<string>,
     version: string,
   };
   const dependenciesToCheckVersion: PackageToVerify[] = [];
-  if (rootManifest.dependencies) {
-    for (const name in rootManifest.dependencies) {
-      const version = rootManifest.dependencies[name];
-      // skip linked dependencies
-      const isLinkedDepencency = /^link:/i.test(version) || (/^file:/i.test(version) && config.linkFileDependencies);
-      if (isLinkedDepencency) {
-        continue;
+
+  function pushDependencies(dependencies: ?Dependencies) {
+    if (dependencies) {
+      for (const name in dependencies) {
+        const version = dependencies[name];
+        // skip linked dependencies
+        const isLinkedDepencency = /^link:/i.test(version) || (/^file:/i.test(version) && config.linkFileDependencies);
+        if (!isLinkedDepencency) {
+          dependenciesToCheckVersion.push({
+            name,
+            key: name,
+            searchPath: [rootModulesFolder],
+            version,
+          });
+        }
       }
-      dependenciesToCheckVersion.push({
-        name,
-        originalKey: name,
-        parentCwd: registry.cwd,
-        version,
-      });
     }
   }
-  if (rootManifest.devDependencies && !config.production) {
-    for (const name in rootManifest.devDependencies) {
-      const version = rootManifest.devDependencies[name];
-      // skip linked dependencies
-      const isLinkedDepencency = /^link:/i.test(version) || (/^file:/i.test(version) && config.linkFileDependencies);
-      if (isLinkedDepencency) {
-        continue;
-      }
-      dependenciesToCheckVersion.push({
-        name,
-        originalKey: name,
-        parentCwd: registry.cwd,
-        version,
-      });
-    }
+  pushDependencies(rootManifest.dependencies);
+  if (!config.production) {
+    pushDependencies(rootManifest.devDependencies);
   }
 
-  const locationsVisited: Set<string> = new Set();
+  const missing = false;
+  const anyVersion = true;
+  const pkgVersions: Map<string, string | boolean> = new Map();
   while (dependenciesToCheckVersion.length) {
     const dep = dependenciesToCheckVersion.shift();
-    const manifestLoc = path.join(dep.parentCwd, registry.folder, dep.name);
-    if (locationsVisited.has(manifestLoc + `@${dep.version}`)) {
-      continue;
-    }
-    locationsVisited.add(manifestLoc + `@${dep.version}`);
-    if (!await fs.exists(manifestLoc)) {
-      reportError('packageNotInstalled', `${dep.originalKey}`);
-      continue;
-    }
-    if (!await fs.exists(path.join(manifestLoc, 'package.json'))) {
-      continue;
-    }
-    const pkg = await config.readManifest(manifestLoc, registryName);
-    if (
-      semver.validRange(dep.version, config.looseSemver) &&
-      !semver.satisfies(pkg.version, dep.version, config.looseSemver)
-    ) {
-      reportError('packageWrongVersion', dep.originalKey, dep.version, pkg.version);
-      continue;
-    }
-    const dependencies = pkg.dependencies;
-    if (dependencies) {
-      for (const subdep in dependencies) {
-        const subDepPath = path.join(manifestLoc, registry.folder, subdep);
-        let found = false;
-        const relative = path.relative(registry.cwd, subDepPath);
-        const locations = path.normalize(relative).split(registry.folder + path.sep).filter(dir => !!dir);
-        locations.pop();
-        while (locations.length >= 0) {
-          let possiblePath;
-          if (locations.length > 0) {
-            possiblePath = path.join(
-              registry.cwd,
-              registry.folder,
-              locations.join(path.sep + registry.folder + path.sep),
-            );
-          } else {
-            possiblePath = registry.cwd;
-          }
-          if (await fs.exists(path.join(possiblePath, registry.folder, subdep))) {
-            dependenciesToCheckVersion.push({
-              name: subdep,
-              originalKey: `${dep.originalKey}#${subdep}`,
-              parentCwd: possiblePath,
-              version: dependencies[subdep],
-            });
-            found = true;
-            break;
-          }
-          if (!locations.length) {
-            break;
-          }
-          locations.pop();
+    const searchPath = dep.searchPath;
+    let version: string | boolean = false;
+    let dependencies: ?Dependencies;
+
+    while (searchPath.length) {
+      const manifestLoc = path.join(...searchPath, dep.name);
+
+      if (pkgVersions.has(manifestLoc)) {
+        version = pkgVersions.get(manifestLoc) || missing;
+        if (version !== missing) {
+          // found
+          break;
         }
-        if (!found) {
-          reportError('packageNotInstalled', `${dep.originalKey}#${subdep}`);
+      } else {
+        if (!await fs.exists(manifestLoc)) {
+          pkgVersions.set(manifestLoc, missing);
+        } else if (!await fs.exists(path.join(manifestLoc, 'package.json'))) {
+          pkgVersions.set(manifestLoc, anyVersion);
+        } else {
+          ({version, dependencies} = await config.readManifest(manifestLoc, registryName));
+          pkgVersions.set(manifestLoc, version);
+          break;
         }
       }
+      searchPath.pop();
+    }
+
+    if (version !== missing) {
+      if (
+        typeof version !== 'string' || // --> version === anyVersion
+        (!semver.validRange(dep.version, config.looseSemver) ||
+          semver.satisfies(version, dep.version, config.looseSemver))
+      ) {
+        if (dependencies) {
+          const newSearchPath = searchPath.concat([path.join(dep.name, registry.folder)]);
+
+          for (const subDep in dependencies) {
+            dependenciesToCheckVersion.push({
+              name: subDep,
+              key: `${dep.key}#${subDep}`,
+              searchPath: newSearchPath.slice(0),
+              version: dependencies[subDep],
+            });
+          }
+        }
+      } else {
+        reportError('packageWrongVersion', dep.key, dep.version, version);
+      }
+    } else {
+      reportError('packageNotInstalled', dep.key);
     }
   }
 
@@ -200,9 +186,10 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
 
   const lockfile = await Lockfile.fromDirectory(config.cwd);
   const install = new Install(flags, config, reporter, lockfile);
+  const rootModulesFolder = config.modulesFolder || path.join(config.cwd, 'node_modules');
 
   function humaniseLocation(loc: string): Array<string> {
-    const relative = path.relative(path.join(config.cwd, 'node_modules'), loc);
+    const relative = path.relative(rootModulesFolder, loc);
     const normalized = path.normalize(relative).split(path.sep);
     return normalized.filter(p => p !== 'node_modules').reduce((result, part) => {
       const length = result.length;
@@ -313,7 +300,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
           const myParts = parts.slice(0, i).concat(name);
 
           // build package.json location for this position
-          const myDepPkgLoc = path.join(config.cwd, 'node_modules', myParts.join(`${path.sep}node_modules${path.sep}`));
+          const myDepPkgLoc = path.join(rootModulesFolder, myParts.join(`${path.sep}node_modules${path.sep}`));
 
           possibles.push(myDepPkgLoc);
         }
