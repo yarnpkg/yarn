@@ -21,6 +21,7 @@ import semver from 'semver';
 import {promisify} from '../../src/util/promise';
 import fsNode from 'fs';
 import inquirer from 'inquirer';
+import isCI from 'is-ci';
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 150000;
 
@@ -955,5 +956,57 @@ test.concurrent('installing with --pure-lockfile and then adding should keep bui
     const add = new Add(['left-pad@1.1.0'], {}, config, reporter, await Lockfile.fromDirectory(config.cwd));
     await add.init();
     expect(await fs.exists(path.join(config.cwd, 'node_modules', 'package-a', 'temp.txt'))).toBe(true);
+  });
+});
+
+if (!isCI) {
+  test.concurrent('installing wrong version should prompt user', (): Promise<void> => {
+    return new Promise(async (resolve): Promise<void> => {
+      inquirer.prompt = await jest.fn(([{name, type, message, choices}]) => {
+        expect(name).toBe('package');
+        expect(type).toBe('list');
+        expect(choices.length).toBeGreaterThan(0);
+        expect(message).toMatch(/^Please choose a version of/);
+
+        resolve();
+      });
+
+      try {
+        runAdd(['left-pad@0.010'], {}, '');
+      } catch (err) {
+        expect(inquirer.prompt).toBeCalled();
+        expect(err).not.toBeUndefined();
+      }
+    });
+  });
+} else {
+  test.concurrent('installing wrong version should not prompt on CI', (): Promise<void> => {
+    return new Promise(async (resolve, reject): Promise<void> => {
+      inquirer.prompt = jest.fn(reject);
+
+      try {
+        await runAdd(['left-pad@0.010'], {nonInteractive: true}, 'add-with-flag');
+      } catch (err) {
+        expect(err).not.toBeUndefined();
+
+        resolve();
+      }
+    });
+  });
+}
+
+test.concurrent('installing wrong version with --non-interactive should not prompt user and fail directly', (): Promise<
+  void,
+> => {
+  return new Promise(async (resolve, reject): Promise<void> => {
+    inquirer.prompt = jest.fn(reject);
+
+    try {
+      await runAdd(['left-pad@0.010'], {nonInteractive: true}, 'add-with-flag');
+    } catch (err) {
+      expect(err).not.toBeUndefined();
+
+      resolve();
+    }
   });
 });
