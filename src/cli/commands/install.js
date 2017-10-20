@@ -424,6 +424,12 @@ export class Install {
       return false;
     }
 
+    if (match.nodeVersionDoesntMatch) {
+      // node version doesn't match, force script installations
+      this.scripts.setForce(true);
+      return false;
+    }
+
     if (!patterns.length && !match.integrityFileMissing) {
       this.reporter.success(this.reporter.lang('nothingToInstall'));
       await this.createEmptyManifestFolders();
