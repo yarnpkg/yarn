@@ -199,7 +199,6 @@ export async function getOutdated(
 ): Promise<Array<Dependency>> {
   const install = new Install(flags, config, reporter, lockfile);
   const outdatedFieldName = flags.latest ? 'latest' : 'wanted';
-  const updateAll = patterns.length === 0;
 
   // ensure scope is of the form `@scope/`
   const normalizeScope = function() {
@@ -234,7 +233,6 @@ export async function getOutdated(
     reporter,
     patterns,
     flags,
-    updateAll,
   ))
     .filter(versionFilter)
     .filter(scopeFilter.bind(this, flags));
