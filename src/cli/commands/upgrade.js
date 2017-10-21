@@ -226,14 +226,7 @@ export async function getOutdated(
 
   normalizeScope();
 
-  const deps = (await PackageRequest.getOutdatedPackages(
-    lockfile,
-    install,
-    config,
-    reporter,
-    patterns,
-    flags,
-  ))
+  const deps = (await PackageRequest.getOutdatedPackages(lockfile, install, config, reporter, patterns, flags))
     .filter(versionFilter)
     .filter(scopeFilter.bind(this, flags));
   deps.forEach(dep => {
