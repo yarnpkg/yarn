@@ -172,6 +172,7 @@ const messages = {
   linkUsing: 'Using linked module for $0.',
   linkDisusing: 'Removed linked module $0.',
   linkDisusingMessage: 'You will need to run `yarn` to re-install the package that was linked.',
+  linkTargetMissing: 'The target of linked module $0 is missing. Removing link.',
 
   createInvalidBin: 'Invalid bin entry found in package $0.',
   createMissingPackage:
