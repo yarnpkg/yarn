@@ -60,8 +60,9 @@ export default class PackageRequest {
 
     if (shrunk && shrunk.resolved) {
       const resolvedParts = versionUtil.explodeHashedUrl(shrunk.resolved);
-      // If it's a private git url set remote to 'git'.
-      const preferredRemoteType = resolvedParts.url.startsWith('git+ssh://') ? 'git' : remoteType;
+
+      // Detect Git protocols (git://HOST/PATH or git+PROTOCOL://HOST/PATH)
+      const preferredRemoteType = /^git(\+[a-z0-9]+)?:\/\//.test(resolvedParts.url) ? 'git' : remoteType;
 
       return {
         name: shrunk.name,
