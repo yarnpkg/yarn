@@ -1,0 +1,7 @@
+{
+  "name": "fake-dependency",
+  "description": "Symlinked package test",
+  "version": "1.0.1",
+  "dependencies": {},
+  "license": "MIT"
+}

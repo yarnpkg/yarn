@@ -305,7 +305,7 @@ export default class PackageLinker {
 
       if (stat.isSymbolicLink()) {
         const packageName = entry;
-        linkTargets.set(packageName, await fs.readlink(entryPath));
+        linkTargets.set(packageName, await fs.realpath(entryPath));
       } else if (stat.isDirectory() && entry[0] === '@') {
         // if the entry is directory beginning with '@', then we're dealing with a package scope, which
         // means we must iterate inside to retrieve the package names it contains
@@ -317,7 +317,7 @@ export default class PackageLinker {
 
           if (stat2.isSymbolicLink()) {
             const packageName = `${scopeName}/${entry2}`;
-            linkTargets.set(packageName, await fs.readlink(entryPath2));
+            linkTargets.set(packageName, await fs.realpath(entryPath2));
           }
         }
       }
@@ -334,7 +334,7 @@ export default class PackageLinker {
       if (
         (await fs.lstat(loc)).isSymbolicLink() &&
         linkTargets.has(packageName) &&
-        linkTargets.get(packageName) === (await fs.readlink(loc))
+        linkTargets.get(packageName) === (await fs.realpath(loc))
       ) {
         possibleExtraneous.delete(loc);
         copyQueue.delete(loc);

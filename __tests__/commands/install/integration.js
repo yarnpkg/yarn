@@ -865,6 +865,29 @@ test.concurrent('install will not overwrite files in symlinked scoped directorie
   );
 });
 
+test.concurrent('install will not overwrite linked dependencies', async (): Promise<void> => {
+  await runInstall(
+    {},
+    'install-dont-overwrite-linked',
+    async (config): Promise<void> => {
+      const dependencyPath = path.join(config.cwd, 'node_modules', 'fake-dependency');
+      expect('Symlinked package test').toEqual(
+        (await fs.readJson(path.join(dependencyPath, 'package.json'))).description,
+      );
+      expect(await fs.exists(path.join(dependencyPath, 'index.js'))).toEqual(false);
+    },
+    async cwd => {
+      const dirToLink = path.join(cwd, 'dir-to-link');
+
+      await fs.mkdirp(path.join(cwd, '.yarn-link'));
+      await fs.symlink(dirToLink, path.join(cwd, '.yarn-link', 'fake-dependency'));
+
+      await fs.mkdirp(path.join(cwd, 'node_modules'));
+      await fs.symlink(dirToLink, path.join(cwd, 'node_modules', 'fake-dependency'));
+    },
+  );
+});
+
 test.concurrent('install of scoped package with subdependency conflict should pass check', (): Promise<void> => {
   return runInstall({}, 'install-scoped-package-with-subdependency-conflict', async (config, reporter) => {
     let allCorrect = true;
