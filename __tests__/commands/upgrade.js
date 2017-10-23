@@ -404,3 +404,9 @@ test.concurrent('upgrade to workspace child preserves root dependencies', (): Pr
     expect(childBPkg.dependencies['right-pad']).toEqual('1.0.0');
   });
 });
+
+test.concurrent('latest flag does not downgrade from a beta', (): Promise<void> => {
+  return runUpgrade([], {latest: true}, 'using-beta', async (config): ?Promise<void> => {
+    await expectInstalledDependency(config, 'react-refetch', '^1.0.3-0', '1.0.3-0');
+  });
+});
