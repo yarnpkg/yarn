@@ -424,8 +424,8 @@ export class Install {
       return false;
     }
 
-    if (match.nodeVersionDoesntMatch) {
-      // node version doesn't match, force script installations
+    if (match.hardRefreshRequired) {
+      // e.g. node version doesn't match, force script installations
       this.scripts.setForce(true);
       return false;
     }

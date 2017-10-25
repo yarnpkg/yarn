@@ -38,7 +38,7 @@ type IntegrityHashLocation = {
 };
 
 type IntegrityFile = {
-  node_version: string,
+  nodeVersion: string,
   flags: Array<string>,
   modulesFolders: Array<string>,
   linkedModules: Array<string>,
@@ -56,7 +56,7 @@ type IntegrityFlags = {
 };
 
 const INTEGRITY_FILE_DEFAULTS = () => ({
-  node_version: process.version,
+  nodeVersion: process.version,
   modulesFolders: [],
   flags: [],
   linkedModules: [],
@@ -298,7 +298,7 @@ export default class InstallationIntegrityChecker {
       return 'LINKED_MODULES_DONT_MATCH';
     }
 
-    if (actual.node_version !== expected.node_version) {
+    if (actual.nodeVersion !== expected.nodeVersion) {
       return 'NODE_VERSION_DOESNT_MATCH';
     }
 
@@ -393,7 +393,7 @@ export default class InstallationIntegrityChecker {
       integrityMatches: integrityMatches === 'OK',
       integrityError: integrityMatches === 'OK' ? undefined : integrityMatches,
       missingPatterns,
-      nodeVersionDoesntMatch: integrityMatches === 'NODE_VERSION_DOESNT_MATCH',
+      hardRefreshRequired: integrityMatches === 'NODE_VERSION_DOESNT_MATCH',
     };
   }
 
