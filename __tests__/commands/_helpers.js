@@ -126,7 +126,7 @@ export async function run<T, R>(
     const source = typeof name === 'string' ? name : name.source;
 
     // if source wasn't set then assume we were given a complete path
-    if (!source) {
+    if (typeof source === 'undefined') {
       cwd = typeof name !== 'string' ? name.cwd : await fs.makeTempDir();
     } else {
       const dir = path.join(fixturesLoc, source);
