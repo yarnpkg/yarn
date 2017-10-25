@@ -1088,29 +1088,6 @@ test.concurrent('warns for missing bundledDependencies', (): Promise<void> => {
   );
 });
 
-test.concurrent('install will not overwrite files in symlinked scoped directories', async (): Promise<void> => {
-  await runInstall(
-    {},
-    'install-dont-overwrite-linked-scoped',
-    async (config): Promise<void> => {
-      const dependencyPath = path.join(config.cwd, 'node_modules', '@fakescope', 'fake-dependency');
-      expect('Symlinked scoped package test').toEqual(
-        (await fs.readJson(path.join(dependencyPath, 'package.json'))).description,
-      );
-      expect(await fs.exists(path.join(dependencyPath, 'index.js'))).toEqual(false);
-    },
-    async cwd => {
-      const dirToLink = path.join(cwd, 'dir-to-link');
-
-      await fs.mkdirp(path.join(cwd, '.yarn-link', '@fakescope'));
-      await fs.symlink(dirToLink, path.join(cwd, '.yarn-link', '@fakescope', 'fake-dependency'));
-
-      await fs.mkdirp(path.join(cwd, 'node_modules', '@fakescope'));
-      await fs.symlink(dirToLink, path.join(cwd, 'node_modules', '@fakescope', 'fake-dependency'));
-    },
-  );
-});
-
 test.concurrent('install will not overwrite linked scoped dependencies', async (): Promise<void> => {
   // install only dependencies
   await runInstall({production: true}, 'install-dont-overwrite-linked', async (installConfig): Promise<void> => {
