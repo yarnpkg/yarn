@@ -1,7 +1,0 @@
-{
-  "name": "@fakescope/fake-dependency",
-  "description": "Symlinked scoped package test",
-  "version": "1.0.1",
-  "dependencies": {},
-  "license": "MIT"
-}

@@ -305,14 +305,12 @@ export default class PackageLinker {
 
       if (stat.isSymbolicLink()) {
         try {
-          const entryTarget = (await fs.realpath(entryPath));
+          const entryTarget = await fs.realpath(entryPath);
           linkTargets.set(entry, entryTarget);
-        }
-        catch(err) {
+        } catch (err) {
           this.reporter.warn(this.reporter.lang('linkTargetMissing', entry));
           await fs.unlink(entryPath);
         }
-
       } else if (stat.isDirectory() && entry[0] === '@') {
         // if the entry is directory beginning with '@', then we're dealing with a package scope, which
         // means we must iterate inside to retrieve the package names it contains
@@ -324,7 +322,13 @@ export default class PackageLinker {
 
           if (stat2.isSymbolicLink()) {
             const packageName = `${scopeName}/${entry2}`;
-            linkTargets.set(packageName, await fs.realpath(entryPath2));
+            try {
+              const entryTarget = await fs.realpath(entryPath2);
+              linkTargets.set(packageName, entryTarget);
+            } catch (err) {
+              this.reporter.warn(this.reporter.lang('linkTargetMissing', packageName));
+              await fs.unlink(entryPath2);
+            }
           }
         }
       }
