@@ -640,6 +640,30 @@ test.concurrent('install with comments in manifest', (): Promise<void> => {
   });
 });
 
+test.concurrent('install with comments in manifest resolutions does not result in warning', (): Promise<void> => {
+  const fixturesLoc = path.join(__dirname, '..', '..', 'fixtures', 'install');
+
+  return buildRun(
+    reporters.BufferReporter,
+    fixturesLoc,
+    async (args, flags, config, reporter): Promise<void> => {
+      await install(config, reporter, flags, args);
+
+      const output = reporter.getBuffer();
+      const warnings = output.filter(entry => entry.type === 'warning');
+
+      expect(
+        warnings.some(warning => {
+          return warning.data.toString().indexOf(reporter.lang('invalidResolutionName', '//')) > -1;
+        }),
+      ).toEqual(false);
+    },
+    [],
+    {lockfile: false},
+    'install-with-comments',
+  );
+});
+
 test.concurrent('install with null versions in manifest', (): Promise<void> => {
   return runInstall({}, 'install-with-null-version', async config => {
     expect(await fs.exists(path.join(config.cwd, 'node_modules', 'left-pad'))).toEqual(true);

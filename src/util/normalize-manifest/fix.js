@@ -308,7 +308,7 @@ export default (async function(
     }
   }
 
-  for (const dependencyType of DEPENDENCY_TYPES) {
+  for (const dependencyType of ['resolutions', ...DEPENDENCY_TYPES]) {
     const dependencyList = info[dependencyType];
     if (dependencyList && typeof dependencyList === 'object') {
       delete dependencyList['//'];
