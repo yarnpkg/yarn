@@ -19,6 +19,7 @@ export const integrityErrors = {
   LINKED_MODULES_DONT_MATCH: 'integrityCheckLinkedModulesDontMatch',
   PATTERNS_DONT_MATCH: 'integrityPatternsDontMatch',
   MODULES_FOLDERS_MISSING: 'integrityModulesFoldersMissing',
+  NODE_VERSION_DOESNT_MATCH: 'integrityNodeDoesntMatch',
 };
 
 type IntegrityError = $Keys<typeof integrityErrors>;
@@ -37,6 +38,7 @@ type IntegrityHashLocation = {
 };
 
 type IntegrityFile = {
+  nodeVersion: string,
   flags: Array<string>,
   modulesFolders: Array<string>,
   linkedModules: Array<string>,
@@ -54,6 +56,7 @@ type IntegrityFlags = {
 };
 
 const INTEGRITY_FILE_DEFAULTS = () => ({
+  nodeVersion: process.version,
   modulesFolders: [],
   flags: [],
   linkedModules: [],
@@ -295,6 +298,10 @@ export default class InstallationIntegrityChecker {
       return 'LINKED_MODULES_DONT_MATCH';
     }
 
+    if (actual.nodeVersion !== expected.nodeVersion) {
+      return 'NODE_VERSION_DOESNT_MATCH';
+    }
+
     let relevantExpectedFlags = expected.flags.slice();
 
     // If we run "yarn" after "yarn --check-files", we shouldn't fail the less strict validation
@@ -386,6 +393,7 @@ export default class InstallationIntegrityChecker {
       integrityMatches: integrityMatches === 'OK',
       integrityError: integrityMatches === 'OK' ? undefined : integrityMatches,
       missingPatterns,
+      hardRefreshRequired: integrityMatches === 'NODE_VERSION_DOESNT_MATCH',
     };
   }
 
