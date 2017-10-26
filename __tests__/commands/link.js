@@ -1,23 +1,11 @@
 /* @flow */
 
-import {run as buildRun} from './_helpers.js';
-import {run as link} from '../../src/cli/commands/link.js';
+import {runLink} from './_helpers.js';
 import {ConsoleReporter} from '../../src/reporters/index.js';
-import type {CLIFunctionReturn} from '../../src/types.js';
 import mkdir from './../_temp.js';
 import * as fs from '../../src/util/fs.js';
 
 const path = require('path');
-
-const fixturesLoc = path.join(__dirname, '..', 'fixtures', 'link');
-const runLink = buildRun.bind(
-  null,
-  ConsoleReporter,
-  fixturesLoc,
-  (args, flags, config, reporter): CLIFunctionReturn => {
-    return link(config, reporter, flags, args);
-  },
-);
 
 test.concurrent('creates folder in linkFolder', async (): Promise<void> => {
   const linkFolder = await mkdir('link-folder');
