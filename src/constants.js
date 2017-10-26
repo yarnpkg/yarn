@@ -10,6 +10,10 @@ type Env = {
 };
 
 export const DEPENDENCY_TYPES = ['devDependencies', 'dependencies', 'optionalDependencies', 'peerDependencies'];
+export const RESOLUTIONS = 'resolutions';
+export const MANIFEST_FIELDS = [RESOLUTIONS, ...DEPENDENCY_TYPES];
+
+export const SUPPORTED_NODE_VERSIONS = '^4.8.0 || ^5.7.0 || ^6.2.2 || ^8.0.0';
 
 export const YARN_REGISTRY = 'https://registry.yarnpkg.com';
 

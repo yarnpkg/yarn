@@ -55,6 +55,16 @@ test.concurrent('install should not hoist packages above their peer dependencies
   });
 });
 
+test.concurrent('install should resolve peer dependencies from same subtrees', async () => {
+  await runInstall({}, 'peer-dep-same-subtree', async (config): Promise<void> => {
+    expect(JSON.parse(await fs.readFile(`${config.cwd}/node_modules/d/node_modules/a/package.json`)).version).toEqual(
+      '1.0.0',
+    );
+    expect(JSON.parse(await fs.readFile(`${config.cwd}/node_modules//a/package.json`)).version).toEqual('1.1.0');
+    expect(await fs.exists(`${config.cwd}/node_modules/c/node_modules/a`)).toEqual(false);
+  });
+});
+
 test.concurrent('install optional subdependencies by default', async () => {
   await runInstall({}, 'install-optional-dependencies', async (config): Promise<void> => {
     expect(await fs.exists(`${config.cwd}/node_modules/dep-b`)).toEqual(true);
@@ -64,6 +74,9 @@ test.concurrent('install optional subdependencies by default', async () => {
 test.concurrent('installing with --ignore-optional should not install optional subdependencies', async () => {
   await runInstall({ignoreOptional: true}, 'install-optional-dependencies', async (config): Promise<void> => {
     expect(await fs.exists(`${config.cwd}/node_modules/dep-b`)).toEqual(false);
+    expect(await fs.exists(`${config.cwd}/node_modules/dep-c`)).toEqual(true);
+    expect(await fs.exists(`${config.cwd}/node_modules/dep-d`)).toEqual(true);
+    expect(await fs.exists(`${config.cwd}/node_modules/dep-e`)).toEqual(true);
   });
 });
 
@@ -483,11 +496,18 @@ test.concurrent("don't install with file: protocol as default if target is a fil
   return expect(runInstall({lockfile: false}, 'install-file-as-default-no-file')).rejects.toBeDefined();
 });
 
-test.concurrent("don't install with file: protocol as default if target does not have package.json", (): Promise<
+test.concurrent("don't install with implicit file: protocol if target does not have package.json", (): Promise<
   void,
 > => {
   // $FlowFixMe
   return expect(runInstall({lockfile: false}, 'install-file-as-default-no-package')).rejects.toBeDefined();
+});
+
+test.concurrent('install with explicit file: protocol if target does not have package.json', (): Promise<void> => {
+  return runInstall({}, 'install-file-no-package', async config => {
+    expect(await fs.exists(path.join(config.cwd, 'node_modules', 'foo', 'bar.js'))).toEqual(true);
+    expect(await fs.exists(path.join(config.cwd, 'node_modules', 'bar', 'bar.js'))).toEqual(true);
+  });
 });
 
 test.concurrent("don't install with file: protocol as default if target is valid semver", (): Promise<void> => {
@@ -617,6 +637,36 @@ test.concurrent('install should run install scripts in the order of dependencies
 test.concurrent('install with comments in manifest', (): Promise<void> => {
   return runInstall({lockfile: false}, 'install-with-comments', async config => {
     expect(await fs.readFile(path.join(config.cwd, 'node_modules', 'foo', 'index.js'))).toEqual('foobar;\n');
+  });
+});
+
+test.concurrent('install with comments in manifest resolutions does not result in warning', (): Promise<void> => {
+  const fixturesLoc = path.join(__dirname, '..', '..', 'fixtures', 'install');
+
+  return buildRun(
+    reporters.BufferReporter,
+    fixturesLoc,
+    async (args, flags, config, reporter): Promise<void> => {
+      await install(config, reporter, flags, args);
+
+      const output = reporter.getBuffer();
+      const warnings = output.filter(entry => entry.type === 'warning');
+
+      expect(
+        warnings.some(warning => {
+          return warning.data.toString().indexOf(reporter.lang('invalidResolutionName', '//')) > -1;
+        }),
+      ).toEqual(false);
+    },
+    [],
+    {lockfile: false},
+    'install-with-comments',
+  );
+});
+
+test.concurrent('install with null versions in manifest', (): Promise<void> => {
+  return runInstall({}, 'install-with-null-version', async config => {
+    expect(await fs.exists(path.join(config.cwd, 'node_modules', 'left-pad'))).toEqual(true);
   });
 });
 
@@ -1033,12 +1083,17 @@ test.concurrent('transitive file: dependencies should work', (): Promise<void> =
   });
 });
 
-// Unskip once https://github.com/yarnpkg/yarn/issues/3778 is resolved
-test.skip('unbound transitive dependencies should not conflict with top level dependency', async () => {
+test('unbound transitive dependencies should not conflict with top level dependency', async () => {
   await runInstall({flat: true}, 'install-conflicts', async config => {
     expect((await fs.readJson(path.join(config.cwd, 'node_modules', 'left-pad', 'package.json'))).version).toEqual(
       '1.0.0',
     );
+  });
+});
+
+test('manifest optimization respects versions with alternation', async () => {
+  await runInstall({flat: true}, 'optimize-version-with-alternation', async config => {
+    expect(await getPackageVersion(config, 'lodash')).toEqual('2.4.2');
   });
 });
 

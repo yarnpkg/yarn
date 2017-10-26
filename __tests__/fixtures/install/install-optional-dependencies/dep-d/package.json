@@ -1,0 +1,7 @@
+{
+    "name": "dep-d",
+    "version": "1.0.0",
+    "dependencies": {
+        "dep-e": "file:../dep-e"
+    }
+}

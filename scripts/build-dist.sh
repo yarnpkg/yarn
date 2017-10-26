@@ -15,8 +15,8 @@ case "$(uname -s)" in
     ;;
 esac
 
-version=`node -p -e "require('./package.json').version"`
-node_version=`node -p -e "process.versions.node.split('.')[0]"`
+version=`node -p "require('./package.json').version"`
+node_version=`node -p "process.versions.node.split('.')[0]"`
 
 rm -rf artifacts dist
 mkdir artifacts
@@ -47,7 +47,7 @@ cp node_modules/v8-compile-cache/v8-compile-cache.js dist/lib/v8-compile-cache.j
 # Verify that it works as expected
 [[ "$version" == "$(./dist/bin/yarn --version)" ]] || exit 1;
 
-./scripts/update-dist-manifest.js $(node -p -e "require('fs').realpathSync('dist/package.json')") tar
+./scripts/update-dist-manifest.js $(node -p "require('fs').realpathSync('dist/package.json')") tar
 
 case "$(tar --version)" in
   *GNU*)

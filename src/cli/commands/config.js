@@ -5,6 +5,41 @@ import type {Reporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
 import buildSubCommands from './_build-sub-commands.js';
 
+const CONFIG_KEYS = [
+  // 'reporter',
+  'rootModuleFolders',
+  'registryFolders',
+  'linkedModules',
+  // 'registries',
+  'cache',
+  'cwd',
+  'looseSemver',
+  'commandName',
+  'preferOffline',
+  'modulesFolder',
+  'globalFolder',
+  'linkFolder',
+  'offline',
+  'binLinks',
+  'ignorePlatform',
+  'ignoreScripts',
+  'disablePrepublish',
+  'nonInteractive',
+  'workspaceRootFolder',
+  'lockfileFolder',
+  'networkConcurrency',
+  'childConcurrency',
+  'networkTimeout',
+  'workspacesEnabled',
+  'pruneOfflineMirror',
+  'enableMetaFolder',
+  'enableLockfileVersions',
+  'linkFileDependencies',
+  'cacheFolder',
+  'tempFolder',
+  'production',
+];
+
 export function hasWrapper(flags: Object, args: Array<string>): boolean {
   return args[0] !== 'get';
 }
@@ -26,7 +61,7 @@ export const {run, setFlags, examples} = buildSubCommands('config', {
       return false;
     }
 
-    reporter.log(String(config.getOption(args[0])));
+    reporter.log(String(config.getOption(args[0])), {force: true});
     return true;
   },
 
@@ -52,6 +87,16 @@ export const {run, setFlags, examples} = buildSubCommands('config', {
 
     reporter.info(reporter.lang('configNpm'));
     reporter.inspect(config.registries.npm.config);
+
+    return true;
+  },
+
+  current(config: Config, reporter: Reporter, flags: Object, args: Array<string>): boolean {
+    if (args.length) {
+      return false;
+    }
+
+    reporter.log(JSON.stringify(config, CONFIG_KEYS, 2), {force: true});
 
     return true;
   },

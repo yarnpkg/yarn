@@ -8,17 +8,9 @@ export function getPosixPath(path: string): string {
   return path.replace(/\\/g, '/');
 }
 
-export function expandPath(path: string): string {
-  if (process.platform !== 'win32') {
-    path = path.replace(/^\s*~(?=$|\/|\\)/, userHome);
-  }
-
-  return path;
-}
-
 export function resolveWithHome(path: string): string {
   const homePattern = process.platform === 'win32' ? /^~(\/|\\)/ : /^~\//;
-  if (path.match(homePattern)) {
+  if (homePattern.test(path)) {
     return resolve(userHome, path.substr(2));
   }
 

@@ -1,7 +1,9 @@
 /* @flow */
 const ENV_EXPR = /(\\*)\$\{([^}]+)\}/g;
 
-export default function envReplace(value: string, env: {[key: string]: ?string} = process.env): string {
+export type Env = {[key: string]: ?string};
+
+export default function envReplace(value: string, env: Env = process.env): string {
   if (typeof value !== 'string' || !value) {
     return value;
   }

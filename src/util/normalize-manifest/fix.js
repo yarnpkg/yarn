@@ -1,6 +1,6 @@
 /* @flow */
 
-import {DEPENDENCY_TYPES} from '../../constants';
+import {MANIFEST_FIELDS} from '../../constants';
 import type {Reporter} from '../../reporters/index.js';
 import {isValidLicense} from './util.js';
 import {normalizePerson, extractDescription} from './util.js';
@@ -308,9 +308,13 @@ export default (async function(
     }
   }
 
-  for (const dependencyType of DEPENDENCY_TYPES) {
-    if (info[dependencyType] && typeof info[dependencyType] === 'object') {
-      delete info[dependencyType]['//'];
+  for (const dependencyType of MANIFEST_FIELDS) {
+    const dependencyList = info[dependencyType];
+    if (dependencyList && typeof dependencyList === 'object') {
+      delete dependencyList['//'];
+      for (const name in dependencyList) {
+        dependencyList[name] = dependencyList[name] || '';
+      }
     }
   }
 });

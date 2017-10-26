@@ -1,5 +1,6 @@
 /* @flow */
 
+import tty from 'tty';
 import type {Stdout} from '../types.js';
 
 const readline = require('readline');
@@ -10,6 +11,9 @@ const CLEAR_RIGHT_OF_CURSOR = 1;
 
 export function clearLine(stdout: Stdout) {
   if (!supportsColor) {
+    if (stdout instanceof tty.WriteStream) {
+      stdout.write(`\r${' '.repeat(stdout.columns - 1)}\r`);
+    }
     return;
   }
 
@@ -19,6 +23,7 @@ export function clearLine(stdout: Stdout) {
 
 export function toStartOfLine(stdout: Stdout) {
   if (!supportsColor) {
+    stdout.write('\r');
     return;
   }
 

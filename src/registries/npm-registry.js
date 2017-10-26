@@ -5,6 +5,7 @@ import type RequestManager from '../util/request-manager.js';
 import type {RegistryRequestOptions, CheckOutdatedReturn} from './base-registry.js';
 import type Config from '../config.js';
 import type {ConfigRegistries} from './index.js';
+import type {Env} from '../util/env-replace.js';
 import {YARN_REGISTRY} from '../constants.js';
 import * as fs from '../util/fs.js';
 import NpmResolver from '../resolvers/registries/npm-resolver.js';
@@ -27,8 +28,11 @@ export const SCOPE_SEPARATOR = '%2f';
 // All scoped package names are of the format `@scope%2fpkg` from the use of NpmRegistry.escapeName
 // `(?:^|\/)` Match either the start of the string or a `/` but don't capture
 // `[^\/?]+?` Match any character that is not '/' or '?' and capture, up until the first occurance of:
-// `%2f` Match SCOPE_SEPARATOR, the escaped '/', and don't capture
-const SCOPED_PKG_REGEXP = /(?:^|\/)(@[^\/?]+?)(?=%2f)/;
+// `(?=%2f|\/)` Match SCOPE_SEPARATOR, the escaped '/', or a raw `/` and don't capture
+// The reason for matching a plain `/` is NPM registry being inconsistent about escaping `/` in
+// scoped package names: when you're fetching a tarball, it is not escaped, when you want info
+// about the package, it is escaped.
+const SCOPED_PKG_REGEXP = /(?:^|\/)(@[^\/?]+?)(?=%2f|\/)/;
 
 // TODO: Use the method from src/cli/commands/global.js for this instead
 function getGlobalPrefix(): string {
@@ -50,10 +54,10 @@ function getGlobalPrefix(): string {
   }
 }
 
-const PATH_CONFIG_OPTIONS = ['cache', 'cafile', 'prefix', 'userconfig'];
+const PATH_CONFIG_OPTIONS = new Set(['cache', 'cafile', 'prefix', 'userconfig']);
 
 function isPathConfigOption(key: string): boolean {
-  return PATH_CONFIG_OPTIONS.indexOf(key) >= 0;
+  return PATH_CONFIG_OPTIONS.has(key);
 }
 
 function normalizePath(val: mixed): ?string {
@@ -62,7 +66,7 @@ function normalizePath(val: mixed): ?string {
   }
 
   if (typeof val !== 'string') {
-    val = '' + (val: any);
+    val = String(val);
   }
 
   return resolveWithHome(val);
@@ -203,11 +207,20 @@ export default class NpmRegistry extends Registry {
     return actuals;
   }
 
+  static getConfigEnv(env: Env = process.env): Env {
+    // To match NPM's behavior, HOME is always the user's home directory.
+    const overrideEnv = {
+      HOME: home,
+    };
+    return Object.assign({}, env, overrideEnv);
+  }
+
   static normalizeConfig(config: Object): Object {
+    const env = NpmRegistry.getConfigEnv();
     config = Registry.normalizeConfig(config);
 
     for (const key: string in config) {
-      config[key] = envReplace(config[key]);
+      config[key] = envReplace(config[key], env);
       if (isPathConfigOption(key)) {
         config[key] = normalizePath(config[key]);
       }

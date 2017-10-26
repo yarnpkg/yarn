@@ -22,6 +22,8 @@ export function hasWrapper(commander: Object, args: Array<string>): boolean {
   return true;
 }
 
+export const shouldRunInCurrentCwd = true;
+
 export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
   const manifests = await config.getRootManifests();
 

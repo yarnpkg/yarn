@@ -4,7 +4,7 @@ import {resolve, join as pathJoin} from 'path';
 
 import NpmRegistry from '../../src/registries/npm-registry.js';
 import {BufferReporter} from '../../src/reporters/index.js';
-import homeDir from '../../src/util/user-home-dir.js';
+import homeDir, {home} from '../../src/util/user-home-dir.js';
 
 describe('normalizeConfig', () => {
   beforeAll(() => {
@@ -39,6 +39,18 @@ describe('normalizeConfig', () => {
     const rooted = process.platform === 'win32' ? 'C:\\foo' : '/foo';
     const normalized = NpmRegistry.normalizeConfig({cafile: rooted})['cafile'];
     expect(normalized).toEqual(rooted);
+  });
+
+  test('handles missing HOME', () => {
+    const realHome = process.env.HOME;
+    delete process.env.HOME;
+
+    try {
+      const normalized = NpmRegistry.normalizeConfig({cafile: '${HOME}/foo'})['cafile'];
+      expect(normalized).toEqual(resolve(home, 'foo'));
+    } finally {
+      process.env.HOME = realHome;
+    }
   });
 });
 
@@ -254,7 +266,7 @@ describe('isRequestToRegistry functional test', () => {
 const packageIdents = [
   ['normal', ''],
   ['@scopedNoPkg', ''],
-  ['@scoped/notescaped', ''],
+  ['@scoped/notescaped', '@scoped'],
   ['not@scope/pkg', ''],
   ['@scope?query=true', ''],
   ['@scope%2fpkg', '@scope'],
@@ -263,13 +275,15 @@ const packageIdents = [
   ['@scope%2fpkg%2f1.2.3', '@scope'],
   ['http://foo.bar:80/normal', ''],
   ['http://foo.bar:80/@scopedNoPkg', ''],
-  ['http://foo.bar:80/@scoped/notescaped', ''],
+  ['http://foo.bar:80/@scoped/notescaped', '@scoped'],
+  ['http://foo.bar:80/@scoped/notescaped/download/@scoped/notescaped-1.0.0.tgz', '@scoped'],
   ['http://foo.bar:80/not@scope/pkg', ''],
   ['http://foo.bar:80/@scope?query=true', ''],
   ['http://foo.bar:80/@scope%2fpkg', '@scope'],
   ['http://foo.bar:80/@scope%2fpkg%2fext', '@scope'],
   ['http://foo.bar:80/@scope%2fpkg?query=true', '@scope'],
   ['http://foo.bar:80/@scope%2fpkg%2f1.2.3', '@scope'],
+  ['http://foo.bar:80/@scope%2fpkg/download/@scope%2fpkg-1.0.0.tgz', '@scope'],
 ];
 
 describe('isScopedPackage functional test', () => {

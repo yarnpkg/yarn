@@ -5,35 +5,43 @@ please read the [code of conduct](CODE_OF_CONDUCT.md).
 
 ## Setup
 
+You need at least the latest version of Node 6 to work on Yarn.
+
 1. Install yarn on your system: https://yarnpkg.com/en/docs/install
 1. Fork the repo: https://github.com/yarnpkg/yarn
 1. Run the following commands:
 
 ```sh
-$ git clone YOUR_YARN_REPO_URL
-$ cd yarn
-$ yarn
-$ yarn run build
+git clone YOUR_YARN_REPO_URL
+cd yarn
+yarn
+yarn run build
 ```
 
 ## Building
 
 ```sh
-$ yarn run build
+yarn run build
 ```
 
 ```sh
-$ yarn run watch
+yarn run watch
+```
+
+## Using the local builds
+
+```sh
+alias yarn="node /path/to/yarn/lib/cli/index.js"
 ```
 
 ## Testing
 
 ```sh
-$ yarn run test
+yarn run test
 ```
 
 ```sh
-$ yarn run lint
+yarn run lint
 ```
 
 ## Pull Requests

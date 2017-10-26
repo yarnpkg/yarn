@@ -27,7 +27,7 @@ export default class PackageReference {
     this.permissions = {};
     this.patterns = [];
     this.optional = null;
-    this.root = false;
+    this.level = Infinity;
     this.ignore = false;
     this.incompatible = false;
     this.fresh = false;
@@ -39,7 +39,7 @@ export default class PackageReference {
   lockfile: Lockfile;
   config: Config;
 
-  root: boolean;
+  level: number;
   name: string;
   version: string;
   uid: string;
@@ -66,9 +66,7 @@ export default class PackageReference {
   addRequest(request: PackageRequest) {
     this.requests.push(request);
 
-    if (!request.parentRequest) {
-      this.root = true;
-    }
+    this.level = Math.min(this.level, request.parentNames.length);
   }
 
   prune() {
