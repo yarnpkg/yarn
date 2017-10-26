@@ -31,6 +31,11 @@ const expectInstalledDevDependency = async (config, name, range, expectedVersion
   await _expectDependency('devDependencies', config, name, range, expectedVersion);
 };
 
+const expectInstalledTransitiveDependency = async (config, name, range, expectedVersion) => {
+  const lockfile = explodeLockfile(await fs.readFile(path.join(config.cwd, 'yarn.lock')));
+  expect(lockfile).toContainPackage(`${name}@${range}:`, expectedVersion);
+};
+
 expect.extend({
   toContainPackage(lockfile, ...args): Object {
     const [pattern, expectedVersion] = args;
@@ -65,6 +70,32 @@ test.concurrent('throws if lockfile is out of date', (): Promise<void> => {
 test.concurrent('works with no arguments', (): Promise<void> => {
   return runUpgrade([], {}, 'no-args', async (config): ?Promise<void> => {
     await expectInstalledDependency(config, 'left-pad', '^1.0.0', '1.1.3');
+  });
+});
+
+test.concurrent('upgrades transitive deps when no arguments', (): Promise<void> => {
+  return runUpgrade([], {}, 'with-subdep', async (config): ?Promise<void> => {
+    await expectInstalledDependency(config, 'strip-ansi', '^2.0.1', '2.0.1');
+    await expectInstalledTransitiveDependency(config, 'ansi-regex', '^1.0.0', '1.1.1');
+    await expectInstalledDependency(config, 'array-union', '^1.0.1', '1.0.2');
+    await expectInstalledTransitiveDependency(config, 'array-uniq', '^1.0.1', '1.0.3');
+  });
+});
+
+test.concurrent('does not upgrade transitive deps that are also a direct dependency', (): Promise<void> => {
+  return runUpgrade(['strip-ansi'], {}, 'with-subdep-also-direct', async (config): ?Promise<void> => {
+    await expectInstalledDependency(config, 'strip-ansi', '^2.0.1', '2.0.1');
+    await expectInstalledTransitiveDependency(config, 'ansi-regex', '^1.0.0', '1.0.0');
+    await expectInstalledDependency(config, 'ansi-regex', '^1.0.0', '1.0.0');
+  });
+});
+
+test.concurrent('does not upgrade transitive deps when specific package upgraded', (): Promise<void> => {
+  return runUpgrade(['strip-ansi'], {}, 'with-subdep', async (config): ?Promise<void> => {
+    await expectInstalledDependency(config, 'strip-ansi', '^2.0.1', '2.0.1');
+    await expectInstalledTransitiveDependency(config, 'ansi-regex', '^1.0.0', '1.1.1');
+    await expectInstalledDependency(config, 'array-union', '^1.0.1', '1.0.1');
+    await expectInstalledTransitiveDependency(config, 'array-uniq', '^1.0.1', '1.0.1');
   });
 });
 
@@ -109,6 +140,21 @@ test.concurrent('upgrades from fixed version to latest with workspaces', (): Pro
     void,
   > => {
     await expectInstalledDevDependency(config, 'max-safe-integer', '1.0.1', '1.0.1');
+  });
+});
+
+test.concurrent('works with just a pattern', (): Promise<void> => {
+  return runUpgrade([], {pattern: 'max'}, 'multiple-packages', async (config): ?Promise<void> => {
+    await expectInstalledDependency(config, 'max-safe-integer', '^1.0.0', '1.0.1');
+    await expectInstalledDependency(config, 'is-negative-zero', '^1.0.0', '1.0.0');
+  });
+});
+
+test.concurrent('works with arguments and a pattern', (): Promise<void> => {
+  return runUpgrade(['left-pad'], {pattern: 'max'}, 'multiple-packages', async (config): ?Promise<void> => {
+    await expectInstalledDependency(config, 'left-pad', '^1.0.0', '1.1.3');
+    await expectInstalledDependency(config, 'max-safe-integer', '^1.0.0', '1.0.1');
+    await expectInstalledDependency(config, 'is-negative-zero', '^1.0.0', '1.0.0');
   });
 });
 
@@ -314,4 +360,53 @@ test.concurrent('--latest works if there is an install script on a hoisted depen
     {latest: true},
     'latest-with-install-script',
   );
+});
+
+test.concurrent('upgrade to workspace root preserves child dependencies', (): Promise<void> => {
+  return runUpgrade(['max-safe-integer@1.0.1'], {latest: true}, 'workspaces', async (config): ?Promise<void> => {
+    const lockfile = explodeLockfile(await fs.readFile(path.join(config.cwd, 'yarn.lock')));
+
+    // child workspace deps
+    expect(lockfile.indexOf('left-pad@1.0.0:')).toBeGreaterThanOrEqual(0);
+    expect(lockfile.indexOf('right-pad@1.0.0:')).toBeGreaterThanOrEqual(0);
+    // root dep
+    expect(lockfile.indexOf('max-safe-integer@1.0.0:')).toBe(-1);
+    expect(lockfile.indexOf('max-safe-integer@1.0.1:')).toBeGreaterThanOrEqual(0);
+
+    const rootPkg = await fs.readJson(path.join(config.cwd, 'package.json'));
+    expect(rootPkg.devDependencies['max-safe-integer']).toEqual('1.0.1');
+
+    const childAPkg = await fs.readJson(path.join(config.cwd, 'child-a/package.json'));
+    const childBPkg = await fs.readJson(path.join(config.cwd, 'child-b/package.json'));
+    expect(childAPkg.dependencies['left-pad']).toEqual('1.0.0');
+    expect(childBPkg.dependencies['right-pad']).toEqual('1.0.0');
+  });
+});
+
+test.concurrent('upgrade to workspace child preserves root dependencies', (): Promise<void> => {
+  const fixture = {source: 'workspaces', cwd: 'child-a'};
+  return runUpgrade(['left-pad@1.1.0'], {latest: true}, fixture, async (config): ?Promise<void> => {
+    const lockfile = explodeLockfile(await fs.readFile(path.join(config.lockfileFolder, 'yarn.lock')));
+
+    // untouched deps
+    expect(lockfile.indexOf('right-pad@1.0.0:')).toBeGreaterThanOrEqual(0);
+    expect(lockfile.indexOf('max-safe-integer@1.0.0:')).toBeGreaterThanOrEqual(0);
+    // upgraded child workspace
+    expect(lockfile.indexOf('left-pad@1.0.0:')).toBe(-1);
+    expect(lockfile.indexOf('left-pad@1.1.0:')).toBeGreaterThanOrEqual(0);
+
+    const childAPkg = await fs.readJson(path.join(config.cwd, 'package.json'));
+    expect(childAPkg.dependencies['left-pad']).toEqual('1.1.0');
+
+    const rootPkg = await fs.readJson(path.join(config.lockfileFolder, 'package.json'));
+    const childBPkg = await fs.readJson(path.join(config.lockfileFolder, 'child-b/package.json'));
+    expect(rootPkg.devDependencies['max-safe-integer']).toEqual('1.0.0');
+    expect(childBPkg.dependencies['right-pad']).toEqual('1.0.0');
+  });
+});
+
+test.concurrent('latest flag does not downgrade from a beta', (): Promise<void> => {
+  return runUpgrade([], {latest: true}, 'using-beta', async (config): ?Promise<void> => {
+    await expectInstalledDependency(config, 'react-refetch', '^1.0.3-0', '1.0.3-0');
+  });
 });

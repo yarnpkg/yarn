@@ -222,7 +222,7 @@ async function buildActionsForCopy(
     // TODO https://github.com/yarnpkg/yarn/issues/3751
     // related to bundled dependencies handling
     if (files.has(dest.toLowerCase())) {
-      reporter.warn(`The case-insensitive file ${dest} shouldn't be copied twice in one bulk copy`);
+      reporter.verbose(`The case-insensitive file ${dest} shouldn't be copied twice in one bulk copy`);
     } else {
       files.add(dest.toLowerCase());
     }
@@ -603,10 +603,10 @@ export async function copyBulk(
 
   await promise.queue(
     fileActions,
-    (data: CopyFileAction): Promise<void> => {
-      const writePromise = currentlyWriting.get(data.dest);
-      if (writePromise) {
-        return writePromise;
+    async (data: CopyFileAction): Promise<void> => {
+      let writePromise;
+      while ((writePromise = currentlyWriting.get(data.dest))) {
+        await writePromise;
       }
 
       reporter.verbose(reporter.lang('verboseFileCopy', data.src, data.dest));

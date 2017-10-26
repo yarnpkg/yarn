@@ -43,11 +43,10 @@ const expectedKeys = [
   'license',
   'dist',
   'directories',
-  'scripts',
 ];
 
 // yarn now ships as built, single JS files so it has no dependencies and no scripts
-const unexpectedKeys = ['dependencies', 'devDependencies'];
+const unexpectedKeys = ['dependencies', 'devDependencies', 'scripts'];
 
 test.concurrent('without arguments and in directory containing a valid package file', (): Promise<void> => {
   return runInfo([], {}, 'local', (config, output): ?Promise<void> => {

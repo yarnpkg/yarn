@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "strip-ansi": "^2.0.1",
+    "ansi-regex": "^1.0.0"
+  }
+}

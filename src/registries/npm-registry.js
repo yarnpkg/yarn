@@ -5,6 +5,7 @@ import type RequestManager from '../util/request-manager.js';
 import type {RegistryRequestOptions, CheckOutdatedReturn} from './base-registry.js';
 import type Config from '../config.js';
 import type {ConfigRegistries} from './index.js';
+import type {Env} from '../util/env-replace.js';
 import {YARN_REGISTRY} from '../constants.js';
 import * as fs from '../util/fs.js';
 import NpmResolver from '../resolvers/registries/npm-resolver.js';
@@ -53,10 +54,10 @@ function getGlobalPrefix(): string {
   }
 }
 
-const PATH_CONFIG_OPTIONS = ['cache', 'cafile', 'prefix', 'userconfig'];
+const PATH_CONFIG_OPTIONS = new Set(['cache', 'cafile', 'prefix', 'userconfig']);
 
 function isPathConfigOption(key: string): boolean {
-  return PATH_CONFIG_OPTIONS.indexOf(key) >= 0;
+  return PATH_CONFIG_OPTIONS.has(key);
 }
 
 function normalizePath(val: mixed): ?string {
@@ -65,7 +66,7 @@ function normalizePath(val: mixed): ?string {
   }
 
   if (typeof val !== 'string') {
-    val = '' + (val: any);
+    val = String(val);
   }
 
   return resolveWithHome(val);
@@ -206,11 +207,20 @@ export default class NpmRegistry extends Registry {
     return actuals;
   }
 
+  static getConfigEnv(env: Env = process.env): Env {
+    // To match NPM's behavior, HOME is always the user's home directory.
+    const overrideEnv = {
+      HOME: home,
+    };
+    return Object.assign({}, env, overrideEnv);
+  }
+
   static normalizeConfig(config: Object): Object {
+    const env = NpmRegistry.getConfigEnv();
     config = Registry.normalizeConfig(config);
 
     for (const key: string in config) {
-      config[key] = envReplace(config[key]);
+      config[key] = envReplace(config[key], env);
       if (isPathConfigOption(key)) {
         config[key] = normalizePath(config[key]);
       }

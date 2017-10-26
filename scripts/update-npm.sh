@@ -27,4 +27,4 @@ if [ "$release_type" = "rc" ]; then
   npm_flags='--tag rc'
 fi;
 
-eval "npm publish '$tarball' --access public $npm_flags"
+eval "npx npm@4 publish '$tarball' --access public $npm_flags"

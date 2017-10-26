@@ -42,15 +42,32 @@ const runAdd = buildRun.bind(
   },
 );
 
-test.concurrent('add without --dev should fail on the workspace root', async () => {
+test.concurrent('add without --ignore-workspace-root-check should fail on the workspace root', async () => {
   await runInstall({}, 'simple-worktree', async (config, reporter): Promise<void> => {
     await expect(add(config, reporter, {}, ['left-pad'])).rejects.toBeDefined();
   });
 });
 
-test.concurrent("add with --dev shouldn't fail on the workspace root", async () => {
+test.concurrent("add with --ignore-workspace-root-check shouldn't fail on the workspace root", async () => {
   await runInstall({}, 'simple-worktree', async (config, reporter): Promise<void> => {
-    await expect(add(config, reporter, {dev: true}, ['left-pad']));
+    await expect(add(config, reporter, {ignoreWorkspaceRootCheck: true}, ['left-pad'])).resolves.toBeUndefined();
+  });
+});
+
+test.concurrent('adding to the workspace root should preserve workspace packages in lockfile', async () => {
+  await runInstall({}, 'workspaces-install-basic', async (config, reporter): Promise<void> => {
+    await add(config, reporter, {ignoreWorkspaceRootCheck: true}, ['max-safe-integer@1.0.0']);
+
+    expect(await fs.exists(`${config.cwd}/yarn.lock`)).toEqual(true);
+
+    const pkg = await fs.readJson(path.join(config.cwd, 'package.json'));
+    expect(pkg.dependencies).toEqual({'left-pad': '1.1.3', 'max-safe-integer': '1.0.0'});
+
+    const lockfile = explodeLockfile(await fs.readFile(path.join(config.cwd, 'yarn.lock')));
+    expect(lockfile).toHaveLength(15);
+    expect(lockfile.indexOf('isarray@2.0.1:')).toEqual(0);
+    expect(lockfile.indexOf('left-pad@1.1.3:')).toEqual(3);
+    expect(lockfile.indexOf('max-safe-integer@1.0.0:')).toEqual(6);
   });
 });
 
@@ -938,5 +955,34 @@ test.concurrent('installing with --pure-lockfile and then adding should keep bui
     const add = new Add(['left-pad@1.1.0'], {}, config, reporter, await Lockfile.fromDirectory(config.cwd));
     await add.init();
     expect(await fs.exists(path.join(config.cwd, 'node_modules', 'package-a', 'temp.txt'))).toBe(true);
+  });
+});
+
+test.concurrent('preserves unaffected bin links after adding to workspace package', async () => {
+  await runInstall({binLinks: true}, 'workspaces-install-bin', async (config): Promise<void> => {
+    const reporter = new ConsoleReporter({});
+
+    expect(await fs.exists(`${config.cwd}/node_modules/.bin/rimraf`)).toEqual(true);
+    expect(await fs.exists(`${config.cwd}/node_modules/.bin/touch`)).toEqual(true);
+    expect(await fs.exists(`${config.cwd}/node_modules/.bin/workspace-1`)).toEqual(true);
+    expect(await fs.exists(`${config.cwd}/packages/workspace-2/node_modules/.bin/rimraf`)).toEqual(true);
+    expect(await fs.exists(`${config.cwd}/packages/workspace-2/node_modules/.bin/workspace-1`)).toEqual(true);
+
+    // add package
+    const childConfig = await makeConfigFromDirectory(`${config.cwd}/packages/workspace-1`, reporter, {binLinks: true});
+    await add(childConfig, reporter, {}, ['max-safe-integer@1.0.0']);
+
+    expect(
+      JSON.parse(await fs.readFile(path.join(config.cwd, 'packages/workspace-1/package.json'))).dependencies,
+    ).toEqual({
+      'max-safe-integer': '1.0.0',
+    });
+
+    // bin links should be preserved
+    expect(await fs.exists(`${config.cwd}/node_modules/.bin/rimraf`)).toEqual(true);
+    expect(await fs.exists(`${config.cwd}/node_modules/.bin/touch`)).toEqual(true);
+    expect(await fs.exists(`${config.cwd}/node_modules/.bin/workspace-1`)).toEqual(true);
+    expect(await fs.exists(`${config.cwd}/packages/workspace-2/node_modules/.bin/rimraf`)).toEqual(true);
+    expect(await fs.exists(`${config.cwd}/packages/workspace-2/node_modules/.bin/workspace-1`)).toEqual(true);
   });
 });
