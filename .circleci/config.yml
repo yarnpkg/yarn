@@ -1,0 +1,141 @@
+version: 2
+
+defaults: &defaults
+  working_directory: ~/project/yarn
+  docker:
+    - image: yarnpkg/dev:latest
+
+default_filters: &default_filters
+  tags:
+    only: '/^v[0-9]\+\.[0-9]\+\.[0-9]\+$/'
+
+restore_node_modules: &restore_node_modules
+  restore_cache:
+    name: Restore node_modules cache
+    keys:
+      - v1-node-{{ .Branch }}-{{ checksum "yarn.lock" }}
+      - v1-node-{{ .Branch }}-
+      - v1-node-
+
+jobs:
+  install:
+    <<: *defaults
+    steps:
+      - checkout
+      - *restore_node_modules
+      - run:
+          name: Install Dependencies
+          command: yarn install
+      - save_cache:
+          name: Save yarn cache
+          key: v1-yarn-{{ .Branch }}-{{ checksum "yarn.lock" }}
+          paths:
+            - .cache/yarn
+      - save_cache:
+          name: Save node_modules cache
+          key: v1-node-{{ .Branch }}-{{ checksum "yarn.lock" }}
+          paths:
+            - node_modules/
+      - run:
+          name: Remove node_modules to cleanup workspace
+          command: rm -r node_modules/
+      - persist_to_workspace:
+          root: ~/project
+          paths:
+            - yarn
+  test:
+    <<: *defaults
+    steps:
+      - attach_workspace:
+          at: ~/project
+      - *restore_node_modules
+      - run:
+          name: Tests
+          command: |
+            node -v
+            if [ "$CIRCLE_BRANCH" == 'master' ]; then
+              ./scripts/set-dev-version.js
+            fi;
+            # Limit maxWorkers to 3 to avoid OOM on CircleCI
+            yarn test-ci -- -- --maxWorkers 3
+            yarn check-lockfile
+  lint:
+    <<: *defaults
+    steps:
+      - attach_workspace:
+          at: ~/project
+      - *restore_node_modules
+      - run:
+          name: Lint
+          command: yarn lint
+  build:
+    <<: *defaults
+    steps:
+      - attach_workspace:
+          at: ~/project
+      - *restore_node_modules
+      - run:
+          name: Build distribution
+          command: |
+            node -v
+            if [ "$CIRCLE_BRANCH" == 'master' ]; then
+              ./scripts/set-dev-version.js
+            fi;
+            yarn build-dist
+            ./scripts/build-deb.sh
+      - store_artifacts:
+          path: artifacts/
+          destination: yarnpkg
+      - persist_to_workspace:
+          root: ~/project
+          paths:
+            - yarn
+  deploy:
+    <<: *defaults
+    steps:
+      - attach_workspace:
+          at: ~/project
+      - *restore_node_modules
+      - run:
+          name: Deploy
+          command: |
+            # Only NPM is handled here - All other release files are handled in a webhook.
+            if [ "${CIRCLE_PROJECT_USERNAME}" == "yarnpkg" ]; then
+              echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
+              ./scripts/update-npm.sh
+            fi
+
+notify:
+  webhooks:
+    # Handles uploading stable/RC releases to GitHub
+    - url: https://nightly.yarnpkg.com/release_circleci
+    # Handles archiving all builds onto the nightly build site
+    - url: https://nightly.yarnpkg.com/archive_circleci
+
+workflows:
+  version: 2
+  install-test-build-and-deploy:
+    jobs:
+      - install:
+          filters: *default_filters
+      - test:
+          filters: *default_filters
+          requires:
+            - install
+      - lint:
+          filters: *default_filters
+          requires:
+            - install
+      - build:
+          filters: *default_filters
+          requires:
+            - install
+      - deploy:
+          filters:
+            <<: *default_filters
+            branches:
+              ignore: '/.*/'
+          requires:
+            - test
+            - lint
+            - build
