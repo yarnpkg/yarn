@@ -96,7 +96,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
     {
       key: 'private',
       question: 'private',
-      default: String(config.getOption('init-private') || ''),
+      default: config.getOption('init-private') || '',
       inputFormatter: yn,
     },
   ];
@@ -125,11 +125,11 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
     }
 
     if (manifestKey === 'private' && privateFlag) {
-      def = 'true';
+      def = true;
     }
 
     if (def) {
-      question += ` (${def})`;
+      question += ` (${String(def)})`;
     }
 
     let answer;
