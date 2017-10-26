@@ -1134,3 +1134,49 @@ test.concurrent('warns for missing bundledDependencies', (): Promise<void> => {
     'missing-bundled-dep',
   );
 });
+describe('--peer option', (): void => {
+  test.concurrent('off by default', async () => {
+    await runInstall({}, 'install-peer-deps', async (config): Promise<void> => {
+      let list = await fs.readdir(path.join(config.cwd, 'node_modules'));
+      list = list.sort((a, b) => (a < b ? -1 : a > b ? 1 : 0)).filter(s => s[0] !== '.');
+      expect(list).toEqual(['devpkg', 'pkg']);
+      expect(await fs.exists(path.join(config.cwd, 'node_modules', 'pkg', 'node_modules'))).toEqual(false);
+    });
+  });
+
+  test.concurrent('install peer deps when flag is present', async () => {
+    await runInstall({peer: true}, 'install-peer-deps', async (config): Promise<void> => {
+      let list = await fs.readdir(path.join(config.cwd, 'node_modules'));
+      list = list.sort((a, b) => (a < b ? -1 : a > b ? 1 : 0)).filter(s => s[0] !== '.');
+      expect(list).toEqual(['devpkg', 'peerpkg', 'pkg']);
+      expect(await fs.exists(path.join(config.cwd, 'node_modules', 'pkg', 'node_modules'))).toEqual(false);
+    });
+  });
+
+  test.concurrent('with flag when pkg has no peers', async () => {
+    await runInstall({peer: true}, 'install-peer-sans-peers', async (config): Promise<void> => {
+      let list = await fs.readdir(path.join(config.cwd, 'node_modules'));
+      list = list.sort((a, b) => (a < b ? -1 : a > b ? 1 : 0)).filter(s => s[0] !== '.');
+      expect(list).toEqual(['devpkg', 'pkg']);
+    });
+  });
+
+  test.concurrent('without flag when pkg has only peers', async () => {
+    await runInstall({}, 'install-peer-only-peers', async (config): Promise<void> => {
+      // a node_modules dir is still created...
+      expect(await fs.exists(path.join(config.cwd, 'node_modules'))).toEqual(true);
+
+      let list = await fs.readdir(path.join(config.cwd, 'node_modules'));
+      list = list.sort((a, b) => (a < b ? -1 : a > b ? 1 : 0)).filter(s => s[0] !== '.');
+      expect(list).toEqual([]);
+    });
+  });
+
+  test.concurrent('with flag when pkg has only peers', async () => {
+    await runInstall({peer: true}, 'install-peer-only-peers', async (config): Promise<void> => {
+      let list = await fs.readdir(path.join(config.cwd, 'node_modules'));
+      list = list.sort((a, b) => (a < b ? -1 : a > b ? 1 : 0)).filter(s => s[0] !== '.');
+      expect(list).toEqual(['peerpkg']);
+    });
+  });
+});

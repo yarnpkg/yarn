@@ -137,6 +137,7 @@ function normalizeFlags(config: Config, rawFlags: Object): Flags {
     frozenLockfile: !!rawFlags.frozenLockfile,
     linkDuplicates: !!rawFlags.linkDuplicates,
     checkFiles: !!rawFlags.checkFiles,
+    includePeerDeps: !!rawFlags.peer,
 
     // add
     peer: !!rawFlags.peer,
@@ -254,6 +255,9 @@ export class Install {
         if (manifest.optionalDependencies && manifest.optionalDependencies[exclude]) {
           delete manifest.optionalDependencies[exclude];
         }
+        if (manifest.peerDependencies && manifest.peerDependencies[exclude]) {
+          delete manifest.peerDependencies[exclude];
+        }
       }
     };
 
@@ -318,6 +322,9 @@ export class Install {
       pushDeps('dependencies', projectManifestJson, {hint: null, optional: false}, true);
       pushDeps('devDependencies', projectManifestJson, {hint: 'dev', optional: false}, !this.config.production);
       pushDeps('optionalDependencies', projectManifestJson, {hint: 'optional', optional: true}, true);
+      if (this.flags.includePeerDeps) {
+        pushDeps('peerDependencies', projectManifestJson, {hint: 'peer', optional: false}, !this.config.production);
+      }
 
       if (this.config.workspaceRootFolder) {
         const workspaceLoc = cwdIsRoot ? loc : path.join(this.config.lockfileFolder, filename);
@@ -344,6 +351,9 @@ export class Install {
             pushDeps('dependencies', workspaceManifest, {hint: null, optional: false}, true);
             pushDeps('devDependencies', workspaceManifest, {hint: 'dev', optional: false}, !this.config.production);
             pushDeps('optionalDependencies', workspaceManifest, {hint: 'optional', optional: true}, true);
+            if (this.flags.includePeerDeps) {
+              pushDeps('peerDependencies', workspaceManifest, {hint: 'peer', optional: false}, !this.config.production);
+            }
           }
         }
         const virtualDependencyManifest: Manifest = {
@@ -355,6 +365,7 @@ export class Install {
           dependencies: workspaceDependencies,
           devDependencies: {...workspaceManifestJson.devDependencies},
           optionalDependencies: {...workspaceManifestJson.optionalDependencies},
+          peerDependencies: this.flags.includePeerDeps ? {...workspaceManifestJson.peerDependencies} : {},
         };
         workspaceLayout.virtualManifestName = virtualDependencyManifest.name;
         const virtualDep = {};
@@ -923,13 +934,8 @@ export function hasWrapper(commander: Object, args: Array<string>): boolean {
 
 export function setFlags(commander: Object) {
   commander.usage('install [flags]');
+  commander.option('--peer', 'explicitly install peer dependencies as well');
   commander.option('-g, --global', 'DEPRECATED');
-  commander.option('-S, --save', 'DEPRECATED - save package to your `dependencies`');
-  commander.option('-D, --save-dev', 'DEPRECATED - save package to your `devDependencies`');
-  commander.option('-P, --save-peer', 'DEPRECATED - save package to your `peerDependencies`');
-  commander.option('-O, --save-optional', 'DEPRECATED - save package to your `optionalDependencies`');
-  commander.option('-E, --save-exact', 'DEPRECATED');
-  commander.option('-T, --save-tilde', 'DEPRECATED');
 }
 
 export async function install(config: Config, reporter: Reporter, flags: Object, lockfile: Lockfile): Promise<void> {
