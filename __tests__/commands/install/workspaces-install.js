@@ -1,10 +1,10 @@
 /* @flow */
 
 import {run as check} from '../../../src/cli/commands/check.js';
-import {Install} from '../../../src/cli/commands/install.js';
+import {Install, run as install} from '../../../src/cli/commands/install.js';
 import * as reporters from '../../../src/reporters/index.js';
 import * as fs from '../../../src/util/fs.js';
-import {runInstall, run as buildRun} from '../_helpers.js';
+import {runInstall, run as buildRun, makeConfigFromDirectory} from '../_helpers.js';
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 150000;
 
@@ -239,6 +239,35 @@ test.concurrent('install should ignore node_modules in workspaces when used with
   return runInstall({}, 'workspaces-install-already-exists', async (config): Promise<void> => {
     expect(await fs.exists(path.join(config.cwd, 'node_modules', 'a'))).toBe(true);
     expect(await fs.exists(path.join(config.cwd, 'node_modules', 'b'))).toBe(true);
+  });
+});
+
+test.concurrent('install should link binaries properly when run from child workspace', async () => {
+  await runInstall({binLinks: true}, 'workspaces-install-bin', async (config, reporter): Promise<void> => {
+    // initial install
+    expect(await fs.exists(`${config.cwd}/node_modules/.bin/rimraf`)).toEqual(true);
+    expect(await fs.exists(`${config.cwd}/node_modules/.bin/touch`)).toEqual(true);
+    expect(await fs.exists(`${config.cwd}/node_modules/.bin/workspace-1`)).toEqual(true);
+    expect(await fs.exists(`${config.cwd}/packages/workspace-2/node_modules/.bin/rimraf`)).toEqual(true);
+    expect(await fs.exists(`${config.cwd}/packages/workspace-2/node_modules/.bin/workspace-1`)).toEqual(true);
+
+    // reset package folders to simulate running 'install' from
+    // child workspace _before_ running it in the root (this is not
+    // possible to do without an initial install using the current
+    // testing infrastructure)
+    await fs.unlink(`${config.cwd}/node_modules`);
+    await fs.unlink(`${config.cwd}/packages/workspace-1/node_modules`);
+    await fs.unlink(`${config.cwd}/packages/workspace-2/node_modules`);
+
+    // run "install" in child package
+    const childConfig = await makeConfigFromDirectory(`${config.cwd}/packages/workspace-1`, reporter, {binLinks: true});
+    await install(childConfig, reporter, {}, []);
+
+    expect(await fs.exists(`${config.cwd}/node_modules/.bin/rimraf`)).toEqual(true);
+    expect(await fs.exists(`${config.cwd}/node_modules/.bin/touch`)).toEqual(true);
+    expect(await fs.exists(`${config.cwd}/node_modules/.bin/workspace-1`)).toEqual(true);
+    expect(await fs.exists(`${config.cwd}/packages/workspace-2/node_modules/.bin/rimraf`)).toEqual(true);
+    expect(await fs.exists(`${config.cwd}/packages/workspace-2/node_modules/.bin/workspace-1`)).toEqual(true);
   });
 });
 

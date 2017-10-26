@@ -112,7 +112,7 @@ const messages = {
   noPermission: 'Cannot create $0 due to insufficient permissions.',
   noGlobalFolder: 'Cannot find a suitable global folder. Tried these: $0',
   allDependenciesUpToDate: 'All of your dependencies are up to date.',
-  legendColorsForUpgradeInteractive:
+  legendColorsForVersionUpdates:
     'Color legend : \n $0    : Major Update backward-incompatible updates \n $1 : Minor Update backward-compatible features \n $2  : Patch Update backward-compatible bug fixes',
   frozenLockfileError: 'Your lockfile needs to be updated, but yarn was run with `--frozen-lockfile`.',
   fileWriteError: 'Could not write file $0: $1',
@@ -361,9 +361,14 @@ const messages = {
   deprecatedCommand: '$0 is deprecated. Please use $1.',
   deprecatedListArgs: 'Filtering by arguments is deprecated. Please use the pattern option instead.',
   implicitFileDeprecated:
-    'Using the "file:" protocol implicitly is deprecated. Please either the protocol or prepend the path $0 with "./".',
+    'Using the "file:" protocol implicitly is deprecated. Please either prepend the protocol or prepend the path $0 with "./".',
   unsupportedNodeVersion:
     'You are using Node $0 which is not supported and may encounter bugs or unexpected behavior. Yarn supports the following semver range: $1',
+
+  verboseUpgradeBecauseRequested: 'Considering upgrade of $0 to $1 because it was directly requested.',
+  verboseUpgradeBecauseOutdated: 'Considering upgrade of $0 to $1 because a newer version exists in the registry.',
+  verboseUpgradeNotUnlocking: 'Not unlocking $0 in the lockfile because it is a new or direct dependency.',
+  verboseUpgradeUnlocking: 'Unlocking $0 in the lockfile.',
 };
 
 export type LanguageKeys = $Keys<typeof messages>;

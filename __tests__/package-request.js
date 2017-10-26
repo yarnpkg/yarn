@@ -32,7 +32,7 @@ async function prepareRequest(pattern: string, version: string, resolved: string
   return {request, reporter};
 }
 
-test('Produce valid remote type for a git private dep', async () => {
+test('Produce valid remote type for a git-over-ssh dep', async () => {
   const {request, reporter} = await prepareRequest(
     'private-dep@github:yarnpkg/private-dep#1.0.0',
     '1.0.0',
@@ -41,6 +41,32 @@ test('Produce valid remote type for a git private dep', async () => {
 
   expect(request.getLocked('git')._remote.type).toBe('git');
   expect(request.getLocked('tarball')._remote.type).toBe('git');
+
+  await reporter.close();
+});
+
+test('Produce valid remote type for a git-over-https dep', async () => {
+  const {request, reporter} = await prepareRequest(
+    'public-dep@yarnpkg/public-dep#1.0.0',
+    '1.0.0',
+    'git+https://github.com/yarnpkg/public-dep#1fde368',
+  );
+
+  expect(request.getLocked('git')._remote.type).toBe('git');
+  expect(request.getLocked('tarball')._remote.type).toBe('git');
+
+  await reporter.close();
+});
+
+test('Produce valid remote type for a git public dep', async () => {
+  const {request, reporter} = await prepareRequest(
+    'public-dep@yarnpkg/public-dep#1fde368',
+    '1.0.0',
+    'https://codeload.github.com/yarnpkg/public-dep/tar.gz/1fde368',
+  );
+
+  expect(request.getLocked('git')._remote.type).toBe('git');
+  expect(request.getLocked('tarball')._remote.type).toBe('tarball');
 
   await reporter.close();
 });
@@ -62,17 +88,4 @@ test('Check parentNames flowing in the request', async () => {
   expect(childRequest.parentNames).toContain(parentRequest.pattern);
   await parentReporter.close();
   await childReporter.close();
-});
-
-test('Produce valid remote type for a git public dep', async () => {
-  const {request, reporter} = await prepareRequest(
-    'public-dep@yarnpkg/public-dep#1fde368',
-    '1.0.0',
-    'https://codeload.github.com/yarnpkg/public-dep/tar.gz/1fde368',
-  );
-
-  expect(request.getLocked('git')._remote.type).toBe('git');
-  expect(request.getLocked('tarball')._remote.type).toBe('tarball');
-
-  await reporter.close();
 });

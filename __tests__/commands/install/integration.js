@@ -55,6 +55,16 @@ test.concurrent('install should not hoist packages above their peer dependencies
   });
 });
 
+test.concurrent('install should resolve peer dependencies from same subtrees', async () => {
+  await runInstall({}, 'peer-dep-same-subtree', async (config): Promise<void> => {
+    expect(JSON.parse(await fs.readFile(`${config.cwd}/node_modules/d/node_modules/a/package.json`)).version).toEqual(
+      '1.0.0',
+    );
+    expect(JSON.parse(await fs.readFile(`${config.cwd}/node_modules//a/package.json`)).version).toEqual('1.1.0');
+    expect(await fs.exists(`${config.cwd}/node_modules/c/node_modules/a`)).toEqual(false);
+  });
+});
+
 test.concurrent('install optional subdependencies by default', async () => {
   await runInstall({}, 'install-optional-dependencies', async (config): Promise<void> => {
     expect(await fs.exists(`${config.cwd}/node_modules/dep-b`)).toEqual(true);
@@ -628,6 +638,30 @@ test.concurrent('install with comments in manifest', (): Promise<void> => {
   return runInstall({lockfile: false}, 'install-with-comments', async config => {
     expect(await fs.readFile(path.join(config.cwd, 'node_modules', 'foo', 'index.js'))).toEqual('foobar;\n');
   });
+});
+
+test.concurrent('install with comments in manifest resolutions does not result in warning', (): Promise<void> => {
+  const fixturesLoc = path.join(__dirname, '..', '..', 'fixtures', 'install');
+
+  return buildRun(
+    reporters.BufferReporter,
+    fixturesLoc,
+    async (args, flags, config, reporter): Promise<void> => {
+      await install(config, reporter, flags, args);
+
+      const output = reporter.getBuffer();
+      const warnings = output.filter(entry => entry.type === 'warning');
+
+      expect(
+        warnings.some(warning => {
+          return warning.data.toString().indexOf(reporter.lang('invalidResolutionName', '//')) > -1;
+        }),
+      ).toEqual(false);
+    },
+    [],
+    {lockfile: false},
+    'install-with-comments',
+  );
 });
 
 test.concurrent('install with null versions in manifest', (): Promise<void> => {

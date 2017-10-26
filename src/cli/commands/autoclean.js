@@ -40,6 +40,11 @@ Gulpfile.js
 Gruntfile.js
 
 # configs
+appveyor.yml
+circle.yml
+codeship-services.yml
+codeship-steps.yml
+wercker.yml
 .tern-project
 .gitattributes
 .editorconfig
@@ -49,8 +54,7 @@ Gruntfile.js
 .flowconfig
 .documentup.json
 .yarn-metadata.json
-.*.yml
-*.yml
+.travis.yml
 
 # misc
 *.md

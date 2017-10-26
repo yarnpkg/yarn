@@ -1,0 +1,10 @@
+{
+  "name": "workspace-2",
+  "version": "1.0.0",
+  "dependencies": {
+    "workspace-1": "^1.0.0"
+  },
+  "devDependencies": {
+    "rimraf": "^2.6.2"
+  }
+}

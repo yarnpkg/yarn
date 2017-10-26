@@ -164,7 +164,7 @@ export function main({
 
   let warnAboutRunDashDash = false;
   // we are using "yarn <script> -abc" or "yarn run <script> -abc", we want -abc to be script options, not yarn options
-  if (command === commands.run) {
+  if (command === commands.run || command === commands.create) {
     if (endArgs.length === 0) {
       endArgs = ['--', ...args.splice(1)];
     } else {
@@ -232,13 +232,6 @@ export function main({
   //
   if (!commander.offline && network.isOffline()) {
     reporter.warn(reporter.lang('networkWarning'));
-  }
-
-  //
-  if (command.requireLockfile && !fs.existsSync(path.join(config.cwd, constants.LOCKFILE_FILENAME))) {
-    reporter.error(reporter.lang('noRequiredLockfile'));
-    exit(1);
-    return;
   }
 
   //
@@ -425,7 +418,10 @@ export function main({
     }
 
     // lockfile
-    const lockLoc = path.join(config.cwd, constants.LOCKFILE_FILENAME);
+    const lockLoc = path.join(
+      config.lockfileFolder || config.cwd, // lockfileFolder might not be set at this point
+      constants.LOCKFILE_FILENAME,
+    );
     const lockfile = fs.existsSync(lockLoc) ? fs.readFileSync(lockLoc, 'utf8') : 'No lockfile';
     log.push(`Lockfile: ${indent(lockfile)}`);
 
@@ -455,7 +451,7 @@ export function main({
     return errorReportLoc;
   }
 
-  const cwd = findProjectRoot(commander.cwd);
+  const cwd = command.shouldRunInCurrentCwd ? commander.cwd : findProjectRoot(commander.cwd);
 
   config
     .init({
@@ -485,6 +481,11 @@ export function main({
       scriptsPrependNodePath: commander.scriptsPrependNodePath,
     })
     .then(() => {
+      // lockfile check must happen after config.init sets lockfileFolder
+      if (command.requireLockfile && !fs.existsSync(path.join(config.lockfileFolder, constants.LOCKFILE_FILENAME))) {
+        throw new MessageError(reporter.lang('noRequiredLockfile'));
+      }
+
       // option "no-progress" stored in yarn config
       const noProgressConfig = config.registries.yarn.getOption('no-progress');
 
@@ -543,16 +544,19 @@ async function start(): Promise<void> {
   if (yarnPath && process.env.YARN_IGNORE_PATH !== '1') {
     const argv = process.argv.slice(2);
     const opts = {stdio: 'inherit', env: Object.assign({}, process.env, {YARN_IGNORE_PATH: 1})};
+    let exitCode = 0;
 
     try {
-      await spawnp(yarnPath, argv, opts);
+      exitCode = await spawnp(yarnPath, argv, opts);
     } catch (firstError) {
       try {
-        await forkp(yarnPath, argv, opts);
+        exitCode = await forkp(yarnPath, argv, opts);
       } catch (error) {
         throw firstError;
       }
     }
+
+    process.exitCode = exitCode;
   } else {
     // ignore all arguments after a --
     const doubleDashIndex = process.argv.findIndex(element => element === '--');

@@ -76,7 +76,8 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
 
   // reinstall so we can get the updated lockfile
   reporter.step(++step, totalSteps, reporter.lang('uninstallRegenerate'));
-  const reinstall = new Install({force: true, ...flags}, config, new NoopReporter(), lockfile);
+  const installFlags = {force: true, workspaceRootIsCwd: true, ...flags};
+  const reinstall = new Install(installFlags, config, new NoopReporter(), lockfile);
   await reinstall.init();
 
   //

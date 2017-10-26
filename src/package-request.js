@@ -60,8 +60,9 @@ export default class PackageRequest {
 
     if (shrunk && shrunk.resolved) {
       const resolvedParts = versionUtil.explodeHashedUrl(shrunk.resolved);
-      // If it's a private git url set remote to 'git'.
-      const preferredRemoteType = resolvedParts.url.startsWith('git+ssh://') ? 'git' : remoteType;
+
+      // Detect Git protocols (git://HOST/PATH or git+PROTOCOL://HOST/PATH)
+      const preferredRemoteType = /^git(\+[a-z0-9]+)?:\/\//.test(resolvedParts.url) ? 'git' : remoteType;
 
       return {
         name: shrunk.name,
@@ -362,7 +363,7 @@ export default class PackageRequest {
     }
 
     const deps = await Promise.all(
-      depReqPatterns.map(async ({pattern, hint}): Promise<Dependency> => {
+      depReqPatterns.map(async ({pattern, hint, workspaceName, workspaceLoc}): Promise<Dependency> => {
         const locked = lockfile.getLocked(pattern);
         if (!locked) {
           throw new MessageError(reporter.lang('lockfileOutdated'));
@@ -384,15 +385,25 @@ export default class PackageRequest {
           ({latest, wanted, url} = await registry.checkOutdated(config, name, normalized.range));
         }
 
-        return {name, current, wanted, latest, url, hint, range: normalized.range, upgradeTo: ''};
+        return {
+          name,
+          current,
+          wanted,
+          latest,
+          url,
+          hint,
+          range: normalized.range,
+          upgradeTo: '',
+          workspaceName: workspaceName || '',
+          workspaceLoc: workspaceLoc || '',
+        };
       }),
     );
 
     // Make sure to always output `exotic` versions to be compatible with npm
     const isDepOld = ({current, latest, wanted}) =>
-      latest === 'exotic' || (latest !== 'exotic' && (semver.lt(current, wanted) || semver.lt(current, latest)));
+      latest === 'exotic' || (semver.lt(current, wanted) || semver.lt(current, latest));
     const orderByName = (depA, depB) => depA.name.localeCompare(depB.name);
-
     return deps.filter(isDepOld).sort(orderByName);
   }
 }

@@ -250,30 +250,71 @@ test('yarnrc arguments', async () => {
   expect((await fs.stat(`${cwd}/yarn-cache`)).isDirectory()).toBe(true);
 });
 
-test('yarnrc binary path (js)', async () => {
-  const cwd = await makeTemp();
+describe('yarnrc path', () => {
+  test('js file', async () => {
+    const cwd = await makeTemp();
 
-  await fs.writeFile(`${cwd}/.yarnrc`, 'yarn-path "./override.js"\n');
-  await fs.writeFile(`${cwd}/override.js`, 'console.log("override called")\n');
+    await fs.writeFile(`${cwd}/.yarnrc`, 'yarn-path "./override.js"\n');
+    await fs.writeFile(`${cwd}/override.js`, 'console.log("override called")\n');
 
-  const [stdoutOutput] = await runYarn([], {cwd});
-  expect(stdoutOutput.toString().trim()).toEqual('override called');
-});
+    const [stdoutOutput] = await runYarn([], {cwd});
+    expect(stdoutOutput.toString().trim()).toEqual('override called');
+  });
 
-test('yarnrc binary path (executable)', async () => {
-  const cwd = await makeTemp();
+  test('executable file', async () => {
+    const cwd = await makeTemp();
 
-  if (process.platform === 'win32') {
-    await fs.writeFile(`${cwd}/.yarnrc`, 'yarn-path "./override.cmd"\n');
-    await fs.writeFile(`${cwd}/override.cmd`, '@echo override called\n');
-  } else {
-    await fs.writeFile(`${cwd}/.yarnrc`, 'yarn-path "./override"\n');
-    await fs.writeFile(`${cwd}/override`, '#!/usr/bin/env sh\necho override called\n');
-    await fs.chmod(`${cwd}/override`, 0o755);
-  }
+    if (process.platform === 'win32') {
+      await fs.writeFile(`${cwd}/.yarnrc`, 'yarn-path "./override.cmd"\n');
+      await fs.writeFile(`${cwd}/override.cmd`, '@echo override called\n');
+    } else {
+      await fs.writeFile(`${cwd}/.yarnrc`, 'yarn-path "./override"\n');
+      await fs.writeFile(`${cwd}/override`, '#!/usr/bin/env sh\necho override called\n');
+      await fs.chmod(`${cwd}/override`, 0o755);
+    }
 
-  const [stdoutOutput] = await runYarn([], {cwd});
-  expect(stdoutOutput.toString().trim()).toEqual('override called');
+    const [stdoutOutput] = await runYarn([], {cwd});
+    expect(stdoutOutput.toString().trim()).toEqual('override called');
+  });
+
+  test('js file exit code', async () => {
+    const cwd = await makeTemp();
+
+    await fs.writeFile(`${cwd}/.yarnrc`, 'yarn-path "./override.js"\n');
+    await fs.writeFile(`${cwd}/override.js`, 'process.exit(123);');
+
+    let error = false;
+    try {
+      await runYarn([], {cwd});
+    } catch (err) {
+      error = err.code;
+    }
+
+    expect(error).toEqual(123);
+  });
+
+  test('sh file exit code', async () => {
+    const cwd = await makeTemp();
+
+    if (process.platform !== 'win32') {
+      await fs.writeFile(`${cwd}/.yarnrc`, 'yarn-path "./override.sh"\n');
+      await fs.writeFile(`${cwd}/override.sh`, '#!/usr/bin/env sh\n\nexit 123\n');
+
+      await fs.chmod(`${cwd}/override.sh`, 0o755);
+    } else {
+      await fs.writeFile(`${cwd}/.yarnrc`, 'yarn-path "./override.cmd"\r\n');
+      await fs.writeFile(`${cwd}/override.cmd`, 'exit /b 123\r\n');
+    }
+
+    let error = false;
+    try {
+      await runYarn([], {cwd});
+    } catch (err) {
+      error = err.code;
+    }
+
+    expect(error).toEqual(123);
+  });
 });
 
 for (const withDoubleDash of [false, true]) {
@@ -353,4 +394,21 @@ test('yarn create', async () => {
   const [stdoutOutput, _] = await runYarn(['create', 'html'], options);
 
   expect(stdoutOutput.toString()).toMatch(/<!doctype html>/);
+});
+
+test('yarn init -y', async () => {
+  const cwd = await makeTemp();
+  const innerDir = path.join(cwd, 'inner');
+  const initialManifestFile = JSON.stringify({name: 'test', license: 'ISC', version: '1.0.0'});
+
+  await fs.writeFile(`${cwd}/package.json`, initialManifestFile);
+  await fs.mkdirp(innerDir);
+
+  const options = {cwd: innerDir};
+  await runYarn(['init', '-y'], options);
+
+  expect(await fs.exists(path.join(innerDir, 'package.json'))).toEqual(true);
+
+  const manifestFile = await fs.readFile(path.join(cwd, 'package.json'));
+  expect(manifestFile).toEqual(initialManifestFile);
 });

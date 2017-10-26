@@ -411,7 +411,7 @@ export default class PackageLinker {
         topLevelDependencies,
         async ([dest, pkg]) => {
           if (pkg._reference && pkg._reference.location && pkg.bin && Object.keys(pkg.bin).length) {
-            const binLoc = path.join(this.config.cwd, this.config.getFolder(pkg));
+            const binLoc = path.join(this.config.lockfileFolder, this.config.getFolder(pkg));
             await this.linkSelfDependencies(pkg, dest, binLoc);
             tickBin();
           }
@@ -446,6 +446,21 @@ export default class PackageLinker {
       }
       const ref = pkg._reference;
       invariant(ref, 'Package reference is missing');
+      // TODO: We are taking the "shortest" ref tree but there may be multiple ref trees with the same length
+      const refTree = ref.requests.map(req => req.parentNames).sort((arr1, arr2) => arr1.length - arr2.length)[0];
+
+      const getLevelDistance = pkgRef => {
+        let minDistance = Infinity;
+        for (const req of pkgRef.requests) {
+          const distance = refTree.length - req.parentNames.length;
+
+          if (distance >= 0 && distance < minDistance && req.parentNames.every((name, idx) => name === refTree[idx])) {
+            minDistance = distance;
+          }
+        }
+
+        return minDistance;
+      };
 
       for (const peerDepName in peerDeps) {
         const range = peerDeps[peerDepName];
@@ -453,35 +468,41 @@ export default class PackageLinker {
 
         let peerError = 'unmetPeer';
         let resolvedLevelDistance = Infinity;
-        let resolvedPeerPkgPattern;
+        let resolvedPeerPkg;
         for (const peerPkg of peerPkgs) {
           const peerPkgRef = peerPkg._reference;
           if (!(peerPkgRef && peerPkgRef.patterns)) {
             continue;
           }
-          const levelDistance = ref.level - peerPkgRef.level;
-          if (levelDistance >= 0 && levelDistance < resolvedLevelDistance) {
+          const levelDistance = getLevelDistance(peerPkgRef);
+          if (isFinite(levelDistance) && levelDistance < resolvedLevelDistance) {
             if (this._satisfiesPeerDependency(range, peerPkgRef.version)) {
               resolvedLevelDistance = levelDistance;
-              resolvedPeerPkgPattern = peerPkgRef.patterns;
-              this.reporter.verbose(
-                this.reporter.lang(
-                  'selectedPeer',
-                  `${pkg.name}@${pkg.version}`,
-                  `${peerDepName}@${range}`,
-                  peerPkgRef.level,
-                ),
-              );
+              resolvedPeerPkg = peerPkgRef;
             } else {
               peerError = 'incorrectPeer';
             }
           }
         }
 
-        if (resolvedPeerPkgPattern) {
-          ref.addDependencies(resolvedPeerPkgPattern);
+        if (resolvedPeerPkg) {
+          ref.addDependencies(resolvedPeerPkg.patterns);
+          this.reporter.verbose(
+            this.reporter.lang(
+              'selectedPeer',
+              `${pkg.name}@${pkg.version}`,
+              `${peerDepName}@${resolvedPeerPkg.version}`,
+              resolvedPeerPkg.level,
+            ),
+          );
         } else {
-          this.reporter.warn(this.reporter.lang(peerError, `${pkg.name}@${pkg.version}`, `${peerDepName}@${range}`));
+          this.reporter.warn(
+            this.reporter.lang(
+              peerError,
+              `${refTree.join(' > ')} > ${pkg.name}@${pkg.version}`,
+              `${peerDepName}@${range}`,
+            ),
+          );
         }
       }
     }

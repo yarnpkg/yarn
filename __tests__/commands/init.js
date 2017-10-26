@@ -12,6 +12,30 @@ jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000;
 
 const fixturesLoc = path.join(__dirname, '..', 'fixtures', 'init');
 
+test.concurrent('init should create package.json on current cwd', (): Promise<void> => {
+  let initialParentManifest;
+
+  return buildRun(
+    ConsoleReporter,
+    fixturesLoc,
+    (args, flags, config, reporter, lockfile): Promise<void> => {
+      return runInit(config, reporter, flags, args);
+    },
+    [],
+    {yes: true},
+    {source: 'init-nested', cwd: 'inner-folder'},
+    async (config): Promise<void> => {
+      const {cwd} = config;
+
+      expect(await fs.exists(path.join(cwd, 'package.json'))).toEqual(true);
+      expect(await fs.readFile(path.join(cwd, '..', 'package.json'))).toEqual(initialParentManifest);
+    },
+    async (cwd): Promise<void> => {
+      initialParentManifest = await fs.readFile(path.join(cwd, '..', 'package.json'));
+    },
+  );
+});
+
 test.concurrent('init --yes should create package.json with defaults', (): Promise<void> => {
   return buildRun(
     ConsoleReporter,
