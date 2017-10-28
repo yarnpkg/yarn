@@ -27,6 +27,13 @@ test.concurrent('install with subtree exact resolutions should override subtree 
   });
 });
 
+test.concurrent('install with --frozen-lockfile with resolutions', (): Promise<void> => {
+  return runInstall({frozenLockfile: true}, {source: 'resolutions', cwd: 'frozen-lockfile'}, async config => {
+    expect(await getPackageVersion(config, 'left-pad')).toEqual('1.1.3');
+  });
+});
+
+
 test.concurrent('install with exotic resolutions should override versions', (): Promise<void> => {
   return runInstall({}, {source: 'resolutions', cwd: 'exotic-version'}, async config => {
     expect(await getPackageVersion(config, 'left-pad')).toEqual('1.1.1');
