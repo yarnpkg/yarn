@@ -164,12 +164,13 @@ export default class NpmRegistry extends Registry {
       throw new Error('couldnt find ' + name);
     }
 
-    const {repository, homepage} = req;
+    const wantedPkg = await NpmResolver.findVersionInRegistryResponse(config, range, req);
+    const {repository, homepage} = wantedPkg;
     const url = homepage || (repository && repository.url) || '';
 
     return {
       latest: req['dist-tags'].latest,
-      wanted: (await NpmResolver.findVersionInRegistryResponse(config, range, req)).version,
+      wanted: wantedPkg.version,
       url,
     };
   }
