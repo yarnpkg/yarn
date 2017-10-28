@@ -40,6 +40,7 @@ export default class ResolutionMap {
   config: Config;
   reporter: Reporter;
   delayQueue: Set<DependencyRequestPattern>;
+  topLevelPatterns: Set<string>;
 
   init(resolutions: ?ResolutionEntry = {}) {
     for (const globPattern in resolutions) {
