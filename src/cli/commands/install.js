@@ -510,14 +510,14 @@ export class Install {
 
     steps.push(async (curr: number, total: number) => {
       this.reporter.step(curr, total, this.reporter.lang('resolvingPackages'), emoji.get('mag'));
-      topLevelPatterns = this.preparePatterns(rawPatterns);
-      flattenedTopLevelPatterns = await this.flatten(topLevelPatterns);
-      this.resolutionMap.setTopLevelPatterns(topLevelPatterns);
+      this.resolutionMap.setTopLevelPatterns(rawPatterns);
       await this.resolver.init(this.prepareRequests(depRequests), {
         isFlat: this.flags.flat,
         isFrozen: this.flags.frozenLockfile,
         workspaceLayout,
       });
+      topLevelPatterns = this.preparePatterns(rawPatterns);
+      flattenedTopLevelPatterns = await this.flatten(topLevelPatterns);
       return {bailout: await this.bailout(topLevelPatterns, workspaceLayout)};
     });
 
