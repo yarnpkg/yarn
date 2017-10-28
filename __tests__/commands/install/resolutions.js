@@ -1,6 +1,7 @@
 /* @flow */
 
 import {getPackageVersion, isPackagePresent, runInstall} from '../_helpers.js';
+import {ConsoleReporter} from '../../../src/reporters/index.js';
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 150000;
 
@@ -27,12 +28,17 @@ test.concurrent('install with subtree exact resolutions should override subtree 
   });
 });
 
-test.concurrent('install with --frozen-lockfile with resolutions', (): Promise<void> => {
-  return runInstall({frozenLockfile: true}, {source: 'resolutions', cwd: 'frozen-lockfile'}, async config => {
-    expect(await getPackageVersion(config, 'left-pad')).toEqual('1.1.3');
-  });
-});
+test.concurrent('install with --frozen-lockfile with resolutions', async (): Promise<void> => {
+  const reporter = new ConsoleReporter({});
 
+  try {
+    await runInstall({frozenLockfile: true}, {source: 'resolutions', cwd: 'frozen-lockfile'}, async config => {
+      expect(await getPackageVersion(config, 'left-pad')).toEqual('1.1.3');
+    });
+  } catch (err) {
+    expect(err.message).not.toContain(reporter.lang('frozenLockfileError'));
+  }
+});
 
 test.concurrent('install with exotic resolutions should override versions', (): Promise<void> => {
   return runInstall({}, {source: 'resolutions', cwd: 'exotic-version'}, async config => {

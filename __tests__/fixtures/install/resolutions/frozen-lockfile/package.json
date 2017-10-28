@@ -2,7 +2,8 @@
   "name": "project",
   "version": "1.0.0",
   "dependencies": {
-    "left-pad": "^1.0.0"
+    "left-pad": "^1.0.0",
+    "d2": "file:../d2-1"
   },
   "resolutions": {
     "left-pad": "^1.0.0"
