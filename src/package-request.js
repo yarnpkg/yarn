@@ -151,6 +151,14 @@ export default class PackageRequest {
   }
 
   /**
+   * Remove git protocol prefix in order to match the cache range name.
+   */
+
+  normalizeRegistryRange(range: string): string {
+    return range && range.replace(/^(bitbucket|github|gitlab):/, '');
+  }
+
+  /**
    * Construct an exotic resolver instance with the input `ExoticResolver` and `range`.
    */
 
@@ -249,7 +257,8 @@ export default class PackageRequest {
     const parentNames = [...this.parentNames, name];
     // normal deps
     for (const depName in info.dependencies) {
-      const depPattern = depName + '@' + info.dependencies[depName];
+      const registryRange = this.normalizeRegistryRange(info.dependencies[depName]);
+      const depPattern = depName + '@' + registryRange;
       deps.push(depPattern);
       promises.push(
         this.resolver.find({
@@ -265,7 +274,8 @@ export default class PackageRequest {
 
     // optional deps
     for (const depName in info.optionalDependencies) {
-      const depPattern = depName + '@' + info.optionalDependencies[depName];
+      const registryRange = this.normalizeRegistryRange(info.optionalDependencies[depName]);
+      const depPattern = depName + '@' + registryRange;
       deps.push(depPattern);
       promises.push(
         this.resolver.find({
@@ -280,7 +290,8 @@ export default class PackageRequest {
     if (remote.type === 'workspace' && !this.config.production) {
       // workspaces support dev dependencies
       for (const depName in info.devDependencies) {
-        const depPattern = depName + '@' + info.devDependencies[depName];
+        const registryRange = this.normalizeRegistryRange(info.devDependencies[depName]);
+        const depPattern = depName + '@' + registryRange;
         deps.push(depPattern);
         promises.push(
           this.resolver.find({
