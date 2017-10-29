@@ -88,7 +88,7 @@ test.concurrent('with two arguments and second argument "readme" shows readme st
   });
 });
 
-test.concurrent('with two arguments and second argument "version" shows version with `latest` tag', (): Promise<void> => {
+test.concurrent('with two arguments and second argument "version" shows `latest` version', (): Promise<void> => {
   return runInfo(['ui-select', 'version'], {}, '', (config, output): ?Promise<void> => {
     expect(output).toEqual('0.19.8');
   });
