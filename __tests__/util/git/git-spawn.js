@@ -42,6 +42,7 @@ describe('spawn', () => {
     process.env.GIT_SSH_COMMAND = '';
     // Test for case-sensitivity too (should be insensitive)
     const plinkPath = path.join('C:', 'pLink.EXE');
+    const plinkWrapperPath = path.join(__dirname, '..', '..', '..', 'bin', 'yarn-plink.cmd');
     process.env.GIT_SSH = plinkPath;
 
     const gitCall = runGit(['status']);
@@ -52,7 +53,7 @@ describe('spawn', () => {
     expect(gitCall[2].env).toMatchObject({
       GIT_ASKPASS: '',
       GIT_TERMINAL_PROMPT: 0,
-      GIT_SSH_COMMAND: `"${plinkPath}" -batch`,
+      GIT_SSH_COMMAND: `"${plinkWrapperPath}" "${plinkPath}" -batch`,
       ...process.env,
     });
   });
