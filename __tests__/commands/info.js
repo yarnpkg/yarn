@@ -7,8 +7,6 @@ import Config from '../../src/config.js';
 import path from 'path';
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 90000;
-// the mocked requests have stripped metadata, don't use it in the following tests
-jest.unmock('request');
 
 const fixturesLoc = path.join(__dirname, '..', 'fixtures', 'info');
 
@@ -47,6 +45,11 @@ const expectedKeys = [
 
 // yarn now ships as built, single JS files so it has no dependencies and no scripts
 const unexpectedKeys = ['dependencies', 'devDependencies', 'scripts'];
+
+beforeEach(() => {
+  // the mocked requests have stripped metadata, don't use it in the following tests
+  jest.unmock('request');
+});
 
 test.concurrent('without arguments and in directory containing a valid package file', (): Promise<void> => {
   return runInfo([], {}, 'local', (config, output): ?Promise<void> => {
@@ -89,6 +92,8 @@ test.concurrent('with two arguments and second argument "readme" shows readme st
 });
 
 test.concurrent('with two arguments and second argument "version" shows `latest` version', (): Promise<void> => {
+  jest.mock('../__mocks__/request.js');
+
   return runInfo(['ui-select', 'version'], {}, '', (config, output): ?Promise<void> => {
     expect(output).toEqual('0.19.8');
   });
