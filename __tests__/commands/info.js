@@ -92,6 +92,12 @@ test.concurrent('with two arguments and second argument "readme" shows readme st
 });
 
 test.concurrent('with two arguments and second argument "version" shows `latest` version', (): Promise<void> => {
+  // Scenario:
+  // If a registry contains versions [1.0.0, 1.0.1, 1.0.2] and latest:1.0.1
+  // If `yarn info` is run, it should choose `1.0.1` because it is "latest", not `1.0.2` even though it is newer.
+  // In other words, when no range is explicitely given, Yarn should choose "latest".
+  //
+  // In this test, `ui-select` has a max version of `0.20.0` but a `latest:0.19.8`
   jest.mock('../__mocks__/request.js');
 
   return runInfo(['ui-select', 'version'], {}, '', (config, output): ?Promise<void> => {
