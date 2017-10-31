@@ -44,13 +44,18 @@ export default class TarballFetcher extends BaseFetcher {
       return null;
     }
 
-    // handle scoped packages
     const pathParts = pathname.replace(/^\//, '').split(/\//g);
+    const tarballBasename = pathParts[pathParts.length - 1];
 
-    const packageFilename =
-      pathParts.length >= 2 && pathParts[0][0] === '@'
-        ? `${pathParts[0]}-${pathParts[pathParts.length - 1]}` // scopped
-        : `${pathParts[pathParts.length - 1]}`;
+    // handle scoped packages; the scope is the 4th-to-last path, as
+    // seen in the following examples:
+    //  'https://registry.npmjs.org/@exponent/configurator/-/configurator-1.0.2.tgz'
+    //  'https://artifactory.internal.site:443/' +
+    //    'artifactory/api/npm/release-repo/@exponent/configurator/-/configurator-1.0.2.tgz'
+
+    const scopeName = pathParts.length >= 4 ? pathParts[pathParts.length - 4] : '';
+    const hasScopeName = scopeName !== '' && scopeName[0] == '@';
+    const packageFilename = hasScopeName ? `${scopeName}-${tarballBasename}` : tarballBasename;
 
     return this.config.getOfflineMirrorPath(packageFilename);
   }
