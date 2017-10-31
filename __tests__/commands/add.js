@@ -147,6 +147,71 @@ test.concurrent('install with --optional flag', (): Promise<void> => {
   });
 });
 
+// Test if moduleAlreadyInManifest warning is displayed
+const moduleAlreadyInManifestCheck = async (expected, args, flags, config, reporter, lockfile): Promise<void> => {
+  const add = new Add(args, flags, config, reporter, lockfile);
+  await add.init();
+
+  const output = reporter.getBuffer();
+  const warnings = output.filter(entry => entry.type === 'warning');
+
+  expect(
+    warnings.some(warning => {
+      return warning.data.toString().toLowerCase().indexOf('is already in') > -1;
+    }),
+  ).toEqual(expected);
+
+  expect(
+    warnings.some(warning => {
+      return warning.data.toString().toLowerCase().indexOf('please remove existing entry first before adding') > -1;
+    }),
+  ).toEqual(expected);
+};
+
+test.concurrent('warns when adding a devDependency as dependency', (): Promise<void> => {
+  return buildRun(
+    reporters.BufferReporter,
+    fixturesLoc,
+    moduleAlreadyInManifestCheck.bind(null, true),
+    ['is-online'],
+    {},
+    'add-already-added-dev-dependency',
+  );
+});
+
+test.concurrent("doesn't warn when adding a devDependency as devDependency", (): Promise<void> => {
+  return buildRun(
+    reporters.BufferReporter,
+    fixturesLoc,
+    moduleAlreadyInManifestCheck.bind(null, false),
+    ['is-online'],
+    {dev: true},
+    'add-already-added-dev-dependency',
+  );
+});
+
+test.concurrent('warns when adding a dependency as devDependency', (): Promise<void> => {
+  return buildRun(
+    reporters.BufferReporter,
+    fixturesLoc,
+    moduleAlreadyInManifestCheck.bind(null, true),
+    ['is-online'],
+    {dev: true},
+    'add-already-added-dependency',
+  );
+});
+
+test.concurrent("doesn't warn when adding a dependency as dependency", (): Promise<void> => {
+  return buildRun(
+    reporters.BufferReporter,
+    fixturesLoc,
+    moduleAlreadyInManifestCheck.bind(null, false),
+    ['is-online'],
+    {},
+    'add-already-added-dependency',
+  );
+});
+
 test.concurrent('install with link: specifier', (): Promise<void> => {
   return runAdd(['link:../left-pad'], {dev: true}, 'add-with-flag', async config => {
     const lockfile = explodeLockfile(await fs.readFile(path.join(config.cwd, 'yarn.lock')));
