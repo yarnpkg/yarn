@@ -207,7 +207,7 @@ export function main({
   reporter.initPeakMemoryCounter();
 
   const config = new Config(reporter);
-  const outputWrapperEnv = process.env.YARN_WRAPPER === undefined || process.env.YARN_WRAPPER == '1';
+  const outputWrapperEnv = process.env.YARN_WRAPOUTPUT === undefined || process.env.YARN_WRAPOUTPUT == '1';
   const outputWrapper = !commander.json && outputWrapperEnv && command.hasWrapper(commander, commander.args);
 
   if (outputWrapper) {
