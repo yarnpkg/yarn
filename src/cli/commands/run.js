@@ -75,7 +75,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
 
     if (cmds.length) {
       // Disable wrapper in executed commands
-      process.env.YARN_WRAPOUTPUT = '0';
+      process.env.YARN_WRAPOUTPUT = 'false';
       for (const [stage, cmd] of cmds) {
         // only tack on trailing arguments for default script, ignore for pre and post - #1595
         const cmdWithArgs = stage === action ? sh`${unquoted(cmd)} ${args}` : cmd;
