@@ -61,7 +61,12 @@ function getPreferredCacheDirectories(): Array<string> {
     preferredCacheDirectories.push(getDirectory('cache'));
   }
 
-  preferredCacheDirectories.push(path.join(os.tmpdir(), '.yarn-cache'));
+  if (process.getuid) {
+    // $FlowFixMe: process.getuid exists, dammit
+    preferredCacheDirectories.push(path.join(os.tmpdir(), `.yarn-cache-${process.getuid()}`));
+  }
+
+  preferredCacheDirectories.push(path.join(os.tmpdir(), `.yarn-cache`));
 
   return preferredCacheDirectories;
 }
