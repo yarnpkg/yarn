@@ -45,7 +45,7 @@ export default class NpmResolver extends RegistryResolver {
     // If the latest tag in the registry satisfies the requested range, then use that.
     // Otherwise we will fall back to semver maxSatisfying.
     // This mimics logic in NPM. See issue #3560
-    const latestVersion = body['dist-tags'].latest;
+    const latestVersion = body['dist-tags'] ? body['dist-tags'].latest : undefined;
     if (latestVersion && semver.satisfies(latestVersion, range)) {
       return body.versions[latestVersion];
     }
