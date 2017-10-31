@@ -10,16 +10,17 @@ import * as fs from '../../src/util/fs.js';
 import {Install} from '../../src/cli/commands/install.js';
 import Config from '../../src/config.js';
 import parsePackagePath from '../../src/util/parse-package-path.js';
-
+import type {CLIFunctionReturn} from '../../src/types.js';
+import {run as link} from '../../src/cli/commands/link.js';
 const stream = require('stream');
 const path = require('path');
 
-const fixturesLoc = path.join(__dirname, '..', 'fixtures', 'install');
+const installFixturesLoc = path.join(__dirname, '..', 'fixtures', 'install');
 
 export const runInstall = run.bind(
   null,
   ConsoleReporter,
-  fixturesLoc,
+  installFixturesLoc,
   async (args, flags, config, reporter, lockfile): Promise<Install> => {
     const install = new Install(flags, config, reporter, lockfile);
     await install.init();
@@ -28,6 +29,17 @@ export const runInstall = run.bind(
     return install;
   },
   [],
+);
+
+const linkFixturesLoc = path.join(__dirname, '..', 'fixtures', 'link');
+
+export const runLink = run.bind(
+  null,
+  ConsoleReporter,
+  linkFixturesLoc,
+  (args, flags, config, reporter): CLIFunctionReturn => {
+    return link(config, reporter, flags, args);
+  },
 );
 
 export async function createLockfile(dir: string): Promise<Lockfile> {
@@ -94,7 +106,7 @@ export async function run<T, R>(
   ) => Promise<T> | T,
   args: Array<string>,
   flags: Object,
-  name: string | {source: string, cwd: string},
+  name: string | {source?: string, cwd: string},
   checkInstalled: ?(config: Config, reporter: R, install: T, getStdout: () => string) => ?Promise<void>,
   beforeInstall: ?(cwd: string) => ?Promise<void>,
 ): Promise<void> {
@@ -113,11 +125,16 @@ export async function run<T, R>(
   if (fixturesLoc) {
     const source = typeof name === 'string' ? name : name.source;
 
-    const dir = path.join(fixturesLoc, source);
-    cwd = await fs.makeTempDir(path.basename(dir));
-    await fs.copy(dir, cwd, reporter);
-    if (typeof name !== 'string') {
-      cwd = path.join(cwd, name.cwd);
+    // if source wasn't set then assume we were given a complete path
+    if (typeof source === 'undefined') {
+      cwd = typeof name !== 'string' ? name.cwd : await fs.makeTempDir();
+    } else {
+      const dir = path.join(fixturesLoc, source);
+      cwd = await fs.makeTempDir(path.basename(dir));
+      await fs.copy(dir, cwd, reporter);
+      if (typeof name !== 'string') {
+        cwd = path.join(cwd, name.cwd);
+      }
     }
   } else {
     // if fixture loc is not set then CWD is some empty temp dir

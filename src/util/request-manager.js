@@ -412,9 +412,7 @@ export default class RequestManager {
     if (params.url.startsWith('https:')) {
       proxy = this.httpsProxy;
     }
-    if (proxy) {
-      params.proxy = String(proxy);
-    }
+    params.proxy = String(proxy);
 
     if (this.ca != null) {
       params.ca = this.ca;

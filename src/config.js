@@ -195,7 +195,7 @@ export default class Config {
   getOption(key: string, resolve: boolean = false): mixed {
     const value = this.registries.yarn.getOption(key);
 
-    if (resolve && typeof value === 'string') {
+    if (resolve && typeof value === 'string' && value.length) {
       return resolveWithHome(value);
     }
 

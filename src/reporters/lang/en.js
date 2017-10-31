@@ -172,6 +172,7 @@ const messages = {
   linkUsing: 'Using linked module for $0.',
   linkDisusing: 'Removed linked module $0.',
   linkDisusingMessage: 'You will need to run `yarn` to re-install the package that was linked.',
+  linkTargetMissing: 'The target of linked module $0 is missing. Removing link.',
 
   createInvalidBin: 'Invalid bin entry found in package $0.',
   createMissingPackage:
@@ -361,7 +362,7 @@ const messages = {
   deprecatedCommand: '$0 is deprecated. Please use $1.',
   deprecatedListArgs: 'Filtering by arguments is deprecated. Please use the pattern option instead.',
   implicitFileDeprecated:
-    'Using the "file:" protocol implicitly is deprecated. Please either the protocol or prepend the path $0 with "./".',
+    'Using the "file:" protocol implicitly is deprecated. Please either prepend the protocol or prepend the path $0 with "./".',
   unsupportedNodeVersion:
     'You are using Node $0 which is not supported and may encounter bugs or unexpected behavior. Yarn supports the following semver range: $1',
 
