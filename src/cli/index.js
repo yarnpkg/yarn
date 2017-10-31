@@ -215,7 +215,7 @@ export function main({
   reporter.initPeakMemoryCounter();
 
   const config = new Config(reporter);
-  const outputWrapperEnabled = boolifyWithDefault(process.env.YARN_WRAPOUTPUT, true);
+  const outputWrapperEnabled = boolifyWithDefault(process.env.YARN_WRAP_OUTPUT, true);
   const shouldWrapOutput = outputWrapperEnabled && !commander.json && command.hasWrapper(commander, commander.args);
 
   if (shouldWrapOutput) {
