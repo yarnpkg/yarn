@@ -148,31 +148,35 @@ test.concurrent('install with --optional flag', (): Promise<void> => {
 });
 
 // Test if moduleAlreadyInManifest warning is displayed
-const moduleAlreadyInManifestCheck = async (expected, args, flags, config, reporter, lockfile): Promise<void> => {
+const moduleAlreadyInManifestChecker = ({expectWarnings}: {expectWarnings: boolean}) => async (
+  args,
+  flags,
+  config,
+  reporter,
+  lockfile,
+): Promise<void> => {
   const add = new Add(args, flags, config, reporter, lockfile);
   await add.init();
 
   const output = reporter.getBuffer();
   const warnings = output.filter(entry => entry.type === 'warning');
 
-  expect(
-    warnings.some(warning => {
-      return warning.data.toString().toLowerCase().indexOf('is already in') > -1;
-    }),
-  ).toEqual(expected);
+  expect(warnings.some(warning => warning.data.toString().toLowerCase().indexOf('is already in') > -1)).toEqual(
+    expectWarnings,
+  );
 
   expect(
-    warnings.some(warning => {
-      return warning.data.toString().toLowerCase().indexOf('please remove existing entry first before adding') > -1;
-    }),
-  ).toEqual(expected);
+    warnings.some(
+      warning => warning.data.toString().toLowerCase().indexOf('please remove existing entry first before adding') > -1,
+    ),
+  ).toEqual(expectWarnings);
 };
 
 test.concurrent('warns when adding a devDependency as dependency', (): Promise<void> => {
   return buildRun(
     reporters.BufferReporter,
     fixturesLoc,
-    moduleAlreadyInManifestCheck.bind(null, true),
+    moduleAlreadyInManifestChecker({expectWarnings: true}),
     ['is-online'],
     {},
     'add-already-added-dev-dependency',
@@ -183,7 +187,7 @@ test.concurrent("doesn't warn when adding a devDependency as devDependency", ():
   return buildRun(
     reporters.BufferReporter,
     fixturesLoc,
-    moduleAlreadyInManifestCheck.bind(null, false),
+    moduleAlreadyInManifestChecker({expectWarnings: false}),
     ['is-online'],
     {dev: true},
     'add-already-added-dev-dependency',
@@ -194,7 +198,7 @@ test.concurrent('warns when adding a dependency as devDependency', (): Promise<v
   return buildRun(
     reporters.BufferReporter,
     fixturesLoc,
-    moduleAlreadyInManifestCheck.bind(null, true),
+    moduleAlreadyInManifestChecker({expectWarnings: true}),
     ['is-online'],
     {dev: true},
     'add-already-added-dependency',
@@ -205,7 +209,7 @@ test.concurrent("doesn't warn when adding a dependency as dependency", (): Promi
   return buildRun(
     reporters.BufferReporter,
     fixturesLoc,
-    moduleAlreadyInManifestCheck.bind(null, false),
+    moduleAlreadyInManifestChecker({expectWarnings: false}),
     ['is-online'],
     {},
     'add-already-added-dependency',
