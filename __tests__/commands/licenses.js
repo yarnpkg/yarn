@@ -19,6 +19,32 @@ const runLicenses = buildRun.bind(
   },
 );
 
+async function runLicensesWithConsole(args, flags, name, callback): Promise<void> {
+  let consoleout = '';
+  const console_log = jest.spyOn(console, 'log').mockImplementation(line => {
+    consoleout += (line || '') + '\n';
+  });
+  try {
+    await buildRun(
+      JSONReporter,
+      fixturesLoc,
+      async (args, flags, config, reporter, lockfile, getStdout): Promise<{stdout: string, consoleout: string}> => {
+        reporter.disableProgress();
+        await licenses(config, reporter, flags, args);
+        console_log.mockRestore();
+        return {stdout: getStdout(), consoleout};
+      },
+      args,
+      flags,
+      name,
+      callback,
+    );
+  } finally {
+    // Make sure console.log is restored if anything goes wrong
+    console_log.mockRestore();
+  }
+}
+
 test('lists all licenses of the dependencies with the --json argument', async (): Promise<void> => {
   await runLicenses(['list'], {}, '', (config, reporter, stdout) => {
     expect(stdout).toMatchSnapshot();
@@ -26,7 +52,8 @@ test('lists all licenses of the dependencies with the --json argument', async ()
 });
 
 test('should generate disclaimer on demand', async (): Promise<void> => {
-  await runLicenses(['generate-disclaimer'], {}, '', (config, reporter, stdout) => {
-    expect(stdout).toMatchSnapshot();
+  await runLicensesWithConsole(['generate-disclaimer'], {}, '', (config, reporter, output) => {
+    expect(output.stdout).toMatchSnapshot();
+    expect(output.consoleout).toMatchSnapshot();
   });
 });
