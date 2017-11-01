@@ -166,10 +166,7 @@ describe('list', () => {
   });
 
   test('does not list devDependencies when production', (): Promise<void> => {
-    const isProduction: $FlowFixMe = require('../../src/constants').isProduction;
-    isProduction.mockReturnValue(true);
-
-    return runList([], {}, 'dev-deps-prod', (config, reporter): ?Promise<void> => {
+    return runList([], {production: true}, 'dev-deps-prod', (config, reporter): ?Promise<void> => {
       expect(reporter.getBuffer()).toMatchSnapshot();
     });
   });
