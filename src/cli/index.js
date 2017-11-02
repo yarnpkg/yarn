@@ -204,7 +204,7 @@ export function main({
     emoji: process.stdout.isTTY && commander.emoji,
     verbose: commander.verbose,
     noProgress: !commander.progress,
-    isSilent: process.env.YARN_SILENT === '1' || commander.silent,
+    isSilent: boolifyWithDefault(process.env.YARN_SILENT, false) || commander.silent,
   });
 
   const exit = exitCode => {
@@ -550,7 +550,7 @@ async function start(): Promise<void> {
   const rc = getRcConfigForCwd(process.cwd());
   const yarnPath = rc['yarn-path'];
 
-  if (yarnPath && process.env.YARN_IGNORE_PATH !== '1') {
+  if (yarnPath && !boolifyWithDefault(process.env.YARN_IGNORE_PATH, false)) {
     const argv = process.argv.slice(2);
     const opts = {stdio: 'inherit', env: Object.assign({}, process.env, {YARN_IGNORE_PATH: 1})};
     let exitCode = 0;
