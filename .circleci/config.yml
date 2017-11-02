@@ -134,7 +134,7 @@ workflows:
           filters:
             <<: *default_filters
             branches:
-              ignore: '/.*/'
+              ignore: /.*/
           requires:
             - test
             - lint
