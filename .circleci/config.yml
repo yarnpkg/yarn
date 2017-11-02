@@ -7,7 +7,7 @@ defaults: &defaults
 
 default_filters: &default_filters
   tags:
-    only: '/^v[0-9]\+\.[0-9]\+\.[0-9]\+$/'
+    only: /^v[0-9]+\.[0-9]+\.[0-9]+$/
 
 restore_node_modules: &restore_node_modules
   restore_cache:
@@ -90,14 +90,14 @@ jobs:
           root: ~/project
           paths:
             - yarn
-  deploy:
+  publish:
     <<: *defaults
     steps:
       - attach_workspace:
           at: ~/project
       - *restore_node_modules
       - run:
-          name: Deploy
+          name: Publish
           command: |
             # Only NPM is handled here - All other release files are handled in a webhook.
             if [ "${CIRCLE_PROJECT_USERNAME}" == "yarnpkg" ]; then
@@ -114,7 +114,7 @@ notify:
 
 workflows:
   version: 2
-  install-test-build-and-deploy:
+  install-test-build-and-publish:
     jobs:
       - install:
           filters: *default_filters
@@ -130,12 +130,11 @@ workflows:
           filters: *default_filters
           requires:
             - install
-      - deploy:
+      - publish:
           filters:
             <<: *default_filters
             branches:
-              only:
-                - master
+              ignore: /.*/
           requires:
             - test
             - lint
