@@ -351,6 +351,22 @@ test.concurrent('should ignore bundled dependencies', async (): Promise<void> =>
   );
 });
 
+test.concurrent('should warn about mismatched dependencies if they match resolutions', async (): Promise<void> => {
+  let mismatchError = false;
+  let stdout = '';
+  try {
+    await runCheck([], {}, 'resolutions', (config, reporter, check, getStdout) => {
+      stdout = getStdout();
+    });
+  } catch (err) {
+    mismatchError = true;
+  }
+  expect(mismatchError).toEqual(false);
+  expect(
+    stdout.search(`warning.*"pad-left#repeat-string@\\^1.5.4" doesn't satisfy found match of "repeat-string@1.4.0"`),
+  ).toBeGreaterThan(-1);
+});
+
 test.concurrent('--integrity should throw an error if top level patterns do not match', async (): Promise<void> => {
   let integrityError = false;
   try {
