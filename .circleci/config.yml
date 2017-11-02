@@ -5,10 +5,6 @@ defaults: &defaults
   docker:
     - image: yarnpkg/dev:latest
 
-default_filters: &default_filters
-  tags:
-    only: '/^v[0-9]\+\.[0-9]\+\.[0-9]\+$/'
-
 restore_node_modules: &restore_node_modules
   restore_cache:
     name: Restore node_modules cache
@@ -90,14 +86,14 @@ jobs:
           root: ~/project
           paths:
             - yarn
-  deploy:
+  publish:
     <<: *defaults
     steps:
       - attach_workspace:
           at: ~/project
       - *restore_node_modules
       - run:
-          name: Deploy
+          name: Publish
           command: |
             # Only NPM is handled here - All other release files are handled in a webhook.
             if [ "${CIRCLE_PROJECT_USERNAME}" == "yarnpkg" ]; then
@@ -114,28 +110,22 @@ notify:
 
 workflows:
   version: 2
-  install-test-build-and-deploy:
+  install-test-build-and-publish:
     jobs:
-      - install:
-          filters: *default_filters
+      - install
       - test:
-          filters: *default_filters
           requires:
             - install
       - lint:
-          filters: *default_filters
           requires:
             - install
       - build:
-          filters: *default_filters
           requires:
             - install
-      - deploy:
+      - publish:
           filters:
-            <<: *default_filters
-            branches:
-              only:
-                - master
+            tags:
+              only: '/^v[0-9]\+\.[0-9]\+\.[0-9]\+$/'
           requires:
             - test
             - lint
