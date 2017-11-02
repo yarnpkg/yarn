@@ -56,13 +56,13 @@ async function runLicensesWithConsole(
   }
 }
 
-test('lists all licenses of the dependencies with the --json argument', async (): Promise<void> => {
+test('list should show licenses of dependencies', async (): Promise<void> => {
   await runLicenses(['list'], {}, '', (config, reporter, stdout) => {
     expect(stdout).toMatchSnapshot();
   });
 });
 
-test('should generate disclaimer on demand', async (): Promise<void> => {
+test('generate-disclaimer should show license texts of dependencies', async (): Promise<void> => {
   await runLicensesWithConsole(['generate-disclaimer'], {}, '', (config, reporter, output) => {
     expect(output.stdout).toMatchSnapshot();
     expect(output.consoleout).toMatchSnapshot();

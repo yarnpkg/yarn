@@ -1,20 +1,20 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`lists all licenses of the dependencies with the --json argument 1`] = `
+exports[`list should show licenses of dependencies 1`] = `
 "{\\"type\\":\\"warning\\",\\"data\\":\\"package.json: No license field\\"}
 {\\"type\\":\\"warning\\",\\"data\\":\\"No license field\\"}
 {\\"type\\":\\"tree\\",\\"data\\":{\\"type\\":\\"licenses\\",\\"trees\\":[{\\"name\\":\\"MIT\\",\\"children\\":[{\\"name\\":\\"is-plain-obj@1.1.0\\",\\"children\\":[{\\"name\\":\\"URL: https://github.com/sindresorhus/is-plain-obj.git\\"},{\\"name\\":\\"VendorUrl: sindresorhus.com\\"},{\\"name\\":\\"VendorName: Sindre Sorhus\\"}]}]}]}}
 "
 `;
 
-exports[`should generate disclaimer on demand 1`] = `
+exports[`generate-disclaimer should show license texts of dependencies 1`] = `
 "{\\"type\\":\\"warning\\",\\"data\\":\\"package.json: No license field\\"}
 {\\"type\\":\\"warning\\",\\"data\\":\\"No license field\\"}
 {\\"type\\":\\"warning\\",\\"data\\":\\"package.json: No license field\\"}
 "
 `;
 
-exports[`should generate disclaimer on demand 2`] = `
+exports[`generate-disclaimer should show license texts of dependencies 2`] = `
 "THE FOLLOWING SETS FORTH ATTRIBUTION NOTICES FOR THIRD PARTY SOFTWARE THAT MAY BE CONTAINED IN PORTIONS OF THE  PRODUCT.
 
 -----
