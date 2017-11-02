@@ -5,6 +5,10 @@ defaults: &defaults
   docker:
     - image: yarnpkg/dev:latest
 
+default_filters: &default_filters
+  tags:
+    only: /^v[0-9]+\.[0-9]+\.[0-9]+$/
+
 restore_node_modules: &restore_node_modules
   restore_cache:
     name: Restore node_modules cache
@@ -112,20 +116,25 @@ workflows:
   version: 2
   install-test-build-and-publish:
     jobs:
-      - install
+      - install:
+          filters: *default_filters
       - test:
+          filters: *default_filters
           requires:
             - install
       - lint:
+          filters: *default_filters
           requires:
             - install
       - build:
+          filters: *default_filters
           requires:
             - install
       - publish:
           filters:
-            tags:
-              only: /^v[0-9]+\.[0-9]+\.[0-9]+$/
+            <<: *default_filters
+            branches:
+              ignore: '/.*/'
           requires:
             - test
             - lint
