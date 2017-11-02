@@ -3,6 +3,7 @@
 import {JSONReporter} from '../../src/reporters/index.js';
 import {run as buildRun} from './_helpers.js';
 import {run as licenses} from '../../src/cli/commands/licenses.js';
+import Config from '../../src/config.js';
 
 const path = require('path');
 
@@ -19,7 +20,17 @@ const runLicenses = buildRun.bind(
   },
 );
 
-async function runLicensesWithConsole(args, flags, name, callback): Promise<void> {
+type Outputs = {
+  stdout: string,
+  consoleout: string,
+};
+
+async function runLicensesWithConsole(
+  args: Array<string>,
+  flags: Object,
+  name: string,
+  callback: (Config, JSONReporter, Outputs) => void,
+): Promise<void> {
   let consoleout = '';
   const console_log = jest.spyOn(console, 'log').mockImplementation(line => {
     consoleout += (line || '') + '\n';
@@ -28,7 +39,7 @@ async function runLicensesWithConsole(args, flags, name, callback): Promise<void
     await buildRun(
       JSONReporter,
       fixturesLoc,
-      async (args, flags, config, reporter, lockfile, getStdout): Promise<{stdout: string, consoleout: string}> => {
+      async (args, flags, config, reporter, lockfile, getStdout): Promise<Outputs> => {
         reporter.disableProgress();
         await licenses(config, reporter, flags, args);
         console_log.mockRestore();
