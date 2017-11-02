@@ -57,7 +57,7 @@ jobs:
               ./scripts/set-dev-version.js
             fi;
             # Limit maxWorkers to 3 to avoid OOM on CircleCI
-            yarn test-ci -- -- --maxWorkers 3
+            yarn test-ci --maxWorkers 3
             yarn check-lockfile
   lint:
     <<: *defaults
