@@ -1,548 +1,256 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`C:\\Users\\byk\\Documents\\Projects\\yarnpkg\\yarn\\__tests__\\fixtures\\normalize-manifest\\author object normalizeundefined 1`] = `
+exports[`author object normalize 1`] = `
 Array [
-  Object {
-    "data": "..\\\\..\\\\..\\\\..\\\\..\\\\..\\\\package.json: No license field",
-    "error": true,
-    "type": "warning",
-  },
-  Object {
-    "data": "No license field",
-    "error": true,
-    "type": "warning",
-  },
+  "../../../../../../package.json: No license field",
+  "No license field",
 ]
 `;
 
-exports[`C:\\Users\\byk\\Documents\\Projects\\yarnpkg\\yarn\\__tests__\\fixtures\\normalize-manifest\\author stringundefined 1`] = `
+exports[`author string 1`] = `
 Array [
-  Object {
-    "data": "..\\\\..\\\\..\\\\..\\\\..\\\\..\\\\package.json: No license field",
-    "error": true,
-    "type": "warning",
-  },
-  Object {
-    "data": "No license field",
-    "error": true,
-    "type": "warning",
-  },
+  "../../../../../../package.json: No license field",
+  "No license field",
 ]
 `;
 
-exports[`C:\\Users\\byk\\Documents\\Projects\\yarnpkg\\yarn\\__tests__\\fixtures\\normalize-manifest\\authors file to contributorsundefined 1`] = `
+exports[`authors file to contributors 1`] = `
 Array [
-  Object {
-    "data": "..\\\\..\\\\..\\\\..\\\\..\\\\..\\\\package.json: No license field",
-    "error": true,
-    "type": "warning",
-  },
-  Object {
-    "data": "No license field",
-    "error": true,
-    "type": "warning",
-  },
+  "../../../../../../package.json: No license field",
+  "No license field",
 ]
 `;
 
-exports[`C:\\Users\\byk\\Documents\\Projects\\yarnpkg\\yarn\\__tests__\\fixtures\\normalize-manifest\\bin stringundefined 1`] = `
+exports[`bin string 1`] = `
 Array [
-  Object {
-    "data": "..\\\\..\\\\..\\\\..\\\\..\\\\..\\\\package.json: No license field",
-    "error": true,
-    "type": "warning",
-  },
-  Object {
-    "data": "foo: No license field",
-    "error": true,
-    "type": "warning",
-  },
+  "../../../../../../package.json: No license field",
+  "foo: No license field",
 ]
 `;
 
-exports[`C:\\Users\\byk\\Documents\\Projects\\yarnpkg\\yarn\\__tests__\\fixtures\\normalize-manifest\\binding.gyp scripts.installundefined 1`] = `
+exports[`binding.gyp scripts.install 1`] = `
 Array [
-  Object {
-    "data": "..\\\\..\\\\..\\\\..\\\\..\\\\..\\\\package.json: No license field",
-    "error": true,
-    "type": "warning",
-  },
-  Object {
-    "data": "No license field",
-    "error": true,
-    "type": "warning",
-  },
+  "../../../../../../package.json: No license field",
+  "No license field",
 ]
 `;
 
-exports[`C:\\Users\\byk\\Documents\\Projects\\yarnpkg\\yarn\\__tests__\\fixtures\\normalize-manifest\\bugs stringundefined 1`] = `
+exports[`bugs string 1`] = `
 Array [
-  Object {
-    "data": "..\\\\..\\\\..\\\\..\\\\..\\\\..\\\\package.json: No license field",
-    "error": true,
-    "type": "warning",
-  },
-  Object {
-    "data": "No license field",
-    "error": true,
-    "type": "warning",
-  },
+  "../../../../../../package.json: No license field",
+  "No license field",
 ]
 `;
 
-exports[`C:\\Users\\byk\\Documents\\Projects\\yarnpkg\\yarn\\__tests__\\fixtures\\normalize-manifest\\bundledDependencies aliasundefined 1`] = `
+exports[`bundledDependencies alias 1`] = `
 Array [
-  Object {
-    "data": "..\\\\..\\\\..\\\\..\\\\..\\\\..\\\\package.json: No license field",
-    "error": true,
-    "type": "warning",
-  },
-  Object {
-    "data": "No license field",
-    "error": true,
-    "type": "warning",
-  },
+  "../../../../../../package.json: No license field",
+  "No license field",
 ]
 `;
 
-exports[`C:\\Users\\byk\\Documents\\Projects\\yarnpkg\\yarn\\__tests__\\fixtures\\normalize-manifest\\clean version with vundefined 1`] = `
+exports[`clean version 1`] = `
 Array [
-  Object {
-    "data": "..\\\\..\\\\..\\\\..\\\\..\\\\..\\\\package.json: No license field",
-    "error": true,
-    "type": "warning",
-  },
-  Object {
-    "data": "No license field",
-    "error": true,
-    "type": "warning",
-  },
+  "../../../../../../package.json: No license field",
+  "No license field",
 ]
 `;
 
-exports[`C:\\Users\\byk\\Documents\\Projects\\yarnpkg\\yarn\\__tests__\\fixtures\\normalize-manifest\\clean versionundefined 1`] = `
+exports[`clean version with v 1`] = `
 Array [
-  Object {
-    "data": "..\\\\..\\\\..\\\\..\\\\..\\\\..\\\\package.json: No license field",
-    "error": true,
-    "type": "warning",
-  },
-  Object {
-    "data": "No license field",
-    "error": true,
-    "type": "warning",
-  },
+  "../../../../../../package.json: No license field",
+  "No license field",
 ]
 `;
 
-exports[`C:\\Users\\byk\\Documents\\Projects\\yarnpkg\\yarn\\__tests__\\fixtures\\normalize-manifest\\contributors array expandundefined 1`] = `
+exports[`contributors array expand 1`] = `
 Array [
-  Object {
-    "data": "..\\\\..\\\\..\\\\..\\\\..\\\\..\\\\package.json: No license field",
-    "error": true,
-    "type": "warning",
-  },
-  Object {
-    "data": "No license field",
-    "error": true,
-    "type": "warning",
-  },
+  "../../../../../../package.json: No license field",
+  "No license field",
 ]
 `;
 
-exports[`C:\\Users\\byk\\Documents\\Projects\\yarnpkg\\yarn\\__tests__\\fixtures\\normalize-manifest\\dedupe all trivial dependenciesundefined 1`] = `
+exports[`dedupe all trivial dependencies 1`] = `
 Array [
-  Object {
-    "data": "..\\\\..\\\\..\\\\..\\\\..\\\\..\\\\package.json: No license field",
-    "error": true,
-    "type": "warning",
-  },
-  Object {
-    "data": "No license field",
-    "error": true,
-    "type": "warning",
-  },
+  "../../../../../../package.json: No license field",
+  "No license field",
 ]
 `;
 
-exports[`C:\\Users\\byk\\Documents\\Projects\\yarnpkg\\yarn\\__tests__\\fixtures\\normalize-manifest\\dedupe dependencies rootundefined 1`] = `
+exports[`dedupe dependencies 1`] = `
 Array [
-  Object {
-    "data": "..\\\\..\\\\..\\\\..\\\\..\\\\..\\\\package.json: No license field",
-    "error": true,
-    "type": "warning",
-  },
-  Object {
-    "data": "No license field",
-    "error": true,
-    "type": "warning",
-  },
-  Object {
-    "data": "\\"dependencies\\" has dependency \\"foobar\\" with range \\"2.0.0\\" that collides with a dependency in \\"devDependencies\\" of the same name with version \\"1.0.0\\"",
-    "error": true,
-    "type": "warning",
-  },
+  "../../../../../../package.json: No license field",
 ]
 `;
 
-exports[`C:\\Users\\byk\\Documents\\Projects\\yarnpkg\\yarn\\__tests__\\fixtures\\normalize-manifest\\dedupe dependenciesundefined 1`] = `
+exports[`dedupe dependencies root 1`] = `
 Array [
-  Object {
-    "data": "..\\\\..\\\\..\\\\..\\\\..\\\\..\\\\package.json: No license field",
-    "error": true,
-    "type": "warning",
-  },
+  "../../../../../../package.json: No license field",
+  "No license field",
+  "\\"dependencies\\" has dependency \\"foobar\\" with range \\"2.0.0\\" that collides with a dependency in \\"devDependencies\\" of the same name with version \\"1.0.0\\"",
 ]
 `;
 
-exports[`C:\\Users\\byk\\Documents\\Projects\\yarnpkg\\yarn\\__tests__\\fixtures\\normalize-manifest\\dedupe optionalDependencies rootundefined 1`] = `
+exports[`dedupe optionalDependencies 1`] = `
 Array [
-  Object {
-    "data": "..\\\\..\\\\..\\\\..\\\\..\\\\..\\\\package.json: No license field",
-    "error": true,
-    "type": "warning",
-  },
-  Object {
-    "data": "No license field",
-    "error": true,
-    "type": "warning",
-  },
-  Object {
-    "data": "\\"optionalDependencies\\" has dependency \\"foobar\\" with range \\"1.0.0\\" that collides with a dependency in \\"dependencies\\" of the same name with version \\"2.0.0\\"",
-    "error": true,
-    "type": "warning",
-  },
+  "../../../../../../package.json: No license field",
 ]
 `;
 
-exports[`C:\\Users\\byk\\Documents\\Projects\\yarnpkg\\yarn\\__tests__\\fixtures\\normalize-manifest\\dedupe optionalDependenciesundefined 1`] = `
+exports[`dedupe optionalDependencies root 1`] = `
 Array [
-  Object {
-    "data": "..\\\\..\\\\..\\\\..\\\\..\\\\..\\\\package.json: No license field",
-    "error": true,
-    "type": "warning",
-  },
+  "../../../../../../package.json: No license field",
+  "No license field",
+  "\\"optionalDependencies\\" has dependency \\"foobar\\" with range \\"1.0.0\\" that collides with a dependency in \\"dependencies\\" of the same name with version \\"2.0.0\\"",
 ]
 `;
 
-exports[`C:\\Users\\byk\\Documents\\Projects\\yarnpkg\\yarn\\__tests__\\fixtures\\normalize-manifest\\dedupe single trivial dependencyundefined 1`] = `
+exports[`dedupe single trivial dependency 1`] = `
 Array [
-  Object {
-    "data": "..\\\\..\\\\..\\\\..\\\\..\\\\..\\\\package.json: No license field",
-    "error": true,
-    "type": "warning",
-  },
-  Object {
-    "data": "No license field",
-    "error": true,
-    "type": "warning",
-  },
+  "../../../../../../package.json: No license field",
+  "No license field",
 ]
 `;
 
-exports[`C:\\Users\\byk\\Documents\\Projects\\yarnpkg\\yarn\\__tests__\\fixtures\\normalize-manifest\\engines arrayundefined 1`] = `
+exports[`engines array 1`] = `
 Array [
-  Object {
-    "data": "..\\\\..\\\\..\\\\..\\\\..\\\\..\\\\package.json: No license field",
-    "error": true,
-    "type": "warning",
-  },
-  Object {
-    "data": "No license field",
-    "error": true,
-    "type": "warning",
-  },
+  "../../../../../../package.json: No license field",
+  "No license field",
 ]
 `;
 
-exports[`C:\\Users\\byk\\Documents\\Projects\\yarnpkg\\yarn\\__tests__\\fixtures\\normalize-manifest\\explode directories.binundefined 1`] = `
+exports[`explode directories.bin 1`] = `
 Array [
-  Object {
-    "data": "..\\\\..\\\\..\\\\..\\\\..\\\\..\\\\package.json: No license field",
-    "error": true,
-    "type": "warning",
-  },
-  Object {
-    "data": "No license field",
-    "error": true,
-    "type": "warning",
-  },
+  "../../../../../../package.json: No license field",
+  "No license field",
 ]
 `;
 
-exports[`C:\\Users\\byk\\Documents\\Projects\\yarnpkg\\yarn\\__tests__\\fixtures\\normalize-manifest\\explode directories.manundefined 1`] = `
+exports[`explode directories.man 1`] = `
 Array [
-  Object {
-    "data": "..\\\\..\\\\..\\\\..\\\\..\\\\..\\\\package.json: No license field",
-    "error": true,
-    "type": "warning",
-  },
-  Object {
-    "data": "No license field",
-    "error": true,
-    "type": "warning",
-  },
+  "../../../../../../package.json: No license field",
+  "No license field",
 ]
 `;
 
-exports[`C:\\Users\\byk\\Documents\\Projects\\yarnpkg\\yarn\\__tests__\\fixtures\\normalize-manifest\\extract descriptionundefined 1`] = `
+exports[`extract description 1`] = `
 Array [
-  Object {
-    "data": "..\\\\..\\\\..\\\\..\\\\..\\\\..\\\\package.json: No license field",
-    "error": true,
-    "type": "warning",
-  },
-  Object {
-    "data": "No license field",
-    "error": true,
-    "type": "warning",
-  },
+  "../../../../../../package.json: No license field",
+  "No license field",
 ]
 `;
 
-exports[`C:\\Users\\byk\\Documents\\Projects\\yarnpkg\\yarn\\__tests__\\fixtures\\normalize-manifest\\homepage stringundefined 1`] = `
+exports[`homepage string 1`] = `
 Array [
-  Object {
-    "data": "..\\\\..\\\\..\\\\..\\\\..\\\\..\\\\package.json: No license field",
-    "error": true,
-    "type": "warning",
-  },
-  Object {
-    "data": "No license field",
-    "error": true,
-    "type": "warning",
-  },
+  "../../../../../../package.json: No license field",
+  "No license field",
 ]
 `;
 
-exports[`C:\\Users\\byk\\Documents\\Projects\\yarnpkg\\yarn\\__tests__\\fixtures\\normalize-manifest\\hosted git repository urlundefined 1`] = `
+exports[`hosted git repository url 1`] = `
 Array [
-  Object {
-    "data": "..\\\\..\\\\..\\\\..\\\\..\\\\..\\\\package.json: No license field",
-    "error": true,
-    "type": "warning",
-  },
-  Object {
-    "data": "No license field",
-    "error": true,
-    "type": "warning",
-  },
+  "../../../../../../package.json: No license field",
+  "No license field",
 ]
 `;
 
-exports[`C:\\Users\\byk\\Documents\\Projects\\yarnpkg\\yarn\\__tests__\\fixtures\\normalize-manifest\\keywords stringundefined 1`] = `
+exports[`keywords string 1`] = `
 Array [
-  Object {
-    "data": "..\\\\..\\\\..\\\\..\\\\..\\\\..\\\\package.json: No license field",
-    "error": true,
-    "type": "warning",
-  },
-  Object {
-    "data": "No license field",
-    "error": true,
-    "type": "warning",
-  },
+  "../../../../../../package.json: No license field",
+  "No license field",
 ]
 `;
 
-exports[`C:\\Users\\byk\\Documents\\Projects\\yarnpkg\\yarn\\__tests__\\fixtures\\normalize-manifest\\maintainers array expandundefined 1`] = `
+exports[`license warnings should not be thrown with global commands 1`] = `Array []`;
+
+exports[`maintainers array expand 1`] = `
 Array [
-  Object {
-    "data": "..\\\\..\\\\..\\\\..\\\\..\\\\..\\\\package.json: No license field",
-    "error": true,
-    "type": "warning",
-  },
-  Object {
-    "data": "No license field",
-    "error": true,
-    "type": "warning",
-  },
+  "../../../../../../package.json: No license field",
+  "No license field",
 ]
 `;
 
-exports[`C:\\Users\\byk\\Documents\\Projects\\yarnpkg\\yarn\\__tests__\\fixtures\\normalize-manifest\\man stringundefined 1`] = `
+exports[`man string 1`] = `
 Array [
-  Object {
-    "data": "..\\\\..\\\\..\\\\..\\\\..\\\\..\\\\package.json: No license field",
-    "error": true,
-    "type": "warning",
-  },
-  Object {
-    "data": "No license field",
-    "error": true,
-    "type": "warning",
-  },
+  "../../../../../../package.json: No license field",
+  "No license field",
 ]
 `;
 
-exports[`C:\\Users\\byk\\Documents\\Projects\\yarnpkg\\yarn\\__tests__\\fixtures\\normalize-manifest\\nameC:\\Users\\byk\\Documents\\Projects\\yarnpkg\\yarn\\__tests__\\fixtures\\normalize-manifest\\name 1`] = `Array []`;
-
-exports[`C:\\Users\\byk\\Documents\\Projects\\yarnpkg\\yarn\\__tests__\\fixtures\\normalize-manifest\\nameundefined 1`] = `
+exports[`name 1`] = `
 Array [
-  Object {
-    "data": "..\\\\..\\\\..\\\\..\\\\..\\\\..\\\\package.json: No license field",
-    "error": true,
-    "type": "warning",
-  },
-  Object {
-    "data": "foobar: No license field",
-    "error": true,
-    "type": "warning",
-  },
+  "../../../../../../package.json: No license field",
+  "foobar: No license field",
 ]
 `;
 
-exports[`C:\\Users\\byk\\Documents\\Projects\\yarnpkg\\yarn\\__tests__\\fixtures\\normalize-manifest\\readmeundefined 1`] = `
+exports[`readme 1`] = `
 Array [
-  Object {
-    "data": "..\\\\..\\\\..\\\\..\\\\..\\\\..\\\\package.json: No license field",
-    "error": true,
-    "type": "warning",
-  },
-  Object {
-    "data": "No license field",
-    "error": true,
-    "type": "warning",
-  },
+  "../../../../../../package.json: No license field",
+  "No license field",
 ]
 `;
 
-exports[`C:\\Users\\byk\\Documents\\Projects\\yarnpkg\\yarn\\__tests__\\fixtures\\normalize-manifest\\repository stringundefined 1`] = `
+exports[`repository string 1`] = `
 Array [
-  Object {
-    "data": "..\\\\..\\\\..\\\\..\\\\..\\\\..\\\\package.json: No license field",
-    "error": true,
-    "type": "warning",
-  },
-  Object {
-    "data": "No license field",
-    "error": true,
-    "type": "warning",
-  },
+  "../../../../../../package.json: No license field",
+  "No license field",
 ]
 `;
 
-exports[`C:\\Users\\byk\\Documents\\Projects\\yarnpkg\\yarn\\__tests__\\fixtures\\normalize-manifest\\scoped bin stringundefined 1`] = `
+exports[`scoped bin string 1`] = `
 Array [
-  Object {
-    "data": "..\\\\..\\\\..\\\\..\\\\..\\\\..\\\\package.json: No license field",
-    "error": true,
-    "type": "warning",
-  },
-  Object {
-    "data": "@scope/foo: No license field",
-    "error": true,
-    "type": "warning",
-  },
+  "../../../../../../package.json: No license field",
+  "@scope/foo: No license field",
 ]
 `;
 
-exports[`C:\\Users\\byk\\Documents\\Projects\\yarnpkg\\yarn\\__tests__\\fixtures\\normalize-manifest\\server scripts.startundefined 1`] = `
+exports[`server scripts.start 1`] = `
 Array [
-  Object {
-    "data": "..\\\\..\\\\..\\\\..\\\\..\\\\..\\\\package.json: No license field",
-    "error": true,
-    "type": "warning",
-  },
-  Object {
-    "data": "No license field",
-    "error": true,
-    "type": "warning",
-  },
+  "../../../../../../package.json: No license field",
+  "No license field",
 ]
 `;
 
-exports[`C:\\Users\\byk\\Documents\\Projects\\yarnpkg\\yarn\\__tests__\\fixtures\\normalize-manifest\\valid licenseundefined 1`] = `
+exports[`valid license 1`] = `
 Array [
-  Object {
-    "data": "..\\\\..\\\\..\\\\..\\\\..\\\\..\\\\package.json: No license field",
-    "error": true,
-    "type": "warning",
-  },
+  "../../../../../../package.json: No license field",
 ]
 `;
 
-exports[`C:\\Users\\byk\\Documents\\Projects\\yarnpkg\\yarn\\__tests__\\fixtures\\normalize-manifest\\versionundefined 1`] = `
+exports[`version 1`] = `
 Array [
-  Object {
-    "data": "..\\\\..\\\\..\\\\..\\\\..\\\\..\\\\package.json: No license field",
-    "error": true,
-    "type": "warning",
-  },
-  Object {
-    "data": "No license field",
-    "error": true,
-    "type": "warning",
-  },
+  "../../../../../../package.json: No license field",
+  "No license field",
 ]
 `;
 
-exports[`C:\\Users\\byk\\Documents\\Projects\\yarnpkg\\yarn\\__tests__\\fixtures\\normalize-manifest\\warn builtin module collisionundefined 1`] = `
+exports[`warn builtin module collision 1`] = `
 Array [
-  Object {
-    "data": "..\\\\..\\\\..\\\\..\\\\..\\\\..\\\\package.json: No license field",
-    "error": true,
-    "type": "warning",
-  },
-  Object {
-    "data": "fs: \\"fs\\" is also the name of a node core module",
-    "error": true,
-    "type": "warning",
-  },
-  Object {
-    "data": "fs: No license field",
-    "error": true,
-    "type": "warning",
-  },
+  "../../../../../../package.json: No license field",
+  "fs: \\"fs\\" is also the name of a node core module",
+  "fs: No license field",
 ]
 `;
 
-exports[`C:\\Users\\byk\\Documents\\Projects\\yarnpkg\\yarn\\__tests__\\fixtures\\normalize-manifest\\warn empty string invalid licenseundefined 1`] = `
+exports[`warn empty string invalid license 1`] = `
 Array [
-  Object {
-    "data": "..\\\\..\\\\..\\\\..\\\\..\\\\..\\\\package.json: No license field",
-    "error": true,
-    "type": "warning",
-  },
-  Object {
-    "data": "License should be a valid SPDX license expression",
-    "error": true,
-    "type": "warning",
-  },
+  "../../../../../../package.json: No license field",
+  "License should be a valid SPDX license expression",
 ]
 `;
 
-exports[`C:\\Users\\byk\\Documents\\Projects\\yarnpkg\\yarn\\__tests__\\fixtures\\normalize-manifest\\warn invalid licenseundefined 1`] = `
+exports[`warn invalid license 1`] = `
 Array [
-  Object {
-    "data": "..\\\\..\\\\..\\\\..\\\\..\\\\..\\\\package.json: No license field",
-    "error": true,
-    "type": "warning",
-  },
-  Object {
-    "data": "License should be a valid SPDX license expression",
-    "error": true,
-    "type": "warning",
-  },
+  "../../../../../../package.json: No license field",
+  "License should be a valid SPDX license expression",
 ]
 `;
 
-exports[`C:\\Users\\byk\\Documents\\Projects\\yarnpkg\\yarn\\__tests__\\fixtures\\normalize-manifest\\warn typoundefined 1`] = `
+exports[`warn typo 1`] = `
 Array [
-  Object {
-    "data": "..\\\\..\\\\..\\\\..\\\\..\\\\..\\\\package.json: No license field",
-    "error": true,
-    "type": "warning",
-  },
-  Object {
-    "data": "Potential typo \\"dependancies\\", did you mean \\"dependencies\\"?",
-    "error": true,
-    "type": "warning",
-  },
-  Object {
-    "data": "No license field",
-    "error": true,
-    "type": "warning",
-  },
+  "../../../../../../package.json: No license field",
+  "Potential typo \\"dependancies\\", did you mean \\"dependencies\\"?",
+  "No license field",
 ]
 `;

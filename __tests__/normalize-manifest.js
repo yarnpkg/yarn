@@ -15,9 +15,9 @@ jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000;
 
 const fixturesLoc = path.join(__dirname, 'fixtures', 'normalize-manifest');
 
-async function _compareManifests(loc, options = {}): Promise<void> {
+async function _compareManifests(name, loc, {globalFolder} = {}): Promise<void> {
   const reporter = new BufferReporter();
-  const config = await Config.create({cwd: loc, globalFolder: options.globalFolder}, reporter);
+  const config = await Config.create({cwd: loc, globalFolder}, reporter);
 
   let actual = await fs.readJson(path.join(loc, 'actual.json'));
   const expected = await fs.readJson(path.join(loc, 'expected.json'));
@@ -49,7 +49,9 @@ async function _compareManifests(loc, options = {}): Promise<void> {
   }
 
   expect(map(actual)).toEqual(expand(expected));
-  expect(reporter.getBuffer().filter(d => d.type === 'warning')).toMatchSnapshot(loc + options.globalFolder);
+  expect(
+    reporter.getBuffer().filter(d => d.type === 'warning').map(d => String(d.data).replace(/\\/g, '/')),
+  ).toMatchSnapshot(name);
 }
 
 for (const name of nativeFs.readdirSync(fixturesLoc)) {
@@ -59,17 +61,13 @@ for (const name of nativeFs.readdirSync(fixturesLoc)) {
 
   const loc = path.join(fixturesLoc, name);
 
-  test(name, _compareManifests.bind(null, loc));
+  test(name, () => _compareManifests(name, loc));
 }
 
-const globalfixturesLoc = path.join(__dirname, 'fixtures', 'normalize-manifest', 'name');
+const globalFolder = path.join(__dirname, 'fixtures', 'normalize-manifest', 'name');
 
-test(
-  'license warnings should not be thrown with global commands',
-  _compareManifests.bind(null, globalfixturesLoc, {
-    globalFolder: globalfixturesLoc,
-  }),
-);
+test('license warnings should not be thrown with global commands', () =>
+  _compareManifests('license warnings should not be thrown with global commands', globalFolder, {globalFolder}));
 
 test('util.stringifyPerson', () => {
   expect(util.stringifyPerson({name: 'Sebastian McKenzie'})).toEqual('Sebastian McKenzie');
