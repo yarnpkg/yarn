@@ -23,6 +23,7 @@ import {getRcConfigForCwd, getRcArgs} from '../rc.js';
 import {spawnp, forkp} from '../util/child.js';
 import {version} from '../util/yarn-version.js';
 import handleSignals from '../util/signal-handler.js';
+import {boolify, boolifyWithDefault} from '../util/conversion.js';
 
 function findProjectRoot(base: string): string {
   let prev = null;
@@ -38,16 +39,6 @@ function findProjectRoot(base: string): string {
   } while (dir !== prev);
 
   return base;
-}
-
-const boolify = val => val.toString().toLowerCase() !== 'false' && val !== '0';
-
-function boolifyWithDefault(val: any, defaultResult: boolean): boolean {
-  if (val === undefined || val === null || val === '') {
-    return defaultResult;
-  } else {
-    return boolify(val);
-  }
 }
 
 export function main({
