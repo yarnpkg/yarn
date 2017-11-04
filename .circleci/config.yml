@@ -24,13 +24,12 @@ test_steps: &test_steps
     - run:
         name: Tests
         command: |
-          node -v
           if [ "$CIRCLE_BRANCH" == 'master' ]; then
             ./scripts/set-dev-version.js
           fi;
+          yarn build
           # Limit maxWorkers to 3 to avoid OOM on CircleCI
           yarn test-only --maxWorkers 3
-          yarn check-lockfile
 
 default_filters: &default_filters
   tags:
@@ -90,7 +89,6 @@ jobs:
             apt-get clean && \
             rm -rf /var/lib/apt/lists/*
             gem install fpm
-            node -v
             if [ "$CIRCLE_BRANCH" == 'master' ]; then
               ./scripts/set-dev-version.js
             fi;
