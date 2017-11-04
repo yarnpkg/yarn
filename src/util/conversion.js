@@ -1,7 +1,8 @@
 /* @flow */
 
 export function boolify(val: string|number|boolean): boolean {
-  return val.toString().toLowerCase() !== 'false' && val !== '0';
+  const strVal = val.toString().toLowerCase();
+  return strVal !== 'false' && strVal !== '0';
 }
 
 export function boolifyWithDefault(val: ?(string|number|boolean), defaultResult: boolean): boolean {
