@@ -45,19 +45,7 @@ jobs:
       - *restore_cache
       - run:
           name: Install Dependencies
-          command: |
-            apt-get -y update && \
-            apt-get install -y --no-install-recommends \
-              fakeroot \
-              lintian \
-              rpm \
-              ruby \
-              ruby-dev \
-            && \
-            apt-get clean && \
-            rm -rf /var/lib/apt/lists/*
-            gem install fpm
-            yarn install
+          command: yarn install
       - save_cache:
           name: Save yarn cache
           key: v1-yarn-{{ .Branch }}-{{ checksum "yarn.lock" }}
@@ -91,6 +79,17 @@ jobs:
       - run:
           name: Build distribution
           command: |
+            apt-get -y update && \
+            apt-get install -y --no-install-recommends \
+              fakeroot \
+              lintian \
+              rpm \
+              ruby \
+              ruby-dev \
+            && \
+            apt-get clean && \
+            rm -rf /var/lib/apt/lists/*
+            gem install fpm
             node -v
             if [ "$CIRCLE_BRANCH" == 'master' ]; then
               ./scripts/set-dev-version.js
