@@ -112,7 +112,7 @@ jobs:
     docker:
       - image: node:6
     <<: *test_steps
-  test-node6:
+  test-node4:
     <<: *defaults
     docker:
       - image: node:4
