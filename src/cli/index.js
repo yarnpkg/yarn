@@ -84,6 +84,7 @@ export function main({
   commander.option('--no-lockfile', "don't read or generate a lockfile");
   commander.option('--pure-lockfile', "don't generate a lockfile");
   commander.option('--frozen-lockfile', "don't generate a lockfile and fail if an update is needed");
+  commander.option('--update-checksums', 'update package checksums from current repository');
   commander.option('--link-duplicates', 'create hardlinks to the repeated modules in node_modules');
   commander.option('--link-folder <path>', 'specify a custom folder to store global links');
   commander.option('--global-folder <path>', 'specify a custom folder to store global packages');
@@ -488,6 +489,7 @@ export function main({
       networkTimeout: commander.networkTimeout,
       nonInteractive: commander.nonInteractive,
       scriptsPrependNodePath: commander.scriptsPrependNodePath,
+      updateChecksums: commander.updateChecksums,
     })
     .then(() => {
       // lockfile check must happen after config.init sets lockfileFolder
