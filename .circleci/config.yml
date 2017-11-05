@@ -47,7 +47,7 @@ jobs:
       - *restore_cache
       - run:
           name: Install Dependencies
-          command: yarn install
+          command: yarn install --frozen-lockfile
       - save_cache:
           name: Save yarn cache
           key: v1-yarn-{{ .Branch }}-{{ checksum "yarn.lock" }}

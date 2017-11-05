@@ -58,7 +58,7 @@ before_install:
       mkdir -p $TMPDIR;
       mount -t hfs -o nobrowse $RAMDISK $TMPDIR;
     fi
-  - yarn && yarn build
+  - yarn install --frozen-lockfile && yarn build
   - alias yarn="node ./bin/yarn.js"
 
 os:
