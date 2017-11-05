@@ -39,11 +39,9 @@ jobs:
       - *attach_workspace
       - *restore_cache
       - run:
-          name: Install Dependencies
-          command: yarn install
-      - run:
-          name: Build Yarn for testing
+          name: Install Dependencies & Dev build
           command: |
+            yarn install
             if [ "$CIRCLE_BRANCH" == 'master' ]; then
               ./scripts/set-dev-version.js
             fi;
