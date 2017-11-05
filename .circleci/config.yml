@@ -2,7 +2,7 @@ version: 2
 
 defaults: &defaults
   docker:
-    - image: node:8
+    - yarnpkg/dev:latest
   working_directory: ~/project/yarn
 
 attach_workspace: &attach_workspace
@@ -78,17 +78,6 @@ jobs:
       - run:
           name: Build distribution
           command: |
-            apt-get -y update && \
-            apt-get install -y --no-install-recommends \
-              fakeroot \
-              lintian \
-              rpm \
-              ruby \
-              ruby-dev \
-            && \
-            apt-get clean && \
-            rm -rf /var/lib/apt/lists/*
-            gem install fpm
             if [ "$CIRCLE_BRANCH" == 'master' ]; then
               ./scripts/set-dev-version.js
             fi;
