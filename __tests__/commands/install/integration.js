@@ -732,6 +732,21 @@ test.concurrent('install should add missing deps to yarn and mirror (PR import s
   });
 });
 
+test.concurrent('install should update checksums in yarn.lock (--update-checksums)', (): Promise<void> => {
+  const packageRealHash = '5faad9c2c07f60dd76770f71cf025b62a63cfd4e';
+  const packageCacheName = `npm-abab-1.0.4-${packageRealHash}`;
+  return runInstall({updateChecksums: true}, 'install-update-checksums', async config => {
+    const lockFileContent = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
+    const lockFileLines = explodeLockfile(lockFileContent);
+    const packageHashInLockfile = lockFileLines[2].replace(/(^.*#)|("$)/g, '');
+    const installedPackageJson = path.resolve(config.cwd, 'node_modules', 'abab', 'package.json');
+    const cachePackageJson = path.resolve(config.cwd, '.yarn-cache/v1/', packageCacheName, 'package.json');
+    expect(packageHashInLockfile).toEqual(packageRealHash);
+    expect(await fs.exists(installedPackageJson)).toBe(true);
+    expect(await fs.exists(cachePackageJson)).toBe(true);
+  });
+});
+
 test.concurrent('install should update a dependency to yarn and mirror (PR import scenario 2)', (): Promise<void> => {
   // mime-types@2.0.0 is gets updated to mime-types@2.1.11 via
   // a change in package.json,
