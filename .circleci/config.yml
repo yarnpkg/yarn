@@ -24,10 +24,6 @@ test_steps: &test_steps
     - run:
         name: Tests
         command: |
-          if [ "$CIRCLE_BRANCH" == 'master' ]; then
-            ./scripts/set-dev-version.js
-          fi;
-          yarn build
           # Limit maxWorkers to 3 to avoid OOM on CircleCI
           yarn test-only --maxWorkers 3
 
@@ -45,6 +41,13 @@ jobs:
       - run:
           name: Install Dependencies
           command: yarn install
+      - run:
+          name: Build Yarn for testing
+          command: |
+            if [ "$CIRCLE_BRANCH" == 'master' ]; then
+              ./scripts/set-dev-version.js
+            fi;
+            yarn build
       - save_cache:
           name: Save yarn cache
           key: v1-yarn-{{ .Branch }}-{{ checksum "yarn.lock" }}
