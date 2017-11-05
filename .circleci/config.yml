@@ -2,7 +2,7 @@ version: 2
 
 defaults: &defaults
   docker:
-    - yarnpkg/dev:latest
+    - image: yarnpkg/dev:latest
   working_directory: ~/project/yarn
 
 attach_workspace: &attach_workspace
@@ -39,9 +39,11 @@ jobs:
       - *attach_workspace
       - *restore_cache
       - run:
-          name: Install Dependencies & Dev build
+          name: Install Dependencies
+          command: yarn install
+      - run:
+          name: Build Yarn for testing
           command: |
-            yarn install
             if [ "$CIRCLE_BRANCH" == 'master' ]; then
               ./scripts/set-dev-version.js
             fi;
