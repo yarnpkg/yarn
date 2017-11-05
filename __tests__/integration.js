@@ -412,3 +412,38 @@ test('yarn init -y', async () => {
   const manifestFile = await fs.readFile(path.join(cwd, 'package.json'));
   expect(manifestFile).toEqual(initialManifestFile);
 });
+
+test('yarn install --offline with git hash', async () => {
+  const cwd = await makeTemp();
+  const cacheFolder = path.join(cwd, 'cache');
+  const nodeModules = path.join(cwd, 'node_modules');
+
+  await fs.writeFile(
+    path.join(cwd, '.yarnrc'),
+    `yarn-offline-mirror "${cacheFolder}"\nyarn-offline-mirror-pruning true`,
+  );
+
+  await fs.writeFile(
+    path.join(cwd, 'package.json'),
+    JSON.stringify({
+      name: 'test',
+      license: 'MIT',
+      dependencies: {
+        'mapbox-gl': '^0.22.0',
+      },
+    }),
+  );
+
+  await runYarn(['install'], {cwd}); // Create cache
+
+  const onlineNodeModulesDir = (await fs.readdir(nodeModules)).sort();
+  await fs.unlink(nodeModules);
+
+  await runYarn(['install', '--offline'], {cwd});
+  expect(await fs.exists(nodeModules)).toEqual(true);
+
+  const offlineNodeModulesDir = (await fs.readdir(nodeModules)).sort();
+  expect(onlineNodeModulesDir).toEqual(offlineNodeModulesDir);
+
+  await fs.unlink(cwd);
+});

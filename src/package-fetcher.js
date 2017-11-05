@@ -5,6 +5,7 @@ import type {Fetchers} from './fetchers/index.js';
 import type PackageReference from './package-reference.js';
 import type Config from './config.js';
 import {MessageError} from './errors.js';
+import {DEPENDENCY_TYPES} from './constants.js';
 import * as fetchers from './fetchers/index.js';
 import * as fs from './util/fs.js';
 import * as promise from './util/promise.js';
@@ -100,28 +101,32 @@ export function fetch(pkgs: Array<Manifest>, config: Config): Promise<Array<Mani
       }
 
       const res = await maybeFetchOne(ref, config);
-      let newPkg;
+
+      if (tick) {
+        tick();
+      }
 
       if (res) {
-        newPkg = res.package;
+        const newPkg = res.package;
 
         // update with new remote
         // but only if there was a hash previously as the tarball fetcher does not provide a hash.
         if (ref.remote.hash) {
           ref.remote.hash = res.hash;
         }
-      }
 
-      if (tick) {
-        tick();
-      }
-
-      if (newPkg) {
-        newPkg._reference = ref;
-        newPkg._remote = ref.remote;
-        newPkg.name = pkg.name;
-        newPkg.fresh = pkg.fresh;
-        return newPkg;
+        if (newPkg) {
+          newPkg._reference = ref;
+          newPkg._remote = ref.remote;
+          newPkg.name = pkg.name;
+          newPkg.fresh = pkg.fresh;
+          DEPENDENCY_TYPES.forEach(dep => {
+            if (pkg[dep]) {
+              newPkg[dep] = pkg[dep];
+            }
+          });
+          return newPkg;
+        }
       }
 
       return pkg;
