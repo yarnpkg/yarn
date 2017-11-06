@@ -120,7 +120,8 @@ jobs:
     steps:
       - run:
           name: Install Node 8
-          command: brew install node@8
+          # Node 8.6.0 comes preinstalled
+          command: brew upgrade node
       - *attach_workspace
       - *restore_cache
       - *test_build
