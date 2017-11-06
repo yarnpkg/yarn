@@ -34,6 +34,7 @@ async function execCommand(
   return new Promise((resolve, reject) => {
     const cleanedEnv = {...process.env};
     cleanedEnv['YARN_SILENT'] = 0;
+    cleanedEnv['YARN_WRAP_OUTPUT'] = 1;
     delete cleanedEnv['FORCE_COLOR'];
 
     exec(
@@ -121,7 +122,7 @@ test.concurrent('should add package with no-lockfile option', async () => {
   expectAddSuccessfullOutputWithNoLockFile(stdout, 'repeating');
 });
 
-test.concurrent('should add package with frozzen-lockfile option', async () => {
+test.concurrent('should add package with frozen-lockfile option', async () => {
   const stdout = await execCommand('add', ['repeating', '--frozen-lockfile'], 'run-add-option', true);
   expectAddSuccessfullOutputWithNoLockFile(stdout, 'repeating');
 });
