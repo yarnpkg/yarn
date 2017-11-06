@@ -164,8 +164,17 @@ export default class NpmRegistry extends Registry {
       throw new Error('couldnt find ' + name);
     }
 
+    // By default use top level 'repository' and 'homepage' values
+    let {repository, homepage} = req;
     const wantedPkg = await NpmResolver.findVersionInRegistryResponse(config, range, req);
-    const {repository, homepage} = wantedPkg;
+
+    // But some local repositories like Verdaccio do not return 'repository' nor 'homepage'
+    // in top level data structure, so we fallback to wanted package manifest
+    if (!repository && !homepage) {
+      repository = wantedPkg.repository;
+      homepage = wantedPkg.homepage;
+    }
+
     const url = homepage || (repository && repository.url) || '';
 
     return {
