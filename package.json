@@ -105,7 +105,6 @@
     "build-deb": "./scripts/build-deb.sh",
     "build-dist": "bash ./scripts/build-dist.sh",
     "build-win-installer": "scripts\\build-windows-installer.bat",
-    "check-lockfile": "./scripts/check-lockfile.sh",
     "lint": "eslint . && flow check",
     "prettier": "eslint src __tests__ --fix",
     "release-branch": "./scripts/release-branch.sh",
