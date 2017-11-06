@@ -1,13 +1,14 @@
 version: 2
 
-defaults: &defaults
+docker_defaults: &docker_defaults
   docker:
     - image: yarnpkg/dev:latest
   working_directory: ~/project/yarn
 
-enable_macos: &enable_macos
+macos_defaults: &macos_defaults
   macos:
     xcode: "9.0"
+  working_directory: ~/project/yarn
 
 attach_workspace: &attach_workspace
   attach_workspace:
@@ -20,6 +21,32 @@ restore_cache: &restore_cache
       - v1-node-{{ .Branch }}-{{ checksum "yarn.lock" }}
       - v1-node-{{ .Branch }}-
       - v1-node-
+
+install_steps: &install_steps
+  steps:
+    - checkout
+    - *attach_workspace
+    - *restore_cache
+    - run:
+        name: Install Dependencies
+        command: yarn install --frozen-lockfile
+    - save_cache:
+        name: Save yarn cache
+        key: v1-yarn-{{ .Branch }}-{{ checksum "yarn.lock" }}
+        paths:
+          - .cache/yarn
+    - save_cache:
+        name: Save node_modules cache
+        key: v1-node-{{ .Branch }}-{{ checksum "yarn.lock" }}
+        paths:
+          - node_modules/
+    - run:
+        name: Remove node_modules to cleanup workspace
+        command: rm -r node_modules/
+    - persist_to_workspace:
+        root: ~/project
+        paths:
+          - yarn
 
 test_steps: &test_steps
   steps:
@@ -43,35 +70,14 @@ default_filters: &default_filters
     only: /^v[0-9]+\.[0-9]+\.[0-9]+$/
 
 jobs:
-  install:
-    <<: *defaults
-    <<: *enable_macos
-    steps:
-      - checkout
-      - *attach_workspace
-      - *restore_cache
-      - run:
-          name: Install Dependencies
-          command: yarn install --frozen-lockfile
-      - save_cache:
-          name: Save yarn cache
-          key: v1-yarn-{{ .Branch }}-{{ checksum "yarn.lock" }}
-          paths:
-            - .cache/yarn
-      - save_cache:
-          name: Save node_modules cache
-          key: v1-node-{{ .Branch }}-{{ checksum "yarn.lock" }}
-          paths:
-            - node_modules/
-      - run:
-          name: Remove node_modules to cleanup workspace
-          command: rm -r node_modules/
-      - persist_to_workspace:
-          root: ~/project
-          paths:
-            - yarn
+  install-docker:
+    <<: *docker_defaults
+    <<: *install_steps
+  install-macos:
+    <<: *macos_defaults
+    <<: *install_steps
   lint:
-    <<: *defaults
+    <<: *docker_defaults
     steps:
       - *attach_workspace
       - *restore_cache
@@ -79,7 +85,7 @@ jobs:
           name: Lint
           command: yarn lint
   build:
-    <<: *defaults
+    <<: *docker_defaults
     steps:
       - *attach_workspace
       - *restore_cache
@@ -99,22 +105,23 @@ jobs:
           paths:
             - yarn
   test-node8:
-    <<: *defaults
-    <<: *enable_macos
+    <<: *docker_defaults
     <<: *test_steps
   test-node6:
-    <<: *defaults
+    <<: *docker_defaults
     docker:
       - image: node:6
-    <<: *enable_macos
     <<: *test_steps
   test-node4:
-    <<: *defaults
+    <<: *docker_defaults
     docker:
       - image: node:4
     <<: *test_steps
+  test-macos:
+    <<: *macos_defaults
+    <<: *test_steps
   publish:
-    <<: *defaults
+    <<: *docker_defaults
     steps:
       - *attach_workspace
       - *restore_cache
@@ -138,28 +145,34 @@ workflows:
   version: 2
   install-test-build-and-publish:
     jobs:
-      - install:
+      - install-docker:
+          filters: *default_filters
+      - install-macos:
           filters: *default_filters
       - lint:
           filters: *default_filters
           requires:
-            - install
+            - install-docker
       - test-node8:
           filters: *default_filters
           requires:
-            - install
+            - install-docker
       - test-node6:
           filters: *default_filters
           requires:
-            - install
+            - install-docker
       - test-node4:
           filters: *default_filters
           requires:
-            - install
+            - install-docker
+      - test-macos:
+          filters: *default_filters
+          requires:
+            - install-macos
       - build:
           filters: *default_filters
           requires:
-            - install
+            - install-docker
       - publish:
           filters:
             <<: *default_filters
