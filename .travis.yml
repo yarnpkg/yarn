@@ -1,9 +1,4 @@
 ---
-# Without sudo, Travis CI uses AUFS which is too slow for our I/O heavy tests.
-# With AUFS, we get lots of timeouts and increased build times.
-# See https://docs.travis-ci.com/user/ci-environment/#Virtualization-environments
-sudo: required
-
 git:
   depth: 10
 language: node_js
@@ -22,20 +17,17 @@ branches:
   - master
 
 before_install:
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-      RAMDISK_SIZE=350;
-      RAMDISK_SECTORS=$(( $RAMDISK_SIZE * 1024 * 1024 / 512 ));
-      RAMDISK=$(hdiutil attach -nomount ram://$RAMDISK_SECTORS);
-      newfs_hfs -v yarn_ramfs $RAMDISK;
-      export TMPDIR="/tmp/ramfs";
-      mkdir -p $TMPDIR;
-      mount -t hfs -o nobrowse $RAMDISK $TMPDIR;
-    fi
+  - RAMDISK_SIZE=350;
+    RAMDISK_SECTORS=$(( $RAMDISK_SIZE * 1024 * 1024 / 512 ));
+    RAMDISK=$(hdiutil attach -nomount ram://$RAMDISK_SECTORS);
+    newfs_hfs -v yarn_ramfs $RAMDISK;
+    export TMPDIR="/tmp/ramfs";
+    mkdir -p $TMPDIR;
+    mount -t hfs -o nobrowse $RAMDISK $TMPDIR;
   - yarn install --frozen-lockfile && yarn build
   - alias yarn="node ./bin/yarn.js"
 
 os:
-  - linux
   - osx
 
 script: yarn test-only
