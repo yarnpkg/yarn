@@ -11,7 +11,6 @@ language: node_js
 node_js:
   - "8"
   - "6"
-  - "4"
 
 cache:
   yarn: true
@@ -21,32 +20,6 @@ cache:
 branches:
   only:
   - master
-  - /^.*-stable$/
-
-env:
-  matrix:
-    - TEST_TYPE="build-dist"
-    - TEST_TYPE="lint"
-    - TEST_TYPE="test-only"
-
-matrix:
-  exclude:
-    - env: TEST_TYPE="build-dist"
-      node_js: "4"
-    - env: TEST_TYPE="lint"
-      node_js: "4"
-    - env: TEST_TYPE="build-dist"
-      node_js: "6"
-    - env: TEST_TYPE="lint"
-      node_js: "6"
-
-  include:
-    - os: osx
-      node_js: "6"
-      env: TEST_TYPE="test-only"
-    - os: osx
-      node_js: "8"
-      env: TEST_TYPE="test-only"
 
 before_install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
@@ -63,5 +36,6 @@ before_install:
 
 os:
   - linux
+  - osx
 
-script: yarn $TEST_TYPE
+script: yarn test-only
