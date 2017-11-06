@@ -415,13 +415,12 @@ test('yarn init -y', async () => {
 
 test('yarn install --offline with git hash', async () => {
   const cwd = await makeTemp();
-  const cacheFolder = path.join(cwd, 'cache');
   const nodeModules = path.join(cwd, 'node_modules');
   const nl = process.platform === 'win32' ? '\r\n' : '\n';
 
   await fs.writeFile(
     path.join(cwd, '.yarnrc'),
-    `yarn-offline-mirror "${cacheFolder}"${nl}yarn-offline-mirror-pruning true${nl}`,
+    `yarn-offline-mirror "./cache"${nl}yarn-offline-mirror-pruning true${nl}`,
   );
 
   await fs.writeFile(
