@@ -120,7 +120,7 @@ jobs:
     steps:
       - run:
           name: Install Node 8
-          command: nvm install 8
+          command: brew install node@8
       - *attach_workspace
       - *restore_cache
       - *test_build
@@ -130,7 +130,7 @@ jobs:
     steps:
       - run:
           name: Install Node 6
-          command: nvm install 6
+          command: brew install node@6
       - *attach_workspace
       - *restore_cache
       - *test_build
