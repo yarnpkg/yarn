@@ -26,7 +26,6 @@ branches:
 env:
   matrix:
     - TEST_TYPE="build-dist"
-    - TEST_TYPE="check-lockfile"
     - TEST_TYPE="lint"
     - TEST_TYPE="test-only"
 
@@ -34,13 +33,9 @@ matrix:
   exclude:
     - env: TEST_TYPE="build-dist"
       node_js: "4"
-    - env: TEST_TYPE="check-lockfile"
-      node_js: "4"
     - env: TEST_TYPE="lint"
       node_js: "4"
     - env: TEST_TYPE="build-dist"
-      node_js: "6"
-    - env: TEST_TYPE="check-lockfile"
       node_js: "6"
     - env: TEST_TYPE="lint"
       node_js: "6"
@@ -63,7 +58,7 @@ before_install:
       mkdir -p $TMPDIR;
       mount -t hfs -o nobrowse $RAMDISK $TMPDIR;
     fi
-  - yarn && yarn build
+  - yarn install --frozen-lockfile && yarn build
   - alias yarn="node ./bin/yarn.js"
 
 os:

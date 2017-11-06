@@ -1,15 +1,15 @@
 version: 2
 
 defaults: &defaults
-  working_directory: ~/project/yarn
   docker:
     - image: yarnpkg/dev:latest
+  working_directory: ~/project/yarn
 
-default_filters: &default_filters
-  tags:
-    only: /^v[0-9]+\.[0-9]+\.[0-9]+$/
+attach_workspace: &attach_workspace
+  attach_workspace:
+      at: ~/project
 
-restore_node_modules: &restore_node_modules
+restore_cache: &restore_cache
   restore_cache:
     name: Restore node_modules cache
     keys:
@@ -17,15 +17,37 @@ restore_node_modules: &restore_node_modules
       - v1-node-{{ .Branch }}-
       - v1-node-
 
+test_steps: &test_steps
+  steps:
+    - *attach_workspace
+    - *restore_cache
+    - run:
+        name: Build Yarn for testing
+        command: |
+          if [ "$CIRCLE_BRANCH" == 'master' ]; then
+            ./scripts/set-dev-version.js
+          fi;
+          yarn build
+    - run:
+        name: Tests
+        command: |
+          # Limit maxWorkers to 3 to avoid OOM on CircleCI
+          yarn test-only --maxWorkers 3
+
+default_filters: &default_filters
+  tags:
+    only: /^v[0-9]+\.[0-9]+\.[0-9]+$/
+
 jobs:
   install:
     <<: *defaults
     steps:
       - checkout
-      - *restore_node_modules
+      - *attach_workspace
+      - *restore_cache
       - run:
           name: Install Dependencies
-          command: yarn install
+          command: yarn install --frozen-lockfile
       - save_cache:
           name: Save yarn cache
           key: v1-yarn-{{ .Branch }}-{{ checksum "yarn.lock" }}
@@ -43,41 +65,22 @@ jobs:
           root: ~/project
           paths:
             - yarn
-  test:
-    <<: *defaults
-    steps:
-      - attach_workspace:
-          at: ~/project
-      - *restore_node_modules
-      - run:
-          name: Tests
-          command: |
-            node -v
-            if [ "$CIRCLE_BRANCH" == 'master' ]; then
-              ./scripts/set-dev-version.js
-            fi;
-            # Limit maxWorkers to 3 to avoid OOM on CircleCI
-            yarn test-ci --maxWorkers 3
-            yarn check-lockfile
   lint:
     <<: *defaults
     steps:
-      - attach_workspace:
-          at: ~/project
-      - *restore_node_modules
+      - *attach_workspace
+      - *restore_cache
       - run:
           name: Lint
           command: yarn lint
   build:
     <<: *defaults
     steps:
-      - attach_workspace:
-          at: ~/project
-      - *restore_node_modules
+      - *attach_workspace
+      - *restore_cache
       - run:
           name: Build distribution
           command: |
-            node -v
             if [ "$CIRCLE_BRANCH" == 'master' ]; then
               ./scripts/set-dev-version.js
             fi;
@@ -90,12 +93,24 @@ jobs:
           root: ~/project
           paths:
             - yarn
+  test-node8:
+    <<: *defaults
+    <<: *test_steps
+  test-node6:
+    <<: *defaults
+    docker:
+      - image: node:6
+    <<: *test_steps
+  test-node4:
+    <<: *defaults
+    docker:
+      - image: node:4
+    <<: *test_steps
   publish:
     <<: *defaults
     steps:
-      - attach_workspace:
-          at: ~/project
-      - *restore_node_modules
+      - *attach_workspace
+      - *restore_cache
       - run:
           name: Publish
           command: |
@@ -118,11 +133,19 @@ workflows:
     jobs:
       - install:
           filters: *default_filters
-      - test:
+      - lint:
           filters: *default_filters
           requires:
             - install
-      - lint:
+      - test-node8:
+          filters: *default_filters
+          requires:
+            - install
+      - test-node6:
+          filters: *default_filters
+          requires:
+            - install
+      - test-node4:
           filters: *default_filters
           requires:
             - install
@@ -136,6 +159,8 @@ workflows:
             branches:
               ignore: /.*/
           requires:
-            - test
+            - test-node8
+            - test-node6
+            - test-node4
             - lint
             - build
