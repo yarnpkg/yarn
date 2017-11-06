@@ -100,7 +100,7 @@ function expectAnErrorMessage(command: Promise<Array<?string>>, expectedMessage:
     .then(function() {
       throw new Error('the command did not fail');
     })
-    .catch(error => expect(error.message).toContain(expectedMessage));
+    .catch(error => expect(error.message.replace(/\\/g, '')).toContain(expectedMessage));
 }
 
 function expectAnInfoMessageAfterError(command: Promise<Array<?string>>, expectedInfo: string): Promise<void> {

@@ -8,7 +8,6 @@ import type {Tree, Trees} from '../../reporters/types.js';
 import {Install} from './install.js';
 
 import Lockfile from '../../lockfile';
-import {isProduction} from '../../constants';
 
 const invariant = require('invariant');
 const micromatch = require('micromatch');
@@ -199,7 +198,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
   });
 
   let activePatterns = [];
-  if (isProduction()) {
+  if (config.production) {
     const devDeps = getDevDeps(manifest);
     activePatterns = patterns.filter(pattern => !devDeps.has(pattern));
   } else {
