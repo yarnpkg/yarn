@@ -31,11 +31,6 @@ install_steps: &install_steps
         name: Install Dependencies
         command: yarn install --frozen-lockfile
     - save_cache:
-        name: Save yarn cache
-        key: v1-yarn-{{ arch }}-{{ .Branch }}-{{ checksum "yarn.lock" }}
-        paths:
-          - .cache/yarn
-    - save_cache:
         name: Save node_modules cache
         key: v1-node-{{ arch }}-{{ .Branch }}-{{ checksum "yarn.lock" }}
         paths:
@@ -48,22 +43,28 @@ install_steps: &install_steps
         paths:
           - yarn
 
+test_build: &test_build
+  run:
+    name: Build Yarn for testing
+    command: |
+      if [ "$CIRCLE_BRANCH" == 'master' ]; then
+        ./scripts/set-dev-version.js
+      fi;
+      yarn build
+
+test_run: &test_run
+  run:
+    name: Tests
+    command: |
+      # Limit maxWorkers to 3 to avoid OOM on CircleCI
+      yarn test-only --maxWorkers 3
+
 test_steps: &test_steps
   steps:
     - *attach_workspace
     - *restore_cache
-    - run:
-        name: Build Yarn for testing
-        command: |
-          if [ "$CIRCLE_BRANCH" == 'master' ]; then
-            ./scripts/set-dev-version.js
-          fi;
-          yarn build
-    - run:
-        name: Tests
-        command: |
-          # Limit maxWorkers to 3 to avoid OOM on CircleCI
-          yarn test-only --maxWorkers 3
+    - *test_build
+    - *test_run
 
 default_filters: &default_filters
   tags:
@@ -72,9 +73,6 @@ default_filters: &default_filters
 jobs:
   install-docker:
     <<: *docker_defaults
-    <<: *install_steps
-  install-macos:
-    <<: *macos_defaults
     <<: *install_steps
   lint:
     <<: *docker_defaults
@@ -117,9 +115,27 @@ jobs:
     docker:
       - image: node:4
     <<: *test_steps
-  test-macos:
+  test-macos-node8:
     <<: *macos_defaults
-    <<: *test_steps
+    steps:
+      - run:
+          name: Install Node 8
+          command: nvm install 8
+      - *attach_workspace
+      - *restore_cache
+      - *test_build
+      - *test_run
+  test-macos-node6:
+    <<: *macos_defaults
+    steps:
+      - run:
+          name: Install Node 6
+          command: nvm install 6
+      - *attach_workspace
+      - *restore_cache
+      - *test_build
+      - *test_run
+
   publish:
     <<: *docker_defaults
     steps:
@@ -165,7 +181,11 @@ workflows:
           filters: *default_filters
           requires:
             - install-docker
-      - test-macos:
+      - test-macos-node6:
+          filters: *default_filters
+          requires:
+            - install-macos
+      - test-macos-node8:
           filters: *default_filters
           requires:
             - install-macos
