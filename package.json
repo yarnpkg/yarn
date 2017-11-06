@@ -109,20 +109,15 @@
     "prettier": "eslint src __tests__ --fix",
     "release-branch": "./scripts/release-branch.sh",
     "test": "yarn lint && yarn test-only",
-    "test-ci": "yarn build && yarn test-only",
     "test-only": "node --max_old_space_size=4096 node_modules/jest/bin/jest.js --verbose",
     "test-coverage": "node --max_old_space_size=4096 node_modules/jest/bin/jest.js --coverage --verbose",
     "watch": "gulp watch",
     "commit": "git-cz"
   },
   "jest": {
-    "collectCoverageFrom": [
-      "src/**/*.js"
-    ],
+    "collectCoverageFrom": ["src/**/*.js"],
     "testEnvironment": "node",
-    "modulePathIgnorePatterns": [
-      "__tests__/fixtures/"
-    ],
+    "modulePathIgnorePatterns": ["__tests__/fixtures/"],
     "testPathIgnorePatterns": [
       "__tests__/(fixtures|__mocks__)/",
       "updates/",

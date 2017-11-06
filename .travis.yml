@@ -1,9 +1,4 @@
 ---
-# Without sudo, Travis CI uses AUFS which is too slow for our I/O heavy tests.
-# With AUFS, we get lots of timeouts and increased build times.
-# See https://docs.travis-ci.com/user/ci-environment/#Virtualization-environments
-sudo: required
-
 git:
   depth: 10
 language: node_js
@@ -11,7 +6,6 @@ language: node_js
 node_js:
   - "8"
   - "6"
-  - "4"
 
 cache:
   yarn: true
@@ -21,47 +15,19 @@ cache:
 branches:
   only:
   - master
-  - /^.*-stable$/
-
-env:
-  matrix:
-    - TEST_TYPE="build-dist"
-    - TEST_TYPE="lint"
-    - TEST_TYPE="test-only"
-
-matrix:
-  exclude:
-    - env: TEST_TYPE="build-dist"
-      node_js: "4"
-    - env: TEST_TYPE="lint"
-      node_js: "4"
-    - env: TEST_TYPE="build-dist"
-      node_js: "6"
-    - env: TEST_TYPE="lint"
-      node_js: "6"
-
-  include:
-    - os: osx
-      node_js: "6"
-      env: TEST_TYPE="test-only"
-    - os: osx
-      node_js: "8"
-      env: TEST_TYPE="test-only"
 
 before_install:
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-      RAMDISK_SIZE=350;
-      RAMDISK_SECTORS=$(( $RAMDISK_SIZE * 1024 * 1024 / 512 ));
-      RAMDISK=$(hdiutil attach -nomount ram://$RAMDISK_SECTORS);
-      newfs_hfs -v yarn_ramfs $RAMDISK;
-      export TMPDIR="/tmp/ramfs";
-      mkdir -p $TMPDIR;
-      mount -t hfs -o nobrowse $RAMDISK $TMPDIR;
-    fi
+  - RAMDISK_SIZE=350;
+    RAMDISK_SECTORS=$(( $RAMDISK_SIZE * 1024 * 1024 / 512 ));
+    RAMDISK=$(hdiutil attach -nomount ram://$RAMDISK_SECTORS);
+    newfs_hfs -v yarn_ramfs $RAMDISK;
+    export TMPDIR="/tmp/ramfs";
+    mkdir -p $TMPDIR;
+    mount -t hfs -o nobrowse $RAMDISK $TMPDIR;
   - yarn install --frozen-lockfile && yarn build
   - alias yarn="node ./bin/yarn.js"
 
 os:
-  - linux
+  - osx
 
-script: yarn $TEST_TYPE
+script: yarn test-only
