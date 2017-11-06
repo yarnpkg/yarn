@@ -32,7 +32,7 @@ install_steps: &install_steps
         command: yarn install --frozen-lockfile
     - save_cache:
         name: Save yarn cache
-        key: v1-yarn-{{ .Branch }}-{{ checksum "yarn.lock" }}
+        key: v1-yarn-{{ arch }}-{{ .Branch }}-{{ checksum "yarn.lock" }}
         paths:
           - .cache/yarn
     - save_cache:
