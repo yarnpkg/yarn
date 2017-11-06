@@ -101,32 +101,31 @@ export function fetch(pkgs: Array<Manifest>, config: Config): Promise<Array<Mani
       }
 
       const res = await maybeFetchOne(ref, config);
-
-      if (tick) {
-        tick();
-      }
+      const newPkg = res && res.package;
 
       if (res) {
-        const newPkg = res.package;
-
         // update with new remote
         // but only if there was a hash previously as the tarball fetcher does not provide a hash.
         if (ref.remote.hash) {
           ref.remote.hash = res.hash;
         }
+      }
 
-        if (newPkg) {
-          newPkg._reference = ref;
-          newPkg._remote = ref.remote;
-          newPkg.name = pkg.name;
-          newPkg.fresh = pkg.fresh;
-          DEPENDENCY_TYPES.forEach(dep => {
-            if (pkg[dep]) {
-              newPkg[dep] = pkg[dep];
-            }
-          });
-          return newPkg;
-        }
+      if (tick) {
+        tick();
+      }
+
+      if (newPkg) {
+        newPkg._reference = ref;
+        newPkg._remote = ref.remote;
+        newPkg.name = pkg.name;
+        newPkg.fresh = pkg.fresh;
+        DEPENDENCY_TYPES.forEach(dep => {
+          if (pkg[dep]) {
+            newPkg[dep] = pkg[dep];
+          }
+        });
+        return newPkg;
       }
 
       return pkg;
