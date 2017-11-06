@@ -5,6 +5,10 @@ defaults: &defaults
     - image: yarnpkg/dev:latest
   working_directory: ~/project/yarn
 
+enable_macos: &enable_macos
+  macos:
+    xcode: "9.0"
+
 attach_workspace: &attach_workspace
   attach_workspace:
       at: ~/project
@@ -41,6 +45,7 @@ default_filters: &default_filters
 jobs:
   install:
     <<: *defaults
+    <<: *enable_macos
     steps:
       - checkout
       - *attach_workspace
@@ -95,11 +100,13 @@ jobs:
             - yarn
   test-node8:
     <<: *defaults
+    <<: *enable_macos
     <<: *test_steps
   test-node6:
     <<: *defaults
     docker:
       - image: node:6
+    <<: *enable_macos
     <<: *test_steps
   test-node4:
     <<: *defaults
