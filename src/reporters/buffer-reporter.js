@@ -9,7 +9,7 @@ type Buffer = Array<{
 }>;
 
 export default class BufferReporter extends JSONReporter {
-  constructor(opts: Object) {
+  constructor(opts?: Object) {
     super(opts);
     this._buffer = [];
   }
