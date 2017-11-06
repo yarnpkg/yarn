@@ -1,4 +1,0 @@
-[
-  "No license field",
-  "\"dependencies\" has dependency \"foobar\" with range \"2.0.0\" that collides with a dependency in \"devDependencies\" of the same name with version \"1.0.0\""
-]
