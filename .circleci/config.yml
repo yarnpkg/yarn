@@ -71,7 +71,7 @@ default_filters: &default_filters
     only: /^v[0-9]+\.[0-9]+\.[0-9]+$/
 
 jobs:
-  install-docker:
+  install:
     <<: *docker_defaults
     <<: *install_steps
   lint:
@@ -161,38 +161,36 @@ workflows:
   version: 2
   install-test-build-and-publish:
     jobs:
-      - install-docker:
-          filters: *default_filters
-      - install-macos:
+      - install:
           filters: *default_filters
       - lint:
           filters: *default_filters
           requires:
-            - install-docker
+            - install
       - test-node8:
           filters: *default_filters
           requires:
-            - install-docker
+            - install
       - test-node6:
           filters: *default_filters
           requires:
-            - install-docker
+            - install
       - test-node4:
           filters: *default_filters
           requires:
-            - install-docker
+            - install
       - test-macos-node6:
           filters: *default_filters
           requires:
-            - install-macos
+            - install
       - test-macos-node8:
           filters: *default_filters
           requires:
-            - install-macos
+            - install
       - build:
           filters: *default_filters
           requires:
-            - install-docker
+            - install
       - publish:
           filters:
             <<: *default_filters
