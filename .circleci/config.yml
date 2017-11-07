@@ -137,6 +137,7 @@ jobs:
             brew uninstall --ignore-dependencies node
             brew install node@6
             export PATH="/usr/local/opt/node@6/bin:$PATH"
+             echo 'export PATH="/usr/local/opt/node@6/bin:$PATH"' >> ~/.bash_profile
             yarn global add node-gyp
       - *attach_workspace
       - *restore_cache
