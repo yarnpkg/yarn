@@ -136,7 +136,7 @@ jobs:
           command: |
             brew uninstall --ignore-dependencies node
             HOMEBREW_NO_AUTO_UPDATE=1 brew install node@6
-            brew link node
+            brew link --force node@6
             yarn global add node-gyp
       - *attach_workspace
       - *restore_cache
