@@ -92,7 +92,7 @@ const {run, setFlags: _setFlags, examples} = buildSubCommands('cache', {
       return packageFolders;
     }
 
-    if (config.cacheFolder) {
+    if (config.cacheFolders && config.cacheFolder) {
       const activity = reporter.activity();
 
       if (args.length > 0) {
@@ -112,7 +112,9 @@ const {run, setFlags: _setFlags, examples} = buildSubCommands('cache', {
         reporter.success(reporter.lang('clearedPackageFromCache', args[0]));
       } else {
         // Clear all cache
-        await fs.unlink(config._cacheRootFolder);
+        for (const cacheFolder of config.cacheFolders) {
+          await fs.unlink(cacheFolder);
+        }
         await fs.mkdirp(config.cacheFolder);
         activity.end();
         reporter.success(reporter.lang('clearedCache'));

@@ -132,6 +132,11 @@ type FolderQueryResult = {
   folder: ?string,
 };
 
+type FoldersQueryResult = {
+  skipped: Array<FailedFolderQuery>,
+  folder: Array<string>,
+};
+
 export const fileDatesEqual = (a: Date, b: Date) => {
   const aTime = a.getTime();
   const bTime = b.getTime();
@@ -930,6 +935,31 @@ export async function getFirstSuitableFolder(
       result.folder = folder;
 
       return result;
+    } catch (error) {
+      result.skipped.push({
+        error,
+        folder,
+      });
+    }
+  }
+  return result;
+}
+
+export async function getSuitableFolders(
+  paths: Iterable<string>,
+  mode: number = constants.W_OK | constants.X_OK, // eslint-disable-line no-bitwise
+): Promise<FoldersQueryResult> {
+  const result: FoldersQueryResult = {
+    skipped: [],
+    folders: [],
+  };
+
+  for (const folder of paths) {
+    try {
+      await mkdirp(folder);
+      await access(folder, mode);
+
+      result.folders.push(folder);
     } catch (error) {
       result.skipped.push({
         error,
