@@ -44,7 +44,7 @@ Read the [Usage Guide](https://yarnpkg.com/en/docs/usage) on our website for det
 
 Contributions are always welcome, no matter how large or small. Substantial feature requests should be proposed as an [RFC](https://github.com/yarnpkg/rfcs). Before contributing, please read the [code of conduct](CODE_OF_CONDUCT.md).
 
-See [Contributing](CONTRIBUTING.md).
+See [Contributing](https://yarnpkg.com/org/contributing/).
 
 ## Prior art
 
