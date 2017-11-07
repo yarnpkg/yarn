@@ -147,6 +147,75 @@ test.concurrent('install with --optional flag', (): Promise<void> => {
   });
 });
 
+// Test if moduleAlreadyInManifest warning is displayed
+const moduleAlreadyInManifestChecker = ({expectWarnings}: {expectWarnings: boolean}) => async (
+  args,
+  flags,
+  config,
+  reporter,
+  lockfile,
+): Promise<void> => {
+  const add = new Add(args, flags, config, reporter, lockfile);
+  await add.init();
+
+  const output = reporter.getBuffer();
+  const warnings = output.filter(entry => entry.type === 'warning');
+
+  expect(warnings.some(warning => warning.data.toString().toLowerCase().indexOf('is already in') > -1)).toEqual(
+    expectWarnings,
+  );
+
+  expect(
+    warnings.some(
+      warning => warning.data.toString().toLowerCase().indexOf('please remove existing entry first before adding') > -1,
+    ),
+  ).toEqual(expectWarnings);
+};
+
+test.concurrent('warns when adding a devDependency as dependency', (): Promise<void> => {
+  return buildRun(
+    reporters.BufferReporter,
+    fixturesLoc,
+    moduleAlreadyInManifestChecker({expectWarnings: true}),
+    ['is-online'],
+    {},
+    'add-already-added-dev-dependency',
+  );
+});
+
+test.concurrent("doesn't warn when adding a devDependency as devDependency", (): Promise<void> => {
+  return buildRun(
+    reporters.BufferReporter,
+    fixturesLoc,
+    moduleAlreadyInManifestChecker({expectWarnings: false}),
+    ['is-online'],
+    {dev: true},
+    'add-already-added-dev-dependency',
+  );
+});
+
+test.concurrent('warns when adding a dependency as devDependency', (): Promise<void> => {
+  return buildRun(
+    reporters.BufferReporter,
+    fixturesLoc,
+    moduleAlreadyInManifestChecker({expectWarnings: true}),
+    ['is-online'],
+    {dev: true},
+    'add-already-added-dependency',
+  );
+});
+
+test.concurrent("doesn't warn when adding a dependency as dependency", (): Promise<void> => {
+  return buildRun(
+    reporters.BufferReporter,
+    fixturesLoc,
+    moduleAlreadyInManifestChecker({expectWarnings: false}),
+    ['is-online'],
+    {},
+    'add-already-added-dependency',
+  );
+});
+
 test.concurrent('install with link: specifier', (): Promise<void> => {
   return runAdd(['link:../left-pad'], {dev: true}, 'add-with-flag', async config => {
     const lockfile = explodeLockfile(await fs.readFile(path.join(config.cwd, 'yarn.lock')));
@@ -955,5 +1024,72 @@ test.concurrent('installing with --pure-lockfile and then adding should keep bui
     const add = new Add(['left-pad@1.1.0'], {}, config, reporter, await Lockfile.fromDirectory(config.cwd));
     await add.init();
     expect(await fs.exists(path.join(config.cwd, 'node_modules', 'package-a', 'temp.txt'))).toBe(true);
+  });
+});
+
+test.concurrent('preserves unaffected bin links after adding to workspace package', async () => {
+  await runInstall({binLinks: true}, 'workspaces-install-bin', async (config): Promise<void> => {
+    const reporter = new ConsoleReporter({});
+
+    expect(await fs.exists(`${config.cwd}/node_modules/.bin/rimraf`)).toEqual(true);
+    expect(await fs.exists(`${config.cwd}/node_modules/.bin/touch`)).toEqual(true);
+    expect(await fs.exists(`${config.cwd}/node_modules/.bin/workspace-1`)).toEqual(true);
+    expect(await fs.exists(`${config.cwd}/packages/workspace-2/node_modules/.bin/rimraf`)).toEqual(true);
+    expect(await fs.exists(`${config.cwd}/packages/workspace-2/node_modules/.bin/workspace-1`)).toEqual(true);
+
+    // add package
+    const childConfig = await makeConfigFromDirectory(`${config.cwd}/packages/workspace-1`, reporter, {binLinks: true});
+    await add(childConfig, reporter, {}, ['max-safe-integer@1.0.0']);
+
+    expect(
+      JSON.parse(await fs.readFile(path.join(config.cwd, 'packages/workspace-1/package.json'))).dependencies,
+    ).toEqual({
+      'max-safe-integer': '1.0.0',
+    });
+
+    // bin links should be preserved
+    expect(await fs.exists(`${config.cwd}/node_modules/.bin/rimraf`)).toEqual(true);
+    expect(await fs.exists(`${config.cwd}/node_modules/.bin/touch`)).toEqual(true);
+    expect(await fs.exists(`${config.cwd}/node_modules/.bin/workspace-1`)).toEqual(true);
+    expect(await fs.exists(`${config.cwd}/packages/workspace-2/node_modules/.bin/rimraf`)).toEqual(true);
+    expect(await fs.exists(`${config.cwd}/packages/workspace-2/node_modules/.bin/workspace-1`)).toEqual(true);
+  });
+});
+
+test.concurrent('installs "latest" instead of maxSatisfying if it satisfies requested pattern', (): Promise<void> => {
+  // Scenario:
+  // If a registry contains versions [1.0.0, 1.0.1, 1.0.2] and latest:1.0.1
+  // (note that "latest" is not the "newest" version)
+  // If yarn add ^1.0.0 is run, it should choose `1.0.1` because it is "latest" and satisfies the range,
+  // not `1.0.2` even though it is newer.
+  // This is behavior defined by the NPM implementation. See:
+  //  * https://github.com/yarnpkg/yarn/issues/3560
+  //  * https://git.io/vFmau
+  //
+  // In this test, `ui-select` has a max version of `0.20.0` but a `latest:0.19.8`
+  return runAdd(['ui-select@^0.X'], {}, 'latest-version-in-package', async (config, reporter, previousAdd) => {
+    const lockfile = explodeLockfile(await fs.readFile(path.join(config.cwd, 'yarn.lock')));
+    const patternIndex = lockfile.indexOf('ui-select@^0.X:');
+    const versionIndex = patternIndex + 1;
+    const actualVersion = lockfile[versionIndex];
+
+    expect(actualVersion).toContain('0.19.8');
+  });
+});
+
+test.concurrent('installs "latest" instead of maxSatisfying if no requested pattern', (): Promise<void> => {
+  // Scenario:
+  // If a registry contains versions [1.0.0, 1.0.1, 1.0.2] and latest:1.0.1
+  // If `yarn add` is run, it should choose `1.0.1` because it is "latest", not `1.0.2` even though it is newer.
+  // In other words, when no range is explicitely given, Yarn should choose "latest".
+  //
+  // In this test, `ui-select` has a max version of `0.20.0` but a `latest:0.19.8`
+  return runAdd(['ui-select'], {}, 'latest-version-in-package', async (config, reporter, previousAdd) => {
+    const lockfile = explodeLockfile(await fs.readFile(path.join(config.cwd, 'yarn.lock')));
+    const patternIndex = lockfile.indexOf('ui-select@^0.19.8:');
+    const versionIndex = patternIndex + 1;
+    const actualVersion = lockfile[versionIndex];
+
+    expect(actualVersion).toContain('0.19.8');
   });
 });

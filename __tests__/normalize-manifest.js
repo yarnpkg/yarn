@@ -2,7 +2,7 @@
 /* eslint max-len: 0 */
 
 import normalizeManifest from '../src/util/normalize-manifest/index.js';
-import NoopReporter from '../src/reporters/base-reporter.js';
+import {BufferReporter} from '../src/reporters/index.js';
 import Config from '../src/config.js';
 import map from '../src/util/map.js';
 import * as util from '../src/util/normalize-manifest/util.js';
@@ -15,17 +15,9 @@ jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000;
 
 const fixturesLoc = path.join(__dirname, 'fixtures', 'normalize-manifest');
 
-async function _compareManifests(loc, options = {}): Promise<void> {
-  const actualWarnings = [];
-  const expectedWarnings = options.expectedWarnings || (await fs.readJson(path.join(loc, 'warnings.json')));
-  const reporter = new NoopReporter();
-
-  // $FlowFixMe: Investigate
-  reporter.warn = function(msg) {
-    actualWarnings.push(msg);
-  };
-
-  const config = await Config.create({cwd: loc, globalFolder: options.globalFolder}, reporter);
+async function _compareManifests(name, loc, {globalFolder} = {}): Promise<void> {
+  const reporter = new BufferReporter();
+  const config = await Config.create({cwd: loc, globalFolder}, reporter);
 
   let actual = await fs.readJson(path.join(loc, 'actual.json'));
   const expected = await fs.readJson(path.join(loc, 'expected.json'));
@@ -57,7 +49,9 @@ async function _compareManifests(loc, options = {}): Promise<void> {
   }
 
   expect(map(actual)).toEqual(expand(expected));
-  expect(actualWarnings).toEqual(expectedWarnings);
+  expect(
+    reporter.getBuffer().filter(d => d.type === 'warning').map(d => String(d.data).replace(/\\/g, '/')),
+  ).toMatchSnapshot(name);
 }
 
 for (const name of nativeFs.readdirSync(fixturesLoc)) {
@@ -67,18 +61,13 @@ for (const name of nativeFs.readdirSync(fixturesLoc)) {
 
   const loc = path.join(fixturesLoc, name);
 
-  test(name, _compareManifests.bind(null, loc));
+  test(name, () => _compareManifests(name, loc));
 }
 
-const globalfixturesLoc = path.join(__dirname, 'fixtures', 'normalize-manifest', 'name');
+const globalFolder = path.join(__dirname, 'fixtures', 'normalize-manifest', 'name');
 
-test(
-  'license warnings should not be thrown with global commands',
-  _compareManifests.bind(null, globalfixturesLoc, {
-    expectedWarnings: [],
-    globalFolder: globalfixturesLoc,
-  }),
-);
+test('license warnings should not be thrown with global commands', () =>
+  _compareManifests('license warnings should not be thrown with global commands', globalFolder, {globalFolder}));
 
 test('util.stringifyPerson', () => {
   expect(util.stringifyPerson({name: 'Sebastian McKenzie'})).toEqual('Sebastian McKenzie');

@@ -11,7 +11,7 @@ branches:
 
 install:
   - ps: Install-Product node $env:node_version
-  - yarn install
+  - yarn install --frozen-lockfile
 
 build_script:
   - ps: if ($env:APPVEYOR_REPO_BRANCH -eq 'master') { node ./scripts/set-dev-version.js }

@@ -304,8 +304,13 @@ export default class PackageLinker {
       const stat = await fs.lstat(entryPath);
 
       if (stat.isSymbolicLink()) {
-        const packageName = entry;
-        linkTargets.set(packageName, await fs.readlink(entryPath));
+        try {
+          const entryTarget = await fs.realpath(entryPath);
+          linkTargets.set(entry, entryTarget);
+        } catch (err) {
+          this.reporter.warn(this.reporter.lang('linkTargetMissing', entry));
+          await fs.unlink(entryPath);
+        }
       } else if (stat.isDirectory() && entry[0] === '@') {
         // if the entry is directory beginning with '@', then we're dealing with a package scope, which
         // means we must iterate inside to retrieve the package names it contains
@@ -317,7 +322,13 @@ export default class PackageLinker {
 
           if (stat2.isSymbolicLink()) {
             const packageName = `${scopeName}/${entry2}`;
-            linkTargets.set(packageName, await fs.readlink(entryPath2));
+            try {
+              const entryTarget = await fs.realpath(entryPath2);
+              linkTargets.set(packageName, entryTarget);
+            } catch (err) {
+              this.reporter.warn(this.reporter.lang('linkTargetMissing', packageName));
+              await fs.unlink(entryPath2);
+            }
           }
         }
       }
@@ -334,7 +345,7 @@ export default class PackageLinker {
       if (
         (await fs.lstat(loc)).isSymbolicLink() &&
         linkTargets.has(packageName) &&
-        linkTargets.get(packageName) === (await fs.readlink(loc))
+        linkTargets.get(packageName) === (await fs.realpath(loc))
       ) {
         possibleExtraneous.delete(loc);
         copyQueue.delete(loc);
@@ -411,7 +422,7 @@ export default class PackageLinker {
         topLevelDependencies,
         async ([dest, pkg]) => {
           if (pkg._reference && pkg._reference.location && pkg.bin && Object.keys(pkg.bin).length) {
-            const binLoc = path.join(this.config.cwd, this.config.getFolder(pkg));
+            const binLoc = path.join(this.config.lockfileFolder, this.config.getFolder(pkg));
             await this.linkSelfDependencies(pkg, dest, binLoc);
             tickBin();
           }
@@ -468,7 +479,7 @@ export default class PackageLinker {
 
         let peerError = 'unmetPeer';
         let resolvedLevelDistance = Infinity;
-        let resolvedPeerPkgPattern;
+        let resolvedPeerPkg;
         for (const peerPkg of peerPkgs) {
           const peerPkgRef = peerPkg._reference;
           if (!(peerPkgRef && peerPkgRef.patterns)) {
@@ -478,25 +489,31 @@ export default class PackageLinker {
           if (isFinite(levelDistance) && levelDistance < resolvedLevelDistance) {
             if (this._satisfiesPeerDependency(range, peerPkgRef.version)) {
               resolvedLevelDistance = levelDistance;
-              resolvedPeerPkgPattern = peerPkgRef.patterns;
-              this.reporter.verbose(
-                this.reporter.lang(
-                  'selectedPeer',
-                  `${pkg.name}@${pkg.version}`,
-                  `${peerDepName}@${peerPkgRef.version}`,
-                  peerPkgRef.level,
-                ),
-              );
+              resolvedPeerPkg = peerPkgRef;
             } else {
               peerError = 'incorrectPeer';
             }
           }
         }
 
-        if (resolvedPeerPkgPattern) {
-          ref.addDependencies(resolvedPeerPkgPattern);
+        if (resolvedPeerPkg) {
+          ref.addDependencies(resolvedPeerPkg.patterns);
+          this.reporter.verbose(
+            this.reporter.lang(
+              'selectedPeer',
+              `${pkg.name}@${pkg.version}`,
+              `${peerDepName}@${resolvedPeerPkg.version}`,
+              resolvedPeerPkg.level,
+            ),
+          );
         } else {
-          this.reporter.warn(this.reporter.lang(peerError, `${pkg.name}@${pkg.version}`, `${peerDepName}@${range}`));
+          this.reporter.warn(
+            this.reporter.lang(
+              peerError,
+              `${refTree.join(' > ')} > ${pkg.name}@${pkg.version}`,
+              `${peerDepName}@${range}`,
+            ),
+          );
         }
       }
     }

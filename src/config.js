@@ -57,6 +57,8 @@ export type ConfigOptions = {
 
   commandName?: ?string,
   registry?: ?string,
+
+  updateChecksums?: boolean,
   cacheFolders?: ?Array<string>,
 };
 
@@ -103,6 +105,7 @@ export default class Config {
   linkFileDependencies: boolean;
   ignorePlatform: boolean;
   binLinks: boolean;
+  updateChecksums: boolean;
 
   //
   linkedModules: Array<string>;
@@ -197,7 +200,7 @@ export default class Config {
   getOption(key: string, resolve: boolean = false): mixed {
     const value = this.registries.yarn.getOption(key);
 
-    if (resolve && typeof value === 'string') {
+    if (resolve && typeof value === 'string' && value.length) {
       return resolveWithHome(value);
     }
 
@@ -374,6 +377,7 @@ export default class Config {
     this.linkFolder = opts.linkFolder || constants.LINK_REGISTRY_DIRECTORY;
     this.offline = !!opts.offline;
     this.binLinks = !!opts.binLinks;
+    this.updateChecksums = !!opts.updateChecksums;
 
     this.ignorePlatform = !!opts.ignorePlatform;
     this.ignoreScripts = !!opts.ignoreScripts;

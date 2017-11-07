@@ -20,7 +20,7 @@ async function execCommand(cmd: string, packageName: string, env = process.env):
 
   return new Promise((resolve, reject) => {
     const cleanedEnv = {...env};
-    cleanedEnv['YARN_SILENT'] = 0;
+    cleanedEnv['YARN_WRAP_OUTPUT'] = 1;
     delete cleanedEnv['FORCE_COLOR'];
 
     exec(

@@ -171,6 +171,28 @@ test('TarballFetcher.fetch throws on invalid hash', async () => {
   expect(readdirSync(path.join(offlineMirrorDir))).toEqual([]);
 });
 
+test('TarballFetcher.fetch fixes hash if updateChecksums flag is true', async () => {
+  const wrongHash = 'foo';
+  const dir = await mkdir(`tarball-fetcher-${wrongHash}`);
+  const config = await Config.create({}, new Reporter());
+  config.updateChecksums = true;
+  const url = 'https://github.com/sindresorhus/beeper/archive/master.tar.gz';
+  const fetcher = new TarballFetcher(
+    dir,
+    {
+      type: 'tarball',
+      hash: wrongHash,
+      reference: url,
+      registry: 'npm',
+    },
+    config,
+  );
+  await fetcher.fetch();
+  const dirWithProperHash = dir.replace(wrongHash, fetcher.hash);
+  const name = (await fs.readJson(path.join(dirWithProperHash, 'package.json'))).name;
+  expect(name).toBe('beeper');
+});
+
 test('TarballFetcher.fetch supports local ungzipped tarball', async () => {
   const dir = await mkdir('tarball-fetcher');
   const fetcher = new LocalTarballFetcher(

@@ -133,6 +133,7 @@ function normalizeFlags(config: Config, rawFlags: Object): Flags {
     flat: !!rawFlags.flat,
     lockfile: rawFlags.lockfile !== false,
     pureLockfile: !!rawFlags.pureLockfile,
+    updateChecksums: !!rawFlags.updateChecksums,
     skipIntegrityCheck: !!rawFlags.skipIntegrityCheck,
     frozenLockfile: !!rawFlags.frozenLockfile,
     linkDuplicates: !!rawFlags.linkDuplicates,
@@ -424,6 +425,12 @@ export class Install {
       return false;
     }
 
+    if (match.hardRefreshRequired) {
+      // e.g. node version doesn't match, force script installations
+      this.scripts.setForce(true);
+      return false;
+    }
+
     if (!patterns.length && !match.integrityFileMissing) {
       this.reporter.success(this.reporter.lang('nothingToInstall'));
       await this.createEmptyManifestFolders();
@@ -504,6 +511,7 @@ export class Install {
 
     steps.push(async (curr: number, total: number) => {
       this.reporter.step(curr, total, this.reporter.lang('resolvingPackages'), emoji.get('mag'));
+      this.resolutionMap.setTopLevelPatterns(rawPatterns);
       await this.resolver.init(this.prepareRequests(depRequests), {
         isFlat: this.flags.flat,
         isFrozen: this.flags.frozenLockfile,

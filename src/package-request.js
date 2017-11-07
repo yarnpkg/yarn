@@ -60,8 +60,9 @@ export default class PackageRequest {
 
     if (shrunk && shrunk.resolved) {
       const resolvedParts = versionUtil.explodeHashedUrl(shrunk.resolved);
-      // If it's a private git url set remote to 'git'.
-      const preferredRemoteType = resolvedParts.url.startsWith('git+ssh://') ? 'git' : remoteType;
+
+      // Detect Git protocols (git://HOST/PATH or git+PROTOCOL://HOST/PATH)
+      const preferredRemoteType = /^git(\+[a-z0-9]+)?:\/\//.test(resolvedParts.url) ? 'git' : remoteType;
 
       return {
         name: shrunk.name,
@@ -342,7 +343,6 @@ export default class PackageRequest {
     reporter: Reporter,
     filterByPatterns: ?Array<string>,
     flags: ?Object,
-    returnAllPackages: ?boolean,
   ): Promise<Array<Dependency>> {
     const {requests: reqPatterns, workspaceLayout} = await install.fetchRequestFromCwd();
 
@@ -402,9 +402,8 @@ export default class PackageRequest {
 
     // Make sure to always output `exotic` versions to be compatible with npm
     const isDepOld = ({current, latest, wanted}) =>
-      latest === 'exotic' || (latest !== 'exotic' && (semver.lt(current, wanted) || semver.lt(current, latest)));
+      latest === 'exotic' || (semver.lt(current, wanted) || semver.lt(current, latest));
     const orderByName = (depA, depB) => depA.name.localeCompare(depB.name);
-
-    return returnAllPackages ? deps.sort(orderByName) : deps.filter(isDepOld).sort(orderByName);
+    return deps.filter(isDepOld).sort(orderByName);
   }
 }

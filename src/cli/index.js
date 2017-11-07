@@ -42,6 +42,14 @@ function findProjectRoot(base: string): string {
 
 const boolify = val => val.toString().toLowerCase() !== 'false' && val !== '0';
 
+function boolifyWithDefault(val: any, defaultResult: boolean): boolean {
+  if (val === undefined || val === null || val === '') {
+    return defaultResult;
+  } else {
+    return boolify(val);
+  }
+}
+
 export function main({
   startArgs,
   args,
@@ -76,6 +84,7 @@ export function main({
   commander.option('--no-lockfile', "don't read or generate a lockfile");
   commander.option('--pure-lockfile', "don't generate a lockfile");
   commander.option('--frozen-lockfile', "don't generate a lockfile and fail if an update is needed");
+  commander.option('--update-checksums', 'update package checksums from current repository');
   commander.option('--link-duplicates', 'create hardlinks to the repeated modules in node_modules');
   commander.option('--link-folder <path>', 'specify a custom folder to store global links');
   commander.option('--global-folder <path>', 'specify a custom folder to store global packages');
@@ -164,7 +173,7 @@ export function main({
 
   let warnAboutRunDashDash = false;
   // we are using "yarn <script> -abc" or "yarn run <script> -abc", we want -abc to be script options, not yarn options
-  if (command === commands.run) {
+  if (command === commands.run || command === commands.create) {
     if (endArgs.length === 0) {
       endArgs = ['--', ...args.splice(1)];
     } else {
@@ -196,7 +205,7 @@ export function main({
     emoji: process.stdout.isTTY && commander.emoji,
     verbose: commander.verbose,
     noProgress: !commander.progress,
-    isSilent: process.env.YARN_SILENT === '1' || commander.silent,
+    isSilent: boolifyWithDefault(process.env.YARN_SILENT, false) || commander.silent,
   });
 
   const exit = exitCode => {
@@ -207,9 +216,10 @@ export function main({
   reporter.initPeakMemoryCounter();
 
   const config = new Config(reporter);
-  const outputWrapper = !commander.json && command.hasWrapper(commander, commander.args);
+  const outputWrapperEnabled = boolifyWithDefault(process.env.YARN_WRAP_OUTPUT, true);
+  const shouldWrapOutput = outputWrapperEnabled && !commander.json && command.hasWrapper(commander, commander.args);
 
-  if (outputWrapper) {
+  if (shouldWrapOutput) {
     reporter.header(commandName, {name: 'yarn', version});
   }
 
@@ -243,7 +253,7 @@ export function main({
     }
 
     return command.run(config, reporter, commander, commander.args).then(exitCode => {
-      if (outputWrapper) {
+      if (shouldWrapOutput) {
         reporter.footer(false);
       }
       return exitCode;
@@ -479,6 +489,7 @@ export function main({
       networkTimeout: commander.networkTimeout,
       nonInteractive: commander.nonInteractive,
       scriptsPrependNodePath: commander.scriptsPrependNodePath,
+      updateChecksums: commander.updateChecksums,
     })
     .then(() => {
       // lockfile check must happen after config.init sets lockfileFolder
@@ -541,7 +552,7 @@ async function start(): Promise<void> {
   const rc = getRcConfigForCwd(process.cwd());
   const yarnPath = rc['yarn-path'];
 
-  if (yarnPath && process.env.YARN_IGNORE_PATH !== '1') {
+  if (yarnPath && !boolifyWithDefault(process.env.YARN_IGNORE_PATH, false)) {
     const argv = process.argv.slice(2);
     const opts = {stdio: 'inherit', env: Object.assign({}, process.env, {YARN_IGNORE_PATH: 1})};
     let exitCode = 0;
