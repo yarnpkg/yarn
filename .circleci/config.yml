@@ -136,8 +136,8 @@ jobs:
           command: |
             brew uninstall --ignore-dependencies node
             HOMEBREW_NO_AUTO_UPDATE=1 brew install node@6
-            PATH="/usr/local/opt/node@6/bin:$PATH" yarn global add node-gyp
-            echo 'export PATH="/usr/local/opt/node@6/bin:$PATH"' >> ~/.bashrc
+            brew link node
+            yarn global add node-gyp
       - *attach_workspace
       - *restore_cache
       - *test_build
