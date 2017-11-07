@@ -47,17 +47,17 @@ test_build: &test_build
   run:
     name: Build Yarn for testing
     command: |
-    if [ "$CIRCLE_BRANCH" == 'master' ]; then
-      ./scripts/set-dev-version.js
-    fi;
-    yarn build
+      if [ "$CIRCLE_BRANCH" == 'master' ]; then
+        ./scripts/set-dev-version.js
+      fi;
+      yarn build
 
 test_run: &test_run
   run:
     name: Tests
     command: |
-    # Limit maxWorkers to 3 to avoid OOM on CircleCI
-    yarn test-only --maxWorkers 3
+      # Limit maxWorkers to 3 to avoid OOM on CircleCI
+      yarn test-only --maxWorkers 3
 
 test_steps: &test_steps
   steps:
@@ -90,11 +90,11 @@ jobs:
       - run:
           name: Build distribution
           command: |
-          if [ "$CIRCLE_BRANCH" == 'master' ]; then
-            ./scripts/set-dev-version.js
-          fi;
-          yarn build-dist
-          ./scripts/build-deb.sh
+            if [ "$CIRCLE_BRANCH" == 'master' ]; then
+              ./scripts/set-dev-version.js
+            fi;
+            yarn build-dist
+            ./scripts/build-deb.sh
       - store_artifacts:
           path: artifacts/
           destination: yarnpkg
@@ -121,9 +121,9 @@ jobs:
       - run:
           name: Install Node 8
           command: |
-          brew uninstall --ignore-dependencies node
-          brew install node@8
-          yarn global add node-gyp
+            brew uninstall --ignore-dependencies node
+            brew install node@8
+            yarn global add node-gyp
       - *attach_workspace
       - *restore_cache
       - *test_build
@@ -134,10 +134,10 @@ jobs:
       - run:
           name: Install Node 6
           command: |
-          brew uninstall --ignore-dependencies node
-          HOMEBREW_NO_AUTO_UPDATE=1 brew install node@6
-          PATH="/usr/local/opt/node@6/bin:$PATH" yarn global add node-gyp
-          echo 'export PATH="/usr/local/opt/node@6/bin:$PATH"' >> ~/.bashrc
+            brew uninstall --ignore-dependencies node
+            HOMEBREW_NO_AUTO_UPDATE=1 brew install node@6
+            PATH="/usr/local/opt/node@6/bin:$PATH" yarn global add node-gyp
+            echo 'export PATH="/usr/local/opt/node@6/bin:$PATH"' >> ~/.bashrc
       - *attach_workspace
       - *restore_cache
       - *test_build
@@ -151,11 +151,11 @@ jobs:
       - run:
           name: Publish
           command: |
-          # Only NPM is handled here - All other release files are handled in a webhook.
-          if [ "${CIRCLE_PROJECT_USERNAME}" == "yarnpkg" ]; then
-            echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
-            ./scripts/update-npm.sh
-          fi
+            # Only NPM is handled here - All other release files are handled in a webhook.
+            if [ "${CIRCLE_PROJECT_USERNAME}" == "yarnpkg" ]; then
+              echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
+              ./scripts/update-npm.sh
+            fi
 
 notify:
   webhooks:
