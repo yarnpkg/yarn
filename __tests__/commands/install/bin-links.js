@@ -31,7 +31,7 @@ function execCommand(cwd: string, binPath: Array<string>, args: Array<string>): 
         cwd,
         env: {
           ...process.env,
-          YARN_SILENT: 0,
+          YARN_WRAP_OUTPUT: 1,
         },
       },
       (error, stdout) => {
