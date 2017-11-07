@@ -102,15 +102,15 @@ jobs:
           root: ~/project
           paths:
             - yarn
-  test-node8:
+  test-linux-node8:
     <<: *docker_defaults
     <<: *test_steps
-  test-node6:
+  test-linux-node6:
     <<: *docker_defaults
     docker:
       - image: node:6
     <<: *test_steps
-  test-node4:
+  test-linux-node4:
     <<: *docker_defaults
     docker:
       - image: node:4
@@ -174,15 +174,15 @@ workflows:
           filters: *default_filters
           requires:
             - install
-      - test-node8:
+      - test-linux-node8:
           filters: *default_filters
           requires:
             - install
-      - test-node6:
+      - test-linux-node6:
           filters: *default_filters
           requires:
             - install
-      - test-node4:
+      - test-linux-node4:
           filters: *default_filters
           requires:
             - install
@@ -204,8 +204,10 @@ workflows:
             branches:
               ignore: /.*/
           requires:
-            - test-node8
-            - test-node6
-            - test-node4
+            - test-linux-node8
+            - test-linux-node6
+            - test-linux-node4
+            - test-macos-node8
+            - test-macos-node6
             - lint
             - build
