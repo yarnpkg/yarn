@@ -349,3 +349,127 @@ describe('getPossibleConfigLocations', () => {
     );
   });
 });
+
+describe('checkOutdated functional test', () => {
+  const mockConfig = {
+    resolveConstraints(): string {
+      return '2.0.0';
+    },
+  };
+
+  test('homepage URL from top level', async () => {
+    const testCwd = '.';
+    const {mockRequestManager, mockRegistries, mockReporter} = createMocks();
+    const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter);
+
+    mockRequestManager.request = () => {
+      return {
+        homepage: 'http://package.homepage.com',
+        'dist-tags': {
+          latest: '2.0.0',
+        },
+        versions: {
+          '2.0.0': {
+            version: '2.0.0',
+          },
+        },
+      };
+    };
+
+    const result = await npmRegistry.checkOutdated(mockConfig, 'left-pad', '2.0.0');
+
+    expect(result).toMatchObject({
+      latest: '2.0.0',
+      wanted: '2.0.0',
+      url: 'http://package.homepage.com',
+    });
+  });
+
+  test('homepage URL fallback to wanted package manifest', async () => {
+    const testCwd = '.';
+    const {mockRequestManager, mockRegistries, mockReporter} = createMocks();
+    const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter);
+
+    mockRequestManager.request = () => {
+      return {
+        'dist-tags': {
+          latest: '2.0.0',
+        },
+        versions: {
+          '2.0.0': {
+            version: '2.0.0',
+            homepage: 'http://package.homepage.com',
+          },
+        },
+      };
+    };
+
+    const result = await npmRegistry.checkOutdated(mockConfig, 'left-pad', '2.0.0');
+
+    expect(result).toMatchObject({
+      latest: '2.0.0',
+      wanted: '2.0.0',
+      url: 'http://package.homepage.com',
+    });
+  });
+
+  test('repository URL from top level', async () => {
+    const testCwd = '.';
+    const {mockRequestManager, mockRegistries, mockReporter} = createMocks();
+    const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter);
+
+    mockRequestManager.request = () => {
+      return {
+        repository: {
+          url: 'http://package.repo.com',
+        },
+        'dist-tags': {
+          latest: '2.0.0',
+        },
+        versions: {
+          '2.0.0': {
+            version: '2.0.0',
+          },
+        },
+      };
+    };
+
+    const result = await npmRegistry.checkOutdated(mockConfig, 'left-pad', '2.0.0');
+
+    expect(result).toMatchObject({
+      latest: '2.0.0',
+      wanted: '2.0.0',
+      url: 'http://package.repo.com',
+    });
+  });
+
+  test('repository URL fallback to wanted package manifest', async () => {
+    const testCwd = '.';
+    const {mockRequestManager, mockRegistries, mockReporter} = createMocks();
+    const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter);
+
+    mockRequestManager.request = () => {
+      return {
+        'dist-tags': {
+          latest: '2.0.0',
+        },
+        versions: {
+          '2.0.0': {
+            version: '2.0.0',
+            repository: {
+              url: 'http://package.repo.com',
+            },
+          },
+        },
+      };
+    };
+
+    const result = await npmRegistry.checkOutdated(mockConfig, 'left-pad', '2.0.0');
+
+    expect(result).toMatchObject({
+      latest: '2.0.0',
+      wanted: '2.0.0',
+      url: 'http://package.repo.com',
+    });
+  });
+});
