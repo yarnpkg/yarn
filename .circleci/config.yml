@@ -135,10 +135,9 @@ jobs:
           name: Install Node 6
           command: |
           brew uninstall --ignore-dependencies node
-          brew install node@6
-          export PATH="/usr/local/opt/node@6/bin:$PATH"
-          echo 'export PATH="/usr/local/opt/node@6/bin:$PATH"' >> ~/.bash_profile
-          yarn global add node-gyp
+          HOMEBREW_NO_AUTO_UPDATE=1 brew install node@6
+          PATH="/usr/local/opt/node@6/bin:$PATH" yarn global add node-gyp
+          echo 'export PATH="/usr/local/opt/node@6/bin:$PATH"' >> ~/.bashrc
       - *attach_workspace
       - *restore_cache
       - *test_build
