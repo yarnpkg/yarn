@@ -26,6 +26,15 @@ const fixturesLoc = path.join(__dirname, '..', 'fixtures', 'run');
 const runRun = buildRun.bind(null, BufferReporter, fixturesLoc, (args, flags, config, reporter): Promise<void> => {
   return run(config, reporter, flags, args);
 });
+const runRunInWorkspacePackage = function(cwd, ...args): Promise<void> {
+  return buildRun.bind(null, BufferReporter, fixturesLoc, (args, flags, config, reporter): Promise<void> => {
+    const originalCwd = config.cwd;
+    config.cwd = path.join(originalCwd, cwd);
+    const retVal = run(config, reporter, flags, args);
+    config.cwd = originalCwd;
+    return retVal;
+  })(...args);
+};
 
 test('lists all available commands with no arguments', (): Promise<void> => {
   return runRun([], {}, 'no-args', (config, reporter): ?Promise<void> => {
@@ -131,5 +140,25 @@ test('adds quotes if args have spaces and quotes', (): Promise<void> => {
     const args = ['cat-names', config, `${script} --filter ${quotedCatNames}`, config.cwd];
 
     expect(execCommand).toBeCalledWith(...args);
+  });
+});
+
+test('adds workspace root node_modules/.bin to path when in a workspace', (): Promise<void> => {
+  return runRunInWorkspacePackage('packages/pkg1', ['env'], {}, 'workspace', (config, reporter): ?Promise<void> => {
+    let pathVarName = 'PATH';
+    for (const key of Object.keys(process.env)) {
+      // We need this below for Windows which has case-insensitive env vars
+      // If we used `process.env` directly, node takes care of this for us,
+      // but since we use a subset of it, we need to get the "real" path key
+      // name for Jest's case-sensitive object comparison below.
+      if (key.toUpperCase() === 'PATH') {
+        pathVarName = key;
+      }
+    }
+
+    const envPath = process.env[pathVarName];
+
+    expect(envPath).toContain(path.join(config.cwd, 'node_modules/.bin'));
+    expect(envPath).toContain(path.join(config.cwd, 'packages/pkg1/node_modules/.bin'));
   });
 });
