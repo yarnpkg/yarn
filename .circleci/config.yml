@@ -1,8 +1,13 @@
 version: 2
 
-defaults: &defaults
+docker_defaults: &docker_defaults
   docker:
     - image: yarnpkg/dev:latest
+  working_directory: ~/project/yarn
+
+macos_defaults: &macos_defaults
+  macos:
+    xcode: "9.0"
   working_directory: ~/project/yarn
 
 attach_workspace: &attach_workspace
@@ -13,26 +18,53 @@ restore_cache: &restore_cache
   restore_cache:
     name: Restore node_modules cache
     keys:
-      - v1-node-{{ .Branch }}-{{ checksum "yarn.lock" }}
-      - v1-node-{{ .Branch }}-
-      - v1-node-
+      - v1-node-{{ arch }}-{{ .Branch }}-{{ checksum "yarn.lock" }}
+      - v1-node-{{ arch }}-{{ .Branch }}-
+      - v1-node-{{ arch }}-
+
+install_steps: &install_steps
+  steps:
+    - checkout
+    - *attach_workspace
+    - *restore_cache
+    - run:
+        name: Install Dependencies
+        command: yarn install --frozen-lockfile
+    - save_cache:
+        name: Save node_modules cache
+        key: v1-node-{{ arch }}-{{ .Branch }}-{{ checksum "yarn.lock" }}
+        paths:
+          - node_modules/
+    - run:
+        name: Remove node_modules to cleanup workspace
+        command: rm -r node_modules/
+    - persist_to_workspace:
+        root: ~/project
+        paths:
+          - yarn
+
+test_build: &test_build
+  run:
+    name: Build Yarn for testing
+    command: |
+      if [ "$CIRCLE_BRANCH" == 'master' ]; then
+        ./scripts/set-dev-version.js
+      fi;
+      yarn build
+
+test_run: &test_run
+  run:
+    name: Tests
+    command: |
+      # Limit maxWorkers to 3 to avoid OOM on CircleCI
+      yarn test-only --maxWorkers 3
 
 test_steps: &test_steps
   steps:
     - *attach_workspace
     - *restore_cache
-    - run:
-        name: Build Yarn for testing
-        command: |
-          if [ "$CIRCLE_BRANCH" == 'master' ]; then
-            ./scripts/set-dev-version.js
-          fi;
-          yarn build
-    - run:
-        name: Tests
-        command: |
-          # Limit maxWorkers to 3 to avoid OOM on CircleCI
-          yarn test-only --maxWorkers 3
+    - *test_build
+    - *test_run
 
 default_filters: &default_filters
   tags:
@@ -40,33 +72,10 @@ default_filters: &default_filters
 
 jobs:
   install:
-    <<: *defaults
-    steps:
-      - checkout
-      - *attach_workspace
-      - *restore_cache
-      - run:
-          name: Install Dependencies
-          command: yarn install --frozen-lockfile
-      - save_cache:
-          name: Save yarn cache
-          key: v1-yarn-{{ .Branch }}-{{ checksum "yarn.lock" }}
-          paths:
-            - .cache/yarn
-      - save_cache:
-          name: Save node_modules cache
-          key: v1-node-{{ .Branch }}-{{ checksum "yarn.lock" }}
-          paths:
-            - node_modules/
-      - run:
-          name: Remove node_modules to cleanup workspace
-          command: rm -r node_modules/
-      - persist_to_workspace:
-          root: ~/project
-          paths:
-            - yarn
+    <<: *docker_defaults
+    <<: *install_steps
   lint:
-    <<: *defaults
+    <<: *docker_defaults
     steps:
       - *attach_workspace
       - *restore_cache
@@ -74,7 +83,7 @@ jobs:
           name: Lint
           command: yarn lint
   build:
-    <<: *defaults
+    <<: *docker_defaults
     steps:
       - *attach_workspace
       - *restore_cache
@@ -93,21 +102,49 @@ jobs:
           root: ~/project
           paths:
             - yarn
-  test-node8:
-    <<: *defaults
+  test-linux-node8:
+    <<: *docker_defaults
     <<: *test_steps
-  test-node6:
-    <<: *defaults
+  test-linux-node6:
+    <<: *docker_defaults
     docker:
       - image: node:6
     <<: *test_steps
-  test-node4:
-    <<: *defaults
+  test-linux-node4:
+    <<: *docker_defaults
     docker:
       - image: node:4
     <<: *test_steps
+  test-macos-node8:
+    <<: *macos_defaults
+    steps:
+      - run:
+          name: Install Node 8
+          command: |
+            brew uninstall --ignore-dependencies node
+            HOMEBREW_NO_AUTO_UPDATE=1 brew install node@8
+            yarn global add node-gyp
+      - *attach_workspace
+      - *restore_cache
+      - *test_build
+      - *test_run
+  test-macos-node6:
+    <<: *macos_defaults
+    steps:
+      - run:
+          name: Install Node 6
+          command: |
+            brew uninstall --ignore-dependencies node
+            HOMEBREW_NO_AUTO_UPDATE=1 brew install node@6
+            brew link --force node@6
+            yarn global add node-gyp
+      - *attach_workspace
+      - *restore_cache
+      - *test_build
+      - *test_run
+
   publish:
-    <<: *defaults
+    <<: *docker_defaults
     steps:
       - *attach_workspace
       - *restore_cache
@@ -137,15 +174,23 @@ workflows:
           filters: *default_filters
           requires:
             - install
-      - test-node8:
+      - test-linux-node8:
           filters: *default_filters
           requires:
             - install
-      - test-node6:
+      - test-linux-node6:
           filters: *default_filters
           requires:
             - install
-      - test-node4:
+      - test-linux-node4:
+          filters: *default_filters
+          requires:
+            - install
+      - test-macos-node6:
+          filters: *default_filters
+          requires:
+            - install
+      - test-macos-node8:
           filters: *default_filters
           requires:
             - install
@@ -159,8 +204,10 @@ workflows:
             branches:
               ignore: /.*/
           requires:
-            - test-node8
-            - test-node6
-            - test-node4
+            - test-linux-node8
+            - test-linux-node6
+            - test-linux-node4
+            - test-macos-node8
+            - test-macos-node6
             - lint
             - build
