@@ -122,7 +122,7 @@ jobs:
           name: Install Node 8
           command: |
             brew uninstall --ignore-dependencies node
-            brew install node@8
+            HOMEBREW_NO_AUTO_UPDATE=1 brew install node@8
             yarn global add node-gyp
       - *attach_workspace
       - *restore_cache
