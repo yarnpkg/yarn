@@ -318,8 +318,7 @@ export default class Config {
       if (cacheRootFolder && cacheFolderQuery.skipped.length > 0) {
         this.reporter.warn(this.reporter.lang('cacheFolderSelected', cacheRootFolder));
       }
-    }
-    else {
+    } else {
       currentCacheFolders.push(String(cacheRootFolder));
     }
 
