@@ -1,10 +1,9 @@
 /* @flow */
 
 export function explodeHashedUrl(url: string): {url: string, hash: string} {
-  const parts = url.split('#');
-
+  const pos = url.indexOf('#');
   return {
-    hash: parts[1] || '',
-    url: parts[0],
+    hash: pos > -1 ? url.substring(pos + 1) : '',
+    url: pos > -1 ? url.substring(0, pos) : url,
   };
 }
