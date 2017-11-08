@@ -19,7 +19,7 @@ export const DEFAULTS = {
   version-git-message: 'v%s',
 
   init-version: '1.0.0',
-  init-licens: 'MIT',
+  init-license: 'MIT',
 
   save-prefix: '^',
   ignore-scripts: false,
