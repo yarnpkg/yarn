@@ -28,7 +28,7 @@ export async function info(config: Config, reporter: Reporter, flags: Object, ar
 
   for (const workspaceName of Object.keys(workspaces)) {
     publicData[workspaceName] = {
-      location: path.relative(config.lockfileFolder, workspaces[workspaceName].loc),
+      location: path.relative(config.lockfileFolder, workspaces[workspaceName].loc).replace(/\\/g, '/'),
     };
   }
 
