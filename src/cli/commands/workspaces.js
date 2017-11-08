@@ -35,7 +35,7 @@ export async function info(config: Config, reporter: Reporter, flags: Object, ar
   reporter.log(JSON.stringify(publicData, null, 2), {force: true});
 }
 
-const {run, setFlags, examples} = buildSubCommands('cache', {
+const {run, setFlags, examples} = buildSubCommands('workspaces', {
   async info(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
     await info(config, reporter, flags, args);
   },

@@ -26,7 +26,7 @@ async function runWorkspaces(
   }
 }
 
-test('workspaces should list the workspaces', (): Promise<void> => {
+test('workspaces info should list the workspaces', (): Promise<void> => {
   return runWorkspaces({}, ['info'], 'run-basic', (config, reporter) => {
     expect(reporter.getBufferJson()).toEqual({
       'workspace-1': {
