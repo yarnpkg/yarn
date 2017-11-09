@@ -27,4 +27,12 @@ export default class BufferReporter extends JSONReporter {
   getBuffer(): Buffer {
     return this._buffer;
   }
+
+  getBufferText(): string {
+    return this._buffer.map(({data}) => String(data)).join(``);
+  }
+
+  getBufferJson(): any {
+    return JSON.parse(this.getBufferText());
+  }
 }
