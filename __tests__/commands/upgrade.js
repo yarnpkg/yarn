@@ -1,7 +1,7 @@
 /* @flow */
 
 import {ConsoleReporter} from '../../src/reporters/index.js';
-import {explodeLockfile, run as buildRun} from './_helpers.js';
+import {explodeLockfile, run as buildRun, moduleAlreadyInManifestChecker} from './_helpers.js';
 import {run as upgrade} from '../../src/cli/commands/upgrade.js';
 import * as fs from '../../src/util/fs.js';
 import * as reporters from '../../src/reporters/index.js';
@@ -409,4 +409,20 @@ test.concurrent('latest flag does not downgrade from a beta', (): Promise<void> 
   return runUpgrade([], {latest: true}, 'using-beta', async (config): ?Promise<void> => {
     await expectInstalledDependency(config, 'react-refetch', '^1.0.3-0', '1.0.3-0');
   });
+});
+
+test.concurrent('upgrading a dev dependency does not trigger moduleAlreadyInManifest warning', (): Promise<void> => {
+  return buildRun(
+    reporters.BufferReporter,
+    fixturesLoc,
+    async (args, flags, config, reporter): Promise<void> => {
+      await config.init({commandName: 'upgrade'});
+      await upgrade(config, reporter, flags, args);
+
+      moduleAlreadyInManifestChecker({reporter, expectWarnings: false});
+    },
+    ['is-online'],
+    {},
+    'upgrade-dev-dependency',
+  );
 });

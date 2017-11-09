@@ -196,7 +196,7 @@ export class Add extends Install {
       object[target] = object[target] || {};
       object[target][pkg.name] = version;
 
-      if (target !== this.flagToOrigin) {
+      if (this.config.commandName === 'add' && target !== this.flagToOrigin) {
         this.reporter.warn(this.reporter.lang('moduleAlreadyInManifest', pkg.name, depType, this.flagToOrigin));
       }
     }

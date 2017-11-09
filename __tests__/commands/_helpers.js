@@ -2,7 +2,7 @@
 
 import Lockfile from '../../src/lockfile';
 import {ConsoleReporter} from '../../src/reporters/index.js';
-import {Reporter} from '../../src/reporters/index.js';
+import {Reporter, BufferReporter} from '../../src/reporters/index.js';
 import {parse} from '../../src/lockfile';
 import * as constants from '../../src/constants.js';
 import {run as check} from '../../src/cli/commands/check.js';
@@ -88,6 +88,7 @@ export function makeConfigFromDirectory(cwd: string, reporter: Reporter, flags: 
       linkFolder: flags.linkFolder || path.join(cwd, '.yarn-link'),
       prefix: flags.prefix,
       production: flags.production,
+      updateChecksums: !!flags.updateChecksums,
     },
     reporter,
   );
@@ -178,3 +179,25 @@ export async function run<T, R>(
     await fs.unlink(cwd);
   }
 }
+
+export const warningChecker = (warningFragments: Array<string>) => ({
+  reporter,
+  expectWarnings,
+}: {
+  reporter: BufferReporter,
+  expectWarnings: boolean,
+}) => {
+  const output = reporter.getBuffer();
+  const warnings = output.filter(entry => entry.type === 'warning');
+
+  warningFragments.map(fragment => fragment.toLowerCase()).forEach(fragment => {
+    expect(warnings.some(warning => warning.data.toString().toLowerCase().indexOf(fragment) > -1)).toEqual(
+      expectWarnings,
+    );
+  });
+};
+
+export const moduleAlreadyInManifestChecker = warningChecker([
+  'is already in',
+  'Please remove existing entry first before adding it to',
+]);
