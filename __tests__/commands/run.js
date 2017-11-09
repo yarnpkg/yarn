@@ -145,18 +145,10 @@ test('adds quotes if args have spaces and quotes', (): Promise<void> => {
 
 test('adds workspace root node_modules/.bin to path when in a workspace', (): Promise<void> => {
   return runRunInWorkspacePackage('packages/pkg1', ['env'], {}, 'workspace', (config, reporter): ?Promise<void> => {
-    let pathVarName = 'PATH';
-    for (const key of Object.keys(process.env)) {
-      // We need this below for Windows which has case-insensitive env vars
-      // If we used `process.env` directly, node takes care of this for us,
-      // but since we use a subset of it, we need to get the "real" path key
-      // name for Jest's case-sensitive object comparison below.
-      if (key.toUpperCase() === 'PATH') {
-        pathVarName = key;
-      }
-    }
+    const result = reporter.getBuffer().reduce((aggregate, entry) => aggregate + entry.data.toString(), '');
+    console.log('XXX', result);
 
-    const envPath = process.env[pathVarName];
+    const envPath = result;
 
     expect(envPath).toContain(path.join(config.cwd, 'node_modules/.bin'));
     expect(envPath).toContain(path.join(config.cwd, 'packages/pkg1/node_modules/.bin'));
