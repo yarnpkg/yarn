@@ -18,7 +18,7 @@ build_script:
   - yarn run build-win-installer
 
 test_script:
-  - yarn test-only
+  -yarn jest --verbose
 
 artifacts:
   - path: artifacts/*.msi
