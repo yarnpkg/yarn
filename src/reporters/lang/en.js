@@ -199,6 +199,8 @@ const messages = {
 
   execMissingCommand: 'Missing command name.',
 
+  noScriptsAvailable: 'There are no scripts specified inside package.json.',
+  noBinAvailable: 'There are no binary scripts available.',
   dashDashDeprecation: `From Yarn 1.0 onwards, scripts don't require "--" for options to be forwarded. In a future version, any explicit "--" will be forwarded as-is to the scripts.`,
   commandNotSpecified: 'No command specified.',
   binCommands: 'Commands available from binary scripts: ',

@@ -133,3 +133,16 @@ test('adds quotes if args have spaces and quotes', (): Promise<void> => {
     expect(execCommand).toBeCalledWith(...args);
   });
 });
+
+test('returns noScriptsAvailable and noBinAvailable with no bins and scripts', (): Promise<void> => {
+  return runRun([], {}, 'no-scripts', (config, reporter): ?Promise<void> => {
+    const rprtr = new reporters.BufferReporter({stdout: null, stdin: null});
+
+    // Emulate run output
+    rprtr.error(rprtr.lang('commandNotSpecified'));
+    rprtr.error(rprtr.lang('noBinAvailable'));
+    rprtr.error(rprtr.lang('noScriptsAvailable'));
+
+    expect(reporter.getBuffer()).toEqual(rprtr.getBuffer());
+  });
+});
