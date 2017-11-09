@@ -13,27 +13,27 @@ const userHome = require('../util/user-home-dir').default;
 const path = require('path');
 
 export const DEFAULTS = {
-  'version-tag-prefix': 'v',
-  'version-git-tag': true,
-  'version-git-sign': false,
-  'version-git-message': 'v%s',
+  version-tag-prefix: 'v',
+  version-git-tag: true,
+  version-git-sign: false,
+  version-git-message: 'v%s',
 
-  'init-version': '1.0.0',
-  'init-license': 'MIT',
+  init-version: '1.0.0',
+  init-license: 'MIT',
 
-  'save-prefix': '^',
-  'ignore-scripts': false,
-  'ignore-optional': false,
+  save-prefix: '^',
+  ignore-scripts: false,
+  ignore-optional: false,
   registry: YARN_REGISTRY,
-  'strict-ssl': true,
-  'user-agent': [`yarn/${version}`, 'npm/?', `node/${process.version}`, process.platform, process.arch].join(' '),
+  strict-ssl: true,
+  user-agent: [`yarn/${version}`, 'npm/?', `node/${process.version}`, process.platform, process.arch].join(' '),
 };
 
 const npmMap = {
-  'version-git-sign': 'sign-git-tag',
-  'version-tag-prefix': 'tag-version-prefix',
-  'version-git-tag': 'git-tag-version',
-  'version-git-message': 'message',
+  version-git-sign: 'sign-git-tag',
+  version-tag-prefix: 'tag-version-prefix',
+  version-git-tag: 'git-tag-version',
+  version-git-message: 'message',
 };
 
 export default class YarnRegistry extends NpmRegistry {
