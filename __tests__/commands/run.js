@@ -134,15 +134,14 @@ test('adds quotes if args have spaces and quotes', (): Promise<void> => {
   });
 });
 
-test('returns noScriptsAvailable and noBinAvailable with no bins and scripts', (): Promise<void> => {
-  return runRun([], {}, 'no-scripts', (config, reporter): ?Promise<void> => {
-    const rprtr = new reporters.BufferReporter({stdout: null, stdin: null});
+test('returns noScriptsAvailable with no scripts', (): Promise<void> => {
+  return runRun([], {}, 'no-scripts', (config, reporter) => {
+    expect(reporter.getBuffer()).toMatchSnapshot();
+  });
+});
 
-    // Emulate run output
-    rprtr.error(rprtr.lang('commandNotSpecified'));
-    rprtr.error(rprtr.lang('noBinAvailable'));
-    rprtr.error(rprtr.lang('noScriptsAvailable'));
-
-    expect(reporter.getBuffer()).toEqual(rprtr.getBuffer());
+test('returns noBinAvailable with no bins', (): Promise<void> => {
+  return runRun([], {}, 'no-bin', (config, reporter) => {
+    expect(reporter.getBuffer()).toMatchSnapshot();
   });
 });
