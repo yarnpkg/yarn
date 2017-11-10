@@ -9,7 +9,7 @@ type Buffer = Array<{
 }>;
 
 export default class BufferReporter extends JSONReporter {
-  constructor(opts: Object) {
+  constructor(opts?: Object) {
     super(opts);
     this._buffer = [];
   }
@@ -26,5 +26,13 @@ export default class BufferReporter extends JSONReporter {
 
   getBuffer(): Buffer {
     return this._buffer;
+  }
+
+  getBufferText(): string {
+    return this._buffer.map(({data}) => String(data)).join(``);
+  }
+
+  getBufferJson(): any {
+    return JSON.parse(this.getBufferText());
   }
 }

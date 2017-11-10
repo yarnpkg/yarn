@@ -1,0 +1,211 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`author object normalize 1`] = `
+Array [
+  "No license field",
+]
+`;
+
+exports[`author string 1`] = `
+Array [
+  "No license field",
+]
+`;
+
+exports[`authors file to contributors 1`] = `
+Array [
+  "No license field",
+]
+`;
+
+exports[`bin string 1`] = `
+Array [
+  "foo: No license field",
+]
+`;
+
+exports[`binding.gyp scripts.install 1`] = `
+Array [
+  "No license field",
+]
+`;
+
+exports[`bugs string 1`] = `
+Array [
+  "No license field",
+]
+`;
+
+exports[`bundledDependencies alias 1`] = `
+Array [
+  "No license field",
+]
+`;
+
+exports[`clean version 1`] = `
+Array [
+  "No license field",
+]
+`;
+
+exports[`clean version with v 1`] = `
+Array [
+  "No license field",
+]
+`;
+
+exports[`contributors array expand 1`] = `
+Array [
+  "No license field",
+]
+`;
+
+exports[`dedupe all trivial dependencies 1`] = `
+Array [
+  "No license field",
+]
+`;
+
+exports[`dedupe dependencies 1`] = `Array []`;
+
+exports[`dedupe dependencies root 1`] = `
+Array [
+  "No license field",
+  "\\"dependencies\\" has dependency \\"foobar\\" with range \\"2.0.0\\" that collides with a dependency in \\"devDependencies\\" of the same name with version \\"1.0.0\\"",
+]
+`;
+
+exports[`dedupe optionalDependencies 1`] = `Array []`;
+
+exports[`dedupe optionalDependencies root 1`] = `
+Array [
+  "No license field",
+  "\\"optionalDependencies\\" has dependency \\"foobar\\" with range \\"1.0.0\\" that collides with a dependency in \\"dependencies\\" of the same name with version \\"2.0.0\\"",
+]
+`;
+
+exports[`dedupe single trivial dependency 1`] = `
+Array [
+  "No license field",
+]
+`;
+
+exports[`engines array 1`] = `
+Array [
+  "No license field",
+]
+`;
+
+exports[`explode directories.bin 1`] = `
+Array [
+  "No license field",
+]
+`;
+
+exports[`explode directories.man 1`] = `
+Array [
+  "No license field",
+]
+`;
+
+exports[`extract description 1`] = `
+Array [
+  "No license field",
+]
+`;
+
+exports[`homepage string 1`] = `
+Array [
+  "No license field",
+]
+`;
+
+exports[`hosted git repository url 1`] = `
+Array [
+  "No license field",
+]
+`;
+
+exports[`keywords string 1`] = `
+Array [
+  "No license field",
+]
+`;
+
+exports[`license warnings should not be thrown with global commands 1`] = `Array []`;
+
+exports[`maintainers array expand 1`] = `
+Array [
+  "No license field",
+]
+`;
+
+exports[`man string 1`] = `
+Array [
+  "No license field",
+]
+`;
+
+exports[`name 1`] = `
+Array [
+  "foobar: No license field",
+]
+`;
+
+exports[`readme 1`] = `
+Array [
+  "No license field",
+]
+`;
+
+exports[`repository string 1`] = `
+Array [
+  "No license field",
+]
+`;
+
+exports[`scoped bin string 1`] = `
+Array [
+  "@scope/foo: No license field",
+]
+`;
+
+exports[`server scripts.start 1`] = `
+Array [
+  "No license field",
+]
+`;
+
+exports[`valid license 1`] = `Array []`;
+
+exports[`version 1`] = `
+Array [
+  "No license field",
+]
+`;
+
+exports[`warn builtin module collision 1`] = `
+Array [
+  "fs: \\"fs\\" is also the name of a node core module",
+  "fs: No license field",
+]
+`;
+
+exports[`warn empty string invalid license 1`] = `
+Array [
+  "License should be a valid SPDX license expression",
+]
+`;
+
+exports[`warn invalid license 1`] = `
+Array [
+  "License should be a valid SPDX license expression",
+]
+`;
+
+exports[`warn typo 1`] = `
+Array [
+  "Potential typo \\"dependancies\\", did you mean \\"dependencies\\"?",
+  "No license field",
+]
+`;

@@ -96,7 +96,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
     {
       key: 'private',
       question: 'private',
-      default: '',
+      default: config.getOption('init-private') || '',
       inputFormatter: yn,
     },
   ];
@@ -129,7 +129,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
     }
 
     if (def) {
-      question += ` (${def.toString()})`;
+      question += ` (${String(def)})`;
     }
 
     let answer;

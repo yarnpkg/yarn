@@ -72,7 +72,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
   const versions = result.versions;
   // $FlowFixMe
   result.versions = Object.keys(versions).sort(semver.compareLoose);
-  result.version = version || result.versions[result.versions.length - 1];
+  result.version = version || result['dist-tags'].latest;
   result = Object.assign(result, versions[result.version]);
 
   const fieldPath = args.shift();

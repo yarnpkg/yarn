@@ -78,11 +78,22 @@ export default class TarballFetcher extends BaseFetcher {
         error.message = `${error.message}${tarballPath ? ` (${tarballPath})` : ''}`;
         reject(error);
       })
-      .on('finish', () => {
+      .on('finish', async () => {
         const expectHash = this.hash;
         const actualHash = validateStream.getHash();
 
         if (!expectHash || expectHash === actualHash) {
+          resolve({
+            hash: actualHash,
+          });
+        } else if (this.config.updateChecksums) {
+          // checksums differ and should be updated
+          // update hash, destination and cached package
+          const destUpdatedHash = this.dest.replace(this.hash || '', actualHash);
+          await fsUtil.unlink(destUpdatedHash);
+          await fsUtil.rename(this.dest, destUpdatedHash);
+          this.dest = this.dest.replace(this.hash || '', actualHash);
+          this.hash = actualHash;
           resolve({
             hash: actualHash,
           });

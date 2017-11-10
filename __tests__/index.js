@@ -34,6 +34,7 @@ async function execCommand(
   return new Promise((resolve, reject) => {
     const cleanedEnv = {...process.env};
     cleanedEnv['YARN_SILENT'] = 0;
+    cleanedEnv['YARN_WRAP_OUTPUT'] = 1;
     delete cleanedEnv['FORCE_COLOR'];
 
     exec(
@@ -100,7 +101,7 @@ function expectAnErrorMessage(command: Promise<Array<?string>>, expectedMessage:
     .then(function() {
       throw new Error('the command did not fail');
     })
-    .catch(error => expect(error.message).toContain(expectedMessage));
+    .catch(error => expect(error.message.replace(/\\/g, '')).toContain(expectedMessage));
 }
 
 function expectAnInfoMessageAfterError(command: Promise<Array<?string>>, expectedInfo: string): Promise<void> {
@@ -121,7 +122,7 @@ test.concurrent('should add package with no-lockfile option', async () => {
   expectAddSuccessfullOutputWithNoLockFile(stdout, 'repeating');
 });
 
-test.concurrent('should add package with frozzen-lockfile option', async () => {
+test.concurrent('should add package with frozen-lockfile option', async () => {
   const stdout = await execCommand('add', ['repeating', '--frozen-lockfile'], 'run-add-option', true);
   expectAddSuccessfullOutputWithNoLockFile(stdout, 'repeating');
 });
