@@ -75,7 +75,19 @@ export default class TarballFetcher extends BaseFetcher {
     extractorStream
       .pipe(untarStream)
       .on('error', error => {
+        const {reporter} = this.config;
+        const {pathname} = url.parse(this.reference);
+        if (pathname == null) {
+          return null;
+        }
         error.message = `${error.message}${tarballPath ? ` (${tarballPath})` : ''}`;
+        //If error message is of type EISDIR and filetype is tar.gz
+        if (
+          error.message.indexOf('EISDIR: illegal operation on a directory') === 0 &&
+          pathname.split('/').pop().endsWith('.tar.gz')
+        ) {
+          reporter.warn(reporter.lang('tarInstallError'));
+        }
         reject(error);
       })
       .on('finish', async () => {

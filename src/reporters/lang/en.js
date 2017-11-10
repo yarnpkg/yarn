@@ -371,6 +371,8 @@ const messages = {
   verboseUpgradeBecauseOutdated: 'Considering upgrade of $0 to $1 because a newer version exists in the registry.',
   verboseUpgradeNotUnlocking: 'Not unlocking $0 in the lockfile because it is a new or direct dependency.',
   verboseUpgradeUnlocking: 'Unlocking $0 in the lockfile.',
+  tarInstallError:
+    'For a .tar.gz to be used by yarn add it must have the file names starting with a "./" . This can be checked using the command "tar -tf file.tar.gz"',
 };
 
 export type LanguageKeys = $Keys<typeof messages>;
