@@ -148,6 +148,8 @@ export default class RequestManager {
 
     if (opts.httpsProxy === '') {
       this.httpsProxy = opts.httpProxy || '';
+    } else if (opts.httpsProxy === false) {
+      this.httpsProxy = false;
     } else {
       this.httpsProxy = opts.httpsProxy || '';
     }
@@ -412,7 +414,14 @@ export default class RequestManager {
     if (params.url.startsWith('https:')) {
       proxy = this.httpsProxy;
     }
-    params.proxy = String(proxy);
+
+    if (proxy) {
+      params.proxy = String(proxy);
+    } else if (proxy === false) {
+      // passign empty string prevents the underlying library from falling back to the env vars.
+      // an explicit false in the yarn config should override the env var. See #4546.
+      params.proxy = '';
+    }
 
     if (this.ca != null) {
       params.ca = this.ca;
