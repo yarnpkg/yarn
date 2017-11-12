@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "max-safe-integer": "https://github.com/sindresorhus/max-safe-integer.git"
+  }
+}

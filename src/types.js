@@ -155,6 +155,7 @@ export type Dependency = {
   wanted: string,
   latest: string,
   url: string,
+  isOldHash?: boolean,
   hint: ?string,
   range: string,
   upgradeTo: string,

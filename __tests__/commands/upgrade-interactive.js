@@ -33,3 +33,18 @@ test.concurrent('exits with success if no upgrades', (): Promise<void> => {
     expect(output()).toContain(reporter.lang('allDependenciesUpToDate'));
   });
 });
+
+test.concurrent('exits with success if exotic versions have no upgrades', (): Promise<void> => {
+  const reporter = new reporters.ConsoleReporter({});
+  return new Promise(async resolve => {
+    try {
+      await runUpgrade([], {}, 'git-up-to-date', (config, rep, install, output): ?Promise<void> => {
+        expect(output()).toContain(reporter.lang('allDependenciesUpToDate'));
+      });
+    } catch (err) {
+      expect(err.message).toContain(reporter.lang('lockfileOutdated'));
+    } finally {
+      resolve();
+    }
+  });
+});

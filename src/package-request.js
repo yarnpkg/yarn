@@ -19,8 +19,11 @@ import {MessageError} from './errors.js';
 import * as constants from './constants.js';
 import * as versionUtil from './util/version.js';
 import WorkspaceResolver from './resolvers/contextual/workspace-resolver.js';
+import GitResolver from './resolvers/exotics/git-resolver.js';
 import {getExoticResolver} from './resolvers/index.js';
 import * as fs from './util/fs.js';
+import Git from './util/git.js';
+import {resolveVersion} from './util/git/git-ref-resolver.js';
 import {normalizePattern} from './util/normalize-pattern.js';
 
 type ResolverRegistryNames = $Keys<typeof registryResolvers>;
@@ -369,16 +372,34 @@ export default class PackageRequest {
           throw new MessageError(reporter.lang('lockfileOutdated'));
         }
 
-        const {name, version: current} = locked;
+        const {name, version: current, resolved} = locked;
         let latest = '';
         let wanted = '';
         let url = '';
+        let isOldHash = true;
 
         const normalized = normalizePattern(pattern);
 
-        if (getExoticResolver(pattern) || getExoticResolver(normalized.range)) {
+        const exoticResolver = getExoticResolver(pattern) || getExoticResolver(normalized.range);
+        if (exoticResolver) {
           latest = wanted = 'exotic';
           url = normalized.range;
+
+          // check whether the exotic version has a new commit on git.
+          if (resolved && exoticResolver === GitResolver) {
+            const {hash} = versionUtil.explodeHashedUrl(resolved);
+            const git = new Git(config, Git.npmUrlToGitUrl(url), '');
+            const resolvedResult = await resolveVersion({
+              config,
+              git,
+              version: '*',
+              refs: new Map(),
+            });
+
+            if (resolvedResult) {
+              isOldHash = resolvedResult.sha !== hash;
+            }
+          }
         } else {
           const registry = config.registries[locked.registry];
 
@@ -391,6 +412,7 @@ export default class PackageRequest {
           wanted,
           latest,
           url,
+          isOldHash,
           hint,
           range: normalized.range,
           upgradeTo: '',
@@ -400,9 +422,8 @@ export default class PackageRequest {
       }),
     );
 
-    // Make sure to always output `exotic` versions to be compatible with npm
-    const isDepOld = ({current, latest, wanted}) =>
-      latest === 'exotic' || (semver.lt(current, wanted) || semver.lt(current, latest));
+    const isDepOld = ({current, latest, wanted, isOldHash}) =>
+      latest === 'exotic' ? isOldHash : semver.lt(current, wanted) || semver.lt(current, latest);
     const orderByName = (depA, depB) => depA.name.localeCompare(depB.name);
     return deps.filter(isDepOld).sort(orderByName);
   }
