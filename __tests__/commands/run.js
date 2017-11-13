@@ -31,7 +31,9 @@ const runRunInWorkspacePackage = function(cwd, ...args): Promise<void> {
     const originalCwd = config.cwd;
     config.cwd = path.join(originalCwd, cwd);
     const retVal = run(config, reporter, flags, args);
-    config.cwd = originalCwd;
+    retVal.then(() => {
+      config.cwd = originalCwd;
+    });
     return retVal;
   })(...args);
 };
@@ -145,12 +147,21 @@ test('adds quotes if args have spaces and quotes', (): Promise<void> => {
 
 test('adds workspace root node_modules/.bin to path when in a workspace', (): Promise<void> => {
   return runRunInWorkspacePackage('packages/pkg1', ['env'], {}, 'workspace', (config, reporter): ?Promise<void> => {
-    const result = reporter.getBuffer().reduce((aggregate, entry) => aggregate + entry.data.toString(), '');
-    console.log('XXX', result);
+    const pathEnvVar = new RegExp('"PATH": "(.*)"', 'i');
+    const envPaths = reporter
+      .getBuffer()
+      .map(entry => {
+        const match = pathEnvVar.exec(entry.data.toString());
+        return match ? match[1] : undefined;
+      })
+      .reduce((aggregate, entry) => {
+        if (entry) {
+          entry.split(':').forEach(part => aggregate.push(part));
+        }
+        return aggregate;
+      }, []);
 
-    const envPath = result;
-
-    expect(envPath).toContain(path.join(config.cwd, 'node_modules/.bin'));
-    expect(envPath).toContain(path.join(config.cwd, 'packages/pkg1/node_modules/.bin'));
+    expect(envPaths).toContain(path.join(config.cwd, 'node_modules/.bin'));
+    expect(envPaths).toContain(path.join(config.cwd, 'packages/pkg1/node_modules/.bin'));
   });
 });
