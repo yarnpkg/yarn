@@ -416,9 +416,11 @@ export default class RequestManager {
     }
 
     if (proxy) {
+      // if no proxy is set, do not pass a proxy down to request.
+      // the request library will internally check the HTTP_PROXY and HTTPS_PROXY env vars.
       params.proxy = String(proxy);
     } else if (proxy === false) {
-      // passign empty string prevents the underlying library from falling back to the env vars.
+      // passing empty string prevents the underlying library from falling back to the env vars.
       // an explicit false in the yarn config should override the env var. See #4546.
       params.proxy = '';
     }
