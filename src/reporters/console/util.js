@@ -12,7 +12,10 @@ const CLEAR_RIGHT_OF_CURSOR = 1;
 export function clearLine(stdout: Stdout) {
   if (!supportsColor) {
     if (stdout instanceof tty.WriteStream) {
-      stdout.write(`\r${' '.repeat(stdout.columns - 1)}\r`);
+      if (stdout.columns > 0) {
+        stdout.write(`\r${' '.repeat(stdout.columns - 1)}`);
+      }
+      stdout.write(`\r`);
     }
     return;
   }
