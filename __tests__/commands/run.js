@@ -147,19 +147,17 @@ test('adds quotes if args have spaces and quotes', (): Promise<void> => {
 
 test('adds workspace root node_modules/.bin to path when in a workspace', (): Promise<void> => {
   return runRunInWorkspacePackage('packages/pkg1', ['env'], {}, 'workspace', (config, reporter): ?Promise<void> => {
-    const pathEnvVar = new RegExp('"PATH": "(.*)"', 'i');
-    const envPaths = reporter
+    const logData = reporter
       .getBuffer()
-      .map(entry => {
-        const match = pathEnvVar.exec(entry.data.toString());
-        return match ? match[1] : undefined;
-      })
-      .reduce((aggregate, entry) => {
-        if (entry) {
-          entry.split(':').forEach(part => aggregate.push(part));
-        }
-        return aggregate;
-      }, []);
+      .find(entry => entry.type === 'log')
+      .data;
+    const parsed = JSON.parse(logData);
+    let envPaths = [];
+    if(parsed.PATH) {
+      envPaths = parsed.PATH.split(':');
+    } else if(parsed.Path) {
+      envPaths = parsed.Path.split(';');
+    }
 
     expect(envPaths).toContain(path.join(config.cwd, 'node_modules/.bin'));
     expect(envPaths).toContain(path.join(config.cwd, 'packages/pkg1/node_modules/.bin'));
