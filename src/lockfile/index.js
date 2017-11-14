@@ -121,9 +121,14 @@ export default class Lockfile {
       }
 
       lockfile = parseResult.object;
-    } else {
-      if (reporter) {
-        reporter.info(reporter.lang('noLockfileFound'));
+    } else if (reporter) {
+      reporter.info(reporter.lang('noLockfileFound'));
+      //test if node_module exists
+      const nodeModulesLoc = path.join(dir, NODE_MODULES_FOLDER);
+      if (await fs.exists(nodeModulesLoc)) {
+        if (!await reporter.questionAffirm(reporter.lang('nodeModulesConflict'))) {
+        process.exit();
+        }
       }
     }
 
