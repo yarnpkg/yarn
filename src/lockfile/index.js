@@ -7,7 +7,7 @@ import type {ParseResultType} from './parse.js';
 import {sortAlpha} from '../util/misc.js';
 import {normalizePattern} from '../util/normalize-pattern.js';
 import parse from './parse.js';
-import {LOCKFILE_FILENAME} from '../constants.js';
+import {LOCKFILE_FILENAME, NODE_MODULES_FOLDER} from '../constants.js';
 import * as fs from '../util/fs.js';
 
 const invariant = require('invariant');
