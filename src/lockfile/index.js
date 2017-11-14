@@ -4,6 +4,7 @@ import type {Reporter} from '../reporters/index.js';
 import type {Manifest, PackageRemote} from '../types.js';
 import type {RegistryNames} from '../registries/index.js';
 import type {ParseResultType} from './parse.js';
+import {MessageError} from '../errors.js';
 import {sortAlpha} from '../util/misc.js';
 import {normalizePattern} from '../util/normalize-pattern.js';
 import parse from './parse.js';
@@ -126,8 +127,9 @@ export default class Lockfile {
       //test if node_module exists
       const nodeModulesLoc = path.join(dir, NODE_MODULES_FOLDER);
       if (await fs.exists(nodeModulesLoc)) {
-        if (!await reporter.questionAffirm(reporter.lang('nodeModulesConflict'))) {
-        process.exit();
+        if (!await reporter.questionAffirm(reporter.lang('lockfileModulesConflict'))) {
+          reporter.footer();
+          throw new MessageError(reporter.lang('operationAborted'));
         }
       }
     }

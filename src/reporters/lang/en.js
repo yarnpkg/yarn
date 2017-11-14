@@ -25,6 +25,7 @@ const messages = {
   couldntClearPackageFromCache: "Couldn't clear package $0 from cache",
   clearedPackageFromCache: 'Cleared package $0 from cache',
   packWroteTarball: 'Wrote tarball to $0.',
+  operationAborted: 'Operation aborted.',
 
   helpExamples: '  Examples:\n$0\n',
   helpCommands: '  Commands:\n$0\n',
@@ -95,7 +96,8 @@ const messages = {
   lockfileMerged: 'Merge conflict detected in yarn.lock and successfully merged.',
   lockfileConflict:
     'A merge conflict was found in yarn.lock but it could not be successfully merged, regenerating yarn.lock from scratch.',
-  nodeModulesConflict: '\n  There is already a node_modules folder and no yarn.lock.\n  This probably means you are transitioning from npm to yarn.\n  Proceeding means the node_modules folder will be overwritten by yarn.\n  Do you want to proceed? (yes/no)',
+  lockfileModulesConflict:
+    '\n  There is already a node_modules folder and no yarn.lock.\n  This probably means you are transitioning from npm to yarn.\n  Proceeding means the node_modules folder will be overwritten by yarn.\n  Do you want to proceed? (yes/no)',
   ignoredScripts: 'Ignored scripts due to flag.',
   missingAddDependencies: 'Missing list of packages to add to your project.',
   yesWarning:
