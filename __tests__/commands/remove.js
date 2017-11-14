@@ -100,6 +100,14 @@ test.concurrent('removes a single scoped package', (): Promise<void> => {
   });
 });
 
+test.concurrent("removes a workspace's dependency", (): Promise<void> => {
+  return runRemove(['left-pad'], {}, 'workspaces-remove-workspace-dependency/workspace-child', async (config): Promise<
+    void,
+  > => {
+    expect(JSON.parse(await fs.readFile(path.join(config.cwd, 'package.json'))).dependencies).toEqual({});
+  });
+});
+
 test('removes subdependencies', (): Promise<void> => {
   // A@1 -> B@1
   // C@1
