@@ -106,7 +106,6 @@
     "build-deb": "./scripts/build-deb.sh",
     "build-dist": "bash ./scripts/build-dist.sh",
     "build-win-installer": "scripts\\build-windows-installer.bat",
-    "check-lockfile": "./scripts/check-lockfile.sh",
     "dupe-check": "node ./node_modules/.bin/jsinspect ./src || true",
     "lint": "eslint . && flow check && yarn run dupe-check",
     "prettier": "eslint src __tests__ --fix",
