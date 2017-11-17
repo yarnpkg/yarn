@@ -243,6 +243,7 @@ const messages = {
   invalidSemver: 'Invalid semver version',
   newVersion: 'New version',
   currentVersion: 'Current version',
+  noVersionOnPublish: 'Proceeding with current version',
 
   manualVersionResolution:
     'Unable to find a suitable version for $0, please choose one by typing one of the numbers below:',
