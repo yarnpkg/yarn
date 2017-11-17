@@ -9,7 +9,9 @@ import type {RegistryNames} from '../../registries/index.js';
 import type {LockfileObject} from '../../lockfile';
 import normalizeManifest from '../../util/normalize-manifest/index.js';
 import {MessageError} from '../../errors.js';
+import * as util from '../../util/misc.js';
 import InstallationIntegrityChecker from '../../integrity-checker.js';
+import GitResolver from '../../resolvers/exotics/git-resolver.js'; 
 import Lockfile from '../../lockfile';
 import {stringify as lockStringify} from '../../lockfile';
 import * as fetcher from '../../package-fetcher.js';
@@ -33,6 +35,7 @@ const invariant = require('invariant');
 const path = require('path');
 const semver = require('semver');
 const uuid = require('uuid');
+const urlParse = require('url').parse;
 
 const ONE_DAY = 1000 * 60 * 60 * 24;
 
@@ -233,15 +236,18 @@ export class Install {
 
     // exclude package names that are in install args
     const excludeNames = [];
-    for (const pattern of excludePatterns) {
-      // can't extract a package name from this
-      if (getExoticResolver(pattern)) {
-        continue;
+    for (const pattern of excludePatterns) {      
+      if(GitResolver.isVersion(pattern)){
+          let pathname = urlParse(pattern).pathname;
+          let name = util.removeSuffix(pathname.split('/')[2],'.git');         
+          excludeNames.push(name);
+      } else if (getExoticResolver(pattern)) {
+          continue;
+      } else{
+          // extract the name
+          const parts = normalizePattern(pattern);
+          excludeNames.push(parts.name);
       }
-
-      // extract the name
-      const parts = normalizePattern(pattern);
-      excludeNames.push(parts.name);
     }
 
     const stripExcluded = (manifest: Manifest) => {
