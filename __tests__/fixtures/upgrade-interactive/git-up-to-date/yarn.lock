@@ -2,6 +2,6 @@
 # yarn lockfile v1
 
 
-"yarn-test@https://github.com/mertkahyaoglu/yarn-test":
-  version "0.0.0"
-  resolved "https://github.com/mertkahyaoglu/yarn-test#2e8d38d7f331b2346dc3229b4d1f5a91a3e9b509"
+"max-safe-integer@https://github.com/sindresorhus/max-safe-integer.git":
+  version "1.0.1"
+  resolved "https://github.com/sindresorhus/max-safe-integer.git#eef7c83a74aaef9da40adddffbb46b019560837a"
