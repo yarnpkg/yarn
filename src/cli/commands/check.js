@@ -342,7 +342,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
               const resHuman = `${human}#${name}@${resRange}`;
 
               if (semver.satisfies(depPkg.version, resRange, config.looseSemver)) {
-                reporter.warn(reporter.lang('packageDontSatisfy', subHuman, foundHuman));
+                reporter.warn(reporter.lang('incompatibleResolutionVersion', foundHuman, subHuman));
                 warningCount++;
               } else {
                 reportError('packageDontSatisfy', resHuman, foundHuman);

@@ -363,7 +363,9 @@ test.concurrent('should warn about mismatched dependencies if they match resolut
   }
   expect(mismatchError).toEqual(false);
   expect(
-    stdout.search(`warning.*"pad-left#repeat-string@\\^1.5.4" doesn't satisfy found match of "repeat-string@1.4.0"`),
+    stdout.search(
+      `warning.*"repeat-string@1.4.0" is incompatible with requested version "pad-left#repeat-string@\\^1.5.4"`,
+    ),
   ).toBeGreaterThan(-1);
 });
 
