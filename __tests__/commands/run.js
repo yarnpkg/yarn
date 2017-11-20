@@ -26,6 +26,17 @@ const fixturesLoc = path.join(__dirname, '..', 'fixtures', 'run');
 const runRun = buildRun.bind(null, BufferReporter, fixturesLoc, (args, flags, config, reporter): Promise<void> => {
   return run(config, reporter, flags, args);
 });
+const runRunInWorkspacePackage = function(cwd, ...args): Promise<void> {
+  return buildRun.bind(null, BufferReporter, fixturesLoc, (args, flags, config, reporter): Promise<void> => {
+    const originalCwd = config.cwd;
+    config.cwd = path.join(originalCwd, cwd);
+    const retVal = run(config, reporter, flags, args);
+    retVal.then(() => {
+      config.cwd = originalCwd;
+    });
+    return retVal;
+  })(...args);
+};
 
 test('lists all available commands with no arguments', (): Promise<void> => {
   return runRun([], {}, 'no-args', (config, reporter): ?Promise<void> => {
@@ -131,5 +142,16 @@ test('adds quotes if args have spaces and quotes', (): Promise<void> => {
     const args = ['cat-names', config, `${script} --filter ${quotedCatNames}`, config.cwd];
 
     expect(execCommand).toBeCalledWith(...args);
+  });
+});
+
+test('adds workspace root node_modules/.bin to path when in a workspace', (): Promise<void> => {
+  return runRunInWorkspacePackage('packages/pkg1', ['env'], {}, 'workspace', (config, reporter): ?Promise<void> => {
+    const logEntry = reporter.getBuffer().find(entry => entry.type === 'log');
+    const parsedLogData = JSON.parse(logEntry ? logEntry.data.toString() : '{}');
+    const envPaths = (parsedLogData.PATH || parsedLogData.Path).split(path.delimiter);
+
+    expect(envPaths).toContain(path.join(config.cwd, 'node_modules', '.bin'));
+    expect(envPaths).toContain(path.join(config.cwd, 'packages', 'pkg1', 'node_modules', '.bin'));
   });
 });
