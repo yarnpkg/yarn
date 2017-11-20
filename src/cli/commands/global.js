@@ -287,4 +287,5 @@ export {run};
 export function setFlags(commander: Object) {
   _setFlags(commander);
   commander.option('--prefix <prefix>', 'bin prefix to use to install binaries');
+  commander.option('--latest', 'upgrade to the latest version of packages');
 }

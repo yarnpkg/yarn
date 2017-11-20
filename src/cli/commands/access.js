@@ -2,44 +2,27 @@
 
 import buildSubCommands from './_build-sub-commands.js';
 
+const notYetImplemented = () => Promise.reject(new Error('This command is not implemented yet.'));
+
 export const {run, setFlags, hasWrapper, examples} = buildSubCommands(
   'access',
   {
-    public(): Promise<void> {
-      return Promise.reject(new Error('TODO'));
-    },
-
-    restricted(): Promise<void> {
-      return Promise.reject(new Error('TODO'));
-    },
-
-    grant(): Promise<void> {
-      return Promise.reject(new Error('TODO'));
-    },
-
-    revoke(): Promise<void> {
-      return Promise.reject(new Error('TODO'));
-    },
-
-    lsPackages(): Promise<void> {
-      return Promise.reject(new Error('TODO'));
-    },
-
-    lsCollaborators(): Promise<void> {
-      return Promise.reject(new Error('TODO'));
-    },
-
-    edit(): Promise<void> {
-      return Promise.reject(new Error('TODO'));
-    },
+    public: notYetImplemented,
+    restricted: notYetImplemented,
+    grant: notYetImplemented,
+    revoke: notYetImplemented,
+    lsPackages: notYetImplemented,
+    lsCollaborators: notYetImplemented,
+    edit: notYetImplemented,
   },
   [
-    'access public [<package>]',
-    'access restricted [<package>]',
-    'access grant <read-only|read-write> <scope:team> [<package>]',
-    'access revoke <scope:team> [<package>]',
-    'access ls-packages [<user>|<scope>|<scope:team>]',
-    'access ls-collaborators [<package> [<user>]]',
-    'access edit [<package>]',
+    'WARNING: This command yet to be implemented.',
+    'public [<package>]',
+    'restricted [<package>]',
+    'grant <read-only|read-write> <scope:team> [<package>]',
+    'revoke <scope:team> [<package>]',
+    'ls-packages [<user>|<scope>|<scope:team>]',
+    'ls-collaborators [<package> [<user>]]',
+    'edit [<package>]',
   ],
 );
