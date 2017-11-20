@@ -164,3 +164,15 @@ test.skip('pack should include bundled dependencies', (): Promise<void> => {
     expect(files.sort()).toEqual(expected.sort());
   });
 });
+
+test.concurrent('pack should match dotfiles with globs', (): Promise<void> => {
+  return runPack([], {}, 'glob-dotfile', async (config): Promise<void> => {
+    const {cwd} = config;
+    const files = await getFilesFromArchive(
+      path.join(cwd, 'glob-dotfile-v1.0.0.tgz'),
+      path.join(cwd, 'glob-dotfile-v1.0.0'),
+    );
+    const expected = ['index.js', 'package.json', 'dir', path.join('dir', '.dotfile')];
+    expect(files.sort()).toEqual(expected.sort());
+  });
+});
