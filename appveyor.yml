@@ -2,7 +2,6 @@ environment:
   matrix:
     - node_version: "8"
     - node_version: "6"
-    - node_version: "4"
 
 branches:
   only:
@@ -19,8 +18,7 @@ build_script:
   - yarn run build-win-installer
 
 test_script:
-  - node --version
-  - node ./node_modules/jest/bin/jest.js --coverage --verbose
+  -yarn jest --verbose
 
 artifacts:
   - path: artifacts/*.msi
