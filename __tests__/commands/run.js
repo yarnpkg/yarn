@@ -145,6 +145,18 @@ test('adds quotes if args have spaces and quotes', (): Promise<void> => {
   });
 });
 
+test('returns noScriptsAvailable with no scripts', (): Promise<void> => {
+  return runRun([], {}, 'no-scripts', (config, reporter) => {
+    expect(reporter.getBuffer()).toMatchSnapshot();
+  });
+});
+
+test('returns noBinAvailable with no bins', (): Promise<void> => {
+  return runRun([], {}, 'no-bin', (config, reporter) => {
+    expect(reporter.getBuffer()).toMatchSnapshot();
+  });
+});
+
 test('adds workspace root node_modules/.bin to path when in a workspace', (): Promise<void> => {
   return runRunInWorkspacePackage('packages/pkg1', ['env'], {}, 'workspace', (config, reporter): ?Promise<void> => {
     const logEntry = reporter.getBuffer().find(entry => entry.type === 'log');
