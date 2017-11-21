@@ -94,7 +94,7 @@ function* tokenise(input: string): Iterator<Token> {
       }
     } else if (input[0] === '"') {
       let i = 1;
-      for (; ; i++) {
+      for (; i < input.length; i++) {
         if (input[i] === '"') {
           const isEscaped = input[i - 1] === '\\' && input[i - 2] !== '\\';
           if (!isEscaped) {
