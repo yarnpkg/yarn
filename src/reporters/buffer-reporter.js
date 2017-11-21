@@ -29,7 +29,7 @@ export default class BufferReporter extends JSONReporter {
   }
 
   getBufferText(): string {
-    return this._buffer.map(({data}) => String(data.body)).join('');
+    return this._buffer.map(({data}) => (typeof data === 'string' ? data : JSON.stringify(data))).join('');
   }
 
   getBufferJson(): any {
