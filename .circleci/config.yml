@@ -1,6 +1,7 @@
 version: 2
 
 docker_defaults: &docker_defaults
+  resource_class: small
   docker:
     - image: yarnpkg/dev:latest
   working_directory: ~/project/yarn
@@ -56,10 +57,10 @@ test_run: &test_run
   run:
     name: Tests
     command: |
-      # Limit maxWorkers to 3 to avoid OOM on CircleCI
-      yarn test-only --maxWorkers 3
+      yarn test-only
 
 test_steps: &test_steps
+  resource_class: xlarge
   steps:
     - *attach_workspace
     - *restore_cache
