@@ -60,7 +60,7 @@ test_run: &test_run
       yarn test-only
 
 test_steps: &test_steps
-  resource_class: large
+  resource_class: xlarge
   steps:
     - *attach_workspace
     - *restore_cache
