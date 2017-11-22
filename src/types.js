@@ -48,6 +48,11 @@ type Dependencies = {
   [key: string]: string,
 };
 
+export type WorkspacesConfig = {
+  packages?: Array<string>,
+  nohoist?: Array<string>,
+};
+
 // package.json
 export type Manifest = {
   _registry?: ?RegistryNames,
@@ -129,7 +134,7 @@ export type Manifest = {
   files?: Array<string>,
   main?: string,
 
-  workspaces?: Array<string>,
+  workspaces?: Array<string> | WorkspacesConfig,
 
   // This flag is true when we add a new package with `yarn add <mypackage>`.
   // We need to preserve the flag because we print a list of new packages in

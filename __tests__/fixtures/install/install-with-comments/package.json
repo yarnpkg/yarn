@@ -6,5 +6,8 @@
       "comment"
     ],
     "foo": "file:bar"
+  },
+  "resolutions": {
+    "//": "This is a comment."
   }
 }

@@ -43,9 +43,8 @@ export default class BaseFetcher {
   }
 
   fetch(defaultManifest: ?Object): Promise<FetchedMetadata> {
-    const {dest} = this;
-    return fs.lockQueue.push(dest, async (): Promise<FetchedMetadata> => {
-      await fs.mkdirp(dest);
+    return fs.lockQueue.push(this.dest, async (): Promise<FetchedMetadata> => {
+      await fs.mkdirp(this.dest);
 
       // fetch package and get the hash
       const {hash} = await this._fetch();
@@ -53,10 +52,10 @@ export default class BaseFetcher {
       const pkg = await (async () => {
         // load the new normalized manifest
         try {
-          return await this.config.readManifest(dest, this.registry);
+          return await this.config.readManifest(this.dest, this.registry);
         } catch (e) {
           if (e.code === 'ENOENT' && defaultManifest) {
-            return normalizeManifest(defaultManifest, dest, this.config, false);
+            return normalizeManifest(defaultManifest, this.dest, this.config, false);
           } else {
             throw e;
           }
@@ -64,7 +63,7 @@ export default class BaseFetcher {
       })();
 
       await fs.writeFile(
-        path.join(dest, constants.METADATA_FILENAME),
+        path.join(this.dest, constants.METADATA_FILENAME),
         JSON.stringify(
           {
             manifest: pkg,
@@ -80,7 +79,7 @@ export default class BaseFetcher {
 
       return {
         hash,
-        dest,
+        dest: this.dest,
         package: pkg,
         cached: false,
       };

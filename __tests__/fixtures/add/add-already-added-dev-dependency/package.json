@@ -1,0 +1,7 @@
+{
+  "name": "foo",
+  "version": "1.0.0",
+  "devDependencies": {
+    "is-online": "^7.0.0"
+  }
+}

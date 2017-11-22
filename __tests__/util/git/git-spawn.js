@@ -34,6 +34,7 @@ describe('spawn', () => {
       GIT_ASKPASS: '',
       GIT_TERMINAL_PROMPT: 0,
       GIT_SSH_COMMAND: '"ssh" -oBatchMode=yes',
+      GIT_SSH_VARIANT: 'ssh',
       ...process.env,
     });
   });
@@ -53,6 +54,7 @@ describe('spawn', () => {
       GIT_ASKPASS: '',
       GIT_TERMINAL_PROMPT: 0,
       GIT_SSH_COMMAND: `"${plinkPath}" -batch`,
+      GIT_SSH_VARIANT: 'plink',
       ...process.env,
     });
   });

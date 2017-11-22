@@ -4,7 +4,7 @@ import {resolve, join as pathJoin} from 'path';
 
 import NpmRegistry from '../../src/registries/npm-registry.js';
 import {BufferReporter} from '../../src/reporters/index.js';
-import homeDir from '../../src/util/user-home-dir.js';
+import homeDir, {home} from '../../src/util/user-home-dir.js';
 
 describe('normalizeConfig', () => {
   beforeAll(() => {
@@ -39,6 +39,18 @@ describe('normalizeConfig', () => {
     const rooted = process.platform === 'win32' ? 'C:\\foo' : '/foo';
     const normalized = NpmRegistry.normalizeConfig({cafile: rooted})['cafile'];
     expect(normalized).toEqual(rooted);
+  });
+
+  test('handles missing HOME', () => {
+    const realHome = process.env.HOME;
+    delete process.env.HOME;
+
+    try {
+      const normalized = NpmRegistry.normalizeConfig({cafile: '${HOME}/foo'})['cafile'];
+      expect(normalized).toEqual(resolve(home, 'foo'));
+    } finally {
+      process.env.HOME = realHome;
+    }
   });
 });
 
@@ -335,5 +347,129 @@ describe('getPossibleConfigLocations', () => {
         expect.stringContaining(JSON.stringify(pathJoin(homeDir, '.npmrc'))),
       ]),
     );
+  });
+});
+
+describe('checkOutdated functional test', () => {
+  const mockConfig = {
+    resolveConstraints(): string {
+      return '2.0.0';
+    },
+  };
+
+  test('homepage URL from top level', async () => {
+    const testCwd = '.';
+    const {mockRequestManager, mockRegistries, mockReporter} = createMocks();
+    const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter);
+
+    mockRequestManager.request = () => {
+      return {
+        homepage: 'http://package.homepage.com',
+        'dist-tags': {
+          latest: '2.0.0',
+        },
+        versions: {
+          '2.0.0': {
+            version: '2.0.0',
+          },
+        },
+      };
+    };
+
+    const result = await npmRegistry.checkOutdated(mockConfig, 'left-pad', '2.0.0');
+
+    expect(result).toMatchObject({
+      latest: '2.0.0',
+      wanted: '2.0.0',
+      url: 'http://package.homepage.com',
+    });
+  });
+
+  test('homepage URL fallback to wanted package manifest', async () => {
+    const testCwd = '.';
+    const {mockRequestManager, mockRegistries, mockReporter} = createMocks();
+    const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter);
+
+    mockRequestManager.request = () => {
+      return {
+        'dist-tags': {
+          latest: '2.0.0',
+        },
+        versions: {
+          '2.0.0': {
+            version: '2.0.0',
+            homepage: 'http://package.homepage.com',
+          },
+        },
+      };
+    };
+
+    const result = await npmRegistry.checkOutdated(mockConfig, 'left-pad', '2.0.0');
+
+    expect(result).toMatchObject({
+      latest: '2.0.0',
+      wanted: '2.0.0',
+      url: 'http://package.homepage.com',
+    });
+  });
+
+  test('repository URL from top level', async () => {
+    const testCwd = '.';
+    const {mockRequestManager, mockRegistries, mockReporter} = createMocks();
+    const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter);
+
+    mockRequestManager.request = () => {
+      return {
+        repository: {
+          url: 'http://package.repo.com',
+        },
+        'dist-tags': {
+          latest: '2.0.0',
+        },
+        versions: {
+          '2.0.0': {
+            version: '2.0.0',
+          },
+        },
+      };
+    };
+
+    const result = await npmRegistry.checkOutdated(mockConfig, 'left-pad', '2.0.0');
+
+    expect(result).toMatchObject({
+      latest: '2.0.0',
+      wanted: '2.0.0',
+      url: 'http://package.repo.com',
+    });
+  });
+
+  test('repository URL fallback to wanted package manifest', async () => {
+    const testCwd = '.';
+    const {mockRequestManager, mockRegistries, mockReporter} = createMocks();
+    const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter);
+
+    mockRequestManager.request = () => {
+      return {
+        'dist-tags': {
+          latest: '2.0.0',
+        },
+        versions: {
+          '2.0.0': {
+            version: '2.0.0',
+            repository: {
+              url: 'http://package.repo.com',
+            },
+          },
+        },
+      };
+    };
+
+    const result = await npmRegistry.checkOutdated(mockConfig, 'left-pad', '2.0.0');
+
+    expect(result).toMatchObject({
+      latest: '2.0.0',
+      wanted: '2.0.0',
+      url: 'http://package.repo.com',
+    });
   });
 });

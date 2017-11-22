@@ -1,0 +1,8 @@
+{
+  "name": "workspace-2",
+  "version": "1.0.0",
+  "dependencies": {
+    "b": "file:../../b",
+    "c": "file:../../c"
+  }
+}

@@ -5,6 +5,7 @@ import type RequestManager from '../util/request-manager.js';
 import type {RegistryRequestOptions, CheckOutdatedReturn} from './base-registry.js';
 import type Config from '../config.js';
 import type {ConfigRegistries} from './index.js';
+import type {Env} from '../util/env-replace.js';
 import {YARN_REGISTRY} from '../constants.js';
 import * as fs from '../util/fs.js';
 import NpmResolver from '../resolvers/registries/npm-resolver.js';
@@ -163,12 +164,22 @@ export default class NpmRegistry extends Registry {
       throw new Error('couldnt find ' + name);
     }
 
-    const {repository, homepage} = req;
+    // By default use top level 'repository' and 'homepage' values
+    let {repository, homepage} = req;
+    const wantedPkg = await NpmResolver.findVersionInRegistryResponse(config, range, req);
+
+    // But some local repositories like Verdaccio do not return 'repository' nor 'homepage'
+    // in top level data structure, so we fallback to wanted package manifest
+    if (!repository && !homepage) {
+      repository = wantedPkg.repository;
+      homepage = wantedPkg.homepage;
+    }
+
     const url = homepage || (repository && repository.url) || '';
 
     return {
       latest: req['dist-tags'].latest,
-      wanted: (await NpmResolver.findVersionInRegistryResponse(config, range, req)).version,
+      wanted: wantedPkg.version,
       url,
     };
   }
@@ -206,11 +217,20 @@ export default class NpmRegistry extends Registry {
     return actuals;
   }
 
+  static getConfigEnv(env: Env = process.env): Env {
+    // To match NPM's behavior, HOME is always the user's home directory.
+    const overrideEnv = {
+      HOME: home,
+    };
+    return Object.assign({}, env, overrideEnv);
+  }
+
   static normalizeConfig(config: Object): Object {
+    const env = NpmRegistry.getConfigEnv();
     config = Registry.normalizeConfig(config);
 
     for (const key: string in config) {
-      config[key] = envReplace(config[key]);
+      config[key] = envReplace(config[key], env);
       if (isPathConfigOption(key)) {
         config[key] = normalizePath(config[key]);
       }

@@ -69,6 +69,7 @@ const messages = {
   couldntFindVersionThatMatchesRange: "Couldn't find any versions for $0 that matches $1",
   chooseVersionFromList: 'Please choose a version of $0 from this list:',
   moduleNotInManifest: "This module isn't specified in a manifest.",
+  moduleAlreadyInManifest: '$0 is already in $1. Please remove existing entry first before adding it to $2.',
   unknownFolderOrTarball: "Passed folder/tarball doesn't exist,",
   unknownPackage: "Couldn't find package $0.",
   unknownPackageName: "Couldn't find package name.",
@@ -172,6 +173,7 @@ const messages = {
   linkUsing: 'Using linked module for $0.',
   linkDisusing: 'Removed linked module $0.',
   linkDisusingMessage: 'You will need to run `yarn` to re-install the package that was linked.',
+  linkTargetMissing: 'The target of linked module $0 is missing. Removing link.',
 
   createInvalidBin: 'Invalid bin entry found in package $0.',
   createMissingPackage:
@@ -267,12 +269,16 @@ const messages = {
   whyHoistedTo: `Has been hoisted to $0`,
 
   whyHoistedFromSimple: `This module exists because it's hoisted from $0.`,
+  whyNotHoistedSimple: `This module exists here because it's in the nohoist list $0.`,
   whyDependedOnSimple: `This module exists because $0 depends on it.`,
   whySpecifiedSimple: `This module exists because it's specified in $0.`,
   whyReasons: 'Reasons this module exists',
   whyHoistedFrom: 'Hoisted from $0',
+  whyNotHoisted: `in the nohoist list $0`,
   whyDependedOn: '$0 depends on it',
   whySpecified: `Specified in $0`,
+
+  whyMatch: `\r=> Found $0`,
 
   uninstalledPackages: 'Uninstalled packages.',
   uninstallRegenerate: 'Regenerating lockfile and installing missing dependencies',

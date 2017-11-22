@@ -2,7 +2,7 @@
 
 import type {RegistryNames, ConfigRegistries} from './registries/index.js';
 import type {Reporter} from './reporters/index.js';
-import type {Manifest, PackageRemote, WorkspacesManifestMap} from './types.js';
+import type {Manifest, PackageRemote, WorkspacesManifestMap, WorkspacesConfig} from './types.js';
 import type PackageReference from './package-reference.js';
 import {execFromManifest} from './util/execute-lifecycle-script.js';
 import {resolveWithHome} from './util/path.js';
@@ -57,6 +57,8 @@ export type ConfigOptions = {
 
   commandName?: ?string,
   registry?: ?string,
+
+  updateChecksums?: boolean,
 };
 
 type PackageMetadata = {
@@ -102,6 +104,7 @@ export default class Config {
   linkFileDependencies: boolean;
   ignorePlatform: boolean;
   binLinks: boolean;
+  updateChecksums: boolean;
 
   //
   linkedModules: Array<string>;
@@ -364,6 +367,7 @@ export default class Config {
     this.linkFolder = opts.linkFolder || constants.LINK_REGISTRY_DIRECTORY;
     this.offline = !!opts.offline;
     this.binLinks = !!opts.binLinks;
+    this.updateChecksums = !!opts.updateChecksums;
 
     this.ignorePlatform = !!opts.ignorePlatform;
     this.ignoreScripts = !!opts.ignoreScripts;
@@ -611,9 +615,10 @@ export default class Config {
 
     do {
       const manifest = await this.findManifest(current, true);
-      if (manifest && manifest.workspaces) {
+      const ws = extractWorkspaces(manifest);
+      if (ws && ws.packages) {
         const relativePath = path.relative(current, initial);
-        if (relativePath === '' || micromatch([relativePath], manifest.workspaces).length > 0) {
+        if (relativePath === '' || micromatch([relativePath], ws.packages).length > 0) {
           return current;
         } else {
           return null;
@@ -629,10 +634,11 @@ export default class Config {
 
   async resolveWorkspaces(root: string, rootManifest: Manifest): Promise<WorkspacesManifestMap> {
     const workspaces = {};
-    const patterns = rootManifest.workspaces || [];
     if (!this.workspacesEnabled) {
       return workspaces;
     }
+    const ws = this.getWorkspaces(rootManifest);
+    const patterns = ws && ws.packages ? ws.packages : [];
     if (!rootManifest.private && patterns.length > 0) {
       throw new MessageError(this.reporter.lang('workspacesRequirePrivateProjects'));
     }
@@ -677,6 +683,14 @@ export default class Config {
     }
 
     return workspaces;
+  }
+
+  // workspaces functions
+  getWorkspaces(manifest: ?Manifest): ?WorkspacesConfig {
+    if (!this.workspacesEnabled) {
+      return undefined;
+    }
+    return extractWorkspaces(manifest);
   }
 
   /**
@@ -761,4 +775,23 @@ export default class Config {
     await config.init(opts);
     return config;
   }
+}
+
+export function extractWorkspaces(manifest: ?Manifest): ?WorkspacesConfig {
+  if (!manifest || !manifest.workspaces) {
+    return undefined;
+  }
+
+  if (Array.isArray(manifest.workspaces)) {
+    return {packages: manifest.workspaces};
+  }
+
+  if (
+    (manifest.workspaces.packages && Array.isArray(manifest.workspaces.packages)) ||
+    (manifest.workspaces.nohoist && Array.isArray(manifest.workspaces.nohoist))
+  ) {
+    return manifest.workspaces;
+  }
+
+  return undefined;
 }

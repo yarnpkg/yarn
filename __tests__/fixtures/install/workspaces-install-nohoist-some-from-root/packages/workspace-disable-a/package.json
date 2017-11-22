@@ -1,0 +1,11 @@
+{
+  "name": "workspace-disable-a",
+  "version": "1.0.0",
+  "dependencies": {
+    "a": "file:../../a",
+    "d": "file:../../d"
+  },
+  "workspaces": {
+    "nohoist": ["a"]
+  }
+}

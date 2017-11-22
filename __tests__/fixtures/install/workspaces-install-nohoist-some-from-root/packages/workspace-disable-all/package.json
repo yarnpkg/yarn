@@ -1,0 +1,11 @@
+{
+  "name": "workspace-disable-all",
+  "version": "1.0.0",
+  "dependencies": {
+    "c": "file:../../c",
+    "d": "file:../../d"
+  },
+  "workspaces": {
+    "nohoist": ["**"]
+  }
+}
