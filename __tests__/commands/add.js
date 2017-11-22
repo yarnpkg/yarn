@@ -1027,8 +1027,8 @@ test.concurrent('installing with --pure-lockfile and then adding should keep bui
   });
 });
 
-test.concurrent('preserves unaffected bin links after adding to workspace package', (): Promise<void> => {
-  return runInstall({binLinks: true}, 'workspaces-install-bin', async (config): Promise<void> => {
+test.concurrent('preserves unaffected bin links after adding to workspace package', async () => {
+  await runInstall({binLinks: true}, 'workspaces-install-bin', async (config): Promise<void> => {
     const reporter = new ConsoleReporter({});
 
     expect(await fs.exists(`${config.cwd}/node_modules/.bin/rimraf`)).toEqual(true);

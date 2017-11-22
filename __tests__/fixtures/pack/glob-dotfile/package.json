@@ -1,0 +1,7 @@
+{
+  "name": "glob-dotfile",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "files": ["index.js", "dir/*"]
+}

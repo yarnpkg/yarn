@@ -243,8 +243,8 @@ test.concurrent('install should ignore node_modules in workspaces when used with
   });
 });
 
-test.concurrent('install should link binaries properly when run from child workspace', (): Promise<void> => {
-  return runInstall({binLinks: true}, 'workspaces-install-bin', async (config, reporter): Promise<void> => {
+test.concurrent('install should link binaries properly when run from child workspace', async () => {
+  await runInstall({binLinks: true}, 'workspaces-install-bin', async (config, reporter): Promise<void> => {
     // initial install
     expect(await fs.exists(`${config.cwd}/node_modules/.bin/rimraf`)).toEqual(true);
     expect(await fs.exists(`${config.cwd}/node_modules/.bin/touch`)).toEqual(true);
