@@ -1,0 +1,88 @@
+{
+  "name": "pad-left",
+  "description": "Left pad a string with zeros or a specified string. Fastest implementation.",
+  "version": "2.1.0",
+  "homepage": "https://github.com/jonschlinkert/pad-left",
+  "author": "Jon Schlinkert (https://github.com/jonschlinkert)",
+  "repository": "jonschlinkert/pad-left",
+  "bugs": {
+    "url": "https://github.com/jonschlinkert/pad-left/issues"
+  },
+  "license": "MIT",
+  "files": [
+    "index.js"
+  ],
+  "main": "index.js",
+  "engines": {
+    "node": ">=0.10.0"
+  },
+  "scripts": {
+    "test": "mocha"
+  },
+  "dependencies": {
+    "repeat-string": "^1.5.4"
+  },
+  "devDependencies": {
+    "benchmarked": "^0.2.5",
+    "gulp-format-md": "^0.1.9",
+    "left-pad": "github:stevemao/left-pad",
+    "minimist": "^1.2.0",
+    "mocha": "^2.4.5",
+    "should": "^8.3.1"
+  },
+  "keywords": [
+    "align",
+    "fill",
+    "left",
+    "pad",
+    "pad-left",
+    "padded",
+    "padding",
+    "spaces",
+    "string",
+    "zero",
+    "zero-fill",
+    "zeros"
+  ],
+  "verb": {
+    "run": true,
+    "toc": false,
+    "layout": "default",
+    "options": {
+      "helper": {
+        "copyright": {
+          "start": 2014
+        }
+      }
+    },
+    "tasks": [
+      "readme"
+    ],
+    "plugins": [
+      "gulp-format-md"
+    ],
+    "related": {
+      "highlight": "word-wrap",
+      "list": [
+        "align-text",
+        "center-align",
+        "justified",
+        "pad-right",
+        "repeat-string",
+        "right-align",
+        "right-align-keys",
+        "right-align-values",
+        "right-pad-keys",
+        "right-pad-values",
+        "word-wrap"
+      ]
+    },
+    "reflinks": [
+      "verb",
+      "left-pad"
+    ],
+    "lint": {
+      "reflinks": true
+    }
+  }
+}

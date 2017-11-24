@@ -98,6 +98,8 @@ export function matchesFilter(filter: IgnoreFilter, basename: string, loc: strin
   if (filter.base && filter.base !== '.') {
     loc = path.relative(filter.base, loc);
   }
+  // the micromatch regex expects unix path separators
+  loc = loc.replace('\\', '/');
   return (
     filter.regex.test(loc) ||
     filter.regex.test(`/${loc}`) ||
@@ -129,7 +131,7 @@ export function ignoreLinesToRegex(lines: Array<string>, base: string = '.'): Ar
         // remove trailing slash
         pattern = removeSuffix(pattern, '/');
 
-        const regex: ?RegExp = mm.makeRe(pattern.trim(), {nocase: true});
+        const regex: ?RegExp = mm.makeRe(pattern.trim(), {dot: true, nocase: true});
 
         if (regex) {
           return {
