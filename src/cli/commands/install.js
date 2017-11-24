@@ -11,7 +11,7 @@ import normalizeManifest from '../../util/normalize-manifest/index.js';
 import {MessageError} from '../../errors.js';
 import * as util from '../../util/misc.js';
 import InstallationIntegrityChecker from '../../integrity-checker.js';
-import GitResolver from '../../resolvers/exotics/git-resolver.js'; 
+import GitResolver from '../../resolvers/exotics/git-resolver.js';
 import Lockfile from '../../lockfile';
 import {stringify as lockStringify} from '../../lockfile';
 import * as fetcher from '../../package-fetcher.js';
@@ -236,17 +236,20 @@ export class Install {
 
     // exclude package names that are in install args
     const excludeNames = [];
-    for (const pattern of excludePatterns) {      
-      if(GitResolver.isVersion(pattern)){
-          let pathname = urlParse(pattern).pathname;
-          let name = util.removeSuffix(pathname.split('/')[2],'.git');         
+    for (const pattern of excludePatterns) {
+      if (GitResolver.isVersion(pattern)) {
+        const pathname = urlParse(pattern).pathname;
+
+        if (pathname) {
+          const name = util.removeSuffix(pathname.split('/')[2], '.git');
           excludeNames.push(name);
+        }
       } else if (getExoticResolver(pattern)) {
-          continue;
-      } else{
-          // extract the name
-          const parts = normalizePattern(pattern);
-          excludeNames.push(parts.name);
+        continue;
+      } else {
+        // extract the name
+        const parts = normalizePattern(pattern);
+        excludeNames.push(parts.name);
       }
     }
 
