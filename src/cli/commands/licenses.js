@@ -49,7 +49,7 @@ async function getManifests(config: Config, flags: Object): Promise<Array<Manife
 
 async function list(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
   const manifests: Array<Manifest> = await getManifests(config, flags);
-
+//TODO: invoke a function to get the licenseText, see function generateDisclaimer below and extract a new function from there
   if (flags.json) {
     const body = [];
 
@@ -61,13 +61,14 @@ async function list(config: Config, reporter: Reporter, flags: Object, args: Arr
         name,
         version,
         license || 'Unknown',
+        licenseText || 'Unknown',//TODO: make this variable exist
         url || 'Unknown',
         vendorUrl || 'Unknown',
         vendorName || 'Unknown',
       ]);
     }
 
-    reporter.table(['Name', 'Version', 'License', 'URL', 'VendorUrl', 'VendorName'], body);
+    reporter.table(['Name', 'Version', 'License', 'Disclaimer', 'URL', 'VendorUrl', 'VendorName'], body);
   } else {
     const trees = [];
 
@@ -125,7 +126,7 @@ export const {run, setFlags, examples} = buildSubCommands('licenses', {
       }
 
       if (!manifestsByLicense.has(licenseText)) {
-        manifestsByLicense.set(licenseText, new Map());
+        manifestsByLicenes.set(licenseText, new Map());
       }
 
       const byLicense = manifestsByLicense.get(licenseText);
