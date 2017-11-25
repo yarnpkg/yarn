@@ -13,6 +13,7 @@ import * as constants from './constants.js';
 import ConstraintResolver from './package-constraint-resolver.js';
 import RequestManager from './util/request-manager.js';
 import {registries, registryNames} from './registries/index.js';
+import NpmRegistry, {SCOPE_SEPARATOR} from './registries/npm-registry.js';
 import {NoopReporter} from './reporters/index.js';
 import map from './util/map.js';
 
@@ -400,6 +401,9 @@ export default class Config {
     }
 
     let name = pkg.name;
+    if (this.registries.npm.isScopedPackage(name)) {
+      name = NpmRegistry.escapeName(name).replace(SCOPE_SEPARATOR, '-');
+    }
     let uid = pkg.uid;
     if (pkg.registry) {
       name = `${pkg.registry}-${name}`;

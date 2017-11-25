@@ -76,7 +76,7 @@ addTest(
   '@foo/bar@1.2.3',
   'npm',
   async cacheFolder => {
-    const folder = path.join(cacheFolder, 'npm-@foo', 'bar');
+    const folder = path.join(cacheFolder, 'npm-@foo-bar-1.2.3-cafebabecafebabecafebabecafebabecafebabe');
     await fs.mkdirp(folder);
     await fs.writeFile(
       path.join(folder, constants.METADATA_FILENAME),
