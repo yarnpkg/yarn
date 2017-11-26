@@ -2661,7 +2661,7 @@ gulp-watch@^4.3.5:
     vinyl "^1.2.0"
     vinyl-file "^2.0.0"
 
-gulp@^3.9.0:
+gulp@^3.9.1:
   version "3.9.1"
   resolved "https://registry.yarnpkg.com/gulp/-/gulp-3.9.1.tgz#571ce45928dd40af6514fc4011866016c13845b4"
   dependencies:

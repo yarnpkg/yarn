@@ -74,7 +74,7 @@
     "eslint-plugin-yarn-internal": "file:scripts/eslint-rules",
     "execa": "^0.7.0",
     "flow-bin": "^0.52.0",
-    "gulp": "^3.9.0",
+    "gulp": "^3.9.1",
     "gulp-babel": "^7.0.0",
     "gulp-if": "^2.0.1",
     "gulp-newer": "^1.0.0",
@@ -106,8 +106,8 @@
     "build-deb": "./scripts/build-deb.sh",
     "build-dist": "bash ./scripts/build-dist.sh",
     "build-win-installer": "scripts\\build-windows-installer.bat",
-    "dupe-check": "node ./node_modules/.bin/jsinspect ./src || true",
-    "lint": "eslint . && flow check && yarn run dupe-check",
+    "dupe-check": "yarn jsinspect ./src",
+    "lint": "eslint . && flow check",
     "prettier": "eslint src __tests__ --fix",
     "release-branch": "./scripts/release-branch.sh",
     "test": "yarn lint && yarn test-only",
@@ -117,9 +117,13 @@
     "commit": "git-cz"
   },
   "jest": {
-    "collectCoverageFrom": ["src/**/*.js"],
+    "collectCoverageFrom": [
+      "src/**/*.js"
+    ],
     "testEnvironment": "node",
-    "modulePathIgnorePatterns": ["__tests__/fixtures/"],
+    "modulePathIgnorePatterns": [
+      "__tests__/fixtures/"
+    ],
     "testPathIgnorePatterns": [
       "__tests__/(fixtures|__mocks__)/",
       "updates/",
