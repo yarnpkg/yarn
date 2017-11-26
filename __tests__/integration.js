@@ -244,7 +244,7 @@ test('yarnrc arguments', async () => {
   );
   await fs.writeFile(`${cwd}/package.json`, JSON.stringify({name: 'test', license: 'ISC', version: '1.0.0'}));
 
-  const [stdoutOutput] = await runYarn(['add', 'left-pad@1.1.3'], {cwd});
+  const [stdoutOutput] = await runYarn(['add', 'left-pad'], {cwd});
   expect(stdoutOutput).toMatchSnapshot('yarnrc-args');
   expect(JSON.parse(await fs.readFile(`${cwd}/package.json`)).dependencies['left-pad']).toMatch(/^\d+\./);
   expect((await fs.stat(`${cwd}/yarn-cache`)).isDirectory()).toBe(true);

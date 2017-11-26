@@ -148,9 +148,6 @@ export async function makeEnv(
   // add .bin folders to PATH
   for (const registry of Object.keys(registries)) {
     const binFolder = path.join(config.registries[registry].folder, '.bin');
-    if (config.workspacesEnabled && config.workspaceRootFolder) {
-      pathParts.unshift(path.join(config.workspaceRootFolder, binFolder));
-    }
     pathParts.unshift(path.join(config.linkFolder, binFolder));
     pathParts.unshift(path.join(cwd, binFolder));
   }

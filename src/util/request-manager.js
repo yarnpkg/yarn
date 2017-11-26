@@ -148,8 +148,6 @@ export default class RequestManager {
 
     if (opts.httpsProxy === '') {
       this.httpsProxy = opts.httpProxy || '';
-    } else if (opts.httpsProxy === false) {
-      this.httpsProxy = false;
     } else {
       this.httpsProxy = opts.httpsProxy || '';
     }
@@ -414,16 +412,7 @@ export default class RequestManager {
     if (params.url.startsWith('https:')) {
       proxy = this.httpsProxy;
     }
-
-    if (proxy) {
-      // if no proxy is set, do not pass a proxy down to request.
-      // the request library will internally check the HTTP_PROXY and HTTPS_PROXY env vars.
-      params.proxy = String(proxy);
-    } else if (proxy === false) {
-      // passing empty string prevents the underlying library from falling back to the env vars.
-      // an explicit false in the yarn config should override the env var. See #4546.
-      params.proxy = '';
-    }
+    params.proxy = String(proxy);
 
     if (this.ca != null) {
       params.ca = this.ca;
