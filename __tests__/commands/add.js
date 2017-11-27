@@ -609,6 +609,27 @@ test.concurrent('upgrade scenario 2 (with sub dependencies)', (): Promise<void> 
   });
 });
 
+test.concurrent('install another fork of an existing package', (): Promise<void> => {
+  // When installing a package with the same name as an existing one but from a different repo,
+  // the old one should be replaced with the new one in the lock file.
+  const firstSource = 'https://github.com/davidreis97/example-yarn-package.git';
+  const secondSource = 'https://github.com/yarnpkg/example-yarn-package.git';
+  const pkgName = 'example-yarn-package';
+  return runAdd([firstSource], {}, 'install-forked-git', async (config, reporter): Promise<void> => {
+    let lockfile = explodeLockfile(await fs.readFile(path.join(config.cwd, 'yarn.lock')));
+    expect(lockfile.indexOf(`"${pkgName}@${firstSource}":`)).toEqual(0);
+    expect(lockfile.indexOf(`"${pkgName}@${secondSource}":`)).toEqual(-1);
+
+    const add = new Add([secondSource], {}, config, reporter, await Lockfile.fromDirectory(config.cwd));
+    await add.init();
+
+    lockfile = explodeLockfile(await fs.readFile(path.join(config.cwd, 'yarn.lock')));
+
+    expect(lockfile.indexOf(`"${pkgName}@${firstSource}":`)).toEqual(-1);
+    expect(lockfile.indexOf(`"${pkgName}@${secondSource}":`)).toEqual(0);
+  });
+});
+
 test.concurrent('downgrade scenario', (): Promise<void> => {
   // left-pad first installed 1.1.0 then downgraded to 0.0.9
   // files in mirror, yarn.lock, package.json and node_modules should reflect that
