@@ -74,7 +74,7 @@ export class Add extends Install {
     }
 
     if (!version || semver.valid(version)) {
-      let prefix = configPrefix || '^';
+      let prefix = version ? '' : configPrefix || '^';
       if (tilde) {
         prefix = '~';
       } else if (exact) {
