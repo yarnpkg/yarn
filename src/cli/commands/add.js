@@ -74,10 +74,11 @@ export class Add extends Install {
     }
 
     if (!version || semver.valid(version)) {
-      let prefix = version ? '' : configPrefix || '^';
+      let prefix = configPrefix || '^';
+
       if (tilde) {
         prefix = '~';
-      } else if (exact) {
+      } else if (version || exact) {
         prefix = '';
       }
       version = `${prefix}${pkg.version}`;
