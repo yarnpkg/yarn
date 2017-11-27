@@ -286,6 +286,7 @@ export function main({
     return new Promise((resolve, reject) => {
       const connectionOptions = {
         port: +mutexPort || constants.SINGLE_INSTANCE_PORT,
+        host: 'localhost',
       };
 
       function startServer() {
