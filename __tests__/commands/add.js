@@ -147,6 +147,16 @@ test.concurrent('install with --optional flag', (): Promise<void> => {
   });
 });
 
+test.concurrent('install with --tilde flag', (): Promise<void> => {
+  return runAdd(['isarray@2.0.1'], {tilde: true}, 'add-with-flag', async config => {
+    const lockfile = explodeLockfile(await fs.readFile(path.join(config.cwd, 'yarn.lock')));
+    const pkg = await fs.readJson(path.join(config.cwd, 'package.json'));
+
+    expect(lockfile.indexOf('isarray@~2.0.1:')).toEqual(0);
+    expect(pkg.dependencies).toEqual({isarray: '~2.0.1'});
+  });
+});
+
 // Test if moduleAlreadyInManifest warning is displayed
 const moduleAlreadyInManifestChecker = ({expectWarnings}: {expectWarnings: boolean}) => async (
   args,

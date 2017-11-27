@@ -71,18 +71,18 @@ export class Add extends Install {
     } else if (hasVersion && range && (semver.satisfies(pkg.version, range) || getExoticResolver(range))) {
       // if the user specified a range then use it verbatim
       version = range;
-    } else {
-      let prefix;
+    }
+
+    if (!version || semver.valid(version)) {
+      let prefix = configPrefix || '^';
       if (tilde) {
         prefix = '~';
       } else if (exact) {
         prefix = '';
-      } else {
-        prefix = configPrefix || '^';
       }
-
       version = `${prefix}${pkg.version}`;
     }
+
     return version;
   }
 
