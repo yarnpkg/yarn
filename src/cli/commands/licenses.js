@@ -134,9 +134,7 @@ export const {run, setFlags, examples} = buildSubCommands('licenses', {
 
     console.log(
       'THE FOLLOWING SETS FORTH ATTRIBUTION NOTICES FOR THIRD PARTY SOFTWARE THAT MAY BE CONTAINED ' +
-        `IN PORTIONS OF THE ${String(manifest.name)
-          .toUpperCase()
-          .replace(/-/g, ' ')} PRODUCT.`,
+        `IN PORTIONS OF THE ${String(manifest.name).toUpperCase().replace(/-/g, ' ')} PRODUCT.`,
     );
     console.log();
 
