@@ -145,6 +145,17 @@ test('first dep is installed when same level and reference count and one is a de
   });
 });
 
+// Scenario: Transitive dependency having bin link with a name that's conflicting with that of a direct dependency.
+// Behavior: a-dep and b-dep is linked in node_modules/.bin rather than c-dep and d-dep
+test('direct dependency is linked when bin name conflicts with transitive dependency', (): Promise<void> => {
+  return runInstall({binLinks: true}, 'install-bin-links-conflicting-names', async config => {
+    const stdout1 = await execCommand(config.cwd, ['node_modules', '.bin', 'binlink1'], []);
+    const stdout2 = await execCommand(config.cwd, ['node_modules', '.bin', 'binlink2'], []);
+    expect(stdout1[0]).toEqual('direct a-dep');
+    expect(stdout2[0]).toEqual('direct b-dep');
+  });
+});
+
 // fixes https://github.com/yarnpkg/yarn/issues/3535
 // quite a heavy test, did not find a way to isolate
 test('Only top level (after hoisting) bin links should be linked', (): Promise<void> => {

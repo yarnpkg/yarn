@@ -1,0 +1,10 @@
+{
+  "name": "b-dep",
+  "version": "0.0.1",
+  "bin": {
+    "binlink2": "./bin"
+  },
+  "dependencies": {
+    "d-dep": "file:d-dep"
+  }
+}
