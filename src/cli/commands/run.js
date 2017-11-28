@@ -8,6 +8,7 @@ import {registries} from '../../resolvers/index.js';
 import * as fs from '../../util/fs.js';
 import map from '../../util/map.js';
 
+const os = require('os');
 const leven = require('leven');
 const path = require('path');
 const {quoteForShell, sh, unquoted} = require('puka');
@@ -30,8 +31,17 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
     if (!visitedBinFolders.has(binFolder)) {
       if (await fs.exists(binFolder)) {
         for (const name of await fs.readdir(binFolder)) {
-          binCommands.push(name);
-          scripts[name] = quoteForShell(path.join(binFolder, name));
+		  if (process.platform === 'win32'){
+			  if (name.indexOf(".cmd") !== -1){
+				let strippedName = name.substring(0, name.indexOf(".cmd"));
+			  	binCommands.push(strippedName);
+				scripts[name] = quoteForShell(path.join(binFolder, name));
+			}
+		  }
+		  else {
+	          binCommands.push(name);
+	          scripts[name] = quoteForShell(path.join(binFolder, name));
+	  	  }
         }
       }
       visitedBinFolders.add(binFolder);
