@@ -49,11 +49,9 @@ async function getManifests(config: Config, flags: Object): Promise<Array<Manife
 
 async function list(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
   const manifests: Array<Manifest> = await getManifests(config, flags);
-//TODO: invoke a function to get the licenseText, see function generateDisclaimer below and extract a new function from there
   if (flags.json) {
     const body = [];
-
-    for (const {name, version, license, repository, homepage, author} of manifests) {
+    for (const {name, version, license, licenseText, repository, homepage, author} of manifests) {
       const url = repository ? repository.url : homepage;
       const vendorUrl = homepage || (author && author.url);
       const vendorName = author && author.name;
@@ -61,7 +59,7 @@ async function list(config: Config, reporter: Reporter, flags: Object, args: Arr
         name,
         version,
         license || 'Unknown',
-        licenseText || 'Unknown',//TODO: make this variable exist
+        licenseText || 'Unknown',
         url || 'Unknown',
         vendorUrl || 'Unknown',
         vendorName || 'Unknown',
@@ -136,7 +134,9 @@ export const {run, setFlags, examples} = buildSubCommands('licenses', {
 
     console.log(
       'THE FOLLOWING SETS FORTH ATTRIBUTION NOTICES FOR THIRD PARTY SOFTWARE THAT MAY BE CONTAINED ' +
-        `IN PORTIONS OF THE ${String(manifest.name).toUpperCase().replace(/-/g, ' ')} PRODUCT.`,
+        `IN PORTIONS OF THE ${String(manifest.name)
+          .toUpperCase()
+          .replace(/-/g, ' ')} PRODUCT.`,
     );
     console.log();
 
