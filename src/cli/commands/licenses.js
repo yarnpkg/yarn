@@ -126,7 +126,7 @@ export const {run, setFlags, examples} = buildSubCommands('licenses', {
       }
 
       if (!manifestsByLicense.has(licenseText)) {
-        manifestsByLicenes.set(licenseText, new Map());
+        manifestsByLicense.set(licenseText, new Map());
       }
 
       const byLicense = manifestsByLicense.get(licenseText);
