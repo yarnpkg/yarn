@@ -73,6 +73,9 @@ export default class PackageLinker {
     for (const [scriptName, scriptCmd] of entries(pkg.bin)) {
       const dest = path.join(targetBinLoc, scriptName);
       const src = path.join(pkgLoc, scriptCmd);
+      if (await fs.exists(dest)) {
+        continue;
+      }
       if (!await fs.exists(src)) {
         // TODO maybe throw an error
         continue;
