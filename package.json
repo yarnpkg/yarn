@@ -82,7 +82,7 @@
     "gulp-sourcemaps": "^2.2.0",
     "gulp-util": "^3.0.7",
     "gulp-watch": "^4.3.5",
-    "jest": "20.0.4",
+    "jest": "21.3.0-beta.8",
     "jsinspect": "^0.12.6",
     "minimatch": "^3.0.4",
     "mock-stdin": "^0.3.0",
@@ -117,9 +117,13 @@
     "commit": "git-cz"
   },
   "jest": {
-    "collectCoverageFrom": ["src/**/*.js"],
+    "collectCoverageFrom": [
+      "src/**/*.js"
+    ],
     "testEnvironment": "node",
-    "modulePathIgnorePatterns": ["__tests__/fixtures/"],
+    "modulePathIgnorePatterns": [
+      "__tests__/fixtures/"
+    ],
     "testPathIgnorePatterns": [
       "__tests__/(fixtures|__mocks__)/",
       "updates/",

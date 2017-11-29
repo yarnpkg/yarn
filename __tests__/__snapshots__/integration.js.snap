@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`yarnrc-args 1`] = `
+exports[`yarnrc arguments: yarnrc-args 1`] = `
 "{\\"type\\":\\"info\\",\\"data\\":\\"No lockfile found.\\"}
 {\\"type\\":\\"step\\",\\"data\\":{\\"message\\":\\"Resolving packages\\",\\"current\\":1,\\"total\\":4}}
 {\\"type\\":\\"step\\",\\"data\\":{\\"message\\":\\"Fetching packages\\",\\"current\\":2,\\"total\\":4}}
