@@ -1,6 +1,6 @@
 {
   "dependencies": {
     "a-dep": "file:a-dep",
-    "b-dep": "file:b-dep"
+    "f-dep": "file:f-dep"
   }
 }

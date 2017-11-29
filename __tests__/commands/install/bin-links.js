@@ -152,7 +152,7 @@ test('direct dependency is linked when bin name conflicts with transitive depend
     const stdout1 = await execCommand(config.cwd, ['node_modules', '.bin', 'binlink1'], []);
     const stdout2 = await execCommand(config.cwd, ['node_modules', '.bin', 'binlink2'], []);
     expect(stdout1[0]).toEqual('direct a-dep');
-    expect(stdout2[0]).toEqual('direct b-dep');
+    expect(stdout2[0]).toEqual('direct f-dep');
   });
 });
 

@@ -1,7 +1,0 @@
-{
-  "name": "d-dep",
-  "version": "0.0.1",
-  "bin": {
-    "binlink1": "./bin"
-  }
-}

@@ -73,9 +73,6 @@ export default class PackageLinker {
     for (const [scriptName, scriptCmd] of entries(pkg.bin)) {
       const dest = path.join(targetBinLoc, scriptName);
       const src = path.join(pkgLoc, scriptCmd);
-      if (await fs.exists(dest)) {
-        continue;
-      }
       if (!await fs.exists(src)) {
         // TODO maybe throw an error
         continue;
@@ -404,7 +401,7 @@ export default class PackageLinker {
 
     // create binary links
     if (this.config.binLinks) {
-      const topLevelDependencies = this.determineTopLevelBinLinks(flatTree);
+      const topLevelDependencies = this.determineTopLevelBinLinkOrder(flatTree);
       const tickBin = this.reporter.progress(flatTree.length + topLevelDependencies.length);
 
       // create links in transient dependencies
@@ -439,17 +436,33 @@ export default class PackageLinker {
     }
   }
 
-  determineTopLevelBinLinks(flatTree: HoistManifestTuples): Array<[string, Manifest]> {
+  determineTopLevelBinLinkOrder(flatTree: HoistManifestTuples): Array<[string, Manifest, boolean]> {
     const linksToCreate = new Map();
     for (const [dest, {pkg, isDirectRequire}] of flatTree) {
       const {name} = pkg;
 
       if (isDirectRequire || (this.topLevelBinLinking && !linksToCreate.has(name))) {
-        linksToCreate.set(name, [dest, pkg]);
+        linksToCreate.set(name, [dest, pkg, isDirectRequire]);
       }
     }
 
-    return Array.from(linksToCreate.values());
+    // Sort the array so that direct dependencies will be linked last.
+    // Bin links are overwritten if they already exist, so this will cause direct deps to take precedence.
+    // If someone finds this to be incorrect later, you could also consider sorting descending by
+    //   `a[1].level` which is the dependency tree depth. Direct deps will have level 0 and transitive
+    //   deps will have level > 0.
+    return Array.from(linksToCreate.values()).sort((a, b): number => {
+      const aIsDirect = a[2];
+      const bIsDirect = b[2];
+
+      if (aIsDirect && !bIsDirect) {
+        return 1;
+      }
+      if (!aIsDirect && bIsDirect) {
+        return -1;
+      }
+      return 0;
+    });
   }
 
   resolvePeerModules() {
