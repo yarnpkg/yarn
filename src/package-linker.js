@@ -420,7 +420,7 @@ export default class PackageLinker {
       // create links at top level for all dependencies.
       await promise.queue(
         topLevelDependencies,
-        async ([dest, pkg]) => {
+        async ([dest, {pkg}]) => {
           if (pkg._reference && pkg._reference.location && pkg.bin && Object.keys(pkg.bin).length) {
             const binLoc = path.join(this.config.lockfileFolder, this.config.getFolder(pkg));
             await this.linkSelfDependencies(pkg, dest, binLoc);
@@ -436,13 +436,14 @@ export default class PackageLinker {
     }
   }
 
-  determineTopLevelBinLinkOrder(flatTree: HoistManifestTuples): Array<[string, Manifest, boolean]> {
+  determineTopLevelBinLinkOrder(flatTree: HoistManifestTuples): HoistManifestTuples {
     const linksToCreate = new Map();
-    for (const [dest, {pkg, isDirectRequire}] of flatTree) {
+    for (const [dest, hoistManifest] of flatTree) {
+      const {pkg, isDirectRequire} = hoistManifest;
       const {name} = pkg;
 
       if (isDirectRequire || (this.topLevelBinLinking && !linksToCreate.has(name))) {
-        linksToCreate.set(name, [dest, pkg, isDirectRequire]);
+        linksToCreate.set(name, [dest, hoistManifest]);
       }
     }
 
@@ -451,9 +452,9 @@ export default class PackageLinker {
     // If someone finds this to be incorrect later, you could also consider sorting descending by
     //   `a[1].level` which is the dependency tree depth. Direct deps will have level 0 and transitive
     //   deps will have level > 0.
-    return Array.from(linksToCreate.values()).sort((a, b): number => {
-      const aIsDirect = a[2];
-      const bIsDirect = b[2];
+    return Array.from(linksToCreate.values()).sort(([aDest, aHoistManifest], [bDest, bHoistManifest]): number => {
+      const aIsDirect = aHoistManifest.isDirectRequire;
+      const bIsDirect = bHoistManifest.isDirectRequire;
 
       if (aIsDirect && !bIsDirect) {
         return 1;
