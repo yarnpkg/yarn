@@ -115,12 +115,11 @@ export default class Git implements GitRefResolvingInterface {
       };
     }
 
-    // Special case in npm, where ssh:// prefix is stripped to pass scp-like syntax
-    // which in git works as remote path only if there are no slashes before ':'.
-    // See #3146.
+    // npm local packages are specified as file:, but url parser interprets them as using the file protocol.
+    // This changes the behavior so that git doesn't see this as a hostname, but as a file path.
+    // See #3670.
     if (parsed.protocol === FILE_PROTOCOL && !parsed.hostname && parsed.path && parsed.port === null) {
       return {
-        hostname: parsed.path,
         protocol: parsed.protocol,
         repository: parsed.path,
       };
