@@ -29,6 +29,7 @@
     "is-ci": "^1.0.10",
     "is-webpack-bundle": "^1.0.0",
     "leven": "^2.0.0",
+    "lodash": "^1.2.0",
     "loud-rejection": "^1.2.0",
     "micromatch": "^2.3.11",
     "mkdirp": "^0.5.1",
@@ -42,6 +43,7 @@
     "request-capture-har": "^1.2.2",
     "rimraf": "^2.5.0",
     "semver": "^5.1.0",
+    "standard-version": "^4.0.0",
     "strip-ansi": "^4.0.0",
     "strip-bom": "^3.0.0",
     "tar-fs": "^1.15.1",
@@ -117,9 +119,13 @@
     "commit": "git-cz"
   },
   "jest": {
-    "collectCoverageFrom": ["src/**/*.js"],
+    "collectCoverageFrom": [
+      "src/**/*.js"
+    ],
     "testEnvironment": "node",
-    "modulePathIgnorePatterns": ["__tests__/fixtures/"],
+    "modulePathIgnorePatterns": [
+      "__tests__/fixtures/"
+    ],
     "testPathIgnorePatterns": [
       "__tests__/(fixtures|__mocks__)/",
       "updates/",
