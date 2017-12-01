@@ -120,6 +120,7 @@ export default class Git implements GitRefResolvingInterface {
     // See #3670.
     if (parsed.protocol === FILE_PROTOCOL && !parsed.hostname && parsed.path && parsed.port === null) {
       return {
+        hostname: parsed.hostname,
         protocol: parsed.protocol,
         repository: parsed.path,
       };
