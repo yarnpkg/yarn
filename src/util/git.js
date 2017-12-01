@@ -20,6 +20,7 @@ import map from './map.js';
 const GIT_PROTOCOL_PREFIX = 'git+';
 const SSH_PROTOCOL = 'ssh:';
 const SCP_PATH_PREFIX = '/:';
+const FILE_PROTOCOL = 'file:';
 
 type GitUrl = {
   protocol: string, // parsed from URL
@@ -111,6 +112,17 @@ export default class Git implements GitRefResolvingInterface {
         hostname: parsed.hostname,
         protocol: parsed.protocol,
         repository: `${auth}${parsed.hostname}:${pathname}`,
+      };
+    }
+
+    // Special case in npm, where ssh:// prefix is stripped to pass scp-like syntax
+    // which in git works as remote path only if there are no slashes before ':'.
+    // See #3146.
+    if (parsed.protocol === FILE_PROTOCOL && !parsed.hostname && parsed.path && parsed.port === null) {
+      return {
+        hostname: parsed.path,
+        protocol: parsed.protocol,
+        repository: parsed.path,
       };
     }
 
