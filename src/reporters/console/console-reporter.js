@@ -232,11 +232,11 @@ export default class ConsoleReporter extends BaseReporter {
   tree(key: string, trees: Trees) {
     //
     const output = ({name, children, hint, color}, titlePrefix, childrenPrefix) => {
-      const formatter = this.format;
+      const formatter = this.format.bold;
       const out = getFormattedOutput({
         prefix: titlePrefix,
         hint,
-        color,
+        color: 'cyan',
         name,
         formatter,
       });
