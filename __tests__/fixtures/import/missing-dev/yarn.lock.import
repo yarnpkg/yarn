@@ -15,3 +15,4 @@ commander@^2.9.0:
 qs@6.3.0:
   version "6.3.0"
   resolved "https://registry.yarnpkg.com/qs/-/qs-6.3.0.tgz#f403b264f23bc01228c74131b407f18d5ea5d442"
+  integrity sha1-9AOyZPI7wBIox0ExtAfxjV6l1EI=

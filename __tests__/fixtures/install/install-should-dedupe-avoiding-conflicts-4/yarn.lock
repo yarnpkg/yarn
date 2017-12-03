@@ -3,6 +3,7 @@
 dep-a@2.0.0:
   version "2.0.0"
   resolved dep-a-2.0.0.tgz#a901305bacde6315e9c74dd83209e8fc55ef7ef9
+  integrity sha1-qQEwW6zeYxXpx03YMgno/FXvfvk=
   dependencies:
     dep-b "2.0.0"
     dep-c "1.0.0"
@@ -10,20 +11,24 @@ dep-a@2.0.0:
 dep-b@2.0.0:
   version "2.0.0"
   resolved dep-b-2.0.0.tgz#64c4b1831302c9d18f9ff0c19c7c6da29e562d2f
+  integrity sha1-ZMSxgxMCydGPn/DBnHxtop5WLS8=
   dependencies:
     dep-d "1.0.0"
 
 dep-c@1.0.0:
   version "1.0.0"
   resolved dep-c-1.0.0.tgz#0a736749af09df401e981b913cd103a0daa123f8
+  integrity sha1-CnNnSa8J30AemBuRPNEDoNqhI/g=
 
 dep-c@2.0.0:
   version "2.0.0"
   resolved dep-c-2.0.0.tgz#92a991de7bc0dedbf50e02aed003fba677a1c876
+  integrity sha1-kqmR3nvA3tv1DgKu0AP7pnehyHY=
 
 dep-d@1.0.0:
   version "1.0.0"
   resolved dep-d-1.0.0.tgz#2a4ebdbc68b0d0d87531b6f7a126fed1d9b7bcb5
+  integrity sha1-Kk69vGiw0Nh1Mbb3oSb+0dm3vLU=
   dependencies:
     dep-c "2.0.0"
 
