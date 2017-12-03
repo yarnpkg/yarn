@@ -677,17 +677,12 @@ test.concurrent('install should be idempotent', (): Promise<void> => {
 });
 
 test.concurrent('install should update checksums in yarn.lock (--update-checksums)', (): Promise<void> => {
-  const packageRealHash = '5faad9c2c07f60dd76770f71cf025b62a63cfd4e';
-  const packageCacheName = `npm-abab-1.0.4-${packageRealHash}`;
+  const packageRealIntegrity =
+    'sha512-I+Wi+qiE2kUXyrRhNsWv6XsjUTBJjSoVSctKNBfLG5zG/Xe7Rjbxf13+vqYHNTwHaFU+FtSlVxOCTiMEVtPv0A==';
   return runInstall({updateChecksums: true}, 'install-update-checksums', async config => {
     const lockFileContent = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
     const lockFileLines = explodeLockfile(lockFileContent);
-    const packageHashInLockfile = lockFileLines[2].replace(/(^.*#)|("$)/g, '');
-    const installedPackageJson = path.resolve(config.cwd, 'node_modules', 'abab', 'package.json');
-    const cachePackageJson = path.resolve(config.cwd, '.yarn-cache/v1/', packageCacheName, 'package.json');
-    expect(packageHashInLockfile).toEqual(packageRealHash);
-    expect(await fs.exists(installedPackageJson)).toBe(true);
-    expect(await fs.exists(cachePackageJson)).toBe(true);
+    expect(lockFileLines[3].indexOf(packageRealIntegrity) > 0).toBe(true);
   });
 });
 
