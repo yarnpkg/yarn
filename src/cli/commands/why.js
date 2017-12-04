@@ -108,7 +108,9 @@ function getSharedDependencies(hoistManifests: HoistManifestTuples, transitiveKe
   return sharedDependencies;
 }
 
-export function setFlags(commander: Object) {}
+export function setFlags(commander: Object) {
+    commander.description('Identifies why a package has been installed, detailing which other packages depend upon it');
+}
 
 export function hasWrapper(commander: Object, args: Array<string>): boolean {
   return true;
