@@ -182,6 +182,16 @@ test.concurrent('should run add command with help option', async () => {
   expectHelpOutputAsSubcommand(stdout);
 });
 
+test.concurrent('should not show --ignore-scripts for `run` command', async () => {
+  const stdout = await execCommand('--help', ['run'], 'run-help');
+  expect(stdout.join('\n')).not.toContain('--ignore-scripts');
+});
+
+test.concurrent('should show --ignore-scripts for `install` command', async () => {
+  const stdout = await execCommand('--help', ['install'], 'run-help');
+  expect(stdout.join('\n')).toContain('--ignore-scripts');
+});
+
 test.concurrent('should run add command with h option', async () => {
   const stdout = await execCommand('add', ['-h'], 'run-help');
   expectHelpOutputAsSubcommand(stdout);

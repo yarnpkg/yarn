@@ -925,6 +925,7 @@ export function hasWrapper(commander: Object, args: Array<string>): boolean {
 
 export function setFlags(commander: Object) {
   commander.usage('install [flags]');
+  commander.option('--ignore-scripts', "don't run lifecycle scripts");
   commander.option('-g, --global', 'DEPRECATED');
   commander.option('-S, --save', 'DEPRECATED - save package to your `dependencies`');
   commander.option('-D, --save-dev', 'DEPRECATED - save package to your `devDependencies`');
