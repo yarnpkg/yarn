@@ -8,7 +8,6 @@ import {registries} from '../../resolvers/index.js';
 import * as fs from '../../util/fs.js';
 import map from '../../util/map.js';
 
-const os = require('os');
 const leven = require('leven');
 const path = require('path');
 const {quoteForShell, sh, unquoted} = require('puka');
@@ -31,18 +30,17 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
     if (!visitedBinFolders.has(binFolder)) {
       if (await fs.exists(binFolder)) {
         for (const name of await fs.readdir(binFolder)) {
-		  //consider only .cmd scripts on Windows and show them without the extension - #624
-		  if (process.platform === 'win32') {
-			  if (name.indexOf(".cmd") !== -1) {
-				let strippedName = name.substring(0, name.indexOf(".cmd"));
-			  	binCommands.push(strippedName);
-				scripts[name] = quoteForShell(path.join(binFolder, name));
-			}
-		  }
-		  else {
-	          binCommands.push(name);
-	          scripts[name] = quoteForShell(path.join(binFolder, name));
-	  	  }
+          //consider only .cmd scripts on Windows and show them without the extension - #624
+          if (process.platform === 'win32') {
+            if (name.indexOf('.cmd') !== -1) {
+              const strippedName = name.substring(0, name.indexOf('.cmd'));
+              binCommands.push(strippedName);
+              scripts[name] = quoteForShell(path.join(binFolder, name));
+            }
+          } else {
+            binCommands.push(name);
+            scripts[name] = quoteForShell(path.join(binFolder, name));
+          }
         }
       }
       visitedBinFolders.add(binFolder);
@@ -83,11 +81,11 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
     } else if (scripts[action]) {
       cmds.push([action, scripts[action]]);
     } else if (process.platform === 'win32') {
-	  //Since input free of the .cmd extension was allowed, add it now - #624
-	  let cmdAction = action.concat(".cmd");
-	  if (scripts[cmdAction]) {
-		  cmds.push([cmdAction, scripts[cmdAction]]);
-	  }
+      //Since input free of the .cmd extension was allowed, add it now - #624
+      const cmdAction = action.concat('.cmd');
+      if (scripts[cmdAction]) {
+        cmds.push([cmdAction, scripts[cmdAction]]);
+      }
     }
 
     if (cmds.length) {
