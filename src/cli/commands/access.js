@@ -4,7 +4,11 @@ import buildSubCommands from './_build-sub-commands.js';
 
 const notYetImplemented = () => Promise.reject(new Error('This command is not implemented yet.'));
 
-export const {run, setFlags, hasWrapper, examples} = buildSubCommands(
+export function setFlags(commander: Object) {
+  commander.description('Has not be implemented yet');
+}
+
+export const {run, hasWrapper, examples} = buildSubCommands(
   'access',
   {
     public: notYetImplemented,

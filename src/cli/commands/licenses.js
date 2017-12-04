@@ -91,8 +91,10 @@ async function list(config: Config, reporter: Reporter, flags: Object, args: Arr
     reporter.tree('licenses', trees);
   }
 }
-
-export const {run, setFlags, examples} = buildSubCommands('licenses', {
+export function setFlags(commander: Object) {
+  commander.description('List licenses for installed packages.');
+}
+export const {run, examples} = buildSubCommands('licenses', {
   async ls(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
     reporter.warn(`\`yarn licenses ls\` is deprecated. Please use \`yarn licenses list\`.`);
     await list(config, reporter, flags, args);
