@@ -1,0 +1,22 @@
+HTTP/1.1 200 OK
+Server: GitHub.com
+Date: Thu, 30 Nov 2017 18:04:38 GMT
+Content-Type: text/html; charset=utf-8
+Status: 200 OK
+Cache-Control: no-cache
+Vary: X-PJAX
+X-UA-Compatible: IE=Edge,chrome=1
+Set-Cookie: logged_in=no; domain=.github.com; path=/; expires=Mon, 30 Nov 2037 18:04:38 -0000; secure; HttpOnly
+Set-Cookie: _gh_sess=eyJzZXNzaW9uX2lkIjoiNWUzN2ZjMzQ1NzAxZTdiMTYwMjUyNjEwNDFlOWU2MDkiLCJsYXN0X3JlYWRfZnJvbV9yZXBsaWNhcyI6MTUxMjA2NTA3ODYzNSwic3B5X3JlcG8iOiJkYXZpZHJlaXM5Ny9leGFtcGxlLXlhcm4tcGFja2FnZSIsInNweV9yZXBvX2F0IjoxNTEyMDY1MDc4LCJfY3NyZl90b2tlbiI6Ilc2ZS9VY2dpNkZ1M2xDcnRDa2JLY2tOdS9KUmh5djZOaU5pTHN1SEZVZW89IiwiZmxhc2giOnsiZGlzY2FyZCI6WyJhbmFseXRpY3NfbG9jYXRpb24iXSwiZmxhc2hlcyI6eyJhbmFseXRpY3NfbG9jYXRpb24iOiIvPHVzZXItbmFtZT4vPHJlcG8tbmFtZT4ifX19--42e9c0d2914379c385b7ba452dcdb16dd9b2806e; path=/; secure; HttpOnly
+X-Request-Id: 19e3889a0c30643447b97012ce7ca286
+X-Runtime: 0.211652
+Expect-CT: max-age=2592000, report-uri="https://api.github.com/_private/browser/errors"
+Content-Security-Policy: default-src 'none'; base-uri 'self'; block-all-mixed-content; child-src render.githubusercontent.com; connect-src 'self' uploads.github.com status.github.com collector.githubapp.com api.github.com www.google-analytics.com github-cloud.s3.amazonaws.com github-production-repository-file-5c1aeb.s3.amazonaws.com github-production-upload-manifest-file-7fdce7.s3.amazonaws.com github-production-user-asset-6210df.s3.amazonaws.com wss://live.github.com; font-src assets-cdn.github.com; form-action 'self' github.com gist.github.com; frame-ancestors 'none'; img-src 'self' data: assets-cdn.github.com identicons.github.com collector.githubapp.com github-cloud.s3.amazonaws.com *.githubusercontent.com; media-src 'none'; script-src assets-cdn.github.com; style-src 'unsafe-inline' assets-cdn.github.com
+Strict-Transport-Security: max-age=31536000; includeSubdomains; preload
+Public-Key-Pins: max-age=0; pin-sha256="WoiWRyIOVNa9ihaBciRSC7XHjliYS9VwUGOIud4PB18="; pin-sha256="RRM1dGqnDFsCJXBTHky16vi1obOlCgFFn/yOhI/y+ho="; pin-sha256="k2v657xBsOVe1PQRwOsHsw3bsGT2VzIqz5K+59sNQws="; pin-sha256="K87oWBWM9UZfyddvDfoxL+8lpNyoUB2ptGtn0fv6G2Q="; pin-sha256="IQBnNBEiFuhj+8x6X8XLgh01V9Ic5/V3IRQLNFFc7v4="; pin-sha256="iie1VXtL7HzAMF+/PVPR9xzT80kQxdZeJ+zduCB3uj0="; pin-sha256="LvRiGEjRqfzurezaWuj8Wie2gyHMrW5Q06LspMnox7A="; includeSubDomains
+X-Content-Type-Options: nosniff
+X-Frame-Options: deny
+X-XSS-Protection: 1; mode=block
+X-Runtime-rack: 0.220571
+X-GitHub-Request-Id: F043:3B8C:1C5A8A7:330DFDC:5A204835
+
