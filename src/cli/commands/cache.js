@@ -13,38 +13,55 @@ export function hasWrapper(flags: Object, args: Array<string>): boolean {
   return args[0] !== 'dir';
 }
 
-async function list(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
-  async function readCacheMetadata(
-    parentDir = config.cacheFolder,
-    metadataFile = METADATA_FILENAME,
-  ): Promise<Array<Array<string>>> {
-    const folders = await fs.readdir(parentDir);
-    const packagesMetadata = [];
+function isScopedPackage(loc, metadataFile = METADATA_FILENAME): Promise<boolean> {
+  return fs.exists(path.join(loc, metadataFile)).then(res => !res);
+}
 
-    for (const folder of folders) {
-      if (folder[0] === '.') {
-        continue;
-      }
+async function getPackagesPaths(config, currentPath): Object {
+  const results = [];
+  const stat = await fs.lstat(currentPath);
 
-      const loc = path.join(config.cacheFolder, parentDir.replace(config.cacheFolder, ''), folder);
-      // Check if this is a scoped package
-      if (!await fs.exists(path.join(loc, metadataFile))) {
-        // If so, recurrently read scoped packages metadata
-        packagesMetadata.push(...(await readCacheMetadata(loc)));
-      } else {
-        const {registry, package: manifest, remote} = await config.readPackageMetadata(loc);
-        if (flags.pattern && !micromatch.contains(manifest.name, flags.pattern)) {
-          continue;
-        }
-        packagesMetadata.push([manifest.name, manifest.version, registry, (remote && remote.resolved) || '']);
-      }
-    }
-
-    return packagesMetadata;
+  if (!stat.isDirectory()) {
+    return results;
   }
 
-  const body = await readCacheMetadata();
+  const folders = await fs.readdir(currentPath);
+  for (const folder of folders) {
+    if (folder[0] === '.') {
+      continue;
+    }
+    const packagePath = path.join(config.cacheFolder, currentPath.replace(config.cacheFolder, ''), folder);
+    if (await isScopedPackage(packagePath)) {
+      results.push(...(await getPackagesPaths(config, packagePath)));
+    } else {
+      results.push(packagePath);
+    }
+  }
+  return results;
+}
 
+async function getCachedPackages(config): Object {
+  const paths = await getPackagesPaths(config, config.cacheFolder);
+  return Promise.all(paths.map(config.readPackageMetadata.bind(config)));
+}
+
+async function list(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
+  const filterOut = ({registry, package: manifest, remote}) => {
+    if (flags.pattern && !micromatch.contains(manifest.name, flags.pattern)) {
+      return false;
+    }
+    return true;
+  };
+
+  const forReport = ({registry, package: manifest, remote}) => [
+    manifest.name,
+    manifest.version,
+    registry,
+    (remote && remote.resolved) || '',
+  ];
+
+  const packages = await getCachedPackages(config);
+  const body = packages.filter(filterOut).map(forReport);
   reporter.table(['Name', 'Version', 'Registry', 'Resolved'], body);
 }
 
@@ -63,49 +80,28 @@ const {run, setFlags: _setFlags, examples} = buildSubCommands('cache', {
   },
 
   async clean(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
-    async function getPackageCachefolders(
-      packageName,
-      parentDir = config.cacheFolder,
-      metadataFile = METADATA_FILENAME,
-    ): Promise<Array<string>> {
-      const folders = await fs.readdir(parentDir);
-      const packageFolders = [];
-
-      for (const folder of folders) {
-        if (folder[0] === '.') {
-          continue;
-        }
-
-        const loc = path.join(config.cacheFolder, parentDir.replace(config.cacheFolder, ''), folder);
-        // Check if this is a scoped package
-        if (!await fs.exists(path.join(loc, metadataFile))) {
-          // If so, recurrently read scoped packages metadata
-          packageFolders.push(...(await getPackageCachefolders(packageName, loc)));
-        } else {
-          const {package: manifest} = await config.readPackageMetadata(loc);
-          if (packageName === manifest.name) {
-            packageFolders.push(loc);
-          }
-        }
-      }
-
-      return packageFolders;
-    }
-
     if (config.cacheFolder) {
       const activity = reporter.activity();
 
       if (args.length > 0) {
         // Clear named package from cache
-        const folders = await getPackageCachefolders(args[0]);
+        const paths = await getPackagesPaths(config, config.cacheFolder);
 
-        if (folders.length === 0) {
+        const deletePaths = [];
+        for (const packagePath of paths) {
+          const {package: manifest} = await config.readPackageMetadata(packagePath);
+          if (args[0] === manifest.name) {
+            deletePaths.push(packagePath);
+          }
+        }
+
+        if (deletePaths.length === 0) {
           activity.end();
           reporter.warn(reporter.lang('couldntClearPackageFromCache', args[0]));
           return;
         }
 
-        for (const folder of folders) {
+        for (const folder of deletePaths) {
           await fs.unlink(folder);
         }
         activity.end();
