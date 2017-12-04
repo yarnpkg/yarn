@@ -125,5 +125,6 @@ export {run, examples};
 
 export function setFlags(commander: Object) {
   _setFlags(commander);
+  commander.description('yarn cache list will print out every cached package.');
   commander.option('--pattern [pattern]', 'filter cached packages by pattern');
 }
