@@ -12,6 +12,7 @@ import * as fs from '../util/fs.js';
 
 const invariant = require('invariant');
 const path = require('path');
+const ssri = require('ssri');
 
 export {default as parse} from './parse';
 export {default as stringify} from './stringify';
@@ -24,6 +25,7 @@ export type LockManifest = {
   name: string,
   version: string,
   resolved: ?string,
+  integrity: ?string,
   registry: RegistryNames,
   uid: string,
   permissions: ?{[key: string]: boolean},
@@ -36,6 +38,7 @@ type MinimalLockManifest = {
   name: ?string,
   version: string,
   resolved: ?string,
+  integrity?: string,
   registry: ?RegistryNames,
   uid: ?string,
   permissions: ?{[key: string]: boolean},
@@ -59,9 +62,14 @@ function keyForRemote(remote: PackageRemote): ?string {
   return remote.resolved || (remote.reference && remote.hash ? `${remote.reference}#${remote.hash}` : null);
 }
 
+function implodeIntegrity(integrity: Object): string {
+  return integrity.toString().split(' ').sort().join(' ');
+}
+
 export function implodeEntry(pattern: string, obj: Object): MinimalLockManifest {
   const inferredName = getName(pattern);
-  return {
+  const integrity = obj.integrity ? implodeIntegrity(obj.integrity) : '';
+  const imploded: MinimalLockManifest = {
     name: inferredName === obj.name ? undefined : obj.name,
     version: obj.version,
     uid: obj.uid === obj.version ? undefined : obj.uid,
@@ -72,6 +80,17 @@ export function implodeEntry(pattern: string, obj: Object): MinimalLockManifest 
     permissions: blankObjectUndefined(obj.permissions),
     prebuiltVariants: blankObjectUndefined(obj.prebuiltVariants),
   };
+  if (integrity) {
+    imploded.integrity = integrity;
+  }
+  return imploded;
+}
+
+function explodeIntegrity(integrity): ?Object {
+  if (integrity && !integrity.isIntegrity) {
+    return ssri.parse(integrity);
+  }
+  return integrity;
 }
 
 export function explodeEntry(pattern: string, obj: Object): LockManifest {
@@ -81,6 +100,9 @@ export function explodeEntry(pattern: string, obj: Object): LockManifest {
   obj.permissions = obj.permissions || {};
   obj.registry = obj.registry || 'npm';
   obj.name = obj.name || getName(pattern);
+  if (obj.integrity) {
+    obj.integrity = explodeIntegrity(obj.integrity);
+  }
   return obj;
 }
 
@@ -101,6 +123,20 @@ export default class Lockfile {
   };
 
   parseResultType: ?ParseResultType;
+
+  // if true, we're parsing an old yarn file and need to update integrity fields
+  entriesExistWithoutIntegrity(): boolean {
+    if (!this.cache) {
+      return false;
+    }
+    return Object.keys(this.cache).some(key => {
+      if (this.cache && this.cache[key] && !/^.*@(file:|http)/.test(key)) {
+        return !this.cache[key].integrity;
+      } else {
+        return false; // some entries are not supposed to have integrity, eg. files and web links
+      }
+    });
+  }
 
   static async fromDirectory(dir: string, reporter?: Reporter): Promise<Lockfile> {
     // read the manifest in this directory
@@ -191,6 +227,7 @@ export default class Lockfile {
         version: pkg.version,
         uid: pkg._uid,
         resolved: remote.resolved,
+        integrity: remote.integrity,
         registry: remote.registry,
         dependencies: pkg.dependencies,
         peerDependencies: pkg.peerDependencies,

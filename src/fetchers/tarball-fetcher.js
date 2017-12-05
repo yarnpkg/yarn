@@ -4,7 +4,6 @@ import http from 'http';
 import {SecurityError, MessageError, ResponseError} from '../errors.js';
 import type {FetchedOverride} from '../types.js';
 import * as constants from '../constants.js';
-import * as crypto from '../util/crypto.js';
 import BaseFetcher from './base-fetcher.js';
 import * as fsUtil from '../util/fs.js';
 import {removePrefix, sleep} from '../util/misc.js';
@@ -16,10 +15,13 @@ const fs = require('fs');
 const stream = require('stream');
 const gunzip = require('gunzip-maybe');
 const invariant = require('invariant');
+const ssri = require('ssri');
 
 const RE_URL_NAME_MATCH = /\/(?:(@[^/]+)\/)?[^/]+\/-\/(?:@[^/]+\/)?([^/]+)$/;
 
 export default class TarballFetcher extends BaseFetcher {
+  validateError: ?Object = null;
+  validateIntegrity: ?Object = null;
   async setupMirrorFromCache(): Promise<?string> {
     const tarballMirrorPath = this.getTarballMirrorPath();
     const tarballCachePath = this.getTarballCachePath();
@@ -60,15 +62,44 @@ export default class TarballFetcher extends BaseFetcher {
     return this.config.getOfflineMirrorPath(packageFilename);
   }
 
+  _handleValidationError(resolve: Function, reject: Function) {
+    if (this.config.updateChecksums && this.validateError && this.validateError.found) {
+      // integrity differs and should be updated
+      this.remote.integrity = this.validateError.found.toString();
+      resolve({
+        hash: this.hash || '',
+      });
+    } else {
+      const expected =
+        this.validateError && this.validateError.expected
+          ? this.validateError.expected.toString()
+          : this.remote.integrity ? this.remote.integrity.toString() : this.hash;
+      const found = this.validateError ? this.validateError.found : ssri.create();
+      reject(
+        new SecurityError(
+          this.config.reporter.lang(
+            'fetchBadHashWithPath',
+            this.packageName,
+            this.remote.reference,
+            found.toString(),
+            expected,
+          ),
+        ),
+      );
+    }
+  }
+
   createExtractor(
     resolve: (fetched: FetchedOverride) => void,
     reject: (error: Error) => void,
     tarballPath?: string,
   ): {
-    validateStream: crypto.HashStream,
+    validateStream: ssri.integrityStream,
     extractorStream: stream.Transform,
   } {
-    const validateStream = new crypto.HashStream();
+    const integrity = this.remote.integrity || (this.hash ? ssri.fromHex(this.hash, 'sha1') : null);
+    const algorithms = this.remote.integrity ? Object.keys(this.remote.integrity) : ['sha1'];
+    const validateStream = new ssri.integrityStream({integrity, algorithms});
     const extractorStream = gunzip();
     const untarStream = tarFs.extract(this.dest, {
       strip: 1,
@@ -76,47 +107,28 @@ export default class TarballFetcher extends BaseFetcher {
       fmode: 0o644, // all files should be readable
       chown: false, // don't chown. just leave as it is
     });
-
+    validateStream.once('error', err => {
+      this.validateError = err;
+    });
+    validateStream.once('integrity', sri => {
+      this.validateIntegrity = sri;
+    });
     extractorStream
       .pipe(untarStream)
       .on('error', error => {
         error.message = `${error.message}${tarballPath ? ` (${tarballPath})` : ''}`;
         reject(error);
       })
-      .on('finish', async () => {
-        const expectHash = this.hash;
-        const actualHash = validateStream.getHash();
-
-        if (!expectHash || expectHash === actualHash) {
-          resolve({
-            hash: actualHash,
-          });
-        } else if (this.config.updateChecksums) {
-          // checksums differ and should be updated
-          // update hash, destination and cached package
-          const destUpdatedHash = this.dest.replace(this.hash || '', actualHash);
-          await fsUtil.unlink(destUpdatedHash);
-          await fsUtil.rename(this.dest, destUpdatedHash);
-          this.dest = this.dest.replace(this.hash || '', actualHash);
-          this.hash = actualHash;
-          resolve({
-            hash: actualHash,
-          });
+      .on('finish', () => {
+        if (this.validateError) {
+          this._handleValidationError(resolve, reject);
         } else {
-          reject(
-            new SecurityError(
-              this.config.reporter.lang(
-                'fetchBadHashWithPath',
-                this.packageName,
-                this.remote.reference,
-                actualHash,
-                expectHash,
-              ),
-            ),
-          );
+          const hexDigest = this.validateIntegrity ? this.validateIntegrity.hexDigest() : '';
+          resolve({
+            hash: this.hash || hexDigest,
+          });
         }
       });
-
     return {validateStream, extractorStream};
   }
 

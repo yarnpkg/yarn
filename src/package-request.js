@@ -76,6 +76,7 @@ export default class PackageRequest {
           type: preferredRemoteType,
           reference: resolvedParts.url,
           hash: resolvedParts.hash,
+          integrity: shrunk.integrity,
           registry: shrunk.registry,
         },
         optionalDependencies: shrunk.optionalDependencies || {},
