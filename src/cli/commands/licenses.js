@@ -65,7 +65,6 @@ async function list(config: Config, reporter: Reporter, flags: Object, args: Arr
         vendorName || 'Unknown',
       ]);
     }
-
     reporter.table(['Name', 'Version', 'License', 'Disclaimer', 'URL', 'VendorUrl', 'VendorName'], body);
   } else {
     const trees = [];
