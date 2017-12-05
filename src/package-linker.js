@@ -450,20 +450,18 @@ export default class PackageLinker {
     // Sort the array so that direct dependencies will be linked last.
     // Bin links are overwritten if they already exist, so this will cause direct deps to take precedence.
     // If someone finds this to be incorrect later, you could also consider sorting descending by
-    //   `a[1].level` which is the dependency tree depth. Direct deps will have level 0 and transitive
+    //   `linkToCreate.level` which is the dependency tree depth. Direct deps will have level 0 and transitive
     //   deps will have level > 0.
-    return Array.from(linksToCreate.values()).sort(([aDest, aHoistManifest], [bDest, bHoistManifest]): number => {
-      const aIsDirect = aHoistManifest.isDirectRequire;
-      const bIsDirect = bHoistManifest.isDirectRequire;
-
-      if (aIsDirect && !bIsDirect) {
-        return 1;
+    const transientBins = [];
+    const topLevelBins = [];
+    for (const linkToCreate of Array.from(linksToCreate.values())) {
+      if (linkToCreate[1].isDirectRequire) {
+        topLevelBins.push(linkToCreate);
+      } else {
+        transientBins.push(linkToCreate);
       }
-      if (!aIsDirect && bIsDirect) {
-        return -1;
-      }
-      return 0;
-    });
+    }
+    return [...transientBins, ...topLevelBins];
   }
 
   resolvePeerModules() {
