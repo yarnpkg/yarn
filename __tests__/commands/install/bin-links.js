@@ -154,3 +154,16 @@ test('Only top level (after hoisting) bin links should be linked', (): Promise<v
     expect(stdout[0]).toEqual('uglify-js 3.0.14');
   });
 });
+
+test('install should include bin when using link: dependencies', (): Promise<void> => {
+  return runInstall({binLinks: true}, 'install-link-with-bin', async config => {
+    expect(await linkAt(config, 'node_modules', '.bin', 'bin-from-bar')).toEqual('../../bar/bin.js');
+    expect(await linkAt(config, 'bar', 'node_modules', '.bin', 'foo')).toEqual('../../../foo/bin.js');
+
+    const stdoutBar = await execCommand(config.cwd, ['node_modules', '.bin', 'bin-from-bar'], []);
+    expect(stdoutBar[0]).toEqual('bar bin');
+
+    const stdoutFoo = await execCommand(config.cwd, ['bar', 'node_modules', '.bin', 'foo'], []);
+    expect(stdoutFoo[0]).toEqual('foo bin');
+  });
+});

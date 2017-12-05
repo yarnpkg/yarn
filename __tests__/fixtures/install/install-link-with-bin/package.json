@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "bar": "link:bar"
+  }
+}

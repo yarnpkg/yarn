@@ -1,0 +1,11 @@
+{
+  "name": "bar",
+  "version": "0.0.0",
+  "main": "index.js",
+  "bin": {
+    "bin-from-bar": "./bin.js"
+  },
+  "dependencies": {
+    "foo": "link:../foo"
+  }
+}
