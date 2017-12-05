@@ -69,7 +69,7 @@ export function main({
   commander.option('--offline', 'trigger an error if any required dependencies are not available in local cache');
   commander.option('--prefer-offline', 'use network only if dependencies are not available in local cache');
   commander.option('--strict-semver');
-  commander.option('--json', '');
+  commander.option('--json', 'format Yarn log messages as lines of JSON (see jsonlines.org)');
   commander.option('--ignore-scripts', "don't run lifecycle scripts");
   commander.option('--har', 'save HAR output of network traffic');
   commander.option('--ignore-platform', 'ignore platform checks');
