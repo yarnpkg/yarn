@@ -676,7 +676,150 @@ test.concurrent('install should be idempotent', (): Promise<void> => {
   });
 });
 
-test.concurrent('install should update checksums in yarn.lock (--update-checksums)', (): Promise<void> => {
+test.concurrent('install should authenticate integrity field with sha1 checksums', (): Promise<void> => {
+  return runInstall({}, 'install-update-auth-sha1', async config => {
+    const lockFileContent = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
+    const lockFileLines = explodeLockfile(lockFileContent);
+    expect(await fs.exists(path.join(config.cwd, 'node_modules', 'abab'))).toEqual(true);
+    expect(lockFileLines[3].indexOf('integrity sha1-X6rZwsB/YN12dw9xzwJbYqY8/U4=')).toEqual(2);
+  });
+});
+
+test.concurrent('install should authenticate integrity field with sha512 checksums', (): Promise<void> => {
+  return runInstall({}, 'install-update-auth-sha512', async config => {
+    const lockFileContent = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
+    const lockFileLines = explodeLockfile(lockFileContent);
+    expect(await fs.exists(path.join(config.cwd, 'node_modules', 'safe-buffer'))).toEqual(true);
+    expect(
+      lockFileLines[3].indexOf(
+        'integrity sha512-kKvNJn6Mm93gAczWVJg7wH+wGYWNrDHdWvpUmHyEsgCtIwwo3bqPtV4tR5tuPaUhTOo/kvhVwd8XwwOllGYkbg==',
+      ),
+    ).toEqual(2);
+  });
+});
+
+test.concurrent('install should authenticate integrity field with combined sha1 and sha512 checksums', (): Promise<
+  void,
+> => {
+  return runInstall({}, 'install-update-auth-combined-sha1-sha512', async config => {
+    const lockFileContent = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
+    const lockFileLines = explodeLockfile(lockFileContent);
+    expect(await fs.exists(path.join(config.cwd, 'node_modules', 'safe-buffer'))).toEqual(true);
+    expect(
+      lockFileLines[3].indexOf(
+        'integrity "sha1-iTMSr2myEj3vcfV4iQAWce6yyFM= ' +
+          'sha512-kKvNJn6Mm93gAczWVJg7wH+wGYWNrDHdWvpUmHyEsgCtIwwo3bqPtV4tR5tuPaUhTOo/kvhVwd8XwwOllGYkbg=="',
+      ),
+    ).toEqual(2);
+    // if this fails on a newer version of node or the ssri module,
+    // it (might) mean the sorting algorithm within the sri string changed
+  });
+});
+
+test.concurrent('install should authenticate integrity with multiple differing sha1 checksums', (): Promise<void> => {
+  return runInstall({}, 'install-update-auth-multiple-sha1', async config => {
+    const lockFileContent = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
+    const lockFileLines = explodeLockfile(lockFileContent);
+    expect(lockFileLines[3].indexOf('integrity "sha1-foo sha1-iTMSr2myEj3vcfV4iQAWce6yyFM=')).toEqual(2);
+  });
+});
+
+test.concurrent('install should authenticate integrity with multiple differing sha512 checksums', (): Promise<void> => {
+  return runInstall({}, 'install-update-auth-multiple-sha512', async config => {
+    const lockFileContent = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
+    const lockFileLines = explodeLockfile(lockFileContent);
+    expect(await fs.exists(path.join(config.cwd, 'node_modules', 'safe-buffer'))).toEqual(true);
+    expect(
+      lockFileLines[3].indexOf(
+        'integrity "sha512-foo ' +
+          'sha512-kKvNJn6Mm93gAczWVJg7wH+wGYWNrDHdWvpUmHyEsgCtIwwo3bqPtV4tR5tuPaUhTOo/kvhVwd8XwwOllGYkbg=="',
+      ),
+    ).toEqual(2);
+  });
+});
+
+test.concurrent('install should authenticate integrity with wrong sha1 and right sha512 checksums', (): Promise<
+  void,
+> => {
+  return runInstall({}, 'install-update-auth-multiple-wrong-sha1-right-sha512', async config => {
+    const lockFileContent = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
+    const lockFileLines = explodeLockfile(lockFileContent);
+    expect(await fs.exists(path.join(config.cwd, 'node_modules', 'safe-buffer'))).toEqual(true);
+    expect(
+      lockFileLines[3].indexOf(
+        'integrity "sha1-foo ' +
+          'sha512-kKvNJn6Mm93gAczWVJg7wH+wGYWNrDHdWvpUmHyEsgCtIwwo3bqPtV4tR5tuPaUhTOo/kvhVwd8XwwOllGYkbg=="',
+      ),
+    ).toEqual(2);
+  });
+});
+
+test.concurrent(
+  'install should fail to authenticate integrity with correct sha1 and incorrect sha512',
+  async (): Promise<void> => {
+    let thrown = false;
+    try {
+      await runInstall({}, 'install-update-auth-right-sha1-wrong-sha512');
+    } catch (err) {
+      thrown = true;
+      expect(err.message).toContain('did not match the requested hash');
+    }
+    expect(thrown).toEqual(true);
+  },
+);
+
+test.concurrent('install should fail to authenticate on sha512 integrity mismatch', async (): Promise<void> => {
+  let thrown = false;
+  try {
+    await runInstall({}, 'install-update-auth-wrong-sha512');
+  } catch (err) {
+    thrown = true;
+    expect(err.message).toContain('did not match the requested hash');
+  }
+  expect(thrown).toEqual(true);
+});
+
+test.concurrent('install should fail to authenticate on sha1 integrity mismatch', async (): Promise<void> => {
+  let thrown = false;
+  try {
+    await runInstall({}, 'install-update-auth-wrong-sha1');
+  } catch (err) {
+    thrown = true;
+    expect(err.message).toContain('did not match the requested hash');
+  }
+  expect(thrown).toEqual(true);
+});
+
+test.concurrent('install should create integrity field if not present', (): Promise<void> => {
+  return runInstall({}, 'install-update-auth-no-integrity-field', async config => {
+    const lockFileContent = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
+    const lockFileLines = explodeLockfile(lockFileContent);
+    expect(await fs.exists(path.join(config.cwd, 'node_modules', 'safe-buffer'))).toEqual(true);
+    expect(
+      lockFileLines[3].indexOf(
+        'integrity sha512-kKvNJn6Mm93gAczWVJg7wH+wGYWNrDHdWvpUmHyEsgCtIwwo3bqPtV4tR5tuPaUhTOo/kvhVwd8XwwOllGYkbg==',
+      ),
+    ).toEqual(2);
+    expect(lockFileLines[2].indexOf('#893312af69b2123def71f57889001671eeb2c853')).toBeGreaterThan(0);
+    // backwards-compatibility
+  });
+});
+
+test.concurrent(
+  'install should ignore existing hash if integrity field is present even if it fails to authenticate through it',
+  async (): Promise<void> => {
+    let thrown = false;
+    try {
+      await runInstall({}, 'install-update-auth-bad-sha512-good-hash');
+    } catch (err) {
+      thrown = true;
+      expect(err.message).toContain('did not match the requested hash');
+    }
+    expect(thrown).toEqual(true);
+  },
+);
+
+test.concurrent('install should update integrity in yarn.lock (--update-checksums)', (): Promise<void> => {
   const packageRealIntegrity =
     'sha512-I+Wi+qiE2kUXyrRhNsWv6XsjUTBJjSoVSctKNBfLG5zG/Xe7Rjbxf13+vqYHNTwHaFU+FtSlVxOCTiMEVtPv0A==';
   return runInstall({updateChecksums: true}, 'install-update-checksums', async config => {

@@ -12,6 +12,7 @@ import * as fs from '../src/util/fs.js';
 import {readdirSync} from 'fs';
 
 const path = require('path');
+const ssri = require('ssri');
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000;
 
@@ -168,6 +169,35 @@ test('TarballFetcher.fetch throws on invalid hash', async () => {
   }
 
   expect(error && error.message).toMatchSnapshot();
+  expect(readdirSync(path.join(offlineMirrorDir))).toEqual([]);
+});
+
+test('TarballFetcher.fetch throws on invalid integrity', async () => {
+  const dir = await mkdir('tarball-fetcher');
+  const offlineMirrorDir = await mkdir('offline-mirror');
+
+  const config = await Config.create({}, new Reporter());
+  config.registries.npm.config['yarn-offline-mirror'] = offlineMirrorDir;
+
+  const fetcher = new TarballFetcher(
+    dir,
+    {
+      type: 'tarball',
+      hash: '6f86cbedd8be4ec987be9aaf33c9684db1b31e7e',
+      reference: 'https://registry.npmjs.org/lodash.isempty/-/lodash.isempty-4.4.0.tgz',
+      registry: 'npm',
+      integrity: ssri.parse('sha512-foo'),
+    },
+    config,
+  );
+  let error;
+  try {
+    await fetcher.fetch();
+  } catch (e) {
+    error = e;
+  }
+
+  expect(error && error.message).toContain('did not match the requested hash');
   expect(readdirSync(path.join(offlineMirrorDir))).toEqual([]);
 });
 

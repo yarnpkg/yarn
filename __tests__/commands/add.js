@@ -106,6 +106,28 @@ test.concurrent('adds any new package to the current workspace, but install from
   });
 });
 
+test.concurrent('add creates an entry with a sha512 integrity field', () => {
+  return runAdd(['safe-buffer@5.1.1'], {}, 'add-integrity-sha512', async config => {
+    const lockfile = explodeLockfile(await fs.readFile(path.join(config.cwd, 'yarn.lock')));
+    expect(
+      lockfile[3].indexOf(
+        'integrity sha512-kKvNJn6Mm93gAczWVJg7wH+wGYWNrDHdWvpUmHyEsgCtIwwo3bqPtV4tR5tuPaUhTOo/kvhVwd8XwwOllGYkbg==',
+      ),
+    ).toEqual(2);
+    expect(lockfile[2].indexOf('#893312af69b2123def71f57889001671eeb2c853"')).toBeGreaterThan(0);
+    // backwards compatibility
+  });
+});
+
+test.concurrent('add creates an entry with a sha1 integrity field when sha512 is unavailable', () => {
+  return runAdd(['left-pad@1.1.0'], {}, 'add-integrity-sha1', async config => {
+    const lockfile = explodeLockfile(await fs.readFile(path.join(config.cwd, 'yarn.lock')));
+    expect(lockfile[3].indexOf('integrity sha1-R6La9YHt5FQzTe5sYDbK4A2RLk0=')).toEqual(2);
+    expect(lockfile[2].indexOf('#47a2daf581ede454334dee6c6036cae00d912e4d')).toBeGreaterThan(0);
+    // backwards compatibility
+  });
+});
+
 test.concurrent('install with arg', async () => {
   await runAdd(['is-online'], {}, 'install-with-arg');
 });
