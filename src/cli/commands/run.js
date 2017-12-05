@@ -32,8 +32,8 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
         for (const name of await fs.readdir(binFolder)) {
           //consider only .cmd scripts on Windows and show them without the extension - #624
           if (process.platform === 'win32') {
-            if (name.indexOf('.cmd') !== -1) {
-              const strippedName = name.substring(0, name.indexOf('.cmd'));
+            if (name.match(/\.cmd$/) !== null) {
+              const strippedName = name.slice(0, -4);
               binCommands.push(strippedName);
               scripts[name] = quoteForShell(path.join(binFolder, name));
             }
