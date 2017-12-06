@@ -10,7 +10,6 @@ import {normalizePattern} from '../util/normalize-pattern.js';
 import parse from './parse.js';
 import {LOCKFILE_FILENAME, NODE_MODULES_FOLDER} from '../constants.js';
 import * as fs from '../util/fs.js';
-import isCI from 'is-ci';
 
 const invariant = require('invariant');
 const path = require('path');
@@ -125,14 +124,6 @@ export default class Lockfile {
       lockfile = parseResult.object;
     } else if (reporter) {
       reporter.info(reporter.lang('noLockfileFound'));
-      //test if node_module exists
-      const nodeModulesLoc = path.join(dir, NODE_MODULES_FOLDER);
-      if (await fs.exists(nodeModulesLoc)) {
-        if (!isCI && !await reporter.questionAffirm(reporter.lang('lockfileModulesConflict'))) {
-          reporter.footer(false);
-          throw new MessageError(reporter.lang('operationAborted'));
-        }
-      }
     }
 
     return new Lockfile({cache: lockfile, source: rawLockfile, parseResultType: parseResult && parseResult.type});
