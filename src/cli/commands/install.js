@@ -947,10 +947,10 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
   if (flags.lockfile === false) {
     lockfile = new Lockfile();
   } else {
-    const haveLockfile = await fs.exists(path.join(this.config.lockfileFolder, constants.LOCKFILE_FILENAME));
+    const haveLockfile = await fs.exists(path.join(config.lockfileFolder, constants.LOCKFILE_FILENAME));
     if (haveLockfile) {
       //no lockfile found, test if node_module exists
-      const haveNodeModules = await fs.exists(path.join(this.config.lockfileFolder, constants.NODE_MODULES_FOLDER));
+      const haveNodeModules = await fs.exists(path.join(config.lockfileFolder, constants.NODE_MODULES_FOLDER));
       if (haveNodeModules) {
         if (!config.nonInteractive && !await reporter.questionAffirm(reporter.lang('lockfileModulesConflict'))) {
           reporter.footer(false);
