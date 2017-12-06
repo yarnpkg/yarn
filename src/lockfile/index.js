@@ -4,11 +4,13 @@ import type {Reporter} from '../reporters/index.js';
 import type {Manifest, PackageRemote} from '../types.js';
 import type {RegistryNames} from '../registries/index.js';
 import type {ParseResultType} from './parse.js';
+import {MessageError} from '../errors.js';
 import {sortAlpha} from '../util/misc.js';
 import {normalizePattern} from '../util/normalize-pattern.js';
 import parse from './parse.js';
-import {LOCKFILE_FILENAME} from '../constants.js';
+import {LOCKFILE_FILENAME, NODE_MODULES_FOLDER} from '../constants.js';
 import * as fs from '../util/fs.js';
+import isCI from 'is-ci';
 
 const invariant = require('invariant');
 const path = require('path');
@@ -121,9 +123,17 @@ export default class Lockfile {
       }
 
       lockfile = parseResult.object;
-    } else {
-      if (reporter) {
-        reporter.info(reporter.lang('noLockfileFound'));
+    } else if (reporter) {
+      reporter.info(reporter.lang('noLockfileFound'));
+      //test if node_module exists
+      const nodeModulesLoc = path.join(dir, NODE_MODULES_FOLDER);
+      if (await fs.exists(nodeModulesLoc)) {
+        console.log();
+
+        if (!isCI && !await reporter.questionAffirm(reporter.lang('lockfileModulesConflict'))) {
+          reporter.footer(false);
+          throw new MessageError(reporter.lang('operationAborted'));
+        }
       }
     }
 
