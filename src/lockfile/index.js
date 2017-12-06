@@ -128,8 +128,6 @@ export default class Lockfile {
       //test if node_module exists
       const nodeModulesLoc = path.join(dir, NODE_MODULES_FOLDER);
       if (await fs.exists(nodeModulesLoc)) {
-        console.log();
-
         if (!isCI && !await reporter.questionAffirm(reporter.lang('lockfileModulesConflict'))) {
           reporter.footer(false);
           throw new MessageError(reporter.lang('operationAborted'));
