@@ -17,6 +17,8 @@ const stream = require('stream');
 const gunzip = require('gunzip-maybe');
 const invariant = require('invariant');
 
+const RE_URL_NAME_MATCH = /\/(?:@([^/]+)\/)?[^/]+\/-\/([^/]+)$/;
+
 export default class TarballFetcher extends BaseFetcher {
   async setupMirrorFromCache(): Promise<?string> {
     const tarballMirrorPath = this.getTarballMirrorPath();
@@ -44,18 +46,14 @@ export default class TarballFetcher extends BaseFetcher {
       return null;
     }
 
-    const pathParts = pathname.replace(/^\//, '').split(/\//g);
-    const tarballBasename = pathParts[pathParts.length - 1];
+    const match = RE_URL_NAME_MATCH.exec(pathname);
 
-    // handle scoped packages; the scope is the 4th-to-last path, as
-    // seen in the following examples:
-    //  'https://registry.npmjs.org/@exponent/configurator/-/configurator-1.0.2.tgz'
-    //  'https://artifactory.internal.site:443/' +
-    //    'artifactory/api/npm/release-repo/@exponent/configurator/-/configurator-1.0.2.tgz'
+    if (!match) {
+      return null;
+    }
 
-    const scopeName = pathParts.length >= 4 ? pathParts[pathParts.length - 4] : '';
-    const hasScopeName = scopeName !== '' && scopeName[0] == '@';
-    const packageFilename = hasScopeName ? `${scopeName}-${tarballBasename}` : tarballBasename;
+    const [, scope, tarballBasename] = match;
+    const packageFilename = scope ? `${scope}-${tarballBasename}` : tarballBasename;
 
     return this.config.getOfflineMirrorPath(packageFilename);
   }
