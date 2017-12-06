@@ -137,11 +137,12 @@ export class Add extends Install {
         return;
       }
 
-      manifest[dependencyType][pkgName] = version;
+      // update dependencies in the manifest
       invariant(manifest._reference, 'manifest._reference should not be null');
       const ref: Object = manifest._reference;
-      ref[dependencyType] = ref[dependencyType] || [];
-      ref[dependencyType].push(pattern);
+
+      ref['dependencies'] = ref['dependencies'] || [];
+      ref['dependencies'].push(pattern);
     });
 
     return newPatterns;
@@ -197,7 +198,11 @@ export class Add extends Install {
     const opts: ListOptions = {
       reqDepth: 0,
     };
-    const {trees, count} = await buildTree(this.resolver, this.linker, patterns, opts, true, true);
+
+    // restore the original patterns
+    const merged = [...patterns, ...this.addedPatterns];
+
+    const {trees, count} = await buildTree(this.resolver, this.linker, merged, opts, true, true);
     this.reporter.success(
       count === 1 ? this.reporter.lang('savedNewDependency') : this.reporter.lang('savedNewDependencies', count),
     );
