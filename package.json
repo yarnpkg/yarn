@@ -74,7 +74,7 @@
     "eslint-plugin-yarn-internal": "file:scripts/eslint-rules",
     "execa": "^0.7.0",
     "flow-bin": "^0.52.0",
-    "gulp": "^3.9.1",
+    "gulp": "^3.9.0",
     "gulp-babel": "^7.0.0",
     "gulp-if": "^2.0.1",
     "gulp-newer": "^1.0.0",
@@ -117,13 +117,9 @@
     "commit": "git-cz"
   },
   "jest": {
-    "collectCoverageFrom": [
-      "src/**/*.js"
-    ],
+    "collectCoverageFrom": ["src/**/*.js"],
     "testEnvironment": "node",
-    "modulePathIgnorePatterns": [
-      "__tests__/fixtures/"
-    ],
+    "modulePathIgnorePatterns": ["__tests__/fixtures/"],
     "testPathIgnorePatterns": [
       "__tests__/(fixtures|__mocks__)/",
       "updates/",
