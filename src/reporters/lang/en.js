@@ -69,6 +69,7 @@ const messages = {
   couldntFindVersionThatMatchesRange: "Couldn't find any versions for $0 that matches $1",
   chooseVersionFromList: 'Please choose a version of $0 from this list:',
   moduleNotInManifest: "This module isn't specified in a manifest.",
+  moduleAlreadyInManifest: '$0 is already in $1. Please remove existing entry first before adding it to $2.',
   unknownFolderOrTarball: "Passed folder/tarball doesn't exist,",
   unknownPackage: "Couldn't find package $0.",
   unknownPackageName: "Couldn't find package name.",
@@ -198,6 +199,8 @@ const messages = {
 
   execMissingCommand: 'Missing command name.',
 
+  noScriptsAvailable: 'There are no scripts specified inside package.json.',
+  noBinAvailable: 'There are no binary scripts available.',
   dashDashDeprecation: `From Yarn 1.0 onwards, scripts don't require "--" for options to be forwarded. In a future version, any explicit "--" will be forwarded as-is to the scripts.`,
   commandNotSpecified: 'No command specified.',
   binCommands: 'Commands available from binary scripts: ',

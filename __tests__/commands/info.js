@@ -7,8 +7,6 @@ import Config from '../../src/config.js';
 import path from 'path';
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 90000;
-// the mocked requests have stripped metadata, don't use it in the following tests
-jest.unmock('request');
 
 const fixturesLoc = path.join(__dirname, '..', 'fixtures', 'info');
 
@@ -48,6 +46,11 @@ const expectedKeys = [
 // yarn now ships as built, single JS files so it has no dependencies and no scripts
 const unexpectedKeys = ['dependencies', 'devDependencies', 'scripts'];
 
+beforeEach(() => {
+  // the mocked requests have stripped metadata, don't use it in the following tests
+  jest.unmock('request');
+});
+
 test.concurrent('without arguments and in directory containing a valid package file', (): Promise<void> => {
   return runInfo([], {}, 'local', (config, output): ?Promise<void> => {
     const actualKeys = Object.keys(output);
@@ -85,6 +88,20 @@ test.concurrent('with two arguments and second argument "readme" shows readme st
   return runInfo(['yarn', 'readme'], {}, '', (config, output): ?Promise<void> => {
     expect(typeof output).toBe('string');
     expect(output).toMatch(/Installing\sYarn/);
+  });
+});
+
+test.concurrent('with two arguments and second argument "version" shows `latest` version', (): Promise<void> => {
+  // Scenario:
+  // If a registry contains versions [1.0.0, 1.0.1, 1.0.2] and latest:1.0.1
+  // If `yarn info` is run, it should choose `1.0.1` because it is "latest", not `1.0.2` even though it is newer.
+  // In other words, when no range is explicitely given, Yarn should choose "latest".
+  //
+  // In this test, `ui-select` has a max version of `0.20.0` but a `latest:0.19.8`
+  jest.mock('../__mocks__/request.js');
+
+  return runInfo(['ui-select', 'version'], {}, '', (config, output): ?Promise<void> => {
+    expect(output).toEqual('0.19.8');
   });
 });
 

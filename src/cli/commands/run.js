@@ -74,8 +74,8 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
     }
 
     if (cmds.length) {
-      // propagate YARN_SILENT env variable to executed commands
-      process.env.YARN_SILENT = '1';
+      // Disable wrapper in executed commands
+      process.env.YARN_WRAP_OUTPUT = 'false';
       for (const [stage, cmd] of cmds) {
         // only tack on trailing arguments for default script, ignore for pre and post - #1595
         const cmdWithArgs = stage === action ? sh`${unquoted(cmd)} ${args}` : cmd;
@@ -104,12 +104,22 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
   // list possible scripts if none specified
   if (args.length === 0) {
     reporter.error(reporter.lang('commandNotSpecified'));
-    reporter.info(`${reporter.lang('binCommands') + binCommands.join(', ')}`);
-    reporter.info(`${reporter.lang('possibleCommands')}`);
-    reporter.list('possibleCommands', pkgCommands, cmdHints);
-    await reporter
-      .question(reporter.lang('commandQuestion'))
-      .then(answer => runCommand(answer.split(' ')), () => reporter.error(reporter.lang('commandNotSpecified')));
+
+    if (binCommands.length) {
+      reporter.info(`${reporter.lang('binCommands') + binCommands.join(', ')}`);
+    } else {
+      reporter.error(reporter.lang('noBinAvailable'));
+    }
+
+    if (pkgCommands.length) {
+      reporter.info(`${reporter.lang('possibleCommands')}`);
+      reporter.list('possibleCommands', pkgCommands, cmdHints);
+      await reporter
+        .question(reporter.lang('commandQuestion'))
+        .then(answer => runCommand(answer.split(' ')), () => reporter.error(reporter.lang('commandNotSpecified')));
+    } else {
+      reporter.error(reporter.lang('noScriptsAvailable'));
+    }
     return Promise.resolve();
   } else {
     return runCommand(args);

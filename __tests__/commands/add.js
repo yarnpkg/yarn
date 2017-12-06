@@ -147,6 +147,75 @@ test.concurrent('install with --optional flag', (): Promise<void> => {
   });
 });
 
+// Test if moduleAlreadyInManifest warning is displayed
+const moduleAlreadyInManifestChecker = ({expectWarnings}: {expectWarnings: boolean}) => async (
+  args,
+  flags,
+  config,
+  reporter,
+  lockfile,
+): Promise<void> => {
+  const add = new Add(args, flags, config, reporter, lockfile);
+  await add.init();
+
+  const output = reporter.getBuffer();
+  const warnings = output.filter(entry => entry.type === 'warning');
+
+  expect(warnings.some(warning => warning.data.toString().toLowerCase().indexOf('is already in') > -1)).toEqual(
+    expectWarnings,
+  );
+
+  expect(
+    warnings.some(
+      warning => warning.data.toString().toLowerCase().indexOf('please remove existing entry first before adding') > -1,
+    ),
+  ).toEqual(expectWarnings);
+};
+
+test.concurrent('warns when adding a devDependency as dependency', (): Promise<void> => {
+  return buildRun(
+    reporters.BufferReporter,
+    fixturesLoc,
+    moduleAlreadyInManifestChecker({expectWarnings: true}),
+    ['is-online'],
+    {},
+    'add-already-added-dev-dependency',
+  );
+});
+
+test.concurrent("doesn't warn when adding a devDependency as devDependency", (): Promise<void> => {
+  return buildRun(
+    reporters.BufferReporter,
+    fixturesLoc,
+    moduleAlreadyInManifestChecker({expectWarnings: false}),
+    ['is-online'],
+    {dev: true},
+    'add-already-added-dev-dependency',
+  );
+});
+
+test.concurrent('warns when adding a dependency as devDependency', (): Promise<void> => {
+  return buildRun(
+    reporters.BufferReporter,
+    fixturesLoc,
+    moduleAlreadyInManifestChecker({expectWarnings: true}),
+    ['is-online'],
+    {dev: true},
+    'add-already-added-dependency',
+  );
+});
+
+test.concurrent("doesn't warn when adding a dependency as dependency", (): Promise<void> => {
+  return buildRun(
+    reporters.BufferReporter,
+    fixturesLoc,
+    moduleAlreadyInManifestChecker({expectWarnings: false}),
+    ['is-online'],
+    {},
+    'add-already-added-dependency',
+  );
+});
+
 test.concurrent('install with link: specifier', (): Promise<void> => {
   return runAdd(['link:../left-pad'], {dev: true}, 'add-with-flag', async config => {
     const lockfile = explodeLockfile(await fs.readFile(path.join(config.cwd, 'yarn.lock')));
@@ -537,6 +606,27 @@ test.concurrent('upgrade scenario 2 (with sub dependencies)', (): Promise<void> 
 
       expect(newFilesInMirror).toHaveLength(2);
     });
+  });
+});
+
+test.concurrent('install another fork of an existing package', (): Promise<void> => {
+  // When installing a package with the same name as an existing one but from a different repo,
+  // the old one should be replaced with the new one in the lock file.
+  const firstSource = 'davidreis97/example-yarn-package#master';
+  const secondSource = 'yarnpkg/example-yarn-package#master';
+  const pkgName = 'example-yarn-package';
+  return runAdd([firstSource], {}, 'install-forked-git', async (config, reporter): Promise<void> => {
+    let lockfile = explodeLockfile(await fs.readFile(path.join(config.cwd, 'yarn.lock')));
+    expect(lockfile.indexOf(`${pkgName}@${firstSource}:`)).toEqual(0);
+    expect(lockfile.indexOf(`${pkgName}@${secondSource}:`)).toEqual(-1);
+
+    const add = new Add([secondSource], {}, config, reporter, await Lockfile.fromDirectory(config.cwd));
+    await add.init();
+
+    lockfile = explodeLockfile(await fs.readFile(path.join(config.cwd, 'yarn.lock')));
+
+    expect(lockfile.indexOf(`${pkgName}@${firstSource}:`)).toEqual(-1);
+    expect(lockfile.indexOf(`${pkgName}@${secondSource}:`)).toEqual(0);
   });
 });
 
