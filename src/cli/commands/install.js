@@ -358,6 +358,7 @@ export class Install {
           dependencies: workspaceDependencies,
           devDependencies: {...workspaceManifestJson.devDependencies},
           optionalDependencies: {...workspaceManifestJson.optionalDependencies},
+          private: workspaceManifestJson.private,
           workspaces: workspaceManifestJson.workspaces,
         };
         workspaceLayout.virtualManifestName = virtualDependencyManifest.name;
