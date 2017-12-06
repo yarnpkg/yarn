@@ -156,6 +156,7 @@ export default class Config {
   nonInteractive: boolean;
 
   workspacesEnabled: boolean;
+  workspacesNohoistEnabled: boolean;
 
   //
   cwd: string;
@@ -321,6 +322,7 @@ export default class Config {
       this._cacheRootFolder = String(cacheRootFolder);
     }
     this.workspacesEnabled = this.getOption('workspaces-experimental') !== false;
+    this.workspacesNohoistEnabled = this.getOption('workspaces-nohoist-experimental') !== false;
 
     this.pruneOfflineMirror = Boolean(this.getOption('yarn-offline-mirror-pruning'));
     this.enableMetaFolder = Boolean(this.getOption('enable-meta-folder'));
@@ -637,11 +639,11 @@ export default class Config {
     if (!this.workspacesEnabled) {
       return workspaces;
     }
-    const ws = this.getWorkspaces(rootManifest);
+    const ws = this.getWorkspaces(rootManifest, true);
     const patterns = ws && ws.packages ? ws.packages : [];
-    if (!rootManifest.private && patterns.length > 0) {
-      throw new MessageError(this.reporter.lang('workspacesRequirePrivateProjects'));
-    }
+    // if (!rootManifest.private && patterns.length > 0) {
+    //   throw new MessageError(this.reporter.lang('workspacesRequirePrivateProjects'));
+    // }
 
     const registryFilenames = registryNames
       .map(registryName => this.registries[registryName].constructor.filename)
@@ -686,11 +688,46 @@ export default class Config {
   }
 
   // workspaces functions
-  getWorkspaces(manifest: ?Manifest): ?WorkspacesConfig {
-    if (!this.workspacesEnabled) {
+  getWorkspaces(manifest: ?Manifest, shouldThrow: boolean = false): ?WorkspacesConfig {
+    if (!manifest || !this.workspacesEnabled) {
       return undefined;
     }
-    return extractWorkspaces(manifest);
+
+    const ws = extractWorkspaces(manifest);
+
+    if (!ws) {
+      return ws;
+    }
+
+    // validate eligibility
+    let wsCopy = {...ws};
+    const warnings: Array<string> = [];
+
+    // packages
+    if (wsCopy.packages && wsCopy.packages.length > 0 && !manifest.private) {
+      warnings.push(this.reporter.lang('workspacesRequirePrivateProjects'));
+      wsCopy = undefined;
+    }
+    // nohoist
+    if (wsCopy && wsCopy.nohoist && wsCopy.nohoist.length > 0) {
+      if (!this.workspacesNohoistEnabled) {
+        warnings.push(this.reporter.lang('workspacesNohoistDisabled', manifest.name));
+        wsCopy.nohoist = undefined;
+      } else if (!manifest.private) {
+        warnings.push(this.reporter.lang('workspacesNohoistRequirePrivatePackages', manifest.name));
+        wsCopy.nohoist = undefined;
+      }
+    }
+
+    if (warnings.length > 0) {
+      const msg = warnings.join('\n');
+      if (shouldThrow) {
+        throw new MessageError(msg);
+      } else {
+        this.reporter.warn(msg);
+      }
+    }
+    return wsCopy;
   }
 
   /**

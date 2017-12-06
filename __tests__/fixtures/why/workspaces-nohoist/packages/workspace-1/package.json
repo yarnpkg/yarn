@@ -1,7 +1,7 @@
 {
   "name": "workspace-1",
   "version": "1.0.0",
-  "private": false,
+  "private": true,
   "workspaces": {
     "nohoist": ["mime-types"]
   },
