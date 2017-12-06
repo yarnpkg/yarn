@@ -17,7 +17,7 @@ const stream = require('stream');
 const gunzip = require('gunzip-maybe');
 const invariant = require('invariant');
 
-const RE_URL_NAME_MATCH = /\/(?:@([^/]+)\/)?[^/]+\/-\/([^/]+)$/;
+const RE_URL_NAME_MATCH = /\/(?:(@[^/]+)\/)?[^/]+\/-\/([^/]+)$/;
 
 export default class TarballFetcher extends BaseFetcher {
   async setupMirrorFromCache(): Promise<?string> {
