@@ -99,7 +99,7 @@ test.concurrent('should determine that the module installed because it is in dev
 test.concurrent('should determine that the module installed because mime-types depend on it', (): Promise<void> => {
   return runWhy({}, ['mime-db'], 'basic', (config, reporter) => {
     const report = reporter.getBuffer();
-    expect((report[report.length - 1].data: any).items).toContainEqual(reporter.lang('whyDependedOn', '/mime-types'));
+    expect((report[report.length - 1].data: any).items).toContainEqual(reporter.lang('whyDependedOn', 'mime-types'));
   });
 });
 

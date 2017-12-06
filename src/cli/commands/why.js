@@ -114,6 +114,15 @@ export function hasWrapper(commander: Object, args: Array<string>): boolean {
   return true;
 }
 
+// to conform to the current standard '#' as package tree separator
+function toStandardPathString(pathString: string): string {
+  const str = pathString.replace(/\//g, '#');
+  if (str[0] === '#') {
+    return str.slice(1);
+  }
+  return str;
+}
+
 export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
   if (!args.length) {
     throw new MessageError(reporter.lang('missingWhyDependency'));
@@ -160,7 +169,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
       reasons.push({
         type: 'whyDependedOn',
         typeSimple: 'whyDependedOnSimple',
-        value: matchInfo.originalParentPath,
+        value: toStandardPathString(matchInfo.originalParentPath),
       });
     }
 
