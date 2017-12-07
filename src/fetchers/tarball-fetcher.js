@@ -48,12 +48,14 @@ export default class TarballFetcher extends BaseFetcher {
 
     const match = RE_URL_NAME_MATCH.exec(pathname);
 
-    if (!match) {
-      return null;
+    let packageFilename;
+    if (match) {
+      const [, scope, tarballBasename] = match;
+      packageFilename = scope ? `${scope}-${tarballBasename}` : tarballBasename;
+    } else {
+      // fallback to base name
+      packageFilename = path.basename(pathname);
     }
-
-    const [, scope, tarballBasename] = match;
-    const packageFilename = scope ? `${scope}-${tarballBasename}` : tarballBasename;
 
     return this.config.getOfflineMirrorPath(packageFilename);
   }
