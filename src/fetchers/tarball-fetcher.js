@@ -46,7 +46,7 @@ export default class TarballFetcher extends BaseFetcher {
       return null;
     }
 
-    const match = RE_URL_NAME_MATCH.exec(pathname);
+    const match = pathname.match(RE_URL_NAME_MATCH);
 
     let packageFilename;
     if (match) {
