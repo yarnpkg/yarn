@@ -39,7 +39,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
         colorizeName(info),
         info.current,
         colorizeDiff(info.current, info.wanted, reporter),
-        reporter.format.magenta(info.latest),
+        reporter.format.cyan(info.latest),
         info.workspaceName || '',
         getNameFromHint(info.hint),
         reporter.format.cyan(info.url),
