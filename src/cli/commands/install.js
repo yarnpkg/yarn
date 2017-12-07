@@ -27,6 +27,7 @@ import map from '../../util/map.js';
 import {version as YARN_VERSION, getInstallationMethod} from '../../util/yarn-version.js';
 import WorkspaceLayout from '../../workspace-layout.js';
 import ResolutionMap from '../../resolution-map.js';
+import guessName from '../../util/guess-name';
 
 const emoji = require('node-emoji');
 const invariant = require('invariant');
@@ -234,14 +235,13 @@ export class Install {
     // exclude package names that are in install args
     const excludeNames = [];
     for (const pattern of excludePatterns) {
-      // can't extract a package name from this
       if (getExoticResolver(pattern)) {
-        continue;
+        excludeNames.push(guessName(pattern));
+      } else {
+        // extract the name
+        const parts = normalizePattern(pattern);
+        excludeNames.push(parts.name);
       }
-
-      // extract the name
-      const parts = normalizePattern(pattern);
-      excludeNames.push(parts.name);
     }
 
     const stripExcluded = (manifest: Manifest) => {

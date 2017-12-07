@@ -147,6 +147,16 @@ test.concurrent('install with --optional flag', (): Promise<void> => {
   });
 });
 
+test.concurrent('install with --tilde flag', (): Promise<void> => {
+  return runAdd(['isarray@2.0.1'], {tilde: true}, 'add-with-flag', async config => {
+    const lockfile = explodeLockfile(await fs.readFile(path.join(config.cwd, 'yarn.lock')));
+    const pkg = await fs.readJson(path.join(config.cwd, 'package.json'));
+
+    expect(lockfile.indexOf('isarray@~2.0.1:')).toEqual(0);
+    expect(pkg.dependencies).toEqual({isarray: '~2.0.1'});
+  });
+});
+
 // Test if moduleAlreadyInManifest warning is displayed
 const moduleAlreadyInManifestChecker = ({expectWarnings}: {expectWarnings: boolean}) => async (
   args,
@@ -606,6 +616,27 @@ test.concurrent('upgrade scenario 2 (with sub dependencies)', (): Promise<void> 
 
       expect(newFilesInMirror).toHaveLength(2);
     });
+  });
+});
+
+test.concurrent('install another fork of an existing package', (): Promise<void> => {
+  // When installing a package with the same name as an existing one but from a different repo,
+  // the old one should be replaced with the new one in the lock file.
+  const firstSource = 'davidreis97/example-yarn-package#master';
+  const secondSource = 'yarnpkg/example-yarn-package#master';
+  const pkgName = 'example-yarn-package';
+  return runAdd([firstSource], {}, 'install-forked-git', async (config, reporter): Promise<void> => {
+    let lockfile = explodeLockfile(await fs.readFile(path.join(config.cwd, 'yarn.lock')));
+    expect(lockfile.indexOf(`${pkgName}@${firstSource}:`)).toEqual(0);
+    expect(lockfile.indexOf(`${pkgName}@${secondSource}:`)).toEqual(-1);
+
+    const add = new Add([secondSource], {}, config, reporter, await Lockfile.fromDirectory(config.cwd));
+    await add.init();
+
+    lockfile = explodeLockfile(await fs.readFile(path.join(config.cwd, 'yarn.lock')));
+
+    expect(lockfile.indexOf(`${pkgName}@${firstSource}:`)).toEqual(-1);
+    expect(lockfile.indexOf(`${pkgName}@${secondSource}:`)).toEqual(0);
   });
 });
 
