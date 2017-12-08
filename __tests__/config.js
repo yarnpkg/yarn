@@ -224,4 +224,4 @@ class MockReporter extends BufferReporter {
   reset() {
     this.lang.mockReset();
   }
-};
+}
