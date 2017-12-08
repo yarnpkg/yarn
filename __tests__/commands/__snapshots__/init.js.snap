@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`init should create package.json on current cwd: init-config 1`] = `
+exports[`init-config 1`] = `
 Object {
   "author": "Kittens McKitty <yarn@yarnpkg.com> (https://yarnpkg.com)",
   "license": "BSD",
@@ -11,7 +11,7 @@ Object {
 }
 `;
 
-exports[`init should create package.json on current cwd: init-github 1`] = `
+exports[`init-github 1`] = `
 Object {
   "license": "MIT",
   "main": "index.js",
@@ -22,7 +22,7 @@ Object {
 }
 `;
 
-exports[`init should create package.json on current cwd: init-private-empty 1`] = `
+exports[`init-private-empty 1`] = `
 Object {
   "license": "MIT",
   "main": "index.js",
@@ -31,7 +31,7 @@ Object {
 }
 `;
 
-exports[`init should create package.json on current cwd: init-yes 1`] = `
+exports[`init-yes 1`] = `
 Object {
   "license": "MIT",
   "main": "index.js",
@@ -40,7 +40,7 @@ Object {
 }
 `;
 
-exports[`init should create package.json on current cwd: init-yes-private 1`] = `
+exports[`init-yes-private 1`] = `
 Object {
   "license": "MIT",
   "main": "index.js",
