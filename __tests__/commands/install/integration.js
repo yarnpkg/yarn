@@ -698,6 +698,31 @@ test.concurrent('install should authenticate integrity field with sha512 checksu
   });
 });
 
+test.concurrent('install should authenticate integrity field with sha384 checksums', (): Promise<void> => {
+  return runInstall({}, 'install-update-auth-sha384', async config => {
+    const lockFileContent = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
+    const lockFileLines = explodeLockfile(lockFileContent);
+    expect(await fs.exists(path.join(config.cwd, 'node_modules', 'safe-buffer'))).toEqual(true);
+    expect(
+      lockFileLines[3].indexOf('integrity sha384-waRmooJr/yhkTilj4++XOO8GFMGUq0RhoiKo7GymDwFU/Ij8vRNGoI7RwAKzyXSM'),
+    ).toEqual(2);
+  });
+});
+
+test.concurrent('install should authenticate integrity field with options', (): Promise<void> => {
+  return runInstall({}, 'install-update-auth-sha512-options', async config => {
+    const lockFileContent = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
+    const lockFileLines = explodeLockfile(lockFileContent);
+    expect(await fs.exists(path.join(config.cwd, 'node_modules', 'safe-buffer'))).toEqual(true);
+    expect(
+      lockFileLines[3].indexOf(
+        'integrity ' +
+          'sha512-kKvNJn6Mm93gAczWVJg7wH+wGYWNrDHdWvpUmHyEsgCtIwwo3bqPtV4tR5tuPaUhTOo/kvhVwd8XwwOllGYkbg==?foo=bar',
+      ),
+    ).toEqual(2);
+  });
+});
+
 test.concurrent('install should authenticate integrity field with combined sha1 and sha512 checksums', (): Promise<
   void,
 > => {
@@ -818,6 +843,44 @@ test.concurrent(
     expect(thrown).toEqual(true);
   },
 );
+
+test.concurrent('install should ignore unknown integrity algorithms if it has other options in the sri', (): Promise<
+  void,
+> => {
+  return runInstall({}, 'install-update-auth-madeup-right-sha512', async config => {
+    const lockFileContent = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
+    const lockFileLines = explodeLockfile(lockFileContent);
+    expect(await fs.exists(path.join(config.cwd, 'node_modules', 'safe-buffer'))).toEqual(true);
+    expect(
+      lockFileLines[3].indexOf(
+        'integrity "madeupalgorithm-abad1dea ' +
+          'sha512-kKvNJn6Mm93gAczWVJg7wH+wGYWNrDHdWvpUmHyEsgCtIwwo3bqPtV4tR5tuPaUhTOo/kvhVwd8XwwOllGYkbg=="',
+      ),
+    ).toEqual(2);
+  });
+});
+
+test.concurrent('install should fail if the only algorithms in the sri are unknown', async (): Promise<void> => {
+  let thrown = false;
+  try {
+    await runInstall({}, 'install-update-auth-madeup');
+  } catch (err) {
+    thrown = true;
+    expect(err.message).toContain('does not contain supported algorithms');
+  }
+  expect(thrown).toEqual(true);
+});
+
+test.concurrent('install should fail with unsupported algorithms', async (): Promise<void> => {
+  let thrown = false;
+  try {
+    await runInstall({}, 'install-update-auth-sha3');
+  } catch (err) {
+    thrown = true;
+    expect(err.message).toContain('does not contain supported algorithms');
+  }
+  expect(thrown).toEqual(true);
+});
 
 test.concurrent('install should update integrity in yarn.lock (--update-checksums)', (): Promise<void> => {
   const packageRealIntegrity =
