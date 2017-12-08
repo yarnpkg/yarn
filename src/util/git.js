@@ -88,6 +88,7 @@ export default class Git implements GitRefResolvingInterface {
     // Expand shortened format first if needed
     let parsed = url.parse(npmUrl);
     const expander = parsed.protocol && SHORTHAND_SERVICES[parsed.protocol];
+
     if (expander) {
       parsed = expander(parsed);
     }
@@ -118,18 +119,18 @@ export default class Git implements GitRefResolvingInterface {
     // npm local packages are specified as FILE_PROTOCOL, but url parser interprets them as using the file protocol.
     // This changes the behavior so that git doesn't see this as a hostname, but as a file path.
     // See #3670.
+    let repository;
     if (parsed.protocol === FILE_PROTOCOL && !parsed.hostname && parsed.path && parsed.port === null) {
-      return {
-        hostname: parsed.hostname,
-        protocol: parsed.protocol,
-        repository: parsed.path,
-      };
+      // for local repos, remove trailing `.git` because it is used as `cwd` path for `git show-ref`
+      repository = parsed.path.replace(/\.git$/, '');
+    } else {
+      repository = url.format({...parsed, hash: ''});
     }
 
     return {
       hostname: parsed.hostname || null,
       protocol: parsed.protocol || FILE_PROTOCOL,
-      repository: url.format({...parsed, hash: ''}),
+      repository,
     };
   }
 
@@ -162,8 +163,14 @@ export default class Git implements GitRefResolvingInterface {
    */
 
   static async repoExists(ref: GitUrl): Promise<boolean> {
+    const isLocal = ref.protocol === FILE_PROTOCOL;
+
     try {
-      await spawnGit(['ls-remote', '-t', ref.repository]);
+      if (isLocal) {
+        await spawnGit(['show-ref', '-t'], {cwd: ref.repository});
+      } else {
+        await spawnGit(['ls-remote', '-t', ref.repository]);
+      }
       return true;
     } catch (err) {
       handleSpawnError(err);
@@ -413,7 +420,15 @@ export default class Git implements GitRefResolvingInterface {
   }
 
   async setRefRemote(): Promise<string> {
-    const stdout = await spawnGit(['ls-remote', '--tags', '--heads', this.gitUrl.repository]);
+    const isLocal = this.gitUrl.protocol === FILE_PROTOCOL;
+    let stdout;
+
+    if (isLocal) {
+      stdout = await spawnGit(['show-ref', '--tags', '--heads'], {cwd: this.gitUrl.repository});
+    } else {
+      stdout = await spawnGit(['ls-remote', '--tags', '--heads', this.gitUrl.repository]);
+    }
+
     const refs = parseRefs(stdout);
     return this.setRef(refs);
   }
@@ -428,8 +443,15 @@ export default class Git implements GitRefResolvingInterface {
    */
 
   async resolveDefaultBranch(): Promise<ResolvedSha> {
+    const isLocal = this.gitUrl.protocol === FILE_PROTOCOL;
+
     try {
-      const stdout = await spawnGit(['ls-remote', '--symref', this.gitUrl.repository, 'HEAD']);
+      let stdout;
+      if (isLocal) {
+        stdout = await spawnGit(['show-ref', 'HEAD'], {cwd: this.gitUrl.repository});
+      } else {
+        stdout = await spawnGit(['ls-remote', '--symref', this.gitUrl.repository, 'HEAD']);
+      }
       const lines = stdout.split('\n');
       const [, ref] = lines[0].split(/\s+/);
       const [sha] = lines[1].split(/\s+/);

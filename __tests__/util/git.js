@@ -4,6 +4,7 @@ jest.mock('../../src/util/git/git-spawn.js', () => ({
   spawn: jest.fn(([command]) => {
     switch (command) {
       case 'ls-remote':
+      case 'show-ref':
         return `ref: refs/heads/master  HEAD
 7a053e2ca07d19b2e2eebeeb0c27edaacfd67904        HEAD`;
       case 'rev-list':
@@ -79,7 +80,7 @@ test('npmUrlToGitUrl', () => {
   expect(Git.npmUrlToGitUrl('file:../ocalmfind.git')).toEqual({
     protocol: 'file:',
     hostname: null,
-    repository: '../ocalmfind.git',
+    repository: '../ocalmfind',
   });
 });
 
@@ -111,15 +112,35 @@ test('secureGitUrl', async function(): Promise<void> {
   expect(gitURL.repository).toEqual('https://github.com/yarnpkg/yarn.git');
 });
 
-test('resolveDefaultBranch', async () => {
+test('resolveDefaultBranch when local', async () => {
   const spawnGitMock = (spawnGit: any).mock;
   const config = await Config.create();
   const git = new Git(
     config,
     {
-      protocol: '',
+      protocol: 'file:',
       hostname: undefined,
-      repository: '',
+      repository: 'example',
+    },
+    '',
+  );
+  expect(await git.resolveDefaultBranch()).toEqual({
+    sha: '7a053e2ca07d19b2e2eebeeb0c27edaacfd67904',
+    ref: 'refs/heads/master',
+  });
+  const lastCall = spawnGitMock.calls[spawnGitMock.calls.length - 1];
+  expect(lastCall[0]).toContain('show-ref');
+});
+
+test('resolveDefaultBranch when remote', async () => {
+  const spawnGitMock = (spawnGit: any).mock;
+  const config = await Config.create();
+  const git = new Git(
+    config,
+    {
+      protocol: 'https:',
+      hostname: '//example.com',
+      repository: 'example',
     },
     '',
   );
