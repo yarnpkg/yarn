@@ -20,6 +20,7 @@ import map from './map.js';
 const GIT_PROTOCOL_PREFIX = 'git+';
 const SSH_PROTOCOL = 'ssh:';
 const SCP_PATH_PREFIX = '/:';
+const FILE_PROTOCOL = 'file:';
 
 type GitUrl = {
   protocol: string, // parsed from URL
@@ -114,9 +115,20 @@ export default class Git implements GitRefResolvingInterface {
       };
     }
 
+    // npm local packages are specified as FILE_PROTOCOL, but url parser interprets them as using the file protocol.
+    // This changes the behavior so that git doesn't see this as a hostname, but as a file path.
+    // See #3670.
+    if (parsed.protocol === FILE_PROTOCOL && !parsed.hostname && parsed.path && parsed.port === null) {
+      return {
+        hostname: parsed.hostname,
+        protocol: parsed.protocol,
+        repository: parsed.path,
+      };
+    }
+
     return {
       hostname: parsed.hostname || null,
-      protocol: parsed.protocol || 'file:',
+      protocol: parsed.protocol || FILE_PROTOCOL,
       repository: url.format({...parsed, hash: ''}),
     };
   }
