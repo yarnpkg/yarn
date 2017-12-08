@@ -17,6 +17,8 @@ const stream = require('stream');
 const gunzip = require('gunzip-maybe');
 const invariant = require('invariant');
 
+const RE_URL_NAME_MATCH = /\/(?:(@[^/]+)\/)?[^/]+\/-\/(?:@[^/]+\/)?([^/]+)$/;
+
 export default class TarballFetcher extends BaseFetcher {
   async setupMirrorFromCache(): Promise<?string> {
     const tarballMirrorPath = this.getTarballMirrorPath();
@@ -44,13 +46,16 @@ export default class TarballFetcher extends BaseFetcher {
       return null;
     }
 
-    // handle scoped packages
-    const pathParts = pathname.replace(/^\//, '').split(/\//g);
+    const match = pathname.match(RE_URL_NAME_MATCH);
 
-    const packageFilename =
-      pathParts.length >= 2 && pathParts[0][0] === '@'
-        ? `${pathParts[0]}-${pathParts[pathParts.length - 1]}` // scopped
-        : `${pathParts[pathParts.length - 1]}`;
+    let packageFilename;
+    if (match) {
+      const [, scope, tarballBasename] = match;
+      packageFilename = scope ? `${scope}-${tarballBasename}` : tarballBasename;
+    } else {
+      // fallback to base name
+      packageFilename = path.basename(pathname);
+    }
 
     return this.config.getOfflineMirrorPath(packageFilename);
   }
