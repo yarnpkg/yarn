@@ -1,3 +1,0 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
-
-exports[`TarballFetcher.fetch throws on invalid hash 1`] = `"https://github.com/sindresorhus/beeper/archive/master.tar.gz: Fetch succeeded for undefined. However, extracting \\"https://github.com/sindresorhus/beeper/archive/master.tar.gz\\" resulted in hash \\"sha1-UfEtNoYPw9KrdHN3mRdG6Oo/qrs=\\", which did not match the requested hash \\"foo\\"."`;

@@ -161,14 +161,15 @@ test('TarballFetcher.fetch throws on invalid hash', async () => {
     },
     config,
   );
-  let error;
+  let error = {};
   try {
     await fetcher.fetch();
   } catch (e) {
     error = e;
   }
 
-  expect(error && error.message).toMatchSnapshot();
+  expect(error.message).toMatch(/did not match the requested hash|does not contain supported algorithms/);
+  // the error message differs depending on the node version (and Buffer behaviour)
   expect(readdirSync(path.join(offlineMirrorDir))).toEqual([]);
 });
 
