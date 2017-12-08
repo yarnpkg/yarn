@@ -18,9 +18,7 @@ restore_cache: &restore_cache
   restore_cache:
     name: Restore node_modules cache
     keys:
-      - v1-node-{{ arch }}-{{ .Branch }}-{{ checksum "yarn.lock" }}
-      - v1-node-{{ arch }}-{{ .Branch }}-
-      - v1-node-{{ arch }}-
+      - v1-node-{{ .Branch }}-{{ checksum "yarn.lock" }}
 
 install_steps: &install_steps
   steps:
@@ -32,7 +30,7 @@ install_steps: &install_steps
         command: yarn install --frozen-lockfile
     - save_cache:
         name: Save node_modules cache
-        key: v1-node-{{ arch }}-{{ .Branch }}-{{ checksum "yarn.lock" }}
+        key: v1-node-{{ .Branch }}-{{ checksum "yarn.lock" }}
         paths:
           - node_modules/
     - run:
