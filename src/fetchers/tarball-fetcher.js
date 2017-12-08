@@ -89,6 +89,36 @@ export default class TarballFetcher extends BaseFetcher {
     }
   }
 
+  _findIntegrityForValidation(reject: Function): {integrity: ?Object, algorithms: Array<string>} {
+    const supportedAlgorithms = constants.INTEGRITY_ALGORITHMS;
+    const wantedIntegrity = this.remote.integrity || (this.hash ? ssri.fromHex(this.hash, 'sha1') : null);
+    if (wantedIntegrity === null || Object.keys(wantedIntegrity).length === 0) {
+      // nothing to compare against, we should provide an empty integrity object
+      return {integrity: wantedIntegrity, algorithms: ['sha1']};
+    }
+    const {integrity, algorithms} = Object.keys(wantedIntegrity).reduce(
+      (acc, algorithm) => {
+        if (supportedAlgorithms.indexOf(algorithm) > -1) {
+          acc.integrity[algorithm] = wantedIntegrity[algorithm];
+          acc.algorithms.push(algorithm);
+        }
+        return acc;
+      },
+      {integrity: {}, algorithms: []},
+    );
+    if (algorithms.length === 0) {
+      reject(
+        new SecurityError(
+          this.config.reporter.lang('fetchBadIntegrityAlgorithm', this.packageName, this.remote.reference),
+        ),
+      );
+    } else {
+      return {integrity: ssri.parse(integrity), algorithms};
+    }
+    // Unreachable code, this is just to make Flow happy
+    return {integrity: {}, algorithms: []};
+  }
+
   createExtractor(
     resolve: (fetched: FetchedOverride) => void,
     reject: (error: Error) => void,
@@ -97,8 +127,7 @@ export default class TarballFetcher extends BaseFetcher {
     validateStream: ssri.integrityStream,
     extractorStream: stream.Transform,
   } {
-    const integrity = this.remote.integrity || (this.hash ? ssri.fromHex(this.hash, 'sha1') : null);
-    const algorithms = this.remote.integrity ? Object.keys(this.remote.integrity) : ['sha1'];
+    const {integrity, algorithms} = this._findIntegrityForValidation(reject);
     const validateStream = new ssri.integrityStream({integrity, algorithms});
     const extractorStream = gunzip();
     const untarStream = tarFs.extract(this.dest, {
