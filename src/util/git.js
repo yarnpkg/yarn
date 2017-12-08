@@ -122,7 +122,7 @@ export default class Git implements GitRefResolvingInterface {
     let repository;
     if (parsed.protocol === FILE_PROTOCOL && !parsed.hostname && parsed.path && parsed.port === null) {
       // for local repos, remove trailing `.git` because it is used as `cwd` path for `git show-ref`
-      repository = parsed.path.replace(/\.git$/, '');
+      repository = parsed.path;
     } else {
       repository = url.format({...parsed, hash: ''});
     }
