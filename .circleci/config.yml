@@ -21,6 +21,9 @@ install_steps: &install_steps
     - restore_cache:
         name: Restore node_modules cache
         keys:
+        # WARNING: add `{{ arch }}` into the keys below and separate the installation steps
+        #          for Linux and macOS if you ever need platform-specific dependencies
+        #          (anything using node-gyp etc.)
           - v2-node-{{ .Branch }}-{{ checksum "yarn.lock" }}
           - v2-node-{{ .Branch }}-
           - v2-node-
