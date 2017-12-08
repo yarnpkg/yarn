@@ -1,0 +1,6 @@
+{
+    "dependencies": {
+        "bunyan": "^1.7.1",
+        "once": "~1"
+    }
+}
