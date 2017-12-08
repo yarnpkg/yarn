@@ -115,7 +115,7 @@ export default class Git implements GitRefResolvingInterface {
       };
     }
 
-    // npm local packages are specified as file:, but url parser interprets them as using the file protocol.
+    // npm local packages are specified as FILE_PROTOCOL, but url parser interprets them as using the file protocol.
     // This changes the behavior so that git doesn't see this as a hostname, but as a file path.
     // See #3670.
     if (parsed.protocol === FILE_PROTOCOL && !parsed.hostname && parsed.path && parsed.port === null) {
@@ -128,7 +128,7 @@ export default class Git implements GitRefResolvingInterface {
 
     return {
       hostname: parsed.hostname || null,
-      protocol: parsed.protocol || 'file:',
+      protocol: parsed.protocol || FILE_PROTOCOL,
       repository: url.format({...parsed, hash: ''}),
     };
   }
