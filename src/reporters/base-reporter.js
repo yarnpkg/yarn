@@ -246,7 +246,7 @@ export default class BaseReporter {
   //
   async questionAffirm(question: string): Promise<boolean> {
     const condition = true; // trick eslint
-    if (this.nonInteractive) {//non-interactive terminals
+    if (this.nonInteractive) {
       return true;
     }
 
