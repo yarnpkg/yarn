@@ -9,7 +9,7 @@ import {run as runGlobal, getBinFolder} from './global.js';
 const path = require('path');
 
 export function setFlags(commander: Object) {
-  commander.description('Creates new projects from any `create-*` starter kits.');
+  commander.description('Creates new projects from any create-* starter kits.');
 }
 
 export function hasWrapper(commander: Object, args: Array<string>): boolean {

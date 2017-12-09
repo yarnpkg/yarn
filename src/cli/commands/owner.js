@@ -147,7 +147,7 @@ function remove(config: Config, reporter: Reporter, flags: Object, args: Array<s
 }
 
 export function setFlags(commander: Object) {
-  commander.description('Manage package owners.');
+  commander.description('Manages package owners.');
 }
 
 export const {run, hasWrapper, examples} = buildSubCommands(

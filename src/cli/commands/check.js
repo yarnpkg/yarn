@@ -20,7 +20,7 @@ export function hasWrapper(commander: Object): boolean {
 }
 
 export function setFlags(commander: Object) {
-  commander.description('Verifies that versions of the package dependencies in the current project’s package.json matches that of yarn’s lock file.');
+  commander.description('Verifies if versions in the current project’s package.json match that of yarn’s lock file.');
   commander.option('--integrity');
   commander.option('--verify-tree');
 }

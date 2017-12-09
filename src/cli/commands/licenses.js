@@ -92,7 +92,7 @@ async function list(config: Config, reporter: Reporter, flags: Object, args: Arr
   }
 }
 export function setFlags(commander: Object) {
-  commander.description('List licenses for installed packages.');
+  commander.description('Lists licenses for installed packages.');
 }
 export const {run, examples} = buildSubCommands('licenses', {
   async ls(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
