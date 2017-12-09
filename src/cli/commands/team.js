@@ -168,7 +168,6 @@ export function setFlags(commander: Object) {
   commander.description('Maintain team memberships');
 }
 
-
 export const {run, hasWrapper, examples} = buildSubCommands(
   'team',
   {

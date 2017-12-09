@@ -48,7 +48,6 @@ export function setFlags(commander: Object) {
   commander.description('Manages the yarn configuration files.');
 }
 
-
 export const {run, examples} = buildSubCommands('config', {
   async set(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<boolean> {
     if (args.length === 0 || args.length > 2) {
