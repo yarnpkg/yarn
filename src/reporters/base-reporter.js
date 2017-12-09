@@ -244,6 +244,9 @@ export default class BaseReporter {
   //
   async questionAffirm(question: string): Promise<boolean> {
     const condition = true; // trick eslint
+    if (this.isTTY || isCi) {//non-interactive terminals
+      return true;
+    }
 
     while (condition) {
       let answer = await this.question(question);
