@@ -32,6 +32,7 @@ export type ReporterOptions = {
   emoji?: boolean,
   noProgress?: boolean,
   silent?: boolean,
+  nonInteractive?: boolean,
 };
 
 export function stringifyLangArgs(args: Array<any>): Array<string> {
