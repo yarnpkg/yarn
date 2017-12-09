@@ -1,8 +1,9 @@
 /* @flow */
 
+const FALSY_STRINGS = new Set(['0', 'false']);
+
 export function boolify(val: string | number | boolean): boolean {
-  const strVal = val.toString().toLowerCase();
-  return strVal !== 'false' && strVal !== '0';
+  return !FALSY_STRINGS.has(val.toString().toLowerCase());
 }
 
 export function boolifyWithDefault(val: ?(string | number | boolean), defaultResult: boolean): boolean {
