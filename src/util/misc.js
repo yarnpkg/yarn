@@ -15,6 +15,15 @@ export function sortAlpha(a: string, b: string): number {
   return a.length - b.length;
 }
 
+export function sortOptionsAlpha(a, b): number {
+  // sort alphabetically the options attribute
+  const aOpt = a.flags;
+  const bOpt = b.flags;
+  if (aOpt > bOpt) return 1;
+  if (aOpt < bOpt) return -1;
+  return 0;s
+}
+
 export function entries<T>(obj: ?{[key: string]: T}): Array<[string, T]> {
   const entries = [];
   if (obj) {
