@@ -60,7 +60,8 @@ export default class BaseReporter {
     this.stderr = opts.stderr || process.stderr;
     this.stdin = opts.stdin || this._getStandardInput();
     this.emoji = !!opts.emoji;
-    this.noProgress = !!opts.noProgress || isCI;
+    this.isCI = isCI;
+    this.noProgress = !!opts.noProgress || this.isCI;
     this.isVerbose = !!opts.verbose;
 
     // $FlowFixMe: this is valid!
@@ -77,6 +78,7 @@ export default class BaseReporter {
   stderr: Stdout;
   stdin: Stdin;
   isTTY: boolean;
+  isCi: boolean;
   emoji: boolean;
   noProgress: boolean;
   isVerbose: boolean;
@@ -244,7 +246,7 @@ export default class BaseReporter {
   //
   async questionAffirm(question: string): Promise<boolean> {
     const condition = true; // trick eslint
-    if (this.isTTY || isCi) {//non-interactive terminals
+    if (this.isCi) {//non-interactive terminals
       return true;
     }
 
