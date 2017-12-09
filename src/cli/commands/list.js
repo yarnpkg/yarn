@@ -161,6 +161,7 @@ export function hasWrapper(commander: Object, args: Array<string>): boolean {
 }
 
 export function setFlags(commander: Object) {
+  commander.description('Lists installed packages.');
   commander.option('--depth [depth]', 'Limit the depth of the shown dependencies');
   commander.option('--pattern [pattern]', 'Filter dependencies by pattern');
 }
