@@ -14,6 +14,7 @@ export default class PackageReference {
     this.lockfile = request.lockfile;
     this.requests = [];
     this.config = request.config;
+    this.hint = request.hint;
 
     this.registry = remote.registry;
     this.version = info.version;
@@ -44,6 +45,7 @@ export default class PackageReference {
   version: string;
   uid: string;
   optional: ?boolean;
+  hint: ?string;
   ignore: boolean;
   incompatible: boolean;
   fresh: boolean;
