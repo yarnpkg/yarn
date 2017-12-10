@@ -85,7 +85,7 @@ test('npmUrlToGitUrl', () => {
   expect(Git.npmUrlToGitUrl('git+file:../ocalmfind')).toEqual({
     protocol: 'file:',
     hostname: null,
-    repository: '../ocalmfind',
+    repository: '../ocalmfind.git',
   });
 });
 
