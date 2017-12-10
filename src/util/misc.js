@@ -21,7 +21,7 @@ export function sortOptionsAlpha(a, b): number {
   const bOpt = b.flags;
   if (aOpt > bOpt) return 1;
   if (aOpt < bOpt) return -1;
-  return 0;s
+  return 0;
 }
 
 export function entries<T>(obj: ?{[key: string]: T}): Array<[string, T]> {
