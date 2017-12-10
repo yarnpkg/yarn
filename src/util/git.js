@@ -16,6 +16,7 @@ import {resolveVersion, isCommitSha, parseRefs} from './git/git-ref-resolver.js'
 import * as crypto from './crypto.js';
 import * as fs from './fs.js';
 import map from './map.js';
+import {removePrefix} from './misc.js';
 
 const GIT_PROTOCOL_PREFIX = 'git+';
 const SSH_PROTOCOL = 'ssh:';
@@ -85,16 +86,13 @@ export default class Git implements GitRefResolvingInterface {
    * git "URLs" also allow an alternative scp-like syntax, so they're not standard URLs.
    */
   static npmUrlToGitUrl(npmUrl: string): GitUrl {
-    // Expand shortened format first if needed
+    npmUrl = removePrefix(npmUrl, GIT_PROTOCOL_PREFIX);
+
     let parsed = url.parse(npmUrl);
     const expander = parsed.protocol && SHORTHAND_SERVICES[parsed.protocol];
 
     if (expander) {
       parsed = expander(parsed);
-    }
-
-    if (parsed.protocol && parsed.protocol.startsWith(GIT_PROTOCOL_PREFIX)) {
-      parsed.protocol = parsed.protocol.slice(GIT_PROTOCOL_PREFIX.length);
     }
 
     // Special case in npm, where ssh:// prefix is stripped to pass scp-like syntax
@@ -116,13 +114,10 @@ export default class Git implements GitRefResolvingInterface {
       };
     }
 
-    // npm local packages are specified as FILE_PROTOCOL, but url parser interprets them as using the file protocol.
-    // This changes the behavior so that git doesn't see this as a hostname, but as a file path.
-    // See #3670.
+    // git local repos are specified as `git+file:` and a filesystem path, not a url.
     let repository;
-    if (parsed.protocol === FILE_PROTOCOL && !parsed.hostname && parsed.path && parsed.port === null) {
-      // for local repos, remove trailing `.git` because it is used as `cwd` path for `git show-ref`
-      repository = parsed.path.replace(/\.git$/, '');
+    if (parsed.protocol === FILE_PROTOCOL) {
+      repository = parsed.path;
     } else {
       repository = url.format({...parsed, hash: ''});
     }
@@ -130,7 +125,7 @@ export default class Git implements GitRefResolvingInterface {
     return {
       hostname: parsed.hostname || null,
       protocol: parsed.protocol || FILE_PROTOCOL,
-      repository,
+      repository: repository || '',
     };
   }
 
