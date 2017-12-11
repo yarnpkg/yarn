@@ -274,7 +274,12 @@ type JestExpectType = {
    * Use .toThrowErrorMatchingSnapshot to test that a function throws a error
    * matching the most recent snapshot when it is called.
    */
-  toThrowErrorMatchingSnapshot(): void
+  toThrowErrorMatchingSnapshot(): void,
+
+  /**
+   * Custom matcher defined in __tests__/package-hoister.js
+   */
+  toContainPackage(uid: string, expectedInstallPath: string): void
 };
 
 type JestObjectType = {
