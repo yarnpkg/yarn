@@ -1177,3 +1177,12 @@ test.concurrent('install will not overwrite linked dependencies', async (): Prom
     });
   });
 });
+
+// There was an issue where anything ending with `.git` would be sent to GitResolver, even if it was a file: dep.
+// This caused an error if you had a directory named "myModule.git" and tried to use it with "file:../myModule.git"
+// See https://github.com/yarnpkg/yarn/issues/3670
+test.concurrent('file: dependency ending with `.git` should work', (): Promise<void> => {
+  return runInstall({}, 'local-named-git', async (config, reporter) => {
+    expect(await fs.exists(path.join(config.cwd, 'node_modules', 'a'))).toBe(true);
+  });
+});

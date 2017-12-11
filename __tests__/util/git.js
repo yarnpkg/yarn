@@ -77,7 +77,12 @@ test('npmUrlToGitUrl', () => {
     hostname: 'github.com',
     repository: 'ssh://git@github.com/npm-opam/ocamlfind',
   });
-  expect(Git.npmUrlToGitUrl('file:../ocalmfind.git')).toEqual({
+  expect(Git.npmUrlToGitUrl('git+file:../ocalmfind.git')).toEqual({
+    protocol: 'file:',
+    hostname: null,
+    repository: '../ocalmfind.git',
+  });
+  expect(Git.npmUrlToGitUrl('git+file:../ocalmfind')).toEqual({
     protocol: 'file:',
     hostname: null,
     repository: '../ocalmfind.git',
