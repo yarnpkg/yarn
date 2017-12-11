@@ -14,6 +14,7 @@ const path = require('path');
 const yn = require('yn');
 
 export function setFlags(commander: Object) {
+  commander.description('Interactively creates or updates a package.json file.');
   commander.option('-y, --yes', 'use default options');
   commander.option('-p, --private', 'use default options and private true');
 }

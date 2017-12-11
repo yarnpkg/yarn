@@ -211,6 +211,7 @@ export function hasWrapper(commander: Object): boolean {
 }
 
 export function setFlags(commander: Object) {
+  commander.description('Installs a package and any packages that it depends on.');
   commander.usage('add [packages ...] [flags]');
   commander.option('-W, --ignore-workspace-root-check', 'required to run yarn add inside a workspace root');
   commander.option('-D, --dev', 'save package to your `devDependencies`');

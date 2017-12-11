@@ -11,6 +11,7 @@ import colorizeDiff from '../../util/colorize-diff.js';
 export const requireLockfile = true;
 
 export function setFlags(commander: Object) {
+  commander.description('Checks for outdated package dependencies.');
   commander.usage('outdated [packages ...]');
 }
 
