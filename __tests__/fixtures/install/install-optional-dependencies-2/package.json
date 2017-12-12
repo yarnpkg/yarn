@@ -1,6 +1,7 @@
 {
     "dependencies": {
         "bunyan": "^1.7.1",
+        "chokidar": "^1.7.0",
         "once": "~1"
     }
 }

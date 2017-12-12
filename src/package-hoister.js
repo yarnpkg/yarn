@@ -246,10 +246,10 @@ export default class PackageHoister {
 
         let isMarkedAsOptional = depRef && depRef.optional && this.ignoreOptional;
 
-        // If it's marked as optional, but the parent is not optional and the
+        // If it's marked as optional, but the parent is required and the
         // dependency was not listed in `optionalDependencies`, then we mark the
         // dependency as required.
-        if (isMarkedAsOptional && !ref.optional && depRef && depRef.hint !== 'optional') {
+        if (isMarkedAsOptional && info.isRequired && depRef && depRef.hint !== 'optional') {
           isMarkedAsOptional = false;
         }
 

@@ -83,6 +83,7 @@ test.concurrent('installing with --ignore-optional should not install optional s
 test.concurrent('installing with --ignore-optional should include all required dependencies', async () => {
   await runInstall({ignoreOptional: true}, 'install-optional-dependencies-2', async (config): Promise<void> => {
     expect(await fs.exists(`${config.cwd}/node_modules/wrappy`)).toEqual(true);
+    expect(await fs.exists(`${config.cwd}/node_modules/balanced-match`)).toEqual(true);
   });
 });
 
