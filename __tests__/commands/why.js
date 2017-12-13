@@ -106,3 +106,10 @@ test.concurrent('should determine that the module installed because it is hoiste
     expect(report[report.length - 2].data).toEqual(reporter.lang('whyHoistedTo', 'glob#minimatch'));
   });
 });
+
+test('should report when a module is included multiple times including the root', (): Promise<void> => {
+  return runWhy({}, ['caniuse-lite'], 'dep-included-at-2-levels', (config, reporter) => {
+    const report = reporter.getBuffer();
+    expect(report).toMatchSnapshot();
+  });
+});

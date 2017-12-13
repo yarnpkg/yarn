@@ -39,8 +39,10 @@ export default class PackageRequest {
     this.pattern = req.pattern;
     this.config = resolver.config;
     this.foundInfo = null;
+  }
 
-    resolver.usedRegistries.add(req.registry);
+  init() {
+    this.resolver.usedRegistries.add(this.registry);
   }
 
   parentRequest: ?PackageRequest;

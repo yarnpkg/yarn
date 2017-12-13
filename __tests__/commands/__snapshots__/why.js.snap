@@ -1,0 +1,156 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`should report when a module is included multiple times including the root 1`] = `
+Array [
+  Object {
+    "data": Object {
+      "current": 1,
+      "message": "Why do we have the module \\"caniuse-lite\\"?",
+      "total": 4,
+    },
+    "error": false,
+    "type": "step",
+  },
+  Object {
+    "data": Object {
+      "current": 2,
+      "message": "Initialising dependency graph",
+      "total": 4,
+    },
+    "error": false,
+    "type": "step",
+  },
+  Object {
+    "data": "No lockfile found.",
+    "error": false,
+    "type": "info",
+  },
+  Object {
+    "data": Object {
+      "id": 0,
+    },
+    "error": false,
+    "type": "activityStart",
+  },
+  Object {
+    "data": Object {
+      "id": 0,
+      "name": "b@file:./b",
+    },
+    "error": false,
+    "type": "activityTick",
+  },
+  Object {
+    "data": Object {
+      "id": 0,
+      "name": "caniuse-api@^2.0.0",
+    },
+    "error": false,
+    "type": "activityTick",
+  },
+  Object {
+    "data": Object {
+      "id": 0,
+      "name": "browserslist@^2.0.0",
+    },
+    "error": false,
+    "type": "activityTick",
+  },
+  Object {
+    "data": Object {
+      "id": 0,
+      "name": "caniuse-lite@^1.0.0",
+    },
+    "error": false,
+    "type": "activityTick",
+  },
+  Object {
+    "data": Object {
+      "id": 0,
+      "name": "lodash.memoize@^4.1.2",
+    },
+    "error": false,
+    "type": "activityTick",
+  },
+  Object {
+    "data": Object {
+      "id": 0,
+      "name": "lodash.uniq@^4.5.0",
+    },
+    "error": false,
+    "type": "activityTick",
+  },
+  Object {
+    "data": Object {
+      "id": 0,
+      "name": "caniuse-lite@^1.0.30000780",
+    },
+    "error": false,
+    "type": "activityTick",
+  },
+  Object {
+    "data": Object {
+      "id": 0,
+      "name": "electron-to-chromium@^1.3.28",
+    },
+    "error": false,
+    "type": "activityTick",
+  },
+  Object {
+    "data": Object {
+      "id": 0,
+      "name": "caniuse-lite@^1.0.0",
+    },
+    "error": false,
+    "type": "activityTick",
+  },
+  Object {
+    "data": Object {
+      "id": 0,
+    },
+    "error": false,
+    "type": "activityEnd",
+  },
+  Object {
+    "data": Object {
+      "current": 3,
+      "message": "Finding dependency",
+      "total": 4,
+    },
+    "error": false,
+    "type": "step",
+  },
+  Object {
+    "data": Object {
+      "current": 4,
+      "message": "Calculating file sizes",
+      "total": 4,
+    },
+    "error": false,
+    "type": "step",
+  },
+  Object {
+    "data": "Has been hoisted to \\"caniuse-lite\\"",
+    "error": false,
+    "type": "info",
+  },
+  Object {
+    "data": "Reasons this module exists",
+    "error": false,
+    "type": "info",
+  },
+  Object {
+    "data": Object {
+      "hints": undefined,
+      "items": Array [
+        "\\"b#caniuse-api\\" depends on it",
+        "\\"b#caniuse-api#browserslist\\" depends on it",
+        "Specified in \\"dependencies\\"",
+      ],
+      "type": "reasons",
+    },
+    "error": false,
+    "type": "list",
+  },
+]
+`;

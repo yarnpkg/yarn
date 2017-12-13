@@ -160,7 +160,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
   const matchRef = matchInfo.pkg._reference;
   invariant(matchRef, 'expected reference');
 
-  const matchPatterns = matchRef.patterns;
+  const distinctMatchPatterns = new Set(matchRef.patterns);
   const matchRequests = matchRef.requests;
 
   const reasons = [];
@@ -192,7 +192,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
 
   // reason: exists in manifest
   let rootType;
-  for (const pattern of matchPatterns) {
+  for (const pattern of distinctMatchPatterns) {
     rootType = install.rootPatternsToOrigin[pattern];
     if (rootType) {
       reasons.push({
