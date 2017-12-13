@@ -19,6 +19,7 @@ function isValidNewVersion(oldVersion: string, newVersion: string, looseSemver: 
 }
 
 export function setFlags(commander: Object) {
+  commander.description('Update the version of your package via the command line.');
   commander.option(NEW_VERSION_FLAG, 'new version');
   commander.option('--message [message]', 'message');
   commander.option('--no-git-tag-version', 'no git tag version');

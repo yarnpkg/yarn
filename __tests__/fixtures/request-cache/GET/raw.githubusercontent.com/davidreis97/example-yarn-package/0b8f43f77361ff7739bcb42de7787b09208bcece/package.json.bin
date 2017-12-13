@@ -1,0 +1,50 @@
+HTTP/1.1 200 OK
+Content-Security-Policy: default-src 'none'; style-src 'unsafe-inline'; sandbox
+Strict-Transport-Security: max-age=31536000
+X-Content-Type-Options: nosniff
+X-Frame-Options: deny
+X-XSS-Protection: 1; mode=block
+ETag: "36952fd724b4f5fc4240d20b883deda155134db3"
+Content-Type: text/plain; charset=utf-8
+Cache-Control: max-age=300
+X-Geo-Block-List:
+X-GitHub-Request-Id: F20A:258A9:CAEC81:D518BE:5A205A53
+Content-Length: 485
+Accept-Ranges: bytes
+Date: Thu, 30 Nov 2017 19:21:56 GMT
+Via: 1.1 varnish
+Connection: keep-alive
+X-Served-By: cache-mad9433-MAD
+X-Cache: MISS
+X-Cache-Hits: 0
+X-Timer: S1512069716.351893,VS0,VE140
+Vary: Authorization,Accept-Encoding
+Access-Control-Allow-Origin: *
+X-Fastly-Request-ID: 182c3a5089ec0a3c1eeb6f16e623487b0393aa8d
+Expires: Thu, 30 Nov 2017 19:26:56 GMT
+Source-Age: 0
+
+{
+  "name": "example-yarn-package",
+  "version": "1.0.0",
+  "description": "An example package to demonstrate Yarn",
+  "main": "index.js",
+  "repository": {
+    "url": "github.com/yarnpkg/example-yarn-package",
+    "type": "git"
+  },
+  "scripts": {
+    "test": "jest"
+  },
+  "author": "Yarn Contributors",
+  "license": "BSD-2-Clause",
+  "dependencies": {
+    "lodash": "^4.16.2"
+  },
+  "devDependencies": {
+    "jest-cli": "15.1.1"
+  },
+  "jest": {
+    "testEnvironment": "node"
+  }
+}

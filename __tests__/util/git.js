@@ -4,7 +4,8 @@ jest.mock('../../src/util/git/git-spawn.js', () => ({
   spawn: jest.fn(([command]) => {
     switch (command) {
       case 'ls-remote':
-        return `ref: refs/heads/master  HEAD
+        return `Identity added: /Users/example/.ssh/id_dsa (/Users/example/.ssh/id_dsa)
+ref: refs/heads/master  HEAD
 7a053e2ca07d19b2e2eebeeb0c27edaacfd67904        HEAD`;
       case 'rev-list':
         return Promise.resolve('7a053e2ca07d19b2e2eebeeb0c27edaacfd67904 Fix ...');
