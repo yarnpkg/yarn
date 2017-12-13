@@ -4,11 +4,13 @@ jest.mock('../../src/util/git/git-spawn.js', () => ({
   spawn: jest.fn(([command]) => {
     switch (command) {
       case 'ls-remote':
-      case 'show-ref':
-        return `ref: refs/heads/master  HEAD
+        return `Identity added: /Users/example/.ssh/id_dsa (/Users/example/.ssh/id_dsa)
+ref: refs/heads/master  HEAD
 7a053e2ca07d19b2e2eebeeb0c27edaacfd67904        HEAD`;
       case 'rev-list':
         return Promise.resolve('7a053e2ca07d19b2e2eebeeb0c27edaacfd67904 Fix ...');
+      case 'show-ref':
+        return `7a053e2ca07d19b2e2eebeeb0c27edaacfd67904 refs/remotes/origin/HEAD`;
     }
     return Promise.resolve('');
   }),
@@ -87,6 +89,11 @@ test('npmUrlToGitUrl', () => {
     hostname: null,
     repository: '../ocalmfind',
   });
+  expect(Git.npmUrlToGitUrl('project-name/my-package.git')).toEqual({
+    protocol: 'ssh:',
+    hostname: 'github.com',
+    repository: 'ssh://git@github.com/project-name/my-package.git',
+  });
 });
 
 test('secureGitUrl', async function(): Promise<void> {
@@ -131,7 +138,7 @@ test('resolveDefaultBranch when local', async () => {
   );
   expect(await git.resolveDefaultBranch()).toEqual({
     sha: '7a053e2ca07d19b2e2eebeeb0c27edaacfd67904',
-    ref: 'refs/heads/master',
+    ref: undefined,
   });
   const lastCall = spawnGitMock.calls[spawnGitMock.calls.length - 1];
   expect(lastCall[0]).toContain('show-ref');

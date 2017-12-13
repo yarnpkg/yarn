@@ -12,7 +12,9 @@ const leven = require('leven');
 const path = require('path');
 const {quoteForShell, sh, unquoted} = require('puka');
 
-export function setFlags(commander: Object) {}
+export function setFlags(commander: Object) {
+  commander.description('Runs a defined package script.');
+}
 
 export function hasWrapper(commander: Object, args: Array<string>): boolean {
   return true;

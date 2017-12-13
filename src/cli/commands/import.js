@@ -296,7 +296,9 @@ export class Import extends Install {
   }
 }
 
-export function setFlags(commander: Object) {}
+export function setFlags(commander: Object) {
+  commander.description('Generates yarn.lock from an existing npm-installed node_modules folder.');
+}
 
 export function hasWrapper(commander: Object, args: Array<string>): boolean {
   return true;
