@@ -53,7 +53,7 @@ export default class PackageRequest {
   config: Config;
   registry: ResolverRegistryNames;
   optional: boolean;
-  hint: ?string;
+  hint: ?constants.RequestHint;
   foundInfo: ?Manifest;
 
   getLocked(remoteType: string): ?Object {

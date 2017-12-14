@@ -7,6 +7,7 @@ import type PackageRequest from './package-request.js';
 import type PackageResolver from './package-resolver.js';
 import type {RegistryNames} from './registries/index.js';
 import {entries} from './util/misc.js';
+import type {RequestHint} from './constants';
 
 export default class PackageReference {
   constructor(request: PackageRequest, info: Manifest, remote: PackageRemote) {
@@ -45,7 +46,7 @@ export default class PackageReference {
   version: string;
   uid: string;
   optional: ?boolean;
-  hint: ?string;
+  hint: ?RequestHint;
   ignore: boolean;
   incompatible: boolean;
   fresh: boolean;
