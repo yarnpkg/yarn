@@ -41,7 +41,7 @@ declare module 'inquirer' {
     | 'expand'
     | 'checkbox'
     | 'password'
-    | 'editor'; 
+    | 'editor';
 
   declare type DefaultValueT = string | number | Array<string|number>;
 
@@ -52,17 +52,17 @@ declare module 'inquirer' {
     name: string,
     message: string | (a: AnswersT) => void,
     default?: mixed | (a: AnswersT) => mixed,
-    choices?: Array<ChoiceT>, 
+    choices?: Array<ChoiceT>,
 
     // true => okay
     // false => general error message
     // string => specific error message
-    validate?: (input: string | Array<string>) => (boolean | string), 
+    validate?: (input: string | Array<string>) => (boolean | string),
     filter?: (input: string) => BasicT | Promise<BasicT>,
     when?: boolean | (answers: AnswersT) => (boolean | Promise<boolean>),
     pageSize?: number,
   };
-  
+
   declare interface Prompt extends Promise<AnswersT> {
     ui: {
       process: any, // For observable interface
@@ -73,7 +73,7 @@ declare module 'inquirer' {
 
   declare module.exports: {
     Separator: typeof Separator,
-    prompt: PromptFn, 
+    prompt: PromptFn,
     ui: {
       BottomBar: typeof BottomBar,
     },

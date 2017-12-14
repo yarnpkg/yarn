@@ -1,5 +1,7 @@
 /* @flow */
 
+import type {Prompt} from 'inquirer';
+
 import {ConsoleReporter} from '../../src/reporters/index.js';
 import * as reporters from '../../src/reporters/index.js';
 import {
@@ -21,6 +23,7 @@ import semver from 'semver';
 import {promisify} from '../../src/util/promise';
 import fsNode from 'fs';
 import inquirer from 'inquirer';
+import invariant from 'invariant';
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 150000;
 
@@ -832,8 +835,14 @@ test.skip('add asks for correct package version if user passes an incorrect one'
       inquirer.prompt = jest.fn(questions => {
         expect(questions).toHaveLength(1);
         expect(questions[0].name).toEqual('package');
-        expect(questions[0].choices.length).toBeGreaterThan(0);
-        chosenVersion = questions[0].choices[0];
+
+        const choices = questions[0].choices;
+        invariant(Array.isArray(choices));
+        expect(choices.length).toBeGreaterThan(0);
+        invariant(choices.length > 0);
+        chosenVersion = choices[0];
+        invariant(typeof chosenVersion === 'string');
+        // $FlowFixMe: No sane way to return an "extended" Promise object
         return Promise.resolve({package: chosenVersion});
       });
     },
