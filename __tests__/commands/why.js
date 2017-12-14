@@ -110,6 +110,14 @@ test.concurrent('should determine that the module installed because it is hoiste
 test('should report when a module is included multiple times including the root', (): Promise<void> => {
   return runWhy({}, ['caniuse-lite'], 'dep-included-at-2-levels', (config, reporter) => {
     const report = reporter.getBuffer();
-    expect(report).toMatchSnapshot();
+    const reasons = report
+      .filter(entry => entry.type === 'list' && entry.data.type === 'reasons')
+      .map(entry => entry.data.items)[0];
+
+    expect(reasons).toEqual([
+      '"b#caniuse-api" depends on it',
+      '"b#caniuse-api#browserslist" depends on it',
+      'Specified in "dependencies"',
+    ]);
   });
 });
