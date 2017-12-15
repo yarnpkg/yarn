@@ -14,10 +14,7 @@ export function hasWrapper(flags: Object, args: Array<string>): boolean {
 }
 
 async function list(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
-  async function readCacheMetadata(
-    parentDir = config.cacheFolder,
-    metadataFile = METADATA_FILENAME,
-  ): Promise<Array<Array<string>>> {
+  async function readCacheMetadata(parentDir = config.cacheFolder): Promise<Array<Array<string>>> {
     const folders = await fs.readdir(parentDir);
     const packagesMetadata = [];
 
@@ -26,9 +23,9 @@ async function list(config: Config, reporter: Reporter, flags: Object, args: Arr
         continue;
       }
 
-      const loc = path.join(config.cacheFolder, parentDir.replace(config.cacheFolder, ''), folder);
+      const loc = path.join(parentDir, folder);
       // Check if this is a scoped package
-      if (!await fs.exists(path.join(loc, metadataFile))) {
+      if (folder.indexOf('@') > -1) {
         // If so, recurrently read scoped packages metadata
         packagesMetadata.push(...(await readCacheMetadata(loc)));
       } else {
@@ -54,9 +51,7 @@ const {run, setFlags: _setFlags, examples} = buildSubCommands('cache', {
     await list(config, reporter, flags, args);
   },
 
-  async list(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
-    await list(config, reporter, flags, args);
-  },
+  list,
 
   dir(config: Config, reporter: Reporter) {
     reporter.log(config.cacheFolder, {force: true});
@@ -125,5 +120,6 @@ export {run, examples};
 
 export function setFlags(commander: Object) {
   _setFlags(commander);
+  commander.description('Yarn cache list will print out every cached package.');
   commander.option('--pattern [pattern]', 'filter cached packages by pattern');
 }

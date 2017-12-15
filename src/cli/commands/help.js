@@ -12,7 +12,9 @@ export function hasWrapper(flags: Object, args: Array<string>): boolean {
   return false;
 }
 
-export function setFlags(commander: Object) {}
+export function setFlags(commander: Object) {
+  commander.description('Displays help information.');
+}
 
 export function run(config: Config, reporter: Reporter, commander: Object, args: Array<string>): Promise<void> {
   if (args.length) {

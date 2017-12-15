@@ -22,6 +22,11 @@ const GIT_PROTOCOL_PREFIX = 'git+';
 const SSH_PROTOCOL = 'ssh:';
 const SCP_PATH_PREFIX = '/:';
 const FILE_PROTOCOL = 'file:';
+const GIT_VALID_REF_LINE_REGEXP = /^([a-fA-F0-9]+|ref)/;
+
+const validRef = line => {
+  return GIT_VALID_REF_LINE_REGEXP.exec(line);
+};
 
 type GitUrl = {
   protocol: string, // parsed from URL
@@ -444,18 +449,26 @@ export default class Git implements GitRefResolvingInterface {
       let stdout;
       if (isLocal) {
         stdout = await spawnGit(['show-ref', 'HEAD'], {cwd: this.gitUrl.repository});
+        const refs = parseRefs(stdout);
+        const sha = refs.values().next().value;
+        if (sha) {
+          return {sha, ref: undefined};
+        } else {
+          throw new Error('Unable to find SHA for git HEAD');
+        }
       } else {
         stdout = await spawnGit(['ls-remote', '--symref', this.gitUrl.repository, 'HEAD']);
+        const lines = stdout.split('\n').filter(validRef);
+        const [, ref] = lines[0].split(/\s+/);
+        const [sha] = lines[1].split(/\s+/);
+        return {sha, ref};
       }
-      const lines = stdout.split('\n');
-      const [, ref] = lines[0].split(/\s+/);
-      const [sha] = lines[1].split(/\s+/);
-      return {sha, ref};
     } catch (err) {
       handleSpawnError(err);
       // older versions of git don't support "--symref"
       const stdout = await spawnGit(['ls-remote', this.gitUrl.repository, 'HEAD']);
-      const [sha] = stdout.split(/\s+/);
+      const lines = stdout.split('\n').filter(validRef);
+      const [sha] = lines[0].split(/\s+/);
       return {sha, ref: undefined};
     }
   }

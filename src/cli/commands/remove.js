@@ -14,7 +14,9 @@ const path = require('path');
 
 export const requireLockfile = true;
 
-export function setFlags(commander: Object) {}
+export function setFlags(commander: Object) {
+  commander.description('Removes a package from your direct dependencies updating your package.json and yarn.lock.');
+}
 
 export function hasWrapper(commander: Object, args: Array<string>): boolean {
   return true;

@@ -144,6 +144,7 @@ export function cleanLockfile(
 }
 
 export function setFlags(commander: Object) {
+  commander.description('Upgrades packages to their latest version based on the specified range.');
   commander.usage('upgrade [flags]');
   commander.option('-S, --scope <scope>', 'upgrade packages under the specified scope');
   commander.option('-L, --latest', 'list the latest version of packages, ignoring version ranges in package.json');
