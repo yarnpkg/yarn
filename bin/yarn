@@ -26,7 +26,7 @@ elif command_exists nodejs; then
   exec nodejs "$basedir/yarn.js" "$@"
   ret=$?
 else
-  echo 'Yarn requires Node.js 4.0 or higher to be installed.'
+  >&2 echo 'Yarn requires Node.js 4.0 or higher to be installed.'
   ret=1
 fi
 
