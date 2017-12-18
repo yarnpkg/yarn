@@ -43,7 +43,7 @@ test('explodeHostedGitFragment should work identical with and without .git suffi
   expect(explodeHostedGitFragment(fragmentWithGit, reporter)).toEqual(expectedFragment);
 });
 
-test('explodeHostedGitFragment should not be confused with a `.github` substring', () => {
+test('explodeHostedGitFragment should not be confused with a .github substring', () => {
   const fragmentString = 'kawashimaken/ajaxzip3.github.io#^1.0.0';
 
   const expectedFragment: ExplodedFragment = {
@@ -53,4 +53,16 @@ test('explodeHostedGitFragment should not be confused with a `.github` substring
   };
 
   expect(explodeHostedGitFragment(fragmentString, reporter)).toEqual(expectedFragment);
+});
+
+test('explodeHostedGitFragment should remove only one .git suffix', () => {
+  const fragmentWithDoubleGit = 'jure/lens.git.git#feature/fix-issue';
+
+  const expectedFragment: ExplodedFragment = {
+    user: 'jure',
+    repo: 'lens.git',
+    hash: 'feature/fix-issue',
+  };
+
+  expect(explodeHostedGitFragment(fragmentWithDoubleGit, reporter)).toEqual(expectedFragment);
 });
