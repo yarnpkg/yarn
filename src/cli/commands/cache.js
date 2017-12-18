@@ -4,7 +4,6 @@ import type {Reporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
 import buildSubCommands from './_build-sub-commands.js';
 import * as fs from '../../util/fs.js';
-import {METADATA_FILENAME} from '../../constants';
 
 const path = require('path');
 const micromatch = require('micromatch');
@@ -13,8 +12,8 @@ export function hasWrapper(flags: Object, args: Array<string>): boolean {
   return args[0] !== 'dir';
 }
 
-function isScopedPackage(loc, metadataFile = METADATA_FILENAME): Promise<boolean> {
-  return fs.exists(path.join(loc, metadataFile)).then(res => !res);
+function isScopedPackageDirectory(packagePath): boolean {
+  return packagePath.indexOf('@') > -1;
 }
 
 async function getPackagesPaths(config, currentPath): Object {
@@ -30,8 +29,8 @@ async function getPackagesPaths(config, currentPath): Object {
     if (folder[0] === '.') {
       continue;
     }
-    const packagePath = path.join(config.cacheFolder, currentPath.replace(config.cacheFolder, ''), folder);
-    if (await isScopedPackage(packagePath)) {
+    const packagePath = path.join(currentPath, folder);
+    if (isScopedPackageDirectory(folder)) {
       results.push(...(await getPackagesPaths(config, packagePath)));
     } else {
       results.push(packagePath);
@@ -71,9 +70,7 @@ const {run, setFlags: _setFlags, examples} = buildSubCommands('cache', {
     await list(config, reporter, flags, args);
   },
 
-  async list(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
-    await list(config, reporter, flags, args);
-  },
+  list,
 
   dir(config: Config, reporter: Reporter) {
     reporter.log(config.cacheFolder, {force: true});
@@ -121,5 +118,6 @@ export {run, examples};
 
 export function setFlags(commander: Object) {
   _setFlags(commander);
+  commander.description('Yarn cache list will print out every cached package.');
   commander.option('--pattern [pattern]', 'filter cached packages by pattern');
 }

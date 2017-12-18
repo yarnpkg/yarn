@@ -71,18 +71,19 @@ export class Add extends Install {
     } else if (hasVersion && range && (semver.satisfies(pkg.version, range) || getExoticResolver(range))) {
       // if the user specified a range then use it verbatim
       version = range;
-    } else {
-      let prefix;
+    }
+
+    if (!version || semver.valid(version)) {
+      let prefix = configPrefix || '^';
+
       if (tilde) {
         prefix = '~';
-      } else if (exact) {
+      } else if (version || exact) {
         prefix = '';
-      } else {
-        prefix = configPrefix || '^';
       }
-
       version = `${prefix}${pkg.version}`;
     }
+
     return version;
   }
 
@@ -210,6 +211,7 @@ export function hasWrapper(commander: Object): boolean {
 }
 
 export function setFlags(commander: Object) {
+  commander.description('Installs a package and any packages that it depends on.');
   commander.usage('add [packages ...] [flags]');
   commander.option('-W, --ignore-workspace-root-check', 'required to run yarn add inside a workspace root');
   commander.option('-D, --dev', 'save package to your `devDependencies`');

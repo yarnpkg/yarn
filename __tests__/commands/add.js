@@ -1,5 +1,7 @@
 /* @flow */
 
+import type {Prompt} from 'inquirer';
+
 import {ConsoleReporter} from '../../src/reporters/index.js';
 import * as reporters from '../../src/reporters/index.js';
 import {
@@ -21,6 +23,7 @@ import semver from 'semver';
 import {promisify} from '../../src/util/promise';
 import fsNode from 'fs';
 import inquirer from 'inquirer';
+import invariant from 'invariant';
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 150000;
 
@@ -144,6 +147,16 @@ test.concurrent('install with --optional flag', (): Promise<void> => {
     expect(lockfile.indexOf('left-pad@1.1.0:')).toEqual(0);
     expect(pkg.optionalDependencies).toEqual({'left-pad': '1.1.0'});
     expect(pkg.dependencies).toEqual({});
+  });
+});
+
+test.concurrent('install with --tilde flag', (): Promise<void> => {
+  return runAdd(['isarray@2.0.1'], {tilde: true}, 'add-with-flag', async config => {
+    const lockfile = explodeLockfile(await fs.readFile(path.join(config.cwd, 'yarn.lock')));
+    const pkg = await fs.readJson(path.join(config.cwd, 'package.json'));
+
+    expect(lockfile.indexOf('isarray@~2.0.1:')).toEqual(0);
+    expect(pkg.dependencies).toEqual({isarray: '~2.0.1'});
   });
 });
 
@@ -609,6 +622,27 @@ test.concurrent('upgrade scenario 2 (with sub dependencies)', (): Promise<void> 
   });
 });
 
+test.concurrent('install another fork of an existing package', (): Promise<void> => {
+  // When installing a package with the same name as an existing one but from a different repo,
+  // the old one should be replaced with the new one in the lock file.
+  const firstSource = 'davidreis97/example-yarn-package#master';
+  const secondSource = 'yarnpkg/example-yarn-package#master';
+  const pkgName = 'example-yarn-package';
+  return runAdd([firstSource], {}, 'install-forked-git', async (config, reporter): Promise<void> => {
+    let lockfile = explodeLockfile(await fs.readFile(path.join(config.cwd, 'yarn.lock')));
+    expect(lockfile.indexOf(`${pkgName}@${firstSource}:`)).toEqual(0);
+    expect(lockfile.indexOf(`${pkgName}@${secondSource}:`)).toEqual(-1);
+
+    const add = new Add([secondSource], {}, config, reporter, await Lockfile.fromDirectory(config.cwd));
+    await add.init();
+
+    lockfile = explodeLockfile(await fs.readFile(path.join(config.cwd, 'yarn.lock')));
+
+    expect(lockfile.indexOf(`${pkgName}@${firstSource}:`)).toEqual(-1);
+    expect(lockfile.indexOf(`${pkgName}@${secondSource}:`)).toEqual(0);
+  });
+});
+
 test.concurrent('downgrade scenario', (): Promise<void> => {
   // left-pad first installed 1.1.0 then downgraded to 0.0.9
   // files in mirror, yarn.lock, package.json and node_modules should reflect that
@@ -801,8 +835,14 @@ test.skip('add asks for correct package version if user passes an incorrect one'
       inquirer.prompt = jest.fn(questions => {
         expect(questions).toHaveLength(1);
         expect(questions[0].name).toEqual('package');
-        expect(questions[0].choices.length).toBeGreaterThan(0);
-        chosenVersion = questions[0].choices[0];
+
+        const choices = questions[0].choices;
+        invariant(Array.isArray(choices));
+        expect(choices.length).toBeGreaterThan(0);
+        invariant(choices.length > 0);
+        chosenVersion = choices[0];
+        invariant(typeof chosenVersion === 'string');
+        // $FlowFixMe: No sane way to return an "extended" Promise object
         return Promise.resolve({package: chosenVersion});
       });
     },

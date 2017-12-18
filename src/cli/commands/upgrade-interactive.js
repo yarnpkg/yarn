@@ -16,6 +16,7 @@ const path = require('path');
 export const requireLockfile = true;
 
 export function setFlags(commander: Object) {
+  commander.description('Provides an easy way to update outdated packages.');
   commander.usage('upgrade-interactive [flags]');
   commander.option('-S, --scope <scope>', 'upgrade packages under the specified scope');
   commander.option('--latest', 'list the latest version of packages, ignoring version ranges in package.json');

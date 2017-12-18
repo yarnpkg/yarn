@@ -255,3 +255,47 @@ test('TarballFetcher.fetch properly stores tarball of scoped package in offline 
   const exists = await fs.exists(path.join(offlineMirrorDir, '@exponent-configurator-1.0.2.tgz'));
   expect(exists).toBe(true);
 });
+
+test('TarballFetcher.fetch properly stores tarball for scoped package resolved from artifactory registry', async () => {
+  const dir = await mkdir('tarball-fetcher');
+  const offlineMirrorDir = await mkdir('offline-mirror');
+
+  const config = await Config.create();
+  config.registries.npm.config['yarn-offline-mirror'] = offlineMirrorDir;
+
+  const fetcher = new TarballFetcher(
+    dir,
+    {
+      type: 'tarball',
+      hash: '6f0ab73cdd7b82d8e81e80838b49e9e4c7fbcc44',
+      reference:
+        'https://artifactory.internal.site:443/artifactory/api/npm/external-mirror/@exponent/configurator/-/configurator-1.0.2.tgz',
+      registry: 'npm',
+    },
+    config,
+  );
+
+  expect(fetcher.getTarballMirrorPath()).toBe(path.join(offlineMirrorDir, '@exponent-configurator-1.0.2.tgz'));
+});
+
+test('TarballFetcher.fetch properly stores tarball for scoped package resolved from new  style URLs', async () => {
+  const dir = await mkdir('tarball-fetcher');
+  const offlineMirrorDir = await mkdir('offline-mirror');
+
+  const config = await Config.create();
+  config.registries.npm.config['yarn-offline-mirror'] = offlineMirrorDir;
+
+  const fetcher = new TarballFetcher(
+    dir,
+    {
+      type: 'tarball',
+      hash: '6f0ab73cdd7b82d8e81e80838b49e9e4c7fbcc44',
+      reference:
+        'https://artifactory.internal.site:443/artifactory/api/npm/external-mirror/@exponent/configurator/-/@exponent/configurator-1.0.2.tgz',
+      registry: 'npm',
+    },
+    config,
+  );
+
+  expect(fetcher.getTarballMirrorPath()).toBe(path.join(offlineMirrorDir, '@exponent-configurator-1.0.2.tgz'));
+});
