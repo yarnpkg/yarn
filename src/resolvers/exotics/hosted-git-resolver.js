@@ -50,12 +50,12 @@ export function explodeHostedGitFragment(fragment: string, reporter: Reporter): 
     }
 
     const user = userParts.shift();
-    const repoParts = userParts.join('/').split(/(?:[.]git)?#(.*)/);
+    const repoParts = userParts.join('/').split(/#(.*)/);
 
     if (repoParts.length <= 3) {
       return {
         user,
-        repo: repoParts[0].replace(/[.]git$/, ''),
+        repo: repoParts[0].replace(/\.git$/, ''),
         hash: repoParts[1] || '',
       };
     }
