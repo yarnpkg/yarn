@@ -121,16 +121,23 @@ export const {run, examples} = buildSubCommands('licenses', {
     // the same license text are grouped together.
     const manifestsByLicense: Map<string, Map<string, Manifest>> = new Map();
     for (const manifest of manifests) {
-      const {licenseText} = manifest;
+      const {licenseText, noticeText} = manifest;
+      let licenseKey;
       if (!licenseText) {
         continue;
       }
 
-      if (!manifestsByLicense.has(licenseText)) {
-        manifestsByLicense.set(licenseText, new Map());
+      if (!noticeText) {
+        licenseKey = licenseText;
+      } else {
+        licenseKey = `${licenseText}\n\nNOTICE\n\n${noticeText}`;
       }
 
-      const byLicense = manifestsByLicense.get(licenseText);
+      if (!manifestsByLicense.has(licenseKey)) {
+        manifestsByLicense.set(licenseKey, new Map());
+      }
+
+      const byLicense = manifestsByLicense.get(licenseKey);
       invariant(byLicense, 'expected value');
       byLicense.set(manifest.name, manifest);
     }
@@ -141,7 +148,7 @@ export const {run, examples} = buildSubCommands('licenses', {
     );
     console.log();
 
-    for (const [licenseText, manifests] of manifestsByLicense) {
+    for (const [licenseKey, manifests] of manifestsByLicense) {
       console.log('-----');
       console.log();
 
@@ -164,8 +171,8 @@ export const {run, examples} = buildSubCommands('licenses', {
       console.log(heading.join(' '));
       console.log();
 
-      if (licenseText) {
-        console.log(licenseText.trim());
+      if (licenseKey) {
+        console.log(licenseKey.trim());
       } else {
         // what do we do here? base it on `license`?
       }
