@@ -74,6 +74,11 @@ export async function setVersion(
 
   // wasn't passed a version arg so ask interactively
   while (!newVersion) {
+    // make sure we're not running in non-interactive mode before asking for new version
+    if (flags.nonInteractive || config.nonInteractive) {
+      throw new MessageError(reporter.lang('nonInteractiveNoVersionSpecified'));
+    }
+
     newVersion = await reporter.question(reporter.lang('newVersion'));
 
     if (!required && !newVersion) {

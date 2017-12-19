@@ -308,6 +308,10 @@ const messages = {
   published: 'Published.',
   publishing: 'Publishing',
 
+  nonInteractiveNoVersionSpecified:
+    'You must specify a new version with --new-version when running with --non-interactive.',
+  nonInteractiveNoToken: "No token found and can't prompt for login when running with --non-interactive.",
+
   infoFail: 'Received invalid response from npm.',
   malformedRegistryResponse: 'Received malformed response from registry for $0. The registry may be down.',
 
