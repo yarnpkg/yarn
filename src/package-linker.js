@@ -400,7 +400,7 @@ export default class PackageLinker {
     }
 
     // create binary links
-    if (this.config.getOption('binLinks')) {
+    if (this.config.binLinks) {
       const topLevelDependencies = this.determineTopLevelBinLinks(flatTree);
       const tickBin = this.reporter.progress(flatTree.length + topLevelDependencies.length);
 
