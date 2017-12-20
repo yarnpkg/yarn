@@ -326,7 +326,12 @@ export default class Config {
     this.enableMetaFolder = Boolean(this.getOption('enable-meta-folder'));
     this.enableLockfileVersions = Boolean(this.getOption('yarn-enable-lockfile-versions'));
     this.linkFileDependencies = Boolean(this.getOption('yarn-link-file-dependencies'));
-    this.binLinks = !!opts.binLinks || Boolean(this.getOption('bin-links'));
+
+    if (opts.binLinks && this.getOption('bin-links') !== undefined) {
+      this.binLinks = Boolean(this.getOption('bin-links'));
+    } else {
+      this.binLinks = Boolean(opts.binLinks);
+    }
 
     //init & create cacheFolder, tempFolder
     this.cacheFolder = path.join(this._cacheRootFolder, 'v' + String(constants.CACHE_VERSION));
