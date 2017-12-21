@@ -42,3 +42,15 @@ test('explodeHostedGitFragment should work identical with and without .git suffi
   expect(explodeHostedGitFragment(fragmentWithoutGit, reporter)).toEqual(expectedFragment);
   expect(explodeHostedGitFragment(fragmentWithGit, reporter)).toEqual(expectedFragment);
 });
+
+test('explodeHostedGitFragment should allow the project name to contain .git', () => {
+  const fragmentString = 'jure/lens.github';
+
+  const expectedFragment: ExplodedFragment = {
+    user: 'jure',
+    repo: 'lens.github',
+    hash: '',
+  };
+
+  expect(explodeHostedGitFragment(fragmentString, reporter)).toEqual(expectedFragment);
+});
