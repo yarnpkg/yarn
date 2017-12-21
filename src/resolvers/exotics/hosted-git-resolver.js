@@ -55,7 +55,7 @@ export function explodeHostedGitFragment(fragment: string, reporter: Reporter): 
     if (repoParts.length <= 3) {
       return {
         user,
-        repo: repoParts[0].replace('.git$', ''),
+        repo: repoParts[0].replace(/\.git$/, ''),
         hash: repoParts[1] || '',
       };
     }
