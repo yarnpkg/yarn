@@ -171,6 +171,7 @@ export async function executeLifecycleScript(
   cwd: string,
   cmd: string,
   spinner?: ReporterSpinner,
+  customShell?: string,
 ): LifecycleReturn {
   // if we don't have a spinner then pipe everything to the terminal
   const stdio = spinner ? undefined : 'inherit';
@@ -183,11 +184,10 @@ export async function executeLifecycleScript(
   let sh = 'sh';
   let shFlag = '-c';
 
-  const customShell = config.getOption('script-shell');
   let windowsVerbatimArguments = undefined;
 
   if (customShell) {
-    sh = String(customShell);
+    sh = customShell;
   } else if (process.platform === 'win32') {
     sh = process.env.comspec || 'cmd';
     shFlag = '/d /s /c';
@@ -271,11 +271,17 @@ export async function execFromManifest(config: Config, commandName: string, cwd:
   }
 }
 
-export async function execCommand(stage: string, config: Config, cmd: string, cwd: string): Promise<void> {
+export async function execCommand(
+  stage: string,
+  config: Config,
+  cmd: string,
+  cwd: string,
+  customShell?: string,
+): Promise<void> {
   const {reporter} = config;
   try {
     reporter.command(cmd);
-    await executeLifecycleScript(stage, config, cwd, cmd);
+    await executeLifecycleScript(stage, config, cwd, cmd, undefined, customShell);
     return Promise.resolve();
   } catch (err) {
     if (err instanceof ProcessTermError) {
