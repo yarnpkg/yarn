@@ -97,7 +97,7 @@ Object {
 exports[`ConsoleReporter.step 1`] = `
 Object {
   "stderr": "",
-  "stdout": "[2K[1G[2m[1/5][22m foboar...",
+  "stdout": "[2K[1G[2m[1/5][22m foboar…",
 }
 `;
 
