@@ -110,9 +110,9 @@ export default class ConsoleReporter extends BaseReporter {
     msg = this._prependEmoji(msg, emoji);
 
     if (msg.endsWith('?')) {
-      msg = `${removeSuffix(msg, '?')}...?`;
+      msg = `${removeSuffix(msg, '?')}…?`;
     } else {
-      msg += '...';
+      msg += '…';
     }
 
     this.log(`${this.format.dim(`[${current}/${total}]`)} ${msg}`);
@@ -276,7 +276,7 @@ export default class ConsoleReporter extends BaseReporter {
         prefix = null;
         current = 0;
         updatePrefix();
-        spinner.setText('waiting...');
+        spinner.setText('waiting…');
       };
       clear();
 
