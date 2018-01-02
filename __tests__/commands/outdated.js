@@ -156,26 +156,77 @@ test.concurrent('displays correct dependency types', (): Promise<void> => {
 test.concurrent('shows dependencies from entire workspace', async (): Promise<void> => {
   await runOutdated([], {}, 'workspaces', (config, reporter, out): ?Promise<void> => {
     const json: Object = JSON.parse(out);
+    const {body} = json.data;
 
-    expect(json.data.body).toHaveLength(4);
-    expect(json.data.body[0][0]).toBe('left-pad');
-    expect(json.data.body[0][1]).toBe('1.0.0');
-    expect(json.data.body[1][0]).toBe('left-pad');
-    expect(json.data.body[1][1]).toBe('1.0.1');
-    expect(json.data.body[2][0]).toBe('max-safe-integer');
-    expect(json.data.body[3][0]).toBe('right-pad');
+    expect(body).toHaveLength(4);
+    expect(body[0][0]).toBe('left-pad');
+    expect(body[0][1]).toBe('1.0.0');
+    expect(body[1][0]).toBe('left-pad');
+    expect(body[1][1]).toBe('1.0.1');
+    expect(body[2][0]).toBe('max-safe-integer');
+    expect(body[3][0]).toBe('right-pad');
   });
 
   const childFixture = {source: 'workspaces', cwd: 'child-a'};
   return runOutdated([], {}, childFixture, (config, reporter, out): ?Promise<void> => {
     const json: Object = JSON.parse(out);
+    const {body} = json.data;
 
-    expect(json.data.body).toHaveLength(4);
-    expect(json.data.body[0][0]).toBe('left-pad');
-    expect(json.data.body[0][1]).toBe('1.0.0');
-    expect(json.data.body[1][0]).toBe('left-pad');
-    expect(json.data.body[1][1]).toBe('1.0.1');
-    expect(json.data.body[2][0]).toBe('max-safe-integer');
-    expect(json.data.body[3][0]).toBe('right-pad');
+    expect(body).toHaveLength(4);
+    expect(body[0][0]).toBe('left-pad');
+    expect(body[0][1]).toBe('1.0.0');
+    expect(body[1][0]).toBe('left-pad');
+    expect(body[1][1]).toBe('1.0.1');
+    expect(body[2][0]).toBe('max-safe-integer');
+    expect(body[3][0]).toBe('right-pad');
   });
+});
+
+test.concurrent('--main: displays only package dependencies', (): Promise<void> => {
+  return runOutdated([], {main: true}, 'display-dependency-type', (config, reporter, out): ?Promise<void> => {
+    const json: Object = JSON.parse(out);
+    const {body} = json.data;
+
+    expect(body.length).toBe(1);
+    expect(body[0][0]).toBe('left-pad');
+    expect(body[0][4]).toBe('dependencies');
+    expect(reporter.format.yellow).toHaveBeenCalledWith('left-pad');
+  });
+});
+
+test.concurrent('--dev: displays only devDependencies', (): Promise<void> => {
+  return runOutdated([], {dev: true}, 'display-dependency-type', (config, reporter, out): ?Promise<void> => {
+    const json: Object = JSON.parse(out);
+    const {body} = json.data;
+
+    // peerDependencies aren't included in the output
+    expect(body.length).toBe(1);
+    expect(body[0][0]).toBe('max-safe-integer');
+    expect(body[0][4]).toBe('devDependencies');
+    expect(reporter.format.green).toHaveBeenCalledWith('max-safe-integer');
+  });
+});
+
+test.concurrent('--optional: displays only optionalDependencies', (): Promise<void> => {
+  return runOutdated([], {optional: true}, 'display-dependency-type', (config, reporter, out): ?Promise<void> => {
+    const json: Object = JSON.parse(out);
+    const {body} = json.data;
+
+    expect(body.length).toBe(1);
+    expect(body[0][0]).toBe('is-online');
+    expect(body[0][4]).toBe('optionalDependencies');
+    expect(reporter.format.red).toHaveBeenCalledWith('is-online');
+  });
+});
+
+test.concurrent('multiple flags: should throw console error', async (): Promise<void> => {
+  let error;
+
+  try {
+    await runOutdated([], {dev: true, optional: true}, 'display-dependency-type');
+  } catch (e) {
+    error = e.message;
+  }
+
+  expect(error).toContain('You can use only one flag at the time.');
 });
