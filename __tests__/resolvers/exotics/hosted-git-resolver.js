@@ -54,3 +54,15 @@ test('explodeHostedGitFragment should allow the project name to contain .git', (
 
   expect(explodeHostedGitFragment(fragmentString, reporter)).toEqual(expectedFragment);
 });
+
+test('explodeHostedGitFragment should remove only one .git suffix', () => {
+  const fragmentWithDoubleGit = 'jure/lens.git.git#feature/fix-issue';
+
+  const expectedFragment: ExplodedFragment = {
+    user: 'jure',
+    repo: 'lens.git',
+    hash: 'feature/fix-issue',
+  };
+
+  expect(explodeHostedGitFragment(fragmentWithDoubleGit, reporter)).toEqual(expectedFragment);
+});
