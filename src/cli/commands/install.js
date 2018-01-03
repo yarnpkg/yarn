@@ -478,17 +478,14 @@ export class Install {
    * used by global.ls command
    */
   async getFlattennedDeps(): Promise<Array<string>> {
-    const {
-      requests: depRequests,
-      patterns: rawPatterns,
-    } = await this.fetchRequestFromCwd();
+    const {requests: depRequests, patterns: rawPatterns} = await this.fetchRequestFromCwd();
 
     await this.resolver.init(depRequests, {});
 
     const manifests = await fetcher.fetch(this.resolver.getManifests(), this.config);
     this.resolver.updateManifests(manifests);
 
-    return await this.flatten(rawPatterns);
+    return this.flatten(rawPatterns);
   }
 
   /**
