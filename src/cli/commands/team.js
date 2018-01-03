@@ -164,7 +164,11 @@ async function list(parts: TeamParts, config: Config, reporter: Reporter): Promi
   return true;
 }
 
-export const {run, setFlags, hasWrapper, examples} = buildSubCommands(
+export function setFlags(commander: Object) {
+  commander.description('Maintain team memberships');
+}
+
+export const {run, hasWrapper, examples} = buildSubCommands(
   'team',
   {
     create: wrapRequiredTeam(async function(

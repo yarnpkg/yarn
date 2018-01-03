@@ -11,6 +11,7 @@ import colorizeDiff from '../../util/colorize-diff.js';
 export const requireLockfile = true;
 
 export function setFlags(commander: Object) {
+  commander.description('Checks for outdated package dependencies.');
   commander.usage('outdated [packages ...]');
 }
 
@@ -39,7 +40,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
         colorizeName(info),
         info.current,
         colorizeDiff(info.current, info.wanted, reporter),
-        reporter.format.magenta(info.latest),
+        reporter.format.cyan(info.latest),
         info.workspaceName || '',
         getNameFromHint(info.hint),
         reporter.format.cyan(info.url),

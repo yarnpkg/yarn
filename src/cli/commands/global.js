@@ -286,5 +286,7 @@ export {run};
 
 export function setFlags(commander: Object) {
   _setFlags(commander);
+  commander.description('Installs packages globally on your operating system.');
   commander.option('--prefix <prefix>', 'bin prefix to use to install binaries');
+  commander.option('--latest', 'upgrade to the latest version of packages');
 }

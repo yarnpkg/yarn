@@ -12,7 +12,7 @@ jasmine.DEFAULT_TIMEOUT_INTERVAL = 120000;
 
 const path = require('path');
 
-function addTest(pattern, {strict} = {strict: false}, yarnArgs: Array<string> = []) {
+function addTest(pattern, {strictPeers} = {strictPeers: false}, yarnArgs: Array<string> = []) {
   test.concurrent(`yarn add ${pattern}`, async () => {
     const cwd = await makeTemp();
     const cacheFolder = path.join(cwd, 'cache');
@@ -31,8 +31,8 @@ function addTest(pattern, {strict} = {strict: false}, yarnArgs: Array<string> = 
     );
 
     const result = await execa(command, ['add', pattern].concat(args), options);
-    if (strict) {
-      expect(result.stderr).not.toMatch(/^warning /gm);
+    if (strictPeers) {
+      expect(result.stderr).not.toMatch(/^warning .+ peer dependency/gm);
     }
 
     await fs.unlink(cwd);
@@ -60,7 +60,7 @@ addTest('https://git@github.com/stevemao/left-pad.git'); // git url, with userna
 addTest('https://github.com/yarnpkg/yarn/releases/download/v0.18.1/yarn-v0.18.1.tar.gz'); // tarball
 addTest('https://github.com/bestander/chrome-app-livereload.git'); // no package.json
 addTest('bestander/chrome-app-livereload'); // no package.json, github, tarball
-addTest('react-scripts@1.0.13', {strict: true}, ['--no-node-version-check', '--ignore-engines']); // many peer dependencies, there shouldn't be any peerDep warnings
+addTest('react-scripts@1.0.13', {strictPeers: true}, ['--no-node-version-check', '--ignore-engines']); // many peer dependencies, there shouldn't be any peerDep warnings
 
 const MIN_PORT_NUM = 56000;
 const MAX_PORT_NUM = 65535;
@@ -244,7 +244,7 @@ test('yarnrc arguments', async () => {
   );
   await fs.writeFile(`${cwd}/package.json`, JSON.stringify({name: 'test', license: 'ISC', version: '1.0.0'}));
 
-  const [stdoutOutput] = await runYarn(['add', 'left-pad'], {cwd});
+  const [stdoutOutput] = await runYarn(['add', 'left-pad@1.1.3'], {cwd});
   expect(stdoutOutput).toMatchSnapshot('yarnrc-args');
   expect(JSON.parse(await fs.readFile(`${cwd}/package.json`)).dependencies['left-pad']).toMatch(/^\d+\./);
   expect((await fs.stat(`${cwd}/yarn-cache`)).isDirectory()).toBe(true);

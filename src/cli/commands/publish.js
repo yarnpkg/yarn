@@ -16,6 +16,7 @@ const fs2 = require('fs');
 
 export function setFlags(commander: Object) {
   versionSetFlags(commander);
+  commander.description('Publishes a package to the npm registry.');
   commander.usage('publish [<tarball>|<folder>] [--tag <tag>] [--access <public|restricted>]');
   commander.option('--access [access]', 'access');
   commander.option('--tag [tag]', 'tag');

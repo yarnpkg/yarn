@@ -1,0 +1,54 @@
+{
+  "name": "repeat-string",
+  "description": "Repeat the given string n times. Fastest implementation for repeating a string.",
+  "version": "1.4.0",
+  "homepage": "https://github.com/jonschlinkert/repeat-string",
+  "author": {
+    "name": "Jon Schlinkert",
+    "url": "http://github.com/jonschlinkert/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/jonschlinkert/repeat-string.git"
+  },
+  "bugs": {
+    "url": "https://github.com/jonschlinkert/repeat-string/issues"
+  },
+  "license": {
+    "type": "MIT",
+    "url": "https://github.com/jonschlinkert/repeat-string/blob/master/LICENSE"
+  },
+  "main": "index.js",
+  "engines": {
+    "node": ">=0.10"
+  },
+  "scripts": {
+    "test": "mocha -R spec"
+  },
+  "files": ["index.js"],
+  "devDependencies": {
+    "benchmarked": "^0.1.3",
+    "chalk": "^0.5.1",
+    "glob": "^4.3.5",
+    "minimist": "^1.1.0",
+    "repeating": "^1.1.1",
+    "should": "^4.0.4"
+  },
+  "keywords": [
+    "fast",
+    "fastest",
+    "fill",
+    "left",
+    "left-pad",
+    "multiple",
+    "pad",
+    "padding",
+    "repetition",
+    "repeat",
+    "repeating",
+    "right",
+    "right-pad",
+    "string",
+    "times"
+  ]
+}

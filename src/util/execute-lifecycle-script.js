@@ -148,6 +148,9 @@ export async function makeEnv(
   // add .bin folders to PATH
   for (const registry of Object.keys(registries)) {
     const binFolder = path.join(config.registries[registry].folder, '.bin');
+    if (config.workspacesEnabled && config.workspaceRootFolder) {
+      pathParts.unshift(path.join(config.workspaceRootFolder, binFolder));
+    }
     pathParts.unshift(path.join(config.linkFolder, binFolder));
     pathParts.unshift(path.join(cwd, binFolder));
   }
@@ -168,6 +171,7 @@ export async function executeLifecycleScript(
   cwd: string,
   cmd: string,
   spinner?: ReporterSpinner,
+  customShell?: string,
 ): LifecycleReturn {
   // if we don't have a spinner then pipe everything to the terminal
   const stdio = spinner ? undefined : 'inherit';
@@ -177,7 +181,17 @@ export async function executeLifecycleScript(
   await checkForGypIfNeeded(config, cmd, env[constants.ENV_PATH_KEY].split(path.delimiter));
 
   // get shell
-  if (process.platform === 'win32') {
+  let sh = 'sh';
+  let shFlag = '-c';
+
+  let windowsVerbatimArguments = undefined;
+
+  if (customShell) {
+    sh = customShell;
+  } else if (process.platform === 'win32') {
+    sh = process.env.comspec || 'cmd';
+    shFlag = '/d /s /c';
+    windowsVerbatimArguments = true;
     // handle windows run scripts starting with a relative path
     cmd = fixCmdWinSlashes(cmd);
   }
@@ -201,7 +215,7 @@ export async function executeLifecycleScript(
       }
     };
   }
-  const stdout = await child.spawn(cmd, [], {shell: true, cwd, env, stdio}, updateProgress);
+  const stdout = await child.spawn(sh, [shFlag, cmd], {cwd, env, stdio, windowsVerbatimArguments}, updateProgress);
 
   return {cwd, command: cmd, stdout};
 }
@@ -257,11 +271,17 @@ export async function execFromManifest(config: Config, commandName: string, cwd:
   }
 }
 
-export async function execCommand(stage: string, config: Config, cmd: string, cwd: string): Promise<void> {
+export async function execCommand(
+  stage: string,
+  config: Config,
+  cmd: string,
+  cwd: string,
+  customShell?: string,
+): Promise<void> {
   const {reporter} = config;
   try {
     reporter.command(cmd);
-    await executeLifecycleScript(stage, config, cwd, cmd);
+    await executeLifecycleScript(stage, config, cwd, cmd, undefined, customShell);
     return Promise.resolve();
   } catch (err) {
     if (err instanceof ProcessTermError) {
