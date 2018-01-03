@@ -35,12 +35,10 @@ async function fetchOne(ref: PackageReference, config: Config): Promise<FetchedM
   if (!Fetcher) {
     throw new MessageError(config.reporter.lang('unknownFetcherFor', remote.type));
   }
-
   const fetcher = new Fetcher(dest, remote, config);
   if (await config.isValidModuleDest(dest)) {
     return fetchCache(dest, fetcher, config);
   }
-
   // remove as the module may be invalid
   await fs.unlink(dest);
 
@@ -101,9 +99,14 @@ export function fetch(pkgs: Array<Manifest>, config: Config): Promise<Array<Mani
       }
 
       const res = await maybeFetchOne(ref, config);
-      const newPkg = res && res.package;
+
+      if (tick) {
+        tick();
+      }
 
       if (res) {
+        const newPkg = res.package;
+
         // update with new remote
         // but only if there was a hash previously as the tarball fetcher does not provide a hash.
         if (ref.remote.hash) {
@@ -121,23 +124,20 @@ export function fetch(pkgs: Array<Manifest>, config: Config): Promise<Array<Mani
           }
           ref.remote.hash = res.hash;
         }
-      }
 
-      if (tick) {
-        tick();
-      }
-
-      if (newPkg) {
-        newPkg._reference = ref;
-        newPkg._remote = ref.remote;
-        newPkg.name = pkg.name;
-        newPkg.fresh = pkg.fresh;
-        DEPENDENCY_TYPES.forEach(dep => {
-          if (pkg[dep]) {
-            newPkg[dep] = pkg[dep];
-          }
-        });
-        return newPkg;
+        if (newPkg) {
+          newPkg._reference = ref;
+          newPkg._remote = ref.remote;
+          newPkg.name = pkg.name;
+          newPkg.fresh = pkg.fresh;
+          // dependencies protocols sometimes differ, force original package versions
+          DEPENDENCY_TYPES.forEach(dep => {
+            if (pkg[dep]) {
+              newPkg[dep] = pkg[dep];
+            }
+          });
+          return newPkg;
+        }
       }
 
       return pkg;
