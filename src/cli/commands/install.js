@@ -474,6 +474,24 @@ export class Install {
   }
 
   /**
+   * helper method that gets only recent manifests
+   * used by global.ls command
+   */
+  async getFlattennedDeps(): Promise<Array<string>> {
+    const {
+      requests: depRequests,
+      patterns: rawPatterns,
+    } = await this.fetchRequestFromCwd();
+
+    await this.resolver.init(depRequests, {});
+
+    const manifests = await fetcher.fetch(this.resolver.getManifests(), this.config);
+    this.resolver.updateManifests(manifests);
+
+    return await this.flatten(rawPatterns);
+  }
+
+  /**
    * TODO description
    */
 
