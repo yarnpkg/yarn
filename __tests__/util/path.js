@@ -15,15 +15,9 @@ jest.mock('path', () => {
 import {resolveWithHome} from '../../src/util/path.js';
 
 describe('resolveWithHome', () => {
-  const realPlatform = process.platform;
-
   describe('!win32', () => {
     beforeAll(() => {
-      process.platform = 'notWin32';
-    });
-
-    afterAll(() => {
-      process.platform = realPlatform;
+      Object.defineProperty(process, 'platform', {configurable: true, value: 'notWin32'});
     });
 
     test('Paths with home are resolved', () => {
@@ -33,11 +27,7 @@ describe('resolveWithHome', () => {
 
   describe('win32', () => {
     beforeAll(() => {
-      process.platform = 'win32';
-    });
-
-    afterAll(() => {
-      process.platform = realPlatform;
+      Object.defineProperty(process, 'platform', {configurable: true, value: 'win32'});
     });
 
     test('Paths with home are resolved', () => {

@@ -171,6 +171,16 @@ describe('list', () => {
     });
   });
 
+  test('does not error listing dependencies when production and no devDependencies exist', async (): Promise<void> => {
+    let thrown = false;
+    try {
+      await runList([], {production: true}, 'no-dev-deps-production');
+    } catch (e) {
+      thrown = true;
+    }
+    expect(thrown).toEqual(false);
+  });
+
   test('getParent should extract a parent object from a hash, if the parent key exists', () => {
     const mockTreesByKey = {};
 

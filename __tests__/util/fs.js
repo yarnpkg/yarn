@@ -3,15 +3,9 @@
 import {fileDatesEqual} from '../../src/util/fs.js';
 
 describe('fileDatesEqual', () => {
-  const realPlatform = process.platform;
-
   describe('!win32', () => {
     beforeAll(() => {
-      process.platform = 'notWin32';
-    });
-
-    afterAll(() => {
-      process.platform = realPlatform;
+      Object.defineProperty(process, 'platform', {configurable: true, value: 'notWin32'});
     });
 
     test('Same dates equal', () => {
@@ -27,11 +21,7 @@ describe('fileDatesEqual', () => {
   });
   describe('win32', () => {
     beforeAll(() => {
-      process.platform = 'win32';
-    });
-
-    afterAll(() => {
-      process.platform = realPlatform;
+      Object.defineProperty(process, 'platform', {configurable: true, value: 'win32'});
     });
 
     test('Same dates equal', () => {
