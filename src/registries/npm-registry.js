@@ -13,7 +13,6 @@ import envReplace from '../util/env-replace.js';
 import Registry from './base-registry.js';
 import {addSuffix} from '../util/misc';
 import {getPosixPath, resolveWithHome} from '../util/path';
-import normalizeUrl from 'normalize-url';
 import {default as userHome, home} from '../util/user-home-dir';
 import path from 'path';
 import url from 'url';
@@ -99,32 +98,13 @@ export default class NpmRegistry extends Registry {
     }
   }
 
-  isRequestToRegistry(requestUrl: string, registryUrl: string): boolean {
-    const normalizedRequestUrl = normalizeUrl(requestUrl);
-    const normalizedRegistryUrl = normalizeUrl(registryUrl);
-    const requestParsed = url.parse(normalizedRequestUrl);
-    const registryParsed = url.parse(normalizedRegistryUrl);
-    const requestHost = requestParsed.host || '';
-    const registryHost = registryParsed.host || '';
-    const requestPath = requestParsed.path || '';
-    const registryPath = registryParsed.path || '';
-    const customHostSuffix = this.getRegistryOrGlobalOption(registryUrl, 'custom-host-suffix');
-
-    return (
-      requestHost === registryHost &&
-      (requestPath.startsWith(registryPath) ||
-        // For some registries, the package path does not prefix with the registry path
-        (typeof customHostSuffix === 'string' && requestHost.endsWith(customHostSuffix)))
-    );
-  }
-
   request(pathname: string, opts?: RegistryRequestOptions = {}, packageName: ?string): Promise<*> {
     // packageName needs to be escaped when if it is passed
     const packageIdent = (packageName && NpmRegistry.escapeName(packageName)) || pathname;
     const registry = this.getRegistry(packageIdent);
     const requestUrl = this.getRequestUrl(registry, pathname);
 
-    const alwaysAuth = this.getRegistryOrGlobalOption(registry, 'always-auth');
+    const alwaysAuth = registry && this.getRegistryOrGlobalOption(registry, 'always-auth');
 
     const headers = Object.assign(
       {
@@ -133,10 +113,8 @@ export default class NpmRegistry extends Registry {
       opts.headers,
     );
 
-    const isToRegistry = this.isRequestToRegistry(requestUrl, registry);
-
     // this.token must be checked to account for publish requests on non-scopped packages
-    if (this.token || (isToRegistry && (alwaysAuth || this.isScopedPackage(packageIdent)))) {
+    if (this.token || alwaysAuth || this.isScopedPackage(packageIdent)) {
       const authorization = this.getAuth(packageIdent);
       if (authorization) {
         headers.authorization = authorization;
@@ -271,6 +249,7 @@ export default class NpmRegistry extends Registry {
       if (registry) {
         return String(registry);
       }
+      return '';
     }
 
     for (const scope of [this.getScope(packageIdent), '']) {
@@ -290,6 +269,11 @@ export default class NpmRegistry extends Registry {
     }
 
     const baseRegistry = this.getRegistry(packageIdent);
+
+    if (!baseRegistry) {
+      return '';
+    }
+
     const registries = [baseRegistry];
 
     // If sending a request to the Yarn registry, we must also send it the auth token for the npm registry
@@ -345,5 +329,16 @@ export default class NpmRegistry extends Registry {
 
   getRegistryOrGlobalOption(registry: string, option: string): mixed {
     return this.getRegistryOption(registry, option) || this.getOption(option);
+  }
+
+  getAvailableRegistries(): Array<string> {
+    const availableRegistries = super.getAvailableRegistries();
+    if (availableRegistries.indexOf(YARN_REGISTRY) === -1) {
+      availableRegistries.push(YARN_REGISTRY);
+    }
+    if (availableRegistries.indexOf(DEFAULT_REGISTRY) === -1) {
+      availableRegistries.push(DEFAULT_REGISTRY);
+    }
+    return availableRegistries;
   }
 }
