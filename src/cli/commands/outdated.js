@@ -29,7 +29,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
   const {main, dev, optional} = flags;
   let deps = await PackageRequest.getOutdatedPackages(lockfile, install, config, reporter);
 
-  if ((main && dev) || (main && optional) || (dev && optional)) {
+  if ([main, dev, optional].filter(Boolean).length > 1) {
     throw new MessageError(reporter.lang('yarnOutdatedMultipleFlags', config.cwd));
   }
 
@@ -37,10 +37,6 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
     const requested = new Set(args);
 
     deps = deps.filter(({name}) => requested.has(name));
-
-    if (main || dev || optional) {
-      reporter.info(reporter.lang('yarnOutdatedFlagsWithPackage'));
-    }
   } else {
     if (main) {
       deps = deps.filter(({hint}) => !hint);

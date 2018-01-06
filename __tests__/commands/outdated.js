@@ -228,5 +228,5 @@ test.concurrent('multiple flags: should throw console error', async (): Promise<
     error = e.message;
   }
 
-  expect(error).toContain('You can use only one flag at the time.');
+  expect(error).toContain('You can use only one flag at a time.');
 });
