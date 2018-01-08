@@ -182,7 +182,7 @@ const messages = {
   workspacesAddRootCheck:
     'Running this command will add the dependency to the workspace root rather than workspace itself, which might not be what you want - if you really meant it, make it explicit by running this command again with the -W flag (or --ignore-workspace-root-check).',
   workspacesRequirePrivateProjects: 'Workspaces can only be enabled in private projects.',
-  workspacesSettingMustBeArray: 'The workspaces setting in package.json must be an array.',
+  workspacesSettingMustBeArray: 'The workspaces field in package.json must be an array.',
   workspacesDisabled:
     'Your project root defines workspaces but the feature is disabled in your Yarn config. Please check "workspaces-experimental" in your .yarnrc file.',
   workspaceRootNotFound: "Cannot find the root of your workspace - are you sure you're currently in a workspace?",
