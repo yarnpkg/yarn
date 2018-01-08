@@ -13,6 +13,7 @@ import envReplace from '../util/env-replace.js';
 import Registry from './base-registry.js';
 import {addSuffix} from '../util/misc';
 import {getPosixPath, resolveWithHome} from '../util/path';
+import normalizeUrl from 'normalize-url';
 import {default as userHome, home} from '../util/user-home-dir';
 import path from 'path';
 import url from 'url';
@@ -264,6 +265,21 @@ export default class NpmRegistry extends Registry {
     }
 
     let registry = this.getRegistry(packageIdent);
+
+    // Support for an existing feature: custom-host-suffix
+    // When custom-host-suffix global option is set, and request url matches
+    // this custom-host-suffix, we extract scope from the URL. We then use
+    // this scope to determine which auth token to use for that scope
+    if (packageIdent.match(REGEX_REGISTRY_PREFIX)) {
+      const customHostSuffix = this.getRegistryOrGlobalOption(registry || DEFAULT_REGISTRY, 'custom-host-suffix');
+      if (typeof customHostSuffix === 'string') {
+        const requestHost = url.parse(normalizeUrl(packageIdent)).host || '';
+        if (requestHost.endsWith(customHostSuffix)) {
+          const scope = this.getScope(packageIdent);
+          registry = this.getRegistry(scope + '/pkg');
+        }
+      }
+    }
 
     if (!registry) {
       return '';

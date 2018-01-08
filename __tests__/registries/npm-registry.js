@@ -286,6 +286,18 @@ describe('request', () => {
     const requestParams = createRegistry(config).request(url);
     expect(requestParams.headers.authorization).toBe('Bearer testScopedAuthToken');
   });
+
+  test('should add authorization header if pathname does not match but custom-host-suffix is used', () => {
+    const url = 'https://some.other.registry/tarball/path/@testScope%2fyarn.tgz';
+    const config = {
+      '//some.other.registry/some/path/:_authToken': 'testScopedAuthToken',
+      '@testScope:registry': 'https://some.other.registry/some/path/',
+      'custom-host-suffix': 'some.other.registry',
+    };
+
+    const requestParams = createRegistry(config).request(url);
+    expect(requestParams.headers.authorization).toBe('Bearer testScopedAuthToken');
+  });
 });
 
 const packageIdents = [
