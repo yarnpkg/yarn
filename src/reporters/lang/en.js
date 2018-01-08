@@ -183,7 +183,7 @@ const messages = {
     'Running this command will add the dependency to the workspace root rather than workspace itself, which might not be what you want - if you really meant it, make it explicit by running this command again with the -W flag (or --ignore-workspace-root-check).',
   workspacesRequirePrivateProjects: 'Workspaces can only be enabled in private projects',
   workspacesDisabled:
-    'Your project root defines wokkspaces but the feature is disabled in your Yarn config. Please check "workspaces-experimental" in your .yarnrc file.',
+    'Your project root defines workspaces but the feature is disabled in your Yarn config. Please check "workspaces-experimental" in your .yarnrc file.',
 
   workspacesNohoistRequirePrivatePackages:
     'nohoist config is ignored in $0 because it is not a private package. If you think nohoist should be allowed in public packages, please submit an issue for your use case.',

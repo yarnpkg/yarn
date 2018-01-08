@@ -208,10 +208,6 @@ describe('workspaces config', () => {
 
 class MockReporter extends BufferReporter {
   lang = jest.fn();
-  // lang(key: LanguageKeys, ...args: Array<mixed>): string {
-  //   this._lang(key, args);
-  //   return super.lang(key, args);
-  // }
 
   findCalls(key: string): Array<Array<any>> {
     return this.lang.mock.calls.filter(call => {

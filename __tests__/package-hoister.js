@@ -1,7 +1,6 @@
 /* @flow */
 
 import PackageHoister, {HoistManifest} from '../src/package-hoister.js';
-import type {HoistManifestTuples} from '../src/package-hoister.js';
 import PackageResolver from '../src/package-resolver.js';
 import Lockfile from '../src/lockfile';
 import type PackageReference from '../src/package-reference.js';
@@ -336,10 +335,6 @@ test('will hoist packages under subdirectories when they cannot hoist to root', 
 });
 
 describe('nohoist', () => {
-  function _showResults(results: HoistManifestTuples) {
-    // eslint-disable-next-line no-console
-    results.forEach(r => console.log(`${r[1].key}: `, r[1].history));
-  }
   test('nohoist can be turned off by disable workspaces (workspaces-experimental)', () => {
     const {atPath, packageHoister, packageResolver} = createTestFixture(
       {
