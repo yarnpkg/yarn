@@ -72,6 +72,22 @@ function createMocks(): Object {
 }
 
 describe('request', () => {
+  // a helper function for creating an instance of npm registry,
+  // making requests and inspecting request parameters
+  function createRegistry(config: Object): Object {
+    const testCwd = '.';
+    const {mockRequestManager, mockRegistries, mockReporter} = createMocks();
+    const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter);
+    npmRegistry.config = config;
+    return {
+      request(url: string): Object {
+        npmRegistry.request(url);
+        const requestParams = mockRequestManager.request.mock.calls[0][0];
+        return requestParams;
+      },
+    };
+  }
+
   test('should call requestManager.request with url', () => {
     const testCwd = '.';
     const {mockRequestManager, mockRegistries, mockReporter} = createMocks();
@@ -197,7 +213,7 @@ describe('request', () => {
 
     npmRegistry.config = {
       '//some.other.registry/:_authToken': 'testScopedAuthToken',
-      '@testScope:registry': '//some.other.registry/',
+      '@testScope:registry': 'https://some.other.registry/',
     };
     npmRegistry.request(url);
 
@@ -205,61 +221,82 @@ describe('request', () => {
 
     expect(requestParams.headers.authorization).toBe('Bearer testScopedAuthToken');
   });
-});
 
-describe('isRequestToRegistry functional test', () => {
-  test('request to registry url matching', () => {
-    const testCwd = '.';
-    const {mockRequestManager, mockRegistries, mockReporter} = createMocks();
-    const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter);
+  test('should add authorization header with token for default registry when using npm login --scope=@foo', () => {
+    const url = 'https://npmjs.registry.org/@foo%2fyarn.tgz';
+    const config = {
+      '//npmjs.registry.org/:_authToken': 'testScopedAuthToken',
+      '@foo:registry': 'https://npmjs.registry.org/',
+    };
 
-    const validRegistryUrls = [
-      ['http://foo.bar:80/foo/bar/baz', 'http://foo.bar/foo/'],
-      ['http://foo.bar:80/foo/bar/baz', 'https://foo.bar/foo/'],
-      ['http://foo.bar/foo/bar/baz', 'http://foo.bar/foo/'],
-      ['http://foo.bar/foo/00000000-1111-4444-8888-000000000000/baz', 'http://foo.bar/foo/'],
-      ['https://foo.bar:443/foo/bar/baz', 'https://foo.bar/foo/'],
-      ['http://foo.bar/foo/bar/baz', 'https://foo.bar:443/foo/'],
-      ['https://foo.bar/foo/bar/baz', 'https://foo.bar:443/foo/'],
-      ['HTTP://xn--xample-hva.com:80/foo/bar/baz', 'http://êxample.com/foo/bar/baz'],
-    ];
-
-    const invalidRegistryUrls = [
-      ['https://wrong.thing/foo/bar/baz', 'https://foo.bar/foo/'],
-      ['https://foo.bar:1337/foo/bar/baz', 'https://foo.bar/foo/'],
-    ];
-
-    validRegistryUrls.forEach(([requestUrl, registryUrl]) =>
-      expect(npmRegistry.isRequestToRegistry(requestUrl, registryUrl)).toBe(true),
-    );
-    invalidRegistryUrls.forEach(([requestUrl, registryUrl]) =>
-      expect(npmRegistry.isRequestToRegistry(requestUrl, registryUrl)).toBe(false),
-    );
+    const requestParams = createRegistry(config).request(url);
+    expect(requestParams.headers.authorization).toBe('Bearer testScopedAuthToken');
   });
 
-  test('isRequestToRegistry with custom host prefix', () => {
-    const testCwd = '.';
-    const {mockRequestManager, mockRegistries, mockReporter} = createMocks();
-    const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter);
-
-    npmRegistry.config = {
-      'custom-host-suffix': 'some.host.org',
+  test('should add authorization header with token for yarn registry as default with a scoped package', () => {
+    const url = 'https://registry.yarnpkg.com/@testScope%2fyarn.tgz';
+    const config = {
+      '//registry.yarnpkg.com/:_authToken': 'testScopedAuthToken',
+      registry: 'https://registry.yarnpkg.com',
     };
 
-    expect(npmRegistry.isRequestToRegistry('http://pkgs.host.com:80/foo/bar/baz', 'http://pkgs.host.com/bar/baz')).toBe(
-      false,
-    );
+    const requestParams = createRegistry(config).request(url);
+    expect(requestParams.headers.authorization).toBe('Bearer testScopedAuthToken');
+  });
 
-    npmRegistry.config = {
-      'custom-host-suffix': 'pkgs.host.com',
+  test('should add authorization header with token for per scope yarn registry with a scoped package', () => {
+    const url = 'https://registry.yarnpkg.com/@testScope%2fyarn.tgz';
+    const config = {
+      '//registry.yarnpkg.com/:_authToken': 'testScopedAuthToken',
+      '@testScope:registry': 'https://registry.yarnpkg.com',
+    };
+    const requestParams = createRegistry(config).request(url);
+    expect(requestParams.headers.authorization).toBe('Bearer testScopedAuthToken');
+  });
+
+  test('should not add authorization header if default registry is yarn and npm token exists', () => {
+    const url = 'https://registry.yarnpkg.com/@testScope%2fyarn.tgz';
+    const config = {
+      '//registry.npmjs.com/:_authToken': 'testScopedAuthToken',
+      registry: 'https://registry.yarnpkg.com/',
     };
 
-    expect(npmRegistry.isRequestToRegistry('http://pkgs.host.com:80/foo/bar/baz', 'http://pkgs.host.com/bar/baz')).toBe(
-      true,
-    );
-    expect(npmRegistry.isRequestToRegistry('http://pkgs.host.com:80/foo/bar/baz', '//pkgs.host.com/bar/baz')).toBe(
-      true,
-    );
+    const requestParams = createRegistry(config).request(url);
+    expect(requestParams.headers.authorization).toBeUndefined();
+  });
+
+  test('should not add authorization header if request pathname does not match registry pathname', () => {
+    const url = 'https://custom.registry.com/tarball/path/@testScope%2fyarn.tgz';
+    const config = {
+      '//custom.registry.com/meta/path/:_authToken': 'testScopedAuthToken',
+      '@testScope:registry': 'https://custom.registry.com/meta/path/',
+    };
+
+    const requestParams = createRegistry(config).request(url);
+    expect(requestParams.headers.authorization).toBeUndefined();
+  });
+
+  test('should add authorization header if request pathname matches registry pathname', () => {
+    const url = 'https://custom.registry.com/custom/path/@testScope%2fyarn.tgz';
+    const config = {
+      '//custom.registry.com/custom/path/:_authToken': 'testScopedAuthToken',
+      '@testScope:registry': 'https://custom.registry.com/custom/path/',
+    };
+
+    const requestParams = createRegistry(config).request(url);
+    expect(requestParams.headers.authorization).toBe('Bearer testScopedAuthToken');
+  });
+
+  test('should add authorization header if pathname does not match but custom-host-suffix is used', () => {
+    const url = 'https://some.other.registry/tarball/path/@testScope%2fyarn.tgz';
+    const config = {
+      '//some.other.registry/some/path/:_authToken': 'testScopedAuthToken',
+      '@testScope:registry': 'https://some.other.registry/some/path/',
+      'custom-host-suffix': 'some.other.registry',
+    };
+
+    const requestParams = createRegistry(config).request(url);
+    expect(requestParams.headers.authorization).toBe('Bearer testScopedAuthToken');
   });
 });
 
