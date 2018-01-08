@@ -103,8 +103,6 @@ export default class NpmRegistry extends Registry {
     const registry = this.getRegistry(packageIdent);
     const requestUrl = this.getRequestUrl(registry, pathname);
 
-    const alwaysAuth = registry && this.getRegistryOrGlobalOption(registry, 'always-auth');
-
     const headers = Object.assign(
       {
         Accept: 'application/vnd.npm.install-v1+json; q=1.0, application/json; q=0.8, */*',
@@ -112,12 +110,9 @@ export default class NpmRegistry extends Registry {
       opts.headers,
     );
 
-    // this.token must be checked to account for publish requests on non-scopped packages
-    if (this.token || alwaysAuth || this.isScopedPackage(packageIdent)) {
-      const authorization = this.getAuth(packageIdent);
-      if (authorization) {
-        headers.authorization = authorization;
-      }
+    const authorization = this.getAuth(packageIdent);
+    if (authorization) {
+      headers.authorization = authorization;
     }
 
     return this.requestManager.request({
@@ -263,20 +258,26 @@ export default class NpmRegistry extends Registry {
   }
 
   getAuth(packageIdent: string): string {
+    // this.token must be checked to account for publish requests on non-scopped packages
     if (this.token) {
       return this.token;
     }
 
-    const baseRegistry = this.getRegistry(packageIdent);
+    let registry = this.getRegistry(packageIdent);
 
-    if (!baseRegistry) {
+    if (!registry) {
       return '';
     }
 
-    const registries = [baseRegistry];
+    const alwaysAuth = this.getRegistryOrGlobalOption(registry, 'always-auth');
+    if (!alwaysAuth && !this.isScopedPackage(packageIdent)) {
+      return '';
+    }
+
+    const registries = [registry];
 
     // If sending a request to the Yarn registry, we must also send it the auth token for the npm registry
-    if (baseRegistry === YARN_REGISTRY) {
+    if (registry === YARN_REGISTRY) {
       registries.push(DEFAULT_REGISTRY);
     }
 
