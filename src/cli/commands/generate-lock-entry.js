@@ -40,6 +40,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
 }
 
 export function setFlags(commander: Object) {
+  commander.description('Generates a lock file entry.');
   commander.option('--use-manifest <location>', 'description');
   commander.option('--resolved <resolved>', 'description');
   commander.option('--registry <registry>', 'description');

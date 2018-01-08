@@ -36,7 +36,9 @@ function clean(object: any): any {
   }
 }
 
-export function setFlags(commander: Object) {}
+export function setFlags(commander: Object) {
+  commander.description('Shows information about a package.');
+}
 
 export function hasWrapper(commander: Object, args: Array<string>): boolean {
   return true;

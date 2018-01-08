@@ -140,6 +140,7 @@ export async function pack(config: Config, dir: string): Promise<stream$Duplex> 
 }
 
 export function setFlags(commander: Object) {
+  commander.description('Creates a compressed gzip archive of package dependencies.');
   commander.option('-f, --filename <filename>', 'filename');
 }
 

@@ -27,6 +27,7 @@ import map from '../../util/map.js';
 import {version as YARN_VERSION, getInstallationMethod} from '../../util/yarn-version.js';
 import WorkspaceLayout from '../../workspace-layout.js';
 import ResolutionMap from '../../resolution-map.js';
+import guessName from '../../util/guess-name';
 
 const emoji = require('node-emoji');
 const invariant = require('invariant');
@@ -234,14 +235,13 @@ export class Install {
     // exclude package names that are in install args
     const excludeNames = [];
     for (const pattern of excludePatterns) {
-      // can't extract a package name from this
       if (getExoticResolver(pattern)) {
-        continue;
+        excludeNames.push(guessName(pattern));
+      } else {
+        // extract the name
+        const parts = normalizePattern(pattern);
+        excludeNames.push(parts.name);
       }
-
-      // extract the name
-      const parts = normalizePattern(pattern);
-      excludeNames.push(parts.name);
     }
 
     const stripExcluded = (manifest: Manifest) => {
@@ -936,6 +936,7 @@ export function hasWrapper(commander: Object, args: Array<string>): boolean {
 }
 
 export function setFlags(commander: Object) {
+  commander.description('Yarn install is used to install all dependencies for a project.');
   commander.usage('install [flags]');
   commander.option('-g, --global', 'DEPRECATED');
   commander.option('-S, --save', 'DEPRECATED - save package to your `dependencies`');

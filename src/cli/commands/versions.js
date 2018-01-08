@@ -5,7 +5,9 @@ import type Config from '../../config.js';
 
 import {version as yarnVersion} from '../../util/yarn-version.js';
 
-export function setFlags(commander: Object) {}
+export function setFlags(commander: Object) {
+  commander.description('Displays version information of currently installed Yarn, Node.js, and its dependencies.');
+}
 
 export function hasWrapper(commander: Object, args: Array<string>): boolean {
   return true;
