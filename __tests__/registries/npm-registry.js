@@ -72,6 +72,22 @@ function createMocks(): Object {
 }
 
 describe('request', () => {
+  // a helper function for creating an instance of npm registry,
+  // making requests and inspecting request parameters
+  function createRegistry(config: Object): Object {
+    const testCwd = '.';
+    const {mockRequestManager, mockRegistries, mockReporter} = createMocks();
+    const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter);
+    npmRegistry.config = config;
+    return {
+      request(url: string): Object {
+        npmRegistry.request(url);
+        const requestParams = mockRequestManager.request.mock.calls[0][0];
+        return requestParams;
+      },
+    };
+  }
+
   test('should call requestManager.request with url', () => {
     const testCwd = '.';
     const {mockRequestManager, mockRegistries, mockReporter} = createMocks();
@@ -207,20 +223,67 @@ describe('request', () => {
   });
 
   test('should add authorization header with token for default registry when using npm login --scope=@foo', () => {
-    const testCwd = '.';
-    const {mockRequestManager, mockRegistries, mockReporter} = createMocks();
-    const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter);
-
     const url = 'https://npmjs.registry.org/@foo%2fyarn.tgz';
-
-    npmRegistry.config = {
+    const config = {
       '//npmjs.registry.org/:_authToken': 'testScopedAuthToken',
       '@foo:registry': 'https://npmjs.registry.org/',
     };
-    npmRegistry.request(url);
 
-    const requestParams = mockRequestManager.request.mock.calls[0][0];
+    const requestParams = createRegistry(config).request(url);
+    expect(requestParams.headers.authorization).toBe('Bearer testScopedAuthToken');
+  });
 
+  test('should add authorization header with token for yarn registry as default with a scoped package', () => {
+    const url = 'https://registry.yarnpkg.com/@testScope%2fyarn.tgz';
+    const config = {
+      '//registry.yarnpkg.com/:_authToken': 'testScopedAuthToken',
+      registry: 'https://registry.yarnpkg.com',
+    };
+
+    const requestParams = createRegistry(config).request(url);
+    expect(requestParams.headers.authorization).toBe('Bearer testScopedAuthToken');
+  });
+
+  test('should add authorization header with token for per scope yarn registry with a scoped package', () => {
+    const url = 'https://registry.yarnpkg.com/@testScope%2fyarn.tgz';
+    const config = {
+      '//registry.yarnpkg.com/:_authToken': 'testScopedAuthToken',
+      '@testScope:registry': 'https://registry.yarnpkg.com',
+    };
+    const requestParams = createRegistry(config).request(url);
+    expect(requestParams.headers.authorization).toBe('Bearer testScopedAuthToken');
+  });
+
+  test('should not add authorization header if default registry is yarn and npm token exists', () => {
+    const url = 'https://registry.yarnpkg.com/@testScope%2fyarn.tgz';
+    const config = {
+      '//registry.npmjs.com/:_authToken': 'testScopedAuthToken',
+      registry: 'https://registry.yarnpkg.com/',
+    };
+
+    const requestParams = createRegistry(config).request(url);
+    expect(requestParams.headers.authorization).toBeUndefined();
+  });
+
+  test('should not add authorization header if request pathname does not match registry pathname', () => {
+    const url = 'https://custom.registry.com/tarball/path/@testScope%2fyarn.tgz';
+    const config = {
+      '//custom.registry.com/meta/path/:_authToken': 'testScopedAuthToken',
+      '@testScope:registry': 'https://custom.registry.com/meta/path/',
+    };
+
+    const requestParams = createRegistry(config).request(url);
+    expect(requestParams.headers.authorization).toBeUndefined();
+  });
+
+  test('should add authorization header if request pathname matches registry pathname', () => {
+    const url = 'https://custom.registry.com/custom/path/@testScope%2fyarn.tgz';
+    const config = {
+      '//custom.registry.com/custom/path/:_authToken': 'testScopedAuthToken',
+      '@testScope:registry': 'https://custom.registry.com/custom/path/',
+    };
+
+    const requestParams = createRegistry(config).request(url);
     expect(requestParams.headers.authorization).toBe('Bearer testScopedAuthToken');
   });
 });

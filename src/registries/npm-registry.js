@@ -99,7 +99,6 @@ export default class NpmRegistry extends Registry {
   }
 
   request(pathname: string, opts?: RegistryRequestOptions = {}, packageName: ?string): Promise<*> {
-    // packageName needs to be escaped when if it is passed
     const packageIdent = (packageName && NpmRegistry.escapeName(packageName)) || pathname;
     const registry = this.getRegistry(packageIdent);
     const requestUrl = this.getRequestUrl(registry, pathname);
@@ -333,9 +332,6 @@ export default class NpmRegistry extends Registry {
 
   getAvailableRegistries(): Array<string> {
     const availableRegistries = super.getAvailableRegistries();
-    if (availableRegistries.indexOf(YARN_REGISTRY) === -1) {
-      availableRegistries.push(YARN_REGISTRY);
-    }
     if (availableRegistries.indexOf(DEFAULT_REGISTRY) === -1) {
       availableRegistries.push(DEFAULT_REGISTRY);
     }
