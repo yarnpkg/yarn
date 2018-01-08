@@ -643,7 +643,7 @@ test.concurrent('install another fork of an existing package', (): Promise<void>
   });
 });
 
-test.concurrent('downgrade scenario', (): Promise<void> => {
+test.concurrent('downgrade scenario', async () => {
   // left-pad first installed 1.1.0 then downgraded to 0.0.9
   // files in mirror, yarn.lock, package.json and node_modules should reflect that
 
