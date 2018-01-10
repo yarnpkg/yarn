@@ -642,7 +642,7 @@ export default class Config {
 
     const ws = this.getWorkspaces(rootManifest, true);
     const patterns = ws && ws.packages ? ws.packages : [];
-    
+
     if (!Array.isArray(patterns)) {
       throw new MessageError(this.reporter.lang('workspacesSettingMustBeArray'));
     }
