@@ -1143,6 +1143,8 @@ describe('nohoist', () => {
       // prove package a does not exist in workspace-2 nor in root
       expect(await fs.exists(`${config.cwd}/packages/workspace-2/node_modules/a`)).toEqual(false);
       expect(await fs.exists(`${config.cwd}/node_modules/a`)).toEqual(false);
+      expect(await fs.exists(`${config.cwd}/node_modules/b`)).toEqual(false);
+      expect(await fs.exists(`${config.cwd}/node_modules/c`)).toEqual(false);
 
       // add package 'a' to workspace-2
       const childConfig = await makeConfigFromDirectory(`${config.cwd}/packages/workspace-2`, reporter, {});
@@ -1150,7 +1152,13 @@ describe('nohoist', () => {
 
       // now package a should exist in workspace-2
       expect(await fs.exists(`${config.cwd}/packages/workspace-2/node_modules/a`)).toEqual(true);
+      expect(await fs.exists(`${config.cwd}/packages/workspace-2/node_modules/b`)).toEqual(true);
+      expect(await fs.exists(`${config.cwd}/packages/workspace-2/node_modules/c`)).toEqual(true);
+
+      // make sure workspace-2 dependencies didn't get hoisted to root
       expect(await fs.exists(`${config.cwd}/node_modules/a`)).toEqual(false);
+      expect(await fs.exists(`${config.cwd}/node_modules/b`)).toEqual(false);
+      expect(await fs.exists(`${config.cwd}/node_modules/c`)).toEqual(false);
     });
   });
   test.concurrent('can add nohoist pacakge from root', async () => {

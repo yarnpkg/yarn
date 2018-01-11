@@ -121,7 +121,6 @@ class MockReporter extends reporters.BufferReporter {
 
   findCalls(key: string): Array<Array<any>> {
     return this._lang.mock.calls.filter(call => {
-      // console.log(`call[0]=${call[0]}`);
       return call[0] === key;
     });
   }

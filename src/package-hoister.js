@@ -85,7 +85,6 @@ export default class PackageHoister {
   resolver: PackageResolver;
   config: Config;
   nohoistResolver: NohoistResolver;
-  // _rootNohoist: ?Array<string>;
 
   ignoreOptional: ?boolean;
 
