@@ -640,6 +640,9 @@ export default class Config {
     if (!rootManifest.private && patterns.length > 0) {
       throw new MessageError(this.reporter.lang('workspacesRequirePrivateProjects'));
     }
+    if (!Array.isArray(patterns)) {
+      throw new MessageError(this.reporter.lang('workspacesSettingMustBeArray'));
+    }
 
     const registryFilenames = registryNames
       .map(registryName => this.registries[registryName].constructor.filename)
