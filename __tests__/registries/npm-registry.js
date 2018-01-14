@@ -525,7 +525,7 @@ describe('request', () => {
       ],
     },
     {
-      title: 'using multiple entries for registries where pathnames play a role',
+      title: 'using multiple config entries for registries where pathnames play a role',
       config: {
         '@private:registry': 'https://registry.myorg.com/api/npm/registry/',
         '//registry.myorg.com/api/npm/registry/:_authToken': 'scopedPrivateAuthToken',
@@ -548,7 +548,6 @@ describe('request', () => {
           expect: {root: 'https://some.cdn.com', auth: false},
         },
         {
-          skip: true,
           url: 'https://registry.myorg.com/api/packages/private---pkg.tar.gz',
           pkg: '@private/pkg',
           expect: {root: 'https://registry.myorg.com/api/packages/', auth: 'scopedPrivateAuthToken'},
