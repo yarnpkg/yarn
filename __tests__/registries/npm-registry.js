@@ -98,7 +98,7 @@ describe('request', () => {
 
   const testCases = [
     {
-      title: 'using npm as default registry and private registry for scoped packages',
+      title: 'using npm as default registry and using private registry for scoped packages',
       config: {
         '//registry.myorg.com/:_authToken': 'scopedPrivateAuthToken',
         '@private:registry': 'https://registry.myorg.com/',
@@ -248,7 +248,7 @@ describe('request', () => {
       ],
     },
     {
-      title: 'using authenticated npm and private registry for scoped packages',
+      title: 'using authenticated npm and using private registry for scoped packages',
       config: {
         _authToken: 'scopedNpmAuthToken',
         '//registry.myorg.com/:_authToken': 'scopedPrivateAuthToken',
@@ -323,7 +323,7 @@ describe('request', () => {
       ],
     },
     {
-      title: 'using npm with always-auth and private registry for scoped packages',
+      title: 'using npm with always-auth and using private registry for scoped packages',
       config: {
         'always-auth': true,
         '//registry.npmjs.org/:_authToken': 'npmAuthToken',
@@ -399,7 +399,7 @@ describe('request', () => {
       ],
     },
     {
-      title: 'using private registry as default registry and scoped packages on npm registry',
+      title: 'using private registry as default registry and using scoped packages on npm registry',
       config: {
         'always-auth': true,
         registry: 'https://registry.myorg.com/',
