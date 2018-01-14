@@ -111,10 +111,10 @@ export default class NpmRegistry extends Registry {
     const customHostSuffix = this.getRegistryOrGlobalOption(registryUrl, 'custom-host-suffix');
 
     const requestToRegistryHost = () => requestHost === registryHost;
-    const requestToNpm = () => YARN_REGISTRY.includes(requestHost) && DEFAULT_REGISTRY.includes(registryHost);
+    const requestToYarn = () => YARN_REGISTRY.includes(requestHost) && DEFAULT_REGISTRY.includes(registryHost);
 
     return (
-      (requestToRegistryHost() || requestToNpm()) &&
+      (requestToRegistryHost() || requestToYarn()) &&
       (requestPath.startsWith(registryPath) ||
         // For some registries, the package path does not prefix with the registry path
         (typeof customHostSuffix === 'string' && requestHost.endsWith(customHostSuffix)))
