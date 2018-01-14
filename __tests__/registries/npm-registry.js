@@ -211,8 +211,6 @@ describe('request', () => {
           expect: {root: 'https://registry.npmjs.org', auth: 'scopedNpmAuthToken'},
         },
         {
-          // THIS IS THE BUG!!!
-          skip: true,
           url: 'https://registry.yarnpkg.com/dist/-/@yarn-core-1.0.0.tgz',
           pkg: '@yarn/core',
           expect: {root: 'https://registry.yarnpkg.com', auth: 'scopedNpmAuthToken'},
@@ -288,8 +286,6 @@ describe('request', () => {
           expect: {root: 'https://registry.npmjs.org', auth: 'scopedNpmAuthToken'},
         },
         {
-          // THIS IS THE BUG!!!
-          skip: true,
           url: 'https://registry.yarnpkg.com/dist/-/@yarn-core-1.0.0.tgz',
           pkg: '@yarn/core',
           expect: {root: 'https://registry.yarnpkg.com', auth: 'scopedNpmAuthToken'},
@@ -367,8 +363,6 @@ describe('request', () => {
           expect: {root: 'https://registry.npmjs.org', auth: 'scopedNpmAuthToken'},
         },
         {
-          // THIS IS THE BUG!!!
-          skip: true,
           url: 'https://registry.yarnpkg.com/dist/-/@yarn-core-1.0.0.tgz',
           pkg: '@yarn/core',
           expect: {root: 'https://registry.yarnpkg.com', auth: 'scopedNpmAuthToken'},
@@ -445,8 +439,6 @@ describe('request', () => {
           expect: {root: 'https://registry.npmjs.org', auth: 'npmAuthToken'},
         },
         {
-          // THIS IS THE BUG!!!
-          skip: true,
           url: 'https://registry.yarnpkg.com/dist/-/@yarn-core-1.0.0.tgz',
           pkg: '@yarn/core',
           expect: {root: 'https://registry.yarnpkg.com', auth: 'npmAuthToken'},
@@ -454,7 +446,7 @@ describe('request', () => {
         {
           url: 'https://registry.yarnpkg.com/dist/-/@yarn-core-1.0.0.tgz',
           pkg: null,
-          expect: {root: 'https://registry.yarnpkg.com', auth: false},
+          expect: {root: 'https://registry.yarnpkg.com', auth: 'npmAuthToken'},
         },
         {
           url: 'https://some.cdn.com/@yarn/core.tgz',
@@ -740,6 +732,9 @@ describe('isRequestToRegistry functional test', () => {
       ['http://foo.bar/foo/bar/baz', 'https://foo.bar:443/foo/'],
       ['https://foo.bar/foo/bar/baz', 'https://foo.bar:443/foo/'],
       ['HTTP://xn--xample-hva.com:80/foo/bar/baz', 'http://êxample.com/foo/bar/baz'],
+      // yarn and npm registries are interchangeable
+      ['https://registry.npmjs.org/foo/bar', 'https://registry.npmjs.org/'],
+      ['https://registry.yarnpkg.com/foo/bar', 'https://registry.npmjs.org/'],
     ];
 
     const invalidRegistryUrls = [
