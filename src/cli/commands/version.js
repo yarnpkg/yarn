@@ -77,6 +77,7 @@ export async function setVersion(
     newVersion = await reporter.question(reporter.lang('newVersion'));
 
     if (!required && !newVersion) {
+      reporter.info(`${reporter.lang('noVersionOnPublish')}: ${oldVersion}`);
       return function(): Promise<void> {
         return Promise.resolve();
       };
