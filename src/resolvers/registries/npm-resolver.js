@@ -67,7 +67,7 @@ export default class NpmResolver extends RegistryResolver {
           name: 'package',
           type: 'list',
           message: config.reporter.lang('chooseVersionFromList', body.name),
-          choices: Object.keys(body.versions).reverse(),
+          choices: Object.keys(body.versions).sort(semver.rcompare),
           pageSize,
         },
       ]);
