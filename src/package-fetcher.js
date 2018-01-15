@@ -128,7 +128,9 @@ export function fetch(pkgs: Array<Manifest>, config: Config): Promise<Array<Mani
         tick();
       }
 
-      if (newPkg) {
+      // Don't update pkg if symlink, as those are special-cased in the fetcher
+      // and returns a mock response.
+      if (newPkg && ref.remote.type !== 'link') {
         newPkg._reference = ref;
         newPkg._remote = ref.remote;
         newPkg.name = pkg.name;
