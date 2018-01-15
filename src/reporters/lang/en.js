@@ -374,6 +374,7 @@ const messages = {
   verboseUpgradeBecauseOutdated: 'Considering upgrade of $0 to $1 because a newer version exists in the registry.',
   verboseUpgradeNotUnlocking: 'Not unlocking $0 in the lockfile because it is a new or direct dependency.',
   verboseUpgradeUnlocking: 'Unlocking $0 in the lockfile.',
+  folderMissing: "Directory $0 doesn't exist",
 };
 
 export type LanguageKeys = $Keys<typeof messages>;
