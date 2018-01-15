@@ -118,14 +118,14 @@ const messages = {
   frozenLockfileError: 'Your lockfile needs to be updated, but yarn was run with `--frozen-lockfile`.',
   fileWriteError: 'Could not write file $0: $1',
   multiplePackagesCantUnpackInSameDestination:
-    'Pattern $0 is trying to unpack in the same destination $1 as pattern $2. This could result in a non deterministic behavior, skipping.',
+    'Pattern $0 is trying to unpack in the same destination $1 as pattern $2. This could result in non-deterministic behavior, skipping.',
   incorrectLockfileEntry: 'Lockfile has incorrect entry for $0. Ignoring it.',
 
   invalidResolutionName: 'Resolution field $0 does not end with a valid package name and will be ignored',
   invalidResolutionVersion: 'Resolution field $0 has an invalid version entry and may be ignored',
   incompatibleResolutionVersion: 'Resolution field $0 is incompatible with requested version $1',
 
-  yarnOutdated: "Your current version of Yarn is out of date. The latest version is $0 while you're on $1.",
+  yarnOutdated: "Your current version of Yarn is out of date. The latest version is $0, while you're on $1.",
   yarnOutdatedInstaller: 'To upgrade, download the latest installer at $0.',
   yarnOutdatedCommand: 'To upgrade, run the following command:',
 
