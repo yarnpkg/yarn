@@ -111,7 +111,18 @@ export default class PackageRequest {
 
     const Resolver = this.getRegistryResolver();
     const resolver = new Resolver(this, name, range);
-    return resolver.resolve();
+    try {
+      return await resolver.resolve();
+    } catch (err) {
+      // if it is not an error thrown by yarn and it has a parent request,
+      // thow a more readable error
+      if (!(err instanceof MessageError) && this.parentRequest && this.parentRequest.pattern) {
+        throw new MessageError(
+          this.reporter.lang('requiredPackageNotFoundRegistry', pattern, this.parentRequest.pattern, this.registry),
+        );
+      }
+      throw err;
+    }
   }
 
   /**
