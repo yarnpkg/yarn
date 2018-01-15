@@ -49,11 +49,9 @@ async function getManifests(config: Config, flags: Object): Promise<Array<Manife
 
 async function list(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
   const manifests: Array<Manifest> = await getManifests(config, flags);
-
   if (flags.json) {
     const body = [];
-
-    for (const {name, version, license, repository, homepage, author} of manifests) {
+    for (const {name, version, license, licenseText, repository, homepage, author} of manifests) {
       const url = repository ? repository.url : homepage;
       const vendorUrl = homepage || (author && author.url);
       const vendorName = author && author.name;
@@ -61,13 +59,13 @@ async function list(config: Config, reporter: Reporter, flags: Object, args: Arr
         name,
         version,
         license || 'Unknown',
+        licenseText || 'Unknown',
         url || 'Unknown',
         vendorUrl || 'Unknown',
         vendorName || 'Unknown',
       ]);
     }
-
-    reporter.table(['Name', 'Version', 'License', 'URL', 'VendorUrl', 'VendorName'], body);
+    reporter.table(['Name', 'Version', 'License', 'Disclaimer', 'URL', 'VendorUrl', 'VendorName'], body);
   } else {
     const trees = [];
 
