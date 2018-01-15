@@ -80,8 +80,7 @@ const messages = {
   invalidVersion: 'Invalid version supplied.',
   requiredVersionInRange: 'Required version in range.',
   packageNotFoundRegistry: "Couldn't find package $0 on the $1 registry.",
-  doesntExist:
-    "$0 doesn't exist. It may have been moved or deleted. You can remove the package with the command: `yarn remove $1`",
+  doesntExist: "Package $1 refer to a non-existing file '$0'.",
   missingRequiredPackageKey: `Package $0 doesn't have a $1.`,
   invalidAccess: 'Invalid argument for access, expected public or restricted.',
   invalidCommand: 'Invalid subcommand. Try $0',
