@@ -98,7 +98,7 @@ const messages = {
   ignoredScripts: 'Ignored scripts due to flag.',
   missingAddDependencies: 'Missing list of packages to add to your project.',
   yesWarning:
-    'The yes flag has been set. This will automatically answer yes to all questions which may have security implications.',
+    'The yes flag has been set. This will automatically answer yes to all questions, which may have security implications.',
   networkWarning:
     "You don't appear to have an internet connection. Try the --offline flag to use the cache for registry queries.",
   flatGlobalError:
