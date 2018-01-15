@@ -20,7 +20,7 @@ const messages = {
   globalFlagRemoved: '`--global` has been deprecated. Please run $0 instead.',
   waitingInstance: 'Waiting for the other yarn instance to finish (pid $0, inside $1)',
   waitingNamedInstance: 'Waiting for the other yarn instance to finish ($0)',
-  offlineRetrying: 'There appears to be trouble with your network connection. Retrying...',
+  offlineRetrying: 'There appears to be trouble with your network connection. Retrying…',
   clearedCache: 'Cleared cache.',
   couldntClearPackageFromCache: "Couldn't clear package $0 from cache",
   clearedPackageFromCache: 'Cleared package $0 from cache',
@@ -322,9 +322,9 @@ const messages = {
   fetchErrorCorrupt:
     '$0. Mirror tarball appears to be corrupt. You can resolve this by running:\n\n  rm -rf $1\n  yarn install',
   errorDecompressingTarball: '$0. Error decompressing $1, it appears to be corrupt.',
-  updateInstalling: 'Installing $0...',
+  updateInstalling: 'Installing $0…',
   hostedGitResolveError: 'Error connecting to repository. Please, check the url.',
-  retryOnInternalServerError: 'There appears to be trouble with our server. Retrying...',
+  retryOnInternalServerError: 'There appears to be trouble with our server. Retrying…',
 
   unknownFetcherFor: 'Unknown fetcher for $0',
 
