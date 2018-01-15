@@ -200,7 +200,7 @@ async function list(config: Config, reporter: Reporter, flags: Object, args: Arr
   // install so we get hard file paths
   const lockfile = await Lockfile.fromDirectory(config.cwd);
   const install = new Install({}, config, new NoopReporter(), lockfile);
-  const patterns = await install.getFlattennedDeps();
+  const patterns = await install.getFlattenedDeps();
 
   // dump global modules
   for (const pattern of patterns) {
