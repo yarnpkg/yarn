@@ -168,7 +168,7 @@ export class Add extends Install {
 
     const resolverPatterns = new Set();
     for (const pattern of patterns) {
-      const {version, name} = this.resolver.getResolvedPattern(pattern);
+      const {version, name} = this.resolver.getResolvedPattern(pattern) || {};
       resolverPatterns.add(`${name}@${version}`);
     }
     const directRequireDependencies = trees.filter(({name}) => resolverPatterns.has(name));
