@@ -155,9 +155,29 @@ export class Add extends Install {
       reqDepth: 0,
     };
     const {trees, count} = await buildTree(this.resolver, this.linker, patterns, opts, true, true);
-    this.reporter.success(
-      count === 1 ? this.reporter.lang('savedNewDependency') : this.reporter.lang('savedNewDependencies', count),
+
+    if (count === 1) {
+      this.reporter.success(this.reporter.lang('savedNewDependency'));
+    } else {
+      this.reporter.success(this.reporter.lang('savedNewDependencies', count));
+    }
+
+    if (!count) {
+      return;
+    }
+
+    const resolverPatterns = new Set();
+    for (const pattern of patterns) {
+      const {version, name} = this.resolver.getResolvedPattern(pattern);
+      resolverPatterns.add(`${name}@${version}`)
+    }
+    const directRequireDependencies = trees.filter(
+      ({name}) => (resolverPatterns.has(name))
     );
+
+    this.reporter.info(this.reporter.lang('directDependencies'));
+    this.reporter.tree('newDependencies', directRequireDependencies);
+    this.reporter.info(this.reporter.lang('allDependencies'));
     this.reporter.tree('newDependencies', trees);
   }
 
