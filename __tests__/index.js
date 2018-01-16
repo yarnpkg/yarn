@@ -61,19 +61,19 @@ async function execCommand(
 }
 
 function expectAddSuccessfullOutput(stdout, pkg) {
-  const lastLines = stdout.slice(stdout.length - 4);
+  const lastLines = stdout.slice(stdout.length - 7);
   expect(lastLines[0]).toEqual('success Saved lockfile.');
   expect(lastLines[1]).toEqual('success Saved 1 new dependency.');
-  expect(lastLines[2]).toContain(pkg);
-  expect(lastLines[3]).toContain('Done');
+  expect(lastLines[3]).toContain(pkg);
+  expect(lastLines[6]).toContain('Done');
 }
 
 function expectAddSuccessfullOutputWithNoLockFile(stdout, pkg) {
-  const lastLines = stdout.slice(stdout.length - 4);
+  const lastLines = stdout.slice(stdout.length - 7);
   expect(lastLines[0]).not.toEqual('success Saved lockfile.');
   expect(lastLines[1]).toEqual('success Saved 1 new dependency.');
-  expect(lastLines[2]).toContain(pkg);
-  expect(lastLines[3]).toContain('Done');
+  expect(lastLines[3]).toContain(pkg);
+  expect(lastLines[6]).toContain('Done');
 }
 
 function expectRunOutput(stdout) {

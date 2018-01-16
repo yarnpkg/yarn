@@ -285,11 +285,13 @@ test.concurrent('informs the type of dependency after upgrade', (): Promise<void
       const output = reporter.getBuffer();
       const infos = output.filter(({type}) => type === 'info');
       const getTreeInfo = pkgName =>
-        output.filter(({type, data: {trees = []}}) => type === 'tree' && trees.some(({name}) => name.indexOf(pkgName) > -1));
+        output.filter(
+          ({type, data: {trees = []}}) => type === 'tree' && trees.some(({name}) => name.indexOf(pkgName) > -1),
+        );
 
       expect(
         infos.some(info => {
-          return info.data.toString().indexOf('Updated direct dependencies') > -1;
+          return info.data.toString().indexOf('Direct dependencies') > -1;
         }),
       ).toEqual(true);
       expect(getTreeInfo('async')).toHaveLength(2);
