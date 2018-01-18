@@ -174,9 +174,9 @@ export class Add extends Install {
     const directRequireDependencies = trees.filter(({name}) => resolverPatterns.has(name));
 
     this.reporter.info(this.reporter.lang('directDependencies'));
-    this.reporter.tree('newDependencies', directRequireDependencies);
+    this.reporter.tree('newDirectDependencies', directRequireDependencies);
     this.reporter.info(this.reporter.lang('allDependencies'));
-    this.reporter.tree('newDependencies', trees);
+    this.reporter.tree('newAllDependencies', trees);
   }
 
   /**
