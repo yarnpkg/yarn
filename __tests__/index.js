@@ -60,20 +60,8 @@ async function execCommand(
   });
 }
 
-function expectAddSuccessfullOutput(stdout, pkg) {
-  const lastLines = stdout.slice(stdout.length - 7);
-  expect(lastLines[0]).toEqual('success Saved lockfile.');
-  expect(lastLines[1]).toEqual('success Saved 1 new dependency.');
-  expect(lastLines[3]).toContain(pkg);
-  expect(lastLines[6]).toContain('Done');
-}
-
-function expectAddSuccessfullOutputWithNoLockFile(stdout, pkg) {
-  const lastLines = stdout.slice(stdout.length - 7);
-  expect(lastLines[0]).not.toEqual('success Saved lockfile.');
-  expect(lastLines[1]).toEqual('success Saved 1 new dependency.');
-  expect(lastLines[3]).toContain(pkg);
-  expect(lastLines[6]).toContain('Done');
+function expectAddOutput(stdout) {
+  expect(stdout.slice(1, stdout.length - 1)).toMatchSnapshot();
 }
 
 function expectRunOutput(stdout) {
@@ -112,29 +100,29 @@ function expectAnInfoMessageAfterError(command: Promise<Array<?string>>, expecte
     .catch(error => expect(error.stdout).toContain(expectedInfo));
 }
 
-test.concurrent('should add package', async () => {
+test('should add package', async () => {
   const stdout = await execCommand('add', ['left-pad'], 'run-add', true);
-  expectAddSuccessfullOutput(stdout, 'left-pad');
+  expectAddOutput(stdout);
 });
 
-test.concurrent('should add package with no-lockfile option', async () => {
+test('should add package with no-lockfile option', async () => {
   const stdout = await execCommand('add', ['repeating', '--no-lockfile'], 'run-add-option', true);
-  expectAddSuccessfullOutputWithNoLockFile(stdout, 'repeating');
+  expectAddOutput(stdout);
 });
 
-test.concurrent('should add package with frozen-lockfile option', async () => {
+test('should add package with frozen-lockfile option', async () => {
   const stdout = await execCommand('add', ['repeating', '--frozen-lockfile'], 'run-add-option', true);
-  expectAddSuccessfullOutputWithNoLockFile(stdout, 'repeating');
+  expectAddOutput(stdout);
 });
 
-test.concurrent('should add package with no-lockfile option in front', async () => {
+test('should add package with no-lockfile option in front', async () => {
   const stdout = await execCommand('add', ['--no-lockfile', 'split-lines'], 'run-add-option-in-front', true);
-  expectAddSuccessfullOutputWithNoLockFile(stdout, 'split-lines');
+  expectAddOutput(stdout);
 });
 
-test.concurrent('should add lockfile package', async () => {
+test('should add lockfile package', async () => {
   const stdout = await execCommand('add', ['lockfile'], 'run-add-lockfile', true);
-  expectAddSuccessfullOutput(stdout, 'lockfile');
+  expectAddOutput(stdout);
 });
 
 // test is failing on Node 4, https://travis-ci.org/yarnpkg/yarn/jobs/216254539
