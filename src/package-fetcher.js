@@ -24,6 +24,11 @@ async function fetchOne(ref: PackageReference, config: Config): Promise<FetchedM
   const dest = config.generateHardModulePath(ref);
 
   const remote = ref.remote;
+
+  if (ref.patterns && ref.patterns[0]) {
+    remote.pattern = ref.patterns[0];
+  }
+
   // Mock metedata for symlinked dependencies
   if (remote.type === 'link') {
     const mockPkg: Manifest = {_uid: '', name: '', version: '0.0.0'};

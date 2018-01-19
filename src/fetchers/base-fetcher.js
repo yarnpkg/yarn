@@ -77,6 +77,20 @@ export default class BaseFetcher {
         ),
       );
 
+      await fs.writeFile(
+        path.join(this.dest, constants.NODE_PACKAGE_JSON),
+        JSON.stringify(
+          {
+            ...pkg,
+            _from: this.remote.pattern,
+            _resolved: this.remote.reference,
+            _shasum: hash,
+          },
+          null,
+          '  ',
+        ),
+      );
+
       return {
         hash,
         dest: this.dest,
