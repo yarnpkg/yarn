@@ -80,7 +80,7 @@ const messages = {
   invalidVersion: 'Invalid version supplied.',
   requiredVersionInRange: 'Required version in range.',
   packageNotFoundRegistry: "Couldn't find package $0 on the $1 registry.",
-  doesntExist: "$0 doesn't exist.",
+  doesntExist: "Package $1 refers to a non-existing file '$0'.",
   missingRequiredPackageKey: `Package $0 doesn't have a $1.`,
   invalidAccess: 'Invalid argument for access, expected public or restricted.',
   invalidCommand: 'Invalid subcommand. Try $0',
@@ -98,7 +98,7 @@ const messages = {
   ignoredScripts: 'Ignored scripts due to flag.',
   missingAddDependencies: 'Missing list of packages to add to your project.',
   yesWarning:
-    'The yes flag has been set. This will automatically answer yes to all questions which may have security implications.',
+    'The yes flag has been set. This will automatically answer yes to all questions, which may have security implications.',
   networkWarning:
     "You don't appear to have an internet connection. Try the --offline flag to use the cache for registry queries.",
   flatGlobalError:
@@ -118,14 +118,14 @@ const messages = {
   frozenLockfileError: 'Your lockfile needs to be updated, but yarn was run with `--frozen-lockfile`.',
   fileWriteError: 'Could not write file $0: $1',
   multiplePackagesCantUnpackInSameDestination:
-    'Pattern $0 is trying to unpack in the same destination $1 as pattern $2. This could result in a non deterministic behavior, skipping.',
+    'Pattern $0 is trying to unpack in the same destination $1 as pattern $2. This could result in non-deterministic behavior, skipping.',
   incorrectLockfileEntry: 'Lockfile has incorrect entry for $0. Ignoring it.',
 
   invalidResolutionName: 'Resolution field $0 does not end with a valid package name and will be ignored',
   invalidResolutionVersion: 'Resolution field $0 has an invalid version entry and may be ignored',
   incompatibleResolutionVersion: 'Resolution field $0 is incompatible with requested version $1',
 
-  yarnOutdated: "Your current version of Yarn is out of date. The latest version is $0 while you're on $1.",
+  yarnOutdated: "Your current version of Yarn is out of date. The latest version is $0, while you're on $1.",
   yarnOutdatedInstaller: 'To upgrade, download the latest installer at $0.',
   yarnOutdatedCommand: 'To upgrade, run the following command:',
 
@@ -251,6 +251,7 @@ const messages = {
   invalidSemver: 'Invalid semver version',
   newVersion: 'New version',
   currentVersion: 'Current version',
+  noVersionOnPublish: 'Proceeding with current version',
 
   manualVersionResolution:
     'Unable to find a suitable version for $0, please choose one by typing one of the numbers below:',

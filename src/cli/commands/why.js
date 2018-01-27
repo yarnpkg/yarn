@@ -164,8 +164,9 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
     const matchRef = matchInfo.pkg._reference;
     invariant(matchRef, 'expected reference');
 
-    const matchPatterns = matchRef.patterns;
+    const distinctMatchPatterns = new Set(matchRef.patterns);
     const reasons = [];
+
     // reason: dependency of these modules
     if (matchInfo.originalParentPath.length > 0) {
       reasons.push({
@@ -177,7 +178,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
 
     // reason: exists in manifest
     let rootType;
-    for (const pattern of matchPatterns) {
+    for (const pattern of distinctMatchPatterns) {
       rootType = install.rootPatternsToOrigin[pattern];
       if (rootType) {
         reasons.push({
@@ -189,14 +190,12 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
     }
 
     // reason: this is hoisted from these modules
-    for (const pattern of matchInfo.previousKeys) {
-      if (pattern !== matchInfo.key) {
-        reasons.push({
-          type: 'whyHoistedFrom',
-          typeSimple: 'whyHoistedFromSimple',
-          value: pattern,
-        });
-      }
+    for (const path of matchInfo.previousPaths) {
+      reasons.push({
+        type: 'whyHoistedFrom',
+        typeSimple: 'whyHoistedFromSimple',
+        value: toStandardPathString(path),
+      });
     }
 
     // package sizes
@@ -266,7 +265,7 @@ export function queryWhy(pattern: string, hoisted: HoistManifestTuples): Array<H
   const nohoistPattern = `#${pattern}`;
   const found: Array<HoistManifestTuple> = [];
   for (const [loc, info] of hoisted) {
-    if (info.key === pattern || info.previousKeys.indexOf(pattern) >= 0 || info.key.endsWith(nohoistPattern)) {
+    if (info.key === pattern || info.previousPaths.indexOf(pattern) >= 0 || info.key.endsWith(nohoistPattern)) {
       found.push([loc, info]);
     }
   }

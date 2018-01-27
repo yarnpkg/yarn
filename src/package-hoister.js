@@ -38,7 +38,7 @@ export class HoistManifest {
     this.key = key;
     this.parts = parts;
     this.originalKey = key;
-    this.previousKeys = [];
+    this.previousPaths = [];
 
     this.history = [];
     this.addHistory(`Start position = ${key}`);
@@ -53,7 +53,7 @@ export class HoistManifest {
   pkg: Manifest;
   loc: string;
   parts: Parts;
-  previousKeys: Array<string>;
+  previousPaths: Array<string>;
   history: Array<string>;
   key: string;
   originalKey: string;
@@ -443,7 +443,7 @@ export default class PackageHoister {
     if (duplicate) {
       info.addHistory(`Satisfied from above by ${newKey}`);
       this.declareRename(info, rawParts, parts);
-      this.updateHoistHistory(info.key, this.implodeKey(parts));
+      this.updateHoistHistory(this.nohoistResolver._originalPath(info), this.implodeKey(parts));
       return;
     }
 
@@ -483,10 +483,10 @@ export default class PackageHoister {
     }
   }
 
-  updateHoistHistory(fromKey: string, toKey: string) {
+  updateHoistHistory(fromPath: string, toKey: string) {
     const info = this.tree.get(toKey);
     invariant(info, `expect to find hoist-to ${toKey}`);
-    info.previousKeys.push(fromKey);
+    info.previousPaths.push(fromPath);
   }
 
   /**
@@ -504,7 +504,9 @@ export default class PackageHoister {
       return;
     }
 
-    info.previousKeys.push(oldKey);
+    const fromInfo = this.tree.get(newKey);
+    invariant(fromInfo, `expect to find hoist-from ${newKey}`);
+    info.previousPaths.push(this.nohoistResolver._originalPath(fromInfo));
     info.addHistory(`New position = ${newKey}`);
   }
 
@@ -717,14 +719,13 @@ export class NohoistResolver {
       originalParentPath = this._originalPath(parent);
     } else {
       invariant(this._isTopPackage(info), `${info.key} doesn't have parent nor a top package`);
-      if (info.pkg.name != this._wsRootPackageName) {
+      if (info.pkg.name !== this._wsRootPackageName) {
         parentNohoistList = this._wsRootNohoistList;
         originalParentPath = this._wsRootPackageName || '';
       }
     }
 
     info.originalParentPath = originalParentPath;
-
     let nohoistList = this._extractNohoistList(info.pkg, this._originalPath(info)) || [];
     if (parentNohoistList) {
       nohoistList = nohoistList.concat(parentNohoistList);

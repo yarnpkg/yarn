@@ -817,7 +817,7 @@ describe('nohoist', () => {
     expect(paths).toContainEqual(['b', '']);
     expect(paths).toContainEqual(['c', '/a']);
   });
-  test('previousKeys should reflect hoist history', () => {
+  test('previousPaths should reflect hoist history', () => {
     const {packageHoister} = createTestFixture({
       'a@1.0.0': ['c@1.0.0'],
       'b@1.0.0': ['c@1.0.0'],
@@ -827,11 +827,11 @@ describe('nohoist', () => {
     // disable hoisting for everything under a
     packageHoister.seed(['a@1.0.0', 'b@1.0.0']);
     const result = packageHoister.init();
-    const hoistHistory = result.map(r => [r[1].key, r[1].previousKeys]);
+    const hoistHistory = result.map(r => [r[1].key, r[1].previousPaths]);
 
     expect(hoistHistory.length).toEqual(3);
     expect(hoistHistory).toContainEqual(['a', []]);
     expect(hoistHistory).toContainEqual(['b', []]);
-    expect(hoistHistory).toContainEqual(['c', ['a#c', 'b#c']]);
+    expect(hoistHistory).toContainEqual(['c', ['/a/c', '/b/c']]);
   });
 });

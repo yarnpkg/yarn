@@ -1177,3 +1177,22 @@ test.concurrent('install will not overwrite linked dependencies', async (): Prom
     });
   });
 });
+
+// There was a warning being generated when a peerDep existed at a deeper level, and at the top level.
+// See https://github.com/yarnpkg/yarn/issues/4743
+//
+// package.json
+// |- b
+// |  |- caniuse-api
+// |     |- caniuse-lite
+// |- caniuse-lite
+//
+// When `b` also has a peerDep on `caniuse-lite` then Yarn was issuing a warning that the dep was missing.
+test.concurrent('install will not warn for missing peerDep when both shallower and deeper', (): Promise<void> => {
+  return runInstall({}, 'peer-dep-included-at-2-levels', (config, reporter, install, getStdout) => {
+    const stdout = getStdout();
+    const messageParts = reporter.lang('unmetPeer').split('undefined');
+    const warningMessage = messageParts.every(part => stdout.includes(part));
+    expect(warningMessage).toBe(false);
+  });
+});

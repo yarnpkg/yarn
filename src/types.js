@@ -73,6 +73,7 @@ export type Manifest = {
   flat?: boolean,
   license?: string,
   licenseText?: string,
+  noticeText?: string,
 
   readme?: string,
   readmeFilename?: string,

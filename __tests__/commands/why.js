@@ -112,6 +112,21 @@ test.concurrent('should determine that the module installed because it is hoiste
   });
 });
 
+test('should report when a module is included multiple times including the root', (): Promise<void> => {
+  return runWhy({}, ['caniuse-lite'], 'dep-included-at-2-levels', (config, reporter) => {
+    const report = reporter.getBuffer();
+    const reasons = report
+      .filter(entry => entry.type === 'list' && entry.data.type === 'reasons')
+      .map(entry => entry.data.items)[0];
+
+    expect(reasons).toEqual([
+      'Specified in "dependencies"',
+      'Hoisted from "b#caniuse-api#caniuse-lite"',
+      'Hoisted from "b#caniuse-api#browserslist#caniuse-lite"',
+    ]);
+  });
+});
+
 class MockReporter extends reporters.BufferReporter {
   _lang = jest.fn();
   lang(key: LanguageKeys, ...args: Array<mixed>): string {
@@ -212,7 +227,7 @@ describe('queryWhy', () => {
     };
   }
 
-  function mockHoistManifestTuple(name: string, key: string, previousKeys: Array<?string>): HoistManifestTuple {
+  function mockHoistManifestTuple(name: string, key: string, previousPaths: Array<?string>): HoistManifestTuple {
     const hm = new HoistManifest(key, [], mockManifest(name), '', false, true, false);
     return ['', hm];
   }
