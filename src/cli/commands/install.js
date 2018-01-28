@@ -151,7 +151,7 @@ function normalizeFlags(config: Config, rawFlags: Object): Flags {
     // outdated, update-interactive
     includeWorkspaceDeps: !!rawFlags.includeWorkspaceDeps,
 
-    // remove, update
+    // add, remove, update
     workspaceRootIsCwd: rawFlags.workspaceRootIsCwd !== false,
   };
 
@@ -316,9 +316,11 @@ export class Install {
         }
       };
 
-      pushDeps('dependencies', projectManifestJson, {hint: null, optional: false}, true);
-      pushDeps('devDependencies', projectManifestJson, {hint: 'dev', optional: false}, !this.config.production);
-      pushDeps('optionalDependencies', projectManifestJson, {hint: 'optional', optional: true}, true);
+      if (cwdIsRoot) {
+        pushDeps('dependencies', projectManifestJson, {hint: null, optional: false}, true);
+        pushDeps('devDependencies', projectManifestJson, {hint: 'dev', optional: false}, !this.config.production);
+        pushDeps('optionalDependencies', projectManifestJson, {hint: 'optional', optional: true}, true);
+      }
 
       if (this.config.workspaceRootFolder) {
         const workspaceLoc = cwdIsRoot ? loc : path.join(this.config.lockfileFolder, filename);
@@ -356,6 +358,8 @@ export class Install {
           dependencies: workspaceDependencies,
           devDependencies: {...workspaceManifestJson.devDependencies},
           optionalDependencies: {...workspaceManifestJson.optionalDependencies},
+          private: workspaceManifestJson.private,
+          workspaces: workspaceManifestJson.workspaces,
         };
         workspaceLayout.virtualManifestName = virtualDependencyManifest.name;
         const virtualDep = {};
@@ -395,6 +399,9 @@ export class Install {
   }
 
   preparePatterns(patterns: Array<string>): Array<string> {
+    return patterns;
+  }
+  preparePatternsForLinking(patterns: Array<string>, cwdManifest: Manifest, cwdIsRoot: boolean): Array<string> {
     return patterns;
   }
 
@@ -549,6 +556,11 @@ export class Install {
       // remove integrity hash to make this operation atomic
       await this.integrityChecker.removeIntegrityFile();
       this.reporter.step(curr, total, this.reporter.lang('linkingDependencies'), emoji.get('link'));
+      flattenedTopLevelPatterns = this.preparePatternsForLinking(
+        flattenedTopLevelPatterns,
+        manifest,
+        this.config.lockfileFolder === this.config.cwd,
+      );
       await this.linker.init(flattenedTopLevelPatterns, workspaceLayout, {
         linkDuplicates: this.flags.linkDuplicates,
         ignoreOptional: this.flags.ignoreOptional,

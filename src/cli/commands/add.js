@@ -21,7 +21,9 @@ import semver from 'semver';
 
 export class Add extends Install {
   constructor(args: Array<string>, flags: Object, config: Config, reporter: Reporter, lockfile: Lockfile) {
-    super(flags, config, reporter, lockfile);
+    const workspaceRootIsCwd = config.cwd === config.lockfileFolder;
+    const _flags = flags ? {...flags, workspaceRootIsCwd} : {workspaceRootIsCwd};
+    super(_flags, config, reporter, lockfile);
     this.args = args;
     // only one flag is supported, so we can figure out which one was passed to `yarn add`
     this.flagToOrigin = [
@@ -104,6 +106,49 @@ export class Add extends Install {
     return preparedPatterns;
   }
 
+  preparePatternsForLinking(patterns: Array<string>, cwdManifest: Manifest, cwdIsRoot: boolean): Array<string> {
+    // remove the newly added patterns if cwd != root and update the in-memory package dependency instead
+    if (cwdIsRoot) {
+      return patterns;
+    }
+
+    let manifest;
+    const cwdPackage = `${cwdManifest.name}@${cwdManifest.version}`;
+    try {
+      manifest = this.resolver.getStrictResolvedPattern(cwdPackage);
+    } catch (e) {
+      this.reporter.warn(this.reporter.lang('unknownPackage', cwdPackage));
+      return patterns;
+    }
+
+    let newPatterns = patterns;
+    this._iterateAddedPackages((pattern, registry, dependencyType, pkgName, version) => {
+      // remove added package from patterns list
+      const filtered = newPatterns.filter(p => p !== pattern);
+      invariant(
+        newPatterns.length - filtered.length > 0,
+        `expect added pattern '${pattern}' in the list: ${patterns.toString()}`,
+      );
+      newPatterns = filtered;
+
+      // add new package into in-memory manifest so they can be linked properly
+      manifest[dependencyType] = manifest[dependencyType] || {};
+      if (manifest[dependencyType][pkgName] === version) {
+        // package already existed
+        return;
+      }
+
+      // update dependencies in the manifest
+      invariant(manifest._reference, 'manifest._reference should not be null');
+      const ref: Object = manifest._reference;
+
+      ref['dependencies'] = ref['dependencies'] || [];
+      ref['dependencies'].push(pattern);
+    });
+
+    return newPatterns;
+  }
+
   async bailout(patterns: Array<string>, workspaceLayout: ?WorkspaceLayout): Promise<boolean> {
     const lockfileCache = this.lockfile.cache;
     if (!lockfileCache) {
@@ -154,7 +199,11 @@ export class Add extends Install {
     const opts: ListOptions = {
       reqDepth: 0,
     };
-    const {trees, count} = await buildTree(this.resolver, this.linker, patterns, opts, true, true);
+
+    // restore the original patterns
+    const merged = [...patterns, ...this.addedPatterns];
+
+    const {trees, count} = await buildTree(this.resolver, this.linker, merged, opts, true, true);
     this.reporter.success(
       count === 1 ? this.reporter.lang('savedNewDependency') : this.reporter.lang('savedNewDependencies', count),
     );
@@ -168,10 +217,28 @@ export class Add extends Install {
   async savePackages(): Promise<void> {
     // fill rootPatternsToOrigin without `excludePatterns`
     await Install.prototype.fetchRequestFromCwd.call(this);
-    const patternOrigins = Object.keys(this.rootPatternsToOrigin);
+    // // get all the different registry manifests in this folder
+    const manifests: Object = await this.config.getRootManifests();
 
-    // get all the different registry manifests in this folder
-    const manifests = await this.config.getRootManifests();
+    this._iterateAddedPackages((pattern, registry, dependencyType, pkgName, version) => {
+      // add it to manifest
+      const {object} = manifests[registry];
+
+      object[dependencyType] = object[dependencyType] || {};
+      object[dependencyType][pkgName] = version;
+
+      if (dependencyType !== this.flagToOrigin) {
+        this.reporter.warn(this.reporter.lang('moduleAlreadyInManifest', pkgName, dependencyType, this.flagToOrigin));
+      }
+    });
+
+    await this.config.saveRootManifests(manifests);
+  }
+
+  _iterateAddedPackages(
+    f: (pattern: string, registry: string, dependencyType: string, pkgName: string, version: string) => void,
+  ) {
+    const patternOrigins = Object.keys(this.rootPatternsToOrigin);
 
     // add new patterns to their appropriate registry manifest
     for (const pattern of this.addedPatterns) {
@@ -191,18 +258,8 @@ export class Add extends Install {
       // depType is calculated when `yarn upgrade` command is used
       const target = depType || this.flagToOrigin;
 
-      // add it to manifest
-      const {object} = manifests[ref.registry];
-
-      object[target] = object[target] || {};
-      object[target][pkg.name] = version;
-
-      if (target !== this.flagToOrigin) {
-        this.reporter.warn(this.reporter.lang('moduleAlreadyInManifest', pkg.name, depType, this.flagToOrigin));
-      }
+      f(pattern, ref.registry, target, pkg.name, version);
     }
-
-    await this.config.saveRootManifests(manifests);
   }
 }
 
