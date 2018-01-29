@@ -20,8 +20,10 @@ const runPublish = buildRun.bind(
         resolve({status: 200});
       }),
     );
-    // config.registries.yarn.config.username = 'test';
-    // config.registries.yarn.config.email = 'test@yarnpkg.com';
+
+    // $FlowFixMe
+    config.registries.npm.getAuth = jest.fn();
+    config.registries.npm.getAuth.mockReturnValue('test');
 
     await publish(config, reporter, flags, args);
     return getStdout();

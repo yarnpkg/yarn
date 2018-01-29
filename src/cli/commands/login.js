@@ -38,6 +38,7 @@ async function getCredentials(
 
 export async function getToken(config: Config, reporter: Reporter, name: string = ''): Promise<() => Promise<void>> {
   const auth = config.registries.npm.getAuth(name);
+  console.log('GET TOKEN 1');
   if (auth) {
     config.registries.npm.setToken(auth);
     return function revoke(): Promise<void> {
@@ -46,6 +47,7 @@ export async function getToken(config: Config, reporter: Reporter, name: string 
     };
   }
 
+  console.log('GET TOKEN 2');
   const env = process.env.YARN_AUTH_TOKEN || process.env.NPM_AUTH_TOKEN;
   if (env) {
     config.registries.npm.setToken(`Bearer ${env}`);
@@ -56,6 +58,7 @@ export async function getToken(config: Config, reporter: Reporter, name: string 
   }
 
   //
+  console.log('GET TOKEN 3');
   const creds = await getCredentials(config, reporter);
   if (!creds) {
     reporter.warn(reporter.lang('loginAsPublic'));
@@ -66,6 +69,7 @@ export async function getToken(config: Config, reporter: Reporter, name: string 
   }
 
   const {username, email} = creds;
+  console.log('PROMPT');
   const password = await reporter.question(reporter.lang('npmPassword'), {
     password: true,
     required: true,
