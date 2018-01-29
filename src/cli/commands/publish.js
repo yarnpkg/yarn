@@ -136,20 +136,24 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
   }
 
   //
+  process.stdout.write('STEP 1\n');
   reporter.step(1, 4, reporter.lang('bumpingVersion'));
   const commitVersion = await setVersion(config, reporter, flags, args, false);
 
   //
+  process.stdout.write.log('STEP 2\n');
   reporter.step(2, 4, reporter.lang('loggingIn'));
   const revoke = await getToken(config, reporter, pkg.name);
 
   //
+  process.stdout.write.log('STEP 3\n');
   reporter.step(3, 4, reporter.lang('publishing'));
   await publish(config, pkg, flags, dir);
   await commitVersion();
   reporter.success(reporter.lang('published'));
 
   //
+  process.stdout.write.log('STEP 4\n');
   reporter.step(4, 4, reporter.lang('revokingToken'));
   await revoke();
 }
