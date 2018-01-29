@@ -8,6 +8,11 @@ Array [
     "type": "warning",
   },
   Object {
+    "data": "..\\\\..\\\\..\\\\..\\\\package.json: No license field",
+    "error": true,
+    "type": "warning",
+  },
+  Object {
     "data": "No license field",
     "error": true,
     "type": "warning",
@@ -35,6 +40,11 @@ exports[`list lists all dependencies when not production 1`] = `
 Array [
   Object {
     "data": "package.json: No license field",
+    "error": true,
+    "type": "warning",
+  },
+  Object {
+    "data": "..\\\\..\\\\..\\\\..\\\\package.json: No license field",
     "error": true,
     "type": "warning",
   },
