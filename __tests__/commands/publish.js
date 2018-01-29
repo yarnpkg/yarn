@@ -37,35 +37,65 @@ const runPublish = buildRun.bind(
 
 test.concurrent('publish should default access to undefined', () => {
   return runPublish([], {newVersion: '0.0.1'}, 'minimal', config => {
-    const requestCallParams = config.registries.npm.request.mock.calls[0][1];
-    expect(requestCallParams.body.access).toEqual(undefined);
+    expect(config.registries.npm.request).toBeCalledWith(
+      expect.any(String),
+      expect.objectContaining({
+        body: expect.objectContaining({
+          access: undefined,
+        }),
+      }),
+    );
   });
 });
 
 test.concurrent('publish should accept `--access restricted` argument', () => {
   return runPublish([], {newVersion: '0.0.1', access: 'restricted'}, 'minimal', config => {
-    const requestCallParams = config.registries.npm.request.mock.calls[0][1];
-    expect(requestCallParams.body.access).toEqual('restricted');
+    expect(config.registries.npm.request).toBeCalledWith(
+      expect.any(String),
+      expect.objectContaining({
+        body: expect.objectContaining({
+          access: 'restricted',
+        }),
+      }),
+    );
   });
 });
 
 test.concurrent('publish should accept `--access public` argument', () => {
   return runPublish([], {newVersion: '0.0.1', access: 'public'}, 'minimal', config => {
-    const requestCallParams = config.registries.npm.request.mock.calls[0][1];
-    expect(requestCallParams.body.access).toEqual('public');
+    expect(config.registries.npm.request).toBeCalledWith(
+      expect.any(String),
+      expect.objectContaining({
+        body: expect.objectContaining({
+          access: 'public',
+        }),
+      }),
+    );
   });
 });
 
 test.concurrent('publish should use publishConfig.access in package manifest', () => {
   return runPublish([], {newVersion: '0.0.1'}, 'public', config => {
-    const requestCallParams = config.registries.npm.request.mock.calls[0][1];
-    expect(requestCallParams.body.access).toEqual('public');
+    expect(config.registries.npm.request).toBeCalledWith(
+      expect.any(String),
+      expect.objectContaining({
+        body: expect.objectContaining({
+          access: 'public',
+        }),
+      }),
+    );
   });
 });
 
 test.concurrent('publish should allow `--access` to override publishConfig.access', () => {
   return runPublish([], {newVersion: '0.0.1', access: 'restricted'}, 'public', config => {
-    const requestCallParams = config.registries.npm.request.mock.calls[0][1];
-    expect(requestCallParams.body.access).toEqual('restricted');
+    expect(config.registries.npm.request).toBeCalledWith(
+      expect.any(String),
+      expect.objectContaining({
+        body: expect.objectContaining({
+          access: 'restricted',
+        }),
+      }),
+    );
   });
 });
