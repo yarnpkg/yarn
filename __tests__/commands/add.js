@@ -95,14 +95,14 @@ test.concurrent('adds any new package to the current workspace, but install from
     expect(await fs.exists(`${config.cwd}/yarn.lock`)).toEqual(true);
     expect(await fs.exists(`${config.cwd}/packages/package-b/yarn.lock`)).toEqual(false);
 
-    await add(await makeConfigFromDirectory(`${config.cwd}/non-packages/package-c`, reporter), reporter, {}, [
+    await add(await makeConfigFromDirectory(`${config.cwd}/non-package/package-c`, reporter), reporter, {}, [
       'isarray',
     ]);
 
     expect(await fs.exists(`${config.cwd}/node_modules/isarray`)).toEqual(false);
-    expect(await fs.exists(`${config.cwd}/non-packages/package-c/node_modules/isarray`)).toEqual(true);
+    expect(await fs.exists(`${config.cwd}/non-package/package-c/node_modules/isarray`)).toEqual(true);
 
-    expect(await fs.exists(`${config.cwd}/non-packages/package-c/yarn.lock`)).toEqual(true);
+    expect(await fs.exists(`${config.cwd}/non-package/package-c/yarn.lock`)).toEqual(true);
   });
 });
 

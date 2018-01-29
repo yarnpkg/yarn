@@ -614,6 +614,9 @@ export default class Config {
   async findWorkspaceRoot(initial: string): Promise<?string> {
     let previous = null;
     let current = path.normalize(initial);
+    if (!await fs.exists(current)) {
+      throw new MessageError(this.reporter.lang('folderMissing', current));
+    }
 
     do {
       const manifest = await this.findManifest(current, true);
