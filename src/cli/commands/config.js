@@ -31,6 +31,7 @@ const CONFIG_KEYS = [
   'childConcurrency',
   'networkTimeout',
   'workspacesEnabled',
+  'workspacesNohoistEnabled',
   'pruneOfflineMirror',
   'enableMetaFolder',
   'enableLockfileVersions',

@@ -185,6 +185,11 @@ const messages = {
   workspacesSettingMustBeArray: 'The workspaces field in package.json must be an array.',
   workspacesDisabled:
     'Your project root defines workspaces but the feature is disabled in your Yarn config. Please check "workspaces-experimental" in your .yarnrc file.',
+
+  workspacesNohoistRequirePrivatePackages:
+    'nohoist config is ignored in $0 because it is not a private package. If you think nohoist should be allowed in public packages, please submit an issue for your use case.',
+  workspacesNohoistDisabled: `$0 defines nohoist but the feature is disabled in your Yarn config. Please check "workspaces-nohoist-experimental" in your .yarnrc file.`,
+
   workspaceRootNotFound: "Cannot find the root of your workspace - are you sure you're currently in a workspace?",
   workspaceMissingWorkspace: 'Missing workspace name.',
   workspaceMissingCommand: 'Missing command name.',
@@ -275,12 +280,16 @@ const messages = {
   whyHoistedTo: `Has been hoisted to $0`,
 
   whyHoistedFromSimple: `This module exists because it's hoisted from $0.`,
+  whyNotHoistedSimple: `This module exists here because it's in the nohoist list $0.`,
   whyDependedOnSimple: `This module exists because $0 depends on it.`,
   whySpecifiedSimple: `This module exists because it's specified in $0.`,
   whyReasons: 'Reasons this module exists',
   whyHoistedFrom: 'Hoisted from $0',
+  whyNotHoisted: `in the nohoist list $0`,
   whyDependedOn: '$0 depends on it',
   whySpecified: `Specified in $0`,
+
+  whyMatch: `\r=> Found $0`,
 
   uninstalledPackages: 'Uninstalled packages.',
   uninstallRegenerate: 'Regenerating lockfile and installing missing dependencies',

@@ -169,13 +169,17 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
           acc[workspaceLoc] = xs.concat(dep);
           return acc;
         }, {});
+        const cwd = config.cwd;
         for (const loc of Object.keys(depsByWorkspace)) {
           const patterns = depsByWorkspace[loc].map(getPattern);
           cleanLockfile(lockfile, deps, packagePatterns, reporter);
           reporter.info(reporter.lang('updateInstalling', getNameFromHint(hint)));
-          config.cwd = path.resolve(path.dirname(loc));
+          if (loc !== '') {
+            config.cwd = path.resolve(path.dirname(loc));
+          }
           const add = new Add(patterns, flags, config, reporter, lockfile);
           await add.init();
+          config.cwd = cwd;
         }
       }
     }
