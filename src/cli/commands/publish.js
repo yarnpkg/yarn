@@ -27,8 +27,15 @@ export function hasWrapper(commander: Object, args: Array<string>): boolean {
 }
 
 async function publish(config: Config, pkg: any, flags: Object, dir: string): Promise<void> {
+  let access = flags.access;
+
+  // if no access level is provided, check package.json for `publishConfig.access`
+  // see: https://docs.npmjs.com/files/package.json#publishconfig
+  if (!access && pkg && pkg.publishConfig && pkg.publishConfig.access) {
+    access = pkg.publishConfig.access;
+  }
+
   // validate access argument
-  const access = flags.access;
   if (access && access !== 'public' && access !== 'restricted') {
     throw new MessageError(config.reporter.lang('invalidAccess'));
   }
@@ -69,7 +76,7 @@ async function publish(config: Config, pkg: any, flags: Object, dir: string): Pr
   // create body
   const root = {
     _id: pkg.name,
-    access: flags.access,
+    access,
     name: pkg.name,
     description: pkg.description,
     'dist-tags': {
