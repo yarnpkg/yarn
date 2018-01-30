@@ -239,6 +239,8 @@ const messages = {
 
   savedNewDependency: 'Saved 1 new dependency.',
   savedNewDependencies: 'Saved $0 new dependencies.',
+  directDependencies: 'Direct dependencies',
+  allDependencies: 'All dependencies',
 
   foundWarnings: 'Found $0 warnings.',
   foundErrors: 'Found $0 errors.',
