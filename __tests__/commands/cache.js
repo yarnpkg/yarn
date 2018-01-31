@@ -147,3 +147,17 @@ test('clean with package name', async (): Promise<void> => {
     expect(files.length).toEqual(1); // Only .tmp folder left
   });
 });
+
+test('clean with multiple package names', async (): Promise<void> => {
+  await runInstall({}, 'install-production', async (config): Promise<void> => {
+    let files = await fs.readdir(config.cacheFolder);
+    expect(files.length).toEqual(3);
+
+    const reporter = new BufferReporter();
+
+    await run(config, reporter, {}, ['clean', 'is-array', 'left-pad']);
+    expect(await fs.exists(config.cacheFolder)).toBeTruthy();
+    files = await fs.readdir(config.cacheFolder);
+    expect(files.length).toEqual(1); // Only .tmp folder left
+  });
+});
