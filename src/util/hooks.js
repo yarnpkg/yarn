@@ -1,8 +1,10 @@
 /* @flow */
 
+export type YarnHook = 'resolveStep' | 'fetchStep' | 'linkStep' | 'buildStep';
+
 const YARN_HOOKS_KEY = 'experimentalYarnHooks';
 
-export function callThroughHook<T>(type: string, fn: () => T): T {
+export function callThroughHook<T>(type: YarnHook, fn: () => T): T {
   if (typeof global === 'undefined') {
     return fn();
   }
