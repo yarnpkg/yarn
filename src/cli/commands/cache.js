@@ -41,18 +41,20 @@ async function getPackagesPaths(config, currentPath): Object {
 
 async function getCachedPackages(config): Object {
   const paths = await getPackagesPaths(config, config.cacheFolder);
-  return Promise.all(paths.map(config.readPackageMetadata.bind(config)));
+  return Promise.all(paths.map(path => config.readPackageMetadata(path).catch(error => undefined))).then(packages =>
+    packages.filter(p => !!p),
+  );
 }
 
 async function list(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
-  const filterOut = ({registry, package: manifest, remote}) => {
+  const filterOut = ({registry, package: manifest, remote} = {}) => {
     if (flags.pattern && !micromatch.contains(manifest.name, flags.pattern)) {
       return false;
     }
     return true;
   };
 
-  const forReport = ({registry, package: manifest, remote}) => [
+  const forReport = ({registry, package: manifest, remote} = {}) => [
     manifest.name,
     manifest.version,
     registry,

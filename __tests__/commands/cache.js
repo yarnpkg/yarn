@@ -31,7 +31,14 @@ test('list', async (): Promise<void> => {
   });
 });
 
-test('ls with scoped package', async (): Promise<void> => {
+test('list skips corrupted package', async (): Promise<void> => {
+  await runCache(['list'], {}, 'corrupted', (config, reporter, stdout) => {
+    expect(stdout).not.toContain(JSON.stringify('corrupted'));
+    expect(stdout).toContain(JSON.stringify('good-module'));
+  });
+});
+
+test('ls with scoped packages', async (): Promise<void> => {
   await runInstall({}, 'install-from-authed-private-registry', async (config): Promise<void> => {
     const reporter = new BufferReporter();
     await run(config, reporter, {}, ['list']);

@@ -1,7 +1,5 @@
 /* @flow */
 
-import type {Prompt} from 'inquirer';
-
 import {ConsoleReporter} from '../../src/reporters/index.js';
 import * as reporters from '../../src/reporters/index.js';
 import {
