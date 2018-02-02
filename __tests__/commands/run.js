@@ -37,6 +37,18 @@ const runRunInWorkspacePackage = function(cwd, ...args): Promise<void> {
     return retVal;
   })(...args);
 };
+const runRunWithCustomShell = function(customShell, ...args): Promise<void> {
+  return buildRun.bind(null, BufferReporter, fixturesLoc, (args, flags, config, reporter): Promise<void> => {
+    const yarnRegistry = config.registries.yarn;
+    const originalCustomShell = yarnRegistry.config['script-shell'];
+    yarnRegistry.config['script-shell'] = customShell;
+    const retVal = run(config, reporter, flags, args);
+    retVal.then(() => {
+      yarnRegistry.config['script-shell'] = originalCustomShell;
+    });
+    return retVal;
+  })(...args);
+};
 
 test('lists all available commands with no arguments', (): Promise<void> => {
   return runRun([], {}, 'no-args', (config, reporter): ?Promise<void> => {
@@ -63,7 +75,7 @@ test('lists all available commands with no arguments', (): Promise<void> => {
 test('runs script containing spaces', (): Promise<void> => {
   return runRun(['build'], {}, 'spaces', async (config): ?Promise<void> => {
     const pkg = await fs.readJson(path.join(config.cwd, 'package.json'));
-    // The command get's called with a space appended
+    // The command gets called with a space appended
     const args = ['build', config, pkg.scripts.build, config.cwd];
 
     expect(execCommand).toBeCalledWith(...args);
@@ -165,5 +177,15 @@ test('adds workspace root node_modules/.bin to path when in a workspace', (): Pr
 
     expect(envPaths).toContain(path.join(config.cwd, 'node_modules', '.bin'));
     expect(envPaths).toContain(path.join(config.cwd, 'packages', 'pkg1', 'node_modules', '.bin'));
+  });
+});
+
+test('runs script with custom script-shell', (): Promise<void> => {
+  return runRunWithCustomShell('/usr/bin/dummy', ['start'], {}, 'script-shell', async (config): ?Promise<void> => {
+    const pkg = await fs.readJson(path.join(config.cwd, 'package.json'));
+    // The command gets called with the provided customShell
+    const args = ['start', config, pkg.scripts.start, config.cwd, '/usr/bin/dummy'];
+
+    expect(execCommand).toBeCalledWith(...args);
   });
 });

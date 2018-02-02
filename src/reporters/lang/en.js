@@ -80,7 +80,8 @@ const messages = {
   invalidVersion: 'Invalid version supplied.',
   requiredVersionInRange: 'Required version in range.',
   packageNotFoundRegistry: "Couldn't find package $0 on the $1 registry.",
-  doesntExist: "$0 doesn't exist.",
+  requiredPackageNotFoundRegistry: "Couldn't find package $0 required by $1 on the $2 registry.",
+  doesntExist: "Package $1 refers to a non-existing file '$0'.",
   missingRequiredPackageKey: `Package $0 doesn't have a $1.`,
   invalidAccess: 'Invalid argument for access, expected public or restricted.',
   invalidCommand: 'Invalid subcommand. Try $0',
@@ -98,7 +99,7 @@ const messages = {
   ignoredScripts: 'Ignored scripts due to flag.',
   missingAddDependencies: 'Missing list of packages to add to your project.',
   yesWarning:
-    'The yes flag has been set. This will automatically answer yes to all questions which may have security implications.',
+    'The yes flag has been set. This will automatically answer yes to all questions, which may have security implications.',
   networkWarning:
     "You don't appear to have an internet connection. Try the --offline flag to use the cache for registry queries.",
   flatGlobalError:
@@ -118,14 +119,14 @@ const messages = {
   frozenLockfileError: 'Your lockfile needs to be updated, but yarn was run with `--frozen-lockfile`.',
   fileWriteError: 'Could not write file $0: $1',
   multiplePackagesCantUnpackInSameDestination:
-    'Pattern $0 is trying to unpack in the same destination $1 as pattern $2. This could result in a non deterministic behavior, skipping.',
+    'Pattern $0 is trying to unpack in the same destination $1 as pattern $2. This could result in non-deterministic behavior, skipping.',
   incorrectLockfileEntry: 'Lockfile has incorrect entry for $0. Ignoring it.',
 
   invalidResolutionName: 'Resolution field $0 does not end with a valid package name and will be ignored',
   invalidResolutionVersion: 'Resolution field $0 has an invalid version entry and may be ignored',
   incompatibleResolutionVersion: 'Resolution field $0 is incompatible with requested version $1',
 
-  yarnOutdated: "Your current version of Yarn is out of date. The latest version is $0 while you're on $1.",
+  yarnOutdated: "Your current version of Yarn is out of date. The latest version is $0, while you're on $1.",
   yarnOutdatedInstaller: 'To upgrade, download the latest installer at $0.',
   yarnOutdatedCommand: 'To upgrade, run the following command:',
 
@@ -181,9 +182,15 @@ const messages = {
 
   workspacesAddRootCheck:
     'Running this command will add the dependency to the workspace root rather than workspace itself, which might not be what you want - if you really meant it, make it explicit by running this command again with the -W flag (or --ignore-workspace-root-check).',
-  workspacesRequirePrivateProjects: 'Workspaces can only be enabled in private projects',
+  workspacesRequirePrivateProjects: 'Workspaces can only be enabled in private projects.',
+  workspacesSettingMustBeArray: 'The workspaces field in package.json must be an array.',
   workspacesDisabled:
     'Your project root defines workspaces but the feature is disabled in your Yarn config. Please check "workspaces-experimental" in your .yarnrc file.',
+
+  workspacesNohoistRequirePrivatePackages:
+    'nohoist config is ignored in $0 because it is not a private package. If you think nohoist should be allowed in public packages, please submit an issue for your use case.',
+  workspacesNohoistDisabled: `$0 defines nohoist but the feature is disabled in your Yarn config. Please check "workspaces-nohoist-experimental" in your .yarnrc file.`,
+
   workspaceRootNotFound: "Cannot find the root of your workspace - are you sure you're currently in a workspace?",
   workspaceMissingWorkspace: 'Missing workspace name.',
   workspaceMissingCommand: 'Missing command name.',
@@ -232,6 +239,8 @@ const messages = {
 
   savedNewDependency: 'Saved 1 new dependency.',
   savedNewDependencies: 'Saved $0 new dependencies.',
+  directDependencies: 'Direct dependencies',
+  allDependencies: 'All dependencies',
 
   foundWarnings: 'Found $0 warnings.',
   foundErrors: 'Found $0 errors.',
@@ -245,6 +254,7 @@ const messages = {
   invalidSemver: 'Invalid semver version',
   newVersion: 'New version',
   currentVersion: 'Current version',
+  noVersionOnPublish: 'Proceeding with current version',
 
   manualVersionResolution:
     'Unable to find a suitable version for $0, please choose one by typing one of the numbers below:',
@@ -271,12 +281,16 @@ const messages = {
   whyHoistedTo: `Has been hoisted to $0`,
 
   whyHoistedFromSimple: `This module exists because it's hoisted from $0.`,
+  whyNotHoistedSimple: `This module exists here because it's in the nohoist list $0.`,
   whyDependedOnSimple: `This module exists because $0 depends on it.`,
   whySpecifiedSimple: `This module exists because it's specified in $0.`,
   whyReasons: 'Reasons this module exists',
   whyHoistedFrom: 'Hoisted from $0',
+  whyNotHoisted: `in the nohoist list $0`,
   whyDependedOn: '$0 depends on it',
   whySpecified: `Specified in $0`,
+
+  whyMatch: `\r=> Found $0`,
 
   uninstalledPackages: 'Uninstalled packages.',
   uninstallRegenerate: 'Regenerating lockfile and installing missing dependencies',
@@ -373,6 +387,7 @@ const messages = {
   verboseUpgradeBecauseOutdated: 'Considering upgrade of $0 to $1 because a newer version exists in the registry.',
   verboseUpgradeNotUnlocking: 'Not unlocking $0 in the lockfile because it is a new or direct dependency.',
   verboseUpgradeUnlocking: 'Unlocking $0 in the lockfile.',
+  folderMissing: "Directory $0 doesn't exist",
 };
 
 export type LanguageKeys = $Keys<typeof messages>;

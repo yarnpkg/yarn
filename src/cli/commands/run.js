@@ -81,7 +81,12 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
       for (const [stage, cmd] of cmds) {
         // only tack on trailing arguments for default script, ignore for pre and post - #1595
         const cmdWithArgs = stage === action ? sh`${unquoted(cmd)} ${args}` : cmd;
-        await execCommand(stage, config, cmdWithArgs, config.cwd);
+        const customShell = config.getOption('script-shell');
+        if (customShell) {
+          await execCommand(stage, config, cmdWithArgs, config.cwd, String(customShell));
+        } else {
+          await execCommand(stage, config, cmdWithArgs, config.cwd);
+        }
       }
     } else if (action === 'env') {
       reporter.log(JSON.stringify(await makeEnv('env', config.cwd, config), null, 2), {force: true});

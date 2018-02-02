@@ -490,33 +490,36 @@ export default class PackageResolver {
       return;
     }
 
+    const request = new PackageRequest(req, this);
     const fetchKey = `${req.registry}:${req.pattern}:${String(req.optional)}`;
-    if (this.fetchingPatterns.has(fetchKey)) {
-      return;
-    }
-    this.fetchingPatterns.add(fetchKey);
+    const initialFetch = !this.fetchingPatterns.has(fetchKey);
+    let fresh = false;
 
     if (this.activity) {
       this.activity.tick(req.pattern);
     }
 
-    const lockfileEntry = this.lockfile.getLocked(req.pattern);
-    let fresh = false;
+    if (initialFetch) {
+      this.fetchingPatterns.add(fetchKey);
 
-    if (lockfileEntry) {
-      const {range, hasVersion} = normalizePattern(req.pattern);
+      const lockfileEntry = this.lockfile.getLocked(req.pattern);
 
-      if (this.isLockfileEntryOutdated(lockfileEntry.version, range, hasVersion)) {
-        this.reporter.warn(this.reporter.lang('incorrectLockfileEntry', req.pattern));
-        this.removePattern(req.pattern);
-        this.lockfile.removePattern(req.pattern);
+      if (lockfileEntry) {
+        const {range, hasVersion} = normalizePattern(req.pattern);
+
+        if (this.isLockfileEntryOutdated(lockfileEntry.version, range, hasVersion)) {
+          this.reporter.warn(this.reporter.lang('incorrectLockfileEntry', req.pattern));
+          this.removePattern(req.pattern);
+          this.lockfile.removePattern(req.pattern);
+          fresh = true;
+        }
+      } else {
         fresh = true;
       }
-    } else {
-      fresh = true;
+
+      request.init();
     }
 
-    const request = new PackageRequest(req, this);
     await request.find({fresh, frozen: this.frozen});
   }
 
