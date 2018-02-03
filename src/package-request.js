@@ -56,6 +56,7 @@ export default class PackageRequest {
   optional: boolean;
   foundInfo: ?Manifest;
 
+  // TODO is it Manifest?
   getLocked(remoteType: string): ?Object {
     // always prioritise root lockfile
     const shrunk = this.lockfile.getLocked(this.pattern);
@@ -79,6 +80,7 @@ export default class PackageRequest {
         },
         optionalDependencies: shrunk.optionalDependencies,
         dependencies: shrunk.dependencies,
+        prebuiltVariants: shrunk.prebuiltVariants,
       };
     } else {
       return null;

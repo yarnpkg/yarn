@@ -29,6 +29,7 @@ export type LockManifest = {
   permissions: ?{[key: string]: boolean},
   optionalDependencies: ?Dependencies,
   dependencies: ?Dependencies,
+  prebuiltVariants: ?{[key: string]: string},
 };
 
 type MinimalLockManifest = {
@@ -69,6 +70,7 @@ export function implodeEntry(pattern: string, obj: Object): MinimalLockManifest 
     dependencies: blankObjectUndefined(obj.dependencies),
     optionalDependencies: blankObjectUndefined(obj.optionalDependencies),
     permissions: blankObjectUndefined(obj.permissions),
+    prebuiltVariants: blankObjectUndefined(obj.prebuiltVariants),
   };
 }
 
@@ -184,7 +186,6 @@ export default class Lockfile {
         }
         continue;
       }
-
       const obj = implodeEntry(pattern, {
         name: pkg.name,
         version: pkg.version,
@@ -195,6 +196,7 @@ export default class Lockfile {
         peerDependencies: pkg.peerDependencies,
         optionalDependencies: pkg.optionalDependencies,
         permissions: ref.permissions,
+        prebuiltVariants: pkg.prebuiltVariants,
       });
       lockfile[pattern] = obj;
 

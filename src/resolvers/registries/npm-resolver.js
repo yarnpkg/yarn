@@ -3,6 +3,7 @@
 import type {Manifest} from '../../types.js';
 import type Config from '../../config.js';
 import type PackageRequest from '../../package-request.js';
+import PackageInstallScripts from '../../package-install-scripts.js';
 import {MessageError} from '../../errors.js';
 import RegistryResolver from './registry-resolver.js';
 import NpmRegistry, {SCOPE_SEPARATOR} from '../../registries/npm-registry.js';
@@ -180,6 +181,14 @@ export default class NpmResolver extends RegistryResolver {
     // lockfile
     const shrunk = this.request.getLocked('tarball');
     if (shrunk) {
+      if (shrunk.prebuiltVariants && shrunk._remote) {
+        const prebuiltName = PackageInstallScripts.getPrebuiltName(shrunk);
+        if (shrunk.prebuiltVariants[prebuiltName]) {
+          const filename = this.config.getOfflineMirrorPath(prebuiltName + '.tgz');
+          shrunk._remote.reference = `file:${filename || ''}`;
+          shrunk._remote.hash = shrunk.prebuiltVariants[prebuiltName];
+        }
+      }
       return shrunk;
     }
 
