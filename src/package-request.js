@@ -219,6 +219,10 @@ export default class PackageRequest {
     // find version info for this package pattern
     const info: Manifest = await this.findVersionInfo();
 
+    if (!semver.valid(info.version)) {
+      throw new MessageError(this.reporter.lang('invalidPackageVersion', info.name, info.version));
+    }
+
     info.fresh = fresh;
     cleanDependencies(info, false, this.reporter, () => {
       // swallow warnings
