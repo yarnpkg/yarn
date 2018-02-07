@@ -4,7 +4,7 @@ import JSONReporter from './json-reporter.js';
 
 type Buffer = Array<{
   type: string,
-  data: string | Object | number,
+  data: Object,
   error: boolean,
 }>;
 
@@ -29,7 +29,7 @@ export default class BufferReporter extends JSONReporter {
   }
 
   getBufferText(): string {
-    return this._buffer.map(({data}) => String(data)).join(``);
+    return this._buffer.map(({data}) => (typeof data === 'string' ? data : JSON.stringify(data))).join('');
   }
 
   getBufferJson(): any {

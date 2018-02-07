@@ -84,7 +84,11 @@ async function remove(config: Config, reporter: Reporter, flags: Object, args: A
   }
 }
 
-export const {run, setFlags, hasWrapper, examples} = buildSubCommands(
+export function setFlags(commander: Object) {
+  commander.description('Add, remove, or list tags on a package.');
+}
+
+export const {run, hasWrapper, examples} = buildSubCommands(
   'tag',
   {
     async add(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<boolean> {

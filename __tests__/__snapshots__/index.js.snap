@@ -1,0 +1,78 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`should add lockfile package 1`] = `
+Array [
+  "info No lockfile found.",
+  "[1/4] Resolving packages...",
+  "[2/4] Fetching packages...",
+  "[3/4] Linking dependencies...",
+  "[4/4] Building fresh packages...",
+  "success Saved lockfile.",
+  "success Saved 1 new dependency.",
+  "info Direct dependencies",
+  "└─ lockfile@1.0.3",
+  "info All dependencies",
+  "└─ lockfile@1.0.3",
+]
+`;
+
+exports[`should add package 1`] = `
+Array [
+  "info No lockfile found.",
+  "[1/4] Resolving packages...",
+  "[2/4] Fetching packages...",
+  "[3/4] Linking dependencies...",
+  "[4/4] Building fresh packages...",
+  "success Saved lockfile.",
+  "success Saved 1 new dependency.",
+  "info Direct dependencies",
+  "└─ left-pad@1.2.0",
+  "info All dependencies",
+  "└─ left-pad@1.2.0",
+]
+`;
+
+exports[`should add package with frozen-lockfile option 1`] = `
+Array [
+  "info No lockfile found.",
+  "[1/4] Resolving packages...",
+  "[2/4] Fetching packages...",
+  "[3/4] Linking dependencies...",
+  "[4/4] Building fresh packages...",
+  "success Saved 1 new dependency.",
+  "info Direct dependencies",
+  "└─ repeating@3.0.0",
+  "info All dependencies",
+  "└─ repeating@3.0.0",
+]
+`;
+
+exports[`should add package with no-lockfile option 1`] = `
+Array [
+  "info No lockfile found.",
+  "[1/4] Resolving packages...",
+  "[2/4] Fetching packages...",
+  "[3/4] Linking dependencies...",
+  "[4/4] Building fresh packages...",
+  "success Saved 1 new dependency.",
+  "info Direct dependencies",
+  "└─ repeating@3.0.0",
+  "info All dependencies",
+  "└─ repeating@3.0.0",
+]
+`;
+
+exports[`should add package with no-lockfile option in front 1`] = `
+Array [
+  "info No lockfile found.",
+  "[1/4] Resolving packages...",
+  "[2/4] Fetching packages...",
+  "[3/4] Linking dependencies...",
+  "[4/4] Building fresh packages...",
+  "success Saved 1 new dependency.",
+  "info Direct dependencies",
+  "└─ split-lines@1.1.0",
+  "info All dependencies",
+  "└─ split-lines@1.1.0",
+]
+`;

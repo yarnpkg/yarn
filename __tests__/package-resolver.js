@@ -9,7 +9,7 @@ import makeTemp from './_temp.js';
 import * as fs from '../src/util/fs.js';
 import * as constants from '../src/constants.js';
 
-jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000;
+jasmine.DEFAULT_TIMEOUT_INTERVAL = 90000;
 
 const path = require('path');
 
@@ -51,10 +51,9 @@ function addTest(pattern, registry = 'npm', init: ?(cacheFolder: string) => Prom
   });
 }
 
-// TODO Got broken for some time, needs revision
-// addTest('https://github.com/npm-ml/re'); // git url with no .git
-// addTest('git+https://github.com/npm-ml/ocaml.git#npm-4.02.3'); // git+hash
-// addTest('https://github.com/npm-ml/ocaml.git#npm-4.02.3'); // hash
+addTest('https://github.com/ocaml/ocaml-re'); // git url with no .git
+addTest('git+https://github.com/ocaml/ocaml.git#4.02.3'); // git+hash
+addTest('https://github.com/ocaml/ocaml.git#4.02.3'); // hash
 addTest('https://git@github.com/stevemao/left-pad.git'); // git url, with username
 addTest('https://bitbucket.org/hgarcia/node-bitbucket-api.git'); // hosted git url
 addTest('https://github.com/yarnpkg/yarn/releases/download/v0.18.1/yarn-v0.18.1.tar.gz'); // tarball

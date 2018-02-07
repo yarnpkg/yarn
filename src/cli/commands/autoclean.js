@@ -152,6 +152,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
 }
 
 export function setFlags(commander: Object) {
+  commander.description('Cleans and removes unnecessary files from package dependencies.');
   commander.usage('autoclean [flags]');
   commander.option('-I, --init', `Create "${CLEAN_FILENAME}" file with the default entries.`);
   commander.option('-F, --force', `Run autoclean using the existing "${CLEAN_FILENAME}" file.`);
