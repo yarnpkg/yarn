@@ -181,12 +181,14 @@ export default class NpmResolver extends RegistryResolver {
     // lockfile
     const shrunk = this.request.getLocked('tarball');
     if (shrunk) {
-      if (shrunk.prebuiltVariants && shrunk._remote) {
+      if (this.config.packBuiltPackages && shrunk.prebuiltVariants && shrunk._remote) {
         const prebuiltName = PackageInstallScripts.getPrebuiltName(shrunk);
         if (shrunk.prebuiltVariants[prebuiltName]) {
           const filename = this.config.getOfflineMirrorPath(prebuiltName + '.tgz');
-          shrunk._remote.reference = `file:${filename || ''}`;
-          shrunk._remote.hash = shrunk.prebuiltVariants[prebuiltName];
+          if (filename && (await fs.exists(filename))) {
+            shrunk._remote.reference = `file:${filename}`;
+            shrunk._remote.hash = shrunk.prebuiltVariants[prebuiltName];
+          }
         }
       }
       return shrunk;

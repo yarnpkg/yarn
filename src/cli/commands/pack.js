@@ -148,7 +148,12 @@ export function hasWrapper(commander: Object, args: Array<string>): boolean {
   return true;
 }
 
-export async function run(config: Config, reporter: Reporter, flags: {filename?: string}, args?: Array<string>): Promise<void> {
+export async function run(
+  config: Config,
+  reporter: Reporter,
+  flags: {filename?: string},
+  args?: Array<string>,
+): Promise<void> {
   const pkg = await config.readRootManifest();
   if (!pkg.name) {
     throw new MessageError(reporter.lang('noName'));

@@ -8,11 +8,10 @@ import type {ReporterSetSpinner} from './reporters/types.js';
 import executeLifecycleScript from './util/execute-lifecycle-script.js';
 import * as crypto from './util/crypto.js';
 import * as fs from './util/fs.js';
-import {pack} from './cli/commands/pack.js';Config
+import {pack} from './cli/commands/pack.js';
 
 const fs2 = require('fs');
 const invariant = require('invariant');
-const path = require('path');
 
 const INSTALL_STAGES = ['preinstall', 'install', 'postinstall'];
 
@@ -141,8 +140,8 @@ export default class PackageInstallScripts {
       return false;
     }
     const ref = pkg._reference;
-    if (pkg.prebuiltVariants) {
-      for (let variant in pkg.prebuiltVariants) {
+    if (this.config.packBuiltPackages && pkg.prebuiltVariants) {
+      for (const variant in pkg.prebuiltVariants) {
         if (pkg._remote && pkg._remote.reference && pkg._remote.reference.includes(variant)) {
           return false;
         }
@@ -304,42 +303,43 @@ export default class PackageInstallScripts {
     }
 
     // generate built package as prebuilt one for offline mirror
-    for (const pkg of pkgs) {
-      if (this.packageCanBeInstalled(pkg)) {
-        const filename = PackageInstallScripts.getPrebuiltName(pkg);
-        // TODO maybe generated prebuilt packages should be in a subfolder
-        const filePath = this.config.getOfflineMirrorPath(filename + '.tgz');
-        if (!filePath) {
-          break;
-        }
-        const ref = pkg._reference;
-        invariant(ref, 'expected reference');
-        const loc = this.config.generateHardModulePath(ref);
-        const pkgConfig = await Config.create(
-          {
-            cwd: loc,
-          },
-          this.reporter,
-        );
-        const stream = await pack(pkgConfig, loc);
+    if (this.config.packBuiltPackages) {
+      for (const pkg of pkgs) {
+        if (this.packageCanBeInstalled(pkg)) {
+          const filename = PackageInstallScripts.getPrebuiltName(pkg);
+          // TODO maybe generated prebuilt packages should be in a subfolder
+          const filePath = this.config.getOfflineMirrorPath(filename + '.tgz');
+          if (!filePath) {
+            break;
+          }
+          const ref = pkg._reference;
+          invariant(ref, 'expected reference');
+          const loc = this.config.generateHardModulePath(ref);
+          const pkgConfig = await Config.create(
+            {
+              cwd: loc,
+            },
+            this.reporter,
+          );
+          const stream = await pack(pkgConfig, loc);
 
-        const hash = await new Promise((resolve, reject) => {
-          console.log("building", pkg.name)
-          const validateStream = new crypto.HashStream();
-          stream
-          .pipe(validateStream)
-          .pipe(fs2.createWriteStream(filePath))
-          .on('error', reject)
-          .on('close', () => resolve(validateStream.getHash()));
-        });
-        // TODO ! don't save artifacts in .yarn-integrity, it is part of the package now
-        // TODO ! .yarn-integrity should contain prebuiltPackages array now
-        pkg.prebuiltVariants = pkg.prebuiltVariants || {};
-        pkg.prebuiltVariants[filename] = hash;
+          const hash = await new Promise((resolve, reject) => {
+            const validateStream = new crypto.HashStream();
+            stream
+              .pipe(validateStream)
+              .pipe(fs2.createWriteStream(filePath))
+              .on('error', reject)
+              .on('close', () => resolve(validateStream.getHash()));
+          });
+          // TODO ! don't save artifacts in .yarn-integrity, it is part of the package now
+          // TODO ! .yarn-integrity should contain prebuiltPackages array now
+          pkg.prebuiltVariants = pkg.prebuiltVariants || {};
+          pkg.prebuiltVariants[filename] = hash;
+        }
       }
     }
-    set.end();
 
+    set.end();
   }
 
   static getPrebuiltName(pkg: Manifest): string {
