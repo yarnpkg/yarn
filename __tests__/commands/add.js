@@ -114,6 +114,16 @@ test.concurrent('install from github', async () => {
   await runAdd(['substack/node-mkdirp#master'], {}, 'install-github');
 });
 
+test.concurrent('install from github with invalid version should fail', async () => {
+  let message = '';
+  try {
+    await runAdd(['yarnpkg/example-yarn-package#invalid-package-json-version'], {}, 'install-github');
+  } catch (err) {
+    message = err.message;
+  }
+  expect(message).toEqual(expect.stringContaining('invalid package version'));
+});
+
 test.concurrent('install with --dev flag', async () => {
   await runAdd(['left-pad@1.1.0'], {dev: true}, 'add-with-flag', async config => {
     const lockfile = explodeLockfile(await fs.readFile(path.join(config.cwd, 'yarn.lock')));
