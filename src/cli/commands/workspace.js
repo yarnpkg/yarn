@@ -34,7 +34,8 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
 
   const workspaces = await config.resolveWorkspaces(workspaceRootFolder, manifest);
 
-  const [workspaceName, ...rest] = args;
+  const [workspaceName] = args;
+  const [, , , , ...rest] = flags.rawArgs; // rawArgs contains: [nodePath, yarnPath, 'workspace', workspaceName, ...]
 
   if (!Object.prototype.hasOwnProperty.call(workspaces, workspaceName)) {
     throw new MessageError(reporter.lang('workspaceUnknownWorkspace', workspaceName));
