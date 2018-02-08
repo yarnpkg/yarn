@@ -34,7 +34,11 @@ export default class NpmResolver extends RegistryResolver {
     body: RegistryResponse,
     request: ?PackageRequest,
   ): Promise<Manifest> {
-    if (!body['dist-tags']) {
+    if (body.versions && Object.keys(body.versions).length === 0) {
+      throw new MessageError(config.reporter.lang('registryNoVersions', body.name));
+    }
+
+    if (!body['dist-tags'] || !body.versions) {
       throw new MessageError(config.reporter.lang('malformedRegistryResponse', body.name));
     }
 
