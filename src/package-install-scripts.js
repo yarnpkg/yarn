@@ -13,6 +13,7 @@ import {pack} from './cli/commands/pack.js';
 
 const fs2 = require('fs');
 const invariant = require('invariant');
+const path = require('path');
 
 const INSTALL_STAGES = ['preinstall', 'install', 'postinstall'];
 
@@ -307,12 +308,16 @@ export default class PackageInstallScripts {
     if (this.config.packBuiltPackages) {
       for (const pkg of pkgs) {
         if (this.packageCanBeInstalled(pkg)) {
-          const filename = getPlatformSpecificPackageFilename(pkg);
-          // TODO maybe generated prebuilt packages should be in a subfolder
-          const filePath = this.config.getOfflineMirrorPath(filename + '.tgz');
-          if (!filePath) {
+          const offlineMirrorPath = this.config.getOfflineMirrorPath();
+          if (!offlineMirrorPath) {
             break;
           }
+          let prebuiltPath = path.join(offlineMirrorPath, 'prebuilt');
+          if (!await fs.exists(prebuiltPath)) {
+            await fs.mkdirp(prebuiltPath);
+          }
+          const filename = getPlatformSpecificPackageFilename(pkg);
+          prebuiltPath = path.join(prebuiltPath, filename + '.tgz');
           const ref = pkg._reference;
           invariant(ref, 'expected reference');
           const loc = this.config.generateHardModulePath(ref);
@@ -328,7 +333,7 @@ export default class PackageInstallScripts {
             const validateStream = new crypto.HashStream();
             stream
               .pipe(validateStream)
-              .pipe(fs2.createWriteStream(filePath))
+              .pipe(fs2.createWriteStream(prebuiltPath))
               .on('error', reject)
               .on('close', () => resolve(validateStream.getHash()));
           });

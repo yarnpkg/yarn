@@ -10,7 +10,7 @@ const path = require('path');
 jest.mock('../../../src/util/package-name-utils');
 const nameUtils = jest.requireMock('../../../src/util/package-name-utils');
 beforeEach(() => {
-  // doing one time mock is tricky,
+  // doing one time mock for one test is tricky,
   // found this workaround https://github.com/facebook/jest/issues/2649#issuecomment-360467278
   nameUtils.getPlatformSpecificPackageFilename.mockImplementation(
     jest.requireActual('../../../src/util/package-name-utils').getPlatformSpecificPackageFilename,
@@ -86,11 +86,11 @@ test.concurrent('removing prebuilt package .tgz file falls back to running scrip
     expect(await fs.exists(path.join(config.cwd, 'module-a-build.log'))).toEqual(true);
 
     // after second run we observe both package and global side effects
-    const tgzFiles = await fs.readdir(path.join(config.cwd, 'mirror-for-offline'));
+    const tgzFiles = await fs.readdir(path.join(config.cwd, 'mirror-for-offline', 'prebuilt'));
     const packageTgz = tgzFiles.filter(f => f !== 'dep-a-v1.0.0.tgz')[0];
     await fs.unlink(path.join(config.cwd, 'node_modules', 'dep-a', 'module-a-build.log'));
     await fs.unlink(path.join(config.cwd, 'module-a-build.log'));
-    await fs.unlink(path.join(config.cwd, 'mirror-for-offline', packageTgz));
+    await fs.unlink(path.join(config.cwd, 'mirror-for-offline', 'prebuilt', packageTgz));
 
     reinstall = new Install({force: true}, config, reporter, await Lockfile.fromDirectory(config.cwd));
     await reinstall.init();
@@ -105,8 +105,8 @@ test('switching platform for installed node_modules should trigger rebuild / usi
 > => {
   // TODO force not needed lockfile needs to save when prebuilt components get added
   return runInstall({force: true}, 'install-offline-built-artifacts-multiple-platforms', async (config, reporter) => {
-    let tgzFiles = await fs.readdir(path.join(config.cwd, 'mirror-for-offline'));
-    expect(tgzFiles.length).toBe(2);
+    let tgzFiles = await fs.readdir(path.join(config.cwd, 'mirror-for-offline', 'prebuilt'));
+    expect(tgzFiles.length).toBe(1);
 
     // running install with platform 2 (artifacts get rewritten and install scripts rerun)
     await fs.unlink(path.join(config.cwd, 'node_modules', 'dep-a', 'module-a-build.log'));
@@ -121,10 +121,10 @@ test('switching platform for installed node_modules should trigger rebuild / usi
     let reinstall = new Install({force: true}, config, reporter, await Lockfile.fromDirectory(config.cwd));
     await reinstall.init();
 
-    tgzFiles = await fs.readdir(path.join(config.cwd, 'mirror-for-offline'));
+    tgzFiles = await fs.readdir(path.join(config.cwd, 'mirror-for-offline', 'prebuilt'));
     expect(await fs.exists(path.join(config.cwd, 'node_modules', 'dep-a', 'module-a-build.log'))).toEqual(true);
     expect(await fs.exists(path.join(config.cwd, 'module-a-build.log'))).toEqual(true);
-    expect(tgzFiles.length).toBe(3);
+    expect(tgzFiles.length).toBe(2);
 
     // runinng install with platform 1 again (no global side effects)
     await fs.unlink(path.join(config.cwd, 'node_modules', 'dep-a', 'module-a-build.log'));
@@ -137,9 +137,9 @@ test('switching platform for installed node_modules should trigger rebuild / usi
     reinstall = new Install({force: true}, config, reporter, await Lockfile.fromDirectory(config.cwd));
     await reinstall.init();
 
-    tgzFiles = await fs.readdir(path.join(config.cwd, 'mirror-for-offline'));
+    tgzFiles = await fs.readdir(path.join(config.cwd, 'mirror-for-offline', 'prebuilt'));
     expect(await fs.exists(path.join(config.cwd, 'node_modules', 'dep-a', 'module-a-build.log'))).toEqual(true);
     expect(await fs.exists(path.join(config.cwd, 'module-a-build.log'))).toEqual(false);
-    expect(tgzFiles.length).toBe(3);
+    expect(tgzFiles.length).toBe(2);
   });
 });
