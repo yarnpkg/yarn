@@ -103,8 +103,7 @@ test.concurrent('removing prebuilt package .tgz file falls back to running scrip
 test('switching platform for installed node_modules should trigger rebuild / using another prebuilt tgz', (): Promise<
   void,
 > => {
-  // TODO force not needed lockfile needs to save when prebuilt components get added
-  return runInstall({force: true}, 'install-offline-built-artifacts-multiple-platforms', async (config, reporter) => {
+  return runInstall({}, 'install-offline-built-artifacts-multiple-platforms', async (config, reporter) => {
     let tgzFiles = await fs.readdir(path.join(config.cwd, 'mirror-for-offline', 'prebuilt'));
     expect(tgzFiles.length).toBe(1);
 
