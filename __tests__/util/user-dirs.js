@@ -87,7 +87,6 @@ describe('getCacheDir', () => {
       expect(getCacheDir()).toBe(path.join(userHome, '.cache', 'yarn'));
     });
   });
-
 });
 
 describe('getConfigDir', () => {
