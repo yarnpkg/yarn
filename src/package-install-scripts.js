@@ -8,6 +8,7 @@ import type {ReporterSetSpinner} from './reporters/types.js';
 import executeLifecycleScript from './util/execute-lifecycle-script.js';
 import * as crypto from './util/crypto.js';
 import * as fs from './util/fs.js';
+import {getPlatformSpecificPackageFilename} from './util/package-name-utils.js';
 import {pack} from './cli/commands/pack.js';
 
 const fs2 = require('fs');
@@ -306,7 +307,7 @@ export default class PackageInstallScripts {
     if (this.config.packBuiltPackages) {
       for (const pkg of pkgs) {
         if (this.packageCanBeInstalled(pkg)) {
-          const filename = PackageInstallScripts.getPrebuiltName(pkg);
+          const filename = getPlatformSpecificPackageFilename(pkg);
           // TODO maybe generated prebuilt packages should be in a subfolder
           const filePath = this.config.getOfflineMirrorPath(filename + '.tgz');
           if (!filePath) {
@@ -331,8 +332,6 @@ export default class PackageInstallScripts {
               .on('error', reject)
               .on('close', () => resolve(validateStream.getHash()));
           });
-          // TODO ! don't save artifacts in .yarn-integrity, it is part of the package now
-          // TODO ! .yarn-integrity should contain prebuiltPackages array now
           pkg.prebuiltVariants = pkg.prebuiltVariants || {};
           pkg.prebuiltVariants[filename] = hash;
         }
@@ -340,13 +339,5 @@ export default class PackageInstallScripts {
     }
 
     set.end();
-  }
-
-  static getPrebuiltName(pkg: Manifest): string {
-    // TODO support platform variant for linux
-    // TODO support hash for all subdependencies that have installs scripts
-    const normaliseScope = name => (name[0] === '@' ? name.substr(1).replace('/', '-') : name);
-    const suffix = `${process.platform}-${process.arch}-${process.versions.modules || ''}`;
-    return `${normaliseScope(pkg.name)}-v${pkg.version}-${suffix}`;
   }
 }

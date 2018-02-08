@@ -7,6 +7,16 @@ import * as fs from '../../../src/util/fs.js';
 
 const path = require('path');
 
+jest.mock('../../../src/util/package-name-utils');
+const nameUtils = jest.requireMock('../../../src/util/package-name-utils');
+beforeEach(() => {
+  // doing one time mock is tricky,
+  // found this workaround https://github.com/facebook/jest/issues/2649#issuecomment-360467278
+  nameUtils.getPlatformSpecificPackageFilename.mockImplementation(
+    jest.requireActual('../../../src/util/package-name-utils').getPlatformSpecificPackageFilename,
+  );
+});
+
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 150000;
 
 test.concurrent(
@@ -89,7 +99,47 @@ test.concurrent('removing prebuilt package .tgz file falls back to running scrip
   });
 });
 
-// moar tests:
-// test platform specific cache
-// don't save artifacts in .yarn-integrity: check-integrity should work
-// .yarn-integrity should hold which packages are platform specifc and rerun if package changes
+// This test is not run concurrently because we mock some internal module
+test('switching platform for installed node_modules should trigger rebuild / using another prebuilt tgz', (): Promise<
+  void,
+> => {
+  // TODO force not needed lockfile needs to save when prebuilt components get added
+  return runInstall({force: true}, 'install-offline-built-artifacts-multiple-platforms', async (config, reporter) => {
+    let tgzFiles = await fs.readdir(path.join(config.cwd, 'mirror-for-offline'));
+    expect(tgzFiles.length).toBe(2);
+
+    // running install with platform 2 (artifacts get rewritten and install scripts rerun)
+    await fs.unlink(path.join(config.cwd, 'node_modules', 'dep-a', 'module-a-build.log'));
+    await fs.unlink(path.join(config.cwd, 'module-a-build.log'));
+    nameUtils.getPlatformSpecificPackageFilename.mockImplementation(pkg => {
+      const normaliseScope = name => (name[0] === '@' ? name.substr(1).replace('/', '-') : name);
+      const suffix = `${process.platform}-${process.arch}-22`;
+      return `${normaliseScope(pkg.name)}-v${pkg.version}-${suffix}`;
+    });
+
+    // TODO force not needed invalidate .yarn-integrity based on platform
+    let reinstall = new Install({force: true}, config, reporter, await Lockfile.fromDirectory(config.cwd));
+    await reinstall.init();
+
+    tgzFiles = await fs.readdir(path.join(config.cwd, 'mirror-for-offline'));
+    expect(await fs.exists(path.join(config.cwd, 'node_modules', 'dep-a', 'module-a-build.log'))).toEqual(true);
+    expect(await fs.exists(path.join(config.cwd, 'module-a-build.log'))).toEqual(true);
+    expect(tgzFiles.length).toBe(3);
+
+    // runinng install with platform 1 again (no global side effects)
+    await fs.unlink(path.join(config.cwd, 'node_modules', 'dep-a', 'module-a-build.log'));
+    await fs.unlink(path.join(config.cwd, 'module-a-build.log'));
+    nameUtils.getPlatformSpecificPackageFilename.mockImplementation(
+      jest.requireActual('../../../src/util/package-name-utils').getPlatformSpecificPackageFilename,
+    );
+
+    // TODO force not needed invalidate .yarn-integrity based on platform
+    reinstall = new Install({force: true}, config, reporter, await Lockfile.fromDirectory(config.cwd));
+    await reinstall.init();
+
+    tgzFiles = await fs.readdir(path.join(config.cwd, 'mirror-for-offline'));
+    expect(await fs.exists(path.join(config.cwd, 'node_modules', 'dep-a', 'module-a-build.log'))).toEqual(true);
+    expect(await fs.exists(path.join(config.cwd, 'module-a-build.log'))).toEqual(false);
+    expect(tgzFiles.length).toBe(3);
+  });
+});

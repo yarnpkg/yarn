@@ -3,13 +3,13 @@
 import type {Manifest} from '../../types.js';
 import type Config from '../../config.js';
 import type PackageRequest from '../../package-request.js';
-import PackageInstallScripts from '../../package-install-scripts.js';
 import {MessageError} from '../../errors.js';
 import RegistryResolver from './registry-resolver.js';
 import NpmRegistry, {SCOPE_SEPARATOR} from '../../registries/npm-registry.js';
 import map from '../../util/map.js';
 import * as fs from '../../util/fs.js';
 import {YARN_REGISTRY} from '../../constants.js';
+import {getPlatformSpecificPackageFilename} from '../../util/package-name-utils.js';
 
 const inquirer = require('inquirer');
 const tty = require('tty');
@@ -182,7 +182,7 @@ export default class NpmResolver extends RegistryResolver {
     const shrunk = this.request.getLocked('tarball');
     if (shrunk) {
       if (this.config.packBuiltPackages && shrunk.prebuiltVariants && shrunk._remote) {
-        const prebuiltName = PackageInstallScripts.getPrebuiltName(shrunk);
+        const prebuiltName = getPlatformSpecificPackageFilename(shrunk);
         if (shrunk.prebuiltVariants[prebuiltName]) {
           const filename = this.config.getOfflineMirrorPath(prebuiltName + '.tgz');
           if (filename && (await fs.exists(filename))) {
