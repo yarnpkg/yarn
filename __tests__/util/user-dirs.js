@@ -17,8 +17,8 @@ describe('getDataDir', () => {
       delete process.env.LOCALAPPDATA;
     });
 
-    test('uses the config dir otherwise', () => {
-      expect(getDataDir()).toBe(path.join(userHome, '.config', 'yarn'));
+    test('uses AppData\\Local\\Data otherwise', () => {
+      expect(getDataDir()).toBe(path.join(userHome, 'AppData', 'Local', 'Yarn', 'Data'));
     });
   });
 
@@ -33,8 +33,8 @@ describe('getDataDir', () => {
       delete process.env.XDG_DATA_HOME;
     });
 
-    test('falls back to the config dir', () => {
-      expect(getDataDir()).toBe(path.join(userHome, '.config', 'yarn'));
+    test('falls back to .local/share/yarn', () => {
+      expect(getDataDir()).toBe(path.join(userHome, '.local', 'share', 'yarn'));
     });
   });
 });
@@ -101,8 +101,8 @@ describe('getConfigDir', () => {
       delete process.env.LOCALAPPDATA;
     });
 
-    test('uses the config dir otherwise', () => {
-      expect(getConfigDir()).toBe(path.join(userHome, '.config', 'yarn'));
+    test('uses AppData\\Local\\Config otherwise', () => {
+      expect(getConfigDir()).toBe(path.join(userHome, 'AppData', 'Local', 'Yarn', 'Config'));
     });
   });
 
