@@ -198,6 +198,7 @@ export default class Lockfile {
         permissions: ref.permissions,
         prebuiltVariants: pkg.prebuiltVariants,
       });
+
       lockfile[pattern] = obj;
 
       if (remoteKey) {

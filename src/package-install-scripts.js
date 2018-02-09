@@ -141,7 +141,6 @@ export default class PackageInstallScripts {
     if (!cmds.length) {
       return false;
     }
-    const ref = pkg._reference;
     if (this.config.packBuiltPackages && pkg.prebuiltVariants) {
       for (const variant in pkg.prebuiltVariants) {
         if (pkg._remote && pkg._remote.reference && pkg._remote.reference.includes(variant)) {
@@ -149,6 +148,7 @@ export default class PackageInstallScripts {
         }
       }
     }
+    const ref = pkg._reference;
     invariant(ref, 'Missing package reference');
     if (!ref.fresh && !this.force) {
       // this package hasn't been touched
@@ -292,18 +292,6 @@ export default class PackageInstallScripts {
 
     await Promise.all(workers);
 
-    // cache all build artifacts
-    for (const pkg of pkgs) {
-      if (this.packageCanBeInstalled(pkg)) {
-        const ref = pkg._reference;
-        invariant(ref, 'expected reference');
-        const loc = this.config.generateHardModulePath(ref);
-        const beforeFiles = beforeFilesMap.get(loc);
-        invariant(beforeFiles, 'files before installation should always be recorded');
-        await this.saveBuildArtifacts(loc, pkg, beforeFiles, set.spinners[0]);
-      }
-    }
-
     // generate built package as prebuilt one for offline mirror
     if (this.config.packBuiltPackages) {
       for (const pkg of pkgs) {
@@ -316,8 +304,8 @@ export default class PackageInstallScripts {
           if (!await fs.exists(prebuiltPath)) {
             await fs.mkdirp(prebuiltPath);
           }
-          const filename = getPlatformSpecificPackageFilename(pkg);
-          prebuiltPath = path.join(prebuiltPath, filename + '.tgz');
+          const prebuiltFilename = getPlatformSpecificPackageFilename(pkg);
+          prebuiltPath = path.join(prebuiltPath, prebuiltFilename + '.tgz');
           const ref = pkg._reference;
           invariant(ref, 'expected reference');
           const loc = this.config.generateHardModulePath(ref);
@@ -338,7 +326,20 @@ export default class PackageInstallScripts {
               .on('close', () => resolve(validateStream.getHash()));
           });
           pkg.prebuiltVariants = pkg.prebuiltVariants || {};
-          pkg.prebuiltVariants[filename] = hash;
+          pkg.prebuiltVariants[prebuiltFilename] = hash;
+          // this.artifacts[`${pkg.name}@${pkg.version}`] = [prebuiltFilename];
+        }
+      }
+    } else {
+      // cache all build artifacts
+      for (const pkg of pkgs) {
+        if (this.packageCanBeInstalled(pkg)) {
+          const ref = pkg._reference;
+          invariant(ref, 'expected reference');
+          const loc = this.config.generateHardModulePath(ref);
+          const beforeFiles = beforeFilesMap.get(loc);
+          invariant(beforeFiles, 'files before installation should always be recorded');
+          await this.saveBuildArtifacts(loc, pkg, beforeFiles, set.spinners[0]);
         }
       }
     }
