@@ -724,6 +724,7 @@ describe('checkOutdated functional test', () => {
     resolveConstraints(): string {
       return '2.0.0';
     },
+    reporter: new BufferReporter({verbose: true}),
   };
 
   test('homepage URL from top level', async () => {
@@ -840,5 +841,29 @@ describe('checkOutdated functional test', () => {
       wanted: '2.0.0',
       url: 'http://package.repo.com',
     });
+  });
+
+  test('unpublished package (no versions)', async () => {
+    const testCwd = '.';
+    const {mockRequestManager, mockRegistries, mockReporter} = createMocks();
+    const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter);
+
+    mockRequestManager.request = () => {
+      return {
+        'dist-tags': {
+          latest: '2.0.0',
+        },
+        versions: {},
+      };
+    };
+
+    let message;
+    try {
+      await npmRegistry.checkOutdated(mockConfig, 'left-pad', '2.0.0');
+    } catch (err) {
+      message = err.message;
+    }
+
+    expect(message).toEqual(expect.stringContaining('No valid versions'));
   });
 });
