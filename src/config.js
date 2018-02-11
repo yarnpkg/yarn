@@ -358,7 +358,7 @@ export default class Config {
     this.registries = map();
     this.cache = map();
 
-    // ensure the cwd is always an absolute path.
+    // Ensure the cwd is always an absolute path.
     this.cwd = path.resolve(opts.cwd || this.cwd || process.cwd());
 
     this.looseSemver = opts.looseSemver == undefined ? true : opts.looseSemver;
