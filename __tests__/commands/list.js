@@ -171,10 +171,38 @@ describe('list', () => {
     });
   });
 
+  test('lists only devDependencies when not devDependencies flag is set', (): Promise<void> => {
+    return runList([], {devDependencies: true}, 'dev-deps-prod', (config, reporter): ?Promise<void> => {
+      expect(reporter.getBuffer()).toMatchSnapshot();
+    });
+  });
+
   test('does not error listing dependencies when production and no devDependencies exist', async (): Promise<void> => {
     let thrown = false;
     try {
       await runList([], {production: true}, 'no-dev-deps-production');
+    } catch (e) {
+      thrown = true;
+    }
+    expect(thrown).toEqual(false);
+  });
+
+  test('does not error listing devDependencies when devDependencies and no devDependencies exist', async (): Promise<
+    void,
+  > => {
+    let thrown = false;
+    try {
+      await runList([], {devDependencies: true}, 'no-production-dev-deps');
+    } catch (e) {
+      thrown = true;
+    }
+    expect(thrown).toEqual(false);
+  });
+
+  test('does not error when both production and devDependencies are specified', async (): Promise<void> => {
+    let thrown = false;
+    try {
+      await runList([], {production: true, devDependencies: true}, 'dev-deps-prod');
     } catch (e) {
       thrown = true;
     }

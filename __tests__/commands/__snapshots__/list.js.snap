@@ -68,3 +68,41 @@ Array [
   },
 ]
 `;
+
+exports[`list lists only devDependencies when not devDependencies flag is set 1`] = `
+Array [
+  Object {
+    "data": "package.json: No license field",
+    "error": true,
+    "type": "warning",
+  },
+  Object {
+    "data": "No license field",
+    "error": true,
+    "type": "warning",
+  },
+  Object {
+    "data": Object {
+      "trees": Array [
+        Object {
+          "children": Array [],
+          "color": "bold",
+          "depth": 0,
+          "hint": null,
+          "name": "a@1.0.2",
+        },
+        Object {
+          "children": Array [],
+          "color": "bold",
+          "depth": 0,
+          "hint": null,
+          "name": "b@1.0.0",
+        },
+      ],
+      "type": "list",
+    },
+    "error": false,
+    "type": "tree",
+  },
+]
+`;
