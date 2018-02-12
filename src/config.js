@@ -327,12 +327,6 @@ export default class Config {
     this.enableLockfileVersions = Boolean(this.getOption('yarn-enable-lockfile-versions'));
     this.linkFileDependencies = Boolean(this.getOption('yarn-link-file-dependencies'));
 
-    if (opts.binLinks && this.getOption('bin-links') !== undefined) {
-      this.binLinks = Boolean(this.getOption('bin-links'));
-    } else {
-      this.binLinks = Boolean(opts.binLinks);
-    }
-
     //init & create cacheFolder, tempFolder
     this.cacheFolder = path.join(this._cacheRootFolder, 'v' + String(constants.CACHE_VERSION));
     this.tempFolder = opts.tempFolder || path.join(this.cacheFolder, '.tmp');
@@ -372,6 +366,7 @@ export default class Config {
     this.globalFolder = opts.globalFolder || constants.GLOBAL_MODULE_DIRECTORY;
     this.linkFolder = opts.linkFolder || constants.LINK_REGISTRY_DIRECTORY;
     this.offline = !!opts.offline;
+    this.binLinks = !!opts.binLinks;
     this.updateChecksums = !!opts.updateChecksums;
 
     this.ignorePlatform = !!opts.ignorePlatform;

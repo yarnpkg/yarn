@@ -22,6 +22,7 @@ export const DEFAULTS = {
   'init-license': 'MIT',
 
   'save-prefix': '^',
+  'bin-links': true,
   'ignore-scripts': false,
   'ignore-optional': false,
   registry: YARN_REGISTRY,
