@@ -42,6 +42,7 @@ export type ConfigOptions = {
   ignoreEngines?: boolean,
   cafile?: ?string,
   production?: boolean,
+  devDependencies?: boolean,
   disablePrepublish?: boolean,
   binLinks?: boolean,
   networkConcurrency?: number,
@@ -166,6 +167,8 @@ export default class Config {
   ignoreScripts: boolean;
 
   production: boolean;
+
+  devDependencies: boolean;
 
   disablePrepublish: boolean;
 

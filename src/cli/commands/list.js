@@ -206,6 +206,9 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
   if (config.production) {
     const devDeps = getDevDeps(manifest);
     activePatterns = patterns.filter(pattern => !devDeps.has(pattern));
+  } else if (config.devDependencies) {
+    const devDeps = getDevDeps(manifest);
+    activePatterns = patterns.filter(pattern => devDeps.has(pattern));
   } else {
     activePatterns = patterns;
   }

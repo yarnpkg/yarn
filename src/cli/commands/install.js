@@ -329,7 +329,12 @@ export class Install {
       };
 
       if (cwdIsRoot) {
-        pushDeps('dependencies', projectManifestJson, {hint: null, optional: false}, true);
+        pushDeps(
+          'dependencies',
+          projectManifestJson,
+          {hint: null, optional: false},
+          this.config.production || !this.config.devDependencies,
+        );
         pushDeps('devDependencies', projectManifestJson, {hint: 'dev', optional: false}, !this.config.production);
         pushDeps('optionalDependencies', projectManifestJson, {hint: 'optional', optional: true}, true);
       }
@@ -356,7 +361,12 @@ export class Install {
 
           // include dependencies from all workspaces
           if (this.flags.includeWorkspaceDeps) {
-            pushDeps('dependencies', workspaceManifest, {hint: null, optional: false}, true);
+            pushDeps(
+              'dependencies',
+              workspaceManifest,
+              {hint: null, optional: false},
+              this.config.production || !this.config.devDependencies,
+            );
             pushDeps('devDependencies', workspaceManifest, {hint: 'dev', optional: false}, !this.config.production);
             pushDeps('optionalDependencies', workspaceManifest, {hint: 'optional', optional: true}, true);
           }

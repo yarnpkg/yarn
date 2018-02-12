@@ -85,7 +85,8 @@ export async function main({
   commander.option('--check-files', 'install will verify file tree of packages for consistency');
   commander.option('--no-bin-links', "don't generate bin links when setting up packages");
   commander.option('--flat', 'only allow one version of a package');
-  commander.option('--prod, --production [prod]', '', boolify);
+  commander.option('--prod, --production [prod]', 'install dependencies only', boolify);
+  commander.option('--dev, --devDependencies', 'install devDependencies only', boolify);
   commander.option('--no-lockfile', "don't read or generate a lockfile");
   commander.option('--pure-lockfile', "don't generate a lockfile");
   commander.option('--frozen-lockfile', "don't generate a lockfile and fail if an update is needed");
@@ -519,6 +520,7 @@ export async function main({
       offline: commander.preferOffline || commander.offline,
       looseSemver: !commander.strictSemver,
       production: commander.production,
+      devDependencies: commander.devDependencies,
       httpProxy: commander.proxy,
       httpsProxy: commander.httpsProxy,
       registry: commander.registry,
