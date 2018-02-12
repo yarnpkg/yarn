@@ -22,6 +22,7 @@ test('resolveVersion', async () => {
   const refs: GitRefs = new Map();
   refs.set('refs/heads/1.1', 'eaa56cb34863810060abbec2d755ba51508afedc');
   refs.set('refs/heads/3.3', '4cff93aa6e8270c3bec988af464d28a164bc3cb2');
+  refs.set('refs/heads/v3.3.0', '06910374874035a3388c42a6f6403b2b785e9993');
   refs.set('refs/heads/main', '8a41a314e23dc566a6b7e73c757a10d13e3320cf');
   refs.set('refs/heads/both', '106c28537be070b98ca1effaef6a2bf6414e1e49');
   refs.set('refs/tags/v1.1.0', '37d5ed001dc4402d5446911c4e1cb589449e7d8d');
@@ -109,6 +110,22 @@ test('resolveVersion', async () => {
   expect(await resolveVersion({config, version: '*', refs: emptyRefs, git})).toEqual({
     sha: '8a41a314e23dc566a6b7e73c757a10d13e3320cf',
     ref: 'refs/heads/main',
+  });
+  expect(await resolve('^1.0')).toEqual({
+    sha: '37d5ed001dc4402d5446911c4e1cb589449e7d8d',
+    ref: 'refs/tags/v1.1.0',
+  });
+  expect(await resolve('semver:^1.0')).toEqual({
+    sha: '37d5ed001dc4402d5446911c4e1cb589449e7d8d',
+    ref: 'refs/tags/v1.1.0',
+  });
+  expect(await resolve('^3.0')).toEqual({
+    sha: '06910374874035a3388c42a6f6403b2b785e9993',
+    ref: 'refs/heads/v3.3.0',
+  });
+  expect(await resolve('semver:^3.0')).toEqual({
+    sha: '06910374874035a3388c42a6f6403b2b785e9993',
+    ref: 'refs/heads/v3.3.0',
   });
 });
 

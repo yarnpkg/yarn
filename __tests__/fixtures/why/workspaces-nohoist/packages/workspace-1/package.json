@@ -1,0 +1,12 @@
+{
+  "name": "workspace-1",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": {
+    "nohoist": ["mime-types"]
+  },
+  "dependencies": {
+    "mime-types": "2.1.12",
+    "uglifyify": "3.0.0"
+  }
+}

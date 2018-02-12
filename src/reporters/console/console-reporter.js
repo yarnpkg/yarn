@@ -230,6 +230,7 @@ export default class ConsoleReporter extends BaseReporter {
   }
   // handles basic tree output to console
   tree(key: string, trees: Trees) {
+    this.stopProgress();
     //
     const output = ({name, children, hint, color}, titlePrefix, childrenPrefix) => {
       const formatter = this.format;

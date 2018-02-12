@@ -4,7 +4,8 @@ import {run as check} from '../../../src/cli/commands/check.js';
 import {Install, run as install} from '../../../src/cli/commands/install.js';
 import * as reporters from '../../../src/reporters/index.js';
 import * as fs from '../../../src/util/fs.js';
-import {runInstall, run as buildRun, makeConfigFromDirectory} from '../_helpers.js';
+import type ConfigType from '../../../src/config.js';
+import {runInstall, run as buildRun, makeConfigFromDirectory, isPackagePresent} from '../_helpers.js';
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 150000;
 
@@ -272,3 +273,119 @@ test.concurrent('install should link binaries properly when run from child works
 });
 
 // TODO need more thorough tests for all kinds of checks: integrity, verify-tree
+
+describe('nohoist', () => {
+  async function checkPackage(config: ConfigType, path: string, shouldPresent: boolean): Promise<void> {
+    const isPresent = await isPackagePresent(config, path);
+    try {
+      expect(isPresent).toEqual(shouldPresent);
+    } catch (e) {
+      throw new Error(`error: ${path} should ${shouldPresent ? '' : 'NOT'} exist`);
+    }
+  }
+
+  test.concurrent('exclude packages by workspace', (): Promise<void> => {
+    return runInstall({}, 'workspaces-install-nohoist-by-ws', async (config): Promise<void> => {
+      const existingPackages = [
+        'workspace-disable-a',
+        'workspace-disable-all',
+        'workspace-hoist-all',
+        'workspace-disable-all/c',
+        'workspace-disable-all/b',
+        'workspace-disable-all/d',
+        'workspace-disable-a/a',
+        'workspace-disable-a/b',
+        'workspace-disable-all/workspace-hoist-all',
+        'b',
+        'c',
+        'd',
+      ];
+      const notExistingPackages = ['a', 'workspace-hoist-all/b', 'workspace-hoist-all/d'];
+
+      for (const p of existingPackages) {
+        await checkPackage(config, p, true);
+      }
+      for (const p of notExistingPackages) {
+        await checkPackage(config, p, false);
+      }
+    });
+  });
+
+  test.concurrent('disable all hoist for every workspace', (): Promise<void> => {
+    return runInstall({}, 'workspaces-install-nohoist-all-from-root', async config => {
+      const existingPackages = [
+        'workspace-disable-a',
+        'workspace-disable-all',
+        'workspace-hoist-all',
+        'workspace-disable-all/c',
+        'workspace-disable-all/b',
+        'workspace-disable-all/d',
+        'workspace-disable-a/a',
+        'workspace-disable-a/b',
+        'workspace-disable-a/d',
+        'workspace-hoist-all/b',
+        'workspace-hoist-all/d',
+      ];
+      const notExistingPackages = ['a', 'b', 'c', 'd'];
+
+      for (const p of existingPackages) {
+        await checkPackage(config, p, true);
+      }
+      for (const p of notExistingPackages) {
+        await checkPackage(config, p, false);
+      }
+    });
+  });
+  test.concurrent('disable some hoist for every workspace', (): Promise<void> => {
+    return runInstall({}, 'workspaces-install-nohoist-some-from-root', async config => {
+      const existingPackages = [
+        'workspace-disable-a',
+        'workspace-disable-all',
+        'workspace-hoist-all',
+        'workspace-disable-all/c',
+        'workspace-disable-all/b',
+        'workspace-disable-all/d',
+        'workspace-disable-a/a',
+        'workspace-disable-a/b',
+        'workspace-disable-a/d',
+        'workspace-hoist-all/d',
+        'c',
+        'b',
+      ];
+      const notExistingPackages = ['a', 'd'];
+
+      for (const p of existingPackages) {
+        await checkPackage(config, p, true);
+      }
+      for (const p of notExistingPackages) {
+        await checkPackage(config, p, false);
+      }
+    });
+  });
+  test.concurrent('disable hoisting package across versions', (): Promise<void> => {
+    return runInstall({}, 'workspaces-install-nohoist-across-versions', async config => {
+      const existingPackages = [
+        'workspace-1',
+        'workspace-2',
+        'workspace-3',
+        'workspace-1/c',
+        'workspace-1/b',
+        'workspace-1/a',
+        'workspace-2/b',
+        'workspace-2/c',
+        'workspace-2/b',
+        'workspace-2/c/b',
+        'workspace-3/b',
+        'd',
+      ];
+      const notExistingPackages = ['a', 'b', 'c', 'workspace-3/d'];
+
+      for (const p of existingPackages) {
+        await checkPackage(config, p, true);
+      }
+      for (const p of notExistingPackages) {
+        await checkPackage(config, p, false);
+      }
+    });
+  });
+});

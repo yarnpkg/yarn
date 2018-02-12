@@ -473,7 +473,7 @@ export default class Git implements GitRefResolvingInterface {
     });
     if (!resolvedResult) {
       throw new MessageError(
-        this.reporter.lang('couldntFindMatch', version, Object.keys(refs).join(','), this.gitUrl.repository),
+        this.reporter.lang('couldntFindMatch', version, Array.from(refs.keys()).join(','), this.gitUrl.repository),
       );
     }
 

@@ -91,20 +91,22 @@ const {run, setFlags: _setFlags, examples} = buildSubCommands('cache', {
       const activity = reporter.activity();
 
       if (args.length > 0) {
-        // Clear named package from cache
-        const folders = await getPackageCachefolders(args[0]);
+        for (const arg of args) {
+          // Clear named package from cache
+          const folders = await getPackageCachefolders(arg);
 
-        if (folders.length === 0) {
+          if (folders.length === 0) {
+            activity.end();
+            reporter.warn(reporter.lang('couldntClearPackageFromCache', arg));
+            continue;
+          }
+
+          for (const folder of folders) {
+            await fs.unlink(folder);
+          }
           activity.end();
-          reporter.warn(reporter.lang('couldntClearPackageFromCache', args[0]));
-          return;
+          reporter.success(reporter.lang('clearedPackageFromCache', arg));
         }
-
-        for (const folder of folders) {
-          await fs.unlink(folder);
-        }
-        activity.end();
-        reporter.success(reporter.lang('clearedPackageFromCache', args[0]));
       } else {
         // Clear all cache
         await fs.unlink(config._cacheRootFolder);
