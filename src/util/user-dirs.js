@@ -32,7 +32,7 @@ export function getCacheDir(): string {
 
 export function getConfigDir(): string {
   if (process.platform === 'win32') {
-    return path.join(getLocalAppDataDir(), 'Config');
+    return path.join(getRoamingAppDataDir(), 'Config');
   } else if (process.env.XDG_CONFIG_HOME) {
     return path.join(process.env.XDG_CONFIG_HOME, 'yarn');
   } else {
@@ -42,4 +42,8 @@ export function getConfigDir(): string {
 
 function getLocalAppDataDir(): string {
   return path.join(process.env.LOCALAPPDATA || path.join(userHome, 'AppData', 'Local'), 'Yarn');
+}
+
+function getRoamingAppDataDir(): string {
+  return path.join(process.env.APPDATA || path.join(userHome, 'AppData', 'Roaming'), 'Yarn');
 }

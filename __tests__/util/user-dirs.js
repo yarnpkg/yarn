@@ -95,14 +95,14 @@ describe('getConfigDir', () => {
       mockProcessPlatform('win32');
     });
 
-    test('uses Yarn\\Config within LOCALAPPDATA if it exists', () => {
-      process.env.LOCALAPPDATA = 'foo';
+    test('uses Yarn\\Config within APPDATA if it exists', () => {
+      process.env.APPDATA = 'foo';
       expect(getConfigDir()).toBe(path.join('foo', 'Yarn', 'Config'));
-      delete process.env.LOCALAPPDATA;
+      delete process.env.APPDATA;
     });
 
-    test('uses AppData\\Local\\Config otherwise', () => {
-      expect(getConfigDir()).toBe(path.join(userHome, 'AppData', 'Local', 'Yarn', 'Config'));
+    test('uses AppData\\Roaming\\Config otherwise', () => {
+      expect(getConfigDir()).toBe(path.join(userHome, 'AppData', 'Roaming', 'Yarn', 'Config'));
     });
   });
 
