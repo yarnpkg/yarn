@@ -40,7 +40,6 @@ async function list(config: Config, reporter: Reporter, flags: Object, args: Arr
       reporter.info(`${name}: ${tags[name]}`);
     }
   }
-  
 
   if (!tags) {
     throw new MessageError(reporter.lang('packageNotFoundRegistry', name, 'npm'));
