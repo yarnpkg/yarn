@@ -7,9 +7,5 @@ export function boolify(val: string | number | boolean): boolean {
 }
 
 export function boolifyWithDefault(val: ?(string | number | boolean), defaultResult: boolean): boolean {
-  if (val === undefined || val === null || val === '') {
-    return defaultResult;
-  } else {
-    return boolify(val);
-  }
+  return val === '' || val === null || val === undefined ? defaultResult : boolify(val);
 }
