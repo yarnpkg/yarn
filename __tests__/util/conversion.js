@@ -33,7 +33,7 @@ describe('boolifyWithDefault', () => {
     expect(boolifyWithDefault('', false)).toBe(false);
   });
 
-  test('should be consistent with boolify()', () => {
+  test('should be consistent with boolify() for non-empty values', () => {
     for (const value of [1, '1', true, 'true', 0, '0', false, 'false', 'randomstringlkjsaljdja', 649815]) {
       for (const defaultResult of [true, false]) {
         expect(boolifyWithDefault(value, defaultResult)).toBe(boolify(value));
