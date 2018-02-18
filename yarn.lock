@@ -4499,12 +4499,12 @@ progress@^2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/progress/-/progress-2.0.0.tgz#8a1be366bf8fc23db2bd23f10c6fe920b4389d1f"
 
-proper-lockfile@^2.0.0:
-  version "2.0.1"
-  resolved "https://registry.yarnpkg.com/proper-lockfile/-/proper-lockfile-2.0.1.tgz#159fb06193d32003f4b3691dd2ec1a634aa80d1d"
+proper-lockfile@^3.0.0:
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/proper-lockfile/-/proper-lockfile-3.0.0.tgz#59966581c7235a4b81516ca84014499a2572e633"
   dependencies:
-    graceful-fs "^4.1.2"
-    retry "^0.10.0"
+    graceful-fs "^4.1.11"
+    retry "^0.10.1"
 
 prr@~0.0.0:
   version "0.0.0"
@@ -4854,7 +4854,7 @@ restore-cursor@^2.0.0:
     onetime "^2.0.0"
     signal-exit "^3.0.2"
 
-retry@^0.10.0:
+retry@^0.10.1:
   version "0.10.1"
   resolved "https://registry.yarnpkg.com/retry/-/retry-0.10.1.tgz#e76388d217992c252750241d3d3956fed98d8ff4"
 
