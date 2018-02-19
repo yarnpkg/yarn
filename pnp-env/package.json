@@ -1,0 +1,10 @@
+{
+    "dependencies": {
+        "babel-core": "^6.26.0",
+        "babel-preset-env": "^1.6.1",
+        "lodash": "^4.17.5",
+        "react": "^16.2.0",
+        "react-dom": "^16.2.0",
+        "webpack": "^3.11.0"
+    }
+}

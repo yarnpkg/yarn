@@ -158,6 +158,8 @@ export default class Config {
 
   nonInteractive: boolean;
 
+  plugnplayEnabled: boolean;
+
   workspacesEnabled: boolean;
   workspacesNohoistEnabled: boolean;
 
@@ -324,6 +326,8 @@ export default class Config {
     } else {
       this._cacheRootFolder = String(cacheRootFolder);
     }
+    this.plugnplayEnabled = this.getOption('plugnplay-experimental') !== false;
+
     this.workspacesEnabled = this.getOption('workspaces-experimental') !== false;
     this.workspacesNohoistEnabled = this.getOption('workspaces-nohoist-experimental') !== false;
 

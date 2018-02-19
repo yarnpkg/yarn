@@ -578,7 +578,7 @@ export class Install {
 
     steps.push((curr: number, total: number) =>
       callThroughHook('pnpStep', async () => {
-        let code = await generatePnpMap(flattenedTopLevelPatterns, {resolver: this.resolver});
+        const code = await generatePnpMap(flattenedTopLevelPatterns, {resolver: this.resolver});
         await fs.writeFile(`${this.config.lockfileFolder}/.pnp.js`, code);
       }),
     );

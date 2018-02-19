@@ -135,7 +135,7 @@ export default class PackageLinker {
     // write the executables
     for (const {dep, loc} of deps) {
       if (dep._reference && dep._reference.location) {
-        invariant(!pkg._reference.isPlugnplay, "Plug'n'play packages should not be referenced here");
+        invariant(!dep._reference.isPlugnplay, "Plug'n'play packages should not be referenced here");
         await this.linkSelfDependencies(dep, loc, dir);
       }
     }
@@ -208,7 +208,7 @@ export default class PackageLinker {
         }
       }
 
-      if (true) {
+      if (this.config.plugnplayEnabled) {
         ref.isPlugnplay = true;
         ref.setLocation(src);
         continue;
@@ -429,7 +429,13 @@ export default class PackageLinker {
       await promise.queue(
         topLevelDependencies,
         async ([dest, {pkg}]) => {
-          if (pkg._reference && pkg._reference.location && !pkg._reference.isPlugnplay && pkg.bin && Object.keys(pkg.bin).length) {
+          if (
+            pkg._reference &&
+            pkg._reference.location &&
+            !pkg._reference.isPlugnplay &&
+            pkg.bin &&
+            Object.keys(pkg.bin).length
+          ) {
             const binLoc = path.join(this.config.lockfileFolder, this.config.getFolder(pkg));
             await this.linkSelfDependencies(pkg, dest, binLoc);
           }

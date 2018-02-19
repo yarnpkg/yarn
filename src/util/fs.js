@@ -33,8 +33,7 @@ export const rename: (oldPath: string, newPath: string) => Promise<void> = promi
 export const access: (path: string, mode?: number) => Promise<void> = promisify(fs.access);
 export const stat: (path: string) => Promise<fs.Stats> = promisify(fs.stat);
 export const unlink: (path: string) => Promise<void> = promisify(require('rimraf'));
-export const mkdirpx: (path: string) => Promise<void> = promisify(require('mkdirp'));
-export const mkdirp = async path => await mkdirpx((console.log(path, new Error().stack), path));
+export const mkdirp: (path: string) => Promise<void> = promisify(require('mkdirp'));
 export const exists: (path: string) => Promise<boolean> = promisify(fs.exists, true);
 export const lstat: (path: string) => Promise<fs.Stats> = promisify(fs.lstat);
 export const chmod: (path: string, mode: number | string) => Promise<void> = promisify(fs.chmod);

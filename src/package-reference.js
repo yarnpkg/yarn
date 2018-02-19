@@ -15,6 +15,8 @@ export default class PackageReference {
     this.requests = [];
     this.config = request.config;
 
+    this.isPlugnplay = false;
+
     this.registry = remote.registry;
     this.version = info.version;
     this.name = info.name;
@@ -39,6 +41,7 @@ export default class PackageReference {
   lockfile: Lockfile;
   config: Config;
 
+  isPlugnplay: boolean;
   level: number;
   name: string;
   version: string;

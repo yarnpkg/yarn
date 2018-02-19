@@ -754,7 +754,9 @@ export class NohoistResolver {
     if (info.nohoistList && info.nohoistList.length > 0 && mm.any(this._originalPath(info), info.nohoistList)) {
       return true;
     }
-    return true;
+    if (this._config.plugnplayEnabled) {
+      return true;
+    }
     return false;
   };
   _isRootPackage = (pkg: Manifest): boolean => {
