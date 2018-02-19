@@ -104,6 +104,7 @@ async function publish(config: Config, pkg: any, flags: Object, dir: string): Pr
 
   // publish package
   const res = await config.registries.npm.request(NpmRegistry.escapeName(pkg.name), {
+    registry: pkg && pkg.publishConfig && pkg.publishConfig.registry,
     method: 'PUT',
     body: root,
   });
