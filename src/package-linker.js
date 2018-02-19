@@ -135,6 +135,7 @@ export default class PackageLinker {
     // write the executables
     for (const {dep, loc} of deps) {
       if (dep._reference && dep._reference.location) {
+        invariant(!pkg._reference.isPlugnplay, "Plug'n'play packages should not be referenced here");
         await this.linkSelfDependencies(dep, loc, dir);
       }
     }
@@ -205,6 +206,12 @@ export default class PackageLinker {
           // need to be replaced with a real path, except for the symlink root/node_modules/workspace-package
           dest = dest.replace(symlink, realpath);
         }
+      }
+
+      if (true) {
+        ref.isPlugnplay = true;
+        ref.setLocation(src);
+        continue;
       }
 
       ref.setLocation(dest);
@@ -370,6 +377,7 @@ export default class PackageLinker {
         }
       },
     });
+
     await fs.hardlinkBulk(Array.from(hardlinkQueue.values()), this.reporter, {
       possibleExtraneous,
       artifactFiles,
@@ -408,11 +416,11 @@ export default class PackageLinker {
       await promise.queue(
         flatTree,
         async ([dest, {pkg}]) => {
-          if (pkg._reference && pkg._reference.location) {
+          if (pkg._reference && pkg._reference.location && !pkg._reference.isPlugnplay) {
             const binLoc = path.join(dest, this.config.getFolder(pkg));
             await this.linkBinDependencies(pkg, binLoc);
-            tickBin();
           }
+          tickBin();
         },
         linkBinConcurrency,
       );
@@ -421,11 +429,11 @@ export default class PackageLinker {
       await promise.queue(
         topLevelDependencies,
         async ([dest, {pkg}]) => {
-          if (pkg._reference && pkg._reference.location && pkg.bin && Object.keys(pkg.bin).length) {
+          if (pkg._reference && pkg._reference.location && !pkg._reference.isPlugnplay && pkg.bin && Object.keys(pkg.bin).length) {
             const binLoc = path.join(this.config.lockfileFolder, this.config.getFolder(pkg));
             await this.linkSelfDependencies(pkg, dest, binLoc);
-            tickBin();
           }
+          tickBin();
         },
         linkBinConcurrency,
       );
