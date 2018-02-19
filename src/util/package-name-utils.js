@@ -2,9 +2,9 @@
 
 export function getPlatformSpecificPackageFilename(pkg: {name: string, version: string}): string {
   // TODO support hash for all subdependencies that have installs scripts
-  const normaliseScope = name => (name[0] === '@' ? name.substr(1).replace('/', '-') : name);
+  const normalizeScope = name => (name[0] === '@' ? name.substr(1).replace('/', '-') : name);
   const suffix = getSystemParams();
-  return `${normaliseScope(pkg.name)}-v${pkg.version}-${suffix}`;
+  return `${normalizeScope(pkg.name)}-v${pkg.version}-${suffix}`;
 }
 
 export function getSystemParams(): string {

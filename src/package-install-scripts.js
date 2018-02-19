@@ -293,13 +293,10 @@ export default class PackageInstallScripts {
     await Promise.all(workers);
 
     // generate built package as prebuilt one for offline mirror
-    if (this.config.packBuiltPackages) {
+    const offlineMirrorPath = this.config.getOfflineMirrorPath();
+    if (this.config.packBuiltPackages && offlineMirrorPath) {
       for (const pkg of pkgs) {
         if (this.packageCanBeInstalled(pkg)) {
-          const offlineMirrorPath = this.config.getOfflineMirrorPath();
-          if (!offlineMirrorPath) {
-            break;
-          }
           let prebuiltPath = path.join(offlineMirrorPath, 'prebuilt');
           if (!await fs.exists(prebuiltPath)) {
             await fs.mkdirp(prebuiltPath);
@@ -308,14 +305,14 @@ export default class PackageInstallScripts {
           prebuiltPath = path.join(prebuiltPath, prebuiltFilename + '.tgz');
           const ref = pkg._reference;
           invariant(ref, 'expected reference');
-          const loc = this.config.generateHardModulePath(ref);
+          const builtPackagePath = this.config.generateHardModulePath(ref);
           const pkgConfig = await Config.create(
             {
-              cwd: loc,
+              cwd: builtPackagePath,
             },
             this.reporter,
           );
-          const stream = await pack(pkgConfig, loc);
+          const stream = await pack(pkgConfig, builtPackagePath);
 
           const hash = await new Promise((resolve, reject) => {
             const validateStream = new crypto.HashStream();

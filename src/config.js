@@ -331,7 +331,7 @@ export default class Config {
     this.enableMetaFolder = Boolean(this.getOption('enable-meta-folder'));
     this.enableLockfileVersions = Boolean(this.getOption('yarn-enable-lockfile-versions'));
     this.linkFileDependencies = Boolean(this.getOption('yarn-link-file-dependencies'));
-    this.packBuiltPackages = Boolean(this.getOption('pack-built-packages'));
+    this.packBuiltPackages = Boolean(this.getOption('experimental-pack-script-packages-in-mirror'));
 
     //init & create cacheFolder, tempFolder
     this.cacheFolder = path.join(this._cacheRootFolder, 'v' + String(constants.CACHE_VERSION));
