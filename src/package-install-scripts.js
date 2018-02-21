@@ -7,11 +7,11 @@ import Config from './config.js';
 import type {ReporterSetSpinner} from './reporters/types.js';
 import executeLifecycleScript from './util/execute-lifecycle-script.js';
 import * as crypto from './util/crypto.js';
-import * as fs from './util/fs.js';
+import * as fsUtil from './util/fs.js';
 import {getPlatformSpecificPackageFilename} from './util/package-name-utils.js';
 import {pack} from './cli/commands/pack.js';
 
-const fs2 = require('fs');
+const fs = require('fs');
 const invariant = require('invariant');
 const path = require('path');
 
@@ -68,7 +68,7 @@ export default class PackageInstallScripts {
   }
 
   async walk(loc: string): Promise<Map<string, number>> {
-    const files = await fs.walk(loc, null, new Set(this.config.registryFolders));
+    const files = await fsUtil.walk(loc, null, new Set(this.config.registryFolders));
     const mtimes = new Map();
     for (const file of files) {
       mtimes.set(file.relative, file.mtime);
@@ -126,7 +126,7 @@ export default class PackageInstallScripts {
 
         // Cleanup node_modules
         try {
-          await fs.unlink(loc);
+          await fsUtil.unlink(loc);
         } catch (e) {
           this.reporter.error(this.reporter.lang('optionalModuleCleanupFail', e.message));
         }
@@ -298,9 +298,7 @@ export default class PackageInstallScripts {
       for (const pkg of pkgs) {
         if (this.packageCanBeInstalled(pkg)) {
           let prebuiltPath = path.join(offlineMirrorPath, 'prebuilt');
-          if (!await fs.exists(prebuiltPath)) {
-            await fs.mkdirp(prebuiltPath);
-          }
+          await fsUtil.mkdirp(prebuiltPath);
           const prebuiltFilename = getPlatformSpecificPackageFilename(pkg);
           prebuiltPath = path.join(prebuiltPath, prebuiltFilename + '.tgz');
           const ref = pkg._reference;
@@ -318,13 +316,12 @@ export default class PackageInstallScripts {
             const validateStream = new crypto.HashStream();
             stream
               .pipe(validateStream)
-              .pipe(fs2.createWriteStream(prebuiltPath))
+              .pipe(fs.createWriteStream(prebuiltPath))
               .on('error', reject)
               .on('close', () => resolve(validateStream.getHash()));
           });
           pkg.prebuiltVariants = pkg.prebuiltVariants || {};
           pkg.prebuiltVariants[prebuiltFilename] = hash;
-          // this.artifacts[`${pkg.name}@${pkg.version}`] = [prebuiltFilename];
         }
       }
     } else {
