@@ -1075,9 +1075,7 @@ test.concurrent('installing with --pure-lockfile and then adding should keep bui
 });
 
 test.concurrent('preserves unaffected bin links after adding to workspace package', async () => {
-  await runInstall({binLinks: true}, 'workspaces-install-bin', async (config): Promise<void> => {
-    const reporter = new ConsoleReporter({});
-
+  await runInstall({binLinks: true}, 'workspaces-install-bin', async (config, reporter): Promise<void> => {
     expect(await fs.exists(`${config.cwd}/node_modules/.bin/rimraf`)).toEqual(true);
     expect(await fs.exists(`${config.cwd}/node_modules/.bin/touch`)).toEqual(true);
     expect(await fs.exists(`${config.cwd}/node_modules/.bin/workspace-1`)).toEqual(true);
@@ -1143,9 +1141,7 @@ test.concurrent('installs "latest" instead of maxSatisfying if no requested patt
 
 describe('nohoist', () => {
   test.concurrent('can add nohoist pacakge from workspace', async () => {
-    await runInstall({}, 'workspaces-install-nohoist-across-versions', async (config): Promise<void> => {
-      const reporter = new ConsoleReporter({});
-
+    await runInstall({}, 'workspaces-install-nohoist-across-versions', async (config, reporter): Promise<void> => {
       // workspace-2 has b and c since the root has nohoist = ['a', 'b', 'c']
       expect(await fs.exists(`${config.cwd}/packages/workspace-2/node_modules/b`)).toEqual(true);
       expect(await fs.exists(`${config.cwd}/packages/workspace-2/node_modules/c`)).toEqual(true);
@@ -1172,9 +1168,7 @@ describe('nohoist', () => {
     });
   });
   test.concurrent('can add nohoist pacakge from root', async () => {
-    await runInstall({}, 'workspaces-install-nohoist-across-versions', async (config): Promise<void> => {
-      const reporter = new ConsoleReporter({});
-
+    await runInstall({}, 'workspaces-install-nohoist-across-versions', async (config, reporter): Promise<void> => {
       // prove package a does not exist in workspace-2 nor in root
       expect(await fs.exists(`${config.cwd}/packages/workspace-2/node_modules/a`)).toEqual(false);
       expect(await fs.exists(`${config.cwd}/node_modules/a`)).toEqual(false);
