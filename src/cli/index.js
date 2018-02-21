@@ -172,10 +172,18 @@ export function main({
   const command = commands[commandName];
 
   let warnAboutRunDashDash = false;
-  // we are using "yarn <script> -abc" or "yarn run <script> -abc", we want -abc to be script options, not yarn options
-  if (command === commands.run || command === commands.create) {
+  // we are using "yarn <script> -abc", "yarn run <script> -abc", or "yarn node -abc", we want -abc
+  // to be script options, not yarn options
+  const PROXY_COMMANDS = new Set([`run`, `create`, `node`]);
+  if (PROXY_COMMANDS.has(commandName)) {
     if (endArgs.length === 0) {
-      endArgs = ['--', ...args.splice(1)];
+      // the "run" and "create" command take one argument that we want to parse as usual (the
+      // script/package name), hence the splice(1)
+      if (command === commands.run || command === commands.create) {
+        endArgs = ['--', ...args.splice(1)];
+      } else {
+        endArgs = ['--', ...args];
+      }
     } else {
       warnAboutRunDashDash = true;
     }
