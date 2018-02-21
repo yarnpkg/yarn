@@ -1140,7 +1140,7 @@ test.concurrent('installs "latest" instead of maxSatisfying if no requested patt
 });
 
 describe('nohoist', () => {
-  test.concurrent('can add nohoist pacakge from workspace', async () => {
+  test.concurrent('can add nohoist package from workspace', async () => {
     await runInstall({}, 'workspaces-install-nohoist-across-versions', async (config, reporter): Promise<void> => {
       // workspace-2 has b and c since the root has nohoist = ['a', 'b', 'c']
       expect(await fs.exists(`${config.cwd}/packages/workspace-2/node_modules/b`)).toEqual(true);
@@ -1167,7 +1167,7 @@ describe('nohoist', () => {
       expect(await fs.exists(`${config.cwd}/node_modules/c`)).toEqual(false);
     });
   });
-  test.concurrent('can add nohoist pacakge from root', async () => {
+  test.concurrent('can add nohoist package from root', async () => {
     await runInstall({}, 'workspaces-install-nohoist-across-versions', async (config, reporter): Promise<void> => {
       // prove package a does not exist in workspace-2 nor in root
       expect(await fs.exists(`${config.cwd}/packages/workspace-2/node_modules/a`)).toEqual(false);
