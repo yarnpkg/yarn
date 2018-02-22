@@ -1,0 +1,23 @@
+{
+    "private": true,
+    "workspaces": [
+        "pkg-tests-core",
+        "pkg-tests-fixtures",
+        "pkg-tests-pnp",
+        "pkg-tests-specs"
+    ],
+    "dependencies": {
+        "jest": "^22.3.0",
+        "prettier": "^1.10.2"
+    },
+    "scripts": {
+        "prettier": "prettier --write '**/*.js'"
+    },
+    "prettier": {
+        "singleQuote": true,
+        "trailingComma": "all",
+        "bracketSpacing": false,
+        "printWidth": 120,
+        "parser": "flow"
+    }
+}
