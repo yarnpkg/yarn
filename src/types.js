@@ -141,6 +141,8 @@ export type Manifest = {
   // We need to preserve the flag because we print a list of new packages in
   // the end of the add command
   fresh?: boolean,
+
+  prebuiltVariants?: {[filename: string]: string},
 };
 
 //
