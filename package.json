@@ -82,7 +82,7 @@
     "gulp-plumber": "^1.0.1",
     "gulp-sourcemaps": "^2.2.0",
     "gulp-util": "^3.0.7",
-    "gulp-watch": "^4.3.5",
+    "gulp-watch": "^5.0.0",
     "jest": "^21.2.1",
     "jsinspect": "^0.12.6",
     "minimatch": "^3.0.4",
