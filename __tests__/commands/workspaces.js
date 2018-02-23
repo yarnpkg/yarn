@@ -31,9 +31,13 @@ test('workspaces info should list the workspaces', (): Promise<void> => {
     expect(reporter.getBufferJson()).toEqual({
       'workspace-1': {
         location: 'packages/workspace-child-1',
+        workspaceDependencies: [],
+        mismatchedWorkspaceDependencies: [],
       },
       'workspace-2': {
         location: 'packages/workspace-child-2',
+        workspaceDependencies: ['workspace-1'],
+        mismatchedWorkspaceDependencies: [],
       },
     });
   });
