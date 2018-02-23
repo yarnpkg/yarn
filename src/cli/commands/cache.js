@@ -89,15 +89,14 @@ const {run, setFlags: _setFlags, examples} = buildSubCommands('cache', {
         const deletePaths = [];
         for (const packagePath of paths) {
           const {package: manifest} = await config.readPackageMetadata(packagePath);
-          if (args[0] === manifest.name) {
+          if (args.indexOf(manifest.name) !== -1) {
             deletePaths.push(packagePath);
           }
         }
 
         if (deletePaths.length === 0) {
           activity.end();
-          reporter.warn(reporter.lang('couldntClearPackageFromCache', args[0]));
-          return;
+          reporter.success(reporter.lang('clearedPackageFromCache', arg));
         }
 
         for (const folder of deletePaths) {

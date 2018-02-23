@@ -89,6 +89,7 @@ const messages = {
   invalidHostedGitFragment: 'Invalid hosted git fragment $0.',
   invalidFragment: 'Invalid fragment $0.',
   invalidPackageName: 'Invalid package name.',
+  invalidPackageVersion: "Can't add $0: invalid package version $1.",
   couldntFindManifestIn: "Couldn't find manifest in $0.",
   shrinkwrapWarning:
     'npm-shrinkwrap.json found. This will not be updated or respected. See https://yarnpkg.com/en/docs/migrating-from-npm for more information.',
@@ -322,8 +323,13 @@ const messages = {
   published: 'Published.',
   publishing: 'Publishing',
 
+  nonInteractiveNoVersionSpecified:
+    'You must specify a new version with --new-version when running with --non-interactive.',
+  nonInteractiveNoToken: "No token found and can't prompt for login when running with --non-interactive.",
+
   infoFail: 'Received invalid response from npm.',
   malformedRegistryResponse: 'Received malformed response from registry for $0. The registry may be down.',
+  registryNoVersions: 'No valid versions found for $0. The package may be unpublished.',
 
   cantRequestOffline: "Can't make a request in offline mode ($0)",
   requestManagerNotSetupHAR: 'RequestManager was not setup to capture HAR files',

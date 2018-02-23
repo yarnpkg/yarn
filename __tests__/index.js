@@ -196,7 +196,10 @@ test.concurrent('should show version of yarn with -v', async () => {
 });
 
 test.concurrent('should run version command', async () => {
-  await expectAnErrorMessage(execCommand('version', [], 'run-version'), "Can't answer a question unless a user TTY");
+  await expectAnErrorMessage(
+    execCommand('version', [], 'run-version'),
+    'You must specify a new version with --new-version when running with --non-interactive.',
+  );
 });
 
 test.concurrent('should run --version command', async () => {

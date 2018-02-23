@@ -35,7 +35,7 @@
 				<Environment
 					Id="Path"
 					Name="PATH"
-					Value="[INSTALLDIR]bin"
+					Value="[INSTALLDIR]bin\"
 					Permanent="no"
 					Part="last"
 					Action="set"

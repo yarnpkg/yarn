@@ -168,7 +168,7 @@ export const requireLockfile = true;
 
 export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
   let addArgs = [];
-  const upgradeAll = args.length === 0;
+  const upgradeAll = args.length === 0 && typeof flags.scope === 'undefined' && typeof flags.pattern === 'undefined';
   const addFlags = Object.assign({}, flags, {
     force: true,
     ignoreWorkspaceRootCheck: true,

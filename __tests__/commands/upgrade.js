@@ -20,7 +20,8 @@ const _expectDependency = async (depType, config, name, range, expectedVersion) 
   const pkg = await fs.readJson(path.join(config.cwd, 'package.json'));
   expect(pkg[depType][name]).toBeDefined();
   expect(pkg[depType][name]).toEqual(range);
-  expect(lockfile).toContainPackage(`${name}@${range}:`, expectedVersion);
+  const pattern = name.startsWith('@') ? `"${name}@${range}"` : `${name}@${range}`;
+  expect(lockfile).toContainPackage(`${pattern}:`, expectedVersion);
 };
 
 const expectInstalledDependency = async (config, name, range, expectedVersion) => {
@@ -369,6 +370,14 @@ test.concurrent('respects --scope flag', (): Promise<void> => {
     expect(pkg.dependencies['@angular-mdl/core']).toEqual('4.0.0');
     expect(pkg.dependencies['@angular/core']).not.toEqual('2.4.9');
     expect(pkg.dependencies['left-pad']).toEqual('1.0.0');
+  });
+});
+
+test.concurrent('respects --scope flag with caret', (): Promise<void> => {
+  return runUpgrade([], {scope: '@angular'}, 'respects-scope-flag-with-caret', async (config): ?Promise<void> => {
+    await expectInstalledDependency(config, '@angular-mdl/core', '^4.0.0', '4.0.0');
+    await expectInstalledDependency(config, '@angular/core', '^2.4.9', '2.4.10');
+    await expectInstalledDependency(config, 'left-pad', '^1.0.0', '1.0.0');
   });
 });
 
