@@ -1,3 +1,5 @@
+// @flow
+
 const {
   tests: {generatePkgDriver, startPackageServer, getPackageRegistry},
   exec: {execFile},

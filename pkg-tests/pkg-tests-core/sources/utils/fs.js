@@ -1,3 +1,7 @@
+// @flow
+
+import type {Gzip} from 'zlib';
+
 const fs = require(`fs-extra`);
 const klaw = require(`klaw`);
 const path = require(`path`);
@@ -7,7 +11,10 @@ const zlib = require(`zlib`);
 
 const miscUtils = require(`./misc`);
 
-exports.walk = function walk(source, {filter, relative = false} = {}) {
+exports.walk = function walk(
+  source: string,
+  {filter, relative = false}: {|filter?: Array<string>, relative?: boolean|} = {},
+): Promise<Array<string>> {
   return new Promise((resolve, reject) => {
     const paths = [];
 
@@ -50,7 +57,11 @@ exports.walk = function walk(source, {filter, relative = false} = {}) {
   });
 };
 
-exports.packToStream = function packToStream(source, {virtualPath = null} = {}) {
+exports.packToStream = function packToStream(
+  source: string,
+  // $FlowFixMe Flow doesn't support null default parameters in exact types
+  {virtualPath = null}: {|virtualPath?: ?string|} = {},
+): Gzip {
   if (virtualPath) {
     if (!path.isAbsolute(virtualPath)) {
       throw new Error(`The virtual path has to be an absolute path`);
@@ -86,7 +97,7 @@ exports.packToStream = function packToStream(source, {virtualPath = null} = {}) 
   return zipperStream;
 };
 
-exports.packToFile = function packToFile(target, source, {...options} = {}) {
+exports.packToFile = function packToFile(target: string, source: string, options: *): Promise<void> {
   const tarballStream = fs.createWriteStream(target);
 
   const packStream = exports.packToStream(source, options);
@@ -107,7 +118,7 @@ exports.packToFile = function packToFile(target, source, {...options} = {}) {
   });
 };
 
-exports.createTemporaryFolder = function createTemporaryFolder() {
+exports.createTemporaryFolder = function createTemporaryFolder(): Promise<string> {
   return new Promise((resolve, reject) => {
     tmp.dir({unsafeCleanup: true}, (error, dirPath) => {
       if (error) {
@@ -119,7 +130,7 @@ exports.createTemporaryFolder = function createTemporaryFolder() {
   });
 };
 
-exports.createTemporaryFile = async function createTemporaryFile(filePath) {
+exports.createTemporaryFile = async function createTemporaryFile(filePath: string): Promise<string> {
   if (filePath) {
     if (path.normalize(filePath).match(/^(\.\.)?\//)) {
       throw new Error(`A temporary file path must be a forward path`);
@@ -140,20 +151,20 @@ exports.createTemporaryFile = async function createTemporaryFile(filePath) {
   }
 };
 
-exports.writeFile = async function writeFile(target, body) {
+exports.writeFile = async function writeFile(target: string, body: string | Buffer): Promise<void> {
   await fs.mkdirp(path.dirname(target));
   await fs.writeFile(target, body);
 };
 
-exports.readFile = function readFile(source, encoding = null) {
+exports.readFile = function readFile(source: string, encoding: ?string = null): Promise<any> {
   return fs.readFile(source, encoding);
 };
 
-exports.writeJson = function writeJson(target, object) {
+exports.writeJson = function writeJson(target: string, object: any): Promise<void> {
   return exports.writeFile(target, JSON.stringify(object));
 };
 
-exports.readJson = async function readJson(source) {
+exports.readJson = async function readJson(source: string): Promise<any> {
   const fileContent = await exports.readFile(source, `utf8`);
 
   try {

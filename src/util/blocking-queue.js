@@ -23,7 +23,7 @@ export default class BlockingQueue {
   warnedStuck: boolean;
   maxConcurrency: number;
   runningCount: number;
-  stuckTimer: ?number;
+  stuckTimer: ?TimeoutID;
   alias: string;
   first: boolean;
 
@@ -83,7 +83,11 @@ export default class BlockingQueue {
     if (this.running[key]) {
       delete this.running[key];
       this.runningCount--;
-      clearTimeout(this.stuckTimer);
+
+      if (this.stuckTimer) {
+        clearTimeout(this.stuckTimer);
+        this.stuckTimer = null;
+      }
 
       if (this.warnedStuck) {
         this.warnedStuck = false;

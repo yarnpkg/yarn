@@ -1,6 +1,4 @@
 {
   "rules": {
-    "flowtype/require-valid-file-annotation": "off",
-    "flowtype/require-return-type": "off"
   }
 }

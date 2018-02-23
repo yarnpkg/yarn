@@ -17,6 +17,7 @@ const path = require('path');
 
 const installFixturesLoc = path.join(__dirname, '..', 'fixtures', 'install');
 
+// $FlowFixMe I don't understand the error
 export const runInstall = run.bind(
   null,
   ConsoleReporter,
@@ -33,6 +34,7 @@ export const runInstall = run.bind(
 
 const linkFixturesLoc = path.join(__dirname, '..', 'fixtures', 'link');
 
+// $FlowFixMe I don't understand the error
 export const runLink = run.bind(
   null,
   ConsoleReporter,

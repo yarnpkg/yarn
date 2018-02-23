@@ -839,6 +839,7 @@ test.skip('add asks for correct package version if user passes an incorrect one'
       expect(await getPackageVersion(config, 'is-array')).toEqual(chosenVersion);
     },
     () => {
+      // $FlowFixMe It seems we're assigning something totally different from what inquirer expects :/
       inquirer.prompt = jest.fn(questions => {
         expect(questions).toHaveLength(1);
         expect(questions[0].name).toEqual('package');
@@ -849,7 +850,6 @@ test.skip('add asks for correct package version if user passes an incorrect one'
         invariant(choices.length > 0);
         chosenVersion = choices[0];
         invariant(typeof chosenVersion === 'string');
-        // $FlowFixMe: No sane way to return an "extended" Promise object
         return Promise.resolve({package: chosenVersion});
       });
     },

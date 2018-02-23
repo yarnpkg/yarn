@@ -1,10 +1,14 @@
+// @flow
+
+import type {PackageDriver} from 'pkg-tests-core';
+
 // Here be dragons. The biggest and baddest tests, that just can't be described in a single line of summary. Because
 // of this, they each must be clearly documented and explained.
 //
 // Because of their complexity, they generally have their own specific packages, which should NOT be renamed
 // (some of these tests might rely on the package names being sorted in a certain way).
 
-module.exports = makeTemporaryEnv => {
+module.exports = (makeTemporaryEnv: PackageDriver) => {
   describe(`Dragon tests`, () => {
     test(
       `it should pass the dragon test 1`,
