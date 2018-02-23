@@ -1,4 +1,5 @@
 [ignore]
+<PROJECT_ROOT>/packages/pkg-tests/.*
 <PROJECT_ROOT>/coverage/.*
 <PROJECT_ROOT>/dist/.*
 <PROJECT_ROOT>/lib-legacy/.*
