@@ -39,8 +39,8 @@ export async function info(config: Config, reporter: Reporter, flags: Object, ar
         for (const dependencyName of Object.keys(manifest[dependencyType] || {})) {
           if (Object.prototype.hasOwnProperty.call(workspaces, dependencyName)) {
             invariant(manifest && manifest[dependencyType], 'The request should exist');
-            const request = manifest[dependencyType][dependencyName];
-            if (semver.satisfies(workspaces[dependencyName].manifest.version, request)) {
+            const requestedRange = manifest[dependencyType][dependencyName];
+            if (semver.satisfies(workspaces[dependencyName].manifest.version, requestedRange)) {
               workspaceDependencies.add(dependencyName);
             } else {
               mismatchedWorkspaceDependencies.add(dependencyName);
