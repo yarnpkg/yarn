@@ -89,7 +89,7 @@
     "mock-stdin": "^0.3.0",
     "prettier": "^1.5.2",
     "temp": "^0.8.3",
-    "webpack": "^2.1.0-beta.25",
+    "webpack": "^3.0.0",
     "yargs": "^6.3.0"
   },
   "engines": {
