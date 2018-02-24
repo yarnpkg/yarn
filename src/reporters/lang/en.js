@@ -367,6 +367,7 @@ const messages = {
   integrityFailedFilesMissing: 'Integrity check: Files are missing',
   integrityPatternsDontMatch: "Integrity check: Top level patterns don't match",
   integrityModulesFoldersMissing: 'Integrity check: Some module folders are missing',
+  integritySystemParamsDontMatch: "Integrity check: System parameters don't match",
   packageNotInstalled: '$0 not installed',
   optionalDepNotInstalled: 'Optional dependency $0 not installed',
   packageWrongVersion: '$0 is wrong version: expected $1, got $2',
