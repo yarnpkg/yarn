@@ -204,17 +204,17 @@ export default class PackageInstallScripts {
       invariant(ref, 'expected reference');
       const deps = ref.dependencies;
 
-      let dependenciesFullfilled = true;
+      let dependenciesFulfilled = true;
       for (const dep of deps) {
         const pkgDep = this.resolver.getStrictResolvedPattern(dep);
         if (!installed.has(pkgDep)) {
-          dependenciesFullfilled = false;
+          dependenciesFulfilled = false;
           break;
         }
       }
 
       // all dependencies are installed
-      if (dependenciesFullfilled) {
+      if (dependenciesFulfilled) {
         return pkg;
       }
 
