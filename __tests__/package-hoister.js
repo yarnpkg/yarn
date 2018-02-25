@@ -312,7 +312,7 @@ test('will hoist packages under subdirectories when they cannot hoist to root', 
   //     -> d@1
   //
   // b,c,d@1 cannot hoist to the root because their @2 versions would be there if not ignored.
-  // However they can still flaten under a@1.
+  // However they can still flatten under a@1.
   const {atPath, ignorePackage, packageHoister} = createTestFixture({
     'a@1.0.0': ['b@1.0.0'],
     'b@1.0.0': ['c@1.0.0'],
