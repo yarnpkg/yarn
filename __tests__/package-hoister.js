@@ -284,7 +284,7 @@ test('considers ignored packages when determining hoisting', () => {
   // d@1 -> c@2
   //
   // Normally c@2 would hoist to the root, but it cannot because c@5 would be there if it was not ignored.
-  // This preserves deterministic install paths wheter packages are ignored or not.
+  // This preserves deterministic install paths whether packages are ignored or not.
   const {atPath, ignorePackage, packageHoister} = createTestFixture({
     'a@1.0.0': ['d@1.0.0'],
     'b@3.0.0': ['c@5.0.0'],
