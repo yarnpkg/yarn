@@ -197,7 +197,7 @@ async function buildActionsForCopy(
     await Promise.all(items.map(build));
   }
 
-  // simulate the existence of some files to prevent considering them extraenous
+  // simulate the existence of some files to prevent considering them extraneous
   for (const file of artifactFiles) {
     if (possibleExtraneous.has(file)) {
       reporter.verbose(reporter.lang('verboseFilePhantomExtraneous', file));
@@ -405,7 +405,7 @@ async function buildActionsForHardlink(
     await Promise.all(items.map(build));
   }
 
-  // simulate the existence of some files to prevent considering them extraenous
+  // simulate the existence of some files to prevent considering them extraneous
   for (const file of artifactFiles) {
     if (possibleExtraneous.has(file)) {
       reporter.verbose(reporter.lang('verboseFilePhantomExtraneous', file));
