@@ -213,7 +213,7 @@ export default class PackageInstallScripts {
         }
       }
 
-      // all depedencies are installed
+      // all dependencies are installed
       if (dependenciesFullfilled) {
         return pkg;
       }
