@@ -14,7 +14,7 @@ type TeamParts = {
 
 type DeprecationWarning = {
   deprecatedCommand: string,
-  currentComand: string,
+  currentCommand: string,
 };
 
 type CLIFunctionWithParts = (
@@ -49,7 +49,7 @@ function warnDeprecation(reporter: Reporter, deprecationWarning: DeprecationWarn
     reporter.lang(
       'deprecatedCommand',
       `${command} ${deprecationWarning.deprecatedCommand}`,
-      `${command} ${deprecationWarning.currentComand}`,
+      `${command} ${deprecationWarning.currentCommand}`,
     ),
   );
 }
@@ -231,7 +231,7 @@ export const {run, hasWrapper, examples} = buildSubCommands(
       },
       {
         deprecatedCommand: 'rm',
-        currentComand: 'remove',
+        currentCommand: 'remove',
       },
     ),
 
@@ -252,7 +252,7 @@ export const {run, hasWrapper, examples} = buildSubCommands(
       false,
       {
         deprecatedCommand: 'ls',
-        currentComand: 'list',
+        currentCommand: 'list',
       },
     ),
 
