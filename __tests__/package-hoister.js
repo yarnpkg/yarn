@@ -441,7 +441,7 @@ describe('nohoist', () => {
     expect(result).toContainPackage('c@1.0.0', atPath('a', 'node_modules', 'c'));
     expect(result).toContainPackage('d@1.0.0', atPath('a', 'node_modules', 'd'));
   });
-  test('can dedup and avoid circular reference', () => {
+  test('can dedupe and avoid circular reference', () => {
     const {atPath, packageHoister, packageResolver} = createTestFixture({
       'a@1.0.0': ['c@1.0.0'],
       'b@2.0.0': [],
