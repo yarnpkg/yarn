@@ -13,7 +13,7 @@ import * as promise from './util/promise.js';
 import {entries} from './util/misc.js';
 import * as fs from './util/fs.js';
 import lockMutex from './util/mutex.js';
-import {satisfiesWithPreleases} from './util/semver.js';
+import {satisfiesWithPrereleases} from './util/semver.js';
 import WorkspaceLayout from './workspace-layout.js';
 
 const invariant = require('invariant');
@@ -535,7 +535,7 @@ export default class PackageLinker {
   }
 
   _satisfiesPeerDependency(range: string, version: string): boolean {
-    return range === '*' || satisfiesWithPreleases(version, range, this.config.looseSemver);
+    return range === '*' || satisfiesWithPrereleases(version, range, this.config.looseSemver);
   }
 
   async _warnForMissingBundledDependencies(pkg: Manifest): Promise<void> {
