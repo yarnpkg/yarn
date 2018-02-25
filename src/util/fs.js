@@ -560,7 +560,7 @@ export function copy(src: string, dest: string, reporter: Reporter): Promise<voi
 
 /**
  * Unlinks the destination to force a recreation. This is needed on case-insensitive file systems
- * to force the correct naming when the filename has changed only in charater-casing. (Jest -> jest).
+ * to force the correct naming when the filename has changed only in character-casing. (Jest -> jest).
  * It also calls a cleanup function once it is done.
  *
  * `data` contains target file attributes like mode, atime and mtime. Built-in copyFile copies these
