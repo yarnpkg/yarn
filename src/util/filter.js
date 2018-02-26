@@ -101,11 +101,7 @@ export function matchesFilter(filter: IgnoreFilter, basename: string, loc: strin
   // the micromatch regex expects unix path separators
   loc = loc.replace('\\', '/');
 
-  return (
-    filter.regex.test(loc) ||
-    filter.regex.test(`/${loc}`) ||
-    mm.isMatch(loc, filter.pattern)
-  );
+  return filter.regex.test(loc) || filter.regex.test(`/${loc}`) || mm.isMatch(loc, filter.pattern);
 }
 
 export function ignoreLinesToRegex(lines: Array<string>, base: string = '.'): Array<IgnoreFilter> {
