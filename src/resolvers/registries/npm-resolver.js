@@ -181,10 +181,6 @@ export default class NpmResolver extends RegistryResolver {
   async resolve(): Promise<Manifest> {
     // lockfile
     const shrunk = this.request.getLocked('tarball');
-    if (shrunk && shrunk._remote && shrunk._remote.integrity) {
-      // if the integrity field does not exist, it needs to be created
-      return shrunk;
-    }
     if (shrunk) {
       if (this.config.packBuiltPackages && shrunk.prebuiltVariants && shrunk._remote) {
         const prebuiltVariants = shrunk.prebuiltVariants;
@@ -195,9 +191,14 @@ export default class NpmResolver extends RegistryResolver {
           if (shrunk._remote && (await fs.exists(filename))) {
             shrunk._remote.reference = `file:${filename}`;
             shrunk._remote.hash = prebuiltVariants[prebuiltName];
+            shrunk._remote.integrity = ssri.fromHex(shrunk._remote.hash, 'sha1').toString()
           }
         }
       }
+    }
+    if (shrunk && shrunk._remote && shrunk._remote.integrity) {
+      // if the integrity field does not exist, it needs to be created
+      return shrunk;
     }
 
     const desiredVersion = shrunk && shrunk.version ? shrunk.version : null;
