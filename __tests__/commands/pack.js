@@ -109,6 +109,19 @@ test.concurrent('pack should exclude mandatory files from ignored directories', 
   });
 });
 
+test.concurrent('pack should include files only ignored in other directories', (): Promise<void> => {
+  return runPack([], {}, 'include-files-ignored-in-other-directories', async (config): Promise<void> => {
+    const {cwd} = config;
+    const files = await getFilesFromArchive(
+      path.join(cwd, 'include-files-ignored-in-other-directories-v1.0.0.tgz'),
+      path.join(cwd, 'include-files-ignored-in-other-directories-v1.0.0'),
+    );
+    expect(files.indexOf('a.js')).toBeGreaterThanOrEqual(0);
+    expect(files.indexOf('index.js')).toBeGreaterThanOrEqual(0);
+    expect(files.indexOf('ignoring/file.js')).toEqual(-1);
+  });
+});
+
 test.concurrent('pack should exclude all other files if files array is not empty', (): Promise<void> => {
   return runPack([], {}, 'files-exclude', async (config): Promise<void> => {
     const {cwd} = config;
