@@ -40,7 +40,7 @@ export type PackageRemote = {
   reference: string,
   resolved?: ?string,
   hash: ?string,
-  integrity?: Object,
+  integrity?: ?string,
   packageName?: string,
 };
 

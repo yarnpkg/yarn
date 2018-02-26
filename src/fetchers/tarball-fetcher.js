@@ -265,7 +265,7 @@ export default class TarballFetcher extends BaseFetcher {
 
   _findIntegrity(): ?Object {
     if (this.remote.integrity) {
-      return this.remote.integrity;
+      return ssri.parse(this.remote.integrity);
     }
     if (this.hash) {
       return ssri.fromHex(this.hash, 'sha1');
