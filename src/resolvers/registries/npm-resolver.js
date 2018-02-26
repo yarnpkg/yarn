@@ -188,10 +188,11 @@ export default class NpmResolver extends RegistryResolver {
         const offlineMirrorPath = this.config.getOfflineMirrorPath();
         if (prebuiltVariants[prebuiltName] && offlineMirrorPath) {
           const filename = path.join(offlineMirrorPath, 'prebuilt', prebuiltName + '.tgz');
-          if (shrunk._remote && (await fs.exists(filename))) {
-            shrunk._remote.reference = `file:${filename}`;
-            shrunk._remote.hash = prebuiltVariants[prebuiltName];
-            shrunk._remote.integrity = ssri.fromHex(shrunk._remote.hash, 'sha1').toString()
+          const {_remote} = shrunk;
+          if (_remote && (await fs.exists(filename))) {
+            _remote.reference = `file:${filename}`;
+            _remote.hash = prebuiltVariants[prebuiltName];
+            _remote.integrity = ssri.fromHex(_remote.hash, 'sha1').toString();
           }
         }
       }
