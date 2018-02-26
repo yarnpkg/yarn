@@ -100,10 +100,10 @@ export function matchesFilter(filter: IgnoreFilter, basename: string, loc: strin
   }
   // the micromatch regex expects unix path separators
   loc = loc.replace('\\', '/');
+
   return (
     filter.regex.test(loc) ||
     filter.regex.test(`/${loc}`) ||
-    filter.regex.test(basename) ||
     mm.isMatch(loc, filter.pattern)
   );
 }
