@@ -1,3 +1,3 @@
-// @flow
+/* @flow */
 
 module.exports = __dirname;

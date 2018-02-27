@@ -1,6 +1,6 @@
-// @flow
+/* @flow */
 
-const cp = require(`child_process`);
+const cp = require('child_process');
 
 exports.execFile = function(
   path: string,

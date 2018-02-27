@@ -1,15 +1,15 @@
-// @flow
+/* @flow */
 
 import type {ServerResponse} from 'http';
 import type {Gzip} from 'zlib';
 
-const crypto = require(`crypto`);
-const deepResolve = require(`super-resolve`);
-const http = require(`http`);
-const invariant = require(`invariant`);
-const semver = require(`semver`);
+const crypto = require('crypto');
+const deepResolve = require('super-resolve');
+const http = require('http');
+const invariant = require('invariant');
+const semver = require('semver');
 
-const fsUtils = require(`./fs`);
+const fsUtils = require('./fs');
 
 export type PackageEntry = Map<string, {|path: string, packageJson: Object|}>;
 export type PackageRegistry = Map<string, PackageEntry>;
@@ -29,13 +29,13 @@ exports.getPackageRegistry = function getPackageRegistry(): Promise<PackageRegis
 
   return (getPackageRegistry.promise = (async () => {
     const packageRegistry = new Map();
-    for (const packageFile of await fsUtils.walk(`${require(`pkg-tests-fixtures`)}/packages`, {
-      filter: [`package.json`],
+    for (const packageFile of await fsUtils.walk(`${require('pkg-tests-fixtures')}/packages`, {
+      filter: ['package.json'],
     })) {
       const packageJson = await fsUtils.readJson(packageFile);
       const {name, version} = packageJson;
 
-      if (name.startsWith(`git-`)) {
+      if (name.startsWith('git-')) {
         continue;
       }
 
@@ -46,7 +46,7 @@ exports.getPackageRegistry = function getPackageRegistry(): Promise<PackageRegis
       }
 
       packageEntry.set(version, {
-        path: require(`path`).dirname(packageFile),
+        path: require('path').dirname(packageFile),
         packageJson,
       });
     }
@@ -75,7 +75,7 @@ exports.getPackageArchiveStream = async function getPackageArchiveStream(name: s
   }
 
   return fsUtils.packToStream(packageVersionEntry.path, {
-    virtualPath: `/package`,
+    virtualPath: '/package',
   });
 };
 
@@ -95,7 +95,7 @@ exports.getPackageArchivePath = async function getPackageArchivePath(name: strin
   const archivePath = await fsUtils.createTemporaryFile(`${name}-${version}.tar.gz`);
 
   await fsUtils.packToFile(archivePath, packageVersionEntry.path, {
-    virtualPath: `/package`,
+    virtualPath: '/package',
   });
 
   return archivePath;
@@ -114,9 +114,9 @@ exports.getPackageArchiveHash = async function getPackageArchiveHash(
     // Send the archive to the hash function
     stream.pipe(hash);
 
-    stream.on(`end`, () => {
+    stream.on('end', () => {
       const finalHash = hash.read();
-      invariant(finalHash, `The hash should have been computated`);
+      invariant(finalHash, 'The hash should have been computated');
       resolve(finalHash);
     });
   });
@@ -191,7 +191,7 @@ exports.startPackageServer = function startPackageServer(): Promise<string> {
         ...(await Promise.all(
           versions.map(async version => {
             const packageVersionEntry = packageEntry.get(version);
-            invariant(packageVersionEntry, `This can only exist`);
+            invariant(packageVersionEntry, 'This can only exist');
 
             return {
               [version]: Object.assign({}, packageVersionEntry.packageJson, {
@@ -204,10 +204,10 @@ exports.startPackageServer = function startPackageServer(): Promise<string> {
           }),
         )),
       ),
-      [`dist-tags`]: {latest: semver.maxSatisfying(versions, '*')},
+      ['dist-tags']: {latest: semver.maxSatisfying(versions, '*')},
     });
 
-    res.writeHead(200, {[`Content-Type`]: `application/json`});
+    res.writeHead(200, {['Content-Type']: 'application/json'});
     res.end(data);
 
     return true;
@@ -234,11 +234,11 @@ exports.startPackageServer = function startPackageServer(): Promise<string> {
     }
 
     res.writeHead(200, {
-      [`Content-Type`]: `application/octet-stream`,
-      [`Transfer-Encoding`]: `chunked`,
+      ['Content-Type']: 'application/octet-stream',
+      ['Transfer-Encoding']: 'chunked',
     });
 
-    const packStream = fsUtils.packToStream(packageVersionEntry.path, {virtualPath: `/package`});
+    const packStream = fsUtils.packToStream(packageVersionEntry.path, {virtualPath: '/package'});
     packStream.pipe(res);
 
     return true;
@@ -287,12 +287,12 @@ exports.startPackageServer = function startPackageServer(): Promise<string> {
 exports.generatePkgDriver = function generatePkgDriver({runDriver}: {|runDriver: PackageRunDriver|}): PackageDriver {
   function withConfig(definition): PackageDriver {
     const makeTemporaryEnv = (packageJson, subDefinition, fn) => {
-      if (typeof subDefinition === `function`) {
+      if (typeof subDefinition === 'function') {
         fn = subDefinition;
         subDefinition = {};
       }
 
-      if (typeof fn !== `function`) {
+      if (typeof fn !== 'function') {
         throw new Error(
           // eslint-disable-next-line
           `Invalid test function (got ${typeof fn}) - you probably put the closing parenthesis of the "makeTemporaryEnv" utility at the wrong place`,
@@ -315,7 +315,7 @@ exports.generatePkgDriver = function generatePkgDriver({runDriver}: {|runDriver:
         };
 
         const source = async script => {
-          return JSON.parse((await run(`node`, `-p`, `JSON.stringify(${script})`)).stdout.toString());
+          return JSON.parse((await run('node', '-p', `JSON.stringify(${script})`)).stdout.toString());
         };
 
         await fn({

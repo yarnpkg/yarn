@@ -1,4 +1,4 @@
-// @flow
+/* @flow */
 
-exports.basic = require(`./basic`);
-exports.dragon = require(`./dragon`);
+exports.basic = require('./basic');
+exports.dragon = require('./dragon');

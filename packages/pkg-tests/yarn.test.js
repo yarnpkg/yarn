@@ -1,4 +1,4 @@
-// @flow
+/* @flow */
 
 const {
   tests: {generatePkgDriver, startPackageServer, getPackageRegistry},

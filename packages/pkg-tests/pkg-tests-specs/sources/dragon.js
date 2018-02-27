@@ -1,4 +1,4 @@
-// @flow
+/* @flow */
 
 import type {PackageDriver} from 'pkg-tests-core';
 

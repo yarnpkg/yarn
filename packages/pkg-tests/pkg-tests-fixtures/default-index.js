@@ -1,4 +1,4 @@
-// @flow
+/* @flow */
 
 module.exports = require(`./package.json`);
 

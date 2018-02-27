@@ -1,15 +1,15 @@
-// @flow
+/* @flow */
 
 import type {Gzip} from 'zlib';
 
-const fs = require(`fs-extra`);
-const klaw = require(`klaw`);
-const path = require(`path`);
-const tarFs = require(`tar-fs`);
-const tmp = require(`tmp`);
-const zlib = require(`zlib`);
+const fs = require('fs-extra');
+const klaw = require('klaw');
+const path = require('path');
+const tarFs = require('tar-fs');
+const tmp = require('tmp');
+const zlib = require('zlib');
 
-const miscUtils = require(`./misc`);
+const miscUtils = require('./misc');
 
 exports.walk = function walk(
   source: string,
@@ -40,7 +40,7 @@ exports.walk = function walk(
       },
     });
 
-    walker.on(`data`, ({path: itemPath}) => {
+    walker.on('data', ({path: itemPath}) => {
       const relativePath = path.relative(source, itemPath);
 
       if (!filter || miscUtils.filePatternMatch(relativePath, filter)) {
@@ -51,7 +51,7 @@ exports.walk = function walk(
       return;
     });
 
-    walker.on(`end`, () => {
+    walker.on('end', () => {
       resolve(paths);
     });
   });
@@ -64,7 +64,7 @@ exports.packToStream = function packToStream(
 ): Gzip {
   if (virtualPath) {
     if (!path.isAbsolute(virtualPath)) {
-      throw new Error(`The virtual path has to be an absolute path`);
+      throw new Error('The virtual path has to be an absolute path');
     } else {
       virtualPath = path.resolve(virtualPath);
     }
@@ -75,13 +75,13 @@ exports.packToStream = function packToStream(
   const packStream = tarFs.pack(source, {
     map: header => {
       if (true) {
-        header.name = path.resolve(`/`, header.name);
-        header.name = path.relative(`/`, header.name);
+        header.name = path.resolve('/', header.name);
+        header.name = path.relative('/', header.name);
       }
 
       if (virtualPath) {
-        header.name = path.resolve(`/`, virtualPath, header.name);
-        header.name = path.relative(`/`, header.name);
+        header.name = path.resolve('/', virtualPath, header.name);
+        header.name = path.relative('/', header.name);
       }
 
       return header;
@@ -90,8 +90,8 @@ exports.packToStream = function packToStream(
 
   packStream.pipe(zipperStream);
 
-  packStream.on(`error`, error => {
-    zipperStream.emit(`error`, error);
+  packStream.on('error', error => {
+    zipperStream.emit('error', error);
   });
 
   return zipperStream;
@@ -104,15 +104,15 @@ exports.packToFile = function packToFile(target: string, source: string, options
   packStream.pipe(tarballStream);
 
   return new Promise((resolve, reject) => {
-    tarballStream.on(`error`, error => {
+    tarballStream.on('error', error => {
       reject(error);
     });
 
-    packStream.on(`error`, error => {
+    packStream.on('error', error => {
       reject(error);
     });
 
-    tarballStream.on(`close`, () => {
+    tarballStream.on('close', () => {
       resolve();
     });
   });
@@ -133,7 +133,7 @@ exports.createTemporaryFolder = function createTemporaryFolder(): Promise<string
 exports.createTemporaryFile = async function createTemporaryFile(filePath: string): Promise<string> {
   if (filePath) {
     if (path.normalize(filePath).match(/^(\.\.)?\//)) {
-      throw new Error(`A temporary file path must be a forward path`);
+      throw new Error('A temporary file path must be a forward path');
     }
 
     const folderPath = await exports.createTemporaryFolder();
@@ -165,7 +165,7 @@ exports.writeJson = function writeJson(target: string, object: any): Promise<voi
 };
 
 exports.readJson = async function readJson(source: string): Promise<any> {
-  const fileContent = await exports.readFile(source, `utf8`);
+  const fileContent = await exports.readFile(source, 'utf8');
 
   try {
     return JSON.parse(fileContent);

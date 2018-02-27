@@ -1,8 +1,8 @@
-// @flow
+/* @flow */
 
 import type {PackageDriver} from 'pkg-tests-core';
 
-const {tests: {getPackageArchivePath, getPackageHttpArchivePath, getPackageDirectoryPath}} = require(`pkg-tests-core`);
+const {tests: {getPackageArchivePath, getPackageHttpArchivePath, getPackageDirectoryPath}} = require('pkg-tests-core');
 
 module.exports = (makeTemporaryEnv: PackageDriver) => {
   describe(`Basic tests`, () => {
