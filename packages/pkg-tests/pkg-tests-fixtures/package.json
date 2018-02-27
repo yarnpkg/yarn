@@ -1,0 +1,7 @@
+{
+    "name": "pkg-tests-fixtures",
+    "version": "1.0.0",
+    "scripts": {
+        "copy-index": "find packages -type d -mindepth 1 -maxdepth 1 | while read pkg; do cp default-index.js \"$pkg\/index.js\"; done"
+    }
+}

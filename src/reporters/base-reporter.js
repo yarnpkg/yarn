@@ -85,7 +85,7 @@ export default class BaseReporter {
   isSilent: boolean;
   format: Formatter;
 
-  peakMemoryInterval: ?number;
+  peakMemoryInterval: ?IntervalID;
   peakMemory: number;
   startTime: number;
 

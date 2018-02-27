@@ -1,7 +1,7 @@
 {
   "name": "yarn",
   "installationMethod": "unknown",
-  "version": "1.4.1",
+  "version": "1.5.0",
   "license": "BSD-2-Clause",
   "preferGlobal": true,
   "description": "📦🐈 Fast, reliable, and secure dependency management.",
@@ -66,7 +66,7 @@
     "eslint-plugin-babel": "^4.0.0",
     "eslint-plugin-flowtype": "^2.35.0",
     "eslint-plugin-jasmine": "^2.6.2",
-    "eslint-plugin-jest": "^20.0.3",
+    "eslint-plugin-jest": "^21.0.0",
     "eslint-plugin-jsx-a11y": "^6.0.2",
     "eslint-plugin-prefer-object-spread": "^1.2.1",
     "eslint-plugin-prettier": "^2.1.2",
@@ -74,7 +74,7 @@
     "eslint-plugin-relay": "^0.0.8",
     "eslint-plugin-yarn-internal": "file:scripts/eslint-rules",
     "execa": "^0.9.0",
-    "flow-bin": "^0.52.0",
+    "flow-bin": "^0.66.0",
     "gulp": "^3.9.0",
     "gulp-babel": "^7.0.0",
     "gulp-if": "^2.0.1",
@@ -82,7 +82,7 @@
     "gulp-plumber": "^1.0.1",
     "gulp-sourcemaps": "^2.2.0",
     "gulp-util": "^3.0.7",
-    "gulp-watch": "^4.3.5",
+    "gulp-watch": "^5.0.0",
     "jest": "^21.2.1",
     "jsinspect": "^0.12.6",
     "minimatch": "^3.0.4",
@@ -128,7 +128,8 @@
     "testPathIgnorePatterns": [
       "__tests__/(fixtures|__mocks__)/",
       "updates/",
-      "/_(temp|mock|install|init|helpers).js$"
+      "/_(temp|mock|install|init|helpers).js$",
+      "/packages/pkg-tests"
     ]
   },
   "config": {

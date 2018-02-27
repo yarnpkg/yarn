@@ -22,7 +22,7 @@ export default class Spinner {
   delay: number;
   chars: Array<string>;
   text: string;
-  id: ?number;
+  id: ?TimeoutID;
 
   static spinners: Array<string> = [
     '|/-\\',
