@@ -165,3 +165,11 @@ test('Only top level (after hoisting) bin links should be linked', (): Promise<v
     expect(stdout[0]).toEqual('uglify-js 3.0.14');
   });
 });
+
+// Because of the way Yarn created symlinks, a link to a link will instead point to the actual destination,
+// which is why we expect the script to point to `../../` outside of `node_modules/`.
+test('link type dependencies have bin links created', (): Promise<void> => {
+  return runInstall({binLinks: true}, 'install-bin-links-for-link-deps', async config => {
+    expect(await linkAt(config, 'node_modules', '.bin', 'scriptA')).toEqual('../../depA/scriptA.js');
+  });
+});
