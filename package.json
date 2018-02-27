@@ -30,7 +30,7 @@
     "micromatch": "^2.3.11",
     "mkdirp": "^0.5.1",
     "node-emoji": "^1.6.1",
-    "normalize-url": "^1.9.1",
+    "normalize-url": "^2.0.0",
     "object-path": "^0.11.2",
     "proper-lockfile": "^2.0.0",
     "puka": "^1.0.0",
