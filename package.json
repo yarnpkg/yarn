@@ -90,7 +90,7 @@
     "prettier": "^1.5.2",
     "temp": "^0.8.3",
     "webpack": "^2.1.0-beta.25",
-    "yargs": "^6.3.0"
+    "yargs": "^11.0.0"
   },
   "engines": {
     "node": ">=4.0.0"
