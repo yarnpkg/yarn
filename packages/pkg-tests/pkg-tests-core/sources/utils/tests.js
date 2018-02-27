@@ -272,12 +272,11 @@ exports.startPackageServer = function startPackageServer(): Promise<string> {
           } catch (error) {
             processError(res, 500, error.stack);
           }
-        }),
+        })(),
     );
 
     // We don't want the server to prevent the process from exiting
     server.unref();
-
     server.listen(() => {
       const {port} = server.address();
       resolve((startPackageServer.url = `http://localhost:${port}`));
