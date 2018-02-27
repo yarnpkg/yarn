@@ -3,12 +3,17 @@
 import type {Manifest} from './types.js';
 import type PackageResolver from './package-resolver.js';
 import type {Reporter} from './reporters/index.js';
-import type Config from './config.js';
+import Config from './config.js';
 import type {ReporterSetSpinner} from './reporters/types.js';
 import executeLifecycleScript from './util/execute-lifecycle-script.js';
-import * as fs from './util/fs.js';
+import * as crypto from './util/crypto.js';
+import * as fsUtil from './util/fs.js';
+import {getPlatformSpecificPackageFilename} from './util/package-name-utils.js';
+import {pack} from './cli/commands/pack.js';
 
+const fs = require('fs');
 const invariant = require('invariant');
+const path = require('path');
 
 const INSTALL_STAGES = ['preinstall', 'install', 'postinstall'];
 
@@ -63,7 +68,7 @@ export default class PackageInstallScripts {
   }
 
   async walk(loc: string): Promise<Map<string, number>> {
-    const files = await fs.walk(loc, null, new Set(this.config.registryFolders));
+    const files = await fsUtil.walk(loc, null, new Set(this.config.registryFolders));
     const mtimes = new Map();
     for (const file of files) {
       mtimes.set(file.relative, file.mtime);
@@ -121,7 +126,7 @@ export default class PackageInstallScripts {
 
         // Cleanup node_modules
         try {
-          await fs.unlink(loc);
+          await fsUtil.unlink(loc);
         } catch (e) {
           this.reporter.error(this.reporter.lang('optionalModuleCleanupFail', e.message));
         }
@@ -135,6 +140,13 @@ export default class PackageInstallScripts {
     const cmds = this.getInstallCommands(pkg);
     if (!cmds.length) {
       return false;
+    }
+    if (this.config.packBuiltPackages && pkg.prebuiltVariants) {
+      for (const variant in pkg.prebuiltVariants) {
+        if (pkg._remote && pkg._remote.reference && pkg._remote.reference.includes(variant)) {
+          return false;
+        }
+      }
     }
     const ref = pkg._reference;
     invariant(ref, 'Missing package reference');
@@ -280,15 +292,49 @@ export default class PackageInstallScripts {
 
     await Promise.all(workers);
 
-    // cache all build artifacts
-    for (const pkg of pkgs) {
-      if (this.packageCanBeInstalled(pkg)) {
-        const ref = pkg._reference;
-        invariant(ref, 'expected reference');
-        const loc = this.config.generateHardModulePath(ref);
-        const beforeFiles = beforeFilesMap.get(loc);
-        invariant(beforeFiles, 'files before installation should always be recorded');
-        await this.saveBuildArtifacts(loc, pkg, beforeFiles, set.spinners[0]);
+    // generate built package as prebuilt one for offline mirror
+    const offlineMirrorPath = this.config.getOfflineMirrorPath();
+    if (this.config.packBuiltPackages && offlineMirrorPath) {
+      for (const pkg of pkgs) {
+        if (this.packageCanBeInstalled(pkg)) {
+          let prebuiltPath = path.join(offlineMirrorPath, 'prebuilt');
+          await fsUtil.mkdirp(prebuiltPath);
+          const prebuiltFilename = getPlatformSpecificPackageFilename(pkg);
+          prebuiltPath = path.join(prebuiltPath, prebuiltFilename + '.tgz');
+          const ref = pkg._reference;
+          invariant(ref, 'expected reference');
+          const builtPackagePath = this.config.generateHardModulePath(ref);
+          const pkgConfig = await Config.create(
+            {
+              cwd: builtPackagePath,
+            },
+            this.reporter,
+          );
+          const stream = await pack(pkgConfig, builtPackagePath);
+
+          const hash = await new Promise((resolve, reject) => {
+            const validateStream = new crypto.HashStream();
+            stream
+              .pipe(validateStream)
+              .pipe(fs.createWriteStream(prebuiltPath))
+              .on('error', reject)
+              .on('close', () => resolve(validateStream.getHash()));
+          });
+          pkg.prebuiltVariants = pkg.prebuiltVariants || {};
+          pkg.prebuiltVariants[prebuiltFilename] = hash;
+        }
+      }
+    } else {
+      // cache all build artifacts
+      for (const pkg of pkgs) {
+        if (this.packageCanBeInstalled(pkg)) {
+          const ref = pkg._reference;
+          invariant(ref, 'expected reference');
+          const loc = this.config.generateHardModulePath(ref);
+          const beforeFiles = beforeFilesMap.get(loc);
+          invariant(beforeFiles, 'files before installation should always be recorded');
+          await this.saveBuildArtifacts(loc, pkg, beforeFiles, set.spinners[0]);
+        }
       }
     }
 

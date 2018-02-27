@@ -2,7 +2,7 @@
 
 import type {RegistryNames, ConfigRegistries} from './registries/index.js';
 import type {Reporter} from './reporters/index.js';
-import type {Manifest, PackageRemote, WorkspacesManifestMap} from './types.js';
+import type {Manifest, PackageRemote, WorkspacesManifestMap, WorkspacesConfig} from './types.js';
 import type PackageReference from './package-reference.js';
 import {execFromManifest} from './util/execute-lifecycle-script.js';
 import {resolveWithHome} from './util/path.js';
@@ -57,6 +57,8 @@ export type ConfigOptions = {
 
   commandName?: ?string,
   registry?: ?string,
+
+  updateChecksums?: boolean,
 };
 
 type PackageMetadata = {
@@ -102,6 +104,10 @@ export default class Config {
   linkFileDependencies: boolean;
   ignorePlatform: boolean;
   binLinks: boolean;
+  updateChecksums: boolean;
+
+  // cache packages in offline mirror folder as new .tgz files
+  packBuiltPackages: boolean;
 
   //
   linkedModules: Array<string>;
@@ -153,6 +159,7 @@ export default class Config {
   nonInteractive: boolean;
 
   workspacesEnabled: boolean;
+  workspacesNohoistEnabled: boolean;
 
   //
   cwd: string;
@@ -318,11 +325,13 @@ export default class Config {
       this._cacheRootFolder = String(cacheRootFolder);
     }
     this.workspacesEnabled = this.getOption('workspaces-experimental') !== false;
+    this.workspacesNohoistEnabled = this.getOption('workspaces-nohoist-experimental') !== false;
 
     this.pruneOfflineMirror = Boolean(this.getOption('yarn-offline-mirror-pruning'));
     this.enableMetaFolder = Boolean(this.getOption('enable-meta-folder'));
     this.enableLockfileVersions = Boolean(this.getOption('yarn-enable-lockfile-versions'));
     this.linkFileDependencies = Boolean(this.getOption('yarn-link-file-dependencies'));
+    this.packBuiltPackages = Boolean(this.getOption('experimental-pack-script-packages-in-mirror'));
 
     //init & create cacheFolder, tempFolder
     this.cacheFolder = path.join(this._cacheRootFolder, 'v' + String(constants.CACHE_VERSION));
@@ -352,7 +361,9 @@ export default class Config {
 
     this.registries = map();
     this.cache = map();
-    this.cwd = opts.cwd || this.cwd || process.cwd();
+
+    // Ensure the cwd is always an absolute path.
+    this.cwd = path.resolve(opts.cwd || this.cwd || process.cwd());
 
     this.looseSemver = opts.looseSemver == undefined ? true : opts.looseSemver;
 
@@ -364,6 +375,7 @@ export default class Config {
     this.linkFolder = opts.linkFolder || constants.LINK_REGISTRY_DIRECTORY;
     this.offline = !!opts.offline;
     this.binLinks = !!opts.binLinks;
+    this.updateChecksums = !!opts.updateChecksums;
 
     this.ignorePlatform = !!opts.ignorePlatform;
     this.ignoreScripts = !!opts.ignoreScripts;
@@ -608,12 +620,16 @@ export default class Config {
   async findWorkspaceRoot(initial: string): Promise<?string> {
     let previous = null;
     let current = path.normalize(initial);
+    if (!await fs.exists(current)) {
+      throw new MessageError(this.reporter.lang('folderMissing', current));
+    }
 
     do {
       const manifest = await this.findManifest(current, true);
-      if (manifest && manifest.workspaces) {
+      const ws = extractWorkspaces(manifest);
+      if (ws && ws.packages) {
         const relativePath = path.relative(current, initial);
-        if (relativePath === '' || micromatch([relativePath], manifest.workspaces).length > 0) {
+        if (relativePath === '' || micromatch([relativePath], ws.packages).length > 0) {
           return current;
         } else {
           return null;
@@ -629,12 +645,15 @@ export default class Config {
 
   async resolveWorkspaces(root: string, rootManifest: Manifest): Promise<WorkspacesManifestMap> {
     const workspaces = {};
-    const patterns = rootManifest.workspaces || [];
     if (!this.workspacesEnabled) {
       return workspaces;
     }
-    if (!rootManifest.private && patterns.length > 0) {
-      throw new MessageError(this.reporter.lang('workspacesRequirePrivateProjects'));
+
+    const ws = this.getWorkspaces(rootManifest, true);
+    const patterns = ws && ws.packages ? ws.packages : [];
+
+    if (!Array.isArray(patterns)) {
+      throw new MessageError(this.reporter.lang('workspacesSettingMustBeArray'));
     }
 
     const registryFilenames = registryNames
@@ -677,6 +696,49 @@ export default class Config {
     }
 
     return workspaces;
+  }
+
+  // workspaces functions
+  getWorkspaces(manifest: ?Manifest, shouldThrow: boolean = false): ?WorkspacesConfig {
+    if (!manifest || !this.workspacesEnabled) {
+      return undefined;
+    }
+
+    const ws = extractWorkspaces(manifest);
+
+    if (!ws) {
+      return ws;
+    }
+
+    // validate eligibility
+    let wsCopy = {...ws};
+    const warnings: Array<string> = [];
+
+    // packages
+    if (wsCopy.packages && wsCopy.packages.length > 0 && !manifest.private) {
+      warnings.push(this.reporter.lang('workspacesRequirePrivateProjects'));
+      wsCopy = undefined;
+    }
+    // nohoist
+    if (wsCopy && wsCopy.nohoist && wsCopy.nohoist.length > 0) {
+      if (!this.workspacesNohoistEnabled) {
+        warnings.push(this.reporter.lang('workspacesNohoistDisabled', manifest.name));
+        wsCopy.nohoist = undefined;
+      } else if (!manifest.private) {
+        warnings.push(this.reporter.lang('workspacesNohoistRequirePrivatePackages', manifest.name));
+        wsCopy.nohoist = undefined;
+      }
+    }
+
+    if (warnings.length > 0) {
+      const msg = warnings.join('\n');
+      if (shouldThrow) {
+        throw new MessageError(msg);
+      } else {
+        this.reporter.warn(msg);
+      }
+    }
+    return wsCopy;
   }
 
   /**
@@ -761,4 +823,23 @@ export default class Config {
     await config.init(opts);
     return config;
   }
+}
+
+export function extractWorkspaces(manifest: ?Manifest): ?WorkspacesConfig {
+  if (!manifest || !manifest.workspaces) {
+    return undefined;
+  }
+
+  if (Array.isArray(manifest.workspaces)) {
+    return {packages: manifest.workspaces};
+  }
+
+  if (
+    (manifest.workspaces.packages && Array.isArray(manifest.workspaces.packages)) ||
+    (manifest.workspaces.nohoist && Array.isArray(manifest.workspaces.nohoist))
+  ) {
+    return manifest.workspaces;
+  }
+
+  return undefined;
 }

@@ -3,6 +3,7 @@
 const os = require('os');
 const path = require('path');
 const userHome = require('./util/user-home-dir').default;
+const {getCacheDir, getConfigDir, getDataDir} = require('./util/user-dirs');
 const isWebpackBundle = require('is-webpack-bundle');
 
 type Env = {
@@ -13,7 +14,7 @@ export const DEPENDENCY_TYPES = ['devDependencies', 'dependencies', 'optionalDep
 export const RESOLUTIONS = 'resolutions';
 export const MANIFEST_FIELDS = [RESOLUTIONS, ...DEPENDENCY_TYPES];
 
-export const SUPPORTED_NODE_VERSIONS = '^4.8.0 || ^5.7.0 || ^6.2.2 || ^8.0.0';
+export const SUPPORTED_NODE_VERSIONS = '^4.8.0 || ^5.7.0 || ^6.2.2 || >=8.0.0';
 
 export const YARN_REGISTRY = 'https://registry.yarnpkg.com';
 
@@ -42,34 +43,24 @@ export const CHILD_CONCURRENCY = 5;
 
 export const REQUIRED_PACKAGE_KEYS = ['name', 'version', '_uid'];
 
-function getDirectory(category: string): string {
-  // use %LOCALAPPDATA%/Yarn on Windows
-  if (process.platform === 'win32' && process.env.LOCALAPPDATA) {
-    return path.join(process.env.LOCALAPPDATA, 'Yarn', category);
-  }
-
-  // otherwise use ~/.{category}/yarn
-  return path.join(userHome, `.${category}`, 'yarn');
-}
-
 function getPreferredCacheDirectories(): Array<string> {
-  const preferredCacheDirectories = [];
+  const preferredCacheDirectories = [getCacheDir()];
 
-  if (process.platform === 'darwin') {
-    preferredCacheDirectories.push(path.join(userHome, 'Library', 'Caches', 'Yarn'));
-  } else {
-    preferredCacheDirectories.push(getDirectory('cache'));
+  if (process.getuid) {
+    // $FlowFixMe: process.getuid exists, dammit
+    preferredCacheDirectories.push(path.join(os.tmpdir(), `.yarn-cache-${process.getuid()}`));
   }
 
-  preferredCacheDirectories.push(path.join(os.tmpdir(), '.yarn-cache'));
+  preferredCacheDirectories.push(path.join(os.tmpdir(), `.yarn-cache`));
 
   return preferredCacheDirectories;
 }
 
 export const PREFERRED_MODULE_CACHE_DIRECTORIES = getPreferredCacheDirectories();
-export const CONFIG_DIRECTORY = getDirectory('config');
-export const LINK_REGISTRY_DIRECTORY = path.join(CONFIG_DIRECTORY, 'link');
-export const GLOBAL_MODULE_DIRECTORY = path.join(CONFIG_DIRECTORY, 'global');
+export const CONFIG_DIRECTORY = getConfigDir();
+export const DATA_DIRECTORY = getDataDir();
+export const LINK_REGISTRY_DIRECTORY = path.join(DATA_DIRECTORY, 'link');
+export const GLOBAL_MODULE_DIRECTORY = path.join(DATA_DIRECTORY, 'global');
 
 export const NODE_BIN_PATH = process.execPath;
 export const YARN_BIN_PATH = getYarnBinPath();
@@ -102,10 +93,6 @@ export const SINGLE_INSTANCE_PORT = 31997;
 export const SINGLE_INSTANCE_FILENAME = '.yarn-single-instance';
 
 export const ENV_PATH_KEY = getPathKey(process.platform, process.env);
-
-export function isProduction(env: Object = process.env): boolean {
-  return env.NODE_ENV === 'production';
-}
 
 export function getPathKey(platform: string, env: Env): string {
   let pathKey = 'PATH';

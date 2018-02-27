@@ -1,0 +1,10 @@
+{
+  "private": true,
+  "workspaces": {
+    "packages": ["packages/*"],
+    "nohoist": ["mime-db"]
+  },
+  "devDependencies": {
+    "left-pad": "1.1.3"
+  }
+}

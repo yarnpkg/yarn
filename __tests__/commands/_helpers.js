@@ -17,6 +17,7 @@ const path = require('path');
 
 const installFixturesLoc = path.join(__dirname, '..', 'fixtures', 'install');
 
+// $FlowFixMe I don't understand the error
 export const runInstall = run.bind(
   null,
   ConsoleReporter,
@@ -33,6 +34,7 @@ export const runInstall = run.bind(
 
 const linkFixturesLoc = path.join(__dirname, '..', 'fixtures', 'link');
 
+// $FlowFixMe I don't understand the error
 export const runLink = run.bind(
   null,
   ConsoleReporter,
@@ -88,6 +90,7 @@ export function makeConfigFromDirectory(cwd: string, reporter: Reporter, flags: 
       linkFolder: flags.linkFolder || path.join(cwd, '.yarn-link'),
       prefix: flags.prefix,
       production: flags.production,
+      updateChecksums: !!flags.updateChecksums,
     },
     reporter,
   );

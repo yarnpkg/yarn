@@ -34,6 +34,7 @@ async function execCommand(
   return new Promise((resolve, reject) => {
     const cleanedEnv = {...process.env};
     cleanedEnv['YARN_SILENT'] = 0;
+    cleanedEnv['YARN_WRAP_OUTPUT'] = 1;
     delete cleanedEnv['FORCE_COLOR'];
 
     exec(
@@ -59,20 +60,8 @@ async function execCommand(
   });
 }
 
-function expectAddSuccessfullOutput(stdout, pkg) {
-  const lastLines = stdout.slice(stdout.length - 4);
-  expect(lastLines[0]).toEqual('success Saved lockfile.');
-  expect(lastLines[1]).toEqual('success Saved 1 new dependency.');
-  expect(lastLines[2]).toContain(pkg);
-  expect(lastLines[3]).toContain('Done');
-}
-
-function expectAddSuccessfullOutputWithNoLockFile(stdout, pkg) {
-  const lastLines = stdout.slice(stdout.length - 4);
-  expect(lastLines[0]).not.toEqual('success Saved lockfile.');
-  expect(lastLines[1]).toEqual('success Saved 1 new dependency.');
-  expect(lastLines[2]).toContain(pkg);
-  expect(lastLines[3]).toContain('Done');
+function expectAddOutput(stdout) {
+  expect(stdout.slice(1, stdout.length - 1)).toMatchSnapshot();
 }
 
 function expectRunOutput(stdout) {
@@ -100,7 +89,7 @@ function expectAnErrorMessage(command: Promise<Array<?string>>, expectedMessage:
     .then(function() {
       throw new Error('the command did not fail');
     })
-    .catch(error => expect(error.message).toContain(expectedMessage));
+    .catch(error => expect(error.message.replace(/\\/g, '')).toContain(expectedMessage));
 }
 
 function expectAnInfoMessageAfterError(command: Promise<Array<?string>>, expectedInfo: string): Promise<void> {
@@ -111,29 +100,29 @@ function expectAnInfoMessageAfterError(command: Promise<Array<?string>>, expecte
     .catch(error => expect(error.stdout).toContain(expectedInfo));
 }
 
-test.concurrent('should add package', async () => {
+test('should add package', async () => {
   const stdout = await execCommand('add', ['left-pad'], 'run-add', true);
-  expectAddSuccessfullOutput(stdout, 'left-pad');
+  expectAddOutput(stdout);
 });
 
-test.concurrent('should add package with no-lockfile option', async () => {
+test('should add package with no-lockfile option', async () => {
   const stdout = await execCommand('add', ['repeating', '--no-lockfile'], 'run-add-option', true);
-  expectAddSuccessfullOutputWithNoLockFile(stdout, 'repeating');
+  expectAddOutput(stdout);
 });
 
-test.concurrent('should add package with frozzen-lockfile option', async () => {
+test('should add package with frozen-lockfile option', async () => {
   const stdout = await execCommand('add', ['repeating', '--frozen-lockfile'], 'run-add-option', true);
-  expectAddSuccessfullOutputWithNoLockFile(stdout, 'repeating');
+  expectAddOutput(stdout);
 });
 
-test.concurrent('should add package with no-lockfile option in front', async () => {
+test('should add package with no-lockfile option in front', async () => {
   const stdout = await execCommand('add', ['--no-lockfile', 'split-lines'], 'run-add-option-in-front', true);
-  expectAddSuccessfullOutputWithNoLockFile(stdout, 'split-lines');
+  expectAddOutput(stdout);
 });
 
-test.concurrent('should add lockfile package', async () => {
+test('should add lockfile package', async () => {
   const stdout = await execCommand('add', ['lockfile'], 'run-add-lockfile', true);
-  expectAddSuccessfullOutput(stdout, 'lockfile');
+  expectAddOutput(stdout);
 });
 
 // test is failing on Node 4, https://travis-ci.org/yarnpkg/yarn/jobs/216254539
@@ -207,7 +196,10 @@ test.concurrent('should show version of yarn with -v', async () => {
 });
 
 test.concurrent('should run version command', async () => {
-  await expectAnErrorMessage(execCommand('version', [], 'run-version'), "Can't answer a question unless a user TTY");
+  await expectAnErrorMessage(
+    execCommand('version', [], 'run-version'),
+    'You must specify a new version with --new-version when running with --non-interactive.',
+  );
 });
 
 test.concurrent('should run --version command', async () => {

@@ -31,7 +31,7 @@ function execCommand(cwd: string, binPath: Array<string>, args: Array<string>): 
         cwd,
         env: {
           ...process.env,
-          YARN_SILENT: 0,
+          YARN_WRAP_OUTPUT: 1,
         },
       },
       (error, stdout) => {
@@ -142,6 +142,17 @@ test('first dep is installed when same level and reference count and one is a de
     );
     const stdout = await execCommand(config.cwd, ['node_modules', '.bin', 'eslint'], ['--version']);
     expect(stdout[0]).toEqual('v3.10.1');
+  });
+});
+
+// Scenario: Transitive dependency having bin link with a name that's conflicting with that of a direct dependency.
+// Behavior: a-dep and b-dep is linked in node_modules/.bin rather than c-dep and d-dep
+test('direct dependency is linked when bin name conflicts with transitive dependency', (): Promise<void> => {
+  return runInstall({binLinks: true}, 'install-bin-links-conflicting-names', async config => {
+    const stdout1 = await execCommand(config.cwd, ['node_modules', '.bin', 'binlink1'], []);
+    const stdout2 = await execCommand(config.cwd, ['node_modules', '.bin', 'binlink2'], []);
+    expect(stdout1[0]).toEqual('direct a-dep');
+    expect(stdout2[0]).toEqual('direct f-dep');
   });
 });
 

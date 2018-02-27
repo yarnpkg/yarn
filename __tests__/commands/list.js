@@ -166,12 +166,19 @@ describe('list', () => {
   });
 
   test('does not list devDependencies when production', (): Promise<void> => {
-    const isProduction: $FlowFixMe = require('../../src/constants').isProduction;
-    isProduction.mockReturnValue(true);
-
-    return runList([], {}, 'dev-deps-prod', (config, reporter): ?Promise<void> => {
+    return runList([], {production: true}, 'dev-deps-prod', (config, reporter): ?Promise<void> => {
       expect(reporter.getBuffer()).toMatchSnapshot();
     });
+  });
+
+  test('does not error listing dependencies when production and no devDependencies exist', async (): Promise<void> => {
+    let thrown = false;
+    try {
+      await runList([], {production: true}, 'no-dev-deps-production');
+    } catch (e) {
+      thrown = true;
+    }
+    expect(thrown).toEqual(false);
   });
 
   test('getParent should extract a parent object from a hash, if the parent key exists', () => {

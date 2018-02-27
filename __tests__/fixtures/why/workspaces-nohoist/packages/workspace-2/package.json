@@ -1,0 +1,9 @@
+{
+  "name": "workspace-2",
+  "version": "1.0.0",
+  "private": false,
+  "dependencies": {
+    "mime-types": "2.1.12",
+    "uglifyify": "3.0.4"
+  }
+}

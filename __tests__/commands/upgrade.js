@@ -20,7 +20,8 @@ const _expectDependency = async (depType, config, name, range, expectedVersion) 
   const pkg = await fs.readJson(path.join(config.cwd, 'package.json'));
   expect(pkg[depType][name]).toBeDefined();
   expect(pkg[depType][name]).toEqual(range);
-  expect(lockfile).toContainPackage(`${name}@${range}:`, expectedVersion);
+  const pattern = name.startsWith('@') ? `"${name}@${range}"` : `${name}@${range}`;
+  expect(lockfile).toContainPackage(`${pattern}:`, expectedVersion);
 };
 
 const expectInstalledDependency = async (config, name, range, expectedVersion) => {
@@ -275,6 +276,34 @@ test.concurrent('upgrades optional dependency packages not in registry', (): Pro
   });
 });
 
+test.concurrent('informs the type of dependency after upgrade', (): Promise<void> => {
+  return buildRun(
+    reporters.BufferReporter,
+    fixturesLoc,
+    async (args, flags, config, reporter): Promise<void> => {
+      await upgrade(config, reporter, flags, args);
+
+      const output = reporter.getBuffer();
+      const infos = output.filter(({type}) => type === 'info');
+      const getTreeInfo = pkgName =>
+        output.filter(
+          ({type, data: {trees = []}}) => type === 'tree' && trees.some(({name}) => name.indexOf(pkgName) > -1),
+        );
+
+      expect(
+        infos.some(info => {
+          return info.data.toString().indexOf('Direct dependencies') > -1;
+        }),
+      ).toEqual(true);
+      expect(getTreeInfo('async')).toHaveLength(2);
+      expect(getTreeInfo('lodash')).toHaveLength(1);
+    },
+    ['async'],
+    {latest: true},
+    'direct-dependency',
+  );
+});
+
 test.concurrent('warns when peer dependency is not met after upgrade', (): Promise<void> => {
   return buildRun(
     reporters.BufferReporter,
@@ -341,6 +370,14 @@ test.concurrent('respects --scope flag', (): Promise<void> => {
     expect(pkg.dependencies['@angular-mdl/core']).toEqual('4.0.0');
     expect(pkg.dependencies['@angular/core']).not.toEqual('2.4.9');
     expect(pkg.dependencies['left-pad']).toEqual('1.0.0');
+  });
+});
+
+test.concurrent('respects --scope flag with caret', (): Promise<void> => {
+  return runUpgrade([], {scope: '@angular'}, 'respects-scope-flag-with-caret', async (config): ?Promise<void> => {
+    await expectInstalledDependency(config, '@angular-mdl/core', '^4.0.0', '4.0.0');
+    await expectInstalledDependency(config, '@angular/core', '^2.4.9', '2.4.10');
+    await expectInstalledDependency(config, 'left-pad', '^1.0.0', '1.0.0');
   });
 });
 

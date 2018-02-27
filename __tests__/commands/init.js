@@ -84,6 +84,29 @@ test.concurrent('init --yes --private should create package.json with defaults a
   );
 });
 
+test.concurrent('init should use init-* configs when defined', (): Promise<void> => {
+  return buildRun(
+    ConsoleReporter,
+    fixturesLoc,
+    (args, flags, config, reporter, lockfile): Promise<void> => {
+      return runInit(config, reporter, flags, args);
+    },
+    [],
+    {yes: true},
+    'init-config',
+    async (config): Promise<void> => {
+      const {cwd} = config;
+      const manifestFile = await fs.readFile(path.join(cwd, 'package.json'));
+      const manifest = JSON.parse(manifestFile);
+
+      // Name is derived from directory name which is dynamic so check
+      // that separately and then remove from snapshot
+      expect(manifest.name).toEqual(path.basename(cwd));
+      expect({...manifest, name: 'init-config'}).toMatchSnapshot('init-config');
+    },
+  );
+});
+
 test.concurrent('init using Github shorthand should resolve to full repository URL', (): Promise<void> => {
   const questionMap = Object.freeze({
     name: 'hi-github',

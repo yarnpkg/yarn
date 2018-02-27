@@ -72,138 +72,504 @@ function createMocks(): Object {
 }
 
 describe('request', () => {
-  test('should call requestManager.request with url', () => {
+  // a helper function for creating an instance of npm registry,
+  // making requests and inspecting request parameters
+  function createRegistry(config: Object): Object {
     const testCwd = '.';
     const {mockRequestManager, mockRegistries, mockReporter} = createMocks();
     const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter);
+    npmRegistry.config = config;
+    return {
+      request(url: string, options: Object, packageName: string): Object {
+        npmRegistry.request(url, options, packageName);
+        const lastIndex = mockRequestManager.request.mock.calls.length - 1;
+        const requestParams = mockRequestManager.request.mock.calls[lastIndex][0];
+        return requestParams;
+      },
+    };
+  }
 
+  test('should call requestManager.request with url', () => {
     const url = 'https://github.com/yarnpkg/yarn.tgz';
-
-    npmRegistry.request(url);
-
-    const requestParams = mockRequestManager.request.mock.calls[0][0];
-
+    const config = {};
+    const requestParams = createRegistry(config).request(url);
     expect(requestParams.url).toBe(url);
   });
 
-  test('should not add authorization header if pathname not to registry', () => {
-    const testCwd = '.';
-    const {mockRequestManager, mockRegistries, mockReporter} = createMocks();
-    const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter);
+  const testCases = [
+    {
+      title: 'using npm as default registry and using private registry for scoped packages',
+      config: {
+        '//registry.myorg.com/:_authToken': 'scopedPrivateAuthToken',
+        '@private:registry': 'https://registry.myorg.com/',
+      },
+      requests: [
+        {
+          url: 'yarn',
+          pkg: 'yarn',
+          expect: {root: 'https://registry.npmjs.org', auth: false},
+        },
+        {
+          url: '@yarn%2fcore',
+          pkg: '@yarn/core',
+          expect: {root: 'https://registry.npmjs.org', auth: false},
+        },
+        {
+          url: '-/package/yarn/dist-tags',
+          pkg: 'yarn',
+          expect: {root: 'https://registry.npmjs.org', auth: false},
+        },
+        {
+          url: '-/package/@yarn%2fcore/dist-tags',
+          pkg: '@yarn/core',
+          expect: {root: 'https://registry.npmjs.org', auth: false},
+        },
+        {
+          url: '-/user/token/abcdef',
+          pkg: null,
+          expect: {root: 'https://registry.npmjs.org', auth: false},
+        },
+        {
+          url: 'https://registry.npmjs.org/dist/-/@yarn-core-1.0.0.tgz',
+          pkg: '@yarn/core',
+          expect: {root: 'https://registry.npmjs.org', auth: false},
+        },
+        {
+          url: 'https://registry.yarnpkg.com/dist/-/@yarn-core-1.0.0.tgz',
+          pkg: '@yarn/core',
+          expect: {root: 'https://registry.yarnpkg.com', auth: false},
+        },
+        {
+          url: 'https://registry.yarnpkg.com/dist/-/@yarn-core-1.0.0.tgz',
+          pkg: null,
+          expect: {root: 'https://registry.yarnpkg.com', auth: false},
+        },
+        {
+          url: 'https://some.cdn.com/@yarn/core.tgz',
+          pkg: '@yarn/core',
+          expect: {root: 'https://some.cdn.com', auth: false},
+        },
+        {
+          url: 'https://some.cdn.com/@yarn/core.tgz',
+          pkg: null,
+          expect: {root: 'https://some.cdn.com', auth: false},
+        },
+        {
+          url: '@private/pkg',
+          pkg: '@private/pkg',
+          expect: {root: 'https://registry.myorg.com', auth: 'scopedPrivateAuthToken'},
+        },
+        {
+          url: 'https://some.cdn.com/some-hash/@private-pkg-1.0.0.tar.gz',
+          pkg: '@private/pkg',
+          expect: {root: 'https://some.cdn.com', auth: false},
+        },
+        {
+          url: 'https://some.cdn.com/@private/pkg',
+          pkg: null,
+          expect: {root: 'https://some.cdn.com', auth: false},
+        },
+      ],
+    },
+    {
+      title: 'using scoped packages in both npm and private registry',
+      config: {
+        '//registry.npmjs.org/:_authToken': 'scopedNpmAuthToken',
+        '@yarn:registry': 'https://registry.npmjs.org/',
+        '//registry.myorg.com/:_authToken': 'scopedPrivateAuthToken',
+        '@private:registry': 'https://registry.myorg.com/',
+      },
+      requests: [
+        {
+          url: 'yarn',
+          pkg: 'yarn',
+          expect: {root: 'https://registry.npmjs.org', auth: false},
+        },
+        {
+          url: '@yarn%2fcore',
+          pkg: '@yarn/core',
+          expect: {root: 'https://registry.npmjs.org', auth: 'scopedNpmAuthToken'},
+        },
+        {
+          url: '-/package/yarn/dist-tags',
+          pkg: 'yarn',
+          expect: {root: 'https://registry.npmjs.org', auth: false},
+        },
+        {
+          url: '-/package/@yarn%2fcore/dist-tags',
+          pkg: '@yarn/core',
+          expect: {root: 'https://registry.npmjs.org', auth: 'scopedNpmAuthToken'},
+        },
+        {
+          url: '-/user/token/abcdef',
+          pkg: null,
+          expect: {root: 'https://registry.npmjs.org', auth: false},
+        },
+        {
+          url: 'https://registry.npmjs.org/dist/-/@yarn-core-1.0.0.tgz',
+          pkg: '@yarn/core',
+          expect: {root: 'https://registry.npmjs.org', auth: 'scopedNpmAuthToken'},
+        },
+        {
+          url: 'https://registry.yarnpkg.com/dist/-/@yarn-core-1.0.0.tgz',
+          pkg: '@yarn/core',
+          expect: {root: 'https://registry.yarnpkg.com', auth: 'scopedNpmAuthToken'},
+        },
+        {
+          url: 'https://registry.yarnpkg.com/dist/-/@yarn-core-1.0.0.tgz',
+          pkg: null,
+          expect: {root: 'https://registry.yarnpkg.com', auth: false},
+        },
+        {
+          url: 'https://some.cdn.com/@yarn/core.tgz',
+          pkg: '@yarn/core',
+          expect: {root: 'https://some.cdn.com', auth: false},
+        },
+        {
+          url: 'https://some.cdn.com/@yarn/core.tgz',
+          pkg: null,
+          expect: {root: 'https://some.cdn.com', auth: false},
+        },
+        {
+          url: '@private/pkg',
+          pkg: '@private/pkg',
+          expect: {root: 'https://registry.myorg.com', auth: 'scopedPrivateAuthToken'},
+        },
+        {
+          url: 'https://some.cdn.com/some-hash/@private-pkg-1.0.0.tar.gz',
+          pkg: '@private/pkg',
+          expect: {root: 'https://some.cdn.com', auth: false},
+        },
+        {
+          url: 'https://some.cdn.com/@private/pkg',
+          pkg: null,
+          expect: {root: 'https://some.cdn.com', auth: false},
+        },
+      ],
+    },
+    {
+      title: 'using authenticated npm and using private registry for scoped packages',
+      config: {
+        _authToken: 'scopedNpmAuthToken',
+        '//registry.myorg.com/:_authToken': 'scopedPrivateAuthToken',
+        '@private:registry': 'https://registry.myorg.com/',
+      },
+      requests: [
+        {
+          url: 'yarn',
+          pkg: 'yarn',
+          expect: {root: 'https://registry.npmjs.org', auth: false},
+        },
+        {
+          url: '@yarn%2fcore',
+          pkg: '@yarn/core',
+          expect: {root: 'https://registry.npmjs.org', auth: 'scopedNpmAuthToken'},
+        },
+        {
+          url: '-/package/yarn/dist-tags',
+          pkg: 'yarn',
+          expect: {root: 'https://registry.npmjs.org', auth: false},
+        },
+        {
+          url: '-/package/@yarn%2fcore/dist-tags',
+          pkg: '@yarn/core',
+          expect: {root: 'https://registry.npmjs.org', auth: 'scopedNpmAuthToken'},
+        },
+        {
+          url: '-/user/token/abcdef',
+          pkg: null,
+          expect: {root: 'https://registry.npmjs.org', auth: false},
+        },
+        {
+          url: 'https://registry.npmjs.org/dist/-/@yarn-core-1.0.0.tgz',
+          pkg: '@yarn/core',
+          expect: {root: 'https://registry.npmjs.org', auth: 'scopedNpmAuthToken'},
+        },
+        {
+          url: 'https://registry.yarnpkg.com/dist/-/@yarn-core-1.0.0.tgz',
+          pkg: '@yarn/core',
+          expect: {root: 'https://registry.yarnpkg.com', auth: 'scopedNpmAuthToken'},
+        },
+        {
+          url: 'https://registry.yarnpkg.com/dist/-/@yarn-core-1.0.0.tgz',
+          pkg: null,
+          expect: {root: 'https://registry.yarnpkg.com', auth: false},
+        },
+        {
+          url: 'https://some.cdn.com/@yarn/core.tgz',
+          pkg: '@yarn/core',
+          expect: {root: 'https://some.cdn.com', auth: false},
+        },
+        {
+          url: 'https://some.cdn.com/@yarn/core.tgz',
+          pkg: null,
+          expect: {root: 'https://some.cdn.com', auth: false},
+        },
+        {
+          url: '@private/pkg',
+          pkg: '@private/pkg',
+          expect: {root: 'https://registry.myorg.com', auth: 'scopedPrivateAuthToken'},
+        },
+        {
+          url: 'https://some.cdn.com/some-hash/@private-pkg-1.0.0.tar.gz',
+          pkg: '@private/pkg',
+          expect: {root: 'https://some.cdn.com', auth: false},
+        },
+        {
+          url: 'https://some.cdn.com/@private/pkg',
+          pkg: null,
+          expect: {root: 'https://some.cdn.com', auth: false},
+        },
+      ],
+    },
+    {
+      title: 'using npm with always-auth and using private registry for scoped packages',
+      config: {
+        'always-auth': true,
+        '//registry.npmjs.org/:_authToken': 'npmAuthToken',
+        '@private:registry': 'https://registry.myorg.com/',
+        '//registry.myorg.com/:_authToken': 'scopedPrivateAuthToken',
+      },
+      requests: [
+        {
+          url: 'yarn',
+          pkg: 'yarn',
+          expect: {root: 'https://registry.npmjs.org', auth: 'npmAuthToken'},
+        },
+        {
+          url: '@yarn%2fcore',
+          pkg: '@yarn/core',
+          expect: {root: 'https://registry.npmjs.org', auth: 'npmAuthToken'},
+        },
+        {
+          url: '-/package/yarn/dist-tags',
+          pkg: 'yarn',
+          expect: {root: 'https://registry.npmjs.org', auth: 'npmAuthToken'},
+        },
+        {
+          url: '-/package/@yarn%2fcore/dist-tags',
+          pkg: '@yarn/core',
+          expect: {root: 'https://registry.npmjs.org', auth: 'npmAuthToken'},
+        },
+        {
+          url: '-/user/token/abcdef',
+          pkg: null,
+          expect: {root: 'https://registry.npmjs.org', auth: 'npmAuthToken'},
+        },
+        {
+          url: 'https://registry.npmjs.org/dist/-/@yarn-core-1.0.0.tgz',
+          pkg: '@yarn/core',
+          expect: {root: 'https://registry.npmjs.org', auth: 'npmAuthToken'},
+        },
+        {
+          url: 'https://registry.yarnpkg.com/dist/-/@yarn-core-1.0.0.tgz',
+          pkg: '@yarn/core',
+          expect: {root: 'https://registry.yarnpkg.com', auth: 'npmAuthToken'},
+        },
+        {
+          url: 'https://registry.yarnpkg.com/dist/-/@yarn-core-1.0.0.tgz',
+          pkg: null,
+          expect: {root: 'https://registry.yarnpkg.com', auth: 'npmAuthToken'},
+        },
+        {
+          url: 'https://some.cdn.com/@yarn/core.tgz',
+          pkg: '@yarn/core',
+          expect: {root: 'https://some.cdn.com', auth: false},
+        },
+        {
+          url: 'https://some.cdn.com/@yarn/core.tgz',
+          pkg: null,
+          expect: {root: 'https://some.cdn.com', auth: false},
+        },
+        {
+          url: '@private/pkg',
+          pkg: '@private/pkg',
+          expect: {root: 'https://registry.myorg.com', auth: 'scopedPrivateAuthToken'},
+        },
+        {
+          url: 'https://some.cdn.com/some-hash/@private-pkg-1.0.0.tar.gz',
+          pkg: '@private/pkg',
+          expect: {root: 'https://some.cdn.com', auth: false},
+        },
+        {
+          url: 'https://some.cdn.com/@private/pkg',
+          pkg: null,
+          expect: {root: 'https://some.cdn.com', auth: false},
+        },
+      ],
+    },
+    {
+      title: 'using private registry as default registry and using scoped packages on npm registry',
+      config: {
+        'always-auth': true,
+        registry: 'https://registry.myorg.com/',
+        '//registry.myorg.com/:_authToken': 'privateAuthToken',
+        '//registry.npmjs.org/:_authToken': 'scopedNpmAuthToken',
+        '@yarn:registry': 'https://registry.npmjs.org/',
+      },
+      requests: [
+        {
+          url: 'yarn',
+          pkg: 'yarn',
+          expect: {root: 'https://registry.myorg.com', auth: 'privateAuthToken'},
+        },
+        {
+          url: '@yarn%2fcore',
+          pkg: '@yarn/core',
+          expect: {root: 'https://registry.npmjs.org', auth: 'scopedNpmAuthToken'},
+        },
+        {
+          url: '-/package/yarn/dist-tags',
+          pkg: 'yarn',
+          expect: {root: 'https://registry.myorg.com', auth: 'privateAuthToken'},
+        },
+        {
+          url: '-/package/@yarn%2fcore/dist-tags',
+          pkg: '@yarn/core',
+          expect: {root: 'https://registry.npmjs.org', auth: 'scopedNpmAuthToken'},
+        },
+        {
+          url: '-/user/token/abcdef',
+          pkg: null,
+          expect: {root: 'https://registry.myorg.com', auth: 'privateAuthToken'},
+        },
+        {
+          url: 'https://registry.npmjs.org/dist/-/@yarn-core-1.0.0.tgz',
+          pkg: '@yarn/core',
+          expect: {root: 'https://registry.npmjs.org', auth: 'scopedNpmAuthToken'},
+        },
+        {
+          url: 'https://registry.yarnpkg.com/dist/-/@yarn-core-1.0.0.tgz',
+          pkg: '@yarn/core',
+          expect: {root: 'https://registry.yarnpkg.com', auth: 'scopedNpmAuthToken'},
+        },
+        {
+          url: 'https://registry.yarnpkg.com/dist/-/@yarn-core-1.0.0.tgz',
+          pkg: null,
+          expect: {root: 'https://registry.yarnpkg.com', auth: false},
+        },
+        {
+          url: 'https://some.cdn.com/@yarn/core.tgz',
+          pkg: '@yarn/core',
+          expect: {root: 'https://some.cdn.com', auth: false},
+        },
+        {
+          url: 'https://some.cdn.com/@yarn/core.tgz',
+          pkg: null,
+          expect: {root: 'https://some.cdn.com', auth: false},
+        },
+        {
+          url: '@private/pkg',
+          pkg: '@private/pkg',
+          expect: {root: 'https://registry.myorg.com', auth: 'privateAuthToken'},
+        },
+        {
+          url: 'https://some.cdn.com/some-hash/@private-pkg-1.0.0.tar.gz',
+          pkg: '@private/pkg',
+          expect: {root: 'https://some.cdn.com', auth: false},
+        },
+        {
+          url: 'https://some.cdn.com/@private/pkg',
+          pkg: null,
+          expect: {root: 'https://some.cdn.com', auth: false},
+        },
+      ],
+    },
+    {
+      title: 'registry url and request url path sensitivity',
+      config: {
+        '@private:registry': 'https://registry.myorg.com/api/npm/registry/',
+        '//registry.myorg.com/api/npm/registry/:_authToken': 'scopedPrivateAuthToken',
+      },
+      requests: [
+        {
+          url: 'https://registry.myorg.com/api/npm/registry/private---pkg.tar.gz',
+          pkg: '@private/pkg',
+          expect: {root: 'https://registry.myorg.com/api/npm/registry/', auth: 'scopedPrivateAuthToken'},
+        },
+        {
+          url: 'https://registry.myorg.com/api/packages/private---pkg.tar.gz',
+          pkg: '@private/pkg',
+          expect: {root: 'https://registry.myorg.com/api/packages/', auth: false},
+        },
+      ],
+    },
+    {
+      title: 'using custom-host-suffix for registries where pathnames play a role',
+      config: {
+        '@private:registry': 'https://registry.myorg.com/api/npm/registry/',
+        '//registry.myorg.com/api/npm/registry/:_authToken': 'scopedPrivateAuthToken',
+        'custom-host-suffix': 'registry.myorg.com',
+      },
+      requests: [
+        {
+          url: '@private/pkg',
+          pkg: '@private/pkg',
+          expect: {root: 'https://registry.myorg.com/api/npm/registry/', auth: 'scopedPrivateAuthToken'},
+        },
+        {
+          url: 'https://some.cdn.com/some-hash/@private-pkg-1.0.0.tar.gz',
+          pkg: '@private/pkg',
+          expect: {root: 'https://some.cdn.com', auth: false},
+        },
+        {
+          url: 'https://some.cdn.com/@private/pkg',
+          pkg: null,
+          expect: {root: 'https://some.cdn.com', auth: false},
+        },
+        {
+          url: 'https://registry.myorg.com/api/packages/private---pkg.tar.gz',
+          pkg: '@private/pkg',
+          expect: {root: 'https://registry.myorg.com/api/packages/', auth: 'scopedPrivateAuthToken'},
+        },
+      ],
+    },
+    {
+      title: 'using multiple config entries for registries where pathnames play a role',
+      config: {
+        '@private:registry': 'https://registry.myorg.com/api/npm/registry/',
+        '//registry.myorg.com/api/npm/registry/:_authToken': 'scopedPrivateAuthToken',
+        '//registry.myorg.com/api/packages/:_authToken': 'scopedPrivateAuthToken',
+      },
+      requests: [
+        {
+          url: '@private/pkg',
+          pkg: '@private/pkg',
+          expect: {root: 'https://registry.myorg.com/api/npm/registry/', auth: 'scopedPrivateAuthToken'},
+        },
+        {
+          url: 'https://some.cdn.com/some-hash/@private-pkg-1.0.0.tar.gz',
+          pkg: '@private/pkg',
+          expect: {root: 'https://some.cdn.com', auth: false},
+        },
+        {
+          url: 'https://some.cdn.com/@private/pkg',
+          pkg: null,
+          expect: {root: 'https://some.cdn.com', auth: false},
+        },
+        {
+          url: 'https://registry.myorg.com/api/packages/private---pkg.tar.gz',
+          pkg: '@private/pkg',
+          expect: {root: 'https://registry.myorg.com/api/packages/', auth: 'scopedPrivateAuthToken'},
+        },
+      ],
+    },
+  ];
 
-    const url = 'https://github.com/yarnpkg/yarn.tgz';
-
-    npmRegistry.request(url);
-
-    const requestParams = mockRequestManager.request.mock.calls[0][0];
-
-    expect(requestParams.headers.authorization).toBeUndefined();
-  });
-
-  test('should not add authorization header if pathname not to registry and always-auth is true', () => {
-    const testCwd = '.';
-    const {mockRequestManager, mockRegistries, mockReporter} = createMocks();
-    const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter);
-
-    const url = 'https://github.com/yarnpkg/yarn.tgz';
-
-    npmRegistry.config = {
-      'always-auth': true,
-      _authToken: 'testAuthToken',
-    };
-    npmRegistry.request(url);
-
-    const requestParams = mockRequestManager.request.mock.calls[0][0];
-
-    expect(requestParams.headers.authorization).toBeUndefined();
-  });
-
-  test('should not add authorization header if pathname is to registry and always-auth is false', () => {
-    const testCwd = '.';
-    const {mockRequestManager, mockRegistries, mockReporter} = createMocks();
-    const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter);
-
-    const url = 'https://registry.npmjs.org/yarnpkg/yarn.tgz';
-
-    npmRegistry.config = {
-      // Default is: 'always-auth': false,
-      _authToken: 'testAuthToken',
-    };
-    npmRegistry.request(url);
-
-    const requestParams = mockRequestManager.request.mock.calls[0][0];
-
-    expect(requestParams.headers.authorization).toBeUndefined();
-  });
-
-  test('should not add authorization header if pathname is to registry and not scopped package', () => {
-    const testCwd = '.';
-    const {mockRequestManager, mockRegistries, mockReporter} = createMocks();
-    const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter);
-
-    const url = 'https://registry.npmjs.org/yarnpkg/yarn.tgz';
-
-    npmRegistry.config = {
-      _authToken: 'testAuthToken',
-    };
-    npmRegistry.request(url);
-
-    const requestParams = mockRequestManager.request.mock.calls[0][0];
-
-    expect(requestParams.headers.authorization).toBeUndefined();
-  });
-
-  test('should add authorization header if pathname is to registry and always-auth is true', () => {
-    const testCwd = '.';
-    const {mockRequestManager, mockRegistries, mockReporter} = createMocks();
-    const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter);
-
-    const url = 'https://registry.npmjs.org/yarnpkg/yarn.tgz';
-
-    npmRegistry.config = {
-      'always-auth': true,
-      _authToken: 'testAuthToken',
-    };
-    npmRegistry.request(url);
-
-    const requestParams = mockRequestManager.request.mock.calls[0][0];
-
-    expect(requestParams.headers.authorization).toBe('Bearer testAuthToken');
-  });
-
-  test('should add authorization header if pathname is to registry and is scopped package', () => {
-    const testCwd = '.';
-    const {mockRequestManager, mockRegistries, mockReporter} = createMocks();
-    const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter);
-
-    const url = 'https://registry.npmjs.org/@testScope%2fyarn.tgz';
-
-    npmRegistry.config = {
-      _authToken: 'testAuthToken',
-    };
-    npmRegistry.request(url);
-
-    const requestParams = mockRequestManager.request.mock.calls[0][0];
-
-    expect(requestParams.headers.authorization).toBe('Bearer testAuthToken');
-  });
-
-  test('should add authorization header with token for custom registries with a scoped package', () => {
-    const testCwd = '.';
-    const {mockRequestManager, mockRegistries, mockReporter} = createMocks();
-    const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter);
-
-    const url = 'https://some.other.registry/@testScope%2fyarn.tgz';
-
-    npmRegistry.config = {
-      '//some.other.registry/:_authToken': 'testScopedAuthToken',
-      '@testScope:registry': '//some.other.registry/',
-    };
-    npmRegistry.request(url);
-
-    const requestParams = mockRequestManager.request.mock.calls[0][0];
-
-    expect(requestParams.headers.authorization).toBe('Bearer testScopedAuthToken');
+  testCases.forEach(testCase => {
+    describe(testCase.title, () => {
+      const registry = createRegistry(testCase.config);
+      testCase.requests.forEach(req => {
+        const desc =
+          `with request url ${req.url}${req.pkg ? ` in context of package ${req.pkg}` : ''} ` +
+          `auth is ${req.expect.auth ? req.expect.auth : 'not sent'}`;
+        (req.skip ? it.skip : req.only ? it.only : it)(desc, () => {
+          const requestParams = registry.request(req.url, {}, req.pkg);
+          expect(requestParams.url.substr(0, req.expect.root.length)).toBe(req.expect.root);
+          expect(requestParams.headers.authorization).toBe(req.expect.auth ? `Bearer ${req.expect.auth}` : undefined);
+        });
+      });
+    });
   });
 });
 
@@ -222,6 +588,9 @@ describe('isRequestToRegistry functional test', () => {
       ['http://foo.bar/foo/bar/baz', 'https://foo.bar:443/foo/'],
       ['https://foo.bar/foo/bar/baz', 'https://foo.bar:443/foo/'],
       ['HTTP://xn--xample-hva.com:80/foo/bar/baz', 'http://êxample.com/foo/bar/baz'],
+      // yarn and npm registries are interchangeable
+      ['https://registry.npmjs.org/foo/bar', 'https://registry.npmjs.org/'],
+      ['https://registry.yarnpkg.com/foo/bar', 'https://registry.npmjs.org/'],
     ];
 
     const invalidRegistryUrls = [
@@ -347,5 +716,154 @@ describe('getPossibleConfigLocations', () => {
         expect.stringContaining(JSON.stringify(pathJoin(homeDir, '.npmrc'))),
       ]),
     );
+  });
+});
+
+describe('checkOutdated functional test', () => {
+  const mockConfig = {
+    resolveConstraints(): string {
+      return '2.0.0';
+    },
+    reporter: new BufferReporter({verbose: true}),
+  };
+
+  test('homepage URL from top level', async () => {
+    const testCwd = '.';
+    const {mockRequestManager, mockRegistries, mockReporter} = createMocks();
+    const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter);
+
+    mockRequestManager.request = () => {
+      return {
+        homepage: 'http://package.homepage.com',
+        'dist-tags': {
+          latest: '2.0.0',
+        },
+        versions: {
+          '2.0.0': {
+            version: '2.0.0',
+          },
+        },
+      };
+    };
+
+    const result = await npmRegistry.checkOutdated(mockConfig, 'left-pad', '2.0.0');
+
+    expect(result).toMatchObject({
+      latest: '2.0.0',
+      wanted: '2.0.0',
+      url: 'http://package.homepage.com',
+    });
+  });
+
+  test('homepage URL fallback to wanted package manifest', async () => {
+    const testCwd = '.';
+    const {mockRequestManager, mockRegistries, mockReporter} = createMocks();
+    const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter);
+
+    mockRequestManager.request = () => {
+      return {
+        'dist-tags': {
+          latest: '2.0.0',
+        },
+        versions: {
+          '2.0.0': {
+            version: '2.0.0',
+            homepage: 'http://package.homepage.com',
+          },
+        },
+      };
+    };
+
+    const result = await npmRegistry.checkOutdated(mockConfig, 'left-pad', '2.0.0');
+
+    expect(result).toMatchObject({
+      latest: '2.0.0',
+      wanted: '2.0.0',
+      url: 'http://package.homepage.com',
+    });
+  });
+
+  test('repository URL from top level', async () => {
+    const testCwd = '.';
+    const {mockRequestManager, mockRegistries, mockReporter} = createMocks();
+    const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter);
+
+    mockRequestManager.request = () => {
+      return {
+        repository: {
+          url: 'http://package.repo.com',
+        },
+        'dist-tags': {
+          latest: '2.0.0',
+        },
+        versions: {
+          '2.0.0': {
+            version: '2.0.0',
+          },
+        },
+      };
+    };
+
+    const result = await npmRegistry.checkOutdated(mockConfig, 'left-pad', '2.0.0');
+
+    expect(result).toMatchObject({
+      latest: '2.0.0',
+      wanted: '2.0.0',
+      url: 'http://package.repo.com',
+    });
+  });
+
+  test('repository URL fallback to wanted package manifest', async () => {
+    const testCwd = '.';
+    const {mockRequestManager, mockRegistries, mockReporter} = createMocks();
+    const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter);
+
+    mockRequestManager.request = () => {
+      return {
+        'dist-tags': {
+          latest: '2.0.0',
+        },
+        versions: {
+          '2.0.0': {
+            version: '2.0.0',
+            repository: {
+              url: 'http://package.repo.com',
+            },
+          },
+        },
+      };
+    };
+
+    const result = await npmRegistry.checkOutdated(mockConfig, 'left-pad', '2.0.0');
+
+    expect(result).toMatchObject({
+      latest: '2.0.0',
+      wanted: '2.0.0',
+      url: 'http://package.repo.com',
+    });
+  });
+
+  test('unpublished package (no versions)', async () => {
+    const testCwd = '.';
+    const {mockRequestManager, mockRegistries, mockReporter} = createMocks();
+    const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter);
+
+    mockRequestManager.request = () => {
+      return {
+        'dist-tags': {
+          latest: '2.0.0',
+        },
+        versions: {},
+      };
+    };
+
+    let message;
+    try {
+      await npmRegistry.checkOutdated(mockConfig, 'left-pad', '2.0.0');
+    } catch (err) {
+      message = err.message;
+    }
+
+    expect(message).toEqual(expect.stringContaining('No valid versions'));
   });
 });

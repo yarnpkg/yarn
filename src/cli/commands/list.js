@@ -8,7 +8,6 @@ import type {Tree, Trees} from '../../reporters/types.js';
 import {Install} from './install.js';
 
 import Lockfile from '../../lockfile';
-import {isProduction} from '../../constants';
 
 const invariant = require('invariant');
 const micromatch = require('micromatch');
@@ -162,6 +161,7 @@ export function hasWrapper(commander: Object, args: Array<string>): boolean {
 }
 
 export function setFlags(commander: Object) {
+  commander.description('Lists installed packages.');
   commander.option('--depth [depth]', 'Limit the depth of the shown dependencies');
   commander.option('--pattern [pattern]', 'Filter dependencies by pattern');
 }
@@ -184,7 +184,11 @@ export function filterTree(tree: Tree, filters: Array<string>, pattern: string =
 }
 
 export function getDevDeps(manifest: Object): Set<string> {
-  return new Set(Object.keys(manifest.devDependencies).map(key => `${key}@${manifest.devDependencies[key]}`));
+  if (manifest.devDependencies) {
+    return new Set(Object.keys(manifest.devDependencies).map(key => `${key}@${manifest.devDependencies[key]}`));
+  } else {
+    return new Set();
+  }
 }
 
 export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
@@ -199,7 +203,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
   });
 
   let activePatterns = [];
-  if (isProduction()) {
+  if (config.production) {
     const devDeps = getDevDeps(manifest);
     activePatterns = patterns.filter(pattern => !devDeps.has(pattern));
   } else {

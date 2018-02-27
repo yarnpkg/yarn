@@ -1,6 +1,7 @@
 /* @flow */
 
 import type {Dependency, DependencyRequestPattern, Manifest} from './types.js';
+import type {FetcherNames} from './fetchers/index.js';
 import type PackageResolver from './package-resolver.js';
 import type {Reporter} from './reporters/index.js';
 import type Config from './config.js';
@@ -39,8 +40,10 @@ export default class PackageRequest {
     this.pattern = req.pattern;
     this.config = resolver.config;
     this.foundInfo = null;
+  }
 
-    resolver.usedRegistries.add(req.registry);
+  init() {
+    this.resolver.usedRegistries.add(this.registry);
   }
 
   parentRequest: ?PackageRequest;
@@ -54,7 +57,7 @@ export default class PackageRequest {
   optional: boolean;
   foundInfo: ?Manifest;
 
-  getLocked(remoteType: string): ?Object {
+  getLocked(remoteType: FetcherNames): ?Manifest {
     // always prioritise root lockfile
     const shrunk = this.lockfile.getLocked(this.pattern);
 
@@ -75,8 +78,9 @@ export default class PackageRequest {
           hash: resolvedParts.hash,
           registry: shrunk.registry,
         },
-        optionalDependencies: shrunk.optionalDependencies,
-        dependencies: shrunk.dependencies,
+        optionalDependencies: shrunk.optionalDependencies || {},
+        dependencies: shrunk.dependencies || {},
+        prebuiltVariants: shrunk.prebuiltVariants || {},
       };
     } else {
       return null;
@@ -109,7 +113,18 @@ export default class PackageRequest {
 
     const Resolver = this.getRegistryResolver();
     const resolver = new Resolver(this, name, range);
-    return resolver.resolve();
+    try {
+      return await resolver.resolve();
+    } catch (err) {
+      // if it is not an error thrown by yarn and it has a parent request,
+      // thow a more readable error
+      if (!(err instanceof MessageError) && this.parentRequest && this.parentRequest.pattern) {
+        throw new MessageError(
+          this.reporter.lang('requiredPackageNotFoundRegistry', pattern, this.parentRequest.pattern, this.registry),
+        );
+      }
+      throw err;
+    }
   }
 
   /**
@@ -205,6 +220,10 @@ export default class PackageRequest {
   async find({fresh, frozen}: {fresh: boolean, frozen?: boolean}): Promise<void> {
     // find version info for this package pattern
     const info: Manifest = await this.findVersionInfo();
+
+    if (!semver.valid(info.version)) {
+      throw new MessageError(this.reporter.lang('invalidPackageVersion', info.name, info.version));
+    }
 
     info.fresh = fresh;
     cleanDependencies(info, false, this.reporter, () => {

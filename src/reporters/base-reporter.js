@@ -17,6 +17,7 @@ import type {Formatter} from './format.js';
 import {defaultFormatter} from './format.js';
 import * as languages from './lang/index.js';
 import isCI from 'is-ci';
+import os from 'os';
 
 const util = require('util');
 const EventEmitter = require('events').EventEmitter;
@@ -41,9 +42,10 @@ export function stringifyLangArgs(args: Array<any>): Array<string> {
     } else {
       try {
         const str = JSON.stringify(val) || val + '';
-        // should match all "u001b" that follow an odd number of backslashes and convert them to ESC
+        // should match all literal line breaks and
+        // "u001b" that follow an odd number of backslashes and convert them to ESC
         // we do this because the JSON.stringify process has escaped these characters
-        return str.replace(/((?:^|[^\\])(?:\\{2})*)\\u001[bB]/g, '$1\u001b');
+        return str.replace(/((?:^|[^\\])(?:\\{2})*)\\u001[bB]/g, '$1\u001b').replace(/[\\]r[\\]n|[\\]n/g, os.EOL);
       } catch (e) {
         return util.inspect(val);
       }
@@ -83,7 +85,7 @@ export default class BaseReporter {
   isSilent: boolean;
   format: Formatter;
 
-  peakMemoryInterval: ?number;
+  peakMemoryInterval: ?IntervalID;
   peakMemory: number;
   startTime: number;
 

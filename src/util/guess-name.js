@@ -4,7 +4,7 @@ import url from 'url';
 
 function cleanup(name: string): string {
   name = name.replace(/-\d+\.\d+\.\d+/, '');
-  return name.split('.')[0];
+  return name.replace(/\.git$|\.zip$|\.tar\.gz$|\.tar\.bz2$/, '');
 }
 
 function guessNameFallback(source: string): string {
