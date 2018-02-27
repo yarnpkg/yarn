@@ -15,6 +15,7 @@ import {BufferReporter} from '../../src/reporters/index.js';
 import {run} from '../../src/cli/commands/run.js';
 import * as fs from '../../src/util/fs.js';
 import * as reporters from '../../src/reporters/index.js';
+import {ENV_PATH_KEY} from '../../src/constants.js';
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 90000;
 
@@ -101,6 +102,18 @@ test('properly handle bin scripts', (): Promise<void> => {
     const args = ['cat-names', config, script, config.cwd];
 
     expect(execCommand).toBeCalledWith(...args);
+  });
+});
+
+test('properly add parent node_module/.bin paths to environment', (): Promise<void> => {
+  const parentPath = path.join('node_modules', 'parent');
+  return runRun(['env'], {}, {source: 'parent-node', cwd: parentPath}, (config, reporter): ?Promise<void> => {
+    // $FlowFixMe
+    const result = JSON.parse(reporter.getBuffer()[0].data);
+    result[ENV_PATH_KEY] = result[ENV_PATH_KEY] ? result[ENV_PATH_KEY].split(path.delimiter) : [];
+
+    const comp = path.join(config.cwd.slice(0, config.cwd.indexOf(parentPath)), 'node_modules', '.bin');
+    expect(result[ENV_PATH_KEY]).toEqual(expect.arrayContaining([comp]));
   });
 });
 
