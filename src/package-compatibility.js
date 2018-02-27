@@ -111,7 +111,8 @@ export function checkOne(info: Manifest, config: Config, ignoreEngines: boolean)
     const ref = info._reference;
     invariant(ref, 'expected package reference');
 
-    if (ref.optional) {
+    // no location -> no previous fetch, possibly optional
+    if (ref.optional || !info.location) {
       ref.ignore = true;
       ref.incompatible = true;
 
