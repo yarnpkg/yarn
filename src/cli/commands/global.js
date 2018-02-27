@@ -170,7 +170,11 @@ async function initUpdateBins(config: Config, reporter: Reporter, flags: Object)
         await fs.unlink(dest);
         await linkBin(src, dest);
         if (process.platform === 'win32' && dest.indexOf('.cmd') !== -1) {
-          await fs.rename(dest + '.cmd', dest);
+          // ignore linux or unix script
+          const path = dest + '.cmd';
+          const body = await fs.readFile(path);
+          await fs.writeFile(path, body.replace('%~dp0\\', ''));
+          await fs.rename(path, dest);
         }
       } catch (err) {
         throwPermError(err, dest);
