@@ -412,3 +412,11 @@ test('yarn init -y', async () => {
   const manifestFile = await fs.readFile(path.join(cwd, 'package.json'));
   expect(manifestFile).toEqual(initialManifestFile);
 });
+
+test('yarn config list', async () => {
+  const cwd = await makeTemp();
+  const [stdoutOutput, _] = await runYarn(['config', 'list'], {cwd});
+
+  console.log(stdoutOutput.toString());
+  expect(stdoutOutput.toString()).toEqual("");
+});
