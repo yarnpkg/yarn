@@ -19,6 +19,7 @@ function isValidNewVersion(oldVersion: string, newVersion: string, looseSemver: 
 }
 
 export function setFlags(commander: Object) {
+  commander.description('Update the version of your package via the command line.');
   commander.option(NEW_VERSION_FLAG, 'new version');
   commander.option('--message [message]', 'message');
   commander.option('--no-git-tag-version', 'no git tag version');
@@ -73,9 +74,15 @@ export async function setVersion(
 
   // wasn't passed a version arg so ask interactively
   while (!newVersion) {
+    // make sure we're not running in non-interactive mode before asking for new version
+    if (flags.nonInteractive || config.nonInteractive) {
+      throw new MessageError(reporter.lang('nonInteractiveNoVersionSpecified'));
+    }
+
     newVersion = await reporter.question(reporter.lang('newVersion'));
 
     if (!required && !newVersion) {
+      reporter.info(`${reporter.lang('noVersionOnPublish')}: ${oldVersion}`);
       return function(): Promise<void> {
         return Promise.resolve();
       };
@@ -115,6 +122,8 @@ export async function setVersion(
   }
   await config.saveRootManifests(manifests);
 
+  await runLifecycle('version');
+
   // check if committing the new version to git is overriden
   if (!flags.gitTagVersion || !config.getOption('version-git-tag')) {
     // Don't tag the version in Git
@@ -135,8 +144,6 @@ export async function setVersion(
         parts.pop();
       }
     }
-
-    await runLifecycle('version');
 
     if (isGit) {
       const message = (flags.message || String(config.getOption('version-git-message'))).replace(/%s/g, newVersion);

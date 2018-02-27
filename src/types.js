@@ -21,6 +21,8 @@ export type DependencyRequestPattern = {
   hint?: ?string,
   parentNames?: Array<string>,
   parentRequest?: ?PackageRequest,
+  workspaceName?: string,
+  workspaceLoc?: string,
 };
 export type DependencyRequestPatterns = Array<DependencyRequestPattern>;
 
@@ -46,6 +48,11 @@ type Dependencies = {
   [key: string]: string,
 };
 
+export type WorkspacesConfig = {
+  packages?: Array<string>,
+  nohoist?: Array<string>,
+};
+
 // package.json
 export type Manifest = {
   _registry?: ?RegistryNames,
@@ -66,6 +73,7 @@ export type Manifest = {
   flat?: boolean,
   license?: string,
   licenseText?: string,
+  noticeText?: string,
 
   readme?: string,
   readmeFilename?: string,
@@ -127,12 +135,14 @@ export type Manifest = {
   files?: Array<string>,
   main?: string,
 
-  workspaces?: Array<string>,
+  workspaces?: Array<string> | WorkspacesConfig,
 
   // This flag is true when we add a new package with `yarn add <mypackage>`.
   // We need to preserve the flag because we print a list of new packages in
   // the end of the add command
   fresh?: boolean,
+
+  prebuiltVariants?: {[filename: string]: string},
 };
 
 //
@@ -156,6 +166,8 @@ export type Dependency = {
   hint: ?string,
   range: string,
   upgradeTo: string,
+  workspaceName: string,
+  workspaceLoc: string,
 };
 
 export type WorkspacesManifestMap = {

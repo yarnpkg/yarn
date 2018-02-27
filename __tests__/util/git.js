@@ -4,7 +4,8 @@ jest.mock('../../src/util/git/git-spawn.js', () => ({
   spawn: jest.fn(([command]) => {
     switch (command) {
       case 'ls-remote':
-        return `ref: refs/heads/master  HEAD
+        return `Identity added: /Users/example/.ssh/id_dsa (/Users/example/.ssh/id_dsa)
+ref: refs/heads/master  HEAD
 7a053e2ca07d19b2e2eebeeb0c27edaacfd67904        HEAD`;
       case 'rev-list':
         return Promise.resolve('7a053e2ca07d19b2e2eebeeb0c27edaacfd67904 Fix ...');
@@ -59,12 +60,12 @@ test('npmUrlToGitUrl', () => {
   expect(Git.npmUrlToGitUrl('github:npm-opam/ocamlfind.git#v1.2.3')).toEqual({
     protocol: 'ssh:',
     hostname: 'github.com',
-    repository: 'ssh://git@github.com/npm-opam/ocamlfind.git#v1.2.3',
+    repository: 'ssh://git@github.com/npm-opam/ocamlfind.git',
   });
   expect(Git.npmUrlToGitUrl('github:npm-opam/ocamlfind#v1.2.3')).toEqual({
     protocol: 'ssh:',
     hostname: 'github.com',
-    repository: 'ssh://git@github.com/npm-opam/ocamlfind#v1.2.3',
+    repository: 'ssh://git@github.com/npm-opam/ocamlfind',
   });
   expect(Git.npmUrlToGitUrl('github:npm-opam/ocamlfind.git')).toEqual({
     protocol: 'ssh:',

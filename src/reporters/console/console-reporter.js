@@ -30,7 +30,7 @@ type Row = Array<string>;
 type InquirerResponses<K, T> = {[key: K]: Array<T>};
 
 // fixes bold on windows
-if (process.platform === 'win32' && process.env.TERM && !/^xterm/i.test(process.env.TERM)) {
+if (process.platform === 'win32' && !(process.env.TERM && /^xterm/i.test(process.env.TERM))) {
   chalk.bold._styles[0].close += '\u001b[m';
 }
 
@@ -230,6 +230,7 @@ export default class ConsoleReporter extends BaseReporter {
   }
   // handles basic tree output to console
   tree(key: string, trees: Trees) {
+    this.stopProgress();
     //
     const output = ({name, children, hint, color}, titlePrefix, childrenPrefix) => {
       const formatter = this.format;

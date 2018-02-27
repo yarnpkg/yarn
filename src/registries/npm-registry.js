@@ -5,6 +5,7 @@ import type RequestManager from '../util/request-manager.js';
 import type {RegistryRequestOptions, CheckOutdatedReturn} from './base-registry.js';
 import type Config from '../config.js';
 import type {ConfigRegistries} from './index.js';
+import type {Env} from '../util/env-replace.js';
 import {YARN_REGISTRY} from '../constants.js';
 import * as fs from '../util/fs.js';
 import NpmResolver from '../resolvers/registries/npm-resolver.js';
@@ -53,10 +54,10 @@ function getGlobalPrefix(): string {
   }
 }
 
-const PATH_CONFIG_OPTIONS = ['cache', 'cafile', 'prefix', 'userconfig'];
+const PATH_CONFIG_OPTIONS = new Set(['cache', 'cafile', 'prefix', 'userconfig']);
 
 function isPathConfigOption(key: string): boolean {
-  return PATH_CONFIG_OPTIONS.indexOf(key) >= 0;
+  return PATH_CONFIG_OPTIONS.has(key);
 }
 
 function normalizePath(val: mixed): ?string {
@@ -65,10 +66,23 @@ function normalizePath(val: mixed): ?string {
   }
 
   if (typeof val !== 'string') {
-    val = '' + (val: any);
+    val = String(val);
   }
 
   return resolveWithHome(val);
+}
+
+type UrlParts = {
+  host: string,
+  path: string,
+};
+
+function urlParts(requestUrl: string): UrlParts {
+  const normalizedUrl = normalizeUrl(requestUrl);
+  const parsed = url.parse(normalizedUrl);
+  const host = parsed.host || '';
+  const path = parsed.path || '';
+  return {host, path};
 }
 
 export default class NpmRegistry extends Registry {
@@ -99,22 +113,17 @@ export default class NpmRegistry extends Registry {
   }
 
   isRequestToRegistry(requestUrl: string, registryUrl: string): boolean {
-    const normalizedRequestUrl = normalizeUrl(requestUrl);
-    const normalizedRegistryUrl = normalizeUrl(registryUrl);
-    const requestParsed = url.parse(normalizedRequestUrl);
-    const registryParsed = url.parse(normalizedRegistryUrl);
-    const requestHost = requestParsed.host || '';
-    const registryHost = registryParsed.host || '';
-    const requestPath = requestParsed.path || '';
-    const registryPath = registryParsed.path || '';
+    const request = urlParts(requestUrl);
+    const registry = urlParts(registryUrl);
     const customHostSuffix = this.getRegistryOrGlobalOption(registryUrl, 'custom-host-suffix');
 
-    return (
-      requestHost === registryHost &&
-      (requestPath.startsWith(registryPath) ||
-        // For some registries, the package path does not prefix with the registry path
-        (typeof customHostSuffix === 'string' && requestHost.endsWith(customHostSuffix)))
-    );
+    const requestToRegistryHost = request.host === registry.host;
+    const requestToYarn = YARN_REGISTRY.includes(request.host) && DEFAULT_REGISTRY.includes(registry.host);
+    const requestToRegistryPath = request.path.startsWith(registry.path);
+    // For some registries, the package path does not prefix with the registry path
+    const customHostSuffixInUse = typeof customHostSuffix === 'string' && request.host.endsWith(customHostSuffix);
+
+    return (requestToRegistryHost || requestToYarn) && (requestToRegistryPath || customHostSuffixInUse);
   }
 
   request(pathname: string, opts?: RegistryRequestOptions = {}, packageName: ?string): Promise<*> {
@@ -132,7 +141,7 @@ export default class NpmRegistry extends Registry {
       opts.headers,
     );
 
-    const isToRegistry = this.isRequestToRegistry(requestUrl, registry);
+    const isToRegistry = this.isRequestToRegistry(requestUrl, registry) || this.requestNeedsAuth(requestUrl);
 
     // this.token must be checked to account for publish requests on non-scopped packages
     if (this.token || (isToRegistry && (alwaysAuth || this.isScopedPackage(packageIdent)))) {
@@ -155,6 +164,21 @@ export default class NpmRegistry extends Registry {
     });
   }
 
+  requestNeedsAuth(requestUrl: string): boolean {
+    const config = this.config;
+    const requestParts = urlParts(requestUrl);
+    return !!Object.keys(config).find(option => {
+      const parts = option.split(':');
+      if (parts.length === 2 && parts[1] === '_authToken') {
+        const registryParts = urlParts(parts[0]);
+        if (requestParts.host === registryParts.host && requestParts.path.startsWith(registryParts.path)) {
+          return true;
+        }
+      }
+      return false;
+    });
+  }
+
   async checkOutdated(config: Config, name: string, range: string): CheckOutdatedReturn {
     const req = await this.request(NpmRegistry.escapeName(name), {
       headers: {Accept: 'application/json'},
@@ -163,12 +187,22 @@ export default class NpmRegistry extends Registry {
       throw new Error('couldnt find ' + name);
     }
 
-    const {repository, homepage} = req;
+    // By default use top level 'repository' and 'homepage' values
+    let {repository, homepage} = req;
+    const wantedPkg = await NpmResolver.findVersionInRegistryResponse(config, range, req);
+
+    // But some local repositories like Verdaccio do not return 'repository' nor 'homepage'
+    // in top level data structure, so we fallback to wanted package manifest
+    if (!repository && !homepage) {
+      repository = wantedPkg.repository;
+      homepage = wantedPkg.homepage;
+    }
+
     const url = homepage || (repository && repository.url) || '';
 
     return {
       latest: req['dist-tags'].latest,
-      wanted: (await NpmResolver.findVersionInRegistryResponse(config, range, req)).version,
+      wanted: wantedPkg.version,
       url,
     };
   }
@@ -206,11 +240,20 @@ export default class NpmRegistry extends Registry {
     return actuals;
   }
 
+  static getConfigEnv(env: Env = process.env): Env {
+    // To match NPM's behavior, HOME is always the user's home directory.
+    const overrideEnv = {
+      HOME: home,
+    };
+    return Object.assign({}, env, overrideEnv);
+  }
+
   static normalizeConfig(config: Object): Object {
+    const env = NpmRegistry.getConfigEnv();
     config = Registry.normalizeConfig(config);
 
     for (const key: string in config) {
-      config[key] = envReplace(config[key]);
+      config[key] = envReplace(config[key], env);
       if (isPathConfigOption(key)) {
         config[key] = normalizePath(config[key]);
       }

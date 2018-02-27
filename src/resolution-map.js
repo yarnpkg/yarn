@@ -33,12 +33,14 @@ export default class ResolutionMap {
     this.config = config;
     this.reporter = config.reporter;
     this.delayQueue = new Set();
+    this.topLevelPatterns = new Set();
   }
 
   resolutionsByPackage: ResolutionInternalMap;
   config: Config;
   reporter: Reporter;
   delayQueue: Set<DependencyRequestPattern>;
+  topLevelPatterns: Set<string>;
 
   init(resolutions: ?ResolutionEntry = {}) {
     for (const globPattern in resolutions) {
@@ -53,6 +55,10 @@ export default class ResolutionMap {
 
   addToDelayQueue(req: DependencyRequestPattern) {
     this.delayQueue.add(req);
+  }
+
+  setTopLevelPatterns(patterns: Array<string>) {
+    this.topLevelPatterns = new Set(patterns);
   }
 
   parsePatternInfo(globPattern: string, range: string): ?Object {

@@ -8,7 +8,6 @@ import type {Tree, Trees} from '../../reporters/types.js';
 import {Install} from './install.js';
 
 import Lockfile from '../../lockfile';
-import {isProduction} from '../../constants';
 
 const invariant = require('invariant');
 const micromatch = require('micromatch');
@@ -162,28 +161,34 @@ export function hasWrapper(commander: Object, args: Array<string>): boolean {
 }
 
 export function setFlags(commander: Object) {
+  commander.description('Lists installed packages.');
   commander.option('--depth [depth]', 'Limit the depth of the shown dependencies');
+  commander.option('--pattern [pattern]', 'Filter dependencies by pattern');
 }
 
 export function getReqDepth(inputDepth: string): number {
   return inputDepth && /^\d+$/.test(inputDepth) ? Number(inputDepth) : -1;
 }
 
-export function filterTree(tree: Tree, filters: Array<string>): boolean {
+export function filterTree(tree: Tree, filters: Array<string>, pattern: string = ''): boolean {
   if (tree.children) {
-    tree.children = tree.children.filter(child => filterTree(child, filters));
+    tree.children = tree.children.filter(child => filterTree(child, filters, pattern));
   }
 
   const notDim = tree.color !== 'dim';
   const hasChildren = tree.children == null ? false : tree.children.length > 0;
   const name = tree.name.slice(0, tree.name.lastIndexOf('@'));
-  const found = micromatch.any(name, filters);
+  const found = micromatch.any(name, filters) || micromatch.contains(name, pattern);
 
   return notDim && (found || hasChildren);
 }
 
 export function getDevDeps(manifest: Object): Set<string> {
-  return new Set(Object.keys(manifest.devDependencies).map(key => `${key}@${manifest.devDependencies[key]}`));
+  if (manifest.devDependencies) {
+    return new Set(Object.keys(manifest.devDependencies).map(key => `${key}@${manifest.devDependencies[key]}`));
+  } else {
+    return new Set();
+  }
 }
 
 export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
@@ -198,7 +203,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
   });
 
   let activePatterns = [];
-  if (isProduction()) {
+  if (config.production) {
     const devDeps = getDevDeps(manifest);
     activePatterns = patterns.filter(pattern => !devDeps.has(pattern));
   } else {
@@ -212,7 +217,10 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
   let {trees}: {trees: Trees} = await buildTree(install.resolver, install.linker, activePatterns, opts);
 
   if (args.length) {
-    trees = trees.filter(tree => filterTree(tree, args));
+    reporter.warn(reporter.lang('deprecatedListArgs'));
+  }
+  if (args.length || flags.pattern) {
+    trees = trees.filter(tree => filterTree(tree, args, flags.pattern));
   }
 
   reporter.tree('list', trees);

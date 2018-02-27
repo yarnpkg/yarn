@@ -5,6 +5,7 @@ import type {LockManifest} from './lockfile';
 import * as constants from './constants.js';
 import * as fs from './util/fs.js';
 import {sortAlpha, compareSortedArrays} from './util/misc.js';
+import {getSystemParams} from './util/package-name-utils.js';
 import type {InstallArtifacts} from './package-install-scripts.js';
 import WorkspaceLayout from './workspace-layout.js';
 
@@ -19,6 +20,7 @@ export const integrityErrors = {
   LINKED_MODULES_DONT_MATCH: 'integrityCheckLinkedModulesDontMatch',
   PATTERNS_DONT_MATCH: 'integrityPatternsDontMatch',
   MODULES_FOLDERS_MISSING: 'integrityModulesFoldersMissing',
+  SYSTEM_PARAMS_DONT_MATCH: 'integritySystemParamsDontMatch',
 };
 
 type IntegrityError = $Keys<typeof integrityErrors>;
@@ -37,6 +39,7 @@ type IntegrityHashLocation = {
 };
 
 type IntegrityFile = {
+  systemParams: string,
   flags: Array<string>,
   modulesFolders: Array<string>,
   linkedModules: Array<string>,
@@ -54,6 +57,7 @@ type IntegrityFlags = {
 };
 
 const INTEGRITY_FILE_DEFAULTS = () => ({
+  systemParams: getSystemParams(),
   modulesFolders: [],
   flags: [],
   linkedModules: [],
@@ -295,6 +299,10 @@ export default class InstallationIntegrityChecker {
       return 'LINKED_MODULES_DONT_MATCH';
     }
 
+    if (actual.systemParams !== expected.systemParams) {
+      return 'SYSTEM_PARAMS_DONT_MATCH';
+    }
+
     let relevantExpectedFlags = expected.flags.slice();
 
     // If we run "yarn" after "yarn --check-files", we shouldn't fail the less strict validation
@@ -386,6 +394,7 @@ export default class InstallationIntegrityChecker {
       integrityMatches: integrityMatches === 'OK',
       integrityError: integrityMatches === 'OK' ? undefined : integrityMatches,
       missingPatterns,
+      hardRefreshRequired: integrityMatches === 'SYSTEM_PARAMS_DONT_MATCH',
     };
   }
 

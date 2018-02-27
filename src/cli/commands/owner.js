@@ -146,7 +146,11 @@ function remove(config: Config, reporter: Reporter, flags: Object, args: Array<s
   );
 }
 
-export const {run, setFlags, hasWrapper, examples} = buildSubCommands(
+export function setFlags(commander: Object) {
+  commander.description('Manages package owners.');
+}
+
+export const {run, hasWrapper, examples} = buildSubCommands(
   'owner',
   {
     add(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<boolean> {

@@ -40,6 +40,11 @@ Gulpfile.js
 Gruntfile.js
 
 # configs
+appveyor.yml
+circle.yml
+codeship-services.yml
+codeship-steps.yml
+wercker.yml
 .tern-project
 .gitattributes
 .editorconfig
@@ -49,8 +54,7 @@ Gruntfile.js
 .flowconfig
 .documentup.json
 .yarn-metadata.json
-.*.yml
-*.yml
+.travis.yml
 
 # misc
 *.md
@@ -148,6 +152,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
 }
 
 export function setFlags(commander: Object) {
+  commander.description('Cleans and removes unnecessary files from package dependencies.');
   commander.usage('autoclean [flags]');
   commander.option('-I, --init', `Create "${CLEAN_FILENAME}" file with the default entries.`);
   commander.option('-F, --force', `Run autoclean using the existing "${CLEAN_FILENAME}" file.`);

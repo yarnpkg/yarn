@@ -9,11 +9,13 @@ import NpmRegistry, {SCOPE_SEPARATOR} from '../../registries/npm-registry.js';
 import map from '../../util/map.js';
 import * as fs from '../../util/fs.js';
 import {YARN_REGISTRY} from '../../constants.js';
+import {getPlatformSpecificPackageFilename} from '../../util/package-name-utils.js';
 
 const inquirer = require('inquirer');
 const tty = require('tty');
 const invariant = require('invariant');
 const path = require('path');
+const semver = require('semver');
 
 const NPM_REGISTRY = /http[s]:\/\/registry.npmjs.org/g;
 const NPM_REGISTRY_ID = 'npm';
@@ -33,12 +35,24 @@ export default class NpmResolver extends RegistryResolver {
     body: RegistryResponse,
     request: ?PackageRequest,
   ): Promise<Manifest> {
-    if (!body['dist-tags']) {
+    if (body.versions && Object.keys(body.versions).length === 0) {
+      throw new MessageError(config.reporter.lang('registryNoVersions', body.name));
+    }
+
+    if (!body['dist-tags'] || !body.versions) {
       throw new MessageError(config.reporter.lang('malformedRegistryResponse', body.name));
     }
 
     if (range in body['dist-tags']) {
       range = body['dist-tags'][range];
+    }
+
+    // If the latest tag in the registry satisfies the requested range, then use that.
+    // Otherwise we will fall back to semver maxSatisfying.
+    // This mimics logic in NPM. See issue #3560
+    const latestVersion = body['dist-tags'] ? body['dist-tags'].latest : undefined;
+    if (latestVersion && semver.satisfies(latestVersion, range)) {
+      return body.versions[latestVersion];
     }
 
     const satisfied = await config.resolveConstraints(Object.keys(body.versions), range);
@@ -58,7 +72,7 @@ export default class NpmResolver extends RegistryResolver {
           name: 'package',
           type: 'list',
           message: config.reporter.lang('chooseVersionFromList', body.name),
-          choices: Object.keys(body.versions).reverse(),
+          choices: (semver: Object).rsort(Object.keys(body.versions)),
           pageSize,
         },
       ]);
@@ -167,6 +181,18 @@ export default class NpmResolver extends RegistryResolver {
     // lockfile
     const shrunk = this.request.getLocked('tarball');
     if (shrunk) {
+      if (this.config.packBuiltPackages && shrunk.prebuiltVariants && shrunk._remote) {
+        const prebuiltVariants = shrunk.prebuiltVariants;
+        const prebuiltName = getPlatformSpecificPackageFilename(shrunk);
+        const offlineMirrorPath = this.config.getOfflineMirrorPath();
+        if (prebuiltVariants[prebuiltName] && offlineMirrorPath) {
+          const filename = path.join(offlineMirrorPath, 'prebuilt', prebuiltName + '.tgz');
+          if (shrunk._remote && (await fs.exists(filename))) {
+            shrunk._remote.reference = `file:${filename}`;
+            shrunk._remote.hash = prebuiltVariants[prebuiltName];
+          }
+        }
+      }
       return shrunk;
     }
 

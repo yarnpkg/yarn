@@ -1,5 +1,16 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`init-config 1`] = `
+Object {
+  "author": "Kittens McKitty <yarn@yarnpkg.com> (https://yarnpkg.com)",
+  "license": "BSD",
+  "main": "index.js",
+  "name": "init-config",
+  "private": true,
+  "version": "0.0.0-alpha",
+}
+`;
+
 exports[`init-github 1`] = `
 Object {
   "license": "MIT",

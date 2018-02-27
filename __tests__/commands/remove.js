@@ -1,7 +1,7 @@
 /* @flow */
 
 import {ConsoleReporter} from '../../src/reporters/index.js';
-import {run as buildRun, explodeLockfile} from './_helpers.js';
+import {explodeLockfile, makeConfigFromDirectory, run as buildRun, runInstall} from './_helpers.js';
 import {run as check} from '../../src/cli/commands/check.js';
 import {run as remove} from '../../src/cli/commands/remove.js';
 import * as fs from '../../src/util/fs.js';
@@ -143,5 +143,55 @@ test.concurrent('removes package installed without a manifest', (): Promise<void
     const lockFileContent = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
     const lockFileLines = explodeLockfile(lockFileContent);
     expect(lockFileLines).toHaveLength(0);
+  });
+});
+
+test.concurrent('removes from workspace packages', async () => {
+  await runInstall({}, 'workspaces-install-basic', async (config, reporter): Promise<void> => {
+    expect(await fs.exists(`${config.cwd}/node_modules/isarray`)).toEqual(true);
+    expect(await fs.exists(`${config.cwd}/workspace-child/node_modules/isarray`)).toEqual(false);
+
+    const childConfig = await makeConfigFromDirectory(`${config.cwd}/workspace-child`, reporter);
+    await remove(childConfig, reporter, {}, ['isarray']);
+    await check(childConfig, reporter, {verifyTree: true}, []);
+
+    expect(JSON.parse(await fs.readFile(path.join(config.cwd, 'workspace-child/package.json'))).dependencies).toEqual(
+      {},
+    );
+
+    expect(await fs.exists(`${config.cwd}/node_modules/isarray`)).toEqual(false);
+    expect(await fs.exists(`${config.cwd}/workspace-child/node_modules/isarray`)).toEqual(false);
+
+    const lockFileContent = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
+    const lockFileLines = explodeLockfile(lockFileContent);
+
+    expect(lockFileLines).toHaveLength(9);
+    expect(lockFileLines[0]).toEqual('left-pad@1.1.3:');
+  });
+});
+
+test.concurrent('preserves unaffected bin links after removing workspace packages', async () => {
+  await runInstall({binLinks: true}, 'workspaces-install-bin', async (config, reporter): Promise<void> => {
+    expect(await fs.exists(`${config.cwd}/node_modules/.bin/rimraf`)).toEqual(true);
+    expect(await fs.exists(`${config.cwd}/node_modules/.bin/touch`)).toEqual(true);
+    expect(await fs.exists(`${config.cwd}/node_modules/.bin/workspace-1`)).toEqual(true);
+    expect(await fs.exists(`${config.cwd}/packages/workspace-2/node_modules/.bin/rimraf`)).toEqual(true);
+    expect(await fs.exists(`${config.cwd}/packages/workspace-2/node_modules/.bin/workspace-1`)).toEqual(true);
+
+    // remove package
+    const childConfig = await makeConfigFromDirectory(`${config.cwd}/packages/workspace-1`, reporter, {binLinks: true});
+    await remove(childConfig, reporter, {}, ['left-pad']);
+    await check(childConfig, reporter, {verifyTree: true}, []);
+
+    expect(
+      JSON.parse(await fs.readFile(path.join(config.cwd, 'packages/workspace-1/package.json'))).devDependencies,
+    ).toEqual({});
+
+    // bin links should be preserved
+    expect(await fs.exists(`${config.cwd}/node_modules/.bin/rimraf`)).toEqual(true);
+    expect(await fs.exists(`${config.cwd}/node_modules/.bin/touch`)).toEqual(true);
+    expect(await fs.exists(`${config.cwd}/node_modules/.bin/workspace-1`)).toEqual(true);
+    expect(await fs.exists(`${config.cwd}/packages/workspace-2/node_modules/.bin/rimraf`)).toEqual(true);
+    expect(await fs.exists(`${config.cwd}/packages/workspace-2/node_modules/.bin/workspace-1`)).toEqual(true);
   });
 });
