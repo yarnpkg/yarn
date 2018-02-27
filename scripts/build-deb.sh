@@ -36,7 +36,7 @@ PACKAGE_TMPDIR_ABSOLUTE=$(readlink -f $PACKAGE_TMPDIR)
 # Create Linux package structure
 mkdir -p $PACKAGE_TMPDIR/usr/share/yarn/
 mkdir -p $PACKAGE_TMPDIR/usr/share/doc/yarn/
-tar zxf $TARBALL_NAME -C $PACKAGE_TMPDIR/usr/share/yarn/ --strip 1
+tar zxf $TARBALL_NAME -C $PACKAGE_TMPDIR/usr/share/yarn/ --strip-components=1
 cp resources/debian/copyright $PACKAGE_TMPDIR/usr/share/doc/yarn/copyright
 
 # The Yarn executable expects to be in the same directory as the libraries, so
