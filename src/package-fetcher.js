@@ -5,6 +5,7 @@ import type {Fetchers} from './fetchers/index.js';
 import type PackageReference from './package-reference.js';
 import type Config from './config.js';
 import {MessageError} from './errors.js';
+import {DEPENDENCY_TYPES} from './constants.js';
 import * as fetchers from './fetchers/index.js';
 import * as fs from './util/fs.js';
 import * as promise from './util/promise.js';
@@ -34,12 +35,10 @@ async function fetchOne(ref: PackageReference, config: Config): Promise<FetchedM
   if (!Fetcher) {
     throw new MessageError(config.reporter.lang('unknownFetcherFor', remote.type));
   }
-
   const fetcher = new Fetcher(dest, remote, config);
   if (await config.isValidModuleDest(dest)) {
     return fetchCache(dest, fetcher, config);
   }
-
   // remove as the module may be invalid
   await fs.unlink(dest);
 
@@ -100,10 +99,13 @@ export function fetch(pkgs: Array<Manifest>, config: Config): Promise<Array<Mani
       }
 
       const res = await maybeFetchOne(ref, config);
-      let newPkg;
+
+      if (tick) {
+        tick();
+      }
 
       if (res) {
-        newPkg = res.package;
+        const newPkg = res.package;
 
         // update with new remote
         // but only if there was a hash previously as the tarball fetcher does not provide a hash.
@@ -122,18 +124,20 @@ export function fetch(pkgs: Array<Manifest>, config: Config): Promise<Array<Mani
           }
           ref.remote.hash = res.hash;
         }
-      }
 
-      if (tick) {
-        tick();
-      }
-
-      if (newPkg) {
-        newPkg._reference = ref;
-        newPkg._remote = ref.remote;
-        newPkg.name = pkg.name;
-        newPkg.fresh = pkg.fresh;
-        return newPkg;
+        if (newPkg) {
+          newPkg._reference = ref;
+          newPkg._remote = ref.remote;
+          newPkg.name = pkg.name;
+          newPkg.fresh = pkg.fresh;
+          // dependencies protocols sometimes differ, force original package versions
+          DEPENDENCY_TYPES.forEach(dep => {
+            if (pkg[dep]) {
+              newPkg[dep] = pkg[dep];
+            }
+          });
+          return newPkg;
+        }
       }
 
       return pkg;
