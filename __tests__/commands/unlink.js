@@ -46,6 +46,23 @@ test.concurrent('creates folder in linkFolder', async (): Promise<void> => {
   });
 });
 
+test.concurrent('creates link to binary in globalBinFolder', async (): Promise<void> => {
+  const linkFolder = await mkdir('link-folder');
+  const prefix = await mkdir('global-folder');
+
+  await fs.mkdirp(path.join(prefix, 'bin')); // We need bin folder in prefix folder
+
+  await runLink([], {linkFolder, prefix}, 'package-with-name', async (config, reporter): Promise<void> => {
+    const existed = await fs.exists(path.join(prefix, 'bin', 'global-bin'));
+    expect(existed).toEqual(true);
+  });
+
+  await runUnlink([], {linkFolder, prefix}, 'package-with-name', async (config, reporter): Promise<void> => {
+    const existed = await fs.exists(path.join(prefix, 'bin', 'global-bin'));
+    expect(existed).toEqual(false);
+  });
+});
+
 test.concurrent('throws error if package.json does not have name', async (): Promise<void> => {
   const linkFolder = await mkdir('link-folder');
   const reporter = new ConsoleReporter({});

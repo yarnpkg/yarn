@@ -2,5 +2,8 @@
   "name": "a-package",
   "dependencies": {
     "foo": "file:bar"
+  },
+  "bin" : {
+    "global-bin": "./bar.js"
   }
 }
