@@ -20,7 +20,7 @@ export default class ProgressBar {
   width: number;
   chars: [string, string];
   delay: number;
-  id: ?number;
+  id: ?TimeoutID;
   _callback: ?(progressBar: ProgressBar) => void;
 
   static bars = [['#', '-']];
