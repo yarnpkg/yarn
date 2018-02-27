@@ -13,7 +13,7 @@
     "cmd-shim": "^2.0.1",
     "commander": "^2.9.0",
     "death": "^1.0.0",
-    "debug": "^2.2.0",
+    "debug": "^3.0.0",
     "deepequal": "^0.0.1",
     "detect-indent": "^5.0.0",
     "dnscache": "^1.0.1",
