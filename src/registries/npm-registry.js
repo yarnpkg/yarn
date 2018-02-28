@@ -129,7 +129,7 @@ export default class NpmRegistry extends Registry {
   request(pathname: string, opts?: RegistryRequestOptions = {}, packageName: ?string): Promise<*> {
     // packageName needs to be escaped when if it is passed
     const packageIdent = (packageName && NpmRegistry.escapeName(packageName)) || pathname;
-    const registry = this.getRegistry(packageIdent);
+    const registry = opts.registry || this.getRegistry(packageIdent);
     const requestUrl = this.getRequestUrl(registry, pathname);
 
     const alwaysAuth = this.getRegistryOrGlobalOption(registry, 'always-auth');

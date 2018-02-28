@@ -16,6 +16,7 @@ export type RegistryRequestOptions = {
   buffer?: boolean,
   headers?: Object,
   process?: Function,
+  registry?: string,
 };
 
 export type CheckOutdatedReturn = Promise<{
