@@ -103,18 +103,18 @@ async function publish(config: Config, pkg: any, flags: Object, dir: string): Pr
   pkg.dist.tarball = url.resolve(registry, tbURI).replace(/^https:\/\//, 'http://');
 
   // publish package
-  const res = await config.registries.npm.request(NpmRegistry.escapeName(pkg.name), {
-    registry: pkg && pkg.publishConfig && pkg.publishConfig.registry,
-    method: 'PUT',
-    body: root,
-  });
-
-  if (res) {
-    await config.executeLifecycleScript('publish');
-    await config.executeLifecycleScript('postpublish');
-  } else {
+  try {
+    await config.registries.npm.request(NpmRegistry.escapeName(pkg.name), {
+      registry: pkg && pkg.publishConfig && pkg.publishConfig.registry,
+      method: 'PUT',
+      body: root,
+    });
+  } catch (error) {
     throw new MessageError(config.reporter.lang('publishFail'));
   }
+
+  await config.executeLifecycleScript('publish');
+  await config.executeLifecycleScript('postpublish');
 }
 
 export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {

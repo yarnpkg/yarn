@@ -164,18 +164,18 @@ const messages = {
 
   binLinkCollision:
     "There's already a linked binary called $0 in your global Yarn bin. Could not link this package's $0 bin entry.",
-  linkCollision: "There's already a module called $0 registered.",
-  linkMissing: 'No registered module found called $0.',
+  linkCollision: "There's already a package called $0 registered.",
+  linkMissing: 'No registered package found called $0.',
   linkRegistered: 'Registered $0.',
   linkRegisteredMessage:
-    'You can now run `yarn link $0` in the projects where you want to use this module and it will be used instead.',
+    'You can now run `yarn link $0` in the projects where you want to use this package and it will be used instead.',
   linkUnregistered: 'Unregistered $0.',
   linkUnregisteredMessage:
-    'You can now run `yarn unlink $0` in the projects where you no longer want to use this module.',
-  linkUsing: 'Using linked module for $0.',
-  linkDisusing: 'Removed linked module $0.',
+    'You can now run `yarn unlink $0` in the projects where you no longer want to use this package.',
+  linkUsing: 'Using linked package for $0.',
+  linkDisusing: 'Removed linked package $0.',
   linkDisusingMessage: 'You will need to run `yarn` to re-install the package that was linked.',
-  linkTargetMissing: 'The target of linked module $0 is missing. Removing link.',
+  linkTargetMissing: 'The target of linked package $0 is missing. Removing link.',
 
   createInvalidBin: 'Invalid bin entry found in package $0.',
   createMissingPackage:
@@ -367,6 +367,7 @@ const messages = {
   integrityFailedFilesMissing: 'Integrity check: Files are missing',
   integrityPatternsDontMatch: "Integrity check: Top level patterns don't match",
   integrityModulesFoldersMissing: 'Integrity check: Some module folders are missing',
+  integritySystemParamsDontMatch: "Integrity check: System parameters don't match",
   packageNotInstalled: '$0 not installed',
   optionalDepNotInstalled: 'Optional dependency $0 not installed',
   packageWrongVersion: '$0 is wrong version: expected $1, got $2',

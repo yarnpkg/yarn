@@ -30,6 +30,7 @@ import WorkspaceLayout from '../../workspace-layout.js';
 import ResolutionMap from '../../resolution-map.js';
 import guessName from '../../util/guess-name';
 
+const deepEqual = require('deepequal');
 const emoji = require('node-emoji');
 const invariant = require('invariant');
 const path = require('path');
@@ -809,7 +810,11 @@ export class Install {
     });
     const resolverPatternsAreSameAsInLockfile = Object.keys(lockfileBasedOnResolver).every(pattern => {
       const manifest = this.lockfile.getLocked(pattern);
-      return manifest && manifest.resolved === lockfileBasedOnResolver[pattern].resolved;
+      return (
+        manifest &&
+        manifest.resolved === lockfileBasedOnResolver[pattern].resolved &&
+        deepEqual(manifest.prebuiltVariants, lockfileBasedOnResolver[pattern].prebuiltVariants)
+      );
     });
 
     // remove command is followed by install with force, lockfile will be rewritten in any case then

@@ -1,6 +1,7 @@
 /* @flow */
 
 import type {Dependency, DependencyRequestPattern, Manifest} from './types.js';
+import type {FetcherNames} from './fetchers/index.js';
 import type PackageResolver from './package-resolver.js';
 import type {Reporter} from './reporters/index.js';
 import type Config from './config.js';
@@ -56,7 +57,7 @@ export default class PackageRequest {
   optional: boolean;
   foundInfo: ?Manifest;
 
-  getLocked(remoteType: string): ?Object {
+  getLocked(remoteType: FetcherNames): ?Manifest {
     // always prioritise root lockfile
     const shrunk = this.lockfile.getLocked(this.pattern);
 
@@ -77,8 +78,9 @@ export default class PackageRequest {
           hash: resolvedParts.hash,
           registry: shrunk.registry,
         },
-        optionalDependencies: shrunk.optionalDependencies,
-        dependencies: shrunk.dependencies,
+        optionalDependencies: shrunk.optionalDependencies || {},
+        dependencies: shrunk.dependencies || {},
+        prebuiltVariants: shrunk.prebuiltVariants || {},
       };
     } else {
       return null;

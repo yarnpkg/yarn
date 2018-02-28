@@ -549,7 +549,7 @@ export default class PackageHoister {
       }
     };
 
-    // add an occuring package to the above data structure
+    // add an occurring package to the above data structure
     const add = (pattern: string, ancestry: Array<Manifest>, ancestryPatterns: Array<string>) => {
       const pkg = this.resolver.getStrictResolvedPattern(pattern);
       if (ancestry.indexOf(pkg) >= 0) {
@@ -632,8 +632,8 @@ export default class PackageHoister {
           mostOccurencePattern = pattern;
         }
       }
-      invariant(mostOccurencePattern, 'expected most occuring pattern');
-      invariant(mostOccurenceCount, 'expected most occuring count');
+      invariant(mostOccurencePattern, 'expected most occurring pattern');
+      invariant(mostOccurenceCount, 'expected most occurring count');
 
       // only hoist this module if it occured more than once
       if (mostOccurenceCount > 1) {

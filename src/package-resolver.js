@@ -105,6 +105,7 @@ export default class PackageResolver {
     newPkg._remote = ref.remote;
     newPkg.name = oldPkg.name;
     newPkg.fresh = oldPkg.fresh;
+    newPkg.prebuiltVariants = oldPkg.prebuiltVariants;
 
     // update patterns
     for (const pattern of ref.patterns) {
@@ -118,6 +119,8 @@ export default class PackageResolver {
     for (const newPkg of newPkgs) {
       if (newPkg._reference) {
         for (const pattern of newPkg._reference.patterns) {
+          const oldPkg = this.patterns[pattern];
+          newPkg.prebuiltVariants = oldPkg.prebuiltVariants;
           this.patterns[pattern] = newPkg;
         }
       }
@@ -211,7 +214,7 @@ export default class PackageResolver {
   }
 
   /**
-   * Get a list of all package names in the depenency graph.
+   * Get a list of all package names in the dependency graph.
    */
 
   getAllDependencyNamesByLevelOrder(seedPatterns: Array<string>): Iterable<string> {
