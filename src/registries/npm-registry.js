@@ -85,6 +85,10 @@ function urlParts(requestUrl: string): UrlParts {
   return {host, path};
 }
 
+function rootDomain(host: string): string {
+  return host.split('.').slice(-2).join('.');
+}
+
 export default class NpmRegistry extends Registry {
   constructor(cwd: string, registries: ConfigRegistries, requestManager: RequestManager, reporter: Reporter) {
     super(cwd, registries, requestManager, reporter);
@@ -171,7 +175,10 @@ export default class NpmRegistry extends Registry {
       const parts = option.split(':');
       if (parts.length === 2 && parts[1] === '_authToken') {
         const registryParts = urlParts(parts[0]);
-        if (requestParts.host === registryParts.host && requestParts.path.startsWith(registryParts.path)) {
+        if (
+          rootDomain(requestParts.host) === rootDomain(registryParts.host) &&
+          requestParts.path.startsWith(registryParts.path)
+        ) {
           return true;
         }
       }
