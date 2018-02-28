@@ -92,7 +92,7 @@ export default class BaseReporter {
   lang(key: LanguageKeys, ...args: Array<mixed>): string {
     const msg = languages[this.language][key] || languages.en[key];
     if (!msg) {
-      throw new ReferenceError(`Unknown language key ${key}`);
+      throw new ReferenceError(`No message defined for language key ${key}`);
     }
 
     // stringify args
