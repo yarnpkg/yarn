@@ -136,7 +136,7 @@ test.concurrent('pack should exclude all other files if files array is not empty
   });
 });
 
-test.concurrent('pack should exclude all dotflies if not in files and files not empty', (): Promise<void> => {
+test.concurrent('pack should exclude all dotfiles if not in files and files not empty', (): Promise<void> => {
   return runPack([], {}, 'files-exclude-dotfile', async (config): Promise<void> => {
     const {cwd} = config;
     const files = await getFilesFromArchive(

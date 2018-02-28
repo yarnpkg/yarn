@@ -70,7 +70,7 @@ test.concurrent('--verify-tree should check skip deeper dev dependencies', async
 test.concurrent('--integrity should ignore comments and whitespaces in yarn.lock', async (): Promise<void> => {
   await runInstall({}, path.join('..', 'check', 'integrity-lock-check'), async (config, reporter): Promise<void> => {
     let lockfile = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
-    lockfile += "\n# ADDING THIS COMMENTN WON'T AFFECT INTEGRITY CHECK \n";
+    lockfile += "\n# ADDING THIS COMMENT WON'T AFFECT INTEGRITY CHECK \n";
     await fs.writeFile(path.join(config.cwd, 'yarn.lock'), lockfile);
 
     let thrown = false;

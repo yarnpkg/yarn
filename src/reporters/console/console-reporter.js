@@ -412,7 +412,7 @@ export default class ConsoleReporter extends BaseReporter {
       };
     }
 
-    // Clear any potentiall old progress bars
+    // Clear any potentially old progress bars
     this.stopProgress();
 
     const bar = (this._progressBar = new Progress(count, this.stderr, (progress: Progress) => {

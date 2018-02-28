@@ -107,7 +107,7 @@ export default class BaseReporter {
   /**
    * `stringifyLangArgs` run `JSON.stringify` on strings too causing
    * them to appear quoted. This marks them as "raw" and prevents
-   * the quiating and escaping
+   * the quoting and escaping
    */
   rawText(str: string): {inspect(): string} {
     return {

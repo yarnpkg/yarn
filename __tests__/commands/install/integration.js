@@ -775,7 +775,7 @@ test.concurrent('install a module with optional dependency should skip incompati
   });
 });
 
-// this tests for a problem occuring due to optional dependency incompatible with os, in this case fsevents
+// this tests for a problem occurring due to optional dependency incompatible with os, in this case fsevents
 // this would fail on os's incompatible with fsevents, which is everything except osx.
 if (process.platform !== 'darwin') {
   test.concurrent(

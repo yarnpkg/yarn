@@ -214,7 +214,7 @@ export default class PackageResolver {
   }
 
   /**
-   * Get a list of all package names in the depenency graph.
+   * Get a list of all package names in the dependency graph.
    */
 
   getAllDependencyNamesByLevelOrder(seedPatterns: Array<string>): Iterable<string> {
