@@ -1,5 +1,6 @@
 // @flow
 
+import type Config from '../config.js';
 import type PackageResolver from '../package-resolver.js';
 import * as fs from './fs.js';
 
@@ -73,14 +74,18 @@ function generateFindPackageLocator(packageInformationStores: PackageInformation
   });
 
   // Generate a function that, given a file path, returns the associated package name
-  code += `exports.findPackageLocator = function findPackageLocator(path) {\n`;
+  code += `exports.findPackageLocator = function findPackageLocator(location) {\n`;
   code += `\n`;
   code += `    let match;\n`;
 
-  for (const length of sortedLengths.keys()) {
-    code += `    if (match = locatorsByLocations.get(path.substr(0, ${length}))) return match;\n`;
+  for (const [length, count] of sortedLengths) {
+    code += `\n`;
+    code += `    if (location.length >= ${length} && location[${length} - 1] === path.sep)\n`;
+    code += `        if (match = locatorsByLocations.get(location.substr(0, ${length})))\n`;
+    code += `            return match;\n`;
   }
 
+  code += `\n`;
   code += `    return null;\n`;
   code += `};\n`;
 
@@ -127,8 +132,14 @@ function generateGetPackageDependencies(packageInformationStores: PackageInforma
 }
 
 /* eslint-disable max-len */
-const REQUIRE_HOOK = `
-let Module = require(\`module\`);
+const PROLOGUE = `
+let path = require('path');
+`;
+/* eslint-enable max-len */
+
+/* eslint-disable max-len */
+const REQUIRE_HOOK = lockfileFolder => `
+let Module = require('module');
 
 let originalResolver = Module._resolveFilename;
 let pathRegExp = /^(?!\\.{0,2}\\/)([^\\/]+)(\\/.*|)$/;
@@ -143,8 +154,13 @@ Module._resolveFilename = function (request, parent, isMain, options) {
     if (!dependencyNameMatch)
         return originalResolver.call(Module, request, parent, isMain, options);
 
-    let packagePath = parent.filename ? parent.filename : process.cwd();
-    let packageLocator = parent.filename ? exports.findPackageLocator(packagePath) : { name: null, reference: null };
+    let caller = parent;
+
+    while (caller && (caller.id === '[eval]' || caller.id === '<repl>' || !caller.filename))
+        caller = caller.parent;
+
+    let packagePath = caller ? caller.filename : process.cwd() + path.sep;
+    let packageLocator = exports.findPackageLocator(packagePath);
 
     if (!packageLocator)
         throw new Error(\`Could not find to which package belongs the path \${packagePath}\`);
@@ -171,6 +187,7 @@ Module._resolveFilename = function (request, parent, isMain, options) {
 /* eslint-enable */
 
 async function getPackageInformationStores(
+  config: Config,
   seedPatterns: Array<string>,
   {resolver}: {resolver: PackageResolver},
 ): PackageInformationStores {
@@ -197,7 +214,7 @@ async function getPackageInformationStores(
       }
 
       packageInformationStore.set(pkg.version, {
-        packageLocation: (await fs.realpath(loc)).replace(/\/$/, path.sep),
+        packageLocation: (await fs.realpath(loc)).replace(/[\\\/]?$/, path.sep),
         packageDependencies,
       });
     }
@@ -218,7 +235,7 @@ async function getPackageInformationStores(
         [
           null,
           {
-            packageLocation: null,
+            packageLocation: (await fs.realpath(config.lockfileFolder)).replace(/[\\\/]?$/, path.sep),
             packageDependencies: topLevelDependencies,
           },
         ],
@@ -229,10 +246,10 @@ async function getPackageInformationStores(
   return packageInformationStores;
 }
 
-export async function generatePnpMap(seedPatterns: Array<string>, {resolver}: {resolver: PackageResolver}): string {
-  const packageInformationStores = await getPackageInformationStores(seedPatterns, {resolver});
+export async function generatePnpMap(config: Config, seedPatterns: Array<string>, {resolver}: {resolver: PackageResolver}): string {
+  const packageInformationStores = await getPackageInformationStores(config, seedPatterns, {resolver});
 
-  let code = ``;
+  let code = PROLOGUE;
 
   code += generateMaps(packageInformationStores);
 
@@ -240,7 +257,7 @@ export async function generatePnpMap(seedPatterns: Array<string>, {resolver}: {r
   code += generateGetPackageLocation(packageInformationStores);
   code += generateGetPackageDependencies(packageInformationStores);
 
-  code += REQUIRE_HOOK;
+  code += REQUIRE_HOOK(config.lockfileFolder);
 
   return code;
 }
