@@ -180,6 +180,9 @@ Module._resolveFilename = function (request, parent, isMain, options) {
 
     let dependencyLocation = exports.getPackageLocation({ name: dependencyName, reference: dependencyReference });
 
+    if (!dependencyLocation)
+        throw new Error(\`Package \${dependencyName}@\${dependencyReference} is a valid dependency, but hasn't been installed and thus cannot be required\`);
+
     return originalResolver.call(Module, \`\${dependencyLocation}/\${subPath}\`, parent, isMain, options);
 
 };
