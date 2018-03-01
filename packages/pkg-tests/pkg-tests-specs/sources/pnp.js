@@ -122,5 +122,22 @@ module.exports = makeTemporaryEnv => {
         },
       ),
     );
+
+    test(
+      `it should run scripts using a Node version that auto-injects the hook`,
+      makeTemporaryEnv(
+        {
+          dependencies: {[`no-deps`]: `1.0.0`},
+          scripts: {myScript: `node -p 'require("no-deps/package.json").version'`},
+        },
+        async ({path, run}) => {
+          await run(`install`);
+
+          await expect(run(`myScript`)).resolves.toMatchObject({
+            stdout: `1.0.0\n`,
+          });
+        },
+      ),
+    );
   });
 };

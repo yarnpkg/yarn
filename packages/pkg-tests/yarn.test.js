@@ -1,17 +1,19 @@
 /* @flow */
 
+const {delimiter} = require(`path`);
+
 const {
   tests: {generatePkgDriver, startPackageServer, getPackageRegistry},
   exec: {execFile},
 } = require(`pkg-tests-core`);
 
-const {basic: basicSpecs, dragon: dragonSpecs, pnp: pnpSpecs} = require(`pkg-tests-specs`);
+const {basic: basicSpecs, dragon: dragonSpecs, pnp: pnpSpecs, script: scriptSpecs} = require(`pkg-tests-specs`);
 
 const pkgDriver = generatePkgDriver({
   runDriver: (path, [command, ...args], {registryUrl, plugNPlay}) => {
     let extraArgs = [];
 
-    if (command !== 'node') {
+    if (command === 'install') {
       extraArgs = [...extraArgs, `--cache-folder`, `${path}/.cache`];
     }
 
@@ -20,7 +22,11 @@ const pkgDriver = generatePkgDriver({
     }
 
     return execFile(process.execPath, [`${process.cwd()}/../../bin/yarn.js`, command, ...extraArgs, ...args], {
-      env: {[`NPM_CONFIG_REGISTRY`]: registryUrl, [`YARN_SILENT`]: `1`},
+      env: {
+        [`NPM_CONFIG_REGISTRY`]: registryUrl,
+        [`YARN_SILENT`]: `1`,
+        [`PATH`]: `${path}/bin${delimiter}${process.env.PATH}`,
+      },
       cwd: path,
     });
   },
@@ -34,3 +40,4 @@ beforeEach(async () => {
 basicSpecs(pkgDriver);
 dragonSpecs(pkgDriver);
 pnpSpecs(pkgDriver);
+scriptSpecs(pkgDriver);
