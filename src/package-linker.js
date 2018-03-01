@@ -13,7 +13,7 @@ import * as promise from './util/promise.js';
 import {entries} from './util/misc.js';
 import * as fs from './util/fs.js';
 import lockMutex from './util/mutex.js';
-import {satisfiesWithPreleases} from './util/semver.js';
+import {satisfiesWithPrereleases} from './util/semver.js';
 import WorkspaceLayout from './workspace-layout.js';
 
 const invariant = require('invariant');
@@ -401,7 +401,7 @@ export default class PackageLinker {
 
     // create binary links
     if (this.config.binLinks) {
-      const topLevelDependencies = this.determineTopLevelBinLinks(flatTree);
+      const topLevelDependencies = this.determineTopLevelBinLinkOrder(flatTree);
       const tickBin = this.reporter.progress(flatTree.length + topLevelDependencies.length);
 
       // create links in transient dependencies
@@ -420,7 +420,7 @@ export default class PackageLinker {
       // create links at top level for all dependencies.
       await promise.queue(
         topLevelDependencies,
-        async ([dest, pkg]) => {
+        async ([dest, {pkg}]) => {
           if (pkg._reference && pkg._reference.location && pkg.bin && Object.keys(pkg.bin).length) {
             const binLoc = path.join(this.config.lockfileFolder, this.config.getFolder(pkg));
             await this.linkSelfDependencies(pkg, dest, binLoc);
@@ -436,17 +436,32 @@ export default class PackageLinker {
     }
   }
 
-  determineTopLevelBinLinks(flatTree: HoistManifestTuples): Array<[string, Manifest]> {
+  determineTopLevelBinLinkOrder(flatTree: HoistManifestTuples): HoistManifestTuples {
     const linksToCreate = new Map();
-    for (const [dest, {pkg, isDirectRequire}] of flatTree) {
+    for (const [dest, hoistManifest] of flatTree) {
+      const {pkg, isDirectRequire} = hoistManifest;
       const {name} = pkg;
 
       if (isDirectRequire || (this.topLevelBinLinking && !linksToCreate.has(name))) {
-        linksToCreate.set(name, [dest, pkg]);
+        linksToCreate.set(name, [dest, hoistManifest]);
       }
     }
 
-    return Array.from(linksToCreate.values());
+    // Sort the array so that direct dependencies will be linked last.
+    // Bin links are overwritten if they already exist, so this will cause direct deps to take precedence.
+    // If someone finds this to be incorrect later, you could also consider sorting descending by
+    //   `linkToCreate.level` which is the dependency tree depth. Direct deps will have level 0 and transitive
+    //   deps will have level > 0.
+    const transientBins = [];
+    const topLevelBins = [];
+    for (const linkToCreate of Array.from(linksToCreate.values())) {
+      if (linkToCreate[1].isDirectRequire) {
+        topLevelBins.push(linkToCreate);
+      } else {
+        transientBins.push(linkToCreate);
+      }
+    }
+    return [...transientBins, ...topLevelBins];
   }
 
   resolvePeerModules() {
@@ -520,7 +535,7 @@ export default class PackageLinker {
   }
 
   _satisfiesPeerDependency(range: string, version: string): boolean {
-    return range === '*' || satisfiesWithPreleases(version, range, this.config.looseSemver);
+    return range === '*' || satisfiesWithPrereleases(version, range, this.config.looseSemver);
   }
 
   async _warnForMissingBundledDependencies(pkg: Manifest): Promise<void> {

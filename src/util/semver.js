@@ -7,7 +7,7 @@ const semver = require('semver');
  * prerelease versions so that "2.0.0-rc.0" satisfies the range ">=1.0.0", for example.
  */
 
-export function satisfiesWithPreleases(version: string, range: string, loose?: boolean = false): boolean {
+export function satisfiesWithPrereleases(version: string, range: string, loose?: boolean = false): boolean {
   let semverRange;
   try {
     // $FlowFixMe: Add a definition for the Range class

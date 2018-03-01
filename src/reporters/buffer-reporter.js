@@ -4,7 +4,7 @@ import JSONReporter from './json-reporter.js';
 
 type Buffer = Array<{
   type: string,
-  data: string | Object | number,
+  data: Object,
   error: boolean,
 }>;
 

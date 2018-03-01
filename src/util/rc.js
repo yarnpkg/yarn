@@ -2,6 +2,7 @@
 
 import {readFileSync} from 'fs';
 import * as path from 'path';
+import {CONFIG_DIRECTORY} from '../constants';
 
 const etc = '/etc';
 const isWin = process.platform === 'win32';
@@ -20,6 +21,7 @@ function getRcPaths(name: string, cwd: string): Array<string> {
   }
 
   if (home) {
+    addConfigPath(CONFIG_DIRECTORY);
     addConfigPath(home, '.config', name, 'config');
     addConfigPath(home, '.config', name);
     addConfigPath(home, `.${name}`, 'config');

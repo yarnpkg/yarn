@@ -308,6 +308,19 @@ export default (async function(
     }
   }
 
+  // get notice file
+  const noticeFile = files.find((filename): boolean => {
+    const lower = filename.toLowerCase();
+    return lower === 'notice' || lower.startsWith('notice.');
+  });
+  if (noticeFile) {
+    const noticeFilepath = path.join(moduleLoc, noticeFile);
+    const noticeFileStats = await fs.stat(noticeFilepath);
+    if (noticeFileStats.isFile()) {
+      info.noticeText = await fs.readFile(noticeFilepath);
+    }
+  }
+
   for (const dependencyType of MANIFEST_FIELDS) {
     const dependencyList = info[dependencyType];
     if (dependencyList && typeof dependencyList === 'object') {
