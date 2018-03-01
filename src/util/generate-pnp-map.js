@@ -7,8 +7,8 @@ import * as fs from './fs.js';
 const path = require('path');
 
 type PackageInformation = {|packageLocation: string, packageDependencies: Map<string, string>|};
-type PackageInformationStore = Map<string, PackageInformation>;
-type PackageInformationStores = Map<string, PackageInformationStore>;
+type PackageInformationStore = Map<string | null, PackageInformation>;
+type PackageInformationStores = Map<string | null, PackageInformationStore>;
 
 function generateMaps(packageInformationStores: PackageInformationStores): string {
   let code = ``;
@@ -78,7 +78,7 @@ function generateFindPackageLocator(packageInformationStores: PackageInformation
   code += `\n`;
   code += `    let match;\n`;
 
-  for (const [length, count] of sortedLengths) {
+  for (const [length] of sortedLengths) {
     code += `\n`;
     code += `    if (location.length >= ${length} && location[${length} - 1] === path.sep)\n`;
     code += `        if (match = locatorsByLocations.get(location.substr(0, ${length})))\n`;
@@ -190,7 +190,7 @@ async function getPackageInformationStores(
   config: Config,
   seedPatterns: Array<string>,
   {resolver}: {resolver: PackageResolver},
-): PackageInformationStores {
+): Promise<PackageInformationStores> {
   const packageInformationStores = new Map();
 
   const pkgs = resolver.getTopologicalManifests(seedPatterns);
@@ -198,7 +198,7 @@ async function getPackageInformationStores(
   for (const pkg of pkgs) {
     if (pkg._reference && pkg._reference.location && pkg._reference.isPlugnplay) {
       const ref = pkg._reference;
-      const loc = ref.location;
+      const loc = pkg._reference.location;
 
       let packageInformationStore = packageInformationStores.get(pkg.name);
 
@@ -246,7 +246,11 @@ async function getPackageInformationStores(
   return packageInformationStores;
 }
 
-export async function generatePnpMap(config: Config, seedPatterns: Array<string>, {resolver}: {resolver: PackageResolver}): string {
+export async function generatePnpMap(
+  config: Config,
+  seedPatterns: Array<string>,
+  {resolver}: {resolver: PackageResolver},
+): Promise<string> {
   const packageInformationStores = await getPackageInformationStores(config, seedPatterns, {resolver});
 
   let code = PROLOGUE;
