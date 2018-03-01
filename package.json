@@ -71,7 +71,7 @@
     "eslint-plugin-prefer-object-spread": "^1.2.1",
     "eslint-plugin-prettier": "^2.1.2",
     "eslint-plugin-react": "^7.1.0",
-    "eslint-plugin-relay": "^0.0.8",
+    "eslint-plugin-relay": "^0.0.21",
     "eslint-plugin-yarn-internal": "file:scripts/eslint-rules",
     "execa": "^0.9.0",
     "flow-bin": "^0.66.0",
