@@ -9,6 +9,8 @@ ref: refs/heads/master  HEAD
 7a053e2ca07d19b2e2eebeeb0c27edaacfd67904        HEAD`;
       case 'rev-list':
         return Promise.resolve('7a053e2ca07d19b2e2eebeeb0c27edaacfd67904 Fix ...');
+      case 'show-ref':
+        return `7a053e2ca07d19b2e2eebeeb0c27edaacfd67904 refs/remotes/origin/HEAD`;
     }
     return Promise.resolve('');
   }),
@@ -77,6 +79,16 @@ test('npmUrlToGitUrl', () => {
     hostname: 'github.com',
     repository: 'ssh://git@github.com/npm-opam/ocamlfind',
   });
+  expect(Git.npmUrlToGitUrl('git+file:../ocalmfind.git')).toEqual({
+    protocol: 'file:',
+    hostname: null,
+    repository: '../ocalmfind.git',
+  });
+  expect(Git.npmUrlToGitUrl('git+file:../ocalmfind')).toEqual({
+    protocol: 'file:',
+    hostname: null,
+    repository: '../ocalmfind',
+  });
 });
 
 test('secureGitUrl', async function(): Promise<void> {
@@ -107,15 +119,35 @@ test('secureGitUrl', async function(): Promise<void> {
   expect(gitURL.repository).toEqual('https://github.com/yarnpkg/yarn.git');
 });
 
-test('resolveDefaultBranch', async () => {
+test('resolveDefaultBranch when local', async () => {
   const spawnGitMock = (spawnGit: any).mock;
   const config = await Config.create();
   const git = new Git(
     config,
     {
-      protocol: '',
+      protocol: 'file:',
       hostname: undefined,
-      repository: '',
+      repository: 'example',
+    },
+    '',
+  );
+  expect(await git.resolveDefaultBranch()).toEqual({
+    sha: '7a053e2ca07d19b2e2eebeeb0c27edaacfd67904',
+    ref: undefined,
+  });
+  const lastCall = spawnGitMock.calls[spawnGitMock.calls.length - 1];
+  expect(lastCall[0]).toContain('show-ref');
+});
+
+test('resolveDefaultBranch when remote', async () => {
+  const spawnGitMock = (spawnGit: any).mock;
+  const config = await Config.create();
+  const git = new Git(
+    config,
+    {
+      protocol: 'https:',
+      hostname: '//example.com',
+      repository: 'example',
     },
     '',
   );
