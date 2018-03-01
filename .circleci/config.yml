@@ -62,6 +62,25 @@ test_steps: &test_steps
     - *test_build
     - *test_run
 
+pkg_tests_install: &pkg_tests_install
+  run:
+    name: Install the dependencies for the pkg-tests testsuite
+    command: |
+        ./bin/yarn --cwd packages/pkg-tests
+
+pkg_tests_run: &pkg_tests_run
+  run:
+    name: Tests (pkg-tests testsuite)
+    command: |
+        ./bin/yarn --cwd packages/pkg-tests jest yarn.test.js
+
+pkg_tests: &pkg_tests
+  steps:
+    - *attach_workspace
+    - *test_build
+    - *pkg_tests_install
+    - *pkg_tests_run
+
 default_filters: &default_filters
   tags:
     only: /^v[0-9]+\.[0-9]+\.[0-9]+$/
@@ -96,6 +115,9 @@ jobs:
           root: ~/project
           paths:
             - yarn
+  test-pkg-tests-linux-node8:
+    <<: *docker_defaults
+    <<: *pkg_tests
   test-linux-node8:
     <<: *docker_defaults
     <<: *test_steps
@@ -163,6 +185,10 @@ workflows:
           filters: *default_filters
           requires:
             - install
+      - test-pkg-tests-linux-node8:
+          filters: *default_filters
+          requires:
+            - install
       - test-linux-node8:
           filters: *default_filters
           requires:
@@ -193,6 +219,7 @@ workflows:
             branches:
               ignore: /.*/
           requires:
+            - test-pkg-tests-linux-node8
             - test-linux-node8
             - test-linux-node6
             - test-linux-node4

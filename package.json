@@ -109,6 +109,7 @@
     "build-win-installer": "scripts\\build-windows-installer.bat",
     "dupe-check": "yarn jsinspect ./src",
     "lint": "eslint . && flow check",
+    "pkg-tests": "yarn --cwd packages/pkg-tests jest yarn.test.js",
     "prettier": "eslint src __tests__ --fix",
     "release-branch": "./scripts/release-branch.sh",
     "test": "yarn lint && yarn test-only",
