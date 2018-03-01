@@ -205,6 +205,7 @@ export function main({
     verbose: commander.verbose,
     noProgress: !commander.progress,
     isSilent: boolifyWithDefault(process.env.YARN_SILENT, false) || commander.silent,
+    nonInteractive: commander.nonInteractive,
   });
 
   const exit = exitCode => {
