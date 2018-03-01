@@ -6,6 +6,7 @@ import {MessageError} from './errors.js';
 import map from './util/map.js';
 import {entries} from './util/misc.js';
 import {version as yarnVersion} from './util/yarn-version.js';
+import {satisfiesWithPrereleases} from './util/semver.js';
 
 const invariant = require('invariant');
 const semver = require('semver');
@@ -67,6 +68,10 @@ export function testEngine(name: string, range: string, versions: Versions, loos
   }
 
   if (semver.satisfies(actual, range, looseSemver)) {
+    return true;
+  }
+
+  if (name === 'yarn' && satisfiesWithPrereleases(actual, range, looseSemver)) {
     return true;
   }
 

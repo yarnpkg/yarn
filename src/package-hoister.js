@@ -1,9 +1,10 @@
 /* @flow */
 
 import type PackageResolver from './package-resolver.js';
-import type Config from './config.js';
+import Config from './config.js';
 import type {Manifest} from './types.js';
 import {sortAlpha} from './util/misc.js';
+import mm from 'micromatch';
 
 const invariant = require('invariant');
 const path = require('path');
@@ -11,6 +12,12 @@ const path = require('path');
 type Parts = Array<string>;
 
 let historyCounter = 0;
+
+const LINK_TYPES = new Set(['workspace', 'link']);
+type NewPartsType = {
+  parts: Parts,
+  duplicate: boolean,
+};
 
 export class HoistManifest {
   constructor(
@@ -31,10 +38,13 @@ export class HoistManifest {
     this.key = key;
     this.parts = parts;
     this.originalKey = key;
-    this.previousKeys = [];
+    this.previousPaths = [];
 
     this.history = [];
     this.addHistory(`Start position = ${key}`);
+
+    this.isNohoist = false;
+    this.originalParentPath = '';
   }
 
   isRequired: boolean;
@@ -43,10 +53,15 @@ export class HoistManifest {
   pkg: Manifest;
   loc: string;
   parts: Parts;
-  previousKeys: Array<string>;
+  previousPaths: Array<string>;
   history: Array<string>;
   key: string;
   originalKey: string;
+
+  // nohoist info
+  isNohoist: boolean;
+  nohoistList: ?Array<string>;
+  originalParentPath: string;
 
   addHistory(msg: string) {
     this.history.push(`${++historyCounter}: ${msg}`);
@@ -63,10 +78,13 @@ export default class PackageHoister {
     this.taintedKeys = new Map();
     this.levelQueue = [];
     this.tree = new Map();
+
+    this.nohoistResolver = new NohoistResolver(config, resolver);
   }
 
   resolver: PackageResolver;
   config: Config;
+  nohoistResolver: NohoistResolver;
 
   ignoreOptional: ?boolean;
 
@@ -202,7 +220,9 @@ export default class PackageHoister {
     const parts = parentParts.concat(pkg.name);
     const key: string = this.implodeKey(parts);
     const info: HoistManifest = new HoistManifest(key, parts, pkg, loc, isDirectRequire, isRequired, isIncompatible);
-    //
+
+    this.nohoistResolver.initNohoist(info, parent);
+
     this.tree.set(key, info);
     this.taintKey(key, info);
 
@@ -216,7 +236,7 @@ export default class PackageHoister {
 
   /**
    * Propagate inherited ignore statuses from non-ignored to ignored packages
-  */
+   */
 
   _propagateRequired() {
     //
@@ -254,7 +274,7 @@ export default class PackageHoister {
 
   /**
    * Looks up the package a dependency resolves to
-  */
+   */
 
   _lookupDependency(info: HoistManifest, depPattern: string): ?HoistManifest {
     //
@@ -279,21 +299,19 @@ export default class PackageHoister {
    * Find the highest position we can hoist this module to.
    */
 
-  getNewParts(
-    key: string,
-    info: HoistManifest,
-    parts: Parts,
-  ): {
-    parts: Parts,
-    duplicate: boolean,
-  } {
+  getNewParts(key: string, info: HoistManifest, parts: Parts): NewPartsType {
     let stepUp = false;
 
+    const highestHoistingPoint = this.nohoistResolver.highestHoistingPoint(info) || 0;
     const fullKey = this.implodeKey(parts);
     const stack = []; // stack of removed parts
     const name = parts.pop();
 
-    for (let i = parts.length - 1; i >= 0; i--) {
+    if (info.isNohoist) {
+      info.addHistory(`Marked as nohoist, will not be hoisted above '${parts[highestHoistingPoint]}'`);
+    }
+
+    for (let i = parts.length - 1; i >= highestHoistingPoint; i--) {
       const checkParts = parts.slice(0, i).concat(name);
       const checkKey = this.implodeKey(checkParts);
       info.addHistory(`Looked at ${checkKey} for a match`);
@@ -328,7 +346,7 @@ export default class PackageHoister {
     const peerDependencies = Object.keys(info.pkg.peerDependencies || {});
 
     // remove redundant parts that wont collide
-    hoistLoop: while (parts.length) {
+    hoistLoop: while (parts.length > highestHoistingPoint) {
       // we must not hoist a package higher than its peer dependencies
       for (const peerDependency of peerDependencies) {
         const checkParts = parts.concat(peerDependency);
@@ -369,6 +387,10 @@ export default class PackageHoister {
 
     //
     const isValidPosition = (parts: Parts): boolean => {
+      // nohoist package can't be hoisted to the "root"
+      if (parts.length <= highestHoistingPoint) {
+        return false;
+      }
       const key = this.implodeKey(parts);
       const existing = this.tree.get(key);
       if (existing && existing.loc === info.loc) {
@@ -415,18 +437,19 @@ export default class PackageHoister {
 
     // remove this item from the `tree` map so we can ignore it
     this.tree.delete(oldKey);
-
     const {parts, duplicate} = this.getNewParts(oldKey, info, rawParts.slice());
+
     const newKey = this.implodeKey(parts);
     if (duplicate) {
       info.addHistory(`Satisfied from above by ${newKey}`);
       this.declareRename(info, rawParts, parts);
+      this.updateHoistHistory(this.nohoistResolver._originalPath(info), this.implodeKey(parts));
       return;
     }
 
     // update to the new key
     if (oldKey === newKey) {
-      info.addHistory("Didn't hoist - conflicts above");
+      info.addHistory(`Didn't hoist - see reason above`);
       this.setKey(info, oldKey, rawParts);
       return;
     }
@@ -460,6 +483,12 @@ export default class PackageHoister {
     }
   }
 
+  updateHoistHistory(fromPath: string, toKey: string) {
+    const info = this.tree.get(toKey);
+    invariant(info, `expect to find hoist-to ${toKey}`);
+    info.previousPaths.push(fromPath);
+  }
+
   /**
    * Update the key of a module and update our references.
    */
@@ -475,7 +504,9 @@ export default class PackageHoister {
       return;
     }
 
-    info.previousKeys.push(newKey);
+    const fromInfo = this.tree.get(newKey);
+    invariant(fromInfo, `expect to find hoist-from ${newKey}`);
+    info.previousPaths.push(this.nohoistResolver._originalPath(fromInfo));
     info.addHistory(`New position = ${newKey}`);
   }
 
@@ -518,7 +549,7 @@ export default class PackageHoister {
       }
     };
 
-    // add an occuring package to the above data structure
+    // add an occurring package to the above data structure
     const add = (pattern: string, ancestry: Array<Manifest>, ancestryPatterns: Array<string>) => {
       const pkg = this.resolver.getStrictResolvedPattern(pattern);
       if (ancestry.indexOf(pkg) >= 0) {
@@ -601,8 +632,8 @@ export default class PackageHoister {
           mostOccurencePattern = pattern;
         }
       }
-      invariant(mostOccurencePattern, 'expected most occuring pattern');
-      invariant(mostOccurenceCount, 'expected most occuring count');
+      invariant(mostOccurencePattern, 'expected most occurring pattern');
+      invariant(mostOccurenceCount, 'expected most occurring count');
 
       // only hoist this module if it occured more than once
       if (mostOccurenceCount > 1) {
@@ -658,6 +689,106 @@ export default class PackageHoister {
     }
     return visibleFlatTree;
   }
+}
+
+const WS_ROOT_ALIAS = '_project_';
+export class NohoistResolver {
+  constructor(config: Config, resolver: PackageResolver) {
+    this._resolver = resolver;
+    this._config = config;
+    if (resolver.workspaceLayout) {
+      this._wsRootPackageName = resolver.workspaceLayout.virtualManifestName;
+      const {manifest} = resolver.workspaceLayout.getWorkspaceManifest(this._wsRootPackageName);
+      this._wsRootNohoistList = this._extractNohoistList(manifest, manifest.name);
+    }
+  }
+  _resolver: PackageResolver;
+  _config: Config;
+  _wsRootNohoistList: ?Array<string>;
+  _wsRootPackageName: ?string;
+
+  /**
+   * examine the top level packages to find the root package
+   */
+  initNohoist = (info: HoistManifest, parent: ?HoistManifest) => {
+    let parentNohoistList: ?Array<string>;
+    let originalParentPath: string = info.originalParentPath;
+
+    if (parent) {
+      parentNohoistList = parent.nohoistList;
+      originalParentPath = this._originalPath(parent);
+    } else {
+      invariant(this._isTopPackage(info), `${info.key} doesn't have parent nor a top package`);
+      if (info.pkg.name !== this._wsRootPackageName) {
+        parentNohoistList = this._wsRootNohoistList;
+        originalParentPath = this._wsRootPackageName || '';
+      }
+    }
+
+    info.originalParentPath = originalParentPath;
+    let nohoistList = this._extractNohoistList(info.pkg, this._originalPath(info)) || [];
+    if (parentNohoistList) {
+      nohoistList = nohoistList.concat(parentNohoistList);
+    }
+    info.nohoistList = nohoistList.length > 0 ? nohoistList : null;
+    info.isNohoist = this._isNohoist(info);
+  };
+
+  /**
+   * find the highest hoisting point for the given HoistManifest.
+   * algorithm: a nohoist package should never be hoisted beyond the top of its branch, i.e.
+   * the first element of its parts. Therefore the highest possible hoisting index is 1,
+   * unless the package has only 1 part (itself), in such case returns null just like any hoisted package
+   * 
+   */
+
+  highestHoistingPoint = (info: HoistManifest): ?number => {
+    return info.isNohoist && info.parts.length > 1 ? 1 : null;
+  };
+
+  // private functions
+  _isNohoist = (info: HoistManifest): boolean => {
+    if (!info.nohoistList || info.nohoistList.length <= 0) {
+      return false;
+    }
+    const path = this._originalPath(info);
+
+    // top package can not be marked 'nohoist' because it is already at the top (hoisted).
+    return !this._isTopPackage(info) && mm.any(path, info.nohoistList);
+  };
+  _isRootPackage = (pkg: Manifest): boolean => {
+    return pkg.name === this._wsRootPackageName;
+  };
+  _originalPath = (info: HoistManifest): string => {
+    return this._makePath(info.originalParentPath, info.pkg.name);
+  };
+  _makePath(...args: Array<string>): string {
+    const parts = args.map(s => (s === this._wsRootPackageName ? WS_ROOT_ALIAS : s));
+    return parts.join('/');
+  }
+  _isTopPackage = (info: HoistManifest): boolean => {
+    const parentParts = info.parts.slice(0, -1);
+    const result =
+      !parentParts ||
+      parentParts.length <= 0 ||
+      (parentParts.length === 1 && parentParts[0] === this._wsRootPackageName);
+    return result;
+  };
+  _isLink = (info: HoistManifest): boolean => {
+    return info.pkg._remote != null && LINK_TYPES.has(info.pkg._remote.type);
+  };
+
+  // extract nohoist from package.json then prefix them with branch path
+  // so we can matched against the branch tree ("originalPath") later
+  _extractNohoistList = (pkg: Manifest, pathPrefix: string): ?Array<string> => {
+    let nohoistList: ?Array<string>;
+    const ws = this._config.getWorkspaces(pkg);
+
+    if (ws && ws.nohoist) {
+      nohoistList = ws.nohoist.map(p => this._makePath(pathPrefix, p));
+    }
+    return nohoistList;
+  };
 }
 
 export type HoistManifestTuple = [string, HoistManifest];

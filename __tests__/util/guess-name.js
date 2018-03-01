@@ -24,10 +24,25 @@ const examples = [
   'awesome-name.tar.gz',
 ];
 
+const dotExamples = [
+  'awesomename/awesome.name',
+  'awesomename/awesome.name.git',
+  'awesomename/awesome.name.tar.gz',
+  'awesomename/awesome.name.tar.bz2',
+];
+
 describe('guessName', () => {
   for (const source of examples) {
     it(`guess name of ${source}`, () => {
       expect(guessName(source)).toBe('awesome-name');
+    });
+  }
+});
+
+describe('guessName dot examples', () => {
+  for (const source of dotExamples) {
+    it(`guess name of ${source}`, () => {
+      expect(guessName(source)).toBe('awesome.name');
     });
   }
 });

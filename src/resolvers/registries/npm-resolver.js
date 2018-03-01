@@ -9,6 +9,7 @@ import NpmRegistry, {SCOPE_SEPARATOR} from '../../registries/npm-registry.js';
 import map from '../../util/map.js';
 import * as fs from '../../util/fs.js';
 import {YARN_REGISTRY} from '../../constants.js';
+import {getPlatformSpecificPackageFilename} from '../../util/package-name-utils.js';
 
 const inquirer = require('inquirer');
 const tty = require('tty');
@@ -34,7 +35,11 @@ export default class NpmResolver extends RegistryResolver {
     body: RegistryResponse,
     request: ?PackageRequest,
   ): Promise<Manifest> {
-    if (!body['dist-tags']) {
+    if (body.versions && Object.keys(body.versions).length === 0) {
+      throw new MessageError(config.reporter.lang('registryNoVersions', body.name));
+    }
+
+    if (!body['dist-tags'] || !body.versions) {
       throw new MessageError(config.reporter.lang('malformedRegistryResponse', body.name));
     }
 
@@ -67,7 +72,7 @@ export default class NpmResolver extends RegistryResolver {
           name: 'package',
           type: 'list',
           message: config.reporter.lang('chooseVersionFromList', body.name),
-          choices: Object.keys(body.versions).reverse(),
+          choices: (semver: Object).rsort(Object.keys(body.versions)),
           pageSize,
         },
       ]);
@@ -176,6 +181,18 @@ export default class NpmResolver extends RegistryResolver {
     // lockfile
     const shrunk = this.request.getLocked('tarball');
     if (shrunk) {
+      if (this.config.packBuiltPackages && shrunk.prebuiltVariants && shrunk._remote) {
+        const prebuiltVariants = shrunk.prebuiltVariants;
+        const prebuiltName = getPlatformSpecificPackageFilename(shrunk);
+        const offlineMirrorPath = this.config.getOfflineMirrorPath();
+        if (prebuiltVariants[prebuiltName] && offlineMirrorPath) {
+          const filename = path.join(offlineMirrorPath, 'prebuilt', prebuiltName + '.tgz');
+          if (shrunk._remote && (await fs.exists(filename))) {
+            shrunk._remote.reference = `file:${filename}`;
+            shrunk._remote.hash = prebuiltVariants[prebuiltName];
+          }
+        }
+      }
       return shrunk;
     }
 

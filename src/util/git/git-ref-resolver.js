@@ -94,7 +94,7 @@ const tryVersionAsTagSemver = async (
   {version, config, refs}: ResolveVersionOptions,
   names: Names,
 ): Promise<?ResolvedSha> => {
-  const result = await findSemver(version, config, names.tags);
+  const result = await findSemver(version.replace(/^semver:/, ''), config, names.tags);
   return result ? tryRef(refs, `${REF_TAG_PREFIX}${result}`) : null;
 };
 
@@ -102,7 +102,7 @@ const tryVersionAsBranchSemver = async (
   {version, config, refs}: ResolveVersionOptions,
   names: Names,
 ): Promise<?ResolvedSha> => {
-  const result = await findSemver(version, config, names.heads);
+  const result = await findSemver(version.replace(/^semver:/, ''), config, names.heads);
   return result ? tryRef(refs, `${REF_BRANCH_PREFIX}${result}`) : null;
 };
 

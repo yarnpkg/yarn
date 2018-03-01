@@ -16,6 +16,7 @@ const fs2 = require('fs');
 
 export function setFlags(commander: Object) {
   versionSetFlags(commander);
+  commander.description('Publishes a package to the npm registry.');
   commander.usage('publish [<tarball>|<folder>] [--tag <tag>] [--access <public|restricted>]');
   commander.option('--access [access]', 'access');
   commander.option('--tag [tag]', 'tag');
@@ -26,8 +27,15 @@ export function hasWrapper(commander: Object, args: Array<string>): boolean {
 }
 
 async function publish(config: Config, pkg: any, flags: Object, dir: string): Promise<void> {
+  let access = flags.access;
+
+  // if no access level is provided, check package.json for `publishConfig.access`
+  // see: https://docs.npmjs.com/files/package.json#publishconfig
+  if (!access && pkg && pkg.publishConfig && pkg.publishConfig.access) {
+    access = pkg.publishConfig.access;
+  }
+
   // validate access argument
-  const access = flags.access;
   if (access && access !== 'public' && access !== 'restricted') {
     throw new MessageError(config.reporter.lang('invalidAccess'));
   }
@@ -68,7 +76,7 @@ async function publish(config: Config, pkg: any, flags: Object, dir: string): Pr
   // create body
   const root = {
     _id: pkg.name,
-    access: flags.access,
+    access,
     name: pkg.name,
     description: pkg.description,
     'dist-tags': {
@@ -95,17 +103,18 @@ async function publish(config: Config, pkg: any, flags: Object, dir: string): Pr
   pkg.dist.tarball = url.resolve(registry, tbURI).replace(/^https:\/\//, 'http://');
 
   // publish package
-  const res = await config.registries.npm.request(NpmRegistry.escapeName(pkg.name), {
-    method: 'PUT',
-    body: root,
-  });
-
-  if (res) {
-    await config.executeLifecycleScript('publish');
-    await config.executeLifecycleScript('postpublish');
-  } else {
+  try {
+    await config.registries.npm.request(NpmRegistry.escapeName(pkg.name), {
+      registry: pkg && pkg.publishConfig && pkg.publishConfig.registry,
+      method: 'PUT',
+      body: root,
+    });
+  } catch (error) {
     throw new MessageError(config.reporter.lang('publishFail'));
   }
+
+  await config.executeLifecycleScript('publish');
+  await config.executeLifecycleScript('postpublish');
 }
 
 export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
@@ -133,7 +142,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
 
   //
   reporter.step(2, 4, reporter.lang('loggingIn'));
-  const revoke = await getToken(config, reporter, pkg.name);
+  const revoke = await getToken(config, reporter, pkg.name, flags);
 
   //
   reporter.step(3, 4, reporter.lang('publishing'));

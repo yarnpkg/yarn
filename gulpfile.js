@@ -27,7 +27,7 @@ const build = (lib, opts) =>
       .pipe(newer(lib))
       .pipe(gulpif(argv.sourcemaps, sourcemaps.init()))
       .pipe(babel(opts))
-      .pipe(gulpif(argv.sourcemaps, sourcemaps.write('.')))
+      .pipe(gulpif(argv.sourcemaps, sourcemaps.write('.', {sourceRoot: '../src'})))
       .pipe(gulp.dest(lib));
 
 gulp.task('default', ['build']);

@@ -31,6 +31,7 @@ const CONFIG_KEYS = [
   'childConcurrency',
   'networkTimeout',
   'workspacesEnabled',
+  'workspacesNohoistEnabled',
   'pruneOfflineMirror',
   'enableMetaFolder',
   'enableLockfileVersions',
@@ -44,7 +45,11 @@ export function hasWrapper(flags: Object, args: Array<string>): boolean {
   return args[0] !== 'get';
 }
 
-export const {run, setFlags, examples} = buildSubCommands('config', {
+export function setFlags(commander: Object) {
+  commander.description('Manages the yarn configuration files.');
+}
+
+export const {run, examples} = buildSubCommands('config', {
   async set(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<boolean> {
     if (args.length === 0 || args.length > 2) {
       return false;

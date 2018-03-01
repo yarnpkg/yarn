@@ -161,6 +161,7 @@ export function hasWrapper(commander: Object, args: Array<string>): boolean {
 }
 
 export function setFlags(commander: Object) {
+  commander.description('Lists installed packages.');
   commander.option('--depth [depth]', 'Limit the depth of the shown dependencies');
   commander.option('--pattern [pattern]', 'Filter dependencies by pattern');
 }
@@ -183,7 +184,11 @@ export function filterTree(tree: Tree, filters: Array<string>, pattern: string =
 }
 
 export function getDevDeps(manifest: Object): Set<string> {
-  return new Set(Object.keys(manifest.devDependencies).map(key => `${key}@${manifest.devDependencies[key]}`));
+  if (manifest.devDependencies) {
+    return new Set(Object.keys(manifest.devDependencies).map(key => `${key}@${manifest.devDependencies[key]}`));
+  } else {
+    return new Set();
+  }
 }
 
 export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {

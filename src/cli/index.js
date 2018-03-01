@@ -23,6 +23,7 @@ import {getRcConfigForCwd, getRcArgs} from '../rc.js';
 import {spawnp, forkp} from '../util/child.js';
 import {version} from '../util/yarn-version.js';
 import handleSignals from '../util/signal-handler.js';
+import {boolify, boolifyWithDefault} from '../util/conversion.js';
 
 function findProjectRoot(base: string): string {
   let prev = null;
@@ -38,16 +39,6 @@ function findProjectRoot(base: string): string {
   } while (dir !== prev);
 
   return base;
-}
-
-const boolify = val => val.toString().toLowerCase() !== 'false' && val !== '0';
-
-function boolifyWithDefault(val: any, defaultResult: boolean): boolean {
-  if (val === undefined || val === null || val === '') {
-    return defaultResult;
-  } else {
-    return boolify(val);
-  }
 }
 
 export function main({
@@ -69,7 +60,7 @@ export function main({
   commander.option('--offline', 'trigger an error if any required dependencies are not available in local cache');
   commander.option('--prefer-offline', 'use network only if dependencies are not available in local cache');
   commander.option('--strict-semver');
-  commander.option('--json', '');
+  commander.option('--json', 'format Yarn log messages as lines of JSON (see jsonlines.org)');
   commander.option('--ignore-scripts', "don't run lifecycle scripts");
   commander.option('--har', 'save HAR output of network traffic');
   commander.option('--show-network-usage', 'prints network usage out after install');
@@ -173,10 +164,18 @@ export function main({
   const command = commands[commandName];
 
   let warnAboutRunDashDash = false;
-  // we are using "yarn <script> -abc" or "yarn run <script> -abc", we want -abc to be script options, not yarn options
-  if (command === commands.run || command === commands.create) {
+  // we are using "yarn <script> -abc", "yarn run <script> -abc", or "yarn node -abc", we want -abc
+  // to be script options, not yarn options
+  const PROXY_COMMANDS = new Set([`run`, `create`, `node`]);
+  if (PROXY_COMMANDS.has(commandName)) {
     if (endArgs.length === 0) {
-      endArgs = ['--', ...args.splice(1)];
+      // the "run" and "create" command take one argument that we want to parse as usual (the
+      // script/package name), hence the splice(1)
+      if (command === commands.run || command === commands.create) {
+        endArgs = ['--', ...args.splice(1)];
+      } else {
+        endArgs = ['--', ...args];
+      }
     } else {
       warnAboutRunDashDash = true;
     }
@@ -207,6 +206,7 @@ export function main({
     verbose: commander.verbose,
     noProgress: !commander.progress,
     isSilent: boolifyWithDefault(process.env.YARN_SILENT, false) || commander.silent,
+    nonInteractive: commander.nonInteractive,
   });
 
   const exit = exitCode => {
@@ -290,6 +290,7 @@ export function main({
     return new Promise((resolve, reject) => {
       const connectionOptions = {
         port: +mutexPort || constants.SINGLE_INSTANCE_PORT,
+        host: 'localhost',
       };
 
       function startServer() {

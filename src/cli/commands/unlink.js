@@ -9,7 +9,9 @@ import {getBinFolder as getGlobalBinFolder} from './global';
 
 const path = require('path');
 
-export function setFlags(commander: Object) {}
+export function setFlags(commander: Object) {
+  commander.description('Unlink a previously created symlink for a package.');
+}
 
 export function hasWrapper(commander: Object, args: Array<string>): boolean {
   return true;

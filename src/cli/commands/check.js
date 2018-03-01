@@ -20,6 +20,7 @@ export function hasWrapper(commander: Object): boolean {
 }
 
 export function setFlags(commander: Object) {
+  commander.description('Verifies if versions in the current project’s package.json match that of yarn’s lock file.');
   commander.option('--integrity');
   commander.option('--verify-tree');
 }
@@ -51,8 +52,8 @@ export async function verifyTreeCheck(
     for (const name in rootManifest.dependencies) {
       const version = rootManifest.dependencies[name];
       // skip linked dependencies
-      const isLinkedDepencency = /^link:/i.test(version) || (/^file:/i.test(version) && config.linkFileDependencies);
-      if (isLinkedDepencency) {
+      const isLinkedDependency = /^link:/i.test(version) || (/^file:/i.test(version) && config.linkFileDependencies);
+      if (isLinkedDependency) {
         continue;
       }
       dependenciesToCheckVersion.push({
@@ -67,8 +68,8 @@ export async function verifyTreeCheck(
     for (const name in rootManifest.devDependencies) {
       const version = rootManifest.devDependencies[name];
       // skip linked dependencies
-      const isLinkedDepencency = /^link:/i.test(version) || (/^file:/i.test(version) && config.linkFileDependencies);
-      if (isLinkedDepencency) {
+      const isLinkedDependency = /^link:/i.test(version) || (/^file:/i.test(version) && config.linkFileDependencies);
+      if (isLinkedDependency) {
         continue;
       }
       dependenciesToCheckVersion.push({
@@ -270,9 +271,9 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
 
     // skip unnecessary checks for linked dependencies
     const remoteType = pkg._reference.remote.type;
-    const isLinkedDepencency =
+    const isLinkedDependency =
       remoteType === 'link' || remoteType === 'workspace' || (remoteType === 'file' && config.linkFileDependencies);
-    if (isLinkedDepencency) {
+    if (isLinkedDependency) {
       continue;
     }
 

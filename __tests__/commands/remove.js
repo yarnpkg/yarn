@@ -147,9 +147,7 @@ test.concurrent('removes package installed without a manifest', (): Promise<void
 });
 
 test.concurrent('removes from workspace packages', async () => {
-  await runInstall({}, 'workspaces-install-basic', async (config): Promise<void> => {
-    const reporter = new ConsoleReporter({});
-
+  await runInstall({}, 'workspaces-install-basic', async (config, reporter): Promise<void> => {
     expect(await fs.exists(`${config.cwd}/node_modules/isarray`)).toEqual(true);
     expect(await fs.exists(`${config.cwd}/workspace-child/node_modules/isarray`)).toEqual(false);
 
@@ -173,9 +171,7 @@ test.concurrent('removes from workspace packages', async () => {
 });
 
 test.concurrent('preserves unaffected bin links after removing workspace packages', async () => {
-  await runInstall({binLinks: true}, 'workspaces-install-bin', async (config): Promise<void> => {
-    const reporter = new ConsoleReporter({});
-
+  await runInstall({binLinks: true}, 'workspaces-install-bin', async (config, reporter): Promise<void> => {
     expect(await fs.exists(`${config.cwd}/node_modules/.bin/rimraf`)).toEqual(true);
     expect(await fs.exists(`${config.cwd}/node_modules/.bin/touch`)).toEqual(true);
     expect(await fs.exists(`${config.cwd}/node_modules/.bin/workspace-1`)).toEqual(true);

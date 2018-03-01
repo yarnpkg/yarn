@@ -140,6 +140,7 @@ export async function pack(config: Config, dir: string): Promise<stream$Duplex> 
 }
 
 export function setFlags(commander: Object) {
+  commander.description('Creates a compressed gzip archive of package dependencies.');
   commander.option('-f, --filename <filename>', 'filename');
 }
 
@@ -147,7 +148,12 @@ export function hasWrapper(commander: Object, args: Array<string>): boolean {
   return true;
 }
 
-export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
+export async function run(
+  config: Config,
+  reporter: Reporter,
+  flags: {filename?: string},
+  args?: Array<string>,
+): Promise<void> {
   const pkg = await config.readRootManifest();
   if (!pkg.name) {
     throw new MessageError(reporter.lang('noName'));
