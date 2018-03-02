@@ -310,6 +310,7 @@ exports.generatePkgDriver = function generatePkgDriver({runDriver}: {|runDriver:
         const run = (...args) => {
           return runDriver(path, args, {
             registryUrl,
+            ...definition,
             ...subDefinition,
           });
         };
