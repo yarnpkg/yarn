@@ -16,7 +16,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
   const pnpPath = `${config.lockfileFolder}/${PNP_FILENAME}`;
 
   if (await fs.exists(pnpPath)) {
-    args = ['-r', pnpPath, ... args];
+    args = ['-r', pnpPath, ...args];
   }
 
   try {
