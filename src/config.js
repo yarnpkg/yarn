@@ -325,7 +325,7 @@ export default class Config {
     } else {
       this._cacheRootFolder = String(cacheRootFolder);
     }
-    this.plugnplayEnabled = this.getOption('plugnplay-experimental') !== false;
+    this.plugnplayEnabled = Boolean(this.getOption('plugnplay-experimental'));
 
     this.workspacesEnabled = this.getOption('workspaces-experimental') !== false;
     this.workspacesNohoistEnabled = this.getOption('workspaces-nohoist-experimental') !== false;
