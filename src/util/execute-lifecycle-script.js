@@ -5,7 +5,7 @@ import type Config from '../config.js';
 import {MessageError, ProcessTermError} from '../errors.js';
 import * as constants from '../constants.js';
 import * as child from './child.js';
-import {exists} from './fs.js';
+import * as fs from './fs.js';
 import {registries} from '../resolvers/index.js';
 import {fixCmdWinSlashes} from './fix-cmd-win-slashes.js';
 import {run as globalRun, getBinFolder as getGlobalBinFolder} from '../cli/commands/global.js';
@@ -25,6 +25,47 @@ const IGNORE_MANIFEST_KEYS = ['readme'];
 // This helps us avoid some gyp issues when building native modules.
 // See https://github.com/yarnpkg/yarn/issues/2286.
 const IGNORE_CONFIG_KEYS = ['lastUpdateCheck'];
+
+const NODE_SIMPLE_SH_WRAPPER = (config: Config) => `#!/bin/sh
+"${JSON.stringify(process.execPath)}" "$@"
+`;
+
+const NODE_PNP_SH_WRAPPER = (config: Config) => `#!/bin/sh
+"${JSON.stringify(process.execPath)}" -r "${config.lockfileFolder}/${constants.PNP_FILENAME}" "$@"
+`;
+
+const NODE_SH_WRAPPER = async (config: Config) => {
+  if (await fs.exists(`${config.lockfileFolder}/${constants.PNP_FILENAME}`)) {
+    return NODE_PNP_SH_WRAPPER(config);
+  } else {
+    return NODE_SIMPLE_SH_WRAPPER(config);
+  }
+};
+
+const YARN_SH_WRAPPER = (config: Config) => `#!/bin/sh
+"${JSON.stringify(process.execPath)}" "${process.argv[1]}" "$@"
+`;
+
+const LIFECYCLE_WRAPPERS = [[`yarn`, YARN_SH_WRAPPER], [`node`, NODE_SH_WRAPPER]];
+
+let wrappersFolder = null;
+
+export async function getWrappersFolder(config: Config): Promise<string> {
+  if (wrappersFolder) {
+    return wrappersFolder;
+  }
+
+  wrappersFolder = await fs.makeTempDir();
+
+  for (const [fileName, content] of LIFECYCLE_WRAPPERS) {
+    const wrapperPath = `${wrappersFolder}/${fileName}`;
+
+    await fs.writeFile(wrapperPath, await content(config));
+    await fs.chmod(wrapperPath, 0o755);
+  }
+
+  return wrappersFolder;
+}
 
 export async function makeEnv(
   stage: string,
@@ -159,6 +200,7 @@ export async function makeEnv(
     pathParts.unshift(path.join(cwd, binFolder));
   }
 
+  pathParts.unshift(await getWrappersFolder(config));
 
   // join path back together
   env[constants.ENV_PATH_KEY] = pathParts.join(path.delimiter);
@@ -245,7 +287,7 @@ async function _checkForGyp(config: Config, paths: Array<string>): Promise<void>
   const {reporter} = config;
 
   // Check every directory in the PATH
-  const allChecks = await Promise.all(paths.map(dir => exists(path.join(dir, 'node-gyp'))));
+  const allChecks = await Promise.all(paths.map(dir => fs.exists(path.join(dir, 'node-gyp'))));
   if (allChecks.some(Boolean)) {
     // node-gyp is available somewhere
     return;
