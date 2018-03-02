@@ -165,17 +165,23 @@ Module._resolveFilename = function (request, parent, isMain, options) {
     if (!packageLocator)
         throw new Error(\`Could not find to which package belongs the path \${packagePath}\`);
 
-    let packageDependencies = exports.getPackageDependencies(packageLocator);
-
     let [ , dependencyName, subPath ] = dependencyNameMatch;
+
+    let packageDependencies = exports.getPackageDependencies(packageLocator);
     let dependencyReference = packageDependencies.get(dependencyName);
 
     if (!dependencyReference) {
-        if (packageLocator.name === null) {
+
+        if (packageLocator.name === null)
             throw new Error(\`You cannot require a package (\${dependencyName}) that is not declared in your dependencies\`);
-        } else {
+
+        let topLevelDependencies = exports.getPackageDependencies({ name: null, reference: null });
+        dependencyReference = topLevelDependencies.get(dependencyName);
+
+        if (!dependencyReference) {
             throw new Error(\`Package \${packageLocator.name}@\${packageLocator.reference} is trying to require package \${dependencyName}, which is not declared in its dependencies (\${Array.from(packageDependencies.keys()).join(\`, \`)})\`);
         }
+
     }
 
     let dependencyLocation = exports.getPackageLocation({ name: dependencyName, reference: dependencyReference });
