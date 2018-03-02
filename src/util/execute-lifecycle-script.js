@@ -137,6 +137,10 @@ export async function makeEnv(
   pathParts.unshift(
     path.join(path.dirname(process.execPath), '..', 'lib', 'node_modules', 'npm', 'bin', 'node-gyp-bin'),
   );
+  // Include node-gyp version from homebrew managed npm, if available.
+  pathParts.unshift(
+    path.join(path.dirname(process.execPath), '..', 'libexec', 'lib', 'node_modules', 'npm', 'bin', 'node-gyp-bin'),
+  );
 
   // Add global bin folder if it is not present already, as some packages depend
   // on a globally-installed version of node-gyp.

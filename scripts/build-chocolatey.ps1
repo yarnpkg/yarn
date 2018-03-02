@@ -7,6 +7,10 @@ param(
 
 $ErrorActionPreference = 'Stop'; # stop on all errors
 
+# Enforce usage of TLS 1.2, as GitHub requires it. PowerShell uses TLS 1.0 by 
+# default, which causes "Could not create SSL/TLS secure channel" errors
+[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12;
+
 if ($Env:YARN_RC -eq 'true') {
   Write-Output 'This is an RC release; Chocolatey will not be updated'
   Exit

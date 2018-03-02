@@ -16,10 +16,12 @@ import {resolveVersion, isCommitSha, parseRefs} from './git/git-ref-resolver.js'
 import * as crypto from './crypto.js';
 import * as fs from './fs.js';
 import map from './map.js';
+import {removePrefix} from './misc.js';
 
 const GIT_PROTOCOL_PREFIX = 'git+';
 const SSH_PROTOCOL = 'ssh:';
 const SCP_PATH_PREFIX = '/:';
+const FILE_PROTOCOL = 'file:';
 const GIT_VALID_REF_LINE_REGEXP = /^([a-fA-F0-9]+|ref)/;
 
 const validRef = line => {
@@ -89,15 +91,13 @@ export default class Git implements GitRefResolvingInterface {
    * git "URLs" also allow an alternative scp-like syntax, so they're not standard URLs.
    */
   static npmUrlToGitUrl(npmUrl: string): GitUrl {
-    // Expand shortened format first if needed
+    npmUrl = removePrefix(npmUrl, GIT_PROTOCOL_PREFIX);
+
     let parsed = url.parse(npmUrl);
     const expander = parsed.protocol && SHORTHAND_SERVICES[parsed.protocol];
+
     if (expander) {
       parsed = expander(parsed);
-    }
-
-    if (parsed.protocol && parsed.protocol.startsWith(GIT_PROTOCOL_PREFIX)) {
-      parsed.protocol = parsed.protocol.slice(GIT_PROTOCOL_PREFIX.length);
     }
 
     // Special case in npm, where ssh:// prefix is stripped to pass scp-like syntax
@@ -119,10 +119,18 @@ export default class Git implements GitRefResolvingInterface {
       };
     }
 
+    // git local repos are specified as `git+file:` and a filesystem path, not a url.
+    let repository;
+    if (parsed.protocol === FILE_PROTOCOL) {
+      repository = parsed.path;
+    } else {
+      repository = url.format({...parsed, hash: ''});
+    }
+
     return {
       hostname: parsed.hostname || null,
-      protocol: parsed.protocol || 'file:',
-      repository: url.format({...parsed, hash: ''}),
+      protocol: parsed.protocol || FILE_PROTOCOL,
+      repository: repository || '',
     };
   }
 
@@ -155,8 +163,14 @@ export default class Git implements GitRefResolvingInterface {
    */
 
   static async repoExists(ref: GitUrl): Promise<boolean> {
+    const isLocal = ref.protocol === FILE_PROTOCOL;
+
     try {
-      await spawnGit(['ls-remote', '-t', ref.repository]);
+      if (isLocal) {
+        await spawnGit(['show-ref', '-t'], {cwd: ref.repository});
+      } else {
+        await spawnGit(['ls-remote', '-t', ref.repository]);
+      }
       return true;
     } catch (err) {
       handleSpawnError(err);
@@ -406,7 +420,15 @@ export default class Git implements GitRefResolvingInterface {
   }
 
   async setRefRemote(): Promise<string> {
-    const stdout = await spawnGit(['ls-remote', '--tags', '--heads', this.gitUrl.repository]);
+    const isLocal = this.gitUrl.protocol === FILE_PROTOCOL;
+    let stdout;
+
+    if (isLocal) {
+      stdout = await spawnGit(['show-ref', '--tags', '--heads'], {cwd: this.gitUrl.repository});
+    } else {
+      stdout = await spawnGit(['ls-remote', '--tags', '--heads', this.gitUrl.repository]);
+    }
+
     const refs = parseRefs(stdout);
     return this.setRef(refs);
   }
@@ -421,12 +443,26 @@ export default class Git implements GitRefResolvingInterface {
    */
 
   async resolveDefaultBranch(): Promise<ResolvedSha> {
+    const isLocal = this.gitUrl.protocol === FILE_PROTOCOL;
+
     try {
-      const stdout = await spawnGit(['ls-remote', '--symref', this.gitUrl.repository, 'HEAD']);
-      const lines = stdout.split('\n').filter(validRef);
-      const [, ref] = lines[0].split(/\s+/);
-      const [sha] = lines[1].split(/\s+/);
-      return {sha, ref};
+      let stdout;
+      if (isLocal) {
+        stdout = await spawnGit(['show-ref', 'HEAD'], {cwd: this.gitUrl.repository});
+        const refs = parseRefs(stdout);
+        const sha = refs.values().next().value;
+        if (sha) {
+          return {sha, ref: undefined};
+        } else {
+          throw new Error('Unable to find SHA for git HEAD');
+        }
+      } else {
+        stdout = await spawnGit(['ls-remote', '--symref', this.gitUrl.repository, 'HEAD']);
+        const lines = stdout.split('\n').filter(validRef);
+        const [, ref] = lines[0].split(/\s+/);
+        const [sha] = lines[1].split(/\s+/);
+        return {sha, ref};
+      }
     } catch (err) {
       handleSpawnError(err);
       // older versions of git don't support "--symref"
@@ -473,7 +509,7 @@ export default class Git implements GitRefResolvingInterface {
     });
     if (!resolvedResult) {
       throw new MessageError(
-        this.reporter.lang('couldntFindMatch', version, Object.keys(refs).join(','), this.gitUrl.repository),
+        this.reporter.lang('couldntFindMatch', version, Array.from(refs.keys()).join(','), this.gitUrl.repository),
       );
     }
 

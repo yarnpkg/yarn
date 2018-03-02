@@ -27,7 +27,7 @@ const REGEX_REGISTRY_SUFFIX = /registry\/?$/;
 export const SCOPE_SEPARATOR = '%2f';
 // All scoped package names are of the format `@scope%2fpkg` from the use of NpmRegistry.escapeName
 // `(?:^|\/)` Match either the start of the string or a `/` but don't capture
-// `[^\/?]+?` Match any character that is not '/' or '?' and capture, up until the first occurance of:
+// `[^\/?]+?` Match any character that is not '/' or '?' and capture, up until the first occurrence of:
 // `(?=%2f|\/)` Match SCOPE_SEPARATOR, the escaped '/', or a raw `/` and don't capture
 // The reason for matching a plain `/` is NPM registry being inconsistent about escaping `/` in
 // scoped package names: when you're fetching a tarball, it is not escaped, when you want info
@@ -72,6 +72,19 @@ function normalizePath(val: mixed): ?string {
   return resolveWithHome(val);
 }
 
+type UrlParts = {
+  host: string,
+  path: string,
+};
+
+function urlParts(requestUrl: string): UrlParts {
+  const normalizedUrl = normalizeUrl(requestUrl);
+  const parsed = url.parse(normalizedUrl);
+  const host = parsed.host || '';
+  const path = parsed.path || '';
+  return {host, path};
+}
+
 export default class NpmRegistry extends Registry {
   constructor(cwd: string, registries: ConfigRegistries, requestManager: RequestManager, reporter: Reporter) {
     super(cwd, registries, requestManager, reporter);
@@ -100,28 +113,23 @@ export default class NpmRegistry extends Registry {
   }
 
   isRequestToRegistry(requestUrl: string, registryUrl: string): boolean {
-    const normalizedRequestUrl = normalizeUrl(requestUrl);
-    const normalizedRegistryUrl = normalizeUrl(registryUrl);
-    const requestParsed = url.parse(normalizedRequestUrl);
-    const registryParsed = url.parse(normalizedRegistryUrl);
-    const requestHost = requestParsed.host || '';
-    const registryHost = registryParsed.host || '';
-    const requestPath = requestParsed.path || '';
-    const registryPath = registryParsed.path || '';
+    const request = urlParts(requestUrl);
+    const registry = urlParts(registryUrl);
     const customHostSuffix = this.getRegistryOrGlobalOption(registryUrl, 'custom-host-suffix');
 
-    return (
-      requestHost === registryHost &&
-      (requestPath.startsWith(registryPath) ||
-        // For some registries, the package path does not prefix with the registry path
-        (typeof customHostSuffix === 'string' && requestHost.endsWith(customHostSuffix)))
-    );
+    const requestToRegistryHost = request.host === registry.host;
+    const requestToYarn = YARN_REGISTRY.includes(request.host) && DEFAULT_REGISTRY.includes(registry.host);
+    const requestToRegistryPath = request.path.startsWith(registry.path);
+    // For some registries, the package path does not prefix with the registry path
+    const customHostSuffixInUse = typeof customHostSuffix === 'string' && request.host.endsWith(customHostSuffix);
+
+    return (requestToRegistryHost || requestToYarn) && (requestToRegistryPath || customHostSuffixInUse);
   }
 
   request(pathname: string, opts?: RegistryRequestOptions = {}, packageName: ?string): Promise<*> {
     // packageName needs to be escaped when if it is passed
     const packageIdent = (packageName && NpmRegistry.escapeName(packageName)) || pathname;
-    const registry = this.getRegistry(packageIdent);
+    const registry = opts.registry || this.getRegistry(packageIdent);
     const requestUrl = this.getRequestUrl(registry, pathname);
 
     const alwaysAuth = this.getRegistryOrGlobalOption(registry, 'always-auth');
@@ -133,9 +141,9 @@ export default class NpmRegistry extends Registry {
       opts.headers,
     );
 
-    const isToRegistry = this.isRequestToRegistry(requestUrl, registry);
+    const isToRegistry = this.isRequestToRegistry(requestUrl, registry) || this.requestNeedsAuth(requestUrl);
 
-    // this.token must be checked to account for publish requests on non-scopped packages
+    // this.token must be checked to account for publish requests on non-scoped packages
     if (this.token || (isToRegistry && (alwaysAuth || this.isScopedPackage(packageIdent)))) {
       const authorization = this.getAuth(packageIdent);
       if (authorization) {
@@ -153,6 +161,21 @@ export default class NpmRegistry extends Registry {
       buffer: opts.buffer,
       process: opts.process,
       gzip: true,
+    });
+  }
+
+  requestNeedsAuth(requestUrl: string): boolean {
+    const config = this.config;
+    const requestParts = urlParts(requestUrl);
+    return !!Object.keys(config).find(option => {
+      const parts = option.split(':');
+      if (parts.length === 2 && parts[1] === '_authToken') {
+        const registryParts = urlParts(parts[0]);
+        if (requestParts.host === registryParts.host && requestParts.path.startsWith(registryParts.path)) {
+          return true;
+        }
+      }
+      return false;
     });
   }
 

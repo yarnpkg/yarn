@@ -1,0 +1,8 @@
+{
+  "name": "my-project",
+  "private": true,
+  "workspaces": {
+    "packages": ["packages/*"],
+    "nohoist": ["**"]
+  }
+}

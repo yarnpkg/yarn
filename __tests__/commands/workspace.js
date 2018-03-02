@@ -38,9 +38,23 @@ async function runWorkspace(
   }
 }
 
+// The unit tests don't use commander.js for argument parsing.
+// `rawArgs` is normally passed by commander.js so we just simulate it in the tests.
+
 test('workspace run command', (): Promise<void> => {
-  return runWorkspace({}, ['workspace-1', 'run', 'script'], 'run-basic', config => {
+  const rawArgs = ['/path/to/node', '/path/to/yarn', 'workspace', 'workspace-1', 'run', 'script'];
+  return runWorkspace({rawArgs}, ['workspace-1', 'run', 'script'], 'run-basic', config => {
     expect(spawn).toHaveBeenCalledWith(NODE_BIN_PATH, [YARN_BIN_PATH, 'run', 'script'], {
+      stdio: 'inherit',
+      cwd: path.join(fixturesLoc, 'run-basic', 'packages', 'workspace-child-1'),
+    });
+  });
+});
+
+test('workspace run command forwards raw arguments', (): Promise<void> => {
+  const rawArgs = ['/path/to/node', '/path/to/yarn', 'workspace', 'workspace-1', 'run', 'script', 'arg1', '--flag1'];
+  return runWorkspace({rawArgs}, ['workspace-1', 'run', 'script'], 'run-basic', config => {
+    expect(spawn).toHaveBeenCalledWith(NODE_BIN_PATH, [YARN_BIN_PATH, 'run', 'script', 'arg1', '--flag1'], {
       stdio: 'inherit',
       cwd: path.join(fixturesLoc, 'run-basic', 'packages', 'workspace-child-1'),
     });

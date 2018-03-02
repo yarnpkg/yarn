@@ -105,6 +105,7 @@ export default class PackageResolver {
     newPkg._remote = ref.remote;
     newPkg.name = oldPkg.name;
     newPkg.fresh = oldPkg.fresh;
+    newPkg.prebuiltVariants = oldPkg.prebuiltVariants;
 
     // update patterns
     for (const pattern of ref.patterns) {
@@ -118,6 +119,8 @@ export default class PackageResolver {
     for (const newPkg of newPkgs) {
       if (newPkg._reference) {
         for (const pattern of newPkg._reference.patterns) {
+          const oldPkg = this.patterns[pattern];
+          newPkg.prebuiltVariants = oldPkg.prebuiltVariants;
           this.patterns[pattern] = newPkg;
         }
       }
@@ -211,7 +214,7 @@ export default class PackageResolver {
   }
 
   /**
-   * Get a list of all package names in the depenency graph.
+   * Get a list of all package names in the dependency graph.
    */
 
   getAllDependencyNamesByLevelOrder(seedPatterns: Array<string>): Iterable<string> {
@@ -490,33 +493,36 @@ export default class PackageResolver {
       return;
     }
 
+    const request = new PackageRequest(req, this);
     const fetchKey = `${req.registry}:${req.pattern}:${String(req.optional)}`;
-    if (this.fetchingPatterns.has(fetchKey)) {
-      return;
-    }
-    this.fetchingPatterns.add(fetchKey);
+    const initialFetch = !this.fetchingPatterns.has(fetchKey);
+    let fresh = false;
 
     if (this.activity) {
       this.activity.tick(req.pattern);
     }
 
-    const lockfileEntry = this.lockfile.getLocked(req.pattern);
-    let fresh = false;
+    if (initialFetch) {
+      this.fetchingPatterns.add(fetchKey);
 
-    if (lockfileEntry) {
-      const {range, hasVersion} = normalizePattern(req.pattern);
+      const lockfileEntry = this.lockfile.getLocked(req.pattern);
 
-      if (this.isLockfileEntryOutdated(lockfileEntry.version, range, hasVersion)) {
-        this.reporter.warn(this.reporter.lang('incorrectLockfileEntry', req.pattern));
-        this.removePattern(req.pattern);
-        this.lockfile.removePattern(req.pattern);
+      if (lockfileEntry) {
+        const {range, hasVersion} = normalizePattern(req.pattern);
+
+        if (this.isLockfileEntryOutdated(lockfileEntry.version, range, hasVersion)) {
+          this.reporter.warn(this.reporter.lang('incorrectLockfileEntry', req.pattern));
+          this.removePattern(req.pattern);
+          this.lockfile.removePattern(req.pattern);
+          fresh = true;
+        }
+      } else {
         fresh = true;
       }
-    } else {
-      fresh = true;
+
+      request.init();
     }
 
-    const request = new PackageRequest(req, this);
     await request.find({fresh, frozen: this.frozen});
   }
 
