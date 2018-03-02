@@ -112,9 +112,24 @@ module.exports = makeTemporaryEnv => {
     );
 
     test(
-      `it should throw an exception if a dependency tries to require something it doesn't own`,
+      `it should fallback to the top-level dependencies when it cannot require a transitive dependency require`,
       makeTemporaryEnv(
         {dependencies: {[`various-requires`]: `1.0.0`, [`no-deps`]: `1.0.0`}},
+        async ({path, run, source}) => {
+          await run(`install`);
+
+          await expect(source(`require('various-requires/invalid-require')`)).resolves.toMatchObject({
+            name: `no-deps`,
+            version: `1.0.0`,
+          });
+        },
+      ),
+    );
+
+    test(
+      `it should throw an exception if a dependency tries to require something it doesn't own`,
+      makeTemporaryEnv(
+        {dependencies: {[`various-requires`]: `1.0.0`}},
         async ({path, run, source}) => {
           await run(`install`);
 
