@@ -159,9 +159,6 @@ export async function makeEnv(
     pathParts.unshift(path.join(cwd, binFolder));
   }
 
-  if (config.scriptsPrependNodePath) {
-    pathParts.unshift(path.join(path.dirname(process.execPath)));
-  }
 
   // join path back together
   env[constants.ENV_PATH_KEY] = pathParts.join(path.delimiter);

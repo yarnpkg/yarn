@@ -489,7 +489,6 @@ export function main({
       networkConcurrency: commander.networkConcurrency,
       networkTimeout: commander.networkTimeout,
       nonInteractive: commander.nonInteractive,
-      scriptsPrependNodePath: commander.scriptsPrependNodePath,
       updateChecksums: commander.updateChecksums,
     })
     .then(() => {
