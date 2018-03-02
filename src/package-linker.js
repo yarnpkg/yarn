@@ -218,7 +218,8 @@ export default class PackageLinker {
 
       const copiedDest = copiedSrcs.get(src);
       if (!copiedDest) {
-        if (hardlinksEnabled) {
+        // no point to hardlink to a symlink
+        if (hardlinksEnabled && type !== 'symlink') {
           copiedSrcs.set(src, dest);
         }
         copyQueue.set(dest, {
