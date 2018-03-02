@@ -2,7 +2,7 @@
 
 import type {PackageDriver} from 'pkg-tests-core';
 
-const {tests: {getPackageArchivePath, getPackageHttpArchivePath, getPackageDirectoryPath}} = require('pkg-tests-core');
+const {fs: {writeJson}, tests: {getPackageArchivePath, getPackageHttpArchivePath, getPackageDirectoryPath}} = require('pkg-tests-core');
 
 module.exports = (makeTemporaryEnv: PackageDriver) => {
   describe(`Basic tests`, () => {
@@ -224,5 +224,48 @@ module.exports = (makeTemporaryEnv: PackageDriver) => {
         },
       ),
     );
+
+    test(`it should install in such a way that peer dependencies can be resolved (from top-level)`, makeTemporaryEnv({
+      dependencies: {[`peer-deps`]: `1.0.0`, [`no-deps`]: `1.0.0`}
+    }, async ({path, run, source}) => {
+          await run(`install`);
+
+        await expect(source(`require('peer-deps')`)).resolves.toMatchObject({
+              name: `peer-deps`,
+              version: `1.0.0`,
+              peerDependencies: {
+                  [`no-deps`]: {
+                      name: `no-deps`,
+                      version: `1.0.0`,
+                  }
+              }
+          });
+    }));
+
+    test(`it should install in such a way that peer dependencies can be resolved (from within a dependency)`, makeTemporaryEnv({
+      dependencies: {[`custom-dep`]: `file:./custom-dep`},
+    }, async ({path, run, source}) => {
+        await writeJson(`${path}/custom-dep/package.json`, {
+            name: `custom-dep`,
+            version: `1.0.0`,
+            dependencies: {
+                [`peer-deps`]: `1.0.0`,
+                [`no-deps`]: `1.0.0`,
+            }
+        });
+
+        await run(`install`);
+
+        await expect(source(`require('peer-deps')`)).resolves.toMatchObject({
+              name: `peer-deps`,
+              version: `1.0.0`,
+              peerDependencies: {
+                  [`no-deps`]: {
+                      name: `no-deps`,
+                      version: `1.0.0`,
+                  }
+              }
+          });
+    }));
   });
 };
