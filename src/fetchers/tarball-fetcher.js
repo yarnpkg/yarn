@@ -78,12 +78,9 @@ export default class TarballFetcher extends BaseFetcher {
         // it's okay that we do not have any supported integrity, because we need to update it!
         supportedIntegrity = {integrity: null, algorithms: ['sha1']};
       } else {
-        reject(
-          new SecurityError(
-            this.config.reporter.lang('fetchBadIntegrityAlgorithm', this.packageName, this.remote.reference),
-          ),
+        throw new SecurityError(
+          this.config.reporter.lang('fetchBadIntegrityAlgorithm', this.packageName, this.remote.reference),
         );
-        return {validateStream: ssri.integrityStream(), extractorStream: gunzip()};
       }
     }
     const {integrity, algorithms} = supportedIntegrity;
