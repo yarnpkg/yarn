@@ -87,7 +87,7 @@ test('install should respect --no-bin-links flag', (): Promise<void> => {
 });
 
 // Scenario: Transitive dependency having version that is overridden by newer version as the direct dependency.
-// Behavior: eslint@3.12.2 is symlinked in node_modeules/.bin
+// Behavior: eslint@3.12.2 is symlinked in node_modules/.bin
 //           and eslint@3.10.1 is symlinked to node_modules/sample-dep-eslint-3.10.1/node_modules/.bin
 test('newer transitive dep is overridden by newer direct dep', (): Promise<void> => {
   return runInstall({binLinks: true}, 'install-bin-links-newer', async config => {
@@ -101,7 +101,7 @@ test('newer transitive dep is overridden by newer direct dep', (): Promise<void>
 });
 
 // Scenario: Transitive dependency having version that is overridden by older version as the direct dependency.
-// Behavior: eslint@3.10.1 is symlinked in node_modeules/.bin
+// Behavior: eslint@3.10.1 is symlinked in node_modules/.bin
 //           and eslint@3.12.2 is symlinked to node_modules/sample-dep-eslint-3.12.2/node_modules/.bin
 test('newer transitive dep is overridden by older direct dep', (): Promise<void> => {
   return runInstall({binLinks: true}, 'install-bin-links-older', async config => {
@@ -115,9 +115,9 @@ test('newer transitive dep is overridden by older direct dep', (): Promise<void>
 });
 
 // Scenario: Transitive dependency having version that is conflicting with another transitive dependency version.
-// Behavior: eslint@3.10.1 is symlinked in node_modeules/.bin
+// Behavior: eslint@3.10.1 is symlinked in node_modules/.bin
 //           and eslint@3.12.2 is symlinked to node_modules/sample-dep-eslint-3.12.2/node_modules/.bin.
-//           Here it seems like NPM add the modules in alphabatical order
+//           Here it seems like NPM add the modules in alphabetical order
 //           and transitive deps of first dependency is installed at top level.
 test('first transient dep is installed when same level and reference count', (): Promise<void> => {
   return runInstall({binLinks: true}, 'install-bin-links-conflicting', async config => {
@@ -131,7 +131,7 @@ test('first transient dep is installed when same level and reference count', ():
 });
 
 // Scenario: Transitive dependency having version that is conflicting with another dev transitive dependency version.
-// Behavior: eslint@3.10.1 is symlinked in node_modeules/.bin
+// Behavior: eslint@3.10.1 is symlinked in node_modules/.bin
 //           and eslint@3.12.2 is symlinked to node_modules/sample-dep-eslint-3.12.2/node_modules/.bin.
 //           Whether the dependencies are devDependencies or not does not seem to matter to NPM.
 test('first dep is installed when same level and reference count and one is a dev dep', (): Promise<void> => {

@@ -26,7 +26,7 @@ const REF_PR_PREFIX = 'refs/pull/';
 // This regex is designed to match output from git of the style:
 //   ebeb6eafceb61dd08441ffe086c77eb472842494  refs/tags/v0.21.0
 // and extract the hash and ref name as capture groups
-const GIT_REF_LINE_REGEXP = /^([a-fA-F0-9]+)\s+(refs\/(?:tags|heads|pull)\/.*)$/;
+const GIT_REF_LINE_REGEXP = /^([a-fA-F0-9]+)\s+(refs\/(?:tags|heads|pull|remotes)\/.*)$/;
 
 const COMMIT_SHA_REGEXP = /^[a-f0-9]{5,40}$/;
 const REF_NAME_REGEXP = /^refs\/(tags|heads)\/(.+)$/;

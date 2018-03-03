@@ -95,15 +95,18 @@ export function sortFilter(
 }
 
 export function matchesFilter(filter: IgnoreFilter, basename: string, loc: string): boolean {
+  let filterByBasename = true;
   if (filter.base && filter.base !== '.') {
     loc = path.relative(filter.base, loc);
+    filterByBasename = false;
   }
   // the micromatch regex expects unix path separators
   loc = loc.replace('\\', '/');
+
   return (
     filter.regex.test(loc) ||
     filter.regex.test(`/${loc}`) ||
-    filter.regex.test(basename) ||
+    (filterByBasename && filter.regex.test(basename)) ||
     mm.isMatch(loc, filter.pattern)
   );
 }
