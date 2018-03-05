@@ -89,6 +89,11 @@ export async function verifyTreeCheck(
       continue;
     }
     locationsVisited.add(manifestLoc + `@${dep.version}`);
+    // When plugnplay is enabled, packages aren't copied to the node_modules folder, so this check doesn't make sense
+    // TODO: We ideally should check that the packages are located inside the cache instead
+    if (config.plugnplayEnabled) {
+      continue;
+    }
     if (!await fs.exists(manifestLoc)) {
       reportError('packageNotInstalled', `${dep.originalKey}`);
       continue;
