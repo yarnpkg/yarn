@@ -17,35 +17,36 @@ function generateMaps(packageInformationStores: PackageInformationStores): strin
   code += `let packageInformationStores = new Map([\n`;
 
   for (const [packageName, packageInformationStore] of packageInformationStores) {
-    code += `    [ ${JSON.stringify(packageName)}, new Map([\n`;
+    code += `  [${JSON.stringify(packageName)}, new Map([\n`;
 
     for (const [packageReference, {packageLocation, packageDependencies}] of packageInformationStore) {
-      code += `        [ ${JSON.stringify(packageReference)}, {\n`;
-      code += `            packageLocation: ${JSON.stringify(packageLocation)},\n`;
-      code += `            packageDependencies: new Map([\n`;
+      code += `    [${JSON.stringify(packageReference)}, {\n`;
+      code += `      packageLocation: ${JSON.stringify(packageLocation)},\n`;
+      code += `      packageDependencies: new Map([\n`;
 
       for (const [dependencyName, dependencyReference] of packageDependencies.entries()) {
-        code += `                [ ${JSON.stringify(dependencyName)}, ${JSON.stringify(dependencyReference)} ],\n`;
+        code += `        [${JSON.stringify(dependencyName)}, ${JSON.stringify(dependencyReference)}],\n`;
       }
 
-      code += `            ]),\n`;
-      code += `        } ],\n`;
+      code += `      ]),\n`;
+      code += `    }],\n`;
     }
 
-    code += `    ]) ],\n`;
+    code += `  ])],\n`;
   }
 
   code += `]);\n`;
+  code += `\n`;
 
   // Also bake an inverse map that will allow us to find the package information based on the path
   code += `let locatorsByLocations = new Map([\n`;
 
   for (const [packageName, packageInformationStore] of packageInformationStores) {
     for (const [packageReference, {packageLocation}] of packageInformationStore) {
-      code += `    [ ${JSON.stringify(packageLocation)}, ${JSON.stringify({
+      code += `  [${JSON.stringify(packageLocation)}, ${JSON.stringify({
         name: packageName,
         reference: packageReference,
-      })} ],\n`;
+      })}],\n`;
     }
   }
 
@@ -75,18 +76,17 @@ function generateFindPackageLocator(packageInformationStores: PackageInformation
 
   // Generate a function that, given a file path, returns the associated package name
   code += `exports.findPackageLocator = function findPackageLocator(location) {\n`;
-  code += `\n`;
-  code += `    let match;\n`;
+  code += `  let match;\n`;
 
   for (const [length] of sortedLengths) {
     code += `\n`;
-    code += `    if (location.length >= ${length} && location[${length} - 1] === path.sep)\n`;
-    code += `        if (match = locatorsByLocations.get(location.substr(0, ${length})))\n`;
-    code += `            return match;\n`;
+    code += `  if (location.length >= ${length} && location[${length} - 1] === path.sep)\n`;
+    code += `    if (match = locatorsByLocations.get(location.substr(0, ${length})))\n`;
+    code += `      return match;\n`;
   }
 
   code += `\n`;
-  code += `    return null;\n`;
+  code += `  return null;\n`;
   code += `};\n`;
 
   return code;
@@ -97,8 +97,7 @@ function generateGetPackageLocation(packageInformationStores: PackageInformation
 
   // Generate a function that, given a locator, returns the package location on the disk
 
-  code += `exports.getPackageLocation = function getPackageLocation({ name, reference }) {\n`;
-  code += `\n`;
+  code += `exports.getPackageLocation = function getPackageLocation({name, reference}) {\n`;
   code += `    let packageInformationStore, packageInformation;\n`;
   code += `\n`;
   code += `    if (packageInformationStore = packageInformationStores.get(name))\n`;
@@ -106,7 +105,6 @@ function generateGetPackageLocation(packageInformationStores: PackageInformation
   code += `            return packageInformation.packageLocation;\n`;
   code += `\n`;
   code += `    return null;\n`;
-  code += `\n`;
   code += `};\n`;
 
   return code;
@@ -117,15 +115,14 @@ function generateGetPackageDependencies(packageInformationStores: PackageInforma
 
   // Generate a function that, given a locator, returns the package dependencies
 
-  code += `exports.getPackageDependencies = function getPackageDependencies({ name, reference }) {\n`;
+  code += `exports.getPackageDependencies = function getPackageDependencies({name, reference}) {\n`;
+  code += `  let packageInformationStore, packageInformation;\n`;
   code += `\n`;
-  code += `    let packageInformationStore, packageInformation;\n`;
+  code += `  if (packageInformationStore = packageInformationStores.get(name))\n`;
+  code += `    if (packageInformation = packageInformationStore.get(reference))\n`;
+  code += `      return packageInformation.packageDependencies;\n`;
   code += `\n`;
-  code += `    if (packageInformationStore = packageInformationStores.get(name))\n`;
-  code += `        if (packageInformation = packageInformationStore.get(reference))\n`;
-  code += `            return packageInformation.packageDependencies;\n`;
-  code += `\n`;
-  code += `    return null;\n`;
+  code += `  return null;\n`;
   code += `};\n`;
 
   return code;
@@ -134,65 +131,69 @@ function generateGetPackageDependencies(packageInformationStores: PackageInforma
 /* eslint-disable max-len */
 const PROLOGUE = `
 let path = require('path');
-`;
+`.replace(/^\n/, ``);
 /* eslint-enable max-len */
 
 /* eslint-disable max-len */
-const REQUIRE_HOOK = lockfileFolder => `
-let Module = require('module');
+const REQUIRE_HOOK = lockfileFolder =>
+  `
+const Module = require('module');
 
-let originalResolver = Module._resolveFilename;
-let pathRegExp = /^(?!\\.{0,2}\\/)([^\\/]+)(\\/.*|)$/;
+const originalResolver = Module._resolveFilename;
+const pathRegExp = /^(?!\\.{0,2}\\/)([^\\/]+)(\\/.*|)$/;
 
 Module._resolveFilename = function (request, parent, isMain, options) {
 
-    if (Module.builtinModules.includes(request))
-        return request;
+  if (Module.builtinModules.includes(request)) {
+    return request;
+  }
 
-    let dependencyNameMatch = request.match(pathRegExp);
+  const dependencyNameMatch = request.match(pathRegExp);
 
-    if (!dependencyNameMatch)
-        return originalResolver.call(Module, request, parent, isMain, options);
+  if (!dependencyNameMatch) {
+    return originalResolver.call(Module, request, parent, isMain, options);
+  }
 
-    let caller = parent;
+  let caller = parent;
 
-    while (caller && (caller.id === '[eval]' || caller.id === '<repl>' || !caller.filename))
-        caller = caller.parent;
+  while (caller && (caller.id === '[eval]' || caller.id === '<repl>' || !caller.filename)) {
+    caller = caller.parent;
+  }
 
-    let packagePath = caller ? caller.filename : process.cwd() + path.sep;
-    let packageLocator = exports.findPackageLocator(packagePath);
+  const packagePath = caller ? caller.filename : process.cwd() + path.sep;
+  const packageLocator = exports.findPackageLocator(packagePath);
 
-    if (!packageLocator)
-        throw new Error(\`Could not find to which package belongs the path \${packagePath}\`);
+  if (!packageLocator) {
+    throw new Error(\`Could not find to which package belongs the path \${packagePath}\`);
+  }
 
-    let [ , dependencyName, subPath ] = dependencyNameMatch;
+  const [ , dependencyName, subPath ] = dependencyNameMatch;
 
-    let packageDependencies = exports.getPackageDependencies(packageLocator);
-    let dependencyReference = packageDependencies.get(dependencyName);
+  const packageDependencies = exports.getPackageDependencies(packageLocator);
+  let dependencyReference = packageDependencies.get(dependencyName);
 
-    if (!dependencyReference) {
-
-        if (packageLocator.name === null)
-            throw new Error(\`You cannot require a package (\${dependencyName}) that is not declared in your dependencies\`);
-
-        let topLevelDependencies = exports.getPackageDependencies({ name: null, reference: null });
-        dependencyReference = topLevelDependencies.get(dependencyName);
-
-        if (!dependencyReference) {
-            throw new Error(\`Package \${packageLocator.name}@\${packageLocator.reference} is trying to require package \${dependencyName}, which is not declared in its dependencies (\${Array.from(packageDependencies.keys()).join(\`, \`)})\`);
-        }
-
+  if (!dependencyReference) {
+    if (packageLocator.name === null) {
+      throw new Error(\`You cannot require a package (\${dependencyName}) that is not declared in your dependencies\`);
     }
 
-    let dependencyLocation = exports.getPackageLocation({ name: dependencyName, reference: dependencyReference });
+    const topLevelDependencies = exports.getPackageDependencies({ name: null, reference: null });
+    dependencyReference = topLevelDependencies.get(dependencyName);
 
-    if (!dependencyLocation)
-        throw new Error(\`Package \${dependencyName}@\${dependencyReference} is a valid dependency, but hasn't been installed and thus cannot be required\`);
+    if (!dependencyReference) {
+      throw new Error(\`Package \${packageLocator.name}@\${packageLocator.reference} is trying to require package \${dependencyName}, which is not declared in its dependencies (\${Array.from(packageDependencies.keys()).join(\`, \`)})\`);
+    }
+  }
 
-    return originalResolver.call(Module, \`\${dependencyLocation}/\${subPath}\`, parent, isMain, options);
+  const dependencyLocation = exports.getPackageLocation({ name: dependencyName, reference: dependencyReference });
 
+  if (!dependencyLocation) {
+    throw new Error(\`Package \${dependencyName}@\${dependencyReference} is a valid dependency, but hasn't been installed and thus cannot be required\`);
+  }
+
+  return originalResolver.call(Module, \`\${dependencyLocation}/\${subPath}\`, parent, isMain, options);
 };
-`;
+`.replace(/^\n/, ``);
 /* eslint-enable */
 
 async function getPackageInformationStores(
@@ -218,6 +219,11 @@ async function getPackageInformationStores(
       const packageDependencies = new Map();
 
       for (const pattern of ref.dependencies) {
+        const dep = resolver.getStrictResolvedPattern(pattern);
+        packageDependencies.set(dep.name, dep.version);
+      }
+
+      for (const pattern of ref.peerDependencies || []) {
         const dep = resolver.getStrictResolvedPattern(pattern);
         packageDependencies.set(dep.name, dep.version);
       }
@@ -262,15 +268,12 @@ export async function generatePnpMap(
 ): Promise<string> {
   const packageInformationStores = await getPackageInformationStores(config, seedPatterns, {resolver});
 
-  let code = PROLOGUE;
-
-  code += generateMaps(packageInformationStores);
-
-  code += generateFindPackageLocator(packageInformationStores);
-  code += generateGetPackageLocation(packageInformationStores);
-  code += generateGetPackageDependencies(packageInformationStores);
-
-  code += REQUIRE_HOOK(config.lockfileFolder);
-
-  return code;
+  return [
+    PROLOGUE,
+    generateMaps(packageInformationStores),
+    generateFindPackageLocator(packageInformationStores),
+    generateGetPackageLocation(packageInformationStores),
+    generateGetPackageDependencies(packageInformationStores),
+    REQUIRE_HOOK(config.lockfileFolder),
+  ].join(`\n`);
 }
