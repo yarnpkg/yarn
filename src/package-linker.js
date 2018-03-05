@@ -573,5 +573,9 @@ export default class PackageLinker {
   ): Promise<void> {
     this.resolvePeerModules();
     await this.copyModules(patterns, workspaceLayout, {linkDuplicates, ignoreOptional});
+
+    if (!this.config.plugnplayEnabled) {
+      await fs.unlink(`${this.config.lockfileFolder}/${constants.PNP_FILENAME}`);
+    }
   }
 }
