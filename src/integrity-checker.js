@@ -245,6 +245,10 @@ export default class InstallationIntegrityChecker {
       result.flags.push('production');
     }
 
+    if (this.config.plugnplayEnabled) {
+      result.flags.push('plugnplay');
+    }
+
     const linkedModules = this.config.linkedModules;
 
     if (linkedModules.length) {
