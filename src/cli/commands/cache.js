@@ -39,9 +39,22 @@ async function getPackagesPaths(config, currentPath): Object {
   return results;
 }
 
+function _getMetadataWithPath(getMetadataFn: Function, paths: Array<String>): Promise<Array<Object>> {
+  return Promise.all(
+    paths.map(path =>
+      getMetadataFn(path)
+        .then(r => {
+          r._path = path;
+          return r;
+        })
+        .catch(error => undefined),
+    ),
+  );
+}
+
 async function getCachedPackages(config): Object {
   const paths = await getPackagesPaths(config, config.cacheFolder);
-  return Promise.all(paths.map(path => config.readPackageMetadata(path).catch(error => undefined))).then(packages =>
+  return _getMetadataWithPath(config.readPackageMetadata.bind(config), paths).then(packages =>
     packages.filter(p => !!p),
   );
 }
@@ -66,52 +79,40 @@ async function list(config: Config, reporter: Reporter, flags: Object, args: Arr
   reporter.table(['Name', 'Version', 'Registry', 'Resolved'], body);
 }
 
+async function clean(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
+  if (config.cacheFolder) {
+    const activity = reporter.activity();
+
+    if (args.length > 0) {
+      // Clear named packages from cache
+      const packages = await getCachedPackages(config);
+      const shouldDelete = ({registry, package: manifest, remote} = {}) => args.indexOf(manifest.name) !== -1;
+      const packagesToDelete = packages.filter(shouldDelete);
+
+      for (const manifest of packagesToDelete) {
+        await fs.unlink(manifest._path); // save package path when retrieving
+      }
+      activity.end();
+      reporter.success(reporter.lang('clearedPackageFromCache', args[0]));
+    } else {
+      // Clear all cache
+      await fs.unlink(config._cacheRootFolder);
+      await fs.mkdirp(config.cacheFolder);
+      activity.end();
+      reporter.success(reporter.lang('clearedCache'));
+    }
+  }
+}
+
 const {run, setFlags: _setFlags, examples} = buildSubCommands('cache', {
   async ls(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
     reporter.warn(`\`yarn cache ls\` is deprecated. Please use \`yarn cache list\`.`);
     await list(config, reporter, flags, args);
   },
-
   list,
-
+  clean,
   dir(config: Config, reporter: Reporter) {
     reporter.log(config.cacheFolder, {force: true});
-  },
-
-  async clean(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
-    if (config.cacheFolder) {
-      const activity = reporter.activity();
-
-      if (args.length > 0) {
-        // Clear named package from cache
-        const paths = await getPackagesPaths(config, config.cacheFolder);
-
-        const deletePaths = [];
-        for (const packagePath of paths) {
-          const {package: manifest} = await config.readPackageMetadata(packagePath);
-          if (args.indexOf(manifest.name) !== -1) {
-            deletePaths.push(packagePath);
-          }
-        }
-
-        if (deletePaths.length === 0) {
-          activity.end();
-          reporter.success(reporter.lang('clearedPackageFromCache', arg));
-        }
-
-        for (const folder of deletePaths) {
-          await fs.unlink(folder);
-        }
-        activity.end();
-        reporter.success(reporter.lang('clearedPackageFromCache', args[0]));
-      } else {
-        // Clear all cache
-        await fs.unlink(config._cacheRootFolder);
-        await fs.mkdirp(config.cacheFolder);
-        activity.end();
-        reporter.success(reporter.lang('clearedCache'));
-      }
-    }
   },
 });
 
