@@ -139,12 +139,14 @@ const REQUIRE_HOOK = lockfileFolder =>
   `
 const Module = require('module');
 
+const builtinModules = Module.builtinModules || Object.keys(process.binding('natives'));
+
 const originalResolver = Module._resolveFilename;
 const pathRegExp = /^(?!\\.{0,2}\\/)([^\\/]+)(\\/.*|)$/;
 
 Module._resolveFilename = function (request, parent, isMain, options) {
 
-  if (Module.builtinModules.includes(request)) {
+  if (builtinModules.indexOf(request) !== -1) {
     return request;
   }
 
@@ -219,11 +221,6 @@ async function getPackageInformationStores(
       const packageDependencies = new Map();
 
       for (const pattern of ref.dependencies) {
-        const dep = resolver.getStrictResolvedPattern(pattern);
-        packageDependencies.set(dep.name, dep.version);
-      }
-
-      for (const pattern of ref.peerDependencies || []) {
         const dep = resolver.getStrictResolvedPattern(pattern);
         packageDependencies.set(dep.name, dep.version);
       }
