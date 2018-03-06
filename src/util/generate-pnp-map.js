@@ -1,12 +1,16 @@
 // @flow
 
 import type Config from '../config.js';
+import type PackageReference from '../package-reference.js';
+import type PackageRequest from '../package-request.js';
 import type PackageResolver from '../package-resolver.js';
+import type {Manifest} from '../types.js';
 import * as fs from './fs.js';
 
+const invariant = require('invariant');
 const path = require('path');
 
-type PackageInformation = {|packageLocation: string, packageDependencies: Map<string, string>|};
+type PackageInformation = {|packageLocation: string, packageDependencies: Map<string, string>, packagePeers: Map<string, Map<string, string | null>>|};
 type PackageInformationStore = Map<string | null, PackageInformation>;
 type PackageInformationStores = Map<string | null, PackageInformationStore>;
 
@@ -19,16 +23,28 @@ function generateMaps(packageInformationStores: PackageInformationStores): strin
   for (const [packageName, packageInformationStore] of packageInformationStores) {
     code += `  [${JSON.stringify(packageName)}, new Map([\n`;
 
-    for (const [packageReference, {packageLocation, packageDependencies}] of packageInformationStore) {
+    for (const [packageReference, {packageLocation, packageDependencies, packagePeers}] of packageInformationStore) {
       code += `    [${JSON.stringify(packageReference)}, {\n`;
       code += `      packageLocation: ${JSON.stringify(packageLocation)},\n`;
-      code += `      packageDependencies: new Map([\n`;
 
+      code += `      packageDependencies: new Map([\n`;
       for (const [dependencyName, dependencyReference] of packageDependencies.entries()) {
         code += `        [${JSON.stringify(dependencyName)}, ${JSON.stringify(dependencyReference)}],\n`;
       }
-
       code += `      ]),\n`;
+
+      if (packagePeers.size > 0) {
+        code += `      packagePeers: new Map([\n`;
+        for (const [dependencyPath, peerEntries] of packagePeers) {
+          code += `        [${JSON.stringify(dependencyPath)}, new Map([\n`;
+          for (const [dependencyName, dependencyReference] of peerEntries.entries()) {
+            code += `          [${JSON.stringify(dependencyName)}, ${JSON.stringify(dependencyReference)}],\n`;
+          }
+          code += `        ])],\n`;
+        }
+        code += `      ]),\n`;
+      }
+
       code += `    }],\n`;
     }
 
@@ -36,101 +52,16 @@ function generateMaps(packageInformationStores: PackageInformationStores): strin
   }
 
   code += `]);\n`;
-  code += `\n`;
-
-  // Also bake an inverse map that will allow us to find the package information based on the path
-  code += `let locatorsByLocations = new Map([\n`;
-
-  for (const [packageName, packageInformationStore] of packageInformationStores) {
-    for (const [packageReference, {packageLocation}] of packageInformationStore) {
-      code += `  [${JSON.stringify(packageLocation)}, ${JSON.stringify({
-        name: packageName,
-        reference: packageReference,
-      })}],\n`;
-    }
-  }
-
-  code += `]);\n`;
-
-  return code;
-}
-
-function generateFindPackageLocator(packageInformationStores: PackageInformationStores): string {
-  let code = ``;
-
-  // We get the list of each string length we'll need to check in order to find the current package context
-  const lengths = new Map();
-
-  for (const packageInformationStore of packageInformationStores.values()) {
-    for (const {packageLocation} of packageInformationStore.values()) {
-      if (packageLocation !== null) {
-        lengths.set(packageLocation.length, (lengths.get(packageLocation.length) || 0) + 1);
-      }
-    }
-  }
-
-  // We sort the lengths by the number of time they are used, so that the more common ones are tested before the others
-  const sortedLengths = Array.from(lengths.entries()).sort((a, b) => {
-    return b[1] - a[1];
-  });
-
-  // Generate a function that, given a file path, returns the associated package name
-  code += `exports.findPackageLocator = function findPackageLocator(location) {\n`;
-  code += `  let match;\n`;
-
-  for (const [length] of sortedLengths) {
-    code += `\n`;
-    code += `  if (location.length >= ${length} && location[${length} - 1] === path.sep)\n`;
-    code += `    if (match = locatorsByLocations.get(location.substr(0, ${length})))\n`;
-    code += `      return match;\n`;
-  }
-
-  code += `\n`;
-  code += `  return null;\n`;
-  code += `};\n`;
-
-  return code;
-}
-
-function generateGetPackageLocation(packageInformationStores: PackageInformationStores): string {
-  let code = ``;
-
-  // Generate a function that, given a locator, returns the package location on the disk
-
-  code += `exports.getPackageLocation = function getPackageLocation({name, reference}) {\n`;
-  code += `    let packageInformationStore, packageInformation;\n`;
-  code += `\n`;
-  code += `    if (packageInformationStore = packageInformationStores.get(name))\n`;
-  code += `        if (packageInformation = packageInformationStore.get(reference))\n`;
-  code += `            return packageInformation.packageLocation;\n`;
-  code += `\n`;
-  code += `    return null;\n`;
-  code += `};\n`;
-
-  return code;
-}
-
-function generateGetPackageDependencies(packageInformationStores: PackageInformationStores): string {
-  let code = ``;
-
-  // Generate a function that, given a locator, returns the package dependencies
-
-  code += `exports.getPackageDependencies = function getPackageDependencies({name, reference}) {\n`;
-  code += `  let packageInformationStore, packageInformation;\n`;
-  code += `\n`;
-  code += `  if (packageInformationStore = packageInformationStores.get(name))\n`;
-  code += `    if (packageInformation = packageInformationStore.get(reference))\n`;
-  code += `      return packageInformation.packageDependencies;\n`;
-  code += `\n`;
-  code += `  return null;\n`;
-  code += `};\n`;
 
   return code;
 }
 
 /* eslint-disable max-len */
 const PROLOGUE = `
-let path = require('path');
+const path = require('path');
+
+const topLevelLocator = {name: null, reference: null};
+
 `.replace(/^\n/, ``);
 /* eslint-enable max-len */
 
@@ -141,62 +72,263 @@ const Module = require('module');
 
 const builtinModules = Module.builtinModules || Object.keys(process.binding('natives'));
 
+const originalLoader = Module._load;
 const originalResolver = Module._resolveFilename;
+
 const pathRegExp = /^(?!\\.{0,2}\\/)([^\\/]+)(\\/.*|)$/;
 
-Module._resolveFilename = function (request, parent, isMain, options) {
+const pnpPackageLocator = Symbol('pnpPackageLocator');
+const pnpPackagePath = Symbol('pnpPackagePath');
 
+const moduleCache = new Map();
+
+exports.getPackageInformation = function getPackageInformation({name, reference}) {
+  const packageInformationStore = packageInformationStores.get(name);
+
+  if (!packageInformationStore) {
+    return null;
+  }
+
+  const packageInformation = packageInformationStore.get(reference);
+
+  if (!packageInformation) {
+    return null;
+  }
+
+  return packageInformation;
+};
+
+exports.resolveRequest = function resolveFilename(request, packageLocator, parentPath) {
   if (builtinModules.indexOf(request) !== -1) {
-    return request;
+    return null;
   }
 
   const dependencyNameMatch = request.match(pathRegExp);
 
   if (!dependencyNameMatch) {
-    return originalResolver.call(Module, request, parent, isMain, options);
-  }
-
-  let caller = parent;
-
-  while (caller && (caller.id === '[eval]' || caller.id === '<repl>' || !caller.filename)) {
-    caller = caller.parent;
-  }
-
-  const packagePath = caller ? caller.filename : process.cwd() + path.sep;
-  const packageLocator = exports.findPackageLocator(packagePath);
-
-  if (!packageLocator) {
-    throw new Error(\`Could not find to which package belongs the path \${packagePath}\`);
+    return null;
   }
 
   const [ , dependencyName, subPath ] = dependencyNameMatch;
 
-  const packageDependencies = exports.getPackageDependencies(packageLocator);
-  let dependencyReference = packageDependencies.get(dependencyName);
+  const packageInformation = exports.getPackageInformation(packageLocator);
 
-  if (!dependencyReference) {
-    if (packageLocator.name === null) {
-      throw new Error(\`You cannot require a package (\${dependencyName}) that is not declared in your dependencies\`);
+  if (!packageInformation) {
+    throw new Error(\`Couldn't find a matching entry in the dependency tree for the specified parent (this is probably an internal error)\`);
+  }
+
+  // We obtain the dependency reference in regard to the package that request it
+  // We also need to keep track of whether the dependency had to be loaded through a peerDependency entry
+  // This is because in this case, the cache key must reflect it
+
+  let dependencyReference = packageInformation.packageDependencies.get(dependencyName);
+  let isPeerDependency = false;
+
+  // If there's no strict dependency that match the request, we look into peer dependencies
+
+  if (!dependencyReference && packageInformation.packagePeers) {
+    const peerResolutions = packageInformation.packagePeers.get(parentPath);
+
+    if (!peerResolutions) {
+      throw new Error(\`Couldn't find the peer candidates for path "\${parentPath}" (this is probably an internal error)\`);
     }
 
-    const topLevelDependencies = exports.getPackageDependencies({ name: null, reference: null });
-    dependencyReference = topLevelDependencies.get(dependencyName);
+    const peerReference = peerResolutions.get(dependencyName);
 
-    if (!dependencyReference) {
-      throw new Error(\`Package \${packageLocator.name}@\${packageLocator.reference} is trying to require package \${dependencyName}, which is not declared in its dependencies (\${Array.from(packageDependencies.keys()).join(\`, \`)})\`);
+    if (peerReference === null) {
+      throw new Error(\`Package "\${packageLocator.name}" tries to access a missing peer dependency ("\${dependencyName}")\`);
+    }
+
+    dependencyReference = peerReference;
+    isPeerDependency = true;
+  }
+
+  // If we STILL can't find it, we fallback to the top-level dependencies
+  // This fallback isn't ideal, but makes working with plugins much easier
+
+  if (!dependencyReference) {
+    const topLevelInformation = exports.getPackageInformation(topLevelLocator);
+
+    dependencyReference = topLevelInformation.packageDependencies.get(dependencyName);
+  }
+
+  // And if we still haven't been able to resolve it, we give up
+  // If the package making the request is the top-level, we can be a bit nicer in the error message
+
+  if (!dependencyReference) {
+    if (packageLocator !== topLevelLocator) {
+      throw new Error(\`Package \${packageLocator.name}@\${packageLocator.reference} is trying to require package \${dependencyName}, which is not declared in its dependencies (\${Array.from(packageInformation.packageDependencies.keys()).join(\`, \`)})\`);
+    } else {
+      throw new Error(\`You cannot require a package (\${dependencyName}) that is not declared in your dependencies\`);
     }
   }
 
-  const dependencyLocation = exports.getPackageLocation({ name: dependencyName, reference: dependencyReference });
+  // We need to check that the package exists on the filesystem, because it might not have been installed
+
+  const dependencyLocator = {name: dependencyName, reference: dependencyReference};
+  const dependencyInformation = exports.getPackageInformation(dependencyLocator);
+
+  const dependencyLocation = dependencyInformation.packageLocation;
 
   if (!dependencyLocation) {
     throw new Error(\`Package \${dependencyName}@\${dependencyReference} is a valid dependency, but hasn't been installed and thus cannot be required\`);
   }
 
-  return originalResolver.call(Module, \`\${dependencyLocation}/\${subPath}\`, parent, isMain, options);
+  const path = \`\${dependencyLocation}/\${subPath}\`;
+  const cacheKey = isPeerDependency ? \`\${parentPath}@\${path}\` : path;
+
+  return {locator: dependencyLocator, path, cacheKey};
+}
+
+Module._load = function (request, parent, isMain) {
+  if (builtinModules.indexOf(request) !== -1) {
+    return originalLoader.call(this, request, parent, isMain);
+  }
+
+  const parentLocator = parent && parent[pnpPackageLocator] ? parent[pnpPackageLocator] : topLevelLocator;
+  const parentPath = parent && parent[pnpPackagePath] ? parent[pnpPackagePath] : '';
+
+  const resolution = exports.resolveRequest(request, parentLocator, parentPath);
+  const qualifiedPath = originalResolver.call(this, resolution ? resolution.path : request, parent, isMain);
+
+  const cacheKey = resolution ? resolution.cacheKey : qualifiedPath;
+  const cacheEntry = moduleCache.get(cacheKey);
+
+  if (cacheEntry) {
+    return cacheEntry.exports;
+  }
+
+  const module = new Module(qualifiedPath, parent);
+  moduleCache.set(cacheKey, module);
+
+  if (isMain) {
+    process.mainModule = module;
+    module.id = '.';
+  }
+
+  if (resolution) {
+    module[pnpPackageLocator] = resolution.locator;
+    module[pnpPackagePath] = parentPath ? \`\${parentPath}/\${resolution.locator.name}\` : resolution.locator.name;
+  } else {
+    module[pnpPackagePath] = parentPath;
+  }
+
+  let hasThrown = true;
+
+  try {
+    module.load(qualifiedPath);
+    hasThrown = false;
+  } finally {
+    if (hasThrown) {
+      moduleCache.delete(cacheKey);
+    }
+  }
+
+  return module.exports;
+};
+
+Module._resolveFilename = function (request, parent, isMain, options) {
+  if (builtinModules.indexOf(request) !== -1) {
+    return request;
+  }
+
+  const parentLocator = parent && parent[pnpPackageLocator] ? parent[pnpPackageLocator] : topLevelLocator;
+  const parentPath = parent && parent[pnpPackagePath] ? parent[pnpPackagePath] : '';
+
+  const resolution = exports.resolveRequest(request, parentLocator, parentPath);
+  const qualifiedPath = originalResolver.call(this, resolution ? resolution.path : request, parent, isMain);
+
+  return qualifiedPath;
 };
 `.replace(/^\n/, ``);
 /* eslint-enable */
+
+function getPackagesDistance(fromReq: PackageRequest, toReq: PackageRequest) {
+  // toReq cannot be a valid peer dependency if it's deeper in the tree
+  if (toReq.parentNames.length > fromReq.parentNames.length) {
+    return null;
+  }
+
+  // To be a valid peer dependency, toReq must have the same parents
+  for (let t = 0; t < toReq.parentNames.length; ++t) {
+    if (toReq.parentNames[t] !== fromReq.parentNames[t]) {
+      return null;
+    }
+  }
+
+  // The depth is simply the number of parents between the two packages
+  return fromReq.parentNames.length - toReq.parentNames.length;
+}
+
+function getPackagePeers(pkg: Manifest, {resolver, exclude}: {resolver: PackageResolver, exclude: Array<string>}): Map<string, Map<string, string | null>> {
+  const ref = pkg._reference;
+  invariant(ref, `Ref must exists`);
+
+  // Early exit if the package has no peer dependency
+
+  const peerDependencies = pkg.peerDependencies || {};
+  const peerNames = new Set(Object.keys(peerDependencies));
+
+  for (const excludeName of exclude) {
+    peerNames.delete(excludeName);
+  }
+
+  if (peerNames.size === 0) {
+    return new Map();
+  }
+
+  // Cache the candidates for each peer dependency
+
+  const peerCandidateMap = new Map();
+
+  for (const peerDependency of peerNames) {
+    peerCandidateMap.set(peerDependency, resolver.getAllInfoForPackageName(peerDependency));
+  }
+
+  // Find the best candidates for each peer dependency for each branch that uses `pkg`
+
+  const packagePeers = new Map();
+
+  for (const req of ref.requests) {
+    const peerPath = [... req.parentNames, ref.name].join('/');
+    const peerEntries = new Map();
+
+    for (const peerDependency of peerNames) {
+      const peerCandidates = peerCandidateMap.get(peerDependency);
+      invariant(peerCandidates, `We must have peer candidates`);
+
+      let bestCandidate = null;
+      let bestDepth = Infinity;
+
+      for (const peerCandidate of peerCandidates) {
+        const candidateRef = peerCandidate._reference;
+
+        if (!candidateRef) {
+          continue;
+        }
+
+        for (const candidateReq of candidateRef.requests) {
+          const candidateDepth = getPackagesDistance(req, candidateReq);
+
+          if (candidateDepth !== null && bestDepth > candidateDepth) {
+            bestCandidate = peerCandidate;
+            bestDepth = candidateDepth;
+          }
+        }
+      }
+
+      if (bestCandidate) {
+        peerEntries.set(peerDependency, bestCandidate.version);
+      } else {
+        peerEntries.set(peerDependency, null);
+      }
+    }
+
+    packagePeers.set(peerPath, peerEntries);
+  }
+
+  return packagePeers;
+}
 
 async function getPackageInformationStores(
   config: Config,
@@ -218,6 +350,8 @@ async function getPackageInformationStores(
         packageInformationStores.set(pkg.name, (packageInformationStore = new Map()));
       }
 
+      // Resolve all the dependencies for our package
+
       const packageDependencies = new Map();
 
       for (const pattern of ref.dependencies) {
@@ -225,9 +359,14 @@ async function getPackageInformationStores(
         packageDependencies.set(dep.name, dep.version);
       }
 
+      // Compute the peer dependencies for each possible require path
+
+      const packagePeers = getPackagePeers(pkg, {resolver, exclude: Array.from(packageDependencies.keys())});
+
       packageInformationStore.set(pkg.version, {
         packageLocation: (await fs.realpath(loc)).replace(/[\\\/]?$/, path.sep),
         packageDependencies,
+        packagePeers,
       });
     }
   }
@@ -249,6 +388,7 @@ async function getPackageInformationStores(
           {
             packageLocation: (await fs.realpath(config.lockfileFolder)).replace(/[\\\/]?$/, path.sep),
             packageDependencies: topLevelDependencies,
+            packagePeers: new Map(),
           },
         ],
       ]),
@@ -268,9 +408,6 @@ export async function generatePnpMap(
   return [
     PROLOGUE,
     generateMaps(packageInformationStores),
-    generateFindPackageLocator(packageInformationStores),
-    generateGetPackageLocation(packageInformationStores),
-    generateGetPackageDependencies(packageInformationStores),
     REQUIRE_HOOK(config.lockfileFolder),
   ].join(`\n`);
 }
