@@ -262,7 +262,14 @@ export default class PackageHoister {
           continue;
         }
 
-        const isMarkedAsOptional = depinfo.pkg._reference && depinfo.pkg._reference.optional && this.ignoreOptional;
+        const depRef = depinfo.pkg._reference;
+
+        // If it's marked as optional, but the parent is required and the
+        // dependency was not listed in `optionalDependencies`, then we mark the
+        // dependency as required.
+        const isMarkedAsOptional =
+          depRef && depRef.optional && this.ignoreOptional && !(info.isRequired && depRef.hint !== 'optional');
+
         if (!depinfo.isRequired && !depinfo.isIncompatible && !isMarkedAsOptional) {
           depinfo.isRequired = true;
           depinfo.addHistory(`Mark as non-ignored because of usage by ${info.key}`);
