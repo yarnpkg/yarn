@@ -276,6 +276,13 @@ async function buildActionsForCopy(
         } catch (err) {}
       } */
 
+      if (bothFiles && artifactFiles.has(dest)) {
+        // this file gets changed during build, likely by a custom install script. Don't bother checking it.
+        onDone();
+        reporter.verbose(reporter.lang('verboseFileSkipArtifact', src));
+        return;
+      }
+
       if (bothFiles && srcStat.size === destStat.size && fileDatesEqual(srcStat.mtime, destStat.mtime)) {
         // we can safely assume this is the same file
         onDone();
@@ -465,6 +472,13 @@ async function buildActionsForHardlink(
           // us modes that aren't valid. investigate this, it's generally safe to proceed.
           reporter.verbose(err);
         }
+      }
+
+      if (bothFiles && artifactFiles.has(dest)) {
+        // this file gets changed during build, likely by a custom install script. Don't bother checking it.
+        onDone();
+        reporter.verbose(reporter.lang('verboseFileSkipArtifact', src));
+        return;
       }
 
       // correct hardlink

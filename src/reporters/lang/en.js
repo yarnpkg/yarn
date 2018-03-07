@@ -52,6 +52,7 @@ const messages = {
   verboseFileRemoveExtraneous: 'Removing extraneous file $0.',
   verboseFilePhantomExtraneous:
     "File $0 would be marked as extraneous but has been removed as it's listed as a phantom file.",
+  verboseFileSkipArtifact: 'Skipping copying of $0 as the file is marked as a built artifact and subject to change.',
   verboseFileFolder: 'Creating directory $0.',
 
   verboseRequestStart: 'Performing $0 request to $1.',
