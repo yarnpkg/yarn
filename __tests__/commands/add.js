@@ -1080,7 +1080,7 @@ test('should not run scripts if build artifact changed', async () => {
       const artifactFile = path.join(config.cwd, 'node_modules', 'a', 'foo.txt');
 
       const beforeContents = await fs.readFileAny([artifactFile]);
-      const integFile = await fs.readFileAny([path.join(config.cwd, 'node_modules', '.yarn-integrity']);
+      const integFile = await fs.readFileAny([path.join(config.cwd, 'node_modules', '.yarn-integrity')]);
 
       // re-read lockfile after the first `add` or else it will still be empty
       lockfile = await Lockfile.fromDirectory(config.cwd);
