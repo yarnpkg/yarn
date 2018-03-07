@@ -378,8 +378,16 @@ export function main({
           });
 
           response.on('end', () => {
-            const {cwd, pid} = JSON.parse(Buffer.concat(buffers).toString());
-            reporter.warn(reporter.lang('waitingNamedInstance', pid, cwd));
+            try {
+              const {cwd, pid} = JSON.parse(Buffer.concat(buffers).toString());
+              reporter.warn(reporter.lang('waitingNamedInstance', pid, cwd));
+            } catch (error) {
+              console.error(
+                `An error while connecting to the network mutex server on port ${connectionOptions.port}: ${error}`,
+              );
+              // eslint-disable-next-line no-process-exit
+              process.exit(1);
+            }
             waitForTheNetwork();
           });
 
