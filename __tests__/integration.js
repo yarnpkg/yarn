@@ -1,12 +1,16 @@
 /* @flow */
 /* eslint max-len: 0 */
 
+import http from 'http';
+
+import invariant from 'invariant';
 import execa from 'execa';
 import {sh} from 'puka';
 import makeTemp from './_temp.js';
 import * as fs from '../src/util/fs.js';
 import * as constants from '../src/constants.js';
 import {explodeLockfile} from './commands/_helpers.js';
+import en from '../src/reporters/lang/en.js';
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 120000;
 
@@ -149,6 +153,40 @@ test('--mutex network', async () => {
   }
 
   await Promise.all(promises);
+});
+
+test('--mutex network with busy port', async () => {
+  const port = getRandomPort();
+
+  const server = http.createServer((request, response) => {
+    response.writeHead(200);
+    response.end("I'm a broken JSON string to crash Yarn network mutex.");
+  });
+  server.listen({
+    port,
+    host: 'localhost',
+  });
+
+  const cwd = await makeTemp();
+  await fs.writeFile(
+    path.join(cwd, 'package.json'),
+    JSON.stringify({
+      scripts: {test: 'node -e "setTimeout(function(){}, process.argv[1])"'},
+    }),
+  );
+
+  let mutexError;
+  try {
+    await runYarn(['--mutex', `network:${port}`, 'run', 'test', '100'], {cwd});
+  } catch (error) {
+    mutexError = error;
+  } finally {
+    server.close();
+  }
+
+  expect(mutexError).toBeDefined();
+  invariant(mutexError != null, 'mutexError should be defined at this point otherwise Jest will throw above');
+  expect(mutexError.message).toMatch(new RegExp(en.mutexPortBusy.replace(/\$\d/g, '\\d+')));
 });
 
 describe('--registry option', () => {
