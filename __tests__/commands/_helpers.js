@@ -170,6 +170,9 @@ export async function run<T, R>(
 
   try {
     const config = await makeConfigFromDirectory(cwd, reporter, flags);
+    if (typeof flags.workspacesNohoistEnabled === 'boolean') {
+      config.workspacesNohoistEnabled = flags.workspacesNohoistEnabled;
+    }
     const install = await factory(args, flags, config, reporter, lockfile, () => out);
 
     if (checkInstalled) {
