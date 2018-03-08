@@ -58,7 +58,15 @@ const futimes: (fd: number, atime: number, mtime: number) => Promise<void> = pro
 const copyFile: (src: string, dest: string, flags: number, data: CopyFileAction) => Promise<void> = fs.copyFile
   ? // Don't use `promisify` to avoid passing  the last, argument `data`, to the native method
     (src, dest, flags, data) =>
-      new Promise((resolve, reject) => fs.copyFile(src, dest, flags, err => (err ? reject(err) : resolve(err))))
+      new Promise((resolve, reject) =>
+        fs.copyFile(src, dest, flags, err => {
+          if (err) {
+            reject(err);
+          } else {
+            fixTimes(0, dest, data).then(() => resolve(err)).catch(ex => reject(ex));
+          }
+        }),
+      )
   : async (src, dest, flags, data) => {
       // Use open -> write -> futimes -> close sequence to avoid opening the file twice:
       // one with writeFile and one with utimes
@@ -66,7 +74,7 @@ const copyFile: (src: string, dest: string, flags: number, data: CopyFileAction)
       try {
         const buffer = await readFileBuffer(src);
         await write(fd, buffer, 0, buffer.length);
-        await futimes(fd, data.atime, data.mtime);
+        await fixTimes(fd, dest, data);
       } finally {
         await close(fd);
       }
@@ -161,6 +169,22 @@ export const fileDatesEqual = (a: Date, b: Date) => {
 
   return aTime === bTime;
 };
+
+// This ensured the timestamps are preserved from the file in the cache to the file copied to node_modules.
+// These timestamps are checked to see if files have changed and need recopied, so preserving them is important.
+async function fixTimes(fd: number, dest: string, data: CopyFileAction): Promise<void> {
+  const doOpen = !fd;
+  if (doOpen) {
+    fd = await open(dest, 'r', data.mode);
+  }
+  try {
+    await futimes(fd, data.atime, data.mtime);
+  } finally {
+    if (doOpen) {
+      await close(fd);
+    }
+  }
+}
 
 async function buildActionsForCopy(
   queue: CopyQueue,
