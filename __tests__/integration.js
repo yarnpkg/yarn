@@ -184,7 +184,7 @@ test('--mutex network with busy port', async () => {
   }
 
   expect(mutexError).toBeDefined();
-  invariant(mutexError != null);
+  invariant(mutexError != null, 'mutexError should be defined at this point otherwise Jest will throw above');
   expect(mutexError.message).toMatch(/An error while connecting to the network mutex server on port/);
 });
 
