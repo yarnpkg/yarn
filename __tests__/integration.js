@@ -354,10 +354,26 @@ test('yarn run <script> <strings that need escaping>', async () => {
 
   const options = {cwd, env: {YARN_SILENT: 1}};
 
-  const trickyStrings = ['$PWD', '%CD%', '^', '!', '\\', '>', '<', '|', '&', "'", '"', '`', '  '];
+  const trickyStrings = ['$PWD', '%CD%', '^', '!', '\\', '>', '<', '|', '&', "'", '"', '`', '  ', '()'];
   const [stdout] = await runYarn(['stringify', ...trickyStrings], options);
 
   expect(stdout.toString().trim()).toEqual(JSON.stringify(trickyStrings));
+});
+
+test('yarn run in path need escaping', async () => {
+  const cwd = await makeTemp('special (chars)');
+
+  await fs.writeFile(path.join(cwd, 'package.json'), '{}');
+  const binDir = path.join(cwd, 'node_modules', '.bin');
+  await fs.mkdirp(binDir);
+  await fs.writeFile(path.join(binDir, 'yolo'), 'echo yolo');
+  await fs.writeFile(path.join(binDir, 'yolo.cmd'), '@ECHO off\necho yolo');
+
+  const options = {cwd, env: {YARN_SILENT: 1}};
+
+  const [stdout] = await runYarn(['yolo'], options);
+
+  expect(stdout.toString().trim()).toEqual('yolo');
 });
 
 test('cache folder fallback', async () => {
