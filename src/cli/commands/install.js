@@ -283,7 +283,12 @@ export class Install {
         }
       }
 
-      const pushDeps = (depType, manifest: Object, {hint, optional}, isUsed) => {
+      const pushDeps = (
+        depType,
+        manifest: Object,
+        {hint, optional}: {hint: ?constants.RequestHint, optional: boolean},
+        isUsed,
+      ) => {
         if (ignoreUnusedPatterns && !isUsed) {
           return;
         }

@@ -1,0 +1,11 @@
+{
+  "name": "normal-dep",
+  "version": "0.0.0",
+  "dependencies": {
+    "sub-dep": "file:../sub-dep",
+    "normal-sub-dep": "file:../normal-sub-dep"
+  },
+  "optionalDependencies": {
+    "optional-sub-dep": "file:../optional-sub-dep"
+  }
+}

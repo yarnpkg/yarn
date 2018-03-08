@@ -124,4 +124,6 @@ export const VERSION_COLOR_SCHEME: {[key: string]: VersionColor} = {
 };
 
 export type VersionColor = 'red' | 'yellow' | 'green' | 'white';
+export type RequestHint = 'dev' | 'optional' | 'resolution' | 'workspaces';
+
 export const INTEGRITY_ALGORITHMS = ['md5', 'whirlpool', 'sha1', 'sha224', 'sha256', 'sha384', 'sha512'];

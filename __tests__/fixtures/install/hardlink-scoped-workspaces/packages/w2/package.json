@@ -1,0 +1,8 @@
+{
+  "name": "@sub/w2",
+  "version": "1.0.0",
+  "dependencies": {
+    "b": "file:../../deps/b-1",
+    "c": "link:../../deps/c-1"
+  }
+}

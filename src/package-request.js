@@ -37,6 +37,7 @@ export default class PackageRequest {
     this.reporter = resolver.reporter;
     this.resolver = resolver;
     this.optional = req.optional;
+    this.hint = req.hint;
     this.pattern = req.pattern;
     this.config = resolver.config;
     this.foundInfo = null;
@@ -55,6 +56,7 @@ export default class PackageRequest {
   config: Config;
   registry: ResolverRegistryNames;
   optional: boolean;
+  hint: ?constants.RequestHint;
   foundInfo: ?Manifest;
 
   getLocked(remoteType: FetcherNames): ?Manifest {
@@ -289,6 +291,7 @@ export default class PackageRequest {
       deps.push(depPattern);
       promises.push(
         this.resolver.find({
+          hint: 'optional',
           pattern: depPattern,
           registry: remote.registry,
           optional: true,
@@ -304,6 +307,7 @@ export default class PackageRequest {
         deps.push(depPattern);
         promises.push(
           this.resolver.find({
+            hint: 'dev',
             pattern: depPattern,
             registry: remote.registry,
             optional: false,

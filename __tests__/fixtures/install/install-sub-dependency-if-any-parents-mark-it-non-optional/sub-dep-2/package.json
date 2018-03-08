@@ -1,0 +1,7 @@
+{
+  "name": "sub-dep-2",
+  "version": "0.0.0",
+  "dependencies": {
+    "sub-sub-dep": "file:../sub-sub-dep"
+  }
+}
