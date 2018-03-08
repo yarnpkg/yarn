@@ -366,8 +366,11 @@ test('yarn run in path need escaping', async () => {
   await fs.writeFile(path.join(cwd, 'package.json'), '{}');
   const binDir = path.join(cwd, 'node_modules', '.bin');
   await fs.mkdirp(binDir);
-  await fs.writeFile(path.join(binDir, 'yolo'), 'echo yolo');
-  await fs.writeFile(path.join(binDir, 'yolo.cmd'), '@ECHO off\necho yolo');
+  const executablePath = path.join(binDir, 'yolo');
+  await fs.writeFile(executablePath, 'echo yolo');
+  await fs.chmod(executablePath, 0o755);
+  // For Windows
+  await fs.writeFile(`${executablePath}.cmd`, '@ECHO off\necho yolo');
 
   const options = {cwd, env: {YARN_SILENT: 1}};
 
