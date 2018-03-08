@@ -186,7 +186,7 @@ test('--mutex network with busy port', async () => {
 
   expect(mutexError).toBeDefined();
   invariant(mutexError != null, 'mutexError should be defined at this point otherwise Jest will throw above');
-  expect(mutexError.message).toMatch(new RegExp(en.mutexPortBusy.replace(/\$\d/g, '.+')));
+  expect(mutexError.message).toMatch(new RegExp(en.mutexPortBusy.replace(/\$\d/g, '\\d+')));
 });
 
 describe('--registry option', () => {
