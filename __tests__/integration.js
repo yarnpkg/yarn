@@ -392,7 +392,7 @@ test('yarn run <script> <strings that need escaping>', async () => {
 
   const options = {cwd, env: {YARN_SILENT: 1}};
 
-  const trickyStrings = ['$PWD', '%CD%', '^', '!', '\\', '>', '<', '|', '&', "'", '"', '`', '  ', '()'];
+  const trickyStrings = ['$PWD', '%CD%', '^', '!', '\\', '>', '<', '|', '&', "'", '"', '`', '  ', '(', ')'];
   const [stdout] = await runYarn(['stringify', ...trickyStrings], options);
 
   expect(stdout.toString().trim()).toEqual(JSON.stringify(trickyStrings));
