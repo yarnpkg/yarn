@@ -275,12 +275,9 @@ async function buildActionsForCopy(
           await access(dest, srcStat.mode);
         } catch (err) {}
       } */
-      if(dest.indexOf('foo.txt') > 0) {
-        console.log('*** fs check ', dest, artifactFiles.has(dest))
-      }
+
       if (bothFiles && artifactFiles.has(dest)) {
         // this file gets changed during build, likely by a custom install script. Don't bother checking it.
-        console.log('*** would skip', src);
         onDone();
         reporter.verbose(reporter.lang('verboseFileSkipArtifact', src));
         return;
