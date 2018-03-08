@@ -10,6 +10,7 @@ import makeTemp from './_temp.js';
 import * as fs from '../src/util/fs.js';
 import * as constants from '../src/constants.js';
 import {explodeLockfile} from './commands/_helpers.js';
+import en from '../src/reporters/lang/en.js';
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 120000;
 
@@ -185,7 +186,7 @@ test('--mutex network with busy port', async () => {
 
   expect(mutexError).toBeDefined();
   invariant(mutexError != null, 'mutexError should be defined at this point otherwise Jest will throw above');
-  expect(mutexError.message).toMatch(/An error while connecting to the network mutex server on port/);
+  expect(mutexError.message).toMatch(new RegExp(en.mutexPortBusy.replace(/\$\d/g, '.+')));
 });
 
 describe('--registry option', () => {
