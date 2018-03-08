@@ -378,8 +378,14 @@ export function main({
           });
 
           response.on('end', () => {
-            const {cwd, pid} = JSON.parse(Buffer.concat(buffers).toString());
-            reporter.warn(reporter.lang('waitingNamedInstance', pid, cwd));
+            try {
+              const {cwd, pid} = JSON.parse(Buffer.concat(buffers).toString());
+              reporter.warn(reporter.lang('waitingNamedInstance', pid, cwd));
+            } catch (error) {
+              reporter.verbose(error);
+              reject(new Error(reporter.lang('mutexPortBusy', connectionOptions.port)));
+              return;
+            }
             waitForTheNetwork();
           });
 
