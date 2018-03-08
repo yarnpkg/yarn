@@ -396,6 +396,7 @@ const messages = {
   verboseUpgradeNotUnlocking: 'Not unlocking $0 in the lockfile because it is a new or direct dependency.',
   verboseUpgradeUnlocking: 'Unlocking $0 in the lockfile.',
   folderMissing: "Directory $0 doesn't exist",
+  mutexPortBusy: 'Cannot use the network mutex on port $0. It is probably used by another app.',
 };
 
 export type LanguageKeys = $Keys<typeof messages>;
