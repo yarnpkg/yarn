@@ -6,6 +6,7 @@ import {MessageError, ProcessTermError} from '../errors.js';
 import * as constants from '../constants.js';
 import * as child from './child.js';
 import * as fs from './fs.js';
+import {dynamicRequire} from './dynamic-require.js';
 import {makePortableProxyScript} from './portable-script.js';
 import {registries} from '../resolvers/index.js';
 import {fixCmdWinSlashes} from './fix-cmd-win-slashes.js';
@@ -27,7 +28,7 @@ const IGNORE_MANIFEST_KEYS = ['readme'];
 // See https://github.com/yarnpkg/yarn/issues/2286.
 const IGNORE_CONFIG_KEYS = ['lastUpdateCheck'];
 
-async function getPnpParameters(config: Config) {
+async function getPnpParameters(config: Config): Promise<Array<string>> {
   if (await fs.exists(`${config.lockfileFolder}/${constants.PNP_FILENAME}`)) {
     return ['-r', `${config.lockfileFolder}/${constants.PNP_FILENAME}`];
   } else {
@@ -46,7 +47,7 @@ export async function getWrappersFolder(config: Config): Promise<string> {
 
   await makePortableProxyScript(process.execPath, wrappersFolder, {
     proxyBasename: 'node',
-    prependArguments: [... await getPnpParameters(config)],
+    prependArguments: [...(await getPnpParameters(config))],
   });
 
   await makePortableProxyScript(process.execPath, wrappersFolder, {
@@ -180,15 +181,32 @@ export async function makeEnv(
     pathParts.unshift(globalBin);
   }
 
-  // add .bin folders to PATH
-  if (!config.plugnplayEnabled) {
-    for (const registry of Object.keys(registries)) {
-      const binFolder = path.join(config.registries[registry].folder, '.bin');
-      if (config.workspacesEnabled && config.workspaceRootFolder) {
-        pathParts.unshift(path.join(config.workspaceRootFolder, binFolder));
+  // Add node_modules .bin folders to the PATH
+  for (const registry of Object.keys(registries)) {
+    const binFolder = path.join(config.registries[registry].folder, '.bin');
+    if (config.workspacesEnabled && config.workspaceRootFolder) {
+      pathParts.unshift(path.join(config.workspaceRootFolder, binFolder));
+    }
+    pathParts.unshift(path.join(config.linkFolder, binFolder));
+    pathParts.unshift(path.join(cwd, binFolder));
+  }
+
+  // Otherwise, only add the top-level dependencies to the PATH
+  // Note that this isn't enough when executing scripts from subdependencies, but since dependencies with postinstall
+  // scripts have other issues that require us to make them fallback to regular node_modules installation (like sharing
+  // artifacts), we can sit on this one until we fix everything at once.
+  if (await fs.exists(`${config.lockfileFolder}/${constants.PNP_FILENAME}`)) {
+    const pnpApi = dynamicRequire(`${config.lockfileFolder}/${constants.PNP_FILENAME}`);
+    const topLevelInformation = pnpApi.getPackageInformation({name: null, reference: null});
+
+    for (const [name, reference] of topLevelInformation.packageDependencies.entries()) {
+      const dependencyInformation = pnpApi.getPackageInformation({name, reference});
+
+      if (!dependencyInformation || !dependencyInformation.packageLocation) {
+        continue;
       }
-      pathParts.unshift(path.join(config.linkFolder, binFolder));
-      pathParts.unshift(path.join(cwd, binFolder));
+
+      pathParts.unshift(`${dependencyInformation.packageLocation}/.bin`);
     }
   }
 

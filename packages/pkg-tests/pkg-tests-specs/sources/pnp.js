@@ -1,9 +1,16 @@
 const {fs: {writeFile}, tests: {getPackageDirectoryPath}} = require('pkg-tests-core');
-const {basic: basicSpecs} = require('pkg-tests-specs');
 
 module.exports = makeTemporaryEnv => {
+  const {basic: basicSpecs, script: scriptSpecs} = require('pkg-tests-specs');
+
   describe(`Plug'n'Play`, () => {
     basicSpecs(
+      makeTemporaryEnv.withConfig({
+        plugNPlay: true,
+      }),
+    );
+
+    scriptSpecs(
       makeTemporaryEnv.withConfig({
         plugNPlay: true,
       }),

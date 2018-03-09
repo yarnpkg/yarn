@@ -35,6 +35,6 @@ beforeEach(async () => {
 });
 
 basicSpecs(pkgDriver);
-dragonSpecs(pkgDriver);
-pnpSpecs(pkgDriver);
 scriptSpecs(pkgDriver);
+pnpSpecs(pkgDriver);
+dragonSpecs(pkgDriver);

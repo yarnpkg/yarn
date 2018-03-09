@@ -3,14 +3,26 @@
 import type {Reporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
 import {execCommand, makeEnv} from '../../util/execute-lifecycle-script.js';
+import {dynamicRequire} from '../../util/dynamic-require.js';
 import {MessageError} from '../../errors.js';
 import {registries} from '../../resolvers/index.js';
 import * as fs from '../../util/fs.js';
-import map from '../../util/map.js';
+import * as constants from '../../constants.js';
 
+const invariant = require('invariant');
 const leven = require('leven');
 const path = require('path');
 const {quoteForShell, sh, unquoted} = require('puka');
+
+function toObject(input: Map<string, string>): Object {
+  const output = Object.create(null);
+
+  for (const [key, val] of input.entries()) {
+    output[key] = val;
+  }
+
+  return output;
+}
 
 export function setFlags(commander: Object) {
   commander.description('Runs a defined package script.');
@@ -21,36 +33,51 @@ export function hasWrapper(commander: Object, args: Array<string>): boolean {
 }
 
 export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
-  // build up a list of possible scripts
   const pkg = await config.readManifest(config.cwd);
-  const scripts = map();
-  const binCommands = [];
-  const visitedBinFolders = new Set();
-  let pkgCommands = [];
+
+  const binFolders = new Set();
+
+  // Setup the node_modules/.bin folders for analysis
   for (const registry of Object.keys(registries)) {
-    const binFolder = path.join(config.cwd, config.registries[registry].folder, '.bin');
-    if (!visitedBinFolders.has(binFolder)) {
-      if (await fs.exists(binFolder)) {
-        for (const name of await fs.readdir(binFolder)) {
-          binCommands.push(name);
-          scripts[name] = quoteForShell(path.join(binFolder, name));
-        }
+    binFolders.add(path.join(config.cwd, config.registries[registry].folder, '.bin'));
+  }
+
+  // Same thing, but for the pnp dependencies, located inside the cache
+  if (await fs.exists(`${config.lockfileFolder}/${constants.PNP_FILENAME}`)) {
+    const pnpApi = dynamicRequire(`${config.lockfileFolder}/${constants.PNP_FILENAME}`);
+    const topLevelInformation = pnpApi.getPackageInformation({name: null, reference: null});
+
+    for (const [name, reference] of topLevelInformation.packageDependencies.entries()) {
+      const dependencyInformation = pnpApi.getPackageInformation({name, reference});
+
+      if (dependencyInformation.packageLocation) {
+        binFolders.add(`${dependencyInformation.packageLocation}/.bin`);
       }
-      visitedBinFolders.add(binFolder);
     }
   }
-  const pkgScripts = pkg.scripts;
-  const cmdHints = {};
-  if (pkgScripts) {
-    // inherit `scripts` from manifest
-    pkgCommands = Object.keys(pkgScripts).sort();
 
-    // add command hints (what the actual yarn command will do)
-    for (const cmd of pkgCommands) {
-      cmdHints[cmd] = pkgScripts[cmd] || '';
+  const binCommands = new Set();
+  const pkgCommands = new Set();
+
+  const scripts: Map<string, string> = new Map();
+
+  // Build up a list of possible scripts by exploring the folders marked for analysis
+  for (const binFolder of binFolders) {
+    if (await fs.exists(binFolder)) {
+      for (const name of await fs.readdir(binFolder)) {
+        scripts.set(name, quoteForShell(path.join(binFolder, name)));
+        binCommands.add(name);
+      }
     }
+  }
 
-    Object.assign(scripts, pkgScripts);
+  const pkgScripts = pkg.scripts;
+
+  if (pkgScripts) {
+    for (const name of Object.keys(pkgScripts).sort()) {
+      scripts.set(name, pkgScripts[name] || '');
+      pkgCommands.add(name);
+    }
   }
 
   async function runCommand(args): Promise<void> {
@@ -65,14 +92,18 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
         cmds.push([preAction, pkgScripts[preAction]]);
       }
 
-      cmds.push([action, scripts[action]]);
+      const script = scripts.get(action);
+      invariant(script, 'Script must exist');
+      cmds.push([action, script]);
 
       const postAction = `post${action}`;
       if (postAction in pkgScripts) {
         cmds.push([postAction, pkgScripts[postAction]]);
       }
-    } else if (scripts[action]) {
-      cmds.push([action, scripts[action]]);
+    } else if (scripts.has(action)) {
+      const script = scripts.get(action);
+      invariant(script, 'Script must exist');
+      cmds.push([action, script]);
     }
 
     if (cmds.length) {
@@ -112,15 +143,15 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
   if (args.length === 0) {
     reporter.error(reporter.lang('commandNotSpecified'));
 
-    if (binCommands.length) {
-      reporter.info(`${reporter.lang('binCommands') + binCommands.join(', ')}`);
+    if (binCommands.size > 0) {
+      reporter.info(`${reporter.lang('binCommands') + Array.from(binCommands).join(', ')}`);
     } else {
       reporter.error(reporter.lang('noBinAvailable'));
     }
 
-    if (pkgCommands.length) {
+    if (pkgCommands.size > 0) {
       reporter.info(`${reporter.lang('possibleCommands')}`);
-      reporter.list('possibleCommands', pkgCommands, cmdHints);
+      reporter.list('possibleCommands', Array.from(scripts.keys()), toObject(scripts));
       await reporter
         .question(reporter.lang('commandQuestion'))
         .then(answer => runCommand(answer.split(' ')), () => reporter.error(reporter.lang('commandNotSpecified')));

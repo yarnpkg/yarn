@@ -1,7 +1,6 @@
 // @flow
 
 import type Config from '../config.js';
-import type PackageReference from '../package-reference.js';
 import type PackageRequest from '../package-request.js';
 import type PackageResolver from '../package-resolver.js';
 import type {Manifest} from '../types.js';
@@ -10,7 +9,11 @@ import * as fs from './fs.js';
 const invariant = require('invariant');
 const path = require('path');
 
-type PackageInformation = {|packageLocation: string, packageDependencies: Map<string, string>, packagePeers: Map<string, Map<string, string | null>>|};
+type PackageInformation = {|
+  packageLocation: string,
+  packageDependencies: Map<string, string>,
+  packagePeers: Map<string, Map<string, string | null>>,
+|};
 type PackageInformationStore = Map<string | null, PackageInformation>;
 type PackageInformationStores = Map<string | null, PackageInformationStore>;
 
@@ -180,70 +183,76 @@ exports.resolveRequest = function resolveFilename(request, packageLocator, paren
   return {locator: dependencyLocator, path, cacheKey};
 }
 
-Module._load = function (request, parent, isMain) {
-  if (builtinModules.indexOf(request) !== -1) {
-    return originalLoader.call(this, request, parent, isMain);
-  }
-
-  const parentLocator = parent && parent[pnpPackageLocator] ? parent[pnpPackageLocator] : topLevelLocator;
-  const parentPath = parent && parent[pnpPackagePath] ? parent[pnpPackagePath] : '';
-
-  const resolution = exports.resolveRequest(request, parentLocator, parentPath);
-  const qualifiedPath = originalResolver.call(this, resolution ? resolution.path : request, parent, isMain);
-
-  const cacheKey = resolution ? resolution.cacheKey : qualifiedPath;
-  const cacheEntry = moduleCache.get(cacheKey);
-
-  if (cacheEntry) {
-    return cacheEntry.exports;
-  }
-
-  const module = new Module(qualifiedPath, parent);
-  moduleCache.set(cacheKey, module);
-
-  if (isMain) {
-    process.mainModule = module;
-    module.id = '.';
-  }
-
-  if (resolution) {
-    module[pnpPackageLocator] = resolution.locator;
-    module[pnpPackagePath] = parentPath ? \`\${parentPath}/\${resolution.locator.name}\` : resolution.locator.name;
-  } else {
-    module[pnpPackagePath] = parentPath;
-  }
-
-  let hasThrown = true;
-
-  try {
-    module.load(qualifiedPath);
-    hasThrown = false;
-  } finally {
-    if (hasThrown) {
-      moduleCache.delete(cacheKey);
+exports.setup = function setup () {
+  Module._load = function (request, parent, isMain) {
+    if (builtinModules.indexOf(request) !== -1) {
+      return originalLoader.call(this, request, parent, isMain);
     }
-  }
 
-  return module.exports;
+    const parentLocator = parent && parent[pnpPackageLocator] ? parent[pnpPackageLocator] : topLevelLocator;
+    const parentPath = parent && parent[pnpPackagePath] ? parent[pnpPackagePath] : '';
+
+    const resolution = exports.resolveRequest(request, parentLocator, parentPath);
+    const qualifiedPath = originalResolver.call(this, resolution ? resolution.path : request, parent, isMain);
+
+    const cacheKey = resolution ? resolution.cacheKey : qualifiedPath;
+    const cacheEntry = moduleCache.get(cacheKey);
+
+    if (cacheEntry) {
+      return cacheEntry.exports;
+    }
+
+    const module = new Module(qualifiedPath, parent);
+    moduleCache.set(cacheKey, module);
+
+    if (isMain) {
+      process.mainModule = module;
+      module.id = '.';
+    }
+
+    if (resolution) {
+      module[pnpPackageLocator] = resolution.locator;
+      module[pnpPackagePath] = parentPath ? \`\${parentPath}/\${resolution.locator.name}\` : resolution.locator.name;
+    } else {
+      module[pnpPackagePath] = parentPath;
+    }
+
+    let hasThrown = true;
+
+    try {
+      module.load(qualifiedPath);
+      hasThrown = false;
+    } finally {
+      if (hasThrown) {
+        moduleCache.delete(cacheKey);
+      }
+    }
+
+    return module.exports;
+  };
+
+  Module._resolveFilename = function (request, parent, isMain, options) {
+    if (builtinModules.indexOf(request) !== -1) {
+      return request;
+    }
+
+    const parentLocator = parent && parent[pnpPackageLocator] ? parent[pnpPackageLocator] : topLevelLocator;
+    const parentPath = parent && parent[pnpPackagePath] ? parent[pnpPackagePath] : '';
+
+    const resolution = exports.resolveRequest(request, parentLocator, parentPath);
+    const qualifiedPath = originalResolver.call(this, resolution ? resolution.path : request, parent, isMain);
+
+    return qualifiedPath;
+  };
 };
 
-Module._resolveFilename = function (request, parent, isMain, options) {
-  if (builtinModules.indexOf(request) !== -1) {
-    return request;
-  }
-
-  const parentLocator = parent && parent[pnpPackageLocator] ? parent[pnpPackageLocator] : topLevelLocator;
-  const parentPath = parent && parent[pnpPackagePath] ? parent[pnpPackagePath] : '';
-
-  const resolution = exports.resolveRequest(request, parentLocator, parentPath);
-  const qualifiedPath = originalResolver.call(this, resolution ? resolution.path : request, parent, isMain);
-
-  return qualifiedPath;
-};
+if (module.parent && module.parent.id === 'internal/preload') {
+  exports.setup();
+}
 `.replace(/^\n/, ``);
 /* eslint-enable */
 
-function getPackagesDistance(fromReq: PackageRequest, toReq: PackageRequest) {
+function getPackagesDistance(fromReq: PackageRequest, toReq: PackageRequest): number | null {
   // toReq cannot be a valid peer dependency if it's deeper in the tree
   if (toReq.parentNames.length > fromReq.parentNames.length) {
     return null;
@@ -260,7 +269,10 @@ function getPackagesDistance(fromReq: PackageRequest, toReq: PackageRequest) {
   return fromReq.parentNames.length - toReq.parentNames.length;
 }
 
-function getPackagePeers(pkg: Manifest, {resolver, exclude}: {resolver: PackageResolver, exclude: Array<string>}): Map<string, Map<string, string | null>> {
+function getPackagePeers(
+  pkg: Manifest,
+  {resolver, exclude}: {resolver: PackageResolver, exclude: Array<string>},
+): Map<string, Map<string, string | null>> {
   const ref = pkg._reference;
   invariant(ref, `Ref must exists`);
 
@@ -290,7 +302,7 @@ function getPackagePeers(pkg: Manifest, {resolver, exclude}: {resolver: PackageR
   const packagePeers = new Map();
 
   for (const req of ref.requests) {
-    const peerPath = [... req.parentNames, ref.name].join('/');
+    const peerPath = [...req.parentNames, ref.name].join('/');
     const peerEntries = new Map();
 
     for (const peerDependency of peerNames) {
@@ -405,9 +417,5 @@ export async function generatePnpMap(
 ): Promise<string> {
   const packageInformationStores = await getPackageInformationStores(config, seedPatterns, {resolver});
 
-  return [
-    PROLOGUE,
-    generateMaps(packageInformationStores),
-    REQUIRE_HOOK(config.lockfileFolder),
-  ].join(`\n`);
+  return [PROLOGUE, generateMaps(packageInformationStores), REQUIRE_HOOK(config.lockfileFolder)].join(`\n`);
 }
