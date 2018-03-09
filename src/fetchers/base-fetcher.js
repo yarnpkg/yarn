@@ -6,7 +6,7 @@ import type {PackageRemote, FetchedMetadata, FetchedOverride} from '../types.js'
 import type {RegistryNames} from '../registries/index.js';
 import type Config from '../config.js';
 import normalizeManifest from '../util/normalize-manifest/index.js';
-import {linkBin} from '../package-linker.js';
+import {makePortableProxyScript} from '../util/portable-script.js';
 import * as constants from '../constants.js';
 import * as fs from '../util/fs.js';
 
@@ -65,10 +65,13 @@ export default class BaseFetcher {
 
       if (pkg.bin) {
         for (const binName of Object.keys(pkg.bin)) {
-          const dest = `${this.dest}/.bin/${binName}`;
+          const dest = `${this.dest}/.bin`;
           const src = `${this.dest}/${pkg.bin[binName]}`;
 
-          await linkBin(src, dest);
+          await makePortableProxyScript(src, dest, {
+            proxyBasename: binName,
+            pnpPackageName: pkg.name,
+          });
         }
       }
 

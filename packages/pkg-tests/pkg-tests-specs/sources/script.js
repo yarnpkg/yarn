@@ -79,5 +79,23 @@ module.exports = (makeTemporaryEnv: PackageDriver) => {
         },
       ),
     );
+
+    test(
+      `it should allow dependencies binaries to require their own dependencies`,
+      makeTemporaryEnv(
+        {
+          dependencies: {
+            [`has-bin-entries`]: `1.0.0`,
+          },
+        },
+        async ({path, run, source}) => {
+          await run(`install`);
+
+          await expect(run(`run`, `has-bin-entries-with-require`)).resolves.toMatchObject({
+            stdout: `no-deps\n1.0.0\n`,
+          });
+        },
+      ),
+    );
   });
 };
