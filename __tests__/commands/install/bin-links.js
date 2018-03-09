@@ -182,9 +182,10 @@ describe('with nohoist', () => {
 
       // make sure the shared links: found-me are pointing to the local module
       let link = await fs.readlink(path.join(config.cwd, 'packages', 'a-dep', 'node_modules', '.bin', 'found-me'));
-      expect(link).toEqual('../found-me/bin');
+      const expectedPath = path.join('..', 'found-me', 'bin');
+      expect(link).toEqual(expectedPath);
       link = await fs.readlink(path.join(config.cwd, 'packages', 'f-dep', 'node_modules', '.bin', 'found-me'));
-      expect(link).toEqual('../found-me/bin');
+      expect(link).toEqual(expectedPath);
     });
   });
   test('nohoist bin should not be linked at top level', (): Promise<void> => {
