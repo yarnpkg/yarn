@@ -133,7 +133,7 @@ test('switching platform for installed node_modules should trigger rebuild / usi
     expect(await fs.exists(path.join(config.cwd, 'module-a-build.log'))).toEqual(true);
     expect(tgzFiles.length).toBe(2);
 
-    // runinng install with platform 1 again (no global side effects)
+    // running install with platform 1 again (no global side effects)
     await fs.unlink(path.join(config.cwd, 'node_modules', 'dep-a', 'module-a-build.log'));
     await fs.unlink(path.join(config.cwd, 'module-a-build.log'));
     nameUtils.getSystemParams.mockImplementation(

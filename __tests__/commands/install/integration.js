@@ -775,7 +775,7 @@ test.concurrent('install a module with optional dependency should skip incompati
   });
 });
 
-// this tests for a problem occuring due to optional dependency incompatible with os, in this case fsevents
+// this tests for a problem occurring due to optional dependency incompatible with os, in this case fsevents
 // this would fail on os's incompatible with fsevents, which is everything except osx.
 if (process.platform !== 'darwin') {
   test.concurrent(
@@ -811,17 +811,24 @@ test.concurrent('a subdependency of an optional dependency that fails should be 
   });
 });
 
-test.concurrent('a sub-dependency should be non-optional if any parents mark it non-optional', async (): Promise<
-  void,
-> => {
-  let thrown = false;
-  try {
-    await runInstall({}, 'failing-sub-dep-optional-and-normal', () => {});
-  } catch (err) {
-    thrown = true;
-    expect(err.message).toContain('sub-failing: Command failed');
-  }
-  expect(thrown).toEqual(true);
+test.concurrent('a sub-dependency should be non-optional if any parents mark it non-optional', (): Promise<void> => {
+  return runInstall(
+    {ignoreOptional: true},
+    'install-sub-dependency-if-any-parents-mark-it-non-optional',
+    async config => {
+      const deps = await fs.readdir(path.join(config.cwd, 'node_modules'));
+
+      expect(deps).toEqual([
+        '.yarn-integrity',
+        'normal-dep',
+        'normal-sub-dep',
+        'normal-sub-sub-dep',
+        'sub-dep',
+        'sub-dep-2',
+        'sub-sub-dep',
+      ]);
+    },
+  );
 });
 
 test.concurrent('should not loose dependencies when installing with --production', (): Promise<void> => {
@@ -1009,6 +1016,15 @@ test.concurrent('install will not overwrite linked dependencies', async (): Prom
         });
       });
     });
+  });
+});
+
+// There was an issue where anything ending with `.git` would be sent to GitResolver, even if it was a file: dep.
+// This caused an error if you had a directory named "myModule.git" and tried to use it with "file:../myModule.git"
+// See https://github.com/yarnpkg/yarn/issues/3670
+test.concurrent('file: dependency ending with `.git` should work', (): Promise<void> => {
+  return runInstall({}, 'local-named-git', async (config, reporter) => {
+    expect(await fs.exists(path.join(config.cwd, 'node_modules', 'a'))).toBe(true);
   });
 });
 

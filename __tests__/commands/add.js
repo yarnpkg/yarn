@@ -839,6 +839,7 @@ test.skip('add asks for correct package version if user passes an incorrect one'
       expect(await getPackageVersion(config, 'is-array')).toEqual(chosenVersion);
     },
     () => {
+      // $FlowFixMe It seems we're assigning something totally different from what inquirer expects :/
       inquirer.prompt = jest.fn(questions => {
         expect(questions).toHaveLength(1);
         expect(questions[0].name).toEqual('package');
@@ -849,7 +850,6 @@ test.skip('add asks for correct package version if user passes an incorrect one'
         invariant(choices.length > 0);
         chosenVersion = choices[0];
         invariant(typeof chosenVersion === 'string');
-        // $FlowFixMe: No sane way to return an "extended" Promise object
         return Promise.resolve({package: chosenVersion});
       });
     },
@@ -1160,7 +1160,7 @@ test.concurrent('installs "latest" instead of maxSatisfying if no requested patt
   // Scenario:
   // If a registry contains versions [1.0.0, 1.0.1, 1.0.2] and latest:1.0.1
   // If `yarn add` is run, it should choose `1.0.1` because it is "latest", not `1.0.2` even though it is newer.
-  // In other words, when no range is explicitely given, Yarn should choose "latest".
+  // In other words, when no range is explicitly given, Yarn should choose "latest".
   //
   // In this test, `ui-select` has a max version of `0.20.0` but a `latest:0.19.8`
   await runAdd(['ui-select'], {}, 'latest-version-in-package', async (config, reporter, previousAdd) => {

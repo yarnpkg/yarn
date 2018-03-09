@@ -262,7 +262,14 @@ export default class PackageHoister {
           continue;
         }
 
-        const isMarkedAsOptional = depinfo.pkg._reference && depinfo.pkg._reference.optional && this.ignoreOptional;
+        const depRef = depinfo.pkg._reference;
+
+        // If it's marked as optional, but the parent is required and the
+        // dependency was not listed in `optionalDependencies`, then we mark the
+        // dependency as required.
+        const isMarkedAsOptional =
+          depRef && depRef.optional && this.ignoreOptional && !(info.isRequired && depRef.hint !== 'optional');
+
         if (!depinfo.isRequired && !depinfo.isIncompatible && !isMarkedAsOptional) {
           depinfo.isRequired = true;
           depinfo.addHistory(`Mark as non-ignored because of usage by ${info.key}`);
@@ -549,7 +556,7 @@ export default class PackageHoister {
       }
     };
 
-    // add an occuring package to the above data structure
+    // add an occurring package to the above data structure
     const add = (pattern: string, ancestry: Array<Manifest>, ancestryPatterns: Array<string>) => {
       const pkg = this.resolver.getStrictResolvedPattern(pattern);
       if (ancestry.indexOf(pkg) >= 0) {
@@ -632,8 +639,8 @@ export default class PackageHoister {
           mostOccurencePattern = pattern;
         }
       }
-      invariant(mostOccurencePattern, 'expected most occuring pattern');
-      invariant(mostOccurenceCount, 'expected most occuring count');
+      invariant(mostOccurencePattern, 'expected most occurring pattern');
+      invariant(mostOccurenceCount, 'expected most occurring count');
 
       // only hoist this module if it occured more than once
       if (mostOccurenceCount > 1) {

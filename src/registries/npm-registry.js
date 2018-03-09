@@ -27,7 +27,7 @@ const REGEX_REGISTRY_SUFFIX = /registry\/?$/;
 export const SCOPE_SEPARATOR = '%2f';
 // All scoped package names are of the format `@scope%2fpkg` from the use of NpmRegistry.escapeName
 // `(?:^|\/)` Match either the start of the string or a `/` but don't capture
-// `[^\/?]+?` Match any character that is not '/' or '?' and capture, up until the first occurance of:
+// `[^\/?]+?` Match any character that is not '/' or '?' and capture, up until the first occurrence of:
 // `(?=%2f|\/)` Match SCOPE_SEPARATOR, the escaped '/', or a raw `/` and don't capture
 // The reason for matching a plain `/` is NPM registry being inconsistent about escaping `/` in
 // scoped package names: when you're fetching a tarball, it is not escaped, when you want info
@@ -129,7 +129,7 @@ export default class NpmRegistry extends Registry {
   request(pathname: string, opts?: RegistryRequestOptions = {}, packageName: ?string): Promise<*> {
     // packageName needs to be escaped when if it is passed
     const packageIdent = (packageName && NpmRegistry.escapeName(packageName)) || pathname;
-    const registry = this.getRegistry(packageIdent);
+    const registry = opts.registry || this.getRegistry(packageIdent);
     const requestUrl = this.getRequestUrl(registry, pathname);
 
     const alwaysAuth = this.getRegistryOrGlobalOption(registry, 'always-auth');
@@ -143,7 +143,7 @@ export default class NpmRegistry extends Registry {
 
     const isToRegistry = this.isRequestToRegistry(requestUrl, registry) || this.requestNeedsAuth(requestUrl);
 
-    // this.token must be checked to account for publish requests on non-scopped packages
+    // this.token must be checked to account for publish requests on non-scoped packages
     if (this.token || (isToRegistry && (alwaysAuth || this.isScopedPackage(packageIdent)))) {
       const authorization = this.getAuth(packageIdent);
       if (authorization) {

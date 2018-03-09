@@ -168,7 +168,7 @@ test.concurrent('install should prioritize non workspace dependency at root over
   });
 });
 
-test.concurrent('install should install subedependencies of workspaces', (): Promise<void> => {
+test.concurrent('install should install subdependencies of workspaces', (): Promise<void> => {
   // the tricky part is that isarray is a subdependency of left-pad that is not referenced in the root
   // but another workspace
   return runInstall({}, 'workspaces-install-subdeps', async (config): Promise<void> => {
@@ -177,7 +177,7 @@ test.concurrent('install should install subedependencies of workspaces', (): Pro
 });
 
 test.concurrent(
-  'install should install subedependencies of workspaces that are not referenced in other workspaces',
+  'install should install subdependencies of workspaces that are not referenced in other workspaces',
   (): Promise<void> => {
     // the tricky part is that left-pad is not a dependency of root
     return runInstall({}, 'workspaces-install-subdeps-2', async (config): Promise<void> => {

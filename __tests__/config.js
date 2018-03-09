@@ -115,7 +115,7 @@ describe('workspaces config', () => {
     manifest.workspaces = {};
     validateWS(undefined, extractWorkspaces(manifest));
   });
-  test('workspaces is eligibile only for private packages', async () => {
+  test('workspaces is eligible only for private packages', async () => {
     const config = await initConfig({});
     const packages = ['w1', 'w2'];
     const nohoist = ['a'];
@@ -126,7 +126,7 @@ describe('workspaces config', () => {
     manifest.private = false;
     expect(config.getWorkspaces(manifest)).toBeUndefined();
   });
-  test('nohoist is eligibile only for private packages and workspacesNohoistEnabled', async () => {
+  test('nohoist is eligible only for private packages and workspacesNohoistEnabled', async () => {
     const config = await initConfig({});
     const packages = ['w1', 'w2'];
     const nohoist = ['a'];
@@ -171,7 +171,7 @@ describe('workspaces config', () => {
       // ok
     }
 
-    // should not thrown if manifest is eligibile
+    // should not thrown if manifest is eligible
     manifest.private = true;
     expect(config.getWorkspaces(manifest, true)).not.toBeUndefined();
   });

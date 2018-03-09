@@ -713,10 +713,11 @@ export default class Config {
     // validate eligibility
     let wsCopy = {...ws};
     const warnings: Array<string> = [];
+    const errors: Array<string> = [];
 
     // packages
     if (wsCopy.packages && wsCopy.packages.length > 0 && !manifest.private) {
-      warnings.push(this.reporter.lang('workspacesRequirePrivateProjects'));
+      errors.push(this.reporter.lang('workspacesRequirePrivateProjects'));
       wsCopy = undefined;
     }
     // nohoist
@@ -725,19 +726,20 @@ export default class Config {
         warnings.push(this.reporter.lang('workspacesNohoistDisabled', manifest.name));
         wsCopy.nohoist = undefined;
       } else if (!manifest.private) {
-        warnings.push(this.reporter.lang('workspacesNohoistRequirePrivatePackages', manifest.name));
+        errors.push(this.reporter.lang('workspacesNohoistRequirePrivatePackages', manifest.name));
         wsCopy.nohoist = undefined;
       }
     }
 
-    if (warnings.length > 0) {
-      const msg = warnings.join('\n');
-      if (shouldThrow) {
-        throw new MessageError(msg);
-      } else {
-        this.reporter.warn(msg);
-      }
+    if (errors.length > 0 && shouldThrow) {
+      throw new MessageError(errors.join('\n'));
     }
+
+    const msg = errors.concat(warnings).join('\n');
+    if (msg.length > 0) {
+      this.reporter.warn(msg);
+    }
+
     return wsCopy;
   }
 

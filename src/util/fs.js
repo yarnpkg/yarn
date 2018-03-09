@@ -221,7 +221,7 @@ async function buildActionsForCopy(
     await Promise.all(items.map(build));
   }
 
-  // simulate the existence of some files to prevent considering them extraenous
+  // simulate the existence of some files to prevent considering them extraneous
   for (const file of artifactFiles) {
     if (possibleExtraneous.has(file)) {
       reporter.verbose(reporter.lang('verboseFilePhantomExtraneous', file));
@@ -436,7 +436,7 @@ async function buildActionsForHardlink(
     await Promise.all(items.map(build));
   }
 
-  // simulate the existence of some files to prevent considering them extraenous
+  // simulate the existence of some files to prevent considering them extraneous
   for (const file of artifactFiles) {
     if (possibleExtraneous.has(file)) {
       reporter.verbose(reporter.lang('verboseFilePhantomExtraneous', file));
@@ -598,7 +598,7 @@ export function copy(src: string, dest: string, reporter: Reporter): Promise<voi
 
 /**
  * Unlinks the destination to force a recreation. This is needed on case-insensitive file systems
- * to force the correct naming when the filename has changed only in charater-casing. (Jest -> jest).
+ * to force the correct naming when the filename has changed only in character-casing. (Jest -> jest).
  * It also calls a cleanup function once it is done.
  *
  * `data` contains target file attributes like mode, atime and mtime. Built-in copyFile copies these

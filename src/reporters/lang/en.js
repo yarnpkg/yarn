@@ -165,18 +165,18 @@ const messages = {
 
   binLinkCollision:
     "There's already a linked binary called $0 in your global Yarn bin. Could not link this package's $0 bin entry.",
-  linkCollision: "There's already a module called $0 registered.",
-  linkMissing: 'No registered module found called $0.',
+  linkCollision: "There's already a package called $0 registered.",
+  linkMissing: 'No registered package found called $0.',
   linkRegistered: 'Registered $0.',
   linkRegisteredMessage:
-    'You can now run `yarn link $0` in the projects where you want to use this module and it will be used instead.',
+    'You can now run `yarn link $0` in the projects where you want to use this package and it will be used instead.',
   linkUnregistered: 'Unregistered $0.',
   linkUnregisteredMessage:
-    'You can now run `yarn unlink $0` in the projects where you no longer want to use this module.',
-  linkUsing: 'Using linked module for $0.',
-  linkDisusing: 'Removed linked module $0.',
+    'You can now run `yarn unlink $0` in the projects where you no longer want to use this package.',
+  linkUsing: 'Using linked package for $0.',
+  linkDisusing: 'Removed linked package $0.',
   linkDisusingMessage: 'You will need to run `yarn` to re-install the package that was linked.',
-  linkTargetMissing: 'The target of linked module $0 is missing. Removing link.',
+  linkTargetMissing: 'The target of linked package $0 is missing. Removing link.',
 
   createInvalidBin: 'Invalid bin entry found in package $0.',
   createMissingPackage:
@@ -191,7 +191,7 @@ const messages = {
 
   workspacesNohoistRequirePrivatePackages:
     'nohoist config is ignored in $0 because it is not a private package. If you think nohoist should be allowed in public packages, please submit an issue for your use case.',
-  workspacesNohoistDisabled: `$0 defines nohoist but the feature is disabled in your Yarn config. Please check "workspaces-nohoist-experimental" in your .yarnrc file.`,
+  workspacesNohoistDisabled: `$0 defines nohoist but the feature is disabled in your Yarn config ("workspaces-nohoist-experimental" in .yarnrc file)`,
 
   workspaceRootNotFound: "Cannot find the root of your workspace - are you sure you're currently in a workspace?",
   workspaceMissingWorkspace: 'Missing workspace name.',
@@ -368,6 +368,7 @@ const messages = {
   integrityFailedFilesMissing: 'Integrity check: Files are missing',
   integrityPatternsDontMatch: "Integrity check: Top level patterns don't match",
   integrityModulesFoldersMissing: 'Integrity check: Some module folders are missing',
+  integritySystemParamsDontMatch: "Integrity check: System parameters don't match",
   packageNotInstalled: '$0 not installed',
   optionalDepNotInstalled: 'Optional dependency $0 not installed',
   packageWrongVersion: '$0 is wrong version: expected $1, got $2',
@@ -395,6 +396,7 @@ const messages = {
   verboseUpgradeNotUnlocking: 'Not unlocking $0 in the lockfile because it is a new or direct dependency.',
   verboseUpgradeUnlocking: 'Unlocking $0 in the lockfile.',
   folderMissing: "Directory $0 doesn't exist",
+  mutexPortBusy: 'Cannot use the network mutex on port $0. It is probably used by another app.',
 };
 
 export type LanguageKeys = $Keys<typeof messages>;
