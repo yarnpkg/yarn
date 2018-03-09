@@ -165,3 +165,36 @@ test('Only top level (after hoisting) bin links should be linked', (): Promise<v
     expect(stdout[0]).toEqual('uglify-js 3.0.14');
   });
 });
+
+describe('with nohoist', () => {
+  // address https://github.com/yarnpkg/yarn/issues/5487
+  test('nohoist bin should be linked to its own local module', (): Promise<void> => {
+    return runInstall({binLinks: true}, 'install-bin-links-nohoist', async config => {
+      // make sure all links are created at the right locations and executed correctly
+      const stdout1 = await execCommand(config.cwd, ['node_modules', '.bin', 'exec-a'], []);
+      const stdout2 = await execCommand(config.cwd, ['node_modules', '.bin', 'exec-f'], []);
+      const stdout3 = await execCommand(config.cwd, ['packages', 'a-dep', 'node_modules', '.bin', 'found-me'], []);
+      const stdout4 = await execCommand(config.cwd, ['packages', 'f-dep', 'node_modules', '.bin', 'found-me'], []);
+      expect(stdout1[0]).toEqual('exec-a');
+      expect(stdout2[0]).toEqual('exec-f');
+      expect(stdout3[0]).toEqual('found-me');
+      expect(stdout4[0]).toEqual('found-me');
+
+      // make sure the shared links: found-me are pointing to the local module
+      let link = await fs.readlink(path.join(config.cwd, 'packages', 'a-dep', 'node_modules', '.bin', 'found-me'));
+      expect(link).toEqual('../found-me/bin');
+      link = await fs.readlink(path.join(config.cwd, 'packages', 'f-dep', 'node_modules', '.bin', 'found-me'));
+      expect(link).toEqual('../found-me/bin');
+    });
+  });
+  test('nohoist bin should not be linked at top level', (): Promise<void> => {
+    return runInstall({binLinks: true}, 'install-bin-links-nohoist', async config => {
+      let exist = await fs.exists(path.join(config.cwd, 'node_modules', '.bin', 'exec-a'));
+      expect(exist).toEqual(true);
+      exist = await fs.exists(path.join(config.cwd, 'node_modules', '.bin', 'exec-f'));
+      expect(exist).toEqual(true);
+      exist = await fs.exists(path.join(config.cwd, 'node_modules', '.bin', 'found-me'));
+      expect(exist).toEqual(false);
+    });
+  });
+});
