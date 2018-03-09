@@ -2,6 +2,10 @@
     "name": "has-bin-entries",
     "version": "1.0.0",
     "bin": {
-        "has-bin-entries": "./bin.js"
+        "has-bin-entries": "./bin.js",
+        "has-bin-entries-with-require": "./bin-with-require.js"
+    },
+    "dependencies": {
+        "no-deps": "1.0.0"
     }
 }

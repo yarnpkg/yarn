@@ -183,14 +183,42 @@ exports.resolveRequest = function resolveFilename(request, packageLocator, paren
   return {locator: dependencyLocator, path, cacheKey};
 }
 
-exports.setup = function setup () {
+exports.setup = function setup (initialParentPath) {
+  let initialParentLocator = topLevelLocator;
+
+  for (let t = 0; t < initialParentPath.length; ++t) {
+    const dependencies = exports.getPackageInformation(initialParentLocator);
+    const currentPath = initialParentPath.slice(0, t).join('/');
+
+    const dependencyName = initialParentPath[t];
+    let dependencyReference = dependencies.packageDependencies.get(dependencyName);
+
+    if (!dependencyReference && dependencies.packagePeers) {
+      const peerResolutions = dependencies.packagePeers.get(currentPath);
+
+      if (peerResolutions) {
+        dependencyReference = peerResolutions.get(dependencyName);
+      }
+    }
+
+    if (!dependencyReference) {
+      if (initialParentLocator === topLevelLocator) {
+        throw new Error(\`Could not find package "\${dependencyName} in the dependencies of your project (this is probably an internal error)\`);
+      } else {
+        throw new Error(\`Could not find package "\${dependencyName} in the dependencies of "\${currentPath}" (this is probably an internal error)\`);
+      }
+    }
+
+    initialParentLocator = {name: dependencyName, reference: dependencyReference};
+  }
+
   Module._load = function (request, parent, isMain) {
     if (builtinModules.indexOf(request) !== -1) {
       return originalLoader.call(this, request, parent, isMain);
     }
 
-    const parentLocator = parent && parent[pnpPackageLocator] ? parent[pnpPackageLocator] : topLevelLocator;
-    const parentPath = parent && parent[pnpPackagePath] ? parent[pnpPackagePath] : '';
+    const parentLocator = parent && parent[pnpPackageLocator] ? parent[pnpPackageLocator] : initialParentLocator;
+    const parentPath = parent && parent[pnpPackagePath] ? parent[pnpPackagePath] : initialParentPath;
 
     const resolution = exports.resolveRequest(request, parentLocator, parentPath);
     const qualifiedPath = originalResolver.call(this, resolution ? resolution.path : request, parent, isMain);
@@ -214,6 +242,7 @@ exports.setup = function setup () {
       module[pnpPackageLocator] = resolution.locator;
       module[pnpPackagePath] = parentPath ? \`\${parentPath}/\${resolution.locator.name}\` : resolution.locator.name;
     } else {
+      module[pnpPackageLocator] = parentLocator;
       module[pnpPackagePath] = parentPath;
     }
 
@@ -247,7 +276,7 @@ exports.setup = function setup () {
 };
 
 if (module.parent && module.parent.id === 'internal/preload') {
-  exports.setup();
+  exports.setup(process.env.YARN_PNP_PATH ? process.env.YARN_PNP_PATH.split(/\\//g) : []);
 }
 `.replace(/^\n/, ``);
 /* eslint-enable */
