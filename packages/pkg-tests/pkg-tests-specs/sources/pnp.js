@@ -19,6 +19,9 @@ module.exports = makeTemporaryEnv => {
             [`no-deps`]: `1.0.0`,
           },
         },
+        {
+          plugNPlay: true,
+        },
         async ({path, run, source}) => {
           await run(`install`);
 
@@ -42,6 +45,9 @@ module.exports = makeTemporaryEnv => {
             [`no-deps`]: `2.0.0`,
           },
         },
+        {
+          plugNPlay: true,
+        },
         async ({path, run, source}) => {
           await run(`install`);
 
@@ -63,22 +69,34 @@ module.exports = makeTemporaryEnv => {
 
     test(
       `it should correctly resolve native Node modules`,
-      makeTemporaryEnv({}, async ({path, run, source}) => {
-        await run(`install`);
+      makeTemporaryEnv(
+        {},
+        {
+          plugNPlay: true,
+        },
+        async ({path, run, source}) => {
+          await run(`install`);
 
-        await expect(source(`require('fs') ? true : false`)).resolves.toEqual(true);
-      }),
+          await expect(source(`require('fs') ? true : false`)).resolves.toEqual(true);
+        },
+      ),
     );
 
     test(
       `it should correctly resolve relative imports`,
-      makeTemporaryEnv({}, async ({path, run, source}) => {
-        await writeFile(`${path}/foo.js`, `module.exports = 42;\n`);
+      makeTemporaryEnv(
+        {},
+        {
+          plugNPlay: true,
+        },
+        async ({path, run, source}) => {
+          await writeFile(`${path}/foo.js`, `module.exports = 42;\n`);
 
-        await run(`install`);
+          await run(`install`);
 
-        await expect(source(`require('./foo.js')`)).resolves.toEqual(42);
-      }),
+          await expect(source(`require('./foo.js')`)).resolves.toEqual(42);
+        },
+      ),
     );
 
     test(
@@ -86,6 +104,9 @@ module.exports = makeTemporaryEnv => {
       makeTemporaryEnv(
         {
           dependencies: {[`various-requires`]: `1.0.0`},
+        },
+        {
+          plugNPlay: true,
         },
         async ({path, run, source}) => {
           await run(`install`);
@@ -103,6 +124,9 @@ module.exports = makeTemporaryEnv => {
             [`various-requires`]: `1.0.0`,
           },
         },
+        {
+          plugNPlay: true,
+        },
         async ({path, run, source}) => {
           await run(`install`);
 
@@ -115,6 +139,9 @@ module.exports = makeTemporaryEnv => {
       `it should fallback to the top-level dependencies when it cannot require a transitive dependency require`,
       makeTemporaryEnv(
         {dependencies: {[`various-requires`]: `1.0.0`, [`no-deps`]: `1.0.0`}},
+        {
+          plugNPlay: true,
+        },
         async ({path, run, source}) => {
           await run(`install`);
 
@@ -130,6 +157,9 @@ module.exports = makeTemporaryEnv => {
       `it should throw an exception if a dependency tries to require something it doesn't own`,
       makeTemporaryEnv(
         {dependencies: {[`various-requires`]: `1.0.0`}},
+        {
+          plugNPlay: true,
+        },
         async ({path, run, source}) => {
           await run(`install`);
 
@@ -144,6 +174,9 @@ module.exports = makeTemporaryEnv => {
         {
           dependencies: {[`no-deps`]: `1.0.0`},
           scripts: {myScript: `node -p 'require("no-deps/package.json").version'`},
+        },
+        {
+          plugNPlay: true,
         },
         async ({path, run}) => {
           await run(`install`);
