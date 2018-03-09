@@ -6,6 +6,7 @@ import {MessageError, ProcessTermError} from '../errors.js';
 import * as constants from '../constants.js';
 import * as child from './child.js';
 import * as fs from './fs.js';
+import {makePortableProxyScript} from './portable-script.js';
 import {registries} from '../resolvers/index.js';
 import {fixCmdWinSlashes} from './fix-cmd-win-slashes.js';
 import {run as globalRun, getBinFolder as getGlobalBinFolder} from '../cli/commands/global.js';
@@ -26,27 +27,13 @@ const IGNORE_MANIFEST_KEYS = ['readme'];
 // See https://github.com/yarnpkg/yarn/issues/2286.
 const IGNORE_CONFIG_KEYS = ['lastUpdateCheck'];
 
-const NODE_SIMPLE_SH_WRAPPER = (config: Config) => `#!/bin/sh
-"${JSON.stringify(process.execPath)}" "$@"
-`;
-
-const NODE_PNP_SH_WRAPPER = (config: Config) => `#!/bin/sh
-"${JSON.stringify(process.execPath)}" -r "${config.lockfileFolder}/${constants.PNP_FILENAME}" "$@"
-`;
-
-const NODE_SH_WRAPPER = async (config: Config) => {
+async function getPnpParameters(config: Config) {
   if (await fs.exists(`${config.lockfileFolder}/${constants.PNP_FILENAME}`)) {
-    return NODE_PNP_SH_WRAPPER(config);
+    return ['-r', `${config.lockfileFolder}/${constants.PNP_FILENAME}`];
   } else {
-    return NODE_SIMPLE_SH_WRAPPER(config);
+    return [];
   }
-};
-
-const YARN_SH_WRAPPER = (config: Config) => `#!/bin/sh
-"${JSON.stringify(process.execPath)}" "${process.argv[1]}" "$@"
-`;
-
-const LIFECYCLE_WRAPPERS = [[`yarn`, YARN_SH_WRAPPER], [`node`, NODE_SH_WRAPPER]];
+}
 
 let wrappersFolder = null;
 
@@ -57,12 +44,15 @@ export async function getWrappersFolder(config: Config): Promise<string> {
 
   wrappersFolder = await fs.makeTempDir();
 
-  for (const [fileName, content] of LIFECYCLE_WRAPPERS) {
-    const wrapperPath = `${wrappersFolder}/${fileName}`;
+  await makePortableProxyScript(process.execPath, wrappersFolder, {
+    proxyBasename: 'node',
+    prependArguments: [... await getPnpParameters(config)],
+  });
 
-    await fs.writeFile(wrapperPath, await content(config));
-    await fs.chmod(wrapperPath, 0o755);
-  }
+  await makePortableProxyScript(process.execPath, wrappersFolder, {
+    proxyBasename: 'yarn',
+    prependArguments: [process.argv[1]],
+  });
 
   return wrappersFolder;
 }
@@ -191,13 +181,15 @@ export async function makeEnv(
   }
 
   // add .bin folders to PATH
-  for (const registry of Object.keys(registries)) {
-    const binFolder = path.join(config.registries[registry].folder, '.bin');
-    if (config.workspacesEnabled && config.workspaceRootFolder) {
-      pathParts.unshift(path.join(config.workspaceRootFolder, binFolder));
+  if (!config.plugnplayEnabled) {
+    for (const registry of Object.keys(registries)) {
+      const binFolder = path.join(config.registries[registry].folder, '.bin');
+      if (config.workspacesEnabled && config.workspaceRootFolder) {
+        pathParts.unshift(path.join(config.workspaceRootFolder, binFolder));
+      }
+      pathParts.unshift(path.join(config.linkFolder, binFolder));
+      pathParts.unshift(path.join(cwd, binFolder));
     }
-    pathParts.unshift(path.join(config.linkFolder, binFolder));
-    pathParts.unshift(path.join(cwd, binFolder));
   }
 
   pathParts.unshift(await getWrappersFolder(config));
