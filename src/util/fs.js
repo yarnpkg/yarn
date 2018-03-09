@@ -175,7 +175,7 @@ export const fileDatesEqual = (a: Date, b: Date) => {
 async function fixTimes(fd: number, dest: string, data: CopyFileAction): Promise<void> {
   const doOpen = !fd;
   if (doOpen) {
-    fd = await open(dest, 'r', data.mode);
+    fd = await open(dest, 'a', data.mode);
   }
   try {
     await futimes(fd, data.atime, data.mtime);
