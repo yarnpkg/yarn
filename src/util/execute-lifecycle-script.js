@@ -184,18 +184,7 @@ export async function executeLifecycleScript(
 
   await checkForGypIfNeeded(config, cmd, env[constants.ENV_PATH_KEY].split(path.delimiter));
 
-  // get shell
-  let sh = 'sh';
-  let shFlag = '-c';
-
-  let windowsVerbatimArguments = undefined;
-
-  if (customShell) {
-    sh = customShell;
-  } else if (process.platform === 'win32') {
-    sh = process.env.comspec || 'cmd';
-    shFlag = '/d /s /c';
-    windowsVerbatimArguments = true;
+  if (process.platform === 'win32' && (!customShell || customShell === 'cmd')) {
     // handle windows run scripts starting with a relative path
     cmd = fixCmdWinSlashes(cmd);
   }
@@ -219,7 +208,9 @@ export async function executeLifecycleScript(
       }
     };
   }
-  const stdout = await child.spawn(sh, [shFlag, cmd], {cwd, env, stdio, windowsVerbatimArguments}, updateProgress);
+  const stdout = customShell
+    ? await child.spawn(customShell, [cmd], {cwd, env, stdio, windowsVerbatimArguments: true}, updateProgress)
+    : await child.spawn(cmd, [], {cwd, env, stdio, shell: true}, updateProgress);
 
   return {cwd, command: cmd, stdout};
 }
