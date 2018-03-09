@@ -27,7 +27,7 @@ export const SELF_UPDATE_TARBALL_URL = 'https://yarnpkg.com/latest.tar.gz';
 export const SELF_UPDATE_DOWNLOAD_FOLDER = 'updates';
 
 // cache version, bump whenever we make backwards incompatible changes
-export const CACHE_VERSION = 1;
+export const CACHE_VERSION = 2;
 
 // lockfile version, bump whenever we make backwards incompatible changes
 export const LOCKFILE_VERSION = 1;

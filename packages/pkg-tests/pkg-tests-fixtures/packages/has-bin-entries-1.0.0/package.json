@@ -1,0 +1,7 @@
+{
+    "name": "has-bin-entries",
+    "version": "1.0.0",
+    "bin": {
+        "has-bin-entries": "./bin.js"
+    }
+}
