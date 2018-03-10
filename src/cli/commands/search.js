@@ -7,13 +7,14 @@ import Spinner from "ink-spinner";
 import dot from "dot-prop";
 import terminal from "term-size";
 import algoliasearch from "algoliasearch";
-import * as child from "../../util/child.js";
+
+import { run as runAdd, setFlags as addSetFlags } from './add.js'
 
 // Yarn
 
 export function setFlags(commander: Object) {
   commander.description("Interactively search packages.");
-  commander.option("-D, --dev", "Add packages to devDependencies");
+  addSetFlags(commander)
 }
 
 export function hasWrapper(commander: Object, args: Array<string>): boolean {
@@ -22,12 +23,7 @@ export function hasWrapper(commander: Object, args: Array<string>): boolean {
 
 export const shouldRunInCurrentCwd = true;
 
-export async function run(
-  config: Config,
-  reporter: Reporter,
-  flags: Object,
-  args: Array<string>
-): Promise<void> {
+export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
   let unmount;
 
   const onError = () => {
@@ -40,10 +36,13 @@ export async function run(
     process.exit();
   };
 
-  const { dev } = flags;
+  const onInstall = packages => {
+    unmount()
+    runAdd(config, reporter, flags, packages)
+  }
 
   // Uses `h` instead of JSX to avoid transpiling this file
-  unmount = render(h(Emma, { dev, onError, onExit }));
+  unmount = render(h(Emma, { onInstall, onError, onExit }));
 }
 
 // Helpers -------------------------------------------------------------------
@@ -318,20 +317,8 @@ class Emma extends Component {
     }
 
     // Packages
-    let packages = selectedPackages.map(pkg => pkg.name);
+    const packages = selectedPackages.map(pkg => pkg.name);
 
-    if (this.props.dev) {
-      packages = [...packages, "-D"];
-    }
-
-    // Install the packages
-
-    try {
-      await child.spawn("yarn add", packages, { stdio: `inherit` });
-    } catch (err) {
-      throw err;
-    }
-
-    this.props.onExit();
+    this.props.onInstall(packages);
   }
 }
