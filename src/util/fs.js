@@ -174,7 +174,16 @@ export const fileDatesEqual = (a: Date, b: Date) => {
 
 // This ensured the timestamps are preserved from the file in the cache to the file copied to node_modules.
 // These timestamps are checked to see if files have changed and need recopied, so preserving them is important.
+// There are some weird cases here:
+// * On linux, fs.copyFile does not preserve timestamps, but does on OSX and Win.
+// * On windows, you must open a file with write permissions to call `fs.futimes`.
+//   On OSX you can open with read permissions and still call `fs.futimes`.
+//   We first try to open the file in write mode because that works across all OSs.
+//   However if the file is read-only (not even the owner has write perms) then that will fail.
+//   We can try to reopen in read mode, which will work on OSX.
 async function fixTimes(fd: number, dest: string, data: CopyFileAction): Promise<void> {
+  const doOpen = !fd;
+
   if (disableTimestampCorrection === undefined) {
     // if timestamps match already, no correction is needed.
     // the need to correct timestamps varies based on OS and node versions.
@@ -186,12 +195,26 @@ async function fixTimes(fd: number, dest: string, data: CopyFileAction): Promise
     return;
   }
 
-  const doOpen = !fd;
   if (doOpen) {
-    fd = await open(dest, 'a', data.mode);
+    try {
+      fd = await open(dest, 'a', data.mode);
+    } catch (er) {
+      // file is likely read-only
+      try {
+        fd = await open(dest, 'r', data.mode);
+      } catch (err) {
+        // In this case we can just return. The incorrect timestamp will just cause that file to be recopied
+        // on subsequent installs, which will effect yarn performance but not break anything.
+        return;
+      }
+    }
   }
   try {
     await futimes(fd, data.atime, data.mtime);
+  } catch (er) {
+    // If `futimes` throws an exception, we probably have a case of a read-only file on Windows.
+    // In this case we can just return. The incorrect timestamp will just cause that file to be recopied
+    // on subsequent installs, which will effect yarn performance but not break anything.
   } finally {
     if (doOpen) {
       await close(fd);
