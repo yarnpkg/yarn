@@ -412,7 +412,7 @@ test('yarn run <failing script>', async () => {
   let stderr = null;
   let err = null;
   try {
-    await runYarn(['run', 'false'], {cwd, env: {YARN_SILENT: 1}});
+    await runYarn(['run', 'false'], {cwd});
   } catch (e) {
     stderr = e.stderr.trim();
     err = e.code;
