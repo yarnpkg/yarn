@@ -51,6 +51,7 @@
     "stage-0"
   ],
   "plugins": [
+    [ "transform-react-jsx", { "pragma": "h" } ],
     ["transform-inline-imports-commonjs"],
     ["transform-runtime", { "polyfill": false, "regenerator": true }]
   ]
