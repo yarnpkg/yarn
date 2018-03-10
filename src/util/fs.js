@@ -102,8 +102,8 @@ type CopyQueue = Array<CopyQueueItem>;
 type CopyFileAction = {
   src: string,
   dest: string,
-  atime: number,
-  mtime: number,
+  atime: Date,
+  mtime: Date,
   mode: number,
 };
 
@@ -182,7 +182,7 @@ async function fixTimes(fd: number, dest: string, data: CopyFileAction): Promise
     disableTimestampCorrection = fileDatesEqual(destStat.mtime, data.mtime);
   }
 
-  if(disableTimestampCorrection) {
+  if (disableTimestampCorrection) {
     return;
   }
 
