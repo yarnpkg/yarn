@@ -40,6 +40,8 @@ export const chmod: (path: string, mode: number | string) => Promise<void> = pro
 export const link: (src: string, dst: string) => Promise<fs.Stats> = promisify(fs.link);
 export const glob: (path: string, options?: Object) => Promise<Array<string>> = promisify(globModule);
 
+let disableTimestampCorrection: ?boolean = undefined; // OS dependent. will be detected on first file copy.
+
 // fs.copyFile uses the native file copying instructions on the system, performing much better
 // than any JS-based solution and consumes fewer resources. Repeated testing to fine tune the
 // concurrency level revealed 128 as the sweet spot on a quad-core, 16 CPU Intel system with SSD.
@@ -173,6 +175,17 @@ export const fileDatesEqual = (a: Date, b: Date) => {
 // This ensured the timestamps are preserved from the file in the cache to the file copied to node_modules.
 // These timestamps are checked to see if files have changed and need recopied, so preserving them is important.
 async function fixTimes(fd: number, dest: string, data: CopyFileAction): Promise<void> {
+  if (disableTimestampCorrection === undefined) {
+    // if timestamps match already, no correction is needed.
+    // the need to correct timestamps varies based on OS and node versions.
+    const destStat = await lstat(dest);
+    disableTimestampCorrection = fileDatesEqual(destStat.mtime, data.mtime);
+  }
+
+  if(disableTimestampCorrection) {
+    return;
+  }
+
   const doOpen = !fd;
   if (doOpen) {
     fd = await open(dest, 'a', data.mode);
