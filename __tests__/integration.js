@@ -398,6 +398,30 @@ test('yarn run <script> <strings that need escaping>', async () => {
   expect(stdout.toString().trim()).toEqual(JSON.stringify(trickyStrings));
 });
 
+test('yarn run <failing script>', async () => {
+  const cwd = await makeTemp();
+
+  await fs.writeFile(
+    path.join(cwd, 'package.json'),
+    JSON.stringify({
+      license: 'MIT',
+      scripts: {false: 'false'},
+    }),
+  );
+
+  let stderr = null;
+  let err = null;
+  try {
+    await runYarn(['run', 'false'], {cwd, env: {YARN_SILENT: 1}});
+  } catch (e) {
+    stderr = e.stderr.trim();
+    err = e.code;
+  }
+
+  expect(err).toEqual(1);
+  expect(stderr).toEqual('error Command failed with exit code 1.');
+});
+
 test('yarn run in path need escaping', async () => {
   const cwd = await makeTemp('special (chars)');
 
