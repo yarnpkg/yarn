@@ -38,3 +38,10 @@ test('resolve .yarnrc args and adds command name prefixed arguments', () => {
   expect(args.indexOf('--foo') !== -1).toBe(true);
   expect(args.indexOf('--bar') !== -1).toBe(false);
 });
+
+test('resolve .yarnrc args ignores wildcard flags for workspace command', () => {
+  const args = getRcArgs('workspace', ['--cwd', path.join(fixturesLoc, 'workspace')]);
+  expect(args.indexOf('--foo') !== -1).toBe(true);
+  expect(args.indexOf('--bar') !== -1).toBe(false);
+  expect(args.indexOf('--baz') !== -1).toBe(false);
+});

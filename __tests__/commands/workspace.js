@@ -8,11 +8,18 @@ import * as reporters from '../../src/reporters/index.js';
 import Config from '../../src/config.js';
 import path from 'path';
 import {NODE_BIN_PATH, YARN_BIN_PATH} from '../../src/constants';
+import commander from 'commander';
+import {boolify} from '../../src/util/conversion.js';
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 90000;
 
 const fixturesLoc = path.join(__dirname, '..', 'fixtures', 'workspace');
 const spawn: $FlowFixMe = require('../../src/util/child').spawn;
+
+// The normal test builder doesn't use commander.js for argument parsing,
+// but the workspace command requires it.
+commander.option('--emoji [bool]', 'enable emoji in output', boolify);
+commander.option('--verbose', 'enable verbose output', boolify);
 
 beforeEach(() => spawn.mockClear());
 
@@ -25,10 +32,12 @@ async function runWorkspace(
   const cwd = path.join(fixturesLoc, name);
   const reporter = new reporters.BufferReporter({stdout: null, stdin: null});
 
+  Object.assign(commander, flags);
+
   try {
     const config = await Config.create({cwd}, reporter);
 
-    await workspace(config, reporter, flags, args);
+    await workspace(config, reporter, commander, args);
 
     if (checkSteps) {
       await checkSteps(config, reporter);
@@ -37,9 +46,6 @@ async function runWorkspace(
     throw new Error(`${err && err.stack}`);
   }
 }
-
-// The unit tests don't use commander.js for argument parsing.
-// `rawArgs` is normally passed by commander.js so we just simulate it in the tests.
 
 test('workspace run command', (): Promise<void> => {
   const rawArgs = ['/path/to/node', '/path/to/yarn', 'workspace', 'workspace-1', 'run', 'script'];
@@ -58,5 +64,37 @@ test('workspace run command forwards raw arguments', (): Promise<void> => {
       stdio: 'inherit',
       cwd: path.join(fixturesLoc, 'run-basic', 'packages', 'workspace-child-1'),
     });
+  });
+});
+
+// Flags that are recognized by yarn need to be reordered to be after the workspace name and command.
+// They can end up out of order if added from .yarnrc.
+// See: https://github.com/yarnpkg/yarn/issues/5496
+// --emoji ens up between --flag1 and --verbose because --flag1 is not an option registered with
+// commander.js, and --verbose is.
+test('workspace command can handle flags out of order', (): Promise<void> => {
+  const rawArgs = [
+    '/path/to/node',
+    '/path/to/yarn',
+    'workspace',
+    '--emoji',
+    false,
+    'workspace-1',
+    'add',
+    'left-pad',
+    'arg1',
+    '--flag1',
+    '--verbose',
+  ];
+
+  return runWorkspace({rawArgs}, ['workspace-1', 'run', 'script'], 'run-basic', config => {
+    expect(spawn).toHaveBeenCalledWith(
+      NODE_BIN_PATH,
+      [YARN_BIN_PATH, 'add', 'left-pad', 'arg1', '--flag1', '--emoji', false, '--verbose'],
+      {
+        stdio: 'inherit',
+        cwd: path.join(fixturesLoc, 'run-basic', 'packages', 'workspace-child-1'),
+      },
+    );
   });
 });
