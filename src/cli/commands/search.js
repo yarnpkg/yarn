@@ -247,6 +247,12 @@ class Emma extends Component {
   }
 
   async handleQueryChange(query) {
+    const _query = this.state.query
+
+    if (isEmpty(_query)) {
+      process.stdout.write("\x1Bc");
+    }
+
     this.setState({
       query,
       loading: PROGRESS_LOADING
