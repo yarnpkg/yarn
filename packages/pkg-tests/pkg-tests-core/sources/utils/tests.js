@@ -319,11 +319,16 @@ exports.generatePkgDriver = function generatePkgDriver({runDriver}: {|runDriver:
           return JSON.parse((await run('node', '-p', `JSON.stringify(${script})`)).stdout.toString());
         };
 
-        await fn({
-          path,
-          run,
-          source,
-        });
+        try {
+          await fn({
+            path,
+            run,
+            source,
+          });
+        } catch (error) {
+          error.message = `Temporary fixture folder: ${path}\n\n` + error.message;
+          throw error;
+        }
       };
     };
 
