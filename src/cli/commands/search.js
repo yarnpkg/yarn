@@ -1,4 +1,5 @@
 /* @flow */
+"use strict";
 
 import { render, h, Component, Text } from "ink";
 import TextInput from "ink-text-input";
@@ -8,13 +9,13 @@ import dot from "dot-prop";
 import terminal from "term-size";
 import algoliasearch from "algoliasearch";
 
-import { run as runAdd, setFlags as addSetFlags } from './add.js'
+import { run as runAdd, setFlags as addSetFlags } from "./add.js";
 
 // Yarn
 
 export function setFlags(commander: Object) {
   commander.description("Interactively search packages.");
-  addSetFlags(commander)
+  addSetFlags(commander);
 }
 
 export function hasWrapper(commander: Object, args: Array<string>): boolean {
@@ -23,7 +24,12 @@ export function hasWrapper(commander: Object, args: Array<string>): boolean {
 
 export const shouldRunInCurrentCwd = true;
 
-export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
+export async function run(
+  config: Config,
+  reporter: Reporter,
+  flags: Object,
+  args: Array<string>
+): Promise<void> {
   let unmount;
 
   const onError = () => {
@@ -37,9 +43,9 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
   };
 
   const onInstall = packages => {
-    unmount()
-    runAdd(config, reporter, flags, packages)
-  }
+    unmount();
+    runAdd(config, reporter, flags, packages);
+  };
 
   // Uses `h` instead of JSX to avoid transpiling this file
   unmount = render(h(Emma, { onInstall, onError, onExit }));
@@ -91,50 +97,48 @@ const PROGRESS_ERROR = 3;
 
 // Package
 
-const PackageAttribute = ({ pkg, attr, ...props }) =>
+const PackageAttribute = ({ pkg, attr, ...props }) => (
   <Text {...props}>
     {`${dot.get(pkg, attr)} ${pkg._cell(attr)}`.slice(0, maxCellSize())}
-  </Text>;
+  </Text>
+);
 
-const Package = pkg =>
+const Package = pkg => (
   <Text>
     <PackageAttribute pkg={pkg} attr="humanDownloadsLast30Days" />
     <PackageAttribute pkg={pkg} attr="name" blueBright bold />
     <PackageAttribute pkg={pkg} attr="owner.name" cyan />
     <PackageAttribute pkg={pkg} attr="description" bold />
-  </Text>;
+  </Text>
+);
 
 // Search
 
-const Search = ({ value, onChange, onSubmit }) =>
+const Search = ({ value, onChange, onSubmit }) => (
   <div>
-    <Text bold white>
-      {`Search packages 📦  : `}
-    </Text>
+    <Text>{`Search packages 📦  : `}</Text>
     <TextInput
       value={value}
       onChange={onChange}
       onSubmit={onSubmit}
       placeholder="..."
     />
-  </div>;
+  </div>
+);
 
 // Overview
 
-const SelectedPackage = ({ pkg }) =>
+const SelectedPackage = ({ pkg }) => (
   <div>
-    <Text magenta>
-      {` ›`}
-    </Text>
+    <Text magenta>{` ›`}</Text>
     <Text bold white>
       {` ${pkg.name} `}
     </Text>
-    <Text grey>
-      {` ${pkg.version} `}
-    </Text>
-  </div>;
+    <Text grey>{` ${pkg.version} `}</Text>
+  </div>
+);
 
-const SelectedPackages = ({ selectedPackages }) =>
+const SelectedPackages = ({ selectedPackages }) => (
   <div>
     <div />
     <div>
@@ -143,7 +147,8 @@ const SelectedPackages = ({ selectedPackages }) =>
       </Text>
     </div>
     {selectedPackages.map(pkg => <SelectedPackage key={pkg.name} pkg={pkg} />)}
-  </div>;
+  </div>
+);
 
 // Restults
 
@@ -156,39 +161,44 @@ const SearchResults = ({ foundPackages, onToggle, loading }) => {
         onSelect={onToggle}
       />
       {isEmpty(foundPackages) && <NotFoundInfo />}
-      {loading === PROGRESS_LOADING &&
+      {loading === PROGRESS_LOADING && (
         <div>
           <Text bold>
             <Spinner red /> Fetching
           </Text>
-        </div>}
+        </div>
+      )}
     </span>
   );
 };
 
 // Info
 
-const SearchInfo = () =>
+const SearchInfo = () => (
   <div>
     <Text grey>Try typing in to search the database.</Text>
-  </div>;
+  </div>
+);
 
-const InstallInfo = () =>
+const InstallInfo = () => (
   <div>
     <Text grey>Press enter to install all of your packages.</Text>
-  </div>;
+  </div>
+);
 
-const NotFoundInfo = () =>
+const NotFoundInfo = () => (
   <div>
     <Text grey>
       {`We couldn't find any package that would match your input...`}
     </Text>
-  </div>;
+  </div>
+);
 
-const ErrorInfo = () =>
+const ErrorInfo = () => (
   <div>
     <Text red>Check your internet connection.</Text>
-  </div>;
+  </div>
+);
 
 // Emma
 
@@ -222,14 +232,16 @@ class Emma extends Component {
         {loading === PROGRESS_NOT_LOADED && <SearchInfo />}
         {isEmpty(query) && <InstallInfo />}
         {loading === PROGRESS_ERROR && <ErrorInfo />}
-        {notEmpty(query) &&
+        {notEmpty(query) && (
           <SearchResults
             foundPackages={foundPackages}
             onToggle={this.handleTogglePackage}
             loading={loading}
-          />}
-        {notEmpty(selectedPackages) &&
-          <SelectedPackages selectedPackages={selectedPackages} />}
+          />
+        )}
+        {notEmpty(selectedPackages) && (
+          <SelectedPackages selectedPackages={selectedPackages} />
+        )}
       </div>
     );
   }
@@ -254,29 +266,6 @@ class Emma extends Component {
         loading: PROGRESS_ERROR
       });
     }
-  }
-
-  async fetchPackages(query) {
-    const res = await search({
-      query,
-      attributesToRetrieve: [
-        "name",
-        "version",
-        "description",
-        "owner",
-        "humanDownloadsLast30Days"
-      ],
-      offset: 0,
-      length: 5
-    });
-
-    const { hits } = res;
-    const packages = hits.map(hit => ({
-      ...hit,
-      _cell: getCellPadding(hits, hit)
-    }));
-
-    return packages;
   }
 
   handleTogglePackage(pkg) {
@@ -320,5 +309,28 @@ class Emma extends Component {
     const packages = selectedPackages.map(pkg => pkg.name);
 
     this.props.onInstall(packages);
+  }
+
+  async fetchPackages(query) {
+    const res = await search({
+      query,
+      attributesToRetrieve: [
+        "name",
+        "version",
+        "description",
+        "owner",
+        "humanDownloadsLast30Days"
+      ],
+      offset: 0,
+      length: 5
+    });
+
+    const { hits } = res;
+    const packages = hits.map(hit => ({
+      ...hit,
+      _cell: getCellPadding(hits, hit)
+    }));
+
+    return packages;
   }
 }
