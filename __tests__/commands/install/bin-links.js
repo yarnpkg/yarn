@@ -186,11 +186,16 @@ describe('with nohoist', () => {
       expect(await linkAt(config, 'packages', 'f-dep', 'node_modules', '.bin', 'found-me')).toEqual(localLink);
     });
   });
-  test('nohoist bin should not be linked at top level', (): Promise<void> => {
+  test('nohoist bin should not be linked at top level, unless it is a top-level package', (): Promise<void> => {
     return runInstall({binLinks: true}, 'install-bin-links-nohoist', async config => {
       expect(await fs.exists(path.join(config.cwd, 'node_modules', '.bin', 'exec-a'))).toEqual(true);
       expect(await fs.exists(path.join(config.cwd, 'node_modules', '.bin', 'exec-f'))).toEqual(true);
       expect(await fs.exists(path.join(config.cwd, 'node_modules', '.bin', 'found-me'))).toEqual(false);
+
+      // the top-level packages should never be marked nohoist, even if they match nohoist patterns.
+      // therefore, expect those still linked at the root node_modules.
+      expect(await fs.exists(path.join(config.cwd, 'node_modules', '.bin', 'top-module'))).toEqual(true);
+      expect(await linkAt(config, 'node_modules', '.bin', 'top-module')).toEqual('../top-module/bin.js');
     });
   });
 });
