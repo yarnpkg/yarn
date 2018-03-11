@@ -2,7 +2,7 @@
   "name": "f-dep",
   "version": "0.0.1",
   "bin": {
-    "exec-f": "./bin"
+    "exec-f": "./bin.js"
   },
   "dependencies": {
     "found-me": "file:../../found-me"

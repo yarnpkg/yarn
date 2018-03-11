@@ -2,6 +2,6 @@
   "name": "found-me",
   "version": "0.0.1",
   "bin": {
-    "found-me": "./bin"
+    "found-me": "./bin.js"
   }
 }

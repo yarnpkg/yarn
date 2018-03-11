@@ -181,21 +181,16 @@ describe('with nohoist', () => {
       expect(stdout4[0]).toEqual('found-me');
 
       // make sure the shared links: found-me are pointing to the local module
-      let link = await fs.readlink(path.join(config.cwd, 'packages', 'a-dep', 'node_modules', '.bin', 'found-me'));
-      const expectedPath = path.join('..', 'found-me', 'bin');
-      expect(link).toEqual(expectedPath);
-      link = await fs.readlink(path.join(config.cwd, 'packages', 'f-dep', 'node_modules', '.bin', 'found-me'));
-      expect(link).toEqual(expectedPath);
+      const localLink = '../found-me/bin.js';
+      expect(await linkAt(config, 'packages', 'a-dep', 'node_modules', '.bin', 'found-me')).toEqual(localLink);
+      expect(await linkAt(config, 'packages', 'f-dep', 'node_modules', '.bin', 'found-me')).toEqual(localLink);
     });
   });
   test('nohoist bin should not be linked at top level', (): Promise<void> => {
     return runInstall({binLinks: true}, 'install-bin-links-nohoist', async config => {
-      let exist = await fs.exists(path.join(config.cwd, 'node_modules', '.bin', 'exec-a'));
-      expect(exist).toEqual(true);
-      exist = await fs.exists(path.join(config.cwd, 'node_modules', '.bin', 'exec-f'));
-      expect(exist).toEqual(true);
-      exist = await fs.exists(path.join(config.cwd, 'node_modules', '.bin', 'found-me'));
-      expect(exist).toEqual(false);
+      expect(await fs.exists(path.join(config.cwd, 'node_modules', '.bin', 'exec-a'))).toEqual(true);
+      expect(await fs.exists(path.join(config.cwd, 'node_modules', '.bin', 'exec-f'))).toEqual(true);
+      expect(await fs.exists(path.join(config.cwd, 'node_modules', '.bin', 'found-me'))).toEqual(false);
     });
   });
 });
