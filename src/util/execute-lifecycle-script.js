@@ -105,21 +105,23 @@ export async function makeEnv(
     ...Object.keys(config.registries.yarn.config),
     ...Object.keys(config.registries.npm.config),
   ]);
-  const cleaned = Array.from(keys).filter(key => !key.match(/:_/) && IGNORE_CONFIG_KEYS.indexOf(key) < 0).map(key => {
-    let val = config.getOption(key);
-    if (!val) {
-      val = '';
-    } else if (typeof val === 'number') {
-      val = '' + val;
-    } else if (typeof val !== 'string') {
-      val = JSON.stringify(val);
-    }
+  const cleaned = Array.from(keys)
+    .filter(key => !key.match(/:_/) && IGNORE_CONFIG_KEYS.indexOf(key) === -1)
+    .map(key => {
+      let val = config.getOption(key);
+      if (!val) {
+        val = '';
+      } else if (typeof val === 'number') {
+        val = '' + val;
+      } else if (typeof val !== 'string') {
+        val = JSON.stringify(val);
+      }
 
-    if (val.indexOf('\n') >= 0) {
-      val = JSON.stringify(val);
-    }
-    return [key, val];
-  });
+      if (val.indexOf('\n') >= 0) {
+        val = JSON.stringify(val);
+      }
+      return [key, val];
+    });
   // add npm_config_*
   for (const [key, val] of cleaned) {
     const cleanKey = key.replace(/^_+/, '');
@@ -130,7 +132,7 @@ export async function makeEnv(
   if (manifest && manifest.name) {
     const packageConfigPrefix = `${manifest.name}:`;
     for (const [key, val] of cleaned) {
-      if (!key.startsWith(packageConfigPrefix)) {
+      if (key.indexOf(packageConfigPrefix) !== 0) {
         continue;
       }
       const cleanKey = key.replace(/^_+/, '').replace(packageConfigPrefix, '');
