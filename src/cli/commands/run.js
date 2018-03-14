@@ -149,9 +149,17 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
       reporter.error(reporter.lang('noBinAvailable'));
     }
 
+    const printedCommands: Map<string, string> = new Map();
+
+    for (const pkgCommand of pkgCommands) {
+      const action = scripts.get(pkgCommand);
+      invariant(action, 'Action must exists');
+      printedCommands.set(pkgCommand, action);
+    }
+
     if (pkgCommands.size > 0) {
       reporter.info(`${reporter.lang('possibleCommands')}`);
-      reporter.list('possibleCommands', Array.from(scripts.keys()), toObject(scripts));
+      reporter.list('possibleCommands', Array.from(pkgCommands), toObject(printedCommands));
       await reporter
         .question(reporter.lang('commandQuestion'))
         .then(answer => runCommand(answer.split(' ')), () => reporter.error(reporter.lang('commandNotSpecified')));

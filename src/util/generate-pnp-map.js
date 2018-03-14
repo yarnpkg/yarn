@@ -13,6 +13,7 @@ const path = require('path');
 
 type PackageInformation = {|
   packageLocation: string,
+  packageMainEntry: ?string,
   packageDependencies: Map<string, string>,
   packagePeers: Map<string, Map<string, string | null>>,
 |};
@@ -28,7 +29,10 @@ function generateMaps(packageInformationStores: PackageInformationStores): strin
   for (const [packageName, packageInformationStore] of packageInformationStores) {
     code += `  [${JSON.stringify(packageName)}, new Map([\n`;
 
-    for (const [packageReference, {packageMainEntry, packageLocation, packageDependencies, packagePeers}] of packageInformationStore) {
+    for (const [
+      packageReference,
+      {packageMainEntry, packageLocation, packageDependencies, packagePeers},
+    ] of packageInformationStore) {
       code += `    [${JSON.stringify(packageReference)}, {\n`;
       code += `      packageLocation: ${JSON.stringify(packageLocation)},\n`;
 
@@ -227,6 +231,7 @@ async function getPackageInformationStores(
         [
           null,
           {
+            packageMainEntry: null,
             packageLocation: (await fs.realpath(config.lockfileFolder)).replace(/[\\\/]?$/, path.sep),
             packageDependencies: topLevelDependencies,
             packagePeers: new Map(),
@@ -247,6 +252,6 @@ export async function generatePnpMap(
   const packageInformationStores = await getPackageInformationStores(config, seedPatterns, {resolver});
 
   return (
-    generateMaps(packageInformationStores) + pnpApi.replace(/LOCKFILE_FOLDER/g, JSON.stringify(config.lockfileFolder))
+    generateMaps(packageInformationStores) + pnpApi.replace(/\$\$LOCKFILE_FOLDER/g, JSON.stringify(config.lockfileFolder))
   );
 }

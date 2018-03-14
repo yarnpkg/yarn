@@ -30,7 +30,7 @@ async function makePortableProxyScriptUnix(
 
   const pnpPathBuilder = options.pnpPackageName
     ? // eslint-disable-next-line max-len
-      `if [[ -z $YARN_PNP_PATH ]]; then\n  export YARN_PNP_PATH="${options.pnpPackageName}"\nelse\n  export YARN_PNP_PATH="$YARN_PNP_PATH/${options.pnpPackageName}"\nfi\n\n`
+      `if [ -z "$YARN_PNP_PATH" ]; then\n  export YARN_PNP_PATH="${options.pnpPackageName}"\nelse\n  export YARN_PNP_PATH="$YARN_PNP_PATH/${options.pnpPackageName}"\nfi\n\n`
     : '';
 
   const filePath = `${destination}/${options.proxyBasename || path.basename(source)}`;

@@ -1,5 +1,5 @@
 /* eslint-disable max-len, flowtype/require-valid-file-annotation, flowtype/require-return-type */
-/* global packageInformationStores */
+/* global packageInformationStores, $$LOCKFILE_FOLDER */
 
 const fs = require('fs');
 const Module = require('module');
@@ -8,13 +8,12 @@ const path = require('path');
 const builtinModules = Module.builtinModules || Object.keys(process.binding('natives'));
 
 const originalLoader = Module._load;
-const originalResolver = Module._resolveFilename;
 const originalReadFile = fs.readFile;
 
 const pathRegExp = /^(?!\.{0,2}(?:\/|$))((?:@[^\/]+\/)?[^\/]+)\/?(.*|)$/;
 
 const topLevelLocator = {name: null, reference: null};
-const topLevelResolution = {locator: topLevelLocator, treePath: ``, filesystemDirectory: "/Users/mael/yarn-pnp"};
+const topLevelResolution = {locator: topLevelLocator, treePath: ``, filesystemDirectory: $$LOCKFILE_FOLDER};
 
 const pnpResolutionSymbol = Symbol('pnpResolution');
 
@@ -93,6 +92,7 @@ function getLocatorFromTreePath(treePath) {
  * Transforms the result of exports.resolveRequest into a single string.
  */
 
+/* eslint-disable no-bitwise */
 function serializeResolution(resolution) {
   let output = pnpPathMagic;
 
@@ -105,18 +105,20 @@ function serializeResolution(resolution) {
   return output + resolution.filesystemPath;
 
   function writeShort(n) {
-    writeByte((n >>> 0) & 0xFF);
-    writeByte((n >>> 8) & 0xFF);
+    writeByte((n >>> 0) & 0xff);
+    writeByte((n >>> 8) & 0xff);
   }
 
   function writeByte(n) {
     output += n.toString(2).padStart(8, '0').replace(/0/g, `./`).replace(/1/g, `//`);
   }
 }
+/* eslint-enable no-bitwise */
 
 /**
 */
 
+/* eslint-disable no-bitwise */
 function deserializeResolution(serializedResolution) {
   let offset = pnpPathMagic.length;
 
@@ -129,7 +131,7 @@ function deserializeResolution(serializedResolution) {
 
   const filesystemPath = serializedResolution.slice(offset);
   const filesystemDirectory = path.dirname(filesystemPath);
-  const treePath = String.fromCharCode(... charCodes);
+  const treePath = String.fromCharCode(...charCodes);
 
   const locator = getLocatorFromTreePath(treePath);
   const cacheKey = getCacheKey(filesystemPath, locator, treePath);
@@ -141,7 +143,7 @@ function deserializeResolution(serializedResolution) {
   }
 
   function readByte() {
-    const encodedByte = serializedResolution.slice(offset, offset += 2 * 8);
+    const encodedByte = serializedResolution.slice(offset, (offset += 2 * 8));
     let decodedByte = 0;
 
     for (let t = 0; t < 2 * 8; t += 2) {
@@ -152,6 +154,7 @@ function deserializeResolution(serializedResolution) {
     return decodedByte;
   }
 }
+/* eslint-enable no-bitwise */
 
 /**
  * Computes the cache key for the given file of the given package.
@@ -197,11 +200,13 @@ function applyNodeExtensionResolution(filesystemPath) {
 
   const extensions = Object.keys(Module._extensions);
 
-  const qualifiedFile = extensions.map(extension => {
-    return `${filesystemPath}${extension}`;
-  }).find(candidateFile => {
-    return fs.existsSync(candidateFile);
-  });
+  const qualifiedFile = extensions
+    .map(extension => {
+      return `${filesystemPath}${extension}`;
+    })
+    .find(candidateFile => {
+      return fs.existsSync(candidateFile);
+    });
 
   if (qualifiedFile) {
     return qualifiedFile;
@@ -210,11 +215,13 @@ function applyNodeExtensionResolution(filesystemPath) {
   // Otherwise, we check if the path is a folder - in such a case, we try to use its index
 
   if (stat && stat.isDirectory()) {
-    const indexFile = extensions.map(extension => {
-      return `${filesystemPath}/index${extension}`;
-    }).find(candidateFile => {
-      return fs.existsSync(candidateFile);
-    });
+    const indexFile = extensions
+      .map(extension => {
+        return `${filesystemPath}/index${extension}`;
+      })
+      .find(candidateFile => {
+        return fs.existsSync(candidateFile);
+      });
 
     if (indexFile) {
       return indexFile;
@@ -258,8 +265,6 @@ exports.getPackageInformation = function getPackageInformation({name, reference}
  */
 
 exports.resolveRequest = function resolveRequest(request, parentResolution) {
-  // console.error('requesting', request, 'from', parentResolution);
-
   // Bailout if the request is a native module
 
   if (builtinModules.indexOf(request) !== -1) {
@@ -338,7 +343,8 @@ exports.resolveRequest = function resolveRequest(request, parentResolution) {
     } else {
       if (parentResolution.locator !== topLevelLocator) {
         throw new Error(
-          `Package ${parentResolution.locator.name}@${parentResolution.locator.reference} is trying to require package ${dependencyName} through "${request}", which is not declared in its dependencies (${Array.from(
+          `Package ${parentResolution.locator.name}@${parentResolution.locator
+            .reference} is trying to require package ${dependencyName} through "${request}", which is not declared in its dependencies (${Array.from(
             packageInformation.packageDependencies.keys(),
           ).join(`, `)})`,
         );
@@ -376,7 +382,9 @@ exports.resolveRequest = function resolveRequest(request, parentResolution) {
   if (qualifiedFilesystemPath) {
     filesystemPath = qualifiedFilesystemPath;
   } else {
-    throw new Error(`Couldn't find a suitable resolution for path "${filesystemPath}" (initial request was "${request}")`);
+    throw new Error(
+      `Couldn't find a suitable resolution for path "${filesystemPath}" (initial request was "${request}")`,
+    );
   }
 
   // Compute the remaining fields
@@ -386,8 +394,6 @@ exports.resolveRequest = function resolveRequest(request, parentResolution) {
   const cacheKey = getCacheKey(filesystemPath, locator, treePath);
 
   const resolution = {locator, treePath, filesystemPath, filesystemDirectory, cacheKey};
-
-  // console.error('resolved to', resolution);
 
   return resolution;
 };
@@ -478,8 +484,8 @@ exports.setup = function setup(initialParentTreePath) {
     return serializeResolution(resolution);
   };
 
-  fs.readFile = (target, ... args) => {
-    return originalReadFile.call(fs, path.normalize(target), ... args);
+  fs.readFile = (target, ...args) => {
+    return originalReadFile.call(fs, path.normalize(target), ...args);
   };
 };
 
@@ -499,7 +505,7 @@ exports.setupCompatibilityLayer = () => {
     const basedir = options.basedir || path.dirname(getCaller());
     let parentResolution;
 
-    if (basedir === LOCKFILE_FOLDER || basedir.startsWith(LOCKFILE_FOLDER + `/`)) {
+    if (basedir === $$LOCKFILE_FOLDER || basedir.startsWith($$LOCKFILE_FOLDER + `/`)) {
       parentResolution = topLevelResolution;
     } else if (basedir.startsWith(pnpPathMagic)) {
       parentResolution = deserializeResolution(basedir);
