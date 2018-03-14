@@ -11,6 +11,8 @@ type Env = {
 };
 
 export const DEPENDENCY_TYPES = ['devDependencies', 'dependencies', 'optionalDependencies', 'peerDependencies'];
+export const OWNED_DEPENDENCY_TYPES = ['devDependencies', 'dependencies', 'optionalDependencies'];
+
 export const RESOLUTIONS = 'resolutions';
 export const MANIFEST_FIELDS = [RESOLUTIONS, ...DEPENDENCY_TYPES];
 
