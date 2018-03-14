@@ -1,4 +1,4 @@
-const {fs: {writeFile}, tests: {getPackageDirectoryPath}} = require('pkg-tests-core');
+const {fs: {writeFile, writeJson}, tests: {getPackageDirectoryPath}} = require('pkg-tests-core');
 
 module.exports = makeTemporaryEnv => {
   const {basic: basicSpecs, script: scriptSpecs} = require('pkg-tests-specs');
@@ -251,6 +251,79 @@ module.exports = makeTemporaryEnv => {
                 version: `2.0.0`,
               },
             },
+          });
+        },
+      ),
+    );
+
+    test(
+      `it should support the use case of using the result of require.resolve(...) to load a package`,
+      makeTemporaryEnv(
+        {
+          dependencies: {[`custom-dep-a`]: `file:./custom-dep-a`},
+        },
+        {
+          plugNPlay: true,
+        },
+        async ({path, run, source}) => {
+          await writeFile(
+            `${path}/custom-dep-a/index.js`,
+            `module.exports = require('custom-dep-b')(require.resolve('no-deps'))`,
+          );
+          await writeJson(`${path}/custom-dep-a/package.json`, {
+            name: `custom-dep-a`,
+            version: `1.0.0`,
+            dependencies: {[`custom-dep-b`]: `file:../custom-dep-b`, [`no-deps`]: `1.0.0`},
+          });
+
+          await writeFile(`${path}/custom-dep-b/index.js`, `module.exports = path => require(path)`);
+          await writeJson(`${path}/custom-dep-b/package.json`, {name: `custom-dep-b`, version: `1.0.0`});
+
+          await run(`install`);
+
+          await expect(source(`require('custom-dep-a')`)).resolves.toMatchObject({
+            name: `no-deps`,
+            version: `1.0.0`,
+          });
+        },
+      ),
+    );
+
+    test(
+      `it should not break the tree path when loading through the result of require.resolve(...)`,
+      makeTemporaryEnv(
+        {
+          dependencies: {[`custom-dep-a`]: `file:./custom-dep-a`},
+        },
+        {
+          plugNPlay: true,
+        },
+        async ({path, run, source}) => {
+          await writeFile(
+            `${path}/custom-dep-a/index.js`,
+            `module.exports = require('custom-dep-b')(require.resolve('custom-dep-c'))`,
+          );
+          await writeJson(`${path}/custom-dep-a/package.json`, {
+            name: `custom-dep-a`,
+            version: `1.0.0`,
+            dependencies: {[`custom-dep-b`]: `file:../custom-dep-b`, [`custom-dep-c`]: `file:../custom-dep-c`},
+          });
+
+          await writeFile(`${path}/custom-dep-b/index.js`, `module.exports = path => require(path)`);
+          await writeJson(`${path}/custom-dep-b/package.json`, {name: `custom-dep-b`, version: `1.0.0`});
+
+          await writeFile(`${path}/custom-dep-c/index.js`, `module.exports = require('no-deps')`);
+          await writeJson(`${path}/custom-dep-c/package.json`, {
+            name: `custom-dep-c`,
+            version: `1.0.0`,
+            dependencies: {[`no-deps`]: `1.0.0`},
+          });
+
+          await run(`install`);
+
+          await expect(source(`require('custom-dep-a')`)).resolves.toMatchObject({
+            name: `no-deps`,
+            version: `1.0.0`,
           });
         },
       ),
