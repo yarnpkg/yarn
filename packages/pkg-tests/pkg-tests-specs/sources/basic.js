@@ -255,31 +255,25 @@ module.exports = (makeTemporaryEnv: PackageDriver) => {
       `it should install in such a way that peer dependencies can be resolved (from within a dependency)`,
       makeTemporaryEnv(
         {
-          dependencies: {[`custom-dep`]: `file:./custom-dep`},
+          dependencies: {[`provides-peer-deps-1-0-0`]: `1.0.0`},
         },
         async ({path, run, source}) => {
-          await writeJson(`${path}/custom-dep/package.json`, {
-            name: `custom-dep`,
-            version: `1.0.0`,
-            dependencies: {
-              [`peer-deps`]: `1.0.0`,
-              [`no-deps`]: `1.0.0`,
-            },
-          });
-
-          await writeFile(
-            `${path}/custom-dep/index.js`,
-            `
-            module.exports = require('peer-deps');
-        `,
-          );
-
           await run(`install`);
 
-          await expect(source(`require('custom-dep')`)).resolves.toMatchObject({
-            name: `peer-deps`,
+          await expect(source(`require('provides-peer-deps-1-0-0')`)).resolves.toMatchObject({
+            name: `provides-peer-deps-1-0-0`,
             version: `1.0.0`,
-            peerDependencies: {
+            dependencies: {
+              [`peer-deps`]: {
+                name: `peer-deps`,
+                version: `1.0.0`,
+                peerDependencies: {
+                  [`no-deps`]: {
+                    name: `no-deps`,
+                    version: `1.0.0`,
+                  },
+                },
+              },
               [`no-deps`]: {
                 name: `no-deps`,
                 version: `1.0.0`,

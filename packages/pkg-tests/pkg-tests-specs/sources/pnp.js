@@ -194,5 +194,66 @@ module.exports = makeTemporaryEnv => {
         },
       ),
     );
+
+    test(
+      `it should install in such a way that two identical packages with different peer dependencies are different instances`,
+      makeTemporaryEnv(
+        {
+          dependencies: {[`provides-peer-deps-1-0-0`]: `1.0.0`, [`provides-peer-deps-2-0-0`]: `1.0.0`},
+        },
+        {
+          plugNPlay: true,
+        },
+        async ({path, run, source}) => {
+          await run(`install`);
+
+          await expect(
+            source(`require('provides-peer-deps-1-0-0') !== require('provides-peer-deps-2-0-0')`),
+          ).resolves.toEqual(true);
+
+          await expect(source(`require('provides-peer-deps-1-0-0')`)).resolves.toMatchObject({
+            name: `provides-peer-deps-1-0-0`,
+            version: `1.0.0`,
+            dependencies: {
+              [`peer-deps`]: {
+                name: `peer-deps`,
+                version: `1.0.0`,
+                peerDependencies: {
+                  [`no-deps`]: {
+                    name: `no-deps`,
+                    version: `1.0.0`,
+                  },
+                },
+              },
+              [`no-deps`]: {
+                name: `no-deps`,
+                version: `1.0.0`,
+              },
+            },
+          });
+
+          await expect(source(`require('provides-peer-deps-2-0-0')`)).resolves.toMatchObject({
+            name: `provides-peer-deps-2-0-0`,
+            version: `1.0.0`,
+            dependencies: {
+              [`peer-deps`]: {
+                name: `peer-deps`,
+                version: `1.0.0`,
+                peerDependencies: {
+                  [`no-deps`]: {
+                    name: `no-deps`,
+                    version: `2.0.0`,
+                  },
+                },
+              },
+              [`no-deps`]: {
+                name: `no-deps`,
+                version: `2.0.0`,
+              },
+            },
+          });
+        },
+      ),
+    );
   });
 };
