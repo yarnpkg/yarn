@@ -1,0 +1,11 @@
+{
+  "name": "install-bin-links-nohoist",
+  "private": true,
+  "workspaces": {
+    "packages": ["packages/*"],
+    "nohoist": ["**/found-me", "**/found-me/**", "a-dep", "top-module"]
+  },
+  "dependencies": {
+    "top-module": "file:top-module"
+  }
+}
