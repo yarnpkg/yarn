@@ -8,7 +8,7 @@ import * as child from './child.js';
 import {exists} from './fs.js';
 import {registries} from '../resolvers/index.js';
 import {fixCmdWinSlashes} from './fix-cmd-win-slashes.js';
-import {run as globalRun, getBinFolder as getGlobalBinFolder} from '../cli/commands/global.js';
+import {getBinFolder as getGlobalBinFolder, run as globalRun} from '../cli/commands/global.js';
 
 const invariant = require('invariant');
 const path = require('path');
@@ -25,6 +25,8 @@ const IGNORE_MANIFEST_KEYS = ['readme'];
 // This helps us avoid some gyp issues when building native modules.
 // See https://github.com/yarnpkg/yarn/issues/2286.
 const IGNORE_CONFIG_KEYS = ['lastUpdateCheck'];
+
+const INVALID_CHAR_REGEX = /[^a-zA-Z0-9_]/g;
 
 export async function makeEnv(
   stage: string,
@@ -91,40 +93,52 @@ export async function makeEnv(
         }
 
         //replacing invalid chars with underscore
-        const cleanKey = key.replace(/[^a-zA-Z0-9_]/g, '_');
+        const cleanKey = key.replace(INVALID_CHAR_REGEX, '_');
 
         env[`npm_package_${cleanKey}`] = cleanVal;
       }
     }
   }
 
-  // add npm_config_*
+  // add npm_config_* and npm_package_config_* from yarn config
   const keys: Set<string> = new Set([
     ...Object.keys(config.registries.yarn.config),
     ...Object.keys(config.registries.npm.config),
   ]);
-  for (const key of keys) {
-    if (key.match(/:_/) || IGNORE_CONFIG_KEYS.indexOf(key) >= 0) {
-      continue;
-    }
+  const cleaned = Array.from(keys)
+    .filter(key => !key.match(/:_/) && IGNORE_CONFIG_KEYS.indexOf(key) === -1)
+    .map(key => {
+      let val = config.getOption(key);
+      if (!val) {
+        val = '';
+      } else if (typeof val === 'number') {
+        val = '' + val;
+      } else if (typeof val !== 'string') {
+        val = JSON.stringify(val);
+      }
 
-    let val = config.getOption(key);
-
-    if (!val) {
-      val = '';
-    } else if (typeof val === 'number') {
-      val = '' + val;
-    } else if (typeof val !== 'string') {
-      val = JSON.stringify(val);
-    }
-
-    if (val.indexOf('\n') >= 0) {
-      val = JSON.stringify(val);
-    }
-
+      if (val.indexOf('\n') >= 0) {
+        val = JSON.stringify(val);
+      }
+      return [key, val];
+    });
+  // add npm_config_*
+  for (const [key, val] of cleaned) {
     const cleanKey = key.replace(/^_+/, '');
-    const envKey = `npm_config_${cleanKey}`.replace(/[^a-zA-Z0-9_]/g, '_');
+    const envKey = `npm_config_${cleanKey}`.replace(INVALID_CHAR_REGEX, '_');
     env[envKey] = val;
+  }
+  // add npm_package_config_*
+  if (manifest && manifest.name) {
+    const packageConfigPrefix = `${manifest.name}:`;
+    for (const [key, val] of cleaned) {
+      if (key.indexOf(packageConfigPrefix) !== 0) {
+        continue;
+      }
+      const cleanKey = key.replace(/^_+/, '').replace(packageConfigPrefix, '');
+      const envKey = `npm_package_config_${cleanKey}`.replace(INVALID_CHAR_REGEX, '_');
+      env[envKey] = val;
+    }
   }
 
   // split up the path
