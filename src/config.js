@@ -59,6 +59,7 @@ export type ConfigOptions = {
   registry?: ?string,
 
   updateChecksums?: boolean,
+  cacheFolders?: ?Array<string>,
 };
 
 type PackageMetadata = {
@@ -177,6 +178,7 @@ export default class Config {
 
   //
   commandName: string;
+  cacheFolders: Array<string>;
 
   /**
    * Execute a promise produced by factory if it doesn't exist in our cache with
@@ -296,6 +298,7 @@ export default class Config {
     });
 
     let cacheRootFolder = opts.cacheFolder || this.getOption('cache-folder', true);
+    let currentCacheFolders = [];
 
     if (!cacheRootFolder) {
       let preferredCacheFolders = constants.PREFERRED_MODULE_CACHE_DIRECTORIES;
@@ -305,18 +308,22 @@ export default class Config {
         preferredCacheFolders = [String(preferredCacheFolder)].concat(preferredCacheFolders);
       }
 
-      const cacheFolderQuery = await fs.getFirstSuitableFolder(
+      const cacheFolderQuery = await fs.getSuitableFolders(
         preferredCacheFolders,
         fs.constants.W_OK | fs.constants.X_OK | fs.constants.R_OK, // eslint-disable-line no-bitwise
       );
+
       for (const skippedEntry of cacheFolderQuery.skipped) {
         this.reporter.warn(this.reporter.lang('cacheFolderSkipped', skippedEntry.folder));
       }
 
-      cacheRootFolder = cacheFolderQuery.folder;
+      cacheRootFolder = cacheFolderQuery.folders[0];
+      currentCacheFolders = cacheFolderQuery.folders;
       if (cacheRootFolder && cacheFolderQuery.skipped.length > 0) {
         this.reporter.warn(this.reporter.lang('cacheFolderSelected', cacheRootFolder));
       }
+    } else {
+      currentCacheFolders.push(String(cacheRootFolder));
     }
 
     if (!cacheRootFolder) {
@@ -335,6 +342,8 @@ export default class Config {
 
     //init & create cacheFolder, tempFolder
     this.cacheFolder = path.join(this._cacheRootFolder, 'v' + String(constants.CACHE_VERSION));
+    this.cacheFolders = currentCacheFolders;
+
     this.tempFolder = opts.tempFolder || path.join(this.cacheFolder, '.tmp');
     await fs.mkdirp(this.cacheFolder);
     await fs.mkdirp(this.tempFolder);
