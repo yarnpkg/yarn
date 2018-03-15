@@ -1,13 +1,11 @@
 // @flow
 
 import type Config from '../config.js';
-import type PackageRequest from '../package-request.js';
 import type PackageResolver from '../package-resolver.js';
 import pnpApi from './generate-pnp-map-api.tpl.js';
-import * as constants from '../constants.js';
-import type {Manifest} from '../types.js';
 import * as fs from './fs.js';
 
+const crypto = require('crypto');
 const invariant = require('invariant');
 const path = require('path');
 
@@ -15,7 +13,6 @@ type PackageInformation = {|
   packageLocation: string,
   packageMainEntry: ?string,
   packageDependencies: Map<string, string>,
-  packagePeers: Map<string, Map<string, string | null>>,
 |};
 type PackageInformationStore = Map<string | null, PackageInformation>;
 type PackageInformationStores = Map<string | null, PackageInformationStore>;
@@ -31,7 +28,7 @@ function generateMaps(packageInformationStores: PackageInformationStores): strin
 
     for (const [
       packageReference,
-      {packageMainEntry, packageLocation, packageDependencies, packagePeers},
+      {packageMainEntry, packageLocation, packageDependencies},
     ] of packageInformationStore) {
       code += `    [${JSON.stringify(packageReference)}, {\n`;
       code += `      packageLocation: ${JSON.stringify(packageLocation)},\n`;
@@ -46,18 +43,6 @@ function generateMaps(packageInformationStores: PackageInformationStores): strin
       }
       code += `      ]),\n`;
 
-      if (packagePeers.size > 0) {
-        code += `      packagePeers: new Map([\n`;
-        for (const [dependencyPath, peerEntries] of packagePeers) {
-          code += `        [${JSON.stringify(dependencyPath)}, new Map([\n`;
-          for (const [dependencyName, dependencyReference] of peerEntries.entries()) {
-            code += `          [${JSON.stringify(dependencyName)}, ${JSON.stringify(dependencyReference)}],\n`;
-          }
-          code += `        ])],\n`;
-        }
-        code += `      ]),\n`;
-      }
-
       code += `    }],\n`;
     }
 
@@ -69,177 +54,150 @@ function generateMaps(packageInformationStores: PackageInformationStores): strin
   return code;
 }
 
-function getPackagesDistance(fromReq: PackageRequest, toReq: PackageRequest): number | null {
-  // toReq cannot be a valid peer dependency if it's deeper in the tree
-  if (toReq.parentNames.length > fromReq.parentNames.length) {
-    return null;
-  }
-
-  // To be a valid peer dependency, toReq must have the same parents
-  for (let t = 0; t < toReq.parentNames.length; ++t) {
-    if (toReq.parentNames[t] !== fromReq.parentNames[t]) {
-      return null;
-    }
-  }
-
-  // The depth is simply the number of parents between the two packages
-  return fromReq.parentNames.length - toReq.parentNames.length;
-}
-
-function getPackagePeers(
-  pkg: Manifest,
-  {resolver, exclude}: {resolver: PackageResolver, exclude: Set<string>},
-): Map<string, Map<string, string | null>> {
-  const ref = pkg._reference;
-  invariant(ref, `Ref must exists`);
-
-  // Early exit if the package has no peer dependency
-
-  const peerDependencies = pkg.peerDependencies || {};
-  const peerNames = new Set(Object.keys(peerDependencies));
-
-  for (const excludeName of exclude) {
-    peerNames.delete(excludeName);
-  }
-
-  if (peerNames.size === 0) {
-    return new Map();
-  }
-
-  // Cache the candidates for each peer dependency
-
-  const peerCandidateMap = new Map();
-
-  for (const peerDependency of peerNames) {
-    peerCandidateMap.set(peerDependency, resolver.getAllInfoForPackageName(peerDependency));
-  }
-
-  // Find the best candidates for each peer dependency for each branch that uses `pkg`
-
-  const packagePeers = new Map();
-
-  for (const req of ref.requests) {
-    const peerPath = [...req.parentNames, ref.name].join('/');
-    const peerEntries = new Map();
-
-    for (const peerDependency of peerNames) {
-      const peerCandidates = peerCandidateMap.get(peerDependency);
-      invariant(peerCandidates, `We must have peer candidates`);
-
-      let bestCandidate = null;
-      let bestDepth = Infinity;
-
-      for (const peerCandidate of peerCandidates) {
-        const candidateRef = peerCandidate._reference;
-
-        if (!candidateRef) {
-          continue;
-        }
-
-        for (const candidateReq of candidateRef.requests) {
-          const candidateDepth = getPackagesDistance(req, candidateReq);
-
-          if (candidateDepth !== null && bestDepth > candidateDepth) {
-            bestCandidate = peerCandidate;
-            bestDepth = candidateDepth;
-          }
-        }
-      }
-
-      if (bestCandidate) {
-        peerEntries.set(peerDependency, bestCandidate.version);
-      } else {
-        peerEntries.set(peerDependency, null);
-      }
-    }
-
-    packagePeers.set(peerPath, peerEntries);
-  }
-
-  return packagePeers;
-}
-
 async function getPackageInformationStores(
   config: Config,
   seedPatterns: Array<string>,
   {resolver}: {resolver: PackageResolver},
 ): Promise<PackageInformationStores> {
-  const packageInformationStores = new Map();
+  const packageInformationStores: PackageInformationStores = new Map();
 
-  const pkgs = resolver.getTopologicalManifests(seedPatterns);
+  const getHashFrom = (data: Array<string>) => {
+    const hashGenerator = crypto.createHash('sha1');
 
-  for (const pkg of pkgs) {
-    if (pkg._reference && pkg._reference.location && pkg._reference.isPlugnplay) {
-      const ref = pkg._reference;
-      const loc = pkg._reference.location;
+    for (const datum of data) {
+      hashGenerator.update(datum);
+    }
 
-      let packageInformationStore = packageInformationStores.get(pkg.name);
+    return hashGenerator.digest('hex');
+  };
+
+  const getResolverEntry = pattern => {
+    const pkg = resolver.getStrictResolvedPattern(pattern);
+    const ref = pkg._reference;
+
+    if (!ref) {
+      return null;
+    }
+
+    const loc = ref.location;
+
+    if (!loc) {
+      return null;
+    }
+
+    return {pkg, ref, loc};
+  };
+
+  const visit = async (
+    seedPatterns: Array<string>,
+    parentData: Array<string> = [],
+    availablePackages: Map<string, string> = new Map(),
+  ) => {
+    const resolutions = new Map();
+
+    // This first pass will compute the package reference of each of the given patterns
+    // They will usually be the package version, but not always. We need to do this in a pre-process pass, because the
+    // dependencies might depend on one another, so if we need to replace one of them, we need to compute it first
+    for (const pattern of seedPatterns) {
+      const entry = getResolverEntry(pattern);
+
+      if (!entry) {
+        continue;
+      }
+
+      const {pkg} = entry;
+
+      const packageName = pkg.name;
+      let packageReference = pkg.version;
+
+      // If we have peer dependencies, then we generate a new virtual reference based on the parent one
+      // We cannot generate this reference based on what those peer references resolve to, because they might not have
+      // been computed yet (for example, consider the case where A has a peer dependency on B, and B a peer dependency
+      // on A; it's valid, but it prevents us from computing A and B - and it's even worse with 3+ packages involved)
+      const peerDependencies = new Set(Array.from(Object.keys(pkg.peerDependencies || {})));
+
+      if (peerDependencies.size > 0) {
+        packageReference = `pnp:${getHashFrom([...parentData, packageName])}`;
+      }
+
+      // Now that we have the final reference, we need to store it
+      resolutions.set(packageName, packageReference);
+    }
+
+    // Now that we have the final references, we can start the main loop, which will insert the packages into the store
+    // if they aren't already there, and recurse over their own children
+    for (const pattern of seedPatterns) {
+      const entry = getResolverEntry(pattern);
+
+      if (!entry) {
+        continue;
+      }
+
+      const {pkg, ref, loc} = entry;
+
+      const packageName = pkg.name;
+      const packageReference = resolutions.get(packageName);
+
+      invariant(packageReference, `Package reference should have been computed during the pre-pass`);
+
+      // We can early exit if the package is already registered with the exact same name and reference, since even if
+      // we might get slightly different dependencies (depending on how things were optimized), both sets are valid
+      let packageInformationStore = packageInformationStores.get(packageName);
 
       if (!packageInformationStore) {
-        packageInformationStores.set(pkg.name, (packageInformationStore = new Map()));
+        packageInformationStore = new Map();
+        packageInformationStores.set(packageName, packageInformationStore);
       }
 
-      // Get the dependency we directly own (vs those provided through peerDependencies)
+      let packageInformation = packageInformationStore.get(packageReference);
 
-      const ownedDependencies = new Set();
-
-      for (const dependencyType of constants.OWNED_DEPENDENCY_TYPES) {
-        if (pkg[dependencyType]) {
-          for (const dependencyName of Object.keys(pkg[dependencyType])) {
-            ownedDependencies.add(dependencyName);
-          }
-        }
+      if (packageInformation) {
+        continue;
       }
 
-      // Resolve all the dependencies for our package
-
-      const packageDependencies = new Map();
-
-      for (const pattern of ref.dependencies) {
-        const dep = resolver.getStrictResolvedPattern(pattern);
-        if (ownedDependencies.has(dep.name)) {
-          packageDependencies.set(dep.name, dep.version);
-        }
-      }
-
-      // Compute the peer dependencies for each possible require path
-      // In case of conflict, we use the one from dependencies / devDependencies / optionalDependencies
-
-      const packagePeers = getPackagePeers(pkg, {resolver, exclude: ownedDependencies});
-
-      packageInformationStore.set(pkg.version, {
+      packageInformation = {
         packageMainEntry: pkg.main,
         packageLocation: (await fs.realpath(loc)).replace(/[\\\/]?$/, path.sep),
-        packageDependencies,
-        packagePeers,
+        packageDependencies: new Map(),
+      };
+
+      // Split the dependencies between direct/peer - we will only recurse on the former
+      const peerDependencies = new Set(Array.from(Object.keys(pkg.peerDependencies || {})));
+      const directDependencies = ref.dependencies.filter(pattern => {
+        const pkg = resolver.getStrictResolvedPattern(pattern);
+        return !pkg || !peerDependencies.has(pkg.name);
       });
+
+      // We do this in two steps to prevent cyclic dependencies from looping indefinitely
+      packageInformationStore.set(packageReference, packageInformation);
+      packageInformation.packageDependencies = await visit(directDependencies, [packageName, packageReference]);
+
+      // We now have to inject the peer dependencies
+      for (const dependencyName of peerDependencies) {
+        const dependencyReference = resolutions.get(dependencyName);
+
+        if (dependencyReference) {
+          packageInformation.packageDependencies.set(dependencyName, dependencyReference);
+        }
+      }
     }
-  }
 
-  // Top-level package
-  if (true) {
-    const topLevelDependencies = new Map();
+    return resolutions;
+  };
 
-    for (const pattern of seedPatterns) {
-      const dep = resolver.getStrictResolvedPattern(pattern);
-      topLevelDependencies.set(dep.name, dep.version);
-    }
-
-    packageInformationStores.set(
-      null,
-      new Map([
-        [
-          null,
-          {
-            packageMainEntry: null,
-            packageLocation: (await fs.realpath(config.lockfileFolder)).replace(/[\\\/]?$/, path.sep),
-            packageDependencies: topLevelDependencies,
-            packagePeers: new Map(),
-          },
-        ],
-      ]),
-    );
-  }
+  packageInformationStores.set(
+    null,
+    new Map([
+      [
+        null,
+        {
+          packageMainEntry: null,
+          packageLocation: (await fs.realpath(config.lockfileFolder)).replace(/[\\\/]?$/, path.sep),
+          packageDependencies: await visit(seedPatterns),
+        },
+      ],
+    ]),
+  );
 
   return packageInformationStores;
 }
@@ -252,6 +210,7 @@ export async function generatePnpMap(
   const packageInformationStores = await getPackageInformationStores(config, seedPatterns, {resolver});
 
   return (
-    generateMaps(packageInformationStores) + pnpApi.replace(/\$\$LOCKFILE_FOLDER/g, JSON.stringify(config.lockfileFolder))
+    generateMaps(packageInformationStores) +
+    pnpApi.replace(/\$\$LOCKFILE_FOLDER/g, JSON.stringify(config.lockfileFolder))
   );
 }
