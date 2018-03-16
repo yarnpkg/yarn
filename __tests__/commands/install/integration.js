@@ -257,7 +257,7 @@ test('changes the cache directory when bumping the cache version', async () => {
     await resolver.init([{pattern: 'is-array', registry: 'npm'}]);
 
     const ref = resolver.getManifests()[0]._reference;
-    const cachePath = config.generateHardModulePath(ref, true);
+    const cachePath = config.generateModuleCachePath(ref);
 
     await fs.writeFile(path.join(cachePath, 'yarn.test'), 'YARN TEST');
     await fs.unlink(path.join(config.cwd, 'node_modules'));

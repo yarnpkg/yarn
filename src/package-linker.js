@@ -102,28 +102,26 @@ export default class PackageLinker {
     for (const pattern of ref.dependencies) {
       const dep = this.resolver.getStrictResolvedPattern(pattern);
       if (
-        // Missing location means not installed inside node_modules
+        // Missing locations means not installed inside node_modules
         dep._reference &&
-        dep._reference.location &&
+        dep._reference.locations.length &&
         dep.bin &&
         Object.keys(dep.bin).length
       ) {
-        deps.push({
-          dep,
-          loc: this.config.generateHardModulePath(dep._reference),
-        });
+        const loc = await this.findNearestInstalledVersionOfPackage(dep, dir);
+        deps.push({dep, loc});
       }
     }
 
     // link up the `bin` scripts in bundled dependencies
     if (pkg.bundleDependencies) {
       for (const depName of pkg.bundleDependencies) {
-        const loc = path.join(this.config.generateHardModulePath(ref), this.config.getFolder(pkg), depName);
+        const locs = ref.locations.map(loc => path.join(loc, this.config.getFolder(pkg), depName));
         try {
-          const dep = await this.config.readManifest(loc, remote.registry);
+          const dep = await this.config.readManifest(locs[0], remote.registry); //all of them should be the same
 
           if (dep.bin && Object.keys(dep.bin).length) {
-            deps.push({dep, loc});
+            deps.push(...locs.map(loc => ({dep, loc})));
           }
         } catch (ex) {
           if (ex.code !== 'ENOENT') {
@@ -142,24 +140,74 @@ export default class PackageLinker {
 
     // write the executables
     for (const {dep, loc} of deps) {
-      if (dep._reference && dep._reference.location) {
+      if (dep._reference && dep._reference.locations.length) {
         await this.linkSelfDependencies(dep, loc, dir);
       }
     }
   }
 
-  getFlatHoistedTree(patterns: Array<string>, {ignoreOptional}: {ignoreOptional: ?boolean} = {}): HoistManifestTuples {
-    const hoister = new PackageHoister(this.config, this.resolver, {ignoreOptional});
+  //find the installation location of ref that would be used in binLoc based on node module resolution
+  async findNearestInstalledVersionOfPackage(pkg: Manifest, binLoc: string): Promise<string> {
+    const ref = pkg._reference;
+    invariant(ref, 'expected pkg reference for ' + pkg.name);
+    const moduleFolder = this.config.getFolder(pkg);
+    await fs.mkdirp(binLoc);
+    const realBinLoc = await fs.realpath(binLoc);
+
+    const allLocations = [...ref.locations];
+    const realLocations = await Promise.all(ref.locations.map(loc => fs.realpath(loc)));
+    realLocations.forEach(loc => allLocations.indexOf(loc) !== -1 || allLocations.push(loc));
+
+    const distancePairs = allLocations.map(loc => {
+      let distance = 0;
+      let curLoc = realBinLoc;
+      let notFound = false;
+
+      while (path.join(curLoc, ref.name) !== loc && path.join(curLoc, moduleFolder, ref.name) !== loc) {
+        const next = path.dirname(curLoc);
+        if (curLoc === next) {
+          notFound = true;
+          break;
+        }
+
+        distance++;
+        curLoc = next;
+      }
+      return notFound ? null : [loc, distance];
+    });
+
+    //remove items where path was not found
+    const filteredDistancePairs: any = distancePairs.filter(d => d);
+    (filteredDistancePairs: Array<[string, number]>);
+
+    //get smallest distance from package location
+    const minItem = filteredDistancePairs.reduce((min, cur) => {
+      return cur[1] < min[1] ? cur : min;
+    });
+
+    invariant(minItem[1] >= 0, 'could not find a target for bin dir of ' + minItem.toString());
+    return minItem[0];
+  }
+
+  getFlatHoistedTree(
+    patterns: Array<string>,
+    workspaceLayout?: WorkspaceLayout,
+    {ignoreOptional, focus}: {ignoreOptional: ?boolean, focus: ?boolean} = {},
+  ): HoistManifestTuples {
+    const hoister = new PackageHoister(this.config, this.resolver, {ignoreOptional, workspaceLayout});
     hoister.seed(patterns);
+    if (focus) {
+      hoister.markShallowWorkspaceEntries();
+    }
     return hoister.init();
   }
 
   async copyModules(
     patterns: Array<string>,
     workspaceLayout?: WorkspaceLayout,
-    {linkDuplicates, ignoreOptional}: {linkDuplicates: ?boolean, ignoreOptional: ?boolean} = {},
+    {linkDuplicates, ignoreOptional, focus}: {linkDuplicates: ?boolean, ignoreOptional: ?boolean, focus: ?boolean} = {},
   ): Promise<void> {
-    let flatTree = this.getFlatHoistedTree(patterns, {ignoreOptional});
+    let flatTree = this.getFlatHoistedTree(patterns, workspaceLayout, {ignoreOptional, focus});
     // sorted tree makes file creation and copying not to interfere with each other
     flatTree = flatTree.sort(function(dep1, dep2): number {
       return dep1[0].localeCompare(dep2[0]);
@@ -174,7 +222,7 @@ export default class PackageLinker {
 
     const copiedSrcs: Map<string, string> = new Map();
     const symlinkPaths: Map<string, string> = new Map();
-    for (const [folder, {pkg, loc}] of flatTree) {
+    for (const [folder, {pkg, loc, isShallow}] of flatTree) {
       const remote = pkg._remote || {type: ''};
       const ref = pkg._reference;
       let dest = folder;
@@ -187,7 +235,7 @@ export default class PackageLinker {
         // with a symlink source
         src = remote.reference;
         type = 'symlink';
-      } else if (workspaceLayout && remote.type === 'workspace') {
+      } else if (workspaceLayout && remote.type === 'workspace' && !isShallow) {
         src = remote.reference;
         type = 'symlink';
         if (dest.indexOf(workspaceLayout.virtualManifestName) !== -1) {
@@ -215,7 +263,7 @@ export default class PackageLinker {
         }
       }
 
-      ref.setLocation(dest);
+      ref.addLocation(dest);
 
       const integrityArtifacts = this.artifacts[`${pkg.name}@${pkg.version}`];
       if (integrityArtifacts) {
@@ -417,7 +465,7 @@ export default class PackageLinker {
       await promise.queue(
         flatTree,
         async ([dest, {pkg, isNohoist, parts}]) => {
-          if (pkg._reference && pkg._reference.location) {
+          if (pkg._reference && pkg._reference.locations.length) {
             const binLoc = path.join(dest, this.config.getFolder(pkg));
             await this.linkBinDependencies(pkg, binLoc);
             if (isNohoist) {
@@ -435,7 +483,7 @@ export default class PackageLinker {
       await promise.queue(
         topLevelDependencies,
         async ([dest, {pkg}]) => {
-          if (pkg._reference && pkg._reference.location && pkg.bin && Object.keys(pkg.bin).length) {
+          if (pkg._reference && pkg._reference.locations.length && pkg.bin && Object.keys(pkg.bin).length) {
             const binLoc = path.join(this.config.lockfileFolder, this.config.getFolder(pkg));
             await this.linkSelfDependencies(pkg, dest, binLoc);
             tickBin();
@@ -476,11 +524,11 @@ export default class PackageLinker {
   determineTopLevelBinLinkOrder(flatTree: HoistManifestTuples): HoistManifestTuples {
     const linksToCreate = new Map();
     for (const [dest, hoistManifest] of flatTree) {
-      const {pkg, isDirectRequire, isNohoist} = hoistManifest;
+      const {pkg, isDirectRequire, isNohoist, isShallow} = hoistManifest;
       const {name} = pkg;
 
-      // a nohoist package should not be linked at topLevel bin
-      if (!isNohoist && (isDirectRequire || (this.topLevelBinLinking && !linksToCreate.has(name)))) {
+      // nohoist and shallow packages should not be linked at topLevel bin
+      if (!isNohoist && !isShallow && (isDirectRequire || (this.topLevelBinLinking && !linksToCreate.has(name)))) {
         linksToCreate.set(name, [dest, hoistManifest]);
       }
     }
@@ -578,11 +626,14 @@ export default class PackageLinker {
 
   async _warnForMissingBundledDependencies(pkg: Manifest): Promise<void> {
     const ref = pkg._reference;
+    invariant(ref, 'missing package ref ' + pkg.name);
 
     if (pkg.bundleDependencies) {
       for (const depName of pkg.bundleDependencies) {
-        const loc = path.join(this.config.generateHardModulePath(ref), this.config.getFolder(pkg), depName);
-        if (!await fs.exists(loc)) {
+        const locs = ref.locations.map(loc => path.join(loc, this.config.getFolder(pkg), depName));
+        const locsExist = await Promise.all(locs.map(loc => fs.exists(loc)));
+        if (locsExist.some(e => !e)) {
+          //if any of the locs do not exist
           const pkgHuman = `${pkg.name}@${pkg.version}`;
           this.reporter.warn(this.reporter.lang('missingBundledDependency', pkgHuman, depName));
         }
@@ -593,9 +644,9 @@ export default class PackageLinker {
   async init(
     patterns: Array<string>,
     workspaceLayout?: WorkspaceLayout,
-    {linkDuplicates, ignoreOptional}: {linkDuplicates: ?boolean, ignoreOptional: ?boolean} = {},
+    {linkDuplicates, ignoreOptional, focus}: {linkDuplicates: ?boolean, ignoreOptional: ?boolean, focus: ?boolean} = {},
   ): Promise<void> {
     this.resolvePeerModules();
-    await this.copyModules(patterns, workspaceLayout, {linkDuplicates, ignoreOptional});
+    await this.copyModules(patterns, workspaceLayout, {linkDuplicates, ignoreOptional, focus});
   }
 }
