@@ -1,5 +1,5 @@
 /* eslint-disable max-len, flowtype/require-valid-file-annotation, flowtype/require-return-type */
-/* global packageInformationStores */
+/* global packageInformationStores, $$SETUP_STATIC_TABLES */
 
 const fs = require('fs');
 const Module = require('module');
@@ -16,6 +16,8 @@ const topLevelLocator = {name: null, reference: null};
 
 const moduleShims = new Map();
 const moduleCache = new Map();
+
+$$SETUP_STATIC_TABLES();
 
 /**
  * Returns information about a package in a safe way (will throw if they cannot be retrieved)
