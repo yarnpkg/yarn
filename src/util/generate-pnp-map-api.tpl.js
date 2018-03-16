@@ -1,5 +1,5 @@
 /* eslint-disable max-len, flowtype/require-valid-file-annotation, flowtype/require-return-type */
-/* global packageInformationStores, $$LOCKFILE_FOLDER */
+/* global packageInformationStores */
 
 const fs = require('fs');
 const Module = require('module');
@@ -8,19 +8,14 @@ const path = require('path');
 const builtinModules = Module.builtinModules || Object.keys(process.binding('natives'));
 
 const originalLoader = Module._load;
-const originalReadFile = fs.readFile;
 
 const pathRegExp = /^(?!\.{0,2}(?:\/|$))((?:@[^\/]+\/)?[^\/]+)\/?(.*|)$/;
+const isDirRegExp = /[\\\/]$/;
 
 const topLevelLocator = {name: null, reference: null};
-const topLevelResolution = {locator: topLevelLocator, treePath: ``, filesystemDirectory: $$LOCKFILE_FOLDER};
-
-const pnpResolutionSymbol = Symbol('pnpResolution');
 
 const moduleShims = new Map();
 const moduleCache = new Map();
-
-const pnpPathMagic = `/.//.//.//`;
 
 /**
  * Returns information about a package in a safe way (will throw if they cannot be retrieved)
@@ -43,141 +38,14 @@ function getPackageInformationSafe(packageLocator) {
  * (will throw if they cannot be retrieved).
  */
 
-function getPeerReferencesSafe(packageInformation, parentTreePath) {
-  const peerReferences = packageInformation.packagePeers.get(parentTreePath);
+function findPackageLocatorSafe(filesystemPath) {
+  const packageLocator = exports.findPackageLocator(filesystemPath);
 
-  if (!peerReferences) {
-    throw new Error(
-      `Couldn't find the peer candidates for package located at "${parentTreePath}" in the dependency tree (this is probably an internal error)`,
-    );
+  if (!packageLocator) {
+    throw new Error(`Couldn't find an owner for path "${filesystemPath}"`);
   }
 
-  return peerReferences;
-}
-
-/**
- * Given a tree path (pkg-a/sub-pkg-b/foobar), returns the associated locator (foobar@1.0.0)
- */
-
-function getLocatorFromTreePath(treePath) {
-  const parts = treePath ? treePath.split(/\//g) : [];
-  let currentLocator = topLevelLocator;
-
-  for (let t = 0; t < parts.length; ++t) {
-    const dependencies = exports.getPackageInformation(currentLocator);
-    const currentTreePath = parts.slice(0, t).join('/');
-
-    const dependencyName = parts[t];
-    let dependencyReference = dependencies.packageDependencies.get(dependencyName);
-
-    if (!dependencyReference && dependencies.packagePeers) {
-      const peerReferences = dependencies.packagePeers.get(currentTreePath);
-
-      if (peerReferences) {
-        dependencyReference = peerReferences.get(dependencyName);
-      }
-    }
-
-    if (!dependencyReference) {
-      return null;
-    }
-
-    currentLocator = {name: dependencyName, reference: dependencyReference};
-  }
-
-  return currentLocator;
-}
-
-/**
- * Transforms the result of exports.resolveRequest into a single string.
- */
-
-/* eslint-disable no-bitwise */
-function serializeResolution(resolution) {
-  let output = pnpPathMagic;
-
-  writeShort(resolution.treePath.length);
-
-  for (let t = 0; t < resolution.treePath.length; ++t) {
-    writeByte(resolution.treePath.charCodeAt(t));
-  }
-
-  return output + resolution.filesystemPath;
-
-  function writeShort(n) {
-    writeByte((n >>> 0) & 0xff);
-    writeByte((n >>> 8) & 0xff);
-  }
-
-  function writeByte(n) {
-    output += n.toString(2).padStart(8, '0').replace(/0/g, `./`).replace(/1/g, `//`);
-  }
-}
-/* eslint-enable no-bitwise */
-
-/**
-*/
-
-/* eslint-disable no-bitwise */
-function deserializeResolution(serializedResolution) {
-  let offset = pnpPathMagic.length;
-
-  const size = readShort();
-  const charCodes = [];
-
-  for (let t = 0; t < size; ++t) {
-    charCodes.push(readByte());
-  }
-
-  const filesystemPath = serializedResolution.slice(offset);
-  const filesystemDirectory = path.dirname(filesystemPath);
-  const treePath = String.fromCharCode(...charCodes);
-
-  const locator = getLocatorFromTreePath(treePath);
-  const cacheKey = getCacheKey(filesystemPath, locator, treePath);
-
-  return {locator, treePath, filesystemPath, filesystemDirectory, cacheKey};
-
-  function readShort() {
-    return readByte() | (readByte() << 8);
-  }
-
-  function readByte() {
-    const encodedByte = serializedResolution.slice(offset, (offset += 2 * 8));
-    let decodedByte = 0;
-
-    for (let t = 0; t < 2 * 8; t += 2) {
-      decodedByte *= 2;
-      decodedByte += encodedByte.slice(t, t + 2).includes(`.`) ? 0 : 1;
-    }
-
-    return decodedByte;
-  }
-}
-/* eslint-enable no-bitwise */
-
-/**
- * Computes the cache key for the given file of the given package.
- *
- * The cache key is the file path for most entries, but if their owning package has peer dependency then we need to
- * bake the peer dependencies resolved references into the cache key (because we'll need to instanciate multiple
- * versions of the same file, one for each set of dependencies).
- */
-
-function getCacheKey(filesystemPath, packageLocator, treePath) {
-  let cacheKey = filesystemPath;
-
-  const packageInformation = getPackageInformationSafe(packageLocator);
-
-  if (packageInformation.packagePeers) {
-    const peerReferences = getPeerReferencesSafe(packageInformation, treePath);
-
-    for (const [dependencyName, dependencyReference] of peerReferences.entries()) {
-      cacheKey += `@${dependencyName}@${dependencyReference}`;
-    }
-  }
-
-  return cacheKey;
+  return packageLocator;
 }
 
 /**
@@ -264,34 +132,25 @@ exports.getPackageInformation = function getPackageInformation({name, reference}
  *  - The file cache key
  */
 
-exports.resolveRequest = function resolveRequest(request, parentResolution) {
+exports.resolveRequest = function resolveRequest(request, issuer) {
   // Bailout if the request is a native module
 
   if (builtinModules.indexOf(request) !== -1) {
-    return null;
+    return request;
   }
 
-  // If the request is a serialized resolution, we just have to deserialize it
-
-  if (request.startsWith(pnpPathMagic)) {
-    return deserializeResolution(request);
-  }
-
-  let dependencyLocator;
-
-  let treePath;
   let filesystemPath;
 
-  // If the request is a relative or absolute path, we just have to reuse the parent resolution, and resolve the
-  // request path relative to the parent resolution own path
+  // If the request is a relative or absolute path, we just return it normalized
 
   const dependencyNameMatch = request.match(pathRegExp);
 
   if (!dependencyNameMatch) {
-    dependencyLocator = parentResolution.locator;
-
-    treePath = parentResolution.treePath;
-    filesystemPath = path.resolve(parentResolution.filesystemDirectory, request);
+    if (issuer.match(isDirRegExp)) {
+      filesystemPath = path.normalize(path.resolve(issuer, request));
+    } else {
+      filesystemPath = path.normalize(path.resolve(path.dirname(issuer), request));
+    }
   }
 
   // Things are more hairy if it's a package require - we then need to figure out which package is needed, and in
@@ -300,67 +159,59 @@ exports.resolveRequest = function resolveRequest(request, parentResolution) {
   if (dependencyNameMatch) {
     const [, dependencyName, subPath] = dependencyNameMatch;
 
-    const packageInformation = getPackageInformationSafe(parentResolution.locator);
+    const issuerLocator = findPackageLocatorSafe(issuer);
+    const issuerInformation = getPackageInformationSafe(issuerLocator);
 
     // We obtain the dependency reference in regard to the package that request it
 
-    let dependencyReference = packageInformation.packageDependencies.get(dependencyName);
+    let dependencyReference = issuerInformation.packageDependencies.get(dependencyName);
 
-    // If there's no strict dependency that match the request, we look into peer dependencies
+    // If we can't find it, we check if we can potentially load it from the top-level packages
+    // it's a bit of a hack, but it improves compatibility with the existing Node ecosystem. Hopefully we should
+    // eventually be able to kill it and become stricter once pnp gets enough traction
 
-    if (!dependencyReference && packageInformation.packagePeers) {
-      const peerReferences = getPeerReferencesSafe(packageInformation, parentResolution.treePath);
-      const peerReference = peerReferences.get(dependencyName);
-
-      if (peerReference === null) {
-        throw new Error(
-          `Package "${parentResolution.locator.name}" tries to access a missing peer dependency ("${dependencyName}")`,
-        );
-      }
-
-      dependencyReference = peerReference;
+    if (dependencyReference === undefined) {
+      const topLevelInformation = getPackageInformationSafe(topLevelLocator);
+      dependencyReference = topLevelInformation.packageDependencies.get(dependencyName);
     }
 
-    // If we STILL can't find it, we fallback to the top-level dependencies
-    // This fallback isn't ideal, but makes working with plugins much easier
+    // If we can't find the path, and if the package making the request is the top-level, we can offer nicer error messages
 
     if (!dependencyReference) {
-      const topLevelInformation = exports.getPackageInformation(topLevelLocator);
-
-      dependencyReference = topLevelInformation.packageDependencies.get(dependencyName);
-
-      if (dependencyReference) {
-        parentResolution = topLevelResolution;
-      }
-    }
-
-    // And if we still haven't been able to resolve it, we give up
-    // If the package making the request is the top-level, we can offer a nicer error message
-
-    if (dependencyReference) {
-      treePath = parentResolution.treePath ? `${parentResolution.treePath}/${dependencyName}` : dependencyName;
-      dependencyLocator = {name: dependencyName, reference: dependencyReference};
-    } else {
-      if (parentResolution.locator !== topLevelLocator) {
-        throw new Error(
-          `Package ${parentResolution.locator.name}@${parentResolution.locator
-            .reference} is trying to require package ${dependencyName} through "${request}", which is not declared in its dependencies (${Array.from(
-            packageInformation.packageDependencies.keys(),
-          ).join(`, `)})`,
-        );
+      if (dependencyReference === null) {
+        if (issuerLocator === topLevelLocator) {
+          throw new Error(
+            `You seem to be requiring a peer dependency ("${dependencyName}"), but it is not installed (which might be because you're the top-level package)`,
+          );
+        } else {
+          throw new Error(
+            `Package "${issuerLocator.name}@${issuerLocator.reference}" is trying to access a peer dependency ("${dependencyName}") that should be provided by its direct ancestor but isn't`,
+          );
+        }
       } else {
-        throw new Error(`You cannot require a package (${dependencyName}) that is not declared in your dependencies`);
+        if (issuerLocator === topLevelLocator) {
+          throw new Error(
+            `You cannot require a package ("${dependencyName}") that is not declared in your dependencies`,
+          );
+        } else {
+          throw new Error(
+            `Package ${issuerLocator.name}@${issuerLocator.reference} is trying to require package ${dependencyName} (via "${request}") without it being listed in its dependencies (${Array.from(
+              issuerInformation.packageDependencies.keys(),
+            ).join(`, `)})`,
+          );
+        }
       }
     }
 
     // We need to check that the package exists on the filesystem, because it might not have been installed
 
+    const dependencyLocator = {name: dependencyName, reference: dependencyReference};
     const dependencyInformation = exports.getPackageInformation(dependencyLocator);
     const dependencyLocation = dependencyInformation.packageLocation;
 
     if (!dependencyLocation) {
       throw new Error(
-        `Package ${dependencyLocator.name}@${dependencyLocator.reference} is a valid dependency, but hasn't been installed and thus cannot be required`,
+        `Package "${dependencyLocator.name}@${dependencyLocator.reference}" is a valid dependency, but hasn't been installed and thus cannot be required`,
       );
     }
 
@@ -380,42 +231,26 @@ exports.resolveRequest = function resolveRequest(request, parentResolution) {
   const qualifiedFilesystemPath = applyNodeExtensionResolution(filesystemPath);
 
   if (qualifiedFilesystemPath) {
-    filesystemPath = qualifiedFilesystemPath;
+    return path.normalize(qualifiedFilesystemPath);
   } else {
-    throw new Error(
-      `Couldn't find a suitable resolution for path "${filesystemPath}" (initial request was "${request}")`,
-    );
+    throw new Error(`Couldn't find a suitable Node resolution for path "${filesystemPath}"`);
   }
-
-  // Compute the remaining fields
-
-  const locator = dependencyLocator;
-  const filesystemDirectory = path.dirname(filesystemPath);
-  const cacheKey = getCacheKey(filesystemPath, locator, treePath);
-
-  const resolution = {locator, treePath, filesystemPath, filesystemDirectory, cacheKey};
-
-  return resolution;
 };
 
 /**
  * Setups the hook into the Node environment
  */
 
-exports.setup = function setup(initialParentTreePath) {
-  const initialParentLocator = getLocatorFromTreePath(initialParentTreePath);
+exports.setup = function setup() {
+  function getIssuer(parent) {
+    let issuer = parent;
 
-  if (!initialParentLocator) {
-    throw new Error(
-      `Could not find resolve the given entry point, "${initialParentTreePath}" (this is probably an internal error)`,
-    );
+    while (issuer && (issuer.id === '[eval]' || issuer.id === '<repl>' || !issuer.filename)) {
+      issuer = issuer.parent;
+    }
+
+    return issuer;
   }
-
-  const initialResolution = {
-    locator: initialParentLocator,
-    treePath: initialParentTreePath,
-    filesystemDirectory: process.cwd(),
-  };
 
   Module._load = function(request, parent, isMain) {
     // Builtins are managed by the regular Node loader
@@ -432,12 +267,13 @@ exports.setup = function setup(initialParentTreePath) {
       return shim;
     }
 
-    const parentResolution = parent && parent[pnpResolutionSymbol] ? parent[pnpResolutionSymbol] : initialResolution;
-    const requestResolution = exports.resolveRequest(request, parentResolution);
+    // Request `Module._resolveFilename` (ie. `resolveRequest`) to tell us which file we should load
 
-    // Check if the module has already been created
+    const filesystemPath = Module._resolveFilename(request, parent, isMain);
 
-    const cacheEntry = moduleCache.get(requestResolution.cacheKey);
+    // Check if the module has already been created for the given file
+
+    const cacheEntry = moduleCache.get(filesystemPath);
 
     if (cacheEntry) {
       return cacheEntry.exports;
@@ -445,12 +281,10 @@ exports.setup = function setup(initialParentTreePath) {
 
     // Create a new module and store it into the cache
 
-    const module = new Module(requestResolution.filesystemPath, parent);
-    module[pnpResolutionSymbol] = requestResolution;
+    const module = new Module(filesystemPath, parent);
+    moduleCache.set(filesystemPath, module);
 
-    moduleCache.set(requestResolution.cacheKey, module);
-
-    // Main modules are exposed on the global instances
+    // The main module is exposed as global variable
 
     if (isMain) {
       process.mainModule = module;
@@ -462,11 +296,11 @@ exports.setup = function setup(initialParentTreePath) {
     let hasThrown = true;
 
     try {
-      module.load(requestResolution.filesystemPath);
+      module.load(filesystemPath);
       hasThrown = false;
     } finally {
       if (hasThrown) {
-        moduleCache.delete(requestResolution.cacheKey);
+        moduleCache.delete(filesystemPath);
       }
     }
 
@@ -474,18 +308,10 @@ exports.setup = function setup(initialParentTreePath) {
   };
 
   Module._resolveFilename = function(request, parent, isMain, options) {
-    if (builtinModules.indexOf(request) !== -1) {
-      return request;
-    }
+    const issuerModule = getIssuer(parent);
+    const issuer = issuerModule ? issuerModule.filename : process.cwd() + path.sep;
 
-    const parentResolution = parent && parent[pnpResolutionSymbol] ? parent[pnpResolutionSymbol] : initialResolution;
-    const resolution = exports.resolveRequest(request, parentResolution);
-
-    return serializeResolution(resolution);
-  };
-
-  fs.readFile = (target, ...args) => {
-    return originalReadFile.call(fs, path.normalize(target), ...args);
+    return exports.resolveRequest(request, issuer);
   };
 };
 
@@ -502,30 +328,13 @@ exports.setupCompatibilityLayer = () => {
   };
 
   const resolveSyncShim = (request, options = {}) => {
-    const basedir = options.basedir || path.dirname(getCaller());
-    let parentResolution;
+    let basedir = options.basedir || path.dirname(getCaller());
+    basedir = basedir.replace(/[\\\/]?$/, path.sep);
 
-    if (basedir === $$LOCKFILE_FOLDER || basedir.startsWith($$LOCKFILE_FOLDER + `/`)) {
-      parentResolution = topLevelResolution;
-    } else if (basedir.startsWith(pnpPathMagic)) {
-      parentResolution = deserializeResolution(basedir);
-
-      // HACK: since basedir is traditionally a folder, the filesystemDirectory actually is filesystemPath!
-      // If we don't make this change, parentResolution.filesystemDirectory will be dirname(dirname(X)): the first one
-      // because the user did it themselves, and the second one because deserializeResolution thought that the string
-      // would contain something it returned in the past (which always is a file), so it would compute the directory by
-      // using dirname() on this path.
-      parentResolution.filesystemDirectory = parentResolution.filesystemPath;
-    } else {
-      throw new Error(
-        `This usage of the "resolve" module is not supported on Plug'n'Play environments (got "${options.basedir}" as basedir)`,
-      );
-    }
-
-    const resolution = exports.resolveRequest(request, parentResolution);
+    const resolution = exports.resolveRequest(request, basedir);
 
     if (resolution) {
-      return serializeResolution(resolution);
+      return resolution;
     } else {
       throw new Error(`Resolution failed for path "${request}"`);
     }
@@ -538,7 +347,8 @@ exports.setupCompatibilityLayer = () => {
     }
 
     // We need to compute it here because otherwise resolveSyncShim will read the wrong stacktrace entry
-    const basedir = options.basedir || path.dirname(getCaller());
+    let basedir = options.basedir || path.dirname(getCaller());
+    basedir = basedir.replace(/[\\\/]?$/, path.sep);
 
     setImmediate(() => {
       let error;
@@ -558,6 +368,6 @@ exports.setupCompatibilityLayer = () => {
 };
 
 if (module.parent && module.parent.id === 'internal/preload') {
-  exports.setup(process.env.YARN_PNP_PATH || '');
+  exports.setup();
   exports.setupCompatibilityLayer();
 }

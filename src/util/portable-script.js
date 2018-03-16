@@ -28,17 +28,17 @@ async function makePortableProxyScriptUnix(
     ? ' ' + options.appendArguments.map(arg => `"${arg}"`).join(' ')
     : '';
 
-  const pnpPathBuilder = options.pnpPackageName
-    ? // eslint-disable-next-line max-len
-      `if [ -z "$YARN_PNP_PATH" ]; then\n  export YARN_PNP_PATH="${options.pnpPackageName}"\nelse\n  export YARN_PNP_PATH="$YARN_PNP_PATH/${options.pnpPackageName}"\nfi\n\n`
-    : '';
-
   const filePath = `${destination}/${options.proxyBasename || path.basename(source)}`;
+
+  // Unless impossible we want to preserve any symlinks used to call us when forwarding the call to the binary (so we
+  // cannot use realpath or transform relative paths into absolute ones), but we also need to tell the sh interpreter
+  // that the symlink should be resolved relative to the script directory (hence dirname "$0" at runtime).
+  const sourcePath = path.isAbsolute(source) ? source : `$(dirname "$0")/../${source}`;
 
   await fs.mkdirp(destination);
   await fs.writeFile(
     filePath,
-    `#!/bin/sh\n\n${pnpPathBuilder}${environment}"${source}"${prependedArguments} "$@"${appendedArguments}\n`,
+    `#!/bin/sh\n\n${environment}"${sourcePath}"${prependedArguments} "$@"${appendedArguments}\n`,
   );
   await fs.chmod(filePath, 0o755);
 }

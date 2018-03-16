@@ -66,7 +66,10 @@ export default class BaseFetcher {
       if (pkg.bin) {
         for (const binName of Object.keys(pkg.bin)) {
           const dest = `${this.dest}/.bin`;
-          const src = `${this.dest}/${pkg.bin[binName]}`;
+
+          // Using any sort of absolute path here would prevent makePortableProxyScript from preserving symlinks when
+          // calling the binary
+          const src = pkg.bin[binName];
 
           await makePortableProxyScript(src, dest, {
             proxyBasename: binName,
