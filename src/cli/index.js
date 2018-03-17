@@ -181,6 +181,7 @@ export function main({
   }
 
   args = [...preCommandArgs, ...args];
+  commander.originalArgs = args;
 
   command.setFlags(commander);
   commander.parse([
