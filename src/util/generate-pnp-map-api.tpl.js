@@ -313,6 +313,24 @@ exports.setup = function setup() {
 
     return exports.resolveRequest(request, issuer);
   };
+
+  Module._findPath = function(request, paths, isMain) {
+    for (const path of paths) {
+      let resolution;
+
+      try {
+        resolution = exports.resolveRequest(request, path);
+      } catch (error) {
+        continue;
+      }
+
+      if (resolution) {
+        return resolution;
+      }
+    }
+
+    return false;
+  };
 };
 
 exports.setupCompatibilityLayer = () => {
