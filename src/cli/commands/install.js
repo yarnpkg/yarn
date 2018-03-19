@@ -812,9 +812,7 @@ export class Install {
     }
 
     const lockFileHasAllPatterns = patterns.every(p => this.lockfile.getLocked(p));
-    const lockfilePatternsMatch = Object.keys(this.lockfile.cache || {}).every(p => {
-      return lockfileBasedOnResolver[p];
-    });
+    const lockfilePatternsMatch = Object.keys(this.lockfile.cache || {}).every(p => lockfileBasedOnResolver[p]);
     const resolverPatternsAreSameAsInLockfile = Object.keys(lockfileBasedOnResolver).every(pattern => {
       const manifest = this.lockfile.getLocked(pattern);
       return (
@@ -824,14 +822,15 @@ export class Install {
       );
     });
     const integrityPatternsAreSameAsInLockfile = Object.keys(lockfileBasedOnResolver).every(pattern => {
-      const manifest = this.lockfile.getLocked(pattern);
-      if (!lockfileBasedOnResolver[pattern].integrity) {
+      const existingIntegrityInfo = lockfileBasedOnResolver[pattern].integrity;
+      if (!existingIntegrityInfo) {
         // if this entry does not have an integrity, no need to re-write the lockfile because of it
         return true;
       }
+      const manifest = this.lockfile.getLocked(pattern);
       if (manifest && manifest.integrity) {
         const manifestIntegrity = ssri.stringify(manifest.integrity);
-        return manifest && manifestIntegrity === lockfileBasedOnResolver[pattern].integrity;
+        return manifestIntegrity === existingIntegrityInfo;
       }
       return false;
     });
