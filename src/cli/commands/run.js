@@ -36,7 +36,6 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
   const pkg = await config.readManifest(config.cwd);
 
   const binFolders = new Set();
-
   // Setup the node_modules/.bin folders for analysis
   for (const registry of Object.keys(registries)) {
     binFolders.add(path.join(config.cwd, config.registries[registry].folder, '.bin'));
