@@ -50,10 +50,14 @@ function generateMaps(packageInformationStores: PackageInformationStores): strin
   code += `let locatorsByLocations = new Map([\n`;
   for (const [packageName, packageInformationStore] of packageInformationStores) {
     for (const [packageReference, {packageLocation}] of packageInformationStore) {
-      code += `  [${JSON.stringify(packageLocation)}, ${JSON.stringify({
-        name: packageName,
-        reference: packageReference,
-      })}],\n`;
+      if (packageName !== null) {
+        code += `  [${JSON.stringify(packageLocation)}, ${JSON.stringify({
+          name: packageName,
+          reference: packageReference,
+        })}],\n`;
+      } else {
+        code += `  [${JSON.stringify(packageLocation)}, topLevelLocator],\n`;
+      }
     }
   }
   code += `]);\n`;
@@ -264,6 +268,8 @@ export async function generatePnpMap(
   {resolver}: {resolver: PackageResolver},
 ): Promise<string> {
   const packageInformationStores = await getPackageInformationStores(config, seedPatterns, {resolver});
+  const setupStaticTables =
+    generateMaps(packageInformationStores) + generateFindPackageLocator(packageInformationStores);
 
-  return generateMaps(packageInformationStores) + generateFindPackageLocator(packageInformationStores) + pnpApi;
+  return pnpApi.replace(/\$\$SETUP_STATIC_TABLES\(\);/, setupStaticTables);
 }
