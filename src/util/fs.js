@@ -65,7 +65,7 @@ const copyFile: (src: string, dest: string, flags: number, data: CopyFileAction)
           if (err) {
             reject(err);
           } else {
-            fixTimes(0, dest, data).then(() => resolve(err)).catch(ex => reject(ex));
+            fixTimes(undefined, dest, data).then(() => resolve(err)).catch(ex => reject(ex));
           }
         }),
       )
@@ -181,9 +181,7 @@ export const fileDatesEqual = (a: Date, b: Date) => {
 //   We first try to open the file in write mode because that works across all OSs.
 //   However if the file is read-only (not even the owner has write perms) then that will fail.
 //   We can try to reopen in read mode, which will work on OSX.
-async function fixTimes(fd: number, dest: string, data: CopyFileAction): Promise<void> {
-  const doOpen = !fd;
-
+async function fixTimes(fd: ?number, dest: string, data: CopyFileAction): Promise<void> {
   if (disableTimestampCorrection === undefined) {
     // if timestamps match already, no correction is needed.
     // the need to correct timestamps varies based on OS and node versions.
@@ -195,7 +193,7 @@ async function fixTimes(fd: number, dest: string, data: CopyFileAction): Promise
     return;
   }
 
-  if (doOpen) {
+  if (!fd) {
     try {
       fd = await open(dest, 'a', data.mode);
     } catch (er) {
@@ -216,7 +214,7 @@ async function fixTimes(fd: number, dest: string, data: CopyFileAction): Promise
     // In this case we can just return. The incorrect timestamp will just cause that file to be recopied
     // on subsequent installs, which will effect yarn performance but not break anything.
   } finally {
-    if (doOpen) {
+    if (!fd) {
       await close(fd);
     }
   }
