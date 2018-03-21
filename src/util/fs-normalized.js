@@ -94,6 +94,9 @@ const copyWithBuffer: (src: string, dest: string, flags: number, data: CopyFileA
 // * On windows, you must open a file with write permissions to call `fs.futimes`.
 // * On OSX you can open with read permissions and still call `fs.futimes`.
 async function fixTimes(fd: ?number, dest: string, data: CopyFileAction): Promise<void> {
+  const doOpen = fd === undefined;
+  let openfd: number = fd ? fd : -1;
+
   if (disableTimestampCorrection === undefined) {
     // if timestamps match already, no correction is needed.
     // the need to correct timestamps varies based on OS and node versions.
@@ -105,28 +108,31 @@ async function fixTimes(fd: ?number, dest: string, data: CopyFileAction): Promis
     return;
   }
 
-  if (!fd) {
+  if (doOpen) {
     try {
-      fd = await open(dest, 'a', data.mode);
+      openfd = await open(dest, 'a', data.mode);
     } catch (er) {
       // file is likely read-only
       try {
-        fd = await open(dest, 'r', data.mode);
+        openfd = await open(dest, 'r', data.mode);
       } catch (err) {
         // We can't even open this file for reading.
         return;
       }
     }
   }
+
   try {
-    await futimes(fd, data.atime, data.mtime);
+    if (openfd) {
+      await futimes(openfd, data.atime, data.mtime);
+    }
   } catch (er) {
     // If `futimes` throws an exception, we probably have a case of a read-only file on Windows.
     // In this case we can just return. The incorrect timestamp will just cause that file to be recopied
     // on subsequent installs, which will effect yarn performance but not break anything.
   } finally {
-    if (!fd) {
-      await close(fd);
+    if (doOpen && openfd) {
+      await close(openfd);
     }
   }
 }
