@@ -2,6 +2,7 @@
 
 import type {ReadStream} from 'fs';
 import type Reporter from '../reporters/base-reporter.js';
+import type {CopyFileAction} from './fs-normalized.js';
 
 import fs from 'fs';
 import globModule from 'glob';
@@ -12,6 +13,7 @@ import BlockingQueue from './blocking-queue.js';
 import * as promise from './promise.js';
 import {promisify} from './promise.js';
 import map from './map.js';
+import {copyFile, fileDatesEqual, unlink} from './fs-normalized.js';
 
 export const constants =
   typeof fs.constants !== 'undefined'
@@ -32,55 +34,19 @@ export const readdir: (path: string, opts: void) => Promise<Array<string>> = pro
 export const rename: (oldPath: string, newPath: string) => Promise<void> = promisify(fs.rename);
 export const access: (path: string, mode?: number) => Promise<void> = promisify(fs.access);
 export const stat: (path: string) => Promise<fs.Stats> = promisify(fs.stat);
-export const unlink: (path: string) => Promise<void> = promisify(require('rimraf'));
 export const mkdirp: (path: string) => Promise<void> = promisify(require('mkdirp'));
 export const exists: (path: string) => Promise<boolean> = promisify(fs.exists, true);
 export const lstat: (path: string) => Promise<fs.Stats> = promisify(fs.lstat);
 export const chmod: (path: string, mode: number | string) => Promise<void> = promisify(fs.chmod);
 export const link: (src: string, dst: string) => Promise<fs.Stats> = promisify(fs.link);
 export const glob: (path: string, options?: Object) => Promise<Array<string>> = promisify(globModule);
-
-let disableTimestampCorrection: ?boolean = undefined; // OS dependent. will be detected on first file copy.
+export {unlink};
 
 // fs.copyFile uses the native file copying instructions on the system, performing much better
 // than any JS-based solution and consumes fewer resources. Repeated testing to fine tune the
 // concurrency level revealed 128 as the sweet spot on a quad-core, 16 CPU Intel system with SSD.
 const CONCURRENT_QUEUE_ITEMS = fs.copyFile ? 128 : 4;
 
-const open: (path: string, flags: string | number, mode: number) => Promise<number> = promisify(fs.open);
-const close: (fd: number) => Promise<void> = promisify(fs.close);
-const write: (
-  fd: number,
-  buffer: Buffer,
-  offset: ?number,
-  length: ?number,
-  position: ?number,
-) => Promise<void> = promisify(fs.write);
-const futimes: (fd: number, atime: number, mtime: number) => Promise<void> = promisify(fs.futimes);
-const copyFile: (src: string, dest: string, flags: number, data: CopyFileAction) => Promise<void> = fs.copyFile
-  ? // Don't use `promisify` to avoid passing  the last, argument `data`, to the native method
-    (src, dest, flags, data) =>
-      new Promise((resolve, reject) =>
-        fs.copyFile(src, dest, flags, err => {
-          if (err) {
-            reject(err);
-          } else {
-            fixTimes(undefined, dest, data).then(() => resolve(err)).catch(ex => reject(ex));
-          }
-        }),
-      )
-  : async (src, dest, flags, data) => {
-      // Use open -> write -> futimes -> close sequence to avoid opening the file twice:
-      // one with writeFile and one with utimes
-      const fd = await open(dest, 'w', data.mode);
-      try {
-        const buffer = await readFileBuffer(src);
-        await write(fd, buffer, 0, buffer.length);
-        await fixTimes(fd, dest, data);
-      } finally {
-        await close(fd);
-      }
-    };
 const fsSymlink: (target: string, path: string, type?: 'dir' | 'file' | 'junction') => Promise<void> = promisify(
   fs.symlink,
 );
@@ -98,14 +64,6 @@ export type CopyQueueItem = {
 };
 
 type CopyQueue = Array<CopyQueueItem>;
-
-type CopyFileAction = {
-  src: string,
-  dest: string,
-  atime: Date,
-  mtime: Date,
-  mode: number,
-};
 
 type LinkFileAction = {
   src: string,
@@ -141,84 +99,6 @@ type FolderQueryResult = {
   skipped: Array<FailedFolderQuery>,
   folder: ?string,
 };
-
-export const fileDatesEqual = (a: Date, b: Date) => {
-  const aTime = a.getTime();
-  const bTime = b.getTime();
-
-  if (process.platform !== 'win32') {
-    return aTime === bTime;
-  }
-
-  // See https://github.com/nodejs/node/pull/12607
-  // Submillisecond times from stat and utimes are truncated on Windows,
-  // causing a file with mtime 8.0079998 and 8.0081144 to become 8.007 and 8.008
-  // and making it impossible to update these files to their correct timestamps.
-  if (Math.abs(aTime - bTime) <= 1) {
-    return true;
-  }
-
-  const aTimeSec = Math.floor(aTime / 1000);
-  const bTimeSec = Math.floor(bTime / 1000);
-
-  // See https://github.com/nodejs/node/issues/2069
-  // Some versions of Node on windows zero the milliseconds when utime is used
-  // So if any of the time has a milliseconds part of zero we suspect that the
-  // bug is present and compare only seconds.
-  if (aTime - aTimeSec * 1000 === 0 || bTime - bTimeSec * 1000 === 0) {
-    return aTimeSec === bTimeSec;
-  }
-
-  return aTime === bTime;
-};
-
-// This ensured the timestamps are preserved from the file in the cache to the file copied to node_modules.
-// These timestamps are checked to see if files have changed and need recopied, so preserving them is important.
-// There are some weird cases here:
-// * On linux, fs.copyFile does not preserve timestamps, but does on OSX and Win.
-// * On windows, you must open a file with write permissions to call `fs.futimes`.
-//   On OSX you can open with read permissions and still call `fs.futimes`.
-//   We first try to open the file in write mode because that works across all OSs.
-//   However if the file is read-only (not even the owner has write perms) then that will fail.
-//   We can try to reopen in read mode, which will work on OSX.
-async function fixTimes(fd: ?number, dest: string, data: CopyFileAction): Promise<void> {
-  if (disableTimestampCorrection === undefined) {
-    // if timestamps match already, no correction is needed.
-    // the need to correct timestamps varies based on OS and node versions.
-    const destStat = await lstat(dest);
-    disableTimestampCorrection = fileDatesEqual(destStat.mtime, data.mtime);
-  }
-
-  if (disableTimestampCorrection) {
-    return;
-  }
-
-  if (!fd) {
-    try {
-      fd = await open(dest, 'a', data.mode);
-    } catch (er) {
-      // file is likely read-only
-      try {
-        fd = await open(dest, 'r', data.mode);
-      } catch (err) {
-        // In this case we can just return. The incorrect timestamp will just cause that file to be recopied
-        // on subsequent installs, which will effect yarn performance but not break anything.
-        return;
-      }
-    }
-  }
-  try {
-    await futimes(fd, data.atime, data.mtime);
-  } catch (er) {
-    // If `futimes` throws an exception, we probably have a case of a read-only file on Windows.
-    // In this case we can just return. The incorrect timestamp will just cause that file to be recopied
-    // on subsequent installs, which will effect yarn performance but not break anything.
-  } finally {
-    if (!fd) {
-      await close(fd);
-    }
-  }
-}
 
 async function buildActionsForCopy(
   queue: CopyQueue,
@@ -630,23 +510,6 @@ export function copy(src: string, dest: string, reporter: Reporter): Promise<voi
   return copyBulk([{src, dest}], reporter);
 }
 
-/**
- * Unlinks the destination to force a recreation. This is needed on case-insensitive file systems
- * to force the correct naming when the filename has changed only in character-casing. (Jest -> jest).
- * It also calls a cleanup function once it is done.
- *
- * `data` contains target file attributes like mode, atime and mtime. Built-in copyFile copies these
- * automatically but our polyfill needs the do this manually, thus needs the info.
- */
-const safeCopyFile = async function(data: CopyFileAction, cleanup: () => mixed): Promise<void> {
-  try {
-    await unlink(data.dest);
-    await copyFile(data.src, data.dest, 0, data);
-  } finally {
-    cleanup();
-  }
-};
-
 export async function copyBulk(
   queue: CopyQueue,
   reporter: Reporter,
@@ -682,7 +545,7 @@ export async function copyBulk(
       }
 
       reporter.verbose(reporter.lang('verboseFileCopy', data.src, data.dest));
-      const copier = safeCopyFile(data, () => currentlyWriting.delete(data.dest));
+      const copier = copyFile(data, () => currentlyWriting.delete(data.dest));
       currentlyWriting.set(data.dest, copier);
       events.onProgress(data.dest);
       return copier;
