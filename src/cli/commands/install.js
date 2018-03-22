@@ -579,7 +579,10 @@ export class Install {
     if (this.config.plugnplayEnabled) {
       steps.push((curr: number, total: number) =>
         callThroughHook('pnpStep', async () => {
-          const code = await generatePnpMap(this.config, flattenedTopLevelPatterns, {resolver: this.resolver});
+          const code = await generatePnpMap(this.config, flattenedTopLevelPatterns, {
+            resolver: this.resolver,
+            workspaceLayout,
+          });
           await fs.writeFile(`${this.config.lockfileFolder}/${constants.PNP_FILENAME}`, code);
         }),
       );

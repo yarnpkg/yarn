@@ -1,6 +1,7 @@
 // @flow
 
 import type Config from '../config.js';
+import type WorkspaceLayout from '../workspace-layout.js';
 import type PackageResolver from '../package-resolver.js';
 import pnpApi from './generate-pnp-map-api.tpl.js';
 import * as fs from './fs.js';
@@ -14,8 +15,14 @@ type PackageInformation = {|
   packageMainEntry: ?string,
   packageDependencies: Map<string, string>,
 |};
+
 type PackageInformationStore = Map<string | null, PackageInformation>;
 type PackageInformationStores = Map<string | null, PackageInformationStore>;
+
+type GeneratePnpMapOptions = {|
+  resolver: PackageResolver,
+  workspaceLayout: ?WorkspaceLayout,
+|};
 
 function generateMaps(packageInformationStores: PackageInformationStores): string {
   let code = ``;
@@ -105,9 +112,13 @@ function generateFindPackageLocator(packageInformationStores: PackageInformation
 async function getPackageInformationStores(
   config: Config,
   seedPatterns: Array<string>,
-  {resolver}: {resolver: PackageResolver},
+  {resolver, workspaceLayout}: GeneratePnpMapOptions,
 ): Promise<PackageInformationStores> {
   const packageInformationStores: PackageInformationStores = new Map();
+
+  const ensureTrailingSlash = (fsPath: string) => {
+    return fsPath.replace(/[\\\/]?$/, path.sep);
+  };
 
   const getHashFrom = (data: Array<string>) => {
     const hashGenerator = crypto.createHash('sha1');
@@ -136,11 +147,7 @@ async function getPackageInformationStores(
     return {pkg, ref, loc};
   };
 
-  const visit = async (
-    seedPatterns: Array<string>,
-    parentData: Array<string> = [],
-    availablePackages: Map<string, string> = new Map(),
-  ) => {
+  const visit = async (seedPatterns: Array<string>, parentData: Array<string> = []) => {
     const resolutions = new Map();
     const locations = new Map();
 
@@ -217,7 +224,7 @@ async function getPackageInformationStores(
 
       packageInformation = {
         packageMainEntry: pkg.main,
-        packageLocation: loc.replace(/[\\\/]?$/, path.sep),
+        packageLocation: ensureTrailingSlash(loc),
         packageDependencies: new Map(),
       };
 
@@ -245,6 +252,43 @@ async function getPackageInformationStores(
     return resolutions;
   };
 
+  // If we have workspaces, we need to iterate over them all in order to add them to the map
+  // This is because they might not be declared as dependencies of the top-level project (and with reason, since the
+  // top-level package might depend on a different than the one provided in the workspaces - cf Babel, which depends
+  // on an old version of itself in order to compile itself)
+  if (workspaceLayout) {
+    for (const name of Object.keys(workspaceLayout.workspaces)) {
+      const pkg = workspaceLayout.workspaces[name].manifest;
+
+      // Skip the aggregator, since it's essentially a duplicate of the top-level package that we'll iterate later on
+      if (pkg.workspaces) {
+        continue;
+      }
+
+      const ref = pkg._reference;
+      invariant(ref, `Workspaces should have a reference`);
+
+      const loc = ref.location;
+      invariant(loc, `Workspaces should have a location`);
+
+      packageInformationStores.set(
+        name,
+        new Map([
+          [
+            pkg.version,
+            {
+              packageMainEntry: pkg.main,
+              packageLocation: ensureTrailingSlash(await fs.realpath(loc)),
+              packageDependencies: await visit(ref.dependencies, [name, pkg.version]),
+            },
+          ],
+        ]),
+      );
+    }
+  }
+
+  // Register the top-level package in our map
+  // This will recurse on each of its dependencies as well.
   packageInformationStores.set(
     null,
     new Map([
@@ -252,7 +296,7 @@ async function getPackageInformationStores(
         null,
         {
           packageMainEntry: null,
-          packageLocation: (await fs.realpath(config.lockfileFolder)).replace(/[\\\/]?$/, path.sep),
+          packageLocation: ensureTrailingSlash(await fs.realpath(config.lockfileFolder)),
           packageDependencies: await visit(seedPatterns),
         },
       ],
@@ -265,9 +309,9 @@ async function getPackageInformationStores(
 export async function generatePnpMap(
   config: Config,
   seedPatterns: Array<string>,
-  {resolver}: {resolver: PackageResolver},
+  {resolver, workspaceLayout}: GeneratePnpMapOptions,
 ): Promise<string> {
-  const packageInformationStores = await getPackageInformationStores(config, seedPatterns, {resolver});
+  const packageInformationStores = await getPackageInformationStores(config, seedPatterns, {resolver, workspaceLayout});
   const setupStaticTables =
     generateMaps(packageInformationStores) + generateFindPackageLocator(packageInformationStores);
 
