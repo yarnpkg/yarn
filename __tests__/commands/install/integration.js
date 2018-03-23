@@ -473,17 +473,15 @@ test.concurrent('install with file: protocol as default', (): Promise<void> => {
   });
 });
 
-test.concurrent("don't install with file: protocol as default if target is a file", (): Promise<void> => {
-  // $FlowFixMe
-  return expect(runInstall({lockfile: false}, 'install-file-as-default-no-file')).rejects.toBeDefined();
-});
+test.concurrent("don't install with file: protocol as default if target is a file", async (): Promise<void> =>
+  expect(runInstall({lockfile: false}, 'install-file-as-default-no-file')).rejects.toThrowErrorMatchingSnapshot(),
+);
 
-test.concurrent("don't install with implicit file: protocol if target does not have package.json", (): Promise<
+test.concurrent("don't install with implicit file: protocol if target does not have package.json", async (): Promise<
   void,
-> => {
-  // $FlowFixMe
-  return expect(runInstall({lockfile: false}, 'install-file-as-default-no-package')).rejects.toBeDefined();
-});
+> =>
+  expect(runInstall({lockfile: false}, 'install-file-as-default-no-package')).rejects.toThrowErrorMatchingSnapshot(),
+);
 
 test.concurrent('install with explicit file: protocol if target does not have package.json', (): Promise<void> => {
   return runInstall({}, 'install-file-no-package', async config => {
@@ -781,39 +779,17 @@ test.concurrent('install should authenticate integrity with wrong sha1 and right
 
 test.concurrent(
   'install should fail to authenticate integrity with correct sha1 and incorrect sha512',
-  async (): Promise<void> => {
-    let thrown = false;
-    try {
-      await runInstall({}, 'install-update-auth-right-sha1-wrong-sha512');
-    } catch (err) {
-      thrown = true;
-      expect(err.message).toContain('did not match the requested hash');
-    }
-    expect(thrown).toEqual(true);
-  },
+  async (): Promise<void> =>
+    expect(runInstall({}, 'install-update-auth-right-sha1-wrong-sha512')).rejects.toThrowErrorMatchingSnapshot(),
 );
 
-test.concurrent('install should fail to authenticate on sha512 integrity mismatch', async (): Promise<void> => {
-  let thrown = false;
-  try {
-    await runInstall({}, 'install-update-auth-wrong-sha512');
-  } catch (err) {
-    thrown = true;
-    expect(err.message).toContain('did not match the requested hash');
-  }
-  expect(thrown).toEqual(true);
-});
+test.concurrent('install should fail to authenticate on sha512 integrity mismatch', async (): Promise<void> =>
+  expect(runInstall({}, 'install-update-auth-wrong-sha512')).rejects.toThrowErrorMatchingSnapshot(),
+);
 
-test.concurrent('install should fail to authenticate on sha1 integrity mismatch', async (): Promise<void> => {
-  let thrown = false;
-  try {
-    await runInstall({}, 'install-update-auth-wrong-sha1');
-  } catch (err) {
-    thrown = true;
-    expect(err.message).toContain('did not match the requested hash');
-  }
-  expect(thrown).toEqual(true);
-});
+test.concurrent('install should fail to authenticate on sha1 integrity mismatch', async (): Promise<void> =>
+  expect(runInstall({}, 'install-update-auth-wrong-sha1')).rejects.toThrowErrorMatchingSnapshot(),
+);
 
 test.concurrent('install should create integrity field if not present', (): Promise<void> => {
   return runInstall({}, 'install-update-auth-no-integrity-field', async config => {
@@ -832,16 +808,8 @@ test.concurrent('install should create integrity field if not present', (): Prom
 
 test.concurrent(
   'install should ignore existing hash if integrity field is present even if it fails to authenticate through it',
-  async (): Promise<void> => {
-    let thrown = false;
-    try {
-      await runInstall({}, 'install-update-auth-bad-sha512-good-hash');
-    } catch (err) {
-      thrown = true;
-      expect(err.message).toContain('did not match the requested hash');
-    }
-    expect(thrown).toEqual(true);
-  },
+  async (): Promise<void> =>
+    expect(runInstall({}, 'install-update-auth-bad-sha512-good-hash')).rejects.toThrowErrorMatchingSnapshot(),
 );
 
 test.concurrent('install should ignore unknown integrity algorithms if it has other options in the sri', (): Promise<
@@ -860,37 +828,13 @@ test.concurrent('install should ignore unknown integrity algorithms if it has ot
   });
 });
 
-test.concurrent('install should fail if the only algorithms in the sri are unknown', async (): Promise<void> => {
-  let thrown = false;
-  try {
-    await runInstall({}, 'install-update-auth-madeup');
-  } catch (err) {
-    thrown = true;
-    expect(err.message).toContain('does not contain supported algorithms');
-  }
-  expect(thrown).toEqual(true);
-});
+test.concurrent('install should fail if the only algorithms in the sri are unknown', async (): Promise<void> =>
+  expect(runInstall({}, 'install-update-auth-madeup')).rejects.toThrowErrorMatchingSnapshot(),
+);
 
-test.concurrent('install should fail with unsupported algorithms', async (): Promise<void> => {
-  let thrown = false;
-  try {
-    await runInstall({}, 'install-update-auth-sha3');
-  } catch (err) {
-    thrown = true;
-    expect(err.message).toContain('does not contain supported algorithms');
-  }
-  expect(thrown).toEqual(true);
-});
-
-test.concurrent('install should update integrity in yarn.lock (--update-checksums)', (): Promise<void> => {
-  const packageRealIntegrity =
-    'sha512-I+Wi+qiE2kUXyrRhNsWv6XsjUTBJjSoVSctKNBfLG5zG/Xe7Rjbxf13+vqYHNTwHaFU+FtSlVxOCTiMEVtPv0A==';
-  return runInstall({updateChecksums: true}, 'install-update-checksums', async config => {
-    const lockFileContent = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
-    const lockFileLines = explodeLockfile(lockFileContent);
-    expect(lockFileLines[3].indexOf(packageRealIntegrity) > 0).toBe(true);
-  });
-});
+test.concurrent('install should fail with unsupported algorithms', async (): Promise<void> =>
+  expect(runInstall({}, 'install-update-auth-sha3')).rejects.toThrowErrorMatchingSnapshot(),
+);
 
 if (process.platform !== 'win32') {
   // TODO: This seems like a real issue, not just a config issue

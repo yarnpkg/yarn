@@ -338,7 +338,6 @@ const messages = {
   tarballNotInNetworkOrCache: '$0: Tarball is not in network and can not be located in cache ($1)',
   fetchBadHashWithPath:
     'Fetch succeeded for $0. However, extracting $1 resulted in hash $2, which did not match the requested hash $3.',
-  fetchBadIntegrityAlgorithm: 'Integrity string for $0 does not contain supported algorithms.',
   fetchErrorCorrupt:
     '$0. Mirror tarball appears to be corrupt. You can resolve this by running:\n\n  rm -rf $1\n  yarn install',
   errorDecompressingTarball: '$0. Error decompressing $1, it appears to be corrupt.',

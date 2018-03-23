@@ -8,6 +8,7 @@ import BaseFetcher from './base-fetcher.js';
 import * as fsUtil from '../util/fs.js';
 import {removePrefix, sleep} from '../util/misc.js';
 
+const crypto = require('crypto');
 const path = require('path');
 const tarFs = require('tar-fs');
 const url = require('url');
@@ -18,6 +19,26 @@ const invariant = require('invariant');
 const ssri = require('ssri');
 
 const RE_URL_NAME_MATCH = /\/(?:(@[^/]+)\/)?[^/]+\/-\/(?:@[^/]+\/)?([^/]+)$/;
+
+const isHashAlgorithmSupported = name => {
+  const cachedResult = isHashAlgorithmSupported.__cache.get(name);
+  if (cachedResult != null) {
+    return cachedResult;
+  }
+  let supported = true;
+  try {
+    crypto.createHash(name);
+  } catch (error) {
+    if (error.message !== 'Digest method not supported') {
+      throw error;
+    }
+    supported = false;
+  }
+
+  isHashAlgorithmSupported.__cache.set(name, supported);
+  return supported;
+};
+isHashAlgorithmSupported.__cache = new Map();
 
 export default class TarballFetcher extends BaseFetcher {
   validateError: ?Object = null;
@@ -70,21 +91,7 @@ export default class TarballFetcher extends BaseFetcher {
     validateStream: ssri.integrityStream,
     extractorStream: stream.Transform,
   } {
-    let supportedIntegrity;
-    try {
-      supportedIntegrity = this._supportedIntegrity();
-    } catch (e) {
-      if (this.config.updateChecksums) {
-        // it's okay that we do not have any supported integrity, because we need to update it!
-        supportedIntegrity = {integrity: null, algorithms: ['sha1']};
-      } else {
-        throw new SecurityError(
-          this.config.reporter.lang('fetchBadIntegrityAlgorithm', this.packageName, this.remote.reference),
-        );
-      }
-    }
-    const {integrity, algorithms} = supportedIntegrity;
-    const validateStream = new ssri.integrityStream({integrity, algorithms});
+    const validateStream = new ssri.integrityStream(this._supportedIntegrity());
     const extractorStream = gunzip();
     const untarStream = tarFs.extract(this.dest, {
       strip: 1,
@@ -234,30 +241,22 @@ export default class TarballFetcher extends BaseFetcher {
   }
 
   _handleValidationError(resolve: Function, reject: Function) {
-    if (this.config.updateChecksums && this.validateError && this.validateError.found) {
-      // integrity differs and should be updated
-      this.remote.integrity = this.validateError.found.toString();
-      resolve({
-        hash: this.hash || '',
-      });
-    } else {
-      const expected =
-        this.validateError && this.validateError.expected
-          ? this.validateError.expected.toString()
-          : this.remote.integrity ? this.remote.integrity.toString() : this.hash;
-      const found = this.validateError ? this.validateError.found : ssri.create();
-      reject(
-        new SecurityError(
-          this.config.reporter.lang(
-            'fetchBadHashWithPath',
-            this.packageName,
-            this.remote.reference,
-            found.toString(),
-            expected,
-          ),
+    const expected =
+      this.validateError && this.validateError.expected
+        ? this.validateError.expected.toString()
+        : this.remote.integrity ? this.remote.integrity.toString() : this.hash;
+    const found = this.validateError ? this.validateError.found : ssri.create();
+    reject(
+      new SecurityError(
+        this.config.reporter.lang(
+          'fetchBadHashWithPath',
+          this.packageName,
+          this.remote.reference,
+          found.toString(),
+          expected,
         ),
-      );
-    }
+      ),
+    );
   }
 
   _findIntegrity(): ?Object {
@@ -271,26 +270,23 @@ export default class TarballFetcher extends BaseFetcher {
   }
 
   _supportedIntegrity(): {integrity: ?Object, algorithms: Array<string>} {
-    const supportedAlgorithms = constants.INTEGRITY_ALGORITHMS;
-    const wantedIntegrity = this._findIntegrity();
-    if (!wantedIntegrity || Object.keys(wantedIntegrity).length === 0) {
-      // nothing to compare against, we should provide an empty integrity object
-      return {integrity: wantedIntegrity, algorithms: ['sha1']};
+    const expectedIntegrity = this._findIntegrity() || {};
+    const expectedIntegrityAlgorithms = Object.keys(expectedIntegrity);
+
+    const algorithms = new Set();
+    const integrity = {};
+    for (const algorithm of expectedIntegrityAlgorithms) {
+      if (isHashAlgorithmSupported(algorithm)) {
+        algorithms.add(algorithm);
+        integrity[algorithm] = expectedIntegrity[algorithm];
+      }
     }
-    const {integrity, algorithms} = Object.keys(wantedIntegrity).reduce(
-      (acc, algorithm) => {
-        if (supportedAlgorithms.indexOf(algorithm) > -1) {
-          acc.integrity[algorithm] = wantedIntegrity[algorithm];
-          acc.algorithms.push(algorithm);
-        }
-        return acc;
-      },
-      {integrity: {}, algorithms: []},
-    );
-    if (algorithms.length === 0) {
-      throw new Error('no supported algorithms');
+
+    if (algorithms.size === 0) {
+      return {integrity: null, algorithms: ['sha1']};
     }
-    return {integrity, algorithms};
+
+    return {integrity, algorithms: Array.from(algorithms)};
   }
 }
 

@@ -1,5 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`install should fail to authenticate integrity with correct sha1 and incorrect sha512 1`] = `"received is not a function"`;
+
 exports[`install-file-as-default-no-semver 1`] = `
 "{
   \\"author\\": \\"AJ ONeal <coolaj86@gmail.com> (http://coolaj86.info)\\",

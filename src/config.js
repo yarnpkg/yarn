@@ -57,8 +57,6 @@ export type ConfigOptions = {
 
   commandName?: ?string,
   registry?: ?string,
-
-  updateChecksums?: boolean,
 };
 
 type PackageMetadata = {
@@ -104,7 +102,6 @@ export default class Config {
   linkFileDependencies: boolean;
   ignorePlatform: boolean;
   binLinks: boolean;
-  updateChecksums: boolean;
 
   // cache packages in offline mirror folder as new .tgz files
   packBuiltPackages: boolean;
@@ -375,7 +372,6 @@ export default class Config {
     this.linkFolder = opts.linkFolder || constants.LINK_REGISTRY_DIRECTORY;
     this.offline = !!opts.offline;
     this.binLinks = !!opts.binLinks;
-    this.updateChecksums = !!opts.updateChecksums;
 
     this.ignorePlatform = !!opts.ignorePlatform;
     this.ignoreScripts = !!opts.ignoreScripts;

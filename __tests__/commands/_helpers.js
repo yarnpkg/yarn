@@ -90,7 +90,6 @@ export function makeConfigFromDirectory(cwd: string, reporter: Reporter, flags: 
       linkFolder: flags.linkFolder || path.join(cwd, '.yarn-link'),
       prefix: flags.prefix,
       production: flags.production,
-      updateChecksums: !!flags.updateChecksums,
     },
     reporter,
   );
