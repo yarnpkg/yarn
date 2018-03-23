@@ -1,4 +1,4 @@
-const {fs: {writeFile, writeJson}, tests: {getPackageDirectoryPath}} = require('pkg-tests-core');
+const {fs: {createTemporaryFolder, writeFile, writeJson}, tests: {getPackageDirectoryPath}} = require('pkg-tests-core');
 
 module.exports = makeTemporaryEnv => {
   const {basic: basicSpecs, script: scriptSpecs, workspace: workspaceSpecs} = require('pkg-tests-specs');
@@ -335,4 +335,24 @@ module.exports = makeTemporaryEnv => {
       ),
     );
   });
+
+  test(
+    `it should not setup pnp when calling a script outside of the install tree`,
+    makeTemporaryEnv(
+      {},
+      {
+        plugNPlay: true,
+      },
+      async ({path, run, source}) => {
+        await run(`install`);
+
+        const tmp = await createTemporaryFolder();
+
+        await writeFile(`${tmp}/node_modules/dep/index.js`, `module.exports = 42;`);
+        await writeFile(`${tmp}/index.js`, `require('dep')`);
+
+        await run(`node`, `${tmp}/index.js`);
+      },
+    ),
+  );
 };

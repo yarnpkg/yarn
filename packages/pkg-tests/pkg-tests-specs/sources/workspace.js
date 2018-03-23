@@ -42,7 +42,7 @@ module.exports = (makeTemporaryEnv: PackageDriver) => {
           dependencies: {
             [`workspace-a`]: `1.0.0`,
             [`workspace-b`]: `1.0.0`,
-          }
+          },
         },
         async ({path, run, source}) => {
           await writeJson(`${path}/packages/workspace-a/package.json`, {
@@ -96,7 +96,7 @@ module.exports = (makeTemporaryEnv: PackageDriver) => {
           workspaces: [`packages/*`],
           dependencies: {
             [`workspace`]: `1.0.0`,
-          }
+          },
         },
         async ({path, run, source}) => {
           await writeJson(`${path}/packages/workspace/package.json`, {
