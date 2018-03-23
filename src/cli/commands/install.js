@@ -373,6 +373,21 @@ export class Install {
         stripExcluded(cwdIsRoot ? virtualDependencyManifest : workspaces[projectManifestJson.name].manifest);
 
         pushDeps('workspaces', {workspaces: virtualDep}, {hint: 'workspaces', optional: false}, true);
+
+        const implicitWorkspaceDependencies = {...workspaceDependencies};
+
+        for (const type of constants.OWNED_DEPENDENCY_TYPES) {
+          for (const dependencyName of Object.keys(projectManifestJson[type] || {})) {
+            delete implicitWorkspaceDependencies[dependencyName];
+          }
+        }
+
+        pushDeps(
+          'dependencies',
+          {dependencies: implicitWorkspaceDependencies},
+          {hint: 'workspaces', optional: false},
+          true,
+        );
       }
 
       break;

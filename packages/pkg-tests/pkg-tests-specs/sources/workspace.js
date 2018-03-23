@@ -7,14 +7,11 @@ const {fs: {writeFile, writeJson}} = require('pkg-tests-core');
 module.exports = (makeTemporaryEnv: PackageDriver) => {
   describe(`Workspaces tests`, () => {
     test(
-      `it should make workspaces require-able from the top-level when declared as dependency`,
+      `it should implicitely make workspaces require-able from the top-level`,
       makeTemporaryEnv(
         {
           private: true,
           workspaces: [`packages/*`],
-          dependencies: {
-            [`workspace-a`]: `1.0.0`
-          }
         },
         async ({path, run, source}) => {
           await writeJson(`${path}/packages/workspace-a/package.json`, {
