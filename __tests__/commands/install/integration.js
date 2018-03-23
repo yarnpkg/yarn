@@ -240,11 +240,11 @@ test('changes the cache path when bumping the cache version', async () => {
     const reporter = new reporters.JSONReporter({stdout: inOut});
 
     await cache(config, reporter, {}, ['dir']);
-    expect((JSON.parse(String(inOut.read())): any).data).toMatch(/[\\\/]v[0-9][\\\/]?$/);
+    expect((JSON.parse(String(inOut.read())): any).data).toMatch(/[\\\/]v[0-9]([\\\/].*)?$/);
 
     await mockConstants(config, {CACHE_VERSION: 42}, async (config): Promise<void> => {
       await cache(config, reporter, {}, ['dir']);
-      expect((JSON.parse(String(inOut.read())): any).data).toMatch(/[\\\/]v42[\\\/]?$/);
+      expect((JSON.parse(String(inOut.read())): any).data).toMatch(/[\\\/]v42([\\\/].*)?$/);
     });
   });
 });
@@ -684,7 +684,13 @@ test.concurrent('install should update checksums in yarn.lock (--update-checksum
     const lockFileLines = explodeLockfile(lockFileContent);
     const packageHashInLockfile = lockFileLines[2].replace(/(^.*#)|("$)/g, '');
     const installedPackageJson = path.resolve(config.cwd, 'node_modules', 'abab', 'package.json');
-    const cachePackageJson = path.resolve(config.cwd, '.yarn-cache/v2/', packageCacheName, 'package.json');
+    const cachePackageJson = path.resolve(
+      config.cwd,
+      '.yarn-cache/v2/',
+      'node_modules',
+      packageCacheName,
+      'package.json',
+    );
     expect(packageHashInLockfile).toEqual(packageRealHash);
     expect(await fs.exists(installedPackageJson)).toBe(true);
     expect(await fs.exists(cachePackageJson)).toBe(true);
