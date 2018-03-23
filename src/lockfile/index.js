@@ -123,7 +123,7 @@ export default class Lockfile {
       }
 
       lockfile = parseResult.object;
-    } elsr if (reporter) {
+    } else if (reporter) {
       reporter.info(reporter.lang('noLockfileFound'));
     }
 
