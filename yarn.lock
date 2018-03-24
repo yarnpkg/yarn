@@ -2154,15 +2154,15 @@ escodegen@^1.9.0:
   optionalDependencies:
     source-map "~0.6.1"
 
-eslint-config-fb-strict@^20.1.0-delta.3:
-  version "20.1.0-delta.3"
-  resolved "https://registry.yarnpkg.com/eslint-config-fb-strict/-/eslint-config-fb-strict-20.1.0-delta.3.tgz#48d475606d8e3f42013bc000ff66e3f95309b225"
+eslint-config-fb-strict@^22.0.0:
+  version "22.4.3"
+  resolved "https://registry.yarnpkg.com/eslint-config-fb-strict/-/eslint-config-fb-strict-22.4.3.tgz#ceca0283d1025ca6a93b8ea99d0052ad20c49f6b"
   dependencies:
-    eslint-config-fbjs "^2.0.0"
+    eslint-config-fbjs "^2.0.1"
 
-eslint-config-fbjs@^2.0.0:
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/eslint-config-fbjs/-/eslint-config-fbjs-2.0.0.tgz#9f6ed690f500c2d750bf651e0cf1c65cf10b1c14"
+eslint-config-fbjs@^2.0.1:
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/eslint-config-fbjs/-/eslint-config-fbjs-2.0.1.tgz#395896fd740e0e28dc1c2072e3bc982e88247df5"
 
 eslint-plugin-babel@^4.0.0:
   version "4.1.1"
