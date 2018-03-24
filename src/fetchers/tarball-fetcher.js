@@ -21,7 +21,7 @@ const ssri = require('ssri');
 const RE_URL_NAME_MATCH = /\/(?:(@[^/]+)\/)?[^/]+\/-\/(?:@[^/]+\/)?([^/]+)$/;
 
 const isHashAlgorithmSupported = name => {
-  const cachedResult = isHashAlgorithmSupported.__cache.get(name);
+  const cachedResult = isHashAlgorithmSupported.__cache[name];
   if (cachedResult != null) {
     return cachedResult;
   }
@@ -35,10 +35,10 @@ const isHashAlgorithmSupported = name => {
     supported = false;
   }
 
-  isHashAlgorithmSupported.__cache.set(name, supported);
+  isHashAlgorithmSupported.__cache[name] = supported;
   return supported;
 };
-isHashAlgorithmSupported.__cache = new Map();
+isHashAlgorithmSupported.__cache = {};
 
 export default class TarballFetcher extends BaseFetcher {
   validateError: ?Object = null;
@@ -91,7 +91,13 @@ export default class TarballFetcher extends BaseFetcher {
     validateStream: ssri.integrityStream,
     extractorStream: stream.Transform,
   } {
-    const validateStream = new ssri.integrityStream(this._supportedIntegrity());
+    const integrityInfo = this._supportedIntegrity();
+    if (integrityInfo.algorithms.length === 0) {
+      throw new SecurityError(
+        this.config.reporter.lang('fetchBadIntegrityAlgorithm', this.packageName, this.remote.reference),
+      );
+    }
+    const validateStream = new ssri.integrityStream(integrityInfo);
     const extractorStream = gunzip();
     const untarStream = tarFs.extract(this.dest, {
       strip: 1,
@@ -112,8 +118,19 @@ export default class TarballFetcher extends BaseFetcher {
         reject(error);
       })
       .on('finish', () => {
-        if (this.validateError) {
-          this._handleValidationError(resolve, reject);
+        const error = this.validateError;
+        if (error) {
+          reject(
+            new SecurityError(
+              this.config.reporter.lang(
+                'fetchBadHashWithPath',
+                this.packageName,
+                this.remote.reference,
+                error.found.toString(),
+                error.expected.toString(),
+              ),
+            ),
+          );
         } else {
           const hexDigest = this.validateIntegrity ? this.validateIntegrity.hexDigest() : '';
           resolve({
@@ -240,25 +257,6 @@ export default class TarballFetcher extends BaseFetcher {
     return this.fetchFromLocal().catch(err => this.fetchFromExternal());
   }
 
-  _handleValidationError(resolve: Function, reject: Function) {
-    const expected =
-      this.validateError && this.validateError.expected
-        ? this.validateError.expected.toString()
-        : this.remote.integrity ? this.remote.integrity.toString() : this.hash;
-    const found = this.validateError ? this.validateError.found : ssri.create();
-    reject(
-      new SecurityError(
-        this.config.reporter.lang(
-          'fetchBadHashWithPath',
-          this.packageName,
-          this.remote.reference,
-          found.toString(),
-          expected,
-        ),
-      ),
-    );
-  }
-
   _findIntegrity(): ?Object {
     if (this.remote.integrity) {
       return ssri.parse(this.remote.integrity);
@@ -273,6 +271,10 @@ export default class TarballFetcher extends BaseFetcher {
     const expectedIntegrity = this._findIntegrity() || {};
     const expectedIntegrityAlgorithms = Object.keys(expectedIntegrity);
 
+    if (expectedIntegrityAlgorithms.length === 0) {
+      return {integrity: null, algorithms: ['sha1']};
+    }
+
     const algorithms = new Set();
     const integrity = {};
     for (const algorithm of expectedIntegrityAlgorithms) {
@@ -280,10 +282,6 @@ export default class TarballFetcher extends BaseFetcher {
         algorithms.add(algorithm);
         integrity[algorithm] = expectedIntegrity[algorithm];
       }
-    }
-
-    if (algorithms.size === 0) {
-      return {integrity: null, algorithms: ['sha1']};
     }
 
     return {integrity, algorithms: Array.from(algorithms)};
