@@ -129,8 +129,8 @@
     "testPathIgnorePatterns": [
       "__tests__/(fixtures|__mocks__)/",
       "updates/",
-      "/_(temp|mock|install|init|helpers).js$",
-      "/packages/pkg-tests"
+      "_(temp|mock|install|init|helpers).js$",
+      "packages/pkg-tests"
     ]
   },
   "config": {
