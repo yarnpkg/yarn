@@ -752,6 +752,9 @@ test('install should ignore unknown integrity algorithms if it has other options
 test('install should fail if the only algorithms in the sri are unknown', () =>
   expect(runInstall({}, 'install-update-auth-madeup')).rejects.toThrowErrorMatchingSnapshot());
 
+test('install should fail if the sri is malformed', () =>
+  expect(runInstall({}, 'install-update-auth-malformed')).rejects.toThrowErrorMatchingSnapshot());
+
 test('install should fail with unsupported algorithms', () =>
   expect(runInstall({}, 'install-update-auth-sha3')).rejects.toThrowErrorMatchingSnapshot());
 

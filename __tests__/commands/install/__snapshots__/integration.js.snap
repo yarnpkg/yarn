@@ -77,6 +77,24 @@ Console output:
 "
 `;
 
+exports[`install should fail if the sri is malformed 1`] = `
+"Error: Integrity string for undefined does not contain supported algorithms.
+    at TarballFetcher.createExtractor (/home/aram/code/yarn/src/fetchers/tarball-fetcher.js:96:13)
+    at Object.process (/home/aram/code/yarn/src/fetchers/tarball-fetcher.js:190:62)
+    at RequestManager.execute (/home/aram/code/yarn/src/util/request-manager.js:456:14)
+    at RequestManager.shiftQueue (/home/aram/code/yarn/src/util/request-manager.js:472:10)
+    at Promise (/home/aram/code/yarn/src/util/request-manager.js:245:12)
+    at new Promise (<anonymous>)
+    at RequestManager.request (/home/aram/code/yarn/src/util/request-manager.js:243:21)
+    at NpmRegistry.request (/home/aram/code/yarn/src/registries/npm-registry.js:154:32)
+    at /home/aram/code/yarn/src/fetchers/tarball-fetcher.js:177:31
+    at Generator.next (<anonymous>) 
+Console output:
+ [2K[1G[2m[1/4][22m Resolving packages...
+[2K[1G[2m[2/4][22m Fetching packages...
+"
+`;
+
 exports[`install should fail to authenticate integrity with correct sha1 and incorrect sha512 1`] = `
 "Error: https://registry.yarnpkg.com/safe-buffer/-/safe-buffer-5.1.1.tgz: Fetch succeeded for undefined. However, extracting \\"https://registry.yarnpkg.com/safe-buffer/-/safe-buffer-5.1.1.tgz\\" resulted in the integrity \\"sha512-kKvNJn6Mm93gAczWVJg7wH+wGYWNrDHdWvpUmHyEsgCtIwwo3bqPtV4tR5tuPaUhTOo/kvhVwd8XwwOllGYkbg== sha1-iTMSr2myEj3vcfV4iQAWce6yyFM=\\", which did not match the requested integrity \\"sha512-foo\\".
     at Extract.extractorStream.pipe.on.on (C:\\\\Users\\\\byk\\\\Documents\\\\Projects\\\\yarnpkg\\\\yarn\\\\src\\\\fetchers\\\\tarball-fetcher.js:124:13)
