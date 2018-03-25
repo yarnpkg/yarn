@@ -86,7 +86,7 @@ type Flags = {
 
 function getUpdateCommand(installationMethod: InstallationMethod): ?string {
   if (installationMethod === 'tar') {
-    return `curl -o- -L ${constants.YARN_INSTALLER_SH} | bash`;
+    return `curl --compressed -o- -L ${constants.YARN_INSTALLER_SH} | bash`;
   }
 
   if (installationMethod === 'homebrew') {
