@@ -2,8 +2,11 @@
 
 import {getPackageVersion, isPackagePresent, runInstall} from '../_helpers.js';
 import {ConsoleReporter} from '../../../src/reporters/index.js';
+import * as fs from '../../../src/util/fs.js';
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 150000;
+
+const path = require('path');
 
 test.concurrent('install with simple exact resolutions should override all versions', (): Promise<void> => {
   return runInstall({}, {source: 'resolutions', cwd: 'simple-exact'}, async config => {
@@ -91,4 +94,15 @@ test.concurrent('install with nested resolutions using flat mode', (): Promise<v
     expect(await getPackageVersion(config, 'strip-ansi')).toEqual('2.0.1');
     expect(await getPackageVersion(config, 'ansi-regex')).toEqual('1.1.1');
   });
+});
+
+test.concurrent('install with resolutions does not write new lockfile if existing one satisfied', (): Promise<void> => {
+  return runInstall(
+    {},
+    {source: 'resolutions', cwd: 'install-with-resolutions-dont-write-new-lockfile-if-satisfied'},
+    async (config): Promise<void> => {
+      const lockfile = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
+      expect(lockfile.indexOf('foobar')).toBeGreaterThanOrEqual(0);
+    },
+  );
 });
