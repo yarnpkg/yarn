@@ -270,8 +270,9 @@ export default class TarballFetcher extends BaseFetcher {
   _supportedIntegrity(): {integrity: ?Object, algorithms: Array<string>} {
     const expectedIntegrity = this._findIntegrity() || {};
     const expectedIntegrityAlgorithms = Object.keys(expectedIntegrity);
+    const shouldValidateIntegrity = this.hash || this.remote.integrity
 
-    if (expectedIntegrityAlgorithms.length === 0) {
+    if (expectedIntegrityAlgorithms.length === 0 && !shouldValidateIntegrity) {
       return {integrity: null, algorithms: ['sha1']};
     }
 
