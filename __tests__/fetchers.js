@@ -168,7 +168,7 @@ test('TarballFetcher.fetch throws on invalid hash', async () => {
     error = e;
   }
 
-  expect(error.message).toMatch(/did not match the requested hash|does not contain supported algorithms/);
+  expect(error.message).toMatch(/did not match the requested integrity|does not contain supported algorithms/);
   // the error message differs depending on the node version (and Buffer behaviour)
   expect(readdirSync(path.join(offlineMirrorDir))).toEqual([]);
 });
@@ -198,7 +198,7 @@ test('TarballFetcher.fetch throws on invalid integrity', async () => {
     error = e;
   }
 
-  expect(error && error.message).toContain('did not match the requested hash');
+  expect(error && error.message).toContain('did not match the requested integrity');
   expect(readdirSync(path.join(offlineMirrorDir))).toEqual([]);
 });
 
