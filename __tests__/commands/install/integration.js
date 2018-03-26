@@ -446,12 +446,12 @@ test('install with file: protocol as default', (): Promise<void> =>
 
 test("don't install with file: protocol as default if target is a file", () =>
   expect(runInstall({lockfile: false}, 'install-file-as-default-no-file')).rejects.toMatchObject({
-    message: expect.stringContaining('Lockfile does not contain pattern: "foo@bar"'),
+    message: expect.stringContaining('Couldn\'t find any versions for "foo" that matches "bar"'),
   }));
 
 test("don't install with implicit file: protocol if target does not have package.json", () =>
   expect(runInstall({lockfile: false}, 'install-file-as-default-no-package')).rejects.toMatchObject({
-    message: expect.stringContaining('Lockfile does not contain pattern: "foo@bar"'),
+    message: expect.stringContaining('Couldn\'t find any versions for "foo" that matches "bar"'),
   }));
 
 test('install with explicit file: protocol if target does not have package.json', (): Promise<void> =>
