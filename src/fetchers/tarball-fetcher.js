@@ -123,7 +123,7 @@ export default class TarballFetcher extends BaseFetcher {
 
         if (error) {
           if (this.config.updateChecksums) {
-            this.remote.integrity = this.validateError.found.toString();
+            this.remote.integrity = error.found.toString();
           } else {
             return reject(
               new SecurityError(
