@@ -15,7 +15,7 @@ build_script:
   - yarn run build-dist
   - yarn run build-win-installer
 test_script:
-  - yarn test-only --maxWorkers 3
+  - ps: yarn test-only --maxWorkers 3
 artifacts:
   - path: artifacts/*.msi
     name: Installer
