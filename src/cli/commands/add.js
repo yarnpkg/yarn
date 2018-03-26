@@ -170,8 +170,10 @@ export class Add extends Install {
   async init(): Promise<Array<string>> {
     const isWorkspaceRoot = this.config.workspaceRootFolder && this.config.cwd === this.config.workspaceRootFolder;
 
+    const ignoreWorkspaceRootCheck =
+      this.flags.ignoreWorkspaceRootCheck || this.config.getOption('ignore-workspace-root-check');
     // running "yarn add something" in a workspace root is often a mistake
-    if (isWorkspaceRoot && !this.flags.ignoreWorkspaceRootCheck) {
+    if (isWorkspaceRoot && !ignoreWorkspaceRootCheck) {
       throw new MessageError(this.reporter.lang('workspacesAddRootCheck'));
     }
 
