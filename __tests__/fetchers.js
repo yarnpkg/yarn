@@ -155,26 +155,21 @@ test('TarballFetcher.fetch throws on invalid hash', async () => {
     dir,
     {
       type: 'tarball',
-      hash: 'foo',
+      hash: 'abcd',
       reference: url,
       registry: 'npm',
     },
     config,
   );
-  let error = {};
-  try {
-    await fetcher.fetch();
-  } catch (e) {
-    error = e;
-  }
 
-  expect(error.message).toMatch(/did not match the requested integrity|does not contain supported algorithms/);
-  // the error message differs depending on the node version (and Buffer behaviour)
+  expect(fetcher.fetch()).rejects.toMatchObject({
+    message: expect.stringContaining('does not contain supported algorithms'),
+  });
   expect(readdirSync(path.join(offlineMirrorDir))).toEqual([]);
 });
 
 test('TarballFetcher.fetch fixes hash if updateChecksums flag is true', async () => {
-  const wrongHash = 'foo';
+  const wrongHash = 'abcd';
   const dir = await mkdir(`tarball-fetcher-${wrongHash}`);
   const config = await Config.create({}, new Reporter());
   config.updateChecksums = true;
