@@ -63,7 +63,7 @@
     "commitizen": "^2.9.6",
     "cz-conventional-changelog": "^2.0.0",
     "eslint": "^4.3.0",
-    "eslint-config-fb-strict": "^20.1.0-delta.3",
+    "eslint-config-fb-strict": "^22.0.0",
     "eslint-plugin-babel": "^4.0.0",
     "eslint-plugin-flowtype": "^2.35.0",
     "eslint-plugin-jasmine": "^2.6.2",
