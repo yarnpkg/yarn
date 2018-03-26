@@ -108,6 +108,18 @@ export function fetch(pkgs: Array<Manifest>, config: Config): Promise<Array<Mani
         // update with new remote
         // but only if there was a hash previously as the tarball fetcher does not provide a hash.
         if (ref.remote.hash) {
+          // if the checksum was updated, also update resolved and cache
+          if (ref.remote.hash !== res.hash && config.updateChecksums) {
+            const oldHash = ref.remote.hash;
+            if (ref.remote.resolved) {
+              ref.remote.resolved = ref.remote.resolved.replace(oldHash, res.hash);
+            }
+            ref.config.cache = Object.keys(ref.config.cache).reduce((cache, entry) => {
+              const entryWithNewHash = entry.replace(oldHash, res.hash);
+              cache[entryWithNewHash] = ref.config.cache[entry];
+              return cache;
+            }, {});
+          }
           ref.remote.hash = res.hash;
         }
       }
