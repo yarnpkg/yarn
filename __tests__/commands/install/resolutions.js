@@ -3,6 +3,8 @@
 import {getPackageVersion, isPackagePresent, runInstall} from '../_helpers.js';
 import {ConsoleReporter} from '../../../src/reporters/index.js';
 import * as fs from '../../../src/util/fs.js';
+import {Install} from '../../../src/cli/commands/install.js';
+import Lockfile from '../../../src/lockfile';
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 150000;
 
@@ -96,13 +98,20 @@ test.concurrent('install with nested resolutions using flat mode', (): Promise<v
   });
 });
 
-test.concurrent('install with resolutions does not write new lockfile if existing one satisfied', (): Promise<void> => {
+test.concurrent('install with resolution settings should correctly bailout during the integrity check', (): Promise<
+  void,
+> => {
   return runInstall(
     {},
-    {source: 'resolutions', cwd: 'install-with-resolutions-dont-write-new-lockfile-if-satisfied'},
-    async (config): Promise<void> => {
-      const lockfile = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
-      expect(lockfile.indexOf('foobar')).toBeGreaterThanOrEqual(0);
+    {source: 'resolutions', cwd: 'install-with-resolution-should-bailout-during-the-integrity-check'},
+    async (config, reporter): Promise<void> => {
+      // remove file
+      await fs.unlink(path.join(config.cwd, 'node_modules', 'left-pad', 'index.js'));
+      // run install again
+      const reinstall = new Install({}, config, reporter, await Lockfile.fromDirectory(config.cwd));
+      await reinstall.init();
+      // don't expect file being recreated because install should have bailed out
+      expect(await fs.exists(path.join(config.cwd, 'node_modules', 'left-pad', 'index.js'))).toBe(false);
     },
   );
 });
