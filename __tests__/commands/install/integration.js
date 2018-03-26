@@ -789,6 +789,17 @@ test.concurrent('install should update integrity in yarn.lock (--update-checksum
   }),
 );
 
+test.concurrent('install should update malformed integrity string in yarn.lock (--update-checksums)', () =>
+  runInstall({updateChecksums: true}, 'install-update-checksums-malformed', async config => {
+    const lockFileLines = explodeLockfile(await fs.readFile(path.join(config.cwd, 'yarn.lock')));
+    expect(lockFileLines[3]).toEqual(
+      expect.stringContaining(
+        'sha512-I+Wi+qiE2kUXyrRhNsWv6XsjUTBJjSoVSctKNBfLG5zG/Xe7Rjbxf13+vqYHNTwHaFU+FtSlVxOCTiMEVtPv0A==',
+      ),
+    );
+  }),
+);
+
 if (process.platform !== 'win32') {
   // TODO: This seems like a real issue, not just a config issue
   test('install cache symlinks properly', (): Promise<void> =>
