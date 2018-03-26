@@ -496,6 +496,7 @@ export function main({
       networkTimeout: commander.networkTimeout,
       nonInteractive: commander.nonInteractive,
       scriptsPrependNodePath: commander.scriptsPrependNodePath,
+      updateChecksums: commander.updateChecksums,
     })
     .then(() => {
       // lockfile check must happen after config.init sets lockfileFolder

@@ -120,6 +120,14 @@ export default class TarballFetcher extends BaseFetcher {
       .on('finish', () => {
         const error = this.validateError;
         const hexDigest = this.validateIntegrity ? this.validateIntegrity.hexDigest() : '';
+        if (
+          this.config.updateChecksums &&
+          this.remote.integrity &&
+          this.validateIntegrity &&
+          this.remote.integrity !== this.validateIntegrity.toString()
+        ) {
+          this.remote.integrity = this.validateIntegrity.toString();
+        }
 
         if (error) {
           if (this.config.updateChecksums) {
@@ -278,7 +286,9 @@ export default class TarballFetcher extends BaseFetcher {
     const shouldValidateIntegrity = (this.hash || this.remote.integrity) && !this.config.updateChecksums;
 
     if (expectedIntegrityAlgorithms.length === 0 && !shouldValidateIntegrity) {
-      return {integrity: null, algorithms: ['sha1']};
+      const algorithms = this.config.updateChecksums ? ['sha512'] : ['sha1'];
+      // for consistency, return sha1 for packages without a remote integrity (eg. github)
+      return {integrity: null, algorithms};
     }
 
     const algorithms = new Set();
