@@ -119,24 +119,29 @@ export default class TarballFetcher extends BaseFetcher {
       })
       .on('finish', () => {
         const error = this.validateError;
+        const hexDigest = this.validateIntegrity ? this.validateIntegrity.hexDigest() : '';
+
         if (error) {
-          reject(
-            new SecurityError(
-              this.config.reporter.lang(
-                'fetchBadHashWithPath',
-                this.packageName,
-                this.remote.reference,
-                error.found.toString(),
-                error.expected.toString(),
+          if (this.config.updateChecksums) {
+            this.remote.integrity = this.validateError.found.toString();
+          } else {
+            return reject(
+              new SecurityError(
+                this.config.reporter.lang(
+                  'fetchBadHashWithPath',
+                  this.packageName,
+                  this.remote.reference,
+                  error.found.toString(),
+                  error.expected.toString(),
+                ),
               ),
-            ),
-          );
-        } else {
-          const hexDigest = this.validateIntegrity ? this.validateIntegrity.hexDigest() : '';
-          resolve({
-            hash: this.hash || hexDigest,
-          });
+            );
+          }
         }
+
+        return resolve({
+          hash: this.hash || hexDigest,
+        });
       });
     return {validateStream, extractorStream};
   }

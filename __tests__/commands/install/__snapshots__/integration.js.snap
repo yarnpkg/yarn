@@ -1,3 +1,0 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
-
-exports[`install should fail if the sri is malformed 1`] = `"ENOENT: no such file or directory, lstat 'C:\\\\Users\\\\byk\\\\Documents\\\\Projects\\\\yarnpkg\\\\yarn\\\\__tests__\\\\fixtures\\\\install\\\\install-update-auth-malformed'"`;
