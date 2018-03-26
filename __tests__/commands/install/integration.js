@@ -445,10 +445,14 @@ test('install with file: protocol as default', (): Promise<void> =>
   }));
 
 test("don't install with file: protocol as default if target is a file", () =>
-  expect(runInstall({lockfile: false}, 'install-file-as-default-no-file')).rejects.toThrowErrorMatchingSnapshot());
+  expect(runInstall({lockfile: false}, 'install-file-as-default-no-file')).rejects.toMatchObject({
+    message: expect.stringContaining('Lockfile does not contain pattern: "foo@bar"'),
+  }));
 
 test("don't install with implicit file: protocol if target does not have package.json", () =>
-  expect(runInstall({lockfile: false}, 'install-file-as-default-no-package')).rejects.toThrowErrorMatchingSnapshot());
+  expect(runInstall({lockfile: false}, 'install-file-as-default-no-package')).rejects.toMatchObject({
+    message: expect.stringContaining('Lockfile does not contain pattern: "foo@bar"'),
+  }));
 
 test('install with explicit file: protocol if target does not have package.json', (): Promise<void> =>
   runInstall({}, 'install-file-no-package', async config => {
@@ -456,9 +460,11 @@ test('install with explicit file: protocol if target does not have package.json'
     expect(await fs.exists(path.join(config.cwd, 'node_modules', 'bar', 'bar.js'))).toEqual(true);
   }));
 
-test("don't install with file: protocol as default if target is valid semver", (): Promise<void> =>
+test("don't install with file: protocol as default if target is valid semver", () =>
   runInstall({}, 'install-file-as-default-no-semver', async config => {
-    expect(await fs.readFile(path.join(config.cwd, 'node_modules', 'foo', 'package.json'))).toMatchSnapshot();
+    expect(JSON.parse(await fs.readFile(path.join(config.cwd, 'node_modules', 'foo', 'package.json')))).toMatchObject({
+      name: 'foo',
+    });
   }));
 
 // When local packages are installed, dependencies with different forms of the same relative path
@@ -711,13 +717,19 @@ test('install should authenticate integrity with wrong sha1 and right sha512 che
   }));
 
 test('install should fail to authenticate integrity with correct sha1 and incorrect sha512', () =>
-  expect(runInstall({}, 'install-update-auth-right-sha1-wrong-sha512')).rejects.toThrowErrorMatchingSnapshot());
+  expect(runInstall({}, 'install-update-auth-right-sha1-wrong-sha512')).rejects.toMatchObject({
+    message: expect.stringContaining('did not match the requested integrity'),
+  }));
 
 test('install should fail to authenticate on sha512 integrity mismatch', () =>
-  expect(runInstall({}, 'install-update-auth-wrong-sha512')).rejects.toThrowErrorMatchingSnapshot());
+  expect(runInstall({}, 'install-update-auth-wrong-sha512')).rejects.toMatchObject({
+    message: expect.stringContaining('did not match the requested integrity'),
+  }));
 
 test('install should fail to authenticate on sha1 integrity mismatch', () =>
-  expect(runInstall({}, 'install-update-auth-wrong-sha1')).rejects.toThrowErrorMatchingSnapshot());
+  expect(runInstall({}, 'install-update-auth-wrong-sha1')).rejects.toMatchObject({
+    message: expect.stringContaining('did not match the requested integrity'),
+  }));
 
 test('install should create integrity field if not present', (): Promise<void> =>
   runInstall({}, 'install-update-auth-no-integrity-field', async config => {
@@ -734,7 +746,9 @@ test('install should create integrity field if not present', (): Promise<void> =
   }));
 
 test('install should ignore existing hash if integrity is present even if it fails to authenticate it', () =>
-  expect(runInstall({}, 'install-update-auth-bad-sha512-good-hash')).rejects.toThrowErrorMatchingSnapshot());
+  expect(runInstall({}, 'install-update-auth-bad-sha512-good-hash')).rejects.toMatchObject({
+    message: expect.stringContaining('did not match the requested integrity'),
+  }));
 
 test('install should ignore unknown integrity algorithms if it has other options in the sri', (): Promise<void> =>
   runInstall({}, 'install-update-auth-madeup-right-sha512', async config => {
@@ -750,13 +764,19 @@ test('install should ignore unknown integrity algorithms if it has other options
   }));
 
 test('install should fail if the only algorithms in the sri are unknown', () =>
-  expect(runInstall({}, 'install-update-auth-madeup')).rejects.toThrowErrorMatchingSnapshot());
+  expect(runInstall({}, 'install-update-auth-madeup')).rejects.toMatchObject({
+    message: expect.stringContaining('does not contain supported algorithms'),
+  }));
 
 test('install should fail if the sri is malformed', () =>
-  expect(runInstall({}, 'install-update-auth-malformed')).rejects.toThrowErrorMatchingSnapshot());
+  expect(runInstall({}, 'install-update-auth-malformed')).rejects.toMatchObject({
+    message: expect.stringContaining('does not contain supported algorithms'),
+  }));
 
 test('install should fail with unsupported algorithms', () =>
-  expect(runInstall({}, 'install-update-auth-sha3')).rejects.toThrowErrorMatchingSnapshot());
+  expect(runInstall({}, 'install-update-auth-sha3')).rejects.toMatchObject({
+    message: expect.stringContaining('does not contain supported algorithms'),
+  }));
 
 if (process.platform !== 'win32') {
   // TODO: This seems like a real issue, not just a config issue
