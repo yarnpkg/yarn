@@ -163,7 +163,7 @@ test('TarballFetcher.fetch throws on invalid hash', async () => {
   );
 
   expect(fetcher.fetch()).rejects.toMatchObject({
-    message: expect.stringContaining('does not contain supported algorithms'),
+    message: expect.stringContaining('did not match the requested integrity'),
   });
   expect(readdirSync(path.join(offlineMirrorDir))).toEqual([]);
 });
@@ -208,14 +208,10 @@ test('TarballFetcher.fetch throws on invalid integrity', async () => {
     },
     config,
   );
-  let error;
-  try {
-    await fetcher.fetch();
-  } catch (e) {
-    error = e;
-  }
 
-  expect(error && error.message).toContain('did not match the requested integrity');
+  expect(fetcher.fetch()).rejects.toMatchObject({
+    message: expect.stringContaining('did not match the requested integrity'),
+  });
   expect(readdirSync(path.join(offlineMirrorDir))).toEqual([]);
 });
 
