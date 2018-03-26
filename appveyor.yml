@@ -15,7 +15,9 @@ build_script:
   - yarn run build-dist
   - yarn run build-win-installer
 test_script:
-  - node ./node_modules/jest/bin/jest.js --verbose
+  - cmd: |-
+      SET npm_execpath=%APPVEYOR_BUILD_FOLDER%\bin\yarn.js
+      node ./node_modules/jest/bin/jest.js --verbose --maxWorkers=3
 artifacts:
   - path: artifacts/*.msi
     name: Installer
