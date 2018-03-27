@@ -20,6 +20,21 @@ const moduleCache = new Map();
 $$SETUP_STATIC_TABLES();
 
 /**
+ * Returns the module that should be used to resolve require calls. It's usually the direct parent, except if we're
+ * inside an eval expression.
+ */
+
+function getIssuerModule(parent) {
+  let issuer = parent;
+
+  while (issuer && (issuer.id === '[eval]' || issuer.id === '<repl>' || !issuer.filename)) {
+    issuer = issuer.parent;
+  }
+
+  return issuer;
+}
+
+/**
  * Returns information about a package in a safe way (will throw if they cannot be retrieved)
  */
 
@@ -244,16 +259,6 @@ exports.resolveRequest = function resolveRequest(request, issuer) {
  */
 
 exports.setup = function setup() {
-  function getIssuer(parent) {
-    let issuer = parent;
-
-    while (issuer && (issuer.id === '[eval]' || issuer.id === '<repl>' || !issuer.filename)) {
-      issuer = issuer.parent;
-    }
-
-    return issuer;
-  }
-
   Module._load = function(request, parent, isMain) {
     // Builtins are managed by the regular Node loader
 
@@ -310,7 +315,7 @@ exports.setup = function setup() {
   };
 
   Module._resolveFilename = function(request, parent, isMain, options) {
-    const issuerModule = getIssuer(parent);
+    const issuerModule = getIssuerModule(parent);
     const issuer = issuerModule ? issuerModule.filename : process.cwd() + path.sep;
 
     return exports.resolveRequest(request, issuer);
@@ -388,6 +393,12 @@ exports.setupCompatibilityLayer = () => {
 };
 
 if (module.parent && module.parent.id === 'internal/preload') {
-  exports.setup();
-  exports.setupCompatibilityLayer();
+  const issuerPath = process.argv[1] || process.cwd() + path.sep;
+  const issuerLocator = exports.findPackageLocator(issuerPath);
+
+  // We don't want to boot pnp if the script being run isn't part of the project we've installed
+  if (issuerLocator) {
+    exports.setup();
+    exports.setupCompatibilityLayer();
+  }
 }
