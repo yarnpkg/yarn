@@ -373,7 +373,7 @@ test('cache folder fallback', async () => {
 
   const [stdoutOutput, stderrOutput] = await runCacheDir();
 
-  expect(stdoutOutput.toString().trim()).toEqual(path.join(cacheFolder, `v${constants.CACHE_VERSION}`));
+  expect(stdoutOutput.toString().trim()).toEqual(path.join(cacheFolder, `v${constants.CACHE_VERSION}`, `node_modules`));
   expect(stderrOutput.toString()).not.toMatch(/Skipping preferred cache folder/);
 
   await fs.unlink(cacheFolder);
@@ -382,7 +382,7 @@ test('cache folder fallback', async () => {
   const [stdoutOutput2, stderrOutput2] = await runCacheDir();
 
   expect(stdoutOutput2.toString().trim()).toEqual(
-    path.join(constants.PREFERRED_MODULE_CACHE_DIRECTORIES[0], `v${constants.CACHE_VERSION}`),
+    path.join(constants.PREFERRED_MODULE_CACHE_DIRECTORIES[0], `v${constants.CACHE_VERSION}`, 'node_modules'),
   );
   expect(stderrOutput2.toString()).toMatch(/Skipping preferred cache folder/);
 });

@@ -337,7 +337,7 @@ export default class Config {
     this.packBuiltPackages = Boolean(this.getOption('experimental-pack-script-packages-in-mirror'));
 
     //init & create cacheFolder, tempFolder
-    this.cacheFolder = path.join(this._cacheRootFolder, 'v' + String(constants.CACHE_VERSION));
+    this.cacheFolder = path.join(this._cacheRootFolder, 'v' + String(constants.CACHE_VERSION), 'node_modules');
     this.tempFolder = opts.tempFolder || path.join(this.cacheFolder, '.tmp');
     await fs.mkdirp(this.cacheFolder);
     await fs.mkdirp(this.tempFolder);
