@@ -1,4 +1,5 @@
 /* @flow */
+
 import {ConsoleReporter} from '../../src/reporters/index.js';
 import * as reporters from '../../src/reporters/index.js';
 import {
