@@ -161,7 +161,7 @@ async function getPackageInformationStores(
         continue;
       }
 
-      const {pkg} = entry;
+      const {pkg, ref} = entry;
       let {loc} = entry;
 
       const packageName = pkg.name;
@@ -176,9 +176,16 @@ async function getPackageInformationStores(
       if (peerDependencies.size > 0) {
         const hash = getHashFrom([...parentData, packageName, packageReference]);
 
-        const newLoc = path.resolve(path.dirname(loc), `pnp-${hash}`);
-        await fs.symlink(loc, newLoc);
-        loc = newLoc;
+        const newLocDir =
+          ref.remote.type !== 'workspace'
+            ? path.resolve(config.lockfileFolder, '.pnp', 'global', 'node_modules')
+            : path.resolve(config.lockfileFolder, '.pnp', 'local');
+
+        const physicalLoc = loc;
+        const virtualLoc = (loc = path.resolve(newLocDir, `pnp-${hash}`));
+
+        await fs.mkdirp(path.dirname(virtualLoc));
+        await fs.symlink(physicalLoc, virtualLoc);
 
         packageReference = `pnp:${hash}`;
       }
