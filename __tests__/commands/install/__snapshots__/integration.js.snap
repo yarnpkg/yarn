@@ -1,0 +1,3 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`install should authenticate integrity field with combined sha1 and sha512 checksums: integrity stable 1`] = `"  integrity \\"sha1-iTMSr2myEj3vcfV4iQAWce6yyFM= sha512-kKvNJn6Mm93gAczWVJg7wH+wGYWNrDHdWvpUmHyEsgCtIwwo3bqPtV4tR5tuPaUhTOo/kvhVwd8XwwOllGYkbg==\\""`;

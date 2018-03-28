@@ -21,6 +21,24 @@ type Dependencies = {
   [key: string]: string,
 };
 
+type IntegrityAlgorithm = string;
+type Hash = {|
+  source: string,
+  algorithm: IntegrityAlgorithm,
+  digest: string,
+  options: Object,
+|};
+type Integrity = {
+  toJSON(): string,
+  toString(): string,
+  concat(integrity: Integrity, opts: Object): Integrity,
+  hexDigest(): string,
+  match(integrity: Integrity, opts: Object): boolean,
+  pickAlgorithm(opts: Object): string,
+  isIntegrity: boolean,
+  [key: IntegrityAlgorithm]: [Hash],
+};
+
 export type LockManifest = {
   name: string,
   version: string,
@@ -62,13 +80,15 @@ function keyForRemote(remote: PackageRemote): ?string {
   return remote.resolved || (remote.reference && remote.hash ? `${remote.reference}#${remote.hash}` : null);
 }
 
-function implodeIntegrity(integrity: Object): string {
+function serializeIntegrity(integrity: Integrity): string {
+  // We need this because `Integrity.toString()` does not use sorting to ensure a stable string output
+  // See https://git.io/vx2Hy
   return integrity.toString().split(' ').sort().join(' ');
 }
 
 export function implodeEntry(pattern: string, obj: Object): MinimalLockManifest {
   const inferredName = getName(pattern);
-  const integrity = obj.integrity ? implodeIntegrity(obj.integrity) : '';
+  const integrity = obj.integrity ? serializeIntegrity(obj.integrity) : '';
   const imploded: MinimalLockManifest = {
     name: inferredName === obj.name ? undefined : obj.name,
     version: obj.version,
@@ -86,13 +106,6 @@ export function implodeEntry(pattern: string, obj: Object): MinimalLockManifest 
   return imploded;
 }
 
-function explodeIntegrity(integrity): ?Object {
-  if (integrity && !integrity.isIntegrity) {
-    return ssri.parse(integrity);
-  }
-  return integrity;
-}
-
 export function explodeEntry(pattern: string, obj: Object): LockManifest {
   obj.optionalDependencies = obj.optionalDependencies || {};
   obj.dependencies = obj.dependencies || {};
@@ -100,8 +113,9 @@ export function explodeEntry(pattern: string, obj: Object): LockManifest {
   obj.permissions = obj.permissions || {};
   obj.registry = obj.registry || 'npm';
   obj.name = obj.name || getName(pattern);
-  if (obj.integrity) {
-    obj.integrity = explodeIntegrity(obj.integrity);
+  const integrity = obj.integrity;
+  if (integrity && integrity.isIntegrity) {
+    obj.integrity = ssri.parse(integrity);
   }
   return obj;
 }
@@ -125,17 +139,19 @@ export default class Lockfile {
   parseResultType: ?ParseResultType;
 
   // if true, we're parsing an old yarn file and need to update integrity fields
-  entriesExistWithoutIntegrity(): boolean {
+  hasEntriesExistWithoutIntegrity(): boolean {
     if (!this.cache) {
       return false;
     }
-    return Object.keys(this.cache).some(key => {
-      if (this.cache && this.cache[key] && !/^.*@(file:|http)/.test(key)) {
-        return !this.cache[key].integrity;
-      } else {
-        return false; // some entries are not supposed to have integrity, eg. files and web links
+
+    for (const key in this.cache) {
+      // $FlowFixMe - `this.cache` is clearly defined at this point
+      if (!/^.*@(file:|http)/.test(key) && this.cache[key] && !this.cache[key].integrity) {
+        return true;
       }
-    });
+    }
+
+    return false;
   }
 
   static async fromDirectory(dir: string, reporter?: Reporter): Promise<Lockfile> {

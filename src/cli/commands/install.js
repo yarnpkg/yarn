@@ -422,7 +422,7 @@ export class Install {
       return false;
     }
     const lockfileClean = this.lockfile.parseResultType === 'success';
-    const lockfileIntegrityPresent = !this.lockfile.entriesExistWithoutIntegrity();
+    const lockfileIntegrityPresent = !this.lockfile.hasEntriesExistWithoutIntegrity();
     const match = await this.integrityChecker.check(patterns, lockfileCache, this.flags, workspaceLayout);
     if (this.flags.frozenLockfile && (!lockfileClean || match.missingPatterns.length > 0)) {
       throw new MessageError(this.reporter.lang('frozenLockfileError'));

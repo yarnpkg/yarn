@@ -673,14 +673,9 @@ test('install should authenticate integrity field with combined sha1 and sha512 
     const lockFileContent = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
     const lockFileLines = explodeLockfile(lockFileContent);
     expect(await fs.exists(path.join(config.cwd, 'node_modules', 'safe-buffer'))).toEqual(true);
-    expect(
-      lockFileLines[3].indexOf(
-        'integrity "sha1-iTMSr2myEj3vcfV4iQAWce6yyFM= ' +
-          'sha512-kKvNJn6Mm93gAczWVJg7wH+wGYWNrDHdWvpUmHyEsgCtIwwo3bqPtV4tR5tuPaUhTOo/kvhVwd8XwwOllGYkbg=="',
-      ),
-    ).toEqual(2);
     // if this fails on a newer version of node or the ssri module,
     // it (might) mean the sorting algorithm within the sri string changed
+    expect(lockFileLines[3]).toMatchSnapshot('integrity stable');
   }));
 
 test('install should authenticate integrity with multiple differing sha1 checksums', (): Promise<void> =>
