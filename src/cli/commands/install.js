@@ -543,7 +543,6 @@ export class Install {
     steps.push((curr: number, total: number) =>
       callThroughHook('resolveStep', async () => {
         this.reporter.step(curr, total, this.reporter.lang('resolvingPackages'), emoji.get('mag'));
-        this.resolutionMap.setTopLevelPatterns(rawPatterns);
         await this.resolver.init(this.prepareRequests(depRequests), {
           isFlat: this.flags.flat,
           isFrozen: this.flags.frozenLockfile,
