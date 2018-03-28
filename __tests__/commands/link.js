@@ -29,6 +29,9 @@ test.concurrent('throws error if package.json does not have name', async (): Pro
 test.concurrent('creates cmd file on Windows', async (): Promise<void> => {
   const linkFolder = await mkdir('link-folder');
   const prefix = await mkdir('prefix-folder');
+
+  await fs.mkdirp(path.join(prefix, 'bin'));
+
   await runLink([], {linkFolder, prefix}, 'package-with-bin', async (config, reporter): Promise<void> => {
     const linkFolderExisted = await fs.exists(path.join(linkFolder, 'b-package'));
     expect(linkFolderExisted).toEqual(true);
