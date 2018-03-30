@@ -1,209 +1,209 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`author object normalize: author object normalize 1`] = `
+exports[`author object normalize 1`] = `
 Array [
   "No license field",
 ]
 `;
 
-exports[`author string: author string 1`] = `
+exports[`author string 1`] = `
 Array [
   "No license field",
 ]
 `;
 
-exports[`authors file to contributors: authors file to contributors 1`] = `
+exports[`authors file to contributors 1`] = `
 Array [
   "No license field",
 ]
 `;
 
-exports[`bin string: bin string 1`] = `
+exports[`bin string 1`] = `
 Array [
   "foo: No license field",
 ]
 `;
 
-exports[`binding.gyp scripts.install: binding.gyp scripts.install 1`] = `
+exports[`binding.gyp scripts.install 1`] = `
 Array [
   "No license field",
 ]
 `;
 
-exports[`bugs string: bugs string 1`] = `
+exports[`bugs string 1`] = `
 Array [
   "No license field",
 ]
 `;
 
-exports[`bundledDependencies alias: bundledDependencies alias 1`] = `
+exports[`bundledDependencies alias 1`] = `
 Array [
   "No license field",
 ]
 `;
 
-exports[`clean version with v: clean version with v 1`] = `
+exports[`clean version 1`] = `
 Array [
   "No license field",
 ]
 `;
 
-exports[`clean version: clean version 1`] = `
+exports[`clean version with v 1`] = `
 Array [
   "No license field",
 ]
 `;
 
-exports[`contributors array expand: contributors array expand 1`] = `
+exports[`contributors array expand 1`] = `
 Array [
   "No license field",
 ]
 `;
 
-exports[`dedupe all trivial dependencies: dedupe all trivial dependencies 1`] = `
+exports[`dedupe all trivial dependencies 1`] = `
 Array [
   "No license field",
 ]
 `;
 
-exports[`dedupe dependencies root: dedupe dependencies root 1`] = `
+exports[`dedupe dependencies 1`] = `Array []`;
+
+exports[`dedupe dependencies root 1`] = `
 Array [
   "No license field",
   "\\"dependencies\\" has dependency \\"foobar\\" with range \\"2.0.0\\" that collides with a dependency in \\"devDependencies\\" of the same name with version \\"1.0.0\\"",
 ]
 `;
 
-exports[`dedupe dependencies: dedupe dependencies 1`] = `Array []`;
+exports[`dedupe optionalDependencies 1`] = `Array []`;
 
-exports[`dedupe optionalDependencies root: dedupe optionalDependencies root 1`] = `
+exports[`dedupe optionalDependencies root 1`] = `
 Array [
   "No license field",
   "\\"optionalDependencies\\" has dependency \\"foobar\\" with range \\"1.0.0\\" that collides with a dependency in \\"dependencies\\" of the same name with version \\"2.0.0\\"",
 ]
 `;
 
-exports[`dedupe optionalDependencies: dedupe optionalDependencies 1`] = `Array []`;
-
-exports[`dedupe single trivial dependency: dedupe single trivial dependency 1`] = `
+exports[`dedupe single trivial dependency 1`] = `
 Array [
   "No license field",
 ]
 `;
 
-exports[`engines array: engines array 1`] = `
+exports[`engines array 1`] = `
 Array [
   "No license field",
 ]
 `;
 
-exports[`explode directories.bin: explode directories.bin 1`] = `
+exports[`explode directories.bin 1`] = `
 Array [
   "No license field",
 ]
 `;
 
-exports[`explode directories.man: explode directories.man 1`] = `
+exports[`explode directories.man 1`] = `
 Array [
   "No license field",
 ]
 `;
 
-exports[`extract description: extract description 1`] = `
+exports[`extract description 1`] = `
 Array [
   "No license field",
 ]
 `;
 
-exports[`homepage string: homepage string 1`] = `
+exports[`homepage string 1`] = `
 Array [
   "No license field",
 ]
 `;
 
-exports[`hosted git repository url: hosted git repository url 1`] = `
+exports[`hosted git repository url 1`] = `
 Array [
   "No license field",
 ]
 `;
 
-exports[`keywords string: keywords string 1`] = `
+exports[`keywords string 1`] = `
 Array [
   "No license field",
 ]
 `;
 
-exports[`license warnings should not be thrown with global commands: license warnings should not be thrown with global commands 1`] = `Array []`;
+exports[`license warnings should not be thrown with global commands 1`] = `Array []`;
 
-exports[`maintainers array expand: maintainers array expand 1`] = `
+exports[`maintainers array expand 1`] = `
 Array [
   "No license field",
 ]
 `;
 
-exports[`man string: man string 1`] = `
+exports[`man string 1`] = `
 Array [
   "No license field",
 ]
 `;
 
-exports[`name: name 1`] = `
+exports[`name 1`] = `
 Array [
   "foobar: No license field",
 ]
 `;
 
-exports[`readme: readme 1`] = `
+exports[`readme 1`] = `
 Array [
   "No license field",
 ]
 `;
 
-exports[`repository string: repository string 1`] = `
+exports[`repository string 1`] = `
 Array [
   "No license field",
 ]
 `;
 
-exports[`scoped bin string: scoped bin string 1`] = `
+exports[`scoped bin string 1`] = `
 Array [
   "@scope/foo: No license field",
 ]
 `;
 
-exports[`server scripts.start: server scripts.start 1`] = `
+exports[`server scripts.start 1`] = `
 Array [
   "No license field",
 ]
 `;
 
-exports[`valid license: valid license 1`] = `Array []`;
+exports[`valid license 1`] = `Array []`;
 
-exports[`version: version 1`] = `
+exports[`version 1`] = `
 Array [
   "No license field",
 ]
 `;
 
-exports[`warn builtin module collision: warn builtin module collision 1`] = `
+exports[`warn builtin module collision 1`] = `
 Array [
   "fs: \\"fs\\" is also the name of a node core module",
   "fs: No license field",
 ]
 `;
 
-exports[`warn empty string invalid license: warn empty string invalid license 1`] = `
+exports[`warn empty string invalid license 1`] = `
 Array [
   "License should be a valid SPDX license expression",
 ]
 `;
 
-exports[`warn invalid license: warn invalid license 1`] = `
+exports[`warn invalid license 1`] = `
 Array [
   "License should be a valid SPDX license expression",
 ]
 `;
 
-exports[`warn typo: warn typo 1`] = `
+exports[`warn typo 1`] = `
 Array [
   "Potential typo \\"dependancies\\", did you mean \\"dependencies\\"?",
   "No license field",

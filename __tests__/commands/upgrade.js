@@ -12,6 +12,7 @@ const path = require('path');
 
 const fixturesLoc = path.join(__dirname, '..', 'fixtures', 'upgrade');
 const runUpgrade = buildRun.bind(null, ConsoleReporter, fixturesLoc, (args, flags, config, reporter): Promise<void> => {
+  config.commandName = 'upgrade';
   return upgrade(config, reporter, flags, args);
 });
 
@@ -281,6 +282,7 @@ test.concurrent('informs the type of dependency after upgrade', (): Promise<void
     reporters.BufferReporter,
     fixturesLoc,
     async (args, flags, config, reporter): Promise<void> => {
+      config.commandName = 'upgrade';
       await upgrade(config, reporter, flags, args);
 
       const output = reporter.getBuffer();
@@ -309,6 +311,8 @@ test.concurrent('warns when peer dependency is not met after upgrade', (): Promi
     reporters.BufferReporter,
     fixturesLoc,
     async (args, flags, config, reporter): Promise<void> => {
+      config.commandName = 'upgrade';
+
       await upgrade(config, reporter, flags, args);
 
       const output = reporter.getBuffer();
@@ -331,6 +335,8 @@ test.concurrent("doesn't warn when peer dependency is still met after upgrade", 
     reporters.BufferReporter,
     fixturesLoc,
     async (args, flags, config, reporter): Promise<void> => {
+      config.commandName = 'upgrade';
+
       await upgrade(config, reporter, flags, args);
 
       const output = reporter.getBuffer();
@@ -345,6 +351,31 @@ test.concurrent("doesn't warn when peer dependency is still met after upgrade", 
     ['themer'],
     {},
     'peer-dependency-no-warn',
+  );
+});
+
+// Regression test for #4840
+test.concurrent("doesn't warn when upgrading a devDependency", (): Promise<void> => {
+  return buildRun(
+    reporters.BufferReporter,
+    fixturesLoc,
+    async (args, flags, config, reporter): Promise<void> => {
+      config.commandName = 'upgrade';
+
+      await upgrade(config, reporter, flags, args);
+
+      const output = reporter.getBuffer();
+      const warnings = output.filter(entry => entry.type === 'warning');
+
+      expect(
+        warnings.some(warning => {
+          return warning.data.toString().toLowerCase().indexOf('is already in') > -1;
+        }),
+      ).toEqual(false);
+    },
+    ['left-pad'],
+    {},
+    'dev-dependency-no-warn',
   );
 });
 
@@ -386,6 +417,8 @@ test.concurrent('--latest works if there is an install script on a hoisted depen
     reporters.BufferReporter,
     fixturesLoc,
     async (args, flags, config, reporter): Promise<void> => {
+      config.commandName = 'upgrade';
+
       await upgrade(config, reporter, flags, args);
 
       const output = reporter.getBuffer();

@@ -34,11 +34,13 @@ export class Add extends Install {
     ]
       .filter(Boolean)
       .shift();
+    this.ignoreDependencyTypeWarning = config.commandName === 'upgrade' || config.commandName === 'upgrade-interactive';
   }
 
   args: Array<string>;
   flagToOrigin: string;
   addedPatterns: Array<string>;
+  ignoreDependencyTypeWarning: boolean;
 
   /**
    * TODO
@@ -244,8 +246,7 @@ export class Add extends Install {
 
       object[dependencyType] = object[dependencyType] || {};
       object[dependencyType][pkgName] = version;
-
-      if (dependencyType !== this.flagToOrigin) {
+      if (!this.ignoreDependencyTypeWarning && dependencyType !== this.flagToOrigin) {
         this.reporter.warn(this.reporter.lang('moduleAlreadyInManifest', pkgName, dependencyType, this.flagToOrigin));
       }
     });

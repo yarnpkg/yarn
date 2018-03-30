@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`without arguments and in directory containing a valid package file: left-pad readme 1`] = `
+exports[`left-pad readme 1`] = `
 "## left-pad
 
 String left pad
