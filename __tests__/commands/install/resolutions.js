@@ -115,3 +115,26 @@ test.concurrent('install with resolution settings should correctly bailout durin
     },
   );
 });
+
+test.concurrent('adding resolutions after install should cause lockfile regeneration on second install', (): Promise<
+  void,
+> => {
+  return runInstall(
+    {},
+    {source: 'resolutions', cwd: 'adding-resolutions-should-casue-lockfile-regeneration'},
+    async (config, reporter): Promise<void> => {
+      const packageJson = await fs.readFile(path.join(config.cwd, 'package.json'));
+      // create new package.json with resolutions which override e/left-pad version
+      const newPackageJson = packageJson.replace(/}\n}/g, '  },\n"resolutions": {\n    "e/left-pad": "1.1.1"\n  }\n}');
+      // write new package.json
+      await fs.writeFile(path.join(config.cwd, 'package.json'), newPackageJson);
+      // run install again
+      const reinstall = new Install({}, config, reporter, await Lockfile.fromDirectory(config.cwd));
+      await reinstall.init();
+      // don't expect left-pad in e/node_modules since it's now being replaced by single dependency left-pad@1.1.1
+      expect(await fs.exists(path.join(config.cwd, 'node_modules', 'e', 'node_modules', 'left-pad', 'index.js'))).toBe(
+        false,
+      );
+    },
+  );
+});
