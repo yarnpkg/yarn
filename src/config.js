@@ -660,7 +660,8 @@ export default class Config {
       .map(registryName => this.registries[registryName].constructor.filename)
       .join('|');
     const trailingPattern = `/+(${registryFilenames})`;
-    const ignorePatterns = this.registryFolders.map(folder => `/${folder}/*/+(${registryFilenames})`);
+    // anything under folder (node_modules) should be ignored, thus use the '**' instead of shallow match "*"
+    const ignorePatterns = this.registryFolders.map(folder => `/${folder}/**/+(${registryFilenames})`);
 
     const files = await Promise.all(
       patterns.map(pattern =>
