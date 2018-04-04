@@ -22,4 +22,5 @@ test/fixtures/**/.fbkpm
 .idea
 .yarn-meta
 .pnp.js
+.pnp
 /packages/lockfile/index.js
