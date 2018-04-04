@@ -371,6 +371,46 @@ module.exports = makeTemporaryEnv => {
   });
 
   test(
+    `it should load the index.js file when loading from a folder`,
+    makeTemporaryEnv({}, {plugNPlay: true}, async ({path, run, source}) => {
+      await run(`install`);
+
+      const tmp = await createTemporaryFolder();
+
+      await writeFile(`${tmp}/folder/index.js`, `module.exports = 42;`);
+
+      await expect(source(`require("${tmp}/folder")`)).resolves.toEqual(42);
+    }),
+  );
+
+  test(
+    `it should resolve the .js extension`,
+    makeTemporaryEnv({}, {plugNPlay: true}, async ({path, run, source}) => {
+      await run(`install`);
+
+      const tmp = await createTemporaryFolder();
+
+      await writeFile(`${tmp}/file.js`, `module.exports = 42;`);
+
+      await expect(source(`require("${tmp}/file")`)).resolves.toEqual(42);
+    }),
+  );
+
+  test(
+    `it should use the regular Node resolution when requiring files outside of the pnp install tree`,
+    makeTemporaryEnv({}, {plugNPlay: true}, async ({path, run, source}) => {
+      await run(`install`);
+
+      const tmp = await createTemporaryFolder();
+
+      await writeFile(`${tmp}/node_modules/dep/index.js`, `module.exports = 42;`);
+      await writeFile(`${tmp}/index.js`, `require('dep')`);
+
+      await source(`require("${tmp}/index.js")`);
+    }),
+  );
+
+  test(
     `it should not setup pnp when calling a script outside of the install tree`,
     makeTemporaryEnv(
       {},

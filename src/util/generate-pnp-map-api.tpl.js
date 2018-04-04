@@ -8,6 +8,8 @@ const path = require('path');
 const builtinModules = Module.builtinModules || Object.keys(process.binding('natives'));
 
 const originalLoader = Module._load;
+const originalFindPath = Module._findPath;
+const originalNodeModulePaths = Module._nodeModulePaths;
 
 const pathRegExp = /^(?!\.{0,2}(?:\/|$))((?:@[^\/]+\/)?[^\/]+)\/?(.*|)$/;
 const isDirRegExp = /[\\\/]$/;
@@ -71,71 +73,98 @@ function getPackageInformationSafe(packageLocator) {
 }
 
 /**
- * Returns the peer dependency resolutions about a package in a given location in the dependency tree in a safe way
- * (will throw if they cannot be retrieved).
- */
-
-function findPackageLocatorSafe(filesystemPath) {
-  const packageLocator = exports.findPackageLocator(filesystemPath);
-
-  if (!packageLocator) {
-    throw new Error(`Couldn't find an owner for path "${filesystemPath}"`);
-  }
-
-  return packageLocator;
-}
-
-/**
+ * Implements the node resolution for folder access and extension selection
  */
 
 function applyNodeExtensionResolution(filesystemPath) {
-  // If the file exists and is a file, we can stop right there
+  // We use this "infinite while" so that we can restart the process as long as we hit package folders
+  while (true) {
+    let stat;
 
-  let stat;
+    try {
+      stat = fs.statSync(filesystemPath);
+    } catch (error) {}
 
-  try {
-    stat = fs.statSync(filesystemPath);
-  } catch (error) {}
+    // If the file exists and is a file, we can stop right there
 
-  if (stat && !stat.isDirectory()) {
-    return filesystemPath;
-  }
+    if (stat && !stat.isDirectory()) {
+      return filesystemPath;
+    }
 
-  // Otherwise we check if we find a file that match one of the supported extensions
+    // If the file is a directory, we must check if it contains a package.json with a "main" entry
 
-  const extensions = Object.keys(Module._extensions);
+    if (stat && stat.isDirectory()) {
+      let pkgJson;
 
-  const qualifiedFile = extensions
-    .map(extension => {
-      return `${filesystemPath}${extension}`;
-    })
-    .find(candidateFile => {
-      return fs.existsSync(candidateFile);
-    });
+      try {
+        pkgJson = JSON.parse(fs.readFileSync(`${filesystemPath}/package.json`, 'utf-8'));
+      } catch (error) {}
 
-  if (qualifiedFile) {
-    return qualifiedFile;
-  }
+      let nextFilesystemPath;
 
-  // Otherwise, we check if the path is a folder - in such a case, we try to use its index
+      if (pkgJson && pkgJson.main) {
+        nextFilesystemPath = path.resolve(filesystemPath, pkgJson.main);
+      }
 
-  if (stat && stat.isDirectory()) {
-    const indexFile = extensions
+      // If the "main" field changed the path, we start again from this new location
+
+      if (nextFilesystemPath && nextFilesystemPath !== filesystemPath) {
+        filesystemPath = nextFilesystemPath;
+        continue;
+      }
+    }
+
+    // Otherwise we check if we find a file that match one of the supported extensions
+
+    const extensions = Object.keys(Module._extensions);
+
+    const qualifiedFile = extensions
       .map(extension => {
-        return `${filesystemPath}/index${extension}`;
+        return `${filesystemPath}${extension}`;
       })
       .find(candidateFile => {
         return fs.existsSync(candidateFile);
       });
 
-    if (indexFile) {
-      return indexFile;
+    if (qualifiedFile) {
+      return qualifiedFile;
     }
+
+    // Otherwise, we check if the path is a folder - in such a case, we try to use its index
+
+    if (stat && stat.isDirectory()) {
+      const indexFile = extensions
+        .map(extension => {
+          return `${filesystemPath}/index${extension}`;
+        })
+        .find(candidateFile => {
+          return fs.existsSync(candidateFile);
+        });
+
+      if (indexFile) {
+        return indexFile;
+      }
+    }
+
+    // Otherwise there's nothing else we can do :(
+
+    return null;
+  }
+}
+
+/**
+ * Forward the resolution to the next resolver (usually the native one)
+ */
+
+function callNativeResolution(request, issuer) {
+  if (issuer.endsWith('/')) {
+    issuer += 'internal.js';
   }
 
-  // Otherwise there's nothing else we can do :(
+  const paths = originalNodeModulePaths.call(Module, issuer);
+  const result = originalFindPath.call(Module, request, paths, false);
 
-  return null;
+  return result;
 }
 
 /**
@@ -196,7 +225,15 @@ exports.resolveRequest = function resolveRequest(request, issuer) {
   if (dependencyNameMatch) {
     const [, dependencyName, subPath] = dependencyNameMatch;
 
-    const issuerLocator = findPackageLocatorSafe(issuer);
+    const issuerLocator = exports.findPackageLocator(issuer);
+
+    // If the issuer file doesn't seem to be owned by a package managed through pnp, then we resort to using the next
+    // resolution algorithm in the chain, usually the native Node resolution one
+
+    if (!issuerLocator) {
+      return callNativeResolution(request, issuer);
+    }
+
     const issuerInformation = getPackageInformationSafe(issuerLocator);
 
     // We obtain the dependency reference in regard to the package that request it
@@ -256,8 +293,6 @@ exports.resolveRequest = function resolveRequest(request, issuer) {
 
     if (subPath) {
       filesystemPath = path.resolve(dependencyLocation, subPath); // slice(1) to strip the leading '/'
-    } else if (dependencyInformation.packageMainEntry) {
-      filesystemPath = path.resolve(dependencyLocation, dependencyInformation.packageMainEntry);
     } else {
       filesystemPath = dependencyLocation;
     }
