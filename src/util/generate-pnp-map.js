@@ -24,7 +24,7 @@ type GeneratePnpMapOptions = {|
   workspaceLayout: ?WorkspaceLayout,
 |};
 
-function generateMaps(packageInformationStores: PackageInformationStores): string {
+function generateMaps(packageInformationStores: PackageInformationStores, blacklistedLocations: Set<string>): string {
   let code = ``;
 
   // Bake the information stores into our generated code
@@ -55,6 +55,9 @@ function generateMaps(packageInformationStores: PackageInformationStores): strin
 
   // Also bake an inverse map that will allow us to find the package information based on the path
   code += `let locatorsByLocations = new Map([\n`;
+  for (const blacklistedLocation of blacklistedLocations) {
+    code += `  [${JSON.stringify(blacklistedLocation)}, blacklistedLocator],\n`;
+  }
   for (const [packageName, packageInformationStore] of packageInformationStores) {
     for (const [packageReference, {packageLocation}] of packageInformationStore) {
       if (packageName !== null) {
@@ -99,7 +102,7 @@ function generateFindPackageLocator(packageInformationStores: PackageInformation
     code += `\n`;
     code += `  if (location.length >= ${length} && location[${length} - 1] === path.sep)\n`;
     code += `    if (match = locatorsByLocations.get(location.substr(0, ${length})))\n`;
-    code += `      return match;\n`;
+    code += `      return blacklistCheck(match);\n`;
   }
 
   code += `\n`;
@@ -113,8 +116,9 @@ async function getPackageInformationStores(
   config: Config,
   seedPatterns: Array<string>,
   {resolver, workspaceLayout}: GeneratePnpMapOptions,
-): Promise<PackageInformationStores> {
+): Promise<[PackageInformationStores, Set<string>]> {
   const packageInformationStores: PackageInformationStores = new Map();
+  const blacklistedLocations: Set<string> = new Set();
 
   const ensureTrailingSlash = (fsPath: string) => {
     return fsPath.replace(/[\\\/]?$/, path.sep);
@@ -188,6 +192,10 @@ async function getPackageInformationStores(
         await fs.symlink(physicalLoc, virtualLoc);
 
         packageReference = `pnp:${hash}`;
+
+        // We blacklist this path so that we can print a nicer error message if someone tries to require it (it usually
+        // means that they're using realpath on the return value of require.resolve)
+        blacklistedLocations.add(ensureTrailingSlash(physicalLoc));
       }
 
       // Now that we have the final reference, we need to store it
@@ -310,7 +318,7 @@ async function getPackageInformationStores(
     ]),
   );
 
-  return packageInformationStores;
+  return [packageInformationStores, blacklistedLocations];
 }
 
 export async function generatePnpMap(
@@ -318,9 +326,12 @@ export async function generatePnpMap(
   seedPatterns: Array<string>,
   {resolver, workspaceLayout}: GeneratePnpMapOptions,
 ): Promise<string> {
-  const packageInformationStores = await getPackageInformationStores(config, seedPatterns, {resolver, workspaceLayout});
+  const [packageInformationStores, blacklistedLocations] = await getPackageInformationStores(config, seedPatterns, {
+    resolver,
+    workspaceLayout,
+  });
   const setupStaticTables =
-    generateMaps(packageInformationStores) + generateFindPackageLocator(packageInformationStores);
+    generateMaps(packageInformationStores, blacklistedLocations) + generateFindPackageLocator(packageInformationStores);
 
   return pnpApi.replace(/\$\$SETUP_STATIC_TABLES\(\);/, setupStaticTables);
 }
