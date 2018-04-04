@@ -180,8 +180,8 @@ export function main({
     }
   }
 
-  args = [...preCommandArgs, ...args];
   commander.originalArgs = args;
+  args = [...preCommandArgs, ...args];
 
   command.setFlags(commander);
   commander.parse([
