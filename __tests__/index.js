@@ -316,3 +316,13 @@ test.concurrent('should run help for camelised command', async () => {
   expect(lastLines[2]).toMatch(/yarn generate-lock-entry --resolved local-file.tgz#hash/);
   expect(lastLines[3]).toMatch(/Visit https:\/\/yarnpkg.com\/en\/docs\/cli\/generate-lock-entry/);
 });
+
+// regression test for #5496
+// this fixture has a .yarnrc in it that sets the `--emoji` flag.
+// we test to make sure that flag is not passed down to the workspace command,
+// but actual flags on the command line are passed.
+test.concurrent('should not pass yarnrc flags to workspace command', async () => {
+  const stdout = await execCommand('workspace', ['workspace-1', 'run', 'check', '--x'], 'run-workspace', true);
+  const params = stdout.find(x => x && x.indexOf('--x') >= 0);
+  expect(params).not.toMatch(/emoji/);
+});
