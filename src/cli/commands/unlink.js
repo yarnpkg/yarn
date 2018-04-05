@@ -47,6 +47,9 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
           const binDestLoc = path.join(globalBinFolder, binName);
           if (await fs.exists(binDestLoc)) {
             await fs.unlink(binDestLoc);
+            if (process.platform === 'win32') {
+              await fs.unlink(binDestLoc + '.cmd');
+            }
           }
         }
       }
