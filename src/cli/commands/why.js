@@ -135,10 +135,18 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
 
   const query = await cleanQuery(config, args[0]);
 
-  reporter.step(1, 4, reporter.lang('whyStart', args[0]), emoji.get('thinking_face'));
+  // Be default there are 3 steps to this task
+  let total = 3;
+
+  // If the user wants size information, we enable the fourth step
+  if (flags.size) {
+    total = 4;
+  }
+
+  reporter.step(1, total, reporter.lang('whyStart', args[0]), emoji.get('thinking_face'));
 
   // init
-  reporter.step(2, 4, reporter.lang('whyInitGraph'), emoji.get('truck'));
+  reporter.step(2, total, reporter.lang('whyInitGraph'), emoji.get('truck'));
   const lockfile = await Lockfile.fromDirectory(config.lockfileFolder, reporter);
   const install = new Install(flags, config, reporter, lockfile);
   const {requests: depRequests, patterns, workspaceLayout} = await install.fetchRequestFromCwd();
@@ -150,7 +158,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
   const hoisted = await install.linker.getFlatHoistedTree(patterns);
 
   // finding
-  reporter.step(3, 4, reporter.lang('whyFinding'), emoji.get('mag'));
+  reporter.step(3, total, reporter.lang('whyFinding'), emoji.get('mag'));
 
   const matches = queryWhy(query, hoisted);
 
@@ -159,7 +167,13 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
     return;
   }
 
-  const processMatch = async (match: HoistManifestTuple) => {
+  /**
+   * A method that handles all the matches for yarn why
+   * @param {*} match A `HoistManifestTuple` that denotes a match
+   * @param {*} flags Any flags provided by the calling of `yarn why`. 
+   * If `size` is provided, this method will also calculate the direct and transitive size.
+   */
+  const processMatch = async (match: HoistManifestTuple, flags: Object) => {
     const [, matchInfo] = match;
     const matchRef = matchInfo.pkg._reference;
     invariant(matchRef, 'expected reference');
@@ -199,20 +213,28 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
     }
 
     // package sizes
+    // These must be declared to avoid throwing linting errors
     let packageSize = 0;
     let directSizes = [];
     let transitiveSizes = [];
-    try {
-      packageSize = await getPackageSize(match);
-    } catch (e) {}
+
+    // If we are asked to get the size of the matches, we attempt to gather size information
+    if (flags.size) {
+      try {
+        packageSize = await getPackageSize(match);
+      } catch (e) {}
+    }
 
     const dependencies = Array.from(collect(hoisted, new Set(), match));
     const transitiveDependencies = Array.from(collect(hoisted, new Set(), match, {recursive: true}));
 
-    try {
-      directSizes = await Promise.all(dependencies.map(getPackageSize));
-      transitiveSizes = await Promise.all(transitiveDependencies.map(getPackageSize));
-    } catch (e) {}
+    // If the size flag is passed, we get the direct and transitive sizes
+    if (flags.size) {
+      try {
+        directSizes = await Promise.all(dependencies.map(getPackageSize));
+        transitiveSizes = await Promise.all(transitiveDependencies.map(getPackageSize));
+      } catch (e) {}
+    }
 
     const transitiveKeys = new Set(transitiveDependencies.map(([, info]) => info.key));
     const sharedDependencies = getSharedDependencies(hoisted, transitiveKeys);
@@ -240,7 +262,8 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
       reporter.error(reporter.lang('whyWhoKnows'));
     }
 
-    if (packageSize) {
+    // Only provide size information if we have packages with sizes as well as the size flag
+    if (packageSize && flags.size) {
       // stats: file size of this dependency without any dependencies
       reporter.info(reporter.lang('whyDiskSizeWithout', bytes(packageSize)));
 
@@ -255,9 +278,13 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
     }
   };
 
-  reporter.step(4, 4, reporter.lang('whyCalculating'), emoji.get('aerial_tramway'));
+  // Only show fourth step if the size flag is passed
+  if (flags.size) {
+    reporter.step(4, total, reporter.lang('whyCalculating'), emoji.get('aerial_tramway'));
+  }
+
   for (const match of matches) {
-    await processMatch(match);
+    await processMatch(match, flags);
   }
 }
 
