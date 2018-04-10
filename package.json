@@ -121,13 +121,9 @@
     "commit": "git-cz"
   },
   "jest": {
-    "collectCoverageFrom": [
-      "src/**/*.js"
-    ],
+    "collectCoverageFrom": ["src/**/*.js"],
     "testEnvironment": "node",
-    "modulePathIgnorePatterns": [
-      "__tests__/fixtures/"
-    ],
+    "modulePathIgnorePatterns": ["__tests__/fixtures/", "packages/pkg-tests/pkg-tests-fixtures"],
     "testPathIgnorePatterns": [
       "__tests__/(fixtures|__mocks__)/",
       "updates/",
