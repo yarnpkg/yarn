@@ -79,13 +79,13 @@ test.concurrent('with one argument shows info about the package with specified n
 });
 
 test.concurrent('with one argument does not contain readme field', (): Promise<void> => {
-  return runInfo(['left-pad@1.2.0'], {}, '', (config, output): ?Promise<void> => {
+  return runInfo(['left-pad'], {}, '', (config, output): ?Promise<void> => {
     expect(output.readme).toBe(undefined);
   });
 });
 
 test.concurrent('with two arguments and second argument "readme" shows readme string', (): Promise<void> => {
-  return runInfo(['left-pad', 'readme'], {}, '', (config, output): ?Promise<void> => {
+  return runInfo(['left-pad@1.2.0', 'readme'], {}, '', (config, output): ?Promise<void> => {
     expect(typeof output).toBe('string');
     expect(output).toMatchSnapshot('left-pad readme');
   });
