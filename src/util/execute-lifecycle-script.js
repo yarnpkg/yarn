@@ -191,13 +191,6 @@ export async function executeLifecycleScript(
   spinner?: ReporterSpinner,
   customShell?: string,
 ): LifecycleReturn {
-  // if we don't have a spinner then pipe everything to the terminal
-  const stdio = spinner ? undefined : ['ignore', 'inherit', 'inherit'];
-  // if there is a spinner, run child processes detached so they can't hang
-  // trying to read from /dev/tty but not on Windows, because Windows opens
-  // a new console window and there is no /dev/tty anyway
-  const detached = process.platform !== 'win32' && spinner;
-
   const env = await makeEnv(stage, cwd, config);
 
   await checkForGypIfNeeded(config, cmd, env[constants.ENV_PATH_KEY].split(path.delimiter));
@@ -226,6 +219,13 @@ export async function executeLifecycleScript(
       }
     };
   }
+
+  // if we don't have a spinner then pipe everything to the terminal
+  const stdio = spinner ? undefined : ['ignore', 'inherit', 'inherit'];
+  // if there is a spinner, run child processes detached so they can't hang
+  // trying to read from /dev/tty but not on Windows, because Windows opens
+  // a new console window and there is no /dev/tty anyway
+  const detached = process.platform !== 'win32' && Boolean(spinner);
   const stdout = customShell
     ? await child.spawn(customShell, [cmd], {cwd, env, stdio, detached, windowsVerbatimArguments: true}, updateProgress)
     : await child.spawn(cmd, [], {cwd, env, stdio, detached, shell: true}, updateProgress);
