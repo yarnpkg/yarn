@@ -23,6 +23,7 @@ export function setFlags(commander: Object) {
   commander.option(NEW_VERSION_FLAG, 'new version');
   commander.option('--message [message]', 'message');
   commander.option('--no-git-tag-version', 'no git tag version');
+  commander.option('--no-commit-hooks', 'bypass git hooks when committing new version');
 }
 
 export function hasWrapper(commander: Object, args: Array<string>): boolean {
@@ -130,6 +131,14 @@ export async function setVersion(
     return () => Promise.resolve();
   }
 
+  function buildCommitArgs(args): Array<string> {
+    args = args || ['commit'];
+    if (!flags.commitHooks || !config.getOption('version-commit-hooks')) {
+      args.push('-n');
+    }
+    return args;
+  }
+
   return async function(): Promise<void> {
     invariant(newVersion, 'expected version');
 
@@ -148,6 +157,7 @@ export async function setVersion(
     if (isGit) {
       const message = (flags.message || String(config.getOption('version-git-message'))).replace(/%s/g, newVersion);
       const sign: boolean = Boolean(config.getOption('version-sign-git-tag'));
+      const args = buildCommitArgs(['commit', '-m', message]);
       const flag = sign ? '-sm' : '-am';
       const prefix: string = String(config.getOption('version-tag-prefix'));
 
@@ -157,7 +167,7 @@ export async function setVersion(
       await spawnGit(['add', path.relative(gitRoot, pkgLoc)], {cwd: gitRoot});
 
       // create git commit
-      await spawnGit(['commit', '-m', message], {cwd: gitRoot});
+      await spawnGit(args, {cwd: gitRoot});
 
       // create git tag
       await spawnGit(['tag', `${prefix}${newVersion}`, flag, message], {cwd: gitRoot});
