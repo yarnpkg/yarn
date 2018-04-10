@@ -192,7 +192,11 @@ export async function executeLifecycleScript(
   customShell?: string,
 ): LifecycleReturn {
   // if we don't have a spinner then pipe everything to the terminal
-  const stdio = spinner ? undefined : 'inherit';
+  const stdio = spinner ? undefined : ['ignore', 'inherit', 'inherit'];
+  // if there is a spinner, run child processes detached so they can't hang
+  // trying to read from /dev/tty but not on Windows, because Windows opens
+  // a new console window and there is no /dev/tty anyway
+  const detached = process.platform !== 'win32' && spinner;
 
   const env = await makeEnv(stage, cwd, config);
 
@@ -223,8 +227,8 @@ export async function executeLifecycleScript(
     };
   }
   const stdout = customShell
-    ? await child.spawn(customShell, [cmd], {cwd, env, stdio, windowsVerbatimArguments: true}, updateProgress)
-    : await child.spawn(cmd, [], {cwd, env, stdio, shell: true}, updateProgress);
+    ? await child.spawn(customShell, [cmd], {cwd, env, stdio, detached, windowsVerbatimArguments: true}, updateProgress)
+    : await child.spawn(cmd, [], {cwd, env, stdio, detached, shell: true}, updateProgress);
 
   return {cwd, command: cmd, stdout};
 }
