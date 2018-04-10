@@ -101,7 +101,7 @@ function expectAnInfoMessageAfterError(command: Promise<Array<?string>>, expecte
 }
 
 test('should add package', async () => {
-  const stdout = await execCommand('add', ['left-pad'], 'run-add', true);
+  const stdout = await execCommand('add', ['left-pad@1.2.0'], 'run-add', true);
   expectAddOutput(stdout);
 });
 
