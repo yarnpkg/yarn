@@ -769,7 +769,9 @@ export class Install {
     const mirrorFiles = await fs.walk(mirror);
     for (const file of mirrorFiles) {
       const isTarball = path.extname(file.basename) === '.tgz';
-      if (isTarball && !requiredTarballs.has(file.basename)) {
+      // if using experimental-pack-script-packages-in-mirror flag, don't unlink prebuilt packages
+      const hasPrebuiltPackage = file.relative.startsWith('prebuilt/');
+      if (isTarball && !hasPrebuiltPackage && !requiredTarballs.has(file.basename)) {
         await fs.unlink(file.absolute);
       }
     }
