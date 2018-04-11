@@ -2,7 +2,7 @@ version: 2
 
 docker_defaults: &docker_defaults
   docker:
-    - image: yarnpkg/dev:latest
+    - image: yarnpkg/dev:latest@sha256:57b32c1d56ab2203931c5d70a8371e0b5e6389d311b42f8f16f312bc1b14edf0
   working_directory: ~/project/yarn
 
 macos_defaults: &macos_defaults
@@ -131,12 +131,12 @@ jobs:
   test-linux-node6:
     <<: *docker_defaults
     docker:
-      - image: node:6
+      - image: node:6@sha256:d317acbe49df83929ff0c51f18c29a2aa470a172c2d72653bf266a2822578301
     <<: *test_steps
   test-linux-node4:
     <<: *docker_defaults
     docker:
-      - image: node:4
+      - image: node:4@sha256:36adaf7ae6d88589009b54b1fef7a660768db5ec8248e82944604c07455d46ba
     <<: *test_steps
   test-macos-node8:
     <<: *macos_defaults
@@ -164,18 +164,18 @@ jobs:
   test-e2e-ubuntu1604:
     <<: *docker_defaults
     docker:
-      - image: ubuntu:16.04
+      - image: ubuntu:16.04@sha256:e348fbbea0e0a0e73ab0370de151e7800684445c509d46195aef73e090a49bd6
     <<: *test_e2e_steps
   test-e2e-ubuntu1404:
     <<: *docker_defaults
     docker:
-      - image: ubuntu:14.04
+      - image: ubuntu:14.04@sha256:ed49036f63459d6e5ed6c0f238f5e94c3a0c70d24727c793c48fded60f70aa96
     <<: *test_e2e_steps
 
   test-e2e-ubuntu1204:
     <<: *docker_defaults
     docker:
-      - image: ubuntu:12.04
+      - image: ubuntu:12.04@sha256:18305429afa14ea462f810146ba44d4363ae76e4c8dfc38288cf73aa07485005
     <<: *test_e2e_steps
 
   publish:
