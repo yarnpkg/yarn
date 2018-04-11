@@ -107,10 +107,37 @@ export default class PackageInstallScripts {
     const ref = pkg._reference;
     invariant(ref, 'expected reference');
     const loc = this.config.generateHardModulePath(ref);
+    let updateProgress;
+
+    if (cmds.length > 0) {
+      updateProgress = data => {
+        const dataStr = data
+          .toString() // turn buffer into string
+          .trim(); // trim whitespace
+
+        invariant(spinner && spinner.tick, 'We should have spinner and its ticker here');
+        if (dataStr) {
+          spinner.tick(
+            dataStr
+              // Only get the last line
+              .substr(dataStr.lastIndexOf('\n') + 1)
+              // change tabs to spaces as they can interfere with the console
+              .replace(/\t/g, ' '),
+          );
+        }
+      };
+    }
 
     try {
       for (const [stage, cmd] of cmds) {
-        const {stdout} = await executeLifecycleScript(stage, this.config, loc, cmd, spinner);
+        const {stdout} = await executeLifecycleScript({
+          stage,
+          config: this.config,
+          cwd: loc,
+          cmd,
+          isInteractive: false,
+          updateProgress,
+        });
         this.reporter.verbose(stdout);
       }
     } catch (err) {
