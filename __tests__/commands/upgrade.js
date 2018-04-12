@@ -112,7 +112,7 @@ test.concurrent('works with multiple arguments', (): Promise<void> => {
   return runUpgrade(['left-pad', 'max-safe-integer'], {}, 'multiple-packages', async (config): ?Promise<void> => {
     await expectInstalledDependency(config, 'left-pad', '^1.0.0', '1.1.3');
     await expectInstalledDependency(config, 'max-safe-integer', '^1.0.0', '1.0.1');
-    await expectInstalledDependency(config, 'is-negative-zero', '^1.0.0', '1.0.0');
+    await expectInstalledDependency(config, 'array-union', '^1.0.1', '1.0.1');
   });
 });
 
@@ -147,8 +147,9 @@ test.concurrent('upgrades from fixed version to latest with workspaces', (): Pro
 
 test.concurrent('works with just a pattern', (): Promise<void> => {
   return runUpgrade([], {pattern: 'max'}, 'multiple-packages', async (config): ?Promise<void> => {
+    await expectInstalledDependency(config, 'left-pad', '^1.0.0', '1.0.0');
     await expectInstalledDependency(config, 'max-safe-integer', '^1.0.0', '1.0.1');
-    await expectInstalledDependency(config, 'is-negative-zero', '^1.0.0', '1.0.0');
+    await expectInstalledDependency(config, 'array-union', '^1.0.1', '1.0.1');
   });
 });
 
@@ -156,7 +157,7 @@ test.concurrent('works with arguments and a pattern', (): Promise<void> => {
   return runUpgrade(['left-pad'], {pattern: 'max'}, 'multiple-packages', async (config): ?Promise<void> => {
     await expectInstalledDependency(config, 'left-pad', '^1.0.0', '1.1.3');
     await expectInstalledDependency(config, 'max-safe-integer', '^1.0.0', '1.0.1');
-    await expectInstalledDependency(config, 'is-negative-zero', '^1.0.0', '1.0.0');
+    await expectInstalledDependency(config, 'array-union', '^1.0.1', '1.0.1');
   });
 });
 
