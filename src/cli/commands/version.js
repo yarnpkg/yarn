@@ -55,6 +55,10 @@ export async function setVersion(
     return Promise.resolve();
   }
 
+  function isCommitHooksDisabled(): boolean {
+    return flags.commitHooks === false || config.getOption('version-commit-hooks') === false;
+  }
+
   if (pkg.scripts) {
     // inherit `scripts` from manifest
     Object.assign(scripts, pkg.scripts);
@@ -131,14 +135,6 @@ export async function setVersion(
     return () => Promise.resolve();
   }
 
-  function buildCommitArgs(args): Array<string> {
-    args = args || ['commit'];
-    if (!flags.commitHooks || !config.getOption('version-commit-hooks')) {
-      args.push('-n');
-    }
-    return args;
-  }
-
   return async function(): Promise<void> {
     invariant(newVersion, 'expected version');
 
@@ -157,9 +153,9 @@ export async function setVersion(
     if (isGit) {
       const message = (flags.message || String(config.getOption('version-git-message'))).replace(/%s/g, newVersion);
       const sign: boolean = Boolean(config.getOption('version-sign-git-tag'));
-      const args = buildCommitArgs(['commit', '-m', message]);
       const flag = sign ? '-sm' : '-am';
       const prefix: string = String(config.getOption('version-tag-prefix'));
+      const args: Array<string> = ['commit', '-m', message, ...(isCommitHooksDisabled() ? ['-n'] : [])];
 
       const gitRoot = (await spawnGit(['rev-parse', '--show-toplevel'], {cwd: config.cwd})).trim();
 
