@@ -1,9 +1,12 @@
+#!/usr/bin/env node
+
 /* eslint-disable max-len, flowtype/require-valid-file-annotation, flowtype/require-return-type */
 /* global packageInformationStores, $$SETUP_STATIC_TABLES */
 
 const fs = require('fs');
 const Module = require('module');
 const path = require('path');
+const StringDecoder = require('string_decoder');
 
 const builtinModules = Module.builtinModules || Object.keys(process.binding('natives'));
 
@@ -456,4 +459,31 @@ if (module.parent && module.parent.id === 'internal/preload') {
     exports.setup();
     exports.setupCompatibilityLayer();
   }
+}
+
+if (process.mainModule === module) {
+  let buffer = '';
+  let decoder = new StringDecoder.StringDecoder();
+
+  process.stdin.on('data', chunk => {
+    buffer += decoder.write(chunk);
+
+    do {
+      const index = buffer.indexOf('\n');
+      if (index === -1) {
+        break;
+      }
+
+      const line = buffer.slice(0, index);
+      buffer = buffer.slice(index + 1);
+
+      try {
+        const data = JSON.parse(line);
+        console.log(exports.resolveRequest(data[0], data[1]));
+      } catch (error) {
+        console.log(error.message);
+        continue;
+      }
+    } while (true);
+  });
 }

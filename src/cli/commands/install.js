@@ -602,7 +602,11 @@ export class Install {
             resolver: this.resolver,
             workspaceLayout,
           });
-          await fs.writeFile(`${this.config.lockfileFolder}/${constants.PNP_FILENAME}`, code);
+
+          const pnpPath = `${this.config.lockfileFolder}/${constants.PNP_FILENAME}`;
+
+          await fs.writeFile(pnpPath, code);
+          await fs.chmod(pnpPath, 0o755);
         }),
       );
     }
