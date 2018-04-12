@@ -1,6 +1,7 @@
 {
   "extends": [
     "config:base",
-    ":preserveSemverRanges"
+    ":preserveSemverRanges",
+    "docker:disable"
   ]
 }
