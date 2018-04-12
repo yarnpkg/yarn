@@ -138,8 +138,9 @@ test.concurrent('adding resolutions after install should cause lockfile regenera
         false,
       );
       const lockfile = await Lockfile.fromDirectory(config.cwd);
+      const lockManifest = lockfile.getLocked('left-pad@^1.0.0');
       // check that new version of e/left-pad in lockfile is correctly updated
-      expect(lockfile.getLocked('left-pad@^1.0.0').version).toEqual('1.1.1');
+      expect(lockManifest && lockManifest.version).toEqual('1.1.1');
     },
   );
 });
