@@ -72,15 +72,33 @@ test('run version and make sure all lifecycle steps are executed', (): Promise<v
   return runRun([], {newVersion, gitTagVersion}, 'no-args', async (config): ?Promise<void> => {
     const pkg = await fs.readJson(path.join(config.cwd, 'package.json'));
 
-    const preversionLifecycle = ['preversion', config, pkg.scripts.preversion, config.cwd];
-    const versionLifecycle = ['version', config, pkg.scripts.version, config.cwd];
-    const postversionLifecycle = ['postversion', config, pkg.scripts.postversion, config.cwd];
+    const preversionLifecycle = {
+      stage: 'preversion',
+      config,
+      cmd: pkg.scripts.preversion,
+      cwd: config.cwd,
+      isInteractive: false,
+    };
+    const versionLifecycle = {
+      stage: 'version',
+      config,
+      cmd: pkg.scripts.version,
+      cwd: config.cwd,
+      isInteractive: false,
+    };
+    const postversionLifecycle = {
+      stage: 'postversion',
+      config,
+      cmd: pkg.scripts.postversion,
+      cwd: config.cwd,
+      isInteractive: false,
+    };
 
     expect(execCommand.mock.calls.length).toBe(3);
 
-    expect(execCommand.mock.calls[0]).toEqual(preversionLifecycle);
-    expect(execCommand.mock.calls[1]).toEqual(versionLifecycle);
-    expect(execCommand.mock.calls[2]).toEqual(postversionLifecycle);
+    expect(execCommand.mock.calls[0]).toEqual([preversionLifecycle]);
+    expect(execCommand.mock.calls[1]).toEqual([versionLifecycle]);
+    expect(execCommand.mock.calls[2]).toEqual([postversionLifecycle]);
   });
 });
 
@@ -88,12 +106,24 @@ test('run version and make sure only the defined lifecycle steps are executed', 
   return runRun([], {newVersion, gitTagVersion}, 'pre-post', async (config): ?Promise<void> => {
     const pkg = await fs.readJson(path.join(config.cwd, 'package.json'));
 
-    const preversionLifecycle = ['preversion', config, pkg.scripts.preversion, config.cwd];
-    const postversionLifecycle = ['postversion', config, pkg.scripts.postversion, config.cwd];
+    const preversionLifecycle = {
+      stage: 'preversion',
+      config,
+      cmd: pkg.scripts.preversion,
+      cwd: config.cwd,
+      isInteractive: false,
+    };
+    const postversionLifecycle = {
+      stage: 'postversion',
+      config,
+      cmd: pkg.scripts.postversion,
+      cwd: config.cwd,
+      isInteractive: false,
+    };
 
     expect(execCommand.mock.calls.length).toBe(2);
 
-    expect(execCommand.mock.calls[0]).toEqual(preversionLifecycle);
-    expect(execCommand.mock.calls[1]).toEqual(postversionLifecycle);
+    expect(execCommand.mock.calls[0]).toEqual([preversionLifecycle]);
+    expect(execCommand.mock.calls[1]).toEqual([postversionLifecycle]);
   });
 });

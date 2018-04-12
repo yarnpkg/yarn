@@ -267,7 +267,7 @@ export async function execFromManifest(config: Config, commandName: string, cwd:
 
   const cmd: ?string = pkg.scripts[commandName];
   if (cmd) {
-    await execCommand({stage: commandName, config, cmd, cwd, isInteractive: false});
+    await execCommand({stage: commandName, config, cmd, cwd, isInteractive: true});
   }
 }
 
