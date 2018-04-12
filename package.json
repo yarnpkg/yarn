@@ -1,7 +1,7 @@
 {
   "name": "yarn",
   "installationMethod": "unknown",
-  "version": "1.6.0-0",
+  "version": "1.6.0",
   "license": "BSD-2-Clause",
   "preferGlobal": true,
   "description": "📦🐈 Fast, reliable, and secure dependency management.",
@@ -46,7 +46,7 @@
     "tar-stream": "^1.5.2",
     "uuid": "^3.0.1",
     "v8-compile-cache": "^1.1.0",
-    "validate-npm-package-license": "^3.0.1",
+    "validate-npm-package-license": "^3.0.3",
     "yn": "^2.0.0"
   },
   "devDependencies": {
@@ -65,7 +65,7 @@
     "cz-conventional-changelog": "^2.0.0",
     "eslint": "^4.3.0",
     "eslint-config-fb-strict": "^22.0.0",
-    "eslint-plugin-babel": "^4.0.0",
+    "eslint-plugin-babel": "^5.0.0",
     "eslint-plugin-flowtype": "^2.35.0",
     "eslint-plugin-jasmine": "^2.6.2",
     "eslint-plugin-jest": "^21.0.0",
@@ -121,9 +121,14 @@
     "commit": "git-cz"
   },
   "jest": {
-    "collectCoverageFrom": ["src/**/*.js"],
+    "collectCoverageFrom": [
+      "src/**/*.js"
+    ],
     "testEnvironment": "node",
-    "modulePathIgnorePatterns": ["__tests__/fixtures/", "packages/pkg-tests/pkg-tests-fixtures"],
+    "modulePathIgnorePatterns": [
+      "__tests__/fixtures/",
+      "packages/pkg-tests/pkg-tests-fixtures"
+    ],
     "testPathIgnorePatterns": [
       "__tests__/(fixtures|__mocks__)/",
       "updates/",
