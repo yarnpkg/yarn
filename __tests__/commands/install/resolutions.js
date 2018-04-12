@@ -125,9 +125,11 @@ test.concurrent('adding resolutions after install should cause lockfile regenera
     async (config, reporter): Promise<void> => {
       const packageJson = await fs.readFile(path.join(config.cwd, 'package.json'));
       // create new package.json with resolutions which override e/left-pad version
-      const newPackageJson = packageJson.replace(/}\n}/g, '  },\n"resolutions": {\n    "e/left-pad": "1.1.1"\n  }\n}');
+      const newPackageJson = JSON.parse(packageJson);
+      newPackageJson.resolutions = {};
+      newPackageJson.resolutions['e/left-pad'] = '1.1.1';
       // write new package.json
-      await fs.writeFile(path.join(config.cwd, 'package.json'), newPackageJson);
+      await fs.writeFile(path.join(config.cwd, 'package.json'), JSON.stringify(newPackageJson));
       // run install again
       const reinstall = new Install({}, config, reporter, await Lockfile.fromDirectory(config.cwd));
       await reinstall.init();
@@ -135,6 +137,9 @@ test.concurrent('adding resolutions after install should cause lockfile regenera
       expect(await fs.exists(path.join(config.cwd, 'node_modules', 'e', 'node_modules', 'left-pad', 'index.js'))).toBe(
         false,
       );
+      const lockfile = await Lockfile.fromDirectory(config.cwd);
+      // check that new version of e/left-pad in lockfile is correctly updated
+      expect(lockfile.getLocked('left-pad@^1.0.0').version).toEqual('1.1.1');
     },
   );
 });
