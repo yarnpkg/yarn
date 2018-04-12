@@ -37,6 +37,7 @@ export async function makeEnv(
 } {
   const env = {
     NODE: process.execPath,
+    INIT_CWD: process.cwd(),
     // This lets `process.env.NODE` to override our `process.execPath`.
     // This is a bit confusing but it is how `npm` was designed so we
     // try to be compatible with that.
