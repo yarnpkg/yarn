@@ -2171,9 +2171,11 @@ eslint-config-fbjs@^2.0.1:
   version "2.0.1"
   resolved "https://registry.yarnpkg.com/eslint-config-fbjs/-/eslint-config-fbjs-2.0.1.tgz#395896fd740e0e28dc1c2072e3bc982e88247df5"
 
-eslint-plugin-babel@^4.0.0:
-  version "4.1.1"
-  resolved "https://registry.yarnpkg.com/eslint-plugin-babel/-/eslint-plugin-babel-4.1.1.tgz#ef285c87039b67beb3bbd227f5b0eed4fb376b87"
+eslint-plugin-babel@^5.0.0:
+  version "5.0.0"
+  resolved "https://registry.yarnpkg.com/eslint-plugin-babel/-/eslint-plugin-babel-5.0.0.tgz#57c082f89bfc67f535757a8a939617667c3c5c97"
+  dependencies:
+    eslint-rule-composer "^0.1.1"
 
 eslint-plugin-flowtype@^2.35.0:
   version "2.35.0"
@@ -2228,6 +2230,10 @@ eslint-plugin-relay@^0.0.21:
 
 "eslint-plugin-yarn-internal@file:scripts/eslint-rules":
   version "0.0.0"
+
+eslint-rule-composer@^0.1.1:
+  version "0.1.1"
+  resolved "https://registry.yarnpkg.com/eslint-rule-composer/-/eslint-rule-composer-0.1.1.tgz#479dfd4e93d7f2777499a35ce9be76403c8e982a"
 
 eslint-scope@^3.7.1:
   version "3.7.1"
