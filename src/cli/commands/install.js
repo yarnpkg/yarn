@@ -424,6 +424,10 @@ export class Install {
   }
 
   async bailout(patterns: Array<string>, workspaceLayout: ?WorkspaceLayout): Promise<boolean> {
+    // PNP is so fast that the integrity check isn't pertinent
+    if (this.config.plugnplayEnabled) {
+      return false;
+    }
     if (this.flags.skipIntegrityCheck || this.flags.force) {
       return false;
     }
@@ -652,13 +656,15 @@ export class Install {
 
     // fin!
     // The second condition is to make sure lockfile can be updated when running `remove` command.
-    if (
-      topLevelPatterns.length ||
-      (await fs.exists(path.join(this.config.lockfileFolder, constants.LOCKFILE_FILENAME)))
-    ) {
-      await this.saveLockfileAndIntegrity(topLevelPatterns, workspaceLayout);
-    } else {
-      this.reporter.info(this.reporter.lang('notSavedLockfileNoDependencies'));
+    if (!this.config.plugnplayEnabled) {
+      if (
+        topLevelPatterns.length ||
+        (await fs.exists(path.join(this.config.lockfileFolder, constants.LOCKFILE_FILENAME)))
+      ) {
+        await this.saveLockfileAndIntegrity(topLevelPatterns, workspaceLayout);
+      } else {
+        this.reporter.info(this.reporter.lang('notSavedLockfileNoDependencies'));
+      }
     }
     this.maybeOutputUpdate();
     this.config.requestManager.clearCache();
