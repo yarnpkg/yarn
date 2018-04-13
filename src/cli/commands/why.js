@@ -229,7 +229,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
     let transitiveSizes = [];
 
     // If we are asked to get the size of the matches, we attempt to gather size information
-    if (flags.size) {
+    if (flags.withSize) {
       try {
         packageSize = await getPackageSize(match);
       } catch (e) {}
@@ -239,7 +239,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
     const transitiveDependencies = Array.from(collect(hoisted, new Set(), match, {recursive: true}));
 
     // If the size flag is passed, we get the direct and transitive sizes
-    if (flags.size) {
+    if (flags.withSize) {
       try {
         directSizes = await Promise.all(dependencies.map(getPackageSize));
         transitiveSizes = await Promise.all(transitiveDependencies.map(getPackageSize));
@@ -273,7 +273,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
     }
 
     // Only provide size information if we have packages with sizes as well as the size flag
-    if (packageSize && flags.size) {
+    if (packageSize && flags.withSize) {
       // stats: file size of this dependency without any dependencies
       reporter.info(reporter.lang('whyDiskSizeWithout', bytes(packageSize)));
 
@@ -289,7 +289,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
   };
 
   // Only show fourth step if the size flag is passed
-  if (flags.size) {
+  if (flags.withSize) {
     steps.push({msg: reporter.lang('whyCalculating'), emoji: emoji.get('aerial_tramway'), action: () => {}});
     displayStep(steps, 3);
   }
