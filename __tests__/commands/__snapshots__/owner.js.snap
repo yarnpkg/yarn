@@ -1,0 +1,8 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`list should show owners 1`] = `
+"{\\"type\\":\\"warning\\",\\"data\\":\\"package.json: No license field\\"}
+{\\"type\\":\\"step\\",\\"data\\":{\\"message\\":\\"Getting owners for package \\\\\\"yarn\\\\\\"\\",\\"current\\":1,\\"total\\":1}}
+{\\"type\\":\\"info\\",\\"data\\":\\"daniel15 <npm@dan.cx>\\"}
+"
+`;
