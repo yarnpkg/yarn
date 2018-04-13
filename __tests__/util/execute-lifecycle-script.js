@@ -1,6 +1,6 @@
 /* @flow */
 import path from 'path';
-import {makeEnv} from '../../src/util/execute-lifecycle-script';
+import {IGNORE_MANIFEST_KEYS, makeEnv} from '../../src/util/execute-lifecycle-script';
 import Config from '../../src/config';
 import {NoopReporter} from '../../src/reporters';
 
@@ -82,17 +82,21 @@ describe('makeEnv', () => {
     });
 
     it('it omits certain fields which tend to be too large', async () => {
-      const config = await withManifest('', '', {
-        readme: 'I shall be infinitely long',
-        notice: 'I am the very long legalese that nobody but lawyers care about',
-        licenseText: 'I am important but tend to be long',
-        hello: 'I shall stay',
-      });
+      const testManifest = {hello: 'I shall stay'};
+      for (const key of IGNORE_MANIFEST_KEYS) {
+        testManifest[key] = 'some long text we want to omit';
+        // ensure we don't carry an previously set environment variables for these
+        // to make tests consistent across runs with
+        delete process.env[`npm_package_${key}`];
+      }
+
+      const config = await withManifest('', '', testManifest);
       const env = await makeEnv('', cwd, config);
-      expect(env).not.toHaveProperty('npm_package_readme');
-      expect(env).not.toHaveProperty('npm_package_notice');
-      expect(env).not.toHaveProperty('npm_package_licenseText');
+
       expect(env).toHaveProperty('npm_package_hello', 'I shall stay');
+      for (const key of IGNORE_MANIFEST_KEYS) {
+        expect(env).not.toHaveProperty(`npm_package_${key}`);
+      }
     });
   });
 
