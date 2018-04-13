@@ -19,7 +19,7 @@ export type LifecycleReturn = Promise<{
   stdout: string,
 }>;
 
-export const IGNORE_MANIFEST_KEYS = new Set(['readme', 'notice', 'licenseText']);
+export const IGNORE_MANIFEST_KEYS: Set<string> = new Set(['readme', 'notice', 'licenseText']);
 
 // We treat these configs as internal, thus not expose them to process.env.
 // This helps us avoid some gyp issues when building native modules.
