@@ -22,3 +22,4 @@ test/fixtures/**/.fbkpm
 .idea
 .yarn-meta
 /packages/lockfile/index.js
+.vscode/

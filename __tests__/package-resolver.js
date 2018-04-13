@@ -52,8 +52,8 @@ function addTest(pattern, registry = 'npm', init: ?(cacheFolder: string) => Prom
 }
 
 addTest('https://github.com/ocaml/ocaml-re'); // git url with no .git
-addTest('git+https://github.com/ocaml/ocaml.git#4.02.3'); // git+hash
-addTest('https://github.com/ocaml/ocaml.git#4.02.3'); // hash
+addTest('git+https://github.com/stevemao/left-pad.git#1.3.0'); // git+hash
+addTest('https://github.com/stevemao/left-pad.git#1.3.0'); // hash
 addTest('https://git@github.com/stevemao/left-pad.git'); // git url, with username
 addTest('https://bitbucket.org/hgarcia/node-bitbucket-api.git'); // hosted git url
 addTest('https://github.com/yarnpkg/yarn/releases/download/v0.18.1/yarn-v0.18.1.tar.gz'); // tarball

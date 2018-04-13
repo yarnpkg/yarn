@@ -37,6 +37,7 @@ export async function makeEnv(
 } {
   const env = {
     NODE: process.execPath,
+    INIT_CWD: process.cwd(),
     // This lets `process.env.NODE` to override our `process.execPath`.
     // This is a bit confusing but it is how `npm` was designed so we
     // try to be compatible with that.
@@ -51,7 +52,7 @@ export async function makeEnv(
 
   env.npm_lifecycle_event = stage;
   env.npm_node_execpath = env.NODE;
-  env.npm_execpath = env.npm_execpath || process.mainModule.filename;
+  env.npm_execpath = env.npm_execpath || (process.mainModule && process.mainModule.filename);
 
   // Set the env to production for npm compat if production mode.
   // https://github.com/npm/npm/blob/30d75e738b9cb7a6a3f9b50e971adcbe63458ed3/lib/utils/lifecycle.js#L336

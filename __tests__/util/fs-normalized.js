@@ -1,6 +1,6 @@
 /* @flow */
 
-import {fileDatesEqual} from '../../src/util/fs.js';
+import {fileDatesEqual} from '../../src/util/fs-normalized.js';
 
 describe('fileDatesEqual', () => {
   describe('!win32', () => {

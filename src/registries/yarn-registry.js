@@ -15,6 +15,7 @@ const path = require('path');
 export const DEFAULTS = {
   'version-tag-prefix': 'v',
   'version-git-tag': true,
+  'version-commit-hooks': true,
   'version-git-sign': false,
   'version-git-message': 'v%s',
 
@@ -33,6 +34,7 @@ const npmMap = {
   'version-git-sign': 'sign-git-tag',
   'version-tag-prefix': 'tag-version-prefix',
   'version-git-tag': 'git-tag-version',
+  'version-commit-hooks': 'commit-hooks',
   'version-git-message': 'message',
 };
 

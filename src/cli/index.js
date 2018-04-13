@@ -180,6 +180,7 @@ export function main({
     }
   }
 
+  commander.originalArgs = args;
   args = [...preCommandArgs, ...args];
 
   command.setFlags(commander);
