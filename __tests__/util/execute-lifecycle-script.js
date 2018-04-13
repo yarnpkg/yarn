@@ -80,6 +80,20 @@ describe('makeEnv', () => {
       const env = await makeEnv('', cwd, config);
       expect(env['npm_package_in_va_d_key']).toEqual('test');
     });
+
+    it('it omits certain fields which tend to be too large', async () => {
+      const config = await withManifest('', '', {
+        readme: 'I shall be infinitely long',
+        notice: 'I am the very long legalese that nobody but lawyers care about',
+        licenseText: 'I am important but tend to be long',
+        hello: 'I shall stay',
+      });
+      const env = await makeEnv('', cwd, config);
+      expect(env).not.toHaveProperty('npm_package_readme');
+      expect(env).not.toHaveProperty('npm_package_notice');
+      expect(env).not.toHaveProperty('npm_package_licenseText');
+      expect(env).toHaveProperty('npm_package_hello', 'I shall stay');
+    });
   });
 
   describe('npm_package_config_*', () => {
