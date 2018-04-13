@@ -39,6 +39,12 @@ describe('makeEnv', () => {
     expect(env.NODE_ENV).toEqual('production');
   });
 
+  it('assigns INIT_CWD to env', async () => {
+    const config = await initConfig();
+    const env = await makeEnv('test-script', cwd, config);
+    expect(env.INIT_CWD).toEqual(process.cwd());
+  });
+
   describe('npm_package_*', () => {
     it('assigns npm_lifecycle_script if manifest has a matching script', async () => {
       const stage = 'test-script';
