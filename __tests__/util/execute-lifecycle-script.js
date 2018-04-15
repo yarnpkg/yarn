@@ -1,6 +1,6 @@
 /* @flow */
 import path from 'path';
-import {makeEnv} from '../../src/util/execute-lifecycle-script';
+import {IGNORE_MANIFEST_KEYS, makeEnv} from '../../src/util/execute-lifecycle-script';
 import Config from '../../src/config';
 import {NoopReporter} from '../../src/reporters';
 
@@ -39,6 +39,12 @@ describe('makeEnv', () => {
     expect(env.NODE_ENV).toEqual('production');
   });
 
+  it('assigns INIT_CWD to env', async () => {
+    const config = await initConfig();
+    const env = await makeEnv('test-script', cwd, config);
+    expect(env.INIT_CWD).toEqual(process.cwd());
+  });
+
   describe('npm_package_*', () => {
     it('assigns npm_lifecycle_script if manifest has a matching script', async () => {
       const stage = 'test-script';
@@ -73,6 +79,24 @@ describe('makeEnv', () => {
       const config = await withManifest('', '', {'in^va!d_key': 'test'});
       const env = await makeEnv('', cwd, config);
       expect(env['npm_package_in_va_d_key']).toEqual('test');
+    });
+
+    it('it omits certain fields which tend to be too large', async () => {
+      const testManifest = {hello: 'I shall stay'};
+      for (const key of IGNORE_MANIFEST_KEYS) {
+        testManifest[key] = 'some long text we want to omit';
+        // ensure we don't carry an previously set environment variables for these
+        // to make tests consistent across runs with
+        delete process.env[`npm_package_${key}`];
+      }
+
+      const config = await withManifest('', '', testManifest);
+      const env = await makeEnv('', cwd, config);
+
+      expect(env).toHaveProperty('npm_package_hello', 'I shall stay');
+      for (const key of IGNORE_MANIFEST_KEYS) {
+        expect(env).not.toHaveProperty(`npm_package_${key}`);
+      }
     });
   });
 
