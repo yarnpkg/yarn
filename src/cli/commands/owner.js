@@ -89,7 +89,7 @@ async function list(config: Config, reporter: Reporter, flags: Object, args: Arr
   }
   const name = await getName(args, config);
   reporter.step(1, 1, reporter.lang('ownerGetting', name));
-  const pkg = await config.registries.npm.request(name);
+  const pkg = await config.registries.npm.request(name, {unfiltered: true});
   if (pkg) {
     const owners = pkg.maintainers;
     if (!owners || !owners.length) {

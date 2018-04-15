@@ -17,6 +17,7 @@ export type RegistryRequestOptions = {
   headers?: Object,
   process?: Function,
   registry?: string,
+  unfiltered?: boolean,
 };
 
 export type CheckOutdatedReturn = Promise<{
@@ -94,14 +95,9 @@ export default class BaseRegistry {
   }
 
   request(pathname: string, opts?: RegistryRequestOptions = {}): Promise<*> {
-    const extraHeaders = (opts && opts.headers) || {};
     return this.requestManager.request({
       url: pathname,
       ...opts,
-      headers: {
-        Accept: 'application/json',
-        ...extraHeaders,
-      },
     });
   }
 
