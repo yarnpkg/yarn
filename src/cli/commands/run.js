@@ -62,23 +62,23 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
     if (pkgScripts && action in pkgScripts) {
       const preAction = `pre${action}`;
       if (preAction in pkgScripts) {
-        cmds.push([preAction, pkgScripts[preAction], false]);
+        cmds.push([preAction, pkgScripts[preAction]]);
       }
 
-      cmds.push([action, scripts[action], true]);
+      cmds.push([action, scripts[action]]);
 
       const postAction = `post${action}`;
       if (postAction in pkgScripts) {
-        cmds.push([postAction, pkgScripts[postAction], false]);
+        cmds.push([postAction, pkgScripts[postAction]]);
       }
     } else if (scripts[action]) {
-      cmds.push([action, scripts[action], true]);
+      cmds.push([action, scripts[action]]);
     }
 
     if (cmds.length) {
       // Disable wrapper in executed commands
       process.env.YARN_WRAP_OUTPUT = 'false';
-      for (const [stage, cmd, isInteractive] of cmds) {
+      for (const [stage, cmd] of cmds) {
         // only tack on trailing arguments for default script, ignore for pre and post - #1595
         const cmdWithArgs = stage === action ? sh`${unquoted(cmd)} ${args}` : cmd;
         const customShell = config.getOption('script-shell');
@@ -88,11 +88,11 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
             config,
             cmd: cmdWithArgs,
             cwd: config.cwd,
-            isInteractive,
+            isInteractive: true,
             customShell: String(customShell),
           });
         } else {
-          await execCommand({stage, config, cmd: cmdWithArgs, cwd: config.cwd, isInteractive});
+          await execCommand({stage, config, cmd: cmdWithArgs, cwd: config.cwd, isInteractive: true});
         }
       }
     } else if (action === 'env') {

@@ -80,21 +80,21 @@ test('run version and make sure all lifecycle steps are executed', (): Promise<v
       config,
       cmd: pkg.scripts.preversion,
       cwd: config.cwd,
-      isInteractive: false,
+      isInteractive: true,
     };
     const versionLifecycle = {
       stage: 'version',
       config,
       cmd: pkg.scripts.version,
       cwd: config.cwd,
-      isInteractive: false,
+      isInteractive: true,
     };
     const postversionLifecycle = {
       stage: 'postversion',
       config,
       cmd: pkg.scripts.postversion,
       cwd: config.cwd,
-      isInteractive: false,
+      isInteractive: true,
     };
 
     expect(execCommand.mock.calls.length).toBe(3);
@@ -114,14 +114,14 @@ test('run version and make sure only the defined lifecycle steps are executed', 
       config,
       cmd: pkg.scripts.preversion,
       cwd: config.cwd,
-      isInteractive: false,
+      isInteractive: true,
     };
     const postversionLifecycle = {
       stage: 'postversion',
       config,
       cmd: pkg.scripts.postversion,
       cwd: config.cwd,
-      isInteractive: false,
+      isInteractive: true,
     };
 
     expect(execCommand.mock.calls.length).toBe(2);

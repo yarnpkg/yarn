@@ -87,8 +87,8 @@ test('runs script containing spaces', (): Promise<void> =>
 test('properly handles extra arguments and pre/post scripts', (): Promise<void> =>
   runRun(['start', '--hello'], {}, 'extra-args', async (config): ?Promise<void> => {
     const pkg = await fs.readJson(path.join(config.cwd, 'package.json'));
-    const poststart = {stage: 'poststart', config, cmd: pkg.scripts.poststart, cwd: config.cwd, isInteractive: false};
-    const prestart = {stage: 'prestart', config, cmd: pkg.scripts.prestart, cwd: config.cwd, isInteractive: false};
+    const poststart = {stage: 'poststart', config, cmd: pkg.scripts.poststart, cwd: config.cwd, isInteractive: true};
+    const prestart = {stage: 'prestart', config, cmd: pkg.scripts.prestart, cwd: config.cwd, isInteractive: true};
     const start = {stage: 'start', config, cmd: pkg.scripts.start + ' --hello', cwd: config.cwd, isInteractive: true};
 
     expect(execCommand.mock.calls[0]).toEqual([prestart]);
