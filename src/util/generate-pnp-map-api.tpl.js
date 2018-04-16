@@ -13,9 +13,29 @@ const pathRegExp = /^(?!\.{0,2}(?:\/|$))((?:@[^\/]+\/)?[^\/]+)\/?(.*|)$/;
 const isDirRegExp = /[\\\/]$/;
 
 const topLevelLocator = {name: null, reference: null};
+const blacklistedLocator = {name: NaN, reference: NaN};
 
 const moduleShims = new Map();
 const moduleCache = new Map();
+
+/**
+ * Ensures that the returned locator isn't a blacklisted one.
+ */
+
+// eslint-disable-next-line no-unused-vars
+function blacklistCheck(locator) {
+  if (locator === blacklistedLocator) {
+    throw new Error(
+      [
+        `A package has been resolved through a blacklisted path - this is usually caused by one of your tool calling`,
+        `"realpath" on the return value of "require.resolve". Since the returned values use symlinks to disambiguate`,
+        `peer dependencies, they must be passed untransformed to "require".`,
+      ].join(` `),
+    );
+  }
+
+  return locator;
+}
 
 $$SETUP_STATIC_TABLES();
 
