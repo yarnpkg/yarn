@@ -49,6 +49,13 @@ test_build: &test_build
       fi;
       yarn build
 
+test_e2e_steps: &test_e2e_steps
+  steps:
+    - checkout
+    - run:
+        command: cd end_to_end_tests/data && ./run-ubuntu.sh
+
+
 test_run: &test_run
   run:
     name: Tests
@@ -154,6 +161,22 @@ jobs:
       - *attach_workspace
       - *test_build
       - *test_run
+  test-e2e-ubuntu1604:
+    <<: *docker_defaults
+    docker:
+      - image: ubuntu:16.04
+    <<: *test_e2e_steps
+  test-e2e-ubuntu1404:
+    <<: *docker_defaults
+    docker:
+      - image: ubuntu:14.04
+    <<: *test_e2e_steps
+
+  test-e2e-ubuntu1204:
+    <<: *docker_defaults
+    docker:
+      - image: ubuntu:12.04
+    <<: *test_e2e_steps
 
   publish:
     <<: *docker_defaults
@@ -177,6 +200,19 @@ notify:
 
 workflows:
   version: 2
+  nightly:
+    triggers:
+      - schedule:
+          cron: "0 0 * * *"
+          filters:
+            branches:
+              only:
+                - master
+    jobs:
+      - test-e2e-ubuntu1604
+      - test-e2e-ubuntu1404
+      - test-e2e-ubuntu1204
+
   install-test-build-and-publish:
     jobs:
       - install:

@@ -12,7 +12,7 @@ fi;
 # number from Yarn site
 if [ -z "$YARN_VERSION" ]; then
   echo 'Getting Yarn version from https://yarnpkg.com/latest-version'
-  version=`curl --fail https://yarnpkg.com/latest-version`
+  version=`curl --compressed --fail https://yarnpkg.com/latest-version`
 else
   version="$YARN_VERSION"
 fi
@@ -38,7 +38,7 @@ popd
 # Grab latest Yarn release so we can hash it
 url=https://yarnpkg.com/downloads/$version/yarn-v$version.tar.gz
 tempfile=`mktemp -t 'yarn-release-XXXXXXXX.tar.gz'`
-curl --fail -L -o $tempfile $url
+curl --compressed --fail -L -o $tempfile $url
 hash=`sha256sum $tempfile | head -c 64`
 
 # Update the formula!

@@ -180,6 +180,7 @@ export function main({
     }
   }
 
+  commander.originalArgs = args;
   args = [...preCommandArgs, ...args];
 
   command.setFlags(commander);
@@ -378,8 +379,14 @@ export function main({
           });
 
           response.on('end', () => {
-            const {cwd, pid} = JSON.parse(Buffer.concat(buffers).toString());
-            reporter.warn(reporter.lang('waitingNamedInstance', pid, cwd));
+            try {
+              const {cwd, pid} = JSON.parse(Buffer.concat(buffers).toString());
+              reporter.warn(reporter.lang('waitingNamedInstance', pid, cwd));
+            } catch (error) {
+              reporter.verbose(error);
+              reject(new Error(reporter.lang('mutexPortBusy', connectionOptions.port)));
+              return;
+            }
             waitForTheNetwork();
           });
 
@@ -421,6 +428,8 @@ export function main({
     log.push(`Node version: ${indent(process.versions.node)}`);
     log.push(`Platform: ${indent(process.platform + ' ' + process.arch)}`);
 
+    log.push(`Trace: ${indent(err.stack)}`);
+
     // add manifests
     for (const registryName of registryNames) {
       const possibleLoc = path.join(config.cwd, registries[registryName].filename);
@@ -435,8 +444,6 @@ export function main({
     );
     const lockfile = fs.existsSync(lockLoc) ? fs.readFileSync(lockLoc, 'utf8') : 'No lockfile';
     log.push(`Lockfile: ${indent(lockfile)}`);
-
-    log.push(`Trace: ${indent(err.stack)}`);
 
     const errorReportLoc = writeErrorReport(log);
 

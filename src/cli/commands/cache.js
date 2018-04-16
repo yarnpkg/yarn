@@ -4,7 +4,6 @@ import type {Reporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
 import buildSubCommands from './_build-sub-commands.js';
 import * as fs from '../../util/fs.js';
-import {METADATA_FILENAME} from '../../constants';
 
 const path = require('path');
 const micromatch = require('micromatch');
@@ -13,36 +12,96 @@ export function hasWrapper(flags: Object, args: Array<string>): boolean {
   return args[0] !== 'dir';
 }
 
-async function list(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
-  async function readCacheMetadata(parentDir = config.cacheFolder): Promise<Array<Array<string>>> {
-    const folders = await fs.readdir(parentDir);
-    const packagesMetadata = [];
+function isScopedPackageDirectory(packagePath): boolean {
+  return packagePath.indexOf('@') > -1;
+}
 
-    for (const folder of folders) {
-      if (folder[0] === '.') {
-        continue;
-      }
+async function getPackagesPaths(config, currentPath): Object {
+  const results = [];
+  const stat = await fs.lstat(currentPath);
 
-      const loc = path.join(parentDir, folder);
-      // Check if this is a scoped package
-      if (folder.indexOf('@') > -1) {
-        // If so, recurrently read scoped packages metadata
-        packagesMetadata.push(...(await readCacheMetadata(loc)));
-      } else {
-        const {registry, package: manifest, remote} = await config.readPackageMetadata(loc);
-        if (flags.pattern && !micromatch.contains(manifest.name, flags.pattern)) {
-          continue;
-        }
-        packagesMetadata.push([manifest.name, manifest.version, registry, (remote && remote.resolved) || '']);
-      }
-    }
-
-    return packagesMetadata;
+  if (!stat.isDirectory()) {
+    return results;
   }
 
-  const body = await readCacheMetadata();
+  const folders = await fs.readdir(currentPath);
+  for (const folder of folders) {
+    if (folder[0] === '.') {
+      continue;
+    }
+    const packagePath = path.join(currentPath, folder);
+    if (isScopedPackageDirectory(folder)) {
+      results.push(...(await getPackagesPaths(config, packagePath)));
+    } else {
+      results.push(packagePath);
+    }
+  }
+  return results;
+}
 
+function _getMetadataWithPath(getMetadataFn: Function, paths: Array<String>): Promise<Array<Object>> {
+  return Promise.all(
+    paths.map(path =>
+      getMetadataFn(path)
+        .then(r => {
+          r._path = path;
+          return r;
+        })
+        .catch(error => undefined),
+    ),
+  );
+}
+
+async function getCachedPackages(config): Object {
+  const paths = await getPackagesPaths(config, config.cacheFolder);
+  return _getMetadataWithPath(config.readPackageMetadata.bind(config), paths).then(packages =>
+    packages.filter(p => !!p),
+  );
+}
+
+async function list(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
+  const filterOut = ({registry, package: manifest, remote} = {}) => {
+    if (flags.pattern && !micromatch.contains(manifest.name, flags.pattern)) {
+      return false;
+    }
+    return true;
+  };
+
+  const forReport = ({registry, package: manifest, remote} = {}) => [
+    manifest.name,
+    manifest.version,
+    registry,
+    (remote && remote.resolved) || '',
+  ];
+
+  const packages = await getCachedPackages(config);
+  const body = packages.filter(filterOut).map(forReport);
   reporter.table(['Name', 'Version', 'Registry', 'Resolved'], body);
+}
+
+async function clean(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
+  if (config.cacheFolder) {
+    const activity = reporter.activity();
+
+    if (args.length > 0) {
+      // Clear named packages from cache
+      const packages = await getCachedPackages(config);
+      const shouldDelete = ({registry, package: manifest, remote} = {}) => args.indexOf(manifest.name) !== -1;
+      const packagesToDelete = packages.filter(shouldDelete);
+
+      for (const manifest of packagesToDelete) {
+        await fs.unlink(manifest._path); // save package path when retrieving
+      }
+      activity.end();
+      reporter.success(reporter.lang('clearedPackageFromCache', args[0]));
+    } else {
+      // Clear all cache
+      await fs.unlink(config._cacheRootFolder);
+      await fs.mkdirp(config.cacheFolder);
+      activity.end();
+      reporter.success(reporter.lang('clearedCache'));
+    }
+  }
 }
 
 const {run, setFlags: _setFlags, examples} = buildSubCommands('cache', {
@@ -50,71 +109,10 @@ const {run, setFlags: _setFlags, examples} = buildSubCommands('cache', {
     reporter.warn(`\`yarn cache ls\` is deprecated. Please use \`yarn cache list\`.`);
     await list(config, reporter, flags, args);
   },
-
   list,
-
+  clean,
   dir(config: Config, reporter: Reporter) {
     reporter.log(config.cacheFolder, {force: true});
-  },
-
-  async clean(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
-    async function getPackageCachefolders(
-      packageName,
-      parentDir = config.cacheFolder,
-      metadataFile = METADATA_FILENAME,
-    ): Promise<Array<string>> {
-      const folders = await fs.readdir(parentDir);
-      const packageFolders = [];
-
-      for (const folder of folders) {
-        if (folder[0] === '.') {
-          continue;
-        }
-
-        const loc = path.join(config.cacheFolder, parentDir.replace(config.cacheFolder, ''), folder);
-        // Check if this is a scoped package
-        if (!await fs.exists(path.join(loc, metadataFile))) {
-          // If so, recurrently read scoped packages metadata
-          packageFolders.push(...(await getPackageCachefolders(packageName, loc)));
-        } else {
-          const {package: manifest} = await config.readPackageMetadata(loc);
-          if (packageName === manifest.name) {
-            packageFolders.push(loc);
-          }
-        }
-      }
-
-      return packageFolders;
-    }
-
-    if (config.cacheFolder) {
-      const activity = reporter.activity();
-
-      if (args.length > 0) {
-        for (const arg of args) {
-          // Clear named package from cache
-          const folders = await getPackageCachefolders(arg);
-
-          if (folders.length === 0) {
-            activity.end();
-            reporter.warn(reporter.lang('couldntClearPackageFromCache', arg));
-            continue;
-          }
-
-          for (const folder of folders) {
-            await fs.unlink(folder);
-          }
-          activity.end();
-          reporter.success(reporter.lang('clearedPackageFromCache', arg));
-        }
-      } else {
-        // Clear all cache
-        await fs.unlink(config._cacheRootFolder);
-        await fs.mkdirp(config.cacheFolder);
-        activity.end();
-        reporter.success(reporter.lang('clearedCache'));
-      }
-    }
   },
 });
 

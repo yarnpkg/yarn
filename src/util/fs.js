@@ -2,6 +2,7 @@
 
 import type {ReadStream} from 'fs';
 import type Reporter from '../reporters/base-reporter.js';
+import type {CopyFileAction} from './fs-normalized.js';
 
 import fs from 'fs';
 import globModule from 'glob';
@@ -12,6 +13,7 @@ import BlockingQueue from './blocking-queue.js';
 import * as promise from './promise.js';
 import {promisify} from './promise.js';
 import map from './map.js';
+import {copyFile, fileDatesEqual, unlink} from './fs-normalized.js';
 
 export const constants =
   typeof fs.constants !== 'undefined'
@@ -32,45 +34,19 @@ export const readdir: (path: string, opts: void) => Promise<Array<string>> = pro
 export const rename: (oldPath: string, newPath: string) => Promise<void> = promisify(fs.rename);
 export const access: (path: string, mode?: number) => Promise<void> = promisify(fs.access);
 export const stat: (path: string) => Promise<fs.Stats> = promisify(fs.stat);
-export const unlink: (path: string) => Promise<void> = promisify(require('rimraf'));
 export const mkdirp: (path: string) => Promise<void> = promisify(require('mkdirp'));
 export const exists: (path: string) => Promise<boolean> = promisify(fs.exists, true);
 export const lstat: (path: string) => Promise<fs.Stats> = promisify(fs.lstat);
 export const chmod: (path: string, mode: number | string) => Promise<void> = promisify(fs.chmod);
 export const link: (src: string, dst: string) => Promise<fs.Stats> = promisify(fs.link);
 export const glob: (path: string, options?: Object) => Promise<Array<string>> = promisify(globModule);
+export {unlink};
 
 // fs.copyFile uses the native file copying instructions on the system, performing much better
 // than any JS-based solution and consumes fewer resources. Repeated testing to fine tune the
 // concurrency level revealed 128 as the sweet spot on a quad-core, 16 CPU Intel system with SSD.
 const CONCURRENT_QUEUE_ITEMS = fs.copyFile ? 128 : 4;
 
-const open: (path: string, flags: string | number, mode: number) => Promise<number> = promisify(fs.open);
-const close: (fd: number) => Promise<void> = promisify(fs.close);
-const write: (
-  fd: number,
-  buffer: Buffer,
-  offset: ?number,
-  length: ?number,
-  position: ?number,
-) => Promise<void> = promisify(fs.write);
-const futimes: (fd: number, atime: number, mtime: number) => Promise<void> = promisify(fs.futimes);
-const copyFile: (src: string, dest: string, flags: number, data: CopyFileAction) => Promise<void> = fs.copyFile
-  ? // Don't use `promisify` to avoid passing  the last, argument `data`, to the native method
-    (src, dest, flags, data) =>
-      new Promise((resolve, reject) => fs.copyFile(src, dest, flags, err => (err ? reject(err) : resolve(err))))
-  : async (src, dest, flags, data) => {
-      // Use open -> write -> futimes -> close sequence to avoid opening the file twice:
-      // one with writeFile and one with utimes
-      const fd = await open(dest, 'w', data.mode);
-      try {
-        const buffer = await readFileBuffer(src);
-        await write(fd, buffer, 0, buffer.length);
-        await futimes(fd, data.atime, data.mtime);
-      } finally {
-        await close(fd);
-      }
-    };
 const fsSymlink: (target: string, path: string, type?: 'dir' | 'file' | 'junction') => Promise<void> = promisify(
   fs.symlink,
 );
@@ -88,14 +64,6 @@ export type CopyQueueItem = {
 };
 
 type CopyQueue = Array<CopyQueueItem>;
-
-type CopyFileAction = {
-  src: string,
-  dest: string,
-  atime: number,
-  mtime: number,
-  mode: number,
-};
 
 type LinkFileAction = {
   src: string,
@@ -130,36 +98,6 @@ type FailedFolderQuery = {
 type FolderQueryResult = {
   skipped: Array<FailedFolderQuery>,
   folder: ?string,
-};
-
-export const fileDatesEqual = (a: Date, b: Date) => {
-  const aTime = a.getTime();
-  const bTime = b.getTime();
-
-  if (process.platform !== 'win32') {
-    return aTime === bTime;
-  }
-
-  // See https://github.com/nodejs/node/pull/12607
-  // Submillisecond times from stat and utimes are truncated on Windows,
-  // causing a file with mtime 8.0079998 and 8.0081144 to become 8.007 and 8.008
-  // and making it impossible to update these files to their correct timestamps.
-  if (Math.abs(aTime - bTime) <= 1) {
-    return true;
-  }
-
-  const aTimeSec = Math.floor(aTime / 1000);
-  const bTimeSec = Math.floor(bTime / 1000);
-
-  // See https://github.com/nodejs/node/issues/2069
-  // Some versions of Node on windows zero the milliseconds when utime is used
-  // So if any of the time has a milliseconds part of zero we suspect that the
-  // bug is present and compare only seconds.
-  if (aTime - aTimeSec * 1000 === 0 || bTime - bTimeSec * 1000 === 0) {
-    return aTimeSec === bTimeSec;
-  }
-
-  return aTime === bTime;
 };
 
 async function buildActionsForCopy(
@@ -275,6 +213,13 @@ async function buildActionsForCopy(
           await access(dest, srcStat.mode);
         } catch (err) {}
       } */
+
+      if (bothFiles && artifactFiles.has(dest)) {
+        // this file gets changed during build, likely by a custom install script. Don't bother checking it.
+        onDone();
+        reporter.verbose(reporter.lang('verboseFileSkipArtifact', src));
+        return;
+      }
 
       if (bothFiles && srcStat.size === destStat.size && fileDatesEqual(srcStat.mtime, destStat.mtime)) {
         // we can safely assume this is the same file
@@ -467,6 +412,13 @@ async function buildActionsForHardlink(
         }
       }
 
+      if (bothFiles && artifactFiles.has(dest)) {
+        // this file gets changed during build, likely by a custom install script. Don't bother checking it.
+        onDone();
+        reporter.verbose(reporter.lang('verboseFileSkipArtifact', src));
+        return;
+      }
+
       // correct hardlink
       if (bothFiles && srcStat.ino !== null && srcStat.ino === destStat.ino) {
         onDone();
@@ -558,23 +510,6 @@ export function copy(src: string, dest: string, reporter: Reporter): Promise<voi
   return copyBulk([{src, dest}], reporter);
 }
 
-/**
- * Unlinks the destination to force a recreation. This is needed on case-insensitive file systems
- * to force the correct naming when the filename has changed only in character-casing. (Jest -> jest).
- * It also calls a cleanup function once it is done.
- *
- * `data` contains target file attributes like mode, atime and mtime. Built-in copyFile copies these
- * automatically but our polyfill needs the do this manually, thus needs the info.
- */
-const safeCopyFile = async function(data: CopyFileAction, cleanup: () => mixed): Promise<void> {
-  try {
-    await unlink(data.dest);
-    await copyFile(data.src, data.dest, 0, data);
-  } finally {
-    cleanup();
-  }
-};
-
 export async function copyBulk(
   queue: CopyQueue,
   reporter: Reporter,
@@ -610,7 +545,7 @@ export async function copyBulk(
       }
 
       reporter.verbose(reporter.lang('verboseFileCopy', data.src, data.dest));
-      const copier = safeCopyFile(data, () => currentlyWriting.delete(data.dest));
+      const copier = copyFile(data, () => currentlyWriting.delete(data.dest));
       currentlyWriting.set(data.dest, copier);
       events.onProgress(data.dest);
       return copier;

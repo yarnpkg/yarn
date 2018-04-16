@@ -161,7 +161,10 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
       reporter.list('possibleCommands', Array.from(pkgCommands), toObject(printedCommands));
       await reporter
         .question(reporter.lang('commandQuestion'))
-        .then(answer => runCommand(answer.split(' ')), () => reporter.error(reporter.lang('commandNotSpecified')));
+        .then(
+          answer => runCommand(answer.trim().split(' ')),
+          () => reporter.error(reporter.lang('commandNotSpecified')),
+        );
     } else {
       reporter.error(reporter.lang('noScriptsAvailable'));
     }

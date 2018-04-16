@@ -19,7 +19,8 @@
      "plugins": [
        ["array-includes"],
        ["transform-inline-imports-commonjs"],
-       ["transform-runtime", { "polyfill": true, "regenerator": false }]
+       ["transform-runtime", { "polyfill": true, "regenerator": false }],
+       ["transform-builtin-extend", { "globals": ["Error"] }]
      ]
    },
    "test": {

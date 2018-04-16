@@ -52,6 +52,7 @@ const messages = {
   verboseFileRemoveExtraneous: 'Removing extraneous file $0.',
   verboseFilePhantomExtraneous:
     "File $0 would be marked as extraneous but has been removed as it's listed as a phantom file.",
+  verboseFileSkipArtifact: 'Skipping copying of $0 as the file is marked as a built artifact and subject to change.',
   verboseFileFolder: 'Creating directory $0.',
 
   verboseRequestStart: 'Performing $0 request to $1.',
@@ -190,7 +191,7 @@ const messages = {
 
   workspacesNohoistRequirePrivatePackages:
     'nohoist config is ignored in $0 because it is not a private package. If you think nohoist should be allowed in public packages, please submit an issue for your use case.',
-  workspacesNohoistDisabled: `$0 defines nohoist but the feature is disabled in your Yarn config. Please check "workspaces-nohoist-experimental" in your .yarnrc file.`,
+  workspacesNohoistDisabled: `$0 defines nohoist but the feature is disabled in your Yarn config ("workspaces-nohoist-experimental" in .yarnrc file)`,
 
   workspaceRootNotFound: "Cannot find the root of your workspace - are you sure you're currently in a workspace?",
   workspaceMissingWorkspace: 'Missing workspace name.',
@@ -395,6 +396,7 @@ const messages = {
   verboseUpgradeNotUnlocking: 'Not unlocking $0 in the lockfile because it is a new or direct dependency.',
   verboseUpgradeUnlocking: 'Unlocking $0 in the lockfile.',
   folderMissing: "Directory $0 doesn't exist",
+  mutexPortBusy: 'Cannot use the network mutex on port $0. It is probably used by another app.',
 };
 
 export type LanguageKeys = $Keys<typeof messages>;
