@@ -263,6 +263,12 @@ async function getPackageInformationStores(
           packageInformation.packageDependencies.set(dependencyName, dependencyReference);
         }
       }
+
+      // Finally, unless a package depends on a previous version of itself (that would be weird but correct...), we
+      // inject them an implicit dependency to themselves (so that they can require themselves)
+      if (!packageInformation.packageDependencies.has(packageName)) {
+        packageInformation.packageDependencies.set(packageName, packageReference);
+      }
     }
 
     return resolutions;
