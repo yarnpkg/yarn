@@ -22,5 +22,10 @@
         "bracketSpacing": false,
         "printWidth": 120,
         "parser": "flow"
+    },
+    "jest": {
+        "modulePathIgnorePatterns": [
+            "<rootDir>[/\\\\]pkg-tests-fixtures[/\\\\]packages[/\\\\]"
+        ]
     }
 }

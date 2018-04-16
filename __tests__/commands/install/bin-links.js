@@ -165,3 +165,37 @@ test('Only top level (after hoisting) bin links should be linked', (): Promise<v
     expect(stdout[0]).toEqual('uglify-js 3.0.14');
   });
 });
+
+describe('with nohoist', () => {
+  // address https://github.com/yarnpkg/yarn/issues/5487
+  test('nohoist bin should be linked to its own local module', (): Promise<void> => {
+    return runInstall({binLinks: true}, 'install-bin-links-nohoist', async config => {
+      // make sure all links are created at the right locations and executed correctly
+      const stdout1 = await execCommand(config.cwd, ['node_modules', '.bin', 'exec-a'], []);
+      const stdout2 = await execCommand(config.cwd, ['node_modules', '.bin', 'exec-f'], []);
+      const stdout3 = await execCommand(config.cwd, ['packages', 'a-dep', 'node_modules', '.bin', 'found-me'], []);
+      const stdout4 = await execCommand(config.cwd, ['packages', 'f-dep', 'node_modules', '.bin', 'found-me'], []);
+      expect(stdout1[0]).toEqual('exec-a');
+      expect(stdout2[0]).toEqual('exec-f');
+      expect(stdout3[0]).toEqual('found-me');
+      expect(stdout4[0]).toEqual('found-me');
+
+      // make sure the shared links: found-me are pointing to the local module
+      const localLink = '../found-me/bin.js';
+      expect(await linkAt(config, 'packages', 'a-dep', 'node_modules', '.bin', 'found-me')).toEqual(localLink);
+      expect(await linkAt(config, 'packages', 'f-dep', 'node_modules', '.bin', 'found-me')).toEqual(localLink);
+    });
+  });
+  test('nohoist bin should not be linked at top level, unless it is a top-level package', (): Promise<void> => {
+    return runInstall({binLinks: true}, 'install-bin-links-nohoist', async config => {
+      expect(await fs.exists(path.join(config.cwd, 'node_modules', '.bin', 'exec-a'))).toEqual(true);
+      expect(await fs.exists(path.join(config.cwd, 'node_modules', '.bin', 'exec-f'))).toEqual(true);
+      expect(await fs.exists(path.join(config.cwd, 'node_modules', '.bin', 'found-me'))).toEqual(false);
+
+      // the top-level packages should never be marked nohoist, even if they match nohoist patterns.
+      // therefore, expect those still linked at the root node_modules.
+      expect(await fs.exists(path.join(config.cwd, 'node_modules', '.bin', 'top-module'))).toEqual(true);
+      expect(await linkAt(config, 'node_modules', '.bin', 'top-module')).toEqual('../top-module/bin.js');
+    });
+  });
+});

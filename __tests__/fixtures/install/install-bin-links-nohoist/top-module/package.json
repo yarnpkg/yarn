@@ -1,0 +1,7 @@
+{
+  "name": "top-module",
+  "version": "0.0.1",
+  "bin": {
+    "top-module": "./bin.js"
+  }
+}

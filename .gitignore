@@ -24,3 +24,4 @@ test/fixtures/**/.fbkpm
 .pnp.js
 .pnp
 /packages/lockfile/index.js
+.vscode/

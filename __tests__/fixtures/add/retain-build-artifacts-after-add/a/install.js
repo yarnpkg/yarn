@@ -1,1 +1,1 @@
-require('fs').writeFileSync('foo.txt', 'foobar');
+require('fs').writeFileSync('foo.txt', new Date().getTime());

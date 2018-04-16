@@ -128,3 +128,5 @@ export const VERSION_COLOR_SCHEME: {[key: string]: VersionColor} = {
 };
 
 export type VersionColor = 'red' | 'yellow' | 'green' | 'white';
+
+export type RequestHint = 'dev' | 'optional' | 'resolution' | 'workspaces';

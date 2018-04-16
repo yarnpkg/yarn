@@ -1,49 +1,42 @@
 environment:
   matrix:
-    - node_version: "8"
-    - node_version: "6"
-    - node_version: "4"
-
+    - node_version: '8'
 branches:
   only:
-  - master
-  - /v[0-9]+(\.[0-9]+)*/
-
+    - master
+    - '/v[0-9]+(\.[0-9]+)*/'
 install:
-  - ps: Install-Product node $env:node_version
+  - ps: 'Install-Product node $env:node_version'
   - yarn install --frozen-lockfile
-
 build_script:
-  - ps: if ($env:APPVEYOR_REPO_BRANCH -eq 'master') { node ./scripts/set-dev-version.js }
+  - ps: >-
+      if ($env:APPVEYOR_REPO_BRANCH -eq 'master') { node
+      ./scripts/set-dev-version.js }
   - yarn run build-dist
   - yarn run build-win-installer
-
 test_script:
-  - node --version
-  - node ./node_modules/jest/bin/jest.js --coverage --verbose
-
+  - cmd: |-
+      SET npm_execpath=%APPVEYOR_BUILD_FOLDER%\bin\yarn.js
+      node ./node_modules/jest/bin/jest.js --verbose --maxWorkers=3
 artifacts:
   - path: artifacts/*.msi
     name: Installer
-
 cache:
- - node_modules
- - "%LOCALAPPDATA%/Yarn"
-
+  - node_modules
+  - '%LOCALAPPDATA%/Yarn'
 notifications:
   - provider: Webhook
-    url: https://nightly.yarnpkg.com/archive_appveyor
+    url: 'https://nightly.yarnpkg.com/archive_appveyor'
     method: POST
     headers:
       Authorization:
         secure: uH4c9HNDdRuL4omqqbTtBq3KgzjGTFmpvPdiNuk9391Z0YXRoRLA1Ptpa3seZ0Pt
     on_build_failure: false
-
 deploy:
   - provider: Webhook
-    url: https://nightly.yarnpkg.com/release_appveyor
+    url: 'https://nightly.yarnpkg.com/release_appveyor'
     authorization:
       secure: uH4c9HNDdRuL4omqqbTtBq3KgzjGTFmpvPdiNuk9391Z0YXRoRLA1Ptpa3seZ0Pt
     on:
-      branch: /v[0-9]+(\.[0-9]+)*/
+      branch: '/v[0-9]+(\.[0-9]+)*/'
       appveyor_repo_tag: true
