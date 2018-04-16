@@ -89,9 +89,10 @@ function generateFindPackageLocator(packageInformationStores: PackageInformation
     }
   }
 
-  // We sort the lengths by the number of time they are used, so that the more common ones are tested before the others
+  // We must try the larger lengths before the smaller ones, because smaller ones might also match the longest ones
+  // (for instance, /project/path will match /project/path/.pnp/global/node_modules/pnp-cf5f9c17b8f8db)
   const sortedLengths = Array.from(lengths.entries()).sort((a, b) => {
-    return b[1] - a[1];
+    return b[0] - a[0];
   });
 
   // Generate a function that, given a file path, returns the associated package name
