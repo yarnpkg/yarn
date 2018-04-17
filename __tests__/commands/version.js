@@ -163,3 +163,24 @@ test('run version and make sure commit hooks are disabled by config', async (): 
     expect(spawn.mock.calls[2][0]).toEqual(gitArgs);
   });
 });
+
+test('run version with --major flag and make sure major version is incremented', (): Promise<void> => {
+  return runRun([], {gitTagVersion, major: true}, 'no-args', async (config): ?Promise<void> => {
+    const pkg = await fs.readJson(path.join(config.cwd, 'package.json'));
+    expect(pkg.version).toEqual('2.0.0');
+  });
+});
+
+test('run version with --minor flag and make sure minor version is incremented', (): Promise<void> => {
+  return runRun([], {gitTagVersion, minor: true}, 'no-args', async (config): ?Promise<void> => {
+    const pkg = await fs.readJson(path.join(config.cwd, 'package.json'));
+    expect(pkg.version).toEqual('1.1.0');
+  });
+});
+
+test('run version with --patch flag and make sure patch version is incremented', (): Promise<void> => {
+  return runRun([], {gitTagVersion, patch: true}, 'no-args', async (config): ?Promise<void> => {
+    const pkg = await fs.readJson(path.join(config.cwd, 'package.json'));
+    expect(pkg.version).toEqual('1.0.1');
+  });
+});

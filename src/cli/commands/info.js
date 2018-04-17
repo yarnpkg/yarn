@@ -60,10 +60,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
   const packageInput = NpmRegistry.escapeName(packageName);
   const {name, version} = parsePackageName(packageInput);
 
-  // pass application/json Accept to get full metadata for info command
-  let result = await config.registries.npm.request(name, {
-    headers: {Accept: 'application/json'},
-  });
+  let result = await config.registries.npm.request(name, {unfiltered: true});
   if (!result) {
     reporter.error(reporter.lang('infoFail'));
     return;

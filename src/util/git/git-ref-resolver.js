@@ -19,6 +19,7 @@ export type ResolveVersionOptions = {
 };
 type Names = {tags: Array<string>, heads: Array<string>};
 
+const REF_PREFIX = 'refs/';
 const REF_TAG_PREFIX = 'refs/tags/';
 const REF_BRANCH_PREFIX = 'refs/heads/';
 const REF_PR_PREFIX = 'refs/pull/';
@@ -68,6 +69,9 @@ const tryVersionAsPullRequestNo = ({version, refs}: ResolveVersionOptions): ?Res
 
 const tryVersionAsBranchName = ({version, refs}: ResolveVersionOptions): ?ResolvedSha =>
   tryRef(refs, `${REF_BRANCH_PREFIX}${version}`);
+
+const tryVersionAsDirectRef = ({version, refs}: ResolveVersionOptions): ?ResolvedSha =>
+  tryRef(refs, `${REF_PREFIX}${version}`);
 
 const computeSemverNames = ({config, refs}: ResolveVersionOptions): Names => {
   const names = {
@@ -120,6 +124,7 @@ const VERSION_RESOLUTION_STEPS: Array<(ResolveVersionOptions) => ?ResolvedSha | 
   tryVersionAsBranchName,
   tryVersionAsSemverRange,
   tryWildcardVersionAsDefaultBranch,
+  tryVersionAsDirectRef,
 ];
 
 /**
