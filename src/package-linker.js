@@ -4,7 +4,7 @@ import type {Manifest} from './types.js';
 import type PackageResolver from './package-resolver.js';
 import type {Reporter} from './reporters/index.js';
 import type Config from './config.js';
-import type {HoistManifestTuples} from './package-hoister.js';
+import type {HoistManifestTuples, HoistManifestTuple} from './package-hoister.js';
 import type {CopyQueueItem} from './util/fs.js';
 import type {InstallArtifacts} from './package-install-scripts.js';
 import PackageHoister from './package-hoister.js';
@@ -13,7 +13,7 @@ import * as promise from './util/promise.js';
 import {entries} from './util/misc.js';
 import * as fs from './util/fs.js';
 import lockMutex from './util/mutex.js';
-import {satisfiesWithPreleases} from './util/semver.js';
+import {satisfiesWithPrereleases} from './util/semver.js';
 import WorkspaceLayout from './workspace-layout.js';
 
 const invariant = require('invariant');
@@ -56,6 +56,7 @@ export default class PackageLinker {
   resolver: PackageResolver;
   config: Config;
   topLevelBinLinking: boolean;
+  _treeHash: ?Map<string, HoistManifestTuple>;
 
   setArtifacts(artifacts: InstallArtifacts) {
     this.artifacts = artifacts;
@@ -65,7 +66,12 @@ export default class PackageLinker {
     this.topLevelBinLinking = topLevelBinLinking;
   }
 
-  async linkSelfDependencies(pkg: Manifest, pkgLoc: string, targetBinLoc: string): Promise<void> {
+  async linkSelfDependencies(
+    pkg: Manifest,
+    pkgLoc: string,
+    targetBinLoc: string,
+    override: boolean = false,
+  ): Promise<void> {
     targetBinLoc = path.join(targetBinLoc, '.bin');
     await fs.mkdirp(targetBinLoc);
     targetBinLoc = await fs.realpath(targetBinLoc);
@@ -74,8 +80,10 @@ export default class PackageLinker {
       const dest = path.join(targetBinLoc, scriptName);
       const src = path.join(pkgLoc, scriptCmd);
       if (!await fs.exists(src)) {
-        // TODO maybe throw an error
-        continue;
+        if (!override) {
+          // TODO maybe throw an error
+          continue;
+        }
       }
       await linkBin(src, dest);
     }
@@ -218,7 +226,8 @@ export default class PackageLinker {
 
       const copiedDest = copiedSrcs.get(src);
       if (!copiedDest) {
-        if (hardlinksEnabled) {
+        // no point to hardlink to a symlink
+        if (hardlinksEnabled && type !== 'symlink') {
           copiedSrcs.set(src, dest);
         }
         copyQueue.set(dest, {
@@ -407,10 +416,15 @@ export default class PackageLinker {
       // create links in transient dependencies
       await promise.queue(
         flatTree,
-        async ([dest, {pkg}]) => {
+        async ([dest, {pkg, isNohoist, parts}]) => {
           if (pkg._reference && pkg._reference.location) {
             const binLoc = path.join(dest, this.config.getFolder(pkg));
             await this.linkBinDependencies(pkg, binLoc);
+            if (isNohoist) {
+              // if nohoist, we need to override the binLink to point to the local destination
+              const parentBinLoc = this.getParentBinLoc(parts, flatTree);
+              await this.linkSelfDependencies(pkg, dest, parentBinLoc, true);
+            }
             tickBin();
           }
         },
@@ -436,13 +450,37 @@ export default class PackageLinker {
     }
   }
 
+  _buildTreeHash(flatTree: HoistManifestTuples): Map<string, HoistManifestTuple> {
+    const hash: Map<string, HoistManifestTuple> = new Map();
+    for (const [dest, hoistManifest] of flatTree) {
+      const key: string = hoistManifest.parts.join('#');
+      hash.set(key, [dest, hoistManifest]);
+    }
+    this._treeHash = hash;
+    return hash;
+  }
+
+  getParentBinLoc(parts: Array<string>, flatTree: HoistManifestTuples): string {
+    const hash = this._treeHash || this._buildTreeHash(flatTree);
+    const parent = parts.slice(0, -1).join('#');
+    const tuple = hash.get(parent);
+    if (!tuple) {
+      throw new Error(`failed to get parent '${parent}' binLoc`);
+    }
+    const [dest, hoistManifest] = tuple;
+    const parentBinLoc = path.join(dest, this.config.getFolder(hoistManifest.pkg));
+
+    return parentBinLoc;
+  }
+
   determineTopLevelBinLinkOrder(flatTree: HoistManifestTuples): HoistManifestTuples {
     const linksToCreate = new Map();
     for (const [dest, hoistManifest] of flatTree) {
-      const {pkg, isDirectRequire} = hoistManifest;
+      const {pkg, isDirectRequire, isNohoist} = hoistManifest;
       const {name} = pkg;
 
-      if (isDirectRequire || (this.topLevelBinLinking && !linksToCreate.has(name))) {
+      // a nohoist package should not be linked at topLevel bin
+      if (!isNohoist && (isDirectRequire || (this.topLevelBinLinking && !linksToCreate.has(name)))) {
         linksToCreate.set(name, [dest, hoistManifest]);
       }
     }
@@ -535,7 +573,7 @@ export default class PackageLinker {
   }
 
   _satisfiesPeerDependency(range: string, version: string): boolean {
-    return range === '*' || satisfiesWithPreleases(version, range, this.config.looseSemver);
+    return range === '*' || satisfiesWithPrereleases(version, range, this.config.looseSemver);
   }
 
   async _warnForMissingBundledDependencies(pkg: Manifest): Promise<void> {

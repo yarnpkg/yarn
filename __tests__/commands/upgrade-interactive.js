@@ -11,6 +11,7 @@ const path = require('path');
 
 const fixturesLoc = path.join(__dirname, '..', 'fixtures', 'upgrade-interactive');
 const runUpgrade = buildRun.bind(null, ConsoleReporter, fixturesLoc, (args, flags, config, reporter): Promise<void> => {
+  config.commandName = 'upgrade-interactive';
   return upgradeInteractive(config, reporter, flags, args);
 });
 

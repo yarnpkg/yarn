@@ -23,6 +23,7 @@ import {getRcConfigForCwd, getRcArgs} from '../rc.js';
 import {spawnp, forkp} from '../util/child.js';
 import {version} from '../util/yarn-version.js';
 import handleSignals from '../util/signal-handler.js';
+import {boolify, boolifyWithDefault} from '../util/conversion.js';
 
 function findProjectRoot(base: string): string {
   let prev = null;
@@ -38,16 +39,6 @@ function findProjectRoot(base: string): string {
   } while (dir !== prev);
 
   return base;
-}
-
-const boolify = val => val.toString().toLowerCase() !== 'false' && val !== '0';
-
-function boolifyWithDefault(val: any, defaultResult: boolean): boolean {
-  if (val === undefined || val === null || val === '') {
-    return defaultResult;
-  } else {
-    return boolify(val);
-  }
 }
 
 export function main({
@@ -172,15 +163,24 @@ export function main({
   const command = commands[commandName];
 
   let warnAboutRunDashDash = false;
-  // we are using "yarn <script> -abc" or "yarn run <script> -abc", we want -abc to be script options, not yarn options
-  if (command === commands.run || command === commands.create) {
+  // we are using "yarn <script> -abc", "yarn run <script> -abc", or "yarn node -abc", we want -abc
+  // to be script options, not yarn options
+  const PROXY_COMMANDS = new Set([`run`, `create`, `node`]);
+  if (PROXY_COMMANDS.has(commandName)) {
     if (endArgs.length === 0) {
-      endArgs = ['--', ...args.splice(1)];
+      // the "run" and "create" command take one argument that we want to parse as usual (the
+      // script/package name), hence the splice(1)
+      if (command === commands.run || command === commands.create) {
+        endArgs = ['--', ...args.splice(1)];
+      } else {
+        endArgs = ['--', ...args];
+      }
     } else {
       warnAboutRunDashDash = true;
     }
   }
 
+  commander.originalArgs = args;
   args = [...preCommandArgs, ...args];
 
   command.setFlags(commander);
@@ -206,6 +206,7 @@ export function main({
     verbose: commander.verbose,
     noProgress: !commander.progress,
     isSilent: boolifyWithDefault(process.env.YARN_SILENT, false) || commander.silent,
+    nonInteractive: commander.nonInteractive,
   });
 
   const exit = exitCode => {
@@ -378,8 +379,14 @@ export function main({
           });
 
           response.on('end', () => {
-            const {cwd, pid} = JSON.parse(Buffer.concat(buffers).toString());
-            reporter.warn(reporter.lang('waitingNamedInstance', pid, cwd));
+            try {
+              const {cwd, pid} = JSON.parse(Buffer.concat(buffers).toString());
+              reporter.warn(reporter.lang('waitingNamedInstance', pid, cwd));
+            } catch (error) {
+              reporter.verbose(error);
+              reject(new Error(reporter.lang('mutexPortBusy', connectionOptions.port)));
+              return;
+            }
             waitForTheNetwork();
           });
 
@@ -421,6 +428,8 @@ export function main({
     log.push(`Node version: ${indent(process.versions.node)}`);
     log.push(`Platform: ${indent(process.platform + ' ' + process.arch)}`);
 
+    log.push(`Trace: ${indent(err.stack)}`);
+
     // add manifests
     for (const registryName of registryNames) {
       const possibleLoc = path.join(config.cwd, registries[registryName].filename);
@@ -435,8 +444,6 @@ export function main({
     );
     const lockfile = fs.existsSync(lockLoc) ? fs.readFileSync(lockLoc, 'utf8') : 'No lockfile';
     log.push(`Lockfile: ${indent(lockfile)}`);
-
-    log.push(`Trace: ${indent(err.stack)}`);
 
     const errorReportLoc = writeErrorReport(log);
 

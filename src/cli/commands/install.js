@@ -30,6 +30,7 @@ import WorkspaceLayout from '../../workspace-layout.js';
 import ResolutionMap from '../../resolution-map.js';
 import guessName from '../../util/guess-name';
 
+const deepEqual = require('deepequal');
 const emoji = require('node-emoji');
 const invariant = require('invariant');
 const path = require('path');
@@ -84,7 +85,7 @@ type Flags = {
 
 function getUpdateCommand(installationMethod: InstallationMethod): ?string {
   if (installationMethod === 'tar') {
-    return `curl -o- -L ${constants.YARN_INSTALLER_SH} | bash`;
+    return `curl --compressed -o- -L ${constants.YARN_INSTALLER_SH} | bash`;
   }
 
   if (installationMethod === 'homebrew') {
@@ -281,7 +282,12 @@ export class Install {
         }
       }
 
-      const pushDeps = (depType, manifest: Object, {hint, optional}, isUsed) => {
+      const pushDeps = (
+        depType,
+        manifest: Object,
+        {hint, optional}: {hint: ?constants.RequestHint, optional: boolean},
+        isUsed,
+      ) => {
         if (ignoreUnusedPatterns && !isUsed) {
           return;
         }
@@ -535,7 +541,6 @@ export class Install {
     steps.push((curr: number, total: number) =>
       callThroughHook('resolveStep', async () => {
         this.reporter.step(curr, total, this.reporter.lang('resolvingPackages'), emoji.get('mag'));
-        this.resolutionMap.setTopLevelPatterns(rawPatterns);
         await this.resolver.init(this.prepareRequests(depRequests), {
           isFlat: this.flags.flat,
           isFrozen: this.flags.frozenLockfile,
@@ -762,7 +767,9 @@ export class Install {
     const mirrorFiles = await fs.walk(mirror);
     for (const file of mirrorFiles) {
       const isTarball = path.extname(file.basename) === '.tgz';
-      if (isTarball && !requiredTarballs.has(file.basename)) {
+      // if using experimental-pack-script-packages-in-mirror flag, don't unlink prebuilt packages
+      const hasPrebuiltPackage = file.relative.startsWith('prebuilt/');
+      if (isTarball && !hasPrebuiltPackage && !requiredTarballs.has(file.basename)) {
         await fs.unlink(file.absolute);
       }
     }
@@ -809,7 +816,11 @@ export class Install {
     });
     const resolverPatternsAreSameAsInLockfile = Object.keys(lockfileBasedOnResolver).every(pattern => {
       const manifest = this.lockfile.getLocked(pattern);
-      return manifest && manifest.resolved === lockfileBasedOnResolver[pattern].resolved;
+      return (
+        manifest &&
+        manifest.resolved === lockfileBasedOnResolver[pattern].resolved &&
+        deepEqual(manifest.prebuiltVariants, lockfileBasedOnResolver[pattern].prebuiltVariants)
+      );
     });
 
     // remove command is followed by install with force, lockfile will be rewritten in any case then

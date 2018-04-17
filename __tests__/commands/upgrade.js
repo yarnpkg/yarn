@@ -12,6 +12,7 @@ const path = require('path');
 
 const fixturesLoc = path.join(__dirname, '..', 'fixtures', 'upgrade');
 const runUpgrade = buildRun.bind(null, ConsoleReporter, fixturesLoc, (args, flags, config, reporter): Promise<void> => {
+  config.commandName = 'upgrade';
   return upgrade(config, reporter, flags, args);
 });
 
@@ -20,7 +21,8 @@ const _expectDependency = async (depType, config, name, range, expectedVersion) 
   const pkg = await fs.readJson(path.join(config.cwd, 'package.json'));
   expect(pkg[depType][name]).toBeDefined();
   expect(pkg[depType][name]).toEqual(range);
-  expect(lockfile).toContainPackage(`${name}@${range}:`, expectedVersion);
+  const pattern = name.startsWith('@') ? `"${name}@${range}"` : `${name}@${range}`;
+  expect(lockfile).toContainPackage(`${pattern}:`, expectedVersion);
 };
 
 const expectInstalledDependency = async (config, name, range, expectedVersion) => {
@@ -110,7 +112,7 @@ test.concurrent('works with multiple arguments', (): Promise<void> => {
   return runUpgrade(['left-pad', 'max-safe-integer'], {}, 'multiple-packages', async (config): ?Promise<void> => {
     await expectInstalledDependency(config, 'left-pad', '^1.0.0', '1.1.3');
     await expectInstalledDependency(config, 'max-safe-integer', '^1.0.0', '1.0.1');
-    await expectInstalledDependency(config, 'is-negative-zero', '^1.0.0', '1.0.0');
+    await expectInstalledDependency(config, 'array-union', '^1.0.1', '1.0.1');
   });
 });
 
@@ -145,8 +147,9 @@ test.concurrent('upgrades from fixed version to latest with workspaces', (): Pro
 
 test.concurrent('works with just a pattern', (): Promise<void> => {
   return runUpgrade([], {pattern: 'max'}, 'multiple-packages', async (config): ?Promise<void> => {
+    await expectInstalledDependency(config, 'left-pad', '^1.0.0', '1.0.0');
     await expectInstalledDependency(config, 'max-safe-integer', '^1.0.0', '1.0.1');
-    await expectInstalledDependency(config, 'is-negative-zero', '^1.0.0', '1.0.0');
+    await expectInstalledDependency(config, 'array-union', '^1.0.1', '1.0.1');
   });
 });
 
@@ -154,7 +157,7 @@ test.concurrent('works with arguments and a pattern', (): Promise<void> => {
   return runUpgrade(['left-pad'], {pattern: 'max'}, 'multiple-packages', async (config): ?Promise<void> => {
     await expectInstalledDependency(config, 'left-pad', '^1.0.0', '1.1.3');
     await expectInstalledDependency(config, 'max-safe-integer', '^1.0.0', '1.0.1');
-    await expectInstalledDependency(config, 'is-negative-zero', '^1.0.0', '1.0.0');
+    await expectInstalledDependency(config, 'array-union', '^1.0.1', '1.0.1');
   });
 });
 
@@ -280,6 +283,7 @@ test.concurrent('informs the type of dependency after upgrade', (): Promise<void
     reporters.BufferReporter,
     fixturesLoc,
     async (args, flags, config, reporter): Promise<void> => {
+      config.commandName = 'upgrade';
       await upgrade(config, reporter, flags, args);
 
       const output = reporter.getBuffer();
@@ -308,6 +312,8 @@ test.concurrent('warns when peer dependency is not met after upgrade', (): Promi
     reporters.BufferReporter,
     fixturesLoc,
     async (args, flags, config, reporter): Promise<void> => {
+      config.commandName = 'upgrade';
+
       await upgrade(config, reporter, flags, args);
 
       const output = reporter.getBuffer();
@@ -330,6 +336,8 @@ test.concurrent("doesn't warn when peer dependency is still met after upgrade", 
     reporters.BufferReporter,
     fixturesLoc,
     async (args, flags, config, reporter): Promise<void> => {
+      config.commandName = 'upgrade';
+
       await upgrade(config, reporter, flags, args);
 
       const output = reporter.getBuffer();
@@ -344,6 +352,31 @@ test.concurrent("doesn't warn when peer dependency is still met after upgrade", 
     ['themer'],
     {},
     'peer-dependency-no-warn',
+  );
+});
+
+// Regression test for #4840
+test.concurrent("doesn't warn when upgrading a devDependency", (): Promise<void> => {
+  return buildRun(
+    reporters.BufferReporter,
+    fixturesLoc,
+    async (args, flags, config, reporter): Promise<void> => {
+      config.commandName = 'upgrade';
+
+      await upgrade(config, reporter, flags, args);
+
+      const output = reporter.getBuffer();
+      const warnings = output.filter(entry => entry.type === 'warning');
+
+      expect(
+        warnings.some(warning => {
+          return warning.data.toString().toLowerCase().indexOf('is already in') > -1;
+        }),
+      ).toEqual(false);
+    },
+    ['left-pad'],
+    {},
+    'dev-dependency-no-warn',
   );
 });
 
@@ -372,11 +405,21 @@ test.concurrent('respects --scope flag', (): Promise<void> => {
   });
 });
 
+test.concurrent('respects --scope flag with caret', (): Promise<void> => {
+  return runUpgrade([], {scope: '@angular'}, 'respects-scope-flag-with-caret', async (config): ?Promise<void> => {
+    await expectInstalledDependency(config, '@angular-mdl/core', '^4.0.0', '4.0.0');
+    await expectInstalledDependency(config, '@angular/core', '^2.4.9', '2.4.10');
+    await expectInstalledDependency(config, 'left-pad', '^1.0.0', '1.0.0');
+  });
+});
+
 test.concurrent('--latest works if there is an install script on a hoisted dependency', (): Promise<void> => {
   return buildRun(
     reporters.BufferReporter,
     fixturesLoc,
     async (args, flags, config, reporter): Promise<void> => {
+      config.commandName = 'upgrade';
+
       await upgrade(config, reporter, flags, args);
 
       const output = reporter.getBuffer();

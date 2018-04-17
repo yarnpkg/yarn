@@ -6,6 +6,7 @@ import type PackageRequest from './package-request.js';
 import type {FetcherNames} from './fetchers/index.js';
 import type {Reporter} from './reporters/index.js';
 import type Config from './config.js';
+import type {RequestHint} from './constants';
 
 export type CLIFunction = (config: Config, reporter: Reporter, flags: Object, args: Array<string>) => CLIFunctionReturn;
 
@@ -18,7 +19,7 @@ export type DependencyRequestPattern = {
   pattern: string,
   registry: RegistryNames,
   optional: boolean,
-  hint?: ?string,
+  hint?: ?RequestHint,
   parentNames?: Array<string>,
   parentRequest?: ?PackageRequest,
   workspaceName?: string,
@@ -141,6 +142,8 @@ export type Manifest = {
   // We need to preserve the flag because we print a list of new packages in
   // the end of the add command
   fresh?: boolean,
+
+  prebuiltVariants?: {[filename: string]: string},
 };
 
 //

@@ -19,6 +19,8 @@ import invariant from 'invariant';
 import path from 'path';
 import semver from 'semver';
 
+const SILENCE_DEPENDENCY_TYPE_WARNINGS = ['upgrade', 'upgrade-interactive'];
+
 export class Add extends Install {
   constructor(args: Array<string>, flags: Object, config: Config, reporter: Reporter, lockfile: Lockfile) {
     const workspaceRootIsCwd = config.cwd === config.lockfileFolder;
@@ -244,8 +246,10 @@ export class Add extends Install {
 
       object[dependencyType] = object[dependencyType] || {};
       object[dependencyType][pkgName] = version;
-
-      if (dependencyType !== this.flagToOrigin) {
+      if (
+        SILENCE_DEPENDENCY_TYPE_WARNINGS.indexOf(this.config.commandName) === -1 &&
+        dependencyType !== this.flagToOrigin
+      ) {
         this.reporter.warn(this.reporter.lang('moduleAlreadyInManifest', pkgName, dependencyType, this.flagToOrigin));
       }
     });

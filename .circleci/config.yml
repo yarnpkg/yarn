@@ -49,6 +49,13 @@ test_build: &test_build
       fi;
       yarn build
 
+test_e2e_steps: &test_e2e_steps
+  steps:
+    - checkout
+    - run:
+        command: cd end_to_end_tests/data && ./run-ubuntu.sh
+
+
 test_run: &test_run
   run:
     name: Tests
@@ -61,6 +68,25 @@ test_steps: &test_steps
     - *attach_workspace
     - *test_build
     - *test_run
+
+pkg_tests_install: &pkg_tests_install
+  run:
+    name: Install the dependencies for the pkg-tests testsuite
+    command: |
+        ./bin/yarn --cwd packages/pkg-tests
+
+pkg_tests_run: &pkg_tests_run
+  run:
+    name: Tests (pkg-tests testsuite)
+    command: |
+        ./bin/yarn --cwd packages/pkg-tests jest yarn.test.js
+
+pkg_tests: &pkg_tests
+  steps:
+    - *attach_workspace
+    - *test_build
+    - *pkg_tests_install
+    - *pkg_tests_run
 
 default_filters: &default_filters
   tags:
@@ -96,6 +122,9 @@ jobs:
           root: ~/project
           paths:
             - yarn
+  test-pkg-tests-linux-node8:
+    <<: *docker_defaults
+    <<: *pkg_tests
   test-linux-node8:
     <<: *docker_defaults
     <<: *test_steps
@@ -132,6 +161,22 @@ jobs:
       - *attach_workspace
       - *test_build
       - *test_run
+  test-e2e-ubuntu1604:
+    <<: *docker_defaults
+    docker:
+      - image: ubuntu:16.04
+    <<: *test_e2e_steps
+  test-e2e-ubuntu1404:
+    <<: *docker_defaults
+    docker:
+      - image: ubuntu:14.04
+    <<: *test_e2e_steps
+
+  test-e2e-ubuntu1204:
+    <<: *docker_defaults
+    docker:
+      - image: ubuntu:12.04
+    <<: *test_e2e_steps
 
   publish:
     <<: *docker_defaults
@@ -155,11 +200,28 @@ notify:
 
 workflows:
   version: 2
+  nightly:
+    triggers:
+      - schedule:
+          cron: "0 0 * * *"
+          filters:
+            branches:
+              only:
+                - master
+    jobs:
+      - test-e2e-ubuntu1604
+      - test-e2e-ubuntu1404
+      - test-e2e-ubuntu1204
+
   install-test-build-and-publish:
     jobs:
       - install:
           filters: *default_filters
       - lint:
+          filters: *default_filters
+          requires:
+            - install
+      - test-pkg-tests-linux-node8:
           filters: *default_filters
           requires:
             - install
@@ -193,6 +255,7 @@ workflows:
             branches:
               ignore: /.*/
           requires:
+            - test-pkg-tests-linux-node8
             - test-linux-node8
             - test-linux-node6
             - test-linux-node4

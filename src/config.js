@@ -106,6 +106,9 @@ export default class Config {
   binLinks: boolean;
   updateChecksums: boolean;
 
+  // cache packages in offline mirror folder as new .tgz files
+  packBuiltPackages: boolean;
+
   //
   linkedModules: Array<string>;
 
@@ -328,6 +331,7 @@ export default class Config {
     this.enableMetaFolder = Boolean(this.getOption('enable-meta-folder'));
     this.enableLockfileVersions = Boolean(this.getOption('yarn-enable-lockfile-versions'));
     this.linkFileDependencies = Boolean(this.getOption('yarn-link-file-dependencies'));
+    this.packBuiltPackages = Boolean(this.getOption('experimental-pack-script-packages-in-mirror'));
 
     //init & create cacheFolder, tempFolder
     this.cacheFolder = path.join(this._cacheRootFolder, 'v' + String(constants.CACHE_VERSION));
@@ -656,7 +660,8 @@ export default class Config {
       .map(registryName => this.registries[registryName].constructor.filename)
       .join('|');
     const trailingPattern = `/+(${registryFilenames})`;
-    const ignorePatterns = this.registryFolders.map(folder => `/${folder}/*/+(${registryFilenames})`);
+    // anything under folder (node_modules) should be ignored, thus use the '**' instead of shallow match "*"
+    const ignorePatterns = this.registryFolders.map(folder => `/${folder}/**/+(${registryFilenames})`);
 
     const files = await Promise.all(
       patterns.map(pattern =>
@@ -709,10 +714,11 @@ export default class Config {
     // validate eligibility
     let wsCopy = {...ws};
     const warnings: Array<string> = [];
+    const errors: Array<string> = [];
 
     // packages
     if (wsCopy.packages && wsCopy.packages.length > 0 && !manifest.private) {
-      warnings.push(this.reporter.lang('workspacesRequirePrivateProjects'));
+      errors.push(this.reporter.lang('workspacesRequirePrivateProjects'));
       wsCopy = undefined;
     }
     // nohoist
@@ -721,19 +727,20 @@ export default class Config {
         warnings.push(this.reporter.lang('workspacesNohoistDisabled', manifest.name));
         wsCopy.nohoist = undefined;
       } else if (!manifest.private) {
-        warnings.push(this.reporter.lang('workspacesNohoistRequirePrivatePackages', manifest.name));
+        errors.push(this.reporter.lang('workspacesNohoistRequirePrivatePackages', manifest.name));
         wsCopy.nohoist = undefined;
       }
     }
 
-    if (warnings.length > 0) {
-      const msg = warnings.join('\n');
-      if (shouldThrow) {
-        throw new MessageError(msg);
-      } else {
-        this.reporter.warn(msg);
-      }
+    if (errors.length > 0 && shouldThrow) {
+      throw new MessageError(errors.join('\n'));
     }
+
+    const msg = errors.concat(warnings).join('\n');
+    if (msg.length > 0) {
+      this.reporter.warn(msg);
+    }
+
     return wsCopy;
   }
 

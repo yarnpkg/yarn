@@ -2,9 +2,9 @@
 # yarn lockfile v1
 
 
-is-negative-zero@^1.0.0:
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/is-negative-zero/-/is-negative-zero-1.0.0.tgz#1d6854ab92b1eaefeb8164bac0d05efdd532ac85"
+array-union@^1.0.1:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/array-union/-/array-union-1.0.1.tgz#4d410fc8395cb247637124bade9e3f547d5d55f2"
 
 left-pad@^1.0.0:
   version "1.0.0"

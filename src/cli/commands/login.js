@@ -36,7 +36,12 @@ async function getCredentials(
   return {username, email};
 }
 
-export async function getToken(config: Config, reporter: Reporter, name: string = ''): Promise<() => Promise<void>> {
+export async function getToken(
+  config: Config,
+  reporter: Reporter,
+  name: string = '',
+  flags: Object = {},
+): Promise<() => Promise<void>> {
   const auth = config.registries.npm.getAuth(name);
   if (auth) {
     config.registries.npm.setToken(auth);
@@ -53,6 +58,11 @@ export async function getToken(config: Config, reporter: Reporter, name: string 
       reporter.info(reporter.lang('notRevokingEnvToken'));
       return Promise.resolve();
     };
+  }
+
+  // make sure we're not running in non-interactive mode before asking for login
+  if (flags.nonInteractive || config.nonInteractive) {
+    throw new MessageError(reporter.lang('nonInteractiveNoToken'));
   }
 
   //
