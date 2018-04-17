@@ -24,14 +24,12 @@ async function createEnv(configOptions): Object {
   const cacheFolder = path.join(loc, 'cache');
 
   const config = await Config.create(
-    Object.assign(
-      {
-        cwd: loc,
-        offline: false,
-        cacheFolder,
-      },
-      configOptions,
-    ),
+    {
+      cwd: loc,
+      offline: false,
+      cacheFolder,
+      ...configOptions,
+    },
     reporter,
   );
 
