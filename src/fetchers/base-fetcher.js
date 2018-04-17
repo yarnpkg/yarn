@@ -71,13 +71,15 @@ export default class BaseFetcher {
           // calling the binary
           const src = pkg.bin[binName];
 
-          // We ensure that the target is executable
-          await fs.chmod(`${this.dest}/${src}`, 0o755);
+          if (await fs.exists(`${this.dest}/${src}`)) {
+            // We ensure that the target is executable
+            await fs.chmod(`${this.dest}/${src}`, 0o755);
 
-          await makePortableProxyScript(src, dest, {
-            proxyBasename: binName,
-            pnpPackageName: pkg.name,
-          });
+            await makePortableProxyScript(src, dest, {
+              proxyBasename: binName,
+              pnpPackageName: pkg.name,
+            });
+          }
         }
       }
 

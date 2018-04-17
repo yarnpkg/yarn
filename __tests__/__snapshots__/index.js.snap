@@ -8,11 +8,12 @@ Array [
   "[3/4] Linking dependencies...",
   "[4/4] Building fresh packages...",
   "success Saved lockfile.",
-  "success Saved 1 new dependency.",
+  "success Saved 2 new dependencies.",
   "info Direct dependencies",
-  "└─ lockfile@1.0.3",
+  "└─ lockfile@1.0.4",
   "info All dependencies",
-  "└─ lockfile@1.0.3",
+  "├─ lockfile@1.0.4",
+  "└─ signal-exit@3.0.2",
 ]
 `;
 

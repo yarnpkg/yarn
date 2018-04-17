@@ -463,7 +463,7 @@ if (module.parent && module.parent.id === 'internal/preload') {
 
 if (process.mainModule === module) {
   let buffer = '';
-  let decoder = new StringDecoder.StringDecoder();
+  const decoder = new StringDecoder.StringDecoder();
 
   process.stdin.on('data', chunk => {
     buffer += decoder.write(chunk);
@@ -479,10 +479,9 @@ if (process.mainModule === module) {
 
       try {
         const data = JSON.parse(line);
-        console.log(exports.resolveRequest(data[0], data[1]));
+        process.stdout.write(`${exports.resolveRequest(data[0], data[1])}\n`);
       } catch (error) {
-        console.log(error.message);
-        continue;
+        process.stdout.write(`${error.message}\n`);
       }
     } while (true);
   });
