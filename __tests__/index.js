@@ -106,17 +106,17 @@ test('should add package', async () => {
 });
 
 test('should add package with no-lockfile option', async () => {
-  const stdout = await execCommand('add', ['repeating', '--no-lockfile'], 'run-add-option', true);
+  const stdout = await execCommand('add', ['repeating@3.0.0', '--no-lockfile'], 'run-add-option', true);
   expectAddOutput(stdout);
 });
 
 test('should add package with frozen-lockfile option', async () => {
-  const stdout = await execCommand('add', ['repeating', '--frozen-lockfile'], 'run-add-option', true);
+  const stdout = await execCommand('add', ['repeating@3.0.0', '--frozen-lockfile'], 'run-add-option', true);
   expectAddOutput(stdout);
 });
 
 test('should add package with no-lockfile option in front', async () => {
-  const stdout = await execCommand('add', ['--no-lockfile', 'split-lines'], 'run-add-option-in-front', true);
+  const stdout = await execCommand('add', ['--no-lockfile', 'split-lines@1.1.0'], 'run-add-option-in-front', true);
   expectAddOutput(stdout);
 });
 
@@ -130,7 +130,7 @@ if (semver.satisfies(ver, '>=5.0.0')) {
   test.concurrent('should add progress package globally', async () => {
     const stdout = await execCommand(
       'global',
-      ['add', 'progress', '--global-folder', './global'],
+      ['add', 'progress@2.0.0', '--global-folder', './global'],
       'run-add-progress-globally',
       true,
     );
