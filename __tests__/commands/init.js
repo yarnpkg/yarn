@@ -60,8 +60,8 @@ test.concurrent('init --yes should create package.json with defaults', (): Promi
   );
 });
 
-test.concurrent('init --yes --private should create package.json with defaults and private true', (): Promise<void> => {
-  return buildRun(
+test('init --yes --private should create package.json with defaults and private true', (): Promise<void> =>
+  buildRun(
     ConsoleReporter,
     fixturesLoc,
     (args, flags, config, reporter, lockfile): Promise<void> => {
@@ -81,11 +81,10 @@ test.concurrent('init --yes --private should create package.json with defaults a
       expect(manifest.private).toEqual(true);
       expect({...manifest, name: 'init-yes-private'}).toMatchSnapshot('init-yes-private');
     },
-  );
-});
+  ));
 
-test.concurrent('init should use init-* configs when defined', (): Promise<void> => {
-  return buildRun(
+test('init should use init-* configs when defined', (): Promise<void> =>
+  buildRun(
     ConsoleReporter,
     fixturesLoc,
     (args, flags, config, reporter, lockfile): Promise<void> => {
@@ -104,10 +103,9 @@ test.concurrent('init should use init-* configs when defined', (): Promise<void>
       expect(manifest.name).toEqual(path.basename(cwd));
       expect({...manifest, name: 'init-config'}).toMatchSnapshot('init-config');
     },
-  );
-});
+  ));
 
-test.concurrent('init using Github shorthand should resolve to full repository URL', (): Promise<void> => {
+test('init using Github shorthand should resolve to full repository URL', (): Promise<void> => {
   const questionMap = Object.freeze({
     name: 'hi-github',
     version: '',
@@ -148,7 +146,7 @@ test.concurrent('init using Github shorthand should resolve to full repository U
   );
 });
 
-test.concurrent('init and give private empty', (): Promise<void> => {
+test('init and give private empty', (): Promise<void> => {
   const questionMap = Object.freeze({
     name: 'private-empty',
     version: '',
