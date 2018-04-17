@@ -182,13 +182,13 @@ const moduleAlreadyInManifestChecker = ({expectWarnings}: {expectWarnings: boole
   const output = reporter.getBuffer();
   const warnings = output.filter(entry => entry.type === 'warning');
 
-  expect(warnings.some(warning => warning.data.toString().toLowerCase().indexOf('is already in') > -1)).toEqual(
+  expect(warnings.some(warning => warning.data.toString().toLowerCase().indexOf('existing version of') > -1)).toEqual(
     expectWarnings,
   );
 
   expect(
     warnings.some(
-      warning => warning.data.toString().toLowerCase().indexOf('please remove existing entry first before adding') > -1,
+      warning => warning.data.toString().toLowerCase().indexOf('please remove the existing entry first') > -1,
     ),
   ).toEqual(expectWarnings);
 };
