@@ -121,7 +121,7 @@ test('should add package with no-lockfile option in front', async () => {
 });
 
 test('should add lockfile package', async () => {
-  const stdout = await execCommand('add', ['lockfile'], 'run-add-lockfile', true);
+  const stdout = await execCommand('add', ['lockfile@1.0.3'], 'run-add-lockfile', true);
   expectAddOutput(stdout);
 });
 
