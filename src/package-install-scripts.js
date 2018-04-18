@@ -301,10 +301,7 @@ export default class PackageInstallScripts {
       workQueue.add(pkg);
     }
 
-    const set = this.reporter.activitySet(
-      installablePkgs,
-      Math.min(installablePkgs, this.config.childConcurrency, workQueue.size),
-    );
+    const set = this.reporter.activitySet(installablePkgs, Math.min(installablePkgs, this.config.childConcurrency));
 
     // waitQueue acts like a semaphore to allow workers to register to be notified
     // when there are more work added to the work queue
