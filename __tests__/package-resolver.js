@@ -16,25 +16,32 @@ const path = require('path');
 // regexp which verifies that cache path contains semver + hash
 const cachePathRe = /-\d+\.\d+\.\d+-[\dabcdef]{40}$/;
 
+async function createEnv(configOptions): Object {
+  const lockfile = new Lockfile();
+  const reporter = new reporters.NoopReporter({});
+
+  const loc = await makeTemp();
+  const cacheFolder = path.join(loc, 'cache');
+
+  const config = await Config.create(
+    {
+      cwd: loc,
+      offline: false,
+      cacheFolder,
+      ...configOptions,
+    },
+    reporter,
+  );
+
+  await fs.mkdirp(path.join(loc, 'node_modules'));
+  await fs.mkdirp(config.cacheFolder);
+
+  return {reporter, lockfile, config};
+}
+
 function addTest(pattern, registry = 'npm', init: ?(cacheFolder: string) => Promise<any>, offline = false) {
   test.concurrent(`${offline ? 'offline ' : ''}resolve ${pattern}`, async () => {
-    const lockfile = new Lockfile();
-    const reporter = new reporters.NoopReporter({});
-
-    const loc = await makeTemp();
-    const cacheFolder = path.join(loc, 'cache');
-
-    const config = await Config.create(
-      {
-        cwd: loc,
-        offline,
-        cacheFolder,
-      },
-      reporter,
-    );
-
-    await fs.mkdirp(path.join(loc, 'node_modules'));
-    await fs.mkdirp(config.cacheFolder);
+    const {reporter, lockfile, config} = await createEnv({offline});
 
     if (init) {
       await init(config.cacheFolder);
@@ -85,3 +92,15 @@ addTest(
   },
   true,
 ); // offline npm scoped package
+
+test.concurrent('addPattern does not add duplicates', async () => {
+  const {reporter, lockfile, config} = await createEnv({});
+  const resolver = new PackageResolver(config, lockfile);
+  resolver.addPattern('patternOne', {name: 'name'});
+  resolver.addPattern('patternTwo', {name: 'name'});
+  resolver.addPattern('patternOne', {name: 'name'});
+
+  expect(resolver.patternsByPackage['name']).toEqual(['patternOne', 'patternTwo']);
+
+  await reporter.close();
+});

@@ -121,6 +121,7 @@ export default class PackageResolver {
         for (const pattern of newPkg._reference.patterns) {
           const oldPkg = this.patterns[pattern];
           newPkg.prebuiltVariants = oldPkg.prebuiltVariants;
+
           this.patterns[pattern] = newPkg;
         }
       }
@@ -352,7 +353,9 @@ export default class PackageResolver {
     this.patterns[pattern] = info;
 
     const byName = (this.patternsByPackage[info.name] = this.patternsByPackage[info.name] || []);
-    byName.push(pattern);
+    if (byName.indexOf(pattern) === -1) {
+      byName.push(pattern);
+    }
   }
 
   /**
