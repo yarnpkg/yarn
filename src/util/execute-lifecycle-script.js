@@ -206,12 +206,16 @@ export async function executeLifecycleScript({
     cmd = fixCmdWinSlashes(cmd);
   }
 
-  // if we aren't interactive then pipe everything to the terminal
-  const stdio = isInteractive ? 'inherit' : undefined;
-  // if this is not interactive, run child processes detached so they can't hang
-  // trying to read from /dev/tty but not on Windows, because Windows opens
-  // a new console window and there is no /dev/tty anyway
-  const detached = !isInteractive && process.platform !== 'win32';
+  // By default (non-interactive), pipe everything to the terminal and run child process detached
+  // as long as it's not Windows (since windows does not have /dev/tty)
+  let stdio;
+  let detached = process.platform !== 'win32';
+
+  if (isInteractive) {
+    stdio = 'inherit';
+    detached = false;
+  }
+
   const stdout = customShell
     ? await child.spawn(customShell, [cmd], {cwd, env, stdio, detached, windowsVerbatimArguments: true}, onProgress)
     : await child.spawn(cmd, [], {cwd, env, stdio, detached, shell: true}, onProgress);
