@@ -88,7 +88,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
           cmd: cmdWithArgs,
           cwd: config.cwd,
           isInteractive: true,
-          customShell: customShell && String(customShell),
+          customShell: customShell ? String(customShell) : undefined,
         });
       }
     } else if (action === 'env') {
