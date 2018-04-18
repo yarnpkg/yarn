@@ -208,7 +208,7 @@ export async function executeLifecycleScript({
 
   // By default (non-interactive), pipe everything to the terminal and run child process detached
   // as long as it's not Windows (since windows does not have /dev/tty)
-  let stdio;
+  let stdio = ['ignore', 'pipe', 'pipe'];
   let detached = process.platform !== 'win32';
 
   if (isInteractive) {

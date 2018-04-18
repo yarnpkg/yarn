@@ -259,19 +259,14 @@ export default class PackageInstallScripts {
     installed: Set<Manifest>,
     waitQueue: Set<() => void>,
   ): Promise<void> {
-    while (true) {
-      // No more work to be done
-      if (workQueue.size == 0) {
-        break;
-      }
-
+    while (workQueue.size > 0) {
       // find a installable package
       const pkg = this.findInstallablePackage(workQueue, installed);
 
       // can't find a package to install, register into waitQueue
       if (pkg == null) {
         spinner.clear();
-        await new Promise((resolve): Set<Function> => waitQueue.add(resolve));
+        await new Promise(resolve => waitQueue.add(resolve));
         continue;
       }
 
@@ -306,18 +301,15 @@ export default class PackageInstallScripts {
       workQueue.add(pkg);
     }
 
+    const set = this.reporter.activitySet(
+      installablePkgs,
+      Math.min(installablePkgs, this.config.childConcurrency, workQueue.size),
+    );
+
     // waitQueue acts like a semaphore to allow workers to register to be notified
     // when there are more work added to the work queue
     const waitQueue = new Set();
-    const workers = [];
-
-    const set = this.reporter.activitySet(installablePkgs, Math.min(this.config.childConcurrency, workQueue.size));
-
-    for (const spinner of set.spinners) {
-      workers.push(this.worker(spinner, workQueue, installed, waitQueue));
-    }
-
-    await Promise.all(workers);
+    await Promise.all(set.spinners.map(spinner => this.worker(spinner, workQueue, installed, waitQueue)));
 
     // generate built package as prebuilt one for offline mirror
     const offlineMirrorPath = this.config.getOfflineMirrorPath();
