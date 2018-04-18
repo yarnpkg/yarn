@@ -492,13 +492,18 @@ test.concurrent('install with explicit file: protocol if target does not have pa
   });
 });
 
-test.concurrent("don't install with file: protocol as default if target is valid semver", (): Promise<void> => {
+test("don't install with file: protocol as default if target is valid semver", (): Promise<void> => {
   return runInstall({}, 'install-file-as-default-no-semver', async config => {
     expect(await fs.readFile(path.join(config.cwd, 'node_modules', 'foo', 'package.json'))).toMatchSnapshot(
       'install-file-as-default-no-semver',
     );
   });
 });
+
+test("don't hang when an install script tries to read from stdin", (): Promise<void> =>
+  runInstall({}, 'install-blocking-script', (_config, _reporter, _install, getStdout) =>
+    expect(getStdout()).toMatchSnapshot('install-blocking-script'),
+  ));
 
 // When local packages are installed, dependencies with different forms of the same relative path
 // should be deduped e.g. 'file:b' and 'file:./b'
