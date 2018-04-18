@@ -1,19 +1,5 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`don't hang when an install script tries to read from stdin: install-blocking-script 1`] = `
-"[2K[1G[33mwarning[39m package.json: No license field
-[2K[1G[33mwarning[39m No license field
-[2K[1G[2m[1/4][22m Resolving packages...
-[2K[1G[2m[2/4][22m Fetching packages...
-[2K[1G[2m[3/4][22m Linking dependencies...
-[2K[1G[2m[4/4][22m Building fresh packages...
-[2K[1G[32msuccess[39m Saved lockfile.
-[2K[1G[33mwarning[39m No license field
-[2K[1G[32msuccess[39m Folder in sync.
-[2K[1G[32msuccess[39m Folder in sync.
-"
-`;
-
 exports[`don't install with file: protocol as default if target is valid semver: install-file-as-default-no-semver 1`] = `
 "{
   \\"author\\": \\"AJ ONeal <coolaj86@gmail.com> (http://coolaj86.info)\\",

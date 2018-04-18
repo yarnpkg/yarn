@@ -500,10 +500,11 @@ test("don't install with file: protocol as default if target is valid semver", (
   });
 });
 
-test("don't hang when an install script tries to read from stdin", (): Promise<void> =>
+test.concurrent("don't hang when an install script tries to read from stdin", (): Promise<void> =>
   runInstall({}, 'install-blocking-script', (_config, _reporter, _install, getStdout) =>
-    expect(getStdout()).toMatchSnapshot('install-blocking-script'),
-  ));
+    expect(getStdout()).toMatch(/Building fresh packages/),
+  ),
+);
 
 // When local packages are installed, dependencies with different forms of the same relative path
 // should be deduped e.g. 'file:b' and 'file:./b'
