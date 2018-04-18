@@ -134,12 +134,15 @@ export default class NpmRegistry extends Registry {
 
     const alwaysAuth = this.getRegistryOrGlobalOption(registry, 'always-auth');
 
-    const headers = Object.assign(
-      {
-        Accept: 'application/vnd.npm.install-v1+json; q=1.0, application/json; q=0.8, */*',
-      },
-      opts.headers,
-    );
+    const headers = {
+      Accept:
+        // This is to use less bandwidth unless we really need to get the full response.
+        // See https://github.com/npm/npm-registry-client#requests
+        opts.unfiltered
+          ? 'application/json'
+          : 'application/vnd.npm.install-v1+json; q=1.0, application/json; q=0.8, */*',
+      ...opts.headers,
+    };
 
     const isToRegistry = this.isRequestToRegistry(requestUrl, registry) || this.requestNeedsAuth(requestUrl);
 
@@ -180,9 +183,7 @@ export default class NpmRegistry extends Registry {
   }
 
   async checkOutdated(config: Config, name: string, range: string): CheckOutdatedReturn {
-    const req = await this.request(NpmRegistry.escapeName(name), {
-      headers: {Accept: 'application/json'},
-    });
+    const req = await this.request(NpmRegistry.escapeName(name), {unfiltered: true});
     if (!req) {
       throw new Error('couldnt find ' + name);
     }

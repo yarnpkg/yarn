@@ -19,14 +19,14 @@ export type LifecycleReturn = Promise<{
   stdout: string,
 }>;
 
-const IGNORE_MANIFEST_KEYS = ['readme'];
+export const IGNORE_MANIFEST_KEYS: Set<string> = new Set(['readme', 'notice', 'licenseText']);
 
 // We treat these configs as internal, thus not expose them to process.env.
 // This helps us avoid some gyp issues when building native modules.
 // See https://github.com/yarnpkg/yarn/issues/2286.
 const IGNORE_CONFIG_KEYS = ['lastUpdateCheck'];
 
-const INVALID_CHAR_REGEX = /[^a-zA-Z0-9_]/g;
+const INVALID_CHAR_REGEX = /\W/g;
 
 export async function makeEnv(
   stage: string,
@@ -78,16 +78,14 @@ export async function makeEnv(
     const queue = [['', manifest]];
     while (queue.length) {
       const [key, val] = queue.pop();
-      if (key[0] === '_') {
-        continue;
-      }
-
       if (typeof val === 'object') {
         for (const subKey in val) {
-          const completeKey = [key, subKey].filter((part: ?string): boolean => !!part).join('_');
-          queue.push([completeKey, val[subKey]]);
+          const fullKey = [key, subKey].filter(Boolean).join('_');
+          if (fullKey && fullKey[0] !== '_' && !IGNORE_MANIFEST_KEYS.has(fullKey)) {
+            queue.push([fullKey, val[subKey]]);
+          }
         }
-      } else if (IGNORE_MANIFEST_KEYS.indexOf(key) < 0) {
+      } else {
         let cleanVal = String(val);
         if (cleanVal.indexOf('\n') >= 0) {
           cleanVal = JSON.stringify(cleanVal);

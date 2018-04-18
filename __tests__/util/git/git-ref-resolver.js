@@ -75,6 +75,10 @@ test('resolveVersion', async () => {
     sha: '6e97e0159f10c275f227d0f067d99f2a97331cef',
     ref: 'refs/pull/100/head',
   });
+  expect(await resolve('pull/100/head')).toEqual({
+    sha: '6e97e0159f10c275f227d0f067d99f2a97331cef',
+    ref: 'refs/pull/100/head',
+  });
   // not-existing sha
   expect(await resolve('0123456')).toEqual(null);
 
