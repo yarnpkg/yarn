@@ -1,6 +1,6 @@
 /* @flow */
 
-import type {Manifest, DependencyRequestPatterns, DependencyRequestPattern, PackageRemote} from './types.js';
+import type {Manifest, DependencyRequestPatterns, DependencyRequestPattern} from './types.js';
 import type {RegistryNames} from './registries/index.js';
 import type PackageReference from './package-reference.js';
 import type {Reporter} from './reporters/index.js';
@@ -13,7 +13,7 @@ import BlockingQueue from './util/blocking-queue.js';
 import Lockfile, {type LockManifest} from './lockfile';
 import map from './util/map.js';
 import WorkspaceLayout from './workspace-layout.js';
-import ResolutionMap from './resolution-map.js';
+import ResolutionMap, {shouldUpdateLockfile} from './resolution-map.js';
 
 const invariant = require('invariant');
 const semver = require('semver');
@@ -447,12 +447,6 @@ export default class PackageResolver {
     return maxValidRangeManifest;
   }
 
-  getPackageRemoteResolved(manifest: Manifest): ?string {
-    const packageReference: ?PackageReference = manifest._reference;
-    const packageRemote: ?PackageRemote = packageReference ? packageReference.remote : null;
-    return packageRemote ? packageRemote.resolved : null;
-  }
-
   /**
    * Get the manifest of the package that matches an exotic range
    */
@@ -635,10 +629,8 @@ export default class PackageResolver {
         invariant(resolutionManifest._reference, 'resolutions should have a resolved reference');
         resolutionManifest._reference.patterns.push(pattern);
         this.addPattern(pattern, resolutionManifest);
-        const expectedResolved = this.getPackageRemoteResolved(resolutionManifest);
         const lockManifest: ?LockManifest = this.lockfile.getLocked(pattern);
-        const actualResolved = lockManifest ? lockManifest.resolved : null;
-        if (expectedResolved !== actualResolved) {
+        if (shouldUpdateLockfile(lockManifest, resolutionManifest._reference)) {
           this.lockfile.removePattern(pattern);
         }
       } else {

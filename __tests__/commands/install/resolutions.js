@@ -9,6 +9,7 @@ import Lockfile from '../../../src/lockfile';
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 150000;
 
 const path = require('path');
+const semver = require('semver');
 
 test.concurrent('install with simple exact resolutions should override all versions', (): Promise<void> => {
   return runInstall({}, {source: 'resolutions', cwd: 'simple-exact'}, async config => {
@@ -121,7 +122,7 @@ test.concurrent('adding resolutions after install should cause lockfile regenera
 > => {
   return runInstall(
     {},
-    {source: 'resolutions', cwd: 'adding-resolutions-should-casue-lockfile-regeneration'},
+    {source: 'resolutions', cwd: 'adding-resolutions-should-cause-lockfile-regeneration'},
     async (config, reporter): Promise<void> => {
       const packageJson = await fs.readFile(path.join(config.cwd, 'package.json'));
       // create new package.json with resolutions which override e/left-pad version
@@ -130,13 +131,14 @@ test.concurrent('adding resolutions after install should cause lockfile regenera
       newPackageJson.resolutions['e/left-pad'] = '1.1.1';
       // write new package.json
       await fs.writeFile(path.join(config.cwd, 'package.json'), JSON.stringify(newPackageJson));
+      // expect left-pad in e/node_modules to be present and have corrent version
+      // since it is not satisfied by top-level dependency
+      expect(semver.satisfies(await getPackageVersion(config, 'e/left-pad'), '^1.0.0')).toBe(true);
       // run install again
       const reinstall = new Install({}, config, reporter, await Lockfile.fromDirectory(config.cwd));
       await reinstall.init();
       // don't expect left-pad in e/node_modules since it's now being replaced by single dependency left-pad@1.1.1
-      expect(await fs.exists(path.join(config.cwd, 'node_modules', 'e', 'node_modules', 'left-pad', 'index.js'))).toBe(
-        false,
-      );
+      expect(await isPackagePresent(config, 'e/left-pad')).toBe(false);
       const lockfile = await Lockfile.fromDirectory(config.cwd);
       const lockManifest = lockfile.getLocked('left-pad@^1.0.0');
       // check that new version of e/left-pad in lockfile is correctly updated
