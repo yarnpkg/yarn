@@ -8,6 +8,8 @@ import type {DependencyRequestPattern} from './types';
 import {normalizePattern} from './util/normalize-pattern.js';
 import parsePackagePath, {isValidPackagePath} from './util/parse-package-path';
 import {getExoticResolver} from './resolvers';
+import type {LockManifest} from './lockfile';
+import type PackageReference from './package-reference';
 
 const DIRECTORY_SEPARATOR = '/';
 const GLOBAL_NESTED_DEP_PATTERN = '**/';
@@ -102,3 +104,11 @@ export default class ResolutionMap {
     return pattern;
   }
 }
+
+export const shouldUpdateLockfile = (lockfileEntry: ?LockManifest, resolutionEntry: ?PackageReference) => {
+  if (!lockfileEntry || !resolutionEntry) {
+    return false;
+  }
+
+  return lockfileEntry.resolved !== resolutionEntry.remote.resolved;
+};

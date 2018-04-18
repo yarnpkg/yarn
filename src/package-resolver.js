@@ -10,10 +10,10 @@ import PackageRequest from './package-request.js';
 import {normalizePattern} from './util/normalize-pattern.js';
 import RequestManager from './util/request-manager.js';
 import BlockingQueue from './util/blocking-queue.js';
-import Lockfile from './lockfile';
+import Lockfile, {type LockManifest} from './lockfile';
 import map from './util/map.js';
 import WorkspaceLayout from './workspace-layout.js';
-import ResolutionMap from './resolution-map.js';
+import ResolutionMap, {shouldUpdateLockfile} from './resolution-map.js';
 
 const invariant = require('invariant');
 const semver = require('semver');
@@ -632,6 +632,10 @@ export default class PackageResolver {
         invariant(resolutionManifest._reference, 'resolutions should have a resolved reference');
         resolutionManifest._reference.patterns.push(pattern);
         this.addPattern(pattern, resolutionManifest);
+        const lockManifest: ?LockManifest = this.lockfile.getLocked(pattern);
+        if (shouldUpdateLockfile(lockManifest, resolutionManifest._reference)) {
+          this.lockfile.removePattern(pattern);
+        }
       } else {
         this.resolutionMap.addToDelayQueue(req);
       }
