@@ -1,0 +1,7 @@
+{
+  "name": "blocking",
+  "version": "0.0.0",
+  "scripts": {
+    "install": "node install.js"
+  }
+}

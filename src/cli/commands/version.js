@@ -52,7 +52,7 @@ export async function setVersion(
 
   function runLifecycle(lifecycle: string): Promise<void> {
     if (scripts[lifecycle]) {
-      return execCommand(lifecycle, config, scripts[lifecycle], config.cwd);
+      return execCommand({stage: lifecycle, config, cmd: scripts[lifecycle], cwd: config.cwd, isInteractive: true});
     }
 
     return Promise.resolve();

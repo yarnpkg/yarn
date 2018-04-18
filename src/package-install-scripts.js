@@ -107,10 +107,37 @@ export default class PackageInstallScripts {
     const ref = pkg._reference;
     invariant(ref, 'expected reference');
     const loc = this.config.generateHardModulePath(ref);
+    let updateProgress;
+
+    if (cmds.length > 0) {
+      updateProgress = data => {
+        const dataStr = data
+          .toString() // turn buffer into string
+          .trim(); // trim whitespace
+
+        invariant(spinner && spinner.tick, 'We should have spinner and its ticker here');
+        if (dataStr) {
+          spinner.tick(
+            dataStr
+              // Only get the last line
+              .substr(dataStr.lastIndexOf('\n') + 1)
+              // change tabs to spaces as they can interfere with the console
+              .replace(/\t/g, ' '),
+          );
+        }
+      };
+    }
 
     try {
       for (const [stage, cmd] of cmds) {
-        const {stdout} = await executeLifecycleScript(stage, this.config, loc, cmd, spinner);
+        const {stdout} = await executeLifecycleScript({
+          stage,
+          config: this.config,
+          cwd: loc,
+          cmd,
+          isInteractive: false,
+          updateProgress,
+        });
         this.reporter.verbose(stdout);
       }
     } catch (err) {
@@ -232,19 +259,14 @@ export default class PackageInstallScripts {
     installed: Set<Manifest>,
     waitQueue: Set<() => void>,
   ): Promise<void> {
-    while (true) {
-      // No more work to be done
-      if (workQueue.size == 0) {
-        break;
-      }
-
+    while (workQueue.size > 0) {
       // find a installable package
       const pkg = this.findInstallablePackage(workQueue, installed);
 
       // can't find a package to install, register into waitQueue
       if (pkg == null) {
         spinner.clear();
-        await new Promise((resolve): Set<Function> => waitQueue.add(resolve));
+        await new Promise(resolve => waitQueue.add(resolve));
         continue;
       }
 
@@ -279,18 +301,12 @@ export default class PackageInstallScripts {
       workQueue.add(pkg);
     }
 
+    const set = this.reporter.activitySet(installablePkgs, Math.min(installablePkgs, this.config.childConcurrency));
+
     // waitQueue acts like a semaphore to allow workers to register to be notified
     // when there are more work added to the work queue
     const waitQueue = new Set();
-    const workers = [];
-
-    const set = this.reporter.activitySet(installablePkgs, Math.min(this.config.childConcurrency, workQueue.size));
-
-    for (const spinner of set.spinners) {
-      workers.push(this.worker(spinner, workQueue, installed, waitQueue));
-    }
-
-    await Promise.all(workers);
+    await Promise.all(set.spinners.map(spinner => this.worker(spinner, workQueue, installed, waitQueue)));
 
     // generate built package as prebuilt one for offline mirror
     const offlineMirrorPath = this.config.getOfflineMirrorPath();
