@@ -36,8 +36,8 @@ test.concurrent('init should create package.json on current cwd', (): Promise<vo
   );
 });
 
-test.concurrent('init --yes should create package.json with defaults', (): Promise<void> => {
-  return buildRun(
+test('init --yes should create package.json with defaults', (): Promise<void> =>
+  buildRun(
     ConsoleReporter,
     fixturesLoc,
     (args, flags, config, reporter, lockfile): Promise<void> => {
@@ -57,8 +57,7 @@ test.concurrent('init --yes should create package.json with defaults', (): Promi
       expect(manifest.private).toEqual(undefined);
       expect({...manifest, name: 'init-yes'}).toMatchSnapshot('init-yes');
     },
-  );
-});
+  ));
 
 test('init --yes --private should create package.json with defaults and private true', (): Promise<void> =>
   buildRun(

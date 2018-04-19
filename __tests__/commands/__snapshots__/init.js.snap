@@ -10,20 +10,20 @@ Object {
 }
 `;
 
+exports[`init --yes should create package.json with defaults: init-yes 1`] = `
+Object {
+  "license": "MIT",
+  "main": "index.js",
+  "name": "init-yes",
+  "version": "1.0.0",
+}
+`;
+
 exports[`init and give private empty: init-private-empty 1`] = `
 Object {
   "license": "MIT",
   "main": "index.js",
   "name": "private-empty",
-  "version": "1.0.0",
-}
-`;
-
-exports[`init should create package.json on current cwd: init-yes 1`] = `
-Object {
-  "license": "MIT",
-  "main": "index.js",
-  "name": "init-yes",
   "version": "1.0.0",
 }
 `;
