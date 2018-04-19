@@ -36,6 +36,12 @@ test('cache-folder flag has higher priorities than .yarnrc file', (): Promise<vo
   );
 });
 
+test('bin-links flag has higher priorities than .yarnrc file', (): Promise<void> => {
+  return runConfig(['set', 'bin-links', 'true'], {binLinks: false}, '', config => {
+    expect(config.binLinks).toBe(false);
+  });
+});
+
 test('set true when option value is undefined', (): Promise<void> => {
   return runConfig(['set', 'strict-ssl'], {}, '', config => {
     expect(config.registries.yarn.homeConfig['strict-ssl']).toBe(true);
