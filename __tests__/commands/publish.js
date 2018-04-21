@@ -99,3 +99,16 @@ test.concurrent('publish should allow `--access` to override publishConfig.acces
     );
   });
 });
+
+test.concurrent('can specify a path', () => {
+  return runPublish(['mypkg'], {newVersion: '0.0.1'}, 'subdir', config => {
+    expect(config.registries.npm.request).toBeCalledWith(
+      expect.any(String),
+      expect.objectContaining({
+        body: expect.objectContaining({
+          access: undefined,
+        }),
+      }),
+    );
+  });
+});

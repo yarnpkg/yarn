@@ -326,7 +326,7 @@ export default class PackageInstallScripts {
             },
             this.reporter,
           );
-          const stream = await pack(pkgConfig, builtPackagePath);
+          const stream = await pack(pkgConfig);
 
           const hash = await new Promise((resolve, reject) => {
             const validateStream = new crypto.HashStream();
