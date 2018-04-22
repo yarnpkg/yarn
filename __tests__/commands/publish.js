@@ -99,3 +99,22 @@ test.concurrent('publish should allow `--access` to override publishConfig.acces
     );
   });
 });
+
+test.concurrent('publish should run lifecycle scripts in the correct order', () => {
+  return runPublish([], {newVersion: '1.0.0'}, 'lifecycle-scripts', (config, reporter, stdout) => {
+    expect(stdout).toMatch(
+      new RegExp(
+        [
+          'running the prepublish hook[\\s\\S]*',
+          'running the prepare hook[\\s\\S]*',
+          'running the prepublishOnly hook[\\s\\S]*',
+          'running the prepack hook[\\s\\S]*',
+          'running the postpack hook[\\s\\S]*',
+          'running the publish hook[\\s\\S]*',
+          'running the postpublish hook',
+        ].join(''),
+        'm',
+      ),
+    );
+  });
+});

@@ -44,6 +44,7 @@ async function publish(config: Config, pkg: any, flags: Object, dir: string): Pr
   await config.executeLifecycleScript('prepublish');
   await config.executeLifecycleScript('prepare');
   await config.executeLifecycleScript('prepublishOnly');
+  await config.executeLifecycleScript('prepack');
 
   // get tarball stream
   const stat = await fs.lstat(dir);
@@ -60,6 +61,8 @@ async function publish(config: Config, pkg: any, flags: Object, dir: string): Pr
     invariant(stream, 'expected stream');
     stream.on('data', data.push.bind(data)).on('end', () => resolve(Buffer.concat(data))).on('error', reject);
   });
+
+  await config.executeLifecycleScript('postpack');
 
   // copy normalized package and remove internal keys as they may be sensitive or yarn specific
   pkg = Object.assign({}, pkg);
