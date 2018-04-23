@@ -3,11 +3,6 @@
 exports[`returns noBinAvailable with no bins 1`] = `
 Array [
   Object {
-    "data": "No command specified.",
-    "error": true,
-    "type": "error",
-  },
-  Object {
     "data": "There are no binary scripts available.",
     "error": true,
     "type": "error",
@@ -44,11 +39,6 @@ Array [
 
 exports[`returns noScriptsAvailable with no scripts 1`] = `
 Array [
-  Object {
-    "data": "No command specified.",
-    "error": true,
-    "type": "error",
-  },
   Object {
     "data": "Commands available from binary scripts: cat-names",
     "error": false,
