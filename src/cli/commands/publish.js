@@ -8,6 +8,7 @@ import {setVersion, setFlags as versionSetFlags} from './version.js';
 import * as fs from '../../util/fs.js';
 import {pack} from './pack.js';
 import {getToken} from './login.js';
+import path from 'path';
 
 const invariant = require('invariant');
 const crypto = require('crypto');
@@ -50,7 +51,7 @@ async function publish(config: Config, pkg: any, flags: Object, dir: string): Pr
   const stat = await fs.lstat(dir);
   let stream;
   if (stat.isDirectory()) {
-    stream = await pack(config, dir);
+    stream = await pack(config);
   } else if (stat.isFile()) {
     stream = fs2.createReadStream(dir);
   } else {
@@ -121,6 +122,22 @@ async function publish(config: Config, pkg: any, flags: Object, dir: string): Pr
 }
 
 export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
+  // validate arguments
+  const dir = args[0] ? path.resolve(config.cwd, args[0]) : config.cwd;
+  if (args.length > 1) {
+    throw new MessageError(reporter.lang('tooManyArguments', 1));
+  }
+  if (!await fs.exists(dir)) {
+    throw new MessageError(reporter.lang('unknownFolderOrTarball'));
+  }
+
+  const stat = await fs.lstat(dir);
+  let publishPath = dir;
+  if (stat.isDirectory()) {
+    config.cwd = path.resolve(dir);
+    publishPath = config.cwd;
+  }
+
   // validate package fields that are required for publishing
   const pkg = await config.readRootManifest();
   if (pkg.private) {
@@ -128,15 +145,6 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
   }
   if (!pkg.name) {
     throw new MessageError(reporter.lang('noName'));
-  }
-
-  // validate arguments
-  const dir = args[0] || config.cwd;
-  if (args.length > 1) {
-    throw new MessageError(reporter.lang('tooManyArguments', 1));
-  }
-  if (!await fs.exists(dir)) {
-    throw new MessageError(reporter.lang('unknownFolderOrTarball'));
   }
 
   //
@@ -149,7 +157,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
 
   //
   reporter.step(3, 4, reporter.lang('publishing'));
-  await publish(config, pkg, flags, dir);
+  await publish(config, pkg, flags, publishPath);
   await commitVersion();
   reporter.success(reporter.lang('published'));
 
