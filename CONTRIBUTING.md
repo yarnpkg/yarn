@@ -1,1 +1,1 @@
-Please see https://yarnpkg.com/org/contributing/
+Please see https://yarnpkg.com/lang/en/org/contributing/
