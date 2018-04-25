@@ -24,18 +24,10 @@ function toObject(input: Map<string, string>): Object {
   return output;
 }
 
-export function setFlags(commander: Object) {
-  commander.description('Runs a defined package script.');
-}
-
-export function hasWrapper(commander: Object, args: Array<string>): boolean {
-  return true;
-}
-
-export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
-  const pkg = await config.readManifest(config.cwd);
-
+export async function getBinEntries(config: Config): Promise<Map<string, string>> {
   const binFolders = new Set();
+  const binEntries = new Map();
+
   // Setup the node_modules/.bin folders for analysis
   for (const registry of Object.keys(registries)) {
     binFolders.add(path.join(config.cwd, config.registries[registry].folder, '.bin'));
@@ -55,19 +47,37 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
     }
   }
 
+  // Build up a list of possible scripts by exploring the folders marked for analysis
+  for (const binFolder of binFolders) {
+    if (await fs.exists(binFolder)) {
+      for (const name of await fs.readdir(binFolder)) {
+        binEntries.set(name, path.join(binFolder, name));
+      }
+    }
+  }
+
+  return binEntries;
+}
+
+export function setFlags(commander: Object) {
+  commander.description('Runs a defined package script.');
+}
+
+export function hasWrapper(commander: Object, args: Array<string>): boolean {
+  return true;
+}
+
+export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
+  const pkg = await config.readManifest(config.cwd);
+
   const binCommands = new Set();
   const pkgCommands = new Set();
 
   const scripts: Map<string, string> = new Map();
 
-  // Build up a list of possible scripts by exploring the folders marked for analysis
-  for (const binFolder of binFolders) {
-    if (await fs.exists(binFolder)) {
-      for (const name of await fs.readdir(binFolder)) {
-        scripts.set(name, quoteForShell(path.join(binFolder, name)));
-        binCommands.add(name);
-      }
-    }
+  for (const [name, loc] of await getBinEntries(config)) {
+    scripts.set(name, quoteForShell(loc));
+    binCommands.add(name);
   }
 
   const pkgScripts = pkg.scripts;
