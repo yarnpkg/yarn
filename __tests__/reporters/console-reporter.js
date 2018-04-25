@@ -267,11 +267,11 @@ test('close', async () => {
   ).toMatchSnapshot();
 });
 
-test('ConsoleReporter._log is silent when isSilent is true', async () => {
+test('ConsoleReporter.log is silent when isSilent is true', async () => {
   const getConsoleBuff = build(ConsoleReporter, (data): MockData => data, null, {isSilent: true});
   expect(
     await getConsoleBuff(r => {
-      r._log('foobar');
+      r.log('foobar');
     }),
   ).toMatchSnapshot();
 });
