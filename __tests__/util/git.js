@@ -19,7 +19,7 @@ ref: refs/heads/master  HEAD
 import Config from '../../src/config.js';
 import Git from '../../src/util/git.js';
 import {spawn as spawnGit} from '../../src/util/git/git-spawn.js';
-import {NoopReporter} from '../../src/reporters/index.js';
+import {NoopReporter, BufferReporter} from '../../src/reporters/index.js';
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 90000;
 
@@ -88,6 +88,76 @@ test('npmUrlToGitUrl', () => {
     protocol: 'file:',
     hostname: null,
     repository: '../ocalmfind',
+  });
+});
+
+describe('secureGitUrl()', function() {
+  it('accepts URLs with commit hash', async () => {
+    // "accept" means it returns the Url unchanged and doesn't report a warning
+    // Assume the all the repos exist
+    const mock = jest.spyOn(Git, 'repoExists').mockImplementation(() => true);
+
+    // Test it for all the supported protocols
+    for (const protocol of ['http:', 'https:', 'git:', 'ssh:']) {
+      const inputurl = protocol + '//example.com/repo.git';
+      const hash = '0123456789abcdef0123456789abcdef';
+      const reporter = new BufferReporter();
+      const secureUrl = await Git.secureGitUrl(Git.npmUrlToGitUrl(inputurl), hash, reporter);
+      expect(secureUrl.repository).toEqual(inputurl);
+      expect(reporter.getBuffer()).toEqual([]);
+    }
+
+    mock.mockRestore();
+  });
+
+  it('accepts URLs without commit hash over secure protocols', async () => {
+    const mock = jest.spyOn(Git, 'repoExists').mockImplementation(() => true);
+    for (const protocol of ['https:', 'ssh:']) {
+      const inputurl = protocol + '//example.com/repo.git';
+      const reporter = new BufferReporter();
+      const secureUrl = await Git.secureGitUrl(Git.npmUrlToGitUrl(inputurl), '', reporter);
+      expect(secureUrl.repository).toEqual(inputurl);
+      expect(reporter.getBuffer()).toEqual([]);
+    }
+    mock.mockRestore();
+  });
+
+  it('changes insecure URLs to HTTPS', async () => {
+    // Assume the HTTPS URLs exist
+    const mock = jest.spyOn(Git, 'repoExists').mockImplementation(() => true);
+    for (const protocol of ['http:', 'git:']) {
+      const inputurl = protocol + '//example.com/repo.git';
+      const reporter = new BufferReporter();
+      const secureUrl = await Git.secureGitUrl(Git.npmUrlToGitUrl(inputurl), '', reporter);
+      expect(secureUrl.repository).toEqual('https://example.com/repo.git');
+      expect(reporter.getBuffer()).toEqual([]);
+    }
+    mock.mockRestore();
+  });
+
+  it('warns if insecure URLs cannot be changed to HTTPS', async () => {
+    // Assume the HTTPS URLs don't exist
+    const mock = jest.spyOn(Git, 'repoExists').mockImplementation(() => false);
+    for (const protocol of ['http:', 'git:']) {
+      const inputurl = protocol + '//example.com/repo.git';
+      const reporter = new BufferReporter();
+      const secureUrl = await Git.secureGitUrl(Git.npmUrlToGitUrl(inputurl), '', reporter);
+      expect(secureUrl.repository).toEqual(inputurl);
+      expect(reporter.getBuffer()).toEqual([
+        {
+          type: 'warning',
+          error: true,
+          data: reporter.lang(protocol == 'git:' ? 'downloadGitWithoutCommit' : 'downloadHTTPWithoutCommit', inputurl),
+        },
+      ]);
+    }
+    mock.mockRestore();
+  });
+
+  // In case some test case didn't clean up correctly, for example if it failed with an exception
+  afterAll(() => {
+    // restoreAllMocks() is included in jest >= 21.1.0, but only known in flow-typed for jest >= 22.0.0
+    (jest: any).restoreAllMocks();
   });
 });
 

@@ -61,7 +61,7 @@ type ProcessFn = (
 export function spawn(
   program: string,
   args: Array<string>,
-  opts?: child_process$spawnOpts & {process?: ProcessFn} = {},
+  opts?: child_process$spawnOpts & {detached?: boolean, process?: ProcessFn} = {},
   onData?: (chunk: Buffer | string) => void,
 ): Promise<string> {
   const key = opts.cwd || String(++uid);

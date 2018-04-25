@@ -10,7 +10,7 @@ import {createWriteStream} from 'fs';
 import type Config from '../config.js';
 import type {Reporter} from '../reporters/index.js';
 import type {ResolvedSha, GitRefResolvingInterface, GitRefs} from './git/git-ref-resolver.js';
-import {MessageError, SecurityError, ProcessSpawnError} from '../errors.js';
+import {MessageError, ProcessSpawnError} from '../errors.js';
 import {spawn as spawnGit} from './git/git-spawn.js';
 import {resolveVersion, isCommitSha, parseRefs} from './git/git-ref-resolver.js';
 import * as crypto from './crypto.js';
@@ -200,7 +200,8 @@ export default class Git implements GitRefResolvingInterface {
       if (await Git.repoExists(secureUrl)) {
         return secureUrl;
       } else {
-        throw new SecurityError(reporter.lang('refusingDownloadGitWithoutCommit', ref));
+        reporter.warn(reporter.lang('downloadGitWithoutCommit', ref.repository));
+        return ref;
       }
     }
 
@@ -209,19 +210,8 @@ export default class Git implements GitRefResolvingInterface {
       if (await Git.repoExists(secureRef)) {
         return secureRef;
       } else {
-        if (await Git.repoExists(ref)) {
-          return ref;
-        } else {
-          throw new SecurityError(reporter.lang('refusingDownloadHTTPWithoutCommit', ref));
-        }
-      }
-    }
-
-    if (ref.protocol === 'https:') {
-      if (await Git.repoExists(ref)) {
+        reporter.warn(reporter.lang('downloadHTTPWithoutCommit', ref.repository));
         return ref;
-      } else {
-        throw new SecurityError(reporter.lang('refusingDownloadHTTPSWithoutCommit', ref));
       }
     }
 

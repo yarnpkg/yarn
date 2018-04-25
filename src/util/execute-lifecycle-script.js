@@ -1,6 +1,5 @@
 /* @flow */
 
-import type {ReporterSpinner} from '../reporters/types.js';
 import type Config from '../config.js';
 import {MessageError, ProcessTermError} from '../errors.js';
 import * as constants from '../constants.js';
@@ -12,7 +11,6 @@ import {registries} from '../resolvers/index.js';
 import {fixCmdWinSlashes} from './fix-cmd-win-slashes.js';
 import {getBinFolder as getGlobalBinFolder, run as globalRun} from '../cli/commands/global.js';
 
-const invariant = require('invariant');
 const path = require('path');
 
 export type LifecycleReturn = Promise<{
@@ -231,17 +229,23 @@ export async function makeEnv(
   return env;
 }
 
-export async function executeLifecycleScript(
+export async function executeLifecycleScript({
+  stage,
+  config,
+  cwd,
+  cmd,
+  isInteractive,
+  onProgress,
+  customShell,
+}: {
   stage: string,
   config: Config,
   cwd: string,
   cmd: string,
-  spinner?: ReporterSpinner,
+  isInteractive?: boolean,
+  onProgress?: (chunk: Buffer | string) => void,
   customShell?: string,
-): LifecycleReturn {
-  // if we don't have a spinner then pipe everything to the terminal
-  const stdio = spinner ? undefined : 'inherit';
-
+}): LifecycleReturn {
   const env = await makeEnv(stage, cwd, config);
 
   await checkForGypIfNeeded(config, cmd, env[constants.ENV_PATH_KEY].split(path.delimiter));
@@ -251,28 +255,19 @@ export async function executeLifecycleScript(
     cmd = fixCmdWinSlashes(cmd);
   }
 
-  let updateProgress;
-  if (spinner) {
-    updateProgress = data => {
-      const dataStr = data
-        .toString() // turn buffer into string
-        .trim(); // trim whitespace
+  // By default (non-interactive), pipe everything to the terminal and run child process detached
+  // as long as it's not Windows (since windows does not have /dev/tty)
+  let stdio = ['ignore', 'pipe', 'pipe'];
+  let detached = process.platform !== 'win32';
 
-      invariant(spinner && spinner.tick, 'We should have spinner and its ticker here');
-      if (dataStr) {
-        spinner.tick(
-          dataStr
-            // Only get the last line
-            .substr(dataStr.lastIndexOf('\n') + 1)
-            // change tabs to spaces as they can interfere with the console
-            .replace(/\t/g, ' '),
-        );
-      }
-    };
+  if (isInteractive) {
+    stdio = 'inherit';
+    detached = false;
   }
+
   const stdout = customShell
-    ? await child.spawn(customShell, [cmd], {cwd, env, stdio, windowsVerbatimArguments: true}, updateProgress)
-    : await child.spawn(cmd, [], {cwd, env, stdio, shell: true}, updateProgress);
+    ? await child.spawn(customShell, [cmd], {cwd, env, stdio, detached, windowsVerbatimArguments: true}, onProgress)
+    : await child.spawn(cmd, [], {cwd, env, stdio, detached, shell: true}, onProgress);
 
   return {cwd, command: cmd, stdout};
 }
@@ -324,21 +319,29 @@ export async function execFromManifest(config: Config, commandName: string, cwd:
 
   const cmd: ?string = pkg.scripts[commandName];
   if (cmd) {
-    await execCommand(commandName, config, cmd, cwd);
+    await execCommand({stage: commandName, config, cmd, cwd, isInteractive: true});
   }
 }
 
-export async function execCommand(
+export async function execCommand({
+  stage,
+  config,
+  cmd,
+  cwd,
+  isInteractive,
+  customShell,
+}: {
   stage: string,
   config: Config,
   cmd: string,
   cwd: string,
+  isInteractive: boolean,
   customShell?: string,
-): Promise<void> {
+}): Promise<void> {
   const {reporter} = config;
   try {
     reporter.command(cmd);
-    await executeLifecycleScript(stage, config, cwd, cmd, undefined, customShell);
+    await executeLifecycleScript({stage, config, cwd, cmd, isInteractive, customShell});
     return Promise.resolve();
   } catch (err) {
     if (err instanceof ProcessTermError) {

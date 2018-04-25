@@ -132,7 +132,7 @@ export async function packTarball(
   return packer;
 }
 
-export async function pack(config: Config, dir: string): Promise<stream$Duplex> {
+export async function pack(config: Config): Promise<stream$Duplex> {
   const packer = await packTarball(config);
   const compressor = packer.pipe(new zlib.Gzip());
 
@@ -167,7 +167,7 @@ export async function run(
 
   await config.executeLifecycleScript('prepack');
 
-  const stream = await pack(config, config.cwd);
+  const stream = await pack(config);
 
   await new Promise((resolve, reject) => {
     stream.pipe(fs2.createWriteStream(filename));
