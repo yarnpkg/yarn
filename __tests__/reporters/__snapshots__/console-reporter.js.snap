@@ -1,5 +1,12 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`ConsoleReporter._log is silent when isSilent is true 1`] = `
+Object {
+  "stderr": "",
+  "stdout": "",
+}
+`;
+
 exports[`ConsoleReporter.activity 1`] = `
 Object {
   "stderr": "[1G⠁ [0K[2K[1G",
@@ -122,6 +129,13 @@ Object {
 └─ dep3
    ├─ dep3.1
    └─ dep3.2",
+}
+`;
+
+exports[`ConsoleReporter.tree is silent when isSilent is true 1`] = `
+Object {
+  "stderr": "",
+  "stdout": "",
 }
 `;
 

@@ -266,3 +266,41 @@ test('close', async () => {
     }),
   ).toMatchSnapshot();
 });
+
+test('ConsoleReporter._log is silent when isSilent is true', async () => {
+  const getConsoleBuff = build(ConsoleReporter, (data): MockData => data, null, {isSilent: true});
+  expect(
+    await getConsoleBuff(r => {
+      r._log('foobar');
+    }),
+  ).toMatchSnapshot();
+});
+
+test('ConsoleReporter.tree is silent when isSilent is true', async () => {
+  const getConsoleBuff = build(ConsoleReporter, (data): MockData => data, null, {isSilent: true});
+  const trees = [
+    {name: 'dep1'},
+    {
+      name: 'dep2',
+      children: [
+        {
+          name: 'dep2.1',
+          children: [{name: 'dep2.1.1'}, {name: 'dep2.1.2'}],
+        },
+        {
+          name: 'dep2.2',
+          children: [{name: 'dep2.2.1'}, {name: 'dep2.2.2'}],
+        },
+      ],
+    },
+    {
+      name: 'dep3',
+      children: [{name: 'dep3.1'}, {name: 'dep3.2'}],
+    },
+  ];
+  expect(
+    await getConsoleBuff(r => {
+      r.tree('', trees);
+    }),
+  ).toMatchSnapshot();
+});
