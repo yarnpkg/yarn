@@ -173,7 +173,7 @@ export function main({
       if (command === commands.run || command === commands.create) {
         endArgs = ['--', ...args.splice(1)];
       } else {
-        endArgs = ['--', ...args];
+        endArgs = ['--', ...args.splice(0)];
       }
     } else {
       warnAboutRunDashDash = true;
