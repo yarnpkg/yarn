@@ -16,6 +16,12 @@ export function setFlags(commander: Object) {
 
 export function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
   const binFolder = path.join(config.cwd, config.registries[RegistryYarn.registry].folder, '.bin');
-  reporter.log(binFolder, {force: true});
+  if (args.length === 0) {
+    reporter.log(binFolder, {force: true});
+  } else {
+    for (const arg of args) {
+      reporter.log(`${binFolder}/${arg}`, {force: true});
+    }
+  }
   return Promise.resolve();
 }
