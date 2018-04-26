@@ -95,7 +95,7 @@
     "yargs": "^6.3.0"
   },
   "engines": {
-    "node": ">=4.0.0"
+    "node": "^6.2.2 || >=8.0.0"
   },
   "repository": "yarnpkg/yarn",
   "bin": {
@@ -122,14 +122,9 @@
     "commit": "git-cz"
   },
   "jest": {
-    "collectCoverageFrom": [
-      "src/**/*.js"
-    ],
+    "collectCoverageFrom": ["src/**/*.js"],
     "testEnvironment": "node",
-    "modulePathIgnorePatterns": [
-      "__tests__/fixtures/",
-      "packages/pkg-tests/pkg-tests-fixtures"
-    ],
+    "modulePathIgnorePatterns": ["__tests__/fixtures/", "packages/pkg-tests/pkg-tests-fixtures"],
     "testPathIgnorePatterns": [
       "__tests__/(fixtures|__mocks__)/",
       "updates/",

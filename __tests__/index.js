@@ -125,20 +125,17 @@ test('should add lockfile package', async () => {
   expectAddOutput(stdout);
 });
 
-// test is failing on Node 4, https://travis-ci.org/yarnpkg/yarn/jobs/216254539
-if (semver.satisfies(ver, '>=5.0.0')) {
-  test.concurrent('should add progress package globally', async () => {
-    const stdout = await execCommand(
-      'global',
-      ['add', 'progress@2.0.0', '--global-folder', './global'],
-      'run-add-progress-globally',
-      true,
-    );
+test.concurrent('should add progress package globally', async () => {
+  const stdout = await execCommand(
+    'global',
+    ['add', 'progress@2.0.0', '--global-folder', './global'],
+    'run-add-progress-globally',
+    true,
+  );
 
-    const lastLine = stdout[stdout.length - 1];
-    expect(lastLine).toMatch(/^Done/);
-  });
-}
+  const lastLine = stdout[stdout.length - 1];
+  expect(lastLine).toMatch(/^Done/);
+});
 
 test.concurrent('should run custom script', async () => {
   const stdout = await execCommand('run', ['custom-script'], 'run-custom-script');
