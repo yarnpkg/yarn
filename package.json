@@ -101,7 +101,7 @@
     "sshpk": "^1.14.2"
   },
   "engines": {
-    "node": ">=4.0.0"
+    "node": "^6.2.2 || >=8.0.0"
   },
   "repository": "yarnpkg/yarn",
   "bin": {
@@ -129,9 +129,7 @@
     "commit": "git-cz"
   },
   "jest": {
-    "collectCoverageFrom": [
-      "src/**/*.js"
-    ],
+    "collectCoverageFrom": ["src/**/*.js"],
     "testEnvironment": "node",
     "modulePathIgnorePatterns": [
       "__tests__/fixtures/",
