@@ -4,6 +4,7 @@ import type {Reporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
 import RegistryYarn from '../../resolvers/registries/yarn-resolver.js';
 
+const fs = require('fs');
 const path = require('path');
 
 export function hasWrapper(commander: Object): boolean {
@@ -19,8 +20,12 @@ export function run(config: Config, reporter: Reporter, flags: Object, args: Arr
   if (args.length === 0) {
     reporter.log(binFolder, {force: true});
   } else {
-    for (const arg of args) {
-      reporter.log(`${binFolder}/${arg}`, {force: true});
+    const binName = args[0];
+    const finalPath = path.normalize(`${binFolder}/${binName}`);
+    if (fs.existsSync(finalPath)) {
+      reporter.log(finalPath, {force: true});
+    } else {
+      reporter.error(reporter.lang('packageBinaryNotFound', binName));
     }
   }
   return Promise.resolve();
