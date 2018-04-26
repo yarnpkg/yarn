@@ -26,7 +26,9 @@ export const runInstall = run.bind(
     const install = new Install(flags, config, reporter, lockfile);
     await install.init();
     await check(config, reporter, {}, []);
-    await check(config, reporter, {verifyTree: true}, []);
+    if (!flags.modulesFolder) { // check verify tree being broken with a custom modules folder
+      await check(config, reporter, {verifyTree: true}, []);
+    }
     return install;
   },
   [],
@@ -84,6 +86,7 @@ export function makeConfigFromDirectory(cwd: string, reporter: Reporter, flags: 
   return Config.create(
     {
       binLinks: !!flags.binLinks,
+      modulesFolder: flags.modulesFolder,
       cwd,
       globalFolder: flags.globalFolder || path.join(cwd, '.yarn-global'),
       cacheFolder: flags.cacheFolder || path.join(cwd, '.yarn-cache'),
@@ -161,7 +164,9 @@ export async function run<T, R>(
   await fs.mkdirp(path.join(cwd, '.yarn-global'));
   await fs.mkdirp(path.join(cwd, '.yarn-link'));
   await fs.mkdirp(path.join(cwd, '.yarn-cache'));
-  await fs.mkdirp(path.join(cwd, 'node_modules'));
+  if (!flags.modulesFolder) {
+    await fs.mkdirp(path.join(cwd, 'node_modules'))
+  }
 
   // make sure the cache folder been created in temp folder
   if (flags.cacheFolder) {
