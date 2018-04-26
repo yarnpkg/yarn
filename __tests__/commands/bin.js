@@ -11,13 +11,13 @@ const runBin = buildRun.bind(null, BufferReporter, fixturesLoc, (args, flags, co
   return run(config, reporter, flags, args);
 });
 
-test('run bin with no arguments should return the folder where are stored the binaries', (): Promise<void> => {
+test('running bin without arguments should return the folder where the binaries are stored', (): Promise<void> => {
   return runBin([], {}, '../install/install-production-bin', (config, reporter): ?Promise<void> => {
     expect(reporter.getBufferText()).toMatch(/[\\\/]node_modules[\\\/]\.bin[\\\/]?$/);
   });
 });
 
-test('run bin with an arguments should return the location of the binary', (): Promise<void> => {
+test('running bin with a binary name as the argument should return its full path', (): Promise<void> => {
   return runBin(['rimraf'], {}, '../install/install-production-bin', (config, reporter): ?Promise<void> => {
     expect(reporter.getBufferText()).toMatch(/[\\\/]node_modules[\\\/]\.bin[\\\/]rimraf$/);
   });
