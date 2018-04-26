@@ -14,6 +14,7 @@ const {quoteForShell, sh, unquoted} = require('puka');
 
 export function setFlags(commander: Object) {
   commander.description('Runs a defined package script.');
+  commander.option('--into <path>', 'Sets the cwd to the specified location');
 }
 
 export function hasWrapper(commander: Object, args: Array<string>): boolean {
@@ -86,7 +87,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
           stage,
           config,
           cmd: cmdWithArgs,
-          cwd: config.cwd,
+          cwd: flags.into || config.cwd,
           isInteractive: true,
           customShell: customShell ? String(customShell) : undefined,
         });
