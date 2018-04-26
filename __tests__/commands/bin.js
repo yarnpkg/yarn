@@ -1,6 +1,6 @@
 /* @flow */
 
-import {run as buildRun} from './_helpers.js';
+import {run as buildRun, runInstall} from './_helpers.js';
 import {BufferReporter} from '../../src/reporters/index.js';
 import {run} from '../../src/cli/commands/bin.js';
 
@@ -18,7 +18,9 @@ test('running bin without arguments should return the folder where the binaries 
 });
 
 test('running bin with a binary name as the argument should return its full path', (): Promise<void> => {
-  return runBin(['rimraf'], {}, '../install/install-production-bin', (config, reporter): ?Promise<void> => {
+  return runInstall({binLinks: true}, 'install-production-bin', async (config): ?Promise<void> => {
+    const reporter = new BufferReporter();
+    await run(config, reporter, {}, ['rimraf']);
     expect(reporter.getBufferText()).toMatch(/[\\\/]node_modules[\\\/]\.bin[\\\/]rimraf$/);
   });
 });
