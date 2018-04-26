@@ -338,8 +338,8 @@ export default class NpmRegistry extends Registry {
       const username = this.getRegistryOrGlobalOption(registry, 'username');
       const password = this.getRegistryOrGlobalOption(registry, '_password');
       if (username && password) {
-        const pw = new Buffer(String(password), 'base64').toString();
-        return 'Basic ' + new Buffer(String(username) + ':' + pw).toString('base64');
+        const pw = Buffer.from(String(password), 'base64').toString();
+        return 'Basic ' + Buffer.from(String(username) + ':' + pw).toString('base64');
       }
     }
 

@@ -183,7 +183,9 @@ const messages = {
     'Package not found - this is probably an internal error, and should be reported at https://github.com/yarnpkg/yarn/issues.',
 
   workspacesAddRootCheck:
-    'Running this command will add the dependency to the workspace root rather than workspace itself, which might not be what you want - if you really meant it, make it explicit by running this command again with the -W flag (or --ignore-workspace-root-check).',
+    'Running this command will add the dependency to the workspace root rather than the workspace itself, which might not be what you want - if you really meant it, make it explicit by running this command again with the -W flag (or --ignore-workspace-root-check).',
+  workspacesRemoveRootCheck:
+    'Running this command will remove the dependency from the workspace root rather than the workspace itself, which might not be what you want - if you really meant it, make it explicit by running this command again with the -W flag (or --ignore-workspace-root-check).',
   workspacesRequirePrivateProjects: 'Workspaces can only be enabled in private projects.',
   workspacesSettingMustBeArray: 'The workspaces field in package.json must be an array.',
   workspacesDisabled:
@@ -355,6 +357,7 @@ const messages = {
   packageInstalledWithBinaries: 'Installed $0 with binaries:',
   packageHasBinaries: '$0 has binaries:',
   packageHasNoBinaries: '$0 has no binaries',
+  packageBinaryNotFound: "Couldn't find a binary named $0",
 
   couldBeDeduped: '$0 could be deduped from $1 to $2',
   lockfileNotContainPattern: 'Lockfile does not contain pattern: $0',
