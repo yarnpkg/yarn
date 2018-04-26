@@ -5,7 +5,7 @@ const {
   exec: {execFile},
 } = require(`pkg-tests-core`);
 
-const {basic: basicSpecs, dragon: dragonSpecs} = require(`pkg-tests-specs`);
+const {basic: basicSpecs, dragon: dragonSpecs, script: scriptSpecs} = require(`pkg-tests-specs`);
 
 const pkgDriver = generatePkgDriver({
   runDriver: (path, args, {registryUrl}) => {
@@ -24,3 +24,4 @@ beforeEach(async () => {
 
 basicSpecs(pkgDriver);
 dragonSpecs(pkgDriver);
+scriptSpecs(pkgDriver);
