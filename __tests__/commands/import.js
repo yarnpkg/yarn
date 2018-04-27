@@ -31,9 +31,17 @@ const reporterType = (reporter, type) => reporter.getBuffer().filter(d => d.type
 
 const reporterErrors = reporter => reporter.getBuffer().filter(d => d.error);
 
-const checkReporter = reporter => {
+const checkReporter = (reporter, importFrom) => {
   expect(reporterErrors(reporter)).toEqual([]);
-  expect(reporterType(reporter, 'info')).toEqual([]);
+  if (importFrom === 'package-lock.json') {
+    expect(reporterType(reporter, 'info')).toEqual([
+      {data: reporter.lang('importPackageLock'), error: false, type: 'info'},
+    ]);
+  } else {
+    expect(reporterType(reporter, 'info')).toEqual([
+      {data: reporter.lang('importNodeModules'), error: false, type: 'info'},
+    ]);
+  }
 };
 
 const checkLockfile = async (config, reporter) => {
@@ -53,33 +61,63 @@ const checkLockfileWithVersions = async (config, reporter) => {
   expect(lockfile.source).toEqual(imported);
 };
 
-const checkReporterAndLockfile = async (config, reporter) => {
-  checkReporter(reporter);
+const checkReporterAndLockfile = ({importFrom}) => async (config, reporter) => {
+  checkReporter(reporter, importFrom);
   await checkLockfile(config, reporter);
-  checkReporter(reporter);
+  checkReporter(reporter, importFrom);
 };
 
 test.concurrent('import shallow deps', () => {
-  return runImport([], {}, 'shallow', checkReporterAndLockfile);
+  const importFrom = 'node_modules';
+  return runImport([], {}, 'shallow', checkReporterAndLockfile({importFrom}));
+});
+
+test.concurrent('import shallow deps from package-lock.json', () => {
+  const importFrom = 'package-lock.json';
+  return runImport([], {}, 'shallow-package-lock', checkReporterAndLockfile({importFrom}));
 });
 
 test.concurrent('import deep deps', () => {
-  return runImport([], {}, 'deep', checkReporterAndLockfile);
+  const importFrom = 'node_modules';
+  return runImport([], {}, 'deep', checkReporterAndLockfile({importFrom}));
+});
+
+test.concurrent('import deep deps from package-lock.json', () => {
+  const importFrom = 'package-lock.json';
+  return runImport([], {}, 'deep-package-lock', checkReporterAndLockfile({importFrom}));
 });
 
 test.concurrent('import shallow dev deps', () => {
-  return runImport([], {}, 'shallow-dev', checkReporterAndLockfile);
+  const importFrom = 'node_modules';
+  return runImport([], {}, 'shallow-dev', checkReporterAndLockfile({importFrom}));
+});
+
+test.concurrent('import shallow dev deps from package-lock.json', () => {
+  const importFrom = 'package-lock.json';
+  return runImport([], {}, 'shallow-dev-package-lock', checkReporterAndLockfile({importFrom}));
 });
 
 test.concurrent('import github deps', () => {
-  return runImport([], {}, 'github', checkReporterAndLockfile);
+  const importFrom = 'node_modules';
+  return runImport([], {}, 'github', checkReporterAndLockfile({importFrom}));
+});
+
+test.concurrent('import github deps from package-lock.json', () => {
+  const importFrom = 'package-lock.json';
+  return runImport([], {}, 'github-package-lock', checkReporterAndLockfile({importFrom}));
 });
 
 test.concurrent('import file deps', () => {
-  return runImport([], {}, 'file', checkReporterAndLockfile);
+  const importFrom = 'node_modules';
+  return runImport([], {}, 'file', checkReporterAndLockfile({importFrom}));
 });
 
-test.concurrent('throw on missing dev deps deps', async () => {
+test.concurrent('import file deps from package-lock.json', () => {
+  const importFrom = 'package-lock.json';
+  return runImport([], {}, 'file-package-lock', checkReporterAndLockfile({importFrom}));
+});
+
+test.concurrent('throw on missing dev deps', async () => {
   let thrown = false;
   try {
     await runImport([], {}, 'missing-dev');
@@ -89,8 +127,34 @@ test.concurrent('throw on missing dev deps deps', async () => {
   expect(thrown).toBeTruthy();
 });
 
+test.concurrent('throw on corrupted package-lock.json', async () => {
+  let thrown = false;
+  try {
+    await runImport([], {}, 'corrupted-package-lock');
+  } catch (err) {
+    thrown = true;
+  }
+  expect(thrown).toBeTruthy();
+});
+
+test.concurrent('throw on corrupted package-lock.json - missing deep dependencies', async () => {
+  let thrown = false;
+  try {
+    await runImport([], {}, 'corrupted-package-lock-missing-deps');
+  } catch (err) {
+    thrown = true;
+  }
+  expect(thrown).toBeTruthy();
+});
+
 test.concurrent('including Yarn and Node version in yarn.lock', () => {
   return runImport([], {production: true}, 'versions-yarn-lock', async (config, reporter) => {
+    await checkLockfileWithVersions(config, reporter);
+  });
+});
+
+test.concurrent('including Yarn and Node version in yarn.lock from package-lock.json', () => {
+  return runImport([], {production: true}, 'versions-yarn-lock-package-lock', async (config, reporter) => {
     await checkLockfileWithVersions(config, reporter);
   });
 });
@@ -115,7 +179,7 @@ test.concurrent('import missing opt deps', () => {
   });
 });
 
-test.concurrent('throw on locked deps', async () => {
+test.concurrent('throw when yarn.lock exists', async () => {
   let thrown = false;
   try {
     await runImport([], {}, 'locked');
