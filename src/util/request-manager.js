@@ -12,6 +12,7 @@ import BlockingQueue from './blocking-queue.js';
 import * as constants from '../constants.js';
 import * as network from './network.js';
 import map from '../util/map.js';
+import isExcludedFromProxy from './proxy-exclusion.js';
 
 import typeof * as RequestModuleT from 'request';
 
@@ -97,6 +98,7 @@ export default class RequestManager {
   userAgent: string;
   reporter: Reporter;
   running: number;
+  noProxy: string;
   httpsProxy: string | boolean;
   httpProxy: string | boolean;
   strictSSL: boolean;
@@ -121,6 +123,7 @@ export default class RequestManager {
     captureHar?: boolean,
     httpProxy?: string | boolean,
     httpsProxy?: string | boolean,
+    noProxy?: string,
     strictSSL?: boolean,
     ca?: Array<string>,
     cafile?: string,
@@ -152,6 +155,10 @@ export default class RequestManager {
       this.httpsProxy = false;
     } else {
       this.httpsProxy = opts.httpsProxy || '';
+    }
+
+    if (opts.noProxy != null) {
+      this.noProxy = opts.noProxy;
     }
 
     if (opts.strictSSL !== null && typeof opts.strictSSL !== 'undefined') {
@@ -410,9 +417,9 @@ export default class RequestManager {
       params.encoding = null;
     }
 
-    let proxy = this.httpProxy;
-    if (params.url.startsWith('https:')) {
-      proxy = this.httpsProxy;
+    let proxy = params.url.startsWith('https:') ? this.httpsProxy : this.httpProxy;
+    if (isExcludedFromProxy(params.url, this.noProxy)) {
+      proxy = false;
     }
 
     if (proxy) {

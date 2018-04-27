@@ -9,6 +9,7 @@ jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000;
 
 const net = require('net');
 const https = require('https');
+const http = require('http');
 const path = require('path');
 
 test('RequestManager.request with cafile', async () => {
@@ -119,6 +120,167 @@ test('RequestManager.request with mutual TLS', async () => {
   expect(body).toBe('ok');
 });
 
+const setupServer = async () => {
+  const options = {
+    key: await fs.readFile(path.join(__dirname, '..', 'fixtures', 'certificates', 'server-key.pem')),
+    cert: await fs.readFile(path.join(__dirname, '..', 'fixtures', 'certificates', 'server-cert.pem')),
+  };
+  const httpsServer = https.createServer(options, (req, res) => {
+    res.end('ok');
+  });
+  const httpServer = http.createServer((req, res) => {
+    res.end('ok');
+  });
+
+  httpsServer.listen(0);
+  httpServer.listen(0);
+
+  const httpsPort = httpsServer.address().port;
+  const httpPort = httpServer.address().port;
+
+  return {
+    caFilePath: path.join(__dirname, '..', 'fixtures', 'certificates', 'cacerts.pem'),
+    httpPort: httpPort,
+    httpUrl: `http://localhost:${httpPort}/?nocache`,
+    httpsPort: httpsPort,
+    httpsUrl: `https://localhost:${httpsPort}/?nocache`,
+    close: () => {
+      httpsServer.close();
+      httpServer.close();
+    }
+  }
+};
+
+const setProxyEnvVars = () => {
+  process.env.HTTP_PROXY = 'http://example-proxy.com';
+  process.env.HTTPS_PROXY = 'http://example-proxy.com';
+  delete process.env.NO_PROXY;
+};
+
+const deleteProxyEnvVars = () => {
+  delete process.env.HTTP_PROXY;
+  delete process.env.HTTPS_PROXY;
+  delete process.env.NO_PROXY;
+};
+
+test('RequestManager.request with env vars proxy options and only no-proxy option in config', async () => {
+  const server = await setupServer();
+
+  try {
+    setProxyEnvVars();
+
+    const configWithoutProxyExclusion = await Config.create({
+      cafile: server.caFilePath
+    });
+
+    let error;
+    try {
+      await configWithoutProxyExclusion.requestManager.request({
+        url: server.httpsUrl,
+        headers: {Connection: 'close'},
+      });
+    } catch(e) {
+      error = e;
+    }
+    expect(error).toBeTruthy();
+
+    error = undefined;
+    try {
+      await configWithoutProxyExclusion.requestManager.request({
+        url: server.httpUrl,
+        headers: {Connection: 'close'},
+      });
+    } catch(e) {
+      error = e;
+    }
+    expect(error).toBeTruthy();
+
+    const configWithProxyExclusion = await Config.create({
+      cafile: server.caFilePath,
+      noProxy: 'localhost',
+    });
+
+    let successfulRequestBody = await configWithProxyExclusion.requestManager.request({
+      url: server.httpsUrl,
+      headers: {Connection: 'close'},
+    });
+    expect(successfulRequestBody).toBe('ok');
+
+    successfulRequestBody = await configWithProxyExclusion.requestManager.request({
+      url: server.httpUrl,
+      headers: {Connection: 'close'},
+    });
+    expect(successfulRequestBody).toBe('ok');
+  } finally {
+    server.close();
+  }
+});
+
+const testProxyOptionsInConfigFile = async () => {
+  const server = await setupServer();
+
+  try {
+    const configWithoutProxyExclusion = await Config.create({
+      cafile: server.caFilePath,
+      httpProxy: 'http://example-proxy.com',
+      httpsProxy: 'http://example-proxy.com',
+    });
+
+    let error;
+    try {
+      await configWithoutProxyExclusion.requestManager.request({
+        url: server.httpsUrl,
+        headers: {Connection: 'close'},
+      });
+    } catch(e) {
+      error = e;
+    }
+    expect(error).toBeTruthy();
+
+    error = undefined;
+    try {
+      await configWithoutProxyExclusion.requestManager.request({
+        url: server.httpUrl,
+        headers: {Connection: 'close'},
+      });
+    } catch(e) {
+      error = e;
+    }
+    expect(error).toBeTruthy();
+
+    const configWithProxyExclusion = await Config.create({
+      cafile: server.caFilePath,
+      noProxy: 'localhost',
+      httpProxy: 'http://example-proxy.com',
+      httpsProxy: 'http://example-proxy.com',
+    });
+
+    let successfulRequestBody = await configWithProxyExclusion.requestManager.request({
+      url: server.httpsUrl,
+      headers: {Connection: 'close'},
+    });
+    expect(successfulRequestBody).toBe('ok');
+
+    successfulRequestBody = await configWithProxyExclusion.requestManager.request({
+      url: server.httpUrl,
+      headers: {Connection: 'close'},
+    });
+    expect(successfulRequestBody).toBe('ok');
+  } finally {
+    server.close();
+  }
+};
+
+test('RequestManager.request with proxy and no-proxy options only in config without env vars', async () => {
+  deleteProxyEnvVars();
+  testProxyOptionsInConfigFile();
+});
+
+test('RequestManager.request with both proxy options in env vars and config and no-proxy options in config', async () => {
+  setProxyEnvVars();
+  testProxyOptionsInConfigFile();
+});
+
 test('RequestManager.execute timeout error with maxRetryAttempts=1', async () => {
   jest.useFakeTimers();
 
@@ -196,14 +358,12 @@ test('RequestManager.execute Request 403 error', async () => {
   });
   await config.requestManager.execute({
     params: {
-      url: `https://localhost:port/?nocache`,
+      url: `https://localhost:80/?nocache`,
       headers: {Connection: 'close'},
     },
     resolve: body => {},
     reject: err => {
-      expect(err.message).toBe(
-        'https://localhost:port/?nocache: Request "https://localhost:port/?nocache" returned a 403',
-      );
+      expect(err.message).toBe('https://localhost:80/?nocache: Request "https://localhost:80/?nocache" returned a 403');
     },
   });
 });
@@ -212,11 +372,11 @@ test('RequestManager.request with offlineNoRequests', async () => {
   const config = await Config.create({offline: true}, new Reporter());
   try {
     await config.requestManager.request({
-      url: `https://localhost:port/?nocache`,
+      url: `https://localhost:80/?nocache`,
       headers: {Connection: 'close'},
     });
   } catch (err) {
-    expect(err.message).toBe('Can\'t make a request in offline mode ("https://localhost:port/?nocache")');
+    expect(err.message).toBe('Can\'t make a request in offline mode ("https://localhost:80/?nocache")');
   }
 });
 

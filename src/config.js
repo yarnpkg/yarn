@@ -54,6 +54,7 @@ export type ConfigOptions = {
 
   httpProxy?: ?string,
   httpsProxy?: ?string,
+  noProxy?: ?string,
 
   commandName?: ?string,
   registry?: ?string,
@@ -282,10 +283,12 @@ export default class Config {
 
     const httpProxy = opts.httpProxy || this.getOption('proxy');
     const httpsProxy = opts.httpsProxy || this.getOption('https-proxy');
+    const noProxy = opts.noProxy || this.getOption('no-proxy');
     this.requestManager.setOptions({
       userAgent: String(this.getOption('user-agent')),
       httpProxy: httpProxy === false ? false : String(httpProxy || ''),
       httpsProxy: httpsProxy === false ? false : String(httpsProxy || ''),
+      noProxy: String(noProxy || ''),
       strictSSL: Boolean(this.getOption('strict-ssl')),
       ca: Array.prototype.concat(opts.ca || this.getOption('ca') || []).map(String),
       cafile: String(opts.cafile || this.getOption('cafile', true) || ''),
