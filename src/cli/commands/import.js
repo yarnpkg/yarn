@@ -20,9 +20,10 @@ import PackageLinker from '../../package-linker.js';
 import * as compatibility from '../../package-compatibility.js';
 import Lockfile from '../../lockfile';
 import {normalizePattern} from '../../util/normalize-pattern.js';
+import {LogicalManifestTree} from '../../util/logical-manifest-tree';
 import * as fs from '../../util/fs.js';
 import * as util from '../../util/misc.js';
-import {YARN_REGISTRY, LOCKFILE_FILENAME} from '../../constants.js';
+import {YARN_REGISTRY, LOCKFILE_FILENAME, NODE_PACKAGE_JSON, NPM_LOCK_FILENAME} from '../../constants.js';
 
 const NPM_REGISTRY = /http[s]:\/\/registry.npmjs.org/g;
 
@@ -45,7 +46,8 @@ class ImportResolver extends BaseResolver {
   resolveHostedGit(info: Manifest, Resolver: Class<HostedGitResolver>): Manifest {
     const {range} = normalizePattern(this.pattern);
     const exploded = explodeHostedGitFragment(range, this.reporter);
-    const hash = (info: any).gitHead;
+    const resolvedExploded = info._resolved ? explodeHostedGitFragment(info._resolved, this.reporter) : {};
+    const hash = (info: any).gitHead || resolvedExploded.hash;
     invariant(hash, 'expected package gitHead');
     const url = Resolver.getTarballUrl(exploded, hash);
     info._uid = hash;
@@ -151,27 +153,33 @@ class ImportResolver extends BaseResolver {
   }
 
   async resolve(): Promise<Manifest> {
-    const {name} = normalizePattern(this.pattern);
-    let cwd = this.getCwd();
-    while (!path.relative(this.config.cwd, cwd).startsWith('..')) {
-      const loc = path.join(cwd, 'node_modules', name);
-      const info = await this.config.getCache(`import-resolver-${loc}`, () => this.resolveLocation(loc));
-      if (info) {
-        return info;
+    if (this.request instanceof ImportPackageRequest && this.request.manifest) {
+      return this.resolveImport(this.request.manifest);
+    } else {
+      const {name} = normalizePattern(this.pattern);
+      let cwd = this.getCwd();
+      while (!path.relative(this.config.cwd, cwd).startsWith('..')) {
+        const loc = path.join(cwd, 'node_modules', name);
+        const info = await this.config.getCache(`import-resolver-${loc}`, () => this.resolveLocation(loc));
+        if (info) {
+          return info;
+        }
+        cwd = path.resolve(cwd, '../..');
       }
-      cwd = path.resolve(cwd, '../..');
+      throw new MessageError(this.reporter.lang('importResolveFailed', name, this.getCwd()));
     }
-    throw new MessageError(this.reporter.lang('importResolveFailed', name, this.getCwd()));
   }
 }
 
 class ImportPackageRequest extends PackageRequest {
-  constructor(req: DependencyRequestPattern, resolver: PackageResolver) {
+  constructor(req: DependencyRequestPattern, manifest: ?Manifest, resolver: PackageResolver) {
     super(req, resolver);
     this.import = this.parentRequest instanceof ImportPackageRequest ? this.parentRequest.import : true;
+    this.manifest = manifest;
   }
 
   import: boolean;
+  manifest: ?Manifest;
 
   getRootName(): string {
     return (this.resolver instanceof ImportPackageResolver && this.resolver.rootName) || 'root';
@@ -219,6 +227,7 @@ class ImportPackageResolver extends PackageResolver {
 
   next: DependencyRequestPatterns;
   rootName: string;
+  manifestTree: ?LogicalManifestTree;
 
   find(req: DependencyRequestPattern): Promise<void> {
     this.next.push(req);
@@ -229,7 +238,9 @@ class ImportPackageResolver extends PackageResolver {
     if (this.activity) {
       this.activity.tick(req.pattern);
     }
-    const request = new ImportPackageRequest(req, this);
+    const {name} = normalizePattern(req.pattern);
+    const manifest = this.manifestTree ? await this.manifestTree.getManifestFor(name, req.parentNames) : null;
+    const request = new ImportPackageRequest(req, manifest, this);
     await request.find({fresh: false});
   }
 
@@ -276,12 +287,33 @@ export class Import extends Install {
     this.resolver = new ImportPackageResolver(this.config, this.lockfile);
     this.linker = new PackageLinker(config, this.resolver);
   }
-
+  async createManifestTree(): Promise<LogicalManifestTree> {
+    try {
+      const packageLock = await fs.readFile(path.join(this.config.cwd, NPM_LOCK_FILENAME));
+      const packageJson = await fs.readFile(path.join(this.config.cwd, NODE_PACKAGE_JSON));
+      return new LogicalManifestTree(packageJson, packageLock, this.config.cwd);
+    } catch (e) {
+      throw new MessageError(this.reporter.lang('importSourceFilesCorrupted'));
+    }
+  }
   async init(): Promise<Array<string>> {
     if (await fs.exists(path.join(this.config.cwd, LOCKFILE_FILENAME))) {
       throw new MessageError(this.reporter.lang('lockfileExists'));
     }
-    await verifyTreeCheck(this.config, this.reporter, {}, []);
+    const importSource = (await fs.exists(path.join(this.config.cwd, NPM_LOCK_FILENAME)))
+      ? 'package-lock.json'
+      : 'node_modules';
+    if (importSource === 'package-lock.json') {
+      this.reporter.info(this.reporter.lang('importPackageLock'));
+      const tree = await this.createManifestTree();
+      if (this.resolver instanceof ImportPackageResolver) {
+        this.resolver.manifestTree = tree;
+      }
+    }
+    if (importSource === 'node_modules') {
+      this.reporter.info(this.reporter.lang('importNodeModules'));
+      await verifyTreeCheck(this.config, this.reporter, {}, []);
+    }
     const {requests, patterns, manifest} = await this.fetchRequestFromCwd();
     if (manifest.name && this.resolver instanceof ImportPackageResolver) {
       this.resolver.rootName = manifest.name;

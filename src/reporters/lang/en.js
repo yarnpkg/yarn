@@ -380,6 +380,9 @@ const messages = {
   importFailed: 'Import of $0 for $1 failed, resolving normally.',
   importResolveFailed: 'Import of $0 failed starting in $1',
   importResolvedRangeMatch: 'Using version $0 of $1 instead of $2 for $3',
+  importSourceFilesCorrupted: 'Failed to import from package-lock.json, source file(s) corrupted',
+  importPackageLock: 'found npm package-lock.json, converting to yarn.lock',
+  importNodeModules: 'creating yarn.lock from local node_modules folder',
   packageContainsYarnAsGlobal:
     'Installing Yarn via Yarn will result in you having two separate versions of Yarn installed at the same time, which is not recommended. To update Yarn please follow https://yarnpkg.com/en/docs/install .',
 
