@@ -24,12 +24,14 @@ import {LogicalManifestTree} from '../../util/logical-manifest-tree';
 import * as fs from '../../util/fs.js';
 import * as util from '../../util/misc.js';
 import {YARN_REGISTRY, LOCKFILE_FILENAME, NODE_PACKAGE_JSON, NPM_LOCK_FILENAME} from '../../constants.js';
+import semver from 'semver';
 
 const NPM_REGISTRY = /http[s]:\/\/registry.npmjs.org/g;
 
 const invariant = require('invariant');
 const path = require('path');
 const uuid = require('uuid');
+const nodeVersion = process.versions.node.split('-')[0];
 
 export const noArguments = true;
 
@@ -300,9 +302,10 @@ export class Import extends Install {
     if (await fs.exists(path.join(this.config.cwd, LOCKFILE_FILENAME))) {
       throw new MessageError(this.reporter.lang('lockfileExists'));
     }
-    const importSource = (await fs.exists(path.join(this.config.cwd, NPM_LOCK_FILENAME)))
-      ? 'package-lock.json'
-      : 'node_modules';
+    const importSource =
+      (await fs.exists(path.join(this.config.cwd, NPM_LOCK_FILENAME))) && semver.satisfies(nodeVersion, '>=5.0.0')
+        ? 'package-lock.json'
+        : 'node_modules';
     if (importSource === 'package-lock.json') {
       this.reporter.info(this.reporter.lang('importPackageLock'));
       const tree = await this.createManifestTree();
