@@ -1,6 +1,6 @@
 /* @flow */
 
-import {URL} from 'url';
+import * as urlMod from 'url';
 
 type Zone = {
   hostname: string,
@@ -37,7 +37,12 @@ export default function isExcludedFromProxy(url: string, noProxy: string): boole
     return true;
   }
 
-  const uri = new URL(url);
+  let uri;
+  if (urlMod.URL) {
+    uri = new urlMod.URL(url);
+  } else {
+    uri = urlMod.parse(url);
+  }
 
   const port = uri.port || (uri.protocol === 'https:' ? '443' : '80');
   const hostname = formatHostname(uri.hostname);

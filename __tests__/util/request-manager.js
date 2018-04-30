@@ -140,15 +140,15 @@ const setupServer = async () => {
 
   return {
     caFilePath: path.join(__dirname, '..', 'fixtures', 'certificates', 'cacerts.pem'),
-    httpPort: httpPort,
+    httpPort,
     httpUrl: `http://localhost:${httpPort}/?nocache`,
-    httpsPort: httpsPort,
+    httpsPort,
     httpsUrl: `https://localhost:${httpsPort}/?nocache`,
     close: () => {
       httpsServer.close();
       httpServer.close();
-    }
-  }
+    },
+  };
 };
 
 const setProxyEnvVars = () => {
@@ -170,7 +170,7 @@ test('RequestManager.request with env vars proxy options and only no-proxy optio
     setProxyEnvVars();
 
     const configWithoutProxyExclusion = await Config.create({
-      cafile: server.caFilePath
+      cafile: server.caFilePath,
     });
 
     let error;
@@ -179,7 +179,7 @@ test('RequestManager.request with env vars proxy options and only no-proxy optio
         url: server.httpsUrl,
         headers: {Connection: 'close'},
       });
-    } catch(e) {
+    } catch (e) {
       error = e;
     }
     expect(error).toBeTruthy();
@@ -190,7 +190,7 @@ test('RequestManager.request with env vars proxy options and only no-proxy optio
         url: server.httpUrl,
         headers: {Connection: 'close'},
       });
-    } catch(e) {
+    } catch (e) {
       error = e;
     }
     expect(error).toBeTruthy();
@@ -212,6 +212,7 @@ test('RequestManager.request with env vars proxy options and only no-proxy optio
     });
     expect(successfulRequestBody).toBe('ok');
   } finally {
+    deleteProxyEnvVars();
     server.close();
   }
 });
@@ -232,7 +233,7 @@ const testProxyOptionsInConfigFile = async () => {
         url: server.httpsUrl,
         headers: {Connection: 'close'},
       });
-    } catch(e) {
+    } catch (e) {
       error = e;
     }
     expect(error).toBeTruthy();
@@ -243,7 +244,7 @@ const testProxyOptionsInConfigFile = async () => {
         url: server.httpUrl,
         headers: {Connection: 'close'},
       });
-    } catch(e) {
+    } catch (e) {
       error = e;
     }
     expect(error).toBeTruthy();
@@ -273,12 +274,16 @@ const testProxyOptionsInConfigFile = async () => {
 
 test('RequestManager.request with proxy and no-proxy options only in config without env vars', async () => {
   deleteProxyEnvVars();
-  testProxyOptionsInConfigFile();
+  await testProxyOptionsInConfigFile();
 });
 
 test('RequestManager.request with both proxy options in env vars and config and no-proxy options in config', async () => {
-  setProxyEnvVars();
-  testProxyOptionsInConfigFile();
+  try{
+    setProxyEnvVars();
+    await testProxyOptionsInConfigFile();
+  } finally {
+    deleteProxyEnvVars();
+  }
 });
 
 test('RequestManager.execute timeout error with maxRetryAttempts=1', async () => {
