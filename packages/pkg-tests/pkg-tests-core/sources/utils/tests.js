@@ -22,6 +22,17 @@ export type PackageRunDriver = (
 
 export type PackageDriver = any;
 
+let whitelist = new Map();
+
+exports.setPackageWhitelist = async function whitelistPackages(
+  packages: Map<string, Set<string>>,
+  fn: () => Promise<void>,
+) {
+  whitelist = packages;
+  await fn();
+  whitelist = new Map();
+};
+
 exports.getPackageRegistry = function getPackageRegistry(): Promise<PackageRegistry> {
   if (getPackageRegistry.promise) {
     return getPackageRegistry.promise;
@@ -182,7 +193,12 @@ exports.startPackageServer = function startPackageServer(): Promise<string> {
       return processError(res, 404, `Package not found: ${name}`);
     }
 
-    const versions = Array.from(packageEntry.keys());
+    let versions = Array.from(packageEntry.keys());
+
+    const whitelistedVersions = whitelist.get(name);
+    if (whitelistedVersions) {
+      versions = versions.filter(version => whitelistedVersions.has(version));
+    }
 
     const data = JSON.stringify({
       name,

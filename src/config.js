@@ -47,6 +47,7 @@ export type ConfigOptions = {
   childConcurrency?: number,
   networkTimeout?: number,
   nonInteractive?: boolean,
+  pnp?: boolean,
 
   // Loosely compare semver for invalid cases like "0.01.0"
   looseSemver?: ?boolean,
