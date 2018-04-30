@@ -143,8 +143,6 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
 
   // list possible scripts if none specified
   if (args.length === 0) {
-    reporter.error(reporter.lang('commandNotSpecified'));
-
     if (binCommands.size > 0) {
       reporter.info(`${reporter.lang('binCommands') + Array.from(binCommands).join(', ')}`);
     } else {
@@ -162,12 +160,14 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
     if (pkgCommands.size > 0) {
       reporter.info(`${reporter.lang('possibleCommands')}`);
       reporter.list('possibleCommands', Array.from(pkgCommands), toObject(printedCommands));
-      await reporter
-        .question(reporter.lang('commandQuestion'))
-        .then(
-          answer => runCommand(answer.trim().split(' ')),
-          () => reporter.error(reporter.lang('commandNotSpecified')),
-        );
+      if (!flags.nonInteractive) {
+        await reporter
+          .question(reporter.lang('commandQuestion'))
+          .then(
+            answer => runCommand(answer.trim().split(' ')),
+            () => reporter.error(reporter.lang('commandNotSpecified')),
+          );
+      }
     } else {
       reporter.error(reporter.lang('noScriptsAvailable'));
     }

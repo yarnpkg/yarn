@@ -31,7 +31,7 @@ import WorkspaceLayout from '../../workspace-layout.js';
 import ResolutionMap from '../../resolution-map.js';
 import guessName from '../../util/guess-name';
 
-const deepEqual = require('deepequal');
+const deepEqual = require('deep-equal');
 const emoji = require('node-emoji');
 const invariant = require('invariant');
 const path = require('path');

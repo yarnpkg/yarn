@@ -232,6 +232,9 @@ export default class ConsoleReporter extends BaseReporter {
   tree(key: string, trees: Trees) {
     this.stopProgress();
     //
+    if (this.isSilent) {
+      return;
+    }
     const output = ({name, children, hint, color}, titlePrefix, childrenPrefix) => {
       const formatter = this.format;
       const out = getFormattedOutput({

@@ -767,8 +767,8 @@ export function normalizeOS(body: string): string {
   return body.replace(/\r\n/g, '\n');
 }
 
-const cr = new Buffer('\r', 'utf8')[0];
-const lf = new Buffer('\n', 'utf8')[0];
+const cr = '\r'.charCodeAt(0);
+const lf = '\n'.charCodeAt(0);
 
 async function getEolFromFile(path: string): Promise<string | void> {
   if (!await exists(path)) {

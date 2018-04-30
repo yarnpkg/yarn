@@ -16,7 +16,8 @@ type MockCallback = (reporter: Reporter, opts: Object) => ?Promise<void>;
 export default function<T>(
   Reporter: Function,
   interceptor: Interceptor<T>,
-  prepare?: (reporter: Reporter) => any,
+  prepare?: ?(reporter: Reporter) => any,
+  opts?: Object,
 ): (callback: MockCallback) => Promise<T> {
   return async function(callback: MockCallback): * {
     const data: MockData = {
@@ -39,14 +40,15 @@ export default function<T>(
       return stream;
     };
 
-    const opts = {
+    const newOpts = {
       stdin: new Stdin(),
       stdout: buildStream('stdout'),
       stderr: buildStream('stderr'),
       emoji: true,
+      ...(opts || {}),
     };
 
-    const reporter = new Reporter(opts);
+    const reporter = new Reporter(newOpts);
     let prepared;
 
     if (prepare) {
@@ -57,7 +59,7 @@ export default function<T>(
     reporter.isTTY = true;
     reporter.getTotalTime = (): number => 0;
 
-    await callback(reporter, opts);
+    await callback(reporter, newOpts);
     reporter.close();
 
     for (const key in data) {

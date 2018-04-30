@@ -45,3 +45,4 @@ scriptSpecs(pkgDriver);
 workspaceSpecs(pkgDriver);
 pnpSpecs(pkgDriver);
 dragonSpecs(pkgDriver);
+scriptSpecs(pkgDriver);
