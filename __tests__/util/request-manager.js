@@ -224,7 +224,7 @@ test('RequestManager.request with proxy and no-proxy options only in config with
 });
 
 test('RequestManager.request with both proxy options in env vars and config and no-proxy options in config', async () => {
-  try{
+  try {
     setProxyEnvVars();
     await testProxyOptionsInConfigFile();
   } finally {
