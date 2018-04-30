@@ -169,32 +169,6 @@ test('RequestManager.request with env vars proxy options and only no-proxy optio
   try {
     setProxyEnvVars();
 
-    const configWithoutProxyExclusion = await Config.create({
-      cafile: server.caFilePath,
-    });
-
-    let error;
-    try {
-      await configWithoutProxyExclusion.requestManager.request({
-        url: server.httpsUrl,
-        headers: {Connection: 'close'},
-      });
-    } catch (e) {
-      error = e;
-    }
-    expect(error).toBeTruthy();
-
-    error = undefined;
-    try {
-      await configWithoutProxyExclusion.requestManager.request({
-        url: server.httpUrl,
-        headers: {Connection: 'close'},
-      });
-    } catch (e) {
-      error = e;
-    }
-    expect(error).toBeTruthy();
-
     const configWithProxyExclusion = await Config.create({
       cafile: server.caFilePath,
       noProxy: 'localhost',
@@ -221,34 +195,6 @@ const testProxyOptionsInConfigFile = async () => {
   const server = await setupServer();
 
   try {
-    const configWithoutProxyExclusion = await Config.create({
-      cafile: server.caFilePath,
-      httpProxy: 'http://example-proxy.com',
-      httpsProxy: 'http://example-proxy.com',
-    });
-
-    let error;
-    try {
-      await configWithoutProxyExclusion.requestManager.request({
-        url: server.httpsUrl,
-        headers: {Connection: 'close'},
-      });
-    } catch (e) {
-      error = e;
-    }
-    expect(error).toBeTruthy();
-
-    error = undefined;
-    try {
-      await configWithoutProxyExclusion.requestManager.request({
-        url: server.httpUrl,
-        headers: {Connection: 'close'},
-      });
-    } catch (e) {
-      error = e;
-    }
-    expect(error).toBeTruthy();
-
     const configWithProxyExclusion = await Config.create({
       cafile: server.caFilePath,
       noProxy: 'localhost',
