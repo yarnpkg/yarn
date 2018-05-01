@@ -828,15 +828,8 @@ export async function readFirstAvailableStream(
   for (const tarballPath of paths) {
     if (tarballPath) {
       try {
-        // We need the weird `await new Promise()` construct for `createReadStream` because
-        // it always returns a ReadStream object but immediately triggers an `error` event
-        // on it if it fails to open the file, instead of throwing an exception. If this event
-        // is not handled, it crashes node. A saner way to handle this with multiple tries is
-        // the following construct.
-        stream = await new Promise((resolve, reject) => {
-          const maybeStream = fs.createReadStream(tarballPath);
-          maybeStream.on('error', reject).on('readable', resolve.bind(this, maybeStream));
-        });
+        await stat(tarballPath);
+        stream = fs.createReadStream(tarballPath);
         break;
       } catch (err) {
         // Try the next one
@@ -844,7 +837,6 @@ export async function readFirstAvailableStream(
       }
     }
   }
-
   return {stream, triedPaths};
 }
 
