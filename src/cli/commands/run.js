@@ -126,7 +126,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
           stage,
           config,
           cmd: cmdWithArgs,
-          cwd: config.cwd,
+          cwd: flags.into || config.cwd,
           isInteractive: true,
           customShell: customShell ? String(customShell) : undefined,
         });

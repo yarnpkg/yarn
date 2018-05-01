@@ -168,13 +168,18 @@ export function main({
   const PROXY_COMMANDS = new Set([`run`, `create`, `node`]);
   if (PROXY_COMMANDS.has(commandName)) {
     if (endArgs.length === 0) {
+      let preservedArgs = 0;
       // the "run" and "create" command take one argument that we want to parse as usual (the
       // script/package name), hence the splice(1)
       if (command === commands.run || command === commands.create) {
-        endArgs = ['--', ...args.splice(1)];
-      } else {
-        endArgs = ['--', ...args.splice(0)];
+        preservedArgs += 1;
       }
+      // If the --into option immediately follows the command (or the script name in the "run/create"
+      // case), we parse them as regular options so that we can cd into them
+      if (args[preservedArgs] === `--into`) {
+        preservedArgs += 2;
+      }
+      endArgs = ['--', ...args.splice(preservedArgs)];
     } else {
       warnAboutRunDashDash = true;
     }
