@@ -155,6 +155,7 @@ jobs:
           name: Install Node 10
           command: |
             brew uninstall --ignore-dependencies node
+            brew update
             HOMEBREW_NO_AUTO_UPDATE=1 brew install node@10
       - *attach_workspace
       - *test_build
