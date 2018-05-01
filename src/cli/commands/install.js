@@ -664,16 +664,15 @@ export class Install {
 
     // fin!
     // The second condition is to make sure lockfile can be updated when running `remove` command.
-    if (!this.config.plugnplayEnabled) {
-      if (
-        topLevelPatterns.length ||
-        (await fs.exists(path.join(this.config.lockfileFolder, constants.LOCKFILE_FILENAME)))
-      ) {
-        await this.saveLockfileAndIntegrity(topLevelPatterns, workspaceLayout);
-      } else {
-        this.reporter.info(this.reporter.lang('notSavedLockfileNoDependencies'));
-      }
+    if (
+      topLevelPatterns.length ||
+      (await fs.exists(path.join(this.config.lockfileFolder, constants.LOCKFILE_FILENAME)))
+    ) {
+      await this.saveLockfileAndIntegrity(topLevelPatterns, workspaceLayout);
+    } else {
+      this.reporter.info(this.reporter.lang('notSavedLockfileNoDependencies'));
     }
+
     this.maybeOutputUpdate();
     this.config.requestManager.clearCache();
     return flattenedTopLevelPatterns;
@@ -835,13 +834,15 @@ export class Install {
     }
 
     // write integrity hash
-    await this.integrityChecker.save(
-      patterns,
-      lockfileBasedOnResolver,
-      this.flags,
-      workspaceLayout,
-      this.scripts.getArtifacts(),
-    );
+    if (!this.config.plugnplayEnabled) {
+      await this.integrityChecker.save(
+        patterns,
+        lockfileBasedOnResolver,
+        this.flags,
+        workspaceLayout,
+        this.scripts.getArtifacts(),
+      );
+    }
 
     // --no-lockfile or --pure-lockfile or --frozen-lockfile flag
     if (this.flags.lockfile === false || this.flags.pureLockfile || this.flags.frozenLockfile) {
