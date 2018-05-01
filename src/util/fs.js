@@ -27,6 +27,7 @@ export const constants =
 export const lockQueue = new BlockingQueue('fs lock');
 
 export const readFileBuffer = promisify(fs.readFile);
+export const open: (path: string, flags: string, mode?: number) => Promise<Array<string>> = promisify(fs.open);
 export const writeFile: (path: string, data: string, options?: Object) => Promise<void> = promisify(fs.writeFile);
 export const readlink: (path: string, opts: void) => Promise<string> = promisify(fs.readlink);
 export const realpath: (path: string, opts: void) => Promise<string> = promisify(fs.realpath);
@@ -828,8 +829,8 @@ export async function readFirstAvailableStream(
   for (const tarballPath of paths) {
     if (tarballPath) {
       try {
-        await stat(tarballPath);
-        stream = fs.createReadStream(tarballPath);
+        const fd = await open(tarballPath, 'r');
+        stream = fs.createReadStream('', {fd});
         break;
       } catch (err) {
         // Try the next one
