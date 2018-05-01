@@ -125,6 +125,11 @@ jobs:
   test-pkg-tests-linux-node8:
     <<: *docker_defaults
     <<: *pkg_tests
+  test-linux-node10:
+    <<: *docker_defaults
+    docker:
+      - image: node:10
+    <<: *test_steps
   test-linux-node8:
     <<: *docker_defaults
     <<: *test_steps
@@ -256,6 +261,7 @@ workflows:
               ignore: /.*/
           requires:
             - test-pkg-tests-linux-node8
+            - test-linux-node10
             - test-linux-node8
             - test-linux-node6
             - test-linux-node4
