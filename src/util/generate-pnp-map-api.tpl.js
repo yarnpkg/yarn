@@ -25,6 +25,19 @@ const moduleCache = new Map();
 
 /**
  * Ensures that the returned locator isn't a blacklisted one.
+ *
+ * Blacklisted packages are packages that cannot be used because their dependencies cannot be deduced. This only
+ * happens with peer dependencies, which effectively have different sets of dependencies depending on their parents.
+ *
+ * In order to deambiguate those different sets of dependencies, the Yarn implementation of PnP will generate a
+ * symlink for each combination of <package name>/<package version>/<dependent package> it will find, and will
+ * blacklist the target of those symlinks. By doing this, we ensure that files loaded through a specific path
+ * will always have the same set of dependencies, provided the symlinks are correctly preserved.
+ *
+ * Unfortunately, some tools do not preserve them, and when it happens PnP isn't able anymore to deduce the set of
+ * dependencies based on the path of the file that makes the require calls. But since we've blacklisted those paths,
+ * we're able to print a more helpful error message that points out that a third-party package is doing something
+ * incompatible!
  */
 
 // eslint-disable-next-line no-unused-vars
@@ -199,6 +212,10 @@ exports.getPackageInformation = function getPackageInformation({name, reference}
  *  - The owning package locator
  *  - The owning package path in the dependency tree
  *  - The file cache key
+ *
+ * Note that it is extremely important that the `issuer` path ends with a forward slash if the issuer is to be
+ * treated as a folder (ie. "/tmp/foo/" rather than "/tmp/foo" if "foo" is a directory). Otherwise relative
+ * imports won't be computed correctly (they'll get resolved relative to "/tmp/" instead of "/tmp/foo/").
  */
 
 exports.resolveRequest = function resolveRequest(request, issuer) {
@@ -211,12 +228,26 @@ exports.resolveRequest = function resolveRequest(request, issuer) {
   let filesystemPath;
 
   // If the request is a relative or absolute path, we just return it normalized
+  //
+  // Note that if the very last component of the issuer is a symlink to a file, we then need to resolve it, but
+  // only it, and not the rest of the path! This allows us to support the case of bin symlinks, where a symlink
+  // in "/.../pkg-name/.bin/bin-name" will point somewhere else (like "/../pkg-name/index.js"). In such a case,
+  // we want relative requires to be resolved relative to "/../pkg-name/" rather than "/../pkg-name/.bin/".
+  //
+  // Also note that the reason we must use readlink on the last component (instead of realpath on the whole path)
+  // is that we must preserve the other symlinks, in particular those used by pnp to deambiguate packages using
+  // peer dependencies. For example, "/../.pnp/local/pnp-01234569/.bin/bin-name" should see its relative requires
+  // be resolved relative to "/../.pnp/local/pnp-0123456789/" rather than "/../pkg-with-peers/", because otherwise
+  // we would lose the information that would tell us what are the dependencies of pkg-with-peers relative to its
+  // ancestors.
 
   const dependencyNameMatch = request.match(pathRegExp);
 
   if (!dependencyNameMatch) {
     if (issuer.match(isDirRegExp)) {
       filesystemPath = path.normalize(path.resolve(issuer, request));
+    } else if (fs.lstatSync(issuer).isSymbolicLink()) {
+      filesystemPath = path.normalize(path.resolve(path.dirname(issuer), path.dirname(fs.readlinkSync(issuer)), request));
     } else {
       filesystemPath = path.normalize(path.resolve(path.dirname(issuer), request));
     }
@@ -454,11 +485,8 @@ if (module.parent && module.parent.id === 'internal/preload') {
   const issuerPath = process.argv[1] || process.cwd() + path.sep;
   const issuerLocator = exports.findPackageLocator(issuerPath);
 
-  // We don't want to boot pnp if the script being run isn't part of the project we've installed
-  if (issuerLocator) {
-    exports.setup();
-    exports.setupCompatibilityLayer();
-  }
+  exports.setup();
+  exports.setupCompatibilityLayer();
 }
 
 if (process.mainModule === module) {

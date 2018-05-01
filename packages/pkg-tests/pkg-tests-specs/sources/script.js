@@ -81,7 +81,7 @@ module.exports = (makeTemporaryEnv: PackageDriver) => {
     );
 
     test(
-      `it should allow dependencies binaries to require their own dependencies`,
+      `it should allow dependency binaries to require their own dependencies`,
       makeTemporaryEnv(
         {
           dependencies: {
@@ -93,6 +93,20 @@ module.exports = (makeTemporaryEnv: PackageDriver) => {
 
           await expect(run(`run`, `has-bin-entries-with-require`)).resolves.toMatchObject({
             stdout: `no-deps\n1.0.0\n`,
+          });
+        },
+      ),
+    );
+
+    test(
+      `it should allow dependency binaries to require relative paths`,
+      makeTemporaryEnv(
+        { dependencies: { [`has-bin-entries`]: `1.0.0` } },
+        async ({path, run, source}) => {
+          await run(`install`);
+
+          await expect(run(`run`, `has-bin-entries-with-relative-require`)).resolves.toMatchObject({
+            stdout: `42\n`,
           });
         },
       ),
