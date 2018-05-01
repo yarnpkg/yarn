@@ -10,6 +10,7 @@ const {
 const {
   basic: basicSpecs,
   dragon: dragonSpecs,
+  lock: lockSpecs,
   pnp: pnpSpecs,
   script: scriptSpecs,
   workspace: workspaceSpecs,
@@ -41,6 +42,7 @@ beforeEach(async () => {
 });
 
 basicSpecs(pkgDriver);
+lockSpecs(pkgDriver);
 scriptSpecs(pkgDriver);
 workspaceSpecs(pkgDriver);
 pnpSpecs(pkgDriver);

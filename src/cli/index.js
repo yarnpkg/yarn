@@ -59,7 +59,7 @@ export function main({
   commander.option('--verbose', 'output verbose messages on internal operations');
   commander.option('--offline', 'trigger an error if any required dependencies are not available in local cache');
   commander.option('--prefer-offline', 'use network only if dependencies are not available in local cache');
-  commander.option('--pnp', 'enable the Plug\'n\'Play installation');
+  commander.option('--pnp', "enable the Plug'n'Play installation");
   commander.option('--strict-semver');
   commander.option('--json', 'format Yarn log messages as lines of JSON (see jsonlines.org)');
   commander.option('--ignore-scripts', "don't run lifecycle scripts");
