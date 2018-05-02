@@ -321,7 +321,7 @@ const messages = {
   incorrectCredentials: 'Incorrect username or password.',
   clearedCredentials: 'Cleared login credentials.',
 
-  publishFail: "Couldn't publish package.",
+  publishFail: "Couldn't publish package: $0",
   publishPrivate: 'Package marked as private, not publishing.',
   published: 'Published.',
   publishing: 'Publishing',
