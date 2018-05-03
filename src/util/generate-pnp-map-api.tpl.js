@@ -247,7 +247,9 @@ exports.resolveRequest = function resolveRequest(request, issuer) {
     if (issuer.match(isDirRegExp)) {
       filesystemPath = path.normalize(path.resolve(issuer, request));
     } else if (fs.lstatSync(issuer).isSymbolicLink()) {
-      filesystemPath = path.normalize(path.resolve(path.dirname(issuer), path.dirname(fs.readlinkSync(issuer)), request));
+      filesystemPath = path.normalize(
+        path.resolve(path.dirname(issuer), path.dirname(fs.readlinkSync(issuer)), request),
+      );
     } else {
       filesystemPath = path.normalize(path.resolve(path.dirname(issuer), request));
     }
@@ -482,9 +484,6 @@ exports.setupCompatibilityLayer = () => {
 };
 
 if (module.parent && module.parent.id === 'internal/preload') {
-  const issuerPath = process.argv[1] || process.cwd() + path.sep;
-  const issuerLocator = exports.findPackageLocator(issuerPath);
-
   exports.setup();
   exports.setupCompatibilityLayer();
 }

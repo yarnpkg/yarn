@@ -132,6 +132,10 @@ export type Manifest = {
   bundleDependencies?: Array<string>,
   bundledDependencies?: Array<string>,
 
+  installConfig?: {
+    pnp?: boolean,
+  },
+
   deprecated?: string,
   files?: Array<string>,
   main?: string,

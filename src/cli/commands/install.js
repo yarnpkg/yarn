@@ -4,7 +4,7 @@ import type {InstallationMethod} from '../../util/yarn-version.js';
 import type {Reporter} from '../../reporters/index.js';
 import type {ReporterSelectOption} from '../../reporters/types.js';
 import type {Manifest, DependencyRequestPatterns} from '../../types.js';
-import type Config from '../../config.js';
+import type Config, {RootManifests} from '../../config.js';
 import type {RegistryNames} from '../../registries/index.js';
 import type {LockfileObject} from '../../lockfile';
 import {callThroughHook} from '../../util/hooks.js';
@@ -673,9 +673,48 @@ export class Install {
       this.reporter.info(this.reporter.lang('notSavedLockfileNoDependencies'));
     }
 
+    await this.persistChanges();
+
     this.maybeOutputUpdate();
     this.config.requestManager.clearCache();
     return flattenedTopLevelPatterns;
+  }
+
+  async persistChanges(): Promise<void> {
+    // get all the different registry manifests in this folder
+    const manifests = await this.config.getRootManifests();
+
+    if (await this.applyChanges(manifests)) {
+      await this.config.saveRootManifests(manifests);
+    }
+  }
+
+  applyChanges(manifests: RootManifests): Promise<boolean> {
+    let hasChanged = false;
+
+    if (!this.config.plugnplayByEnv) {
+      for (const registry of Object.keys(manifests)) {
+        const {object} = manifests[registry];
+
+        if (typeof object.installConfig !== 'object') {
+          object.installConfig = {};
+        }
+
+        if (this.config.plugnplayEnabled && object.installConfig.pnp !== true) {
+          object.installConfig.pnp = true;
+          hasChanged = true;
+        } else if (!this.config.plugnplayEnabled && typeof object.installConfig.pnp !== 'undefined') {
+          delete object.installConfig.pnp;
+          hasChanged = true;
+        }
+
+        if (Object.keys(object.installConfig).length === 0) {
+          delete object.installConfig;
+        }
+      }
+    }
+
+    return Promise.resolve(hasChanged);
   }
 
   /**

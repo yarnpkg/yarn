@@ -47,7 +47,8 @@ export type ConfigOptions = {
   childConcurrency?: number,
   networkTimeout?: number,
   nonInteractive?: boolean,
-  pnp?: boolean,
+  enablePnp?: boolean,
+  disablePnp?: boolean,
 
   // Loosely compare semver for invalid cases like "0.01.0"
   looseSemver?: ?boolean,
@@ -69,7 +70,7 @@ type PackageMetadata = {
   package: Manifest,
 };
 
-type RootManifests = {
+export type RootManifests = {
   [registryName: RegistryNames]: {
     loc: string,
     indent: ?string,
@@ -158,6 +159,7 @@ export default class Config {
 
   nonInteractive: boolean;
 
+  plugnplayByEnv: boolean;
   plugnplayEnabled: boolean;
 
   workspacesEnabled: boolean;
@@ -326,7 +328,20 @@ export default class Config {
     } else {
       this._cacheRootFolder = String(cacheRootFolder);
     }
-    this.plugnplayEnabled = opts.pnp || Boolean(this.getOption('plugnplay-experimental'));
+
+    const manifest = await this.maybeReadManifest(this.cwd);
+
+    this.plugnplayByEnv = !opts.enablePnp && !opts.disablePnp;
+
+    if (this.plugnplayByEnv) {
+      if (manifest && manifest.installConfig && manifest.installConfig.pnp) {
+        this.plugnplayEnabled = !!manifest.installConfig.pnp;
+      } else {
+        this.plugnplayEnabled = Boolean(this.getOption('plugnplay-experimental'));
+      }
+    } else {
+      this.plugnplayEnabled = !!opts.enablePnp;
+    }
 
     this.workspacesEnabled = this.getOption('workspaces-experimental') !== false;
     this.workspacesNohoistEnabled = this.getOption('workspaces-nohoist-experimental') !== false;

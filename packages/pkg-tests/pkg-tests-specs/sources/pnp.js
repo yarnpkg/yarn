@@ -1,4 +1,9 @@
-const {fs: {createTemporaryFolder, writeFile, writeJson}, tests: {getPackageDirectoryPath}} = require('pkg-tests-core');
+const fs = require('fs-extra');
+
+const {
+  fs: {createTemporaryFolder, readJson, writeFile, writeJson},
+  tests: {getPackageDirectoryPath},
+} = require('pkg-tests-core');
 
 module.exports = makeTemporaryEnv => {
   const {
@@ -436,6 +441,60 @@ module.exports = makeTemporaryEnv => {
           await writeFile(`${path}/index.js`, `require('no-deps')`);
 
           await run(`node`, `${tmp}/index.js`, `${path}/index.js`);
+        },
+      ),
+    );
+
+    test(
+      `it should update the installConfig.pnp field of the package.json when installing with --enable-pnp`,
+      makeTemporaryEnv({}, async ({path, run, source}) => {
+        await run(`install`, `--enable-pnp`);
+
+        await expect(readJson(`${path}/package.json`)).resolves.toMatchObject({
+          installConfig: {pnp: true},
+        });
+      }),
+    );
+
+    test(
+      `it should install dependencies using pnp when the installConfig.pnp field is set to true`,
+      makeTemporaryEnv(
+        {
+          dependencies: {[`no-deps`]: `1.0.0`},
+          installConfig: {pnp: true},
+        },
+        async ({path, run, source}) => {
+          await run(`install`);
+
+          expect(fs.existsSync(`${path}/.pnp.js`)).toEqual(true);
+        },
+      ),
+    );
+
+    test(
+      `it should update the installConfig.pnp field of the package.json when installing with --disable-pnp`,
+      makeTemporaryEnv(
+        {
+          installConfig: {pnp: true},
+        },
+        async ({path, run, source}) => {
+          await run(`install`, `--disable-pnp`);
+
+          await expect(readJson(`${path}/package.json`)).resolves.not.toHaveProperty('installConfig.pnp');
+        },
+      ),
+    );
+
+    test(
+      `it should not remove other fields than installConfig.pnp when using --disable-pnp`,
+      makeTemporaryEnv(
+        {
+          installConfig: {pnp: true, foo: true},
+        },
+        async ({path, run, source}) => {
+          await run(`install`, `--disable-pnp`);
+
+          await expect(readJson(`${path}/package.json`)).resolves.toHaveProperty('installConfig.foo', true);
         },
       ),
     );
