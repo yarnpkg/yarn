@@ -9,11 +9,11 @@ import executeLifecycleScript from './util/execute-lifecycle-script.js';
 import * as crypto from './util/crypto.js';
 import * as fsUtil from './util/fs.js';
 import {getPlatformSpecificPackageFilename} from './util/package-name-utils.js';
-import {pack} from './cli/commands/pack.js';
 
 const fs = require('fs');
 const invariant = require('invariant');
 const path = require('path');
+const tar = require('tar-fs');
 
 const INSTALL_STAGES = ['preinstall', 'install', 'postinstall'];
 
@@ -326,7 +326,16 @@ export default class PackageInstallScripts {
             },
             this.reporter,
           );
-          const stream = await pack(pkgConfig);
+          // don't use pack command, we want to avoid the file filters logic
+          const stream = await tar.pack(builtPackagePath, {
+            map: header => {
+              const suffix = header.name === '.' ? '' : `/${header.name}`;
+              header.name = `package${suffix}`;
+              delete header.uid;
+              delete header.gid;
+              return header;
+            },
+          },);
 
           const hash = await new Promise((resolve, reject) => {
             const validateStream = new crypto.HashStream();
