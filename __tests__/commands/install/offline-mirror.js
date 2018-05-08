@@ -58,7 +58,9 @@ test.concurrent(
   (): Promise<void> => {
     return runInstall({ignoreScripts: true}, 'install-offline-built-artifacts-no-ignores', async (config, reporter) => {
       // install scripts were not run
-      expect(await fs.exists(path.join(config.cwd, 'node_modules', 'dep-a', 'build', 'build-artifact.so'))).toEqual(false);
+      expect(await fs.exists(path.join(config.cwd, 'node_modules', 'dep-a', 'build', 'build-artifact.so'))).toEqual(
+        false,
+      );
 
       // enable packing of built artifacts
       config.packBuiltPackages = true;
@@ -66,13 +68,17 @@ test.concurrent(
       // after first run we observe package side effects
       let reinstall = new Install({force: true}, config, reporter, await Lockfile.fromDirectory(config.cwd));
       await reinstall.init();
-      expect(await fs.exists(path.join(config.cwd, 'node_modules', 'dep-a', 'build', 'module-a-build.log'))).toEqual(true);
+      expect(await fs.exists(path.join(config.cwd, 'node_modules', 'dep-a', 'build', 'module-a-build.log'))).toEqual(
+        true,
+      );
 
       // after second run we observe only package side effects because offline mirror was used
       await fs.unlink(path.join(config.cwd, 'node_modules'));
       reinstall = new Install({}, config, reporter, await Lockfile.fromDirectory(config.cwd));
       await reinstall.init();
-      expect(await fs.exists(path.join(config.cwd, 'node_modules', 'dep-a', 'build', 'module-a-build.log'))).toEqual(true);
+      expect(await fs.exists(path.join(config.cwd, 'node_modules', 'dep-a', 'build', 'module-a-build.log'))).toEqual(
+        true,
+      );
     });
   },
 );

@@ -109,8 +109,9 @@ export async function packTarball(
   // apply filters
   sortFilter(files, filters, keepFiles, possibleKeepFiles, ignoredFiles);
 
-  const packer = tar.pack(config.cwd, {
-    ignore: name => {
+  return packWithIgnoreAndHeaders(
+    config.cwd,
+    name => {
       const relative = path.relative(config.cwd, name);
       // Don't ignore directories, since we need to recurse inside them to check for unignored files.
       if (fs2.lstatSync(name).isDirectory()) {
@@ -120,6 +121,17 @@ export async function packTarball(
       // Otherwise, ignore a file if we're not supposed to keep it.
       return !keepFiles.has(relative);
     },
+    mapHeader,
+  );
+}
+
+export function packWithIgnoreAndHeaders(
+  cwd: string,
+  ignoreFunction?: string => boolean,
+  {mapHeader}: {mapHeader?: Object => Object} = {},
+): Promise<stream$Duplex> {
+  return tar.pack(cwd, {
+    ignore: ignoreFunction,
     map: header => {
       const suffix = header.name === '.' ? '' : `/${header.name}`;
       header.name = `package${suffix}`;
@@ -128,8 +140,6 @@ export async function packTarball(
       return mapHeader ? mapHeader(header) : header;
     },
   });
-
-  return packer;
 }
 
 export async function pack(config: Config): Promise<stream$Duplex> {
