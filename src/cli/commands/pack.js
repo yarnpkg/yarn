@@ -121,7 +121,7 @@ export async function packTarball(
       // Otherwise, ignore a file if we're not supposed to keep it.
       return !keepFiles.has(relative);
     },
-    mapHeader,
+    {mapHeader},
   );
 }
 
