@@ -3,7 +3,8 @@
     "version": "1.0.0",
     "bin": {
         "has-bin-entries": "./bin.js",
-        "has-bin-entries-with-require": "./bin-with-require.js"
+        "has-bin-entries-with-require": "./bin-with-require.js",
+        "has-bin-entries-with-relative-require": "./bin-with-relative-require.js"
     },
     "dependencies": {
         "no-deps": "1.0.0"

@@ -28,6 +28,8 @@ const pkgDriver = generatePkgDriver({
       env: {
         [`NPM_CONFIG_REGISTRY`]: registryUrl,
         [`YARN_SILENT`]: `1`,
+        [`YARN_PROXY`]: ``,
+        [`YARN_HTTPS_PROXY`]: ``,
         [`YARN_PLUGNPLAY_EXPERIMENTAL`]: plugNPlay ? `true` : `false`,
         [`PATH`]: `${path}/bin${delimiter}${process.env.PATH}`,
       },

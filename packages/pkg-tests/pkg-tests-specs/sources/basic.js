@@ -3,7 +3,7 @@
 import type {PackageDriver} from 'pkg-tests-core';
 
 const {
-  fs: {writeFile, writeJson},
+  fs: {createTemporaryFolder, writeFile, writeJson},
   tests: {getPackageArchivePath, getPackageHttpArchivePath, getPackageDirectoryPath},
 } = require('pkg-tests-core');
 
