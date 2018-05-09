@@ -9,6 +9,7 @@ import type {
   ReporterSelectOption,
   QuestionOptions,
   PromptOptions,
+  FooterOptions,
 } from '../types.js';
 import type {FormatKeys} from '../format.js';
 import BaseReporter from '../base-reporter.js';
@@ -150,15 +151,21 @@ export default class ConsoleReporter extends BaseReporter {
     this.log(this.format.bold(`${pkg.name} ${command} v${pkg.version}`));
   }
 
-  footer(showPeakMemory?: boolean) {
+  footer(footerOptions: FooterOptions) {
     this.stopProgress();
 
     const totalTime = (this.getTotalTime() / 1000).toFixed(2);
     let msg = `Done in ${totalTime}s.`;
-    if (showPeakMemory) {
+
+    if (footerOptions.showPeakMemory) {
       const peakMemory = (this.peakMemory / 1024 / 1024).toFixed(2);
       msg += ` Peak memory usage ${peakMemory}MB.`;
     }
+
+    if (footerOptions.showNetworkUsage) {
+      this.log(this._prependEmoji(`${this.getTotalNetworkUsage()} transferred`, '⬇️'));
+    }
+
     this.log(this._prependEmoji(msg, '✨'));
   }
 

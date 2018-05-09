@@ -1,6 +1,6 @@
 /* @flow */
 
-import type {ReporterSpinnerSet, Trees, ReporterSpinner} from './types.js';
+import type {ReporterSpinnerSet, Trees, ReporterSpinner, FooterOptions} from './types.js';
 import BaseReporter from './base-reporter.js';
 
 export default class JSONReporter extends BaseReporter {
@@ -42,7 +42,7 @@ export default class JSONReporter extends BaseReporter {
     this._dump('inspect', value);
   }
 
-  footer(showPeakMemory: boolean) {
+  footer(footerOptions: FooterOptions) {
     this._dump('finished', this.getTotalTime());
   }
 

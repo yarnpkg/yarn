@@ -11,13 +11,16 @@ import type {
   ReporterSpinner,
   QuestionOptions,
   PromptOptions,
+  FooterOptions,
 } from './types.js';
 import type {LanguageKeys} from './lang/en.js';
 import type {Formatter} from './format.js';
 import {defaultFormatter} from './format.js';
 import * as languages from './lang/index.js';
 import isCI from 'is-ci';
+import {humanizeBytes} from '../util/misc';
 import os from 'os';
+
 
 const util = require('util');
 const EventEmitter = require('events').EventEmitter;
@@ -71,6 +74,7 @@ export default class BaseReporter {
     this.isTTY = this.stdout.isTTY;
 
     this.peakMemory = 0;
+    this.networkUsage = 0;
     this.startTime = Date.now();
     this.format = defaultFormatter;
   }
@@ -90,6 +94,7 @@ export default class BaseReporter {
 
   peakMemoryInterval: ?IntervalID;
   peakMemory: number;
+  networkUsage: number;
   startTime: number;
 
   lang(key: LanguageKeys, ...args: Array<mixed>): string {
@@ -175,6 +180,14 @@ export default class BaseReporter {
     }
   }
 
+  logNetworkUsage(bytes: number) {
+    this.networkUsage += bytes;
+  }
+
+  getTotalNetworkUsage(): string {
+    return humanizeBytes(this.networkUsage);
+  }
+
   getTotalTime(): number {
     return Date.now() - this.startTime;
   }
@@ -215,7 +228,7 @@ export default class BaseReporter {
   header(command: string, pkg: Package) {}
 
   // the screen shown at the very end of the CLI
-  footer(showPeakMemory: boolean) {}
+  footer(footerOptions: FooterOptions) {}
 
   //
   table(head: Array<string>, body: Array<Array<string>>) {}

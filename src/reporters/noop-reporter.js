@@ -11,6 +11,7 @@ import type {
   ReporterSpinner,
   QuestionOptions,
   PromptOptions,
+  FooterOptions,
 } from './types.js';
 import type {LanguageKeys} from './lang/en.js';
 import type {Formatter} from './format.js';
@@ -42,7 +43,7 @@ export default class NoopReporter extends BaseReporter {
   command(command: string) {}
   inspect(value: any) {}
   header(command: string, pkg: Package) {}
-  footer(showPeakMemory: boolean) {}
+  footer(footerOptions: FooterOptions) {}
   table(head: Array<string>, body: Array<Array<string>>) {}
 
   activity(): ReporterSpinner {

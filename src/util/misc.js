@@ -1,6 +1,7 @@
 /* @flow */
 
 const _camelCase = require('camelcase');
+import bytes from 'bytes';
 
 export function sortAlpha(a: string, b: string): number {
   // sort alphabetically in a deterministic way
@@ -79,4 +80,8 @@ export function sleep(ms: number): Promise<void> {
   return new Promise(resolve => {
     setTimeout(resolve, ms);
   });
+}
+
+export function humanizeBytes(bytesToConvert: number): string {
+  return bytes(bytesToConvert > 0 ? bytesToConvert : 0, {decimalPlaces: 2});
 }

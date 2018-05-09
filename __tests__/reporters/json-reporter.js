@@ -18,7 +18,7 @@ test('JSONReporter.step', async () => {
 test('JSONReporter.footer', async () => {
   expect(
     await getJSONBuff(r => {
-      r.footer(false);
+      r.footer({showPeakMemory: false, showNetworkUsage: false});
     }),
   ).toMatchSnapshot();
 });

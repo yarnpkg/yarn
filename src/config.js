@@ -36,6 +36,7 @@ export type ConfigOptions = {
   enableMetaFolder?: boolean,
   linkFileDependencies?: boolean,
   captureHar?: boolean,
+  showNetworkUsage?: boolean,
   ignoreScripts?: boolean,
   ignorePlatform?: boolean,
   ignoreEngines?: boolean,
@@ -105,6 +106,7 @@ export default class Config {
   ignorePlatform: boolean;
   binLinks: boolean;
   updateChecksums: boolean;
+  showNetworkUsage: boolean;
 
   // cache packages in offline mirror folder as new .tgz files
   packBuiltPackages: boolean;
@@ -295,6 +297,7 @@ export default class Config {
       key: String(opts.key || this.getOption('key') || ''),
       networkConcurrency: this.networkConcurrency,
       networkTimeout: this.networkTimeout,
+      showNetworkUsage: opts.showNetworkUsage,
     });
 
     let cacheRootFolder = opts.cacheFolder || this.getOption('cache-folder', true);
@@ -383,6 +386,7 @@ export default class Config {
     this.ignoreScripts = !!opts.ignoreScripts;
 
     this.disablePrepublish = !!opts.disablePrepublish;
+    this.showNetworkUsage = !!opts.showNetworkUsage;
 
     // $FlowFixMe$
     this.nonInteractive = !!opts.nonInteractive || isCi || !process.stdout.isTTY;
@@ -392,6 +396,7 @@ export default class Config {
     this.requestManager.setOptions({
       offline: !!opts.offline && !opts.preferOffline,
       captureHar: !!opts.captureHar,
+      showNetworkUsage: !!opts.showNetworkUsage,
     });
 
     if (this.modulesFolder) {
