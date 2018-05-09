@@ -1,7 +1,12 @@
 const {fs: {createTemporaryFolder, writeFile, writeJson}, tests: {getPackageDirectoryPath}} = require('pkg-tests-core');
 
 module.exports = makeTemporaryEnv => {
-  const {basic: basicSpecs, lock: lockSpecs, script: scriptSpecs, workspace: workspaceSpecs} = require('pkg-tests-specs');
+  const {
+    basic: basicSpecs,
+    lock: lockSpecs,
+    script: scriptSpecs,
+    workspace: workspaceSpecs,
+  } = require('pkg-tests-specs');
 
   describe(`Plug'n'Play`, () => {
     basicSpecs(
@@ -418,7 +423,7 @@ module.exports = makeTemporaryEnv => {
     test(
       `it should allow scripts outside of the dependency tree to require files within the dependency tree`,
       makeTemporaryEnv(
-        { dependencies: { [`no-deps`]: `1.0.0` } },
+        {dependencies: {[`no-deps`]: `1.0.0`}},
         {
           plugNPlay: true,
         },

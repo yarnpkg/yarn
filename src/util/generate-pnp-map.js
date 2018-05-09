@@ -293,19 +293,18 @@ async function getPackageInformationStores(
       const loc = ref.location;
       invariant(loc, `Workspaces should have a location`);
 
-      packageInformationStores.set(
-        name,
-        new Map([
-          [
-            pkg.version,
-            {
-              packageMainEntry: pkg.main,
-              packageLocation: ensureTrailingSlash(await fs.realpath(loc)),
-              packageDependencies: await visit(ref.dependencies, [name, pkg.version]),
-            },
-          ],
-        ]),
-      );
+      let packageInformationStore = packageInformationStores.get(name);
+
+      if (!packageInformationStore) {
+        packageInformationStore = new Map();
+        packageInformationStores.set(name, packageInformationStore);
+      }
+
+      packageInformationStore.set(pkg.version, {
+        packageMainEntry: pkg.main,
+        packageLocation: ensureTrailingSlash(await fs.realpath(loc)),
+        packageDependencies: await visit(ref.dependencies, [name, pkg.version])
+      });
     }
   }
 
