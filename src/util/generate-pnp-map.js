@@ -303,7 +303,7 @@ async function getPackageInformationStores(
       packageInformationStore.set(pkg.version, {
         packageMainEntry: pkg.main,
         packageLocation: ensureTrailingSlash(await fs.realpath(loc)),
-        packageDependencies: await visit(ref.dependencies, [name, pkg.version])
+        packageDependencies: await visit(ref.dependencies, [name, pkg.version]),
       });
     }
   }
