@@ -24,6 +24,16 @@ const moduleShims = new Map();
 const moduleCache = new Map();
 
 /**
+ * Simple helper function that assign an error code to an error, so that it can more easily be caught and used
+ * by third-parties.
+ */
+
+function makeError(code, message, data = {}) {
+  const error = new Error(message);
+  return Object.assign(error, {code, data});
+}
+
+/**
  * Ensures that the returned locator isn't a blacklisted one.
  *
  * Blacklisted packages are packages that cannot be used because their dependencies cannot be deduced. This only
@@ -43,7 +53,8 @@ const moduleCache = new Map();
 // eslint-disable-next-line no-unused-vars
 function blacklistCheck(locator) {
   if (locator === blacklistedLocator) {
-    throw new Error(
+    throw makeError(
+      `BLACKLISTED`,
       [
         `A package has been resolved through a blacklisted path - this is usually caused by one of your tool calling`,
         `"realpath" on the return value of "require.resolve". Since the returned values use symlinks to disambiguate`,
@@ -80,7 +91,8 @@ function getPackageInformationSafe(packageLocator) {
   const packageInformation = exports.getPackageInformation(packageLocator);
 
   if (!packageInformation) {
-    throw new Error(
+    throw makeError(
+      `INTERNAL`,
       `Couldn't find a matching entry in the dependency tree for the specified parent (this is probably an internal error)`,
     );
   }
@@ -290,24 +302,33 @@ exports.resolveRequest = function resolveRequest(request, issuer) {
     if (!dependencyReference) {
       if (dependencyReference === null) {
         if (issuerLocator === topLevelLocator) {
-          throw new Error(
+          throw makeError(
+            `MISSING_PEER_DEPENDENCY`,
             `You seem to be requiring a peer dependency ("${dependencyName}"), but it is not installed (which might be because you're the top-level package)`,
+            {request, issuer, dependencyName},
           );
         } else {
-          throw new Error(
+          throw makeError(
+            `MISSING_PEER_DEPENDENCY`,
             `Package "${issuerLocator.name}@${issuerLocator.reference}" is trying to access a peer dependency ("${dependencyName}") that should be provided by its direct ancestor but isn't`,
+            {request, issuer, issuerLocator: Object.assign({}, issuerLocator), dependencyName},
           );
         }
       } else {
         if (issuerLocator === topLevelLocator) {
-          throw new Error(
-            `You cannot require a package ("${dependencyName}") that is not declared in your dependencies`,
+          throw makeError(
+            `UNDECLARED_DEPENDENCY`,
+            `You cannot require a package ("${dependencyName}") that is not declared in your dependencies (via "${issuer}")`,
+            {request, issuer, dependencyName},
           );
         } else {
-          throw new Error(
-            `Package ${issuerLocator.name}@${issuerLocator.reference} is trying to require package ${dependencyName} (via "${request}") without it being listed in its dependencies (${Array.from(
-              issuerInformation.packageDependencies.keys(),
-            ).join(`, `)})`,
+          const candidates = Array.from(issuerInformation.packageDependencies.keys());
+          throw makeError(
+            `UNDECLARED_DEPENDENCY`,
+            `Package "${issuerLocator.name}@${issuerLocator.reference}" (via "${issuer}") is trying to require the package "${dependencyName}" (via "${request}") without it being listed in its dependencies (${candidates.join(
+              `, `,
+            )})`,
+            {request, issuer, issuerLocator: Object.assign({}, issuerLocator), dependencyName, candidates},
           );
         }
       }
@@ -320,8 +341,10 @@ exports.resolveRequest = function resolveRequest(request, issuer) {
     const dependencyLocation = dependencyInformation.packageLocation;
 
     if (!dependencyLocation) {
-      throw new Error(
-        `Package "${dependencyLocator.name}@${dependencyLocator.reference}" is a valid dependency, but hasn't been installed and thus cannot be required`,
+      throw makeError(
+        `MISSING_DEPENDENCY`,
+        `Package "${dependencyLocator.name}@${dependencyLocator.reference}" is a valid dependency, but hasn't been installed and thus cannot be required (it might be caused if you install a partial tree, such as on production environments)`,
+        {request, issuer, dependencyLocator: Object.assign({}, dependencyLocator)},
       );
     }
 
@@ -341,7 +364,11 @@ exports.resolveRequest = function resolveRequest(request, issuer) {
   if (qualifiedFilesystemPath) {
     return path.normalize(qualifiedFilesystemPath);
   } else {
-    throw new Error(`Couldn't find a suitable Node resolution for path "${filesystemPath}"`);
+    throw makeError(
+      `QUALIFIED_PATH_RESOLUTION_FAILED`,
+      `Couldn't find a suitable Node resolution for path "${filesystemPath}"`,
+      {request, issuer, filesystemPath},
+    );
   }
 };
 
