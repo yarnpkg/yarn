@@ -94,6 +94,11 @@ test.concurrent('import file deps', () => {
   return runImport([], {}, 'file', checkReporterAndLockfile({importFrom}));
 });
 
+test.concurrent('import overlapping semver ranges successfully', () => {
+  const importFrom = 'node_modules';
+  return runImport([], {}, 'overlapping', checkReporterAndLockfile({importFrom}));
+});
+
 test.concurrent('throw on missing dev deps', async () => {
   let thrown = false;
   try {
@@ -164,6 +169,11 @@ if (semver.satisfies(nodeVersion, '>=5.0.0')) {
   test.concurrent('import file deps from package-lock.json', () => {
     const importFrom = 'package-lock.json';
     return runImport([], {}, 'file-package-lock', checkReporterAndLockfile({importFrom}));
+  });
+
+  test.concurrent('import overlapping semver ranges from package-lock.json successfully', () => {
+    const importFrom = 'package-lock.json';
+    return runImport([], {}, 'overlapping-package-lock', checkReporterAndLockfile({importFrom}));
   });
 
   test.concurrent('throw on corrupted package-lock.json', async () => {
