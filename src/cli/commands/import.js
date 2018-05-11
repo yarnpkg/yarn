@@ -317,11 +317,8 @@ export class Import extends Install {
     this.resolver = new ImportPackageResolver(this.config, this.lockfile);
     this.linker = new PackageLinker(config, this.resolver);
   }
-  createLogicalDependencyTree(packageJson: ?string, packageLock: ?string): LogicalDependencyTree {
+  createLogicalDependencyTree(packageJson: string, packageLock: string): LogicalDependencyTree {
     try {
-      if (!packageJson || !packageLock) {
-        throw new Error('files missing');
-      }
       return new LogicalDependencyTree(packageJson, packageLock);
     } catch (e) {
       throw new MessageError(this.reporter.lang('importSourceFilesCorrupted'));
@@ -347,10 +344,11 @@ export class Import extends Install {
       packageJson && packageLock && semver.satisfies(nodeVersion, '>=5.0.0') ? 'package-lock.json' : 'node_modules';
     if (importSource === 'package-lock.json') {
       this.reporter.info(this.reporter.lang('importPackageLock'));
+      invariant(packageJson, 'package.json should exist');
+      invariant(packageLock, 'package-lock.json should exist');
       const tree = this.createLogicalDependencyTree(packageJson, packageLock);
-      if (this.resolver instanceof ImportPackageResolver) {
-        this.resolver.dependencyTree = tree;
-      }
+      invariant(this.resolver instanceof ImportPackageResolver, 'resolver should be an ImportPackageResolver');
+      this.resolver.dependencyTree = tree;
     }
     if (importSource === 'node_modules') {
       this.reporter.info(this.reporter.lang('importNodeModules'));
