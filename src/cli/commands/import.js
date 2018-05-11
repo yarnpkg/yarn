@@ -15,6 +15,7 @@ import GitResolver from '../../resolvers/exotics/git-resolver.js';
 import FileResolver from '../../resolvers/exotics/file-resolver.js';
 import PackageResolver from '../../package-resolver.js';
 import PackageRequest from '../../package-request.js';
+import PackageReference from '../../package-reference.js';
 import * as fetcher from '../../package-fetcher.js';
 import PackageLinker from '../../package-linker.js';
 import * as compatibility from '../../package-compatibility.js';
@@ -220,6 +221,15 @@ class ImportPackageRequest extends PackageRequest {
         this.getParentHumanName(),
       ),
     );
+  }
+
+  resolveToExistingVersion(info: Manifest) {
+    invariant(info._remote, 'expected package remote');
+    const ref = new PackageReference(this, info, info._remote);
+    info._reference = ref;
+    ref.addRequest(this);
+    ref.addPattern(this.pattern, info);
+    ref.addOptional(this.optional);
   }
 
   findVersionInfo(): Promise<Manifest> {
