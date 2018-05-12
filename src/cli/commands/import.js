@@ -233,12 +233,26 @@ class ImportPackageRequest extends PackageRequest {
     );
   }
 
-  resolveToExistingVersion(info: Manifest) {
+  _findResolvedManifest(info: Manifest): Manifest {
+    const {range, name} = normalizePattern(this.pattern);
+    const solvedRange = semver.validRange(range) ? info.version : range;
+    const resolved: ?Manifest = this.resolver.getExactVersionMatch(name, solvedRange, info);
+    if (resolved) {
+      return resolved;
+    }
     invariant(info._remote, 'expected package remote');
     const ref = new PackageReference(this, info, info._remote);
     info._reference = ref;
+    return info;
+  }
+
+  resolveToExistingVersion(info: Manifest) {
+    const resolved: ?Manifest = this._findResolvedManifest(info);
+    invariant(resolved, 'should have found a resolved reference');
+    const ref = resolved._reference;
+    invariant(ref, 'should have a package reference');
     ref.addRequest(this);
-    ref.addPattern(this.pattern, info);
+    ref.addPattern(this.pattern, resolved);
     ref.addOptional(this.optional);
   }
 
