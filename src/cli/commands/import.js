@@ -163,29 +163,39 @@ class ImportResolver extends BaseResolver {
     return manifest;
   }
 
-  async resolve(): Promise<Manifest> {
-    if (this.request instanceof ImportPackageRequest && this.request.fixedVersionPattern) {
-      const {fixedVersionPattern} = this.request;
-      const info = await this.config.getCache(`import-resolver-${fixedVersionPattern}`, () =>
-        this.resolveFixedVersion(fixedVersionPattern),
-      );
+  async _resolveFromFixedVersions(): Promise<Manifest> {
+    invariant(this.request instanceof ImportPackageRequest, 'request must be ImportPackageRequest');
+    invariant(this.request.fixedVersionPattern, 'fixedVersionPattern must exist on request');
+    const {fixedVersionPattern} = this.request;
+    const info = await this.config.getCache(`import-resolver-${fixedVersionPattern}`, () =>
+      this.resolveFixedVersion(fixedVersionPattern),
+    );
+    if (info) {
+      return info;
+    }
+    const {name} = normalizePattern(this.pattern);
+    throw new MessageError(this.reporter.lang('importResolveFailed', name, this.getCwd()));
+  }
+
+  async _resolveFromNodeModules(): Promise<Manifest> {
+    const {name} = normalizePattern(this.pattern);
+    let cwd = this.getCwd();
+    while (!path.relative(this.config.cwd, cwd).startsWith('..')) {
+      const loc = path.join(cwd, 'node_modules', name);
+      const info = await this.config.getCache(`import-resolver-${loc}`, () => this.resolveLocation(loc));
       if (info) {
         return info;
       }
-      const {name} = normalizePattern(this.pattern);
-      throw new MessageError(this.reporter.lang('importResolveFailed', name, this.getCwd()));
+      cwd = path.resolve(cwd, '../..');
+    }
+    throw new MessageError(this.reporter.lang('importResolveFailed', name, this.getCwd()));
+  }
+
+  resolve(): Promise<Manifest> {
+    if (this.request instanceof ImportPackageRequest && this.request.fixedVersionPattern) {
+      return this._resolveFromFixedVersions();
     } else {
-      const {name} = normalizePattern(this.pattern);
-      let cwd = this.getCwd();
-      while (!path.relative(this.config.cwd, cwd).startsWith('..')) {
-        const loc = path.join(cwd, 'node_modules', name);
-        const info = await this.config.getCache(`import-resolver-${loc}`, () => this.resolveLocation(loc));
-        if (info) {
-          return info;
-        }
-        cwd = path.resolve(cwd, '../..');
-      }
-      throw new MessageError(this.reporter.lang('importResolveFailed', name, this.getCwd()));
+      return this._resolveFromNodeModules();
     }
   }
 }
@@ -317,9 +327,12 @@ export class Import extends Install {
     this.resolver = new ImportPackageResolver(this.config, this.lockfile);
     this.linker = new PackageLinker(config, this.resolver);
   }
-  createLogicalDependencyTree(packageJson: string, packageLock: string): LogicalDependencyTree {
+  createLogicalDependencyTree(packageJson: ?string, packageLock: ?string) {
+    invariant(packageJson, 'package.json should exist');
+    invariant(packageLock, 'package-lock.json should exist');
+    invariant(this.resolver instanceof ImportPackageResolver, 'resolver should be an ImportPackageResolver');
     try {
-      return new LogicalDependencyTree(packageJson, packageLock);
+      this.resolver.dependencyTree = new LogicalDependencyTree(packageJson, packageLock);
     } catch (e) {
       throw new MessageError(this.reporter.lang('importSourceFilesCorrupted'));
     }
@@ -344,11 +357,7 @@ export class Import extends Install {
       packageJson && packageLock && semver.satisfies(nodeVersion, '>=5.0.0') ? 'package-lock.json' : 'node_modules';
     if (importSource === 'package-lock.json') {
       this.reporter.info(this.reporter.lang('importPackageLock'));
-      invariant(packageJson, 'package.json should exist');
-      invariant(packageLock, 'package-lock.json should exist');
-      const tree = this.createLogicalDependencyTree(packageJson, packageLock);
-      invariant(this.resolver instanceof ImportPackageResolver, 'resolver should be an ImportPackageResolver');
-      this.resolver.dependencyTree = tree;
+      this.createLogicalDependencyTree(packageJson, packageLock);
     }
     if (importSource === 'node_modules') {
       this.reporter.info(this.reporter.lang('importNodeModules'));
