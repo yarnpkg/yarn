@@ -298,8 +298,7 @@ export default class NpmRegistry extends Registry {
     }
 
     for (const scope of [this.getScope(packageIdent), '']) {
-      const registry =
-        this.getScopedOption(scope, 'registry') || this.registries.yarn.getScopedOption(scope, 'registry');
+      const registry = this.getScopedOption(scope, 'registry');
       if (registry) {
         return String(registry);
       }
@@ -347,7 +346,8 @@ export default class NpmRegistry extends Registry {
   }
 
   getScopedOption(scope: string, option: string): mixed {
-    return this.getOption(scope + (scope ? ':' : '') + option);
+    const key = scope + (scope ? ':' : '') + option;
+    return this.getOption(key) || this.registries.yarn.getOption(key);
   }
 
   getRegistryOption(registry: string, option: string): mixed {
