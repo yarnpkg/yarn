@@ -31,14 +31,6 @@ export const DEFAULTS = {
   'user-agent': [`yarn/${version}`, 'npm/?', `node/${process.version}`, process.platform, process.arch].join(' '),
 };
 
-const npmMap = {
-  'version-git-sign': 'sign-git-tag',
-  'version-tag-prefix': 'tag-version-prefix',
-  'version-git-tag': 'git-tag-version',
-  'version-commit-hooks': 'commit-hooks',
-  'version-git-message': 'message',
-};
-
 export default class YarnRegistry extends NpmRegistry {
   constructor(cwd: string, registries: ConfigRegistries, requestManager: RequestManager, reporter: Reporter) {
     super(cwd, registries, requestManager, reporter);
@@ -55,13 +47,9 @@ export default class YarnRegistry extends NpmRegistry {
   getOption(key: string): mixed {
     let val = this.config[key];
 
-    // if this isn't set in a yarn config, then use npm
+    // if this isn't set in a yarn config, look elsewhere
     if (typeof val === 'undefined') {
-      val = this.registries.npm.getOption(npmMap[key]);
-    }
-
-    if (typeof val === 'undefined') {
-      val = this.registries.npm.getOption(key);
+      val = super.getOption(key, false);
     }
 
     // if this isn't set in a yarn config or npm config, then use the default (or undefined)

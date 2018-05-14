@@ -658,7 +658,6 @@ describe('request', () => {
     };
     const registry = createRegistry({});
     registry.registries.yarn = createRegistry(testCase.config, 'yarn');
-    registry.registries.yarn.registries.npm = registry;
     testCase.requests.forEach(req => {
       const desc =
         `with request url ${req.url}${req.pkg ? ` in context of package ${req.pkg}` : ''} ` +

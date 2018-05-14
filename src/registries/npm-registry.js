@@ -346,24 +346,7 @@ export default class NpmRegistry extends Registry {
   }
 
   getScopedOption(scope: string, option: string): mixed {
-    const key = scope + (scope ? ':' : '') + option;
-
-    let val = this.getOption(key);
-
-    if (typeof val === 'undefined') {
-      const registries = Object.keys(this.registries);
-      for (const registryName of registries) {
-        if (this.registries[registryName].getOption) {
-          val = this.registries[registryName].getOption(key);
-        }
-
-        if (typeof val !== 'undefined') {
-          break;
-        }
-      }
-    }
-
-    return val;
+    return this.getOption(scope + (scope ? ':' : '') + option);
   }
 
   getRegistryOption(registry: string, option: string): mixed {
