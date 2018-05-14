@@ -612,7 +612,7 @@ describe('request', () => {
         {
           url: 'https://registry.npmjs.org/dist/-/@yarn-core-1.0.0.tgz',
           pkg: '@yarn/core',
-          expect: {root: 'https://registry.npmjs.org', auth: 'scopedNPMAuthToken'},
+          expect: {root: 'https://registry.npmjs.org', auth: false},
         },
         {
           url: 'https://registry.yarnpkg.com/dist/-/@yarn-core-1.0.0.tgz',
@@ -656,11 +656,9 @@ describe('request', () => {
         },
       ],
     };
-    const registry = createRegistry(testCase.config, 'yarn');
-    registry.registries.npm = createRegistry({});
-    test('NpmRegistry config to be empty', () => {
-      expect(registry.registries.npm.config).toEqual({});
-    });
+    const registry = createRegistry({});
+    registry.registries.yarn = createRegistry(testCase.config, 'yarn');
+    registry.registries.yarn.registries.npm = registry;
     testCase.requests.forEach(req => {
       const desc =
         `with request url ${req.url}${req.pkg ? ` in context of package ${req.pkg}` : ''} ` +
