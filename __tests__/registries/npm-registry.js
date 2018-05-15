@@ -587,32 +587,32 @@ describe('request', () => {
         {
           url: 'yarn',
           pkg: 'yarn',
-          expect: {root: 'https://registry.yarnpkg.com', auth: false},
+          expect: {root: 'https://registry.npmjs.org', auth: false},
         },
         {
           url: '@yarn%2fcore',
           pkg: '@yarn/core',
-          expect: {root: 'https://registry.yarnpkg.com', auth: 'scopedNPMAuthToken'},
+          expect: {root: 'https://registry.npmjs.org', auth: 'scopedNPMAuthToken'},
         },
         {
           url: '-/package/yarn/dist-tags',
           pkg: 'yarn',
-          expect: {root: 'https://registry.yarnpkg.com', auth: false},
+          expect: {root: 'https://registry.npmjs.org', auth: false},
         },
         {
           url: '-/package/@yarn%2fcore/dist-tags',
           pkg: '@yarn/core',
-          expect: {root: 'https://registry.yarnpkg.com', auth: 'scopedNPMAuthToken'},
+          expect: {root: 'https://registry.npmjs.org', auth: 'scopedNPMAuthToken'},
         },
         {
           url: '-/user/token/abcdef',
           pkg: null,
-          expect: {root: 'https://registry.yarnpkg.com', auth: false},
+          expect: {root: 'https://registry.npmjs.org', auth: false},
         },
         {
           url: 'https://registry.npmjs.org/dist/-/@yarn-core-1.0.0.tgz',
           pkg: '@yarn/core',
-          expect: {root: 'https://registry.npmjs.org', auth: false},
+          expect: {root: 'https://registry.npmjs.org', auth: 'scopedNPMAuthToken'},
         },
         {
           url: 'https://registry.yarnpkg.com/dist/-/@yarn-core-1.0.0.tgz',

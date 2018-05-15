@@ -76,21 +76,23 @@ export default class BaseRegistry {
     this.token = token;
   }
 
-  getOption(key: string, searchRegistries: boolean = true): mixed {
+  getOption(key: string): mixed {
     let val = this.config[key];
 
-    if (typeof val === 'undefined' && searchRegistries) {
+    if (typeof val === 'undefined') {
       for (const registryName of Object.keys(this.registries)) {
         const registry = this.registries[registryName];
 
-        if (!registry.getOption || registry.constructor.name === this.constructor.name) {
+        if (registry.constructor.name === this.constructor.name) {
           continue;
         }
 
-        val = registry.getOption(key);
+        if (registry.config && registry.config[key]) {
+          val = registry.config[key];
 
-        if (typeof val !== 'undefined') {
-          break;
+          if (typeof val !== 'undefined') {
+            break;
+          }
         }
       }
     }

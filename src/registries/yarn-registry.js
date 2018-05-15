@@ -49,7 +49,7 @@ export default class YarnRegistry extends NpmRegistry {
 
     // if this isn't set in a yarn config, look elsewhere
     if (typeof val === 'undefined') {
-      val = super.getOption(key, false);
+      val = super.getOption(key);
     }
 
     // if this isn't set in a yarn config or npm config, then use the default (or undefined)
