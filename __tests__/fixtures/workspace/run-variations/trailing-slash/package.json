@@ -1,0 +1,10 @@
+{
+  "name": "trailing-slash",
+  "version": "1.0.0",
+  "license": "UNLICENSED",
+  "scripts": {
+    "prescript": "echo trailing-slash prescript",
+    "script": "echo trailing-slash script",
+    "postscript": "echo trailing-slash postscript"
+  }
+}
