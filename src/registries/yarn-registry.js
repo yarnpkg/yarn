@@ -51,9 +51,10 @@ export default class YarnRegistry extends NpmRegistry {
 
   homeConfigLoc: string;
   homeConfig: Object;
+  configWithoutDefaults: Object;
 
   getOption(key: string): mixed {
-    let val = this.config[key];
+    let val = this.configWithoutDefaults[key];
 
     // if this isn't set in a yarn config, then use npm
     if (typeof val === 'undefined') {
@@ -66,7 +67,7 @@ export default class YarnRegistry extends NpmRegistry {
 
     // if this isn't set in a yarn config or npm config, then use the default (or undefined)
     if (typeof val === 'undefined') {
-      val = DEFAULTS[key];
+      val = this.config[key];
     }
 
     return val;
@@ -102,6 +103,7 @@ export default class YarnRegistry extends NpmRegistry {
     }
 
     // default yarn config
+    this.configWithoutDefaults = Object.assign({}, this.config);
     this.config = Object.assign({}, DEFAULTS, this.config);
   }
 
