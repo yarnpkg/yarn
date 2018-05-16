@@ -139,8 +139,8 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
   try {
     const red = reporter.format.red('<red>');
     const yellow = reporter.format.yellow('<yellow>');
-    const green = reporter.format.green('<green>');
-    reporter.info(reporter.lang('legendColorsForVersionUpdates', red, yellow, green));
+    const blue = reporter.format.blue('<blue>');
+    reporter.info(reporter.lang('legendColorsForVersionUpdates', red, yellow, blue));
 
     const answers: Array<Dependency> = await reporter.prompt('Choose which packages to update.', choices, {
       name: 'packages',
