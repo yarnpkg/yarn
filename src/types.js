@@ -96,6 +96,7 @@ export type Manifest = {
   _uid: string,
 
   _remote?: ?PackageRemote,
+  _resolved?: string,
 
   dist?: {
     tarball: string,
