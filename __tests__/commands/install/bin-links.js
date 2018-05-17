@@ -7,6 +7,8 @@ jasmine.DEFAULT_TIMEOUT_INTERVAL = 150000;
 const request = require('request');
 const path = require('path');
 const exec = require('child_process').exec;
+const temp = require('temp');
+
 import {runInstall} from '../_helpers.js';
 
 async function linkAt(config, ...relativePath): Promise<string> {
@@ -83,6 +85,17 @@ test('install should respect --no-bin-links flag', (): Promise<void> => {
   return runInstall({binLinks: false}, 'install-nested-bin', async config => {
     const binExists = await fs.exists(path.join(config.cwd, 'node_modules', '.bin'));
     expect(binExists).toBeFalsy();
+  });
+});
+
+test('install should respect --modules-folder flag', (): Promise<void> => {
+  const tempDir = temp.mkdirSync('custom-modules-folder');
+  return runInstall({modulesFolder: tempDir}, 'install-nested-bin', async config => {
+    const binDefaultExists = await fs.exists(path.join(config.cwd, 'node_modules', '.bin'));
+    expect(binDefaultExists).toBeFalsy();
+    const binExists = await fs.exists(path.join(tempDir, '.bin'));
+    expect(binExists).toBeTruthy();
+    await fs.unlink(tempDir);
   });
 });
 

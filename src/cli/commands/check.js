@@ -84,12 +84,14 @@ export async function verifyTreeCheck(
   const locationsVisited: Set<string> = new Set();
   while (dependenciesToCheckVersion.length) {
     const dep = dependenciesToCheckVersion.shift();
-    const manifestLoc = path.join(dep.parentCwd, registry.folder, dep.name);
+    const modulesFolder = config.modulesFolder ? config.modulesFolder : path.join(dep.parentCwd, registry.folder)
+    const manifestLoc = path.join(modulesFolder, dep.name);
     if (locationsVisited.has(manifestLoc + `@${dep.version}`)) {
       continue;
     }
     locationsVisited.add(manifestLoc + `@${dep.version}`);
     if (!await fs.exists(manifestLoc)) {
+      console.log(manifestLoc)
       reportError('packageNotInstalled', `${dep.originalKey}`);
       continue;
     }
@@ -115,13 +117,10 @@ export async function verifyTreeCheck(
         while (locations.length >= 0) {
           let possiblePath;
           if (locations.length > 0) {
-            possiblePath = path.join(
-              registry.cwd,
-              registry.folder,
-              locations.join(path.sep + registry.folder + path.sep),
-            );
+            const subModulesFolder = config.modulesFolder ? config.modulesFolder : path.join(registry.cwd, registry.folder)
+            possiblePath = path.join( subModulesFolder, locations.join(path.sep + registry.folder + path.sep));
           } else {
-            possiblePath = registry.cwd;
+            possiblePath =  registry.cwd;
           }
           if (await fs.exists(path.join(possiblePath, registry.folder, subdep))) {
             dependenciesToCheckVersion.push({
@@ -139,6 +138,7 @@ export async function verifyTreeCheck(
           locations.pop();
         }
         if (!found) {
+          console.log(subDepPath)
           reportError('packageNotInstalled', `${dep.originalKey}#${subdep}`);
         }
       }

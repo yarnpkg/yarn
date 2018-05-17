@@ -27,8 +27,14 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
   const binCommands = [];
   const visitedBinFolders = new Set();
   let pkgCommands = [];
+  const binFolders = []
   for (const registry of Object.keys(registries)) {
-    const binFolder = path.join(config.cwd, config.registries[registry].folder, '.bin');
+    binFolders.push(path.join(config.cwd, config.registries[registry].folder, '.bin'));
+  }
+  if (config.modulesFolder) {
+    binFolders.push(path.join(config.modulesFolder, '.bin'))
+  }
+  for (const binFolder of binFolders) {
     if (!visitedBinFolders.has(binFolder)) {
       if (await fs.exists(binFolder)) {
         for (const name of await fs.readdir(binFolder)) {
