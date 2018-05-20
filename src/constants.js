@@ -88,6 +88,8 @@ export const TARBALL_FILENAME = '.yarn-tarball.tgz';
 export const CLEAN_FILENAME = '.yarnclean';
 export const ACCESS_FILENAME = '.yarn-access';
 
+export const NPM_LOCK_FILENAME = 'package-lock.json';
+
 export const DEFAULT_INDENT = '  ';
 export const SINGLE_INSTANCE_PORT = 31997;
 export const SINGLE_INSTANCE_FILENAME = '.yarn-single-instance';

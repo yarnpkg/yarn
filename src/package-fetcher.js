@@ -1,6 +1,6 @@
 /* @flow */
 
-import type {FetchedMetadata, Manifest} from './types.js';
+import type {FetchedMetadata, Manifest, PackageRemote} from './types.js';
 import type {Fetchers} from './fetchers/index.js';
 import type PackageReference from './package-reference.js';
 import type Config from './config.js';
@@ -20,10 +20,13 @@ async function fetchCache(dest: string, fetcher: Fetchers, config: Config): Prom
   };
 }
 
-async function fetchOne(ref: PackageReference, config: Config): Promise<FetchedMetadata> {
-  const dest = config.generateHardModulePath(ref);
-
-  const remote = ref.remote;
+export async function fetchOneRemote(
+  remote: PackageRemote,
+  name: string,
+  version: string,
+  dest: string,
+  config: Config,
+): Promise<FetchedMetadata> {
   // Mock metadata for symlinked dependencies
   if (remote.type === 'link') {
     const mockPkg: Manifest = {_uid: '', name: '', version: '0.0.0'};
@@ -45,8 +48,8 @@ async function fetchOne(ref: PackageReference, config: Config): Promise<FetchedM
 
   try {
     return await fetcher.fetch({
-      name: ref.name,
-      version: ref.version,
+      name,
+      version,
     });
   } catch (err) {
     try {
@@ -56,6 +59,12 @@ async function fetchOne(ref: PackageReference, config: Config): Promise<FetchedM
     }
     throw err;
   }
+}
+
+function fetchOne(ref: PackageReference, config: Config): Promise<FetchedMetadata> {
+  const dest = config.generateModuleCachePath(ref);
+
+  return fetchOneRemote(ref.remote, ref.name, ref.version, dest, config);
 }
 
 async function maybeFetchOne(ref: PackageReference, config: Config): Promise<?FetchedMetadata> {
@@ -78,7 +87,7 @@ export function fetch(pkgs: Array<Manifest>, config: Config): Promise<Array<Mani
     if (!ref) {
       return false;
     }
-    const dest = config.generateHardModulePath(ref);
+    const dest = config.generateModuleCachePath(ref);
     const otherPkg = pkgsPerDest.get(dest);
     if (otherPkg) {
       config.reporter.warn(
@@ -120,7 +129,7 @@ export function fetch(pkgs: Array<Manifest>, config: Config): Promise<Array<Mani
               return cache;
             }, {});
           }
-          ref.remote.hash = res.hash;
+          ref.remote.hash = res.hash || ref.remote.hash;
         }
       }
 

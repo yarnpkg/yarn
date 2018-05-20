@@ -33,6 +33,16 @@ test.concurrent('--verify-tree should report wrong version', async (): Promise<v
   expect(thrown).toEqual(true);
 });
 
+test.concurrent('--verify-tree should work from a workspace cwd', async (): Promise<void> => {
+  let thrown = false;
+  try {
+    await runCheck([], {verifyTree: true}, {source: 'verify-tree-workspace-cwd', cwd: '/packages/workspace-1'});
+  } catch (e) {
+    thrown = true;
+  }
+  expect(thrown).toEqual(false);
+});
+
 test.concurrent('--verify-tree should report missing dependency', async (): Promise<void> => {
   let thrown = false;
   try {
