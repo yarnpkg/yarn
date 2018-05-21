@@ -345,6 +345,7 @@ const messages = {
   fetchErrorCorrupt:
     '$0. Mirror tarball appears to be corrupt. You can resolve this by running:\n\n  rm -rf $1\n  yarn install',
   errorExtractingTarball: 'Extracting tar content of $1 failed, the file appears to be corrupt: $0',
+  errorDecompressingGzip: 'Gzip decompression of $1 failed, the file appears to be corrupt: $0',
   updateInstalling: 'Installing $0...',
   hostedGitResolveError: 'Error connecting to repository. Please, check the url.',
   retryOnInternalServerError: 'There appears to be trouble with our server. Retrying...',
