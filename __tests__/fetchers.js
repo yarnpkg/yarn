@@ -302,6 +302,7 @@ test('TarballFetcher.fetch properly stores tarball for scoped package resolved f
 
 test('TarballFetcher.fetch throws on truncated tar data', async () => {
   const dir = await mkdir('tarball-fetcher');
+  const reporter = new Reporter();
   const fetcher = new TarballFetcher(
     dir,
     {
@@ -310,13 +311,14 @@ test('TarballFetcher.fetch throws on truncated tar data', async () => {
       reference: 'file:' + path.join(__dirname, 'fixtures', 'fetchers', 'tarball', 'broken-tar-data.tgz'),
       registry: 'npm',
     },
-    await Config.create(),
+    await Config.create({}, reporter),
   );
-  await expect(fetcher.fetch()).rejects.toThrow();
+  await expect(fetcher.fetch()).rejects.toThrow(new RegExp(reporter.lang('errorExtractingTarball', '.*', '.*')));
 });
 
 test('TarballFetcher.fetch throws on truncated tar header', async () => {
   const dir = await mkdir('tarball-fetcher');
+  const reporter = new Reporter();
   const fetcher = new TarballFetcher(
     dir,
     {
@@ -325,7 +327,7 @@ test('TarballFetcher.fetch throws on truncated tar header', async () => {
       reference: 'file:' + path.join(__dirname, 'fixtures', 'fetchers', 'tarball', 'broken-tar-header.tgz'),
       registry: 'npm',
     },
-    await Config.create(),
+    await Config.create({}, reporter),
   );
-  await expect(fetcher.fetch()).rejects.toThrow();
+  await expect(fetcher.fetch()).rejects.toThrow(new RegExp(reporter.lang('errorExtractingTarball', '.*', '.*')));
 });

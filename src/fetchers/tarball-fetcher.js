@@ -77,6 +77,10 @@ export default class TarballFetcher extends BaseFetcher {
       chown: false, // don't chown. just leave as it is
     });
 
+    untarStream.on('error', err => {
+      reject(new MessageError(this.config.reporter.lang('errorExtractingTarball', err.message, tarballPath)));
+    });
+
     extractorStream
       .pipe(untarStream)
       .on('error', error => {
