@@ -357,7 +357,8 @@ test('install file: protocol with relative paths', (): Promise<void> =>
     expect(await fs.readFile(path.join(config.cwd, 'node_modules', 'root-a', 'index.js'))).toEqual('foobar;\n');
   }));
 
-test('install file: protocol without force retains installed package', (): Promise<void> => runInstall({}, 'install-file-without-cache', async (config, reporter) => {
+test('install file: protocol without force retains installed package', (): Promise<void> =>
+  runInstall({}, 'install-file-without-cache', async (config, reporter) => {
     expect(await fs.readFile(path.join(config.cwd, 'node_modules', 'comp', 'index.js'))).toEqual('foo\n');
 
     await fs.writeFile(path.join(config.cwd, 'comp', 'index.js'), 'bar\n');
@@ -368,7 +369,8 @@ test('install file: protocol without force retains installed package', (): Promi
     expect(await fs.readFile(path.join(config.cwd, 'node_modules', 'comp', 'index.js'))).not.toEqual('bar\n');
   }));
 
-test('install file: protocol with force re-installs local package', (): Promise<void> => runInstall({}, 'install-file-without-cache', async (config, reporter) => {
+test('install file: protocol with force re-installs local package', (): Promise<void> =>
+  runInstall({}, 'install-file-without-cache', async (config, reporter) => {
     expect(await fs.readFile(path.join(config.cwd, 'node_modules', 'comp', 'index.js'))).toEqual('foo\n');
 
     await fs.writeFile(path.join(config.cwd, 'comp', 'index.js'), 'bar\n');
