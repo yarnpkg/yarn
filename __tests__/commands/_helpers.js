@@ -181,6 +181,7 @@ export async function run<T, R>(
   } catch (err) {
     throw new Error(`${err && err.stack} \nConsole output:\n ${out}`);
   } finally {
+    reporter.close();
     await fs.unlink(cwd);
   }
 }

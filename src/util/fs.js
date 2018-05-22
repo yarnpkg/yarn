@@ -677,44 +677,37 @@ export async function find(filename: string, dir: string): Promise<string | fals
 export async function symlink(src: string, dest: string): Promise<void> {
   try {
     const stats = await lstat(dest);
-
-    if (stats.isSymbolicLink() && (await exists(dest))) {
+    if (stats.isSymbolicLink()) {
       const resolved = await realpath(dest);
       if (resolved === src) {
         return;
       }
     }
-
-    await unlink(dest);
   } catch (err) {
     if (err.code !== 'ENOENT') {
       throw err;
     }
   }
+  // We use rimraf for unlink which never throws an ENOENT on missing target
+  await unlink(dest);
 
-  try {
-    if (process.platform === 'win32') {
-      // use directory junctions if possible on win32, this requires absolute paths
-      await fsSymlink(src, dest, 'junction');
-    } else {
-      // use relative paths otherwise which will be retained if the directory is moved
-      let relative;
-      if (await exists(src)) {
-        relative = path.relative(fs.realpathSync(path.dirname(dest)), fs.realpathSync(src));
-      } else {
-        relative = path.relative(path.dirname(dest), src);
+  if (process.platform === 'win32') {
+    // use directory junctions if possible on win32, this requires absolute paths
+    await fsSymlink(src, dest, 'junction');
+  } else {
+    // use relative paths otherwise which will be retained if the directory is moved
+    let relative;
+    try {
+      relative = path.relative(fs.realpathSync(path.dirname(dest)), fs.realpathSync(src));
+    } catch (err) {
+      if (err.code !== 'ENOENT') {
+        throw err;
       }
-      // When path.relative returns an empty string for the current directory, we should instead use
-      // '.', which is a valid fs.symlink target.
-      await fsSymlink(relative || '.', dest);
+      relative = path.relative(path.dirname(dest), src);
     }
-  } catch (err) {
-    if (err.code === 'EEXIST') {
-      // race condition
-      await symlink(src, dest);
-    } else {
-      throw err;
-    }
+    // When path.relative returns an empty string for the current directory, we should instead use
+    // '.', which is a valid fs.symlink target.
+    await fsSymlink(relative || '.', dest);
   }
 }
 
